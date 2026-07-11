@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Brian English · Digital Teaching Studio" />
+    <link rel="icon" type="image/png" href="/brian-english-brand-mark.png" />
+    <title>Brian English · Digital Teaching Studio</title>
+
+
+    <script id="bes-motion-boot">
+      (() => {
+        try {
+          const validMotion = ['lite', 'full', 'off'];
+          const validPerf = ['auto', 'low', 'balanced', 'high'];
+          const storedMotion = localStorage.getItem('bes-motion-mode');
+          const storedPerf = localStorage.getItem('bes-performance-mode');
+          const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+          const mobile = window.matchMedia?.('(max-width: 900px)').matches;
+          const memory = Number(navigator.deviceMemory || 0);
+          const cores = Number(navigator.hardwareConcurrency || 0);
+          const autoPerf = reduce || (mobile && ((memory && memory <= 4) || (cores && cores <= 4))) ? 'low' : 'balanced';
+          const perf = validPerf.includes(storedPerf) && storedPerf !== 'auto' ? storedPerf : autoPerf;
+          const chosenMotion = validMotion.includes(storedMotion) ? storedMotion : 'lite';
+          const motion = reduce || perf === 'low' ? (chosenMotion === 'full' ? 'lite' : chosenMotion) : chosenMotion;
+          document.documentElement.dataset.motion = motion;
+          document.documentElement.dataset.performance = perf;
+        } catch {
+          document.documentElement.dataset.motion = 'lite';
+          document.documentElement.dataset.performance = 'balanced';
+        }
+      })();
+    </script>
+    <style id="brian-personal-font-boot">
+      @font-face{font-family:BrianGesco;src:url('/fonts/BrianGesco.ttf') format('truetype'),url('/fonts/1FTV-HF-Gesco-id0oy5.ttf') format('truetype');font-weight:100 900;font-style:normal;font-display:swap;}
+      html,body,#root{font-family:BrianGesco,Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important;}
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

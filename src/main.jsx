@@ -1,0 +1,471 @@
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
+import { getAppDesignProfile } from './data/designProfiles.js';
+import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
+import Footer from './components/Footer.jsx';
+import PermissionRequestButton from './components/PermissionRequestButton.jsx';
+import { initializeAuthSession, logoutUser, subscribeToAuthChanges } from './utils/auth.js';
+import { getActiveAiConfig, getAiConfigs, getAiProvider, getProviderSummary, setAiStorageUser } from './utils/aiProviders.js';
+import { getFirstAllowedRoute, getRoutePermissionId, getPermissionItem, hasRouteAccess } from './utils/permissions.js';
+import { installStoredPersonalFont, waitForPersonalFontLoad } from './utils/personalFont.js';
+import { applyPerformanceAttributes, getStoredMotionMode, getStoredPerformanceMode, resolveMotionMode, resolvePerformanceMode } from './utils/performanceProfile.js';
+import { setLibraryStorageUser } from './utils/library.js';
+
+installStoredPersonalFont();
+waitForPersonalFontLoad();
+
+const Home = lazy(() => import('./pages/Home.jsx'));
+const WebApps = lazy(() => import('./pages/WebApps.jsx'));
+const Games = lazy(() => import('./pages/Games.jsx'));
+const SpecialTools = lazy(() => import('./pages/SpecialTools.jsx'));
+const Resources = lazy(() => import('./pages/Resources.jsx'));
+const Contact = lazy(() => import('./pages/Contact.jsx'));
+const ToolPage = lazy(() => import('./pages/ToolPage.jsx'));
+const Settings = lazy(() => import('./pages/Settings.jsx'));
+const Library = lazy(() => import('./pages/Library.jsx'));
+const ResourceLibrary = lazy(() => import('./pages/ResourceLibrary.jsx'));
+const StudentPractice = lazy(() => import('./pages/StudentPractice.jsx'));
+const QAHealthCheck = lazy(() => import('./pages/QAHealthCheck.jsx'));
+const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
+const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
+const SupabaseSetup = lazy(() => import('./pages/SupabaseSetup.jsx'));
+const DepartmentWorkspace = lazy(() => import('./pages/DepartmentWorkspace.jsx'));
+const HomeroomWorkspace = lazy(() => import('./pages/HomeroomWorkspace.jsx'));
+const HomeroomPortal = lazy(() => import('./pages/HomeroomPortal.jsx'));
+const FullMotionEffects = lazy(() => import('./components/FullMotionEffects.jsx')); // clean Metro motion layer
+const GlobalMusicPlayer = lazy(() => import('./components/GlobalMusicPlayer.jsx'));
+const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
+const UniversalAIAssist = lazy(() => import('./components/UniversalAIAssist.jsx'));
+const GlobalAIIndicator = lazy(() => import('./components/GlobalAIIndicator.jsx'));
+
+const ROUTES = ['home', 'apps', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'practice', 'qa', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
+const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
+
+function getInitialRoute() {
+  const href = window.location.href || '';
+  const cleanHash = window.location.hash.replace('#/', '').replace('#', '').trim();
+  if (href.includes('type=recovery') || href.includes('recovery=1')) return 'login';
+  const routeOnly = cleanHash.split('?')[0].split('&')[0];
+  return routeOnly || 'home';
+}
+
+
+const ROUTE_DESIGN_PROFILES = {
+  home: { accent: '#FFC69D', soft: '#FFF1E2', ink: '#171312' },
+  apps: { accent: '#F05A7E', soft: '#FFE1EA', ink: '#2F111A' },
+  games: { accent: '#5B2A86', soft: '#E9DAFF', ink: '#20102F' },
+  department: { accent: '#3B4CCA', soft: '#E0E4FF', ink: '#12183B' },
+  homeroom: { accent: '#1F8F70', soft: '#DDF7ED', ink: '#0B382B' },
+  'homeroom-portal': { accent: '#1F8F70', soft: '#DDF7ED', ink: '#0B382B' },
+  library: { accent: '#6FBA7B', soft: '#E4F6E6', ink: '#17351D' },
+  'resource-library': { accent: '#2878D0', soft: '#E7F2FF', ink: '#0D2947' },
+  practice: { accent: '#00A4EF', soft: '#DCF4FF', ink: '#063048' },
+  admin: { accent: '#D13438', soft: '#FFE1E3', ink: '#351014' },
+  settings: { accent: '#123C69', soft: '#DCEBFA', ink: '#07192C' },
+  resources: { accent: '#D99A1E', soft: '#FFF0C8', ink: '#392406' },
+  contact: { accent: '#00A6A6', soft: '#D8FAFA', ink: '#073434' },
+  qa: { accent: '#123C69', soft: '#DCEBFA', ink: '#07192C' },
+  tools: { accent: '#E86D1F', soft: '#FFE3CD', ink: '#211510' },
+  login: { accent: '#191515', soft: '#F3DFD8', ink: '#191515' },
+  register: { accent: '#00A6A6', soft: '#D8FAFA', ink: '#073434' },
+  setup: { accent: '#2E9E5D', soft: '#DDF6E6', ink: '#0F2D1C' },
+};
+
+function getActiveDesignProfile(currentRoute, selectedTool) {
+  if (currentRoute === 'tool' && selectedTool?.slug) return getAppDesignProfile(selectedTool.slug);
+  return ROUTE_DESIGN_PROFILES[currentRoute] || ROUTE_DESIGN_PROFILES.home;
+}
+
+function normalizeMetroIntensity(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (raw === ['vi', 'vid'].join('')) return 'strong';
+  if (raw === ['ne', 'on'].join('')) return 'bold';
+  return ['soft', 'balanced', 'strong', 'bold'].includes(raw) ? raw : 'balanced';
+}
+
+function App() {
+  const [route, setRoute] = useState(getInitialRoute);
+  const [language, setLanguage] = useState(() => localStorage.getItem('bet-language') || 'vi');
+  const [theme, setTheme] = useState(() => localStorage.getItem('bet-theme') || 'light');
+  const [apiKey, setApiKey] = useState(() => getActiveAiConfig().apiKey || '');
+  const [aiModel, setAiModel] = useState(() => getActiveAiConfig().model || 'gemini-flash-latest');
+  const [aiProvider, setAiProviderState] = useState(() => getAiProvider());
+  const [providerConfigs, setProviderConfigs] = useState(() => getAiConfigs());
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [loadingState, setLoadingState] = useState({ active: false, label: '' });
+  const [aiOperationState, setAiOperationState] = useState({ active: false, label: '', provider: '' });
+  const aiOperationIdsRef = useRef(new Set());
+  const aiIndicatorHideTimerRef = useRef(null);
+  const languageRef = useRef(language);
+  const [fontScale, setFontScale] = useState(() => {
+    const saved = Number(localStorage.getItem('bes-font-scale') || 100);
+    return [100, 110, 120, 130].includes(saved) ? saved : 100;
+  });
+  const [tileLaunch, setTileLaunch] = useState(null);
+  const [motionMode, setMotionMode] = useState(getStoredMotionMode);
+  const [performanceMode, setPerformanceMode] = useState(getStoredPerformanceMode);
+  const [themeIntensity, setThemeIntensityState] = useState(() => normalizeMetroIntensity(localStorage.getItem('bes-theme-intensity') || 'balanced'));
+  const setThemeIntensity = (value) => setThemeIntensityState(normalizeMetroIntensity(value));
+  const [tileBorder, setTileBorder] = useState(() => localStorage.getItem('bes-tile-border') || 'soft');
+  const [indicatorMode, setIndicatorMode] = useState(() => localStorage.getItem('bes-windows-indicator') || 'on');
+  const resolvedPerformance = resolvePerformanceMode(performanceMode);
+  const effectiveMotionMode = resolveMotionMode(motionMode, performanceMode);
+
+  useEffect(() => {
+    let alive = true;
+    const onHashChange = () => setRoute(getInitialRoute());
+    window.addEventListener('hashchange', onHashChange);
+
+    initializeAuthSession().then((user) => {
+      if (!alive) return;
+      setCurrentUser(user);
+      setAuthReady(true);
+    });
+
+    const unsubscribe = subscribeToAuthChanges((user) => {
+      if (!alive) return;
+      setCurrentUser(user);
+      setAuthReady(true);
+    });
+
+    return () => {
+      alive = false;
+      window.removeEventListener('hashchange', onHashChange);
+      unsubscribe?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    const onTileLaunch = (event) => {
+      const detail = event.detail || {};
+      setTileLaunch({ id: window.performance?.now?.() || Date.now(), color: detail.color || 'var(--blue)', label: detail.label || 'BR', rect: detail.rect || null });
+      window.clearTimeout(window.__besTileLaunchTimer);
+      window.__besTileLaunchTimer = window.setTimeout(() => setTileLaunch(null), Number(detail.duration) || 520);
+    };
+    window.addEventListener('bes-tile-launch', onTileLaunch);
+    return () => {
+      window.removeEventListener('bes-tile-launch', onTileLaunch);
+      window.clearTimeout(window.__besTileLaunchTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    const onAiSettings = () => {
+      const active = getActiveAiConfig();
+      setAiProviderState(getAiProvider());
+      setProviderConfigs(getAiConfigs());
+      setApiKey(active.apiKey || '');
+      setAiModel(active.model || active.providerInfo?.defaultModel || 'gemini-flash-latest');
+    };
+    window.addEventListener('bes-ai-settings-updated', onAiSettings);
+    return () => window.removeEventListener('bes-ai-settings-updated', onAiSettings);
+  }, []);
+
+
+  useEffect(() => {
+    const defaultLabel = () => languageRef.current === 'vi' ? 'AI đang xử lý nội dung...' : 'AI is processing your content...';
+    const onStart = (event) => {
+      const detail = event.detail || {};
+      const id = detail.id || `ai-${Date.now()}`;
+      window.clearTimeout(aiIndicatorHideTimerRef.current);
+      aiOperationIdsRef.current.add(id);
+      setAiOperationState({
+        active: true,
+        label: detail.label || defaultLabel(),
+        provider: detail.provider || '',
+      });
+    };
+    const onUpdate = (event) => {
+      const detail = event.detail || {};
+      if (!aiOperationIdsRef.current.size) return;
+      setAiOperationState((current) => ({
+        ...current,
+        active: true,
+        label: detail.label || current.label || defaultLabel(),
+        provider: detail.provider || current.provider || '',
+      }));
+    };
+    const onEnd = (event) => {
+      const detail = event.detail || {};
+      if (detail.id) aiOperationIdsRef.current.delete(detail.id);
+      else aiOperationIdsRef.current.clear();
+      if (aiOperationIdsRef.current.size > 0) return;
+      window.clearTimeout(aiIndicatorHideTimerRef.current);
+      aiIndicatorHideTimerRef.current = window.setTimeout(() => {
+        setAiOperationState({ active: false, label: '', provider: '' });
+      }, 320);
+    };
+    window.addEventListener('bes-ai-operation-start', onStart);
+    window.addEventListener('bes-ai-operation-update', onUpdate);
+    window.addEventListener('bes-ai-operation-end', onEnd);
+    return () => {
+      window.removeEventListener('bes-ai-operation-start', onStart);
+      window.removeEventListener('bes-ai-operation-update', onUpdate);
+      window.removeEventListener('bes-ai-operation-end', onEnd);
+      window.clearTimeout(aiIndicatorHideTimerRef.current);
+      aiOperationIdsRef.current.clear();
+    };
+  }, []);
+
+  useEffect(() => {
+    setAiStorageUser(currentUser);
+    setLibraryStorageUser(currentUser);
+    const active = getActiveAiConfig();
+    setAiProviderState(getAiProvider());
+    setProviderConfigs(getAiConfigs());
+    setApiKey(active.apiKey || '');
+    setAiModel(active.model || active.providerInfo?.defaultModel || 'gemini-flash-latest');
+  }, [currentUser?.id, currentUser?.email]);
+
+  useEffect(() => {
+    languageRef.current = language;
+    document.title = language === 'vi' ? 'Brian English · Hệ thống dạy học số' : 'Brian English · Digital Teaching Studio';
+    document.documentElement.lang = language === 'vi' ? 'vi' : 'en';
+    document.documentElement.dataset.language = language;
+  }, [language]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('bet-theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.dataset.fontScale = String(fontScale);
+    document.documentElement.style.fontSize = `${fontScale}%`;
+    try { localStorage.setItem('bes-font-scale', String(fontScale)); } catch { /* ignore */ }
+  }, [fontScale]);
+
+  useEffect(() => {
+    document.documentElement.dataset.themeIntensity = themeIntensity;
+    document.documentElement.dataset.tileBorder = tileBorder;
+    document.documentElement.dataset.windowsIndicator = indicatorMode;
+    try {
+      localStorage.setItem('bes-theme-intensity', themeIntensity);
+      localStorage.setItem('bes-tile-border', tileBorder);
+      localStorage.setItem('bes-windows-indicator', indicatorMode);
+    } catch { /* ignore */ }
+  }, [themeIntensity, tileBorder, indicatorMode]);
+  useEffect(() => { localStorage.setItem('bet-language', language); }, [language]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('bes-motion-mode', motionMode);
+      localStorage.setItem('bes-performance-mode', performanceMode);
+    } catch { /* ignore */ }
+    applyPerformanceAttributes({ motionMode, performanceMode });
+  }, [motionMode, performanceMode]);
+
+
+  const allTools = useMemo(() => [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS], []);
+  const toolSlug = route.startsWith('tool/') ? route.replace('tool/', '') : '';
+  const selectedTool = allTools.find((item) => item.slug === toolSlug);
+  const currentRoute = ROUTES.includes(route) ? route : selectedTool ? 'tool' : 'home';
+  const accessibleApps = APPS;
+  const accessibleGames = GAME_APPS;
+  const accessibleTools = SPECIAL_TOOLS;
+
+  const requiresAuth = currentRoute === 'tool' || !PUBLIC_ROUTES.has(currentRoute);
+  const canAccessRoute = !requiresAuth || hasRouteAccess(currentUser, currentRoute, selectedTool);
+  useEffect(() => {
+    if (authReady && requiresAuth && !currentUser) {
+      window.location.hash = '#/login';
+    }
+  }, [authReady, requiresAuth, currentUser]);
+
+  useEffect(() => {
+    if (authReady && currentUser && ['login', 'register'].includes(currentRoute)) {
+      window.location.hash = `#/${getFirstAllowedRoute(currentUser)}`;
+    }
+  }, [authReady, currentUser, currentRoute]);
+
+  const setGlobalLoading = (active, label = '') => setLoadingState({ active, label: label || (language === 'vi' ? 'Đang tải...' : 'Loading...') });
+
+  const context = {
+    language,
+    setLanguage,
+    theme,
+    setTheme,
+    apiKey,
+    setApiKey,
+    aiModel,
+    setAiModel,
+    aiProvider,
+    setAiProviderState,
+    providerConfigs,
+    setProviderConfigs,
+    aiSummary: getProviderSummary(),
+    hasApiKey: getProviderSummary().hasKey || apiKey.trim().length > 8,
+    currentUser,
+    authReady,
+    setCurrentUser,
+    setGlobalLoading,
+    motionMode,
+    setMotionMode,
+    effectiveMotionMode,
+    performanceMode,
+    setPerformanceMode,
+    resolvedPerformance,
+    themeIntensity,
+    setThemeIntensity,
+    tileBorder,
+    setTileBorder,
+    indicatorMode,
+    setIndicatorMode,
+    fontScale,
+    setFontScale,
+  };
+
+  const activeDesignProfile = getActiveDesignProfile(currentRoute, selectedTool);
+
+  const tileLaunchRect = tileLaunch
+    ? (tileLaunch.rect || { x: window.innerWidth / 2 - 90, y: window.innerHeight / 2 - 70, w: 180, h: 140 })
+    : null;
+
+  return (
+    <div
+      className="app-shell metro-shell metro-clean-system"
+      data-route={currentRoute}
+      data-tool={selectedTool?.slug || currentRoute}
+      data-performance={resolvedPerformance}
+      data-motion={effectiveMotionMode}
+      data-intensity={themeIntensity}
+      data-tile-border={tileBorder}
+      data-windows-indicator={indicatorMode}
+      style={{
+        '--active-app-accent': activeDesignProfile.accent,
+        '--active-app-soft': activeDesignProfile.soft,
+        '--active-app-ink': activeDesignProfile.ink,
+      }}
+    >
+      {currentRoute !== 'homeroom-portal' ? <div className="bes-top-chrome">
+        <Suspense fallback={null}>
+          <StatusMenuBar route={currentRoute} {...context} />
+        </Suspense>
+        <GlobalFlatNavigation route={currentRoute} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
+      </div> : null}
+      {tileLaunch ? (
+        <div
+          key={tileLaunch.id}
+          className="tile-launch-layer"
+          style={{
+            '--tile-launch-color': tileLaunch.color,
+            '--tile-launch-x': `${tileLaunchRect.x}px`,
+            '--tile-launch-y': `${tileLaunchRect.y}px`,
+            '--tile-launch-w': `${tileLaunchRect.w}px`,
+            '--tile-launch-h': `${tileLaunchRect.h}px`,
+            '--tile-launch-dx': `${-tileLaunchRect.x}px`,
+            '--tile-launch-dy': `${-tileLaunchRect.y}px`,
+            '--tile-launch-sx': `${window.innerWidth / Math.max(tileLaunchRect.w, 1)}`,
+            '--tile-launch-sy': `${window.innerHeight / Math.max(tileLaunchRect.h, 1)}`,
+          }}
+          aria-hidden="true"
+        >
+          <div className="tile-launch-backdrop" />
+          <div className="tile-launch-card"><span className="tile-launch-label">{tileLaunch.label}</span></div>
+        </div>
+      ) : null}
+
+      <Suspense fallback={null}>
+        <GlobalAIIndicator
+          active={aiOperationState.active}
+          language={language}
+          label={aiOperationState.label}
+          provider={aiOperationState.provider}
+        />
+      </Suspense>
+
+      {effectiveMotionMode === 'full' && (
+        <Suspense fallback={null}>
+          <FullMotionEffects route={currentRoute} language={language} loadingState={loadingState} />
+        </Suspense>
+      )}
+      <main key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute}>
+        <Suspense fallback={<RouteFallback language={language} />}>
+          {currentRoute === 'home' && <Home {...context} />}
+          {requiresAuth && currentUser && !canAccessRoute && <AccessDenied language={language} currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} />}
+          {canAccessRoute && currentRoute === 'apps' && currentUser && <WebApps apps={accessibleApps} {...context} />}
+          {canAccessRoute && currentRoute === 'games' && currentUser && <Games games={accessibleGames} {...context} />}
+          {canAccessRoute && currentRoute === 'tools' && currentUser && <SpecialTools tools={accessibleTools} {...context} />}
+          {canAccessRoute && currentRoute === 'department' && currentUser && <DepartmentWorkspace {...context} />}
+          {canAccessRoute && currentRoute === 'homeroom' && currentUser && <HomeroomWorkspace {...context} />}
+          {currentRoute === 'homeroom-portal' && <HomeroomPortal {...context} />}
+          {currentRoute === 'resources' && <Resources items={RESOURCE_ITEMS} {...context} />}
+          {canAccessRoute && currentRoute === 'library' && currentUser && <Library {...context} />}
+          {canAccessRoute && currentRoute === 'resource-library' && currentUser && <ResourceLibrary {...context} />}
+          {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
+          {canAccessRoute && currentRoute === 'qa' && currentUser && <QAHealthCheck {...context} />}
+          {currentRoute === 'contact' && <Contact {...context} />}
+          {canAccessRoute && currentRoute === 'settings' && currentUser && <Settings {...context} />}
+          {currentRoute === 'login' && <AuthPage mode="login" onLogin={(u) => { setCurrentUser(u); window.location.hash = `#/${getFirstAllowedRoute(u)}`; }} {...context} />}
+          {currentRoute === 'register' && <AuthPage mode="register" onLogin={(u) => { if (u) { setCurrentUser(u); window.location.hash = `#/${getFirstAllowedRoute(u)}`; } }} {...context} />}
+          {canAccessRoute && currentRoute === 'admin' && currentUser && <AdminPage {...context} />}
+          {currentRoute === 'setup' && <SupabaseSetup {...context} />}
+          {canAccessRoute && currentRoute === 'tool' && currentUser && <ToolPage tool={selectedTool} {...context} />}
+        </Suspense>
+      </main>
+
+      {currentUser && canAccessRoute && currentRoute !== 'home' && !['login', 'register'].includes(currentRoute) && (
+        <Suspense fallback={null}>
+          <UniversalAIAssist
+            language={language}
+            currentRoute={currentRoute}
+            selectedTool={selectedTool}
+            apiKey={apiKey}
+            aiModel={aiModel}
+            hasApiKey={context.hasApiKey}
+          />
+        </Suspense>
+      )}
+
+      {currentRoute !== 'homeroom-portal' ? <>
+        <Suspense fallback={null}>
+          <GlobalMusicPlayer language={language} currentUser={currentUser} />
+        </Suspense>
+        <Footer language={language} currentUser={currentUser} />
+      </> : null}
+    </div>
+  );
+}
+
+function RouteFallback({ language }) {
+  return (
+    <div className="page narrow">
+      <section className="metro-panel empty-state">
+        <h1>{language === 'vi' ? 'Đang mở trang...' : 'Opening page...'}</h1>
+      </section>
+    </div>
+  );
+}
+
+function AccessDenied({ language, currentUser, route, selectedTool }) {
+  const fallback = getFirstAllowedRoute(currentUser);
+  const permissionId = route === 'tool' && selectedTool?.slug ? `tool:${selectedTool.slug}` : getRoutePermissionId(route);
+  const requestItem = selectedTool || getPermissionItem(permissionId);
+  return (
+    <div className="page narrow">
+      <section className="metro-panel empty-state">
+        <h1>{language === 'vi' ? 'Chưa được cấp quyền' : 'Permission required'}</h1>
+        <p>{language === 'vi' ? 'Tài khoản của bạn chưa được admin cấp quyền truy cập mục này.' : 'Your account has not been granted access to this area by an admin.'}</p>
+        <div className="access-denied-actions">
+          {permissionId ? (
+            <PermissionRequestButton
+              currentUser={currentUser}
+              permissionId={permissionId}
+              item={requestItem}
+              language={language}
+              className="secondary request-access-btn"
+            />
+          ) : null}
+          <button className="primary" onClick={() => (window.location.hash = `#/${fallback}`)}>
+            {language === 'vi' ? 'Về mục được cấp quyền' : 'Go to allowed area'}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+createRoot(document.getElementById('root')).render(<App />);

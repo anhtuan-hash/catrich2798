@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+__MACOSX
+.DS_Store
+.env
+.env.local
+*.zip
+*.log
