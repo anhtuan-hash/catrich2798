@@ -3,20 +3,33 @@ import {
   getMyPermissionRequests,
   getPermissionRequests,
   PERMISSION_REQUESTS_EVENT,
+  requestPermission,
+  updatePermissionRequestStatus,
 } from '../utils/permissionRequests.js';
 import {
   getAccountYouTubeApiKey,
+  getUsers,
   readLocalAccountYouTubeApiKey,
   saveAccountYouTubeApiKey,
+  updateUserPermissions,
 } from '../utils/auth.js';
 import {
+  createDepartmentSubmission,
   DEPARTMENT_SNAPSHOT_EVENT,
   DEPARTMENT_SUBMISSION_REQUESTS_EVENT,
   DEPARTMENT_SUBMISSIONS_EVENT,
   listDepartmentSubmissionRequests,
   listDepartmentSubmissions,
   loadDepartmentSnapshot,
+  reviewDepartmentSubmission,
+  updateDepartmentSubmissionRequestStatus,
 } from '../utils/departmentStore.js';
+import {
+  createCustomPermissions,
+  getAllowedIdsFromPermissions,
+  getPermissionItem,
+  normalizePermissions,
+} from '../utils/permissions.js';
 
 const SCHOOL_YEAR = '2026-2027';
 
@@ -73,6 +86,22 @@ const routeLabels = {
     permissionRejected: 'Yêu cầu quyền đã bị từ chối',
     pendingSubmission: 'Hồ sơ tổ viên chờ duyệt',
     departmentRequest: 'TTCM yêu cầu nộp hồ sơ',
+    interactHint: 'Nhấn thẻ để mở thao tác trực tiếp',
+    details: 'Chi tiết',
+    markRead: 'Đã đọc',
+    openRelated: 'Mở trang liên quan',
+    approve: 'Duyệt',
+    reject: 'Từ chối',
+    requestChanges: 'Cần chỉnh sửa',
+    retryPermission: 'Xin lại quyền',
+    submitNow: 'Nộp ngay',
+    closeRequest: 'Đóng yêu cầu',
+    viewAttachment: 'Xem tệp',
+    reviewNote: 'Ghi chú duyệt hoặc nội dung cần chỉnh sửa…',
+    submissionTitle: 'Tên hồ sơ nộp',
+    submissionNote: 'Ghi chú cho TTCM…',
+    attachment: 'Tệp đính kèm',
+    sending: 'Đang xử lý…',
   },
   en: {
     home: 'Home',
@@ -126,6 +155,22 @@ const routeLabels = {
     permissionRejected: 'Access rejected',
     pendingSubmission: 'Teacher submission pending review',
     departmentRequest: 'Department submission request',
+    interactHint: 'Select a card to reveal direct actions',
+    details: 'Details',
+    markRead: 'Mark read',
+    openRelated: 'Open related page',
+    approve: 'Approve',
+    reject: 'Reject',
+    requestChanges: 'Request changes',
+    retryPermission: 'Request again',
+    submitNow: 'Submit now',
+    closeRequest: 'Close request',
+    viewAttachment: 'View file',
+    reviewNote: 'Approval note or requested changes…',
+    submissionTitle: 'Submission title',
+    submissionNote: 'Note for the department leader…',
+    attachment: 'Attachment',
+    sending: 'Working…',
   },
 };
 
@@ -345,6 +390,18 @@ function sortNotifications(a, b) {
   return new Date(b.date || b.createdAt || 0).getTime() - new Date(a.date || a.createdAt || 0).getTime();
 }
 
+function permissionTargetRoute(permissionId) {
+  const id = String(permissionId || '');
+  if (id.startsWith('tool:')) return `tool/${id.slice(5)}`;
+  if (id.startsWith('route:')) return id.slice(6);
+  if (id.startsWith('section:')) return id.slice(8);
+  const item = getPermissionItem(id);
+  if (item?.route) return item.route;
+  if (item?.slug) return `tool/${item.slug}`;
+  if (['apps', 'games', 'tools', 'department', 'library', 'resource-library', 'practice', 'qa', 'settings'].includes(item?.section)) return item.section;
+  return 'apps';
+}
+
 async function buildNotificationList({ currentUser, language, isAdmin }) {
   const t = routeLabels[language] || routeLabels.vi;
   const notifications = [];
@@ -358,6 +415,7 @@ async function buildNotificationList({ currentUser, language, isAdmin }) {
         .slice(0, 25)
         .forEach((item) => notifications.push({
           id: `permission-admin:${item.id}`,
+          kind: 'permission-admin',
           source: 'permission',
           sourceLabel: t.permissionSource,
           icon: '🔐',
@@ -367,6 +425,13 @@ async function buildNotificationList({ currentUser, language, isAdmin }) {
           meta: formatDate(item.created_at || item.updated_at, language),
           date: item.created_at || item.updated_at,
           target: 'admin',
+          requestId: item.id,
+          requesterId: item.requester_id,
+          requesterName: item.requester_name || '',
+          requesterEmail: item.requester_email || '',
+          permissionId: item.permission_id,
+          itemTitle: item.item_title || item.permission_id,
+          message: item.message || '',
         }));
     } else {
       const mine = await getMyPermissionRequests(currentUser.id);
@@ -375,6 +440,7 @@ async function buildNotificationList({ currentUser, language, isAdmin }) {
         .slice(0, 20)
         .forEach((item) => notifications.push({
           id: `permission-user:${item.id}:${item.status}`,
+          kind: 'permission-user',
           source: 'permission',
           sourceLabel: t.permissionSource,
           icon: item.status === 'approved' ? '✅' : '⛔',
@@ -383,7 +449,12 @@ async function buildNotificationList({ currentUser, language, isAdmin }) {
           body: item.item_title || item.permission_id,
           meta: formatDate(item.updated_at || item.created_at, language),
           date: item.updated_at || item.created_at,
-          target: item.status === 'approved' ? 'apps' : 'settings',
+          target: item.status === 'approved' ? permissionTargetRoute(item.permission_id) : 'settings',
+          requestId: item.id,
+          permissionId: item.permission_id,
+          itemTitle: item.item_title || item.permission_id,
+          requestStatus: item.status,
+          message: item.message || '',
         }));
     }
   } catch {
@@ -399,6 +470,7 @@ async function buildNotificationList({ currentUser, language, isAdmin }) {
         .slice(0, 25)
         .forEach((request) => notifications.push({
           id: `department-request:${request.id}`,
+          kind: 'department-request',
           source: 'department',
           sourceLabel: t.departmentSource,
           icon: '🏫',
@@ -408,6 +480,14 @@ async function buildNotificationList({ currentUser, language, isAdmin }) {
           meta: request.due_date ? `${t.due}: ${formatDate(request.due_date, language)}` : formatDate(request.created_at || request.updated_at, language),
           date: request.created_at || request.updated_at || request.due_date,
           target: 'department',
+          requestId: request.id,
+          requestTitle: request.title || request.category || 'Department request',
+          category: request.category || '',
+          description: request.description || '',
+          dueDate: request.due_date || '',
+          semester: request.semester || '',
+          fileName: request.file_name || '',
+          fileUrl: request.file_signed_url || '',
         }));
     }
   } catch {
@@ -433,6 +513,7 @@ async function buildNotificationList({ currentUser, language, isAdmin }) {
         seenSchedules.add(id);
         notifications.push({
           id,
+          kind: 'department-schedule',
           source: 'department',
           sourceLabel: t.departmentSource,
           icon: '📅',
@@ -442,6 +523,7 @@ async function buildNotificationList({ currentUser, language, isAdmin }) {
           meta: formatScheduleDate(item, language),
           date: date.toISOString(),
           target: 'department',
+          scheduleItem: item,
         });
       });
   } catch {
@@ -457,6 +539,7 @@ async function buildNotificationList({ currentUser, language, isAdmin }) {
           .slice(0, 25)
           .forEach((submission) => notifications.push({
             id: `department-submission:${submission.id}`,
+            kind: 'department-submission',
             source: 'department',
             sourceLabel: t.departmentSource,
             icon: '📄',
@@ -466,6 +549,16 @@ async function buildNotificationList({ currentUser, language, isAdmin }) {
             meta: formatDate(submission.created_at || submission.updated_at, language),
             date: submission.created_at || submission.updated_at,
             target: 'department',
+            submissionId: submission.id,
+            submissionTitle: submission.title || submission.request_title || submission.category || '',
+            requestTitle: submission.request_title || '',
+            category: submission.category || submission.request_category || '',
+            submitterName: submission.submitter_name || '',
+            submitterEmail: submission.submitter_email || '',
+            note: submission.note || '',
+            link: submission.link || '',
+            fileName: submission.file_name || '',
+            fileUrl: submission.file_signed_url || '',
           }));
       }
     } catch {
@@ -641,6 +734,10 @@ export default function StatusMenuBar({
   const [dismissedIds, setDismissedIds] = useState(() => readDismissed(currentUser));
   const [loading, setLoading] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
+  const [expandedNotificationId, setExpandedNotificationId] = useState('');
+  const [notificationActionBusy, setNotificationActionBusy] = useState('');
+  const [notificationDrafts, setNotificationDrafts] = useState({});
+  const [panelFeedback, setPanelFeedback] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(() => readBooleanSetting('bes-global-notice-sound', true));
   const [liveSyncEnabled, setLiveSyncEnabled] = useState(() => readBooleanSetting('bes-global-notice-live-sync', true));
   const [musicEnabled, setMusicEnabled] = useState(() => readGlobalMusicEnabled(currentUser));
@@ -804,9 +901,169 @@ export default function StatusMenuBar({
     setDismissedIds(next);
   };
 
-  const openNotification = (item) => {
+  const markNotificationRead = (item) => {
+    setDismissedIds((current) => {
+      const next = new Set(current);
+      next.add(item.id);
+      saveDismissed(currentUser, next);
+      return next;
+    });
+    if (expandedNotificationId === item.id) setExpandedNotificationId('');
+  };
+
+  const updateNotificationDraft = (id, patch) => {
+    setNotificationDrafts((current) => ({
+      ...current,
+      [id]: { ...(current[id] || {}), ...patch },
+    }));
+  };
+
+  const showPanelFeedback = (tone, text) => {
+    setPanelFeedback({ tone, text });
+    window.setTimeout(() => {
+      setPanelFeedback((current) => (current?.text === text ? null : current));
+    }, 4500);
+  };
+
+  const refreshNotificationData = () => setRefreshTick((value) => value + 1);
+
+  const openNotificationPage = (item) => {
     setPanelOpen(false);
     navTo(item.target || 'department');
+  };
+
+  const openNotificationAttachment = (item) => {
+    const url = item.fileUrl || item.link;
+    if (!url) {
+      showPanelFeedback('error', language === 'vi' ? 'Thông báo này không có tệp hoặc liên kết đính kèm.' : 'This notification has no attachment or link.');
+      return;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const approvePermissionNotification = async (item) => {
+    const busyKey = `${item.id}:approve`;
+    setNotificationActionBusy(busyKey);
+    try {
+      const users = await getUsers();
+      const target = users.find((user) => user.id === item.requesterId);
+      if (!target) throw new Error(language === 'vi' ? 'Không tìm thấy tài khoản gửi yêu cầu.' : 'The requesting account was not found.');
+      const permissions = normalizePermissions(target.permissions);
+      if (target.role !== 'admin' && permissions.mode === 'custom') {
+        const nextAllowed = [...new Set([...getAllowedIdsFromPermissions(permissions), item.permissionId])];
+        const grant = await updateUserPermissions(target.id, createCustomPermissions(nextAllowed));
+        if (!grant?.ok) throw new Error(grant?.message || 'Could not grant permission.');
+      }
+      const result = await updatePermissionRequestStatus(item.requestId, 'approved');
+      if (!result?.ok) throw new Error(result?.message || 'Could not approve permission.');
+      showPanelFeedback('success', language === 'vi' ? `Đã duyệt quyền ${item.itemTitle}.` : `Approved access to ${item.itemTitle}.`);
+      refreshNotificationData();
+    } catch (error) {
+      showPanelFeedback('error', error?.message || (language === 'vi' ? 'Không thể duyệt yêu cầu.' : 'Could not approve the request.'));
+    } finally {
+      setNotificationActionBusy('');
+    }
+  };
+
+  const rejectPermissionNotification = async (item) => {
+    const busyKey = `${item.id}:reject`;
+    setNotificationActionBusy(busyKey);
+    try {
+      const result = await updatePermissionRequestStatus(item.requestId, 'rejected');
+      if (!result?.ok) throw new Error(result?.message || 'Could not reject permission.');
+      showPanelFeedback('success', language === 'vi' ? 'Đã từ chối yêu cầu quyền.' : 'Permission request rejected.');
+      refreshNotificationData();
+    } catch (error) {
+      showPanelFeedback('error', error?.message || (language === 'vi' ? 'Không thể từ chối yêu cầu.' : 'Could not reject the request.'));
+    } finally {
+      setNotificationActionBusy('');
+    }
+  };
+
+  const retryPermissionNotification = async (item) => {
+    const busyKey = `${item.id}:retry`;
+    setNotificationActionBusy(busyKey);
+    try {
+      const result = await requestPermission({
+        user: currentUser,
+        permissionId: item.permissionId,
+        item: getPermissionItem(item.permissionId),
+        language,
+      });
+      if (!result?.ok) throw new Error(result?.message || 'Could not send request.');
+      showPanelFeedback('success', result.message || (language === 'vi' ? 'Đã gửi lại yêu cầu quyền.' : 'Permission request sent again.'));
+      markNotificationRead(item);
+      refreshNotificationData();
+    } catch (error) {
+      showPanelFeedback('error', error?.message || (language === 'vi' ? 'Không thể gửi lại yêu cầu.' : 'Could not resend the request.'));
+    } finally {
+      setNotificationActionBusy('');
+    }
+  };
+
+  const reviewSubmissionNotification = async (item, status) => {
+    const busyKey = `${item.id}:${status}`;
+    setNotificationActionBusy(busyKey);
+    try {
+      const draft = notificationDrafts[item.id] || {};
+      const defaultRejectNote = language === 'vi'
+        ? 'Vui lòng kiểm tra và bổ sung nội dung theo yêu cầu của TTCM.'
+        : 'Please review and complete the submission according to the department request.';
+      const note = status === 'rejected' ? (draft.reviewNote?.trim() || defaultRejectNote) : (draft.reviewNote?.trim() || '');
+      const result = await reviewDepartmentSubmission(item.submissionId, status, note, currentUser);
+      if (!result?.ok) throw new Error(result?.message || 'Could not review submission.');
+      showPanelFeedback('success', status === 'approved'
+        ? (language === 'vi' ? 'Đã duyệt hồ sơ trực tiếp trong bảng thông báo.' : 'Submission approved inside the notification panel.')
+        : (language === 'vi' ? 'Đã gửi yêu cầu chỉnh sửa cho giáo viên.' : 'Revision request sent to the teacher.'));
+      refreshNotificationData();
+    } catch (error) {
+      showPanelFeedback('error', error?.message || (language === 'vi' ? 'Không thể xử lý hồ sơ.' : 'Could not process the submission.'));
+    } finally {
+      setNotificationActionBusy('');
+    }
+  };
+
+  const closeDepartmentRequestNotification = async (item) => {
+    const busyKey = `${item.id}:close`;
+    setNotificationActionBusy(busyKey);
+    try {
+      const result = await updateDepartmentSubmissionRequestStatus(item.requestId, 'closed');
+      if (!result?.ok) throw new Error(result?.message || 'Could not close request.');
+      showPanelFeedback('success', language === 'vi' ? 'Đã đóng yêu cầu nộp hồ sơ.' : 'Submission request closed.');
+      refreshNotificationData();
+    } catch (error) {
+      showPanelFeedback('error', error?.message || (language === 'vi' ? 'Không thể đóng yêu cầu.' : 'Could not close the request.'));
+    } finally {
+      setNotificationActionBusy('');
+    }
+  };
+
+  const submitDepartmentRequestNotification = async (item) => {
+    const busyKey = `${item.id}:submit`;
+    setNotificationActionBusy(busyKey);
+    try {
+      const draft = notificationDrafts[item.id] || {};
+      const title = String(draft.title || item.requestTitle || '').trim();
+      if (!title) throw new Error(language === 'vi' ? 'Nhập tên hồ sơ trước khi nộp.' : 'Enter a submission title first.');
+      const result = await createDepartmentSubmission({
+        schoolYear: SCHOOL_YEAR,
+        semester: item.semester || '',
+        requestId: item.requestId,
+        title,
+        category: item.category || (language === 'vi' ? 'Hồ sơ theo thông báo' : 'Requested submission'),
+        note: String(draft.note || '').trim(),
+        relatedTask: item.requestTitle || '',
+        file: draft.file || null,
+      }, currentUser);
+      if (!result?.ok) throw new Error(result?.message || 'Could not submit.');
+      showPanelFeedback('success', language === 'vi' ? 'Đã nộp hồ sơ trực tiếp từ bảng thông báo.' : 'Submission sent directly from the notification panel.');
+      markNotificationRead(item);
+      refreshNotificationData();
+    } catch (error) {
+      showPanelFeedback('error', error?.message || (language === 'vi' ? 'Không thể nộp hồ sơ.' : 'Could not submit the file.'));
+    } finally {
+      setNotificationActionBusy('');
+    }
   };
 
   const setDarkMode = (next) => {
@@ -1138,6 +1395,21 @@ export default function StatusMenuBar({
                 </div>
               ) : null}
 
+              {activeTab !== 'youtube' && panelFeedback ? (
+                <div className={`global-notice-feedback is-${panelFeedback.tone || 'success'}`}>
+                  <span>{panelFeedback.tone === 'error' ? '!' : '✓'}</span>
+                  <strong>{panelFeedback.text}</strong>
+                  <button type="button" onClick={() => setPanelFeedback(null)} aria-label={t.close}>×</button>
+                </div>
+              ) : null}
+
+              {activeTab !== 'youtube' && !loading && filteredNotifications.length ? (
+                <div className="global-notice-interaction-hint">
+                  <span>↯</span>
+                  <p><strong>{t.interactHint}</strong><small>{language === 'vi' ? 'Duyệt, từ chối, nộp hồ sơ, xem tệp hoặc đánh dấu đã đọc mà không cần rời bảng.' : 'Approve, reject, submit, open attachments or mark notifications read without leaving the panel.'}</small></p>
+                </div>
+              ) : null}
+
               {activeTab !== 'youtube' && !loading && groupedNotifications.map((group) => (
                 <section className="global-notice-group" key={group.key}>
                   <div className="global-notice-group-head">
@@ -1147,32 +1419,150 @@ export default function StatusMenuBar({
                     <span>{group.items.length}</span>
                   </div>
                   <div className="global-notice-list">
-                    {group.items.map((item) => (
-                      <article
-                        key={item.id}
-                        className={`global-notice-card tone-${item.tone}`}
-                        onClick={() => openNotification(item)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            openNotification(item);
-                          }
-                        }}
-                      >
-                        <span className="global-notice-card-icon" aria-hidden="true">{item.icon}</span>
-                        <div className="global-notice-card-copy">
-                          <div className="global-notice-card-title">
-                            <strong>{item.title}</strong>
-                            <small>{relativeTime(item.date || item.createdAt, language)}</small>
+                    {group.items.map((item) => {
+                      const expanded = expandedNotificationId === item.id;
+                      const draft = notificationDrafts[item.id] || {};
+                      const itemBusy = notificationActionBusy.startsWith(`${item.id}:`);
+                      const hasAttachment = Boolean(item.fileUrl || item.link);
+                      return (
+                        <article key={item.id} className={`global-notice-card tone-${item.tone} ${expanded ? 'is-expanded' : ''}`}>
+                          <div className="global-notice-card-row">
+                            <button
+                              type="button"
+                              className="global-notice-card-main"
+                              onClick={() => setExpandedNotificationId((current) => (current === item.id ? '' : item.id))}
+                              aria-expanded={expanded}
+                            >
+                              <span className="global-notice-card-icon" aria-hidden="true">{item.icon}</span>
+                              <span className="global-notice-card-copy">
+                                <span className="global-notice-card-title">
+                                  <strong>{item.title}</strong>
+                                  <small>{relativeTime(item.date || item.createdAt, language)}</small>
+                                </span>
+                                <span className="global-notice-card-body">{item.body}</span>
+                                <span className="global-notice-card-meta">{item.meta || item.sourceLabel}</span>
+                              </span>
+                              <span className={`global-notice-card-chevron ${expanded ? 'is-open' : ''}`} aria-hidden="true">⌄</span>
+                            </button>
+                            <button type="button" className="global-notice-dismiss" onClick={(event) => dismissNotification(event, item.id)} aria-label={t.delete}>×</button>
                           </div>
-                          <p>{item.body}</p>
-                          <span>{item.meta || item.sourceLabel}</span>
-                        </div>
-                        <button type="button" className="global-notice-dismiss" onClick={(event) => dismissNotification(event, item.id)} aria-label={t.delete}>×</button>
-                      </article>
-                    ))}
+
+                          <div className="global-notice-quick-actions">
+                            {item.kind === 'permission-admin' ? <>
+                              <button type="button" className="is-success" disabled={itemBusy} onClick={() => approvePermissionNotification(item)}>{notificationActionBusy === `${item.id}:approve` ? t.sending : `✓ ${t.approve}`}</button>
+                              <button type="button" className="is-danger" disabled={itemBusy} onClick={() => rejectPermissionNotification(item)}>{notificationActionBusy === `${item.id}:reject` ? t.sending : `× ${t.reject}`}</button>
+                            </> : null}
+
+                            {item.kind === 'permission-user' && item.requestStatus === 'approved' ? <>
+                              <button type="button" className="is-primary" onClick={() => openNotificationPage(item)}>↗ {t.open}</button>
+                              <button type="button" onClick={() => markNotificationRead(item)}>✓ {t.markRead}</button>
+                            </> : null}
+
+                            {item.kind === 'permission-user' && item.requestStatus === 'rejected' ? <>
+                              <button type="button" className="is-primary" disabled={itemBusy} onClick={() => retryPermissionNotification(item)}>{notificationActionBusy === `${item.id}:retry` ? t.sending : `↻ ${t.retryPermission}`}</button>
+                              <button type="button" onClick={() => openNotificationPage(item)}>⚙ {language === 'vi' ? 'Cài đặt' : 'Settings'}</button>
+                            </> : null}
+
+                            {item.kind === 'department-submission' ? <>
+                              <button type="button" className="is-success" disabled={itemBusy} onClick={() => reviewSubmissionNotification(item, 'approved')}>{notificationActionBusy === `${item.id}:approved` ? t.sending : `✓ ${t.approve}`}</button>
+                              <button type="button" className="is-danger" disabled={itemBusy} onClick={() => reviewSubmissionNotification(item, 'rejected')}>{notificationActionBusy === `${item.id}:rejected` ? t.sending : `↺ ${t.requestChanges}`}</button>
+                              {hasAttachment ? <button type="button" onClick={() => openNotificationAttachment(item)}>▣ {t.viewAttachment}</button> : null}
+                            </> : null}
+
+                            {item.kind === 'department-request' && isAdmin ? <>
+                              <button type="button" className="is-danger" disabled={itemBusy} onClick={() => closeDepartmentRequestNotification(item)}>{notificationActionBusy === `${item.id}:close` ? t.sending : `■ ${t.closeRequest}`}</button>
+                              {hasAttachment ? <button type="button" onClick={() => openNotificationAttachment(item)}>▣ {t.viewAttachment}</button> : null}
+                              <button type="button" onClick={() => openNotificationPage(item)}>↗ {t.openRelated}</button>
+                            </> : null}
+
+                            {item.kind === 'department-request' && !isAdmin ? <>
+                              <button type="button" className="is-primary" onClick={() => setExpandedNotificationId(item.id)}>＋ {t.submitNow}</button>
+                              {hasAttachment ? <button type="button" onClick={() => openNotificationAttachment(item)}>▣ {t.viewAttachment}</button> : null}
+                              <button type="button" onClick={() => openNotificationPage(item)}>↗ {t.openRelated}</button>
+                            </> : null}
+
+                            {item.kind === 'department-schedule' ? <>
+                              <button type="button" className="is-primary" onClick={() => openNotificationPage(item)}>📅 {language === 'vi' ? 'Xem lịch' : 'View schedule'}</button>
+                              <button type="button" onClick={() => markNotificationRead(item)}>✓ {t.markRead}</button>
+                            </> : null}
+                          </div>
+
+                          {expanded ? (
+                            <div className="global-notice-inline-panel">
+                              {item.kind === 'permission-admin' ? (
+                                <div className="global-notice-detail-grid">
+                                  <span><small>{language === 'vi' ? 'Giáo viên' : 'Teacher'}</small><strong>{item.requesterName || item.requesterEmail || 'Teacher'}</strong></span>
+                                  <span><small>{language === 'vi' ? 'Quyền yêu cầu' : 'Requested access'}</small><strong>{item.itemTitle}</strong></span>
+                                  {item.requesterEmail ? <span className="wide"><small>Email</small><strong>{item.requesterEmail}</strong></span> : null}
+                                  {item.message ? <span className="wide"><small>{language === 'vi' ? 'Lời nhắn' : 'Message'}</small><strong>{item.message}</strong></span> : null}
+                                </div>
+                              ) : null}
+
+                              {item.kind === 'permission-user' ? (
+                                <p className="global-notice-inline-copy">{item.message || (item.requestStatus === 'approved'
+                                  ? (language === 'vi' ? 'Quyền đã được cập nhật. Bạn có thể mở chức năng ngay.' : 'Your access has been updated. You can open the feature now.')
+                                  : (language === 'vi' ? 'Bạn có thể gửi lại yêu cầu ngay trong bảng thông báo.' : 'You can resend the request directly from this panel.'))}</p>
+                              ) : null}
+
+                              {item.kind === 'department-submission' ? <>
+                                <div className="global-notice-detail-grid">
+                                  <span><small>{language === 'vi' ? 'Người nộp' : 'Submitted by'}</small><strong>{item.submitterName || item.submitterEmail || 'Teacher'}</strong></span>
+                                  <span><small>{language === 'vi' ? 'Loại hồ sơ' : 'Category'}</small><strong>{item.category || '—'}</strong></span>
+                                  {item.requestTitle ? <span className="wide"><small>{language === 'vi' ? 'Theo thông báo' : 'Request'}</small><strong>{item.requestTitle}</strong></span> : null}
+                                  {item.note ? <span className="wide"><small>{language === 'vi' ? 'Ghi chú giáo viên' : 'Teacher note'}</small><strong>{item.note}</strong></span> : null}
+                                  {item.fileName ? <span className="wide"><small>{t.attachment}</small><strong>{item.fileName}</strong></span> : null}
+                                </div>
+                                <label className="global-notice-inline-field">
+                                  <span>{language === 'vi' ? 'Ghi chú phản hồi' : 'Review note'}</span>
+                                  <textarea value={draft.reviewNote || ''} onChange={(event) => updateNotificationDraft(item.id, { reviewNote: event.target.value })} placeholder={t.reviewNote} />
+                                </label>
+                              </> : null}
+
+                              {item.kind === 'department-request' ? <>
+                                <div className="global-notice-detail-grid">
+                                  <span><small>{language === 'vi' ? 'Danh mục' : 'Category'}</small><strong>{item.category || '—'}</strong></span>
+                                  <span><small>{t.due}</small><strong>{item.dueDate ? formatDate(item.dueDate, language) : (language === 'vi' ? 'Không giới hạn' : 'No deadline')}</strong></span>
+                                  {item.description ? <span className="wide"><small>{language === 'vi' ? 'Yêu cầu' : 'Instructions'}</small><strong>{item.description}</strong></span> : null}
+                                  {item.fileName ? <span className="wide"><small>{t.attachment}</small><strong>{item.fileName}</strong></span> : null}
+                                </div>
+                                {!isAdmin ? (
+                                  <div className="global-notice-submit-form">
+                                    <label className="global-notice-inline-field">
+                                      <span>{t.submissionTitle}</span>
+                                      <input value={draft.title ?? item.requestTitle ?? ''} onChange={(event) => updateNotificationDraft(item.id, { title: event.target.value })} />
+                                    </label>
+                                    <label className="global-notice-inline-field">
+                                      <span>{t.submissionNote}</span>
+                                      <textarea value={draft.note || ''} onChange={(event) => updateNotificationDraft(item.id, { note: event.target.value })} placeholder={t.submissionNote} />
+                                    </label>
+                                    <label className="global-notice-inline-field file-field">
+                                      <span>{t.attachment}</span>
+                                      <input type="file" onChange={(event) => updateNotificationDraft(item.id, { file: event.target.files?.[0] || null })} />
+                                      {draft.file ? <small>{draft.file.name}</small> : null}
+                                    </label>
+                                    <button type="button" className="global-notice-submit-button" disabled={itemBusy} onClick={() => submitDepartmentRequestNotification(item)}>{notificationActionBusy === `${item.id}:submit` ? t.sending : `✓ ${t.submitNow}`}</button>
+                                  </div>
+                                ) : null}
+                              </> : null}
+
+                              {item.kind === 'department-schedule' ? (
+                                <div className="global-notice-detail-grid">
+                                  <span><small>{language === 'vi' ? 'Thời gian' : 'Time'}</small><strong>{item.meta || '—'}</strong></span>
+                                  <span><small>{language === 'vi' ? 'Trạng thái' : 'Status'}</small><strong>{item.scheduleItem?.status || (language === 'vi' ? 'Sắp diễn ra' : 'Upcoming')}</strong></span>
+                                  {item.scheduleItem?.location ? <span className="wide"><small>{language === 'vi' ? 'Địa điểm' : 'Location'}</small><strong>{item.scheduleItem.location}</strong></span> : null}
+                                  {item.scheduleItem?.description ? <span className="wide"><small>{language === 'vi' ? 'Nội dung' : 'Details'}</small><strong>{item.scheduleItem.description}</strong></span> : null}
+                                </div>
+                              ) : null}
+
+                              <div className="global-notice-inline-footer">
+                                <button type="button" onClick={() => openNotificationPage(item)}>↗ {t.openRelated}</button>
+                                <button type="button" onClick={() => markNotificationRead(item)}>✓ {t.markRead}</button>
+                              </div>
+                            </div>
+                          ) : null}
+                        </article>
+                      );
+                    })}
                   </div>
                 </section>
               ))}

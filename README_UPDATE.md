@@ -1,15 +1,29 @@
-# Update V10.82.1
+# Cập nhật V10.82.2
 
-Chép gói update-only vào repository đang chạy:
+## Mục tiêu
+
+Khi mở **Bảng thông báo**, người dùng có thể xử lý thông báo ngay trong panel thay vì phải chuyển sang trang khác.
+
+## Cách cập nhật
+
+1. Giải nén gói `brian-english-studio-v10.82.2-interactive-notifications-update-only.zip`.
+2. Mở repository hiện tại trong VS Code.
+3. Chạy:
 
 ```bash
-rsync -av ~/Downloads/brian-english-studio-v10.82.1-wordgraph-dashboard-update-only/ ./
+rsync -av ~/Downloads/brian-english-studio-v10.82.2-interactive-notifications-update-only/ ./
 npm ci
 npm run build
 npm test
+npm run test:department
+```
+
+4. Commit và push:
+
+```bash
 git add -A
-git commit -m "Redesign WordGraph Studio dashboard V10.82.1"
+git commit -m "Add direct notification actions V10.82.2"
 git push origin main
 ```
 
-Không chạy thêm SQL Supabase.
+Không cần chạy thêm SQL Supabase.
