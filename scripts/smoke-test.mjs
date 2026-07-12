@@ -9,8 +9,6 @@ import { addConductRecord, addConductReward, addCustomConductRule, applyAutomati
 import fs from 'node:fs';
 import { WORKSHEET_ACTIVITY_TYPES, auditWorksheet, generateOfflineWorksheet, worksheetToHtml, worksheetMcqBankItems } from '../src/utils/worksheetFactory.js';
 import { createDefaultLauncherConfig, normalizeLauncherConfig } from '../src/utils/launcherPreferences.js';
-import { defaultFeatureFlags, isFeatureEnabled, normalizeFeatureFlags } from '../src/utils/featureFlags.js';
-import { validateUploadMetadata } from '../api/_uploadSecurity.js';
 
 const checks = [];
 const add = (name, ok, detail = '') => checks.push({ name, ok, detail });
@@ -315,7 +313,7 @@ add('V10.81.9 direct viewer covers requested formats', ['docx', 'pptx', 'pdf', '
 add('V10.81.9 resource modal uses secure viewer', resourceLibrarySource.includes('<ResourceFileViewer item={preview} fetchBlob={fetchResourceBlob} getStreamUrl={getResourceStreamUrl}/>') && resourceLibrarySource.includes('supportsResourcePreview'), 'preview remains behind authenticated Drive proxy');
 add('V10.81.9 Office renderers are local and sandboxed', resourceViewerSource.includes('mammoth.convertToHtml') && resourceViewerSource.includes("import('xlsx')") && resourceViewerSource.includes("import('jszip')") && resourceViewerSource.includes('sandbox="allow-popups"'), 'Word, Excel and PowerPoint render without public Drive sharing');
 add('V10.81.9 scalable viewer styling present', resourceViewerCss.includes('V10.81.9 — direct DOCX, PPTX, PDF, XLSX, MP4 and MP3 viewer') && resourceViewerCss.includes('.resource-workbook-viewer') && resourceViewerCss.includes('.resource-pptx-viewer'), 'desktop, dark and mobile layouts present');
-add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0', '10.83.1', '10.83.2', '10.83.3', '10.84.0', '10.85.0', '10.86.0', '10.87.0'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
+add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0', '10.83.1', '10.83.2', '10.83.3', '10.84.0', '10.85.0', '10.86.0'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
 const previewSessionSource = fs.readFileSync(new URL('../api/google-drive-preview-session.js', import.meta.url), 'utf8');
 const driveFileSource = fs.readFileSync(new URL('../api/google-drive-file.js', import.meta.url), 'utf8');
 add('V10.81.9 secure streaming session supports media seeking', previewSessionSource.includes('signResourcePreviewToken') && driveFileSource.includes('Content-Range') && driveFileSource.includes("Range: range") && resourceLibrarySource.includes('getResourceStreamUrl'), 'short-lived signed URL and byte ranges present');
@@ -472,36 +470,6 @@ add('V10.86 Admin AI Governance route and navigation are wired', mainSource.incl
 add('V10.86 Governance Center exposes controls, profiles and audit report', aiGovernancePageSource.includes('dailyRequestLimit') && aiGovernancePageSource.includes('actionTargets') && aiGovernancePageSource.includes('profiles') && aiGovernancePageSource.includes('exportAiGovernanceReport') && aiGovernancePageSource.includes('readAiAudit'), 'limits, target flags, task profiles, usage and JSON export present');
 add('V10.86 AI governance styling is centered and responsive', cssSource.includes('V10.86.0 — AI Action Engine + Governance Center') && cssSource.includes('.ai-governance-page') && cssSource.includes('.ai-action-panel') && cssSource.includes('@media(max-width:660px)'), 'desktop, dark, mobile and reduced-motion styles present');
 add('V10.86 configuration migration covers AI governance schema', configMigrationSource.includes("id: 'ai-governance'") && configMigrationSource.includes('bes-ai-governance-settings:v1') && configMigrationSource.includes("version: '10.86.0'"), 'governance settings are normalized before use');
-
-
-// V10.87.0 — Release, Security & Performance
-const releaseCenterSource = fs.readFileSync(new URL('../src/pages/ReleaseCenter.jsx', import.meta.url), 'utf8');
-const releaseCenterCssSource = fs.readFileSync(new URL('../src/pages/ReleaseCenter.css', import.meta.url), 'utf8');
-const featureFlagsSource = fs.readFileSync(new URL('../src/utils/featureFlags.js', import.meta.url), 'utf8');
-const auditLogSource = fs.readFileSync(new URL('../src/utils/auditLog.js', import.meta.url), 'utf8');
-const uploadSecuritySource = fs.readFileSync(new URL('../src/utils/uploadSecurity.js', import.meta.url), 'utf8');
-const uploadApiSource = fs.readFileSync(new URL('../api/_uploadSecurity.js', import.meta.url), 'utf8');
-const aiApiSource = fs.readFileSync(new URL('../api/ai.js', import.meta.url), 'utf8');
-const releaseGuardSource = fs.readFileSync(new URL('./release-guard.mjs', import.meta.url), 'utf8');
-const releaseManifestSource = fs.readFileSync(new URL('../public/version.json', import.meta.url), 'utf8');
-const releaseSettingsSqlSource = fs.readFileSync(new URL('../supabase/release_settings_v10_87.sql', import.meta.url), 'utf8');
-const featureDefaults = defaultFeatureFlags();
-const malformedFlags = normalizeFeatureFlags({ flags: { workspaceTabs: 'invalid', aiBubble: 'admin' } });
-add('V10.87 Update Center route and admin navigation are wired', mainSource.includes("currentRoute === 'updates'") && globalNavSource.includes('route:updates') && commandPaletteSource.includes("route: 'updates'") && permissionsSource.includes("route === 'updates'"), 'admin-only Update Center is discoverable from More and Command Center');
-add('V10.87 feature flags are schema-safe and role-aware', Object.keys(featureDefaults.flags).length >= 8 && malformedFlags.flags.workspaceTabs === 'all' && isFeatureEnabled('aiBubble', { role: 'admin' }, malformedFlags) && !isFeatureEnabled('aiBubble', { role: 'teacher' }, malformedFlags), 'invalid rollout falls back safely; admin targeting works');
-add('V10.87 feature flag snapshots and rollback controls are present', featureFlagsSource.includes('createFeatureFlagSnapshot') && featureFlagsSource.includes('restoreFeatureFlagSnapshotToCloud') && releaseCenterSource.includes('rollback'), 'automatic and manual rollback points present');
-add('V10.87 feature flags sync globally through Supabase', featureFlagsSource.includes('loadFeatureFlagsFromCloud') && featureFlagsSource.includes('saveFeatureFlagsToCloud') && featureFlagsSource.includes('postgres_changes') && mainSource.includes('loadFeatureFlagsFromCloud') && releaseSettingsSqlSource.includes('bes_release_settings') && releaseSettingsSqlSource.includes('public.is_admin()'), 'admin writes, authenticated reads and realtime propagation present');
-add('V10.87 AI bubble features obey release flags', mainSource.includes("isFeatureEnabled('aiBubble'") && mainSource.includes("isFeatureEnabled('voiceMode'") && mainSource.includes("isFeatureEnabled('aiActions'") && universalAiSource.includes('enableVoice') && universalAiSource.includes('enableActions'), 'bubble, voice and action engine can be rolled out independently');
-add('V10.87 global audit log strips sensitive metadata', auditLogSource.includes('password|token|secret|api.?key|prompt|content|body|answer') && auditLogSource.includes('MAX_ITEMS = 500') && mainSource.includes('writeAuditEvent'), 'metadata-only bounded audit trail present');
-const safePdf = validateUploadMetadata({ name: 'lesson.pdf', type: 'application/pdf', size: 2048, allowedKinds: ['document'] });
-let rejectedExecutable = false;
-try { validateUploadMetadata({ name: 'danger.exe', type: 'application/octet-stream', size: 1000 }); } catch { rejectedExecutable = true; }
-add('V10.87 upload security validates metadata and rejects executables', safePdf.ok && safePdf.kind === 'document' && rejectedExecutable && uploadApiSource.includes('validateMagicBytes') && uploadSecuritySource.includes('validateUploadWithServer'), 'extension, MIME, size, safe name and magic-byte checks present');
-add('V10.87 Resource Library uses secure upload gateway', fs.readFileSync(new URL('../src/pages/ResourceLibrary.jsx', import.meta.url), 'utf8').includes('validateUploadWithServer') && fs.readFileSync(new URL('../api/google-drive-upload.js', import.meta.url), 'utf8').includes('validateMagicBytes'), 'client preflight and server validation are both enforced');
-add('V10.87 server-side AI gateway is hardened', aiApiSource.includes('enforceRateLimit') && aiApiSource.includes('REQUEST_TIMEOUT_MS') && aiApiSource.includes('MAX_BODY_BYTES') && aiApiSource.includes('isSameOrigin') && aiApiSource.includes('OPENAI_ALLOWED_MODELS'), 'rate, timeout, body, origin and model controls present');
-add('V10.87 release guard and public version manifest are included', releaseGuardSource.includes('Release Guard passed') && releaseGuardSource.includes('Critical route registered') && JSON.parse(releaseManifestSource).version === '10.87.0' && JSON.parse(releaseManifestSource).requiresSql === true, 'build, route, asset and version checks present');
-add('V10.87 Release Center stylesheet is code-split and responsive', releaseCenterSource.includes("import './ReleaseCenter.css'") && releaseCenterCssSource.includes('.release-center-page') && releaseCenterCssSource.includes('@media(max-width:620px)'), 'page-level CSS, dark mode and mobile layout present');
-add('V10.87 System Health includes release and upload checks', healthCenterSource.includes('Upload Security Gateway') && healthCenterSource.includes('Feature Flags') && healthCenterSource.includes("#/updates"), 'release, rollback, audit and upload health are visible');
 
 const failed = checks.filter((item) => !item.ok);
 for (const item of checks) {

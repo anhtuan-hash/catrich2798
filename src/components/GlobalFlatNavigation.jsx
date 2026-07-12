@@ -10,28 +10,28 @@ const copy = {
     home: 'Trang chủ', apps: 'Ứng dụng', news: 'Đọc báo', games: 'Trò chơi', department: 'Tổ chuyên môn', homeroom: 'Chủ nhiệm',
     library: 'Thư viện', 'resource-library': 'Kho học liệu', resources: 'Tài nguyên', contact: 'Liên hệ', admin: 'Quản trị',
     login: 'Đăng nhập', settings: 'Cài đặt', logout: 'Thoát', subtitle: 'Hệ thống dạy học sáng tạo',
-    account: 'Tài khoản', guest: 'Khách', aiReady: 'AI sẵn sàng', aiOff: 'AI chưa cài', fontSize: 'Tăng cỡ chữ', search: 'Tìm nhanh', more: 'Thêm', close: 'Đóng', qa: 'Trạng thái', 'ai-governance': 'Quản trị AI', updates: 'Cập nhật', trash: 'Thùng rác',
+    account: 'Tài khoản', guest: 'Khách', aiReady: 'AI sẵn sàng', aiOff: 'AI chưa cài', fontSize: 'Tăng cỡ chữ', search: 'Tìm nhanh', more: 'Thêm', close: 'Đóng', qa: 'Trạng thái', 'ai-governance': 'Quản trị AI', trash: 'Thùng rác',
   },
   en: {
     home: 'Home', apps: 'Apps', news: 'News', games: 'Games', department: 'Department', homeroom: 'Homeroom',
     library: 'Library', 'resource-library': 'Resources Hub', resources: 'Resources', contact: 'Contact', admin: 'Admin',
     login: 'Sign in', settings: 'Settings', logout: 'Logout', subtitle: 'Brian English',
-    account: 'Account', guest: 'Guest', aiReady: 'AI ready', aiOff: 'AI not set', fontSize: 'Increase text size', search: 'Quick search', more: 'More', close: 'Close', qa: 'System health', 'ai-governance': 'AI Governance', updates: 'Updates', trash: 'Trash',
+    account: 'Account', guest: 'Guest', aiReady: 'AI ready', aiOff: 'AI not set', fontSize: 'Increase text size', search: 'Quick search', more: 'More', close: 'Close', qa: 'System health', 'ai-governance': 'AI Governance', trash: 'Trash',
   },
 };
 
 const routeColors = {
   home: '#ffc69d', apps: '#f05a7e', news: '#167d78', games: '#5b2a86', department: '#3b4cca', homeroom: '#1f8f70',
   library: '#6fba7b', 'resource-library': '#2878d0', resources: '#d99a1e', contact: '#00a6a6', admin: '#d13438',
-  settings: '#123c69', qa: '#123c69', 'ai-governance': '#6d45c6', updates: '#176b68', trash: '#a43b57', login: '#191515',
+  settings: '#123c69', qa: '#123c69', 'ai-governance': '#6d45c6', trash: '#a43b57', login: '#191515',
 };
 
 const routeIcons = {
   home: '⌂', apps: '▦', news: '▤', games: '◈', department: '▦', homeroom: '♙', library: '▤', 'resource-library': '▥',
-  resources: '▦', contact: '✉', admin: '☼', settings: '⚙', qa: '♥', 'ai-governance': 'AI', updates: '↑', trash: '⌫', login: '↪',
+  resources: '▦', contact: '✉', admin: '☼', settings: '⚙', qa: '♥', 'ai-governance': 'AI', trash: '⌫', login: '↪',
 };
 
-const ROUTE_KEYS = ['home', 'apps', 'news', 'games', 'department', 'homeroom', 'library', 'resource-library', 'resources', 'contact', 'admin', 'settings', 'qa', 'ai-governance', 'updates', 'trash'];
+const ROUTE_KEYS = ['home', 'apps', 'news', 'games', 'department', 'homeroom', 'library', 'resource-library', 'resources', 'contact', 'admin', 'settings', 'qa', 'ai-governance', 'trash'];
 
 function shortName(value, fallback) {
   const text = String(value || '').trim();
@@ -98,23 +98,21 @@ function canShow(entry, currentUser) {
 
 export default function GlobalFlatNavigation({
   route = 'home', selectedTool = null, language = 'vi', setLanguage, theme = 'light', setTheme,
-  hasApiKey, currentUser, onLogout, fontScale = 100, setFontScale, isFeatureEnabled: featureEnabled,
+  hasApiKey, currentUser, onLogout, fontScale = 100, setFontScale,
 }) {
   const t = copy[language] || copy.vi;
   const isAdmin = currentUser?.role === 'admin';
-  const launcherCustomizationEnabled = featureEnabled ? featureEnabled('customLauncher') : true;
   const [launcherConfig, setLauncherConfig] = useState(() => normalizeLauncherConfig(loadLauncherConfig()));
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (!launcherCustomizationEnabled) return undefined;
     let active = true;
     loadLauncherConfigFromCloud()
       .then(({ config }) => { if (active) setLauncherConfig(normalizeLauncherConfig(config)); })
       .catch((error) => console.warn('[Launcher] cloud navigation fallback', error));
     const unsubscribe = subscribeLauncherConfig((next) => setLauncherConfig(normalizeLauncherConfig(next)));
     return () => { active = false; unsubscribe(); };
-  }, [launcherCustomizationEnabled]);
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event) => { if (event.key === 'Escape') setMenuOpen(false); };
@@ -126,7 +124,7 @@ export default function GlobalFlatNavigation({
 
   const registry = useMemo(() => buildRegistry(language), [language]);
   const entries = useMemo(() => {
-    const navItems = launcherCustomizationEnabled && Array.isArray(launcherConfig?.nav) ? launcherConfig.nav : [];
+    const navItems = Array.isArray(launcherConfig?.nav) ? launcherConfig.nav : [];
     const requested = navItems.length ? navItems : ['route:home', 'route:apps', 'route:news', 'route:games'];
     const mandatory = ['route:home', 'route:apps'];
     const ids = [...mandatory, ...requested];
@@ -140,11 +138,11 @@ export default function GlobalFlatNavigation({
         return true;
       })
       .slice(0, 12);
-  }, [launcherConfig?.nav, registry, currentUser, isAdmin, launcherCustomizationEnabled]);
+  }, [launcherConfig?.nav, registry, currentUser, isAdmin]);
 
   const drawerEntries = useMemo(() => {
     const baseIds = [...entries.map((entry) => entry.id), 'route:library', 'route:resource-library', 'route:trash', 'route:settings'];
-    if (isAdmin) baseIds.push('route:qa', 'route:updates', 'route:ai-governance', 'route:admin');
+    if (isAdmin) baseIds.push('route:qa', 'route:ai-governance', 'route:admin');
     const seen = new Set();
     return baseIds.map((id) => registry.get(id)).filter((entry) => {
       if (!entry || seen.has(entry.id) || !canShow(entry, currentUser)) return false;

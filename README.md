@@ -1,27 +1,20 @@
-# Brian English Studio V10.87.0 — Release, Security & Performance
+# Brian English Studio V10.86.0 — AI Action & Governance
 
-V10.87.0 bổ sung Trung tâm cập nhật dành cho Admin, Feature Flags đồng bộ Supabase, rollback cấu hình, Release Guard, lớp bảo vệ API AI, kiểm tra upload và audit log metadata trên thiết bị. Toàn bộ AI Action & Governance và Connected Workflow của các phiên bản trước vẫn được giữ nguyên.
+Phiên bản V10.86.0 bổ sung AI Action Engine có bước xem trước/xác nhận, Trung tâm quản trị AI dành cho Admin, hạn mức theo tác vụ, báo cáo sử dụng và audit log cục bộ theo tài khoản. Toàn bộ Connected Workflow của V10.85.0 vẫn được giữ nguyên.
 
-Tài liệu chi tiết: `V10_87_RELEASE_SECURITY_PERFORMANCE.md`.
+Tài liệu chi tiết: `V10_86_AI_ACTION_GOVERNANCE.md`.
 
-Các điểm chính:
+Phiên bản này kết nối các ứng dụng thành một quy trình làm việc thống nhất:
 
-- Update Center tại `#/updates`, chỉ dành cho Admin.
-- Feature Flags theo nhóm: Tắt, Admin, Admin + TTCM hoặc Tất cả.
-- 12 điểm rollback cục bộ gần nhất; cấu hình hiện hành đồng bộ qua Supabase Realtime sau migration.
-- Release Guard kiểm tra route, quyền, build, migration, asset budget và lazy chunk.
-- API AI có same-origin, body limit, rate limit, timeout, output-token cap và model allowlist tùy chọn.
-- Kho học liệu/Google Drive kiểm tra extension, MIME, dung lượng, magic bytes và tên file an toàn.
-- Audit log chỉ lưu metadata đã lọc dữ liệu nhạy cảm.
-- Release Center có CSS lazy riêng; stylesheet legacy chính vẫn khoảng 1.07 MB và còn cảnh báo hiệu suất.
+- Workspace Tabs: mở nhiều ứng dụng, ghim, đóng và kéo thả sắp xếp tab.
+- Content Transfer Hub: gửi nội dung hiện tại sang Worksheet Factory, Exam Studio, WordGraph, TextLab, Lesson Architect hoặc Thư viện.
+- Transfer Inbox: ứng dụng đích nhận nội dung bằng nút “Dùng nội dung”.
+- Autosave 2.0: lưu tối đa 20 phiên bản gần nhất trên thiết bị, cho phép khôi phục từng phiên bản.
+- Offline Sync Queue: giữ các thao tác chuyển nội dung khi mất mạng và kiểm tra lại khi trực tuyến.
+- Configuration Migration Engine: sao lưu và nâng cấp cấu hình Launcher cũ trước khi render.
+- Brian AI có thêm hành động “Gửi sang…” để đưa kết quả vào quy trình liên ứng dụng.
 
-Migration cần chạy:
-
-```text
-supabase/release_settings_v10_87.sql
-```
-
-Không có Environment Variable mới bắt buộc.
+Không cần migration SQL mới và không cần Environment Variable mới.
 
 ---
 

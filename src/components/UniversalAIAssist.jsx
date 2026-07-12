@@ -219,7 +219,7 @@ function setReactFieldValue(element, value) {
   element.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
-export default function UniversalAIAssist({ language = 'vi', currentRoute = 'home', selectedTool = null, apiKey = '', aiModel = '', hasApiKey = false, currentUser = null, providerName = '', accent = '#5B2A86', soft = '#E9DAFF', ink = '#20102F', enableVoice = true, enableActions = true }) {
+export default function UniversalAIAssist({ language = 'vi', currentRoute = 'home', selectedTool = null, apiKey = '', aiModel = '', hasApiKey = false, currentUser = null, providerName = '', accent = '#5B2A86', soft = '#E9DAFF', ink = '#20102F' }) {
   const info = useMemo(() => routeInfo(currentRoute, selectedTool, language), [currentRoute, selectedTool, language]);
   const storageId = useMemo(() => threadsKey(currentUser), [currentUser]);
   const [open, setOpen] = useState(false);
@@ -528,7 +528,7 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
             <div className="ai-messenger-heading"><strong>Brian AI</strong><span><i /> {voiceMode ? (language === 'vi' ? 'Chế độ giọng nói' : 'Voice mode') : (language === 'vi' ? 'Đang hoạt động' : 'Active')} · {providerName || aiModel || 'AI'}</span></div>
             <div className="ai-messenger-header-actions">
               <button type="button" className={showHistory ? 'active' : ''} onClick={() => setShowHistory((value) => !value)} title={language === 'vi' ? 'Lịch sử hội thoại' : 'Conversation history'}>{SVG.history}</button>
-              {enableVoice ? <button type="button" className={voiceMode || listening ? 'active voice' : ''} onClick={toggleVoiceMode} title={language === 'vi' ? 'Chế độ giọng nói' : 'Voice mode'}>{SVG.mic}</button> : null}
+              <button type="button" className={voiceMode || listening ? 'active voice' : ''} onClick={toggleVoiceMode} title={language === 'vi' ? 'Chế độ giọng nói' : 'Voice mode'}>{SVG.mic}</button>
               <button type="button" onClick={newChat} title={language === 'vi' ? 'Cuộc trò chuyện mới' : 'New chat'}>{SVG.plus}</button>
               <button type="button" onClick={() => { window.location.hash = '#/settings'; setOpen(false); }} title={language === 'vi' ? 'Thiết lập AI' : 'AI settings'}>{SVG.gear}</button>
               <button type="button" onClick={() => setOpen(false)} title={language === 'vi' ? 'Thu gọn' : 'Minimize'}>{SVG.minus}</button>
@@ -563,9 +563,9 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
                         <div className="ai-messenger-message-actions">
                           <button type="button" onClick={() => copyMessage(message)}>{SVG.copy}<span>{copiedId === message.id ? (language === 'vi' ? 'Đã sao chép' : 'Copied') : (language === 'vi' ? 'Sao chép' : 'Copy')}</span></button>
                           <button type="button" onClick={() => useResult(message)} className={appliedId === message.id ? 'active' : ''}>{SVG.use}<span>{appliedId === message.id ? (language === 'vi' ? 'Đã dùng' : 'Applied') : (language === 'vi' ? 'Dùng kết quả trong ứng dụng' : 'Use result in app')}</span></button>
-                          {enableActions ? <button type="button" onClick={() => openActionPicker(message)} className="ai-action-trigger">{SVG.plan}<span>{language === 'vi' ? 'Hành động' : 'Actions'}</span></button> : null}
+                          <button type="button" onClick={() => openActionPicker(message)} className="ai-action-trigger">{SVG.plan}<span>{language === 'vi' ? 'Hành động' : 'Actions'}</span></button>
                           <button type="button" onClick={() => sendResultToApp(message)}>{SVG.use}<span>{language === 'vi' ? 'Gửi sang…' : 'Send to…'}</span></button>
-                          {enableVoice ? <button type="button" onClick={() => speakingId === message.id ? (window.speechSynthesis.cancel(), setSpeakingId('')) : speakText(message.content, message.id)} className={speakingId === message.id ? 'active' : ''}>{SVG.speaker}<span>{speakingId === message.id ? (language === 'vi' ? 'Dừng đọc' : 'Stop') : (language === 'vi' ? 'Nghe' : 'Listen')}</span></button> : null}
+                          <button type="button" onClick={() => speakingId === message.id ? (window.speechSynthesis.cancel(), setSpeakingId('')) : speakText(message.content, message.id)} className={speakingId === message.id ? 'active' : ''}>{SVG.speaker}<span>{speakingId === message.id ? (language === 'vi' ? 'Dừng đọc' : 'Stop') : (language === 'vi' ? 'Nghe' : 'Listen')}</span></button>
                         </div>
                       )}
                     </div>
@@ -597,7 +597,7 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
             </>
           )}
 
-          {enableActions && actionMessage && !actionPlan ? (
+          {actionMessage && !actionPlan ? (
             <div className="ai-action-panel" role="dialog" aria-label={language === 'vi' ? 'Chọn hành động AI' : 'Choose AI action'}>
               <header><div><span>{SVG.plan}</span><div><strong>{language === 'vi' ? 'Dùng kết quả để làm gì?' : 'What should AI do next?'}</strong><small>{language === 'vi' ? 'Brian AI đề xuất các hành động an toàn cho nội dung này.' : 'Brian AI suggests safe actions for this result.'}</small></div></div><button type="button" onClick={() => setActionMessage(null)}>×</button></header>
               <div className="ai-action-grid">
@@ -611,7 +611,7 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
             </div>
           ) : null}
 
-          {enableActions && actionPlan ? (
+          {actionPlan ? (
             <div className="ai-action-confirm" role="dialog" aria-label={language === 'vi' ? 'Xác nhận hành động AI' : 'Confirm AI action'}>
               <section>
                 <header><div><span>{actionPlan.action.icon}</span><div><small>{language === 'vi' ? 'KẾ HOẠCH HÀNH ĐỘNG' : 'ACTION PLAN'}</small><strong>{actionPlan.action.label}</strong></div></div><button type="button" onClick={() => setActionPlan(null)} disabled={actionBusy}>×</button></header>

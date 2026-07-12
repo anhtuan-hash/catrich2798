@@ -7,6 +7,7 @@ import {
   getFallbackEnabled,
   getProviderInfo,
 } from './aiProviders.js';
+import { appendAiAudit, guardAiRequest, recordAiRequest } from './aiGovernance.js';
 
 export const DEFAULT_GEMINI_MODEL = 'gemini-flash-latest';
 export const DEFAULT_MAX_OUTPUT_TOKENS = 1600;
@@ -182,6 +183,21 @@ function emitAiOperation(type, detail = {}) {
 }
 
 export async function callAI(options = {}) {
+  const startedAt = Date.now();
+  let governance;
+  try {
+    governance = guardAiRequest(options);
+  } catch (error) {
+    appendAiAudit({
+      type: 'request',
+      status: 'blocked',
+      label: 'AI request blocked by governance',
+      profile: String(options.governanceProfile || options.profile || ''),
+      detail: { code: error?.code || '', error: error?.message || String(error) },
+    });
+    throw error;
+  }
+
   const active = getActiveAiConfig();
   const provider = options.provider || active.provider || DEFAULT_PROVIDER;
   const info = getProviderInfo(provider);
@@ -194,7 +210,8 @@ export async function callAI(options = {}) {
     provider: info.label || provider,
     model,
     label: options.loadingLabel || options.aiLabel || '',
-    maxOutputTokens: normalizeMaxOutputTokens(options.maxOutputTokens),
+    maxOutputTokens: governance.maxOutputTokens,
+    profile: governance.profileKey,
   };
   const request = {
     ...options,
@@ -202,14 +219,19 @@ export async function callAI(options = {}) {
     apiKey,
     model,
     baseUrl,
-    maxOutputTokens: normalizeMaxOutputTokens(options.maxOutputTokens),
+    maxOutputTokens: governance.maxOutputTokens,
   };
 
+  let finalProvider = info.label || provider;
+  let finalModel = model;
+  let result = '';
+  let finalError = null;
   emitAiOperation('bes-ai-operation-start', operationDetail);
   try {
     const errors = [];
     try {
-      return await callSingleProvider(request);
+      result = await callSingleProvider(request);
+      return result;
     } catch (err) {
       errors.push(`${info.label}: ${err.message || err}`);
       const shouldFallback = options.fallback ?? getFallbackEnabled();
@@ -222,25 +244,43 @@ export async function callAI(options = {}) {
       if (!String(cfg.apiKey || '').trim()) continue;
       const fallbackInfo = getProviderInfo(fallbackProvider);
       try {
+        finalProvider = fallbackInfo.label || fallbackProvider;
+        finalModel = cfg.model || fallbackInfo.defaultModel;
         emitAiOperation('bes-ai-operation-update', {
           ...operationDetail,
-          provider: fallbackInfo.label || fallbackProvider,
-          model: cfg.model || fallbackInfo.defaultModel,
+          provider: finalProvider,
+          model: finalModel,
         });
-        return await callSingleProvider({
+        result = await callSingleProvider({
           ...options,
           provider: fallbackProvider,
           apiKey: cfg.apiKey,
-          model: cfg.model || fallbackInfo.defaultModel,
+          model: finalModel,
           baseUrl: cfg.baseUrl || fallbackInfo.baseUrl,
+          maxOutputTokens: governance.maxOutputTokens,
         });
+        return result;
       } catch (err) {
         errors.push(`${fallbackInfo.label}: ${err.message || err}`);
       }
     }
 
     throw new Error(`All AI providers failed. ${errors.join(' | ')}`);
+  } catch (error) {
+    finalError = error;
+    throw error;
   } finally {
+    recordAiRequest({
+      provider: finalProvider,
+      model: finalModel,
+      prompt: options.prompt || '',
+      result,
+      durationMs: Date.now() - startedAt,
+      success: !finalError && Boolean(String(result || '').trim()),
+      error: finalError?.message || '',
+      profile: governance.profileKey,
+      operationId,
+    });
     emitAiOperation('bes-ai-operation-end', operationDetail);
   }
 }

@@ -50,7 +50,7 @@ export function clearRuntimeErrors() {
 
 export function downloadRuntimeReport(extra = {}) {
   const report = {
-    version: '10.85.0',
+    version: '10.86.0',
     exportedAt: new Date().toISOString(),
     location: typeof window !== 'undefined' ? window.location.href : '',
     online: typeof navigator !== 'undefined' ? navigator.onLine : true,

@@ -8,9 +8,6 @@ import { loadWorkspace } from '../utils/workspace.js';
 import { listTransfers } from '../utils/contentTransfer.js';
 import { listSyncQueue } from '../utils/syncQueue.js';
 import { getAiGovernanceSettings, getAiUsageSummary } from '../utils/aiGovernance.js';
-import { getFeatureFlags, listFeatureFlagSnapshots } from '../utils/featureFlags.js';
-import { listAuditEvents } from '../utils/auditLog.js';
-import { getRuntimeBuildInfo } from '../data/release.js';
 
 function formatBytes(value) {
   const bytes = Number(value || 0);
@@ -63,17 +60,6 @@ async function newsroomCheck(signal) {
   return `${count} item${count === 1 ? '' : 's'} returned`;
 }
 
-async function uploadGatewayCheck(signal) {
-  const response = await fetch('/api/upload-validate', {
-    method: 'POST', signal, headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: 'health-check.pdf', type: 'application/pdf', size: 1024, allowedKinds: ['document'] }),
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok || !payload.ok) throw new Error(payload.error || `HTTP ${response.status}`);
-  return `${payload.kind} · ${payload.serverValidated ? 'server validated' : 'validated'}`;
-}
-
-
 export default function SystemHealthCenter({ language = 'vi', currentUser }) {
   const [rows, setRows] = useState([]);
   const [running, setRunning] = useState(false);
@@ -88,10 +74,6 @@ export default function SystemHealthCenter({ language = 'vi', currentUser }) {
   const syncStats = listSyncQueue(currentUser);
   const aiGovernance = getAiGovernanceSettings();
   const aiUsage = getAiUsageSummary();
-  const release = getRuntimeBuildInfo();
-  const featureFlags = getFeatureFlags();
-  const flagSnapshots = listFeatureFlagSnapshots();
-  const auditEvents = listAuditEvents({ limit: 500 });
 
   const run = async () => {
     setRunning(true);
@@ -100,15 +82,12 @@ export default function SystemHealthCenter({ language = 'vi', currentUser }) {
       { name: language === 'vi' ? 'AI provider' : 'AI provider', ok: Boolean(ai.hasKey), detail: ai.hasKey ? `${ai.providerName} · ${ai.active?.model || 'default model'}` : (language === 'vi' ? 'Chưa cấu hình API key' : 'API key not configured'), latency: 0 },
       { name: language === 'vi' ? 'Cấu hình Supabase' : 'Supabase config', ok: supabaseStatus.configured, detail: supabaseStatus.configured ? 'Environment variables present' : 'Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY', latency: 0 },
       { name: language === 'vi' ? 'Di chuyển cấu hình' : 'Configuration migration', ok: Boolean(migrationReport), detail: migrationReport ? `${migrationReport.results?.filter((item) => item.status === 'migrated').length || 0} migrated · ${migrationReport.results?.filter((item) => item.status === 'failed').length || 0} failed` : 'No migration report', latency: 0 },
-      { name: language === 'vi' ? 'Phiên bản phát hành' : 'Release version', ok: release.version === '10.87.0', detail: `V${release.version} · ${release.commit}`, latency: 0 },
-      { name: 'Feature Flags', ok: Object.keys(featureFlags.flags || {}).length >= 8, detail: `${Object.values(featureFlags.flags || {}).filter((value) => value !== 'off').length}/${Object.keys(featureFlags.flags || {}).length} enabled · ${flagSnapshots.length} rollback points`, latency: 0 },
       { name: language === 'vi' ? 'Quản trị AI' : 'AI Governance', ok: aiGovernance.enabled && aiUsage.requests < aiGovernance.dailyRequestLimit && aiUsage.tokenTotal < aiGovernance.dailyTokenBudget, detail: aiGovernance.enabled ? `${aiUsage.requests}/${aiGovernance.dailyRequestLimit} requests · ${aiUsage.tokenTotal}/${aiGovernance.dailyTokenBudget} tokens` : (language === 'vi' ? 'AI đang bị tạm dừng bởi Admin' : 'AI is paused by Admin'), latency: 0 },
     ];
     const asyncRows = await Promise.all([
       timedCheck(language === 'vi' ? 'Bộ nhớ trình duyệt' : 'Browser storage', () => storageCheck(), 3500),
       timedCheck('Supabase Auth', () => supabaseCheck(), 6500),
       timedCheck(language === 'vi' ? 'Newsroom RSS API' : 'Newsroom RSS API', (signal) => newsroomCheck(signal), 9000),
-      timedCheck('Upload Security Gateway', (signal) => uploadGatewayCheck(signal), 5000),
     ]);
     const performanceRow = (() => {
       const nav = performance.getEntriesByType?.('navigation')?.[0];
@@ -131,7 +110,7 @@ export default function SystemHealthCenter({ language = 'vi', currentUser }) {
       <button className="back-btn" onClick={() => window.history.back()}>← {language === 'vi' ? 'Quay lại' : 'Back'}</button>
       <section className="bes-health-hero">
         <div>
-          <span>V10.87 · RELEASE, SECURITY & PERFORMANCE</span>
+          <span>V10.86 · AI ACTION & GOVERNANCE</span>
           <h1>{language === 'vi' ? 'Trung tâm trạng thái hệ thống' : 'System Health Center'}</h1>
           <p>{language === 'vi' ? 'Kiểm tra nhanh kết nối, lưu trữ, AI, Supabase, Newsroom và các lỗi giao diện gần đây.' : 'Check connectivity, storage, AI, Supabase, Newsroom and recent UI errors.'}</p>
           <div className="bes-health-actions">
@@ -173,16 +152,10 @@ export default function SystemHealthCenter({ language = 'vi', currentUser }) {
             <div><dt>{language === 'vi' ? 'Chờ đồng bộ' : 'Sync queue'}</dt><dd>{syncStats.filter((item) => item.status !== 'completed').length}</dd></div>
             <div><dt>{language === 'vi' ? 'Yêu cầu AI hôm nay' : 'AI requests today'}</dt><dd>{aiUsage.requests}</dd></div>
             <div><dt>{language === 'vi' ? 'Hành động AI' : 'AI actions'}</dt><dd>{aiUsage.actions}</dd></div>
-            <div><dt>Feature Flags</dt><dd>{Object.values(featureFlags.flags || {}).filter((value) => value !== 'off').length}</dd></div>
-            <div><dt>{language === 'vi' ? 'Điểm rollback' : 'Rollback points'}</dt><dd>{flagSnapshots.length}</dd></div>
-            <div><dt>{language === 'vi' ? 'Sự kiện audit' : 'Audit events'}</dt><dd>{auditEvents.length}</dd></div>
           </dl>
           <div className="bes-health-card-actions">
             <button type="button" onClick={() => { purgeExpiredTrash(); window.location.hash = '#/trash'; }}>{language === 'vi' ? 'Mở thùng rác' : 'Open trash'}</button>
-            {currentUser?.role === 'admin' ? <>
-              <button type="button" onClick={() => { window.location.hash = '#/updates'; }}>{language === 'vi' ? 'Mở trung tâm cập nhật' : 'Open Update Center'}</button>
-              <button type="button" onClick={() => { window.location.hash = '#/ai-governance'; }}>{language === 'vi' ? 'Mở quản trị AI' : 'Open AI Governance'}</button>
-            </> : null}
+            {currentUser?.role === 'admin' ? <button type="button" onClick={() => { window.location.hash = '#/ai-governance'; }}>{language === 'vi' ? 'Mở quản trị AI' : 'Open AI Governance'}</button> : null}
           </div>
         </article>
 

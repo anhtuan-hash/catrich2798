@@ -17,15 +17,12 @@ import { recordAppUsage } from './utils/appUsage.js';
 import { setTrashStorageUser } from './utils/trash.js';
 import { runConfigurationMigrations } from './utils/configMigration.js';
 import { setAiGovernanceUser } from './utils/aiGovernance.js';
-import { getFeatureFlags, isFeatureEnabled, loadFeatureFlagsFromCloud, subscribeFeatureFlags } from './utils/featureFlags.js';
-import { installAuditBridge, setAuditUser, writeAuditEvent } from './utils/auditLog.js';
 
 runConfigurationMigrations();
-installAuditBridge();
 installStoredPersonalFont();
 waitForPersonalFontLoad();
 
-const PRELOAD_RECOVERY_KEY = 'bes-vite-preload-recovery-v1087';
+const PRELOAD_RECOVERY_KEY = 'bes-vite-preload-recovery-v1086';
 if (typeof window !== 'undefined') {
   window.addEventListener('vite:preloadError', (event) => {
     event.preventDefault();
@@ -76,10 +73,8 @@ const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.js
 const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.jsx'));
 const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.jsx'));
 const AIGovernanceCenter = lazy(() => import('./pages/AIGovernanceCenter.jsx'));
-const ReleaseCenter = lazy(() => import('./pages/ReleaseCenter.jsx'));
-const GlobalUpdateNotice = lazy(() => import('./components/GlobalUpdateNotice.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'practice', 'qa', 'ai-governance', 'updates', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
 
 function getInitialRoute() {
@@ -108,7 +103,6 @@ const ROUTE_DESIGN_PROFILES = {
   contact: { accent: '#00A6A6', soft: '#D8FAFA', ink: '#073434' },
   qa: { accent: '#123C69', soft: '#DCEBFA', ink: '#07192C' },
   'ai-governance': { accent: '#6D45C6', soft: '#EEE7FF', ink: '#24114F' },
-  updates: { accent: '#176B68', soft: '#DFF5F1', ink: '#0B3533' },
   trash: { accent: '#A43B57', soft: '#FFE5EC', ink: '#3C101D' },
   tools: { accent: '#E86D1F', soft: '#FFE3CD', ink: '#211510' },
   login: { accent: '#191515', soft: '#F3DFD8', ink: '#191515' },
@@ -154,7 +148,6 @@ function App() {
   const setThemeIntensity = (value) => setThemeIntensityState(normalizeMetroIntensity(value));
   const [tileBorder, setTileBorder] = useState(() => localStorage.getItem('bes-tile-border') || 'soft');
   const [indicatorMode, setIndicatorMode] = useState(() => localStorage.getItem('bes-windows-indicator') || 'on');
-  const [featureConfig, setFeatureConfig] = useState(getFeatureFlags);
   const resolvedPerformance = resolvePerformanceMode(performanceMode);
   const effectiveMotionMode = resolveMotionMode(motionMode, performanceMode);
 
@@ -259,24 +252,11 @@ function App() {
     setLibraryStorageUser(currentUser);
     setTrashStorageUser(currentUser);
     setAiGovernanceUser(currentUser);
-    setAuditUser(currentUser);
     const active = getActiveAiConfig();
     setAiProviderState(getAiProvider());
     setProviderConfigs(getAiConfigs());
     setApiKey(active.apiKey || '');
     setAiModel(active.model || active.providerInfo?.defaultModel || 'gemini-flash-latest');
-  }, [currentUser?.id, currentUser?.email]);
-
-
-  useEffect(() => subscribeFeatureFlags(setFeatureConfig), []);
-
-  useEffect(() => {
-    let active = true;
-    if (!currentUser) return () => { active = false; };
-    loadFeatureFlagsFromCloud().then(({ config }) => {
-      if (active && config) setFeatureConfig(config);
-    }).catch(() => null);
-    return () => { active = false; };
   }, [currentUser?.id, currentUser?.email]);
 
   useEffect(() => {
@@ -375,8 +355,6 @@ function App() {
     setIndicatorMode,
     fontScale,
     setFontScale,
-    featureConfig,
-    isFeatureEnabled: (id) => isFeatureEnabled(id, currentUser, featureConfig),
   };
 
   const activeDesignProfile = getActiveDesignProfile(currentRoute, selectedTool);
@@ -387,7 +365,7 @@ function App() {
       home: ['Home', 'Trang chủ'], apps: ['Apps', 'Ứng dụng'], news: ['Newsroom', 'Đọc báo'], games: ['Games', 'Trò chơi'],
       department: ['Department', 'Tổ chuyên môn'], homeroom: ['Homeroom', 'Giáo viên chủ nhiệm'], library: ['Library', 'Thư viện'],
       'resource-library': ['Resource Library', 'Kho học liệu'], practice: ['Classroom', 'Lớp học'], settings: ['Settings', 'Cài đặt'],
-      admin: ['Admin', 'Quản trị'], 'ai-governance': ['AI Governance', 'Quản trị AI'], updates: ['Update Center', 'Trung tâm cập nhật'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác'],
+      admin: ['Admin', 'Quản trị'], 'ai-governance': ['AI Governance', 'Quản trị AI'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác'],
     };
     if (selectedTool?.slug) {
       const profile = getAppDesignProfile(selectedTool.slug);
@@ -405,14 +383,6 @@ function App() {
       icon: String(pair[0] || 'GO').slice(0, 2).toUpperCase(), color: activeDesignProfile.accent, kind: 'route',
     });
   }, [currentRoute, selectedTool?.slug, currentUser?.id, currentUser?.email, canAccessRoute]);
-
-  useEffect(() => {
-    if (!currentUser || !canAccessRoute || ['login', 'register', 'homeroom-portal'].includes(currentRoute)) return;
-    writeAuditEvent({
-      action: 'route_opened', category: 'navigation', status: 'success', route: currentRoute,
-      app: selectedTool?.slug || '', metadata: { target: selectedTool?.slug ? `tool:${selectedTool.slug}` : `route:${currentRoute}` }, actor: currentUser,
-    });
-  }, [currentRoute, selectedTool?.slug, currentUser?.id, canAccessRoute]);
 
   const tileLaunchRect = tileLaunch
     ? (tileLaunch.rect || { x: window.innerWidth / 2 - 90, y: window.innerHeight / 2 - 70, w: 180, h: 140 })
@@ -442,7 +412,7 @@ function App() {
           <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
         </AppErrorBoundary>
       </div> : null}
-      {currentUser && canAccessRoute && isFeatureEnabled('workspaceTabs', currentUser, featureConfig) && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
+      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="workspace-tabs" label={language === 'vi' ? 'tab không gian làm việc' : 'workspace tabs'}>
             <WorkspaceTabs currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} activeProfile={activeDesignProfile} language={language} />
@@ -504,7 +474,7 @@ function App() {
           <FullMotionEffects route={currentRoute} language={language} loadingState={loadingState} />
         </Suspense>
       )}
-      {currentUser && canAccessRoute && isFeatureEnabled('contentTransfer', currentUser, featureConfig) && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
+      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
         <Suspense fallback={null}>
           <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
         </Suspense>
@@ -530,7 +500,6 @@ function App() {
           {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
           {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}
           {canAccessRoute && currentRoute === 'ai-governance' && currentUser && <AIGovernanceCenter {...context} />}
-          {canAccessRoute && currentRoute === 'updates' && currentUser && <ReleaseCenter {...context} />}
           {canAccessRoute && currentRoute === 'trash' && currentUser && <TrashCenter {...context} />}
           {currentRoute === 'contact' && <Contact {...context} />}
           {canAccessRoute && currentRoute === 'settings' && currentUser && <Settings {...context} />}
@@ -550,7 +519,7 @@ function App() {
         </Suspense>
       )}
 
-      {currentUser && canAccessRoute && isFeatureEnabled('aiBubble', currentUser, featureConfig) && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+      {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="ai-messenger" label={language === 'vi' ? 'Brian AI' : 'Brian AI'}>
           <UniversalAIAssist
@@ -565,14 +534,12 @@ function App() {
             accent={activeDesignProfile.accent}
             soft={activeDesignProfile.soft}
             ink={activeDesignProfile.ink}
-            enableVoice={isFeatureEnabled('voiceMode', currentUser, featureConfig)}
-            enableActions={isFeatureEnabled('aiActions', currentUser, featureConfig)}
           />
           </AppErrorBoundary>
         </Suspense>
       )}
 
-      {currentUser && canAccessRoute && isFeatureEnabled('contentTransfer', currentUser, featureConfig) && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <>
+      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <>
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
             <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} />
@@ -582,9 +549,6 @@ function App() {
           <SyncQueueIndicator currentUser={currentUser} language={language} />
         </Suspense>
       </> : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) ? (
-        <Suspense fallback={null}><GlobalUpdateNotice language={language} currentUser={currentUser} /></Suspense>
-      ) : null}
       {currentRoute !== 'homeroom-portal' ? <>
         <Suspense fallback={null}>
           <GlobalMusicPlayer language={language} currentUser={currentUser} />

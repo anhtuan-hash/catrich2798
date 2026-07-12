@@ -5,49 +5,6 @@ const JSON_HEADERS = {
 
 const MAX_TEXT = 12000;
 
-const MAX_BODY_BYTES = 180000;
-const MAX_OUTPUT_TOKENS = Math.max(256, Math.min(6000, Number(process.env.AI_MAX_OUTPUT_TOKENS || 3600)));
-const REQUEST_TIMEOUT_MS = Math.max(8000, Math.min(90000, Number(process.env.AI_REQUEST_TIMEOUT_MS || 45000)));
-const RATE_WINDOW_MS = 60 * 1000;
-const RATE_LIMIT = Math.max(3, Math.min(120, Number(process.env.AI_RATE_LIMIT_PER_MINUTE || 24)));
-const rateBuckets = globalThis.__besAiRateBuckets || (globalThis.__besAiRateBuckets = new Map());
-const ALLOWED_MODES = new Set([
-  'general', 'health', 'lessonBrief', 'diagnostic', 'vault', 'classInsight', 'presentation', 'template',
-  'exam-builder-pro', 'worksheet-studio', 'cloze-test-generator', 'word-formation-lab', 'interactive-game-factory',
-  'presentation-builder', 'lesson-to-activity-converter', 'teacher-workload-planner', 'class-performance-analyzer',
-  'student-support-tracker', 'department-document-hub', 'student-practice-portal', 'vocabulary-mastery-app',
-  'speaking-practice-room', 'meeting-minutes-assistant',
-]);
-
-function requestIp(req) {
-  return String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
-}
-
-function enforceRateLimit(req) {
-  const now = Date.now();
-  const key = requestIp(req);
-  const bucket = rateBuckets.get(key) || { start: now, count: 0 };
-  if (now - bucket.start >= RATE_WINDOW_MS) { bucket.start = now; bucket.count = 0; }
-  bucket.count += 1;
-  rateBuckets.set(key, bucket);
-  if (rateBuckets.size > 2000) {
-    for (const [ip, item] of rateBuckets) if (now - item.start > RATE_WINDOW_MS * 2) rateBuckets.delete(ip);
-  }
-  return { ok: bucket.count <= RATE_LIMIT, remaining: Math.max(0, RATE_LIMIT - bucket.count), resetAt: bucket.start + RATE_WINDOW_MS };
-}
-
-function requestId() {
-  return `ai-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function isSameOrigin(req) {
-  const origin = String(req.headers.origin || '');
-  const host = String(req.headers['x-forwarded-host'] || req.headers.host || '');
-  if (!origin || !host) return true;
-  try { return new URL(origin).host === host; } catch { return false; }
-}
-
-
 function clip(value, max = MAX_TEXT) {
   const text = typeof value === 'string' ? value : JSON.stringify(value || '', null, 2);
   return text.length > max ? `${text.slice(0, max)}\n\n[Content truncated for safety.]` : text;
@@ -166,27 +123,8 @@ function extractOutputText(data) {
 }
 
 export default async function handler(req, res) {
-  const id = requestId();
-  res.setHeader('X-Request-Id', id);
   if (req.method !== 'POST') {
-    send(res, 405, { ok: false, error: 'Method not allowed. Use POST.', requestId: id });
-    return;
-  }
-  if (!isSameOrigin(req)) {
-    send(res, 403, { ok: false, error: 'Cross-origin AI requests are not allowed.', requestId: id });
-    return;
-  }
-  const declaredLength = Number(req.headers['content-length'] || 0);
-  if (declaredLength > MAX_BODY_BYTES) {
-    send(res, 413, { ok: false, error: 'AI request payload is too large.', requestId: id });
-    return;
-  }
-  const rate = enforceRateLimit(req);
-  res.setHeader('X-RateLimit-Limit', String(RATE_LIMIT));
-  res.setHeader('X-RateLimit-Remaining', String(rate.remaining));
-  res.setHeader('X-RateLimit-Reset', String(Math.ceil(rate.resetAt / 1000)));
-  if (!rate.ok) {
-    send(res, 429, { ok: false, error: 'Too many AI requests. Please wait before trying again.', requestId: id });
+    send(res, 405, { ok: false, error: 'Method not allowed. Use POST.' });
     return;
   }
 
@@ -195,7 +133,6 @@ export default async function handler(req, res) {
     send(res, 500, {
       ok: false,
       error: 'OPENAI_API_KEY is not configured on the server. Add it in Vercel Environment Variables, then redeploy.',
-      requestId: id,
     });
     return;
   }
@@ -203,42 +140,28 @@ export default async function handler(req, res) {
   let body = req.body;
   if (!body || typeof body === 'string') {
     try {
-      if (typeof body === 'string' && Buffer.byteLength(body, 'utf8') > MAX_BODY_BYTES) throw new Error('Request body too large.');
       body = JSON.parse(body || '{}');
-    } catch (error) {
-      send(res, error?.message?.includes('large') ? 413 : 400, { ok: false, error: error?.message || 'Invalid JSON body.', requestId: id });
+    } catch {
+      send(res, 400, { ok: false, error: 'Invalid JSON body.' });
       return;
     }
   }
 
   const { mode = 'general', payload = {} } = body || {};
-  if (!ALLOWED_MODES.has(mode)) {
-    send(res, 400, { ok: false, error: 'Unsupported AI task mode.', requestId: id });
-    return;
-  }
   const model = process.env.OPENAI_MODEL || 'gpt-5.4-mini';
-  const allowedModels = String(process.env.OPENAI_ALLOWED_MODELS || '').split(',').map((item) => item.trim()).filter(Boolean);
-  if (allowedModels.length && !allowedModels.includes(model)) {
-    send(res, 500, { ok: false, error: 'Configured AI model is not in OPENAI_ALLOWED_MODELS.', requestId: id });
-    return;
-  }
   const prompt = buildPrompt(mode, payload);
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
     const response = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
-      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
-        'X-Client-Request-Id': id,
       },
       body: JSON.stringify({
         model,
         input: prompt,
-        max_output_tokens: MAX_OUTPUT_TOKENS,
+        max_output_tokens: 3600,
       }),
     });
 
@@ -247,22 +170,18 @@ export default async function handler(req, res) {
       send(res, response.status, {
         ok: false,
         error: data?.error?.message || `OpenAI request failed with status ${response.status}.`,
-        requestId: id,
       });
       return;
     }
 
     const text = extractOutputText(data);
     if (!text) {
-      send(res, 502, { ok: false, error: 'AI returned no text output.', requestId: id });
+      send(res, 502, { ok: false, error: 'AI returned no text output.' });
       return;
     }
 
-    send(res, 200, { ok: true, text, model, requestId: id });
+    send(res, 200, { ok: true, text, model });
   } catch (error) {
-    const timedOut = error?.name === 'AbortError';
-    send(res, timedOut ? 504 : 500, { ok: false, error: timedOut ? 'AI request timed out.' : (error?.message || 'AI request failed.'), requestId: id });
-  } finally {
-    clearTimeout(timer);
+    send(res, 500, { ok: false, error: error?.message || 'AI request failed.' });
   }
 }

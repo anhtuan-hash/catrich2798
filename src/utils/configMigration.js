@@ -1,6 +1,6 @@
 const MIGRATION_EVENT = 'bes-config-migration-complete';
-const BACKUP_PREFIX = 'bes-config-backup-v1085';
-const REPORT_KEY = 'bes-config-migration-report-v1085';
+const BACKUP_PREFIX = 'bes-config-backup-v1086';
+const REPORT_KEY = 'bes-config-migration-report-v1086';
 
 const STORAGE_SCHEMAS = [
   {
@@ -21,6 +21,24 @@ const STORAGE_SCHEMAS = [
         assignments: source.assignments && typeof source.assignments === 'object' && !Array.isArray(source.assignments) ? source.assignments : {},
         updatedAt: Number(source.updatedAt) || Date.now(),
         migratedAt: Date.now(),
+      };
+    },
+  },
+  {
+    id: 'ai-governance',
+    pattern: /^bes-ai-governance-settings:v1$/,
+    targetVersion: 1,
+    migrate(value) {
+      const source = value && typeof value === 'object' ? value : {};
+      return {
+        ...source,
+        schemaVersion: 1,
+        enabled: source.enabled !== false,
+        allowActions: source.allowActions !== false,
+        requireActionConfirmation: source.requireActionConfirmation !== false,
+        actionTargets: source.actionTargets && typeof source.actionTargets === 'object' && !Array.isArray(source.actionTargets) ? source.actionTargets : {},
+        profiles: source.profiles && typeof source.profiles === 'object' && !Array.isArray(source.profiles) ? source.profiles : {},
+        updatedAt: source.updatedAt || new Date().toISOString(),
       };
     },
   },
@@ -120,7 +138,7 @@ export function runConfigurationMigrations() {
     });
   });
 
-  const report = { ranAt: Date.now(), version: '10.85.0', results };
+  const report = { ranAt: Date.now(), version: '10.86.0', results };
   try { storage.setItem(REPORT_KEY, JSON.stringify(report)); } catch { /* optional */ }
   try { window.dispatchEvent(new CustomEvent(MIGRATION_EVENT, { detail: report })); } catch { /* optional */ }
   return report;

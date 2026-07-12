@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.87.0",
+  "version": "10.86.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -9,9 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "node scripts/smoke-test.mjs",
     "audit:performance": "node scripts/performance-audit.mjs",
-    "test:department": "node scripts/department-runtime-test.mjs",
-    "release:guard": "node scripts/release-guard.mjs",
-    "verify": "npm run build && npm test && npm run test:department && npm run audit:performance && npm run release:guard"
+    "test:department": "node scripts/department-runtime-test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
@@ -24,7 +22,7 @@
     "xlsx": "^0.18.5",
     "jszip": "^3.10.1"
   },
-  "description": "Brian English Studio V10.87.0 - Release, Security & Performance with Feature Flags, rollback, hardened AI and upload gateways, audit logs and an in-app Update Center.",
+  "description": "Brian English Studio V10.86.0 - AI Action Engine and Governance Center with confirmation plans, quotas, task profiles, usage analytics and audit logs.",
   "engines": {
     "node": "22.x"
   },
