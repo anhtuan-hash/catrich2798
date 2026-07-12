@@ -313,7 +313,7 @@ add('V10.81.9 direct viewer covers requested formats', ['docx', 'pptx', 'pdf', '
 add('V10.81.9 resource modal uses secure viewer', resourceLibrarySource.includes('<ResourceFileViewer item={preview} fetchBlob={fetchResourceBlob} getStreamUrl={getResourceStreamUrl}/>') && resourceLibrarySource.includes('supportsResourcePreview'), 'preview remains behind authenticated Drive proxy');
 add('V10.81.9 Office renderers are local and sandboxed', resourceViewerSource.includes('mammoth.convertToHtml') && resourceViewerSource.includes("import('xlsx')") && resourceViewerSource.includes("import('jszip')") && resourceViewerSource.includes('sandbox="allow-popups"'), 'Word, Excel and PowerPoint render without public Drive sharing');
 add('V10.81.9 scalable viewer styling present', resourceViewerCss.includes('V10.81.9 — direct DOCX, PPTX, PDF, XLSX, MP4 and MP3 viewer') && resourceViewerCss.includes('.resource-workbook-viewer') && resourceViewerCss.includes('.resource-pptx-viewer'), 'desktop, dark and mobile layouts present');
-add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0', '10.83.1', '10.83.2', '10.83.3'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
+add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0', '10.83.1', '10.83.2', '10.83.3', '10.84.0'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
 const previewSessionSource = fs.readFileSync(new URL('../api/google-drive-preview-session.js', import.meta.url), 'utf8');
 const driveFileSource = fs.readFileSync(new URL('../api/google-drive-file.js', import.meta.url), 'utf8');
 add('V10.81.9 secure streaming session supports media seeking', previewSessionSource.includes('signResourcePreviewToken') && driveFileSource.includes('Content-Range') && driveFileSource.includes("Range: range") && resourceLibrarySource.includes('getResourceStreamUrl'), 'short-lived signed URL and byte ranges present');
@@ -420,6 +420,22 @@ add('V10.83.3 recent and frequent app usage is account-scoped', appUsageSource.i
 add('V10.83.3 launcher search, recent rail and density controls are wired', webAppsSource.includes('launcher-search-box') && webAppsSource.includes('launcher-recent-strip') && webAppsSource.includes('bes-launcher-density') && webAppsSource.includes('normalizedSearch'), 'app discovery and compact/comfortable views present');
 add('V10.83.3 command palette can open context-aware AI', commandPaletteSource.includes('bes-ai-open') && universalAiSource.includes("window.addEventListener('bes-ai-open'") && universalAiSource.includes('event?.detail?.prompt'), 'system commands open Brian AI and prefill page-aware prompts');
 add('V10.83.3 command center styling is responsive and centered', cssSource.includes('V10.83.3 — Global Command Center + Smart Launcher discovery') && cssSource.includes('.global-command-palette') && cssSource.includes('.launcher-discovery-bar') && cssSource.includes('width:min(1360px,calc(100% - 48px))'), 'desktop, mobile, dark and reduced-motion styles present');
+
+
+
+// V10.84.0 — Stability & Unified Shell
+const autosaveSource = fs.readFileSync(new URL('../src/components/GlobalAutosave.jsx', import.meta.url), 'utf8');
+const runtimeGuardSource = fs.readFileSync(new URL('../src/components/GlobalRuntimeGuard.jsx', import.meta.url), 'utf8');
+const healthCenterSource = fs.readFileSync(new URL('../src/pages/SystemHealthCenter.jsx', import.meta.url), 'utf8');
+const trashCenterSource = fs.readFileSync(new URL('../src/pages/TrashCenter.jsx', import.meta.url), 'utf8');
+const trashSource = fs.readFileSync(new URL('../src/utils/trash.js', import.meta.url), 'utf8');
+const runtimeDiagnosticsSource = fs.readFileSync(new URL('../src/utils/runtimeDiagnostics.js', import.meta.url), 'utf8');
+add('V10.84 global autosave and draft recovery are mounted', mainSource.includes('GlobalAutosave') && autosaveSource.includes('collectSnapshot') && autosaveSource.includes('Khôi phục'), '15-second form snapshot, restore and discard controls present');
+add('V10.84 responsive navigation drawer is wired', globalNavSource.includes('global-nav-drawer') && globalNavSource.includes('route:trash') && globalNavSource.includes('route:qa'), 'mobile/overflow navigation includes Trash and System Health');
+add('V10.84 System Health Center checks core services', healthCenterSource.includes('Supabase Auth') && healthCenterSource.includes('Newsroom RSS API') && healthCenterSource.includes('Bộ nhớ trình duyệt'), 'storage, Supabase, Newsroom, AI and performance checks present');
+add('V10.84 runtime error containment persists diagnostics', runtimeGuardSource.includes('unhandledrejection') && runtimeDiagnosticsSource.includes('bes-runtime-errors-v1084') && errorBoundarySource.includes('recordRuntimeError'), 'window errors, rejected promises and React errors are recorded');
+add('V10.84 30-day trash and library restore adapter are present', trashSource.includes('TRASH_RETENTION_DAYS = 30') && trashCenterSource.includes("data?.type === 'library'") && fs.readFileSync(new URL('../src/utils/library.js', import.meta.url), 'utf8').includes('moveToTrash'), 'library deletes move to recoverable trash');
+add('V10.84 unified design tokens and centered rail are present', cssSource.includes('V10.84.0 — Stability & Unified Shell') && cssSource.includes('--bes-content-max:1360px') && cssSource.includes('.bes-health-page'), 'site-wide spacing, density, health, trash and resilience styles present');
 
 const failed = checks.filter((item) => !item.ok);
 for (const item of checks) {

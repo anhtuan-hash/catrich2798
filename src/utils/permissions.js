@@ -62,10 +62,10 @@ export const CORE_PERMISSION_ITEMS = [
     id: ROUTE_PERMISSION_IDS.qa,
     type: 'system',
     section: 'content',
-    title: 'QA Health Check',
-    titleVi: 'Kiểm tra chất lượng',
-    desc: 'Run local quality checks for generated items and activities.',
-    descVi: 'Kiểm tra chất lượng câu hỏi, hoạt động và nội dung đã tạo.',
+    title: 'System Health Center',
+    titleVi: 'Trung tâm trạng thái hệ thống',
+    desc: 'Check connectivity, browser storage, AI, Supabase, Newsroom and recent runtime errors.',
+    descVi: 'Kiểm tra kết nối, bộ nhớ, AI, Supabase, Newsroom và lỗi runtime gần đây.',
   },
   {
     id: ROUTE_PERMISSION_IDS.settings,
@@ -271,6 +271,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (!user) return false;
   if (user.role === 'admin') return true;
   if (route === 'admin') return false;
+  if (route === 'trash') return Boolean(user);
   if (route === 'tool') return hasToolAccess(user, selectedTool?.slug);
   if (route === 'news') return Boolean(user);
   if (route === 'department') return hasAnyDepartmentAccess(user);

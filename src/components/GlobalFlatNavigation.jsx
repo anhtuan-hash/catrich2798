@@ -10,28 +10,28 @@ const copy = {
     home: 'Trang chủ', apps: 'Ứng dụng', news: 'Đọc báo', games: 'Trò chơi', department: 'Tổ chuyên môn', homeroom: 'Chủ nhiệm',
     library: 'Thư viện', 'resource-library': 'Kho học liệu', resources: 'Tài nguyên', contact: 'Liên hệ', admin: 'Quản trị',
     login: 'Đăng nhập', settings: 'Cài đặt', logout: 'Thoát', subtitle: 'Hệ thống dạy học sáng tạo',
-    account: 'Tài khoản', guest: 'Khách', aiReady: 'AI sẵn sàng', aiOff: 'AI chưa cài', fontSize: 'Tăng cỡ chữ', search: 'Tìm nhanh',
+    account: 'Tài khoản', guest: 'Khách', aiReady: 'AI sẵn sàng', aiOff: 'AI chưa cài', fontSize: 'Tăng cỡ chữ', search: 'Tìm nhanh', more: 'Thêm', close: 'Đóng', qa: 'Trạng thái', trash: 'Thùng rác',
   },
   en: {
     home: 'Home', apps: 'Apps', news: 'News', games: 'Games', department: 'Department', homeroom: 'Homeroom',
     library: 'Library', 'resource-library': 'Resources Hub', resources: 'Resources', contact: 'Contact', admin: 'Admin',
     login: 'Sign in', settings: 'Settings', logout: 'Logout', subtitle: 'Brian English',
-    account: 'Account', guest: 'Guest', aiReady: 'AI ready', aiOff: 'AI not set', fontSize: 'Increase text size', search: 'Quick search',
+    account: 'Account', guest: 'Guest', aiReady: 'AI ready', aiOff: 'AI not set', fontSize: 'Increase text size', search: 'Quick search', more: 'More', close: 'Close', qa: 'System health', trash: 'Trash',
   },
 };
 
 const routeColors = {
   home: '#ffc69d', apps: '#f05a7e', news: '#167d78', games: '#5b2a86', department: '#3b4cca', homeroom: '#1f8f70',
   library: '#6fba7b', 'resource-library': '#2878d0', resources: '#d99a1e', contact: '#00a6a6', admin: '#d13438',
-  settings: '#123c69', login: '#191515',
+  settings: '#123c69', qa: '#123c69', trash: '#a43b57', login: '#191515',
 };
 
 const routeIcons = {
   home: '⌂', apps: '▦', news: '▤', games: '◈', department: '▦', homeroom: '♙', library: '▤', 'resource-library': '▥',
-  resources: '▦', contact: '✉', admin: '☼', settings: '⚙', login: '↪',
+  resources: '▦', contact: '✉', admin: '☼', settings: '⚙', qa: '♥', trash: '⌫', login: '↪',
 };
 
-const ROUTE_KEYS = ['home', 'apps', 'news', 'games', 'department', 'homeroom', 'library', 'resource-library', 'resources', 'contact', 'admin', 'settings'];
+const ROUTE_KEYS = ['home', 'apps', 'news', 'games', 'department', 'homeroom', 'library', 'resource-library', 'resources', 'contact', 'admin', 'settings', 'qa', 'trash'];
 
 function shortName(value, fallback) {
   const text = String(value || '').trim();
@@ -103,6 +103,7 @@ export default function GlobalFlatNavigation({
   const t = copy[language] || copy.vi;
   const isAdmin = currentUser?.role === 'admin';
   const [launcherConfig, setLauncherConfig] = useState(() => normalizeLauncherConfig(loadLauncherConfig()));
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -111,6 +112,14 @@ export default function GlobalFlatNavigation({
       .catch((error) => console.warn('[Launcher] cloud navigation fallback', error));
     const unsubscribe = subscribeLauncherConfig((next) => setLauncherConfig(normalizeLauncherConfig(next)));
     return () => { active = false; unsubscribe(); };
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (event) => { if (event.key === 'Escape') setMenuOpen(false); };
+    const onRoute = () => setMenuOpen(false);
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('hashchange', onRoute);
+    return () => { window.removeEventListener('keydown', onKeyDown); window.removeEventListener('hashchange', onRoute); };
   }, []);
 
   const registry = useMemo(() => buildRegistry(language), [language]);
@@ -130,6 +139,17 @@ export default function GlobalFlatNavigation({
       })
       .slice(0, 12);
   }, [launcherConfig?.nav, registry, currentUser, isAdmin]);
+
+  const drawerEntries = useMemo(() => {
+    const baseIds = [...entries.map((entry) => entry.id), 'route:library', 'route:resource-library', 'route:trash', 'route:settings'];
+    if (isAdmin) baseIds.push('route:qa', 'route:admin');
+    const seen = new Set();
+    return baseIds.map((id) => registry.get(id)).filter((entry) => {
+      if (!entry || seen.has(entry.id) || !canShow(entry, currentUser)) return false;
+      seen.add(entry.id);
+      return true;
+    });
+  }, [entries, registry, currentUser, isAdmin]);
 
   const accountName = shortName(currentUser?.name || currentUser?.email, currentUser ? t.account : t.guest);
   const accountRoute = currentUser ? getFirstAllowedRoute(currentUser) : 'login';
@@ -170,6 +190,15 @@ export default function GlobalFlatNavigation({
       <div className="global-flat-actions">
         <button
           type="button"
+          className={`global-flat-mini global-nav-more-toggle ${menuOpen ? 'active' : ''}`}
+          onClick={() => setMenuOpen((value) => !value)}
+          aria-expanded={menuOpen}
+          aria-controls="bes-global-nav-drawer"
+        >
+          <span aria-hidden="true">☰</span><b>{t.more}</b>
+        </button>
+        <button
+          type="button"
           className="global-flat-mini global-command-trigger"
           onClick={() => window.dispatchEvent(new CustomEvent('bes-command-palette-open'))}
           aria-label={t.search}
@@ -197,6 +226,32 @@ export default function GlobalFlatNavigation({
         </button>
         {currentUser ? <button type="button" className="global-flat-logout" onClick={onLogout}>{t.logout}</button> : null}
       </div>
+
+      {menuOpen ? (
+        <div className="global-nav-drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setMenuOpen(false); }}>
+          <section id="bes-global-nav-drawer" className="global-nav-drawer" aria-label={t.more}>
+            <header>
+              <div><span>BRIAN ENGLISH</span><strong>{language === 'vi' ? 'Điều hướng nhanh' : 'Quick navigation'}</strong></div>
+              <button type="button" onClick={() => setMenuOpen(false)} aria-label={t.close}>×</button>
+            </header>
+            <div className="global-nav-drawer-grid">
+              {drawerEntries.map((entry) => (
+                <button
+                  type="button"
+                  key={entry.id}
+                  className={activeId === entry.id ? 'active' : ''}
+                  style={{ '--drawer-accent': entry.color }}
+                  onClick={(event) => { setMenuOpen(false); go(entry.target, entry.label, entry.color, event.currentTarget); }}
+                >
+                  <span aria-hidden="true">{entry.icon}</span>
+                  <b>{entry.label}</b>
+                </button>
+              ))}
+            </div>
+            <footer><small>{language === 'vi' ? 'Kéo thả và chọn mục trên thanh điều hướng trong Trình tùy biến Launcher.' : 'Arrange and choose navigation items in Launcher customization.'}</small></footer>
+          </section>
+        </div>
+      ) : null}
     </nav>
   );
 }

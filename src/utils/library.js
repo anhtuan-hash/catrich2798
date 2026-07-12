@@ -1,4 +1,5 @@
 import { isSupabaseConfigured, supabase } from './supabase.js';
+import { moveToTrash } from './trash.js';
 
 export const HISTORY_KEY = 'bet-v4-history';
 export const PROMPTS_KEY = 'bet-v4-prompts';
@@ -297,7 +298,19 @@ export function updateHistoryEntry(id, patch = {}) {
 }
 
 export function deleteFromList(key, id) {
-  writeLocalList(key, readList(key).filter((item) => item.id !== id));
+  const current = readList(key);
+  const removed = current.find((item) => item.id === id);
+  if (removed) {
+    moveToTrash({
+      title: removed.title || removed.question || removed.name || 'Library item',
+      kind: KEY_TO_TYPE[key] || 'library',
+      source: 'teacher-library',
+      payload: removed,
+      restoreData: { type: 'library', key, item: removed },
+      metadata: { ownerId: currentOwner.id, ownerEmail: currentOwner.email },
+    });
+  }
+  writeLocalList(key, current.filter((item) => item.id !== id));
   scheduleCloudSync(key);
   if (isCloudOwner()) {
     supabase.from(LIBRARY_TABLE).delete().eq('user_id', currentOwner.id).eq('id', id)
@@ -306,6 +319,15 @@ export function deleteFromList(key, id) {
 }
 
 export function clearList(key) {
+  const current = readList(key);
+  current.slice(0, 240).forEach((item) => moveToTrash({
+    title: item.title || item.question || item.name || 'Library item',
+    kind: KEY_TO_TYPE[key] || 'library',
+    source: 'teacher-library',
+    payload: item,
+    restoreData: { type: 'library', key, item },
+    metadata: { ownerId: currentOwner.id, ownerEmail: currentOwner.email, batch: true },
+  }));
   writeLocalList(key, []);
   if (isCloudOwner()) {
     supabase.from(LIBRARY_TABLE).delete().eq('user_id', currentOwner.id).eq('item_type', KEY_TO_TYPE[key])

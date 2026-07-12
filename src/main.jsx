@@ -14,6 +14,7 @@ import { installStoredPersonalFont, waitForPersonalFontLoad } from './utils/pers
 import { applyPerformanceAttributes, getStoredMotionMode, getStoredPerformanceMode, resolveMotionMode, resolvePerformanceMode } from './utils/performanceProfile.js';
 import { setLibraryStorageUser } from './utils/library.js';
 import { recordAppUsage } from './utils/appUsage.js';
+import { setTrashStorageUser } from './utils/trash.js';
 
 installStoredPersonalFont();
 waitForPersonalFontLoad();
@@ -60,8 +61,12 @@ const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
 const UniversalAIAssist = lazy(() => import('./components/UniversalAIAssist.jsx'));
 const GlobalAIIndicator = lazy(() => import('./components/GlobalAIIndicator.jsx'));
 const GlobalCommandPalette = lazy(() => import('./components/GlobalCommandPalette.jsx'));
+const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
+const GlobalRuntimeGuard = lazy(() => import('./components/GlobalRuntimeGuard.jsx'));
+const TrashCenter = lazy(() => import('./pages/TrashCenter.jsx'));
+const SystemHealthCenter = lazy(() => import('./pages/SystemHealthCenter.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'practice', 'qa', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
 
 function getInitialRoute() {
@@ -89,6 +94,7 @@ const ROUTE_DESIGN_PROFILES = {
   resources: { accent: '#D99A1E', soft: '#FFF0C8', ink: '#392406' },
   contact: { accent: '#00A6A6', soft: '#D8FAFA', ink: '#073434' },
   qa: { accent: '#123C69', soft: '#DCEBFA', ink: '#07192C' },
+  trash: { accent: '#A43B57', soft: '#FFE5EC', ink: '#3C101D' },
   tools: { accent: '#E86D1F', soft: '#FFE3CD', ink: '#211510' },
   login: { accent: '#191515', soft: '#F3DFD8', ink: '#191515' },
   register: { accent: '#00A6A6', soft: '#D8FAFA', ink: '#073434' },
@@ -235,6 +241,7 @@ function App() {
   useEffect(() => {
     setAiStorageUser(currentUser);
     setLibraryStorageUser(currentUser);
+    setTrashStorageUser(currentUser);
     const active = getActiveAiConfig();
     setAiProviderState(getAiProvider());
     setProviderConfigs(getAiConfigs());
@@ -348,7 +355,7 @@ function App() {
       home: ['Home', 'Trang chủ'], apps: ['Apps', 'Ứng dụng'], news: ['Newsroom', 'Đọc báo'], games: ['Games', 'Trò chơi'],
       department: ['Department', 'Tổ chuyên môn'], homeroom: ['Homeroom', 'Giáo viên chủ nhiệm'], library: ['Library', 'Thư viện'],
       'resource-library': ['Resource Library', 'Kho học liệu'], practice: ['Classroom', 'Lớp học'], settings: ['Settings', 'Cài đặt'],
-      admin: ['Admin', 'Quản trị'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['QA', 'Kiểm tra hệ thống'],
+      admin: ['Admin', 'Quản trị'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác'],
     };
     if (selectedTool?.slug) {
       const profile = getAppDesignProfile(selectedTool.slug);
@@ -433,6 +440,10 @@ function App() {
       )}
 
       <Suspense fallback={null}>
+        <GlobalRuntimeGuard language={language} />
+      </Suspense>
+
+      <Suspense fallback={null}>
         <GlobalAIIndicator
           active={aiOperationState.active}
           language={language}
@@ -465,7 +476,8 @@ function App() {
           {canAccessRoute && currentRoute === 'library' && currentUser && <Library {...context} />}
           {canAccessRoute && currentRoute === 'resource-library' && currentUser && <ResourceLibrary {...context} />}
           {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
-          {canAccessRoute && currentRoute === 'qa' && currentUser && <QAHealthCheck {...context} />}
+          {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}
+          {canAccessRoute && currentRoute === 'trash' && currentUser && <TrashCenter {...context} />}
           {currentRoute === 'contact' && <Contact {...context} />}
           {canAccessRoute && currentRoute === 'settings' && currentUser && <Settings {...context} />}
           {currentRoute === 'login' && <AuthPage mode="login" onLogin={(u) => { setCurrentUser(u); window.location.hash = `#/${getFirstAllowedRoute(u)}`; }} {...context} />}
@@ -475,6 +487,14 @@ function App() {
           {canAccessRoute && currentRoute === 'tool' && currentUser && <ToolPage tool={selectedTool} {...context} />}
         </Suspense>
       </main>
+
+      {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+        <Suspense fallback={null}>
+          <AppErrorBoundary compact scope="global-autosave" label={language === 'vi' ? 'tự lưu' : 'autosave'}>
+            <GlobalAutosave route={currentRoute} selectedTool={selectedTool} currentUser={currentUser} language={language} />
+          </AppErrorBoundary>
+        </Suspense>
+      )}
 
       {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>

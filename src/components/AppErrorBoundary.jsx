@@ -1,5 +1,6 @@
 import React from 'react';
 import { LAUNCHER_CONFIG_KEY } from '../utils/launcherPreferences.js';
+import { recordRuntimeError } from '../utils/runtimeDiagnostics.js';
 
 const RECOVERY_RELOAD_KEY = 'bes-ui-recovery-reload-v10832';
 
@@ -33,13 +34,12 @@ export default class AppErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     this.setState({ errorInfo });
     try {
-      window.__besLastRenderError = {
+      recordRuntimeError({
         scope: this.props.scope || 'application',
         message: String(error?.message || error || 'Unknown render error'),
         stack: String(error?.stack || ''),
         componentStack: String(errorInfo?.componentStack || ''),
-        createdAt: new Date().toISOString(),
-      };
+      });
     } catch {
       // Diagnostics are best effort only.
     }
@@ -84,6 +84,7 @@ export default class AppErrorBoundary extends React.Component {
           <div className="bes-crash-recovery-actions">
             <button type="button" className="primary" onClick={reloadCleanly}>Tải lại ứng dụng</button>
             <button type="button" onClick={this.resetLauncherAndReload}>Khôi phục launcher mặc định</button>
+            <button type="button" onClick={() => { window.location.hash = '#/qa'; this.resetBoundary(); }}>Kiểm tra hệ thống</button>
             <button type="button" onClick={() => { window.location.hash = '#/home'; reloadCleanly(); }}>Về Trang chủ</button>
           </div>
           <details>
