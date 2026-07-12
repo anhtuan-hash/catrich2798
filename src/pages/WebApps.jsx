@@ -15,6 +15,7 @@ import {
   saveLauncherConfigToCloud,
   subscribeLauncherConfig,
 } from '../utils/launcherPreferences.js';
+import { getAppUsage, subscribeAppUsage } from '../utils/appUsage.js';
 
 const APP_ORDER = [
   'resource-library-hub', 'lesson-plan-ai', 'worksheet-factory', 'textlab-activities', 'exam-studio', 'reading-studio',
@@ -40,6 +41,7 @@ const copy = {
     groupName: 'Tên nhóm mới', create: 'Tạo nhóm', dragHint: 'Kéo thẻ để sắp xếp · dùng các nút trên thẻ để ghim, ẩn, đưa lên thanh điều hướng hoặc đổi nhóm.',
     pin: 'Ghim', unpin: 'Bỏ ghim', hide: 'Ẩn', show: 'Hiện', navOn: 'Đưa lên thanh điều hướng', navOff: 'Gỡ khỏi thanh điều hướng',
     group: 'Nhóm', saved: 'Đã lưu và đồng bộ cấu hình launcher toàn hệ thống.', savedLocal: 'Đã lưu trên thiết bị. Hãy chạy migration launcher để đồng bộ toàn hệ thống.', saving: 'Đang lưu…', navLimit: 'Thanh điều hướng tối đa 12 mục.', empty: 'Nhóm này chưa có ứng dụng.',
+    search: 'Tìm ứng dụng', searchPlaceholder: 'Nhập tên, chức năng hoặc nhóm ứng dụng…', recent: 'Mở gần đây', density: 'Mật độ', comfortable: 'Thoáng', compact: 'Gọn', command: 'Tìm nhanh toàn hệ thống', noSearch: 'Không có ứng dụng phù hợp với từ khóa.',
     nav: { home: 'Trang chủ', apps: 'Ứng dụng', games: 'Trò chơi', admin: 'Quản trị' },
   },
   en: {
@@ -51,6 +53,7 @@ const copy = {
     dragHint: 'Drag cards to reorder. Use card controls to pin, hide, add to navigation or move between groups.', pin: 'Pin', unpin: 'Unpin',
     hide: 'Hide', show: 'Show', navOn: 'Add to navigation', navOff: 'Remove from navigation', group: 'Group', saved: 'Launcher configuration saved and synced.', savedLocal: 'Saved on this device. Run the launcher migration for system-wide sync.', saving: 'Saving…',
     navLimit: 'The navigation supports up to 12 items.', empty: 'No apps in this group yet.',
+    search: 'Search apps', searchPlaceholder: 'Type an app, feature or group…', recent: 'Recently opened', density: 'Density', comfortable: 'Comfortable', compact: 'Compact', command: 'Search the whole system', noSearch: 'No app matches this search.',
     nav: { home: 'Home', apps: 'Apps', games: 'Games', admin: 'Admin' },
   },
 };
@@ -220,6 +223,11 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
   const [newGroupColor, setNewGroupColor] = useState('#00A6A6');
   const [notice, setNotice] = useState('');
   const [saving, setSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [density, setDensity] = useState(() => {
+    try { return localStorage.getItem('bes-launcher-density') === 'compact' ? 'compact' : 'comfortable'; } catch { return 'comfortable'; }
+  });
+  const [usage, setUsage] = useState(() => getAppUsage(currentUser));
   const dragItemRef = useRef('');
   const editModeRef = useRef(false);
 
@@ -244,6 +252,15 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
   const [draftConfig, setDraftConfig] = useState(() => loadLauncherConfig(itemIds));
 
   useEffect(() => { editModeRef.current = editMode; }, [editMode]);
+
+  useEffect(() => {
+    setUsage(getAppUsage(currentUser));
+    return subscribeAppUsage(currentUser, setUsage);
+  }, [currentUser]);
+
+  useEffect(() => {
+    try { localStorage.setItem('bes-launcher-density', density); } catch { /* optional */ }
+  }, [density]);
 
   useEffect(() => {
     let active = true;
@@ -277,8 +294,22 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
     return acc;
   }, {});
 
-  const filteredItems = activeGroup === 'all' ? visibleItems : visibleItems.filter((item) => groupForItem(item) === activeGroup);
+  const normalizedSearch = searchQuery.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const groupFilteredItems = activeGroup === 'all' ? visibleItems : visibleItems.filter((item) => groupForItem(item) === activeGroup);
+  const filteredItems = groupFilteredItems.filter((item) => {
+    if (!normalizedSearch) return true;
+    const group = groupOptions.find((entry) => entry.id === groupForItem(item));
+    const haystack = [titleOf(item, language), descOf(item, language), shortDesc(item, language), item.slug, group?.label, group?.labelVi]
+      .join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return normalizedSearch.split(/\s+/).filter(Boolean).every((token) => haystack.includes(token));
+  });
   const pinnedItems = orderedItems.filter((item) => workingConfig.pinned.includes(launcherItemId(item)) && !workingConfig.hidden.includes(launcherItemId(item)));
+  const itemLookup = useMemo(() => {
+    const map = new Map();
+    baseItems.forEach((item) => { map.set(launcherNavId(item), item); map.set(launcherItemId(item), item); });
+    return map;
+  }, [baseItems]);
+  const recentItems = usage.map((entry) => itemLookup.get(entry.id)).filter(Boolean).filter((item, index, list) => list.indexOf(item) === index).slice(0, 6);
 
   const patchDraft = (updater) => setDraftConfig((current) => normalizeLauncherConfig(typeof updater === 'function' ? updater(current) : { ...current, ...updater }, itemIds));
   const togglePin = (id) => patchDraft((current) => ({ ...current, pinned: current.pinned.includes(id) ? current.pinned.filter((value) => value !== id) : [...current.pinned, id].slice(-12) }));
@@ -358,8 +389,14 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
   const beginEdit = () => { setDraftConfig(normalizeLauncherConfig(config, itemIds)); setEditMode(true); setActiveGroup('all'); setNotice(''); };
   const cancelEdit = () => { setDraftConfig(config); setEditMode(false); setNotice(''); };
 
+  useEffect(() => {
+    const openEditor = () => { if (isAdmin) beginEdit(); };
+    window.addEventListener('bes-launcher-edit', openEditor);
+    return () => window.removeEventListener('bes-launcher-edit', openEditor);
+  }, [isAdmin, config, itemIds.join('|')]);
+
   return (
-    <div className={`flat-design-home flat-apps-directory launcher-v10831 ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
+    <div className={`flat-design-home flat-apps-directory launcher-v10831 launcher-command-center density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
       <TopMenu language={language} setLanguage={setLanguage} theme={theme} setTheme={setTheme} hasApiKey={hasApiKey} currentUser={currentUser} />
 
       <header className="flat-apps-hero">
@@ -381,6 +418,32 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
           <div><strong>{workingConfig.nav.length}</strong><small>NAV</small></div>
         </aside>
       </header>
+
+      <section className="launcher-discovery-bar" aria-label={t.search}>
+        <label className="launcher-search-box">
+          <span aria-hidden="true">⌕</span>
+          <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder={t.searchPlaceholder} aria-label={t.search} />
+          {searchQuery ? <button type="button" onClick={() => setSearchQuery('')} aria-label={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}>×</button> : <kbd>⌘K</kbd>}
+        </label>
+        <button type="button" className="launcher-command-button" onClick={() => window.dispatchEvent(new CustomEvent('bes-command-palette-open'))}><span>⌘</span><b>{t.command}</b><small>⌘K</small></button>
+        <div className="launcher-density-switch" aria-label={t.density}>
+          <span>{t.density}</span>
+          <button type="button" className={density === 'comfortable' ? 'active' : ''} onClick={() => setDensity('comfortable')} title={t.comfortable}>▦</button>
+          <button type="button" className={density === 'compact' ? 'active' : ''} onClick={() => setDensity('compact')} title={t.compact}>▦▦</button>
+        </div>
+      </section>
+
+      {recentItems.length > 0 && !editMode && (
+        <section className="launcher-recent-strip" aria-label={t.recent}>
+          <div><strong>{t.recent}</strong><small>{language === 'vi' ? 'Tiếp tục công việc đang làm' : 'Continue where you left off'}</small></div>
+          <div className="launcher-recent-chips">
+            {recentItems.map((item) => {
+              const profile = getAppDesignProfile(item.slug);
+              return <button key={`recent-${item.slug}`} type="button" style={{ '--recent-accent': profile.accent }} onClick={(event) => launch(targetFor(item), item.icon || 'AP', profile.accent, event.currentTarget)}><FlatAppIcon type={profile.icon} slug={item.slug} /><span>{titleOf(item, language)}</span></button>;
+            })}
+          </div>
+        </section>
+      )}
 
       {editMode && (
         <section className="launcher-admin-panel">
@@ -412,7 +475,7 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
           <AppWindowCard key={`${item.route || 'tool'}-${item.slug}`} item={item} language={language} currentUser={currentUser} editMode={editMode} config={workingConfig} groupOptions={groupOptions}
             onTogglePin={togglePin} onToggleHidden={toggleHidden} onToggleNav={toggleNav} onAssignGroup={assignGroup} onDragStart={onDragStart} onDrop={onDrop} />
         ))}
-        {!filteredItems.length && <div className="launcher-empty-group">{t.empty}</div>}
+        {!filteredItems.length && <div className="launcher-empty-group">{searchQuery ? t.noSearch : t.empty}</div>}
       </main>
 
       <aside className="flat-pinned-apps flat-apps-pins launcher-pinned-apps" aria-label="Pinned apps">

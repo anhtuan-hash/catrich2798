@@ -277,6 +277,22 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [open, showHistory]);
 
+  useEffect(() => {
+    const openFromSystem = (event) => {
+      const prompt = String(event?.detail?.prompt || '').trim();
+      setOpen(true);
+      setShowHistory(false);
+      setHasSeenBubble(true);
+      safeLocalSet('bes-ai-chat-seen', '1');
+      if (prompt) setDraft(prompt);
+      if (prompt && event?.detail?.autoSend) {
+        window.setTimeout(() => sendMessageRef.current?.(prompt), 120);
+      }
+    };
+    window.addEventListener('bes-ai-open', openFromSystem);
+    return () => window.removeEventListener('bes-ai-open', openFromSystem);
+  }, []);
+
   useEffect(() => () => {
     recognitionRef.current?.abort?.();
     window.speechSynthesis?.cancel?.();

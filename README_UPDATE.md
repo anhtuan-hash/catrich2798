@@ -1,13 +1,15 @@
-# Cập nhật Brian English Studio lên V10.83.2
+# Cập nhật Brian English Studio lên V10.83.3
 
-Bản hotfix này xử lý tình trạng trang `#/apps` chỉ còn nền trắng sau khi triển khai V10.83.1. Không cần chạy thêm SQL vì migration launcher V10.83.1 vẫn được giữ nguyên.
+V10.83.3 bổ sung Global Command Palette, tìm kiếm ứng dụng, lịch sử mở gần đây, chế độ thẻ gọn/thoáng và lệnh mở Brian AI theo ngữ cảnh.
+
+Không cần chạy thêm SQL Supabase và không cần thêm Environment Variable mới.
 
 ## 1. Chép gói cập nhật
 
-Giải nén `brian-english-studio-v10.83.2-launcher-blank-screen-hotfix-update-only.zip`, mở Terminal tại thư mục gốc của repository đang deploy và chạy:
+Giải nén `brian-english-studio-v10.83.3-command-center-update-only.zip`, mở Terminal tại thư mục gốc của repository đang deploy và chạy:
 
 ```bash
-rsync -av ~/Downloads/brian-english-studio-v10.83.2-launcher-blank-screen-hotfix-update-only/ ./
+rsync -av ~/Downloads/brian-english-studio-v10.83.3-command-center-update-only/ ./
 ```
 
 ## 2. Kiểm tra
@@ -19,11 +21,11 @@ npm test
 npm run test:department
 ```
 
-Kết quả dự kiến:
+Kết quả đã kiểm tra:
 
 ```text
 Production build: thành công
-151/151 smoke checks: passed
+157/157 smoke checks: passed
 Admin runtime: passed
 TTCM runtime: passed
 Teacher runtime: passed
@@ -33,25 +35,26 @@ Teacher runtime: passed
 
 ```bash
 git add -A
-git commit -m "Fix launcher blank screen V10.83.2"
+git commit -m "Add global command center V10.83.3"
 git push origin main
 ```
 
-Khi Vercel báo **Ready**, mở trang bằng URL có tham số làm mới một lần:
+Khi Vercel báo **Ready**, mở lại trang bằng:
 
 ```text
-https://esl-pek.vercel.app/?v=10832#/apps
+https://esl-pek.vercel.app/?v=10833#/apps
 ```
 
-Sau đó có thể dùng lại URL thông thường.
+Sau lần mở đầu tiên, có thể dùng lại URL thông thường.
 
-## 4. Trường hợp trình duyệt vẫn giữ cấu hình lỗi
+## 4. Cách sử dụng
 
-Bản V10.83.2 sẽ tự hiển thị màn hình khôi phục thay vì để trắng. Chọn **Khôi phục launcher mặc định**. Cách thủ công trong Console:
+- `Command + K`: mở tìm kiếm nhanh trên macOS.
+- `Ctrl + K`: mở tìm kiếm nhanh trên Windows/Linux.
+- `/`: mở tìm kiếm khi không nhập văn bản.
+- Nhập tên ứng dụng rồi nhấn `Enter`.
+- Dùng phím `↑` và `↓` để chọn kết quả.
 
-```js
-localStorage.removeItem('bes-launcher-config-v3');
-location.reload();
-```
+## 5. Ghi chú dữ liệu
 
-Lệnh trên chỉ xóa bố cục launcher trên trình duyệt, không xóa tài khoản, học liệu, bài kiểm tra hoặc dữ liệu Supabase.
+Danh sách ứng dụng gần đây được lưu theo tài khoản trong trình duyệt. Bản cập nhật không xóa dữ liệu Launcher, Supabase, thư viện, đề thi hoặc hồ sơ hiện có.

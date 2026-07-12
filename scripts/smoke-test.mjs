@@ -92,6 +92,8 @@ add('polished specialized layout patch', cssSource.includes('V9.4.3 Runtime Poli
 const globalNavSource = fs.readFileSync(new URL('../src/components/GlobalFlatNavigation.jsx', import.meta.url), 'utf8');
 const launcherPreferencesSource = fs.readFileSync(new URL('../src/utils/launcherPreferences.js', import.meta.url), 'utf8');
 const webAppsSource = fs.readFileSync(new URL('../src/pages/WebApps.jsx', import.meta.url), 'utf8');
+const commandPaletteSource = fs.readFileSync(new URL('../src/components/GlobalCommandPalette.jsx', import.meta.url), 'utf8');
+const appUsageSource = fs.readFileSync(new URL('../src/utils/appUsage.js', import.meta.url), 'utf8');
 const launcherSettingsSqlSource = fs.readFileSync(new URL('../supabase/launcher_settings_v10_83_1.sql', import.meta.url), 'utf8');
 const permissionsSource = fs.readFileSync(new URL('../src/utils/permissions.js', import.meta.url), 'utf8');
 const aiIndicatorSource = fs.readFileSync(new URL('../src/components/GlobalAIIndicator.jsx', import.meta.url), 'utf8');
@@ -311,7 +313,7 @@ add('V10.81.9 direct viewer covers requested formats', ['docx', 'pptx', 'pdf', '
 add('V10.81.9 resource modal uses secure viewer', resourceLibrarySource.includes('<ResourceFileViewer item={preview} fetchBlob={fetchResourceBlob} getStreamUrl={getResourceStreamUrl}/>') && resourceLibrarySource.includes('supportsResourcePreview'), 'preview remains behind authenticated Drive proxy');
 add('V10.81.9 Office renderers are local and sandboxed', resourceViewerSource.includes('mammoth.convertToHtml') && resourceViewerSource.includes("import('xlsx')") && resourceViewerSource.includes("import('jszip')") && resourceViewerSource.includes('sandbox="allow-popups"'), 'Word, Excel and PowerPoint render without public Drive sharing');
 add('V10.81.9 scalable viewer styling present', resourceViewerCss.includes('V10.81.9 — direct DOCX, PPTX, PDF, XLSX, MP4 and MP3 viewer') && resourceViewerCss.includes('.resource-workbook-viewer') && resourceViewerCss.includes('.resource-pptx-viewer'), 'desktop, dark and mobile layouts present');
-add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0', '10.83.1', '10.83.2'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
+add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0', '10.83.1', '10.83.2', '10.83.3'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
 const previewSessionSource = fs.readFileSync(new URL('../api/google-drive-preview-session.js', import.meta.url), 'utf8');
 const driveFileSource = fs.readFileSync(new URL('../api/google-drive-file.js', import.meta.url), 'utf8');
 add('V10.81.9 secure streaming session supports media seeking', previewSessionSource.includes('signResourcePreviewToken') && driveFileSource.includes('Content-Range') && driveFileSource.includes("Range: range") && resourceLibrarySource.includes('getResourceStreamUrl'), 'short-lived signed URL and byte ranges present');
@@ -411,6 +413,13 @@ add('V10.83.2 root and feature error boundaries prevent a blank page', mainSourc
 add('V10.83.2 stale Vite chunk recovery is wired', mainSource.includes('vite:preloadError') && mainSource.includes('PRELOAD_RECOVERY_KEY'), 'stale dynamic chunks trigger a guarded reload');
 add('V10.83.2 launcher config decoding tolerates malformed cloud and local data', launcherPrefsHotfixSource.includes('decodeConfig') && launcherPrefsHotfixSource.includes('safeStorageGet') && launcherPrefsHotfixSource.includes('safeCallback'), 'launcher settings are normalized before rendering');
 add('V10.83.2 boot watchdog replaces an empty root with recovery controls', indexHtmlSource.includes('bes-boot-watchdog') && indexHtmlSource.includes('bes-hard-reload') && indexHtmlSource.includes('bes-reset-launcher'), 'startup failures no longer remain visually blank');
+
+add('V10.83.3 global command palette is wired', mainSource.includes('GlobalCommandPalette') && globalNavSource.includes('bes-command-palette-open') && commandPaletteSource.includes("event.key.toLowerCase() === 'k'") && commandPaletteSource.includes("event.key === '/'"), 'Cmd/Ctrl+K, slash shortcut and navigation trigger present');
+add('V10.83.3 command search is permission-aware', commandPaletteSource.includes('hasRouteAccess') && commandPaletteSource.includes('hasToolAccess') && commandPaletteSource.includes('scoreEntry') && commandPaletteSource.includes('currentUser.role'), 'routes, tools and commands are filtered and ranked safely');
+add('V10.83.3 recent and frequent app usage is account-scoped', appUsageSource.includes('bes-app-usage-v1:') && appUsageSource.includes('scopeFor(user)') && appUsageSource.includes('lastUsedAt') && appUsageSource.includes('count'), 'account-local recent and frequency history present');
+add('V10.83.3 launcher search, recent rail and density controls are wired', webAppsSource.includes('launcher-search-box') && webAppsSource.includes('launcher-recent-strip') && webAppsSource.includes('bes-launcher-density') && webAppsSource.includes('normalizedSearch'), 'app discovery and compact/comfortable views present');
+add('V10.83.3 command palette can open context-aware AI', commandPaletteSource.includes('bes-ai-open') && universalAiSource.includes("window.addEventListener('bes-ai-open'") && universalAiSource.includes('event?.detail?.prompt'), 'system commands open Brian AI and prefill page-aware prompts');
+add('V10.83.3 command center styling is responsive and centered', cssSource.includes('V10.83.3 — Global Command Center + Smart Launcher discovery') && cssSource.includes('.global-command-palette') && cssSource.includes('.launcher-discovery-bar') && cssSource.includes('width:min(1360px,calc(100% - 48px))'), 'desktop, mobile, dark and reduced-motion styles present');
 
 const failed = checks.filter((item) => !item.ok);
 for (const item of checks) {

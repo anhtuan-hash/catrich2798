@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.83.2",
+  "version": "10.83.3",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -22,7 +22,7 @@
     "xlsx": "^0.18.5",
     "jszip": "^3.10.1"
   },
-  "description": "Brian English Studio V10.83.2 - hotfixes blank-screen failures with safe launcher normalization, cache recovery, feature error boundaries, and a boot watchdog.",
+  "description": "Brian English Studio V10.83.3 - adds a global command palette, app search, recent/frequent launcher shortcuts, density controls, and system-to-AI actions.",
   "engines": {
     "node": "22.x"
   },

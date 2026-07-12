@@ -13,11 +13,12 @@ import { getFirstAllowedRoute, getRoutePermissionId, getPermissionItem, hasRoute
 import { installStoredPersonalFont, waitForPersonalFontLoad } from './utils/personalFont.js';
 import { applyPerformanceAttributes, getStoredMotionMode, getStoredPerformanceMode, resolveMotionMode, resolvePerformanceMode } from './utils/performanceProfile.js';
 import { setLibraryStorageUser } from './utils/library.js';
+import { recordAppUsage } from './utils/appUsage.js';
 
 installStoredPersonalFont();
 waitForPersonalFontLoad();
 
-const PRELOAD_RECOVERY_KEY = 'bes-vite-preload-recovery-v10832';
+const PRELOAD_RECOVERY_KEY = 'bes-vite-preload-recovery-v10833';
 if (typeof window !== 'undefined') {
   window.addEventListener('vite:preloadError', (event) => {
     event.preventDefault();
@@ -58,6 +59,7 @@ const GlobalMusicPlayer = lazy(() => import('./components/GlobalMusicPlayer.jsx'
 const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
 const UniversalAIAssist = lazy(() => import('./components/UniversalAIAssist.jsx'));
 const GlobalAIIndicator = lazy(() => import('./components/GlobalAIIndicator.jsx'));
+const GlobalCommandPalette = lazy(() => import('./components/GlobalCommandPalette.jsx'));
 
 const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'practice', 'qa', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
@@ -340,6 +342,31 @@ function App() {
 
   const activeDesignProfile = getActiveDesignProfile(currentRoute, selectedTool);
 
+  useEffect(() => {
+    if (!currentUser || !canAccessRoute || ['login', 'register', 'homeroom-portal'].includes(currentRoute)) return;
+    const routeTitles = {
+      home: ['Home', 'Trang chủ'], apps: ['Apps', 'Ứng dụng'], news: ['Newsroom', 'Đọc báo'], games: ['Games', 'Trò chơi'],
+      department: ['Department', 'Tổ chuyên môn'], homeroom: ['Homeroom', 'Giáo viên chủ nhiệm'], library: ['Library', 'Thư viện'],
+      'resource-library': ['Resource Library', 'Kho học liệu'], practice: ['Classroom', 'Lớp học'], settings: ['Settings', 'Cài đặt'],
+      admin: ['Admin', 'Quản trị'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['QA', 'Kiểm tra hệ thống'],
+    };
+    if (selectedTool?.slug) {
+      const profile = getAppDesignProfile(selectedTool.slug);
+      recordAppUsage(currentUser, {
+        id: `tool:${selectedTool.slug}`, target: `#/tool/${selectedTool.slug}`,
+        title: selectedTool.title || selectedTool.titleVi || selectedTool.slug,
+        titleVi: selectedTool.titleVi || selectedTool.title || selectedTool.slug,
+        icon: String(selectedTool.icon || selectedTool.title || 'AP').slice(0, 2).toUpperCase(), color: profile.accent, kind: 'tool',
+      });
+      return;
+    }
+    const pair = routeTitles[currentRoute] || [currentRoute, currentRoute];
+    recordAppUsage(currentUser, {
+      id: `route:${currentRoute}`, target: `#/${currentRoute}`, title: pair[0], titleVi: pair[1],
+      icon: String(pair[0] || 'GO').slice(0, 2).toUpperCase(), color: activeDesignProfile.accent, kind: 'route',
+    });
+  }, [currentRoute, selectedTool?.slug, currentUser?.id, currentUser?.email, canAccessRoute]);
+
   const tileLaunchRect = tileLaunch
     ? (tileLaunch.rect || { x: window.innerWidth / 2 - 90, y: window.innerHeight / 2 - 70, w: 180, h: 140 })
     : null;
@@ -389,6 +416,21 @@ function App() {
           <div className="tile-launch-card"><span className="tile-launch-label">{tileLaunch.label}</span></div>
         </div>
       ) : null}
+
+      {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+        <Suspense fallback={null}>
+          <AppErrorBoundary compact scope="command-palette" label={language === 'vi' ? 'tìm kiếm nhanh' : 'command palette'}>
+            <GlobalCommandPalette
+              language={language}
+              currentUser={currentUser}
+              theme={theme}
+              setTheme={setTheme}
+              currentRoute={currentRoute}
+              selectedTool={selectedTool}
+            />
+          </AppErrorBoundary>
+        </Suspense>
+      )}
 
       <Suspense fallback={null}>
         <GlobalAIIndicator
