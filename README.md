@@ -1,3 +1,15 @@
+# Brian English Studio V10.83.1
+
+Admin có thể kéo thả, ghim, ẩn, nhóm ứng dụng và chọn mục trên thanh điều hướng; cấu hình được đồng bộ bằng Supabase Realtime sau khi chạy migration V10.83.1. Brian AI Messenger hỗ trợ file, ảnh chụp màn hình, ngữ cảnh trang, nhiều lịch sử hội thoại, dùng kết quả trong ứng dụng và voice mode.
+
+# Brian English Studio V10.82.7
+
+Bổ sung bong bóng chat Brian AI toàn hệ thống theo kiểu Messenger: nhận biết ứng dụng hiện tại, lưu hội thoại theo tài khoản, gợi ý nhanh và hỗ trợ giao diện responsive.
+
+# Brian English Studio V10.82.0
+
+Newsroom Reader bổ sung thẻ đọc tin giáo dục Việt Nam và báo tiếng Anh trực tiếp trong ứng dụng.
+
 # Brian English Studio V10.78
 
 ## Sửa nút Hủy ghi nhận rèn luyện

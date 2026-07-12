@@ -8,6 +8,7 @@ import { makeDefaultHomeroomWorkspace } from '../src/utils/homeroomStore.js';
 import { addConductRecord, addConductReward, addCustomConductRule, applyAutomaticConductWeekClosures, buildConductAuditTrail, calculateWeeklyConduct, calculateConductPeriod, buildPeriodRangesFromAcademicCalendar, cancelConductRecord, conductRecordsForWeek, conductWeeksForWorkspace, createAcademicCalendarDefaults, finalizeConductWeek, getConductWeekSummary, inferConductPeriodRanges, reopenConductWeek, resolveConductWeekStart, startOfConductWeek, endOfConductWeek, updateConductRecord, validateAcademicCalendar, DEFAULT_CONDUCT_LOCK_PASSWORD, verifyConductLockPassword, changeConductLockPassword, resetConductLockPassword, resetConductWeekData, isConductWeekLocked } from '../src/utils/homeroomConduct.js';
 import fs from 'node:fs';
 import { WORKSHEET_ACTIVITY_TYPES, auditWorksheet, generateOfflineWorksheet, worksheetToHtml, worksheetMcqBankItems } from '../src/utils/worksheetFactory.js';
+import { createDefaultLauncherConfig, normalizeLauncherConfig } from '../src/utils/launcherPreferences.js';
 
 const checks = [];
 const add = (name, ok, detail = '') => checks.push({ name, ok, detail });
@@ -76,7 +77,7 @@ const wordGraphSource = fs.readFileSync(new URL('../src/pages/WordGraphStudio.js
 add('V10.81.8 WordGraph runtime node count is schema-safe', wordGraphSource.includes('visibleNodeCount') && !wordGraphSource.includes('graph.nodes.length'), 'prevents blank-page crash when graph exposes clusters instead of nodes');
 add('V10.82.7 Messenger-style Brian AI bubble available', mainSource.includes('UniversalAIAssist') && universalAiSource.includes('ai-messenger-bubble') && universalAiSource.includes('createPortal'), 'global bottom-right chat bubble present');
 add('V10.82.7 AI chat keeps route-aware context', universalAiSource.includes('CURRENT CONTEXT') && universalAiSource.includes('currentRoute') && universalAiSource.includes('selectedTool'), 'current page and tool are included in each conversation');
-add('V10.82.7 AI chat history is account-scoped', universalAiSource.includes('bes-ai-chat-history:') && universalAiSource.includes('currentUser?.id') && universalAiSource.includes('localStorage.setItem(key'), 'last 60 messages persist per account');
+add('V10.82.7 AI chat history is account-scoped', universalAiSource.includes('bes-ai-chat-threads:') && universalAiSource.includes('userScope(currentUser)') && universalAiSource.includes('messages.slice(-60)'), 'last 60 messages persist per account and conversation');
 add('V10.82.7 AI chat supports quick prompts and keyboard send', universalAiSource.includes('quickPrompts') && universalAiSource.includes("event.key === 'Enter'") && universalAiSource.includes('Shift + Enter'), 'route suggestions and Messenger-like composer present');
 add('V10.82.7 Messenger bubble layout and responsive panel styled', cssSource.includes('V10.82.7 — Messenger-style global Brian AI chat bubble') && cssSource.includes('.ai-messenger-window') && cssSource.includes('@media(max-width:760px)'), 'desktop, mobile and dark-mode chat styles present');
 add('Exam Studio AI is integrated inside step 2', !specializedSource.includes('exam-ai-sidebar') && specializedSource.includes('Cách 2 · AI Keyword Generator') && specializedSource.includes('AI tạo brief') && specializedSource.includes('AI tạo câu hỏi'), 'no separated AI sidebar');
@@ -89,6 +90,9 @@ add('all remaining app cards expose AI support', APPS.every((item) => item.api =
 add('polished specialized layout patch', cssSource.includes('V9.4.3 Runtime Polish') && cssSource.includes('specialized-markdown-preview'), 'layout CSS patch present');
 
 const globalNavSource = fs.readFileSync(new URL('../src/components/GlobalFlatNavigation.jsx', import.meta.url), 'utf8');
+const launcherPreferencesSource = fs.readFileSync(new URL('../src/utils/launcherPreferences.js', import.meta.url), 'utf8');
+const webAppsSource = fs.readFileSync(new URL('../src/pages/WebApps.jsx', import.meta.url), 'utf8');
+const launcherSettingsSqlSource = fs.readFileSync(new URL('../supabase/launcher_settings_v10_83_1.sql', import.meta.url), 'utf8');
 const permissionsSource = fs.readFileSync(new URL('../src/utils/permissions.js', import.meta.url), 'utf8');
 const aiIndicatorSource = fs.readFileSync(new URL('../src/components/GlobalAIIndicator.jsx', import.meta.url), 'utf8');
 const geminiSource = fs.readFileSync(new URL('../src/utils/gemini.js', import.meta.url), 'utf8');
@@ -131,7 +135,7 @@ const homeroomSource = fs.readFileSync(new URL('../src/pages/HomeroomWorkspace.j
 const homeroomStoreSource = fs.readFileSync(new URL('../src/utils/homeroomStore.js', import.meta.url), 'utf8');
 const homeroomDataSource = fs.readFileSync(new URL('../src/data/homeroom.js', import.meta.url), 'utf8');
 const homeroomSqlSource = fs.readFileSync(new URL('../supabase/homeroom_workspace_v10_66.sql', import.meta.url), 'utf8');
-add('V10.66 homeroom route and navigation present', mainSource.includes("currentRoute === 'homeroom'") && globalNavSource.includes("{ key: 'homeroom' }") && homeroomDataSource.includes("route:homeroom"), 'dedicated route, nav item and permission present');
+add('V10.66 homeroom route and navigation present', mainSource.includes("currentRoute === 'homeroom'") && globalNavSource.includes("'homeroom'") && launcherPreferencesSource.includes("'route:homeroom'") && homeroomDataSource.includes("route:homeroom"), 'dedicated route, customizable nav default and permission present');
 add('V10.66 Phase 1 homeroom modules present', ['OverviewTab', 'StudentsTab', 'AttendanceTab', 'ScheduleTab', 'MeetingsTab', 'ParentsTab', 'RecordsTab', 'AiImportTab'].every((name) => homeroomSource.includes(`function ${name}`)), 'overview, students, attendance, schedule, meetings, parents, records and AI');
 add('V10.66 AI file importer supports office data', homeroomSource.includes(".xlsx") && homeroomSource.includes('readPdfTextFromBuffer') && homeroomSource.includes('readDocxTextFromBuffer') && homeroomSource.includes('detectedType'), 'PDF, DOCX, XLSX, CSV and structured preview');
 add('V10.66 account-scoped homeroom storage', homeroomStoreSource.includes("owner_id") && homeroomStoreSource.includes('workspaceKey') && homeroomStoreSource.includes('saveHomeroomWorkspace'), 'local-first and Supabase sync');
@@ -307,7 +311,7 @@ add('V10.81.9 direct viewer covers requested formats', ['docx', 'pptx', 'pdf', '
 add('V10.81.9 resource modal uses secure viewer', resourceLibrarySource.includes('<ResourceFileViewer item={preview} fetchBlob={fetchResourceBlob} getStreamUrl={getResourceStreamUrl}/>') && resourceLibrarySource.includes('supportsResourcePreview'), 'preview remains behind authenticated Drive proxy');
 add('V10.81.9 Office renderers are local and sandboxed', resourceViewerSource.includes('mammoth.convertToHtml') && resourceViewerSource.includes("import('xlsx')") && resourceViewerSource.includes("import('jszip')") && resourceViewerSource.includes('sandbox="allow-popups"'), 'Word, Excel and PowerPoint render without public Drive sharing');
 add('V10.81.9 scalable viewer styling present', resourceViewerCss.includes('V10.81.9 — direct DOCX, PPTX, PDF, XLSX, MP4 and MP3 viewer') && resourceViewerCss.includes('.resource-workbook-viewer') && resourceViewerCss.includes('.resource-pptx-viewer'), 'desktop, dark and mobile layouts present');
-add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
+add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0', '10.83.1'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
 const previewSessionSource = fs.readFileSync(new URL('../api/google-drive-preview-session.js', import.meta.url), 'utf8');
 const driveFileSource = fs.readFileSync(new URL('../api/google-drive-file.js', import.meta.url), 'utf8');
 add('V10.81.9 secure streaming session supports media seeking', previewSessionSource.includes('signResourcePreviewToken') && driveFileSource.includes('Content-Range') && driveFileSource.includes("Range: range") && resourceLibrarySource.includes('getResourceStreamUrl'), 'short-lived signed URL and byte ranges present');
@@ -319,7 +323,7 @@ const appDataSource = fs.readFileSync(new URL('../src/data/apps.js', import.meta
 const toolPageSource = fs.readFileSync(new URL('../src/pages/ToolPage.jsx', import.meta.url), 'utf8');
 const iconSource = fs.readFileSync(new URL('../src/components/FlatAppIcon.jsx', import.meta.url), 'utf8');
 add('V10.82 Newsroom app card is registered', appDataSource.includes("slug: 'news-reader'") && APPS.some((item) => item.slug === 'news-reader'), 'Newsroom Reader appears in the Apps directory');
-add('V10.82.3 Newsroom has a direct navigation route', appDataSource.includes("route: 'news'") && mainSource.includes("currentRoute === 'news'") && globalNavSource.includes("{ key: 'news'"), 'Newsroom can be launched from the global navigation');
+add('V10.82.3 Newsroom has a direct navigation route', appDataSource.includes("route: 'news'") && mainSource.includes("currentRoute === 'news'") && globalNavSource.includes("'news'") && launcherPreferencesSource.includes("'route:news'"), 'Newsroom can be launched from the customizable global navigation');
 add('V10.82.3 Newsroom has Vietnamese and English channels', newsReaderSource.includes("switchChannel('vi')") && newsReaderSource.includes("switchChannel('en')") && newsReaderSource.includes('Báo giáo dục Việt Nam') && newsReaderSource.includes('English News'), 'two reading channels present');
 add('V10.82.3 Newsroom uses same-origin RSS aggregation', newsReaderSource.includes('/api/news-feed?language=') && newsFeedSource.includes('giaoducthoidai.vn/rss/giao-duc-17.rss') && newsFeedSource.includes('feeds.bbci.co.uk/news/rss.xml'), 'Vietnamese education and English feeds configured');
 add('V10.82.3 full-article endpoint is wired', newsReaderSource.includes('/api/news-article?url=') && newsArticleSource.includes('articleJsonLd') && newsArticleSource.includes('fetchJinaReader') && newsArticleSource.includes('ALLOWED_HOSTS'), 'publisher HTML, JSON-LD and resilient reader fallback present');
@@ -337,7 +341,7 @@ add('V10.82 Newsroom tool route and icon remain wired', toolPageSource.includes(
 add('V10.82.3 Newsroom responsive editorial design layer present', cssSource.includes('V10.82.3 — Newsroom direct navigation') && cssSource.includes('.newsroom-v823-hero') && cssSource.includes('.newsroom-v823-reader-overlay') && cssSource.includes('@media(max-width:720px)'), 'desktop, dark, tablet and mobile styles present');
 
 add('V10.82.4 Newsroom full-screen reader mode is wired', newsReaderSource.includes('newsroom-v824-reader-screen') && newsReaderSource.includes('newsroom-v824-reader-rail') && cssSource.includes('.newsroom-v824-reader-screen') && cssSource.includes('.newsroom-v824-reader-workspace'), 'full-screen reader, outline and related-story rail present');
-add('V10.82.4 News is always available to signed-in accounts', globalNavSource.includes("{ key: 'news', always: true }") && permissionsSource.includes("if (route === 'news') return Boolean(user);"), 'top navigation no longer hides News behind per-tool permissions');
+add('V10.82.4 News is always available to signed-in accounts', launcherPreferencesSource.includes("'route:news'") && permissionsSource.includes("if (route === 'news') return Boolean(user);"), 'News remains available and can be placed on the customizable navigation');
 
 
 const wordGraphRedesignSource = fs.readFileSync(new URL('../src/pages/WordGraphStudio.jsx', import.meta.url), 'utf8');
@@ -376,6 +380,29 @@ add('V10.83 Worksheet Factory offline generator creates complete activities', of
 add('V10.83 Worksheet Factory exports teacher HTML and Question Bank items', worksheetHtml.includes('BRIAN ENGLISH · WORKSHEET FACTORY') && worksheetHtml.includes('Đáp án') && worksheetBank.length >= 8, `${worksheetBank.length} bank items`);
 add('V10.83 Worksheet Factory imports document formats and real DOCX export', worksheetFactorySource.includes('readPdfTextFromBuffer') && worksheetFactorySource.includes('readDocxTextFromBuffer') && worksheetFactorySource.includes('readPptxText') && worksheetFactorySource.includes('readSpreadsheetText') && worksheetFactoryUtil.includes('worksheetToDocxBlob'), 'PDF, DOCX, PPTX, XLSX and DOCX export paths present');
 add('V10.83 Worksheet Factory quality audit and centered responsive layout present', worksheetFactorySource.includes('QualityCard') && worksheetFactoryUtil.includes('nearDuplicates') && worksheetFactoryCss.includes('width:min(100%,1440px)') && worksheetFactoryCss.includes('@media(max-width:560px)'), 'quality checks and safe content rail present');
+
+
+const launcherIds = APPS.map((item) => item.slug || item.route).filter(Boolean);
+const launcherDefaults = createDefaultLauncherConfig(launcherIds);
+const launcherNormalized = normalizeLauncherConfig({
+  ...launcherDefaults,
+  order: [...launcherIds].reverse(),
+  hidden: launcherIds.slice(0, 1),
+  pinned: launcherIds.slice(1, 3),
+  nav: ['route:home', 'tool:worksheet-factory'],
+  groups: [...launcherDefaults.groups, { id: 'custom', label: 'Custom', labelVi: 'Nhóm riêng', accent: '#167D78' }],
+  assignments: { [launcherIds[1]]: 'custom' },
+}, launcherIds);
+add('V10.83.1 admin-customizable launcher engine', launcherNormalized.order[0] === launcherIds.at(-1) && launcherNormalized.hidden.length === 1 && launcherNormalized.pinned.length === 2 && launcherNormalized.assignments[launcherIds[1]] === 'custom', 'order, hide, pin, groups and assignments normalize safely');
+add('V10.83.1 launcher editor controls are wired', webAppsSource.includes('draggable={editMode}') && webAppsSource.includes('togglePin') && webAppsSource.includes('toggleHidden') && webAppsSource.includes('toggleNav') && webAppsSource.includes('createGroup') && webAppsSource.includes('deleteGroup'), 'drag ordering, pin, hide, nav selection and custom groups present');
+add('V10.83.1 launcher drives the global navigation', globalNavSource.includes('loadLauncherConfigFromCloud') && globalNavSource.includes('launcherConfig.nav') && globalNavSource.includes("kind === 'tool'") && mainSource.includes('selectedTool={selectedTool}'), 'route and app shortcuts update from launcher preferences');
+add('V10.83.1 launcher cloud sync and Admin RLS are wired', launcherPreferencesSource.includes("from('bes_launcher_settings')") && launcherPreferencesSource.includes('postgres_changes') && launcherPreferencesSource.includes('saveLauncherConfigToCloud') && launcherSettingsSqlSource.includes('public.is_admin()') && launcherSettingsSqlSource.includes('Authenticated users can read launcher settings'), 'Supabase sync, realtime refresh and Admin-only writes present');
+add('V10.83.1 AI accepts files and screenshots', universalAiSource.includes('prepareAttachment') && universalAiSource.includes('getDisplayMedia') && universalAiSource.includes('captureScreenshot') && universalAiSource.includes('onDrop'), 'drag/drop, file picker, paste and screen capture paths present');
+add('V10.83.1 AI uses live page context and conversation threads', universalAiSource.includes('capturePageContext') && universalAiSource.includes('Visible form values') && universalAiSource.includes('bes-ai-chat-threads:') && universalAiSource.includes('showHistory'), 'page-aware prompting and multi-thread history present');
+add('V10.83.1 AI result can return to the active app', universalAiSource.includes('bes-ai-use-result') && universalAiSource.includes('Dùng kết quả trong ứng dụng') && worksheetFactorySource.includes('bes-ai-use-result'), 'custom event and Worksheet Factory receiver present');
+add('V10.83.1 AI voice mode is wired', universalAiSource.includes('SpeechRecognition') && universalAiSource.includes('speechSynthesis') && universalAiSource.includes('toggleVoiceMode') && universalAiSource.includes('voiceModeRef.current = next'), 'speech input, auto-send and spoken replies present');
+add('V10.83.1 multimodal payloads cover supported providers', geminiSource.includes('inlineData') && geminiSource.includes('image_url') && geminiSource.includes("type: 'image'") && geminiSource.includes('attachments'), 'Gemini, OpenAI-compatible and Claude image payloads present');
+add('V10.83.1 responsive launcher and AI styles present', cssSource.includes('V10.83.1 — Custom Launcher + Brian AI multimodal upgrade') && cssSource.includes('.launcher-admin-panel') && cssSource.includes('.ai-messenger-history') && cssSource.includes('@media(max-width:760px)'), 'desktop, dark, mobile and reduced-motion styles present');
 
 const failed = checks.filter((item) => !item.ok);
 for (const item of checks) {

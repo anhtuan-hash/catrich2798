@@ -346,7 +346,7 @@ function App() {
         <Suspense fallback={null}>
           <StatusMenuBar route={currentRoute} {...context} />
         </Suspense>
-        <GlobalFlatNavigation route={currentRoute} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
+        <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
       </div> : null}
       {tileLaunch ? (
         <div

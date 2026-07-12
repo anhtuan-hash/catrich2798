@@ -605,6 +605,20 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
   const audit = useMemo(() => worksheet ? auditWorksheet(worksheet) : null, [worksheet]);
 
   useEffect(() => {
+    const onAiUseResult = (event) => {
+      const detail = event.detail || {};
+      if (detail.toolSlug !== 'worksheet-factory' || !String(detail.text || '').trim()) return;
+      setSourceText(String(detail.text).trim());
+      setSourceName(language === 'vi' ? 'Kết quả từ Brian AI' : 'Brian AI result');
+      setStep(1);
+      setStatusMessage(language === 'vi' ? 'Đã đưa kết quả AI vào nguồn nội dung của Worksheet Factory.' : 'AI result added to the Worksheet Factory source.');
+      detail.markHandled?.();
+    };
+    window.addEventListener('bes-ai-use-result', onAiUseResult);
+    return () => window.removeEventListener('bes-ai-use-result', onAiUseResult);
+  }, [language]);
+
+  useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(draftKey) || 'null');
       if (saved?.worksheet?.activities?.length) {

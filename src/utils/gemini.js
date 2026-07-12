@@ -40,14 +40,15 @@ function buildMessages(prompt, systemInstruction = '') {
   return messages;
 }
 
-async function callGeminiProvider({ apiKey, model, baseUrl, prompt, systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
+async function callGeminiProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
   const key = String(apiKey || '').trim();
   if (!key) throw new Error('Missing Gemini API key.');
   const cleanBase = String(baseUrl || 'https://generativelanguage.googleapis.com/v1beta').replace(/\/+$/, '');
   const chosenModel = normalizeModelName(model, DEFAULT_GEMINI_MODEL);
   const url = `${cleanBase}/models/${encodeURIComponent(chosenModel)}:generateContent`;
+  const imageParts = (Array.isArray(attachments) ? attachments : []).filter((item) => String(item?.mimeType || '').startsWith('image/') && item?.base64).slice(0, 4).map((item) => ({ inlineData: { mimeType: item.mimeType, data: item.base64 } }));
   const body = {
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    contents: [{ role: 'user', parts: [{ text: prompt }, ...imageParts] }],
     generationConfig: { temperature, maxOutputTokens: normalizeMaxOutputTokens(maxOutputTokens) },
   };
   if (systemInstruction) body.systemInstruction = { parts: [{ text: systemInstruction }] };
@@ -68,7 +69,7 @@ async function callGeminiProvider({ apiKey, model, baseUrl, prompt, systemInstru
   return text;
 }
 
-async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, systemInstruction = '', temperature = 0.7, responseMimeType = '', provider = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
+async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', provider = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
   const key = String(apiKey || '').trim();
   if (!key) throw new Error(`Missing ${provider || 'AI'} API key.`);
   const cleanBase = String(baseUrl || '').replace(/\/+$/, '');
@@ -83,9 +84,16 @@ async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, sy
     headers['X-Title'] = 'Brian English Studio';
   }
 
+  const imageParts = (Array.isArray(attachments) ? attachments : []).filter((item) => String(item?.mimeType || '').startsWith('image/') && item?.dataUrl).slice(0, 4);
+  const userContent = imageParts.length
+    ? [{ type: 'text', text: prompt }, ...imageParts.map((item) => ({ type: 'image_url', image_url: { url: item.dataUrl } }))]
+    : prompt;
+  const messages = [];
+  if (systemInstruction) messages.push({ role: 'system', content: systemInstruction });
+  messages.push({ role: 'user', content: userContent });
   const body = {
     model: normalizeModelName(model, 'gpt-4o-mini'),
-    messages: buildMessages(prompt, systemInstruction),
+    messages,
     temperature,
     max_tokens: normalizeMaxOutputTokens(maxOutputTokens),
   };
@@ -116,7 +124,7 @@ async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, sy
   return String(text).trim();
 }
 
-async function callClaudeProvider({ apiKey, model, baseUrl, prompt, systemInstruction = '', temperature = 0.7, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
+async function callClaudeProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
   const key = String(apiKey || '').trim();
   if (!key) throw new Error('Missing Claude API key.');
   const cleanBase = String(baseUrl || 'https://api.anthropic.com/v1').replace(/\/+$/, '');
@@ -133,7 +141,10 @@ async function callClaudeProvider({ apiKey, model, baseUrl, prompt, systemInstru
       max_tokens: normalizeMaxOutputTokens(maxOutputTokens),
       temperature,
       system: systemInstruction || undefined,
-      messages: [{ role: 'user', content: prompt }],
+      messages: [{ role: 'user', content: [
+        { type: 'text', text: prompt },
+        ...(Array.isArray(attachments) ? attachments : []).filter((item) => String(item?.mimeType || '').startsWith('image/') && item?.base64).slice(0, 4).map((item) => ({ type: 'image', source: { type: 'base64', media_type: item.mimeType, data: item.base64 } })),
+      ] }],
     }),
   });
   const data = await response.json().catch(() => ({}));
@@ -146,7 +157,7 @@ async function callClaudeProvider({ apiKey, model, baseUrl, prompt, systemInstru
   return text;
 }
 
-async function callSingleProvider({ provider, apiKey, model, baseUrl, prompt, systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
+async function callSingleProvider({ provider, apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
   const info = getProviderInfo(provider || DEFAULT_PROVIDER);
   const config = {
     provider: info.id,
@@ -154,6 +165,7 @@ async function callSingleProvider({ provider, apiKey, model, baseUrl, prompt, sy
     model: model || info.defaultModel,
     baseUrl: baseUrl || info.baseUrl,
     prompt,
+    attachments,
     systemInstruction,
     temperature,
     responseMimeType,

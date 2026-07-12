@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.83.0",
+  "version": "10.83.1",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -22,7 +22,7 @@
     "xlsx": "^0.18.5",
     "jszip": "^3.10.1"
   },
-  "description": "Brian English Studio V10.83.0 - adds Worksheet Factory with multi-format document import, AI/offline generation, editable student and teacher versions, quality audits, DOCX/HTML/JSON export, Library and Question Bank integration.",
+  "description": "Brian English Studio V10.83.1 - adds an admin-customizable app launcher and an enhanced contextual AI Messenger with files, screenshots, conversation history, voice mode, and direct result insertion.",
   "engines": {
     "node": "22.x"
   },
