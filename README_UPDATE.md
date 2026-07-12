@@ -1,107 +1,57 @@
-# Brian English Studio V10.90.0-HF2
-## Work Hub RPC Compatibility — update-only
+# Brian English Studio V10.90.0-HF3
 
-### Lỗi được sửa
+## Supabase Key Capture & Cache Repair
 
-Trung tâm công việc hiển thị:
+Hotfix này sửa lỗi `Invalid API key` trong Unified Work Hub.
 
-```text
-client.rpc is not a function
-```
+### Nguyên nhân
 
-V10.90.0-HF1 tạo Supabase Runtime Bridge để các module có thể dùng
-PostgREST khi Supabase client gốc không được công khai. Bridge HF1 đã có
-`from()` nhưng chưa có `rpc()`. Unified Work Hub nhìn thấy bridge như một
-Supabase client rồi gọi các RPC:
+HF1/HF2 có nhánh fallback dùng access token của người dùng làm header `apikey` khi
+không tìm thấy publishable/anon key. Supabase chấp nhận access token ở
+`Authorization`, nhưng không chấp nhận nó như một API key, nên trả về
+`Invalid API key`.
 
-- `work_hub_my_context`
-- `work_hub_people`
-- `work_hub_dashboard`
-- `work_hub_transition_item`
+### Cách sửa
 
-Do bridge thiếu `rpc()`, trang dừng trước khi tải dữ liệu.
-
-### Nội dung hotfix
-
-- Bổ sung `rpc()` vào Supabase Runtime Bridge.
-- RPC tự chuyển tới Supabase client gốc khi có.
-- Nếu không có client gốc, RPC dùng PostgREST:
-  `/rest/v1/rpc/<function>`.
-- Work Hub chỉ nhận client có đủ `from()`, `auth.getSession()` và `rpc()`.
-- Work Hub tự kết nối lại khi Runtime Bridge báo sẵn sàng.
-- Đổi tên asset để tránh trình duyệt dùng cache cũ.
-- Không thay đổi database, RLS hoặc dữ liệu.
-- Không cần chạy lại SQL.
-- Không thêm dependency và không sửa `package-lock.json`.
+- Chèn Key Capture trước Vite main module.
+- Bắt public `apikey` từ request Supabase hợp lệ của ứng dụng chính.
+- Chỉ chấp nhận `sb_publishable_...` hoặc JWT có `role=anon`.
+- Không bao giờ dùng access token làm `apikey`.
+- Xóa cache HF1/HF2 sai.
+- Khi gặp 401 `Invalid API key`, tự làm sạch cache, bắt lại key và thử lại một lần.
+- Không cần SQL, dependency hoặc Environment Variable mới.
 
 ## Cài đặt
 
-Tại repository V10.90.x:
-
 ```bash
-git status
-git add -A
-git commit -m "Backup V10.90 before Work Hub RPC hotfix" || true
+rsync -av ~/Downloads/brian-english-studio-v10.90.0-hf3-supabase-key-capture-update-only/ ./
+node scripts/install-v10.90.0-hf3.mjs
+npm run verify:v10.90.0-hf3
 ```
 
-Chép gói:
-
-```bash
-rsync -av \
-  ~/Downloads/brian-english-studio-v10.90.0-hf2-work-hub-rpc-compatibility-update-only/ \
-  ./
-```
-
-Chạy installer:
-
-```bash
-node scripts/install-v10.90.0-hf2.mjs
-```
-
-Kiểm tra:
-
-```bash
-npm run verify:v10.90.0-hf2
-```
-
-Deploy:
+Sau khi đạt:
 
 ```bash
 git add -A
-git commit -m "Fix Work Hub RPC compatibility V10.90.0-HF2"
+git commit -m "Fix Supabase public key discovery V10.90.0-HF3"
 git push origin main
 ```
 
-Khi Vercel báo Ready:
+Khi Vercel Ready, đóng toàn bộ tab Brian English Studio, mở lại, đăng nhập và
+nhấn `Command + Shift + R`.
 
-1. Đăng xuất rồi đăng nhập lại.
-2. Nhấn `Command + Shift + R`.
-3. Mở `#/work-hub`.
-
-## Kết quả đúng
-
-- Không còn dòng `client.rpc is not a function`.
-- Trạng thái kết nối chuyển sang đồng bộ hoặc polling.
-- Admin/TTCM thấy danh sách giáo viên.
-- Nhiệm vụ và dashboard được tải.
-- Chuyển trạng thái công việc hoạt động.
-
-Có thể kiểm tra trong Console:
+## Kiểm tra Console
 
 ```js
+window.BESSupabaseKeyCapture.report()
 window.BESSupabaseBridge.report()
-window.BES_WORK_HUB.report()
 ```
 
-Bridge có thể báo `mode: "native"` hoặc `mode: "rest"`; cả hai đều hợp lệ.
+Kết quả đúng cần có:
 
-## Rollback
+- `captured: true`
+- `keyType: "publishable"` hoặc `"anon-jwt"`
+- `hasConfig: true`
+- `lastError: ""`
 
-```bash
-npm run rollback:v10.90.0-hf2
-npm run build
-npm test
-npm run test:department
-```
-
-Rollback chỉ khôi phục source; dữ liệu Work Hub được giữ nguyên.
+Không hiển thị giá trị key trong report.
