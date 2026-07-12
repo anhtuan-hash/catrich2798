@@ -15325,3 +15325,588 @@ html[data-theme='dark'] .newsroom-reader-head h2 {
   .newsroom-refresh span.is-spinning,
   .newsroom-loading span { animation: none !important; transition: none !important; }
 }
+
+/* =========================================================
+   V10.82.1 — WORDGRAPH STUDIO CENTERED DASHBOARD REDESIGN
+   Hero + quick dashboard + contained workbench. No edge-spill.
+   ========================================================= */
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-page{
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:22px clamp(18px,4vw,46px) 58px!important;
+  border-radius:0!important;
+  background:
+    radial-gradient(circle at 10% 8%,rgba(218,242,222,.82),transparent 28%),
+    radial-gradient(circle at 92% 16%,rgba(217,241,234,.70),transparent 26%),
+    linear-gradient(180deg,#f8fbf6 0%,#fffdf8 62%,#f6fbf7 100%)!important;
+  box-shadow:none!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-shell{
+  width:min(100%,1320px)!important;
+  margin:0 auto!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:18px!important;
+  min-width:0!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-topline{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:14px!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-back{
+  align-self:auto!important;
+  margin:0!important;
+  padding:10px 19px!important;
+  border:1.5px solid #70a883!important;
+  border-radius:999px!important;
+  background:#fff!important;
+  color:#124727!important;
+  box-shadow:4px 5px 0 rgba(23,82,44,.09)!important;
+  font-weight:900!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-top-status{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  padding:8px 12px!important;
+  border:1px solid #d7e7da!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.78)!important;
+  color:#55705d!important;
+  font-size:.86rem!important;
+  font-weight:800!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-top-status::before{
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#32a765;
+  box-shadow:0 0 0 4px rgba(50,167,101,.12);
+}
+
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero{
+  display:block!important;
+  padding:20px!important;
+  border:1.5px solid #cadfd1!important;
+  border-radius:28px!important;
+  background:rgba(255,255,255,.92)!important;
+  box-shadow:0 18px 46px rgba(32,87,51,.09)!important;
+  overflow:hidden!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-main{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.17fr) minmax(360px,.83fr)!important;
+  gap:28px!important;
+  align-items:stretch!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo{
+  position:relative!important;
+  min-height:304px!important;
+  border:1.5px solid #c9ddd0!important;
+  border-radius:23px!important;
+  background:
+    radial-gradient(circle,#d9e8dd 1.1px,transparent 1.1px) 0 0/17px 17px,
+    linear-gradient(180deg,#ffffff 0%,#fbfdfb 100%)!important;
+  overflow:hidden!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.65)!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-toolbar{
+  position:absolute!important;
+  left:14px!important;
+  top:50%!important;
+  z-index:4!important;
+  transform:translateY(-50%)!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:3px!important;
+  padding:6px!important;
+  border:1px solid #d6e3d9!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  box-shadow:0 8px 18px rgba(40,86,53,.10)!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-toolbar span{
+  width:34px!important;
+  height:34px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:9px!important;
+  color:#1d3f28!important;
+  font-size:1rem!important;
+  font-weight:900!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-toolbar span.active{
+  background:#dff3e5!important;
+  color:#0d6032!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-lines{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  z-index:1!important;
+  pointer-events:none!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-lines path{
+  fill:none!important;
+  stroke:#68aac6!important;
+  stroke-width:3!important;
+  stroke-linecap:round!important;
+  opacity:.88!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-lines path.orange{stroke:#eeaa49!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-lines path.green{stroke:#65b77d!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-lines path.purple{stroke:#8c75d4!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-lines path.blue{stroke:#5f91dc!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node{
+  position:absolute!important;
+  z-index:2!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  min-width:122px!important;
+  padding:11px 15px!important;
+  border:1.5px solid #315640!important;
+  border-radius:9px!important;
+  background:#fff!important;
+  color:#173c28!important;
+  font-size:.98rem!important;
+  font-weight:900!important;
+  box-shadow:0 6px 13px rgba(30,77,46,.07)!important;
+  transform:translate(-50%,-50%)!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node span{font-size:1rem!important;opacity:.82!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node.center{
+  left:49%!important;
+  top:49%!important;
+  min-width:112px!important;
+  background:linear-gradient(135deg,#245e3a 0%,#0e4828 100%)!important;
+  border-color:#0d4526!important;
+  color:#fff!important;
+  box-shadow:0 10px 24px rgba(23,87,48,.22)!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node.family{left:23%!important;top:24%!important;background:#eaf6fb!important;border-color:#5ba4bd!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node.collocation{left:21%!important;top:74%!important;background:#fff5db!important;border-color:#d99f37!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node.meaning{left:76%!important;top:22%!important;background:#eef8e7!important;border-color:#68a85e!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node.example{left:77%!important;top:49%!important;background:#f2edff!important;border-color:#8271c0!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node.pronunciation{left:76%!important;top:78%!important;background:#eaf1ff!important;border-color:#5c83c6!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-zoom{
+  position:absolute!important;
+  left:14px!important;
+  bottom:13px!important;
+  z-index:4!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  padding:6px 8px!important;
+  border:1px solid #d8e4db!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  color:#263e2e!important;
+  box-shadow:0 6px 14px rgba(36,76,48,.08)!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-zoom span{
+  width:25px!important;
+  height:25px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:7px!important;
+  background:#f7faf7!important;
+  font-weight:900!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-zoom strong{font-size:.82rem!important}
+
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-copy{
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  min-width:0!important;
+  padding:12px 12px 12px 0!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-tag{
+  align-self:flex-start!important;
+  display:inline-flex!important;
+  padding:7px 12px!important;
+  border:1px solid #cfe2d4!important;
+  border-radius:8px!important;
+  background:#fbfefb!important;
+  color:#477054!important;
+  font-size:.86rem!important;
+  font-weight:900!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-copy h1{
+  margin:15px 0 9px!important;
+  color:#0e4326!important;
+  font-size:clamp(2.8rem,4.2vw,4.5rem)!important;
+  line-height:.94!important;
+  letter-spacing:-.055em!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-copy h1 span{
+  display:inline-block!important;
+  margin-right:3px!important;
+  font-weight:1000!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-copy p{
+  margin:0!important;
+  max-width:49ch!important;
+  color:#5e7466!important;
+  font-size:1rem!important;
+  line-height:1.5!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-actions{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+  margin-top:19px!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-actions button{
+  min-height:46px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:9px!important;
+  padding:11px 14px!important;
+  border:1.5px solid #d3e3d7!important;
+  border-radius:10px!important;
+  background:#fbfefc!important;
+  color:#17482c!important;
+  box-shadow:none!important;
+  font-size:.91rem!important;
+  font-weight:900!important;
+  text-align:left!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-actions button:hover{
+  transform:translateY(-1px)!important;
+  border-color:#76ab86!important;
+  background:#f3faf5!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-actions button.primary{
+  background:linear-gradient(135deg,#12643a 0%,#0c4d2b 100%)!important;
+  border-color:#0f5431!important;
+  color:#fff!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-actions button span{font-size:1.1rem!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-footer{
+  display:grid!important;
+  grid-template-columns:1fr 1.25fr!important;
+  gap:0!important;
+  margin-top:18px!important;
+  border:1px solid #d1e0d5!important;
+  border-radius:17px!important;
+  background:#fcfefc!important;
+  overflow:hidden!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-ai-state,
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-quick-tip{
+  min-width:0!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+  padding:13px 17px!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-quick-tip{border-left:1px solid #d9e5dc!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-tip-icon{
+  flex:0 0 auto!important;
+  width:34px!important;
+  height:34px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:10px!important;
+  background:#eef7ef!important;
+  color:#24643a!important;
+  font-size:1.15rem!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-footer strong{
+  display:block!important;
+  color:#174329!important;
+  font-size:.96rem!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-footer small{
+  display:block!important;
+  margin-top:3px!important;
+  color:#687b6d!important;
+  line-height:1.38!important;
+}
+
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-dashboard-grid{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:16px!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-dashboard-card{
+  min-width:0!important;
+  min-height:226px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:11px!important;
+  padding:17px!important;
+  border:1px solid #d8e3da!important;
+  border-radius:18px!important;
+  background:rgba(255,255,255,.94)!important;
+  box-shadow:0 10px 26px rgba(34,81,49,.06)!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-dashboard-card:hover{
+  transform:translateY(-2px)!important;
+  border-color:#a9c8b2!important;
+  box-shadow:0 16px 30px rgba(34,81,49,.09)!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-card-head{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-card-head>span{
+  flex:0 0 auto!important;
+  width:33px!important;
+  height:33px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:10px!important;
+  background:#f0f7f1!important;
+  color:#2d7043!important;
+  font-size:1.1rem!important;
+  font-weight:900!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-card-head strong{
+  display:block!important;
+  color:#173f28!important;
+  font-size:1.1rem!important;
+  line-height:1.12!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-card-head p{
+  margin:5px 0 0!important;
+  color:#6a7d6f!important;
+  font-size:.84rem!important;
+  line-height:1.35!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-main-create,
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-secondary-create{
+  width:100%!important;
+  min-height:42px!important;
+  border-radius:9px!important;
+  font-weight:900!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-main-create{
+  margin-top:auto!important;
+  border:1px solid #0d5a33!important;
+  background:linear-gradient(135deg,#11643a 0%,#0b4e2c 100%)!important;
+  color:#fff!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-secondary-create{
+  border:1px solid #d4e1d7!important;
+  background:#fbfdfb!important;
+  color:#245235!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-template-chips{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-template-chips button{
+  min-width:0!important;
+  min-height:35px!important;
+  padding:7px 6px!important;
+  border:1px solid #dbe5dd!important;
+  border-radius:9px!important;
+  background:#fff!important;
+  color:#365744!important;
+  font-size:.76rem!important;
+  font-weight:800!important;
+  line-height:1.2!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-template-chips button:hover{
+  border-color:#83b093!important;
+  background:#f3faf5!important;
+  color:#0e552e!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-text-link{
+  align-self:flex-start!important;
+  margin-top:auto!important;
+  padding:2px 0!important;
+  border:0!important;
+  background:transparent!important;
+  color:#1b6a3b!important;
+  box-shadow:none!important;
+  font-size:.82rem!important;
+  font-weight:900!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-structure-list,
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-history-list{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:6px!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-structure-list button{
+  width:100%!important;
+  min-height:34px!important;
+  display:grid!important;
+  grid-template-columns:25px minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:7px!important;
+  padding:6px 9px!important;
+  border:1px solid #dce6de!important;
+  border-radius:8px!important;
+  background:#fff!important;
+  color:#315540!important;
+  text-align:left!important;
+  box-shadow:none!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-structure-list button>span{
+  width:24px!important;
+  height:24px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:7px!important;
+  background:#eaf6ed!important;
+  color:#27804b!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-structure-list button strong{
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:.78rem!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-structure-list button b{font-size:1.15rem!important;color:#50725b!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-history-list button{
+  width:100%!important;
+  min-width:0!important;
+  display:grid!important;
+  grid-template-columns:22px minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:7px!important;
+  padding:7px 4px!important;
+  border:0!important;
+  border-bottom:1px solid #e6ece7!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#355541!important;
+  text-align:left!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-history-list button strong{
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:.78rem!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-history-list button small{
+  color:#7b887e!important;
+  font-size:.7rem!important;
+  white-space:nowrap!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-empty-history{
+  min-height:85px!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:12px!important;
+  border:1px dashed #d7e3da!important;
+  border-radius:10px!important;
+  color:#7a8b7e!important;
+  font-size:.82rem!important;
+  text-align:center!important;
+}
+
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-workspace{
+  display:grid!important;
+  grid-template-columns:minmax(390px,.84fr) minmax(0,1.16fr)!important;
+  gap:18px!important;
+  align-items:start!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-ai-panel,
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-canvas-panel,
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-outline-panel{
+  min-width:0!important;
+  padding:20px!important;
+  border:1.5px solid #d2e0d5!important;
+  border-radius:22px!important;
+  background:rgba(255,255,255,.95)!important;
+  box-shadow:0 12px 30px rgba(34,81,49,.07)!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-ai-panel.is-active,
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-canvas-panel.is-active,
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-outline-panel.is-active{
+  border-color:#82b190!important;
+  box-shadow:0 16px 34px rgba(34,101,56,.11)!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-ai-panel .wordgraph-step-title{
+  margin-bottom:16px!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-ai-panel h2,
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-canvas-panel h2,
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-outline-panel h2{color:#153e27!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-ai-panel textarea,
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-ai-panel select,
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-outline-panel textarea{
+  border:1.5px solid #d5e2d8!important;
+  border-radius:13px!important;
+  background:#fff!important;
+  color:#173c28!important;
+  box-shadow:none!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-ai-panel textarea:focus,
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-ai-panel select:focus,
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-outline-panel textarea:focus{
+  border-color:#6ca47e!important;
+  box-shadow:0 0 0 4px rgba(74,154,99,.11)!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-ai-panel .wordgraph-prompt-bank button{
+  border:1px solid #d9e4db!important;
+  border-radius:12px!important;
+  background:#fbfdfb!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-ai-panel .wordgraph-prompt-bank button.active{
+  border-color:#64a279!important;
+  background:#eef8f0!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-ai-panel .primary,
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-canvas-panel .primary{
+  background:linear-gradient(135deg,#15673d 0%,#0b4e2d 100%)!important;
+  color:#fff!important;
+  border-color:#0d5732!important;
+  box-shadow:none!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-canvas-panel .wordgraph-scroll{
+  min-height:570px!important;
+  border:1.5px solid #d6e2d8!important;
+  border-radius:17px!important;
+  background:linear-gradient(180deg,#fbfefc 0%,#f6faf7 100%)!important;
+}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-outline-panel{margin-top:0!important}
+.metro-clean-system[data-tool="word2graph"] .wordgraph-v821-outline-panel .wordgraph-outline-editor{min-height:300px!important}
+
+@media (max-width:1180px){
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-main{grid-template-columns:1fr!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-copy{padding:4px 4px 6px!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-workspace{grid-template-columns:1fr!important}
+}
+@media (max-width:760px){
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-page{padding:14px 12px 42px!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-top-status{display:none!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero{padding:13px!important;border-radius:20px!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo{min-height:270px!important;border-radius:16px!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node{min-width:96px!important;padding:8px 10px!important;font-size:.78rem!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node.center{min-width:88px!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node.family{left:25%!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node.collocation{left:25%!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node.meaning,
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node.example,
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-demo-node.pronunciation{left:77%!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-copy h1{font-size:clamp(2.55rem,12vw,3.6rem)!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-actions,
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-dashboard-grid,
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-hero-footer{grid-template-columns:1fr!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-quick-tip{border-left:0!important;border-top:1px solid #d9e5dc!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-dashboard-card{min-height:auto!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-template-chips{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-ai-panel,
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-canvas-panel,
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-outline-panel{padding:15px!important;border-radius:18px!important}
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-v821-canvas-panel .wordgraph-scroll{min-height:430px!important}
+}

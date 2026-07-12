@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.82.0",
+  "version": "10.82.1",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -22,7 +22,7 @@
     "xlsx": "^0.18.5",
     "jszip": "^3.10.1"
   },
-  "description": "Brian English Studio V10.82.0 - adds Newsroom Reader for Vietnamese education news and English-language RSS reading with focused in-app reading mode.",
+  "description": "Brian English Studio V10.82.1 - redesigns WordGraph Studio with a centered hero, interactive quick dashboard, recent maps, compact cards and a contained responsive workbench.",
   "engines": {
     "node": "22.x"
   },

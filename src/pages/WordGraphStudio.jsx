@@ -1,6 +1,6 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AI_TOOL_PRESETS, generateGenericToolOutput } from '../utils/gemini.js';
-import { addHistoryEntry, downloadFile, exportAsWord, slugify } from '../utils/library.js';
+import { addHistoryEntry, downloadFile, exportAsWord, LIBRARY_EVENT, loadHistory, slugify } from '../utils/library.js';
 
 const GROUP_COLORS = {
   family: '#5b3df5',
@@ -40,6 +40,35 @@ const WORDGRAPH_AI_TEMPLATES = [
     prompt: 'Tạo sơ đồ ôn tập từ vựng THPT theo hướng B2-C1. Mỗi nhánh cần giúp học sinh nhớ word form, collocation, synonym/antonym nếu có, ví dụ câu và lỗi thường gặp khi dùng từ.',
   },
 ];
+
+const WORDGRAPH_QUICK_TEMPLATES = [
+  { labelVi: 'Từ vựng cơ bản', labelEn: 'Core vocabulary', prompt: 'Tạo WordGraph cho danh sách từ vựng tôi nhập. Mỗi từ gồm nghĩa ngắn, word family, collocations, ví dụ và một ghi chú sử dụng.' },
+  { labelVi: 'Collocation', labelEn: 'Collocation', prompt: 'Tạo WordGraph tập trung vào collocations. Với mỗi từ, nhóm các cụm động từ, tính từ, danh từ và ví dụ ngắn, tự nhiên.' },
+  { labelVi: 'Phân biệt từ', labelEn: 'Word contrast', prompt: 'Tạo WordGraph so sánh các từ dễ nhầm. Nêu nghĩa, sắc thái, cấu trúc đi kèm, ví dụ và lỗi thường gặp.' },
+  { labelVi: 'Word Family', labelEn: 'Word family', prompt: 'Tạo WordGraph word family. Mỗi từ trung tâm có noun, verb, adjective, adverb, collocations và ví dụ B2-C1.' },
+  { labelVi: 'Idiom', labelEn: 'Idioms', prompt: 'Tạo WordGraph cho các idioms tôi nhập. Mỗi idiom gồm nghĩa, ngữ cảnh, từ khóa liên quan và ví dụ hội thoại ngắn.' },
+  { labelVi: 'Phrasal Verb', labelEn: 'Phrasal verbs', prompt: 'Tạo WordGraph cho phrasal verbs. Mỗi mục gồm nghĩa, cấu trúc tách/không tách, collocations và ví dụ rõ ràng.' },
+];
+
+const WORDGRAPH_STRUCTURE_PRESETS = [
+  { icon: '▣', labelVi: 'Nghĩa & Ví dụ', labelEn: 'Meaning & examples', prompt: 'Tạo WordGraph ưu tiên hai nhánh chính Meaning và Examples, sau đó bổ sung word family và collocations ngắn gọn.' },
+  { icon: '⇄', labelVi: 'Từ đồng nghĩa / Trái nghĩa', labelEn: 'Synonyms / Antonyms', prompt: 'Tạo WordGraph tập trung vào synonyms, antonyms, sắc thái nghĩa và ví dụ giúp phân biệt cách dùng.' },
+  { icon: '⌘', labelVi: 'Collocation', labelEn: 'Collocation', prompt: 'Tạo WordGraph collocation theo nhóm verb + noun, adjective + noun, adverb + adjective và common patterns.' },
+  { icon: '♧', labelVi: 'Word Family', labelEn: 'Word family', prompt: 'Tạo WordGraph word family theo noun, verb, adjective, adverb; thêm nghĩa và ví dụ ngắn cho từng dạng.' },
+];
+
+function formatRelativeTime(value, language = 'vi') {
+  const time = new Date(value || 0).getTime();
+  if (!Number.isFinite(time) || time <= 0) return language === 'vi' ? 'Gần đây' : 'Recently';
+  const seconds = Math.max(0, Math.round((Date.now() - time) / 1000));
+  if (seconds < 60) return language === 'vi' ? 'Vừa xong' : 'Just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return language === 'vi' ? `${minutes} phút trước` : `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return language === 'vi' ? `${hours} giờ trước` : `${hours} hr ago`;
+  const days = Math.floor(hours / 24);
+  return language === 'vi' ? `${days} ngày trước` : `${days} days ago`;
+}
 
 function cleanMarkdown(value = '') {
   return String(value)
@@ -420,10 +449,13 @@ export default function WordGraphStudio({ tool, language, apiKey, aiModel, hasAp
   const [customPositions, setCustomPositions] = useState({});
   const [dragEnabled, setDragEnabled] = useState(true);
   const [activeWorkflow, setActiveWorkflow] = useState('create');
+  const [recentMaps, setRecentMaps] = useState([]);
   const svgRef = useRef(null);
   const aiPanelRef = useRef(null);
   const canvasRef = useRef(null);
   const outlineRef = useRef(null);
+  const instructionInputRef = useRef(null);
+  const sourceInputRef = useRef(null);
 
   const toolTitle = language === 'vi' ? tool.titleVi || tool.title : tool.title;
   const graph = useMemo(() => buildWordGraph(output, instruction, sourceText), [output, instruction, sourceText]);
@@ -436,13 +468,19 @@ export default function WordGraphStudio({ tool, language, apiKey, aiModel, hasAp
     return 1 + clusters.length + groupCount;
   }, [graph]);
 
-  const scrollToRef = (ref) => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  useEffect(() => {
+    const refreshRecentMaps = () => {
+      const items = loadHistory()
+        .filter((item) => item?.toolSlug === 'word2graph' || item?.sourceApp === 'word2graph')
+        .slice(0, 3);
+      setRecentMaps(items);
+    };
+    refreshRecentMaps();
+    window.addEventListener(LIBRARY_EVENT, refreshRecentMaps);
+    return () => window.removeEventListener(LIBRARY_EVENT, refreshRecentMaps);
+  }, []);
 
-  const workflowCards = [
-    { id: 'create', icon: '🧠', tone: 'mint', badge: language === 'vi' ? 'AI tạo' : 'AI build', title: language === 'vi' ? 'Ô AI tạo sơ đồ' : 'AI map maker', desc: language === 'vi' ? 'Nhập yêu cầu và tạo sơ đồ bằng AI.' : 'Prompt the AI and generate a visual map.', cta: language === 'vi' ? 'Tạo sơ đồ' : 'Generate', action: () => { setActiveWorkflow('create'); scrollToRef(aiPanelRef); } },
-    { id: 'layout', icon: '🕸️', tone: 'sky', badge: language === 'vi' ? 'Sơ đồ' : 'Layout', title: language === 'vi' ? 'Sơ đồ tương tác' : 'Interactive map', desc: language === 'vi' ? 'Kéo node, đổi layout và xuất ảnh.' : 'Drag nodes, switch layout modes, and export.', cta: language === 'vi' ? 'Xem sơ đồ' : 'Open map', action: () => { setActiveWorkflow('layout'); scrollToRef(canvasRef); } },
-    { id: 'outline', icon: '📝', tone: 'peach', badge: language === 'vi' ? 'Nội dung' : 'Outline', title: language === 'vi' ? 'Outline có thể sửa' : 'Editable outline', desc: language === 'vi' ? 'Sửa nội dung trước khi vẽ lại sơ đồ.' : 'Edit the outline directly before redrawing.', cta: language === 'vi' ? 'Mở outline' : 'Edit outline', action: () => { setActiveWorkflow('outline'); scrollToRef(outlineRef); } },
-  ];
+  const scrollToRef = (ref) => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   const applyPromptTemplate = (template) => {
     setInstruction(template.prompt);
@@ -461,6 +499,49 @@ export default function WordGraphStudio({ tool, language, apiKey, aiModel, hasAp
   const resetLayout = (nextMode = mode) => {
     setMode(nextMode);
     setCustomPositions({});
+  };
+
+  const openBuilder = (target = 'instruction') => {
+    setActiveWorkflow('create');
+    scrollToRef(aiPanelRef);
+    window.setTimeout(() => {
+      const ref = target === 'source' ? sourceInputRef : instructionInputRef;
+      ref.current?.focus();
+    }, 420);
+  };
+
+  const startFreshMap = () => {
+    clearWorkspace();
+    openBuilder('instruction');
+  };
+
+  const openCanvas = ({ autoArrange = false } = {}) => {
+    setActiveWorkflow('layout');
+    if (autoArrange) resetLayout('tree');
+    scrollToRef(canvasRef);
+  };
+
+  const applyQuickTemplate = (template) => {
+    setInstruction(template.prompt);
+    setOutput('');
+    setCustomPositions({});
+    openBuilder('instruction');
+  };
+
+  const applyStructurePreset = (presetItem) => {
+    setInstruction(presetItem.prompt);
+    setOutput('');
+    setCustomPositions({});
+    openBuilder('instruction');
+  };
+
+  const openRecentMap = (item) => {
+    setOutput(item?.content || '');
+    setInstruction(item?.title?.split(':').slice(1).join(':').trim() || preset.defaultInstruction);
+    setCustomPositions({});
+    setMode('tree');
+    setActiveWorkflow('layout');
+    scrollToRef(canvasRef);
   };
 
   const generate = async () => {
@@ -547,170 +628,103 @@ export default function WordGraphStudio({ tool, language, apiKey, aiModel, hasAp
   };
 
   return (
-    <div className="page tool-page wordgraph-page wordgraph-v29-page">
-      <button className="back-btn wordgraph-v29-back" onClick={() => window.history.back()}>← {language === 'vi' ? 'Quay lại' : 'Back'}</button>
-      <section className="tool-hero panel wordgraph-hero wordgraph-v29-hero">
-        <div className="wordgraph-v29-hero-art" aria-hidden="true">
-          <div className="wordgraph-v29-node center">WORD</div>
-          <div className="wordgraph-v29-node node-a">Family</div>
-          <div className="wordgraph-v29-node node-b">Meaning</div>
-          <div className="wordgraph-v29-node node-c">Example</div>
-          <div className="wordgraph-v29-node node-d">Collocation</div>
-          <div className="wordgraph-v29-link link-a"></div>
-          <div className="wordgraph-v29-link link-b"></div>
-          <div className="wordgraph-v29-link link-c"></div>
-          <div className="wordgraph-v29-link link-d"></div>
+    <div className="page tool-page wordgraph-page wordgraph-v821-page">
+      <div className="wordgraph-v821-shell">
+        <div className="wordgraph-v821-topline">
+          <button className="back-btn wordgraph-v821-back" onClick={() => window.history.back()}>← {language === 'vi' ? 'Quay lại' : 'Back'}</button>
+          <span className="wordgraph-v821-top-status">{hasApiKey ? (language === 'vi' ? `AI đã kết nối · ${visibleNodeCount} node` : `AI connected · ${visibleNodeCount} nodes`) : (language === 'vi' ? 'Chưa kết nối AI' : 'AI not connected')}</span>
         </div>
-        <div className="wordgraph-v29-hero-copy">
-          <span className="wordgraph-v29-tag">V1.0 · Drag & Auto Layout</span>
-          <h1><span>{tool.icon}</span> {toolTitle}</h1>
-          <p>{language === 'vi' ? 'Tự tối ưu bố cục, không đè chữ và có thể kéo thả từng node trước khi xuất file.' : 'Auto-optimized layout with draggable nodes before export.'}</p>
-          <div className="wordgraph-v29-badges">
-            <span>{language === 'vi' ? 'Mind map kéo thả' : 'Drag-and-drop mind map'}</span>
-            <span>{language === 'vi' ? 'Auto layout' : 'Auto layout'}</span>
-            <span>{language === 'vi' ? 'Xuất SVG / PNG / HTML' : 'Export SVG / PNG / HTML'}</span>
-          </div>
-        </div>
-        <div className="wordgraph-v29-state-grid">
-          <div className="wordgraph-v29-state-card"><strong>{language === 'vi' ? 'AI sẵn sàng' : 'AI ready'}</strong><small>{hasApiKey ? 'API connected' : 'No API key'}</small></div>
-          <div className="wordgraph-v29-state-card"><strong>{mode === 'tree' ? 'Auto layout' : 'Radial map'}</strong><small>{language === 'vi' ? 'Chế độ sơ đồ' : 'Map mode'}</small></div>
-          <div className="wordgraph-v29-state-card"><strong>{dragEnabled ? (language === 'vi' ? 'Kéo bật' : 'Drag on') : (language === 'vi' ? 'Kéo tắt' : 'Drag off')}</strong><small>{language === 'vi' ? 'Tương tác node' : 'Node interaction'}</small></div>
-          <div className="wordgraph-v29-state-card"><strong>{visibleNodeCount}</strong><small>{language === 'vi' ? 'Node hiển thị' : 'Visible nodes'}</small></div>
-        </div>
-      </section>
 
-      <section className="wordgraph-v29-flow-grid">
-        {workflowCards.map((card) => (
-          <article key={card.id} className={`panel wordgraph-v29-flow-card ${card.tone} ${activeWorkflow === card.id ? 'active' : ''}`}>
-            <div className="wordgraph-v29-flow-icon">{card.icon}</div>
-            <div className="wordgraph-v29-flow-copy">
-              <span>{card.badge}</span>
-              <strong>{card.title}</strong>
-              <p>{card.desc}</p>
+        <section className="panel wordgraph-v821-hero">
+          <div className="wordgraph-v821-hero-main">
+            <div className="wordgraph-v821-demo" aria-hidden="true">
+              <div className="wordgraph-v821-demo-toolbar"><span className="active">↖</span><span>☝</span><span>⌁</span><span>T</span></div>
+              <svg className="wordgraph-v821-demo-lines" viewBox="0 0 720 330" preserveAspectRatio="none">
+                <path d="M350 160 C285 160 300 78 214 78" />
+                <path d="M350 160 C278 160 290 245 204 245" className="orange" />
+                <path d="M350 160 C430 160 425 72 526 72" className="green" />
+                <path d="M350 160 C430 160 425 160 530 160" className="purple" />
+                <path d="M350 160 C430 160 425 252 528 252" className="blue" />
+              </svg>
+              <div className="wordgraph-v821-demo-node center">WORD</div>
+              <div className="wordgraph-v821-demo-node family"><span>♧</span> Family</div>
+              <div className="wordgraph-v821-demo-node collocation"><span>⌘</span> Collocation</div>
+              <div className="wordgraph-v821-demo-node meaning"><span>▣</span> Meaning</div>
+              <div className="wordgraph-v821-demo-node example"><span>▤</span> Example</div>
+              <div className="wordgraph-v821-demo-node pronunciation"><span>◖</span> Pronunciation</div>
+              <div className="wordgraph-v821-demo-zoom"><span>−</span><strong>100%</strong><span>＋</span><span>⛶</span></div>
             </div>
-            <button type="button" className="wordgraph-v29-flow-cta" onClick={card.action}>{card.cta} →</button>
+
+            <div className="wordgraph-v821-hero-copy">
+              <span className="wordgraph-v821-tag">V1.1 · Drag & Auto Layout</span>
+              <h1><span>WG</span> {toolTitle}</h1>
+              <p>{language === 'vi' ? 'Tự tối ưu bố cục, không đè chữ và có thể kéo thả từng node trước khi xuất file.' : 'Auto-optimized layouts with draggable nodes before export.'}</p>
+              <div className="wordgraph-v821-hero-actions">
+                <button type="button" onClick={() => openCanvas()}><span>⌘</span>{language === 'vi' ? 'Mind map kéo thả' : 'Drag mind map'}</button>
+                <button type="button" onClick={() => openCanvas({ autoArrange: true })}><span>✣</span>{language === 'vi' ? 'Auto layout' : 'Auto layout'}</button>
+                <button type="button" onClick={() => openCanvas()}><span>⇩</span>{language === 'vi' ? 'Xuất SVG / PNG / HTML' : 'Export SVG / PNG / HTML'}</button>
+                <button type="button" className="primary" onClick={startFreshMap}><span>ϟ</span>{language === 'vi' ? 'Tạo nhanh' : 'Quick create'}</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="wordgraph-v821-hero-footer">
+            <div className="wordgraph-v821-ai-state"><span className="wordgraph-v821-tip-icon">✦</span><div><strong>{language === 'vi' ? 'AI sẵn sàng' : 'AI ready'}</strong><small>{hasApiKey ? 'API connected · Phản hồi nhanh' : (language === 'vi' ? 'Nhập API key trong Cài đặt' : 'Add an API key in Settings')}</small></div></div>
+            <div className="wordgraph-v821-quick-tip"><span className="wordgraph-v821-tip-icon">♧</span><div><strong>{language === 'vi' ? 'Mẹo nhanh' : 'Quick tip'}</strong><small>{language === 'vi' ? 'Kéo thả để sắp xếp node. Dùng Auto layout để tối ưu bố cục tự động.' : 'Drag nodes to arrange them. Use Auto layout to optimize the map.'}</small></div></div>
+          </div>
+        </section>
+
+        <section className="wordgraph-v821-dashboard-grid" aria-label={language === 'vi' ? 'Bảng điều khiển WordGraph' : 'WordGraph dashboard'}>
+          <article className="panel wordgraph-v821-dashboard-card create-card">
+            <div className="wordgraph-v821-card-head"><div><strong>{language === 'vi' ? 'Tạo sơ đồ' : 'Create a map'}</strong><p>{language === 'vi' ? 'Bắt đầu tạo sơ đồ WordGraph mới' : 'Start a new WordGraph map'}</p></div><span>＋</span></div>
+            <button type="button" className="wordgraph-v821-main-create" onClick={startFreshMap}>＋ {language === 'vi' ? 'Tạo mới' : 'Create new'}</button>
+            <button type="button" className="wordgraph-v821-secondary-create" onClick={() => openBuilder('source')}>♧ {language === 'vi' ? 'Nhập từ danh sách' : 'Import word list'}</button>
           </article>
-        ))}
-      </section>
 
-      <section className="wordgraph-ai-workspace wordgraph-v29-workspace">
-        <article ref={aiPanelRef} className="panel wordgraph-ai-panel wordgraph-v29-ai-panel">
-          <div className="wordgraph-step-title">
-            <span>1</span>
-            <div>
-              <p className="eyebrow">AI Content Maker</p>
-              <h2>{language === 'vi' ? 'Ô AI tạo sơ đồ' : 'AI map maker'}</h2>
-              <p>{language === 'vi' ? 'Nhập yêu cầu, chọn prompt mẫu nếu cần, rồi bấm AI tạo. Nội dung tạo ra sẽ tự chuyển thành sơ đồ.' : 'Type your request, optionally use a prompt preset, then generate the map with AI.'}</p>
-            </div>
-          </div>
+          <article className="panel wordgraph-v821-dashboard-card template-card">
+            <div className="wordgraph-v821-card-head"><div><strong>{language === 'vi' ? 'Mẫu nhanh' : 'Quick templates'}</strong><p>{language === 'vi' ? 'Chọn mẫu có sẵn để bắt đầu' : 'Choose a ready-made starting point'}</p></div><span>✣</span></div>
+            <div className="wordgraph-v821-template-chips">{WORDGRAPH_QUICK_TEMPLATES.map((template) => (<button key={template.labelVi} type="button" onClick={() => applyQuickTemplate(template)}>{language === 'vi' ? template.labelVi : template.labelEn}</button>))}</div>
+            <button type="button" className="wordgraph-v821-text-link" onClick={() => openBuilder('instruction')}>{language === 'vi' ? 'Xem tất cả mẫu' : 'View all templates'} →</button>
+          </article>
 
-          <label>{language === 'vi' ? 'Yêu cầu AI' : 'AI request'}</label>
-          <textarea
-            className="wordgraph-ai-textarea"
-            rows={8}
-            value={instruction}
-            onChange={(e) => setInstruction(e.target.value)}
-            placeholder={language === 'vi' ? 'Ví dụ: Tạo sơ đồ word family cho chủ điểm volunteering, gồm word form, collocation, nghĩa, ví dụ và teaching note...' : 'Example: Create a word family map for volunteering vocabulary with word forms, collocations, meanings, examples and teaching notes...'}
-          />
+          <article className="panel wordgraph-v821-dashboard-card structure-card">
+            <div className="wordgraph-v821-card-head"><div><strong>{language === 'vi' ? 'Cấu trúc từ' : 'Word structures'}</strong><p>{language === 'vi' ? 'Gợi ý các nhóm node cho từ khóa' : 'Suggested node groups for a keyword'}</p></div><span>⌘</span></div>
+            <div className="wordgraph-v821-structure-list">{WORDGRAPH_STRUCTURE_PRESETS.map((item) => (<button key={item.labelVi} type="button" onClick={() => applyStructurePreset(item)}><span>{item.icon}</span><strong>{language === 'vi' ? item.labelVi : item.labelEn}</strong><b>›</b></button>))}</div>
+          </article>
 
-          <div className="wordgraph-prompt-bank" aria-label="WordGraph prompt templates">
-            {WORDGRAPH_AI_TEMPLATES.map((template) => (
-              <button
-                key={template.label}
-                type="button"
-                className={instruction === template.prompt ? 'active' : ''}
-                onClick={() => applyPromptTemplate(template)}
-              >
-                <strong>{template.label}</strong>
-                <span>{template.hint}</span>
-              </button>
-            ))}
-          </div>
+          <article className="panel wordgraph-v821-dashboard-card history-card">
+            <div className="wordgraph-v821-card-head"><div><strong>{language === 'vi' ? 'Lịch sử gần đây' : 'Recent maps'}</strong><p>{language === 'vi' ? 'Các sơ đồ bạn vừa làm' : 'Maps you recently created'}</p></div><span>◷</span></div>
+            <div className="wordgraph-v821-history-list">{recentMaps.length ? recentMaps.map((item) => (<button key={item.id} type="button" onClick={() => openRecentMap(item)}><span>▧</span><strong>{item.title || toolTitle}</strong><small>{formatRelativeTime(item.updatedAt || item.createdAt, language)}</small></button>)) : <div className="wordgraph-v821-empty-history">{language === 'vi' ? 'Chưa có sơ đồ gần đây.' : 'No recent maps yet.'}</div>}</div>
+            <button type="button" className="wordgraph-v821-text-link" onClick={() => { window.location.hash = '#/library'; }}>{language === 'vi' ? 'Xem tất cả' : 'View all'} →</button>
+          </article>
+        </section>
 
-          <div className="wordgraph-option-grid">
-            <div>
-              <label>Level</label>
-              <select value={level} onChange={(e) => setLevel(e.target.value)}>
-                <option>A2-B1</option>
-                <option>B1-B2</option>
-                <option>B2-C1</option>
-                <option>C1</option>
-              </select>
-            </div>
-            <div>
-              <label>{language === 'vi' ? 'Quy mô sơ đồ' : 'Map size'}</label>
-              <select value={itemCount} onChange={(e) => setItemCount(Number(e.target.value))}>
-                <option value={6}>{language === 'vi' ? 'Gọn · 6 nhánh' : 'Compact · 6 branches'}</option>
-                <option value={10}>{language === 'vi' ? 'Vừa · 10 nhánh' : 'Balanced · 10 branches'}</option>
-                <option value={14}>{language === 'vi' ? 'Rộng · 14 nhánh' : 'Extended · 14 branches'}</option>
-              </select>
-            </div>
-          </div>
+        <section className="wordgraph-ai-workspace wordgraph-v821-workspace">
+          <article ref={aiPanelRef} className={`panel wordgraph-ai-panel wordgraph-v821-ai-panel ${activeWorkflow === 'create' ? 'is-active' : ''}`}>
+            <div className="wordgraph-step-title"><span>1</span><div><p className="eyebrow">AI Content Maker</p><h2>{language === 'vi' ? 'Ô AI tạo sơ đồ' : 'AI map maker'}</h2><p>{language === 'vi' ? 'Nhập yêu cầu, chọn prompt mẫu nếu cần, rồi bấm AI tạo. Nội dung sẽ tự chuyển thành sơ đồ.' : 'Type your request, optionally use a preset, then generate a visual map.'}</p></div></div>
+            <label>{language === 'vi' ? 'Yêu cầu AI' : 'AI request'}</label>
+            <textarea ref={instructionInputRef} className="wordgraph-ai-textarea" rows={7} value={instruction} onChange={(e) => setInstruction(e.target.value)} placeholder={language === 'vi' ? 'Ví dụ: Tạo sơ đồ word family cho chủ điểm volunteering, gồm word form, collocation, nghĩa, ví dụ và teaching note...' : 'Example: Create a word family map for volunteering vocabulary with forms, collocations, meanings and examples...'} />
+            <div className="wordgraph-prompt-bank" aria-label="WordGraph prompt templates">{WORDGRAPH_AI_TEMPLATES.map((template) => (<button key={template.label} type="button" className={instruction === template.prompt ? 'active' : ''} onClick={() => applyPromptTemplate(template)}><strong>{template.label}</strong><span>{template.hint}</span></button>))}</div>
+            <div className="wordgraph-option-grid"><div><label>Level</label><select value={level} onChange={(e) => setLevel(e.target.value)}><option>A2-B1</option><option>B1-B2</option><option>B2-C1</option><option>C1</option></select></div><div><label>{language === 'vi' ? 'Quy mô sơ đồ' : 'Map size'}</label><select value={itemCount} onChange={(e) => setItemCount(Number(e.target.value))}><option value={6}>{language === 'vi' ? 'Gọn · 6 nhánh' : 'Compact · 6 branches'}</option><option value={10}>{language === 'vi' ? 'Vừa · 10 nhánh' : 'Balanced · 10 branches'}</option><option value={14}>{language === 'vi' ? 'Rộng · 14 nhánh' : 'Extended · 14 branches'}</option></select></div></div>
+            <label>{language === 'vi' ? 'Nguồn từ vựng / bài đọc / ghi chú thêm' : 'Vocabulary list / reading passage / extra notes'}</label>
+            <textarea ref={sourceInputRef} className="wordgraph-source-text" rows={6} value={sourceText} onChange={(e) => setSourceText(e.target.value)} placeholder={language === 'vi' ? 'Dán danh sách từ, bài đọc hoặc yêu cầu chi tiết tại đây.' : 'Paste a word list, reading passage or detailed notes here.'} />
+            <div className="wordgraph-ai-actions"><button className="primary wordgraph-ai-generate" onClick={generate} disabled={loading}>{loading ? (language === 'vi' ? 'Đang tạo bằng AI...' : 'Generating with AI...') : (language === 'vi' ? '✨ AI tạo sơ đồ' : '✨ Generate with AI')}</button><button className="secondary" onClick={clearWorkspace}>{language === 'vi' ? 'Làm mới' : 'Reset'}</button></div>
+            <button className="ghost full-width" onClick={() => { setOutput(''); setCustomPositions({}); }}>{language === 'vi' ? 'Vẽ nhanh từ nội dung đang nhập, không gọi AI' : 'Draw from current input without AI'}</button>
+            {!hasApiKey && <button className="secondary full-width" onClick={() => (window.location.hash = '#/settings')}>{language === 'vi' ? 'Nhập API key để dùng AI' : 'Add API key to use AI'}</button>}
+            {error && <p className="error-box">⚠️ {error}</p>}
+          </article>
 
-          <label>{language === 'vi' ? 'Nguồn từ vựng / bài đọc / ghi chú thêm' : 'Vocabulary list / reading passage / extra notes'}</label>
-          <textarea
-            className="wordgraph-source-text"
-            rows={7}
-            value={sourceText}
-            onChange={(e) => setSourceText(e.target.value)}
-            placeholder={language === 'vi' ? 'Có thể dán danh sách từ, bài đọc, hoặc yêu cầu chi tiết ở đây. Nếu để trống, AI sẽ dựa vào yêu cầu phía trên.' : 'Paste a vocabulary list, a reading passage or extra requirements here. Leave blank to use the AI request only.'}
-          />
+          <article ref={canvasRef} className={`panel preview-panel wordgraph-canvas-panel wordgraph-main-result wordgraph-v821-canvas-panel ${activeWorkflow === 'layout' ? 'is-active' : ''}`}>
+            <div className="preview-head wordgraph-result-head"><div><span className="eyebrow">2. {language === 'vi' ? 'Sơ đồ tư duy' : 'Mind map'}</span><h2>{graph.title}</h2><p className="wordgraph-help">{language === 'vi' ? 'Kéo node để chỉnh vị trí. Dùng “Tự sắp xếp” nếu sơ đồ bị rối trước khi xuất file.' : 'Drag nodes to adjust them. Use Auto arrange before export if needed.'}</p></div><div className="preview-actions wrap-actions wordgraph-toolbar"><button onClick={() => resetLayout('tree')}>{language === 'vi' ? 'Tự sắp xếp' : 'Auto arrange'}</button><button onClick={() => resetLayout(mode === 'tree' ? 'radial' : 'tree')}>{mode === 'tree' ? 'Radial' : 'Tree'}</button><button className={dragEnabled ? 'primary' : ''} onClick={() => setDragEnabled(!dragEnabled)}>{dragEnabled ? (language === 'vi' ? 'Kéo: bật' : 'Drag: on') : (language === 'vi' ? 'Kéo: tắt' : 'Drag: off')}</button><button onClick={() => setZoom(Math.max(55, zoom - 10))}>−</button><button onClick={() => setZoom(Math.min(180, zoom + 10))}>＋</button><button onClick={openFullscreen}>{language === 'vi' ? 'Toàn màn hình' : 'Fullscreen'}</button><button onClick={downloadSvg}>SVG</button><button onClick={downloadPng}>PNG</button><button onClick={downloadHtml}>HTML</button><button onClick={() => downloadFile(`${slugify(toolTitle)}-mermaid.mmd`, buildMermaid(graph))}>Mermaid</button></div></div>
+            <div className="wordgraph-scroll"><div className="wordgraph-zoom" style={{ width: `${zoom}%` }}><WordGraphSvg graph={graph} mode={mode} svgRef={svgRef} customPositions={customPositions} setCustomPositions={setCustomPositions} editable={dragEnabled} /></div></div>
+          </article>
+        </section>
 
-          <div className="wordgraph-ai-actions">
-            <button className="primary wordgraph-ai-generate" onClick={generate} disabled={loading}>
-              {loading ? (language === 'vi' ? 'Đang tạo bằng AI...' : 'Generating with AI...') : (language === 'vi' ? '✨ AI tạo sơ đồ' : '✨ Generate with AI')}
-            </button>
-            <button className="secondary" onClick={clearWorkspace}>{language === 'vi' ? 'Làm mới' : 'Reset'}</button>
-          </div>
-          <button className="ghost full-width" onClick={() => { setOutput(''); setCustomPositions({}); }}>
-            {language === 'vi' ? 'Vẽ nhanh từ nội dung đang nhập, không gọi AI' : 'Draw quickly from current input without AI'}
-          </button>
-          {!hasApiKey && <button className="secondary full-width" onClick={() => (window.location.hash = '#/settings')}>{language === 'vi' ? 'Nhập API key để dùng AI' : 'Add API key to use AI'}</button>}
-          {error && <p className="error-box">⚠️ {error}</p>}
-        </article>
-
-        <article ref={canvasRef} className="panel preview-panel wordgraph-canvas-panel wordgraph-main-result wordgraph-v29-canvas-panel">
-          <div className="preview-head wordgraph-result-head">
-            <div>
-              <span className="eyebrow">2. {language === 'vi' ? 'Sơ đồ tư duy' : 'Mind map'}</span>
-              <h2>{graph.title}</h2>
-              <p className="wordgraph-help">{language === 'vi' ? 'Kéo node để chỉnh vị trí. Dùng “Tự sắp xếp” nếu sơ đồ bị rối trước khi xuất file.' : 'Drag nodes to adjust. Use “Auto arrange” before export if the map looks crowded.'}</p>
-            </div>
-            <div className="preview-actions wrap-actions wordgraph-toolbar">
-              <button onClick={() => resetLayout('tree')}>{language === 'vi' ? 'Tự sắp xếp' : 'Auto arrange'}</button>
-              <button onClick={() => resetLayout(mode === 'tree' ? 'radial' : 'tree')}>{mode === 'tree' ? 'Radial' : 'Tree'}</button>
-              <button className={dragEnabled ? 'primary' : ''} onClick={() => setDragEnabled(!dragEnabled)}>{dragEnabled ? (language === 'vi' ? 'Kéo: bật' : 'Drag: on') : (language === 'vi' ? 'Kéo: tắt' : 'Drag: off')}</button>
-              <button onClick={() => setZoom(Math.max(55, zoom - 10))}>−</button>
-              <button onClick={() => setZoom(Math.min(180, zoom + 10))}>＋</button>
-              <button onClick={openFullscreen}>{language === 'vi' ? 'Toàn màn hình' : 'Fullscreen'}</button>
-              <button onClick={downloadSvg}>SVG</button>
-              <button onClick={downloadPng}>PNG</button>
-              <button onClick={downloadHtml}>HTML</button>
-              <button onClick={() => downloadFile(`${slugify(toolTitle)}-mermaid.mmd`, buildMermaid(graph))}>Mermaid</button>
-            </div>
-          </div>
-          <div className="wordgraph-scroll">
-            <div className="wordgraph-zoom" style={{ width: `${zoom}%` }}>
-              <WordGraphSvg graph={graph} mode={mode} svgRef={svgRef} customPositions={customPositions} setCustomPositions={setCustomPositions} editable={dragEnabled} />
-            </div>
-          </div>
-        </article>
-      </section>
-
-      <section ref={outlineRef} className="panel preview-panel wordgraph-outline-panel wordgraph-v29-outline-panel">
-        <div className="preview-head">
-          <div>
-            <span className="eyebrow">3. Outline</span>
-            <h2>{language === 'vi' ? 'Nội dung AI / nội dung có thể chỉnh' : 'AI outline / editable content'}</h2>
-          </div>
-          <div className="preview-actions wrap-actions">
-            <button onClick={() => navigator.clipboard?.writeText(output || buildMermaid(graph))}>Copy</button>
-            <button onClick={() => downloadFile(`${slugify(toolTitle)}.txt`, output || buildMermaid(graph))}>TXT</button>
-            <button onClick={() => exportAsWord(toolTitle, output || buildMermaid(graph))}>Word .doc</button>
-          </div>
-        </div>
-        <textarea className="wordgraph-outline-editor" rows={14} value={output} onChange={(e) => { setOutput(e.target.value); setCustomPositions({}); }} placeholder={language === 'vi' ? 'Sau khi tạo bằng AI, nội dung outline sẽ hiện ở đây. Bạn cũng có thể dán outline rồi hệ thống tự vẽ sơ đồ.' : 'AI outline appears here. You can also paste an outline and the app will draw a map.'} />
-      </section>
+        <section ref={outlineRef} className={`panel preview-panel wordgraph-outline-panel wordgraph-v821-outline-panel ${activeWorkflow === 'outline' ? 'is-active' : ''}`}>
+          <div className="preview-head"><div><span className="eyebrow">3. Outline</span><h2>{language === 'vi' ? 'Nội dung AI / nội dung có thể chỉnh' : 'AI outline / editable content'}</h2></div><div className="preview-actions wrap-actions"><button onClick={() => navigator.clipboard?.writeText(output || buildMermaid(graph))}>Copy</button><button onClick={() => downloadFile(`${slugify(toolTitle)}.txt`, output || buildMermaid(graph))}>TXT</button><button onClick={() => exportAsWord(toolTitle, output || buildMermaid(graph))}>Word .doc</button></div></div>
+          <textarea className="wordgraph-outline-editor" rows={14} value={output} onFocus={() => setActiveWorkflow('outline')} onChange={(e) => { setOutput(e.target.value); setCustomPositions({}); }} placeholder={language === 'vi' ? 'Sau khi tạo bằng AI, nội dung outline sẽ hiện ở đây. Bạn cũng có thể dán outline rồi hệ thống tự vẽ sơ đồ.' : 'The AI outline appears here. You can also paste an outline and the app will draw a map.'} />
+        </section>
+      </div>
     </div>
   );
 }
