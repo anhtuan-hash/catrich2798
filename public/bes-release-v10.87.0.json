@@ -1,0 +1,23 @@
+{
+  "version": "10.87.0",
+  "channel": "stable",
+  "baseVersion": "10.86.1",
+  "releaseName": "Launcher & Command Center",
+  "releasedAt": "2026-07-12T00:00:00.000Z",
+  "requiresSql": false,
+  "requiresEnv": false,
+  "requiresDependencyInstall": false,
+  "features": [
+    "global-command-center",
+    "keyboard-command-palette",
+    "cross-site-pinned-dock",
+    "personal-favorites",
+    "recent-workspace-history",
+    "custom-app-groups",
+    "drag-and-drop-ordering",
+    "personal-hidden-items",
+    "route-auto-discovery",
+    "config-export-import",
+    "cross-tab-config-sync"
+  ]
+}

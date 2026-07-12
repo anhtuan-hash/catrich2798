@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.87.3",
+  "version": "10.87.1",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -10,7 +10,7 @@
     "test": "node scripts/smoke-test.mjs",
     "audit:performance": "node scripts/performance-audit.mjs",
     "test:department": "node scripts/department-runtime-test.mjs",
-    "release:guard": "node scripts/release-guard-v10.87.3.mjs",
+    "release:guard": "node scripts/release-guard-v10.87.1.mjs",
     "project:doctor": "node scripts/project-doctor-v10.86.1.mjs",
     "rollback:v10.86.1": "node scripts/rollback-v10.86.1.mjs",
     "verify:stability": "npm run build && npm test && npm run test:department && npm run release:guard",
@@ -21,15 +21,7 @@
     "release:guard:v10.87.0": "node scripts/release-guard-v10.87.0.mjs",
     "test:command-center:v10.87.0": "node scripts/test-command-center-v10.87.mjs",
     "rollback:v10.87.1": "node scripts/rollback-v10.87.1.mjs",
-    "verify:v10.87.1": "npm run build && npm test && npm run test:department && npm run test:command-center && npm run release:guard",
-    "release:guard:v10.87.1": "node scripts/release-guard-v10.87.1.mjs",
-    "test:ai-chat": "node scripts/test-ai-chat-v10.87.3.mjs",
-    "rollback:v10.87.2": "node scripts/rollback-v10.87.2.mjs",
-    "verify:v10.87.2": "npm run build && npm test && npm run test:department && npm run test:command-center && npm run test:ai-chat && npm run release:guard",
-    "release:guard:v10.87.2": "node scripts/release-guard-v10.87.2.mjs",
-    "test:ai-chat:v10.87.2": "node scripts/test-ai-chat-v10.87.2.mjs",
-    "rollback:v10.87.3": "node scripts/rollback-v10.87.3.mjs",
-    "verify:v10.87.3": "npm run build && npm test && npm run test:department && npm run test:command-center && npm run test:ai-chat && npm run release:guard"
+    "verify:v10.87.1": "npm run build && npm test && npm run test:department && npm run test:command-center && npm run release:guard"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

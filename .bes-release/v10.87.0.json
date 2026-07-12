@@ -1,0 +1,16 @@
+{
+  "installedAt": "2026-07-12T16:00:03.955Z",
+  "version": "10.87.0",
+  "previousVersion": "10.86.1",
+  "backupDir": ".bes-backup/v10.87.0-2026-07-12T16-00-03-947Z",
+  "lockHashBefore": "e10f1e139d61490bd272dcea2f38f873fedabf5b53df98c59b68940f70cf8652",
+  "lockHashAfter": "e10f1e139d61490bd272dcea2f38f873fedabf5b53df98c59b68940f70cf8652",
+  "assets": [
+    "public/bes-command-center-v10870.css",
+    "public/bes-command-center-v10870.js",
+    "public/bes-release-v10.87.0.json"
+  ],
+  "requiresSql": false,
+  "requiresEnv": false,
+  "dependencyChanges": false
+}
