@@ -1,9 +1,9 @@
 {
-  "version": "10.89.0",
+  "version": "10.88.1",
   "channel": "stable",
   "baseVersion": "10.87.0",
-  "releaseName": "Unified Work Hub",
-  "releasedAt": "2026-07-13T00:00:00.000Z",
+  "releaseName": "Platform Control Center & Release Governance",
+  "releasedAt": "2026-07-12T00:00:00.000Z",
   "requiresSql": true,
   "requiresEnv": false,
   "requiresDependencyInstall": false,
@@ -61,24 +61,13 @@
     "runtime-diagnostics",
     "diagnostic-export",
     "command-center-integration",
-    "safe-install-from-v10.86.1-to-v10.87.3",
-    "unified-work-inbox",
-    "role-aware-task-workflow",
-    "fourteen-day-work-calendar",
-    "approval-queue",
-    "work-item-comments",
-    "work-item-activity-timeline",
-    "per-user-notifications",
-    "supabase-realtime-refresh",
-    "row-level-security",
-    "platform-module-registration",
-    "safe-update-only-installer"
+    "safe-install-from-v10.86.1-to-v10.87.3"
   ],
-  "previousVersion": "10.88.1",
-  "installedAt": "2026-07-12T17:26:29.849Z",
+  "previousVersion": "10.87.3",
+  "installedAt": "2026-07-12T16:17:02.166Z",
   "name": "AI Chat Composer Upgrade",
-  "minimumSupportedVersion": "10.88.0",
-  "maximumSupportedVersion": "10.88.1",
+  "minimumSupportedVersion": "10.86.1",
+  "maximumSupportedVersion": "10.87.3",
   "hotfixes": [
     {
       "id": "10.88.0-hf1",
@@ -101,6 +90,6 @@
   "aiLauncherRuntime": "v10882",
   "floatingMusicButtonHidden": true,
   "aiLauncherSlotRestored": true,
-  "release": "Unified Work Hub",
-  "requiredMigration": "work_hub_v10_89_0.sql"
+  "release": "Resource Library Access Sync Fix",
+  "requiredMigration": "resource_library_v10_88_1_access_sync_fix.sql"
 }

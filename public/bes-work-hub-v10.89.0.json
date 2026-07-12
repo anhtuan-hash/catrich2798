@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "version": "10.89.0",
+  "route": "#/work-hub",
+  "shortcut": "Command/Ctrl + Shift + W",
+  "module": {
+    "id": "work-hub",
+    "title": "Trung tâm công việc",
+    "category": "Chuyên môn",
+    "roles": ["admin", "ttcm", "teacher"],
+    "status": "stable",
+    "dependencies": ["department", "platform-control"]
+  },
+  "workflow": [
+    "draft",
+    "assigned",
+    "accepted",
+    "in_progress",
+    "submitted",
+    "changes_requested",
+    "approved",
+    "completed",
+    "archived"
+  ],
+  "views": ["inbox", "board", "calendar", "approvals", "activity"],
+  "tables": [
+    "work_hub_items",
+    "work_hub_comments",
+    "work_hub_activity",
+    "work_hub_notifications"
+  ]
+}

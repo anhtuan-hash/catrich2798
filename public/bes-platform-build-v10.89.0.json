@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "version": "10.89.0",
+  "previousVersion": "10.88.1",
+  "installedAt": "2026-07-12T17:26:29.849Z",
+  "gitCommit": "ae12339",
+  "gitBranch": "main",
+  "nodeVersion": "v22.23.1",
+  "packageManager": "npm",
+  "environment": "local",
+  "packageHash": "764de2a8a0069333c0bec79f42ac41cb250cfcd64354b01fac4e028b9b1c9c88",
+  "migrationCount": 13,
+  "requiresSql": true
+}

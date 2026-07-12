@@ -1,0 +1,33 @@
+{
+  "installedAt": "2026-07-12T17:26:29.849Z",
+  "version": "10.89.0",
+  "previousVersion": "10.88.1",
+  "backupDir": ".bes-backup/v10.89.0-2026-07-12T17-26-29-836Z",
+  "lockHashBefore": "e10f1e139d61490bd272dcea2f38f873fedabf5b53df98c59b68940f70cf8652",
+  "lockHashAfter": "e10f1e139d61490bd272dcea2f38f873fedabf5b53df98c59b68940f70cf8652",
+  "assets": [
+    "public/bes-unified-work-hub-v10890.css",
+    "public/bes-unified-work-hub-v10890.js",
+    "public/bes-platform-control-v10890.css",
+    "public/bes-platform-control-v10890.js",
+    "public/bes-release-v10.89.0.json",
+    "public/bes-work-hub-v10.89.0.json",
+    "supabase/work_hub_v10_89_0.sql",
+    "scripts/check-work-hub-v10.89.0.mjs",
+    "scripts/platform-doctor-v10.89.0.mjs",
+    "scripts/release-guard-v10.89.0.mjs",
+    "scripts/rollback-v10.89.0.mjs"
+  ],
+  "integrationTags": [
+    "/bes-platform-control-v10890.css",
+    "/bes-platform-control-v10890.js",
+    "/bes-unified-work-hub-v10890.css",
+    "/bes-unified-work-hub-v10890.js"
+  ],
+  "migrationCount": 13,
+  "gitCommit": "ae12339",
+  "requiresSql": true,
+  "requiredMigration": "supabase/work_hub_v10_89_0.sql",
+  "requiresEnv": false,
+  "dependencyChanges": false
+}
