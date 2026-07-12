@@ -67,17 +67,5 @@
   "installedAt": "2026-07-12T16:17:02.166Z",
   "name": "AI Chat Composer Upgrade",
   "minimumSupportedVersion": "10.86.1",
-  "maximumSupportedVersion": "10.87.3",
-  "hotfixes": [
-    {
-      "id": "10.88.0-hf1",
-      "name": "AI Chat Close Cleanup",
-      "installedAt": "2026-07-12T16:35:35.670Z",
-      "runtime": "v10881",
-      "baseVersion": "10.88.0"
-    }
-  ],
-  "lastHotfix": "10.88.0-hf1",
-  "aiChatRuntime": "v10881",
-  "aiChatCloseCleanup": true
+  "maximumSupportedVersion": "10.87.3"
 }

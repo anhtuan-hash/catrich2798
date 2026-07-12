@@ -35,11 +35,7 @@
     "platform:doctor": "node scripts/platform-doctor-v10.88.0.mjs",
     "test:platform-control": "node scripts/test-platform-control-v10.88.0.mjs",
     "rollback:v10.88.0": "node scripts/rollback-v10.88.0.mjs",
-    "verify:v10.88": "npm run build && npm test && npm run test:department && npm run test:platform-control && npm run platform:doctor && npm run release:guard",
-    "test:ai-chat-close": "node scripts/test-ai-chat-close-v10.88.0-hf1.mjs",
-    "release:guard:ai-chat-hotfix": "node scripts/release-guard-v10.88.0-hf1.mjs",
-    "rollback:v10.88.0-hf1": "node scripts/rollback-v10.88.0-hf1.mjs",
-    "verify:v10.88.0-hf1": "npm run build && npm test && npm run test:department && npm run test:command-center --if-present && npm run test:platform-control --if-present && npm run test:ai-chat-close && npm run platform:doctor --if-present && npm run release:guard --if-present && npm run release:guard:ai-chat-hotfix"
+    "verify:v10.88": "npm run build && npm test && npm run test:department && npm run test:platform-control && npm run platform:doctor && npm run release:guard"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

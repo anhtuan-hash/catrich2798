@@ -1,0 +1,21 @@
+{
+  "hotfixVersion": "10.88.0-hf1",
+  "baseVersion": "10.88.0",
+  "channel": "stable-hotfix",
+  "releaseName": "AI Chat Close Cleanup",
+  "releasedAt": "2026-07-12T00:00:00.000Z",
+  "requiresSql": false,
+  "requiresEnv": false,
+  "requiresDependencyInstall": false,
+  "features": [
+    "ai-chat-close-state-cleanup",
+    "ai-chat-ghost-overlay-prevention",
+    "ai-chat-native-hidden-state-respect",
+    "ai-chat-close-control-detection",
+    "ai-chat-escape-cleanup",
+    "ai-chat-attribute-state-observer",
+    "ai-chat-input-style-restore",
+    "ai-chat-launcher-position-refresh",
+    "cache-busted-ai-chat-runtime-v10881"
+  ]
+}
