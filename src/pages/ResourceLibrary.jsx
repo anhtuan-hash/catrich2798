@@ -27,6 +27,7 @@ import '../features/resource-library/resourceLibraryCategories.css';
 
 const SKILLS = ['Vocabulary', 'Grammar', 'Reading', 'Listening', 'Speaking', 'Writing', 'Pronunciation'];
 const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.md,.html,.zip,.mp3,.wav,.m4a,.mp4,.mov,.png,.jpg,.jpeg';
+const PAGE_SIZES = [24, 48, 96];
 const DEFAULT_FORM = {
   title: '', description: '', category: 'other', grade: '', schoolYear: '', unitName: '', cefr: '',
   skills: [], tags: '', source: '', copyright: 'internal', visibility: 'department', allowDownload: true,
@@ -78,15 +79,34 @@ async function extractFileText(file) {
   return '';
 }
 
-function ResourceCard({ item, categoryLabel, manager, currentUser, onPreview, onApprove, onReject, onFavorite, onOpenApp, onDownload }) {
+function ResourceCard({
+  item,
+  categoryLabel,
+  manager,
+  currentUser,
+  compact = false,
+  deleteConfirmId,
+  deletingId,
+  onPreview,
+  onApprove,
+  onReject,
+  onFavorite,
+  onOpenApp,
+  onDownload,
+  onAskDelete,
+  onCancelDelete,
+  onConfirmDelete,
+}) {
   const mine = item.uploaderId === currentUser?.id || item.uploaderName === currentUser?.email;
+  const confirmingDelete = deleteConfirmId === item.id;
+  const deleting = deletingId === item.id;
   return (
-    <article className="resource-library-card">
+    <article className={`resource-library-card${compact ? ' is-compact' : ''}`}>
       <div className="resource-file-icon">{item.mimeType?.includes('pdf') ? 'PDF' : item.fileName?.split('.').pop()?.toUpperCase().slice(0, 4) || 'FILE'}</div>
       <div className="resource-card-main">
         <div className="resource-card-top">
           <span className={`resource-status status-${item.status}`}>{item.status === 'approved' ? 'Đã duyệt' : item.status === 'rejected' ? 'Từ chối' : item.status === 'revision' ? 'Cần sửa' : 'Chờ duyệt'}</span>
-          <span>{formatSize(item.size)}</span>
+          <span>{formatSize(item.size)} · {formatDate(item.updatedAt || item.createdAt)}</span>
         </div>
         <h3>{item.title || item.fileName}</h3>
         <p>{item.aiSummary || item.description || 'Chưa có mô tả.'}</p>
@@ -98,14 +118,22 @@ function ResourceCard({ item, categoryLabel, manager, currentUser, onPreview, on
           {item.cefr && <span>{item.cefr}</span>}
           <span>{item.uploaderName || 'Giáo viên'}</span>
         </div>
-        <div className="resource-tags">{(item.tags || []).slice(0, 5).map((tag) => <span key={tag}>#{tag}</span>)}</div>
+        {!compact && <div className="resource-tags">{(item.tags || []).slice(0, 5).map((tag) => <span key={tag}>#{tag}</span>)}</div>}
         <div className="resource-card-actions">
-          <button onClick={() => onPreview(item)}>Xem trong app</button>
+          <button onClick={() => onPreview(item)}>Xem</button>
           {item.allowDownload && item.driveFileId && <button onClick={() => onDownload(item)}>Tải xuống</button>}
-          {manager && item.driveWebViewLink && <a href={item.driveWebViewLink} target="_blank" rel="noreferrer">Mở Drive ↗</a>}
-          <button onClick={() => onFavorite(item)}>☆ Yêu thích</button>
-          <button onClick={() => onOpenApp(item)}>Mở bằng app</button>
+          {manager && item.driveWebViewLink && <a href={item.driveWebViewLink} target="_blank" rel="noreferrer">Drive ↗</a>}
+          {!compact && <button onClick={() => onFavorite(item)}>☆ Yêu thích</button>}
+          {!compact && <button onClick={() => onOpenApp(item)}>Mở bằng app</button>}
           {manager && item.status === 'pending' && <><button className="approve" onClick={() => onApprove(item)}>Duyệt</button><button className="reject" onClick={() => onReject(item)}>Yêu cầu sửa</button></>}
+          {manager && item.status === 'approved' && !confirmingDelete && <button className="delete" onClick={() => onAskDelete(item)}>Xóa</button>}
+          {manager && item.status === 'approved' && confirmingDelete && (
+            <span className="resource-delete-confirm" role="group" aria-label={`Xác nhận xóa ${item.title || item.fileName}`}>
+              <strong>Đưa file vào Thùng rác Drive?</strong>
+              <button className="delete-confirm" disabled={deleting} onClick={() => onConfirmDelete(item)}>{deleting ? 'Đang xóa…' : 'Xóa tài liệu'}</button>
+              <button className="delete-cancel" disabled={deleting} onClick={onCancelDelete}>Hủy</button>
+            </span>
+          )}
           {(manager || mine) && item.status === 'revision' && <span className="resource-inline-note">Có thể chỉnh metadata và gửi lại</span>}
         </div>
       </div>
@@ -124,6 +152,11 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
   const [gradeFilter, setGradeFilter] = useState('all');
   const [schoolYearFilter, setSchoolYearFilter] = useState('all');
   const [sortMode, setSortMode] = useState('newest');
+  const [viewMode, setViewMode] = useState('compact');
+  const [pageSize, setPageSize] = useState(24);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [deleteConfirmId, setDeleteConfirmId] = useState('');
+  const [deletingId, setDeletingId] = useState('');
   const [showUpload, setShowUpload] = useState(false);
   const [files, setFiles] = useState([]);
   const [form, setForm] = useState(DEFAULT_FORM);
@@ -221,6 +254,20 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     });
   }, [store.items, query, category, gradeFilter, schoolYearFilter, sortMode, tab, manager, currentUser]);
 
+  const totalPages = Math.max(1, Math.ceil(visibleItems.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageStart = (safePage - 1) * pageSize;
+  const pageItems = useMemo(() => visibleItems.slice(pageStart, pageStart + pageSize), [visibleItems, pageStart, pageSize]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    setDeleteConfirmId('');
+  }, [query, category, gradeFilter, schoolYearFilter, sortMode, tab, pageSize]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
   const stats = useMemo(() => ({
     total: store.items.filter((item) => item.status === 'approved').length,
     pending: store.items.filter((item) => item.status === 'pending').length,
@@ -258,6 +305,8 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     setGradeFilter('all');
     setSchoolYearFilter('all');
     setSortMode('newest');
+    setCurrentPage(1);
+    setDeleteConfirmId('');
     window.setTimeout(() => {
       folderViewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       folderViewRef.current?.focus({ preventScroll: true });
@@ -432,6 +481,36 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     await refreshLibrary();
   };
 
+  const deleteApprovedResource = async (item) => {
+    if (!manager || item.status !== 'approved' || deletingId) return;
+    setDeletingId(item.id);
+    setDriveMessage('');
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error('Phiên đăng nhập đã hết hạn');
+      const response = await fetch('/api/google-drive-delete', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resourceId: item.cloudId || item.id, fileId: item.driveFileId || '' }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Không thể xóa tài liệu');
+
+      if (preview?.id === item.id) closePreview();
+      updateResourceLibrary((draft) => {
+        draft.items = draft.items.filter((entry) => entry.id !== item.id && (item.cloudId ? entry.cloudId !== item.cloudId : true));
+        draft.activity.unshift({ id: resourceId('log'), type: 'delete', resourceId: item.id, actor: currentUser?.email, at: new Date().toISOString() });
+      });
+      setDeleteConfirmId('');
+      setDriveMessage(`Đã xóa “${item.title || item.fileName}”. File đã được chuyển vào Thùng rác Google Drive để TTCM có thể khôi phục khi cần.`);
+      await refreshLibrary();
+    } catch (error) {
+      setDriveMessage(`Không thể xóa tài liệu: ${error.message}`);
+    } finally {
+      setDeletingId('');
+    }
+  };
+
   const toggleFavorite = (item) => updateResourceLibrary((draft) => {
     const key = `${currentUser?.id || currentUser?.email}:${item.id}`;
     const index = draft.favorites.indexOf(key);
@@ -538,7 +617,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
 
       <section className="resource-library-hero">
         <div>
-          <span className="resource-eyebrow">BRIAN RESOURCE LIBRARY · V10.81.5</span>
+          <span className="resource-eyebrow">BRIAN RESOURCE LIBRARY · V10.81.6</span>
           <h1>Kho học liệu Tổ Tiếng Anh</h1>
           <p>Giáo viên tải tài liệu lên Google Drive của admin, phân loại bằng thẻ và truy cập file trực tiếp trong ứng dụng mà không cần mở Drive.</p>
           <div className="resource-hero-actions">
@@ -610,23 +689,47 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
           {manager && <span><i className="is-pending" />{visibleItems.filter((item) => item.status === 'pending').length} chờ duyệt</span>}
           {manager && <span><i className="is-revision" />{visibleItems.filter((item) => item.status === 'revision').length} cần sửa</span>}
         </div>
-        <div className="resource-library-list">
-          {visibleItems.length ? visibleItems.map((item) => (
+        <div className="resource-results-toolbar">
+          <div>
+            <strong>{visibleItems.length ? `${pageStart + 1}–${Math.min(pageStart + pageSize, visibleItems.length)}` : '0'} / {visibleItems.length}</strong>
+            <span>Chỉ hiển thị trang hiện tại để kho hơn 100 file vẫn nhẹ.</span>
+          </div>
+          <div className="resource-view-switch" role="group" aria-label="Kiểu hiển thị tài liệu">
+            <button type="button" className={viewMode === 'compact' ? 'active' : ''} onClick={() => setViewMode('compact')}>☷ Danh sách gọn</button>
+            <button type="button" className={viewMode === 'cards' ? 'active' : ''} onClick={() => setViewMode('cards')}>▦ Thẻ lớn</button>
+          </div>
+          <label>Hiển thị<select value={pageSize} onChange={(event) => setPageSize(Number(event.target.value))}>{PAGE_SIZES.map((size) => <option key={size} value={size}>{size} file / trang</option>)}</select></label>
+        </div>
+        <div className={`resource-library-list view-${viewMode}`}>
+          {pageItems.length ? pageItems.map((item) => (
             <ResourceCard
               key={item.id}
               item={item}
               categoryLabel={categoryName(categoryMap.get(normaliseResourceCategory(item.category)) || decorateCategory(findResourceCategory(item.category)), language)}
               manager={manager}
               currentUser={currentUser}
+              compact={viewMode === 'compact'}
+              deleteConfirmId={deleteConfirmId}
+              deletingId={deletingId}
               onPreview={openPreview}
               onApprove={(entry) => changeStatus(entry, 'approved')}
               onReject={(entry) => changeStatus(entry, 'revision')}
               onFavorite={toggleFavorite}
               onOpenApp={openWithApp}
               onDownload={downloadResource}
+              onAskDelete={(entry) => setDeleteConfirmId(entry.id)}
+              onCancelDelete={() => setDeleteConfirmId('')}
+              onConfirmDelete={deleteApprovedResource}
             />
           )) : <div className="resource-empty"><b>Thư mục chưa có tài liệu</b><p>Nhấn “Tải file vào đây” để thêm tài liệu đầu tiên vào đúng thư mục.</p></div>}
         </div>
+        {visibleItems.length > pageSize && <nav className="resource-pagination" aria-label="Phân trang tài liệu">
+          <button type="button" disabled={safePage <= 1} onClick={() => setCurrentPage(1)}>« Đầu</button>
+          <button type="button" disabled={safePage <= 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}>‹ Trước</button>
+          <span>Trang <strong>{safePage}</strong> / {totalPages}</span>
+          <button type="button" disabled={safePage >= totalPages} onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}>Sau ›</button>
+          <button type="button" disabled={safePage >= totalPages} onClick={() => setCurrentPage(totalPages)}>Cuối »</button>
+        </nav>}
       </section>
 
       <section className="resource-ai-search">
