@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.86.1",
+  "version": "10.86.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -9,11 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "node scripts/smoke-test.mjs",
     "audit:performance": "node scripts/performance-audit.mjs",
-    "test:department": "node scripts/department-runtime-test.mjs",
-    "release:guard": "node scripts/release-guard-v10.86.1.mjs",
-    "project:doctor": "node scripts/project-doctor-v10.86.1.mjs",
-    "rollback:v10.86.1": "node scripts/rollback-v10.86.1.mjs",
-    "verify:stability": "npm run build && npm test && npm run test:department && npm run release:guard"
+    "test:department": "node scripts/department-runtime-test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
