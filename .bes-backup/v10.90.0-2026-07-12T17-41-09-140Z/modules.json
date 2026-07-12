@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "version": "10.90.0",
-  "generatedAt": "2026-07-12T17:41:09.173Z",
+  "version": "10.89.0",
+  "generatedAt": "2026-07-12T17:26:29.849Z",
   "modules": [
     {
       "id": "home",
@@ -315,7 +315,7 @@
         "ttcm"
       ],
       "status": "stable",
-      "version": "10.90.0",
+      "version": "10.89.0",
       "dependencies": [
         "system-health"
       ]
@@ -334,23 +334,6 @@
       "version": "10.89.0",
       "dependencies": [
         "department",
-        "platform-control"
-      ]
-    },
-    {
-      "id": "smart-knowledge",
-      "title": "Kho học liệu thông minh",
-      "route": "#/knowledge-hub",
-      "category": "Tài nguyên",
-      "roles": [
-        "admin",
-        "ttcm",
-        "teacher"
-      ],
-      "status": "stable",
-      "version": "10.90.0",
-      "dependencies": [
-        "resource-library",
         "platform-control"
       ]
     }

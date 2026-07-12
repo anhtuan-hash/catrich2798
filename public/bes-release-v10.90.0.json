@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "version": "10.90.0",
+  "releaseName": "Smart Knowledge Library",
+  "channel": "stable",
+  "requiresSql": true,
+  "requiredMigration": "smart_knowledge_v10_90_0.sql",
+  "features": [
+    "Smart Knowledge Library workspace",
+    "Hybrid full-text and weighted search",
+    "Metadata enrichment and lifecycle review",
+    "Personal and department collections",
+    "Favorites and recent resources",
+    "Saved searches",
+    "Duplicate detection",
+    "Realtime resource refresh",
+    "AI-ready indexing queue",
+    "Role-aware RLS"
+  ]
+}

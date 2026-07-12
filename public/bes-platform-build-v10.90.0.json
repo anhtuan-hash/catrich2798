@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "version": "10.90.0",
+  "previousVersion": "10.89.0",
+  "installedAt": "2026-07-12T17:41:09.173Z",
+  "gitCommit": "f986ce84323e5566aa1ab9413317e8e9f1f967d1",
+  "gitBranch": "main",
+  "node": "v22.23.1",
+  "requiresSql": true,
+  "requiredMigration": "smart_knowledge_v10_90_0.sql"
+}

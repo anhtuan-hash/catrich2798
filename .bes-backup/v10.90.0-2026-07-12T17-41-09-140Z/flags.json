@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "10.90.0",
+  "version": "10.89.0",
   "defaultChannel": "stable",
   "channels": [
     "stable",
@@ -69,41 +69,6 @@
       "label": "Work Hub Realtime",
       "description": "Làm mới công việc, phản hồi và thông báo qua Supabase Realtime.",
       "minimumChannel": "beta",
-      "default": true
-    },
-    {
-      "key": "knowledge.smart_search",
-      "label": "Smart Knowledge Search",
-      "description": "Tìm kiếm có trọng số và bộ lọc metadata.",
-      "minimumChannel": "stable",
-      "default": true
-    },
-    {
-      "key": "knowledge.collections",
-      "label": "Knowledge Collections",
-      "description": "Bộ sưu tập cá nhân và dùng chung.",
-      "minimumChannel": "stable",
-      "default": true
-    },
-    {
-      "key": "knowledge.lifecycle",
-      "label": "Resource Lifecycle",
-      "description": "Vòng đời, hạn rà soát và điểm chất lượng.",
-      "minimumChannel": "stable",
-      "default": true
-    },
-    {
-      "key": "knowledge.ai_index",
-      "label": "AI Index Queue",
-      "description": "Hàng chờ lập chỉ mục và metadata bằng AI.",
-      "minimumChannel": "beta",
-      "default": true
-    },
-    {
-      "key": "knowledge.duplicate_detection",
-      "label": "Duplicate Detection",
-      "description": "Phát hiện tài liệu có tên và dung lượng tương tự.",
-      "minimumChannel": "stable",
       "default": true
     }
   ]
