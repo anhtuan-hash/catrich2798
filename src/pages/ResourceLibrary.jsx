@@ -9,8 +9,10 @@ import {
   loadResourceLibrary,
   RESOURCE_EVENT,
   resourceId,
+  repairUnsyncedResources,
   sha256,
   syncResourcesFromCloud,
+  syncResourceViaServer,
   updateResourceLibrary,
   upsertResourceCloud,
 } from '../utils/resourceLibrary.js';
@@ -172,18 +174,51 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
   const inputRef = useRef(null);
   const previewObjectUrlRef = useRef('');
   const folderViewRef = useRef(null);
+  const repairInFlightRef = useRef(false);
 
   const refreshLibrary = useCallback(async () => {
-    const [syncResult, overviewResult] = await Promise.all([
-      syncResourcesFromCloud().catch((error) => ({ ok: false, reason: error.message })),
-      fetchResourceCategoryOverview().catch((error) => ({ ok: false, rows: [], reason: error.message })),
-    ]);
-    setStore(loadResourceLibrary());
+    let syncResult = await syncResourcesFromCloud().catch((error) => ({ ok: false, reason: error.message }));
+    let currentStore = loadResourceLibrary();
+
+    // Repair historical uploads that reached Google Drive/localStorage but never
+    // received a Supabase row. Those items were visible only to the uploader,
+    // which is why approved admin files could be missing from teacher accounts.
+    const unsynced = currentStore.items.filter((item) => !item.cloudId && (
+      manager
+      || item.uploaderId === currentUser?.id
+      || String(item.uploaderName || '').toLowerCase() === String(currentUser?.email || '').toLowerCase()
+    ));
+    if (unsynced.length && !repairInFlightRef.current) {
+      repairInFlightRef.current = true;
+      try {
+        const repairResult = await repairUnsyncedResources(unsynced);
+        if (repairResult.repairedItems.length) {
+          updateResourceLibrary((draft) => {
+            for (const repaired of repairResult.repairedItems) {
+              const index = draft.items.findIndex((entry) => entry.id === repaired.localId);
+              if (index >= 0) draft.items[index] = repaired.item;
+              else draft.items.unshift(repaired.item);
+            }
+          });
+          syncResult = await syncResourcesFromCloud().catch((error) => ({ ok: false, reason: error.message }));
+          currentStore = loadResourceLibrary();
+          setDriveMessage((current) => current || `Đã sửa đồng bộ ${repairResult.repairedItems.length} tài liệu cũ để giáo viên có thể nhìn thấy.`);
+        }
+        if (repairResult.errors.length) {
+          setDriveMessage((current) => current || `Còn ${repairResult.errors.length} tài liệu chưa đồng bộ được lên Supabase.`);
+        }
+      } finally {
+        repairInFlightRef.current = false;
+      }
+    }
+
+    const overviewResult = await fetchResourceCategoryOverview().catch((error) => ({ ok: false, rows: [], reason: error.message }));
+    setStore(currentStore);
     if (overviewResult.ok) setOverviewRows(overviewResult.rows);
     else if (isSupabaseConfigured && overviewResult.reason) setDriveMessage((current) => current || `Danh mục đang dùng dữ liệu dự phòng: ${overviewResult.reason}`);
     setCategoriesLoading(false);
     return syncResult;
-  }, []);
+  }, [manager, currentUser?.id, currentUser?.email]);
 
   useEffect(() => {
     const refreshLocal = () => setStore(loadResourceLibrary());
@@ -423,7 +458,8 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
           driveDownloadLink: uploaded.downloadLink || '',
         });
 
-        const cloud = await upsertResourceCloud(base);
+        let cloud = await upsertResourceCloud(base);
+        if (!cloud.ok) cloud = await syncResourceViaServer(base);
         if (cloud.ok) Object.assign(base, cloud.item);
         else if (cloud.reason && cloud.reason !== 'local') base.uploadWarning = [base.uploadWarning, cloud.reason].filter(Boolean).join(' · ');
         created.push(base);
@@ -448,6 +484,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
   };
 
   const changeStatus = async (item, status) => {
+    setBusy(status === 'approved' ? 'Đang duyệt và chia sẻ tài liệu cho giáo viên…' : 'Đang cập nhật trạng thái tài liệu…');
     const updated = {
       ...item,
       status,
@@ -455,17 +492,23 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
       approvedBy: currentUser?.email,
       updatedAt: new Date().toISOString(),
     };
-    updateResourceLibrary((draft) => {
-      const index = draft.items.findIndex((entry) => entry.id === item.id);
-      if (index >= 0) draft.items[index] = updated;
-      draft.activity.unshift({ id: resourceId('log'), type: status, resourceId: item.id, actor: currentUser?.email, at: new Date().toISOString() });
-    });
 
-    const cloudResult = await upsertResourceCloud(updated);
-    if (!cloudResult.ok) setDriveMessage(`Đã cập nhật cục bộ nhưng Supabase báo lỗi: ${cloudResult.reason}`);
+    try {
+      // An approval is only completed after the record exists in Supabase.
+      // Fall back to the server repair endpoint for historical/local-only rows.
+      let cloudResult = await upsertResourceCloud(updated);
+      if (!cloudResult.ok) cloudResult = await syncResourceViaServer(updated);
+      if (!cloudResult.ok) throw new Error(cloudResult.reason || 'Không thể đồng bộ tài liệu lên Supabase');
 
-    if (item.driveFileId) {
-      try {
+      const savedItem = { ...updated, ...cloudResult.item, status };
+      updateResourceLibrary((draft) => {
+        const index = draft.items.findIndex((entry) => entry.id === item.id || entry.cloudId === item.cloudId || (item.driveFileId && entry.driveFileId === item.driveFileId));
+        if (index >= 0) draft.items[index] = savedItem;
+        else draft.items.unshift(savedItem);
+        draft.activity.unshift({ id: resourceId('log'), type: status, resourceId: savedItem.cloudId || savedItem.id, actor: currentUser?.email, at: new Date().toISOString() });
+      });
+
+      if (item.driveFileId) {
         const token = await getAccessToken();
         const response = await fetch('/api/google-drive-move', {
           method: 'POST',
@@ -474,11 +517,17 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Không thể chuyển thư mục Drive');
-      } catch (error) {
-        setDriveMessage(`Trạng thái đã lưu nhưng chưa chuyển được file Drive: ${error.message}`);
       }
+
+      setDriveMessage(status === 'approved'
+        ? `Đã duyệt “${item.title || item.fileName}”. Tài liệu hiện được chia sẻ cho tất cả giáo viên trong tổ.`
+        : `Đã cập nhật trạng thái “${item.title || item.fileName}”.`);
+      await refreshLibrary();
+    } catch (error) {
+      setDriveMessage(`Không thể hoàn tất thao tác: ${error.message}`);
+    } finally {
+      setBusy('');
     }
-    await refreshLibrary();
   };
 
   const deleteApprovedResource = async (item) => {
@@ -491,7 +540,13 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
       const response = await fetch('/api/google-drive-delete', {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resourceId: item.cloudId || item.id, fileId: item.driveFileId || '' }),
+        body: JSON.stringify({
+          resourceId: item.cloudId || item.id,
+          fileId: item.driveFileId || '',
+          title: item.title || item.fileName,
+          category: normaliseResourceCategory(item.category),
+          status: item.status,
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Không thể xóa tài liệu');
@@ -617,7 +672,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
 
       <section className="resource-library-hero">
         <div>
-          <span className="resource-eyebrow">BRIAN RESOURCE LIBRARY · V10.81.6</span>
+          <span className="resource-eyebrow">BRIAN RESOURCE LIBRARY · V10.81.7</span>
           <h1>Kho học liệu Tổ Tiếng Anh</h1>
           <p>Giáo viên tải tài liệu lên Google Drive của admin, phân loại bằng thẻ và truy cập file trực tiếp trong ứng dụng mà không cần mở Drive.</p>
           <div className="resource-hero-actions">

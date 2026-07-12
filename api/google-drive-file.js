@@ -1,5 +1,5 @@
 import { Readable } from 'node:stream';
-import { getConnection, requireUser, send } from './_googleDrive.js';
+import { getConnection, isManagerUser, requireUser, send } from './_googleDrive.js';
 
 function queryParam(req, name) {
   if (req.query?.[name] !== undefined) return Array.isArray(req.query[name]) ? req.query[name][0] : req.query[name];
@@ -30,10 +30,9 @@ export default async function handler(req, res) {
     if (error || !resource) throw new Error(error?.message || 'Resource not found');
     if (!resource.drive_file_id) throw new Error('Resource has no Drive file');
 
-    const { data: profile } = await client.from('profiles').select('role,approved').eq('id', user.id).maybeSingle();
-    const role = String(profile?.role || '').toLowerCase();
-    const privileged = ['admin', 'ttcm', 'leader', 'head', 'manager', 'department_leader', 'to_truong'].includes(role) && profile?.approved !== false;
-    const allowed = resource.status === 'approved' || resource.uploader_id === user.id || connection.owner_user_id === user.id || privileged;
+    const privileged = await isManagerUser(client, user);
+    const approved = String(resource.status || '').trim().toLowerCase() === 'approved';
+    const allowed = approved || resource.uploader_id === user.id || connection.owner_user_id === user.id || privileged;
     if (!allowed) throw new Error('You do not have access to this resource');
     if (mode === 'download' && resource.allow_download === false && !privileged && resource.uploader_id !== user.id) throw new Error('Download is disabled for this resource');
 

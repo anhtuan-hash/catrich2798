@@ -1,4 +1,4 @@
-import { ensureFolder, getConnection, moveFile, requireUser, resourceCategoryFolderName, send } from './_googleDrive.js';
+import { ensureFolder, getConnection, isManagerUser, moveFile, requireUser, resourceCategoryFolderName, send } from './_googleDrive.js';
 import { normaliseResourceCategory } from './_resourceCategoryFolders.js';
 
 export default async function handler(req, res) {
@@ -10,9 +10,7 @@ export default async function handler(req, res) {
 
     const category = normaliseResourceCategory(rawCategory);
     const { client, connection, accessToken } = await getConnection();
-    const { data: profile } = await client.from('profiles').select('role,approved').eq('id', user.id).maybeSingle();
-    const role = String(profile?.role || '').toLowerCase();
-    const privileged = ['admin', 'ttcm', 'leader', 'head', 'manager', 'department_leader', 'to_truong'].includes(role) && profile?.approved !== false;
+    const privileged = await isManagerUser(client, user);
     if (connection.owner_user_id !== user.id && !privileged) throw new Error('Only the Drive owner or Admin can approve resources');
 
     const folderName = status === 'approved'
@@ -30,7 +28,6 @@ export default async function handler(req, res) {
     const moved = await moveFile(accessToken, fileId, targetId);
     await client.from('resource_items').update({
       category,
-      category_id: category,
       status,
       approved_at: status === 'approved' ? new Date().toISOString() : null,
       approved_by: user.email,

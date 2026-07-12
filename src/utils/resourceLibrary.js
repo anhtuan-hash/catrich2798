@@ -106,11 +106,20 @@ export async function syncResourcesFromCloud() {
   if (!auth?.user) return { ok: false, reason: 'Chưa đăng nhập' };
   const { data, error } = await supabase.from('resource_items').select('*').order('created_at', { ascending: false });
   if (error) return { ok: false, reason: error.message };
+  const cloudItems = (data || []).map(fromCloudRow);
   updateResourceLibrary((store) => {
-    const localOnly = store.items.filter((item) => item.storageMode === 'local' && !item.cloudId);
-    store.items = [...(data || []).map(fromCloudRow), ...localOnly];
+    const cloudIds = new Set(cloudItems.map((item) => item.cloudId).filter(Boolean));
+    const driveIds = new Set(cloudItems.map((item) => item.driveFileId).filter(Boolean));
+    const checksums = new Set(cloudItems.map((item) => item.checksum).filter(Boolean));
+    const localOnly = store.items.filter((item) => {
+      if (item.cloudId && cloudIds.has(item.cloudId)) return false;
+      if (item.driveFileId && driveIds.has(item.driveFileId)) return false;
+      if (item.checksum && checksums.has(item.checksum)) return false;
+      return !item.cloudId;
+    });
+    store.items = [...cloudItems, ...localOnly];
   });
-  return { ok: true, count: data?.length || 0 };
+  return { ok: true, count: data?.length || 0, rows: cloudItems };
 }
 
 export async function fetchResourceCategoryOverview() {
@@ -122,7 +131,7 @@ export async function fetchResourceCategoryOverview() {
   return error ? { ok: false, rows: [], reason: error.message } : { ok: true, rows: data || [] };
 }
 
-function fromCloudRow(row) {
+export function fromCloudRow(row) {
   return {
     id: row.id,
     cloudId: row.id,
@@ -175,8 +184,6 @@ export async function upsertResourceCloud(item) {
     title: item.title,
     description: item.description || '',
     category,
-    // Keep the legacy text column populated for older code and indexes.
-    category_id: category,
     grade: item.grade || '',
     school_year: item.schoolYear || '',
     unit_name: item.unitName || '',
@@ -189,7 +196,7 @@ export async function upsertResourceCloud(item) {
     allow_download: item.allowDownload !== false,
     status: item.status || 'pending',
     is_featured: Boolean(item.featured),
-    uploader_id: auth.user.id,
+    uploader_id: item.uploaderId || auth.user.id,
     uploader_name: item.uploaderName || auth.user.email || '',
     mime_type: item.mimeType || '',
     file_name: item.fileName || '',
@@ -218,4 +225,33 @@ export async function sha256(file) {
   const buffer = await file.arrayBuffer();
   const digest = await crypto.subtle.digest('SHA-256', buffer);
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+
+export async function syncResourceViaServer(item) {
+  const token = await getAccessToken();
+  if (!token) return { ok: false, reason: 'Phiên đăng nhập đã hết hạn' };
+  try {
+    const response = await fetch('/api/resource-sync', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ item }),
+    });
+    const data = await response.json();
+    if (!response.ok) return { ok: false, reason: data.error || 'Không thể đồng bộ Supabase' };
+    return { ok: true, item: fromCloudRow(data.item), repaired: Boolean(data.repaired) };
+  } catch (error) {
+    return { ok: false, reason: error.message };
+  }
+}
+
+export async function repairUnsyncedResources(items = []) {
+  const repairedItems = [];
+  const errors = [];
+  for (const item of items.filter((entry) => !entry.cloudId)) {
+    const result = await syncResourceViaServer(item);
+    if (result.ok) repairedItems.push({ localId: item.id, item: result.item });
+    else errors.push({ id: item.id, title: item.title || item.fileName, reason: result.reason });
+  }
+  return { ok: errors.length === 0, repairedItems, errors };
 }

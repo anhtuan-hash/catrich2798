@@ -32,6 +32,33 @@ export async function requireUser(req) {
   return data.user;
 }
 
+const MANAGER_ROLES = new Set(['admin', 'ttcm', 'leader', 'head', 'manager', 'department_leader', 'to_truong']);
+
+function profileIsApproved(profile = {}) {
+  if (profile.approved === false || profile.is_approved === false) return false;
+  const status = String(profile.status || '').toLowerCase();
+  if (status && !['approved', 'active', 'enabled'].includes(status)) return false;
+  return true;
+}
+
+export async function getUserProfile(client, user) {
+  const metadataRole = String(user?.app_metadata?.role || user?.user_metadata?.role || '').toLowerCase();
+  if (MANAGER_ROLES.has(metadataRole)) return { role: metadataRole, approved: true, source: 'jwt' };
+
+  for (const column of ['id', 'user_id', 'profile_id']) {
+    const { data, error } = await client.from('profiles').select('*').eq(column, user.id).limit(1).maybeSingle();
+    if (!error && data) return { ...data, source: column };
+    if (error && !/column .* does not exist|42703/i.test(String(error.message || ''))) break;
+  }
+  return null;
+}
+
+export async function isManagerUser(client, user) {
+  const profile = await getUserProfile(client, user);
+  const role = String(profile?.role || user?.app_metadata?.role || user?.user_metadata?.role || '').toLowerCase();
+  return MANAGER_ROLES.has(role) && profileIsApproved(profile || {});
+}
+
 export function callbackUrl(req) {
   if (process.env.GOOGLE_DRIVE_REDIRECT_URI) return process.env.GOOGLE_DRIVE_REDIRECT_URI;
   const proto = req.headers['x-forwarded-proto'] || 'https';
