@@ -58,7 +58,7 @@ export default function GlobalFlatNavigation({
   const baseItems = [
     { key: 'home', public: true },
     { key: 'apps' },
-    { key: 'news' },
+    { key: 'news', always: true },
     { key: 'games' },
     { key: 'department' },
     { key: 'homeroom' },
@@ -67,7 +67,7 @@ export default function GlobalFlatNavigation({
   ];
 
   const items = useMemo(() => {
-    const visible = baseItems.filter((item) => item.public || (currentUser && hasRouteAccess(currentUser, item.key)));
+    const visible = baseItems.filter((item) => item.public || (currentUser && (item.always || hasRouteAccess(currentUser, item.key))));
     if (isAdmin) visible.push({ key: 'admin' });
     return visible;
   }, [currentUser, isAdmin]);

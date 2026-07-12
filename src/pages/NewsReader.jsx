@@ -64,6 +64,15 @@ const TEXT = {
     sourceLabel: 'NGUỒN BÁO',
     noDistraction: 'Không quảng cáo chen giữa nội dung',
     readerNote: 'Nội dung được tải từ bài gốc và trình bày lại ở chế độ đọc tập trung. Bản quyền bài viết và hình ảnh thuộc tòa soạn tương ứng.',
+    backToNews: 'Quay lại dòng tin',
+    readerMode: 'CHẾ ĐỘ ĐỌC TẬP TRUNG',
+    related: 'Bài liên quan',
+    articleOutline: 'Mục lục bài viết',
+    noOutline: 'Bài viết không có tiêu đề phụ.',
+    appearance: 'Giao diện đọc',
+    lightReader: 'Nền sáng',
+    darkReader: 'Nền tối',
+    backToTop: 'Về đầu bài',
   },
   en: {
     kicker: 'BRIAN NEWSROOM · FULL ARTICLE READER',
@@ -113,6 +122,15 @@ const TEXT = {
     sourceLabel: 'PUBLISHERS',
     noDistraction: 'No in-article advertising clutter',
     readerNote: 'Article content is fetched from the original page and reformatted for focused reading. Copyright remains with the original publisher.',
+    backToNews: 'Back to news',
+    readerMode: 'FOCUSED READING MODE',
+    related: 'Related stories',
+    articleOutline: 'Article outline',
+    noOutline: 'This article has no section headings.',
+    appearance: 'Reading appearance',
+    lightReader: 'Light',
+    darkReader: 'Dark',
+    backToTop: 'Back to top',
   },
 };
 
@@ -209,6 +227,17 @@ function SourceMark({ name = '' }) {
   return <span className="newsroom-v823-source-mark" aria-hidden="true">{letters}</span>;
 }
 
+function headingId(text = '', index = 0) {
+  const clean = String(text || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 64);
+  return `news-section-${clean || index}`;
+}
+
 function ArticleBlocks({ blocks = [] }) {
   return blocks.map((block, index) => {
     const key = `${block.type || 'paragraph'}-${index}-${block.text?.slice(0, 18) || block.src || ''}`;
@@ -221,7 +250,7 @@ function ArticleBlocks({ blocks = [] }) {
       );
     }
     if (!block.text) return null;
-    if (block.type === 'heading') return <h3 key={key}>{block.text}</h3>;
+    if (block.type === 'heading') return <h3 id={headingId(block.text, index)} key={key}>{block.text}</h3>;
     if (block.type === 'quote') return <blockquote key={key}>{block.text}</blockquote>;
     if (block.type === 'list') return <p key={key} className="newsroom-v823-list-line"><span>•</span>{block.text}</p>;
     return <p key={key}>{block.text}</p>;
@@ -245,6 +274,7 @@ export default function NewsReader({ language = 'vi' }) {
   const [fontSize, setFontSize] = useState(19);
   const [speaking, setSpeaking] = useState(false);
   const [readerProgress, setReaderProgress] = useState(0);
+  const [readerDark, setReaderDark] = useState(false);
   const requestIdRef = useRef(0);
   const articleRequestRef = useRef(0);
   const readerBodyRef = useRef(null);
@@ -385,6 +415,7 @@ export default function NewsReader({ language = 'vi' }) {
     setSelected(item);
     setReaderProgress(0);
     setSpeaking(false);
+    setReaderDark(false);
     window.speechSynthesis?.cancel();
     loadFullArticle(item);
   }
@@ -433,6 +464,24 @@ export default function NewsReader({ language = 'vi' }) {
 
   const readerData = articleState.data;
   const readerMinutes = readerData?.readingMinutes || readMinutes(readerData || selected);
+  const readerBlocks = readerData?.blocks || (selected ? fallbackBlocks(selected) : []);
+  const readerOutline = useMemo(() => readerBlocks
+    .map((block, index) => block?.type === 'heading' && block?.text ? ({ id: headingId(block.text, index), text: block.text }) : null)
+    .filter(Boolean), [readerBlocks]);
+  const relatedItems = useMemo(() => (payload.items || [])
+    .filter((item) => item.id !== selected?.id && (item.category === selected?.category || item.source === selected?.source))
+    .slice(0, 5), [payload.items, selected]);
+
+  function scrollReaderToTop() {
+    readerBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function scrollReaderToSection(id) {
+    const container = readerBodyRef.current;
+    const target = container?.querySelector(`#${id}`);
+    if (!container || !target) return;
+    container.scrollTo({ top: Math.max(0, target.offsetTop - 88), behavior: 'smooth' });
+  }
 
   return (
     <div className="page newsroom-v823-page">
@@ -574,44 +623,107 @@ export default function NewsReader({ language = 'vi' }) {
       </section>
 
       {selected ? (
-        <div className="newsroom-v823-reader-overlay" role="dialog" aria-modal="true" aria-label={selected.title}>
-          <div className="newsroom-v823-reader-progress"><i style={{ width: `${readerProgress}%` }} /></div>
-          <section className="newsroom-v823-reader-shell">
-            <header className="newsroom-v823-reader-topbar">
-              <div><SourceMark name={selected.source} /><span><small>{selected.source}</small><strong>{articleState.status === 'loading' ? t.fullLoading : articleState.status === 'ready' && readerData?.full ? t.fullReady : t.fallbackReady}</strong></span></div>
-              <div className="newsroom-v823-reader-actions">
-                <button type="button" onClick={() => toggleSaved(selected)} className={savedIds.has(selected.id) ? 'active' : ''}>★ <span>{savedIds.has(selected.id) ? t.saved : t.save}</span></button>
-                <button type="button" onClick={speakArticle} disabled={articleState.status === 'loading'}>{speaking ? '■' : '▶'} <span>{speaking ? t.stop : t.listen}</span></button>
-                <span className="newsroom-v823-font-control"><button type="button" onClick={() => setFontSize((value) => Math.max(15, value - 1))}>A−</button><b>{fontSize}</b><button type="button" onClick={() => setFontSize((value) => Math.min(28, value + 1))}>A+</button></span>
-                <a href={selected.link} target="_blank" rel="noreferrer">↗ <span>{t.original}</span></a>
-                <button type="button" className="close" onClick={closeReader}>× <span>{t.close}</span></button>
-              </div>
-            </header>
+        <div className={`newsroom-v824-reader-screen ${readerDark ? 'is-dark' : ''}`} role="dialog" aria-modal="true" aria-label={selected.title}>
+          <div className="newsroom-v824-reader-progress"><i style={{ width: `${readerProgress}%` }} /></div>
 
-            <div className="newsroom-v823-reader-scroll" onScroll={handleReaderScroll} ref={readerBodyRef}>
-              <article className="newsroom-v823-reader-article" style={{ '--reader-font-size': `${fontSize}px` }}>
-                <div className="newsroom-v823-reader-meta"><span>{selected.category}</span><b>{formatDate(readerData?.publishedAt || selected.publishedAt, language)}</b><i>{readerMinutes} {t.readTime}</i></div>
-                <h1>{readerData?.title || selected.title}</h1>
-                {readerData?.dek ? <p className="newsroom-v823-reader-dek">{readerData.dek}</p> : selected.summary ? <p className="newsroom-v823-reader-dek">{selected.summary}</p> : null}
-                {readerData?.author ? <p className="newsroom-v823-reader-author">{readerData.author}</p> : null}
-                {(readerData?.image || selected.image) ? <figure className="newsroom-v823-reader-cover"><img src={readerData?.image || selected.image} alt="" referrerPolicy="no-referrer" /></figure> : null}
+          <header className="newsroom-v824-reader-toolbar">
+            <div className="newsroom-v824-reader-toolbar-left">
+              <button type="button" className="newsroom-v824-reader-back" onClick={closeReader}>
+                <span aria-hidden="true">←</span><b>{t.backToNews}</b>
+              </button>
+              <div className="newsroom-v824-reader-source">
+                <SourceMark name={selected.source} />
+                <span>
+                  <small>{t.readerMode}</small>
+                  <strong>{selected.source}</strong>
+                </span>
+              </div>
+            </div>
+
+            <div className="newsroom-v824-reader-toolbar-actions">
+              <div className="newsroom-v824-reader-action-group">
+                <button type="button" onClick={() => toggleSaved(selected)} className={savedIds.has(selected.id) ? 'active' : ''} title={savedIds.has(selected.id) ? t.saved : t.save}>★ <span>{savedIds.has(selected.id) ? t.saved : t.save}</span></button>
+                <button type="button" onClick={speakArticle} disabled={articleState.status === 'loading'} title={speaking ? t.stop : t.listen}>{speaking ? '■' : '▶'} <span>{speaking ? t.stop : t.listen}</span></button>
+              </div>
+              <div className="newsroom-v824-reader-action-group newsroom-v824-reader-font-control" aria-label={t.appearance}>
+                <button type="button" onClick={() => setFontSize((value) => Math.max(15, value - 1))} aria-label="Decrease font size">A−</button>
+                <b>{fontSize}</b>
+                <button type="button" onClick={() => setFontSize((value) => Math.min(28, value + 1))} aria-label="Increase font size">A+</button>
+              </div>
+              <div className="newsroom-v824-reader-action-group">
+                <button type="button" className={readerDark ? 'active' : ''} onClick={() => setReaderDark((value) => !value)} title={readerDark ? t.lightReader : t.darkReader}>{readerDark ? '☀' : '☾'} <span>{readerDark ? t.lightReader : t.darkReader}</span></button>
+                <a href={selected.link} target="_blank" rel="noreferrer">↗ <span>{t.original}</span></a>
+                <button type="button" className="close" onClick={closeReader} aria-label={t.close}>×</button>
+              </div>
+            </div>
+          </header>
+
+          <div className="newsroom-v824-reader-scroll" onScroll={handleReaderScroll} ref={readerBodyRef}>
+            <div className="newsroom-v824-reader-workspace">
+              <article className="newsroom-v824-reader-article" style={{ '--reader-font-size': `${fontSize}px` }}>
+                <header className="newsroom-v824-reader-article-head">
+                  <div className="newsroom-v824-reader-meta">
+                    <span>{selected.category}</span>
+                    <b>{formatDate(readerData?.publishedAt || selected.publishedAt, language)}</b>
+                    <i>{readerMinutes} {t.readTime}</i>
+                  </div>
+                  <h1>{readerData?.title || selected.title}</h1>
+                  {readerData?.dek ? <p className="newsroom-v824-reader-dek">{readerData.dek}</p> : selected.summary ? <p className="newsroom-v824-reader-dek">{selected.summary}</p> : null}
+                  <div className="newsroom-v824-reader-byline">
+                    <div><SourceMark name={selected.source} /><span><strong>{readerData?.author || selected.source}</strong><small>{articleState.status === 'loading' ? t.fullLoading : articleState.status === 'ready' && readerData?.full ? t.fullReady : t.fallbackReady}</small></span></div>
+                    <button type="button" onClick={speakArticle} disabled={articleState.status === 'loading'}>{speaking ? '■' : '▶'} {speaking ? t.stop : t.listen}</button>
+                  </div>
+                  {(readerData?.image || selected.image) ? <figure className="newsroom-v824-reader-cover"><img src={readerData?.image || selected.image} alt="" referrerPolicy="no-referrer" /></figure> : null}
+                </header>
 
                 {articleState.status === 'loading' ? (
-                  <div className="newsroom-v823-full-loading"><span /><span /><span /><strong>{t.fullLoading}</strong><p>{language === 'vi' ? 'Hệ thống đang đọc bài gốc, lọc phần thừa và dựng lại nội dung.' : 'The app is reading the original page, removing clutter and rebuilding the article.'}</p></div>
+                  <div className="newsroom-v824-full-loading"><span /><span /><span /><strong>{t.fullLoading}</strong><p>{language === 'vi' ? 'Hệ thống đang đọc bài gốc, lọc phần thừa và dựng lại nội dung.' : 'The app is reading the original page, removing clutter and rebuilding the article.'}</p></div>
                 ) : (
                   <>
-                    {articleState.status === 'fallback' ? <div className="newsroom-v823-reader-warning"><b>!</b><span><strong>{t.fullFailed}</strong><small>{articleState.error}</small></span><a href={selected.link} target="_blank" rel="noreferrer">{t.original} ↗</a></div> : null}
-                    <div className="newsroom-v823-reader-content"><ArticleBlocks blocks={readerData?.blocks || fallbackBlocks(selected)} /></div>
+                    {articleState.status === 'fallback' ? <div className="newsroom-v824-reader-warning"><b>!</b><span><strong>{t.fullFailed}</strong><small>{articleState.error}</small></span><a href={selected.link} target="_blank" rel="noreferrer">{t.original} ↗</a></div> : null}
+                    <div className="newsroom-v824-reader-content"><ArticleBlocks blocks={readerBlocks} /></div>
                   </>
                 )}
 
-                <footer className="newsroom-v823-reader-footer">
-                  <p>{t.readerNote}</p>
+                <footer className="newsroom-v824-reader-footer">
+                  <div><SourceMark name={selected.source} /><p>{t.readerNote}</p></div>
                   <a href={selected.link} target="_blank" rel="noreferrer">{t.original} ↗</a>
                 </footer>
               </article>
+
+              <aside className="newsroom-v824-reader-rail" aria-label={t.readingDesk}>
+                <section className="newsroom-v824-reader-rail-card newsroom-v824-reader-status-card">
+                  <span className="eyebrow">{t.readerMode}</span>
+                  <strong>{articleState.status === 'loading' ? t.fullLoading : articleState.status === 'ready' && readerData?.full ? t.fullReady : t.fallbackReady}</strong>
+                  <div><span>{readerProgress < 1 ? 0 : Math.round(readerProgress)}%</span><i><b style={{ width: `${readerProgress}%` }} /></i></div>
+                  <small>{readerMinutes} {t.readTime} · {readerData?.wordCount || wordCount(readerData?.text || selected.content || selected.summary || '')} words</small>
+                </section>
+
+                <section className="newsroom-v824-reader-rail-card">
+                  <header><span>☷</span><strong>{t.articleOutline}</strong></header>
+                  <div className="newsroom-v824-reader-outline">
+                    {readerOutline.length ? readerOutline.map((item, index) => (
+                      <button key={item.id} type="button" onClick={() => scrollReaderToSection(item.id)}><span>{String(index + 1).padStart(2, '0')}</span><b>{item.text}</b></button>
+                    )) : <p>{t.noOutline}</p>}
+                  </div>
+                </section>
+
+                <section className="newsroom-v824-reader-rail-card">
+                  <header><span>↗</span><strong>{t.related}</strong></header>
+                  <div className="newsroom-v824-reader-related">
+                    {relatedItems.length ? relatedItems.map((item) => (
+                      <button key={item.id} type="button" onClick={() => openArticle(item)}>
+                        <ArticleThumb item={item} />
+                        <span><b>{item.title}</b><small>{item.source} · {readMinutes(item)} {t.readTime}</small></span>
+                      </button>
+                    )) : <p>{t.empty}</p>}
+                  </div>
+                </section>
+              </aside>
             </div>
-          </section>
+          </div>
+
+          {readerProgress > 12 ? <button type="button" className="newsroom-v824-reader-top" onClick={scrollReaderToTop}>↑ <span>{t.backToTop}</span></button> : null}
         </div>
       ) : null}
     </div>

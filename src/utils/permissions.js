@@ -272,7 +272,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (user.role === 'admin') return true;
   if (route === 'admin') return false;
   if (route === 'tool') return hasToolAccess(user, selectedTool?.slug);
-  if (route === 'news') return hasToolAccess(user, 'news-reader');
+  if (route === 'news') return Boolean(user);
   if (route === 'department') return hasAnyDepartmentAccess(user);
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
   // Teachers can open these dashboards even when some cards are locked.

@@ -1,16 +1,16 @@
-# V10.82.3 update-only package
+# Cập nhật V10.82.4
 
-Copy this package over the currently deployed Brian English Studio repository without using `--delete`.
+Từ Terminal của VS Code, đứng trong thư mục repository đang deploy và chạy:
 
 ```bash
-rsync -av ~/Downloads/brian-english-studio-v10.82.3-newsroom-full-reader-update-only/ ./
+rsync -av ~/Downloads/brian-english-studio-v10.82.4-newsroom-reader-mode-update-only/ ./
 npm ci
 npm run build
 npm test
 npm run test:department
 git add -A
-git commit -m "Redesign Newsroom and add full article reader V10.82.3"
+git commit -m "Add full-screen Newsroom Reader Mode V10.82.4"
 git push origin main
 ```
 
-No SQL migration is required.
+Không dùng `--delete`. Không cần chạy SQL Supabase.

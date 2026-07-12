@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.82.3",
+  "version": "10.82.4",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -22,7 +22,7 @@
     "xlsx": "^0.18.5",
     "jszip": "^3.10.1"
   },
-  "description": "Brian English Studio V10.82.3 - redesigns Newsroom, adds a direct navigation route, and loads full Vietnamese/English articles in a focused in-app reader with publisher extraction and a resilient reader fallback.",
+  "description": "Brian English Studio V10.82.4 - replaces the Newsroom popup with a distraction-free full-screen Reader Mode, adds outline and related-story rails, and keeps News permanently available on the top navigation for every signed-in account.",
   "engines": {
     "node": "22.x"
   },
