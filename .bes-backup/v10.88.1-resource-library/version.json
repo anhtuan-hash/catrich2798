@@ -1,10 +1,10 @@
 {
-  "version": "10.88.1",
+  "version": "10.88.0",
   "channel": "stable",
   "baseVersion": "10.87.0",
   "releaseName": "Platform Control Center & Release Governance",
   "releasedAt": "2026-07-12T00:00:00.000Z",
-  "requiresSql": true,
+  "requiresSql": false,
   "requiresEnv": false,
   "requiresDependencyInstall": false,
   "features": [
@@ -89,7 +89,5 @@
   "aiChatCloseCleanup": true,
   "aiLauncherRuntime": "v10882",
   "floatingMusicButtonHidden": true,
-  "aiLauncherSlotRestored": true,
-  "release": "Resource Library Access Sync Fix",
-  "requiredMigration": "resource_library_v10_88_1_access_sync_fix.sql"
+  "aiLauncherSlotRestored": true
 }

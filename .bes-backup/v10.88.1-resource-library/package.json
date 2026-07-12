@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.88.1",
+  "version": "10.88.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -43,9 +43,7 @@
     "test:ai-launcher-slot": "node scripts/test-ai-launcher-slot-v10.88.0-hf2.mjs",
     "release:guard:ai-launcher-slot": "node scripts/release-guard-v10.88.0-hf2.mjs",
     "rollback:v10.88.0-hf2": "node scripts/rollback-v10.88.0-hf2.mjs",
-    "verify:v10.88.0-hf2": "npm run build && npm test && npm run test:department && npm run test:command-center --if-present && npm run test:platform-control --if-present && npm run test:ai-chat-close --if-present && npm run test:ai-launcher-slot && npm run platform:doctor --if-present && npm run release:guard --if-present && npm run release:guard:ai-launcher-slot",
-    "test:resource-library-access": "node scripts/check-resource-library-v10.88.1.mjs",
-    "verify:v10.88.1": "npm run test:resource-library-access && npm run build && npm test && npm run test:department"
+    "verify:v10.88.0-hf2": "npm run build && npm test && npm run test:department && npm run test:command-center --if-present && npm run test:platform-control --if-present && npm run test:ai-chat-close --if-present && npm run test:ai-launcher-slot && npm run platform:doctor --if-present && npm run release:guard --if-present && npm run release:guard:ai-launcher-slot"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
