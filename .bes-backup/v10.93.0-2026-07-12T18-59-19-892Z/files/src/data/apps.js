@@ -4,42 +4,6 @@ export const APPS = [
   DEPARTMENT_APP,
 
   {
-    slug: 'work-hub', route: 'work-hub', icon: 'WH', tone: 'mint', group: 'Connected Workflow', groupVi: 'Công việc liên thông',
-    title: 'Unified Work Hub', titleVi: 'Trung tâm công việc',
-    desc: 'Manage tasks, submissions, feedback, schedules and approval workflows in one place.',
-    descVi: 'Quản lí nhiệm vụ, sản phẩm nộp, phản hồi, lịch và phê duyệt trong một nơi.',
-    status: 'Realtime · Role-aware', statusVi: 'Realtime · Theo vai trò', api: true, featured: true,
-  },
-  {
-    slug: 'knowledge-hub', route: 'knowledge-hub', icon: 'KH', tone: 'blue', group: 'Teaching Resources', groupVi: 'Học liệu thông minh',
-    title: 'Smart Knowledge Library', titleVi: 'Kho học liệu thông minh',
-    desc: 'Search, classify, favorite and organize approved resources with lifecycle metadata.',
-    descVi: 'Tìm kiếm, phân loại, yêu thích và tổ chức học liệu theo metadata và vòng đời.',
-    status: 'Metadata · Collections', statusVi: 'Metadata · Bộ sưu tập', api: true, featured: true,
-  },
-  {
-    slug: 'ai-workspace', route: 'ai-workspace', icon: 'AI', tone: 'purple', group: 'Creative AI', groupVi: 'Không gian AI',
-    title: 'Brian AI Workspace', titleVi: 'Brian AI Workspace',
-    desc: 'Work with multiple sources, save long-form AI projects and transfer results to teaching tools.',
-    descVi: 'Làm việc với nhiều nguồn, lưu dự án AI dài và chuyển kết quả sang công cụ dạy học.',
-    status: 'Multi-source · Projects', statusVi: 'Nhiều nguồn · Dự án', api: true, featured: true,
-  },
-  {
-    slug: 'content-factory', route: 'content-factory', icon: 'CF', tone: 'orange', group: 'Teaching Design', groupVi: 'Tạo học liệu',
-    title: 'Teaching Content Factory', titleVi: 'Xưởng tạo học liệu',
-    desc: 'Turn one source into worksheets, quizzes, cloze tests, flashcards and lesson sequences.',
-    descVi: 'Biến một nguồn thành worksheet, quiz, cloze test, flashcard và chuỗi hoạt động.',
-    status: '8 output types · Export', statusVi: '8 loại sản phẩm · Xuất file', api: true, featured: true,
-  },
-  {
-    slug: 'assessment-core', route: 'assessment-core', icon: 'AC', tone: 'orange', group: 'Assessment', groupVi: 'Đánh giá',
-    title: 'Assessment Core', titleVi: 'Ngân hàng câu hỏi & đề thi',
-    desc: 'Manage question banks, import items, build blueprints and generate multiple test codes.',
-    descVi: 'Quản lí ngân hàng câu hỏi, nhập dữ liệu, tạo blueprint và nhiều mã đề.',
-    status: 'Question bank · Blueprints', statusVi: 'Ngân hàng · Blueprint', api: true, featured: true,
-  },
-
-  {
       slug: 'resource-library-hub',
       route: 'resource-library',
       icon: 'RL',

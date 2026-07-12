@@ -12,11 +12,6 @@ export const ROUTE_PERMISSION_IDS = {
   tools: 'section:tools',
   library: 'route:library',
   'resource-library': 'route:resource-library',
-  'knowledge-hub': 'route:knowledge-hub',
-  'work-hub': 'route:work-hub',
-  'ai-workspace': 'route:ai-workspace',
-  'content-factory': 'route:content-factory',
-  'assessment-core': 'route:assessment-core',
   practice: 'route:practice',
   qa: 'route:qa',
   settings: 'route:settings',
@@ -44,51 +39,6 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Kho học liệu Tổ Tiếng Anh',
     desc: 'Upload, review and search shared English teaching resources stored on the department leader’s Google Drive.',
     descVi: 'Tải lên, duyệt và tìm kiếm học liệu dùng chung lưu trên Google Drive của TTCM.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['knowledge-hub'],
-    type: 'content',
-    section: 'content',
-    title: 'Smart Knowledge Library',
-    titleVi: 'Kho học liệu thông minh',
-    desc: 'Search, classify, favorite and organize approved resources.',
-    descVi: 'Tìm kiếm, phân loại, yêu thích và tổ chức học liệu đã duyệt.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['work-hub'],
-    type: 'content',
-    section: 'content',
-    title: 'Unified Work Hub',
-    titleVi: 'Trung tâm công việc',
-    desc: 'Manage tasks, submissions, feedback and approvals.',
-    descVi: 'Quản lí nhiệm vụ, sản phẩm nộp, phản hồi và phê duyệt.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['ai-workspace'],
-    type: 'content',
-    section: 'content',
-    title: 'Brian AI Workspace',
-    titleVi: 'Không gian làm việc AI',
-    desc: 'Create and transform long-form teaching content with AI.',
-    descVi: 'Tạo và chuyển đổi học liệu dài bằng AI.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['content-factory'],
-    type: 'content',
-    section: 'content',
-    title: 'Teaching Content Factory',
-    titleVi: 'Xưởng tạo học liệu',
-    desc: 'Generate worksheets, quizzes and interactive activities.',
-    descVi: 'Tạo worksheet, quiz và hoạt động tương tác.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['assessment-core'],
-    type: 'content',
-    section: 'content',
-    title: 'Assessment Core',
-    titleVi: 'Ngân hàng câu hỏi và đề thi',
-    desc: 'Manage question banks, blueprints and test versions.',
-    descVi: 'Quản lí ngân hàng câu hỏi, blueprint và mã đề.',
   },
   {
     id: ROUTE_PERMISSION_IDS.library,
@@ -311,7 +261,7 @@ export function getRoutePermissionId(route) {
   if (route === 'practice') return ROUTE_PERMISSION_IDS.practice;
   if (route === 'department') return DEPARTMENT_WORKSPACE_PERMISSION_ID;
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'assessment-core' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
+  if (route === 'library' || route === 'resource-library' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
@@ -330,7 +280,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   // Locked cards stay visible and show a request-access button.
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
   if (route === 'practice') return hasPermissionId(user, ROUTE_PERMISSION_IDS.practice) || hasToolAccess(user, 'student-practice');
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'assessment-core' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
+  if (route === 'library' || route === 'resource-library' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
 }
 
