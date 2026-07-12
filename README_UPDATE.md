@@ -1,16 +1,29 @@
-# Cập nhật V10.82.4
+# Cập nhật V10.82.5 vào dự án đang chạy
 
-Từ Terminal của VS Code, đứng trong thư mục repository đang deploy và chạy:
+Dùng gói `brian-english-studio-v10.82.5-smartid-identity-update-only.zip`.
+
+Trong Terminal của VS Code, tại thư mục repository hiện tại:
 
 ```bash
-rsync -av ~/Downloads/brian-english-studio-v10.82.4-newsroom-reader-mode-update-only/ ./
+rsync -av ~/Downloads/brian-english-studio-v10.82.5-smartid-identity-update-only/ ./
 npm ci
 npm run build
 npm test
 npm run test:department
+```
+
+Sau đó:
+
+```bash
 git add -A
-git commit -m "Add full-screen Newsroom Reader Mode V10.82.4"
+git commit -m "Integrate SmartID Identity V10.82.5"
 git push origin main
 ```
 
-Không dùng `--delete`. Không cần chạy SQL Supabase.
+Sau khi Vercel báo **Ready**, tải lại mạnh bằng `Command + Shift + R` và mở:
+
+```text
+Ứng dụng → SmartID Identity
+```
+
+Không chạy thêm SQL. SmartID dùng khóa Gemini đã lưu tại **Cài đặt AI**.

@@ -36,6 +36,13 @@ const iconPaths = {
       <path d="M31 61l14-24M55 38l14 23M36 70h28" />
     </>
   ),
+  identity: (
+    <>
+      <path d="M22 18h16M18 22v16M78 18H62M82 22v16M22 82h16M18 78V62M78 82H62M82 78V62" />
+      <circle cx="50" cy="42" r="13" />
+      <path d="M28 76c3-16 12-24 22-24s19 8 22 24" />
+    </>
+  ),
   news: (
     <>
       <path d="M17 18h66v64H17V18Z" />
@@ -134,6 +141,7 @@ export const flatIconForSlug = {
   'exam-studio': 'exam',
   textcare: 'textcare',
   'news-reader': 'news',
+  'smart-id': 'identity',
   'reading-studio': 'reading',
   word2graph: 'wordgraph',
   'speaking-studio': 'speaking',

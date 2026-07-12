@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.82.4",
+  "version": "10.82.5",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -22,7 +22,7 @@
     "xlsx": "^0.18.5",
     "jszip": "^3.10.1"
   },
-  "description": "Brian English Studio V10.82.4 - replaces the Newsroom popup with a distraction-free full-screen Reader Mode, adds outline and related-story rails, and keeps News permanently available on the top navigation for every signed-in account.",
+  "description": "Brian English Studio V10.82.5 - integrates SmartID Identity as a full AI portrait, exact-size ID photo and 10x15 print-sheet studio using the existing Gemini settings.",
   "engines": {
     "node": "22.x"
   },

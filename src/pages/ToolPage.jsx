@@ -3,6 +3,7 @@ import React, { Suspense, lazy, useMemo, useState } from 'react';
 const WordGraphStudio = lazy(() => import('./WordGraphStudio.jsx'));
 const ReadingStudio = lazy(() => import('./ReadingStudio.jsx'));
 const NewsReader = lazy(() => import('./NewsReader.jsx'));
+const SmartIdStudio = lazy(() => import('./SmartIdStudio.jsx'));
 const SpeakingStudio = lazy(() => import('./SpeakingStudio.jsx'));
 const TextCareStudio = lazy(() => import('./TextCareStudio.jsx'));
 const LessonArchitect = lazy(() => import('./LessonArchitect.jsx'));
@@ -80,6 +81,10 @@ export default function ToolPage(props) {
 
   if (tool?.slug === 'news-reader') {
     return renderLazy(NewsReader, props);
+  }
+
+  if (tool?.slug === 'smart-id') {
+    return renderLazy(SmartIdStudio, props);
   }
 
   if (tool?.slug === 'speaking-studio') {

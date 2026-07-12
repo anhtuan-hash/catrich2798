@@ -38,6 +38,22 @@ export const APPS = [
     },
 
   {
+      slug: 'smart-id',
+      icon: 'ID',
+      tone: 'purple',
+      group: 'Creative AI',
+      groupVi: 'Ảnh thẻ AI',
+      title: 'SmartID Identity',
+      titleVi: 'SmartID Identity',
+      desc: 'Create professional ID portraits, analyze photo quality, edit backgrounds and outfits with Gemini, then export exact-size photos and print sheets.',
+      descVi: 'Tạo ảnh thẻ chuyên nghiệp, phân tích chất lượng ảnh, đổi nền – trang phục bằng Gemini và xuất ảnh đúng kích thước hoặc tờ in 10 × 15 cm.',
+      status: 'Gemini image · Print studio',
+      statusVi: 'Gemini hình ảnh · Studio in',
+      api: true,
+      featured: true,
+    },
+
+  {
       slug: 'textlab-activities',
       icon: 'TL',
       tone: 'blue',

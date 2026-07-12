@@ -39,6 +39,14 @@ export const APP_DESIGN_PROFILES = {
     style: 'Vocabulary network',
     styleVi: 'Mạng từ vựng',
   },
+  'smart-id': {
+    accent: '#6750A4',
+    soft: '#EEE5FF',
+    ink: '#2C174D',
+    icon: 'identity',
+    style: 'AI portrait studio',
+    styleVi: 'Studio ảnh thẻ AI',
+  },
   'news-reader': {
     accent: '#167D78',
     soft: '#DDF5F1',
