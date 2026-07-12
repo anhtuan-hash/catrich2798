@@ -1,27 +1,27 @@
-# Cập nhật Brian English Studio V10.82.6
+# Cập nhật V10.82.7 vào dự án đang chạy
 
-## Nội dung
+Dùng gói `brian-english-studio-v10.82.7-ai-messenger-bubble-update-only.zip`.
 
-- Thêm ứng dụng **Tính thuế TNCN 2026** vào trang Ứng dụng.
-- Route: `#/tool/vietnam-tax`.
-- Tính Gross → Net, BHXH/BHYT/BHTN, giảm trừ gia cảnh và thuế lũy tiến.
-- So sánh biểu thuế 7 bậc với biểu thuế 5 bậc từ 01/07/2026.
-- Bảng chi tiết, biểu đồ mức giảm thuế, in báo cáo và xuất CSV.
-- Không cần SQL Supabase và không cần Environment Variable mới.
-
-## Cập nhật trong VS Code
-
-Giải nén gói update-only vào Downloads, mở repository đang deploy rồi chạy:
+Trong Terminal của VS Code, tại thư mục repository hiện tại:
 
 ```bash
-rsync -av ~/Downloads/brian-english-studio-v10.82.6-vietnam-tax-studio-update-only/ ./
+rsync -av ~/Downloads/brian-english-studio-v10.82.7-ai-messenger-bubble-update-only/ ./
 npm ci
 npm run build
 npm test
 npm run test:department
+```
+
+Sau đó:
+
+```bash
 git add -A
-git commit -m "Integrate Vietnam Tax Studio V10.82.6"
+git commit -m "Add Brian AI Messenger bubble V10.82.7"
 git push origin main
 ```
 
-Sau khi Vercel báo Ready, mở trang Ứng dụng và chọn **Tính thuế TNCN 2026**.
+Sau khi Vercel báo **Ready**, tải lại mạnh bằng `Command + Shift + R`.
+
+Bong bóng **Brian AI** xuất hiện ở góc dưới bên phải trên mọi trang đã đăng nhập. Trình phát nhạc được tự động dịch lên trên để hai nút không chồng nhau.
+
+Không cần chạy SQL Supabase và không cần thêm Environment Variable. Bong bóng chat dùng AI provider hiện có trong **Thiết lập**.

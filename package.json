@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.82.6",
+  "version": "10.82.7",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -22,7 +22,7 @@
     "xlsx": "^0.18.5",
     "jszip": "^3.10.1"
   },
-  "description": "Brian English Studio V10.82.6 - integrates Vietnam Tax Studio with 2026 PIT brackets, insurance estimates, Gross-to-Net comparison, charts and export.",
+  "description": "Brian English Studio V10.82.7 - adds a persistent Messenger-style Brian AI chat bubble with route-aware conversations, quick prompts and per-account history.",
   "engines": {
     "node": "22.x"
   },

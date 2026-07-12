@@ -410,7 +410,7 @@ function App() {
         </Suspense>
       </main>
 
-      {currentUser && canAccessRoute && currentRoute !== 'home' && !['login', 'register'].includes(currentRoute) && (
+      {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>
           <UniversalAIAssist
             language={language}
@@ -419,6 +419,11 @@ function App() {
             apiKey={apiKey}
             aiModel={aiModel}
             hasApiKey={context.hasApiKey}
+            currentUser={currentUser}
+            providerName={context.aiSummary.providerName}
+            accent={activeDesignProfile.accent}
+            soft={activeDesignProfile.soft}
+            ink={activeDesignProfile.ink}
           />
         </Suspense>
       )}
