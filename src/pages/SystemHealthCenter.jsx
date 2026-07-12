@@ -3,6 +3,10 @@ import { getActiveAiConfig, getProviderSummary } from '../utils/aiProviders.js';
 import { getSupabaseStatus, isSupabaseConfigured, supabase } from '../utils/supabase.js';
 import { clearRuntimeErrors, downloadRuntimeReport, getRuntimeErrors } from '../utils/runtimeDiagnostics.js';
 import { getTrashStats, purgeExpiredTrash } from '../utils/trash.js';
+import { getMigrationReport } from '../utils/configMigration.js';
+import { loadWorkspace } from '../utils/workspace.js';
+import { listTransfers } from '../utils/contentTransfer.js';
+import { listSyncQueue } from '../utils/syncQueue.js';
 
 function formatBytes(value) {
   const bytes = Number(value || 0);
@@ -63,6 +67,10 @@ export default function SystemHealthCenter({ language = 'vi', currentUser }) {
   const ai = useMemo(() => ({ ...getProviderSummary(), active: getActiveAiConfig() }), []);
   const supabaseStatus = getSupabaseStatus();
   const trashStats = getTrashStats();
+  const migrationReport = getMigrationReport();
+  const workspaceStats = loadWorkspace(currentUser);
+  const transferStats = listTransfers(currentUser);
+  const syncStats = listSyncQueue(currentUser);
 
   const run = async () => {
     setRunning(true);
@@ -70,6 +78,7 @@ export default function SystemHealthCenter({ language = 'vi', currentUser }) {
       { name: language === 'vi' ? 'Kết nối mạng' : 'Network', ok: navigator.onLine, detail: navigator.onLine ? 'Online' : 'Offline', latency: 0 },
       { name: language === 'vi' ? 'AI provider' : 'AI provider', ok: Boolean(ai.hasKey), detail: ai.hasKey ? `${ai.providerName} · ${ai.active?.model || 'default model'}` : (language === 'vi' ? 'Chưa cấu hình API key' : 'API key not configured'), latency: 0 },
       { name: language === 'vi' ? 'Cấu hình Supabase' : 'Supabase config', ok: supabaseStatus.configured, detail: supabaseStatus.configured ? 'Environment variables present' : 'Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY', latency: 0 },
+      { name: language === 'vi' ? 'Di chuyển cấu hình' : 'Configuration migration', ok: Boolean(migrationReport), detail: migrationReport ? `${migrationReport.results?.filter((item) => item.status === 'migrated').length || 0} migrated · ${migrationReport.results?.filter((item) => item.status === 'failed').length || 0} failed` : 'No migration report', latency: 0 },
     ];
     const asyncRows = await Promise.all([
       timedCheck(language === 'vi' ? 'Bộ nhớ trình duyệt' : 'Browser storage', () => storageCheck(), 3500),
@@ -97,7 +106,7 @@ export default function SystemHealthCenter({ language = 'vi', currentUser }) {
       <button className="back-btn" onClick={() => window.history.back()}>← {language === 'vi' ? 'Quay lại' : 'Back'}</button>
       <section className="bes-health-hero">
         <div>
-          <span>V10.84 · STABILITY CENTER</span>
+          <span>V10.85 · CONNECTED WORKFLOW</span>
           <h1>{language === 'vi' ? 'Trung tâm trạng thái hệ thống' : 'System Health Center'}</h1>
           <p>{language === 'vi' ? 'Kiểm tra nhanh kết nối, lưu trữ, AI, Supabase, Newsroom và các lỗi giao diện gần đây.' : 'Check connectivity, storage, AI, Supabase, Newsroom and recent UI errors.'}</p>
           <div className="bes-health-actions">
@@ -134,6 +143,9 @@ export default function SystemHealthCenter({ language = 'vi', currentUser }) {
             <div><dt>{language === 'vi' ? 'Dung lượng thùng rác' : 'Trash storage'}</dt><dd>{formatBytes(trashStats.bytes)}</dd></div>
             <div><dt>{language === 'vi' ? 'Thời hạn giữ' : 'Retention'}</dt><dd>{trashStats.retentionDays} days</dd></div>
             <div><dt>{language === 'vi' ? 'Lỗi đã ghi' : 'Logged errors'}</dt><dd>{errors.length}</dd></div>
+            <div><dt>{language === 'vi' ? 'Tab đang mở' : 'Open tabs'}</dt><dd>{workspaceStats.tabs.length}</dd></div>
+            <div><dt>{language === 'vi' ? 'Nội dung liên ứng dụng' : 'Cross-app items'}</dt><dd>{transferStats.filter((item) => item.status === 'pending').length}</dd></div>
+            <div><dt>{language === 'vi' ? 'Chờ đồng bộ' : 'Sync queue'}</dt><dd>{syncStats.filter((item) => item.status !== 'completed').length}</dd></div>
           </dl>
           <div className="bes-health-card-actions">
             <button type="button" onClick={() => { purgeExpiredTrash(); window.location.hash = '#/trash'; }}>{language === 'vi' ? 'Mở thùng rác' : 'Open trash'}</button>

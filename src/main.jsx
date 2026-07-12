@@ -15,11 +15,13 @@ import { applyPerformanceAttributes, getStoredMotionMode, getStoredPerformanceMo
 import { setLibraryStorageUser } from './utils/library.js';
 import { recordAppUsage } from './utils/appUsage.js';
 import { setTrashStorageUser } from './utils/trash.js';
+import { runConfigurationMigrations } from './utils/configMigration.js';
 
+runConfigurationMigrations();
 installStoredPersonalFont();
 waitForPersonalFontLoad();
 
-const PRELOAD_RECOVERY_KEY = 'bes-vite-preload-recovery-v10833';
+const PRELOAD_RECOVERY_KEY = 'bes-vite-preload-recovery-v1085';
 if (typeof window !== 'undefined') {
   window.addEventListener('vite:preloadError', (event) => {
     event.preventDefault();
@@ -65,6 +67,10 @@ const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
 const GlobalRuntimeGuard = lazy(() => import('./components/GlobalRuntimeGuard.jsx'));
 const TrashCenter = lazy(() => import('./pages/TrashCenter.jsx'));
 const SystemHealthCenter = lazy(() => import('./pages/SystemHealthCenter.jsx'));
+const WorkspaceTabs = lazy(() => import('./components/WorkspaceTabs.jsx'));
+const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.jsx'));
+const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.jsx'));
+const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.jsx'));
 
 const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
@@ -402,6 +408,13 @@ function App() {
           <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
         </AppErrorBoundary>
       </div> : null}
+      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
+        <Suspense fallback={null}>
+          <AppErrorBoundary compact scope="workspace-tabs" label={language === 'vi' ? 'tab không gian làm việc' : 'workspace tabs'}>
+            <WorkspaceTabs currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} activeProfile={activeDesignProfile} language={language} />
+          </AppErrorBoundary>
+        </Suspense>
+      ) : null}
       {tileLaunch ? (
         <div
           key={tileLaunch.id}
@@ -457,6 +470,11 @@ function App() {
           <FullMotionEffects route={currentRoute} language={language} loadingState={loadingState} />
         </Suspense>
       )}
+      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
+        <Suspense fallback={null}>
+          <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
+        </Suspense>
+      ) : null}
       <main key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute}>
         <Suspense fallback={<RouteFallback language={language} />}>
           {currentRoute === 'home' && <Home {...context} />}
@@ -516,6 +534,16 @@ function App() {
         </Suspense>
       )}
 
+      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <>
+        <Suspense fallback={null}>
+          <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
+            <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} />
+          </AppErrorBoundary>
+        </Suspense>
+        <Suspense fallback={null}>
+          <SyncQueueIndicator currentUser={currentUser} language={language} />
+        </Suspense>
+      </> : null}
       {currentRoute !== 'homeroom-portal' ? <>
         <Suspense fallback={null}>
           <GlobalMusicPlayer language={language} currentUser={currentUser} />

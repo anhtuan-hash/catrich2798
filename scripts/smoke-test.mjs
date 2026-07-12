@@ -313,7 +313,7 @@ add('V10.81.9 direct viewer covers requested formats', ['docx', 'pptx', 'pdf', '
 add('V10.81.9 resource modal uses secure viewer', resourceLibrarySource.includes('<ResourceFileViewer item={preview} fetchBlob={fetchResourceBlob} getStreamUrl={getResourceStreamUrl}/>') && resourceLibrarySource.includes('supportsResourcePreview'), 'preview remains behind authenticated Drive proxy');
 add('V10.81.9 Office renderers are local and sandboxed', resourceViewerSource.includes('mammoth.convertToHtml') && resourceViewerSource.includes("import('xlsx')") && resourceViewerSource.includes("import('jszip')") && resourceViewerSource.includes('sandbox="allow-popups"'), 'Word, Excel and PowerPoint render without public Drive sharing');
 add('V10.81.9 scalable viewer styling present', resourceViewerCss.includes('V10.81.9 — direct DOCX, PPTX, PDF, XLSX, MP4 and MP3 viewer') && resourceViewerCss.includes('.resource-workbook-viewer') && resourceViewerCss.includes('.resource-pptx-viewer'), 'desktop, dark and mobile layouts present');
-add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0', '10.83.1', '10.83.2', '10.83.3', '10.84.0'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
+add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0', '10.83.1', '10.83.2', '10.83.3', '10.84.0', '10.85.0'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
 const previewSessionSource = fs.readFileSync(new URL('../api/google-drive-preview-session.js', import.meta.url), 'utf8');
 const driveFileSource = fs.readFileSync(new URL('../api/google-drive-file.js', import.meta.url), 'utf8');
 add('V10.81.9 secure streaming session supports media seeking', previewSessionSource.includes('signResourcePreviewToken') && driveFileSource.includes('Content-Range') && driveFileSource.includes("Range: range") && resourceLibrarySource.includes('getResourceStreamUrl'), 'short-lived signed URL and byte ranges present');
@@ -436,6 +436,26 @@ add('V10.84 System Health Center checks core services', healthCenterSource.inclu
 add('V10.84 runtime error containment persists diagnostics', runtimeGuardSource.includes('unhandledrejection') && runtimeDiagnosticsSource.includes('bes-runtime-errors-v1084') && errorBoundarySource.includes('recordRuntimeError'), 'window errors, rejected promises and React errors are recorded');
 add('V10.84 30-day trash and library restore adapter are present', trashSource.includes('TRASH_RETENTION_DAYS = 30') && trashCenterSource.includes("data?.type === 'library'") && fs.readFileSync(new URL('../src/utils/library.js', import.meta.url), 'utf8').includes('moveToTrash'), 'library deletes move to recoverable trash');
 add('V10.84 unified design tokens and centered rail are present', cssSource.includes('V10.84.0 — Stability & Unified Shell') && cssSource.includes('--bes-content-max:1360px') && cssSource.includes('.bes-health-page'), 'site-wide spacing, density, health, trash and resilience styles present');
+
+
+// V10.85.0 — Connected Workflow
+const workspaceTabsSource = fs.readFileSync(new URL('../src/components/WorkspaceTabs.jsx', import.meta.url), 'utf8');
+const workspaceSource = fs.readFileSync(new URL('../src/utils/workspace.js', import.meta.url), 'utf8');
+const transferHubSource = fs.readFileSync(new URL('../src/components/ContentTransferHub.jsx', import.meta.url), 'utf8');
+const transferInboxSource = fs.readFileSync(new URL('../src/components/TransferInboxBanner.jsx', import.meta.url), 'utf8');
+const transferSource = fs.readFileSync(new URL('../src/utils/contentTransfer.js', import.meta.url), 'utf8');
+const versionHistorySource = fs.readFileSync(new URL('../src/utils/versionHistory.js', import.meta.url), 'utf8');
+const syncQueueSource = fs.readFileSync(new URL('../src/utils/syncQueue.js', import.meta.url), 'utf8');
+const syncQueueIndicatorSource = fs.readFileSync(new URL('../src/components/SyncQueueIndicator.jsx', import.meta.url), 'utf8');
+const configMigrationSource = fs.readFileSync(new URL('../src/utils/configMigration.js', import.meta.url), 'utf8');
+add('V10.85 workspace tabs are mounted globally', mainSource.includes('WorkspaceTabs') && workspaceTabsSource.includes('draggable') && workspaceTabsSource.includes('toggleWorkspacePin') && workspaceSource.includes('BroadcastChannel'), 'open, pin, close, reorder and cross-tab refresh paths present');
+add('V10.85 content transfer hub connects core apps', mainSource.includes('ContentTransferHub') && transferHubSource.includes('Worksheet Factory') && transferHubSource.includes('Exam Studio') && transferHubSource.includes('word2graph') && transferSource.includes('captureCurrentPagePayload'), 'page context can be sent to worksheet, exam, WordGraph, TextLab, lesson and library targets');
+add('V10.85 incoming content can be applied in destination apps', mainSource.includes('TransferInboxBanner') && transferInboxSource.includes('TRANSFER_APPLY_EVENT') && worksheetFactorySource.includes('bes-content-transfer-apply') && worksheetFactorySource.includes('data-transfer-target="primary"'), 'global receiver plus Worksheet Factory adapter present');
+add('V10.85 AI results can enter connected workflow', universalAiSource.includes('sendResultToApp') && universalAiSource.includes("bes-content-transfer-open") && universalAiSource.includes('Gửi sang…'), 'Brian AI response actions open the transfer hub');
+add('V10.85 autosave keeps bounded version history', autosaveSource.includes('addVersion') && autosaveSource.includes('Lịch sử bản nháp') && versionHistorySource.includes('MAX_VERSIONS = 20') && versionHistorySource.includes('MAX_TOTAL_CHARS'), '20-version history, storage budget and restore controls present');
+add('V10.85 offline sync queue is visible and retried online', mainSource.includes('SyncQueueIndicator') && syncQueueSource.includes('processSyncQueue') && syncQueueIndicatorSource.includes("window.addEventListener('online'") && syncQueueIndicatorSource.includes('Hàng đợi đồng bộ'), 'offline transfer queue, retry and status panel present');
+add('V10.85 configuration migration protects legacy launcher data', mainSource.includes('runConfigurationMigrations') && configMigrationSource.includes('bes-launcher-config-v3') && configMigrationSource.includes('bes-launcher-config-v4') && launcherPreferencesSource.includes('bes-launcher-config-v4'), 'legacy config is backed up and migrated before rendering');
+add('V10.85 connected workflow styles are responsive and centered', cssSource.includes('V10.85.0 — Connected Workflow') && cssSource.includes('.bes-workspace-tabs') && cssSource.includes('.bes-transfer-panel') && cssSource.includes('.bes-version-panel') && cssSource.includes('.bes-sync-queue'), 'desktop, mobile, dark and reduced-motion styles present');
 
 const failed = checks.filter((item) => !item.ok);
 for (const item of checks) {

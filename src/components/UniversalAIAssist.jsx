@@ -450,6 +450,18 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
     window.setTimeout(() => { setAppliedId(''); setNotice(''); }, 1800);
   };
 
+  const sendResultToApp = (message) => {
+    window.dispatchEvent(new CustomEvent('bes-content-transfer-open', { detail: {
+      type: 'ai-result',
+      title: language === 'vi' ? 'Kết quả từ Brian AI' : 'Brian AI result',
+      sourceApp: 'brian-ai',
+      sourceTitle: 'Brian AI',
+      content: message.content,
+      metadata: { route: currentRoute, tool: selectedTool?.slug || '', messageId: message.id },
+    } }));
+    setOpen(false);
+  };
+
   const onComposerKeyDown = (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); } };
   const openChat = () => { setOpen(true); setHasSeenBubble(true); safeLocalSet('bes-ai-chat-seen', '1'); };
 
@@ -502,6 +514,7 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
                         <div className="ai-messenger-message-actions">
                           <button type="button" onClick={() => copyMessage(message)}>{SVG.copy}<span>{copiedId === message.id ? (language === 'vi' ? 'Đã sao chép' : 'Copied') : (language === 'vi' ? 'Sao chép' : 'Copy')}</span></button>
                           <button type="button" onClick={() => useResult(message)} className={appliedId === message.id ? 'active' : ''}>{SVG.use}<span>{appliedId === message.id ? (language === 'vi' ? 'Đã dùng' : 'Applied') : (language === 'vi' ? 'Dùng kết quả trong ứng dụng' : 'Use result in app')}</span></button>
+                          <button type="button" onClick={() => sendResultToApp(message)}>{SVG.use}<span>{language === 'vi' ? 'Gửi sang…' : 'Send to…'}</span></button>
                           <button type="button" onClick={() => speakingId === message.id ? (window.speechSynthesis.cancel(), setSpeakingId('')) : speakText(message.content, message.id)} className={speakingId === message.id ? 'active' : ''}>{SVG.speaker}<span>{speakingId === message.id ? (language === 'vi' ? 'Dừng đọc' : 'Stop') : (language === 'vi' ? 'Nghe' : 'Listen')}</span></button>
                         </div>
                       )}

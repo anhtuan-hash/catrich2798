@@ -62,7 +62,7 @@
             location.replace(url.toString());
           });
           document.getElementById('bes-reset-launcher')?.addEventListener('click', () => {
-            try { localStorage.removeItem('bes-launcher-config-v3'); } catch {}
+            try { localStorage.removeItem('bes-launcher-config-v3'); localStorage.removeItem('bes-launcher-config-v4'); } catch {}
             location.reload();
           });
         };

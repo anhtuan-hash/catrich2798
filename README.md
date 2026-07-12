@@ -1,6 +1,22 @@
-# Brian English Studio V10.83.1
+# Brian English Studio V10.85.0 — Connected Workflow
 
-Admin có thể kéo thả, ghim, ẩn, nhóm ứng dụng và chọn mục trên thanh điều hướng; cấu hình được đồng bộ bằng Supabase Realtime sau khi chạy migration V10.83.1. Brian AI Messenger hỗ trợ file, ảnh chụp màn hình, ngữ cảnh trang, nhiều lịch sử hội thoại, dùng kết quả trong ứng dụng và voice mode.
+Phiên bản này kết nối các ứng dụng thành một quy trình làm việc thống nhất:
+
+- Workspace Tabs: mở nhiều ứng dụng, ghim, đóng và kéo thả sắp xếp tab.
+- Content Transfer Hub: gửi nội dung hiện tại sang Worksheet Factory, Exam Studio, WordGraph, TextLab, Lesson Architect hoặc Thư viện.
+- Transfer Inbox: ứng dụng đích nhận nội dung bằng nút “Dùng nội dung”.
+- Autosave 2.0: lưu tối đa 20 phiên bản gần nhất trên thiết bị, cho phép khôi phục từng phiên bản.
+- Offline Sync Queue: giữ các thao tác chuyển nội dung khi mất mạng và kiểm tra lại khi trực tuyến.
+- Configuration Migration Engine: sao lưu và nâng cấp cấu hình Launcher cũ trước khi render.
+- Brian AI có thêm hành động “Gửi sang…” để đưa kết quả vào quy trình liên ứng dụng.
+
+Không cần migration SQL mới và không cần Environment Variable mới.
+
+---
+
+# Brian English Studio V10.83.2
+
+Bản V10.83.2 giữ nguyên Launcher tùy biến và Brian AI nâng cao của V10.83.1, đồng thời bổ sung lớp khôi phục chống trang trắng, tự xử lý chunk cũ sau khi Vercel triển khai và chuẩn hóa dữ liệu launcher lỗi hoặc không đúng cấu trúc.
 
 # Brian English Studio V10.82.7
 

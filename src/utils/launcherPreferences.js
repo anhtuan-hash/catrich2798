@@ -1,6 +1,6 @@
 import { isSupabaseConfigured, supabase } from './supabase.js';
 
-export const LAUNCHER_CONFIG_KEY = 'bes-launcher-config-v3';
+export const LAUNCHER_CONFIG_KEY = 'bes-launcher-config-v4';
 export const LAUNCHER_UPDATED_EVENT = 'bes-launcher-config-updated';
 export const LAUNCHER_CLOUD_ROW_ID = 'default';
 
@@ -67,7 +67,8 @@ export function launcherNavId(item) {
 export function createDefaultLauncherConfig(itemIds = []) {
   const safeItemIds = Array.isArray(itemIds) ? itemIds : [];
   return {
-    version: 3,
+    schemaVersion: 4,
+    version: 4,
     order: [...new Set(safeItemIds.map((id) => String(id || '').trim()).filter(Boolean))],
     pinned: DEFAULT_PINNED.filter((id) => safeItemIds.length === 0 || safeItemIds.includes(id)),
     hidden: [],
@@ -137,7 +138,8 @@ export function normalizeLauncherConfig(raw, itemIds = []) {
   });
 
   return {
-    version: 3,
+    schemaVersion: 4,
+    version: 4,
     order,
     pinned: cleanIdList(source.pinned ?? defaults.pinned, safeItemIds.length ? allowed : null).slice(0, 12),
     hidden: cleanIdList(source.hidden, safeItemIds.length ? allowed : null),
@@ -235,7 +237,7 @@ export function subscribeLauncherConfig(callback, itemIds = []) {
   if (isSupabaseConfigured && supabase) {
     try {
       channel = supabase
-        .channel('bes-launcher-settings-v10832')
+        .channel('bes-launcher-settings-v1085')
         .on('postgres_changes', {
           event: '*', schema: 'public', table: 'bes_launcher_settings', filter: `id=eq.${LAUNCHER_CLOUD_ROW_ID}`,
         }, (payload) => {

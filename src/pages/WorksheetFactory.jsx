@@ -220,7 +220,7 @@ function SourceStep({ language, sourceText, setSourceText, sourceName, setSource
             </label>
             <label>
               <span>{language === 'vi' ? 'Văn bản, danh sách từ hoặc ghi chú bài học' : 'Text, vocabulary list or lesson notes'}</span>
-              <textarea value={sourceText} onChange={(event) => setSourceText(event.target.value)} rows={15} placeholder={language === 'vi' ? 'Dán nội dung tại đây…' : 'Paste source content here…'} />
+              <textarea data-transfer-target="primary" value={sourceText} onChange={(event) => setSourceText(event.target.value)} rows={15} placeholder={language === 'vi' ? 'Dán nội dung tại đây…' : 'Paste source content here…'} />
             </label>
           </div>
         )}
@@ -614,8 +614,20 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
       setStatusMessage(language === 'vi' ? 'Đã đưa kết quả AI vào nguồn nội dung của Worksheet Factory.' : 'AI result added to the Worksheet Factory source.');
       detail.markHandled?.();
     };
+    const onContentTransfer = (event) => {
+      const detail = event.detail || {};
+      if (detail.target !== 'worksheet-factory' || !String(detail.content || '').trim()) return;
+      setSourceText(String(detail.content).trim());
+      setSourceName(String(detail.title || (language === 'vi' ? 'Nội dung được chuyển tới' : 'Transferred content')));
+      setStep(1);
+      setStatusMessage(language === 'vi' ? `Đã nhận nội dung từ ${detail.sourceTitle || 'ứng dụng khác'}.` : `Received content from ${detail.sourceTitle || 'another app'}.`);
+    };
     window.addEventListener('bes-ai-use-result', onAiUseResult);
-    return () => window.removeEventListener('bes-ai-use-result', onAiUseResult);
+    window.addEventListener('bes-content-transfer-apply', onContentTransfer);
+    return () => {
+      window.removeEventListener('bes-ai-use-result', onAiUseResult);
+      window.removeEventListener('bes-content-transfer-apply', onContentTransfer);
+    };
   }, [language]);
 
   useEffect(() => {

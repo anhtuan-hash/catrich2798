@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.84.0",
+  "version": "10.85.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -22,7 +22,7 @@
     "xlsx": "^0.18.5",
     "jszip": "^3.10.1"
   },
-  "description": "Brian English Studio V10.84.0 - Stability & Unified Shell with global autosave, responsive navigation, System Health Center, runtime recovery and 30-day trash.",
+  "description": "Brian English Studio V10.85.0 - Connected Workflow with workspace tabs, cross-app content transfer, bounded version history, offline sync queue and configuration migration.",
   "engines": {
     "node": "22.x"
   },

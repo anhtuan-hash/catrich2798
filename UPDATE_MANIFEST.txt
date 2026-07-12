@@ -1,0 +1,18 @@
+Brian English Studio V10.85.0 — Connected Workflow
+
+Included changes:
+- Workspace Tabs
+- Content Transfer Hub and incoming transfer banner
+- Worksheet Factory transfer adapter
+- Brian AI “Gửi sang…” action
+- Autosave version history (20 versions, bounded storage)
+- Offline sync queue
+- Launcher V3 → V4 configuration migration and backup
+- System Health connected-workflow diagnostics
+
+Validation:
+- npm run build: passed
+- npm test: 171/171 passed
+- npm run test:department: Admin/TTCM/Teacher passed
+
+No SQL migration or new environment variable is required.

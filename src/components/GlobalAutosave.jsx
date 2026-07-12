@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { deleteDraft, emitAutosaveState, readDraft, writeDraft } from '../utils/autosave.js';
+import { addVersion, clearVersions, listVersions, removeVersion } from '../utils/versionHistory.js';
 
 const MAX_VALUE_LENGTH = 120000;
 const MAX_FIELDS = 240;
@@ -74,6 +75,8 @@ export default function GlobalAutosave({ route, selectedTool, currentUser, langu
   const key = useMemo(() => routeKey(route, selectedTool), [route, selectedTool?.slug]);
   const [state, setState] = useState({ status: 'idle', savedAt: 0, message: '' });
   const [recoverable, setRecoverable] = useState(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [versions, setVersions] = useState(() => listVersions(currentUser, key));
   const dirtyRef = useRef(false);
   const saveTimerRef = useRef(null);
   const lastSnapshotRef = useRef('');
@@ -96,7 +99,9 @@ export default function GlobalAutosave({ route, selectedTool, currentUser, langu
       lastSnapshotRef.current = serialized;
       dirtyRef.current = false;
       setState({ status: 'saved', savedAt: snapshot.savedAt, message: language === 'vi' ? 'Đã lưu bản nháp' : 'Draft saved' });
-      emitAutosaveState({ status: 'saved', key, savedAt: snapshot.savedAt });
+      const nextVersions = addVersion(currentUser, key, snapshot, reason);
+      setVersions(nextVersions);
+      emitAutosaveState({ status: 'saved', key, savedAt: snapshot.savedAt, versionCount: nextVersions.length });
     } else {
       setState({ status: 'error', savedAt: 0, message: language === 'vi' ? 'Không thể lưu cục bộ' : 'Local save failed' });
       emitAutosaveState({ status: 'error', key });
@@ -109,6 +114,8 @@ export default function GlobalAutosave({ route, selectedTool, currentUser, langu
     dirtyRef.current = false;
     setState({ status: 'idle', savedAt: 0, message: '' });
     setRecoverable(null);
+    setHistoryOpen(false);
+    setVersions(listVersions(currentUser, key));
     const saved = readDraft(currentUser, key);
     if (saved && Date.now() - Number(saved.savedAt || 0) < RESTORE_MAX_AGE && hasMeaningfulData(saved)) {
       window.setTimeout(() => setRecoverable(saved), 450);
@@ -147,6 +154,13 @@ export default function GlobalAutosave({ route, selectedTool, currentUser, langu
     setState({ status: 'restored', savedAt: recoverable?.savedAt || Date.now(), message: language === 'vi' ? `Đã khôi phục ${count} trường` : `Restored ${count} fields` });
   };
 
+  const restoreVersion = (version) => {
+    const root = document.querySelector('main.wp8-page-stage');
+    const count = restoreSnapshot(root, version?.snapshot);
+    setHistoryOpen(false);
+    setState({ status: 'restored', savedAt: version?.savedAt || Date.now(), message: language === 'vi' ? `Đã khôi phục phiên bản (${count} trường)` : `Version restored (${count} fields)` });
+  };
+
   const discard = () => {
     deleteDraft(currentUser, key);
     setRecoverable(null);
@@ -167,12 +181,36 @@ export default function GlobalAutosave({ route, selectedTool, currentUser, langu
           <button type="button" onClick={discard}>{language === 'vi' ? 'Bỏ bản nháp' : 'Discard'}</button>
         </aside>
       ) : null}
-      {state.status !== 'idle' ? (
-        <button type="button" className={`bes-autosave-status is-${state.status}`} onClick={() => save('manual')} title={language === 'vi' ? 'Bấm để lưu ngay' : 'Click to save now'}>
-          <span aria-hidden="true">{state.status === 'saving' ? '↻' : state.status === 'error' ? '!' : state.status === 'dirty' ? '•' : '✓'}</span>
-          <b>{state.message}</b>
-          {state.savedAt ? <small>{new Date(state.savedAt).toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</small> : null}
-        </button>
+      {state.status !== 'idle' || versions.length > 0 ? (
+        <div className="bes-autosave-cluster">
+          <button type="button" className={`bes-autosave-status is-${state.status}`} onClick={() => save('manual')} title={language === 'vi' ? 'Bấm để lưu ngay' : 'Click to save now'}>
+            <span aria-hidden="true">{state.status === 'saving' ? '↻' : state.status === 'error' ? '!' : state.status === 'dirty' ? '•' : '✓'}</span>
+            <b>{state.message}</b>
+            {state.savedAt ? <small>{new Date(state.savedAt).toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</small> : null}
+          </button>
+          <button type="button" className="bes-version-history-toggle" onClick={() => { setVersions(listVersions(currentUser, key)); setHistoryOpen(true); }} title={language === 'vi' ? 'Lịch sử phiên bản' : 'Version history'}>↶ <b>{versions.length}</b></button>
+        </div>
+      ) : null}
+      {historyOpen ? (
+        <div className="bes-version-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setHistoryOpen(false); }}>
+          <section className="bes-version-panel" role="dialog" aria-modal="true">
+            <header>
+              <div><small>VERSION HISTORY</small><h2>{language === 'vi' ? 'Lịch sử bản nháp' : 'Draft version history'}</h2><p>{language === 'vi' ? 'Tối đa 20 phiên bản gần nhất trên thiết bị này.' : 'Up to 20 recent versions on this device.'}</p></div>
+              <button type="button" onClick={() => setHistoryOpen(false)}>×</button>
+            </header>
+            <div className="bes-version-list">
+              {versions.length ? versions.map((version, index) => (
+                <article key={version.id}>
+                  <span className="bes-version-number">v{versions.length - index}</span>
+                  <div><strong>{new Date(version.savedAt).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}</strong><small>{version.fieldCount} {language === 'vi' ? 'trường' : 'fields'} · {version.reason}</small></div>
+                  <button type="button" className="primary" onClick={() => restoreVersion(version)}>{language === 'vi' ? 'Khôi phục' : 'Restore'}</button>
+                  <button type="button" onClick={() => setVersions(removeVersion(currentUser, key, version.id))} aria-label={language === 'vi' ? 'Xóa phiên bản' : 'Delete version'}>×</button>
+                </article>
+              )) : <p className="bes-version-empty">{language === 'vi' ? 'Chưa có phiên bản nào.' : 'No versions yet.'}</p>}
+            </div>
+            {versions.length ? <footer><button type="button" onClick={() => { clearVersions(currentUser, key); setVersions([]); }}>{language === 'vi' ? 'Xóa toàn bộ lịch sử' : 'Clear all history'}</button></footer> : null}
+          </section>
+        </div>
       ) : null}
     </>
   );

@@ -1,31 +1,24 @@
-# Cập nhật lên V10.84.0
+# Cập nhật lên V10.85.0
 
 ## 1. Giải nén gói update-only
 
-Giải nén file:
+Tên thư mục sau khi giải nén:
 
 ```text
-brian-english-studio-v10.84.0-stability-unified-shell-update-only.zip
+brian-english-studio-v10.85.0-connected-workflow-update-only
 ```
 
-## 2. Mở Terminal tại repository đang deploy
+## 2. Mở repository hiện đang deploy trong VS Code
 
-Kiểm tra đúng thư mục bằng:
-
-```bash
-pwd
-ls
-```
-
-Thư mục phải có `package.json`, `src`, `api` và `vite.config.js`.
+Terminal phải đứng tại thư mục có `package.json` và `.git`.
 
 ## 3. Chép bản cập nhật
 
 ```bash
-rsync -av ~/Downloads/brian-english-studio-v10.84.0-stability-unified-shell-update-only/ ./
+rsync -av ~/Downloads/brian-english-studio-v10.85.0-connected-workflow-update-only/ ./
 ```
 
-## 4. Kiểm tra
+## 4. Cài và kiểm tra
 
 ```bash
 npm ci
@@ -38,26 +31,31 @@ Kết quả mong đợi:
 
 ```text
 Production build: success
-All 163 smoke checks passed
+All 171 smoke checks passed
 Admin runtime: passed
 TTCM runtime: passed
 Teacher runtime: passed
 ```
 
-## 5. Deploy
+## 5. Triển khai
 
 ```bash
 git add -A
-git commit -m "Add Stability and Unified Shell V10.84.0"
+git commit -m "Add Connected Workflow V10.85.0"
 git push origin main
 ```
 
-Sau khi Vercel báo **Ready**, tải lại trang bằng:
+## 6. Sau khi Vercel báo Ready
+
+Tải lại cứng:
 
 ```text
 Command + Shift + R
 ```
 
-## Supabase
+## Lưu ý
 
-Không cần chạy SQL mới và không cần thêm Environment Variable.
+- Không cần chạy SQL mới.
+- Không cần Environment Variable mới.
+- Cấu hình Launcher V3 được sao lưu và tự chuyển sang V4 trong lần mở đầu tiên.
+- Workspace Tabs, phiên bản bản nháp, nội dung chuyển và sync queue hiện được lưu local-first theo tài khoản.
