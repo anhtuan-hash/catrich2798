@@ -39,6 +39,14 @@ export const APP_DESIGN_PROFILES = {
     style: 'Vocabulary network',
     styleVi: 'Mạng từ vựng',
   },
+  'news-reader': {
+    accent: '#167D78',
+    soft: '#DDF5F1',
+    ink: '#083B38',
+    icon: 'news',
+    style: 'Live editorial reader',
+    styleVi: 'Trình đọc báo trực tiếp',
+  },
   'reading-studio': {
     accent: '#D99A1E',
     soft: '#FFF0C8',

@@ -36,6 +36,12 @@ const iconPaths = {
       <path d="M31 61l14-24M55 38l14 23M36 70h28" />
     </>
   ),
+  news: (
+    <>
+      <path d="M17 18h66v64H17V18Z" />
+      <path d="M27 31h26v20H27V31ZM61 31h12M61 42h12M27 61h46M27 71h34" />
+    </>
+  ),
   reading: (
     <>
       <path d="M17 19h30c5 0 8 3 8 8v55c0-5-4-8-9-8H17V19Z" />
@@ -127,6 +133,7 @@ export const flatIconForSlug = {
   'lesson-plan-ai': 'lesson',
   'exam-studio': 'exam',
   textcare: 'textcare',
+  'news-reader': 'news',
   'reading-studio': 'reading',
   word2graph: 'wordgraph',
   'speaking-studio': 'speaking',

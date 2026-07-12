@@ -21,6 +21,22 @@ export const APPS = [
     },
 
   {
+      slug: 'news-reader',
+      icon: 'NW',
+      tone: 'mint',
+      group: 'Reading & News',
+      groupVi: 'Đọc báo',
+      title: 'Newsroom Reader',
+      titleVi: 'Newsroom – Đọc báo',
+      desc: 'Read Vietnamese education news and English-language reporting in a focused, source-attributed daily reader.',
+      descVi: 'Đọc tin giáo dục Việt Nam và báo tiếng Anh trong giao diện tập trung, rõ nguồn và cập nhật tự động.',
+      status: 'Live RSS · Reading mode',
+      statusVi: 'RSS trực tiếp · Chế độ đọc',
+      api: true,
+      featured: true,
+    },
+
+  {
       slug: 'textlab-activities',
       icon: 'TL',
       tone: 'blue',

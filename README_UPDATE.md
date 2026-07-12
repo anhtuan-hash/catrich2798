@@ -1,26 +1,29 @@
-# V10.81.9 Direct File Viewer — Update Only
+# Cập nhật V10.82.0 vào dự án đang chạy
 
-Bản này bổ sung trình xem trực tiếp DOCX, PPTX, PDF, XLSX, MP4 và MP3 cho Kho học liệu; đồng thời giữ bản sửa WordGraph V10.81.8.
-
-## Cập nhật dự án hiện tại
-
-Giải nén gói update-only vào Downloads, mở repository hiện tại bằng VS Code và chạy:
+1. Giải nén `brian-english-studio-v10.82-newsroom-reader-update-only.zip`.
+2. Mở repository đang deploy bằng VS Code.
+3. Trong Terminal của VS Code, chạy:
 
 ```bash
-rsync -av ~/Downloads/brian-english-studio-v10.81.9-direct-file-viewer-update-only/ ./
+rsync -av ~/Downloads/brian-english-studio-v10.82-newsroom-reader-update-only/ ./
+```
+
+4. Kiểm tra:
+
+```bash
 npm ci
 npm run build
 npm test
+```
+
+5. Commit và push:
+
+```bash
 git add -A
-git commit -m "Add direct resource file viewer V10.81.9"
+git commit -m "Add Newsroom Reader V10.82"
 git push origin main
 ```
 
-Vercel sẽ tự deploy. Sau khi trạng thái **Ready**, mở app và nhấn `Command + Shift + R`.
+6. Khi Vercel báo `Ready`, mở ứng dụng và nhấn `Command + Shift + R`.
 
-## Không cần làm
-
-- Không chạy thêm SQL Supabase.
-- Không chia sẻ thư mục Google Drive cho giáo viên.
-- Không thêm Environment Variable mới; phiên xem dùng bí mật máy chủ đã có.
-- Không xóa `.env.local`, `.git` hoặc font cá nhân của dự án hiện tại.
+Không chạy thêm SQL Supabase. Không cần thêm Environment Variable.

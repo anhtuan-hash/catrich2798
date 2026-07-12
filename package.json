@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.81.9",
+  "version": "10.82.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -22,7 +22,7 @@
     "xlsx": "^0.18.5",
     "jszip": "^3.10.1"
   },
-  "description": "Brian English Studio V10.81.9 - adds secure in-app previews for DOCX, PPTX, PDF, XLSX, MP4 and MP3 resources while preserving Google Drive and Supabase access control.",
+  "description": "Brian English Studio V10.82.0 - adds Newsroom Reader for Vietnamese education news and English-language RSS reading with focused in-app reading mode.",
   "engines": {
     "node": "22.x"
   },
