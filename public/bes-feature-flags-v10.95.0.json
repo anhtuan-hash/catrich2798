@@ -1,0 +1,194 @@
+{
+  "schema": 1,
+  "version": "10.95.0",
+  "defaultChannel": "stable",
+  "channels": [
+    "stable",
+    "beta",
+    "lab"
+  ],
+  "flags": [
+    {
+      "key": "platform.control_center",
+      "label": "Platform Control Center",
+      "description": "Mở trung tâm kiểm soát nền tảng.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "platform.version_registry",
+      "label": "Version Registry",
+      "description": "Hiển thị phiên bản ứng dụng, build và migration.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "platform.module_registry",
+      "label": "Module Registry",
+      "description": "Quản lý danh mục và trạng thái module.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "platform.module_kill_switch",
+      "label": "Module Kill Switch",
+      "description": "Tắt tạm module ở lớp runtime mà không sửa dữ liệu.",
+      "minimumChannel": "beta",
+      "default": false
+    },
+    {
+      "key": "platform.deep_diagnostics",
+      "label": "Deep Diagnostics",
+      "description": "Bật thêm kiểm tra DOM, asset và local storage.",
+      "minimumChannel": "beta",
+      "default": false
+    },
+    {
+      "key": "platform.lab_features",
+      "label": "Lab Features",
+      "description": "Cho phép thử nghiệm các tính năng chưa ổn định.",
+      "minimumChannel": "lab",
+      "default": false
+    },
+    {
+      "key": "work_hub.enabled",
+      "label": "Unified Work Hub",
+      "description": "Bật Trung tâm công việc cho toàn hệ thống.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "work_hub.approval_queue",
+      "label": "Work Hub Approval Queue",
+      "description": "Bật hàng chờ phê duyệt cho Admin/TTCM.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "work_hub.realtime",
+      "label": "Work Hub Realtime",
+      "description": "Làm mới công việc, phản hồi và thông báo qua Supabase Realtime.",
+      "minimumChannel": "beta",
+      "default": true
+    },
+    {
+      "key": "knowledge.smart_search",
+      "label": "Smart Knowledge Search",
+      "description": "Tìm kiếm có trọng số và bộ lọc metadata.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "knowledge.collections",
+      "label": "Knowledge Collections",
+      "description": "Bộ sưu tập cá nhân và dùng chung.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "knowledge.lifecycle",
+      "label": "Resource Lifecycle",
+      "description": "Vòng đời, hạn rà soát và điểm chất lượng.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "knowledge.ai_index",
+      "label": "AI Index Queue",
+      "description": "Hàng chờ lập chỉ mục và metadata bằng AI.",
+      "minimumChannel": "beta",
+      "default": true
+    },
+    {
+      "key": "knowledge.duplicate_detection",
+      "label": "Duplicate Detection",
+      "description": "Phát hiện tài liệu có tên và dung lượng tương tự.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "runtime.native_supabase",
+      "label": "Native Supabase Runtime",
+      "description": "Dùng một Supabase client chính thức trong React.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "ai.workspace",
+      "label": "Brian AI Workspace",
+      "description": "Dự án AI nhiều nguồn và lưu lịch sử.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "content.factory",
+      "label": "Teaching Content Factory",
+      "description": "Tạo nhiều loại học liệu từ một nguồn.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "assessment.core",
+      "label": "Assessment Core",
+      "description": "Ngân hàng câu hỏi, blueprint và mã đề.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "learning.intelligence",
+      "label": "Learning Intelligence",
+      "description": "Mastery, bản đồ lỗi và cảnh báo sớm.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "learning.adaptive_practice",
+      "label": "Adaptive Practice",
+      "description": "Tạo kế hoạch luyện tập theo điểm yếu của từng học sinh.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "learning.spaced_review",
+      "label": "Spaced Review",
+      "description": "Lập lịch ôn lại dựa trên mastery.",
+      "minimumChannel": "beta",
+      "default": true
+    },
+    {
+      "key": "platform.pwa",
+      "label": "Installable PWA",
+      "description": "Service worker, offline shell and install prompt.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "platform.security_audit",
+      "label": "Security Audit",
+      "description": "Browser and response-header security diagnostics.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "platform.accessibility",
+      "label": "Accessibility Preferences",
+      "description": "Contrast, motion, target size, focus and screen-reader controls.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "platform.web_vitals",
+      "label": "Web Vitals",
+      "description": "Collect local LCP, CLS, INP and long-task metrics.",
+      "minimumChannel": "stable",
+      "default": true
+    },
+    {
+      "key": "platform.performance_budget",
+      "label": "Performance Budget",
+      "description": "Enforce production build size limits.",
+      "minimumChannel": "stable",
+      "default": true
+    }
+  ]
+}

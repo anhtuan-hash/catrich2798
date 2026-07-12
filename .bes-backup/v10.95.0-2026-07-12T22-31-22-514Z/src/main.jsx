@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import './styles/v1093.css';
 import './styles/v1094.css';
-import './styles/v1095.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
@@ -21,15 +20,8 @@ import { setTrashStorageUser } from './utils/trash.js';
 import { runConfigurationMigrations } from './utils/configMigration.js';
 import { setAiGovernanceUser } from './utils/aiGovernance.js';
 import { bootRuntimeCore } from './services/runtime/core.js';
-import { installAccessibilityBootstrap } from './utils/accessibility.js';
-import { collectWebVitals } from './utils/webVitals.js';
-import { installPwaEventCapture, registerBrianPwa } from './utils/pwa.js';
 
 runConfigurationMigrations();
-installAccessibilityBootstrap();
-installPwaEventCapture();
-registerBrianPwa().catch((error) => console.warn('[PWA] registration failed', error));
-collectWebVitals();
 installStoredPersonalFont();
 waitForPersonalFontLoad();
 bootRuntimeCore().catch((error) => console.warn('[RuntimeCore] boot failed', error));
@@ -91,11 +83,8 @@ const AIWorkspace = lazy(() => import('./pages/AIWorkspace.jsx'));
 const ContentFactory = lazy(() => import('./pages/ContentFactory.jsx'));
 const AssessmentCore = lazy(() => import('./pages/AssessmentCore.jsx'));
 const LearningIntelligence = lazy(() => import('./pages/LearningIntelligence.jsx'));
-const PlatformReadiness = lazy(() => import('./pages/PlatformReadiness.jsx'));
-const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAccessibilityAnnouncer.jsx'));
-const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'assessment-core', 'learning-intelligence', 'platform-readiness', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'assessment-core', 'learning-intelligence', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
 
 function getInitialRoute() {
@@ -123,7 +112,6 @@ const ROUTE_DESIGN_PROFILES = {
   'content-factory': { accent: '#EF7A42', soft: '#FFF0E8', ink: '#5C2410' },
   'assessment-core': { accent: '#CC7621', soft: '#FFF3DF', ink: '#522A08' },
   'learning-intelligence': { accent: '#1A7D73', soft: '#E4F7F3', ink: '#0B3C38' },
-  'platform-readiness': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
   practice: { accent: '#00A4EF', soft: '#DCF4FF', ink: '#063048' },
   admin: { accent: '#D13438', soft: '#FFE1E3', ink: '#351014' },
   settings: { accent: '#123C69', soft: '#DCEBFA', ink: '#07192C' },
@@ -395,7 +383,6 @@ function App() {
       'resource-library': ['Resource Library', 'Kho học liệu'], 'knowledge-hub': ['Smart Knowledge Library', 'Kho học liệu thông minh'],
       'work-hub': ['Unified Work Hub', 'Trung tâm công việc'], 'ai-workspace': ['Brian AI Workspace', 'Không gian AI'],
       'content-factory': ['Teaching Content Factory', 'Xưởng tạo học liệu'], 'assessment-core': ['Assessment Core', 'Ngân hàng câu hỏi'],
-      'learning-intelligence': ['Learning Intelligence', 'Phân tích học tập'], 'platform-readiness': ['Platform Readiness', 'Sẵn sàng nền tảng'],
       practice: ['Classroom', 'Lớp học'], settings: ['Settings', 'Cài đặt'],
       admin: ['Admin', 'Quản trị'], 'ai-governance': ['AI Governance', 'Quản trị AI'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác'],
     };
@@ -421,10 +408,7 @@ function App() {
     : null;
 
   return (
-    <>
-      <a className="bes-skip-link" href="#bes-main-content">{language === 'vi' ? 'Bỏ qua đến nội dung chính' : 'Skip to main content'}</a>
-      <Suspense fallback={null}><GlobalAccessibilityAnnouncer /></Suspense>
-      <div
+    <div
       className="app-shell metro-shell metro-clean-system"
       data-route={currentRoute}
       data-tool={selectedTool?.slug || currentRoute}
@@ -514,7 +498,7 @@ function App() {
           <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
         </Suspense>
       ) : null}
-      <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute}>
+      <main key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute}>
         <Suspense fallback={<RouteFallback language={language} />}>
           {currentRoute === 'home' && <Home {...context} />}
           {requiresAuth && currentUser && !canAccessRoute && <AccessDenied language={language} currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} />}
@@ -538,7 +522,6 @@ function App() {
           {canAccessRoute && currentRoute === 'content-factory' && currentUser && <ContentFactory {...context} />}
           {canAccessRoute && currentRoute === 'assessment-core' && currentUser && <AssessmentCore {...context} />}
           {canAccessRoute && currentRoute === 'learning-intelligence' && currentUser && <LearningIntelligence {...context} />}
-          {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <PlatformReadiness {...context} />}
           {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
           {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}
           {canAccessRoute && currentRoute === 'ai-governance' && currentUser && <AIGovernanceCenter {...context} />}
@@ -591,15 +574,13 @@ function App() {
           <SyncQueueIndicator currentUser={currentUser} language={language} />
         </Suspense>
       </> : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
       {currentRoute !== 'homeroom-portal' ? <>
         <Suspense fallback={null}>
           <GlobalMusicPlayer language={language} currentUser={currentUser} />
         </Suspense>
         <Footer language={language} currentUser={currentUser} />
       </> : null}
-      </div>
-    </>
+    </div>
   );
 }
 

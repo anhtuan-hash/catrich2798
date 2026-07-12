@@ -4,7 +4,7 @@ const listeners = new Set();
 const channels = new Map();
 
 const state = {
-  version: '1.2.0',
+  version: '1.1.0',
   phase: isSupabaseConfigured ? 'idle' : 'offline',
   configured: isSupabaseConfigured,
   ready: !isSupabaseConfigured,

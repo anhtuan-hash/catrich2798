@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.95.0",
+  "version": "10.94.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -73,11 +73,7 @@
     "verify:v10.93": "npm run test:v10.93 && npm run build && npm test && npm run test:department && npm run release:guard:v10.93",
     "test:v10.94": "node scripts/check-v10.94.0.mjs",
     "release:guard:v10.94": "node scripts/release-guard-v10.94.0.mjs",
-    "verify:v10.94": "npm run test:v10.94 && npm run build && npm test && npm run test:department && npm run release:guard:v10.94",
-    "test:v10.95": "node scripts/check-v10.95.0.mjs",
-    "audit:budget": "node scripts/performance-budget-v10.95.0.mjs",
-    "release:guard:v10.95": "node scripts/release-guard-v10.95.0.mjs",
-    "verify:v10.95": "npm run test:v10.95 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run release:guard:v10.95"
+    "verify:v10.94": "npm run test:v10.94 && npm run build && npm test && npm run test:department && npm run release:guard:v10.94"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
@@ -90,7 +86,7 @@
     "xlsx": "^0.18.5",
     "jszip": "^3.10.1"
   },
-  "description": "Brian English Studio V10.95.0 - installable PWA, platform security, accessibility controls and performance budgets.",
+  "description": "Brian English Studio V10.94.0 - Learning Intelligence, mastery analytics, error taxonomy and adaptive practice.",
   "engines": {
     "node": "22.x"
   },

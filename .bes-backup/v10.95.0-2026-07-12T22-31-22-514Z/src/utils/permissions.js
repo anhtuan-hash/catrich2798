@@ -18,7 +18,6 @@ export const ROUTE_PERMISSION_IDS = {
   'content-factory': 'route:content-factory',
   'assessment-core': 'route:assessment-core',
   'learning-intelligence': 'route:learning-intelligence',
-  'platform-readiness': 'route:platform-readiness',
   practice: 'route:practice',
   qa: 'route:qa',
   settings: 'route:settings',
@@ -100,15 +99,6 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Trung tâm phân tích học tập',
     desc: 'Track learner mastery, recurring errors and adaptive interventions.',
     descVi: 'Theo dõi mức độ thành thạo, lỗi lặp lại và kế hoạch can thiệp thích ứng.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['platform-readiness'],
-    type: 'system',
-    section: 'content',
-    title: 'Platform Readiness',
-    titleVi: 'PWA, bảo mật và khả năng tiếp cận',
-    desc: 'Install the PWA and review security, accessibility and performance readiness.',
-    descVi: 'Cài PWA và kiểm tra trạng thái bảo mật, khả năng tiếp cận và hiệu năng.',
   },
   {
     id: ROUTE_PERMISSION_IDS.library,
@@ -331,7 +321,7 @@ export function getRoutePermissionId(route) {
   if (route === 'practice') return ROUTE_PERMISSION_IDS.practice;
   if (route === 'department') return DEPARTMENT_WORKSPACE_PERMISSION_ID;
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'assessment-core' || route === 'learning-intelligence' || route === 'platform-readiness' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
+  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'assessment-core' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
@@ -350,7 +340,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   // Locked cards stay visible and show a request-access button.
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
   if (route === 'practice') return hasPermissionId(user, ROUTE_PERMISSION_IDS.practice) || hasToolAccess(user, 'student-practice');
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'assessment-core' || route === 'learning-intelligence' || route === 'platform-readiness' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
+  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'assessment-core' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
 }
 

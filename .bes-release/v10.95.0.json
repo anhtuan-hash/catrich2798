@@ -1,0 +1,170 @@
+{
+  "version": "10.95.0",
+  "previousVersion": "10.94.0",
+  "installedAt": "2026-07-12T22:31:22.549Z",
+  "backupDir": ".bes-backup/v10.95.0-2026-07-12T22-31-22-514Z",
+  "files": [
+    {
+      "file": "README.md",
+      "existed": true
+    },
+    {
+      "file": "README_UPDATE.md",
+      "existed": true
+    },
+    {
+      "file": "V10_95_0_PLATFORM_READINESS.md",
+      "existed": false
+    },
+    {
+      "file": "index.html",
+      "existed": true
+    },
+    {
+      "file": "package-lock.json",
+      "existed": true
+    },
+    {
+      "file": "package.json",
+      "existed": true
+    },
+    {
+      "file": "public/bes-feature-flags-v10.95.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/bes-migrations-v10.95.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/bes-modules-v10.95.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/bes-platform-build-v10.95.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/bes-platform-control-v10950.css",
+      "existed": false
+    },
+    {
+      "file": "public/bes-platform-control-v10950.js",
+      "existed": false
+    },
+    {
+      "file": "public/bes-release-v10.95.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/manifest.webmanifest",
+      "existed": false
+    },
+    {
+      "file": "public/offline.html",
+      "existed": false
+    },
+    {
+      "file": "public/pwa/icon-192.png",
+      "existed": false
+    },
+    {
+      "file": "public/pwa/icon-512.png",
+      "existed": false
+    },
+    {
+      "file": "public/pwa/maskable-192.png",
+      "existed": false
+    },
+    {
+      "file": "public/pwa/maskable-512.png",
+      "existed": false
+    },
+    {
+      "file": "public/sw.js",
+      "existed": false
+    },
+    {
+      "file": "public/version.json",
+      "existed": true
+    },
+    {
+      "file": "scripts/check-v10.95.0.mjs",
+      "existed": false
+    },
+    {
+      "file": "scripts/performance-budget-v10.95.0.mjs",
+      "existed": false
+    },
+    {
+      "file": "scripts/release-guard-v10.95.0.mjs",
+      "existed": false
+    },
+    {
+      "file": "src/components/GlobalAccessibilityAnnouncer.jsx",
+      "existed": false
+    },
+    {
+      "file": "src/components/GlobalCommandPalette.jsx",
+      "existed": true
+    },
+    {
+      "file": "src/components/GlobalFlatNavigation.jsx",
+      "existed": true
+    },
+    {
+      "file": "src/components/PwaUpdateBanner.jsx",
+      "existed": false
+    },
+    {
+      "file": "src/data/apps.js",
+      "existed": true
+    },
+    {
+      "file": "src/main.jsx",
+      "existed": true
+    },
+    {
+      "file": "src/pages/PlatformReadiness.jsx",
+      "existed": false
+    },
+    {
+      "file": "src/services/runtime/core.js",
+      "existed": true
+    },
+    {
+      "file": "src/styles/v1095.css",
+      "existed": false
+    },
+    {
+      "file": "src/utils/accessibility.js",
+      "existed": false
+    },
+    {
+      "file": "src/utils/permissions.js",
+      "existed": true
+    },
+    {
+      "file": "src/utils/platformReadiness.js",
+      "existed": false
+    },
+    {
+      "file": "src/utils/pwa.js",
+      "existed": false
+    },
+    {
+      "file": "src/utils/runtimeDiagnostics.js",
+      "existed": true
+    },
+    {
+      "file": "src/utils/webVitals.js",
+      "existed": false
+    },
+    {
+      "file": "vercel.json",
+      "existed": true
+    }
+  ],
+  "requiresSql": false,
+  "migration": ""
+}

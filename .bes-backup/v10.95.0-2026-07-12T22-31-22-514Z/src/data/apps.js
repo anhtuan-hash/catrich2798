@@ -47,15 +47,6 @@ export const APPS = [
   },
 
   {
-    slug: 'platform-readiness', route: 'platform-readiness', icon: 'PR', tone: 'mint', group: 'Platform', groupVi: 'Nền tảng',
-    title: 'Platform Readiness', titleVi: 'PWA, bảo mật & tiếp cận',
-    desc: 'Install the site as an app, audit security headers, tune accessibility and monitor performance budgets.',
-    descVi: 'Cài website như ứng dụng, kiểm tra bảo mật, điều chỉnh khả năng tiếp cận và theo dõi ngân sách hiệu năng.',
-    status: 'PWA · Security · WCAG · Web Vitals', statusVi: 'PWA · Bảo mật · WCAG · Hiệu năng', api: true, featured: true,
-  },
-
-
-  {
       slug: 'resource-library-hub',
       route: 'resource-library',
       icon: 'RL',

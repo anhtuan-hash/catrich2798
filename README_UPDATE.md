@@ -1,44 +1,48 @@
-# Cập nhật Brian English Studio lên V10.94.0
+# Update to Brian English Studio V10.95.0
 
-## 1. Sao lưu
+Base version: V10.94.x
+
+## What is included
+
+- Installable PWA and offline shell.
+- Platform Readiness center.
+- Security diagnostics and production response headers.
+- Site-wide accessibility preferences.
+- Skip-to-content navigation and screen-reader announcements.
+- Local Web Vitals.
+- Build-time performance budgets.
+
+## Database
+
+No Supabase SQL migration is required.
+
+## Install from the update-only package
+
+Run the installer from inside the Git repository:
 
 ```bash
-git status
-git add -A
-git commit -m "Backup V10.93 before V10.94" || true
+INSTALLER=$(find ~/Downloads -type f -name "install-v10.95.0.mjs" | head -n 1)
+node "$INSTALLER" "$PWD"
 ```
 
-## 2. Cài update-only
-
-```bash
-node ~/Downloads/brian-english-studio-v10.94.0-learning-intelligence-update-only/install-v10.94.0.mjs "$PWD"
-```
-
-## 3. Chạy Supabase
-
-Theo thứ tự:
-
-1. `supabase/brian_v10_94_preflight.sql`
-2. `supabase/brian_v10_94_learning_intelligence.sql`
-3. `supabase/brian_v10_94_verify.sql`
-
-## 4. Kiểm tra
+Then verify:
 
 ```bash
 npm ci
-npm run verify:v10.94
+npm run verify:v10.95
 ```
 
-## 5. Deploy
+Commit and deploy only after all checks pass.
 
-```bash
-git add -A
-git commit -m "Upgrade Brian English Studio to V10.94.0"
-git push origin main
-```
+## First production test
 
-## Rollback source
+After Vercel reports Ready:
 
-```bash
-node ~/Downloads/brian-english-studio-v10.94.0-learning-intelligence-update-only/rollback-v10.94.0.mjs "$PWD"
-```
+1. Close old site tabs.
+2. Open the site in a new tab.
+3. Hard refresh once.
+4. Open `#/platform-readiness`.
+5. Confirm service-worker registration and security headers.
+6. Test keyboard navigation and reduced motion.
+
+The first service-worker-controlled load may require one reload after registration.
