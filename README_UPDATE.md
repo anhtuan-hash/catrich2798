@@ -1,32 +1,36 @@
-# Brian English Studio V10.87.1 — Command Center Visual Harmony
+# Brian English Studio V10.87.2 — AI Chat Expanded Layout
 
-Bản cập nhật giao diện dành cho repository đã cài **V10.87.0 Launcher & Command Center**.
+Bản cập nhật update-only dành cho repository đã cài **V10.87.1 Command Center Visual Harmony**.
 
-## Mục tiêu
+## Nội dung đã chỉnh
 
-- Khắc phục thẻ ứng dụng bị tối, nút trắng hoặc màu sắc bị lệch do CSS toàn site ghi đè.
-- Làm giao diện gọn hơn, cân đối hơn và hài hòa với nền Metro xanh đậm của Brian English Studio.
-- Giữ nguyên toàn bộ ứng dụng đã ghim, nhóm tùy chỉnh, thứ tự và lịch sử gần đây của V10.87.0.
+- Tăng khung Brian AI từ khoảng 392 px lên 480–590 px trên desktop.
+- Tăng chiều cao đến 86% màn hình nhưng vẫn giữ khoảng cách an toàn.
+- Thêm nút mở rộng/thu gọn trên header; chế độ mở rộng tối đa 760 px.
+- Vùng hội thoại tự chiếm phần chiều cao còn lại và cuộn độc lập.
+- Ô nhập tăng lên tối thiểu 72 px; composer không còn ép chật bởi các nút Tệp, Màn hình và Nói.
+- Trên điện thoại, cửa sổ chat tự chuyển sang toàn màn hình.
+- Hộp khôi phục bản nháp được thu gọn thành toast để không chắn nội dung.
+- Nhớ trạng thái rộng/hẹp trên trình duyệt hiện tại.
 
-## Nội dung thay đổi
+## Dữ liệu được giữ nguyên
 
-- Header xanh navy thống nhất, thanh tìm kiếm sáng và dễ đọc.
-- Sidebar thu gọn, trạng thái đang chọn dùng vạch cyan thay vì mảng màu quá lớn.
-- Card chuyển thành nền trắng, viền xám xanh nhẹ, không còn khung navy nặng.
-- Mỗi nhóm ứng dụng có màu nhấn riêng: tài nguyên, giảng dạy, kỹ năng, kiểm tra, chuyên môn và quản trị.
-- Nút ghim/ẩn nhỏ hơn và chỉ nổi bật khi rê chuột hoặc dùng bàn phím.
-- Tối ưu mật độ hiển thị: 3 cột desktop, 2 cột tablet, 1 cột mobile.
-- Cách ly button/input của Command Center khỏi CSS toàn site.
-- Không dùng `prefers-color-scheme: dark`, tránh việc macOS Dark Mode làm Command Center đổi màu ngoài ý muốn.
-- Cải thiện focus, tương phản, scrollbar và reduced motion.
+- Lịch sử hội thoại.
+- Các cuộc trò chuyện đã lưu.
+- Bản nháp.
+- Tệp đính kèm.
+- Provider và API key đã cấu hình.
+- AI Governance.
+- Command Center và Launcher.
+- Dữ liệu Supabase.
 
 ## Yêu cầu
 
-- Đã cài V10.87.0.
+- Đã cài V10.87.1.
 - Không cần SQL.
 - Không cần Environment Variable mới.
 - Không thêm dependency.
-- Không chạy `npm install` nếu repository hiện tại đã hoạt động.
+- Không chạy `npm install` nếu repository đang hoạt động bình thường.
 
 ## Cài đặt
 
@@ -35,25 +39,26 @@ Sao lưu repository:
 ```bash
 git status
 git add -A
-git commit -m "Backup V10.87.0 before V10.87.1"
+git commit -m "Backup V10.87.1 before V10.87.2"
 ```
 
 Chép gói update-only vào repository:
 
 ```bash
-rsync -av ~/Downloads/brian-english-studio-v10.87.1-command-center-visual-harmony-update-only/ ./
-node scripts/install-v10.87.1.mjs
+rsync -av ~/Downloads/brian-english-studio-v10.87.2-ai-chat-expanded-layout-update-only/ ./
+node scripts/install-v10.87.2.mjs
 ```
 
-Kiểm tra:
+Kiểm tra tổng hợp:
 
 ```bash
-npm run verify:v10.87.1
+npm run verify:v10.87.2
 ```
 
 Hoặc chạy riêng:
 
 ```bash
+npm run test:ai-chat
 npm run test:command-center
 npm run release:guard
 npm run build
@@ -65,28 +70,28 @@ Deploy:
 
 ```bash
 git add -A
-git commit -m "Optimize Command Center UI V10.87.1"
+git commit -m "Expand Brian AI chat layout V10.87.2"
 git push origin main
 ```
 
-Khi Vercel báo Ready, tải lại bằng **Command + Shift + R**.
+Khi Vercel báo **Ready**, tải lại bằng **Command + Shift + R**.
 
 ## Rollback
 
 ```bash
-npm run rollback:v10.87.1
+npm run rollback:v10.87.2
 npm run build
 npm test
 npm run test:department
 ```
 
-Rollback không xóa dữ liệu Launcher cá nhân trong localStorage.
+Rollback không xóa lịch sử hội thoại hoặc bản nháp của Brian AI.
 
-## Lưu ý về cache
+## Lưu ý
 
-V10.87.1 dùng asset mới:
+V10.87.2 dùng asset mới:
 
-- `/bes-command-center-v10871.css`
-- `/bes-command-center-v10871.js`
+- `/bes-ai-chat-v10872.css`
+- `/bes-ai-chat-v10872.js`
 
-Do đó trình duyệt không tiếp tục dùng CSS V10.87.0 đã cache.
+Vì vậy trình duyệt không tiếp tục dùng lớp kích thước chat cũ đã cache.
