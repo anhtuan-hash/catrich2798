@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
+import { RESOURCE_CATEGORY_FOLDERS, resourceCategoryFolderName } from './_resourceCategoryFolders.js';
 
 export const env = {
   supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '',
@@ -43,10 +44,11 @@ export function signState(payload) {
   const sig = crypto.createHmac('sha256', env.stateSecret || env.clientSecret).update(body).digest('base64url');
   return `${body}.${sig}`;
 }
+
 export function verifyState(value) {
   const [body, sig] = String(value || '').split('.');
   const expected = crypto.createHmac('sha256', env.stateSecret || env.clientSecret).update(body || '').digest('base64url');
-  if (!body || !sig || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) throw new Error('Invalid OAuth state');
+  if (!body || !sig || sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) throw new Error('Invalid OAuth state');
   return JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
 }
 
@@ -69,11 +71,11 @@ export async function refreshAccessToken(refreshToken) {
 export async function getConnection() {
   const client = adminClient();
   const { data, error } = await client.from('resource_drive_connections').select('*').eq('is_active', true).order('updated_at', { ascending: false }).limit(1).maybeSingle();
-  if (error || !data) throw new Error(error?.message || 'TTCM has not connected Google Drive');
+  if (error || !data) throw new Error(error?.message || 'Admin has not connected Google Drive');
   return { client, connection: data, accessToken: await refreshAccessToken(data.refresh_token) };
 }
 
-async function driveFetch(url, accessToken, options = {}) {
+export async function driveFetch(url, accessToken, options = {}) {
   const response = await fetch(url, { ...options, headers: { Authorization: `Bearer ${accessToken}`, ...(options.headers || {}) } });
   const data = response.status === 204 ? {} : await response.json();
   if (!response.ok) throw new Error(data?.error?.message || 'Google Drive API error');
@@ -83,37 +85,45 @@ async function driveFetch(url, accessToken, options = {}) {
 export async function ensureFolder(accessToken, name, parentId = null) {
   const escaped = name.replace(/'/g, "\\'");
   const parentClause = parentId ? ` and '${parentId}' in parents` : '';
-  const q = encodeURIComponent(`mimeType='application/vnd.google-apps.folder' and name='${escaped}' and trashed=false${parentClause}`);
-  const existing = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&spaces=drive&pageSize=10`, accessToken);
+  const query = encodeURIComponent(`mimeType='application/vnd.google-apps.folder' and name='${escaped}' and trashed=false${parentClause}`);
+  const existing = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)&spaces=drive&pageSize=10`, accessToken);
   if (existing.files?.[0]) return existing.files[0].id;
-  const created = await driveFetch('https://www.googleapis.com/drive/v3/files?fields=id,name', accessToken, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder', ...(parentId ? { parents: [parentId] } : {}) }) });
+  const created = await driveFetch('https://www.googleapis.com/drive/v3/files?fields=id,name', accessToken, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder', ...(parentId ? { parents: [parentId] } : {}) }),
+  });
   return created.id;
 }
 
 export async function ensureStructure(accessToken, rootName = 'BRIAN ENGLISH – KHO HỌC LIỆU TỔ TIẾNG ANH') {
   const rootId = await ensureFolder(accessToken, rootName);
-  const names = ['00_CHO_DUYET','01_SACH_VA_TAI_LIEU_THAM_KHAO','02_GIAO_AN','03_WORKSHEETS','04_DE_KIEM_TRA','05_SLIDES_BAI_GIANG','06_AUDIO_VIDEO','07_TAI_LIEU_CHUYEN_MON','08_TRO_CHOI_VA_HOAT_DONG','09_BIEU_MAU','10_TAI_LIEU_NOI_BO','99_LUU_TRU'];
+  const names = ['00_CHO_DUYET', ...Object.values(RESOURCE_CATEGORY_FOLDERS), '99_LUU_TRU'];
   const folders = {};
-  for (const name of names) folders[name] = await ensureFolder(accessToken, name, rootId);
+  for (const name of [...new Set(names)]) folders[name] = await ensureFolder(accessToken, name, rootId);
   return { rootId, folders };
 }
 
-export const categoryFolder = {
-  books: '01_SACH_VA_TAI_LIEU_THAM_KHAO', 'lesson-plans': '02_GIAO_AN', worksheets: '03_WORKSHEETS', tests: '04_DE_KIEM_TRA', slides: '05_SLIDES_BAI_GIANG', media: '06_AUDIO_VIDEO', professional: '07_TAI_LIEU_CHUYEN_MON', games: '08_TRO_CHOI_VA_HOAT_DONG', forms: '09_BIEU_MAU', internal: '10_TAI_LIEU_NOI_BO',
-};
+// Backward-compatible export used by the existing upload API.
+export const categoryFolder = RESOURCE_CATEGORY_FOLDERS;
+export { resourceCategoryFolderName };
 
 export async function uploadFile(accessToken, buffer, metadata, mimeType) {
   const boundary = `bes_${crypto.randomBytes(12).toString('hex')}`;
   const head = Buffer.from(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: ${mimeType || 'application/octet-stream'}\r\n\r\n`);
   const tail = Buffer.from(`\r\n--${boundary}--`);
-  const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink,webContentLink,parents,size,mimeType', { method: 'POST', headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': `multipart/related; boundary=${boundary}` }, body: Buffer.concat([head, buffer, tail]) });
+  const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink,webContentLink,parents,size,mimeType', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': `multipart/related; boundary=${boundary}` },
+    body: Buffer.concat([head, buffer, tail]),
+  });
   const data = await response.json();
   if (!response.ok) throw new Error(data?.error?.message || 'Upload to Google Drive failed');
   return data;
 }
 
 export async function moveFile(accessToken, fileId, targetFolderId) {
-  const current = await driveFetch(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=parents`, accessToken);
+  const current = await driveFetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?fields=parents`, accessToken);
   const removeParents = (current.parents || []).join(',');
-  return driveFetch(`https://www.googleapis.com/drive/v3/files/${fileId}?addParents=${encodeURIComponent(targetFolderId)}&removeParents=${encodeURIComponent(removeParents)}&fields=id,parents,webViewLink,webContentLink`, accessToken, { method: 'PATCH' });
+  return driveFetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?addParents=${encodeURIComponent(targetFolderId)}&removeParents=${encodeURIComponent(removeParents)}&fields=id,parents,webViewLink,webContentLink`, accessToken, { method: 'PATCH' });
 }
