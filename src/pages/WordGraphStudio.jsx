@@ -427,6 +427,14 @@ export default function WordGraphStudio({ tool, language, apiKey, aiModel, hasAp
 
   const toolTitle = language === 'vi' ? tool.titleVi || tool.title : tool.title;
   const graph = useMemo(() => buildWordGraph(output, instruction, sourceText), [output, instruction, sourceText]);
+  const visibleNodeCount = useMemo(() => {
+    const clusters = Array.isArray(graph?.clusters) ? graph.clusters : [];
+    const groupCount = clusters.reduce(
+      (total, cluster) => total + (Array.isArray(cluster?.groups) ? cluster.groups.length : 0),
+      0,
+    );
+    return 1 + clusters.length + groupCount;
+  }, [graph]);
 
   const scrollToRef = (ref) => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
@@ -567,7 +575,7 @@ export default function WordGraphStudio({ tool, language, apiKey, aiModel, hasAp
           <div className="wordgraph-v29-state-card"><strong>{language === 'vi' ? 'AI sẵn sàng' : 'AI ready'}</strong><small>{hasApiKey ? 'API connected' : 'No API key'}</small></div>
           <div className="wordgraph-v29-state-card"><strong>{mode === 'tree' ? 'Auto layout' : 'Radial map'}</strong><small>{language === 'vi' ? 'Chế độ sơ đồ' : 'Map mode'}</small></div>
           <div className="wordgraph-v29-state-card"><strong>{dragEnabled ? (language === 'vi' ? 'Kéo bật' : 'Drag on') : (language === 'vi' ? 'Kéo tắt' : 'Drag off')}</strong><small>{language === 'vi' ? 'Tương tác node' : 'Node interaction'}</small></div>
-          <div className="wordgraph-v29-state-card"><strong>{graph.nodes.length}</strong><small>{language === 'vi' ? 'Node hiển thị' : 'Visible nodes'}</small></div>
+          <div className="wordgraph-v29-state-card"><strong>{visibleNodeCount}</strong><small>{language === 'vi' ? 'Node hiển thị' : 'Visible nodes'}</small></div>
         </div>
       </section>
 

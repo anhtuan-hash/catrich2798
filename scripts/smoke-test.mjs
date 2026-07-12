@@ -71,6 +71,8 @@ const mainSource = fs.readFileSync(new URL('../src/main.jsx', import.meta.url), 
 const universalAiSource = fs.readFileSync(new URL('../src/components/UniversalAIAssist.jsx', import.meta.url), 'utf8');
 const specializedSource = fs.readFileSync(new URL('../src/pages/SpecializedAppPage.jsx', import.meta.url), 'utf8');
 const cssSource = fs.readFileSync(new URL('../src/index.css', import.meta.url), 'utf8');
+const wordGraphSource = fs.readFileSync(new URL('../src/pages/WordGraphStudio.jsx', import.meta.url), 'utf8');
+add('V10.81.8 WordGraph runtime node count is schema-safe', wordGraphSource.includes('visibleNodeCount') && !wordGraphSource.includes('graph.nodes.length'), 'prevents blank-page crash when graph exposes clusters instead of nodes');
 add('Universal AI Assist available', mainSource.includes('UniversalAIAssist') && universalAiSource.includes('AI support for this app'), 'global AI drawer present');
 add('Exam Studio AI is integrated inside step 2', !specializedSource.includes('exam-ai-sidebar') && specializedSource.includes('Cách 2 · AI Keyword Generator') && specializedSource.includes('AI tạo brief') && specializedSource.includes('AI tạo câu hỏi'), 'no separated AI sidebar');
 add('V9.4.7 strict four-step generator flow UI present', specializedSource.includes('STEP_LABELS') && specializedSource.includes('Chọn 1 trong 2 cách tạo đề') && specializedSource.includes('HTML tương tác') && cssSource.includes('V9.4.7 Strict Exam Flow'), 'strict flow and CSS present');
