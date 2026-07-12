@@ -138,6 +138,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
   const [driveMessage, setDriveMessage] = useState('');
   const inputRef = useRef(null);
   const previewObjectUrlRef = useRef('');
+  const folderViewRef = useRef(null);
 
   const refreshLibrary = useCallback(async () => {
     const [syncResult, overviewResult] = await Promise.all([
@@ -246,6 +247,22 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     setFiles([]);
     setShowUpload(true);
   };
+
+  const openCategoryFolder = useCallback((nextCategory) => {
+    const selected = nextCategory === 'all' ? 'all' : normaliseResourceCategory(nextCategory);
+    // Opening a folder must reveal every accessible upload in that folder.
+    // Reset the secondary filters so a previous search does not make the folder look empty.
+    setCategory(selected);
+    setTab('explore');
+    setQuery('');
+    setGradeFilter('all');
+    setSchoolYearFilter('all');
+    setSortMode('newest');
+    window.setTimeout(() => {
+      folderViewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      folderViewRef.current?.focus({ preventScroll: true });
+    }, 80);
+  }, []);
 
   const analyzeFiles = async () => {
     if (!files.length) return;
@@ -521,7 +538,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
 
       <section className="resource-library-hero">
         <div>
-          <span className="resource-eyebrow">BRIAN RESOURCE LIBRARY · V10.81.3</span>
+          <span className="resource-eyebrow">BRIAN RESOURCE LIBRARY · V10.81.5</span>
           <h1>Kho học liệu Tổ Tiếng Anh</h1>
           <p>Giáo viên tải tài liệu lên Google Drive của admin, phân loại bằng thẻ và truy cập file trực tiếp trong ứng dụng mà không cần mở Drive.</p>
           <div className="resource-hero-actions">
@@ -541,11 +558,11 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
           <div><span className="resource-eyebrow">DANH MỤC CÓ SẴN</span><h2>Chọn thẻ để mở tài liệu ngay trong app</h2></div>
           <p>Thẻ vẫn luôn hiển thị kể cả khi chưa có tài liệu. Số lượng và nội dung mới được cập nhật bằng Supabase Realtime.</p>
         </div>
-        <button type="button" className={`resource-category-all${category === 'all' ? ' is-active' : ''}`} onClick={() => setCategory('all')}>
+        <button type="button" className={`resource-category-all${category === 'all' ? ' is-active' : ''}`} onClick={() => openCategoryFolder('all')}>
           <span>⌂</span><strong>Tất cả tài liệu</strong><small>{categoryCards.reduce((sum, item) => sum + Number(item.item_count || 0), 0)} tài liệu</small>
         </button>
-        <ResourceCategoryCards categories={categoryCards} activeCategory={category} onSelect={setCategory} language={language} loading={categoriesLoading} />
-        {selectedCategory && <div className="resource-drive-message">Đang xem: <strong>{categoryName(selectedCategory, language)}</strong> · <button type="button" onClick={() => openUpload(selectedCategory.slug)}>Tải file vào thẻ này</button></div>}
+        <ResourceCategoryCards categories={categoryCards} activeCategory={category} onSelect={openCategoryFolder} language={language} loading={categoriesLoading} />
+        {selectedCategory && <div className="resource-drive-message resource-folder-open-message">Đã mở thư mục: <strong>{categoryName(selectedCategory, language)}</strong> · <span>{visibleItems.length} file hiển thị</span> · <button type="button" onClick={() => openUpload(selectedCategory.slug)}>Tải file vào thư mục này</button></div>}
       </section>
 
       <section className="resource-filter-bar">
@@ -560,28 +577,62 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         <label><span>Sắp xếp</span><select value={sortMode} onChange={(event) => setSortMode(event.target.value)}><option value="newest">Mới nhất</option><option value="oldest">Cũ nhất</option><option value="popular">Dùng nhiều</option></select></label>
       </section>
 
+      <section
+        ref={folderViewRef}
+        className="resource-folder-view"
+        id="resource-library-results"
+        tabIndex={-1}
+        aria-live="polite"
+      >
+        <header className="resource-folder-view__header">
+          <div className="resource-folder-view__identity">
+            <span className={`resource-folder-view__icon tone-${selectedCategory?.tone || 'blue'}`} aria-hidden="true">
+              {selectedCategory?.displayIcon || '⌂'}
+            </span>
+            <div>
+              <span className="resource-eyebrow">THƯ MỤC ĐANG MỞ</span>
+              <h2>{selectedCategory ? categoryName(selectedCategory, language) : 'Tất cả tài liệu'}</h2>
+              <p>
+                {manager
+                  ? 'Hiển thị toàn bộ file do giáo viên và admin tải lên, gồm cả file đang chờ duyệt.'
+                  : 'Hiển thị tài liệu đã duyệt của toàn tổ và các file do chính bạn tải lên.'}
+              </p>
+            </div>
+          </div>
+          <div className="resource-folder-view__summary">
+            <strong>{visibleItems.length}</strong>
+            <span>file trong thư mục</span>
+            <button type="button" onClick={() => openUpload(category)}>＋ Tải file vào đây</button>
+          </div>
+        </header>
+        <div className="resource-folder-statuses">
+          <span><i className="is-approved" />{visibleItems.filter((item) => item.status === 'approved').length} đã duyệt</span>
+          {manager && <span><i className="is-pending" />{visibleItems.filter((item) => item.status === 'pending').length} chờ duyệt</span>}
+          {manager && <span><i className="is-revision" />{visibleItems.filter((item) => item.status === 'revision').length} cần sửa</span>}
+        </div>
+        <div className="resource-library-list">
+          {visibleItems.length ? visibleItems.map((item) => (
+            <ResourceCard
+              key={item.id}
+              item={item}
+              categoryLabel={categoryName(categoryMap.get(normaliseResourceCategory(item.category)) || decorateCategory(findResourceCategory(item.category)), language)}
+              manager={manager}
+              currentUser={currentUser}
+              onPreview={openPreview}
+              onApprove={(entry) => changeStatus(entry, 'approved')}
+              onReject={(entry) => changeStatus(entry, 'revision')}
+              onFavorite={toggleFavorite}
+              onOpenApp={openWithApp}
+              onDownload={downloadResource}
+            />
+          )) : <div className="resource-empty"><b>Thư mục chưa có tài liệu</b><p>Nhấn “Tải file vào đây” để thêm tài liệu đầu tiên vào đúng thư mục.</p></div>}
+        </div>
+      </section>
+
       <section className="resource-ai-search">
         <div><span>✦ AI KNOWLEDGE SEARCH</span><h2>Hỏi kho học liệu</h2><p>Tìm tài liệu bằng ngôn ngữ tự nhiên, hỏi nội dung hoặc xin gợi ý cách sử dụng.</p></div>
         <div className="resource-ai-input"><textarea value={aiQuery} onChange={(event) => setAiQuery(event.target.value)} placeholder="Ví dụ: Tìm worksheet Reading B2 cho lớp 12 về multiculturalism…"/><button disabled={!hasApiKey} onClick={askLibrary}>AI tìm kiếm</button></div>
         {aiAnswer && <div className="resource-ai-answer">{aiAnswer}</div>}
-      </section>
-
-      <section className="resource-library-list" id="resource-library-results">
-        {visibleItems.length ? visibleItems.map((item) => (
-          <ResourceCard
-            key={item.id}
-            item={item}
-            categoryLabel={categoryName(categoryMap.get(normaliseResourceCategory(item.category)) || decorateCategory(findResourceCategory(item.category)), language)}
-            manager={manager}
-            currentUser={currentUser}
-            onPreview={openPreview}
-            onApprove={(entry) => changeStatus(entry, 'approved')}
-            onReject={(entry) => changeStatus(entry, 'revision')}
-            onFavorite={toggleFavorite}
-            onOpenApp={openWithApp}
-            onDownload={downloadResource}
-          />
-        )) : <div className="resource-empty"><b>Chưa có tài liệu phù hợp</b><p>Tải tài liệu đầu tiên hoặc thay đổi bộ lọc.</p></div>}
       </section>
 
       {showUpload && <div className="resource-modal-backdrop"><section className="resource-upload-modal">

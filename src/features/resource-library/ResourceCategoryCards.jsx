@@ -30,6 +30,8 @@ export function ResourceCategoryCards({ categories, activeCategory, onSelect, la
             className={`rl-category-card tone-${category.tone || 'blue'}${selected ? ' is-active' : ''}`}
             onClick={() => onSelect(category.slug)}
             aria-pressed={selected}
+            aria-controls="resource-library-results"
+            title={language === 'en' ? `Open ${categoryName(category, language)} folder` : `Mở thư mục ${categoryName(category, language)}`}
           >
             <span className="rl-category-card__icon" aria-hidden="true">{category.displayIcon}</span>
             <span className="rl-category-card__body">
@@ -44,6 +46,7 @@ export function ResourceCategoryCards({ categories, activeCategory, onSelect, la
               <strong>{category.item_count}</strong>
               <small>{language === 'en' ? 'resources' : 'tài liệu'}</small>
               {category.new_count > 0 ? <span className="rl-new-badge">+{category.new_count} {language === 'en' ? 'new' : 'mới'}</span> : null}
+              <span className="rl-open-folder-hint">{language === 'en' ? 'Open folder →' : 'Mở thư mục →'}</span>
             </span>
           </button>
         );
