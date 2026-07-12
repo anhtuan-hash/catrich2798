@@ -61,10 +61,7 @@
     "verify:v10.90": "npm run test:smart-knowledge && npm run build && npm test && npm run test:department && npm run test:platform-control && npm run test:work-hub:compat && npm run platform:doctor && npm run release:guard:v10.90",
     "test:supabase-bridge": "node scripts/check-supabase-bridge-v10.90.0-hf1.mjs",
     "rollback:v10.90.0-hf1": "node scripts/rollback-v10.90.0-hf1.mjs",
-    "verify:v10.90.0-hf1": "npm run test:supabase-bridge && npm run build && npm test && npm run test:department && npm run test:smart-knowledge",
-    "test:work-hub-rpc-compat": "node scripts/check-work-hub-rpc-v10.90.0-hf2.mjs",
-    "rollback:v10.90.0-hf2": "node scripts/rollback-v10.90.0-hf2.mjs",
-    "verify:v10.90.0-hf2": "npm run test:work-hub-rpc-compat && npm run build && npm test && npm run test:department"
+    "verify:v10.90.0-hf1": "npm run test:supabase-bridge && npm run build && npm test && npm run test:department && npm run test:smart-knowledge"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
