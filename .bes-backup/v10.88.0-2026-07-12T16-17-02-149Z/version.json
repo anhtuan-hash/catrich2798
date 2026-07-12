@@ -1,9 +1,9 @@
 {
-  "version": "10.88.0",
+  "version": "10.87.3",
   "channel": "stable",
   "baseVersion": "10.87.0",
-  "releaseName": "Platform Control Center & Release Governance",
-  "releasedAt": "2026-07-12T00:00:00.000Z",
+  "releaseName": "Command Center Visual Harmony",
+  "releasedAt": "2026-07-12",
   "requiresSql": false,
   "requiresEnv": false,
   "requiresDependencyInstall": false,
@@ -49,23 +49,9 @@
     "Thanh Tệp, Màn hình và Nói được thu gọn",
     "Toolbar kết quả dùng ít chiều cao hơn",
     "Draft recovery toast nhỏ gọn hơn",
-    "Giữ chế độ mở rộng và responsive từ V10.87.2",
-    "unified-version-registry",
-    "platform-control-center",
-    "module-registry",
-    "module-kill-switch",
-    "release-channels",
-    "feature-flags",
-    "migration-inventory",
-    "pre-deploy-gate",
-    "runtime-diagnostics",
-    "diagnostic-export",
-    "command-center-integration",
-    "safe-install-from-v10.86.1-to-v10.87.3"
+    "Giữ chế độ mở rộng và responsive từ V10.87.2"
   ],
-  "previousVersion": "10.87.3",
-  "installedAt": "2026-07-12T16:17:02.166Z",
-  "name": "AI Chat Composer Upgrade",
-  "minimumSupportedVersion": "10.86.1",
-  "maximumSupportedVersion": "10.87.3"
+  "previousVersion": "10.87.2",
+  "installedAt": "2026-07-12T16:00:33.685Z",
+  "name": "AI Chat Composer Upgrade"
 }

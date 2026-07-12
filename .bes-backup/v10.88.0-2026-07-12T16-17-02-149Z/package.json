@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.88.0",
+  "version": "10.87.3",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -10,7 +10,7 @@
     "test": "node scripts/smoke-test.mjs",
     "audit:performance": "node scripts/performance-audit.mjs",
     "test:department": "node scripts/department-runtime-test.mjs",
-    "release:guard": "node scripts/release-guard-v10.88.0.mjs",
+    "release:guard": "node scripts/release-guard-v10.87.3.mjs",
     "project:doctor": "node scripts/project-doctor-v10.86.1.mjs",
     "rollback:v10.86.1": "node scripts/rollback-v10.86.1.mjs",
     "verify:stability": "npm run build && npm test && npm run test:department && npm run release:guard",
@@ -29,13 +29,7 @@
     "release:guard:v10.87.2": "node scripts/release-guard-v10.87.2.mjs",
     "test:ai-chat:v10.87.2": "node scripts/test-ai-chat-v10.87.2.mjs",
     "rollback:v10.87.3": "node scripts/rollback-v10.87.3.mjs",
-    "verify:v10.87.3": "npm run build && npm test && npm run test:department && npm run test:command-center && npm run test:ai-chat && npm run release:guard",
-    "release:guard:pre-v10.88": "node scripts/release-guard-v10.87.3.mjs",
-    "project:doctor:pre-v10.88": "node scripts/project-doctor-v10.86.1.mjs",
-    "platform:doctor": "node scripts/platform-doctor-v10.88.0.mjs",
-    "test:platform-control": "node scripts/test-platform-control-v10.88.0.mjs",
-    "rollback:v10.88.0": "node scripts/rollback-v10.88.0.mjs",
-    "verify:v10.88": "npm run build && npm test && npm run test:department && npm run test:platform-control && npm run platform:doctor && npm run release:guard"
+    "verify:v10.87.3": "npm run build && npm test && npm run test:department && npm run test:command-center && npm run test:ai-chat && npm run release:guard"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

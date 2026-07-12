@@ -1,84 +1,202 @@
-# Brian English Studio V10.87.3 — AI Chat Composer Upgrade
+# Brian English Studio V10.88.0 — Platform Control Center
 
-Bản cập nhật update-only dành cho repository đã cài **V10.87.2 AI Chat Expanded Layout**.
+Bản cập nhật **update-only** tập trung vào quản trị phiên bản, module, feature flag và kiểm tra trước phát hành.
 
-## Nội dung đã chỉnh
+## Điểm quan trọng
 
-- Tăng ô nhập Brian AI lên tối thiểu **104 px** trên desktop.
-- Textarea tự tăng chiều cao theo nội dung đến **220 px**.
-- Nút gửi nằm bên trong góc dưới bên phải ô nhập.
-- Composer tối thiểu **160 px**, không còn bị ép thành một dòng mỏng.
-- Thu gọn hàng `Tệp · Màn hình · Nói` thành các chip 32 px.
-- Thu gọn toolbar `Sao chép · Dùng kết quả · Hành động · Gửi sang · Nghe`.
-- Dòng hướng dẫn Enter/Shift+Enter nhỏ và gọn hơn.
-- Toast khôi phục bản nháp giảm kích thước.
-- Giữ nguyên panel rộng, nút mở rộng và mobile full-screen của V10.87.2.
+V10.88.0 có thể cài trực tiếp trên:
+
+- V10.86.1
+- V10.87.0
+- V10.87.1
+- V10.87.2
+- V10.87.3
+
+Không cần cài tuần tự toàn bộ V10.87.x trước. Điều này xử lý trường hợp repository thực tế vẫn báo V10.86.1.
+
+## Tính năng đã triển khai
+
+### Platform Control Center
+
+Mở bằng:
+
+```text
+Command + Shift + P
+```
+
+hoặc trên Windows/Linux:
+
+```text
+Ctrl + Shift + P
+```
+
+Nếu Command Center V10.87 đang tồn tại, installer tự đăng ký mục **Platform Control Center** trong nhóm Quản trị.
+
+### Version Registry
+
+Hiển thị:
+
+- Phiên bản ứng dụng.
+- Phiên bản trước khi cập nhật.
+- Release name.
+- Git commit và branch tại lúc cài.
+- Thời gian cài.
+- Node version.
+- Số migration SQL đã lập chỉ mục.
+- Yêu cầu SQL, Environment Variable và dependency.
+
+### Module Registry
+
+- 22 module mặc định được đăng ký.
+- Tự phát hiện thêm route từ DOM.
+- Theo dõi module, route, nhóm, vai trò, trạng thái và dependency.
+- Tắt tạm module bằng runtime kill switch.
+- Không xóa dữ liệu khi tắt module.
+- Có nút bật lại toàn bộ module.
+
+### Release Channels
+
+- `stable`: sử dụng hằng ngày.
+- `beta`: Admin/TTCM thử trước.
+- `lab`: thử nghiệm tính năng nghiên cứu.
+
+### Feature Flags
+
+- Platform Control Center.
+- Version Registry.
+- Module Registry.
+- Module Kill Switch.
+- Deep Diagnostics.
+- Lab Features.
+
+Cấu hình được lưu riêng trong localStorage và không ghi đè Launcher V4.
+
+### Migration Inventory
+
+Installer tự quét thư mục `supabase/*.sql` và tạo:
+
+```text
+public/bes-migrations-v10.88.0.json
+```
+
+Mỗi migration có tên file, dung lượng, SHA-256 và thời gian sửa cuối.
+
+### Pre-deploy Gate
+
+Lệnh kiểm tra tổng hợp:
+
+```bash
+npm run verify:v10.88
+```
+
+Bao gồm:
+
+- Build.
+- Test nền.
+- Department Test.
+- Platform Control Test.
+- Platform Doctor.
+- Release Guard.
 
 ## Dữ liệu được giữ nguyên
 
-- Lịch sử hội thoại và các cuộc trò chuyện đã lưu.
-- Bản nháp.
-- Tệp đính kèm.
+- Launcher V4.
+- Command Center V10.87 nếu đã cài.
+- Brian AI và lịch sử chat.
 - Provider và API key.
-- AI Governance.
-- Launcher, Command Center và dữ liệu Supabase.
-- Font cá nhân trong `public/fonts`.
+- Supabase.
+- File SQL hiện có.
+- Font cá nhân.
+- `package-lock.json`.
 
-## Yêu cầu
+## Không yêu cầu
 
-- Đã cài V10.87.2.
-- Không cần SQL.
+- Không cần SQL mới.
 - Không cần Environment Variable mới.
 - Không thêm dependency.
 - Không chạy `npm install` nếu repository đang hoạt động bình thường.
 
 ## Cài đặt
 
-Sao lưu repository:
+### 1. Sao lưu Git
 
 ```bash
 git status
 git add -A
-git commit -m "Backup V10.87.2 before V10.87.3"
+git commit -m "Backup before V10.88.0"
 ```
 
-Chép gói update-only vào repository:
+Nếu Git báo `nothing to commit, working tree clean`, tiếp tục bước sau.
+
+### 2. Chép gói cập nhật
 
 ```bash
-rsync -av ~/Downloads/brian-english-studio-v10.87.3-ai-chat-composer-upgrade-update-only/ ./
-node scripts/install-v10.87.3.mjs
+rsync -av ~/Downloads/brian-english-studio-v10.88.0-platform-control-center-update-only/ ./
 ```
 
-Kiểm tra tổng hợp:
+Không dùng `--delete`.
+
+### 3. Chạy installer
 
 ```bash
-npm run verify:v10.87.3
+node scripts/install-v10.88.0.mjs
 ```
 
-Deploy:
+### 4. Kiểm tra toàn bộ
 
 ```bash
-git add -A
-git commit -m "Upgrade Brian AI composer V10.87.3"
-git push origin main
+npm run verify:v10.88
 ```
 
-Khi Vercel báo **Ready**, tải lại bằng **Command + Shift + R**.
-
-## Rollback
+Có thể chạy riêng:
 
 ```bash
-npm run rollback:v10.87.3
+npm run test:platform-control
+npm run platform:doctor
+npm run release:guard
 npm run build
 npm test
 npm run test:department
 ```
 
-Rollback không xóa lịch sử hội thoại, bản nháp, provider hoặc API key.
+### 5. Deploy
+
+Chỉ push khi tất cả kiểm tra đạt:
+
+```bash
+git status
+git add -A
+git commit -m "Add Platform Control Center V10.88.0"
+git push origin main
+```
+
+Khi Vercel báo Ready, tải lại trang bằng:
+
+```text
+Command + Shift + R
+```
+
+## Rollback
+
+```bash
+npm run rollback:v10.88.0
+npm run build
+npm test
+npm run test:department
+```
+
+Rollback khôi phục `package.json`, `index.html`, `version.json` và `package-lock.json` từ backup được installer tạo.
 
 ## Asset mới
 
-- `/bes-ai-chat-v10873.css`
-- `/bes-ai-chat-v10873.js`
+- `/bes-platform-control-v10880.css`
+- `/bes-platform-control-v10880.js`
+- `/bes-release-v10.88.0.json`
+- `/bes-modules-v10.88.0.json`
+- `/bes-feature-flags-v10.88.0.json`
+- `/bes-migrations-v10.88.0.json`
+- `/bes-platform-build-v10.88.0.json`
 
-Installer sẽ gỡ tag runtime V10.87.2 khỏi `index.html` và thay bằng V10.87.3; các file cũ vẫn được giữ để rollback an toàn.
+## Ghi chú quyền truy cập
+
+Platform Control Center chỉ mở đầy đủ khi runtime phát hiện vai trò `admin` hoặc `ttcm`. Giáo viên không được cung cấp quyền thay đổi channel, flag hoặc module.

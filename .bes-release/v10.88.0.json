@@ -1,0 +1,26 @@
+{
+  "installedAt": "2026-07-12T16:17:02.166Z",
+  "version": "10.88.0",
+  "previousVersion": "10.87.3",
+  "backupDir": ".bes-backup/v10.88.0-2026-07-12T16-17-02-149Z",
+  "lockHashBefore": "e10f1e139d61490bd272dcea2f38f873fedabf5b53df98c59b68940f70cf8652",
+  "lockHashAfter": "e10f1e139d61490bd272dcea2f38f873fedabf5b53df98c59b68940f70cf8652",
+  "assets": [
+    "public/bes-platform-control-v10880.css",
+    "public/bes-platform-control-v10880.js",
+    "public/bes-release-v10.88.0.json",
+    "public/bes-modules-v10.88.0.json",
+    "public/bes-feature-flags-v10.88.0.json",
+    "public/bes-migrations-v10.88.0.json",
+    "public/bes-platform-build-v10.88.0.json"
+  ],
+  "integrationTags": [
+    "/bes-platform-control-v10880.css",
+    "/bes-platform-control-v10880.js"
+  ],
+  "migrationCount": 11,
+  "gitCommit": "7001131",
+  "requiresSql": false,
+  "requiresEnv": false,
+  "dependencyChanges": false
+}
