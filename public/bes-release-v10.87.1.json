@@ -1,0 +1,21 @@
+{
+  "version": "10.87.1",
+  "channel": "stable",
+  "baseVersion": "10.87.0",
+  "releaseName": "Command Center Visual Harmony",
+  "releasedAt": "2026-07-12T00:00:00.000Z",
+  "requiresSql": false,
+  "requiresEnv": false,
+  "requiresDependencyInstall": false,
+  "features": [
+    "command-center-visual-harmony",
+    "host-style-isolation",
+    "metro-harmony-palette",
+    "compact-responsive-layout",
+    "group-color-accents",
+    "improved-card-density",
+    "adaptive-command-center-navigation",
+    "improved-focus-and-contrast",
+    "preserve-v10.87-user-layout"
+  ]
+}
