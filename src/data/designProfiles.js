@@ -47,6 +47,15 @@ export const APP_DESIGN_PROFILES = {
     style: 'AI portrait studio',
     styleVi: 'Studio ảnh thẻ AI',
   },
+
+  'vietnam-tax': {
+    accent: '#1769AA',
+    soft: '#E8F3FF',
+    ink: '#0D355C',
+    icon: 'tax',
+    style: 'Salary and tax simulator',
+    styleVi: 'Mô phỏng lương và thuế',
+  },
   'news-reader': {
     accent: '#167D78',
     soft: '#DDF5F1',

@@ -53,6 +53,23 @@ export const APPS = [
       featured: true,
     },
 
+
+  {
+      slug: 'vietnam-tax',
+      icon: 'TX',
+      tone: 'blue',
+      group: 'Teacher Utilities',
+      groupVi: 'Tiện ích giáo viên',
+      title: 'Vietnam Tax Studio',
+      titleVi: 'Tính thuế TNCN 2026',
+      desc: 'Estimate Vietnam personal income tax, mandatory insurance and net salary, with a clear comparison between the former 7-bracket and current 5-bracket scales.',
+      descVi: 'Ước tính thuế TNCN, bảo hiểm bắt buộc và lương thực nhận; so sánh rõ biểu thuế 7 bậc với biểu thuế 5 bậc hiện hành.',
+      status: '2026 tax scale · Offline calculator',
+      statusVi: 'Biểu thuế 2026 · Tính offline',
+      api: true,
+      featured: true,
+    },
+
   {
       slug: 'textlab-activities',
       icon: 'TL',

@@ -13,6 +13,7 @@ const APP_ORDER = [
   'reading-studio',
   'news-reader',
   'smart-id',
+  'vietnam-tax',
   'speaking-studio',
   'word2graph',
   'textcare',
@@ -105,6 +106,7 @@ function shortDesc(item, language) {
     'reading-studio': 'Bài đọc, câu hỏi và từ vựng.',
     'news-reader': 'Tin giáo dục Việt Nam và báo tiếng Anh.',
     'smart-id': 'Ảnh thẻ AI, crop chuẩn và tờ in 10 × 15.',
+    'vietnam-tax': 'Thuế TNCN, bảo hiểm và lương Net 2026.',
     'speaking-studio': 'Thẻ nói, debate, presentation.',
     word2graph: 'Word family và collocation.',
     'exam-studio': 'Đề kiểm tra, cloze, word form.',
@@ -124,6 +126,7 @@ function shortDesc(item, language) {
     'reading-studio': 'Readings and vocabulary.',
     'news-reader': 'Vietnam education and English news.',
     'smart-id': 'AI ID portraits and exact-size print sheets.',
+    'vietnam-tax': 'Vietnam PIT, insurance and 2026 net salary.',
     'speaking-studio': 'Speaking cards and debates.',
     word2graph: 'Word families and collocations.',
     'exam-studio': 'Tests, cloze and word form.',
@@ -156,7 +159,7 @@ function groupOf(item) {
   if (['lesson-plan-ai', 'textcare', 'library-hub', 'resource-library-hub'].includes(item.slug)) return 'plan';
   if (item.slug === 'homeroom-hub') return 'manage';
   if (item.slug === 'textlab-activities') return 'create';
-  if (['reading-studio', 'news-reader', 'smart-id', 'speaking-studio', 'word2graph', 'game-hub', 'games-hub'].includes(item.slug)) return 'create';
+  if (['reading-studio', 'news-reader', 'smart-id', 'vietnam-tax', 'speaking-studio', 'word2graph', 'game-hub', 'games-hub'].includes(item.slug)) return 'create';
   if (['exam-studio', 'student-practice', 'practice-hub'].includes(item.slug)) return 'assess';
   return 'manage';
 }

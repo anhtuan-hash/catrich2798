@@ -302,7 +302,7 @@ add('V10.81.9 direct viewer covers requested formats', ['docx', 'pptx', 'pdf', '
 add('V10.81.9 resource modal uses secure viewer', resourceLibrarySource.includes('<ResourceFileViewer item={preview} fetchBlob={fetchResourceBlob} getStreamUrl={getResourceStreamUrl}/>') && resourceLibrarySource.includes('supportsResourcePreview'), 'preview remains behind authenticated Drive proxy');
 add('V10.81.9 Office renderers are local and sandboxed', resourceViewerSource.includes('mammoth.convertToHtml') && resourceViewerSource.includes("import('xlsx')") && resourceViewerSource.includes("import('jszip')") && resourceViewerSource.includes('sandbox="allow-popups"'), 'Word, Excel and PowerPoint render without public Drive sharing');
 add('V10.81.9 scalable viewer styling present', resourceViewerCss.includes('V10.81.9 — direct DOCX, PPTX, PDF, XLSX, MP4 and MP3 viewer') && resourceViewerCss.includes('.resource-workbook-viewer') && resourceViewerCss.includes('.resource-pptx-viewer'), 'desktop, dark and mobile layouts present');
-add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
+add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
 const previewSessionSource = fs.readFileSync(new URL('../api/google-drive-preview-session.js', import.meta.url), 'utf8');
 const driveFileSource = fs.readFileSync(new URL('../api/google-drive-file.js', import.meta.url), 'utf8');
 add('V10.81.9 secure streaming session supports media seeking', previewSessionSource.includes('signResourcePreviewToken') && driveFileSource.includes('Content-Range') && driveFileSource.includes("Range: range") && resourceLibrarySource.includes('getResourceStreamUrl'), 'short-lived signed URL and byte ranges present');
@@ -339,6 +339,14 @@ const wordGraphRedesignSource = fs.readFileSync(new URL('../src/pages/WordGraphS
 add('V10.82.1 WordGraph centered dashboard is wired', wordGraphRedesignSource.includes('wordgraph-v821-dashboard-grid') && wordGraphRedesignSource.includes('wordgraph-v821-hero-actions') && wordGraphRedesignSource.includes('WORDGRAPH_QUICK_TEMPLATES'), 'hero actions, quick templates and four-card dashboard present');
 add('V10.82.1 WordGraph cards stay inside centered rail', cssSource.includes('width:min(100%,1320px)') && cssSource.includes('.wordgraph-v821-dashboard-grid') && cssSource.includes('padding:22px clamp(18px,4vw,46px)'), 'centered max-width rail and safe side padding present');
 add('V10.82.1 WordGraph recent maps use account history', wordGraphRedesignSource.includes('loadHistory()') && wordGraphRedesignSource.includes('LIBRARY_EVENT') && wordGraphRedesignSource.includes('openRecentMap'), 'recent maps load from the real account library');
+
+
+const taxStudioSource = fs.readFileSync(new URL('../src/pages/VietnamTaxStudio.jsx', import.meta.url), 'utf8');
+const taxStudioCss = fs.readFileSync(new URL('../src/pages/VietnamTaxStudio.css', import.meta.url), 'utf8');
+add('V10.82.6 Vietnam Tax Studio app card is registered', appDataSource.includes("slug: 'vietnam-tax'") && APPS.some((item) => item.slug === 'vietnam-tax'), 'tax calculator appears in the Apps directory');
+add('V10.82.6 Vietnam Tax Studio uses current five-bracket scale', taxStudioSource.includes('CURRENT_BRACKETS') && taxStudioSource.includes('100_000_000') && taxStudioSource.includes('0.35'), '5-bracket scale and top threshold present');
+add('V10.82.6 Vietnam Tax Studio includes Gross-to-Net and insurance calculation', taxStudioSource.includes('calculateInsurance') && taxStudioSource.includes('calculateScenario') && taxStudioSource.includes('REFERENCE_SALARY_2026'), 'insurance, deductions and net salary paths present');
+add('V10.82.6 Vietnam Tax Studio is dependency-free and responsive', taxStudioSource.includes('SavingsCurve') && taxStudioCss.includes('.tax-studio-main-grid') && taxStudioCss.includes('@media (max-width: 760px)'), 'native SVG chart and responsive layout present');
 
 const failed = checks.filter((item) => !item.ok);
 for (const item of checks) {

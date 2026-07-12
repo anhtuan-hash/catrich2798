@@ -43,6 +43,14 @@ const iconPaths = {
       <path d="M28 76c3-16 12-24 22-24s19 8 22 24" />
     </>
   ),
+
+  tax: (
+    <>
+      <path d="M25 15h50v70H25V15Z" />
+      <path d="M35 29h30M35 42h30M35 55h12M56 55h9M35 68h12M56 68h9" />
+      <path d="M17 31h8M17 50h8M17 69h8" />
+    </>
+  ),
   news: (
     <>
       <path d="M17 18h66v64H17V18Z" />
@@ -141,6 +149,7 @@ export const flatIconForSlug = {
   'exam-studio': 'exam',
   textcare: 'textcare',
   'news-reader': 'news',
+  'vietnam-tax': 'tax',
   'smart-id': 'identity',
   'reading-studio': 'reading',
   word2graph: 'wordgraph',
