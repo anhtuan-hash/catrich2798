@@ -8,13 +8,6 @@
   "requiresEnv": false,
   "requiresDependencyInstall": false,
   "features": [
-    "runtime-error-capture",
-    "stale-chunk-recovery",
-    "blank-screen-recovery",
-    "safe-launcher-recovery",
-    "diagnostic-report",
-    "release-guard",
-    "automatic-backup-and-rollback",
     "global-command-center",
     "keyboard-command-palette",
     "cross-site-pinned-dock",
@@ -26,7 +19,5 @@
     "route-auto-discovery",
     "config-export-import",
     "cross-tab-config-sync"
-  ],
-  "previousVersion": "10.86.1",
-  "installedAt": "2026-07-12T15:10:41.971Z"
+  ]
 }
