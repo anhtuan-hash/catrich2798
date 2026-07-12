@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "version": "10.97.0",
+  "previousVersion": "10.96.0",
+  "releaseName": "Cloud Operations & Background Automation",
+  "installedAt": "2026-07-13T09:00:00.000Z",
+  "channel": "stable",
+  "requiresSql": true,
+  "migration": "supabase/brian_v10_97_cloud_operations.sql",
+  "features": [
+    "durable queue",
+    "Supabase Cron worker",
+    "retry and dead-letter",
+    "approval gates",
+    "operations digest",
+    "worker heartbeat"
+  ],
+  "dependencyChanges": false
+}

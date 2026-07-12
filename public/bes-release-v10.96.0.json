@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "version": "10.96.0",
+  "name": "Automation Center & Operational Intelligence",
+  "channel": "stable",
+  "releasedAt": "2026-07-13T08:00:00.000Z",
+  "previousVersion": "10.95.0",
+  "summary": "Event and schedule automation rules, human approval gates, operational events and execution audit logs.",
+  "requiresSql": true,
+  "migration": "brian_v10_96_automation_center.sql",
+  "runtimeCore": "1.3.0",
+  "modules": [
+    "automation-center",
+    "automation-runner",
+    "approval-gates",
+    "operations-intelligence"
+  ]
+}

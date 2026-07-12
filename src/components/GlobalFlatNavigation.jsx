@@ -8,13 +8,13 @@ import { loadLauncherConfig, loadLauncherConfigFromCloud, normalizeLauncherConfi
 const copy = {
   vi: {
     home: 'Trang chủ', apps: 'Ứng dụng', news: 'Đọc báo', games: 'Trò chơi', department: 'Tổ chuyên môn', homeroom: 'Chủ nhiệm',
-    library: 'Thư viện', 'resource-library': 'Kho học liệu', 'knowledge-hub': 'Kho thông minh', 'work-hub': 'Công việc', 'ai-workspace': 'AI Workspace', 'content-factory': 'Content Factory', 'assessment-core': 'Assessment', resources: 'Tài nguyên', contact: 'Liên hệ', admin: 'Quản trị',
+    library: 'Thư viện', 'resource-library': 'Kho học liệu', 'knowledge-hub': 'Kho thông minh', 'work-hub': 'Công việc', 'ai-workspace': 'AI Workspace', 'content-factory': 'Content Factory', 'assessment-core': 'Assessment', 'learning-intelligence': 'Phân tích học tập', 'platform-readiness': 'Sẵn sàng nền tảng', 'automation-center': 'Tự động hóa', 'cloud-operations': 'Vận hành nền', resources: 'Tài nguyên', contact: 'Liên hệ', admin: 'Quản trị',
     login: 'Đăng nhập', settings: 'Cài đặt', logout: 'Thoát', subtitle: 'Hệ thống dạy học sáng tạo',
     account: 'Tài khoản', guest: 'Khách', aiReady: 'AI sẵn sàng', aiOff: 'AI chưa cài', fontSize: 'Tăng cỡ chữ', search: 'Tìm nhanh', more: 'Thêm', close: 'Đóng', qa: 'Trạng thái', 'ai-governance': 'Quản trị AI', trash: 'Thùng rác',
   },
   en: {
     home: 'Home', apps: 'Apps', news: 'News', games: 'Games', department: 'Department', homeroom: 'Homeroom',
-    library: 'Library', 'resource-library': 'Resources Hub', 'knowledge-hub': 'Smart Knowledge', 'work-hub': 'Work Hub', 'ai-workspace': 'AI Workspace', 'content-factory': 'Content Factory', 'assessment-core': 'Assessment', resources: 'Resources', contact: 'Contact', admin: 'Admin',
+    library: 'Library', 'resource-library': 'Resources Hub', 'knowledge-hub': 'Smart Knowledge', 'work-hub': 'Work Hub', 'ai-workspace': 'AI Workspace', 'content-factory': 'Content Factory', 'assessment-core': 'Assessment', 'learning-intelligence': 'Learning Intelligence', 'platform-readiness': 'Platform Readiness', 'automation-center': 'Automation Center', 'cloud-operations': 'Cloud Operations', resources: 'Resources', contact: 'Contact', admin: 'Admin',
     login: 'Sign in', settings: 'Settings', logout: 'Logout', subtitle: 'Brian English',
     account: 'Account', guest: 'Guest', aiReady: 'AI ready', aiOff: 'AI not set', fontSize: 'Increase text size', search: 'Quick search', more: 'More', close: 'Close', qa: 'System health', 'ai-governance': 'AI Governance', trash: 'Trash',
   },
@@ -22,16 +22,16 @@ const copy = {
 
 const routeColors = {
   home: '#ffc69d', apps: '#f05a7e', news: '#167d78', games: '#5b2a86', department: '#3b4cca', homeroom: '#1f8f70',
-  library: '#6fba7b', 'resource-library': '#2878d0', 'knowledge-hub': '#315fc4', 'work-hub': '#14866d', 'ai-workspace': '#6255d9', 'content-factory': '#ef7a42', 'assessment-core': '#cc7621', resources: '#d99a1e', contact: '#00a6a6', admin: '#d13438',
+  library: '#6fba7b', 'resource-library': '#2878d0', 'knowledge-hub': '#315fc4', 'work-hub': '#14866d', 'ai-workspace': '#6255d9', 'content-factory': '#ef7a42', 'assessment-core': '#cc7621', 'learning-intelligence': '#1a7d73', 'platform-readiness': '#0f766e', 'automation-center': '#1269b0', 'cloud-operations': '#167b68', resources: '#d99a1e', contact: '#00a6a6', admin: '#d13438',
   settings: '#123c69', qa: '#123c69', 'ai-governance': '#6d45c6', trash: '#a43b57', login: '#191515',
 };
 
 const routeIcons = {
-  home: '⌂', apps: '▦', news: '▤', games: '◈', department: '▦', homeroom: '♙', library: '▤', 'resource-library': '▥', 'knowledge-hub': 'K', 'work-hub': 'WH', 'ai-workspace': 'AI', 'content-factory': 'CF', 'assessment-core': 'AC',
+  home: '⌂', apps: '▦', news: '▤', games: '◈', department: '▦', homeroom: '♙', library: '▤', 'resource-library': '▥', 'knowledge-hub': 'K', 'work-hub': 'WH', 'ai-workspace': 'AI', 'content-factory': 'CF', 'assessment-core': 'AC', 'learning-intelligence': 'LI', 'platform-readiness': 'PR', 'automation-center': 'AU', 'cloud-operations': 'CO',
   resources: '▦', contact: '✉', admin: '☼', settings: '⚙', qa: '♥', 'ai-governance': 'AI', trash: '⌫', login: '↪',
 };
 
-const ROUTE_KEYS = ['home', 'apps', 'news', 'games', 'department', 'homeroom', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'assessment-core', 'resources', 'contact', 'admin', 'settings', 'qa', 'ai-governance', 'trash'];
+const ROUTE_KEYS = ['home', 'apps', 'news', 'games', 'department', 'homeroom', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'assessment-core', 'learning-intelligence', 'platform-readiness', 'automation-center', 'cloud-operations', 'resources', 'contact', 'admin', 'settings', 'qa', 'ai-governance', 'trash'];
 
 function shortName(value, fallback) {
   const text = String(value || '').trim();
@@ -141,7 +141,7 @@ export default function GlobalFlatNavigation({
   }, [launcherConfig?.nav, registry, currentUser, isAdmin]);
 
   const drawerEntries = useMemo(() => {
-    const baseIds = [...entries.map((entry) => entry.id), 'route:library', 'route:resource-library', 'route:knowledge-hub', 'route:work-hub', 'route:ai-workspace', 'route:content-factory', 'route:assessment-core', 'route:trash', 'route:settings'];
+    const baseIds = [...entries.map((entry) => entry.id), 'route:library', 'route:resource-library', 'route:knowledge-hub', 'route:work-hub', 'route:ai-workspace', 'route:content-factory', 'route:assessment-core', 'route:learning-intelligence', 'route:platform-readiness', 'route:automation-center', 'route:cloud-operations', 'route:trash', 'route:settings'];
     if (isAdmin) baseIds.push('route:qa', 'route:ai-governance', 'route:admin');
     const seen = new Set();
     return baseIds.map((id) => registry.get(id)).filter((entry) => {

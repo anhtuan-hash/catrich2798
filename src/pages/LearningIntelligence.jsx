@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { getRuntimeClient } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { downloadText, readLocal, scopedLocalKey, uid, writeLocal } from './v1093/shared.js';
+import { emitAutomationEvent } from '../utils/automationEngine.js';
 
 const ERROR_TAXONOMY = [
   ['tense', 'Thì & mốc thời gian'],
@@ -316,7 +317,16 @@ export default function LearningIntelligence({ currentUser, language = 'vi' }) {
         practice = { ...practicePayload, id: uid('practice'), created_at: new Date().toISOString(), localOnly: true };
         persistLocal({ interventions: [intervention, ...interventions], practiceSets: [practice, ...practiceSets] });
       }
-      setInterventions((current) => [intervention, ...current]); setPracticeSets((current) => [practice, ...current]); setNotice('Đã tạo kế hoạch luyện tập thích ứng.'); setTab('plans');
+      setInterventions((current) => [intervention, ...current]); setPracticeSets((current) => [practice, ...current]);
+      if (stat.risk) {
+        await emitAutomationEvent('learner_risk', {
+          source: 'learning-intelligence', learner_id: stat.learner.id,
+          learner_name: stat.learner.display_name, mastery: Math.round(stat.mastery),
+          summary: `${stat.learner.display_name} cần kế hoạch hỗ trợ thích ứng.`,
+          sourceText: plan.reason,
+        }, currentUser);
+      }
+      setNotice('Đã tạo kế hoạch luyện tập thích ứng.'); setTab('plans');
     } catch (saveError) { setError(saveError.message || String(saveError)); }
     finally { setBusy(false); }
   }

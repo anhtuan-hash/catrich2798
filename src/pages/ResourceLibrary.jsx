@@ -16,6 +16,7 @@ import {
   updateResourceLibrary,
   upsertResourceCloud,
 } from '../utils/resourceLibrary.js';
+import { emitAutomationEvent } from '../utils/automationEngine.js';
 import {
   RESOURCE_CATEGORY_FALLBACK,
   ResourceCategoryCards,
@@ -512,6 +513,13 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
       setDriveMessage(status === 'approved'
         ? `Đã duyệt “${item.title || item.fileName}”. Tài liệu hiện được chia sẻ cho tất cả giáo viên trong tổ.`
         : `Đã cập nhật trạng thái “${item.title || item.fileName}”.`);
+      if (status === 'approved') {
+        await emitAutomationEvent('resource_approved', {
+          source: 'resource-library', resource_id: savedItem.cloudId || savedItem.id,
+          title: savedItem.title || savedItem.fileName,
+          summary: `Tài liệu “${savedItem.title || savedItem.fileName}” đã được duyệt.`,
+        }, currentUser);
+      }
       await refreshLibrary();
     } catch (error) {
       setDriveMessage(`Không thể hoàn tất thao tác: ${error.message}`);

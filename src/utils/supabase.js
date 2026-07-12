@@ -17,7 +17,7 @@ export const supabase = isSupabaseConfigured
         params: { eventsPerSecond: 10 },
       },
       global: {
-        headers: { 'x-bes-runtime': '10.93.0' },
+        headers: { 'x-bes-runtime': '10.96.0' },
       },
     })
   : null;

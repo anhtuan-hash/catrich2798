@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { formatDate, isLeader, readLocal, scopedLocalKey, uid, writeLocal } from './v1093/shared.js';
+import { emitAutomationEvent } from '../utils/automationEngine.js';
 
 const STATUSES = [
   ['draft', 'Nháp'], ['assigned', 'Đã giao'], ['accepted', 'Đã tiếp nhận'],
@@ -68,6 +69,22 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
   }, [client, currentUser, leader, localKey, runtime.ready, runtime.session]);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('bes-v1096-automation-work-draft');
+      if (!raw) return;
+      const incoming = JSON.parse(raw);
+      setDraft((current) => ({
+        ...current,
+        title: incoming.title || current.title,
+        description: incoming.description || current.description,
+        priority: incoming.priority || current.priority,
+        due_at: incoming.due_at || current.due_at,
+      }));
+      sessionStorage.removeItem('bes-v1096-automation-work-draft');
+      setNotice('Đã nhận bản nháp từ Automation Center.');
+    } catch { /* invalid transfer is ignored */ }
+  }, []);
   useEffect(() => subscribeTable({ key: `work-hub-${currentUser?.id || 'guest'}`, table: 'work_hub_items', onChange: load }), [currentUser?.id, load]);
 
   const selected = items.find((item) => item.id === selectedId) || null;
@@ -133,6 +150,12 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
       } else {
         const next = items.map((entry) => entry.id === item.id ? { ...entry, ...patch } : entry);
         setItems(next); writeLocal(localKey, next);
+      }
+      if (status === 'submitted') {
+        await emitAutomationEvent('work_submitted', {
+          source: 'work-hub', item_id: item.id, title: item.title,
+          summary: `Sản phẩm “${item.title}” đã được nộp.`,
+        }, currentUser);
       }
     } catch (statusError) { setError(statusError.message || String(statusError)); }
     finally { setBusy(false); }

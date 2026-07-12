@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "10.93.0",
+  "version": "10.97.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -70,7 +70,20 @@
     "verify:v10.90.0-hf3": "npm run test:supabase-key-capture && npm run build && npm test && npm run test:department",
     "test:v10.93": "node scripts/check-v10.93.0.mjs",
     "release:guard:v10.93": "node scripts/release-guard-v10.93.0.mjs",
-    "verify:v10.93": "npm run test:v10.93 && npm run build && npm test && npm run test:department && npm run release:guard:v10.93"
+    "verify:v10.93": "npm run test:v10.93 && npm run build && npm test && npm run test:department && npm run release:guard:v10.93",
+    "test:v10.94": "node scripts/check-v10.94.0.mjs",
+    "release:guard:v10.94": "node scripts/release-guard-v10.94.0.mjs",
+    "verify:v10.94": "npm run test:v10.94 && npm run build && npm test && npm run test:department && npm run release:guard:v10.94",
+    "test:v10.95": "node scripts/check-v10.95.0.mjs",
+    "audit:budget": "node scripts/performance-budget-v10.95.0.mjs",
+    "release:guard:v10.95": "node scripts/release-guard-v10.95.0.mjs",
+    "verify:v10.95": "npm run test:v10.95 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run release:guard:v10.95",
+    "test:v10.96": "node scripts/check-v10.96.0.mjs",
+    "release:guard:v10.96": "node scripts/release-guard-v10.96.0.mjs",
+    "verify:v10.96": "npm run test:v10.96 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run release:guard:v10.96",
+    "test:v10.97": "node scripts/check-v10.97.0.mjs",
+    "release:guard:v10.97": "node scripts/release-guard-v10.97.0.mjs",
+    "verify:v10.97": "npm run test:v10.97 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run release:guard:v10.97"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
@@ -83,7 +96,7 @@
     "xlsx": "^0.18.5",
     "jszip": "^3.10.1"
   },
-  "description": "Brian English Studio V10.93.0 - Consolidated Runtime Core, Brian AI Workspace, Teaching Content Factory and Assessment Core.",
+  "description": "Brian English Studio V10.97.0 - durable cloud automation, Supabase Cron, retries, approval queues and operations digests.",
   "engines": {
     "node": "22.x"
   },

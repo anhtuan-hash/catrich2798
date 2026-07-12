@@ -1,0 +1,2 @@
+8c8d322456add99077f05354bead6d52bb83ba4894754dedc35d7461cf42f5f4  brian-english-studio-v10.97.0-cloud-operations-update-only.zip
+2a4842922f6810d94255853ffb0b6cf4c3138f52c86e935b337279197b38b7fb  brian-english-studio-v10.97.0-full-source.zip

@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "version": "10.97.0",
+  "generatedAt": "2026-07-13T09:00:00.000Z",
+  "files": [
+    {
+      "file": "brian_v10_93_consolidated_migration.sql",
+      "bytes": 24619,
+      "sha256": "2ab04a305e95f9f050b340effe230ff80d273f7db6c8b6804f9c32b7b2b3c508"
+    },
+    {
+      "file": "brian_v10_93_preflight.sql",
+      "bytes": 610,
+      "sha256": "bf0e6311374c658248b33fc3b6ecd6758d7b2f61d545c2c2156d7c4ef9f4bb00"
+    },
+    {
+      "file": "brian_v10_93_verify.sql",
+      "bytes": 785,
+      "sha256": "b4cb471a004d69b3e669dc74da7947789f9be16ee21b8e7686e49def509533cc"
+    },
+    {
+      "file": "brian_v10_94_learning_intelligence.sql",
+      "bytes": 18426,
+      "sha256": "fb3ebacf92a03ce69bcc2734c7eb1a2d4aaf9abba00a6db8cde645dd3ab86f30"
+    },
+    {
+      "file": "brian_v10_94_preflight.sql",
+      "bytes": 468,
+      "sha256": "926bef2c1694641de855fa539542e1bb905cfadd9808c0945b40f0e71d8cc4d0"
+    },
+    {
+      "file": "brian_v10_94_verify.sql",
+      "bytes": 938,
+      "sha256": "89441a51037603bdce66a3f12d534ecf0e8c43fa9c0be3df568f06580fa7a101"
+    },
+    {
+      "file": "brian_v10_96_automation_center.sql",
+      "bytes": 11005,
+      "sha256": "010470548e084143e54e424de45679a8364fb76b25dfa430e75d5875d786a6a9"
+    },
+    {
+      "file": "brian_v10_96_preflight.sql",
+      "bytes": 533,
+      "sha256": "4321388d1ebdee32e17d0433c280bc16d4dae437c2c9b4e237763186ec4c2304"
+    },
+    {
+      "file": "brian_v10_96_verify.sql",
+      "bytes": 641,
+      "sha256": "d0a9464a080b8c0a65072486ff9d95d9070f103bb4016b2b40057c10eb92f3b5"
+    },
+    {
+      "file": "brian_v10_97_cloud_operations.sql",
+      "bytes": 26098,
+      "sha256": "fdce8ff459b5dc98aebdd2ca474af8514356eef775ec1a0bf1ee388fd17d6228"
+    },
+    {
+      "file": "brian_v10_97_preflight.sql",
+      "bytes": 667,
+      "sha256": "be8323594a3c38f2a9b06bd97514561febcd1cb7a8a9a3507ea3d1e7665933a4"
+    },
+    {
+      "file": "brian_v10_97_verify.sql",
+      "bytes": 682,
+      "sha256": "d86894b87981debd9427299ee578fc5adfe5b44841225bb6a09746952f604b86"
+    },
+    {
+      "file": "custom_games_approval_v10_58.sql",
+      "bytes": 3126,
+      "sha256": "a4c75892b0278d5d60a220e8ce896acb9fc6da80224640ef2736af30e58044ba"
+    },
+    {
+      "file": "homeroom_phase2_v10_67.sql",
+      "bytes": 13787,
+      "sha256": "c33689b3bc660259c05502982430d51ab0354c150258a77d20544a1543cf76ef"
+    },
+    {
+      "file": "homeroom_phase3_v10_69.sql",
+      "bytes": 19193,
+      "sha256": "5f972b493438cc455048ec0671bb8b62ac62392db69cc9d52fac70f33169ffe6"
+    },
+    {
+      "file": "homeroom_workspace_v10_66.sql",
+      "bytes": 3443,
+      "sha256": "1e8f1fe734ba3d283ba8a5ef02c12cad8cd6d4aefdc1207fec6962fbb63453ef"
+    },
+    {
+      "file": "launcher_settings_v10_83_1.sql",
+      "bytes": 2595,
+      "sha256": "a3f6b09baf4a5f5bf4829bb551ae1b4ae35779d5f9b380f601a88503e6dbf389"
+    },
+    {
+      "file": "library_sync_v10_63.sql",
+      "bytes": 2083,
+      "sha256": "e63a95d49bfedb95db26246e56602159d14e03bbe81ca4e85dfd19e76e511d10"
+    },
+    {
+      "file": "resource_library_v10_80.sql",
+      "bytes": 7184,
+      "sha256": "3ec49c24dfa2f340ed8740d5ecd2731443317b38a36fd6d885ac06aa6f208453"
+    },
+    {
+      "file": "resource_library_v10_81_2_full_fixed.sql",
+      "bytes": 14002,
+      "sha256": "46d6d70d4d6c3d2fa7dda628f9a674338bf3505ba50e94d87e8ce92bbe4c6546"
+    },
+    {
+      "file": "resource_library_v10_81_7_visibility_delete_hotfix.sql",
+      "bytes": 1523,
+      "sha256": "7bc3d82e7ad4562aafce8b7b08b55697606a1f8ec6c1c76be64de7e745a47c30"
+    },
+    {
+      "file": "resource_library_v10_88_1_access_sync_fix.sql",
+      "bytes": 15735,
+      "sha256": "0364cf1561f8d643318ce26799141e35a234150eb27b52b0cd2a3e707a1e2724"
+    },
+    {
+      "file": "schema.sql",
+      "bytes": 28673,
+      "sha256": "1568e23f4f244e493c984061e53f87ace4d19b00093b0f6247ca4cae13d5391d"
+    },
+    {
+      "file": "smart_knowledge_v10_90_0.sql",
+      "bytes": 18724,
+      "sha256": "ee140332d49668ebc531bbebe86f4b55743ff249373adb99da12da1918a9ee75"
+    },
+    {
+      "file": "teacher_os_projects.sql",
+      "bytes": 1845,
+      "sha256": "07213563a456478cc5dcc6db559243f99a8119d1222be3358147b96f1aadb3bd"
+    },
+    {
+      "file": "work_hub_v10_89_0.sql",
+      "bytes": 31140,
+      "sha256": "2b9d40e05af93e6e8f21af3b4e7b39511f478bc32a3e8019d9cad58c9aa32b3a"
+    }
+  ],
+  "note": "V10.97 requires Cloud Operations preflight, migration and verify."
+}

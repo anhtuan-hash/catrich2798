@@ -38,6 +38,38 @@ export const APPS = [
     descVi: 'Quản lí ngân hàng câu hỏi, nhập dữ liệu, tạo blueprint và nhiều mã đề.',
     status: 'Question bank · Blueprints', statusVi: 'Ngân hàng · Blueprint', api: true, featured: true,
   },
+  {
+    slug: 'learning-intelligence', route: 'learning-intelligence', icon: 'LI', tone: 'teal', group: 'Learning Analytics', groupVi: 'Phân tích học tập',
+    title: 'Learning Intelligence', titleVi: 'Trung tâm phân tích học tập',
+    desc: 'Track mastery, classify recurring errors, identify at-risk learners and build adaptive practice plans.',
+    descVi: 'Theo dõi mastery, phân loại lỗi lặp lại, phát hiện học sinh cần hỗ trợ và tạo bài luyện thích ứng.',
+    status: 'Mastery · Error taxonomy · Adaptive', statusVi: 'Mastery · Bản đồ lỗi · Thích ứng', api: true, featured: true,
+  },
+
+  {
+    slug: 'platform-readiness', route: 'platform-readiness', icon: 'PR', tone: 'mint', group: 'Platform', groupVi: 'Nền tảng',
+    title: 'Platform Readiness', titleVi: 'PWA, bảo mật & tiếp cận',
+    desc: 'Install the site as an app, audit security headers, tune accessibility and monitor performance budgets.',
+    descVi: 'Cài website như ứng dụng, kiểm tra bảo mật, điều chỉnh khả năng tiếp cận và theo dõi ngân sách hiệu năng.',
+    status: 'PWA · Security · WCAG · Web Vitals', statusVi: 'PWA · Bảo mật · WCAG · Hiệu năng', api: true, featured: true,
+  },
+
+
+  {
+    slug: 'automation-center', route: 'automation-center', icon: 'AU', tone: 'blue', group: 'Operations', groupVi: 'Tự động hóa & vận hành',
+    title: 'Automation Center', titleVi: 'Trung tâm tự động hóa',
+    desc: 'Build event and schedule rules, approve sensitive actions, inspect run history and monitor platform operations.',
+    descVi: 'Tạo quy tắc theo sự kiện và lịch, phê duyệt hành động nhạy cảm, xem nhật ký và giám sát vận hành.',
+    status: 'Rules · Approvals · Audit log', statusVi: 'Quy tắc · Phê duyệt · Nhật ký', api: true, featured: true,
+  },
+  {
+    slug: 'cloud-operations', route: 'cloud-operations', icon: 'CO', tone: 'mint', group: 'Operations', groupVi: 'Tự động hóa & vận hành',
+    title: 'Cloud Operations', titleVi: 'Vận hành nền 24/7',
+    desc: 'Run automation with durable queues, Supabase Cron, controlled retries, approval gates and operations digests.',
+    descVi: 'Chạy tự động hóa bằng hàng đợi bền vững, Supabase Cron, retry, phê duyệt và bản tin vận hành.',
+    status: '24/7 worker · Queue · Digest', statusVi: 'Worker 24/7 · Hàng đợi · Bản tin', api: true, featured: true,
+  },
+
 
   {
       slug: 'resource-library-hub',
