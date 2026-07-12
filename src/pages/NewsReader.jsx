@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import RouteHero from '../components/RouteHero.jsx';
 
 const CHANNELS = {
   vi: [
@@ -18,111 +17,215 @@ const CHANNELS = {
 
 const TEXT = {
   vi: {
-    kicker: 'NEWSROOM READER',
-    title: 'Đọc báo mỗi ngày',
-    subtitle: 'Tin giáo dục Việt Nam và báo tiếng Anh trong một không gian đọc tập trung, rõ nguồn và cập nhật tự động.',
-    viTab: 'Tin giáo dục Việt Nam',
+    kicker: 'BRIAN NEWSROOM · TOÀN VĂN TRONG ỨNG DỤNG',
+    title: 'Đọc báo để mở rộng góc nhìn.',
+    subtitle: 'Tin giáo dục Việt Nam và báo tiếng Anh được gom trong một giao diện đọc tập trung. Nhấn vào bài để tải toàn văn và đọc trực tiếp mà không rời Brian English.',
+    viTab: 'Báo giáo dục Việt Nam',
     enTab: 'English News',
-    search: 'Tìm trong tiêu đề, nội dung hoặc nguồn...',
-    refresh: 'Làm mới',
+    heroPrimary: 'Đọc tin Việt Nam',
+    heroSecondary: 'Read English news',
+    fullFeature: 'Toàn văn trong app',
+    listenFeature: 'Nghe bài bằng giọng đọc',
+    saveFeature: 'Lưu bài trên thiết bị',
+    search: 'Tìm tiêu đề, nội dung hoặc nguồn báo...',
+    refresh: 'Làm mới nguồn tin',
     loading: 'Đang tải các nguồn tin mới nhất...',
     empty: 'Chưa có bài phù hợp với bộ lọc này.',
-    latest: 'Bài mới',
+    latest: 'Dòng tin mới',
     articles: 'bài',
     source: 'Nguồn',
     allSources: 'Tất cả nguồn',
-    read: 'Đọc bài',
+    read: 'Đọc toàn văn',
     original: 'Mở bài gốc',
-    close: 'Đóng bài',
+    close: 'Đóng trình đọc',
     saved: 'Đã lưu',
     save: 'Lưu bài',
     listen: 'Nghe bài',
     stop: 'Dừng đọc',
-    feedNote: 'Nội dung tóm tắt được cung cấp bởi RSS của nguồn báo. Bản quyền bài viết thuộc về tòa soạn tương ứng.',
     partial: 'Một vài nguồn đang phản hồi chậm; danh sách dưới đây là dữ liệu đã tải được.',
     failed: 'Không tải được nguồn tin. Hãy nhấn Làm mới sau ít phút.',
     readTime: 'phút đọc',
     updated: 'Cập nhật',
+    fullLoading: 'Đang tải và dựng toàn văn bài báo...',
+    fullReady: 'Đã tải toàn văn',
+    fallbackReady: 'Đang hiển thị nội dung nguồn cung cấp',
+    fullFailed: 'Nguồn báo tạm thời chặn việc dựng toàn văn. Bạn vẫn có thể mở bài gốc.',
+    featured: 'Bài nổi bật',
+    savedPanel: 'Bài đã lưu',
+    activeSources: 'Nguồn đang hoạt động',
+    readingDesk: 'Bàn đọc cá nhân',
+    savedOnly: 'Chỉ xem bài đã lưu',
+    allStories: 'Xem tất cả bài',
+    loadMore: 'Tải thêm bài',
+    noSaved: 'Chưa có bài đã lưu.',
+    openSaved: 'Mở bài đã lưu',
+    contentLabel: 'TOÀN VĂN',
+    feedLabel: 'TIN MỚI',
+    sourceLabel: 'NGUỒN BÁO',
+    noDistraction: 'Không quảng cáo chen giữa nội dung',
+    readerNote: 'Nội dung được tải từ bài gốc và trình bày lại ở chế độ đọc tập trung. Bản quyền bài viết và hình ảnh thuộc tòa soạn tương ứng.',
   },
   en: {
-    kicker: 'NEWSROOM READER',
-    title: 'Daily news reading',
-    subtitle: 'Vietnamese education news and English-language reporting in one focused, source-attributed reader.',
+    kicker: 'BRIAN NEWSROOM · FULL ARTICLE READER',
+    title: 'Read the news. Widen your view.',
+    subtitle: 'Vietnamese education reporting and English-language news in one focused reader. Open any story to fetch the full article without leaving Brian English.',
     viTab: 'Vietnam Education',
     enTab: 'English News',
-    search: 'Search titles, summaries or sources...',
-    refresh: 'Refresh',
+    heroPrimary: 'Vietnamese news',
+    heroSecondary: 'Read English news',
+    fullFeature: 'Full article in app',
+    listenFeature: 'Browser text-to-speech',
+    saveFeature: 'Save stories locally',
+    search: 'Search titles, content or publishers...',
+    refresh: 'Refresh feeds',
     loading: 'Loading the latest feeds...',
-    empty: 'No articles match the current filters.',
-    latest: 'Latest stories',
+    empty: 'No stories match the current filters.',
+    latest: 'Latest stream',
     articles: 'articles',
-    source: 'Source',
-    allSources: 'All sources',
-    read: 'Read story',
+    source: 'Publisher',
+    allSources: 'All publishers',
+    read: 'Read full article',
     original: 'Open original',
-    close: 'Close story',
+    close: 'Close reader',
     saved: 'Saved',
     save: 'Save story',
     listen: 'Listen',
     stop: 'Stop',
-    feedNote: 'Summaries are supplied by each publisher’s RSS feed. Copyright remains with the original newsroom.',
     partial: 'Some publishers are responding slowly; the list shows the sources that loaded successfully.',
     failed: 'News feeds could not be loaded. Try Refresh again in a few minutes.',
     readTime: 'min read',
     updated: 'Updated',
+    fullLoading: 'Fetching and formatting the full article...',
+    fullReady: 'Full article loaded',
+    fallbackReady: 'Showing publisher-provided content',
+    fullFailed: 'The publisher temporarily blocked full-text extraction. The original story is still available.',
+    featured: 'Featured story',
+    savedPanel: 'Saved stories',
+    activeSources: 'Active publishers',
+    readingDesk: 'Your reading desk',
+    savedOnly: 'Saved stories only',
+    allStories: 'Show all stories',
+    loadMore: 'Load more stories',
+    noSaved: 'No saved stories yet.',
+    openSaved: 'Open saved story',
+    contentLabel: 'FULL ARTICLE',
+    feedLabel: 'LATEST',
+    sourceLabel: 'PUBLISHERS',
+    noDistraction: 'No in-article advertising clutter',
+    readerNote: 'Article content is fetched from the original page and reformatted for focused reading. Copyright remains with the original publisher.',
   },
 };
 
-const CACHE_TTL = 10 * 60 * 1000;
+const FEED_CACHE_TTL = 10 * 60 * 1000;
+const ARTICLE_CACHE_TTL = 6 * 60 * 60 * 1000;
+const PAGE_SIZE = 14;
 
-function formatDate(value, language) {
+function formatDate(value, language, compact = false) {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-GB', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
+  return new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-GB', compact ? {
+    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+  } : {
+    dateStyle: 'medium', timeStyle: 'short',
   }).format(date);
 }
 
-function readMinutes(item) {
-  const words = `${item?.content || ''} ${item?.summary || ''}`.trim().split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.ceil(words / 180));
+function wordCount(text = '') {
+  return String(text || '').trim().split(/\s+/).filter(Boolean).length;
 }
 
-function cacheKey(language, category) {
+function readMinutes(item) {
+  const words = Number(item?.wordCount) || wordCount(`${item?.text || ''} ${item?.content || ''} ${item?.summary || ''}`);
+  return Math.max(1, Math.ceil(words / 190));
+}
+
+function feedCacheKey(language, category) {
   return `bes-news-feed:${language}:${category}`;
 }
 
-function getCached(language, category) {
+function articleCacheKey(item) {
+  return `bes-news-full:${item?.id || item?.link || ''}`;
+}
+
+function getCachedFeed(language, category) {
   try {
-    const raw = sessionStorage.getItem(cacheKey(language, category));
+    const raw = sessionStorage.getItem(feedCacheKey(language, category));
     const parsed = raw ? JSON.parse(raw) : null;
-    if (!parsed || Date.now() - parsed.savedAt > CACHE_TTL) return null;
+    if (!parsed || Date.now() - parsed.savedAt > FEED_CACHE_TTL) return null;
     return parsed.data;
   } catch {
     return null;
   }
 }
 
-function setCached(language, category, data) {
+function setCachedFeed(language, category, data) {
   try {
-    sessionStorage.setItem(cacheKey(language, category), JSON.stringify({ savedAt: Date.now(), data }));
+    sessionStorage.setItem(feedCacheKey(language, category), JSON.stringify({ savedAt: Date.now(), data }));
   } catch { /* ignore quota */ }
 }
 
-function getSavedIds() {
+function getCachedArticle(item) {
   try {
-    const value = JSON.parse(localStorage.getItem('bes-news-saved') || '[]');
+    const raw = sessionStorage.getItem(articleCacheKey(item));
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (!parsed || Date.now() - parsed.savedAt > ARTICLE_CACHE_TTL) return null;
+    return parsed.data;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedArticle(item, data) {
+  try {
+    sessionStorage.setItem(articleCacheKey(item), JSON.stringify({ savedAt: Date.now(), data }));
+  } catch { /* ignore quota */ }
+}
+
+function getSavedItems() {
+  try {
+    const value = JSON.parse(localStorage.getItem('bes-news-saved-items') || '[]');
     return Array.isArray(value) ? value : [];
   } catch {
     return [];
   }
 }
 
-function ArticleThumb({ item }) {
-  if (item.image) return <img src={item.image} alt="" loading="lazy" referrerPolicy="no-referrer" />;
-  return <span className="newsroom-thumb-fallback" aria-hidden="true"><i /><i /><i /></span>;
+function fallbackBlocks(item) {
+  const text = String(item?.content || item?.summary || '').trim();
+  const paragraphs = text.split(/\n{2,}/).map((entry) => entry.trim()).filter(Boolean);
+  return paragraphs.length
+    ? paragraphs.map((paragraph) => ({ type: 'paragraph', text: paragraph }))
+    : [{ type: 'paragraph', text: item?.summary || item?.title || '' }];
+}
+
+function ArticleThumb({ item, eager = false }) {
+  if (item?.image) return <img src={item.image} alt="" loading={eager ? 'eager' : 'lazy'} referrerPolicy="no-referrer" />;
+  return <span className="newsroom-v823-thumb-fallback" aria-hidden="true"><i /><i /><i /><b>NEWS</b></span>;
+}
+
+function SourceMark({ name = '' }) {
+  const letters = name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase() || 'NW';
+  return <span className="newsroom-v823-source-mark" aria-hidden="true">{letters}</span>;
+}
+
+function ArticleBlocks({ blocks = [] }) {
+  return blocks.map((block, index) => {
+    const key = `${block.type || 'paragraph'}-${index}-${block.text?.slice(0, 18) || block.src || ''}`;
+    if (block.type === 'image' && block.src) {
+      return (
+        <figure key={key} className="newsroom-v823-reader-figure">
+          <img src={block.src} alt={block.alt || ''} referrerPolicy="no-referrer" />
+          {block.caption ? <figcaption>{block.caption}</figcaption> : null}
+        </figure>
+      );
+    }
+    if (!block.text) return null;
+    if (block.type === 'heading') return <h3 key={key}>{block.text}</h3>;
+    if (block.type === 'quote') return <blockquote key={key}>{block.text}</blockquote>;
+    if (block.type === 'list') return <p key={key} className="newsroom-v823-list-line"><span>•</span>{block.text}</p>;
+    return <p key={key}>{block.text}</p>;
+  });
 }
 
 export default function NewsReader({ language = 'vi' }) {
@@ -134,12 +237,17 @@ export default function NewsReader({ language = 'vi' }) {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [source, setSource] = useState('all');
+  const [savedItems, setSavedItems] = useState(getSavedItems);
+  const [savedOnly, setSavedOnly] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [selected, setSelected] = useState(null);
-  const [savedIds, setSavedIds] = useState(getSavedIds);
-  const [fontSize, setFontSize] = useState(18);
+  const [articleState, setArticleState] = useState({ status: 'idle', data: null, error: '' });
+  const [fontSize, setFontSize] = useState(19);
   const [speaking, setSpeaking] = useState(false);
-  const readerRef = useRef(null);
+  const [readerProgress, setReaderProgress] = useState(0);
   const requestIdRef = useRef(0);
+  const articleRequestRef = useRef(0);
+  const readerBodyRef = useRef(null);
 
   const effectiveCategory = CHANNELS[channel].some((item) => item.id === category)
     ? category
@@ -149,7 +257,7 @@ export default function NewsReader({ language = 'vi' }) {
     const requestId = ++requestIdRef.current;
     setError('');
     if (!force) {
-      const cached = getCached(channel, effectiveCategory);
+      const cached = getCachedFeed(channel, effectiveCategory);
       if (cached) {
         setPayload(cached);
         setLoading(false);
@@ -164,7 +272,7 @@ export default function NewsReader({ language = 'vi' }) {
       if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
       if (requestId !== requestIdRef.current) return;
       setPayload(data);
-      setCached(channel, effectiveCategory, data);
+      setCachedFeed(channel, effectiveCategory, data);
     } catch (loadError) {
       if (requestId !== requestIdRef.current) return;
       setPayload({ items: [], sources: [], fetchedAt: null, errors: [], partial: false });
@@ -174,47 +282,127 @@ export default function NewsReader({ language = 'vi' }) {
     }
   }
 
+  async function loadFullArticle(item) {
+    const requestId = ++articleRequestRef.current;
+    const cached = getCachedArticle(item);
+    if (cached) {
+      setArticleState({ status: 'ready', data: cached, error: '' });
+      return;
+    }
+
+    setArticleState({ status: 'loading', data: null, error: '' });
+    try {
+      const response = await fetch(`/api/news-article?url=${encodeURIComponent(item.link)}&source=${encodeURIComponent(item.source || '')}`);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+      if (requestId !== articleRequestRef.current) return;
+      const normalized = {
+        ...data,
+        title: data.title || item.title,
+        image: data.image || item.image,
+        publishedAt: data.publishedAt || item.publishedAt,
+        blocks: Array.isArray(data.blocks) && data.blocks.length ? data.blocks : fallbackBlocks(item),
+        text: data.text || item.content || item.summary || '',
+      };
+      setCachedArticle(item, normalized);
+      setArticleState({ status: 'ready', data: normalized, error: '' });
+    } catch (loadError) {
+      if (requestId !== articleRequestRef.current) return;
+      const fallback = {
+        title: item.title,
+        image: item.image,
+        publishedAt: item.publishedAt,
+        blocks: fallbackBlocks(item),
+        text: item.content || item.summary || '',
+        wordCount: wordCount(item.content || item.summary || ''),
+        readingMinutes: readMinutes(item),
+        full: false,
+        method: 'feed-fallback',
+      };
+      setArticleState({ status: 'fallback', data: fallback, error: loadError?.message || 'Full article unavailable' });
+    }
+  }
+
   useEffect(() => {
     setCategory(CHANNELS[channel][0].id);
     setSource('all');
     setQuery('');
-    setSelected(null);
-    window.speechSynthesis?.cancel();
-    setSpeaking(false);
+    setSavedOnly(false);
+    setVisibleCount(PAGE_SIZE);
   }, [channel]);
 
   useEffect(() => {
     setSource('all');
-    setSelected(null);
+    setVisibleCount(PAGE_SIZE);
     loadNews();
-    return () => {
-      requestIdRef.current += 1;
-    };
+    return () => { requestIdRef.current += 1; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channel, effectiveCategory]);
 
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [query, source, savedOnly]);
+
+  useEffect(() => {
+    if (!selected) return undefined;
+    document.documentElement.classList.add('newsroom-reader-open');
+    const onEscape = (event) => {
+      if (event.key === 'Escape') closeReader();
+    };
+    window.addEventListener('keydown', onEscape);
+    return () => {
+      document.documentElement.classList.remove('newsroom-reader-open');
+      window.removeEventListener('keydown', onEscape);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected]);
+
   useEffect(() => () => window.speechSynthesis?.cancel(), []);
+
+  const savedIds = useMemo(() => new Set(savedItems.map((item) => item.id)), [savedItems]);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return (payload.items || []).filter((item) => {
       if (source !== 'all' && item.source !== source) return false;
+      if (savedOnly && !savedIds.has(item.id)) return false;
       if (!needle) return true;
       return `${item.title} ${item.summary} ${item.content} ${item.source}`.toLowerCase().includes(needle);
     });
-  }, [payload.items, query, source]);
+  }, [payload.items, query, source, savedOnly, savedIds]);
+
+  const lead = filtered[0] || payload.items?.[0] || null;
+  const displayed = filtered.slice(0, visibleCount);
+  const sidebarSaved = savedItems.slice(0, 4);
+  const heroSources = payload.sources?.length || 0;
+
+  function switchChannel(next) {
+    setChannel(next);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   function openArticle(item) {
     setSelected(item);
+    setReaderProgress(0);
+    setSpeaking(false);
+    window.speechSynthesis?.cancel();
+    loadFullArticle(item);
+  }
+
+  function closeReader() {
+    articleRequestRef.current += 1;
+    setSelected(null);
+    setArticleState({ status: 'idle', data: null, error: '' });
+    setReaderProgress(0);
     window.speechSynthesis?.cancel();
     setSpeaking(false);
-    requestAnimationFrame(() => readerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
   function toggleSaved(item) {
-    setSavedIds((current) => {
-      const next = current.includes(item.id) ? current.filter((id) => id !== item.id) : [...current, item.id];
-      try { localStorage.setItem('bes-news-saved', JSON.stringify(next)); } catch { /* ignore */ }
+    setSavedItems((current) => {
+      const exists = current.some((entry) => entry.id === item.id);
+      const next = exists ? current.filter((entry) => entry.id !== item.id) : [{ ...item, savedAt: new Date().toISOString() }, ...current].slice(0, 80);
+      try { localStorage.setItem('bes-news-saved-items', JSON.stringify(next)); } catch { /* ignore */ }
       return next;
     });
   }
@@ -226,7 +414,8 @@ export default function NewsReader({ language = 'vi' }) {
       setSpeaking(false);
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(`${selected.title}. ${selected.content || selected.summary}`);
+    const text = articleState.data?.text || selected.content || selected.summary || '';
+    const utterance = new SpeechSynthesisUtterance(`${articleState.data?.title || selected.title}. ${text}`);
     utterance.lang = channel === 'vi' ? 'vi-VN' : 'en-GB';
     utterance.rate = channel === 'vi' ? 1 : 0.88;
     utterance.onend = () => setSpeaking(false);
@@ -236,135 +425,194 @@ export default function NewsReader({ language = 'vi' }) {
     setSpeaking(true);
   }
 
-  return (
-    <div className="page newsroom-page">
-      <RouteHero
-        eyebrow={t.kicker}
-        title={t.title}
-        description={t.subtitle}
-        accent="teal"
-        icon="NW"
-        className="newsroom-hero"
-        tiles={channel === 'vi' ? [
-          { title: 'Giáo dục', text: 'Tin tức trong nước', icon: 'VI', tone: 'teal' },
-          { title: 'Chính sách', text: 'Cập nhật ngành', icon: 'CS', tone: 'blue' },
-          { title: 'Phương pháp', text: 'Góc chuyên môn', icon: 'PP', tone: 'orange' },
-          { title: 'Đọc tập trung', text: 'Rõ nguồn · ít nhiễu', icon: 'RD', tone: 'purple' },
-        ] : [
-          { title: 'Top stories', text: 'Current English news', icon: 'EN', tone: 'teal' },
-          { title: 'Education', text: 'Schools and learning', icon: 'ED', tone: 'blue' },
-          { title: 'Science', text: 'Ideas and discovery', icon: 'SC', tone: 'orange' },
-          { title: 'Listen', text: 'Browser speech mode', icon: 'AU', tone: 'purple' },
-        ]}
-      />
+  function handleReaderScroll(event) {
+    const target = event.currentTarget;
+    const available = target.scrollHeight - target.clientHeight;
+    setReaderProgress(available > 0 ? Math.min(100, Math.max(0, (target.scrollTop / available) * 100)) : 100);
+  }
 
-      <section className="newsroom-mode-switch" aria-label="News language">
-        <button type="button" className={channel === 'vi' ? 'active' : ''} onClick={() => setChannel('vi')}>
-          <span>VI</span><strong>{t.viTab}</strong>
-        </button>
-        <button type="button" className={channel === 'en' ? 'active' : ''} onClick={() => setChannel('en')}>
-          <span>EN</span><strong>{t.enTab}</strong>
-        </button>
+  const readerData = articleState.data;
+  const readerMinutes = readerData?.readingMinutes || readMinutes(readerData || selected);
+
+  return (
+    <div className="page newsroom-v823-page">
+      <section className="newsroom-v823-hero">
+        <div className="newsroom-v823-hero-copy">
+          <span className="newsroom-v823-kicker">{t.kicker}</span>
+          <h1>{t.title}</h1>
+          <p>{t.subtitle}</p>
+          <div className="newsroom-v823-hero-actions">
+            <button type="button" className={channel === 'vi' ? 'primary active' : 'primary'} onClick={() => switchChannel('vi')}>
+              <span>VI</span>{t.heroPrimary}
+            </button>
+            <button type="button" className={channel === 'en' ? 'secondary active' : 'secondary'} onClick={() => switchChannel('en')}>
+              <span>EN</span>{t.heroSecondary}
+            </button>
+          </div>
+          <div className="newsroom-v823-feature-row">
+            <span><b>✓</b>{t.fullFeature}</span>
+            <span><b>◉</b>{t.listenFeature}</span>
+            <span><b>★</b>{t.saveFeature}</span>
+          </div>
+          <div className="newsroom-v823-hero-stats">
+            <div><strong>{payload.items?.length || 0}</strong><span>{t.feedLabel}</span></div>
+            <div><strong>{heroSources}</strong><span>{t.sourceLabel}</span></div>
+            <div><strong>100%</strong><span>{t.contentLabel}</span></div>
+          </div>
+        </div>
+
+        <div className="newsroom-v823-hero-art" aria-label={lead?.title || t.featured}>
+          <div className="newsroom-v823-paper-stack" aria-hidden="true"><i /><i /><i /></div>
+          <button type="button" className="newsroom-v823-hero-story" onClick={() => lead && openArticle(lead)} disabled={!lead}>
+            <span className="newsroom-v823-hero-story-media"><ArticleThumb item={lead} eager /><b>{channel === 'vi' ? 'VI' : 'EN'}</b></span>
+            <span className="newsroom-v823-hero-story-copy">
+              <small>{lead ? `${lead.source} · ${formatDate(lead.publishedAt, language, true)}` : t.loading}</small>
+              <strong>{lead?.title || t.loading}</strong>
+              <em>{lead?.summary || t.subtitle}</em>
+              <span>{t.read} <b>→</b></span>
+            </span>
+          </button>
+          <div className="newsroom-v823-floating-card card-a"><span>EDU</span><b>{channel === 'vi' ? 'Giáo dục' : 'Education'}</b><small>Live feed</small></div>
+          <div className="newsroom-v823-floating-card card-b"><span>AA</span><b>{t.fullFeature}</b><small>{t.noDistraction}</small></div>
+        </div>
       </section>
 
-      <section className="newsroom-toolbar panel">
-        <div className="newsroom-category-row">
+      <section className="newsroom-v823-command panel">
+        <div className="newsroom-v823-channel-tabs" aria-label="News language">
+          <button type="button" className={channel === 'vi' ? 'active' : ''} onClick={() => switchChannel('vi')}><span>VI</span><b>{t.viTab}</b></button>
+          <button type="button" className={channel === 'en' ? 'active' : ''} onClick={() => switchChannel('en')}><span>EN</span><b>{t.enTab}</b></button>
+        </div>
+        <div className="newsroom-v823-category-tabs">
           {CHANNELS[channel].map((item) => (
-            <button key={item.id} type="button" className={effectiveCategory === item.id ? 'active' : ''} onClick={() => setCategory(item.id)}>
-              {item.label}
-            </button>
+            <button key={item.id} type="button" className={effectiveCategory === item.id ? 'active' : ''} onClick={() => setCategory(item.id)}>{item.label}</button>
           ))}
         </div>
-        <div className="newsroom-filter-row">
-          <label className="newsroom-search">
+        <div className="newsroom-v823-filter-row">
+          <label className="newsroom-v823-search">
             <span>⌕</span>
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.search} />
+            {query ? <button type="button" onClick={() => setQuery('')} aria-label="Clear search">×</button> : null}
           </label>
-          <label className="newsroom-source-filter">
+          <label className="newsroom-v823-source-filter">
             <span>{t.source}</span>
             <select value={source} onChange={(event) => setSource(event.target.value)}>
               <option value="all">{t.allSources}</option>
               {(payload.sources || []).map((name) => <option key={name} value={name}>{name}</option>)}
             </select>
           </label>
-          <button type="button" className="newsroom-refresh" onClick={() => loadNews({ force: true })} disabled={loading}>
+          <button type="button" className="newsroom-v823-refresh" onClick={() => loadNews({ force: true })} disabled={loading}>
             <span className={loading ? 'is-spinning' : ''}>↻</span>{t.refresh}
           </button>
         </div>
       </section>
 
-      {payload.partial ? <div className="newsroom-notice warning">{t.partial}</div> : null}
-      {error ? <div className="newsroom-notice error">{t.failed}<small>{error}</small></div> : null}
+      {payload.partial ? <div className="newsroom-v823-notice warning">{t.partial}</div> : null}
+      {error ? <div className="newsroom-v823-notice error">{t.failed}<small>{error}</small></div> : null}
 
-      <section className="newsroom-feed-panel panel">
-        <header className="newsroom-feed-head">
-          <div>
-            <span className="eyebrow">{channel === 'vi' ? 'VIETNAM EDUCATION' : 'ENGLISH PRESS'}</span>
-            <h2>{t.latest}</h2>
-          </div>
-          <div className="newsroom-feed-count">
-            <strong>{filtered.length}</strong>
-            <span>{t.articles}</span>
-            {payload.fetchedAt ? <small>{t.updated}: {formatDate(payload.fetchedAt, language)}</small> : null}
-          </div>
-        </header>
+      <section className="newsroom-v823-layout">
+        <main className="newsroom-v823-feed panel">
+          <header className="newsroom-v823-feed-head">
+            <div>
+              <span className="eyebrow">{channel === 'vi' ? 'VIETNAM EDUCATION DESK' : 'ENGLISH NEWS DESK'}</span>
+              <h2>{savedOnly ? t.savedPanel : t.latest}</h2>
+              <p>{loading ? t.loading : `${filtered.length} ${t.articles} · ${payload.fetchedAt ? `${t.updated} ${formatDate(payload.fetchedAt, language, true)}` : ''}`}</p>
+            </div>
+            <div className="newsroom-v823-view-toggle">
+              <button type="button" className={!savedOnly ? 'active' : ''} onClick={() => setSavedOnly(false)}>{t.allStories}</button>
+              <button type="button" className={savedOnly ? 'active' : ''} onClick={() => setSavedOnly(true)}>★ {savedItems.length}</button>
+            </div>
+          </header>
 
-        {loading ? (
-          <div className="newsroom-loading"><span /><span /><span /><p>{t.loading}</p></div>
-        ) : filtered.length ? (
-          <div className="newsroom-article-grid">
-            {filtered.map((item, index) => (
-              <article key={item.id} className={`newsroom-card ${index === 0 ? 'is-lead' : ''}`}>
-                <button type="button" className="newsroom-card-open" onClick={() => openArticle(item)}>
-                  <span className="newsroom-card-media"><ArticleThumb item={item} /><b>{item.category}</b></span>
-                  <span className="newsroom-card-copy">
-                    <small>{item.source} · {formatDate(item.publishedAt, language)}</small>
-                    <strong>{item.title}</strong>
-                    <em>{item.summary || item.content || t.read}</em>
-                    <span>{readMinutes(item)} {t.readTime} <i>→</i></span>
-                  </span>
-                </button>
-                <button type="button" className={`newsroom-save-mini ${savedIds.includes(item.id) ? 'active' : ''}`} onClick={() => toggleSaved(item)} aria-label={savedIds.includes(item.id) ? t.saved : t.save}>★</button>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className="newsroom-empty"><span>NW</span><h3>{t.empty}</h3></div>
-        )}
+          {loading ? (
+            <div className="newsroom-v823-loading"><span /><span /><span /><p>{t.loading}</p></div>
+          ) : displayed.length ? (
+            <div className="newsroom-v823-story-list">
+              {displayed.map((item, index) => (
+                <article key={item.id} className={`newsroom-v823-story ${index === 0 ? 'is-lead' : ''}`}>
+                  <button type="button" className="newsroom-v823-story-open" onClick={() => openArticle(item)}>
+                    <span className="newsroom-v823-story-media"><ArticleThumb item={item} /><b>{item.category}</b></span>
+                    <span className="newsroom-v823-story-copy">
+                      <small><SourceMark name={item.source} />{item.source}<i>·</i>{formatDate(item.publishedAt, language, true)}</small>
+                      <strong>{item.title}</strong>
+                      <em>{item.summary || item.content || t.read}</em>
+                      <span>{readMinutes(item)} {t.readTime}<b>{t.read} →</b></span>
+                    </span>
+                  </button>
+                  <button type="button" className={`newsroom-v823-save ${savedIds.has(item.id) ? 'active' : ''}`} onClick={() => toggleSaved(item)} aria-label={savedIds.has(item.id) ? t.saved : t.save}>★</button>
+                </article>
+              ))}
+              {visibleCount < filtered.length ? <button type="button" className="newsroom-v823-load-more" onClick={() => setVisibleCount((value) => value + PAGE_SIZE)}>{t.loadMore}<span>{visibleCount}/{filtered.length}</span></button> : null}
+            </div>
+          ) : (
+            <div className="newsroom-v823-empty"><span>NW</span><h3>{savedOnly ? t.noSaved : t.empty}</h3></div>
+          )}
+        </main>
+
+        <aside className="newsroom-v823-sidebar">
+          <section className="newsroom-v823-side-card newsroom-v823-featured-card">
+            <header><span>01</span><div><small>{t.featured}</small><strong>{lead?.source || 'Brian Newsroom'}</strong></div></header>
+            {lead ? <button type="button" onClick={() => openArticle(lead)}><ArticleThumb item={lead} /><b>{lead.title}</b><span>{t.read} →</span></button> : <p>{t.loading}</p>}
+          </section>
+
+          <section className="newsroom-v823-side-card">
+            <header><span>★</span><div><small>{t.readingDesk}</small><strong>{t.savedPanel}</strong></div></header>
+            <div className="newsroom-v823-saved-list">
+              {sidebarSaved.length ? sidebarSaved.map((item) => (
+                <button key={item.id} type="button" onClick={() => openArticle(item)}><SourceMark name={item.source} /><span><b>{item.title}</b><small>{item.source}</small></span><i>→</i></button>
+              )) : <p>{t.noSaved}</p>}
+            </div>
+            <button type="button" className="newsroom-v823-side-action" onClick={() => setSavedOnly((value) => !value)}>{savedOnly ? t.allStories : t.savedOnly}</button>
+          </section>
+
+          <section className="newsroom-v823-side-card">
+            <header><span>●</span><div><small>{t.sourceLabel}</small><strong>{t.activeSources}</strong></div></header>
+            <div className="newsroom-v823-source-list">
+              {(payload.sources || []).map((name) => <button key={name} type="button" className={source === name ? 'active' : ''} onClick={() => setSource(source === name ? 'all' : name)}><SourceMark name={name} /><span>{name}</span><b>{payload.items.filter((item) => item.source === name).length}</b></button>)}
+            </div>
+          </section>
+        </aside>
       </section>
 
       {selected ? (
-        <section ref={readerRef} className="newsroom-reader panel">
-          <header className="newsroom-reader-head">
-            <div>
-              <span className="eyebrow">{selected.source} · {selected.category}</span>
-              <h2>{selected.title}</h2>
-              <p>{formatDate(selected.publishedAt, language)} · {readMinutes(selected)} {t.readTime}</p>
+        <div className="newsroom-v823-reader-overlay" role="dialog" aria-modal="true" aria-label={selected.title}>
+          <div className="newsroom-v823-reader-progress"><i style={{ width: `${readerProgress}%` }} /></div>
+          <section className="newsroom-v823-reader-shell">
+            <header className="newsroom-v823-reader-topbar">
+              <div><SourceMark name={selected.source} /><span><small>{selected.source}</small><strong>{articleState.status === 'loading' ? t.fullLoading : articleState.status === 'ready' && readerData?.full ? t.fullReady : t.fallbackReady}</strong></span></div>
+              <div className="newsroom-v823-reader-actions">
+                <button type="button" onClick={() => toggleSaved(selected)} className={savedIds.has(selected.id) ? 'active' : ''}>★ <span>{savedIds.has(selected.id) ? t.saved : t.save}</span></button>
+                <button type="button" onClick={speakArticle} disabled={articleState.status === 'loading'}>{speaking ? '■' : '▶'} <span>{speaking ? t.stop : t.listen}</span></button>
+                <span className="newsroom-v823-font-control"><button type="button" onClick={() => setFontSize((value) => Math.max(15, value - 1))}>A−</button><b>{fontSize}</b><button type="button" onClick={() => setFontSize((value) => Math.min(28, value + 1))}>A+</button></span>
+                <a href={selected.link} target="_blank" rel="noreferrer">↗ <span>{t.original}</span></a>
+                <button type="button" className="close" onClick={closeReader}>× <span>{t.close}</span></button>
+              </div>
+            </header>
+
+            <div className="newsroom-v823-reader-scroll" onScroll={handleReaderScroll} ref={readerBodyRef}>
+              <article className="newsroom-v823-reader-article" style={{ '--reader-font-size': `${fontSize}px` }}>
+                <div className="newsroom-v823-reader-meta"><span>{selected.category}</span><b>{formatDate(readerData?.publishedAt || selected.publishedAt, language)}</b><i>{readerMinutes} {t.readTime}</i></div>
+                <h1>{readerData?.title || selected.title}</h1>
+                {readerData?.dek ? <p className="newsroom-v823-reader-dek">{readerData.dek}</p> : selected.summary ? <p className="newsroom-v823-reader-dek">{selected.summary}</p> : null}
+                {readerData?.author ? <p className="newsroom-v823-reader-author">{readerData.author}</p> : null}
+                {(readerData?.image || selected.image) ? <figure className="newsroom-v823-reader-cover"><img src={readerData?.image || selected.image} alt="" referrerPolicy="no-referrer" /></figure> : null}
+
+                {articleState.status === 'loading' ? (
+                  <div className="newsroom-v823-full-loading"><span /><span /><span /><strong>{t.fullLoading}</strong><p>{language === 'vi' ? 'Hệ thống đang đọc bài gốc, lọc phần thừa và dựng lại nội dung.' : 'The app is reading the original page, removing clutter and rebuilding the article.'}</p></div>
+                ) : (
+                  <>
+                    {articleState.status === 'fallback' ? <div className="newsroom-v823-reader-warning"><b>!</b><span><strong>{t.fullFailed}</strong><small>{articleState.error}</small></span><a href={selected.link} target="_blank" rel="noreferrer">{t.original} ↗</a></div> : null}
+                    <div className="newsroom-v823-reader-content"><ArticleBlocks blocks={readerData?.blocks || fallbackBlocks(selected)} /></div>
+                  </>
+                )}
+
+                <footer className="newsroom-v823-reader-footer">
+                  <p>{t.readerNote}</p>
+                  <a href={selected.link} target="_blank" rel="noreferrer">{t.original} ↗</a>
+                </footer>
+              </article>
             </div>
-            <button type="button" className="newsroom-reader-close" onClick={() => { setSelected(null); window.speechSynthesis?.cancel(); setSpeaking(false); }}>×<span>{t.close}</span></button>
-          </header>
-
-          <div className="newsroom-reader-controls">
-            <button type="button" onClick={() => toggleSaved(selected)} className={savedIds.includes(selected.id) ? 'active' : ''}>★ {savedIds.includes(selected.id) ? t.saved : t.save}</button>
-            <button type="button" onClick={speakArticle}>{speaking ? '■' : '▶'} {speaking ? t.stop : t.listen}</button>
-            <span className="newsroom-font-control">
-              <button type="button" onClick={() => setFontSize((value) => Math.max(15, value - 1))}>A−</button>
-              <b>{fontSize}px</b>
-              <button type="button" onClick={() => setFontSize((value) => Math.min(26, value + 1))}>A+</button>
-            </span>
-            <a href={selected.link} target="_blank" rel="noreferrer">{t.original} ↗</a>
-          </div>
-
-          {selected.image ? <img className="newsroom-reader-image" src={selected.image} alt="" referrerPolicy="no-referrer" /> : null}
-          <div className="newsroom-reader-body" style={{ fontSize: `${fontSize}px` }}>
-            {(selected.content || selected.summary || '').split(/\n{2,}/).filter(Boolean).map((paragraph, index) => <p key={`${selected.id}-${index}`}>{paragraph}</p>)}
-            {!selected.content && !selected.summary ? <p>{t.empty}</p> : null}
-          </div>
-          <footer className="newsroom-reader-footer">
-            <p>{t.feedNote}</p>
-            <a href={selected.link} target="_blank" rel="noreferrer">{t.original} ↗</a>
-          </footer>
-        </section>
+          </section>
+        </div>
       ) : null}
     </div>
   );

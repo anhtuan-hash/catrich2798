@@ -7,6 +7,7 @@ export const PERMISSION_MODE_CUSTOM = 'custom';
 
 export const ROUTE_PERMISSION_IDS = {
   apps: 'section:apps',
+  news: 'tool:news-reader',
   games: 'section:games',
   tools: 'section:tools',
   library: 'route:library',
@@ -256,6 +257,7 @@ export function hasAnyDepartmentAccess(user) {
 }
 
 export function getRoutePermissionId(route) {
+  if (route === 'news') return getToolPermissionId('news-reader');
   if (route === 'practice') return ROUTE_PERMISSION_IDS.practice;
   if (route === 'department') return DEPARTMENT_WORKSPACE_PERMISSION_ID;
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
@@ -270,6 +272,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (user.role === 'admin') return true;
   if (route === 'admin') return false;
   if (route === 'tool') return hasToolAccess(user, selectedTool?.slug);
+  if (route === 'news') return hasToolAccess(user, 'news-reader');
   if (route === 'department') return hasAnyDepartmentAccess(user);
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
   // Teachers can open these dashboards even when some cards are locked.

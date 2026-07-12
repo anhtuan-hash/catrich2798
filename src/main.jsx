@@ -26,6 +26,7 @@ const ToolPage = lazy(() => import('./pages/ToolPage.jsx'));
 const Settings = lazy(() => import('./pages/Settings.jsx'));
 const Library = lazy(() => import('./pages/Library.jsx'));
 const ResourceLibrary = lazy(() => import('./pages/ResourceLibrary.jsx'));
+const NewsReader = lazy(() => import('./pages/NewsReader.jsx'));
 const StudentPractice = lazy(() => import('./pages/StudentPractice.jsx'));
 const QAHealthCheck = lazy(() => import('./pages/QAHealthCheck.jsx'));
 const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
@@ -40,7 +41,7 @@ const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
 const UniversalAIAssist = lazy(() => import('./components/UniversalAIAssist.jsx'));
 const GlobalAIIndicator = lazy(() => import('./components/GlobalAIIndicator.jsx'));
 
-const ROUTES = ['home', 'apps', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'practice', 'qa', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'practice', 'qa', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
 
 function getInitialRoute() {
@@ -55,6 +56,7 @@ function getInitialRoute() {
 const ROUTE_DESIGN_PROFILES = {
   home: { accent: '#FFC69D', soft: '#FFF1E2', ink: '#171312' },
   apps: { accent: '#F05A7E', soft: '#FFE1EA', ink: '#2F111A' },
+  news: { accent: '#167D78', soft: '#DDF5F1', ink: '#083B38' },
   games: { accent: '#5B2A86', soft: '#E9DAFF', ink: '#20102F' },
   department: { accent: '#3B4CCA', soft: '#E0E4FF', ink: '#12183B' },
   homeroom: { accent: '#1F8F70', soft: '#DDF7ED', ink: '#0B382B' },
@@ -387,6 +389,7 @@ function App() {
           {currentRoute === 'home' && <Home {...context} />}
           {requiresAuth && currentUser && !canAccessRoute && <AccessDenied language={language} currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} />}
           {canAccessRoute && currentRoute === 'apps' && currentUser && <WebApps apps={accessibleApps} {...context} />}
+          {canAccessRoute && currentRoute === 'news' && currentUser && <NewsReader {...context} />}
           {canAccessRoute && currentRoute === 'games' && currentUser && <Games games={accessibleGames} {...context} />}
           {canAccessRoute && currentRoute === 'tools' && currentUser && <SpecialTools tools={accessibleTools} {...context} />}
           {canAccessRoute && currentRoute === 'department' && currentUser && <DepartmentWorkspace {...context} />}

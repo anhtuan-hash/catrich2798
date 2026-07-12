@@ -22,6 +22,7 @@ export const APPS = [
 
   {
       slug: 'news-reader',
+      route: 'news',
       icon: 'NW',
       tone: 'mint',
       group: 'Reading & News',

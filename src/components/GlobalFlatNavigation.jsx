@@ -4,13 +4,13 @@ import { launchRoute } from '../utils/motion.js';
 
 const copy = {
   vi: {
-    home: 'Trang chủ', apps: 'Ứng dụng', games: 'Trò chơi', department: 'Tổ chuyên môn', homeroom: 'Chủ nhiệm',
+    home: 'Trang chủ', apps: 'Ứng dụng', news: 'Đọc báo', games: 'Trò chơi', department: 'Tổ chuyên môn', homeroom: 'Chủ nhiệm',
     library: 'Thư viện', 'resource-library': 'Kho học liệu', resources: 'Tài nguyên', contact: 'Liên hệ', admin: 'Quản trị',
     login: 'Đăng nhập', settings: 'Cài đặt', logout: 'Thoát', subtitle: 'Hệ thống dạy học sáng tạo',
     account: 'Tài khoản', guest: 'Khách', aiReady: 'AI sẵn sàng', aiOff: 'AI chưa cài', fontSize: 'Tăng cỡ chữ',
   },
   en: {
-    home: 'Home', apps: 'Apps', games: 'Games', department: 'Department', homeroom: 'Homeroom',
+    home: 'Home', apps: 'Apps', news: 'News', games: 'Games', department: 'Department', homeroom: 'Homeroom',
     library: 'Library', 'resource-library': 'Resources Hub', resources: 'Resources', contact: 'Contact', admin: 'Admin',
     login: 'Sign in', settings: 'Settings', logout: 'Logout', subtitle: 'Brian English',
     account: 'Account', guest: 'Guest', aiReady: 'AI ready', aiOff: 'AI not set', fontSize: 'Increase text size',
@@ -18,13 +18,13 @@ const copy = {
 };
 
 const routeColors = {
-  home: '#ffc69d', apps: '#f05a7e', games: '#5b2a86', department: '#3b4cca', homeroom: '#1f8f70',
+  home: '#ffc69d', apps: '#f05a7e', news: '#167d78', games: '#5b2a86', department: '#3b4cca', homeroom: '#1f8f70',
   library: '#6fba7b', 'resource-library': '#2878d0', resources: '#d99a1e', contact: '#00a6a6', admin: '#d13438',
   settings: '#123c69', login: '#191515',
 };
 
 const routeIcons = {
-  home: '⌂', apps: '▦', games: '◈', department: '▦', homeroom: '♙', library: '▤', 'resource-library': '▥',
+  home: '⌂', apps: '▦', news: '▤', games: '◈', department: '▦', homeroom: '♙', library: '▤', 'resource-library': '▥',
   resources: '▦', contact: '✉', admin: '☼', settings: '⚙', login: '↪',
 };
 
@@ -58,6 +58,7 @@ export default function GlobalFlatNavigation({
   const baseItems = [
     { key: 'home', public: true },
     { key: 'apps' },
+    { key: 'news' },
     { key: 'games' },
     { key: 'department' },
     { key: 'homeroom' },

@@ -301,22 +301,25 @@ add('V10.81.9 direct viewer covers requested formats', ['docx', 'pptx', 'pdf', '
 add('V10.81.9 resource modal uses secure viewer', resourceLibrarySource.includes('<ResourceFileViewer item={preview} fetchBlob={fetchResourceBlob} getStreamUrl={getResourceStreamUrl}/>') && resourceLibrarySource.includes('supportsResourcePreview'), 'preview remains behind authenticated Drive proxy');
 add('V10.81.9 Office renderers are local and sandboxed', resourceViewerSource.includes('mammoth.convertToHtml') && resourceViewerSource.includes("import('xlsx')") && resourceViewerSource.includes("import('jszip')") && resourceViewerSource.includes('sandbox="allow-popups"'), 'Word, Excel and PowerPoint render without public Drive sharing');
 add('V10.81.9 scalable viewer styling present', resourceViewerCss.includes('V10.81.9 — direct DOCX, PPTX, PDF, XLSX, MP4 and MP3 viewer') && resourceViewerCss.includes('.resource-workbook-viewer') && resourceViewerCss.includes('.resource-pptx-viewer'), 'desktop, dark and mobile layouts present');
-add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
+add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
 const previewSessionSource = fs.readFileSync(new URL('../api/google-drive-preview-session.js', import.meta.url), 'utf8');
 const driveFileSource = fs.readFileSync(new URL('../api/google-drive-file.js', import.meta.url), 'utf8');
 add('V10.81.9 secure streaming session supports media seeking', previewSessionSource.includes('signResourcePreviewToken') && driveFileSource.includes('Content-Range') && driveFileSource.includes("Range: range") && resourceLibrarySource.includes('getResourceStreamUrl'), 'short-lived signed URL and byte ranges present');
 
 const newsReaderSource = fs.readFileSync(new URL('../src/pages/NewsReader.jsx', import.meta.url), 'utf8');
 const newsFeedSource = fs.readFileSync(new URL('../api/news-feed.js', import.meta.url), 'utf8');
+const newsArticleSource = fs.readFileSync(new URL('../api/news-article.js', import.meta.url), 'utf8');
 const appDataSource = fs.readFileSync(new URL('../src/data/apps.js', import.meta.url), 'utf8');
 const toolPageSource = fs.readFileSync(new URL('../src/pages/ToolPage.jsx', import.meta.url), 'utf8');
 const iconSource = fs.readFileSync(new URL('../src/components/FlatAppIcon.jsx', import.meta.url), 'utf8');
 add('V10.82 Newsroom app card is registered', appDataSource.includes("slug: 'news-reader'") && APPS.some((item) => item.slug === 'news-reader'), 'Newsroom Reader appears in the Apps directory');
-add('V10.82 Newsroom has Vietnamese and English channels', newsReaderSource.includes("setChannel('vi')") && newsReaderSource.includes("setChannel('en')") && newsReaderSource.includes('Tin giáo dục Việt Nam') && newsReaderSource.includes('English News'), 'two reading channels present');
-add('V10.82 Newsroom uses same-origin RSS aggregation', newsReaderSource.includes('/api/news-feed?language=') && newsFeedSource.includes('giaoducthoidai.vn/rss/giao-duc-17.rss') && newsFeedSource.includes('feeds.bbci.co.uk/news/rss.xml'), 'Vietnamese education and English feeds configured');
-add('V10.82 Newsroom reader has search, source filter and speech', newsReaderSource.includes('newsroom-search') && newsReaderSource.includes('newsroom-source-filter') && newsReaderSource.includes('SpeechSynthesisUtterance'), 'focused reading controls present');
-add('V10.82 Newsroom tool route and icon are wired', toolPageSource.includes("tool?.slug === 'news-reader'") && iconSource.includes("'news-reader': 'news'"), 'lazy route and flat news icon present');
-add('V10.82 Newsroom responsive design layer present', cssSource.includes('V10.82.0 — Newsroom Reader') && cssSource.includes('.newsroom-article-grid') && cssSource.includes('.newsroom-reader-body'), 'desktop, dark and mobile styles present');
+add('V10.82.3 Newsroom has a direct navigation route', appDataSource.includes("route: 'news'") && mainSource.includes("currentRoute === 'news'") && globalNavSource.includes("{ key: 'news' }"), 'Newsroom can be launched from the global navigation');
+add('V10.82.3 Newsroom has Vietnamese and English channels', newsReaderSource.includes("switchChannel('vi')") && newsReaderSource.includes("switchChannel('en')") && newsReaderSource.includes('Báo giáo dục Việt Nam') && newsReaderSource.includes('English News'), 'two reading channels present');
+add('V10.82.3 Newsroom uses same-origin RSS aggregation', newsReaderSource.includes('/api/news-feed?language=') && newsFeedSource.includes('giaoducthoidai.vn/rss/giao-duc-17.rss') && newsFeedSource.includes('feeds.bbci.co.uk/news/rss.xml'), 'Vietnamese education and English feeds configured');
+add('V10.82.3 full-article endpoint is wired', newsReaderSource.includes('/api/news-article?url=') && newsArticleSource.includes('articleJsonLd') && newsArticleSource.includes('fetchJinaReader') && newsArticleSource.includes('ALLOWED_HOSTS'), 'publisher HTML, JSON-LD and resilient reader fallback present');
+add('V10.82.3 Newsroom reader has search, publisher filter, saving and speech', newsReaderSource.includes('newsroom-v823-search') && newsReaderSource.includes('newsroom-v823-source-filter') && newsReaderSource.includes('bes-news-saved-items') && newsReaderSource.includes('SpeechSynthesisUtterance'), 'focused reading controls present');
+add('V10.82 Newsroom tool route and icon remain wired', toolPageSource.includes("tool?.slug === 'news-reader'") && iconSource.includes("'news-reader': 'news'"), 'legacy tool URL and flat news icon remain available');
+add('V10.82.3 Newsroom responsive editorial design layer present', cssSource.includes('V10.82.3 — Newsroom direct navigation') && cssSource.includes('.newsroom-v823-hero') && cssSource.includes('.newsroom-v823-reader-overlay') && cssSource.includes('@media(max-width:720px)'), 'desktop, dark, tablet and mobile styles present');
 
 
 const wordGraphRedesignSource = fs.readFileSync(new URL('../src/pages/WordGraphStudio.jsx', import.meta.url), 'utf8');
