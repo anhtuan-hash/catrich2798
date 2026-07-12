@@ -17,7 +17,6 @@ export const ROUTE_PERMISSION_IDS = {
   'ai-workspace': 'route:ai-workspace',
   'content-factory': 'route:content-factory',
   'assessment-core': 'route:assessment-core',
-  'learning-intelligence': 'route:learning-intelligence',
   practice: 'route:practice',
   qa: 'route:qa',
   settings: 'route:settings',
@@ -90,15 +89,6 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Ngân hàng câu hỏi và đề thi',
     desc: 'Manage question banks, blueprints and test versions.',
     descVi: 'Quản lí ngân hàng câu hỏi, blueprint và mã đề.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['learning-intelligence'],
-    type: 'content',
-    section: 'content',
-    title: 'Learning Intelligence',
-    titleVi: 'Trung tâm phân tích học tập',
-    desc: 'Track learner mastery, recurring errors and adaptive interventions.',
-    descVi: 'Theo dõi mức độ thành thạo, lỗi lặp lại và kế hoạch can thiệp thích ứng.',
   },
   {
     id: ROUTE_PERMISSION_IDS.library,

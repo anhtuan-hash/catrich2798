@@ -38,13 +38,6 @@ export const APPS = [
     descVi: 'Quản lí ngân hàng câu hỏi, nhập dữ liệu, tạo blueprint và nhiều mã đề.',
     status: 'Question bank · Blueprints', statusVi: 'Ngân hàng · Blueprint', api: true, featured: true,
   },
-  {
-    slug: 'learning-intelligence', route: 'learning-intelligence', icon: 'LI', tone: 'teal', group: 'Learning Analytics', groupVi: 'Phân tích học tập',
-    title: 'Learning Intelligence', titleVi: 'Trung tâm phân tích học tập',
-    desc: 'Track mastery, classify recurring errors, identify at-risk learners and build adaptive practice plans.',
-    descVi: 'Theo dõi mastery, phân loại lỗi lặp lại, phát hiện học sinh cần hỗ trợ và tạo bài luyện thích ứng.',
-    status: 'Mastery · Error taxonomy · Adaptive', statusVi: 'Mastery · Bản đồ lỗi · Thích ứng', api: true, featured: true,
-  },
 
   {
       slug: 'resource-library-hub',

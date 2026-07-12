@@ -1,0 +1,118 @@
+{
+  "version": "10.94.0",
+  "previousVersion": "10.93.0",
+  "installedAt": "2026-07-12T19:21:13.754Z",
+  "backupDir": ".bes-backup/v10.94.0-2026-07-12T19-21-13-725Z",
+  "files": [
+    {
+      "file": "README_UPDATE.md",
+      "existed": true
+    },
+    {
+      "file": "docs/V10_94_0_LEARNING_INTELLIGENCE.md",
+      "existed": false
+    },
+    {
+      "file": "index.html",
+      "existed": true
+    },
+    {
+      "file": "package-lock.json",
+      "existed": true
+    },
+    {
+      "file": "package.json",
+      "existed": true
+    },
+    {
+      "file": "public/bes-feature-flags-v10.94.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/bes-migrations-v10.94.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/bes-modules-v10.94.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/bes-platform-build-v10.94.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/bes-platform-control-v10940.css",
+      "existed": false
+    },
+    {
+      "file": "public/bes-platform-control-v10940.js",
+      "existed": false
+    },
+    {
+      "file": "public/bes-release-v10.94.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/version.json",
+      "existed": true
+    },
+    {
+      "file": "scripts/check-v10.94.0.mjs",
+      "existed": false
+    },
+    {
+      "file": "scripts/release-guard-v10.94.0.mjs",
+      "existed": false
+    },
+    {
+      "file": "src/components/GlobalCommandPalette.jsx",
+      "existed": true
+    },
+    {
+      "file": "src/components/GlobalFlatNavigation.jsx",
+      "existed": true
+    },
+    {
+      "file": "src/data/apps.js",
+      "existed": true
+    },
+    {
+      "file": "src/main.jsx",
+      "existed": true
+    },
+    {
+      "file": "src/pages/ContentFactory.jsx",
+      "existed": true
+    },
+    {
+      "file": "src/pages/LearningIntelligence.jsx",
+      "existed": false
+    },
+    {
+      "file": "src/services/runtime/core.js",
+      "existed": true
+    },
+    {
+      "file": "src/styles/v1094.css",
+      "existed": false
+    },
+    {
+      "file": "src/utils/permissions.js",
+      "existed": true
+    },
+    {
+      "file": "supabase/brian_v10_94_learning_intelligence.sql",
+      "existed": false
+    },
+    {
+      "file": "supabase/brian_v10_94_preflight.sql",
+      "existed": false
+    },
+    {
+      "file": "supabase/brian_v10_94_verify.sql",
+      "existed": false
+    }
+  ],
+  "requiresSql": true,
+  "migration": "supabase/brian_v10_94_learning_intelligence.sql"
+}

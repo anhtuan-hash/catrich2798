@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "version": "10.94.0",
+  "name": "Learning Intelligence",
+  "channel": "stable",
+  "releasedAt": "2026-07-13T03:00:00.000Z",
+  "previousVersion": "10.93.0",
+  "summary": "Mastery analytics, error taxonomy, early warning and adaptive practice.",
+  "requiresSql": true,
+  "migration": "brian_v10_94_learning_intelligence.sql",
+  "runtimeCore": "1.1.0",
+  "modules": [
+    "learning-intelligence",
+    "content-factory-transfer",
+    "assessment-data-foundation"
+  ]
+}

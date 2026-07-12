@@ -1,0 +1,40 @@
+{
+  "version": "10.93.0",
+  "channel": "stable",
+  "baseVersion": "10.90.0",
+  "previousVersion": "10.90.0",
+  "releaseName": "V10.93 Consolidated Release",
+  "releasedAt": "2026-07-13T01:30:00.000Z",
+  "installedAt": "2026-07-13T01:30:00.000Z",
+  "requiresSql": true,
+  "requiredMigration": "brian_v10_93_consolidated_migration.sql",
+  "requiresEnv": false,
+  "requiresDependencyInstall": false,
+  "runtimeCore": "1.0.0",
+  "workHub": "native-react",
+  "knowledgeHub": "native-react",
+  "aiWorkspace": "10.91.0",
+  "contentFactory": "10.92.0",
+  "assessmentCore": "10.93.0",
+  "legacyBridgesRemoved": [
+    "supabase-key-capture",
+    "supabase-rest-bridge",
+    "external-work-hub",
+    "external-smart-knowledge"
+  ],
+  "features": [
+    "unified-supabase-runtime",
+    "native-work-hub",
+    "native-smart-knowledge",
+    "ai-workspace-projects",
+    "multi-file-source-parsing",
+    "content-factory-8-output-types",
+    "question-bank",
+    "blueprints",
+    "multiple-test-codes",
+    "realtime-refresh",
+    "role-aware-rls",
+    "offline-local-fallback"
+  ],
+  "schema": 2
+}
