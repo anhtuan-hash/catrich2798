@@ -1,20 +1,26 @@
-# V10.81.8 WordGraph Fix — Update Only
+# V10.81.9 Direct File Viewer — Update Only
 
-Chép toàn bộ nội dung thư mục này vào repository Brian English Studio hiện tại bằng:
+Bản này bổ sung trình xem trực tiếp DOCX, PPTX, PDF, XLSX, MP4 và MP3 cho Kho học liệu; đồng thời giữ bản sửa WordGraph V10.81.8.
 
-```bash
-rsync -av ~/Downloads/brian-english-studio-v10.81.8-wordgraph-fix-update-only/ ./
-```
+## Cập nhật dự án hiện tại
 
-Sau đó chạy:
+Giải nén gói update-only vào Downloads, mở repository hiện tại bằng VS Code và chạy:
 
 ```bash
+rsync -av ~/Downloads/brian-english-studio-v10.81.9-direct-file-viewer-update-only/ ./
 npm ci
 npm run build
 npm test
 git add -A
-git commit -m "Fix WordGraph blank page V10.81.8"
+git commit -m "Add direct resource file viewer V10.81.9"
 git push origin main
 ```
 
-Không cần chạy SQL Supabase. Không thay đổi Google Drive hay dữ liệu người dùng.
+Vercel sẽ tự deploy. Sau khi trạng thái **Ready**, mở app và nhấn `Command + Shift + R`.
+
+## Không cần làm
+
+- Không chạy thêm SQL Supabase.
+- Không chia sẻ thư mục Google Drive cho giáo viên.
+- Không thêm Environment Variable mới; phiên xem dùng bí mật máy chủ đã có.
+- Không xóa `.env.local`, `.git` hoặc font cá nhân của dự án hiện tại.

@@ -25,6 +25,7 @@ import {
   findResourceCategory,
   normaliseResourceCategory,
 } from '../features/resource-library/index.js';
+import ResourceFileViewer, { supportsResourcePreview } from '../features/resource-library/ResourceFileViewer.jsx';
 import '../features/resource-library/resourceLibraryCategories.css';
 
 const SKILLS = ['Vocabulary', 'Grammar', 'Reading', 'Listening', 'Speaking', 'Writing', 'Pronunciation'];
@@ -60,12 +61,6 @@ function extensionOf(item) {
   return String(item?.fileName || '').split('.').pop()?.toLowerCase() || '';
 }
 
-function canInlinePreview(item) {
-  const mime = String(item?.mimeType || '').toLowerCase();
-  const extension = extensionOf(item);
-  return mime.includes('pdf') || mime.startsWith('image/') || mime.startsWith('audio/') || mime.startsWith('video/')
-    || mime.startsWith('text/') || ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'mp3', 'wav', 'm4a', 'mp4', 'mov', 'txt', 'md', 'csv', 'html'].includes(extension);
-}
 
 function matchesGrade(value, filter) {
   if (filter === 'all') return true;
@@ -165,14 +160,10 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
   const [busy, setBusy] = useState('');
   const [progress, setProgress] = useState(0);
   const [preview, setPreview] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState('');
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewError, setPreviewError] = useState('');
   const [aiQuery, setAiQuery] = useState('');
   const [aiAnswer, setAiAnswer] = useState('');
   const [driveMessage, setDriveMessage] = useState('');
   const inputRef = useRef(null);
-  const previewObjectUrlRef = useRef('');
   const folderViewRef = useRef(null);
   const repairInFlightRef = useRef(false);
 
@@ -240,7 +231,6 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     return () => {
       window.removeEventListener(RESOURCE_EVENT, refreshLocal);
       if (channel && supabase) supabase.removeChannel(channel);
-      if (previewObjectUrlRef.current) URL.revokeObjectURL(previewObjectUrlRef.current);
     };
   }, [refreshLibrary]);
 
@@ -573,7 +563,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     else draft.favorites.push(key);
   });
 
-  const fetchResourceBlob = async (item, mode = 'inline') => {
+  const fetchResourceBlob = useCallback(async (item, mode = 'inline') => {
     if (!item.driveFileId) throw new Error('Tài liệu chưa có file trên Google Drive');
     const token = await getAccessToken();
     if (!token) throw new Error('Phiên đăng nhập đã hết hạn');
@@ -585,33 +575,25 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
       throw new Error(message);
     }
     return response.blob();
-  };
+  }, []);
 
-  const closePreview = () => {
-    if (previewObjectUrlRef.current) {
-      URL.revokeObjectURL(previewObjectUrlRef.current);
-      previewObjectUrlRef.current = '';
-    }
-    setPreview(null);
-    setPreviewUrl('');
-    setPreviewError('');
-    setPreviewLoading(false);
-  };
+  const getResourceStreamUrl = useCallback(async (item) => {
+    if (!item.driveFileId) throw new Error('Tài liệu chưa có file trên Google Drive');
+    const token = await getAccessToken();
+    if (!token) throw new Error('Phiên đăng nhập đã hết hạn');
+    const params = new URLSearchParams({ resourceId: item.cloudId || item.id, fileId: item.driveFileId });
+    const response = await fetch(`/api/google-drive-preview-session?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+    const data = await response.json();
+    if (!response.ok || !data.url) throw new Error(data.error || 'Không thể tạo phiên xem trực tiếp');
+    return data.url;
+  }, []);
 
-  const openPreview = async (item) => {
-    closePreview();
+  const closePreview = () => setPreview(null);
+
+  const openPreview = (item) => {
     setPreview(item);
-    if (!item.driveFileId || !canInlinePreview(item)) return;
-    setPreviewLoading(true);
-    try {
-      const blob = await fetchResourceBlob(item, 'inline');
-      const objectUrl = URL.createObjectURL(blob);
-      previewObjectUrlRef.current = objectUrl;
-      setPreviewUrl(objectUrl);
-    } catch (error) {
-      setPreviewError(error.message);
-    } finally {
-      setPreviewLoading(false);
+    if (!supportsResourcePreview(item)) {
+      setDriveMessage(`Định dạng ${extensionOf(item).toUpperCase() || 'này'} chưa có trình xem trực tiếp; bạn vẫn có thể tải file xuống.`);
     }
   };
 
@@ -664,7 +646,6 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
 
   const selectedCategory = category === 'all' ? null : categoryMap.get(category);
   const previewCategory = preview ? categoryMap.get(normaliseResourceCategory(preview.category)) || decorateCategory(findResourceCategory(preview.category)) : null;
-  const previewMime = String(preview?.mimeType || '').toLowerCase();
 
   return (
     <div className="resource-library-page">
@@ -672,7 +653,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
 
       <section className="resource-library-hero">
         <div>
-          <span className="resource-eyebrow">BRIAN RESOURCE LIBRARY · V10.81.7</span>
+          <span className="resource-eyebrow">BRIAN RESOURCE LIBRARY · V10.81.9</span>
           <h1>Kho học liệu Tổ Tiếng Anh</h1>
           <p>Giáo viên tải tài liệu lên Google Drive của admin, phân loại bằng thẻ và truy cập file trực tiếp trong ứng dụng mà không cần mở Drive.</p>
           <div className="resource-hero-actions">
@@ -830,16 +811,12 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         <div className="resource-preview-body">
           <aside><div className="resource-file-icon big">{preview.fileName?.split('.').pop()?.toUpperCase()}</div><p>{preview.fileName}</p><small>{formatSize(preview.size)} · {formatDate(preview.createdAt)}</small><dl><dt>Người đóng góp</dt><dd>{preview.uploaderName}</dd><dt>Danh mục</dt><dd>{categoryName(previewCategory, language)}</dd><dt>Khối / CEFR</dt><dd>{preview.grade || '—'} / {preview.cefr || '—'}</dd><dt>Năm học</dt><dd>{preview.schoolYear || '—'}</dd><dt>Unit / Chủ đề</dt><dd>{preview.unitName || '—'}</dd><dt>Nguồn</dt><dd>{preview.source || 'Chưa khai báo'}</dd></dl>{preview.allowDownload && preview.driveFileId && <button className="resource-download-button" onClick={() => downloadResource(preview)}>Tải xuống</button>}</aside>
           <main className="resource-secure-preview">
-            {previewLoading && <div className="resource-preview-loading"><strong>Đang tải file an toàn từ Drive của admin…</strong></div>}
-            {previewError && <div className="resource-preview-error">{previewError}</div>}
-            {previewUrl && previewMime.startsWith('image/') && <img className="resource-secure-preview__image" src={previewUrl} alt={preview.title}/>} 
-            {previewUrl && previewMime.startsWith('audio/') && <audio controls src={previewUrl}/>} 
-            {previewUrl && previewMime.startsWith('video/') && <video controls src={previewUrl}/>} 
-            {previewUrl && !previewMime.startsWith('image/') && !previewMime.startsWith('audio/') && !previewMime.startsWith('video/') && <iframe className="resource-secure-preview__frame" src={previewUrl} title={preview.title} sandbox="allow-same-origin"/>} 
-            {!previewLoading && !previewUrl && !canInlinePreview(preview) && <div className="resource-preview-loading"><div><strong>Định dạng này chưa xem trực tiếp được trong trình duyệt.</strong><p>Thông tin và nội dung đã lập chỉ mục vẫn hiển thị bên dưới; giáo viên có thể tải file về.</p></div></div>}
-            <h3>Tóm tắt</h3><p>{preview.aiSummary || preview.description || 'Chưa có mô tả.'}</p>
-            {!!(preview.aiUses || []).length && <><h3>Gợi ý sử dụng</h3><ul>{preview.aiUses.map((value) => <li key={value}>{value}</li>)}</ul></>}
-            {preview.extractedText && <><h3>Nội dung được lập chỉ mục</h3><pre>{preview.extractedText.slice(0, 8000)}</pre></>}
+            <ResourceFileViewer item={preview} fetchBlob={fetchResourceBlob} getStreamUrl={getResourceStreamUrl}/>
+            <section className="resource-preview-indexed-content">
+              <h3>Tóm tắt</h3><p>{preview.aiSummary || preview.description || 'Chưa có mô tả.'}</p>
+              {!!(preview.aiUses || []).length && <><h3>Gợi ý sử dụng</h3><ul>{preview.aiUses.map((value) => <li key={value}>{value}</li>)}</ul></>}
+              {preview.extractedText && <><h3>Nội dung được lập chỉ mục</h3><pre>{preview.extractedText.slice(0, 8000)}</pre></>}
+            </section>
           </main>
         </div>
       </section></div>}

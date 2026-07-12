@@ -292,6 +292,20 @@ add('V10.79 emergency reset stays open after automatic closure pass', conductRec
 add('V10.79 reset confirmation is fully in-app and actionable', homeroomConductTabSource.includes('resetConfirmed') && homeroomConductTabSource.includes('Tôi hiểu thao tác này không thể hoàn tác') && homeroomConductTabSource.includes('Xác nhận reset tuần') && !homeroomConductTabSource.includes('Reset khẩn cấp sẽ xóa toàn bộ ${count}'), 'browser confirm removed from reset flow');
 add('V10.79 cancel confirmation is portaled and anchored to clicked button', homeroomConductTabSource.includes("import { createPortal } from 'react-dom'") && homeroomConductTabSource.includes('getBoundingClientRect') && homeroomConductTabSource.includes('cancelDialog.anchor') && cssSource.includes('V10.79 · Working emergency reset + viewport-safe anchored confirmations'), 'viewport-safe anchored popover present');
 
+
+const resourceViewerSource = fs.readFileSync(new URL('../src/features/resource-library/ResourceFileViewer.jsx', import.meta.url), 'utf8');
+const resourceLibrarySource = fs.readFileSync(new URL('../src/pages/ResourceLibrary.jsx', import.meta.url), 'utf8');
+const resourceViewerCss = fs.readFileSync(new URL('../src/features/resource-library/resourceLibraryCategories.css', import.meta.url), 'utf8');
+const packageSource = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+add('V10.81.9 direct viewer covers requested formats', ['docx', 'pptx', 'pdf', 'xlsx', 'video', 'audio'].every((kind) => resourceViewerSource.includes(`kind === '${kind}'`)), 'DOCX, PPTX, PDF, XLSX, MP4 and MP3 paths present');
+add('V10.81.9 resource modal uses secure viewer', resourceLibrarySource.includes('<ResourceFileViewer item={preview} fetchBlob={fetchResourceBlob} getStreamUrl={getResourceStreamUrl}/>') && resourceLibrarySource.includes('supportsResourcePreview'), 'preview remains behind authenticated Drive proxy');
+add('V10.81.9 Office renderers are local and sandboxed', resourceViewerSource.includes('mammoth.convertToHtml') && resourceViewerSource.includes("import('xlsx')") && resourceViewerSource.includes("import('jszip')") && resourceViewerSource.includes('sandbox="allow-popups"'), 'Word, Excel and PowerPoint render without public Drive sharing');
+add('V10.81.9 scalable viewer styling present', resourceViewerCss.includes('V10.81.9 — direct DOCX, PPTX, PDF, XLSX, MP4 and MP3 viewer') && resourceViewerCss.includes('.resource-workbook-viewer') && resourceViewerCss.includes('.resource-pptx-viewer'), 'desktop, dark and mobile layouts present');
+add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && packageSource.version === '10.81.9', 'PPTX parser dependency is production-safe');
+const previewSessionSource = fs.readFileSync(new URL('../api/google-drive-preview-session.js', import.meta.url), 'utf8');
+const driveFileSource = fs.readFileSync(new URL('../api/google-drive-file.js', import.meta.url), 'utf8');
+add('V10.81.9 secure streaming session supports media seeking', previewSessionSource.includes('signResourcePreviewToken') && driveFileSource.includes('Content-Range') && driveFileSource.includes("Range: range") && resourceLibrarySource.includes('getResourceStreamUrl'), 'short-lived signed URL and byte ranges present');
+
 const failed = checks.filter((item) => !item.ok);
 for (const item of checks) {
   console.log(`${item.ok ? '✓' : '×'} ${item.name} ${item.detail ? '- ' + item.detail : ''}`);

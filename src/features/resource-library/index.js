@@ -8,3 +8,4 @@ export {
   findResourceCategory,
   normaliseResourceCategory,
 } from './resourceCategories.js';
+export { default as ResourceFileViewer, supportsResourcePreview } from './ResourceFileViewer.jsx';
