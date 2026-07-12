@@ -75,19 +75,9 @@
       "installedAt": "2026-07-12T16:35:35.670Z",
       "runtime": "v10881",
       "baseVersion": "10.88.0"
-    },
-    {
-      "id": "10.88.0-hf2",
-      "name": "AI Launcher Slot Restore",
-      "installedAt": "2026-07-12T16:48:38.740Z",
-      "runtime": "v10882",
-      "baseVersion": "10.88.0"
     }
   ],
-  "lastHotfix": "10.88.0-hf2",
+  "lastHotfix": "10.88.0-hf1",
   "aiChatRuntime": "v10881",
-  "aiChatCloseCleanup": true,
-  "aiLauncherRuntime": "v10882",
-  "floatingMusicButtonHidden": true,
-  "aiLauncherSlotRestored": true
+  "aiChatCloseCleanup": true
 }

@@ -39,11 +39,7 @@
     "test:ai-chat-close": "node scripts/test-ai-chat-close-v10.88.0-hf1.mjs",
     "release:guard:ai-chat-hotfix": "node scripts/release-guard-v10.88.0-hf1.mjs",
     "rollback:v10.88.0-hf1": "node scripts/rollback-v10.88.0-hf1.mjs",
-    "verify:v10.88.0-hf1": "npm run build && npm test && npm run test:department && npm run test:command-center --if-present && npm run test:platform-control --if-present && npm run test:ai-chat-close && npm run platform:doctor --if-present && npm run release:guard --if-present && npm run release:guard:ai-chat-hotfix",
-    "test:ai-launcher-slot": "node scripts/test-ai-launcher-slot-v10.88.0-hf2.mjs",
-    "release:guard:ai-launcher-slot": "node scripts/release-guard-v10.88.0-hf2.mjs",
-    "rollback:v10.88.0-hf2": "node scripts/rollback-v10.88.0-hf2.mjs",
-    "verify:v10.88.0-hf2": "npm run build && npm test && npm run test:department && npm run test:command-center --if-present && npm run test:platform-control --if-present && npm run test:ai-chat-close --if-present && npm run test:ai-launcher-slot && npm run platform:doctor --if-present && npm run release:guard --if-present && npm run release:guard:ai-launcher-slot"
+    "verify:v10.88.0-hf1": "npm run build && npm test && npm run test:department && npm run test:command-center --if-present && npm run test:platform-control --if-present && npm run test:ai-chat-close && npm run platform:doctor --if-present && npm run release:guard --if-present && npm run release:guard:ai-chat-hotfix"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
