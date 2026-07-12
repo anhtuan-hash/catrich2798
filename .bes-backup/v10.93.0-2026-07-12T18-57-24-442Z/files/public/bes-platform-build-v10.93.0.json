@@ -1,0 +1,11 @@
+{
+  "schema": 2,
+  "version": "10.93.0",
+  "previousVersion": "10.90.0",
+  "generatedAt": "2026-07-13T01:30:00.000Z",
+  "nodeVersion": "22.x",
+  "packageManager": "npm",
+  "environment": "source",
+  "migrationCount": 17,
+  "runtimeCore": "1.0.0"
+}
