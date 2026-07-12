@@ -38,6 +38,40 @@
   </head>
   <body>
     <div id="root"></div>
+    <script id="bes-boot-watchdog">
+      (() => {
+        const showRecovery = () => {
+          const root = document.getElementById('root');
+          if (!root || root.querySelector('.app-shell,.bes-crash-recovery')) return;
+          root.innerHTML = `
+            <main style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#eef4fb;color:#191515">
+              <section style="width:min(680px,100%);padding:38px;border:2px solid #191515;border-radius:28px;background:#fffdf8;box-shadow:10px 12px 0 rgba(25,21,21,.15);font-family:BrianGesco,system-ui,sans-serif">
+                <div style="width:54px;height:54px;display:grid;place-items:center;border:2px solid #191515;border-radius:16px;background:#f05a7e;color:#fff;font-weight:900">BE</div>
+                <p style="margin:20px 0 6px;font-size:12px;font-weight:900;letter-spacing:.1em;color:#a43b57">KHÔI PHỤC KHỞI ĐỘNG</p>
+                <h1 style="margin:0;font-size:clamp(34px,7vw,68px);line-height:.94">Trang chưa tải được giao diện</h1>
+                <p style="margin:18px 0;color:#665d59;line-height:1.6">Có thể trình duyệt đang giữ tệp của bản triển khai cũ. Dữ liệu tài khoản không bị xóa.</p>
+                <div style="display:flex;gap:9px;flex-wrap:wrap">
+                  <button id="bes-hard-reload" style="min-height:44px;padding:9px 16px;border:2px solid #191515;border-radius:12px;background:#191515;color:#fff;font:inherit;font-weight:900;cursor:pointer">Tải lại bản mới</button>
+                  <button id="bes-reset-launcher" style="min-height:44px;padding:9px 16px;border:2px solid #191515;border-radius:12px;background:#fff;color:#191515;font:inherit;font-weight:900;cursor:pointer">Khôi phục launcher</button>
+                </div>
+              </section>
+            </main>`;
+          document.getElementById('bes-hard-reload')?.addEventListener('click', () => {
+            const url = new URL(location.href);
+            url.searchParams.set('refresh', Date.now());
+            location.replace(url.toString());
+          });
+          document.getElementById('bes-reset-launcher')?.addEventListener('click', () => {
+            try { localStorage.removeItem('bes-launcher-config-v3'); } catch {}
+            location.reload();
+          });
+        };
+        window.addEventListener('error', (event) => {
+          if (event?.target?.tagName === 'SCRIPT') window.setTimeout(showRecovery, 100);
+        }, true);
+        window.setTimeout(showRecovery, 8000);
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

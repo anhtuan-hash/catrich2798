@@ -3,7 +3,7 @@ import { APPS } from '../data/apps.js';
 import { getAppDesignProfile } from '../data/designProfiles.js';
 import { getFirstAllowedRoute, hasRouteAccess, hasToolAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/motion.js';
-import { loadLauncherConfig, loadLauncherConfigFromCloud, subscribeLauncherConfig } from '../utils/launcherPreferences.js';
+import { loadLauncherConfig, loadLauncherConfigFromCloud, normalizeLauncherConfig, subscribeLauncherConfig } from '../utils/launcherPreferences.js';
 
 const copy = {
   vi: {
@@ -102,18 +102,21 @@ export default function GlobalFlatNavigation({
 }) {
   const t = copy[language] || copy.vi;
   const isAdmin = currentUser?.role === 'admin';
-  const [launcherConfig, setLauncherConfig] = useState(() => loadLauncherConfig());
+  const [launcherConfig, setLauncherConfig] = useState(() => normalizeLauncherConfig(loadLauncherConfig()));
 
   useEffect(() => {
     let active = true;
-    loadLauncherConfigFromCloud().then(({ config }) => { if (active) setLauncherConfig(config); });
-    const unsubscribe = subscribeLauncherConfig((next) => setLauncherConfig(next));
+    loadLauncherConfigFromCloud()
+      .then(({ config }) => { if (active) setLauncherConfig(normalizeLauncherConfig(config)); })
+      .catch((error) => console.warn('[Launcher] cloud navigation fallback', error));
+    const unsubscribe = subscribeLauncherConfig((next) => setLauncherConfig(normalizeLauncherConfig(next)));
     return () => { active = false; unsubscribe(); };
   }, []);
 
   const registry = useMemo(() => buildRegistry(language), [language]);
   const entries = useMemo(() => {
-    const requested = launcherConfig.nav?.length ? launcherConfig.nav : ['route:home', 'route:apps', 'route:news', 'route:games'];
+    const navItems = Array.isArray(launcherConfig?.nav) ? launcherConfig.nav : [];
+    const requested = navItems.length ? navItems : ['route:home', 'route:apps', 'route:news', 'route:games'];
     const mandatory = ['route:home', 'route:apps'];
     const ids = [...mandatory, ...requested];
     if (isAdmin) ids.push('route:admin');
@@ -126,7 +129,7 @@ export default function GlobalFlatNavigation({
         return true;
       })
       .slice(0, 12);
-  }, [launcherConfig.nav, registry, currentUser, isAdmin]);
+  }, [launcherConfig?.nav, registry, currentUser, isAdmin]);
 
   const accountName = shortName(currentUser?.name || currentUser?.email, currentUser ? t.account : t.guest);
   const accountRoute = currentUser ? getFirstAllowedRoute(currentUser) : 'login';

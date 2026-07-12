@@ -4,6 +4,7 @@ import './index.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
+import AppErrorBoundary from './components/AppErrorBoundary.jsx';
 import Footer from './components/Footer.jsx';
 import PermissionRequestButton from './components/PermissionRequestButton.jsx';
 import { initializeAuthSession, logoutUser, subscribeToAuthChanges } from './utils/auth.js';
@@ -15,6 +16,23 @@ import { setLibraryStorageUser } from './utils/library.js';
 
 installStoredPersonalFont();
 waitForPersonalFontLoad();
+
+const PRELOAD_RECOVERY_KEY = 'bes-vite-preload-recovery-v10832';
+if (typeof window !== 'undefined') {
+  window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault();
+    let shouldReload = true;
+    try {
+      const lastReload = Number(window.sessionStorage.getItem(PRELOAD_RECOVERY_KEY) || 0);
+      shouldReload = !lastReload || Date.now() - lastReload > 30000;
+      if (shouldReload) window.sessionStorage.setItem(PRELOAD_RECOVERY_KEY, String(Date.now()));
+    } catch { /* reload once even when storage is unavailable */ }
+    if (shouldReload) window.location.reload();
+  });
+  window.setTimeout(() => {
+    try { window.sessionStorage.removeItem(PRELOAD_RECOVERY_KEY); } catch { /* optional */ }
+  }, 8000);
+}
 
 const Home = lazy(() => import('./pages/Home.jsx'));
 const WebApps = lazy(() => import('./pages/WebApps.jsx'));
@@ -346,7 +364,9 @@ function App() {
         <Suspense fallback={null}>
           <StatusMenuBar route={currentRoute} {...context} />
         </Suspense>
-        <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
+        <AppErrorBoundary compact scope="global-navigation" label={language === 'vi' ? 'thanh điều hướng' : 'navigation'}>
+          <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
+        </AppErrorBoundary>
       </div> : null}
       {tileLaunch ? (
         <div
@@ -388,7 +408,11 @@ function App() {
         <Suspense fallback={<RouteFallback language={language} />}>
           {currentRoute === 'home' && <Home {...context} />}
           {requiresAuth && currentUser && !canAccessRoute && <AccessDenied language={language} currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} />}
-          {canAccessRoute && currentRoute === 'apps' && currentUser && <WebApps apps={accessibleApps} {...context} />}
+          {canAccessRoute && currentRoute === 'apps' && currentUser && (
+            <AppErrorBoundary scope="apps-launcher" label={language === 'vi' ? 'trang Ứng dụng' : 'Apps page'}>
+              <WebApps apps={accessibleApps} {...context} />
+            </AppErrorBoundary>
+          )}
           {canAccessRoute && currentRoute === 'news' && currentUser && <NewsReader {...context} />}
           {canAccessRoute && currentRoute === 'games' && currentUser && <Games games={accessibleGames} {...context} />}
           {canAccessRoute && currentRoute === 'tools' && currentUser && <SpecialTools tools={accessibleTools} {...context} />}
@@ -412,6 +436,7 @@ function App() {
 
       {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>
+          <AppErrorBoundary compact scope="ai-messenger" label={language === 'vi' ? 'Brian AI' : 'Brian AI'}>
           <UniversalAIAssist
             language={language}
             currentRoute={currentRoute}
@@ -425,6 +450,7 @@ function App() {
             soft={activeDesignProfile.soft}
             ink={activeDesignProfile.ink}
           />
+          </AppErrorBoundary>
         </Suspense>
       )}
 
@@ -476,4 +502,8 @@ function AccessDenied({ language, currentUser, route, selectedTool }) {
   );
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+createRoot(document.getElementById('root')).render(
+  <AppErrorBoundary scope="application-root">
+    <App />
+  </AppErrorBoundary>,
+);

@@ -223,9 +223,10 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
   const dragItemRef = useRef('');
   const editModeRef = useRef(false);
 
+  const safeApps = Array.isArray(apps) ? apps : [];
   const baseItems = useMemo(() => {
     const routeApps = ROUTE_APPS.filter((item) => !item.adminOnly || isAdmin);
-    const merged = [...apps, ...routeApps];
+    const merged = [...safeApps, ...routeApps];
     const seen = new Set();
     return merged.filter((item) => {
       const key = launcherItemId(item);
@@ -236,7 +237,7 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
       const ai = APP_ORDER.indexOf(a.slug); const bi = APP_ORDER.indexOf(b.slug);
       return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
     });
-  }, [apps, isAdmin]);
+  }, [safeApps, isAdmin]);
 
   const itemIds = useMemo(() => baseItems.map(launcherItemId), [baseItems]);
   const [config, setConfig] = useState(() => loadLauncherConfig(itemIds));
@@ -248,12 +249,14 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
     let active = true;
     const normalized = normalizeLauncherConfig(loadLauncherConfig(itemIds), itemIds);
     setConfig(normalized); setDraftConfig(normalized);
-    loadLauncherConfigFromCloud(itemIds).then(({ config: cloudConfig }) => {
-      if (!active) return;
-      const clean = normalizeLauncherConfig(cloudConfig, itemIds);
-      setConfig(clean);
-      if (!editModeRef.current) setDraftConfig(clean);
-    });
+    loadLauncherConfigFromCloud(itemIds)
+      .then(({ config: cloudConfig }) => {
+        if (!active) return;
+        const clean = normalizeLauncherConfig(cloudConfig, itemIds);
+        setConfig(clean);
+        if (!editModeRef.current) setDraftConfig(clean);
+      })
+      .catch((error) => console.warn('[Launcher] app directory cloud fallback', error));
     const unsubscribe = subscribeLauncherConfig((next) => {
       const clean = normalizeLauncherConfig(next, itemIds);
       setConfig(clean);
@@ -262,11 +265,11 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
     return () => { active = false; unsubscribe(); };
   }, [itemIds.join('|')]);
 
-  const workingConfig = editMode ? draftConfig : config;
+  const workingConfig = normalizeLauncherConfig(editMode ? draftConfig : config, itemIds);
   const orderMap = useMemo(() => new Map(workingConfig.order.map((id, index) => [id, index])), [workingConfig.order]);
   const orderedItems = useMemo(() => [...baseItems].sort((a, b) => (orderMap.get(launcherItemId(a)) ?? 999) - (orderMap.get(launcherItemId(b)) ?? 999)), [baseItems, orderMap]);
   const visibleItems = orderedItems.filter((item) => editMode || !workingConfig.hidden.includes(launcherItemId(item)));
-  const groupOptions = workingConfig.groups.length ? workingConfig.groups : DEFAULT_LAUNCHER_GROUPS;
+  const groupOptions = Array.isArray(workingConfig.groups) && workingConfig.groups.length ? workingConfig.groups : DEFAULT_LAUNCHER_GROUPS;
 
   const groupForItem = (item) => workingConfig.assignments[launcherItemId(item)] || defaultGroupOf(item);
   const groupCounts = groupOptions.reduce((acc, group) => {

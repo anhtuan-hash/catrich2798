@@ -66,6 +66,15 @@ function threadsKey(currentUser) { return `bes-ai-chat-threads:${userScope(curre
 function activeThreadKey(currentUser) { return `bes-ai-chat-active:${userScope(currentUser)}`; }
 function legacyKey(currentUser) { return `bes-ai-chat-history:${userScope(currentUser)}`; }
 
+function safeLocalGet(key, fallback = '') {
+  if (typeof window === 'undefined') return fallback;
+  try { return window.localStorage?.getItem(key) ?? fallback; } catch { return fallback; }
+}
+function safeLocalSet(key, value) {
+  if (typeof window === 'undefined') return false;
+  try { window.localStorage?.setItem(key, value); return true; } catch { return false; }
+}
+
 function initialGreeting(language, title) {
   return { id: `welcome-${Date.now()}`, role: 'assistant', createdAt: Date.now(), content: language === 'vi' ? `Xin chào thầy Tuấn! Em là Brian AI. Hiện thầy đang ở ${title}. Thầy có thể gửi file, chụp màn hình, dùng giọng nói hoặc yêu cầu em tạo nội dung dùng ngay.` : `Hello! I am Brian AI. You are currently in ${title}. You can send files, capture the screen, use voice mode or request ready-to-use content.` };
 }
@@ -86,10 +95,10 @@ function normalizeThread(raw, language, info) {
 }
 function loadThreads(currentUser, language, info) {
   try {
-    const parsed = JSON.parse(localStorage.getItem(threadsKey(currentUser)) || '[]');
+    const parsed = JSON.parse(safeLocalGet(threadsKey(currentUser)) || '[]');
     const normalized = Array.isArray(parsed) ? parsed.map((item) => normalizeThread(item, language, info)).filter(Boolean).slice(0, 20) : [];
     if (normalized.length) return normalized;
-    const legacy = JSON.parse(localStorage.getItem(legacyKey(currentUser)) || '[]');
+    const legacy = JSON.parse(safeLocalGet(legacyKey(currentUser)) || '[]');
     const legacyMessages = Array.isArray(legacy) ? legacy.map(normalizeMessage).filter(Boolean).slice(-60) : [];
     if (legacyMessages.length) return [{ ...createThread(language, info), title: language === 'vi' ? 'Lịch sử trước đây' : 'Previous conversation', messages: legacyMessages }];
   } catch { /* start a clean history */ }
@@ -225,9 +234,9 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
   const [draggingFiles, setDraggingFiles] = useState(false);
   const [attachmentBusy, setAttachmentBusy] = useState(false);
   const [attachments, setAttachments] = useState([]);
-  const [hasSeenBubble, setHasSeenBubble] = useState(() => localStorage.getItem('bes-ai-chat-seen') === '1');
+  const [hasSeenBubble, setHasSeenBubble] = useState(() => safeLocalGet('bes-ai-chat-seen') === '1');
   const [threads, setThreads] = useState(() => loadThreads(currentUser, language, info));
-  const [activeThreadId, setActiveThreadId] = useState(() => localStorage.getItem(activeThreadKey(currentUser)) || '');
+  const [activeThreadId, setActiveThreadId] = useState(() => safeLocalGet(activeThreadKey(currentUser)) || '');
   const endRef = useRef(null);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -243,7 +252,7 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
 
   useEffect(() => {
     const loaded = loadThreads(currentUser, language, info);
-    const savedActive = localStorage.getItem(activeThreadKey(currentUser));
+    const savedActive = safeLocalGet(activeThreadKey(currentUser));
     setThreads(loaded);
     setActiveThreadId(loaded.some((thread) => thread.id === savedActive) ? savedActive : loaded[0]?.id || '');
     setAttachments([]);
@@ -252,8 +261,8 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
   useEffect(() => {
     if (!activeThreadId && threads[0]) setActiveThreadId(threads[0].id);
     try {
-      localStorage.setItem(storageId, JSON.stringify(threads.slice(0, 20).map((thread) => ({ ...thread, messages: thread.messages.slice(-60) }))));
-      if (activeThreadId) localStorage.setItem(activeThreadKey(currentUser), activeThreadId);
+      safeLocalSet(storageId, JSON.stringify(threads.slice(0, 20).map((thread) => ({ ...thread, messages: Array.isArray(thread.messages) ? thread.messages.slice(-60) : [] }))));
+      if (activeThreadId) safeLocalSet(activeThreadKey(currentUser), activeThreadId);
     } catch { /* history persistence is optional */ }
   }, [threads, activeThreadId, storageId]);
 
@@ -426,7 +435,7 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
   };
 
   const onComposerKeyDown = (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); } };
-  const openChat = () => { setOpen(true); setHasSeenBubble(true); localStorage.setItem('bes-ai-chat-seen', '1'); };
+  const openChat = () => { setOpen(true); setHasSeenBubble(true); safeLocalSet('bes-ai-chat-seen', '1'); };
 
   const sortedThreads = [...threads].sort((a, b) => b.updatedAt - a.updatedAt);
   const portal = (

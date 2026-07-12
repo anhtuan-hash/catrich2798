@@ -311,7 +311,7 @@ add('V10.81.9 direct viewer covers requested formats', ['docx', 'pptx', 'pdf', '
 add('V10.81.9 resource modal uses secure viewer', resourceLibrarySource.includes('<ResourceFileViewer item={preview} fetchBlob={fetchResourceBlob} getStreamUrl={getResourceStreamUrl}/>') && resourceLibrarySource.includes('supportsResourcePreview'), 'preview remains behind authenticated Drive proxy');
 add('V10.81.9 Office renderers are local and sandboxed', resourceViewerSource.includes('mammoth.convertToHtml') && resourceViewerSource.includes("import('xlsx')") && resourceViewerSource.includes("import('jszip')") && resourceViewerSource.includes('sandbox="allow-popups"'), 'Word, Excel and PowerPoint render without public Drive sharing');
 add('V10.81.9 scalable viewer styling present', resourceViewerCss.includes('V10.81.9 — direct DOCX, PPTX, PDF, XLSX, MP4 and MP3 viewer') && resourceViewerCss.includes('.resource-workbook-viewer') && resourceViewerCss.includes('.resource-pptx-viewer'), 'desktop, dark and mobile layouts present');
-add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0', '10.83.1'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
+add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0', '10.83.1', '10.83.2'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
 const previewSessionSource = fs.readFileSync(new URL('../api/google-drive-preview-session.js', import.meta.url), 'utf8');
 const driveFileSource = fs.readFileSync(new URL('../api/google-drive-file.js', import.meta.url), 'utf8');
 add('V10.81.9 secure streaming session supports media seeking', previewSessionSource.includes('signResourcePreviewToken') && driveFileSource.includes('Content-Range') && driveFileSource.includes("Range: range") && resourceLibrarySource.includes('getResourceStreamUrl'), 'short-lived signed URL and byte ranges present');
@@ -403,6 +403,14 @@ add('V10.83.1 AI result can return to the active app', universalAiSource.include
 add('V10.83.1 AI voice mode is wired', universalAiSource.includes('SpeechRecognition') && universalAiSource.includes('speechSynthesis') && universalAiSource.includes('toggleVoiceMode') && universalAiSource.includes('voiceModeRef.current = next'), 'speech input, auto-send and spoken replies present');
 add('V10.83.1 multimodal payloads cover supported providers', geminiSource.includes('inlineData') && geminiSource.includes('image_url') && geminiSource.includes("type: 'image'") && geminiSource.includes('attachments'), 'Gemini, OpenAI-compatible and Claude image payloads present');
 add('V10.83.1 responsive launcher and AI styles present', cssSource.includes('V10.83.1 — Custom Launcher + Brian AI multimodal upgrade') && cssSource.includes('.launcher-admin-panel') && cssSource.includes('.ai-messenger-history') && cssSource.includes('@media(max-width:760px)'), 'desktop, dark, mobile and reduced-motion styles present');
+
+const errorBoundarySource = fs.readFileSync(new URL('../src/components/AppErrorBoundary.jsx', import.meta.url), 'utf8');
+const launcherPrefsHotfixSource = fs.readFileSync(new URL('../src/utils/launcherPreferences.js', import.meta.url), 'utf8');
+const indexHtmlSource = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+add('V10.83.2 root and feature error boundaries prevent a blank page', mainSource.includes('application-root') && mainSource.includes('apps-launcher') && mainSource.includes('ai-messenger') && errorBoundarySource.includes('Khôi phục launcher mặc định'), 'root, launcher and AI boundaries present');
+add('V10.83.2 stale Vite chunk recovery is wired', mainSource.includes('vite:preloadError') && mainSource.includes('PRELOAD_RECOVERY_KEY'), 'stale dynamic chunks trigger a guarded reload');
+add('V10.83.2 launcher config decoding tolerates malformed cloud and local data', launcherPrefsHotfixSource.includes('decodeConfig') && launcherPrefsHotfixSource.includes('safeStorageGet') && launcherPrefsHotfixSource.includes('safeCallback'), 'launcher settings are normalized before rendering');
+add('V10.83.2 boot watchdog replaces an empty root with recovery controls', indexHtmlSource.includes('bes-boot-watchdog') && indexHtmlSource.includes('bes-hard-reload') && indexHtmlSource.includes('bes-reset-launcher'), 'startup failures no longer remain visually blank');
 
 const failed = checks.filter((item) => !item.ok);
 for (const item of checks) {

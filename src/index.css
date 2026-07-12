@@ -17690,3 +17690,34 @@ html.newsroom-reader-open body{
 @media(max-width:980px){.launcher-admin-panel{grid-template-columns:1fr}.launcher-create-group{grid-template-columns:minmax(0,1fr) 46px auto}.launcher-v10831{width:min(100% - 24px,760px)!important}}
 @media(max-width:760px){.launcher-v10831{width:min(100% - 20px,460px)!important}.launcher-admin-panel{padding:14px;border-radius:18px}.launcher-create-group{grid-template-columns:minmax(0,1fr) 42px}.launcher-create-group button{grid-column:1/-1}.launcher-card-controls{grid-template-columns:32px 32px 32px minmax(0,1fr)}.ai-messenger-v10831 .ai-messenger-window{width:calc(100vw - 20px);height:calc(100dvh - 20px);min-height:0}.ai-messenger-v10831 .ai-messenger-header-actions button:nth-of-type(4){display:none!important}.ai-composer-tools button span{display:none}.ai-composer-tools button{width:34px!important;justify-content:center!important;padding:0!important}.ai-messenger-message-actions button span{display:none}.ai-messenger-message-actions button{width:28px!important;height:26px!important;justify-content:center!important;padding:0!important}}
 @media(prefers-reduced-motion:reduce){.flat-app-window-card.is-launcher-editing,.ai-messenger-v10831 .ai-messenger-header-actions button.voice{animation:none!important;transition:none!important}}
+
+/* =========================================================
+   V10.83.2 — Blank-screen recovery and launcher safeguards
+   ========================================================= */
+.bes-feature-recovery{
+  width:min(100% - 24px,980px);min-height:58px;margin:8px auto;padding:10px 14px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid #d7c7b9;border-radius:15px;
+  background:#fff8ec;color:#2b2522;box-shadow:0 7px 18px rgba(25,21,21,.08);font-size:.72rem;
+}
+.bes-feature-recovery strong{font-size:.78rem}.bes-feature-recovery span{color:#756a65;flex:1 1 220px}
+.bes-feature-recovery>div{display:flex;gap:7px}
+.bes-feature-recovery button{min-height:34px;padding:6px 11px;border:1px solid #312b28;border-radius:10px;background:#fff;color:#312b28;font:inherit;font-size:.65rem;font-weight:900;cursor:pointer}
+.bes-crash-recovery{
+  min-height:100dvh;display:grid;place-items:center;padding:28px;background:linear-gradient(145deg,#eef5ff 0%,#fff7ea 54%,#edf9f3 100%);color:#191515;
+}
+.bes-crash-recovery>section{width:min(100%,760px);padding:clamp(28px,5vw,58px);border:2px solid #191515;border-radius:30px;background:#fffdf8;box-shadow:12px 14px 0 rgba(25,21,21,.16)}
+.bes-crash-recovery-mark{width:58px;height:58px;display:grid;place-items:center;border:2px solid #191515;border-radius:17px;background:#f05a7e;color:#fff;font-size:1rem;font-weight:1000;box-shadow:4px 4px 0 #191515}
+.bes-crash-recovery section>p:first-of-type{margin:20px 0 7px;color:#a43b57;font-size:.68rem;font-weight:1000;letter-spacing:.12em}
+.bes-crash-recovery h1{margin:0;font-size:clamp(2rem,6vw,4.8rem);line-height:.92;letter-spacing:-.055em}
+.bes-crash-recovery h1+p{max-width:610px;margin:20px 0;color:#655c58;font-size:1rem;line-height:1.65}
+.bes-crash-recovery-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:22px}
+.bes-crash-recovery-actions button{min-height:44px;padding:9px 15px;border:2px solid #191515;border-radius:13px;background:#fff;color:#191515;font:inherit;font-size:.72rem;font-weight:950;cursor:pointer;box-shadow:3px 3px 0 rgba(25,21,21,.14)}
+.bes-crash-recovery-actions button.primary{background:#191515;color:#fff}
+.bes-crash-recovery details{margin-top:22px;padding-top:14px;border-top:1px solid #ddd3cd;color:#6f6662;font-size:.66rem}
+.bes-crash-recovery code{display:block;margin-top:8px;padding:10px;border-radius:10px;background:#f4f1ef;color:#8d243a;white-space:pre-wrap;overflow-wrap:anywhere}
+html[data-theme="dark"] .bes-feature-recovery{border-color:#61544f;background:#241f1d;color:#fff}
+html[data-theme="dark"] .bes-feature-recovery span{color:#c7bbb5}
+html[data-theme="dark"] .bes-crash-recovery{background:#11161c;color:#f7f2ed}
+html[data-theme="dark"] .bes-crash-recovery>section{border-color:#8f827b;background:#211d1b;box-shadow:12px 14px 0 rgba(0,0,0,.35)}
+html[data-theme="dark"] .bes-crash-recovery h1+p{color:#c5bab4}
+@media(max-width:680px){.bes-crash-recovery{padding:14px}.bes-crash-recovery>section{padding:26px 20px;border-radius:22px;box-shadow:6px 7px 0 rgba(25,21,21,.15)}.bes-crash-recovery-actions{display:grid}.bes-crash-recovery-actions button{width:100%}.bes-feature-recovery{width:calc(100% - 18px);align-items:flex-start}}
