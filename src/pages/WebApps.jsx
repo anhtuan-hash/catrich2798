@@ -214,9 +214,10 @@ function GroupRail({ group, count, language, active, onClick }) {
   );
 }
 
-export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser, setLanguage, theme, setTheme }) {
+export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser, setLanguage, theme, setTheme, isFeatureEnabled: featureEnabled }) {
   const t = copy[language] || copy.vi;
   const isAdmin = currentUser?.role === 'admin';
+  const launcherCustomizationEnabled = featureEnabled ? featureEnabled('customLauncher') : true;
   const [editMode, setEditMode] = useState(false);
   const [activeGroup, setActiveGroup] = useState('all');
   const [newGroupName, setNewGroupName] = useState('');
@@ -252,6 +253,7 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
   const [draftConfig, setDraftConfig] = useState(() => loadLauncherConfig(itemIds));
 
   useEffect(() => { editModeRef.current = editMode; }, [editMode]);
+  useEffect(() => { if (!launcherCustomizationEnabled && editMode) setEditMode(false); }, [launcherCustomizationEnabled, editMode]);
 
   useEffect(() => {
     setUsage(getAppUsage(currentUser));
@@ -390,10 +392,10 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
   const cancelEdit = () => { setDraftConfig(config); setEditMode(false); setNotice(''); };
 
   useEffect(() => {
-    const openEditor = () => { if (isAdmin) beginEdit(); };
+    const openEditor = () => { if (isAdmin && launcherCustomizationEnabled) beginEdit(); };
     window.addEventListener('bes-launcher-edit', openEditor);
     return () => window.removeEventListener('bes-launcher-edit', openEditor);
-  }, [isAdmin, config, itemIds.join('|')]);
+  }, [isAdmin, launcherCustomizationEnabled, config, itemIds.join('|')]);
 
   return (
     <div className={`flat-design-home flat-apps-directory launcher-v10831 launcher-command-center density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
@@ -404,7 +406,7 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
           <p className="flat-kicker">{t.kicker}</p>
           <h1><span className="flat-bubble-word">{t.titleA}</span><span>{t.titleB}</span><span>{t.titleC}</span></h1>
           <p className="flat-subtitle">{t.subtitle}</p>
-          {isAdmin && (
+          {isAdmin && launcherCustomizationEnabled && (
             <div className="launcher-admin-actions">
               <button type="button" className={editMode ? 'active' : ''} onClick={editMode ? cancelEdit : beginEdit}>{editMode ? t.finish : t.customize}</button>
               {editMode && <button type="button" className="primary" onClick={saveChanges} disabled={saving}>{saving ? t.saving : t.save}</button>}

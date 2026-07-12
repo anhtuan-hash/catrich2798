@@ -15,6 +15,7 @@ export const ROUTE_PERMISSION_IDS = {
   practice: 'route:practice',
   qa: 'route:qa',
   settings: 'route:settings',
+  updates: 'route:updates',
   department: DEPARTMENT_WORKSPACE_PERMISSION_ID,
   homeroom: HOMEROOM_PERMISSION_ID,
 };
@@ -75,6 +76,15 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Cài đặt AI',
     desc: 'Configure personal AI provider keys and app preferences.',
     descVi: 'Cấu hình khóa AI cá nhân và tuỳ chọn giao diện.',
+  },
+  {
+    id: ROUTE_PERMISSION_IDS.updates,
+    type: 'system',
+    section: 'content',
+    title: 'Update & Release Center',
+    titleVi: 'Trung tâm cập nhật & phát hành',
+    desc: 'Admin-only feature flags, rollback, update status and audit tools.',
+    descVi: 'Feature Flags, rollback, trạng thái cập nhật và audit chỉ dành cho Admin.',
   },
 ];
 
@@ -261,7 +271,7 @@ export function getRoutePermissionId(route) {
   if (route === 'practice') return ROUTE_PERMISSION_IDS.practice;
   if (route === 'department') return DEPARTMENT_WORKSPACE_PERMISSION_ID;
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
-  if (route === 'library' || route === 'resource-library' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
+  if (route === 'library' || route === 'resource-library' || route === 'qa' || route === 'settings' || route === 'updates') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
@@ -270,7 +280,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (PUBLIC_ROUTES.has(route)) return true;
   if (!user) return false;
   if (user.role === 'admin') return true;
-  if (route === 'admin') return false;
+  if (route === 'admin' || route === 'updates' || route === 'ai-governance') return false;
   if (route === 'trash') return Boolean(user);
   if (route === 'tool') return hasToolAccess(user, selectedTool?.slug);
   if (route === 'news') return Boolean(user);

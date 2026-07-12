@@ -3,6 +3,7 @@ import { callAI, extractJson } from '../utils/gemini.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { canPublishDepartment } from '../utils/permissions.js';
 import { isSupabaseConfigured, supabase } from '../utils/supabase.js';
+import { validateUploadWithServer } from '../utils/uploadSecurity.js';
 import {
   fetchResourceCategoryOverview,
   getAccessToken,
@@ -29,7 +30,7 @@ import ResourceFileViewer, { supportsResourcePreview } from '../features/resourc
 import '../features/resource-library/resourceLibraryCategories.css';
 
 const SKILLS = ['Vocabulary', 'Grammar', 'Reading', 'Listening', 'Speaking', 'Writing', 'Pronunciation'];
-const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.md,.html,.zip,.mp3,.wav,.m4a,.mp4,.mov,.png,.jpg,.jpeg';
+const ACCEPT = '.pdf,.docx,.pptx,.xls,.xlsx,.csv,.txt,.md,.html,.mp3,.wav,.m4a,.mp4,.mov,.png,.jpg,.jpeg,.webp';
 const PAGE_SIZES = [24, 48, 96];
 const DEFAULT_FORM = {
   title: '', description: '', category: 'other', grade: '', schoolYear: '', unitName: '', cefr: '',
@@ -138,7 +139,7 @@ function ResourceCard({
   );
 }
 
-export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKey }) {
+export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKey, isFeatureEnabled }) {
   const manager = isLeader(currentUser);
   const [store, setStore] = useState(loadResourceLibrary);
   const [overviewRows, setOverviewRows] = useState([]);
@@ -375,6 +376,11 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
   };
 
   const uploadOne = async (file, metadata) => {
+    if (!isFeatureEnabled || isFeatureEnabled('uploadSecurity')) {
+      const validation = await validateUploadWithServer(file, { allowedKinds: ['image', 'document', 'audio', 'video'] });
+      if (!validation.ok) throw new Error(validation.error || 'File không vượt qua kiểm tra an toàn');
+      window.dispatchEvent(new CustomEvent('bes-audit', { detail: { action: 'upload_validated', category: 'upload', status: 'success', metadata: { kind: validation.kind, extension: validation.extension, size: file.size } } }));
+    }
     const token = await getAccessToken();
     if (!token) throw new Error('Cần đăng nhập Supabase để tải lên Drive');
     const response = await fetch('/api/google-drive-upload', {
@@ -383,7 +389,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         Authorization: `Bearer ${token}`,
         'Content-Type': file.type || 'application/octet-stream',
         'X-File-Name': encodeURIComponent(file.name),
-        'X-Resource-Metadata': btoa(unescape(encodeURIComponent(JSON.stringify(metadata)))),
+        'X-Resource-Metadata': btoa(unescape(encodeURIComponent(JSON.stringify({ ...metadata, size: file.size })))),
       },
       body: file,
     });

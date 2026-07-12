@@ -1,0 +1,8 @@
+{
+  "version": "10.87.0",
+  "codename": "Release, Security & Performance",
+  "releasedAt": "2026-07-12",
+  "requiresSql": true,
+  "requiresEnv": false,
+  "minimumNode": "22.x"
+}

@@ -1,5 +1,6 @@
 import { ensureFolder, getConnection, requireUser, resourceCategoryFolderName, send, uploadFile } from './_googleDrive.js';
 import { normaliseResourceCategory } from './_resourceCategoryFolders.js';
+import { validateMagicBytes, validateUploadMetadata } from './_uploadSecurity.js';
 
 export const config = { api: { bodyParser: false, sizeLimit: '50mb' } };
 
@@ -16,13 +17,19 @@ export default async function handler(req, res) {
     const encoded = String(req.headers['x-resource-metadata'] || '');
     const meta = JSON.parse(Buffer.from(encoded, 'base64').toString('utf8'));
     const category = normaliseResourceCategory(meta.category);
-    const fileName = decodeURIComponent(String(req.headers['x-file-name'] || meta.fileName || 'resource.bin'));
+    const originalFileName = decodeURIComponent(String(req.headers['x-file-name'] || meta.fileName || 'resource.bin'));
+    const declaredSize = Number(req.headers['content-length'] || meta.size || 0);
+    const validation = validateUploadMetadata({ name: originalFileName, type: req.headers['content-type'], size: declaredSize, allowedKinds: ['image', 'document', 'audio', 'video'] });
+    const fileName = validation.safeName;
+    const body = await readBody(req);
+    if (body.length !== declaredSize && declaredSize > 0) throw new Error('Uploaded file size does not match the declared size.');
+    validateMagicBytes(body, validation.extension);
     const { client, connection, accessToken } = await getConnection();
     const folderMap = connection.folder_map || {};
     const pendingRoot = folderMap['00_CHO_DUYET'] || await ensureFolder(accessToken, '00_CHO_DUYET', connection.root_folder_id);
     const teacherFolder = await ensureFolder(accessToken, String(user.email || user.id).replace(/[^a-zA-Z0-9@._-]/g, '_'), pendingRoot);
     const dateFolder = await ensureFolder(accessToken, new Date().toISOString().slice(0, 10), teacherFolder);
-    const uploaded = await uploadFile(accessToken, await readBody(req), {
+    const uploaded = await uploadFile(accessToken, body, {
       name: fileName,
       parents: [dateFolder],
       appProperties: {
@@ -32,7 +39,7 @@ export default async function handler(req, res) {
         targetFolder: resourceCategoryFolderName(category),
       },
     }, req.headers['content-type']);
-    await client.from('resource_activity_logs').insert({ actor_id: user.id, action: 'drive_upload', details: { fileId: uploaded.id, fileName, category } });
+    await client.from('resource_activity_logs').insert({ actor_id: user.id, action: 'drive_upload', details: { fileId: uploaded.id, fileName, originalFileName, category, kind: validation.kind, size: body.length } });
     return send(res, 200, { fileId: uploaded.id, webViewLink: uploaded.webViewLink, downloadLink: uploaded.webContentLink });
   } catch (error) {
     return send(res, 400, { error: error.message });

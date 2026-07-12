@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom';
 import { callAI } from '../utils/gemini.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
+import { buildAiActionSuggestions, executeAiAction, prepareAiAction } from '../utils/aiActions.js';
 
 const ROUTE_LABELS = {
   home: { title: 'Brian English Studio', titleVi: 'Brian English Studio', taskVi: 'Hỗ trợ nhanh các công việc dạy học, quản lý lớp và điều hành tổ chuyên môn.', task: 'Support teaching, classroom management and department leadership tasks.' },
@@ -33,6 +34,7 @@ const SVG = {
   mic: <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d="M5.5 11.5A6.5 6.5 0 0 0 18.5 11.5M12 18v3M9 21h6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>,
   speaker: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10h3l4-3.5v11L8 14H5zM15 9a4 4 0 0 1 0 6M17.5 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   use: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h12M12 7l5 5-5 5M20 5v14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  plan: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="m16.2 15.2 1.3 1.3 2.5-3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   trash: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9 7V4h6v3M7.5 7l.7 13h7.6l.7-13M10 10v7M14 10v7" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   back: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
 };
@@ -217,7 +219,7 @@ function setReactFieldValue(element, value) {
   element.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
-export default function UniversalAIAssist({ language = 'vi', currentRoute = 'home', selectedTool = null, apiKey = '', aiModel = '', hasApiKey = false, currentUser = null, providerName = '', accent = '#5B2A86', soft = '#E9DAFF', ink = '#20102F' }) {
+export default function UniversalAIAssist({ language = 'vi', currentRoute = 'home', selectedTool = null, apiKey = '', aiModel = '', hasApiKey = false, currentUser = null, providerName = '', accent = '#5B2A86', soft = '#E9DAFF', ink = '#20102F', enableVoice = true, enableActions = true }) {
   const info = useMemo(() => routeInfo(currentRoute, selectedTool, language), [currentRoute, selectedTool, language]);
   const storageId = useMemo(() => threadsKey(currentUser), [currentUser]);
   const [open, setOpen] = useState(false);
@@ -234,6 +236,9 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
   const [draggingFiles, setDraggingFiles] = useState(false);
   const [attachmentBusy, setAttachmentBusy] = useState(false);
   const [attachments, setAttachments] = useState([]);
+  const [actionMessage, setActionMessage] = useState(null);
+  const [actionPlan, setActionPlan] = useState(null);
+  const [actionBusy, setActionBusy] = useState(false);
   const [hasSeenBubble, setHasSeenBubble] = useState(() => safeLocalGet('bes-ai-chat-seen') === '1');
   const [threads, setThreads] = useState(() => loadThreads(currentUser, language, info));
   const [activeThreadId, setActiveThreadId] = useState(() => safeLocalGet(activeThreadKey(currentUser)) || '');
@@ -256,6 +261,8 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
     setThreads(loaded);
     setActiveThreadId(loaded.some((thread) => thread.id === savedActive) ? savedActive : loaded[0]?.id || '');
     setAttachments([]);
+    setActionMessage(null);
+    setActionPlan(null);
   }, [storageId]);
 
   useEffect(() => {
@@ -462,12 +469,54 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
     setOpen(false);
   };
 
+  const openActionPicker = (message) => {
+    const suggestions = buildAiActionSuggestions({ message: message.content, currentRoute, selectedTool, language });
+    if (!suggestions.length) {
+      setNotice(language === 'vi' ? 'Admin đã tắt các hành động AI cho trang này.' : 'AI actions are disabled for this page.');
+      window.setTimeout(() => setNotice(''), 1800);
+      return;
+    }
+    setActionMessage({ message, suggestions });
+    setActionPlan(null);
+  };
+
+  const runActionPlan = async (plan) => {
+    setActionBusy(true); setError('');
+    try {
+      const result = await executeAiAction(plan);
+      const label = plan.action.label;
+      setNotice(language === 'vi' ? `Đã thực hiện: ${label}.` : `Completed: ${label}.`);
+      setActionMessage(null); setActionPlan(null);
+      window.setTimeout(() => setNotice(''), 2200);
+      if (result?.hash && plan.action.id !== 'current-app') {
+        setOpen(false);
+        window.setTimeout(() => { window.location.hash = result.hash; }, 80);
+      }
+    } catch (err) {
+      setError(err?.message || (language === 'vi' ? 'Không thể thực hiện hành động AI.' : 'Could not execute the AI action.'));
+    } finally { setActionBusy(false); }
+  };
+
+  const chooseAction = async (action) => {
+    try {
+      const plan = prepareAiAction(action.id, {
+        text: actionMessage?.message?.content || '',
+        title: language === 'vi' ? 'Kết quả từ Brian AI' : 'Brian AI result',
+        messageId: actionMessage?.message?.id || '',
+      }, { currentRoute, selectedTool, currentUser, language });
+      if (plan.requiresConfirmation) setActionPlan(plan);
+      else await runActionPlan(plan);
+    } catch (err) {
+      setError(err?.message || (language === 'vi' ? 'Không thể chuẩn bị hành động.' : 'Could not prepare the action.'));
+    }
+  };
+
   const onComposerKeyDown = (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); } };
   const openChat = () => { setOpen(true); setHasSeenBubble(true); safeLocalSet('bes-ai-chat-seen', '1'); };
 
   const sortedThreads = [...threads].sort((a, b) => b.updatedAt - a.updatedAt);
   const portal = (
-    <div className={`ai-messenger-root ai-messenger-v10831 ${open ? 'is-open' : 'is-collapsed'} ${draggingFiles ? 'is-file-dragging' : ''}`} style={{ '--ai-chat-accent': accent, '--ai-chat-soft': soft, '--ai-chat-ink': ink }} data-route={currentRoute}
+    <div className={`ai-messenger-root ai-messenger-v10860 ${open ? 'is-open' : 'is-collapsed'} ${draggingFiles ? 'is-file-dragging' : ''}`} style={{ '--ai-chat-accent': accent, '--ai-chat-soft': soft, '--ai-chat-ink': ink }} data-route={currentRoute}
       onDragEnter={(event) => { if (open && event.dataTransfer?.types?.includes('Files')) { event.preventDefault(); setDraggingFiles(true); } }}
       onDragOver={(event) => { if (open && event.dataTransfer?.types?.includes('Files')) event.preventDefault(); }}
       onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setDraggingFiles(false); }}
@@ -479,7 +528,7 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
             <div className="ai-messenger-heading"><strong>Brian AI</strong><span><i /> {voiceMode ? (language === 'vi' ? 'Chế độ giọng nói' : 'Voice mode') : (language === 'vi' ? 'Đang hoạt động' : 'Active')} · {providerName || aiModel || 'AI'}</span></div>
             <div className="ai-messenger-header-actions">
               <button type="button" className={showHistory ? 'active' : ''} onClick={() => setShowHistory((value) => !value)} title={language === 'vi' ? 'Lịch sử hội thoại' : 'Conversation history'}>{SVG.history}</button>
-              <button type="button" className={voiceMode || listening ? 'active voice' : ''} onClick={toggleVoiceMode} title={language === 'vi' ? 'Chế độ giọng nói' : 'Voice mode'}>{SVG.mic}</button>
+              {enableVoice ? <button type="button" className={voiceMode || listening ? 'active voice' : ''} onClick={toggleVoiceMode} title={language === 'vi' ? 'Chế độ giọng nói' : 'Voice mode'}>{SVG.mic}</button> : null}
               <button type="button" onClick={newChat} title={language === 'vi' ? 'Cuộc trò chuyện mới' : 'New chat'}>{SVG.plus}</button>
               <button type="button" onClick={() => { window.location.hash = '#/settings'; setOpen(false); }} title={language === 'vi' ? 'Thiết lập AI' : 'AI settings'}>{SVG.gear}</button>
               <button type="button" onClick={() => setOpen(false)} title={language === 'vi' ? 'Thu gọn' : 'Minimize'}>{SVG.minus}</button>
@@ -514,9 +563,9 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
                         <div className="ai-messenger-message-actions">
                           <button type="button" onClick={() => copyMessage(message)}>{SVG.copy}<span>{copiedId === message.id ? (language === 'vi' ? 'Đã sao chép' : 'Copied') : (language === 'vi' ? 'Sao chép' : 'Copy')}</span></button>
                           <button type="button" onClick={() => useResult(message)} className={appliedId === message.id ? 'active' : ''}>{SVG.use}<span>{appliedId === message.id ? (language === 'vi' ? 'Đã dùng' : 'Applied') : (language === 'vi' ? 'Dùng kết quả trong ứng dụng' : 'Use result in app')}</span></button>
+                          {enableActions ? <button type="button" onClick={() => openActionPicker(message)} className="ai-action-trigger">{SVG.plan}<span>{language === 'vi' ? 'Hành động' : 'Actions'}</span></button> : null}
                           <button type="button" onClick={() => sendResultToApp(message)}>{SVG.use}<span>{language === 'vi' ? 'Gửi sang…' : 'Send to…'}</span></button>
-                          <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('bes-ai-action-plan-open', { detail: { text: message.content, route: currentRoute, toolSlug: selectedTool?.slug || '', messageId: message.id } }))}>{SVG.sparkle}<span>{language === 'vi' ? 'Thực hiện có kiểm soát' : 'Controlled actions'}</span></button>
-                          <button type="button" onClick={() => speakingId === message.id ? (window.speechSynthesis.cancel(), setSpeakingId('')) : speakText(message.content, message.id)} className={speakingId === message.id ? 'active' : ''}>{SVG.speaker}<span>{speakingId === message.id ? (language === 'vi' ? 'Dừng đọc' : 'Stop') : (language === 'vi' ? 'Nghe' : 'Listen')}</span></button>
+                          {enableVoice ? <button type="button" onClick={() => speakingId === message.id ? (window.speechSynthesis.cancel(), setSpeakingId('')) : speakText(message.content, message.id)} className={speakingId === message.id ? 'active' : ''}>{SVG.speaker}<span>{speakingId === message.id ? (language === 'vi' ? 'Dừng đọc' : 'Stop') : (language === 'vi' ? 'Nghe' : 'Listen')}</span></button> : null}
                         </div>
                       )}
                     </div>
@@ -547,6 +596,34 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
               </footer>
             </>
           )}
+
+          {enableActions && actionMessage && !actionPlan ? (
+            <div className="ai-action-panel" role="dialog" aria-label={language === 'vi' ? 'Chọn hành động AI' : 'Choose AI action'}>
+              <header><div><span>{SVG.plan}</span><div><strong>{language === 'vi' ? 'Dùng kết quả để làm gì?' : 'What should AI do next?'}</strong><small>{language === 'vi' ? 'Brian AI đề xuất các hành động an toàn cho nội dung này.' : 'Brian AI suggests safe actions for this result.'}</small></div></div><button type="button" onClick={() => setActionMessage(null)}>×</button></header>
+              <div className="ai-action-grid">
+                {actionMessage.suggestions.map((action) => (
+                  <button type="button" key={action.id} onClick={() => chooseAction(action)} disabled={actionBusy}>
+                    <span>{action.icon}</span><div><strong>{action.label}</strong><small>{action.description}</small></div><b>›</b>
+                  </button>
+                ))}
+              </div>
+              <footer><small>{language === 'vi' ? 'Hành động làm thay đổi dữ liệu sẽ được xem trước trước khi thực hiện.' : 'Data-changing actions are previewed before execution.'}</small></footer>
+            </div>
+          ) : null}
+
+          {enableActions && actionPlan ? (
+            <div className="ai-action-confirm" role="dialog" aria-label={language === 'vi' ? 'Xác nhận hành động AI' : 'Confirm AI action'}>
+              <section>
+                <header><div><span>{actionPlan.action.icon}</span><div><small>{language === 'vi' ? 'KẾ HOẠCH HÀNH ĐỘNG' : 'ACTION PLAN'}</small><strong>{actionPlan.action.label}</strong></div></div><button type="button" onClick={() => setActionPlan(null)} disabled={actionBusy}>×</button></header>
+                <div className="ai-action-confirm-body">
+                  <p>{actionPlan.action.description}</p>
+                  <div className="ai-action-preview"><small>{language === 'vi' ? 'Xem trước nội dung' : 'Content preview'}</small><pre>{actionPlan.text.slice(0, 1800)}{actionPlan.text.length > 1800 ? '\n…' : ''}</pre></div>
+                  <div className="ai-action-safety"><b>✓</b><span>{language === 'vi' ? 'Không xóa dữ liệu và không gửi ra bên ngoài. Bạn có thể hủy ở bước này.' : 'This does not delete data or send anything externally. You can cancel now.'}</span></div>
+                </div>
+                <footer><button type="button" className="secondary" onClick={() => setActionPlan(null)} disabled={actionBusy}>{language === 'vi' ? 'Hủy' : 'Cancel'}</button><button type="button" className="primary" onClick={() => runActionPlan(actionPlan)} disabled={actionBusy}>{actionBusy ? (language === 'vi' ? 'Đang thực hiện…' : 'Running…') : (language === 'vi' ? 'Thực hiện' : 'Execute')}</button></footer>
+              </section>
+            </div>
+          ) : null}
 
           {draggingFiles && <div className="ai-messenger-drop-zone"><span>{SVG.attach}</span><strong>{language === 'vi' ? 'Thả file vào đây' : 'Drop files here'}</strong><small>PDF · DOCX · PPTX · XLSX · IMAGE</small></div>}
         </section>
