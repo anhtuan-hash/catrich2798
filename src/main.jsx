@@ -67,12 +67,14 @@ const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
 const GlobalRuntimeGuard = lazy(() => import('./components/GlobalRuntimeGuard.jsx'));
 const TrashCenter = lazy(() => import('./pages/TrashCenter.jsx'));
 const SystemHealthCenter = lazy(() => import('./pages/SystemHealthCenter.jsx'));
+const AIGovernanceCenter = lazy(() => import('./pages/AIGovernanceCenter.jsx'));
+const AIActionCenter = lazy(() => import('./components/AIActionCenter.jsx'));
 const WorkspaceTabs = lazy(() => import('./components/WorkspaceTabs.jsx'));
 const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.jsx'));
 const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.jsx'));
 const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
 
 function getInitialRoute() {
@@ -100,6 +102,7 @@ const ROUTE_DESIGN_PROFILES = {
   resources: { accent: '#D99A1E', soft: '#FFF0C8', ink: '#392406' },
   contact: { accent: '#00A6A6', soft: '#D8FAFA', ink: '#073434' },
   qa: { accent: '#123C69', soft: '#DCEBFA', ink: '#07192C' },
+  'ai-governance': { accent: '#6750A4', soft: '#EEE7FF', ink: '#24134D' },
   trash: { accent: '#A43B57', soft: '#FFE5EC', ink: '#3C101D' },
   tools: { accent: '#E86D1F', soft: '#FFE3CD', ink: '#211510' },
   login: { accent: '#191515', soft: '#F3DFD8', ink: '#191515' },
@@ -495,6 +498,7 @@ function App() {
           {canAccessRoute && currentRoute === 'resource-library' && currentUser && <ResourceLibrary {...context} />}
           {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
           {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}
+          {canAccessRoute && currentRoute === 'ai-governance' && currentUser && <AIGovernanceCenter {...context} />}
           {canAccessRoute && currentRoute === 'trash' && currentUser && <TrashCenter {...context} />}
           {currentRoute === 'contact' && <Contact {...context} />}
           {canAccessRoute && currentRoute === 'settings' && currentUser && <Settings {...context} />}
@@ -517,6 +521,7 @@ function App() {
       {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="ai-messenger" label={language === 'vi' ? 'Brian AI' : 'Brian AI'}>
+          <AIActionCenter language={language} />
           <UniversalAIAssist
             language={language}
             currentRoute={currentRoute}

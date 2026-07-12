@@ -313,7 +313,7 @@ add('V10.81.9 direct viewer covers requested formats', ['docx', 'pptx', 'pdf', '
 add('V10.81.9 resource modal uses secure viewer', resourceLibrarySource.includes('<ResourceFileViewer item={preview} fetchBlob={fetchResourceBlob} getStreamUrl={getResourceStreamUrl}/>') && resourceLibrarySource.includes('supportsResourcePreview'), 'preview remains behind authenticated Drive proxy');
 add('V10.81.9 Office renderers are local and sandboxed', resourceViewerSource.includes('mammoth.convertToHtml') && resourceViewerSource.includes("import('xlsx')") && resourceViewerSource.includes("import('jszip')") && resourceViewerSource.includes('sandbox="allow-popups"'), 'Word, Excel and PowerPoint render without public Drive sharing');
 add('V10.81.9 scalable viewer styling present', resourceViewerCss.includes('V10.81.9 — direct DOCX, PPTX, PDF, XLSX, MP4 and MP3 viewer') && resourceViewerCss.includes('.resource-workbook-viewer') && resourceViewerCss.includes('.resource-pptx-viewer'), 'desktop, dark and mobile layouts present');
-add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0', '10.83.1', '10.83.2', '10.83.3', '10.84.0', '10.85.0'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
+add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0', '10.83.1', '10.83.2', '10.83.3', '10.84.0', '10.85.0', '10.86.0'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
 const previewSessionSource = fs.readFileSync(new URL('../api/google-drive-preview-session.js', import.meta.url), 'utf8');
 const driveFileSource = fs.readFileSync(new URL('../api/google-drive-file.js', import.meta.url), 'utf8');
 add('V10.81.9 secure streaming session supports media seeking', previewSessionSource.includes('signResourcePreviewToken') && driveFileSource.includes('Content-Range') && driveFileSource.includes("Range: range") && resourceLibrarySource.includes('getResourceStreamUrl'), 'short-lived signed URL and byte ranges present');
@@ -456,6 +456,16 @@ add('V10.85 autosave keeps bounded version history', autosaveSource.includes('ad
 add('V10.85 offline sync queue is visible and retried online', mainSource.includes('SyncQueueIndicator') && syncQueueSource.includes('processSyncQueue') && syncQueueIndicatorSource.includes("window.addEventListener('online'") && syncQueueIndicatorSource.includes('Hàng đợi đồng bộ'), 'offline transfer queue, retry and status panel present');
 add('V10.85 configuration migration protects legacy launcher data', mainSource.includes('runConfigurationMigrations') && configMigrationSource.includes('bes-launcher-config-v3') && configMigrationSource.includes('bes-launcher-config-v4') && launcherPreferencesSource.includes('bes-launcher-config-v4'), 'legacy config is backed up and migrated before rendering');
 add('V10.85 connected workflow styles are responsive and centered', cssSource.includes('V10.85.0 — Connected Workflow') && cssSource.includes('.bes-workspace-tabs') && cssSource.includes('.bes-transfer-panel') && cssSource.includes('.bes-version-panel') && cssSource.includes('.bes-sync-queue'), 'desktop, mobile, dark and reduced-motion styles present');
+
+
+// V10.86.0 — AI Action & Governance
+const aiActionCenterSource = fs.readFileSync(new URL('../src/components/AIActionCenter.jsx', import.meta.url), 'utf8');
+const aiGovernancePageSource = fs.readFileSync(new URL('../src/pages/AIGovernanceCenter.jsx', import.meta.url), 'utf8');
+const aiGovernanceSource = fs.readFileSync(new URL('../src/utils/aiGovernance.js', import.meta.url), 'utf8');
+add('V10.86 controlled AI action plans are mounted globally', mainSource.includes('AIActionCenter') && universalAiSource.includes('bes-ai-action-plan-open') && aiActionCenterSource.includes('buildSafeActionPlan'), 'assistant results can open a controlled action plan');
+add('V10.86 AI actions require governance checks', aiActionCenterSource.includes('requireConfirmation') && aiActionCenterSource.includes('allowCrossAppTransfer') && aiGovernanceSource.includes('allowDestructiveActions: false'), 'confirmation and non-destructive defaults present');
+add('V10.86 Admin AI governance center is wired', mainSource.includes('AIGovernanceCenter') && aiGovernancePageSource.includes('Trung tâm quản trị Brian AI') && aiGovernancePageSource.includes('Chỉ Admin'), 'Admin-only governance controls present');
+add('V10.86 AI action styling is responsive', cssSource.includes('V10.86.0 — AI Action Engine and Governance Center') && cssSource.includes('.ai-action-center') && cssSource.includes('.ai-governance-page'), 'desktop and mobile controlled-action UI present');
 
 const failed = checks.filter((item) => !item.ok);
 for (const item of checks) {
