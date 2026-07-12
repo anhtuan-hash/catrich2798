@@ -21,6 +21,22 @@ export const APPS = [
     },
 
   {
+      slug: 'worksheet-factory',
+      icon: 'WF',
+      tone: 'pink',
+      group: 'Teaching Design',
+      groupVi: 'Tạo học liệu',
+      title: 'Worksheet Factory',
+      titleVi: 'Worksheet Factory',
+      desc: 'Turn PDFs, Word files, slides, spreadsheets, articles, word lists or a topic into editable worksheets with answers, quality checks and Word export.',
+      descVi: 'Biến PDF, Word, PowerPoint, Excel, bài báo, danh sách từ hoặc chủ đề thành phiếu học tập có thể biên tập, kèm đáp án, kiểm tra trùng và xuất Word.',
+      status: '11 activity types · DOCX export',
+      statusVi: '11 dạng bài · Xuất DOCX',
+      api: true,
+      featured: true,
+    },
+
+  {
       slug: 'news-reader',
       route: 'news',
       icon: 'NW',

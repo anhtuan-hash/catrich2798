@@ -7,6 +7,7 @@ import { PETRUS_KY_ACADEMIC_PLAN_DOCUMENT, PETRUS_KY_ACADEMIC_PLAN_2026_2027, PE
 import { makeDefaultHomeroomWorkspace } from '../src/utils/homeroomStore.js';
 import { addConductRecord, addConductReward, addCustomConductRule, applyAutomaticConductWeekClosures, buildConductAuditTrail, calculateWeeklyConduct, calculateConductPeriod, buildPeriodRangesFromAcademicCalendar, cancelConductRecord, conductRecordsForWeek, conductWeeksForWorkspace, createAcademicCalendarDefaults, finalizeConductWeek, getConductWeekSummary, inferConductPeriodRanges, reopenConductWeek, resolveConductWeekStart, startOfConductWeek, endOfConductWeek, updateConductRecord, validateAcademicCalendar, DEFAULT_CONDUCT_LOCK_PASSWORD, verifyConductLockPassword, changeConductLockPassword, resetConductLockPassword, resetConductWeekData, isConductWeekLocked } from '../src/utils/homeroomConduct.js';
 import fs from 'node:fs';
+import { WORKSHEET_ACTIVITY_TYPES, auditWorksheet, generateOfflineWorksheet, worksheetToHtml, worksheetMcqBankItems } from '../src/utils/worksheetFactory.js';
 
 const checks = [];
 const add = (name, ok, detail = '') => checks.push({ name, ok, detail });
@@ -306,7 +307,7 @@ add('V10.81.9 direct viewer covers requested formats', ['docx', 'pptx', 'pdf', '
 add('V10.81.9 resource modal uses secure viewer', resourceLibrarySource.includes('<ResourceFileViewer item={preview} fetchBlob={fetchResourceBlob} getStreamUrl={getResourceStreamUrl}/>') && resourceLibrarySource.includes('supportsResourcePreview'), 'preview remains behind authenticated Drive proxy');
 add('V10.81.9 Office renderers are local and sandboxed', resourceViewerSource.includes('mammoth.convertToHtml') && resourceViewerSource.includes("import('xlsx')") && resourceViewerSource.includes("import('jszip')") && resourceViewerSource.includes('sandbox="allow-popups"'), 'Word, Excel and PowerPoint render without public Drive sharing');
 add('V10.81.9 scalable viewer styling present', resourceViewerCss.includes('V10.81.9 — direct DOCX, PPTX, PDF, XLSX, MP4 and MP3 viewer') && resourceViewerCss.includes('.resource-workbook-viewer') && resourceViewerCss.includes('.resource-pptx-viewer'), 'desktop, dark and mobile layouts present');
-add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
+add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && ['10.82.0', '10.82.1', '10.82.2', '10.82.3', '10.82.4', '10.82.5', '10.82.6', '10.82.7', '10.83.0'].includes(packageSource.version), 'PPTX parser dependency is production-safe');
 const previewSessionSource = fs.readFileSync(new URL('../api/google-drive-preview-session.js', import.meta.url), 'utf8');
 const driveFileSource = fs.readFileSync(new URL('../api/google-drive-file.js', import.meta.url), 'utf8');
 add('V10.81.9 secure streaming session supports media seeking', previewSessionSource.includes('signResourcePreviewToken') && driveFileSource.includes('Content-Range') && driveFileSource.includes("Range: range") && resourceLibrarySource.includes('getResourceStreamUrl'), 'short-lived signed URL and byte ranges present');
@@ -351,6 +352,30 @@ add('V10.82.6 Vietnam Tax Studio app card is registered', appDataSource.includes
 add('V10.82.6 Vietnam Tax Studio uses current five-bracket scale', taxStudioSource.includes('CURRENT_BRACKETS') && taxStudioSource.includes('100_000_000') && taxStudioSource.includes('0.35'), '5-bracket scale and top threshold present');
 add('V10.82.6 Vietnam Tax Studio includes Gross-to-Net and insurance calculation', taxStudioSource.includes('calculateInsurance') && taxStudioSource.includes('calculateScenario') && taxStudioSource.includes('REFERENCE_SALARY_2026'), 'insurance, deductions and net salary paths present');
 add('V10.82.6 Vietnam Tax Studio is dependency-free and responsive', taxStudioSource.includes('SavingsCurve') && taxStudioCss.includes('.tax-studio-main-grid') && taxStudioCss.includes('@media (max-width: 760px)'), 'native SVG chart and responsive layout present');
+
+
+const worksheetFactorySource = fs.readFileSync(new URL('../src/pages/WorksheetFactory.jsx', import.meta.url), 'utf8');
+const worksheetFactoryCss = fs.readFileSync(new URL('../src/pages/WorksheetFactory.css', import.meta.url), 'utf8');
+const worksheetFactoryUtil = fs.readFileSync(new URL('../src/utils/worksheetFactory.js', import.meta.url), 'utf8');
+const offlineWorksheet = generateOfflineWorksheet({
+  sourceText: 'Artificial intelligence supports teachers. Students need guidance to use technology responsibly. Clear learning objectives improve classroom outcomes. Privacy remains important in digital education.',
+  title: 'AI in Education',
+  level: 'B2',
+  audience: 'THPT',
+  activityTypes: ['multiple_choice', 'gap_fill', 'true_false', 'reading_comprehension'],
+  itemsPerActivity: 4,
+  language: 'vi',
+});
+const worksheetAudit = auditWorksheet(offlineWorksheet);
+const worksheetHtml = worksheetToHtml(offlineWorksheet, { teacherVersion: true, language: 'vi' });
+const worksheetBank = worksheetMcqBankItems(offlineWorksheet, { level: 'B2', source: 'Smoke test' });
+add('V10.83 Worksheet Factory app card is registered', appDataSource.includes("slug: 'worksheet-factory'") && APPS.some((item) => item.slug === 'worksheet-factory'), 'Worksheet Factory appears in the Apps directory');
+add('V10.83 Worksheet Factory dedicated route is wired', toolPageSource.includes("tool?.slug === 'worksheet-factory'") && toolPageSource.includes('WorksheetFactory'), 'lazy-loaded Worksheet Factory page');
+add('V10.83 Worksheet Factory supports eleven activity types', WORKSHEET_ACTIVITY_TYPES.length === 11 && worksheetFactoryUtil.includes('sentence_transformation') && worksheetFactoryUtil.includes('vocabulary_context'), `${WORKSHEET_ACTIVITY_TYPES.length} activity types`);
+add('V10.83 Worksheet Factory offline generator creates complete activities', offlineWorksheet.activities.length === 4 && worksheetAudit.totalItems >= 13 && worksheetAudit.missingAnswers.length === 0, `${worksheetAudit.activityCount} activities, ${worksheetAudit.totalItems} items`);
+add('V10.83 Worksheet Factory exports teacher HTML and Question Bank items', worksheetHtml.includes('BRIAN ENGLISH · WORKSHEET FACTORY') && worksheetHtml.includes('Đáp án') && worksheetBank.length >= 8, `${worksheetBank.length} bank items`);
+add('V10.83 Worksheet Factory imports document formats and real DOCX export', worksheetFactorySource.includes('readPdfTextFromBuffer') && worksheetFactorySource.includes('readDocxTextFromBuffer') && worksheetFactorySource.includes('readPptxText') && worksheetFactorySource.includes('readSpreadsheetText') && worksheetFactoryUtil.includes('worksheetToDocxBlob'), 'PDF, DOCX, PPTX, XLSX and DOCX export paths present');
+add('V10.83 Worksheet Factory quality audit and centered responsive layout present', worksheetFactorySource.includes('QualityCard') && worksheetFactoryUtil.includes('nearDuplicates') && worksheetFactoryCss.includes('width:min(100%,1440px)') && worksheetFactoryCss.includes('@media(max-width:560px)'), 'quality checks and safe content rail present');
 
 const failed = checks.filter((item) => !item.ok);
 for (const item of checks) {

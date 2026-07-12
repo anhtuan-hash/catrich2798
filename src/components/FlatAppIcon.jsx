@@ -1,6 +1,14 @@
 import React from 'react';
 
 const iconPaths = {
+  worksheet: (
+    <>
+      <path d="M23 13h44l12 12v62H23V13Z" />
+      <path d="M67 14v13h12" />
+      <path d="M34 35h33M34 48h11M51 48h16M34 61h11M51 61h16M34 74h33" />
+      <path d="M28 47h2M28 60h2" />
+    </>
+  ),
   activity: (
     <>
       <path d="M18 20h64v60H18V20Z" />
@@ -144,6 +152,7 @@ const iconPaths = {
 };
 
 export const flatIconForSlug = {
+  'worksheet-factory': 'worksheet',
   'textlab-activities': 'activity',
   'lesson-plan-ai': 'lesson',
   'exam-studio': 'exam',

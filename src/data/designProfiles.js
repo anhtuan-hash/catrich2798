@@ -1,4 +1,12 @@
 export const APP_DESIGN_PROFILES = {
+  'worksheet-factory': {
+    accent: '#D94D70',
+    soft: '#FFE4EC',
+    ink: '#3B101A',
+    icon: 'worksheet',
+    style: 'AI worksheet production line',
+    styleVi: 'Nhà máy phiếu học tập AI',
+  },
   'textlab-activities': {
     accent: '#2F73D9',
     soft: '#DDEBFF',

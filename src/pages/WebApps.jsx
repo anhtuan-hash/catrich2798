@@ -8,6 +8,7 @@ import { launchRoute } from '../utils/motion.js';
 const APP_ORDER = [
   'resource-library-hub',
   'lesson-plan-ai',
+  'worksheet-factory',
   'textlab-activities',
   'exam-studio',
   'reading-studio',
@@ -101,6 +102,7 @@ function statusOf(item, language) {
 function shortDesc(item, language) {
   const vi = {
     'lesson-plan-ai': 'Giáo án, học liệu, năng lực số.',
+    'worksheet-factory': 'Tạo worksheet từ file, text hoặc chủ đề.',
     'textlab-activities': '18 hoạt động tương tác từ văn bản.',
     textcare: 'Chuẩn hoá văn bản hành chính.',
     'reading-studio': 'Bài đọc, câu hỏi và từ vựng.',
@@ -121,6 +123,7 @@ function shortDesc(item, language) {
   };
   const en = {
     'lesson-plan-ai': 'Lessons, materials and competencies.',
+    'worksheet-factory': 'Worksheets from files, text or topics.',
     'textlab-activities': '18 interactive activities from text.',
     textcare: 'Clean official documents.',
     'reading-studio': 'Readings and vocabulary.',
@@ -158,7 +161,7 @@ function navLaunch(route, label, color, sourceEl) {
 function groupOf(item) {
   if (['lesson-plan-ai', 'textcare', 'library-hub', 'resource-library-hub'].includes(item.slug)) return 'plan';
   if (item.slug === 'homeroom-hub') return 'manage';
-  if (item.slug === 'textlab-activities') return 'create';
+  if (['textlab-activities', 'worksheet-factory'].includes(item.slug)) return 'create';
   if (['reading-studio', 'news-reader', 'smart-id', 'vietnam-tax', 'speaking-studio', 'word2graph', 'game-hub', 'games-hub'].includes(item.slug)) return 'create';
   if (['exam-studio', 'student-practice', 'practice-hub'].includes(item.slug)) return 'assess';
   return 'manage';

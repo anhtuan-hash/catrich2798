@@ -1,27 +1,46 @@
-# Cập nhật V10.82.7 vào dự án đang chạy
+# Cập nhật Brian English Studio lên V10.83.0
 
-Dùng gói `brian-english-studio-v10.82.7-ai-messenger-bubble-update-only.zip`.
+## Cách 1 — Gói Update Only
 
-Trong Terminal của VS Code, tại thư mục repository hiện tại:
+1. Giải nén `brian-english-studio-v10.83.0-worksheet-factory-update-only.zip`.
+2. Mở Terminal tại repository Brian English Studio đang deploy.
+3. Sao chép đè các tệp cập nhật:
 
 ```bash
-rsync -av ~/Downloads/brian-english-studio-v10.82.7-ai-messenger-bubble-update-only/ ./
+rsync -av ~/Downloads/brian-english-studio-v10.83.0-worksheet-factory-update-only/ ./
+```
+
+4. Kiểm tra:
+
+```bash
 npm ci
 npm run build
 npm test
 npm run test:department
 ```
 
-Sau đó:
+5. Triển khai:
 
 ```bash
 git add -A
-git commit -m "Add Brian AI Messenger bubble V10.82.7"
+git commit -m "Add Worksheet Factory V10.83.0"
 git push origin main
 ```
 
-Sau khi Vercel báo **Ready**, tải lại mạnh bằng `Command + Shift + R`.
+## Cách 2 — Full Source
 
-Bong bóng **Brian AI** xuất hiện ở góc dưới bên phải trên mọi trang đã đăng nhập. Trình phát nhạc được tự động dịch lên trên để hai nút không chồng nhau.
+Giải nén source đầy đủ vào một thư mục mới, bổ sung lại file font cá nhân hiện có của dự án vào `public/fonts`, sau đó chạy:
 
-Không cần chạy SQL Supabase và không cần thêm Environment Variable. Bong bóng chat dùng AI provider hiện có trong **Thiết lập**.
+```bash
+npm ci
+npm run build
+npm test
+npm run test:department
+```
+
+## Lưu ý
+
+- Không cần SQL Supabase mới.
+- Không cần Environment Variable mới.
+- App sử dụng AI provider/API key đã cấu hình trong Cài đặt.
+- Không chép đè hoặc xóa font cá nhân đang có trong `public/fonts`.
