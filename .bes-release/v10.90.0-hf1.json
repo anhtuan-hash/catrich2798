@@ -1,0 +1,9 @@
+{
+  "version": "10.90.0-HF1",
+  "baseVersion": "10.90.0",
+  "installedAt": "2026-07-12T17:56:48.413Z",
+  "backupDir": ".bes-backup/v10.90.0-hf1-2026-07-12T17-56-48-403Z",
+  "lockHashBefore": "e10f1e139d61490bd272dcea2f38f873fedabf5b53df98c59b68940f70cf8652",
+  "lockHashAfter": "e10f1e139d61490bd272dcea2f38f873fedabf5b53df98c59b68940f70cf8652",
+  "asset": "public/bes-supabase-bridge-v10900hf1.js"
+}

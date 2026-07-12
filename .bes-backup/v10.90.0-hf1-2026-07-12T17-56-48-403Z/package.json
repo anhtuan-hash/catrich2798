@@ -58,10 +58,7 @@
     "test:work-hub:compat": "node scripts/check-work-hub-compat-v10.90.0.mjs",
     "release:guard:v10.90": "node scripts/release-guard-v10.90.0.mjs",
     "rollback:v10.90.0": "node scripts/rollback-v10.90.0.mjs",
-    "verify:v10.90": "npm run test:smart-knowledge && npm run build && npm test && npm run test:department && npm run test:platform-control && npm run test:work-hub:compat && npm run platform:doctor && npm run release:guard:v10.90",
-    "test:supabase-bridge": "node scripts/check-supabase-bridge-v10.90.0-hf1.mjs",
-    "rollback:v10.90.0-hf1": "node scripts/rollback-v10.90.0-hf1.mjs",
-    "verify:v10.90.0-hf1": "npm run test:supabase-bridge && npm run build && npm test && npm run test:department && npm run test:smart-knowledge"
+    "verify:v10.90": "npm run test:smart-knowledge && npm run build && npm test && npm run test:department && npm run test:platform-control && npm run test:work-hub:compat && npm run platform:doctor && npm run release:guard:v10.90"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

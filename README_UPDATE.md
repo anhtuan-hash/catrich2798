@@ -1,41 +1,98 @@
-# Brian English Studio V10.90.0 — Smart Knowledge Library
+# Brian English Studio V10.90.0-HF1
+## Supabase Runtime Bridge
+
+### Lỗi được sửa
+
+Kho học liệu thông minh hiển thị:
+
+> Không tìm thấy Supabase client. Hãy mở lại sau khi ứng dụng đăng nhập hoàn tất.
+
+Tài khoản vẫn đăng nhập bình thường và migration đã chạy, nhưng Smart Knowledge V10.90.0 chỉ tìm Supabase client qua các biến toàn cục như `window.supabaseClient`. Trong bản Brian English Studio hiện tại, Supabase client được Vite đóng bên trong module nên không xuất hiện trên `window`.
+
+### Cách hotfix hoạt động
+
+- Không thay đổi database và không cần chạy thêm SQL.
+- Không thêm dependency.
+- Nạp một runtime bridge trước Smart Knowledge.
+- Ưu tiên dùng Supabase client gốc khi ứng dụng có công khai client.
+- Nếu client gốc không được công khai, bridge:
+  - đọc phiên đăng nhập từ khóa `sb-...-auth-token`;
+  - lấy URL dự án từ project reference;
+  - tái sử dụng cấu hình mà Work Hub đã phát hiện;
+  - hoặc đọc public URL/anon key từ bundle Vite cùng origin;
+  - truy cập Supabase qua REST với JWT hiện tại và RLS hiện có.
+- Realtime không bị giả lập sai; nếu không có client gốc, Smart Knowledge tiếp tục dùng polling dự phòng đã có.
+- Tự thử kết nối lại khi tab được focus, trình duyệt online, session thay đổi hoặc ứng dụng phát sự kiện đăng nhập.
 
 ## Cài đặt
+
+Tại repository V10.90.x:
 
 ```bash
 git status
 git add -A
-git commit -m "Backup V10.89 before V10.90" || true
+git commit -m "Backup V10.90 before Supabase bridge hotfix" || true
 
-rsync -av ~/Downloads/brian-english-studio-v10.90.0-smart-knowledge-library-update-only/ ./
-node scripts/install-v10.90.0.mjs
+rsync -av \
+  ~/Downloads/brian-english-studio-v10.90.0-hf1-supabase-runtime-bridge-update-only/ \
+  ./
+
+node scripts/install-v10.90.0-hf1.mjs
+npm run verify:v10.90.0-hf1
 ```
 
-## Bắt buộc chạy SQL
+Sau khi kiểm tra đạt:
 
-Supabase → SQL Editor → New query, chạy toàn bộ:
+```bash
+git add -A
+git commit -m "Fix Smart Knowledge Supabase runtime connection"
+git push origin main
+```
 
-`supabase/smart_knowledge_v10_90_0.sql`
+Khi Vercel báo Ready, đăng xuất và đăng nhập lại một lần, sau đó nhấn:
 
-Sau đó đăng xuất và đăng nhập lại Admin lẫn giáo viên.
+```text
+Command + Shift + R
+```
 
 ## Kiểm tra
 
-```bash
-npm run verify:v10.90
-# gồm cả kiểm tra tương thích Unified Work Hub
+Mở:
+
+```text
+#/knowledge-hub
 ```
 
-## Mở tính năng
+Kết quả đúng:
 
-- Route: `#/knowledge-hub`
-- Phím tắt: `Command/Ctrl + Shift + L`
-- Có thể tìm trong Command Center: **Kho học liệu thông minh**
+- Không còn banner “Không tìm thấy Supabase client”.
+- Bộ đếm tài liệu lớn hơn 0 nếu tài khoản có quyền đọc.
+- Tài liệu từ `resource_items` xuất hiện.
+- Yêu thích, gần đây, metadata và bộ sưu tập hoạt động.
 
-## Rollback source
+Có thể mở DevTools Console và chạy:
 
-```bash
-npm run rollback:v10.90.0
+```js
+window.BESSupabaseBridge.report()
 ```
 
-Rollback source không tự xóa các bảng SQL vì có thể làm mất metadata, bộ sưu tập và yêu thích.
+Trạng thái thường là:
+
+```js
+{
+  mode: "native" // hoặc "rest"
+  hasSession: true,
+  hasConfig: true
+}
+```
+
+`mode: "rest"` là bình thường: nó có nghĩa là ứng dụng không công khai Supabase client, nên bridge đang dùng REST an toàn với JWT và RLS hiện tại.
+
+## Rollback
+
+```bash
+npm run rollback:v10.90.0-hf1
+npm run build
+npm test
+npm run test:department
+```
