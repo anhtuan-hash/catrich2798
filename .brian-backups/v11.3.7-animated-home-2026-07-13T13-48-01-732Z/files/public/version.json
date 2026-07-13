@@ -1,14 +1,14 @@
 {
-  "version": "11.3.7",
+  "version": "11.3.6",
   "channel": "stable",
-  "releaseName": "Animated Home App Constellation",
-  "runtimeCore": "2.3.7",
+  "releaseName": "Launcher Gallery and Aligned App Grid",
+  "runtimeCore": "2.3.6",
   "schemaVersion": "11.3.5",
   "requiresSql": false,
   "requiredMigration": null,
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-13T13:48:13.402Z",
+  "generatedAt": "2026-07-13T11:06:50.619Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -32,13 +32,5 @@
   "circularLauncher": true,
   "waterBoxLauncher": true,
   "animatedFloatingApps": true,
-  "launcherConfigSchema": 5,
-  "animatedHomeAppConstellation": true,
-  "pointerParallaxCards": true,
-  "homepageMotionPaths": true,
-  "expandedEnglishSkillCards": true,
-  "listeningLab": true,
-  "grammarBuilder": true,
-  "writingStudio": true,
-  "pronunciationCoach": true
+  "launcherConfigSchema": 5
 }

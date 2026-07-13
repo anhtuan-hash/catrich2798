@@ -1,7 +1,7 @@
 {
-  "version": "11.3.7",
-  "release": "Animated Home App Constellation",
-  "runtime": "2.3.7",
+  "version": "11.3.6",
+  "release": "Launcher Gallery and Aligned App Grid",
+  "runtime": "2.3.6",
   "schema": "11.3.5",
   "connectedTeachingSuite": true,
   "lessonArchitectAnnualBuilder": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-13T13:48:13.402Z",
+  "generatedAt": "2026-07-13T11:06:50.619Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -37,13 +37,5 @@
   "circularLauncher": true,
   "waterBoxLauncher": true,
   "animatedFloatingApps": true,
-  "launcherConfigSchema": 5,
-  "animatedHomeAppConstellation": true,
-  "pointerParallaxCards": true,
-  "homepageMotionPaths": true,
-  "expandedEnglishSkillCards": true,
-  "listeningLab": true,
-  "grammarBuilder": true,
-  "writingStudio": true,
-  "pronunciationCoach": true
+  "launcherConfigSchema": 5
 }

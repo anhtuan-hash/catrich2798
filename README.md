@@ -1,9 +1,19 @@
-# Brian English Studio V11.3.2
+# Brian English Studio V11.3.7 — Animated Home App Constellation
 
-V11.3.2 adds the Admin-only Hidden Apps Vault and system-wide app visibility control.
+Bản phát hành này triển khai giao diện trang chủ đã duyệt:
 
-## English Global Success Lesson Architect
+- cụm thẻ ứng dụng chuyển động có chiều sâu;
+- parallax theo con trỏ chuột;
+- quỹ đạo, đường chuyển động và điểm sáng trang trí;
+- bố cục trung tâm xoay quanh Lesson Architect;
+- bổ sung Listening Lab, Grammar Builder, Writing Studio và Pronunciation Coach;
+- tự chuyển về lưới tĩnh trên tablet/điện thoại;
+- tôn trọng `prefers-reduced-motion` và chế độ Motion Off;
+- giữ nguyên Launcher Gallery, Hidden Apps Vault, Work Hub và Kho học liệu.
 
-This release configures Lesson Architect for Grade 11 English — Global Success. Generated lesson plans are English-only and integrate learner digital competences from Circular No. 02/2025/TT-BGDĐT through observable objectives, activities, evidence and products.
+Không cần SQL Supabase mới.
 
-No new Supabase migration is required.
+```bash
+npm install --no-audit --no-fund --registry=https://registry.npmjs.org/
+npm run verify:v11.3.7
+```

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../data/apps.js';
 import { getFirstAllowedRoute, hasRouteAccess } from '../utils/permissions.js';
 import { getAppDesignProfile } from '../data/designProfiles.js';
@@ -142,65 +142,6 @@ const iconPaths = {
       <path d="M35 62 45 38h10l10 24M40 53h20" />
     </>
   ),
-  worksheet: (
-    <>
-      <path d="M27 14h40l12 12v60H27V14Z" />
-      <path d="M67 14v14h14M38 43h30M38 55h30M38 67h20" />
-    </>
-  ),
-  textcare: (
-    <>
-      <path d="M20 22h24v24H20V22ZM56 22h24v24H56V22ZM20 58h24v24H20V58ZM56 58h24v24H56V58Z" />
-      <path d="M26 34h12M62 34h12M26 70h12M62 70h12" />
-    </>
-  ),
-  reading: (
-    <>
-      <path d="M18 20h28c5 0 8 3 8 8v55c0-5-3-8-8-8H18V20Z" />
-      <path d="M82 20H54v63c0-5 3-8 8-8h20V20Z" />
-      <path d="M28 36h16M28 48h14M62 36h12M62 48h14" />
-    </>
-  ),
-  wordgraph: (
-    <>
-      <rect x="16" y="36" width="28" height="28" rx="4" />
-      <rect x="58" y="16" width="26" height="26" rx="4" />
-      <rect x="58" y="58" width="26" height="26" rx="4" />
-      <path d="M44 48 58 33M44 56l14 15" />
-    </>
-  ),
-  speaking: (
-    <>
-      <path d="M15 20h54v39H40L25 73V59H15V20Z" />
-      <path d="M46 42h39v31H70L58 83V73H46V42Z" />
-      <path d="M27 35h30M27 45h20M58 56h17" />
-    </>
-  ),
-  listening: (
-    <>
-      <path d="M22 57V45c0-17 11-29 28-29s28 12 28 29v12" />
-      <rect x="15" y="50" width="18" height="30" rx="7" />
-      <rect x="67" y="50" width="18" height="30" rx="7" />
-      <path d="M67 75c-4 8-10 11-18 11" />
-    </>
-  ),
-  grammar: (
-    <>
-      <path d="M18 58 34 42l16 16-16 16-16-16ZM42 32l16-16 16 16-16 16-16-16ZM50 70l16-16 16 16-16 16-16-16Z" />
-    </>
-  ),
-  writing: (
-    <>
-      <path d="m20 76 7-23 37-37 18 18-37 37-25 5Z" />
-      <path d="m55 25 18 18M27 53l18 18M20 76l8-8" />
-    </>
-  ),
-  pronunciation: (
-    <>
-      <path d="M18 54v-8M30 66V34M42 77V23M54 68V32M66 61V39M78 54v-8" />
-      <path d="M14 50h70" opacity=".28" />
-    </>
-  ),
   contact: (
     <>
       <path d="M18 25h64v50H18V25Z" />
@@ -216,11 +157,6 @@ const slugIconMap = {
   'reading-studio': 'reading',
   word2graph: 'wordgraph',
   'speaking-studio': 'speaking',
-  'worksheet-factory': 'worksheet',
-  'listening-lab': 'listening',
-  'grammar-builder': 'grammar',
-  'writing-studio': 'writing',
-  'pronunciation-coach': 'pronunciation',
   'student-practice': 'sprint',
   'department-workspace': 'department',
   'game-hub': 'game',
@@ -287,7 +223,6 @@ function makeAppWindow(slug, options = {}) {
     text: options.text || app?.descVi || app?.desc || '',
     requiresUser: options.requiresUser ?? true,
     visibilityId: options.visibilityId || `tool:${slug}`,
-    motion: options.motion || {},
   };
 }
 
@@ -301,17 +236,7 @@ function FlatAppWindow({ item, currentUser, language }) {
     <button
       type="button"
       className={className}
-      data-depth={item.motion?.depth ?? 0.45}
-      style={{
-        '--window-bg': item.bg,
-        '--window-accent': item.accent,
-        '--window-launch': item.color,
-        '--motion-delay': item.motion?.delay || '0s',
-        '--motion-duration': item.motion?.duration || '8s',
-        '--motion-x': item.motion?.x || '0px',
-        '--motion-y': item.motion?.y || '-10px',
-        '--motion-rotate': item.motion?.rotate || '1deg',
-      }}
+      style={{ '--window-bg': item.bg, '--window-accent': item.accent, '--window-launch': item.color }}
       onClick={(event) => launch(target, item.label, item.color, currentUser, event.currentTarget)}
       aria-label={`${t.open} ${item.title}`}
     >
@@ -361,19 +286,6 @@ function WindowVisual({ item, locked, language }) {
         <span className="flat-vertical-word">WORD</span>
         <span className="flat-product-can"><MetroIcon type={item.icon} /></span>
         <strong className="flat-window-title">{item.title}</strong>
-      </>
-    );
-  }
-
-  if (item.variant === 'motion') {
-    return (
-      <>
-        <span className="flat-motion-icon"><MetroIcon type={item.icon} /></span>
-        <span className="flat-motion-copy">
-          <strong className="flat-window-title">{item.title}</strong>
-          <small className="flat-window-desc">{item.text}</small>
-        </span>
-        {locked ? <em className="flat-lock-tag">{t.chips.locked}</em> : null}
       </>
     );
   }
@@ -476,9 +388,8 @@ function FlatPinnedMenu({ language, setLanguage, theme, setTheme, hasApiKey, cur
   );
 }
 
-export default function Home({ hasApiKey, currentUser, language = 'vi', setLanguage, theme, setTheme, appVisibility, effectiveMotionMode = 'lite' }) {
+export default function Home({ hasApiKey, currentUser, language = 'vi', setLanguage, theme, setTheme, appVisibility }) {
   const [now, setNow] = useState(() => new Date());
-  const collageRef = useRef(null);
   const t = copy[language] || copy.vi;
   const isVi = language === 'vi';
   const visibilitySnapshot = appVisibility?.snapshot;
@@ -496,114 +407,95 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
   const time = new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: false }).format(now);
   const date = new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-US', { weekday: 'short', day: '2-digit', month: '2-digit' }).format(now);
 
-  const handleScenePointerMove = (event) => {
-    if (effectiveMotionMode === 'off' || !collageRef.current || event.pointerType === 'touch') return;
-    const rect = collageRef.current.getBoundingClientRect();
-    const normalizedX = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
-    const normalizedY = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
-    collageRef.current.querySelectorAll('[data-depth]').forEach((node) => {
-      const depth = Number(node.dataset.depth || 0.45);
-      node.style.setProperty('--parallax-x', `${(normalizedX * depth * 14).toFixed(2)}px`);
-      node.style.setProperty('--parallax-y', `${(normalizedY * depth * 10).toFixed(2)}px`);
-    });
-  };
-
-  const resetSceneParallax = () => {
-    collageRef.current?.querySelectorAll('[data-depth]').forEach((node) => {
-      node.style.setProperty('--parallax-x', '0px');
-      node.style.setProperty('--parallax-y', '0px');
-    });
-  };
-
   const windows = useMemo(() => {
-    const profile = (slug) => getAppDesignProfile(slug);
-    const lessonStyle = profile('lesson-plan-ai');
-    const examStyle = profile('exam-studio');
-    const gameStyle = profile('game-hub');
-    const wordStyle = profile('word2graph');
-    const readingStyle = profile('reading-studio');
-    const speakingStyle = profile('speaking-studio');
-    const textcareStyle = profile('textcare');
-    const worksheetStyle = profile('worksheet-factory');
-    const listeningStyle = profile('listening-lab');
-    const grammarStyle = profile('grammar-builder');
-    const writingStyle = profile('writing-studio');
-    const pronunciationStyle = profile('pronunciation-coach');
-
+    const lessonStyle = getAppDesignProfile('lesson-plan-ai');
+    const examStyle = getAppDesignProfile('exam-studio');
+    const gameStyle = getAppDesignProfile('game-hub');
+    const wordStyle = getAppDesignProfile('word2graph');
+    const readingStyle = getAppDesignProfile('reading-studio');
+    const speakingStyle = getAppDesignProfile('speaking-studio');
+    const textcareStyle = getAppDesignProfile('textcare');
+    const departmentStyle = getAppDesignProfile('department-workspace');
     const lesson = makeAppWindow('lesson-plan-ai', {
-      variant: 'hero', className: 'flat-window-main', bg: lessonStyle.soft, accent: lessonStyle.accent,
-      color: lessonStyle.accent, icon: lessonStyle.icon, meta: isVi ? 'Thiết kế bài dạy thông minh' : 'Smart lesson design',
+      variant: 'hero',
+      className: 'flat-window-main',
+      bg: lessonStyle.soft,
+      accent: lessonStyle.accent,
+      color: lessonStyle.accent,
+      icon: lessonStyle.icon,
+      meta: isVi ? lessonStyle.styleVi : lessonStyle.style,
       text: isVi ? 'Thiết kế giáo án, học liệu và xuất bài dạy tương tác.' : 'Design lesson plans, materials and interactive teaching pages.',
-      motion: { delay: '-1.2s', duration: '9.5s', x: '7px', y: '-13px', rotate: '.7deg', depth: .78 },
     });
     const exam = makeAppWindow('exam-studio', {
-      variant: 'motion', className: 'flat-window-exam', bg: examStyle.soft, accent: examStyle.accent,
-      color: examStyle.accent, icon: examStyle.icon, meta: isVi ? 'Kiểm tra & đánh giá' : 'Assessment',
-      text: isVi ? 'Tạo đề, cloze và câu hỏi.' : 'Build tests, cloze tasks and questions.',
-      motion: { delay: '-3.8s', duration: '8.1s', x: '-8px', y: '-11px', rotate: '-1.1deg', depth: .5 },
+      variant: 'orange',
+      className: 'flat-window-exam',
+      bg: examStyle.accent,
+      accent: examStyle.ink,
+      color: examStyle.accent,
+      icon: examStyle.icon,
+      meta: isVi ? examStyle.styleVi : examStyle.style,
+      text: isVi ? 'Cloze, MCQ, word form, đề THPT.' : 'Cloze, MCQ, word form and exam flows.',
     });
     const game = makeAppWindow('game-hub', {
-      variant: 'motion', className: 'flat-window-game', bg: gameStyle.soft, accent: gameStyle.accent,
-      color: gameStyle.accent, icon: gameStyle.icon, meta: isVi ? 'Trò chơi học tập' : 'Learning games',
+      variant: 'dark',
+      className: 'flat-window-game',
+      bg: gameStyle.accent,
+      accent: palette.yellow,
+      color: gameStyle.accent,
+      icon: gameStyle.icon,
+      meta: isVi ? gameStyle.styleVi : gameStyle.style,
       text: isVi ? 'Mở trò chơi lớp học.' : 'Launch classroom games.',
-      motion: { delay: '-5.1s', duration: '8.8s', x: '8px', y: '-8px', rotate: '1.2deg', depth: .44 },
     });
     const word = makeAppWindow('word2graph', {
-      variant: 'motion', className: 'flat-window-word', bg: wordStyle.soft, accent: wordStyle.accent,
-      color: wordStyle.accent, icon: wordStyle.icon, meta: isVi ? 'Từ vựng thông minh' : 'Smart vocabulary',
+      variant: 'vertical',
+      className: 'flat-window-word',
+      bg: wordStyle.soft,
+      accent: wordStyle.accent,
+      color: wordStyle.accent,
+      icon: wordStyle.icon,
+      meta: isVi ? wordStyle.styleVi : wordStyle.style,
       text: isVi ? 'Word family và collocation.' : 'Word families and collocations.',
-      motion: { delay: '-2.7s', duration: '9.2s', x: '10px', y: '-10px', rotate: '.8deg', depth: .62 },
     });
     const reading = makeAppWindow('reading-studio', {
-      variant: 'motion', className: 'flat-window-reading', bg: readingStyle.soft, accent: readingStyle.accent,
-      color: readingStyle.accent, icon: readingStyle.icon, meta: isVi ? 'Đọc hiểu & từ vựng' : 'Reading & vocabulary',
-      text: isVi ? 'Bài đọc, câu hỏi và từ vựng.' : 'Readings, questions and vocabulary.',
-      motion: { delay: '-6.2s', duration: '9.8s', x: '-8px', y: '-13px', rotate: '-.6deg', depth: .55 },
+      className: 'flat-window-reading',
+      bg: readingStyle.accent,
+      accent: readingStyle.soft,
+      color: readingStyle.accent,
+      icon: readingStyle.icon,
+      meta: isVi ? readingStyle.styleVi : readingStyle.style,
+      text: isVi ? 'Bài đọc và câu hỏi.' : 'Readings and questions.',
     });
     const speaking = makeAppWindow('speaking-studio', {
-      variant: 'motion', className: 'flat-window-speaking', bg: speakingStyle.soft, accent: speakingStyle.accent,
-      color: speakingStyle.accent, icon: speakingStyle.icon, meta: isVi ? 'Luyện nói & phản xạ' : 'Speaking & fluency',
+      className: 'flat-window-speaking',
+      bg: speakingStyle.soft,
+      accent: speakingStyle.accent,
+      color: speakingStyle.accent,
+      icon: speakingStyle.icon,
+      meta: isVi ? speakingStyle.styleVi : speakingStyle.style,
       text: isVi ? 'Thẻ nói và phản xạ.' : 'Speaking cards and fluency drills.',
-      motion: { delay: '-4.4s', duration: '7.9s', x: '7px', y: '-12px', rotate: '1deg', depth: .5 },
     });
     const textcare = makeAppWindow('textcare', {
-      variant: 'motion', className: 'flat-window-textcare', bg: textcareStyle.soft, accent: textcareStyle.accent,
-      color: textcareStyle.accent, icon: textcareStyle.icon, meta: isVi ? 'Chỉnh sửa tự động' : 'Automatic editing',
-      text: isVi ? 'Chuẩn hoá văn bản.' : 'Normalize documents.',
-      motion: { delay: '-1.9s', duration: '8.6s', x: '-6px', y: '-10px', rotate: '-1deg', depth: .48 },
+      className: 'flat-window-textcare',
+      bg: textcareStyle.soft,
+      accent: textcareStyle.accent,
+      color: textcareStyle.accent,
+      icon: textcareStyle.icon,
+      meta: isVi ? textcareStyle.styleVi : textcareStyle.style,
+      text: isVi ? 'Văn bản hành chính.' : 'Official documents.',
     });
-    const worksheet = makeAppWindow('worksheet-factory', {
-      variant: 'motion', className: 'flat-window-worksheet', bg: worksheetStyle.soft, accent: worksheetStyle.accent,
-      color: worksheetStyle.accent, icon: worksheetStyle.icon, meta: isVi ? 'Phiếu học tập' : 'Worksheets',
-      text: isVi ? 'Tạo worksheet từ file và chủ đề.' : 'Create worksheets from files and topics.',
-      motion: { delay: '-7.1s', duration: '9.4s', x: '-7px', y: '-9px', rotate: '.7deg', depth: .52 },
+    const department = makeAppWindow('department-workspace', {
+      title: 'Department Workspace',
+      className: 'flat-window-dept',
+      bg: departmentStyle.soft,
+      accent: departmentStyle.accent,
+      color: departmentStyle.accent,
+      icon: departmentStyle.icon,
+      meta: isVi ? departmentStyle.styleVi : departmentStyle.style,
+      target: canDepartment ? '#/department' : '#/login',
+      text: isVi ? 'Lịch, hồ sơ, nhiệm vụ.' : 'Plans, files and tasks.',
     });
-    const listening = makeAppWindow('listening-lab', {
-      variant: 'motion', className: 'flat-window-listening', bg: listeningStyle.soft, accent: listeningStyle.accent,
-      color: listeningStyle.accent, icon: listeningStyle.icon, meta: isVi ? 'Nghe hiểu' : 'Listening comprehension',
-      text: isVi ? 'Nhiệm vụ nghe và phản hồi.' : 'Listening tasks and responses.',
-      motion: { delay: '-3.1s', duration: '8.9s', x: '9px', y: '-12px', rotate: '-.8deg', depth: .56 },
-    });
-    const grammar = makeAppWindow('grammar-builder', {
-      variant: 'motion', className: 'flat-window-grammar', bg: grammarStyle.soft, accent: grammarStyle.accent,
-      color: grammarStyle.accent, icon: grammarStyle.icon, meta: isVi ? 'Ngữ pháp nền tảng' : 'Grammar foundation',
-      text: isVi ? 'Luyện cấu trúc theo ngữ cảnh.' : 'Practice grammar in context.',
-      motion: { delay: '-5.8s', duration: '10.1s', x: '-8px', y: '-9px', rotate: '.6deg', depth: .4 },
-    });
-    const writing = makeAppWindow('writing-studio', {
-      variant: 'motion', className: 'flat-window-writing', bg: writingStyle.soft, accent: writingStyle.accent,
-      color: writingStyle.accent, icon: writingStyle.icon, meta: isVi ? 'Viết & sáng tạo' : 'Writing & creativity',
-      text: isVi ? 'Lập dàn ý, viết và chỉnh sửa.' : 'Plan, draft and revise writing.',
-      motion: { delay: '-4.9s', duration: '9.6s', x: '6px', y: '-10px', rotate: '-.5deg', depth: .46 },
-    });
-    const pronunciation = makeAppWindow('pronunciation-coach', {
-      variant: 'motion', className: 'flat-window-pronunciation', bg: pronunciationStyle.soft, accent: pronunciationStyle.accent,
-      color: pronunciationStyle.accent, icon: pronunciationStyle.icon, meta: isVi ? 'Phát âm chuẩn' : 'Pronunciation',
-      text: isVi ? 'Âm, trọng âm và nối âm.' : 'Sounds, stress and connected speech.',
-      motion: { delay: '-6.7s', duration: '8.4s', x: '8px', y: '-8px', rotate: '.9deg', depth: .42 },
-    });
-    return { lesson, exam, game, word, reading, speaking, textcare, worksheet, listening, grammar, writing, pronunciation };
-  }, [isVi]);
+    return { lesson, exam, game, word, reading, speaking, textcare, department };
+  }, [canDepartment, isVi]);
 
   const chips = useMemo(() => {
     const practiceStyle = getAppDesignProfile('student-practice');
@@ -625,13 +517,12 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
 
 
   const featuredWindows = useMemo(() => [
-    windows.lesson, windows.exam, windows.textcare, windows.speaking,
-    windows.reading, windows.word, windows.worksheet, windows.game,
-    windows.listening, windows.grammar, windows.writing, windows.pronunciation,
+    windows.game, windows.lesson, windows.word, windows.exam,
+    windows.reading, windows.speaking, windows.textcare, windows.department,
   ].filter((item) => canShowId(item.visibilityId)), [windows, visibilitySnapshot, currentUser?.role]);
 
   return (
-    <div className={`flat-design-home home-v1137 motion-${effectiveMotionMode}`} aria-label="Brian English homepage">
+    <div className="flat-design-home" aria-label="Brian English homepage">
       <section className="flat-hero-zone">
         <div className="flat-hero-copy">
           <p className="flat-kicker">{t.kicker}</p>
@@ -648,40 +539,10 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
             </button>
             <small>{t.chips.today}: {date} · {time}</small>
           </div>
-          <button
-            type="button"
-            className="home-motion-badge"
-            onClick={(event) => launch('#/apps', 'APP', palette.peach, currentUser, event.currentTarget)}
-          >
-            <span aria-hidden="true">✦</span>
-            <strong>{isVi ? 'Thẻ ứng dụng chuyển động' : 'Animated app cards'}</strong>
-            <small>{isVi ? 'Di chuột để khám phá!' : 'Move the pointer to explore!'}</small>
-          </button>
         </div>
 
-        <div
-          ref={collageRef}
-          className="flat-collage home-motion-scene"
-          aria-label="Featured animated app windows"
-          onPointerMove={handleScenePointerMove}
-          onPointerLeave={resetSceneParallax}
-        >
-          <span className="home-scene-orbit" aria-hidden="true" />
-          <span className="home-scene-spark spark-a" aria-hidden="true">✦</span>
-          <span className="home-scene-spark spark-b" aria-hidden="true">✧</span>
-          <span className="home-scene-spark spark-c" aria-hidden="true">✦</span>
-          <span className="home-scene-path path-a" aria-hidden="true" />
-          <span className="home-scene-path path-b" aria-hidden="true" />
+        <div className="flat-collage" aria-label="Featured app windows">
           {featuredWindows.map((item) => <FlatAppWindow key={item.slug || item.title} item={item} currentUser={currentUser} language={language} />)}
-          <button
-            type="button"
-            className="home-scene-cta"
-            onClick={(event) => launch('#/apps', 'APP', palette.peach, currentUser, event.currentTarget)}
-          >
-            <span aria-hidden="true">✦</span>
-            {isVi ? 'Khám phá các ứng dụng – Thẻ sẽ chuyển động!' : 'Explore the apps – the cards move!'}
-          </button>
-          <span className="home-scene-dots" aria-hidden="true"><i /><i /><i /><i /><i /><i /></span>
         </div>
       </section>
 
