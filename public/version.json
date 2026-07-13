@@ -1,14 +1,14 @@
 {
-  "version": "11.4.3",
+  "version": "11.4.4",
   "channel": "stable",
-  "releaseName": "Vercel Hobby Function Consolidation",
-  "runtimeCore": "2.4.3",
+  "releaseName": "Native Module Runtime Fix",
+  "runtimeCore": "2.4.4",
   "schemaVersion": "11.4.2",
   "requiresSql": true,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-13T15:01:51.638Z",
+  "generatedAt": "2026-07-13T15:15:23.890Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -47,5 +47,8 @@
   "lessonIntegrationShadowDom": true,
   "lessonIntegrationConnectedTransfer": true,
   "hobbyFunctionConsolidation": true,
-  "vercelFunctionCount": 12
+  "vercelFunctionCount": 12,
+  "lessonIntegrationNativeBundle": true,
+  "lessonIntegrationExternalBundle": false,
+  "lessonIntegrationRuntimeFix": true
 }

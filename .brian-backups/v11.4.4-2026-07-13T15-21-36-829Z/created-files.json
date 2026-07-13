@@ -1,0 +1,10 @@
+[
+  "scripts/check-v11.4.4.mjs",
+  "scripts/performance-budget-v11.4.4.mjs",
+  "scripts/release-guard-v11.4.4.mjs",
+  "scripts/sync-version-v11.4.4.mjs",
+  "src/vendor/englishLessonIntegration/exportDocx.js",
+  "src/vendor/englishLessonIntegration/index.js",
+  "src/vendor/englishLessonIntegration/mount.js",
+  "src/vendor/englishLessonIntegration/pdf.js"
+]

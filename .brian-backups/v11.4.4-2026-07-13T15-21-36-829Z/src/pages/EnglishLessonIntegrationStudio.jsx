@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { m as mountEnglishLessonIntegrationStudio } from '../vendor/englishLessonIntegration/mount.js';
 import { APP_VERSION } from '../config/version.js';
 import { getSupabasePublicConfig, isSupabaseConfigured, supabase } from '../utils/supabase.js';
 
+const MODULE_URL = '/bes-elis-v1142/elis.es.js';
 
 function normalizeRole(role) {
   const value = String(role || '').toLowerCase();
@@ -39,9 +39,10 @@ export default function EnglishLessonIntegrationStudio({
     const boot = async () => {
       setState({ status: 'loading', message: '' });
       try {
-        const sessionResult = await (
-          supabase ? supabase.auth.getSession() : Promise.resolve({ data: { session: null } })
-        );
+        const [{ mountEnglishLessonIntegrationStudio }, sessionResult] = await Promise.all([
+          import(/* @vite-ignore */ MODULE_URL),
+          supabase ? supabase.auth.getSession() : Promise.resolve({ data: { session: null } }),
+        ]);
         if (!active || !hostRef.current) return;
         const session = sessionResult?.data?.session || null;
         const publicConfig = getSupabasePublicConfig();
@@ -92,7 +93,7 @@ export default function EnglishLessonIntegrationStudio({
         });
         if (active) setState({ status: 'ready', message: '' });
       } catch (error) {
-        console.error('[Brian V11.4.4] ELIS mount failed', error);
+        console.error('[Brian V11.4.2] ELIS mount failed', error);
         if (active) setState({
           status: 'error',
           message: error instanceof Error ? error.message : (language === 'vi' ? 'Không thể tải ứng dụng.' : 'Unable to load the app.'),
