@@ -1,0 +1,13 @@
+{
+  "versionBefore": "11.3.3",
+  "files": [
+    {
+      "relative": "src/components/StatusMenuBar.jsx",
+      "existed": true
+    },
+    {
+      "relative": "src/styles/v1133.css",
+      "existed": true
+    }
+  ]
+}

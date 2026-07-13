@@ -8,7 +8,7 @@
   "requiredMigration": "supabase/brian_v11_3_3_work_assignment_delivery.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-13T09:02:27.251Z",
+  "generatedAt": "2026-07-13T09:15:53.734Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
