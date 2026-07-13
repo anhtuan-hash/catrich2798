@@ -67,15 +67,14 @@ export function launcherNavId(item) {
 export function createDefaultLauncherConfig(itemIds = []) {
   const safeItemIds = Array.isArray(itemIds) ? itemIds : [];
   return {
-    schemaVersion: 5,
-    version: 5,
+    schemaVersion: 4,
+    version: 4,
     order: [...new Set(safeItemIds.map((id) => String(id || '').trim()).filter(Boolean))],
     pinned: DEFAULT_PINNED.filter((id) => safeItemIds.length === 0 || safeItemIds.includes(id)),
     hidden: [],
     nav: [...DEFAULT_NAV],
     groups: DEFAULT_LAUNCHER_GROUPS.map((group) => ({ ...group })),
     assignments: {},
-    launcherStyle: 'radial',
     updatedAt: Date.now(),
   };
 }
@@ -138,20 +137,15 @@ export function normalizeLauncherConfig(raw, itemIds = []) {
     if ((!safeItemIds.length || allowed.has(cleanItemId)) && groupIds.has(cleanGroupId)) assignments[cleanItemId] = cleanGroupId;
   });
 
-  const launcherStyle = ['radial', 'water'].includes(String(source.launcherStyle || '').trim())
-    ? String(source.launcherStyle).trim()
-    : defaults.launcherStyle;
-
   return {
-    schemaVersion: 5,
-    version: 5,
+    schemaVersion: 4,
+    version: 4,
     order,
     pinned: cleanIdList(source.pinned ?? defaults.pinned, safeItemIds.length ? allowed : null).slice(0, 12),
     hidden: cleanIdList(source.hidden, safeItemIds.length ? allowed : null),
     nav: cleanIdList(source.nav ?? defaults.nav).slice(0, 12),
     groups,
     assignments,
-    launcherStyle,
     updatedAt: Number(source.updatedAt) || Date.now(),
   };
 }

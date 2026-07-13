@@ -1,0 +1,69 @@
+{
+  "versionBefore": "11.3.5",
+  "files": [
+    {
+      "relative": "README_UPDATE.md",
+      "existed": true
+    },
+    {
+      "relative": "V11_3_6_LAUNCHER_GALLERY.md",
+      "existed": false
+    },
+    {
+      "relative": "V11_3_6_TEST_REPORT.md",
+      "existed": false
+    },
+    {
+      "relative": "package-lock.json",
+      "existed": true
+    },
+    {
+      "relative": "package.json",
+      "existed": true
+    },
+    {
+      "relative": "public/release-manifest.json",
+      "existed": true
+    },
+    {
+      "relative": "public/version.json",
+      "existed": true
+    },
+    {
+      "relative": "scripts/check-v11.3.6.mjs",
+      "existed": false
+    },
+    {
+      "relative": "scripts/performance-budget-v11.3.6.mjs",
+      "existed": false
+    },
+    {
+      "relative": "scripts/release-guard-v11.3.6.mjs",
+      "existed": false
+    },
+    {
+      "relative": "scripts/sync-version-v11.3.6.mjs",
+      "existed": false
+    },
+    {
+      "relative": "src/config/version.js",
+      "existed": true
+    },
+    {
+      "relative": "src/main.jsx",
+      "existed": true
+    },
+    {
+      "relative": "src/pages/WebApps.jsx",
+      "existed": true
+    },
+    {
+      "relative": "src/styles/v1136.css",
+      "existed": false
+    },
+    {
+      "relative": "src/utils/launcherPreferences.js",
+      "existed": true
+    }
+  ]
+}

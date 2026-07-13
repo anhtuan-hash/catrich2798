@@ -38,10 +38,6 @@ const copy = {
     pin: 'Ghim', unpin: 'Bỏ ghim', hide: 'Ẩn', show: 'Hiện', navOn: 'Đưa lên thanh điều hướng', navOff: 'Gỡ khỏi thanh điều hướng',
     group: 'Nhóm', saved: 'Đã lưu và đồng bộ cấu hình launcher toàn hệ thống.', savedLocal: 'Đã lưu trên thiết bị. Hãy chạy migration launcher để đồng bộ toàn hệ thống.', saving: 'Đang lưu…', navLimit: 'Thanh điều hướng tối đa 12 mục.', empty: 'Nhóm này chưa có ứng dụng.',
     search: 'Tìm ứng dụng', searchPlaceholder: 'Nhập tên, chức năng hoặc nhóm ứng dụng…', recent: 'Mở gần đây', density: 'Mật độ', comfortable: 'Thoáng', compact: 'Gọn', command: 'Tìm nhanh toàn hệ thống', noSearch: 'Không có ứng dụng phù hợp với từ khóa.',
-    launcherStyleTitle: 'Tùy biến launcher', launcherStyleHint: 'Chọn cách các ứng dụng đã ghim xuất hiện trong launcher.',
-    radialLauncher: 'Launcher tròn', radialLauncherDesc: 'Ứng dụng được sắp xếp quanh một dock tròn, rõ ràng và dễ chọn.',
-    waterLauncher: 'Hộp nước', waterLauncherDesc: 'Ứng dụng nổi và chuyển động nhẹ bên trong một hộp nước mềm mại.',
-    chooseStyle: 'Chọn kiểu này', selectedStyle: 'Đang sử dụng', launcherDockTitle: 'Launcher ứng dụng', launcherDockHint: 'Mở nhanh các ứng dụng đã ghim.',
     nav: { home: 'Trang chủ', apps: 'Ứng dụng', games: 'Trò chơi', admin: 'Quản trị' },
   },
   en: {
@@ -54,10 +50,6 @@ const copy = {
     hide: 'Hide', show: 'Show', navOn: 'Add to navigation', navOff: 'Remove from navigation', group: 'Group', saved: 'Launcher configuration saved and synced.', savedLocal: 'Saved on this device. Run the launcher migration for system-wide sync.', saving: 'Saving…',
     navLimit: 'The navigation supports up to 12 items.', empty: 'No apps in this group yet.',
     search: 'Search apps', searchPlaceholder: 'Type an app, feature or group…', recent: 'Recently opened', density: 'Density', comfortable: 'Comfortable', compact: 'Compact', command: 'Search the whole system', noSearch: 'No app matches this search.',
-    launcherStyleTitle: 'Customize launcher', launcherStyleHint: 'Choose how pinned apps appear in the launcher.',
-    radialLauncher: 'Circular launcher', radialLauncherDesc: 'Apps orbit a circular dock for a clear, playful launcher.',
-    waterLauncher: 'Water box', waterLauncherDesc: 'Apps float gently inside a soft liquid container.',
-    chooseStyle: 'Use this style', selectedStyle: 'In use', launcherDockTitle: 'App launcher', launcherDockHint: 'Open pinned apps quickly.',
     nav: { home: 'Home', apps: 'Apps', games: 'Games', admin: 'Admin' },
   },
 };
@@ -215,84 +207,6 @@ function GroupRail({ group, count, language, active, onClick }) {
     <button type="button" className={`flat-apps-group-chip ${active ? 'active' : ''}`} style={{ '--group-accent': group.accent }} onClick={onClick}>
       <b>{language === 'vi' ? group.labelVi : group.label}</b><small>{count}</small>
     </button>
-  );
-}
-
-function LauncherPreviewIcons({ items = [], style = 'radial' }) {
-  const previewItems = items.slice(0, 6);
-  return (
-    <div className={`launcher-style-mini-preview is-${style}`} aria-hidden="true">
-      {style === 'water' ? <><span className="launcher-water-wave wave-one" /><span className="launcher-water-wave wave-two" /><i className="launcher-water-bubble bubble-one" /><i className="launcher-water-bubble bubble-two" /><i className="launcher-water-bubble bubble-three" /></> : <span className="launcher-radial-guide" />}
-      <span className="launcher-preview-hub">✦</span>
-      {previewItems.map((item, index) => {
-        const profile = getAppDesignProfile(item.slug);
-        return (
-          <span key={`preview-${style}-${item.slug}`} className="launcher-preview-app" data-index={index} style={{ '--launcher-accent': profile.accent }}>
-            <FlatAppIcon type={profile.icon} slug={item.slug} />
-          </span>
-        );
-      })}
-    </div>
-  );
-}
-
-function LauncherStyleSelector({ language, value = 'radial', items = [], onChange }) {
-  const t = copy[language] || copy.vi;
-  const options = [
-    { id: 'radial', title: t.radialLauncher, desc: t.radialLauncherDesc },
-    { id: 'water', title: t.waterLauncher, desc: t.waterLauncherDesc },
-  ];
-  return (
-    <section className="launcher-style-selector" aria-label={t.launcherStyleTitle}>
-      <header className="launcher-style-selector-head">
-        <div><span aria-hidden="true">⌘</span><strong>{t.launcherStyleTitle}</strong></div>
-        <p>{t.launcherStyleHint}</p>
-      </header>
-      <div className="launcher-style-options">
-        {options.map((option) => {
-          const active = value === option.id;
-          return (
-            <button type="button" key={option.id} className={`launcher-style-option ${active ? 'active' : ''}`} onClick={() => onChange?.(option.id)} aria-pressed={active}>
-              <span className="launcher-style-option-copy">
-                <span className="launcher-style-option-title"><i aria-hidden="true">{option.id === 'radial' ? '◉' : '◒'}</i><strong>{option.title}</strong></span>
-                <span className="launcher-style-option-desc">{option.desc}</span>
-                <span className="launcher-style-option-action">{active ? `✓ ${t.selectedStyle}` : t.chooseStyle}</span>
-              </span>
-              <LauncherPreviewIcons items={items} style={option.id} />
-              {active ? <span className="launcher-style-check" aria-hidden="true">✓</span> : null}
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-function LauncherDock({ language, style = 'radial', items = [] }) {
-  const t = copy[language] || copy.vi;
-  const dockItems = items.slice(0, 6);
-  if (!dockItems.length) return null;
-  return (
-    <section className={`launcher-live-dock is-${style}`} aria-label={t.launcherDockTitle}>
-      <header>
-        <div><strong>{t.launcherDockTitle}</strong><small>{t.launcherDockHint}</small></div>
-        <span>{style === 'water' ? t.waterLauncher : t.radialLauncher}</span>
-      </header>
-      <div className="launcher-live-stage">
-        {style === 'water' ? <><span className="launcher-water-wave wave-one" /><span className="launcher-water-wave wave-two" />{Array.from({ length: 8 }, (_, index) => <i key={`bubble-${index}`} className="launcher-live-bubble" data-index={index} />)}</> : <><span className="launcher-live-ring ring-one" /><span className="launcher-live-ring ring-two" /></>}
-        <span className="launcher-live-hub" aria-hidden="true">✦</span>
-        <div className="launcher-live-apps">
-          {dockItems.map((item, index) => {
-            const profile = getAppDesignProfile(item.slug);
-            return (
-              <button key={`dock-${item.slug}`} type="button" data-index={index} style={{ '--launcher-accent': profile.accent, '--launcher-soft': profile.soft }} onClick={(event) => launch(targetFor(item), item.icon || 'AP', profile.accent, event.currentTarget)} title={titleOf(item, language)}>
-                <FlatAppIcon type={profile.icon} slug={item.slug} /><span>{titleOf(item, language)}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -490,7 +404,7 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
   }, [isAdmin, config, itemIds.join('|')]);
 
   return (
-    <div className={`flat-design-home flat-apps-directory launcher-v10831 launcher-v1136 launcher-command-center launcher-style-${workingConfig.launcherStyle || 'radial'} density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
+    <div className={`flat-design-home flat-apps-directory launcher-v10831 launcher-command-center density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
       <TopMenu language={language} setLanguage={setLanguage} theme={theme} setTheme={setTheme} hasApiKey={hasApiKey} currentUser={currentUser} />
 
       <header className="flat-apps-hero">
@@ -512,17 +426,6 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
           <div><strong>{workingConfig.nav.length}</strong><small>NAV</small></div>
         </aside>
       </header>
-
-      {editMode && isAdmin ? (
-        <LauncherStyleSelector
-          language={language}
-          value={workingConfig.launcherStyle || 'radial'}
-          items={pinnedItems.length ? pinnedItems : orderedItems}
-          onChange={(launcherStyle) => patchDraft((current) => ({ ...current, launcherStyle }))}
-        />
-      ) : (
-        <LauncherDock language={language} style={workingConfig.launcherStyle || 'radial'} items={pinnedItems} />
-      )}
 
       <section className="launcher-discovery-bar" aria-label={t.search}>
         <label className="launcher-search-box">
