@@ -1,13 +1,7 @@
-# Brian English Studio V11.2.0
+# Brian English Studio V11.3.1
 
-Final Content Ecosystem release.
+## English Global Success Lesson Architect
 
-## Highlights
+This release configures Lesson Architect for Grade 11 English — Global Success. Generated lesson plans are English-only and integrate learner digital competences from Circular No. 02/2025/TT-BGDĐT through observable objectives, activities, evidence and products.
 
-- Connected Lesson Pack and Classroom Delivery retained from V11.0–V11.1.
-- New reusable content asset library.
-- Structured, lockable content canvas.
-- Multi-app production recipes.
-- Connected content kits for Lesson Pack.
-
-See `V11_2_0_FINAL_CONTENT_ECOSYSTEM.md` and `README_UPDATE.md`.
+No new Supabase migration is required.

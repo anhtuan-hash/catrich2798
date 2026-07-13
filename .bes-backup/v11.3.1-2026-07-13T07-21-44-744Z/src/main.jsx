@@ -11,7 +11,6 @@ import './styles/v1099.css';
 import './styles/v1100.css';
 import './styles/v1110.css';
 import './styles/v1120.css';
-import './styles/v1131.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';

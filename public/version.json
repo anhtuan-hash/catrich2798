@@ -1,12 +1,15 @@
 {
-  "version": "11.2.0",
+  "version": "11.3.1",
   "channel": "stable",
-  "releaseName": "Final Content Ecosystem",
-  "runtimeCore": "2.2.0",
+  "releaseName": "English Global Success Lesson Architect",
+  "runtimeCore": "2.3.1",
   "schemaVersion": "11.2.0",
-  "requiresSql": true,
-  "requiredMigration": "brian_v11_2_final_content_ecosystem.sql",
+  "requiresSql": false,
+  "requiredMigration": "",
   "legacyDomPatches": false,
-  "finalRelease": true,
-  "generatedAt": "2026-07-13T05:57:04.748Z"
+  "lessonArchitectAnnualBuilder": true,
+  "generatedAt": "2026-07-13T07:21:56.720Z",
+  "lessonArchitectEnglishOnly": true,
+  "globalSuccessPreset": true,
+  "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT"
 }

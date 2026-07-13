@@ -1,0 +1,12 @@
+{
+  "version": "11.2.0",
+  "channel": "stable",
+  "releaseName": "Final Content Ecosystem",
+  "runtimeCore": "2.2.0",
+  "schemaVersion": "11.2.0",
+  "requiresSql": true,
+  "requiredMigration": "brian_v11_2_final_content_ecosystem.sql",
+  "legacyDomPatches": false,
+  "finalRelease": true,
+  "generatedAt": "2026-07-13T05:57:04.748Z"
+}

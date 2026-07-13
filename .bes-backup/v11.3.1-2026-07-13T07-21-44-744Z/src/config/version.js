@@ -1,6 +1,6 @@
-export const APP_VERSION = '11.3.1';
-export const RELEASE_NAME = 'English Global Success Lesson Architect';
-export const RUNTIME_CORE_VERSION = '2.3.1';
+export const APP_VERSION = '11.2.0';
+export const RELEASE_NAME = 'Final Content Ecosystem';
+export const RUNTIME_CORE_VERSION = '2.2.0';
 export const SCHEMA_VERSION = '11.2.0';
 
 export function getVersionInfo() {

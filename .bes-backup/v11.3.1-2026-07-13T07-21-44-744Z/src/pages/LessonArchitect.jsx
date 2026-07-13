@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { callAI } from '../utils/gemini.js';
 import { addHistoryEntry, exportAsHtml, exportAsWord, savePromptEntry, slugify as librarySlugify } from '../utils/library.js';
 import { loadMammoth, loadPdfjs } from '../utils/documentParsers.js';
-import LessonArchitectCurriculumBuilder from '../components/LessonArchitectCurriculumBuilder.jsx';
 
 const METHODS = ['TBLT', 'CLT', 'ESA', 'PPP', 'Project-based', 'Flipped classroom', 'Blended learning'];
 const GRADES = ['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', 'THPT mixed'];
@@ -10,12 +9,12 @@ const BOOKS = ['Global Success', 'Friends Global', 'i-Learn Smart World', 'Brigh
 const LESSON_TYPES = ['Getting Started', 'Language / Grammar', 'A Closer Look', 'Reading', 'Speaking', 'Listening', 'Writing', 'Communication and Culture', 'Looking Back', 'Project', 'Review'];
 
 const DIGITAL_COMPETENCE_DOMAINS = [
-  { id: 'info', code: '1', title: 'Data and information literacy', vi: 'Khai thác dữ liệu và thông tin', sample: '1.1 search and filter; 1.2 evaluate sources; 1.3 manage digital information.' },
-  { id: 'comm', code: '2', title: 'Communication and collaboration in digital environments', vi: 'Giao tiếp và hợp tác trong môi trường số', sample: '2.1 interact; 2.2 share; 2.4 collaborate; 2.5 apply netiquette; 2.6 manage digital identity.' },
-  { id: 'content', code: '3', title: 'Digital content creation', vi: 'Sáng tạo nội dung số', sample: '3.1 develop content; 3.2 integrate and re-elaborate; 3.3 respect copyright and licences.' },
-  { id: 'safety', code: '4', title: 'Safety', vi: 'An toàn', sample: '4.1 protect devices; 4.2 protect personal data and privacy; 4.3 protect health and well-being; 4.4 protect the environment.' },
-  { id: 'problem', code: '5', title: 'Problem solving', vi: 'Giải quyết vấn đề', sample: '5.1 solve technical problems; 5.2 identify needs and technological responses; 5.3 use digital technology creatively; 5.4 identify competence gaps.' },
-  { id: 'ai', code: '6', title: 'Artificial intelligence application', vi: 'Ứng dụng trí tuệ nhân tạo', sample: '6.1 understand AI and GenAI; 6.2 use AI ethically and responsibly; 6.3 evaluate AI tools.' },
+  { id: 'info', title: 'Information & data literacy', vi: 'Khai thác thông tin và dữ liệu', sample: 'Students locate, select and evaluate online information or vocabulary examples.' },
+  { id: 'comm', title: 'Digital communication & collaboration', vi: 'Giao tiếp và hợp tác số', sample: 'Students collaborate on Padlet/Docs/Quizizz/Wordwall or submit ideas in a shared space.' },
+  { id: 'content', title: 'Digital content creation', vi: 'Tạo sản phẩm số', sample: 'Students create a short digital product: slide, audio, poster, mind map or quiz.' },
+  { id: 'safety', title: 'Digital safety & wellbeing', vi: 'An toàn số', sample: 'Students cite sources, protect personal data and use AI responsibly.' },
+  { id: 'problem', title: 'Digital problem solving', vi: 'Giải quyết vấn đề trong môi trường số', sample: 'Students choose a suitable digital tool and solve a task-related problem.' },
+  { id: 'learning', title: 'Digital learning skills', vi: 'Học tập số', sample: 'Students use AI/dictionary/LMS feedback to improve language output.' },
 ];
 
 const LESSON_WORKFLOWS = [
@@ -303,7 +302,7 @@ function buildLessonPrompt({ form, selectedDomains, uploadedText, extraNotes }) 
   return `You are an expert Vietnamese high-school English lesson plan writer.
 Create a complete ENGLISH lesson plan based on the uploaded textbook content and teacher requirements.
 
-STRICT OUTPUT LANGUAGE: English only. Vietnamese may appear only in proper names and official legal document numbers.
+STRICT OUTPUT LANGUAGE: English only, except official Vietnamese labels may appear in parentheses when helpful.
 
 LESSON INFORMATION
 - Grade: ${form.grade}
@@ -338,8 +337,8 @@ B. OBJECTIVES
 - Specific English competences: listening, speaking, reading, writing, language use
 3. Qualities
 - Patriotism / kindness / diligence / honesty / responsibility where relevant
-4. Digital competences integrated in the lesson under Circular No. 02/2025/TT-BGDĐT
-${domains.length ? domains.map((d, i) => `${i + 1}. Domain ${d.code} — ${d.title}: ${d.sample}`).join('\n') : '- Select 1–3 suitable component competences from Circular No. 02/2025/TT-BGDĐT based on the lesson.'}
+4. Digital competences integrated in the lesson
+${domains.length ? domains.map((d, i) => `${i + 1}. ${d.title}: ${d.sample}`).join('\n') : '- Select suitable digital competences based on the lesson.'}
 
 C. TEACHING AIDS AND LEARNING MATERIALS
 - Teacher: textbook, slides, projector, board, handouts, digital tools, AI/dictionary/quiz tools if appropriate
@@ -387,7 +386,7 @@ QUALITY RULES
 - If source text is insufficient, state "Source limitation" briefly and create a plausible lesson based on the teacher's input.
 - Do not produce a generic lesson. It must match the named unit/lesson and uploaded content.
 - Activities must be classroom-ready and realistic for ${form.duration} minutes.
-- Digital competence must be explicit, evidence-based and mapped to component codes from Circular No. 02/2025/TT-BGDĐT, not decorative.
+- Digital competence must be explicit, not decorative.
 - Do not mention that you are an AI.
 `;
 }
@@ -398,7 +397,7 @@ function buildDigitalSupplementPrompt({ form, selectedDomains, existingPlan, ext
 The teacher already has a lesson plan. Do NOT rewrite the whole lesson unless necessary.
 Your task is to add and integrate DIGITAL COMPETENCE into the existing lesson plan.
 
-OUTPUT LANGUAGE: English only. Vietnamese may appear only in proper names and official legal document numbers.
+OUTPUT LANGUAGE: English for the lesson content. Vietnamese labels may appear in parentheses if needed.
 
 LESSON INFORMATION
 - Grade: ${form.grade}
@@ -411,7 +410,7 @@ LESSON INFORMATION
 - Class profile: ${form.classProfile || 'Vietnamese high-school English learners'}
 
 SELECTED DIGITAL COMPETENCE DOMAINS
-${domains.length ? domains.map((d, i) => `${i + 1}. Domain ${d.code} — ${d.title}: ${d.sample}`).join('\n') : '- Suggest 1–3 suitable component competences from Circular No. 02/2025/TT-BGDĐT.'}
+${domains.length ? domains.map((d, i) => `${i + 1}. ${d.title} (${d.vi}): ${d.sample}`).join('\n') : '- Suggest the most suitable digital competences based on the lesson.'}
 
 TEACHER NOTES
 ${extraNotes || '(none)'}
@@ -424,12 +423,12 @@ REQUIRED OUTPUT
 2. A revised B. OBJECTIVES section, adding "Digital competences integrated in the lesson".
 3. Digital competence integration table:
    - Lesson stage/activity
-   - Digital competence component code and English name
+   - Digital competence domain
    - Digital tool or digital behavior
    - Student product/evidence
    - Assessment/feedback
 4. Exact insertions to add into D. PROCEDURE / LEARNING ACTIVITIES.
-5. Digital safety, privacy, copyright and responsible AI note suitable for the lesson.
+5. Digital safety and responsible AI note suitable for the lesson.
 6. If the teacher wants a full revised plan, provide a clean revised version after the supplement.
 
 QUALITY RULES
@@ -464,7 +463,7 @@ Return ONLY valid JSON, no markdown fences, using this schema:
   "duration": 45,
   "method": "TBLT/CLT/ESA/PPP/Project-based/Flipped classroom/Blended learning",
   "classProfile": "brief learner profile",
-  "digitalDomainIds": ["info", "comm", "content", "safety", "problem", "ai"],
+  "digitalDomainIds": ["info", "comm", "content", "safety", "problem", "learning"],
   "analysis": "short Vietnamese explanation of why these settings fit",
   "lessonFocus": ["main knowledge", "main skill", "expected product"]
 }
@@ -657,7 +656,7 @@ function createOfflineSlidesFromLesson(lessonPlan, form, count = 10) {
 }
 
 export default function LessonArchitect({ language, hasApiKey, aiModel, currentUser }) {
-  const [workflowMode, setWorkflowMode] = useState('curriculum-batch');
+  const [workflowMode, setWorkflowMode] = useState('material-to-plan');
   const [form, setForm] = useState({
     query: 'Create a 45-minute TBLT lesson plan for Past Simple vs Past Continuous, level B2',
     grade: 'Grade 10',
@@ -1018,13 +1017,6 @@ ${analysisOutput}
       : (isVi ? 'Tài liệu' : 'Materials');
   const starterCards = [
     {
-      id: 'curriculum-batch',
-      tone: 'purple',
-      icon: '🗓️',
-      title: isVi ? 'Giáo án cả năm' : 'Full-year curriculum',
-      desc: isVi ? 'KHGD + SGK → danh sách bài → soạn hàng loạt' : 'Curriculum + textbook → full lesson-plan set',
-    },
-    {
       id: 'existing-plan',
       tone: 'mint',
       icon: '📝',
@@ -1116,9 +1108,9 @@ ${analysisOutput}
         </div>
 
         <div className="lesson-v50-hero-copy">
-          <span className="lesson-v50-tag">Lesson Architect • Curriculum-to-Lesson Workflow</span>
-          <h1>{isVi ? 'Thiết kế giáo án một bài hoặc trọn năm học' : 'Design one lesson or a complete school-year plan'}</h1>
-          <p>{isVi ? 'Đọc KHGD, đối chiếu SGK, soạn tuần tự và xuất Word đúng chuẩn.' : 'Read curriculum plans, align textbooks, generate sequentially and export to Word.'}</p>
+          <span className="lesson-v50-tag">Lesson Architect • Digital Competence Workflow</span>
+          <h1>{isVi ? 'Thiết kế giáo án tích hợp năng lực số' : 'Design digital-competence lesson plans'}</h1>
+          <p>{isVi ? 'AI đồng hành cùng bạn tạo giáo án thông minh.' : 'AI helps you build smart lesson plans.'}</p>
         </div>
 
         <div className="lesson-v50-stat-grid">
@@ -1127,12 +1119,12 @@ ${analysisOutput}
             <small>{aiModel || 'GPT-4o mini'}</small>
           </div>
           <div className="lesson-v50-stat-card">
-            <strong>{isVi ? 'Nguồn' : 'Source'}: {workflowMode === 'curriculum-batch' ? (isVi ? 'KHGD + SGK' : 'Curriculum + textbook') : sourceLabel}</strong>
-            <small>{workflowMode === 'curriculum-batch' ? (isVi ? 'Google Drive, PDF, DOCX' : 'Google Drive, PDF, DOCX') : (workflowMode === 'keyword-to-plan' ? 'Prompt' : 'PDF, DOCX, TXT')}</small>
+            <strong>{isVi ? 'Nguồn' : 'Source'}: {sourceLabel}</strong>
+            <small>{workflowMode === 'keyword-to-plan' ? 'Prompt' : 'PDF, DOCX, TXT'}</small>
           </div>
           <div className="lesson-v50-stat-card">
             <strong>{selectedDomains.length} {isVi ? 'năng lực' : 'skills'}</strong>
-            <small>{isVi ? 'Khung năng lực số' : 'Digital competence framework — Circular 02/2025/TT-BGDĐT'}</small>
+            <small>{isVi ? 'Khung năng lực số' : 'Digital competence set'}</small>
           </div>
         </div>
       </section>
@@ -1160,17 +1152,6 @@ ${analysisOutput}
         ))}
       </section>
 
-      {workflowMode === 'curriculum-batch' ? (
-        <LessonArchitectCurriculumBuilder
-          language={language}
-          hasApiKey={hasApiKey}
-          aiModel={aiModel}
-          currentUser={currentUser}
-          readTextFile={readTextFile}
-          onExit={() => setWorkflowMode('material-to-plan')}
-        />
-      ) : (
-        <>
       <section className="lesson-v50-main-grid">
         <div className="lesson-v50-main-left">
           <article className="panel lesson-v50-source-card">
@@ -1375,8 +1356,6 @@ ${analysisOutput}
           </div>
         )}
       </section>
-        </>
-      )}
 
       {aiBusy && (
         <div className="lesson-v50-ai-overlay" role="status" aria-live="polite">
