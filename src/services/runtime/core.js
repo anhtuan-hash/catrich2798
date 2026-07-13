@@ -1,10 +1,12 @@
 import { isSupabaseConfigured, supabase, getSupabaseStatus } from '../../utils/supabase.js';
+import { resolveSystemRole } from '../../utils/roles.js';
+import { RUNTIME_CORE_VERSION } from '../../config/version.js';
 
 const listeners = new Set();
 const channels = new Map();
 
 const state = {
-  version: '1.5.0',
+  version: RUNTIME_CORE_VERSION,
   phase: isSupabaseConfigured ? 'idle' : 'offline',
   configured: isSupabaseConfigured,
   ready: !isSupabaseConfigured,
@@ -37,21 +39,29 @@ function emit() {
   }
 }
 
-function inferRole(user, profile) {
-  const email = String(user?.email || profile?.email || '').trim().toLowerCase();
-  const metadataRole = String(
-    user?.app_metadata?.role || user?.user_metadata?.role || profile?.role || ''
-  ).trim().toLowerCase();
-  const adminEmails = String(import.meta.env.VITE_ADMIN_EMAILS || '')
-    .split(',')
-    .map((value) => value.trim().toLowerCase())
-    .filter(Boolean);
-  if (adminEmails.includes(email) || email === 'anhtuan@pek.edu.vn') return 'admin';
-  if (['admin', 'ttcm', 'leader', 'department_head', 'department-head', 'head'].includes(metadataRole)) {
-    return metadataRole === 'admin' ? 'admin' : 'department_head';
-  }
-  if (metadataRole === 'student') return 'student';
-  return user ? 'teacher' : 'guest';
+function inferRole(user, profile, assignedRole = '') {
+  return resolveSystemRole({
+    assignedRole,
+    profileRole: profile?.role,
+    metadataRole: user?.app_metadata?.role || user?.user_metadata?.role,
+    hasUser: Boolean(user),
+  });
+}
+
+async function loadAssignedRole(user) {
+  if (!supabase || !user?.id) return '';
+  try {
+    const { data, error } = await supabase
+      .from('system_roles')
+      .select('role,active,scope')
+      .eq('user_id', user.id)
+      .eq('active', true)
+      .order('assigned_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!error && data?.role) return data.role;
+  } catch { /* V10.98 database compatibility */ }
+  return '';
 }
 
 async function loadProfile(user) {
@@ -75,7 +85,8 @@ async function applySession(session) {
   state.session = session || null;
   state.user = session?.user || null;
   state.profile = session?.user ? await loadProfile(session.user) : null;
-  state.role = inferRole(state.user, state.profile);
+  state.systemRole = session?.user ? await loadAssignedRole(session.user) : '';
+  state.role = inferRole(state.user, state.profile, state.systemRole);
   state.ready = true;
   state.phase = session?.user ? 'ready' : 'anonymous';
   state.lastError = '';
@@ -197,6 +208,7 @@ export async function diagnoseRuntime() {
     email: state.user?.email || '',
     role: state.role,
     profileRole: state.profile?.role || '',
+    assignedRole: state.systemRole || '',
     realtimeChannels: channels.size,
     lastError: state.lastError,
     checkedAt: new Date().toISOString(),

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom';
 import { callAI } from '../utils/gemini.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
+import { spreadsheetToTextSafe } from '../utils/safeSpreadsheet.js';
 import { buildAiActionSuggestions, executeAiAction, prepareAiAction } from '../utils/aiActions.js';
 
 const ROUTE_LABELS = {
@@ -130,9 +131,7 @@ async function readPptxText(arrayBuffer) {
   return chunks.join('\n\n');
 }
 async function readSpreadsheetText(arrayBuffer) {
-  const XLSX = await import('xlsx');
-  const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-  return workbook.SheetNames.slice(0, 10).map((name) => `--- Sheet: ${name} ---\n${XLSX.utils.sheet_to_csv(workbook.Sheets[name], { blankrows: false })}`).join('\n\n');
+  return spreadsheetToTextSafe(arrayBuffer, { maxSheets: 10, maxRows: 3000 });
 }
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result || '')); reader.onerror = () => reject(reader.error || new Error('Cannot read file')); reader.readAsDataURL(file); });
@@ -219,7 +218,7 @@ function setReactFieldValue(element, value) {
   element.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
-export default function UniversalAIAssist({ language = 'vi', currentRoute = 'home', selectedTool = null, apiKey = '', aiModel = '', hasApiKey = false, currentUser = null, providerName = '', accent = '#5B2A86', soft = '#E9DAFF', ink = '#20102F' }) {
+export default function UniversalAIAssist({ language = 'vi', currentRoute = 'home', selectedTool = null, apiKey = '', aiModel = '', hasApiKey = false, currentUser = null, providerName = '', accent = '#5B2A86', soft = '#E9DAFF', ink = '#20102F', externalLauncher = false }) {
   const info = useMemo(() => routeInfo(currentRoute, selectedTool, language), [currentRoute, selectedTool, language]);
   const storageId = useMemo(() => threadsKey(currentUser), [currentUser]);
   const [open, setOpen] = useState(false);
@@ -286,6 +285,8 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
 
   useEffect(() => {
     const openFromSystem = (event) => {
+      window.dispatchEvent(new CustomEvent('bes-global-music-command', { detail: { action: 'collapse' } }));
+      window.dispatchEvent(new CustomEvent('bes-sync-queue-close'));
       const prompt = String(event?.detail?.prompt || '').trim();
       setOpen(true);
       setShowHistory(false);
@@ -296,8 +297,10 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
         window.setTimeout(() => sendMessageRef.current?.(prompt), 120);
       }
     };
+    const closeFromSystem = () => { setOpen(false); setShowHistory(false); };
     window.addEventListener('bes-ai-open', openFromSystem);
-    return () => window.removeEventListener('bes-ai-open', openFromSystem);
+    window.addEventListener('bes-ai-close', closeFromSystem);
+    return () => { window.removeEventListener('bes-ai-open', openFromSystem); window.removeEventListener('bes-ai-close', closeFromSystem); };
   }, []);
 
   useEffect(() => () => {
@@ -516,7 +519,7 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
 
   const sortedThreads = [...threads].sort((a, b) => b.updatedAt - a.updatedAt);
   const portal = (
-    <div className={`ai-messenger-root ai-messenger-v10860 ${open ? 'is-open' : 'is-collapsed'} ${draggingFiles ? 'is-file-dragging' : ''}`} style={{ '--ai-chat-accent': accent, '--ai-chat-soft': soft, '--ai-chat-ink': ink }} data-route={currentRoute}
+    <div className={`ai-messenger-root ai-messenger-v10860 ${open ? 'is-open' : 'is-collapsed'} ${draggingFiles ? 'is-file-dragging' : ''}`} style={{ '--ai-chat-accent': accent, '--ai-chat-soft': soft, '--ai-chat-ink': ink }} data-route={currentRoute} data-external-launcher={externalLauncher ? 'true' : 'false'}
       onDragEnter={(event) => { if (open && event.dataTransfer?.types?.includes('Files')) { event.preventDefault(); setDraggingFiles(true); } }}
       onDragOver={(event) => { if (open && event.dataTransfer?.types?.includes('Files')) event.preventDefault(); }}
       onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setDraggingFiles(false); }}
@@ -627,7 +630,7 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
 
           {draggingFiles && <div className="ai-messenger-drop-zone"><span>{SVG.attach}</span><strong>{language === 'vi' ? 'Thả file vào đây' : 'Drop files here'}</strong><small>PDF · DOCX · PPTX · XLSX · IMAGE</small></div>}
         </section>
-      ) : (
+      ) : externalLauncher ? null : (
         <div className="ai-messenger-collapsed-wrap"><span className="ai-messenger-tooltip">{language === 'vi' ? 'Trò chuyện với Brian AI' : 'Chat with Brian AI'}</span><button type="button" className="ai-messenger-bubble" onClick={openChat} aria-label={language === 'vi' ? 'Mở trợ lí AI' : 'Open AI assistant'}>{SVG.chat}{!hasSeenBubble && <i className="ai-messenger-unread-dot"/>}<b className="ai-messenger-online-dot"/></button></div>
       )}
     </div>

@@ -1,5 +1,7 @@
+import { isDepartmentLeaderRole } from '../../utils/roles.js';
+
 export function isLeader(user) {
-  return ['admin', 'ttcm', 'department_head', 'department-head', 'leader', 'head'].includes(String(user?.role || '').toLowerCase());
+  return isDepartmentLeaderRole(user?.role);
 }
 
 export function formatDate(value, locale = 'vi-VN') {

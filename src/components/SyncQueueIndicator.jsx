@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { clearCompletedSyncItems, listSyncQueue, processSyncQueue, removeSyncItem, SYNC_QUEUE_EVENT } from '../utils/syncQueue.js';
 import { listTransfers } from '../utils/contentTransfer.js';
 
-export default function SyncQueueIndicator({ currentUser, language = 'vi' }) {
+export default function SyncQueueIndicator({ currentUser, language = 'vi', externalLauncher = false }) {
   const [items, setItems] = useState(() => listSyncQueue(currentUser));
   const [online, setOnline] = useState(() => navigator.onLine);
   const [open, setOpen] = useState(false);
@@ -27,12 +27,22 @@ export default function SyncQueueIndicator({ currentUser, language = 'vi' }) {
     const onOffline = () => setOnline(false);
     window.addEventListener(SYNC_QUEUE_EVENT, refresh);
     window.addEventListener('online', onOnline);
+    const onOpen = () => {
+      window.dispatchEvent(new CustomEvent('bes-ai-close'));
+      window.dispatchEvent(new CustomEvent('bes-global-music-command', { detail: { action: 'collapse' } }));
+      setOpen(true);
+    };
+    const onClose = () => setOpen(false);
     window.addEventListener('offline', onOffline);
+    window.addEventListener('bes-sync-queue-open', onOpen);
+    window.addEventListener('bes-sync-queue-close', onClose);
     if (navigator.onLine) onOnline();
     return () => {
       window.removeEventListener(SYNC_QUEUE_EVENT, refresh);
       window.removeEventListener('online', onOnline);
       window.removeEventListener('offline', onOffline);
+      window.removeEventListener('bes-sync-queue-open', onOpen);
+      window.removeEventListener('bes-sync-queue-close', onClose);
     };
   }, [currentUser?.id, currentUser?.email]);
 
@@ -40,7 +50,7 @@ export default function SyncQueueIndicator({ currentUser, language = 'vi' }) {
   if (!currentUser || (online && pending.length === 0 && !open)) return null;
 
   return (
-    <div className={`bes-sync-queue${online ? ' is-online' : ' is-offline'}`}>
+    <div className={`bes-sync-queue${online ? ' is-online' : ' is-offline'}`} data-external-launcher={externalLauncher ? 'true' : 'false'}>
       <button type="button" className="bes-sync-queue-toggle" onClick={() => setOpen((value) => !value)}>
         <span>{online ? (pending.length ? '↻' : '✓') : '⌁'}</span>
         <b>{online ? (pending.length ? `${pending.length} ${language === 'vi' ? 'đang đồng bộ' : 'syncing'}` : (language === 'vi' ? 'Đã đồng bộ' : 'Synced')) : `${pending.length} ${language === 'vi' ? 'đang chờ mạng' : 'waiting for network'}`}</b>

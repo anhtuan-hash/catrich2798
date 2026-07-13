@@ -1,23 +1,24 @@
-# Brian English Studio V10.98.0
+# Brian English Studio V10.99.0
 
-Digital teaching, resource, workflow, assessment, learning-intelligence, automation, collaboration and data-governance platform for English teachers.
+Production-hardened digital teaching platform for English teachers, department heads and learners.
 
-## New in V10.98
+## V10.99 focus
 
-- Collaboration Hub at `#/collaboration-hub`.
-- Project spaces, member roles and threaded discussions.
-- Supabase Realtime Presence.
-- Content version history and non-destructive restore.
-- Data Governance at `#/data-governance`.
-- Audit events, permission overrides and selective snapshots.
-- 30-day cloud trash and Resource Library soft deletion.
-- Runtime Core 1.5.0.
+- Authenticated, quota-controlled AI Gateway.
+- Canonical roles: `admin`, `department_head`, `teacher`, `student`.
+- React-native utility rail, Command Center and operational diagnostics.
+- Removal of external DOM-patching hotfix layers.
+- Safer spreadsheet parsing and Google Drive uploads.
+- Server-side snapshots with checksum, dry-run and transactional restore.
+- Unified application/runtime version registry.
+- Playwright browser test suite and release contracts.
+- Consolidated current scripts; historical release scripts and notes are archived.
 
-## Install
+## Install locally
 
 ```bash
 npm ci
-npm run verify:v10.98
+npm run verify:v10.99
 npm run dev
 ```
 
@@ -25,8 +26,14 @@ npm run dev
 
 Run in order:
 
-1. `supabase/brian_v10_98_preflight.sql`
-2. `supabase/brian_v10_98_collaboration_governance.sql`
-3. `supabase/brian_v10_98_verify.sql`
+1. `supabase/brian_v10_99_preflight.sql`
+2. `supabase/brian_v10_99_production_hardening.sql`
+3. `supabase/brian_v10_99_verify.sql`
 
-Personal font files are intentionally not included in distributable archives. Keep the existing files in `public/fonts/` when using the update-only package.
+## Main administration route
+
+```text
+#/production-hardening
+```
+
+Personal font files are intentionally excluded from release archives. The update-only installer preserves the existing `public/fonts/` directory.

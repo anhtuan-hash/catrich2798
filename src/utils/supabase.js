@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { RUNTIME_CORE_VERSION } from '../config/version.js';
 
 const runtimeEnv = import.meta.env || {};
 export const supabaseUrl = String(runtimeEnv.VITE_SUPABASE_URL || '').trim();
@@ -17,7 +18,7 @@ export const supabase = isSupabaseConfigured
         params: { eventsPerSecond: 10 },
       },
       global: {
-        headers: { 'x-bes-runtime': '10.96.0' },
+        headers: { 'x-bes-runtime': RUNTIME_CORE_VERSION },
       },
     })
   : null;

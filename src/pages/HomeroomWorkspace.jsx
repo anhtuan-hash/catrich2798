@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import * as XLSX from 'xlsx';
+import { spreadsheetToTextSafe } from '../utils/safeSpreadsheet.js';
 import SectionHeader from '../components/SectionHeader.jsx';
 import HomeroomConductTab from '../components/HomeroomConductTab.jsx';
 import {

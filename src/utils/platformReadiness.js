@@ -116,7 +116,7 @@ export function runPwaAudit() {
 }
 
 export function downloadReadinessReport(report) {
-  const safe = { version: '10.95.0', exportedAt: new Date().toISOString(), ...report };
+  const safe = { version: '10.99.0', exportedAt: new Date().toISOString(), ...report };
   const blob = new Blob([JSON.stringify(safe, null, 2)], { type: 'application/json;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');

@@ -1,7 +1,7 @@
 @font-face{
   font-family:"BrianGesco";
-  src:url("/fonts/BrianGesco.ttf?v=10.62") format("truetype"),
-      url("/fonts/1FTV-HF-Gesco-id0oy5.ttf?v=10.62") format("truetype");
+  src:url("/fonts/personal-font.ttf?v=10.62") format("truetype"),
+      url("/fonts/personal-font.ttf?v=10.62") format("truetype");
   font-weight:100 900;
   font-style:normal;
   font-display:swap;

@@ -72,7 +72,16 @@ add('V9.4.6 Exam Studio produces workflow artifacts', Boolean(examStudioOutput.s
 const mainSource = fs.readFileSync(new URL('../src/main.jsx', import.meta.url), 'utf8');
 const universalAiSource = fs.readFileSync(new URL('../src/components/UniversalAIAssist.jsx', import.meta.url), 'utf8');
 const specializedSource = fs.readFileSync(new URL('../src/pages/SpecializedAppPage.jsx', import.meta.url), 'utf8');
-const cssSource = fs.readFileSync(new URL('../src/index.css', import.meta.url), 'utf8');
+const cssSource = [
+  '../src/index.css',
+  '../src/styles/legacy/01-foundation.css',
+  '../src/styles/legacy/02-workspaces.css',
+  '../src/styles/legacy/03-operations.css',
+  '../src/styles/legacy/04-modern-shell.css',
+  '../src/styles/legacy/05-connected-platform.css',
+  '../src/styles/legacy/06-current-features.css',
+  '../src/styles/v1099.css',
+].map((file) => fs.readFileSync(new URL(file, import.meta.url), 'utf8')).join('\n');
 const wordGraphSource = fs.readFileSync(new URL('../src/pages/WordGraphStudio.jsx', import.meta.url), 'utf8');
 add('V10.81.8 WordGraph runtime node count is schema-safe', wordGraphSource.includes('visibleNodeCount') && !wordGraphSource.includes('graph.nodes.length'), 'prevents blank-page crash when graph exposes clusters instead of nodes');
 add('V10.82.7 Messenger-style Brian AI bubble available', mainSource.includes('UniversalAIAssist') && universalAiSource.includes('ai-messenger-bubble') && universalAiSource.includes('createPortal'), 'global bottom-right chat bubble present');
@@ -99,7 +108,7 @@ const permissionsSource = fs.readFileSync(new URL('../src/utils/permissions.js',
 const aiIndicatorSource = fs.readFileSync(new URL('../src/components/GlobalAIIndicator.jsx', import.meta.url), 'utf8');
 const geminiSource = fs.readFileSync(new URL('../src/utils/gemini.js', import.meta.url), 'utf8');
 const textLabCssSource = fs.readFileSync(new URL('../public/embedded/brian-textlab-activities/style.css', import.meta.url), 'utf8');
-add('V10.62 personal font reaches embedded TextLab', textLabCssSource.includes('/fonts/BrianGesco.ttf') && textLabCssSource.includes('font-family:var(--font)!important'), 'BrianGesco enforced in iframe app');
+add('V10.62 personal font reaches embedded TextLab', textLabCssSource.includes('/fonts/personal-font.ttf') && textLabCssSource.includes('font-family:var(--font)!important'), 'BrianGesco enforced in iframe app');
 add('V10.62 navigation text-size control present', globalNavSource.includes('global-font-size-btn') && globalNavSource.includes('setFontScale'), 'A+ control cycles global font scale');
 add('V10.62 full-screen AI indicator wired globally', aiIndicatorSource.includes('createPortal') && geminiSource.includes('bes-ai-operation-start') && geminiSource.includes('bes-ai-operation-end'), 'provider calls trigger fullscreen indicator');
 add('V10.62 unified content rail present', cssSource.includes('--bes-unified-content:1440px') && cssSource.includes('main.wp8-page-stage > .page'), 'navigation, pages and footer share one rail');
@@ -169,7 +178,7 @@ add('V10.69 audit trail and restore points', homeroomPhase3Source.includes('prep
 add('V10.69 secure six-digit portal access', homeroomPhase2StoreSource.includes('pinHashes') && homeroomPhase2StoreSource.includes("crypto.subtle.digest('SHA-256'") && homeroomPhase3SqlSource.includes('bes_homeroom_portal_attempts') && homeroomPhase3SqlSource.includes('locked_until'), 'hashed PINs, attempt limits, lockout and expiry');
 add('V10.69 advanced attendance sessions and correction workflow', homeroomSource.includes('attendanceSessionKey') && homeroomSource.includes('setAttendanceLock') && homeroomSource.includes('createCorrectionRequest') && homeroomSource.includes('Điểm danh theo buổi / tiết'), 'session/period attendance, lock and correction request present');
 add('V10.69 incident and student support plans', homeroomPhase3TabsSource.includes('StudentSupportTab') && homeroomPhase3Source.includes('addIncident') && homeroomPhase3Source.includes('addSupportPlan') && homeroomPhase3TabsSource.includes('Hạn theo dõi'), 'case log, evidence and support follow-up present');
-add('V10.69 spreadsheet score import and configurable thresholds', homeroomPhase2TabsSource.includes('XLSX.read') && homeroomPhase2TabsSource.includes('AI nhận diện cột') && homeroomPhase2TabsSource.includes('warningThreshold') && homeroomPhase2TabsSource.includes('lockedPeriods'), 'Excel/CSV mapping, configurable risk and grade locks');
+add('V10.69 spreadsheet score import and configurable thresholds', homeroomPhase2TabsSource.includes('readWorkbookSafe') && homeroomPhase2TabsSource.includes('AI nhận diện cột') && homeroomPhase2TabsSource.includes('warningThreshold') && homeroomPhase2TabsSource.includes('lockedPeriods'), 'Excel/CSV mapping, configurable risk and grade locks');
 add('V10.69 two-way parent communication with attachments', homeroomPortalSource.includes('submitPortalResponse') && homeroomPhase2TabsSource.includes('readSmallAttachment') && homeroomPhase2TabsSource.includes('hr-portal-responses') && homeroomPhase3SqlSource.includes('submit_homeroom_portal_response'), 'downloadable small attachments and portal replies');
 add('V10.69 standardized Word and PDF records', homeroomPhase3Source.includes('downloadWordDocument') && homeroomPhase3Source.includes('printRecordAsPdf') && homeroomSource.includes('hr-document-preview'), 'school-formatted document preview and export');
 add('V10.69 global class search and reminders', homeroomPhase3Source.includes('searchWorkspace') && homeroomPhase3TabsSource.includes('SearchCommandTab') && homeroomStoreSource.includes('addReminder') && homeroomStoreSource.includes('toggleReminder'), 'search across modules and due reminders');
@@ -311,7 +320,7 @@ const resourceViewerCss = fs.readFileSync(new URL('../src/features/resource-libr
 const packageSource = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 add('V10.81.9 direct viewer covers requested formats', ['docx', 'pptx', 'pdf', 'xlsx', 'video', 'audio'].every((kind) => resourceViewerSource.includes(`kind === '${kind}'`)), 'DOCX, PPTX, PDF, XLSX, MP4 and MP3 paths present');
 add('V10.81.9 resource modal uses secure viewer', resourceLibrarySource.includes('<ResourceFileViewer item={preview} fetchBlob={fetchResourceBlob} getStreamUrl={getResourceStreamUrl}/>') && resourceLibrarySource.includes('supportsResourcePreview'), 'preview remains behind authenticated Drive proxy');
-add('V10.81.9 Office renderers are local and sandboxed', resourceViewerSource.includes('mammoth.convertToHtml') && resourceViewerSource.includes("import('xlsx')") && resourceViewerSource.includes("import('jszip')") && resourceViewerSource.includes('sandbox="allow-popups"'), 'Word, Excel and PowerPoint render without public Drive sharing');
+add('V10.81.9 Office renderers are local and sandboxed', resourceViewerSource.includes('mammoth.convertToHtml') && resourceViewerSource.includes('readWorkbookSafe') && resourceViewerSource.includes("import('jszip')") && resourceViewerSource.includes('sandbox="allow-popups"'), 'Word, Excel and PowerPoint render without public Drive sharing');
 add('V10.81.9 scalable viewer styling present', resourceViewerCss.includes('V10.81.9 — direct DOCX, PPTX, PDF, XLSX, MP4 and MP3 viewer') && resourceViewerCss.includes('.resource-workbook-viewer') && resourceViewerCss.includes('.resource-pptx-viewer'), 'desktop, dark and mobile layouts present');
 add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && /^10\.(?:8[2-9]|9\d)\./.test(packageSource.version), 'PPTX parser dependency is production-safe');
 const previewSessionSource = fs.readFileSync(new URL('../api/google-drive-preview-session.js', import.meta.url), 'utf8');

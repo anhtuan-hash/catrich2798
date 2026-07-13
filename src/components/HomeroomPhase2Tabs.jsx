@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import * as XLSX from 'xlsx';
+import { readWorkbookSafe } from '../utils/safeSpreadsheet.js';
 import { callAI } from '../utils/gemini.js';
 import {
   addAnnouncement,
@@ -107,9 +107,8 @@ export function LearningAnalyticsTab({ workspace, onCommit, hasApiKey, currentUs
   const readScoreFile = async (file) => {
     if (!file) return;
     try {
-      const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+      const workbook = await readWorkbookSafe(await file.arrayBuffer(), { maxSheets: 1, maxRows: 5000 });
+      const rows = workbook.toRows(workbook.names[0], { defval: '' });
       const headers = rows.length ? Object.keys(rows[0]) : [];
       setImportState({ fileName: file.name, rows, headers, mapping: inferMapping(headers), error: rows.length ? '' : 'File không có dữ liệu.' });
     } catch (error) { setImportState({ fileName: file.name, rows: [], headers: [], mapping: {}, error: error.message || 'Không đọc được file.' }); }

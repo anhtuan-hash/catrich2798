@@ -73,7 +73,7 @@ function saveCurrentTime(currentUser, settings, audio) {
   }
 }
 
-export default function GlobalMusicPlayer({ language = 'vi', currentUser }) {
+export default function GlobalMusicPlayer({ language = 'vi', currentUser, externalLauncher = false }) {
   const [settings, setSettings] = useState(() => readSettings(currentUser));
   const [playing, setPlaying] = useState(false);
   const [fileUrl, setFileUrl] = useState('');
@@ -159,6 +159,8 @@ export default function GlobalMusicPlayer({ language = 'vi', currentUser }) {
     const handleCommand = async (event) => {
       const action = event.detail?.action;
       if (action === 'expand') {
+        window.dispatchEvent(new CustomEvent('bes-ai-close'));
+        window.dispatchEvent(new CustomEvent('bes-sync-queue-close'));
         patchSettings({ expanded: true });
         return;
       }
@@ -167,6 +169,8 @@ export default function GlobalMusicPlayer({ language = 'vi', currentUser }) {
         return;
       }
       if (action === 'toggle') {
+        window.dispatchEvent(new CustomEvent('bes-ai-close'));
+        window.dispatchEvent(new CustomEvent('bes-sync-queue-close'));
         patchSettings({ expanded: true });
         await togglePlayback();
         return;
@@ -282,9 +286,9 @@ export default function GlobalMusicPlayer({ language = 'vi', currentUser }) {
   };
 
   return (
-    <aside className={`global-music-player ${settings.expanded ? 'expanded' : 'compact'}`} aria-label={labels.title}>
+    <aside className={`global-music-player ${settings.expanded ? 'expanded' : 'compact'}`} aria-label={labels.title} data-external-launcher={externalLauncher ? 'true' : 'false'}>
       <audio ref={audioRef} preload="none" />
-      {!settings.expanded ? (
+      {!settings.expanded ? (externalLauncher ? null :
         <button className={`music-float-btn ${playing ? 'playing' : ''}`} onClick={() => patchSettings({ expanded: true })} title={labels.expand}>
           <span>{playing ? '♪' : '♫'}</span>
         </button>

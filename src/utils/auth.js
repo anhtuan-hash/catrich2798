@@ -1,5 +1,6 @@
 import { isSupabaseConfigured, supabase } from './supabase.js';
 import { createAllAccessPermissions, normalizePermissions } from './permissions.js';
+import { normalizeSystemRole } from './roles.js';
 
 export const AUTH_EVENT = 'bes-auth-session-updated';
 export const USERS_EVENT = 'bes-auth-users-updated';
@@ -157,7 +158,7 @@ function mapProfile(user, profile = null) {
   if (!user) return null;
   const meta = user.user_metadata || {};
   const email = normalizeEmail(user.email || profile?.email);
-  const role = isConfiguredAdmin(email) ? 'admin' : (profile?.role || meta.role || 'teacher');
+  const role = normalizeSystemRole(isConfiguredAdmin(email) ? 'admin' : (profile?.role || meta.role || 'teacher'));
   const approved = role === 'admin' ? true : profile?.approved === true;
   return {
     id: user.id,
@@ -178,7 +179,7 @@ function mapProfile(user, profile = null) {
 
 function cleanProfilePayload(user, defaults = {}) {
   const email = normalizeEmail(user?.email || defaults.email);
-  const role = isConfiguredAdmin(email) ? 'admin' : (defaults.role || 'teacher');
+  const role = normalizeSystemRole(isConfiguredAdmin(email) ? 'admin' : (defaults.role || 'teacher'));
   return {
     id: user.id,
     email,

@@ -7,6 +7,7 @@ import './styles/v1095.css';
 import './styles/v1096.css';
 import './styles/v1097.css';
 import './styles/v1098.css';
+import './styles/v1099.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
@@ -27,6 +28,7 @@ import { bootRuntimeCore } from './services/runtime/core.js';
 import { installAccessibilityBootstrap } from './utils/accessibility.js';
 import { collectWebVitals } from './utils/webVitals.js';
 import { installPwaEventCapture, registerBrianPwa } from './utils/pwa.js';
+import { APP_VERSION } from './config/version.js';
 
 runConfigurationMigrations();
 installAccessibilityBootstrap();
@@ -99,10 +101,12 @@ const AutomationCenter = lazy(() => import('./pages/AutomationCenter.jsx'));
 const CloudOperations = lazy(() => import('./pages/CloudOperations.jsx'));
 const CollaborationHub = lazy(() => import('./pages/CollaborationHub.jsx'));
 const DataGovernance = lazy(() => import('./pages/DataGovernance.jsx'));
+const ProductionHardening = lazy(() => import('./pages/ProductionHardening.jsx'));
+const UnifiedUtilityRail = lazy(() => import('./components/UnifiedUtilityRail.jsx'));
 const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAccessibilityAnnouncer.jsx'));
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'assessment-core', 'learning-intelligence', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'assessment-core', 'learning-intelligence', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
 
 function getInitialRoute() {
@@ -135,6 +139,7 @@ const ROUTE_DESIGN_PROFILES = {
   'cloud-operations': { accent: '#167B68', soft: '#E4F6EF', ink: '#183F3C' },
   'collaboration-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
   'data-governance': { accent: '#A24B35', soft: '#FFF0E8', ink: '#4A1E14' },
+  'production-hardening': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
   practice: { accent: '#00A4EF', soft: '#DCF4FF', ink: '#063048' },
   admin: { accent: '#D13438', soft: '#FFE1E3', ink: '#351014' },
   settings: { accent: '#123C69', soft: '#DCEBFA', ink: '#07192C' },
@@ -411,6 +416,7 @@ function App() {
       'cloud-operations': ['Cloud Operations', 'Vận hành nền'],
       'collaboration-hub': ['Collaboration Hub', 'Không gian cộng tác'],
       'data-governance': ['Data Governance', 'Quản trị dữ liệu'],
+      'production-hardening': ['Production Hardening', 'Sẵn sàng Production'],
       practice: ['Classroom', 'Lớp học'], settings: ['Settings', 'Cài đặt'],
       admin: ['Admin', 'Quản trị'], 'ai-governance': ['AI Governance', 'Quản trị AI'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác'],
     };
@@ -448,6 +454,7 @@ function App() {
       data-intensity={themeIntensity}
       data-tile-border={tileBorder}
       data-windows-indicator={indicatorMode}
+      data-app-version={APP_VERSION}
       style={{
         '--active-app-accent': activeDesignProfile.accent,
         '--active-app-soft': activeDesignProfile.soft,
@@ -558,6 +565,7 @@ function App() {
           {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <CloudOperations {...context} />}
           {canAccessRoute && currentRoute === 'collaboration-hub' && currentUser && <CollaborationHub {...context} />}
           {canAccessRoute && currentRoute === 'data-governance' && currentUser && <DataGovernance {...context} />}
+          {canAccessRoute && currentRoute === 'production-hardening' && currentUser && <ProductionHardening {...context} />}
           {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
           {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}
           {canAccessRoute && currentRoute === 'ai-governance' && currentUser && <AIGovernanceCenter {...context} />}
@@ -595,6 +603,7 @@ function App() {
             accent={activeDesignProfile.accent}
             soft={activeDesignProfile.soft}
             ink={activeDesignProfile.ink}
+            externalLauncher
           />
           </AppErrorBoundary>
         </Suspense>
@@ -607,13 +616,14 @@ function App() {
           </AppErrorBoundary>
         </Suspense>
         <Suspense fallback={null}>
-          <SyncQueueIndicator currentUser={currentUser} language={language} />
+          <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
         </Suspense>
       </> : null}
+      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><UnifiedUtilityRail currentUser={currentUser} language={language} currentRoute={currentRoute} /></Suspense> : null}
       {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
       {currentRoute !== 'homeroom-portal' ? <>
         <Suspense fallback={null}>
-          <GlobalMusicPlayer language={language} currentUser={currentUser} />
+          <GlobalMusicPlayer language={language} currentUser={currentUser} externalLauncher />
         </Suspense>
         <Footer language={language} currentUser={currentUser} />
       </> : null}

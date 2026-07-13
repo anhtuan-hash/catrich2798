@@ -1,0 +1,8 @@
+{
+  "version": "10.99.0",
+  "release": "Production Hardening & Core Cleanup",
+  "runtime": "1.6.0",
+  "schema": "10.99.0",
+  "legacyDomPatches": false,
+  "generatedAt": "2026-07-13T01:46:01.117Z"
+}

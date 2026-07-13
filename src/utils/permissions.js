@@ -1,5 +1,6 @@
 import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../data/apps.js';
 import { HOMEROOM_PERMISSION_ID, HOMEROOM_PERMISSION_ITEM } from '../data/homeroom.js';
+import { isAdminRole, isDepartmentLeaderRole, normalizeSystemRole } from './roles.js';
 import { DEPARTMENT_MODULES, DEPARTMENT_PERMISSION_ITEMS, DEPARTMENT_PUBLISH_PERMISSION_ID, DEPARTMENT_WORKSPACE_PERMISSION_ID, DEPARTMENT_WORKSPACE_SLUG } from '../data/department.js';
 
 export const PERMISSION_MODE_ALL = 'all';
@@ -23,6 +24,7 @@ export const ROUTE_PERMISSION_IDS = {
   'cloud-operations': 'route:cloud-operations',
   'collaboration-hub': 'route:collaboration-hub',
   'data-governance': 'route:data-governance',
+  'production-hardening': 'route:production-hardening',
   practice: 'route:practice',
   qa: 'route:qa',
   settings: 'route:settings',
@@ -282,21 +284,20 @@ export function getToolSection(slug) {
 
 export function hasExplicitPermissionId(user, permissionId) {
   if (!user) return false;
-  if (user.role === 'admin') return true;
+  if (isAdminRole(user.role)) return true;
   const permissions = normalizePermissions(user.permissions);
   return Array.isArray(permissions.allowed) && permissions.allowed.includes(permissionId);
 }
 
 export function canPublishDepartment(user) {
   if (!user) return false;
-  const role = String(user.role || '').toLowerCase().trim();
-  if (role === 'admin') return true;
+  const role = normalizeSystemRole(user.role, 'teacher');
+  if (isAdminRole(role)) return true;
 
   // A real TTCM/department-leader account may be stored as a specific role.
   // This is intentionally separate from normal "teacher" so teachers with broad
   // app access still cannot see or use leader operation tools.
-  const leaderRoles = new Set(['ttcm', 'to_truong', 'tổ trưởng', 'department_leader', 'department leader', 'subject_leader', 'subject leader', 'leader']);
-  if (leaderRoles.has(role)) return true;
+  if (isDepartmentLeaderRole(role)) return true;
 
   // HARD GUARD: normal teacher accounts must never unlock TTCM operation tools,
   // even when they have broad tool access or an old publish permission in local/cloud data.
@@ -327,7 +328,7 @@ export function canPublishDepartment(user) {
 
 export function hasPermissionId(user, permissionId) {
   if (!user) return false;
-  if (user.role === 'admin') return true;
+  if (isAdminRole(user.role)) return true;
   const permissions = normalizePermissions(user.permissions);
   if (permissions.mode === PERMISSION_MODE_ALL) return true;
   return permissions.allowed.includes(permissionId);
@@ -336,7 +337,7 @@ export function hasPermissionId(user, permissionId) {
 export function hasToolAccess(user, slug) {
   if (!slug) return false;
   if (!user) return false;
-  if (user.role === 'admin') return true;
+  if (isAdminRole(user.role)) return true;
   const tool = TOOL_BY_SLUG.get(slug);
   if (!tool) return false;
   return hasPermissionId(user, getToolPermissionId(slug));
@@ -344,26 +345,26 @@ export function hasToolAccess(user, slug) {
 
 export function filterToolsForUser(user, tools = []) {
   if (!user) return [];
-  if (user.role === 'admin') return tools;
+  if (isAdminRole(user.role)) return tools;
   return tools.filter((item) => hasToolAccess(user, item.slug));
 }
 
 export function hasAnyToolInSection(user, section) {
   if (!user) return false;
-  if (user.role === 'admin') return true;
+  if (isAdminRole(user.role)) return true;
   return TOOL_PERMISSION_ITEMS.some((item) => item.section === section && hasPermissionId(user, item.id));
 }
 
 export function hasDepartmentModuleAccess(user, moduleId) {
   if (!user) return false;
-  if (user.role === 'admin') return true;
+  if (isAdminRole(user.role)) return true;
   if (hasToolAccess(user, DEPARTMENT_WORKSPACE_SLUG)) return true;
   return hasPermissionId(user, moduleId);
 }
 
 export function hasAnyDepartmentAccess(user) {
   if (!user) return false;
-  if (user.role === 'admin') return true;
+  if (isAdminRole(user.role)) return true;
   return hasToolAccess(user, DEPARTMENT_WORKSPACE_SLUG) || DEPARTMENT_MODULES.some((module) => hasPermissionId(user, module.id));
 }
 
@@ -372,7 +373,7 @@ export function getRoutePermissionId(route) {
   if (route === 'practice') return ROUTE_PERMISSION_IDS.practice;
   if (route === 'department') return DEPARTMENT_WORKSPACE_PERMISSION_ID;
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'assessment-core' || route === 'learning-intelligence' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
+  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'assessment-core' || route === 'learning-intelligence' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
@@ -380,8 +381,9 @@ export function getRoutePermissionId(route) {
 export function hasRouteAccess(user, route, selectedTool = null) {
   if (PUBLIC_ROUTES.has(route)) return true;
   if (!user) return false;
-  if (user.role === 'admin') return true;
+  if (isAdminRole(user.role)) return true;
   if (route === 'admin') return false;
+  if (route === 'production-hardening') return isDepartmentLeaderRole(user.role);
   if (route === 'trash') return Boolean(user);
   if (route === 'tool') return hasToolAccess(user, selectedTool?.slug);
   if (route === 'news') return Boolean(user);
@@ -391,19 +393,19 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   // Locked cards stay visible and show a request-access button.
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
   if (route === 'practice') return hasPermissionId(user, ROUTE_PERMISSION_IDS.practice) || hasToolAccess(user, 'student-practice');
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'assessment-core' || route === 'learning-intelligence' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
+  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'assessment-core' || route === 'learning-intelligence' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
 }
 
 export function getFirstAllowedRoute(user) {
   if (!user) return 'login';
-  if (user.role === 'admin') return 'admin';
+  if (isAdminRole(user.role)) return 'admin';
   return 'apps';
 }
 
 export function summarizePermissions(user, language = 'vi') {
   if (!user) return '';
-  if (user.role === 'admin') return language === 'vi' ? 'Toàn quyền quản trị' : 'Full admin access';
+  if (isAdminRole(user.role)) return language === 'vi' ? 'Toàn quyền quản trị' : 'Full admin access';
   const permissions = normalizePermissions(user.permissions);
   if (permissions.mode === PERMISSION_MODE_ALL) return language === 'vi' ? 'Toàn quyền giáo viên' : 'Full teacher access';
   const count = permissions.allowed.length;

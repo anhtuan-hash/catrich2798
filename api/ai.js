@@ -1,3 +1,4 @@
+import { appendApiAudit, createRequestId, enforceRateLimit, requireApprovedUser, sendJson } from './_security.js';
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'no-store',
@@ -123,16 +124,29 @@ function extractOutputText(data) {
 }
 
 export default async function handler(req, res) {
+  const requestId = createRequestId();
   if (req.method !== 'POST') {
-    send(res, 405, { ok: false, error: 'Method not allowed. Use POST.' });
+    sendJson(res, 405, { ok: false, error: 'Method not allowed. Use POST.', requestId });
+    return;
+  }
+
+  let context;
+  try {
+    context = await requireApprovedUser(req, { roles: ['admin', 'department_head', 'teacher'] });
+    await enforceRateLimit(context, { feature: 'ai_gateway', perMinute: 12, perDay: 160 });
+  } catch (error) {
+    if (error?.retryAfter) res.setHeader('Retry-After', String(error.retryAfter));
+    sendJson(res, error?.status || 401, { ok: false, error: error?.message || 'Authentication failed.', requestId });
     return;
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    send(res, 500, {
+    await appendApiAudit(context, { endpoint: '/api/ai', action: 'configuration_check', status: 'error', requestId });
+    sendJson(res, 503, {
       ok: false,
-      error: 'OPENAI_API_KEY is not configured on the server. Add it in Vercel Environment Variables, then redeploy.',
+      error: 'The server AI provider is not configured.',
+      requestId,
     });
     return;
   }
@@ -142,14 +156,37 @@ export default async function handler(req, res) {
     try {
       body = JSON.parse(body || '{}');
     } catch {
-      send(res, 400, { ok: false, error: 'Invalid JSON body.' });
+      sendJson(res, 400, { ok: false, error: 'Invalid JSON body.', requestId });
       return;
     }
   }
 
-  const { mode = 'general', payload = {} } = body || {};
+  const allowedModes = new Set([
+    'health','general','lessonBrief','diagnostic','vault','classInsight','presentation','template',
+    'exam-builder-pro','worksheet-studio','cloze-test-generator','word-formation-lab',
+    'interactive-game-factory','presentation-builder','lesson-to-activity-converter',
+    'teacher-workload-planner','class-performance-analyzer','student-support-tracker',
+    'department-document-hub','student-practice-portal','vocabulary-mastery-app',
+    'speaking-practice-room','meeting-minutes-assistant',
+  ]);
+  const mode = String(body?.mode || 'general');
+  if (!allowedModes.has(mode)) {
+    sendJson(res, 400, { ok: false, error: 'Unsupported AI mode.', requestId });
+    return;
+  }
+  const payload = body?.payload ?? {};
+  const serialized = typeof payload === 'string' ? payload : JSON.stringify(payload);
+  if (serialized.length > 20_000) {
+    sendJson(res, 413, { ok: false, error: 'The AI request is too large.', requestId });
+    return;
+  }
+
   const model = process.env.OPENAI_MODEL || 'gpt-5.4-mini';
   const prompt = buildPrompt(mode, payload);
+  await appendApiAudit(context, {
+    endpoint: '/api/ai', action: mode, status: 'started', requestId,
+    details: { model, promptCharacters: prompt.length },
+  });
 
   try {
     const response = await fetch('https://api.openai.com/v1/responses', {
@@ -157,31 +194,41 @@ export default async function handler(req, res) {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
+        'X-Client-Request-Id': requestId,
       },
-      body: JSON.stringify({
-        model,
-        input: prompt,
-        max_output_tokens: 3600,
-      }),
+      body: JSON.stringify({ model, input: prompt, max_output_tokens: 3600 }),
     });
 
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      send(res, response.status, {
+      await appendApiAudit(context, {
+        endpoint: '/api/ai', action: mode, status: 'provider_error', requestId,
+        details: { providerStatus: response.status },
+      });
+      sendJson(res, response.status >= 500 ? 502 : response.status, {
         ok: false,
-        error: data?.error?.message || `OpenAI request failed with status ${response.status}.`,
+        error: data?.error?.message || `AI provider request failed with status ${response.status}.`,
+        requestId,
       });
       return;
     }
 
     const text = extractOutputText(data);
     if (!text) {
-      send(res, 502, { ok: false, error: 'AI returned no text output.' });
+      sendJson(res, 502, { ok: false, error: 'AI returned no text output.', requestId });
       return;
     }
 
-    send(res, 200, { ok: true, text, model });
+    await appendApiAudit(context, {
+      endpoint: '/api/ai', action: mode, status: 'ok', requestId,
+      details: { model, outputCharacters: text.length },
+    });
+    sendJson(res, 200, { ok: true, text, model, requestId });
   } catch (error) {
-    send(res, 500, { ok: false, error: error?.message || 'AI request failed.' });
+    await appendApiAudit(context, {
+      endpoint: '/api/ai', action: mode, status: 'error', requestId,
+      details: { error: String(error?.message || error).slice(0, 300) },
+    });
+    sendJson(res, 500, { ok: false, error: error?.message || 'AI request failed.', requestId });
   }
 }

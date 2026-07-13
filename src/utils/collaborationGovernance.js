@@ -282,6 +282,23 @@ async function collectScopeData(scope) {
 }
 
 export async function createBackupSnapshot({ label, scope = 'collaboration', retention_days = 30 }, user) {
+  const client = getRuntimeClient();
+  if (client && isLeader(user)) {
+    const { data: snapshotId, error } = await runtimeRpc('bes_v1099_create_snapshot', {
+      p_label: cleanText(label || `${scope} ${new Date().toLocaleDateString('vi-VN')}`, 240),
+      p_scope: scope,
+      p_retention_days: Math.max(1, Math.min(365, Number(retention_days || 30))),
+    });
+    if (!error && snapshotId) {
+      const { data: snapshot } = await client.from(TABLES.snapshots).select('*').eq('id', snapshotId).single();
+      if (snapshot) {
+        const keys = localKeys(user); writeLocal(keys.snapshots, [snapshot, ...readLocal(keys.snapshots, []).filter((item) => item.id !== snapshot.id)]);
+        dispatch(GOVERNANCE_UPDATED, { type: 'snapshot-created', id: snapshot.id, serverSide: true });
+        return snapshot;
+      }
+    }
+    if (error && !tableMissing(error) && !/function .* does not exist/i.test(error.message || '')) throw error;
+  }
   const snapshotData = await collectScopeData(scope);
   const itemCount = Object.values(snapshotData).reduce((sum, rows) => sum + (Array.isArray(rows) ? rows.length : 0), 0);
   const payload = {
@@ -293,10 +310,9 @@ export async function createBackupSnapshot({ label, scope = 'collaboration', ret
     snapshot_data: snapshotData,
     created_by: user.id,
     expires_at: new Date(Date.now() + Math.max(1, Math.min(365, Number(retention_days || 30))) * 86400000).toISOString(),
-    metadata: { application_version: '10.98.0' },
+    metadata: { application_version: '10.99.0', server_side: false },
   };
   const result = await safeInsert(TABLES.snapshots, payload, () => ({ ...payload, id: uid('snapshot'), created_at: nowIso(), updated_at: nowIso() }));
-  const client = getRuntimeClient();
   if (client && result.cloud) {
     const rows = Object.entries(snapshotData).flatMap(([entity_type, entries]) => (entries || []).map((entry) => ({ snapshot_id: result.data.id, entity_type, entity_id: String(entry.id || ''), payload: entry })));
     if (rows.length) {
@@ -320,6 +336,13 @@ export async function restoreBackupSnapshot(snapshot, user) {
   if (!isLeader(user)) throw new Error('Chỉ Admin/TTCM được khôi phục snapshot.');
   const client = getRuntimeClient();
   if (!client) throw new Error('Khôi phục snapshot cần kết nối Supabase.');
+  const { data: serverResult, error: serverError } = await runtimeRpc('bes_v1099_restore_snapshot', { p_snapshot: snapshot.id, p_dry_run: false });
+  if (!serverError && serverResult) {
+    await recordAuditEvent({ action: 'governance.snapshot_restored', entity_type: 'backup_snapshot', entity_id: snapshot.id, source_module: 'data-governance', after_data: serverResult }, user);
+    dispatch(GOVERNANCE_UPDATED, { type: 'snapshot-restored', id: snapshot.id, serverSide: true });
+    return serverResult.tables || [];
+  }
+  if (serverError && !tableMissing(serverError) && !/function .* does not exist/i.test(serverError.message || '')) throw serverError;
   const payload = snapshot.snapshot_data || {};
   const restored = [];
   for (const [table, rows] of Object.entries(payload)) {

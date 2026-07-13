@@ -428,7 +428,7 @@ export function buildPrintableHtml(title, content) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${safeTitle}</title>
-<style>@font-face{font-family:BrianGesco;src:url('/fonts/BrianGesco.ttf?v=6.8') format('truetype');font-weight:100 900;font-style:normal;font-display:swap;}
+<style>@font-face{font-family:BrianGesco;src:url('/fonts/personal-font.ttf?v=6.8') format('truetype');font-weight:100 900;font-style:normal;font-display:swap;}
 body{font-family:BrianGesco,Inter,Arial,sans-serif;line-height:1.65;color:#111827;margin:0;background:#f3f6fb}.page{max-width:900px;margin:30px auto;background:#fff;padding:42px;border-radius:0;box-shadow:none;border:1px solid #b9d2e8}h1{font-size:34px;margin:0 0 18px;color:#0f172a}pre{white-space:pre-wrap;font:inherit}.meta{color:#64748b;margin-bottom:24px}@media print{body{background:#fff}.page{box-shadow:none;margin:0;border-radius:0}}
 </style>
 </head>

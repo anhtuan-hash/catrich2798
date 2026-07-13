@@ -6,6 +6,7 @@ import { getFirstAllowedRoute, hasRouteAccess, hasToolAccess } from '../utils/pe
 import { launchRoute } from '../utils/motion.js';
 import { loadLauncherConfig, normalizeLauncherConfig, subscribeLauncherConfig } from '../utils/launcherPreferences.js';
 import { getAppUsage, recordAppUsage, subscribeAppUsage } from '../utils/appUsage.js';
+import { isAdminRole, isDepartmentLeaderRole } from '../utils/roles.js';
 
 const ROUTES = [
   { route: 'home', vi: 'Trang chủ', en: 'Home', icon: '⌂', color: '#FFC69D' },
@@ -27,6 +28,7 @@ const ROUTES = [
   { route: 'cloud-operations', vi: 'Vận hành nền 24/7', en: 'Cloud Operations', icon: 'CO', color: '#167B68' },
   { route: 'collaboration-hub', vi: 'Không gian cộng tác', en: 'Collaboration Hub', icon: 'CH', color: '#315FC4' },
   { route: 'data-governance', vi: 'Quản trị dữ liệu', en: 'Data Governance', icon: 'DG', color: '#A24B35' },
+  { route: 'production-hardening', vi: 'Sẵn sàng Production', en: 'Production Hardening', icon: 'PH', color: '#0F766E', leaderOnly: true },
   { route: 'practice', vi: 'Lớp học', en: 'Classroom', icon: '⚡', color: '#00A4EF' },
   { route: 'settings', vi: 'Cài đặt', en: 'Settings', icon: '⚙', color: '#123C69' },
   { route: 'ai-governance', vi: 'Quản trị AI', en: 'AI Governance', icon: 'AI', color: '#6D45C6', adminOnly: true },
@@ -64,8 +66,9 @@ function normalize(value) {
 
 function canUse(entry, currentUser) {
   if (!currentUser) return entry.route === 'home';
-  if (currentUser.role === 'admin') return true;
+  if (isAdminRole(currentUser.role)) return true;
   if (entry.adminOnly) return false;
+  if (entry.leaderOnly && !isDepartmentLeaderRole(currentUser.role)) return false;
   if (entry.kind === 'tool') return entry.route ? hasRouteAccess(currentUser, entry.route, entry.app) : hasToolAccess(currentUser, entry.slug);
   return hasRouteAccess(currentUser, entry.route);
 }
@@ -81,6 +84,7 @@ function buildEntries(language, currentUser) {
     icon: item.icon,
     color: item.color,
     adminOnly: item.adminOnly,
+    leaderOnly: item.leaderOnly,
     keywords: `${item.vi} ${item.en} ${item.route}`,
   }));
   const toolEntries = APPS.map((app) => {

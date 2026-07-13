@@ -20,7 +20,7 @@ export function buildPersonalFontCss(dataUrl = '') {
     local('1FTVHFGesco'),
     local('1FTV HF Gesco Regular'),
     local('1FTV-HF-Gesco'),
-    url('/fonts/BrianGesco.ttf?v=6.8') format('truetype');
+    url('/fonts/personal-font.ttf?v=6.8') format('truetype');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -97,7 +97,7 @@ export function savePersonalFontFile(file) {
         window.dispatchEvent(new CustomEvent('bes-personal-font-updated', { detail: getPersonalFontState() }));
         resolve(getPersonalFontState());
       } catch (err) {
-        reject(new Error('Không thể lưu font vào trình duyệt. Hãy copy font vào public/fonts/BrianGesco.ttf.'));
+        reject(new Error('Không thể lưu font vào trình duyệt. Hãy copy font vào public/fonts/personal-font.ttf.'));
       }
     };
     reader.readAsDataURL(file);

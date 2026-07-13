@@ -1,29 +1,11 @@
 {
-  "version": "10.98.0",
+  "version": "10.99.0",
   "channel": "stable",
-  "baseVersion": "10.97.0",
-  "previousVersion": "10.97.0",
-  "releaseName": "V10.98 Collaboration & Data Governance",
-  "releasedAt": "2026-07-13T12:00:00.000Z",
-  "installedAt": "2026-07-13T12:00:00.000Z",
+  "releaseName": "Production Hardening & Core Cleanup",
+  "runtimeCore": "1.6.0",
+  "schemaVersion": "10.99.0",
   "requiresSql": true,
-  "requiredMigration": "brian_v10_98_collaboration_governance.sql",
-  "requiresEnv": false,
-  "requiresDependencyInstall": false,
-  "runtimeCore": "1.5.0",
-  "collaborationHub": "10.98.0",
-  "dataGovernance": "10.98.0",
-  "features": [
-    "collaboration-spaces",
-    "realtime-presence",
-    "threaded-comments",
-    "content-versioning",
-    "permission-overrides",
-    "immutable-audit-log",
-    "backup-snapshots",
-    "selective-restore",
-    "soft-delete-30-days",
-    "universal-activity-feed"
-  ],
-  "schema": 7
+  "requiredMigration": "brian_v10_99_production_hardening.sql",
+  "legacyDomPatches": false,
+  "generatedAt": "2026-07-13T01:46:01.117Z"
 }

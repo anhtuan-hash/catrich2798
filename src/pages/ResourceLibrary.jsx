@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { callAI, extractJson } from '../utils/gemini.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { canPublishDepartment } from '../utils/permissions.js';
+import { isDepartmentLeaderRole } from '../utils/roles.js';
 import { isSupabaseConfigured, supabase } from '../utils/supabase.js';
 import {
   fetchResourceCategoryOverview,
@@ -56,8 +57,9 @@ function formatDate(value) {
 }
 
 function isLeader(user) {
-  return canPublishDepartment(user) || ['admin', 'ttcm', 'department_leader', 'to_truong', 'leader', 'head', 'manager'].includes(String(user?.role || '').toLowerCase());
+  return canPublishDepartment(user) || isDepartmentLeaderRole(user?.role);
 }
+
 
 function extensionOf(item) {
   return String(item?.fileName || '').split('.').pop()?.toLowerCase() || '';

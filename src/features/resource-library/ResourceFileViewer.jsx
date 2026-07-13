@@ -1,3 +1,4 @@
+import { readWorkbookSafe } from '../../utils/safeSpreadsheet.js';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { loadMammoth } from '../../utils/documentParsers.js';
 
@@ -346,13 +347,11 @@ export default function ResourceFileViewer({ item, fetchBlob, getStreamUrl }) {
         return;
       }
       if (kind === 'xlsx') {
-        const XLSXModule = await import('xlsx');
-        const XLSX = XLSXModule.default || XLSXModule;
-        const workbookSource = XLSX.read(await blob.arrayBuffer(), { type: 'array', cellDates: true, cellNF: true, cellStyles: true });
+        const workbookSource = await readWorkbookSafe(await blob.arrayBuffer(), { maxSheets: 12, maxRows: 3000 });
         const workbook = {
-          sheets: workbookSource.SheetNames.map((name) => ({
+          sheets: workbookSource.names.map((name) => ({
             name,
-            rows: XLSX.utils.sheet_to_json(workbookSource.Sheets[name], { header: 1, defval: '', raw: false, blankrows: false }),
+            rows: workbookSource.toRows(name, { header: 1, defval: '', raw: false, blankrows: false }),
           })),
         };
         if (!cancelled) setViewer({ status: 'ready', kind, workbook, url: '', html: '', presentation: null, text: '', error: '' });

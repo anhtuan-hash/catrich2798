@@ -1,3 +1,4 @@
+import { spreadsheetToTextSafe } from '../utils/safeSpreadsheet.js';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { callAI, extractJson } from '../utils/gemini.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
@@ -113,13 +114,7 @@ async function readPptxText(arrayBuffer) {
 }
 
 async function readSpreadsheetText(arrayBuffer) {
-  const XLSX = await import('xlsx');
-  const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-  return workbook.SheetNames.slice(0, 12).map((name) => {
-    const sheet = workbook.Sheets[name];
-    const csv = XLSX.utils.sheet_to_csv(sheet, { blankrows: false });
-    return `--- Sheet: ${name} ---\n${csv}`;
-  }).join('\n\n');
+  return spreadsheetToTextSafe(arrayBuffer, { maxSheets: 12, maxRows: 4000 });
 }
 
 function stripHtml(html = '') {
