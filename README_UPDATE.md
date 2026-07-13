@@ -1,60 +1,29 @@
-# Brian English Studio V10.99.0 — Production Hardening & Core Cleanup
+# Brian English Studio V11.0.0 — Update Notes
 
-This update is designed for a repository running V10.98.x.
+## Main feature
 
-## What changes
+V11.0 introduces Lesson Pack, a connected teaching workspace that combines lesson plans, worksheets, reading, speaking, assessment, interactive content and homework in one live sequence.
 
-- Secures `/api/ai` with Supabase authentication, role checks, quotas and audit events.
-- Limits and validates Google Drive uploads.
-- Replaces the direct `xlsx` dependency with a constrained spreadsheet reader.
-- Removes external Command Center, AI chat, launcher and Platform Control DOM patches from `index.html`.
-- Adds a React-native Unified Utility Rail.
-- Canonicalizes system roles and removes email-based authorization from the runtime resolver.
-- Adds server-side snapshot and transactional restore RPCs.
-- Synchronizes application, runtime, service worker and release versions from one source.
-- Adds Playwright test projects and production release checks.
-- Archives obsolete scripts and release notes outside the active production root.
-
-## Install
-
-From the Git repository that currently deploys to Vercel:
+## Install dependencies
 
 ```bash
-node /path/to/install-v10.99.0.mjs "$PWD"
-npm ci
-npm run verify:v10.99
+npm install --no-audit --no-fund --registry=https://registry.npmjs.org/
 ```
 
-Then run the three V10.99 SQL files in Supabase SQL Editor.
-
-After verification:
+## Verify
 
 ```bash
-git add -A
-git commit -m "Upgrade Brian English Studio to V10.99.0"
-git push origin main
+npm run verify:v11.0
 ```
 
-## Browser E2E
+## Supabase
 
-Run against local preview:
+Run in order:
 
-```bash
-npm run build
-npm run preview
-npm run test:e2e:chromium
-```
+1. `supabase/brian_v11_0_preflight.sql`
+2. `supabase/brian_v11_0_connected_teaching_suite.sql`
+3. `supabase/brian_v11_0_verify.sql`
 
-For serverless API tests, point the suite to the deployed Vercel URL:
+## Route
 
-```bash
-BES_E2E_BASE_URL="https://your-domain.example" npm run test:e2e
-```
-
-## Rollback source
-
-```bash
-node /path/to/rollback-v10.99.0.mjs "$PWD"
-```
-
-Rollback restores source files from the installer backup. It does not delete V10.99 database tables or audit data.
+`#/lesson-pack`

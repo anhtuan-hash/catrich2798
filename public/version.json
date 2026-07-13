@@ -1,11 +1,11 @@
 {
-  "version": "10.99.0",
+  "version": "11.0.0",
   "channel": "stable",
-  "releaseName": "Production Hardening & Core Cleanup",
-  "runtimeCore": "1.6.0",
-  "schemaVersion": "10.99.0",
+  "releaseName": "Connected Teaching Suite",
+  "runtimeCore": "2.0.0",
+  "schemaVersion": "11.0.0",
   "requiresSql": true,
-  "requiredMigration": "brian_v10_99_production_hardening.sql",
+  "requiredMigration": "brian_v11_0_connected_teaching_suite.sql",
   "legacyDomPatches": false,
-  "generatedAt": "2026-07-13T02:38:42.274Z"
+  "generatedAt": "2026-07-13T04:15:56.418Z"
 }

@@ -1,4 +1,12 @@
 export const APP_DESIGN_PROFILES = {
+  'lesson-pack': {
+    accent: '#315FC4',
+    soft: '#EAF0FF',
+    ink: '#10264A',
+    icon: 'lesson-pack',
+    style: 'Connected lesson sequence',
+    styleVi: 'Tiến trình bài dạy liên thông',
+  },
   'worksheet-factory': {
     accent: '#D94D70',
     soft: '#FFE4EC',

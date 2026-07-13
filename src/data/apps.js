@@ -32,6 +32,13 @@ export const APPS = [
     status: '8 output types · Export', statusVi: '8 loại sản phẩm · Xuất file', api: true, featured: true,
   },
   {
+    slug: 'lesson-pack', route: 'lesson-pack', icon: 'LP', tone: 'blue', group: 'Connected Teaching', groupVi: 'Dạy học liên thông',
+    title: 'Lesson Pack', titleVi: 'Gói bài dạy liên thông',
+    desc: 'Combine lesson plans, worksheets, reading, speaking, assessment and homework into one live teaching sequence.',
+    descVi: 'Kết hợp giáo án, worksheet, đọc, nói, đánh giá và bài tập về nhà thành một tiến trình dạy học trực tiếp.',
+    status: 'Sequence · Live mode · Export', statusVi: 'Tiến trình · Dạy trực tiếp · Xuất file', api: true, featured: true,
+  },
+  {
     slug: 'assessment-core', route: 'assessment-core', icon: 'AC', tone: 'orange', group: 'Assessment', groupVi: 'Đánh giá',
     title: 'Assessment Core', titleVi: 'Ngân hàng câu hỏi & đề thi',
     desc: 'Manage question banks, import items, build blueprints and generate multiple test codes.',

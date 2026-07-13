@@ -2,7 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { captureCurrentPagePayload, createTransfer, TRANSFER_OPEN_EVENT } from '../utils/contentTransfer.js';
 import { enqueueSync } from '../utils/syncQueue.js';
 
+const CONNECTED_TEACHING_APPS = new Set(['worksheet-factory','reading-studio','speaking-studio','exam-studio','lesson-plan-ai','student-practice','assessment-core','content-factory']);
+
 const TARGETS = [
+  { id: 'lesson-pack', route: '#/lesson-pack', label: 'Lesson Pack', labelVi: 'Gói bài dạy', icon: 'LP', descVi: 'Thêm nội dung vào tiến trình bài dạy', desc: 'Add content to a connected lesson sequence' },
   { id: 'worksheet-factory', route: '#/tool/worksheet-factory', label: 'Worksheet Factory', labelVi: 'Worksheet Factory', icon: 'WF', descVi: 'Tạo phiếu học tập từ nội dung hiện tại', desc: 'Create a worksheet from current content' },
   { id: 'exam-studio', route: '#/tool/exam-studio', label: 'Exam Studio', labelVi: 'Exam Studio', icon: 'EX', descVi: 'Chuyển thành câu hỏi hoặc đề kiểm tra', desc: 'Turn it into questions or a test' },
   { id: 'word2graph', route: '#/tool/word2graph', label: 'WordGraph Studio', labelVi: 'WordGraph Studio', icon: 'WG', descVi: 'Tạo sơ đồ từ vựng và ý tưởng', desc: 'Build a vocabulary or idea map' },
@@ -16,6 +19,7 @@ export default function ContentTransferHub({ currentUser, currentRoute, selected
   const [payload, setPayload] = useState(null);
   const [query, setQuery] = useState('');
   const [notice, setNotice] = useState('');
+  const [quickNotice, setQuickNotice] = useState('');
 
   useEffect(() => {
     const onOpen = (event) => {
@@ -53,8 +57,20 @@ export default function ContentTransferHub({ currentUser, currentRoute, selected
     }, 280);
   };
 
+  const currentAppId = selectedTool?.slug || currentRoute;
+  const showQuickLessonPack = CONNECTED_TEACHING_APPS.has(currentAppId);
+  const quickAddToLessonPack = () => {
+    const captured = captureCurrentPagePayload({ route: currentRoute, selectedTool, language });
+    const item = createTransfer(currentUser, { ...captured, target: 'lesson-pack' });
+    if (!item) return;
+    setQuickNotice(language === 'vi' ? 'Đã thêm vào hàng chờ Lesson Pack.' : 'Added to the Lesson Pack inbox.');
+    window.setTimeout(() => setQuickNotice(''), 2400);
+  };
+
   return (
     <>
+      {showQuickLessonPack ? <button type="button" className="bes-lesson-pack-quick-add" style={{ '--transfer-accent': accent }} onClick={quickAddToLessonPack} title={language === 'vi' ? 'Thêm nhanh vào Lesson Pack' : 'Quick add to Lesson Pack'}><span>＋</span><b>Lesson Pack</b></button> : null}
+      {quickNotice ? <div className="bes-lesson-pack-quick-notice">✓ {quickNotice}</div> : null}
       <button type="button" className="bes-transfer-fab" style={{ '--transfer-accent': accent }} onClick={begin} title={language === 'vi' ? 'Gửi nội dung sang ứng dụng khác' : 'Send content to another app'}>
         <span aria-hidden="true">↗</span><b>{language === 'vi' ? 'Gửi sang' : 'Send to'}</b>
       </button>

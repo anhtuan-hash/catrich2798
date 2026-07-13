@@ -1,8 +1,9 @@
 {
-  "version": "10.99.0",
-  "release": "Production Hardening & Core Cleanup",
-  "runtime": "1.6.0",
-  "schema": "10.99.0",
-  "legacyDomPatches": false,
-  "generatedAt": "2026-07-13T02:38:42.274Z"
+  "version": "11.0.0",
+  "release": "Connected Teaching Suite",
+  "runtime": "2.0.0",
+  "schema": "11.0.0",
+  "connectedTeachingSuite": true,
+  "lessonPack": true,
+  "generatedAt": "2026-07-13T04:15:56.418Z"
 }

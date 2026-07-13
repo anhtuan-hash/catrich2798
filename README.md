@@ -1,4 +1,6 @@
-# Brian English Studio V10.99.0
+# Brian English Studio V11.0.0
+
+Connected Teaching Suite with Lesson Pack, live teaching sequences and cross-app content workflow.
 
 Production-hardened digital teaching platform for English teachers, department heads and learners.
 

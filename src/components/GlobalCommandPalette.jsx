@@ -21,6 +21,7 @@ const ROUTES = [
   { route: 'work-hub', vi: 'Trung tâm công việc', en: 'Work Hub', icon: 'WH', color: '#14866D' },
   { route: 'ai-workspace', vi: 'Không gian AI', en: 'AI Workspace', icon: 'AI', color: '#6255D9' },
   { route: 'content-factory', vi: 'Xưởng tạo học liệu', en: 'Content Factory', icon: 'CF', color: '#EF7A42' },
+  { route: 'lesson-pack', vi: 'Gói bài dạy', en: 'Lesson Pack', icon: 'LP', color: '#315FC4' },
   { route: 'assessment-core', vi: 'Ngân hàng câu hỏi', en: 'Assessment Core', icon: 'AC', color: '#CC7621' },
   { route: 'learning-intelligence', vi: 'Phân tích học tập', en: 'Learning Intelligence', icon: 'LI', color: '#1A7D73' },
   { route: 'platform-readiness', vi: 'PWA, bảo mật & tiếp cận', en: 'Platform Readiness', icon: 'PR', color: '#0F766E' },
