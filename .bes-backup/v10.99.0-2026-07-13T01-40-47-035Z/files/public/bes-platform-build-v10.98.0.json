@@ -1,9 +1,0 @@
-{
-  "schema": 1,
-  "version": "10.98.0",
-  "previousVersion": "10.97.0",
-  "installedAt": "2026-07-13T12:00:00.000Z",
-  "node": "22.x",
-  "requiresSql": true,
-  "requiredMigration": "brian_v10_98_collaboration_governance.sql"
-}

@@ -7,5 +7,5 @@
   "requiresSql": true,
   "requiredMigration": "brian_v10_99_production_hardening.sql",
   "legacyDomPatches": false,
-  "generatedAt": "2026-07-13T01:46:01.117Z"
+  "generatedAt": "2026-07-13T02:38:42.274Z"
 }
