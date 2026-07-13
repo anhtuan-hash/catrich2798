@@ -1,6 +1,6 @@
-export const APP_VERSION = '11.4.7';
-export const RELEASE_NAME = 'Grammar Production Workflow V2';
-export const RUNTIME_CORE_VERSION = '2.4.7';
+export const APP_VERSION = '11.4.6';
+export const RELEASE_NAME = 'Native AI Gateway + Large Review Cards';
+export const RUNTIME_CORE_VERSION = '2.4.6';
 export const SCHEMA_VERSION = '11.4.2';
 
 export function getVersionInfo() {

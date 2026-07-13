@@ -586,8 +586,8 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
     });
     const grammar = makeAppWindow('grammar-builder', {
       variant: 'motion', className: 'flat-window-grammar', bg: grammarStyle.soft, accent: grammarStyle.accent,
-      color: grammarStyle.accent, icon: grammarStyle.icon, meta: isVi ? 'Grammar workflow V2' : 'Grammar workflow V2',
-      text: isVi ? 'Tạo, kiểm định và phân phối học liệu.' : 'Build, audit and publish grammar packs.',
+      color: grammarStyle.accent, icon: grammarStyle.icon, meta: isVi ? 'Ngữ pháp nền tảng' : 'Grammar foundation',
+      text: isVi ? 'Luyện cấu trúc theo ngữ cảnh.' : 'Practice grammar in context.',
       motion: { delay: '-5.8s', duration: '10.1s', x: '-8px', y: '-9px', rotate: '.6deg', depth: .4 },
     });
     const writing = makeAppWindow('writing-studio', {

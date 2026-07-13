@@ -1,0 +1,9 @@
+{
+  "installedAt": "2026-07-13T22:47:20.983Z",
+  "backup": ".brian-backups/v11.4.7-2026-07-13T22-47-20-959Z",
+  "feature": "Grammar Production Workflow V2",
+  "workflowSteps": 7,
+  "functionalCards": 9,
+  "vercelFunctions": 12,
+  "requiresSql": false
+}
