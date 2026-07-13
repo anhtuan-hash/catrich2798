@@ -1,7 +1,7 @@
 {
-  "version": "11.4.3",
-  "release": "Vercel Hobby Function Consolidation",
-  "runtime": "2.4.3",
+  "version": "11.4.2",
+  "release": "AI Lesson Integration Native Merge",
+  "runtime": "2.4.2",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
   "lessonArchitectAnnualBuilder": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": true,
-  "generatedAt": "2026-07-13T15:01:51.638Z",
+  "generatedAt": "2026-07-13T14:50:09.878Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,13 +46,11 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "2.4.3",
+  "runtimeCore": "2.4.2",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
   "lessonIntegrationCloudSync": true,
   "lessonIntegrationShadowDom": true,
-  "lessonIntegrationConnectedTransfer": true,
-  "hobbyFunctionConsolidation": true,
-  "vercelFunctionCount": 12
+  "lessonIntegrationConnectedTransfer": true
 }

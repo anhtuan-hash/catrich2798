@@ -82,7 +82,7 @@ export default function EnglishLessonIntegrationStudio({
             anonKey: publicConfig.anonKey,
             autoSync: true,
           } : undefined,
-          ai: { provider: resolvedProvider, endpoint: '/api/ai' },
+          ai: { provider: resolvedProvider, endpoint: '/api/lesson-ai' },
           integrationUrls: integrationUrls(),
           onEvent: (event) => window.dispatchEvent(new CustomEvent('bes-lesson-integration-event', { detail: event })),
         };

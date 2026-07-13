@@ -1,6 +1,6 @@
-export const APP_VERSION = '11.4.3';
-export const RELEASE_NAME = 'Vercel Hobby Function Consolidation';
-export const RUNTIME_CORE_VERSION = '2.4.3';
+export const APP_VERSION = '11.4.2';
+export const RELEASE_NAME = 'AI Lesson Integration Native Merge';
+export const RUNTIME_CORE_VERSION = '2.4.2';
 export const SCHEMA_VERSION = '11.4.2';
 
 export function getVersionInfo() {

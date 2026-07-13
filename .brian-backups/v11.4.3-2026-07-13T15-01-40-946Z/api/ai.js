@@ -1,5 +1,4 @@
 import { appendApiAudit, createRequestId, enforceRateLimit, requireApprovedUser, sendJson } from './_security.js';
-import { handleLessonAiRequest } from '../server/lessonAiHandler.js';
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'no-store',
@@ -125,15 +124,6 @@ function extractOutputText(data) {
 }
 
 export default async function handler(req, res) {
-  let routedBody = req.body;
-  if (typeof routedBody === 'string') {
-    try { routedBody = JSON.parse(routedBody || '{}'); } catch { routedBody = null; }
-  }
-  const lessonTask = String(routedBody?.task || '');
-  if (req.method === 'OPTIONS' || ['rewrite', 'generate-resource', 'health'].includes(lessonTask)) {
-    return handleLessonAiRequest(req, res);
-  }
-
   const requestId = createRequestId();
   if (req.method !== 'POST') {
     sendJson(res, 405, { ok: false, error: 'Method not allowed. Use POST.', requestId });

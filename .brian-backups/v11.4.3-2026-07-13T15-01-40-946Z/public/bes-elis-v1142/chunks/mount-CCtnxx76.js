@@ -23724,7 +23724,7 @@ const gN = (f) => f === "admin" ? "admin" : f === "ttcm" || f === "department_he
   return {
     language: cr(m.language, ["vi", "en"], "vi"),
     aiProvider: cr(m.aiProvider, ["demo", "openai", "gemini"], "demo"),
-    aiEndpoint: Rt(m.aiEndpoint, "/api/ai").slice(0, 2e3),
+    aiEndpoint: Rt(m.aiEndpoint, "/api/lesson-ai").slice(0, 2e3),
     integrationUrls: C,
     defaultResourceLanguage: cr(m.defaultResourceLanguage, ["english", "bilingual"], "english"),
     compactMode: hl(m.compactMode),
@@ -24432,7 +24432,7 @@ function oD({ settings: f, projects: m, onChange: g, onImport: C }) {
         /* @__PURE__ */ u.jsx("div", { className: "segmented", children: ["demo", "openai", "gemini"].map((q) => /* @__PURE__ */ u.jsx("button", { disabled: !!E.managedSettings, className: f.aiProvider === q ? "active" : "", onClick: () => g({ ...f, aiProvider: q }), children: q === "demo" ? "Bộ máy nội bộ" : q === "openai" ? "OpenAI" : "Gemini" }, q)) }),
         /* @__PURE__ */ u.jsxs("label", { className: "field", children: [
           /* @__PURE__ */ u.jsx("span", { children: "Secure server endpoint" }),
-          /* @__PURE__ */ u.jsx("input", { readOnly: !!E.managedSettings, value: f.aiEndpoint, onChange: (q) => g({ ...f, aiEndpoint: q.target.value }), placeholder: "/api/ai" }),
+          /* @__PURE__ */ u.jsx("input", { readOnly: !!E.managedSettings, value: f.aiEndpoint, onChange: (q) => g({ ...f, aiEndpoint: q.target.value }), placeholder: "/api/lesson-ai" }),
           /* @__PURE__ */ u.jsx("small", { children: "Không nhập API key vào frontend. Endpoint giữ khóa trong Vercel Environment Variables." })
         ] }),
         /* @__PURE__ */ u.jsxs(ct, { variant: "secondary", disabled: Y, onClick: async () => {
@@ -24602,7 +24602,7 @@ function oD({ settings: f, projects: m, onChange: g, onImport: C }) {
             /* @__PURE__ */ u.jsx("p", { children: "Endpoint hỗ trợ viết lại đề xuất và tạo học liệu." })
           ] })
         ] }),
-        /* @__PURE__ */ u.jsx("pre", { className: "code-sample", children: `POST /api/ai
+        /* @__PURE__ */ u.jsx("pre", { className: "code-sample", children: `POST /api/lesson-ai
 {
   "task": "rewrite | generate-resource",
   "provider": "openai | gemini",

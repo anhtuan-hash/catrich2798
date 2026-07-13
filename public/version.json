@@ -1,14 +1,14 @@
 {
-  "version": "11.4.2",
+  "version": "11.4.3",
   "channel": "stable",
-  "releaseName": "AI Lesson Integration Native Merge",
-  "runtimeCore": "2.4.2",
+  "releaseName": "Vercel Hobby Function Consolidation",
+  "runtimeCore": "2.4.3",
   "schemaVersion": "11.4.2",
   "requiresSql": true,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-13T14:50:09.878Z",
+  "generatedAt": "2026-07-13T15:01:51.638Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -45,5 +45,7 @@
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
   "lessonIntegrationCloudSync": true,
   "lessonIntegrationShadowDom": true,
-  "lessonIntegrationConnectedTransfer": true
+  "lessonIntegrationConnectedTransfer": true,
+  "hobbyFunctionConsolidation": true,
+  "vercelFunctionCount": 12
 }
