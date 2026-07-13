@@ -1,8 +1,8 @@
 {
-  "version": "11.3.3",
-  "release": "Work Assignment Delivery",
-  "runtime": "2.3.3",
-  "schema": "11.3.3",
+  "version": "11.3.2",
+  "release": "Admin Hidden Apps Vault",
+  "runtime": "2.3.2",
+  "schema": "11.3.2",
   "connectedTeachingSuite": true,
   "lessonArchitectAnnualBuilder": true,
   "curriculumExtraction": true,
@@ -11,17 +11,13 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": true,
-  "generatedAt": "2026-07-13T09:02:27.251Z",
+  "generatedAt": "2026-07-13T08:03:23.915Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
-  "requiredMigration": "supabase/brian_v11_3_3_work_assignment_delivery.sql",
+  "requiredMigration": "supabase/brian_v11_3_2_app_visibility.sql",
   "adminHiddenAppsVault": true,
   "teacherVisibilityEnforcement": true,
-  "visibilityRealtime": true,
-  "workAssignmentNotifications": true,
-  "teacherFileResponses": true,
-  "workHubRealtime": true,
-  "workHubSubmissionBucket": "work-hub-submissions"
+  "visibilityRealtime": true
 }

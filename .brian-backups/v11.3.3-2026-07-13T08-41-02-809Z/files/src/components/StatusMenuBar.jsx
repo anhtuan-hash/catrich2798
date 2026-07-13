@@ -30,14 +30,6 @@ import {
   getPermissionItem,
   normalizePermissions,
 } from '../utils/permissions.js';
-import {
-  listWorkHubNotifications,
-  markAllWorkHubNotificationsRead,
-  markWorkHubNotificationRead,
-  rememberWorkHubItem,
-  subscribeWorkHubNotifications,
-  WORK_HUB_DELIVERY_EVENT,
-} from '../utils/workHubDelivery.js';
 
 const SCHOOL_YEAR = '2026-2027';
 
@@ -78,7 +70,7 @@ const routeLabels = {
     openDept: 'Mở tổ chuyên môn',
     openNotice: 'Mở bảng thông báo',
     panelTitle: 'Thông báo',
-    panelSubtitle: 'Thông báo giao việc, phản hồi, hồ sơ tổ chuyên môn và quyền truy cập.',
+    panelSubtitle: 'Chỉ hiển thị thông báo từ Tổ chuyên môn và Quản trị cấp quyền.',
     close: 'Đóng',
     delete: 'Xoá',
     clearAll: 'Xoá tất cả',
@@ -574,30 +566,6 @@ async function buildNotificationList({ currentUser, language, isAdmin }) {
     }
   }
 
-  try {
-    const workNotifications = await listWorkHubNotifications(currentUser.id, 50);
-    workNotifications.forEach((item) => notifications.push({
-      id: `work-hub:${item.id}`,
-      kind: 'work-hub',
-      source: 'work-hub',
-      sourceLabel: language === 'vi' ? 'Trung tâm công việc' : 'Work Hub',
-      icon: item.notification_type === 'work_item_assigned'
-        ? '📌'
-        : (item.notification_type === 'work_item_submission' ? '📤' : '💬'),
-      tone: item.notification_type === 'work_item_submission' ? 'orange' : 'green',
-      title: item.title || (language === 'vi' ? 'Cập nhật công việc' : 'Work update'),
-      body: item.body || '',
-      meta: formatDate(item.created_at, language),
-      date: item.created_at,
-      target: 'work-hub',
-      workNotificationId: item.id,
-      itemId: item.item_id,
-      notificationType: item.notification_type,
-    }));
-  } catch {
-    // Work Hub may not be migrated yet. Keep the notification center usable.
-  }
-
   return notifications.sort(sortNotifications);
 }
 
@@ -660,7 +628,6 @@ function playNoticeTone() {
 function notificationCategory(item) {
   if (!item) return 'system';
   if (item.source === 'permission') return 'action';
-  if (item.source === 'work-hub') return 'action';
   if (item.id?.startsWith('department-submission:')) return 'action';
   if (item.id?.startsWith('department-request:')) return 'action';
   return 'system';
@@ -847,22 +814,16 @@ export default function StatusMenuBar({
     window.addEventListener(DEPARTMENT_SNAPSHOT_EVENT, refresh);
     window.addEventListener(DEPARTMENT_SUBMISSION_REQUESTS_EVENT, refresh);
     window.addEventListener(DEPARTMENT_SUBMISSIONS_EVENT, refresh);
-    window.addEventListener(WORK_HUB_DELIVERY_EVENT, refresh);
     window.addEventListener('storage', refresh);
-    const unsubscribeWorkHub = liveSyncEnabled && currentUser?.id
-      ? subscribeWorkHubNotifications(currentUser.id, refresh)
-      : () => {};
     return () => {
       if (timer) window.clearInterval(timer);
       window.removeEventListener(PERMISSION_REQUESTS_EVENT, refresh);
       window.removeEventListener(DEPARTMENT_SNAPSHOT_EVENT, refresh);
       window.removeEventListener(DEPARTMENT_SUBMISSION_REQUESTS_EVENT, refresh);
       window.removeEventListener(DEPARTMENT_SUBMISSIONS_EVENT, refresh);
-      window.removeEventListener(WORK_HUB_DELIVERY_EVENT, refresh);
       window.removeEventListener('storage', refresh);
-      unsubscribeWorkHub();
     };
-  }, [liveSyncEnabled, currentUser?.id]);
+  }, [liveSyncEnabled]);
 
   useEffect(() => {
     let alive = true;
@@ -933,26 +894,20 @@ export default function StatusMenuBar({
     });
   };
 
-  const clearAllNotifications = async () => {
+  const clearAllNotifications = () => {
     const next = new Set(dismissedIds);
     notifications.forEach((item) => next.add(item.id));
     saveDismissed(currentUser, next);
     setDismissedIds(next);
-    if (currentUser?.id) await markAllWorkHubNotificationsRead(currentUser.id);
-    refreshNotificationData();
   };
 
-  const markNotificationRead = async (item) => {
+  const markNotificationRead = (item) => {
     setDismissedIds((current) => {
       const next = new Set(current);
       next.add(item.id);
       saveDismissed(currentUser, next);
       return next;
     });
-    if (item?.kind === 'work-hub' && item.workNotificationId !== undefined) {
-      await markWorkHubNotificationRead(item.workNotificationId);
-      refreshNotificationData();
-    }
     if (expandedNotificationId === item.id) setExpandedNotificationId('');
   };
 
@@ -973,10 +928,6 @@ export default function StatusMenuBar({
   const refreshNotificationData = () => setRefreshTick((value) => value + 1);
 
   const openNotificationPage = (item) => {
-    if (item?.kind === 'work-hub' && item.itemId) {
-      rememberWorkHubItem(item.itemId);
-      markNotificationRead(item);
-    }
     setPanelOpen(false);
     navTo(item.target || 'department');
   };
@@ -1530,11 +1481,6 @@ export default function StatusMenuBar({
                               <button type="button" onClick={() => openNotificationPage(item)}>↗ {t.openRelated}</button>
                             </> : null}
 
-                            {item.kind === 'work-hub' ? <>
-                              <button type="button" className="is-primary" onClick={() => openNotificationPage(item)}>↗ {language === 'vi' ? 'Mở công việc' : 'Open task'}</button>
-                              <button type="button" onClick={() => markNotificationRead(item)}>✓ {t.markRead}</button>
-                            </> : null}
-
                             {item.kind === 'department-schedule' ? <>
                               <button type="button" className="is-primary" onClick={() => openNotificationPage(item)}>📅 {language === 'vi' ? 'Xem lịch' : 'View schedule'}</button>
                               <button type="button" onClick={() => markNotificationRead(item)}>✓ {t.markRead}</button>
@@ -1598,14 +1544,6 @@ export default function StatusMenuBar({
                                   </div>
                                 ) : null}
                               </> : null}
-
-                              {item.kind === 'work-hub' ? (
-                                <div className="global-notice-detail-grid">
-                                  <span><small>{language === 'vi' ? 'Nguồn' : 'Source'}</small><strong>{item.sourceLabel}</strong></span>
-                                  <span><small>{language === 'vi' ? 'Loại cập nhật' : 'Update type'}</small><strong>{item.notificationType || 'work_item'}</strong></span>
-                                  <span className="wide"><small>{language === 'vi' ? 'Nội dung' : 'Details'}</small><strong>{item.body || '—'}</strong></span>
-                                </div>
-                              ) : null}
 
                               {item.kind === 'department-schedule' ? (
                                 <div className="global-notice-detail-grid">

@@ -1,0 +1,18 @@
+{
+  "version": "11.3.2",
+  "channel": "stable",
+  "releaseName": "Admin Hidden Apps Vault",
+  "runtimeCore": "2.3.2",
+  "schemaVersion": "11.3.2",
+  "requiresSql": true,
+  "requiredMigration": "supabase/brian_v11_3_2_app_visibility.sql",
+  "legacyDomPatches": false,
+  "lessonArchitectAnnualBuilder": true,
+  "generatedAt": "2026-07-13T08:03:23.915Z",
+  "lessonArchitectEnglishOnly": true,
+  "globalSuccessPreset": true,
+  "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
+  "adminHiddenAppsVault": true,
+  "teacherVisibilityEnforcement": true,
+  "visibilityRealtime": true
+}
