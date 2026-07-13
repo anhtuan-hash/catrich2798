@@ -2,10 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { captureCurrentPagePayload, createTransfer, TRANSFER_OPEN_EVENT } from '../utils/contentTransfer.js';
 import { enqueueSync } from '../utils/syncQueue.js';
 
-const CONNECTED_TEACHING_APPS = new Set(['worksheet-factory','reading-studio','speaking-studio','exam-studio','lesson-plan-ai','student-practice','assessment-core','content-factory','word2graph','textlab-activities','news']);
+const CONNECTED_TEACHING_APPS = new Set(['worksheet-factory','reading-studio','speaking-studio','exam-studio','lesson-plan-ai','student-practice','assessment-core','content-factory']);
 
 const TARGETS = [
-  { id: 'content-ecosystem', route: '#/content-ecosystem', label: 'Content Ecosystem', labelVi: 'Hệ sinh thái nội dung', icon: 'CE', descVi: 'Lưu thành tài sản và đưa vào dây chuyền nhiều ứng dụng', desc: 'Save as an asset and run it through multi-app production recipes' },
   { id: 'lesson-pack', route: '#/lesson-pack', label: 'Lesson Pack', labelVi: 'Gói bài dạy', icon: 'LP', descVi: 'Thêm nội dung vào tiến trình bài dạy', desc: 'Add content to a connected lesson sequence' },
   { id: 'worksheet-factory', route: '#/tool/worksheet-factory', label: 'Worksheet Factory', labelVi: 'Worksheet Factory', icon: 'WF', descVi: 'Tạo phiếu học tập từ nội dung hiện tại', desc: 'Create a worksheet from current content' },
   { id: 'exam-studio', route: '#/tool/exam-studio', label: 'Exam Studio', labelVi: 'Exam Studio', icon: 'EX', descVi: 'Chuyển thành câu hỏi hoặc đề kiểm tra', desc: 'Turn it into questions or a test' },

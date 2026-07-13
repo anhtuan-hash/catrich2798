@@ -1,11 +1,12 @@
 {
-  "version": "11.1.0",
+  "version": "11.2.0",
   "channel": "stable",
-  "releaseName": "Classroom Delivery",
-  "runtimeCore": "2.1.0",
-  "schemaVersion": "11.1.0",
+  "releaseName": "Final Content Ecosystem",
+  "runtimeCore": "2.2.0",
+  "schemaVersion": "11.2.0",
   "requiresSql": true,
-  "requiredMigration": "brian_v11_1_classroom_delivery.sql",
+  "requiredMigration": "brian_v11_2_final_content_ecosystem.sql",
   "legacyDomPatches": false,
-  "generatedAt": "2026-07-13T04:40:50.925Z"
+  "finalRelease": true,
+  "generatedAt": "2026-07-13T05:57:04.748Z"
 }

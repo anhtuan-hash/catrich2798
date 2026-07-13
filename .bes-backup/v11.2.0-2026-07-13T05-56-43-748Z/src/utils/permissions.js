@@ -17,7 +17,6 @@ export const ROUTE_PERMISSION_IDS = {
   'work-hub': 'route:work-hub',
   'ai-workspace': 'route:ai-workspace',
   'content-factory': 'route:content-factory',
-  'content-ecosystem': 'route:content-ecosystem',
   'lesson-pack': 'route:lesson-pack',
   'classroom-delivery': 'route:classroom-delivery',
   'assessment-core': 'route:assessment-core',
@@ -91,15 +90,6 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Xưởng tạo học liệu',
     desc: 'Generate worksheets, quizzes and interactive activities.',
     descVi: 'Tạo worksheet, quiz và hoạt động tương tác.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['content-ecosystem'],
-    type: 'content',
-    section: 'content',
-    title: 'Teaching Content Ecosystem',
-    titleVi: 'Hệ sinh thái nội dung dạy học',
-    desc: 'Manage reusable assets, structured canvases, production recipes and connected content kits.',
-    descVi: 'Quản lí tài sản tái sử dụng, canvas theo khối, dây chuyền sản xuất và bộ nội dung liên thông.',
   },
   {
     id: ROUTE_PERMISSION_IDS['lesson-pack'],

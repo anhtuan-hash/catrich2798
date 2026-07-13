@@ -1,40 +1,42 @@
-# Update to V11.1.0 — Classroom Delivery
+# Update to Brian English Studio V11.2.0
 
-This update requires Brian English Studio V11.0.x.
-
-## Main features
-
-- Live classroom sessions created from Lesson Packs.
-- Public student join page with room code and QR link.
-- Lobby, participant roster and team assignment.
-- Teacher timer, activity navigation and team scores.
-- Check-in, short-answer, multiple-choice and poll responses.
-- Result review and CSV export.
-- Standalone offline classroom HTML package.
+This update requires V11.1.x as the source baseline.
 
 ## Install
 
 ```bash
-node /path/to/install-v11.1.0.mjs /path/to/Brian-English-Studio-MAIN
+cd ~/Documents/Brian-English-Studio-MAIN
+git add -A
+git commit -m "Backup V11.1 before V11.2" || true
+
+INSTALLER=$(find ~/Downloads -type f -name "install-v11.2.0.mjs" | head -n 1)
+node "$INSTALLER" "$PWD"
+
+rm -rf node_modules dist
 npm install --no-audit --no-fund --registry=https://registry.npmjs.org/
-npm run verify:v11.1
+npm run verify:v11.2
 ```
 
 ## Supabase
 
-Run in order:
+Run in this order:
 
-1. `supabase/brian_v11_1_preflight.sql`
-2. `supabase/brian_v11_1_classroom_delivery.sql`
-3. `supabase/brian_v11_1_verify.sql`
+1. `supabase/brian_v11_2_preflight.sql`
+2. `supabase/brian_v11_2_final_content_ecosystem.sql`
+3. `supabase/brian_v11_2_verify.sql`
 
-Then sign out and sign in again.
+## Deploy
 
-## Routes
-
-- Teacher: `#/classroom-delivery`
-- Student: `#/classroom-join`
+```bash
+git add -A
+git commit -m "Upgrade Brian English Studio to V11.2.0 final"
+git pull --rebase origin main
+git push origin main
+```
 
 ## Rollback
 
-Use `rollback-v11.1.0.mjs`. Source is restored to V11.0; classroom database tables are retained to prevent data loss.
+```bash
+ROLLBACK=$(find ~/Downloads -type f -name "rollback-v11.2.0.mjs" | head -n 1)
+node "$ROLLBACK" "$PWD"
+```

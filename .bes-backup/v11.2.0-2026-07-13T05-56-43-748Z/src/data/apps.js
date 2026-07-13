@@ -32,13 +32,6 @@ export const APPS = [
     status: '8 output types · Export', statusVi: '8 loại sản phẩm · Xuất file', api: true, featured: true,
   },
   {
-    slug: 'content-ecosystem', route: 'content-ecosystem', icon: 'CE', tone: 'blue', group: 'Connected Teaching', groupVi: 'Hệ sinh thái nội dung',
-    title: 'Teaching Content Ecosystem', titleVi: 'Hệ sinh thái nội dung dạy học',
-    desc: 'Organize reusable assets, edit structured canvases, run multi-app production recipes and assemble complete content kits.',
-    descVi: 'Tổ chức tài sản tái sử dụng, biên tập canvas theo khối, chạy dây chuyền nhiều ứng dụng và đóng gói bộ nội dung hoàn chỉnh.',
-    status: 'Assets · Canvas · Recipes · Kits', statusVi: 'Tài sản · Canvas · Dây chuyền · Bộ nội dung', api: true, featured: true,
-  },
-  {
     slug: 'lesson-pack', route: 'lesson-pack', icon: 'LP', tone: 'blue', group: 'Connected Teaching', groupVi: 'Dạy học liên thông',
     title: 'Lesson Pack', titleVi: 'Gói bài dạy liên thông',
     desc: 'Combine lesson plans, worksheets, reading, speaking, assessment and homework into one live teaching sequence.',

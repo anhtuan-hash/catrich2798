@@ -10,7 +10,6 @@ import './styles/v1098.css';
 import './styles/v1099.css';
 import './styles/v1100.css';
 import './styles/v1110.css';
-import './styles/v1120.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
@@ -108,12 +107,11 @@ const ProductionHardening = lazy(() => import('./pages/ProductionHardening.jsx')
 const LessonPack = lazy(() => import('./pages/LessonPack.jsx'));
 const ClassroomDelivery = lazy(() => import('./pages/ClassroomDelivery.jsx'));
 const ClassroomJoin = lazy(() => import('./pages/ClassroomJoin.jsx'));
-const ContentEcosystem = lazy(() => import('./pages/ContentEcosystem.jsx'));
 const UnifiedUtilityRail = lazy(() => import('./components/UnifiedUtilityRail.jsx'));
 const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAccessibilityAnnouncer.jsx'));
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'content-ecosystem', 'lesson-pack', 'classroom-delivery', 'classroom-join', 'assessment-core', 'learning-intelligence', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'lesson-pack', 'classroom-delivery', 'classroom-join', 'assessment-core', 'learning-intelligence', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join']);
 
 function getInitialRoute() {
@@ -139,7 +137,6 @@ const ROUTE_DESIGN_PROFILES = {
   'work-hub': { accent: '#14866D', soft: '#E6F8F2', ink: '#0B3A31' },
   'ai-workspace': { accent: '#6255D9', soft: '#EEECFF', ink: '#211A55' },
   'content-factory': { accent: '#EF7A42', soft: '#FFF0E8', ink: '#5C2410' },
-  'content-ecosystem': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
   'lesson-pack': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
   'classroom-delivery': { accent: '#235FBD', soft: '#EAF2FF', ink: '#10264A' },
   'classroom-join': { accent: '#235FBD', soft: '#EAF2FF', ink: '#10264A' },
@@ -569,7 +566,6 @@ function App() {
           {canAccessRoute && currentRoute === 'work-hub' && currentUser && <WorkHub {...context} />}
           {canAccessRoute && currentRoute === 'ai-workspace' && currentUser && <AIWorkspace {...context} />}
           {canAccessRoute && currentRoute === 'content-factory' && currentUser && <ContentFactory {...context} />}
-          {canAccessRoute && currentRoute === 'content-ecosystem' && currentUser && <ContentEcosystem {...context} />}
           {canAccessRoute && currentRoute === 'lesson-pack' && currentUser && <LessonPack {...context} />}
           {canAccessRoute && currentRoute === 'classroom-delivery' && currentUser && <ClassroomDelivery {...context} />}
           {currentRoute === 'classroom-join' && <ClassroomJoin {...context} />}

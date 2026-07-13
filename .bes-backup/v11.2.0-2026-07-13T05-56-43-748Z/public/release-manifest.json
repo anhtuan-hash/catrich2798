@@ -1,0 +1,12 @@
+{
+  "version": "11.1.0",
+  "release": "Classroom Delivery",
+  "runtime": "2.1.0",
+  "schema": "11.1.0",
+  "connectedTeachingSuite": true,
+  "lessonPack": true,
+  "classroomDelivery": true,
+  "publicJoin": true,
+  "offlineClassroomPackage": true,
+  "generatedAt": "2026-07-13T04:40:50.925Z"
+}
