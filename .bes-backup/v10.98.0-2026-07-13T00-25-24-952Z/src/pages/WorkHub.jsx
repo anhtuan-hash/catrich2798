@@ -3,7 +3,6 @@ import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { formatDate, isLeader, readLocal, scopedLocalKey, uid, writeLocal } from './v1093/shared.js';
 import { emitAutomationEvent } from '../utils/automationEngine.js';
-import { recordAuditEvent } from '../utils/collaborationGovernance.js';
 
 const STATUSES = [
   ['draft', 'Nháp'], ['assigned', 'Đã giao'], ['accepted', 'Đã tiếp nhận'],
@@ -123,18 +122,14 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
       source_module: 'work-hub-v1093', metadata: { created_in: '10.93.0' },
     };
     try {
-      let createdItem = null;
       if (client && runtime.session) {
         const { data, error: insertError } = await client.from('work_hub_items').insert(payload).select('*').single();
         if (insertError) throw insertError;
-        createdItem = data;
         setItems((current) => [data, ...current]);
       } else {
         const item = { ...payload, id: uid('work'), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-        createdItem = item;
         const next = [item, ...items]; setItems(next); writeLocal(localKey, next);
       }
-      await recordAuditEvent({ action: 'work.created', entity_type: 'work_hub_item', entity_id: createdItem?.id || '', source_module: 'work-hub', after_data: createdItem || payload }, currentUser);
       setDraft(emptyDraft(currentUser));
       setNotice('Đã tạo công việc.');
     } catch (saveError) { setError(saveError.message || String(saveError)); }
@@ -156,7 +151,6 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
         const next = items.map((entry) => entry.id === item.id ? { ...entry, ...patch } : entry);
         setItems(next); writeLocal(localKey, next);
       }
-      await recordAuditEvent({ action: 'work.status_changed', entity_type: 'work_hub_item', entity_id: item.id, source_module: 'work-hub', before_data: item, after_data: { ...item, ...patch } }, currentUser);
       if (status === 'submitted') {
         await emitAutomationEvent('work_submitted', {
           source: 'work-hub', item_id: item.id, title: item.title,
@@ -175,7 +169,7 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
     const { data, error: commentError } = await client.from('work_hub_comments')
       .insert({ item_id: selected.id, author_id: currentUser.id, body: comment.trim(), comment_type: 'comment' })
       .select('*').single();
-    if (commentError) setError(commentError.message); else { setComments((current) => [...current, data]); setComment(''); await recordAuditEvent({ action: 'work.comment_added', entity_type: 'work_hub_item', entity_id: selected.id, source_module: 'work-hub', after_data: { comment_id: data.id, body: data.body } }, currentUser); }
+    if (commentError) setError(commentError.message); else { setComments((current) => [...current, data]); setComment(''); }
     setBusy(false);
   }
 

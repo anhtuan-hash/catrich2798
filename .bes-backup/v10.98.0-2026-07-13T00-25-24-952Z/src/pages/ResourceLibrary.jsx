@@ -17,7 +17,6 @@ import {
   upsertResourceCloud,
 } from '../utils/resourceLibrary.js';
 import { emitAutomationEvent } from '../utils/automationEngine.js';
-import { recordAuditEvent, softDeleteEntity } from '../utils/collaborationGovernance.js';
 import {
   RESOURCE_CATEGORY_FALLBACK,
   ResourceCategoryCards,
@@ -270,8 +269,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
       const gradeOk = matchesGrade(item.grade, gradeFilter);
       const yearOk = schoolYearFilter === 'all' || item.schoolYear === schoolYearFilter;
       const text = `${item.title} ${item.description} ${item.aiSummary} ${item.fileName} ${item.unitName} ${(item.tags || []).join(' ')} ${item.extractedText || ''}`.toLowerCase();
-      const notDeleted = !item.deletedAt && !item.deleted_at;
-      return notDeleted && access && tabOk && categoryOk && gradeOk && yearOk && (!search || text.includes(search));
+      return access && tabOk && categoryOk && gradeOk && yearOk && (!search || text.includes(search));
     });
 
     return [...items].sort((a, b) => {
@@ -515,7 +513,6 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
       setDriveMessage(status === 'approved'
         ? `Đã duyệt “${item.title || item.fileName}”. Tài liệu hiện được chia sẻ cho tất cả giáo viên trong tổ.`
         : `Đã cập nhật trạng thái “${item.title || item.fileName}”.`);
-      await recordAuditEvent({ action: `resource.${status}`, entity_type: 'resource_item', entity_id: savedItem.cloudId || savedItem.id, source_module: 'resource-library', before_data: item, after_data: savedItem }, currentUser);
       if (status === 'approved') {
         await emitAutomationEvent('resource_approved', {
           source: 'resource-library', resource_id: savedItem.cloudId || savedItem.id,
@@ -536,24 +533,32 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     setDeletingId(item.id);
     setDriveMessage('');
     try {
-      await softDeleteEntity({
-        entity_type: 'resource_item',
-        entity_id: item.cloudId || item.id,
-        title: item.title || item.fileName,
-        source_module: 'resource-library',
-        payload: item,
-        restore_payload: { resource_id: item.cloudId || item.id, previous_status: item.status, drive_file_id: item.driveFileId || '' },
-      }, currentUser);
+      const token = await getAccessToken();
+      if (!token) throw new Error('Phiên đăng nhập đã hết hạn');
+      const response = await fetch('/api/google-drive-delete', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resourceId: item.cloudId || item.id,
+          fileId: item.driveFileId || '',
+          title: item.title || item.fileName,
+          category: normaliseResourceCategory(item.category),
+          status: item.status,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Không thể xóa tài liệu');
+
       if (preview?.id === item.id) closePreview();
       updateResourceLibrary((draft) => {
         draft.items = draft.items.filter((entry) => entry.id !== item.id && (item.cloudId ? entry.cloudId !== item.cloudId : true));
-        draft.activity.unshift({ id: resourceId('log'), type: 'soft-delete', resourceId: item.id, actor: currentUser?.email, at: new Date().toISOString() });
+        draft.activity.unshift({ id: resourceId('log'), type: 'delete', resourceId: item.id, actor: currentUser?.email, at: new Date().toISOString() });
       });
       setDeleteConfirmId('');
-      setDriveMessage(`Đã chuyển “${item.title || item.fileName}” vào Thùng rác hệ thống trong 30 ngày. File Google Drive chưa bị xóa.`);
+      setDriveMessage(`Đã xóa “${item.title || item.fileName}”. File đã được chuyển vào Thùng rác Google Drive để TTCM có thể khôi phục khi cần.`);
       await refreshLibrary();
     } catch (error) {
-      setDriveMessage(`Không thể chuyển tài liệu vào thùng rác: ${error.message}`);
+      setDriveMessage(`Không thể xóa tài liệu: ${error.message}`);
     } finally {
       setDeletingId('');
     }

@@ -1,0 +1,146 @@
+{
+  "version": "10.98.0",
+  "previousVersion": "10.97.0",
+  "installedAt": "2026-07-13T00:25:24.986Z",
+  "backupDir": ".bes-backup/v10.98.0-2026-07-13T00-25-24-952Z",
+  "files": [
+    {
+      "file": ".bes-release/v10.98.0.json",
+      "existed": false
+    },
+    {
+      "file": "README.md",
+      "existed": true
+    },
+    {
+      "file": "README_UPDATE.md",
+      "existed": true
+    },
+    {
+      "file": "V10_98_0_COLLABORATION_DATA_GOVERNANCE.md",
+      "existed": false
+    },
+    {
+      "file": "index.html",
+      "existed": true
+    },
+    {
+      "file": "package-lock.json",
+      "existed": true
+    },
+    {
+      "file": "package.json",
+      "existed": true
+    },
+    {
+      "file": "public/bes-feature-flags-v10.98.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/bes-migrations-v10.98.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/bes-modules-v10.98.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/bes-platform-build-v10.98.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/bes-platform-control-v10980.css",
+      "existed": false
+    },
+    {
+      "file": "public/bes-platform-control-v10980.js",
+      "existed": false
+    },
+    {
+      "file": "public/bes-release-v10.98.0.json",
+      "existed": false
+    },
+    {
+      "file": "public/sw.js",
+      "existed": true
+    },
+    {
+      "file": "public/version.json",
+      "existed": true
+    },
+    {
+      "file": "scripts/check-v10.98.0.mjs",
+      "existed": false
+    },
+    {
+      "file": "scripts/release-guard-v10.98.0.mjs",
+      "existed": false
+    },
+    {
+      "file": "src/components/GlobalCommandPalette.jsx",
+      "existed": true
+    },
+    {
+      "file": "src/components/GlobalFlatNavigation.jsx",
+      "existed": true
+    },
+    {
+      "file": "src/data/apps.js",
+      "existed": true
+    },
+    {
+      "file": "src/main.jsx",
+      "existed": true
+    },
+    {
+      "file": "src/pages/CollaborationHub.jsx",
+      "existed": false
+    },
+    {
+      "file": "src/pages/DataGovernance.jsx",
+      "existed": false
+    },
+    {
+      "file": "src/pages/ResourceLibrary.jsx",
+      "existed": true
+    },
+    {
+      "file": "src/pages/WorkHub.jsx",
+      "existed": true
+    },
+    {
+      "file": "src/services/runtime/core.js",
+      "existed": true
+    },
+    {
+      "file": "src/styles/v1098.css",
+      "existed": false
+    },
+    {
+      "file": "src/utils/collaborationGovernance.js",
+      "existed": false
+    },
+    {
+      "file": "src/utils/permissions.js",
+      "existed": true
+    },
+    {
+      "file": "src/utils/resourceLibrary.js",
+      "existed": true
+    },
+    {
+      "file": "supabase/brian_v10_98_collaboration_governance.sql",
+      "existed": false
+    },
+    {
+      "file": "supabase/brian_v10_98_preflight.sql",
+      "existed": false
+    },
+    {
+      "file": "supabase/brian_v10_98_verify.sql",
+      "existed": false
+    }
+  ],
+  "requiresSql": true,
+  "migration": "supabase/brian_v10_98_collaboration_governance.sql"
+}

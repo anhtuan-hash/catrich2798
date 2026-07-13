@@ -170,8 +170,6 @@ export function fromCloudRow(row) {
     approvedBy: row.approved_by,
     views: Number(row.views || 0),
     downloads: Number(row.downloads || 0),
-    deletedAt: row.deleted_at || null,
-    deletedBy: row.deleted_by || null,
     storageMode: 'cloud',
   };
 }

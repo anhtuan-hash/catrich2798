@@ -6,7 +6,6 @@ import './styles/v1094.css';
 import './styles/v1095.css';
 import './styles/v1096.css';
 import './styles/v1097.css';
-import './styles/v1098.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
@@ -97,12 +96,10 @@ const LearningIntelligence = lazy(() => import('./pages/LearningIntelligence.jsx
 const PlatformReadiness = lazy(() => import('./pages/PlatformReadiness.jsx'));
 const AutomationCenter = lazy(() => import('./pages/AutomationCenter.jsx'));
 const CloudOperations = lazy(() => import('./pages/CloudOperations.jsx'));
-const CollaborationHub = lazy(() => import('./pages/CollaborationHub.jsx'));
-const DataGovernance = lazy(() => import('./pages/DataGovernance.jsx'));
 const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAccessibilityAnnouncer.jsx'));
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'assessment-core', 'learning-intelligence', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'assessment-core', 'learning-intelligence', 'platform-readiness', 'automation-center', 'cloud-operations', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
 
 function getInitialRoute() {
@@ -133,8 +130,6 @@ const ROUTE_DESIGN_PROFILES = {
   'platform-readiness': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
   'automation-center': { accent: '#1269B0', soft: '#E4F3FF', ink: '#0B3154' },
   'cloud-operations': { accent: '#167B68', soft: '#E4F6EF', ink: '#183F3C' },
-  'collaboration-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
-  'data-governance': { accent: '#A24B35', soft: '#FFF0E8', ink: '#4A1E14' },
   practice: { accent: '#00A4EF', soft: '#DCF4FF', ink: '#063048' },
   admin: { accent: '#D13438', soft: '#FFE1E3', ink: '#351014' },
   settings: { accent: '#123C69', soft: '#DCEBFA', ink: '#07192C' },
@@ -409,8 +404,6 @@ function App() {
       'learning-intelligence': ['Learning Intelligence', 'Phân tích học tập'], 'platform-readiness': ['Platform Readiness', 'Sẵn sàng nền tảng'],
       'automation-center': ['Automation Center', 'Trung tâm tự động hóa'],
       'cloud-operations': ['Cloud Operations', 'Vận hành nền'],
-      'collaboration-hub': ['Collaboration Hub', 'Không gian cộng tác'],
-      'data-governance': ['Data Governance', 'Quản trị dữ liệu'],
       practice: ['Classroom', 'Lớp học'], settings: ['Settings', 'Cài đặt'],
       admin: ['Admin', 'Quản trị'], 'ai-governance': ['AI Governance', 'Quản trị AI'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác'],
     };
@@ -556,8 +549,6 @@ function App() {
           {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <PlatformReadiness {...context} />}
           {canAccessRoute && currentRoute === 'automation-center' && currentUser && <AutomationCenter {...context} />}
           {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <CloudOperations {...context} />}
-          {canAccessRoute && currentRoute === 'collaboration-hub' && currentUser && <CollaborationHub {...context} />}
-          {canAccessRoute && currentRoute === 'data-governance' && currentUser && <DataGovernance {...context} />}
           {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
           {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}
           {canAccessRoute && currentRoute === 'ai-governance' && currentUser && <AIGovernanceCenter {...context} />}

@@ -1,0 +1,539 @@
+{
+  "schema": 1,
+  "version": "10.98.0",
+  "generatedAt": "2026-07-13T12:00:00.000Z",
+  "modules": [
+    {
+      "id": "home",
+      "title": "Trang chủ",
+      "route": "#/",
+      "category": "Hệ thống",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "1.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "apps",
+      "title": "Ứng dụng",
+      "route": "#/apps",
+      "category": "Hệ thống",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "4.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "library",
+      "title": "Thư viện",
+      "route": "#/library",
+      "category": "Tài nguyên",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "3.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "games",
+      "title": "Trò chơi",
+      "route": "#/games",
+      "category": "Giảng dạy",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "2.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "practice",
+      "title": "Luyện tập",
+      "route": "#/practice",
+      "category": "Giảng dạy",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "2.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "news",
+      "title": "Đọc báo",
+      "route": "#/news",
+      "category": "Tài nguyên",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "1.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "department",
+      "title": "Không gian tổ chuyên môn",
+      "route": "#/department",
+      "category": "Chuyên môn",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "3.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "settings",
+      "title": "Cài đặt",
+      "route": "#/settings",
+      "category": "Hệ thống",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "3.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "profile",
+      "title": "Trang cá nhân",
+      "route": "#/profile",
+      "category": "Hệ thống",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "2.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "system-health",
+      "title": "System Health",
+      "route": "#/qa",
+      "category": "Quản trị",
+      "roles": [
+        "admin",
+        "ttcm"
+      ],
+      "status": "stable",
+      "version": "2.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "ai-governance",
+      "title": "Quản trị AI",
+      "route": "#/ai-governance",
+      "category": "Quản trị",
+      "roles": [
+        "admin",
+        "ttcm"
+      ],
+      "status": "stable",
+      "version": "2.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "activity-studio",
+      "title": "Activity Studio",
+      "route": "#/tool/activity-studio",
+      "category": "Giảng dạy",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "2.0.0",
+      "dependencies": [
+        "library"
+      ]
+    },
+    {
+      "id": "exam-studio",
+      "title": "Exam Studio",
+      "route": "#/tool/exam-studio",
+      "category": "Kiểm tra",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "2.0.0",
+      "dependencies": [
+        "library"
+      ]
+    },
+    {
+      "id": "worksheet-factory",
+      "title": "Worksheet Factory",
+      "route": "#/tool/worksheet-factory",
+      "category": "Giảng dạy",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "2.0.0",
+      "dependencies": [
+        "library"
+      ]
+    },
+    {
+      "id": "wordgraph",
+      "title": "WordGraph Studio",
+      "route": "#/tool/wordgraph",
+      "category": "Giảng dạy",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "1.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "reading-studio",
+      "title": "Reading Studio",
+      "route": "#/tool/reading-studio",
+      "category": "Kỹ năng",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "2.0.0",
+      "dependencies": [
+        "library"
+      ]
+    },
+    {
+      "id": "speaking-studio",
+      "title": "Speaking Studio",
+      "route": "#/tool/speaking-studio",
+      "category": "Kỹ năng",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "1.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "lesson-architect",
+      "title": "Lesson Architect",
+      "route": "#/tool/lesson-architect",
+      "category": "Giảng dạy",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "2.0.0",
+      "dependencies": [
+        "library"
+      ]
+    },
+    {
+      "id": "learner-sprint",
+      "title": "Learner Sprint",
+      "route": "#/tool/learner-sprint",
+      "category": "Học sinh",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "1.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "textcare-fixer",
+      "title": "TextCare Fixer",
+      "route": "#/tool/textcare-fixer",
+      "category": "Tài nguyên",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "1.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "vietnam-tax",
+      "title": "Tính thuế TNCN",
+      "route": "#/tool/vietnam-tax",
+      "category": "Tiện ích",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "1.0.0",
+      "dependencies": []
+    },
+    {
+      "id": "platform-control",
+      "title": "Platform Control Center",
+      "route": "#/platform-control",
+      "category": "Quản trị",
+      "roles": [
+        "admin",
+        "ttcm"
+      ],
+      "status": "stable",
+      "version": "10.90.0",
+      "dependencies": [
+        "system-health"
+      ]
+    },
+    {
+      "id": "smart-knowledge",
+      "title": "Kho học liệu thông minh",
+      "route": "#/knowledge-hub",
+      "category": "Tài nguyên",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "10.90.0",
+      "dependencies": [
+        "resource-library",
+        "platform-control"
+      ]
+    },
+    {
+      "id": "runtime-core",
+      "title": "Runtime Core",
+      "route": "#/qa",
+      "category": "Hệ thống",
+      "roles": [
+        "admin",
+        "ttcm"
+      ],
+      "status": "stable",
+      "version": "1.5.0",
+      "dependencies": []
+    },
+    {
+      "id": "work-hub",
+      "title": "Trung tâm công việc",
+      "route": "#/work-hub",
+      "category": "Công việc",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "10.93.0",
+      "dependencies": [
+        "runtime-core"
+      ]
+    },
+    {
+      "id": "knowledge-hub",
+      "title": "Kho học liệu thông minh",
+      "route": "#/knowledge-hub",
+      "category": "Tài nguyên",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "10.93.0",
+      "dependencies": [
+        "runtime-core",
+        "resource-library"
+      ]
+    },
+    {
+      "id": "ai-workspace",
+      "title": "Brian AI Workspace",
+      "route": "#/ai-workspace",
+      "category": "AI",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "10.91.0",
+      "dependencies": [
+        "runtime-core",
+        "ai-governance"
+      ]
+    },
+    {
+      "id": "content-factory",
+      "title": "Xưởng tạo học liệu",
+      "route": "#/content-factory",
+      "category": "Giảng dạy",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "10.92.0",
+      "dependencies": [
+        "runtime-core",
+        "ai-workspace"
+      ]
+    },
+    {
+      "id": "assessment-core",
+      "title": "Ngân hàng câu hỏi & đề thi",
+      "route": "#/assessment-core",
+      "category": "Kiểm tra",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "10.93.0",
+      "dependencies": [
+        "runtime-core",
+        "content-factory"
+      ]
+    },
+    {
+      "id": "learning-intelligence",
+      "title": "Trung tâm phân tích học tập",
+      "route": "#/learning-intelligence",
+      "category": "Phân tích học tập",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "10.94.0",
+      "dependencies": [
+        "runtime-core",
+        "assessment-core",
+        "content-factory"
+      ]
+    },
+    {
+      "id": "platform-readiness",
+      "title": "PWA, bảo mật & tiếp cận",
+      "route": "#/platform-readiness",
+      "category": "Hệ thống",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "10.95.0",
+      "dependencies": [
+        "runtime-core"
+      ]
+    },
+    {
+      "id": "automation-center",
+      "title": "Trung tâm tự động hóa",
+      "route": "#/automation-center",
+      "category": "Vận hành",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "10.96.0",
+      "dependencies": [
+        "runtime-core"
+      ]
+    },
+    {
+      "id": "cloud-operations",
+      "title": "Vận hành nền 24/7",
+      "route": "#/cloud-operations",
+      "category": "Vận hành",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "10.97.0",
+      "dependencies": [
+        "runtime-core",
+        "automation-center"
+      ]
+    },
+    {
+      "id": "collaboration-hub",
+      "title": "Không gian cộng tác",
+      "route": "#/collaboration-hub",
+      "category": "Cộng tác",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "10.98.0",
+      "dependencies": [
+        "runtime-core",
+        "work-hub"
+      ]
+    },
+    {
+      "id": "data-governance",
+      "title": "Quản trị dữ liệu & tuân thủ",
+      "route": "#/data-governance",
+      "category": "Quản trị",
+      "roles": [
+        "admin",
+        "ttcm",
+        "teacher"
+      ],
+      "status": "stable",
+      "version": "10.98.0",
+      "dependencies": [
+        "runtime-core",
+        "collaboration-hub"
+      ]
+    }
+  ]
+}

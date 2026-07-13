@@ -69,20 +69,6 @@ export const APPS = [
     descVi: 'Chạy tự động hóa bằng hàng đợi bền vững, Supabase Cron, retry, phê duyệt và bản tin vận hành.',
     status: '24/7 worker · Queue · Digest', statusVi: 'Worker 24/7 · Hàng đợi · Bản tin', api: true, featured: true,
   },
-  {
-    slug: 'collaboration-hub', route: 'collaboration-hub', icon: 'CH', tone: 'blue', group: 'Collaboration', groupVi: 'Cộng tác & phiên bản',
-    title: 'Collaboration Hub', titleVi: 'Không gian cộng tác',
-    desc: 'Coordinate projects, members, threaded discussions, Realtime presence and version history.',
-    descVi: 'Điều phối dự án, thành viên, thảo luận theo luồng, hiện diện Realtime và lịch sử phiên bản.',
-    status: 'Spaces · Presence · Versions', statusVi: 'Dự án · Hiện diện · Phiên bản', api: true, featured: true,
-  },
-  {
-    slug: 'data-governance', route: 'data-governance', icon: 'DG', tone: 'orange', group: 'Governance', groupVi: 'Quản trị dữ liệu',
-    title: 'Data Governance', titleVi: 'Quản trị dữ liệu & tuân thủ',
-    desc: 'Audit actions, control permission overrides, create snapshots and restore deleted content safely.',
-    descVi: 'Theo dõi thao tác, kiểm soát quyền ngoại lệ, tạo snapshot và khôi phục dữ liệu an toàn.',
-    status: 'Audit · Backup · Trash · RLS', statusVi: 'Audit · Sao lưu · Thùng rác · RLS', api: true, featured: true,
-  },
 
 
   {

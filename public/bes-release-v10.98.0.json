@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "version": "10.98.0",
+  "previousVersion": "10.97.0",
+  "releaseName": "Collaboration & Data Governance",
+  "installedAt": "2026-07-13T12:00:00.000Z",
+  "channel": "stable",
+  "requiresSql": true,
+  "migration": "supabase/brian_v10_98_collaboration_governance.sql",
+  "features": [
+    "collaboration spaces",
+    "Realtime presence",
+    "threaded comments",
+    "content version history",
+    "permission overrides",
+    "audit log",
+    "backup and restore",
+    "30-day soft deletion"
+  ],
+  "dependencyChanges": false
+}

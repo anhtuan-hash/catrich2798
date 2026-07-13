@@ -21,8 +21,6 @@ export const ROUTE_PERMISSION_IDS = {
   'platform-readiness': 'route:platform-readiness',
   'automation-center': 'route:automation-center',
   'cloud-operations': 'route:cloud-operations',
-  'collaboration-hub': 'route:collaboration-hub',
-  'data-governance': 'route:data-governance',
   practice: 'route:practice',
   qa: 'route:qa',
   settings: 'route:settings',
@@ -131,24 +129,6 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Vận hành nền 24/7',
     desc: 'Monitor durable automation queues, server schedules, retries and operations digests.',
     descVi: 'Theo dõi hàng đợi tự động hóa, lịch máy chủ, retry và bản tin vận hành.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['collaboration-hub'],
-    type: 'content',
-    section: 'operations',
-    title: 'Collaboration Hub',
-    titleVi: 'Không gian cộng tác',
-    desc: 'Coordinate projects, members, discussion threads, presence and content versions.',
-    descVi: 'Điều phối dự án, thành viên, thảo luận, hiện diện và lịch sử phiên bản.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['data-governance'],
-    type: 'system',
-    section: 'operations',
-    title: 'Data Governance',
-    titleVi: 'Quản trị dữ liệu & tuân thủ',
-    desc: 'Review audit events, permission overrides, backups, restores and deleted items.',
-    descVi: 'Kiểm tra audit log, quyền ngoại lệ, sao lưu, khôi phục và dữ liệu đã xóa.',
   },
 
   {
