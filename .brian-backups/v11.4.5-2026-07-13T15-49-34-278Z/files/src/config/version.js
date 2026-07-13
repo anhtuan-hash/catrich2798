@@ -1,6 +1,6 @@
-export const APP_VERSION = '11.4.5';
-export const RELEASE_NAME = 'Lesson Workspace UX + AI Copilot';
-export const RUNTIME_CORE_VERSION = '2.4.5';
+export const APP_VERSION = '11.4.4';
+export const RELEASE_NAME = 'Native Module Runtime Fix';
+export const RUNTIME_CORE_VERSION = '2.4.4';
 export const SCHEMA_VERSION = '11.4.2';
 
 export function getVersionInfo() {

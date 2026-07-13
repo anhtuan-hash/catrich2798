@@ -16,9 +16,3 @@
 .elis-host-spinner{width:28px;height:28px;border:3px solid rgba(109,76,203,.18);border-top-color:#6d4ccb;border-radius:50%;animation:elis-host-spin .8s linear infinite}
 @keyframes elis-host-spin{to{transform:rotate(360deg)}}
 @media(max-width:760px){.english-lesson-integration-page{padding-inline:6px}.elis-host-shell{border-radius:16px}}
-
-/* V11.4.5 — ELIS presentation sync */
-.english-lesson-integration-page{width:100%;max-width:none;margin:0 auto;padding:0 6px 32px}
-.elis-host-shell{border:0!important;box-shadow:none!important;background:transparent!important;overflow:visible;border-radius:0}
-.elis-native-host{min-height:78vh}
-@media(max-width:760px){.english-lesson-integration-page{padding-inline:2px}.elis-native-host{min-height:82vh}}

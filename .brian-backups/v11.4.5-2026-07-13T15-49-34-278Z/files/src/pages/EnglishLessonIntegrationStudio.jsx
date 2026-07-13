@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { mountEnglishLessonIntegrationStudio } from '../vendor/englishLessonIntegration/elis.es.js';
+import { m as mountEnglishLessonIntegrationStudio } from '../vendor/englishLessonIntegration/mount.js';
 import { APP_VERSION } from '../config/version.js';
 import { getSupabasePublicConfig, isSupabaseConfigured, supabase } from '../utils/supabase.js';
 
@@ -92,7 +92,7 @@ export default function EnglishLessonIntegrationStudio({
         });
         if (active) setState({ status: 'ready', message: '' });
       } catch (error) {
-        console.error('[Brian V11.4.5] ELIS mount failed', error);
+        console.error('[Brian V11.4.4] ELIS mount failed', error);
         if (active) setState({
           status: 'error',
           message: error instanceof Error ? error.message : (language === 'vi' ? 'Không thể tải ứng dụng.' : 'Unable to load the app.'),

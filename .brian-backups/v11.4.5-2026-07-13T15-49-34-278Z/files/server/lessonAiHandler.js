@@ -69,39 +69,7 @@ ${String(body.currentDraft || '').slice(0, 35_000)}
 CONSTRAINTS:
 ${safeJson(body.constraints)}`;
 
-
-const assistantPrompt = (body) => `${baseRules}
-
-TASK: Act as an AI Copilot inside the lesson-integration workspace.
-Action: ${String(body.action || 'analyze')}
-Return a classroom-ready answer in Vietnamese, while keeping examples, objectives, tasks and student-facing language in English when appropriate.
-Use clear Markdown headings. Be specific and concise.
-Do not invent curriculum facts not supported by the supplied lesson.
-When proposing digital or AI use, include an observable product, verification step, safety rule and offline alternative.
-If a selected proposal is supplied, prioritize it.
-
-TEACHER INSTRUCTION:
-${String(body.instruction || 'Analyze and improve the lesson.').slice(0, 4_000)}
-
-LESSON METADATA:
-${safeJson(body.lesson)}
-
-LESSON SECTIONS:
-${safeJson(body.sections, 58_000)}
-
-CURRENT PROPOSALS:
-${safeJson(body.proposals, 35_000)}
-
-SELECTED PROPOSAL:
-${safeJson(body.selectedProposal, 12_000)}
-
-QUALITY AUDIT:
-${safeJson(body.audit, 12_000)}
-
-CONSTRAINTS:
-${safeJson(body.constraints)}`;
-
-const buildPrompt = (body) => body.task === 'generate-resource' ? resourcePrompt(body) : body.task === 'lesson-assistant' ? assistantPrompt(body) : rewritePrompt(body);
+const buildPrompt = (body) => body.task === 'generate-resource' ? resourcePrompt(body) : rewritePrompt(body);
 
 const fetchWithTimeout = async (url, init, timeoutMs = 70_000) => {
   const controller = new AbortController();
@@ -242,7 +210,7 @@ export async function handleLessonAiRequest(req, res) {
     let body;
     try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); }
     catch { return json(res, 400, { error: 'Invalid JSON body.' }, cors); }
-    if (!['rewrite', 'generate-resource', 'lesson-assistant', 'health'].includes(body.task)) return json(res, 400, { error: 'Unsupported task.' }, cors);
+    if (!['rewrite', 'generate-resource', 'health'].includes(body.task)) return json(res, 400, { error: 'Unsupported task.' }, cors);
     const provider = process.env.AI_PROVIDER || body.provider || 'openai';
     if (!['openai', 'gemini'].includes(provider)) return json(res, 400, { error: 'Unsupported AI provider.' }, cors);
 

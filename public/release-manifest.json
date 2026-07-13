@@ -1,7 +1,7 @@
 {
-  "version": "11.4.4",
-  "release": "Native Module Runtime Fix",
-  "runtime": "2.4.4",
+  "version": "11.4.5",
+  "release": "Lesson Workspace UX + AI Copilot",
+  "runtime": "2.4.5",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
   "lessonArchitectAnnualBuilder": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": true,
-  "generatedAt": "2026-07-13T15:15:23.890Z",
+  "generatedAt": "2026-07-13T15:49:43.138Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "2.4.4",
+  "runtimeCore": "2.4.5",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -57,5 +57,22 @@
   "vercelFunctionCount": 12,
   "lessonIntegrationNativeBundle": true,
   "lessonIntegrationExternalBundle": false,
-  "lessonIntegrationRuntimeFix": true
+  "lessonIntegrationRuntimeFix": true,
+  "lessonIntegrationModuleVersion": "1.4.0-brian.1",
+  "lessonIntegrationLargeWorkspace": true,
+  "lessonIntegrationDisplayModes": [
+    "integrated",
+    "compare",
+    "focus",
+    "large"
+  ],
+  "lessonIntegrationAICopilot": true,
+  "lessonIntegrationAiTasks": [
+    "analyze",
+    "objectives",
+    "activities",
+    "differentiate",
+    "assessment",
+    "custom"
+  ]
 }

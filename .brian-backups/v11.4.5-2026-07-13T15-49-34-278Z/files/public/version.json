@@ -1,14 +1,14 @@
 {
-  "version": "11.4.5",
+  "version": "11.4.4",
   "channel": "stable",
-  "releaseName": "Lesson Workspace UX + AI Copilot",
-  "runtimeCore": "2.4.5",
+  "releaseName": "Native Module Runtime Fix",
+  "runtimeCore": "2.4.4",
   "schemaVersion": "11.4.2",
   "requiresSql": true,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-13T15:49:43.138Z",
+  "generatedAt": "2026-07-13T15:15:23.890Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -50,22 +50,5 @@
   "vercelFunctionCount": 12,
   "lessonIntegrationNativeBundle": true,
   "lessonIntegrationExternalBundle": false,
-  "lessonIntegrationRuntimeFix": true,
-  "lessonIntegrationModuleVersion": "1.4.0-brian.1",
-  "lessonIntegrationLargeWorkspace": true,
-  "lessonIntegrationDisplayModes": [
-    "integrated",
-    "compare",
-    "focus",
-    "large"
-  ],
-  "lessonIntegrationAICopilot": true,
-  "lessonIntegrationAiTasks": [
-    "analyze",
-    "objectives",
-    "activities",
-    "differentiate",
-    "assessment",
-    "custom"
-  ]
+  "lessonIntegrationRuntimeFix": true
 }

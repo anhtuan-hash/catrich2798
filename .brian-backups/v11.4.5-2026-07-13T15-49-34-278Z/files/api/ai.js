@@ -130,7 +130,7 @@ export default async function handler(req, res) {
     try { routedBody = JSON.parse(routedBody || '{}'); } catch { routedBody = null; }
   }
   const lessonTask = String(routedBody?.task || '');
-  if (req.method === 'OPTIONS' || ['rewrite', 'generate-resource', 'lesson-assistant', 'health'].includes(lessonTask)) {
+  if (req.method === 'OPTIONS' || ['rewrite', 'generate-resource', 'health'].includes(lessonTask)) {
     return handleLessonAiRequest(req, res);
   }
 
