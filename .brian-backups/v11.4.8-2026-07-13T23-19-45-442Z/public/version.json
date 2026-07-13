@@ -1,14 +1,14 @@
 {
-  "version": "11.4.8",
+  "version": "11.4.7",
   "channel": "stable",
-  "releaseName": "Grammar Builder Large Card Workspace",
-  "runtimeCore": "2.4.8",
+  "releaseName": "Grammar Production Workflow V2",
+  "runtimeCore": "2.4.7",
   "schemaVersion": "11.4.2",
   "requiresSql": true,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-13T23:19:56.105Z",
+  "generatedAt": "2026-07-13T22:47:45.094Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -94,13 +94,5 @@
   "grammarBuilderVariantGenerator": true,
   "grammarBuilderConnectedWorkflow": true,
   "grammarBuilderAiBatchGeneration": true,
-  "grammarBuilderRoute": "#/tool/grammar-builder",
-  "grammarBuilderV21": true,
-  "grammarBuilderTwoCardLayout": true,
-  "grammarBuilderLargeCardTypography": true,
-  "grammarBuilderDimensionalHero": true,
-  "grammarBuilderDomainOnlyFocus": true,
-  "grammarBuilderGroupedDomains": true,
-  "grammarBuilderDomainOptionCount": 100,
-  "grammarBuilderCustomFocusRequest": true
+  "grammarBuilderRoute": "#/tool/grammar-builder"
 }

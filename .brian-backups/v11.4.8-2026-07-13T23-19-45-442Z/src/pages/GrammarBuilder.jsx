@@ -15,82 +15,19 @@ const BUILD_MODES = [
   { id: 'interactive', icon: '◇', title: 'Interactive Activity', titleVi: 'Hoạt động tương tác', desc: 'Turn grammar into games, sorting, error hunts and races.', descVi: 'Chuyển ngữ pháp thành game, phân loại, săn lỗi và thi đua.' },
 ];
 
-const GRAMMAR_DOMAIN_GROUPS = [
-  {
-    label: 'Tenses, aspects and time',
-    options: [
-      'Tenses and aspects — overview', 'Present Simple', 'Present Continuous', 'Present Perfect',
-      'Present Perfect Continuous', 'Past Simple', 'Past Continuous', 'Past Perfect',
-      'Past Perfect Continuous', 'Future forms', 'Future Continuous', 'Future Perfect',
-      'Narrative tenses', 'Tense consistency', 'Time clauses', 'Mixed tenses',
-    ],
-  },
-  {
-    label: 'Common grammar contrasts',
-    options: [
-      'Past Simple vs Past Continuous', 'Present Perfect vs Past Simple',
-      'Present Perfect Simple vs Present Perfect Continuous', 'Will vs Be going to',
-      'Gerund vs Infinitive', 'Must vs Have to', 'Should vs Ought to',
-      'Used to vs Be used to vs Get used to', 'Despite vs Although',
-      'Because vs Because of', 'Another vs Other vs The other', 'Active vs Passive',
-      'Defining vs Non-defining relative clauses', 'First vs Second Conditional',
-      'Second vs Third Conditional', 'Few vs A few; Little vs A little',
-      'So vs Such; Too vs Enough',
-    ],
-  },
-  {
-    label: 'Verb forms and verb patterns',
-    options: [
-      'Gerunds and infinitives', 'Bare infinitive', 'Verb patterns with objects', 'Causative structures',
-      'Verbs of perception', 'Participles and participle clauses', 'Perfect infinitives and gerunds',
-      'Verb form in context', 'Phrasal verbs', 'Multi-word verbs',
-    ],
-  },
-  {
-    label: 'Modal verbs and stance',
-    options: [
-      'Modal verbs — overview', 'Ability and possibility', 'Permission and requests', 'Advice and recommendation',
-      'Obligation, necessity and prohibition', 'Deduction and speculation', 'Past modals',
-      'Modal perfect forms', 'Degrees of certainty',
-    ],
-  },
-  {
-    label: 'Voice, clauses and complex sentences',
-    options: [
-      'Passive voice', 'Causative passive', 'Conditionals', 'Mixed conditionals', 'Wishes and regrets',
-      'Relative clauses', 'Reduced relative clauses', 'Reported speech', 'Reporting verbs',
-      'Noun clauses', 'Adverb clauses', 'Purpose, result and concession clauses', 'Participle clauses',
-      'Reduced clauses', 'Subjunctive structures', 'Inversion', 'Cleft sentences and emphasis',
-    ],
-  },
-  {
-    label: 'Nouns, determiners and comparison',
-    options: [
-      'Articles and determiners', 'Countable and uncountable nouns', 'Quantifiers', 'Pronouns and reference',
-      'Possessives', 'Demonstratives', 'Another, other and the other', 'Comparatives and superlatives',
-      'Comparison structures', 'Noun phrases and modification',
-    ],
-  },
-  {
-    label: 'Sentence structure and accuracy',
-    options: [
-      'Subject–verb agreement', 'Word order', 'Questions and question tags', 'Negation',
-      'Parallel structures', 'Coordination and subordination', 'Sentence combination',
-      'Conjunctions and linking devices', 'Prepositions', 'Prepositional phrases',
-      'Adjective and adverb position', 'Reference and cohesion', 'Grammar punctuation',
-    ],
-  },
-  {
-    label: 'Exam and integrated grammar',
-    options: [
-      'Sentence transformation', 'Error identification and correction', 'Grammar cloze',
-      'Grammar in reading context', 'Grammar in writing', 'THPT exam grammar',
-      'Advanced B2–C1 grammar', 'Mixed grammar',
-    ],
-  },
+const GRAMMAR_DOMAINS = [
+  'Tenses and aspects', 'Gerunds and infinitives', 'Modal verbs', 'Passive voice', 'Conditionals',
+  'Relative clauses', 'Reported speech', 'Comparisons', 'Articles and determiners', 'Prepositions',
+  'Subject–verb agreement', 'Inversion', 'Cleft sentences', 'Participle clauses', 'Reduced clauses',
+  'Subjunctive structures', 'Mixed grammar',
 ];
 
-const GRAMMAR_DOMAINS = GRAMMAR_DOMAIN_GROUPS.flatMap((group) => group.options);
+const GRAMMAR_CONTRASTS = [
+  'Past Simple vs Past Continuous', 'Present Perfect vs Past Simple', 'Will vs Be going to',
+  'Gerund vs Infinitive', 'Must vs Have to', 'Used to vs Be used to', 'Despite vs Although',
+  'Another vs Other vs The other', 'Active vs Passive', 'Defining vs Non-defining clauses',
+  'First vs Second Conditional', 'Mixed grammar contrast',
+];
 
 const FORMATS = [
   { id: 'mcq', label: 'Multiple Choice', short: 'MCQ' },
@@ -226,8 +163,10 @@ function defaultProject() {
     id: uid('project'),
     title: 'Past Tenses — Contextual Grammar Pack',
     mode: 'practice-set',
-    domain: 'Tenses and aspects — overview',
-    focusRequest: 'Past Simple vs Past Continuous; prioritise while + Past Continuous and when + Past Simple.',
+    domain: 'Tenses and aspects',
+    contrast: 'Past Simple vs Past Continuous',
+    requiredStructures: 'while + Past Continuous; when + Past Simple',
+    excludedStructures: '',
     grade: '12',
     level: 'B2',
     book: 'Global Success',
@@ -263,35 +202,6 @@ function defaultProject() {
     versions: [],
     createdAt: Date.now(),
     updatedAt: Date.now(),
-  };
-}
-
-function grammarFocus(project) {
-  const domain = String(project?.domain || 'Mixed grammar').trim();
-  const specific = String(project?.focusRequest || project?.contrast || '').trim();
-  if (!specific || specific.toLowerCase() === domain.toLowerCase()) return domain;
-  return `${domain} — ${specific}`;
-}
-
-function grammarPoint(project) {
-  return String(project?.focusRequest || project?.contrast || project?.domain || 'Mixed grammar').trim();
-}
-
-function normalizeProject(raw = {}) {
-  const base = defaultProject();
-  const migratedFocus = String(raw.focusRequest || raw.contrast || '').trim();
-  const legacyDomainMap = {
-    'Tenses and aspects': 'Tenses and aspects — overview',
-    'Modal verbs': 'Modal verbs — overview',
-    'Comparisons': 'Comparison structures',
-  };
-  const domain = legacyDomainMap[raw.domain] || raw.domain || base.domain;
-  return {
-    ...base,
-    ...raw,
-    domain: GRAMMAR_DOMAINS.includes(domain) ? domain : base.domain,
-    focusRequest: migratedFocus || base.focusRequest,
-    items: Array.isArray(raw.items) ? raw.items.map(normalizeItem) : base.items,
   };
 }
 
@@ -343,7 +253,7 @@ function serializeProject(project, includeAnswers = true) {
     '',
     `Mode: ${BUILD_MODES.find((entry) => entry.id === project.mode)?.title || project.mode}`,
     `Grade: ${project.grade} · CEFR: ${project.level} · Book: ${project.book}`,
-    `Grammar focus: ${grammarFocus(project)}`,
+    `Grammar focus: ${project.domain} — ${project.contrast}`,
     `Context: ${project.customTopic || project.topic} · Purpose: ${project.purpose}`,
     '',
   ];
@@ -452,7 +362,9 @@ PROJECT
 Title: ${project.title}
 Mode: ${project.mode}
 Grammar domain: ${project.domain}
-Specific focus / teacher request: ${project.focusRequest || '(use the selected domain broadly)' }
+Grammar contrast: ${project.contrast}
+Required structures: ${project.requiredStructures || '(none)'}
+Excluded structures: ${project.excludedStructures || '(none)'}
 Grade: ${project.grade}
 CEFR: ${project.level}
 Book / unit: ${project.book} / ${project.unit}
@@ -514,7 +426,9 @@ function sectionDraftPrompt(project, section, count, existingStems = []) {
 PROJECT
 Title: ${project.title}
 Mode: ${project.mode}
-Grammar focus: ${grammarFocus(project)}
+Grammar: ${project.domain} — ${project.contrast}
+Required structures: ${project.requiredStructures || '(none)'}
+Excluded structures: ${project.excludedStructures || '(none)'}
 Grade / CEFR: ${project.grade} / ${project.level}
 Book / unit: ${project.book} / ${project.unit}
 Context: ${project.customTopic || project.topic}
@@ -529,7 +443,7 @@ Source: ${project.sourceText.slice(0, 7000) || '(none)'}
 SECTION
 Title: ${section.title}
 Format mix: ${section.format || formats}
-Focus: ${section.focus || grammarPoint(project)}
+Focus: ${section.focus || project.contrast}
 Difficulty: ${section.difficulty || project.level}
 Required item count: ${count}
 
@@ -559,7 +473,7 @@ function validationPrompt(project) {
   return `Audit the following grammar item set. Do not rewrite the full set. Identify answer errors, ambiguity, weak distractors, unnatural English, CEFR mismatch, duplicate logic and missing context.
 
 PROJECT TARGET
-Grammar focus: ${grammarFocus(project)}
+Grammar: ${project.domain} — ${project.contrast}
 Grade/level: ${project.grade} / ${project.level}
 
 ITEMS
@@ -579,7 +493,7 @@ function diagnosticPrompt(project) {
   return `Analyze student grammar performance and create an actionable diagnostic report.
 
 TARGET
-Grade ${project.grade}; ${project.level}; ${grammarFocus(project)}.
+Grade ${project.grade}; ${project.level}; ${project.domain} — ${project.contrast}.
 Teacher notes: ${project.learnerNotes}
 Student work / results / observations:
 ${project.sourceText.slice(0, 50000) || '(No student work supplied. Infer only from the teacher notes and clearly mark assumptions.)'}
@@ -597,7 +511,7 @@ Return strict JSON:
       "formatLabel":"Multiple Choice",
       "level":"${project.level}",
       "cognitive":"Understanding",
-      "grammarPoint":"${grammarPoint(project)}",
+      "grammarPoint":"${project.contrast}",
       "context":"${project.customTopic || project.topic}",
       "status":"ai-draft",
       "stem":"English remediation item",
@@ -622,7 +536,7 @@ function transformPrompt(project, task, items) {
   return `${instruction}
 
 TARGET PROJECT
-${grammarFocus(project)}; Grade ${project.grade}; ${project.level}.
+${project.domain} — ${project.contrast}; Grade ${project.grade}; ${project.level}.
 
 ITEMS
 ${JSON.stringify(items, null, 2).slice(0, 90000)}
@@ -633,7 +547,7 @@ ${itemJsonSchema(items.length)}`;
 
 function itemRewritePrompt(project, item, request = '') {
   return `Rewrite one grammar item only.
-Target: ${grammarFocus(project)}; ${item.level}; ${item.formatLabel}; ${item.cognitive}.
+Target: ${project.domain} — ${project.contrast}; ${item.level}; ${item.formatLabel}; ${item.cognitive}.
 Teacher request: ${request || 'Improve clarity, naturalness, distractors and pedagogical value without changing the core grammar target.'}
 Current item:
 ${JSON.stringify(item, null, 2)}
@@ -663,7 +577,7 @@ function normalizeAiItems(json, fallbackProject) {
   const rawItems = Array.isArray(json?.items) ? json.items : Array.isArray(json?.questions) ? json.questions : [];
   return rawItems.map((item, index) => normalizeItem(item, index, {
     level: fallbackProject.level,
-    grammarPoint: grammarPoint(fallbackProject),
+    grammarPoint: fallbackProject.contrast || fallbackProject.domain,
     context: fallbackProject.customTopic || fallbackProject.topic,
   })).filter((item) => item.stem);
 }
@@ -736,7 +650,7 @@ export default function GrammarBuilder({ language = 'vi', apiKey = '', aiModel =
   const [project, setProject] = useState(() => {
     if (typeof window === 'undefined') return defaultProject();
     const saved = readJson(projectStorageKey(currentUser), null);
-    return saved && Array.isArray(saved.items) ? normalizeProject(saved) : defaultProject();
+    return saved && Array.isArray(saved.items) ? { ...defaultProject(), ...saved, items: saved.items.map(normalizeItem) } : defaultProject();
   });
   const [activeStage, setActiveStage] = useState('setup');
   const [activeItemId, setActiveItemId] = useState(project.items[0]?.id || '');
@@ -845,7 +759,7 @@ export default function GrammarBuilder({ language = 'vi', apiKey = '', aiModel =
       else if (ext === 'json') {
         const parsed = JSON.parse(await file.text());
         if (parsed?.items) {
-          setProject({ ...normalizeProject(parsed), id: uid('project'), updatedAt: Date.now() });
+          setProject({ ...defaultProject(), ...parsed, items: parsed.items.map(normalizeItem), id: uid('project'), updatedAt: Date.now() });
           setNotice(vi ? 'Đã nhập dự án Grammar Builder.' : 'Grammar Builder project imported.');
           return;
         }
@@ -887,7 +801,7 @@ export default function GrammarBuilder({ language = 'vi', apiKey = '', aiModel =
     try {
       if (task === 'draft') {
         const configuredSections = (project.blueprint?.sections || []).filter((section) => Number(section.count) > 0);
-        const sections = configuredSections.length ? configuredSections : [{ title: 'Grammar Practice', format: project.formats.join(', '), focus: grammarPoint(project), count: project.questionCount }];
+        const sections = configuredSections.length ? configuredSections : [{ title: 'Grammar Practice', format: project.formats.join(', '), focus: project.contrast, count: project.questionCount }];
         const generated = [];
         let remaining = Math.max(1, Number(project.questionCount) || 1);
         for (const section of sections) {
@@ -907,7 +821,7 @@ export default function GrammarBuilder({ language = 'vi', apiKey = '', aiModel =
         }
         while (remaining > 0) {
           const count = Math.min(7, remaining);
-          const fallbackSection = { title: `Part ${Math.max(1, sections.length)} — Additional Practice`, format: project.formats.join(', '), focus: grammarPoint(project) };
+          const fallbackSection = { title: `Part ${Math.max(1, sections.length)} — Additional Practice`, format: project.formats.join(', '), focus: project.contrast };
           const json = await callGrammarAi(sectionDraftPrompt(project, fallbackSection, count, generated.map((item) => item.stem)), 'draft', 2800);
           const batch = normalizeAiItems(json, project).slice(0, count);
           if (!batch.length) break;
@@ -1037,7 +951,7 @@ Issues: ${(json.issues || []).length}`);
   };
 
   const loadVaultProject = (entry) => {
-    setProject({ ...normalizeProject(entry), id: entry.id || uid('project'), updatedAt: Date.now() });
+    setProject({ ...defaultProject(), ...entry, items: (entry.items || []).map(normalizeItem), id: entry.id || uid('project'), updatedAt: Date.now() });
     setShowVault(false);
     setActiveStage('editor');
   };
@@ -1046,7 +960,7 @@ Issues: ${(json.issues || []).length}`);
 
   const addToItemBank = () => {
     const text = serializeProject(project, true);
-    const added = addQuestionsFromTextToBank(text, { source: 'Grammar Builder', level: project.level, topic: grammarFocus(project) });
+    const added = addQuestionsFromTextToBank(text, { source: 'Grammar Builder', level: project.level, topic: project.contrast });
     setNotice(vi ? `Đã thêm ${added.length} câu MCQ nhận diện được vào Item Bank.` : `${added.length} detected MCQs added to Item Bank.`);
   };
 
@@ -1061,7 +975,7 @@ Issues: ${(json.issues || []).length}`);
       content,
       metadata: {
         schema: 'bes-grammar-pack/1.0', projectId: project.id, mode: project.mode, domain: project.domain,
-        grammarFocus: grammarFocus(project), domain: project.domain, focusRequest: project.focusRequest, level: project.level, grade: project.grade, auditScore: audit.score,
+        contrast: project.contrast, level: project.level, grade: project.grade, auditScore: audit.score,
         status: project.status, itemCount: project.items.length, blueprint: project.blueprint,
       },
     });
@@ -1083,7 +997,7 @@ Issues: ${(json.issues || []).length}`);
     <div className="gb-page" data-stage={activeStage}>
       <section className="gb-toolbar">
         <button type="button" className="gb-back" onClick={() => window.history.back()}>← {vi ? 'Quay lại' : 'Back'}</button>
-        <div className="gb-project-title"><small>GRAMMAR BUILDER · V2.1</small><input value={project.title} onChange={(event) => updateProject({ title: event.target.value })} /></div>
+        <div className="gb-project-title"><small>GRAMMAR BUILDER · V2.0</small><input value={project.title} onChange={(event) => updateProject({ title: event.target.value })} /></div>
         <div className="gb-toolbar-state"><span className="gb-autosave">● {vi ? 'Tự động lưu' : 'Autosaved'}</span><span>{project.items.length} items</span><span>{audit.score}/100</span></div>
         <div className="gb-toolbar-actions">
           <button type="button" onClick={() => setShowBlueprint(true)}>▦ Blueprint</button>
@@ -1102,15 +1016,6 @@ Issues: ${(json.issues || []).length}`);
           <h1>Grammar Builder</h1>
           <p>{vi ? 'Thiết kế, kiểm định, tái sử dụng và phân phối học liệu ngữ pháp trong một workflow chuyên biệt.' : 'Design, audit, reuse and distribute grammar materials in one specialist workflow.'}</p>
           <div className="gb-hero-actions"><button type="button" className="gb-btn primary" onClick={() => { setActiveStage('setup'); document.querySelector('.gb-setup-grid')?.scrollIntoView({ behavior: 'smooth' }); }}>＋ Dự án mới</button><button type="button" className="gb-btn" onClick={() => setShowVault(true)}>▣ Teacher Vault <b>{vault.length}</b></button><button type="button" className="gb-btn" onClick={createSample}>◇ Xem sample</button></div>
-        </div>
-        <div className="gb-hero-visual" aria-hidden="true">
-          <div className="gb-visual-grid" />
-          <div className="gb-visual-book"><b>GB</b><span>Grammar<br />Builder</span></div>
-          <div className="gb-visual-sheet"><i>✓</i><span /><i>✓</i><span /><i>✓</i><span /></div>
-          <div className="gb-visual-chart"><span /><span /><span /><span /><b>↗</b></div>
-          <div className="gb-visual-ai">AI</div>
-          <div className="gb-visual-check">✓</div>
-          <div className="gb-visual-pencil" />
         </div>
         <div className="gb-hero-status">
           <div><span>AI ENGINE</span><strong>{hasApiKey ? 'READY' : 'SETUP'}</strong></div>
@@ -1135,19 +1040,20 @@ Issues: ${(json.issues || []).length}`);
             </div>
           </article>
 
-          <article className="gb-card gb-card-focus">
-            <SectionHeading number="02" eyebrow="GRAMMAR FOCUS" title="Xác định trọng tâm" description="Chọn một miền ngữ pháp; dùng ô yêu cầu riêng khi cần phạm vi cụ thể hơn." />
-            <SelectField label="Grammar domain" value={project.domain} onChange={(value) => updateProject({ domain: value })}>
-              {GRAMMAR_DOMAIN_GROUPS.map((group) => <optgroup key={group.label} label={group.label}>{group.options.map((value) => <option key={value} value={value}>{value}</option>)}</optgroup>)}
-            </SelectField>
-            <TextField label="Yêu cầu cụ thể khác" value={project.focusRequest} onChange={(value) => updateProject({ focusRequest: value })} placeholder="Ví dụ: so sánh Past Simple và Past Continuous; không dùng đảo ngữ; ưu tiên ngữ cảnh kể chuyện…" multiline rows={6} />
-            <div className="gb-domain-hints"><span>Gợi ý nhanh</span><div>{['Mixed tenses','Modal perfect forms','Reduced relative clauses','Inversion','Grammar cloze','THPT exam grammar'].map((value) => <button type="button" key={value} onClick={() => updateProject({ domain: value, focusRequest: '' })}>{value}</button>)}</div></div>
-            <div className="gb-focus-summary"><span>TARGET</span><strong>{project.domain}</strong><p>{project.focusRequest || 'AI sẽ triển khai toàn bộ phạm vi của domain đã chọn.'}</p></div>
+          <article className="gb-card">
+            <SectionHeading number="02" eyebrow="GRAMMAR FOCUS" title="Xác định trọng tâm" description="Chọn domain, contrast và giới hạn kiến thức." />
+            <div className="gb-form-grid two">
+              <SelectField label="Grammar domain" value={project.domain} onChange={(value) => updateProject({ domain: value })}>{GRAMMAR_DOMAINS.map((value) => <option key={value}>{value}</option>)}</SelectField>
+              <SelectField label="Grammar contrast" value={project.contrast} onChange={(value) => updateProject({ contrast: value })}>{GRAMMAR_CONTRASTS.map((value) => <option key={value}>{value}</option>)}</SelectField>
+            </div>
+            <TextField label="Cấu trúc bắt buộc" value={project.requiredStructures} onChange={(value) => updateProject({ requiredStructures: value })} placeholder="Ví dụ: while + Past Continuous" />
+            <TextField label="Cấu trúc loại trừ" value={project.excludedStructures} onChange={(value) => updateProject({ excludedStructures: value })} placeholder="Ví dụ: không dùng đảo ngữ" />
+            <div className="gb-focus-summary"><span>Target</span><strong>{project.domain}</strong><p>{project.contrast}</p></div>
           </article>
 
-          <article className="gb-card gb-card-learner">
+          <article className="gb-card">
             <SectionHeading number="03" eyebrow="LEARNER & CONTEXT" title="Đối tượng và ngữ cảnh" description="AI dùng thông tin này để điều chỉnh nội dung và độ khó." />
-            <div className="gb-form-grid two">
+            <div className="gb-form-grid three">
               <SelectField label="Khối" value={project.grade} onChange={(value) => updateProject({ grade: value })}><option>10</option><option>11</option><option>12</option></SelectField>
               <SelectField label="CEFR" value={project.level} onChange={(value) => updateProject({ level: value })}><option>A2</option><option>B1</option><option>B2</option><option>B2–C1</option><option>C1</option></SelectField>
               <SelectField label="Bộ sách" value={project.book} onChange={(value) => updateProject({ book: value })}><option>Global Success</option><option>Bright</option><option>Friends Global</option><option>i-Learn Smart World</option><option>English Discovery</option><option>Tự biên soạn</option></SelectField>
@@ -1159,7 +1065,7 @@ Issues: ${(json.issues || []).length}`);
             <TextField label="Đặc điểm lớp học" value={project.learnerNotes} onChange={(value) => updateProject({ learnerNotes: value })} multiline rows={4} />
           </article>
 
-          <article className="gb-card gb-card-source">
+          <article className="gb-card">
             <SectionHeading number="04" eyebrow="SOURCE & INPUT" title="Nguồn tạo nội dung" description="Dán nội dung, tải tài liệu hoặc nhận từ ứng dụng khác." action={<button type="button" className="gb-link-btn" onClick={() => fileInputRef.current?.click()}>＋ Tải file</button>} />
             <input ref={fileInputRef} hidden type="file" accept=".docx,.pdf,.txt,.md,.json" onChange={(event) => handleFile(event.target.files?.[0])} />
             <textarea data-transfer-target="primary" className="gb-source-input" value={project.sourceText} onChange={(event) => updateProject({ sourceText: event.target.value })} placeholder="Dán nội dung sách giáo khoa, danh sách cấu trúc, bài làm học sinh hoặc yêu cầu chuyên môn…" rows={10} />
@@ -1212,7 +1118,7 @@ Issues: ${(json.issues || []).length}`);
               <label className="gb-search"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm câu, grammar point hoặc context…" /></label>
               <select value={formatFilter} onChange={(event) => setFormatFilter(event.target.value)}><option value="all">Tất cả dạng</option>{FORMATS.map((format) => <option key={format.id} value={format.id}>{format.label}</option>)}</select>
               <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="all">Tất cả trạng thái</option><option value="ai-draft">AI Draft</option><option value="ai-audited">AI Audited</option><option value="needs-review">Needs Review</option><option value="teacher-approved">Teacher Approved</option><option value="published">Published</option></select>
-              <button type="button" onClick={() => setProject((current) => ({ ...current, items: [...current.items, normalizeItem({ id: uid('item'), section: 'New Section', format: 'mcq', formatLabel: 'Multiple Choice', level: current.level, cognitive: 'Application', grammarPoint: grammarPoint(current), context: current.customTopic || current.topic, status: 'needs-review', stem: 'New grammar item', options: ['Option A','Option B','Option C','Option D'], answer: 'A', explanation: '', pattern: '' })] }))}>＋ Thêm item</button>
+              <button type="button" onClick={() => setProject((current) => ({ ...current, items: [...current.items, normalizeItem({ id: uid('item'), section: 'New Section', format: 'mcq', formatLabel: 'Multiple Choice', level: current.level, cognitive: 'Application', grammarPoint: current.contrast, context: current.customTopic || current.topic, status: 'needs-review', stem: 'New grammar item', options: ['Option A','Option B','Option C','Option D'], answer: 'A', explanation: '', pattern: '' })] }))}>＋ Thêm item</button>
             </div>
 
             <div className="gb-item-list">
@@ -1292,7 +1198,7 @@ Issues: ${(json.issues || []).length}`);
             <header><div><span>AI COPILOT · GRAMMAR KNOWLEDGE ENGINE</span><h2>{AI_TASKS.find((task) => task.id === aiTask)?.title || (aiTask === 'rewrite-item' ? 'AI viết lại item' : 'AI Copilot')}</h2><p>{providerInfo?.label || 'AI Provider'} · {providerConfig?.model || aiModel || 'No model'}</p></div><button type="button" disabled={aiLoading} onClick={() => setShowAiPanel(false)}>×</button></header>
             <div className="gb-ai-modal-body">
               <div className="gb-ai-task-select">{AI_TASKS.map((task) => <button type="button" key={task.id} className={aiTask === task.id ? 'active' : ''} onClick={() => setAiTask(task.id)} disabled={aiLoading}><i>{task.icon}</i><span><strong>{task.title}</strong><small>{task.desc}</small></span></button>)}</div>
-              <div className="gb-ai-context"><span>Ngữ cảnh hiện tại</span><strong>Grade {project.grade} · {project.level} · {grammarFocus(project)}</strong><p>{project.items.length} items · Audit {audit.score}/100 · {project.customTopic || project.topic}</p></div>
+              <div className="gb-ai-context"><span>Ngữ cảnh hiện tại</span><strong>Grade {project.grade} · {project.level} · {project.contrast}</strong><p>{project.items.length} items · Audit {audit.score}/100 · {project.customTopic || project.topic}</p></div>
               <TextField label="Yêu cầu bổ sung" value={project.customInstruction} onChange={(value) => updateProject({ customInstruction: value })} multiline rows={5} />
               {aiLoading ? <div className="gb-ai-progress"><div className="gb-ai-spinner">✦</div><div><strong>{aiProgress[aiProgressIndex]}</strong><span>{aiProgress.map((step, index) => <i key={step} className={index <= aiProgressIndex ? 'active' : ''} />)}</span><p>Không đóng cửa sổ trong khi AI đang tạo dữ liệu có cấu trúc.</p></div></div> : null}
               {aiError ? <div className="gb-error large"><strong>AI chưa chạy được</strong><p>{aiError}</p><button type="button" onClick={() => window.location.hash = '#/settings'}>Mở Cài đặt AI</button></div> : null}

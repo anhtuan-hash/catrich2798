@@ -1,0 +1,22 @@
+{
+  "from": "11.4.7",
+  "to": "11.4.8",
+  "createdAt": "2026-07-13T23:19:45.463Z",
+  "files": [
+    "src/pages/GrammarBuilder.jsx",
+    "src/pages/GrammarBuilder.css",
+    "src/config/version.js",
+    "package.json",
+    "package-lock.json",
+    "public/version.json",
+    "public/release-manifest.json",
+    ".bes-release/v11.4.8.json",
+    "scripts/check-v11.4.8.mjs",
+    "scripts/sync-version-v11.4.8.mjs",
+    "scripts/performance-budget-v11.4.8.mjs",
+    "scripts/release-guard-v11.4.8.mjs",
+    "V11_4_8_GRAMMAR_LARGE_CARD_UI.md",
+    "V11_4_8_TEST_REPORT.md",
+    "docs/V11_4_8_DEPLOYMENT.md"
+  ]
+}
