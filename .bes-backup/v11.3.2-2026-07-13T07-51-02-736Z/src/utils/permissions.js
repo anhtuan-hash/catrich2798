@@ -28,7 +28,6 @@ export const ROUTE_PERMISSION_IDS = {
   'collaboration-hub': 'route:collaboration-hub',
   'data-governance': 'route:data-governance',
   'production-hardening': 'route:production-hardening',
-  'app-vault': 'route:app-vault',
   practice: 'route:practice',
   qa: 'route:qa',
   settings: 'route:settings',
@@ -404,7 +403,7 @@ export function getRoutePermissionId(route) {
   if (route === 'practice') return ROUTE_PERMISSION_IDS.practice;
   if (route === 'department') return DEPARTMENT_WORKSPACE_PERMISSION_ID;
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'lesson-pack' || route === 'assessment-core' || route === 'learning-intelligence' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
+  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'lesson-pack' || route === 'assessment-core' || route === 'learning-intelligence' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
@@ -413,7 +412,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (PUBLIC_ROUTES.has(route)) return true;
   if (!user) return false;
   if (isAdminRole(user.role)) return true;
-  if (route === 'admin' || route === 'app-vault') return false;
+  if (route === 'admin') return false;
   if (route === 'production-hardening') return isDepartmentLeaderRole(user.role);
   if (route === 'trash') return Boolean(user);
   if (route === 'tool') return hasToolAccess(user, selectedTool?.slug);

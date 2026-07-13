@@ -7,8 +7,6 @@ import { launchRoute } from '../utils/motion.js';
 import { loadLauncherConfig, normalizeLauncherConfig, subscribeLauncherConfig } from '../utils/launcherPreferences.js';
 import { getAppUsage, recordAppUsage, subscribeAppUsage } from '../utils/appUsage.js';
 import { isAdminRole, isDepartmentLeaderRole } from '../utils/roles.js';
-import { isAppHiddenForUser } from '../utils/appVisibility.js';
-import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 
 const ROUTES = [
   { route: 'home', vi: 'Trang chủ', en: 'Home', icon: '⌂', color: '#FFC69D' },
@@ -36,7 +34,6 @@ const ROUTES = [
   { route: 'practice', vi: 'Lớp học', en: 'Classroom', icon: '⚡', color: '#00A4EF' },
   { route: 'settings', vi: 'Cài đặt', en: 'Settings', icon: '⚙', color: '#123C69' },
   { route: 'ai-governance', vi: 'Quản trị AI', en: 'AI Governance', icon: 'AI', color: '#6D45C6', adminOnly: true },
-  { route: 'app-vault', vi: 'Ứng dụng đã ẩn', en: 'Hidden Apps Vault', icon: 'HV', color: '#684CC6', adminOnly: true },
   { route: 'admin', vi: 'Quản trị', en: 'Admin', icon: '☼', color: '#D13438', adminOnly: true },
 ];
 
@@ -69,18 +66,16 @@ function normalize(value) {
     .trim();
 }
 
-function canUse(entry, currentUser, visibilitySnapshot) {
+function canUse(entry, currentUser) {
   if (!currentUser) return entry.route === 'home';
   if (isAdminRole(currentUser.role)) return true;
   if (entry.adminOnly) return false;
-  const visibilityId = entry.kind === 'tool' ? entry.id : visibilityIdForRoute(entry.route, entry.app);
-  if (isAppHiddenForUser(visibilitySnapshot, currentUser, visibilityId)) return false;
   if (entry.leaderOnly && !isDepartmentLeaderRole(currentUser.role)) return false;
   if (entry.kind === 'tool') return entry.route ? hasRouteAccess(currentUser, entry.route, entry.app) : hasToolAccess(currentUser, entry.slug);
   return hasRouteAccess(currentUser, entry.route);
 }
 
-function buildEntries(language, currentUser, visibilitySnapshot) {
+function buildEntries(language, currentUser) {
   const routeEntries = ROUTES.map((item) => ({
     id: `route:${item.route}`,
     kind: 'route',
@@ -110,7 +105,7 @@ function buildEntries(language, currentUser, visibilitySnapshot) {
       keywords: `${app.slug} ${app.title || ''} ${app.titleVi || ''} ${app.desc || ''} ${app.descVi || ''}`,
     };
   });
-  return [...routeEntries, ...toolEntries].filter((entry) => canUse(entry, currentUser, visibilitySnapshot));
+  return [...routeEntries, ...toolEntries].filter((entry) => canUse(entry, currentUser));
 }
 
 function scoreEntry(entry, query) {
@@ -136,10 +131,9 @@ function CommandIcon({ children }) {
 }
 
 export default function GlobalCommandPalette({
-  language = 'vi', currentUser, theme = 'light', setTheme, currentRoute = 'home', selectedTool = null, appVisibility: externalAppVisibility,
+  language = 'vi', currentUser, theme = 'light', setTheme, currentRoute = 'home', selectedTool = null,
 }) {
   const t = text[language] || text.vi;
-  const appVisibility = externalAppVisibility || { snapshot: {} };
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
@@ -148,7 +142,7 @@ export default function GlobalCommandPalette({
   const inputRef = useRef(null);
   const listRef = useRef(null);
 
-  const entries = useMemo(() => buildEntries(language, currentUser, appVisibility?.snapshot), [language, currentUser, appVisibility?.snapshot]);
+  const entries = useMemo(() => buildEntries(language, currentUser), [language, currentUser]);
   const byId = useMemo(() => new Map(entries.map((entry) => [entry.id, entry])), [entries]);
 
   useEffect(() => {

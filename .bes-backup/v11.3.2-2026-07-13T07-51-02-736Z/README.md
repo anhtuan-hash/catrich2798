@@ -1,6 +1,4 @@
-# Brian English Studio V11.3.2
-
-V11.3.2 adds the Admin-only Hidden Apps Vault and system-wide app visibility control.
+# Brian English Studio V11.3.1
 
 ## English Global Success Lesson Architect
 

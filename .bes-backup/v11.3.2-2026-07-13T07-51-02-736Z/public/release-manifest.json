@@ -1,0 +1,19 @@
+{
+  "version": "11.3.1",
+  "release": "English Global Success Lesson Architect",
+  "runtime": "2.3.1",
+  "schema": "11.2.0",
+  "connectedTeachingSuite": true,
+  "lessonArchitectAnnualBuilder": true,
+  "curriculumExtraction": true,
+  "textbookAlignment": true,
+  "batchLessonGeneration": true,
+  "wordA4Export": true,
+  "googleDriveReferenceReader": true,
+  "requiresSql": false,
+  "generatedAt": "2026-07-13T07:21:56.720Z",
+  "englishOnlyLessonPlans": true,
+  "globalSuccessGrade11": true,
+  "moetDigitalCompetence": true,
+  "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT"
+}

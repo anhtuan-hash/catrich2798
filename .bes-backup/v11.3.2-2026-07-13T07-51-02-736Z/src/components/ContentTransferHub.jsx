@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { captureCurrentPagePayload, createTransfer, TRANSFER_OPEN_EVENT } from '../utils/contentTransfer.js';
 import { enqueueSync } from '../utils/syncQueue.js';
-import { isAppHiddenForUser } from '../utils/appVisibility.js';
-import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 
 const CONNECTED_TEACHING_APPS = new Set(['worksheet-factory','reading-studio','speaking-studio','exam-studio','lesson-plan-ai','student-practice','assessment-core','content-factory','word2graph','textlab-activities','news']);
 
@@ -17,7 +15,7 @@ const TARGETS = [
   { id: 'library', route: '#/library', label: 'Library', labelVi: 'Thư viện', icon: 'LI', descVi: 'Lưu để sử dụng lại sau', desc: 'Save for later reuse' },
 ];
 
-export default function ContentTransferHub({ currentUser, currentRoute, selectedTool, language = 'vi', accent = '#3B4CCA', appVisibility }) {
+export default function ContentTransferHub({ currentUser, currentRoute, selectedTool, language = 'vi', accent = '#3B4CCA' }) {
   const [open, setOpen] = useState(false);
   const [payload, setPayload] = useState(null);
   const [query, setQuery] = useState('');
@@ -39,11 +37,9 @@ export default function ContentTransferHub({ currentUser, currentRoute, selected
   }, [currentRoute, selectedTool?.slug, language]);
 
   const filtered = useMemo(() => TARGETS.filter((target) => {
-    const visibilityId = target.id === 'library' ? visibilityIdForRoute('library') : `tool:${target.id}`;
-    if (isAppHiddenForUser(appVisibility?.snapshot, currentUser, visibilityId)) return false;
     const text = `${target.label} ${target.labelVi} ${target.descVi} ${target.desc}`.toLowerCase();
     return !query.trim() || text.includes(query.trim().toLowerCase());
-  }), [query, appVisibility?.snapshot, currentUser?.role]);
+  }), [query]);
 
   const begin = () => {
     setPayload(captureCurrentPagePayload({ route: currentRoute, selectedTool, language }));
@@ -63,7 +59,7 @@ export default function ContentTransferHub({ currentUser, currentRoute, selected
   };
 
   const currentAppId = selectedTool?.slug || currentRoute;
-  const showQuickLessonPack = CONNECTED_TEACHING_APPS.has(currentAppId) && !isAppHiddenForUser(appVisibility?.snapshot, currentUser, 'tool:lesson-pack');
+  const showQuickLessonPack = CONNECTED_TEACHING_APPS.has(currentAppId);
   const quickAddToLessonPack = () => {
     const captured = captureCurrentPagePayload({ route: currentRoute, selectedTool, language });
     const item = createTransfer(currentUser, { ...captured, target: 'lesson-pack' });

@@ -1,0 +1,160 @@
+{
+  "version": "11.3.2",
+  "release": "Admin Hidden Apps Vault",
+  "installedAt": "2026-07-13T07:51:02.747Z",
+  "target": "/Users/catrichmauxanh/Documents/Brian-English-Studio-MAIN",
+  "previousVersion": "11.3.1",
+  "backupDir": "/Users/catrichmauxanh/Documents/Brian-English-Studio-MAIN/.bes-backup/v11.3.2-2026-07-13T07-51-02-736Z",
+  "files": [
+    {
+      "relative": "README.md",
+      "existed": true,
+      "sha256": "52b693a05f998b224619aaf36470b67a7cfb80e71da6184c37239553924ab943"
+    },
+    {
+      "relative": "README_UPDATE.md",
+      "existed": true,
+      "sha256": "00772ed74c08fe8c1afdcd6acdcf2c2f8a304c9371099f5e3915b0a39ba40ca9"
+    },
+    {
+      "relative": "V11_3_2_ADMIN_HIDDEN_APPS_VAULT.md",
+      "existed": false,
+      "sha256": "4dfc4d33b39d3eac78480c00b8a430eb3de539c0f1319011ead7cecda8a05be7"
+    },
+    {
+      "relative": "V11_3_2_TEST_REPORT.md",
+      "existed": false,
+      "sha256": "c0ab8cf785d1437cd683d8d98fc7212ab108f1e7482217788af640dc38aa9bf2"
+    },
+    {
+      "relative": "index.html",
+      "existed": true,
+      "sha256": "ad2ec4ffc69d797b9a3b2ce903cbfb4e68a45d6790fd8d113986bb805d2c97ce"
+    },
+    {
+      "relative": "package-lock.json",
+      "existed": true,
+      "sha256": "0580b85a120a7f6939e15a8cbb4377f0600a17d5e7f878201900650a4780340b"
+    },
+    {
+      "relative": "package.json",
+      "existed": true,
+      "sha256": "053c9d50cf4d1aaf3837ff52caeb9e68f6170fb2291903c13133c8d64e77919e"
+    },
+    {
+      "relative": "public/release-manifest.json",
+      "existed": true,
+      "sha256": "1bb85c220d4e077b912c3604b03c5871028344e7acca2a636e083499f8b8d214"
+    },
+    {
+      "relative": "public/sw.js",
+      "existed": true,
+      "sha256": "b926de48b8eb08797fb1f0f66030b8e0142576a2f6eb6da1bb6880a344a5f500"
+    },
+    {
+      "relative": "public/version.json",
+      "existed": true,
+      "sha256": "5105c8abae168af83ddb2cb50115d4b5cc2724fde15dff5191dcbaf53c55c919"
+    },
+    {
+      "relative": "scripts/check-v11.3.2.mjs",
+      "existed": false,
+      "sha256": "37518e9417cda7f91c35fe5ef0370048f9a24af8f5debd5b54fbf3c3c3ee82d7"
+    },
+    {
+      "relative": "scripts/performance-budget-v11.3.2.mjs",
+      "existed": false,
+      "sha256": "d40dc3619ca66fbc0b614ad460c6262bb81ff160ba488ebef9501e7e6cc25a73"
+    },
+    {
+      "relative": "scripts/release-guard-v11.3.2.mjs",
+      "existed": false,
+      "sha256": "871b0bdbcf0a725e23aca09c447c676c9ace2b3b6379dc9788011b60fdb16e4c"
+    },
+    {
+      "relative": "scripts/sync-version-v11.3.2.mjs",
+      "existed": false,
+      "sha256": "747e33919ce86ec5da371a2a388ec0ab77132f8b5f1545df779015b448530e33"
+    },
+    {
+      "relative": "src/components/ContentTransferHub.jsx",
+      "existed": true,
+      "sha256": "281c28859874a6ac6b90550452fee4013f3cd02b6be9d91ce517cd2a324fe67c"
+    },
+    {
+      "relative": "src/components/GlobalCommandPalette.jsx",
+      "existed": true,
+      "sha256": "3ec26d584cdd18752a6b23b0b82e74429d2d78aaa453c60cc8b773a15a1eea5b"
+    },
+    {
+      "relative": "src/components/GlobalFlatNavigation.jsx",
+      "existed": true,
+      "sha256": "e30918b2c6d30bba62ddb6cc4837397e73f64415a2e87a1fca4a1ffb79d5bfdf"
+    },
+    {
+      "relative": "src/components/WorkspaceTabs.jsx",
+      "existed": true,
+      "sha256": "7082a1691f685e74b2213308f2bec156d06b6d39d49a7e1fbb091ccfc8ef1318"
+    },
+    {
+      "relative": "src/config/version.js",
+      "existed": true,
+      "sha256": "7be03839113e5a353a8f5b9bb265447e68487d7837c682fe45fb83d4d629872e"
+    },
+    {
+      "relative": "src/data/appVisibilityRegistry.js",
+      "existed": false,
+      "sha256": "aca23ce40da024dca62840cda91d5502ef20f6e9d5ffac49675098e398b3ac0f"
+    },
+    {
+      "relative": "src/main.jsx",
+      "existed": true,
+      "sha256": "ce235ac6e3516fccd719b6b5e8062fdad9687d3a19edcc95ae8f3ba5c4198273"
+    },
+    {
+      "relative": "src/pages/HiddenAppsVault.jsx",
+      "existed": false,
+      "sha256": "6839b58391445d3d9149d7766ef45d97fa18dd0d71adf90807fe97b2b98d06dc"
+    },
+    {
+      "relative": "src/pages/Home.jsx",
+      "existed": true,
+      "sha256": "282b2de3ef838894041ae3890f21834067433741d48dce3523ea4424bf8edfb5"
+    },
+    {
+      "relative": "src/pages/WebApps.jsx",
+      "existed": true,
+      "sha256": "9a17a70ec575bd2f8092124a8fafc0539ef9ea746ff802fc34b2509866f81b31"
+    },
+    {
+      "relative": "src/styles/v1132.css",
+      "existed": false,
+      "sha256": "ef6274398f55ceee0f68d30b0d81b15646d4681c46dcf23af1b9bbbf03e44089"
+    },
+    {
+      "relative": "src/utils/appVisibility.js",
+      "existed": false,
+      "sha256": "20d98053a347c73921e04fc45cec988c4d8008654df79d922fbd58e0367d64d8"
+    },
+    {
+      "relative": "src/utils/permissions.js",
+      "existed": true,
+      "sha256": "244e2e90e899f1adfbff6bf133fb7b4dd3b6e6e05cbe5bd7c2aa55f0b44d9663"
+    },
+    {
+      "relative": "supabase/brian_v11_3_2_app_visibility.sql",
+      "existed": false,
+      "sha256": "2c94df14358cf99389a9767259bb8b5347425dfaf150d96c6c7295dd9dd8ef00"
+    },
+    {
+      "relative": "supabase/brian_v11_3_2_preflight.sql",
+      "existed": false,
+      "sha256": "c02c38356681c732ce7a59d6713dcf3e2a5b9af45200feba01abc393b63a1368"
+    },
+    {
+      "relative": "supabase/brian_v11_3_2_verify.sql",
+      "existed": false,
+      "sha256": "ebb65371cf3cd2f90b6b579167b22b770b0402f5b458ccfd0583bdf7f6975433"
+    }
+  ]
+}

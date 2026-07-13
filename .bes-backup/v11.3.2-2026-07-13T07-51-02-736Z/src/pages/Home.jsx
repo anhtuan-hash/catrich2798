@@ -3,8 +3,6 @@ import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../data/apps.js';
 import { getFirstAllowedRoute, hasRouteAccess } from '../utils/permissions.js';
 import { getAppDesignProfile } from '../data/designProfiles.js';
 import { launchRoute } from '../utils/motion.js';
-import { isAppHiddenForUser } from '../utils/appVisibility.js';
-import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 
 const palette = {
   ink: '#191515',
@@ -222,7 +220,6 @@ function makeAppWindow(slug, options = {}) {
     meta: options.meta || app?.groupVi || app?.group || 'Tool',
     text: options.text || app?.descVi || app?.desc || '',
     requiresUser: options.requiresUser ?? true,
-    visibilityId: options.visibilityId || `tool:${slug}`,
   };
 }
 
@@ -388,12 +385,10 @@ function FlatPinnedMenu({ language, setLanguage, theme, setTheme, hasApiKey, cur
   );
 }
 
-export default function Home({ hasApiKey, currentUser, language = 'vi', setLanguage, theme, setTheme, appVisibility }) {
+export default function Home({ hasApiKey, currentUser, language = 'vi', setLanguage, theme, setTheme }) {
   const [now, setNow] = useState(() => new Date());
   const t = copy[language] || copy.vi;
   const isVi = language === 'vi';
-  const visibilitySnapshot = appVisibility?.snapshot;
-  const canShowId = (id) => !isAppHiddenForUser(visibilitySnapshot, currentUser, id);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 30000);
@@ -510,16 +505,10 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
         text: isVi ? 'Luyện tập.' : 'Practice.',
         meta: isVi ? practiceStyle.styleVi : practiceStyle.style,
       }),
-      { title: isVi ? 'Thư viện' : 'Library', icon: 'library', target: canLibrary ? '#/library' : '#/login', label: 'LB', accent: libraryStyle.accent, color: libraryStyle.accent, requiresUser: true, visibilityId: visibilityIdForRoute('library') },
-      { title: hasApiKey ? (isVi ? 'Kết nối AI' : 'AI Access') : (isVi ? 'Cài đặt AI' : 'AI Setup'), icon: 'ai', target: currentUser ? '#/settings' : '#/login', label: 'AI', accent: hasApiKey ? palette.teal : palette.yellow, color: hasApiKey ? palette.teal : palette.yellow, requiresUser: true, visibilityId: 'route:settings' },
-    ].filter((item) => canShowId(item.visibilityId));
-  }, [canLibrary, currentUser, hasApiKey, isVi, windows, visibilitySnapshot]);
-
-
-  const featuredWindows = useMemo(() => [
-    windows.game, windows.lesson, windows.word, windows.exam,
-    windows.reading, windows.speaking, windows.textcare, windows.department,
-  ].filter((item) => canShowId(item.visibilityId)), [windows, visibilitySnapshot, currentUser?.role]);
+      { title: isVi ? 'Thư viện' : 'Library', icon: 'library', target: canLibrary ? '#/library' : '#/login', label: 'LB', accent: libraryStyle.accent, color: libraryStyle.accent, requiresUser: true },
+      { title: hasApiKey ? (isVi ? 'Kết nối AI' : 'AI Access') : (isVi ? 'Cài đặt AI' : 'AI Setup'), icon: 'ai', target: currentUser ? '#/settings' : '#/login', label: 'AI', accent: hasApiKey ? palette.teal : palette.yellow, color: hasApiKey ? palette.teal : palette.yellow, requiresUser: true },
+    ];
+  }, [canLibrary, currentUser, hasApiKey, isVi, windows]);
 
   return (
     <div className="flat-design-home" aria-label="Brian English homepage">
@@ -542,7 +531,14 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
         </div>
 
         <div className="flat-collage" aria-label="Featured app windows">
-          {featuredWindows.map((item) => <FlatAppWindow key={item.slug || item.title} item={item} currentUser={currentUser} language={language} />)}
+          <FlatAppWindow item={windows.game} currentUser={currentUser} language={language} />
+          <FlatAppWindow item={windows.lesson} currentUser={currentUser} language={language} />
+          <FlatAppWindow item={windows.word} currentUser={currentUser} language={language} />
+          <FlatAppWindow item={windows.exam} currentUser={currentUser} language={language} />
+          <FlatAppWindow item={windows.reading} currentUser={currentUser} language={language} />
+          <FlatAppWindow item={windows.speaking} currentUser={currentUser} language={language} />
+          <FlatAppWindow item={windows.textcare} currentUser={currentUser} language={language} />
+          <FlatAppWindow item={windows.department} currentUser={currentUser} language={language} />
         </div>
       </section>
 

@@ -1,0 +1,15 @@
+{
+  "version": "11.3.1",
+  "channel": "stable",
+  "releaseName": "English Global Success Lesson Architect",
+  "runtimeCore": "2.3.1",
+  "schemaVersion": "11.2.0",
+  "requiresSql": false,
+  "requiredMigration": "",
+  "legacyDomPatches": false,
+  "lessonArchitectAnnualBuilder": true,
+  "generatedAt": "2026-07-13T07:21:56.720Z",
+  "lessonArchitectEnglishOnly": true,
+  "globalSuccessPreset": true,
+  "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT"
+}

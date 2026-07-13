@@ -1,8 +1,8 @@
 {
-  "version": "11.3.1",
-  "release": "English Global Success Lesson Architect",
-  "runtime": "2.3.1",
-  "schema": "11.2.0",
+  "version": "11.3.2",
+  "release": "Admin Hidden Apps Vault",
+  "runtime": "2.3.2",
+  "schema": "11.3.2",
   "connectedTeachingSuite": true,
   "lessonArchitectAnnualBuilder": true,
   "curriculumExtraction": true,
@@ -10,10 +10,14 @@
   "batchLessonGeneration": true,
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
-  "requiresSql": false,
-  "generatedAt": "2026-07-13T07:21:56.720Z",
+  "requiresSql": true,
+  "generatedAt": "2026-07-13T07:51:16.223Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
-  "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT"
+  "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
+  "requiredMigration": "supabase/brian_v11_3_2_app_visibility.sql",
+  "adminHiddenAppsVault": true,
+  "teacherVisibilityEnforcement": true,
+  "visibilityRealtime": true
 }

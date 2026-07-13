@@ -12,7 +12,6 @@ import './styles/v1100.css';
 import './styles/v1110.css';
 import './styles/v1120.css';
 import './styles/v1131.css';
-import './styles/v1132.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
@@ -34,9 +33,6 @@ import { installAccessibilityBootstrap } from './utils/accessibility.js';
 import { collectWebVitals } from './utils/webVitals.js';
 import { installPwaEventCapture, registerBrianPwa } from './utils/pwa.js';
 import { APP_VERSION } from './config/version.js';
-import { isAdminRole } from './utils/roles.js';
-import { isAppHiddenForUser, useAppVisibility } from './utils/appVisibility.js';
-import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
 
 runConfigurationMigrations();
 installAccessibilityBootstrap();
@@ -117,9 +113,8 @@ const ContentEcosystem = lazy(() => import('./pages/ContentEcosystem.jsx'));
 const UnifiedUtilityRail = lazy(() => import('./components/UnifiedUtilityRail.jsx'));
 const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAccessibilityAnnouncer.jsx'));
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
-const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'content-ecosystem', 'lesson-pack', 'classroom-delivery', 'classroom-join', 'assessment-core', 'learning-intelligence', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'content-ecosystem', 'lesson-pack', 'classroom-delivery', 'classroom-join', 'assessment-core', 'learning-intelligence', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join']);
 
 function getInitialRoute() {
@@ -159,7 +154,6 @@ const ROUTE_DESIGN_PROFILES = {
   'production-hardening': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
   practice: { accent: '#00A4EF', soft: '#DCF4FF', ink: '#063048' },
   admin: { accent: '#D13438', soft: '#FFE1E3', ink: '#351014' },
-  'app-vault': { accent: '#684CC6', soft: '#EFE8FF', ink: '#211541' },
   settings: { accent: '#123C69', soft: '#DCEBFA', ink: '#07192C' },
   resources: { accent: '#D99A1E', soft: '#FFF0C8', ink: '#392406' },
   contact: { accent: '#00A6A6', soft: '#D8FAFA', ink: '#073434' },
@@ -364,17 +358,12 @@ function App() {
   const toolSlug = route.startsWith('tool/') ? route.replace('tool/', '') : '';
   const selectedTool = allTools.find((item) => item.slug === toolSlug);
   const currentRoute = ROUTES.includes(route) ? route : selectedTool ? 'tool' : 'home';
-  const appVisibility = useAppVisibility(currentUser);
-  const visibilityId = visibilityIdForRoute(currentRoute, selectedTool);
-  const visibilityReady = !currentUser || isAdminRole(currentUser?.role) || appVisibility.ready;
-  const temporarilyHidden = visibilityReady && isAppHiddenForUser(appVisibility.snapshot, currentUser, visibilityId);
-  const visibleForCurrentUser = (item) => !isAppHiddenForUser(appVisibility.snapshot, currentUser, `tool:${item.slug}`);
-  const accessibleApps = APPS.filter(visibleForCurrentUser);
-  const accessibleGames = GAME_APPS.filter(visibleForCurrentUser);
-  const accessibleTools = SPECIAL_TOOLS.filter(visibleForCurrentUser);
+  const accessibleApps = APPS;
+  const accessibleGames = GAME_APPS;
+  const accessibleTools = SPECIAL_TOOLS;
 
   const requiresAuth = currentRoute === 'tool' || !PUBLIC_ROUTES.has(currentRoute);
-  const canAccessRoute = visibilityReady && !temporarilyHidden && (!requiresAuth || hasRouteAccess(currentUser, currentRoute, selectedTool));
+  const canAccessRoute = !requiresAuth || hasRouteAccess(currentUser, currentRoute, selectedTool);
   useEffect(() => {
     if (authReady && requiresAuth && !currentUser) {
       window.location.hash = '#/login';
@@ -422,7 +411,6 @@ function App() {
     setIndicatorMode,
     fontScale,
     setFontScale,
-    appVisibility,
   };
 
   const activeDesignProfile = getActiveDesignProfile(currentRoute, selectedTool);
@@ -441,7 +429,6 @@ function App() {
       'collaboration-hub': ['Collaboration Hub', 'Không gian cộng tác'],
       'data-governance': ['Data Governance', 'Quản trị dữ liệu'],
       'production-hardening': ['Production Hardening', 'Sẵn sàng Production'],
-      'app-vault': ['Hidden Apps Vault', 'Thư mục ứng dụng đã ẩn'],
       practice: ['Classroom', 'Lớp học'], settings: ['Settings', 'Cài đặt'],
       admin: ['Admin', 'Quản trị'], 'ai-governance': ['AI Governance', 'Quản trị AI'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác'],
     };
@@ -497,7 +484,7 @@ function App() {
       {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="workspace-tabs" label={language === 'vi' ? 'tab không gian làm việc' : 'workspace tabs'}>
-            <WorkspaceTabs currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} activeProfile={activeDesignProfile} language={language} appVisibility={appVisibility} />
+            <WorkspaceTabs currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} activeProfile={activeDesignProfile} language={language} />
           </AppErrorBoundary>
         </Suspense>
       ) : null}
@@ -563,10 +550,8 @@ function App() {
       ) : null}
       <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute}>
         <Suspense fallback={<RouteFallback language={language} />}>
-          {currentRoute === 'home' && (!currentUser || visibilityReady) && <Home {...context} />}
-          {currentRoute === 'home' && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
-          {requiresAuth && currentUser && !canAccessRoute && visibilityReady && <AccessDenied language={language} currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} temporarilyHidden={temporarilyHidden} />}
-          {requiresAuth && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
+          {currentRoute === 'home' && <Home {...context} />}
+          {requiresAuth && currentUser && !canAccessRoute && <AccessDenied language={language} currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} />}
           {canAccessRoute && currentRoute === 'apps' && currentUser && (
             <AppErrorBoundary scope="apps-launcher" label={language === 'vi' ? 'trang Ứng dụng' : 'Apps page'}>
               <WebApps apps={accessibleApps} {...context} />
@@ -597,7 +582,6 @@ function App() {
           {canAccessRoute && currentRoute === 'collaboration-hub' && currentUser && <CollaborationHub {...context} />}
           {canAccessRoute && currentRoute === 'data-governance' && currentUser && <DataGovernance {...context} />}
           {canAccessRoute && currentRoute === 'production-hardening' && currentUser && <ProductionHardening {...context} />}
-          {canAccessRoute && currentRoute === 'app-vault' && currentUser && <HiddenAppsVault {...context} />}
           {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
           {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}
           {canAccessRoute && currentRoute === 'ai-governance' && currentUser && <AIGovernanceCenter {...context} />}
@@ -644,7 +628,7 @@ function App() {
       {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? <>
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
-            <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} appVisibility={appVisibility} />
+            <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} />
           </AppErrorBoundary>
         </Suspense>
         <Suspense fallback={null}>
@@ -674,20 +658,10 @@ function RouteFallback({ language }) {
   );
 }
 
-function AccessDenied({ language, currentUser, route, selectedTool, temporarilyHidden = false }) {
+function AccessDenied({ language, currentUser, route, selectedTool }) {
   const fallback = getFirstAllowedRoute(currentUser);
   const permissionId = route === 'tool' && selectedTool?.slug ? `tool:${selectedTool.slug}` : getRoutePermissionId(route);
   const requestItem = selectedTool || getPermissionItem(permissionId);
-  if (temporarilyHidden) {
-    return (
-      <section className="temporary-hidden-access">
-        <span aria-hidden="true">▣</span>
-        <h1>{language === 'vi' ? 'Ứng dụng đang tạm ẩn' : 'This app is temporarily hidden'}</h1>
-        <p>{language === 'vi' ? 'Admin đã tạm ẩn ứng dụng này vì hiện chưa được sử dụng. Ứng dụng cũng không xuất hiện trong Launcher, thanh điều hướng hoặc tìm kiếm nhanh của giáo viên.' : 'Admin has temporarily hidden this unused app. It is also removed from the teacher launcher, navigation and quick search.'}</p>
-        <button onClick={() => { window.location.hash = '#/apps'; }}>{language === 'vi' ? 'Quay lại Ứng dụng' : 'Back to Apps'}</button>
-      </section>
-    );
-  }
   return (
     <div className="page narrow">
       <section className="metro-panel empty-state">

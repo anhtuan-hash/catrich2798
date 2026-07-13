@@ -16,16 +16,20 @@ import {
   subscribeLauncherConfig,
 } from '../utils/launcherPreferences.js';
 import { getAppUsage, subscribeAppUsage } from '../utils/appUsage.js';
-import { HIDDEN_APPS_FOLDER, ROUTE_APP_SHORTCUTS, appVisibilityId } from '../data/appVisibilityRegistry.js';
-import { getHiddenAppIds } from '../utils/appVisibility.js';
 
 const APP_ORDER = [
-  'hidden-apps-vault',   'resource-library-hub', 'lesson-plan-ai', 'worksheet-factory', 'textlab-activities', 'exam-studio', 'reading-studio',
+  'resource-library-hub', 'lesson-plan-ai', 'worksheet-factory', 'textlab-activities', 'exam-studio', 'reading-studio',
   'news-reader', 'smart-id', 'vietnam-tax', 'speaking-studio', 'word2graph', 'textcare', 'student-practice', 'game-hub',
   'department-workspace', 'homeroom-hub', 'library-hub', 'practice-hub', 'games-hub', 'admin-hub',
 ];
 
-const ROUTE_APPS = ROUTE_APP_SHORTCUTS;
+const ROUTE_APPS = [
+  { slug: 'homeroom-hub', route: 'homeroom', title: 'Homeroom Teacher', titleVi: 'Giáo viên chủ nhiệm', desc: 'Learning analytics, subject feedback, team competition, family/student portals and school-wide summaries.', descVi: 'Phân tích học tập, nhận xét bộ môn, thi đua, cổng phụ huynh/học sinh và thống kê toàn trường.', status: 'Phase 2 · Connected' },
+  { slug: 'library-hub', route: 'library', title: 'Library', titleVi: 'Thư viện', desc: 'Saved teaching resources, prompts, questions, reports and exported lesson materials.', descVi: 'Kho tài liệu, prompt, câu hỏi, báo cáo và học liệu đã lưu.', status: 'Resource shelf' },
+  { slug: 'practice-hub', route: 'practice', title: 'Classroom', titleVi: 'Lớp học', desc: 'Scored practice sessions with progress tracking for learners.', descVi: 'Giao bài luyện, theo dõi tiến độ và chấm điểm học sinh.', status: 'Practice flow' },
+  { slug: 'games-hub', route: 'games', title: 'Games', titleVi: 'Trò chơi', desc: 'Open classroom games and interactive learning launchers.', descVi: 'Mở nhanh trò chơi lớp học và hoạt động tương tác.', status: 'Game launchers' },
+  { slug: 'admin-hub', route: 'admin', title: 'Admin', titleVi: 'Quản trị', desc: 'Manage users, permissions, system configuration and activity logs.', descVi: 'Quản lý người dùng, vai trò, quyền truy cập và cấu hình hệ thống.', status: 'Control room', adminOnly: true },
+];
 
 const copy = {
   vi: {
@@ -159,7 +163,7 @@ function AppWindowCard({ item, language, currentUser, editMode, config, groupOpt
 
   return (
     <article
-      className={`flat-app-window-card flat-app-window-drawer ${item.isHiddenFolder ? 'hidden-app-folder-card' : ''} ${locked ? 'is-locked' : ''} ${editMode ? 'is-launcher-editing' : ''} ${hidden ? 'is-launcher-hidden' : ''}`}
+      className={`flat-app-window-card flat-app-window-drawer ${locked ? 'is-locked' : ''} ${editMode ? 'is-launcher-editing' : ''} ${hidden ? 'is-launcher-hidden' : ''}`}
       style={{ '--app-accent': profile.accent, '--app-soft': profile.soft, '--app-ink': profile.ink }}
       draggable={editMode}
       onDragStart={(event) => onDragStart?.(event, itemId)}
@@ -180,13 +184,13 @@ function AppWindowCard({ item, language, currentUser, editMode, config, groupOpt
           <span className="flat-app-window-art" aria-hidden="true"><FlatAppIcon type={profile.icon} slug={item.slug} /></span>
           <span className="flat-app-window-copy">
             <small>{groupOptions.find((group) => group.id === groupId)?.[language === 'vi' ? 'labelVi' : 'label'] || t.group}</small>
-            <strong>{titleOf(item, language)} {item.isHiddenFolder ? <span className="hidden-app-folder-count">{String(item.statusVi || item.status || '').match(/\d+/)?.[0] || '0'}</span> : null}</strong><em>{shortDesc(item, language)}</em>
+            <strong>{titleOf(item, language)}</strong><em>{shortDesc(item, language)}</em>
           </span>
           <span className="flat-app-window-cta">{locked ? t.locked : t.open}</span><span className="flat-app-window-decoration" />
         </span>
       </button>
 
-      {editMode && !item.isHiddenFolder && (
+      {editMode && (
         <div className="launcher-card-controls" role="group" aria-label={`${t.customize}: ${titleOf(item, language)}`}>
           <button type="button" className={pinned ? 'active' : ''} onClick={() => onTogglePin(itemId)} title={pinned ? t.unpin : t.pin}>★</button>
           <button type="button" className={hidden ? 'active danger' : ''} onClick={() => onToggleHidden(itemId, navId)} title={hidden ? t.show : t.hide}>{hidden ? '◉' : '◌'}</button>
@@ -210,11 +214,9 @@ function GroupRail({ group, count, language, active, onClick }) {
   );
 }
 
-export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser, setLanguage, theme, setTheme, appVisibility: externalAppVisibility }) {
+export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser, setLanguage, theme, setTheme }) {
   const t = copy[language] || copy.vi;
   const isAdmin = currentUser?.role === 'admin';
-  const appVisibility = externalAppVisibility || { snapshot: {}, hiddenIds: [] };
-  const globallyHiddenIds = useMemo(() => new Set(appVisibility?.hiddenIds || getHiddenAppIds(appVisibility?.snapshot)), [appVisibility?.hiddenIds?.join('|'), appVisibility?.snapshot]);
   const [editMode, setEditMode] = useState(false);
   const [activeGroup, setActiveGroup] = useState('all');
   const [newGroupName, setNewGroupName] = useState('');
@@ -230,18 +232,9 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
   const editModeRef = useRef(false);
 
   const safeApps = Array.isArray(apps) ? apps : [];
-  const allBaseItems = useMemo(() => {
+  const baseItems = useMemo(() => {
     const routeApps = ROUTE_APPS.filter((item) => !item.adminOnly || isAdmin);
-    const hiddenCount = globallyHiddenIds.size;
-    const folder = isAdmin ? [{
-      ...HIDDEN_APPS_FOLDER,
-      desc: `${hiddenCount} app${hiddenCount === 1 ? '' : 's'} are currently hidden from teachers.`,
-      descVi: `${hiddenCount} ứng dụng hiện đang được ẩn khỏi tài khoản giáo viên.`,
-      status: `${hiddenCount} hidden apps`,
-      statusVi: `${hiddenCount} ứng dụng đã ẩn`,
-      isHiddenFolder: true,
-    }] : [];
-    const merged = [...folder, ...safeApps, ...routeApps];
+    const merged = [...safeApps, ...routeApps];
     const seen = new Set();
     return merged.filter((item) => {
       const key = launcherItemId(item);
@@ -252,10 +245,9 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
       const ai = APP_ORDER.indexOf(a.slug); const bi = APP_ORDER.indexOf(b.slug);
       return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
     });
-  }, [safeApps, isAdmin, globallyHiddenIds]);
+  }, [safeApps, isAdmin]);
 
-  const baseItems = useMemo(() => allBaseItems.filter((item) => item.isHiddenFolder || !globallyHiddenIds.has(appVisibilityId(item))), [allBaseItems, globallyHiddenIds]);
-  const itemIds = useMemo(() => allBaseItems.map(launcherItemId), [allBaseItems]);
+  const itemIds = useMemo(() => baseItems.map(launcherItemId), [baseItems]);
   const [config, setConfig] = useState(() => loadLauncherConfig(itemIds));
   const [draftConfig, setDraftConfig] = useState(() => loadLauncherConfig(itemIds));
 

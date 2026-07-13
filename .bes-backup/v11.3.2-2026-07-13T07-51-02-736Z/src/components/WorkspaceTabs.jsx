@@ -8,8 +8,6 @@ import {
   setWorkspaceActive,
   toggleWorkspacePin,
 } from '../utils/workspace.js';
-import { isAppHiddenForUser } from '../utils/appVisibility.js';
-import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 
 const EXCLUDED = new Set(['login', 'register', 'setup', 'homeroom-portal']);
 
@@ -41,7 +39,7 @@ function routeDescriptor(route, selectedTool, profile, language) {
   };
 }
 
-export default function WorkspaceTabs({ currentUser, route, selectedTool, activeProfile, language = 'vi', appVisibility }) {
+export default function WorkspaceTabs({ currentUser, route, selectedTool, activeProfile, language = 'vi' }) {
   const [workspace, setWorkspace] = useState(() => loadWorkspace(currentUser));
   const draggedRef = useRef('');
   const current = useMemo(() => routeDescriptor(route, selectedTool, activeProfile, language), [route, selectedTool?.slug, activeProfile?.accent, language]);
@@ -75,12 +73,7 @@ export default function WorkspaceTabs({ currentUser, route, selectedTool, active
     };
   }, [currentUser?.id, currentUser?.email]);
 
-  const visibleTabs = workspace.tabs.filter((tab) => {
-    const visibilityId = tab.id?.startsWith('tool:') ? tab.id : visibilityIdForRoute(String(tab.id || '').replace(/^route:/, ''));
-    return !isAppHiddenForUser(appVisibility?.snapshot, currentUser, visibilityId);
-  });
-
-  if (!currentUser || EXCLUDED.has(route) || visibleTabs.length < 2) return null;
+  if (!currentUser || EXCLUDED.has(route) || workspace.tabs.length < 2) return null;
 
   const openTab = (tab) => {
     setWorkspace(setWorkspaceActive(currentUser, tab.id));
@@ -101,7 +94,7 @@ export default function WorkspaceTabs({ currentUser, route, selectedTool, active
   return (
     <nav className="bes-workspace-tabs" aria-label={language === 'vi' ? 'Không gian làm việc đang mở' : 'Open workspaces'}>
       <div className="bes-workspace-tabs-track">
-        {visibleTabs.map((tab) => {
+        {workspace.tabs.map((tab) => {
           const active = tab.id === workspace.activeId;
           return (
             <div
