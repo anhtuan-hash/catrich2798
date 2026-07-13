@@ -634,26 +634,72 @@ function requestGlobalMusicToggle() {
   window.dispatchEvent(new CustomEvent('bes-global-music-command', { detail: { action: 'toggle' } }));
 }
 
-function playNoticeTone() {
+let noticeAudioContext = null;
+
+function getNoticeAudioContext() {
+  if (noticeAudioContext && noticeAudioContext.state !== 'closed') return noticeAudioContext;
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return null;
+  noticeAudioContext = new AudioContextClass();
+  return noticeAudioContext;
+}
+
+async function unlockNoticeTone() {
   try {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    const osc = ctx.createOscillator();
+    const ctx = getNoticeAudioContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') await ctx.resume();
+
+    // A silent one-sample source unlocks audio reliably on Safari/iOS after
+    // the first user interaction without producing an audible click.
+    const source = ctx.createBufferSource();
+    source.buffer = ctx.createBuffer(1, 1, Math.max(8000, ctx.sampleRate || 44100));
     const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(720, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(980, ctx.currentTime + 0.12);
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.055, ctx.currentTime + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
-    osc.connect(gain);
+    gain.gain.value = 0.00001;
+    source.connect(gain);
     gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.24);
-    window.setTimeout(() => ctx.close?.(), 450);
+    source.start();
   } catch {
-    // Sound is optional.
+    // Browsers may still defer audio until the next user interaction.
+  }
+}
+
+async function playNoticeTone() {
+  try {
+    const ctx = getNoticeAudioContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') await ctx.resume();
+
+    const start = ctx.currentTime + 0.015;
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.0001, start);
+    master.gain.exponentialRampToValueAtTime(0.075, start + 0.025);
+    master.gain.exponentialRampToValueAtTime(0.0001, start + 0.58);
+    master.connect(ctx.destination);
+
+    const notes = [
+      { frequency: 740, offset: 0, duration: 0.22 },
+      { frequency: 988, offset: 0.18, duration: 0.30 },
+    ];
+
+    notes.forEach(({ frequency, offset, duration }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const noteStart = start + offset;
+      const noteEnd = noteStart + duration;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(frequency, noteStart);
+      osc.frequency.exponentialRampToValueAtTime(frequency * 1.035, noteEnd);
+      gain.gain.setValueAtTime(0.0001, noteStart);
+      gain.gain.exponentialRampToValueAtTime(0.85, noteStart + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, noteEnd);
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start(noteStart);
+      osc.stop(noteEnd + 0.02);
+    });
+  } catch {
+    // Sound is optional and must never interrupt the notification center.
   }
 }
 
@@ -785,7 +831,11 @@ export default function StatusMenuBar({
   const [youtubeKeyDraft, setYoutubeKeyDraft] = useState(() => readLocalAccountYouTubeApiKey(currentUser));
   const [youtubeKeySaving, setYoutubeKeySaving] = useState(false);
   const [youtubeKeyStatus, setYoutubeKeyStatus] = useState('');
-  const previousCountRef = useRef(0);
+  const knownNotificationIdsRef = useRef(null);
+  const notificationIdentityRef = useRef(userKey(currentUser));
+  const notificationBaselineReadyRef = useRef(false);
+  const noticeAnimationTimerRef = useRef(null);
+  const [newNoticeAnimating, setNewNoticeAnimating] = useState(false);
   const t = routeLabels[language] || routeLabels.vi;
   const isAdmin = currentUser?.role === 'admin';
 
@@ -814,6 +864,16 @@ export default function StatusMenuBar({
   useEffect(() => {
     writeBooleanSetting('bes-global-notice-sound', soundEnabled);
   }, [soundEnabled]);
+
+  useEffect(() => {
+    const unlock = () => { void unlockNoticeTone(); };
+    window.addEventListener('pointerdown', unlock, { capture: true, once: true });
+    window.addEventListener('keydown', unlock, { capture: true, once: true });
+    return () => {
+      window.removeEventListener('pointerdown', unlock, true);
+      window.removeEventListener('keydown', unlock, true);
+    };
+  }, []);
 
   useEffect(() => {
     writeBooleanSetting('bes-global-notice-live-sync', liveSyncEnabled);
@@ -866,9 +926,23 @@ export default function StatusMenuBar({
 
   useEffect(() => {
     let alive = true;
+    const identity = userKey(currentUser);
+    if (notificationIdentityRef.current !== identity) {
+      notificationIdentityRef.current = identity;
+      notificationBaselineReadyRef.current = false;
+      knownNotificationIdsRef.current = null;
+    }
+
     setLoading(true);
     buildNotificationList({ currentUser, language, isAdmin })
-      .then((list) => { if (alive) setNotifications(list); })
+      .then((list) => {
+        if (!alive) return;
+        if (!notificationBaselineReadyRef.current) {
+          knownNotificationIdsRef.current = new Set(list.map((item) => item.id));
+          notificationBaselineReadyRef.current = true;
+        }
+        setNotifications(list);
+      })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, [currentUser?.id, currentUser?.email, currentUser?.role, language, isAdmin, refreshTick]);
@@ -896,10 +970,35 @@ export default function StatusMenuBar({
   );
 
   useEffect(() => {
-    const count = visibleNotifications.length;
-    if (soundEnabled && previousCountRef.current > 0 && count > previousCountRef.current) playNoticeTone();
-    previousCountRef.current = count;
-  }, [visibleNotifications.length, soundEnabled]);
+    if (loading || !notificationBaselineReadyRef.current) return;
+
+    const nextIds = new Set(visibleNotifications.map((item) => item.id));
+    const knownIds = knownNotificationIdsRef.current;
+    if (knownIds === null) {
+      knownNotificationIdsRef.current = nextIds;
+      return;
+    }
+
+    const hasNewNotification = [...nextIds].some((id) => !knownIds.has(id));
+    knownNotificationIdsRef.current = nextIds;
+    if (!hasNewNotification) return;
+
+    if (soundEnabled) void playNoticeTone();
+
+    // Restart the strong arrival animation even when notifications arrive
+    // close together, while the regular unread pulse remains CSS-driven.
+    setNewNoticeAnimating(false);
+    window.requestAnimationFrame(() => setNewNoticeAnimating(true));
+    if (noticeAnimationTimerRef.current) window.clearTimeout(noticeAnimationTimerRef.current);
+    noticeAnimationTimerRef.current = window.setTimeout(() => {
+      setNewNoticeAnimating(false);
+      noticeAnimationTimerRef.current = null;
+    }, 1800);
+  }, [visibleNotifications, loading, soundEnabled]);
+
+  useEffect(() => () => {
+    if (noticeAnimationTimerRef.current) window.clearTimeout(noticeAnimationTimerRef.current);
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -1279,13 +1378,13 @@ export default function StatusMenuBar({
 
         <button
           type="button"
-          className={`global-notice-open ${panelOpen ? 'is-open' : ''}`}
+          className={`global-notice-open ${panelOpen ? 'is-open' : ''} ${visibleNotifications.length ? 'has-unread' : ''} ${newNoticeAnimating ? 'has-new-notice' : ''}`}
           onClick={() => setPanelOpen((value) => !value)}
           aria-expanded={panelOpen}
         >
           <span aria-hidden="true">☷</span>
           <strong>{language === 'vi' ? 'Mở bảng thông báo' : 'Open notifications'}</strong>
-          <b>{visibleNotifications.length}</b>
+          <b aria-label={language === 'vi' ? `${visibleNotifications.length} thông báo chưa đọc` : `${visibleNotifications.length} unread notifications`}>{visibleNotifications.length}</b>
         </button>
       </div>
 

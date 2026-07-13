@@ -1,2 +1,71 @@
 /* V11.3.3 — Work Assignment Notification & File Response */
 .work-delivery-form-note{margin:12px 0 0;padding:10px 12px;border:1px solid #b9d8ca;background:#effbf5;color:#245d49;font-size:13px;font-weight:750;line-height:1.5}.work-delivery-task-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.work-delivery-task-meta span{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid #c9d7e5;background:#f2f7fc;color:#47647f;font-size:11px;font-weight:850}.work-delivery-task-meta .has-submission{border-color:#c7b7e8;background:#f2ecff;color:#6744a9}.work-delivery-drawer{width:min(650px,100vw)}.work-delivery-submission-box{margin-top:24px;padding:18px;border:1px solid #9fc8ba;background:linear-gradient(145deg,#effbf6,#fff);box-shadow:0 10px 26px rgba(28,93,70,.07)}.work-delivery-submission-heading{display:flex;align-items:center;gap:12px;margin-bottom:14px}.work-delivery-submission-heading>span{display:grid;place-items:center;width:44px;height:44px;background:#198466;color:#fff;font-size:22px}.work-delivery-submission-heading strong,.work-delivery-submission-heading small{display:block}.work-delivery-submission-heading strong{font-size:18px}.work-delivery-submission-heading small{margin-top:3px;color:#59756b;line-height:1.4}.work-delivery-submission-box form{display:grid;gap:12px}.work-delivery-submission-box label{display:grid;gap:6px}.work-delivery-submission-box label>span{font-size:12px;font-weight:900;color:#285748}.work-delivery-submission-box textarea{width:100%;min-height:88px;padding:11px;border:1px solid #a9c7bc;background:#fff;color:#10264a;resize:vertical}.work-delivery-file-picker{padding:12px;border:1px dashed #91b8aa;background:#fff}.work-delivery-file-picker input{width:100%}.work-delivery-file-picker small{color:#56746a}.work-delivery-submission-box form>button{min-height:46px;border:0;background:#198466;color:#fff;font-weight:900}.work-delivery-submission-box form>button:disabled{opacity:.55;cursor:not-allowed}.v1093-comments article{border-left:3px solid transparent}.v1093-comments article.is-submission{border-left-color:#7654bd;background:#f6f1ff}.v1093-comments article>header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}.v1093-comments article>header strong{font-size:12px;color:#34516d}.v1093-comments article>header span{padding:3px 6px;background:#7654bd;color:#fff;font-size:9px;font-weight:900;letter-spacing:.06em}.work-delivery-attachments{display:grid;gap:7px;margin:10px 0}.work-delivery-attachments a{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px;border:1px solid #c4b7e1;background:#fff;color:#4e3986;text-decoration:none}.work-delivery-attachments a:hover{border-color:#7654bd;background:#faf8ff}.work-delivery-attachments a.disabled{opacity:.55;cursor:not-allowed}.work-delivery-attachments a>span{font-size:18px}.work-delivery-attachments a>strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.work-delivery-attachments a>small{color:#6f6387}.work-delivery-comments-loading,.work-delivery-comments-empty{padding:12px;border:1px dashed #bdcbd8;background:#f8fbfe;color:#63798e;text-align:center}.global-notice-card.tone-green .global-notice-card-icon{background:#e4f8ef;color:#176f50}.global-notice-card.tone-orange .global-notice-card-icon{background:#fff0df;color:#a55a0c}@media(max-width:700px){.work-delivery-task-meta{flex-direction:column;align-items:flex-start}.work-delivery-submission-box{padding:14px}.work-delivery-attachments a{grid-template-columns:26px minmax(0,1fr)}.work-delivery-attachments a>small{grid-column:2}.work-delivery-drawer{padding-bottom:90px}}
+
+/* V11.3.3 HF1 — Audible arrivals + animated unread counter */
+.metro-clean-system .global-notice-open.has-unread b{
+  position:relative!important;
+  transform-origin:center!important;
+  animation:bes-notice-badge-breathe 1.8s ease-in-out infinite!important;
+  box-shadow:0 0 0 0 rgba(229,46,54,.32)!important;
+}
+.metro-clean-system .global-notice-open.has-unread b::after{
+  content:""!important;
+  position:absolute!important;
+  inset:-4px!important;
+  border:2px solid rgba(229,46,54,.3)!important;
+  border-radius:999px!important;
+  opacity:0!important;
+  pointer-events:none!important;
+  animation:bes-notice-badge-ring 1.8s ease-out infinite!important;
+}
+.metro-clean-system .global-notice-open.has-new-notice{
+  animation:bes-notice-arrival-nudge .52s cubic-bezier(.2,.9,.25,1) 2!important;
+}
+.metro-clean-system .global-notice-open.has-new-notice b{
+  animation:bes-notice-arrival-pop .48s cubic-bezier(.2,1.45,.35,1) 2,
+    bes-notice-badge-breathe 1.8s ease-in-out 1s infinite!important;
+}
+.metro-clean-system .global-notice-open.has-new-notice>span:first-child{
+  display:inline-block!important;
+  transform-origin:50% 10%!important;
+  animation:bes-notice-bell-ring .58s ease-in-out 2!important;
+}
+@keyframes bes-notice-badge-breathe{
+  0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(229,46,54,.28)}
+  48%{transform:scale(1.12);box-shadow:0 0 0 7px rgba(229,46,54,0)}
+}
+@keyframes bes-notice-badge-ring{
+  0%{transform:scale(.82);opacity:.72}
+  75%,100%{transform:scale(1.42);opacity:0}
+}
+@keyframes bes-notice-arrival-pop{
+  0%{transform:scale(.72) rotate(-8deg)}
+  55%{transform:scale(1.3) rotate(5deg)}
+  100%{transform:scale(1) rotate(0)}
+}
+@keyframes bes-notice-arrival-nudge{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-3px)}
+  55%{transform:translateX(4px)}
+  78%{transform:translateX(-2px)}
+}
+@keyframes bes-notice-bell-ring{
+  0%,100%{transform:rotate(0)}
+  20%{transform:rotate(13deg)}
+  40%{transform:rotate(-11deg)}
+  60%{transform:rotate(8deg)}
+  80%{transform:rotate(-5deg)}
+}
+@media(prefers-reduced-motion:reduce){
+  .metro-clean-system .global-notice-open.has-unread b,
+  .metro-clean-system .global-notice-open.has-unread b::after,
+  .metro-clean-system .global-notice-open.has-new-notice,
+  .metro-clean-system .global-notice-open.has-new-notice b,
+  .metro-clean-system .global-notice-open.has-new-notice>span:first-child{
+    animation:none!important;
+  }
+  .metro-clean-system .global-notice-open.has-unread b{
+    outline:3px solid rgba(229,46,54,.16)!important;
+  }
+}
+
