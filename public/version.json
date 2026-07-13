@@ -1,14 +1,14 @@
 {
-  "version": "11.3.7",
+  "version": "11.4.2",
   "channel": "stable",
-  "releaseName": "Animated Home App Constellation",
-  "runtimeCore": "2.3.7",
-  "schemaVersion": "11.3.5",
-  "requiresSql": false,
-  "requiredMigration": null,
+  "releaseName": "AI Lesson Integration Native Merge",
+  "runtimeCore": "2.4.2",
+  "schemaVersion": "11.4.2",
+  "requiresSql": true,
+  "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-13T14:16:19.529Z",
+  "generatedAt": "2026-07-13T14:50:09.878Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -40,5 +40,10 @@
   "listeningLab": true,
   "grammarBuilder": true,
   "writingStudio": true,
-  "pronunciationCoach": true
+  "pronunciationCoach": true,
+  "aiLessonIntegrationStudio": true,
+  "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
+  "lessonIntegrationCloudSync": true,
+  "lessonIntegrationShadowDom": true,
+  "lessonIntegrationConnectedTransfer": true
 }

@@ -99,7 +99,6 @@ const SystemHealthCenter = lazy(() => import('./pages/SystemHealthCenter.jsx'));
 const WorkspaceTabs = lazy(() => import('./components/WorkspaceTabs.jsx'));
 const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.jsx'));
 const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.jsx'));
-const LessonIntegrationBridgeAdapter = lazy(() => import('./components/LessonIntegrationBridgeAdapter.jsx'));
 const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.jsx'));
 const AIGovernanceCenter = lazy(() => import('./pages/AIGovernanceCenter.jsx'));
 const WorkHub = lazy(() => import('./pages/WorkHub.jsx'));
@@ -560,11 +559,6 @@ function App() {
           <FullMotionEffects route={currentRoute} language={language} loadingState={loadingState} />
         </Suspense>
       )}
-      {currentUser ? (
-        <Suspense fallback={null}>
-          <LessonIntegrationBridgeAdapter currentUser={currentUser} />
-        </Suspense>
-      ) : null}
       {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
         <Suspense fallback={null}>
           <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />

@@ -1,0 +1,142 @@
+{
+  "backupRoot": "/Users/catrichmauxanh/Documents/Brian-English-Studio-MAIN/.brian-backups/v11.4.2-native-2026-07-13T14-49-52-666Z",
+  "records": [
+    {
+      "rel": ".bes-release/v11.4.2.json",
+      "wasPresent": false
+    },
+    {
+      "rel": "README.md",
+      "wasPresent": true
+    },
+    {
+      "rel": "V11_4_2_INTEGRATION_REPORT.md",
+      "wasPresent": false
+    },
+    {
+      "rel": "V11_4_2_TEST_REPORT.md",
+      "wasPresent": false
+    },
+    {
+      "rel": "api/lesson-ai.mjs",
+      "wasPresent": false
+    },
+    {
+      "rel": "docs/V11_4_2_DEPLOYMENT.md",
+      "wasPresent": false
+    },
+    {
+      "rel": "index.html",
+      "wasPresent": true
+    },
+    {
+      "rel": "package-lock.json",
+      "wasPresent": true
+    },
+    {
+      "rel": "package.json",
+      "wasPresent": true
+    },
+    {
+      "rel": "public/bes-elis-v1142/bridge-runtime.js",
+      "wasPresent": false
+    },
+    {
+      "rel": "public/bes-elis-v1142/chunks/exportDocx-D0oUwC7A.js",
+      "wasPresent": false
+    },
+    {
+      "rel": "public/bes-elis-v1142/chunks/index-B7z9UP0G.js",
+      "wasPresent": false
+    },
+    {
+      "rel": "public/bes-elis-v1142/chunks/mount-CCtnxx76.js",
+      "wasPresent": false
+    },
+    {
+      "rel": "public/bes-elis-v1142/chunks/pdf-DyTSsyHP.js",
+      "wasPresent": false
+    },
+    {
+      "rel": "public/bes-elis-v1142/elis.es.js",
+      "wasPresent": false
+    },
+    {
+      "rel": "public/bes-elis-v1142/icon.svg",
+      "wasPresent": false
+    },
+    {
+      "rel": "public/release-manifest.json",
+      "wasPresent": true
+    },
+    {
+      "rel": "public/version.json",
+      "wasPresent": true
+    },
+    {
+      "rel": "scripts/check-v11.4.2.mjs",
+      "wasPresent": false
+    },
+    {
+      "rel": "scripts/performance-budget-v11.4.2.mjs",
+      "wasPresent": false
+    },
+    {
+      "rel": "scripts/release-guard-v11.4.2.mjs",
+      "wasPresent": false
+    },
+    {
+      "rel": "scripts/sync-version-v11.4.2.mjs",
+      "wasPresent": false
+    },
+    {
+      "rel": "src/components/LessonIntegrationBridgeAdapter.jsx",
+      "wasPresent": false
+    },
+    {
+      "rel": "src/config/version.js",
+      "wasPresent": true
+    },
+    {
+      "rel": "src/data/apps.js",
+      "wasPresent": true
+    },
+    {
+      "rel": "src/data/designProfiles.js",
+      "wasPresent": true
+    },
+    {
+      "rel": "src/index.css",
+      "wasPresent": true
+    },
+    {
+      "rel": "src/main.jsx",
+      "wasPresent": true
+    },
+    {
+      "rel": "src/pages/EnglishLessonIntegrationStudio.jsx",
+      "wasPresent": false
+    },
+    {
+      "rel": "src/pages/Home.jsx",
+      "wasPresent": true
+    },
+    {
+      "rel": "src/pages/ToolPage.jsx",
+      "wasPresent": true
+    },
+    {
+      "rel": "supabase/brian_v11_4_2_lesson_integration.sql",
+      "wasPresent": false
+    },
+    {
+      "rel": "supabase/brian_v11_4_2_preflight.sql",
+      "wasPresent": false
+    },
+    {
+      "rel": "supabase/brian_v11_4_2_verify.sql",
+      "wasPresent": false
+    }
+  ],
+  "installedAt": "2026-07-13T14:49:52.691Z"
+}

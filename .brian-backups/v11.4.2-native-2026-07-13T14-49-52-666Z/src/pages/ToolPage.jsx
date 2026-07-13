@@ -17,7 +17,6 @@ const StudentPractice = lazy(() => import('./StudentPractice.jsx'));
 const AITool = lazy(() => import('./AITool.jsx'));
 const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
 const WorksheetFactory = lazy(() => import('./WorksheetFactory.jsx'));
-const EnglishLessonIntegrationStudio = lazy(() => import('./EnglishLessonIntegrationStudio.jsx'));
 
 const specializedToolSlugs = new Set([
   'exam-studio',
@@ -69,10 +68,6 @@ export default function ToolPage(props) {
   const [content, setContent] = useState('Past Simple\nPast Continuous\nwhile\nwhen\nwas watching\nwent out');
   const [title, setTitle] = useState('My Activity');
   const preview = useMemo(() => buildPreview(content, selected, language), [content, selected, language]);
-
-  if (tool?.slug === 'english-lesson-integration') {
-    return renderLazy(EnglishLessonIntegrationStudio, props);
-  }
 
   if (tool?.slug === 'worksheet-factory') {
     return renderLazy(WorksheetFactory, props);

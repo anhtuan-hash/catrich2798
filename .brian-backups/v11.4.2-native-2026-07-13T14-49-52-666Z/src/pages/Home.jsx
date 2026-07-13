@@ -608,15 +608,7 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
   const chips = useMemo(() => {
     const practiceStyle = getAppDesignProfile('student-practice');
     const libraryStyle = getAppDesignProfile('library-hub');
-    const integrationStyle = getAppDesignProfile('english-lesson-integration');
     return [
-      makeAppWindow('english-lesson-integration', {
-        icon: integrationStyle.icon,
-        accent: integrationStyle.accent,
-        color: integrationStyle.accent,
-        text: isVi ? 'Tích hợp NLS, AI và hòa nhập.' : 'Integrate digital, AI and inclusive learning.',
-        meta: isVi ? integrationStyle.styleVi : integrationStyle.style,
-      }),
       windows.lesson,
       windows.exam,
       makeAppWindow('student-practice', {

@@ -1,19 +1,57 @@
-# Brian English Studio V11.3.7 — Animated Home App Constellation
+# Brian English Studio V11.4.2 — AI Lesson Integration Studio
 
-Bản phát hành này triển khai giao diện trang chủ đã duyệt:
+V11.4.2 được tích hợp trực tiếp trên source thật V11.3.7, giữ nguyên Animated Home và bổ sung **AI Lesson Integration Studio** dành riêng cho giáo án Tiếng Anh THPT.
 
-- cụm thẻ ứng dụng chuyển động có chiều sâu;
-- parallax theo con trỏ chuột;
-- quỹ đạo, đường chuyển động và điểm sáng trang trí;
-- bố cục trung tâm xoay quanh Lesson Architect;
-- bổ sung Listening Lab, Grammar Builder, Writing Studio và Pronunciation Coach;
-- tự chuyển về lưới tĩnh trên tablet/điện thoại;
-- tôn trọng `prefers-reduced-motion` và chế độ Motion Off;
-- giữ nguyên Launcher Gallery, Hidden Apps Vault, Work Hub và Kho học liệu.
+## Mở ứng dụng
 
-Không cần SQL Supabase mới.
+- Trang chủ: lối tắt ghim **Tích hợp AI vào giáo án Tiếng Anh**.
+- Trang Ứng dụng/Launcher: tìm `AI Lesson Integration Studio`.
+- Route trực tiếp: `/#/tool/english-lesson-integration`.
+
+## Cài đặt
 
 ```bash
-npm install --no-audit --no-fund --registry=https://registry.npmjs.org/
-npm run verify:v11.3.7
+npm ci
+npm run verify:v11.4.2
+npm run dev
 ```
+
+Trước khi sử dụng đồng bộ cloud, chạy SQL theo thứ tự:
+
+1. `supabase/brian_v11_4_2_preflight.sql`
+2. `supabase/brian_v11_4_2_lesson_integration.sql`
+3. `supabase/brian_v11_4_2_verify.sql`
+
+## AI phía server
+
+Endpoint: `/api/lesson-ai`
+
+OpenAI:
+
+```env
+OPENAI_API_KEY=...
+OPENAI_MODEL=...
+AI_AUTH_MODE=supabase
+```
+
+Hoặc Gemini:
+
+```env
+GEMINI_API_KEY=...
+GEMINI_MODEL=...
+AI_AUTH_MODE=supabase
+```
+
+Không có API key, ứng dụng vẫn hoạt động bằng bộ máy quy tắc nội bộ.
+
+## Kiến trúc tích hợp
+
+- Dùng chung phiên đăng nhập và Supabase client của Brian.
+- Module chạy trong Shadow DOM để tránh xung đột CSS.
+- Dữ liệu local tách theo `user.id`.
+- Connected Workflow gửi nội dung sang Lesson Architect, Worksheet Factory, Exam Studio, Activity Studio, Speaking Studio, Reading Studio và WordGraph Studio.
+- Không cài service worker riêng cho module.
+
+## Lưu ý về font cá nhân
+
+Gói phát hành không chứa font. Khi thay toàn bộ source, giữ lại thư mục font riêng từ repository hiện tại của bạn tại `public/fonts/`.

@@ -23,14 +23,6 @@ export const APP_DESIGN_PROFILES = {
     style: 'Interactive activity lab',
     styleVi: 'Phòng tạo hoạt động tương tác',
   },
-  'english-lesson-integration': {
-    accent: '#6D4CCB',
-    soft: '#EEE7FF',
-    ink: '#25154A',
-    icon: 'ai',
-    style: 'AI lesson integration workspace',
-    styleVi: 'Không gian tích hợp giáo án AI',
-  },
   'lesson-plan-ai': {
     accent: '#E86D1F',
     soft: '#FFE3CD',

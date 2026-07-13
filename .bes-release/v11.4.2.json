@@ -1,0 +1,19 @@
+{
+  "version": "11.4.2",
+  "release": "AI Lesson Integration Native Merge",
+  "baseline": "11.3.7",
+  "runtime": "2.4.2",
+  "schema": "11.4.2",
+  "requiresSql": true,
+  "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
+  "features": [
+    "english-lesson-integration",
+    "docx-pdf-import",
+    "digital-ai-inclusive-integration",
+    "quality-audit",
+    "resource-studio",
+    "connected-transfer",
+    "supabase-sync",
+    "shadow-dom-isolation"
+  ]
+}
