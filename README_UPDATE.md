@@ -1,55 +1,58 @@
-# Update to Brian English Studio V11.3.2
+# Cập nhật Brian English Studio V11.3.5
 
-V11.3.2 adds an Admin-only Hidden Apps Vault and system-wide app visibility enforcement.
+## Tính năng mới
 
-## What changes
+Trong **Trung tâm công việc → Trao đổi và tệp nộp**, Admin/TTCM có thêm nút:
 
-- Admin sees a new folder on the Apps page: `Thư mục ứng dụng đã ẩn`.
-- Admin can hide or restore apps temporarily.
-- Hidden apps disappear for department heads, teachers and students from:
-  - Apps directory
-  - Home featured windows and pinned chips
-  - Global navigation and navigation drawer
-  - Command Palette / quick search
-  - Games and tool lists
-- Direct URLs are blocked for non-admin users while an app is hidden.
-- Supabase Realtime applies changes to open teacher sessions.
-- Personal Launcher hiding remains separate and unchanged.
+```text
+＋ Lưu vào Kho học liệu
+```
 
-## Install
+Tệp được lưu theo luồng:
 
-The update-only package accepts V11.2.x, V11.3.0 or V11.3.1.
+```text
+Tệp giáo viên nộp
+→ kiểm tra quyền Admin/TTCM
+→ đọc từ Supabase Storage riêng tư
+→ kiểm tra trùng SHA-256
+→ sao chép vào thư mục Google Drive phù hợp
+→ tạo học liệu đã duyệt trong resource_items
+→ đánh dấu tệp đã lưu trong phản hồi công việc
+```
+
+## Cài đặt
 
 ```bash
 cd ~/Documents/Brian-English-Studio-MAIN
-node /path/to/install-v11.3.2.mjs "$PWD"
-npm install --no-audit --no-fund --registry=https://registry.npmjs.org/
-npm run verify:v11.3.2
+rm -rf /tmp/brian-v1135 && mkdir -p /tmp/brian-v1135
+unzip -q ~/Downloads/brian-english-studio-v11.3.5-work-submission-archive-update-only.zip -d /tmp/brian-v1135
+INSTALLER=$(find /tmp/brian-v1135 -name "install-v11.3.5.mjs" | head -n 1)
+node "$INSTALLER" "$PWD"
 ```
 
 ## Supabase
 
-Run in order:
+Chạy lần lượt:
 
-1. `supabase/brian_v11_3_2_preflight.sql`
-2. `supabase/brian_v11_3_2_app_visibility.sql`
-3. `supabase/brian_v11_3_2_verify.sql`
+1. `supabase/brian_v11_3_5_preflight.sql`
+2. `supabase/brian_v11_3_5_work_submission_archive.sql`
+3. `supabase/brian_v11_3_5_verify.sql`
 
-The SQL migration is required for cross-account enforcement. Without it, the interface can only use the current browser's local fallback.
-
-## Use
-
-1. Sign in as Admin.
-2. Open Apps.
-3. Open `Thư mục ứng dụng đã ẩn`.
-4. Switch to `Đang hiển thị`.
-5. Choose `Ẩn khỏi giáo viên` on an unused app.
-6. Sign in as a teacher and confirm the app is absent from Apps, navigation and quick search.
-
-## Rollback
+## Kiểm tra
 
 ```bash
-node /path/to/rollback-v11.3.2.mjs ~/Documents/Brian-English-Studio-MAIN
+npm run test:v11.3.5
+npm run build
+npm run release:guard:v11.3.5
 ```
 
-Source rollback does not delete the Supabase visibility table or settings.
+## Deploy
+
+```bash
+git add -A
+git commit -m "Archive submitted work files to Resource Library V11.3.5"
+git pull --rebase origin main
+git push origin main
+```
+
+Không cần tạo bucket mới. Tính năng sử dụng bucket `work-hub-submissions` và kết nối Google Drive hiện có của Kho học liệu.

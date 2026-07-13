@@ -1,0 +1,81 @@
+{
+  "versionBefore": "11.3.4",
+  "files": [
+    {
+      "relative": "README_UPDATE.md",
+      "existed": true
+    },
+    {
+      "relative": "V11_3_5_TEST_REPORT.md",
+      "existed": false
+    },
+    {
+      "relative": "V11_3_5_WORK_SUBMISSION_ARCHIVE.md",
+      "existed": false
+    },
+    {
+      "relative": "api/work-hub-archive-resource.js",
+      "existed": false
+    },
+    {
+      "relative": "package-lock.json",
+      "existed": true
+    },
+    {
+      "relative": "package.json",
+      "existed": true
+    },
+    {
+      "relative": "public/release-manifest.json",
+      "existed": true
+    },
+    {
+      "relative": "public/version.json",
+      "existed": true
+    },
+    {
+      "relative": "scripts/check-v11.3.5.mjs",
+      "existed": false
+    },
+    {
+      "relative": "scripts/performance-budget-v11.3.5.mjs",
+      "existed": false
+    },
+    {
+      "relative": "scripts/release-guard-v11.3.5.mjs",
+      "existed": false
+    },
+    {
+      "relative": "scripts/sync-version-v11.3.5.mjs",
+      "existed": false
+    },
+    {
+      "relative": "src/config/version.js",
+      "existed": true
+    },
+    {
+      "relative": "src/pages/WorkHub.jsx",
+      "existed": true
+    },
+    {
+      "relative": "src/styles/v1133.css",
+      "existed": true
+    },
+    {
+      "relative": "src/utils/workHubResourceArchive.js",
+      "existed": false
+    },
+    {
+      "relative": "supabase/brian_v11_3_5_preflight.sql",
+      "existed": false
+    },
+    {
+      "relative": "supabase/brian_v11_3_5_verify.sql",
+      "existed": false
+    },
+    {
+      "relative": "supabase/brian_v11_3_5_work_submission_archive.sql",
+      "existed": false
+    }
+  ]
+}

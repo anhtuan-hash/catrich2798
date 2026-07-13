@@ -14,11 +14,6 @@ import {
   validateWorkHubFile,
   WORK_HUB_DELIVERY_EVENT,
 } from '../utils/workHubDelivery.js';
-import { RESOURCE_CATEGORY_FALLBACK } from '../features/resource-library/resourceCategories.js';
-import {
-  archiveWorkHubAttachmentToResourceLibrary,
-  createWorkHubArchiveDraft,
-} from '../utils/workHubResourceArchive.js';
 
 const STATUSES = [
   ['draft', 'Nháp'], ['assigned', 'Đã giao'], ['accepted', 'Đã tiếp nhận'],
@@ -91,9 +86,6 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
   const [comment, setComment] = useState('');
   const [submissionNote, setSubmissionNote] = useState('');
   const [submissionFile, setSubmissionFile] = useState(null);
-  const [archiveTarget, setArchiveTarget] = useState(null);
-  const [archiveDraft, setArchiveDraft] = useState(null);
-  const [archiveBusy, setArchiveBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [commentsBusy, setCommentsBusy] = useState(false);
   const [error, setError] = useState('');
@@ -235,8 +227,6 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
   useEffect(() => {
     setSubmissionNote('');
     setSubmissionFile(null);
-    setArchiveTarget(null);
-    setArchiveDraft(null);
   }, [selected?.id]);
 
   const filtered = useMemo(() => items.filter((item) => {
@@ -288,9 +278,9 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
         owner_id: currentUser.id, created_by: currentUser.id,
         assignee_ids: assigneeId ? [assigneeId] : [currentUser.id], watcher_ids: [],
         due_at: draft.due_at ? new Date(draft.due_at).toISOString() : null,
-        source_module: 'work-hub-v1135',
+        source_module: 'work-hub-v1134',
         metadata: {
-          created_in: '11.3.5',
+          created_in: '11.3.4',
           notify_assignee: assignedToAnother,
           assignment_scope: leader ? draft.assignment_scope : 'self',
           assignment_batch_id: batchId || null,
@@ -507,84 +497,13 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
     }
   }
 
-
-  function openResourceArchive(entry, attachment) {
-    if (!leader || !selected || !entry || !attachment?.path) return;
-    const submitterName = commentLabel(entry, currentUser, people);
-    setArchiveTarget({ commentId: entry.id, attachmentPath: attachment.path });
-    setArchiveDraft(createWorkHubArchiveDraft({
-      attachment,
-      item: selected,
-      comment: entry,
-      submitterName,
-    }));
-    setError('');
-    setNotice('');
-  }
-
-  async function saveAttachmentToResourceLibrary(event) {
-    event.preventDefault();
-    if (!leader || !archiveTarget || !archiveDraft) return;
-    const entry = comments.find((commentEntry) => commentEntry.id === archiveTarget.commentId);
-    const attachment = entry?.attachments?.find((file) => file.path === archiveTarget.attachmentPath);
-    if (!entry || !attachment) {
-      setError('Không tìm thấy tệp phản hồi cần lưu.');
-      return;
-    }
-    if (!archiveDraft.title.trim()) {
-      setError('Vui lòng nhập tên tài liệu trước khi lưu.');
-      return;
-    }
-
-    setArchiveBusy(true);
-    setError('');
-    setNotice('');
-    try {
-      const result = await archiveWorkHubAttachmentToResourceLibrary({
-        commentId: entry.id,
-        attachment,
-        metadata: archiveDraft,
-      });
-      if (!result.ok) throw new Error(result.message || 'Không thể lưu tệp vào Kho học liệu.');
-      if (result.comment) {
-        const resolved = await resolveWorkHubCommentAttachments([result.comment]);
-        if (resolved[0]) {
-          setComments((current) => current.map((commentEntry) => (
-            commentEntry.id === result.comment.id ? resolved[0] : commentEntry
-          )));
-        }
-      } else {
-        await loadComments();
-      }
-      setArchiveTarget(null);
-      setArchiveDraft(null);
-      setNotice(result.message || 'Đã lưu tệp vào Kho học liệu.');
-      await recordAuditEvent({
-        action: 'work.attachment_archived_to_library',
-        entity_type: 'work_hub_item',
-        entity_id: selected.id,
-        source_module: 'work-hub',
-        after_data: {
-          comment_id: entry.id,
-          attachment_path: attachment.path,
-          resource_id: result.resource?.id || null,
-          category: archiveDraft.category,
-        },
-      }, currentUser);
-    } catch (archiveError) {
-      setError(archiveError.message || String(archiveError));
-    } finally {
-      setArchiveBusy(false);
-    }
-  }
-
   const statusOptions = leader
     ? STATUSES
     : STATUSES.filter(([value]) => ['accepted', 'in_progress'].includes(value));
 
   return <section className="v1093-page v1093-work-hub">
     <header className="v1093-hero v1093-hero-work">
-      <div><span className="v1093-kicker">V11.3.5 · Work Submission Archive</span><h1>Trung tâm công việc</h1><p>Giao việc, nhận tệp phản hồi và lưu học liệu đạt yêu cầu trực tiếp vào kho dùng chung của tổ chuyên môn.</p></div>
+      <div><span className="v1093-kicker">V11.3.4 · Bulk Work Delivery</span><h1>Trung tâm công việc</h1><p>Giao việc cho một người, nhiều người hoặc cả tổ; nhận phản hồi và quản lý tệp nộp trong một luồng thống nhất.</p></div>
       <div className="v1093-runtime-pill" data-state={runtime.phase}><b>{runtime.ready ? 'Đã kết nối' : 'Đang kết nối'}</b><span>{runtime.role}</span></div>
     </header>
 
@@ -673,27 +592,7 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
         <section className="v1093-comments"><h3>Trao đổi và tệp nộp</h3>{commentsBusy ? <div className="work-delivery-comments-loading">Đang tải phản hồi…</div> : null}{comments.map((entry) => <article key={entry.id} className={entry.comment_type === 'submission' ? 'is-submission' : ''}>
           <header><strong>{commentLabel(entry, currentUser, people)}</strong>{entry.comment_type === 'submission' ? <span>ĐÃ NỘP</span> : null}</header>
           <p>{entry.body}</p>
-          {Array.isArray(entry.attachments) && entry.attachments.length ? <div className="work-delivery-attachments">{entry.attachments.map((attachment, index) => {
-            const archiveOpen = archiveTarget?.commentId === entry.id && archiveTarget?.attachmentPath === attachment.path;
-            const archived = Boolean(attachment.library_resource_id || attachment.archived_to_library_at);
-            return <div key={`${entry.id}-${attachment.path || index}`} className={`work-delivery-attachment-row${archived ? ' is-archived' : ''}`}>
-              <a href={attachment.signed_url || '#'} target="_blank" rel="noreferrer" className={!attachment.signed_url ? 'disabled' : ''} onClick={(event) => { if (!attachment.signed_url) event.preventDefault(); }}><span>📎</span><strong>{attachment.name || 'Tệp đính kèm'}</strong><small>{formatWorkHubFileSize(attachment.size)}</small></a>
-              {leader ? <div className="work-library-archive-actions">{archived ? <><span>✓ Đã lưu vào Kho học liệu</span><button type="button" onClick={() => { window.location.hash = '#/resource-library'; }}>Mở kho</button></> : <button type="button" onClick={() => openResourceArchive(entry, attachment)}>＋ Lưu vào Kho học liệu</button>}</div> : null}
-              {leader && archiveOpen && archiveDraft ? <form className="work-library-archive-form" onSubmit={saveAttachmentToResourceLibrary}>
-                <div className="work-library-archive-heading"><div><strong>Lưu tệp vào Kho học liệu</strong><small>Tệp được sao chép sang Google Drive, duyệt ngay và chia sẻ cho giáo viên trong tổ.</small></div><button type="button" aria-label="Đóng" onClick={() => { setArchiveTarget(null); setArchiveDraft(null); }}>×</button></div>
-                <label><span>Tên tài liệu</span><input value={archiveDraft.title} onChange={(event) => setArchiveDraft((current) => ({ ...current, title: event.target.value }))} required /></label>
-                <div className="work-library-archive-grid">
-                  <label><span>Danh mục</span><select value={archiveDraft.category} onChange={(event) => setArchiveDraft((current) => ({ ...current, category: event.target.value }))}>{RESOURCE_CATEGORY_FALLBACK.map((category) => <option key={category.slug} value={category.slug}>{category.name_vi}</option>)}</select></label>
-                  <label><span>Năm học</span><input value={archiveDraft.schoolYear} onChange={(event) => setArchiveDraft((current) => ({ ...current, schoolYear: event.target.value }))} placeholder="2025–2026" /></label>
-                  <label><span>Khối</span><input value={archiveDraft.grade} onChange={(event) => setArchiveDraft((current) => ({ ...current, grade: event.target.value }))} placeholder="10, 11 hoặc 12" /></label>
-                  <label><span>Unit / Chủ đề</span><input value={archiveDraft.unitName} onChange={(event) => setArchiveDraft((current) => ({ ...current, unitName: event.target.value }))} placeholder="Unit 3 · Environment" /></label>
-                </div>
-                <label><span>Mô tả</span><textarea value={archiveDraft.description} onChange={(event) => setArchiveDraft((current) => ({ ...current, description: event.target.value }))} /></label>
-                <label><span>Từ khoá</span><input value={archiveDraft.tags} onChange={(event) => setArchiveDraft((current) => ({ ...current, tags: event.target.value }))} placeholder="worksheet, grade-11, unit-3" /></label>
-                <div className="work-library-archive-footer"><button type="button" onClick={() => { setArchiveTarget(null); setArchiveDraft(null); }} disabled={archiveBusy}>Huỷ</button><button type="submit" disabled={archiveBusy || !archiveDraft.title.trim()}>{archiveBusy ? 'Đang lưu…' : '✓ Lưu và duyệt học liệu'}</button></div>
-              </form> : null}
-            </div>;
-          })}</div> : null}
+          {Array.isArray(entry.attachments) && entry.attachments.length ? <div className="work-delivery-attachments">{entry.attachments.map((attachment, index) => <a key={`${entry.id}-${attachment.path || index}`} href={attachment.signed_url || '#'} target="_blank" rel="noreferrer" className={!attachment.signed_url ? 'disabled' : ''} onClick={(event) => { if (!attachment.signed_url) event.preventDefault(); }}><span>📎</span><strong>{attachment.name || 'Tệp đính kèm'}</strong><small>{formatWorkHubFileSize(attachment.size)}</small></a>)}</div> : null}
           <time>{formatDate(entry.created_at)}</time>
         </article>)}
           {!commentsBusy && !comments.length ? <div className="work-delivery-comments-empty">Chưa có phản hồi.</div> : null}
