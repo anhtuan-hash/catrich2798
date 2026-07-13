@@ -8,7 +8,6 @@ import {
   consumeRememberedWorkHubItem,
   formatWorkHubFileSize,
   removeWorkHubSubmissionFile,
-  removeWorkHubSubmissionFiles,
   resolveWorkHubCommentAttachments,
   uploadWorkHubSubmissionFile,
   validateWorkHubFile,
@@ -27,42 +26,16 @@ const PRIORITY_LABEL = { low: 'Thấp', normal: 'Bình thường', high: 'Cao', 
 function emptyDraft(user) {
   return {
     title: '', description: '', item_type: 'task', status: 'draft', priority: 'normal',
-    visibility: 'restricted', due_at: '', assignment_scope: 'self', assignee_ids: [],
+    visibility: 'restricted', due_at: '', assignee_id: user?.id || '',
   };
 }
 
-const EXCLUDED_ASSIGNMENT_ROLES = new Set(['student', 'learner', 'pupil', 'parent', 'guardian', 'guest', 'admin', 'administrator']);
-
-function normalizeRole(value) {
-  return String(value || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
-}
-
-function departmentKey(person) {
-  return String(
-    person?.department_id || person?.department || person?.subject_group
-    || person?.group_name || person?.subject || '',
-  ).trim().toLowerCase();
-}
-
-function uniqueIds(values = []) {
-  return [...new Set((values || []).filter(Boolean).map(String))];
-}
-
-function createBatchId() {
-  try { return globalThis.crypto?.randomUUID?.() || uid('work-batch'); }
-  catch { return uid('work-batch'); }
-}
-
 function getAssigneeLabel(item, people, currentUser) {
-  const assigneeIds = uniqueIds(Array.isArray(item?.assignee_ids) ? item.assignee_ids : []);
-  if (!assigneeIds.length) return 'Chưa phân công';
-  const labels = assigneeIds.map((assigneeId) => {
-    if (assigneeId === currentUser?.id) return currentUser?.name || currentUser?.email || 'Bạn';
-    const person = people.find((entry) => entry.id === assigneeId);
-    return person?.name || person?.email || 'Giáo viên';
-  });
-  if (labels.length <= 2) return labels.join(', ');
-  return `${labels.slice(0, 2).join(', ')} và ${labels.length - 2} người khác`;
+  const assigneeId = Array.isArray(item?.assignee_ids) ? item.assignee_ids[0] : '';
+  if (!assigneeId) return 'Chưa phân công';
+  if (assigneeId === currentUser?.id) return currentUser?.name || currentUser?.email || 'Bạn';
+  const person = people.find((entry) => entry.id === assigneeId);
+  return person?.name || person?.email || 'Giáo viên';
 }
 
 function commentLabel(comment, currentUser, people) {
@@ -82,7 +55,6 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
   const [filter, setFilter] = useState('all');
   const [query, setQuery] = useState('');
   const [draft, setDraft] = useState(() => emptyDraft(currentUser));
-  const [assigneeQuery, setAssigneeQuery] = useState('');
   const [comment, setComment] = useState('');
   const [submissionNote, setSubmissionNote] = useState('');
   const [submissionFile, setSubmissionFile] = useState(null);
@@ -119,42 +91,9 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
         name: profile.full_name || profile.name || profile.email || 'Giáo viên',
         email: profile.email || '',
         role: profile.role || 'teacher',
-        department_id: profile.department_id || profile.departmentId || '',
-        department: profile.department || profile.department_name || '',
-        subject_group: profile.subject_group || profile.team || profile.group_name || '',
-        subject: profile.subject || '',
       })).filter((person) => person.id));
     }
   }, [client, currentUser, leader, localKey, runtime.ready, runtime.session]);
-
-  const eligibleTeachers = useMemo(() => people.filter((person) => {
-    if (!person?.id || person.id === currentUser?.id) return false;
-    return !EXCLUDED_ASSIGNMENT_ROLES.has(normalizeRole(person.role));
-  }), [currentUser?.id, people]);
-
-  const currentProfile = useMemo(
-    () => people.find((person) => person.id === currentUser?.id) || currentUser || null,
-    [currentUser, people],
-  );
-  const currentDepartmentKey = departmentKey(currentProfile);
-  const departmentTeachers = useMemo(() => {
-    if (!currentDepartmentKey) return eligibleTeachers;
-    const matched = eligibleTeachers.filter((person) => departmentKey(person) === currentDepartmentKey);
-    return matched.length ? matched : eligibleTeachers;
-  }, [currentDepartmentKey, eligibleTeachers]);
-
-  const assignmentTargetIds = useMemo(() => {
-    if (!leader) return currentUser?.id ? [currentUser.id] : [];
-    if (draft.assignment_scope === 'self') return currentUser?.id ? [currentUser.id] : [];
-    if (draft.assignment_scope === 'department') return uniqueIds(departmentTeachers.map((person) => person.id));
-    return uniqueIds(draft.assignee_ids);
-  }, [currentUser?.id, departmentTeachers, draft.assignee_ids, draft.assignment_scope, leader]);
-
-  const visibleAssigneeChoices = useMemo(() => {
-    const needle = assigneeQuery.trim().toLowerCase();
-    if (!needle) return eligibleTeachers;
-    return eligibleTeachers.filter((person) => `${person.name || ''} ${person.email || ''}`.toLowerCase().includes(needle));
-  }, [assigneeQuery, eligibleTeachers]);
 
   const selected = items.find((item) => item.id === selectedId) || null;
 
@@ -245,141 +184,41 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
   const selectedIsMine = Boolean(selected && Array.isArray(selected.assignee_ids) && selected.assignee_ids.includes(currentUser?.id));
   const canTeacherSubmit = Boolean(!leader && selectedIsMine && !['approved', 'completed', 'archived'].includes(selected?.status));
 
-  function toggleAssignee(personId) {
-    setDraft((current) => {
-      const selectedIds = uniqueIds(current.assignee_ids);
-      const next = selectedIds.includes(personId)
-        ? selectedIds.filter((id) => id !== personId)
-        : [...selectedIds, personId];
-      return { ...current, assignment_scope: 'selected', assignee_ids: next };
-    });
-  }
-
   async function saveItem(event) {
     event.preventDefault();
     if (!draft.title.trim()) return;
-    const targetIds = leader ? assignmentTargetIds : (currentUser?.id ? [currentUser.id] : []);
-    if (!targetIds.length) {
-      setError('Vui lòng chọn ít nhất một giáo viên nhận việc.');
-      return;
-    }
-
     setBusy(true); setError(''); setNotice('');
-    const batchId = targetIds.length > 1 ? createBatchId() : '';
-    const payloads = targetIds.map((assigneeId, index) => {
-      const assignedToAnother = leader && assigneeId !== currentUser.id;
-      return {
-        title: draft.title.trim(), description: draft.description.trim(), item_type: draft.item_type,
-        status: assignedToAnother ? 'assigned' : draft.status,
-        priority: draft.priority,
-        visibility: leader
-          ? (draft.assignment_scope === 'department' ? 'department' : draft.visibility)
-          : 'restricted',
-        owner_id: currentUser.id, created_by: currentUser.id,
-        assignee_ids: assigneeId ? [assigneeId] : [currentUser.id], watcher_ids: [],
-        due_at: draft.due_at ? new Date(draft.due_at).toISOString() : null,
-        source_module: 'work-hub-v1134',
-        metadata: {
-          created_in: '11.3.4',
-          notify_assignee: assignedToAnother,
-          assignment_scope: leader ? draft.assignment_scope : 'self',
-          assignment_batch_id: batchId || null,
-          assignment_batch_size: targetIds.length,
-          assignment_batch_index: index + 1,
-        },
-      };
-    });
-
+    const assigneeId = leader ? (draft.assignee_id || currentUser.id) : currentUser.id;
+    const assignedToAnother = leader && assigneeId !== currentUser.id;
+    const payload = {
+      title: draft.title.trim(), description: draft.description.trim(), item_type: draft.item_type,
+      status: assignedToAnother ? 'assigned' : draft.status,
+      priority: draft.priority, visibility: leader ? draft.visibility : 'restricted',
+      owner_id: currentUser.id, created_by: currentUser.id,
+      assignee_ids: assigneeId ? [assigneeId] : [currentUser.id], watcher_ids: [],
+      due_at: draft.due_at ? new Date(draft.due_at).toISOString() : null,
+      source_module: 'work-hub-v1133',
+      metadata: { created_in: '11.3.3', notify_assignee: assignedToAnother },
+    };
     try {
-      let createdItems = [];
+      let createdItem = null;
       if (client && runtime.session) {
-        const { data, error: insertError } = await client.from('work_hub_items').insert(payloads).select('*');
+        const { data, error: insertError } = await client.from('work_hub_items').insert(payload).select('*').single();
         if (insertError) throw insertError;
-        createdItems = data || [];
-        setItems((current) => [...createdItems, ...current]);
+        createdItem = data;
+        setItems((current) => [data, ...current]);
       } else {
-        createdItems = payloads.map((payload) => ({
-          ...payload,
-          id: uid('work'),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }));
-        const next = [...createdItems, ...items];
-        setItems(next); writeLocal(localKey, next);
+        const item = { ...payload, id: uid('work'), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+        createdItem = item;
+        const next = [item, ...items]; setItems(next); writeLocal(localKey, next);
       }
-      await recordAuditEvent({
-        action: targetIds.length > 1 ? 'work.bulk_created' : 'work.created',
-        entity_type: 'work_hub_item',
-        entity_id: batchId || createdItems[0]?.id || '',
-        source_module: 'work-hub',
-        after_data: {
-          count: createdItems.length,
-          item_ids: createdItems.map((item) => item.id),
-          assignee_ids: targetIds,
-          batch_id: batchId || null,
-        },
-      }, currentUser);
+      await recordAuditEvent({ action: 'work.created', entity_type: 'work_hub_item', entity_id: createdItem?.id || '', source_module: 'work-hub', after_data: createdItem || payload }, currentUser);
       setDraft(emptyDraft(currentUser));
-      setAssigneeQuery('');
-      setNotice(targetIds.length > 1
-        ? `Đã giao ${targetIds.length} công việc riêng và gửi thông báo đến từng giáo viên.`
-        : (targetIds[0] !== currentUser.id
-          ? 'Đã giao công việc và gửi thông báo đến tài khoản giáo viên.'
-          : 'Đã tạo công việc.'));
+      setNotice(assignedToAnother
+        ? 'Đã giao công việc và gửi thông báo đến tài khoản giáo viên.'
+        : 'Đã tạo công việc.');
     } catch (saveError) { setError(saveError.message || String(saveError)); }
     finally { setBusy(false); }
-  }
-
-  async function deleteWorkItems(item, deleteBatch = false) {
-    if (!leader || !item) return;
-    const batchId = String(item.metadata?.assignment_batch_id || '');
-    const targetItems = deleteBatch && batchId
-      ? items.filter((entry) => String(entry.metadata?.assignment_batch_id || '') === batchId)
-      : [item];
-    const targetIds = uniqueIds(targetItems.map((entry) => entry.id));
-    if (!targetIds.length) return;
-    const label = targetIds.length > 1
-      ? `${targetIds.length} công việc trong cùng đợt giao`
-      : `công việc “${item.title}”`;
-    const confirmed = window.confirm(`Xoá ${label}? Thông báo, phản hồi và tệp đã nộp liên quan cũng sẽ bị xoá. Hành động này không thể hoàn tác.`);
-    if (!confirmed) return;
-
-    setBusy(true); setError(''); setNotice('');
-    try {
-      if (client && runtime.session) {
-        const { data: commentRows, error: commentError } = await client
-          .from('work_hub_comments')
-          .select('attachments')
-          .in('item_id', targetIds);
-        if (commentError) throw commentError;
-        const attachments = [
-          ...targetItems.flatMap((entry) => Array.isArray(entry.attachments) ? entry.attachments : []),
-          ...(commentRows || []).flatMap((entry) => Array.isArray(entry.attachments) ? entry.attachments : []),
-        ];
-        const removeResult = await removeWorkHubSubmissionFiles(attachments);
-        if (!removeResult.ok) throw new Error(removeResult.message || 'Không thể xoá tệp đính kèm của công việc.');
-        const { error: deleteError } = await client.from('work_hub_items').delete().in('id', targetIds);
-        if (deleteError) throw deleteError;
-      } else {
-        const next = items.filter((entry) => !targetIds.includes(entry.id));
-        setItems(next); writeLocal(localKey, next);
-      }
-      setItems((current) => current.filter((entry) => !targetIds.includes(entry.id)));
-      setSelectedId('');
-      setComments([]);
-      await recordAuditEvent({
-        action: targetIds.length > 1 ? 'work.bulk_deleted' : 'work.deleted',
-        entity_type: 'work_hub_item',
-        entity_id: batchId || item.id,
-        source_module: 'work-hub',
-        before_data: { item_ids: targetIds, batch_id: batchId || null, title: item.title },
-      }, currentUser);
-      setNotice(targetIds.length > 1 ? `Đã xoá ${targetIds.length} công việc trong đợt giao.` : 'Đã xoá công việc.');
-    } catch (deleteError) {
-      setError(deleteError.message || String(deleteError));
-    } finally {
-      setBusy(false);
-    }
   }
 
   async function updateStatus(item, status) {
@@ -503,7 +342,7 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
 
   return <section className="v1093-page v1093-work-hub">
     <header className="v1093-hero v1093-hero-work">
-      <div><span className="v1093-kicker">V11.3.4 · Bulk Work Delivery</span><h1>Trung tâm công việc</h1><p>Giao việc cho một người, nhiều người hoặc cả tổ; nhận phản hồi và quản lý tệp nộp trong một luồng thống nhất.</p></div>
+      <div><span className="v1093-kicker">V11.3.3 · Work Delivery</span><h1>Trung tâm công việc</h1><p>Giao việc, gửi thông báo, nhận phản hồi và tệp nộp trong một luồng thống nhất.</p></div>
       <div className="v1093-runtime-pill" data-state={runtime.phase}><b>{runtime.ready ? 'Đã kết nối' : 'Đang kết nối'}</b><span>{runtime.role}</span></div>
     </header>
 
@@ -531,26 +370,10 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
           <div className="v1093-form-grid">
             <select value={draft.priority} onChange={(e) => setDraft({ ...draft, priority: e.target.value })}><option value="low">Ưu tiên thấp</option><option value="normal">Bình thường</option><option value="high">Ưu tiên cao</option><option value="urgent">Khẩn</option></select>
             <input type="datetime-local" value={draft.due_at} onChange={(e) => setDraft({ ...draft, due_at: e.target.value })} />
+            {leader && <select value={draft.assignee_id} onChange={(e) => setDraft({ ...draft, assignee_id: e.target.value })}><option value={currentUser.id}>Tự thực hiện</option>{people.filter((person) => person.id !== currentUser.id).map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}</select>}
             {leader && <select value={draft.visibility} onChange={(e) => setDraft({ ...draft, visibility: e.target.value })}><option value="restricted">Người liên quan</option><option value="department">Toàn tổ</option><option value="private">Riêng tư</option></select>}
           </div>
-          {leader ? <section className="work-bulk-assignment" aria-label="Chọn người nhận công việc">
-            <div className="work-bulk-assignment-heading"><div><span>Người nhận</span><strong>{assignmentTargetIds.length} tài khoản được chọn</strong></div><small>Mỗi giáo viên nhận một công việc riêng để theo dõi và nộp tệp độc lập.</small></div>
-            <div className="work-bulk-mode" role="group" aria-label="Hình thức giao việc">
-              <button type="button" className={draft.assignment_scope === 'self' ? 'active' : ''} onClick={() => setDraft((current) => ({ ...current, assignment_scope: 'self' }))}>Tự thực hiện</button>
-              <button type="button" className={draft.assignment_scope === 'selected' ? 'active' : ''} onClick={() => setDraft((current) => ({ ...current, assignment_scope: 'selected' }))}>Chọn nhiều người</button>
-              <button type="button" className={draft.assignment_scope === 'department' ? 'active' : ''} onClick={() => setDraft((current) => ({ ...current, assignment_scope: 'department' }))}>Cả tổ ({departmentTeachers.length})</button>
-            </div>
-            {draft.assignment_scope === 'selected' ? <div className="work-assignee-picker">
-              <div className="work-assignee-picker-tools"><input value={assigneeQuery} onChange={(event) => setAssigneeQuery(event.target.value)} placeholder="Tìm giáo viên…" /><button type="button" onClick={() => setDraft((current) => ({ ...current, assignee_ids: eligibleTeachers.map((person) => person.id) }))}>Chọn tất cả</button><button type="button" onClick={() => setDraft((current) => ({ ...current, assignee_ids: [] }))}>Bỏ chọn</button></div>
-              <div className="work-assignee-grid">{visibleAssigneeChoices.map((person) => {
-                const checked = uniqueIds(draft.assignee_ids).includes(person.id);
-                return <label key={person.id} className={checked ? 'selected' : ''}><input type="checkbox" checked={checked} onChange={() => toggleAssignee(person.id)} /><span><strong>{person.name}</strong><small>{person.email || person.role || 'Giáo viên'}</small></span></label>;
-              })}</div>
-              {!visibleAssigneeChoices.length ? <p className="work-assignee-empty">Không tìm thấy giáo viên phù hợp.</p> : null}
-            </div> : null}
-            {draft.assignment_scope === 'department' ? <p className="work-department-summary">👥 Sẽ tạo {departmentTeachers.length} công việc riêng cho toàn bộ tài khoản trong tổ{currentDepartmentKey ? ' hiện tại' : ''}.</p> : null}
-          </section> : null}
-          {leader ? <p className="work-delivery-form-note">🔔 Hệ thống gửi thông báo riêng đến từng giáo viên ngay sau khi giao việc.</p> : null}
+          {leader ? <p className="work-delivery-form-note">🔔 Khi giao cho giáo viên, hệ thống sẽ gửi thông báo trực tiếp tới tài khoản được chọn.</p> : null}
         </form>
 
         <section className="v1093-panel">
@@ -561,8 +384,8 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
               return <article key={item.id} className={`v1093-task-card priority-${item.priority}`} onClick={() => setSelectedId(item.id)}>
                 <div className="v1093-task-top"><span className={`v1093-status status-${item.status}`}>{STATUS_LABEL[item.status] || item.status}</span><span>{PRIORITY_LABEL[item.priority] || item.priority}</span></div>
                 <h3>{item.title}</h3><p>{item.description || 'Chưa có mô tả.'}</p>
-                <div className="work-delivery-task-meta"><span>👤 {getAssigneeLabel(item, people, currentUser)}</span>{Number(item.metadata?.assignment_batch_size || 0) > 1 ? <span className="is-bulk">👥 Đợt giao {item.metadata.assignment_batch_index}/{item.metadata.assignment_batch_size}</span> : null}{hasSubmission ? <span className="has-submission">📎 Đã có phản hồi</span> : null}</div>
-                <footer><span>Hạn: {formatDate(item.due_at)}</span><div className="work-task-card-actions"><button type="button">Mở chi tiết</button>{leader ? <button type="button" className="delete" disabled={busy} onClick={(event) => { event.stopPropagation(); deleteWorkItems(item, false); }}>Xoá</button> : null}</div></footer>
+                <div className="work-delivery-task-meta"><span>👤 {getAssigneeLabel(item, people, currentUser)}</span>{hasSubmission ? <span className="has-submission">📎 Đã có phản hồi</span> : null}</div>
+                <footer><span>Hạn: {formatDate(item.due_at)}</span><button type="button">Mở chi tiết</button></footer>
               </article>;
             })}
             {!filtered.length && <div className="v1093-empty"><strong>Chưa có công việc phù hợp</strong><span>Tạo công việc mới hoặc đổi bộ lọc.</span></div>}
@@ -578,7 +401,6 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
         <h2>{selected.title}</h2><p>{selected.description || 'Chưa có mô tả.'}</p>
         <dl><div><dt>Ưu tiên</dt><dd>{PRIORITY_LABEL[selected.priority]}</dd></div><div><dt>Hạn</dt><dd>{formatDate(selected.due_at)}</dd></div><div><dt>Người thực hiện</dt><dd>{getAssigneeLabel(selected, people, currentUser)}</dd></div></dl>
         <div className="v1093-status-actions">{statusOptions.map(([value, label]) => <button key={value} disabled={busy || selected.status === value} onClick={() => updateStatus(selected, value)}>{label}</button>)}</div>
-        {leader ? <section className="work-delivery-danger-zone"><div><strong>Xoá công việc đã giao</strong><small>Chỉ Admin/TTCM có quyền xoá. Phản hồi, thông báo và tệp nộp liên quan cũng sẽ được dọn dẹp.</small></div><div><button type="button" disabled={busy} onClick={() => deleteWorkItems(selected, false)}>Xoá công việc này</button>{selected.metadata?.assignment_batch_id && Number(selected.metadata?.assignment_batch_size || 0) > 1 ? <button type="button" className="batch-delete" disabled={busy} onClick={() => deleteWorkItems(selected, true)}>Xoá cả đợt giao ({items.filter((entry) => String(entry.metadata?.assignment_batch_id || '') === String(selected.metadata.assignment_batch_id)).length})</button> : null}</div></section> : null}
 
         {canTeacherSubmit ? <section className="work-delivery-submission-box">
           <div className="work-delivery-submission-heading"><span>📤</span><div><strong>Nộp phản hồi công việc</strong><small>Tải tệp và gửi ghi chú trực tiếp cho Admin/TTCM.</small></div></div>

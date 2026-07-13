@@ -1,0 +1,77 @@
+{
+  "versionBefore": "11.3.3",
+  "files": [
+    {
+      "relative": "V11_3_4_BULK_WORK_ASSIGNMENT.md",
+      "existed": false
+    },
+    {
+      "relative": "V11_3_4_TEST_REPORT.md",
+      "existed": false
+    },
+    {
+      "relative": "package-lock.json",
+      "existed": true
+    },
+    {
+      "relative": "package.json",
+      "existed": true
+    },
+    {
+      "relative": "public/release-manifest.json",
+      "existed": true
+    },
+    {
+      "relative": "public/version.json",
+      "existed": true
+    },
+    {
+      "relative": "scripts/check-v11.3.4.mjs",
+      "existed": false
+    },
+    {
+      "relative": "scripts/performance-budget-v11.3.4.mjs",
+      "existed": false
+    },
+    {
+      "relative": "scripts/release-guard-v11.3.4.mjs",
+      "existed": false
+    },
+    {
+      "relative": "scripts/sync-version-v11.3.4.mjs",
+      "existed": false
+    },
+    {
+      "relative": "src/components/StatusMenuBar.jsx",
+      "existed": true
+    },
+    {
+      "relative": "src/config/version.js",
+      "existed": true
+    },
+    {
+      "relative": "src/pages/WorkHub.jsx",
+      "existed": true
+    },
+    {
+      "relative": "src/styles/v1133.css",
+      "existed": true
+    },
+    {
+      "relative": "src/utils/workHubDelivery.js",
+      "existed": true
+    },
+    {
+      "relative": "supabase/brian_v11_3_4_bulk_assignment_delete.sql",
+      "existed": false
+    },
+    {
+      "relative": "supabase/brian_v11_3_4_preflight.sql",
+      "existed": false
+    },
+    {
+      "relative": "supabase/brian_v11_3_4_verify.sql",
+      "existed": false
+    }
+  ]
+}

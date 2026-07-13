@@ -1,14 +1,14 @@
 {
-  "version": "11.3.3",
+  "version": "11.3.4",
   "channel": "stable",
-  "releaseName": "Work Assignment Delivery",
-  "runtimeCore": "2.3.3",
-  "schemaVersion": "11.3.3",
+  "releaseName": "Bulk Work Assignment & Safe Delete",
+  "runtimeCore": "2.3.4",
+  "schemaVersion": "11.3.4",
   "requiresSql": true,
-  "requiredMigration": "supabase/brian_v11_3_3_work_assignment_delivery.sql",
+  "requiredMigration": "supabase/brian_v11_3_4_bulk_assignment_delete.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-13T09:15:53.734Z",
+  "generatedAt": "2026-07-13T09:59:20.783Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -18,5 +18,10 @@
   "workAssignmentNotifications": true,
   "teacherFileResponses": true,
   "workHubRealtime": true,
-  "workHubSubmissionBucket": "work-hub-submissions"
+  "workHubSubmissionBucket": "work-hub-submissions",
+  "bulkWorkAssignment": true,
+  "wholeDepartmentAssignment": true,
+  "safeWorkDeletion": true,
+  "notificationSound": true,
+  "animatedUnreadBadge": true
 }

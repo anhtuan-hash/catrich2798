@@ -87,26 +87,6 @@ export async function removeWorkHubSubmissionFile(attachment) {
   return error ? { ok: false, message: error.message } : { ok: true };
 }
 
-
-export async function removeWorkHubSubmissionFiles(attachments = []) {
-  const client = getRuntimeClient();
-  if (!client) return { ok: false, message: 'Supabase chưa được cấu hình.' };
-  const grouped = new Map();
-  for (const attachment of attachments || []) {
-    if (!attachment?.path) continue;
-    const bucket = attachment.bucket || WORK_HUB_BUCKET;
-    const paths = grouped.get(bucket) || new Set();
-    paths.add(attachment.path);
-    grouped.set(bucket, paths);
-  }
-  for (const [bucket, paths] of grouped.entries()) {
-    if (!paths.size) continue;
-    const { error } = await client.storage.from(bucket).remove([...paths]);
-    if (error) return { ok: false, message: error.message || 'Không thể xoá tệp công việc.' };
-  }
-  return { ok: true, removed: [...grouped.values()].reduce((sum, paths) => sum + paths.size, 0) };
-}
-
 export async function createWorkHubAttachmentUrl(attachment, expiresIn = 3600) {
   if (!attachment) return '';
   if (attachment.url) return attachment.url;
