@@ -22,10 +22,3 @@
 .elis-host-shell{border:0!important;box-shadow:none!important;background:transparent!important;overflow:visible;border-radius:0}
 .elis-native-host{min-height:78vh}
 @media(max-width:760px){.english-lesson-integration-page{padding-inline:2px}.elis-native-host{min-height:82vh}}
-
-
-/* V11.4.6 — ELIS native AI + readable card scale */
-.english-lesson-integration-page{padding-inline:2px!important}
-.elis-host-shell{min-height:84vh!important}
-.elis-native-host{min-height:84vh;width:100%}
-@media(min-width:1400px){.english-lesson-integration-page{padding-inline:0!important}}

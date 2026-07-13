@@ -1,14 +1,14 @@
 {
-  "version": "11.4.6",
+  "version": "11.4.5",
   "channel": "stable",
-  "releaseName": "Native AI Gateway + Large Review Cards",
-  "runtimeCore": "2.4.6",
+  "releaseName": "Lesson Workspace UX + AI Copilot",
+  "runtimeCore": "2.4.5",
   "schemaVersion": "11.4.2",
   "requiresSql": true,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-13T22:09:25.876Z",
+  "generatedAt": "2026-07-13T15:49:43.138Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -51,7 +51,7 @@
   "lessonIntegrationNativeBundle": true,
   "lessonIntegrationExternalBundle": false,
   "lessonIntegrationRuntimeFix": true,
-  "lessonIntegrationModuleVersion": "1.4.1-brian.2",
+  "lessonIntegrationModuleVersion": "1.4.0-brian.1",
   "lessonIntegrationLargeWorkspace": true,
   "lessonIntegrationDisplayModes": [
     "integrated",
@@ -67,11 +67,5 @@
     "differentiate",
     "assessment",
     "custom"
-  ],
-  "runtime": "2.4.6",
-  "schema": "11.4.2",
-  "lessonIntegrationNativeAiBridge": true,
-  "lessonIntegrationProviderInheritance": true,
-  "lessonIntegrationLargeProposalCards": true,
-  "lessonIntegrationReviewDrawer": true
+  ]
 }

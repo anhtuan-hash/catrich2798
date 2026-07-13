@@ -1,0 +1,41 @@
+{
+  "fromVersion": "11.4.5",
+  "toVersion": "11.4.6",
+  "createdAt": "2026-07-13T22:09:15.276Z",
+  "files": {
+    "package-lock.json": {
+      "existed": true
+    },
+    "package.json": {
+      "existed": true
+    },
+    "public/release-manifest.json": {
+      "existed": true
+    },
+    "public/version.json": {
+      "existed": true
+    },
+    "scripts/check-v11.4.6.mjs": {
+      "existed": false
+    },
+    "scripts/performance-budget-v11.4.6.mjs": {
+      "existed": false
+    },
+    "scripts/release-guard-v11.4.6.mjs": {
+      "existed": false
+    },
+    "scripts/sync-version-v11.4.6.mjs": {
+      "existed": false
+    },
+    "src/config/version.js": {
+      "existed": true
+    },
+    "src/index.css": {
+      "existed": true
+    },
+    "src/pages/EnglishLessonIntegrationStudio.jsx": {
+      "existed": true
+    }
+  },
+  "vendorExisted": true
+}

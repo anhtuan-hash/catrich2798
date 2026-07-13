@@ -1,7 +1,7 @@
 {
-  "version": "11.4.5",
-  "release": "Lesson Workspace UX + AI Copilot",
-  "runtime": "2.4.5",
+  "version": "11.4.6",
+  "release": "Native AI Gateway + Large Review Cards",
+  "runtime": "2.4.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
   "lessonArchitectAnnualBuilder": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": true,
-  "generatedAt": "2026-07-13T15:49:43.138Z",
+  "generatedAt": "2026-07-13T22:09:25.876Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "2.4.5",
+  "runtimeCore": "2.4.6",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -58,7 +58,7 @@
   "lessonIntegrationNativeBundle": true,
   "lessonIntegrationExternalBundle": false,
   "lessonIntegrationRuntimeFix": true,
-  "lessonIntegrationModuleVersion": "1.4.0-brian.1",
+  "lessonIntegrationModuleVersion": "1.4.1-brian.2",
   "lessonIntegrationLargeWorkspace": true,
   "lessonIntegrationDisplayModes": [
     "integrated",
@@ -74,5 +74,9 @@
     "differentiate",
     "assessment",
     "custom"
-  ]
+  ],
+  "lessonIntegrationNativeAiBridge": true,
+  "lessonIntegrationProviderInheritance": true,
+  "lessonIntegrationLargeProposalCards": true,
+  "lessonIntegrationReviewDrawer": true
 }
