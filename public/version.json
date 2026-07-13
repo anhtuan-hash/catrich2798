@@ -1,11 +1,11 @@
 {
-  "version": "11.0.0",
+  "version": "11.1.0",
   "channel": "stable",
-  "releaseName": "Connected Teaching Suite",
-  "runtimeCore": "2.0.0",
-  "schemaVersion": "11.0.0",
+  "releaseName": "Classroom Delivery",
+  "runtimeCore": "2.1.0",
+  "schemaVersion": "11.1.0",
   "requiresSql": true,
-  "requiredMigration": "brian_v11_0_connected_teaching_suite.sql",
+  "requiredMigration": "brian_v11_1_classroom_delivery.sql",
   "legacyDomPatches": false,
-  "generatedAt": "2026-07-13T04:15:56.418Z"
+  "generatedAt": "2026-07-13T04:40:50.925Z"
 }

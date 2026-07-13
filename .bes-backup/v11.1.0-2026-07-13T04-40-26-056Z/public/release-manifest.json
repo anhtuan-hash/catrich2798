@@ -1,0 +1,9 @@
+{
+  "version": "11.0.0",
+  "release": "Connected Teaching Suite",
+  "runtime": "2.0.0",
+  "schema": "11.0.0",
+  "connectedTeachingSuite": true,
+  "lessonPack": true,
+  "generatedAt": "2026-07-13T04:15:56.418Z"
+}

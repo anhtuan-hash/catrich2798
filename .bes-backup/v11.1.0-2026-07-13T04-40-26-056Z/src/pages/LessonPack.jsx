@@ -218,8 +218,8 @@ export default function LessonPack({ currentUser, language = 'vi' }) {
       onDelete={() => { if (window.confirm(language === 'vi' ? 'Xóa gói bài dạy này?' : 'Delete this lesson pack?')) deleteLessonPack(currentUser, pack.id); }} language={language} />
     <section className="lp-workspace">
       <header className="lp-topbar">
-        <div><small>V11.1 · CONNECTED TEACHING SUITE</small><h1>{pack?.title || 'Lesson Pack'}</h1></div>
-        <div className="lp-status"><span className={runtime.ready ? 'online' : ''}>{runtime.ready ? '● Cloud ready' : '○ Local mode'}</span><button onClick={saveCloud} disabled={saving}>{saving ? '…' : '☁'} {language === 'vi' ? 'Lưu' : 'Save'}</button><button onClick={() => { window.location.hash = `#/classroom-delivery?pack=${encodeURIComponent(pack?.id || '')}`; }}>⌁ {language === 'vi' ? 'Mở phòng học' : 'Open classroom'}</button><button className="primary" onClick={() => setLive(true)}>▶ {language === 'vi' ? 'Trình chiếu nhanh' : 'Quick presentation'}</button></div>
+        <div><small>V11.0 · CONNECTED TEACHING SUITE</small><h1>{pack?.title || 'Lesson Pack'}</h1></div>
+        <div className="lp-status"><span className={runtime.ready ? 'online' : ''}>{runtime.ready ? '● Cloud ready' : '○ Local mode'}</span><button onClick={saveCloud} disabled={saving}>{saving ? '…' : '☁'} {language === 'vi' ? 'Lưu' : 'Save'}</button><button className="primary" onClick={() => setLive(true)}>▶ {language === 'vi' ? 'Dạy trực tiếp' : 'Live teaching'}</button></div>
       </header>
       <nav className="lp-tabs">
         {[['builder', '▦', 'Thiết kế', 'Builder'], ['timeline', '≡', 'Tiến trình', 'Timeline'], ['preview', '◉', 'Xem trước', 'Preview'], ['connections', '↗', 'Liên thông', 'Connections']].map(([id, icon, vi, en]) => <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{icon} {language === 'vi' ? vi : en}</button>)}

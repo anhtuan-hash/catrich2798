@@ -9,7 +9,6 @@ import './styles/v1097.css';
 import './styles/v1098.css';
 import './styles/v1099.css';
 import './styles/v1100.css';
-import './styles/v1110.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
@@ -105,14 +104,12 @@ const CollaborationHub = lazy(() => import('./pages/CollaborationHub.jsx'));
 const DataGovernance = lazy(() => import('./pages/DataGovernance.jsx'));
 const ProductionHardening = lazy(() => import('./pages/ProductionHardening.jsx'));
 const LessonPack = lazy(() => import('./pages/LessonPack.jsx'));
-const ClassroomDelivery = lazy(() => import('./pages/ClassroomDelivery.jsx'));
-const ClassroomJoin = lazy(() => import('./pages/ClassroomJoin.jsx'));
 const UnifiedUtilityRail = lazy(() => import('./components/UnifiedUtilityRail.jsx'));
 const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAccessibilityAnnouncer.jsx'));
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'lesson-pack', 'classroom-delivery', 'classroom-join', 'assessment-core', 'learning-intelligence', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
-const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join']);
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'lesson-pack', 'assessment-core', 'learning-intelligence', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'setup'];
+const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
 
 function getInitialRoute() {
   const href = window.location.href || '';
@@ -138,8 +135,6 @@ const ROUTE_DESIGN_PROFILES = {
   'ai-workspace': { accent: '#6255D9', soft: '#EEECFF', ink: '#211A55' },
   'content-factory': { accent: '#EF7A42', soft: '#FFF0E8', ink: '#5C2410' },
   'lesson-pack': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
-  'classroom-delivery': { accent: '#235FBD', soft: '#EAF2FF', ink: '#10264A' },
-  'classroom-join': { accent: '#235FBD', soft: '#EAF2FF', ink: '#10264A' },
   'assessment-core': { accent: '#CC7621', soft: '#FFF3DF', ink: '#522A08' },
   'learning-intelligence': { accent: '#1A7D73', soft: '#E4F7F3', ink: '#0B3C38' },
   'platform-readiness': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
@@ -418,7 +413,7 @@ function App() {
       department: ['Department', 'Tổ chuyên môn'], homeroom: ['Homeroom', 'Giáo viên chủ nhiệm'], library: ['Library', 'Thư viện'],
       'resource-library': ['Resource Library', 'Kho học liệu'], 'knowledge-hub': ['Smart Knowledge Library', 'Kho học liệu thông minh'],
       'work-hub': ['Unified Work Hub', 'Trung tâm công việc'], 'ai-workspace': ['Brian AI Workspace', 'Không gian AI'],
-      'content-factory': ['Teaching Content Factory', 'Xưởng tạo học liệu'], 'lesson-pack': ['Lesson Pack', 'Gói bài dạy'], 'classroom-delivery': ['Classroom Delivery', 'Điều phối lớp học'], 'classroom-join': ['Join Classroom', 'Tham gia lớp học'], 'assessment-core': ['Assessment Core', 'Ngân hàng câu hỏi'],
+      'content-factory': ['Teaching Content Factory', 'Xưởng tạo học liệu'], 'lesson-pack': ['Lesson Pack', 'Gói bài dạy'], 'assessment-core': ['Assessment Core', 'Ngân hàng câu hỏi'],
       'learning-intelligence': ['Learning Intelligence', 'Phân tích học tập'], 'platform-readiness': ['Platform Readiness', 'Sẵn sàng nền tảng'],
       'automation-center': ['Automation Center', 'Trung tâm tự động hóa'],
       'cloud-operations': ['Cloud Operations', 'Vận hành nền'],
@@ -469,7 +464,7 @@ function App() {
         '--active-app-ink': activeDesignProfile.ink,
       }}
     >
-      {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <div className="bes-top-chrome">
+      {currentRoute !== 'homeroom-portal' ? <div className="bes-top-chrome">
         <Suspense fallback={null}>
           <StatusMenuBar route={currentRoute} {...context} />
         </Suspense>
@@ -477,7 +472,7 @@ function App() {
           <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
         </AppErrorBoundary>
       </div> : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
+      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="workspace-tabs" label={language === 'vi' ? 'tab không gian làm việc' : 'workspace tabs'}>
             <WorkspaceTabs currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} activeProfile={activeDesignProfile} language={language} />
@@ -539,7 +534,7 @@ function App() {
           <FullMotionEffects route={currentRoute} language={language} loadingState={loadingState} />
         </Suspense>
       )}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
+      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
         <Suspense fallback={null}>
           <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
         </Suspense>
@@ -567,8 +562,6 @@ function App() {
           {canAccessRoute && currentRoute === 'ai-workspace' && currentUser && <AIWorkspace {...context} />}
           {canAccessRoute && currentRoute === 'content-factory' && currentUser && <ContentFactory {...context} />}
           {canAccessRoute && currentRoute === 'lesson-pack' && currentUser && <LessonPack {...context} />}
-          {canAccessRoute && currentRoute === 'classroom-delivery' && currentUser && <ClassroomDelivery {...context} />}
-          {currentRoute === 'classroom-join' && <ClassroomJoin {...context} />}
           {canAccessRoute && currentRoute === 'assessment-core' && currentUser && <AssessmentCore {...context} />}
           {canAccessRoute && currentRoute === 'learning-intelligence' && currentUser && <LearningIntelligence {...context} />}
           {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <PlatformReadiness {...context} />}
@@ -620,7 +613,7 @@ function App() {
         </Suspense>
       )}
 
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? <>
+      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <>
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
             <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} />
@@ -630,8 +623,8 @@ function App() {
           <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
         </Suspense>
       </> : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? <Suspense fallback={null}><UnifiedUtilityRail currentUser={currentUser} language={language} currentRoute={currentRoute} /></Suspense> : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
+      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><UnifiedUtilityRail currentUser={currentUser} language={language} currentRoute={currentRoute} /></Suspense> : null}
+      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
       {currentRoute !== 'homeroom-portal' ? <>
         <Suspense fallback={null}>
           <GlobalMusicPlayer language={language} currentUser={currentUser} externalLauncher />

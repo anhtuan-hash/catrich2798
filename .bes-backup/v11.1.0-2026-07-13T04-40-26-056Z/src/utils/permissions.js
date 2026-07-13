@@ -18,7 +18,6 @@ export const ROUTE_PERMISSION_IDS = {
   'ai-workspace': 'route:ai-workspace',
   'content-factory': 'route:content-factory',
   'lesson-pack': 'route:lesson-pack',
-  'classroom-delivery': 'route:classroom-delivery',
   'assessment-core': 'route:assessment-core',
   'learning-intelligence': 'route:learning-intelligence',
   'platform-readiness': 'route:platform-readiness',
@@ -99,15 +98,6 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Gói bài dạy liên thông',
     desc: 'Combine outputs from teaching apps into a live lesson sequence.',
     descVi: 'Kết hợp sản phẩm từ các ứng dụng thành tiến trình bài dạy trực tiếp.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['classroom-delivery'],
-    type: 'content',
-    section: 'content',
-    title: 'Classroom Delivery',
-    titleVi: 'Điều phối lớp học',
-    desc: 'Run live Lesson Pack sessions with student join codes, teams, response collection and results.',
-    descVi: 'Tổ chức phiên Lesson Pack trực tiếp với mã tham gia, đội, thu câu trả lời và kết quả.',
   },
   {
     id: ROUTE_PERMISSION_IDS['assessment-core'],

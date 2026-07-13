@@ -1,0 +1,159 @@
+{
+  "version": "11.1.0",
+  "installedAt": "2026-07-13T04:40:26.067Z",
+  "target": "/Users/catrichmauxanh/Documents/Brian-English-Studio-MAIN",
+  "previousVersion": "11.0.0",
+  "backupDir": "/Users/catrichmauxanh/Documents/Brian-English-Studio-MAIN/.bes-backup/v11.1.0-2026-07-13T04-40-26-056Z",
+  "files": [
+    {
+      "relative": "README.md",
+      "existed": true,
+      "sha256": "1eec0798e2bdfdb5019fd4a9f41c90ceef0cf57460dcb019a8560d8c1594181b"
+    },
+    {
+      "relative": "README_UPDATE.md",
+      "existed": true,
+      "sha256": "bf0bcc981471b6fbeb8e50bfc3ed5697ae54ee69d605b271f4d9e5499e43f562"
+    },
+    {
+      "relative": "V11_1_0_CLASSROOM_DELIVERY.md",
+      "existed": false,
+      "sha256": "f67684da3350e27b08da66f518ed4e2b459f3ff03175a130de6559957a45184c"
+    },
+    {
+      "relative": "index.html",
+      "existed": true,
+      "sha256": "d27f808e69919b7d0b49047dfbbbc95019856dd84affe1eb98a5d21c4479b317"
+    },
+    {
+      "relative": "package-lock.json",
+      "existed": true,
+      "sha256": "a15a1d834d43e03c4477b9affa1104c66980887ec71a3d32417910dca69ad803"
+    },
+    {
+      "relative": "package.json",
+      "existed": true,
+      "sha256": "f6c119d77e1e112af3e608e65020808797e51b5b77c6d4beb73ffeab093af576"
+    },
+    {
+      "relative": "public/release-manifest.json",
+      "existed": true,
+      "sha256": "434af254d3573624decfea5f7eddd3edb8e22c507ce04b8718d25f5fbc871d0c"
+    },
+    {
+      "relative": "public/sw.js",
+      "existed": true,
+      "sha256": "fe0a6ae33b55e9d4f8024f9196e0e54d2f99a8cf00955477a00cd18f49cff451"
+    },
+    {
+      "relative": "public/version.json",
+      "existed": true,
+      "sha256": "b9eba3deec76c2c805de32284100736ef4bed90255f6acac5468af42a185ff97"
+    },
+    {
+      "relative": "scripts/check-v11.1.0.mjs",
+      "existed": false,
+      "sha256": "f167fb5a5d01aa000dcba9d2b913392286fa6200ab17a35689f70a94ff2e635e"
+    },
+    {
+      "relative": "scripts/performance-budget-v11.1.0.mjs",
+      "existed": false,
+      "sha256": "15553af6a0fde0a0b43d91b08231307d9fbe6edb7900e9ec1899b25dde673f93"
+    },
+    {
+      "relative": "scripts/release-guard-v11.1.0.mjs",
+      "existed": false,
+      "sha256": "20d1e86e2be234479dbc0cb62e8caaff0bb1f3ead5a14366b6cb02d13df4687e"
+    },
+    {
+      "relative": "scripts/smoke-test.mjs",
+      "existed": true,
+      "sha256": "081835b18ce8d887235cf70d64f4a0531e782dd3f084d3f7275408fc011cf7b8"
+    },
+    {
+      "relative": "scripts/sync-version-v11.1.mjs",
+      "existed": false,
+      "sha256": "f6758d35dfb064d2ba378e3c5467b0ca08c030c1a28c4d67e1118a1705edde04"
+    },
+    {
+      "relative": "src/components/GlobalCommandPalette.jsx",
+      "existed": true,
+      "sha256": "1edf14350a23453ae9b0db3f1d6519eddb83b6f47412a3716f0375c75fad8b30"
+    },
+    {
+      "relative": "src/components/GlobalFlatNavigation.jsx",
+      "existed": true,
+      "sha256": "f98e7306c03f4d0ef14c5662b94069c2105fa6e6775d894c876de7f51e192e8f"
+    },
+    {
+      "relative": "src/config/version.js",
+      "existed": true,
+      "sha256": "b4d559595ced66c3fa5b73655094e1fc54b427d9b248a35f660b9055a9bec34c"
+    },
+    {
+      "relative": "src/data/apps.js",
+      "existed": true,
+      "sha256": "9c17222a2cb8789ca3b977e4dc8356d11eee7cd4a8e6d3b08675d68d161af229"
+    },
+    {
+      "relative": "src/main.jsx",
+      "existed": true,
+      "sha256": "cac5748c910b6d3a9c9382b85fdc538fdf7c80e7a3ffe918b7d38465da2455cc"
+    },
+    {
+      "relative": "src/pages/ClassroomDelivery.jsx",
+      "existed": false,
+      "sha256": "f34abf36b07f682960c19593ca46f4c6c478741fe846837d043042df5ff2045a"
+    },
+    {
+      "relative": "src/pages/ClassroomJoin.jsx",
+      "existed": false,
+      "sha256": "84924b609cb41bba3afb47272902b43e85ba591bce1e5e997af389d0a5af01a0"
+    },
+    {
+      "relative": "src/pages/LessonPack.jsx",
+      "existed": true,
+      "sha256": "37bdefa6269c0612962b4ba74d2d0b24dbaf17c7fb0c49c7df85827e99fbafed"
+    },
+    {
+      "relative": "src/styles/v1110.css",
+      "existed": false,
+      "sha256": "897e269941d64d5e38a9f66f970a5227b8c6cdfc435c6925cf7d79dd73092ae2"
+    },
+    {
+      "relative": "src/utils/classroomDelivery.js",
+      "existed": false,
+      "sha256": "af8bb49c4bacdcdb6bf83505e2d71c86bd4b084289679487e176662be5467ba5"
+    },
+    {
+      "relative": "src/utils/permissions.js",
+      "existed": true,
+      "sha256": "c288b4c6ebaa373d96ee5f9f5e0ce6f6948815d34d78a508f4de3f423a0d606f"
+    },
+    {
+      "relative": "supabase/brian_v11_1_classroom_delivery.sql",
+      "existed": false,
+      "sha256": "96f37898222f548047486aaa4675d48cfacff4d20890a7152659454c0fba767c"
+    },
+    {
+      "relative": "supabase/brian_v11_1_preflight.sql",
+      "existed": false,
+      "sha256": "c4fff60b1d9295b9311780594851f21b88c5b432290a3822eca0894c40d49951"
+    },
+    {
+      "relative": "supabase/brian_v11_1_verify.sql",
+      "existed": false,
+      "sha256": "8f3e787eaf50d114cf88038c526931ac5f100ffcf7864923f290b2be3ca1ddbe"
+    },
+    {
+      "relative": "tests/e2e/classroom-delivery.spec.js",
+      "existed": false,
+      "sha256": "9cd1ec78d4a572205ba9da95a33f65eb53af302f153bb3f0352f247625f7fc24"
+    },
+    {
+      "relative": "tests/e2e/shell.spec.js",
+      "existed": true,
+      "sha256": "e4ef33c27a8bbf4bf691cc16cd069cee0dcae9d54e399839532ccfd003fba479"
+    }
+  ]
+}

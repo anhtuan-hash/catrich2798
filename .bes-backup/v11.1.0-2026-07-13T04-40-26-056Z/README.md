@@ -1,6 +1,6 @@
-# Brian English Studio V11.1.0
+# Brian English Studio V11.0.0
 
-Classroom Delivery extends the Connected Teaching Suite with live Lesson Pack sessions, student join codes, QR access, teams, timers, response collection, results and offline classroom packages.
+Connected Teaching Suite with Lesson Pack, live teaching sequences and cross-app content workflow.
 
 Production-hardened digital teaching platform for English teachers, department heads and learners.
 

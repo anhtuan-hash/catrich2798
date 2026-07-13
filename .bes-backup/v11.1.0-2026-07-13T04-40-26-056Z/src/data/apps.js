@@ -39,13 +39,6 @@ export const APPS = [
     status: 'Sequence · Live mode · Export', statusVi: 'Tiến trình · Dạy trực tiếp · Xuất file', api: true, featured: true,
   },
   {
-    slug: 'classroom-delivery', route: 'classroom-delivery', icon: 'CD', tone: 'blue', group: 'Connected Teaching', groupVi: 'Dạy học trực tiếp',
-    title: 'Classroom Delivery', titleVi: 'Điều phối lớp học',
-    desc: 'Launch a Lesson Pack as a live classroom with join codes, QR access, teams, timers, response collection and results.',
-    descVi: 'Mở Lesson Pack thành phiên học trực tiếp với mã tham gia, QR, đội, đồng hồ, thu câu trả lời và kết quả.',
-    status: 'Join code · Teams · Responses', statusVi: 'Mã tham gia · Đội · Thu kết quả', api: true, featured: true,
-  },
-  {
     slug: 'assessment-core', route: 'assessment-core', icon: 'AC', tone: 'orange', group: 'Assessment', groupVi: 'Đánh giá',
     title: 'Assessment Core', titleVi: 'Ngân hàng câu hỏi & đề thi',
     desc: 'Manage question banks, import items, build blueprints and generate multiple test codes.',
