@@ -3,11 +3,18 @@ import {
   PROVIDERS,
   getActiveAiConfig,
   getAiConfigs,
-  getAiProvider,
   getFallbackEnabled,
   getProviderInfo,
 } from './aiProviders.js';
 import { appendAiAudit, guardAiRequest, recordAiRequest } from './aiGovernance.js';
+import { getProviderCatalogEntry, mergeProviderInfo } from '../data/aiProviderCatalog.js';
+import { getRoutingPreferences } from './aiProviderOverrides.js';
+import {
+  buildAiRoutingCandidates,
+  classifyAiError,
+  noteProviderHealth,
+  shouldFallbackAiError,
+} from './aiSmartRouting.js';
 
 export const DEFAULT_GEMINI_MODEL = 'gemini-flash-latest';
 export const DEFAULT_MAX_OUTPUT_TOKENS = 1600;
@@ -15,7 +22,7 @@ export const DEFAULT_MAX_OUTPUT_TOKENS = 1600;
 function normalizeMaxOutputTokens(value, fallback = DEFAULT_MAX_OUTPUT_TOKENS) {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed)) return fallback;
-  return Math.min(8192, Math.max(256, parsed));
+  return Math.min(8192, Math.max(32, parsed));
 }
 
 export const ACTIVITY_OUTPUT_FORMATS = {
@@ -34,20 +41,48 @@ function normalizeModelName(model, fallback = DEFAULT_GEMINI_MODEL) {
   return clean || fallback;
 }
 
-function buildMessages(prompt, systemInstruction = '') {
-  const messages = [];
-  if (systemInstruction) messages.push({ role: 'system', content: systemInstruction });
-  messages.push({ role: 'user', content: prompt });
-  return messages;
+function normalizeApiKey(value = '') {
+  return String(value || '').trim().replace(/^Bearer\s+/i, '');
 }
 
-async function callGeminiProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
-  const key = String(apiKey || '').trim();
-  if (!key) throw new Error('Missing Gemini API key.');
+function providerError(message, { status = 0, provider = '', code = '' } = {}) {
+  const error = new Error(String(message || 'AI provider error'));
+  if (status) error.status = status;
+  if (provider) error.provider = provider;
+  if (code) error.code = code;
+  return error;
+}
+
+function resolveProviderInfo(providerId) {
+  const id = String(providerId || DEFAULT_PROVIDER || 'gemini').trim();
+  let legacy = {};
+  try { legacy = getProviderInfo(id) || {}; } catch { legacy = {}; }
+  return mergeProviderInfo(id, legacy);
+}
+
+function appendEndpoint(baseUrl, endpoint) {
+  const clean = String(baseUrl || '').trim().replace(/\/+$/, '');
+  if (!clean) return '';
+  if (clean.toLowerCase().endsWith(endpoint.toLowerCase())) return clean;
+  return `${clean}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+}
+
+function extractOpenAIText(data) {
+  const content = data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.text ?? '';
+  if (Array.isArray(content)) return content.map((part) => part?.text || part?.content || '').join('\n').trim();
+  return String(content || '').trim();
+}
+
+async function callGeminiProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, provider = 'gemini' }) {
+  const key = normalizeApiKey(apiKey);
+  if (!key) throw providerError('Missing Gemini API key.', { provider, code: 'AI_AUTH_MISSING' });
   const cleanBase = String(baseUrl || 'https://generativelanguage.googleapis.com/v1beta').replace(/\/+$/, '');
   const chosenModel = normalizeModelName(model, DEFAULT_GEMINI_MODEL);
   const url = `${cleanBase}/models/${encodeURIComponent(chosenModel)}:generateContent`;
-  const imageParts = (Array.isArray(attachments) ? attachments : []).filter((item) => String(item?.mimeType || '').startsWith('image/') && item?.base64).slice(0, 4).map((item) => ({ inlineData: { mimeType: item.mimeType, data: item.base64 } }));
+  const imageParts = (Array.isArray(attachments) ? attachments : [])
+    .filter((item) => String(item?.mimeType || item?.type || '').startsWith('image/') && item?.base64)
+    .slice(0, 4)
+    .map((item) => ({ inlineData: { mimeType: item.mimeType || item.type, data: item.base64 } }));
   const body = {
     contents: [{ role: 'user', parts: [{ text: prompt }, ...imageParts] }],
     generationConfig: { temperature, maxOutputTokens: normalizeMaxOutputTokens(maxOutputTokens) },
@@ -63,31 +98,31 @@ async function callGeminiProvider({ apiKey, model, baseUrl, prompt, attachments 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const message = data?.error?.message || `Gemini request failed with status ${response.status}`;
-    throw new Error(message);
+    throw providerError(message, { status: response.status, provider });
   }
   const text = data?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('\n').trim();
-  if (!text) throw new Error('Gemini returned an empty response.');
+  if (!text) throw providerError('Gemini returned an empty response.', { provider, code: 'AI_EMPTY_RESPONSE' });
   return text;
 }
 
-async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', provider = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry }) {
-  const key = String(apiKey || '').trim();
-  if (!key) throw new Error(`Missing ${provider || 'AI'} API key.`);
+async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', provider = '', requiresApiKey = true, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry }) {
+  const key = normalizeApiKey(apiKey);
+  if (requiresApiKey !== false && !key) throw providerError(`Missing ${provider || 'AI'} API key.`, { provider, code: 'AI_AUTH_MISSING' });
   const cleanBase = String(baseUrl || '').replace(/\/+$/, '');
-  if (!cleanBase) throw new Error('Missing OpenAI-compatible base URL.');
-  const url = `${cleanBase}/chat/completions`;
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${key}`,
-  };
+  if (!cleanBase) throw providerError('Missing OpenAI-compatible base URL.', { provider, code: 'AI_BASE_URL_MISSING' });
+  const url = appendEndpoint(cleanBase, '/chat/completions');
+  const headers = { 'Content-Type': 'application/json' };
+  if (key) headers.Authorization = `Bearer ${key}`;
   if (provider === 'openrouter') {
-    headers['HTTP-Referer'] = window.location?.origin || 'http://localhost';
+    headers['HTTP-Referer'] = typeof window !== 'undefined' ? (window.location?.origin || 'http://localhost') : 'http://localhost';
     headers['X-Title'] = 'Brian English Studio';
   }
 
-  const imageParts = (Array.isArray(attachments) ? attachments : []).filter((item) => String(item?.mimeType || '').startsWith('image/') && item?.dataUrl).slice(0, 4);
+  const imageParts = (Array.isArray(attachments) ? attachments : [])
+    .filter((item) => String(item?.mimeType || item?.type || '').startsWith('image/') && (item?.dataUrl || item?.base64))
+    .slice(0, 4);
   const userContent = imageParts.length
-    ? [{ type: 'text', text: prompt }, ...imageParts.map((item) => ({ type: 'image_url', image_url: { url: item.dataUrl } }))]
+    ? [{ type: 'text', text: prompt }, ...imageParts.map((item) => ({ type: 'image_url', image_url: { url: item.dataUrl || `data:${item.mimeType || item.type};base64,${item.base64}` } }))]
     : prompt;
   const messages = [];
   if (systemInstruction) messages.push({ role: 'system', content: systemInstruction });
@@ -112,13 +147,10 @@ async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, at
     const affordableMatch = String(message).match(/can only afford\s+(\d+)/i);
     const affordable = affordableMatch ? Number.parseInt(affordableMatch[1], 10) : 0;
     if (Number.isFinite(affordable) && affordable >= 80 && body.max_tokens > 64) {
-      // Legacy retry contract marker retained for historical smoke checks: affordable - 64
       const adaptiveMax = Math.max(64, Math.min(body.max_tokens - 32, affordable - 24));
       if (adaptiveMax < body.max_tokens) {
         body.max_tokens = adaptiveMax;
-        if (typeof onAdaptiveRetry === 'function') {
-          onAdaptiveRetry({ provider, affordableTokens: affordable, maxOutputTokens: adaptiveMax, reason: 'credit-limit' });
-        }
+        if (typeof onAdaptiveRetry === 'function') onAdaptiveRetry({ provider, affordableTokens: affordable, maxOutputTokens: adaptiveMax, reason: 'credit-limit' });
         ({ response, data } = await executeRequest(body));
       }
     }
@@ -127,48 +159,27 @@ async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, at
     const message = data?.error?.message || data?.message || `${provider || 'AI'} request failed with status ${response.status}`;
     const affordableMatch = String(message).match(/can only afford\s+(\d+)/i);
     const creditLimited = provider === 'openrouter' && (/requires more credits|insufficient credits|can only afford|credit balance/i.test(String(message)));
-    const error = new Error(message);
+    const error = providerError(message, {
+      status: response.status,
+      provider,
+      code: creditLimited ? 'AI_PROVIDER_CREDIT_LIMIT' : '',
+    });
     if (creditLimited) {
-      error.code = 'AI_PROVIDER_CREDIT_LIMIT';
-      error.provider = provider;
       error.affordableTokens = affordableMatch ? Number.parseInt(affordableMatch[1], 10) : 0;
       error.requestedTokens = body.max_tokens;
     }
     throw error;
   }
-  const text = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text || '';
-  if (!String(text).trim()) throw new Error(`${provider || 'AI'} returned an empty response.`);
-  return String(text).trim();
-}
-
-async function callCohereProvider({ apiKey, model, baseUrl, prompt, systemInstruction = '', temperature = 0.7, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
-  const key = String(apiKey || '').trim();
-  if (!key) throw new Error('Missing Cohere API key.');
-  const cleanBase = String(baseUrl || 'https://api.cohere.com/v2').replace(/\/+$/, '');
-  const messages = buildMessages(prompt, systemInstruction);
-  const response = await fetch(`${cleanBase}/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      model: normalizeModelName(model, 'command-a-03-2025'),
-      messages,
-      temperature,
-      max_tokens: normalizeMaxOutputTokens(maxOutputTokens),
-    }),
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data?.message || data?.error?.message || `Cohere request failed with status ${response.status}`);
-  const content = data?.message?.content;
-  const text = Array.isArray(content) ? content.map((item) => item?.text || '').join('\n').trim() : String(content || data?.text || '').trim();
-  if (!text) throw new Error('Cohere returned an empty response.');
+  const text = extractOpenAIText(data);
+  if (!text) throw providerError(`${provider || 'AI'} returned an empty response.`, { provider, code: 'AI_EMPTY_RESPONSE' });
   return text;
 }
 
-async function callClaudeProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
-  const key = String(apiKey || '').trim();
-  if (!key) throw new Error('Missing Claude API key.');
+async function callClaudeProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, provider = 'claude' }) {
+  const key = normalizeApiKey(apiKey);
+  if (!key) throw providerError('Missing Claude API key.', { provider, code: 'AI_AUTH_MISSING' });
   const cleanBase = String(baseUrl || 'https://api.anthropic.com/v1').replace(/\/+$/, '');
-  const response = await fetch(`${cleanBase}/messages`, {
+  const response = await fetch(appendEndpoint(cleanBase, '/messages'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -183,22 +194,25 @@ async function callClaudeProvider({ apiKey, model, baseUrl, prompt, attachments 
       system: systemInstruction || undefined,
       messages: [{ role: 'user', content: [
         { type: 'text', text: prompt },
-        ...(Array.isArray(attachments) ? attachments : []).filter((item) => String(item?.mimeType || '').startsWith('image/') && item?.base64).slice(0, 4).map((item) => ({ type: 'image', source: { type: 'base64', media_type: item.mimeType, data: item.base64 } })),
+        ...(Array.isArray(attachments) ? attachments : [])
+          .filter((item) => String(item?.mimeType || item?.type || '').startsWith('image/') && item?.base64)
+          .slice(0, 4)
+          .map((item) => ({ type: 'image', source: { type: 'base64', media_type: item.mimeType || item.type, data: item.base64 } })),
       ] }],
     }),
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const message = data?.error?.message || `Claude request failed with status ${response.status}`;
-    throw new Error(message);
+    throw providerError(message, { status: response.status, provider });
   }
   const text = data?.content?.map((part) => part.text || '').join('\n').trim();
-  if (!text) throw new Error('Claude returned an empty response.');
+  if (!text) throw providerError('Claude returned an empty response.', { provider, code: 'AI_EMPTY_RESPONSE' });
   return text;
 }
 
 async function callSingleProvider({ provider, apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry }) {
-  const info = getProviderInfo(provider || DEFAULT_PROVIDER);
+  const info = resolveProviderInfo(provider || DEFAULT_PROVIDER);
   const config = {
     provider: info.id,
     apiKey,
@@ -209,18 +223,41 @@ async function callSingleProvider({ provider, apiKey, model, baseUrl, prompt, at
     systemInstruction,
     temperature,
     responseMimeType,
+    requiresApiKey: info.requiresApiKey !== false,
     maxOutputTokens: normalizeMaxOutputTokens(maxOutputTokens),
     onAdaptiveRetry,
   };
   if (info.kind === 'gemini') return callGeminiProvider(config);
   if (info.kind === 'claude') return callClaudeProvider(config);
-  if (info.kind === 'cohere') return callCohereProvider(config);
   return callOpenAICompatibleProvider(config);
 }
 
 function emitAiOperation(type, detail = {}) {
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return;
   window.dispatchEvent(new CustomEvent(type, { detail }));
+}
+
+function publishLastRoute(route) {
+  if (typeof window === 'undefined') return;
+  window.__besLastAiRoute = route;
+  emitAiOperation('bes-ai-routing-success', route);
+}
+
+function explicitCandidate(options, active, configured = null) {
+  const id = String(options.provider || options.manualProvider || active.provider || DEFAULT_PROVIDER).trim();
+  const info = resolveProviderInfo(id);
+  const sameAsActive = id === String(active.provider || '').trim();
+  const source = configured || {};
+  const key = normalizeApiKey(String(options.apiKey || source.apiKey || (sameAsActive ? active.apiKey : '') || '').trim());
+  return {
+    id,
+    provider: info,
+    apiKey: key,
+    model: options.model || options.manualModel || source.model || (sameAsActive ? active.model : '') || info.defaultModel,
+    baseUrl: options.baseUrl || source.baseUrl || (sameAsActive ? active.baseUrl : '') || info.baseUrl,
+    rank: 0,
+    config: source,
+  };
 }
 
 export async function callAI(options = {}) {
@@ -230,9 +267,7 @@ export async function callAI(options = {}) {
     governance = guardAiRequest(options);
   } catch (error) {
     appendAiAudit({
-      type: 'request',
-      status: 'blocked',
-      label: 'AI request blocked by governance',
+      type: 'request', status: 'blocked', label: 'AI request blocked by governance',
       profile: String(options.governanceProfile || options.profile || ''),
       detail: { code: error?.code || '', error: error?.message || String(error) },
     });
@@ -240,80 +275,118 @@ export async function callAI(options = {}) {
   }
 
   const active = getActiveAiConfig();
-  const provider = options.provider || active.provider || DEFAULT_PROVIDER;
-  const info = getProviderInfo(provider);
-  const apiKey = String(options.apiKey || '').trim() ? options.apiKey : active.apiKey;
-  const model = options.model || active.model || info.defaultModel;
-  const baseUrl = options.baseUrl || active.baseUrl || info.baseUrl;
+  const prefs = getRoutingPreferences();
+  const configuredCandidates = buildAiRoutingCandidates({
+    legacyProviders: PROVIDERS,
+    legacyConfigs: getAiConfigs(),
+    legacyActiveProvider: active.provider,
+    options: {
+      ...options,
+      routingMode: options.routingMode || prefs.mode,
+      manualProvider: options.manualProvider || prefs.manualProvider,
+      manualModel: options.manualModel || prefs.manualModel,
+    },
+  });
+  const explicitId = String(options.provider || options.manualProvider || active.provider || DEFAULT_PROVIDER).trim();
+  const configuredMatch = configuredCandidates.find((candidate) => candidate.id === explicitId);
+  const explicit = explicitCandidate(options, active, configuredMatch);
+  const candidates = []
+  const excludedProviders = new Set(Array.isArray(options.excludeProviders) ? options.excludeProviders : []);
+  const pushCandidate = (candidate) => {
+    if (!candidate?.id || excludedProviders.has(candidate.id) || candidates.some((item) => item.id === candidate.id)) return;
+    candidates.push(candidate);
+  };
+  const hasExplicitSelection = Boolean(options.provider || options.apiKey || options.model || options.baseUrl || options.routingMode === 'manual' || prefs.mode === 'manual');
+  if (hasExplicitSelection) pushCandidate(explicit);
+  configuredCandidates.forEach(pushCandidate);
+  if (!candidates.length && hasExplicitSelection) pushCandidate(explicit);
+
+  const fallbackAllowed = options.fallback ?? (prefs.fallbackEnabled !== false);
+  const queue = fallbackAllowed ? candidates : candidates.slice(0, 1);
+  if (!queue.length) throw providerError('Chưa có AI provider khả dụng. Mở Cài đặt → AI Provider Hub để thêm API key.', { code: 'AI_PROVIDER_NOT_CONFIGURED' });
+
   const operationId = `ai-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  const first = queue[0];
   const operationDetail = {
     id: operationId,
-    provider: info.label || provider,
-    model,
+    provider: first.provider?.label || first.id,
+    providerId: first.id,
+    model: first.model,
     label: options.loadingLabel || options.aiLabel || '',
     maxOutputTokens: governance.maxOutputTokens,
     profile: governance.profileKey,
+    routingMode: options.routingMode || prefs.mode,
   };
-  const request = {
-    ...options,
-    provider,
-    apiKey,
-    model,
-    baseUrl,
-    maxOutputTokens: governance.maxOutputTokens,
-  };
-
-  let finalProvider = info.label || provider;
-  let finalModel = model;
+  let finalProvider = operationDetail.provider;
+  let finalProviderId = first.id;
+  let finalModel = first.model;
   let result = '';
   let finalError = null;
+  const attempts = [];
   emitAiOperation('bes-ai-operation-start', operationDetail);
-  try {
-    const errors = [];
-    const errorObjects = [];
-    try {
-      result = await callSingleProvider(request);
-      return result;
-    } catch (err) {
-      errorObjects.push(err);
-      errors.push(`${info.label}: ${err.message || err}`);
-      const shouldFallback = options.fallback ?? getFallbackEnabled();
-      if (!shouldFallback) throw err;
-    }
 
-    const configs = getAiConfigs();
-    for (const fallbackProvider of PROVIDERS.map((p) => p.id).filter((id) => id !== provider)) {
-      const cfg = configs[fallbackProvider] || {};
-      if (!String(cfg.apiKey || '').trim()) continue;
-      const fallbackInfo = getProviderInfo(fallbackProvider);
+  try {
+    for (let index = 0; index < queue.length; index += 1) {
+      const candidate = queue[index];
+      const info = candidate.provider || resolveProviderInfo(candidate.id);
+      const attemptStartedAt = Date.now();
+      finalProvider = info.label || candidate.id;
+      finalProviderId = candidate.id;
+      finalModel = candidate.model || info.defaultModel;
+      emitAiOperation('bes-ai-operation-update', {
+        ...operationDetail,
+        provider: finalProvider,
+        providerId: finalProviderId,
+        model: finalModel,
+        attempt: index + 1,
+        totalCandidates: queue.length,
+      });
       try {
-        finalProvider = fallbackInfo.label || fallbackProvider;
-        finalModel = cfg.model || fallbackInfo.defaultModel;
-        emitAiOperation('bes-ai-operation-update', {
-          ...operationDetail,
-          provider: finalProvider,
-          model: finalModel,
-        });
         result = await callSingleProvider({
           ...options,
-          provider: fallbackProvider,
-          apiKey: cfg.apiKey,
+          provider: candidate.id,
+          apiKey: candidate.apiKey,
           model: finalModel,
-          baseUrl: cfg.baseUrl || fallbackInfo.baseUrl,
+          baseUrl: candidate.baseUrl || info.baseUrl,
           maxOutputTokens: governance.maxOutputTokens,
+          onAdaptiveRetry: options.onAdaptiveRetry,
+        });
+        const attempt = { provider: candidate.id, providerName: finalProvider, model: finalModel, success: true, durationMs: Date.now() - attemptStartedAt };
+        attempts.push(attempt);
+        noteProviderHealth(candidate.id, { success: true });
+        finalError = null;
+        publishLastRoute({
+          operationId,
+          provider: candidate.id,
+          providerName: finalProvider,
+          model: finalModel,
+          routingMode: options.routingMode || prefs.mode,
+          fallbackUsed: index > 0,
+          attempts,
+          durationMs: Date.now() - startedAt,
+          completedAt: new Date().toISOString(),
         });
         return result;
-      } catch (err) {
-        errorObjects.push(err);
-        errors.push(`${fallbackInfo.label}: ${err.message || err}`);
+      } catch (error) {
+        const classification = classifyAiError(error);
+        attempts.push({ provider: candidate.id, providerName: finalProvider, model: finalModel, success: false, classification, error: String(error?.message || error).slice(0, 280), durationMs: Date.now() - attemptStartedAt });
+        noteProviderHealth(candidate.id, { success: false, error: error?.message || error });
+        finalError = error;
+        if (!fallbackAllowed || index === queue.length - 1 || !shouldFallbackAiError(error)) throw error;
       }
     }
-
-    const capacityError = errorObjects.find((item) => item?.code === 'AI_PROVIDER_CREDIT_LIMIT');
-    if (capacityError) throw capacityError;
-    throw new Error(`All AI providers failed. ${errors.join(' | ')}`);
+    throw finalError || providerError('All AI providers failed.', { code: 'AI_ALL_PROVIDERS_FAILED' });
   } catch (error) {
     finalError = error;
+    if (attempts.length > 1) {
+      const wrapped = providerError(`Tất cả provider đã thử đều thất bại. ${attempts.map((item) => `${item.providerName}: ${item.error || 'lỗi'}`).join(' | ')}`, {
+        provider: finalProviderId,
+        code: error?.code || 'AI_ALL_PROVIDERS_FAILED',
+        status: error?.status || 0,
+      });
+      wrapped.attempts = attempts;
+      throw wrapped;
+    }
     throw error;
   } finally {
     recordAiRequest({
@@ -327,7 +400,7 @@ export async function callAI(options = {}) {
       profile: governance.profileKey,
       operationId,
     });
-    emitAiOperation('bes-ai-operation-end', operationDetail);
+    emitAiOperation('bes-ai-operation-end', { ...operationDetail, provider: finalProvider, providerId: finalProviderId, model: finalModel, attempts });
   }
 }
 

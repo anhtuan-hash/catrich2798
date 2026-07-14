@@ -1,5 +1,5 @@
 {
-  "version": "11.6.1",
+  "version": "11.6.0",
   "release": "AI Workspace Resilience",
   "runtime": "2.5.6",
   "schema": "11.4.2",
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T06:54:35.018Z",
+  "generatedAt": "2026-07-14T06:17:25.705Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "2.6.1",
+  "runtimeCore": "2.6.0",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Free Provider Hub — Expanded Catalog & Responsive Layout",
+  "releaseName": "Worksheet Factory V2 — Structured Learning Pack Workbench",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -275,21 +275,5 @@
   "worksheetFactoryConnectedWorkflow": true,
   "worksheetFactoryTransferSchema": "bes-worksheet-pack/2.0",
   "worksheetFactoryActivityTypeCount": 21,
-  "worksheetFactoryDesign": "Modern SaaS Workbench + Soft Editorial + BURS Comfortable",
-  "aiProviderHubV2": true,
-  "aiProviderCount": 12,
-  "aiFreeProviderIds": [
-    "groq",
-    "cerebras",
-    "mistral",
-    "sambanova",
-    "cohere",
-    "openrouter",
-    "nvidia",
-    "cloudflare"
-  ],
-  "aiProviderOfficialLinks": true,
-  "aiProviderResponsiveLayout": true,
-  "aiProviderCohereNativeAdapter": true,
-  "aiProviderCloudflareAccountBaseUrl": true
+  "worksheetFactoryDesign": "Modern SaaS Workbench + Soft Editorial + BURS Comfortable"
 }

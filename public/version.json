@@ -1,14 +1,14 @@
 {
-  "version": "11.6.0",
+  "version": "11.6.1",
   "channel": "stable",
-  "releaseName": "Worksheet Factory V2 — Structured Learning Pack Workbench",
-  "runtimeCore": "2.6.0",
+  "releaseName": "Free Provider Hub — Expanded Catalog & Responsive Layout",
+  "runtimeCore": "2.6.1",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T06:17:25.705Z",
+  "generatedAt": "2026-07-14T06:54:35.018Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -269,5 +269,21 @@
   "worksheetFactoryConnectedWorkflow": true,
   "worksheetFactoryTransferSchema": "bes-worksheet-pack/2.0",
   "worksheetFactoryActivityTypeCount": 21,
-  "worksheetFactoryDesign": "Modern SaaS Workbench + Soft Editorial + BURS Comfortable"
+  "worksheetFactoryDesign": "Modern SaaS Workbench + Soft Editorial + BURS Comfortable",
+  "aiProviderHubV2": true,
+  "aiProviderCount": 12,
+  "aiFreeProviderIds": [
+    "groq",
+    "cerebras",
+    "mistral",
+    "sambanova",
+    "cohere",
+    "openrouter",
+    "nvidia",
+    "cloudflare"
+  ],
+  "aiProviderOfficialLinks": true,
+  "aiProviderResponsiveLayout": true,
+  "aiProviderCohereNativeAdapter": true,
+  "aiProviderCloudflareAccountBaseUrl": true
 }

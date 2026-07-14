@@ -14,15 +14,23 @@ import {
 } from '../utils/aiProviders.js';
 
 const PROVIDER_ICONS = {
-  gemini: 'G', openai: '◎', groq: 'GQ', cerebras: 'C', mistral: 'M',
-  sambanova: 'S', cohere: 'Co', openrouter: '↗', nvidia: 'N', cloudflare: '☁',
-  claude: 'AI', custom: '⌘',
+  gemini: 'G',
+  openai: '◎',
+  openrouter: '↗',
+  groq: 'Q',
+  mistral: 'M',
+  claude: 'AI',
+  custom: '⌘',
 };
 
 const PROVIDER_TONES = {
-  gemini: 'blue', openai: 'mint', groq: 'violet', cerebras: 'cyan', mistral: 'amber',
-  sambanova: 'peach', cohere: 'sky', openrouter: 'indigo', nvidia: 'green',
-  cloudflare: 'orange', claude: 'rose', custom: 'slate',
+  gemini: 'blue',
+  openai: 'mint',
+  openrouter: 'cyan',
+  groq: 'violet',
+  mistral: 'amber',
+  claude: 'peach',
+  custom: 'slate',
 };
 
 const DEFAULT_MUSIC_SETTINGS = {
@@ -84,22 +92,6 @@ function maskKey(value = '') {
   if (!key) return 'Chưa thiết lập';
   if (key.length <= 8) return '•••• ••••';
   return `•••• •••• •••• ${key.slice(-4)}`;
-}
-
-const PROVIDER_PLAN_LABELS = {
-  free: ['Miễn phí', 'Free'],
-  'free-limited': ['Miễn phí giới hạn', 'Limited free'],
-  'free-credit': ['Credit miễn phí', 'Free credits'],
-  'free-daily': ['Quota hằng ngày', 'Daily free'],
-  'dev-free': ['Miễn phí phát triển', 'Free for development'],
-  trial: ['Trial miễn phí', 'Free trial'],
-  paid: ['Trả phí', 'Paid'],
-  custom: ['Tùy chỉnh', 'Custom'],
-};
-
-function planLabel(provider, language = 'vi') {
-  const labels = PROVIDER_PLAN_LABELS[provider?.plan] || PROVIDER_PLAN_LABELS.custom;
-  return labels[language === 'vi' ? 0 : 1];
 }
 
 function downloadJson(name, data) {
@@ -553,74 +545,62 @@ export default function Settings({
           />
 
           <div className="settings-v47-provider-layout">
-            <div className="settings-v47-provider-list" aria-label={language === 'vi' ? 'Danh sách AI provider' : 'AI provider list'}>
+            <div className="settings-v47-provider-list">
               {PROVIDERS.map((provider) => {
                 const config = configs[provider.id] || {};
                 const active = selectedProvider === provider.id;
                 const ready = Boolean(String(config.apiKey || '').trim());
-                const description = language === 'vi' ? provider.descriptionVi : provider.descriptionEn;
                 return (
-                  <article key={provider.id} className={`settings-v47-provider-row ${active ? 'active' : ''} ${ready ? 'configured' : ''}`}>
-                    <button type="button" className="settings-v47-provider-select" onClick={() => setSelectedProvider(provider.id)} aria-pressed={active}>
-                      <span className={`provider-logo tone-${PROVIDER_TONES[provider.id] || 'slate'}`}>{PROVIDER_ICONS[provider.id] || 'AI'}</span>
-                      <span className="provider-row-copy">
-                        <span className="provider-row-title"><strong>{provider.label}</strong>{provider.recommended ? <i>{language === 'vi' ? 'Nên dùng' : 'Recommended'}</i> : null}</span>
-                        <small>{description}</small>
-                        <code>{config.model || provider.defaultModel}</code>
-                      </span>
-                      <span className={`provider-plan plan-${provider.plan || 'custom'}`}>{planLabel(provider, language)}</span>
-                      <b className={ready ? 'ready' : ''}>{active ? '✓' : ready ? '●' : '○'}</b>
-                    </button>
-                    {(provider.helpUrl || provider.keyUrl) ? (
-                      <div className="settings-v47-provider-links">
-                        {provider.helpUrl ? <a href={provider.helpUrl} target="_blank" rel="noreferrer noopener">▤ {language === 'vi' ? 'Hướng dẫn lấy key' : 'Key guide'}</a> : null}
-                        {provider.keyUrl ? <a className="get-key" href={provider.keyUrl} target="_blank" rel="noreferrer noopener">↗ {language === 'vi' ? 'Lấy API key' : 'Get API key'}</a> : null}
-                      </div>
-                    ) : null}
-                  </article>
+                  <button
+                    key={provider.id}
+                    type="button"
+                    className={`settings-v47-provider-row ${active ? 'active' : ''}`}
+                    onClick={() => setSelectedProvider(provider.id)}
+                  >
+                    <span className={`provider-logo tone-${PROVIDER_TONES[provider.id]}`}>{PROVIDER_ICONS[provider.id]}</span>
+                    <span className="provider-row-copy">
+                      <strong>{provider.label}</strong>
+                      <small>{config.model || provider.defaultModel}</small>
+                    </span>
+                    <em>{provider.kind === 'openai' ? 'OpenAI-compatible' : provider.kind}</em>
+                    <b className={ready ? 'ready' : ''}>{active ? '✓' : ready ? '●' : '○'}</b>
+                  </button>
                 );
               })}
             </div>
 
             <div className="settings-v47-provider-detail" ref={providerEditorRef}>
               <div className="settings-v47-provider-detail-head">
-                <span className={`provider-logo large tone-${PROVIDER_TONES[selectedProvider] || 'slate'}`}>{PROVIDER_ICONS[selectedProvider] || 'AI'}</span>
+                <span className={`provider-logo large tone-${PROVIDER_TONES[selectedProvider]}`}>{PROVIDER_ICONS[selectedProvider]}</span>
                 <div>
                   <strong>{currentProvider.label}</strong>
                   <small>{selectedProvider === aiProvider ? (language === 'vi' ? 'Đang dùng' : 'Active') : (language === 'vi' ? 'Đang chỉnh sửa' : 'Editing')}</small>
                 </div>
-                <span className={`provider-plan plan-${currentProvider.plan || 'custom'}`}>{planLabel(currentProvider, language)}</span>
               </div>
-              <p>{language === 'vi' ? currentProvider.descriptionVi : currentProvider.descriptionEn}</p>
-              <div className="settings-v47-detail-links">
-                {currentProvider.helpUrl ? <a href={currentProvider.helpUrl} target="_blank" rel="noreferrer noopener">▤ {language === 'vi' ? 'Xem hướng dẫn chính thức' : 'Official setup guide'}</a> : null}
-                {currentProvider.keyUrl ? <a className="get-key" href={currentProvider.keyUrl} target="_blank" rel="noreferrer noopener">↗ {language === 'vi' ? 'Mở trang lấy API key' : 'Open API key page'}</a> : null}
-              </div>
+              <p>{language === 'vi' ? 'Cấu hình provider, model và endpoint cho tài khoản hiện tại.' : 'Configure the provider, model, and endpoint for the current account.'}</p>
               <label>API key</label>
               <input
                 type="password"
                 value={currentConfig.apiKey || ''}
                 onChange={(event) => updateConfig({ apiKey: event.target.value })}
                 placeholder={`${currentProvider.label} API key...`}
-                autoComplete="off"
-                spellCheck="false"
               />
               <div className="settings-v47-field-grid">
                 <div>
                   <label>Model</label>
-                  <input list={`models-${currentProvider.id}`} value={currentConfig.model || currentProvider.defaultModel} onChange={(event) => updateConfig({ model: event.target.value })} />
-                  <datalist id={`models-${currentProvider.id}`}>
-                    {(currentProvider.models || []).map((model) => <option key={model} value={model} />)}
-                  </datalist>
+                  <select value={currentConfig.model || currentProvider.defaultModel} onChange={(event) => updateConfig({ model: event.target.value })}>
+                    {[...(currentProvider.models || []), currentConfig.model || ''].filter(Boolean).filter((value, index, all) => all.indexOf(value) === index).map((model) => (
+                      <option key={model} value={model}>{model}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label>Base URL</label>
                   <input value={currentConfig.baseUrl || currentProvider.baseUrl} onChange={(event) => updateConfig({ baseUrl: event.target.value })} />
-                  {currentProvider.requiresBaseUrlEdit ? <small className="settings-v47-field-help">{language === 'vi' ? 'Thay YOUR_ACCOUNT_ID bằng Account ID Cloudflare của anh.' : 'Replace YOUR_ACCOUNT_ID with your Cloudflare Account ID.'}</small> : null}
                 </div>
               </div>
               <div className="settings-v47-inline-toggle">
-                <div><strong>{language === 'vi' ? 'Fallback thông minh' : 'Smart fallback'}</strong><small>{language === 'vi' ? 'Tự thử provider khác đã có key khi provider chính lỗi hoặc hết quota.' : 'Try another configured provider if the primary fails or reaches quota.'}</small></div>
+                <div><strong>{language === 'vi' ? 'Fallback thông minh' : 'Smart fallback'}</strong><small>{language === 'vi' ? 'Tự thử provider khác khi provider chính lỗi.' : 'Try another provider when the primary fails.'}</small></div>
                 <Toggle checked={fallback} onChange={setFallback} label="Fallback" />
               </div>
               <div className="settings-v47-provider-actions">
