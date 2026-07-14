@@ -1,8 +1,0 @@
-{
-  "version": "11.5.8",
-  "releaseName": "Provider Hub Input Stability",
-  "requiresSql": false,
-  "providerHubInputStability": true,
-  "providerKeyPasteGuard": true,
-  "baseline": "11.5.7"
-}
