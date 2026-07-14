@@ -1,25 +1,9 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
+import './styles/legacy-active.css';
 import './ui-core/styles/ui-core.css';
-import './styles/v1093.css';
-import './styles/v1094.css';
-import './styles/v1095.css';
-import './styles/v1096.css';
-import './styles/v1097.css';
-import './styles/v1098.css';
-import './styles/v1099.css';
-import './styles/v1100.css';
-import './styles/v1110.css';
-import './styles/v1120.css';
-import './styles/v1131.css';
-import './styles/v1132.css';
-import './styles/v1133.css';
-import './styles/v1136.css';
-import './styles/v1137.css';
-import './styles/v1154.css';
-import './styles/v1158.css';
-import './styles/v1159.css';
+import './ui-core/styles/platform-core.css';
 import './ui-core/styles/overlay-core.css';
 import './ui-core/styles/design-adapters.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
@@ -57,6 +41,7 @@ import {
 } from './ui-core/runtime/uiPreferences.js';
 import { getRouteLayout } from './ui-core/layouts/routeLayout.js';
 import { UIToastCenter } from './ui-core/components/UIOverlays.jsx';
+import { UIRouteSurface } from './ui-core/components/UIPlatform.jsx';
 
 const BOOT_UI_PREFERENCES = installUiPreferencesBootstrap();
 runConfigurationMigrations();
@@ -674,20 +659,20 @@ function App() {
           {canAccessRoute && currentRoute === 'resource-library' && currentUser && <ResourceLibrary {...context} />}
           {canAccessRoute && currentRoute === 'knowledge-hub' && currentUser && <KnowledgeHub {...context} />}
           {canAccessRoute && currentRoute === 'work-hub' && currentUser && <WorkHub {...context} />}
-          {canAccessRoute && currentRoute === 'ai-workspace' && currentUser && <AIWorkspace {...context} />}
-          {canAccessRoute && currentRoute === 'content-factory' && currentUser && <ContentFactory {...context} />}
-          {canAccessRoute && currentRoute === 'content-ecosystem' && currentUser && <ContentEcosystem {...context} />}
+          {canAccessRoute && currentRoute === 'ai-workspace' && currentUser && <UIRouteSurface route="ai-workspace" variant="workbench"><AIWorkspace {...context} /></UIRouteSurface>}
+          {canAccessRoute && currentRoute === 'content-factory' && currentUser && <UIRouteSurface route="content-factory" variant="workbench"><ContentFactory {...context} /></UIRouteSurface>}
+          {canAccessRoute && currentRoute === 'content-ecosystem' && currentUser && <UIRouteSurface route="content-ecosystem" variant="workbench"><ContentEcosystem {...context} /></UIRouteSurface>}
           {canAccessRoute && currentRoute === 'lesson-pack' && currentUser && <LessonPack {...context} />}
           {canAccessRoute && currentRoute === 'classroom-delivery' && currentUser && <ClassroomDelivery {...context} />}
           {currentRoute === 'classroom-join' && <ClassroomJoin {...context} />}
-          {canAccessRoute && currentRoute === 'assessment-core' && currentUser && <AssessmentCore {...context} />}
-          {canAccessRoute && currentRoute === 'learning-intelligence' && currentUser && <LearningIntelligence {...context} />}
-          {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <PlatformReadiness {...context} />}
-          {canAccessRoute && currentRoute === 'automation-center' && currentUser && <AutomationCenter {...context} />}
-          {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <CloudOperations {...context} />}
-          {canAccessRoute && currentRoute === 'collaboration-hub' && currentUser && <CollaborationHub {...context} />}
-          {canAccessRoute && currentRoute === 'data-governance' && currentUser && <DataGovernance {...context} />}
-          {canAccessRoute && currentRoute === 'production-hardening' && currentUser && <ProductionHardening {...context} />}
+          {canAccessRoute && currentRoute === 'assessment-core' && currentUser && <UIRouteSurface route="assessment-core" variant="workbench"><AssessmentCore {...context} /></UIRouteSurface>}
+          {canAccessRoute && currentRoute === 'learning-intelligence' && currentUser && <UIRouteSurface route="learning-intelligence" variant="platform"><LearningIntelligence {...context} /></UIRouteSurface>}
+          {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <UIRouteSurface route="platform-readiness" variant="operations"><PlatformReadiness {...context} /></UIRouteSurface>}
+          {canAccessRoute && currentRoute === 'automation-center' && currentUser && <UIRouteSurface route="automation-center" variant="operations"><AutomationCenter {...context} /></UIRouteSurface>}
+          {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <UIRouteSurface route="cloud-operations" variant="operations"><CloudOperations {...context} /></UIRouteSurface>}
+          {canAccessRoute && currentRoute === 'collaboration-hub' && currentUser && <UIRouteSurface route="collaboration-hub" variant="platform"><CollaborationHub {...context} /></UIRouteSurface>}
+          {canAccessRoute && currentRoute === 'data-governance' && currentUser && <UIRouteSurface route="data-governance" variant="platform"><DataGovernance {...context} /></UIRouteSurface>}
+          {canAccessRoute && currentRoute === 'production-hardening' && currentUser && <UIRouteSurface route="production-hardening" variant="operations"><ProductionHardening {...context} /></UIRouteSurface>}
           {canAccessRoute && currentRoute === 'app-vault' && currentUser && <HiddenAppsVault {...context} />}
           {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
           {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}

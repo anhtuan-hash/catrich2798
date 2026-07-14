@@ -1,6 +1,6 @@
 {
-  "version": "12.7.0",
-  "release": "Native Design Adapters & Appearance Sync",
+  "version": "12.8.0",
+  "release": "Platform Core & Legacy CSS Retirement",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T12:14:59.542Z",
+  "generatedAt": "2026-07-14T12:37:06.898Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "3.1.0",
+  "runtimeCore": "3.2.0",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Native Design Adapters & Appearance Sync",
+  "releaseName": "Platform Core & Legacy CSS Retirement",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -351,5 +351,35 @@
   "accentTokenSystem": true,
   "densityTokenSystem": true,
   "fontPersistenceBridge": true,
-  "personalFontBundled": false
+  "personalFontBundled": false,
+  "platformCore": true,
+  "nativeRouteSurfaces": true,
+  "migratedPlatformRoutes": [
+    "ai-workspace",
+    "content-factory",
+    "content-ecosystem",
+    "assessment-core",
+    "learning-intelligence",
+    "platform-readiness",
+    "automation-center",
+    "cloud-operations",
+    "collaboration-hub",
+    "data-governance",
+    "production-hardening"
+  ],
+  "legacyCssEntryCount": 1,
+  "retiredLegacyCssFiles": [
+    "v1100",
+    "v1110",
+    "v1131",
+    "v1132",
+    "v1133",
+    "v1136",
+    "v1137",
+    "v1154",
+    "v1158",
+    "v1159"
+  ],
+  "providerHubStyleRecovered": true,
+  "deadLegacyCssRetired": true
 }

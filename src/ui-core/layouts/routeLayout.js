@@ -1,9 +1,9 @@
 const ROUTE_LAYOUTS = new Map([
-  ['home', 'launch'], ['apps', 'launch'], ['games', 'launch'], ['tools', 'launch'],
+  ['home', 'launch'], ['apps', 'launch'], ['games', 'launch'], ['tools', 'launch'], ['app-vault', 'launch'],
   ['settings', 'settings'], ['ai-governance', 'settings'], ['setup', 'settings'],
-  ['department', 'management'], ['homeroom', 'management'], ['admin', 'management'], ['work-hub', 'management'], ['data-governance', 'management'],
-  ['library', 'library'], ['resource-library', 'library'], ['knowledge-hub', 'library'], ['resources', 'library'],
-  ['content-factory', 'workbench'], ['assessment-core', 'workbench'], ['lesson-pack', 'workbench'], ['classroom-delivery', 'workbench'], ['ai-workspace', 'workbench'],
+  ['department', 'management'], ['homeroom', 'management'], ['admin', 'management'], ['work-hub', 'management'], ['data-governance', 'management'], ['learning-intelligence', 'management'], ['platform-readiness', 'management'], ['automation-center', 'management'], ['cloud-operations', 'management'], ['collaboration-hub', 'management'], ['production-hardening', 'management'], ['qa', 'management'],
+  ['library', 'library'], ['resource-library', 'library'], ['knowledge-hub', 'library'], ['resources', 'library'], ['trash', 'library'],
+  ['content-factory', 'workbench'], ['content-ecosystem', 'workbench'], ['assessment-core', 'workbench'], ['lesson-pack', 'workbench'], ['classroom-delivery', 'workbench'], ['ai-workspace', 'workbench'],
   ['news', 'editor'], ['practice', 'editor'],
   ['login', 'auth'], ['register', 'auth'],
 ]);
