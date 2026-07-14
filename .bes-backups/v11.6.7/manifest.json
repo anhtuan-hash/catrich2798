@@ -1,0 +1,79 @@
+{
+  "version": "11.6.7",
+  "sourceVersion": "11.6.6",
+  "target": "/Users/catrichmauxanh/Documents/Brian-English-Studio-MAIN",
+  "chosenFont": "public/fonts/1FTV-HF-Gesco-id0oy5.ttf",
+  "createdAt": "2026-07-14T09:16:25.770Z",
+  "files": [
+    {
+      "path": "package.json",
+      "existed": true,
+      "sha256": "0f94d8e5411780a568ecea75df3335f8ec8f1be5f554b755ab1a540e0eb9b8bc"
+    },
+    {
+      "path": "package-lock.json",
+      "existed": true,
+      "sha256": "d0c02ad35a9c4146cf84705802cd65c5f148fad765fa9e1c837e543d2d98b7cd"
+    },
+    {
+      "path": "index.html",
+      "existed": true,
+      "sha256": "9f67135dfb97a88a5c495837d88d01b291d6e1b11fb8b15ffc03060d6a647080"
+    },
+    {
+      "path": "version.json",
+      "existed": false
+    },
+    {
+      "path": "public/version.json",
+      "existed": true,
+      "sha256": "e5762ad991291b999bd30b2993396c3ff6a2f6151937723ce36dcdcb958df3f9"
+    },
+    {
+      "path": "scripts/verify-v11.6.7.mjs",
+      "existed": false
+    },
+    {
+      "path": "scripts/test-v11.6.7-ai-dock.mjs",
+      "existed": false
+    },
+    {
+      "path": "public/bes-fonts/brian-font.css",
+      "existed": false
+    },
+    {
+      "path": "public/bes-fonts/brian-personal-font.woff2",
+      "existed": false
+    },
+    {
+      "path": "public/bes-fonts/brian-personal-font.woff",
+      "existed": false
+    },
+    {
+      "path": "public/bes-fonts/brian-personal-font.ttf",
+      "existed": false
+    },
+    {
+      "path": "public/bes-fonts/brian-personal-font.otf",
+      "existed": false
+    },
+    {
+      "path": "public/bes-ai-dock-v2/ai-dock-v2.js",
+      "existed": false
+    },
+    {
+      "path": "public/bes-release-v11.6.7.json",
+      "existed": false
+    },
+    {
+      "path": "public/bes-ai-composer-v1166/ai-composer-rebuild.css",
+      "existed": true,
+      "sha256": "18dad1bbe692ab24f497a16366457292c6109923d7e9d521fb0c0e204c6a1b84"
+    },
+    {
+      "path": "public/bes-ai-composer-v1166/ai-composer-rebuild.js",
+      "existed": true,
+      "sha256": "a9d4490245a64b746cd634a57f5c2765ae11cc23a219f1c1944a9b42eb4e8e7c"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+/* Brian English Studio V11.6.7 — deployed personal font */
+@font-face {
+  font-family: "Brian Personal";
+  src: url("/bes-fonts/brian-personal-font.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+:root {
+  --bes-font-personal: "Brian Personal", "Arial Rounded MT Bold", Arial, sans-serif;
+  --font-sans: var(--bes-font-personal);
+  --font-display: var(--bes-font-personal);
+  --font-body: var(--bes-font-personal);
+}
+
+html,
+body {
+  font-family: var(--bes-font-personal) !important;
+}
+
+button:not(.material-icons):not(.material-icons-outlined):not(.material-symbols-outlined):not(.material-symbols-rounded):not([class^="fa-"]):not([class*=" fa-"]):not([class^="icon-"]):not([class*=" icon-"]),
+input,
+textarea,
+select,
+option {
+  font-family: var(--bes-font-personal) !important;
+}
+
+body :where(
+  h1,h2,h3,h4,h5,h6,p,span,a,button,label,input,textarea,select,option,
+  li,dt,dd,th,td,caption,legend,summary,blockquote,small,strong,b,em,
+  [role="button"],[role="tab"],[role="menuitem"],[role="option"],
+  [data-bes-typography]
+):not(code):not(pre):not(kbd):not(samp):not([aria-hidden="true"]):not([class*="material-icons"]):not([class*="material-symbol"]):not([class^="fa-"]):not([class*=" fa-"]):not([class^="icon-"]):not([class*=" icon-"]) {
+  font-family: var(--bes-font-personal) !important;
+}
