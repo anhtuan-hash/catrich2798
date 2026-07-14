@@ -1,0 +1,55 @@
+{
+  "version": "11.6.3",
+  "createdAt": "2026-07-14T08:00:36.189Z",
+  "target": "/Users/catrichmauxanh/Documents/Brian-English-Studio-MAIN",
+  "sourceVersion": "11.6.2",
+  "files": [
+    {
+      "path": "package.json",
+      "existed": true,
+      "sha256": "8c512d50ac16037f46e804a5f9ad791c7b7a88f67442d25297d8abb3354ecb14"
+    },
+    {
+      "path": "index.html",
+      "existed": true,
+      "sha256": "3cf0f5afb85de379264643037cf0bd4a9d32296f115f6289d4a36f02b5f3c199"
+    },
+    {
+      "path": "package-lock.json",
+      "existed": true,
+      "sha256": "2bbe4fefeb3f6bec1c2620d3e582e5e96f6fb3f5c5270205d640a455bd2498b2"
+    },
+    {
+      "path": "version.json",
+      "existed": false
+    },
+    {
+      "path": "public/version.json",
+      "existed": true,
+      "sha256": "51073c0f0a0f8d6c7f423630d7a91a98528a2b29ea002dcf83171eb77aa49858"
+    },
+    {
+      "path": "scripts/verify-v11.6.3.mjs",
+      "existed": false
+    },
+    {
+      "path": "public/bes-appearance-v1163/appearance-engine.css",
+      "existed": false
+    },
+    {
+      "path": "public/bes-appearance-v1163/appearance-engine.js",
+      "existed": false
+    },
+    {
+      "path": "public/bes-release-v11.6.3.json",
+      "existed": false
+    }
+  ],
+  "installedAt": "2026-07-14T08:00:36.202Z",
+  "installedFiles": [
+    "public/bes-appearance-v1163/appearance-engine.js",
+    "public/bes-appearance-v1163/appearance-engine.css",
+    "public/bes-release-v11.6.3.json",
+    "scripts/verify-v11.6.3.mjs"
+  ]
+}

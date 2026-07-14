@@ -1,0 +1,13 @@
+{
+  "version": "11.6.3",
+  "name": "Appearance Studio Route Guard Hotfix",
+  "type": "update-only",
+  "requires": ">=11.5.9",
+  "changes": [
+    "Theme Studio can open only on Settings routes",
+    "Theme Studio closes immediately when leaving Settings",
+    "Removed broad click binding that could attach to page containers",
+    "Keyboard shortcut is limited to Settings",
+    "New asset path prevents browsers from reusing the V11.6.2 script cache"
+  ]
+}
