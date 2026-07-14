@@ -1,14 +1,14 @@
 {
-  "version": "12.5.0",
+  "version": "12.6.0",
   "channel": "stable",
-  "releaseName": "Unified Launch Experience Migration",
+  "releaseName": "Overlay, Dialog & AI Dock Core Migration",
   "runtimeCore": "3.0.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T11:19:21.326Z",
+  "generatedAt": "2026-07-14T11:30:49.446Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Unified Launch Experience Migration",
+  "release": "Overlay, Dialog & AI Dock Core Migration",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -323,5 +323,19 @@
     "tools"
   ],
   "duplicateAppsNavigationRetired": true,
-  "sharedLaunchPrimitives": true
+  "sharedLaunchPrimitives": true,
+  "overlayCore": true,
+  "nativeOverlayPrimitives": true,
+  "migratedGlobalOverlays": [
+    "command-palette",
+    "notification-center",
+    "content-transfer",
+    "autosave-history"
+  ],
+  "globalToastCenter": true,
+  "reactAiDockCore": true,
+  "legacyInjectedAiDock": false,
+  "aiDockComposerCore": true,
+  "overlayFocusTrap": true,
+  "overlayScrollLock": true
 }

@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { APPS } from '../data/apps.js';
 import { getAppDesignProfile } from '../data/designProfiles.js';
 import { getFirstAllowedRoute, hasRouteAccess, hasToolAccess } from '../utils/permissions.js';
@@ -9,6 +8,7 @@ import { getAppUsage, recordAppUsage, subscribeAppUsage } from '../utils/appUsag
 import { isAdminRole, isDepartmentLeaderRole } from '../utils/roles.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
+import { UIOverlayPortal, UIOverlaySurface } from '../ui-core/components/UIOverlays.jsx';
 
 const ROUTES = [
   { route: 'home', vi: 'Trang chủ', en: 'Home', icon: '⌂', color: '#FFC69D' },
@@ -301,9 +301,9 @@ export default function GlobalCommandPalette({
 
   const currentId = selectedTool?.slug ? `tool:${selectedTool.slug}` : `route:${currentRoute}`;
 
-  return createPortal(
-    <div className="global-command-palette-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
-      <section className="global-command-palette" role="dialog" aria-modal="true" aria-label={t.title}>
+  return (
+    <UIOverlayPortal open={open} placement="command" onDismiss={() => setOpen(false)} className="global-command-palette-layer bui-command-palette-layer">
+      <UIOverlaySurface className="global-command-palette bui-command-palette" variant="command" role="dialog" aria-modal="true" aria-label={t.title}>
         <header className="command-palette-header">
           <span className="command-palette-search-icon" aria-hidden="true">⌕</span>
           <input ref={inputRef} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={onInputKeyDown} placeholder={t.placeholder} aria-label={t.placeholder} autoComplete="off" />
@@ -333,8 +333,7 @@ export default function GlobalCommandPalette({
           {!results.length ? <div className="command-palette-empty"><span>⌕</span><strong>{t.empty}</strong><small>{language === 'vi' ? 'Thử nhập tên ứng dụng hoặc một hành động khác.' : 'Try another app name or action.'}</small></div> : null}
         </div>
         <footer className="command-palette-footer"><span><kbd>↑</kbd><kbd>↓</kbd> {language === 'vi' ? 'Di chuyển' : 'Move'}</span><span><kbd>↵</kbd> {language === 'vi' ? 'Mở' : 'Open'}</span><span><kbd>⌘K</kbd> {language === 'vi' ? 'Tìm nhanh' : 'Quick search'}</span></footer>
-      </section>
-    </div>,
-    document.body,
+      </UIOverlaySurface>
+    </UIOverlayPortal>
   );
 }

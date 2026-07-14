@@ -3,6 +3,7 @@ import { captureCurrentPagePayload, createTransfer, TRANSFER_OPEN_EVENT } from '
 import { enqueueSync } from '../utils/syncQueue.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
+import { notifyUI, UIOverlayClose, UIOverlayHeader, UIOverlayPortal, UIOverlaySurface } from '../ui-core/components/UIOverlays.jsx';
 
 const CONNECTED_TEACHING_APPS = new Set(['worksheet-factory','reading-studio','speaking-studio','exam-studio','lesson-plan-ai','student-practice','assessment-core','content-factory','word2graph','textlab-activities','news']);
 
@@ -55,7 +56,9 @@ export default function ContentTransferHub({ currentUser, currentRoute, selected
     const item = createTransfer(currentUser, { ...payload, target: target.id });
     if (!item) return;
     if (!navigator.onLine) enqueueSync(currentUser, { type: 'content-transfer', label: `${payload?.title || 'Content'} → ${target.label}`, payload: { transferId: item.id, target: target.id } });
-    setNotice(language === 'vi' ? `Đã gửi sang ${target.labelVi}.` : `Sent to ${target.label}.`);
+    const successText = language === 'vi' ? `Đã gửi sang ${target.labelVi}.` : `Sent to ${target.label}.`;
+    setNotice(successText);
+    notifyUI({ tone: 'success', title: language === 'vi' ? 'Đã chuyển nội dung' : 'Content transferred', message: successText });
     window.setTimeout(() => {
       setOpen(false);
       window.location.hash = target.route;
@@ -80,16 +83,16 @@ export default function ContentTransferHub({ currentUser, currentRoute, selected
         <span aria-hidden="true">↗</span><b>{language === 'vi' ? 'Gửi sang' : 'Send to'}</b>
       </button>
       {open ? (
-        <div className="bes-transfer-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
-          <section className="bes-transfer-panel" role="dialog" aria-modal="true" aria-label={language === 'vi' ? 'Gửi nội dung sang ứng dụng khác' : 'Send content to another app'}>
-            <header>
+        <UIOverlayPortal open={open} placement="drawer-right" onDismiss={() => setOpen(false)} className="bes-transfer-overlay bui-transfer-overlay">
+          <UIOverlaySurface as="section" variant="drawer" className="bes-transfer-panel bui-transfer-panel" role="dialog" aria-modal="true" aria-label={language === 'vi' ? 'Gửi nội dung sang ứng dụng khác' : 'Send content to another app'}>
+            <UIOverlayHeader>
               <div>
                 <span className="bes-transfer-kicker">CONNECTED WORKFLOW</span>
                 <h2>{language === 'vi' ? 'Gửi sang ứng dụng khác' : 'Send to another app'}</h2>
                 <p>{language === 'vi' ? 'Nội dung được chuyển có cấu trúc, không cần sao chép thủ công.' : 'Transfer structured content without manual copy and paste.'}</p>
               </div>
-              <button type="button" onClick={() => setOpen(false)} aria-label={language === 'vi' ? 'Đóng' : 'Close'}>×</button>
-            </header>
+              <UIOverlayClose onClick={() => setOpen(false)} label={language === 'vi' ? 'Đóng' : 'Close'} />
+            </UIOverlayHeader>
             <div className="bes-transfer-source">
               <div className="bes-transfer-source-icon">{String(selectedTool?.icon || currentRoute || 'BR').slice(0, 2).toUpperCase()}</div>
               <div><small>{language === 'vi' ? 'Nội dung nguồn' : 'Source content'}</small><strong>{payload?.title || document.title}</strong><span>{Number(payload?.content?.length || 0).toLocaleString()} {language === 'vi' ? 'ký tự' : 'characters'}</span></div>
@@ -105,8 +108,8 @@ export default function ContentTransferHub({ currentUser, currentRoute, selected
               ))}
             </div>
             {notice ? <div className="bes-transfer-notice">✓ {notice}</div> : null}
-          </section>
-        </div>
+          </UIOverlaySurface>
+        </UIOverlayPortal>
       ) : null}
     </>
   );

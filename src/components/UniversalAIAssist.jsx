@@ -541,13 +541,13 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
 
   const sortedThreads = [...threads].sort((a, b) => b.updatedAt - a.updatedAt);
   const portal = (
-    <div className={`ai-messenger-root ai-messenger-v10860 ${open ? 'is-open' : 'is-collapsed'} ${draggingFiles ? 'is-file-dragging' : ''}`} style={{ '--ai-chat-accent': accent, '--ai-chat-soft': soft, '--ai-chat-ink': ink }} data-route={currentRoute} data-external-launcher={externalLauncher ? 'true' : 'false'}
+    <div className={`ai-messenger-root ai-messenger-v10860 bui-ai-dock ${open ? 'is-open' : 'is-collapsed'} ${draggingFiles ? 'is-file-dragging' : ''}`} style={{ '--ai-chat-accent': accent, '--ai-chat-soft': soft, '--ai-chat-ink': ink }} data-ui="ai-dock" data-ui-core="v12.6" data-route={currentRoute} data-external-launcher={externalLauncher ? 'true' : 'false'}
       onDragEnter={(event) => { if (open && event.dataTransfer?.types?.includes('Files')) { event.preventDefault(); setDraggingFiles(true); } }}
       onDragOver={(event) => { if (open && event.dataTransfer?.types?.includes('Files')) event.preventDefault(); }}
       onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setDraggingFiles(false); }}
       onDrop={(event) => { if (!open) return; event.preventDefault(); setDraggingFiles(false); addFiles(event.dataTransfer.files); }}>
       {open ? (
-        <section className="ai-messenger-window" role="dialog" aria-label={language === 'vi' ? 'Trò chuyện với trợ lí AI' : 'Chat with AI assistant'}>
+        <section className="ai-messenger-window bui-ai-dock-window" role="dialog" aria-modal="false" aria-label={language === 'vi' ? 'Trò chuyện với trợ lí AI' : 'Chat with AI assistant'}>
           <header className="ai-messenger-header">
             <div className="ai-messenger-avatar" aria-hidden="true">{SVG.sparkle}</div>
             <div className="ai-messenger-heading"><strong>Brian AI</strong><span><i /> {voiceMode ? (language === 'vi' ? 'Chế độ giọng nói' : 'Voice mode') : (language === 'vi' ? 'Đang hoạt động' : 'Active')} · {providerName || aiModel || 'AI'}</span></div>
@@ -605,7 +605,7 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
               {!hasApiKey && <div className="ai-messenger-config-note"><span>!</span><p>{language === 'vi' ? 'Cần cấu hình AI provider để gửi tin nhắn.' : 'Configure an AI provider to send messages.'}</p><button type="button" onClick={() => { window.location.hash = '#/settings'; setOpen(false); }}>{language === 'vi' ? 'Mở thiết lập' : 'Open settings'}</button></div>}
               {(error || notice) && <div className={error ? 'ai-messenger-error' : 'ai-messenger-notice'}>{error || notice}</div>}
 
-              <footer className="ai-messenger-composer">
+              <footer className="ai-messenger-composer bui-ai-dock-composer">
                 <div className="ai-composer-tools">
                   <input ref={fileInputRef} type="file" multiple hidden accept="image/*,.pdf,.docx,.pptx,.xlsx,.xls,.txt,.md,.csv,.json,.html,.htm" onChange={(event) => { addFiles(event.target.files); event.target.value = ''; }}/>
                   <button type="button" onClick={() => fileInputRef.current?.click()} disabled={attachmentBusy} title={language === 'vi' ? 'Đính kèm file' : 'Attach files'}>{SVG.attach}<span>{language === 'vi' ? 'Tệp' : 'Files'}</span></button>
@@ -613,8 +613,8 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
                   <button type="button" onClick={startListening} className={listening ? 'active' : ''} title={language === 'vi' ? 'Nhập bằng giọng nói' : 'Voice input'}>{SVG.mic}<span>{listening ? (language === 'vi' ? 'Đang nghe' : 'Listening') : (language === 'vi' ? 'Nói' : 'Speak')}</span></button>
                   <small>{attachments.length}/5</small>
                 </div>
-                <div className="ai-composer-input-row">
-                  <textarea ref={textareaRef} rows={4} value={draft} onChange={(event) => setDraft(event.target.value.slice(0, 7000))} onKeyDown={onComposerKeyDown} onPaste={(event) => { const imageFiles = [...(event.clipboardData?.files || [])].filter((file) => file.type.startsWith('image/')); if (imageFiles.length) { event.preventDefault(); addFiles(imageFiles); } }} placeholder={language === 'vi' ? 'Nhắn tin, kéo file hoặc dán ảnh cho Brian AI...' : 'Message, drop a file or paste an image...'} aria-label={language === 'vi' ? 'Tin nhắn cho trợ lí AI' : 'Message to AI assistant'}/>
+                <div className="ai-composer-input-row bui-ai-dock-input-row">
+                  <textarea className="bui-ai-dock-editor" ref={textareaRef} rows={4} value={draft} onChange={(event) => setDraft(event.target.value.slice(0, 7000))} onKeyDown={onComposerKeyDown} onPaste={(event) => { const imageFiles = [...(event.clipboardData?.files || [])].filter((file) => file.type.startsWith('image/')); if (imageFiles.length) { event.preventDefault(); addFiles(imageFiles); } }} placeholder={language === 'vi' ? 'Nhắn tin, kéo file hoặc dán ảnh cho Brian AI...' : 'Message, drop a file or paste an image...'} aria-label={language === 'vi' ? 'Tin nhắn cho trợ lí AI' : 'Message to AI assistant'}/>
                   <button type="button" onClick={() => sendMessage()} disabled={(!draft.trim() && !attachments.length) || loading} aria-label={language === 'vi' ? 'Gửi tin nhắn' : 'Send message'}>{SVG.send}</button>
                 </div>
                 <small>{voiceMode ? (language === 'vi' ? 'Voice mode: AI tự gửi khi nhận xong và đọc câu trả lời.' : 'Voice mode: auto-send and read replies aloud.') : (language === 'vi' ? 'Enter để gửi · Shift + Enter xuống dòng' : 'Enter to send · Shift + Enter for a new line')}</small>

@@ -1,6 +1,6 @@
 {
-  "version": "12.5.0",
-  "release": "Unified Launch Experience Migration",
+  "version": "12.6.0",
+  "release": "Overlay, Dialog & AI Dock Core Migration",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T11:19:21.326Z",
+  "generatedAt": "2026-07-14T11:30:49.446Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Unified Launch Experience Migration",
+  "releaseName": "Overlay, Dialog & AI Dock Core Migration",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -328,5 +328,19 @@
     "tools"
   ],
   "duplicateAppsNavigationRetired": true,
-  "sharedLaunchPrimitives": true
+  "sharedLaunchPrimitives": true,
+  "overlayCore": true,
+  "nativeOverlayPrimitives": true,
+  "migratedGlobalOverlays": [
+    "command-palette",
+    "notification-center",
+    "content-transfer",
+    "autosave-history"
+  ],
+  "globalToastCenter": true,
+  "reactAiDockCore": true,
+  "legacyInjectedAiDock": false,
+  "aiDockComposerCore": true,
+  "overlayFocusTrap": true,
+  "overlayScrollLock": true
 }

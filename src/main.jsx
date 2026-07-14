@@ -20,6 +20,7 @@ import './styles/v1137.css';
 import './styles/v1154.css';
 import './styles/v1158.css';
 import './styles/v1159.css';
+import './ui-core/styles/overlay-core.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
@@ -48,6 +49,7 @@ import { installProviderHubInputGuard } from './utils/providerHubInputGuard.js';
 import { installBursReadability } from './utils/bursReadability.js';
 import { applyDesignLanguage, getStoredDesignLanguage, installDesignLanguageBootstrap } from './ui-core/runtime/designLanguage.js';
 import { getRouteLayout } from './ui-core/layouts/routeLayout.js';
+import { UIToastCenter } from './ui-core/components/UIOverlays.jsx';
 
 installDesignLanguageBootstrap();
 runConfigurationMigrations();
@@ -490,6 +492,7 @@ function App() {
     <>
       <a className="bes-skip-link" href="#bes-main-content">{language === 'vi' ? 'Bỏ qua đến nội dung chính' : 'Skip to main content'}</a>
       <Suspense fallback={null}><GlobalAccessibilityAnnouncer /></Suspense>
+      <UIToastCenter />
       <div
       className="app-shell metro-shell metro-clean-system"
       data-route={currentRoute}

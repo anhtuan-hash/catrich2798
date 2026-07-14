@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { UIOverlayClose, UIOverlayHeader, UIOverlayPortal, UIOverlaySurface } from '../ui-core/components/UIOverlays.jsx';
 import {
   getMyPermissionRequests,
   getPermissionRequests,
@@ -1389,15 +1390,15 @@ export default function StatusMenuBar({
       </div>
 
       {panelOpen ? (
-        <div className="global-notice-panel-layer" onMouseDown={(event) => event.target === event.currentTarget && setPanelOpen(false)}>
-          <aside className={`global-notice-panel ${activeTab === 'youtube' ? 'youtube-open' : ''}`} aria-label={t.panelTitle}>
-            <header className="global-notice-panel-header">
+        <UIOverlayPortal open={panelOpen} placement="drawer-right" onDismiss={() => setPanelOpen(false)} className="global-notice-panel-layer bui-notice-overlay">
+          <UIOverlaySurface as="aside" variant="drawer" className={`global-notice-panel bui-notice-panel ${activeTab === 'youtube' ? 'youtube-open' : ''}`} role="dialog" aria-modal="true" aria-label={t.panelTitle}>
+            <UIOverlayHeader className="global-notice-panel-header">
               <div>
                 <span>{language === 'vi' ? 'Brian English Studio' : 'Brian English Studio'}</span>
                 <h2>{t.panelTitle} <b>{visibleNotifications.length}</b></h2>
               </div>
-              <button type="button" className="global-notice-panel-close" onClick={() => setPanelOpen(false)} aria-label={t.close}>×</button>
-            </header>
+              <UIOverlayClose className="global-notice-panel-close" onClick={() => setPanelOpen(false)} label={t.close} />
+            </UIOverlayHeader>
 
             <div className="global-notice-tabs" role="tablist">
               <button type="button" className={activeTab === 'all' ? 'active' : ''} onClick={() => setActiveTab('all')}>
@@ -1737,8 +1738,8 @@ export default function StatusMenuBar({
                 {language === 'vi' ? 'Xem tất cả thông báo' : 'View all notifications'}
               </button>
             </footer>
-          </aside>
-        </div>
+          </UIOverlaySurface>
+        </UIOverlayPortal>
       ) : null}
 
       {youtubeVideoId && youtubePlaybackMode === 'audio' ? (

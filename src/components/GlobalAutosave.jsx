@@ -192,12 +192,12 @@ export default function GlobalAutosave({ route, selectedTool, currentUser, langu
         </div>
       ) : null}
       {historyOpen ? (
-        <div className="bes-version-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setHistoryOpen(false); }}>
-          <section className="bes-version-panel" role="dialog" aria-modal="true">
-            <header>
+        <UIOverlayPortal open={historyOpen} placement="center" onDismiss={() => setHistoryOpen(false)} className="bes-version-overlay bui-version-overlay">
+          <UIOverlaySurface variant="dialog" className="bes-version-panel bui-version-panel" role="dialog" aria-modal="true" aria-label={language === 'vi' ? 'Lịch sử bản nháp' : 'Draft version history'}>
+            <UIOverlayHeader>
               <div><small>VERSION HISTORY</small><h2>{language === 'vi' ? 'Lịch sử bản nháp' : 'Draft version history'}</h2><p>{language === 'vi' ? 'Tối đa 20 phiên bản gần nhất trên thiết bị này.' : 'Up to 20 recent versions on this device.'}</p></div>
-              <button type="button" onClick={() => setHistoryOpen(false)}>×</button>
-            </header>
+              <UIOverlayClose onClick={() => setHistoryOpen(false)} label={language === 'vi' ? 'Đóng' : 'Close'} />
+            </UIOverlayHeader>
             <div className="bes-version-list">
               {versions.length ? versions.map((version, index) => (
                 <article key={version.id}>
@@ -209,8 +209,8 @@ export default function GlobalAutosave({ route, selectedTool, currentUser, langu
               )) : <p className="bes-version-empty">{language === 'vi' ? 'Chưa có phiên bản nào.' : 'No versions yet.'}</p>}
             </div>
             {versions.length ? <footer><button type="button" onClick={() => { clearVersions(currentUser, key); setVersions([]); }}>{language === 'vi' ? 'Xóa toàn bộ lịch sử' : 'Clear all history'}</button></footer> : null}
-          </section>
-        </div>
+          </UIOverlaySurface>
+        </UIOverlayPortal>
       ) : null}
     </>
   );
