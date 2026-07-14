@@ -1,14 +1,14 @@
 {
-  "version": "12.6.0",
+  "version": "12.7.0",
   "channel": "stable",
-  "releaseName": "Overlay, Dialog & AI Dock Core Migration",
-  "runtimeCore": "3.0.0",
+  "releaseName": "Native Design Adapters & Appearance Sync",
+  "runtimeCore": "3.1.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T11:36:15.537Z",
+  "generatedAt": "2026-07-14T12:14:59.542Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Overlay, Dialog & AI Dock Core Migration",
+  "release": "Native Design Adapters & Appearance Sync",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -337,5 +337,14 @@
   "legacyInjectedAiDock": false,
   "aiDockComposerCore": true,
   "overlayFocusTrap": true,
-  "overlayScrollLock": true
+  "overlayScrollLock": true,
+  "nativeAppearanceCore": true,
+  "legacyAppearanceMutationObserver": false,
+  "designAdapterCore": true,
+  "accountSyncedUiPreferences": true,
+  "uiPreferencesMetadataKey": "brian_ui_preferences_v12",
+  "accentTokenSystem": true,
+  "densityTokenSystem": true,
+  "fontPersistenceBridge": true,
+  "personalFontBundled": false
 }

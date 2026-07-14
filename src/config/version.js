@@ -1,5 +1,5 @@
-export const APP_VERSION = '12.6.0';
-export const RELEASE_NAME = 'Overlay, Dialog & AI Dock Core Migration';
-export const RUNTIME_CORE_VERSION = '3.0.0';
+export const APP_VERSION = '12.7.0';
+export const RELEASE_NAME = 'Native Design Adapters & Appearance Sync';
+export const RUNTIME_CORE_VERSION = '3.1.0';
 export const SCHEMA_VERSION = '11.4.2';
 export function getVersionInfo(){return {application:APP_VERSION,release:RELEASE_NAME,runtime:RUNTIME_CORE_VERSION,schema:SCHEMA_VERSION};}

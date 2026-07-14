@@ -1,6 +1,6 @@
 {
-  "version": "12.6.0",
-  "release": "Overlay, Dialog & AI Dock Core Migration",
+  "version": "12.7.0",
+  "release": "Native Design Adapters & Appearance Sync",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T11:36:15.537Z",
+  "generatedAt": "2026-07-14T12:14:59.542Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "3.0.0",
+  "runtimeCore": "3.1.0",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Overlay, Dialog & AI Dock Core Migration",
+  "releaseName": "Native Design Adapters & Appearance Sync",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -342,5 +342,14 @@
   "legacyInjectedAiDock": false,
   "aiDockComposerCore": true,
   "overlayFocusTrap": true,
-  "overlayScrollLock": true
+  "overlayScrollLock": true,
+  "nativeAppearanceCore": true,
+  "legacyAppearanceMutationObserver": false,
+  "designAdapterCore": true,
+  "accountSyncedUiPreferences": true,
+  "uiPreferencesMetadataKey": "brian_ui_preferences_v12",
+  "accentTokenSystem": true,
+  "densityTokenSystem": true,
+  "fontPersistenceBridge": true,
+  "personalFontBundled": false
 }

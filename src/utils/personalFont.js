@@ -20,7 +20,8 @@ export function buildPersonalFontCss(dataUrl = '') {
     local('1FTVHFGesco'),
     local('1FTV HF Gesco Regular'),
     local('1FTV-HF-Gesco'),
-    url('/fonts/personal-font.ttf?v=6.8') format('truetype');
+    url('/bes-fonts/brian-personal-font.ttf?v=12.7.0') format('truetype'),
+    url('/fonts/personal-font.ttf?v=12.7.0') format('truetype');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -29,7 +30,7 @@ export function buildPersonalFontCss(dataUrl = '') {
   --font-ui: '${PERSONAL_FONT_FAMILY}', '1FTV HF Gesco', '1FTVHFGesco', '1FTV-HF-Gesco', Gesco, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 html, body, #root, .app-shell, .metro-shell { font-family: var(--font-ui) !important; }
-body *:not(svg):not(path), body *::before, body *::after, button, input, textarea, select, option, dialog, pre, code, kbd, samp { font-family: var(--font-ui) !important; }
+body :where(h1,h2,h3,h4,h5,h6,p,span,a,button,label,input,textarea,select,option,li,dt,dd,th,td,caption,legend,summary,blockquote,small,strong,b,em,[role='button'],[role='tab'],[role='menuitem'],[role='option']):not(code):not(pre):not(kbd):not(samp):not([class*='material-icons']):not([class*='material-symbol']) { font-family: var(--font-ui) !important; }
 `;
 }
 

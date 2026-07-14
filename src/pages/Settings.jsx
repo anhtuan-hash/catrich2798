@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { callAI } from '../utils/gemini.js';
+import { ACCENT_COLORS, UI_PREFERENCES_SYNC_EVENT } from '../ui-core/runtime/uiPreferences.js';
 import { changeCurrentPassword } from '../utils/auth.js';
 import {
   PROVIDERS,
@@ -186,6 +187,10 @@ export default function Settings({
   setGlobalLoading,
   designLanguage = 'brian-unified',
   setDesignLanguage,
+  accentColor = 'blue',
+  setAccentColor,
+  displayDensity = 'medium',
+  setDisplayDensity,
 }) {
   const initial = getEmptyLocal();
   const [selectedProvider, setSelectedProvider] = useState(aiProvider || initial.provider);
@@ -198,8 +203,7 @@ export default function Settings({
   const [liveSyncEnabled, setLiveSyncEnabled] = useState(() => readBoolean('bes-global-notice-live-sync', true));
   const [dataSyncEnabled, setDataSyncEnabled] = useState(() => readBoolean('bes-global-data-sync', true));
   const [musicSettings, setMusicSettings] = useState(() => readMusicSettings(currentUser));
-  const [accentColor, setAccentColor] = useState(() => localStorage.getItem('bes-settings-accent') || 'blue');
-  const [displayDensity, setDisplayDensity] = useState(() => localStorage.getItem('bes-settings-density') || 'medium');
+  const [uiSyncState, setUiSyncState] = useState({ status: currentUser?.provider === 'supabase' ? 'loading' : 'local', message: '' });
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
   const [passwordStatus, setPasswordStatus] = useState({ loading: false, message: '', ok: false });
@@ -235,14 +239,13 @@ export default function Settings({
   }, [currentUser?.id, currentUser?.email]);
 
   useEffect(() => {
-    localStorage.setItem('bes-settings-accent', accentColor);
-    document.documentElement.dataset.settingsAccent = accentColor;
-  }, [accentColor]);
-
-  useEffect(() => {
-    localStorage.setItem('bes-settings-density', displayDensity);
-    document.documentElement.dataset.settingsDensity = displayDensity;
-  }, [displayDensity]);
+    const onSync = (event) => {
+      const detail = event?.detail || {};
+      setUiSyncState({ status: detail.status || 'local', message: detail.message || '' });
+    };
+    window.addEventListener(UI_PREFERENCES_SYNC_EVENT, onSync);
+    return () => window.removeEventListener(UI_PREFERENCES_SYNC_EVENT, onSync);
+  }, []);
 
   const updateConfig = (patch) => {
     setConfigs((previous) => ({
@@ -463,14 +466,15 @@ export default function Settings({
     });
   };
 
-  const accentOptions = [
-    ['blue', '#4d7dff'],
-    ['violet', '#7d57dd'],
-    ['green', '#2aa96b'],
-    ['orange', '#f18a18'],
-    ['pink', '#db3977'],
-    ['teal', '#0da6a0'],
-  ];
+  const accentOptions = Object.entries(ACCENT_COLORS);
+
+  const uiSyncLabel = {
+    loading: language === 'vi' ? 'Đang đọc giao diện từ tài khoản…' : 'Loading appearance from your account…',
+    saving: language === 'vi' ? 'Đang đồng bộ giao diện…' : 'Syncing appearance…',
+    synced: language === 'vi' ? 'Đã đồng bộ giao diện trên tài khoản' : 'Appearance synced to your account',
+    local: language === 'vi' ? 'Đã lưu giao diện trên trình duyệt này' : 'Appearance saved on this browser',
+    error: language === 'vi' ? 'Đã lưu cục bộ; chưa đồng bộ được tài khoản' : 'Saved locally; account sync is unavailable',
+  }[uiSyncState.status] || (language === 'vi' ? 'Đã lưu giao diện' : 'Appearance saved');
 
   const currentThemeMode = localStorage.getItem('bes-theme-mode') || theme;
 
@@ -652,18 +656,23 @@ export default function Settings({
             ].map(([value, title, description]) => (
               <button key={value} type="button" role="radio" aria-checked={designLanguage === value} className={`bui-language-option ${designLanguage === value ? 'is-active' : ''}`} onClick={() => setDesignLanguage?.(value)}>
                 <strong>{title}</strong><small>{description}</small>
+                <span className={`bui-language-preview bui-language-preview--${value === 'material-3' ? 'material' : value === 'apple' ? 'apple' : 'brian'}`} aria-hidden="true" />
               </button>
             ))}
           </div>
           <label>{language === 'vi' ? 'Màu nhấn' : 'Accent color'}</label>
           <div className="settings-v47-accent-row">
-            {accentOptions.map(([name, color]) => <button key={name} className={accentColor === name ? 'active' : ''} style={{ '--swatch': color }} onClick={() => setAccentColor(name)} aria-label={name} />)}
+            {accentOptions.map(([name, color]) => <button key={name} type="button" className={accentColor === name ? 'active' : ''} style={{ '--swatch': color }} onClick={() => setAccentColor?.(name)} aria-label={name} title={name} />)}
           </div>
           <label>{language === 'vi' ? 'Mật độ hiển thị' : 'Display density'}</label>
           <div className="settings-v47-density-row">
             {[['relaxed', language === 'vi' ? 'Thoáng' : 'Relaxed'], ['medium', language === 'vi' ? 'Vừa' : 'Medium'], ['compact', language === 'vi' ? 'Gọn' : 'Compact']].map(([value, label]) => (
-              <button key={value} className={displayDensity === value ? 'active' : ''} onClick={() => setDisplayDensity(value)}>{label}</button>
+              <button key={value} type="button" className={displayDensity === value ? 'active' : ''} onClick={() => setDisplayDensity?.(value)}>{label}</button>
             ))}
+          </div>
+          <div className="bui-ui-sync-status" data-status={uiSyncState.status} role="status" title={uiSyncState.message || uiSyncLabel}>
+            <span aria-hidden="true">{uiSyncState.status === 'synced' ? '✓' : uiSyncState.status === 'error' ? '!' : uiSyncState.status === 'saving' || uiSyncState.status === 'loading' ? '↻' : '•'}</span>
+            <span>{uiSyncLabel}</span>
           </div>
           <button type="button" className="settings-v47-text-button" onClick={() => setAdvancedOpen((value) => !value)}>{advancedOpen ? '−' : '+'} {language === 'vi' ? 'Thiết lập giao diện nâng cao' : 'Advanced appearance'}</button>
           {advancedOpen ? (

@@ -21,6 +21,7 @@ import './styles/v1154.css';
 import './styles/v1158.css';
 import './styles/v1159.css';
 import './ui-core/styles/overlay-core.css';
+import './ui-core/styles/design-adapters.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
@@ -47,11 +48,17 @@ import { isAppHiddenForUser, useAppVisibility } from './utils/appVisibility.js';
 import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
 import { installProviderHubInputGuard } from './utils/providerHubInputGuard.js';
 import { installBursReadability } from './utils/bursReadability.js';
-import { applyDesignLanguage, getStoredDesignLanguage, installDesignLanguageBootstrap } from './ui-core/runtime/designLanguage.js';
+import {
+  applyUiPreferences,
+  hydrateUiPreferencesFromCloud,
+  installUiPreferencesBootstrap,
+  persistLocalUiPreferences,
+  saveUiPreferencesToCloud,
+} from './ui-core/runtime/uiPreferences.js';
 import { getRouteLayout } from './ui-core/layouts/routeLayout.js';
 import { UIToastCenter } from './ui-core/components/UIOverlays.jsx';
 
-installDesignLanguageBootstrap();
+const BOOT_UI_PREFERENCES = installUiPreferencesBootstrap();
 runConfigurationMigrations();
 installProviderHubInputGuard();
 installBursReadability();
@@ -202,9 +209,11 @@ function normalizeMetroIntensity(value) {
 
 function App() {
   const [route, setRoute] = useState(getInitialRoute);
-  const [language, setLanguage] = useState(() => localStorage.getItem('bet-language') || 'vi');
-  const [theme, setTheme] = useState(() => localStorage.getItem('bet-theme') || 'light');
-  const [designLanguage, setDesignLanguage] = useState(getStoredDesignLanguage);
+  const [language, setLanguage] = useState(() => BOOT_UI_PREFERENCES.language);
+  const [theme, setTheme] = useState(() => BOOT_UI_PREFERENCES.theme);
+  const [designLanguage, setDesignLanguage] = useState(() => BOOT_UI_PREFERENCES.designLanguage);
+  const [accentColor, setAccentColor] = useState(() => BOOT_UI_PREFERENCES.accentColor);
+  const [displayDensity, setDisplayDensity] = useState(() => BOOT_UI_PREFERENCES.displayDensity);
   const [apiKey, setApiKey] = useState(() => getActiveAiConfig().apiKey || '');
   const [aiModel, setAiModel] = useState(() => getActiveAiConfig().model || 'gemini-flash-latest');
   const [aiProvider, setAiProviderState] = useState(() => getAiProvider());
@@ -216,17 +225,16 @@ function App() {
   const aiOperationIdsRef = useRef(new Set());
   const aiIndicatorHideTimerRef = useRef(null);
   const languageRef = useRef(language);
-  const [fontScale, setFontScale] = useState(() => {
-    const saved = Number(localStorage.getItem('bes-font-scale') || 100);
-    return [100, 110, 120, 130].includes(saved) ? saved : 100;
-  });
+  const [fontScale, setFontScale] = useState(() => BOOT_UI_PREFERENCES.fontScale);
   const [tileLaunch, setTileLaunch] = useState(null);
-  const [motionMode, setMotionMode] = useState(getStoredMotionMode);
-  const [performanceMode, setPerformanceMode] = useState(getStoredPerformanceMode);
-  const [themeIntensity, setThemeIntensityState] = useState(() => normalizeMetroIntensity(localStorage.getItem('bes-theme-intensity') || 'balanced'));
+  const [motionMode, setMotionMode] = useState(() => BOOT_UI_PREFERENCES.motionMode || getStoredMotionMode());
+  const [performanceMode, setPerformanceMode] = useState(() => BOOT_UI_PREFERENCES.performanceMode || getStoredPerformanceMode());
+  const [themeIntensity, setThemeIntensityState] = useState(() => normalizeMetroIntensity(BOOT_UI_PREFERENCES.themeIntensity));
   const setThemeIntensity = (value) => setThemeIntensityState(normalizeMetroIntensity(value));
-  const [tileBorder, setTileBorder] = useState(() => localStorage.getItem('bes-tile-border') || 'soft');
-  const [indicatorMode, setIndicatorMode] = useState(() => localStorage.getItem('bes-windows-indicator') || 'on');
+  const [tileBorder, setTileBorder] = useState(() => BOOT_UI_PREFERENCES.tileBorder);
+  const [indicatorMode, setIndicatorMode] = useState(() => BOOT_UI_PREFERENCES.indicatorMode);
+  const uiPreferencesHydratedRef = useRef('');
+  const uiPreferencesSaveTimerRef = useRef(null);
   const resolvedPerformance = resolvePerformanceMode(performanceMode);
   const effectiveMotionMode = resolveMotionMode(motionMode, performanceMode);
 
@@ -253,6 +261,33 @@ function App() {
       unsubscribe?.();
     };
   }, []);
+
+  useEffect(() => {
+    if (!authReady) return undefined;
+    const key = currentUser?.id || currentUser?.email || 'guest';
+    let active = true;
+    if (!currentUser || currentUser?.provider !== 'supabase') {
+      uiPreferencesHydratedRef.current = key;
+      return undefined;
+    }
+    uiPreferencesHydratedRef.current = '';
+    hydrateUiPreferencesFromCloud(currentUser).then(({ preferences }) => {
+      if (!active || !preferences) return;
+      setLanguage(preferences.language);
+      setTheme(preferences.theme);
+      setDesignLanguage(preferences.designLanguage);
+      setAccentColor(preferences.accentColor);
+      setDisplayDensity(preferences.displayDensity);
+      setThemeIntensity(preferences.themeIntensity);
+      setTileBorder(preferences.tileBorder);
+      setIndicatorMode(preferences.indicatorMode);
+      setMotionMode(preferences.motionMode);
+      setPerformanceMode(preferences.performanceMode);
+      setFontScale(preferences.fontScale);
+      uiPreferencesHydratedRef.current = key;
+    });
+    return () => { active = false; };
+  }, [authReady, currentUser?.id, currentUser?.email, currentUser?.provider]);
 
   useEffect(() => {
     const onTileLaunch = (event) => {
@@ -342,42 +377,64 @@ function App() {
     languageRef.current = language;
     document.title = language === 'vi' ? 'Brian English · Hệ thống dạy học số' : 'Brian English · Digital Teaching Studio';
     document.documentElement.lang = language === 'vi' ? 'vi' : 'en';
-    document.documentElement.dataset.language = language;
   }, [language]);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem('bet-theme', theme);
-  }, [theme]);
-
-  useEffect(() => {
-    document.documentElement.dataset.fontScale = String(fontScale);
-    document.documentElement.dataset.burs = 'comfortable';
-    document.documentElement.style.fontSize = `${fontScale}%`;
     window.dispatchEvent(new CustomEvent('bes:font-scale-changed', { detail: { scale: fontScale } }));
-    try { localStorage.setItem('bes-font-scale', String(fontScale)); } catch { /* ignore */ }
   }, [fontScale]);
 
   useEffect(() => {
-    document.documentElement.dataset.themeIntensity = themeIntensity;
-    document.documentElement.dataset.tileBorder = tileBorder;
-    document.documentElement.dataset.windowsIndicator = indicatorMode;
-    try {
-      localStorage.setItem('bes-theme-intensity', themeIntensity);
-      localStorage.setItem('bes-tile-border', tileBorder);
-      localStorage.setItem('bes-windows-indicator', indicatorMode);
-    } catch { /* ignore */ }
-  }, [themeIntensity, tileBorder, indicatorMode]);
-  useEffect(() => { localStorage.setItem('bet-language', language); }, [language]);
-  useEffect(() => { applyDesignLanguage(designLanguage); }, [designLanguage]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('bes-motion-mode', motionMode);
-      localStorage.setItem('bes-performance-mode', performanceMode);
-    } catch { /* ignore */ }
     applyPerformanceAttributes({ motionMode, performanceMode });
   }, [motionMode, performanceMode]);
+
+  useEffect(() => {
+    const key = currentUser?.id || currentUser?.email || 'guest';
+    const canPersist = authReady && (!currentUser || uiPreferencesHydratedRef.current === key);
+    const value = {
+      designLanguage,
+      theme,
+      language,
+      accentColor,
+      displayDensity,
+      themeIntensity,
+      tileBorder,
+      indicatorMode,
+      motionMode,
+      performanceMode,
+      fontScale,
+      updatedAt: BOOT_UI_PREFERENCES.updatedAt,
+    };
+    if (!canPersist) {
+      applyUiPreferences(value, { persist: false });
+      return undefined;
+    }
+    const preferences = persistLocalUiPreferences(value, { touch: true });
+    applyUiPreferences(preferences, { persist: false });
+    BOOT_UI_PREFERENCES.updatedAt = preferences.updatedAt;
+    window.clearTimeout(uiPreferencesSaveTimerRef.current);
+    if (currentUser?.provider === 'supabase') {
+      uiPreferencesSaveTimerRef.current = window.setTimeout(() => {
+        saveUiPreferencesToCloud(currentUser, preferences);
+      }, 850);
+    }
+    return () => window.clearTimeout(uiPreferencesSaveTimerRef.current);
+  }, [
+    authReady,
+    currentUser?.id,
+    currentUser?.email,
+    currentUser?.provider,
+    designLanguage,
+    theme,
+    language,
+    accentColor,
+    displayDensity,
+    themeIntensity,
+    tileBorder,
+    indicatorMode,
+    motionMode,
+    performanceMode,
+    fontScale,
+  ]);
 
 
   const allTools = useMemo(() => [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS], []);
@@ -445,6 +502,10 @@ function App() {
     appVisibility,
     designLanguage,
     setDesignLanguage,
+    accentColor,
+    setAccentColor,
+    displayDensity,
+    setDisplayDensity,
   };
 
   const activeDesignProfile = getActiveDesignProfile(currentRoute, selectedTool);

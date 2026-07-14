@@ -1,12 +1,12 @@
 :root {
-  --ui-font-brand: 'BrianPersonal', 'Arial Rounded MT Bold', system-ui, sans-serif;
-  --ui-font-body: 'BrianPersonal', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ui-font-brand: 'BrianGesco', 'Brian Personal', '1FTV HF Gesco', system-ui, sans-serif;
+  --ui-font-body: 'BrianGesco', 'Brian Personal', '1FTV HF Gesco', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --ui-space-1: .25rem; --ui-space-2: .5rem; --ui-space-3: .75rem; --ui-space-4: 1rem;
   --ui-space-5: 1.25rem; --ui-space-6: 1.5rem; --ui-space-8: 2rem; --ui-space-10: 2.5rem;
   --ui-control-height: 2.75rem;
   --ui-radius-control: 14px; --ui-radius-card: 22px; --ui-radius-overlay: 26px;
   --ui-border-width: 1px;
-  --ui-color-primary: var(--active-app-accent, #315fc4);
+  --ui-color-primary: var(--ui-user-accent, var(--active-app-accent, #315fc4));
   --ui-color-on-primary: #fff;
   --ui-color-surface: #fffdf9;
   --ui-color-surface-container: #f6f3ee;
