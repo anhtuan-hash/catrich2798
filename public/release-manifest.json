@@ -1,7 +1,7 @@
 {
-  "version": "11.5.8",
-  "release": "Free AI Provider Hub & Smart Routing",
-  "runtime": "2.5.7",
+  "version": "11.5.9",
+  "release": "AI Workspace Resilience",
+  "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
   "lessonArchitectAnnualBuilder": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T04:59:32.120Z",
+  "generatedAt": "2026-07-14T05:43:06.310Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "2.5.8",
+  "runtimeCore": "2.5.9",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -235,31 +235,20 @@
     "balanced",
     "detailed"
   ],
-  "freeAiProviderHub": true,
-  "aiProviderCatalogSize": 18,
-  "providerApiKeyDirectLinks": true,
-  "smartAiRouting": true,
-  "aiRoutingModes": [
-    "smart",
-    "free",
-    "fast",
-    "quality",
-    "long-context",
-    "vision",
-    "local",
-    "manual"
-  ],
-  "crossProviderFallback": true,
-  "providerModelSelectorEverywhere": true,
-  "tryAnotherModelAction": true,
-  "openRouterAuthenticationHeaderFix": true,
-  "localAiProviders": [
-    "ollama",
-    "lmstudio",
-    "localai"
-  ],
-  "paidProviderOptIn": true,
-  "releaseName": "Provider Hub Input Stability",
+  "releaseName": "BURS Comfortable — Unified Readability",
   "providerHubInputStability": true,
-  "providerKeyPasteGuard": true
+  "providerKeyPasteGuard": true,
+  "bursComfortable": true,
+  "bursTypographyMinimum": 13,
+  "bursControlMinimum": 14,
+  "bursResponsiveWidths": [
+    1440,
+    1280,
+    1024,
+    768,
+    390
+  ],
+  "bursShadowDomCoverage": true,
+  "bursGlobalFontScaling": true,
+  "bursCardSystem": "Modern SaaS Workbench + Soft Editorial"
 }

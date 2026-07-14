@@ -17,10 +17,10 @@
   min-height:35px!important;
   padding:6px 10px!important;
   border-radius:11px!important;
-  font-size:.62rem!important;
+  font-size:.8125rem!important;
 }
 .ai-composer-tools svg{width:15px;height:15px}
-.ai-composer-tools>small{font-size:.56rem}
+.ai-composer-tools>small{font-size:.8125rem}
 .ai-composer-input-row{
   grid-template-columns:minmax(0,1fr) 50px;
   gap:9px;
@@ -45,8 +45,8 @@
   min-height:50px!important;
 }
 .ai-composer-input-row>button svg{width:24px;height:24px}
-.ai-messenger-v10831 .ai-messenger-composer>small{font-size:.57rem;line-height:1.4}
-.ai-messenger-error,.ai-messenger-notice{font-size:.64rem!important;line-height:1.45!important;padding:9px 13px!important}
+.ai-messenger-v10831 .ai-messenger-composer>small{font-size:.8125rem;line-height:1.4}
+.ai-messenger-error,.ai-messenger-notice{font-size:.8125rem!important;line-height:1.45!important;padding:9px 13px!important}
 
 /* Pronunciation and Speaking: recording is independent from browser speech-to-text. */
 .pc-recording-notice,

@@ -1,14 +1,14 @@
 {
-  "version": "11.5.8",
+  "version": "11.5.9",
   "channel": "stable",
-  "releaseName": "Provider Hub Input Stability",
-  "runtimeCore": "2.5.8",
+  "releaseName": "BURS Comfortable — Unified Readability",
+  "runtimeCore": "2.5.9",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T04:59:32.120Z",
+  "generatedAt": "2026-07-14T05:43:06.310Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -230,30 +230,19 @@
     "balanced",
     "detailed"
   ],
-  "freeAiProviderHub": true,
-  "aiProviderCatalogSize": 18,
-  "providerApiKeyDirectLinks": true,
-  "smartAiRouting": true,
-  "aiRoutingModes": [
-    "smart",
-    "free",
-    "fast",
-    "quality",
-    "long-context",
-    "vision",
-    "local",
-    "manual"
-  ],
-  "crossProviderFallback": true,
-  "providerModelSelectorEverywhere": true,
-  "tryAnotherModelAction": true,
-  "openRouterAuthenticationHeaderFix": true,
-  "localAiProviders": [
-    "ollama",
-    "lmstudio",
-    "localai"
-  ],
-  "paidProviderOptIn": true,
   "providerHubInputStability": true,
-  "providerKeyPasteGuard": true
+  "providerKeyPasteGuard": true,
+  "bursComfortable": true,
+  "bursTypographyMinimum": 13,
+  "bursControlMinimum": 14,
+  "bursResponsiveWidths": [
+    1440,
+    1280,
+    1024,
+    768,
+    390
+  ],
+  "bursShadowDomCoverage": true,
+  "bursGlobalFontScaling": true,
+  "bursCardSystem": "Modern SaaS Workbench + Soft Editorial"
 }

@@ -44,7 +44,7 @@
 .launcher-style-selector-head>div{display:flex;align-items:center;gap:9px;white-space:nowrap}
 .launcher-style-selector-head>div>span{width:28px;height:28px;display:grid;place-items:center;border-radius:9px;background:#171312;color:#fff;font-weight:900}
 .launcher-style-selector-head strong{font-size:1rem;color:var(--launcher-ink)}
-.launcher-style-selector-head p{margin:0;color:var(--launcher-muted);font-size:.72rem;font-weight:700}
+.launcher-style-selector-head p{margin:0;color:var(--launcher-muted);font-size:.8125rem;font-weight:700}
 .launcher-style-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .launcher-style-option{
   position:relative;
@@ -68,10 +68,10 @@
 .launcher-style-option.active{border:2px solid #236ee8!important;box-shadow:0 0 0 3px rgba(35,110,232,.1)!important}
 .launcher-style-option-copy{display:grid;align-content:center;gap:10px;min-width:0}
 .launcher-style-option-title{display:flex;align-items:center;gap:8px}
-.launcher-style-option-title i{width:25px;height:25px;display:grid;place-items:center;border:1px solid rgba(23,19,18,.16);border-radius:8px;background:#f7f8fa;font-style:normal;font-size:.72rem}
+.launcher-style-option-title i{width:25px;height:25px;display:grid;place-items:center;border:1px solid rgba(23,19,18,.16);border-radius:8px;background:#f7f8fa;font-style:normal;font-size:.8125rem}
 .launcher-style-option-title strong{font-size:1rem}
-.launcher-style-option-desc{font-size:.72rem;line-height:1.45;color:var(--launcher-muted);font-weight:700}
-.launcher-style-option-action{width:max-content;max-width:100%;padding:7px 11px;border:1px solid #9ab6e8;border-radius:10px;background:#f6f9ff;color:#1854a8;font-size:.64rem;font-weight:900}
+.launcher-style-option-desc{font-size:.8125rem;line-height:1.45;color:var(--launcher-muted);font-weight:700}
+.launcher-style-option-action{width:max-content;max-width:100%;padding:7px 11px;border:1px solid #9ab6e8;border-radius:10px;background:#f6f9ff;color:#1854a8;font-size:.8125rem;font-weight:900}
 .launcher-style-option.active .launcher-style-option-action{background:#236ee8;color:#fff;border-color:#236ee8}
 .launcher-style-check{position:absolute;top:12px;right:12px;width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:#236ee8;color:#fff;font-weight:1000;box-shadow:0 5px 12px rgba(35,110,232,.28)}
 
@@ -105,8 +105,8 @@
 /* Live pinned launcher */
 .launcher-live-dock{margin-top:16px!important;margin-bottom:16px!important;padding:14px 16px 16px!important;border:1px solid var(--launcher-line)!important;border-radius:22px!important;background:rgba(255,255,255,.78)!important;box-shadow:0 12px 28px rgba(31,49,80,.07)!important;backdrop-filter:blur(12px)}
 .launcher-live-dock>header{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:8px}
-.launcher-live-dock>header>div{display:flex;align-items:baseline;gap:10px}.launcher-live-dock>header strong{font-size:.86rem}.launcher-live-dock>header small{font-size:.62rem;color:var(--launcher-muted)}
-.launcher-live-dock>header>span{padding:5px 9px;border-radius:999px;background:#eef4ff;color:#24568f;font-size:.58rem;font-weight:900}
+.launcher-live-dock>header>div{display:flex;align-items:baseline;gap:10px}.launcher-live-dock>header strong{font-size:.86rem}.launcher-live-dock>header small{font-size:.8125rem;color:var(--launcher-muted)}
+.launcher-live-dock>header>span{padding:5px 9px;border-radius:999px;background:#eef4ff;color:#24568f;font-size:.8125rem;font-weight:900}
 .launcher-live-stage{position:relative;height:184px;border-radius:20px;overflow:hidden;isolation:isolate}
 .launcher-live-dock.is-radial .launcher-live-stage{background:radial-gradient(circle at 50% 56%,#fff 0 18%,#edf3ff 19% 20%,transparent 21%),linear-gradient(135deg,#fbfdff,#eef4ff)}
 .launcher-live-dock.is-water .launcher-live-stage{background:linear-gradient(180deg,#f8fcff 0 27%,#d5ebff 28% 100%);border:1px solid rgba(84,143,209,.22);box-shadow:inset 0 0 22px rgba(67,139,220,.13)}
@@ -116,7 +116,7 @@
 .launcher-live-apps{position:absolute;inset:0;z-index:6}
 .launcher-live-apps button{position:absolute!important;width:62px!important;height:62px!important;min-width:62px!important;min-height:62px!important;padding:0!important;display:grid!important;place-items:center!important;border:2px solid rgba(255,255,255,.9)!important;border-radius:20px!important;background:var(--launcher-accent)!important;color:#fff!important;box-shadow:0 10px 19px rgba(29,57,92,.2)!important;cursor:pointer!important;transition:transform .18s ease,box-shadow .18s ease!important}
 .launcher-live-apps button:hover{z-index:10;transform:translateY(-4px) scale(1.05)!important;box-shadow:0 15px 24px rgba(29,57,92,.26)!important}
-.launcher-live-apps button svg{width:31px;height:31px}.launcher-live-apps button>span{position:absolute;left:50%;top:calc(100% + 5px);transform:translateX(-50%);max-width:130px;padding:3px 7px;border-radius:7px;background:rgba(20,30,46,.86);color:#fff;font-size:.48rem;font-weight:800;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease}.launcher-live-apps button:hover>span,.launcher-live-apps button:focus-visible>span{opacity:1}
+.launcher-live-apps button svg{width:31px;height:31px}.launcher-live-apps button>span{position:absolute;left:50%;top:calc(100% + 5px);transform:translateX(-50%);max-width:130px;padding:3px 7px;border-radius:7px;background:rgba(20,30,46,.86);color:#fff;font-size:.8125rem;font-weight:800;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease}.launcher-live-apps button:hover>span,.launcher-live-apps button:focus-visible>span{opacity:1}
 .launcher-live-dock.is-radial .launcher-live-apps button[data-index="0"]{left:9%;top:58%}.launcher-live-dock.is-radial .launcher-live-apps button[data-index="1"]{left:25%;top:17%}.launcher-live-dock.is-radial .launcher-live-apps button[data-index="2"]{left:42%;top:5%}.launcher-live-dock.is-radial .launcher-live-apps button[data-index="3"]{right:35%;top:5%}.launcher-live-dock.is-radial .launcher-live-apps button[data-index="4"]{right:18%;top:17%}.launcher-live-dock.is-radial .launcher-live-apps button[data-index="5"]{right:6%;top:58%}
 .launcher-live-dock.is-water .launcher-live-apps button{animation:launcher-water-float 4.2s ease-in-out infinite}
 .launcher-live-dock.is-water .launcher-live-apps button[data-index="0"]{left:7%;top:34%;animation-delay:-.5s}.launcher-live-dock.is-water .launcher-live-apps button[data-index="1"]{left:24%;top:18%;animation-delay:-1.6s}.launcher-live-dock.is-water .launcher-live-apps button[data-index="2"]{left:42%;top:45%;animation-delay:-2.4s}.launcher-live-dock.is-water .launcher-live-apps button[data-index="3"]{right:37%;top:16%;animation-delay:-.9s}.launcher-live-dock.is-water .launcher-live-apps button[data-index="4"]{right:20%;top:39%;animation-delay:-1.9s}.launcher-live-dock.is-water .launcher-live-apps button[data-index="5"]{right:6%;top:22%;animation-delay:-3s}
@@ -151,7 +151,7 @@
 .launcher-v1136 .flat-app-window-art{width:58px!important;height:58px!important;border-radius:17px!important}
 .launcher-v1136 .flat-app-window-copy{height:100%!important;align-content:start!important;gap:6px!important;overflow:hidden!important}
 .launcher-v1136 .flat-app-window-copy strong{display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;font-size:clamp(1.5rem,1.65vw,2rem)!important;line-height:.92!important}
-.launcher-v1136 .flat-app-window-copy em{-webkit-line-clamp:2!important;font-size:.76rem!important;line-height:1.2!important}
+.launcher-v1136 .flat-app-window-copy em{-webkit-line-clamp:2!important;font-size:.8125rem!important;line-height:1.2!important}
 .launcher-v1136 .flat-app-window-cta{justify-self:start!important;align-self:end!important;margin:0!important;min-height:32px!important;padding:6px 12px!important}
 .launcher-v1136 .flat-app-window-decoration{right:-52px!important;bottom:-68px!important}
 .launcher-v1136.density-compact .launcher-custom-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;grid-auto-rows:220px!important;gap:12px!important}

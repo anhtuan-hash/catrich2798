@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
+const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+if (pkg.version !== '11.5.9') throw new Error('package version mismatch');
+const version = JSON.parse(fs.readFileSync('public/version.json', 'utf8'));
+if (version.version !== '11.5.9' || !version.bursComfortable || version.bursTypographyMinimum !== 13) throw new Error('version registry mismatch');
+execFileSync(process.execPath, ['scripts/burs-audit-v11.5.9.mjs'], { stdio: 'inherit' });
+execFileSync(process.execPath, ['scripts/burs-layout-contract-v11.5.9.mjs'], { stdio: 'inherit' });
+const apiFunctions = fs.readdirSync('api').filter((file) => file.endsWith('.js') && !file.startsWith('_')).length;
+if (apiFunctions > 12) throw new Error(`Vercel Hobby function limit exceeded: ${apiFunctions}`);
+console.log(`V11.5.9 release guard passed. Vercel Functions: ${apiFunctions}/12.`);

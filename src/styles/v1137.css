@@ -187,7 +187,7 @@
 
 .home-v1137 .flat-window-chrome b {
   color: #fff !important;
-  font-size: .7rem;
+  font-size: .8125rem;
   font-weight: 930;
 }
 
@@ -232,7 +232,7 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  font-size: .72rem;
+  font-size: .8125rem;
   line-height: 1.17;
 }
 

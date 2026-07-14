@@ -1,6 +1,3 @@
-import './styles/v1157-ai-provider-hub.css';
-import { installAIProviderHubRuntime } from './utils/aiProviderHubRuntime.js';
-// BRIAN_V1157_PROVIDER_HUB_RUNTIME
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
@@ -21,6 +18,7 @@ import './styles/v1136.css';
 import './styles/v1137.css';
 import './styles/v1154.css';
 import './styles/v1158.css';
+import './styles/v1159.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
@@ -46,9 +44,11 @@ import { isAdminRole } from './utils/roles.js';
 import { isAppHiddenForUser, useAppVisibility } from './utils/appVisibility.js';
 import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
 import { installProviderHubInputGuard } from './utils/providerHubInputGuard.js';
+import { installBursReadability } from './utils/bursReadability.js';
 
 runConfigurationMigrations();
 installProviderHubInputGuard();
+installBursReadability();
 installAccessibilityBootstrap();
 installPwaEventCapture();
 registerBrianPwa().catch((error) => console.warn('[PWA] registration failed', error));
@@ -346,7 +346,9 @@ function App() {
 
   useEffect(() => {
     document.documentElement.dataset.fontScale = String(fontScale);
+    document.documentElement.dataset.burs = 'comfortable';
     document.documentElement.style.fontSize = `${fontScale}%`;
+    window.dispatchEvent(new CustomEvent('bes:font-scale-changed', { detail: { scale: fontScale } }));
     try { localStorage.setItem('bes-font-scale', String(fontScale)); } catch { /* ignore */ }
   }, [fontScale]);
 
@@ -491,6 +493,7 @@ function App() {
       data-tile-border={tileBorder}
       data-windows-indicator={indicatorMode}
       data-app-version={APP_VERSION}
+      data-burs="comfortable"
       style={{
         '--active-app-accent': activeDesignProfile.accent,
         '--active-app-soft': activeDesignProfile.soft,
@@ -733,8 +736,3 @@ createRoot(document.getElementById('root')).render(
     <App />
   </AppErrorBoundary>,
 );
-// BRIAN_V1157_PROVIDER_HUB_RUNTIME
-if (typeof window !== 'undefined') {
-  window.queueMicrotask?.(() => installAIProviderHubRuntime());
-  if (!window.queueMicrotask) setTimeout(() => installAIProviderHubRuntime(), 0);
-}

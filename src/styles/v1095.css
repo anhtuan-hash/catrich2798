@@ -125,7 +125,7 @@ html[data-a11y-motion="reduce"] *::after {
   overflow: hidden;
 }
 .v1095-hero > div:first-child { max-width: 950px; }
-.v1095-hero p:first-child { margin: 0 0 14px; color: #1b6d7a; font-size: 12px; font-weight: 900; letter-spacing: .13em; }
+.v1095-hero p:first-child { margin: 0 0 14px; color: #1b6d7a; font-size: 13px; font-weight: 900; letter-spacing: .13em; }
 .v1095-hero h1 { margin: 0; max-width: 1000px; font-size: clamp(42px, 6.4vw, 94px); line-height: .95; letter-spacing: -.055em; color: #0c2b4f; }
 .v1095-hero h1 + p { max-width: 820px; margin: 22px 0 0; font-size: clamp(16px, 1.45vw, 21px); line-height: 1.55; color: #536b83; }
 .v1095-hero-actions, .v1095-inline-actions { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -161,7 +161,7 @@ html[data-a11y-motion="reduce"] *::after {
 .v1095-panel { min-height: 330px; padding: clamp(20px, 3.5vw, 40px); border: 1px solid #c9dbea; background: #fff; }
 .v1095-panel > header { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 24px; }
 .v1095-panel > header > div:first-child { display: flex; align-items: center; gap: 14px; }
-.v1095-panel > header span { min-width: 52px; height: 44px; display: grid; place-items: center; padding: 0 9px; border-radius: 12px; background: #dff7f4; color: #0d675e; font-size: 12px; font-weight: 950; letter-spacing: .08em; }
+.v1095-panel > header span { min-width: 52px; height: 44px; display: grid; place-items: center; padding: 0 9px; border-radius: 12px; background: #dff7f4; color: #0d675e; font-size: 13px; font-weight: 950; letter-spacing: .08em; }
 .v1095-panel h2 { margin: 0; font-size: clamp(26px, 3.4vw, 46px); line-height: 1; color: #102e50; }
 
 .v1095-check-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
