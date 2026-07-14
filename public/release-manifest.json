@@ -1,6 +1,6 @@
 {
-  "version": "12.16.1",
-  "release": "Streamlined App Directory",
+  "version": "12.17.0",
+  "release": "Modern App Card Gallery",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T16:11:24.489Z",
+  "generatedAt": "2026-07-14T16:24:52.236Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Streamlined App Directory",
+  "releaseName": "Modern App Card Gallery",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -452,5 +452,8 @@
   "embeddedWorkspaceRoutes": true,
   "appDirectoryLauncherVisible": false,
   "appDirectoryRecentRail": false,
-  "appDirectorySearchAfterHero": true
+  "appDirectorySearchAfterHero": true,
+  "modernAppCardGallery": true,
+  "appCardBoardStyle": "vivid-blue-pastel",
+  "appCardGridColumnsDesktop": 5
 }

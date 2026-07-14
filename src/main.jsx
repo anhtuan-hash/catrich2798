@@ -12,6 +12,7 @@ import './ui-core/styles/design-adapters.css';
 import './ui-core/styles/workspace-layout.css';
 import './ui-core/styles/v11-navigation-restoration.css';
 import './ui-core/styles/apps-hero-v1216.css';
+import './ui-core/styles/apps-cards-v1217.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import AppErrorBoundary from './components/AppErrorBoundary.jsx';

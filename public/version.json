@@ -1,14 +1,14 @@
 {
-  "version": "12.16.1",
+  "version": "12.17.0",
   "channel": "stable",
-  "releaseName": "Streamlined App Directory",
+  "releaseName": "Modern App Card Gallery",
   "runtimeCore": "3.6.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T16:11:24.489Z",
+  "generatedAt": "2026-07-14T16:24:52.236Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Streamlined App Directory",
+  "release": "Modern App Card Gallery",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -447,5 +447,8 @@
   "embeddedWorkspaceRoutes": true,
   "appDirectoryLauncherVisible": false,
   "appDirectoryRecentRail": false,
-  "appDirectorySearchAfterHero": true
+  "appDirectorySearchAfterHero": true,
+  "modernAppCardGallery": true,
+  "appCardBoardStyle": "vivid-blue-pastel",
+  "appCardGridColumnsDesktop": 5
 }
