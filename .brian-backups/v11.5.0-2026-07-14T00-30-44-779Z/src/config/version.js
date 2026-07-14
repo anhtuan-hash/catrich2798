@@ -1,6 +1,6 @@
-export const APP_VERSION = '11.5.0';
-export const RELEASE_NAME = 'Grammar Builder Soft Editorial';
-export const RUNTIME_CORE_VERSION = '2.5.0';
+export const APP_VERSION = '11.4.9';
+export const RELEASE_NAME = 'Grammar Builder Vivid Card System';
+export const RUNTIME_CORE_VERSION = '2.4.9';
 export const SCHEMA_VERSION = '11.4.2';
 
 export function getVersionInfo() {

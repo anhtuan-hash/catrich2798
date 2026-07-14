@@ -1081,10 +1081,10 @@ Issues: ${(json.issues || []).length}`);
   };
 
   return (
-    <div className="gb-page" data-stage={activeStage} data-design="soft-editorial">
+    <div className="gb-page" data-stage={activeStage}>
       <section className="gb-toolbar">
         <button type="button" className="gb-back" onClick={() => window.history.back()}>← {vi ? 'Quay lại' : 'Back'}</button>
-        <div className="gb-project-title"><small>GRAMMAR BUILDER · V2.3</small><input value={project.title} onChange={(event) => updateProject({ title: event.target.value })} /></div>
+        <div className="gb-project-title"><small>GRAMMAR BUILDER · V2.2</small><input value={project.title} onChange={(event) => updateProject({ title: event.target.value })} /></div>
         <div className="gb-toolbar-state"><span className="gb-autosave">● {vi ? 'Tự động lưu' : 'Autosaved'}</span><span>{project.items.length} items</span><span>{audit.score}/100</span></div>
         <div className="gb-toolbar-actions">
           <button type="button" onClick={() => setShowBlueprint(true)}>▦ Blueprint</button>

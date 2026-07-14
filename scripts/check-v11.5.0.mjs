@@ -1,0 +1,50 @@
+import fs from 'node:fs';
+
+let passed=0;
+let failed=0;
+const read=(file)=>fs.readFileSync(file,'utf8');
+const exists=(file)=>fs.existsSync(file);
+const pass=(name,condition)=>{if(condition){console.log(`✓ ${name}`);passed+=1;}else{console.error(`✗ ${name}`);failed+=1;}};
+
+const pkg=JSON.parse(read('package.json'));
+const versionJson=JSON.parse(read('public/version.json'));
+const releaseJson=JSON.parse(read('public/release-manifest.json'));
+const versionSource=read('src/config/version.js');
+const grammar=read('src/pages/GrammarBuilder.jsx');
+const css=read('src/pages/GrammarBuilder.css');
+const apiEntries=fs.readdirSync('api').filter((name)=>!name.startsWith('_')&&/\.(?:js|mjs|ts|py|go)$/i.test(name));
+
+pass('package version 11.5.0',pkg.version==='11.5.0');
+pass('version registry 11.5.0',versionSource.includes("APP_VERSION = '11.5.0'")&&versionJson.version==='11.5.0'&&releaseJson.version==='11.5.0');
+pass('runtime core 2.5.0',versionJson.runtimeCore==='2.5.0'&&releaseJson.runtime==='2.5.0');
+pass('Grammar Builder V2.3 label',grammar.includes('GRAMMAR BUILDER · V2.3'));
+pass('Soft Editorial design attribute',grammar.includes('data-design="soft-editorial"'));
+pass('two-card setup retained',css.includes('.gb-setup-grid{grid-template-columns:repeat(2,minmax(0,1fr))'));
+pass('Soft Editorial design system marker',css.includes('V11.5.0 — Soft Editorial Cards')&&css.includes('--se-paper:#fffdf9')&&css.includes('--se-line:#d9e0e4'));
+pass('thin border card system',css.includes('border:1px solid var(--se-line)')&&css.includes('box-shadow:var(--se-shadow)'));
+pass('restrained editorial card accents',css.includes('.gb-card::before')&&css.includes('width:74px;height:4px')&&css.includes('--card-tint'));
+pass('build mode selected state is light and clear',css.includes('.gb-mode-grid button.active')&&css.includes('background:var(--se-green-soft)')&&css.includes('inset 5px 0 0 var(--se-green)'));
+pass('selected mode check indicator',css.includes('.gb-mode-grid button.active::after')&&css.includes('content:"✓"'));
+pass('field value highlighting retained',grammar.includes("'has-value'")&&css.includes('.gb-field.has-value input'));
+pass('domain selection highlighting retained',grammar.includes("className={project.domain === value && !project.focusRequest ? 'active' : ''}")&&css.includes('.gb-domain-hints button.active'));
+pass('format selection highlighting retained',grammar.includes('aria-pressed={project.formats.includes(format.id)}')&&css.includes('.gb-chip-checks button.active'));
+pass('quality rule selected state retained',grammar.includes("className={project.constraints.includes(entry.id) ? 'active' : ''}")&&css.includes('.gb-constraint-grid label.active'));
+pass('AI task selected state is editorial',grammar.includes('aria-pressed={aiTask === task.id}')&&css.includes('.gb-ai-task-grid button.active')&&css.includes('background:var(--se-purple-soft)'));
+pass('workflow selected state is editorial',grammar.includes("aria-current={active ? 'step' : undefined}")&&css.includes('.gb-workflow button.active'));
+pass('content editor editorial item cards',css.includes('.gb-item-card.selected')&&css.includes('background:var(--se-blue-soft)'));
+pass('audit and publish surfaces use thin borders',css.includes('.gb-audit-card{padding:27px;background:#fff}')&&css.includes('.gb-publish-card{padding:36px;border:1px solid var(--se-line)'));
+pass('modal system uses editorial surfaces',css.includes('.gb-modal{border:1px solid var(--se-line)')&&css.includes('.gb-modal>header{padding:26px 30px'));
+pass('responsive fallbacks retained',css.includes('@media(max-width:1050px)')&&css.includes('@media(max-width:520px)'));
+pass('dark mode retained',css.includes('html[data-theme="dark"] .gb-page'));
+pass('grouped grammar domain catalogue retained',grammar.includes('GRAMMAR_DOMAIN_GROUPS')&&grammar.includes('THPT exam grammar'));
+pass('real Brian AI gateway retained',grammar.includes('callAI({')&&grammar.includes('getActiveAiConfig'));
+pass('Teacher Vault retained',grammar.includes('TEACHER VAULT'));
+pass('Item Bank retained',grammar.includes('addQuestionsFromTextToBank'));
+pass('Connected Workflow retained',grammar.includes('const DESTINATIONS')&&grammar.includes('createTransfer'));
+pass('Vercel functions <=12',apiEntries.length<=12);
+pass('no obsolete lesson AI function',!exists('api/lesson-ai.mjs'));
+pass('public npm registry only',!read('package-lock.json').includes('applied-caas-gateway'));
+
+console.log(`\nV11.5.0 Grammar Builder Soft Editorial Check: ${passed}/${passed+failed} passed`);
+console.log(`Deployable API entries: ${apiEntries.length}`);
+if(failed)process.exit(1);
