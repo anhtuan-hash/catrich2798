@@ -1,14 +1,14 @@
 {
-  "version": "12.20.0",
+  "version": "12.21.0",
   "channel": "stable",
-  "releaseName": "Interactive Department Cards",
+  "releaseName": "Refined Department Workspace",
   "runtimeCore": "3.6.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T17:03:26.046Z",
+  "generatedAt": "2026-07-14T22:48:21.289Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Interactive Department Cards",
+  "release": "Refined Department Workspace",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -475,5 +475,11 @@
   "departmentEvidenceDropzone": true,
   "departmentAiSuggestionActions": true,
   "departmentDashboardJsonIO": true,
-  "departmentFourColumnDesktop": true
+  "departmentFourColumnDesktop": false,
+  "departmentRefinedWorkspace": true,
+  "departmentCompactOverview": true,
+  "departmentTwoColumnFocusWorkspace": true,
+  "departmentContainedScrollAreas": true,
+  "departmentDirectScheduleComposer": true,
+  "departmentRecentActivityFeed": true
 }

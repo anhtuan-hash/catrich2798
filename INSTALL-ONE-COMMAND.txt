@@ -1,0 +1,3 @@
+Mở Terminal trong thư mục dự án Brian chính rồi chạy:
+
+bash -lc 'set -e; ZIP="$(find "$HOME/Downloads" -maxdepth 1 -type f -iname "brian-english-studio-v12.21.0-refined-department-workspace-update-only*.zip" -print0 | xargs -0 ls -t | head -n 1)"; test -n "$ZIP" || { echo "Không tìm thấy file update-only trong Downloads"; exit 1; }; TMP="$(mktemp -d)"; trap '\''rm -rf "$TMP"'\'' EXIT; unzip -q "$ZIP" -d "$TMP"; SRC="$(find "$TMP" -mindepth 1 -maxdepth 1 -type d | head -n 1)"; rsync -av --exclude=.git/ --exclude=.env --exclude=.env.* --exclude=.vercel/ --exclude=node_modules/ --exclude=dist/ "$SRC/" ./; npm ci; npm run verify:v12.21.0'

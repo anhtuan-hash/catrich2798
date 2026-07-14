@@ -16,6 +16,7 @@ import './ui-core/styles/apps-cards-v1217.css';
 import './ui-core/styles/widescreen-v1218.css';
 import './ui-core/styles/department-command-v1219.css';
 import './ui-core/styles/department-interactive-v1220.css';
+import './ui-core/styles/department-refined-v1221.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import AppErrorBoundary from './components/AppErrorBoundary.jsx';
