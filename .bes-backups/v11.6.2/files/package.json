@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "11.6.2",
+  "version": "11.6.1",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -104,8 +104,7 @@
     "verify:v11.6.0": "npm run test:v11.6.0 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.6.0",
     "test:v11.6.1": "npm run version:sync && node scripts/check-v11.6.1.mjs",
     "release:guard:v11.6.1": "node scripts/release-guard-v11.6.1.mjs",
-    "verify:v11.6.1": "npm run test:v11.6.1 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.6.1",
-    "verify:v11.6.2": "node scripts/verify-v11.6.2.mjs"
+    "verify:v11.6.1": "npm run test:v11.6.1 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.6.1"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
