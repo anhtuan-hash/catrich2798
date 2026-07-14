@@ -1,0 +1,19 @@
+{
+  "version": "11.4.9",
+  "release": "Grammar Builder Vivid Card System",
+  "runtime": "2.4.9",
+  "schema": "11.4.2",
+  "grammarBuilderV22": true,
+  "grammarBuilderVividSelectionStates": true,
+  "grammarBuilderModernDimensionalCards": true,
+  "grammarBuilderAppWideReadableTypography": true,
+  "grammarBuilderSelectedControlHighlighting": true,
+  "grammarBuilderModeColorSystem": true,
+  "grammarBuilderAiTaskColorSystem": true,
+  "grammarBuilderEditorLargeItemCards": true,
+  "grammarBuilderModernAuditCards": true,
+  "grammarBuilderTwoCardLayout": true,
+  "requiresSql": false,
+  "baseline": "11.4.8",
+  "generatedAt": "2026-07-14T00:00:00.000Z"
+}

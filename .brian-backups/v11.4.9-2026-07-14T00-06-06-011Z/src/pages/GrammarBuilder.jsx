@@ -688,12 +688,11 @@ function SectionHeading({ number, eyebrow, title, description, action }) {
 }
 
 function SelectField({ label, value, onChange, children }) {
-  return <label className={`gb-field ${String(value || '').trim() ? 'has-value' : ''}`}><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{children}</select></label>;
+  return <label className="gb-field"><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{children}</select></label>;
 }
 
 function TextField({ label, value, onChange, placeholder = '', multiline = false, rows = 3, ...props }) {
-  const hasValue = String(value ?? '').trim().length > 0;
-  return <label className={`gb-field ${hasValue ? 'has-value' : ''}`}><span>{label}</span>{multiline ? <textarea value={value} rows={rows} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} {...props} /> : <input value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} {...props} />}</label>;
+  return <label className="gb-field"><span>{label}</span>{multiline ? <textarea value={value} rows={rows} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} {...props} /> : <input value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} {...props} />}</label>;
 }
 
 function ItemEditor({ item, onChange, onClose }) {
@@ -1084,7 +1083,7 @@ Issues: ${(json.issues || []).length}`);
     <div className="gb-page" data-stage={activeStage}>
       <section className="gb-toolbar">
         <button type="button" className="gb-back" onClick={() => window.history.back()}>← {vi ? 'Quay lại' : 'Back'}</button>
-        <div className="gb-project-title"><small>GRAMMAR BUILDER · V2.2</small><input value={project.title} onChange={(event) => updateProject({ title: event.target.value })} /></div>
+        <div className="gb-project-title"><small>GRAMMAR BUILDER · V2.1</small><input value={project.title} onChange={(event) => updateProject({ title: event.target.value })} /></div>
         <div className="gb-toolbar-state"><span className="gb-autosave">● {vi ? 'Tự động lưu' : 'Autosaved'}</span><span>{project.items.length} items</span><span>{audit.score}/100</span></div>
         <div className="gb-toolbar-actions">
           <button type="button" onClick={() => setShowBlueprint(true)}>▦ Blueprint</button>
@@ -1123,7 +1122,7 @@ Issues: ${(json.issues || []).length}`);
       <nav className="gb-workflow" aria-label="Grammar Builder workflow">
         {WORKFLOW_STEPS.map(([number, label], index) => {
           const active = activeStage === 'setup' ? index < 4 : activeStage === 'editor' ? index <= 5 : true;
-          return <button type="button" key={number} className={active ? 'active' : ''} aria-current={active ? 'step' : undefined} onClick={() => setActiveStage(index < 4 ? 'setup' : index < 6 ? 'editor' : 'publish')}><b>{number}</b><span>{label}</span></button>;
+          return <button type="button" key={number} className={active ? 'active' : ''} onClick={() => setActiveStage(index < 4 ? 'setup' : index < 6 ? 'editor' : 'publish')}><b>{number}</b><span>{label}</span></button>;
         })}
       </nav>
 
@@ -1132,7 +1131,7 @@ Issues: ${(json.issues || []).length}`);
           <article className="gb-card gb-card-mode">
             <SectionHeading number="01" eyebrow="BUILD MODE" title="Chọn mục đích tạo" description="Mỗi chế độ thay đổi logic blueprint và đầu ra." />
             <div className="gb-mode-grid">
-              {BUILD_MODES.map((mode) => <button type="button" key={mode.id} className={project.mode === mode.id ? 'active' : ''} aria-pressed={project.mode === mode.id} onClick={() => updateProject({ mode: mode.id })}><i>{mode.icon}</i><strong>{vi ? mode.titleVi : mode.title}</strong><span>{vi ? mode.descVi : mode.desc}</span></button>)}
+              {BUILD_MODES.map((mode) => <button type="button" key={mode.id} className={project.mode === mode.id ? 'active' : ''} onClick={() => updateProject({ mode: mode.id })}><i>{mode.icon}</i><strong>{vi ? mode.titleVi : mode.title}</strong><span>{vi ? mode.descVi : mode.desc}</span></button>)}
             </div>
           </article>
 
@@ -1142,7 +1141,7 @@ Issues: ${(json.issues || []).length}`);
               {GRAMMAR_DOMAIN_GROUPS.map((group) => <optgroup key={group.label} label={group.label}>{group.options.map((value) => <option key={value} value={value}>{value}</option>)}</optgroup>)}
             </SelectField>
             <TextField label="Yêu cầu cụ thể khác" value={project.focusRequest} onChange={(value) => updateProject({ focusRequest: value })} placeholder="Ví dụ: so sánh Past Simple và Past Continuous; không dùng đảo ngữ; ưu tiên ngữ cảnh kể chuyện…" multiline rows={6} />
-            <div className="gb-domain-hints"><span>Gợi ý nhanh</span><div>{['Mixed tenses','Modal perfect forms','Reduced relative clauses','Inversion','Grammar cloze','THPT exam grammar'].map((value) => <button type="button" key={value} className={project.domain === value && !project.focusRequest ? 'active' : ''} aria-pressed={project.domain === value && !project.focusRequest} onClick={() => updateProject({ domain: value, focusRequest: '' })}>{value}</button>)}</div></div>
+            <div className="gb-domain-hints"><span>Gợi ý nhanh</span><div>{['Mixed tenses','Modal perfect forms','Reduced relative clauses','Inversion','Grammar cloze','THPT exam grammar'].map((value) => <button type="button" key={value} onClick={() => updateProject({ domain: value, focusRequest: '' })}>{value}</button>)}</div></div>
             <div className="gb-focus-summary"><span>TARGET</span><strong>{project.domain}</strong><p>{project.focusRequest || 'AI sẽ triển khai toàn bộ phạm vi của domain đã chọn.'}</p></div>
           </article>
 
@@ -1174,7 +1173,7 @@ Issues: ${(json.issues || []).length}`);
               <label><span>Số phần</span><input type="number" min="1" max="10" value={project.sectionCount} onChange={(event) => updateProject({ sectionCount: Math.max(1, Math.min(10, Number(event.target.value) || 1)) })} /></label>
             </div>
             <div className="gb-subheading"><strong>Dạng bài</strong><span>{project.formats.length} dạng đã chọn</span></div>
-            <div className="gb-chip-checks">{FORMATS.map((format) => <button type="button" key={format.id} className={project.formats.includes(format.id) ? 'active' : ''} aria-pressed={project.formats.includes(format.id)} onClick={() => toggleListValue('formats', format.id)}>{project.formats.includes(format.id) ? '✓ ' : ''}{format.short}</button>)}</div>
+            <div className="gb-chip-checks">{FORMATS.map((format) => <button type="button" key={format.id} className={project.formats.includes(format.id) ? 'active' : ''} onClick={() => toggleListValue('formats', format.id)}>{project.formats.includes(format.id) ? '✓ ' : ''}{format.short}</button>)}</div>
             <div className="gb-subheading"><strong>Phân bố độ khó</strong><span>{project.difficulty.B1 + project.difficulty.B2 + project.difficulty.C1}%</span></div>
             <div className="gb-difficulty-grid">{['B1','B2','C1'].map((level) => <label key={level}><span><b>{level}</b><em>{project.difficulty[level]}%</em></span><input type="range" min="0" max="100" step="5" value={project.difficulty[level]} onChange={(event) => updateProject({ difficulty: { ...project.difficulty, [level]: Number(event.target.value) } })} /></label>)}</div>
             <div className="gb-form-grid two">
@@ -1182,13 +1181,13 @@ Issues: ${(json.issues || []).length}`);
               <SelectField label="Vị trí đáp án" value={project.answerPlacement} onChange={(value) => updateProject({ answerPlacement: value })}><option>Đáp án tập trung cuối tài liệu</option><option>Đáp án sau từng câu</option><option>Tạo riêng bản giáo viên</option></SelectField>
             </div>
             <div className="gb-subheading"><strong>Quy tắc chất lượng</strong></div>
-            <div className="gb-constraint-grid">{CONSTRAINTS.map((entry) => <label key={entry.id} className={project.constraints.includes(entry.id) ? 'active' : ''}><input type="checkbox" checked={project.constraints.includes(entry.id)} onChange={() => toggleListValue('constraints', entry.id)} /><span>{entry.label}</span></label>)}</div>
+            <div className="gb-constraint-grid">{CONSTRAINTS.map((entry) => <label key={entry.id}><input type="checkbox" checked={project.constraints.includes(entry.id)} onChange={() => toggleListValue('constraints', entry.id)} /><span>{entry.label}</span></label>)}</div>
           </article>
 
           <article className="gb-card gb-card-ai">
             <SectionHeading number="06" eyebrow="AI COPILOT" title="AI theo tác vụ chuyên môn" description="Không dùng một prompt chung. Chọn đúng thao tác cần AI thực hiện." />
             <div className="gb-ai-state"><span className={hasApiKey ? 'ready' : 'setup'}>{hasApiKey ? '● AI thật đang bật' : '○ Chưa cấu hình AI thật'}</span><strong>{providerInfo?.label || 'AI Provider'} · {providerConfig?.model || aiModel || 'No model'}</strong></div>
-            <div className="gb-ai-task-grid">{AI_TASKS.map((task) => <button type="button" key={task.id} className={aiTask === task.id ? 'active' : ''} aria-pressed={aiTask === task.id} onClick={() => { setAiTask(task.id); setShowAiPanel(true); }}><i>{task.icon}</i><span><strong>{task.title}</strong><small>{task.desc}</small></span></button>)}</div>
+            <div className="gb-ai-task-grid">{AI_TASKS.map((task) => <button type="button" key={task.id} className={aiTask === task.id ? 'active' : ''} onClick={() => { setAiTask(task.id); setShowAiPanel(true); }}><i>{task.icon}</i><span><strong>{task.title}</strong><small>{task.desc}</small></span></button>)}</div>
             <TextField label="Yêu cầu riêng cho AI" value={project.customInstruction} onChange={(value) => updateProject({ customInstruction: value })} multiline rows={4} />
             <div className="gb-ai-run-row"><button type="button" className="gb-btn primary large" disabled={aiLoading} onClick={() => runAi(aiTask)}>{aiLoading ? `✦ ${aiProgress[aiProgressIndex]}` : `✦ Chạy ${AI_TASKS.find((task) => task.id === aiTask)?.title || 'AI Copilot'}`}</button><button type="button" className="gb-btn" onClick={createSample}>Dùng sample không AI</button></div>
             {aiError ? <div className="gb-error">{aiError}</div> : null}
@@ -1292,7 +1291,7 @@ Issues: ${(json.issues || []).length}`);
           <section className="gb-modal gb-ai-modal" role="dialog" aria-modal="true">
             <header><div><span>AI COPILOT · GRAMMAR KNOWLEDGE ENGINE</span><h2>{AI_TASKS.find((task) => task.id === aiTask)?.title || (aiTask === 'rewrite-item' ? 'AI viết lại item' : 'AI Copilot')}</h2><p>{providerInfo?.label || 'AI Provider'} · {providerConfig?.model || aiModel || 'No model'}</p></div><button type="button" disabled={aiLoading} onClick={() => setShowAiPanel(false)}>×</button></header>
             <div className="gb-ai-modal-body">
-              <div className="gb-ai-task-select">{AI_TASKS.map((task) => <button type="button" key={task.id} className={aiTask === task.id ? 'active' : ''} aria-pressed={aiTask === task.id} onClick={() => setAiTask(task.id)} disabled={aiLoading}><i>{task.icon}</i><span><strong>{task.title}</strong><small>{task.desc}</small></span></button>)}</div>
+              <div className="gb-ai-task-select">{AI_TASKS.map((task) => <button type="button" key={task.id} className={aiTask === task.id ? 'active' : ''} onClick={() => setAiTask(task.id)} disabled={aiLoading}><i>{task.icon}</i><span><strong>{task.title}</strong><small>{task.desc}</small></span></button>)}</div>
               <div className="gb-ai-context"><span>Ngữ cảnh hiện tại</span><strong>Grade {project.grade} · {project.level} · {grammarFocus(project)}</strong><p>{project.items.length} items · Audit {audit.score}/100 · {project.customTopic || project.topic}</p></div>
               <TextField label="Yêu cầu bổ sung" value={project.customInstruction} onChange={(value) => updateProject({ customInstruction: value })} multiline rows={5} />
               {aiLoading ? <div className="gb-ai-progress"><div className="gb-ai-spinner">✦</div><div><strong>{aiProgress[aiProgressIndex]}</strong><span>{aiProgress.map((step, index) => <i key={step} className={index <= aiProgressIndex ? 'active' : ''} />)}</span><p>Không đóng cửa sổ trong khi AI đang tạo dữ liệu có cấu trúc.</p></div></div> : null}

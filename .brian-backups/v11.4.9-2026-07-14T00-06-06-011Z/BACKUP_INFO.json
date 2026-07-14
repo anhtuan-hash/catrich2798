@@ -1,0 +1,22 @@
+{
+  "from": "11.4.8",
+  "to": "11.4.9",
+  "createdAt": "2026-07-14T00:06:06.033Z",
+  "files": [
+    "src/pages/GrammarBuilder.jsx",
+    "src/pages/GrammarBuilder.css",
+    "src/config/version.js",
+    "package.json",
+    "package-lock.json",
+    "public/version.json",
+    "public/release-manifest.json",
+    ".bes-release/v11.4.9.json",
+    "scripts/check-v11.4.9.mjs",
+    "scripts/sync-version-v11.4.9.mjs",
+    "scripts/performance-budget-v11.4.9.mjs",
+    "scripts/release-guard-v11.4.9.mjs",
+    "V11_4_9_GRAMMAR_VIVID_CARD_SYSTEM.md",
+    "V11_4_9_TEST_REPORT.md",
+    "docs/V11_4_9_DEPLOYMENT.md"
+  ]
+}
