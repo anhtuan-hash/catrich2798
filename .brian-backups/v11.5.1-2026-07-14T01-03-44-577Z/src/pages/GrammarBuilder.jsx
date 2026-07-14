@@ -677,15 +677,6 @@ function SummaryMetric({ value, label, tone = '' }) {
   return <div className={`gb-summary-metric ${tone}`}><strong>{value}</strong><span>{label}</span></div>;
 }
 
-function ContextMetric({ icon, label, value, detail = '' }) {
-  return (
-    <div className="gb-context-metric">
-      <i aria-hidden="true">{icon}</i>
-      <div><span>{label}</span><strong>{value}</strong>{detail ? <small>{detail}</small> : null}</div>
-    </div>
-  );
-}
-
 function SectionHeading({ number, eyebrow, title, description, action }) {
   return (
     <header className="gb-card-heading">
@@ -1089,18 +1080,11 @@ Issues: ${(json.issues || []).length}`);
     document.body.appendChild(anchor); anchor.click(); anchor.remove(); URL.revokeObjectURL(url);
   };
 
-  const updatedLabel = new Date(project.updatedAt || Date.now()).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
-  const classGoal = String(project.learnerNotes || '').trim() || `${project.grade} · ${project.level} · ${project.purpose}`;
-
   return (
-    <div className="gb-page" data-stage={activeStage} data-design="modern-saas">
-      <section className="gb-toolbar gb-toolbar-modern">
-        <div className="gb-brand-lockup">
-          <span className="gb-brand-mark">GB</span>
-          <div><strong>Grammar Builder</strong><small>V2.4</small></div>
-        </div>
+    <div className="gb-page" data-stage={activeStage} data-design="soft-editorial">
+      <section className="gb-toolbar">
         <button type="button" className="gb-back" onClick={() => window.history.back()}>← {vi ? 'Quay lại' : 'Back'}</button>
-        <div className="gb-project-title"><input aria-label="Tên dự án" value={project.title} onChange={(event) => updateProject({ title: event.target.value })} /></div>
+        <div className="gb-project-title"><small>GRAMMAR BUILDER · V2.3</small><input value={project.title} onChange={(event) => updateProject({ title: event.target.value })} /></div>
         <div className="gb-toolbar-state"><span className="gb-autosave">● {vi ? 'Tự động lưu' : 'Autosaved'}</span><span>{project.items.length} items</span><span>{audit.score}/100</span></div>
         <div className="gb-toolbar-actions">
           <button type="button" onClick={() => setShowBlueprint(true)}>▦ Blueprint</button>
@@ -1113,12 +1097,27 @@ Issues: ${(json.issues || []).length}`);
 
       {notice ? <div className="gb-notice" role="status">✓ {notice}<button type="button" onClick={() => setNotice('')}>×</button></div> : null}
 
-      <section className="gb-context-strip" aria-label="Tóm tắt dự án">
-        <ContextMetric icon="◎" label="Mục tiêu lớp học" value={classGoal} />
-        <ContextMetric icon="☷" label="Số câu dự kiến" value={`${project.questionCount} câu`} />
-        <ContextMetric icon="◷" label="Thời gian làm bài" value="45 phút" />
-        <ContextMetric icon="▥" label="Độ khó trung bình" value={project.level} />
-        <ContextMetric icon="▣" label="Cập nhật lần cuối" value={updatedLabel} />
+      <section className="gb-hero">
+        <div className="gb-hero-copy">
+          <span className="gb-kicker">AI GRAMMAR PRODUCTION SYSTEM · ENGLISH THPT</span>
+          <h1>Grammar Builder</h1>
+          <p>{vi ? 'Thiết kế, kiểm định, tái sử dụng và phân phối học liệu ngữ pháp trong một workflow chuyên biệt.' : 'Design, audit, reuse and distribute grammar materials in one specialist workflow.'}</p>
+          <div className="gb-hero-actions"><button type="button" className="gb-btn primary" onClick={() => { setActiveStage('setup'); document.querySelector('.gb-setup-grid')?.scrollIntoView({ behavior: 'smooth' }); }}>＋ Dự án mới</button><button type="button" className="gb-btn" onClick={() => setShowVault(true)}>▣ Teacher Vault <b>{vault.length}</b></button><button type="button" className="gb-btn" onClick={createSample}>◇ Xem sample</button></div>
+        </div>
+        <div className="gb-hero-visual" aria-hidden="true">
+          <div className="gb-visual-grid" />
+          <div className="gb-visual-book"><b>GB</b><span>Grammar<br />Builder</span></div>
+          <div className="gb-visual-sheet"><i>✓</i><span /><i>✓</i><span /><i>✓</i><span /></div>
+          <div className="gb-visual-chart"><span /><span /><span /><span /><b>↗</b></div>
+          <div className="gb-visual-ai">AI</div>
+          <div className="gb-visual-check">✓</div>
+          <div className="gb-visual-pencil" />
+        </div>
+        <div className="gb-hero-status">
+          <div><span>AI ENGINE</span><strong>{hasApiKey ? 'READY' : 'SETUP'}</strong></div>
+          <p><b>{providerInfo?.label || 'AI Provider'}</b><span>{providerConfig?.model || aiModel || 'Chưa chọn model'}</span></p>
+          <div className="gb-hero-score"><strong>{audit.score}</strong><span>Quality score</span></div>
+        </div>
       </section>
 
       <nav className="gb-workflow" aria-label="Grammar Builder workflow">
@@ -1170,7 +1169,6 @@ Issues: ${(json.issues || []).length}`);
 
           <article className="gb-card gb-card-blueprint">
             <SectionHeading number="05" eyebrow="OUTPUT BLUEPRINT" title="Thiết kế cấu trúc đầu ra" description="Kiểm soát số câu, dạng bài, độ khó, đáp án và chống trùng." action={<button type="button" className="gb-link-btn" onClick={() => runAi('blueprint')}>✦ AI lập blueprint</button>} />
-            <div className="gb-card-visual gb-blueprint-visual" aria-hidden="true"><span /><span /><i>◔</i></div>
             <div className="gb-number-row">
               <label><span>Tổng số câu</span><input type="number" min="1" max="120" value={project.questionCount} onChange={(event) => updateProject({ questionCount: Math.max(1, Math.min(120, Number(event.target.value) || 1)) })} /></label>
               <label><span>Số phần</span><input type="number" min="1" max="10" value={project.sectionCount} onChange={(event) => updateProject({ sectionCount: Math.max(1, Math.min(10, Number(event.target.value) || 1)) })} /></label>
@@ -1189,7 +1187,6 @@ Issues: ${(json.issues || []).length}`);
 
           <article className="gb-card gb-card-ai">
             <SectionHeading number="06" eyebrow="AI COPILOT" title="AI theo tác vụ chuyên môn" description="Không dùng một prompt chung. Chọn đúng thao tác cần AI thực hiện." />
-            <div className="gb-card-visual gb-ai-robot" aria-hidden="true"><b>••</b><span /></div>
             <div className="gb-ai-state"><span className={hasApiKey ? 'ready' : 'setup'}>{hasApiKey ? '● AI thật đang bật' : '○ Chưa cấu hình AI thật'}</span><strong>{providerInfo?.label || 'AI Provider'} · {providerConfig?.model || aiModel || 'No model'}</strong></div>
             <div className="gb-ai-task-grid">{AI_TASKS.map((task) => <button type="button" key={task.id} className={aiTask === task.id ? 'active' : ''} aria-pressed={aiTask === task.id} onClick={() => { setAiTask(task.id); setShowAiPanel(true); }}><i>{task.icon}</i><span><strong>{task.title}</strong><small>{task.desc}</small></span></button>)}</div>
             <TextField label="Yêu cầu riêng cho AI" value={project.customInstruction} onChange={(value) => updateProject({ customInstruction: value })} multiline rows={4} />

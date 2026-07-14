@@ -1,14 +1,14 @@
 {
-  "version": "11.5.0",
+  "version": "11.5.1",
   "channel": "stable",
-  "releaseName": "Grammar Builder Soft Editorial",
-  "runtimeCore": "2.5.0",
+  "releaseName": "Grammar Builder Modern SaaS Workbench",
+  "runtimeCore": "2.5.1",
   "schemaVersion": "11.4.2",
   "requiresSql": true,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T00:30:54.002Z",
+  "generatedAt": "2026-07-14T01:03:53.000Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -119,5 +119,13 @@
   "grammarBuilderMutedAccentSystem": true,
   "grammarBuilderAccessibleSelectedStates": true,
   "grammarBuilderEditorialItemCards": true,
-  "grammarBuilderEditorialAuditCards": true
+  "grammarBuilderEditorialAuditCards": true,
+  "grammarBuilderV24": true,
+  "grammarBuilderModernSaasWorkbench": true,
+  "grammarBuilderCompactProductHeader": true,
+  "grammarBuilderProjectContextStrip": true,
+  "grammarBuilderSegmentedWorkflow": true,
+  "grammarBuilderModernBlueprintCard": true,
+  "grammarBuilderModernAiTaskCards": true,
+  "grammarBuilderResponsiveWorkbench": true
 }

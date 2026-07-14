@@ -1,7 +1,7 @@
 {
-  "version": "11.5.1",
-  "release": "Grammar Builder Modern SaaS Workbench",
-  "runtime": "2.5.1",
+  "version": "11.5.0",
+  "release": "Grammar Builder Soft Editorial",
+  "runtime": "2.5.0",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
   "lessonArchitectAnnualBuilder": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": true,
-  "generatedAt": "2026-07-14T01:03:53.000Z",
+  "generatedAt": "2026-07-14T00:30:54.002Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "2.5.1",
+  "runtimeCore": "2.5.0",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -124,13 +124,5 @@
   "grammarBuilderMutedAccentSystem": true,
   "grammarBuilderAccessibleSelectedStates": true,
   "grammarBuilderEditorialItemCards": true,
-  "grammarBuilderEditorialAuditCards": true,
-  "grammarBuilderV24": true,
-  "grammarBuilderModernSaasWorkbench": true,
-  "grammarBuilderCompactProductHeader": true,
-  "grammarBuilderProjectContextStrip": true,
-  "grammarBuilderSegmentedWorkflow": true,
-  "grammarBuilderModernBlueprintCard": true,
-  "grammarBuilderModernAiTaskCards": true,
-  "grammarBuilderResponsiveWorkbench": true
+  "grammarBuilderEditorialAuditCards": true
 }

@@ -1,0 +1,20 @@
+{
+  "version": "11.5.1",
+  "release": "Grammar Builder Modern SaaS Workbench",
+  "runtime": "2.5.1",
+  "schema": "11.4.2",
+  "grammarBuilderV24": true,
+  "grammarBuilderModernSaasWorkbench": true,
+  "grammarBuilderCompactProductHeader": true,
+  "grammarBuilderProjectContextStrip": true,
+  "grammarBuilderSegmentedWorkflow": true,
+  "grammarBuilderModernBlueprintCard": true,
+  "grammarBuilderModernAiTaskCards": true,
+  "grammarBuilderTwoCardLayout": true,
+  "grammarBuilderTeacherVault": true,
+  "grammarBuilderQualityAudit": true,
+  "grammarBuilderConnectedWorkflow": true,
+  "requiresSql": false,
+  "baseline": "11.5.0",
+  "generatedAt": "2026-07-14T01:00:00.000Z"
+}

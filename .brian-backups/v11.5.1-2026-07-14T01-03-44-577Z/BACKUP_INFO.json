@@ -1,0 +1,22 @@
+{
+  "from": "11.5.0",
+  "to": "11.5.1",
+  "createdAt": "2026-07-14T01:03:44.604Z",
+  "files": [
+    ".bes-release/v11.5.1.json",
+    "src/pages/GrammarBuilder.jsx",
+    "src/pages/GrammarBuilder.css",
+    "src/config/version.js",
+    "public/version.json",
+    "public/release-manifest.json",
+    "scripts/check-v11.5.1.mjs",
+    "scripts/sync-version-v11.5.1.mjs",
+    "scripts/performance-budget-v11.5.1.mjs",
+    "scripts/release-guard-v11.5.1.mjs",
+    "package.json",
+    "package-lock.json",
+    "V11_5_1_GRAMMAR_MODERN_SAAS_WORKBENCH.md",
+    "V11_5_1_TEST_REPORT.md",
+    "docs/V11_5_1_DEPLOYMENT.md"
+  ]
+}
