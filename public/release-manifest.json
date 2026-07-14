@@ -1,6 +1,6 @@
 {
-  "version": "12.19.0",
-  "release": "Department Command Center",
+  "version": "12.20.0",
+  "release": "Interactive Department Cards",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T16:44:23.627Z",
+  "generatedAt": "2026-07-14T17:03:26.046Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Department Command Center",
+  "releaseName": "Interactive Department Cards",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -473,5 +473,12 @@
   "departmentOperationalStatus": true,
   "departmentModernDashboard": true,
   "departmentStickyModuleTabs": true,
-  "departmentRoleAwareActions": true
+  "departmentRoleAwareActions": true,
+  "departmentInteractiveCards": true,
+  "departmentDirectCalendar": true,
+  "departmentDirectTaskStatus": true,
+  "departmentEvidenceDropzone": true,
+  "departmentAiSuggestionActions": true,
+  "departmentDashboardJsonIO": true,
+  "departmentFourColumnDesktop": true
 }

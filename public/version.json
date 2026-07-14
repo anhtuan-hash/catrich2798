@@ -1,14 +1,14 @@
 {
-  "version": "12.19.0",
+  "version": "12.20.0",
   "channel": "stable",
-  "releaseName": "Department Command Center",
+  "releaseName": "Interactive Department Cards",
   "runtimeCore": "3.6.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T16:44:23.627Z",
+  "generatedAt": "2026-07-14T17:03:26.046Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Department Command Center",
+  "release": "Interactive Department Cards",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -468,5 +468,12 @@
   "departmentOperationalStatus": true,
   "departmentModernDashboard": true,
   "departmentStickyModuleTabs": true,
-  "departmentRoleAwareActions": true
+  "departmentRoleAwareActions": true,
+  "departmentInteractiveCards": true,
+  "departmentDirectCalendar": true,
+  "departmentDirectTaskStatus": true,
+  "departmentEvidenceDropzone": true,
+  "departmentAiSuggestionActions": true,
+  "departmentDashboardJsonIO": true,
+  "departmentFourColumnDesktop": true
 }

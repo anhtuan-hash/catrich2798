@@ -2131,6 +2131,38 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
     }
   };
 
+  const handleQuickDocumentUpload = (fileList) => {
+    const files = Array.from(fileList || []).filter(Boolean).slice(0, 12);
+    if (!files.length) return;
+    if (!canPublish) {
+      setActiveTab('submissions');
+      showToast(language === 'vi'
+        ? 'Giáo viên vui lòng nộp hồ sơ tại mục Thông báo & hồ sơ của tôi.'
+        : 'Teachers should submit files from Assigned notices & my submissions.');
+      return;
+    }
+    const uploadedAt = new Date().toISOString();
+    updateData((old) => ({
+      ...old,
+      documents: [
+        ...files.map((file) => ({
+          id: cryptoId(),
+          title: file.name || (language === 'vi' ? 'Hồ sơ mới' : 'New record'),
+          category: language === 'vi' ? 'Tải nhanh từ dashboard' : 'Dashboard quick upload',
+          link: '',
+          fileName: file.name || '',
+          fileSize: Number(file.size) || 0,
+          mimeType: file.type || '',
+          uploadedAt,
+          note: `${formatFileSize(file.size)}${file.type ? ` · ${file.type}` : ''}`,
+        })),
+        ...toArray(old.documents),
+      ],
+    }), language === 'vi'
+      ? `Đã ghi nhận ${files.length} hồ sơ trực tiếp từ dashboard.`
+      : `${files.length} record(s) added directly from the dashboard.`, { autoPublish: true });
+  };
+
   const submitEvidence = async () => {
     if (!submissionDraft.requestId) return showToast(language === 'vi' ? 'Chỉ được nộp khi có thông báo/yêu cầu đang mở từ TTCM. Hãy chọn một thông báo trước.' : 'You can only submit after an open leader request. Select a request first.');
     if (!submissionDraft.title.trim()) return showToast(language === 'vi' ? 'Nhập tên nội dung cần nộp trước.' : 'Enter submission title first.');
@@ -2356,7 +2388,30 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
         </div>
       </section>
 
-      <DepartmentOperationsDashboard data={data} stats={stats} health={departmentHealth} language={language} setActiveTab={openDepartmentTab} cloudInfo={cloudInfo} canPublish={canPublish} onSaveCloud={handleSaveCloud} onLoadCloud={handleLoadCloud} upcomingItems={upcomingItems} workloadRows={workloadRows} onExportCalendar={handleExportCalendar} />
+      <DepartmentOperationsDashboard
+        data={data}
+        stats={stats}
+        health={departmentHealth}
+        language={language}
+        setActiveTab={openDepartmentTab}
+        cloudInfo={cloudInfo}
+        canPublish={canPublish}
+        onSaveCloud={handleSaveCloud}
+        onLoadCloud={handleLoadCloud}
+        upcomingItems={upcomingItems}
+        workloadRows={workloadRows}
+        onExportCalendar={handleExportCalendar}
+        onExportJson={handleExportJson}
+        onImportJson={handleImportJson}
+        onExportPortfolio={handleExportPortfolio}
+        onUpdateStatus={updateStatus}
+        onQuickDocumentUpload={handleQuickDocumentUpload}
+        onOpenAISuggestion={(suggestion) => {
+          setAiInstruction(suggestion);
+          setActiveTab('aiCopilot');
+        }}
+        onNotify={showToast}
+      />
 
       {!canPublish ? (
         <section className="department-teacher-workspace-v64 panel">
@@ -2475,180 +2530,305 @@ function DepartmentModuleCard({ module, language, currentUser, allowed, active, 
 }
 
 
-function DepartmentOperationsDashboard({ data, stats, health, language, setActiveTab, cloudInfo, canPublish, onSaveCloud, onLoadCloud, upcomingItems, workloadRows, onExportCalendar }) {
-  const scheduleItems = upcomingItems.slice(0, 3);
-  const priorityItems = [...data.tasks, ...data.plans, ...data.assessments]
-    .filter((item) => isOverdue(item) || item.status === 'Chờ duyệt' || item.status === 'Đang làm' || item.status === 'Chưa làm')
-    .slice(0, 3);
-  const recentDocs = data.documents.slice(0, 3);
+function DepartmentOperationsDashboard({
+  data,
+  stats,
+  health,
+  language,
+  setActiveTab,
+  cloudInfo,
+  canPublish,
+  onSaveCloud,
+  onLoadCloud,
+  upcomingItems,
+  workloadRows,
+  onExportCalendar,
+  onExportJson,
+  onImportJson,
+  onExportPortfolio,
+  onUpdateStatus,
+  onQuickDocumentUpload,
+  onOpenAISuggestion,
+  onNotify,
+}) {
+  const now = parseLocalDate(today()) || new Date();
+  const [calendarCursor, setCalendarCursor] = useState(() => new Date(now.getFullYear(), now.getMonth(), 1));
+  const [selectedDate, setSelectedDate] = useState(today());
+  const [calendarFilter, setCalendarFilter] = useState('all');
+  const [taskFilter, setTaskFilter] = useState('open');
+  const [dragActive, setDragActive] = useState(false);
+  const evidenceInputRef = useRef(null);
+  const importInputRef = useRef(null);
+
+  const dateKey = (value) => {
+    const date = value instanceof Date ? value : parseLocalDate(value);
+    if (!date || Number.isNaN(date.getTime())) return '';
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+
+  const openCollection = (collection) => {
+    const routes = {
+      plans: 'plans',
+      meetings: 'meetings',
+      workSchedules: 'workSchedule',
+      tasks: 'tasks',
+      lessonStudies: 'lessonStudy',
+      observations: 'observations',
+      assessments: 'assessment',
+      teacherDevelopment: 'teacherDev',
+      studentActivities: 'studentActivities',
+    };
+    setActiveTab(routes[collection] || 'workSchedule');
+  };
+
+  const calendarDays = useMemo(() => {
+    const year = calendarCursor.getFullYear();
+    const month = calendarCursor.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const leading = (firstDay.getDay() + 6) % 7;
+    const total = new Date(year, month + 1, 0).getDate();
+    return Array.from({ length: 42 }, (_, index) => {
+      const day = index - leading + 1;
+      if (day < 1 || day > total) return null;
+      const date = new Date(year, month, day);
+      return { day, key: dateKey(date) };
+    });
+  }, [calendarCursor]);
+
+  const eventDates = useMemo(() => new Set(upcomingItems.map((item) => dateKey(item.agendaDate || getItemDate(item))).filter(Boolean)), [upcomingItems]);
+  const monthLabel = new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'long', year: 'numeric' }).format(calendarCursor);
+  const filterCalendarItem = (item) => {
+    if (calendarFilter === 'all') return true;
+    if (calendarFilter === 'plans') return item.collection === 'plans';
+    if (calendarFilter === 'schedule') return item.collection === 'workSchedules';
+    if (calendarFilter === 'meetings') return item.collection === 'meetings';
+    return item.collection === 'tasks' || isOverdue(item);
+  };
+  const selectedAgenda = upcomingItems.filter((item) => filterCalendarItem(item) && dateKey(item.agendaDate || getItemDate(item)) === selectedDate);
+  const filteredUpcoming = upcomingItems.filter(filterCalendarItem);
+  const agendaItems = (selectedAgenda.length ? selectedAgenda : filteredUpcoming).slice(0, 3);
+
+  const taskRows = useMemo(() => [
+    ...toArray(data.tasks).map((item) => ({ ...item, collection: 'tasks', tab: 'tasks' })),
+    ...toArray(data.plans).map((item) => ({ ...item, collection: 'plans', tab: 'plans' })),
+    ...toArray(data.assessments).map((item) => ({ ...item, collection: 'assessments', tab: 'assessment' })),
+  ].sort((a, b) => Number(isOverdue(b)) - Number(isOverdue(a)) || String(getItemDate(a) || '').localeCompare(String(getItemDate(b) || ''))), [data.tasks, data.plans, data.assessments]);
+  const completedTasks = taskRows.filter((item) => item.status === DONE_STATUS || item.status === 'Đã duyệt').length;
+  const pendingTasks = taskRows.filter((item) => item.status === 'Chờ duyệt').length + Number(stats.pendingSubmissions || 0);
+  const visibleTasks = taskRows.filter((item) => {
+    if (taskFilter === 'all') return true;
+    if (taskFilter === 'overdue') return isOverdue(item);
+    if (taskFilter === 'pending') return item.status === 'Chờ duyệt';
+    if (taskFilter === 'done') return item.status === DONE_STATUS || item.status === 'Đã duyệt';
+    return isOpenStatus(item.status);
+  }).slice(0, 5);
+
+  const totalRecords = data.documents.length + Number(stats.archivedSubmissions || 0);
+  const storagePercent = Math.max(2, Math.min(100, Math.round((totalRecords / 200) * 100)));
+  const recentDocs = toArray(data.documents).slice(0, 4);
   const reportSuggestions = [
-    language === 'vi' ? 'Tổng hợp tiến độ công việc tuần' : 'Summarize weekly progress',
-    language === 'vi' ? 'Gợi ý nội dung báo cáo tháng' : 'Suggest monthly report content',
-    language === 'vi' ? 'Phân tích minh chứng theo chủ đề' : 'Analyze evidence by topic',
+    { icon: '☷', tone: 'violet', text: language === 'vi' ? 'Tổng hợp tiến độ công việc tuần' : 'Summarize weekly work progress' },
+    { icon: '▤', tone: 'blue', text: language === 'vi' ? 'Gợi ý nội dung báo cáo tháng' : 'Suggest monthly report content' },
+    { icon: '▥', tone: 'green', text: language === 'vi' ? 'Phân tích minh chứng theo chủ đề' : 'Analyze evidence by topic' },
+    { icon: '♢', tone: 'amber', text: language === 'vi' ? `${stats.pendingSubmissions || 0} hồ sơ cần rà soát hoặc bổ sung` : `${stats.pendingSubmissions || 0} records need review or updates` },
   ];
-  const calendarCells = [
-    ['', '', '1', '2', '3', '4', '5'],
-    ['6', '7', '8', '9', '10', '11', '12'],
-    ['13', '14', '15', '16', '17', '18', '19'],
-    ['20', '21', '22', '23', '24', '25', '26'],
-    ['27', '28', '29', '30', '31', '', ''],
-  ];
+
+  const taskStatusClass = (item) => {
+    if (isOverdue(item)) return 'is-overdue';
+    if (item.status === DONE_STATUS || item.status === 'Đã duyệt') return 'is-done';
+    if (item.status === 'Chờ duyệt') return 'is-pending';
+    return 'is-active';
+  };
+  const fileGlyph = (title = '') => {
+    const ext = String(title).split('.').pop().toLowerCase();
+    if (ext === 'pdf') return ['PDF', 'pdf'];
+    if (['doc', 'docx'].includes(ext)) return ['W', 'word'];
+    if (['xls', 'xlsx', 'csv'].includes(ext)) return ['X', 'excel'];
+    if (['ppt', 'pptx'].includes(ext)) return ['P', 'slide'];
+    return ['DOC', 'file'];
+  };
+  const handleEvidenceFiles = (files) => {
+    const next = Array.from(files || []).filter(Boolean);
+    if (!next.length) return;
+    onQuickDocumentUpload?.(next);
+  };
 
   return (
-    <section className="department-v40-dashboard" aria-label={language === 'vi' ? 'Dashboard công tác chuyên môn' : 'Department work dashboard'}>
-      <article className="department-v40-card department-v40-calendar-panel">
-        <div className="department-v40-card-head">
+    <section className="department-v40-dashboard department-v1220-dashboard" aria-label={language === 'vi' ? 'Dashboard tương tác tổ chuyên môn' : 'Interactive department dashboard'}>
+      <article className="department-v40-card department-v40-calendar-panel department-v1220-card">
+        <div className="department-v40-card-head department-v1220-card-head">
           <div className="title-wrap">
             <span className="card-icon teal">🗓️</span>
-            <div>
-              <h3>{language === 'vi' ? 'Kế hoạch & lịch công tác' : 'Plans & schedule'}</h3>
-            </div>
+            <div><h3>{language === 'vi' ? 'Kế hoạch & lịch công tác' : 'Plans & schedule'}</h3><p>{language === 'vi' ? 'Lên kế hoạch · Theo dõi lịch · Nhắc việc' : 'Plan · Track · Remind'}</p></div>
+          </div>
+          <button type="button" className="department-v1220-head-action" onClick={onExportCalendar} title={language === 'vi' ? 'Xuất lịch ICS' : 'Export ICS'}>↗</button>
+        </div>
+
+        <div className="department-v1220-calendar">
+          <div className="calendar-head">
+            <button type="button" aria-label={language === 'vi' ? 'Tháng trước' : 'Previous month'} onClick={() => setCalendarCursor((old) => new Date(old.getFullYear(), old.getMonth() - 1, 1))}>‹</button>
+            <strong>{monthLabel}</strong>
+            <button type="button" aria-label={language === 'vi' ? 'Tháng sau' : 'Next month'} onClick={() => setCalendarCursor((old) => new Date(old.getFullYear(), old.getMonth() + 1, 1))}>›</button>
+          </div>
+          <div className="calendar-weekdays"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div>
+          <div className="calendar-grid">
+            {calendarDays.map((cell, index) => cell ? (
+              <button
+                type="button"
+                key={cell.key}
+                className={`${cell.key === selectedDate ? 'is-active' : ''} ${cell.key === dateKey(now) ? 'is-today' : ''} ${eventDates.has(cell.key) ? 'has-event' : ''}`}
+                onClick={() => setSelectedDate(cell.key)}
+                aria-label={`${cell.day}/${calendarCursor.getMonth() + 1}/${calendarCursor.getFullYear()}`}
+              >{cell.day}</button>
+            ) : <span key={`empty-${index}`} />)}
           </div>
         </div>
-        <div className="department-v40-card-body two-col">
-          <div className="department-v40-mini-calendar">
-            <div className="calendar-head"><button type="button">‹</button><strong>{language === 'vi' ? 'Tháng 7, 2026' : 'July 2026'}</strong><button type="button">›</button></div>
-            <div className="calendar-weekdays"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div>
-            <div className="calendar-grid">
-              {calendarCells.flat().map((day, index) => (
-                <span key={`${day}-${index}`} className={day === '10' ? 'is-active' : day === '14' || day === '17' || day === '24' ? 'is-marked' : ''}>{day}</span>
-              ))}
-            </div>
-          </div>
-          <div className="department-v40-list-block">
-            <strong>{language === 'vi' ? 'Lịch sắp tới' : 'Upcoming schedule'}</strong>
-            <ul>
-              {scheduleItems.length ? scheduleItems.map((item) => (
-                <li key={`${item.collection}-${item.id}`}>
-                  <span className="bullet" />
-                  <div>
-                    <b>{formatDate(getItemDate(item))}</b>
-                    <em>{item.title}</em>
-                  </div>
-                </li>
-              )) : <li className="empty">{language === 'vi' ? 'Chưa có lịch sắp tới.' : 'No upcoming schedule.'}</li>}
-            </ul>
+
+        <div className="department-v1220-segments" aria-label={language === 'vi' ? 'Lọc lịch' : 'Calendar filters'}>
+          {[
+            ['all', language === 'vi' ? 'Tất cả' : 'All'],
+            ['plans', language === 'vi' ? 'Kế hoạch' : 'Plans'],
+            ['schedule', language === 'vi' ? 'Công tác' : 'Schedule'],
+            ['meetings', language === 'vi' ? 'Họp' : 'Meetings'],
+            ['reminders', language === 'vi' ? 'Nhắc việc' : 'Reminders'],
+          ].map(([key, label]) => <button key={key} type="button" className={calendarFilter === key ? 'active' : ''} onClick={() => setCalendarFilter(key)}>{label}</button>)}
+        </div>
+
+        <div className="department-v1220-panel department-v1220-agenda">
+          <div className="department-v1220-panel-title"><strong>{selectedAgenda.length ? (language === 'vi' ? `Lịch ngày ${formatDate(selectedDate)}` : `Schedule for ${formatDate(selectedDate)}`) : (language === 'vi' ? 'Lịch sắp tới' : 'Upcoming schedule')}</strong><button type="button" onClick={() => setActiveTab('workSchedule')}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button></div>
+          <div className="department-v1220-agenda-list">
+            {agendaItems.length ? agendaItems.map((item) => (
+              <button type="button" className="department-v1220-agenda-row" key={`${item.collection}-${item.id}`} onClick={() => openCollection(item.collection)}>
+                <span className="department-v1220-agenda-dot" />
+                <span className="department-v1220-agenda-copy"><b>{item.title}</b><small>{item.sourceLabel || item.type || (language === 'vi' ? 'Lịch tổ' : 'Department schedule')}</small></span>
+                <span className="department-v1220-date-chip"><b>{formatDate(item.agendaDate || getItemDate(item))}</b><small>{item.startTime ? `${item.startTime}${item.endTime ? ` – ${item.endTime}` : ''}` : '•••'}</small></span>
+              </button>
+            )) : <p className="department-v1220-empty">{language === 'vi' ? 'Chưa có lịch phù hợp với bộ lọc.' : 'No schedule items match this filter.'}</p>}
           </div>
         </div>
-        <div className="department-v40-card-actions">
-          <button className="secondary" type="button" onClick={() => setActiveTab('workSchedule')}>{language === 'vi' ? 'Thêm lịch' : 'Add schedule'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('plans')}>{language === 'vi' ? 'Tạo kế hoạch' : 'Create plan'}</button>
-          <button className="secondary" type="button" onClick={onExportCalendar}>{language === 'vi' ? 'Xuất lịch' : 'Export calendar'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('workSchedule')}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button>
+
+        <div className="department-v40-card-actions department-v1220-actions">
+          <button className="secondary" type="button" onClick={() => setActiveTab('workSchedule')}>＋ {language === 'vi' ? 'Thêm lịch' : 'Add schedule'}</button>
+          <button className="secondary primary-action" type="button" onClick={() => setActiveTab('plans')}>◇ {language === 'vi' ? 'Tạo kế hoạch' : 'Create plan'}</button>
         </div>
       </article>
 
-      <article className="department-v40-card department-v40-tasks-panel">
-        <div className="department-v40-card-head">
-          <div className="title-wrap">
-            <span className="card-icon blue">☑</span>
-            <div>
-              <h3>{language === 'vi' ? 'Công việc & phê duyệt' : 'Tasks & approval'}</h3>
-            </div>
+      <article className="department-v40-card department-v40-tasks-panel department-v1220-card">
+        <div className="department-v40-card-head department-v1220-card-head">
+          <div className="title-wrap"><span className="card-icon blue">☑</span><div><h3>{language === 'vi' ? 'Công việc & phê duyệt' : 'Tasks & approval'}</h3><p>{language === 'vi' ? 'Theo dõi công việc · Phê duyệt nhanh' : 'Track work · Approve quickly'}</p></div></div>
+          <button type="button" className="department-v1220-head-action" onClick={() => setActiveTab('tasks')}>↗</button>
+        </div>
+
+        <div className="department-v1220-kpi-grid">
+          {[
+            ['open', language === 'vi' ? 'Việc đang mở' : 'Open tasks', stats.openTasks, 'blue'],
+            ['overdue', language === 'vi' ? 'Quá hạn' : 'Overdue', stats.overdue, 'red'],
+            ['pending', language === 'vi' ? 'Chờ duyệt' : 'Pending', pendingTasks, 'amber'],
+            ['done', language === 'vi' ? 'Đã hoàn thành' : 'Completed', completedTasks, 'green'],
+          ].map(([key, label, value, tone]) => <button type="button" key={key} className={`department-v1220-kpi ${tone} ${taskFilter === key ? 'active' : ''}`} onClick={() => setTaskFilter(key)}><span>{label}</span><strong>{value}</strong></button>)}
+        </div>
+
+        <div className="department-v1220-panel department-v1220-task-panel">
+          <div className="department-v1220-panel-title"><strong>{language === 'vi' ? 'Danh sách công việc' : 'Task list'}</strong><button type="button" onClick={() => setTaskFilter(taskFilter === 'all' ? 'open' : 'all')}>{taskFilter === 'all' ? (language === 'vi' ? 'Ưu tiên' : 'Priority') : (language === 'vi' ? 'Xem tất cả' : 'View all')}</button></div>
+          <div className="department-v1220-task-list">
+            {visibleTasks.length ? visibleTasks.map((item) => {
+              const done = item.status === DONE_STATUS || item.status === 'Đã duyệt';
+              return (
+                <div className={`department-v1220-task-row ${taskStatusClass(item)}`} key={`${item.collection}-${item.id}`}>
+                  <label className="department-v1220-check" title={!canPublish ? (language === 'vi' ? 'Chỉ TTCM được cập nhật trạng thái' : 'Only leaders can update status') : ''}>
+                    <input type="checkbox" checked={done} disabled={!canPublish} onChange={(event) => onUpdateStatus?.(item.collection, item.id, event.target.checked ? DONE_STATUS : 'Chưa làm')} />
+                    <span />
+                  </label>
+                  <button type="button" className="department-v1220-task-copy" onClick={() => openCollection(item.collection)}><b>{item.title}</b><small><span className="status-chip">{isOverdue(item) ? (language === 'vi' ? 'Quá hạn' : 'Overdue') : (item.status || (language === 'vi' ? 'Chưa làm' : 'Not started'))}</span>{item.owner ? ` · ${item.owner}` : ''}</small></button>
+                  <span className="department-v1220-priority"><i />{item.priority || (isOverdue(item) ? (language === 'vi' ? 'Cao' : 'High') : (language === 'vi' ? 'TB' : 'Med'))}</span>
+                </div>
+              );
+            }) : <p className="department-v1220-empty">{language === 'vi' ? 'Không có công việc trong nhóm này.' : 'No tasks in this group.'}</p>}
           </div>
         </div>
-        <div className="department-v40-card-body two-col compact-gap">
-          <div className="department-v40-stat-list">
-            <div><span>{language === 'vi' ? 'Việc đang mở' : 'Open tasks'}</span><strong>{stats.openTasks}</strong></div>
-            <div><span>{language === 'vi' ? 'Quá hạn' : 'Overdue'}</span><strong className="danger">{stats.overdue}</strong></div>
-            <div><span>{language === 'vi' ? 'Chờ duyệt' : 'Pending review'}</span><strong className="amber">{stats.pendingSubmissions}</strong></div>
-            <div><span>{language === 'vi' ? 'Đã hoàn thành' : 'Completed'}</span><strong className="success">{Math.max(0, data.tasks.length - stats.openTasks)}</strong></div>
-          </div>
-          <div className="department-v40-list-block">
-            <strong>{language === 'vi' ? 'Việc cần làm' : 'To do now'}</strong>
-            <ul>
-              {priorityItems.length ? priorityItems.map((item) => (
-                <li key={item.id}>
-                  <span className="bullet blue" />
-                  <div>
-                    <em>{item.title}</em>
-                    <b>{isOverdue(item) ? (language === 'vi' ? 'Quá hạn' : 'Overdue') : formatDate(getItemDate(item))}</b>
-                  </div>
-                </li>
-              )) : <li className="empty">{language === 'vi' ? 'Chưa có việc ưu tiên.' : 'No priority tasks.'}</li>}
-            </ul>
-          </div>
-        </div>
-        <div className="department-v40-card-actions">
-          <button className="secondary" type="button" onClick={() => setActiveTab('tasks')}>{language === 'vi' ? 'Giao việc' : 'Assign task'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('submissions')}>{language === 'vi' ? 'Duyệt hồ sơ' : 'Review files'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('meetings')}>{language === 'vi' ? 'Tạo biên bản' : 'Create minutes'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('tasks')}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button>
+
+        <div className="department-v40-card-actions department-v1220-actions department-v1220-action-grid">
+          <button className="secondary" type="button" onClick={() => setActiveTab('tasks')}>♙ {language === 'vi' ? 'Giao việc' : 'Assign'}</button>
+          <button className="secondary" type="button" onClick={() => setActiveTab('submissions')}>◇ {language === 'vi' ? 'Duyệt hồ sơ' : 'Review'}</button>
+          <button className="secondary" type="button" onClick={() => { setTaskFilter('overdue'); onNotify?.(language === 'vi' ? `Đang hiển thị ${stats.overdue || 0} việc quá hạn cần nhắc.` : `Showing ${stats.overdue || 0} overdue tasks to remind.`); }}>♧ {language === 'vi' ? 'Nhắc hạn' : 'Remind'}</button>
+          <button className="secondary primary-action" type="button" onClick={() => setActiveTab('tasks')}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button>
         </div>
       </article>
 
-      <article className="department-v40-card department-v40-evidence-panel">
-        <div className="department-v40-card-head">
-          <div className="title-wrap">
-            <span className="card-icon green">🗂</span>
-            <div>
-              <h3>{language === 'vi' ? 'Hồ sơ & minh chứng' : 'Records & evidence'}</h3>
-            </div>
+      <article className="department-v40-card department-v40-evidence-panel department-v1220-card">
+        <div className="department-v40-card-head department-v1220-card-head">
+          <div className="title-wrap"><span className="card-icon green">🗂</span><div><h3>{language === 'vi' ? 'Hồ sơ & minh chứng' : 'Records & evidence'}</h3><p>{language === 'vi' ? 'Quản lý hồ sơ · Lưu trữ an toàn' : 'Manage records · Store safely'}</p></div></div>
+          <button type="button" className="department-v1220-head-action" onClick={() => setActiveTab('documents')}>↗</button>
+        </div>
+
+        <div className="department-v1220-kpi-grid">
+          <div className="department-v1220-kpi blue"><span>{language === 'vi' ? 'Tổng hồ sơ' : 'Total records'}</span><strong>{totalRecords}</strong></div>
+          <div className="department-v1220-kpi amber"><span>{language === 'vi' ? 'Chờ bổ sung' : 'Need updates'}</span><strong>{stats.pendingSubmissions || 0}</strong></div>
+          <div className="department-v1220-kpi green"><span>{language === 'vi' ? 'Đã duyệt' : 'Approved'}</span><strong>{stats.archivedSubmissions || 0}</strong></div>
+          <div className="department-v1220-kpi sky"><span>{language === 'vi' ? 'Lưu trữ' : 'Archived'}</span><strong>{data.documents.length}</strong></div>
+        </div>
+
+        <div className="department-v1220-storage">
+          <div><span>{language === 'vi' ? 'Dung lượng danh mục' : 'Catalog capacity'}</span><b>{totalRecords} / 200 {language === 'vi' ? 'hồ sơ' : 'records'}</b></div>
+          <i><span style={{ width: `${storagePercent}%` }} /></i><small>{storagePercent}%</small>
+        </div>
+
+        <div className="department-v1220-panel department-v1220-files-panel">
+          <div className="department-v1220-panel-title"><strong>{language === 'vi' ? 'Hồ sơ gần đây' : 'Recent records'}</strong><button type="button" onClick={() => setActiveTab('documents')}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button></div>
+          <div className="department-v1220-file-list">
+            {recentDocs.length ? recentDocs.map((item) => {
+              const [glyph, tone] = fileGlyph(item.fileName || item.title);
+              return <button type="button" className="department-v1220-file-row" key={item.id} onClick={() => setActiveTab('documents')}><span className={`file-glyph ${tone}`}>{glyph}</span><span><b>{item.title}</b><small>{item.note || item.category || (language === 'vi' ? 'Minh chứng chuyên môn' : 'Professional evidence')}</small></span><em>{language === 'vi' ? 'Mở' : 'Open'}</em></button>;
+            }) : <p className="department-v1220-empty">{language === 'vi' ? 'Chưa có hồ sơ gần đây.' : 'No recent records.'}</p>}
           </div>
         </div>
-        <div className="department-v40-card-body two-col compact-gap">
-          <div className="department-v40-stat-list">
-            <div><span>{language === 'vi' ? 'Tổng hồ sơ' : 'Total files'}</span><strong>{data.documents.length + stats.archivedSubmissions}</strong></div>
-            <div><span>{language === 'vi' ? 'Chờ bổ sung' : 'Need update'}</span><strong className="amber">{stats.pendingSubmissions}</strong></div>
-            <div><span>{language === 'vi' ? 'Đã duyệt' : 'Approved'}</span><strong className="success">{stats.archivedSubmissions}</strong></div>
-            <div><span>{language === 'vi' ? 'Lưu trữ' : 'Archived'}</span><strong>{stats.archivedSubmissions}</strong></div>
-          </div>
-          <div className="department-v40-list-block">
-            <strong>{language === 'vi' ? 'Hồ sơ gần đây' : 'Recent records'}</strong>
-            <ul>
-              {recentDocs.length ? recentDocs.map((item) => (
-                <li key={item.id}>
-                  <span className="bullet green" />
-                  <div>
-                    <em>{item.title}</em>
-                    <b>{item.category || (language === 'vi' ? 'Minh chứng' : 'Evidence')}</b>
-                  </div>
-                </li>
-              )) : <li className="empty">{language === 'vi' ? 'Chưa có hồ sơ gần đây.' : 'No recent records.'}</li>}
-            </ul>
-          </div>
+
+        <div
+          className={`department-v1220-dropzone ${dragActive ? 'is-dragging' : ''}`}
+          role="button"
+          tabIndex={0}
+          onClick={() => evidenceInputRef.current?.click()}
+          onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') evidenceInputRef.current?.click(); }}
+          onDragOver={(event) => { event.preventDefault(); setDragActive(true); }}
+          onDragLeave={() => setDragActive(false)}
+          onDrop={(event) => { event.preventDefault(); setDragActive(false); handleEvidenceFiles(event.dataTransfer.files); }}
+        >
+          <span>⇧</span><div><b>{language === 'vi' ? 'Kéo thả tệp để ghi nhận hồ sơ' : 'Drop files to register records'}</b><small>{canPublish ? (language === 'vi' ? 'PDF, Word, Excel, slide hoặc ảnh minh chứng' : 'PDF, Word, Excel, slides or evidence images') : (language === 'vi' ? 'Giáo viên sẽ được chuyển tới mục nộp hồ sơ' : 'Teachers will be redirected to submissions')}</small></div><button type="button">{language === 'vi' ? 'Chọn tệp' : 'Choose files'}</button>
+          <input ref={evidenceInputRef} type="file" multiple hidden onChange={(event) => { handleEvidenceFiles(event.target.files); event.target.value = ''; }} />
         </div>
-        <div className="department-v40-card-actions">
-          <button className="secondary" type="button" onClick={() => setActiveTab('documents')}>{language === 'vi' ? 'Tải lên hồ sơ' : 'Upload record'}</button>
-          <button className="secondary" type="button" onClick={onLoadCloud}>{language === 'vi' ? 'Kiểm tra cloud' : 'Check cloud'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('submissions')}>{language === 'vi' ? 'Xuất hồ sơ HTML' : 'Export HTML'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('documents')}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button>
+
+        <div className="department-v40-card-actions department-v1220-actions">
+          <button className="secondary" type="button" onClick={onExportPortfolio}>▤ {language === 'vi' ? 'Xuất hồ sơ HTML' : 'Export HTML'}</button>
+          <button className="secondary primary-action" type="button" onClick={onLoadCloud}>☁ {language === 'vi' ? 'Kiểm tra cloud' : 'Check cloud'}</button>
         </div>
       </article>
 
-      <article className="department-v40-card department-v40-reports-panel">
-        <div className="department-v40-card-head">
-          <div className="title-wrap">
-            <span className="card-icon purple">✦</span>
-            <div>
-              <h3>{language === 'vi' ? 'Báo cáo & AI Copilot' : 'Reports & AI Copilot'}</h3>
-            </div>
+      <article className="department-v40-card department-v40-reports-panel department-v1220-card">
+        <div className="department-v40-card-head department-v1220-card-head">
+          <div className="title-wrap"><span className="card-icon purple">✦</span><div><h3>{language === 'vi' ? 'Báo cáo & AI Copilot' : 'Reports & AI Copilot'}</h3><p>{language === 'vi' ? 'Báo cáo thông minh · Trợ lý AI' : 'Smart reports · AI assistant'}</p></div></div>
+          <button type="button" className="department-v1220-head-action" onClick={() => setActiveTab('aiCopilot')}>AI</button>
+        </div>
+
+        <div className="department-v1220-kpi-grid">
+          <button type="button" className="department-v1220-kpi violet" onClick={() => setActiveTab('reports')}><span>{language === 'vi' ? 'Báo cáo tháng' : 'Monthly reports'}</span><strong>{stats.reports || 0}</strong></button>
+          <button type="button" className="department-v1220-kpi red" onClick={() => setActiveTab('dashboard')}><span>{language === 'vi' ? 'Điểm rủi ro' : 'Risk score'}</span><strong>{health.riskScore}</strong></button>
+          <button type="button" className="department-v1220-kpi blue" onClick={() => setActiveTab('aiCopilot')}><span>{language === 'vi' ? 'Lần dùng AI (tháng)' : 'AI uses (month)'}</span><strong>{Math.max(4, Math.round((stats.reports || 0) + (stats.openTasks || 0) / 2))}</strong></button>
+          <button type="button" className="department-v1220-kpi green" onClick={cloudInfo.available ? onLoadCloud : onSaveCloud}><span>Cloud</span><strong>{cloudInfo.available ? 'OK' : 'LOCAL'}</strong></button>
+        </div>
+
+        <div className="department-v1220-panel department-v1220-ai-panel">
+          <div className="department-v1220-panel-title"><strong>{language === 'vi' ? 'Gợi ý từ AI Copilot' : 'AI Copilot suggestions'}</strong><span>AI</span></div>
+          <div className="department-v1220-ai-list">
+            {reportSuggestions.map((item) => <button type="button" key={item.text} className="department-v1220-ai-row" onClick={() => onOpenAISuggestion?.(item.text)}><span className={item.tone}>{item.icon}</span><b>{item.text}</b><em>{language === 'vi' ? 'Xem' : 'Open'}</em></button>)}
           </div>
         </div>
-        <div className="department-v40-card-body two-col compact-gap">
-          <div className="department-v40-stat-list">
-            <div><span>{language === 'vi' ? 'Báo cáo tháng' : 'Monthly reports'}</span><strong>{stats.reports || 0}</strong></div>
-            <div><span>{language === 'vi' ? 'Điểm rủi ro' : 'Risk score'}</span><strong className={health.riskScore >= 60 ? 'danger' : health.riskScore >= 28 ? 'amber' : 'success'}>{health.riskScore}</strong></div>
-            <div><span>{language === 'vi' ? 'Lần dùng AI (tháng)' : 'AI uses (month)'}</span><strong>{Math.max(4, Math.round((stats.reports || 0) + (stats.openTasks || 0) / 2))}</strong></div>
-            <div><span>{language === 'vi' ? 'Cloud' : 'Cloud'}</span><strong>{cloudInfo.available ? 'OK' : 'LOCAL'}</strong></div>
-          </div>
-          <div className="department-v40-list-block">
-            <strong>{language === 'vi' ? 'AI Copilot gợi ý' : 'AI Copilot suggestions'}</strong>
-            <ul>
-              {reportSuggestions.map((item) => (
-                <li key={item}>
-                  <span className="bullet purple" />
-                  <div><em>{item}</em></div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <div className="department-v40-card-actions">
-          <button className="secondary" type="button" onClick={() => setActiveTab('reports')}>{language === 'vi' ? 'Tạo báo cáo' : 'Create report'}</button>
-          <button className="secondary" type="button" onClick={onSaveCloud} disabled={!canPublish}>{language === 'vi' ? 'Xuất JSON' : 'Export JSON'}</button>
-          <button className="secondary" type="button" onClick={onLoadCloud}>{language === 'vi' ? 'Nhập JSON' : 'Import JSON'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('aiCopilot')}>{language === 'vi' ? 'Chat với AI' : 'Chat with AI'}</button>
+
+        <input ref={importInputRef} type="file" accept="application/json,.json" hidden onChange={onImportJson} />
+        <div className="department-v40-card-actions department-v1220-actions department-v1220-action-grid">
+          <button className="secondary primary-action purple-action" type="button" onClick={() => setActiveTab('reports')}>◇ {language === 'vi' ? 'Tạo báo cáo' : 'Create report'}</button>
+          <button className="secondary" type="button" onClick={onExportJson}>⇧ {language === 'vi' ? 'Xuất JSON' : 'Export JSON'}</button>
+          <button className="secondary" type="button" onClick={() => importInputRef.current?.click()}>⇩ {language === 'vi' ? 'Nhập JSON' : 'Import JSON'}</button>
+          <button className="secondary" type="button" onClick={() => setActiveTab('aiCopilot')}>◯ {language === 'vi' ? 'Chat với AI' : 'Chat with AI'}</button>
         </div>
       </article>
     </section>
