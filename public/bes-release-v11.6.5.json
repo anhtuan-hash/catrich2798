@@ -1,0 +1,13 @@
+{
+  "version": "11.6.5",
+  "name": "AI Governance Save & OpenRouter Free Rescue",
+  "type": "update-only",
+  "requires": ">=11.6.4",
+  "changes": [
+    "Persists AI Governance controls reliably on the current browser/account",
+    "Restores saved controls on the AI Governance route and emits compatibility events",
+    "Prevents governance metadata from unnecessarily inflating OpenRouter prompts during rescue",
+    "Retries OpenRouter credit prompt-limit failures with a compact prompt and openrouter/free",
+    "Keeps the rescue scoped to AI requests and leaves successful requests untouched"
+  ]
+}

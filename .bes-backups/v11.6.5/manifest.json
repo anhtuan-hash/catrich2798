@@ -1,0 +1,52 @@
+{
+  "version": "11.6.5",
+  "sourceVersion": "11.6.4",
+  "target": "/Users/catrichmauxanh/Documents/Brian-English-Studio-MAIN",
+  "createdAt": "2026-07-14T08:38:28.094Z",
+  "files": [
+    {
+      "path": "package.json",
+      "existed": true,
+      "sha256": "2a7ea203ff370bfaa14edc5da918793a18c93f8421b811afb871ff3e477af5c9"
+    },
+    {
+      "path": "package-lock.json",
+      "existed": true,
+      "sha256": "b56d58ba94a3ade7e60e14480d0153859ac163156f6f42e081a9faf9d43a84ed"
+    },
+    {
+      "path": "index.html",
+      "existed": true,
+      "sha256": "04286b5871aeeff4a1986a27168a237f2ed4e8ff4a757001adca171932e974c9"
+    },
+    {
+      "path": "version.json",
+      "existed": false
+    },
+    {
+      "path": "public/version.json",
+      "existed": true,
+      "sha256": "350c309d3b0fc2da41107c213c460e74f48c502442a25192d9f10b9e25dafb4c"
+    },
+    {
+      "path": "scripts/verify-v11.6.5.mjs",
+      "existed": false
+    },
+    {
+      "path": "scripts/test-v11.6.5-resilience.mjs",
+      "existed": false
+    },
+    {
+      "path": "public/bes-ai-governance-v1165/ai-governance-resilience.css",
+      "existed": false
+    },
+    {
+      "path": "public/bes-ai-governance-v1165/ai-governance-resilience.js",
+      "existed": false
+    },
+    {
+      "path": "public/bes-release-v11.6.5.json",
+      "existed": false
+    }
+  ]
+}
