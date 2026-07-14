@@ -10,6 +10,7 @@ import {
 } from '../utils/workspace.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
+import { openWorkspaceLayoutManager } from '../ui-core/runtime/workspaceLayout.js';
 
 const EXCLUDED = new Set(['login', 'register', 'setup', 'homeroom-portal']);
 
@@ -133,6 +134,7 @@ export default function WorkspaceTabs({ currentUser, route, selectedTool, active
           );
         })}
       </div>
+      <button type="button" className="bes-workspace-layout" onClick={() => openWorkspaceLayoutManager()} title={language === 'vi' ? 'Bố cục không gian' : 'Workspace layout'}>◫</button>
       <button type="button" className="bes-workspace-new" onClick={() => { window.location.hash = '#/apps'; }} title={language === 'vi' ? 'Mở ứng dụng khác' : 'Open another app'}>＋</button>
     </nav>
   );

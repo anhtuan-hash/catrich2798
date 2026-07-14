@@ -9,6 +9,7 @@ import './ui-core/styles/activity-core.css';
 import './ui-core/styles/overlay-core.css';
 import './ui-core/styles/command-center.css';
 import './ui-core/styles/design-adapters.css';
+import './ui-core/styles/workspace-layout.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import AppErrorBoundary from './components/AppErrorBoundary.jsx';
@@ -130,8 +131,11 @@ const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAcces
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 const UnifiedShellChrome = lazy(() => import('./ui-core/components/UnifiedShellChrome.jsx'));
+const UIWorkspaceLayoutManager = lazy(() => import('./ui-core/components/UIWorkspaceLayoutManager.jsx'));
 
 const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'content-ecosystem', 'lesson-pack', 'classroom-delivery', 'classroom-join', 'assessment-core', 'learning-intelligence', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const EMBEDDED_WORKSPACE = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === '1';
+
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join']);
 
 function getInitialRoute() {
@@ -578,7 +582,7 @@ function App() {
         '--active-app-ink': activeDesignProfile.ink,
       }}
     >
-      <Suspense fallback={null}>
+      {!EMBEDDED_WORKSPACE ? <Suspense fallback={null}>
         <UnifiedShellChrome
           route={currentRoute}
           selectedTool={selectedTool}
@@ -590,8 +594,8 @@ function App() {
           onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }}
           {...context}
         />
-      </Suspense>
-      {tileLaunch ? (
+      </Suspense> : null}
+      {tileLaunch && !EMBEDDED_WORKSPACE ? (
         <div
           key={tileLaunch.id}
           className="tile-launch-layer"
@@ -613,7 +617,7 @@ function App() {
         </div>
       ) : null}
 
-      {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="command-center" label={language === 'vi' ? 'trung tâm lệnh' : 'command center'}>
             <UICommandCenter
@@ -660,6 +664,16 @@ function App() {
           <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
         </Suspense>
       ) : null}
+      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
+        <Suspense fallback={null}>
+          <UIWorkspaceLayoutManager
+            currentUser={currentUser}
+            language={language}
+            currentTarget={selectedTool?.slug ? `#/tool/${selectedTool.slug}` : `#/${currentRoute}`}
+          />
+        </Suspense>
+      ) : null}
+
       <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute}>
         <Suspense fallback={<RouteFallback language={language} />}>
           {currentRoute === 'home' && (!currentUser || visibilityReady) && <Home {...context} />}
@@ -711,7 +725,7 @@ function App() {
         </Suspense>
       </main>
 
-      {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="global-autosave" label={language === 'vi' ? 'tự lưu' : 'autosave'}>
             <GlobalAutosave route={currentRoute} selectedTool={selectedTool} currentUser={currentUser} language={language} activityCenterOwned />
@@ -719,7 +733,7 @@ function App() {
         </Suspense>
       )}
 
-      {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="ai-messenger" label={language === 'vi' ? 'Brian AI' : 'Brian AI'}>
           <UniversalAIAssist
@@ -740,7 +754,7 @@ function App() {
         </Suspense>
       )}
 
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? <>
+      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? <>
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
             <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} appVisibility={appVisibility} />
@@ -750,9 +764,9 @@ function App() {
           <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher activityCenterOwned />
         </Suspense>
       </> : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? <Suspense fallback={null}><UnifiedUtilityRail currentUser={currentUser} language={language} currentRoute={currentRoute} /></Suspense> : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
-      {currentRoute !== 'homeroom-portal' ? <>
+      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? <Suspense fallback={null}><UnifiedUtilityRail currentUser={currentUser} language={language} currentRoute={currentRoute} /></Suspense> : null}
+      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
+      {!EMBEDDED_WORKSPACE && currentRoute !== 'homeroom-portal' ? <>
         <Suspense fallback={null}>
           <GlobalMusicPlayer language={language} currentUser={currentUser} externalLauncher />
         </Suspense>

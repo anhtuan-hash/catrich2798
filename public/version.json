@@ -1,14 +1,14 @@
 {
-  "version": "12.12.0",
+  "version": "12.13.0",
   "channel": "stable",
-  "releaseName": "Universal Search Index",
+  "releaseName": "Workspace Layout Manager & Split View",
   "runtimeCore": "3.6.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T14:17:44.056Z",
+  "generatedAt": "2026-07-14T14:57:06.392Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Universal Search Index",
+  "release": "Workspace Layout Manager & Split View",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -432,5 +432,17 @@
   ],
   "contentSearchShortcut": "Command/Ctrl+Shift+F",
   "permissionAwareContentSearch": true,
-  "deepLinkedSearchResults": true
+  "deepLinkedSearchResults": true,
+  "workspaceLayoutManager": true,
+  "workspaceSplitView": true,
+  "workspaceFocusMode": true,
+  "workspaceLayoutModes": [
+    "single",
+    "split"
+  ],
+  "splitViewRatioRange": [
+    30,
+    70
+  ],
+  "embeddedWorkspaceRoutes": true
 }

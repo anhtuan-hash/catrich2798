@@ -1,6 +1,6 @@
 {
-  "version": "12.12.0",
-  "release": "Universal Search Index",
+  "version": "12.13.0",
+  "release": "Workspace Layout Manager & Split View",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T14:17:44.056Z",
+  "generatedAt": "2026-07-14T14:57:06.392Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Universal Search Index",
+  "releaseName": "Workspace Layout Manager & Split View",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -437,5 +437,17 @@
   ],
   "contentSearchShortcut": "Command/Ctrl+Shift+F",
   "permissionAwareContentSearch": true,
-  "deepLinkedSearchResults": true
+  "deepLinkedSearchResults": true,
+  "workspaceLayoutManager": true,
+  "workspaceSplitView": true,
+  "workspaceFocusMode": true,
+  "workspaceLayoutModes": [
+    "single",
+    "split"
+  ],
+  "splitViewRatioRange": [
+    30,
+    70
+  ],
+  "embeddedWorkspaceRoutes": true
 }
