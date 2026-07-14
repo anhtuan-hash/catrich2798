@@ -67,3 +67,99 @@ html[data-theme='dark'], body.dark-mode {
 .bui-language-option small { color: var(--ui-color-muted); margin-top: .35rem; }
 @media (max-width: 720px) { .bui-language-picker { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* V12.1 — Native shell and settings contracts */
+.bui-shell-chrome {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 120;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  width: 100%;
+  background: color-mix(in srgb, var(--ui-color-surface) 94%, transparent);
+  border-bottom: var(--ui-border-width) solid var(--ui-color-outline);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ui-color-on-surface) 8%, transparent);
+  backdrop-filter: blur(16px) saturate(1.12);
+}
+.bui-shell-status,
+.bui-shell-navigation,
+.bui-shell-workspaces { min-width: 0; }
+.bui-shell-status > *,
+.bui-shell-navigation > *,
+.bui-shell-workspaces > * { margin: 0 !important; }
+.bui-shell-navigation { border-top: 1px solid color-mix(in srgb, var(--ui-color-outline) 70%, transparent); }
+.bui-shell-workspaces {
+  background: color-mix(in srgb, var(--ui-color-surface-container) 84%, var(--ui-color-surface));
+  border-top: 1px solid var(--ui-color-outline);
+}
+.bui-shell-chrome .global-flat-navigation,
+.bui-shell-chrome .bes-flat-navigation,
+.bui-shell-chrome nav { max-width: 100%; }
+.bui-shell-chrome .bes-workspace-tabs {
+  width: min(100%, 1440px);
+  margin-inline: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.bui-shell-chrome .bes-workspace-tabs-track { min-width: 0; overflow-x: auto; scrollbar-width: thin; }
+.bui-shell-chrome button,
+.bui-shell-chrome a { font-family: var(--ui-font-body); }
+
+.bui-settings-page {
+  width: min(100%, 1480px);
+  margin-inline: auto;
+  padding-block: clamp(18px, 2.5vw, 36px) clamp(40px, 5vw, 72px);
+}
+.bui-settings-hero,
+.bui-settings-card {
+  border: var(--ui-border-width) solid var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-card) !important;
+  background: var(--ui-color-surface-raised) !important;
+  color: var(--ui-color-on-surface) !important;
+  box-shadow: var(--ui-elevation-card) !important;
+}
+.bui-settings-hero { overflow: clip; }
+.bui-settings-grid {
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 26px) !important;
+  align-items: start;
+}
+.bui-settings-grid > article {
+  grid-column: span 6;
+  min-width: 0;
+  margin: 0 !important;
+}
+.bui-settings-grid > article:has(.settings-v47-provider-layout),
+.bui-settings-grid > article:has(.settings-v65-account-layout) { grid-column: 1 / -1; }
+.bui-settings-page input,
+.bui-settings-page select,
+.bui-settings-page textarea {
+  min-width: 0;
+  max-width: 100%;
+  font: inherit;
+  color: var(--ui-color-on-surface);
+  background: var(--ui-color-surface-raised);
+  border-color: var(--ui-color-outline);
+  border-radius: var(--ui-radius-control);
+}
+.bui-settings-page textarea { writing-mode: horizontal-tb !important; inline-size: 100%; }
+.bui-settings-page :is(input, select, textarea, button, a):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--ui-color-primary) 35%, transparent);
+  outline-offset: 2px;
+}
+html[data-design-language='material-3'] .bui-shell-chrome { box-shadow: 0 2px 8px rgba(31, 28, 35, .10); }
+html[data-design-language='apple'] .bui-shell-chrome { background: color-mix(in srgb, var(--ui-color-surface) 78%, transparent); }
+
+@media (max-width: 980px) {
+  .bui-settings-grid > article { grid-column: 1 / -1; }
+  .bui-shell-chrome { position: relative; }
+}
+@media (max-width: 680px) {
+  .bui-settings-page { padding-inline: 12px; }
+  .bui-shell-status { overflow-x: auto; }
+  .bui-shell-navigation { overflow-x: auto; }
+  .bui-shell-chrome .bes-workspace-tabs { padding-inline: 8px; }
+}

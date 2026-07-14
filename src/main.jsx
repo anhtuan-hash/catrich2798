@@ -99,7 +99,6 @@ const HomeroomWorkspace = lazy(() => import('./pages/HomeroomWorkspace.jsx'));
 const HomeroomPortal = lazy(() => import('./pages/HomeroomPortal.jsx'));
 const FullMotionEffects = lazy(() => import('./components/FullMotionEffects.jsx')); // clean Metro motion layer
 const GlobalMusicPlayer = lazy(() => import('./components/GlobalMusicPlayer.jsx'));
-const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
 const UniversalAIAssist = lazy(() => import('./components/UniversalAIAssist.jsx'));
 const GlobalAIIndicator = lazy(() => import('./components/GlobalAIIndicator.jsx'));
 const GlobalCommandPalette = lazy(() => import('./components/GlobalCommandPalette.jsx'));
@@ -107,7 +106,6 @@ const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
 const GlobalRuntimeGuard = lazy(() => import('./components/GlobalRuntimeGuard.jsx'));
 const TrashCenter = lazy(() => import('./pages/TrashCenter.jsx'));
 const SystemHealthCenter = lazy(() => import('./pages/SystemHealthCenter.jsx'));
-const WorkspaceTabs = lazy(() => import('./components/WorkspaceTabs.jsx'));
 const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.jsx'));
 const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.jsx'));
 const LessonIntegrationBridgeAdapter = lazy(() => import('./components/LessonIntegrationBridgeAdapter.jsx'));
@@ -133,6 +131,7 @@ const UnifiedUtilityRail = lazy(() => import('./components/UnifiedUtilityRail.js
 const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAccessibilityAnnouncer.jsx'));
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
+const UnifiedShellChrome = lazy(() => import('./ui-core/components/UnifiedShellChrome.jsx'));
 
 const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'ai-workspace', 'content-factory', 'content-ecosystem', 'lesson-pack', 'classroom-delivery', 'classroom-join', 'assessment-core', 'learning-intelligence', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join']);
@@ -511,21 +510,19 @@ function App() {
         '--active-app-ink': activeDesignProfile.ink,
       }}
     >
-      {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <div className="bes-top-chrome">
-        <Suspense fallback={null}>
-          <StatusMenuBar route={currentRoute} {...context} />
-        </Suspense>
-        <AppErrorBoundary compact scope="global-navigation" label={language === 'vi' ? 'thanh điều hướng' : 'navigation'}>
-          <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
-        </AppErrorBoundary>
-      </div> : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
-        <Suspense fallback={null}>
-          <AppErrorBoundary compact scope="workspace-tabs" label={language === 'vi' ? 'tab không gian làm việc' : 'workspace tabs'}>
-            <WorkspaceTabs currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} activeProfile={activeDesignProfile} language={language} appVisibility={appVisibility} />
-          </AppErrorBoundary>
-        </Suspense>
-      ) : null}
+      <Suspense fallback={null}>
+        <UnifiedShellChrome
+          route={currentRoute}
+          selectedTool={selectedTool}
+          currentUser={currentUser}
+          canAccessRoute={canAccessRoute}
+          activeProfile={activeDesignProfile}
+          language={language}
+          appVisibility={appVisibility}
+          onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }}
+          {...context}
+        />
+      </Suspense>
       {tileLaunch ? (
         <div
           key={tileLaunch.id}

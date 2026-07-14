@@ -449,6 +449,7 @@ add('V10.84 unified design tokens and centered rail are present', cssSource.incl
 
 // V10.85.0 — Connected Workflow
 const workspaceTabsSource = fs.readFileSync(new URL('../src/components/WorkspaceTabs.jsx', import.meta.url), 'utf8');
+const unifiedShellSource = fs.readFileSync(new URL('../src/ui-core/components/UnifiedShellChrome.jsx', import.meta.url), 'utf8');
 const workspaceSource = fs.readFileSync(new URL('../src/utils/workspace.js', import.meta.url), 'utf8');
 const transferHubSource = fs.readFileSync(new URL('../src/components/ContentTransferHub.jsx', import.meta.url), 'utf8');
 const transferInboxSource = fs.readFileSync(new URL('../src/components/TransferInboxBanner.jsx', import.meta.url), 'utf8');
@@ -457,7 +458,7 @@ const versionHistorySource = fs.readFileSync(new URL('../src/utils/versionHistor
 const syncQueueSource = fs.readFileSync(new URL('../src/utils/syncQueue.js', import.meta.url), 'utf8');
 const syncQueueIndicatorSource = fs.readFileSync(new URL('../src/components/SyncQueueIndicator.jsx', import.meta.url), 'utf8');
 const configMigrationSource = fs.readFileSync(new URL('../src/utils/configMigration.js', import.meta.url), 'utf8');
-add('V10.85 workspace tabs are mounted globally', mainSource.includes('WorkspaceTabs') && workspaceTabsSource.includes('draggable') && workspaceTabsSource.includes('toggleWorkspacePin') && workspaceSource.includes('BroadcastChannel'), 'open, pin, close, reorder and cross-tab refresh paths present');
+add('V10.85 workspace tabs are mounted globally', (mainSource.includes('WorkspaceTabs') || unifiedShellSource.includes('WorkspaceTabs')) && workspaceTabsSource.includes('draggable') && workspaceTabsSource.includes('toggleWorkspacePin') && workspaceSource.includes('BroadcastChannel'), 'open, pin, close, reorder and cross-tab refresh paths present');
 add('V10.85 content transfer hub connects core apps', mainSource.includes('ContentTransferHub') && transferHubSource.includes('Worksheet Factory') && transferHubSource.includes('Exam Studio') && transferHubSource.includes('word2graph') && transferSource.includes('captureCurrentPagePayload'), 'page context can be sent to worksheet, exam, WordGraph, TextLab, lesson and library targets');
 add('V10.85 incoming content can be applied in destination apps', mainSource.includes('TransferInboxBanner') && transferInboxSource.includes('TRANSFER_APPLY_EVENT') && worksheetFactorySource.includes('bes-content-transfer-apply') && worksheetFactorySource.includes('data-transfer-target="primary"'), 'global receiver plus Worksheet Factory adapter present');
 add('V10.85 AI results can enter connected workflow', universalAiSource.includes('sendResultToApp') && universalAiSource.includes("bes-content-transfer-open") && universalAiSource.includes('Gửi sang…'), 'Brian AI response actions open the transfer hub');

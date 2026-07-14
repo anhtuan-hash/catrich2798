@@ -138,7 +138,7 @@ function SettingsHeroIllustration() {
 
 function CardHeader({ icon, title, subtitle, tone = 'blue', action = null }) {
   return (
-    <header className="settings-v47-card-head">
+    <header className="settings-v47-card bui-settings-card-head">
       <div className="settings-v47-card-title">
         <span className={`settings-v47-card-icon tone-${tone}`}>{icon}</span>
         <div>
@@ -475,8 +475,8 @@ export default function Settings({
   const currentThemeMode = localStorage.getItem('bes-theme-mode') || theme;
 
   return (
-    <div className="page settings-page-v47">
-      <section className="settings-v47-hero">
+    <div className="page settings-page-v47 bui-settings-page" data-ui="settings-page" data-ui-layout="settings">
+      <section className="settings-v47-hero bui-settings-hero" data-ui="settings-hero">
         <div className="settings-v47-hero-copy">
           <span className="settings-v47-eyebrow">⚙ Settings</span>
           <h1>{language === 'vi' ? 'Cài đặt AI & hệ thống' : 'AI & system settings'}</h1>
@@ -494,7 +494,7 @@ export default function Settings({
         <SettingsHeroIllustration />
       </section>
 
-      <section className="settings-v47-dashboard">
+      <section className="settings-v47-dashboard bui-settings-grid" data-ui="settings-grid">
         <article className="settings-v47-card settings-v65-account-card">
           <CardHeader
             icon="👤"
