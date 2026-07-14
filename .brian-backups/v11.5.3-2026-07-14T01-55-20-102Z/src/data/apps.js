@@ -376,8 +376,8 @@ export const APPS = [
       titleVi: 'Pronunciation Coach',
       desc: 'Create sound, word stress, sentence stress, linking and connected-speech practice for upper-secondary learners.',
       descVi: 'Tạo bài luyện âm, trọng âm từ, trọng âm câu, nối âm và lời nói liên kết cho học sinh THPT.',
-      status: 'Speech Workbench V2 · AI',
-      statusVi: 'Speech Workbench V2 · AI',
+      status: 'Pronunciation · AI',
+      statusVi: 'Phát âm · AI',
       api: true,
       featured: true,
     }

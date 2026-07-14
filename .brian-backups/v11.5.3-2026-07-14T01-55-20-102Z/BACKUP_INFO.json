@@ -1,0 +1,24 @@
+{
+  "from": "11.5.2",
+  "to": "11.5.3",
+  "createdAt": "2026-07-14T01:55:20.129Z",
+  "files": [
+    ".bes-release/v11.5.3.json",
+    "V11_5_3_PRONUNCIATION_SPEECH_WORKBENCH.md",
+    "V11_5_3_TEST_REPORT.md",
+    "docs/V11_5_3_DEPLOYMENT.md",
+    "package-lock.json",
+    "package.json",
+    "public/release-manifest.json",
+    "public/version.json",
+    "scripts/check-v11.5.3.mjs",
+    "scripts/performance-budget-v11.5.3.mjs",
+    "scripts/release-guard-v11.5.3.mjs",
+    "scripts/sync-version-v11.5.3.mjs",
+    "src/config/version.js",
+    "src/data/apps.js",
+    "src/pages/PronunciationCoach.css",
+    "src/pages/PronunciationCoach.jsx",
+    "src/pages/ToolPage.jsx"
+  ]
+}
