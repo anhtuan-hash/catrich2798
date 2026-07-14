@@ -3,10 +3,12 @@ import AppCard from '../components/AppCard.jsx';
 import SectionHeader from '../components/SectionHeader.jsx';
 import ApiNotice from '../components/ApiNotice.jsx';
 import RouteHero from '../components/RouteHero.jsx';
+import { UILaunchGrid, UILaunchHero, UILaunchPage, UILaunchStage } from '../ui-core/components/UILaunch.jsx';
 
 export default function SpecialTools({ tools, language, hasApiKey, currentUser }) {
   return (
-    <div className="page narrow">
+    <UILaunchPage app="tools" className="page narrow">
+      <UILaunchHero as="div" className="bui-launch-route-hero">
       <RouteHero
         eyebrow="Special Tools"
         title={language === 'vi' ? 'Công cụ hỗ trợ giáo viên' : 'Teacher support tools'}
@@ -24,18 +26,19 @@ export default function SpecialTools({ tools, language, hasApiKey, currentUser }
         accent="orange"
         icon="🧰"
       />
+      </UILaunchHero>
       <ApiNotice language={language} hasApiKey={hasApiKey} />
       {tools.length ? (
-        <div className="card-grid two">
+        <UILaunchGrid as="div" className="card-grid two">
           {tools.map((item) => <AppCard key={item.slug} item={item} language={language} currentUser={currentUser} />)}
-        </div>
+        </UILaunchGrid>
       ) : (
-        <section className="metro-panel empty-state">
+        <UILaunchStage className="metro-panel empty-state">
           <h2>{language === 'vi' ? 'Các ứng dụng công cụ đã được chuyển sang thẻ Ứng dụng' : 'Tool apps have been moved to the Apps tab'}</h2>
           <p>{language === 'vi' ? 'Lesson Architect và Learner Sprint hiện nằm trong lưới Ứng dụng để giáo viên mở nhanh hơn.' : 'Lesson Architect and Learner Sprint now appear in the Apps grid for faster access.'}</p>
           <button className="primary" onClick={() => (window.location.hash = '#/apps')}>{language === 'vi' ? 'Mở thẻ Ứng dụng' : 'Open Apps'}</button>
-        </section>
+        </UILaunchStage>
       )}
-    </div>
+    </UILaunchPage>
   );
 }

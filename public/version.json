@@ -1,14 +1,14 @@
 {
-  "version": "12.4.0",
+  "version": "12.5.0",
   "channel": "stable",
-  "releaseName": "Unified Library UI Migration",
+  "releaseName": "Unified Launch Experience Migration",
   "runtimeCore": "3.0.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T11:07:48.255Z",
+  "generatedAt": "2026-07-14T11:19:21.326Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -312,5 +312,16 @@
     "resource-library",
     "knowledge-hub",
     "resources-hub"
-  ]
+  ],
+  "release": "Unified Launch Experience Migration",
+  "launchCore": true,
+  "migratedLaunchApps": [
+    "home",
+    "apps",
+    "games",
+    "launcher",
+    "tools"
+  ],
+  "duplicateAppsNavigationRetired": true,
+  "sharedLaunchPrimitives": true
 }

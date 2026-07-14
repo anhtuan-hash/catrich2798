@@ -576,3 +576,318 @@ html[data-design-language='apple'] .bui-library-header {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* V12.5 — Unified Launch Experience contracts */
+.app-shell[data-layout='launch'] #bes-main-content {
+  min-width: 0;
+  overflow-x: clip;
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--ui-color-primary) 10%, transparent), transparent 28%),
+    var(--ui-color-surface-container);
+}
+.bui-launch {
+  --bui-launch-max: 1540px;
+  box-sizing: border-box;
+  inline-size: min(100%, var(--bui-launch-max)) !important;
+  max-inline-size: 100% !important;
+  min-inline-size: 0;
+  margin-inline: auto !important;
+  padding: clamp(16px, 2.4vw, 36px) var(--ui-page-gutter) clamp(52px, 6vw, 92px) !important;
+  color: var(--ui-color-on-surface);
+  font-family: var(--ui-font-body);
+  overflow-x: clip !important;
+}
+.bui-launch > * { min-inline-size: 0; }
+.bui-launch-hero {
+  min-inline-size: 0;
+  border: var(--ui-border-width) solid var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-card) !important;
+  background: color-mix(in srgb, var(--ui-color-surface-raised) 94%, transparent) !important;
+  color: var(--ui-color-on-surface) !important;
+  box-shadow: var(--ui-elevation-card) !important;
+  overflow: clip;
+}
+.bui-launch-stage,
+.bui-launch-toolbar,
+.bui-launch-navigation,
+.bui-launch-pinned,
+.bui-launch-recent,
+.bui-launch-admin,
+.bui-launch-dock,
+.bui-launch-dock-config,
+.bui-launch-preview,
+.bui-launch-action-band {
+  min-inline-size: 0;
+  border-color: var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-card) !important;
+  background: var(--ui-color-surface-raised) !important;
+  color: var(--ui-color-on-surface) !important;
+  box-shadow: var(--ui-elevation-card) !important;
+}
+.bui-launch-toolbar {
+  display: grid !important;
+  grid-template-columns: minmax(240px, 1fr) auto auto;
+  align-items: center;
+  gap: clamp(10px, 1.2vw, 16px) !important;
+  padding: clamp(12px, 1.4vw, 18px) !important;
+}
+.bui-launch-navigation {
+  display: flex !important;
+  align-items: center;
+  gap: 8px !important;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  padding: 8px !important;
+}
+.bui-launch-navigation > * { flex: 0 0 auto; }
+.bui-launch-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+  gap: clamp(14px, 1.7vw, 24px) !important;
+  inline-size: 100%;
+  min-inline-size: 0;
+  align-items: stretch;
+}
+.bui-launch-tile {
+  min-inline-size: 0;
+  border: var(--ui-border-width) solid var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-card) !important;
+  background: var(--ui-color-surface-raised) !important;
+  color: var(--ui-color-on-surface) !important;
+  box-shadow: var(--ui-elevation-card) !important;
+  overflow: clip;
+  transition:
+    transform var(--ui-motion-fast) ease,
+    box-shadow var(--ui-motion-normal) ease,
+    border-color var(--ui-motion-normal) ease;
+}
+.bui-launch-tile:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--ui-color-primary) 58%, var(--ui-color-outline)) !important;
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--ui-color-on-surface) 12%, transparent) !important;
+}
+.bui-launch :is(input, select, textarea) {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  font: inherit;
+  color: var(--ui-color-on-surface);
+  background: var(--ui-color-surface);
+  border-color: var(--ui-color-outline);
+  border-radius: var(--ui-radius-control);
+  writing-mode: horizontal-tb !important;
+}
+.bui-launch textarea {
+  inline-size: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.bui-launch :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--ui-color-primary) 36%, transparent) !important;
+  outline-offset: 2px;
+}
+.bui-launch-pinned {
+  display: grid !important;
+  grid-template-columns: minmax(160px, .28fr) minmax(0, 1fr);
+  gap: clamp(12px, 1.5vw, 22px) !important;
+  align-items: center;
+  padding: clamp(14px, 1.5vw, 22px) !important;
+}
+.bui-launch-pinned .flat-chip-row {
+  min-inline-size: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.bui-launch-recent,
+.bui-launch-admin,
+.bui-launch-dock,
+.bui-launch-dock-config { padding: clamp(14px, 1.6vw, 22px) !important; }
+.bui-launch-preview { overflow: clip; }
+.bui-launch-action-band {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 12px !important;
+  padding: clamp(14px, 1.7vw, 24px) !important;
+}
+
+/* Home keeps its expressive constellation, but it now obeys the same launch tokens. */
+.bui-launch--home {
+  --bui-launch-max: none;
+  inline-size: 100% !important;
+  padding-block-start: clamp(18px, 2vw, 30px) !important;
+}
+.bui-launch--home .bui-launch-hero {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible;
+}
+.bui-launch--home .bui-launch-stage {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.bui-launch--home .flat-window,
+.bui-launch--home .flat-app-chip {
+  border-color: var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-card) !important;
+  box-shadow: var(--ui-elevation-card) !important;
+}
+.bui-launch--home .bui-launch-pinned {
+  position: relative !important;
+  inset: auto !important;
+  inline-size: 100% !important;
+  margin-block-start: clamp(14px, 2vw, 28px) !important;
+}
+
+/* Apps launcher: one shell owns navigation; the page-specific duplicate menu is retired. */
+.bui-launch--apps {
+  padding-block-start: clamp(18px, 2vw, 28px) !important;
+  gap: clamp(14px, 1.7vw, 24px) !important;
+}
+.bui-launch--apps .flat-apps-hero,
+.bui-launch--apps .launcher-discovery-bar,
+.bui-launch--apps .launcher-recent-strip,
+.bui-launch--apps .launcher-admin-panel,
+.bui-launch--apps .launcher-group-rail,
+.bui-launch--apps .launcher-custom-grid,
+.bui-launch--apps .launcher-pinned-apps,
+.bui-launch--apps .launcher-style-selector,
+.bui-launch--apps .launcher-live-dock {
+  inline-size: 100% !important;
+  max-inline-size: 100% !important;
+  margin-inline: 0 !important;
+}
+.bui-launch--apps .flat-apps-hero {
+  border-width: var(--ui-border-width) !important;
+  padding: clamp(18px, 2.2vw, 30px) !important;
+}
+.bui-launch--apps .flat-apps-stats > div {
+  border: var(--ui-border-width) solid var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-control) !important;
+  background: var(--ui-color-surface) !important;
+  box-shadow: none !important;
+}
+.bui-launch--apps .flat-app-window-card {
+  min-block-size: 210px;
+  margin: 0 !important;
+}
+.bui-launch--apps .flat-app-window-launch {
+  inline-size: 100%;
+  block-size: 100%;
+}
+.bui-launch--apps .flat-app-window-chrome {
+  border-color: var(--ui-color-outline) !important;
+  background: var(--ui-color-surface-container) !important;
+}
+.bui-launch--apps .flat-app-window-body { background: transparent !important; }
+.bui-launch--apps .flat-app-window-cta,
+.bui-launch--apps .flat-apps-group-chip.active,
+.bui-launch--apps .launcher-density-switch button.active {
+  background: var(--ui-color-primary) !important;
+  color: var(--ui-color-on-primary) !important;
+  border-color: transparent !important;
+}
+
+/* Games hub uses the launch grid and preview surfaces without changing game logic. */
+.bui-launch--games {
+  --bui-launch-max: 1500px;
+  padding-block-start: clamp(16px, 2vw, 28px) !important;
+}
+.bui-launch--games .games-v44-shell,
+.bui-launch--games .games-v44-main { inline-size: 100% !important; max-inline-size: 100% !important; }
+.bui-launch--games .games-v44-hero {
+  border-color: var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-card) !important;
+  background: color-mix(in srgb, var(--ui-color-surface-raised) 92%, var(--ui-color-primary) 8%) !important;
+  box-shadow: var(--ui-elevation-card) !important;
+}
+.bui-launch--games .games-v44-hero-metrics > span,
+.bui-launch--games .games-v46-board,
+.bui-launch--games .games-v46-live-card {
+  border-color: var(--ui-color-outline) !important;
+  background: var(--ui-color-surface-raised) !important;
+  color: var(--ui-color-on-surface) !important;
+}
+.bui-launch--games .bui-launch-game-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+}
+.bui-launch--games .games-v46-platform-card { min-block-size: 112px; }
+.bui-launch--games .games-v46-add-card {
+  min-block-size: 112px;
+  border: var(--ui-border-width) dashed color-mix(in srgb, var(--ui-color-primary) 58%, var(--ui-color-outline)) !important;
+  border-radius: var(--ui-radius-card) !important;
+  background: color-mix(in srgb, var(--ui-color-primary) 8%, var(--ui-color-surface-raised)) !important;
+  color: var(--ui-color-on-surface) !important;
+}
+.bui-launch--games .games-v46-live-card { border-radius: var(--ui-radius-card) !important; }
+.bui-launch--games .games-v46-embed-shell { border-radius: calc(var(--ui-radius-card) - 6px) !important; overflow: clip; }
+
+/* Small launch collections such as Special Tools. */
+.bui-launch--tools .bui-launch-route-hero,
+.bui-launch--games-access {
+  width: min(100%, 1180px) !important;
+  margin-inline: auto !important;
+}
+.bui-launch--tools .route-hero { margin: 0 !important; box-shadow: none !important; border: 0 !important; }
+.bui-launch--tools .app-card { min-width: 0; border-radius: var(--ui-radius-card) !important; }
+
+/* Adapter-specific launch expression. */
+html[data-design-language='material-3'] .bui-launch-hero,
+html[data-design-language='material-3'] .bui-launch-stage,
+html[data-design-language='material-3'] .bui-launch-toolbar,
+html[data-design-language='material-3'] .bui-launch-navigation,
+html[data-design-language='material-3'] .bui-launch-pinned,
+html[data-design-language='material-3'] .bui-launch-tile {
+  border-width: 0 !important;
+  background: color-mix(in srgb, var(--ui-color-primary) 7%, var(--ui-color-surface-raised)) !important;
+  box-shadow: 0 2px 8px rgba(31, 28, 35, .10) !important;
+}
+html[data-design-language='material-3'] .bui-launch-navigation {
+  background: color-mix(in srgb, var(--ui-color-primary) 10%, var(--ui-color-surface-container)) !important;
+}
+html[data-design-language='material-3'] .bui-launch-tile:hover {
+  box-shadow: 0 8px 22px rgba(31, 28, 35, .16) !important;
+}
+html[data-design-language='apple'] .bui-launch-hero,
+html[data-design-language='apple'] .bui-launch-stage,
+html[data-design-language='apple'] .bui-launch-toolbar,
+html[data-design-language='apple'] .bui-launch-navigation,
+html[data-design-language='apple'] .bui-launch-pinned,
+html[data-design-language='apple'] .bui-launch-tile,
+html[data-design-language='apple'] .bui-launch-preview {
+  background: color-mix(in srgb, var(--ui-color-surface) 82%, transparent) !important;
+  border-color: rgba(60,60,67,.15) !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 32px rgba(0,0,0,.07) !important;
+  backdrop-filter: blur(22px) saturate(1.18);
+}
+html[data-design-language='apple'] .bui-launch-navigation { padding: 6px !important; }
+html[data-design-language='apple'] .bui-launch-navigation button { min-height: 34px !important; }
+
+@media (max-width: 1080px) {
+  .bui-launch-toolbar { grid-template-columns: 1fr auto !important; }
+  .bui-launch-toolbar .launcher-density-switch { grid-column: 1 / -1; justify-self: end; }
+  .bui-launch--home .flat-hero-zone { grid-template-columns: 1fr !important; height: auto !important; }
+  .bui-launch--home .home-motion-scene { min-block-size: 640px; }
+  .bui-launch--apps .flat-apps-hero { grid-template-columns: 1fr !important; }
+  .bui-launch--apps .flat-apps-stats { width: 100% !important; }
+}
+@media (max-width: 720px) {
+  .bui-launch { padding-inline: 12px !important; }
+  .bui-launch-toolbar { grid-template-columns: 1fr !important; }
+  .bui-launch-toolbar .launcher-density-switch { grid-column: auto; justify-self: stretch; }
+  .bui-launch-grid { grid-template-columns: 1fr !important; }
+  .bui-launch-pinned { grid-template-columns: 1fr !important; }
+  .bui-launch--home .home-motion-scene { min-block-size: 520px; }
+  .bui-launch--home .flat-hero-copy h1 { font-size: clamp(3.2rem, 18vw, 5.5rem) !important; }
+  .bui-launch--apps .flat-apps-stats { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .bui-launch--games .games-v44-hero { padding: 18px !important; }
+  .bui-launch-action-band { align-items: stretch; flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bui-launch-tile,
+  .bui-launch-tile:hover { transform: none !important; }
+}

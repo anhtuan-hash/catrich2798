@@ -5,6 +5,7 @@ import { getAppDesignProfile } from '../data/designProfiles.js';
 import { launchRoute } from '../utils/motion.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
+import { UILaunchHero, UILaunchPage, UILaunchPinned, UILaunchStage } from '../ui-core/components/UILaunch.jsx';
 
 const palette = {
   ink: '#191515',
@@ -623,8 +624,8 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
   ].filter((item) => canShowId(item.visibilityId)), [windows, visibilitySnapshot, currentUser?.role]);
 
   return (
-    <div className={`flat-design-home home-v1137 motion-${effectiveMotionMode}`} aria-label="Brian English homepage">
-      <section className="flat-hero-zone">
+    <UILaunchPage app="home" className={`flat-design-home home-v1137 motion-${effectiveMotionMode}`} aria-label="Brian English homepage">
+      <UILaunchHero className="flat-hero-zone">
         <div className="flat-hero-copy">
           <p className="flat-kicker">{t.kicker}</p>
           <h1>
@@ -651,7 +652,8 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
           </button>
         </div>
 
-        <div
+        <UILaunchStage
+          as="div"
           ref={collageRef}
           className="flat-collage home-motion-scene"
           aria-label="Featured animated app windows"
@@ -674,10 +676,10 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
             {isVi ? 'Khám phá các ứng dụng – Thẻ sẽ chuyển động!' : 'Explore the apps – the cards move!'}
           </button>
           <span className="home-scene-dots" aria-hidden="true"><i /><i /><i /><i /><i /><i /></span>
-        </div>
-      </section>
+        </UILaunchStage>
+      </UILaunchHero>
 
-      <aside className="flat-pinned-apps" aria-label="Pinned apps">
+      <UILaunchPinned className="flat-pinned-apps" aria-label="Pinned apps">
         <div>
           <strong>{t.chips.pin}</strong>
           <small>{t.chips.flow}</small>
@@ -685,7 +687,7 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
         <div className="flat-chip-row">
           {chips.map((item) => <AppChip key={item.title} item={item} currentUser={currentUser} language={language} />)}
         </div>
-      </aside>
-    </div>
+      </UILaunchPinned>
+    </UILaunchPage>
   );
 }

@@ -18,6 +18,7 @@ import {
 import { getAppUsage, subscribeAppUsage } from '../utils/appUsage.js';
 import { HIDDEN_APPS_FOLDER, ROUTE_APP_SHORTCUTS, appVisibilityId } from '../data/appVisibilityRegistry.js';
 import { getHiddenAppIds } from '../utils/appVisibility.js';
+import { UILaunchGrid, UILaunchHero, UILaunchPage, UILaunchPinned, UILaunchToolbar } from '../ui-core/components/UILaunch.jsx';
 
 const APP_ORDER = [
   'hidden-apps-vault',   'resource-library-hub', 'lesson-plan-ai', 'worksheet-factory', 'textlab-activities', 'exam-studio', 'reading-studio',
@@ -97,7 +98,6 @@ function shortDesc(item, language) {
 
 function targetFor(item) { return item.route ? `#/${item.route}` : `#/tool/${item.slug}`; }
 function launch(target, label, color, sourceEl = null) { launchRoute({ target, label, color: color || '#191515', sourceEl }); }
-function navLaunch(route, label, color, sourceEl) { launch(route.startsWith('#/') ? route : `#/${route}`, label, color, sourceEl); }
 
 function defaultGroupOf(item) {
   if (['lesson-plan-ai', 'textcare', 'library-hub', 'resource-library-hub'].includes(item.slug)) return 'plan';
@@ -120,39 +120,6 @@ function lockedFor(item, currentUser) {
   return !hasToolAccess(currentUser, item.slug);
 }
 
-function TopMenu({ language, setLanguage, theme, setTheme, hasApiKey, currentUser }) {
-  const t = copy[language] || copy.vi;
-  const isAdmin = currentUser?.role === 'admin';
-  const nav = [
-    { key: 'home', label: t.nav.home, icon: 'home', color: '#ffc69d' },
-    { key: 'apps', label: t.nav.apps, icon: 'apps', color: '#2bb7b3' },
-    { key: 'games', label: t.nav.games, icon: 'game', color: '#5B2A86' },
-    ...(isAdmin ? [{ key: 'admin', label: t.nav.admin, icon: 'admin', color: '#D13438' }] : []),
-  ];
-  return (
-    <nav className="flat-pinned-menu flat-apps-menu" aria-label="Apps navigation">
-      <button type="button" className="flat-brand-button" onClick={(event) => navLaunch('home', 'BE', '#ffc69d', event.currentTarget)}>
-        <span className="flat-brand-mark">be</span><strong>{t.brand}</strong>
-      </button>
-      <div className="flat-nav-links">
-        {nav.map((item) => (
-          <button key={item.key} type="button" className="flat-nav-link" style={{ '--nav-hover': item.color }} onClick={(event) => navLaunch(item.key, item.label, item.color, event.currentTarget)}>
-            <FlatAppIcon type={item.icon} /><span>{item.label}</span>
-          </button>
-        ))}
-      </div>
-      <div className="flat-menu-actions">
-        <button type="button" className="flat-menu-pill" onClick={(event) => navLaunch('settings', 'AI', hasApiKey ? '#2bb7b3' : '#f7d23b', event.currentTarget)}>{hasApiKey ? t.aiOn : t.aiOff}</button>
-        <button type="button" className="flat-menu-pill" onClick={() => setLanguage?.(language === 'vi' ? 'en' : 'vi')}>{language === 'vi' ? 'VI' : 'EN'}</button>
-        <button type="button" className="flat-menu-pill" onClick={() => setTheme?.(theme === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? '☀' : '☾'}</button>
-        <button type="button" className="flat-account-button" onClick={(event) => navLaunch('settings', 'ME', '#191515', event.currentTarget)}>
-          <span>{(currentUser?.name || currentUser?.email || 'U').slice(0, 1).toUpperCase()}</span><strong>{currentUser?.role || 'user'}</strong>
-        </button>
-      </div>
-    </nav>
-  );
-}
-
 function AppWindowCard({ item, language, currentUser, editMode, config, groupOptions, onTogglePin, onToggleHidden, onToggleNav, onAssignGroup, onDragStart, onDrop }) {
   const t = copy[language] || copy.vi;
   const profile = getAppDesignProfile(item.slug);
@@ -167,7 +134,7 @@ function AppWindowCard({ item, language, currentUser, editMode, config, groupOpt
 
   return (
     <article
-      className={`flat-app-window-card flat-app-window-drawer ${item.isHiddenFolder ? 'hidden-app-folder-card' : ''} ${locked ? 'is-locked' : ''} ${editMode ? 'is-launcher-editing' : ''} ${hidden ? 'is-launcher-hidden' : ''}`}
+      className={`bui-launch-tile flat-app-window-card flat-app-window-drawer ${item.isHiddenFolder ? 'hidden-app-folder-card' : ''} ${locked ? 'is-locked' : ''} ${editMode ? 'is-launcher-editing' : ''} ${hidden ? 'is-launcher-hidden' : ''}`}
       style={{ '--app-accent': profile.accent, '--app-soft': profile.soft, '--app-ink': profile.ink }}
       draggable={editMode}
       onDragStart={(event) => onDragStart?.(event, itemId)}
@@ -243,7 +210,7 @@ function LauncherStyleSelector({ language, value = 'radial', items = [], onChang
     { id: 'water', title: t.waterLauncher, desc: t.waterLauncherDesc },
   ];
   return (
-    <section className="launcher-style-selector" aria-label={t.launcherStyleTitle}>
+    <section className="launcher-style-selector bui-launch-dock-config" aria-label={t.launcherStyleTitle}>
       <header className="launcher-style-selector-head">
         <div><span aria-hidden="true">⌘</span><strong>{t.launcherStyleTitle}</strong></div>
         <p>{t.launcherStyleHint}</p>
@@ -273,7 +240,7 @@ function LauncherDock({ language, style = 'radial', items = [] }) {
   const dockItems = items.slice(0, 6);
   if (!dockItems.length) return null;
   return (
-    <section className={`launcher-live-dock is-${style}`} aria-label={t.launcherDockTitle}>
+    <section className={`launcher-live-dock bui-launch-dock is-${style}`} aria-label={t.launcherDockTitle}>
       <header>
         <div><strong>{t.launcherDockTitle}</strong><small>{t.launcherDockHint}</small></div>
         <span>{style === 'water' ? t.waterLauncher : t.radialLauncher}</span>
@@ -296,7 +263,7 @@ function LauncherDock({ language, style = 'radial', items = [] }) {
   );
 }
 
-export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser, setLanguage, theme, setTheme, appVisibility: externalAppVisibility }) {
+export default function WebApps({ apps, language = 'vi', currentUser, appVisibility: externalAppVisibility }) {
   const t = copy[language] || copy.vi;
   const isAdmin = currentUser?.role === 'admin';
   const appVisibility = externalAppVisibility || { snapshot: {}, hiddenIds: [] };
@@ -490,10 +457,9 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
   }, [isAdmin, config, itemIds.join('|')]);
 
   return (
-    <div className={`flat-design-home flat-apps-directory launcher-v10831 launcher-v1136 launcher-command-center launcher-style-${workingConfig.launcherStyle || 'radial'} density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
-      <TopMenu language={language} setLanguage={setLanguage} theme={theme} setTheme={setTheme} hasApiKey={hasApiKey} currentUser={currentUser} />
+    <UILaunchPage app="apps" className={`flat-design-home flat-apps-directory launcher-v10831 launcher-v1136 launcher-command-center launcher-style-${workingConfig.launcherStyle || 'radial'} density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
 
-      <header className="flat-apps-hero">
+      <UILaunchHero as="header" className="flat-apps-hero">
         <div className="flat-apps-hero-copy">
           <p className="flat-kicker">{t.kicker}</p>
           <h1><span className="flat-bubble-word">{t.titleA}</span><span>{t.titleB}</span><span>{t.titleC}</span></h1>
@@ -511,7 +477,7 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
           <div><strong>{workingConfig.pinned.length}</strong><small>PIN</small></div>
           <div><strong>{workingConfig.nav.length}</strong><small>NAV</small></div>
         </aside>
-      </header>
+      </UILaunchHero>
 
       {editMode && isAdmin ? (
         <LauncherStyleSelector
@@ -524,7 +490,7 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
         <LauncherDock language={language} style={workingConfig.launcherStyle || 'radial'} items={pinnedItems} />
       )}
 
-      <section className="launcher-discovery-bar" aria-label={t.search}>
+      <UILaunchToolbar className="launcher-discovery-bar" aria-label={t.search}>
         <label className="launcher-search-box">
           <span aria-hidden="true">⌕</span>
           <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder={t.searchPlaceholder} aria-label={t.search} />
@@ -536,10 +502,10 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
           <button type="button" className={density === 'comfortable' ? 'active' : ''} onClick={() => setDensity('comfortable')} title={t.comfortable}>▦</button>
           <button type="button" className={density === 'compact' ? 'active' : ''} onClick={() => setDensity('compact')} title={t.compact}>▦▦</button>
         </div>
-      </section>
+      </UILaunchToolbar>
 
       {recentItems.length > 0 && !editMode && (
-        <section className="launcher-recent-strip" aria-label={t.recent}>
+        <section className="launcher-recent-strip bui-launch-recent" aria-label={t.recent}>
           <div><strong>{t.recent}</strong><small>{language === 'vi' ? 'Tiếp tục công việc đang làm' : 'Continue where you left off'}</small></div>
           <div className="launcher-recent-chips">
             {recentItems.map((item) => {
@@ -551,7 +517,7 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
       )}
 
       {editMode && (
-        <section className="launcher-admin-panel">
+        <section className="launcher-admin-panel bui-launch-admin">
           <div className="launcher-editor-intro"><strong>{t.customize}</strong><p>{t.dragHint}</p></div>
           <div className="launcher-create-group">
             <label><span>{t.addGroup}</span><input value={newGroupName} onChange={(event) => setNewGroupName(event.target.value.slice(0, 40))} placeholder={t.groupName} onKeyDown={(event) => { if (event.key === 'Enter') createGroup(); }} /></label>
@@ -570,20 +536,20 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
         </section>
       )}
 
-      <section className="flat-apps-group-rail launcher-group-rail" aria-label="Workflow groups">
+      <section className="flat-apps-group-rail launcher-group-rail bui-launch-navigation" aria-label="Workflow groups">
         <GroupRail group={{ id: 'all', label: 'All apps', labelVi: 'Tất cả', accent: '#191515' }} count={visibleItems.length} language={language} active={activeGroup === 'all'} onClick={() => setActiveGroup('all')} />
         {groupOptions.map((group) => <GroupRail key={group.id} group={group} count={groupCounts[group.id] || 0} language={language} active={activeGroup === group.id} onClick={() => setActiveGroup(group.id)} />)}
       </section>
 
-      <main className="flat-apps-collage-grid launcher-custom-grid" aria-label="Application windows">
+      <UILaunchGrid as="main" className="flat-apps-collage-grid launcher-custom-grid" aria-label="Application windows">
         {filteredItems.map((item) => (
           <AppWindowCard key={`${item.route || 'tool'}-${item.slug}`} item={item} language={language} currentUser={currentUser} editMode={editMode} config={workingConfig} groupOptions={groupOptions}
             onTogglePin={togglePin} onToggleHidden={toggleHidden} onToggleNav={toggleNav} onAssignGroup={assignGroup} onDragStart={onDragStart} onDrop={onDrop} />
         ))}
         {!filteredItems.length && <div className="launcher-empty-group">{searchQuery ? t.noSearch : t.empty}</div>}
-      </main>
+      </UILaunchGrid>
 
-      <aside className="flat-pinned-apps flat-apps-pins launcher-pinned-apps" aria-label="Pinned apps">
+      <UILaunchPinned className="flat-pinned-apps flat-apps-pins launcher-pinned-apps" aria-label="Pinned apps">
         <div><strong>{t.pinned}</strong><small>{t.flow}</small></div>
         <div className="flat-chip-row">
           {pinnedItems.map((item) => {
@@ -596,7 +562,7 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
           })}
           {!pinnedItems.length && <small className="launcher-no-pins">{language === 'vi' ? 'Chưa có ứng dụng được ghim.' : 'No pinned apps yet.'}</small>}
         </div>
-      </aside>
-    </div>
+      </UILaunchPinned>
+    </UILaunchPage>
   );
 }
