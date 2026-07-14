@@ -653,10 +653,10 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
   const previewCategory = preview ? categoryMap.get(normaliseResourceCategory(preview.category)) || decorateCategory(findResourceCategory(preview.category)) : null;
 
   return (
-    <div className="resource-library-page">
+    <div className="resource-library-page bui-library" data-ui="library" data-library-app="resource-library">
       {busy && <div className="resource-busy-overlay"><div className="resource-spinner"/><strong>{busy}</strong>{progress > 0 && <div className="resource-progress"><i style={{ width: `${progress}%` }}/><span>{progress}%</span></div>}</div>}
 
-      <section className="resource-library-hero">
+      <section className="resource-library-hero bui-library-header">
         <div>
           <span className="resource-eyebrow">BRIAN RESOURCE LIBRARY · V10.81.9</span>
           <h1>Kho học liệu Tổ Tiếng Anh</h1>
@@ -671,9 +671,9 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         <div className="resource-drive-art"><div className="drive-folder back"/><div className="drive-folder front"><b>ENGLISH<br/>RESOURCES</b><span>Google Drive</span></div><div className="resource-floating-file f1">PDF</div><div className="resource-floating-file f2">DOCX</div><div className="resource-floating-file f3">PPTX</div></div>
       </section>
 
-      <section className="resource-stat-grid"><div><b>{stats.total}</b><span>Tài liệu đã duyệt</span></div><div><b>{stats.pending}</b><span>Chờ admin duyệt</span></div><div><b>{stats.contributors}</b><span>Giáo viên đóng góp</span></div><div><b>{formatSize(stats.size)}</b><span>Dung lượng quản lý</span></div></section>
+      <section className="resource-stat-grid bui-library-metrics"><div><b>{stats.total}</b><span>Tài liệu đã duyệt</span></div><div><b>{stats.pending}</b><span>Chờ admin duyệt</span></div><div><b>{stats.contributors}</b><span>Giáo viên đóng góp</span></div><div><b>{formatSize(stats.size)}</b><span>Dung lượng quản lý</span></div></section>
 
-      <section className="resource-category-section">
+      <section className="resource-category-section bui-library-navigation">
         <div className="resource-category-heading">
           <div><span className="resource-eyebrow">DANH MỤC CÓ SẴN</span><h2>Chọn thẻ để mở tài liệu ngay trong app</h2></div>
           <p>Thẻ vẫn luôn hiển thị kể cả khi chưa có tài liệu. Số lượng và nội dung mới được cập nhật bằng Supabase Realtime.</p>
@@ -685,7 +685,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         {selectedCategory && <div className="resource-drive-message resource-folder-open-message">Đã mở thư mục: <strong>{categoryName(selectedCategory, language)}</strong> · <span>{visibleItems.length} file hiển thị</span> · <button type="button" onClick={() => openUpload(selectedCategory.slug)}>Tải file vào thư mục này</button></div>}
       </section>
 
-      <section className="resource-filter-bar">
+      <section className="resource-filter-bar bui-library-toolbar">
         <div className="resource-tabs">
           <button className={tab === 'explore' ? 'active' : ''} onClick={() => setTab('explore')}>Khám phá</button>
           <button className={tab === 'mine' ? 'active' : ''} onClick={() => setTab('mine')}>Tài liệu của tôi</button>
@@ -699,7 +699,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
 
       <section
         ref={folderViewRef}
-        className="resource-folder-view"
+        className="resource-folder-view bui-library-content"
         id="resource-library-results"
         tabIndex={-1}
         aria-live="polite"

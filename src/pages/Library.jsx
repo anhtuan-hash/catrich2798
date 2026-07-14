@@ -668,7 +668,7 @@ export default function Library({ language, apiKey, aiModel, hasApiKey }) {
     ['backup', language === 'vi' ? 'Sao lưu' : 'Backup', 0],
   ];
   return (
-    <div className="page narrow library-page library-page-v61 library-page-v46">
+    <div className="page narrow library-page library-page-v61 library-page-v46 bui-library" data-ui="library" data-library-app="teacher-library">
       <LibraryShowcaseHero
         language={language}
         historyCount={history.length}
@@ -683,7 +683,7 @@ export default function Library({ language, apiKey, aiModel, hasApiKey }) {
         bank={bank}
         onOpen={setTab}
       />
-      <div className="library-tabs library-v46-tabs">
+      <div className="library-tabs library-v46-tabs bui-library-navigation">
         {tabs.map(([id, label, count]) => <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{label}{count ? ` · ${count}` : ''}</button>)}
         <button
           type="button"

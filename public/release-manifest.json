@@ -1,5 +1,5 @@
 {
-  "version": "12.3.0",
+  "version": "12.4.0",
   "release": "AI Workspace Resilience",
   "runtime": "2.5.6",
   "schema": "11.4.2",
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T11:00:05.848Z",
+  "generatedAt": "2026-07-14T11:07:48.255Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Native Management UI Migration",
+  "releaseName": "Unified Library UI Migration",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -311,5 +311,12 @@
     "homeroom",
     "work-hub",
     "ai-governance"
+  ],
+  "libraryCore": true,
+  "migratedLibraryApps": [
+    "teacher-library",
+    "resource-library",
+    "knowledge-hub",
+    "resources-hub"
   ]
 }

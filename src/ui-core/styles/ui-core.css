@@ -395,3 +395,184 @@ html[data-design-language='apple'] .bui-management-header {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* V12.4 — Unified Library UI contracts */
+.bui-library {
+  --bui-library-max: 1520px;
+  width: min(100%, var(--bui-library-max));
+  margin-inline: auto;
+  padding-block: clamp(16px, 2vw, 30px) clamp(52px, 6vw, 88px);
+  color: var(--ui-color-on-surface);
+  font-family: var(--ui-font-body);
+}
+.bui-library > * { min-width: 0; }
+.bui-library-header,
+.bui-library :is(.library-v46-hero, .library-v61-hero, .route-hero, .resource-library-hero, .v1093-hero) {
+  min-width: 0;
+  border: var(--ui-border-width) solid var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-card) !important;
+  background: color-mix(in srgb, var(--ui-color-surface-raised) 96%, transparent) !important;
+  color: var(--ui-color-on-surface) !important;
+  box-shadow: var(--ui-elevation-card) !important;
+  overflow: clip;
+}
+.bui-library-metrics,
+.bui-library :is(.library-v46-dashboard, .library-v61-dashboard, .resource-stat-grid, .v1093-metrics) {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
+  gap: clamp(10px, 1.25vw, 18px) !important;
+  width: 100%;
+  min-width: 0;
+  margin-block: clamp(12px, 1.4vw, 22px) !important;
+}
+.bui-library-metrics > *,
+.bui-library :is(.resource-stat-grid, .v1093-metrics) > * {
+  min-width: 0;
+  border: var(--ui-border-width) solid var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-card) !important;
+  background: var(--ui-color-surface-raised) !important;
+  color: var(--ui-color-on-surface) !important;
+  box-shadow: none !important;
+}
+.bui-library-toolbar,
+.bui-library :is(.resource-filter-bar, .v1093-search-row) {
+  display: grid !important;
+  grid-template-columns: minmax(220px, 2fr) repeat(auto-fit, minmax(150px, 1fr));
+  align-items: end;
+  gap: clamp(10px, 1.2vw, 16px) !important;
+  width: 100%;
+  min-width: 0;
+  padding: clamp(12px, 1.4vw, 20px) !important;
+  border: var(--ui-border-width) solid var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-card) !important;
+  background: var(--ui-color-surface-container) !important;
+  color: var(--ui-color-on-surface) !important;
+}
+.bui-library-navigation,
+.bui-library :is(.library-tabs, .resource-category-section, .v1093-sidebar-card) {
+  min-width: 0;
+  border: var(--ui-border-width) solid var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-card) !important;
+  background: var(--ui-color-surface-raised) !important;
+  color: var(--ui-color-on-surface) !important;
+  box-shadow: var(--ui-elevation-card) !important;
+}
+.bui-library .library-tabs {
+  display: flex !important;
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  gap: 8px !important;
+  padding: 8px !important;
+}
+.bui-library .library-tabs > * { flex: 0 0 auto; }
+.bui-library-layout,
+.bui-library :is(.v1093-knowledge-layout, .resource-folder-view) {
+  width: 100%;
+  min-width: 0;
+  align-items: start;
+  gap: clamp(16px, 2vw, 28px) !important;
+}
+.bui-library-content,
+.bui-library :is(.library-section, .resource-folder-view, .v1093-resource-list, .resource-grid) {
+  width: 100%;
+  min-width: 0;
+}
+.bui-library :is(
+  .panel,
+  .library-spotlight-card,
+  .library-quick-row,
+  .resource-card,
+  .resource-item-card,
+  .resource-category-card,
+  .resource-library-card,
+  .v1093-resource-card,
+  .v1093-sidebar-card,
+  .v1093-drawer
+) {
+  min-width: 0;
+  border-color: var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-card) !important;
+  background: var(--ui-color-surface-raised) !important;
+  color: var(--ui-color-on-surface) !important;
+  box-shadow: var(--ui-elevation-card) !important;
+}
+.bui-library :is(input, select, textarea) {
+  min-width: 0;
+  max-width: 100%;
+  font: inherit;
+  color: var(--ui-color-on-surface);
+  background: var(--ui-color-surface);
+  border-color: var(--ui-color-outline);
+  border-radius: var(--ui-radius-control);
+  writing-mode: horizontal-tb !important;
+}
+.bui-library textarea {
+  inline-size: 100%;
+  min-inline-size: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.bui-library :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--ui-color-primary) 34%, transparent) !important;
+  outline-offset: 2px;
+}
+.bui-library :is(.resource-tabs, .resource-category-grid, .v1093-sidebar-card, .library-tabs) {
+  scrollbar-width: thin;
+}
+.bui-library :is(.resource-file-grid, .v1093-resource-list.grid, .resource-grid) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: clamp(14px, 1.7vw, 24px);
+}
+.bui-library :is(.resource-table-wrap, .library-table-wrap) {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.bui-library table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+html[data-design-language='material-3'] .bui-library-header {
+  box-shadow: 0 2px 8px rgba(31, 28, 35, .10) !important;
+}
+html[data-design-language='apple'] .bui-library-header {
+  background: color-mix(in srgb, var(--ui-color-surface) 80%, transparent) !important;
+}
+@media (max-width: 1080px) {
+  .bui-library :is(.v1093-knowledge-layout, .resource-folder-view) {
+    grid-template-columns: 1fr !important;
+  }
+  .bui-library .v1093-sidebar-card {
+    position: static !important;
+    width: 100% !important;
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+  }
+  .bui-library-toolbar,
+  .bui-library :is(.resource-filter-bar, .v1093-search-row) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 680px) {
+  .bui-library { padding-inline: 12px; }
+  .bui-library-header,
+  .bui-library :is(.library-v46-hero, .library-v61-hero, .route-hero, .resource-library-hero, .v1093-hero) {
+    padding: 16px !important;
+  }
+  .bui-library-metrics,
+  .bui-library :is(.library-v46-dashboard, .library-v61-dashboard, .resource-stat-grid, .v1093-metrics) {
+    grid-template-columns: 1fr !important;
+  }
+  .bui-library-toolbar,
+  .bui-library :is(.resource-filter-bar, .v1093-search-row) {
+    grid-template-columns: 1fr !important;
+  }
+  .bui-library :is(.resource-file-grid, .v1093-resource-list.grid, .resource-grid) {
+    grid-template-columns: 1fr !important;
+  }
+}
