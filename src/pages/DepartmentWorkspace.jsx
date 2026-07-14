@@ -2354,22 +2354,22 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
         />
 
         <div className="department-v40-summary-strip department-v1221-summary-strip">
-          <button type="button" className="department-v40-summary-item" onClick={() => setActiveTab('workSchedule')}>
+          <button type="button" className="department-v40-summary-item department-v1222-summary-card is-schedule" onClick={() => setActiveTab('workSchedule')}>
             <span className="icon blue">▣</span>
             <div><strong>{language === 'vi' ? 'Kế hoạch & lịch công tác' : 'Plans & schedule'}</strong><small><b>{stats.workSchedules || 0}</b> {language === 'vi' ? 'lịch hoạt động' : 'schedule items'} · <b>{upcomingItems.length}</b> {language === 'vi' ? 'sắp tới' : 'upcoming'}</small></div>
             <em>→</em>
           </button>
-          <button type="button" className="department-v40-summary-item" onClick={() => setActiveTab('tasks')}>
+          <button type="button" className="department-v40-summary-item department-v1222-summary-card is-tasks" onClick={() => setActiveTab('tasks')}>
             <span className="icon violet">✓</span>
             <div><strong>{language === 'vi' ? 'Công việc & phê duyệt' : 'Work & approval'}</strong><small><b>{stats.tasks || 0}</b> {language === 'vi' ? 'tổng công việc' : 'tasks'} · <b>{stats.pendingSubmissions || 0}</b> {language === 'vi' ? 'chờ duyệt' : 'pending'}</small></div>
             <em>→</em>
           </button>
-          <button type="button" className="department-v40-summary-item" onClick={() => setActiveTab('documents')}>
+          <button type="button" className="department-v40-summary-item department-v1222-summary-card is-records" onClick={() => setActiveTab('documents')}>
             <span className="icon mint">□</span>
             <div><strong>{language === 'vi' ? 'Hồ sơ & minh chứng' : 'Records & evidence'}</strong><small><b>{stats.documents || 0}</b> {language === 'vi' ? 'hồ sơ' : 'records'} · <b>{stats.pendingSubmissions || 0}</b> {language === 'vi' ? 'chờ bổ sung' : 'need updates'}</small></div>
             <em>→</em>
           </button>
-          <button type="button" className="department-v40-summary-item" onClick={() => setActiveTab('aiCopilot')}>
+          <button type="button" className="department-v40-summary-item department-v1222-summary-card is-ai" onClick={() => setActiveTab('aiCopilot')}>
             <span className="icon purple">✦</span>
             <div><strong>{language === 'vi' ? 'Báo cáo & AI Copilot' : 'Reports & AI Copilot'}</strong><small><b>{stats.reports || 0}</b> {language === 'vi' ? 'báo cáo' : 'reports'} · <b>{departmentHealth.riskScore}</b> {language === 'vi' ? 'điểm rủi ro' : 'risk score'}</small></div>
             <em>→</em>
@@ -2429,7 +2429,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
           {visibleTabs.map((module) => {
             const isAllowed = allowed(module.key);
             return (
-              <button key={module.key} className={activeTab === module.key ? 'active' : ''} disabled={!isAllowed} onClick={() => setActiveTab(module.key)}>
+              <button key={module.key} data-module={module.key} className={activeTab === module.key ? 'active' : ''} disabled={!isAllowed} onClick={() => setActiveTab(module.key)}>
                 <span>{module.icon}</span>{language === 'vi' ? module.shortVi : module.short}
               </button>
             );
@@ -2632,7 +2632,6 @@ function DepartmentOperationsDashboard({
   addSchedule,
   onNotify,
 }) {
-  const [workspaceTab, setWorkspaceTab] = useState('activity');
   const attachmentInputRef = useRef(null);
   const importInputRef = useRef(null);
 
@@ -2646,12 +2645,26 @@ function DepartmentOperationsDashboard({
     return rows.sort((a, b) => String(getItemDate(b) || '').localeCompare(String(getItemDate(a) || ''))).slice(0, 6);
   }, [data.tasks, data.workSchedules, data.documents, data.plans, language]);
 
-  const aiSuggestions = [
-    { icon: '✦', tone: 'violet', text: language === 'vi' ? 'Tổng hợp tiến độ công việc tuần' : 'Summarize weekly work progress' },
-    { icon: '▤', tone: 'blue', text: language === 'vi' ? 'Gợi ý nội dung báo cáo tháng' : 'Suggest monthly report content' },
-    { icon: '▥', tone: 'green', text: language === 'vi' ? 'Phân tích minh chứng theo chủ đề' : 'Analyze evidence by topic' },
-    { icon: '!', tone: 'amber', text: language === 'vi' ? `${stats.pendingSubmissions || 0} hồ sơ cần rà soát hoặc bổ sung` : `${stats.pendingSubmissions || 0} records need review` },
-  ];
+  const openPreparedAiSuggestion = (item) => onOpenAISuggestion?.(item.text);
+
+  const getActivityStatus = (item) => {
+    const raw = String(item?.status || '').toLowerCase();
+    if (item.collection === 'tasks') {
+      if (!isOpenStatus(item.status)) return { label: language === 'vi' ? 'Hoàn thành' : 'Completed', tone: 'success' };
+      if (raw.includes('quá hạn')) return { label: language === 'vi' ? 'Quá hạn' : 'Overdue', tone: 'danger' };
+      if (raw.includes('chờ')) return { label: language === 'vi' ? 'Chờ duyệt' : 'Pending', tone: 'warning' };
+      return { label: language === 'vi' ? 'Đang xử lý' : 'In progress', tone: 'info' };
+    }
+    if (item.collection === 'workSchedules') {
+      if (raw.includes('hoàn thành')) return { label: language === 'vi' ? 'Đã hoàn tất' : 'Completed', tone: 'success' };
+      if (raw.includes('chờ')) return { label: language === 'vi' ? 'Chờ xác nhận' : 'Awaiting confirmation', tone: 'warning' };
+      return { label: language === 'vi' ? 'Đã lên lịch' : 'Scheduled', tone: 'success' };
+    }
+    if (item.collection === 'documents') return { label: language === 'vi' ? 'Minh chứng' : 'Evidence', tone: 'purple' };
+    if (item.collection === 'plans') return { label: language === 'vi' ? 'Kế hoạch' : 'Plan', tone: 'warning' };
+    return { label: language === 'vi' ? 'Sắp diễn ra' : 'Upcoming', tone: 'info' };
+  };
+
 
   const recentSchedules = useMemo(() => toArray(data.workSchedules)
     .slice()
@@ -2699,47 +2712,40 @@ function DepartmentOperationsDashboard({
 
   return (
     <section className="department-v40-dashboard department-v1220-dashboard department-v1221-focus-workspace" aria-label={language === 'vi' ? 'Không gian làm việc tổ chuyên môn' : 'Department focus workspace'}>
-      <aside className="department-v1221-activity-pane">
-        <div className="department-v1221-pane-tabs" role="tablist">
-          <button type="button" className={workspaceTab === 'activity' ? 'active' : ''} onClick={() => setWorkspaceTab('activity')}><span>▣</span>{language === 'vi' ? 'Hoạt động gần đây' : 'Recent activity'}</button>
-          <button type="button" className={workspaceTab === 'ai' ? 'active' : ''} onClick={() => setWorkspaceTab('ai')}><span>✦</span>AI Copilot <em>BETA</em></button>
+      <aside className="department-v1221-activity-pane department-v1222-activity-card">
+        <div className="department-v1222-card-head is-cyan">
+          <div className="department-v1222-card-title"><span>▣</span><div><h2>{language === 'vi' ? 'Hoạt động / Sự kiện của phòng' : 'Department activity / events'}</h2><p>{language === 'vi' ? 'Lịch, nhiệm vụ và hồ sơ vừa cập nhật.' : 'Recently updated schedules, tasks and records.'}</p></div></div>
+          <button type="button" onClick={() => setActiveTab('tasks')}>{language === 'vi' ? 'Xem tất cả hoạt động' : 'View all activity'} →</button>
         </div>
 
         <div className="department-v1221-activity-scroll">
-          {workspaceTab === 'activity' ? (
-            <div className="department-v1221-activity-list">
-              {activities.length ? activities.map((item) => (
-                <button type="button" key={`${item.collection}-${item.id}`} className="department-v1221-activity-row" onClick={() => handleActivityAction(item)}>
+          <div className="department-v1221-activity-list">
+            {activities.length ? activities.map((item) => {
+              const status = getActivityStatus(item);
+              return (
+                <button type="button" key={`${item.collection}-${item.id}`} data-tone={item.tone} className="department-v1221-activity-row department-v1222-activity-row" onClick={() => handleActivityAction(item)}>
                   <span className={item.tone}>{item.icon}</span>
                   <div><b>{item.title}</b><small>{item.meta}</small></div>
+                  <small className={`department-v1222-status is-${status.tone}`}>{status.label}</small>
                   <em>{item.collection === 'tasks' && canPublish && isOpenStatus(item.status) ? '✓' : '→'}</em>
                 </button>
-              )) : (
-                <div className="department-v1221-empty-state"><span>◎</span><b>{language === 'vi' ? 'Chưa có hoạt động gần đây' : 'No recent activity'}</b><small>{language === 'vi' ? 'Tạo lịch hoặc công việc đầu tiên để bắt đầu.' : 'Create a schedule or task to get started.'}</small></div>
-              )}
-            </div>
-          ) : (
-            <div className="department-v1221-ai-suggestions">
-              {aiSuggestions.map((item) => (
-                <button type="button" key={item.text} onClick={() => onOpenAISuggestion?.(item.text)}>
-                  <span className={item.tone}>{item.icon}</span><div><b>{item.text}</b><small>{language === 'vi' ? 'Mở AI Copilot với yêu cầu đã điền sẵn' : 'Open AI Copilot with a prepared prompt'}</small></div><em>→</em>
-                </button>
-              ))}
-            </div>
-          )}
+              );
+            }) : (
+              <div className="department-v1221-empty-state"><span>◎</span><b>{language === 'vi' ? 'Chưa có hoạt động gần đây' : 'No recent activity'}</b><small>{language === 'vi' ? 'Tạo lịch hoặc công việc đầu tiên để bắt đầu.' : 'Create a schedule or task to get started.'}</small></div>
+            )}
+          </div>
         </div>
 
-        <div className="department-v1221-pane-footer">
-          <button type="button" onClick={() => setActiveTab(workspaceTab === 'activity' ? 'tasks' : 'aiCopilot')}>{workspaceTab === 'activity' ? (language === 'vi' ? 'Xem tất cả hoạt động' : 'View all activity') : (language === 'vi' ? 'Mở AI Copilot' : 'Open AI Copilot')} →</button>
+        <div className="department-v1221-pane-footer department-v1222-pane-footer">
+          <button type="button" onClick={() => setActiveTab('tasks')}>{language === 'vi' ? 'Xem tất cả hoạt động' : 'View all activity'} →</button>
         </div>
       </aside>
 
-      <section className="department-v1221-schedule-pane">
-        <div className="department-v1221-schedule-head">
-          <div><span>{language === 'vi' ? 'LỊCH CÔNG TÁC' : 'WORK SCHEDULE'}</span><h2>{language === 'vi' ? 'Lịch làm việc tổ chuyên môn' : 'Department work schedule'}</h2><p>{language === 'vi' ? 'Tạo mới lịch làm việc hoặc chỉnh sửa lịch đã có.' : 'Create a new schedule or open a saved item.'}</p></div>
+      <section className="department-v1221-schedule-pane department-v1222-schedule-card">
+        <div className="department-v1221-schedule-head department-v1222-card-head is-blue">
+          <div className="department-v1222-card-title"><span>▣</span><div><h2>{language === 'vi' ? 'Lịch làm việc hoặc nhiệm vụ mới' : 'New schedule or task'}</h2><p>{language === 'vi' ? 'Tạo mới lịch làm việc hoặc chỉnh sửa lịch đã có.' : 'Create a new schedule or edit an existing one.'}</p></div></div>
           <div className="department-v1221-head-actions">
-            <button type="button" onClick={onExportCalendar}>↗ {language === 'vi' ? 'Xuất ICS' : 'Export ICS'}</button>
-            <button type="button" onClick={applyTemplate}>▤ {language === 'vi' ? 'Mẫu lịch' : 'Template'}</button>
+            <button type="button" className="department-v1222-new-task" onClick={resetSchedule}>＋ {language === 'vi' ? 'Nhiệm vụ mới' : 'New task'}</button>
           </div>
         </div>
 
@@ -2779,6 +2785,8 @@ function DepartmentOperationsDashboard({
         <input ref={attachmentInputRef} type="file" multiple hidden onChange={(event) => { handleAttachment(event.target.files); event.target.value = ''; }} />
         <input ref={importInputRef} type="file" accept="application/json,.json" hidden onChange={onImportJson} />
         <div className="department-v1221-utility-row">
+          <button type="button" onClick={applyTemplate}>▤ {language === 'vi' ? 'Mẫu lịch' : 'Template'}</button>
+          <button type="button" onClick={onExportCalendar}>↗ {language === 'vi' ? 'Xuất ICS' : 'Export ICS'}</button>
           <button type="button" onClick={onExportPortfolio}>▤ {language === 'vi' ? 'Xuất hồ sơ HTML' : 'Export HTML'}</button>
           <button type="button" onClick={onExportJson}>⇧ JSON</button>
           <button type="button" onClick={() => importInputRef.current?.click()}>⇩ JSON</button>
@@ -2809,7 +2817,7 @@ function ModuleAssistPanel({ language, module, moduleAi, hasApiKey, aiSourceName
   const ready = String(aiSourceText || '').trim().length > 0;
   if (!module) return null;
   return (
-    <section className="department-module-assist metro-panel liquid-glass">
+    <section className="department-module-assist metro-panel liquid-glass department-v1222-module-assist" data-module={module.key}>
       <input
         ref={inputRef}
         type="file"

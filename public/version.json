@@ -1,14 +1,14 @@
 {
-  "version": "12.21.0",
+  "version": "12.22.0",
   "channel": "stable",
-  "releaseName": "Refined Department Workspace",
+  "releaseName": "Color-Coded Department Design System",
   "runtimeCore": "3.6.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T22:48:21.289Z",
+  "generatedAt": "2026-07-14T23:23:59.618Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Refined Department Workspace",
+  "release": "Color-Coded Department Design System",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -481,5 +481,11 @@
   "departmentTwoColumnFocusWorkspace": true,
   "departmentContainedScrollAreas": true,
   "departmentDirectScheduleComposer": true,
-  "departmentRecentActivityFeed": true
+  "departmentRecentActivityFeed": true,
+  "departmentColorCodedDesignSystem": true,
+  "departmentFullWidthGutters": true,
+  "departmentUnifiedCardLanguage": true,
+  "departmentStatusChips": true,
+  "departmentColoredModuleTabs": true,
+  "departmentPolishedScrollbars": true
 }
