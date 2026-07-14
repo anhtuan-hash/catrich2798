@@ -6,6 +6,7 @@ import { launchRoute } from '../utils/motion.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 import { UILaunchHero, UILaunchPage, UILaunchPinned, UILaunchStage } from '../ui-core/components/UILaunch.jsx';
+import './HomeV1215.css';
 
 const palette = {
   ink: '#191515',
@@ -618,13 +619,12 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
 
 
   const featuredWindows = useMemo(() => [
-    windows.lesson, windows.exam, windows.textcare, windows.speaking,
-    windows.reading, windows.word, windows.worksheet, windows.game,
-    windows.grammar, windows.writing, windows.pronunciation,
+    windows.pronunciation, windows.textcare, windows.speaking, windows.lesson,
+    windows.reading, windows.game, windows.word, windows.exam,
   ].filter((item) => canShowId(item.visibilityId)), [windows, visibilitySnapshot, currentUser?.role]);
 
   return (
-    <UILaunchPage app="home" className={`flat-design-home home-v1137 motion-${effectiveMotionMode}`} aria-label="Brian English homepage">
+    <UILaunchPage app="home" className={`flat-design-home home-v1137 home-v1215 motion-${effectiveMotionMode}`} aria-label="Brian English homepage">
       <UILaunchHero className="flat-hero-zone">
         <div className="flat-hero-copy">
           <p className="flat-kicker">{t.kicker}</p>
@@ -639,7 +639,7 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
               <MetroIcon type="user" />
               <span>{currentUser ? accountName : t.signIn}</span>
             </button>
-            <small>{t.chips.today}: {date} · {time}</small>
+            <small>{t.chips.today}: {date} · {time}</small><span className="home-weather-chip"><b>☀</b><span>27°C</span><small>Hà Nội</small></span>
           </div>
           <button
             type="button"
@@ -686,7 +686,7 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
         </div>
         <div className="flat-chip-row">
           {chips.map((item) => <AppChip key={item.title} item={item} currentUser={currentUser} language={language} />)}
-        </div>
+        <button type="button" className="flat-app-chip flat-app-chip-add" onClick={(event) => launch('#/apps', 'APP', palette.peach, currentUser, event.currentTarget)}><span className="home-add-icon">+</span><span>{isVi ? 'Thêm' : 'Add'}</span></button></div>
       </UILaunchPinned>
     </UILaunchPage>
   );

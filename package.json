@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "12.14.0",
+  "version": "12.15.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -131,7 +131,8 @@
     "test:v12.11.0": "node scripts/test-v12.11.0-command-center.mjs",
     "verify:v12.13.0": "node scripts/verify-v12.13.0.mjs && npm run test:v12.13.0 && npm run build && npm test && npm run test:department",
     "test:v12.13.0": "node scripts/test-v12.13.0-workspace-layout.mjs",
-    "verify:v12.14.0": "node scripts/verify-v12.14.0.mjs && npm run build && npm test && npm run test:department"
+    "verify:v12.14.0": "node scripts/verify-v12.14.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.15.0": "npm run build && npm test && npm run test:department"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
