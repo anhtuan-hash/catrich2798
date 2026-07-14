@@ -36,6 +36,7 @@ export function parseCommandQuery(value, fallbackMode = 'all') {
     '@': 'workspaces',
     '/': 'pages',
     '#': 'apps',
+    '~': 'content',
   };
   const mode = modeByPrefix[prefix] || fallbackMode || 'all';
   const query = modeByPrefix[prefix] ? trimmed.slice(1).trim() : trimmed.trim();
@@ -48,7 +49,7 @@ function normalizeHistoryItem(value) {
   if (!query) return null;
   return {
     query,
-    mode: ['all', 'apps', 'pages', 'workspaces', 'actions'].includes(value.mode) ? value.mode : 'all',
+    mode: ['all', 'apps', 'pages', 'workspaces', 'actions', 'content'].includes(value.mode) ? value.mode : 'all',
     count: Math.max(1, Number(value.count) || 1),
     lastUsedAt: Number(value.lastUsedAt) || Date.now(),
   };
@@ -70,7 +71,7 @@ export function normalizeCommandCenterState(raw) {
     schemaVersion: 1,
     history,
     pinnedIds,
-    lastMode: ['all', 'apps', 'pages', 'workspaces', 'actions'].includes(source.lastMode) ? source.lastMode : 'all',
+    lastMode: ['all', 'apps', 'pages', 'workspaces', 'actions', 'content'].includes(source.lastMode) ? source.lastMode : 'all',
     updatedAt: Number(source.updatedAt) || Date.now(),
   };
 }
@@ -105,7 +106,7 @@ export function recordCommandQuery(user, query, mode = 'all') {
   const existing = current.history.find((item) => item.query.toLowerCase() === value.toLowerCase() && item.mode === mode);
   const next = {
     query: value.slice(0, 100),
-    mode: ['all', 'apps', 'pages', 'workspaces', 'actions'].includes(mode) ? mode : 'all',
+    mode: ['all', 'apps', 'pages', 'workspaces', 'actions', 'content'].includes(mode) ? mode : 'all',
     count: (existing?.count || 0) + 1,
     lastUsedAt: Date.now(),
   };

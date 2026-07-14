@@ -238,6 +238,17 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     };
   }, [refreshLibrary]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
+    const targetId = params.get('resource') || '';
+    if (!targetId || !store.items.length) return;
+    const item = store.items.find((entry) => String(entry.cloudId || entry.id) === targetId || String(entry.id) === targetId);
+    if (!item || preview?.id === item.id) return;
+    setTab('explore');
+    setCategory(normaliseResourceCategory(item.category) || 'all');
+    setPreview(item);
+  }, [store.items, preview?.id]);
+
   const categoryCards = useMemo(() => {
     const overviewMap = new Map((overviewRows || []).map((row) => [normaliseResourceCategory(row.slug), row]));
     return RESOURCE_CATEGORY_FALLBACK.map((fallback) => {

@@ -13,6 +13,12 @@ import { getWorkspaceCatalog, getWorkspaceLandingTarget, resolveToolWorkspaceId,
 import { getWorkspaceResumeVisit, loadWorkspaceMemory, WORKSPACE_MEMORY_EVENT } from '../runtime/workspaceMemory.js';
 import { openActivityCenter } from '../runtime/activityCenter.js';
 import {
+  buildUniversalSearchEntries,
+  openUniversalSearchEntry,
+  subscribeUniversalSearchIndex,
+  UNIVERSAL_SEARCH_INDEX_EVENT,
+} from '../runtime/universalSearchIndex.js';
+import {
   COMMAND_CENTER_OPEN_EVENT,
   COMMAND_CENTER_UPDATED_EVENT,
   LEGACY_COMMAND_PALETTE_OPEN_EVENT,
@@ -66,12 +72,14 @@ const SCOPES = [
   ['pages', 'Trang', 'Pages', '/'],
   ['workspaces', 'Không gian', 'Workspaces', '@'],
   ['actions', 'Lệnh', 'Actions', '>'],
+  ['content', 'Nội dung', 'Content', '~'],
 ];
 
 function entryMode(entry) {
   if (entry?.kind === 'tool') return 'apps';
   if (entry?.kind === 'route') return 'pages';
   if (entry?.kind === 'workspace') return 'workspaces';
+  if (entry?.kind === 'content') return 'content';
   return 'actions';
 }
 
@@ -134,8 +142,8 @@ function buildNavigationEntries(language, currentUser, visibilitySnapshot) {
 }
 
 function typeLabel(kind, language) {
-  const vi = { route: 'Trang', tool: 'Ứng dụng', workspace: 'Không gian', action: 'Lệnh' };
-  const en = { route: 'Page', tool: 'App', workspace: 'Workspace', action: 'Action' };
+  const vi = { route: 'Trang', tool: 'Ứng dụng', workspace: 'Không gian', action: 'Lệnh', content: 'Nội dung' };
+  const en = { route: 'Page', tool: 'App', workspace: 'Workspace', action: 'Action', content: 'Content' };
   return (language === 'vi' ? vi : en)[kind] || kind;
 }
 
@@ -152,24 +160,25 @@ export default function UICommandCenter({
   const [launcherConfig, setLauncherConfig] = useState(() => normalizeLauncherConfig(loadLauncherConfig()));
   const [usage, setUsage] = useState(() => getAppUsage(currentUser));
   const [workspaceMemory, setWorkspaceMemory] = useState(() => loadWorkspaceMemory(currentUser));
+  const [contentEntries, setContentEntries] = useState(() => buildUniversalSearchEntries({ user: currentUser, language }));
   const inputRef = useRef(null);
   const listRef = useRef(null);
   const visibilitySnapshot = appVisibility?.snapshot;
 
   const copy = language === 'vi' ? {
-    title: 'Trung tâm lệnh Brian', subtitle: 'Tìm ứng dụng, trang, không gian và thao tác trong một nơi.',
-    placeholder: 'Nhập để tìm · dùng > @ / # để lọc nhanh…', close: 'Đóng', open: 'Mở', pin: 'Ghim', unpin: 'Bỏ ghim',
+    title: 'Trung tâm lệnh Brian', subtitle: 'Tìm ứng dụng, trang, không gian, lệnh và nội dung đã lưu trong một nơi.',
+    placeholder: 'Nhập để tìm · dùng > @ / # ~ để lọc nhanh…', close: 'Đóng', open: 'Mở', pin: 'Ghim', unpin: 'Bỏ ghim',
     current: 'Đang mở', recent: 'Gần đây', pinned: 'Đã ghim', suggested: 'Gợi ý', noResults: 'Không tìm thấy kết quả phù hợp.',
-    noResultsHelp: 'Thử tên ứng dụng, workspace hoặc một lệnh như “thông báo”.', history: 'Tìm kiếm gần đây', clear: 'Xóa',
+    noResultsHelp: 'Thử tên ứng dụng, workspace, lệnh hoặc từ khóa trong học liệu đã lưu.', history: 'Tìm kiếm gần đây', clear: 'Xóa',
     preview: 'Xem trước lệnh', workspace: 'Không gian', shortcut: 'Phím tắt', move: 'Di chuyển', execute: 'Thực hiện',
-    all: 'Tất cả', apps: 'Ứng dụng', pages: 'Trang', workspaces: 'Không gian', actions: 'Lệnh',
+    all: 'Tất cả', apps: 'Ứng dụng', pages: 'Trang', workspaces: 'Không gian', actions: 'Lệnh', content: 'Nội dung', source: 'Nguồn', updated: 'Cập nhật',
   } : {
-    title: 'Brian Command Center', subtitle: 'Find apps, pages, workspaces and actions in one place.',
-    placeholder: 'Search · use > @ / # for instant scopes…', close: 'Close', open: 'Open', pin: 'Pin', unpin: 'Unpin',
+    title: 'Brian Command Center', subtitle: 'Find apps, pages, workspaces, actions and saved content in one place.',
+    placeholder: 'Search · use > @ / # ~ for instant scopes…', close: 'Close', open: 'Open', pin: 'Pin', unpin: 'Unpin',
     current: 'Current', recent: 'Recent', pinned: 'Pinned', suggested: 'Suggested', noResults: 'No matching results.',
-    noResultsHelp: 'Try an app, workspace, or an action such as “notifications”.', history: 'Recent searches', clear: 'Clear',
+    noResultsHelp: 'Try an app, workspace, action, or a phrase from saved content.', history: 'Recent searches', clear: 'Clear',
     preview: 'Command preview', workspace: 'Workspace', shortcut: 'Shortcut', move: 'Move', execute: 'Run',
-    all: 'All', apps: 'Apps', pages: 'Pages', workspaces: 'Workspaces', actions: 'Actions',
+    all: 'All', apps: 'Apps', pages: 'Pages', workspaces: 'Workspaces', actions: 'Actions', content: 'Content', source: 'Source', updated: 'Updated',
   };
 
   useEffect(() => {
@@ -177,33 +186,39 @@ export default function UICommandCenter({
     setMode(loadCommandCenterState(currentUser).lastMode);
     setUsage(getAppUsage(currentUser));
     setWorkspaceMemory(loadWorkspaceMemory(currentUser));
-  }, [currentUser?.id, currentUser?.email]);
+    setContentEntries(buildUniversalSearchEntries({ user: currentUser, language }));
+  }, [currentUser?.id, currentUser?.email, language]);
 
   useEffect(() => {
     const unsubscribeLauncher = subscribeLauncherConfig((next) => setLauncherConfig(normalizeLauncherConfig(next)));
     const unsubscribeUsage = subscribeAppUsage(currentUser, setUsage);
     const onCommandState = () => setState(loadCommandCenterState(currentUser));
     const onWorkspaceMemory = () => setWorkspaceMemory(loadWorkspaceMemory(currentUser));
+    const rebuildContentIndex = () => setContentEntries(buildUniversalSearchEntries({ user: currentUser, language }));
+    const unsubscribeContentIndex = subscribeUniversalSearchIndex(rebuildContentIndex);
     const onStorage = () => {
       setState(loadCommandCenterState(currentUser));
       setWorkspaceMemory(loadWorkspaceMemory(currentUser));
     };
     window.addEventListener(COMMAND_CENTER_UPDATED_EVENT, onCommandState);
     window.addEventListener(WORKSPACE_MEMORY_EVENT, onWorkspaceMemory);
+    window.addEventListener(UNIVERSAL_SEARCH_INDEX_EVENT, rebuildContentIndex);
     window.addEventListener('storage', onStorage);
     return () => {
       unsubscribeLauncher();
       unsubscribeUsage();
+      unsubscribeContentIndex();
       window.removeEventListener(COMMAND_CENTER_UPDATED_EVENT, onCommandState);
       window.removeEventListener(WORKSPACE_MEMORY_EVENT, onWorkspaceMemory);
+      window.removeEventListener(UNIVERSAL_SEARCH_INDEX_EVENT, rebuildContentIndex);
       window.removeEventListener('storage', onStorage);
     };
-  }, [currentUser?.id, currentUser?.email]);
+  }, [currentUser?.id, currentUser?.email, language]);
 
   useEffect(() => {
     const openCenter = (event) => {
       const detail = event?.detail || {};
-      const requestedMode = ['all', 'apps', 'pages', 'workspaces', 'actions'].includes(detail.mode) ? detail.mode : null;
+      const requestedMode = ['all', 'apps', 'pages', 'workspaces', 'actions', 'content'].includes(detail.mode) ? detail.mode : null;
       setMode(requestedMode || loadCommandCenterState(currentUser).lastMode || 'all');
       setQuery(String(detail.query || ''));
       setOpen(true);
@@ -211,6 +226,13 @@ export default function UICommandCenter({
     const keyHandler = (event) => {
       const target = event.target;
       const typing = Boolean(target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable));
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'f') {
+        event.preventDefault();
+        setMode('content');
+        setQuery('');
+        setOpen(true);
+        return;
+      }
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
         if (event.shiftKey) {
@@ -294,7 +316,7 @@ export default function UICommandCenter({
     ].filter(Boolean);
   }, [language, theme, currentRoute, selectedTool?.slug, currentUser?.id, currentUser?.email, workspaceMemory.updatedAt, fontScale, setTheme, setLanguage, setFontScale]);
 
-  const allEntries = useMemo(() => [...workspaceEntries, ...navigationEntries, ...actions], [workspaceEntries, navigationEntries, actions]);
+  const allEntries = useMemo(() => [...workspaceEntries, ...navigationEntries, ...actions, ...contentEntries], [workspaceEntries, navigationEntries, actions, contentEntries]);
   const byId = useMemo(() => new Map(allEntries.map((entry) => [entry.id, entry])), [allEntries]);
   const pinnedEntries = useMemo(() => state.pinnedIds.map((id) => byId.get(id)).filter(Boolean), [state.pinnedIds, byId]);
   const recentEntries = useMemo(() => usage.map((item) => byId.get(item.id)).filter(Boolean).slice(0, 8), [usage, byId]);
@@ -356,6 +378,10 @@ export default function UICommandCenter({
     setQuery('');
     if (entry.kind === 'action') {
       entry.run?.();
+      return;
+    }
+    if (entry.kind === 'content') {
+      openUniversalSearchEntry(entry);
       return;
     }
     if (entry.kind === 'workspace') {
@@ -462,6 +488,8 @@ export default function UICommandCenter({
                 <p>{selectedEntry.subtitle}</p>
                 <dl>
                   <div><dt>{copy.workspace}</dt><dd>{getWorkspaceCatalog(language).find((workspace) => workspace.id === (selectedEntry.workspaceId || resolveWorkspaceId({ route: selectedEntry.route, selectedTool: selectedEntry.app })))?.displayLabel || 'Brian'}</dd></div>
+                  {selectedEntry.sourceLabel ? <div><dt>{copy.source}</dt><dd>{selectedEntry.sourceLabel}</dd></div> : null}
+                  {selectedEntry.updatedAt ? <div><dt>{copy.updated}</dt><dd>{formatTime(selectedEntry.updatedAt, language)}</dd></div> : null}
                   {selectedEntry.resumeAt ? <div><dt>{copy.recent}</dt><dd>{formatTime(selectedEntry.resumeAt, language)}</dd></div> : null}
                   <div><dt>{copy.shortcut}</dt><dd>Enter ↵</dd></div>
                 </dl>
@@ -479,6 +507,7 @@ export default function UICommandCenter({
           <span><kbd>↵</kbd> {copy.execute}</span>
           <span><kbd>⌘K</kbd> {copy.title}</span>
           <span><kbd>⌘⇧K</kbd> {copy.actions}</span>
+          <span><kbd>⌘⇧F</kbd> {copy.content}</span>
         </footer>
       </UIOverlaySurface>
     </UIOverlayPortal>

@@ -316,3 +316,26 @@ html[data-design-language='apple'] .bui-command-center__scopes button { border-r
 @media (prefers-reduced-motion: reduce) {
   .bui-command-center__results > button { transition: none; }
 }
+
+/* V12.12 — indexed content results */
+.bui-command-center__results > button:has(.bui-command-center__icon) .bui-command-center__copy small {
+  max-width: 100%;
+}
+.bui-command-center__preview p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.bui-search-target {
+  outline: 3px solid color-mix(in srgb, var(--ui-color-primary) 78%, white) !important;
+  outline-offset: 4px !important;
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--ui-color-primary) 18%, transparent), var(--ui-elevation-card) !important;
+  animation: bui-search-target-pulse 1.15s ease-in-out 2;
+}
+@keyframes bui-search-target-pulse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bui-search-target { animation: none; }
+}
