@@ -1,8 +1,9 @@
-import { spreadsheetToTextSafe } from '../utils/safeSpreadsheet.js';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { spreadsheetToTextSafe } from '../utils/safeSpreadsheet.js';
 import { callAI, extractJson } from '../utils/gemini.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
-import { addBankItems, addHistoryEntry } from '../utils/library.js';
+import { addBankItems, addHistoryEntry, loadBank, loadHistory } from '../utils/library.js';
+import { createTransfer, pendingTransferFor, updateTransfer, TRANSFER_APPLY_EVENT } from '../utils/contentTransfer.js';
 import {
   WORKSHEET_ACTIVITY_TYPES,
   auditWorksheet,
@@ -19,603 +20,448 @@ import {
 } from '../utils/worksheetFactory.js';
 import './WorksheetFactory.css';
 
-const STEPS = [
-  { id: 1, vi: 'Nguồn', en: 'Source' },
-  { id: 2, vi: 'Cấu hình', en: 'Configure' },
-  { id: 3, vi: 'Tạo phiếu', en: 'Generate' },
-  { id: 4, vi: 'Biên tập & xuất', en: 'Edit & export' },
+const APP_VERSION = '2.0';
+const PROJECT_SCHEMA = 'bes-worksheet-project/2.0';
+const TRANSFER_SCHEMA = 'bes-worksheet-pack/2.0';
+
+const WORKFLOW = [
+  ['source', '01', 'Nguồn', 'Source'],
+  ['intelligence', '02', 'Phân tích', 'Analyse'],
+  ['learner', '03', 'Đối tượng', 'Learners'],
+  ['blueprint', '04', 'Blueprint', 'Blueprint'],
+  ['generate', '05', 'AI tạo', 'Generate'],
+  ['editor', '06', 'Biên tập', 'Edit'],
+  ['publish', '07', 'Xuất bản', 'Publish'],
 ];
 
-const PRESETS = [
-  {
-    id: 'mixed',
-    titleVi: 'Phiếu tổng hợp B2',
-    title: 'Mixed B2 Worksheet',
-    descVi: 'Trắc nghiệm, điền từ, word form và đọc hiểu.',
-    desc: 'MCQ, gap fill, word formation and reading.',
-    types: ['multiple_choice', 'gap_fill', 'word_formation', 'reading_comprehension'],
-  },
-  {
-    id: 'vocabulary',
-    titleVi: 'Ôn từ vựng',
-    title: 'Vocabulary Review',
-    descVi: 'Nối cặp, ngữ cảnh, điền từ và word family.',
-    desc: 'Matching, context, gaps and word families.',
-    types: ['matching', 'vocabulary_context', 'gap_fill', 'word_formation'],
-  },
-  {
-    id: 'grammar',
-    titleVi: 'Ngữ pháp chuyên sâu',
-    title: 'Grammar Intensive',
-    descVi: 'MCQ, sửa lỗi, viết lại câu và cloze.',
-    desc: 'MCQ, correction, transformations and cloze.',
-    types: ['multiple_choice', 'error_correction', 'sentence_transformation', 'cloze'],
-  },
-  {
-    id: 'reading',
-    titleVi: 'Đọc hiểu',
-    title: 'Reading Package',
-    descVi: 'Đọc hiểu, đúng/sai và từ vựng ngữ cảnh.',
-    desc: 'Comprehension, true/false and vocabulary.',
-    types: ['reading_comprehension', 'true_false', 'vocabulary_context'],
-  },
-  {
-    id: 'thpt',
-    titleVi: 'Luyện thi THPT',
-    title: 'THPT Exam Practice',
-    descVi: 'MCQ, cloze, word form và viết lại câu.',
-    desc: 'MCQ, cloze, word formation and rewriting.',
-    types: ['multiple_choice', 'cloze', 'word_formation', 'sentence_transformation'],
-  },
+const BUILD_MODES = [
+  { id: 'source-to-worksheet', icon: '⇥', title: 'Source to Worksheet', titleVi: 'Nguồn thành worksheet', desc: 'Turn a document, passage or list into structured activities.', descVi: 'Chuyển tài liệu, bài đọc hoặc danh sách thành hoạt động có cấu trúc.' },
+  { id: 'topic-to-worksheet', icon: '✦', title: 'Topic to Worksheet', titleVi: 'Chủ đề thành worksheet', desc: 'Generate a new worksheet from a topic, level and objective.', descVi: 'Tạo worksheet mới từ chủ đề, trình độ và mục tiêu.' },
+  { id: 'lesson-pack', icon: '▣', title: 'Lesson Pack Builder', titleVi: 'Tạo gói học liệu', desc: 'Student sheet, answer key, support, extension and homework.', descVi: 'Phiếu học sinh, đáp án, hỗ trợ, mở rộng và bài tập về nhà.' },
+  { id: 'refine-existing', icon: '✎', title: 'Existing Worksheet Refiner', titleVi: 'Tinh chỉnh worksheet cũ', desc: 'Repair, level, diversify and redesign an existing worksheet.', descVi: 'Sửa lỗi, đổi độ khó, đa dạng và thiết kế lại worksheet cũ.' },
+  { id: 'item-bank', icon: '▤', title: 'Item Bank Composer', titleVi: 'Ghép từ Item Bank', desc: 'Compose a worksheet from approved questions in the ecosystem.', descVi: 'Ghép worksheet từ các câu hỏi đã duyệt trong hệ sinh thái.' },
+  { id: 'batch', icon: '⧉', title: 'Batch Worksheet Generator', titleVi: 'Tạo worksheet hàng loạt', desc: 'Create variants for classes, levels, units or support needs.', descVi: 'Tạo nhiều phiên bản theo lớp, trình độ, Unit hoặc nhu cầu hỗ trợ.' },
 ];
 
-const SAMPLE_SOURCE = `Artificial intelligence is rapidly changing education. Teachers can use AI to create differentiated materials, provide faster feedback, and analyze learning patterns. However, effective use requires clear objectives, careful checking, and attention to student privacy. AI should support teachers rather than replace professional judgment. Students also need guidance so that they use these tools responsibly and continue developing independent thinking skills.`;
+const SOURCE_FACETS = [
+  ['vocabulary', 'Vocabulary', 'Từ vựng'],
+  ['grammar', 'Grammar', 'Ngữ pháp'],
+  ['reading', 'Reading passage', 'Bài đọc'],
+  ['questions', 'Existing questions', 'Câu hỏi có sẵn'],
+  ['examples', 'Examples', 'Ví dụ'],
+  ['teacherNotes', 'Teacher notes', 'Ghi chú giáo viên'],
+  ['oldAnswers', 'Old answer key', 'Đáp án cũ'],
+];
 
-function safeFileName(value = 'worksheet') {
-  return String(value || 'worksheet')
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9-_]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 80) || 'worksheet';
+const AI_TASKS = [
+  { id: 'analyse', icon: '⌕', title: 'Analyse source', titleVi: 'Phân tích nguồn', descVi: 'Nhận diện chủ đề, CEFR, từ vựng, ngữ pháp và nội dung có thể dùng.' },
+  { id: 'blueprint', icon: '▦', title: 'Build blueprint', titleVi: 'Lập blueprint', descVi: 'Phân bố hoạt động, số câu, điểm, thời lượng và độ khó.' },
+  { id: 'generate', icon: '✦', title: 'Generate sections', titleVi: 'Tạo từng phần', descVi: 'Tạo tuần tự từng activity để tránh thiếu câu hoặc đứt JSON.' },
+  { id: 'transform', icon: '⇄', title: 'Transform activity', titleVi: 'Chuyển đổi hoạt động', descVi: 'Đổi dạng bài, ngữ cảnh hoặc mức độ của phần đang chọn.' },
+  { id: 'differentiate', icon: '≋', title: 'Differentiate', titleVi: 'Phân hóa', descVi: 'Tạo bản hỗ trợ, bản chuẩn hoặc bản nâng cao.' },
+  { id: 'answers', icon: '✓', title: 'Check answers', titleVi: 'Kiểm tra đáp án', descVi: 'Rà soát đáp án, phương án nhiễu và câu có thể mơ hồ.' },
+  { id: 'duplicates', icon: '◎', title: 'Remove duplicates', titleVi: 'Loại câu trùng', descVi: 'Phát hiện câu trùng và content-word repetition.' },
+  { id: 'custom', icon: '⌁', title: 'Custom request', titleVi: 'Yêu cầu riêng', descVi: 'Giao một nhiệm vụ chuyên môn cụ thể cho AI.' },
+];
+
+const DESTINATIONS = [
+  { id: 'lesson-architect', route: '#/tool/lesson-architect', icon: 'LA', label: 'Lesson Architect', desc: 'Objectives, practice, homework and evidence.' },
+  { id: 'grammar-builder', route: '#/tool/grammar-builder', icon: 'GB', label: 'Grammar Builder', desc: 'Grammar items, error patterns and explanations.' },
+  { id: 'reading-studio', route: '#/tool/reading-studio', icon: 'RS', label: 'Reading Studio', desc: 'Reading passages, cloze and graphic organisers.' },
+  { id: 'writing-studio', route: '#/tool/writing-studio', icon: 'WS', label: 'Writing Studio', desc: 'Planning sheets, checklists and peer review.' },
+  { id: 'pronunciation-coach', route: '#/tool/pronunciation-coach', icon: 'PC', label: 'Pronunciation Coach', desc: 'Word lists, stress and minimal-pair practice.' },
+  { id: 'exam-studio', route: '#/tool/exam-studio', icon: 'EX', label: 'Exam Studio', desc: 'Approved items, blueprint and answer key.' },
+  { id: 'activity-studio', route: '#/tool/activity-studio', icon: 'AS', label: 'Activity Studio', desc: 'Matching, sorting, quiz and team challenge.' },
+  { id: 'english-lesson-integration', route: '#/tool/english-lesson-integration', icon: 'EL', label: 'AI Lesson Integration', desc: 'Place the worksheet in a lesson activity.' },
+];
+
+const LAYOUTS = [
+  ['clean-academic', 'Clean Academic'],
+  ['modern-saas', 'Modern SaaS Worksheet'],
+  ['soft-editorial', 'Soft Editorial'],
+  ['exam-format', 'Exam Format'],
+  ['minimal-print', 'Minimal Black & White'],
+  ['colour-classroom', 'Colour Classroom'],
+  ['dyslexia-friendly', 'Dyslexia-friendly'],
+  ['compact', 'Compact Printing'],
+];
+
+const SAMPLE_SOURCE = `Artificial intelligence is changing education by helping teachers differentiate materials, provide faster feedback and analyse learning patterns. Effective use still requires clear objectives, careful checking and respect for student privacy. AI should support professional judgement rather than replace it. Students also need guidance to use digital tools responsibly while continuing to develop independent thinking.`;
+
+function uid(prefix = 'wf') {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function safeText(value = '') { return String(value ?? '').trim(); }
+function safeFileName(value = 'worksheet') {
+  return safeText(value || 'worksheet').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9-_]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 90) || 'worksheet';
+}
+function countWords(value = '') { return safeText(value) ? safeText(value).split(/\s+/).length : 0; }
 function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
+  anchor.href = url; anchor.download = filename;
+  document.body.appendChild(anchor); anchor.click(); anchor.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1200);
 }
-
-function downloadText(content, filename, mime = 'text/plain;charset=utf-8') {
-  downloadBlob(new Blob([content], { type: mime }), filename);
-}
+function downloadText(content, filename, mime = 'text/plain;charset=utf-8') { downloadBlob(new Blob([content], { type: mime }), filename); }
+function scopedKey(currentUser) { return `bes-worksheet-factory-v2:${String(currentUser?.id || currentUser?.email || 'guest').replace(/[^a-z0-9@._-]+/gi, '-')}`; }
+function stripHtml(html = '') { return new DOMParser().parseFromString(html, 'text/html').body?.innerText || ''; }
 
 async function readPptxText(arrayBuffer) {
   const { default: JSZip } = await import('jszip');
   const zip = await JSZip.loadAsync(arrayBuffer);
-  const slideFiles = Object.keys(zip.files)
-    .filter((name) => /^ppt\/slides\/slide\d+\.xml$/i.test(name))
-    .sort((a, b) => Number(a.match(/slide(\d+)/i)?.[1] || 0) - Number(b.match(/slide(\d+)/i)?.[1] || 0));
+  const slides = Object.keys(zip.files).filter((name) => /^ppt\/slides\/slide\d+\.xml$/i.test(name)).sort((a, b) => Number(a.match(/slide(\d+)/i)?.[1] || 0) - Number(b.match(/slide(\d+)/i)?.[1] || 0));
   const chunks = [];
-  for (const fileName of slideFiles.slice(0, 80)) {
+  for (const fileName of slides.slice(0, 80)) {
     const xml = await zip.file(fileName)?.async('text');
     if (!xml) continue;
     const doc = new DOMParser().parseFromString(xml, 'application/xml');
     const lines = [...doc.getElementsByTagNameNS('*', 't')].map((node) => node.textContent || '').filter(Boolean);
-    if (lines.length) chunks.push(`--- ${fileName.split('/').pop()} ---\n${lines.join('\n')}`);
+    if (lines.length) chunks.push(lines.join('\n'));
   }
   return chunks.join('\n\n');
 }
-
-async function readSpreadsheetText(arrayBuffer) {
-  return spreadsheetToTextSafe(arrayBuffer, { maxSheets: 12, maxRows: 4000 });
-}
-
-function stripHtml(html = '') {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  return doc.body?.innerText || '';
-}
-
 async function readSourceFile(file) {
   const extension = file.name.split('.').pop()?.toLowerCase() || '';
-  const arrayBuffer = await file.arrayBuffer();
-  if (extension === 'pdf') return readPdfTextFromBuffer(arrayBuffer, { maxPages: 50, maxChars: 120000 });
-  if (extension === 'docx') return readDocxTextFromBuffer(arrayBuffer);
-  if (extension === 'pptx') return readPptxText(arrayBuffer);
-  if (['xlsx', 'xls'].includes(extension)) return readSpreadsheetText(arrayBuffer);
+  const buffer = await file.arrayBuffer();
+  if (extension === 'pdf') return readPdfTextFromBuffer(buffer, { maxPages: 60, maxChars: 150000 });
+  if (extension === 'docx') return readDocxTextFromBuffer(buffer);
+  if (extension === 'pptx') return readPptxText(buffer);
+  if (['xlsx', 'xls'].includes(extension)) return spreadsheetToTextSafe(buffer, { maxSheets: 12, maxRows: 4000 });
   const raw = await file.text();
   if (['html', 'htm'].includes(extension)) return stripHtml(raw);
-  if (extension === 'json') {
-    try { return JSON.stringify(JSON.parse(raw), null, 2); } catch { return raw; }
-  }
   return raw;
 }
 
-function ActionIcon({ children }) {
-  return <span className="wf-action-icon" aria-hidden="true">{children}</span>;
+function estimateCefr(source = '') {
+  const words = safeText(source).toLowerCase().match(/[a-z'-]+/g) || [];
+  if (!words.length) return 'B1';
+  const average = words.reduce((sum, word) => sum + word.length, 0) / words.length;
+  const complex = words.filter((word) => word.length >= 9).length / words.length;
+  if (average >= 6.5 || complex >= 0.19) return 'C1';
+  if (average >= 5.5 || complex >= 0.12) return 'B2';
+  if (average >= 4.7) return 'B1';
+  return 'A2';
 }
 
-function StepNavigation({ step, setStep, language, hasWorksheet }) {
-  return (
-    <nav className="wf-steps" aria-label="Worksheet workflow">
-      {STEPS.map((item) => {
-        const disabled = item.id === 4 && !hasWorksheet;
-        return (
-          <button
-            key={item.id}
-            type="button"
-            className={`${step === item.id ? 'active' : ''} ${disabled ? 'disabled' : ''}`}
-            onClick={() => { if (!disabled) setStep(item.id); }}
-          >
-            <span>{item.id}</span>
-            <strong>{language === 'vi' ? item.vi : item.en}</strong>
-          </button>
-        );
-      })}
-    </nav>
-  );
+function detectSourceType(source = '', name = '') {
+  const text = `${name}\n${source}`.toLowerCase();
+  if (/answer key|đáp án|correct answer/.test(text)) return 'worksheet-with-key';
+  if (/question\s*\d|câu\s*\d|a\.|b\.|c\.|d\./.test(text)) return 'existing-worksheet';
+  if (/objectives|procedures|warm-up|lesson plan|giáo án/.test(text)) return 'lesson-plan';
+  if (/transcript|speaker|audio|listening/.test(text)) return 'transcript';
+  if (source.split(/\n+/).filter(Boolean).length > 15 && source.split(/\n+/).filter((line) => line.trim().split(/\s+/).length <= 5).length > 8) return 'vocabulary-list';
+  if (source.length >= 1200) return 'reading-passage';
+  return 'mixed-source';
 }
 
-function SourceStep({ language, sourceText, setSourceText, sourceName, setSourceName, topic, setTopic, onNext }) {
-  const [sourceMode, setSourceMode] = useState('paste');
-  const [fileBusy, setFileBusy] = useState(false);
-  const [fileError, setFileError] = useState('');
-  const fileInputRef = useRef(null);
-  const units = useMemo(() => splitSourceUnits(sourceText), [sourceText]);
-  const keywords = useMemo(() => extractKeywords(sourceText, 12), [sourceText]);
-  const wordCount = useMemo(() => sourceText.trim() ? sourceText.trim().split(/\s+/).length : 0, [sourceText]);
-
-  const handleFile = async (file) => {
-    if (!file) return;
-    setFileBusy(true);
-    setFileError('');
-    try {
-      const content = await readSourceFile(file);
-      if (!content.trim()) throw new Error(language === 'vi' ? 'Không đọc được nội dung chữ trong file.' : 'No readable text was found in the file.');
-      setSourceText(content.slice(0, 120000));
-      setSourceName(file.name);
-      setSourceMode('paste');
-    } catch (error) {
-      setFileError(error?.message || (language === 'vi' ? 'Không thể đọc file.' : 'Could not read the file.'));
-    } finally {
-      setFileBusy(false);
-    }
+function offlineSourceIntelligence(source = '', sourceName = '') {
+  const units = splitSourceUnits(source);
+  const keywords = extractKeywords(source, 20);
+  const grammar = [];
+  const rules = [
+    [/\b(has|have|had)\s+\w+(ed|en)\b/i, 'Perfect aspects'],
+    [/\b(is|are|was|were|be|been)\s+\w+ed\b/i, 'Passive voice'],
+    [/\b(if|unless|provided that)\b/i, 'Conditionals'],
+    [/\bwho|which|that|whose|where\b/i, 'Relative clauses'],
+    [/\bshould|must|might|could|can|may\b/i, 'Modal verbs'],
+    [/\bto\s+\w+|\w+ing\b/i, 'Verb patterns'],
+  ];
+  rules.forEach(([pattern, label]) => { if (pattern.test(source)) grammar.push(label); });
+  const type = detectSourceType(source, sourceName);
+  const skills = type === 'reading-passage' ? ['Reading', 'Vocabulary', 'Grammar in context'] : type === 'vocabulary-list' ? ['Vocabulary', 'Word formation'] : type === 'existing-worksheet' ? ['Assessment', 'Revision'] : ['Vocabulary', 'Grammar', 'Reading'];
+  const issues = [];
+  if (/�|\u0000/.test(source)) issues.push('Possible OCR or encoding errors');
+  if (countWords(source) < 80) issues.push('Source is short; AI may need to create additional context');
+  if (countWords(source) > 7000) issues.push('Source is long; select only the relevant facets');
+  const recommended = type === 'vocabulary-list'
+    ? ['matching', 'vocabulary_context', 'word_formation', 'collocation_matching']
+    : type === 'existing-worksheet'
+      ? ['multiple_choice', 'error_correction', 'editing_task', 'reflection_exit_ticket']
+      : ['reading_comprehension', 'multiple_choice', 'gap_fill', 'true_false'];
+  return {
+    sourceType: type,
+    topic: keywords.slice(0, 4).join(' · ') || sourceName || 'General English',
+    level: estimateCefr(source),
+    keywords,
+    grammar: grammar.length ? grammar : ['Grammar in context'],
+    skills,
+    units: units.slice(0, 12),
+    existingQuestionCount: (source.match(/(?:question|câu)\s*\d+/gi) || []).length,
+    issues,
+    recommendedTypes: recommended,
+    wordCount: countWords(source),
+    characterCount: source.length,
+    analysedAt: Date.now(),
   };
-
-  return (
-    <section className="wf-step-grid wf-source-step">
-      <div className="wf-panel wf-source-panel">
-        <div className="wf-panel-heading">
-          <div>
-            <span className="wf-kicker">01 · {language === 'vi' ? 'Nguồn nội dung' : 'Source material'}</span>
-            <h2>{language === 'vi' ? 'Đưa nội dung vào nhà máy' : 'Feed the worksheet factory'}</h2>
-          </div>
-          <button type="button" className="wf-text-button" onClick={() => { setSourceText(SAMPLE_SOURCE); setSourceName('AI in Education — sample'); }}>
-            {language === 'vi' ? 'Dùng nội dung mẫu' : 'Use sample'}
-          </button>
-        </div>
-
-        <div className="wf-source-tabs">
-          <button type="button" className={sourceMode === 'paste' ? 'active' : ''} onClick={() => setSourceMode('paste')}>{language === 'vi' ? 'Dán văn bản' : 'Paste text'}</button>
-          <button type="button" className={sourceMode === 'upload' ? 'active' : ''} onClick={() => setSourceMode('upload')}>{language === 'vi' ? 'Tải file' : 'Upload file'}</button>
-          <button type="button" className={sourceMode === 'topic' ? 'active' : ''} onClick={() => setSourceMode('topic')}>{language === 'vi' ? 'Chỉ nhập chủ đề' : 'Topic only'}</button>
-        </div>
-
-        {sourceMode === 'paste' && (
-          <div className="wf-input-stack">
-            <label>
-              <span>{language === 'vi' ? 'Tên nguồn' : 'Source name'}</span>
-              <input value={sourceName} onChange={(event) => setSourceName(event.target.value)} placeholder={language === 'vi' ? 'Ví dụ: Unit 2 — A multicultural world' : 'Example: Unit 2 — A multicultural world'} />
-            </label>
-            <label>
-              <span>{language === 'vi' ? 'Văn bản, danh sách từ hoặc ghi chú bài học' : 'Text, vocabulary list or lesson notes'}</span>
-              <textarea data-transfer-target="primary" value={sourceText} onChange={(event) => setSourceText(event.target.value)} rows={15} placeholder={language === 'vi' ? 'Dán nội dung tại đây…' : 'Paste source content here…'} />
-            </label>
-          </div>
-        )}
-
-        {sourceMode === 'upload' && (
-          <div className="wf-upload-zone" onClick={() => fileInputRef.current?.click()} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); handleFile(event.dataTransfer.files?.[0]); }}>
-            <input ref={fileInputRef} type="file" hidden accept=".pdf,.docx,.pptx,.xlsx,.xls,.txt,.md,.csv,.json,.html,.htm" onChange={(event) => handleFile(event.target.files?.[0])} />
-            <div className="wf-upload-illustration"><span>PDF</span><span>DOCX</span><span>PPTX</span></div>
-            <h3>{fileBusy ? (language === 'vi' ? 'Đang đọc tài liệu…' : 'Reading document…') : (language === 'vi' ? 'Thả file vào đây hoặc nhấn để chọn' : 'Drop a file here or click to browse')}</h3>
-            <p>{language === 'vi' ? 'Hỗ trợ PDF, Word, PowerPoint, Excel, TXT, Markdown, CSV, JSON và HTML.' : 'Supports PDF, Word, PowerPoint, Excel, TXT, Markdown, CSV, JSON and HTML.'}</p>
-            {fileError && <div className="wf-inline-error">{fileError}</div>}
-          </div>
-        )}
-
-        {sourceMode === 'topic' && (
-          <div className="wf-topic-only-card">
-            <label>
-              <span>{language === 'vi' ? 'Chủ đề hoặc yêu cầu' : 'Topic or request'}</span>
-              <textarea value={topic} onChange={(event) => setTopic(event.target.value)} rows={8} placeholder={language === 'vi' ? 'Ví dụ: Tạo phiếu ôn 12 thì tiếng Anh, B2-C1, dành cho học sinh lớp 12…' : 'Example: Create a B2-C1 worksheet reviewing the 12 English tenses for grade 12…'} />
-            </label>
-            <p>{language === 'vi' ? 'Chế độ này cần AI để tạo nội dung đầy đủ. Khi chưa cấu hình AI, hệ thống tạo một bản nháp offline cơ bản.' : 'This mode works best with AI. Without an AI key, the app creates a basic offline draft.'}</p>
-          </div>
-        )}
-
-        <div className="wf-step-actions">
-          <span>{language === 'vi' ? 'Nội dung được xử lý trên trình duyệt trước khi gửi tới AI.' : 'Files are parsed in your browser before content is sent to AI.'}</span>
-          <button type="button" className="wf-primary" disabled={!sourceText.trim() && !topic.trim()} onClick={onNext}>
-            {language === 'vi' ? 'Tiếp tục cấu hình' : 'Continue to settings'} <ActionIcon>→</ActionIcon>
-          </button>
-        </div>
-      </div>
-
-      <aside className="wf-panel wf-source-insight">
-        <span className="wf-kicker">{language === 'vi' ? 'Phân tích nguồn' : 'Source analysis'}</span>
-        <h2>{sourceName || (language === 'vi' ? 'Chưa đặt tên nguồn' : 'Untitled source')}</h2>
-        <div className="wf-source-metrics">
-          <div><strong>{wordCount.toLocaleString()}</strong><span>{language === 'vi' ? 'từ' : 'words'}</span></div>
-          <div><strong>{units.length}</strong><span>{language === 'vi' ? 'đơn vị nội dung' : 'content units'}</span></div>
-          <div><strong>{sourceText.length.toLocaleString()}</strong><span>{language === 'vi' ? 'ký tự' : 'characters'}</span></div>
-        </div>
-        <div className="wf-keyword-cloud">
-          <h3>{language === 'vi' ? 'Từ khóa phát hiện' : 'Detected keywords'}</h3>
-          <div>{keywords.length ? keywords.map((keyword) => <span key={keyword}>{keyword}</span>) : <p>{language === 'vi' ? 'Dán nội dung để hệ thống phân tích.' : 'Paste content to begin analysis.'}</p>}</div>
-        </div>
-        <div className="wf-source-preview">
-          <h3>{language === 'vi' ? 'Xem trước nguồn' : 'Source preview'}</h3>
-          <p>{sourceText.slice(0, 850) || topic || (language === 'vi' ? 'Chưa có nội dung.' : 'No source content yet.')}</p>
-        </div>
-      </aside>
-    </section>
-  );
 }
 
-function ConfigureStep({ language, selectedTypes, setSelectedTypes, settings, setSettings, onBack, onNext }) {
-  const toggleType = (id) => {
-    setSelectedTypes((current) => current.includes(id) ? current.filter((type) => type !== id) : [...current, id].slice(0, 8));
+function buildDefaultBlueprint(intelligence, mode = 'source-to-worksheet') {
+  const types = intelligence?.recommendedTypes?.length ? intelligence.recommendedTypes : ['multiple_choice', 'gap_fill', 'reading_comprehension', 'reflection_exit_ticket'];
+  const modeTypes = mode === 'lesson-pack' ? [...types.slice(0, 3), 'reflection_exit_ticket'] : mode === 'item-bank' ? ['multiple_choice', 'gap_fill', 'error_correction'] : mode === 'batch' ? ['multiple_choice', 'gap_fill', 'sentence_transformation', 'cloze'] : types;
+  return [...new Set(modeTypes)].slice(0, 6).map((type, index) => ({
+    id: uid('plan'), type, count: index === 0 ? 8 : 6, points: index === 0 ? 2 : 1, difficulty: index === 0 ? 'B1-B2' : 'B2', status: 'planned', generated: false,
+  }));
+}
+
+function defaultProject() {
+  const intelligence = offlineSourceIntelligence(SAMPLE_SOURCE, 'AI in Education — sample');
+  return {
+    schema: PROJECT_SCHEMA,
+    id: uid('project'),
+    title: 'AI in Education — Structured Learning Pack',
+    stage: 'source',
+    status: 'draft',
+    mode: 'source-to-worksheet',
+    sourceName: 'AI in Education — sample',
+    sourceKind: 'text',
+    sourceText: SAMPLE_SOURCE,
+    sourceFacets: ['vocabulary', 'grammar', 'reading', 'questions'],
+    intelligence,
+    learner: { grade: '12', level: 'B2', book: 'Global Success', unit: '', topic: 'AI in Education', minutes: 45, useCase: 'In-class practice', grouping: 'Individual / pairs', language: 'English + Vietnamese instructions', notes: 'Lớp có chênh lệch trình độ; ưu tiên ngữ cảnh rõ và thời lượng khả thi.' },
+    blueprint: buildDefaultBlueprint(intelligence),
+    qualityRules: ['no-duplicates', 'one-answer', 'source-grounded', 'explanations', 'balanced-thinking', 'time-fit'],
+    answerMode: 'explanations-bilingual',
+    answerPosition: 'teacher-edition',
+    layout: 'clean-academic',
+    worksheet: null,
+    versions: [],
+    selectedActivityId: '',
+    selectedItemId: '',
+    batch: { variants: 1, levels: ['B2'], classNames: [] },
+    customInstruction: 'Không trùng câu; phương án nhiễu hợp lí; bám sát nội dung nguồn và mục tiêu THPT.',
+    createdAt: Date.now(), updatedAt: Date.now(),
   };
+}
 
-  const applyPreset = (preset) => {
-    setSelectedTypes(preset.types);
-    setSettings((current) => ({ ...current, title: language === 'vi' ? preset.titleVi : preset.title }));
+function normalizeProject(raw) {
+  const base = defaultProject();
+  if (!raw || typeof raw !== 'object') return base;
+  const project = { ...base, ...raw, learner: { ...base.learner, ...(raw.learner || {}) }, batch: { ...base.batch, ...(raw.batch || {}) } };
+  project.sourceFacets = Array.isArray(raw.sourceFacets) ? raw.sourceFacets : base.sourceFacets;
+  project.blueprint = Array.isArray(raw.blueprint) ? raw.blueprint : base.blueprint;
+  project.qualityRules = Array.isArray(raw.qualityRules) ? raw.qualityRules : base.qualityRules;
+  project.versions = Array.isArray(raw.versions) ? raw.versions.slice(0, 20) : [];
+  project.worksheet = raw.worksheet ? normalizeWorksheet(raw.worksheet, { language: 'vi' }) : null;
+  return project;
+}
+
+function difficultyCounts(blueprint = []) {
+  const total = blueprint.reduce((sum, item) => sum + Number(item.count || 0), 0) || 1;
+  const weights = { A2: 0, B1: 0, B2: 0, C1: 0 };
+  blueprint.forEach((item) => {
+    const label = String(item.difficulty || 'B2');
+    if (label.includes('A2')) weights.A2 += item.count;
+    if (label.includes('B1')) weights.B1 += item.count;
+    if (label.includes('B2')) weights.B2 += item.count;
+    if (label.includes('C1')) weights.C1 += item.count;
+  });
+  return Object.fromEntries(Object.entries(weights).map(([key, value]) => [key, Math.round((value / total) * 100)]));
+}
+
+function activityLabel(type, language = 'vi') {
+  const item = WORKSHEET_ACTIVITY_TYPES.find((entry) => entry.id === type);
+  return language === 'vi' ? item?.labelVi || type : item?.label || type;
+}
+
+function mergeActivities(currentWorksheet, activities, project, language) {
+  return normalizeWorksheet({
+    ...(currentWorksheet || {}),
+    id: currentWorksheet?.id || uid('worksheet'),
+    title: project.title,
+    subtitle: `${project.learner.level} · Grade ${project.learner.grade} · ${project.learner.topic || project.intelligence.topic}`,
+    level: project.learner.level,
+    audience: `Grade ${project.learner.grade}`,
+    topic: project.learner.topic || project.intelligence.topic,
+    estimatedMinutes: project.learner.minutes,
+    teacherNotes: language === 'vi' ? 'Giáo viên cần kiểm tra và duyệt từng hoạt động trước khi xuất bản.' : 'Review and approve each activity before publishing.',
+    activities,
+  }, { language });
+}
+
+function detailedAudit(project, worksheet) {
+  const base = worksheet ? auditWorksheet(worksheet) : { score: 0, totalItems: 0, activityCount: 0, exactDuplicates: [], nearDuplicates: [], missingAnswers: [], invalidOptions: [], passed: false };
+  const source = safeText(project.sourceText).toLowerCase();
+  const items = worksheet?.activities?.flatMap((activity) => activity.items || []) || [];
+  let aligned = 0;
+  items.forEach((item) => {
+    const tokens = extractKeywords(`${item.prompt} ${item.answer}`, 8).map((word) => word.toLowerCase());
+    if (!tokens.length || tokens.some((token) => source.includes(token))) aligned += 1;
+  });
+  const sourceAlignment = items.length ? Math.round((aligned / items.length) * 100) : 0;
+  const expectedItems = project.blueprint.reduce((sum, item) => sum + Number(item.count || 0), 0);
+  const countAccuracy = expectedItems ? Math.max(0, 100 - Math.abs(expectedItems - items.length) * 4) : 100;
+  const estimatedPages = Math.max(1, Math.ceil((items.length + (worksheet?.activities?.length || 0) * 2) / 12));
+  const issues = [];
+  base.exactDuplicates.forEach(([a, b]) => issues.push({ level: 'error', title: `Câu ${a} và ${b} trùng hoàn toàn`, action: 'Viết lại hoặc xóa một câu.' }));
+  base.nearDuplicates.slice(0, 8).forEach(([a, b]) => issues.push({ level: 'warning', title: `Câu ${a} và ${b} gần giống nhau`, action: 'Thay ngữ cảnh hoặc cấu trúc câu.' }));
+  if (base.missingAnswers.length) issues.push({ level: 'error', title: `${base.missingAnswers.length} câu thiếu đáp án`, action: 'Bổ sung đáp án trước khi xuất.' });
+  if (base.invalidOptions.length) issues.push({ level: 'error', title: `${base.invalidOptions.length} câu có options chưa hợp lệ`, action: 'Kiểm tra phương án và đáp án đúng.' });
+  if (sourceAlignment < 65 && items.length) issues.push({ level: 'warning', title: 'Một số câu chưa bám rõ nguồn', action: 'Chạy Source alignment hoặc viết lại phần liên quan.' });
+  if (estimatedPages > 6) issues.push({ level: 'info', title: `Worksheet ước tính ${estimatedPages} trang`, action: 'Cân nhắc Compact Printing hoặc giảm số câu.' });
+  const score = Math.round(base.score * 0.62 + sourceAlignment * 0.22 + countAccuracy * 0.16);
+  return { ...base, score, sourceAlignment, countAccuracy, expectedItems, estimatedPages, issues, printReady: score >= 82 && !base.missingAnswers.length && !base.invalidOptions.length };
+}
+
+function downloadProject(project) { downloadText(JSON.stringify(project, null, 2), `${safeFileName(project.title)}.worksheet-project.json`, 'application/json;charset=utf-8'); }
+
+function Metric({ icon, label, value }) { return <div className="wf2-metric"><i>{icon}</i><div><span>{label}</span><strong title={String(value)}>{value}</strong></div></div>; }
+
+function CardHeading({ number, kicker, title, description, action }) {
+  return <header className="wf2-card-heading"><span className="wf2-card-number">{number}</span><div><small>{kicker}</small><h2>{title}</h2>{description ? <p>{description}</p> : null}</div>{action ? <div className="wf2-card-action">{action}</div> : null}</header>;
+}
+
+function ChoiceCard({ active, icon, title, description, onClick }) {
+  return <button type="button" className={`wf2-choice ${active ? 'active' : ''}`} onClick={onClick}><i>{icon}</i><span><strong>{title}</strong><small>{description}</small></span><b>{active ? '✓' : ''}</b></button>;
+}
+
+function Workflow({ stage, setStage, hasWorksheet }) {
+  return <nav className="wf2-workflow" aria-label="Worksheet Factory workflow">{WORKFLOW.map(([id, number, vi]) => {
+    const disabled = ['editor', 'publish'].includes(id) && !hasWorksheet;
+    return <button key={id} type="button" disabled={disabled} className={stage === id ? 'active' : ''} onClick={() => !disabled && setStage(id)}><i>{number}</i><span>{vi}</span></button>;
+  })}</nav>;
+}
+
+function SourceCard({ project, patch, onFile, fileBusy, pendingTransfer, applyTransfer, onLoadItemBank }) {
+  const fileRef = useRef(null);
+  return <section className="wf2-card" id="wf2-source"><CardHeading number="04" kicker="SOURCE & INPUT" title="Nguồn & Input" description="Upload, dán nội dung, nhận Transfer Inbox hoặc lấy từ thư viện." />
+    {pendingTransfer ? <div className="wf2-transfer"><div><strong>Nội dung từ {pendingTransfer.sourceTitle}</strong><span>{pendingTransfer.title}</span></div><button type="button" onClick={applyTransfer}>Dùng nội dung</button><button type="button" onClick={() => patch({ pendingTransferDismiss: true })}>Bỏ qua</button></div> : null}
+    <div className="wf2-source-actions"><select value={project.sourceKind} onChange={(event) => patch({ sourceKind: event.target.value })}><option value="text">Văn bản / bài đọc</option><option value="vocabulary">Danh sách từ</option><option value="worksheet">Worksheet cũ</option><option value="lesson-plan">Giáo án</option><option value="topic">Chỉ nhập chủ đề</option><option value="item-bank">Item Bank</option><option value="transfer">Transfer Inbox</option></select><button type="button" onClick={() => fileRef.current?.click()}>{fileBusy ? 'Đang đọc…' : '↑ Upload DOCX / PDF / PPTX / XLSX'}</button>{project.mode === 'item-bank' || project.sourceKind === 'item-bank' ? <button type="button" onClick={onLoadItemBank}>▤ Nạp Item Bank</button> : null}<input ref={fileRef} hidden type="file" accept=".docx,.pdf,.pptx,.xlsx,.xls,.txt,.md,.csv,.json,.html,.htm" onChange={(event) => onFile(event.target.files?.[0])} /><button type="button" onClick={() => patch({ sourceText: '', sourceName: '', intelligence: offlineSourceIntelligence('', '') })}>Xóa nguồn</button></div>
+    <label className="wf2-field"><span>Tên nguồn</span><input value={project.sourceName} onChange={(event) => patch({ sourceName: event.target.value })} placeholder="Ví dụ: Unit 3 — Environment and Climate" /></label>
+    <label className="wf2-field"><span>Nội dung nguồn</span><textarea data-transfer-target="primary" rows={11} value={project.sourceText} onChange={(event) => patch({ sourceText: event.target.value })} placeholder="Dán văn bản, câu hỏi, từ vựng hoặc ghi chú tại đây…" /></label>
+    <footer className="wf2-card-footer"><button type="button" onClick={() => patch({ sourceText: SAMPLE_SOURCE, sourceName: 'AI in Education — sample', sourceKind: 'text', intelligence: offlineSourceIntelligence(SAMPLE_SOURCE, 'AI in Education — sample') })}>Dùng sample</button><span>{countWords(project.sourceText).toLocaleString()} từ · {project.sourceText.length.toLocaleString()} ký tự</span></footer>
+  </section>;
+}
+
+function SourceIntelligenceCard({ project, patch, analyseSource, busy }) {
+  const intel = project.intelligence || {};
+  return <section className="wf2-card" id="wf2-intelligence"><CardHeading number="02" kicker="SOURCE INTELLIGENCE" title="Phân tích nguồn thông minh" description="Chọn đúng phần được phép sử dụng thay vì lấy toàn bộ file một cách mù quáng." action={<button type="button" onClick={analyseSource} disabled={busy}>✦ {busy ? 'Đang phân tích…' : 'AI phân tích'}</button>} />
+    <div className="wf2-intel-overview"><Metric icon="▣" label="Loại nguồn" value={intel.sourceType || '—'} /><Metric icon="A+" label="CEFR ước tính" value={intel.level || '—'} /><Metric icon="#" label="Từ" value={(intel.wordCount || 0).toLocaleString()} /><Metric icon="?" label="Câu hỏi sẵn có" value={intel.existingQuestionCount || 0} /></div>
+    <div className="wf2-intel-columns"><div><h3>Chủ đề & từ khóa</h3><p className="wf2-intel-topic">{intel.topic || 'Chưa phân tích'}</p><div className="wf2-chips">{(intel.keywords || []).slice(0, 12).map((item) => <span key={item}>{item}</span>)}</div></div><div><h3>Grammar & kỹ năng</h3><div className="wf2-chips accent">{[...(intel.grammar || []), ...(intel.skills || [])].slice(0, 10).map((item) => <span key={item}>{item}</span>)}</div>{intel.issues?.length ? <ul className="wf2-intel-issues">{intel.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul> : <p className="wf2-ok">✓ Không phát hiện lỗi nguồn nghiêm trọng.</p>}</div></div>
+    <h3>Nội dung được phép sử dụng</h3><div className="wf2-facet-grid">{SOURCE_FACETS.map(([id, en, vi]) => <label key={id} className={project.sourceFacets.includes(id) ? 'active' : ''}><input type="checkbox" checked={project.sourceFacets.includes(id)} onChange={() => patch({ sourceFacets: project.sourceFacets.includes(id) ? project.sourceFacets.filter((item) => item !== id) : [...project.sourceFacets, id] })} /><span>{vi}</span><small>{en}</small></label>)}</div>
+  </section>;
+}
+
+function LearnerCard({ project, patchLearner }) {
+  const learner = project.learner;
+  return <section className="wf2-card" id="wf2-learner"><CardHeading number="03" kicker="LEARNER & OBJECTIVES" title="Đối tượng & mục tiêu" description="Cấu hình worksheet theo đúng lớp, thời lượng, mục tiêu và điều kiện sử dụng." />
+    <div className="wf2-form-grid two"><label className="wf2-field"><span>Khối</span><select value={learner.grade} onChange={(e) => patchLearner({ grade: e.target.value })}><option>10</option><option>11</option><option>12</option></select></label><label className="wf2-field"><span>CEFR</span><select value={learner.level} onChange={(e) => patchLearner({ level: e.target.value })}><option>A2</option><option>B1</option><option>B2</option><option>B2-C1</option><option>C1</option></select></label><label className="wf2-field"><span>Bộ sách</span><select value={learner.book} onChange={(e) => patchLearner({ book: e.target.value })}><option>Global Success</option><option>Bright</option><option>Friends Global</option><option>i-Learn Smart World</option><option>Tự biên soạn</option></select></label><label className="wf2-field"><span>Unit / chủ đề</span><input value={learner.unit} onChange={(e) => patchLearner({ unit: e.target.value })} placeholder="Unit 3 / Environment" /></label><label className="wf2-field"><span>Thời lượng</span><input type="number" min="10" max="180" value={learner.minutes} onChange={(e) => patchLearner({ minutes: Number(e.target.value) || 45 })} /></label><label className="wf2-field"><span>Mục đích sử dụng</span><select value={learner.useCase} onChange={(e) => patchLearner({ useCase: e.target.value })}><option>In-class practice</option><option>Homework</option><option>Quick assessment</option><option>THPT exam practice</option><option>Remediation</option><option>Gifted students</option></select></label><label className="wf2-field"><span>Hình thức</span><select value={learner.grouping} onChange={(e) => patchLearner({ grouping: e.target.value })}><option>Individual</option><option>Pairs</option><option>Groups</option><option>Individual / pairs</option><option>Whole class</option></select></label><label className="wf2-field"><span>Ngôn ngữ</span><select value={learner.language} onChange={(e) => patchLearner({ language: e.target.value })}><option>English only</option><option>English + Vietnamese instructions</option><option>Bilingual</option></select></label></div>
+    <label className="wf2-field"><span>Đặc điểm lớp học</span><textarea rows={4} value={learner.notes} onChange={(e) => patchLearner({ notes: e.target.value })} /></label>
+  </section>;
+}
+
+function BuildModeCard({ project, patch }) {
+  return <section className="wf2-card" id="wf2-mode"><CardHeading number="01" kicker="BUILD MODE" title="Chọn cơ chế tạo" description="Mỗi chế độ thay đổi cách phân tích, blueprint và đầu ra." />
+    <div className="wf2-choice-grid">{BUILD_MODES.map((mode) => <ChoiceCard key={mode.id} active={project.mode === mode.id} icon={mode.icon} title={mode.titleVi} description={mode.descVi} onClick={() => patch({ mode: mode.id, blueprint: buildDefaultBlueprint(project.intelligence, mode.id) })} />)}</div>
+  </section>;
+}
+
+function BlueprintCard({ project, patch, rebuildBlueprint, runTask, busy }) {
+  const blueprint = project.blueprint || [];
+  const totalItems = blueprint.reduce((sum, item) => sum + Number(item.count || 0), 0);
+  const totalPoints = blueprint.reduce((sum, item) => sum + Number(item.count || 0) * Number(item.points || 0), 0);
+  const distribution = difficultyCounts(blueprint);
+  const updatePlan = (id, change) => patch({ blueprint: blueprint.map((item) => item.id === id ? { ...item, ...change } : item) });
+  const addPlan = () => patch({ blueprint: [...blueprint, { id: uid('plan'), type: 'multiple_choice', count: 5, points: 1, difficulty: project.learner.level, status: 'planned', generated: false }] });
+  return <section className="wf2-card" id="wf2-blueprint"><CardHeading number="05" kicker="WORKSHEET BLUEPRINT" title="Thiết kế cấu trúc đầu ra" description="Kiểm soát số phần, số câu, điểm, độ khó và trạng thái tạo." action={<div className="wf2-inline-actions"><button type="button" onClick={rebuildBlueprint}>↻ Đề xuất lại</button><button type="button" onClick={() => runTask('blueprint')} disabled={busy}>✦ AI blueprint</button></div>} />
+    <div className="wf2-blueprint-metrics"><Metric icon="≡" label="Số phần" value={blueprint.length} /><Metric icon="#" label="Số câu" value={totalItems} /><Metric icon="★" label="Tổng điểm" value={totalPoints} /><Metric icon="◷" label="Thời lượng" value={`${project.learner.minutes} phút`} /></div>
+    <div className="wf2-plan-table"><div className="wf2-plan-head"><span>Dạng bài</span><span>Số câu</span><span>Điểm/câu</span><span>Độ khó</span><span>Trạng thái</span><span /></div>{blueprint.map((plan, index) => <div className="wf2-plan-row" key={plan.id}><select value={plan.type} onChange={(e) => updatePlan(plan.id, { type: e.target.value, generated: false, status: 'planned' })}>{WORKSHEET_ACTIVITY_TYPES.map((type) => <option key={type.id} value={type.id}>{activityLabel(type.id)}</option>)}</select><input type="number" min="1" max="30" value={plan.count} onChange={(e) => updatePlan(plan.id, { count: Math.max(1, Number(e.target.value) || 1) })} /><input type="number" min="0" max="10" step="0.25" value={plan.points} onChange={(e) => updatePlan(plan.id, { points: Number(e.target.value) || 0 })} /><select value={plan.difficulty} onChange={(e) => updatePlan(plan.id, { difficulty: e.target.value })}><option>A2</option><option>B1</option><option>B1-B2</option><option>B2</option><option>B2-C1</option><option>C1</option></select><span className={`wf2-status ${plan.status}`}>{plan.status === 'teacher-approved' ? 'Đã duyệt' : plan.generated ? 'AI Draft' : 'Planned'}</span><button type="button" aria-label={`Xóa phần ${index + 1}`} onClick={() => patch({ blueprint: blueprint.filter((item) => item.id !== plan.id) })}>×</button></div>)}</div>
+    <button type="button" className="wf2-add-row" onClick={addPlan}>＋ Thêm hoạt động</button>
+    <div className="wf2-difficulty"><h3>Phân bố độ khó</h3>{Object.entries(distribution).filter(([, value]) => value).map(([level, value]) => <div key={level}><span>{level}</span><b>{value}%</b><i><u style={{ width: `${value}%` }} /></i></div>)}</div>
+    {project.mode === 'batch' ? <div className="wf2-batch-settings"><h3>Batch variants</h3><div className="wf2-form-grid two"><label className="wf2-field"><span>Số phiên bản</span><input type="number" min="2" max="12" value={project.batch.variants} onChange={(event) => patch({ batch: { ...project.batch, variants: Math.max(2, Math.min(12, Number(event.target.value) || 2)) } })} /></label><label className="wf2-field"><span>Mã lớp / tên phiên bản</span><input value={project.batch.classNames.join(', ')} onChange={(event) => patch({ batch: { ...project.batch, classNames: event.target.value.split(',').map((item) => item.trim()).filter(Boolean) } })} placeholder="12A1, 12A2, Support" /></label></div><div className="wf2-chips accent">{['A2','B1','B2','C1'].map((level) => <button type="button" key={level} className={project.batch.levels.includes(level) ? 'active' : ''} onClick={() => patch({ batch: { ...project.batch, levels: project.batch.levels.includes(level) ? project.batch.levels.filter((item) => item !== level) : [...project.batch.levels, level] } })}>{level}</button>)}</div></div> : null}
+    <div className="wf2-blueprint-options"><label className="wf2-field"><span>Loại đáp án</span><select value={project.answerMode} onChange={(e) => patch({ answerMode: e.target.value })}><option value="key-only">Chỉ đáp án</option><option value="explanations">Đáp án + giải thích</option><option value="explanations-bilingual">Giải thích song ngữ</option></select></label><label className="wf2-field"><span>Vị trí đáp án</span><select value={project.answerPosition} onChange={(e) => patch({ answerPosition: e.target.value })}><option value="teacher-edition">Teacher edition riêng</option><option value="end">Cuối tài liệu</option><option value="after-item">Sau từng câu</option></select></label><label className="wf2-field"><span>Yêu cầu chuyên môn</span><textarea rows={3} value={project.customInstruction} onChange={(e) => patch({ customInstruction: e.target.value })} /></label></div>
+    <h3>Quy tắc chất lượng</h3><div className="wf2-rule-grid">{[['no-duplicates','Không trùng câu'],['one-answer','Chỉ một đáp án đúng'],['source-grounded','Bám nguồn'],['explanations','Có giải thích'],['balanced-thinking','Cân bằng tư duy'],['time-fit','Phù hợp thời lượng'],['content-words','Giảm lặp content words'],['different-contexts','Đa dạng bối cảnh']].map(([id,label]) => <label key={id} className={project.qualityRules.includes(id) ? 'active' : ''}><input type="checkbox" checked={project.qualityRules.includes(id)} onChange={() => patch({ qualityRules: project.qualityRules.includes(id) ? project.qualityRules.filter((item) => item !== id) : [...project.qualityRules, id] })} /><span>{label}</span></label>)}</div>
+  </section>;
+}
+
+function AiCopilotCard({ project, runTask, selectedTask, setSelectedTask, busy, hasApiKey, providerName, aiMessage }) {
+  return <section className="wf2-card" id="wf2-ai"><CardHeading number="06" kicker="AI WORKSHEET COPILOT" title="AI theo tác vụ chuyên môn" description="Không dùng một prompt chung. Chọn đúng tác vụ và phạm vi AI được phép thay đổi." />
+    <div className="wf2-ai-provider"><span className={hasApiKey ? 'ready' : 'local'}>● {hasApiKey ? 'AI thật đang bật' : 'Bộ máy nội bộ sẵn sàng'}</span><strong>{providerName || 'Brian Local Engine'}</strong></div>
+    <div className="wf2-ai-grid">{AI_TASKS.map((task) => <button type="button" key={task.id} className={selectedTask === task.id ? 'active' : ''} onClick={() => setSelectedTask(task.id)}><i>{task.icon}</i><span><strong>{task.titleVi}</strong><small>{task.descVi}</small></span><b>{selectedTask === task.id ? '✓' : ''}</b></button>)}</div>
+    {selectedTask === 'custom' ? <label className="wf2-field"><span>Yêu cầu riêng</span><textarea id="wf2-custom-ai-request" rows={4} placeholder="Ví dụ: Chuyển phần 2 thành cloze text B2, giữ nguyên chủ đề môi trường…" /></label> : null}
+    <button type="button" className="wf2-primary wide" onClick={() => runTask(selectedTask)} disabled={busy}>{busy ? 'Đang xử lý…' : `✦ Chạy ${AI_TASKS.find((item) => item.id === selectedTask)?.titleVi || 'AI Copilot'}`}</button>
+    {aiMessage ? <p className="wf2-ai-message">{aiMessage}</p> : null}
+  </section>;
+}
+
+function Editor({ project, patch, audit, approveActivity, runTask, busy }) {
+  const worksheet = project.worksheet;
+  const activities = worksheet?.activities || [];
+  const selected = activities.find((activity) => activity.id === project.selectedActivityId) || activities[0];
+  const selectedIndex = activities.findIndex((activity) => activity.id === selected?.id);
+  const updateWorksheet = (next) => patch({ worksheet: normalizeWorksheet(next, { language: 'vi' }), updatedAt: Date.now() });
+  const updateActivity = (change) => updateWorksheet({ ...worksheet, activities: activities.map((activity) => activity.id === selected.id ? { ...activity, ...change } : activity) });
+  const updateItem = (id, change) => updateActivity({ items: selected.items.map((item) => item.id === id ? { ...item, ...change } : item) });
+  const moveActivity = (direction) => {
+    if (selectedIndex < 0) return;
+    const target = selectedIndex + direction;
+    if (target < 0 || target >= activities.length) return;
+    const next = [...activities]; [next[selectedIndex], next[target]] = [next[target], next[selectedIndex]];
+    updateWorksheet({ ...worksheet, activities: next });
   };
-
-  return (
-    <section className="wf-config-layout">
-      <div className="wf-panel wf-config-main">
-        <div className="wf-panel-heading">
-          <div>
-            <span className="wf-kicker">02 · {language === 'vi' ? 'Cấu hình nội dung' : 'Configure content'}</span>
-            <h2>{language === 'vi' ? 'Chọn dạng bài cần tạo' : 'Choose worksheet activities'}</h2>
-          </div>
-          <span className="wf-count-pill">{selectedTypes.length} {language === 'vi' ? 'dạng đã chọn' : 'selected'}</span>
-        </div>
-
-        <div className="wf-preset-row">
-          {PRESETS.map((preset) => (
-            <button type="button" key={preset.id} onClick={() => applyPreset(preset)}>
-              <strong>{language === 'vi' ? preset.titleVi : preset.title}</strong>
-              <span>{language === 'vi' ? preset.descVi : preset.desc}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="wf-activity-type-grid">
-          {WORKSHEET_ACTIVITY_TYPES.map((type) => {
-            const active = selectedTypes.includes(type.id);
-            return (
-              <button type="button" key={type.id} className={active ? 'active' : ''} onClick={() => toggleType(type.id)}>
-                <span className="wf-type-icon">{type.icon}</span>
-                <strong>{language === 'vi' ? type.labelVi : type.label}</strong>
-                <small>{language === 'vi' ? type.descVi : type.desc}</small>
-                <i>{active ? '✓' : '+'}</i>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <aside className="wf-panel wf-settings-panel">
-        <span className="wf-kicker">{language === 'vi' ? 'Thông số phiếu' : 'Worksheet settings'}</span>
-        <div className="wf-settings-form">
-          <label>
-            <span>{language === 'vi' ? 'Tiêu đề phiếu' : 'Worksheet title'}</span>
-            <input value={settings.title} onChange={(event) => setSettings({ ...settings, title: event.target.value })} />
-          </label>
-          <div className="wf-two-fields">
-            <label>
-              <span>CEFR</span>
-              <select value={settings.level} onChange={(event) => setSettings({ ...settings, level: event.target.value })}>
-                {['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'B2-C1'].map((level) => <option key={level}>{level}</option>)}
-              </select>
-            </label>
-            <label>
-              <span>{language === 'vi' ? 'Đối tượng' : 'Audience'}</span>
-              <select value={settings.audience} onChange={(event) => setSettings({ ...settings, audience: event.target.value })}>
-                <option>THCS</option><option>THPT</option><option>Grade 12</option><option>HSG</option><option>Adult</option><option>University</option>
-              </select>
-            </label>
-          </div>
-          <label>
-            <span>{language === 'vi' ? 'Số câu mỗi hoạt động' : 'Items per activity'}</span>
-            <div className="wf-range-line">
-              <input type="range" min="2" max="20" value={settings.itemsPerActivity} onChange={(event) => setSettings({ ...settings, itemsPerActivity: Number(event.target.value) })} />
-              <strong>{settings.itemsPerActivity}</strong>
-            </div>
-          </label>
-          <label>
-            <span>{language === 'vi' ? 'Chủ đề / trọng tâm' : 'Topic / focus'}</span>
-            <input value={settings.topic} onChange={(event) => setSettings({ ...settings, topic: event.target.value })} placeholder={language === 'vi' ? 'Ví dụ: Verb forms, environment…' : 'Example: Verb forms, environment…'} />
-          </label>
-          <label>
-            <span>{language === 'vi' ? 'Yêu cầu riêng' : 'Additional instruction'}</span>
-            <textarea rows={4} value={settings.customInstruction} onChange={(event) => setSettings({ ...settings, customInstruction: event.target.value })} placeholder={language === 'vi' ? 'Ví dụ: Không trùng content words; bám cấu trúc đề THPT…' : 'Example: Avoid repeated content words; follow THPT format…'} />
-          </label>
-          <label className="wf-check-row"><input type="checkbox" checked={settings.includeExplanations} onChange={(event) => setSettings({ ...settings, includeExplanations: event.target.checked })} /><span>{language === 'vi' ? 'Kèm giải thích đáp án' : 'Include answer explanations'}</span></label>
-          <label className="wf-check-row"><input type="checkbox" checked={settings.avoidRepeatedContentWords} onChange={(event) => setSettings({ ...settings, avoidRepeatedContentWords: event.target.checked })} /><span>{language === 'vi' ? 'Hạn chế trùng content words' : 'Avoid repeated content words'}</span></label>
-        </div>
-        <div className="wf-step-actions vertical">
-          <button type="button" className="wf-secondary" onClick={onBack}>← {language === 'vi' ? 'Quay lại' : 'Back'}</button>
-          <button type="button" className="wf-primary" disabled={!selectedTypes.length} onClick={onNext}>{language === 'vi' ? 'Kiểm tra trước khi tạo' : 'Review generation'} →</button>
-        </div>
-      </aside>
-    </section>
-  );
-}
-
-function GenerateStep({ language, hasApiKey, providerName, sourceText, sourceName, settings, selectedTypes, busy, error, message, onBack, onGenerate }) {
-  const estimatedItems = selectedTypes.length * settings.itemsPerActivity;
-  return (
-    <section className="wf-generation-layout">
-      <div className="wf-panel wf-generation-card">
-        <div className="wf-generation-visual" aria-hidden="true">
-          <div className="wf-sheet-stack"><i /><i /><i /></div>
-          <div className={`wf-factory-machine ${busy ? 'running' : ''}`}><span>WF</span><b>AI</b></div>
-        </div>
-        <div className="wf-generation-copy">
-          <span className="wf-kicker">03 · {language === 'vi' ? 'Sẵn sàng sản xuất' : 'Ready to manufacture'}</span>
-          <h2>{language === 'vi' ? 'Tạo một phiếu học tập hoàn chỉnh' : 'Generate a complete worksheet'}</h2>
-          <p>{hasApiKey
-            ? (language === 'vi' ? `Brian AI sẽ dùng ${providerName || 'provider đã cấu hình'} để tạo nội dung, đáp án và giải thích.` : `Brian AI will use ${providerName || 'your configured provider'} to create tasks, answers and explanations.`)
-            : (language === 'vi' ? 'Chưa cấu hình AI. Ứng dụng vẫn tạo một bản nháp offline từ nội dung nguồn.' : 'No AI provider is configured. The app can still create an offline starter draft from your source.')}
-          </p>
-          <div className="wf-generation-summary">
-            <div><span>{language === 'vi' ? 'Nguồn' : 'Source'}</span><strong>{sourceName || settings.topic || (language === 'vi' ? 'Văn bản dán' : 'Pasted text')}</strong></div>
-            <div><span>{language === 'vi' ? 'Trình độ' : 'Level'}</span><strong>{settings.level} · {settings.audience}</strong></div>
-            <div><span>{language === 'vi' ? 'Hoạt động' : 'Activities'}</span><strong>{selectedTypes.length}</strong></div>
-            <div><span>{language === 'vi' ? 'Số câu dự kiến' : 'Estimated items'}</span><strong>{estimatedItems}</strong></div>
-            <div><span>{language === 'vi' ? 'Độ dài nguồn' : 'Source length'}</span><strong>{sourceText.length.toLocaleString()} {language === 'vi' ? 'ký tự' : 'characters'}</strong></div>
-            <div><span>{language === 'vi' ? 'Chế độ' : 'Mode'}</span><strong>{hasApiKey ? 'AI Factory' : 'Offline Draft'}</strong></div>
-          </div>
-          {error && <div className="wf-generation-error">{error}</div>}
-          {message && <div className="wf-generation-message">{message}</div>}
-          <div className="wf-generation-actions">
-            <button type="button" className="wf-secondary" onClick={onBack} disabled={busy}>← {language === 'vi' ? 'Chỉnh cấu hình' : 'Edit settings'}</button>
-            <button type="button" className="wf-primary wf-generate-button" onClick={onGenerate} disabled={busy}>
-              {busy ? <><span className="wf-spinner" /> {language === 'vi' ? 'Đang tạo phiếu…' : 'Generating…'}</> : <><ActionIcon>✦</ActionIcon> {hasApiKey ? (language === 'vi' ? 'Tạo bằng Brian AI' : 'Generate with Brian AI') : (language === 'vi' ? 'Tạo bản nháp offline' : 'Create offline draft')}</>}
-            </button>
-          </div>
-        </div>
-      </div>
-      <aside className="wf-panel wf-quality-promise">
-        <span className="wf-kicker">{language === 'vi' ? 'Kiểm soát chất lượng' : 'Quality controls'}</span>
-        <h3>{language === 'vi' ? 'Factory checklist' : 'Factory checklist'}</h3>
-        <ul>
-          <li><span>✓</span>{language === 'vi' ? 'Mỗi dạng bài có hướng dẫn rõ ràng' : 'Clear instructions for every activity'}</li>
-          <li><span>✓</span>{language === 'vi' ? 'Đáp án và giải thích tách riêng' : 'Separate answers and explanations'}</li>
-          <li><span>✓</span>{language === 'vi' ? 'Phát hiện câu trùng và phương án lỗi' : 'Duplicate and option validation'}</li>
-          <li><span>✓</span>{language === 'vi' ? 'Xuất Word, HTML, JSON và PDF qua Print' : 'Word, HTML, JSON and print/PDF export'}</li>
-          <li><span>✓</span>{language === 'vi' ? 'Lưu vào thư viện và ngân hàng câu hỏi' : 'Save to Library and Question Bank'}</li>
-        </ul>
-      </aside>
-    </section>
-  );
-}
-
-function QualityCard({ audit, language }) {
-  const grade = audit.score >= 95 ? 'A+' : audit.score >= 85 ? 'A' : audit.score >= 70 ? 'B' : 'C';
-  return (
-    <aside className={`wf-quality-card ${audit.passed ? 'passed' : 'needs-review'}`}>
-      <div className="wf-quality-score"><strong>{audit.score}</strong><span>/100</span><b>{grade}</b></div>
-      <div>
-        <h3>{language === 'vi' ? 'Kiểm tra chất lượng' : 'Quality audit'}</h3>
-        <p>{audit.passed ? (language === 'vi' ? 'Phiếu đã sẵn sàng để rà soát cuối.' : 'The worksheet is ready for final review.') : (language === 'vi' ? 'Cần kiểm tra một số mục được đánh dấu.' : 'Review the flagged items before use.')}</p>
-        <div className="wf-quality-tags">
-          <span>{audit.totalItems} {language === 'vi' ? 'câu' : 'items'}</span>
-          <span>{audit.exactDuplicates.length} {language === 'vi' ? 'trùng chính xác' : 'exact duplicates'}</span>
-          <span>{audit.nearDuplicates.length} {language === 'vi' ? 'gần trùng' : 'near duplicates'}</span>
-          <span>{audit.missingAnswers.length} {language === 'vi' ? 'thiếu đáp án' : 'missing answers'}</span>
-          <span>{audit.invalidOptions.length} {language === 'vi' ? 'lỗi phương án' : 'option issues'}</span>
-        </div>
-      </div>
-    </aside>
-  );
-}
-
-function WorksheetPreview({ worksheet, teacherVersion, language }) {
-  const html = useMemo(() => worksheetToHtml(worksheet, { teacherVersion, language, standalone: false }), [worksheet, teacherVersion, language]);
-  return <div className={`wf-paper-preview ${teacherVersion ? 'teacher-version' : 'student-version'}`} dangerouslySetInnerHTML={{ __html: html }} />;
-}
-
-function ItemEditor({ item, activityType, onChange, onDelete, language }) {
-  const hasOptions = ['multiple_choice', 'vocabulary_context', 'reading_comprehension', 'true_false'].includes(activityType) || item.options.length;
-  return (
-    <div className="wf-item-editor">
-      <div className="wf-item-editor-head">
-        <span>{language === 'vi' ? 'Câu hỏi / nhiệm vụ' : 'Question / task'}</span>
-        <button type="button" onClick={onDelete} title={language === 'vi' ? 'Xóa câu' : 'Delete item'}>×</button>
-      </div>
-      <textarea rows={3} value={item.prompt} onChange={(event) => onChange({ ...item, prompt: event.target.value })} />
-      {hasOptions && (
-        <label>
-          <span>{language === 'vi' ? 'Phương án — mỗi dòng một phương án' : 'Options — one per line'}</span>
-          <textarea rows={4} value={item.options.join('\n')} onChange={(event) => onChange({ ...item, options: event.target.value.split('\n').map((value) => value.trim()).filter(Boolean) })} />
-        </label>
-      )}
-      <div className="wf-item-editor-grid">
-        <label><span>{language === 'vi' ? 'Đáp án' : 'Answer'}</span><input value={item.answer} onChange={(event) => onChange({ ...item, answer: event.target.value })} /></label>
-        <label><span>{language === 'vi' ? 'Giải thích' : 'Explanation'}</span><input value={item.explanation} onChange={(event) => onChange({ ...item, explanation: event.target.value })} /></label>
-      </div>
+  if (!worksheet) return null;
+  return <section className="wf2-workbench" id="wf2-editor"><header className="wf2-workbench-head"><div><span>07 · WORKSHEET EDITOR</span><h2>Biên tập, dàn trang và kiểm định</h2><p>Kéo logic theo section, sửa câu hỏi, đáp án và xem readiness trước khi xuất.</p></div><div><button type="button" onClick={() => patch({ worksheet: shuffleWorksheet(worksheet) })}>⇆ Xáo trộn</button><button type="button" onClick={() => patch({ stage: 'preview' })}>▤ A4 Preview</button><button type="button" onClick={() => runTask('answers')} disabled={busy}>✦ AI kiểm tra</button></div></header>
+    <div className="wf2-editor-layout"><aside className="wf2-section-nav"><header><strong>{activities.length} phần</strong><span>{audit.totalItems} câu</span></header>{activities.map((activity, index) => <button type="button" key={activity.id} className={selected?.id === activity.id ? 'active' : ''} onClick={() => patch({ selectedActivityId: activity.id })}><i>{index + 1}</i><span><strong>{activity.title}</strong><small>{activity.items.length} items · {activityLabel(activity.type)}</small></span><b>{project.blueprint.find((plan) => plan.type === activity.type)?.status === 'teacher-approved' ? '✓' : ''}</b></button>)}</aside>
+      <main className="wf2-editor-main">{selected ? <><div className="wf2-activity-toolbar"><button type="button" onClick={() => moveActivity(-1)}>↑</button><button type="button" onClick={() => moveActivity(1)}>↓</button><select value={selected.type} onChange={(e) => updateActivity({ type: e.target.value })}>{WORKSHEET_ACTIVITY_TYPES.map((type) => <option key={type.id} value={type.id}>{activityLabel(type.id)}</option>)}</select><button type="button" onClick={() => approveActivity(selected)}>✓ Duyệt phần</button><button type="button" onClick={() => runTask('transform')} disabled={busy}>✦ AI viết lại</button></div><input className="wf2-activity-title" value={selected.title} onChange={(e) => updateActivity({ title: e.target.value })} /><textarea className="wf2-activity-instructions" rows={2} value={selected.instructions} onChange={(e) => updateActivity({ instructions: e.target.value })} />{selected.passage ? <textarea className="wf2-passage" rows={7} value={selected.passage} onChange={(e) => updateActivity({ passage: e.target.value })} /> : null}<div className="wf2-item-list">{selected.items.map((item, index) => <article key={item.id} className={project.selectedItemId === item.id ? 'active' : ''} onClick={() => patch({ selectedItemId: item.id })}><header><span>{String(index + 1).padStart(2, '0')}</span><div><b>{project.learner.level}</b><b>{activityLabel(selected.type)}</b><b>{item.answer ? 'Có đáp án' : 'Thiếu đáp án'}</b></div><button type="button" onClick={(event) => { event.stopPropagation(); updateActivity({ items: selected.items.filter((entry) => entry.id !== item.id) }); }}>×</button></header><label><span>Câu hỏi / prompt</span><textarea rows={3} value={item.prompt} onChange={(e) => updateItem(item.id, { prompt: e.target.value })} /></label>{item.options?.length ? <div className="wf2-options">{item.options.map((option, optionIndex) => <label key={`${item.id}-${optionIndex}`}><span>{String.fromCharCode(65 + optionIndex)}</span><input value={option} onChange={(e) => updateItem(item.id, { options: item.options.map((entry, i) => i === optionIndex ? e.target.value : entry) })} /></label>)}</div> : null}<div className="wf2-item-answer"><label><span>Đáp án</span><input value={item.answer} onChange={(e) => updateItem(item.id, { answer: e.target.value })} /></label><label><span>Giải thích</span><textarea rows={2} value={item.explanation} onChange={(e) => updateItem(item.id, { explanation: e.target.value })} /></label></div><footer><button type="button" onClick={() => updateActivity({ items: [...selected.items, { ...item, id: uid('item') }] })}>⧉ Nhân bản</button><button type="button" onClick={() => runTask('transform', { itemId: item.id })}>✦ Biến thể</button></footer></article>)}</div><button type="button" className="wf2-add-item" onClick={() => updateActivity({ items: [...selected.items, { id: uid('item'), prompt: 'New question', options: [], answer: '', explanation: '' }] })}>＋ Thêm câu hỏi</button></> : null}</main>
+      <aside className="wf2-audit-panel"><div className="wf2-score-ring" style={{ '--score': audit.score }}><strong>{audit.score}</strong><span>Quality</span></div><div className="wf2-audit-stats"><div><span>Source alignment</span><b>{audit.sourceAlignment}%</b></div><div><span>Blueprint accuracy</span><b>{audit.countAccuracy}%</b></div><div><span>Estimated pages</span><b>{audit.estimatedPages}</b></div><div><span>Print readiness</span><b>{audit.printReady ? 'Ready' : 'Review'}</b></div></div><h3>Cần xử lý</h3>{audit.issues.length ? <div className="wf2-issue-list">{audit.issues.map((issue, index) => <article key={`${issue.title}-${index}`} className={issue.level}><strong>{issue.title}</strong><span>{issue.action}</span></article>)}</div> : <p className="wf2-ok">✓ Worksheet đã vượt qua các kiểm tra chính.</p>}<button type="button" className="wf2-primary wide" onClick={() => patch({ stage: 'publish' })}>Tiếp tục xuất bản →</button></aside>
     </div>
-  );
+  </section>;
 }
 
-function WorksheetEditor({ worksheet, setWorksheet, language }) {
-  const updateActivity = (activityIndex, patch) => {
-    setWorksheet((current) => ({ ...current, activities: current.activities.map((activity, index) => index === activityIndex ? { ...activity, ...patch } : activity) }));
-  };
-  const deleteActivity = (activityIndex) => setWorksheet((current) => ({ ...current, activities: current.activities.filter((_, index) => index !== activityIndex) }));
-  const moveActivity = (activityIndex, direction) => {
-    setWorksheet((current) => {
-      const activities = [...current.activities];
-      const target = activityIndex + direction;
-      if (target < 0 || target >= activities.length) return current;
-      [activities[activityIndex], activities[target]] = [activities[target], activities[activityIndex]];
-      return { ...current, activities };
-    });
-  };
-  const addItem = (activityIndex) => {
-    const activity = worksheet.activities[activityIndex];
-    updateActivity(activityIndex, { items: [...activity.items, { id: `item-${Date.now()}`, prompt: '', options: ['multiple_choice', 'vocabulary_context', 'reading_comprehension'].includes(activity.type) ? ['', '', '', ''] : [], answer: '', explanation: '' }] });
-  };
-
-  return (
-    <div className="wf-editor-form">
-      <div className="wf-editor-header-fields">
-        <label><span>{language === 'vi' ? 'Tiêu đề' : 'Title'}</span><input value={worksheet.title} onChange={(event) => setWorksheet({ ...worksheet, title: event.target.value })} /></label>
-        <label><span>{language === 'vi' ? 'Dòng mô tả' : 'Subtitle'}</span><input value={worksheet.subtitle} onChange={(event) => setWorksheet({ ...worksheet, subtitle: event.target.value })} /></label>
-      </div>
-      {worksheet.activities.map((activity, activityIndex) => (
-        <section className="wf-activity-editor" key={activity.id}>
-          <header>
-            <div><span>{String(activityIndex + 1).padStart(2, '0')}</span><strong>{activity.title}</strong><small>{activity.type.replaceAll('_', ' ')}</small></div>
-            <div><button type="button" onClick={() => moveActivity(activityIndex, -1)}>↑</button><button type="button" onClick={() => moveActivity(activityIndex, 1)}>↓</button><button type="button" onClick={() => deleteActivity(activityIndex)}>×</button></div>
-          </header>
-          <div className="wf-activity-editor-fields">
-            <label><span>{language === 'vi' ? 'Tên hoạt động' : 'Activity title'}</span><input value={activity.title} onChange={(event) => updateActivity(activityIndex, { title: event.target.value })} /></label>
-            <label><span>{language === 'vi' ? 'Hướng dẫn' : 'Instructions'}</span><input value={activity.instructions} onChange={(event) => updateActivity(activityIndex, { instructions: event.target.value })} /></label>
-            {activity.passage !== undefined && <label><span>{language === 'vi' ? 'Đoạn văn chung' : 'Shared passage'}</span><textarea rows={5} value={activity.passage || ''} onChange={(event) => updateActivity(activityIndex, { passage: event.target.value })} /></label>}
-          </div>
-          <div className="wf-item-editor-list">
-            {activity.items.map((item, itemIndex) => (
-              <ItemEditor
-                key={item.id}
-                item={item}
-                activityType={activity.type}
-                language={language}
-                onDelete={() => updateActivity(activityIndex, { items: activity.items.filter((_, index) => index !== itemIndex) })}
-                onChange={(next) => updateActivity(activityIndex, { items: activity.items.map((current, index) => index === itemIndex ? next : current) })}
-              />
-            ))}
-          </div>
-          <button type="button" className="wf-add-item" onClick={() => addItem(activityIndex)}>+ {language === 'vi' ? 'Thêm câu hỏi' : 'Add item'}</button>
-        </section>
-      ))}
-    </div>
-  );
+function A4Preview({ project, patch, teacherVersion, setTeacherVersion }) {
+  const html = worksheetToHtml(project.worksheet, { teacherVersion, language: 'vi', standalone: false });
+  return <section className="wf2-preview"><header><div><span>A4 PREVIEW</span><h2>Xem trước bản in</h2></div><div><button type="button" className={!teacherVersion ? 'active' : ''} onClick={() => setTeacherVersion(false)}>Student</button><button type="button" className={teacherVersion ? 'active' : ''} onClick={() => setTeacherVersion(true)}>Teacher</button><button type="button" onClick={() => patch({ stage: 'editor' })}>← Quay lại Editor</button></div></header><div className={`wf2-paper layout-${project.layout}`} dangerouslySetInnerHTML={{ __html: html }} /></section>;
 }
 
-function ResultStep({ language, worksheet, setWorksheet, audit, onBack, exportActions, statusMessage }) {
-  const [view, setView] = useState('preview');
-  const [teacherVersion, setTeacherVersion] = useState(false);
-  return (
-    <section className="wf-result-step">
-      <div className="wf-result-toolbar">
-        <div className="wf-result-tabs">
-          <button type="button" className={view === 'preview' ? 'active' : ''} onClick={() => setView('preview')}>{language === 'vi' ? 'Xem trước' : 'Preview'}</button>
-          <button type="button" className={view === 'edit' ? 'active' : ''} onClick={() => setView('edit')}>{language === 'vi' ? 'Biên tập' : 'Edit'}</button>
-          <button type="button" className={view === 'quality' ? 'active' : ''} onClick={() => setView('quality')}>{language === 'vi' ? 'Chất lượng' : 'Quality'}</button>
-        </div>
-        <div className="wf-version-toggle">
-          <button type="button" className={!teacherVersion ? 'active' : ''} onClick={() => setTeacherVersion(false)}>{language === 'vi' ? 'Bản học sinh' : 'Student'}</button>
-          <button type="button" className={teacherVersion ? 'active' : ''} onClick={() => setTeacherVersion(true)}>{language === 'vi' ? 'Bản giáo viên' : 'Teacher'}</button>
-        </div>
-      </div>
+function VersionModal({ project, patch, onClose, onSave }) {
+  return <div className="wf2-modal-overlay" role="dialog" aria-modal="true"><section className="wf2-modal"><header><div><span>VERSION HISTORY</span><h2>Lịch sử phiên bản</h2><p>Lưu và khôi phục tối đa 20 phiên bản worksheet.</p></div><button type="button" onClick={onClose}>×</button></header><div className="wf2-version-list"><button type="button" className="wf2-primary" onClick={onSave}>＋ Lưu phiên bản hiện tại</button>{project.versions.length ? project.versions.map((version) => <article key={version.id}><div><strong>{version.title}</strong><span>{new Date(version.createdAt).toLocaleString('vi-VN')}</span></div><p>{version.worksheet?.activities?.length || 0} phần · {version.worksheet?.activities?.reduce((sum, activity) => sum + (activity.items?.length || 0), 0) || 0} câu</p><button type="button" onClick={() => { patch({ worksheet: version.worksheet, blueprint: version.blueprint || project.blueprint, stage: 'editor' }); onClose(); }}>Khôi phục</button></article>) : <p className="wf2-empty">Chưa có phiên bản nào được lưu.</p>}</div></section></div>;
+}
 
-      <QualityCard audit={audit} language={language} />
-      {statusMessage && <div className="wf-result-message">{statusMessage}</div>}
-
-      <div className="wf-result-layout">
-        <div className="wf-result-main">
-          {view === 'preview' && <WorksheetPreview worksheet={worksheet} teacherVersion={teacherVersion} language={language} />}
-          {view === 'edit' && <WorksheetEditor worksheet={worksheet} setWorksheet={setWorksheet} language={language} />}
-          {view === 'quality' && (
-            <div className="wf-panel wf-audit-detail">
-              <h2>{language === 'vi' ? 'Báo cáo kiểm tra tự động' : 'Automated quality report'}</h2>
-              <div className="wf-audit-grid">
-                <article><strong>{audit.exactDuplicates.length}</strong><span>{language === 'vi' ? 'Câu trùng chính xác' : 'Exact duplicates'}</span><p>{audit.exactDuplicates.length ? audit.exactDuplicates.map((pair) => `#${pair[0]} ↔ #${pair[1]}`).join(', ') : (language === 'vi' ? 'Không phát hiện.' : 'None detected.')}</p></article>
-                <article><strong>{audit.nearDuplicates.length}</strong><span>{language === 'vi' ? 'Câu gần trùng' : 'Near duplicates'}</span><p>{audit.nearDuplicates.length ? audit.nearDuplicates.slice(0, 8).map((pair) => `#${pair[0]} ↔ #${pair[1]} (${Math.round(pair[2] * 100)}%)`).join(', ') : (language === 'vi' ? 'Không phát hiện.' : 'None detected.')}</p></article>
-                <article><strong>{audit.missingAnswers.length}</strong><span>{language === 'vi' ? 'Thiếu đáp án' : 'Missing answers'}</span><p>{audit.missingAnswers.length ? audit.missingAnswers.map((index) => `#${index}`).join(', ') : (language === 'vi' ? 'Tất cả câu đều có đáp án.' : 'Every item has an answer.')}</p></article>
-                <article><strong>{audit.invalidOptions.length}</strong><span>{language === 'vi' ? 'Lỗi phương án' : 'Option issues'}</span><p>{audit.invalidOptions.length ? audit.invalidOptions.map((index) => `#${index}`).join(', ') : (language === 'vi' ? 'Phương án hợp lệ.' : 'Options are valid.')}</p></article>
-              </div>
-              <p className="wf-audit-note">{language === 'vi' ? 'Kiểm tra tự động giúp phát hiện lỗi kỹ thuật. Giáo viên vẫn cần đọc lại nội dung, độ chính xác chuyên môn và độ phù hợp với học sinh.' : 'Automated checks detect technical issues. Teachers should still review content accuracy and learner suitability.'}</p>
-            </div>
-          )}
-        </div>
-
-        <aside className="wf-panel wf-export-panel">
-          <span className="wf-kicker">04 · {language === 'vi' ? 'Xuất bản' : 'Publish'}</span>
-          <h2>{language === 'vi' ? 'Dùng phiếu ở bất cứ đâu' : 'Use the worksheet anywhere'}</h2>
-          <p>{language === 'vi' ? 'Xuất đúng phiên bản đang chọn: học sinh hoặc giáo viên.' : 'Exports follow the selected student or teacher version.'}</p>
-          <div className="wf-export-buttons">
-            <button type="button" onClick={() => exportActions.docx(teacherVersion)}><ActionIcon>W</ActionIcon><span><strong>Word .docx</strong><small>{language === 'vi' ? 'File Word thật, khổ A4' : 'Real Word file, A4 layout'}</small></span></button>
-            <button type="button" onClick={() => exportActions.print(teacherVersion)}><ActionIcon>PDF</ActionIcon><span><strong>{language === 'vi' ? 'In / Lưu PDF' : 'Print / Save PDF'}</strong><small>{language === 'vi' ? 'Mở bố cục in sạch' : 'Open clean print layout'}</small></span></button>
-            <button type="button" onClick={() => exportActions.html(teacherVersion)}><ActionIcon>&lt;/&gt;</ActionIcon><span><strong>HTML</strong><small>{language === 'vi' ? 'Dùng offline trên trình duyệt' : 'Use offline in a browser'}</small></span></button>
-            <button type="button" onClick={exportActions.json}><ActionIcon>{'{ }'}</ActionIcon><span><strong>JSON</strong><small>{language === 'vi' ? 'Lưu dữ liệu có cấu trúc' : 'Structured worksheet data'}</small></span></button>
-            <button type="button" onClick={() => exportActions.copy(teacherVersion)}><ActionIcon>⧉</ActionIcon><span><strong>{language === 'vi' ? 'Sao chép văn bản' : 'Copy text'}</strong><small>{language === 'vi' ? 'Dán vào Word hoặc LMS' : 'Paste into Word or LMS'}</small></span></button>
-          </div>
-          <div className="wf-export-divider" />
-          <button type="button" className="wf-library-action" onClick={exportActions.saveLibrary}>☆ {language === 'vi' ? 'Lưu vào Thư viện' : 'Save to Library'}</button>
-          <button type="button" className="wf-library-action" onClick={exportActions.addBank}>▣ {language === 'vi' ? 'Đưa MCQ vào ngân hàng câu hỏi' : 'Add MCQs to Question Bank'}</button>
-          <button type="button" className="wf-library-action" onClick={() => setWorksheet(shuffleWorksheet(worksheet))}>↻ {language === 'vi' ? 'Đảo câu và phương án' : 'Shuffle items and options'}</button>
-          <button type="button" className="wf-secondary full" onClick={onBack}>← {language === 'vi' ? 'Tạo phiếu khác' : 'Create another worksheet'}</button>
-        </aside>
-      </div>
-    </section>
-  );
+function PublishCard({ project, patch, audit, exportActions, sendTo }) {
+  return <section className="wf2-card full" id="wf2-publish"><CardHeading number="09" kicker="PUBLISH & CONNECTED WORKFLOW" title="Dàn trang, xuất bản và kết nối" description="Chỉ bản đã kiểm định và giáo viên phê duyệt mới được xem là hoàn chỉnh." action={<span className={`wf2-publish-state ${project.status}`}>{project.status}</span>} />
+    <div className="wf2-publish-layout"><div><h3>Layout template</h3><div className="wf2-layout-grid">{LAYOUTS.map(([id, label]) => <button type="button" key={id} className={project.layout === id ? 'active' : ''} onClick={() => patch({ layout: id })}><i>{id === 'exam-format' ? 'EX' : id === 'compact' ? 'CP' : 'WF'}</i><span>{label}</span><b>{project.layout === id ? '✓' : ''}</b></button>)}</div><h3>Xuất tài liệu</h3><div className="wf2-export-grid"><button type="button" onClick={() => exportActions.docx(false)}><i>DOC</i><span><strong>Student DOCX</strong><small>Phiếu sạch để học sinh làm bài.</small></span></button><button type="button" onClick={() => exportActions.docx(true)}><i>KEY</i><span><strong>Teacher DOCX</strong><small>Đáp án, giải thích và teacher notes.</small></span></button><button type="button" onClick={() => exportActions.html(false)}><i>HTML</i><span><strong>Interactive HTML</strong><small>Mở trong trình duyệt hoặc in PDF.</small></span></button><button type="button" onClick={exportActions.json}><i>JSON</i><span><strong>Project backup</strong><small>Khôi phục và tiếp tục biên tập.</small></span></button>{project.mode === 'batch' ? <button type="button" onClick={exportActions.batchZip}><i>ZIP</i><span><strong>Batch variants</strong><small>Tạo các mã A/B/C… và phiên bản theo level.</small></span></button> : null}<button type="button" onClick={exportActions.saveLibrary}><i>LIB</i><span><strong>Teacher Library</strong><small>Lưu bản đã duyệt vào kho học liệu.</small></span></button><button type="button" onClick={exportActions.addBank}><i>QB</i><span><strong>Item Bank</strong><small>Đưa câu hỏi phù hợp vào ngân hàng.</small></span></button></div></div><div><div className="wf2-readiness"><div className="wf2-score-ring" style={{ '--score': audit.score }}><strong>{audit.score}</strong><span>Quality</span></div><div><h3>{audit.printReady ? 'Sẵn sàng xuất bản' : 'Cần xem lại trước khi xuất'}</h3><p>{audit.totalItems} câu · {audit.activityCount} phần · khoảng {audit.estimatedPages} trang</p><button type="button" onClick={() => patch({ status: 'teacher-approved' })}>✓ Giáo viên phê duyệt</button></div></div><h3>Kết nối ứng dụng</h3><div className="wf2-destination-grid">{DESTINATIONS.map((destination) => <button type="button" key={destination.id} onClick={() => sendTo(destination)}><i>{destination.icon}</i><span><strong>{destination.label}</strong><small>{destination.desc}</small></span><b>→</b></button>)}</div></div></div>
+  </section>;
 }
 
 export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel = '', hasApiKey = false, aiSummary = {}, currentUser = null }) {
-  const [step, setStep] = useState(1);
-  const [sourceText, setSourceText] = useState('');
-  const [sourceName, setSourceName] = useState('');
-  const [topic, setTopic] = useState('');
-  const [selectedTypes, setSelectedTypes] = useState(PRESETS[0].types);
-  const [settings, setSettings] = useState({
-    title: language === 'vi' ? 'Phiếu học tập tiếng Anh' : 'English Worksheet',
-    level: 'B2',
-    audience: 'THPT',
-    itemsPerActivity: 6,
-    topic: '',
-    customInstruction: '',
-    includeExplanations: true,
-    avoidRepeatedContentWords: true,
-  });
-  const [worksheet, setWorksheet] = useState(null);
+  const storageKey = useMemo(() => scopedKey(currentUser), [currentUser?.id, currentUser?.email]);
+  const [project, setProject] = useState(defaultProject);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const [statusMessage, setStatusMessage] = useState('');
+  const [fileBusy, setFileBusy] = useState(false);
+  const [selectedTask, setSelectedTask] = useState('analyse');
+  const [aiMessage, setAiMessage] = useState('');
+  const [notice, setNotice] = useState('');
+  const [pendingTransfer, setPendingTransfer] = useState(null);
+  const [teacherVersion, setTeacherVersion] = useState(false);
+  const [showVersions, setShowVersions] = useState(false);
 
-  const draftKey = useMemo(() => `bes-worksheet-factory-draft:${currentUser?.id || currentUser?.email || 'guest'}`, [currentUser]);
-  const audit = useMemo(() => worksheet ? auditWorksheet(worksheet) : null, [worksheet]);
+  useEffect(() => {
+    try { const saved = JSON.parse(localStorage.getItem(storageKey) || 'null'); if (saved) setProject(normalizeProject(saved)); else setProject(defaultProject()); } catch { setProject(defaultProject()); }
+  }, [storageKey]);
+  useEffect(() => { const timer = window.setTimeout(() => { try { localStorage.setItem(storageKey, JSON.stringify(project)); } catch { /* optional local save */ } }, 250); return () => window.clearTimeout(timer); }, [project, storageKey]);
+  useEffect(() => {
+    setPendingTransfer(pendingTransferFor(currentUser, 'worksheet-factory'));
+    const handler = (event) => { const item = event.detail; if (item?.target === 'worksheet-factory') setPendingTransfer(item); };
+    window.addEventListener(TRANSFER_APPLY_EVENT, handler);
+    return () => window.removeEventListener(TRANSFER_APPLY_EVENT, handler);
+  }, [currentUser?.id, currentUser?.email]);
 
   useEffect(() => {
     const onAiUseResult = (event) => {
       const detail = event.detail || {};
-      if (detail.toolSlug !== 'worksheet-factory' || !String(detail.text || '').trim()) return;
-      setSourceText(String(detail.text).trim());
-      setSourceName(language === 'vi' ? 'Kết quả từ Brian AI' : 'Brian AI result');
-      setStep(1);
-      setStatusMessage(language === 'vi' ? 'Đã đưa kết quả AI vào nguồn nội dung của Worksheet Factory.' : 'AI result added to the Worksheet Factory source.');
+      if (detail.toolSlug !== 'worksheet-factory' || !safeText(detail.text)) return;
+      const sourceText = safeText(detail.text);
+      setProject((current) => normalizeProject({ ...current, sourceText, sourceName: 'Kết quả từ Brian AI', sourceKind: 'ai-result', intelligence: offlineSourceIntelligence(sourceText, 'Kết quả từ Brian AI'), stage: 'source', updatedAt: Date.now() }));
+      setNotice('Đã đưa kết quả AI vào Source & Input.');
       detail.markHandled?.();
     };
     const onContentTransfer = (event) => {
       const detail = event.detail || {};
-      if (detail.target !== 'worksheet-factory' || !String(detail.content || '').trim()) return;
-      setSourceText(String(detail.content).trim());
-      setSourceName(String(detail.title || (language === 'vi' ? 'Nội dung được chuyển tới' : 'Transferred content')));
-      setStep(1);
-      setStatusMessage(language === 'vi' ? `Đã nhận nội dung từ ${detail.sourceTitle || 'ứng dụng khác'}.` : `Received content from ${detail.sourceTitle || 'another app'}.`);
+      if (detail.target !== 'worksheet-factory' || !safeText(detail.content)) return;
+      const sourceText = safeText(detail.content);
+      setProject((current) => normalizeProject({ ...current, sourceText, sourceName: safeText(detail.title) || 'Nội dung được chuyển tới', sourceKind: 'transfer', intelligence: offlineSourceIntelligence(sourceText, detail.title || ''), stage: 'source', updatedAt: Date.now() }));
+      setNotice(`Đã nhận nội dung từ ${detail.sourceTitle || 'ứng dụng khác'}.`);
     };
     window.addEventListener('bes-ai-use-result', onAiUseResult);
     window.addEventListener('bes-content-transfer-apply', onContentTransfer);
@@ -623,185 +469,189 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
       window.removeEventListener('bes-ai-use-result', onAiUseResult);
       window.removeEventListener('bes-content-transfer-apply', onContentTransfer);
     };
-  }, [language]);
+  }, []);
 
-  useEffect(() => {
+  const patch = (change) => setProject((current) => normalizeProject({ ...current, ...change, updatedAt: Date.now() }));
+  const patchLearner = (change) => setProject((current) => normalizeProject({ ...current, learner: { ...current.learner, ...change }, updatedAt: Date.now() }));
+  const audit = useMemo(() => detailedAudit(project, project.worksheet), [project]);
+  const providerName = aiSummary?.providerName || (hasApiKey ? 'AI Provider' : 'Brian Local Engine');
+  const blueprintItems = project.blueprint.reduce((sum, item) => sum + Number(item.count || 0), 0);
+
+  const setStage = (stage) => patch({ stage });
+  const applyTransfer = () => {
+    if (!pendingTransfer) return;
+    patch({ sourceText: pendingTransfer.content || '', sourceName: pendingTransfer.title || 'Transfer Inbox', sourceKind: 'transfer', intelligence: offlineSourceIntelligence(pendingTransfer.content || '', pendingTransfer.title || '') });
+    updateTransfer(currentUser, pendingTransfer.id, { status: 'applied', appliedAt: Date.now() });
+    setPendingTransfer(null); setNotice('Đã nhận nội dung từ Transfer Inbox.');
+  };
+
+  const loadItemBankSource = () => {
+    const items = loadBank().slice(0, 120);
+    if (!items.length) { setNotice('Item Bank hiện chưa có câu hỏi.'); return; }
+    const text = items.map((item, index) => {
+      const options = Array.isArray(item.options) ? item.options.map((option, optionIndex) => `${String.fromCharCode(65 + optionIndex)}. ${option}`).join('\n') : '';
+      return `Question ${index + 1}. ${item.question}${options ? `\n${options}` : ''}\nAnswer: ${item.answer || ''}\nExplanation: ${item.explanation || ''}`;
+    }).join('\n\n');
+    patch({ sourceText: text, sourceName: `Item Bank — ${items.length} approved items`, sourceKind: 'item-bank', intelligence: offlineSourceIntelligence(text, 'Item Bank') });
+    setNotice(`Đã nạp ${items.length} câu từ Item Bank.`);
+  };
+
+  const handleFile = async (file) => {
+    if (!file) return;
+    setFileBusy(true); setNotice('');
     try {
-      const saved = JSON.parse(localStorage.getItem(draftKey) || 'null');
-      if (saved?.worksheet?.activities?.length) {
-        setWorksheet(normalizeWorksheet(saved.worksheet, { language }));
-        setSourceText(saved.sourceText || '');
-        setSourceName(saved.sourceName || '');
-        setSettings((current) => ({ ...current, ...(saved.settings || {}) }));
-      }
-    } catch { /* draft restoration is optional */ }
-  }, [draftKey]);
+      const content = await readSourceFile(file);
+      if (!safeText(content)) throw new Error('Không đọc được nội dung chữ trong file.');
+      const clipped = content.slice(0, 150000);
+      patch({ sourceText: clipped, sourceName: file.name, sourceKind: file.name.split('.').pop()?.toLowerCase() || 'file', intelligence: offlineSourceIntelligence(clipped, file.name) });
+      setNotice(`Đã đọc ${file.name}.`);
+    } catch (error) { setNotice(error?.message || 'Không thể đọc file.'); }
+    finally { setFileBusy(false); }
+  };
 
-  useEffect(() => {
-    if (!worksheet) return;
-    try { localStorage.setItem(draftKey, JSON.stringify({ worksheet, sourceText, sourceName, settings })); } catch { /* local autosave is optional */ }
-  }, [draftKey, worksheet, sourceText, sourceName, settings]);
-
-  const generateWorksheet = async () => {
-    setBusy(true);
-    setError('');
-    setMessage('');
-    const input = {
-      sourceText: sourceText || topic,
-      sourceName,
-      title: settings.title,
-      topic: settings.topic || topic,
-      level: settings.level,
-      audience: settings.audience,
-      activityTypes: selectedTypes,
-      itemsPerActivity: settings.itemsPerActivity,
-      language,
-      includeExplanations: settings.includeExplanations,
-      avoidRepeatedContentWords: settings.avoidRepeatedContentWords,
-      customInstruction: settings.customInstruction,
-    };
-
+  const analyseSource = async () => {
+    setBusy(true); setAiMessage('');
+    const fallback = offlineSourceIntelligence(project.sourceText, project.sourceName);
+    if (!hasApiKey) { patch({ intelligence: fallback, learner: { ...project.learner, level: fallback.level, topic: fallback.topic }, blueprint: buildDefaultBlueprint(fallback, project.mode), stage: 'intelligence' }); setAiMessage('Đã phân tích bằng Source Intelligence nội bộ.'); setBusy(false); return; }
     try {
-      let nextWorksheet;
-      if (hasApiKey) {
-        const prompt = buildWorksheetPrompt(input);
-        const raw = await callAI({
-          apiKey,
-          model: aiModel,
-          prompt,
-          systemInstruction: 'You are a meticulous English worksheet designer. Return valid JSON only. Respect every requested activity type, item count, answer and option constraint. Never include markdown fences.',
-          temperature: 0.45,
-          responseMimeType: 'application/json',
-          maxOutputTokens: 8192,
-          loadingLabel: language === 'vi' ? 'Worksheet Factory đang tạo phiếu, đáp án và giải thích…' : 'Worksheet Factory is creating tasks, answers and explanations…',
-        });
-        nextWorksheet = normalizeWorksheet(extractJson(raw), { language });
-        const presentTypes = new Set(nextWorksheet.activities.map((activity) => activity.type));
-        const missingTypes = selectedTypes.filter((type) => !presentTypes.has(type));
-        if (missingTypes.length) {
-          const offlineMissing = generateOfflineWorksheet({ ...input, activityTypes: missingTypes });
-          nextWorksheet = normalizeWorksheet({ ...nextWorksheet, activities: [...nextWorksheet.activities, ...offlineMissing.activities] }, { language });
-          setMessage(language === 'vi' ? `AI thiếu ${missingTypes.length} dạng bài; hệ thống đã bổ sung bản nháp để không mất cấu trúc.` : `AI omitted ${missingTypes.length} activity type(s); offline drafts were added to preserve the requested structure.`);
-        }
-        if (!nextWorksheet.activities.length) throw new Error(language === 'vi' ? 'AI không trả về hoạt động hợp lệ.' : 'AI returned no valid activities.');
-      } else {
-        nextWorksheet = generateOfflineWorksheet(input);
-        setMessage(language === 'vi' ? 'Đã tạo bản nháp offline. Cấu hình AI để có câu hỏi phong phú và chính xác hơn.' : 'Offline draft created. Configure AI for richer, more accurate questions.');
+      const raw = await callAI({ apiKey, model: aiModel, maxOutputTokens: 1400, temperature: 0.2, responseMimeType: 'application/json', loadingLabel: 'Worksheet Factory đang phân tích nguồn…', prompt: `Analyse this English teaching source. Return strict JSON only with keys sourceType, topic, level, keywords (max 16), grammar (max 8), skills (max 6), existingQuestionCount, issues (max 6), recommendedTypes (use only these ids: ${WORKSHEET_ACTIVITY_TYPES.map((type) => type.id).join(', ')}). Source name: ${project.sourceName}. Source:\n${project.sourceText.slice(0, 24000)}` });
+      const parsed = extractJson(raw) || {};
+      const intelligence = { ...fallback, ...parsed, keywords: Array.isArray(parsed.keywords) ? parsed.keywords : fallback.keywords, grammar: Array.isArray(parsed.grammar) ? parsed.grammar : fallback.grammar, skills: Array.isArray(parsed.skills) ? parsed.skills : fallback.skills, issues: Array.isArray(parsed.issues) ? parsed.issues : fallback.issues, recommendedTypes: Array.isArray(parsed.recommendedTypes) ? parsed.recommendedTypes.filter((type) => WORKSHEET_ACTIVITY_TYPES.some((entry) => entry.id === type)) : fallback.recommendedTypes, analysedAt: Date.now() };
+      patch({ intelligence, learner: { ...project.learner, level: intelligence.level || project.learner.level, topic: intelligence.topic || project.learner.topic }, blueprint: buildDefaultBlueprint(intelligence, project.mode), stage: 'intelligence' });
+      setAiMessage('AI đã phân tích nguồn và đề xuất cấu trúc phù hợp.');
+    } catch (error) { patch({ intelligence: fallback, blueprint: buildDefaultBlueprint(fallback, project.mode) }); setAiMessage(`AI chưa phản hồi; đã dùng phân tích nội bộ. ${error?.message || ''}`); }
+    finally { setBusy(false); }
+  };
+
+  const rebuildBlueprint = () => patch({ blueprint: buildDefaultBlueprint(project.intelligence, project.mode), stage: 'blueprint' });
+
+  const generatePlanActivity = async (plan) => {
+    const input = { sourceText: project.sourceText || project.learner.topic, sourceName: project.sourceName, title: project.title, topic: project.learner.topic || project.intelligence.topic, level: plan.difficulty || project.learner.level, audience: `Grade ${project.learner.grade}`, activityTypes: [plan.type], itemsPerActivity: plan.count, language, includeExplanations: project.answerMode !== 'key-only', avoidRepeatedContentWords: project.qualityRules.includes('content-words') || project.qualityRules.includes('no-duplicates'), customInstruction: `${project.customInstruction}\nUse only these approved source facets: ${project.sourceFacets.join(', ')}. The activity is worth ${plan.points} point(s) per item.` };
+    if (!hasApiKey) return generateOfflineWorksheet(input).activities[0];
+    try {
+      const raw = await callAI({ apiKey, model: aiModel, prompt: buildWorksheetPrompt(input), systemInstruction: 'You are Worksheet Factory V2. Return strict valid JSON only. Produce exactly one requested activity with correct answers and concise explanations. Never include markdown fences.', temperature: 0.35, responseMimeType: 'application/json', maxOutputTokens: Math.min(3200, Math.max(900, plan.count * 180)), loadingLabel: `Đang tạo ${activityLabel(plan.type)}…` });
+      const normalized = normalizeWorksheet(extractJson(raw), { language });
+      if (normalized.activities[0]?.items?.length) return normalized.activities[0];
+      throw new Error('AI returned no valid activity.');
+    } catch { return generateOfflineWorksheet(input).activities[0]; }
+  };
+
+  const generateSections = async () => {
+    setBusy(true); setAiMessage('Đang tạo từng section…');
+    try {
+      const generated = [];
+      for (let index = 0; index < project.blueprint.length; index += 1) {
+        const plan = project.blueprint[index];
+        setAiMessage(`Đang tạo phần ${index + 1}/${project.blueprint.length}: ${activityLabel(plan.type)}…`);
+        const activity = await generatePlanActivity(plan);
+        generated.push({ ...activity, id: activity.id || uid('activity') });
+        setProject((current) => normalizeProject({ ...current, worksheet: mergeActivities(current.worksheet, generated, current, language), blueprint: current.blueprint.map((entry) => entry.id === plan.id ? { ...entry, generated: true, status: 'ai-draft' } : entry), selectedActivityId: generated[0]?.id || '', stage: 'generate', updatedAt: Date.now() }));
       }
-      setWorksheet(nextWorksheet);
-      setStep(4);
-      setStatusMessage('');
-    } catch (generationError) {
-      const fallback = generateOfflineWorksheet(input);
-      setWorksheet(fallback);
-      setStep(4);
-      setError('');
-      setStatusMessage(language === 'vi'
-        ? `AI gặp lỗi: ${generationError?.message || 'Không xác định'}. Hệ thống đã tạo bản nháp offline để thầy tiếp tục biên tập.`
-        : `AI error: ${generationError?.message || 'Unknown error'}. An offline draft was created so you can continue editing.`);
-    } finally {
-      setBusy(false);
+      const worksheet = mergeActivities(null, generated, project, language);
+      patch({ worksheet, selectedActivityId: generated[0]?.id || '', stage: 'editor', status: 'ai-generated', blueprint: project.blueprint.map((plan) => ({ ...plan, generated: true, status: 'ai-draft' })) });
+      setAiMessage('Đã tạo đủ các phần và chuyển sang Worksheet Editor.');
+    } finally { setBusy(false); }
+  };
+
+  const runTask = async (task, context = {}) => {
+    setSelectedTask(task); setAiMessage('');
+    if (task === 'analyse') return analyseSource();
+    if (task === 'blueprint') { rebuildBlueprint(); setAiMessage('Đã lập blueprint từ Source Intelligence và mục tiêu lớp học.'); return; }
+    if (task === 'generate') return generateSections();
+    if (!project.worksheet) { setAiMessage('Hãy tạo worksheet trước khi chạy tác vụ này.'); return; }
+    if (task === 'duplicates') {
+      const audited = auditWorksheet(project.worksheet);
+      const duplicateIndexes = new Set(audited.exactDuplicates.flatMap((pair) => pair.slice(1)));
+      let itemIndex = 0;
+      const activities = project.worksheet.activities.map((activity) => ({ ...activity, items: activity.items.filter(() => { itemIndex += 1; return !duplicateIndexes.has(itemIndex); }) }));
+      patch({ worksheet: mergeActivities(project.worksheet, activities, project, language) }); setAiMessage(`Đã loại ${duplicateIndexes.size} câu trùng hoàn toàn.`); return;
+    }
+    if (task === 'answers') { setAiMessage(audit.invalidOptions.length || audit.missingAnswers.length ? `Cần sửa ${audit.missingAnswers.length} đáp án thiếu và ${audit.invalidOptions.length} câu có options chưa hợp lệ.` : 'Đáp án và options đã vượt qua kiểm tra nội bộ.'); return; }
+    if (task === 'differentiate') {
+      const next = normalizeWorksheet({ ...project.worksheet, title: `${project.worksheet.title} — Supported`, teacherNotes: `${project.worksheet.teacherNotes}\nDifferentiation: add word banks, sentence starters and reduce item load where needed.` }, { language });
+      patch({ worksheet: next }); setAiMessage('Đã tạo hướng phân hóa và ghi chú trong teacher edition.'); return;
+    }
+    if (task === 'transform') {
+      const activity = project.worksheet.activities.find((entry) => entry.id === project.selectedActivityId) || project.worksheet.activities[0];
+      if (!activity) return;
+      setBusy(true);
+      try {
+        const plan = { id: uid('plan'), type: activity.type, count: activity.items.length, points: 1, difficulty: project.learner.level };
+        const replacement = await generatePlanActivity(plan);
+        const activities = project.worksheet.activities.map((entry) => entry.id === activity.id ? { ...replacement, id: activity.id } : entry);
+        patch({ worksheet: mergeActivities(project.worksheet, activities, project, language) }); setAiMessage('Đã viết lại activity đang chọn.');
+      } finally { setBusy(false); }
+      return;
+    }
+    if (task === 'custom') {
+      const request = document.getElementById('wf2-custom-ai-request')?.value?.trim();
+      if (!request) { setAiMessage('Nhập yêu cầu cụ thể trước khi chạy.'); return; }
+      setAiMessage(`Đã ghi nhận yêu cầu: ${request}. Hãy chọn activity rồi dùng “AI viết lại” để áp dụng theo phạm vi an toàn.`);
     }
   };
 
+  const approveActivity = (activity) => patch({ blueprint: project.blueprint.map((plan) => plan.type === activity.type ? { ...plan, status: 'teacher-approved' } : plan), status: project.blueprint.every((plan) => plan.type === activity.type || plan.status === 'teacher-approved') ? 'teacher-approved' : project.status });
+  const saveVersion = () => patch({ versions: [{ id: uid('version'), title: `Phiên bản ${new Date().toLocaleString('vi-VN')}`, createdAt: Date.now(), worksheet: project.worksheet, blueprint: project.blueprint }, ...project.versions].slice(0, 20) });
+
   const exportActions = {
-    docx: async (teacherVersion) => {
-      if (!worksheet) return;
-      setStatusMessage(language === 'vi' ? 'Đang tạo file Word…' : 'Creating Word file…');
-      try {
-        const blob = await worksheetToDocxBlob(worksheet, { teacherVersion, language });
-        downloadBlob(blob, `${safeFileName(worksheet.title)}-${teacherVersion ? 'teacher' : 'student'}.docx`);
-        setStatusMessage(language === 'vi' ? 'Đã xuất file Word.' : 'Word file exported.');
-      } catch (exportError) {
-        setStatusMessage(exportError?.message || (language === 'vi' ? 'Không thể xuất Word.' : 'Could not export Word.'));
+    docx: async (teacher) => { if (!project.worksheet) return; const blob = await worksheetToDocxBlob(project.worksheet, { teacherVersion: teacher, language }); downloadBlob(blob, `${safeFileName(project.title)}-${teacher ? 'teacher' : 'student'}.docx`); setNotice('Đã xuất DOCX.'); },
+    html: (teacher) => { if (!project.worksheet) return; downloadText(worksheetToHtml(project.worksheet, { teacherVersion: teacher, language }), `${safeFileName(project.title)}-${teacher ? 'teacher' : 'student'}.html`, 'text/html;charset=utf-8'); setNotice('Đã xuất HTML.'); },
+    json: () => downloadProject(project),
+    batchZip: async () => {
+      if (!project.worksheet) return;
+      const { default: JSZip } = await import('jszip');
+      const zip = new JSZip();
+      const variants = Math.max(2, Math.min(12, Number(project.batch.variants) || 2));
+      const levels = project.batch.levels.length ? project.batch.levels : [project.learner.level];
+      for (let index = 0; index < variants; index += 1) {
+        const code = String.fromCharCode(65 + index);
+        const level = levels[index % levels.length];
+        const label = project.batch.classNames[index] || `Mã ${code}`;
+        const variant = shuffleWorksheet({ ...project.worksheet, title: `${project.worksheet.title} — ${label}`, subtitle: `${project.worksheet.subtitle || ''} · ${level}` });
+        zip.file(`${safeFileName(project.title)}-${code}-student.html`, worksheetToHtml(variant, { teacherVersion: false, language }));
+        zip.file(`${safeFileName(project.title)}-${code}-teacher.html`, worksheetToHtml(variant, { teacherVersion: true, language }));
       }
+      zip.file('README.txt', `Worksheet Factory V2 batch pack\nVariants: ${variants}\nLevels: ${levels.join(', ')}\nGenerated: ${new Date().toISOString()}`);
+      downloadBlob(await zip.generateAsync({ type: 'blob' }), `${safeFileName(project.title)}-batch-variants.zip`);
+      setNotice(`Đã xuất ${variants} phiên bản trong gói ZIP.`);
     },
-    print: (teacherVersion) => {
-      if (!worksheet) return;
-      const html = worksheetToHtml(worksheet, { teacherVersion, language });
-      const printWindow = window.open('', '_blank', 'noopener,noreferrer');
-      if (!printWindow) {
-        setStatusMessage(language === 'vi' ? 'Trình duyệt đang chặn cửa sổ in. Hãy cho phép pop-up.' : 'The browser blocked the print window. Allow pop-ups and try again.');
-        return;
-      }
-      printWindow.document.open();
-      printWindow.document.write(html);
-      printWindow.document.close();
-      printWindow.addEventListener('load', () => printWindow.print(), { once: true });
-    },
-    html: (teacherVersion) => {
-      if (!worksheet) return;
-      downloadText(worksheetToHtml(worksheet, { teacherVersion, language }), `${safeFileName(worksheet.title)}-${teacherVersion ? 'teacher' : 'student'}.html`, 'text/html;charset=utf-8');
-      setStatusMessage(language === 'vi' ? 'Đã xuất HTML.' : 'HTML exported.');
-    },
-    json: () => {
-      if (!worksheet) return;
-      downloadText(JSON.stringify(worksheet, null, 2), `${safeFileName(worksheet.title)}.json`, 'application/json;charset=utf-8');
-      setStatusMessage(language === 'vi' ? 'Đã xuất JSON.' : 'JSON exported.');
-    },
-    copy: async (teacherVersion) => {
-      if (!worksheet) return;
-      try {
-        await navigator.clipboard.writeText(worksheetToPlainText(worksheet, { teacherVersion, language }));
-        setStatusMessage(language === 'vi' ? 'Đã sao chép toàn bộ phiếu.' : 'Worksheet copied.');
-      } catch {
-        setStatusMessage(language === 'vi' ? 'Không thể sao chép tự động.' : 'Could not copy automatically.');
-      }
-    },
-    saveLibrary: () => {
-      if (!worksheet) return;
-      addHistoryEntry({
-        kind: 'worksheet',
-        toolSlug: 'worksheet-factory',
-        toolTitle: 'Worksheet Factory',
-        sourceApp: 'worksheet-factory',
-        sourceAppTitle: 'Worksheet Factory',
-        title: worksheet.title,
-        content: worksheetToPlainText(worksheet, { teacherVersion: true, language }),
-        tags: ['worksheet', worksheet.level, worksheet.topic || 'english'],
-        activityData: { type: 'worksheet-factory', worksheet },
-      });
-      setStatusMessage(language === 'vi' ? 'Đã lưu phiếu vào Thư viện.' : 'Worksheet saved to Library.');
-    },
-    addBank: () => {
-      if (!worksheet) return;
-      const items = worksheetMcqBankItems(worksheet, { level: worksheet.level, source: worksheet.title });
-      addBankItems(items);
-      setStatusMessage(language === 'vi' ? `Đã thêm ${items.length} câu vào ngân hàng câu hỏi.` : `${items.length} questions added to the Question Bank.`);
-    },
+    saveLibrary: () => { if (!project.worksheet) return; addHistoryEntry({ kind: 'worksheet-pack', toolSlug: 'worksheet-factory', toolTitle: 'Worksheet Factory V2', sourceApp: 'worksheet-factory', sourceAppTitle: 'Worksheet Factory', title: project.title, content: worksheetToPlainText(project.worksheet, { teacherVersion: true, language }), tags: ['worksheet', project.learner.level, project.mode, project.learner.topic], metadata: { schema: TRANSFER_SCHEMA, projectId: project.id, auditScore: audit.score, status: project.status, layout: project.layout }, activityData: { type: 'worksheet-factory-v2', project } }); setNotice('Đã lưu vào Teacher Library.'); },
+    addBank: () => { if (!project.worksheet) return; const items = worksheetMcqBankItems(project.worksheet, { level: project.learner.level, source: project.title }); addBankItems(items); setNotice(`Đã thêm ${items.length} câu vào Item Bank.`); },
   };
 
-  return (
-    <div className="page worksheet-factory-page">
-      <div className="wf-commandbar">
-        <button type="button" className="back-btn" onClick={() => (window.location.hash = '#/apps')}>← {language === 'vi' ? 'Quay lại Ứng dụng' : 'Back to Apps'}</button>
-        <div className="wf-command-status">
-          <span className={hasApiKey ? 'ready' : 'offline'}>{hasApiKey ? (language === 'vi' ? 'AI sẵn sàng' : 'AI ready') : (language === 'vi' ? 'Chế độ offline' : 'Offline mode')}</span>
-          <strong>{aiSummary?.providerName || (hasApiKey ? 'AI Provider' : 'Local Engine')}</strong>
-        </div>
-      </div>
+  const sendTo = (destination) => {
+    if (!project.worksheet) return;
+    const transfer = createTransfer(currentUser, { target: destination.id, type: 'worksheet-pack', title: project.title, sourceApp: 'worksheet-factory', sourceTitle: 'Worksheet Factory V2', content: worksheetToPlainText(project.worksheet, { teacherVersion: true, language }), metadata: { schema: TRANSFER_SCHEMA, projectId: project.id, mode: project.mode, level: project.learner.level, grade: project.learner.grade, topic: project.learner.topic, auditScore: audit.score, status: project.status, blueprint: project.blueprint, worksheet: project.worksheet } });
+    if (!transfer) return;
+    patch({ status: 'published' }); setNotice(`Đã gửi sang ${destination.label}.`); window.setTimeout(() => { window.location.hash = destination.route; }, 350);
+  };
 
-      <section className="wf-hero">
-        <div className="wf-hero-copy">
-          <span className="wf-version">V10.83 · AI WORKSHEET PRODUCTION</span>
-          <h1><span>Worksheet</span><br />Factory</h1>
-          <p>{language === 'vi' ? 'Biến PDF, Word, PowerPoint, Excel, bài báo, danh sách từ hoặc một chủ đề thành phiếu học tập có đáp án, kiểm tra trùng lặp và xuất Word thật.' : 'Turn PDFs, Word files, slides, spreadsheets, articles, word lists or a topic into complete worksheets with answers, duplicate checks and real Word export.'}</p>
-          <div className="wf-hero-tags"><span>PDF → WORKSHEET</span><span>11 ACTIVITY TYPES</span><span>DOCX · HTML · PDF</span></div>
-        </div>
-        <div className="wf-hero-art" aria-hidden="true">
-          <div className="wf-hero-paper wf-paper-back"><span>ANSWER KEY</span></div>
-          <div className="wf-hero-paper wf-paper-mid"><b>A</b><i /><i /><i /></div>
-          <div className="wf-hero-paper wf-paper-front"><small>ENGLISH WORKSHEET</small><strong>01</strong><h3>READ · THINK<br />PRACTISE</h3><div><i /><i /><i /><i /></div></div>
-          <div className="wf-hero-stamp">AI<br />READY</div>
-        </div>
-      </section>
+  const libraryCount = useMemo(() => loadHistory().filter((item) => item.sourceApp === 'worksheet-factory').length, [notice]);
+  const bankCount = useMemo(() => loadBank().length, [notice]);
+  const lastUpdated = new Date(project.updatedAt || Date.now()).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
 
-      <StepNavigation step={step} setStep={setStep} language={language} hasWorksheet={Boolean(worksheet)} />
+  return <div className="wf2-page" data-stage={project.stage}>
+    <section className="wf2-product-bar"><button type="button" className="wf2-back" onClick={() => { window.location.hash = '#/apps'; }}>←</button><div className="wf2-brand"><span>WF</span><div><strong>Worksheet Factory</strong><small>V{APP_VERSION} · Structured Learning Pack Workbench</small></div></div><input className="wf2-project-title" aria-label="Tên dự án" value={project.title} onChange={(e) => patch({ title: e.target.value })} /><div className="wf2-product-state"><span>● Tự động lưu</span><b>{blueprintItems} câu</b><b>{audit.score}/100</b></div><div className="wf2-product-actions"><button type="button" onClick={() => patch({ stage: 'blueprint' })}>▦ Blueprint</button><button type="button" onClick={() => patch({ stage: 'editor' })} disabled={!project.worksheet}>✓ Audit</button><button type="button" onClick={() => patch({ stage: 'generate' })}>✦ AI Copilot</button><button type="button" onClick={() => setShowVersions(true)}>◷ Version</button><button type="button" className="primary" onClick={() => patch({ stage: 'publish' })} disabled={!project.worksheet}>↗ Publish</button></div></section>
+    {pendingTransfer ? <aside className="wf2-global-transfer"><div><strong>Nội dung từ {pendingTransfer.sourceTitle}</strong><span>{pendingTransfer.title}</span></div><button type="button" onClick={applyTransfer}>Dùng nội dung</button><button type="button" onClick={() => { updateTransfer(currentUser, pendingTransfer.id, { status: 'dismissed' }); setPendingTransfer(null); }}>Bỏ qua</button></aside> : null}
+    <section className="wf2-summary"><Metric icon="▣" label="Nguồn" value={project.sourceName || project.intelligence.sourceType} /><Metric icon="A+" label="Lớp / CEFR" value={`Grade ${project.learner.grade} · ${project.learner.level}`} /><Metric icon="≡" label="Hoạt động" value={`${project.blueprint.length} phần · ${blueprintItems} câu`} /><Metric icon="◷" label="Thời lượng" value={`${project.learner.minutes} phút`} /><Metric icon="▤" label="Cập nhật" value={lastUpdated} /></section>
+    <Workflow stage={project.stage} setStage={setStage} hasWorksheet={Boolean(project.worksheet)} />
+    {notice ? <div className="wf2-notice"><span>✓</span>{notice}<button type="button" onClick={() => setNotice('')}>×</button></div> : null}
 
-      {step === 1 && <SourceStep language={language} sourceText={sourceText} setSourceText={setSourceText} sourceName={sourceName} setSourceName={setSourceName} topic={topic} setTopic={setTopic} onNext={() => setStep(2)} />}
-      {step === 2 && <ConfigureStep language={language} selectedTypes={selectedTypes} setSelectedTypes={setSelectedTypes} settings={settings} setSettings={setSettings} onBack={() => setStep(1)} onNext={() => setStep(3)} />}
-      {step === 3 && <GenerateStep language={language} hasApiKey={hasApiKey} providerName={aiSummary?.providerName} sourceText={sourceText || topic} sourceName={sourceName} settings={{ ...settings, topic: settings.topic || topic }} selectedTypes={selectedTypes} busy={busy} error={error} message={message} onBack={() => setStep(2)} onGenerate={generateWorksheet} />}
-      {step === 4 && worksheet && audit && <ResultStep language={language} worksheet={worksheet} setWorksheet={setWorksheet} audit={audit} onBack={() => setStep(1)} exportActions={exportActions} statusMessage={statusMessage} />}
-    </div>
-  );
+    {project.stage === 'source' || project.stage === 'intelligence' || project.stage === 'learner' || project.stage === 'blueprint' || project.stage === 'generate' ? <div className="wf2-setup-grid">
+      <BuildModeCard project={project} patch={patch} />
+      <SourceIntelligenceCard project={project} patch={patch} analyseSource={analyseSource} busy={busy} />
+      <LearnerCard project={project} patchLearner={patchLearner} />
+      <SourceCard project={project} patch={patch} onFile={handleFile} fileBusy={fileBusy} pendingTransfer={null} applyTransfer={applyTransfer} onLoadItemBank={loadItemBankSource} />
+      <BlueprintCard project={project} patch={patch} rebuildBlueprint={rebuildBlueprint} runTask={runTask} busy={busy} />
+      <AiCopilotCard project={project} runTask={runTask} selectedTask={selectedTask} setSelectedTask={setSelectedTask} busy={busy} hasApiKey={hasApiKey} providerName={providerName} aiMessage={aiMessage} />
+      <section className="wf2-card full wf2-generate-cta"><div><span>WORKSHEET PRODUCTION PIPELINE</span><h2>Phân tích → Blueprint → Tạo từng phần → Audit</h2><p>Hệ thống tạo tuần tự từng activity để giữ đủ số câu, đáp án và cấu trúc đã duyệt.</p></div><button type="button" className="wf2-primary" onClick={generateSections} disabled={busy || !project.blueprint.length}>{busy ? aiMessage || 'Đang tạo…' : `✦ Tạo ${project.blueprint.length} phần / ${blueprintItems} câu`}</button></section>
+    </div> : null}
+
+    {project.stage === 'editor' ? <Editor project={project} patch={patch} audit={audit} approveActivity={approveActivity} runTask={runTask} busy={busy} /> : null}
+    {project.stage === 'preview' && project.worksheet ? <A4Preview project={project} patch={patch} teacherVersion={teacherVersion} setTeacherVersion={setTeacherVersion} /> : null}
+    {project.stage === 'publish' && project.worksheet ? <PublishCard project={project} patch={patch} audit={audit} exportActions={exportActions} sendTo={sendTo} /> : null}
+
+    {showVersions ? <VersionModal project={project} patch={patch} onClose={() => setShowVersions(false)} onSave={saveVersion} /> : null}
+    <footer className="wf2-footer"><span>Teacher Library: {libraryCount}</span><span>Item Bank: {bankCount}</span><span>{hasApiKey ? `${providerName} sẵn sàng` : 'Local engine sẵn sàng'}</span><button type="button" onClick={downloadProject}>Tải backup dự án</button></footer>
+  </div>;
 }

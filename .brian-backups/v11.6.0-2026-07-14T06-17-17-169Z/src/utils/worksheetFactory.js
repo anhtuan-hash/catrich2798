@@ -91,86 +91,6 @@ export const WORKSHEET_ACTIVITY_TYPES = [
     descVi: 'Sắp xếp từ, câu hoặc sự kiện theo thứ tự.',
     icon: '1–4',
   },
-  {
-    id: 'verb_form',
-    label: 'Verb Form',
-    labelVi: 'Dạng động từ',
-    desc: 'Use the correct tense, infinitive or gerund form.',
-    descVi: 'Dùng đúng thì, nguyên mẫu hoặc danh động từ.',
-    icon: 'Vƒ',
-  },
-  {
-    id: 'sentence_combination',
-    label: 'Sentence Combination',
-    labelVi: 'Kết hợp câu',
-    desc: 'Combine ideas using a target structure.',
-    descVi: 'Kết hợp ý bằng cấu trúc ngữ pháp mục tiêu.',
-    icon: '＋',
-  },
-  {
-    id: 'vocabulary_categorisation',
-    label: 'Vocabulary Categorisation',
-    labelVi: 'Phân loại từ vựng',
-    desc: 'Sort words into meaningful groups.',
-    descVi: 'Phân loại từ vào các nhóm có ý nghĩa.',
-    icon: '▦',
-  },
-  {
-    id: 'collocation_matching',
-    label: 'Collocation Matching',
-    labelVi: 'Nối collocation',
-    desc: 'Match word partners and useful phrases.',
-    descVi: 'Nối các từ thường đi cùng và cụm từ hữu ích.',
-    icon: '⛓',
-  },
-  {
-    id: 'dialogue_completion',
-    label: 'Dialogue Completion',
-    labelVi: 'Hoàn thành hội thoại',
-    desc: 'Complete a contextual conversation.',
-    descVi: 'Hoàn thành đoạn hội thoại theo ngữ cảnh.',
-    icon: '☏',
-  },
-  {
-    id: 'short_answer',
-    label: 'Short Answer',
-    labelVi: 'Trả lời ngắn',
-    desc: 'Answer concise questions from the source.',
-    descVi: 'Trả lời ngắn các câu hỏi dựa trên nguồn.',
-    icon: '?',
-  },
-  {
-    id: 'information_transfer',
-    label: 'Information Transfer',
-    labelVi: 'Chuyển đổi thông tin',
-    desc: 'Transfer text into a table, timeline or notes.',
-    descVi: 'Chuyển văn bản thành bảng, dòng thời gian hoặc ghi chú.',
-    icon: '⇥',
-  },
-  {
-    id: 'graphic_organiser',
-    label: 'Graphic Organiser',
-    labelVi: 'Sơ đồ tổ chức ý',
-    desc: 'Complete a mind map, flowchart or comparison frame.',
-    descVi: 'Hoàn thành sơ đồ tư duy, quy trình hoặc bảng so sánh.',
-    icon: '⌘',
-  },
-  {
-    id: 'editing_task',
-    label: 'Editing Task',
-    labelVi: 'Biên tập văn bản',
-    desc: 'Improve a short text for accuracy and clarity.',
-    descVi: 'Chỉnh một đoạn văn để tăng độ chính xác và rõ ràng.',
-    icon: '⌫',
-  },
-  {
-    id: 'reflection_exit_ticket',
-    label: 'Reflection / Exit Ticket',
-    labelVi: 'Phản tư / Exit ticket',
-    desc: 'Close the lesson with reflection or evidence of learning.',
-    descVi: 'Kết thúc bài bằng phản tư hoặc minh chứng học tập.',
-    icon: '✓',
-  },
 ];
 
 const TYPE_MAP = new Map(WORKSHEET_ACTIVITY_TYPES.map((type) => [type.id, type]));
@@ -298,16 +218,6 @@ function defaultInstructions(type, language) {
     sentence_transformation: 'Viết lại câu sao cho nghĩa không đổi.',
     vocabulary_context: 'Chọn từ hoặc nghĩa phù hợp nhất với ngữ cảnh.',
     ordering: 'Sắp xếp các thành phần theo đúng thứ tự.',
-    verb_form: 'Dùng dạng đúng của động từ trong ngoặc.',
-    sentence_combination: 'Kết hợp các câu bằng cấu trúc được yêu cầu.',
-    vocabulary_categorisation: 'Phân loại các từ vào nhóm phù hợp.',
-    collocation_matching: 'Nối các từ để tạo collocation hoặc cụm từ đúng.',
-    dialogue_completion: 'Hoàn thành đoạn hội thoại bằng câu hoặc cụm từ phù hợp.',
-    short_answer: 'Trả lời ngắn dựa trên văn bản nguồn.',
-    information_transfer: 'Chuyển thông tin từ văn bản vào bảng hoặc khung ghi chú.',
-    graphic_organiser: 'Hoàn thành sơ đồ tổ chức ý theo nội dung nguồn.',
-    editing_task: 'Biên tập đoạn văn theo yêu cầu về độ chính xác và rõ ràng.',
-    reflection_exit_ticket: 'Hoàn thành câu hỏi phản tư hoặc exit ticket.',
   };
   const en = {
     multiple_choice: 'Choose the best answer A, B, C or D.',
@@ -321,16 +231,6 @@ function defaultInstructions(type, language) {
     sentence_transformation: 'Rewrite each sentence without changing its meaning.',
     vocabulary_context: 'Choose the word or meaning that best fits the context.',
     ordering: 'Put the parts in the correct order.',
-    verb_form: 'Use the correct form of the verb in brackets.',
-    sentence_combination: 'Combine the sentences using the required structure.',
-    vocabulary_categorisation: 'Sort the words into the correct categories.',
-    collocation_matching: 'Match the words to make correct collocations or phrases.',
-    dialogue_completion: 'Complete the dialogue with suitable sentences or phrases.',
-    short_answer: 'Answer briefly using information from the source.',
-    information_transfer: 'Transfer information from the text into the table or notes.',
-    graphic_organiser: 'Complete the organiser using ideas from the source.',
-    editing_task: 'Edit the text for accuracy and clarity.',
-    reflection_exit_ticket: 'Complete the reflection or exit ticket.',
   };
   return (language === 'vi' ? vi : en)[type] || '';
 }
@@ -412,65 +312,6 @@ function createItem(type, unit, keywords, index, language) {
         ? `Viết lại câu sau mà không thay đổi nghĩa, bắt đầu bằng “According to the text”: ${unit}`
         : `Rewrite without changing the meaning, beginning with “According to the text”: ${unit}`,
       answer: `According to the text, ${unit.charAt(0).toLocaleLowerCase('en')}${unit.slice(1)}`,
-    };
-  }
-
-  if (type === 'verb_form') {
-    return { ...base, prompt: `${replaceFirstInsensitive(unit, target)} (${target})`, answer: target };
-  }
-
-  if (type === 'sentence_combination') {
-    const second = `This idea is important for ${target.toLocaleLowerCase('en')}.`;
-    return {
-      ...base,
-      prompt: language === 'vi' ? `Kết hợp hai câu bằng “because”: ${unit} ${second}` : `Combine using “because”: ${unit} ${second}`,
-      answer: `${unit.replace(/[.!?]+$/, '')} because this idea is important for ${target.toLocaleLowerCase('en')}.`,
-    };
-  }
-
-  if (type === 'vocabulary_categorisation' || type === 'collocation_matching') {
-    return { ...base, prompt: target, answer: unit.length > 180 ? `${unit.slice(0, 177)}…` : unit, explanation: '' };
-  }
-
-  if (type === 'dialogue_completion') {
-    return {
-      ...base,
-      prompt: `A: What does the text say about ${target}?
-B: __________`,
-      answer: unit,
-    };
-  }
-
-  if (type === 'short_answer') {
-    return {
-      ...base,
-      prompt: language === 'vi' ? `Theo văn bản, ${target} có vai trò gì?` : `According to the text, what role does ${target} play?`,
-      answer: unit,
-    };
-  }
-
-  if (type === 'information_transfer' || type === 'graphic_organiser') {
-    return {
-      ...base,
-      prompt: language === 'vi' ? `Hoàn thành mục “${target}” trong bảng/sơ đồ từ thông tin nguồn.` : `Complete the “${target}” entry in the organiser using the source.`,
-      answer: unit,
-    };
-  }
-
-  if (type === 'editing_task') {
-    return {
-      ...base,
-      prompt: `${unit.replace(/is/i, 'are')}`,
-      answer: unit,
-      explanation: language === 'vi' ? 'Khôi phục cấu trúc đúng theo văn bản nguồn.' : 'Restore the accurate structure from the source.',
-    };
-  }
-
-  if (type === 'reflection_exit_ticket') {
-    return {
-      ...base,
-      prompt: language === 'vi' ? `Viết một điều em đã học về ${target} và một câu hỏi còn lại.` : `Write one thing you learned about ${target} and one remaining question.`,
-      answer: language === 'vi' ? 'Câu trả lời cá nhân, cần bám nội dung nguồn.' : 'Personal response grounded in the source.',
     };
   }
 

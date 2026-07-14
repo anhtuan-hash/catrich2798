@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+if (!fs.existsSync('dist/index.html')) throw new Error('Run build first.');
+const assets = fs.readdirSync('dist/assets');
+const worksheetJs = assets.filter((file) => file.startsWith('WorksheetFactory-') && file.endsWith('.js')).map((file) => ({ file, size: fs.statSync(`dist/assets/${file}`).size })).sort((a,b)=>b.size-a.size)[0];
+const worksheetCss = assets.filter((file) => file.startsWith('WorksheetFactory-') && file.endsWith('.css')).map((file) => ({ file, size: fs.statSync(`dist/assets/${file}`).size })).sort((a,b)=>b.size-a.size)[0];
+if (!worksheetJs || worksheetJs.size > 140_000) throw new Error(`WorksheetFactory JS budget exceeded: ${worksheetJs?.size || 0}`);
+if (!worksheetCss || worksheetCss.size > 60_000) throw new Error(`WorksheetFactory CSS budget exceeded: ${worksheetCss?.size || 0}`);
+const mainCss = assets.filter((file) => file.startsWith('index-') && file.endsWith('.css')).map((file) => ({ file, size: fs.statSync(`dist/assets/${file}`).size })).sort((a,b)=>b.size-a.size)[0];
+if (!mainCss || mainCss.size > 1_500_000) throw new Error(`Main CSS budget exceeded: ${mainCss?.size || 0}`);
+console.log(`V11.6.0 performance budget PASS (${worksheetJs.size} B Worksheet JS, ${worksheetCss.size} B Worksheet CSS, ${mainCss.size} B main CSS).`);
