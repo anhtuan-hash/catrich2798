@@ -1,0 +1,150 @@
+/* Brian English Studio V11.6.6 — clean Brian AI composer rebuild */
+[data-bes-ai-panel-v1166="true"] {
+  --bes-ai-composer-inline-size: 100%;
+  --bes-ai-send-size: 44px;
+  isolation: isolate;
+}
+
+[data-bes-ai-root-v1166="true"] {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  inline-size: 100% !important;
+  min-inline-size: 0 !important;
+  max-inline-size: 100% !important;
+  align-self: stretch !important;
+  justify-self: stretch !important;
+  grid-column: 1 / -1 !important;
+  box-sizing: border-box !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+}
+
+[data-bes-ai-path-v1166="true"],
+[data-bes-ai-shell-v1166="true"] {
+  position: relative !important;
+  inset: auto !important;
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  inline-size: 100% !important;
+  min-inline-size: 0 !important;
+  max-inline-size: 100% !important;
+  flex: 1 1 auto !important;
+  align-self: stretch !important;
+  justify-self: stretch !important;
+  grid-column: 1 / -1 !important;
+  grid-row: auto !important;
+  box-sizing: border-box !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  transform: none !important;
+  float: none !important;
+  columns: auto !important;
+  column-width: auto !important;
+}
+
+[data-bes-ai-editor-v1166="true"] {
+  position: static !important;
+  inset: auto !important;
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  inline-size: 100% !important;
+  min-inline-size: 0 !important;
+  max-inline-size: 100% !important;
+  height: 96px !important;
+  min-height: 88px !important;
+  max-height: 240px !important;
+  margin: 0 !important;
+  padding: 14px 62px 14px 14px !important;
+  box-sizing: border-box !important;
+  flex: 1 1 auto !important;
+  align-self: stretch !important;
+  justify-self: stretch !important;
+  grid-column: 1 / -1 !important;
+  grid-row: auto !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  line-height: 1.45 !important;
+  resize: vertical !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  transform: none !important;
+  float: none !important;
+  columns: auto !important;
+  column-width: auto !important;
+}
+
+[data-bes-ai-tools-v1166="true"] {
+  position: static !important;
+  inset: auto !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  inline-size: 100% !important;
+  grid-column: 1 / -1 !important;
+  gap: 8px !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  transform: none !important;
+}
+
+[data-bes-ai-send-v1166="true"] {
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  min-width: var(--bes-ai-send-size) !important;
+  max-width: var(--bes-ai-send-size) !important;
+  width: var(--bes-ai-send-size) !important;
+  min-height: var(--bes-ai-send-size) !important;
+  max-height: var(--bes-ai-send-size) !important;
+  height: var(--bes-ai-send-size) !important;
+  flex: 0 0 var(--bes-ai-send-size) !important;
+  transform: none !important;
+}
+
+[data-bes-ai-shell-v1166="true"] > [data-bes-ai-send-v1166="true"],
+[data-bes-ai-shell-v1166="true"] [data-bes-ai-send-v1166="true"][data-bes-ai-send-inside-v1166="true"] {
+  position: absolute !important;
+  right: 9px !important;
+  bottom: 9px !important;
+  left: auto !important;
+  top: auto !important;
+  z-index: 8 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 999px !important;
+}
+
+[data-bes-ai-hint-v1166="true"],
+[data-bes-ai-count-v1166="true"] {
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  transform: none !important;
+}
+
+@media (max-width: 680px) {
+  [data-bes-ai-editor-v1166="true"] {
+    height: 88px !important;
+    min-height: 84px !important;
+    padding-right: 58px !important;
+  }
+  [data-bes-ai-panel-v1166="true"] { --bes-ai-send-size: 42px; }
+}
