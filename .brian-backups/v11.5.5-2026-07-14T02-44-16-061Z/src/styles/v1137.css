@@ -285,8 +285,9 @@
 .home-v1137 .flat-window-word { right: 1%; top: 36%; width: 228px; height: 140px; z-index: 12; }
 .home-v1137 .flat-window-worksheet { left: 10%; top: 63%; width: 225px; height: 136px; z-index: 9; }
 .home-v1137 .flat-window-game { left: 40%; top: 64%; width: 215px; height: 126px; z-index: 9; }
-.home-v1137 .flat-window-grammar { right: 6%; top: 62%; width: 230px; height: 132px; z-index: 10; }
-.home-v1137 .flat-window-writing { left: 5%; top: 82%; width: 230px; height: 132px; z-index: 8; }
+.home-v1137 .flat-window-listening { right: 6%; top: 62%; width: 225px; height: 138px; z-index: 10; }
+.home-v1137 .flat-window-grammar { left: 4%; top: 82%; width: 230px; height: 132px; z-index: 7; }
+.home-v1137 .flat-window-writing { left: 37%; top: 83%; width: 230px; height: 132px; z-index: 8; }
 .home-v1137 .flat-window-pronunciation { right: 8%; top: 82%; width: 245px; height: 136px; z-index: 7; }
 
 .home-scene-orbit {
@@ -424,6 +425,7 @@ html[data-motion="off"] .home-scene-spark {
   .home-v1137 .flat-window-exam { left: 0; }
   .home-v1137 .flat-window-speaking { right: 0; }
   .home-v1137 .flat-window-word { right: 0; }
+  .home-v1137 .flat-window-listening { right: 3%; }
 }
 
 @media (max-width: 1100px) {

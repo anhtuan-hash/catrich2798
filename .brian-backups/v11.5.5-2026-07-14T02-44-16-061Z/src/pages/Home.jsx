@@ -176,6 +176,14 @@ const iconPaths = {
       <path d="M27 35h30M27 45h20M58 56h17" />
     </>
   ),
+  listening: (
+    <>
+      <path d="M22 57V45c0-17 11-29 28-29s28 12 28 29v12" />
+      <rect x="15" y="50" width="18" height="30" rx="7" />
+      <rect x="67" y="50" width="18" height="30" rx="7" />
+      <path d="M67 75c-4 8-10 11-18 11" />
+    </>
+  ),
   grammar: (
     <>
       <path d="M18 58 34 42l16 16-16 16-16-16ZM42 32l16-16 16 16-16 16-16-16ZM50 70l16-16 16 16-16 16-16-16Z" />
@@ -209,6 +217,7 @@ const slugIconMap = {
   word2graph: 'wordgraph',
   'speaking-studio': 'speaking',
   'worksheet-factory': 'worksheet',
+  'listening-lab': 'listening',
   'grammar-builder': 'grammar',
   'writing-studio': 'writing',
   'pronunciation-coach': 'pronunciation',
@@ -516,6 +525,7 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
     const speakingStyle = profile('speaking-studio');
     const textcareStyle = profile('textcare');
     const worksheetStyle = profile('worksheet-factory');
+    const listeningStyle = profile('listening-lab');
     const grammarStyle = profile('grammar-builder');
     const writingStyle = profile('writing-studio');
     const pronunciationStyle = profile('pronunciation-coach');
@@ -568,6 +578,12 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
       text: isVi ? 'Tạo worksheet từ file và chủ đề.' : 'Create worksheets from files and topics.',
       motion: { delay: '-7.1s', duration: '9.4s', x: '-7px', y: '-9px', rotate: '.7deg', depth: .52 },
     });
+    const listening = makeAppWindow('listening-lab', {
+      variant: 'motion', className: 'flat-window-listening', bg: listeningStyle.soft, accent: listeningStyle.accent,
+      color: listeningStyle.accent, icon: listeningStyle.icon, meta: isVi ? 'Nghe hiểu' : 'Listening comprehension',
+      text: isVi ? 'Nhiệm vụ nghe và phản hồi.' : 'Listening tasks and responses.',
+      motion: { delay: '-3.1s', duration: '8.9s', x: '9px', y: '-12px', rotate: '-.8deg', depth: .56 },
+    });
     const grammar = makeAppWindow('grammar-builder', {
       variant: 'motion', className: 'flat-window-grammar', bg: grammarStyle.soft, accent: grammarStyle.accent,
       color: grammarStyle.accent, icon: grammarStyle.icon, meta: isVi ? 'Grammar workflow V2' : 'Grammar workflow V2',
@@ -586,7 +602,7 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
       text: isVi ? 'Âm, trọng âm và nối âm.' : 'Sounds, stress and connected speech.',
       motion: { delay: '-6.7s', duration: '8.4s', x: '8px', y: '-8px', rotate: '.9deg', depth: .42 },
     });
-    return { lesson, exam, game, word, reading, speaking, textcare, worksheet, grammar, writing, pronunciation };
+    return { lesson, exam, game, word, reading, speaking, textcare, worksheet, listening, grammar, writing, pronunciation };
   }, [isVi]);
 
   const chips = useMemo(() => {
@@ -619,7 +635,7 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
   const featuredWindows = useMemo(() => [
     windows.lesson, windows.exam, windows.textcare, windows.speaking,
     windows.reading, windows.word, windows.worksheet, windows.game,
-    windows.grammar, windows.writing, windows.pronunciation,
+    windows.listening, windows.grammar, windows.writing, windows.pronunciation,
   ].filter((item) => canShowId(item.visibilityId)), [windows, visibilitySnapshot, currentUser?.role]);
 
   return (

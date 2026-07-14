@@ -1,0 +1,26 @@
+{
+  "from": "11.5.4",
+  "to": "11.5.5",
+  "createdAt": "2026-07-14T02:44:16.091Z",
+  "files": [
+    ".bes-release/v11.5.5.json",
+    "V11_5_5_LISTENING_LAB_REMOVAL.md",
+    "V11_5_5_TEST_REPORT.md",
+    "docs/V11_5_5_DEPLOYMENT.md",
+    "package-lock.json",
+    "package.json",
+    "public/release-manifest.json",
+    "public/version.json",
+    "scripts/check-v11.5.5.mjs",
+    "scripts/performance-budget-v11.5.5.mjs",
+    "scripts/release-guard-v11.5.5.mjs",
+    "scripts/sync-version-v11.5.5.mjs",
+    "src/config/version.js",
+    "src/data/apps.js",
+    "src/data/designProfiles.js",
+    "src/pages/Home.jsx",
+    "src/pages/PronunciationCoach.jsx",
+    "src/styles/v1137.css",
+    "src/utils/workspace.js"
+  ]
+}

@@ -1,7 +1,6 @@
 export const WORKSPACE_EVENT = 'bes-workspace-updated';
 const PREFIX = 'bes-workspace-tabs';
 const MAX_TABS = 12;
-const RETIRED_TAB_IDS = new Set(['tool:listening-lab']);
 
 function scope(user) {
   return String(user?.id || user?.email || 'guest').trim().toLowerCase().replace(/[^a-z0-9@._-]+/g, '-') || 'guest';
@@ -37,7 +36,7 @@ export function normalizeWorkspace(raw) {
   const source = raw && typeof raw === 'object' ? raw : {};
   const seen = new Set();
   const tabs = (Array.isArray(source.tabs) ? source.tabs : []).map(normalizeTab).filter((tab) => {
-    if (!tab || RETIRED_TAB_IDS.has(tab.id) || seen.has(tab.id)) return false;
+    if (!tab || seen.has(tab.id)) return false;
     seen.add(tab.id);
     return true;
   }).slice(0, MAX_TABS);

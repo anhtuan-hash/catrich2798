@@ -1,6 +1,6 @@
-export const APP_VERSION = '11.5.5';
-export const RELEASE_NAME = 'Listening Lab Removal';
-export const RUNTIME_CORE_VERSION = '2.5.5';
+export const APP_VERSION = '11.5.4';
+export const RELEASE_NAME = 'System Media Capture & AI Composer Fix';
+export const RUNTIME_CORE_VERSION = '2.5.4';
 export const SCHEMA_VERSION = '11.4.2';
 
 export function getVersionInfo() {

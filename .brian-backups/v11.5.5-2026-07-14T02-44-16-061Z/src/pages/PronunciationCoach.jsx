@@ -49,6 +49,7 @@ const WORKFLOW = [
 const DESTINATIONS = [
   { id: 'lesson-plan-ai', route: '#/tool/lesson-plan-ai', icon: 'LA', label: 'Lesson Architect', desc: 'Gửi pronunciation stage, assessment và homework.' },
   { id: 'speaking-studio', route: '#/tool/speaking-studio', icon: 'SS', label: 'Speaking Studio', desc: 'Gửi dialogue, sentence frames và feedback phát âm.' },
+  { id: 'listening-lab', route: '#/tool/listening-lab', icon: 'LL', label: 'Listening Lab', desc: 'Gửi minimal-pair listening và discrimination task.' },
   { id: 'reading-studio', route: '#/tool/reading-studio', icon: 'RS', label: 'Reading Studio', desc: 'Gửi shadowing và read-aloud passage.' },
   { id: 'grammar-builder', route: '#/tool/grammar-builder', icon: 'GB', label: 'Grammar Builder', desc: 'Gửi câu mục tiêu, stress và weak-form activity.' },
   { id: 'word2graph', route: '#/tool/word2graph', icon: 'WG', label: 'WordGraph Studio', desc: 'Gửi IPA, stress và audio metadata cho từ vựng.' },

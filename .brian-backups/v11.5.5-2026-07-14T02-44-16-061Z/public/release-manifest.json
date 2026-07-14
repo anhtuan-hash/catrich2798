@@ -1,7 +1,7 @@
 {
-  "version": "11.5.5",
-  "release": "Listening Lab Removal",
-  "runtime": "2.5.5",
+  "version": "11.5.4",
+  "release": "System Media Capture & AI Composer Fix",
+  "runtime": "2.5.4",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
   "lessonArchitectAnnualBuilder": true,
@@ -10,8 +10,8 @@
   "batchLessonGeneration": true,
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
-  "requiresSql": false,
-  "generatedAt": "2026-07-14T02:44:23.186Z",
+  "requiresSql": true,
+  "generatedAt": "2026-07-14T02:24:39.520Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -42,11 +42,11 @@
   "pointerParallaxCards": true,
   "homepageMotionPaths": true,
   "expandedEnglishSkillCards": true,
-  "listeningLab": false,
+  "listeningLab": true,
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "2.5.5",
+  "runtimeCore": "2.5.4",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -216,13 +216,5 @@
     "pronunciation-coach",
     "speaking-studio",
     "brian-ai"
-  ],
-  "removedApps": [
-    "listening-lab"
-  ],
-  "listeningLabRemovedFromRegistry": true,
-  "listeningLabRemovedFromHome": true,
-  "listeningLabRouteRetired": true,
-  "listeningLabConnectedWorkflowRemoved": true,
-  "retiredWorkspaceTabCleanup": true
+  ]
 }

@@ -112,6 +112,14 @@ export const APP_DESIGN_PROFILES = {
     style: 'Clean document stack',
     styleVi: 'Chồng văn bản chuẩn hoá',
   },
+  'listening-lab': {
+    accent: '#1AA6A8',
+    soft: '#D8F6F5',
+    ink: '#083839',
+    icon: 'listening',
+    style: 'Listening comprehension lab',
+    styleVi: 'Phòng luyện nghe hiểu',
+  },
   'grammar-builder': {
     accent: '#3974D8',
     soft: '#E1ECFF',

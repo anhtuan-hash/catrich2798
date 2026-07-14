@@ -1,14 +1,14 @@
 {
-  "version": "11.5.4",
+  "version": "11.5.5",
   "channel": "stable",
-  "releaseName": "System Media Capture & AI Composer Fix",
-  "runtimeCore": "2.5.4",
+  "releaseName": "Listening Lab Removal",
+  "runtimeCore": "2.5.5",
   "schemaVersion": "11.4.2",
-  "requiresSql": true,
+  "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T02:24:39.520Z",
+  "generatedAt": "2026-07-14T02:44:23.186Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -37,7 +37,7 @@
   "pointerParallaxCards": true,
   "homepageMotionPaths": true,
   "expandedEnglishSkillCards": true,
-  "listeningLab": true,
+  "listeningLab": false,
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
@@ -211,5 +211,13 @@
     "pronunciation-coach",
     "speaking-studio",
     "brian-ai"
-  ]
+  ],
+  "removedApps": [
+    "listening-lab"
+  ],
+  "listeningLabRemovedFromRegistry": true,
+  "listeningLabRemovedFromHome": true,
+  "listeningLabRouteRetired": true,
+  "listeningLabConnectedWorkflowRemoved": true,
+  "retiredWorkspaceTabCleanup": true
 }
