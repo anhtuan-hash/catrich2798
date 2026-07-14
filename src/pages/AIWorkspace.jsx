@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { callAI } from '../utils/gemini.js';
 import { getProviderSummary } from '../utils/aiProviders.js';
+import { buildWorkspaceLocalFallback, friendlyAiWorkspaceError, isProviderCapacityError } from '../utils/aiWorkspaceFallback.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { getRuntimeClient } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
@@ -13,8 +14,30 @@ const MODES = {
   act: { label: 'Hành động', instruction: 'Prepare a safe action plan. Do not claim that any external action was executed. Return a preview with explicit confirmation steps.' },
 };
 
+const RESPONSE_BUDGETS = {
+  economy: { label: 'Tiết kiệm', tokens: 420, hint: 'Phù hợp khi provider còn ít credit.' },
+  balanced: { label: 'Cân bằng', tokens: 900, hint: 'Đủ chi tiết cho phần lớn nhiệm vụ.' },
+  detailed: { label: 'Chi tiết', tokens: 1600, hint: 'Dùng khi tài khoản còn đủ quota.' },
+};
+
 function emptyProject() {
-  return { id: '', title: 'Dự án AI mới', mode: 'create', instruction: '', source_text: '', output_text: '', status: 'draft', metadata: { attachments: [] } };
+  return {
+    id: '', title: 'Dự án AI mới', mode: 'create', instruction: '', source_text: '', output_text: '', status: 'draft',
+    metadata: { attachments: [], responseBudget: 'balanced', autoFallback: true, engine: 'pending' },
+  };
+}
+
+function normalizeMetadata(metadata) {
+  const source = metadata && typeof metadata === 'object' ? metadata : {};
+  return {
+    attachments: Array.isArray(source.attachments) ? source.attachments : [],
+    responseBudget: RESPONSE_BUDGETS[source.responseBudget] ? source.responseBudget : 'balanced',
+    autoFallback: source.autoFallback !== false,
+    engine: source.engine || 'pending',
+    fallbackReason: source.fallbackReason || '',
+    adaptiveTokens: Number(source.adaptiveTokens || 0),
+    provider: source.provider || '',
+  };
 }
 
 async function readFile(file) {
@@ -22,23 +45,30 @@ async function readFile(file) {
   const buffer = await file.arrayBuffer();
   if (ext === 'pdf') return readPdfTextFromBuffer(buffer, { maxPages: 60, maxChars: 150000 });
   if (ext === 'docx') return readDocxTextFromBuffer(buffer);
-  if (['txt','md','csv','json','html','htm'].includes(ext)) return new TextDecoder('utf-8').decode(buffer);
+  if (['txt', 'md', 'csv', 'json', 'html', 'htm'].includes(ext)) return new TextDecoder('utf-8').decode(buffer);
   throw new Error(`Chưa hỗ trợ đọc trực tiếp file .${ext || 'unknown'}`);
 }
 
 export default function AIWorkspace({ currentUser }) {
   const runtime = useRuntimeCore();
   const client = getRuntimeClient();
-  const provider = getProviderSummary();
   const localKey = scopedLocalKey('bes-ai-workspace-v1093', currentUser);
+  const [provider, setProvider] = useState(() => getProviderSummary());
   const [projects, setProjects] = useState([]);
   const [project, setProject] = useState(emptyProject);
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [recovery, setRecovery] = useState(null);
   const [showSources, setShowSources] = useState(true);
   const fileInput = useRef(null);
+
+  useEffect(() => {
+    const refresh = () => setProvider(getProviderSummary());
+    window.addEventListener('bes-ai-settings-updated', refresh);
+    return () => window.removeEventListener('bes-ai-settings-updated', refresh);
+  }, []);
 
   const loadProjects = useCallback(async () => {
     if (!currentUser) return;
@@ -53,18 +83,21 @@ export default function AIWorkspace({ currentUser }) {
   useEffect(() => { loadProjects(); }, [loadProjects]);
 
   const currentId = project.id;
+  const metadata = normalizeMetadata(project.metadata);
+  const responseBudget = RESPONSE_BUDGETS[metadata.responseBudget] || RESPONSE_BUDGETS.balanced;
   const wordCount = useMemo(() => project.source_text.trim() ? project.source_text.trim().split(/\s+/).length : 0, [project.source_text]);
 
+  function patchMetadata(patch) {
+    setProject((current) => ({ ...current, metadata: { ...normalizeMetadata(current.metadata), ...patch } }));
+  }
+
   function newProject() {
-    setProject(emptyProject()); setError(''); setNotice('');
+    setProject(emptyProject()); setError(''); setNotice(''); setRecovery(null);
   }
 
   function openProject(item) {
-    setProject({
-      ...emptyProject(), ...item,
-      metadata: typeof item.metadata === 'object' && item.metadata ? item.metadata : { attachments: [] },
-    });
-    setError(''); setNotice('');
+    setProject({ ...emptyProject(), ...item, metadata: normalizeMetadata(item.metadata) });
+    setError(''); setNotice(''); setRecovery(null);
   }
 
   async function saveProject(nextProject = project) {
@@ -79,7 +112,7 @@ export default function AIWorkspace({ currentUser }) {
       source_text: nextProject.source_text,
       output_text: nextProject.output_text,
       status: nextProject.status || 'draft',
-      metadata: nextProject.metadata || {},
+      metadata: normalizeMetadata(nextProject.metadata),
       updated_at: new Date().toISOString(),
     };
     try {
@@ -93,7 +126,7 @@ export default function AIWorkspace({ currentUser }) {
         const next = [saved, ...projects.filter((item) => item.id !== saved.id)];
         writeLocal(localKey, next);
       }
-      setProject((current) => ({ ...current, ...saved }));
+      setProject((current) => ({ ...current, ...saved, metadata: normalizeMetadata(saved.metadata) }));
       setProjects((current) => [saved, ...current.filter((item) => item.id !== saved.id)]);
       setNotice('Đã lưu dự án.');
       return saved;
@@ -107,7 +140,7 @@ export default function AIWorkspace({ currentUser }) {
     const list = Array.from(files || []).slice(0, 8);
     if (!list.length) return;
     setBusy(true); setError('');
-    const attachments = [...(project.metadata?.attachments || [])];
+    const attachments = [...metadata.attachments];
     const blocks = [];
     for (const file of list) {
       try {
@@ -118,29 +151,85 @@ export default function AIWorkspace({ currentUser }) {
         attachments.push({ name: file.name, size: file.size, type: file.type, error: fileError.message });
       }
     }
-    setProject((current) => ({ ...current, source_text: `${current.source_text}${blocks.join('')}`.trim(), metadata: { ...(current.metadata || {}), attachments } }));
+    setProject((current) => ({
+      ...current,
+      source_text: `${current.source_text}${blocks.join('')}`.trim(),
+      metadata: { ...normalizeMetadata(current.metadata), attachments },
+    }));
     setBusy(false);
   }
 
-  async function runWorkspace() {
+  async function useLocalFallback(reason = 'provider-unavailable', append = false) {
+    const fallbackText = buildWorkspaceLocalFallback({ mode: project.mode, instruction: project.instruction, sourceText: project.source_text });
+    const output = append && project.output_text.trim() ? `${project.output_text.trim()}\n\n---\n\n${fallbackText}` : fallbackText;
+    const next = {
+      ...project,
+      output_text: output,
+      status: 'generated-local',
+      metadata: { ...metadata, engine: 'internal', fallbackReason: reason, provider: 'Brian Internal Engine' },
+    };
+    setProject(next);
+    setError('');
+    setRecovery({ type: 'internal', message: 'Đã chuyển sang bộ máy nội bộ để công việc không bị gián đoạn.' });
+    await saveProject(next);
+    setNotice('Bản nháp nội bộ đã được tạo và có thể chỉnh sửa, lưu hoặc gửi sang ứng dụng khác.');
+    return output;
+  }
+
+  async function runWorkspace({ continueOutput = false } = {}) {
     if (!project.instruction.trim()) { setError('Hãy nhập yêu cầu cho Brian AI.'); return; }
-    if (!provider.hasKey) { setError('Chưa có API key cho nhà cung cấp AI đang chọn. Hãy mở Cài đặt AI.'); return; }
-    setBusy(true); setError(''); setNotice('');
+    setBusy(true); setError(''); setNotice(''); setRecovery(null);
+
+    if (!provider.hasKey) {
+      await useLocalFallback('missing-api-key', continueOutput);
+      setBusy(false);
+      return;
+    }
+
     try {
       const mode = MODES[project.mode] || MODES.create;
-      const prompt = `MODE: ${mode.label}\nUSER REQUEST:\n${project.instruction}\n\nSOURCE MATERIAL:\n${project.source_text || '(No source supplied)'}\n\nOUTPUT REQUIREMENTS:\n- Use clear headings.\n- Keep factual claims grounded in the supplied source when a source is provided.\n- For exercises, include an answer key.\n- Do not claim to have executed external actions.`;
+      const continuation = continueOutput && project.output_text.trim()
+        ? `\n\nCURRENT DRAFT TO CONTINUE FROM:\n${project.output_text.slice(-12000)}\n\nContinue with the next useful section. Do not repeat completed content.`
+        : '';
+      const prompt = `MODE: ${mode.label}\nUSER REQUEST:\n${project.instruction}\n\nSOURCE MATERIAL:\n${project.source_text || '(No source supplied)'}${continuation}\n\nOUTPUT REQUIREMENTS:\n- Use clear headings.\n- Keep factual claims grounded in the supplied source when a source is provided.\n- For exercises, include an answer key.\n- If the request is large, complete one coherent section instead of truncating mid-sentence.\n- Do not claim to have executed external actions.`;
+      let adaptiveInfo = null;
       const result = await callAI({
         prompt,
         systemInstruction: `You are Brian AI Workspace, an expert assistant for a Vietnamese high-school English teacher. ${mode.instruction}`,
         temperature: project.mode === 'ask' ? 0.35 : 0.65,
         governanceProfile: project.mode === 'act' ? 'administrative' : 'teaching-content',
         loadingLabel: `${mode.label} nội dung trong AI Workspace`,
+        maxOutputTokens: responseBudget.tokens,
+        onAdaptiveRetry: (info) => {
+          adaptiveInfo = info;
+          setRecovery({ type: 'adaptive', message: `OpenRouter còn ít credit; Brian đã tự giảm phản hồi xuống khoảng ${info.maxOutputTokens} tokens và thử lại.` });
+        },
       });
-      const next = { ...project, output_text: result, status: 'generated' };
+      const combined = continueOutput && project.output_text.trim() ? `${project.output_text.trim()}\n\n${result.trim()}` : result;
+      const next = {
+        ...project,
+        output_text: combined,
+        status: adaptiveInfo ? 'generated-economy' : 'generated',
+        metadata: {
+          ...metadata,
+          engine: 'provider',
+          provider: `${provider.providerName} · ${provider.model}`,
+          fallbackReason: adaptiveInfo ? 'adaptive-credit-retry' : '',
+          adaptiveTokens: adaptiveInfo?.maxOutputTokens || 0,
+        },
+      };
       setProject(next);
       await saveProject(next);
-    } catch (runError) { setError(runError.message || String(runError)); }
-    finally { setBusy(false); }
+      setNotice(adaptiveInfo
+        ? 'Đã tạo phản hồi ở chế độ tiết kiệm. Với tài liệu dài, bấm “Tạo tiếp phần” để nối thêm nội dung.'
+        : 'Brian AI đã hoàn tất bản nháp.');
+    } catch (runError) {
+      if (metadata.autoFallback && (isProviderCapacityError(runError) || /network|failed to fetch|load failed|rate limit|429/i.test(runError?.message || ''))) {
+        await useLocalFallback(runError?.code || 'provider-error', continueOutput);
+      } else {
+        setError(friendlyAiWorkspaceError(runError));
+      }
+    } finally { setBusy(false); }
   }
 
   function sendToContentFactory() {
@@ -158,8 +247,10 @@ export default function AIWorkspace({ currentUser }) {
   }
 
   return <section className="v1093-page v1093-ai-workspace">
-    <header className="v1093-hero v1093-hero-ai"><div><span className="v1093-kicker">V10.91 · Brian AI Workspace</span><h1>Không gian làm việc AI</h1><p>Đọc nhiều nguồn, tạo nội dung dài, lưu dự án và chuyển kết quả sang các ứng dụng khác.</p></div><div className="v1093-provider-card"><span>{provider.providerName}</span><b>{provider.model}</b><small>{provider.hasKey ? 'API key sẵn sàng' : 'Chưa có API key'}</small></div></header>
-    {error && <div className="v1093-alert error"><b>AI Workspace cần xử lý</b><span>{error}</span>{!provider.hasKey && <button onClick={() => window.location.hash = '#/settings'}>Mở cài đặt AI</button>}</div>}
+    <header className="v1093-hero v1093-hero-ai"><div><span className="v1093-kicker">V11.5.6 · Brian AI Workspace</span><h1>Không gian làm việc AI</h1><p>Đọc nhiều nguồn, tạo nội dung dài, lưu dự án và tự phục hồi khi provider hết credit hoặc tạm thời không khả dụng.</p></div><div className="v1093-provider-card"><span>{provider.providerName}</span><b>{provider.model}</b><small>{provider.hasKey ? 'AI thật sẵn sàng' : 'Bộ máy nội bộ sẵn sàng'}</small></div></header>
+
+    {error && <div className="v1093-alert error"><b>AI Workspace cần xử lý</b><span>{error}</span><button onClick={() => useLocalFallback('manual-error-recovery')}>Dùng bộ máy nội bộ</button><button onClick={() => { window.location.hash = '#/settings'; }}>Cài đặt AI</button></div>}
+    {recovery && <div className="v1093-alert warning"><b>{recovery.type === 'adaptive' ? 'Đã tự tối ưu chi phí' : 'Chế độ dự phòng đang hoạt động'}</b><span>{recovery.message}</span>{recovery.type === 'internal' && <button onClick={() => { window.location.hash = '#/settings'; }}>Thêm provider khác</button>}</div>}
     {notice && <div className="v1093-alert success">{notice}</div>}
 
     <div className="v1093-ai-layout">
@@ -167,11 +258,20 @@ export default function AIWorkspace({ currentUser }) {
 
       <main className="v1093-ai-editor">
         <div className="v1093-ai-topbar"><input className="v1093-title-input" value={project.title} onChange={(e) => setProject({ ...project, title: e.target.value })} /><div>{Object.entries(MODES).map(([key, value]) => <button key={key} className={project.mode === key ? 'active' : ''} onClick={() => setProject({ ...project, mode: key })}>{value.label}</button>)}</div><button onClick={() => saveProject()} disabled={saving}>{saving ? 'Đang lưu…' : 'Lưu'}</button></div>
-        <section className="v1093-panel v1093-ai-prompt"><label>Yêu cầu<textarea value={project.instruction} onChange={(e) => setProject({ ...project, instruction: e.target.value })} placeholder="Ví dụ: Tạo worksheet B2–C1 gồm 20 câu từ tài liệu đính kèm, không trùng nội dung, có đáp án và giải thích." /></label><div className="v1093-ai-actions"><button onClick={() => fileInput.current?.click()} disabled={busy}>📎 Thêm tài liệu</button><input ref={fileInput} type="file" multiple hidden accept=".pdf,.docx,.txt,.md,.csv,.json,.html" onChange={(e) => handleFiles(e.target.files)} /><button onClick={() => setShowSources((value) => !value)}>{showSources ? 'Ẩn nguồn' : 'Hiện nguồn'}</button><button className="v1093-primary" onClick={runWorkspace} disabled={busy}>{busy ? 'Brian AI đang xử lý…' : '✦ Chạy Brian AI'}</button></div></section>
 
-        {showSources && <section className="v1093-panel v1093-source-panel"><div className="v1093-panel-heading"><div><span>Nguồn</span><h2>{wordCount.toLocaleString('vi-VN')} từ</h2></div><small>{(project.metadata?.attachments || []).length} tệp</small></div><textarea value={project.source_text} onChange={(e) => setProject({ ...project, source_text: e.target.value })} placeholder="Dán văn bản hoặc kéo dữ liệu từ tài liệu vào đây…" /><div className="v1093-attachment-chips">{(project.metadata?.attachments || []).map((file, index) => <span key={`${file.name}-${index}`} title={file.error || `${file.characters || 0} ký tự`}>{file.error ? '⚠ ' : '✓ '}{file.name}</span>)}</div></section>}
+        <section className="v1093-panel v1093-ai-prompt">
+          <label>Yêu cầu<textarea value={project.instruction} onChange={(e) => setProject({ ...project, instruction: e.target.value })} placeholder="Ví dụ: Tạo đề thi THPT môn tiếng Anh. Nếu nội dung dài, Brian sẽ tự tạo theo từng phần hoặc dùng bản dự phòng nội bộ." /></label>
+          <div className="v1156-resilience-bar">
+            <label><span>Độ dài phản hồi</span><select value={metadata.responseBudget} onChange={(e) => patchMetadata({ responseBudget: e.target.value })}>{Object.entries(RESPONSE_BUDGETS).map(([id, item]) => <option key={id} value={id}>{item.label} · {item.tokens} tokens</option>)}</select><small>{responseBudget.hint}</small></label>
+            <label className="v1156-switch"><input type="checkbox" checked={metadata.autoFallback} onChange={(e) => patchMetadata({ autoFallback: e.target.checked })} /><span>Tự chuyển sang bộ máy nội bộ khi AI hết credit</span></label>
+            <div className={`v1156-engine-status ${metadata.engine}`}><b>{metadata.engine === 'internal' ? 'Bộ máy nội bộ' : metadata.engine === 'provider' ? 'AI thật' : 'Tự động'}</b><span>{metadata.provider || `${provider.providerName} · ${provider.model}`}</span></div>
+          </div>
+          <div className="v1093-ai-actions"><button onClick={() => fileInput.current?.click()} disabled={busy}>📎 Thêm tài liệu</button><input ref={fileInput} type="file" multiple hidden accept=".pdf,.docx,.txt,.md,.csv,.json,.html" onChange={(e) => handleFiles(e.target.files)} /><button onClick={() => setShowSources((value) => !value)}>{showSources ? 'Ẩn nguồn' : 'Hiện nguồn'}</button><button onClick={() => useLocalFallback('manual') } disabled={busy}>Bộ máy nội bộ</button><button className="v1093-primary" onClick={() => runWorkspace()} disabled={busy}>{busy ? 'Brian đang xử lý…' : '✦ Chạy Brian AI'}</button></div>
+        </section>
 
-        <section className="v1093-panel v1093-output-panel"><div className="v1093-panel-heading"><div><span>Kết quả</span><h2>Bản thảo AI</h2></div><div><button disabled={!project.output_text} onClick={() => navigator.clipboard.writeText(project.output_text)}>Sao chép</button><button disabled={!project.output_text} onClick={() => downloadText(`${project.title || 'brian-ai'}.md`, project.output_text, 'text/markdown;charset=utf-8')}>Xuất Markdown</button><button disabled={!project.output_text} onClick={sendToContentFactory}>Gửi sang Content Factory</button></div></div><textarea value={project.output_text} onChange={(e) => setProject({ ...project, output_text: e.target.value })} placeholder="Kết quả sẽ xuất hiện tại đây và vẫn có thể chỉnh sửa." /></section>
+        {showSources && <section className="v1093-panel v1093-source-panel"><div className="v1093-panel-heading"><div><span>Nguồn</span><h2>{wordCount.toLocaleString('vi-VN')} từ</h2></div><small>{metadata.attachments.length} tệp</small></div><textarea value={project.source_text} onChange={(e) => setProject({ ...project, source_text: e.target.value })} placeholder="Dán văn bản hoặc kéo dữ liệu từ tài liệu vào đây…" /><div className="v1093-attachment-chips">{metadata.attachments.map((file, index) => <span key={`${file.name}-${index}`} title={file.error || `${file.characters || 0} ký tự`}>{file.error ? '⚠ ' : '✓ '}{file.name}</span>)}</div></section>}
+
+        <section className="v1093-panel v1093-output-panel"><div className="v1093-panel-heading"><div><span>Kết quả</span><h2>Bản thảo AI</h2></div><div><button disabled={!project.output_text || busy} onClick={() => runWorkspace({ continueOutput: true })}>Tạo tiếp phần</button><button disabled={!project.output_text} onClick={() => navigator.clipboard.writeText(project.output_text)}>Sao chép</button><button disabled={!project.output_text} onClick={() => downloadText(`${project.title || 'brian-ai'}.md`, project.output_text, 'text/markdown;charset=utf-8')}>Xuất Markdown</button><button disabled={!project.output_text} onClick={sendToContentFactory}>Gửi sang Content Factory</button></div></div><textarea value={project.output_text} onChange={(e) => setProject({ ...project, output_text: e.target.value })} placeholder="Kết quả sẽ xuất hiện tại đây và vẫn có thể chỉnh sửa." /></section>
       </main>
     </div>
   </section>;

@@ -1,0 +1,21 @@
+{
+  "from": "11.5.5",
+  "to": "11.5.6",
+  "createdAt": "2026-07-14T03:14:36.788Z",
+  "files": [
+    ".bes-release/v11.5.6.json",
+    "package-lock.json",
+    "package.json",
+    "public/release-manifest.json",
+    "public/version.json",
+    "scripts/check-v11.5.6.mjs",
+    "scripts/performance-budget-v11.5.6.mjs",
+    "scripts/release-guard-v11.5.6.mjs",
+    "scripts/sync-version-v11.5.6.mjs",
+    "src/config/version.js",
+    "src/pages/AIWorkspace.jsx",
+    "src/styles/v1093.css",
+    "src/utils/aiWorkspaceFallback.js",
+    "src/utils/gemini.js"
+  ]
+}

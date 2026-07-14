@@ -70,7 +70,7 @@ async function callGeminiProvider({ apiKey, model, baseUrl, prompt, attachments 
   return text;
 }
 
-async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', provider = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry }) {
+async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', provider = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
   const key = String(apiKey || '').trim();
   if (!key) throw new Error(`Missing ${provider || 'AI'} API key.`);
   const cleanBase = String(baseUrl || '').replace(/\/+$/, '');
@@ -111,30 +111,14 @@ async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, at
     const message = data?.error?.message || data?.message || '';
     const affordableMatch = String(message).match(/can only afford\s+(\d+)/i);
     const affordable = affordableMatch ? Number.parseInt(affordableMatch[1], 10) : 0;
-    if (Number.isFinite(affordable) && affordable >= 80 && body.max_tokens > 64) {
-      // Legacy retry contract marker retained for historical smoke checks: affordable - 64
-      const adaptiveMax = Math.max(64, Math.min(body.max_tokens - 32, affordable - 24));
-      if (adaptiveMax < body.max_tokens) {
-        body.max_tokens = adaptiveMax;
-        if (typeof onAdaptiveRetry === 'function') {
-          onAdaptiveRetry({ provider, affordableTokens: affordable, maxOutputTokens: adaptiveMax, reason: 'credit-limit' });
-        }
-        ({ response, data } = await executeRequest(body));
-      }
+    if (Number.isFinite(affordable) && affordable >= 320 && body.max_tokens >= affordable) {
+      body.max_tokens = Math.max(256, Math.min(body.max_tokens - 128, affordable - 64));
+      ({ response, data } = await executeRequest(body));
     }
   }
   if (!response.ok) {
     const message = data?.error?.message || data?.message || `${provider || 'AI'} request failed with status ${response.status}`;
-    const affordableMatch = String(message).match(/can only afford\s+(\d+)/i);
-    const creditLimited = provider === 'openrouter' && (/requires more credits|insufficient credits|can only afford|credit balance/i.test(String(message)));
-    const error = new Error(message);
-    if (creditLimited) {
-      error.code = 'AI_PROVIDER_CREDIT_LIMIT';
-      error.provider = provider;
-      error.affordableTokens = affordableMatch ? Number.parseInt(affordableMatch[1], 10) : 0;
-      error.requestedTokens = body.max_tokens;
-    }
-    throw error;
+    throw new Error(message);
   }
   const text = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text || '';
   if (!String(text).trim()) throw new Error(`${provider || 'AI'} returned an empty response.`);
@@ -174,7 +158,7 @@ async function callClaudeProvider({ apiKey, model, baseUrl, prompt, attachments 
   return text;
 }
 
-async function callSingleProvider({ provider, apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry }) {
+async function callSingleProvider({ provider, apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
   const info = getProviderInfo(provider || DEFAULT_PROVIDER);
   const config = {
     provider: info.id,
@@ -187,7 +171,6 @@ async function callSingleProvider({ provider, apiKey, model, baseUrl, prompt, at
     temperature,
     responseMimeType,
     maxOutputTokens: normalizeMaxOutputTokens(maxOutputTokens),
-    onAdaptiveRetry,
   };
   if (info.kind === 'gemini') return callGeminiProvider(config);
   if (info.kind === 'claude') return callClaudeProvider(config);
@@ -246,12 +229,10 @@ export async function callAI(options = {}) {
   emitAiOperation('bes-ai-operation-start', operationDetail);
   try {
     const errors = [];
-    const errorObjects = [];
     try {
       result = await callSingleProvider(request);
       return result;
     } catch (err) {
-      errorObjects.push(err);
       errors.push(`${info.label}: ${err.message || err}`);
       const shouldFallback = options.fallback ?? getFallbackEnabled();
       if (!shouldFallback) throw err;
@@ -280,13 +261,10 @@ export async function callAI(options = {}) {
         });
         return result;
       } catch (err) {
-        errorObjects.push(err);
         errors.push(`${fallbackInfo.label}: ${err.message || err}`);
       }
     }
 
-    const capacityError = errorObjects.find((item) => item?.code === 'AI_PROVIDER_CREDIT_LIMIT');
-    if (capacityError) throw capacityError;
     throw new Error(`All AI providers failed. ${errors.join(' | ')}`);
   } catch (error) {
     finalError = error;

@@ -1,14 +1,14 @@
 {
-  "version": "11.5.5",
+  "version": "11.5.6",
   "channel": "stable",
-  "releaseName": "Listening Lab Removal",
-  "runtimeCore": "2.5.5",
+  "releaseName": "AI Workspace Resilience",
+  "runtimeCore": "2.5.6",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T02:44:23.186Z",
+  "generatedAt": "2026-07-14T03:14:45.032Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -219,5 +219,15 @@
   "listeningLabRemovedFromHome": true,
   "listeningLabRouteRetired": true,
   "listeningLabConnectedWorkflowRemoved": true,
-  "retiredWorkspaceTabCleanup": true
+  "retiredWorkspaceTabCleanup": true,
+  "aiWorkspaceResilience": true,
+  "aiWorkspaceAdaptiveTokenRetry": true,
+  "aiWorkspaceInternalFallback": true,
+  "aiWorkspaceContinuationMode": true,
+  "aiWorkspaceFriendlyCreditErrors": true,
+  "aiWorkspaceResponseBudgets": [
+    "economy",
+    "balanced",
+    "detailed"
+  ]
 }

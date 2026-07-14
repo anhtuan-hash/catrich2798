@@ -1,7 +1,7 @@
 {
-  "version": "11.5.6",
-  "release": "AI Workspace Resilience",
-  "runtime": "2.5.6",
+  "version": "11.5.5",
+  "release": "Listening Lab Removal",
+  "runtime": "2.5.5",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
   "lessonArchitectAnnualBuilder": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T03:14:45.032Z",
+  "generatedAt": "2026-07-14T02:44:23.186Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "2.5.6",
+  "runtimeCore": "2.5.5",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -224,15 +224,5 @@
   "listeningLabRemovedFromHome": true,
   "listeningLabRouteRetired": true,
   "listeningLabConnectedWorkflowRemoved": true,
-  "retiredWorkspaceTabCleanup": true,
-  "aiWorkspaceResilience": true,
-  "aiWorkspaceAdaptiveTokenRetry": true,
-  "aiWorkspaceInternalFallback": true,
-  "aiWorkspaceContinuationMode": true,
-  "aiWorkspaceFriendlyCreditErrors": true,
-  "aiWorkspaceResponseBudgets": [
-    "economy",
-    "balanced",
-    "detailed"
-  ]
+  "retiredWorkspaceTabCleanup": true
 }

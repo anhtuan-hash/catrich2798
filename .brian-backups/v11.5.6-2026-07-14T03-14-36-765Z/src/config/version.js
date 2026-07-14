@@ -1,6 +1,6 @@
-export const APP_VERSION = '11.5.6';
-export const RELEASE_NAME = 'AI Workspace Resilience';
-export const RUNTIME_CORE_VERSION = '2.5.6';
+export const APP_VERSION = '11.5.5';
+export const RELEASE_NAME = 'Listening Lab Removal';
+export const RUNTIME_CORE_VERSION = '2.5.5';
 export const SCHEMA_VERSION = '11.4.2';
 
 export function getVersionInfo() {
