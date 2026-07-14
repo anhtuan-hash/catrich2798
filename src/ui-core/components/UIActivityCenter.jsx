@@ -62,7 +62,7 @@ function ActivityEmpty({ language, tab }) {
   return <div className="bui-activity-empty"><span aria-hidden="true">○</span><p>{(language === 'vi' ? vi : en)[tab] || ''}</p></div>;
 }
 
-export default function UIActivityCenter({ currentUser, route = 'home', selectedTool = null, language = 'vi' }) {
+export default function UIActivityCenter({ currentUser, route = 'home', selectedTool = null, language = 'vi', externalTrigger = false }) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [activityState, setActivityState] = useState(() => loadActivityState(currentUser));
@@ -266,18 +266,20 @@ export default function UIActivityCenter({ currentUser, route = 'home', selected
 
   return (
     <>
-      <button
-        type="button"
-        className={`bui-activity-trigger${badgeCount ? ' has-activity' : ''}`}
-        onClick={() => { setActiveTab('overview'); setOpen(true); }}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        title={copy.title}
-      >
-        <span aria-hidden="true">◎</span>
-        <b>{copy.trigger}</b>
-        {badgeCount ? <em>{Math.min(99, badgeCount)}</em> : null}
-      </button>
+      {!externalTrigger ? (
+        <button
+          type="button"
+          className={`bui-activity-trigger${badgeCount ? ' has-activity' : ''}`}
+          onClick={() => { setActiveTab('overview'); setOpen(true); }}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          title={copy.title}
+        >
+          <span aria-hidden="true">◎</span>
+          <b>{copy.trigger}</b>
+          {badgeCount ? <em>{Math.min(99, badgeCount)}</em> : null}
+        </button>
+      ) : null}
 
       <UIOverlayPortal open={open} placement="drawer-right" onDismiss={() => setOpen(false)} className="bui-activity-layer">
         <UIOverlaySurface as="aside" variant="drawer" className="bui-activity-center" role="dialog" aria-modal="true" aria-labelledby="bui-activity-title">

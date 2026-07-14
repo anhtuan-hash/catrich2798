@@ -2424,7 +2424,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
       ) : null}
 
       {visibleTabs.length && activeTab !== 'dashboard' ? (
-      <section className="department-work-panel panel department-v1221-details-panel">
+      <section className="department-work-panel panel department-v1221-details-panel department-v1223-details-panel" data-active-module={activeTab}>
         <div className="department-tabs">
           {visibleTabs.map((module) => {
             const isAllowed = allowed(module.key);
@@ -2454,6 +2454,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
         />
         ) : null}
 
+        <div className="department-v1223-module-content" data-module={activeTab}>
         {activeTab === 'dashboard' && allowed('dashboard') && <DashboardPanel data={data} stats={stats} health={departmentHealth} language={language} setActiveTab={openDepartmentTab} cloudInfo={cloudInfo} canPublish={canPublish} onSaveCloud={handleSaveCloud} onLoadCloud={handleLoadCloud} onUseTemplate={useTemplate} upcomingItems={upcomingItems} workloadRows={workloadRows} onExportCalendar={handleExportCalendar} onAddAgenda={addAutoMeetingAgenda} />}
         {activeTab === 'plans' && allowed('plans') && <PlansPanel data={data} language={language} draft={draft} setDraft={setDraft} addPlan={addPlan} updateStatus={updateStatus} removeItem={removeItem} />}
         {activeTab === 'meetings' && allowed('meetings') && <MeetingsPanel data={data} language={language} draft={draft} setDraft={setDraft} addMeeting={addMeeting} addAutoMeetingAgenda={addAutoMeetingAgenda} removeItem={removeItem} />}
@@ -2491,6 +2492,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
         {activeTab === 'aiCopilot' && allowed('aiCopilot') && <DepartmentAIPanel language={language} hasApiKey={hasApiKey} aiAction={aiAction} setAiAction={setAiAction} aiInstruction={aiInstruction} setAiInstruction={setAiInstruction} aiSourceText={aiSourceText} setAiSourceText={setAiSourceText} aiSourceName={aiSourceName} setAiSourceName={setAiSourceName} aiSourceInputRef={aiSourceInputRef} handleAiSourceFile={handleAiSourceFile} pasteAiSourceFromClipboard={pasteAiSourceFromClipboard} clearAiSourceText={clearAiSourceText} aiOutput={aiOutput} setAiOutput={setAiOutput} aiLoading={aiLoading} runDepartmentAI={runDepartmentAI} applyAIOutput={applyAIOutput} health={departmentHealth} adminDocDraft={adminDocDraft} setAdminDocDraft={setAdminDocDraft} adminDocOutput={adminDocOutput} setAdminDocOutput={setAdminDocOutput} composeAdministrativeDocument={composeAdministrativeDocument} polishAdministrativeDocument={polishAdministrativeDocument} saveAdministrativeDocument={saveAdministrativeDocument} downloadAdministrativeDocument={downloadAdministrativeDocument} />}
         {activeTab === 'reports' && allowed('reports') && <ReportsPanel language={language} report={report} setReport={setReport} reportType={reportType} setReportType={setReportType} buildAIReport={buildAIReport} aiLoading={aiLoading} onDownload={() => downloadText('bao-cao-to-tieng-anh.txt', report)} onCopy={() => navigator.clipboard?.writeText(report).then(() => showToast(language === 'vi' ? 'Đã copy báo cáo.' : 'Report copied.'))} onExportPortfolio={handleExportPortfolio} />}
         {Object.keys(STRUCTURED_MODULES).includes(activeTab) && allowed(activeTab) && <StructuredModulePanel module={moduleByKey.get(activeTab)} config={STRUCTURED_MODULES[activeTab]} data={data} language={language} draft={draft} setDraft={setDraft} addRecord={() => addStructuredRecord(activeTab)} updateStatus={updateStatus} removeItem={removeItem} setActiveTab={setActiveTab} />}
+        </div>
       </section>
       ) : null}
 

@@ -1,14 +1,14 @@
 {
-  "version": "12.22.0",
+  "version": "12.23.0",
   "channel": "stable",
-  "releaseName": "Color-Coded Department Design System",
-  "runtimeCore": "3.6.0",
+  "releaseName": "Department Detail Workspace & Notification Bridge",
+  "runtimeCore": "3.6.1",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T23:23:59.618Z",
+  "generatedAt": "2026-07-14T23:36:15.942Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Color-Coded Department Design System",
+  "release": "Department Detail Workspace & Notification Bridge",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -487,5 +487,10 @@
   "departmentUnifiedCardLanguage": true,
   "departmentStatusChips": true,
   "departmentColoredModuleTabs": true,
-  "departmentPolishedScrollbars": true
+  "departmentPolishedScrollbars": true,
+  "departmentDetailFullWidth": true,
+  "departmentDetailModuleScroll": true,
+  "departmentUnifiedDetailCards": true,
+  "activityCenterBridgeRestored": true,
+  "notificationPanelOpenFix": true
 }

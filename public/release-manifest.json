@@ -1,6 +1,6 @@
 {
-  "version": "12.22.0",
-  "release": "Color-Coded Department Design System",
+  "version": "12.23.0",
+  "release": "Department Detail Workspace & Notification Bridge",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T23:23:59.618Z",
+  "generatedAt": "2026-07-14T23:36:15.942Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "3.6.0",
+  "runtimeCore": "3.6.1",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Color-Coded Department Design System",
+  "releaseName": "Department Detail Workspace & Notification Bridge",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -492,5 +492,10 @@
   "departmentUnifiedCardLanguage": true,
   "departmentStatusChips": true,
   "departmentColoredModuleTabs": true,
-  "departmentPolishedScrollbars": true
+  "departmentPolishedScrollbars": true,
+  "departmentDetailFullWidth": true,
+  "departmentDetailModuleScroll": true,
+  "departmentUnifiedDetailCards": true,
+  "activityCenterBridgeRestored": true,
+  "notificationPanelOpenFix": true
 }
