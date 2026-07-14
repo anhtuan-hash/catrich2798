@@ -1,14 +1,14 @@
 {
-  "version": "12.17.0",
+  "version": "12.18.0",
   "channel": "stable",
-  "releaseName": "Modern App Card Gallery",
+  "releaseName": "Global 16:9 Widescreen Canvas",
   "runtimeCore": "3.6.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T16:24:52.236Z",
+  "generatedAt": "2026-07-14T16:35:06.648Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Modern App Card Gallery",
+  "release": "Global 16:9 Widescreen Canvas",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -450,5 +450,17 @@
   "appDirectorySearchAfterHero": true,
   "modernAppCardGallery": true,
   "appCardBoardStyle": "vivid-blue-pastel",
-  "appCardGridColumnsDesktop": 5
+  "appCardGridColumnsDesktop": 5,
+  "globalWidescreenCanvas": true,
+  "globalAspectRatio": "16:9",
+  "edgeToEdgeContentRail": true,
+  "widescreenMaxWidth": 3840,
+  "desktopPageGutter": "10-22px",
+  "widescreenAppGridColumns": [
+    5,
+    6,
+    7,
+    8
+  ],
+  "responsiveWidescreenFallback": true
 }

@@ -13,6 +13,7 @@ import './ui-core/styles/workspace-layout.css';
 import './ui-core/styles/v11-navigation-restoration.css';
 import './ui-core/styles/apps-hero-v1216.css';
 import './ui-core/styles/apps-cards-v1217.css';
+import './ui-core/styles/widescreen-v1218.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import AppErrorBoundary from './components/AppErrorBoundary.jsx';
@@ -565,7 +566,7 @@ function App() {
       <Suspense fallback={null}><GlobalAccessibilityAnnouncer /></Suspense>
       <UIToastCenter />
       <div
-      className="app-shell metro-shell metro-clean-system"
+      className="app-shell metro-shell metro-clean-system bes-widescreen-16x9"
       data-route={currentRoute}
       data-tool={selectedTool?.slug || currentRoute}
       data-performance={resolvedPerformance}
@@ -576,6 +577,7 @@ function App() {
       data-app-version={APP_VERSION}
       data-burs="comfortable"
       data-ui-core="v12"
+      data-aspect-ratio="16:9"
       data-design-language={designLanguage}
       data-layout={getRouteLayout(currentRoute, selectedTool)}
       data-workspace={activeWorkspaceId}
