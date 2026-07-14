@@ -1,0 +1,21 @@
+{
+  "from": "11.5.7",
+  "to": "11.5.8",
+  "createdAt": "2026-07-14T04:59:23.238Z",
+  "files": [
+    ".bes-release/v11.5.8.json",
+    "scripts/check-v11.5.8.mjs",
+    "scripts/performance-budget-v11.5.8.mjs",
+    "scripts/release-guard-v11.5.8.mjs",
+    "scripts/sync-version-v11.5.8.mjs",
+    "src/styles/v1158.css",
+    "src/utils/providerHubInputGuard.js",
+    "src/main.jsx",
+    "package.json",
+    "package-lock.json",
+    "src/config/version.js",
+    "public/version.json",
+    "public/release-manifest.json"
+  ],
+  "backupRoot": "/Users/catrichmauxanh/Documents/Brian-English-Studio-MAIN/.brian-backups/v11.5.8-2026-07-14T04-59-23-216Z"
+}

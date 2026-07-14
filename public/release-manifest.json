@@ -1,5 +1,5 @@
 {
-  "version": "11.5.7",
+  "version": "11.5.8",
   "release": "Free AI Provider Hub & Smart Routing",
   "runtime": "2.5.7",
   "schema": "11.4.2",
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T04:40:52.744Z",
+  "generatedAt": "2026-07-14T04:59:32.120Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "2.5.7",
+  "runtimeCore": "2.5.8",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -258,5 +258,8 @@
     "lmstudio",
     "localai"
   ],
-  "paidProviderOptIn": true
+  "paidProviderOptIn": true,
+  "releaseName": "Provider Hub Input Stability",
+  "providerHubInputStability": true,
+  "providerKeyPasteGuard": true
 }

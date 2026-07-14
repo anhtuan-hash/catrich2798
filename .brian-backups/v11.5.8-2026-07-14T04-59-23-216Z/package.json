@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "11.5.8",
+  "version": "11.5.7",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -13,9 +13,9 @@
     "test:e2e:contracts": "node scripts/e2e-contract-test-v10.99.mjs",
     "test:e2e": "playwright test",
     "test:e2e:chromium": "playwright test --project=chromium-desktop",
-    "version:sync": "node scripts/sync-version-v11.5.8.mjs",
-    "audit:budget": "node scripts/performance-budget-v11.5.8.mjs",
-    "release:guard": "node scripts/release-guard-v11.5.8.mjs",
+    "version:sync": "node scripts/sync-version-v11.5.7.mjs",
+    "audit:budget": "node scripts/performance-budget-v11.5.7.mjs",
+    "release:guard": "node scripts/release-guard-v11.5.7.mjs",
     "test:v11.1": "node scripts/check-v11.1.0.mjs",
     "release:guard:v11.1": "node scripts/release-guard-v11.1.0.mjs",
     "verify:v11.1": "npm run test:v11.1 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.1",
@@ -93,10 +93,7 @@
     "verify:v11.5.6": "npm run test:v11.5.6 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.6",
     "test:v11.5.7": "npm run version:sync && node scripts/check-v11.5.7.mjs",
     "release:guard:v11.5.7": "node scripts/release-guard-v11.5.7.mjs",
-    "verify:v11.5.7": "npm run test:v11.5.7 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.7",
-    "test:v11.5.8": "npm run version:sync && node scripts/check-v11.5.8.mjs",
-    "release:guard:v11.5.8": "node scripts/release-guard-v11.5.8.mjs",
-    "verify:v11.5.8": "npm run test:v11.5.8 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.8"
+    "verify:v11.5.7": "npm run test:v11.5.7 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.7"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

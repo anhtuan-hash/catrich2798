@@ -1,14 +1,14 @@
 {
-  "version": "11.5.8",
+  "version": "11.5.7",
   "channel": "stable",
-  "releaseName": "Provider Hub Input Stability",
-  "runtimeCore": "2.5.8",
+  "releaseName": "Free AI Provider Hub & Smart Routing",
+  "runtimeCore": "2.5.7",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T04:59:32.120Z",
+  "generatedAt": "2026-07-14T04:40:52.744Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -253,7 +253,5 @@
     "lmstudio",
     "localai"
   ],
-  "paidProviderOptIn": true,
-  "providerHubInputStability": true,
-  "providerKeyPasteGuard": true
+  "paidProviderOptIn": true
 }

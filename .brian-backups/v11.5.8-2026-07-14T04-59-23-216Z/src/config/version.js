@@ -1,6 +1,6 @@
-export const APP_VERSION = '11.5.8';
-export const RELEASE_NAME = 'Provider Hub Input Stability';
-export const RUNTIME_CORE_VERSION = '2.5.8';
+export const APP_VERSION = '11.5.7';
+export const RELEASE_NAME = 'Free AI Provider Hub & Smart Routing';
+export const RUNTIME_CORE_VERSION = '2.5.7';
 export const SCHEMA_VERSION = '11.4.2';
 
 export function getVersionInfo() {
