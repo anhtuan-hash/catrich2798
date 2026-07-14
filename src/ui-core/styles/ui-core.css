@@ -267,3 +267,131 @@ html[data-design-language='apple'] .bui-workbench-header {
   .bui-workbench-metrics { grid-template-columns: 1fr !important; }
   .bui-workbench-canvas { grid-template-columns: 1fr !important; }
 }
+
+
+/* V12.3 — Native Management UI contracts */
+.bui-management {
+  --bui-management-max: 1520px;
+  width: min(100%, var(--bui-management-max));
+  margin-inline: auto;
+  padding-block: clamp(16px, 2vw, 30px) clamp(52px, 6vw, 88px);
+  color: var(--ui-color-on-surface);
+  font-family: var(--ui-font-body);
+}
+.bui-management > * { min-width: 0; }
+.bui-management-header,
+.bui-management :is(.department-v40-hero-card, .hr-hero, .v1093-hero, .ai-gov-hero) {
+  min-width: 0;
+  border: var(--ui-border-width) solid var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-card) !important;
+  background: color-mix(in srgb, var(--ui-color-surface-raised) 96%, transparent) !important;
+  color: var(--ui-color-on-surface) !important;
+  box-shadow: var(--ui-elevation-card) !important;
+  overflow: clip;
+}
+.bui-management-metrics,
+.bui-management :is(.department-v40-summary-strip, .hr-overview-stats, .v1093-metrics, .ai-gov-stats) {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+  gap: clamp(10px, 1.25vw, 18px) !important;
+  width: 100%;
+  min-width: 0;
+  margin-block: clamp(12px, 1.4vw, 22px) !important;
+}
+.bui-management-metrics > *,
+.bui-management :is(.department-v40-summary-strip, .hr-overview-stats, .v1093-metrics, .ai-gov-stats) > * {
+  min-width: 0;
+  border: var(--ui-border-width) solid var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-card) !important;
+  background: var(--ui-color-surface-raised) !important;
+  color: var(--ui-color-on-surface) !important;
+  box-shadow: none !important;
+}
+.bui-management-layout,
+.bui-management :is(.department-v40-workspace, .hr-workspace-body, .v1093-work-layout, .ai-gov-layout) {
+  width: 100%;
+  min-width: 0;
+  align-items: start;
+  gap: clamp(16px, 2vw, 28px) !important;
+}
+.bui-management :is(
+  .metro-panel,
+  .department-list-panel,
+  .department-item-card,
+  .department-teacher-workspace-v64,
+  .hr-panel,
+  .v1093-sidebar-card,
+  .v1093-panel,
+  .v1093-task-card,
+  .ai-gov-card
+) {
+  min-width: 0;
+  border: var(--ui-border-width) solid var(--ui-color-outline) !important;
+  border-radius: var(--ui-radius-card) !important;
+  background: var(--ui-color-surface-raised) !important;
+  color: var(--ui-color-on-surface) !important;
+  box-shadow: var(--ui-elevation-card) !important;
+}
+.bui-management :is(input, select, textarea) {
+  min-width: 0;
+  max-width: 100%;
+  font: inherit;
+  color: var(--ui-color-on-surface);
+  background: var(--ui-color-surface);
+  border-color: var(--ui-color-outline);
+  border-radius: var(--ui-radius-control);
+  writing-mode: horizontal-tb !important;
+}
+.bui-management textarea {
+  inline-size: 100%;
+  min-inline-size: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.bui-management :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--ui-color-primary) 34%, transparent) !important;
+  outline-offset: 2px;
+}
+.bui-management :is(.department-v40-main-tabs, .hr-tabs, .v1093-sidebar-card, .ai-gov-audit-actions) {
+  scrollbar-width: thin;
+}
+.bui-management :is(.department-v40-main-tabs, .hr-tabs) {
+  display: flex !important;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+.bui-management table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.bui-management :is(.ai-gov-table-wrap, .department-table-wrap, .hr-table-wrap) {
+  max-width: 100%;
+  overflow-x: auto;
+}
+html[data-design-language='material-3'] .bui-management-header {
+  box-shadow: 0 2px 8px rgba(31, 28, 35, .10) !important;
+}
+html[data-design-language='apple'] .bui-management-header {
+  background: color-mix(in srgb, var(--ui-color-surface) 80%, transparent) !important;
+}
+@media (max-width: 1040px) {
+  .bui-management :is(.v1093-work-layout, .ai-gov-layout, .department-v40-workspace) {
+    grid-template-columns: 1fr !important;
+  }
+  .bui-management :is(.v1093-sidebar-card, .department-v40-sidebar) {
+    position: static !important;
+    width: 100% !important;
+  }
+}
+@media (max-width: 680px) {
+  .bui-management { padding-inline: 12px; }
+  .bui-management :is(.department-v40-hero-card, .hr-hero, .v1093-hero, .ai-gov-hero) {
+    padding: 16px !important;
+  }
+  .bui-management :is(.department-v40-summary-strip, .hr-overview-stats, .v1093-metrics, .ai-gov-stats) {
+    grid-template-columns: 1fr !important;
+  }
+}

@@ -1,14 +1,14 @@
 {
-  "version": "12.2.0",
+  "version": "12.3.0",
   "channel": "stable",
-  "releaseName": "Unified Workbench Migration",
+  "releaseName": "Native Management UI Migration",
   "runtimeCore": "3.0.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T10:46:01.906Z",
+  "generatedAt": "2026-07-14T11:00:05.848Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -298,5 +298,12 @@
     "worksheet-factory",
     "writing-studio",
     "pronunciation-coach"
+  ],
+  "managementCore": true,
+  "migratedManagementApps": [
+    "department",
+    "homeroom",
+    "work-hub",
+    "ai-governance"
   ]
 }

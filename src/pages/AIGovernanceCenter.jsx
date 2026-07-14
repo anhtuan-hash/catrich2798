@@ -85,8 +85,8 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
   }
 
   return (
-    <div className="ai-governance-page">
-      <section className="ai-gov-hero">
+    <div className="ai-governance-page bui-management" data-ui="management" data-management-app="ai-governance">
+      <section className="ai-gov-hero bui-management-header">
         <div className="ai-gov-hero-copy">
           <span className="ai-gov-eyebrow">V10.86 · AI GOVERNANCE</span>
           <h1>{vi ? 'Trung tâm quản trị Brian AI' : 'Brian AI Governance Center'}</h1>
@@ -99,14 +99,14 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
         <div className="ai-gov-orbit" aria-hidden="true"><span>AI</span><i/><i/><i/></div>
       </section>
 
-      <section className="ai-gov-stats" aria-label={vi ? 'Thống kê hôm nay' : 'Today statistics'}>
+      <section className="ai-gov-stats bui-management-metrics" aria-label={vi ? 'Thống kê hôm nay' : 'Today statistics'}>
         <article><small>{vi ? 'Yêu cầu hôm nay' : 'Requests today'}</small><strong>{formatNumber(summary.requests)}<em>/ {formatNumber(summary.requestLimit)}</em></strong><div><i style={{ width: percent(summary.requestPercent) }}/></div></article>
         <article><small>{vi ? 'Token ước tính' : 'Estimated tokens'}</small><strong>{formatNumber(summary.tokenTotal)}<em>/ {formatNumber(summary.tokenBudget)}</em></strong><div><i style={{ width: percent(summary.tokenPercent) }}/></div></article>
         <article><small>{vi ? 'Thành công' : 'Successful'}</small><strong>{formatNumber(summary.successes)}</strong><p>{summary.requests ? Math.round((summary.successes / summary.requests) * 100) : 0}% {vi ? 'tỉ lệ thành công' : 'success rate'}</p></article>
         <article><small>{vi ? 'Hành động AI' : 'AI actions'}</small><strong>{formatNumber(summary.actions)}</strong><p>{vi ? 'đã thực hiện có kiểm soát' : 'controlled actions executed'}</p></article>
       </section>
 
-      <div className="ai-gov-layout">
+      <div className="ai-gov-layout bui-management-layout">
         <section className="ai-gov-card ai-gov-controls">
           <header><div><span>01</span><div><h2>{vi ? 'Kiểm soát toàn hệ thống' : 'System-wide controls'}</h2><p>{vi ? 'Tắt AI khẩn cấp hoặc giới hạn mức sử dụng trong ngày.' : 'Pause AI or cap daily usage.'}</p></div></div></header>
           <div className="ai-gov-switch-grid">

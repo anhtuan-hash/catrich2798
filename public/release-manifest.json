@@ -1,5 +1,5 @@
 {
-  "version": "12.2.0",
+  "version": "12.3.0",
   "release": "AI Workspace Resilience",
   "runtime": "2.5.6",
   "schema": "11.4.2",
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T10:46:01.906Z",
+  "generatedAt": "2026-07-14T11:00:05.848Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Unified Workbench Migration",
+  "releaseName": "Native Management UI Migration",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -304,5 +304,12 @@
     "worksheet-factory",
     "writing-studio",
     "pronunciation-coach"
+  ],
+  "managementCore": true,
+  "migratedManagementApps": [
+    "department",
+    "homeroom",
+    "work-hub",
+    "ai-governance"
   ]
 }

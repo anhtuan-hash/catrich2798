@@ -787,11 +787,11 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser, hasApi
   const className = workspace.classProfile.className || (language === 'vi' ? 'Chưa thiết lập lớp' : 'Class not configured');
   const activeStudents = workspace.students.filter((item) => item.active !== false).length;
 
-  if (loading) return <div className="page hr-page"><section className="hr-panel hr-loading"><span /><h2>{language === 'vi' ? 'Đang mở không gian chủ nhiệm…' : 'Opening homeroom workspace…'}</h2></section></div>;
+  if (loading) return <div className="page hr-page bui-management" data-ui="management" data-management-app="homeroom"><section className="hr-panel hr-loading"><span /><h2>{language === 'vi' ? 'Đang mở không gian chủ nhiệm…' : 'Opening homeroom workspace…'}</h2></section></div>;
 
   return (
-    <div className="page hr-page">
-      <section className="hr-hero">
+    <div className="page hr-page bui-management" data-ui="management" data-management-app="homeroom">
+      <section className="hr-hero bui-management-header">
         <div className="hr-hero-copy">
           <p>{language === 'vi' ? 'HOMEROOM TEACHER WORKSPACE · PHASE 3.1' : 'HOMEROOM TEACHER WORKSPACE · PHASE 3.1'}</p>
           <h1>{language === 'vi' ? 'Giáo viên chủ nhiệm' : 'Homeroom Teacher'}</h1>

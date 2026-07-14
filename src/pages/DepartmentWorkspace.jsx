@@ -2308,7 +2308,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
   };
 
   return (
-    <div className="page department-page department-page-v60 department-page-v63">
+    <div className="page department-page department-page-v60 department-page-v63 bui-management" data-ui="management" data-management-app="department">
       <section className="department-v40-hero-shell" aria-label={language === 'vi' ? 'Hero tổ chuyên môn' : 'Department hero'}>
         <div className="department-v40-hero-card">
           <DepartmentHeroIllustration language={language} />

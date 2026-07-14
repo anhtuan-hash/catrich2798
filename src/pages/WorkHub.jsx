@@ -582,8 +582,8 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
     ? STATUSES
     : STATUSES.filter(([value]) => ['accepted', 'in_progress'].includes(value));
 
-  return <section className="v1093-page v1093-work-hub">
-    <header className="v1093-hero v1093-hero-work">
+  return <section className="v1093-page v1093-work-hub bui-management" data-ui="management" data-management-app="work-hub">
+    <header className="v1093-hero v1093-hero-work bui-management-header">
       <div><span className="v1093-kicker">V11.3.5 · Work Submission Archive</span><h1>Trung tâm công việc</h1><p>Giao việc, nhận tệp phản hồi và lưu học liệu đạt yêu cầu trực tiếp vào kho dùng chung của tổ chuyên môn.</p></div>
       <div className="v1093-runtime-pill" data-state={runtime.phase}><b>{runtime.ready ? 'Đã kết nối' : 'Đang kết nối'}</b><span>{runtime.role}</span></div>
     </header>
@@ -591,14 +591,14 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
     {error && <div className="v1093-alert error"><b>Không thể xử lý dữ liệu</b><span>{error}</span><button onClick={() => { setError(''); load(); }}>Thử lại</button></div>}
     {notice && <div className="v1093-alert success">{notice}</div>}
 
-    <div className="v1093-metrics">
+    <div className="v1093-metrics bui-management-metrics">
       <article><strong>{counts.active}</strong><span>Đang hoạt động</span></article>
       <article><strong>{counts.dueSoon}</strong><span>Sắp đến hạn</span></article>
       <article><strong>{counts.overdue}</strong><span>Quá hạn</span></article>
       <article><strong>{counts.review}</strong><span>Chờ xử lý</span></article>
     </div>
 
-    <div className="v1093-work-layout">
+    <div className="v1093-work-layout bui-management-layout">
       <aside className="v1093-sidebar-card">
         <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>Tất cả <span>{items.length}</span></button>
         {STATUSES.map(([value, label]) => <button key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{label}<span>{items.filter((item) => item.status === value).length}</span></button>)}
