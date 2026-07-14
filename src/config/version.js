@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.13.0';
+export const APP_VERSION = '12.14.0';
 export const RELEASE_NAME = 'Workspace Layout Manager & Split View';
 export const RUNTIME_CORE_VERSION = '3.6.0';
 export const SCHEMA_VERSION = '11.4.2';

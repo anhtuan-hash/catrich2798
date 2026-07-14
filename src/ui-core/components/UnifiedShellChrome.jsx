@@ -1,10 +1,18 @@
 import React from 'react';
 import StatusMenuBar from '../../components/StatusMenuBar.jsx';
-import UIWorkspaceNavigation from './UIWorkspaceNavigation.jsx';
+import GlobalFlatNavigation from '../../components/GlobalFlatNavigation.jsx';
 import WorkspaceTabs from '../../components/WorkspaceTabs.jsx';
 import AppErrorBoundary from '../../components/AppErrorBoundary.jsx';
-import UIWorkspaceHub from './UIWorkspaceHub.jsx';
 
+/**
+ * V12.14 restores the V11 shell anatomy while keeping the V12 UI Core,
+ * workspace memory, activity center, command center and design adapters.
+ *
+ * V11 anatomy:
+ * 1. Status menu bar
+ * 2. Flat global menu/navigation
+ * 3. Independent workspace tab strip
+ */
 export default function UnifiedShellChrome({
   route,
   selectedTool,
@@ -16,9 +24,7 @@ export default function UnifiedShellChrome({
   onLogout,
   ...context
 }) {
-  const showShell = !['homeroom-portal', 'classroom-join'].includes(route);
-  if (!showShell) return null;
-
+  const showTopChrome = !['homeroom-portal', 'classroom-join'].includes(route);
   const showWorkspace = Boolean(
     currentUser
     && canAccessRoute
@@ -26,50 +32,49 @@ export default function UnifiedShellChrome({
   );
 
   return (
-    <header className="bui-shell-chrome" data-ui="shell-chrome">
-      <div className="bui-shell-status" data-ui="status-bar">
-        <StatusMenuBar route={route} {...context} currentUser={currentUser} language={language} activityCenterOwned />
-      </div>
-
-      <div className="bui-shell-navigation" data-ui="primary-navigation">
-        <AppErrorBoundary compact scope="global-navigation" label={language === 'vi' ? 'thanh điều hướng' : 'navigation'}>
-          <UIWorkspaceNavigation
+    <>
+      {showTopChrome ? (
+        <div className="bes-top-chrome bes-v11-navigation-restored" data-ui="v11-shell-chrome">
+          <StatusMenuBar
             route={route}
-            selectedTool={selectedTool}
-            onLogout={onLogout}
             {...context}
             currentUser={currentUser}
             language={language}
+            activityCenterOwned
           />
-        </AppErrorBoundary>
-      </div>
-
-      {showWorkspace ? (
-        <div className="bui-shell-workspaces" data-ui="workspace-navigation">
-          <div className="bui-shell-workspace-row">
-            <AppErrorBoundary compact scope="workspace-hub" label={language === 'vi' ? 'trung tâm không gian làm việc' : 'workspace hub'}>
-              <UIWorkspaceHub
-                currentUser={currentUser}
-                route={route}
-                selectedTool={selectedTool}
-                language={language}
-                appVisibility={appVisibility}
-                hideTrigger
-              />
-            </AppErrorBoundary>
-            <AppErrorBoundary compact scope="workspace-tabs" label={language === 'vi' ? 'tab không gian làm việc' : 'workspace tabs'}>
-              <WorkspaceTabs
-                currentUser={currentUser}
-                route={route}
-                selectedTool={selectedTool}
-                activeProfile={activeProfile}
-                language={language}
-                appVisibility={appVisibility}
-              />
-            </AppErrorBoundary>
-          </div>
+          <AppErrorBoundary
+            compact
+            scope="global-navigation"
+            label={language === 'vi' ? 'thanh điều hướng' : 'navigation'}
+          >
+            <GlobalFlatNavigation
+              route={route}
+              selectedTool={selectedTool}
+              onLogout={onLogout}
+              {...context}
+              currentUser={currentUser}
+              language={language}
+            />
+          </AppErrorBoundary>
         </div>
       ) : null}
-    </header>
+
+      {showWorkspace ? (
+        <AppErrorBoundary
+          compact
+          scope="workspace-tabs"
+          label={language === 'vi' ? 'tab không gian làm việc' : 'workspace tabs'}
+        >
+          <WorkspaceTabs
+            currentUser={currentUser}
+            route={route}
+            selectedTool={selectedTool}
+            activeProfile={activeProfile}
+            language={language}
+            appVisibility={appVisibility}
+          />
+        </AppErrorBoundary>
+      ) : null}
+    </>
   );
 }

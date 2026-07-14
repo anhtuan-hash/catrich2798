@@ -10,6 +10,7 @@ import './ui-core/styles/overlay-core.css';
 import './ui-core/styles/command-center.css';
 import './ui-core/styles/design-adapters.css';
 import './ui-core/styles/workspace-layout.css';
+import './ui-core/styles/v11-navigation-restoration.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import AppErrorBoundary from './components/AppErrorBoundary.jsx';
