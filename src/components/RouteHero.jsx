@@ -30,7 +30,7 @@ export default function RouteHero({ eyebrow, title, description, primary, second
   ];
 
   return (
-    <section className={`route-hero route-hero-${accent} ${className}`.trim()}>
+    <section data-ui="route-hero" className={`route-hero route-hero-${accent} ${className}`.trim()}>
       <div className="route-hero-copy">
         <div className="route-hero-brand brand-lockup-v2">
           <div className="route-hero-brand-tile">
@@ -46,8 +46,8 @@ export default function RouteHero({ eyebrow, title, description, primary, second
         <h1>{title}</h1>
         <p>{description}</p>
         <div className="route-hero-actions">
-          {primary ? <button className="primary" onClick={primary.onClick}>{primary.label}</button> : null}
-          {secondary ? <button className="secondary" onClick={secondary.onClick}>{secondary.label}</button> : null}
+          {primary ? <button data-ui="button" data-variant="primary" className="primary" onClick={primary.onClick}>{primary.label}</button> : null}
+          {secondary ? <button data-ui="button" data-variant="secondary" className="secondary" onClick={secondary.onClick}>{secondary.label}</button> : null}
         </div>
         {stats.length ? <div className="route-hero-stats">{stats.map((item) => <StatChip key={`${item.label}-${item.value}`} {...item} />)}</div> : null}
       </div>

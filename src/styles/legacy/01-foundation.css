@@ -1,6 +1,6 @@
 @font-face{
   font-family:BrianGesco;
-  src:url("/fonts/personal-font.ttf") format("truetype"),url("/fonts/personal-font.ttf") format("truetype");
+  src:url("/bes-fonts/brian-personal-font.ttf?v=12.0.0") format("truetype"),url("/bes-fonts/brian-personal-font.ttf?v=12.0.0") format("truetype");
   font-weight:100 900;
   font-style:normal;
   font-display:swap;

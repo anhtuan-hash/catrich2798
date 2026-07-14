@@ -4,6 +4,7 @@ import FlatAppIcon from './FlatAppIcon.jsx';
 import { getAppDesignProfile } from '../data/designProfiles.js';
 import { getToolPermissionId, hasToolAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/motion.js';
+import { UICard, UIButton } from '../ui-core/index.js';
 
 function launchTarget(target, item, sourceEl = null) {
   const profile = getAppDesignProfile(item?.slug);
@@ -28,7 +29,9 @@ export default function AppCard({ item, language, currentUser }) {
   const statusText = language === 'vi' ? item.statusVi || item.status : item.status || item.statusVi;
 
   return (
-    <article
+    <UICard
+      data-ui="app-card"
+      interactive
       className={`tool-card app-card-v3 creative-app-card tile-card metro-card tone-${tone} ${item.featured ? 'featured' : ''} ${locked ? 'locked-card' : ''}`.trim()}
       style={{ '--app-accent': profile.accent, '--app-soft': profile.soft, '--app-ink': profile.ink }}
       aria-disabled={locked ? 'true' : 'false'}
@@ -52,10 +55,10 @@ export default function AppCard({ item, language, currentUser }) {
       {locked ? (
         <PermissionRequestButton currentUser={currentUser} permissionId={permissionId} item={item} language={language} />
       ) : (
-        <button className="primary full" onClick={(event) => launchTarget(target, item, event.currentTarget)}>
+        <UIButton variant="primary" className="primary full" onClick={(event) => launchTarget(target, item, event.currentTarget)}>
           {language === 'vi' ? 'Mở ứng dụng' : 'Open app'}
-        </button>
+        </UIButton>
       )}
-    </article>
+    </UICard>
   );
 }

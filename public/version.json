@@ -1,14 +1,14 @@
 {
-  "version": "11.6.7",
+  "version": "12.0.0",
   "channel": "stable",
-  "releaseName": "Free Provider Hub — Expanded Catalog & Responsive Layout",
-  "runtimeCore": "2.6.1",
+  "releaseName": "UI Core Foundation — Brian Design Language Engine",
+  "runtimeCore": "3.0.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T09:01:51.764Z",
+  "generatedAt": "2026-07-14T10:13:57.145Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -285,5 +285,26 @@
   "aiProviderOfficialLinks": true,
   "aiProviderResponsiveLayout": true,
   "aiProviderCohereNativeAdapter": true,
-  "aiProviderCloudflareAccountBaseUrl": true
+  "aiProviderCloudflareAccountBaseUrl": true,
+  "uiCore": true,
+  "uiCoreVersion": "v12",
+  "semanticTokens": true,
+  "layoutContracts": [
+    "launch",
+    "workbench",
+    "editor",
+    "management",
+    "library",
+    "settings",
+    "auth",
+    "public"
+  ],
+  "designLanguageAdapters": [
+    "brian-unified",
+    "material-3",
+    "apple"
+  ],
+  "defaultDesignLanguage": "brian-unified",
+  "legacyCompatibilityBridge": true,
+  "persistentFontPath": "/bes-fonts/brian-personal-font.ttf"
 }

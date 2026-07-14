@@ -108,7 +108,7 @@ const permissionsSource = fs.readFileSync(new URL('../src/utils/permissions.js',
 const aiIndicatorSource = fs.readFileSync(new URL('../src/components/GlobalAIIndicator.jsx', import.meta.url), 'utf8');
 const geminiSource = fs.readFileSync(new URL('../src/utils/gemini.js', import.meta.url), 'utf8');
 const textLabCssSource = fs.readFileSync(new URL('../public/embedded/brian-textlab-activities/style.css', import.meta.url), 'utf8');
-add('V10.62 personal font reaches embedded TextLab', textLabCssSource.includes('/fonts/personal-font.ttf') && textLabCssSource.includes('font-family:var(--font)!important'), 'BrianGesco enforced in iframe app');
+add('V10.62 personal font reaches embedded TextLab', textLabCssSource.includes('/bes-fonts/brian-personal-font.ttf') && textLabCssSource.includes('font-family:var(--font)!important'), 'BrianGesco enforced in iframe app');
 add('V10.62 navigation text-size control present', globalNavSource.includes('global-font-size-btn') && globalNavSource.includes('setFontScale'), 'A+ control cycles global font scale');
 add('V10.62 full-screen AI indicator wired globally', aiIndicatorSource.includes('createPortal') && geminiSource.includes('bes-ai-operation-start') && geminiSource.includes('bes-ai-operation-end'), 'provider calls trigger fullscreen indicator');
 add('V10.62 unified content rail present', cssSource.includes('--bes-unified-content:1440px') && cssSource.includes('main.wp8-page-stage > .page'), 'navigation, pages and footer share one rail');
@@ -322,7 +322,7 @@ add('V10.81.9 direct viewer covers requested formats', ['docx', 'pptx', 'pdf', '
 add('V10.81.9 resource modal uses secure viewer', resourceLibrarySource.includes('<ResourceFileViewer item={preview} fetchBlob={fetchResourceBlob} getStreamUrl={getResourceStreamUrl}/>') && resourceLibrarySource.includes('supportsResourcePreview'), 'preview remains behind authenticated Drive proxy');
 add('V10.81.9 Office renderers are local and sandboxed', resourceViewerSource.includes('mammoth.convertToHtml') && resourceViewerSource.includes('readWorkbookSafe') && resourceViewerSource.includes("import('jszip')") && resourceViewerSource.includes('sandbox="allow-popups"'), 'Word, Excel and PowerPoint render without public Drive sharing');
 add('V10.81.9 scalable viewer styling present', resourceViewerCss.includes('V10.81.9 — direct DOCX, PPTX, PDF, XLSX, MP4 and MP3 viewer') && resourceViewerCss.includes('.resource-workbook-viewer') && resourceViewerCss.includes('.resource-pptx-viewer'), 'desktop, dark and mobile layouts present');
-add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && /^(?:10\.(?:8[2-9]|9\d)|11\.\d+)\./.test(packageSource.version), 'PPTX parser dependency is production-safe');
+add('V10.81.9 JSZip declared directly', packageSource.dependencies?.jszip === '^3.10.1' && /^(?:10\.(?:8[2-9]|9\d)|1[12]\.\d+)\./.test(packageSource.version), 'PPTX parser dependency is production-safe');
 const previewSessionSource = fs.readFileSync(new URL('../api/google-drive-preview-session.js', import.meta.url), 'utf8');
 const driveFileSource = fs.readFileSync(new URL('../api/google-drive-file.js', import.meta.url), 'utf8');
 add('V10.81.9 secure streaming session supports media seeking', previewSessionSource.includes('signResourcePreviewToken') && driveFileSource.includes('Content-Range') && driveFileSource.includes("Range: range") && resourceLibrarySource.includes('getResourceStreamUrl'), 'short-lived signed URL and byte ranges present');

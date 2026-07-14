@@ -1,5 +1,5 @@
 {
-  "version": "11.6.1",
+  "version": "12.0.0",
   "release": "AI Workspace Resilience",
   "runtime": "2.5.6",
   "schema": "11.4.2",
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T09:01:51.764Z",
+  "generatedAt": "2026-07-14T10:13:57.145Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "2.6.1",
+  "runtimeCore": "3.0.0",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Free Provider Hub — Expanded Catalog & Responsive Layout",
+  "releaseName": "UI Core Foundation — Brian Design Language Engine",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -291,5 +291,27 @@
   "aiProviderOfficialLinks": true,
   "aiProviderResponsiveLayout": true,
   "aiProviderCohereNativeAdapter": true,
-  "aiProviderCloudflareAccountBaseUrl": true
+  "aiProviderCloudflareAccountBaseUrl": true,
+  "uiCore": true,
+  "uiCoreVersion": "v12",
+  "semanticTokens": true,
+  "layoutContracts": [
+    "launch",
+    "workbench",
+    "editor",
+    "management",
+    "library",
+    "settings",
+    "auth",
+    "public"
+  ],
+  "designLanguageAdapters": [
+    "brian-unified",
+    "material-3",
+    "apple"
+  ],
+  "defaultDesignLanguage": "brian-unified",
+  "legacyCompatibilityBridge": true,
+  "legacyDomPatches": false,
+  "persistentFontPath": "/bes-fonts/brian-personal-font.ttf"
 }

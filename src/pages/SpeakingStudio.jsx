@@ -90,7 +90,7 @@ function buildOfflineSpeakingHtml(cards, title) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${title || 'Speaking Practice'}</title>
-<style>@font-face{font-family:BrianGesco;src:url('/fonts/personal-font.ttf?v=6.8') format('truetype');font-weight:100 900;font-style:normal;font-display:swap;}
+<style>@font-face{font-family:BrianGesco;src:url('/bes-fonts/brian-personal-font.ttf?v=12.0.0') format('truetype');font-weight:100 900;font-style:normal;font-display:swap;}
 body{margin:0;font-family:BrianGesco,Inter,system-ui,sans-serif;background:#eef6ff;color:#102344}.wrap{max-width:1100px;margin:0 auto;padding:24px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center}.card{background:#fff;border-radius:0;padding:28px;box-shadow:none;border:1px solid #dbe8ff}.prompt{font-size:clamp(1.8rem,4vw,3.4rem);font-weight:900;line-height:1.12}.chips{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.chip{background:#eeeaff;color:#5b3df5;border-radius:0;padding:10px 14px;font-weight:800}.actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}button{border:0;border-radius:0;padding:12px 18px;font-weight:900;cursor:pointer;background:#5b3df5;color:white}.secondary{background:#fff;color:#102344;border:1px solid #dbe8ff}.panel{margin-top:18px;background:#f7f9ff;border:1px solid #dbe8ff;border-radius:0;padding:18px}.rec{background:#ffedf2;color:#e11d48}.timer{font-size:3rem;font-weight:900;color:#5b3df5}.meter{height:10px;background:#dbe8ff;border-radius:0;overflow:hidden}.meter i{display:block;height:100%;width:0;background:#5b3df5;border-radius:0}.follow li{margin:8px 0;font-size:1.1rem}.note{color:#60708d}</style>
 </head>
 <body>

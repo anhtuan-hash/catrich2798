@@ -1,0 +1,71 @@
+.app-shell[data-ui-core="v12"] {
+  min-width: 0;
+  background: var(--ui-color-canvas);
+  color: var(--ui-color-text);
+  --ui-route-accent: var(--active-app-accent, var(--ui-color-primary));
+  --ui-route-soft: var(--active-app-soft, var(--ui-color-primary-container));
+  --ui-route-ink: var(--active-app-ink, var(--ui-color-on-primary-container));
+}
+
+.app-shell[data-ui-core="v12"] #bes-main-content {
+  min-width: 0;
+  isolation: isolate;
+}
+
+.app-shell[data-ui-core="v12"] #bes-main-content[data-ui-layout] {
+  --ui-layout-gutter: var(--ui-page-gutter);
+  --ui-layout-gap: var(--ui-section-gap);
+}
+
+.app-shell[data-ui-core="v12"] #bes-main-content[data-ui-layout="launch"] {
+  --ui-layout-content-max: 1680px;
+  --ui-layout-card-min: 250px;
+}
+.app-shell[data-ui-core="v12"] #bes-main-content[data-ui-layout="workbench"] {
+  --ui-layout-content-max: 1680px;
+  --ui-layout-card-min: 320px;
+}
+.app-shell[data-ui-core="v12"] #bes-main-content[data-ui-layout="editor"] {
+  --ui-layout-content-max: 1760px;
+  --ui-layout-card-min: 360px;
+}
+.app-shell[data-ui-core="v12"] #bes-main-content[data-ui-layout="management"] {
+  --ui-layout-content-max: 1560px;
+  --ui-layout-card-min: 300px;
+}
+.app-shell[data-ui-core="v12"] #bes-main-content[data-ui-layout="library"] {
+  --ui-layout-content-max: 1600px;
+  --ui-layout-card-min: 280px;
+}
+.app-shell[data-ui-core="v12"] #bes-main-content[data-ui-layout="settings"] {
+  --ui-layout-content-max: 1480px;
+  --ui-layout-card-min: 320px;
+}
+
+.app-shell[data-ui-core="v12"] #bes-main-content[data-ui-layout] > :where(
+  .page,
+  .settings-page-v47,
+  .english-lesson-integration-page,
+  .gb-page,
+  .ws-page,
+  .pc-page,
+  .wf2-page,
+  .textcare-v37-page,
+  .speaking-page,
+  .reading-page,
+  .lesson-pack-page,
+  .resource-library-page,
+  .tax-studio-page,
+  .smartid-page
+) {
+  width: min(100%, var(--ui-layout-content-max, var(--ui-content-max)));
+  margin-inline: auto;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .app-shell[data-ui-core="v12"] #bes-main-content[data-ui-layout] {
+    --ui-layout-gutter: 10px;
+    --ui-layout-gap: 14px;
+  }
+}

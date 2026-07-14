@@ -169,8 +169,8 @@ export default function GlobalFlatNavigation({
   const activeId = route === 'tool' && selectedTool?.slug ? `tool:${selectedTool.slug}` : `route:${route}`;
 
   return (
-    <nav className="global-flat-navigation" aria-label={language === 'vi' ? 'Điều hướng toàn hệ thống' : 'Global navigation'}>
-      <button type="button" className="global-flat-brand" onClick={(event) => go('#/home', 'BE', routeColors.home, event.currentTarget)}>
+    <nav data-ui="system-navigation" className="global-flat-navigation" aria-label={language === 'vi' ? 'Điều hướng toàn hệ thống' : 'Global navigation'}>
+      <button type="button" data-ui="brand-button" className="global-flat-brand" onClick={(event) => go('#/home', 'BE', routeColors.home, event.currentTarget)}>
         <img className="global-flat-brand-logo" src="/brian-english-brand-mark.png" alt="Brian English logo" />
         <strong>Brian English</strong>
       </button>
@@ -180,6 +180,7 @@ export default function GlobalFlatNavigation({
           <button
             key={entry.id}
             type="button"
+            data-ui="navigation-item"
             className={`global-flat-link ${activeId === entry.id ? 'active' : ''} ${entry.kind === 'tool' ? 'is-tool-shortcut' : ''}`}
             style={{ '--global-nav-accent': entry.color }}
             onClick={(event) => go(entry.target, entry.label, entry.color, event.currentTarget)}
@@ -195,6 +196,7 @@ export default function GlobalFlatNavigation({
       <div className="global-flat-actions">
         <button
           type="button"
+          data-ui="navigation-action"
           className={`global-flat-mini global-nav-more-toggle ${menuOpen ? 'active' : ''}`}
           onClick={() => setMenuOpen((value) => !value)}
           aria-expanded={menuOpen}
@@ -204,6 +206,7 @@ export default function GlobalFlatNavigation({
         </button>
         <button
           type="button"
+          data-ui="navigation-action"
           className="global-flat-mini global-command-trigger"
           onClick={() => window.dispatchEvent(new CustomEvent('bes-command-palette-open'))}
           aria-label={t.search}
@@ -234,7 +237,7 @@ export default function GlobalFlatNavigation({
 
       {menuOpen ? (
         <div className="global-nav-drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setMenuOpen(false); }}>
-          <section id="bes-global-nav-drawer" className="global-nav-drawer" aria-label={t.more}>
+          <section id="bes-global-nav-drawer" data-ui="navigation-drawer" className="global-nav-drawer" aria-label={t.more}>
             <header>
               <div><span>BRIAN ENGLISH</span><strong>{language === 'vi' ? 'Điều hướng nhanh' : 'Quick navigation'}</strong></div>
               <button type="button" onClick={() => setMenuOpen(false)} aria-label={t.close}>×</button>

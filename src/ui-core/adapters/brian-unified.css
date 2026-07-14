@@ -1,0 +1,19 @@
+html[data-design-language="brian-unified"] {
+  --ui-color-canvas: var(--bes-page-bg, #f7f3ed);
+  --ui-color-surface: var(--bes-surface, #fffdf9);
+  --ui-color-surface-raised: var(--bes-surface-elevated, #ffffff);
+  --ui-radius-control: 13px;
+  --ui-radius-card: 20px;
+  --ui-radius-panel: 24px;
+  --ui-radius-dialog: 26px;
+  --ui-shadow-1: 0 2px 0 rgba(23, 32, 51, .025), 0 9px 24px rgba(23, 32, 51, .07);
+  --ui-shadow-2: 0 4px 0 rgba(23, 32, 51, .03), 0 18px 42px rgba(23, 32, 51, .1);
+  --ui-ease-standard: cubic-bezier(.22, .75, .18, 1);
+  --ui-page-chrome-style: editorial;
+}
+
+html[data-design-language="brian-unified"][data-theme="dark"] {
+  --ui-color-canvas: #121416;
+  --ui-color-surface: #1b1e21;
+  --ui-color-surface-raised: #23272c;
+}

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { callAI } from '../utils/gemini.js';
 import { changeCurrentPassword } from '../utils/auth.js';
+import { DESIGN_LANGUAGE_OPTIONS, UISwitch } from '../ui-core/index.js';
 import {
   PROVIDERS,
   getAiConfigs,
@@ -152,11 +153,7 @@ function CardHeader({ icon, title, subtitle, tone = 'blue', action = null }) {
 }
 
 function Toggle({ checked, onChange, label }) {
-  return (
-    <button type="button" className={`settings-v47-toggle ${checked ? 'on' : ''}`} onClick={() => onChange(!checked)} aria-pressed={checked} aria-label={label}>
-      <span />
-    </button>
-  );
+  return <UISwitch checked={checked} onChange={onChange} label={label} />;
 }
 
 export default function Settings({
@@ -184,6 +181,8 @@ export default function Settings({
   indicatorMode = 'on',
   setIndicatorMode,
   setGlobalLoading,
+  designLanguage = 'brian-unified',
+  setDesignLanguage,
 }) {
   const initial = getEmptyLocal();
   const [selectedProvider, setSelectedProvider] = useState(aiProvider || initial.provider);
@@ -235,11 +234,23 @@ export default function Settings({
   useEffect(() => {
     localStorage.setItem('bes-settings-accent', accentColor);
     document.documentElement.dataset.settingsAccent = accentColor;
+    const appearanceAccent = {
+      blue: 'brian', violet: 'violet', green: 'emerald', orange: 'tangerine', pink: 'rose', teal: 'cyan',
+    }[accentColor] || 'brian';
+    const apply = () => window.BESAppearance?.setState?.({ accent: appearanceAccent, accentMode: 'global' });
+    apply();
+    window.addEventListener('bes:appearance-ready', apply, { once: true });
+    return () => window.removeEventListener('bes:appearance-ready', apply);
   }, [accentColor]);
 
   useEffect(() => {
     localStorage.setItem('bes-settings-density', displayDensity);
     document.documentElement.dataset.settingsDensity = displayDensity;
+    const density = { relaxed: 'spacious', medium: 'comfortable', compact: 'compact' }[displayDensity] || 'comfortable';
+    const apply = () => window.BESAppearance?.setState?.({ density });
+    apply();
+    window.addEventListener('bes:appearance-ready', apply, { once: true });
+    return () => window.removeEventListener('bes:appearance-ready', apply);
   }, [displayDensity]);
 
   const updateConfig = (patch) => {
@@ -634,6 +645,27 @@ export default function Settings({
 
         <article className="settings-v47-card settings-v47-appearance-card">
           <CardHeader icon="🎨" tone="violet" title={language === 'vi' ? 'Giao diện' : 'Appearance'} subtitle={language === 'vi' ? 'Tùy chỉnh giao diện, màu nhấn và mật độ.' : 'Customize theme, accent, and density.'} />
+          <div className="settings-v12-design-language">
+            <div className="settings-v12-design-language-head">
+              <div><strong>{language === 'vi' ? 'Ngôn ngữ thiết kế' : 'Design language'}</strong><small>{language === 'vi' ? 'Toàn website dùng chung UI Core V12; lựa chọn này đổi adapter hiển thị.' : 'The whole website shares UI Core V12; this changes the presentation adapter.'}</small></div>
+              <span>UI CORE V12</span>
+            </div>
+            <div className="settings-v12-design-language-grid">
+              {DESIGN_LANGUAGE_OPTIONS.map((option) => (
+                <button
+                  type="button"
+                  key={option.id}
+                  className={designLanguage === option.id ? 'active' : ''}
+                  aria-pressed={designLanguage === option.id}
+                  onClick={() => setDesignLanguage?.(option.id)}
+                >
+                  <span className={`settings-v12-design-preview preview-${option.id}`} aria-hidden="true"><i /><i /><i /></span>
+                  <span><b>{language === 'vi' ? option.labelVi : option.label}</b><small>{language === 'vi' ? option.descriptionVi : option.description}</small></span>
+                  <em className={option.status}>{option.status === 'stable' ? (language === 'vi' ? 'Ổn định' : 'Stable') : (language === 'vi' ? 'Xem trước' : 'Preview')}</em>
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="settings-v47-theme-grid">
             <button className={currentThemeMode === 'dark' ? 'active' : ''} onClick={() => applyThemeMode('dark')}>☾<span>{language === 'vi' ? 'Tối' : 'Dark'}</span></button>
             <button className={currentThemeMode === 'light' ? 'active' : ''} onClick={() => applyThemeMode('light')}>☀<span>{language === 'vi' ? 'Sáng' : 'Light'}</span></button>

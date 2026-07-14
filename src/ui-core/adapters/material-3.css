@@ -1,0 +1,20 @@
+html[data-design-language="material-3"] {
+  --ui-color-canvas: var(--bes-page-bg, #f8f7ff);
+  --ui-color-surface: var(--bes-surface, #fffbff);
+  --ui-color-surface-raised: var(--bes-surface-elevated, #fffbff);
+  --ui-color-border: color-mix(in srgb, var(--ui-color-text) 18%, transparent);
+  --ui-radius-control: 20px;
+  --ui-radius-card: 24px;
+  --ui-radius-panel: 28px;
+  --ui-radius-dialog: 28px;
+  --ui-shadow-1: 0 1px 2px rgba(30, 31, 38, .12), 0 1px 3px rgba(30, 31, 38, .08);
+  --ui-shadow-2: 0 2px 6px rgba(30, 31, 38, .12), 0 8px 22px rgba(30, 31, 38, .08);
+  --ui-ease-standard: cubic-bezier(.2, 0, 0, 1);
+  --ui-ease-emphasized: cubic-bezier(.05, .7, .1, 1);
+  --ui-page-chrome-style: tonal;
+}
+
+html[data-design-language="material-3"] [data-ui="button"][data-variant="primary"],
+html[data-design-language="material-3"] .app-shell[data-ui-core="v12"] button.primary {
+  border-radius: var(--ui-radius-pill);
+}

@@ -19,6 +19,7 @@ import './styles/v1137.css';
 import './styles/v1154.css';
 import './styles/v1158.css';
 import './styles/v1159.css';
+import './ui-core/index.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
@@ -45,6 +46,7 @@ import { isAppHiddenForUser, useAppVisibility } from './utils/appVisibility.js';
 import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
 import { installProviderHubInputGuard } from './utils/providerHubInputGuard.js';
 import { installBursReadability } from './utils/bursReadability.js';
+import { DesignLanguageProvider, getUiLayout, useDesignLanguage } from './ui-core/index.js';
 
 runConfigurationMigrations();
 installProviderHubInputGuard();
@@ -196,6 +198,7 @@ function normalizeMetroIntensity(value) {
 }
 
 function App() {
+  const { designLanguage, setDesignLanguage, uiCoreVersion } = useDesignLanguage();
   const [route, setRoute] = useState(getInitialRoute);
   const [language, setLanguage] = useState(() => localStorage.getItem('bet-language') || 'vi');
   const [theme, setTheme] = useState(() => localStorage.getItem('bet-theme') || 'light');
@@ -401,6 +404,8 @@ function App() {
   }, [authReady, currentUser, currentRoute]);
 
   const setGlobalLoading = (active, label = '') => setLoadingState({ active, label: label || (language === 'vi' ? 'Đang tải...' : 'Loading...') });
+  const activeDesignProfile = getActiveDesignProfile(currentRoute, selectedTool);
+  const uiLayout = getUiLayout(currentRoute, selectedTool);
 
   const context = {
     language,
@@ -436,9 +441,11 @@ function App() {
     fontScale,
     setFontScale,
     appVisibility,
+    designLanguage,
+    setDesignLanguage,
+    uiCoreVersion,
+    uiLayout,
   };
-
-  const activeDesignProfile = getActiveDesignProfile(currentRoute, selectedTool);
 
   useEffect(() => {
     if (!currentUser || !canAccessRoute || ['login', 'register', 'homeroom-portal'].includes(currentRoute)) return;
@@ -486,6 +493,9 @@ function App() {
       <div
       className="app-shell metro-shell metro-clean-system"
       data-route={currentRoute}
+      data-ui-core={uiCoreVersion}
+      data-design-language={designLanguage}
+      data-ui-layout={uiLayout}
       data-tool={selectedTool?.slug || currentRoute}
       data-performance={resolvedPerformance}
       data-motion={effectiveMotionMode}
@@ -580,7 +590,7 @@ function App() {
           <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
         </Suspense>
       ) : null}
-      <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute}>
+      <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute} data-ui-layout={uiLayout} data-ui-contract={uiLayout}>
         <Suspense fallback={<RouteFallback language={language} />}>
           {currentRoute === 'home' && (!currentUser || visibilityReady) && <Home {...context} />}
           {currentRoute === 'home' && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
@@ -732,7 +742,9 @@ function AccessDenied({ language, currentUser, route, selectedTool, temporarilyH
 }
 
 createRoot(document.getElementById('root')).render(
-  <AppErrorBoundary scope="application-root">
-    <App />
-  </AppErrorBoundary>,
+  <DesignLanguageProvider>
+    <AppErrorBoundary scope="application-root">
+      <App />
+    </AppErrorBoundary>
+  </DesignLanguageProvider>,
 );

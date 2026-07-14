@@ -99,13 +99,14 @@ export default function WorkspaceTabs({ currentUser, route, selectedTool, active
   };
 
   return (
-    <nav className="bes-workspace-tabs" aria-label={language === 'vi' ? 'Không gian làm việc đang mở' : 'Open workspaces'}>
+    <nav data-ui="workspace-tabs" className="bes-workspace-tabs" aria-label={language === 'vi' ? 'Không gian làm việc đang mở' : 'Open workspaces'}>
       <div className="bes-workspace-tabs-track">
         {visibleTabs.map((tab) => {
           const active = tab.id === workspace.activeId;
           return (
             <div
               key={tab.id}
+              data-ui="workspace-tab"
               className={`bes-workspace-tab${active ? ' is-active' : ''}${tab.pinned ? ' is-pinned' : ''}`}
               style={{ '--workspace-tab-accent': tab.accent }}
               draggable

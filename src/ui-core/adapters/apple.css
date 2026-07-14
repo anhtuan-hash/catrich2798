@@ -1,0 +1,23 @@
+html[data-design-language="apple"] {
+  --ui-font-family: var(--bes-font-personal, var(--font-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif));
+  --ui-color-canvas: var(--bes-page-bg, #f2f2f7);
+  --ui-color-surface: var(--bes-surface, rgba(255, 255, 255, .82));
+  --ui-color-surface-raised: var(--bes-surface-elevated, rgba(255, 255, 255, .94));
+  --ui-color-border: color-mix(in srgb, var(--ui-color-text) 14%, transparent);
+  --ui-radius-control: 11px;
+  --ui-radius-card: 16px;
+  --ui-radius-panel: 20px;
+  --ui-radius-dialog: 22px;
+  --ui-shadow-1: 0 .5px 0 rgba(0, 0, 0, .12), 0 5px 16px rgba(0, 0, 0, .06);
+  --ui-shadow-2: 0 12px 36px rgba(0, 0, 0, .12);
+  --ui-ease-standard: cubic-bezier(.25, .1, .25, 1);
+  --ui-ease-emphasized: cubic-bezier(.22, .61, .36, 1);
+  --ui-page-chrome-style: grouped;
+}
+
+@supports (backdrop-filter: blur(16px)) {
+  html[data-design-language="apple"] .app-shell[data-ui-core="v12"] :where(.bes-top-chrome, .bes-workspace-tabs, [data-ui="dialog"], .global-nav-drawer) {
+    backdrop-filter: saturate(1.35) blur(18px);
+    -webkit-backdrop-filter: saturate(1.35) blur(18px);
+  }
+}
