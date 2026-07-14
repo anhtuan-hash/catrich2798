@@ -4,7 +4,6 @@ import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/document
 import { addHistoryEntry, exportAsHtml, exportAsWord } from '../utils/library.js';
 import { createTransfer, listTransfers, updateTransfer, TRANSFER_APPLY_EVENT } from '../utils/contentTransfer.js';
 import { getActiveAiConfig, getProviderInfo } from '../utils/aiProviders.js';
-import { createMediaRecorder, createSpeechRecognition, describeMediaError, extensionForMimeType, getMicrophoneSupport, requestMicrophoneStream, speechRecognitionMessage, stopStream } from '../utils/mediaCapture.js';
 import './PronunciationCoach.css';
 
 const PRACTICE_MODES = [
@@ -151,8 +150,6 @@ export default function PronunciationCoach({ language = 'vi', apiKey = '', aiMod
   const [recordingUrl, setRecordingUrl] = useState('');
   const [speechTranscript, setSpeechTranscript] = useState('');
   const [speechError, setSpeechError] = useState('');
-  const [speechNotice, setSpeechNotice] = useState('');
-  const [recordingMimeType, setRecordingMimeType] = useState('audio/webm');
   const [modelPlaying, setModelPlaying] = useState(false);
   const [selectedRecordingId, setSelectedRecordingId] = useState('');
   const [assignmentTarget, setAssignmentTarget] = useState('Cả lớp');
@@ -171,11 +168,7 @@ export default function PronunciationCoach({ language = 'vi', apiKey = '', aiMod
   const providerConfig = useMemo(() => getActiveAiConfig(), [hasApiKey, apiKey, aiModel, aiLoading]);
   const providerInfo = useMemo(() => getProviderInfo(providerConfig?.provider), [providerConfig?.provider]);
   const latestRecording = useMemo(() => project.recordings.find((item) => item.id === selectedRecordingId) || project.recordings[0] || null, [project.recordings, selectedRecordingId]);
-  const localScore = useMemo(() => {
-    if (speechTranscript.trim()) return similarity(project.targetText, speechTranscript);
-    const aiValue = Number(project.aiFeedback?.scores?.intelligibility);
-    return Number.isFinite(aiValue) && aiValue > 0 ? aiValue : null;
-  }, [speechTranscript, project.targetText, project.aiFeedback]);
+  const localScore = useMemo(() => speechTranscript ? similarity(project.targetText, speechTranscript) : Number(project.aiFeedback?.scores?.intelligibility || 0), [speechTranscript, project.targetText, project.aiFeedback]);
 
   useEffect(() => {
     const saved = readJson(projectKey(currentUser), null); if (saved?.id) setProject(saved);
@@ -249,77 +242,36 @@ export default function PronunciationCoach({ language = 'vi', apiKey = '', aiMod
   };
 
   const startRecognition = () => {
-    const recognition = createSpeechRecognition({
-      language: project.accent,
-      continuous: true,
-      interimResults: true,
-      onStart: () => setSpeechNotice('Đang tạo transcript tự động…'),
-      onResult: (event) => {
-        let finalText = ''; let interimText = '';
-        for (let i = event.resultIndex; i < event.results.length; i += 1) {
-          const piece = event.results[i][0]?.transcript || '';
-          if (event.results[i].isFinal) finalText += `${piece} `; else interimText += `${piece} `;
-        }
-        const nextText = finalText.trim();
-        if (nextText) setSpeechTranscript((current) => `${current} ${nextText}`.replace(/\s+/g, ' ').trim());
-        else if (interimText.trim()) setSpeechNotice(`Đang nghe: ${interimText.trim().slice(0, 90)}`);
-      },
-      onEnd: () => setSpeechNotice((current) => current === 'Đang tạo transcript tự động…' ? '' : current),
-      onError: ({ code }) => {
-        if (code === 'aborted') return;
-        setSpeechNotice(speechRecognitionMessage(code, 'vi'));
-      },
-    });
-    if (!recognition) {
-      setSpeechNotice('Trình duyệt không hỗ trợ transcript tự động. Ghi âm vẫn hoạt động; có thể nhập transcript thủ công.');
-      return;
-    }
-    try { recognitionRef.current = recognition; recognition.start(); }
-    catch { setSpeechNotice('Không thể khởi động transcript tự động. Ghi âm vẫn hoạt động bình thường.'); }
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Recognition) { setSpeechError('Trình duyệt không hỗ trợ Speech Recognition. Bản ghi vẫn hoạt động nhưng không có transcript tự động.'); return; }
+    try {
+      const recognition = new Recognition(); recognition.lang = project.accent; recognition.continuous = true; recognition.interimResults = true;
+      recognition.onresult = (event) => { let text = ''; for (let i = event.resultIndex; i < event.results.length; i += 1) text += `${event.results[i][0].transcript} `; setSpeechTranscript((current) => `${current} ${text}`.trim()); };
+      recognition.onerror = (event) => setSpeechError(`Speech recognition: ${event.error || 'unknown error'}`);
+      recognitionRef.current = recognition; recognition.start();
+    } catch { setSpeechError('Không thể khởi động Speech Recognition.'); }
   };
 
   const startRecording = async () => {
-    setSpeechError(''); setSpeechNotice(''); setSpeechTranscript(''); setRecordingSeconds(0); chunksRef.current = [];
-    const support = getMicrophoneSupport();
-    if (!support.mediaRecorder) { setSpeechError('Trình duyệt chưa hỗ trợ MediaRecorder. Hãy dùng Chrome, Edge hoặc Safari mới nhất.'); return; }
+    setSpeechError(''); setSpeechTranscript(''); setRecordingSeconds(0); chunksRef.current = [];
     try {
-      const stream = await requestMicrophoneStream(); mediaStreamRef.current = stream;
-      const recorder = createMediaRecorder(stream, {
-        onData: (event) => { if (event.data?.size) chunksRef.current.push(event.data); },
-        onError: (event) => setSpeechError(describeMediaError(event?.error || event, 'vi')),
-        onStop: () => {
-          const mimeType = recorder.mimeType || support.mimeType || 'audio/webm';
-          const blob = new Blob(chunksRef.current, { type: mimeType });
-          const url = URL.createObjectURL(blob);
-          if (recordingUrl) URL.revokeObjectURL(recordingUrl);
-          setRecordingMimeType(blob.type || mimeType); setRecordingUrl(url);
-          const transcript = speechTranscriptRef.current;
-          const duration = Math.max(1, recordingSecondsRef.current);
-          const entry = { id: uid('recording'), createdAt: Date.now(), duration, transcript, score: transcript ? similarity(project.targetText, transcript) : 0, mimeType: blob.type || mimeType, audioUrl: url };
-          patch((current) => ({ recordings: [entry, ...(current.recordings || [])].slice(0, 20), stage: 'submitted' })); setSelectedRecordingId(entry.id);
-          setSpeechNotice(transcript ? 'Đã lưu bản ghi và transcript.' : 'Đã lưu bản ghi thành công. Transcript tự động chưa có; có thể nhập thủ công để chạy AI phân tích.');
-          stopStream(stream); mediaStreamRef.current = null;
-        },
-      });
-      mediaRecorderRef.current = recorder;
-      const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-      if (AudioContextCtor) {
-        const context = new AudioContextCtor(); audioContextRef.current = context;
-        const source = context.createMediaStreamSource(stream); const analyser = context.createAnalyser(); analyser.fftSize = 2048; source.connect(analyser); analyserRef.current = analyser; drawWaveform();
-      }
-      recorder.start(250); setIsRecording(true); setSpeechNotice('Micro đã sẵn sàng. Bản ghi được lưu cục bộ trong trình duyệt.'); startRecognition();
-    } catch (error) { setSpeechError(describeMediaError(error, 'vi')); stopStream(mediaStreamRef.current); mediaStreamRef.current = null; }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); mediaStreamRef.current = stream;
+      const recorder = new MediaRecorder(stream); mediaRecorderRef.current = recorder;
+      recorder.ondataavailable = (event) => { if (event.data.size) chunksRef.current.push(event.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' }); const url = URL.createObjectURL(blob); if (recordingUrl) URL.revokeObjectURL(recordingUrl); setRecordingUrl(url);
+        const transcript = speechTranscriptRef.current;
+        const duration = recordingSecondsRef.current;
+        const entry = { id: uid('recording'), createdAt: Date.now(), duration, transcript, score: transcript ? similarity(project.targetText, transcript) : 0, mimeType: blob.type, audioUrl: url };
+        patch((current) => ({ recordings: [entry, ...(current.recordings || [])].slice(0, 20), stage: 'submitted' })); setSelectedRecordingId(entry.id);
+      };
+      const context = new AudioContext(); audioContextRef.current = context; const source = context.createMediaStreamSource(stream); const analyser = context.createAnalyser(); analyser.fftSize = 2048; source.connect(analyser); analyserRef.current = analyser; drawWaveform();
+      recorder.start(); setIsRecording(true); startRecognition();
+    } catch (error) { setSpeechError(error.message || 'Không thể truy cập micro. Hãy cấp quyền micro cho trình duyệt.'); }
   };
 
   const stopRecording = () => {
-    if (!isRecording) return;
-    setIsRecording(false);
-    try { recognitionRef.current?.stop?.(); } catch { /* optional transcript */ }
-    const recorder = mediaRecorderRef.current;
-    try { if (recorder?.state === 'recording') recorder.requestData?.(); } catch { /* optional */ }
-    try { if (recorder?.state && recorder.state !== 'inactive') recorder.stop(); else stopStream(mediaStreamRef.current); } catch { stopStream(mediaStreamRef.current); }
-    if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    try { audioContextRef.current?.close?.(); } catch { /* optional */ }
+    if (!isRecording) return; setIsRecording(false); recognitionRef.current?.stop?.(); mediaRecorderRef.current?.stop?.(); mediaStreamRef.current?.getTracks?.().forEach((track) => track.stop()); if (animationRef.current) cancelAnimationFrame(animationRef.current); audioContextRef.current?.close?.();
   };
 
   const runAiTask = async (taskId) => {
@@ -432,14 +384,13 @@ export default function PronunciationCoach({ language = 'vi', apiKey = '', aiMod
           <section className="pc-recorder-pane">
             <div className={`pc-record-orb ${isRecording ? 'recording' : ''}`}><span>{isRecording ? '●' : '🎙'}</span><strong>{formatDuration(recordingSeconds)}</strong></div>
             <canvas ref={canvasRef} width="720" height="150" />
-            <div className="pc-recorder-controls"><button type="button" className="primary" onClick={isRecording ? stopRecording : startRecording}>{isRecording ? '■ Dừng ghi âm' : '● Bắt đầu ghi âm'}</button><button type="button" onClick={() => playModel()}>▶ Nghe mẫu</button>{recordingUrl ? <a href={recordingUrl} download={`${project.title}.${extensionForMimeType(recordingMimeType)}`}>↓ Tải bản ghi</a> : null}</div>
+            <div className="pc-recorder-controls"><button type="button" className="primary" onClick={isRecording ? stopRecording : startRecording}>{isRecording ? '■ Dừng ghi âm' : '● Bắt đầu ghi âm'}</button><button type="button" onClick={() => playModel()}>▶ Nghe mẫu</button>{recordingUrl ? <a href={recordingUrl} download={`${project.title}.webm`}>↓ Tải bản ghi</a> : null}</div>
             {recordingUrl ? <audio controls src={recordingUrl} /> : null}
             {speechError ? <p className="pc-error">⚠ {speechError}</p> : null}
-            {speechNotice ? <p className="pc-recording-notice">ℹ {speechNotice}</p> : null}
             <Field label="Transcript nhận diện (Intelligibility check)"><textarea rows={6} value={speechTranscript} onChange={(event) => setSpeechTranscript(event.target.value)} placeholder="Speech-to-text transcript sẽ hiện tại đây nếu trình duyệt hỗ trợ…" /></Field>
           </section>
           <aside className="pc-performance-pane">
-            <div className={`pc-score-ring ${localScore == null ? 'is-pending' : ''}`} style={{ '--score': `${localScore || 0}%` }}><strong>{localScore == null ? '—' : localScore}</strong><span>{localScore == null ? 'Awaiting transcript' : 'Intelligibility'}</span></div>
+            <div className="pc-score-ring" style={{ '--score': `${localScore || 0}%` }}><strong>{localScore || 0}</strong><span>Intelligibility</span></div>
             <div className="pc-level-note"><b>Mức đánh giá hiện tại</b><strong>Level 2 · Speech-to-text comparison</strong><p>Điểm phản ánh mức người nghe/máy nhận ra nội dung, không phải độ chính xác từng âm vị.</p></div>
             <div className="pc-feedback-grid">{[['Final sounds', project.aiFeedback?.scores?.finalSounds || '—'], ['Word stress', project.aiFeedback?.scores?.wordStress || '—'], ['Rhythm', project.aiFeedback?.scores?.rhythm || '—'], ['Fluency', project.aiFeedback?.scores?.fluency || '—']].map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}</div>
             <section className="pc-feedback-copy"><h3>AI / Teacher feedback</h3><p>{project.aiFeedback.summary || 'Chưa có phân tích AI. Ghi âm và chạy “AI phân tích”.'}</p><strong>Ưu tiên sửa</strong><ul>{normalizeArray(project.aiFeedback.priorities).map((item, index) => <li key={index}>{item}</li>)}</ul><strong>Bài sửa lỗi</strong><ul>{normalizeArray(project.aiFeedback.remediation).map((item, index) => <li key={index}>{typeof item === 'string' ? item : JSON.stringify(item)}</li>)}</ul></section>

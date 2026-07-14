@@ -1,6 +1,6 @@
-export const APP_VERSION = '11.5.4';
-export const RELEASE_NAME = 'System Media Capture & AI Composer Fix';
-export const RUNTIME_CORE_VERSION = '2.5.4';
+export const APP_VERSION = '11.5.3';
+export const RELEASE_NAME = 'Pronunciation Coach Speech Practice Workbench';
+export const RUNTIME_CORE_VERSION = '2.5.3';
 export const SCHEMA_VERSION = '11.4.2';
 
 export function getVersionInfo() {

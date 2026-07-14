@@ -1,7 +1,7 @@
 {
-  "version": "11.5.3",
-  "release": "Pronunciation Coach Speech Practice Workbench",
-  "runtime": "2.5.3",
+  "version": "11.5.4",
+  "release": "System Media Capture & AI Composer Fix",
+  "runtime": "2.5.4",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
   "lessonArchitectAnnualBuilder": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": true,
-  "generatedAt": "2026-07-14T01:55:28.602Z",
+  "generatedAt": "2026-07-14T02:24:39.520Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "2.5.3",
+  "runtimeCore": "2.5.4",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -198,5 +198,23 @@
   "pronunciationCoachDocumentImport": true,
   "pronunciationCoachRoute": "#/tool/pronunciation-coach",
   "pronunciationCoachSchema": "bes-pronunciation-pack/1.0",
-  "pronunciationCoachDesign": "Modern SaaS Workbench + Soft Editorial"
+  "pronunciationCoachDesign": "Modern SaaS Workbench + Soft Editorial",
+  "resilientMediaCapture": true,
+  "sharedMediaCaptureUtility": true,
+  "adaptiveAudioMimeType": true,
+  "microphonePermissionDiagnostics": true,
+  "recordingIndependentFromSpeechRecognition": true,
+  "speechRecognitionNetworkFallback": true,
+  "pronunciationRecorderFix": true,
+  "speakingRecorderFix": true,
+  "aiVoiceInputFallback": true,
+  "expandedAiComposer": true,
+  "aiComposerMinHeight": 96,
+  "aiComposerMaxHeight": 260,
+  "aiMessengerExpandedWidth": 560,
+  "mediaCaptureRouteCoverage": [
+    "pronunciation-coach",
+    "speaking-studio",
+    "brian-ai"
+  ]
 }

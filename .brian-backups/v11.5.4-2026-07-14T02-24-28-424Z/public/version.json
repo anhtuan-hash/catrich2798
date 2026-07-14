@@ -1,14 +1,14 @@
 {
-  "version": "11.5.4",
+  "version": "11.5.3",
   "channel": "stable",
-  "releaseName": "System Media Capture & AI Composer Fix",
-  "runtimeCore": "2.5.4",
+  "releaseName": "Pronunciation Coach Speech Practice Workbench",
+  "runtimeCore": "2.5.3",
   "schemaVersion": "11.4.2",
   "requiresSql": true,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T02:24:39.520Z",
+  "generatedAt": "2026-07-14T01:55:28.602Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -193,23 +193,5 @@
   "pronunciationCoachDocumentImport": true,
   "pronunciationCoachRoute": "#/tool/pronunciation-coach",
   "pronunciationCoachSchema": "bes-pronunciation-pack/1.0",
-  "pronunciationCoachDesign": "Modern SaaS Workbench + Soft Editorial",
-  "resilientMediaCapture": true,
-  "sharedMediaCaptureUtility": true,
-  "adaptiveAudioMimeType": true,
-  "microphonePermissionDiagnostics": true,
-  "recordingIndependentFromSpeechRecognition": true,
-  "speechRecognitionNetworkFallback": true,
-  "pronunciationRecorderFix": true,
-  "speakingRecorderFix": true,
-  "aiVoiceInputFallback": true,
-  "expandedAiComposer": true,
-  "aiComposerMinHeight": 96,
-  "aiComposerMaxHeight": 260,
-  "aiMessengerExpandedWidth": 560,
-  "mediaCaptureRouteCoverage": [
-    "pronunciation-coach",
-    "speaking-studio",
-    "brian-ai"
-  ]
+  "pronunciationCoachDesign": "Modern SaaS Workbench + Soft Editorial"
 }

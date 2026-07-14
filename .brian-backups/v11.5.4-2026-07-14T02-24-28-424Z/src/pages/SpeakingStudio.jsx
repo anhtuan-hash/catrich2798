@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { callAI, extractJson } from '../utils/gemini.js';
 import { addHistoryEntry, downloadFile, exportAsWord, slugify } from '../utils/library.js';
-import { createMediaRecorder, createSpeechRecognition, describeMediaError, extensionForMimeType, getMicrophoneSupport, requestMicrophoneStream, speechRecognitionMessage, stopStream } from '../utils/mediaCapture.js';
 
 const SAMPLE_CARDS = [
   {
@@ -155,8 +154,6 @@ export default function SpeakingStudio({ language, apiKey, aiModel, hasApiKey })
   const [scoring, setScoring] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordUrl, setRecordUrl] = useState('');
-  const [recordMimeType, setRecordMimeType] = useState('audio/webm');
-  const [speechNotice, setSpeechNotice] = useState('');
   const [seconds, setSeconds] = useState(0);
   const [speechSupported, setSpeechSupported] = useState(false);
   const recorderRef = useRef(null);
@@ -249,81 +246,67 @@ export default function SpeakingStudio({ language, apiKey, aiModel, hasApiKey })
     setInterimTranscript('');
     setScore(null);
     setRawFeedback('');
-    if (recordUrl) URL.revokeObjectURL(recordUrl);
     setRecordUrl('');
-    setSpeechNotice('');
     setSeconds(0);
   };
 
   const startSpeechRecognition = () => {
-    const recognition = createSpeechRecognition({
-      language: 'en-US',
-      continuous: true,
-      interimResults: true,
-      onStart: () => setSpeechNotice(language === 'vi' ? 'Đang tạo transcript tự động…' : 'Creating an automatic transcript…'),
-      onResult: (event) => {
-        let finalText = ''; let interim = '';
-        for (let i = event.resultIndex; i < event.results.length; i += 1) {
-          const piece = event.results[i][0]?.transcript || '';
-          if (event.results[i].isFinal) finalText += `${piece} `; else interim += piece;
-        }
-        if (finalText) setTranscript((prev) => `${prev} ${finalText}`.replace(/\s+/g, ' ').trim());
-        setInterimTranscript(interim);
-      },
-      onEnd: () => setInterimTranscript(''),
-      onError: ({ code }) => {
-        if (code === 'aborted') return;
-        setInterimTranscript('');
-        setSpeechNotice(speechRecognitionMessage(code, language));
-      },
-    });
-    if (!recognition) {
-      setSpeechNotice(language === 'vi' ? 'Trình duyệt không hỗ trợ transcript tự động. Ghi âm vẫn hoạt động; hãy nhập transcript thủ công.' : 'Automatic transcription is unavailable. Recording still works; type a transcript manually.');
-      return;
-    }
-    try { recognition.start(); speechRef.current = recognition; }
-    catch { setSpeechNotice(language === 'vi' ? 'Không thể khởi động transcript tự động. Ghi âm vẫn hoạt động.' : 'Automatic transcription could not start. Recording still works.'); }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onresult = (event) => {
+      let finalText = '';
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const piece = event.results[i][0]?.transcript || '';
+        if (event.results[i].isFinal) finalText += `${piece} `;
+        else interim += piece;
+      }
+      if (finalText) setTranscript((prev) => `${prev}${finalText}`.replace(/\s+/g, ' ').trimStart());
+      setInterimTranscript(interim);
+    };
+    recognition.onerror = () => setInterimTranscript('');
+    recognition.onend = () => setInterimTranscript('');
+    recognition.start();
+    speechRef.current = recognition;
   };
 
   const startRecording = async () => {
     resetAttempt();
-    const support = getMicrophoneSupport();
-    if (!support.mediaRecorder) return flash(language === 'vi' ? 'Trình duyệt chưa hỗ trợ MediaRecorder.' : 'MediaRecorder is unavailable in this browser.');
     try {
-      const stream = await requestMicrophoneStream();
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       chunksRef.current = [];
-      const recorder = createMediaRecorder(stream, {
-        onData: (event) => { if (event.data?.size) chunksRef.current.push(event.data); },
-        onError: (event) => flash(describeMediaError(event?.error || event, language)),
-        onStop: () => {
-          const mimeType = recorder.mimeType || support.mimeType || 'audio/webm';
-          const blob = new Blob(chunksRef.current, { type: mimeType });
-          const url = URL.createObjectURL(blob);
-          setRecordMimeType(blob.type || mimeType);
-          setRecordUrl((current) => { if (current) URL.revokeObjectURL(current); return url; });
-          stopStream(stream); streamRef.current = null;
-        },
-      });
+      const recorder = new MediaRecorder(stream);
+      recorder.ondataavailable = (event) => {
+        if (event.data?.size) chunksRef.current.push(event.data);
+      };
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        setRecordUrl(url);
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      };
       recorderRef.current = recorder;
-      recorder.start(250);
+      recorder.start();
       setRecording(true);
       setSeconds(0);
-      setSpeechNotice(language === 'vi' ? 'Micro đã sẵn sàng. Bản ghi đang được lưu cục bộ.' : 'Microphone ready. Audio is being recorded locally.');
       clearInterval(timerRef.current);
       timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
       startSpeechRecognition();
     } catch (err) {
-      stopStream(streamRef.current); streamRef.current = null;
-      flash(describeMediaError(err, language));
+      flash(language === 'vi' ? 'Không mở được micro. Kiểm tra quyền truy cập micro.' : 'Could not access microphone. Check microphone permission.');
     }
   };
 
   const stopRecording = () => {
+    try { recorderRef.current?.state !== 'inactive' && recorderRef.current?.stop(); } catch {}
     try { speechRef.current?.stop?.(); } catch {}
-    const recorder = recorderRef.current;
-    try { if (recorder?.state === 'recording') recorder.requestData?.(); } catch {}
-    try { if (recorder?.state && recorder.state !== 'inactive') recorder.stop(); else stopStream(streamRef.current); } catch { stopStream(streamRef.current); }
+    try { streamRef.current?.getTracks?.().forEach((track) => track.stop()); } catch {}
     clearInterval(timerRef.current);
     setRecording(false);
   };
@@ -332,7 +315,7 @@ export default function SpeakingStudio({ language, apiKey, aiModel, hasApiKey })
     if (!recordUrl) return flash(language === 'vi' ? 'Chưa có bản ghi âm.' : 'No recording yet.');
     const a = document.createElement('a');
     a.href = recordUrl;
-    a.download = `${slugify(activeCard.title || 'speaking-recording')}.${extensionForMimeType(recordMimeType)}`;
+    a.download = `${slugify(activeCard.title || 'speaking-recording')}.webm`;
     a.click();
   };
 
@@ -604,7 +587,7 @@ export default function SpeakingStudio({ language, apiKey, aiModel, hasApiKey })
                   <button onClick={downloadAudio}>{language === 'vi' ? 'Tải audio' : 'Audio'}</button>
                 </div>
                 {recordUrl && <audio controls src={recordUrl} className="speaking-audio" />}
-                <small className={speechNotice ? 'speaking-recording-notice' : ''}>{speechNotice || (speechSupported ? (language === 'vi' ? 'Ghi âm hoạt động độc lập với transcript. Bạn có thể sửa transcript trước khi chấm.' : 'Recording works independently from transcription. You can edit the transcript before grading.') : (language === 'vi' ? 'Ghi âm vẫn hoạt động; trình duyệt này cần nhập transcript thủ công.' : 'Recording still works; type the transcript manually in this browser.'))}</small>
+                <small>{speechSupported ? (language === 'vi' ? 'Chrome có thể tự tạo transcript. Bạn vẫn có thể sửa lại trước khi chấm.' : 'Chrome can create a transcript. You can edit it before grading.') : (language === 'vi' ? 'Trình duyệt này không hỗ trợ nhận diện giọng nói. Hãy nhập transcript thủ công.' : 'Speech recognition is unavailable. Type the transcript manually.')}</small>
               </div>
 
               <div className="transcript-panel">

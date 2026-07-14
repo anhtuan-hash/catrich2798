@@ -4,7 +4,6 @@ import { callAI } from '../utils/gemini.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { spreadsheetToTextSafe } from '../utils/safeSpreadsheet.js';
 import { buildAiActionSuggestions, executeAiAction, prepareAiAction } from '../utils/aiActions.js';
-import { createSpeechRecognition, speechRecognitionMessage } from '../utils/mediaCapture.js';
 
 const ROUTE_LABELS = {
   home: { title: 'Brian English Studio', titleVi: 'Brian English Studio', taskVi: 'Hỗ trợ nhanh các công việc dạy học, quản lý lớp và điều hành tổ chuyên môn.', task: 'Support teaching, classroom management and department leadership tasks.' },
@@ -279,14 +278,6 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
   }, [open, messages.length, loading, attachments.length, showHistory]);
 
   useEffect(() => {
-    const element = textareaRef.current;
-    if (!element || !open) return;
-    element.style.height = 'auto';
-    const nextHeight = Math.min(260, Math.max(96, element.scrollHeight));
-    element.style.height = `${nextHeight}px`;
-  }, [draft, open]);
-
-  useEffect(() => {
     const onKeyDown = (event) => { if (event.key === 'Escape' && open) { if (showHistory) setShowHistory(false); else setOpen(false); } };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
@@ -387,37 +378,24 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
   }, [language]);
 
   const startListening = () => {
-    try { recognitionRef.current?.abort?.(); } catch { /* previous voice session */ }
-    const recognition = createSpeechRecognition({
-      language: language === 'vi' ? 'vi-VN' : 'en-US',
-      continuous: false,
-      interimResults: true,
-      onStart: () => { setListening(true); setError(''); setNotice(language === 'vi' ? 'Đang nghe…' : 'Listening…'); },
-      onEnd: () => { setListening(false); setNotice((current) => ['Đang nghe…', 'Listening…'].includes(current) ? '' : current); },
-      onError: ({ code }) => {
-        setListening(false);
-        if (code === 'aborted') return;
-        setNotice(speechRecognitionMessage(code, language));
-        window.setTimeout(() => setNotice(''), 5200);
-      },
-      onResult: (event) => {
-        let interim = ''; let finalText = '';
-        for (let index = event.resultIndex; index < event.results.length; index += 1) {
-          const text = event.results[index][0]?.transcript || '';
-          if (event.results[index].isFinal) finalText += text; else interim += text;
-        }
-        const finalValue = finalText.trim();
-        if (finalValue) setDraft((current) => current.trim() ? `${current.trim()} ${finalValue}` : finalValue);
-        else if (interim.trim()) setNotice(`${language === 'vi' ? 'Đang nghe' : 'Listening'}: ${interim.trim().slice(0, 90)}`);
-        if (finalValue && voiceModeRef.current) window.setTimeout(() => sendMessageRef.current?.(finalValue), 80);
-      },
-    });
-    if (!recognition) {
-      setNotice(language === 'vi' ? 'Trình duyệt không hỗ trợ nhập giọng nói. Hãy gõ nội dung trong ô nhập đã được mở rộng.' : 'Voice input is unavailable. Type in the expanded message box.');
-      return;
-    }
-    try { recognitionRef.current = recognition; recognition.start(); }
-    catch { setNotice(language === 'vi' ? 'Không thể khởi động nhập giọng nói. Hãy kiểm tra quyền micro hoặc nhập bằng bàn phím.' : 'Voice input could not start. Check microphone permission or type instead.'); }
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Recognition) { setError(language === 'vi' ? 'Trình duyệt này chưa hỗ trợ nhận giọng nói. Hãy dùng Chrome hoặc Edge.' : 'Speech recognition is not supported. Use Chrome or Edge.'); return; }
+    recognitionRef.current?.abort?.();
+    const recognition = new Recognition();
+    recognition.lang = language === 'vi' ? 'vi-VN' : 'en-US'; recognition.interimResults = true; recognition.continuous = false;
+    recognition.onstart = () => { setListening(true); setError(''); };
+    recognition.onend = () => setListening(false);
+    recognition.onerror = (event) => { setListening(false); if (event.error !== 'aborted' && event.error !== 'no-speech') setError(language === 'vi' ? `Lỗi nhận giọng nói: ${event.error}` : `Speech recognition error: ${event.error}`); };
+    recognition.onresult = (event) => {
+      let interim = ''; let finalText = '';
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const text = event.results[index][0]?.transcript || '';
+        if (event.results[index].isFinal) finalText += text; else interim += text;
+      }
+      const combined = (finalText || interim).trim(); if (combined) setDraft(combined);
+      if (finalText.trim() && voiceModeRef.current) window.setTimeout(() => sendMessageRef.current?.(finalText.trim()), 80);
+    };
+    recognitionRef.current = recognition; recognition.start();
   };
 
   const toggleVoiceMode = () => {
@@ -614,7 +592,7 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
                   <small>{attachments.length}/5</small>
                 </div>
                 <div className="ai-composer-input-row">
-                  <textarea ref={textareaRef} rows={4} value={draft} onChange={(event) => setDraft(event.target.value.slice(0, 7000))} onKeyDown={onComposerKeyDown} onPaste={(event) => { const imageFiles = [...(event.clipboardData?.files || [])].filter((file) => file.type.startsWith('image/')); if (imageFiles.length) { event.preventDefault(); addFiles(imageFiles); } }} placeholder={language === 'vi' ? 'Nhắn tin, kéo file hoặc dán ảnh cho Brian AI...' : 'Message, drop a file or paste an image...'} aria-label={language === 'vi' ? 'Tin nhắn cho trợ lí AI' : 'Message to AI assistant'}/>
+                  <textarea ref={textareaRef} rows={1} value={draft} onChange={(event) => setDraft(event.target.value.slice(0, 7000))} onKeyDown={onComposerKeyDown} onPaste={(event) => { const imageFiles = [...(event.clipboardData?.files || [])].filter((file) => file.type.startsWith('image/')); if (imageFiles.length) { event.preventDefault(); addFiles(imageFiles); } }} placeholder={language === 'vi' ? 'Nhắn tin, kéo file hoặc dán ảnh cho Brian AI...' : 'Message, drop a file or paste an image...'} aria-label={language === 'vi' ? 'Tin nhắn cho trợ lí AI' : 'Message to AI assistant'}/>
                   <button type="button" onClick={() => sendMessage()} disabled={(!draft.trim() && !attachments.length) || loading} aria-label={language === 'vi' ? 'Gửi tin nhắn' : 'Send message'}>{SVG.send}</button>
                 </div>
                 <small>{voiceMode ? (language === 'vi' ? 'Voice mode: AI tự gửi khi nhận xong và đọc câu trả lời.' : 'Voice mode: auto-send and read replies aloud.') : (language === 'vi' ? 'Enter để gửi · Shift + Enter xuống dòng' : 'Enter to send · Shift + Enter for a new line')}</small>
