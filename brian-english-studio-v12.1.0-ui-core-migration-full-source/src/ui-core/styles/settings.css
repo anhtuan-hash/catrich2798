@@ -1,0 +1,72 @@
+
+/* Native settings contract: semantic surfaces and one responsive grid across adapters. */
+.settings-page-v47[data-ui="settings-page"] {
+  width: min(100%, 1480px) !important;
+  margin-inline: auto !important;
+  padding: var(--ui-page-gutter) !important;
+  color: var(--ui-color-text);
+}
+.settings-page-v47[data-ui="settings-page"] .settings-v47-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--ui-section-gap);
+  align-items: start;
+}
+.settings-page-v47[data-ui="settings-page"] .settings-v47-card {
+  grid-column: span 6;
+  min-width: 0;
+  background: var(--ui-color-surface-container) !important;
+  color: var(--ui-color-text) !important;
+  border: 1px solid var(--ui-color-border) !important;
+  border-radius: var(--ui-radius-card) !important;
+  box-shadow: var(--ui-elevation-card) !important;
+  padding: var(--ui-space-5) !important;
+}
+.settings-page-v47[data-ui="settings-page"] .settings-v47-ai-card,
+.settings-page-v47[data-ui="settings-page"] .settings-v47-backup-card { grid-column: 1 / -1; }
+.settings-page-v47[data-ui="settings-page"] :where(input, select, textarea) {
+  color: var(--ui-color-text);
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-control);
+}
+.settings-page-v47[data-ui="settings-page"] :where(button, input, select, textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--ui-color-primary) 32%, transparent);
+  outline-offset: 2px;
+}
+.settings-page-v47[data-ui="settings-page"] .settings-v47-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ui-space-3);
+  margin-block-end: var(--ui-space-4);
+}
+.settings-page-v47[data-ui="settings-page"] .settings-v47-card-title { display: flex; align-items: flex-start; gap: var(--ui-space-3); min-width: 0; }
+.settings-page-v47[data-ui="settings-page"] .settings-v47-card-title h2 { margin: 0; color: var(--ui-color-text); }
+.settings-page-v47[data-ui="settings-page"] .settings-v47-card-title p { margin: var(--ui-space-1) 0 0; color: var(--ui-color-text-muted); }
+.settings-page-v47[data-ui="settings-page"] .settings-v12-design-language-grid > button {
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+  box-shadow: none;
+}
+.settings-page-v47[data-ui="settings-page"] .settings-v12-design-language-grid > button.active {
+  border-color: var(--ui-color-primary);
+  background: var(--ui-color-primary-container);
+  color: var(--ui-color-on-primary-container);
+}
+html[data-design-language="apple"] .settings-page-v47[data-ui="settings-page"] .settings-v47-card {
+  box-shadow: none !important;
+  background: color-mix(in srgb, var(--ui-color-surface-container) 92%, transparent) !important;
+}
+html[data-design-language="material-3"] .settings-page-v47[data-ui="settings-page"] .settings-v47-card {
+  border-color: transparent !important;
+}
+@media (max-width: 1000px) {
+  .settings-page-v47[data-ui="settings-page"] .settings-v47-card { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .settings-page-v47[data-ui="settings-page"] { padding: 10px !important; }
+  .settings-page-v47[data-ui="settings-page"] .settings-v47-card { padding: var(--ui-space-4) !important; }
+}
