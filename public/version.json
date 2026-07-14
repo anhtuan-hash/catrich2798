@@ -1,14 +1,14 @@
 {
-  "version": "12.9.0",
+  "version": "12.10.0",
   "channel": "stable",
-  "releaseName": "Workspace OS Core & Session Continuity",
-  "runtimeCore": "3.3.0",
+  "releaseName": "Workspace Navigation & Unified Activity Center",
+  "runtimeCore": "3.4.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T12:57:47.503Z",
+  "generatedAt": "2026-07-14T13:15:31.583Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Workspace OS Core & Session Continuity",
+  "release": "Workspace Navigation & Unified Activity Center",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -391,5 +391,16 @@
   "workspaceHub": true,
   "workspaceSessionMemory": true,
   "workspaceCatalogFiltering": true,
-  "commandPaletteWorkspaceSearch": true
+  "commandPaletteWorkspaceSearch": true,
+  "workspacePrimaryNavigation": true,
+  "unifiedActivityCenter": true,
+  "activityCategories": [
+    "notifications",
+    "work",
+    "sync",
+    "history",
+    "ai"
+  ],
+  "headlessSyncIndicator": true,
+  "activityOwnedAutosaveHistory": true
 }

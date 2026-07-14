@@ -807,6 +807,7 @@ export default function StatusMenuBar({
   hasApiKey,
   theme = 'light',
   setTheme,
+  activityCenterOwned = false,
 }) {
   const [panelOpen, setPanelOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
@@ -1307,6 +1308,10 @@ export default function StatusMenuBar({
   };
 
   const openPanel = () => {
+    if (activityCenterOwned) {
+      window.dispatchEvent(new CustomEvent('brian:activity-center-open', { detail: { tab: 'notifications' } }));
+      return;
+    }
     setPanelOpen(true);
     setActiveTab('all');
   };
@@ -1325,14 +1330,14 @@ export default function StatusMenuBar({
             icon="✓"
             value={todayNotifications.length}
             label={language === 'vi' ? 'việc hôm nay' : 'today'}
-            onClick={() => { setPanelOpen(true); setActiveTab('all'); }}
+            onClick={openPanel}
           />
           <GlobalStatusPill
             tone="blue"
             icon="👥"
             value={pendingPermissionCount}
             label={language === 'vi' ? 'tài khoản chờ duyệt' : 'accounts pending'}
-            onClick={() => { setPanelOpen(true); setActiveTab('action'); }}
+            onClick={() => activityCenterOwned ? window.dispatchEvent(new CustomEvent('brian:activity-center-open', { detail: { tab: 'work' } })) : (setPanelOpen(true), setActiveTab('action'))}
           />
           <GlobalStatusPill
             tone="amber"
@@ -1380,11 +1385,14 @@ export default function StatusMenuBar({
         <button
           type="button"
           className={`global-notice-open ${panelOpen ? 'is-open' : ''} ${visibleNotifications.length ? 'has-unread' : ''} ${newNoticeAnimating ? 'has-new-notice' : ''}`}
-          onClick={() => setPanelOpen((value) => !value)}
-          aria-expanded={panelOpen}
+          onClick={() => {
+            if (activityCenterOwned) window.dispatchEvent(new CustomEvent('brian:activity-center-open', { detail: { tab: 'notifications' } }));
+            else setPanelOpen((value) => !value);
+          }}
+          aria-expanded={activityCenterOwned ? false : panelOpen}
         >
           <span aria-hidden="true">☷</span>
-          <strong>{language === 'vi' ? 'Mở bảng thông báo' : 'Open notifications'}</strong>
+          <strong>{activityCenterOwned ? (language === 'vi' ? 'Mở Trung tâm hoạt động' : 'Open Activity Center') : (language === 'vi' ? 'Mở bảng thông báo' : 'Open notifications')}</strong>
           <b aria-label={language === 'vi' ? `${visibleNotifications.length} thông báo chưa đọc` : `${visibleNotifications.length} unread notifications`}>{visibleNotifications.length}</b>
         </button>
       </div>

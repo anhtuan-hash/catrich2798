@@ -34,6 +34,7 @@ export default function UIWorkspaceHub({
   selectedTool = null,
   language = 'vi',
   appVisibility,
+  hideTrigger = false,
 }) {
   const [open, setOpen] = useState(false);
   const [preferredWorkspaceId, setPreferredWorkspaceId] = useState('');
@@ -92,19 +93,21 @@ export default function UIWorkspaceHub({
 
   return (
     <>
-      <button
-        type="button"
-        className="bui-workspace-hub-trigger"
-        style={{ '--workspace-accent': activeWorkspace.accent }}
-        onClick={() => { setPreferredWorkspaceId(activeWorkspaceId); setOpen(true); }}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        title={copy.title}
-      >
-        <span aria-hidden="true">{activeWorkspace.icon}</span>
-        <b>{activeWorkspace.displayLabel}</b>
-        <small>{copy.trigger}</small>
-      </button>
+      {!hideTrigger ? (
+        <button
+          type="button"
+          className="bui-workspace-hub-trigger"
+          style={{ '--workspace-accent': activeWorkspace.accent }}
+          onClick={() => { setPreferredWorkspaceId(activeWorkspaceId); setOpen(true); }}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          title={copy.title}
+        >
+          <span aria-hidden="true">{activeWorkspace.icon}</span>
+          <b>{activeWorkspace.displayLabel}</b>
+          <small>{copy.trigger}</small>
+        </button>
+      ) : null}
 
       <UIOverlayPortal open={open} placement="center" onDismiss={() => setOpen(false)} className="bui-workspace-hub-layer">
         <UIOverlaySurface variant="dialog" className="bui-workspace-hub" role="dialog" aria-modal="true" aria-labelledby="bui-workspace-hub-title">

@@ -1,6 +1,6 @@
 {
-  "version": "12.9.0",
-  "release": "Workspace OS Core & Session Continuity",
+  "version": "12.10.0",
+  "release": "Workspace Navigation & Unified Activity Center",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T12:57:47.503Z",
+  "generatedAt": "2026-07-14T13:15:31.583Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "3.3.0",
+  "runtimeCore": "3.4.0",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Workspace OS Core & Session Continuity",
+  "releaseName": "Workspace Navigation & Unified Activity Center",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -396,5 +396,16 @@
   "workspaceHub": true,
   "workspaceSessionMemory": true,
   "workspaceCatalogFiltering": true,
-  "commandPaletteWorkspaceSearch": true
+  "commandPaletteWorkspaceSearch": true,
+  "workspacePrimaryNavigation": true,
+  "unifiedActivityCenter": true,
+  "activityCategories": [
+    "notifications",
+    "work",
+    "sync",
+    "history",
+    "ai"
+  ],
+  "headlessSyncIndicator": true,
+  "activityOwnedAutosaveHistory": true
 }

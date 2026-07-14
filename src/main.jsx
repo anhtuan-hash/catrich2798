@@ -5,11 +5,11 @@ import './styles/legacy-active.css';
 import './ui-core/styles/ui-core.css';
 import './ui-core/styles/platform-core.css';
 import './ui-core/styles/workspace-core.css';
+import './ui-core/styles/activity-core.css';
 import './ui-core/styles/overlay-core.css';
 import './ui-core/styles/design-adapters.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
-import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
 import AppErrorBoundary from './components/AppErrorBoundary.jsx';
 import Footer from './components/Footer.jsx';
 import PermissionRequestButton from './components/PermissionRequestButton.jsx';
@@ -710,7 +710,7 @@ function App() {
       {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="global-autosave" label={language === 'vi' ? 'tự lưu' : 'autosave'}>
-            <GlobalAutosave route={currentRoute} selectedTool={selectedTool} currentUser={currentUser} language={language} />
+            <GlobalAutosave route={currentRoute} selectedTool={selectedTool} currentUser={currentUser} language={language} activityCenterOwned />
           </AppErrorBoundary>
         </Suspense>
       )}
@@ -743,7 +743,7 @@ function App() {
           </AppErrorBoundary>
         </Suspense>
         <Suspense fallback={null}>
-          <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
+          <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher activityCenterOwned />
         </Suspense>
       </> : null}
       {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? <Suspense fallback={null}><UnifiedUtilityRail currentUser={currentUser} language={language} currentRoute={currentRoute} /></Suspense> : null}

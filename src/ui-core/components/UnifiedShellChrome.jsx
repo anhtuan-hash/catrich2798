@@ -1,6 +1,6 @@
 import React from 'react';
 import StatusMenuBar from '../../components/StatusMenuBar.jsx';
-import GlobalFlatNavigation from '../../components/GlobalFlatNavigation.jsx';
+import UIWorkspaceNavigation from './UIWorkspaceNavigation.jsx';
 import WorkspaceTabs from '../../components/WorkspaceTabs.jsx';
 import AppErrorBoundary from '../../components/AppErrorBoundary.jsx';
 import UIWorkspaceHub from './UIWorkspaceHub.jsx';
@@ -28,12 +28,12 @@ export default function UnifiedShellChrome({
   return (
     <header className="bui-shell-chrome" data-ui="shell-chrome">
       <div className="bui-shell-status" data-ui="status-bar">
-        <StatusMenuBar route={route} {...context} currentUser={currentUser} language={language} />
+        <StatusMenuBar route={route} {...context} currentUser={currentUser} language={language} activityCenterOwned />
       </div>
 
       <div className="bui-shell-navigation" data-ui="primary-navigation">
         <AppErrorBoundary compact scope="global-navigation" label={language === 'vi' ? 'thanh điều hướng' : 'navigation'}>
-          <GlobalFlatNavigation
+          <UIWorkspaceNavigation
             route={route}
             selectedTool={selectedTool}
             onLogout={onLogout}
@@ -54,6 +54,7 @@ export default function UnifiedShellChrome({
                 selectedTool={selectedTool}
                 language={language}
                 appVisibility={appVisibility}
+                hideTrigger
               />
             </AppErrorBoundary>
             <AppErrorBoundary compact scope="workspace-tabs" label={language === 'vi' ? 'tab không gian làm việc' : 'workspace tabs'}>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { clearCompletedSyncItems, listSyncQueue, processSyncQueue, removeSyncItem, SYNC_QUEUE_EVENT } from '../utils/syncQueue.js';
 import { listTransfers } from '../utils/contentTransfer.js';
 
-export default function SyncQueueIndicator({ currentUser, language = 'vi', externalLauncher = false }) {
+export default function SyncQueueIndicator({ currentUser, language = 'vi', externalLauncher = false, activityCenterOwned = false }) {
   const [items, setItems] = useState(() => listSyncQueue(currentUser));
   const [online, setOnline] = useState(() => navigator.onLine);
   const [open, setOpen] = useState(false);
@@ -47,7 +47,7 @@ export default function SyncQueueIndicator({ currentUser, language = 'vi', exter
   }, [currentUser?.id, currentUser?.email]);
 
   const pending = items.filter((item) => item.status !== 'completed');
-  if (!currentUser || (online && pending.length === 0 && !open)) return null;
+  if (!currentUser || activityCenterOwned || (online && pending.length === 0 && !open)) return null;
 
   return (
     <div className={`bes-sync-queue${online ? ' is-online' : ' is-offline'}`} data-external-launcher={externalLauncher ? 'true' : 'false'}>
