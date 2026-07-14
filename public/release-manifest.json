@@ -1,6 +1,6 @@
 {
-  "version": "12.14.0",
-  "release": "Workspace Layout Manager & Split View",
+  "version": "12.16.0",
+  "release": "Creative App Directory Hero",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T15:36:10.591Z",
+  "generatedAt": "2026-07-14T15:51:52.941Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Workspace Layout Manager & Split View",
+  "releaseName": "Creative App Directory Hero",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,

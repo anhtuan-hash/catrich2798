@@ -64,6 +64,49 @@ const copy = {
   },
 };
 
+
+function AppsHeroArtwork({ language }) {
+  const labels = language === 'vi'
+    ? { safe: 'An toàn', safeSub: 'Quyền truy cập được kiểm soát', fast: 'Nhanh chóng', fastSub: 'Mở ứng dụng chỉ với 1 cú nhấp', drag: 'Kéo thả linh hoạt', color: 'Màu sắc nhận diện riêng', sync: 'Đồng bộ mọi thiết bị', sort: 'Sắp xếp thông minh' }
+    : { safe: 'Secure', safeSub: 'Controlled access', fast: 'Fast', fastSub: 'Open apps in one click', drag: 'Flexible drag & drop', color: 'Distinct app colors', sync: 'Sync across devices', sort: 'Smart sorting' };
+  const apps = [
+    { key: 'document', label: 'WS', color: '#9C6BE8' },
+    { key: 'writing', label: 'WR', color: '#62A8F0' },
+    { key: 'users', label: 'CL', color: '#F3A45C' },
+    { key: 'folder', label: 'LB', color: '#72BF72' },
+    { key: 'ai', label: 'AI', color: '#8E72DE' },
+    { key: 'game', label: 'GM', color: '#F07476' },
+    { key: 'settings', label: 'ST', color: '#8B8583' },
+  ];
+  return (
+    <div className="apps-hero-visual" aria-hidden="true">
+      <span className="apps-hero-spark spark-a">✦</span><span className="apps-hero-spark spark-b">✦</span><span className="apps-hero-spark spark-c">✦</span>
+      <div className="apps-hero-browser">
+        <div className="apps-hero-browser-top"><i /><i /><i /><span /></div>
+        <div className="apps-hero-browser-grid">
+          {apps.map((app) => <span key={app.key} className="apps-hero-browser-app" style={{ '--hero-app': app.color }}><b>{app.label}</b></span>)}
+        </div>
+      </div>
+      <div className="apps-hero-folder">
+        <div className="apps-hero-folder-tab" />
+        <div className="apps-hero-folder-body">
+          <span className="apps-hero-folder-star">★</span>
+          <div className="apps-hero-folder-tabs">
+            <span><b>TR</b> Trang chủ</span><span><b>GB</b> Grammar</span><span><b>WS</b> Writing</span><span><b>CH</b> Chủ nhiệm</span>
+          </div>
+          <span className="apps-hero-hand">☝</span>
+        </div>
+      </div>
+      <div className="apps-hero-side-card safe"><b>♢</b><strong>{labels.safe}</strong><small>{labels.safeSub}</small></div>
+      <div className="apps-hero-side-card fast"><b>ϟ</b><strong>{labels.fast}</strong><small>{labels.fastSub}</small></div>
+      <div className="apps-hero-floating-grid">▦</div>
+      <div className="apps-hero-feature-row">
+        <span><b>☝</b>{labels.drag}</span><span><b>◉</b>{labels.color}</span><span><b>☁</b>{labels.sync}</span><span><b>▤</b>{labels.sort}</span>
+      </div>
+    </div>
+  );
+}
+
 function titleOf(item, language) { return language === 'vi' ? item.titleVi || item.title : item.title; }
 function descOf(item, language) { return language === 'vi' ? item.descVi || item.desc : item.desc; }
 function statusOf(item, language) {
@@ -474,24 +517,25 @@ export default function WebApps({ apps, language = 'vi', currentUser, appVisibil
   return (
     <UILaunchPage app="apps" className={`flat-design-home flat-apps-directory launcher-v10831 launcher-v1136 launcher-command-center launcher-style-${workingConfig.launcherStyle || 'radial'} density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
 
-      <UILaunchHero as="header" className="flat-apps-hero">
+      <UILaunchHero as="header" className="flat-apps-hero apps-directory-hero-v1216">
         <div className="flat-apps-hero-copy">
-          <p className="flat-kicker">{t.kicker}</p>
+          <p className="flat-kicker">✦ {t.kicker}</p>
           <h1><span className="flat-bubble-word">{t.titleA}</span><span>{t.titleB}</span><span>{t.titleC}</span></h1>
           <p className="flat-subtitle">{t.subtitle}</p>
+          <aside className="flat-apps-stats" aria-label="Apps summary">
+            <div><strong>{workspaceVisibleItems.length}</strong><small>{t.total}</small><em>{language === 'vi' ? 'Ứng dụng có sẵn' : 'Available apps'}</em></div>
+            <div><strong>{workingConfig.pinned.length}</strong><small>PIN</small><em>{language === 'vi' ? 'Ứng dụng ghim' : 'Pinned apps'}</em></div>
+            <div><strong>{workingConfig.nav.length}</strong><small>NAV</small><em>{language === 'vi' ? 'Mục điều hướng' : 'Navigation items'}</em></div>
+          </aside>
           {isAdmin && (
             <div className="launcher-admin-actions">
-              <button type="button" className={editMode ? 'active' : ''} onClick={editMode ? cancelEdit : beginEdit}>{editMode ? t.finish : t.customize}</button>
+              <button type="button" className={editMode ? 'active' : ''} onClick={editMode ? cancelEdit : beginEdit}>✦ {editMode ? t.finish : t.customize} <span aria-hidden="true">→</span></button>
               {editMode && <button type="button" className="primary" onClick={saveChanges} disabled={saving}>{saving ? t.saving : t.save}</button>}
               {editMode && <button type="button" onClick={restoreDefaults} disabled={saving}>{t.reset}</button>}
             </div>
           )}
         </div>
-        <aside className="flat-apps-stats" aria-label="Apps summary">
-          <div><strong>{workspaceVisibleItems.length}</strong><small>{t.total}</small></div>
-          <div><strong>{workingConfig.pinned.length}</strong><small>PIN</small></div>
-          <div><strong>{workingConfig.nav.length}</strong><small>NAV</small></div>
-        </aside>
+        <AppsHeroArtwork language={language} />
       </UILaunchHero>
 
       {editMode && isAdmin ? (
