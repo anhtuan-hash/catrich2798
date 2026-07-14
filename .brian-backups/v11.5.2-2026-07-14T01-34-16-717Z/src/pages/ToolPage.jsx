@@ -19,7 +19,6 @@ const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
 const WorksheetFactory = lazy(() => import('./WorksheetFactory.jsx'));
 const EnglishLessonIntegrationStudio = lazy(() => import('./EnglishLessonIntegrationStudio.jsx'));
 const GrammarBuilder = lazy(() => import('./GrammarBuilder.jsx'));
-const WritingStudio = lazy(() => import('./WritingStudio.jsx'));
 
 const specializedToolSlugs = new Set([
   'exam-studio',
@@ -78,10 +77,6 @@ export default function ToolPage(props) {
 
   if (tool?.slug === 'grammar-builder') {
     return renderLazy(GrammarBuilder, props);
-  }
-
-  if (tool?.slug === 'writing-studio') {
-    return renderLazy(WritingStudio, props);
   }
 
   if (tool?.slug === 'worksheet-factory') {

@@ -1,0 +1,24 @@
+{
+  "from": "11.5.1",
+  "to": "11.5.2",
+  "createdAt": "2026-07-14T01:34:16.744Z",
+  "files": [
+    ".bes-release/v11.5.2.json",
+    "V11_5_2_TEST_REPORT.md",
+    "V11_5_2_WRITING_PROCESS_WORKBENCH.md",
+    "docs/V11_5_2_DEPLOYMENT.md",
+    "package-lock.json",
+    "package.json",
+    "public/release-manifest.json",
+    "public/version.json",
+    "scripts/check-v11.5.2.mjs",
+    "scripts/performance-budget-v11.5.2.mjs",
+    "scripts/release-guard-v11.5.2.mjs",
+    "scripts/sync-version-v11.5.2.mjs",
+    "src/config/version.js",
+    "src/data/apps.js",
+    "src/pages/ToolPage.jsx",
+    "src/pages/WritingStudio.css",
+    "src/pages/WritingStudio.jsx"
+  ]
+}

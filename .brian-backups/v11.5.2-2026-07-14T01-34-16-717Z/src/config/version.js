@@ -1,6 +1,6 @@
-export const APP_VERSION = '11.5.2';
-export const RELEASE_NAME = 'Writing Studio Process Writing Workbench';
-export const RUNTIME_CORE_VERSION = '2.5.2';
+export const APP_VERSION = '11.5.1';
+export const RELEASE_NAME = 'Grammar Builder Modern SaaS Workbench';
+export const RUNTIME_CORE_VERSION = '2.5.1';
 export const SCHEMA_VERSION = '11.4.2';
 
 export function getVersionInfo() {

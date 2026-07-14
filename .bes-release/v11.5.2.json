@@ -1,0 +1,19 @@
+{
+  "version": "11.5.2",
+  "release": "Writing Studio Process Writing Workbench",
+  "runtimeCore": "2.5.2",
+  "schemaVersion": "11.4.2",
+  "requiresSql": false,
+  "route": "#/tool/writing-studio",
+  "features": {
+    "workflowSteps": 7,
+    "functionalCards": 9,
+    "aiWritingCoach": true,
+    "planningStudio": true,
+    "draftEditor": true,
+    "rubricReview": true,
+    "versionHistory": true,
+    "teacherVault": true,
+    "connectedWorkflow": true
+  }
+}
