@@ -9,6 +9,7 @@ import { isAdminRole, isDepartmentLeaderRole } from '../utils/roles.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 import { UIOverlayPortal, UIOverlaySurface } from '../ui-core/components/UIOverlays.jsx';
+import { getWorkspaceCatalog } from '../ui-core/runtime/workspaceRegistry.js';
 
 const ROUTES = [
   { route: 'home', vi: 'Trang chủ', en: 'Home', icon: '⌂', color: '#FFC69D' },
@@ -47,7 +48,7 @@ const text = {
     hint: 'Nhập để tìm · ↑↓ chọn · Enter mở · Esc đóng',
     recent: 'Gần đây', pinned: 'Đã ghim', results: 'Kết quả', commands: 'Lệnh nhanh', empty: 'Không tìm thấy kết quả phù hợp.',
     openAi: 'Mở Brian AI', askPage: 'Hỏi AI về trang hiện tại', theme: 'Đổi chế độ sáng/tối', customize: 'Tùy biến Launcher', settings: 'Mở Cài đặt',
-    current: 'Đang mở', frequent: 'Dùng thường xuyên', route: 'Trang', tool: 'Ứng dụng', command: 'Lệnh', keyboard: '⌘ K',
+    current: 'Đang mở', frequent: 'Dùng thường xuyên', workspaces: 'Không gian làm việc', route: 'Trang', tool: 'Ứng dụng', workspace: 'Không gian', command: 'Lệnh', keyboard: '⌘ K',
   },
   en: {
     placeholder: 'Search apps, pages or commands…',
@@ -55,7 +56,7 @@ const text = {
     hint: 'Type to search · ↑↓ select · Enter open · Esc close',
     recent: 'Recent', pinned: 'Pinned', results: 'Results', commands: 'Quick commands', empty: 'No matching results.',
     openAi: 'Open Brian AI', askPage: 'Ask AI about this page', theme: 'Toggle light/dark mode', customize: 'Customize Launcher', settings: 'Open Settings',
-    current: 'Current', frequent: 'Frequently used', route: 'Page', tool: 'App', command: 'Command', keyboard: '⌘ K',
+    current: 'Current', frequent: 'Frequently used', workspaces: 'Workspaces', route: 'Page', tool: 'App', workspace: 'Workspace', command: 'Command', keyboard: '⌘ K',
   },
 };
 
@@ -201,6 +202,18 @@ export default function GlobalCommandPalette({
   const recentEntries = useMemo(() => usage.map((item) => byId.get(item.id)).filter(Boolean).slice(0, 6), [usage, byId]);
   const frequentEntries = useMemo(() => [...usage].sort((a, b) => b.count - a.count || b.lastUsedAt - a.lastUsedAt).map((item) => byId.get(item.id)).filter(Boolean).slice(0, 6), [usage, byId]);
 
+  const workspaceEntries = useMemo(() => getWorkspaceCatalog(language).map((workspace) => ({
+    id: `workspace:${workspace.id}`,
+    kind: 'workspace',
+    workspaceId: workspace.id,
+    title: workspace.displayLabel,
+    subtitle: workspace.displayDescription,
+    icon: workspace.icon,
+    color: workspace.accent,
+    keywords: `${workspace.id} ${workspace.label} ${workspace.labelVi} ${workspace.description} ${workspace.descriptionVi} workspace không gian`,
+    run: () => window.dispatchEvent(new CustomEvent('brian:workspace-hub-open', { detail: { workspaceId: workspace.id } })),
+  })), [language]);
+
   const commands = useMemo(() => [
     {
       id: 'command:ai', kind: 'command', title: t.openAi, subtitle: language === 'vi' ? 'Trò chuyện với trợ lí AI' : 'Chat with the AI assistant', icon: '✦', color: '#2BB7B3',
@@ -233,7 +246,7 @@ export default function GlobalCommandPalette({
   ], [language, t, theme, setTheme]);
 
   const normalizedQuery = normalize(query);
-  const searchPool = useMemo(() => [...entries, ...commands], [entries, commands]);
+  const searchPool = useMemo(() => [...workspaceEntries, ...entries, ...commands], [workspaceEntries, entries, commands]);
   const searchResults = useMemo(() => {
     if (!normalizedQuery) return [];
     return searchPool
@@ -255,9 +268,10 @@ export default function GlobalCommandPalette({
     recentEntries.forEach((entry) => push(entry, t.recent));
     pinnedEntries.forEach((entry) => push(entry, t.pinned));
     frequentEntries.forEach((entry) => push(entry, t.frequent));
+    workspaceEntries.forEach((entry) => push(entry, t.workspaces));
     commands.forEach((entry) => push(entry, t.commands));
     return output.slice(0, 18);
-  }, [recentEntries, pinnedEntries, frequentEntries, commands, t]);
+  }, [recentEntries, pinnedEntries, frequentEntries, workspaceEntries, commands, t]);
 
   const results = normalizedQuery ? searchResults : defaultResults;
 
@@ -265,7 +279,7 @@ export default function GlobalCommandPalette({
     if (!entry) return;
     setOpen(false);
     setQuery('');
-    if (entry.kind === 'command') {
+    if (entry.kind === 'command' || entry.kind === 'workspace') {
       entry.run?.();
       return;
     }
@@ -324,7 +338,7 @@ export default function GlobalCommandPalette({
               style={{ '--command-accent': entry.color || '#191515' }}
             >
               <CommandIcon>{entry.icon || '•'}</CommandIcon>
-              <span className="command-palette-result-copy"><strong>{entry.title}</strong><small>{entry.subtitle || (entry.kind === 'tool' ? t.tool : entry.kind === 'route' ? t.route : t.command)}</small></span>
+              <span className="command-palette-result-copy"><strong>{entry.title}</strong><small>{entry.subtitle || (entry.kind === 'tool' ? t.tool : entry.kind === 'route' ? t.route : entry.kind === 'workspace' ? t.workspace : t.command)}</small></span>
               {entry.section ? <span className="command-palette-section-tag">{entry.section}</span> : null}
               {entry.id === currentId ? <span className="command-palette-current">{t.current}</span> : null}
               <span className="command-palette-enter" aria-hidden="true">↵</span>

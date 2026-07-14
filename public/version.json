@@ -1,14 +1,14 @@
 {
-  "version": "12.8.0",
+  "version": "12.9.0",
   "channel": "stable",
-  "releaseName": "Platform Core & Legacy CSS Retirement",
-  "runtimeCore": "3.2.0",
+  "releaseName": "Workspace OS Core & Session Continuity",
+  "runtimeCore": "3.3.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T12:37:06.898Z",
+  "generatedAt": "2026-07-14T12:57:47.503Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Platform Core & Legacy CSS Retirement",
+  "release": "Workspace OS Core & Session Continuity",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -376,5 +376,20 @@
     "v1159"
   ],
   "providerHubStyleRecovered": true,
-  "deadLegacyCssRetired": true
+  "deadLegacyCssRetired": true,
+  "workspaceOsCore": true,
+  "workspaceTaxonomy": [
+    "teaching",
+    "assessment",
+    "content",
+    "management",
+    "resources",
+    "ai",
+    "games",
+    "system"
+  ],
+  "workspaceHub": true,
+  "workspaceSessionMemory": true,
+  "workspaceCatalogFiltering": true,
+  "commandPaletteWorkspaceSearch": true
 }

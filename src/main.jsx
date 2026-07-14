@@ -4,6 +4,7 @@ import './index.css';
 import './styles/legacy-active.css';
 import './ui-core/styles/ui-core.css';
 import './ui-core/styles/platform-core.css';
+import './ui-core/styles/workspace-core.css';
 import './ui-core/styles/overlay-core.css';
 import './ui-core/styles/design-adapters.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
@@ -42,6 +43,8 @@ import {
 import { getRouteLayout } from './ui-core/layouts/routeLayout.js';
 import { UIToastCenter } from './ui-core/components/UIOverlays.jsx';
 import { UIRouteSurface } from './ui-core/components/UIPlatform.jsx';
+import { resolveWorkspaceId } from './ui-core/runtime/workspaceRegistry.js';
+import { rememberWorkspaceVisit } from './ui-core/runtime/workspaceMemory.js';
 
 const BOOT_UI_PREFERENCES = installUiPreferencesBootstrap();
 runConfigurationMigrations();
@@ -494,6 +497,7 @@ function App() {
   };
 
   const activeDesignProfile = getActiveDesignProfile(currentRoute, selectedTool);
+  const activeWorkspaceId = resolveWorkspaceId({ route: currentRoute, selectedTool });
 
   useEffect(() => {
     if (!currentUser || !canAccessRoute || ['login', 'register', 'homeroom-portal'].includes(currentRoute)) return;
@@ -515,19 +519,32 @@ function App() {
     };
     if (selectedTool?.slug) {
       const profile = getAppDesignProfile(selectedTool.slug);
-      recordAppUsage(currentUser, {
-        id: `tool:${selectedTool.slug}`, target: `#/tool/${selectedTool.slug}`,
+      const visit = {
+        workspaceId: resolveWorkspaceId({ route: currentRoute, selectedTool }),
+        target: `#/tool/${selectedTool.slug}`,
         title: selectedTool.title || selectedTool.titleVi || selectedTool.slug,
         titleVi: selectedTool.titleVi || selectedTool.title || selectedTool.slug,
-        icon: String(selectedTool.icon || selectedTool.title || 'AP').slice(0, 2).toUpperCase(), color: profile.accent, kind: 'tool',
+        icon: String(selectedTool.icon || selectedTool.title || 'AP').slice(0, 2).toUpperCase(),
+        accent: profile.accent,
+      };
+      recordAppUsage(currentUser, {
+        id: `tool:${selectedTool.slug}`, target: visit.target,
+        title: visit.title, titleVi: visit.titleVi, icon: visit.icon, color: visit.accent, kind: 'tool',
       });
+      rememberWorkspaceVisit(currentUser, visit);
       return;
     }
     const pair = routeTitles[currentRoute] || [currentRoute, currentRoute];
+    const routeVisit = {
+      workspaceId: resolveWorkspaceId({ route: currentRoute }),
+      target: `#/${currentRoute}`, title: pair[0], titleVi: pair[1],
+      icon: String(pair[0] || 'GO').slice(0, 2).toUpperCase(), accent: activeDesignProfile.accent,
+    };
     recordAppUsage(currentUser, {
-      id: `route:${currentRoute}`, target: `#/${currentRoute}`, title: pair[0], titleVi: pair[1],
-      icon: String(pair[0] || 'GO').slice(0, 2).toUpperCase(), color: activeDesignProfile.accent, kind: 'route',
+      id: `route:${currentRoute}`, target: routeVisit.target, title: routeVisit.title, titleVi: routeVisit.titleVi,
+      icon: routeVisit.icon, color: routeVisit.accent, kind: 'route',
     });
+    if (!['home', 'apps', 'contact'].includes(currentRoute)) rememberWorkspaceVisit(currentUser, routeVisit);
   }, [currentRoute, selectedTool?.slug, currentUser?.id, currentUser?.email, canAccessRoute]);
 
   const tileLaunchRect = tileLaunch
@@ -553,6 +570,7 @@ function App() {
       data-ui-core="v12"
       data-design-language={designLanguage}
       data-layout={getRouteLayout(currentRoute, selectedTool)}
+      data-workspace={activeWorkspaceId}
       style={{
         '--active-app-accent': activeDesignProfile.accent,
         '--active-app-soft': activeDesignProfile.soft,
@@ -604,6 +622,7 @@ function App() {
               setTheme={setTheme}
               currentRoute={currentRoute}
               selectedTool={selectedTool}
+              appVisibility={appVisibility}
             />
           </AppErrorBoundary>
         </Suspense>

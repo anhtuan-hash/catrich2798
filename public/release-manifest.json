@@ -1,6 +1,6 @@
 {
-  "version": "12.8.0",
-  "release": "Platform Core & Legacy CSS Retirement",
+  "version": "12.9.0",
+  "release": "Workspace OS Core & Session Continuity",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T12:37:06.898Z",
+  "generatedAt": "2026-07-14T12:57:47.503Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "3.2.0",
+  "runtimeCore": "3.3.0",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Platform Core & Legacy CSS Retirement",
+  "releaseName": "Workspace OS Core & Session Continuity",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -381,5 +381,20 @@
     "v1159"
   ],
   "providerHubStyleRecovered": true,
-  "deadLegacyCssRetired": true
+  "deadLegacyCssRetired": true,
+  "workspaceOsCore": true,
+  "workspaceTaxonomy": [
+    "teaching",
+    "assessment",
+    "content",
+    "management",
+    "resources",
+    "ai",
+    "games",
+    "system"
+  ],
+  "workspaceHub": true,
+  "workspaceSessionMemory": true,
+  "workspaceCatalogFiltering": true,
+  "commandPaletteWorkspaceSearch": true
 }

@@ -3,6 +3,7 @@ import StatusMenuBar from '../../components/StatusMenuBar.jsx';
 import GlobalFlatNavigation from '../../components/GlobalFlatNavigation.jsx';
 import WorkspaceTabs from '../../components/WorkspaceTabs.jsx';
 import AppErrorBoundary from '../../components/AppErrorBoundary.jsx';
+import UIWorkspaceHub from './UIWorkspaceHub.jsx';
 
 export default function UnifiedShellChrome({
   route,
@@ -45,16 +46,27 @@ export default function UnifiedShellChrome({
 
       {showWorkspace ? (
         <div className="bui-shell-workspaces" data-ui="workspace-navigation">
-          <AppErrorBoundary compact scope="workspace-tabs" label={language === 'vi' ? 'tab không gian làm việc' : 'workspace tabs'}>
-            <WorkspaceTabs
-              currentUser={currentUser}
-              route={route}
-              selectedTool={selectedTool}
-              activeProfile={activeProfile}
-              language={language}
-              appVisibility={appVisibility}
-            />
-          </AppErrorBoundary>
+          <div className="bui-shell-workspace-row">
+            <AppErrorBoundary compact scope="workspace-hub" label={language === 'vi' ? 'trung tâm không gian làm việc' : 'workspace hub'}>
+              <UIWorkspaceHub
+                currentUser={currentUser}
+                route={route}
+                selectedTool={selectedTool}
+                language={language}
+                appVisibility={appVisibility}
+              />
+            </AppErrorBoundary>
+            <AppErrorBoundary compact scope="workspace-tabs" label={language === 'vi' ? 'tab không gian làm việc' : 'workspace tabs'}>
+              <WorkspaceTabs
+                currentUser={currentUser}
+                route={route}
+                selectedTool={selectedTool}
+                activeProfile={activeProfile}
+                language={language}
+                appVisibility={appVisibility}
+              />
+            </AppErrorBoundary>
+          </div>
         </div>
       ) : null}
     </header>

@@ -19,6 +19,7 @@ import { getAppUsage, subscribeAppUsage } from '../utils/appUsage.js';
 import { HIDDEN_APPS_FOLDER, ROUTE_APP_SHORTCUTS, appVisibilityId } from '../data/appVisibilityRegistry.js';
 import { getHiddenAppIds } from '../utils/appVisibility.js';
 import { UILaunchGrid, UILaunchHero, UILaunchPage, UILaunchPinned, UILaunchToolbar } from '../ui-core/components/UILaunch.jsx';
+import { getWorkspaceById, getWorkspaceFilterFromHash, workspaceMatchesItem } from '../ui-core/runtime/workspaceRegistry.js';
 
 const APP_ORDER = [
   'hidden-apps-vault',   'resource-library-hub', 'lesson-plan-ai', 'worksheet-factory', 'textlab-activities', 'exam-studio', 'reading-studio',
@@ -42,7 +43,7 @@ const copy = {
     launcherStyleTitle: 'Tùy biến launcher', launcherStyleHint: 'Chọn cách các ứng dụng đã ghim xuất hiện trong launcher.',
     radialLauncher: 'Launcher tròn', radialLauncherDesc: 'Ứng dụng được sắp xếp quanh một dock tròn, rõ ràng và dễ chọn.',
     waterLauncher: 'Hộp nước', waterLauncherDesc: 'Ứng dụng nổi và chuyển động nhẹ bên trong một hộp nước mềm mại.',
-    chooseStyle: 'Chọn kiểu này', selectedStyle: 'Đang sử dụng', launcherDockTitle: 'Launcher ứng dụng', launcherDockHint: 'Mở nhanh các ứng dụng đã ghim.',
+    chooseStyle: 'Chọn kiểu này', selectedStyle: 'Đang sử dụng', launcherDockTitle: 'Launcher ứng dụng', launcherDockHint: 'Mở nhanh các ứng dụng đã ghim.', workspaceFilter: 'Đang lọc theo không gian', clearWorkspace: 'Hiện tất cả ứng dụng',
     nav: { home: 'Trang chủ', apps: 'Ứng dụng', games: 'Trò chơi', admin: 'Quản trị' },
   },
   en: {
@@ -58,7 +59,7 @@ const copy = {
     launcherStyleTitle: 'Customize launcher', launcherStyleHint: 'Choose how pinned apps appear in the launcher.',
     radialLauncher: 'Circular launcher', radialLauncherDesc: 'Apps orbit a circular dock for a clear, playful launcher.',
     waterLauncher: 'Water box', waterLauncherDesc: 'Apps float gently inside a soft liquid container.',
-    chooseStyle: 'Use this style', selectedStyle: 'In use', launcherDockTitle: 'App launcher', launcherDockHint: 'Open pinned apps quickly.',
+    chooseStyle: 'Use this style', selectedStyle: 'In use', launcherDockTitle: 'App launcher', launcherDockHint: 'Open pinned apps quickly.', workspaceFilter: 'Workspace filter', clearWorkspace: 'Show all apps',
     nav: { home: 'Home', apps: 'Apps', games: 'Games', admin: 'Admin' },
   },
 };
@@ -275,6 +276,7 @@ export default function WebApps({ apps, language = 'vi', currentUser, appVisibil
   const [notice, setNotice] = useState('');
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [workspaceFilter, setWorkspaceFilter] = useState(() => getWorkspaceFilterFromHash());
   const [density, setDensity] = useState(() => {
     try { return localStorage.getItem('bes-launcher-density') === 'compact' ? 'compact' : 'comfortable'; } catch { return 'comfortable'; }
   });
@@ -324,6 +326,17 @@ export default function WebApps({ apps, language = 'vi', currentUser, appVisibil
   }, [density]);
 
   useEffect(() => {
+    const syncWorkspaceFilter = () => {
+      const next = getWorkspaceFilterFromHash();
+      setWorkspaceFilter(next);
+      if (next) setActiveGroup('all');
+    };
+    syncWorkspaceFilter();
+    window.addEventListener('hashchange', syncWorkspaceFilter);
+    return () => window.removeEventListener('hashchange', syncWorkspaceFilter);
+  }, []);
+
+  useEffect(() => {
     let active = true;
     const normalized = normalizeLauncherConfig(loadLauncherConfig(itemIds), itemIds);
     setConfig(normalized); setDraftConfig(normalized);
@@ -347,16 +360,18 @@ export default function WebApps({ apps, language = 'vi', currentUser, appVisibil
   const orderMap = useMemo(() => new Map(workingConfig.order.map((id, index) => [id, index])), [workingConfig.order]);
   const orderedItems = useMemo(() => [...baseItems].sort((a, b) => (orderMap.get(launcherItemId(a)) ?? 999) - (orderMap.get(launcherItemId(b)) ?? 999)), [baseItems, orderMap]);
   const visibleItems = orderedItems.filter((item) => editMode || !workingConfig.hidden.includes(launcherItemId(item)));
+  const workspaceVisibleItems = workspaceFilter ? visibleItems.filter((item) => workspaceMatchesItem(workspaceFilter, item)) : visibleItems;
+  const activeWorkspace = workspaceFilter ? getWorkspaceById(workspaceFilter) : null;
   const groupOptions = Array.isArray(workingConfig.groups) && workingConfig.groups.length ? workingConfig.groups : DEFAULT_LAUNCHER_GROUPS;
 
   const groupForItem = (item) => workingConfig.assignments[launcherItemId(item)] || defaultGroupOf(item);
   const groupCounts = groupOptions.reduce((acc, group) => {
-    acc[group.id] = visibleItems.filter((item) => groupForItem(item) === group.id).length;
+    acc[group.id] = workspaceVisibleItems.filter((item) => groupForItem(item) === group.id).length;
     return acc;
   }, {});
 
   const normalizedSearch = searchQuery.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const groupFilteredItems = activeGroup === 'all' ? visibleItems : visibleItems.filter((item) => groupForItem(item) === activeGroup);
+  const groupFilteredItems = activeGroup === 'all' ? workspaceVisibleItems : workspaceVisibleItems.filter((item) => groupForItem(item) === activeGroup);
   const filteredItems = groupFilteredItems.filter((item) => {
     if (!normalizedSearch) return true;
     const group = groupOptions.find((entry) => entry.id === groupForItem(item));
@@ -473,7 +488,7 @@ export default function WebApps({ apps, language = 'vi', currentUser, appVisibil
           )}
         </div>
         <aside className="flat-apps-stats" aria-label="Apps summary">
-          <div><strong>{visibleItems.length}</strong><small>{t.total}</small></div>
+          <div><strong>{workspaceVisibleItems.length}</strong><small>{t.total}</small></div>
           <div><strong>{workingConfig.pinned.length}</strong><small>PIN</small></div>
           <div><strong>{workingConfig.nav.length}</strong><small>NAV</small></div>
         </aside>
@@ -489,6 +504,16 @@ export default function WebApps({ apps, language = 'vi', currentUser, appVisibil
       ) : (
         <LauncherDock language={language} style={workingConfig.launcherStyle || 'radial'} items={pinnedItems} />
       )}
+
+      {activeWorkspace ? (
+        <section className="bui-app-workspace-filter" style={{ '--workspace-accent': activeWorkspace.accent }} aria-label={t.workspaceFilter}>
+          <div>
+            <strong>{t.workspaceFilter}: {language === 'vi' ? activeWorkspace.labelVi : activeWorkspace.label}</strong>
+            <small>{language === 'vi' ? activeWorkspace.descriptionVi : activeWorkspace.description}</small>
+          </div>
+          <button type="button" className="bui-button bui-button--secondary" onClick={() => { setWorkspaceFilter(''); window.location.hash = '#/apps'; }}>{t.clearWorkspace}</button>
+        </section>
+      ) : null}
 
       <UILaunchToolbar className="launcher-discovery-bar" aria-label={t.search}>
         <label className="launcher-search-box">
@@ -537,7 +562,7 @@ export default function WebApps({ apps, language = 'vi', currentUser, appVisibil
       )}
 
       <section className="flat-apps-group-rail launcher-group-rail bui-launch-navigation" aria-label="Workflow groups">
-        <GroupRail group={{ id: 'all', label: 'All apps', labelVi: 'Tất cả', accent: '#191515' }} count={visibleItems.length} language={language} active={activeGroup === 'all'} onClick={() => setActiveGroup('all')} />
+        <GroupRail group={{ id: 'all', label: 'All apps', labelVi: 'Tất cả', accent: '#191515' }} count={workspaceVisibleItems.length} language={language} active={activeGroup === 'all'} onClick={() => setActiveGroup('all')} />
         {groupOptions.map((group) => <GroupRail key={group.id} group={group} count={groupCounts[group.id] || 0} language={language} active={activeGroup === group.id} onClick={() => setActiveGroup(group.id)} />)}
       </section>
 
