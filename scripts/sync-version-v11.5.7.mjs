@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+const version='11.5.7';
+const generatedAt=new Date().toISOString();
+const features={freeAiProviderHub:true,aiProviderCatalogSize:18,providerApiKeyDirectLinks:true,smartAiRouting:true,aiRoutingModes:['smart','free','fast','quality','long-context','vision','local','manual'],crossProviderFallback:true,providerModelSelectorEverywhere:true,tryAnotherModelAction:true,openRouterAuthenticationHeaderFix:true,localAiProviders:['ollama','lmstudio','localai'],paidProviderOptIn:true,listeningLab:false,removedApps:['listening-lab']};
+const shared={version,runtimeCore:'2.5.7',schemaVersion:'11.4.2',requiresSql:false,hobbyFunctionConsolidation:true,vercelFunctionCount:12,...features,generatedAt};
+const versionFile=JSON.parse(fs.readFileSync('public/version.json','utf8'));
+Object.assign(versionFile,shared,{releaseName:'Free AI Provider Hub & Smart Routing'});
+fs.writeFileSync('public/version.json',JSON.stringify(versionFile,null,2)+'\n');
+const release=JSON.parse(fs.readFileSync('public/release-manifest.json','utf8'));
+Object.assign(release,shared,{release:'Free AI Provider Hub & Smart Routing',runtime:'2.5.7',schema:'11.4.2'});
+fs.writeFileSync('public/release-manifest.json',JSON.stringify(release,null,2)+'\n');
+console.log(`Version registry synchronized: ${version}`);

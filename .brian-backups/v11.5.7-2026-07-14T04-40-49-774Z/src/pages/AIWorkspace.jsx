@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { callAI } from '../utils/gemini.js';
 import { getProviderSummary } from '../utils/aiProviders.js';
-import AISmartModelSelector from '../components/AISmartModelSelector.jsx';
-import { getSmartProviderSummary } from '../utils/aiProviderOverrides.js';
 import { buildWorkspaceLocalFallback, friendlyAiWorkspaceError, isProviderCapacityError } from '../utils/aiWorkspaceFallback.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { getRuntimeClient } from '../services/runtime/core.js';
@@ -39,8 +37,6 @@ function normalizeMetadata(metadata) {
     fallbackReason: source.fallbackReason || '',
     adaptiveTokens: Number(source.adaptiveTokens || 0),
     provider: source.provider || '',
-    providerId: source.providerId || '',
-    routingMode: source.routingMode || 'smart',
   };
 }
 
@@ -57,8 +53,7 @@ export default function AIWorkspace({ currentUser }) {
   const runtime = useRuntimeCore();
   const client = getRuntimeClient();
   const localKey = scopedLocalKey('bes-ai-workspace-v1093', currentUser);
-  const [provider, setProvider] = useState(() => getSmartProviderSummary(getProviderSummary()));
-  const [lastRoute, setLastRoute] = useState(() => (typeof window !== 'undefined' ? window.__besLastAiRoute || null : null));
+  const [provider, setProvider] = useState(() => getProviderSummary());
   const [projects, setProjects] = useState([]);
   const [project, setProject] = useState(emptyProject);
   const [busy, setBusy] = useState(false);
@@ -70,20 +65,9 @@ export default function AIWorkspace({ currentUser }) {
   const fileInput = useRef(null);
 
   useEffect(() => {
-    const refresh = () => setProvider(getSmartProviderSummary(getProviderSummary()));
-    const route = (event) => {
-      const nextRoute = event.detail || window.__besLastAiRoute || null;
-      setLastRoute(nextRoute);
-      refresh();
-    };
+    const refresh = () => setProvider(getProviderSummary());
     window.addEventListener('bes-ai-settings-updated', refresh);
-    window.addEventListener('bes-ai-routing-updated', refresh);
-    window.addEventListener('bes-ai-routing-success', route);
-    return () => {
-      window.removeEventListener('bes-ai-settings-updated', refresh);
-      window.removeEventListener('bes-ai-routing-updated', refresh);
-      window.removeEventListener('bes-ai-routing-success', route);
-    };
+    return () => window.removeEventListener('bes-ai-settings-updated', refresh);
   }, []);
 
   const loadProjects = useCallback(async () => {
@@ -192,10 +176,15 @@ export default function AIWorkspace({ currentUser }) {
     return output;
   }
 
-  async function runWorkspace({ continueOutput = false, alternateModel = false } = {}) {
+  async function runWorkspace({ continueOutput = false } = {}) {
     if (!project.instruction.trim()) { setError('Hãy nhập yêu cầu cho Brian AI.'); return; }
     setBusy(true); setError(''); setNotice(''); setRecovery(null);
 
+    if (!provider.hasKey) {
+      await useLocalFallback('missing-api-key', continueOutput);
+      setBusy(false);
+      return;
+    }
 
     try {
       const mode = MODES[project.mode] || MODES.create;
@@ -211,14 +200,11 @@ export default function AIWorkspace({ currentUser }) {
         governanceProfile: project.mode === 'act' ? 'administrative' : 'teaching-content',
         loadingLabel: `${mode.label} nội dung trong AI Workspace`,
         maxOutputTokens: responseBudget.tokens,
-        excludeProviders: alternateModel && lastRoute?.provider ? [lastRoute.provider] : [],
         onAdaptiveRetry: (info) => {
           adaptiveInfo = info;
           setRecovery({ type: 'adaptive', message: `OpenRouter còn ít credit; Brian đã tự giảm phản hồi xuống khoảng ${info.maxOutputTokens} tokens và thử lại.` });
         },
       });
-      const actualRoute = (typeof window !== 'undefined' ? window.__besLastAiRoute : null) || lastRoute;
-      if (actualRoute) setLastRoute(actualRoute);
       const combined = continueOutput && project.output_text.trim() ? `${project.output_text.trim()}\n\n${result.trim()}` : result;
       const next = {
         ...project,
@@ -227,10 +213,8 @@ export default function AIWorkspace({ currentUser }) {
         metadata: {
           ...metadata,
           engine: 'provider',
-          provider: actualRoute ? `${actualRoute.providerName || actualRoute.provider} · ${actualRoute.model}` : `${provider.providerName} · ${provider.model}`,
-          providerId: actualRoute?.provider || '',
-          routingMode: actualRoute?.routingMode || provider.routingMode || 'smart',
-          fallbackReason: adaptiveInfo ? 'adaptive-credit-retry' : actualRoute?.fallbackUsed ? 'provider-fallback' : '',
+          provider: `${provider.providerName} · ${provider.model}`,
+          fallbackReason: adaptiveInfo ? 'adaptive-credit-retry' : '',
           adaptiveTokens: adaptiveInfo?.maxOutputTokens || 0,
         },
       };
@@ -238,14 +222,9 @@ export default function AIWorkspace({ currentUser }) {
       await saveProject(next);
       setNotice(adaptiveInfo
         ? 'Đã tạo phản hồi ở chế độ tiết kiệm. Với tài liệu dài, bấm “Tạo tiếp phần” để nối thêm nội dung.'
-        : actualRoute?.fallbackUsed
-          ? `Brian AI đã tự chuyển sang ${actualRoute.providerName || actualRoute.provider} và hoàn tất bản nháp.`
-          : 'Brian AI đã hoàn tất bản nháp.');
+        : 'Brian AI đã hoàn tất bản nháp.');
     } catch (runError) {
-      const recoverable = isProviderCapacityError(runError)
-        || ['AI_PROVIDER_NOT_CONFIGURED', 'AI_ALL_PROVIDERS_FAILED', 'AI_AUTH_MISSING'].includes(runError?.code)
-        || /network|failed to fetch|load failed|rate limit|429|authentication|api key|chưa có ai provider|tất cả provider/i.test(runError?.message || '');
-      if (metadata.autoFallback && recoverable) {
+      if (metadata.autoFallback && (isProviderCapacityError(runError) || /network|failed to fetch|load failed|rate limit|429/i.test(runError?.message || ''))) {
         await useLocalFallback(runError?.code || 'provider-error', continueOutput);
       } else {
         setError(friendlyAiWorkspaceError(runError));
@@ -268,7 +247,7 @@ export default function AIWorkspace({ currentUser }) {
   }
 
   return <section className="v1093-page v1093-ai-workspace">
-    <header className="v1093-hero v1093-hero-ai"><div><span className="v1093-kicker">V11.5.7 · Brian AI Workspace</span><h1>Không gian làm việc AI</h1><p>Đọc nhiều nguồn, chọn linh động provider/model và tự chuyển sang mô hình phù hợp khi provider hết quota hoặc tạm thời không khả dụng.</p></div><div className="v1093-provider-card"><span>{lastRoute?.providerName || provider.providerName}</span><b>{lastRoute?.model || provider.model}</b><small>{provider.hasKey ? `AI ${provider.routingMode === 'manual' ? 'thủ công' : 'tự động'} sẵn sàng` : 'Hãy cấu hình ít nhất một provider'}</small></div></header>
+    <header className="v1093-hero v1093-hero-ai"><div><span className="v1093-kicker">V11.5.6 · Brian AI Workspace</span><h1>Không gian làm việc AI</h1><p>Đọc nhiều nguồn, tạo nội dung dài, lưu dự án và tự phục hồi khi provider hết credit hoặc tạm thời không khả dụng.</p></div><div className="v1093-provider-card"><span>{provider.providerName}</span><b>{provider.model}</b><small>{provider.hasKey ? 'AI thật sẵn sàng' : 'Bộ máy nội bộ sẵn sàng'}</small></div></header>
 
     {error && <div className="v1093-alert error"><b>AI Workspace cần xử lý</b><span>{error}</span><button onClick={() => useLocalFallback('manual-error-recovery')}>Dùng bộ máy nội bộ</button><button onClick={() => { window.location.hash = '#/settings'; }}>Cài đặt AI</button></div>}
     {recovery && <div className="v1093-alert warning"><b>{recovery.type === 'adaptive' ? 'Đã tự tối ưu chi phí' : 'Chế độ dự phòng đang hoạt động'}</b><span>{recovery.message}</span>{recovery.type === 'internal' && <button onClick={() => { window.location.hash = '#/settings'; }}>Thêm provider khác</button>}</div>}
@@ -283,7 +262,6 @@ export default function AIWorkspace({ currentUser }) {
         <section className="v1093-panel v1093-ai-prompt">
           <label>Yêu cầu<textarea value={project.instruction} onChange={(e) => setProject({ ...project, instruction: e.target.value })} placeholder="Ví dụ: Tạo đề thi THPT môn tiếng Anh. Nếu nội dung dài, Brian sẽ tự tạo theo từng phần hoặc dùng bản dự phòng nội bộ." /></label>
           <div className="v1156-resilience-bar">
-            <AISmartModelSelector context="ai-workspace" />
             <label><span>Độ dài phản hồi</span><select value={metadata.responseBudget} onChange={(e) => patchMetadata({ responseBudget: e.target.value })}>{Object.entries(RESPONSE_BUDGETS).map(([id, item]) => <option key={id} value={id}>{item.label} · {item.tokens} tokens</option>)}</select><small>{responseBudget.hint}</small></label>
             <label className="v1156-switch"><input type="checkbox" checked={metadata.autoFallback} onChange={(e) => patchMetadata({ autoFallback: e.target.checked })} /><span>Tự chuyển sang bộ máy nội bộ khi AI hết credit</span></label>
             <div className={`v1156-engine-status ${metadata.engine}`}><b>{metadata.engine === 'internal' ? 'Bộ máy nội bộ' : metadata.engine === 'provider' ? 'AI thật' : 'Tự động'}</b><span>{metadata.provider || `${provider.providerName} · ${provider.model}`}</span></div>
@@ -293,7 +271,7 @@ export default function AIWorkspace({ currentUser }) {
 
         {showSources && <section className="v1093-panel v1093-source-panel"><div className="v1093-panel-heading"><div><span>Nguồn</span><h2>{wordCount.toLocaleString('vi-VN')} từ</h2></div><small>{metadata.attachments.length} tệp</small></div><textarea value={project.source_text} onChange={(e) => setProject({ ...project, source_text: e.target.value })} placeholder="Dán văn bản hoặc kéo dữ liệu từ tài liệu vào đây…" /><div className="v1093-attachment-chips">{metadata.attachments.map((file, index) => <span key={`${file.name}-${index}`} title={file.error || `${file.characters || 0} ký tự`}>{file.error ? '⚠ ' : '✓ '}{file.name}</span>)}</div></section>}
 
-        <section className="v1093-panel v1093-output-panel"><div className="v1093-panel-heading"><div><span>Kết quả</span><h2>Bản thảo AI</h2></div><div><button disabled={!project.output_text || busy} onClick={() => runWorkspace({ continueOutput: true })}>Tạo tiếp phần</button><button disabled={busy} onClick={() => runWorkspace({ alternateModel: true })}>Dùng mô hình khác</button><button disabled={!project.output_text} onClick={() => navigator.clipboard.writeText(project.output_text)}>Sao chép</button><button disabled={!project.output_text} onClick={() => downloadText(`${project.title || 'brian-ai'}.md`, project.output_text, 'text/markdown;charset=utf-8')}>Xuất Markdown</button><button disabled={!project.output_text} onClick={sendToContentFactory}>Gửi sang Content Factory</button></div></div><textarea value={project.output_text} onChange={(e) => setProject({ ...project, output_text: e.target.value })} placeholder="Kết quả sẽ xuất hiện tại đây và vẫn có thể chỉnh sửa." /></section>
+        <section className="v1093-panel v1093-output-panel"><div className="v1093-panel-heading"><div><span>Kết quả</span><h2>Bản thảo AI</h2></div><div><button disabled={!project.output_text || busy} onClick={() => runWorkspace({ continueOutput: true })}>Tạo tiếp phần</button><button disabled={!project.output_text} onClick={() => navigator.clipboard.writeText(project.output_text)}>Sao chép</button><button disabled={!project.output_text} onClick={() => downloadText(`${project.title || 'brian-ai'}.md`, project.output_text, 'text/markdown;charset=utf-8')}>Xuất Markdown</button><button disabled={!project.output_text} onClick={sendToContentFactory}>Gửi sang Content Factory</button></div></div><textarea value={project.output_text} onChange={(e) => setProject({ ...project, output_text: e.target.value })} placeholder="Kết quả sẽ xuất hiện tại đây và vẫn có thể chỉnh sửa." /></section>
       </main>
     </div>
   </section>;

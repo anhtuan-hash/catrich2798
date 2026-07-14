@@ -1,6 +1,3 @@
-import './styles/v1157-ai-provider-hub.css';
-import { installAIProviderHubRuntime } from './utils/aiProviderHubRuntime.js';
-// BRIAN_V1157_PROVIDER_HUB_RUNTIME
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
@@ -730,8 +727,3 @@ createRoot(document.getElementById('root')).render(
     <App />
   </AppErrorBoundary>,
 );
-// BRIAN_V1157_PROVIDER_HUB_RUNTIME
-if (typeof window !== 'undefined') {
-  window.queueMicrotask?.(() => installAIProviderHubRuntime());
-  if (!window.queueMicrotask) setTimeout(() => installAIProviderHubRuntime(), 0);
-}
