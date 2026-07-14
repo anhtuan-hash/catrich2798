@@ -1,14 +1,14 @@
 {
-  "version": "12.10.0",
+  "version": "12.11.0",
   "channel": "stable",
-  "releaseName": "Workspace Navigation & Unified Activity Center",
-  "runtimeCore": "3.4.0",
+  "releaseName": "Universal Command Center",
+  "runtimeCore": "3.5.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T13:15:31.583Z",
+  "generatedAt": "2026-07-14T13:36:28.335Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Workspace Navigation & Unified Activity Center",
+  "release": "Universal Command Center",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -402,5 +402,22 @@
     "ai"
   ],
   "headlessSyncIndicator": true,
-  "activityOwnedAutosaveHistory": true
+  "activityOwnedAutosaveHistory": true,
+  "universalCommandCenter": true,
+  "commandScopes": [
+    "all",
+    "apps",
+    "pages",
+    "workspaces",
+    "actions"
+  ],
+  "commandQueryPrefixes": [
+    ">",
+    "@",
+    "/",
+    "#"
+  ],
+  "commandHistory": true,
+  "pinnedCommands": true,
+  "workspaceResumeCommands": true
 }

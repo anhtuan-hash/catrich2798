@@ -7,6 +7,7 @@ import './ui-core/styles/platform-core.css';
 import './ui-core/styles/workspace-core.css';
 import './ui-core/styles/activity-core.css';
 import './ui-core/styles/overlay-core.css';
+import './ui-core/styles/command-center.css';
 import './ui-core/styles/design-adapters.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
@@ -98,7 +99,7 @@ const FullMotionEffects = lazy(() => import('./components/FullMotionEffects.jsx'
 const GlobalMusicPlayer = lazy(() => import('./components/GlobalMusicPlayer.jsx'));
 const UniversalAIAssist = lazy(() => import('./components/UniversalAIAssist.jsx'));
 const GlobalAIIndicator = lazy(() => import('./components/GlobalAIIndicator.jsx'));
-const GlobalCommandPalette = lazy(() => import('./components/GlobalCommandPalette.jsx'));
+const UICommandCenter = lazy(() => import('./ui-core/components/UICommandCenter.jsx'));
 const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
 const GlobalRuntimeGuard = lazy(() => import('./components/GlobalRuntimeGuard.jsx'));
 const TrashCenter = lazy(() => import('./pages/TrashCenter.jsx'));
@@ -614,15 +615,18 @@ function App() {
 
       {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>
-          <AppErrorBoundary compact scope="command-palette" label={language === 'vi' ? 'tìm kiếm nhanh' : 'command palette'}>
-            <GlobalCommandPalette
+          <AppErrorBoundary compact scope="command-center" label={language === 'vi' ? 'trung tâm lệnh' : 'command center'}>
+            <UICommandCenter
               language={language}
+              setLanguage={setLanguage}
               currentUser={currentUser}
               theme={theme}
               setTheme={setTheme}
               currentRoute={currentRoute}
               selectedTool={selectedTool}
               appVisibility={appVisibility}
+              fontScale={fontScale}
+              setFontScale={setFontScale}
             />
           </AppErrorBoundary>
         </Suspense>

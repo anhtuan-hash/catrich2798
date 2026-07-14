@@ -148,7 +148,7 @@ export default function UIWorkspaceNavigation({
           <span aria-hidden="true">▦</span><small>{copy.all}</small>
         </button>
         <UIActivityCenter currentUser={currentUser} route={route} selectedTool={selectedTool} language={language} />
-        <button type="button" className="bui-workspace-action" onClick={() => window.dispatchEvent(new CustomEvent('bes-command-palette-open'))} title={`${copy.search} · ⌘K / Ctrl+K`}>
+        <button type="button" className="bui-workspace-action" onClick={() => window.dispatchEvent(new CustomEvent('brian:command-center-open'))} title={`${copy.search} · ⌘K / Ctrl+K`}>
           <span aria-hidden="true">⌕</span><small>⌘K</small>
         </button>
         <button type="button" className={`bui-workspace-action is-ai${hasApiKey ? ' active' : ''}`} onClick={(event) => openTarget(currentUser ? '#/settings' : '#/login', 'AI', hasApiKey ? '#2BB7B3' : '#F7D23B', event.currentTarget)} title={hasApiKey ? copy.aiReady : copy.aiOff}>

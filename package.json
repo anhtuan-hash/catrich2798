@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "12.10.0",
+  "version": "12.11.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -88,7 +88,7 @@
     "test:v11.5.6": "npm run version:sync && node scripts/check-v11.5.6.mjs",
     "release:guard:v11.5.6": "node scripts/release-guard-v11.5.6.mjs",
     "verify:v11.5.6": "npm run test:v11.5.6 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.6",
-    "version:sync": "node scripts/sync-version-v12.10.0.mjs",
+    "version:sync": "node scripts/sync-version-v12.11.0.mjs",
     "audit:budget": "node scripts/performance-budget-v11.6.0.mjs",
     "release:guard": "node scripts/release-guard-v11.6.1.mjs",
     "test:v11.5.8": "npm run version:sync && node scripts/check-v11.5.8.mjs",
@@ -126,7 +126,9 @@
     "verify:v12.9.0": "node scripts/verify-v12.9.0.mjs && npm run test:v12.9.0 && npm run build && npm test && npm run test:department",
     "test:v12.9.0": "node scripts/test-v12.9.0-workspace.mjs",
     "verify:v12.10.0": "node scripts/verify-v12.10.0.mjs && npm run test:v12.10.0 && npm run build && npm test && npm run test:department",
-    "test:v12.10.0": "node scripts/test-v12.10.0-activity.mjs"
+    "test:v12.10.0": "node scripts/test-v12.10.0-activity.mjs",
+    "verify:v12.11.0": "node scripts/verify-v12.11.0.mjs && npm run test:v12.11.0 && npm run build && npm test && npm run test:department",
+    "test:v12.11.0": "node scripts/test-v12.11.0-command-center.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
@@ -139,7 +141,7 @@
     "read-excel-file": "^9.3.1",
     "vite": "^8.1.3"
   },
-  "description": "Brian English Studio V12.10.0 — workspace-first primary navigation and a unified Activity Center for notifications, work, sync, history and AI.",
+  "description": "Brian English Studio V12.11.0 — native Universal Command Center with scoped search, workspace resume, quick actions, history and pinned commands.",
   "engines": {
     "node": "22.x"
   },
