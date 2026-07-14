@@ -362,22 +362,22 @@ export default function PronunciationCoach({ language = 'vi', apiKey = '', aiMod
   const focusItems = FOCUS_GROUPS.find((group) => group.label === activeFocusGroup)?.items || [];
 
   return (
-    <div className="pc-app">
-      <header className="pc-product-bar">
+    <div className="pc-app bui-workbench" data-ui="workbench" data-workbench="pronunciation-coach">
+      <header className="pc-product-bar bui-workbench-header">
         <button type="button" className="pc-back" onClick={() => window.history.back()}>← Quay lại</button>
         <div className="pc-brand"><i>PC</i><div><span>PRONUNCIATION COACH · V2.0</span><input value={project.title} onChange={(event) => patch({ title: event.target.value })} /></div></div>
         <div className="pc-product-actions"><span className="pc-autosave">● Tự động lưu</span><b>{project.activities.length} activities</b><b>{localScore || 0}/100</b><button type="button" onClick={() => scrollToCard('04', 'pc-card-blueprint')}>Blueprint</button><button type="button" onClick={() => scrollToCard('06', 'pc-card-review')}>Review</button><button type="button" onClick={() => setShowVersions(true)}>Versions</button><button type="button" className="primary" onClick={() => scrollToCard('07', 'pc-card-publish')}>Assign & Publish</button></div>
       </header>
 
-      <section className="pc-summary">
+      <section className="pc-summary bui-workbench-metrics">
         <Metric icon="◎" label="Trọng tâm" value={project.focus} tone="violet" /><Metric icon="US" label="Accent" value={project.accent === 'en-GB' ? 'British English' : 'American English'} tone="blue" /><Metric icon="▦" label="Practice items" value={`${project.blueprint.itemCount} mục`} tone="teal" /><Metric icon="◷" label="Thời lượng" value={`${project.duration} phút`} tone="amber" /><Metric icon="↻" label="Cập nhật" value={new Date(project.updatedAt || Date.now()).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })} tone="pink" />
       </section>
 
-      <nav className="pc-workflow">{WORKFLOW.map(([step, label, id]) => <button type="button" key={step} className={activeStep === step ? 'active' : ''} onClick={() => scrollToCard(step, id)}><i>{step}</i><span>{label}</span></button>)}</nav>
+      <nav className="pc-workflow bui-workbench-workflow">{WORKFLOW.map(([step, label, id]) => <button type="button" key={step} className={activeStep === step ? 'active' : ''} onClick={() => scrollToCard(step, id)}><i>{step}</i><span>{label}</span></button>)}</nav>
 
       {pendingTransfer ? <aside className="pc-transfer"><div><strong>Nội dung từ {pendingTransfer.sourceTitle || pendingTransfer.sourceApp}</strong><span>{pendingTransfer.title}</span></div><button type="button" onClick={applyTransfer}>Dùng nội dung</button><button type="button" onClick={() => { updateTransfer(currentUser, pendingTransfer.id, { status: 'dismissed' }); setPendingTransfer(null); }}>Bỏ qua</button></aside> : null}
 
-      <section className="pc-setup-grid">
+      <section className="pc-setup-grid bui-workbench-canvas">
         <article id="pc-card-mode" className="pc-card pc-card-mode">
           <SectionHeader number="01" eyebrow="PRACTICE MODE" title="Chọn mục đích luyện tập" desc="Mỗi chế độ thay đổi blueprint và workspace phía sau." />
           <div className="pc-mode-grid">{PRACTICE_MODES.map((item) => <button type="button" key={item.id} className={project.mode === item.id ? 'active' : ''} onClick={() => patch({ mode: item.id })}><i>{item.icon}</i><span><strong>{item.title}</strong><small>{item.desc}</small></span><b>{project.mode === item.id ? '✓' : '○'}</b></button>)}</div>

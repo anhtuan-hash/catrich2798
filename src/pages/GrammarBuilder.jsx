@@ -1093,8 +1093,8 @@ Issues: ${(json.issues || []).length}`);
   const classGoal = String(project.learnerNotes || '').trim() || `${project.grade} · ${project.level} · ${project.purpose}`;
 
   return (
-    <div className="gb-page" data-stage={activeStage} data-design="modern-saas">
-      <section className="gb-toolbar gb-toolbar-modern">
+    <div className="gb-page bui-workbench" data-ui="workbench" data-workbench="grammar-builder" data-stage={activeStage} data-design="modern-saas">
+      <section className="gb-toolbar gb-toolbar-modern bui-workbench-header">
         <div className="gb-brand-lockup">
           <span className="gb-brand-mark">GB</span>
           <div><strong>Grammar Builder</strong><small>V2.4</small></div>
@@ -1113,7 +1113,7 @@ Issues: ${(json.issues || []).length}`);
 
       {notice ? <div className="gb-notice" role="status">✓ {notice}<button type="button" onClick={() => setNotice('')}>×</button></div> : null}
 
-      <section className="gb-context-strip" aria-label="Tóm tắt dự án">
+      <section className="gb-context-strip bui-workbench-metrics" aria-label="Tóm tắt dự án">
         <ContextMetric icon="◎" label="Mục tiêu lớp học" value={classGoal} />
         <ContextMetric icon="☷" label="Số câu dự kiến" value={`${project.questionCount} câu`} />
         <ContextMetric icon="◷" label="Thời gian làm bài" value="45 phút" />
@@ -1121,7 +1121,7 @@ Issues: ${(json.issues || []).length}`);
         <ContextMetric icon="▣" label="Cập nhật lần cuối" value={updatedLabel} />
       </section>
 
-      <nav className="gb-workflow" aria-label="Grammar Builder workflow">
+      <nav className="gb-workflow bui-workbench-workflow" aria-label="Grammar Builder workflow">
         {WORKFLOW_STEPS.map(([number, label], index) => {
           const active = activeStage === 'setup' ? index < 4 : activeStage === 'editor' ? index <= 5 : true;
           return <button type="button" key={number} className={active ? 'active' : ''} aria-current={active ? 'step' : undefined} onClick={() => setActiveStage(index < 4 ? 'setup' : index < 6 ? 'editor' : 'publish')}><b>{number}</b><span>{label}</span></button>;
@@ -1129,7 +1129,7 @@ Issues: ${(json.issues || []).length}`);
       </nav>
 
       {activeStage === 'setup' ? (
-        <section className="gb-setup-grid">
+        <section className="gb-setup-grid bui-workbench-canvas">
           <article className="gb-card gb-card-mode">
             <SectionHeading number="01" eyebrow="BUILD MODE" title="Chọn mục đích tạo" description="Mỗi chế độ thay đổi logic blueprint và đầu ra." />
             <div className="gb-mode-grid">

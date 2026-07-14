@@ -415,8 +415,8 @@ export default function WritingStudio({ language = 'vi', apiKey = '', aiModel = 
   const taskAnalysis = project.taskAnalysis || {};
 
   return (
-    <div className="ws-page" data-design="modern-saas-process-writing">
-      <section className="ws-product-bar">
+    <div className="ws-page bui-workbench" data-ui="workbench" data-workbench="writing-studio" data-design="modern-saas-process-writing">
+      <section className="ws-product-bar bui-workbench-header">
         <button className="ws-back" type="button" onClick={() => window.history.back()}>← Quay lại</button>
         <div className="ws-brand"><span>WS</span><div><small>WRITING STUDIO · V2.0</small><input value={project.title} onChange={(event) => patch({ title: event.target.value })} aria-label="Tên dự án" /></div></div>
         <div className="ws-product-actions">
@@ -430,7 +430,7 @@ export default function WritingStudio({ language = 'vi', apiKey = '', aiModel = 
 
       {pendingTransfer ? <section className="ws-transfer-banner"><div><strong>Nội dung từ {pendingTransfer.sourceTitle}</strong><span>{pendingTransfer.title}</span></div><button type="button" onClick={applyTransfer}>Dùng nội dung</button><button type="button" onClick={() => { updateTransfer(currentUser, pendingTransfer.id, { status: 'dismissed' }); setPendingTransfer(null); }}>Bỏ qua</button></section> : null}
 
-      <section className="ws-context-strip">
+      <section className="ws-context-strip bui-workbench-metrics">
         <ContextMetric icon="▣" label="Genre" value={project.genre} />
         <ContextMetric icon="≡" label="Word target" value={`${project.wordTarget} từ`} />
         <ContextMetric icon="◷" label="Time limit" value={`${project.timeLimit} phút`} />
@@ -438,11 +438,11 @@ export default function WritingStudio({ language = 'vi', apiKey = '', aiModel = 
         <ContextMetric icon="□" label="Last updated" value={summaryDate} />
       </section>
 
-      <nav className="ws-workflow" aria-label="Writing workflow">
+      <nav className="ws-workflow bui-workbench-workflow" aria-label="Writing workflow">
         {WORKFLOW_STEPS.map(([number, label, id]) => <button type="button" key={number} className={activeStep === number ? 'active' : ''} onClick={() => scrollToCard(number, id)}><i>{number}</i><span>{label}</span></button>)}
       </nav>
 
-      <section className="ws-setup-grid">
+      <section className="ws-setup-grid bui-workbench-canvas">
         <article id="ws-card-mode" className="ws-card ws-card-mode">
           <SectionHeader number="01" eyebrow="BUILD MODE" title="Chọn mục đích viết" desc="Mỗi chế độ thay đổi cách AI hướng dẫn và đầu ra." />
           <div className="ws-choice-grid mode-grid">{BUILD_MODES.map((mode) => <button type="button" key={mode.id} className={project.mode === mode.id ? 'active' : ''} onClick={() => patch({ mode: mode.id })}><i>{mode.icon}</i><span><strong>{mode.title}</strong><small>{mode.desc}</small></span>{project.mode === mode.id ? <b>✓</b> : null}</button>)}</div>
