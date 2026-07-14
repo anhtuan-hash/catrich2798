@@ -1,14 +1,14 @@
 {
-  "version": "12.16.0",
+  "version": "12.16.1",
   "channel": "stable",
-  "releaseName": "Creative App Directory Hero",
+  "releaseName": "Streamlined App Directory",
   "runtimeCore": "3.6.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T15:51:52.941Z",
+  "generatedAt": "2026-07-14T16:11:24.489Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -28,10 +28,10 @@
   "archiveApprovedByLeader": true,
   "archiveDuplicateProtection": true,
   "alignedAppCardGrid": true,
-  "launcherStyleSelector": true,
-  "circularLauncher": true,
-  "waterBoxLauncher": true,
-  "animatedFloatingApps": true,
+  "launcherStyleSelector": false,
+  "circularLauncher": false,
+  "waterBoxLauncher": false,
+  "animatedFloatingApps": false,
   "launcherConfigSchema": 5,
   "animatedHomeAppConstellation": true,
   "pointerParallaxCards": true,
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Creative App Directory Hero",
+  "release": "Streamlined App Directory",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -444,5 +444,8 @@
     30,
     70
   ],
-  "embeddedWorkspaceRoutes": true
+  "embeddedWorkspaceRoutes": true,
+  "appDirectoryLauncherVisible": false,
+  "appDirectoryRecentRail": false,
+  "appDirectorySearchAfterHero": true
 }

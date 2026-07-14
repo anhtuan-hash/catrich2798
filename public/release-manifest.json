@@ -1,6 +1,6 @@
 {
-  "version": "12.16.0",
-  "release": "Creative App Directory Hero",
+  "version": "12.16.1",
+  "release": "Streamlined App Directory",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T15:51:52.941Z",
+  "generatedAt": "2026-07-14T16:11:24.489Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -33,10 +33,10 @@
   "archiveApprovedByLeader": true,
   "archiveDuplicateProtection": true,
   "alignedAppCardGrid": true,
-  "launcherStyleSelector": true,
-  "circularLauncher": true,
-  "waterBoxLauncher": true,
-  "animatedFloatingApps": true,
+  "launcherStyleSelector": false,
+  "circularLauncher": false,
+  "waterBoxLauncher": false,
+  "animatedFloatingApps": false,
   "launcherConfigSchema": 5,
   "animatedHomeAppConstellation": true,
   "pointerParallaxCards": true,
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Creative App Directory Hero",
+  "releaseName": "Streamlined App Directory",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -449,5 +449,8 @@
     30,
     70
   ],
-  "embeddedWorkspaceRoutes": true
+  "embeddedWorkspaceRoutes": true,
+  "appDirectoryLauncherVisible": false,
+  "appDirectoryRecentRail": false,
+  "appDirectorySearchAfterHero": true
 }

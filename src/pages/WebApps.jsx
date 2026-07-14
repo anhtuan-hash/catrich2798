@@ -15,7 +15,6 @@ import {
   saveLauncherConfigToCloud,
   subscribeLauncherConfig,
 } from '../utils/launcherPreferences.js';
-import { getAppUsage, subscribeAppUsage } from '../utils/appUsage.js';
 import { HIDDEN_APPS_FOLDER, ROUTE_APP_SHORTCUTS, appVisibilityId } from '../data/appVisibilityRegistry.js';
 import { getHiddenAppIds } from '../utils/appVisibility.js';
 import { UILaunchGrid, UILaunchHero, UILaunchPage, UILaunchPinned, UILaunchToolbar } from '../ui-core/components/UILaunch.jsx';
@@ -34,32 +33,26 @@ const copy = {
     brand: 'Brian English', kicker: 'Creative App Directory', titleA: 'cửa sổ', titleB: 'ứng dụng', titleC: 'sáng tạo',
     subtitle: 'Kéo thả, ghim, nhóm và chọn ứng dụng xuất hiện trên thanh điều hướng. Mỗi thẻ vẫn giữ màu nhận diện riêng và không kéo sát hai viền màn hình.',
     open: 'Mở ứng dụng', locked: 'Cần quyền', aiOn: 'AI sẵn sàng', aiOff: 'Cài AI', role: 'Vai trò', total: 'Công cụ',
-    pinned: 'Ứng dụng đã ghim', flow: 'Các ứng dụng yêu thích được truy cập nhanh tại đây.', customize: 'Tùy biến launcher', finish: 'Thoát chỉnh sửa',
+    pinned: 'Ứng dụng đã ghim', flow: 'Các ứng dụng yêu thích được truy cập nhanh tại đây.', customize: 'Tùy biến ứng dụng', finish: 'Thoát chỉnh sửa',
     save: 'Lưu thay đổi', reset: 'Khôi phục mặc định', all: 'Tất cả', hidden: 'Đã ẩn', addGroup: 'Tạo nhóm ứng dụng',
     groupName: 'Tên nhóm mới', create: 'Tạo nhóm', dragHint: 'Kéo thẻ để sắp xếp · dùng các nút trên thẻ để ghim, ẩn, đưa lên thanh điều hướng hoặc đổi nhóm.',
     pin: 'Ghim', unpin: 'Bỏ ghim', hide: 'Ẩn', show: 'Hiện', navOn: 'Đưa lên thanh điều hướng', navOff: 'Gỡ khỏi thanh điều hướng',
-    group: 'Nhóm', saved: 'Đã lưu và đồng bộ cấu hình launcher toàn hệ thống.', savedLocal: 'Đã lưu trên thiết bị. Hãy chạy migration launcher để đồng bộ toàn hệ thống.', saving: 'Đang lưu…', navLimit: 'Thanh điều hướng tối đa 12 mục.', empty: 'Nhóm này chưa có ứng dụng.',
-    search: 'Tìm ứng dụng', searchPlaceholder: 'Nhập tên, chức năng hoặc nhóm ứng dụng…', recent: 'Mở gần đây', density: 'Mật độ', comfortable: 'Thoáng', compact: 'Gọn', command: 'Tìm nhanh toàn hệ thống', noSearch: 'Không có ứng dụng phù hợp với từ khóa.',
-    launcherStyleTitle: 'Tùy biến launcher', launcherStyleHint: 'Chọn cách các ứng dụng đã ghim xuất hiện trong launcher.',
-    radialLauncher: 'Launcher tròn', radialLauncherDesc: 'Ứng dụng được sắp xếp quanh một dock tròn, rõ ràng và dễ chọn.',
-    waterLauncher: 'Hộp nước', waterLauncherDesc: 'Ứng dụng nổi và chuyển động nhẹ bên trong một hộp nước mềm mại.',
-    chooseStyle: 'Chọn kiểu này', selectedStyle: 'Đang sử dụng', launcherDockTitle: 'Launcher ứng dụng', launcherDockHint: 'Mở nhanh các ứng dụng đã ghim.', workspaceFilter: 'Đang lọc theo không gian', clearWorkspace: 'Hiện tất cả ứng dụng',
+    group: 'Nhóm', saved: 'Đã lưu và đồng bộ bố cục ứng dụng toàn hệ thống.', savedLocal: 'Đã lưu bố cục ứng dụng trên thiết bị. Hãy chạy migration để đồng bộ toàn hệ thống.', saving: 'Đang lưu…', navLimit: 'Thanh điều hướng tối đa 12 mục.', empty: 'Nhóm này chưa có ứng dụng.',
+    search: 'Tìm ứng dụng', searchPlaceholder: 'Nhập tên, chức năng hoặc nhóm ứng dụng…', density: 'Mật độ', comfortable: 'Thoáng', compact: 'Gọn', command: 'Tìm nhanh toàn hệ thống', noSearch: 'Không có ứng dụng phù hợp với từ khóa.',
+    workspaceFilter: 'Đang lọc theo không gian', clearWorkspace: 'Hiện tất cả ứng dụng',
     nav: { home: 'Trang chủ', apps: 'Ứng dụng', games: 'Trò chơi', admin: 'Quản trị' },
   },
   en: {
     brand: 'Brian English', kicker: 'Creative App Directory', titleA: 'creative', titleB: 'app', titleC: 'windows',
     subtitle: 'Drag, pin, group and choose the apps shown in the global navigation while preserving each app’s visual identity and balanced page margins.',
     open: 'Open app', locked: 'Locked', aiOn: 'AI ready', aiOff: 'Set up AI', role: 'Role', total: 'Tools',
-    pinned: 'Pinned apps', flow: 'Favorite apps stay within quick reach.', customize: 'Customize launcher', finish: 'Exit editor', save: 'Save changes',
+    pinned: 'Pinned apps', flow: 'Favorite apps stay within quick reach.', customize: 'Customize apps', finish: 'Exit editor', save: 'Save changes',
     reset: 'Restore defaults', all: 'All', hidden: 'Hidden', addGroup: 'Create app group', groupName: 'New group name', create: 'Create group',
     dragHint: 'Drag cards to reorder. Use card controls to pin, hide, add to navigation or move between groups.', pin: 'Pin', unpin: 'Unpin',
-    hide: 'Hide', show: 'Show', navOn: 'Add to navigation', navOff: 'Remove from navigation', group: 'Group', saved: 'Launcher configuration saved and synced.', savedLocal: 'Saved on this device. Run the launcher migration for system-wide sync.', saving: 'Saving…',
+    hide: 'Hide', show: 'Show', navOn: 'Add to navigation', navOff: 'Remove from navigation', group: 'Group', saved: 'App layout saved and synced.', savedLocal: 'App layout saved on this device. Run the migration for system-wide sync.', saving: 'Saving…',
     navLimit: 'The navigation supports up to 12 items.', empty: 'No apps in this group yet.',
-    search: 'Search apps', searchPlaceholder: 'Type an app, feature or group…', recent: 'Recently opened', density: 'Density', comfortable: 'Comfortable', compact: 'Compact', command: 'Search the whole system', noSearch: 'No app matches this search.',
-    launcherStyleTitle: 'Customize launcher', launcherStyleHint: 'Choose how pinned apps appear in the launcher.',
-    radialLauncher: 'Circular launcher', radialLauncherDesc: 'Apps orbit a circular dock for a clear, playful launcher.',
-    waterLauncher: 'Water box', waterLauncherDesc: 'Apps float gently inside a soft liquid container.',
-    chooseStyle: 'Use this style', selectedStyle: 'In use', launcherDockTitle: 'App launcher', launcherDockHint: 'Open pinned apps quickly.', workspaceFilter: 'Workspace filter', clearWorkspace: 'Show all apps',
+    search: 'Search apps', searchPlaceholder: 'Type an app, feature or group…', density: 'Density', comfortable: 'Comfortable', compact: 'Compact', command: 'Search the whole system', noSearch: 'No app matches this search.',
+    workspaceFilter: 'Workspace filter', clearWorkspace: 'Show all apps',
     nav: { home: 'Home', apps: 'Apps', games: 'Games', admin: 'Admin' },
   },
 };
@@ -229,84 +222,6 @@ function GroupRail({ group, count, language, active, onClick }) {
   );
 }
 
-function LauncherPreviewIcons({ items = [], style = 'radial' }) {
-  const previewItems = items.slice(0, 6);
-  return (
-    <div className={`launcher-style-mini-preview is-${style}`} aria-hidden="true">
-      {style === 'water' ? <><span className="launcher-water-wave wave-one" /><span className="launcher-water-wave wave-two" /><i className="launcher-water-bubble bubble-one" /><i className="launcher-water-bubble bubble-two" /><i className="launcher-water-bubble bubble-three" /></> : <span className="launcher-radial-guide" />}
-      <span className="launcher-preview-hub">✦</span>
-      {previewItems.map((item, index) => {
-        const profile = getAppDesignProfile(item.slug);
-        return (
-          <span key={`preview-${style}-${item.slug}`} className="launcher-preview-app" data-index={index} style={{ '--launcher-accent': profile.accent }}>
-            <FlatAppIcon type={profile.icon} slug={item.slug} />
-          </span>
-        );
-      })}
-    </div>
-  );
-}
-
-function LauncherStyleSelector({ language, value = 'radial', items = [], onChange }) {
-  const t = copy[language] || copy.vi;
-  const options = [
-    { id: 'radial', title: t.radialLauncher, desc: t.radialLauncherDesc },
-    { id: 'water', title: t.waterLauncher, desc: t.waterLauncherDesc },
-  ];
-  return (
-    <section className="launcher-style-selector bui-launch-dock-config" aria-label={t.launcherStyleTitle}>
-      <header className="launcher-style-selector-head">
-        <div><span aria-hidden="true">⌘</span><strong>{t.launcherStyleTitle}</strong></div>
-        <p>{t.launcherStyleHint}</p>
-      </header>
-      <div className="launcher-style-options">
-        {options.map((option) => {
-          const active = value === option.id;
-          return (
-            <button type="button" key={option.id} className={`launcher-style-option ${active ? 'active' : ''}`} onClick={() => onChange?.(option.id)} aria-pressed={active}>
-              <span className="launcher-style-option-copy">
-                <span className="launcher-style-option-title"><i aria-hidden="true">{option.id === 'radial' ? '◉' : '◒'}</i><strong>{option.title}</strong></span>
-                <span className="launcher-style-option-desc">{option.desc}</span>
-                <span className="launcher-style-option-action">{active ? `✓ ${t.selectedStyle}` : t.chooseStyle}</span>
-              </span>
-              <LauncherPreviewIcons items={items} style={option.id} />
-              {active ? <span className="launcher-style-check" aria-hidden="true">✓</span> : null}
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-function LauncherDock({ language, style = 'radial', items = [] }) {
-  const t = copy[language] || copy.vi;
-  const dockItems = items.slice(0, 6);
-  if (!dockItems.length) return null;
-  return (
-    <section className={`launcher-live-dock bui-launch-dock is-${style}`} aria-label={t.launcherDockTitle}>
-      <header>
-        <div><strong>{t.launcherDockTitle}</strong><small>{t.launcherDockHint}</small></div>
-        <span>{style === 'water' ? t.waterLauncher : t.radialLauncher}</span>
-      </header>
-      <div className="launcher-live-stage">
-        {style === 'water' ? <><span className="launcher-water-wave wave-one" /><span className="launcher-water-wave wave-two" />{Array.from({ length: 8 }, (_, index) => <i key={`bubble-${index}`} className="launcher-live-bubble" data-index={index} />)}</> : <><span className="launcher-live-ring ring-one" /><span className="launcher-live-ring ring-two" /></>}
-        <span className="launcher-live-hub" aria-hidden="true">✦</span>
-        <div className="launcher-live-apps">
-          {dockItems.map((item, index) => {
-            const profile = getAppDesignProfile(item.slug);
-            return (
-              <button key={`dock-${item.slug}`} type="button" data-index={index} style={{ '--launcher-accent': profile.accent, '--launcher-soft': profile.soft }} onClick={(event) => launch(targetFor(item), item.icon || 'AP', profile.accent, event.currentTarget)} title={titleOf(item, language)}>
-                <FlatAppIcon type={profile.icon} slug={item.slug} /><span>{titleOf(item, language)}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export default function WebApps({ apps, language = 'vi', currentUser, appVisibility: externalAppVisibility }) {
   const t = copy[language] || copy.vi;
   const isAdmin = currentUser?.role === 'admin';
@@ -323,7 +238,6 @@ export default function WebApps({ apps, language = 'vi', currentUser, appVisibil
   const [density, setDensity] = useState(() => {
     try { return localStorage.getItem('bes-launcher-density') === 'compact' ? 'compact' : 'comfortable'; } catch { return 'comfortable'; }
   });
-  const [usage, setUsage] = useState(() => getAppUsage(currentUser));
   const dragItemRef = useRef('');
   const editModeRef = useRef(false);
 
@@ -358,11 +272,6 @@ export default function WebApps({ apps, language = 'vi', currentUser, appVisibil
   const [draftConfig, setDraftConfig] = useState(() => loadLauncherConfig(itemIds));
 
   useEffect(() => { editModeRef.current = editMode; }, [editMode]);
-
-  useEffect(() => {
-    setUsage(getAppUsage(currentUser));
-    return subscribeAppUsage(currentUser, setUsage);
-  }, [currentUser]);
 
   useEffect(() => {
     try { localStorage.setItem('bes-launcher-density', density); } catch { /* optional */ }
@@ -423,12 +332,6 @@ export default function WebApps({ apps, language = 'vi', currentUser, appVisibil
     return normalizedSearch.split(/\s+/).filter(Boolean).every((token) => haystack.includes(token));
   });
   const pinnedItems = orderedItems.filter((item) => workingConfig.pinned.includes(launcherItemId(item)) && !workingConfig.hidden.includes(launcherItemId(item)));
-  const itemLookup = useMemo(() => {
-    const map = new Map();
-    baseItems.forEach((item) => { map.set(launcherNavId(item), item); map.set(launcherItemId(item), item); });
-    return map;
-  }, [baseItems]);
-  const recentItems = usage.map((entry) => itemLookup.get(entry.id)).filter(Boolean).filter((item, index, list) => list.indexOf(item) === index).slice(0, 6);
 
   const patchDraft = (updater) => setDraftConfig((current) => normalizeLauncherConfig(typeof updater === 'function' ? updater(current) : { ...current, ...updater }, itemIds));
   const togglePin = (id) => patchDraft((current) => ({ ...current, pinned: current.pinned.includes(id) ? current.pinned.filter((value) => value !== id) : [...current.pinned, id].slice(-12) }));
@@ -515,7 +418,7 @@ export default function WebApps({ apps, language = 'vi', currentUser, appVisibil
   }, [isAdmin, config, itemIds.join('|')]);
 
   return (
-    <UILaunchPage app="apps" className={`flat-design-home flat-apps-directory launcher-v10831 launcher-v1136 launcher-command-center launcher-style-${workingConfig.launcherStyle || 'radial'} density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
+    <UILaunchPage app="apps" className={`flat-design-home flat-apps-directory launcher-v10831 launcher-v1136 launcher-command-center density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
 
       <UILaunchHero as="header" className="flat-apps-hero apps-directory-hero-v1216">
         <div className="flat-apps-hero-copy">
@@ -537,17 +440,6 @@ export default function WebApps({ apps, language = 'vi', currentUser, appVisibil
         </div>
         <AppsHeroArtwork language={language} />
       </UILaunchHero>
-
-      {editMode && isAdmin ? (
-        <LauncherStyleSelector
-          language={language}
-          value={workingConfig.launcherStyle || 'radial'}
-          items={pinnedItems.length ? pinnedItems : orderedItems}
-          onChange={(launcherStyle) => patchDraft((current) => ({ ...current, launcherStyle }))}
-        />
-      ) : (
-        <LauncherDock language={language} style={workingConfig.launcherStyle || 'radial'} items={pinnedItems} />
-      )}
 
       {activeWorkspace ? (
         <section className="bui-app-workspace-filter" style={{ '--workspace-accent': activeWorkspace.accent }} aria-label={t.workspaceFilter}>
@@ -572,18 +464,6 @@ export default function WebApps({ apps, language = 'vi', currentUser, appVisibil
           <button type="button" className={density === 'compact' ? 'active' : ''} onClick={() => setDensity('compact')} title={t.compact}>▦▦</button>
         </div>
       </UILaunchToolbar>
-
-      {recentItems.length > 0 && !editMode && (
-        <section className="launcher-recent-strip bui-launch-recent" aria-label={t.recent}>
-          <div><strong>{t.recent}</strong><small>{language === 'vi' ? 'Tiếp tục công việc đang làm' : 'Continue where you left off'}</small></div>
-          <div className="launcher-recent-chips">
-            {recentItems.map((item) => {
-              const profile = getAppDesignProfile(item.slug);
-              return <button key={`recent-${item.slug}`} type="button" style={{ '--recent-accent': profile.accent }} onClick={(event) => launch(targetFor(item), item.icon || 'AP', profile.accent, event.currentTarget)}><FlatAppIcon type={profile.icon} slug={item.slug} /><span>{titleOf(item, language)}</span></button>;
-            })}
-          </div>
-        </section>
-      )}
 
       {editMode && (
         <section className="launcher-admin-panel bui-launch-admin">
