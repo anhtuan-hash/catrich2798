@@ -1,0 +1,48 @@
+{
+  "version": "11.6.4",
+  "sourceVersion": "11.6.3",
+  "target": "/Users/catrichmauxanh/Documents/Brian-English-Studio-MAIN",
+  "createdAt": "2026-07-14T08:30:27.401Z",
+  "files": [
+    {
+      "path": "package.json",
+      "existed": true,
+      "sha256": "37564b3669f84a22e58f015319082dcdff95bcc0cc53d73fdbf44b996abae9d4"
+    },
+    {
+      "path": "package-lock.json",
+      "existed": true,
+      "sha256": "b83007add2d7ef6abf07c76856f8f8742ec7dd83b5644a39338eafc6af7db608"
+    },
+    {
+      "path": "index.html",
+      "existed": true,
+      "sha256": "b35b4012a228d812b20002acce7db0fa5b447b86aa938887aeb9399132a9626a"
+    },
+    {
+      "path": "version.json",
+      "existed": false
+    },
+    {
+      "path": "public/version.json",
+      "existed": true,
+      "sha256": "45f89613b1dd26a0fb64f2fff58841bbaf69b6e3f6b61c4d2dc28d9132ffbf9f"
+    },
+    {
+      "path": "scripts/verify-v11.6.4.mjs",
+      "existed": false
+    },
+    {
+      "path": "public/bes-ai-composer-v1164/ai-composer-hotfix.css",
+      "existed": false
+    },
+    {
+      "path": "public/bes-ai-composer-v1164/ai-composer-hotfix.js",
+      "existed": false
+    },
+    {
+      "path": "public/bes-release-v11.6.4.json",
+      "existed": false
+    }
+  ]
+}
