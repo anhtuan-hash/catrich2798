@@ -2318,6 +2318,12 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
             <p>{language === 'vi'
               ? 'Quản lý kế hoạch, lịch công tác, giao việc, hồ sơ minh chứng, nghiên cứu bài học, kiểm tra nội bộ và báo cáo với AI hỗ trợ TTCM.'
               : 'Manage plans, work schedules, assignments, evidence, lesson study, internal review and reports with AI support for department leaders.'}</p>
+            <div className="department-v1219-status-row" aria-label={language === 'vi' ? 'Trạng thái vận hành tổ chuyên môn' : 'Department operating status'}>
+              <span><b>{canPublish ? 'TTCM' : (language === 'vi' ? 'Giáo viên' : 'Teacher')}</b><small>{language === 'vi' ? 'Vai trò hiện tại' : 'Current role'}</small></span>
+              <span><b>{stats.openTasks}</b><small>{language === 'vi' ? 'Việc đang mở' : 'Open tasks'}</small></span>
+              <span><b>{stats.pendingSubmissions}</b><small>{language === 'vi' ? 'Hồ sơ chờ duyệt' : 'Pending files'}</small></span>
+              <span className={cloudInfo.available ? 'is-online' : 'is-local'}><b>{cloudInfo.available ? 'Cloud' : 'Local'}</b><small>{language === 'vi' ? 'Chế độ lưu trữ' : 'Storage mode'}</small></span>
+            </div>
             <div className="department-v40-hero-actions">
               <button className="primary dept-action-teal" onClick={() => canPublish ? setActiveTab('plans') : document.querySelector('.department-teacher-workspace-v64')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>＋ {canPublish ? (language === 'vi' ? 'Tạo kế hoạch' : 'Create plan') : (language === 'vi' ? 'Xem việc được giao' : 'View assignments')}</button>
               <button className="primary dept-action-blue" onClick={() => canPublish ? setActiveTab('submissions') : document.querySelector('.department-teacher-workspace-v64')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>◔ {language === 'vi' ? 'Giao việc / duyệt hồ sơ' : 'Assign / review'}</button>

@@ -1,14 +1,14 @@
 {
-  "version": "12.18.0",
+  "version": "12.19.0",
   "channel": "stable",
-  "releaseName": "Global 16:9 Widescreen Canvas",
+  "releaseName": "Department Command Center",
   "runtimeCore": "3.6.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-14T16:35:06.648Z",
+  "generatedAt": "2026-07-14T16:44:23.627Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Global 16:9 Widescreen Canvas",
+  "release": "Department Command Center",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -462,5 +462,11 @@
     7,
     8
   ],
-  "responsiveWidescreenFallback": true
+  "responsiveWidescreenFallback": true,
+  "departmentCommandCenter": true,
+  "departmentWidescreenHero": true,
+  "departmentOperationalStatus": true,
+  "departmentModernDashboard": true,
+  "departmentStickyModuleTabs": true,
+  "departmentRoleAwareActions": true
 }

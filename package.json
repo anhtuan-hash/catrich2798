@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "12.18.0",
+  "version": "12.19.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -88,7 +88,7 @@
     "test:v11.5.6": "npm run version:sync && node scripts/check-v11.5.6.mjs",
     "release:guard:v11.5.6": "node scripts/release-guard-v11.5.6.mjs",
     "verify:v11.5.6": "npm run test:v11.5.6 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.6",
-    "version:sync": "node scripts/sync-version-v12.18.0.mjs",
+    "version:sync": "node scripts/sync-version-v12.19.0.mjs",
     "audit:budget": "node scripts/performance-budget-v11.6.0.mjs",
     "release:guard": "node scripts/release-guard-v11.6.1.mjs",
     "test:v11.5.8": "npm run version:sync && node scripts/check-v11.5.8.mjs",
@@ -136,7 +136,8 @@
     "verify:v12.16.0": "npm run build && npm test && npm run test:department",
     "verify:v12.16.1": "npm run build && npm test && npm run test:department",
     "verify:v12.17.0": "npm run build && npm test && npm run test:department",
-    "verify:v12.18.0": "npm run build && npm test && npm run test:department"
+    "verify:v12.18.0": "npm run build && npm test && npm run test:department",
+    "verify:v12.19.0": "npm run build && npm test && npm run test:department"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
@@ -149,7 +150,7 @@
     "read-excel-file": "^9.3.1",
     "vite": "^8.1.3"
   },
-  "description": "Brian English Studio V12.17.0 — modern pastel application cards on a vivid blue responsive gallery board.",
+  "description": "Brian English Studio V12.19.0 — modern widescreen Department Command Center for TTCM and teachers.",
   "engines": {
     "node": "22.x"
   },

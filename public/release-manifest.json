@@ -1,6 +1,6 @@
 {
-  "version": "12.18.0",
-  "release": "Global 16:9 Widescreen Canvas",
+  "version": "12.19.0",
+  "release": "Department Command Center",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-14T16:35:06.648Z",
+  "generatedAt": "2026-07-14T16:44:23.627Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Global 16:9 Widescreen Canvas",
+  "releaseName": "Department Command Center",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -467,5 +467,11 @@
     7,
     8
   ],
-  "responsiveWidescreenFallback": true
+  "responsiveWidescreenFallback": true,
+  "departmentCommandCenter": true,
+  "departmentWidescreenHero": true,
+  "departmentOperationalStatus": true,
+  "departmentModernDashboard": true,
+  "departmentStickyModuleTabs": true,
+  "departmentRoleAwareActions": true
 }
