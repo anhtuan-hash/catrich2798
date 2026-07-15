@@ -174,7 +174,7 @@ export default function UIActivityCenter({ currentUser, route = 'home', selected
         id: `automation-${run.id || Date.now()}`, category: 'system', icon: 'AU', source: 'automation',
         title: run.rule_name || (language === 'vi' ? 'Tự động hóa đã chạy' : 'Automation ran'),
         body: run.error_message || run.status || '', status: run.status || '', tone: run.status === 'failed' ? 'danger' : 'success',
-        target: '#/automation-center', createdAt: Date.parse(run.created_at || '') || Date.now(),
+        target: '#/work-hub', createdAt: Date.parse(run.created_at || '') || Date.now(),
       }));
     };
     const onAiStart = (event) => {

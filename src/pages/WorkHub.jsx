@@ -201,7 +201,7 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
         due_at: incoming.due_at || current.due_at,
       }));
       sessionStorage.removeItem('bes-v1096-automation-work-draft');
-      setNotice('Đã nhận bản nháp từ Automation Center.');
+      setNotice('Đã nhận bản nháp từ quy trình tự động.');
     } catch { /* invalid transfer is ignored */ }
   }, []);
   useEffect(() => subscribeTable({

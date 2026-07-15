@@ -1,6 +1,6 @@
 {
-  "version": "12.29.0",
-  "release": "Lesson Pack Connected Workflow",
+  "version": "12.31.0",
+  "release": "12.31.0",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-15T07:11:03.210Z",
+  "generatedAt": "2026-07-15T06:16:55.141Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -218,7 +218,12 @@
     "brian-ai"
   ],
   "removedApps": [
-    "listening-lab"
+    "lesson-pack",
+    "ai-workspace",
+    "content-factory",
+    "classroom-delivery",
+    "classroom-join",
+    "learning-intelligence"
   ],
   "listeningLabRemovedFromRegistry": true,
   "listeningLabRemovedFromHome": true,
@@ -235,7 +240,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Lesson Pack Connected Workflow",
+  "releaseName": "Three Apps Total Removal",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -357,13 +362,10 @@
   "migratedPlatformRoutes": [
     "ai-workspace",
     "content-factory",
-    "content-ecosystem",
     "assessment-core",
     "learning-intelligence",
     "platform-readiness",
-    "automation-center",
     "cloud-operations",
-    "collaboration-hub",
     "data-governance",
     "production-hardening"
   ],
@@ -529,5 +531,7 @@
   "lessonPackSixStepFlow": true,
   "lessonPackSidebar": false,
   "lessonPackModernHero": true,
-  "lessonPackConnectedDelivery": true
+  "lessonPackConnectedDelivery": true,
+  "threeAppsTotalRemoval": true,
+  "retiredApplicationCount": 3
 }

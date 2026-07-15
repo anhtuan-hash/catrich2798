@@ -17,14 +17,7 @@ export const APPS = [
     descVi: 'Tìm kiếm, phân loại, yêu thích và tổ chức học liệu theo metadata và vòng đời.',
     status: 'Metadata · Collections', statusVi: 'Metadata · Bộ sưu tập', api: true, featured: true,
   },
-  {
-    slug: 'content-ecosystem', route: 'content-ecosystem', icon: 'CE', tone: 'blue', group: 'Connected Teaching', groupVi: 'Hệ sinh thái nội dung',
-    title: 'Teaching Content Ecosystem', titleVi: 'Hệ sinh thái nội dung dạy học',
-    desc: 'Organize reusable assets, edit structured canvases, run multi-app production recipes and assemble complete content kits.',
-    descVi: 'Tổ chức tài sản tái sử dụng, biên tập canvas theo khối, chạy dây chuyền nhiều ứng dụng và đóng gói bộ nội dung hoàn chỉnh.',
-    status: 'Assets · Canvas · Recipes · Kits', statusVi: 'Tài sản · Canvas · Dây chuyền · Bộ nội dung', api: true, featured: true,
-  },
-  {
+    {
     slug: 'assessment-core', route: 'assessment-core', icon: 'AC', tone: 'orange', group: 'Assessment', groupVi: 'Đánh giá',
     title: 'Assessment Core', titleVi: 'Ngân hàng câu hỏi & đề thi',
     desc: 'Manage question banks, import items, build blueprints and generate multiple test codes.',
@@ -41,28 +34,14 @@ export const APPS = [
   },
 
 
-  {
-    slug: 'automation-center', route: 'automation-center', icon: 'AU', tone: 'blue', group: 'Operations', groupVi: 'Tự động hóa & vận hành',
-    title: 'Automation Center', titleVi: 'Trung tâm tự động hóa',
-    desc: 'Build event and schedule rules, approve sensitive actions, inspect run history and monitor platform operations.',
-    descVi: 'Tạo quy tắc theo sự kiện và lịch, phê duyệt hành động nhạy cảm, xem nhật ký và giám sát vận hành.',
-    status: 'Rules · Approvals · Audit log', statusVi: 'Quy tắc · Phê duyệt · Nhật ký', api: true, featured: true,
-  },
-  {
+    {
     slug: 'cloud-operations', route: 'cloud-operations', icon: 'CO', tone: 'mint', group: 'Operations', groupVi: 'Tự động hóa & vận hành',
     title: 'Cloud Operations', titleVi: 'Vận hành nền 24/7',
     desc: 'Run automation with durable queues, Supabase Cron, controlled retries, approval gates and operations digests.',
     descVi: 'Chạy tự động hóa bằng hàng đợi bền vững, Supabase Cron, retry, phê duyệt và bản tin vận hành.',
     status: '24/7 worker · Queue · Digest', statusVi: 'Worker 24/7 · Hàng đợi · Bản tin', api: true, featured: true,
   },
-  {
-    slug: 'collaboration-hub', route: 'collaboration-hub', icon: 'CH', tone: 'blue', group: 'Collaboration', groupVi: 'Cộng tác & phiên bản',
-    title: 'Collaboration Hub', titleVi: 'Không gian cộng tác',
-    desc: 'Coordinate projects, members, threaded discussions, Realtime presence and version history.',
-    descVi: 'Điều phối dự án, thành viên, thảo luận theo luồng, hiện diện Realtime và lịch sử phiên bản.',
-    status: 'Spaces · Presence · Versions', statusVi: 'Dự án · Hiện diện · Phiên bản', api: true, featured: true,
-  },
-  {
+    {
     slug: 'data-governance', route: 'data-governance', icon: 'DG', tone: 'orange', group: 'Governance', groupVi: 'Quản trị dữ liệu',
     title: 'Data Governance', titleVi: 'Quản trị dữ liệu & tuân thủ',
     desc: 'Audit actions, control permission overrides, create snapshots and restore deleted content safely.',

@@ -3,6 +3,8 @@ export const ACTIVITY_CENTER_OPEN_EVENT = 'brian:activity-center-open';
 
 const PREFIX = 'brian-activity-center-v12.10';
 const MAX_ITEMS = 120;
+const RETIRED_TARGETS = new Set(['#/content-ecosystem', '#/collaboration-hub', '#/automation-center']);
+const RETIRED_LABELS = ['Hệ sinh thái nội dung dạy học', 'Teaching Content Ecosystem', 'Không gian cộng tác', 'Collaboration Hub', 'Trung tâm tự động hóa', 'Automation Center'];
 
 function scope(user) {
   return String(user?.id || user?.email || 'guest')
@@ -45,6 +47,7 @@ export function normalizeActivityState(raw) {
   const items = (Array.isArray(source.items) ? source.items : [])
     .map(normalizeItem)
     .filter(Boolean)
+    .filter((item) => !RETIRED_TARGETS.has(item.target) && !RETIRED_LABELS.some((label) => item.title.includes(label) || item.body.includes(label)))
     .filter((item, index, list) => list.findIndex((candidate) => candidate.id === item.id) === index)
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, MAX_ITEMS);

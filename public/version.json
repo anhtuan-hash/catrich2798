@@ -1,5 +1,5 @@
 {
-  "version": "12.29.0",
+  "version": "12.31.0",
   "channel": "stable",
   "releaseName": "Lesson Pack Connected Workflow",
   "runtimeCore": "3.6.2",
@@ -8,7 +8,7 @@
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-15T07:11:03.210Z",
+  "generatedAt": "2026-07-15T06:16:55.141Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -213,7 +213,12 @@
     "brian-ai"
   ],
   "removedApps": [
-    "listening-lab"
+    "lesson-pack",
+    "ai-workspace",
+    "content-factory",
+    "classroom-delivery",
+    "classroom-join",
+    "learning-intelligence"
   ],
   "listeningLabRemovedFromRegistry": true,
   "listeningLabRemovedFromHome": true,
@@ -313,7 +318,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Lesson Pack Connected Workflow",
+  "release": "Three Apps Total Removal",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -352,13 +357,10 @@
   "migratedPlatformRoutes": [
     "ai-workspace",
     "content-factory",
-    "content-ecosystem",
     "assessment-core",
     "learning-intelligence",
     "platform-readiness",
-    "automation-center",
     "cloud-operations",
-    "collaboration-hub",
     "data-governance",
     "production-hardening"
   ],
@@ -524,5 +526,7 @@
   "lessonPackSixStepFlow": true,
   "lessonPackSidebar": false,
   "lessonPackModernHero": true,
-  "lessonPackConnectedDelivery": true
+  "lessonPackConnectedDelivery": true,
+  "threeAppsTotalRemoval": true,
+  "retiredApplicationCount": 3
 }

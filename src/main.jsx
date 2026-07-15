@@ -125,12 +125,9 @@ const WorkHub = lazy(() => import('./pages/WorkHub.jsx'));
 const KnowledgeHub = lazy(() => import('./pages/KnowledgeHub.jsx'));
 const AssessmentCore = lazy(() => import('./pages/AssessmentCore.jsx'));
 const PlatformReadiness = lazy(() => import('./pages/PlatformReadiness.jsx'));
-const AutomationCenter = lazy(() => import('./pages/AutomationCenter.jsx'));
 const CloudOperations = lazy(() => import('./pages/CloudOperations.jsx'));
-const CollaborationHub = lazy(() => import('./pages/CollaborationHub.jsx'));
 const DataGovernance = lazy(() => import('./pages/DataGovernance.jsx'));
 const ProductionHardening = lazy(() => import('./pages/ProductionHardening.jsx'));
-const ContentEcosystem = lazy(() => import('./pages/ContentEcosystem.jsx'));
 const UnifiedUtilityRail = lazy(() => import('./components/UnifiedUtilityRail.jsx'));
 const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAccessibilityAnnouncer.jsx'));
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
@@ -138,7 +135,7 @@ const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 const UnifiedShellChrome = lazy(() => import('./ui-core/components/UnifiedShellChrome.jsx'));
 const UIWorkspaceLayoutManager = lazy(() => import('./ui-core/components/UIWorkspaceLayoutManager.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'assessment-core', 'platform-readiness', 'cloud-operations', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
 const EMBEDDED_WORKSPACE = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === '1';
 
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
@@ -164,12 +161,9 @@ const ROUTE_DESIGN_PROFILES = {
   'resource-library': { accent: '#2878D0', soft: '#E7F2FF', ink: '#0D2947' },
   'knowledge-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
   'work-hub': { accent: '#14866D', soft: '#E6F8F2', ink: '#0B3A31' },
-  'content-ecosystem': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
   'assessment-core': { accent: '#CC7621', soft: '#FFF3DF', ink: '#522A08' },
   'platform-readiness': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
-  'automation-center': { accent: '#1269B0', soft: '#E4F3FF', ink: '#0B3154' },
   'cloud-operations': { accent: '#167B68', soft: '#E4F6EF', ink: '#183F3C' },
-  'collaboration-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
   'data-governance': { accent: '#A24B35', soft: '#FFF0E8', ink: '#4A1E14' },
   'production-hardening': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
   practice: { accent: '#00A4EF', soft: '#DCF4FF', ink: '#063048' },
@@ -539,10 +533,10 @@ function App() {
       home: ['Home', 'Trang chủ'], apps: ['Apps', 'Ứng dụng'], news: ['Newsroom', 'Đọc báo'], games: ['Games', 'Trò chơi'],
       department: ['Department', 'Tổ chuyên môn'], homeroom: ['Homeroom', 'Giáo viên chủ nhiệm'], library: ['Library', 'Thư viện'],
       'resource-library': ['Resource Library', 'Kho học liệu'], 'knowledge-hub': ['Smart Knowledge Library', 'Kho học liệu thông minh'],
-      'work-hub': ['Unified Work Hub', 'Trung tâm công việc'], 'content-ecosystem': ['Teaching Content Ecosystem', 'Hệ sinh thái nội dung dạy học'],
+      'work-hub': ['Unified Work Hub', 'Trung tâm công việc'],
       'assessment-core': ['Assessment Core', 'Ngân hàng câu hỏi'], 'platform-readiness': ['Platform Readiness', 'Sẵn sàng nền tảng'],
-      'automation-center': ['Automation Center', 'Trung tâm tự động hóa'], 'cloud-operations': ['Cloud Operations', 'Vận hành nền'],
-      'collaboration-hub': ['Collaboration Hub', 'Không gian cộng tác'], 'data-governance': ['Data Governance', 'Quản trị dữ liệu'],
+ 'cloud-operations': ['Cloud Operations', 'Vận hành nền'],
+ 'data-governance': ['Data Governance', 'Quản trị dữ liệu'],
       'production-hardening': ['Production Hardening', 'Sẵn sàng Production'], 'app-vault': ['Hidden Apps Vault', 'Thư mục ứng dụng đã ẩn'],
       practice: ['Classroom', 'Lớp học'], settings: ['Settings', 'Cài đặt'], admin: ['Admin', 'Quản trị'],
       'ai-governance': ['AI Governance', 'Quản trị AI'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'],
@@ -723,12 +717,9 @@ function App() {
           {canAccessRoute && currentRoute === 'resource-library' && currentUser && <ResourceLibrary {...context} />}
           {canAccessRoute && currentRoute === 'knowledge-hub' && currentUser && <KnowledgeHub {...context} />}
           {canAccessRoute && currentRoute === 'work-hub' && currentUser && <WorkHub {...context} />}
-          {canAccessRoute && currentRoute === 'content-ecosystem' && currentUser && <UIRouteSurface route="content-ecosystem" variant="workbench"><ContentEcosystem {...context} /></UIRouteSurface>}
           {canAccessRoute && currentRoute === 'assessment-core' && currentUser && <UIRouteSurface route="assessment-core" variant="workbench"><AssessmentCore {...context} /></UIRouteSurface>}
           {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <UIRouteSurface route="platform-readiness" variant="operations"><PlatformReadiness {...context} /></UIRouteSurface>}
-          {canAccessRoute && currentRoute === 'automation-center' && currentUser && <UIRouteSurface route="automation-center" variant="operations"><AutomationCenter {...context} /></UIRouteSurface>}
           {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <UIRouteSurface route="cloud-operations" variant="operations"><CloudOperations {...context} /></UIRouteSurface>}
-          {canAccessRoute && currentRoute === 'collaboration-hub' && currentUser && <UIRouteSurface route="collaboration-hub" variant="platform"><CollaborationHub {...context} /></UIRouteSurface>}
           {canAccessRoute && currentRoute === 'data-governance' && currentUser && <UIRouteSurface route="data-governance" variant="platform"><DataGovernance {...context} /></UIRouteSurface>}
           {canAccessRoute && currentRoute === 'production-hardening' && currentUser && <UIRouteSurface route="production-hardening" variant="operations"><ProductionHardening {...context} /></UIRouteSurface>}
           {canAccessRoute && currentRoute === 'app-vault' && currentUser && <HiddenAppsVault {...context} />}

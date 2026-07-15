@@ -62,12 +62,12 @@ export const WORKSPACE_MAP = new Map(WORKSPACE_DEFINITIONS.map((item) => [item.i
 export const WORKSPACES = Object.freeze(WORKSPACE_DEFINITIONS.map((item) => Object.freeze({ ...item })));
 
 const ROUTE_WORKSPACE = {
-  home: 'teaching', apps: 'teaching', 'content-ecosystem': 'teaching',
+  home: 'teaching', apps: 'teaching',
   'assessment-core': 'assessment', practice: 'assessment',
   news: 'resources', library: 'resources', 'resource-library': 'resources', 'knowledge-hub': 'resources', resources: 'resources',
-  department: 'management', homeroom: 'management', 'homeroom-portal': 'management', 'work-hub': 'management', admin: 'management', 'collaboration-hub': 'management', 'ai-governance': 'ai',
+  department: 'management', homeroom: 'management', 'homeroom-portal': 'management', 'work-hub': 'management', admin: 'management', 'ai-governance': 'ai',
   games: 'games',
-  settings: 'system', qa: 'system', 'platform-readiness': 'system', 'automation-center': 'system', 'cloud-operations': 'system',
+  settings: 'system', qa: 'system', 'platform-readiness': 'system', 'cloud-operations': 'system',
   'data-governance': 'system', 'production-hardening': 'system', trash: 'system', 'app-vault': 'system', setup: 'system', contact: 'system',
   login: 'system', register: 'system', tools: 'system',
 };
@@ -81,7 +81,7 @@ const TOOL_WORKSPACE = {
   'department-workspace': 'management', 'work-hub': 'management',
   'resource-library-hub': 'resources', 'knowledge-hub': 'resources', 'news-reader': 'resources', 'smart-id': 'ai',
   'game-hub': 'games',
-  'vietnam-tax': 'system', 'platform-readiness': 'system', 'automation-center': 'system',
+  'vietnam-tax': 'system', 'platform-readiness': 'system',
   'cloud-operations': 'system', 'data-governance': 'system', 'production-hardening': 'system',
 };
 
