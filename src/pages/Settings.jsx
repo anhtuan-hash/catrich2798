@@ -341,6 +341,9 @@ export default function Settings({
         baseUrl: config.baseUrl || providerInfo.baseUrl,
         prompt: 'Reply with exactly: Brian English Studio API OK',
         temperature: 0,
+        maxOutputTokens: 48,
+        governanceProfile: 'diagnostic',
+        loadingLabel: language === 'vi' ? `Kiểm tra kết nối ${providerInfo.label}` : `Testing ${providerInfo.label}`,
         fallback: useFallback,
       });
       setTestResult(`✅ ${providerInfo.label}: ${text}`);

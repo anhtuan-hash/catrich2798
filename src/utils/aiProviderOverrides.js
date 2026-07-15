@@ -2,6 +2,8 @@ import { PROVIDER_CATALOG, getProviderCatalogEntry } from '../data/aiProviderCat
 
 const STORAGE_KEY = 'bes-ai-provider-overrides-v1157';
 const ROUTING_KEY = 'bes-ai-smart-routing-v1157';
+const OPENROUTER_MIGRATION_FLAG = 'openrouterFreeModelV126';
+const LEGACY_OPENROUTER_PAID_MODELS = new Set(['openai/gpt-4o-mini', 'gpt-4o-mini']);
 
 const DEFAULT_ROUTING = {
   mode: 'smart',
@@ -38,7 +40,22 @@ function emitSettingsUpdated(detail = {}) {
 }
 
 export function getProviderOverrideState() {
-  const state = readStore(STORAGE_KEY, {});
+  let state = readStore(STORAGE_KEY, {});
+  const configs = state.configs && typeof state.configs === 'object' ? state.configs : {};
+  if (state?.migrations?.[OPENROUTER_MIGRATION_FLAG] !== true) {
+    const openrouter = configs.openrouter || {};
+    const model = String(openrouter.model || '').trim().toLowerCase();
+    const nextConfigs = LEGACY_OPENROUTER_PAID_MODELS.has(model)
+      ? { ...configs, openrouter: { ...openrouter, model: 'openrouter/free', updatedAt: new Date().toISOString() } }
+      : configs;
+    state = {
+      ...state,
+      configs: nextConfigs,
+      migrations: { ...(state.migrations || {}), [OPENROUTER_MIGRATION_FLAG]: true },
+      updatedAt: state.updatedAt || new Date().toISOString(),
+    };
+    writeStore(STORAGE_KEY, state);
+  }
   return {
     activeProvider: String(state.activeProvider || ''),
     configs: state.configs && typeof state.configs === 'object' ? state.configs : {},

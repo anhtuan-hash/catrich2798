@@ -148,6 +148,27 @@ function scopedKey(key) {
   return `${key}:${getStorageScope()}`;
 }
 
+const OPENROUTER_FREE_MODEL_MIGRATION_KEY = 'bes-openrouter-free-model-migration:v126';
+const LEGACY_OPENROUTER_PAID_MODELS = new Set(['openai/gpt-4o-mini', 'gpt-4o-mini']);
+
+function migrateLegacyOpenRouterModel(stored = {}) {
+  if (typeof localStorage === 'undefined') return stored;
+  const marker = scopedKey(OPENROUTER_FREE_MODEL_MIGRATION_KEY);
+  if (localStorage.getItem(marker) === 'done') return stored;
+  const current = stored?.openrouter || {};
+  const model = String(current.model || '').trim().toLowerCase();
+  let next = stored;
+  if (LEGACY_OPENROUTER_PAID_MODELS.has(model)) {
+    next = {
+      ...stored,
+      openrouter: { ...current, model: 'openrouter/free' },
+    };
+    localStorage.setItem(scopedKey(AI_CONFIGS_KEY), JSON.stringify(next));
+  }
+  localStorage.setItem(marker, 'done');
+  return next;
+}
+
 function readJson(key, fallback, allowLegacy = false) {
   try {
     const scopedRaw = localStorage.getItem(scopedKey(key));
@@ -194,7 +215,7 @@ export function setFallbackEnabled(value) {
 
 export function getAiConfigs() {
   const base = defaultConfigs();
-  const stored = readJson(AI_CONFIGS_KEY, {}, true);
+  const stored = migrateLegacyOpenRouterModel(readJson(AI_CONFIGS_KEY, {}, true));
   return Object.fromEntries(PROVIDERS.map((provider) => {
     const current = stored?.[provider.id] || {};
     return [

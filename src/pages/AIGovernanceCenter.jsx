@@ -26,6 +26,7 @@ const PROFILE_LABELS = {
   worksheet: ['Worksheet Factory', 'Worksheet Factory'],
   document: ['Phân tích tài liệu', 'Document analysis'],
   administration: ['Hành chính – chuyên môn', 'School administration'],
+  diagnostic: ['Kiểm tra kết nối provider', 'Provider connection test'],
   default: ['Mặc định', 'Default'],
 };
 
@@ -131,7 +132,7 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
         <section className="ai-gov-card ai-gov-profiles">
           <header><div><span>03</span><div><h2>{vi ? 'Hồ sơ giới hạn model' : 'Model limit profiles'}</h2><p>{vi ? 'Giới hạn output theo loại công việc để tiết kiệm chi phí.' : 'Cap output by task type to control cost.'}</p></div></div></header>
           <div className="ai-gov-profile-list">
-            {Object.entries(settings.profiles || {}).map(([id, profile]) => <label key={id}><div><strong>{vi ? PROFILE_LABELS[id]?.[0] || profile.label : PROFILE_LABELS[id]?.[1] || profile.label}</strong><small>{id}</small></div><input type="number" min="256" max="8192" step="128" value={profile.maxOutputTokens} onChange={(event) => patch({ profiles: { ...settings.profiles, [id]: { ...profile, maxOutputTokens: event.target.value } } })}/><span>tokens</span></label>)}
+            {Object.entries(settings.profiles || {}).map(([id, profile]) => <label key={id}><div><strong>{vi ? PROFILE_LABELS[id]?.[0] || profile.label : PROFILE_LABELS[id]?.[1] || profile.label}</strong><small>{id}</small></div><input type="number" min={id === 'diagnostic' ? 16 : 256} max="8192" step={id === 'diagnostic' ? 16 : 128} value={profile.maxOutputTokens} onChange={(event) => patch({ profiles: { ...settings.profiles, [id]: { ...profile, maxOutputTokens: event.target.value } } })}/><span>tokens</span></label>)}
           </div>
         </section>
 

@@ -28,6 +28,7 @@ export const DEFAULT_AI_GOVERNANCE = Object.freeze({
     worksheet: { label: 'Worksheet Factory', maxOutputTokens: 3200 },
     document: { label: 'Document analysis', maxOutputTokens: 2800 },
     administration: { label: 'School administration', maxOutputTokens: 1800 },
+    diagnostic: { label: 'Provider connection test', maxOutputTokens: 64 },
     default: { label: 'Default', maxOutputTokens: 2200 },
   },
   updatedAt: '',
@@ -69,7 +70,7 @@ function normalizeProfile(profile, fallback) {
   const source = profile && typeof profile === 'object' ? profile : {};
   return {
     label: String(source.label || fallback.label || 'AI profile').slice(0, 80),
-    maxOutputTokens: clampNumber(source.maxOutputTokens, 256, 8192, fallback.maxOutputTokens || 2200),
+    maxOutputTokens: clampNumber(source.maxOutputTokens, 32, 8192, fallback.maxOutputTokens || 2200),
   };
 }
 
@@ -231,7 +232,8 @@ export function guardAiRequest(options = {}) {
   }
   const profileKey = resolveAiProfile(options);
   const profile = settings.profiles[profileKey] || settings.profiles.default;
-  const requestedMax = clampNumber(options.maxOutputTokens, 256, 8192, profile.maxOutputTokens);
+  const minimumOutputTokens = profileKey === 'diagnostic' ? 16 : 256;
+  const requestedMax = clampNumber(options.maxOutputTokens, minimumOutputTokens, 8192, profile.maxOutputTokens);
   const cappedMaxOutputTokens = Math.min(requestedMax, settings.maxOutputTokens, profile.maxOutputTokens);
   return { settings, profileKey, inputTokens, maxOutputTokens: cappedMaxOutputTokens, summary };
 }

@@ -1,6 +1,6 @@
 {
-  "version": "12.25.0",
-  "release": "Provider Command & Appearance Studio",
+  "version": "12.26.0",
+  "release": "OpenRouter Stability Repair",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-15T01:45:58.373Z",
+  "generatedAt": "2026-07-15T02:03:43.847Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "3.6.1",
+  "runtimeCore": "3.6.2",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Provider Command & Appearance Studio",
+  "releaseName": "OpenRouter Stability Repair",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -511,5 +511,9 @@
   "appearanceStudio": true,
   "liveAppearancePreview": true,
   "multiSurfaceStyles": true,
-  "multiMotionStyles": true
+  "multiMotionStyles": true,
+  "openRouterStabilityRepair": true,
+  "diagnosticTokenProfile": true,
+  "legacyOpenRouterModelMigration": true,
+  "freeModelCreditRecovery": true
 }

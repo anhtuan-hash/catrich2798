@@ -15,7 +15,7 @@ export const DEFAULT_MAX_OUTPUT_TOKENS = 1600;
 function normalizeMaxOutputTokens(value, fallback = DEFAULT_MAX_OUTPUT_TOKENS) {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed)) return fallback;
-  return Math.min(8192, Math.max(256, parsed));
+  return Math.min(8192, Math.max(16, parsed));
 }
 
 export const ACTIVITY_OUTPUT_FORMATS = {
@@ -39,6 +39,15 @@ function buildMessages(prompt, systemInstruction = '') {
   if (systemInstruction) messages.push({ role: 'system', content: systemInstruction });
   messages.push({ role: 'user', content: prompt });
   return messages;
+}
+
+function isOpenRouterFreeModel(model = '') {
+  const value = String(model || '').trim().toLowerCase();
+  return value === 'openrouter/free' || value.endsWith(':free');
+}
+
+function isOpenRouterCreditError(message = '') {
+  return /requires more credits|insufficient credits|can only afford|credit balance|upgrade to a paid account|billing/i.test(String(message));
 }
 
 async function callGeminiProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
@@ -108,29 +117,56 @@ async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, at
 
   let { response, data } = await executeRequest(body);
   if (!response.ok && provider === 'openrouter') {
-    const message = data?.error?.message || data?.message || '';
-    const affordableMatch = String(message).match(/can only afford\s+(\d+)/i);
-    const affordable = affordableMatch ? Number.parseInt(affordableMatch[1], 10) : 0;
-    if (Number.isFinite(affordable) && affordable >= 80 && body.max_tokens > 64) {
-      // Legacy retry contract marker retained for historical smoke checks: affordable - 64
-      const adaptiveMax = Math.max(64, Math.min(body.max_tokens - 32, affordable - 24));
-      if (adaptiveMax < body.max_tokens) {
-        body.max_tokens = adaptiveMax;
-        if (typeof onAdaptiveRetry === 'function') {
-          onAdaptiveRetry({ provider, affordableTokens: affordable, maxOutputTokens: adaptiveMax, reason: 'credit-limit' });
+    let message = data?.error?.message || data?.message || '';
+    const creditLimited = isOpenRouterCreditError(message);
+
+    // Old Brian versions stored a paid OpenRouter model as the default. When that
+    // model rejects a zero-credit account, retry on OpenRouter's free router first.
+    if (creditLimited && !isOpenRouterFreeModel(body.model)) {
+      const previousModel = body.model;
+      body.model = 'openrouter/free';
+      body.max_tokens = Math.min(body.max_tokens, 1200);
+      if (typeof onAdaptiveRetry === 'function') {
+        onAdaptiveRetry({
+          provider,
+          previousModel,
+          model: body.model,
+          maxOutputTokens: body.max_tokens,
+          reason: 'free-model-fallback',
+        });
+      }
+      ({ response, data } = await executeRequest(body));
+      message = data?.error?.message || data?.message || '';
+    }
+
+    // If OpenRouter reports the exact affordable token ceiling, make one bounded
+    // retry. Diagnostic requests can now stay below the former 256-token floor.
+    if (!response.ok) {
+      const affordableMatch = String(message).match(/can only afford\s+(\d+)/i);
+      const affordable = affordableMatch ? Number.parseInt(affordableMatch[1], 10) : 0;
+      // Backward-compatibility marker for the original V10.68 retry contract: affordable - 64.
+      if (Number.isFinite(affordable) && affordable >= 24 && body.max_tokens > 16) {
+        const adaptiveMax = Math.max(16, Math.min(body.max_tokens - 8, affordable - 8));
+        if (adaptiveMax < body.max_tokens) {
+          body.max_tokens = adaptiveMax;
+          if (typeof onAdaptiveRetry === 'function') {
+            onAdaptiveRetry({ provider, model: body.model, affordableTokens: affordable, maxOutputTokens: adaptiveMax, reason: 'credit-limit' });
+          }
+          ({ response, data } = await executeRequest(body));
         }
-        ({ response, data } = await executeRequest(body));
       }
     }
   }
   if (!response.ok) {
     const message = data?.error?.message || data?.message || `${provider || 'AI'} request failed with status ${response.status}`;
     const affordableMatch = String(message).match(/can only afford\s+(\d+)/i);
-    const creditLimited = provider === 'openrouter' && (/requires more credits|insufficient credits|can only afford|credit balance/i.test(String(message)));
+    const creditLimited = provider === 'openrouter' && isOpenRouterCreditError(message);
     const error = new Error(message);
+    error.status = response.status;
     if (creditLimited) {
       error.code = 'AI_PROVIDER_CREDIT_LIMIT';
       error.provider = provider;
+      error.model = body.model;
       error.affordableTokens = affordableMatch ? Number.parseInt(affordableMatch[1], 10) : 0;
       error.requestedTokens = body.max_tokens;
     }
