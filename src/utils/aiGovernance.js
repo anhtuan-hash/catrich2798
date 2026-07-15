@@ -1,3 +1,5 @@
+import { getAiRuntimeSnapshot } from './aiRuntimeManager.js';
+
 export const AI_GOVERNANCE_SETTINGS_KEY = 'bes-ai-governance-settings:v1';
 export const AI_GOVERNANCE_USAGE_KEY = 'bes-ai-governance-usage:v1';
 export const AI_GOVERNANCE_AUDIT_KEY = 'bes-ai-governance-audit:v1';
@@ -8,7 +10,7 @@ const MAX_USAGE_DAYS = 45;
 let currentUser = { id: 'guest', email: '', role: 'guest', name: 'Guest' };
 
 export const DEFAULT_AI_GOVERNANCE = Object.freeze({
-  schemaVersion: 2,
+  schemaVersion: 3,
   enabled: true,
   allowActions: true,
   requireActionConfirmation: true,
@@ -37,6 +39,21 @@ export const DEFAULT_AI_GOVERNANCE = Object.freeze({
     detectDuplicates: true,
     autoRepair: true,
     maxRepairAttempts: 1,
+  },
+  runtime: {
+    enabled: true,
+    maxConcurrent: 2,
+    requestTimeoutMs: 45000,
+    transientRetries: 1,
+    retryBaseDelayMs: 800,
+    dedupeInFlight: true,
+    cacheEnabled: true,
+    cacheTtlMs: 300000,
+    cacheMaxEntries: 40,
+    circuitBreakerEnabled: true,
+    circuitFailureThreshold: 3,
+    circuitFailureWindowMs: 120000,
+    circuitCooldownMs: 90000,
   },
   actionTargets: {
     'worksheet-factory': true,
@@ -110,8 +127,9 @@ export function normalizeAiGovernanceSettings(raw) {
   });
   const privacySource = source.privacy && typeof source.privacy === 'object' ? source.privacy : {};
   const validationSource = source.outputValidation && typeof source.outputValidation === 'object' ? source.outputValidation : {};
+  const runtimeSource = source.runtime && typeof source.runtime === 'object' ? source.runtime : {};
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     enabled: source.enabled !== false,
     allowActions: source.allowActions !== false,
     requireActionConfirmation: source.requireActionConfirmation !== false,
@@ -136,6 +154,23 @@ export function normalizeAiGovernanceSettings(raw) {
       autoRepair: validationSource.autoRepair !== false,
       maxRepairAttempts: clampNumber(validationSource.maxRepairAttempts, 0, 2, defaults.outputValidation.maxRepairAttempts),
     },
+    runtime: {
+      ...defaults.runtime,
+      ...runtimeSource,
+      enabled: runtimeSource.enabled !== false,
+      maxConcurrent: clampNumber(runtimeSource.maxConcurrent, 1, 6, defaults.runtime.maxConcurrent),
+      requestTimeoutMs: clampNumber(runtimeSource.requestTimeoutMs, 5000, 180000, defaults.runtime.requestTimeoutMs),
+      transientRetries: clampNumber(runtimeSource.transientRetries, 0, 3, defaults.runtime.transientRetries),
+      retryBaseDelayMs: clampNumber(runtimeSource.retryBaseDelayMs, 100, 5000, defaults.runtime.retryBaseDelayMs),
+      dedupeInFlight: runtimeSource.dedupeInFlight !== false,
+      cacheEnabled: runtimeSource.cacheEnabled !== false,
+      cacheTtlMs: clampNumber(runtimeSource.cacheTtlMs, 10000, 3600000, defaults.runtime.cacheTtlMs),
+      cacheMaxEntries: clampNumber(runtimeSource.cacheMaxEntries, 5, 200, defaults.runtime.cacheMaxEntries),
+      circuitBreakerEnabled: runtimeSource.circuitBreakerEnabled !== false,
+      circuitFailureThreshold: clampNumber(runtimeSource.circuitFailureThreshold, 2, 10, defaults.runtime.circuitFailureThreshold),
+      circuitFailureWindowMs: clampNumber(runtimeSource.circuitFailureWindowMs, 10000, 900000, defaults.runtime.circuitFailureWindowMs),
+      circuitCooldownMs: clampNumber(runtimeSource.circuitCooldownMs, 10000, 900000, defaults.runtime.circuitCooldownMs),
+    },
     actionTargets: targets,
     profiles,
     updatedAt: String(source.updatedAt || ''),
@@ -153,7 +188,7 @@ export function saveAiGovernanceSettings(next) {
     type: 'settings',
     status: 'success',
     label: 'AI governance settings updated',
-    detail: { enabled: normalized.enabled, allowActions: normalized.allowActions, dailyRequestLimit: normalized.dailyRequestLimit, dailyTokenBudget: normalized.dailyTokenBudget, privacyMode: normalized.privacy.mode, outputValidation: normalized.outputValidation.enabled },
+    detail: { enabled: normalized.enabled, allowActions: normalized.allowActions, dailyRequestLimit: normalized.dailyRequestLimit, dailyTokenBudget: normalized.dailyTokenBudget, privacyMode: normalized.privacy.mode, outputValidation: normalized.outputValidation.enabled, runtimeEnabled: normalized.runtime.enabled, maxConcurrent: normalized.runtime.maxConcurrent },
   });
   return normalized;
 }
@@ -198,15 +233,20 @@ function normalizeUsage(raw) {
         privacyRedactions: clampNumber(item?.privacyRedactions, 0, 1000000000, 0),
         validationFailures: clampNumber(item?.validationFailures, 0, 1000000000, 0),
         validationRepairs: clampNumber(item?.validationRepairs, 0, 1000000000, 0),
+        runtimeRetries: clampNumber(item?.runtimeRetries, 0, 1000000000, 0),
+        runtimeCacheHits: clampNumber(item?.runtimeCacheHits, 0, 1000000000, 0),
+        runtimeDedupeHits: clampNumber(item?.runtimeDedupeHits, 0, 1000000000, 0),
+        runtimeTimeouts: clampNumber(item?.runtimeTimeouts, 0, 1000000000, 0),
+        runtimeQueueWaitMs: clampNumber(item?.runtimeQueueWaitMs, 0, 1000000000, 0),
         providers: item?.providers && typeof item.providers === 'object' ? item.providers : {},
         users: item?.users && typeof item.users === 'object' ? item.users : {},
       };
     });
-  return { schemaVersion: 2, days: cleanDays };
+  return { schemaVersion: 3, days: cleanDays };
 }
 
 function readUsage() {
-  return normalizeUsage(safeRead(AI_GOVERNANCE_USAGE_KEY, { schemaVersion: 1, days: {} }));
+  return normalizeUsage(safeRead(AI_GOVERNANCE_USAGE_KEY, { schemaVersion: 3, days: {} }));
 }
 
 function writeUsage(usage) {
@@ -215,7 +255,7 @@ function writeUsage(usage) {
 
 function ensureDay(usage, date) {
   if (!usage.days[date]) {
-    usage.days[date] = { requests: 0, successes: 0, errors: 0, inputTokens: 0, outputTokens: 0, actions: 0, durationMs: 0, privacyRedactions: 0, validationFailures: 0, validationRepairs: 0, providers: {}, users: {} };
+    usage.days[date] = { requests: 0, successes: 0, errors: 0, inputTokens: 0, outputTokens: 0, actions: 0, durationMs: 0, privacyRedactions: 0, validationFailures: 0, validationRepairs: 0, runtimeRetries: 0, runtimeCacheHits: 0, runtimeDedupeHits: 0, runtimeTimeouts: 0, runtimeQueueWaitMs: 0, providers: {}, users: {} };
   }
   return usage.days[date];
 }
@@ -294,7 +334,7 @@ function incrementUser(map, user, amount = 1) {
   map[key] = clampNumber(map[key], 0, 1000000, 0) + amount;
 }
 
-export function recordAiRequest({ provider = '', model = '', prompt = '', result = '', durationMs = 0, success = true, error = '', profile = 'default', operationId = '', privacy = {}, validation = {}, providerCalls = 1 } = {}) {
+export function recordAiRequest({ provider = '', model = '', prompt = '', result = '', durationMs = 0, success = true, error = '', profile = 'default', operationId = '', privacy = {}, validation = {}, providerCalls = 1, runtime = {} } = {}) {
   const usage = readUsage();
   const date = dayKey();
   const day = ensureDay(usage, date);
@@ -309,6 +349,11 @@ export function recordAiRequest({ provider = '', model = '', prompt = '', result
   day.privacyRedactions += Math.max(0, Math.round(Number(privacy?.maskedCount) || 0));
   day.validationFailures += validation?.valid === false ? 1 : 0;
   day.validationRepairs += validation?.repaired ? 1 : 0;
+  day.runtimeRetries += Math.max(0, Math.round(Number(runtime?.retries) || 0));
+  day.runtimeCacheHits += runtime?.cacheHit ? 1 : 0;
+  day.runtimeDedupeHits += runtime?.deduplicated ? 1 : 0;
+  day.runtimeTimeouts += runtime?.timedOut ? 1 : 0;
+  day.runtimeQueueWaitMs += Math.max(0, Math.round(Number(runtime?.queueWaitMs) || 0));
   incrementProvider(day.providers, provider || model || 'Unknown');
   incrementUser(day.users, currentUser);
   writeUsage(usage);
@@ -320,7 +365,7 @@ export function recordAiRequest({ provider = '', model = '', prompt = '', result
     model,
     profile,
     operationId,
-    detail: { inputTokens, outputTokens, durationMs: Math.max(0, Math.round(Number(durationMs) || 0)), error: String(error || '').slice(0, 500), providerCalls: Math.max(1, Number(providerCalls) || 1), privacy: { applied: Boolean(privacy?.applied), riskLevel: privacy?.riskLevel || 'low', maskedCount: Number(privacy?.maskedCount) || 0, categories: Array.isArray(privacy?.categories) ? privacy.categories.slice(0, 12) : [] }, validation: { valid: validation?.valid !== false, kind: validation?.kind || 'text', issueCount: Number(validation?.issueCount) || 0, issueCodes: Array.isArray(validation?.issueCodes) ? validation.issueCodes.slice(0, 12) : [], repairAttempted: Boolean(validation?.repairAttempted), repaired: Boolean(validation?.repaired) } },
+    detail: { inputTokens, outputTokens, durationMs: Math.max(0, Math.round(Number(durationMs) || 0)), error: String(error || '').slice(0, 500), providerCalls: Math.max(1, Number(providerCalls) || 1), privacy: { applied: Boolean(privacy?.applied), riskLevel: privacy?.riskLevel || 'low', maskedCount: Number(privacy?.maskedCount) || 0, categories: Array.isArray(privacy?.categories) ? privacy.categories.slice(0, 12) : [] }, validation: { valid: validation?.valid !== false, kind: validation?.kind || 'text', issueCount: Number(validation?.issueCount) || 0, issueCodes: Array.isArray(validation?.issueCodes) ? validation.issueCodes.slice(0, 12) : [], repairAttempted: Boolean(validation?.repairAttempted), repaired: Boolean(validation?.repaired) }, runtime: { queueWaitMs: Math.max(0, Math.round(Number(runtime?.queueWaitMs) || 0)), retries: Math.max(0, Math.round(Number(runtime?.retries) || 0)), cacheHit: Boolean(runtime?.cacheHit), deduplicated: Boolean(runtime?.deduplicated), timedOut: Boolean(runtime?.timedOut), networkAttempts: Math.max(0, Math.round(Number(runtime?.networkAttempts) || 0)) } },
   });
   return { inputTokens, outputTokens };
 }
@@ -366,7 +411,7 @@ export function clearAiAudit() {
 }
 
 export function resetAiUsage() {
-  safeWrite(AI_GOVERNANCE_USAGE_KEY, { schemaVersion: 2, days: {} });
+  safeWrite(AI_GOVERNANCE_USAGE_KEY, { schemaVersion: 3, days: {} });
   appendAiAudit({ type: 'usage', status: 'success', label: 'AI usage counters reset', detail: {} });
 }
 
@@ -376,6 +421,7 @@ export function exportAiGovernanceReport() {
     settings: getAiGovernanceSettings(),
     usage: getAiUsageDays(),
     audit: readAiAudit(),
+    runtime: getAiRuntimeSnapshot(getAiGovernanceSettings().runtime),
   };
 }
 

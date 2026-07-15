@@ -5,6 +5,7 @@ import {
   mergeAiConfigs,
   saveRoutingPreferences,
 } from './aiProviderOverrides.js';
+import { isAiProviderCircuitOpen } from './aiRuntimeManager.js';
 
 export const AI_ROUTING_MODES = [
   { id: 'smart', label: 'Tự động thông minh', shortLabel: 'Tự động', description: 'Tự chọn provider và model phù hợp với yêu cầu.' },
@@ -102,6 +103,7 @@ export function buildAiRoutingCandidates({ legacyProviders = [], legacyConfigs =
     .map((provider) => ({ provider, config: { ...(mergedConfigs[provider.id] || {}), ...((prefs.providerHealth || {})[provider.id] || {}) } }))
     .filter(({ provider, config }) => isConfigured(provider, config))
     .filter(({ provider }) => supportsProfile(provider, profile))
+    .filter(({ provider }) => options.ignoreCircuitBreaker || !isAiProviderCircuitOpen(provider.id, options.runtimeSettings))
     .filter(({ provider }) => provider.category !== 'paid' || prefs.allowPaid || (prefs.mode === 'manual' && provider.id === (options.manualProvider || prefs.manualProvider || activeProvider)) || (options.provider && provider.id === options.provider));
 
   if (Array.isArray(options.excludeProviders) && options.excludeProviders.length) {
@@ -138,18 +140,23 @@ export function buildAiRoutingCandidates({ legacyProviders = [], legacyConfigs =
 export function classifyAiError(error) {
   const message = String(error?.message || error || '').toLowerCase();
   const status = Number(error?.status || 0);
+  if (error?.code === 'AI_REQUEST_CANCELLED') return 'cancelled';
+  if (error?.code === 'AI_REQUEST_TIMEOUT') return 'timeout';
+  if (error?.code === 'AI_CIRCUIT_OPEN') return 'circuit-open';
   if (error?.code === 'AI_OUTPUT_VALIDATION_FAILED') return 'output-validation';
   if (error?.code === 'AI_PROVIDER_CREDIT_LIMIT' || /credit|billing|quota exceeded|insufficient/.test(message)) return 'capacity';
   if (status === 429 || /rate limit|too many requests|429/.test(message)) return 'rate-limit';
   if (status === 401 || status === 403 || /authentication|unauthorized|invalid api key|missing authentication|forbidden/.test(message)) return 'auth';
   if (status >= 500 || /server error|temporarily unavailable|model unavailable|overloaded/.test(message)) return 'provider-unavailable';
-  if (/network|failed to fetch|load failed|timeout|timed out|abort/.test(message)) return 'network';
+  if (/network|failed to fetch|load failed/.test(message)) return 'network';
+  if (/timeout|timed out/.test(message)) return 'timeout';
+  if (/abort/.test(message)) return 'cancelled';
   if (/context length|too many tokens|maximum context/.test(message)) return 'context';
   return 'unknown';
 }
 
 export function shouldFallbackAiError(error) {
-  return ['capacity', 'rate-limit', 'provider-unavailable', 'network', 'context', 'auth', 'output-validation'].includes(classifyAiError(error));
+  return ['capacity', 'rate-limit', 'provider-unavailable', 'network', 'timeout', 'circuit-open', 'context', 'auth', 'output-validation'].includes(classifyAiError(error));
 }
 
 export function noteProviderHealth(providerId, { success = false, error = '' } = {}) {

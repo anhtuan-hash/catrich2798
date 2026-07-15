@@ -18,6 +18,7 @@ import {
   summarizeAiValidation,
   validateAiOutput,
 } from './aiOutputValidator.js';
+import { createAiRuntimeFingerprint, runAiProviderRuntime } from './aiRuntimeManager.js';
 
 export const DEFAULT_GEMINI_MODEL = 'gemini-flash-latest';
 export const DEFAULT_MAX_OUTPUT_TOKENS = 1600;
@@ -60,7 +61,7 @@ function isOpenRouterCreditError(message = '') {
   return /requires more credits|insufficient credits|can only afford|credit balance|upgrade to a paid account|billing/i.test(String(message));
 }
 
-async function callGeminiProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
+async function callGeminiProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, signal }) {
   const key = String(apiKey || '').trim();
   if (!key) throw new Error('Missing Gemini API key.');
   const cleanBase = String(baseUrl || 'https://generativelanguage.googleapis.com/v1beta').replace(/\/+$/, '');
@@ -78,6 +79,7 @@ async function callGeminiProvider({ apiKey, model, baseUrl, prompt, attachments 
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
     body: JSON.stringify(body),
+    signal,
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -89,7 +91,7 @@ async function callGeminiProvider({ apiKey, model, baseUrl, prompt, attachments 
   return text;
 }
 
-async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', provider = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry, requiresApiKey = true }) {
+async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', provider = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry, requiresApiKey = true, signal }) {
   const key = String(apiKey || '').trim();
   if (requiresApiKey && !key) throw new Error(`Missing ${provider || 'AI'} API key.`);
   const cleanBase = String(baseUrl || '').replace(/\/+$/, '');
@@ -118,7 +120,7 @@ async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, at
   if (responseMimeType === 'application/json') body.response_format = { type: 'json_object' };
 
   const executeRequest = async (requestBody) => {
-    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(requestBody) });
+    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(requestBody), signal });
     const data = await response.json().catch(() => ({}));
     return { response, data };
   };
@@ -185,7 +187,7 @@ async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, at
   return String(text).trim();
 }
 
-async function callCohereProvider({ apiKey, model, baseUrl, prompt, systemInstruction = '', temperature = 0.7, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
+async function callCohereProvider({ apiKey, model, baseUrl, prompt, systemInstruction = '', temperature = 0.7, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, signal }) {
   const key = String(apiKey || '').trim();
   if (!key) throw new Error('Missing Cohere API key.');
   const cleanBase = String(baseUrl || 'https://api.cohere.com/v2').replace(/\/+$/, '');
@@ -193,6 +195,7 @@ async function callCohereProvider({ apiKey, model, baseUrl, prompt, systemInstru
   const response = await fetch(`${cleanBase}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+    signal,
     body: JSON.stringify({
       model: normalizeModelName(model, 'command-a-03-2025'),
       messages,
@@ -208,7 +211,7 @@ async function callCohereProvider({ apiKey, model, baseUrl, prompt, systemInstru
   return text;
 }
 
-async function callClaudeProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) {
+async function callClaudeProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, signal }) {
   const key = String(apiKey || '').trim();
   if (!key) throw new Error('Missing Claude API key.');
   const cleanBase = String(baseUrl || 'https://api.anthropic.com/v1').replace(/\/+$/, '');
@@ -220,6 +223,7 @@ async function callClaudeProvider({ apiKey, model, baseUrl, prompt, attachments 
       'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true',
     },
+    signal,
     body: JSON.stringify({
       model: normalizeModelName(model, 'claude-3-5-haiku-latest'),
       max_tokens: normalizeMaxOutputTokens(maxOutputTokens),
@@ -241,7 +245,7 @@ async function callClaudeProvider({ apiKey, model, baseUrl, prompt, attachments 
   return text;
 }
 
-async function callSingleProvider({ provider, apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry }) {
+async function callSingleProvider({ provider, apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry, signal }) {
   const info = getProviderInfo(provider || DEFAULT_PROVIDER);
   const config = {
     provider: info.id,
@@ -256,6 +260,7 @@ async function callSingleProvider({ provider, apiKey, model, baseUrl, prompt, at
     maxOutputTokens: normalizeMaxOutputTokens(maxOutputTokens),
     onAdaptiveRetry,
     requiresApiKey: info.requiresApiKey !== false,
+    signal,
   };
   if (info.kind === 'gemini') return callGeminiProvider(config);
   if (info.kind === 'claude') return callClaudeProvider(config);
@@ -331,6 +336,7 @@ export async function callAIWithMeta(options = {}) {
       provider: preferredProvider,
       manualProvider: enrichedOptions.manualProvider || (enrichedOptions.provider ? preferredProvider : undefined),
       manualModel: enrichedOptions.manualModel || (enrichedOptions.provider ? (enrichedOptions.model || configs[preferredProvider]?.model) : undefined),
+      runtimeSettings: governanceSettings.runtime,
     },
   });
 
@@ -390,6 +396,25 @@ export async function callAIWithMeta(options = {}) {
   let repairAttempted = false;
   let repaired = false;
   let repairAttempts = 0;
+  const runtimeAggregate = {
+    queueWaitMs: 0,
+    networkAttempts: 0,
+    retries: 0,
+    cacheHit: false,
+    deduplicated: false,
+    timedOut: false,
+    circuitOpen: false,
+  };
+  const mergeRuntime = (runtime = {}) => {
+    runtimeAggregate.queueWaitMs += Math.max(0, Number(runtime.queueWaitMs) || 0);
+    runtimeAggregate.networkAttempts += Math.max(0, Number(runtime.networkAttempts) || 0);
+    runtimeAggregate.retries += Math.max(0, Number(runtime.retries) || 0);
+    runtimeAggregate.cacheHit = runtimeAggregate.cacheHit || Boolean(runtime.cacheHit);
+    runtimeAggregate.deduplicated = runtimeAggregate.deduplicated || Boolean(runtime.deduplicated);
+    runtimeAggregate.timedOut = runtimeAggregate.timedOut || Boolean(runtime.timedOut);
+    runtimeAggregate.circuitOpen = runtimeAggregate.circuitOpen || Boolean(runtime.circuitOpen);
+  };
+  const baseCacheAllowed = !privacySummary.applied && (enrichedOptions.cache === true || task.id === 'diagnostic');
 
   for (let index = 0; index < candidates.length; index += 1) {
     const candidate = candidates[index];
@@ -405,19 +430,45 @@ export async function callAIWithMeta(options = {}) {
       phase: 'generate',
     });
     try {
-      providerCalls += 1;
-      let candidateResult = await callSingleProvider({
-        ...enrichedOptions,
-        provider: candidate.id,
-        apiKey: candidate.apiKey,
+      const generationFingerprint = createAiRuntimeFingerprint({
+        providerId: candidate.id,
         model: candidate.model,
-        baseUrl: candidate.baseUrl,
+        taskId: task.id,
+        prompt: enrichedOptions.prompt || '',
+        systemInstruction: enrichedOptions.systemInstruction || '',
+        responseMimeType: enrichedOptions.responseMimeType || '',
         maxOutputTokens: governance.maxOutputTokens,
-        onAdaptiveRetry: (detail) => {
-          enrichedOptions.onAdaptiveRetry?.(detail);
-          emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id });
-        },
+        temperature: enrichedOptions.temperature,
+        attachments: enrichedOptions.attachments,
       });
+      const generationRuntime = await runAiProviderRuntime({
+        operationId: `${operationId}:${candidate.id}:generate`,
+        providerId: candidate.id,
+        model: candidate.model,
+        taskId: task.id,
+        fingerprint: generationFingerprint,
+        settings: governance.settings.runtime,
+        signal: enrichedOptions.signal,
+        cacheAllowed: baseCacheAllowed,
+        classifyError: classifyAiError,
+        onUpdate: (detail) => emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id, model: candidate.model }),
+        executor: ({ signal }) => callSingleProvider({
+          ...enrichedOptions,
+          provider: candidate.id,
+          apiKey: candidate.apiKey,
+          model: candidate.model,
+          baseUrl: candidate.baseUrl,
+          maxOutputTokens: governance.maxOutputTokens,
+          signal,
+          onAdaptiveRetry: (detail) => {
+            enrichedOptions.onAdaptiveRetry?.(detail);
+            emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id });
+          },
+        }),
+      });
+      mergeRuntime(generationRuntime.runtime);
+      providerCalls += generationRuntime.runtime.networkAttempts;
+      let candidateResult = generationRuntime.value;
 
       let validation = validateAiOutput(candidateResult, {
         options: enrichedOptions,
@@ -445,19 +496,43 @@ export async function callAIWithMeta(options = {}) {
           task,
           originalPrompt: enrichedOptions.prompt || '',
         });
-        providerCalls += 1;
-        candidateResult = await callSingleProvider({
-          ...enrichedOptions,
-          provider: candidate.id,
-          apiKey: candidate.apiKey,
+        const repairRuntime = await runAiProviderRuntime({
+          operationId: `${operationId}:${candidate.id}:repair:${repairAttempts}`,
+          providerId: candidate.id,
           model: candidate.model,
-          baseUrl: candidate.baseUrl,
-          prompt: repairPrompt,
-          systemInstruction: 'You are Brian AI Output Repair. Correct formatting and validation defects exactly. Never add commentary outside the requested final output.',
-          temperature: 0.1,
-          maxOutputTokens: governance.maxOutputTokens,
-          onAdaptiveRetry: (detail) => emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id, phase: 'repair' }),
+          taskId: `${task.id}:repair`,
+          fingerprint: createAiRuntimeFingerprint({
+            providerId: candidate.id,
+            model: candidate.model,
+            taskId: `${task.id}:repair`,
+            prompt: repairPrompt,
+            systemInstruction: 'Brian AI Output Repair',
+            responseMimeType: enrichedOptions.responseMimeType || '',
+            maxOutputTokens: governance.maxOutputTokens,
+            temperature: 0.1,
+          }),
+          settings: governance.settings.runtime,
+          signal: enrichedOptions.signal,
+          cacheAllowed: false,
+          classifyError: classifyAiError,
+          onUpdate: (detail) => emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id, phase: 'repair' }),
+          executor: ({ signal }) => callSingleProvider({
+            ...enrichedOptions,
+            provider: candidate.id,
+            apiKey: candidate.apiKey,
+            model: candidate.model,
+            baseUrl: candidate.baseUrl,
+            prompt: repairPrompt,
+            systemInstruction: 'You are Brian AI Output Repair. Correct formatting and validation defects exactly. Never add commentary outside the requested final output.',
+            temperature: 0.1,
+            maxOutputTokens: governance.maxOutputTokens,
+            signal,
+            onAdaptiveRetry: (detail) => emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id, phase: 'repair' }),
+          }),
         });
+        mergeRuntime(repairRuntime.runtime);
+        providerCalls += repairRuntime.runtime.networkAttempts;
+        candidateResult = repairRuntime.value;
         validation = validateAiOutput(candidateResult, {
           options: enrichedOptions,
           task,
@@ -483,6 +558,8 @@ export async function callAIWithMeta(options = {}) {
       finalError = error;
       if (error?.validation) finalValidation = error.validation;
       const kind = classifyAiError(error);
+      runtimeAggregate.timedOut = runtimeAggregate.timedOut || kind === 'timeout';
+      runtimeAggregate.circuitOpen = runtimeAggregate.circuitOpen || kind === 'circuit-open';
       noteProviderHealth(candidate.id, { success: false, error: error?.message || String(error) });
       attempts.push({
         provider: candidate.id,
@@ -509,7 +586,7 @@ export async function callAIWithMeta(options = {}) {
     taskId: task.id,
     taskLabel: task.label,
     engine: 'ai',
-    transport: 'browser-direct',
+    transport: 'browser-unified',
     provider: finalCandidate?.id || preferredProvider,
     providerName: finalInfo.label || finalCandidate?.id || preferredProvider,
     model: finalCandidate?.model || '',
@@ -524,6 +601,7 @@ export async function callAIWithMeta(options = {}) {
     validated: Boolean(validationSummary.valid),
     privacy: { ...privacySummary, restored: Boolean(privacySummary.applied) },
     validation: validationSummary,
+    runtime: { ...runtimeAggregate, durationMs },
   };
 
   if (result && !finalError) {
@@ -540,6 +618,7 @@ export async function callAIWithMeta(options = {}) {
       privacy: privacySummary,
       validation: validationSummary,
       providerCalls,
+      runtime: meta.runtime,
     });
     if (typeof window !== 'undefined') window.__BES_LAST_AI_META__ = meta;
     emitAiOperation('bes-ai-operation-end', { ...operationDetail, ...meta, success: true });
@@ -576,6 +655,7 @@ export async function callAIWithMeta(options = {}) {
     privacy: { ...privacySummary, restored: Boolean(privacySummary.applied) },
     validation: validationSummary,
     providerCalls,
+    runtime: meta.runtime,
   });
   emitAiOperation('bes-ai-operation-end', { ...operationDetail, ...meta, success: false, error: error?.message || String(error) });
   throw error;

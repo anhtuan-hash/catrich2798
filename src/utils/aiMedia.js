@@ -7,6 +7,8 @@ import {
   recordAiRequest,
 } from './aiGovernance.js';
 import { applyAiPrivacyFilter, summarizeAiPrivacyReport } from './aiPrivacyFilter.js';
+import { classifyAiError } from './aiSmartRouting.js';
+import { createAiRuntimeFingerprint, runAiProviderRuntime } from './aiRuntimeManager.js';
 
 const DEFAULT_IMAGE_MODELS = ['gemini-3.1-flash-image', 'gemini-2.5-flash-image'];
 
@@ -165,6 +167,16 @@ export async function callAIImageWithMeta({
   emitAiOperation('bes-ai-operation-start', operation);
 
   const attempts = [];
+  const runtimeAggregate = { queueWaitMs: 0, networkAttempts: 0, retries: 0, cacheHit: false, deduplicated: false, timedOut: false, circuitOpen: false };
+  const mergeRuntime = (runtime = {}) => {
+    runtimeAggregate.queueWaitMs += Math.max(0, Number(runtime.queueWaitMs) || 0);
+    runtimeAggregate.networkAttempts += Math.max(0, Number(runtime.networkAttempts) || 0);
+    runtimeAggregate.retries += Math.max(0, Number(runtime.retries) || 0);
+    runtimeAggregate.cacheHit ||= Boolean(runtime.cacheHit);
+    runtimeAggregate.deduplicated ||= Boolean(runtime.deduplicated);
+    runtimeAggregate.timedOut ||= Boolean(runtime.timedOut);
+    runtimeAggregate.circuitOpen ||= Boolean(runtime.circuitOpen);
+  };
   let result = '';
   let finalModel = modelList[0];
   let finalError = null;
@@ -174,17 +186,47 @@ export async function callAIImageWithMeta({
     emitAiOperation('bes-ai-operation-update', { ...operation, model, phase: 'generate-image' });
     try {
       const attachment = privacyResult.options.attachments?.[0] || source;
-      const payload = await fetchJsonWithRetry(`${cleanBase}/models/${encodeURIComponent(model)}:generateContent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-        body: JSON.stringify({
-          contents: [{ parts: [
-            { text: privacyResult.options.prompt || prompt },
-            { inlineData: { mimeType: attachment.mimeType || source.mimeType, data: attachment.base64 || source.base64 } },
-          ] }],
-          generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+      const runtimeResult = await runAiProviderRuntime({
+        operationId: `${operationId}:gemini:${model}`,
+        providerId: 'gemini',
+        model,
+        taskId: aiTaskId,
+        fingerprint: createAiRuntimeFingerprint({
+          providerId: 'gemini',
+          model,
+          taskId: aiTaskId,
+          prompt: privacyResult.options.prompt || prompt,
+          responseMimeType: 'image/png',
+          attachments: [attachment],
         }),
-      }, retries);
+        settings: { ...governance.settings.runtime, transientRetries: Math.max(Number(retries) || 0, governance.settings.runtime?.transientRetries || 0) },
+        cacheAllowed: false,
+        classifyError: classifyAiError,
+        onUpdate: (detail) => emitAiOperation('bes-ai-operation-update', { ...operation, ...detail, model, phase: detail.phase || 'generate-image' }),
+        executor: async ({ signal }) => {
+          const response = await fetch(`${cleanBase}/models/${encodeURIComponent(model)}:generateContent`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+            signal,
+            body: JSON.stringify({
+              contents: [{ parts: [
+                { text: privacyResult.options.prompt || prompt },
+                { inlineData: { mimeType: attachment.mimeType || source.mimeType, data: attachment.base64 || source.base64 } },
+              ] }],
+              generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+            }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const requestError = new Error(payload?.error?.message || `AI media request failed with status ${response.status}`);
+            requestError.status = response.status;
+            throw requestError;
+          }
+          return payload;
+        },
+      });
+      mergeRuntime(runtimeResult.runtime);
+      const payload = runtimeResult.value;
       result = extractGeneratedImage(payload);
       if (!result) throw new Error('The image model returned no image output.');
       attempts.push({ model, status: 'success', durationMs: Date.now() - attemptStartedAt });
@@ -207,6 +249,7 @@ export async function callAIImageWithMeta({
     operationId,
     taskId: aiTaskId,
     engine: 'ai',
+    transport: 'browser-unified',
     mediaType: 'image',
     provider: 'gemini',
     providerName: providerInfo.label || 'Google Gemini',
@@ -214,11 +257,12 @@ export async function callAIImageWithMeta({
     profile: governance.profileKey,
     fallbackUsed: attempts.length > 1,
     attempts,
-    providerCalls: attempts.length,
+    providerCalls: runtimeAggregate.networkAttempts,
     durationMs,
     createdAt: new Date().toISOString(),
     privacy: { ...privacySummary, restored: false },
     validation: { enabled: true, valid: Boolean(result), kind: 'image', issueCount: result ? 0 : 1, issueCodes: result ? [] : ['missing_image_output'] },
+    runtime: { ...runtimeAggregate, durationMs },
   };
 
   if (result && !finalError) {
@@ -233,7 +277,8 @@ export async function callAIImageWithMeta({
       operationId,
       privacy: privacySummary,
       validation: meta.validation,
-      providerCalls: attempts.length,
+      providerCalls: meta.providerCalls,
+      runtime: meta.runtime,
     });
     if (typeof window !== 'undefined') window.__BES_LAST_AI_META__ = meta;
     emitAiOperation('bes-ai-operation-end', { ...operation, ...meta, success: true });
@@ -257,7 +302,8 @@ export async function callAIImageWithMeta({
     operationId,
     privacy: privacySummary,
     validation: meta.validation,
-    providerCalls: attempts.length || 1,
+    providerCalls: meta.providerCalls || 1,
+    runtime: meta.runtime,
   });
   emitAiOperation('bes-ai-operation-end', { ...operation, ...meta, success: false, error: error.message });
   throw error;
