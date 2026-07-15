@@ -1,14 +1,14 @@
 {
-  "version": "12.23.0",
+  "version": "12.24.0",
   "channel": "stable",
-  "releaseName": "Department Detail Workspace & Notification Bridge",
+  "releaseName": "Admin Center Option 1",
   "runtimeCore": "3.6.1",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-15T00:15:43.387Z",
+  "generatedAt": "2026-07-15T00:20:09.542Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Department Detail Workspace & Notification Bridge",
+  "release": "Admin Center Option 1",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -492,5 +492,12 @@
   "departmentDetailModuleScroll": true,
   "departmentUnifiedDetailCards": true,
   "activityCenterBridgeRestored": true,
-  "notificationPanelOpenFix": true
+  "notificationPanelOpenFix": true,
+  "adminCenterOptionOne": true,
+  "adminSidebarRemoved": true,
+  "adminFullWidthWidescreen": true,
+  "adminColorCodedModules": true,
+  "adminUnifiedCardLanguage": true,
+  "adminInteractivePermissionProfiles": true,
+  "adminActivityCenterButton": true
 }

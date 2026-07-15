@@ -372,61 +372,136 @@ export default function AdminPage({ language, currentUser }) {
     );
   }
 
+  const selectedTeacher = teacherUsers[0] || null;
+  const selectedAdmin = users.find((user) => user.role === 'admin' && (user.id === currentUser.id || String(user.email || '').toLowerCase() === String(currentUser.email || '').toLowerCase()))
+    || users.find((user) => user.role === 'admin')
+    || currentUser;
+
+  const exportAdminReport = () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      summary: {
+        totalAccounts: users.length,
+        activeAccounts: activeUsers,
+        pendingRequests: pendingRequests.length,
+        permissionGroups: PERMISSION_GROUPS.length,
+        availablePermissions: ALL_PERMISSION_IDS.length,
+      },
+      users,
+      permissionRequests: requests,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `brian-admin-report-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const openAdminAi = (prompt) => {
+    window.dispatchEvent(new CustomEvent('bes-ai-open', {
+      detail: {
+        prompt: prompt || (language === 'vi'
+          ? 'Hãy phân tích tình trạng tài khoản, phân quyền và bảo mật hiện tại của hệ thống.'
+          : 'Analyze the current account, permission and security status of the system.'),
+      },
+    }));
+  };
+
   return (
-    <div className="page admin-page admin-page-v62 admin-page-v41">
-      <div className="admin-v41-shell">
-        <AdminV41Sidebar language={language} currentUser={currentUser} />
+    <div className="page admin-page admin-page-v62 admin-page-v41 admin-page-v124">
+      <div className="admin-v124-shell">
+        <header className="admin-v124-topbar">
+          <button type="button" className="admin-v124-brand" onClick={() => (window.location.hash = '#/home')}>
+            <span className="admin-v124-brand-mark">B</span>
+            <span><strong>Brian English Studio</strong><small>Admin Center</small></span>
+          </button>
 
-        <div className="admin-v41-main">
-          <AdminV41Hero
-            language={language}
-            onRefresh={() => refresh()}
-            onOpenRequests={() => goToAdminSection('requests')}
-            onOpenPermissions={() => goToAdminSection('permissions')}
-            onSync={syncAuthProfiles}
-          />
+          <nav className="admin-v124-nav" aria-label={language === 'vi' ? 'Điều hướng quản trị' : 'Admin navigation'}>
+            <button className="active" type="button" onClick={() => goToAdminSection('hero')}>⌂ <span>{language === 'vi' ? 'Admin Center' : 'Admin Center'}</span></button>
+            <button type="button" onClick={() => goToAdminSection('accounts')}>♙ <span>{language === 'vi' ? 'Tài khoản' : 'Accounts'}</span></button>
+            <button type="button" onClick={() => goToAdminSection('permissions')}>◉ <span>{language === 'vi' ? 'Phân quyền' : 'Permissions'}</span></button>
+            <button type="button" onClick={() => goToAdminSection('security')}>◷ <span>{language === 'vi' ? 'Nhật ký & bảo mật' : 'Logs & security'}</span></button>
+            <button type="button" onClick={() => document.querySelector('.admin-sync-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>⚙ <span>{language === 'vi' ? 'Cài đặt hệ thống' : 'System settings'}</span></button>
+          </nav>
 
-          <section className="admin-v41-summary-strip">
-            <SummaryCard
-              tone="blue"
-              icon="👥"
-              title={language === 'vi' ? 'Yêu cầu chờ duyệt' : 'Pending requests'}
-              value={pendingRequests.length}
-              caption={language === 'vi' ? `+${Math.min(3, pendingRequests.length)} mới trong hôm nay` : `+${Math.min(3, pendingRequests.length)} today`}
-            />
-            <SummaryCard
-              tone="mint"
-              icon="🛡️"
-              title={language === 'vi' ? 'Phân quyền hệ thống' : 'Permission groups'}
-              value={PERMISSION_GROUPS.length}
-              caption={language === 'vi' ? `${ALL_PERMISSION_IDS.length} quyền khả dụng` : `${ALL_PERMISSION_IDS.length} available rights`}
-            />
-            <SummaryCard
-              tone="violet"
-              icon="👤"
-              title={language === 'vi' ? 'Tài khoản đang hoạt động' : 'Active accounts'}
-              value={activeUsers}
-              caption={language === 'vi' ? `Trong tổng số ${users.length} tài khoản` : `Out of ${users.length} accounts`}
-            />
-            <SummaryCard
-              tone="peach"
-              icon="🔔"
-              title={language === 'vi' ? 'Cảnh báo / nhật ký' : 'Alerts / logs'}
-              value={inactiveUsers + (databaseAdminNotSynced ? 1 : 0)}
-              caption={language === 'vi' ? 'Cần kiểm tra' : 'Require review'}
-            />
+          <div className="admin-v124-top-actions">
+            <button type="button" className="admin-v124-help" onClick={() => openAdminAi(language === 'vi' ? 'Hướng dẫn tôi sử dụng Trung tâm quản trị tài khoản và phân quyền.' : 'Guide me through the account and permission Admin Center.')}>? <span>{language === 'vi' ? 'Trợ giúp' : 'Help'}</span></button>
+            <button
+              type="button"
+              className="admin-v124-bell"
+              aria-label={language === 'vi' ? 'Mở thông báo' : 'Open notifications'}
+              onClick={() => window.dispatchEvent(new CustomEvent('brian:activity-center-open', { detail: { tab: 'notifications' } }))}
+            >
+              ♫<b>{inactiveUsers + pendingRequests.length}</b>
+            </button>
+            <button type="button" className="admin-v124-profile" onClick={() => goToAdminSection('accounts')}>
+              <span>{initialsFromName(currentUser?.name || currentUser?.email)}</span>
+              <span><strong>{currentUser?.name || 'Nguyễn Anh Tuấn'}</strong><small>{currentUser?.role || 'admin'}</small></span>
+              <i>⌄</i>
+            </button>
+          </div>
+        </header>
+
+        <main className="admin-v124-main">
+          <section className="admin-v124-hero admin-v41-hero" id="admin-v124-hero">
+            <div className="admin-v124-hero-copy">
+              <span className="admin-v124-eyebrow">ADMIN CENTER</span>
+              <h1>{language === 'vi' ? 'Quản trị tài khoản & phân quyền' : 'Account & permission management'}</h1>
+              <p>
+                {language === 'vi'
+                  ? 'Quản lý tài khoản, vai trò, quyền hạn và giám sát truy cập hệ thống Brian English Studio một cách an toàn, minh bạch.'
+                  : 'Manage accounts, roles, permissions and system access across Brian English Studio with a secure, transparent workflow.'}
+              </p>
+              <div className="admin-v124-hero-actions">
+                <button type="button" className="danger" onClick={() => goToAdminSection('requests')}>🛡 {language === 'vi' ? 'Duyệt yêu cầu' : 'Review requests'} <b>{pendingRequests.length}</b></button>
+                <button type="button" className="primary" onClick={() => (window.location.hash = '#/register')}>＋ {language === 'vi' ? 'Tạo tài khoản' : 'Create account'}</button>
+                <button type="button" className="secondary" onClick={exportAdminReport}>⇩ {language === 'vi' ? 'Xuất báo cáo' : 'Export report'}</button>
+              </div>
+            </div>
+
+            <div className="admin-v124-kpi-grid">
+              <SummaryCard
+                tone="blue"
+                icon="👥"
+                title={language === 'vi' ? 'Tài khoản hoạt động' : 'Active accounts'}
+                value={activeUsers}
+                caption={language === 'vi' ? `Trong tổng số ${users.length} tài khoản` : `Out of ${users.length} accounts`}
+              />
+              <SummaryCard
+                tone="mint"
+                icon="🛡️"
+                title={language === 'vi' ? 'Quyền đang áp dụng' : 'Applied permissions'}
+                value={PERMISSION_GROUPS.length}
+                caption={language === 'vi' ? `${ALL_PERMISSION_IDS.length} quyền khả dụng` : `${ALL_PERMISSION_IDS.length} available permissions`}
+              />
+              <SummaryCard
+                tone="peach"
+                icon="🔔"
+                title={language === 'vi' ? 'Cảnh báo / nhật ký' : 'Alerts / logs'}
+                value={inactiveUsers + (databaseAdminNotSynced ? 1 : 0)}
+                caption={language === 'vi' ? 'Cần kiểm tra' : 'Require review'}
+              />
+              <SummaryCard
+                tone="violet"
+                icon="◷"
+                title={language === 'vi' ? 'Yêu cầu chờ duyệt' : 'Pending requests'}
+                value={pendingRequests.length}
+                caption={language === 'vi' ? `+${Math.min(3, pendingRequests.length)} mới hôm nay` : `+${Math.min(3, pendingRequests.length)} today`}
+              />
+            </div>
           </section>
 
-          <section className="admin-v41-core-grid">
-            <article className="admin-v41-panel panel-blue" id="admin-v41-requests">
-              <div className="panel-title-row">
-                <div>
-                  <h2>{language === 'vi' ? 'Yêu cầu truy cập' : 'Access requests'}</h2>
-                  <p>{language === 'vi' ? 'Duyệt nhanh các yêu cầu giáo viên gửi lên.' : 'Quick review of teacher requests.'}</p>
-                </div>
-                <button type="button" className="text-link" onClick={() => document.querySelector('.permission-request-admin-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button>
+          <section className="admin-v124-core-grid">
+            <article className="admin-v124-panel admin-v124-panel-blue" id="admin-v41-requests">
+              <div className="admin-v124-panel-head">
+                <span className="admin-v124-panel-icon">👥</span>
+                <div><h2>{language === 'vi' ? 'Yêu cầu truy cập' : 'Access requests'}</h2><p>{language === 'vi' ? 'Duyệt nhanh các yêu cầu giáo viên gửi lên.' : 'Quickly review teacher access requests.'}</p></div>
+                <button type="button" onClick={() => document.querySelector('.permission-request-admin-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{language === 'vi' ? 'Xem tất cả' : 'View all'} ↗</button>
               </div>
-
               <AdminPreviewTable
                 columns={[
                   language === 'vi' ? 'Người dùng' : 'User',
@@ -437,30 +512,21 @@ export default function AdminPage({ language, currentUser }) {
                 ]}
                 rows={pendingRequests.slice(0, 3).map((request) => ({
                   id: request.id,
-                  cells: [
-                    request.requester_name || request.requester_email,
-                    request.item_title || request.permission_id,
-                    request.item_type || 'Brian English',
-                    formatMiniDate(request.created_at),
-                    language === 'vi' ? 'Chờ duyệt' : 'Pending',
-                  ],
+                  cells: [request.requester_name || request.requester_email, request.item_title || request.permission_id, request.item_type || 'Brian English', formatMiniDate(request.created_at), language === 'vi' ? 'Chờ duyệt' : 'Pending'],
                 }))}
                 rowKey={(row) => row.id}
                 emptyText={language === 'vi' ? 'Chưa có yêu cầu mới.' : 'No pending requests.'}
                 buttonText={language === 'vi' ? 'Duyệt yêu cầu' : 'Review requests'}
-                onButtonClick={() => goToAdminSection('requests')}
+                onButtonClick={() => document.querySelector('.permission-request-admin-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
               />
             </article>
 
-            <article className="admin-v41-panel panel-mint" id="admin-v41-permissions">
-              <div className="panel-title-row">
-                <div>
-                  <h2>{language === 'vi' ? 'Phân quyền chi tiết' : 'Granular permissions'}</h2>
-                  <p>{language === 'vi' ? 'Tổng quan vai trò, nhóm quyền và phạm vi truy cập.' : 'Role groups, access scope and permission coverage.'}</p>
-                </div>
-                <button type="button" className="text-link" onClick={() => document.querySelector('.permission-admin-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{language === 'vi' ? 'Xem chi tiết' : 'View detail'}</button>
+            <article className="admin-v124-panel admin-v124-panel-green" id="admin-v41-permissions">
+              <div className="admin-v124-panel-head">
+                <span className="admin-v124-panel-icon">🛡</span>
+                <div><h2>{language === 'vi' ? 'Phân quyền chi tiết' : 'Granular permissions'}</h2><p>{language === 'vi' ? 'Tổng quan vai trò, nhóm quyền và phạm vi truy cập.' : 'Review roles, groups and access scopes.'}</p></div>
+                <button type="button" onClick={() => document.querySelector('.admin-v124-permission-profiles')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{language === 'vi' ? 'Xem chi tiết' : 'View detail'} ↗</button>
               </div>
-
               <AdminPreviewTable
                 columns={[
                   language === 'vi' ? 'Vai trò / Nhóm' : 'Role / group',
@@ -469,169 +535,181 @@ export default function AdminPage({ language, currentUser }) {
                   language === 'vi' ? 'Quyền' : 'Rights',
                   language === 'vi' ? 'Trạng thái' : 'Status',
                 ]}
-                rows={roleRows.map((row) => ({
-                  id: row.id,
-                  cells: [row.name, row.members, row.app, row.rights, row.status],
-                }))}
+                rows={roleRows.map((row) => ({ id: row.id, cells: [row.name, row.members, row.app, row.rights, row.status] }))}
                 rowKey={(row) => row.id}
                 emptyText={language === 'vi' ? 'Chưa có cấu hình quyền.' : 'No permission groups yet.'}
                 buttonText={language === 'vi' ? 'Phân quyền chi tiết' : 'Permission detail'}
-                onButtonClick={() => goToAdminSection('permissions')}
+                onButtonClick={() => document.querySelector('.admin-v124-permission-profiles')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
               />
             </article>
 
-            <article className="admin-v41-panel panel-cream" id="admin-v41-accounts">
-              <div className="panel-title-row">
-                <div>
-                  <h2>{language === 'vi' ? 'Tài khoản hệ thống' : 'System accounts'}</h2>
-                  <p>{language === 'vi' ? 'Theo dõi trạng thái tài khoản và người dùng mới.' : 'Monitor account status and newly created users.'}</p>
-                </div>
-                <button type="button" className="text-link" onClick={() => document.querySelector('.permission-admin-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button>
+            <article className="admin-v124-panel admin-v124-panel-orange" id="admin-v41-accounts">
+              <div className="admin-v124-panel-head">
+                <span className="admin-v124-panel-icon">👤</span>
+                <div><h2>{language === 'vi' ? 'Tài khoản hệ thống' : 'System accounts'}</h2><p>{language === 'vi' ? 'Theo dõi trạng thái tài khoản và người dùng mới.' : 'Monitor accounts and recent users.'}</p></div>
+                <button type="button" onClick={() => document.querySelector('.admin-v124-all-users')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{language === 'vi' ? 'Xem tất cả' : 'View all'} ↗</button>
               </div>
-
-              <div className="admin-v41-account-grid">
-                <div className="admin-v41-mini-stats">
+              <div className="admin-v124-account-content">
+                <div className="admin-v124-stat-stack">
                   <div><strong>{users.length}</strong><span>{language === 'vi' ? 'Tổng tài khoản' : 'Total accounts'}</span></div>
-                  <div><strong>{activeUsers}</strong><span>{language === 'vi' ? 'Đang hoạt động' : 'Active now'}</span></div>
-                  <div><strong>{inactiveUsers}</strong><span>{language === 'vi' ? 'Tạm khoá / chờ duyệt' : 'Locked / pending'}</span></div>
+                  <div><strong>{activeUsers}</strong><span>{language === 'vi' ? 'Đang hoạt động' : 'Active'}</span></div>
+                  <div><strong>{inactiveUsers}</strong><span>{language === 'vi' ? 'Tạm khóa / chờ duyệt' : 'Locked / pending'}</span></div>
                   <div><strong>{teacherUsers.length}</strong><span>{language === 'vi' ? 'Giáo viên' : 'Teachers'}</span></div>
                 </div>
-                <div className="admin-v41-new-users">
-                  <strong>{language === 'vi' ? 'Người dùng mới' : 'Newest users'}</strong>
-                  {recentUsers.length === 0 ? (
-                    <div className="admin-v41-empty-note">{language === 'vi' ? 'Chưa có người dùng mới.' : 'No recent users.'}</div>
-                  ) : recentUsers.map((user) => (
-                    <div key={user.id} className="new-user-row">
-                      <span className="initials">{initialsFromName(user.name || user.email)}</span>
-                      <b>{user.name}</b>
-                      <em>{user.role === 'admin' ? 'Admin' : (language === 'vi' ? 'Giáo viên' : 'Teacher')}</em>
-                      <small>{user.createdAt ? relativeLabel(user.createdAt, language) : '—'}</small>
-                    </div>
-                  ))}
+                <div className="admin-v124-recent-users">
+                  <strong>{language === 'vi' ? 'Người dùng mới' : 'Recent users'}</strong>
+                  {recentUsers.length ? recentUsers.map((user) => (
+                    <div key={user.id}><span>{initialsFromName(user.name || user.email)}</span><b>{user.name || user.email}</b><em>{user.role === 'admin' ? 'Admin' : (language === 'vi' ? 'Giáo viên' : 'Teacher')}</em><small>{user.createdAt ? relativeLabel(user.createdAt, language) : '—'}</small></div>
+                  )) : <p>{language === 'vi' ? 'Chưa có người dùng mới.' : 'No recent users.'}</p>}
                 </div>
               </div>
-              <button type="button" className="table-action gold" onClick={() => document.querySelector('.permission-admin-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{language === 'vi' ? 'Quản lý tài khoản' : 'Manage accounts'}</button>
+              <button type="button" className="admin-v124-panel-action" onClick={() => document.querySelector('.admin-v124-all-users')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{language === 'vi' ? 'Quản lý tài khoản' : 'Manage accounts'} →</button>
             </article>
 
-            <article className="admin-v41-panel panel-lavender" id="admin-v41-security">
-              <div className="panel-title-row">
-                <div>
-                  <h2>{language === 'vi' ? 'Nhật ký & bảo mật' : 'Logs & security'}</h2>
-                  <p>{language === 'vi' ? 'Theo dõi hoạt động gần đây và kiểm tra trạng thái bảo mật.' : 'Track recent actions and review security status.'}</p>
-                </div>
-                <button type="button" className="text-link" onClick={() => goToAdminSection('security')}>{language === 'vi' ? 'Xem nhật ký' : 'View logs'}</button>
+            <article className="admin-v124-panel admin-v124-panel-purple" id="admin-v41-security">
+              <div className="admin-v124-panel-head">
+                <span className="admin-v124-panel-icon">🔒</span>
+                <div><h2>{language === 'vi' ? 'Nhật ký & bảo mật' : 'Logs & security'}</h2><p>{language === 'vi' ? 'Theo dõi hoạt động gần đây và kiểm tra trạng thái bảo mật.' : 'Track recent actions and security status.'}</p></div>
+                <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('brian:activity-center-open', { detail: { tab: 'history' } }))}>{language === 'vi' ? 'Xem nhật ký' : 'View logs'} ↗</button>
               </div>
-
-              <div className="admin-v41-security-grid">
-                <div className="activity-list">
+              <div className="admin-v124-security-content">
+                <div className="admin-v124-activity-list">
                   <strong>{language === 'vi' ? 'Hoạt động gần đây' : 'Recent activity'}</strong>
-                  {recentActivity.map((item) => (
-                    <div key={item.id} className={`activity-item ${item.tone}`}>
-                      <span className="dot" />
-                      <div>
-                        <b>{item.title}</b>
-                        <small>{item.subtitle}</small>
-                      </div>
-                    </div>
-                  ))}
+                  {recentActivity.map((item) => <div key={item.id}><i className={item.tone} /><span><b>{item.title}</b><small>{item.subtitle}</small></span></div>)}
                 </div>
-                <div className="security-checklist">
-                  <strong>{language === 'vi' ? 'Kiểm tra bảo mật' : 'Security checklist'}</strong>
-                  <div><span>{language === 'vi' ? 'Xác thực 2 lớp (2FA)' : '2FA'}</span><b>{language === 'vi' ? 'Đã bật' : 'Enabled'}</b></div>
-                  <div><span>{language === 'vi' ? 'Mật khẩu mạnh' : 'Strong passwords'}</span><b>{language === 'vi' ? 'Đạt' : 'Good'}</b></div>
+                <div className="admin-v124-security-checks">
+                  <strong>{language === 'vi' ? 'Kiểm tra bảo mật' : 'Security checks'}</strong>
+                  <div><span>{language === 'vi' ? 'Xác thực 2 lớp (2FA)' : 'Two-factor authentication'}</span><b>{language === 'vi' ? 'Đã bật' : 'Enabled'}</b></div>
+                  <div><span>{language === 'vi' ? 'Mật khẩu mạnh' : 'Strong password'}</span><b>{language === 'vi' ? 'Đạt' : 'Good'}</b></div>
                   <div><span>{language === 'vi' ? 'Phiên đăng nhập lạ' : 'Unusual sessions'}</span><b>{language === 'vi' ? 'Không phát hiện' : 'Not detected'}</b></div>
-                  <div><span>{language === 'vi' ? 'Cập nhật bảo mật' : 'Security updates'}</span><b>{language === 'vi' ? 'Mới nhất' : 'Latest'}</b></div>
+                  <div><span>{language === 'vi' ? 'Cập nhật bảo mật' : 'Security update'}</span><b>{language === 'vi' ? 'Mới nhất' : 'Latest'}</b></div>
                 </div>
               </div>
-              <button type="button" className="table-action violet" onClick={() => goToAdminSection('security')}>{language === 'vi' ? 'Xem nhật ký & bảo mật' : 'Open logs & security'}</button>
+              <button type="button" className="admin-v124-panel-action" onClick={() => window.dispatchEvent(new CustomEvent('brian:activity-center-open', { detail: { tab: 'history' } }))}>{language === 'vi' ? 'Xem nhật ký & bảo mật' : 'Open logs & security'} →</button>
             </article>
           </section>
 
-          <section className="metro-admin-header metro-panel admin-sync-panel">
-            <div className="admin-note">
-              {language === 'vi'
-                ? 'Nếu giáo viên đã xác thực email nhưng chưa hiện trong danh sách, hãy bấm Đồng bộ Auth → Profiles. Tính năng này dùng hàm bảo mật trong Supabase để tạo bù profile và đọc danh sách đầy đủ.'
-                : 'If a teacher confirmed email but is missing here, click Sync Auth → Profiles. This uses a secure Supabase function to create missing profiles and load the full list.'}
+          <section className="admin-v124-permission-profiles">
+            <AdminPermissionProfileCard
+              user={selectedTeacher}
+              variant="teacher"
+              language={language}
+              loading={loading}
+              onPrimary={() => selectedTeacher && runAction(() => updateUserPermissions(selectedTeacher.id, createAllAccessPermissions()), language === 'vi' ? 'Đã cấp toàn quyền giáo viên.' : 'Teacher full access granted.')}
+              onSecondary={() => document.querySelector('.admin-v124-all-users')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              onDanger={() => selectedTeacher && runAction(() => updateUserPermissions(selectedTeacher.id, createCustomPermissions([])), language === 'vi' ? 'Đã gỡ toàn bộ quyền tùy chỉnh.' : 'All custom permissions removed.')}
+            />
+            <AdminPermissionProfileCard
+              user={selectedAdmin}
+              variant="admin"
+              language={language}
+              loading={loading}
+              onPrimary={() => document.querySelector('.admin-v124-all-users')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              onSecondary={() => selectedAdmin && navigator.clipboard?.writeText(JSON.stringify(normalizePermissions(selectedAdmin.permissions), null, 2))}
+              onDanger={() => goToAdminSection('permissions')}
+            />
+          </section>
+
+          <section className="admin-v124-all-users" id="admin-v124-all-users">
+            <div className="admin-v124-section-head">
+              <div><span>{language === 'vi' ? 'QUẢN LÝ CHI TIẾT' : 'DETAILED MANAGEMENT'}</span><h2>{language === 'vi' ? 'Tất cả tài khoản & quyền truy cập' : 'All accounts & access permissions'}</h2><p>{language === 'vi' ? 'Chỉnh vai trò, khóa/mở khóa và cấu hình quyền cho từng tài khoản.' : 'Change roles, enable or disable accounts and configure individual permissions.'}</p></div>
+              <button type="button" onClick={() => refresh()} disabled={loading}>↻ {language === 'vi' ? 'Làm mới dữ liệu' : 'Refresh data'}</button>
             </div>
-            <div className="admin-inline-actions">
-              <button className="metro-small-btn active" disabled={loading} onClick={syncAuthProfiles}>
-                {language === 'vi' ? 'Đồng bộ Auth → Profiles' : 'Sync Auth → Profiles'}
-              </button>
-              <button className="metro-small-btn" disabled={loading} onClick={repairDatabaseAdmin}>
-                {language === 'vi' ? 'Sửa quyền admin DB' : 'Repair DB admin'}
-              </button>
+            <div className="admin-v124-user-grid">
+              {users.map((user) => (
+                <article key={user.id} className={`admin-user-card metro-tile ${user.role === 'admin' ? 'admin-tile' : 'teacher-tile'}`}>
+                  <div className="admin-user-top"><div><h3>{user.name}</h3><p>{user.school || user.email}</p></div><span className="status-badge">{user.role}</span></div>
+                  <div className="admin-user-meta"><span>{user.email}</span><span>{user.approved ? (language === 'vi' ? 'Đã kích hoạt' : 'Approved') : (language === 'vi' ? 'Đã khóa / chờ duyệt' : 'Disabled / pending')}</span><span>{summarizePermissions(user, language)}</span>{user.createdAt ? <span>{formatDate(user.createdAt)}</span> : null}</div>
+                  <div className="admin-user-actions">
+                    <button className="metro-small-btn" disabled={loading || user.id === currentUser.id} onClick={() => runAction(() => updateUserRole(user.id, user.role === 'admin' ? 'teacher' : 'admin'))}>{user.role === 'admin' ? (language === 'vi' ? 'Hạ quyền' : 'Make teacher') : (language === 'vi' ? 'Đặt quản trị' : 'Make admin')}</button>
+                    <button className="metro-small-btn" disabled={loading || user.id === currentUser.id} onClick={() => runAction(() => updateUserApproval(user.id, !user.approved))}>{user.approved ? (language === 'vi' ? 'Khóa' : 'Disable') : (language === 'vi' ? 'Mở khóa' : 'Enable')}</button>
+                  </div>
+                  <PermissionEditor user={user} currentUser={currentUser} language={language} loading={loading} onChange={(permissions) => runAction(() => updateUserPermissions(user.id, permissions), language === 'vi' ? 'Đã cập nhật quyền truy cập.' : 'Permissions updated.')} />
+                </article>
+              ))}
             </div>
           </section>
 
-          {!isAuthConfigured() && (
-            <section className="metro-panel empty-state">
-              <h2>{language === 'vi' ? 'Chưa cấu hình Supabase' : 'Supabase is not configured'}</h2>
-              <p>{language === 'vi' ? 'Thêm biến môi trường VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY trước khi dùng trang quản trị.' : 'Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY before using admin management.'}</p>
-            </section>
-          )}
+          <section className="metro-admin-header metro-panel admin-sync-panel admin-v124-sync-panel">
+            <div className="admin-note">{language === 'vi' ? 'Nếu giáo viên đã xác thực email nhưng chưa hiện trong danh sách, hãy đồng bộ Auth → Profiles để tạo bù hồ sơ và đọc danh sách đầy đủ.' : 'If a teacher has verified email but is missing, sync Auth → Profiles to create missing profiles and reload the full list.'}</div>
+            <div className="admin-inline-actions"><button className="metro-small-btn active" disabled={loading} onClick={syncAuthProfiles}>{language === 'vi' ? 'Đồng bộ Auth → Profiles' : 'Sync Auth → Profiles'}</button><button className="metro-small-btn" disabled={loading} onClick={repairDatabaseAdmin}>{language === 'vi' ? 'Sửa quyền admin DB' : 'Repair DB admin'}</button></div>
+          </section>
 
+          {!isAuthConfigured() && <section className="metro-panel empty-state"><h2>{language === 'vi' ? 'Chưa cấu hình Supabase' : 'Supabase is not configured'}</h2><p>{language === 'vi' ? 'Thêm biến môi trường VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY trước khi dùng trang quản trị.' : 'Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY before using admin management.'}</p></section>}
           {msg ? <div className="auth-message">{msg}</div> : null}
           {loading ? <div className="auth-message success-message">{language === 'vi' ? 'Đang tải dữ liệu...' : 'Loading...'}</div> : null}
-
-          <AdminProfilesDiagnostic
-            language={language}
-            currentUser={currentUser}
-            users={users}
-            teacherUsers={teacherUsers}
-            databaseAdminNotSynced={databaseAdminNotSynced}
-            onRefresh={() => refresh()}
-            onRepairAdmin={repairDatabaseAdmin}
-          />
-
-          <PermissionRequestsPanel
-            language={language}
-            loading={loading}
-            pendingRequests={pendingRequests}
-            allRequests={requests}
-            onApprove={(request) => runAction(() => approveRequest(request), language === 'vi' ? 'Đã cấp quyền theo yêu cầu.' : 'Requested access granted.')}
-            onReject={(request) => runAction(() => rejectRequest(request), language === 'vi' ? 'Đã từ chối yêu cầu.' : 'Request rejected.')}
-          />
-
-          <section className="admin-grid permission-admin-grid">
-            {users.map((user) => (
-              <article key={user.id} className={`admin-user-card metro-tile ${user.role === 'admin' ? 'admin-tile' : 'teacher-tile'}`}>
-                <div className="admin-user-top">
-                  <div>
-                    <h3>{user.name}</h3>
-                    <p>{user.school || '—'}</p>
-                  </div>
-                  <span className="status-badge">{user.role}</span>
-                </div>
-                <div className="admin-user-meta">
-                  <span>{user.email}</span>
-                  <span>{user.approved ? (language === 'vi' ? 'Đã kích hoạt' : 'Approved') : (language === 'vi' ? 'Đã khóa / chờ duyệt' : 'Disabled / pending')}</span>
-                  <span>{summarizePermissions(user, language)}</span>
-                  {user.createdAt ? <span>{formatDate(user.createdAt)}</span> : null}
-                </div>
-                <div className="admin-user-actions">
-                  <button className="metro-small-btn" disabled={loading || user.id === currentUser.id} onClick={() => runAction(() => updateUserRole(user.id, user.role === 'admin' ? 'teacher' : 'admin'))}>
-                    {user.role === 'admin' ? (language === 'vi' ? 'Hạ quyền' : 'Make teacher') : (language === 'vi' ? 'Đặt quản trị' : 'Make admin')}
-                  </button>
-                  <button className="metro-small-btn" disabled={loading || user.id === currentUser.id} onClick={() => runAction(() => updateUserApproval(user.id, !user.approved))}>
-                    {user.approved ? (language === 'vi' ? 'Khóa' : 'Disable') : (language === 'vi' ? 'Mở khóa' : 'Enable')}
-                  </button>
-                </div>
-                <PermissionEditor
-                  user={user}
-                  currentUser={currentUser}
-                  language={language}
-                  loading={loading}
-                  onChange={(permissions) => runAction(
-                    () => updateUserPermissions(user.id, permissions),
-                    language === 'vi' ? 'Đã cập nhật quyền truy cập.' : 'Permissions updated.'
-                  )}
-                />
-              </article>
-            ))}
-          </section>
-        </div>
+          <AdminProfilesDiagnostic language={language} currentUser={currentUser} users={users} teacherUsers={teacherUsers} databaseAdminNotSynced={databaseAdminNotSynced} onRefresh={() => refresh()} onRepairAdmin={repairDatabaseAdmin} />
+          <PermissionRequestsPanel language={language} loading={loading} pendingRequests={pendingRequests} allRequests={requests} onApprove={(request) => runAction(() => approveRequest(request), language === 'vi' ? 'Đã cấp quyền theo yêu cầu.' : 'Requested access granted.')} onReject={(request) => runAction(() => rejectRequest(request), language === 'vi' ? 'Đã từ chối yêu cầu.' : 'Request rejected.')} />
+        </main>
       </div>
     </div>
+  );
+}
+
+
+function AdminPermissionProfileCard({ user, variant, language, loading, onPrimary, onSecondary, onDanger }) {
+  const isAdmin = variant === 'admin';
+  const permissions = normalizePermissions(user?.permissions);
+  const allowedIds = getAllowedIdsFromPermissions(permissions);
+  const groupPreview = PERMISSION_GROUPS.slice(0, 3).map((group) => ({
+    ...group,
+    count: group.ids.filter((id) => allowedIds.includes(id)).length,
+  }));
+
+  return (
+    <article className={`admin-v124-profile-card ${isAdmin ? 'is-admin' : 'is-teacher'}`}>
+      <div className="admin-v124-profile-side">
+        <span className="admin-v124-profile-avatar">{initialsFromName(user?.name || user?.email || (isAdmin ? 'Admin' : 'Teacher'))}</span>
+        <strong>{user?.name || (language === 'vi' ? 'Chưa có tài khoản' : 'No account')}</strong>
+        <span className="admin-v124-role-pill">{isAdmin ? 'admin' : 'teacher'}</span>
+        <small>{user?.email || '—'}</small>
+        <small>{user?.createdAt ? formatMiniDate(user.createdAt) : '—'}</small>
+      </div>
+
+      <div className="admin-v124-profile-body">
+        <div className="admin-v124-profile-title-row">
+          <div>
+            <h2>{isAdmin ? (language === 'vi' ? 'Quyền hệ thống (Admin)' : 'System permissions (Admin)') : (language === 'vi' ? 'Giáo viên xin quyền truy cập' : 'Teacher access request')}</h2>
+            <p>{isAdmin
+              ? (language === 'vi' ? 'Theo dõi phạm vi quyền và các nhóm chức năng quản trị đang áp dụng.' : 'Review active administrative scopes and permission groups.')
+              : (language === 'vi' ? 'Duyệt toàn quyền hoặc chuyển sang cấu hình tùy chỉnh cho tài khoản giáo viên.' : 'Grant full access or switch to custom permissions for this teacher.')}</p>
+          </div>
+          <span className="admin-v124-access-badge">{isAdmin || permissions.mode === 'all' ? (language === 'vi' ? 'TOÀN QUYỀN' : 'FULL ACCESS') : (language === 'vi' ? 'TÙY CHỈNH' : 'CUSTOM')}</span>
+        </div>
+
+        {isAdmin ? (
+          <div className="admin-v124-admin-permissions">
+            <div>
+              <strong>{language === 'vi' ? 'Nội dung & hệ thống' : 'Content & system'}</strong>
+              <span>{PERMISSION_GROUPS.length}/{PERMISSION_GROUPS.length}</span>
+            </div>
+            <div className="admin-v124-admin-check-grid">
+              {PERMISSION_GROUPS.slice(0, 4).map((group) => (
+                <label key={group.key}><input type="checkbox" checked readOnly /><span>{language === 'vi' ? group.titleVi : group.title}</span></label>
+              ))}
+            </div>
+          </div>
+        ) : permissions.mode === 'all' ? (
+          <div className="admin-v124-full-access-note">
+            <strong>{language === 'vi' ? 'Quyền truy cập' : 'Access permissions'}</strong>
+            <div><span>{language === 'vi' ? 'Toàn quyền' : 'Full access'}</span><span>{language === 'vi' ? 'Tùy chỉnh' : 'Custom'}</span><span>{language === 'vi' ? 'Chọn tất cả' : 'Select all'}</span><span>{language === 'vi' ? 'Bỏ tất cả' : 'Clear all'}</span></div>
+            <p>{language === 'vi' ? 'Tài khoản này được dùng toàn bộ hoạt động, trò chơi, công cụ và nội dung giáo viên.' : 'This account can use all teacher activities, games, tools and content.'}</p>
+          </div>
+        ) : (
+          <div className="admin-v124-custom-groups">
+            {groupPreview.map((group) => (
+              <div key={group.key}><strong>{language === 'vi' ? group.titleVi : group.title}</strong><span>{group.count}/{group.ids.length}</span></div>
+            ))}
+          </div>
+        )}
+
+        <div className="admin-v124-profile-actions">
+          <button type="button" className="primary" disabled={loading || !user} onClick={onPrimary}>{isAdmin ? (language === 'vi' ? 'Chỉnh sửa quyền' : 'Edit permissions') : (language === 'vi' ? 'Duyệt toàn quyền' : 'Grant full access')}</button>
+          <button type="button" className="secondary" disabled={loading || !user} onClick={onSecondary}>{isAdmin ? (language === 'vi' ? 'Sao chép quyền' : 'Copy permissions') : (language === 'vi' ? 'Duyệt tùy chỉnh' : 'Review custom')}</button>
+          <button type="button" className="danger" disabled={loading || !user} onClick={onDanger}>{isAdmin ? (language === 'vi' ? 'Xem chi tiết' : 'View details') : (language === 'vi' ? 'Bỏ tất cả' : 'Clear all')}</button>
+        </div>
+      </div>
+    </article>
   );
 }
 
