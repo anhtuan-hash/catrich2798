@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { callAI, extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/gemini.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { addBankItems, addHistoryEntry } from '../utils/library.js';
 
 function cleanAIContent(value = '') {
@@ -134,7 +135,7 @@ export default function TextLabActivities({
       setAiBusy(true);
       try {
         const prompt = buildTextLabAIPrompt({ ...payload, language });
-        const raw = await callAI({
+        const raw = await runAITask('textlab.generateActivity', {
           apiKey,
           model: aiModel,
           prompt,

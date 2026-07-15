@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { mountEnglishLessonIntegrationStudio } from '../vendor/englishLessonIntegration/elis.es.js';
 import { APP_VERSION } from '../config/version.js';
 import { getSupabasePublicConfig, isSupabaseConfigured, supabase } from '../utils/supabase.js';
-import { callAIWithMeta } from '../utils/gemini.js';
+import { runAITaskWithMeta } from '../utils/aiTaskRuntime.js';
 import { getActiveAiConfig, getProviderInfo } from '../utils/aiProviders.js';
 
 function clipLessonAi(value, max = 56000) {
@@ -126,7 +126,7 @@ export default function EnglishLessonIntegrationStudio({
                 model: activeAI.model || providerInfo.defaultModel,
                 authMode: 'brian-native',
               };
-              const response = await callAIWithMeta({
+              const response = await runAITaskWithMeta('lesson.integration', {
                 provider: activeAI.provider,
                 apiKey: activeAI.apiKey || apiKey,
                 model: activeAI.model || aiModel || providerInfo.defaultModel,

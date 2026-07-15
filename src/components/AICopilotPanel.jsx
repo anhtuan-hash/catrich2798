@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { callAI } from '../utils/gemini.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 
 export default function AICopilotPanel({
   language,
@@ -36,7 +36,7 @@ export default function AICopilotPanel({
     setCopied(false);
     try {
       const prompt = `You are the Brian English Studio AI Copilot for a Vietnamese high-school English teacher.\n\nTool / feature:\n${title}\n\nTeacher goal:\n${task}\n\nLevel: ${level}\nQuantity / size: ${count}\nLanguage: ${language === 'vi' ? 'Vietnamese interface support is allowed. English learning content should remain in English unless Vietnamese explanation is necessary.' : 'English'}\n\nTeacher instruction:\n${instruction || '(none)'}\n\nSource text / vocabulary / existing content / notes:\n${sourceText || '(none)'}\n\nRequired output format:\n${outputFormat || 'Return classroom-ready content with clear headings and answer keys when relevant.'}\n\nRules:\n- Return only the usable content for this tool.\n- Do not use markdown fences.\n- Avoid duplicate questions, duplicate stems, and repeated content words when possible.\n- Make the output directly pasteable into the current Brian English Studio tool.\n- Include answer keys when the activity is assessment-related.`;
-      const result = await callAI({
+      const result = await runAITask('assistant.copilot', {
         apiKey,
         model: aiModel,
         prompt,

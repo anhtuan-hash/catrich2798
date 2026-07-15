@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { callAI } from '../utils/gemini.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { spreadsheetToTextSafe } from '../utils/safeSpreadsheet.js';
 import { buildAiActionSuggestions, executeAiAction, prepareAiAction } from '../utils/aiActions.js';
@@ -445,7 +445,7 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
     try {
       const pageContext = capturePageContext(info, currentRoute, selectedTool);
       const prompt = buildConversationPrompt({ messages: messagesRef.current, newest: userMessage, info, language, currentUser, pageContext, attachments: outgoingAttachments });
-      const result = await callAI({
+      const result = await runAITask('assistant.pageChat', {
         apiKey, model: aiModel, prompt,
         attachments: outgoingAttachments.filter((item) => item.kind === 'image').map((item) => ({ name: item.name, mimeType: item.mimeType, dataUrl: item.dataUrl, base64: item.base64 })),
         systemInstruction: 'You are Brian AI, a reliable, context-aware in-app assistant for a Vietnamese high-school English teacher and subject-team leader. Be useful, honest and concise.',

@@ -27,6 +27,12 @@ import {
   flushAiGovernanceCloudQueue,
   getAiGovernanceCloudStatus,
 } from '../utils/aiGovernanceCloud.js';
+import { getAiPromptRegistrySummary, listAiPromptDefinitions } from '../utils/aiPromptRegistry.js';
+import {
+  AI_TASK_RUNTIME_EVENT,
+  getAiTaskRuntimeMetrics,
+  resetAiTaskRuntimeMetrics,
+} from '../utils/aiTaskRuntime.js';
 
 const ACTION_TARGETS = [
   ['current-app', 'Ứng dụng hiện tại', 'Current app'],
@@ -89,6 +95,9 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
   const [cloudStatus, setCloudStatus] = useState(getAiGovernanceCloudStatus);
   const [cloudDashboard, setCloudDashboard] = useState(null);
   const [cloudBusy, setCloudBusy] = useState(false);
+  const [taskMetrics, setTaskMetrics] = useState(getAiTaskRuntimeMetrics);
+  const promptRegistrySummary = useMemo(() => getAiPromptRegistrySummary(), []);
+  const promptDefinitions = useMemo(() => listAiPromptDefinitions(), []);
 
   const refresh = () => {
     setSettings(getAiGovernanceSettings());
@@ -99,6 +108,7 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
     const currentSettings = getAiGovernanceSettings();
     setRuntime(getAiRuntimeSnapshot(currentSettings.runtime));
     setCloudStatus(getAiGovernanceCloudStatus());
+    setTaskMetrics(getAiTaskRuntimeMetrics());
   };
 
   useEffect(() => {
@@ -106,8 +116,9 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
     window.addEventListener(AI_GOVERNANCE_EVENT, onUpdate);
     window.addEventListener(AI_RUNTIME_EVENT, onUpdate);
     window.addEventListener(AI_GOVERNANCE_CLOUD_EVENT, onUpdate);
+    window.addEventListener(AI_TASK_RUNTIME_EVENT, onUpdate);
     const timer = window.setInterval(refresh, 5000);
-    return () => { window.removeEventListener(AI_GOVERNANCE_EVENT, onUpdate); window.removeEventListener(AI_RUNTIME_EVENT, onUpdate); window.removeEventListener(AI_GOVERNANCE_CLOUD_EVENT, onUpdate); window.clearInterval(timer); };
+    return () => { window.removeEventListener(AI_GOVERNANCE_EVENT, onUpdate); window.removeEventListener(AI_RUNTIME_EVENT, onUpdate); window.removeEventListener(AI_GOVERNANCE_CLOUD_EVENT, onUpdate); window.removeEventListener(AI_TASK_RUNTIME_EVENT, onUpdate); window.clearInterval(timer); };
   }, []);
 
   const filteredAudit = useMemo(() => audit.filter((item) => filter === 'all' || item.type === filter || item.status === filter).slice(0, 120), [audit, filter]);
@@ -157,9 +168,9 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
     <div className="ai-governance-page bui-management" data-ui="management" data-management-app="ai-governance">
       <section className="ai-gov-hero bui-management-header">
         <div className="ai-gov-hero-copy">
-          <span className="ai-gov-eyebrow">V12.37 · CLOUD GOVERNANCE SYNC</span>
+          <span className="ai-gov-eyebrow">V12.38 · TASK & PROMPT REGISTRY</span>
           <h1>{vi ? 'Trung tâm quản trị Brian AI' : 'Brian AI Governance Center'}</h1>
-          <p>{vi ? 'Điều phối provider, quyền riêng tư, kiểm định, ngân sách và đồng bộ nhật ký AI tập trung trên Supabase theo cơ chế local-first.' : 'Control providers, privacy, validation, budgets and centrally synchronized AI audit telemetry through a local-first Supabase layer.'}</p>
+          <p>{vi ? 'Điều phối provider, quyền riêng tư, kiểm định, ngân sách, task contract và phiên bản prompt từ một AI Registry thống nhất.' : 'Control providers, privacy, validation, budgets, task contracts and prompt versions through one unified AI Registry.'}</p>
           <div className="ai-gov-hero-actions">
             <button type="button" className="primary" onClick={save}>{saved ? (vi ? 'Đã lưu' : 'Saved') : (vi ? 'Lưu cấu hình' : 'Save settings')}</button>
             <button type="button" className="secondary" onClick={() => downloadJson(`Brian-AI-Governance-${new Date().toISOString().slice(0, 10)}.json`, exportAiGovernanceReport())}>{vi ? 'Xuất báo cáo JSON' : 'Export JSON report'}</button>
@@ -314,28 +325,40 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
           </div>
         </section>
 
+        <section className="ai-gov-card ai-gov-task-registry">
+          <header><div><span>08</span><div><h2>{vi ? 'AI Task & Prompt Registry' : 'AI Task & Prompt Registry'}</h2><p>{vi ? 'Mỗi chức năng AI dùng một Task ID, phiên bản prompt, profile riêng tư, routing và hợp đồng đầu ra rõ ràng.' : 'Every AI capability uses a stable Task ID, prompt version, privacy profile, routing policy and output contract.'}</p></div></div><b className="ai-gov-task-badge">{promptRegistrySummary.taskCount} tasks · {promptRegistrySummary.appCount} apps</b></header>
+          <div className="ai-gov-task-summary">
+            <article><small>{vi ? 'Phiên bản Registry' : 'Registry version'}</small><strong>{promptRegistrySummary.registryVersion}</strong></article>
+            <article><small>{vi ? 'Task JSON contract' : 'JSON contract tasks'}</small><strong>{promptRegistrySummary.jsonContractCount}</strong></article>
+            <article><small>{vi ? 'Task dữ liệu nhạy cảm' : 'Sensitive-data tasks'}</small><strong>{promptRegistrySummary.sensitiveTaskCount}</strong></article>
+            <article><small>{vi ? 'Task đã được sử dụng' : 'Tasks used'}</small><strong>{taskMetrics.filter((item) => item.runs > 0).length}</strong></article>
+          </div>
+          <div className="ai-gov-task-table-wrap"><table className="ai-gov-task-table"><thead><tr><th>Task ID</th><th>{vi ? 'Ứng dụng' : 'App'}</th><th>{vi ? 'Prompt' : 'Prompt'}</th><th>{vi ? 'Hợp đồng' : 'Contract'}</th><th>{vi ? 'Lượt chạy' : 'Runs'}</th><th>{vi ? 'Thành công' : 'Success'}</th><th>{vi ? 'Repair' : 'Repair'}</th><th>{vi ? 'TB thời gian' : 'Avg time'}</th><th>{vi ? 'Provider gần nhất' : 'Last provider'}</th></tr></thead><tbody>{promptDefinitions.map((definition) => { const metric = taskMetrics.find((item) => item.id === definition.id) || {}; return <tr key={definition.id}><td><code>{definition.id}</code><small>{definition.label}</small></td><td>{definition.app}</td><td><b>v{definition.version}</b><small>{definition.privacyProfile}</small></td><td><span data-contract={definition.output}>{definition.output}</span></td><td>{formatNumber(metric.runs)}</td><td>{metric.runs ? `${metric.successRate}%` : '—'}</td><td>{formatNumber(metric.repairs)}</td><td>{metric.runs ? formatMs(metric.averageDurationMs) : '—'}</td><td>{metric.lastProvider ? <><b>{metric.lastProvider}</b><small>{metric.lastModel || ''}</small></> : '—'}</td></tr>; })}</tbody></table></div>
+          <div className="ai-gov-task-footer"><p>{vi ? 'Các component cũ đã được chuyển sang runAITask(); callAI chỉ còn là adapter hạ tầng tương thích.' : 'Legacy components now call runAITask(); callAI remains only as an infrastructure compatibility adapter.'}</p><button type="button" className="secondary" onClick={() => { if (window.confirm(vi ? 'Đặt lại thống kê AI Task trên thiết bị này?' : 'Reset AI Task statistics on this device?')) { resetAiTaskRuntimeMetrics(); refresh(); } }}>{vi ? 'Đặt lại thống kê Task' : 'Reset task metrics'}</button></div>
+        </section>
+
         <section className="ai-gov-card ai-gov-transport">
-          <header><div><span>08</span><div><h2>{vi ? 'Độ phủ Unified AI Core' : 'Unified AI Core coverage'}</h2><p>{vi ? 'Ba đường gọi AI cũ đã được đưa về các adapter và hợp đồng dùng chung.' : 'The former AI call paths now use shared adapters and contracts.'}</p></div></div><b className="ai-gov-transport-badge">100% core</b></header>
+          <header><div><span>09</span><div><h2>{vi ? 'Độ phủ Unified AI Core' : 'Unified AI Core coverage'}</h2><p>{vi ? 'Ba đường gọi AI cũ đã được đưa về các adapter và hợp đồng dùng chung.' : 'The former AI call paths now use shared adapters and contracts.'}</p></div></div><b className="ai-gov-transport-badge">100% core</b></header>
           <div className="ai-gov-transport-grid">
             <article><span>01</span><div><strong>{vi ? 'Văn bản & tài liệu' : 'Text and documents'}</strong><p>{vi ? 'callAI → Privacy → Governance → Smart Router → Output Guard.' : 'callAI → Privacy → Governance → Smart Router → Output Guard.'}</p></div><b>{vi ? 'Đã hợp nhất' : 'Unified'}</b></article>
             <article><span>02</span><div><strong>{vi ? 'Ảnh & Vision' : 'Images and vision'}</strong><p>{vi ? 'SmartID dùng aiMedia; không còn gọi Gemini trực tiếp trong trang.' : 'SmartID uses aiMedia; no direct Gemini request remains in the page.'}</p></div><b>{vi ? 'Đã hợp nhất' : 'Unified'}</b></article>
             <article><span>03</span><div><strong>{vi ? 'Server AI Gateway' : 'Server AI Gateway'}</strong><p>{vi ? '/api/ai và Lesson Integration dùng cùng server provider adapter.' : '/api/ai and Lesson Integration share one server provider adapter.'}</p></div><b>{vi ? 'Đã hợp nhất' : 'Unified'}</b></article>
           </div>
-          <p className="ai-gov-transport-note">{vi ? 'Hợp đồng gateway: bes-ai-core/1.3 · Metadata gồm provider, model, transport, thời gian và request ID.' : 'Gateway contract: bes-ai-core/1.3 · Metadata includes provider, model, transport, duration and request ID.'}</p>
+          <p className="ai-gov-transport-note">{vi ? 'Hợp đồng gateway: bes-ai-core/1.4 · Metadata gồm provider, model, transport, thời gian và request ID.' : 'Gateway contract: bes-ai-core/1.4 · Metadata includes provider, model, transport, duration and request ID.'}</p>
         </section>
       </div>
 
       <section className="ai-gov-card ai-gov-history">
-        <header><div><span>09</span><div><h2>{vi ? 'Lịch sử sử dụng' : 'Usage history'}</h2><p>{vi ? 'Theo dõi 45 ngày gần nhất trên thiết bị này.' : 'Track the last 45 days on this device.'}</p></div></div><button type="button" className="danger-text" onClick={() => { if (window.confirm(vi ? 'Đặt lại toàn bộ bộ đếm sử dụng AI?' : 'Reset all AI usage counters?')) { resetAiUsage(); refresh(); } }}>{vi ? 'Đặt lại bộ đếm' : 'Reset counters'}</button></header>
+        <header><div><span>10</span><div><h2>{vi ? 'Lịch sử sử dụng' : 'Usage history'}</h2><p>{vi ? 'Theo dõi 45 ngày gần nhất trên thiết bị này.' : 'Track the last 45 days on this device.'}</p></div></div><button type="button" className="danger-text" onClick={() => { if (window.confirm(vi ? 'Đặt lại toàn bộ bộ đếm sử dụng AI?' : 'Reset all AI usage counters?')) { resetAiUsage(); refresh(); } }}>{vi ? 'Đặt lại bộ đếm' : 'Reset counters'}</button></header>
         <div className="ai-gov-table-wrap"><table><thead><tr><th>{vi ? 'Ngày' : 'Date'}</th><th>{vi ? 'Yêu cầu' : 'Requests'}</th><th>{vi ? 'Thành công' : 'Success'}</th><th>{vi ? 'Lỗi' : 'Errors'}</th><th>Input</th><th>Output</th><th>{vi ? 'Provider calls' : 'Provider calls'}</th><th>Fallback</th><th>{vi ? 'Đã che' : 'Redacted'}</th><th>{vi ? 'Tự sửa' : 'Repairs'}</th><th>Retry</th><th>Cache</th><th>{vi ? 'Hành động' : 'Actions'}</th></tr></thead><tbody>{days.slice(0, 14).map((day) => <tr key={day.date}><td>{day.date}</td><td>{formatNumber(day.requests)}</td><td>{formatNumber(day.successes)}</td><td>{formatNumber(day.errors)}</td><td>{formatNumber(day.inputTokens)}</td><td>{formatNumber(day.outputTokens)}</td><td>{formatNumber(day.providerCalls)}</td><td>{formatNumber(day.fallbacks)}</td><td>{formatNumber(day.privacyRedactions)}</td><td>{formatNumber(day.validationRepairs)}</td><td>{formatNumber(day.runtimeRetries)}</td><td>{formatNumber(day.runtimeCacheHits)}</td><td>{formatNumber(day.actions)}</td></tr>)}{!days.length && <tr><td colSpan="13">{vi ? 'Chưa có dữ liệu sử dụng.' : 'No usage data.'}</td></tr>}</tbody></table></div>
       </section>
 
       <section className="ai-gov-card ai-gov-audit">
-        <header><div><span>10</span><div><h2>{vi ? 'Nhật ký AI & hành động' : 'AI and action audit'}</h2><p>{vi ? 'Lưu yêu cầu, lỗi, chặn hạn mức và hành động liên ứng dụng.' : 'Requests, failures, blocked quotas and cross-app actions.'}</p></div></div><div className="ai-gov-audit-actions"><select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="all">{vi ? 'Tất cả' : 'All'}</option><option value="request">Request</option><option value="privacy">Privacy</option><option value="action">Action</option><option value="settings">Settings</option><option value="error">Error</option><option value="blocked">Blocked</option></select><button type="button" onClick={() => { if (window.confirm(vi ? 'Xóa nhật ký AI trên thiết bị này?' : 'Clear the AI audit log?')) { clearAiAudit(); refresh(); } }}>{vi ? 'Xóa nhật ký' : 'Clear log'}</button></div></header>
+        <header><div><span>11</span><div><h2>{vi ? 'Nhật ký AI & hành động' : 'AI and action audit'}</h2><p>{vi ? 'Lưu yêu cầu, lỗi, chặn hạn mức và hành động liên ứng dụng.' : 'Requests, failures, blocked quotas and cross-app actions.'}</p></div></div><div className="ai-gov-audit-actions"><select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="all">{vi ? 'Tất cả' : 'All'}</option><option value="request">Request</option><option value="privacy">Privacy</option><option value="action">Action</option><option value="settings">Settings</option><option value="error">Error</option><option value="blocked">Blocked</option></select><button type="button" onClick={() => { if (window.confirm(vi ? 'Xóa nhật ký AI trên thiết bị này?' : 'Clear the AI audit log?')) { clearAiAudit(); refresh(); } }}>{vi ? 'Xóa nhật ký' : 'Clear log'}</button></div></header>
         <div className="ai-gov-audit-list">{filteredAudit.map((item) => <details key={item.id} data-status={item.status}><summary><article data-status={item.status}><span>{item.type === 'action' ? '↳' : item.status === 'error' || item.status === 'blocked' ? '!' : 'AI'}</span><div><strong>{item.label}</strong><p>{[item.taskId, item.provider, item.model, item.transport, item.target].filter(Boolean).join(' · ') || (vi ? 'Sự kiện hệ thống' : 'System event')}</p><small>{new Date(item.createdAt).toLocaleString(vi ? 'vi-VN' : 'en-US')} · {item.actor?.email || item.actor?.name || 'guest'}</small></div><b>{item.status}</b></article></summary><div className="ai-gov-audit-detail"><dl><div><dt>Task</dt><dd>{item.taskId || '—'}</dd></div><div><dt>Transport</dt><dd>{item.transport || '—'}</dd></div><div><dt>Operation ID</dt><dd>{item.operationId || '—'}</dd></div><div><dt>{vi ? 'Thời lượng' : 'Duration'}</dt><dd>{formatMs(item.detail?.durationMs)}</dd></div></dl><code>{JSON.stringify(item.detail || {}, null, 2)}</code></div></details>)}{!filteredAudit.length && <p className="ai-gov-empty">{vi ? 'Không có sự kiện phù hợp.' : 'No matching events.'}</p>}</div>
       </section>
 
-      <section className="ai-gov-footer-actions"><button type="button" className="secondary" onClick={() => { if (window.confirm(vi ? 'Khôi phục cấu hình AI Governance mặc định?' : 'Restore default AI Governance settings?')) { setSettings(resetAiGovernanceSettings()); refresh(); } }}>{vi ? 'Khôi phục mặc định' : 'Restore defaults'}</button><p>{vi ? 'Các giới hạn được thực thi tập trung tại callAI và áp dụng cho toàn bộ ứng dụng.' : 'Limits are enforced centrally in callAI and apply across all apps.'}</p></section>
+      <section className="ai-gov-footer-actions"><button type="button" className="secondary" onClick={() => { if (window.confirm(vi ? 'Khôi phục cấu hình AI Governance mặc định?' : 'Restore default AI Governance settings?')) { setSettings(resetAiGovernanceSettings()); refresh(); } }}>{vi ? 'Khôi phục mặc định' : 'Restore defaults'}</button><p>{vi ? 'Các giới hạn được thực thi tại Unified Task Runtime và áp dụng cho toàn bộ ứng dụng.' : 'Limits are enforced centrally in the Unified Task Runtime and apply across all apps.'}</p></section>
     </div>
   );
 }

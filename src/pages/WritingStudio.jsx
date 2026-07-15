@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { callAI, extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/gemini.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { addHistoryEntry, exportAsHtml, exportAsWord } from '../utils/library.js';
 import { createTransfer, listTransfers, updateTransfer, TRANSFER_APPLY_EVENT } from '../utils/contentTransfer.js';
@@ -319,7 +320,7 @@ export default function WritingStudio({ language = 'vi', apiKey = '', aiModel = 
     if (taskId === 'rewrite' && !selectedText.trim()) { setAiError('Hãy bôi đen một câu hoặc đoạn trong Draft Editor trước khi yêu cầu viết lại.'); setShowAi(true); return; }
     setAiLoading(taskId); setAiError(''); setAiResult(null); setShowAi(true);
     try {
-      const raw = await callAI({
+      const raw = await runAITask('writing.coach', {
         apiKey, model: aiModel, prompt: buildAiPrompt(taskId, project, selectedText),
         systemInstruction: 'You are an expert process-writing coach. Return strict JSON. Never claim to detect AI authorship. Preserve student ownership and explain every proposed revision.',
         temperature: taskId === 'feedback' ? 0.25 : 0.55, responseMimeType: 'application/json', maxOutputTokens: 5200,

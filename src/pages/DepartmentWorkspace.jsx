@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import SectionHeader from '../components/SectionHeader.jsx';
 import PermissionRequestButton from '../components/PermissionRequestButton.jsx';
 import { DEPARTMENT_MODULES, DEPARTMENT_TEMPLATES, POLICY_PINS } from '../data/department.js';
-import { callAI, extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/gemini.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { canPublishDepartment, hasDepartmentModuleAccess } from '../utils/permissions.js';
 import { repairCurrentAdminDatabaseRole } from '../utils/auth.js';
 import { loadMammoth, loadPdfjs } from '../utils/documentParsers.js';
@@ -1648,7 +1649,7 @@ Tên file: ${sourceName || 'không rõ'}
 Nội dung file:
 ${limitAiSourceText(cleanSource, 30000)}`;
 
-      const raw = await callAI({
+      const raw = await runAITask('department.extractSchedule', {
         prompt,
         systemInstruction: 'Extract actionable Vietnamese school-department schedule entries. Return valid JSON only. Preserve factual dates and do not invent events.',
         temperature: 0.15,
@@ -1806,7 +1807,7 @@ ${limitAiSourceText(cleanSource, 30000)}`;
         assessment: 'báo cáo kiểm tra đánh giá',
       }[reportType] || 'báo cáo chuyên môn';
       const prompt = `Bạn là trợ lý cho TTCM tổ Tiếng Anh THPT. Hãy viết ${reportTypeVi} ngắn gọn, đúng văn phong hành chính, dựa trên dữ liệu sau. Cấu trúc rõ đề mục; có phần việc đã làm, tồn tại, nguyên nhân, giải pháp, phân công tiếp theo. Có nhắc số minh chứng giáo viên đã nộp/chờ duyệt nếu có.\n\nDữ liệu workspace:\n${JSON.stringify(data, null, 2)}\n\nDữ liệu giáo viên nộp:\n${JSON.stringify(submissions, null, 2)}`;
-      const text = await callAI({ prompt, systemInstruction: 'Write professional Vietnamese school-department reports. Be specific and concise.', temperature: 0.45 });
+      const text = await runAITask('department.generateReport', { prompt, systemInstruction: 'Write professional Vietnamese school-department reports. Be specific and concise.', temperature: 0.45 });
       setReport(text);
       updateData((old) => ({ ...old, reports: [{ id: cryptoId(), title: `Báo cáo AI - ${reportTypeVi}`, createdAt: new Date().toISOString(), content: text }, ...old.reports] }), language === 'vi' ? 'Đã tạo báo cáo AI.' : 'AI report generated.');
     } catch (error) {
@@ -1885,7 +1886,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
     setAiLoading(true);
     try {
       const prompt = getDepartmentAIPrompt(aiAction, data, submissions, aiInstruction, language, aiSourceText, aiSourceName);
-      const text = await callAI({
+      const text = await runAITask('department.assistant', {
         prompt,
         systemInstruction: 'You are a professional Vietnamese high-school English department leader assistant. Return practical, structured output. Do not invent data.',
         temperature: 0.42,
@@ -1965,7 +1966,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
     setAiLoading(true);
     try {
       const prompt = `Bạn là TTCM/ thư ký tổ chuyên môn tại trường THPT Việt Nam. Hãy chuẩn hóa văn bản hành chính sau cho trang trọng, đúng thể thức cơ bản, có đề mục rõ, không bịa số liệu. Loại văn bản: ${adminDocDraft.type}. Đơn vị: ${adminDocDraft.agency} - ${adminDocDraft.department}. Người ký: ${adminDocDraft.signer} (${adminDocDraft.position}).\n\nNội dung cần chuẩn hóa:\n${source}`;
-      const text = await callAI({ prompt, systemInstruction: 'Polish Vietnamese school administrative documents. Keep facts unchanged and mark missing data with ellipses.', temperature: 0.35 });
+      const text = await runAITask('department.polishDocument', { prompt, systemInstruction: 'Polish Vietnamese school administrative documents. Keep facts unchanged and mark missing data with ellipses.', temperature: 0.35 });
       setAdminDocOutput(text);
       showToast(language === 'vi' ? 'AI đã chuẩn hóa văn bản hành chính.' : 'AI polished the administrative document.');
     } catch (error) {

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { callAI, extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/gemini.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { addHistoryEntry, downloadFile, exportAsWord, slugify } from '../utils/library.js';
 import { createMediaRecorder, createSpeechRecognition, describeMediaError, extensionForMimeType, getMicrophoneSupport, requestMicrophoneStream, speechRecognitionMessage, stopStream } from '../utils/mediaCapture.js';
 
@@ -221,7 +222,7 @@ export default function SpeakingStudio({ language, apiKey, aiModel, hasApiKey })
     setRawFeedback('');
     try {
       const prompt = `Create a speaking practice set for English learners.\n\nLevel: ${level}\nNumber of cards: ${quantity}\nTeacher request: ${instruction}\nSource text / vocabulary / notes:\n${sourceText || '(none)'}\n\nReturn strict JSON only with this schema:\n{\n  "title": "short title",\n  "cards": [\n    {\n      "id": "card-1",\n      "title": "short card title",\n      "prompt": "main speaking prompt",\n      "followUps": ["follow-up 1", "follow-up 2", "follow-up 3"],\n      "languageFunctions": ["function 1", "function 2"],\n      "vocabulary": ["useful word 1", "useful phrase 2"],\n      "successCriteria": ["criterion 1", "criterion 2", "criterion 3"]\n    }\n  ]\n}\n\nRules:\n- Prompts must be answerable in 1-2 minutes.\n- Each card must include at least 3 follow-up questions.\n- Avoid duplicate prompts.\n- Keep the main prompt clear and classroom-ready.\n- Do not include markdown fences.`;
-      const text = await callAI({ apiKey, model: aiModel, prompt, temperature: 0.65, responseMimeType: 'application/json', validation: { kind: 'json', requiredFields: ['title', 'cards'], collectionKey: 'cards', expectedCount: Number(quantity), detectDuplicates: true } });
+      const text = await runAITask('speaking.generateCards', { apiKey, model: aiModel, prompt, temperature: 0.65, responseMimeType: 'application/json', validation: { kind: 'json', requiredFields: ['title', 'cards'], collectionKey: 'cards', expectedCount: Number(quantity), detectDuplicates: true } });
       const json = extractJson(text);
       const nextCards = normalizeCards(json.cards || []);
       setTitle(json.title || 'Speaking Practice');
@@ -346,7 +347,7 @@ export default function SpeakingStudio({ language, apiKey, aiModel, hasApiKey })
     setScore(null);
     try {
       const prompt = `You are an English speaking examiner for Vietnamese high-school students. Grade the student's speaking response.\n\nLevel target: ${level}\nSpeaking prompt: ${activeCard.prompt}\nFollow-up questions: ${(activeCard.followUps || []).join(' | ')}\nSuccess criteria: ${(activeCard.successCriteria || []).join(' | ')}\nRecording duration: ${seconds} seconds\nStudent transcript:\n${finalTranscript}\n\nReturn strict JSON only with this schema:\n{\n  "overall": 0,\n  "cefr": "B2",\n  "bands": {\n    "task": 0,\n    "fluency": 0,\n    "vocab": 0,\n    "grammar": 0,\n    "pronunciation": 0\n  },\n  "strengths": ["..."],\n  "improvements": ["..."],\n  "grammarCorrections": [{"original":"...", "better":"...", "reason":"..."}],\n  "vocabularyUpgrade": [{"basic":"...", "better":"..."}],\n  "sampleAnswer": "a stronger sample answer at the same level",\n  "teacherNote": "short note for teacher"\n}\n\nScoring rules:\n- overall is 0-100.\n- each band is 0-20.\n- Pronunciation is based on transcript clarity and recording duration only; mention that true phonetic scoring requires audio transcription support.\n- Be specific and constructive.\n- Do not invent content not supported by the transcript.`;
-      const text = await callAI({ apiKey, model: aiModel, prompt, temperature: 0.35, responseMimeType: 'application/json', validation: { kind: 'json', requiredFields: ['overall', 'cefr', 'bands', 'strengths', 'improvements'] } });
+      const text = await runAITask('speaking.evaluate', { apiKey, model: aiModel, prompt, temperature: 0.35, responseMimeType: 'application/json', validation: { kind: 'json', requiredFields: ['overall', 'cefr', 'bands', 'strengths', 'improvements'] } });
       const json = extractJson(text);
       setScore(json);
       addHistoryEntry({ type: 'speaking-feedback', title: `Speaking feedback - ${activeCard.title}`, content: JSON.stringify(json, null, 2) });

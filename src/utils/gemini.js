@@ -360,6 +360,7 @@ export async function callAIWithMeta(options = {}) {
     ].map((candidate, index) => ({ ...candidate, rank: index + 1 }));
   }
 
+  const registryTaskId = String(enrichedOptions.registryTaskId || task.id);
   const fallbackEnabled = enrichedOptions.fallback ?? getFallbackEnabled();
   if (!fallbackEnabled) candidates = candidates.slice(0, 1);
   if (!candidates.length) {
@@ -367,7 +368,7 @@ export async function callAIWithMeta(options = {}) {
       ? 'Privacy Filter yêu cầu provider local nhưng chưa có Ollama, LM Studio hoặc LocalAI khả dụng.'
       : 'No configured AI provider is available for this task.');
     error.code = privacySummary.forceLocal ? 'AI_PRIVACY_NO_LOCAL_PROVIDER' : 'AI_NO_PROVIDER_CONFIGURED';
-    error.taskId = task.id;
+    error.taskId = registryTaskId;
     error.privacy = privacySummary;
     throw error;
   }
@@ -380,7 +381,10 @@ export async function callAIWithMeta(options = {}) {
     label: enrichedOptions.loadingLabel || enrichedOptions.aiLabel || '',
     maxOutputTokens: governance.maxOutputTokens,
     profile: governance.profileKey,
-    taskId: task.id,
+    taskId: registryTaskId,
+    taskGroup: task.id,
+    promptVersion: enrichedOptions.promptVersion || '',
+    promptRegistryVersion: enrichedOptions.promptRegistryVersion || '',
     routingMode: effectiveRoutingMode,
     candidateCount: candidates.length,
     privacy: privacySummary,
@@ -583,8 +587,12 @@ export async function callAIWithMeta(options = {}) {
     : { enabled: false, valid: true, skipped: true, kind: 'text', issueCount: 0, issueCodes: [], repairAttempted, repaired, repairAttempts };
   const meta = {
     operationId,
-    taskId: task.id,
-    taskLabel: task.label,
+    taskId: registryTaskId,
+    taskGroup: task.id,
+    taskLabel: enrichedOptions.taskLabel || task.label,
+    taskApp: enrichedOptions.taskApp || '',
+    promptVersion: enrichedOptions.promptVersion || '',
+    promptRegistryVersion: enrichedOptions.promptRegistryVersion || '',
     engine: 'ai',
     transport: 'browser-unified',
     provider: finalCandidate?.id || preferredProvider,
@@ -614,7 +622,9 @@ export async function callAIWithMeta(options = {}) {
       success: true,
       error: '',
       profile: governance.profileKey,
-      taskId: task.id,
+      taskId: registryTaskId,
+      taskGroup: task.id,
+      promptVersion: enrichedOptions.promptVersion || '',
       transport: meta.transport,
       operationId,
       privacy: privacySummary,
@@ -643,7 +653,7 @@ export async function callAIWithMeta(options = {}) {
   }
   error.attempts = attempts;
   error.operationId = operationId;
-  error.taskId = task.id;
+  error.taskId = registryTaskId;
   error.privacy = privacySummary;
   error.validationSummary = validationSummary;
   recordAiRequest({
@@ -655,7 +665,9 @@ export async function callAIWithMeta(options = {}) {
     success: false,
     error: error?.message || String(error),
     profile: governance.profileKey,
-    taskId: task.id,
+    taskId: registryTaskId,
+    taskGroup: task.id,
+    promptVersion: enrichedOptions.promptVersion || '',
     transport: meta.transport,
     operationId,
     privacy: { ...privacySummary, restored: Boolean(privacySummary.applied) },

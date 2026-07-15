@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { callAI, extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/gemini.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { canPublishDepartment } from '../utils/permissions.js';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
@@ -361,7 +362,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     try {
       const text = await extractFileText(files[0]);
       setProgress(40);
-      const raw = await callAI({
+      const raw = await runAITask('library.enrichResource', {
         prompt: `Phân loại tài nguyên dạy học tiếng Anh. Trả JSON gồm title, description, category (lesson-plan|presentation|worksheet|assessment|answer-key|thpt-exam|gifted|audio|media|professional-form|reference|other), grade, schoolYear, unitName, cefr, skills[], tags[], source, aiUses[]. Không bịa nguồn.\nTên file: ${files[0].name}\nNội dung:\n${text.slice(0, 18000)}`,
         responseMimeType: 'application/json', temperature: 0.15, maxOutputTokens: 700, loadingLabel: 'AI đang phân loại học liệu…',
       });
@@ -637,7 +638,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     setBusy('AI đang tìm trong kho học liệu…');
     try {
       const context = visibleItems.slice(0, 25).map((item, index) => `[${index + 1}] ${item.title}\n${item.aiSummary || item.description}\nTags: ${(item.tags || []).join(', ')}\n${String(item.extractedText || '').slice(0, 1200)}`).join('\n\n');
-      const answer = await callAI({
+      const answer = await runAITask('library.answerQuestion', {
         prompt: `Bạn là thủ thư chuyên môn tiếng Anh. Chỉ trả lời dựa trên danh mục dưới đây; nêu rõ tên tài liệu phù hợp. Nếu thiếu dữ liệu thì nói rõ.\nCâu hỏi: ${aiQuery}\n\nKHO:\n${context}`,
         temperature: 0.2, maxOutputTokens: 700, loadingLabel: 'AI đang tìm kiếm kho học liệu…',
       });

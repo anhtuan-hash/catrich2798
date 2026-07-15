@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
-import { callAI, extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/gemini.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import {
   analyzeExamRequirement,
   buildExamOutputFromQuestions,
@@ -488,7 +489,7 @@ async function callExamAI({ project, mode, apiKey, aiModel, strictEnglishRetry =
   const systemInstruction = mode === 'brief'
     ? 'You analyze exam requirements for an English teacher. Return strict JSON only. The exam plan must target English-only generated content.'
     : 'You create accurate English exam questions. Return strict JSON only. All generated exam content must be English only.';
-  const text = await callAI({
+  const text = await runAITask('teaching.specializedGenerate', {
     apiKey,
     model: aiModel,
     prompt,

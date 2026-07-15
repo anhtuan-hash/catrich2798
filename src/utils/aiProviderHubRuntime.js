@@ -1,6 +1,6 @@
 import { PROVIDER_CATALOG, AI_PROVIDER_CATEGORIES, getProviderCatalogEntry } from '../data/aiProviderCatalog.js';
 import { getAiConfigs, getAiProvider } from './aiProviders.js';
-import { callAI } from './gemini.js';
+import { runAITask } from './aiTaskRuntime.js';
 import {
   getEffectiveActiveProvider,
   getProviderOverrideState,
@@ -279,7 +279,7 @@ async function testCurrentProvider(root) {
   statusKind = 'working';
   renderHub();
   try {
-    const result = await callAI({
+    const result = await runAITask('system.connectionTest', {
       provider: selectedProviderId,
       apiKey: form.apiKey,
       model: form.model,

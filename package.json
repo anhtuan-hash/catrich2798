@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "12.37.0",
+  "version": "12.38.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -88,7 +88,7 @@
     "test:v11.5.6": "npm run version:sync && node scripts/check-v11.5.6.mjs",
     "release:guard:v11.5.6": "node scripts/release-guard-v11.5.6.mjs",
     "verify:v11.5.6": "npm run test:v11.5.6 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.6",
-    "version:sync": "node scripts/sync-version-v12.37.0.mjs",
+    "version:sync": "node scripts/sync-version-v12.38.0.mjs",
     "audit:budget": "node scripts/performance-budget-v11.6.0.mjs",
     "release:guard": "node scripts/release-guard-v11.6.1.mjs",
     "test:v11.5.8": "npm run version:sync && node scripts/check-v11.5.8.mjs",
@@ -163,7 +163,9 @@
     "test:v12.36.0": "node scripts/test-v12.36.0-ai-control-plane.mjs",
     "verify:v12.36.0": "node scripts/verify-v12.36.0.mjs && npm run test:v12.36.0 && npm run build && npm test && npm run test:department",
     "test:v12.37.0": "node scripts/test-v12.37.0-ai-cloud-sync.mjs",
-    "verify:v12.37.0": "node scripts/verify-v12.37.0.mjs && npm run test:v12.37.0 && npm run build && npm test && npm run test:department"
+    "verify:v12.37.0": "node scripts/verify-v12.37.0.mjs && npm run test:v12.37.0 && npm run build && npm test && npm run test:department",
+    "test:v12.38.0": "node scripts/test-v12.38.0-ai-task-registry.mjs",
+    "verify:v12.38.0": "node scripts/verify-v12.38.0.mjs && npm run test:v12.38.0 && npm run build && npm test && npm run test:department"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
@@ -176,7 +178,7 @@
     "read-excel-file": "^9.3.1",
     "vite": "^8.1.3"
   },
-  "description": "Brian English Studio V12.37.0 — adds privacy-safe local-first Supabase synchronization for AI governance settings, audit events and system-wide telemetry.",
+  "description": "Brian English Studio V12.38.0 — centralizes application AI calls in a versioned Task and Prompt Registry with contracts, metrics and legacy compatibility.",
   "engines": {
     "node": "22.x"
   },

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { callAI, extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/gemini.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { addHistoryEntry, addQuestionsFromTextToBank, exportAsHtml, exportAsWord } from '../utils/library.js';
 import { createTransfer, TRANSFER_APPLY_EVENT } from '../utils/contentTransfer.js';
@@ -869,7 +870,7 @@ export default function GrammarBuilder({ language = 'vi', apiKey = '', aiModel =
   };
 
   const callGrammarAi = async (prompt, task, maxOutputTokens = 2800, validation = {}) => {
-    const raw = await callAI({
+    const raw = await runAITask('grammar.generateBatch', {
       apiKey,
       model: aiModel,
       prompt,

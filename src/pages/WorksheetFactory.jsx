@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { spreadsheetToTextSafe } from '../utils/safeSpreadsheet.js';
-import { callAI, extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/gemini.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { addBankItems, addHistoryEntry, loadBank, loadHistory } from '../utils/library.js';
 import { createTransfer, pendingTransferFor, updateTransfer, TRANSFER_APPLY_EVENT } from '../utils/contentTransfer.js';
@@ -672,14 +673,14 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
         maxOutputTokens: maxTokens,
         governanceProfile: 'worksheet',
       };
-      const raw = await callAI({ ...aiOptions, prompt, loadingLabel: 'Worksheet Factory đang viết nội dung nguồn…' });
+      const raw = await runAITask('worksheet.generateSource', { ...aiOptions, prompt, loadingLabel: 'Worksheet Factory đang viết nội dung nguồn…' });
       let sourceText = cleanGeneratedSource(raw);
       let actualWords = countWords(sourceText);
 
       if (actualWords < minWords) {
         setAiMessage(`Bản đầu mới có ${actualWords}/${minWords} từ. AI đang mở rộng nội dung…`);
         const expansionPrompt = `Rewrite and expand the draft below into one complete English teaching source of ${minWords}-${maxWords} words (aim for ${targetWords}). Preserve its useful facts and topic, add coherent development and examples, and return the full revised text only. Do not add questions, headings, notes or markdown.\n\nDRAFT (${actualWords} words):\n${sourceText}`;
-        const expandedRaw = await callAI({
+        const expandedRaw = await runAITask('worksheet.expandSource', {
           ...aiOptions,
           maxOutputTokens: Math.max(maxTokens, 1100),
           prompt: expansionPrompt,
@@ -694,7 +695,7 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
         const missingWords = minWords - actualWords;
         setAiMessage(`Nội dung còn thiếu khoảng ${missingWords} từ. AI đang viết tiếp…`);
         const continuationPrompt = `Continue the source text below with approximately ${missingWords + 40} additional words. Continue naturally from the final sentence, add new relevant development, and return only the continuation. Do not repeat the existing text, do not add a title, and do not add worksheet questions.\n\nEXISTING SOURCE:\n${sourceText}`;
-        const continuationRaw = await callAI({
+        const continuationRaw = await runAITask('worksheet.continueSource', {
           ...aiOptions,
           maxOutputTokens: Math.max(420, Math.min(900, missingWords * 3)),
           prompt: continuationPrompt,
@@ -731,7 +732,7 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
     const fallback = offlineSourceIntelligence(project.sourceText, project.sourceName);
     if (!hasApiKey) { patch({ intelligence: fallback, learner: { ...project.learner, level: fallback.level, topic: fallback.topic }, blueprint: buildDefaultBlueprint(fallback, project.mode), stage: 'intelligence' }); setAiMessage('Đã phân tích bằng Source Intelligence nội bộ.'); setBusy(false); return; }
     try {
-      const raw = await callAI({ apiKey, model: aiModel, maxOutputTokens: 1400, temperature: 0.2, responseMimeType: 'application/json', validation: { kind: 'json', requiredFields: ['sourceType', 'topic', 'level', 'keywords', 'recommendedTypes'] }, loadingLabel: 'Worksheet Factory đang phân tích nguồn…', prompt: `Analyse this English teaching source. Return strict JSON only with keys sourceType, topic, level, keywords (max 16), grammar (max 8), skills (max 6), existingQuestionCount, issues (max 6), recommendedTypes (use only these ids: ${WORKSHEET_ACTIVITY_TYPES.map((type) => type.id).join(', ')}). Source name: ${project.sourceName}. Source:\n${project.sourceText.slice(0, 24000)}` });
+      const raw = await runAITask('worksheet.analyzeSource', { apiKey, model: aiModel, maxOutputTokens: 1400, temperature: 0.2, responseMimeType: 'application/json', validation: { kind: 'json', requiredFields: ['sourceType', 'topic', 'level', 'keywords', 'recommendedTypes'] }, loadingLabel: 'Worksheet Factory đang phân tích nguồn…', prompt: `Analyse this English teaching source. Return strict JSON only with keys sourceType, topic, level, keywords (max 16), grammar (max 8), skills (max 6), existingQuestionCount, issues (max 6), recommendedTypes (use only these ids: ${WORKSHEET_ACTIVITY_TYPES.map((type) => type.id).join(', ')}). Source name: ${project.sourceName}. Source:\n${project.sourceText.slice(0, 24000)}` });
       const parsed = extractJson(raw) || {};
       const intelligence = { ...fallback, ...parsed, keywords: Array.isArray(parsed.keywords) ? parsed.keywords : fallback.keywords, grammar: Array.isArray(parsed.grammar) ? parsed.grammar : fallback.grammar, skills: Array.isArray(parsed.skills) ? parsed.skills : fallback.skills, issues: Array.isArray(parsed.issues) ? parsed.issues : fallback.issues, recommendedTypes: Array.isArray(parsed.recommendedTypes) ? parsed.recommendedTypes.filter((type) => WORKSHEET_ACTIVITY_TYPES.some((entry) => entry.id === type)) : fallback.recommendedTypes, analysedAt: Date.now() };
       patch({ intelligence, learner: { ...project.learner, level: intelligence.level || project.learner.level, topic: intelligence.topic || project.learner.topic }, blueprint: buildDefaultBlueprint(intelligence, project.mode), stage: 'intelligence' });
@@ -746,7 +747,7 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
     const input = { sourceText: project.sourceText || project.learner.topic, sourceName: project.sourceName, title: project.title, topic: project.learner.topic || project.intelligence.topic, level: plan.difficulty || project.learner.level, audience: `Grade ${project.learner.grade}`, activityTypes: [plan.type], itemsPerActivity: plan.count, language, includeExplanations: project.answerMode !== 'key-only', avoidRepeatedContentWords: project.qualityRules.includes('content-words') || project.qualityRules.includes('no-duplicates'), customInstruction: `${project.customInstruction}\nUse only these approved source facets: ${project.sourceFacets.join(', ')}. The activity is worth ${plan.points} point(s) per item.` };
     if (!hasApiKey) return generateOfflineWorksheet(input).activities[0];
     try {
-      const raw = await callAI({ apiKey, model: aiModel, prompt: buildWorksheetPrompt(input), systemInstruction: 'You are Worksheet Factory V2. Return strict valid JSON only. Produce exactly one requested activity with correct answers and concise explanations. Never include markdown fences.', temperature: 0.35, responseMimeType: 'application/json', validation: { kind: 'json', requiredFields: ['activities'], collectionKey: 'activities.0.items', expectedCount: plan.count, detectDuplicates: true, validateMcq: ['multiple_choice', 'vocabulary_context', 'reading_comprehension'].includes(plan.type) }, maxOutputTokens: Math.min(3200, Math.max(900, plan.count * 180)), loadingLabel: `Đang tạo ${activityLabel(plan.type)}…` });
+      const raw = await runAITask('worksheet.generateActivity', { apiKey, model: aiModel, prompt: buildWorksheetPrompt(input), systemInstruction: 'You are Worksheet Factory V2. Return strict valid JSON only. Produce exactly one requested activity with correct answers and concise explanations. Never include markdown fences.', temperature: 0.35, responseMimeType: 'application/json', validation: { kind: 'json', requiredFields: ['activities'], collectionKey: 'activities.0.items', expectedCount: plan.count, detectDuplicates: true, validateMcq: ['multiple_choice', 'vocabulary_context', 'reading_comprehension'].includes(plan.type) }, maxOutputTokens: Math.min(3200, Math.max(900, plan.count * 180)), loadingLabel: `Đang tạo ${activityLabel(plan.type)}…` });
       const normalized = normalizeWorksheet(extractJson(raw), { language });
       if (normalized.activities[0]?.items?.length) return normalized.activities[0];
       throw new Error('AI returned no valid activity.');

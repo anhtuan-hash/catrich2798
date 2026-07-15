@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { callAI } from '../utils/gemini.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { ACCENT_COLORS, UI_PREFERENCES_SYNC_EVENT } from '../ui-core/runtime/uiPreferences.js';
 import { changeCurrentPassword } from '../utils/auth.js';
 import {
@@ -334,7 +334,7 @@ export default function Settings({
     setTestResult('');
     setTesting(true);
     try {
-      const text = await callAI({
+      const text = await runAITask('system.connectionTest', {
         provider: providerId,
         apiKey: config.apiKey,
         model: config.model || providerInfo.defaultModel,

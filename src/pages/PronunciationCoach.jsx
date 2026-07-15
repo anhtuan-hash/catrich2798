@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { callAI, extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/gemini.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { addHistoryEntry, exportAsHtml, exportAsWord } from '../utils/library.js';
 import { createTransfer, listTransfers, updateTransfer, TRANSFER_APPLY_EVENT } from '../utils/contentTransfer.js';
@@ -328,7 +329,7 @@ export default function PronunciationCoach({ language = 'vi', apiKey = '', aiMod
     if (taskId === 'analyse' && !speechTranscript.trim() && !latestRecording?.transcript) { setAiError('Hãy ghi âm hoặc nhập transcript trước khi phân tích.'); setShowAi(true); return; }
     setAiLoading(taskId); setAiError(''); setAiResult(null); setShowAi(true);
     try {
-      const raw = await callAI({ apiKey, model: aiModel, prompt: buildAiPrompt(taskId, project, speechTranscript || latestRecording?.transcript || ''), systemInstruction: 'You are an evidence-aware pronunciation coach. Return strict JSON. Distinguish intelligibility checks from phoneme-level assessment.', temperature: taskId === 'analyse' ? 0.25 : 0.55, responseMimeType: 'application/json', maxOutputTokens: 5200, governanceProfile: 'teacher-content-creation', loadingLabel: `Speech Coach · ${AI_TASKS.find((task) => task.id === taskId)?.title || taskId}` });
+      const raw = await runAITask('pronunciation.coach', { apiKey, model: aiModel, prompt: buildAiPrompt(taskId, project, speechTranscript || latestRecording?.transcript || ''), systemInstruction: 'You are an evidence-aware pronunciation coach. Return strict JSON. Distinguish intelligibility checks from phoneme-level assessment.', temperature: taskId === 'analyse' ? 0.25 : 0.55, responseMimeType: 'application/json', maxOutputTokens: 5200, governanceProfile: 'teacher-content-creation', loadingLabel: `Speech Coach · ${AI_TASKS.find((task) => task.id === taskId)?.title || taskId}` });
       let parsed; try { parsed = extractJson(raw); } catch { parsed = { raw }; } setAiResult({ taskId, raw, parsed, createdAt: Date.now() });
     } catch (error) { setAiError(error.message || 'AI không phản hồi.'); }
     finally { setAiLoading(''); }

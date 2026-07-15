@@ -16,7 +16,8 @@ import {
   SearchCommandTab,
   StudentSupportTab,
 } from '../components/HomeroomPhase3Tabs.jsx';
-import { callAI, extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/gemini.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import {
   addMeeting,
@@ -284,7 +285,7 @@ function StudentsTab({ workspace, onCommit, language, openAi, hasApiKey }) {
     const attendanceRows = targetId ? Object.entries(workspace.attendance).map(([date, rows]) => ({ date, ...(rows?.[targetId] || {}) })).filter((item) => item.status) : [];
     const counts = ATTENDANCE_STATUSES.map((item) => `${item.labelVi}: ${attendanceRows.filter((row) => row.status === item.id).length}`).join(', ');
     const prompt = `Bạn là giáo viên chủ nhiệm THPT. Viết một nhận xét học sinh bằng tiếng Việt, khách quan, tích cực, có định hướng hỗ trợ và không bịa dữ liệu.\nHọc sinh: ${draft.fullName}\nMã HS: ${draft.code || 'chưa có'}\nThông tin hiện có: ${draft.notes || 'chưa có ghi chú'}\nChuyên cần: ${counts || 'chưa có dữ liệu'}\nMức theo dõi: ${draft.supportLevel}\nYêu cầu: 90-140 từ, gồm điểm tích cực, điểm cần cải thiện và một đề xuất phối hợp cụ thể. Chỉ trả về nội dung nhận xét.`;
-    const comment = await callAI({ prompt, temperature: 0.45, maxOutputTokens: 520, loadingLabel: 'AI đang viết nhận xét học sinh…' });
+    const comment = await runAITask('homeroom.writeComment', { prompt, temperature: 0.45, maxOutputTokens: 520, loadingLabel: 'AI đang viết nhận xét học sinh…' });
     setDraft((current) => ({ ...current, notes: comment }));
   };
 
@@ -484,7 +485,7 @@ function MeetingsTab({ workspace, onCommit, hasApiKey, language }) {
     const attendanceSummary = attendance.map(([date, rows]) => `${date}: ${Object.values(rows).filter((r) => r.status === 'present').length} present, ${Object.values(rows).filter((r) => ['excused', 'unexcused'].includes(r.status)).length} absent, ${Object.values(rows).filter((r) => r.status === 'late').length} late`).join('\n');
     const upcoming = workspace.schedule.filter((item) => item.date >= weekStart && item.date <= endOfWeekValue(new Date(`${weekEnd}T00:00:00`).toISOString().slice(0, 10))).map((item) => `${item.date} ${item.title}`).join('\n');
     const prompt = `You are an experienced Vietnamese high-school homeroom teacher. Create a practical class meeting plan in Vietnamese.\nClass: ${workspace.classProfile.className || 'unknown'}\nWeek: ${weekStart} to ${weekEnd}\nTeacher request: ${aiRequest}\nAttendance data:\n${attendanceSummary || 'No data'}\nUpcoming schedule:\n${upcoming || 'No events'}\nStudents needing attention:\n${workspace.students.filter((s) => s.supportLevel !== 'normal' || s.notes).map((s) => `${s.fullName}: ${s.notes || s.supportLevel}`).join('\n') || 'None'}\nReturn strict JSON only with keys: theme, objectives, attendanceSummary, learningSummary, commendations, reminders, nextWeek, content. The content should be a polished 35-45 minute agenda with interaction and clear teacher prompts.`;
-    const text = await callAI({ prompt, responseMimeType: 'application/json', temperature: 0.55, maxOutputTokens: 1100, loadingLabel: 'AI đang xây dựng nội dung sinh hoạt lớp…' });
+    const text = await runAITask('homeroom.planMeeting', { prompt, responseMimeType: 'application/json', temperature: 0.55, maxOutputTokens: 1100, loadingLabel: 'AI đang xây dựng nội dung sinh hoạt lớp…' });
     const result = extractJson(text);
     setDraft((current) => ({ ...current, ...result, date: current.date || today() }));
   };
@@ -519,7 +520,7 @@ function ParentsTab({ workspace, onCommit, hasApiKey, language }) {
     if (!hasApiKey) return;
     const studentName = selectedStudent?.fullName || 'học sinh';
     const prompt = `Write a Vietnamese parent message for a high-school homeroom teacher.\nStudent: ${studentName}\nParent: ${selectedStudent?.parentName || 'Quý phụ huynh'}\nSubject/context: ${draft.subject || draft.message || 'Trao đổi tình hình học tập và rèn luyện'}\nTone: ${tone}\nChannel: ${draft.channel}\nRequirements: polite, concise, specific, collaborative, no accusation, include a clear next step. Return the message only.`;
-    const message = await callAI({ prompt, temperature: 0.55, maxOutputTokens: 520, loadingLabel: 'AI đang soạn thông báo phụ huynh…' });
+    const message = await runAITask('homeroom.parentMessage', { prompt, temperature: 0.55, maxOutputTokens: 520, loadingLabel: 'AI đang soạn thông báo phụ huynh…' });
     setDraft((current) => ({ ...current, message }));
   };
   const save = async () => {
@@ -581,7 +582,7 @@ function RecordsTab({ workspace, onCommit, hasApiKey, language }) {
     if (!hasApiKey) return;
     const attendanceSummary = Object.entries(workspace.attendance).slice(-12).map(([key, rows]) => `${key}: ${Object.values(rows).filter((r) => r.status === 'present').length} có mặt, ${Object.values(rows).filter((r) => ['excused', 'unexcused'].includes(r.status)).length} vắng, ${Object.values(rows).filter((r) => r.status === 'late').length} trễ`).join('\n');
     const prompt = `Bạn là giáo viên chủ nhiệm THPT. Hãy tạo văn bản báo cáo bằng tiếng Việt, rõ mục, ngắn gọn, không bịa dữ liệu.\nYêu cầu: ${request}\nLớp: ${workspace.classProfile.className || 'chưa đặt tên'}\nSĩ số: ${workspace.students.filter((s) => s.active !== false).length}\nChuyên cần gần đây:\n${attendanceSummary || 'Chưa có dữ liệu'}\nLịch công việc:\n${workspace.schedule.slice(-10).map((item) => `${item.date}: ${item.title} (${item.status})`).join('\n') || 'Chưa có'}\nSự việc đang theo dõi: ${workspace.incidents.filter((item) => item.status !== 'closed').length}.\nKế hoạch hỗ trợ đang hoạt động: ${workspace.supportPlans.filter((item) => item.status === 'active').length}.\nSinh hoạt lớp:\n${workspace.meetings.slice(0, 3).map((item) => `${item.date}: ${item.theme}`).join('\n') || 'Chưa có'}\nLiên hệ phụ huynh: ${workspace.parentContacts.length} lượt.\nReturn strict JSON with keys title, period, content.`;
-    const text = await callAI({ prompt, responseMimeType: 'application/json', temperature: 0.45, maxOutputTokens: 1000, loadingLabel: 'AI đang tổng hợp báo cáo chủ nhiệm…' });
+    const text = await runAITask('homeroom.generateReport', { prompt, responseMimeType: 'application/json', temperature: 0.45, maxOutputTokens: 1000, loadingLabel: 'AI đang tổng hợp báo cáo chủ nhiệm…' });
     const result = extractJson(text);
     setDraft((current) => ({ ...current, ...result }));
   };
@@ -641,7 +642,7 @@ Schedule keys when present: title,date,startTime,endTime,location,category,audie
 Attendance keys: date,studentCode or studentName,status,reason.
 Parent-contact keys when present: studentCode,studentName,date,channel,subject,message,outcome.
 Rules: preserve every valid row; never invent data; use YYYY-MM-DD and HH:mm; normalize Vietnamese phone numbers; omit properties that are absent instead of repeating empty strings; keep summary under 60 Vietnamese words; output minified JSON without Markdown.`;
-      const text = await callAI({ prompt, responseMimeType: 'application/json', temperature: 0.1, maxOutputTokens: AI_IMPORT_OUTPUT_BUDGET, loadingLabel: 'AI đang đọc và nhận diện dữ liệu chủ nhiệm…' });
+      const text = await runAITask('homeroom.importData', { prompt, responseMimeType: 'application/json', temperature: 0.1, maxOutputTokens: AI_IMPORT_OUTPUT_BUDGET, loadingLabel: 'AI đang đọc và nhận diện dữ liệu chủ nhiệm…' });
       const result = extractJson(text);
       setPreview({ ...AI_IMPORT_EMPTY, ...result, students: Array.isArray(result.students) ? result.students : [], schedule: Array.isArray(result.schedule) ? result.schedule : [], attendance: Array.isArray(result.attendance) ? result.attendance : [], parentContacts: Array.isArray(result.parentContacts) ? result.parentContacts : [] });
     } catch (err) { setError(err?.message || 'Không thể phân tích file.'); }
