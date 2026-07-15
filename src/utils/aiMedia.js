@@ -134,11 +134,26 @@ export async function callAIImageWithMeta({
     throw error;
   }
 
-  const governance = guardAiRequest({
-    ...privacyResult.options,
-    governanceProfile,
-    maxOutputTokens: 256,
-  });
+  let governance;
+  try {
+    governance = guardAiRequest({
+      ...privacyResult.options,
+      aiTaskId,
+      governanceProfile,
+      maxOutputTokens: 256,
+    });
+  } catch (error) {
+    appendAiAudit({
+      type: 'request',
+      status: 'blocked',
+      label: 'AI image request blocked by governance',
+      profile: governanceProfile,
+      taskId: aiTaskId,
+      transport: 'browser-unified',
+      detail: { taskId: aiTaskId, code: error?.code || '', error: error?.message || String(error), governance: error?.governance || {}, privacy: privacySummary },
+    });
+    throw error;
+  }
   const configs = getAiConfigs();
   const providerInfo = getProviderInfo('gemini');
   const config = configs?.gemini || {};
@@ -274,10 +289,14 @@ export async function callAIImageWithMeta({
       durationMs,
       success: true,
       profile: governance.profileKey,
+      taskId: aiTaskId,
+      transport: meta.transport,
       operationId,
       privacy: privacySummary,
       validation: meta.validation,
       providerCalls: meta.providerCalls,
+      fallbackUsed: meta.fallbackUsed,
+      attempts,
       runtime: meta.runtime,
     });
     if (typeof window !== 'undefined') window.__BES_LAST_AI_META__ = meta;
@@ -299,10 +318,14 @@ export async function callAIImageWithMeta({
     success: false,
     error: error.message,
     profile: governance.profileKey,
+    taskId: aiTaskId,
+    transport: meta.transport,
     operationId,
     privacy: privacySummary,
     validation: meta.validation,
     providerCalls: meta.providerCalls || 1,
+    fallbackUsed: meta.fallbackUsed,
+    attempts,
     runtime: meta.runtime,
   });
   emitAiOperation('bes-ai-operation-end', { ...operation, ...meta, success: false, error: error.message });

@@ -21,6 +21,7 @@ import './ui-core/styles/department-color-system-v1222.css';
 import './ui-core/styles/department-detail-workspace-v1223.css';
 import './ui-core/styles/admin-center-v1224.css';
 import './ui-core/styles/settings-experience-v1225.css';
+import './ui-core/styles/ai-control-plane-v1236.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import AppErrorBoundary from './components/AppErrorBoundary.jsx';
@@ -111,6 +112,7 @@ const FullMotionEffects = lazy(() => import('./components/FullMotionEffects.jsx'
 const GlobalMusicPlayer = lazy(() => import('./components/GlobalMusicPlayer.jsx'));
 const UniversalAIAssist = lazy(() => import('./components/UniversalAIAssist.jsx'));
 const GlobalAIIndicator = lazy(() => import('./components/GlobalAIIndicator.jsx'));
+const GlobalAIReceipt = lazy(() => import('./components/GlobalAIReceipt.jsx'));
 const UICommandCenter = lazy(() => import('./ui-core/components/UICommandCenter.jsx'));
 const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
 const GlobalRuntimeGuard = lazy(() => import('./components/GlobalRuntimeGuard.jsx'));
@@ -668,6 +670,10 @@ function App() {
           label={aiOperationState.label}
           provider={aiOperationState.provider}
         />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <GlobalAIReceipt language={language} />
       </Suspense>
 
       {effectiveMotionMode === 'full' && (

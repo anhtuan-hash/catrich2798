@@ -183,7 +183,7 @@ export default function UIActivityCenter({ currentUser, route = 'home', selected
       setActivityState(recordActivity(currentUser, {
         id: `ai-${detail.id || 'current'}`, category: 'ai', icon: 'AI', source: detail.provider || 'brian-ai', status: 'running',
         title: detail.label || (language === 'vi' ? 'Brian AI đang xử lý' : 'Brian AI is working'),
-        body: detail.provider || '', tone: 'info', createdAt: Date.now(),
+        body: [detail.taskId, detail.provider, detail.model].filter(Boolean).join(' · '), tone: 'info', createdAt: Date.now(),
       }, { replace: true }));
     };
     const onAiEnd = (event) => {
@@ -194,7 +194,7 @@ export default function UIActivityCenter({ currentUser, route = 'home', selected
         title: detail.error
           ? (language === 'vi' ? 'Tác vụ AI gặp lỗi' : 'AI task failed')
           : (language === 'vi' ? 'Tác vụ AI đã hoàn tất' : 'AI task completed'),
-        body: detail.error || detail.label || '', tone: detail.error ? 'danger' : 'success', createdAt: Date.now(),
+        body: detail.error || [detail.taskId, detail.providerName || detail.provider, detail.model, detail.transport].filter(Boolean).join(' · ') || detail.label || '', tone: detail.error ? 'danger' : 'success', createdAt: Date.now(),
       }, { replace: true }));
     };
 

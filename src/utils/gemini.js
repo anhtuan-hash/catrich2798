@@ -614,10 +614,14 @@ export async function callAIWithMeta(options = {}) {
       success: true,
       error: '',
       profile: governance.profileKey,
+      taskId: task.id,
+      transport: meta.transport,
       operationId,
       privacy: privacySummary,
       validation: validationSummary,
       providerCalls,
+      fallbackUsed: meta.fallbackUsed,
+      attempts,
       runtime: meta.runtime,
     });
     if (typeof window !== 'undefined') window.__BES_LAST_AI_META__ = meta;
@@ -651,10 +655,14 @@ export async function callAIWithMeta(options = {}) {
     success: false,
     error: error?.message || String(error),
     profile: governance.profileKey,
+    taskId: task.id,
+    transport: meta.transport,
     operationId,
     privacy: { ...privacySummary, restored: Boolean(privacySummary.applied) },
     validation: validationSummary,
     providerCalls,
+    fallbackUsed: meta.fallbackUsed,
+    attempts,
     runtime: meta.runtime,
   });
   emitAiOperation('bes-ai-operation-end', { ...operationDetail, ...meta, success: false, error: error?.message || String(error) });
