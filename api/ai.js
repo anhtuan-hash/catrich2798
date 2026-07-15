@@ -1,5 +1,6 @@
 import { appendApiAudit, createRequestId, enforceRateLimit, requireApprovedUser, sendJson } from './_security.js';
 import { handleLessonAiRequest } from '../server/lessonAiHandler.js';
+import { callServerAI, getServerAiReadiness, resolveServerAiProvider } from '../server/unifiedAiProviderAdapter.js';
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'no-store',
@@ -113,17 +114,6 @@ function buildPrompt(mode, payload = {}) {
   return `${sharedStyle}\n\nHelp the teacher with this request:\n${clip(payload)}`;
 }
 
-function extractOutputText(data) {
-  if (typeof data?.output_text === 'string') return data.output_text.trim();
-  const chunks = [];
-  for (const item of data?.output || []) {
-    for (const content of item?.content || []) {
-      if (typeof content?.text === 'string') chunks.push(content.text);
-    }
-  }
-  return chunks.join('\n').trim();
-}
-
 export default async function handler(req, res) {
   let routedBody = req.body;
   if (typeof routedBody === 'string') {
@@ -150,17 +140,6 @@ export default async function handler(req, res) {
     return;
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    await appendApiAudit(context, { endpoint: '/api/ai', action: 'configuration_check', status: 'error', requestId });
-    sendJson(res, 503, {
-      ok: false,
-      error: 'The server AI provider is not configured.',
-      requestId,
-    });
-    return;
-  }
-
   let body = req.body;
   if (!body || typeof body === 'string') {
     try {
@@ -177,67 +156,67 @@ export default async function handler(req, res) {
     'interactive-game-factory','presentation-builder','lesson-to-activity-converter',
     'teacher-workload-planner','class-performance-analyzer','student-support-tracker',
     'department-document-hub','student-practice-portal','vocabulary-mastery-app',
-    'speaking-practice-room','meeting-minutes-assistant',
+    'speaking-practice-room','meeting-minutes-assistant','unified',
   ]);
-  const mode = String(body?.mode || 'general');
+  const unifiedContract = body?.contract === 'bes-ai-core/1.0' || typeof body?.prompt === 'string';
+  const mode = unifiedContract ? 'unified' : String(body?.mode || 'general');
   if (!allowedModes.has(mode)) {
     sendJson(res, 400, { ok: false, error: 'Unsupported AI mode.', requestId });
     return;
   }
   const payload = body?.payload ?? {};
-  const serialized = typeof payload === 'string' ? payload : JSON.stringify(payload);
-  if (serialized.length > 20_000) {
+  const serialized = unifiedContract ? String(body?.prompt || '') : (typeof payload === 'string' ? payload : JSON.stringify(payload));
+  if (serialized.length > 140_000) {
     sendJson(res, 413, { ok: false, error: 'The AI request is too large.', requestId });
     return;
   }
 
-  const model = process.env.OPENAI_MODEL || 'gpt-5.4-mini';
-  const prompt = buildPrompt(mode, payload);
+  const provider = resolveServerAiProvider(body?.provider);
+  const readiness = getServerAiReadiness(provider);
+  if (!readiness.configured) {
+    await appendApiAudit(context, { endpoint: '/api/ai', action: 'configuration_check', status: 'error', requestId, details: { provider } });
+    sendJson(res, 503, { ok: false, error: `The ${provider} server AI provider is not configured.`, requestId, provider, transport: 'server-gateway' });
+    return;
+  }
+
+  if (mode === 'health') {
+    sendJson(res, 200, { ok: true, ...readiness, requestId });
+    return;
+  }
+
+  const prompt = unifiedContract ? String(body.prompt || '').trim() : buildPrompt(mode, payload);
+  const maxOutputTokens = Math.max(16, Math.min(12_000, Number(body?.maxOutputTokens) || 3600));
   await appendApiAudit(context, {
     endpoint: '/api/ai', action: mode, status: 'started', requestId,
-    details: { model, promptCharacters: prompt.length },
+    details: { provider, model: readiness.model, promptCharacters: prompt.length, contract: unifiedContract ? 'bes-ai-core/1.0' : 'legacy' },
   });
 
   try {
-    const response = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-        'X-Client-Request-Id': requestId,
-      },
-      body: JSON.stringify({ model, input: prompt, max_output_tokens: 3600 }),
+    const result = await callServerAI({
+      provider,
+      prompt,
+      maxOutputTokens,
+      temperature: Number(body?.temperature) || 0.25,
+      requestId,
     });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      await appendApiAudit(context, {
-        endpoint: '/api/ai', action: mode, status: 'provider_error', requestId,
-        details: { providerStatus: response.status },
-      });
-      sendJson(res, response.status >= 500 ? 502 : response.status, {
-        ok: false,
-        error: data?.error?.message || `AI provider request failed with status ${response.status}.`,
-        requestId,
-      });
-      return;
-    }
-
-    const text = extractOutputText(data);
-    if (!text) {
-      sendJson(res, 502, { ok: false, error: 'AI returned no text output.', requestId });
-      return;
-    }
-
     await appendApiAudit(context, {
       endpoint: '/api/ai', action: mode, status: 'ok', requestId,
-      details: { model, outputCharacters: text.length },
+      details: { provider: result.provider, model: result.model, outputCharacters: result.text.length, durationMs: result.durationMs, contract: unifiedContract ? 'bes-ai-core/1.0' : 'legacy' },
     });
-    sendJson(res, 200, { ok: true, text, model, requestId });
+    sendJson(res, 200, {
+      ok: true,
+      text: result.text,
+      provider: result.provider,
+      model: result.model,
+      transport: result.transport,
+      durationMs: result.durationMs,
+      requestId,
+      contract: unifiedContract ? 'bes-ai-core/1.0' : 'legacy',
+    });
   } catch (error) {
     await appendApiAudit(context, {
       endpoint: '/api/ai', action: mode, status: 'error', requestId,
-      details: { error: String(error?.message || error).slice(0, 300) },
+      details: { provider, error: String(error?.message || error).slice(0, 300) },
     });
     sendJson(res, 500, { ok: false, error: error?.message || 'AI request failed.', requestId });
   }

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { callAIImageWithMeta, callAIVisionWithMeta, getAiMediaReadiness } from '../utils/aiMedia.js';
 import { getAiConfigs } from '../utils/aiProviders.js';
 import './SmartIdStudio.css';
 
@@ -12,7 +13,7 @@ const copy = {
     author: 'Nguyễn Anh Tuấn',
     school: 'Trường TH, THCS, THPT Pétrus Ký',
     welcome: 'Tạo ảnh thẻ chuyên nghiệp trong một quy trình gọn',
-    welcomeSub: 'Tải ảnh hoặc chụp trực tiếp, kiểm tra chất lượng khuôn mặt, đổi nền – trang phục bằng Gemini và xuất ảnh đúng kích thước.',
+    welcomeSub: 'Tải ảnh hoặc chụp trực tiếp, kiểm tra chất lượng khuôn mặt, đổi nền – trang phục bằng AI và xuất ảnh đúng kích thước.',
     upload: 'Tải ảnh lên',
     uploadHint: 'JPG, PNG, WEBP · tự tối ưu trước khi gửi AI',
     camera: 'Chụp ảnh mới',
@@ -39,11 +40,11 @@ const copy = {
     quantityLabel: 'Số lượng ảnh',
     cancel: 'Hủy',
     exportFile: 'Xuất tờ in PNG',
-    errorApi: 'Không thể kết nối Gemini. Hãy kiểm tra khóa Gemini trong Cài đặt AI rồi thử lại.',
+    errorApi: 'Không thể kết nối AI hình ảnh. Hãy kiểm tra Provider Hub rồi thử lại.',
     analyzing: 'Đang phân tích ảnh...',
     style: 'Phong cách xử lý',
     settings: 'Mở cài đặt AI',
-    keyRequired: 'SmartID cần khóa Gemini để phân tích và chỉnh sửa ảnh. Các chức năng crop, lưu và in vẫn dùng được khi chưa có khóa.',
+    keyRequired: 'SmartID cần một provider hỗ trợ vision để phân tích ảnh; chức năng tạo ảnh mới hiện cần khóa Gemini. Crop, lưu và in vẫn dùng được khi chưa cấu hình AI.',
     back: 'Quay lại ứng dụng',
     preview: 'Bản xem trước',
     source: 'Ảnh gốc',
@@ -53,8 +54,8 @@ const copy = {
     cameraError: 'Không mở được camera. Hãy cấp quyền camera hoặc dùng nút tải ảnh.',
     identityNote: 'AI chỉ tạo ảnh chân dung rời; không tạo giấy tờ, con dấu, số hiệu hay huy hiệu chính thức.',
     ready: 'Sẵn sàng',
-    aiReady: 'Gemini đã kết nối',
-    aiMissing: 'Chưa có khóa Gemini',
+    aiReady: 'AI hình ảnh đã kết nối',
+    aiMissing: 'Chưa cấu hình AI hình ảnh',
     printCapacity: 'Số ảnh thực tế phụ thuộc kích thước đã chọn và diện tích tờ in.',
     backgroundWhite: 'Trắng tinh',
     backgroundBlue: 'Xanh ảnh thẻ',
@@ -76,7 +77,7 @@ const copy = {
     author: 'Nguyen Anh Tuan',
     school: 'Pétrus Ký Primary, Secondary & High School',
     welcome: 'Create a professional ID portrait in one focused workflow',
-    welcomeSub: 'Upload or capture a photo, check face quality, change the background or outfit with Gemini, and export exact-size images.',
+    welcomeSub: 'Upload or capture a photo, check face quality, change the background or outfit with AI, and export exact-size images.',
     upload: 'Upload photo',
     uploadHint: 'JPG, PNG, WEBP · optimized before AI processing',
     camera: 'Take a new photo',
@@ -103,11 +104,11 @@ const copy = {
     quantityLabel: 'Quantity',
     cancel: 'Cancel',
     exportFile: 'Export print sheet PNG',
-    errorApi: 'Gemini could not be reached. Check the Gemini key in AI Settings and try again.',
+    errorApi: 'The image AI provider could not be reached. Check Provider Hub and try again.',
     analyzing: 'Analyzing photo...',
     style: 'Processing style',
     settings: 'Open AI settings',
-    keyRequired: 'SmartID needs a Gemini key for analysis and AI editing. Crop, download and print remain available without a key.',
+    keyRequired: 'SmartID needs a vision provider for analysis; creating a new edited image currently requires a Gemini key. Crop, download and print remain available without AI.',
     back: 'Back to apps',
     preview: 'Preview',
     source: 'Original',
@@ -117,8 +118,8 @@ const copy = {
     cameraError: 'The camera could not be opened. Grant camera permission or upload a photo instead.',
     identityNote: 'AI returns a standalone portrait only; it does not create documents, seals, numbers or official insignia.',
     ready: 'Ready',
-    aiReady: 'Gemini connected',
-    aiMissing: 'Gemini key missing',
+    aiReady: 'Image AI connected',
+    aiMissing: 'Image AI not configured',
     printCapacity: 'The actual number of photos depends on the selected size and available paper area.',
     backgroundWhite: 'Pure white',
     backgroundBlue: 'ID photo blue',
@@ -196,82 +197,6 @@ const BACKGROUNDS = [
   { id: 'light_gray', vi: 'Xám sáng', en: 'Light gray', prompt: 'a seamless very light gray portrait background' },
   { id: 'original', vi: 'Giữ nền gốc', en: 'Keep original', prompt: 'keep the original background, only clean minor distractions' },
 ];
-
-function emitAi(type, detail) {
-  if (typeof window === 'undefined') return;
-  window.dispatchEvent(new CustomEvent(type, { detail }));
-}
-
-function dataUrlParts(dataUrl = '') {
-  const match = String(dataUrl).match(/^data:([^;]+);base64,(.+)$/);
-  if (!match) return { mimeType: 'image/jpeg', data: '' };
-  return { mimeType: match[1], data: match[2] };
-}
-
-function readFileAsDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ''));
-    reader.onerror = () => reject(new Error('Could not read the image file.'));
-    reader.readAsDataURL(file);
-  });
-}
-
-function loadImage(dataUrl) {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error('Could not decode the image.'));
-    image.src = dataUrl;
-  });
-}
-
-async function normalizeImage(dataUrl, maxEdge = MAX_INPUT_EDGE) {
-  const image = await loadImage(dataUrl);
-  const scale = Math.min(1, maxEdge / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
-  const width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
-  const height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext('2d', { alpha: false });
-  context.fillStyle = '#ffffff';
-  context.fillRect(0, 0, width, height);
-  context.drawImage(image, 0, 0, width, height);
-  return canvas.toDataURL('image/jpeg', 0.93);
-}
-
-async function fetchJsonWithRetry(url, options, retries = 2) {
-  let lastError;
-  for (let attempt = 0; attempt <= retries; attempt += 1) {
-    try {
-      const response = await fetch(url, options);
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload?.error?.message || `HTTP ${response.status}`);
-      return payload;
-    } catch (error) {
-      lastError = error;
-      if (attempt < retries) await new Promise((resolve) => window.setTimeout(resolve, 800 * (attempt + 1)));
-    }
-  }
-  throw lastError;
-}
-
-function extractText(payload) {
-  return String(payload?.candidates?.[0]?.content?.parts?.find((part) => part.text)?.text || '').trim();
-}
-
-function extractGeneratedImage(payload) {
-  const part = payload?.candidates?.[0]?.content?.parts?.find((item) => item.inlineData?.data || item.inline_data?.data);
-  const inline = part?.inlineData || part?.inline_data;
-  if (!inline?.data) return '';
-  return `data:${inline.mimeType || inline.mime_type || 'image/png'};base64,${inline.data}`;
-}
-
-function selectedGeminiKey(fallbackKey = '') {
-  const configs = getAiConfigs();
-  return String(configs?.gemini?.apiKey || fallbackKey || '').trim();
-}
 
 function drawCover(context, image, x, y, width, height) {
   const sourceRatio = image.width / image.height;
@@ -351,7 +276,12 @@ export default function SmartIdStudio({ language = 'vi', apiKey = '', aiProvider
 
   const currentSize = useMemo(() => PHOTO_SIZES.find((item) => item.id === settings.preset) || PHOTO_SIZES[1], [settings.preset]);
   const currentRatio = `${currentSize.widthMm} / ${currentSize.heightMm}`;
-  const geminiKey = selectedGeminiKey(aiProvider === 'gemini' ? apiKey : '');
+  const configs = getAiConfigs();
+  const accountGeminiKey = String(configs?.gemini?.apiKey || '').trim();
+  const mediaReadiness = getAiMediaReadiness();
+  const visionReady = mediaReadiness.imageAnalysisReady;
+  const imageGenerationReady = Boolean(accountGeminiKey) || mediaReadiness.imageGenerationReady || (aiProvider === 'gemini' && Boolean(String(apiKey || '').trim()));
+  const aiConnected = visionReady || imageGenerationReady;
 
   useEffect(() => () => {
     cameraStreamRef.current?.getTracks?.().forEach((track) => track.stop());
@@ -387,32 +317,27 @@ export default function SmartIdStudio({ language = 'vi', apiKey = '', aiProvider
 
   const analyzeFaceQuality = async (imageData) => {
     if (!imageData) return;
-    if (!geminiKey) {
+    if (!visionReady) {
       setAiFeedback(t.keyRequired);
       return;
     }
     setIsAnalyzing(true);
-    const operation = { id: `smartid-analysis-${Date.now()}`, provider: 'Google Gemini', model: 'gemini-2.5-flash', label: t.analyzing };
-    emitAi('bes-ai-operation-start', operation);
     try {
-      const { mimeType, data } = dataUrlParts(imageData);
-      const payload = await fetchJsonWithRetry('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiKey },
-        body: JSON.stringify({
-          contents: [{ parts: [
-            { text: `Analyze this portrait only for ID-photo readiness. Comment briefly on lighting, head position, face visibility and background. Give practical advice in ${language === 'vi' ? 'Vietnamese' : 'English'}, maximum 3 short sentences. Do not identify the person.` },
-            { inlineData: { mimeType, data } },
-          ] }],
-          generationConfig: { temperature: 0.25, maxOutputTokens: 260 },
-        }),
+      const response = await callAIVisionWithMeta({
+        imageDataUrl: imageData,
+        prompt: `Analyze this portrait only for ID-photo readiness. Comment briefly on lighting, head position, face visibility and background. Give practical advice in ${language === 'vi' ? 'Vietnamese' : 'English'}, maximum 3 short sentences. Do not identify the person.`,
+        systemInstruction: 'You are Brian SmartID Vision. Analyze photo quality only. Never identify or infer sensitive traits about the person.',
+        temperature: 0.25,
+        maxOutputTokens: 260,
+        governanceProfile: 'document',
+        loadingLabel: t.analyzing,
+        fallback: true,
       });
-      setAiFeedback(extractText(payload) || t.aiFeedbackDefault);
-    } catch {
-      setAiFeedback(t.errorApi);
+      setAiFeedback(response.text || t.aiFeedbackDefault);
+    } catch (error) {
+      setAiFeedback(`${t.errorApi}${error?.message ? ` (${error.message})` : ''}`);
     } finally {
       setIsAnalyzing(false);
-      emitAi('bes-ai-operation-end', operation);
     }
   };
 
@@ -458,7 +383,7 @@ export default function SmartIdStudio({ language = 'vi', apiKey = '', aiProvider
 
   const handleAiEdit = async () => {
     if (!sourceImage || isProcessing) return;
-    if (!geminiKey) {
+    if (!imageGenerationReady) {
       setErrorMsg(t.keyRequired);
       return;
     }
@@ -478,40 +403,23 @@ export default function SmartIdStudio({ language = 'vi', apiKey = '', aiProvider
       'Preserve the same person, facial geometry, age, skin tone and recognisable identity. Keep expression neutral and natural. Center the head and shoulders. Do not over-smooth skin.',
       'Do not add a document layout, card, passport, seal, watermark, badge, insignia, text, number, signature, QR code or official emblem. Return only the portrait photograph.',
     ].join('\n');
-    const models = ['gemini-3.1-flash-image', 'gemini-2.5-flash-image'];
-    const operation = { id: `smartid-edit-${Date.now()}`, provider: 'Google Gemini', model: models[0], label: t.processing };
-    emitAi('bes-ai-operation-start', operation);
     try {
-      const { mimeType, data } = dataUrlParts(sourceImage);
-      let generated = '';
-      let lastError;
-      for (const model of models) {
-        try {
-          emitAi('bes-ai-operation-update', { ...operation, model });
-          const payload = await fetchJsonWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiKey },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: finalPrompt }, { inlineData: { mimeType, data } }] }],
-              generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
-            }),
-          }, 1);
-          generated = extractGeneratedImage(payload);
-          if (generated) break;
-          throw new Error('No image was returned.');
-        } catch (error) {
-          lastError = error;
-        }
-      }
-      if (!generated) throw lastError || new Error('No image was returned.');
-      setProcessedImage(generated);
-      addRecent(generated, language === 'vi' ? 'Ảnh AI đã xử lý' : 'AI processed photo');
-      analyzeFaceQuality(generated);
+      const response = await callAIImageWithMeta({
+        imageDataUrl: sourceImage,
+        prompt: finalPrompt,
+        apiKey: aiProvider === 'gemini' ? apiKey : '',
+        models: ['gemini-3.1-flash-image', 'gemini-2.5-flash-image'],
+        governanceProfile: 'document',
+        loadingLabel: t.processing,
+        aiTaskId: 'smartid-image-edit',
+      });
+      setProcessedImage(response.imageDataUrl);
+      addRecent(response.imageDataUrl, language === 'vi' ? 'Ảnh AI đã xử lý' : 'AI processed photo');
+      analyzeFaceQuality(response.imageDataUrl);
     } catch (error) {
       setErrorMsg(`${t.errorApi}${error?.message ? ` (${error.message})` : ''}`);
     } finally {
       setIsProcessing(false);
-      emitAi('bes-ai-operation-end', operation);
     }
   };
 
@@ -602,7 +510,7 @@ export default function SmartIdStudio({ language = 'vi', apiKey = '', aiProvider
             </div>
           </section>
 
-          {!geminiKey ? (
+          {!aiConnected ? (
             <section className="smartid-key-notice">
               <Icon name="info" size={21} />
               <div><strong>{t.aiMissing}</strong><p>{t.keyRequired}</p></div>
@@ -673,11 +581,11 @@ export default function SmartIdStudio({ language = 'vi', apiKey = '', aiProvider
           <aside className="smartid-editor-panel">
             <header className="smartid-panel-heading">
               <div><span>{t.edit}</span><h2>{t.editSub}</h2></div>
-              <span className={`smartid-connection ${geminiKey ? 'ready' : ''}`}>{geminiKey ? t.aiReady : t.aiMissing}</span>
+              <span className={`smartid-connection ${aiConnected ? 'ready' : ''}`}>{aiConnected ? t.aiReady : t.aiMissing}</span>
             </header>
 
             <div className="smartid-controls-scroll">
-              {!geminiKey ? <button type="button" className="smartid-inline-settings" onClick={() => { window.location.hash = '#/settings'; }}><Icon name="settings" size={18}/>{t.settings}</button> : null}
+              {!aiConnected ? <button type="button" className="smartid-inline-settings" onClick={() => { window.location.hash = '#/settings'; }}><Icon name="settings" size={18}/>{t.settings}</button> : null}
 
               <label className="smartid-control-group">
                 <span><Icon name="wand" size={16}/>{t.aiCommand}</span>
@@ -724,7 +632,7 @@ export default function SmartIdStudio({ language = 'vi', apiKey = '', aiProvider
             </div>
 
             <footer className="smartid-editor-footer">
-              <button type="button" disabled={isProcessing || !geminiKey} onClick={handleAiEdit}><Icon name="sparkle" size={22}/>{t.generate}</button>
+              <button type="button" disabled={isProcessing || !imageGenerationReady} onClick={handleAiEdit}><Icon name="sparkle" size={22}/>{t.generate}</button>
             </footer>
           </aside>
         </div>

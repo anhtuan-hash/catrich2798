@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { mountEnglishLessonIntegrationStudio } from '../vendor/englishLessonIntegration/elis.es.js';
 import { APP_VERSION } from '../config/version.js';
 import { getSupabasePublicConfig, isSupabaseConfigured, supabase } from '../utils/supabase.js';
-import { callAI } from '../utils/gemini.js';
+import { callAIWithMeta } from '../utils/gemini.js';
 import { getActiveAiConfig, getProviderInfo } from '../utils/aiProviders.js';
 
 function clipLessonAi(value, max = 56000) {
@@ -126,7 +126,7 @@ export default function EnglishLessonIntegrationStudio({
                 model: activeAI.model || providerInfo.defaultModel,
                 authMode: 'brian-native',
               };
-              const text = await callAI({
+              const response = await callAIWithMeta({
                 provider: activeAI.provider,
                 apiKey: activeAI.apiKey || apiKey,
                 model: activeAI.model || aiModel || providerInfo.defaultModel,
@@ -138,7 +138,14 @@ export default function EnglishLessonIntegrationStudio({
                 governanceProfile: 'teaching-content',
                 loadingLabel: language === 'vi' ? 'AI Copilot đang phân tích giáo án…' : 'AI Copilot is analyzing the lesson…',
               });
-              return { text, provider: activeAI.provider, model: activeAI.model || providerInfo.defaultModel };
+              return {
+                text: response.text,
+                provider: response.meta.provider,
+                model: response.meta.model,
+                transport: 'browser-unified',
+                requestId: response.meta.operationId,
+                durationMs: response.meta.durationMs,
+              };
             } : undefined,
           },
           integrationUrls: integrationUrls(),

@@ -1,14 +1,14 @@
 {
-  "version": "12.33.0",
+  "version": "12.34.0",
   "channel": "stable",
-  "releaseName": "Unified AI Core Phase 2",
+  "releaseName": "Unified AI Core Phase 3",
   "runtimeCore": "3.8.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-15T09:14:58.462145Z",
+  "generatedAt": "2026-07-15T13:45:57.615Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -68,7 +68,7 @@
     "assessment",
     "custom"
   ],
-  "runtime": "2.4.6",
+  "runtime": "3.9.0",
   "schema": "11.4.2",
   "lessonIntegrationNativeAiBridge": true,
   "lessonIntegrationProviderInheritance": true,
@@ -318,7 +318,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Unified AI Core Phase 2",
+  "release": "Unified AI Core Phase 3",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -530,13 +530,13 @@
   "threeAppsTotalRemoval": true,
   "retiredApplicationCount": 3,
   "unifiedAiCore": true,
-  "unifiedAiCorePhase": 1,
+  "unifiedAiCorePhase": 3,
   "providerHubRuntimeUnified": true,
   "smartRoutingConnectedToCallAI": true,
   "aiTaskRegistry": true,
   "aiProvenanceMetadata": true,
   "accountScopedProviderHub": true,
-  "aiUnifiedCorePhase": 2,
+  "aiUnifiedCorePhase": 3,
   "aiPrivacyFilter": true,
   "aiPrivacyPlaceholderRestore": true,
   "aiSensitiveDataBlocking": true,
@@ -551,5 +551,13 @@
     "mcq",
     "length"
   ],
-  "aiSafetyGovernanceUi": true
+  "aiSafetyGovernanceUi": true,
+  "aiUnifiedMediaPipeline": true,
+  "smartIdUnifiedVision": true,
+  "smartIdUnifiedImageGeneration": true,
+  "smartIdDirectGeminiRemoved": true,
+  "aiServerProviderAdapter": true,
+  "lessonAiSharedGatewayAdapter": true,
+  "aiGatewayContract": "bes-ai-core/1.0",
+  "aiTransportProvenance": true
 }

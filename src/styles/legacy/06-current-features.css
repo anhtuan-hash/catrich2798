@@ -1896,3 +1896,16 @@ html[data-theme="dark"] .bes-workspace-tabs,html[data-theme="dark"] .bes-workspa
 .ai-gov-safety-note{margin:12px 0 0;padding:10px 12px;border-radius:14px;background:#eef7f3;color:#326451;font-size:12px;line-height:1.45;font-weight:750}
 @media(max-width:900px){.ai-gov-safety-grid{grid-template-columns:1fr}.ai-gov-safety-metrics{display:none!important}}
 @media(max-width:660px){.ai-gov-select-row{grid-template-columns:1fr}.ai-gov-number-grid-single{grid-template-columns:1fr}}
+
+/* V12.34 Unified AI Core transport coverage */
+.ai-gov-transport-badge{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 13px;border-radius:999px;background:#e8fff4;color:#087754;border:1px solid #bdebd7;font-size:12px;font-weight:900;white-space:nowrap}
+.ai-gov-transport-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.ai-gov-transport-grid article{display:grid;grid-template-columns:auto 1fr;gap:11px;align-items:start;min-width:0;padding:16px;border-radius:19px;border:1px solid #e2e6ee;background:linear-gradient(145deg,color-mix(in srgb,var(--surface,#fff) 96%,#eee8ff),color-mix(in srgb,var(--surface,#fff) 97%,#e8f6ff))}
+.ai-gov-transport-grid article>span{width:32px;height:32px;border-radius:11px;display:grid;place-items:center;background:#ece8ff;color:#5b36bb;font-size:12px;font-weight:950}
+.ai-gov-transport-grid article strong{display:block;color:var(--ink,#182033);font-size:14px;line-height:1.25}
+.ai-gov-transport-grid article p{margin:5px 0 0;color:var(--muted,#697386);font-size:12px;line-height:1.5}
+.ai-gov-transport-grid article>b{grid-column:2;justify-self:start;padding:5px 9px;border-radius:999px;background:#e9fbf3;color:#087754;font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.ai-gov-transport-note{margin:14px 0 0;padding:11px 13px;border-radius:14px;background:#f7f5ff;color:#5b4b80;font-size:12px;line-height:1.45}
+[data-theme="dark"] .ai-gov-transport-grid article{border-color:#30384a;background:linear-gradient(145deg,#191e2b,#171b27)}
+[data-theme="dark"] .ai-gov-transport-note{background:#211c35;color:#c9bffa}
+@media(max-width:960px){.ai-gov-transport-grid{grid-template-columns:1fr}}

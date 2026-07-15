@@ -89,7 +89,7 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
     <div className="ai-governance-page bui-management" data-ui="management" data-management-app="ai-governance">
       <section className="ai-gov-hero bui-management-header">
         <div className="ai-gov-hero-copy">
-          <span className="ai-gov-eyebrow">V12.33 · AI CORE SAFETY</span>
+          <span className="ai-gov-eyebrow">V12.34 · AI CORE TRANSPORT</span>
           <h1>{vi ? 'Trung tâm quản trị Brian AI' : 'Brian AI Governance Center'}</h1>
           <p>{vi ? 'Kiểm soát provider, quyền riêng tư, kiểm định đầu ra, hạn mức và nhật ký vận hành AI trên toàn hệ thống.' : 'Control providers, privacy, output validation, limits and AI audit activity across the system.'}</p>
           <div className="ai-gov-hero-actions">
@@ -167,15 +167,25 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
             </div>
           </div>
         </section>
+
+        <section className="ai-gov-card ai-gov-transport">
+          <header><div><span>06</span><div><h2>{vi ? 'Độ phủ Unified AI Core' : 'Unified AI Core coverage'}</h2><p>{vi ? 'Ba đường gọi AI cũ đã được đưa về các adapter và hợp đồng dùng chung.' : 'The former AI call paths now use shared adapters and contracts.'}</p></div></div><b className="ai-gov-transport-badge">100% core</b></header>
+          <div className="ai-gov-transport-grid">
+            <article><span>01</span><div><strong>{vi ? 'Văn bản & tài liệu' : 'Text and documents'}</strong><p>{vi ? 'callAI → Privacy → Governance → Smart Router → Output Guard.' : 'callAI → Privacy → Governance → Smart Router → Output Guard.'}</p></div><b>{vi ? 'Đã hợp nhất' : 'Unified'}</b></article>
+            <article><span>02</span><div><strong>{vi ? 'Ảnh & Vision' : 'Images and vision'}</strong><p>{vi ? 'SmartID dùng aiMedia; không còn gọi Gemini trực tiếp trong trang.' : 'SmartID uses aiMedia; no direct Gemini request remains in the page.'}</p></div><b>{vi ? 'Đã hợp nhất' : 'Unified'}</b></article>
+            <article><span>03</span><div><strong>{vi ? 'Server AI Gateway' : 'Server AI Gateway'}</strong><p>{vi ? '/api/ai và Lesson Integration dùng cùng server provider adapter.' : '/api/ai and Lesson Integration share one server provider adapter.'}</p></div><b>{vi ? 'Đã hợp nhất' : 'Unified'}</b></article>
+          </div>
+          <p className="ai-gov-transport-note">{vi ? 'Hợp đồng gateway mới: bes-ai-core/1.0 · Metadata gồm provider, model, transport, thời gian và request ID.' : 'New gateway contract: bes-ai-core/1.0 · Metadata includes provider, model, transport, duration and request ID.'}</p>
+        </section>
       </div>
 
       <section className="ai-gov-card ai-gov-history">
-        <header><div><span>06</span><div><h2>{vi ? 'Lịch sử sử dụng' : 'Usage history'}</h2><p>{vi ? 'Theo dõi 45 ngày gần nhất trên thiết bị này.' : 'Track the last 45 days on this device.'}</p></div></div><button type="button" className="danger-text" onClick={() => { if (window.confirm(vi ? 'Đặt lại toàn bộ bộ đếm sử dụng AI?' : 'Reset all AI usage counters?')) { resetAiUsage(); refresh(); } }}>{vi ? 'Đặt lại bộ đếm' : 'Reset counters'}</button></header>
+        <header><div><span>07</span><div><h2>{vi ? 'Lịch sử sử dụng' : 'Usage history'}</h2><p>{vi ? 'Theo dõi 45 ngày gần nhất trên thiết bị này.' : 'Track the last 45 days on this device.'}</p></div></div><button type="button" className="danger-text" onClick={() => { if (window.confirm(vi ? 'Đặt lại toàn bộ bộ đếm sử dụng AI?' : 'Reset all AI usage counters?')) { resetAiUsage(); refresh(); } }}>{vi ? 'Đặt lại bộ đếm' : 'Reset counters'}</button></header>
         <div className="ai-gov-table-wrap"><table><thead><tr><th>{vi ? 'Ngày' : 'Date'}</th><th>{vi ? 'Yêu cầu' : 'Requests'}</th><th>{vi ? 'Thành công' : 'Success'}</th><th>{vi ? 'Lỗi' : 'Errors'}</th><th>Input</th><th>Output</th><th>{vi ? 'Đã che' : 'Redacted'}</th><th>{vi ? 'Tự sửa' : 'Repairs'}</th><th>{vi ? 'Hành động' : 'Actions'}</th></tr></thead><tbody>{days.slice(0, 14).map((day) => <tr key={day.date}><td>{day.date}</td><td>{formatNumber(day.requests)}</td><td>{formatNumber(day.successes)}</td><td>{formatNumber(day.errors)}</td><td>{formatNumber(day.inputTokens)}</td><td>{formatNumber(day.outputTokens)}</td><td>{formatNumber(day.privacyRedactions)}</td><td>{formatNumber(day.validationRepairs)}</td><td>{formatNumber(day.actions)}</td></tr>)}{!days.length && <tr><td colSpan="9">{vi ? 'Chưa có dữ liệu sử dụng.' : 'No usage data.'}</td></tr>}</tbody></table></div>
       </section>
 
       <section className="ai-gov-card ai-gov-audit">
-        <header><div><span>07</span><div><h2>{vi ? 'Nhật ký AI & hành động' : 'AI and action audit'}</h2><p>{vi ? 'Lưu yêu cầu, lỗi, chặn hạn mức và hành động liên ứng dụng.' : 'Requests, failures, blocked quotas and cross-app actions.'}</p></div></div><div className="ai-gov-audit-actions"><select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="all">{vi ? 'Tất cả' : 'All'}</option><option value="request">Request</option><option value="privacy">Privacy</option><option value="action">Action</option><option value="settings">Settings</option><option value="error">Error</option><option value="blocked">Blocked</option></select><button type="button" onClick={() => { if (window.confirm(vi ? 'Xóa nhật ký AI trên thiết bị này?' : 'Clear the AI audit log?')) { clearAiAudit(); refresh(); } }}>{vi ? 'Xóa nhật ký' : 'Clear log'}</button></div></header>
+        <header><div><span>08</span><div><h2>{vi ? 'Nhật ký AI & hành động' : 'AI and action audit'}</h2><p>{vi ? 'Lưu yêu cầu, lỗi, chặn hạn mức và hành động liên ứng dụng.' : 'Requests, failures, blocked quotas and cross-app actions.'}</p></div></div><div className="ai-gov-audit-actions"><select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="all">{vi ? 'Tất cả' : 'All'}</option><option value="request">Request</option><option value="privacy">Privacy</option><option value="action">Action</option><option value="settings">Settings</option><option value="error">Error</option><option value="blocked">Blocked</option></select><button type="button" onClick={() => { if (window.confirm(vi ? 'Xóa nhật ký AI trên thiết bị này?' : 'Clear the AI audit log?')) { clearAiAudit(); refresh(); } }}>{vi ? 'Xóa nhật ký' : 'Clear log'}</button></div></header>
         <div className="ai-gov-audit-list">{filteredAudit.map((item) => <article key={item.id} data-status={item.status}><span>{item.type === 'action' ? '↳' : item.status === 'error' || item.status === 'blocked' ? '!' : 'AI'}</span><div><strong>{item.label}</strong><p>{[item.provider, item.model, item.target].filter(Boolean).join(' · ') || (vi ? 'Sự kiện hệ thống' : 'System event')}</p><small>{new Date(item.createdAt).toLocaleString(vi ? 'vi-VN' : 'en-US')} · {item.actor?.email || item.actor?.name || 'guest'}</small></div><b>{item.status}</b></article>)}{!filteredAudit.length && <p className="ai-gov-empty">{vi ? 'Không có sự kiện phù hợp.' : 'No matching events.'}</p>}</div>
       </section>
 

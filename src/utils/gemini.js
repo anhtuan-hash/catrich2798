@@ -509,6 +509,7 @@ export async function callAIWithMeta(options = {}) {
     taskId: task.id,
     taskLabel: task.label,
     engine: 'ai',
+    transport: 'browser-direct',
     provider: finalCandidate?.id || preferredProvider,
     providerName: finalInfo.label || finalCandidate?.id || preferredProvider,
     model: finalCandidate?.model || '',
