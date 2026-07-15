@@ -1,14 +1,14 @@
 {
-  "version": "12.26.0",
+  "version": "12.27.0",
   "channel": "stable",
-  "releaseName": "OpenRouter Stability Repair",
+  "releaseName": "Worksheet Keyword Source AI",
   "runtimeCore": "3.6.2",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-15T03:30:15.131Z",
+  "generatedAt": "2026-07-15T04:15:06.628Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "OpenRouter Stability Repair",
+  "release": "Worksheet Keyword Source AI",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -510,5 +510,8 @@
   "openRouterStabilityRepair": true,
   "diagnosticTokenProfile": true,
   "legacyOpenRouterModelMigration": true,
-  "freeModelCreditRecovery": true
+  "freeModelCreditRecovery": true,
+  "worksheetKeywordSourceAi": true,
+  "keywordSourceGeneration": true,
+  "sourceProvenance": true
 }

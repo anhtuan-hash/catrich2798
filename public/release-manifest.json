@@ -1,6 +1,6 @@
 {
-  "version": "12.26.0",
-  "release": "OpenRouter Stability Repair",
+  "version": "12.27.0",
+  "release": "Worksheet Keyword Source AI",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-15T03:30:15.131Z",
+  "generatedAt": "2026-07-15T04:15:06.628Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "OpenRouter Stability Repair",
+  "releaseName": "Worksheet Keyword Source AI",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -515,5 +515,8 @@
   "openRouterStabilityRepair": true,
   "diagnosticTokenProfile": true,
   "legacyOpenRouterModelMigration": true,
-  "freeModelCreditRecovery": true
+  "freeModelCreditRecovery": true,
+  "worksheetKeywordSourceAi": true,
+  "keywordSourceGeneration": true,
+  "sourceProvenance": true
 }

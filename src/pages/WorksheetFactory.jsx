@@ -20,7 +20,7 @@ import {
 } from '../utils/worksheetFactory.js';
 import './WorksheetFactory.css';
 
-const APP_VERSION = '2.0';
+const APP_VERSION = '2.1';
 const PROJECT_SCHEMA = 'bes-worksheet-project/2.0';
 const TRANSFER_SCHEMA = 'bes-worksheet-pack/2.0';
 
@@ -88,6 +88,30 @@ const LAYOUTS = [
 
 const SAMPLE_SOURCE = `Artificial intelligence is changing education by helping teachers differentiate materials, provide faster feedback and analyse learning patterns. Effective use still requires clear objectives, careful checking and respect for student privacy. AI should support professional judgement rather than replace it. Students also need guidance to use digital tools responsibly while continuing to develop independent thinking.`;
 
+
+const SOURCE_INPUT_MODES = [
+  { id: 'manual', icon: '✎', label: 'Dán / Upload', desc: 'Dùng văn bản, file hoặc worksheet có sẵn.' },
+  { id: 'keywords', icon: '✦', label: 'Từ khóa → AI', desc: 'Nhập từ khóa để AI viết nội dung nguồn mới.' },
+  { id: 'item-bank', icon: '▤', label: 'Item Bank', desc: 'Nạp câu hỏi đã được duyệt.' },
+  { id: 'transfer', icon: '⇥', label: 'Transfer Inbox', desc: 'Nhận nội dung từ ứng dụng khác.' },
+];
+
+const SOURCE_CONTENT_TYPES = [
+  ['reading-passage', 'Bài đọc thông tin'],
+  ['exam-passage', 'Đoạn đọc kiểu đề thi THPT'],
+  ['contextual-text', 'Ngữ cảnh luyện từ vựng – ngữ pháp'],
+  ['dialogue', 'Hội thoại tình huống'],
+  ['mini-case', 'Tình huống / mini case study'],
+  ['vocabulary-context', 'Bài đọc giàu từ vựng mục tiêu'],
+];
+
+const SOURCE_LENGTHS = [
+  ['short', '150–200 từ', 200, 520],
+  ['medium', '250–350 từ', 350, 780],
+  ['long', '400–550 từ', 550, 1200],
+  ['extended', '600–800 từ', 800, 1700],
+];
+
 function uid(prefix = 'wf') {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -107,6 +131,17 @@ function downloadBlob(blob, filename) {
 function downloadText(content, filename, mime = 'text/plain;charset=utf-8') { downloadBlob(new Blob([content], { type: mime }), filename); }
 function scopedKey(currentUser) { return `bes-worksheet-factory-v2:${String(currentUser?.id || currentUser?.email || 'guest').replace(/[^a-z0-9@._-]+/gi, '-')}`; }
 function stripHtml(html = '') { return new DOMParser().parseFromString(html, 'text/html').body?.innerText || ''; }
+
+function cleanGeneratedSource(value = '') {
+  return safeText(value)
+    .replace(/^```(?:text|markdown)?\s*/i, '')
+    .replace(/```$/i, '')
+    .replace(/^#+\s*/gm, '')
+    .trim();
+}
+function keywordList(value = '') {
+  return [...new Set(String(value).split(/[\n,;|]+/).map((item) => safeText(item)).filter(Boolean))].slice(0, 24);
+}
 
 async function readPptxText(arrayBuffer) {
   const { default: JSZip } = await import('jszip');
@@ -215,8 +250,21 @@ function defaultProject() {
     status: 'draft',
     mode: 'source-to-worksheet',
     sourceName: 'AI in Education — sample',
+    sourceInputMode: 'manual',
     sourceKind: 'text',
     sourceText: SAMPLE_SOURCE,
+    sourceKeywords: '',
+    sourceGeneration: {
+      contentType: 'reading-passage',
+      length: 'medium',
+      tone: 'Học thuật, rõ ràng và phù hợp học sinh THPT',
+      language: 'English',
+      instruction: 'Nội dung có bố cục mạch lạc, giàu ngữ cảnh và phù hợp để tạo nhiều dạng bài.',
+      engine: 'manual',
+      provider: '',
+      model: '',
+      generatedAt: null,
+    },
     sourceFacets: ['vocabulary', 'grammar', 'reading', 'questions'],
     intelligence,
     learner: { grade: '12', level: 'B2', book: 'Global Success', unit: '', topic: 'AI in Education', minutes: 45, useCase: 'In-class practice', grouping: 'Individual / pairs', language: 'English + Vietnamese instructions', notes: 'Lớp có chênh lệch trình độ; ưu tiên ngữ cảnh rõ và thời lượng khả thi.' },
@@ -238,7 +286,9 @@ function defaultProject() {
 function normalizeProject(raw) {
   const base = defaultProject();
   if (!raw || typeof raw !== 'object') return base;
-  const project = { ...base, ...raw, learner: { ...base.learner, ...(raw.learner || {}) }, batch: { ...base.batch, ...(raw.batch || {}) } };
+  const project = { ...base, ...raw, learner: { ...base.learner, ...(raw.learner || {}) }, batch: { ...base.batch, ...(raw.batch || {}) }, sourceGeneration: { ...base.sourceGeneration, ...(raw.sourceGeneration || {}) } };
+  project.sourceInputMode = raw.sourceInputMode || (raw.sourceKind === 'item-bank' ? 'item-bank' : raw.sourceKind === 'transfer' ? 'transfer' : 'manual');
+  project.sourceKeywords = safeText(raw.sourceKeywords || '');
   project.sourceFacets = Array.isArray(raw.sourceFacets) ? raw.sourceFacets : base.sourceFacets;
   project.blueprint = Array.isArray(raw.blueprint) ? raw.blueprint : base.blueprint;
   project.qualityRules = Array.isArray(raw.qualityRules) ? raw.qualityRules : base.qualityRules;
@@ -323,17 +373,42 @@ function Workflow({ stage, setStage, hasWorksheet }) {
   })}</nav>;
 }
 
-function SourceCard({ project, patch, onFile, fileBusy, pendingTransfer, applyTransfer, onLoadItemBank }) {
+function SourceCard({ project, patch, onFile, fileBusy, pendingTransfer, applyTransfer, onLoadItemBank, onGenerateFromKeywords, busy, hasApiKey, providerName }) {
   const fileRef = useRef(null);
-  return <section className="wf2-card" id="wf2-source"><CardHeading number="04" kicker="SOURCE & INPUT" title="Nguồn & Input" description="Upload, dán nội dung, nhận Transfer Inbox hoặc lấy từ thư viện." />
+  const mode = project.sourceInputMode || 'manual';
+  const generation = project.sourceGeneration || {};
+  const keywords = keywordList(project.sourceKeywords);
+  const setMode = (nextMode) => patch({ sourceInputMode: nextMode, sourceKind: nextMode === 'item-bank' ? 'item-bank' : nextMode === 'transfer' ? 'transfer' : nextMode === 'keywords' ? 'keywords' : project.sourceKind === 'ai-keywords' ? 'text' : project.sourceKind });
+  const patchGeneration = (change) => patch({ sourceGeneration: { ...generation, ...change } });
+
+  return <section className="wf2-card wf2-source-card" id="wf2-source"><CardHeading number="01" kicker="SOURCE & INPUT" title="Nguồn & Input" description="Chọn cách cung cấp nguồn: dán tài liệu, tải file, nhập từ khóa để AI viết nội dung hoặc lấy từ hệ sinh thái." />
+    <div className="wf2-source-mode-tabs">{SOURCE_INPUT_MODES.map((item) => <button type="button" key={item.id} className={mode === item.id ? 'active' : ''} onClick={() => setMode(item.id)}><i>{item.icon}</i><span><strong>{item.label}</strong><small>{item.desc}</small></span>{mode === item.id ? <b>✓</b> : null}</button>)}</div>
+
     {pendingTransfer ? <div className="wf2-transfer"><div><strong>Nội dung từ {pendingTransfer.sourceTitle}</strong><span>{pendingTransfer.title}</span></div><button type="button" onClick={applyTransfer}>Dùng nội dung</button><button type="button" onClick={() => patch({ pendingTransferDismiss: true })}>Bỏ qua</button></div> : null}
-    <div className="wf2-source-actions"><select value={project.sourceKind} onChange={(event) => patch({ sourceKind: event.target.value })}><option value="text">Văn bản / bài đọc</option><option value="vocabulary">Danh sách từ</option><option value="worksheet">Worksheet cũ</option><option value="lesson-plan">Giáo án</option><option value="topic">Chỉ nhập chủ đề</option><option value="item-bank">Item Bank</option><option value="transfer">Transfer Inbox</option></select><button type="button" onClick={() => fileRef.current?.click()}>{fileBusy ? 'Đang đọc…' : '↑ Upload DOCX / PDF / PPTX / XLSX'}</button>{project.mode === 'item-bank' || project.sourceKind === 'item-bank' ? <button type="button" onClick={onLoadItemBank}>▤ Nạp Item Bank</button> : null}<input ref={fileRef} hidden type="file" accept=".docx,.pdf,.pptx,.xlsx,.xls,.txt,.md,.csv,.json,.html,.htm" onChange={(event) => onFile(event.target.files?.[0])} /><button type="button" onClick={() => patch({ sourceText: '', sourceName: '', intelligence: offlineSourceIntelligence('', '') })}>Xóa nguồn</button></div>
-    <label className="wf2-field"><span>Tên nguồn</span><input value={project.sourceName} onChange={(event) => patch({ sourceName: event.target.value })} placeholder="Ví dụ: Unit 3 — Environment and Climate" /></label>
-    <label className="wf2-field"><span>Nội dung nguồn</span><textarea data-transfer-target="primary" rows={11} value={project.sourceText} onChange={(event) => patch({ sourceText: event.target.value })} placeholder="Dán văn bản, câu hỏi, từ vựng hoặc ghi chú tại đây…" /></label>
-    <footer className="wf2-card-footer"><button type="button" onClick={() => patch({ sourceText: SAMPLE_SOURCE, sourceName: 'AI in Education — sample', sourceKind: 'text', intelligence: offlineSourceIntelligence(SAMPLE_SOURCE, 'AI in Education — sample') })}>Dùng sample</button><span>{countWords(project.sourceText).toLocaleString()} từ · {project.sourceText.length.toLocaleString()} ký tự</span></footer>
+
+    {mode === 'manual' ? <div className="wf2-source-panel">
+      <div className="wf2-source-actions"><select value={project.sourceKind === 'ai-keywords' ? 'text' : project.sourceKind} onChange={(event) => patch({ sourceKind: event.target.value })}><option value="text">Văn bản / bài đọc</option><option value="vocabulary">Danh sách từ</option><option value="worksheet">Worksheet cũ</option><option value="lesson-plan">Giáo án</option><option value="topic">Chỉ nhập chủ đề</option></select><button type="button" onClick={() => fileRef.current?.click()}>{fileBusy ? 'Đang đọc…' : '↑ Upload DOCX / PDF / PPTX / XLSX'}</button><input ref={fileRef} hidden type="file" accept=".docx,.pdf,.pptx,.xlsx,.xls,.txt,.md,.csv,.json,.html,.htm" onChange={(event) => onFile(event.target.files?.[0])} /></div>
+    </div> : null}
+
+    {mode === 'keywords' ? <div className="wf2-keyword-source">
+      <header><div><span className="wf2-ai-source-badge">✦ AI SOURCE WRITER</span><h3>Nhập từ khóa, AI tạo nội dung nguồn</h3><p>AI chỉ viết phần nội dung nền. Worksheet và câu hỏi vẫn được tạo ở các bước sau.</p></div><span className={hasApiKey ? 'ready' : 'not-ready'}>{hasApiKey ? `● ${providerName} sẵn sàng` : '○ Chưa có API key'}</span></header>
+      <label className="wf2-field"><span>Từ khóa / ý chính <b>*</b></span><textarea rows={4} value={project.sourceKeywords} onChange={(event) => patch({ sourceKeywords: event.target.value })} placeholder="Ví dụ: climate resilience, renewable energy, urban flooding, individual responsibility" /><small>{keywords.length}/24 từ khóa · có thể ngăn cách bằng dấu phẩy hoặc xuống dòng</small></label>
+      <div className="wf2-form-grid two wf2-keyword-options"><label className="wf2-field"><span>Dạng nội dung</span><select value={generation.contentType} onChange={(event) => patchGeneration({ contentType: event.target.value })}>{SOURCE_CONTENT_TYPES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label><label className="wf2-field"><span>Độ dài</span><select value={generation.length} onChange={(event) => patchGeneration({ length: event.target.value })}>{SOURCE_LENGTHS.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label><label className="wf2-field"><span>Giọng văn</span><select value={generation.tone} onChange={(event) => patchGeneration({ tone: event.target.value })}><option>Học thuật, rõ ràng và phù hợp học sinh THPT</option><option>Thân thiện, dễ hiểu nhưng vẫn ở mức B2–C1</option><option>Trang trọng theo phong cách đề thi THPT</option><option>Tự nhiên, giàu ngữ cảnh và có tính gợi mở</option></select></label><label className="wf2-field"><span>Ngôn ngữ nguồn</span><select value={generation.language} onChange={(event) => patchGeneration({ language: event.target.value })}><option>English</option><option>English with short Vietnamese glossary</option><option>Bilingual English–Vietnamese</option></select></label></div>
+      <label className="wf2-field"><span>Yêu cầu bổ sung</span><textarea rows={3} value={generation.instruction} onChange={(event) => patchGeneration({ instruction: event.target.value })} placeholder="Ví dụ: không lặp từ khóa quá nhiều, có ví dụ thực tế, tránh dữ kiện cần cập nhật theo thời gian…" /></label>
+      <div className="wf2-keyword-generate-row"><div><strong>Đầu ra dự kiến</strong><span>Grade {project.learner.grade} · {project.learner.level} · {SOURCE_CONTENT_TYPES.find(([id]) => id === generation.contentType)?.[1]}</span></div>{!hasApiKey ? <button type="button" className="wf2-provider-link" onClick={() => { window.location.hash = '#/settings'; }}>Mở AI Provider Hub</button> : null}<button type="button" className="wf2-primary" onClick={onGenerateFromKeywords} disabled={busy || !keywords.length || !hasApiKey}>{busy ? 'AI đang viết nguồn…' : '✦ AI tạo nội dung nguồn'}</button></div>
+      {generation.engine === 'ai' && project.sourceKind === 'ai-keywords' ? <div className="wf2-source-provenance"><span>✓ Nội dung do AI tạo</span><b>{generation.provider || providerName}</b><small>{generation.model || ''}</small></div> : null}
+    </div> : null}
+
+    {mode === 'item-bank' ? <div className="wf2-source-special"><i>▤</i><div><h3>Nguồn từ Item Bank</h3><p>Nạp tối đa 120 câu đã duyệt để tái cấu trúc thành worksheet mới.</p></div><button type="button" onClick={onLoadItemBank}>Nạp Item Bank</button></div> : null}
+    {mode === 'transfer' ? <div className="wf2-source-special"><i>⇥</i><div><h3>Transfer Inbox</h3><p>Nội dung được gửi từ Lesson Architect, Reading Studio, AI Workspace hoặc ứng dụng khác sẽ xuất hiện tại đây.</p></div>{pendingTransfer ? <button type="button" onClick={applyTransfer}>Dùng nội dung đang chờ</button> : <span>Chưa có nội dung đang chờ</span>}</div> : null}
+
+    <div className="wf2-source-editor">
+      <label className="wf2-field"><span>Tên nguồn</span><input value={project.sourceName} onChange={(event) => patch({ sourceName: event.target.value })} placeholder="Ví dụ: Unit 3 — Environment and Climate" /></label>
+      <label className="wf2-field"><span>Nội dung nguồn</span><textarea data-transfer-target="primary" rows={12} value={project.sourceText} onChange={(event) => patch({ sourceText: event.target.value, sourceGeneration: { ...generation, engine: project.sourceKind === 'ai-keywords' ? 'ai-edited' : generation.engine } })} placeholder={mode === 'keywords' ? 'Nội dung do AI tạo sẽ xuất hiện tại đây để thầy chỉnh sửa trước khi phân tích.' : 'Dán văn bản, câu hỏi, từ vựng hoặc ghi chú tại đây…'} /></label>
+    </div>
+    <footer className="wf2-card-footer"><div className="wf2-inline-actions"><button type="button" onClick={() => patch({ sourceText: SAMPLE_SOURCE, sourceName: 'AI in Education — sample', sourceInputMode: 'manual', sourceKind: 'text', intelligence: offlineSourceIntelligence(SAMPLE_SOURCE, 'AI in Education — sample') })}>Dùng sample</button><button type="button" onClick={() => patch({ sourceText: '', sourceName: '', sourceKeywords: '', sourceKind: mode === 'keywords' ? 'keywords' : 'text', intelligence: offlineSourceIntelligence('', ''), sourceGeneration: { ...generation, engine: 'manual', generatedAt: null } })}>Xóa nguồn</button></div><span>{countWords(project.sourceText).toLocaleString()} từ · {project.sourceText.length.toLocaleString()} ký tự</span></footer>
   </section>;
 }
-
 function SourceIntelligenceCard({ project, patch, analyseSource, busy }) {
   const intel = project.intelligence || {};
   return <section className="wf2-card" id="wf2-intelligence"><CardHeading number="02" kicker="SOURCE INTELLIGENCE" title="Phân tích nguồn thông minh" description="Chọn đúng phần được phép sử dụng thay vì lấy toàn bộ file một cách mù quáng." action={<button type="button" onClick={analyseSource} disabled={busy}>✦ {busy ? 'Đang phân tích…' : 'AI phân tích'}</button>} />
@@ -352,7 +427,7 @@ function LearnerCard({ project, patchLearner }) {
 }
 
 function BuildModeCard({ project, patch }) {
-  return <section className="wf2-card" id="wf2-mode"><CardHeading number="01" kicker="BUILD MODE" title="Chọn cơ chế tạo" description="Mỗi chế độ thay đổi cách phân tích, blueprint và đầu ra." />
+  return <section className="wf2-card" id="wf2-mode"><CardHeading number="00" kicker="BUILD MODE" title="Chọn cơ chế tạo" description="Mỗi chế độ thay đổi cách phân tích, blueprint và đầu ra." />
     <div className="wf2-choice-grid">{BUILD_MODES.map((mode) => <ChoiceCard key={mode.id} active={project.mode === mode.id} icon={mode.icon} title={mode.titleVi} description={mode.descVi} onClick={() => patch({ mode: mode.id, blueprint: buildDefaultBlueprint(project.intelligence, mode.id) })} />)}</div>
   </section>;
 }
@@ -452,7 +527,7 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
       const detail = event.detail || {};
       if (detail.toolSlug !== 'worksheet-factory' || !safeText(detail.text)) return;
       const sourceText = safeText(detail.text);
-      setProject((current) => normalizeProject({ ...current, sourceText, sourceName: 'Kết quả từ Brian AI', sourceKind: 'ai-result', intelligence: offlineSourceIntelligence(sourceText, 'Kết quả từ Brian AI'), stage: 'source', updatedAt: Date.now() }));
+      setProject((current) => normalizeProject({ ...current, sourceText, sourceName: 'Kết quả từ Brian AI', sourceInputMode: 'manual', sourceKind: 'ai-result', intelligence: offlineSourceIntelligence(sourceText, 'Kết quả từ Brian AI'), stage: 'source', updatedAt: Date.now() }));
       setNotice('Đã đưa kết quả AI vào Source & Input.');
       detail.markHandled?.();
     };
@@ -460,7 +535,7 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
       const detail = event.detail || {};
       if (detail.target !== 'worksheet-factory' || !safeText(detail.content)) return;
       const sourceText = safeText(detail.content);
-      setProject((current) => normalizeProject({ ...current, sourceText, sourceName: safeText(detail.title) || 'Nội dung được chuyển tới', sourceKind: 'transfer', intelligence: offlineSourceIntelligence(sourceText, detail.title || ''), stage: 'source', updatedAt: Date.now() }));
+      setProject((current) => normalizeProject({ ...current, sourceText, sourceName: safeText(detail.title) || 'Nội dung được chuyển tới', sourceInputMode: 'transfer', sourceKind: 'transfer', intelligence: offlineSourceIntelligence(sourceText, detail.title || ''), stage: 'source', updatedAt: Date.now() }));
       setNotice(`Đã nhận nội dung từ ${detail.sourceTitle || 'ứng dụng khác'}.`);
     };
     window.addEventListener('bes-ai-use-result', onAiUseResult);
@@ -480,7 +555,7 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
   const setStage = (stage) => patch({ stage });
   const applyTransfer = () => {
     if (!pendingTransfer) return;
-    patch({ sourceText: pendingTransfer.content || '', sourceName: pendingTransfer.title || 'Transfer Inbox', sourceKind: 'transfer', intelligence: offlineSourceIntelligence(pendingTransfer.content || '', pendingTransfer.title || '') });
+    patch({ sourceText: pendingTransfer.content || '', sourceName: pendingTransfer.title || 'Transfer Inbox', sourceInputMode: 'transfer', sourceKind: 'transfer', intelligence: offlineSourceIntelligence(pendingTransfer.content || '', pendingTransfer.title || '') });
     updateTransfer(currentUser, pendingTransfer.id, { status: 'applied', appliedAt: Date.now() });
     setPendingTransfer(null); setNotice('Đã nhận nội dung từ Transfer Inbox.');
   };
@@ -492,7 +567,7 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
       const options = Array.isArray(item.options) ? item.options.map((option, optionIndex) => `${String.fromCharCode(65 + optionIndex)}. ${option}`).join('\n') : '';
       return `Question ${index + 1}. ${item.question}${options ? `\n${options}` : ''}\nAnswer: ${item.answer || ''}\nExplanation: ${item.explanation || ''}`;
     }).join('\n\n');
-    patch({ sourceText: text, sourceName: `Item Bank — ${items.length} approved items`, sourceKind: 'item-bank', intelligence: offlineSourceIntelligence(text, 'Item Bank') });
+    patch({ sourceText: text, sourceName: `Item Bank — ${items.length} approved items`, sourceInputMode: 'item-bank', sourceKind: 'item-bank', intelligence: offlineSourceIntelligence(text, 'Item Bank') });
     setNotice(`Đã nạp ${items.length} câu từ Item Bank.`);
   };
 
@@ -503,10 +578,34 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
       const content = await readSourceFile(file);
       if (!safeText(content)) throw new Error('Không đọc được nội dung chữ trong file.');
       const clipped = content.slice(0, 150000);
-      patch({ sourceText: clipped, sourceName: file.name, sourceKind: file.name.split('.').pop()?.toLowerCase() || 'file', intelligence: offlineSourceIntelligence(clipped, file.name) });
+      patch({ sourceText: clipped, sourceName: file.name, sourceInputMode: 'manual', sourceKind: file.name.split('.').pop()?.toLowerCase() || 'file', intelligence: offlineSourceIntelligence(clipped, file.name) });
       setNotice(`Đã đọc ${file.name}.`);
     } catch (error) { setNotice(error?.message || 'Không thể đọc file.'); }
     finally { setFileBusy(false); }
+  };
+
+  const generateSourceFromKeywords = async () => {
+    const keywords = keywordList(project.sourceKeywords);
+    if (!keywords.length) { setNotice('Hãy nhập ít nhất một từ khóa hoặc ý chính.'); return; }
+    if (!hasApiKey) { setNotice('Chưa có API key. Hãy cấu hình provider trước khi dùng AI tạo nội dung nguồn.'); return; }
+    const generation = project.sourceGeneration || {};
+    const lengthProfile = SOURCE_LENGTHS.find(([id]) => id === generation.length) || SOURCE_LENGTHS[1];
+    const [, lengthLabel, targetWords, maxTokens] = lengthProfile;
+    setBusy(true); setAiMessage('AI đang tạo nội dung nguồn từ từ khóa…'); setNotice('');
+    try {
+      const prompt = `Create one original English teaching source text for Worksheet Factory.\n\nKEYWORDS / IDEAS:\n${keywords.map((item) => `- ${item}`).join('\n')}\n\nTARGET:\n- Grade: ${project.learner.grade}\n- CEFR: ${project.learner.level}\n- Content type: ${SOURCE_CONTENT_TYPES.find(([id]) => id === generation.contentType)?.[1] || generation.contentType}\n- Length: ${lengthLabel}, approximately ${targetWords} words\n- Tone: ${generation.tone}\n- Output language: ${generation.language}\n- Topic / Unit: ${project.learner.topic || project.learner.unit || keywords.slice(0, 3).join(', ')}\n- Additional instruction: ${generation.instruction || 'Use coherent paragraphs, meaningful context and stable facts.'}\n\nRULES:\n1. Return only the source content, without markdown fences, title labels, worksheet questions, answer keys or analysis.\n2. Integrate the keywords naturally; do not repeat them mechanically.\n3. Keep vocabulary and sentence complexity appropriate for the stated CEFR.\n4. Use stable educational information; avoid time-sensitive statistics or fabricated citations.\n5. Make the text rich enough for vocabulary, grammar, reading and critical-thinking activities.`;
+      const raw = await callAI({ apiKey, model: aiModel, prompt, systemInstruction: 'You are the Source Writer inside Worksheet Factory. Write only the requested teaching source. Never generate worksheet questions in this step.', temperature: 0.55, maxOutputTokens: maxTokens, loadingLabel: 'Worksheet Factory đang viết nội dung nguồn…' });
+      const sourceText = cleanGeneratedSource(raw);
+      if (countWords(sourceText) < 60) throw new Error('AI trả về nội dung quá ngắn.');
+      const sourceName = `${keywords.slice(0, 4).join(' · ')} — AI source`;
+      const intelligence = offlineSourceIntelligence(sourceText, sourceName);
+      patch({ sourceText, sourceName, sourceInputMode: 'keywords', sourceKind: 'ai-keywords', intelligence, learner: { ...project.learner, topic: project.learner.topic || keywords.slice(0, 3).join(' / ') }, sourceGeneration: { ...generation, engine: 'ai', provider: providerName, model: aiModel, generatedAt: Date.now() }, stage: 'source' });
+      setAiMessage(`AI đã tạo ${countWords(sourceText)} từ từ ${keywords.length} từ khóa. Hãy chỉnh sửa nguồn rồi chạy “AI phân tích”.`);
+      setNotice('Đã tạo nội dung nguồn bằng AI. Nội dung chưa tự động tạo câu hỏi.');
+    } catch (error) {
+      setAiMessage(`Không thể tạo nội dung nguồn: ${error?.message || 'AI provider không phản hồi.'}`);
+      setNotice('AI chưa tạo được nguồn. Nội dung cũ được giữ nguyên để tránh mất dữ liệu.');
+    } finally { setBusy(false); }
   };
 
   const analyseSource = async () => {
@@ -639,9 +738,9 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
 
     {project.stage === 'source' || project.stage === 'intelligence' || project.stage === 'learner' || project.stage === 'blueprint' || project.stage === 'generate' ? <div className="wf2-setup-grid bui-workbench-canvas">
       <BuildModeCard project={project} patch={patch} />
+      <SourceCard project={project} patch={patch} onFile={handleFile} fileBusy={fileBusy} pendingTransfer={pendingTransfer} applyTransfer={applyTransfer} onLoadItemBank={loadItemBankSource} onGenerateFromKeywords={generateSourceFromKeywords} busy={busy} hasApiKey={hasApiKey} providerName={providerName} />
       <SourceIntelligenceCard project={project} patch={patch} analyseSource={analyseSource} busy={busy} />
       <LearnerCard project={project} patchLearner={patchLearner} />
-      <SourceCard project={project} patch={patch} onFile={handleFile} fileBusy={fileBusy} pendingTransfer={null} applyTransfer={applyTransfer} onLoadItemBank={loadItemBankSource} />
       <BlueprintCard project={project} patch={patch} rebuildBlueprint={rebuildBlueprint} runTask={runTask} busy={busy} />
       <AiCopilotCard project={project} runTask={runTask} selectedTask={selectedTask} setSelectedTask={setSelectedTask} busy={busy} hasApiKey={hasApiKey} providerName={providerName} aiMessage={aiMessage} />
       <section className="wf2-card full wf2-generate-cta"><div><span>WORKSHEET PRODUCTION PIPELINE</span><h2>Phân tích → Blueprint → Tạo từng phần → Audit</h2><p>Hệ thống tạo tuần tự từng activity để giữ đủ số câu, đáp án và cấu trúc đã duyệt.</p></div><button type="button" className="wf2-primary" onClick={generateSections} disabled={busy || !project.blueprint.length}>{busy ? aiMessage || 'Đang tạo…' : `✦ Tạo ${project.blueprint.length} phần / ${blueprintItems} câu`}</button></section>
