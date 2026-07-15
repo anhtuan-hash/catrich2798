@@ -1,6 +1,6 @@
 {
-  "version": "12.24.0",
-  "release": "Admin Center Option 1",
+  "version": "12.25.0",
+  "release": "Provider Command & Appearance Studio",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-15T00:20:09.542Z",
+  "generatedAt": "2026-07-15T01:11:18.909Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Admin Center Option 1",
+  "releaseName": "Provider Command & Appearance Studio",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -504,5 +504,12 @@
   "adminColorCodedModules": true,
   "adminUnifiedCardLanguage": true,
   "adminInteractivePermissionProfiles": true,
-  "adminActivityCenterButton": true
+  "adminActivityCenterButton": true,
+  "providerCommandCenter": true,
+  "oneClickDefaultProvider": true,
+  "providerSearchAndFilters": true,
+  "appearanceStudio": true,
+  "liveAppearancePreview": true,
+  "multiSurfaceStyles": true,
+  "multiMotionStyles": true
 }

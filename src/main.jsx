@@ -20,6 +20,7 @@ import './ui-core/styles/department-refined-v1221.css';
 import './ui-core/styles/department-color-system-v1222.css';
 import './ui-core/styles/department-detail-workspace-v1223.css';
 import './ui-core/styles/admin-center-v1224.css';
+import './ui-core/styles/settings-experience-v1225.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import AppErrorBoundary from './components/AppErrorBoundary.jsx';
@@ -236,6 +237,11 @@ function App() {
   const setThemeIntensity = (value) => setThemeIntensityState(normalizeMetroIntensity(value));
   const [tileBorder, setTileBorder] = useState(() => BOOT_UI_PREFERENCES.tileBorder);
   const [indicatorMode, setIndicatorMode] = useState(() => BOOT_UI_PREFERENCES.indicatorMode);
+  const [surfaceStyle, setSurfaceStyle] = useState(() => BOOT_UI_PREFERENCES.surfaceStyle);
+  const [cornerStyle, setCornerStyle] = useState(() => BOOT_UI_PREFERENCES.cornerStyle);
+  const [shadowStyle, setShadowStyle] = useState(() => BOOT_UI_PREFERENCES.shadowStyle);
+  const [backgroundStyle, setBackgroundStyle] = useState(() => BOOT_UI_PREFERENCES.backgroundStyle);
+  const [motionStyle, setMotionStyle] = useState(() => BOOT_UI_PREFERENCES.motionStyle);
   const uiPreferencesHydratedRef = useRef('');
   const uiPreferencesSaveTimerRef = useRef(null);
   const resolvedPerformance = resolvePerformanceMode(performanceMode);
@@ -287,6 +293,11 @@ function App() {
       setMotionMode(preferences.motionMode);
       setPerformanceMode(preferences.performanceMode);
       setFontScale(preferences.fontScale);
+      setSurfaceStyle(preferences.surfaceStyle);
+      setCornerStyle(preferences.cornerStyle);
+      setShadowStyle(preferences.shadowStyle);
+      setBackgroundStyle(preferences.backgroundStyle);
+      setMotionStyle(preferences.motionStyle);
       uiPreferencesHydratedRef.current = key;
     });
     return () => { active = false; };
@@ -405,6 +416,11 @@ function App() {
       motionMode,
       performanceMode,
       fontScale,
+      surfaceStyle,
+      cornerStyle,
+      shadowStyle,
+      backgroundStyle,
+      motionStyle,
       updatedAt: BOOT_UI_PREFERENCES.updatedAt,
     };
     if (!canPersist) {
@@ -437,6 +453,11 @@ function App() {
     motionMode,
     performanceMode,
     fontScale,
+    surfaceStyle,
+    cornerStyle,
+    shadowStyle,
+    backgroundStyle,
+    motionStyle,
   ]);
 
 
@@ -509,6 +530,16 @@ function App() {
     setAccentColor,
     displayDensity,
     setDisplayDensity,
+    surfaceStyle,
+    setSurfaceStyle,
+    cornerStyle,
+    setCornerStyle,
+    shadowStyle,
+    setShadowStyle,
+    backgroundStyle,
+    setBackgroundStyle,
+    motionStyle,
+    setMotionStyle,
   };
 
   const activeDesignProfile = getActiveDesignProfile(currentRoute, selectedTool);

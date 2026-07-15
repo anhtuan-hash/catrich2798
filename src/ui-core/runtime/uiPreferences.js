@@ -35,6 +35,11 @@ const ALLOWED_INDICATORS = new Set(['on', 'off']);
 const ALLOWED_MOTION = new Set(['lite', 'full', 'off']);
 const ALLOWED_PERFORMANCE = new Set(['auto', 'low', 'balanced', 'high']);
 const ALLOWED_FONT_SCALES = new Set([100, 110, 120, 130]);
+const ALLOWED_SURFACE_STYLES = new Set(['flat', 'soft', 'glass', 'contrast']);
+const ALLOWED_CORNER_STYLES = new Set(['sharp', 'balanced', 'round']);
+const ALLOWED_SHADOW_STYLES = new Set(['none', 'soft', 'floating']);
+const ALLOWED_BACKGROUND_STYLES = new Set(['solid', 'gradient', 'mesh', 'paper']);
+const ALLOWED_MOTION_STYLES = new Set(['fade', 'slide', 'tile', 'spring']);
 
 export const DEFAULT_UI_PREFERENCES = Object.freeze({
   designLanguage: DESIGN_LANGUAGES.BRIAN,
@@ -48,6 +53,11 @@ export const DEFAULT_UI_PREFERENCES = Object.freeze({
   motionMode: 'lite',
   performanceMode: 'auto',
   fontScale: 100,
+  surfaceStyle: 'soft',
+  cornerStyle: 'balanced',
+  shadowStyle: 'soft',
+  backgroundStyle: 'gradient',
+  motionStyle: 'tile',
   updatedAt: 0,
 });
 
@@ -72,6 +82,11 @@ function readLegacyPreferences() {
     motionMode: safe('bes-motion-mode'),
     performanceMode: safe('bes-performance-mode'),
     fontScale: Number(safe('bes-font-scale') || 0),
+    surfaceStyle: safe('bes-surface-style'),
+    cornerStyle: safe('bes-corner-style'),
+    shadowStyle: safe('bes-shadow-style'),
+    backgroundStyle: safe('bes-background-style'),
+    motionStyle: safe('bes-motion-style'),
   };
 }
 
@@ -93,6 +108,11 @@ export function normalizeUiPreferences(value = {}) {
     motionMode: allowed(source.motionMode, ALLOWED_MOTION, DEFAULT_UI_PREFERENCES.motionMode),
     performanceMode: allowed(source.performanceMode, ALLOWED_PERFORMANCE, DEFAULT_UI_PREFERENCES.performanceMode),
     fontScale: ALLOWED_FONT_SCALES.has(fontScale) ? fontScale : DEFAULT_UI_PREFERENCES.fontScale,
+    surfaceStyle: allowed(source.surfaceStyle, ALLOWED_SURFACE_STYLES, DEFAULT_UI_PREFERENCES.surfaceStyle),
+    cornerStyle: allowed(source.cornerStyle, ALLOWED_CORNER_STYLES, DEFAULT_UI_PREFERENCES.cornerStyle),
+    shadowStyle: allowed(source.shadowStyle, ALLOWED_SHADOW_STYLES, DEFAULT_UI_PREFERENCES.shadowStyle),
+    backgroundStyle: allowed(source.backgroundStyle, ALLOWED_BACKGROUND_STYLES, DEFAULT_UI_PREFERENCES.backgroundStyle),
+    motionStyle: allowed(source.motionStyle, ALLOWED_MOTION_STYLES, DEFAULT_UI_PREFERENCES.motionStyle),
     updatedAt: Math.max(0, Number(source.updatedAt || 0)),
   };
 }
@@ -131,6 +151,11 @@ function writeLegacyKeys(preferences) {
     ['bes-motion-mode', preferences.motionMode],
     ['bes-performance-mode', preferences.performanceMode],
     ['bes-font-scale', String(preferences.fontScale)],
+    ['bes-surface-style', preferences.surfaceStyle],
+    ['bes-corner-style', preferences.cornerStyle],
+    ['bes-shadow-style', preferences.shadowStyle],
+    ['bes-background-style', preferences.backgroundStyle],
+    ['bes-motion-style', preferences.motionStyle],
   ];
   try { entries.forEach(([key, value]) => window.localStorage.setItem(key, value)); } catch { /* optional */ }
 }
@@ -162,6 +187,11 @@ export function applyUiPreferences(value, { persist = false, touch = false, noti
     setDataset('motion', preferences.motionMode);
     setDataset('performanceMode', preferences.performanceMode);
     setDataset('fontScale', preferences.fontScale);
+    setDataset('surfaceStyle', preferences.surfaceStyle);
+    setDataset('cornerStyle', preferences.cornerStyle);
+    setDataset('shadowStyle', preferences.shadowStyle);
+    setDataset('backgroundStyle', preferences.backgroundStyle);
+    setDataset('motionStyle', preferences.motionStyle);
     document.documentElement.style.colorScheme = preferences.theme;
     document.documentElement.style.fontSize = `${preferences.fontScale}%`;
     document.documentElement.style.setProperty('--ui-user-accent', ACCENT_COLORS[preferences.accentColor]);

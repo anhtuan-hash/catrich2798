@@ -1,14 +1,14 @@
 {
-  "version": "12.24.0",
+  "version": "12.25.0",
   "channel": "stable",
-  "releaseName": "Admin Center Option 1",
+  "releaseName": "Provider Command & Appearance Studio",
   "runtimeCore": "3.6.1",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-15T00:20:09.542Z",
+  "generatedAt": "2026-07-15T01:11:18.909Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Admin Center Option 1",
+  "release": "Provider Command & Appearance Studio",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -499,5 +499,12 @@
   "adminColorCodedModules": true,
   "adminUnifiedCardLanguage": true,
   "adminInteractivePermissionProfiles": true,
-  "adminActivityCenterButton": true
+  "adminActivityCenterButton": true,
+  "providerCommandCenter": true,
+  "oneClickDefaultProvider": true,
+  "providerSearchAndFilters": true,
+  "appearanceStudio": true,
+  "liveAppearancePreview": true,
+  "multiSurfaceStyles": true,
+  "multiMotionStyles": true
 }

@@ -191,6 +191,16 @@ export default function Settings({
   setAccentColor,
   displayDensity = 'medium',
   setDisplayDensity,
+  surfaceStyle = 'soft',
+  setSurfaceStyle,
+  cornerStyle = 'balanced',
+  setCornerStyle,
+  shadowStyle = 'soft',
+  setShadowStyle,
+  backgroundStyle = 'gradient',
+  setBackgroundStyle,
+  motionStyle = 'tile',
+  setMotionStyle,
 }) {
   const initial = getEmptyLocal();
   const [selectedProvider, setSelectedProvider] = useState(aiProvider || initial.provider);
@@ -204,7 +214,9 @@ export default function Settings({
   const [dataSyncEnabled, setDataSyncEnabled] = useState(() => readBoolean('bes-global-data-sync', true));
   const [musicSettings, setMusicSettings] = useState(() => readMusicSettings(currentUser));
   const [uiSyncState, setUiSyncState] = useState({ status: currentUser?.provider === 'supabase' ? 'loading' : 'local', message: '' });
-  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(true);
+  const [providerSearch, setProviderSearch] = useState('');
+  const [providerFilter, setProviderFilter] = useState('all');
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
   const [passwordStatus, setPasswordStatus] = useState({ loading: false, message: '', ok: false });
   const [showPasswords, setShowPasswords] = useState(false);
@@ -218,6 +230,28 @@ export default function Settings({
     () => PROVIDERS.filter((provider) => Boolean(String(configs[provider.id]?.apiKey || '').trim())),
     [configs],
   );
+  const visibleProviders = useMemo(() => {
+    const query = providerSearch.trim().toLowerCase();
+    return [...PROVIDERS]
+      .filter((provider) => {
+        const ready = Boolean(String(configs[provider.id]?.apiKey || '').trim());
+        if (providerFilter === 'recommended' && !provider.recommended) return false;
+        if (providerFilter === 'configured' && !ready) return false;
+        if (providerFilter === 'free' && !String(provider.plan || '').startsWith('free') && provider.plan !== 'trial') return false;
+        if (!query) return true;
+        return [provider.label, provider.shortLabel, provider.descriptionVi, provider.descriptionEn, provider.defaultModel]
+          .some((value) => String(value || '').toLowerCase().includes(query));
+      })
+      .sort((left, right) => {
+        if (left.id === aiProvider) return -1;
+        if (right.id === aiProvider) return 1;
+        const leftReady = Boolean(String(configs[left.id]?.apiKey || '').trim());
+        const rightReady = Boolean(String(configs[right.id]?.apiKey || '').trim());
+        if (leftReady !== rightReady) return leftReady ? -1 : 1;
+        if (Boolean(left.recommended) !== Boolean(right.recommended)) return left.recommended ? -1 : 1;
+        return left.label.localeCompare(right.label);
+      });
+  }, [aiProvider, configs, providerFilter, providerSearch]);
 
   const authProviders = useMemo(() => Array.isArray(currentUser?.authProviders) ? currentUser.authProviders : [], [currentUser?.authProviders]);
   const googleConnected = authProviders.includes('google');
@@ -275,6 +309,22 @@ export default function Settings({
     setApiKey?.(active.apiKey || '');
     setAiModel?.(active.model || currentProvider.defaultModel);
     setSaved(true);
+    window.setTimeout(() => setSaved(false), 1800);
+  };
+
+  const activateProvider = (providerId) => {
+    const provider = getProviderInfo(providerId);
+    const normalized = saveAiConfigs(configs);
+    const config = normalized[providerId] || {};
+    setSelectedProvider(providerId);
+    setAiProvider(providerId);
+    setFallbackEnabled(fallback);
+    setProviderConfigs?.(normalized);
+    setAiProviderState?.(providerId);
+    setApiKey?.(config.apiKey || '');
+    setAiModel?.(config.model || provider.defaultModel);
+    setSaved(true);
+    setTestResult(language === 'vi' ? `✅ ${provider.label} đã được đặt làm provider mặc định.` : `✅ ${provider.label} is now the default provider.`);
     window.setTimeout(() => setSaved(false), 1800);
   };
 
@@ -347,6 +397,11 @@ export default function Settings({
         indicatorMode,
         motionMode,
         performanceMode,
+        surfaceStyle,
+        cornerStyle,
+        shadowStyle,
+        backgroundStyle,
+        motionStyle,
       },
       system: {
         soundEnabled,
@@ -375,6 +430,11 @@ export default function Settings({
       if (payload.interface?.indicatorMode) setIndicatorMode?.(payload.interface.indicatorMode);
       if (payload.interface?.motionMode) setMotionMode?.(payload.interface.motionMode);
       if (payload.interface?.performanceMode) setPerformanceMode?.(payload.interface.performanceMode);
+      if (payload.interface?.surfaceStyle) setSurfaceStyle?.(payload.interface.surfaceStyle);
+      if (payload.interface?.cornerStyle) setCornerStyle?.(payload.interface.cornerStyle);
+      if (payload.interface?.shadowStyle) setShadowStyle?.(payload.interface.shadowStyle);
+      if (payload.interface?.backgroundStyle) setBackgroundStyle?.(payload.interface.backgroundStyle);
+      if (payload.interface?.motionStyle) setMotionStyle?.(payload.interface.motionStyle);
       if (typeof payload.system?.soundEnabled === 'boolean') toggleSound(payload.system.soundEnabled);
       if (typeof payload.system?.liveSyncEnabled === 'boolean') toggleLiveSync(payload.system.liveSyncEnabled);
       if (typeof payload.system?.dataSyncEnabled === 'boolean') toggleDataSync(payload.system.dataSyncEnabled);
@@ -403,6 +463,11 @@ export default function Settings({
     setIndicatorMode?.('on');
     setMotionMode?.('lite');
     setPerformanceMode?.('auto');
+    setSurfaceStyle?.('soft');
+    setCornerStyle?.('balanced');
+    setShadowStyle?.('soft');
+    setBackgroundStyle?.('gradient');
+    setMotionStyle?.('tile');
     toggleSound(true);
     toggleLiveSync(true);
     toggleDataSync(true);
@@ -551,52 +616,74 @@ export default function Settings({
           </div>
         </article>
 
-        <article className="settings-v47-card settings-v47-provider-card">
+        <article className="settings-v47-card settings-v47-provider-card settings-v125-provider-command">
           <CardHeader
             icon="⚡"
             tone="blue"
-            title="AI Provider Hub"
-            subtitle={language === 'vi' ? 'Chọn provider mặc định cho tài khoản đang đăng nhập.' : 'Choose the default AI provider for this account.'}
+            title={language === 'vi' ? 'AI Provider Command Center' : 'AI Provider Command Center'}
+            subtitle={language === 'vi' ? 'Chọn provider mặc định bằng một lần bấm, lọc nhanh và kiểm tra cấu hình ngay tại chỗ.' : 'Choose the default provider in one click, filter quickly, and validate configuration in place.'}
             action={<span className="settings-v47-account-pill">{currentUser?.email || accountScope}</span>}
           />
 
-          <div className="settings-v47-provider-layout">
-            <div className="settings-v47-provider-list" aria-label={language === 'vi' ? 'Danh sách AI provider' : 'AI provider list'}>
-              {PROVIDERS.map((provider) => {
+          <div className="settings-v125-active-provider">
+            <span className={`provider-logo large tone-${PROVIDER_TONES[aiProvider] || 'slate'}`}>{PROVIDER_ICONS[aiProvider] || 'AI'}</span>
+            <div><small>{language === 'vi' ? 'Provider mặc định hiện tại' : 'Current default provider'}</small><strong>{getProviderInfo(aiProvider).label}</strong><code>{(configs[aiProvider] || {}).model || getProviderInfo(aiProvider).defaultModel}</code></div>
+            <span className={String((configs[aiProvider] || {}).apiKey || '').trim() ? 'ready' : 'warning'}>{String((configs[aiProvider] || {}).apiKey || '').trim() ? '● ' + (language === 'vi' ? 'Đã có API key' : 'API key ready') : '○ ' + (language === 'vi' ? 'Chưa có API key' : 'No API key')}</span>
+            <button type="button" onClick={() => testProvider(aiProvider, false)} disabled={testing}>⌁ {language === 'vi' ? 'Kiểm tra nhanh' : 'Quick test'}</button>
+          </div>
+
+          <div className="settings-v125-provider-toolbar">
+            <label className="settings-v125-provider-search"><span>⌕</span><input value={providerSearch} onChange={(event) => setProviderSearch(event.target.value)} placeholder={language === 'vi' ? 'Tìm provider, model hoặc tính năng...' : 'Search provider, model, or capability...'} /></label>
+            <div className="settings-v125-provider-filters" role="tablist">
+              {[
+                ['all', language === 'vi' ? 'Tất cả' : 'All'],
+                ['recommended', language === 'vi' ? 'Nên dùng' : 'Recommended'],
+                ['configured', language === 'vi' ? 'Đã có key' : 'Configured'],
+                ['free', language === 'vi' ? 'Miễn phí' : 'Free'],
+              ].map(([value, label]) => <button key={value} type="button" className={providerFilter === value ? 'active' : ''} onClick={() => setProviderFilter(value)}>{label}</button>)}
+            </div>
+          </div>
+
+          <div className="settings-v47-provider-layout settings-v125-provider-layout">
+            <div className="settings-v47-provider-list settings-v125-provider-list" aria-label={language === 'vi' ? 'Danh sách AI provider' : 'AI provider list'}>
+              {visibleProviders.map((provider) => {
                 const config = configs[provider.id] || {};
                 const active = selectedProvider === provider.id;
+                const isDefault = aiProvider === provider.id;
                 const ready = Boolean(String(config.apiKey || '').trim());
                 const description = language === 'vi' ? provider.descriptionVi : provider.descriptionEn;
                 return (
-                  <article key={provider.id} className={`settings-v47-provider-row ${active ? 'active' : ''} ${ready ? 'configured' : ''}`}>
+                  <article key={provider.id} className={`settings-v47-provider-row settings-v125-provider-row ${active ? 'active' : ''} ${ready ? 'configured' : ''} ${isDefault ? 'is-default' : ''}`}>
                     <button type="button" className="settings-v47-provider-select" onClick={() => setSelectedProvider(provider.id)} aria-pressed={active}>
                       <span className={`provider-logo tone-${PROVIDER_TONES[provider.id] || 'slate'}`}>{PROVIDER_ICONS[provider.id] || 'AI'}</span>
                       <span className="provider-row-copy">
-                        <span className="provider-row-title"><strong>{provider.label}</strong>{provider.recommended ? <i>{language === 'vi' ? 'Nên dùng' : 'Recommended'}</i> : null}</span>
+                        <span className="provider-row-title"><strong>{provider.label}</strong>{provider.recommended ? <i>{language === 'vi' ? 'Nên dùng' : 'Recommended'}</i> : null}{isDefault ? <i className="default-chip">{language === 'vi' ? 'Mặc định' : 'Default'}</i> : null}</span>
                         <small>{description}</small>
                         <code>{config.model || provider.defaultModel}</code>
                       </span>
                       <span className={`provider-plan plan-${provider.plan || 'custom'}`}>{planLabel(provider, language)}</span>
-                      <b className={ready ? 'ready' : ''}>{active ? '✓' : ready ? '●' : '○'}</b>
+                      <b className={ready ? 'ready' : ''}>{ready ? '●' : '○'}</b>
                     </button>
+                    <div className="settings-v125-provider-actions-inline">
+                      <button type="button" className={isDefault ? 'current' : 'make-default'} onClick={() => activateProvider(provider.id)} disabled={isDefault}>{isDefault ? '✓ ' + (language === 'vi' ? 'Đang mặc định' : 'Default') : '★ ' + (language === 'vi' ? 'Dùng mặc định' : 'Set default')}</button>
+                      <button type="button" className="edit" onClick={() => { setSelectedProvider(provider.id); providerEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }}>{ready ? (language === 'vi' ? 'Sửa cấu hình' : 'Edit') : (language === 'vi' ? 'Cấu hình' : 'Configure')}</button>
+                    </div>
                     {(provider.helpUrl || provider.keyUrl) ? (
                       <div className="settings-v47-provider-links">
-                        {provider.helpUrl ? <a href={provider.helpUrl} target="_blank" rel="noreferrer noopener">▤ {language === 'vi' ? 'Hướng dẫn lấy key' : 'Key guide'}</a> : null}
+                        {provider.helpUrl ? <a href={provider.helpUrl} target="_blank" rel="noreferrer noopener">▤ {language === 'vi' ? 'Hướng dẫn' : 'Guide'}</a> : null}
                         {provider.keyUrl ? <a className="get-key" href={provider.keyUrl} target="_blank" rel="noreferrer noopener">↗ {language === 'vi' ? 'Lấy API key' : 'Get API key'}</a> : null}
                       </div>
                     ) : null}
                   </article>
                 );
               })}
+              {!visibleProviders.length ? <div className="settings-v125-provider-empty">{language === 'vi' ? 'Không tìm thấy provider phù hợp.' : 'No matching providers found.'}</div> : null}
             </div>
 
-            <div className="settings-v47-provider-detail" ref={providerEditorRef}>
+            <div className="settings-v47-provider-detail settings-v125-provider-detail" ref={providerEditorRef}>
               <div className="settings-v47-provider-detail-head">
                 <span className={`provider-logo large tone-${PROVIDER_TONES[selectedProvider] || 'slate'}`}>{PROVIDER_ICONS[selectedProvider] || 'AI'}</span>
-                <div>
-                  <strong>{currentProvider.label}</strong>
-                  <small>{selectedProvider === aiProvider ? (language === 'vi' ? 'Đang dùng' : 'Active') : (language === 'vi' ? 'Đang chỉnh sửa' : 'Editing')}</small>
-                </div>
+                <div><strong>{currentProvider.label}</strong><small>{selectedProvider === aiProvider ? (language === 'vi' ? 'Provider mặc định' : 'Default provider') : (language === 'vi' ? 'Đang chỉnh sửa' : 'Editing')}</small></div>
                 <span className={`provider-plan plan-${currentProvider.plan || 'custom'}`}>{planLabel(currentProvider, language)}</span>
               </div>
               <p>{language === 'vi' ? currentProvider.descriptionVi : currentProvider.descriptionEn}</p>
@@ -605,34 +692,15 @@ export default function Settings({
                 {currentProvider.keyUrl ? <a className="get-key" href={currentProvider.keyUrl} target="_blank" rel="noreferrer noopener">↗ {language === 'vi' ? 'Mở trang lấy API key' : 'Open API key page'}</a> : null}
               </div>
               <label>API key</label>
-              <input
-                type="password"
-                value={currentConfig.apiKey || ''}
-                onChange={(event) => updateConfig({ apiKey: event.target.value })}
-                placeholder={`${currentProvider.label} API key...`}
-                autoComplete="off"
-                spellCheck="false"
-              />
+              <input type="password" value={currentConfig.apiKey || ''} onChange={(event) => updateConfig({ apiKey: event.target.value })} placeholder={`${currentProvider.label} API key...`} autoComplete="off" spellCheck="false" />
               <div className="settings-v47-field-grid">
-                <div>
-                  <label>Model</label>
-                  <input list={`models-${currentProvider.id}`} value={currentConfig.model || currentProvider.defaultModel} onChange={(event) => updateConfig({ model: event.target.value })} />
-                  <datalist id={`models-${currentProvider.id}`}>
-                    {(currentProvider.models || []).map((model) => <option key={model} value={model} />)}
-                  </datalist>
-                </div>
-                <div>
-                  <label>Base URL</label>
-                  <input value={currentConfig.baseUrl || currentProvider.baseUrl} onChange={(event) => updateConfig({ baseUrl: event.target.value })} />
-                  {currentProvider.requiresBaseUrlEdit ? <small className="settings-v47-field-help">{language === 'vi' ? 'Thay YOUR_ACCOUNT_ID bằng Account ID Cloudflare của anh.' : 'Replace YOUR_ACCOUNT_ID with your Cloudflare Account ID.'}</small> : null}
-                </div>
+                <div><label>Model</label><input list={`models-${currentProvider.id}`} value={currentConfig.model || currentProvider.defaultModel} onChange={(event) => updateConfig({ model: event.target.value })} /><datalist id={`models-${currentProvider.id}`}>{(currentProvider.models || []).map((model) => <option key={model} value={model} />)}</datalist></div>
+                <div><label>Base URL</label><input value={currentConfig.baseUrl || currentProvider.baseUrl} onChange={(event) => updateConfig({ baseUrl: event.target.value })} />{currentProvider.requiresBaseUrlEdit ? <small className="settings-v47-field-help">{language === 'vi' ? 'Thay YOUR_ACCOUNT_ID bằng Account ID Cloudflare của anh.' : 'Replace YOUR_ACCOUNT_ID with your Cloudflare Account ID.'}</small> : null}</div>
               </div>
-              <div className="settings-v47-inline-toggle">
-                <div><strong>{language === 'vi' ? 'Fallback thông minh' : 'Smart fallback'}</strong><small>{language === 'vi' ? 'Tự thử provider khác đã có key khi provider chính lỗi hoặc hết quota.' : 'Try another configured provider if the primary fails or reaches quota.'}</small></div>
-                <Toggle checked={fallback} onChange={setFallback} label="Fallback" />
-              </div>
-              <div className="settings-v47-provider-actions">
-                <button type="button" className="primary" onClick={saveSettings}>{language === 'vi' ? 'Lưu cấu hình' : 'Save configuration'}</button>
+              <div className="settings-v47-inline-toggle"><div><strong>{language === 'vi' ? 'Fallback thông minh' : 'Smart fallback'}</strong><small>{language === 'vi' ? 'Tự thử provider khác đã có key khi provider chính lỗi hoặc hết quota.' : 'Try another configured provider if the primary fails or reaches quota.'}</small></div><Toggle checked={fallback} onChange={setFallback} label="Fallback" /></div>
+              <div className="settings-v47-provider-actions settings-v125-detail-actions">
+                <button type="button" className="primary" onClick={() => { saveSettings(); activateProvider(selectedProvider); }}>{language === 'vi' ? 'Lưu & dùng mặc định' : 'Save & set default'}</button>
+                <button type="button" className="secondary" onClick={saveSettings}>{language === 'vi' ? 'Chỉ lưu cấu hình' : 'Save only'}</button>
                 <button type="button" className="secondary" disabled={testing} onClick={() => testProvider(selectedProvider, false)}>{testing ? (language === 'vi' ? 'Đang kiểm tra...' : 'Testing...') : (language === 'vi' ? 'Kiểm tra kết nối' : 'Test connection')}</button>
               </div>
               {saved ? <div className="settings-v47-message ok">✅ {language === 'vi' ? 'Đã lưu cấu hình AI.' : 'AI configuration saved.'}</div> : null}
@@ -640,48 +708,69 @@ export default function Settings({
           </div>
         </article>
 
-        <article className="settings-v47-card settings-v47-appearance-card">
-          <CardHeader icon="🎨" tone="violet" title={language === 'vi' ? 'Giao diện' : 'Appearance'} subtitle={language === 'vi' ? 'Tùy chỉnh giao diện, màu nhấn và mật độ.' : 'Customize theme, accent, and density.'} />
-          <div className="settings-v47-theme-grid">
-            <button className={currentThemeMode === 'dark' ? 'active' : ''} onClick={() => applyThemeMode('dark')}>☾<span>{language === 'vi' ? 'Tối' : 'Dark'}</span></button>
-            <button className={currentThemeMode === 'light' ? 'active' : ''} onClick={() => applyThemeMode('light')}>☀<span>{language === 'vi' ? 'Sáng' : 'Light'}</span></button>
-            <button className={currentThemeMode === 'auto' ? 'active' : ''} onClick={() => applyThemeMode('auto')}>◐<span>{language === 'vi' ? 'Tự động' : 'Auto'}</span></button>
-          </div>
-          <label>{language === 'vi' ? 'Ngôn ngữ thiết kế' : 'Design language'}</label>
-          <div className="bui-language-picker" role="radiogroup" aria-label={language === 'vi' ? 'Ngôn ngữ thiết kế' : 'Design language'}>
-            {[
-              ['brian-unified', 'Brian Unified', language === 'vi' ? 'Ấm, rõ nét và giữ bản sắc Brian.' : 'Warm, clear, and distinctly Brian.'],
-              ['material-3', 'Android · Material 3', language === 'vi' ? 'Bề mặt tonal, hình khối biểu cảm.' : 'Tonal surfaces and expressive shapes.'],
-              ['apple', 'Apple · iOS/iPadOS', language === 'vi' ? 'Nhẹ, tinh gọn và phân cấp rõ.' : 'Light, restrained, and clearly layered.'],
-            ].map(([value, title, description]) => (
-              <button key={value} type="button" role="radio" aria-checked={designLanguage === value} className={`bui-language-option ${designLanguage === value ? 'is-active' : ''}`} onClick={() => setDesignLanguage?.(value)}>
-                <strong>{title}</strong><small>{description}</small>
-                <span className={`bui-language-preview bui-language-preview--${value === 'material-3' ? 'material' : value === 'apple' ? 'apple' : 'brian'}`} aria-hidden="true" />
-              </button>
-            ))}
-          </div>
-          <label>{language === 'vi' ? 'Màu nhấn' : 'Accent color'}</label>
-          <div className="settings-v47-accent-row">
-            {accentOptions.map(([name, color]) => <button key={name} type="button" className={accentColor === name ? 'active' : ''} style={{ '--swatch': color }} onClick={() => setAccentColor?.(name)} aria-label={name} title={name} />)}
-          </div>
-          <label>{language === 'vi' ? 'Mật độ hiển thị' : 'Display density'}</label>
-          <div className="settings-v47-density-row">
-            {[['relaxed', language === 'vi' ? 'Thoáng' : 'Relaxed'], ['medium', language === 'vi' ? 'Vừa' : 'Medium'], ['compact', language === 'vi' ? 'Gọn' : 'Compact']].map(([value, label]) => (
-              <button key={value} type="button" className={displayDensity === value ? 'active' : ''} onClick={() => setDisplayDensity?.(value)}>{label}</button>
-            ))}
-          </div>
-          <div className="bui-ui-sync-status" data-status={uiSyncState.status} role="status" title={uiSyncState.message || uiSyncLabel}>
-            <span aria-hidden="true">{uiSyncState.status === 'synced' ? '✓' : uiSyncState.status === 'error' ? '!' : uiSyncState.status === 'saving' || uiSyncState.status === 'loading' ? '↻' : '•'}</span>
-            <span>{uiSyncLabel}</span>
-          </div>
-          <button type="button" className="settings-v47-text-button" onClick={() => setAdvancedOpen((value) => !value)}>{advancedOpen ? '−' : '+'} {language === 'vi' ? 'Thiết lập giao diện nâng cao' : 'Advanced appearance'}</button>
-          {advancedOpen ? (
-            <div className="settings-v47-advanced-grid">
-              <label><span>{language === 'vi' ? 'Độ đậm Metro' : 'Metro strength'}</span><select value={themeIntensity} onChange={(event) => setThemeIntensity?.(event.target.value)}><option value="soft">Soft</option><option value="balanced">Balanced</option><option value="strong">Strong</option><option value="bold">Bold</option></select></label>
-              <label><span>{language === 'vi' ? 'Viền tile' : 'Tile border'}</span><select value={tileBorder} onChange={(event) => setTileBorder?.(event.target.value)}><option value="off">Off</option><option value="soft">Soft</option><option value="strong">Strong</option></select></label>
-              <label><span>Windows indicator</span><select value={indicatorMode} onChange={(event) => setIndicatorMode?.(event.target.value)}><option value="on">On</option><option value="off">Off</option></select></label>
+        <article className="settings-v47-card settings-v47-appearance-card settings-v125-appearance-studio">
+          <CardHeader icon="🎨" tone="violet" title={language === 'vi' ? 'Appearance Studio' : 'Appearance Studio'} subtitle={language === 'vi' ? 'Tùy biến giao diện và hiệu ứng đa phong cách với bản xem trước trực tiếp.' : 'Customize a multi-style interface and motion system with live preview.'} />
+          <div className="settings-v125-appearance-layout">
+            <div className="settings-v125-appearance-controls">
+              <section>
+                <label>{language === 'vi' ? 'Chế độ màu' : 'Color mode'}</label>
+                <div className="settings-v47-theme-grid">
+                  <button className={currentThemeMode === 'dark' ? 'active' : ''} onClick={() => applyThemeMode('dark')}>☾<span>{language === 'vi' ? 'Tối' : 'Dark'}</span></button>
+                  <button className={currentThemeMode === 'light' ? 'active' : ''} onClick={() => applyThemeMode('light')}>☀<span>{language === 'vi' ? 'Sáng' : 'Light'}</span></button>
+                  <button className={currentThemeMode === 'auto' ? 'active' : ''} onClick={() => applyThemeMode('auto')}>◐<span>{language === 'vi' ? 'Tự động' : 'Auto'}</span></button>
+                </div>
+              </section>
+              <section>
+                <label>{language === 'vi' ? 'Ngôn ngữ thiết kế' : 'Design language'}</label>
+                <div className="bui-language-picker" role="radiogroup">
+                  {[
+                    ['brian-unified', 'Brian Unified', language === 'vi' ? 'Ấm, rõ nét, đậm bản sắc Brian.' : 'Warm, clear, distinctly Brian.'],
+                    ['material-3', 'Android · Material 3', language === 'vi' ? 'Tonal, biểu cảm, bo tròn linh hoạt.' : 'Tonal, expressive, adaptable.'],
+                    ['apple', 'Apple · iOS/iPadOS', language === 'vi' ? 'Tinh gọn, phân lớp và trong trẻo.' : 'Restrained, layered, translucent.'],
+                  ].map(([value, title, description]) => <button key={value} type="button" role="radio" aria-checked={designLanguage === value} className={`bui-language-option ${designLanguage === value ? 'is-active' : ''}`} onClick={() => setDesignLanguage?.(value)}><strong>{title}</strong><small>{description}</small><span className={`bui-language-preview bui-language-preview--${value === 'material-3' ? 'material' : value === 'apple' ? 'apple' : 'brian'}`} aria-hidden="true" /></button>)}
+                </div>
+              </section>
+              <section>
+                <label>{language === 'vi' ? 'Phong cách bề mặt' : 'Surface style'}</label>
+                <div className="settings-v125-style-picker">
+                  {[
+                    ['flat', '▭', language === 'vi' ? 'Phẳng' : 'Flat'],
+                    ['soft', '▱', language === 'vi' ? 'Mềm' : 'Soft'],
+                    ['glass', '◫', 'Glass'],
+                    ['contrast', '◩', language === 'vi' ? 'Tương phản' : 'Contrast'],
+                  ].map(([value, icon, label]) => <button key={value} type="button" className={surfaceStyle === value ? 'active' : ''} onClick={() => setSurfaceStyle?.(value)}><span>{icon}</span><b>{label}</b></button>)}
+                </div>
+              </section>
+              <section className="settings-v125-compact-section">
+                <label>{language === 'vi' ? 'Màu nhấn' : 'Accent color'}</label>
+                <div className="settings-v47-accent-row">{accentOptions.map(([name, color]) => <button key={name} type="button" className={accentColor === name ? 'active' : ''} style={{ '--swatch': color }} onClick={() => setAccentColor?.(name)} aria-label={name} title={name} />)}</div>
+              </section>
+              <section>
+                <label>{language === 'vi' ? 'Mật độ hiển thị' : 'Display density'}</label>
+                <div className="settings-v47-density-row">{[['relaxed', language === 'vi' ? 'Thoáng' : 'Relaxed'], ['medium', language === 'vi' ? 'Vừa' : 'Medium'], ['compact', language === 'vi' ? 'Gọn' : 'Compact']].map(([value, label]) => <button key={value} type="button" className={displayDensity === value ? 'active' : ''} onClick={() => setDisplayDensity?.(value)}>{label}</button>)}</div>
+              </section>
+              <button type="button" className="settings-v47-text-button" onClick={() => setAdvancedOpen((value) => !value)}>{advancedOpen ? '−' : '+'} {language === 'vi' ? 'Công cụ nâng cao' : 'Advanced tools'}</button>
+              {advancedOpen ? <div className="settings-v125-advanced-style-grid">
+                <label><span>{language === 'vi' ? 'Độ bo góc' : 'Corner style'}</span><select value={cornerStyle} onChange={(event) => setCornerStyle?.(event.target.value)}><option value="sharp">Sharp</option><option value="balanced">Balanced</option><option value="round">Round</option></select></label>
+                <label><span>{language === 'vi' ? 'Độ nổi' : 'Shadow style'}</span><select value={shadowStyle} onChange={(event) => setShadowStyle?.(event.target.value)}><option value="none">None</option><option value="soft">Soft</option><option value="floating">Floating</option></select></label>
+                <label><span>{language === 'vi' ? 'Nền hệ thống' : 'System background'}</span><select value={backgroundStyle} onChange={(event) => setBackgroundStyle?.(event.target.value)}><option value="solid">Solid</option><option value="gradient">Gradient</option><option value="mesh">Mesh</option><option value="paper">Paper</option></select></label>
+                <label><span>{language === 'vi' ? 'Kiểu chuyển cảnh' : 'Motion style'}</span><select value={motionStyle} onChange={(event) => setMotionStyle?.(event.target.value)}><option value="fade">Fade</option><option value="slide">Slide</option><option value="tile">Windows Tile</option><option value="spring">Spring</option></select></label>
+                <label><span>{language === 'vi' ? 'Cường độ màu' : 'Color strength'}</span><select value={themeIntensity} onChange={(event) => setThemeIntensity?.(event.target.value)}><option value="soft">Soft</option><option value="balanced">Balanced</option><option value="strong">Strong</option><option value="bold">Bold</option></select></label>
+                <label><span>{language === 'vi' ? 'Viền thành phần' : 'Component border'}</span><select value={tileBorder} onChange={(event) => setTileBorder?.(event.target.value)}><option value="off">Off</option><option value="soft">Soft</option><option value="strong">Strong</option></select></label>
+              </div> : null}
+              <div className="bui-ui-sync-status" data-status={uiSyncState.status} role="status" title={uiSyncState.message || uiSyncLabel}><span aria-hidden="true">{uiSyncState.status === 'synced' ? '✓' : uiSyncState.status === 'error' ? '!' : uiSyncState.status === 'saving' || uiSyncState.status === 'loading' ? '↻' : '•'}</span><span>{uiSyncLabel}</span></div>
             </div>
-          ) : null}
+
+            <aside className="settings-v125-live-preview" data-preview-surface={surfaceStyle} data-preview-corners={cornerStyle} data-preview-shadow={shadowStyle} data-preview-background={backgroundStyle}>
+              <header><span>{language === 'vi' ? 'Xem trước trực tiếp' : 'Live preview'}</span><b>{designLanguage.replace('-', ' · ')}</b></header>
+              <div className="settings-v125-preview-canvas">
+                <nav><i /><i /><i /><i /></nav>
+                <section><span className="hero-line wide" /><span className="hero-line" /><div className="preview-actions"><b /><b /></div></section>
+                <div className="preview-grid"><article><i /><span /><small /></article><article><i /><span /><small /></article><article><i /><span /><small /></article></div>
+              </div>
+              <footer><span>● {accentColor}</span><span>{displayDensity}</span><span>{motionStyle}</span></footer>
+            </aside>
+          </div>
         </article>
 
         <article className="settings-v47-card settings-v47-audio-card">
