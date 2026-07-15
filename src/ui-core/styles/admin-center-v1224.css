@@ -86,3 +86,77 @@
   .metro-clean-system[data-route="admin"] .admin-v124-panel .admin-v41-table-head{display:none}.metro-clean-system[data-route="admin"] .admin-v124-panel .admin-v41-table-row{grid-template-columns:1fr}
   .metro-clean-system[data-route="admin"] .admin-v124-help span,.metro-clean-system[data-route="admin"] .admin-v124-profile>span:nth-child(2){display:none}
 }
+
+/* V12.25.1 — permission editor scroll optimization */
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid{align-items:start}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .admin-user-card{display:flex;flex-direction:column;min-height:620px;overflow:hidden}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-box{display:flex;flex-direction:column;flex:1;min-height:0;margin-top:14px;padding-top:14px;border-top:1px solid #e8eef7}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-headline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-headline strong{display:block;font-size:1.05rem;color:#17345d}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-headline span{display:block;margin-top:4px;font-size:.76rem;color:#76839a;line-height:1.45}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-mode-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-all-note{padding:12px 14px;border-radius:14px;background:#f8fbff;border:1px solid #e3ebf8;color:#4a5d7d;font-size:.82rem;line-height:1.55}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups{display:grid;gap:12px;flex:1;min-height:0;max-height:460px;overflow:auto;padding-right:6px;scrollbar-width:thin;scrollbar-color:#9ab6eb #edf3ff}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups::-webkit-scrollbar{width:10px}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups::-webkit-scrollbar-track{background:#edf3ff;border-radius:999px}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#bfd2f8,#86a9ef);border-radius:999px;border:2px solid #edf3ff}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-group{padding:12px;border-radius:16px;border:1px solid #e4ebf7;background:linear-gradient(180deg,#fcfdff,#f8fbff)}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-group-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-group-title label{display:flex;align-items:center;gap:10px;font-weight:900;color:#20406c}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-group-title small{font-size:.74rem;color:#6f7f98}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-chip-grid{display:grid;gap:10px}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-chip{display:grid;grid-template-columns:18px minmax(0,1fr);align-items:flex-start;gap:10px;padding:11px 12px;border-radius:14px;background:#fff;border:1px solid #e2eaf6;cursor:pointer;transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease,background .18s ease}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-chip:hover{border-color:#b9cdf5;box-shadow:0 8px 18px rgba(45,96,190,.08);transform:translateY(-1px)}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-chip.checked{border-color:#8eb0f2;background:#f5f9ff;box-shadow:0 8px 18px rgba(45,96,190,.08)}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-chip input{margin-top:4px;accent-color:#2c69dc}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-chip span{display:block;min-width:0}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-chip b{display:block;font-size:.82rem;color:#17345d;line-height:1.35}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-chip small{display:block;margin-top:4px;font-size:.72rem;line-height:1.45;color:#6d7c94}
+
+@media (max-width:980px){
+  .metro-clean-system[data-route="admin"] .admin-v124-user-grid .admin-user-card{min-height:unset}
+  .metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups{max-height:380px}
+}
+
+/* V12.26.1 — inline scroll exactly inside permission chooser */
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups-shell{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:10px;
+  flex:1;
+  min-height:0;
+  max-height:520px;
+  padding:10px 8px 10px 10px;
+  border:1px solid #dfe8f6;
+  border-radius:18px;
+  background:linear-gradient(180deg,#fbfdff,#f6f9ff);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+  overflow:hidden;
+}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups-hint{
+  flex:0 0 auto;
+  font-size:.72rem;
+  color:#6e7f98;
+  padding:0 4px;
+}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups{
+  display:grid;
+  gap:12px;
+  flex:1;
+  min-height:0;
+  height:100%;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding-right:6px;
+  align-content:start;
+  scrollbar-width:thin;
+  scrollbar-color:#8eb0f2 #edf3ff;
+}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups::-webkit-scrollbar{width:10px}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups::-webkit-scrollbar-track{background:#edf3ff;border-radius:999px}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#bfd2f8,#86a9ef);border-radius:999px;border:2px solid #edf3ff}
+
+@media (max-width:980px){
+  .metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups-shell{max-height:420px}
+}

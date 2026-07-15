@@ -920,37 +920,40 @@ function PermissionEditor({ user, currentUser, language, loading, onChange }) {
               {language === 'vi' ? 'Tài khoản này được dùng toàn bộ hoạt động, trò chơi, công cụ và nội dung giáo viên.' : 'This account can use all teacher activities, games, tools and content modules.'}
             </div>
           ) : (
-            <div className="permission-groups">
-              {PERMISSION_GROUPS.map((group) => {
-                const checkedCount = group.ids.filter((id) => allowedIds.includes(id)).length;
-                const allChecked = checkedCount === group.ids.length;
-                return (
-                  <div key={group.key} className="permission-group">
-                    <div className="permission-group-title">
-                      <label>
-                        <input type="checkbox" checked={allChecked} disabled={disabled} onChange={(e) => setGroup(group.ids, e.target.checked)} />
-                        <span>{language === 'vi' ? group.titleVi : group.title}</span>
-                      </label>
-                      <small>{checkedCount}/{group.ids.length}</small>
+            <div className="permission-groups-shell">
+              <div className="permission-groups-hint">{language === 'vi' ? 'Danh sách quyền có thể cuộn ngay trong khung này.' : 'This permission list scrolls inside this panel.'}</div>
+              <div className="permission-groups" data-scroll-ready="true" style={{ height: '420px', maxHeight: '420px', overflowY: 'scroll', overflowX: 'hidden', paddingRight: '8px', scrollbarGutter: 'stable' }}>
+                {PERMISSION_GROUPS.map((group) => {
+                  const checkedCount = group.ids.filter((id) => allowedIds.includes(id)).length;
+                  const allChecked = checkedCount === group.ids.length;
+                  return (
+                    <div key={group.key} className="permission-group">
+                      <div className="permission-group-title">
+                        <label>
+                          <input type="checkbox" checked={allChecked} disabled={disabled} onChange={(e) => setGroup(group.ids, e.target.checked)} />
+                          <span>{language === 'vi' ? group.titleVi : group.title}</span>
+                        </label>
+                        <small>{checkedCount}/{group.ids.length}</small>
+                      </div>
+                      <div className="permission-chip-grid">
+                        {group.ids.map((id) => {
+                          const item = byId.get(id);
+                          const checked = allowedIds.includes(id);
+                          return (
+                            <label key={id} className={checked ? 'permission-chip checked' : 'permission-chip'}>
+                              <input type="checkbox" checked={checked} disabled={disabled} onChange={() => toggleId(id)} />
+                              <span>
+                                <b>{language === 'vi' ? item?.titleVi || item?.title : item?.title}</b>
+                                <small>{language === 'vi' ? item?.descVi || item?.desc : item?.desc}</small>
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="permission-chip-grid">
-                      {group.ids.map((id) => {
-                        const item = byId.get(id);
-                        const checked = allowedIds.includes(id);
-                        return (
-                          <label key={id} className={checked ? 'permission-chip checked' : 'permission-chip'}>
-                            <input type="checkbox" checked={checked} disabled={disabled} onChange={() => toggleId(id)} />
-                            <span>
-                              <b>{language === 'vi' ? item?.titleVi || item?.title : item?.title}</b>
-                              <small>{language === 'vi' ? item?.descVi || item?.desc : item?.desc}</small>
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
         </>
