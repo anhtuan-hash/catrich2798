@@ -1,6 +1,6 @@
 {
-  "version": "12.31.0",
-  "release": "12.31.0",
+  "version": "12.32.0",
+  "release": "Unified AI Core Phase 1",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-15T06:16:55.141Z",
+  "generatedAt": "2026-07-15T08:46:17.146425Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "3.6.2",
+  "runtimeCore": "3.7.0",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -240,7 +240,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Three Apps Total Removal",
+  "releaseName": "Unified AI Core Phase 1",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -533,5 +533,12 @@
   "lessonPackModernHero": true,
   "lessonPackConnectedDelivery": true,
   "threeAppsTotalRemoval": true,
-  "retiredApplicationCount": 3
+  "retiredApplicationCount": 3,
+  "unifiedAiCore": true,
+  "unifiedAiCorePhase": 1,
+  "providerHubRuntimeUnified": true,
+  "smartRoutingConnectedToCallAI": true,
+  "aiTaskRegistry": true,
+  "aiProvenanceMetadata": true,
+  "accountScopedProviderHub": true
 }

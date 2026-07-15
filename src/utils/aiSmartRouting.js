@@ -62,7 +62,7 @@ function supportsProfile(provider, profile) {
 function scoreProvider(provider, config, profile, prefs, activeProvider) {
   let score = 0;
   const mode = prefs.mode || 'smart';
-  if (provider.id === activeProvider) score += 18;
+  if (provider.id === activeProvider) score += mode === 'smart' ? 96 : 24;
   if (provider.id === prefs.manualProvider) score += 1000;
   if (provider.freeTier) score += 12;
   if (provider.local) score += 6;

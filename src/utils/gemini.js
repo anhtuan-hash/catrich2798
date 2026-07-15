@@ -8,6 +8,9 @@ import {
   getProviderInfo,
 } from './aiProviders.js';
 import { appendAiAudit, guardAiRequest, recordAiRequest } from './aiGovernance.js';
+import { buildAiRoutingCandidates, classifyAiError, noteProviderHealth, shouldFallbackAiError } from './aiSmartRouting.js';
+import { enrichAiTaskOptions, resolveAiTask } from './aiTaskRegistry.js';
+import { getRoutingPreferences } from './aiProviderOverrides.js';
 
 export const DEFAULT_GEMINI_MODEL = 'gemini-flash-latest';
 export const DEFAULT_MAX_OUTPUT_TOKENS = 1600;
@@ -79,18 +82,16 @@ async function callGeminiProvider({ apiKey, model, baseUrl, prompt, attachments 
   return text;
 }
 
-async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', provider = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry }) {
+async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', provider = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry, requiresApiKey = true }) {
   const key = String(apiKey || '').trim();
-  if (!key) throw new Error(`Missing ${provider || 'AI'} API key.`);
+  if (requiresApiKey && !key) throw new Error(`Missing ${provider || 'AI'} API key.`);
   const cleanBase = String(baseUrl || '').replace(/\/+$/, '');
   if (!cleanBase) throw new Error('Missing OpenAI-compatible base URL.');
   const url = `${cleanBase}/chat/completions`;
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${key}`,
-  };
+  const headers = { 'Content-Type': 'application/json' };
+  if (key) headers.Authorization = `Bearer ${key}`;
   if (provider === 'openrouter') {
-    headers['HTTP-Referer'] = window.location?.origin || 'http://localhost';
+    headers['HTTP-Referer'] = (typeof window !== 'undefined' && window.location?.origin) || 'http://localhost';
     headers['X-Title'] = 'Brian English Studio';
   }
 
@@ -247,6 +248,7 @@ async function callSingleProvider({ provider, apiKey, model, baseUrl, prompt, at
     responseMimeType,
     maxOutputTokens: normalizeMaxOutputTokens(maxOutputTokens),
     onAdaptiveRetry,
+    requiresApiKey: info.requiresApiKey !== false,
   };
   if (info.kind === 'gemini') return callGeminiProvider(config);
   if (info.kind === 'claude') return callClaudeProvider(config);
@@ -259,112 +261,213 @@ function emitAiOperation(type, detail = {}) {
   window.dispatchEvent(new CustomEvent(type, { detail }));
 }
 
-export async function callAI(options = {}) {
+export async function callAIWithMeta(options = {}) {
   const startedAt = Date.now();
+  const enrichedOptions = enrichAiTaskOptions(options);
+  const task = resolveAiTask(enrichedOptions);
   let governance;
   try {
-    governance = guardAiRequest(options);
+    governance = guardAiRequest(enrichedOptions);
   } catch (error) {
     appendAiAudit({
       type: 'request',
       status: 'blocked',
       label: 'AI request blocked by governance',
-      profile: String(options.governanceProfile || options.profile || ''),
-      detail: { code: error?.code || '', error: error?.message || String(error) },
+      profile: String(enrichedOptions.governanceProfile || enrichedOptions.profile || ''),
+      detail: { taskId: task.id, code: error?.code || '', error: error?.message || String(error) },
     });
     throw error;
   }
 
   const active = getActiveAiConfig();
-  const provider = options.provider || active.provider || DEFAULT_PROVIDER;
-  const info = getProviderInfo(provider);
-  const apiKey = String(options.apiKey || '').trim() ? options.apiKey : active.apiKey;
-  const model = options.model || active.model || info.defaultModel;
-  const baseUrl = options.baseUrl || active.baseUrl || info.baseUrl;
+  const effectiveRoutingMode = enrichedOptions.routingMode || getRoutingPreferences().mode || 'smart';
+  const preferredProvider = enrichedOptions.provider || active.provider || getAiProvider() || DEFAULT_PROVIDER;
+  const preferredInfo = getProviderInfo(preferredProvider);
+  const configs = getAiConfigs();
+  const preferredStored = configs[preferredProvider] || {};
+  configs[preferredProvider] = {
+    ...preferredStored,
+    apiKey: String(enrichedOptions.apiKey || '').trim() ? enrichedOptions.apiKey : preferredStored.apiKey,
+    model: enrichedOptions.model || preferredStored.model || preferredInfo.defaultModel,
+    baseUrl: enrichedOptions.baseUrl || preferredStored.baseUrl || preferredInfo.baseUrl,
+    enabled: true,
+  };
+
+  let candidates = buildAiRoutingCandidates({
+    legacyProviders: PROVIDERS,
+    legacyConfigs: configs,
+    legacyActiveProvider: preferredProvider,
+    options: {
+      ...enrichedOptions,
+      provider: preferredProvider,
+      manualProvider: enrichedOptions.manualProvider || (enrichedOptions.provider ? preferredProvider : undefined),
+      manualModel: enrichedOptions.manualModel || (enrichedOptions.provider ? (enrichedOptions.model || configs[preferredProvider]?.model) : undefined),
+    },
+  });
+
+  if (!candidates.length && (String(configs[preferredProvider]?.apiKey || '').trim() || preferredInfo.requiresApiKey === false)) {
+    candidates = [{
+      id: preferredProvider,
+      provider: preferredInfo,
+      config: configs[preferredProvider],
+      apiKey: configs[preferredProvider]?.apiKey || '',
+      model: configs[preferredProvider]?.model || preferredInfo.defaultModel,
+      baseUrl: configs[preferredProvider]?.baseUrl || preferredInfo.baseUrl,
+      rank: 1,
+    }];
+  }
+
+  const preferDefaultFirst = enrichedOptions.preferDefaultProvider !== false;
+  if ((enrichedOptions.provider || preferDefaultFirst) && candidates.some((candidate) => candidate.id === preferredProvider)) {
+    candidates = [
+      ...candidates.filter((candidate) => candidate.id === preferredProvider),
+      ...candidates.filter((candidate) => candidate.id !== preferredProvider),
+    ].map((candidate, index) => ({ ...candidate, rank: index + 1 }));
+  }
+
+  const fallbackEnabled = enrichedOptions.fallback ?? getFallbackEnabled();
+  if (!fallbackEnabled) candidates = candidates.slice(0, 1);
+  if (!candidates.length) {
+    const error = new Error('No configured AI provider is available for this task.');
+    error.code = 'AI_NO_PROVIDER_CONFIGURED';
+    error.taskId = task.id;
+    throw error;
+  }
+
   const operationId = `ai-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   const operationDetail = {
     id: operationId,
-    provider: info.label || provider,
-    model,
-    label: options.loadingLabel || options.aiLabel || '',
+    provider: candidates[0]?.provider?.label || candidates[0]?.id || preferredProvider,
+    model: candidates[0]?.model || '',
+    label: enrichedOptions.loadingLabel || enrichedOptions.aiLabel || '',
     maxOutputTokens: governance.maxOutputTokens,
     profile: governance.profileKey,
+    taskId: task.id,
+    routingMode: effectiveRoutingMode,
+    candidateCount: candidates.length,
   };
-  const request = {
-    ...options,
-    provider,
-    apiKey,
-    model,
-    baseUrl,
-    maxOutputTokens: governance.maxOutputTokens,
-  };
-
-  let finalProvider = info.label || provider;
-  let finalModel = model;
-  let result = '';
-  let finalError = null;
   emitAiOperation('bes-ai-operation-start', operationDetail);
-  try {
-    const errors = [];
-    const errorObjects = [];
+
+  const attempts = [];
+  let result = '';
+  let finalCandidate = candidates[0];
+  let finalError = null;
+
+  for (let index = 0; index < candidates.length; index += 1) {
+    const candidate = candidates[index];
+    const info = getProviderInfo(candidate.id);
+    finalCandidate = candidate;
+    emitAiOperation('bes-ai-operation-update', {
+      ...operationDetail,
+      provider: info.label || candidate.id,
+      model: candidate.model,
+      rank: index + 1,
+      fallbackUsed: index > 0,
+    });
     try {
-      result = await callSingleProvider(request);
-      return result;
-    } catch (err) {
-      errorObjects.push(err);
-      errors.push(`${info.label}: ${err.message || err}`);
-      const shouldFallback = options.fallback ?? getFallbackEnabled();
-      if (!shouldFallback) throw err;
+      result = await callSingleProvider({
+        ...enrichedOptions,
+        provider: candidate.id,
+        apiKey: candidate.apiKey,
+        model: candidate.model,
+        baseUrl: candidate.baseUrl,
+        maxOutputTokens: governance.maxOutputTokens,
+        onAdaptiveRetry: (detail) => {
+          enrichedOptions.onAdaptiveRetry?.(detail);
+          emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id });
+        },
+      });
+      noteProviderHealth(candidate.id, { success: true });
+      attempts.push({ provider: candidate.id, model: candidate.model, status: 'success', durationMs: Date.now() - startedAt });
+      finalError = null;
+      break;
+    } catch (error) {
+      finalError = error;
+      const kind = classifyAiError(error);
+      noteProviderHealth(candidate.id, { success: false, error: error?.message || String(error) });
+      attempts.push({
+        provider: candidate.id,
+        model: candidate.model,
+        status: 'error',
+        errorType: kind,
+        statusCode: Number(error?.status || 0),
+        error: String(error?.message || error).slice(0, 360),
+      });
+      const canContinue = fallbackEnabled && index < candidates.length - 1 && (shouldFallbackAiError(error) || kind === 'unknown');
+      if (!canContinue) break;
     }
+  }
 
-    const configs = getAiConfigs();
-    for (const fallbackProvider of PROVIDERS.map((p) => p.id).filter((id) => id !== provider)) {
-      const cfg = configs[fallbackProvider] || {};
-      if (!String(cfg.apiKey || '').trim()) continue;
-      const fallbackInfo = getProviderInfo(fallbackProvider);
-      try {
-        finalProvider = fallbackInfo.label || fallbackProvider;
-        finalModel = cfg.model || fallbackInfo.defaultModel;
-        emitAiOperation('bes-ai-operation-update', {
-          ...operationDetail,
-          provider: finalProvider,
-          model: finalModel,
-        });
-        result = await callSingleProvider({
-          ...options,
-          provider: fallbackProvider,
-          apiKey: cfg.apiKey,
-          model: finalModel,
-          baseUrl: cfg.baseUrl || fallbackInfo.baseUrl,
-          maxOutputTokens: governance.maxOutputTokens,
-        });
-        return result;
-      } catch (err) {
-        errorObjects.push(err);
-        errors.push(`${fallbackInfo.label}: ${err.message || err}`);
-      }
-    }
+  const durationMs = Date.now() - startedAt;
+  const finalInfo = getProviderInfo(finalCandidate?.id || preferredProvider);
+  const meta = {
+    operationId,
+    taskId: task.id,
+    taskLabel: task.label,
+    engine: 'ai',
+    provider: finalCandidate?.id || preferredProvider,
+    providerName: finalInfo.label || finalCandidate?.id || preferredProvider,
+    model: finalCandidate?.model || '',
+    profile: governance.profileKey,
+    routingMode: effectiveRoutingMode,
+    fallbackUsed: attempts.length > 1,
+    candidateRank: Math.max(1, attempts.length),
+    attempts,
+    durationMs,
+    createdAt: new Date().toISOString(),
+    validated: false,
+  };
 
-    const capacityError = errorObjects.find((item) => item?.code === 'AI_PROVIDER_CREDIT_LIMIT');
-    if (capacityError) throw capacityError;
-    throw new Error(`All AI providers failed. ${errors.join(' | ')}`);
-  } catch (error) {
-    finalError = error;
-    throw error;
-  } finally {
+  if (result && !finalError) {
     recordAiRequest({
-      provider: finalProvider,
-      model: finalModel,
-      prompt: options.prompt || '',
+      provider: meta.providerName,
+      model: meta.model,
+      prompt: enrichedOptions.prompt || '',
       result,
-      durationMs: Date.now() - startedAt,
-      success: !finalError && Boolean(String(result || '').trim()),
-      error: finalError?.message || '',
+      durationMs,
+      success: true,
+      error: '',
       profile: governance.profileKey,
       operationId,
     });
-    emitAiOperation('bes-ai-operation-end', operationDetail);
+    if (typeof window !== 'undefined') window.__BES_LAST_AI_META__ = meta;
+    emitAiOperation('bes-ai-operation-end', { ...operationDetail, ...meta, success: true });
+    return { text: result, meta };
   }
+
+  let error = finalError;
+  if (attempts.length > 1) {
+    const capacityError = attempts.find((attempt) => attempt.errorType === 'capacity');
+    if (!error || !capacityError) {
+      error = new Error(`All AI providers failed. ${attempts.map((attempt) => `${attempt.provider}: ${attempt.error}`).join(' | ')}`);
+      error.code = 'AI_ALL_PROVIDERS_FAILED';
+    }
+  }
+  if (!error) {
+    error = new Error('AI request failed without a provider response.');
+    error.code = 'AI_REQUEST_FAILED';
+  }
+  error.attempts = attempts;
+  error.operationId = operationId;
+  error.taskId = task.id;
+  recordAiRequest({
+    provider: meta.providerName,
+    model: meta.model,
+    prompt: enrichedOptions.prompt || '',
+    result: '',
+    durationMs,
+    success: false,
+    error: error?.message || String(error),
+    profile: governance.profileKey,
+    operationId,
+  });
+  emitAiOperation('bes-ai-operation-end', { ...operationDetail, ...meta, success: false, error: error?.message || String(error) });
+  throw error;
+}
+
+export async function callAI(options = {}) {
+  const response = await callAIWithMeta(options);
+  return response.text;
 }
 
 export async function callGemini(options = {}) {

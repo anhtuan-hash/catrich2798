@@ -2,6 +2,7 @@ import { PROVIDER_CATALOG, getProviderCatalogEntry } from '../data/aiProviderCat
 
 const STORAGE_KEY = 'bes-ai-provider-overrides-v1157';
 const ROUTING_KEY = 'bes-ai-smart-routing-v1157';
+const USER_SCOPE_KEY = 'bes-ai-user-scope';
 const OPENROUTER_MIGRATION_FLAG = 'openrouterFreeModelV126';
 const LEGACY_OPENROUTER_PAID_MODELS = new Set(['openai/gpt-4o-mini', 'gpt-4o-mini']);
 
@@ -23,14 +24,35 @@ function safeParse(value, fallback) {
   }
 }
 
+function normalizeScope(value = '') {
+  return String(value || 'guest')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9@._-]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'guest';
+}
+
+function scopedStorageKey(key) {
+  if (typeof window === 'undefined' || !window.localStorage) return key;
+  const scope = normalizeScope(window.localStorage.getItem(USER_SCOPE_KEY) || 'guest');
+  return `${key}:${scope}`;
+}
+
 function readStore(key, fallback) {
   if (typeof window === 'undefined' || !window.localStorage) return fallback;
-  return safeParse(window.localStorage.getItem(key) || '', fallback);
+  const scopedKey = scopedStorageKey(key);
+  const scopedRaw = window.localStorage.getItem(scopedKey);
+  if (scopedRaw) return safeParse(scopedRaw, fallback);
+  const legacyRaw = window.localStorage.getItem(key);
+  if (!legacyRaw) return fallback;
+  const migrated = safeParse(legacyRaw, fallback);
+  window.localStorage.setItem(scopedKey, JSON.stringify(migrated));
+  return migrated;
 }
 
 function writeStore(key, value) {
   if (typeof window === 'undefined' || !window.localStorage) return;
-  window.localStorage.setItem(key, JSON.stringify(value));
+  window.localStorage.setItem(scopedStorageKey(key), JSON.stringify(value));
 }
 
 function emitSettingsUpdated(detail = {}) {

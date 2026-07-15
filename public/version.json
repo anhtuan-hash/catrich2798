@@ -1,14 +1,14 @@
 {
-  "version": "12.31.0",
+  "version": "12.32.0",
   "channel": "stable",
-  "releaseName": "Lesson Pack Connected Workflow",
-  "runtimeCore": "3.6.2",
+  "releaseName": "Unified AI Core Phase 1",
+  "runtimeCore": "3.7.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-15T06:16:55.141Z",
+  "generatedAt": "2026-07-15T08:46:17.146425Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -318,7 +318,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Three Apps Total Removal",
+  "release": "Unified AI Core Phase 1",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -528,5 +528,12 @@
   "lessonPackModernHero": true,
   "lessonPackConnectedDelivery": true,
   "threeAppsTotalRemoval": true,
-  "retiredApplicationCount": 3
+  "retiredApplicationCount": 3,
+  "unifiedAiCore": true,
+  "unifiedAiCorePhase": 1,
+  "providerHubRuntimeUnified": true,
+  "smartRoutingConnectedToCallAI": true,
+  "aiTaskRegistry": true,
+  "aiProvenanceMetadata": true,
+  "accountScopedProviderHub": true
 }

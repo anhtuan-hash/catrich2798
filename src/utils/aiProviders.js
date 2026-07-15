@@ -1,3 +1,12 @@
+import { PROVIDER_CATALOG, getProviderCatalogEntry, mergeProviderInfo } from '../data/aiProviderCatalog.js';
+import {
+  getEffectiveActiveProvider,
+  getRoutingPreferences,
+  mergeAiConfigs,
+  saveProviderOverride,
+  saveRoutingPreferences,
+  setActiveProviderOverride,
+} from './aiProviderOverrides.js';
 export const AI_PROVIDER_KEY = 'bes-ai-provider';
 export const AI_CONFIGS_KEY = 'bes-ai-configs';
 export const AI_FALLBACK_KEY = 'bes-ai-fallback-enabled';
@@ -117,8 +126,10 @@ export const PROVIDERS = [
 export const DEFAULT_PROVIDER = 'gemini';
 
 export function getProviderInfo(providerId) {
-  return PROVIDERS.find((item) => item.id === providerId) || PROVIDERS[0];
+  const legacy = PROVIDERS.find((item) => item.id === providerId) || {};
+  return mergeProviderInfo(providerId || DEFAULT_PROVIDER, legacy);
 }
+
 
 export function defaultConfigs() {
   return Object.fromEntries(PROVIDERS.map((provider) => [
@@ -193,15 +204,20 @@ export function setAiStorageUser(user = null) {
 }
 
 export function getAiProvider() {
-  return localStorage.getItem(scopedKey(AI_PROVIDER_KEY)) || localStorage.getItem(AI_PROVIDER_KEY) || DEFAULT_PROVIDER;
+  const legacyProvider = localStorage.getItem(scopedKey(AI_PROVIDER_KEY)) || localStorage.getItem(AI_PROVIDER_KEY) || DEFAULT_PROVIDER;
+  return getEffectiveActiveProvider(legacyProvider);
 }
 
 export function setAiProvider(providerId) {
-  localStorage.setItem(scopedKey(AI_PROVIDER_KEY), providerId || DEFAULT_PROVIDER);
+  const id = providerId || DEFAULT_PROVIDER;
+  localStorage.setItem(scopedKey(AI_PROVIDER_KEY), id);
+  setActiveProviderOverride(id);
   window.dispatchEvent(new CustomEvent('bes-ai-settings-updated'));
 }
 
 export function getFallbackEnabled() {
+  const routing = getRoutingPreferences();
+  if (typeof routing.fallbackEnabled === 'boolean') return routing.fallbackEnabled;
   const value = localStorage.getItem(scopedKey(AI_FALLBACK_KEY));
   if (value !== null) return value !== 'false';
   const legacy = localStorage.getItem(AI_FALLBACK_KEY);
@@ -210,13 +226,14 @@ export function getFallbackEnabled() {
 
 export function setFallbackEnabled(value) {
   localStorage.setItem(scopedKey(AI_FALLBACK_KEY), value ? 'true' : 'false');
+  saveRoutingPreferences({ fallbackEnabled: Boolean(value) });
   window.dispatchEvent(new CustomEvent('bes-ai-settings-updated'));
 }
 
 export function getAiConfigs() {
   const base = defaultConfigs();
   const stored = migrateLegacyOpenRouterModel(readJson(AI_CONFIGS_KEY, {}, true));
-  return Object.fromEntries(PROVIDERS.map((provider) => {
+  const legacyNormalized = Object.fromEntries(PROVIDERS.map((provider) => {
     const current = stored?.[provider.id] || {};
     return [
       provider.id,
@@ -228,19 +245,25 @@ export function getAiConfigs() {
       },
     ];
   }));
+  return mergeAiConfigs(legacyNormalized);
 }
 
 export function saveAiConfigs(configs) {
-  const normalized = getAiConfigs();
-  for (const provider of PROVIDERS) {
-    normalized[provider.id] = {
-      ...normalized[provider.id],
-      ...(configs?.[provider.id] || {}),
-    };
+  const current = getAiConfigs();
+  const normalized = { ...current };
+  for (const provider of PROVIDER_CATALOG) {
+    const patch = configs?.[provider.id];
+    if (!patch) continue;
+    normalized[provider.id] = { ...normalized[provider.id], ...patch };
+    saveProviderOverride(provider.id, normalized[provider.id], { activate: false });
   }
-  localStorage.setItem(scopedKey(AI_CONFIGS_KEY), JSON.stringify(normalized));
+  const legacySubset = Object.fromEntries(PROVIDERS.map((provider) => [
+    provider.id,
+    normalized[provider.id] || current[provider.id] || {},
+  ]));
+  localStorage.setItem(scopedKey(AI_CONFIGS_KEY), JSON.stringify(legacySubset));
   window.dispatchEvent(new CustomEvent('bes-ai-settings-updated'));
-  return normalized;
+  return getAiConfigs();
 }
 
 export function getActiveAiConfig() {
@@ -263,7 +286,7 @@ export function getProviderSummary() {
     provider,
     providerName: getProviderInfo(provider).label,
     model: active.model || getProviderInfo(provider).defaultModel,
-    hasKey: Boolean(String(active.apiKey || '').trim()),
+    hasKey: getProviderInfo(provider).requiresApiKey === false || Boolean(String(active.apiKey || '').trim()),
     fallbackEnabled: getFallbackEnabled(),
   };
 }
