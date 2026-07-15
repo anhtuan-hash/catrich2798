@@ -117,3 +117,46 @@
   .metro-clean-system[data-route="admin"] .admin-v124-user-grid .admin-user-card{min-height:unset}
   .metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups{max-height:380px}
 }
+
+/* V12.26.1 — inline scroll exactly inside permission chooser */
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups-shell{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:10px;
+  flex:1;
+  min-height:0;
+  max-height:520px;
+  padding:10px 8px 10px 10px;
+  border:1px solid #dfe8f6;
+  border-radius:18px;
+  background:linear-gradient(180deg,#fbfdff,#f6f9ff);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+  overflow:hidden;
+}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups-hint{
+  flex:0 0 auto;
+  font-size:.72rem;
+  color:#6e7f98;
+  padding:0 4px;
+}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups{
+  display:grid;
+  gap:12px;
+  flex:1;
+  min-height:0;
+  height:100%;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding-right:6px;
+  align-content:start;
+  scrollbar-width:thin;
+  scrollbar-color:#8eb0f2 #edf3ff;
+}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups::-webkit-scrollbar{width:10px}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups::-webkit-scrollbar-track{background:#edf3ff;border-radius:999px}
+.metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#bfd2f8,#86a9ef);border-radius:999px;border:2px solid #edf3ff}
+
+@media (max-width:980px){
+  .metro-clean-system[data-route="admin"] .admin-v124-user-grid .permission-groups-shell{max-height:420px}
+}
