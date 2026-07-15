@@ -5,8 +5,8 @@ export const ROUTE_APP_SHORTCUTS = [
     slug: 'homeroom-hub', route: 'homeroom', icon: 'HR', tone: 'mint',
     group: 'School Management', groupVi: 'Quản lý lớp học',
     title: 'Homeroom Teacher', titleVi: 'Giáo viên chủ nhiệm',
-    desc: 'Learning analytics, subject feedback, team competition, family/student portals and school-wide summaries.',
-    descVi: 'Phân tích học tập, nhận xét bộ môn, thi đua, cổng phụ huynh/học sinh và thống kê toàn trường.',
+    desc: 'Progress summaries, subject feedback, team competition, family/student portals and school-wide reports.',
+    descVi: 'Tổng hợp tiến độ, nhận xét bộ môn, thi đua, cổng phụ huynh/học sinh và báo cáo toàn trường.',
     status: 'Phase 2 · Connected', statusVi: 'GVCN · Liên thông',
   },
   {

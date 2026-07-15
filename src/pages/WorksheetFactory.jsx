@@ -37,7 +37,6 @@ const WORKFLOW = [
 const BUILD_MODES = [
   { id: 'source-to-worksheet', icon: '⇥', title: 'Source to Worksheet', titleVi: 'Nguồn thành worksheet', desc: 'Turn a document, passage or list into structured activities.', descVi: 'Chuyển tài liệu, bài đọc hoặc danh sách thành hoạt động có cấu trúc.' },
   { id: 'topic-to-worksheet', icon: '✦', title: 'Topic to Worksheet', titleVi: 'Chủ đề thành worksheet', desc: 'Generate a new worksheet from a topic, level and objective.', descVi: 'Tạo worksheet mới từ chủ đề, trình độ và mục tiêu.' },
-  { id: 'lesson-pack', icon: '▣', title: 'Lesson Pack Builder', titleVi: 'Tạo gói học liệu', desc: 'Student sheet, answer key, support, extension and homework.', descVi: 'Phiếu học sinh, đáp án, hỗ trợ, mở rộng và bài tập về nhà.' },
   { id: 'refine-existing', icon: '✎', title: 'Existing Worksheet Refiner', titleVi: 'Tinh chỉnh worksheet cũ', desc: 'Repair, level, diversify and redesign an existing worksheet.', descVi: 'Sửa lỗi, đổi độ khó, đa dạng và thiết kế lại worksheet cũ.' },
   { id: 'item-bank', icon: '▤', title: 'Item Bank Composer', titleVi: 'Ghép từ Item Bank', desc: 'Compose a worksheet from approved questions in the ecosystem.', descVi: 'Ghép worksheet từ các câu hỏi đã duyệt trong hệ sinh thái.' },
   { id: 'batch', icon: '⧉', title: 'Batch Worksheet Generator', titleVi: 'Tạo worksheet hàng loạt', desc: 'Create variants for classes, levels, units or support needs.', descVi: 'Tạo nhiều phiên bản theo lớp, trình độ, Unit hoặc nhu cầu hỗ trợ.' },
@@ -234,7 +233,7 @@ function offlineSourceIntelligence(source = '', sourceName = '') {
 
 function buildDefaultBlueprint(intelligence, mode = 'source-to-worksheet') {
   const types = intelligence?.recommendedTypes?.length ? intelligence.recommendedTypes : ['multiple_choice', 'gap_fill', 'reading_comprehension', 'reflection_exit_ticket'];
-  const modeTypes = mode === 'lesson-pack' ? [...types.slice(0, 3), 'reflection_exit_ticket'] : mode === 'item-bank' ? ['multiple_choice', 'gap_fill', 'error_correction'] : mode === 'batch' ? ['multiple_choice', 'gap_fill', 'sentence_transformation', 'cloze'] : types;
+  const modeTypes = mode === 'item-bank' ? ['multiple_choice', 'gap_fill', 'error_correction'] : mode === 'batch' ? ['multiple_choice', 'gap_fill', 'sentence_transformation', 'cloze'] : types;
   return [...new Set(modeTypes)].slice(0, 6).map((type, index) => ({
     id: uid('plan'), type, count: index === 0 ? 8 : 6, points: index === 0 ? 2 : 1, difficulty: index === 0 ? 'B1-B2' : 'B2', status: 'planned', generated: false,
   }));
@@ -400,7 +399,7 @@ function SourceCard({ project, patch, onFile, fileBusy, pendingTransfer, applyTr
     </div> : null}
 
     {mode === 'item-bank' ? <div className="wf2-source-special"><i>▤</i><div><h3>Nguồn từ Item Bank</h3><p>Nạp tối đa 120 câu đã duyệt để tái cấu trúc thành worksheet mới.</p></div><button type="button" onClick={onLoadItemBank}>Nạp Item Bank</button></div> : null}
-    {mode === 'transfer' ? <div className="wf2-source-special"><i>⇥</i><div><h3>Transfer Inbox</h3><p>Nội dung được gửi từ Lesson Architect, Reading Studio, AI Workspace hoặc ứng dụng khác sẽ xuất hiện tại đây.</p></div>{pendingTransfer ? <button type="button" onClick={applyTransfer}>Dùng nội dung đang chờ</button> : <span>Chưa có nội dung đang chờ</span>}</div> : null}
+    {mode === 'transfer' ? <div className="wf2-source-special"><i>⇥</i><div><h3>Transfer Inbox</h3><p>Nội dung được gửi từ Lesson Architect, Reading Studio hoặc ứng dụng khác sẽ xuất hiện tại đây.</p></div>{pendingTransfer ? <button type="button" onClick={applyTransfer}>Dùng nội dung đang chờ</button> : <span>Chưa có nội dung đang chờ</span>}</div> : null}
 
     <div className="wf2-source-editor">
       <label className="wf2-field"><span>Tên nguồn</span><input value={project.sourceName} onChange={(event) => patch({ sourceName: event.target.value })} placeholder="Ví dụ: Unit 3 — Environment and Climate" /></label>

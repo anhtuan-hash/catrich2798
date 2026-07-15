@@ -2,12 +2,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { getRuntimeClient } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { downloadText, readLocal, scopedLocalKey, writeLocal } from './v1093/shared.js';
-import { TRANSFER_APPLY_EVENT } from '../utils/contentTransfer.js';
+import { createTransfer, TRANSFER_APPLY_EVENT } from '../utils/contentTransfer.js';
 import {
   ECOSYSTEM_ASSET_TYPES,
   ECOSYSTEM_RECIPES,
   ECOSYSTEM_TARGETS,
-  createLessonPackTransfer,
   dispatchRecipe,
   extractKeywords,
   makeCanvasBlocks,
@@ -229,11 +228,22 @@ export default function ContentEcosystem({ currentUser, language = 'vi' }) {
     setKits(next); persistLocal(assets, next); setTab('kits'); setNotice(vi ? 'Đã tạo bộ nội dung.' : 'Content kit created.');
   }
 
-  function sendKitToLessonPack(kit) {
+  function sendKitToWorksheetFactory(kit) {
     const chosen = assets.filter((asset) => (kit.asset_ids || []).includes(asset.id));
-    createLessonPackTransfer(currentUser, chosen, kit.title);
-    setNotice(vi ? 'Đã gửi bộ nội dung sang Lesson Pack.' : 'Content kit sent to Lesson Pack.');
-    window.setTimeout(() => { window.location.hash = '#/lesson-pack'; }, 350);
+    const content = chosen
+      .map((asset, index) => `${index + 1}. ${asset.title}\n${asset.content_text || ''}`)
+      .join('\n\n');
+    createTransfer(currentUser, {
+      target: 'worksheet-factory',
+      type: 'content-kit',
+      title: kit.title,
+      sourceApp: 'content-ecosystem',
+      sourceTitle: 'Content Ecosystem',
+      content,
+      metadata: { assetIds: chosen.map((asset) => asset.id), ecosystemVersion: '12.30.0' },
+    });
+    setNotice(vi ? 'Đã gửi bộ nội dung sang Worksheet Factory.' : 'Content kit sent to Worksheet Factory.');
+    window.setTimeout(() => { window.location.hash = '#/tool/worksheet-factory'; }, 350);
   }
 
   function exportKit(kit) {
@@ -326,10 +336,10 @@ export default function ContentEcosystem({ currentUser, language = 'vi' }) {
 
       {tab === 'kits' ? (
         <main className="v1120-kits">
-          <div className="v1120-section-heading"><div><span>CONNECTED CONTENT KITS</span><h2>{vi ? 'Bộ nội dung hoàn chỉnh' : 'Complete content kits'}</h2><p>{vi ? 'Gom nhiều tài sản thành một gói có thể gửi thẳng sang Lesson Pack.' : 'Bundle assets and send the kit directly to Lesson Pack.'}</p></div><button onClick={() => setTab('library')}>{vi ? 'Chọn tài sản' : 'Select assets'}</button></div>
+          <div className="v1120-section-heading"><div><span>CONNECTED CONTENT KITS</span><h2>{vi ? 'Bộ nội dung hoàn chỉnh' : 'Complete content kits'}</h2><p>{vi ? 'Gom nhiều tài sản thành một bộ có thể tiếp tục biên tập trong Worksheet Factory.' : 'Bundle assets and continue editing the kit in Worksheet Factory.'}</p></div><button onClick={() => setTab('library')}>{vi ? 'Chọn tài sản' : 'Select assets'}</button></div>
           {kits.length ? <div className="v1120-kit-grid">{kits.map((kit) => {
             const chosen = assets.filter((asset) => (kit.asset_ids || []).includes(asset.id));
-            return <article key={kit.id}><div className="v1120-kit-icon">KIT</div><h3>{kit.title}</h3><p>{chosen.length} {vi ? 'tài sản' : 'assets'} · {chosen.map((asset) => assetTypeLabel(asset.asset_type)).join(' · ')}</p><ul>{chosen.slice(0, 6).map((asset) => <li key={asset.id}>{asset.title}</li>)}</ul><footer><button onClick={() => exportKit(kit)}>JSON</button><button className="primary" onClick={() => sendKitToLessonPack(kit)}>{vi ? 'Gửi Lesson Pack' : 'Send to Lesson Pack'} →</button></footer></article>;
+            return <article key={kit.id}><div className="v1120-kit-icon">KIT</div><h3>{kit.title}</h3><p>{chosen.length} {vi ? 'tài sản' : 'assets'} · {chosen.map((asset) => assetTypeLabel(asset.asset_type)).join(' · ')}</p><ul>{chosen.slice(0, 6).map((asset) => <li key={asset.id}>{asset.title}</li>)}</ul><footer><button onClick={() => exportKit(kit)}>JSON</button><button className="primary" onClick={() => sendKitToWorksheetFactory(kit)}>{vi ? 'Gửi Worksheet Factory' : 'Send to Worksheet Factory'} →</button></footer></article>;
           })}</div> : <div className="v1120-empty"><b>▣</b><h2>{vi ? 'Chưa có bộ nội dung' : 'No content kits yet'}</h2><p>{vi ? 'Chọn nhiều tài sản trong tab Thư viện rồi bấm “Tạo bộ”.' : 'Select multiple assets in Library, then choose “Create kit”.'}</p></div>}
         </main>
       ) : null}

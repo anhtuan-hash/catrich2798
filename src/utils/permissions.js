@@ -15,13 +15,8 @@ export const ROUTE_PERMISSION_IDS = {
   'resource-library': 'route:resource-library',
   'knowledge-hub': 'route:knowledge-hub',
   'work-hub': 'route:work-hub',
-  'ai-workspace': 'route:ai-workspace',
-  'content-factory': 'route:content-factory',
   'content-ecosystem': 'route:content-ecosystem',
-  'lesson-pack': 'route:lesson-pack',
-  'classroom-delivery': 'route:classroom-delivery',
   'assessment-core': 'route:assessment-core',
-  'learning-intelligence': 'route:learning-intelligence',
   'platform-readiness': 'route:platform-readiness',
   'automation-center': 'route:automation-center',
   'cloud-operations': 'route:cloud-operations',
@@ -76,24 +71,6 @@ export const CORE_PERMISSION_ITEMS = [
     descVi: 'Quản lí nhiệm vụ, sản phẩm nộp, phản hồi và phê duyệt.',
   },
   {
-    id: ROUTE_PERMISSION_IDS['ai-workspace'],
-    type: 'content',
-    section: 'content',
-    title: 'Brian AI Workspace',
-    titleVi: 'Không gian làm việc AI',
-    desc: 'Create and transform long-form teaching content with AI.',
-    descVi: 'Tạo và chuyển đổi học liệu dài bằng AI.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['content-factory'],
-    type: 'content',
-    section: 'content',
-    title: 'Teaching Content Factory',
-    titleVi: 'Xưởng tạo học liệu',
-    desc: 'Generate worksheets, quizzes and interactive activities.',
-    descVi: 'Tạo worksheet, quiz và hoạt động tương tác.',
-  },
-  {
     id: ROUTE_PERMISSION_IDS['content-ecosystem'],
     type: 'content',
     section: 'content',
@@ -103,24 +80,6 @@ export const CORE_PERMISSION_ITEMS = [
     descVi: 'Quản lí tài sản tái sử dụng, canvas theo khối, dây chuyền sản xuất và bộ nội dung liên thông.',
   },
   {
-    id: ROUTE_PERMISSION_IDS['lesson-pack'],
-    type: 'content',
-    section: 'content',
-    title: 'Lesson Pack',
-    titleVi: 'Gói bài dạy liên thông',
-    desc: 'Combine outputs from teaching apps into a live lesson sequence.',
-    descVi: 'Kết hợp sản phẩm từ các ứng dụng thành tiến trình bài dạy trực tiếp.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['classroom-delivery'],
-    type: 'content',
-    section: 'content',
-    title: 'Classroom Delivery',
-    titleVi: 'Điều phối lớp học',
-    desc: 'Run live Lesson Pack sessions with student join codes, teams, response collection and results.',
-    descVi: 'Tổ chức phiên Lesson Pack trực tiếp với mã tham gia, đội, thu câu trả lời và kết quả.',
-  },
-  {
     id: ROUTE_PERMISSION_IDS['assessment-core'],
     type: 'content',
     section: 'content',
@@ -128,15 +87,6 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Ngân hàng câu hỏi và đề thi',
     desc: 'Manage question banks, blueprints and test versions.',
     descVi: 'Quản lí ngân hàng câu hỏi, blueprint và mã đề.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['learning-intelligence'],
-    type: 'content',
-    section: 'content',
-    title: 'Learning Intelligence',
-    titleVi: 'Trung tâm phân tích học tập',
-    desc: 'Track learner mastery, recurring errors and adaptive interventions.',
-    descVi: 'Theo dõi mức độ thành thạo, lỗi lặp lại và kế hoạch can thiệp thích ứng.',
   },
   {
     id: ROUTE_PERMISSION_IDS['platform-readiness'],
@@ -404,7 +354,7 @@ export function getRoutePermissionId(route) {
   if (route === 'practice') return ROUTE_PERMISSION_IDS.practice;
   if (route === 'department') return DEPARTMENT_WORKSPACE_PERMISSION_ID;
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'lesson-pack' || route === 'assessment-core' || route === 'learning-intelligence' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
+  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
@@ -424,7 +374,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   // Locked cards stay visible and show a request-access button.
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
   if (route === 'practice') return hasPermissionId(user, ROUTE_PERMISSION_IDS.practice) || hasToolAccess(user, 'student-practice');
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'lesson-pack' || route === 'assessment-core' || route === 'learning-intelligence' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
+  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
 }
 

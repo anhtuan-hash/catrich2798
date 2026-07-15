@@ -2,15 +2,15 @@ const WORKSPACE_DEFINITIONS = [
   {
     id: 'teaching', icon: 'TE', accent: '#EF7A42',
     label: 'Teaching', labelVi: 'Giảng dạy',
-    description: 'Lesson planning, worksheets, grammar, activities and live delivery.',
-    descriptionVi: 'Giáo án, worksheet, ngữ pháp, hoạt động và điều phối lớp học.',
+    description: 'Lesson planning, worksheets, grammar and classroom activities.',
+    descriptionVi: 'Giáo án, worksheet, ngữ pháp và hoạt động lớp học.',
     landingTarget: '#/apps?workspace=teaching',
   },
   {
     id: 'assessment', icon: 'AS', accent: '#CC7621',
     label: 'Assessment', labelVi: 'Đánh giá',
-    description: 'Question banks, tests, learner practice and learning analytics.',
-    descriptionVi: 'Ngân hàng câu hỏi, đề thi, luyện tập và phân tích học tập.',
+    description: 'Question banks, tests and learner practice.',
+    descriptionVi: 'Ngân hàng câu hỏi, đề thi và luyện tập.',
     landingTarget: '#/assessment-core',
   },
   {
@@ -37,15 +37,15 @@ const WORKSPACE_DEFINITIONS = [
   {
     id: 'ai', icon: 'AI', accent: '#6255D9',
     label: 'AI Studio', labelVi: 'Không gian AI',
-    description: 'Brian AI, provider governance, prompts and AI-assisted utilities.',
-    descriptionVi: 'Brian AI, quản trị nhà cung cấp, prompt và tiện ích AI.',
-    landingTarget: '#/ai-workspace',
+    description: 'Provider governance, prompts and AI-assisted utilities.',
+    descriptionVi: 'Quản trị nhà cung cấp, prompt và tiện ích AI.',
+    landingTarget: '#/ai-governance',
   },
   {
     id: 'games', icon: 'GA', accent: '#5B2A86',
     label: 'Games & Classroom', labelVi: 'Trò chơi & Lớp học',
-    description: 'Classroom games, live sessions and learner participation.',
-    descriptionVi: 'Trò chơi lớp học, phiên dạy trực tiếp và học sinh tham gia.',
+    description: 'Classroom games and learner participation.',
+    descriptionVi: 'Trò chơi lớp học và hoạt động học sinh.',
     landingTarget: '#/games',
   },
   {
@@ -62,13 +62,11 @@ export const WORKSPACE_MAP = new Map(WORKSPACE_DEFINITIONS.map((item) => [item.i
 export const WORKSPACES = Object.freeze(WORKSPACE_DEFINITIONS.map((item) => Object.freeze({ ...item })));
 
 const ROUTE_WORKSPACE = {
-  home: 'teaching', apps: 'teaching',
-  'content-factory': 'teaching', 'content-ecosystem': 'teaching', 'lesson-pack': 'teaching', 'classroom-delivery': 'teaching',
-  'assessment-core': 'assessment', 'learning-intelligence': 'assessment', practice: 'assessment',
+  home: 'teaching', apps: 'teaching', 'content-ecosystem': 'teaching',
+  'assessment-core': 'assessment', practice: 'assessment',
   news: 'resources', library: 'resources', 'resource-library': 'resources', 'knowledge-hub': 'resources', resources: 'resources',
-  department: 'management', homeroom: 'management', 'homeroom-portal': 'management', 'work-hub': 'management', admin: 'management', 'collaboration-hub': 'management',
-  'ai-workspace': 'ai', 'ai-governance': 'ai',
-  games: 'games', 'classroom-join': 'games',
+  department: 'management', homeroom: 'management', 'homeroom-portal': 'management', 'work-hub': 'management', admin: 'management', 'collaboration-hub': 'management', 'ai-governance': 'ai',
+  games: 'games',
   settings: 'system', qa: 'system', 'platform-readiness': 'system', 'automation-center': 'system', 'cloud-operations': 'system',
   'data-governance': 'system', 'production-hardening': 'system', trash: 'system', 'app-vault': 'system', setup: 'system', contact: 'system',
   login: 'system', register: 'system', tools: 'system',
@@ -81,8 +79,7 @@ const TOOL_WORKSPACE = {
   'reading-studio': 'content', 'writing-studio': 'content', 'speaking-studio': 'content',
   'pronunciation-coach': 'content', word2graph: 'content', textcare: 'content',
   'department-workspace': 'management', 'work-hub': 'management',
-  'resource-library-hub': 'resources', 'knowledge-hub': 'resources', 'news-reader': 'resources',
-  'ai-workspace': 'ai', 'smart-id': 'ai',
+  'resource-library-hub': 'resources', 'knowledge-hub': 'resources', 'news-reader': 'resources', 'smart-id': 'ai',
   'game-hub': 'games',
   'vietnam-tax': 'system', 'platform-readiness': 'system', 'automation-center': 'system',
   'cloud-operations': 'system', 'data-governance': 'system', 'production-hardening': 'system',

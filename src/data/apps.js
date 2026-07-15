@@ -18,20 +18,6 @@ export const APPS = [
     status: 'Metadata · Collections', statusVi: 'Metadata · Bộ sưu tập', api: true, featured: true,
   },
   {
-    slug: 'ai-workspace', route: 'ai-workspace', icon: 'AI', tone: 'purple', group: 'Creative AI', groupVi: 'Không gian AI',
-    title: 'Brian AI Workspace', titleVi: 'Brian AI Workspace',
-    desc: 'Work with multiple sources, save long-form AI projects and transfer results to teaching tools.',
-    descVi: 'Làm việc với nhiều nguồn, lưu dự án AI dài và chuyển kết quả sang công cụ dạy học.',
-    status: 'Multi-source · Projects', statusVi: 'Nhiều nguồn · Dự án', api: true, featured: true,
-  },
-  {
-    slug: 'content-factory', route: 'content-factory', icon: 'CF', tone: 'orange', group: 'Teaching Design', groupVi: 'Tạo học liệu',
-    title: 'Teaching Content Factory', titleVi: 'Xưởng tạo học liệu',
-    desc: 'Turn one source into worksheets, quizzes, cloze tests, flashcards and lesson sequences.',
-    descVi: 'Biến một nguồn thành worksheet, quiz, cloze test, flashcard và chuỗi hoạt động.',
-    status: '8 output types · Export', statusVi: '8 loại sản phẩm · Xuất file', api: true, featured: true,
-  },
-  {
     slug: 'content-ecosystem', route: 'content-ecosystem', icon: 'CE', tone: 'blue', group: 'Connected Teaching', groupVi: 'Hệ sinh thái nội dung',
     title: 'Teaching Content Ecosystem', titleVi: 'Hệ sinh thái nội dung dạy học',
     desc: 'Organize reusable assets, edit structured canvases, run multi-app production recipes and assemble complete content kits.',
@@ -39,32 +25,11 @@ export const APPS = [
     status: 'Assets · Canvas · Recipes · Kits', statusVi: 'Tài sản · Canvas · Dây chuyền · Bộ nội dung', api: true, featured: true,
   },
   {
-    slug: 'lesson-pack', route: 'lesson-pack', icon: 'LP', tone: 'blue', group: 'Connected Teaching', groupVi: 'Dạy học liên thông',
-    title: 'Lesson Pack', titleVi: 'Gói bài dạy liên thông',
-    desc: 'Combine lesson plans, worksheets, reading, speaking, assessment and homework into one live teaching sequence.',
-    descVi: 'Kết hợp giáo án, worksheet, đọc, nói, đánh giá và bài tập về nhà thành một tiến trình dạy học trực tiếp.',
-    status: 'Sequence · Live mode · Export', statusVi: 'Tiến trình · Dạy trực tiếp · Xuất file', api: true, featured: true,
-  },
-  {
-    slug: 'classroom-delivery', route: 'classroom-delivery', icon: 'CD', tone: 'blue', group: 'Connected Teaching', groupVi: 'Dạy học trực tiếp',
-    title: 'Classroom Delivery', titleVi: 'Điều phối lớp học',
-    desc: 'Launch a Lesson Pack as a live classroom with join codes, QR access, teams, timers, response collection and results.',
-    descVi: 'Mở Lesson Pack thành phiên học trực tiếp với mã tham gia, QR, đội, đồng hồ, thu câu trả lời và kết quả.',
-    status: 'Join code · Teams · Responses', statusVi: 'Mã tham gia · Đội · Thu kết quả', api: true, featured: true,
-  },
-  {
     slug: 'assessment-core', route: 'assessment-core', icon: 'AC', tone: 'orange', group: 'Assessment', groupVi: 'Đánh giá',
     title: 'Assessment Core', titleVi: 'Ngân hàng câu hỏi & đề thi',
     desc: 'Manage question banks, import items, build blueprints and generate multiple test codes.',
     descVi: 'Quản lí ngân hàng câu hỏi, nhập dữ liệu, tạo blueprint và nhiều mã đề.',
     status: 'Question bank · Blueprints', statusVi: 'Ngân hàng · Blueprint', api: true, featured: true,
-  },
-  {
-    slug: 'learning-intelligence', route: 'learning-intelligence', icon: 'LI', tone: 'teal', group: 'Learning Analytics', groupVi: 'Phân tích học tập',
-    title: 'Learning Intelligence', titleVi: 'Trung tâm phân tích học tập',
-    desc: 'Track mastery, classify recurring errors, identify at-risk learners and build adaptive practice plans.',
-    descVi: 'Theo dõi mastery, phân loại lỗi lặp lại, phát hiện học sinh cần hỗ trợ và tạo bài luyện thích ứng.',
-    status: 'Mastery · Error taxonomy · Adaptive', statusVi: 'Mastery · Bản đồ lỗi · Thích ứng', api: true, featured: true,
   },
 
   {

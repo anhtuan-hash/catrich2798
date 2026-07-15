@@ -25,11 +25,11 @@ export default function UnifiedShellChrome({
   onLogout,
   ...context
 }) {
-  const showTopChrome = !['homeroom-portal', 'classroom-join'].includes(route);
+  const showTopChrome = route !== 'homeroom-portal';
   const showWorkspace = Boolean(
     currentUser
     && canAccessRoute
-    && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(route),
+    && !['login', 'register', 'setup', 'homeroom-portal'].includes(route),
   );
 
   return (
