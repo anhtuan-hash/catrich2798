@@ -499,6 +499,77 @@ function PublishCard({ project, patch, audit, exportActions, sendTo }) {
   </section>;
 }
 
+
+function WorksheetHero({ project, patch, blueprintItems, auditScore, lastUpdated, setShowVersions }) {
+  const recommendedStage = project.worksheet
+    ? 'editor'
+    : project.blueprint?.length
+      ? 'generate'
+      : project.sourceText
+        ? 'intelligence'
+        : 'source';
+
+  return (
+    <section className="wf3-hero" aria-labelledby="wf3-title">
+      <button type="button" className="wf3-back" aria-label="Quay lại danh sách ứng dụng" onClick={() => { window.location.hash = '#/apps'; }}>←</button>
+
+      <div className="wf3-hero-copy">
+        <div className="wf3-title-row">
+          <span className="wf3-app-icon" aria-hidden="true">WF</span>
+          <div>
+            <div className="wf3-title-line">
+              <h1 id="wf3-title">Worksheet Factory</h1>
+              <span className="wf3-version-pill">V{APP_VERSION}</span>
+            </div>
+            <p className="wf3-subtitle">Structured Learning Pack Workbench</p>
+          </div>
+        </div>
+
+        <p className="wf3-description">Tạo bộ tài liệu học tập có cấu trúc chuyên nghiệp với AI hỗ trợ — từ nguồn đến xuất bản, nhanh chóng và hiệu quả.</p>
+
+        <label className="wf3-project-field">
+          <span>Dự án hiện tại</span>
+          <input aria-label="Tên dự án" value={project.title} onChange={(event) => patch({ title: event.target.value })} />
+        </label>
+
+        <div className="wf3-stat-strip" aria-label="Trạng thái dự án">
+          <div className="wf3-stat is-save"><i>●</i><span><strong>Tự động lưu</strong><small>Đã lưu gần đây</small></span></div>
+          <div className="wf3-stat is-questions"><i>▤</i><span><strong>{blueprintItems} câu hỏi</strong><small>{auditScore}/100 chất lượng</small></span></div>
+          <div className="wf3-stat is-level"><i>A+</i><span><strong>Grade {project.learner.grade} · {project.learner.level}</strong><small>CEFR mục tiêu</small></span></div>
+          <div className="wf3-stat is-time"><i>◷</i><span><strong>{project.learner.minutes} phút</strong><small>Thời lượng</small></span></div>
+          <button type="button" className="wf3-stat is-version" onClick={() => setShowVersions(true)}><i>◫</i><span><strong>Phiên bản</strong><small>{lastUpdated}</small></span></button>
+        </div>
+
+        <div className="wf3-hero-actions">
+          <button type="button" className="wf3-action-primary" onClick={() => patch({ stage: recommendedStage })}><span>✦</span> Tiếp tục thiết kế <b>→</b></button>
+          <button type="button" onClick={() => patch({ stage: 'blueprint' })}><span>▦</span> Blueprint</button>
+          <button type="button" onClick={() => patch({ stage: 'generate' })}><span>✦</span> AI Copilot</button>
+          <button type="button" onClick={() => patch({ stage: 'publish' })} disabled={!project.worksheet}><span>↗</span> Xuất bản</button>
+        </div>
+      </div>
+
+      <div className="wf3-hero-art" aria-hidden="true">
+        <span className="wf3-orbit orbit-one" />
+        <span className="wf3-orbit orbit-two" />
+        <div className="wf3-floating-card wf3-ai-card"><strong>AI</strong><small>Copilot</small></div>
+        <div className="wf3-floating-card wf3-chart-card"><b>◔</b><i /><i /><i /></div>
+        <div className="wf3-floating-card wf3-image-card"><span>◒</span></div>
+        <div className="wf3-sheet">
+          <div className="wf3-sheet-head"><span>Worksheet</span><b>WF</b></div>
+          <div className="wf3-sheet-line wide" />
+          <div className="wf3-sheet-question"><i>✓</i><span /></div>
+          <div className="wf3-sheet-question"><i>✓</i><span /></div>
+          <div className="wf3-sheet-question"><i>✓</i><span /></div>
+          <div className="wf3-sheet-question"><i>✓</i><span /></div>
+          <div className="wf3-sheet-footer"><span /><b /></div>
+        </div>
+        <div className="wf3-brain-orb"><span>✦</span><b>AI</b></div>
+        <div className="wf3-platform" />
+      </div>
+    </section>
+  );
+}
+
 export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel = '', hasApiKey = false, aiSummary = {}, currentUser = null }) {
   const storageKey = useMemo(() => scopedKey(currentUser), [currentUser?.id, currentUser?.email]);
   const [project, setProject] = useState(defaultProject);
@@ -778,7 +849,7 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
   const lastUpdated = new Date(project.updatedAt || Date.now()).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
 
   return <div className="wf2-page bui-workbench" data-ui="workbench" data-workbench="worksheet-factory" data-stage={project.stage}>
-    <section className="wf2-product-bar bui-workbench-header"><button type="button" className="wf2-back" onClick={() => { window.location.hash = '#/apps'; }}>←</button><div className="wf2-brand"><span>WF</span><div><strong>Worksheet Factory</strong><small>V{APP_VERSION} · Structured Learning Pack Workbench</small></div></div><input className="wf2-project-title" aria-label="Tên dự án" value={project.title} onChange={(e) => patch({ title: e.target.value })} /><div className="wf2-product-state"><span>● Tự động lưu</span><b>{blueprintItems} câu</b><b>{audit.score}/100</b></div><div className="wf2-product-actions"><button type="button" onClick={() => patch({ stage: 'blueprint' })}>▦ Blueprint</button><button type="button" onClick={() => patch({ stage: 'editor' })} disabled={!project.worksheet}>✓ Audit</button><button type="button" onClick={() => patch({ stage: 'generate' })}>✦ AI Copilot</button><button type="button" onClick={() => setShowVersions(true)}>◷ Version</button><button type="button" className="primary" onClick={() => patch({ stage: 'publish' })} disabled={!project.worksheet}>↗ Publish</button></div></section>
+    <WorksheetHero project={project} patch={patch} blueprintItems={blueprintItems} auditScore={audit.score} lastUpdated={lastUpdated} setShowVersions={setShowVersions} />
     {pendingTransfer ? <aside className="wf2-global-transfer"><div><strong>Nội dung từ {pendingTransfer.sourceTitle}</strong><span>{pendingTransfer.title}</span></div><button type="button" onClick={applyTransfer}>Dùng nội dung</button><button type="button" onClick={() => { updateTransfer(currentUser, pendingTransfer.id, { status: 'dismissed' }); setPendingTransfer(null); }}>Bỏ qua</button></aside> : null}
     <section className="wf2-summary bui-workbench-metrics"><Metric icon="▣" label="Nguồn" value={project.sourceName || project.intelligence.sourceType} /><Metric icon="A+" label="Lớp / CEFR" value={`Grade ${project.learner.grade} · ${project.learner.level}`} /><Metric icon="≡" label="Hoạt động" value={`${project.blueprint.length} phần · ${blueprintItems} câu`} /><Metric icon="◷" label="Thời lượng" value={`${project.learner.minutes} phút`} /><Metric icon="▤" label="Cập nhật" value={lastUpdated} /></section>
     <Workflow stage={project.stage} setStage={setStage} hasWorksheet={Boolean(project.worksheet)} />

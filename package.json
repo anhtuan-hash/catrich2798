@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "12.27.1",
+  "version": "12.28.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -88,7 +88,7 @@
     "test:v11.5.6": "npm run version:sync && node scripts/check-v11.5.6.mjs",
     "release:guard:v11.5.6": "node scripts/release-guard-v11.5.6.mjs",
     "verify:v11.5.6": "npm run test:v11.5.6 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.6",
-    "version:sync": "node scripts/sync-version-v12.27.1.mjs",
+    "version:sync": "node scripts/sync-version-v12.28.0.mjs",
     "audit:budget": "node scripts/performance-budget-v11.6.0.mjs",
     "release:guard": "node scripts/release-guard-v11.6.1.mjs",
     "test:v11.5.8": "npm run version:sync && node scripts/check-v11.5.8.mjs",
@@ -147,7 +147,8 @@
     "test:v12.26.0": "node scripts/test-v12.26.0-openrouter-stability.mjs",
     "verify:v12.26.0": "node scripts/verify-v12.26.0.mjs && npm run test:v12.26.0 && npm run build && npm test && npm run test:department",
     "verify:v12.27.0": "node scripts/verify-v12.27.0.mjs && npm run build && npm test && npm run test:department",
-    "verify:v12.27.1": "node scripts/verify-v12.27.1.mjs && npm run build && npm test && npm run test:department"
+    "verify:v12.27.1": "node scripts/verify-v12.27.1.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.28.0": "node scripts/verify-v12.28.0.mjs && npm run build && npm test && npm run test:department"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

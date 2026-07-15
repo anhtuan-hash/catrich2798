@@ -1,6 +1,6 @@
 {
-  "version": "12.27.1",
-  "release": "Worksheet Source Length Guard",
+  "version": "12.28.0",
+  "release": "Worksheet Factory Modern Hero",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-15T04:28:21.449Z",
+  "generatedAt": "2026-07-15T05:52:15.607Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Worksheet Source Length Guard",
+  "releaseName": "Worksheet Factory Modern Hero",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -520,5 +520,9 @@
   "keywordSourceGeneration": true,
   "sourceProvenance": true,
   "sourceLengthGuard": true,
-  "automaticExpansionRetry": true
+  "automaticExpansionRetry": true,
+  "worksheetModernHero": true,
+  "worksheetFullWidthHero": true,
+  "worksheetHeroIllustration": true,
+  "worksheetSidebar": false
 }

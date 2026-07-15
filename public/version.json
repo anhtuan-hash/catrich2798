@@ -1,14 +1,14 @@
 {
-  "version": "12.27.1",
+  "version": "12.28.0",
   "channel": "stable",
-  "releaseName": "Worksheet Source Length Guard",
+  "releaseName": "Worksheet Factory Modern Hero",
   "runtimeCore": "3.6.2",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-15T04:28:21.449Z",
+  "generatedAt": "2026-07-15T05:52:15.607Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Worksheet Source Length Guard",
+  "release": "Worksheet Factory Modern Hero",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -515,5 +515,9 @@
   "keywordSourceGeneration": true,
   "sourceProvenance": true,
   "sourceLengthGuard": true,
-  "automaticExpansionRetry": true
+  "automaticExpansionRetry": true,
+  "worksheetModernHero": true,
+  "worksheetFullWidthHero": true,
+  "worksheetHeroIllustration": true,
+  "worksheetSidebar": false
 }
