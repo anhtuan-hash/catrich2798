@@ -1,6 +1,6 @@
 {
-  "version": "12.27.0",
-  "release": "Worksheet Keyword Source AI",
+  "version": "12.27.1",
+  "release": "Worksheet Source Length Guard",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-15T04:15:06.628Z",
+  "generatedAt": "2026-07-15T04:28:21.449Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Worksheet Keyword Source AI",
+  "releaseName": "Worksheet Source Length Guard",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -518,5 +518,7 @@
   "freeModelCreditRecovery": true,
   "worksheetKeywordSourceAi": true,
   "keywordSourceGeneration": true,
-  "sourceProvenance": true
+  "sourceProvenance": true,
+  "sourceLengthGuard": true,
+  "automaticExpansionRetry": true
 }

@@ -106,10 +106,10 @@ const SOURCE_CONTENT_TYPES = [
 ];
 
 const SOURCE_LENGTHS = [
-  ['short', '150–200 từ', 200, 520],
-  ['medium', '250–350 từ', 350, 780],
-  ['long', '400–550 từ', 550, 1200],
-  ['extended', '600–800 từ', 800, 1700],
+  ['short', '150–200 từ', 180, 560, 150, 210],
+  ['medium', '250–350 từ', 300, 900, 250, 370],
+  ['long', '400–550 từ', 480, 1350, 400, 580],
+  ['extended', '600–800 từ', 700, 1900, 600, 840],
 ];
 
 function uid(prefix = 'wf') {
@@ -590,18 +590,66 @@ export default function WorksheetFactory({ language = 'vi', apiKey = '', aiModel
     if (!hasApiKey) { setNotice('Chưa có API key. Hãy cấu hình provider trước khi dùng AI tạo nội dung nguồn.'); return; }
     const generation = project.sourceGeneration || {};
     const lengthProfile = SOURCE_LENGTHS.find(([id]) => id === generation.length) || SOURCE_LENGTHS[1];
-    const [, lengthLabel, targetWords, maxTokens] = lengthProfile;
+    const [, lengthLabel, targetWords, maxTokens, minWords, maxWords] = lengthProfile;
     setBusy(true); setAiMessage('AI đang tạo nội dung nguồn từ từ khóa…'); setNotice('');
     try {
-      const prompt = `Create one original English teaching source text for Worksheet Factory.\n\nKEYWORDS / IDEAS:\n${keywords.map((item) => `- ${item}`).join('\n')}\n\nTARGET:\n- Grade: ${project.learner.grade}\n- CEFR: ${project.learner.level}\n- Content type: ${SOURCE_CONTENT_TYPES.find(([id]) => id === generation.contentType)?.[1] || generation.contentType}\n- Length: ${lengthLabel}, approximately ${targetWords} words\n- Tone: ${generation.tone}\n- Output language: ${generation.language}\n- Topic / Unit: ${project.learner.topic || project.learner.unit || keywords.slice(0, 3).join(', ')}\n- Additional instruction: ${generation.instruction || 'Use coherent paragraphs, meaningful context and stable facts.'}\n\nRULES:\n1. Return only the source content, without markdown fences, title labels, worksheet questions, answer keys or analysis.\n2. Integrate the keywords naturally; do not repeat them mechanically.\n3. Keep vocabulary and sentence complexity appropriate for the stated CEFR.\n4. Use stable educational information; avoid time-sensitive statistics or fabricated citations.\n5. Make the text rich enough for vocabulary, grammar, reading and critical-thinking activities.`;
-      const raw = await callAI({ apiKey, model: aiModel, prompt, systemInstruction: 'You are the Source Writer inside Worksheet Factory. Write only the requested teaching source. Never generate worksheet questions in this step.', temperature: 0.55, maxOutputTokens: maxTokens, loadingLabel: 'Worksheet Factory đang viết nội dung nguồn…' });
-      const sourceText = cleanGeneratedSource(raw);
-      if (countWords(sourceText) < 60) throw new Error('AI trả về nội dung quá ngắn.');
+      const prompt = `Create one original English teaching source text for Worksheet Factory.\n\nKEYWORDS / IDEAS:\n${keywords.map((item) => `- ${item}`).join('\n')}\n\nTARGET:\n- Grade: ${project.learner.grade}\n- CEFR: ${project.learner.level}\n- Content type: ${SOURCE_CONTENT_TYPES.find(([id]) => id === generation.contentType)?.[1] || generation.contentType}\n- Required length: ${minWords}-${maxWords} words. Aim for about ${targetWords} words and never finish below ${minWords} words.\n- Tone: ${generation.tone}\n- Output language: ${generation.language}\n- Topic / Unit: ${project.learner.topic || project.learner.unit || keywords.slice(0, 3).join(', ')}\n- Additional instruction: ${generation.instruction || 'Use coherent paragraphs, meaningful context and stable facts.'}\n\nRULES:\n1. Return only the source content, without markdown fences, title labels, worksheet questions, answer keys or analysis.\n2. Integrate the keywords naturally; do not repeat them mechanically.\n3. Keep vocabulary and sentence complexity appropriate for the stated CEFR.\n4. Use stable educational information; avoid time-sensitive statistics or fabricated citations.\n5. Make the text rich enough for vocabulary, grammar, reading and critical-thinking activities.\n6. Write 3-6 coherent paragraphs. Do not summarize or stop early before reaching the required word range.`;
+      const aiOptions = {
+        apiKey,
+        model: aiModel,
+        systemInstruction: 'You are the Source Writer inside Worksheet Factory. Write only the requested teaching source. Never generate worksheet questions in this step. Respect the requested word range.',
+        temperature: 0.55,
+        maxOutputTokens: maxTokens,
+        governanceProfile: 'worksheet',
+      };
+      const raw = await callAI({ ...aiOptions, prompt, loadingLabel: 'Worksheet Factory đang viết nội dung nguồn…' });
+      let sourceText = cleanGeneratedSource(raw);
+      let actualWords = countWords(sourceText);
+
+      if (actualWords < minWords) {
+        setAiMessage(`Bản đầu mới có ${actualWords}/${minWords} từ. AI đang mở rộng nội dung…`);
+        const expansionPrompt = `Rewrite and expand the draft below into one complete English teaching source of ${minWords}-${maxWords} words (aim for ${targetWords}). Preserve its useful facts and topic, add coherent development and examples, and return the full revised text only. Do not add questions, headings, notes or markdown.\n\nDRAFT (${actualWords} words):\n${sourceText}`;
+        const expandedRaw = await callAI({
+          ...aiOptions,
+          maxOutputTokens: Math.max(maxTokens, 1100),
+          prompt: expansionPrompt,
+          loadingLabel: 'Worksheet Factory đang mở rộng nội dung nguồn…',
+        });
+        const expandedText = cleanGeneratedSource(expandedRaw);
+        if (countWords(expandedText) > actualWords) sourceText = expandedText;
+        actualWords = countWords(sourceText);
+      }
+
+      if (actualWords < minWords) {
+        const missingWords = minWords - actualWords;
+        setAiMessage(`Nội dung còn thiếu khoảng ${missingWords} từ. AI đang viết tiếp…`);
+        const continuationPrompt = `Continue the source text below with approximately ${missingWords + 40} additional words. Continue naturally from the final sentence, add new relevant development, and return only the continuation. Do not repeat the existing text, do not add a title, and do not add worksheet questions.\n\nEXISTING SOURCE:\n${sourceText}`;
+        const continuationRaw = await callAI({
+          ...aiOptions,
+          maxOutputTokens: Math.max(420, Math.min(900, missingWords * 3)),
+          prompt: continuationPrompt,
+          loadingLabel: 'Worksheet Factory đang hoàn thiện độ dài nguồn…',
+        });
+        const continuation = cleanGeneratedSource(continuationRaw);
+        if (countWords(continuation) >= 20) sourceText = `${sourceText.trim()}\n\n${continuation.trim()}`;
+        actualWords = countWords(sourceText);
+      }
+
+      if (actualWords < minWords) throw new Error(`AI chỉ tạo ${actualWords} từ, thấp hơn mức tối thiểu ${minWords} từ. Hãy thử lại hoặc chọn model khác.`);
       const sourceName = `${keywords.slice(0, 4).join(' · ')} — AI source`;
       const intelligence = offlineSourceIntelligence(sourceText, sourceName);
-      patch({ sourceText, sourceName, sourceInputMode: 'keywords', sourceKind: 'ai-keywords', intelligence, learner: { ...project.learner, topic: project.learner.topic || keywords.slice(0, 3).join(' / ') }, sourceGeneration: { ...generation, engine: 'ai', provider: providerName, model: aiModel, generatedAt: Date.now() }, stage: 'source' });
-      setAiMessage(`AI đã tạo ${countWords(sourceText)} từ từ ${keywords.length} từ khóa. Hãy chỉnh sửa nguồn rồi chạy “AI phân tích”.`);
-      setNotice('Đã tạo nội dung nguồn bằng AI. Nội dung chưa tự động tạo câu hỏi.');
+      patch({
+        sourceText,
+        sourceName,
+        sourceInputMode: 'keywords',
+        sourceKind: 'ai-keywords',
+        intelligence,
+        learner: { ...project.learner, topic: project.learner.topic || keywords.slice(0, 3).join(' / ') },
+        sourceGeneration: { ...generation, engine: 'ai', provider: providerName, model: aiModel, generatedAt: Date.now(), requestedRange: `${minWords}-${maxWords}`, actualWords },
+        stage: 'source',
+      });
+      setAiMessage(`AI đã tạo ${actualWords} từ từ ${keywords.length} từ khóa. Hãy chỉnh sửa nguồn rồi chạy “AI phân tích”.`);
+      setNotice(`Đã tạo nội dung nguồn bằng AI (${actualWords} từ; yêu cầu ${minWords}-${maxWords} từ).`);
     } catch (error) {
       setAiMessage(`Không thể tạo nội dung nguồn: ${error?.message || 'AI provider không phản hồi.'}`);
       setNotice('AI chưa tạo được nguồn. Nội dung cũ được giữ nguyên để tránh mất dữ liệu.');

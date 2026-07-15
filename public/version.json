@@ -1,14 +1,14 @@
 {
-  "version": "12.27.0",
+  "version": "12.27.1",
   "channel": "stable",
-  "releaseName": "Worksheet Keyword Source AI",
+  "releaseName": "Worksheet Source Length Guard",
   "runtimeCore": "3.6.2",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-15T04:15:06.628Z",
+  "generatedAt": "2026-07-15T04:28:21.449Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Worksheet Keyword Source AI",
+  "release": "Worksheet Source Length Guard",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -513,5 +513,7 @@
   "freeModelCreditRecovery": true,
   "worksheetKeywordSourceAi": true,
   "keywordSourceGeneration": true,
-  "sourceProvenance": true
+  "sourceProvenance": true,
+  "sourceLengthGuard": true,
+  "automaticExpansionRetry": true
 }
