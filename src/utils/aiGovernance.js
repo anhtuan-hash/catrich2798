@@ -1,4 +1,11 @@
 import { getAiRuntimeSnapshot } from './aiRuntimeManager.js';
+import {
+  getAiGovernanceCloudStatus,
+  pullAiGovernanceCloudSettings,
+  queueAiGovernanceCloudEvent,
+  saveAiGovernanceCloudSettings,
+  setAiGovernanceCloudUser,
+} from './aiGovernanceCloud.js';
 
 export const AI_GOVERNANCE_SETTINGS_KEY = 'bes-ai-governance-settings:v1';
 export const AI_GOVERNANCE_USAGE_KEY = 'bes-ai-governance-usage:v1';
@@ -210,9 +217,23 @@ export function getAiGovernanceSettings() {
   return normalizeAiGovernanceSettings(safeRead(AI_GOVERNANCE_SETTINGS_KEY, DEFAULT_AI_GOVERNANCE));
 }
 
+export async function syncAiGovernanceSettingsFromCloud() {
+  const localSettings = getAiGovernanceSettings();
+  const remoteSettings = await pullAiGovernanceCloudSettings();
+  if (!remoteSettings || typeof remoteSettings !== 'object') return null;
+  if (currentUser.role === 'admin' && localSettings.updatedAt && !remoteSettings.updatedAt) {
+    await saveAiGovernanceCloudSettings(localSettings);
+    return localSettings;
+  }
+  const normalized = normalizeAiGovernanceSettings(remoteSettings);
+  safeWrite(AI_GOVERNANCE_SETTINGS_KEY, normalized);
+  return normalized;
+}
+
 export function saveAiGovernanceSettings(next) {
   const normalized = normalizeAiGovernanceSettings({ ...getAiGovernanceSettings(), ...(next || {}), updatedAt: new Date().toISOString() });
   safeWrite(AI_GOVERNANCE_SETTINGS_KEY, normalized);
+  void saveAiGovernanceCloudSettings(normalized);
   appendAiAudit({
     type: 'settings',
     status: 'success',
@@ -237,6 +258,7 @@ export function saveAiGovernanceSettings(next) {
 export function resetAiGovernanceSettings() {
   const next = normalizeAiGovernanceSettings({ ...DEFAULT_AI_GOVERNANCE, updatedAt: new Date().toISOString() });
   safeWrite(AI_GOVERNANCE_SETTINGS_KEY, next);
+  void saveAiGovernanceCloudSettings(next);
   appendAiAudit({ type: 'settings', status: 'success', label: 'AI governance settings reset', detail: {} });
   return next;
 }
@@ -245,6 +267,8 @@ export function setAiGovernanceUser(user) {
   currentUser = user?.id || user?.email
     ? { id: user.id || user.email, email: user.email || '', role: user.role || 'teacher', name: user.name || user.email || 'User' }
     : { id: 'guest', email: '', role: 'guest', name: 'Guest' };
+  setAiGovernanceCloudUser(currentUser);
+  if (currentUser.role !== 'guest') void syncAiGovernanceSettingsFromCloud();
 }
 
 function getCurrentUserKey() {
@@ -620,6 +644,7 @@ export function appendAiAudit(entry = {}) {
   };
   const next = [item, ...readAiAudit().filter((existing) => existing.id !== item.id)].slice(0, MAX_AUDIT_ITEMS);
   safeWrite(AI_GOVERNANCE_AUDIT_KEY, next);
+  queueAiGovernanceCloudEvent(item);
   return item;
 }
 
@@ -634,7 +659,7 @@ export function resetAiUsage() {
 
 export function exportAiGovernanceReport() {
   return {
-    schema: 'bes-ai-governance-report/2.0',
+    schema: 'bes-ai-governance-report/2.1',
     exportedAt: new Date().toISOString(),
     settings: getAiGovernanceSettings(),
     summary: getAiUsageSummary(),
@@ -642,6 +667,7 @@ export function exportAiGovernanceReport() {
     usage: getAiUsageDays(),
     audit: readAiAudit(),
     runtime: getAiRuntimeSnapshot(getAiGovernanceSettings().runtime),
+    cloud: getAiGovernanceCloudStatus(),
   };
 }
 

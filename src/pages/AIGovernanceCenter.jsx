@@ -11,6 +11,7 @@ import {
   resetAiGovernanceSettings,
   resetAiUsage,
   saveAiGovernanceSettings,
+  syncAiGovernanceSettingsFromCloud,
 } from '../utils/aiGovernance.js';
 import {
   AI_RUNTIME_EVENT,
@@ -19,6 +20,13 @@ import {
   resetAiProviderCircuits,
   resetAiRuntimeSession,
 } from '../utils/aiRuntimeManager.js';
+import {
+  AI_GOVERNANCE_CLOUD_EVENT,
+  clearAiGovernanceCloudQueue,
+  fetchAiGovernanceCloudDashboard,
+  flushAiGovernanceCloudQueue,
+  getAiGovernanceCloudStatus,
+} from '../utils/aiGovernanceCloud.js';
 
 const ACTION_TARGETS = [
   ['current-app', 'Ứng dụng hiện tại', 'Current app'],
@@ -78,6 +86,9 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
   const [runtime, setRuntime] = useState(() => getAiRuntimeSnapshot(getAiGovernanceSettings().runtime));
   const [filter, setFilter] = useState('all');
   const [saved, setSaved] = useState(false);
+  const [cloudStatus, setCloudStatus] = useState(getAiGovernanceCloudStatus);
+  const [cloudDashboard, setCloudDashboard] = useState(null);
+  const [cloudBusy, setCloudBusy] = useState(false);
 
   const refresh = () => {
     setSettings(getAiGovernanceSettings());
@@ -87,14 +98,16 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
     setAudit(readAiAudit());
     const currentSettings = getAiGovernanceSettings();
     setRuntime(getAiRuntimeSnapshot(currentSettings.runtime));
+    setCloudStatus(getAiGovernanceCloudStatus());
   };
 
   useEffect(() => {
     const onUpdate = () => refresh();
     window.addEventListener(AI_GOVERNANCE_EVENT, onUpdate);
     window.addEventListener(AI_RUNTIME_EVENT, onUpdate);
+    window.addEventListener(AI_GOVERNANCE_CLOUD_EVENT, onUpdate);
     const timer = window.setInterval(refresh, 5000);
-    return () => { window.removeEventListener(AI_GOVERNANCE_EVENT, onUpdate); window.removeEventListener(AI_RUNTIME_EVENT, onUpdate); window.clearInterval(timer); };
+    return () => { window.removeEventListener(AI_GOVERNANCE_EVENT, onUpdate); window.removeEventListener(AI_RUNTIME_EVENT, onUpdate); window.removeEventListener(AI_GOVERNANCE_CLOUD_EVENT, onUpdate); window.clearInterval(timer); };
   }, []);
 
   const filteredAudit = useMemo(() => audit.filter((item) => filter === 'all' || item.type === filter || item.status === filter).slice(0, 120), [audit, filter]);
@@ -107,6 +120,35 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
     window.setTimeout(() => setSaved(false), 1800);
   };
 
+  const syncCloud = async () => {
+    setCloudBusy(true);
+    await flushAiGovernanceCloudQueue({ force: true });
+    const dashboard = await fetchAiGovernanceCloudDashboard(14);
+    if (dashboard) setCloudDashboard(dashboard);
+    setCloudStatus(getAiGovernanceCloudStatus());
+    setCloudBusy(false);
+  };
+
+  const pullCloudSettings = async () => {
+    setCloudBusy(true);
+    const next = await syncAiGovernanceSettingsFromCloud();
+    if (next) setSettings(next);
+    const dashboard = await fetchAiGovernanceCloudDashboard(14);
+    if (dashboard) setCloudDashboard(dashboard);
+    setCloudStatus(getAiGovernanceCloudStatus());
+    setCloudBusy(false);
+  };
+
+  useEffect(() => {
+    if (currentUser?.role !== 'admin' || !getAiGovernanceCloudStatus().configured) return;
+    let active = true;
+    void flushAiGovernanceCloudQueue().then(() => fetchAiGovernanceCloudDashboard(14)).then((dashboard) => {
+      if (active && dashboard) setCloudDashboard(dashboard);
+      if (active) setCloudStatus(getAiGovernanceCloudStatus());
+    });
+    return () => { active = false; };
+  }, [currentUser?.id, currentUser?.email, currentUser?.role]);
+
   if (currentUser?.role !== 'admin') {
     return <div className="page narrow"><section className="metro-panel empty-state"><h1>{vi ? 'Chỉ Admin được truy cập' : 'Admin access only'}</h1><p>{vi ? 'Trung tâm quản trị AI chứa giới hạn và nhật ký toàn hệ thống.' : 'AI Governance contains system-wide limits and audit logs.'}</p></section></div>;
   }
@@ -115,9 +157,9 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
     <div className="ai-governance-page bui-management" data-ui="management" data-management-app="ai-governance">
       <section className="ai-gov-hero bui-management-header">
         <div className="ai-gov-hero-copy">
-          <span className="ai-gov-eyebrow">V12.36 · AI CONTROL PLANE</span>
+          <span className="ai-gov-eyebrow">V12.37 · CLOUD GOVERNANCE SYNC</span>
           <h1>{vi ? 'Trung tâm quản trị Brian AI' : 'Brian AI Governance Center'}</h1>
-          <p>{vi ? 'Điều phối provider, quyền riêng tư, kiểm định, ngân sách theo tài khoản, telemetry và biên nhận nguồn gốc AI trên toàn hệ thống.' : 'Control providers, privacy, validation, per-account budgets, telemetry and AI provenance receipts across the system.'}</p>
+          <p>{vi ? 'Điều phối provider, quyền riêng tư, kiểm định, ngân sách và đồng bộ nhật ký AI tập trung trên Supabase theo cơ chế local-first.' : 'Control providers, privacy, validation, budgets and centrally synchronized AI audit telemetry through a local-first Supabase layer.'}</p>
           <div className="ai-gov-hero-actions">
             <button type="button" className="primary" onClick={save}>{saved ? (vi ? 'Đã lưu' : 'Saved') : (vi ? 'Lưu cấu hình' : 'Save settings')}</button>
             <button type="button" className="secondary" onClick={() => downloadJson(`Brian-AI-Governance-${new Date().toISOString().slice(0, 10)}.json`, exportAiGovernanceReport())}>{vi ? 'Xuất báo cáo JSON' : 'Export JSON report'}</button>
@@ -131,6 +173,26 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
         <article><small>{vi ? 'Token ước tính' : 'Estimated tokens'}</small><strong>{formatNumber(summary.tokenTotal)}<em>/ {formatNumber(summary.tokenBudget)}</em></strong><div><i style={{ width: percent(summary.tokenPercent) }}/></div></article>
         <article><small>{vi ? 'Thành công' : 'Successful'}</small><strong>{formatNumber(summary.successes)}</strong><p>{summary.requests ? Math.round((summary.successes / summary.requests) * 100) : 0}% {vi ? 'tỉ lệ thành công' : 'success rate'}</p></article>
         <article><small>{vi ? 'Hành động AI' : 'AI actions'}</small><strong>{formatNumber(summary.actions)}</strong><p>{vi ? 'đã thực hiện có kiểm soát' : 'controlled actions executed'}</p></article>
+      </section>
+
+      <section className="ai-gov-card ai-gov-cloud-sync" data-cloud-state={cloudStatus.migrationReady === false ? 'migration' : cloudStatus.syncing ? 'syncing' : cloudStatus.lastError ? 'error' : 'ready'}>
+        <header>
+          <div><span>☁</span><div><h2>{vi ? 'AI Governance Cloud Sync' : 'AI Governance Cloud Sync'}</h2><p>{vi ? 'Nhật ký và số liệu AI được lưu cục bộ trước, sau đó đồng bộ tập trung khi có mạng. Prompt, nội dung trả lời và API key không được tải lên.' : 'AI telemetry is stored locally first and synchronized centrally when online. Prompts, responses and API keys are never uploaded.'}</p></div></div>
+          <b className="ai-gov-cloud-badge">{cloudStatus.migrationReady === false ? (vi ? 'Cần chạy SQL' : 'SQL required') : cloudStatus.syncing ? (vi ? 'Đang đồng bộ' : 'Syncing') : cloudStatus.lastError ? (vi ? 'Cần kiểm tra' : 'Needs attention') : cloudStatus.configured ? (vi ? 'Cloud sẵn sàng' : 'Cloud ready') : (vi ? 'Chưa cấu hình' : 'Not configured')}</b>
+        </header>
+        <div className="ai-gov-cloud-grid">
+          <article><small>{vi ? 'Đang chờ tải lên' : 'Pending upload'}</small><strong>{formatNumber(cloudStatus.pending)}</strong><p>{vi ? 'sự kiện trong hàng đợi an toàn' : 'events in the safe queue'}</p></article>
+          <article><small>{vi ? 'Đã đồng bộ trên thiết bị' : 'Uploaded by this device'}</small><strong>{formatNumber(cloudStatus.uploaded)}</strong><p>{cloudStatus.lastSyncAt ? new Date(cloudStatus.lastSyncAt).toLocaleString(vi ? 'vi-VN' : 'en-US') : (vi ? 'Chưa đồng bộ' : 'Not synced yet')}</p></article>
+          <article><small>{vi ? 'Toàn hệ thống · 14 ngày' : 'System-wide · 14 days'}</small><strong>{formatNumber(cloudDashboard?.totals?.requests || 0)}</strong><p>{vi ? 'request đã ghi nhận trên cloud' : 'requests recorded in cloud'}</p></article>
+          <article><small>{vi ? 'Tài khoản hoạt động' : 'Active accounts'}</small><strong>{formatNumber(cloudDashboard?.totals?.activeUsers || 0)}</strong><p>{vi ? 'trong báo cáo tập trung' : 'in the central report'}</p></article>
+        </div>
+        <div className="ai-gov-cloud-actions">
+          <button type="button" className="primary" disabled={cloudBusy || !cloudStatus.configured} onClick={syncCloud}>{cloudBusy ? (vi ? 'Đang xử lý…' : 'Working…') : (vi ? 'Đồng bộ ngay' : 'Sync now')}</button>
+          <button type="button" className="secondary" disabled={cloudBusy || !cloudStatus.configured} onClick={pullCloudSettings}>{vi ? 'Tải cấu hình & báo cáo cloud' : 'Pull cloud settings & report'}</button>
+          {cloudStatus.pending > 0 && <button type="button" className="danger-text" onClick={() => { if (window.confirm(vi ? 'Xóa hàng đợi chưa đồng bộ trên thiết bị này?' : 'Clear the unsynced queue on this device?')) { clearAiGovernanceCloudQueue(); refresh(); } }}>{vi ? 'Xóa hàng đợi' : 'Clear queue'}</button>}
+        </div>
+        {cloudStatus.lastError && <p className="ai-gov-cloud-error"><strong>{cloudStatus.lastErrorCode || 'SYNC'}:</strong> {cloudStatus.lastError}</p>}
+        {cloudStatus.migrationReady === false && <p className="ai-gov-cloud-migration">{vi ? 'Chạy file supabase/brian_v12_37_ai_governance_cloud.sql trong Supabase SQL Editor, sau đó bấm “Đồng bộ ngay”.' : 'Run supabase/brian_v12_37_ai_governance_cloud.sql in Supabase SQL Editor, then press “Sync now”.'}</p>}
       </section>
 
       <div className="ai-gov-layout bui-management-layout">
@@ -259,7 +321,7 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
             <article><span>02</span><div><strong>{vi ? 'Ảnh & Vision' : 'Images and vision'}</strong><p>{vi ? 'SmartID dùng aiMedia; không còn gọi Gemini trực tiếp trong trang.' : 'SmartID uses aiMedia; no direct Gemini request remains in the page.'}</p></div><b>{vi ? 'Đã hợp nhất' : 'Unified'}</b></article>
             <article><span>03</span><div><strong>{vi ? 'Server AI Gateway' : 'Server AI Gateway'}</strong><p>{vi ? '/api/ai và Lesson Integration dùng cùng server provider adapter.' : '/api/ai and Lesson Integration share one server provider adapter.'}</p></div><b>{vi ? 'Đã hợp nhất' : 'Unified'}</b></article>
           </div>
-          <p className="ai-gov-transport-note">{vi ? 'Hợp đồng gateway: bes-ai-core/1.2 · Metadata gồm provider, model, transport, thời gian và request ID.' : 'Gateway contract: bes-ai-core/1.2 · Metadata includes provider, model, transport, duration and request ID.'}</p>
+          <p className="ai-gov-transport-note">{vi ? 'Hợp đồng gateway: bes-ai-core/1.3 · Metadata gồm provider, model, transport, thời gian và request ID.' : 'Gateway contract: bes-ai-core/1.3 · Metadata includes provider, model, transport, duration and request ID.'}</p>
         </section>
       </div>
 
