@@ -1,6 +1,6 @@
 {
-  "version": "12.32.0",
-  "release": "Unified AI Core Phase 1",
+  "version": "12.33.0",
+  "release": "Unified AI Core Phase 2",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-15T08:46:17.146425Z",
+  "generatedAt": "2026-07-15T09:14:58.463671Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,7 +46,7 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "3.7.0",
+  "runtimeCore": "3.8.0",
   "schemaVersion": "11.4.2",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
@@ -240,7 +240,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Unified AI Core Phase 1",
+  "releaseName": "Unified AI Core Phase 2",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -540,5 +540,21 @@
   "smartRoutingConnectedToCallAI": true,
   "aiTaskRegistry": true,
   "aiProvenanceMetadata": true,
-  "accountScopedProviderHub": true
+  "accountScopedProviderHub": true,
+  "aiUnifiedCorePhase": 2,
+  "aiPrivacyFilter": true,
+  "aiPrivacyPlaceholderRestore": true,
+  "aiSensitiveDataBlocking": true,
+  "aiLocalPrivacyRouting": true,
+  "aiOutputValidator": true,
+  "aiOutputAutoRepair": true,
+  "aiValidationContracts": [
+    "json",
+    "required-fields",
+    "item-count",
+    "duplicates",
+    "mcq",
+    "length"
+  ],
+  "aiSafetyGovernanceUi": true
 }

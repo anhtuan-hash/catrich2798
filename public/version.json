@@ -1,14 +1,14 @@
 {
-  "version": "12.32.0",
+  "version": "12.33.0",
   "channel": "stable",
-  "releaseName": "Unified AI Core Phase 1",
-  "runtimeCore": "3.7.0",
+  "releaseName": "Unified AI Core Phase 2",
+  "runtimeCore": "3.8.0",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-15T08:46:17.146425Z",
+  "generatedAt": "2026-07-15T09:14:58.462145Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -318,7 +318,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Unified AI Core Phase 1",
+  "release": "Unified AI Core Phase 2",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -535,5 +535,21 @@
   "smartRoutingConnectedToCallAI": true,
   "aiTaskRegistry": true,
   "aiProvenanceMetadata": true,
-  "accountScopedProviderHub": true
+  "accountScopedProviderHub": true,
+  "aiUnifiedCorePhase": 2,
+  "aiPrivacyFilter": true,
+  "aiPrivacyPlaceholderRestore": true,
+  "aiSensitiveDataBlocking": true,
+  "aiLocalPrivacyRouting": true,
+  "aiOutputValidator": true,
+  "aiOutputAutoRepair": true,
+  "aiValidationContracts": [
+    "json",
+    "required-fields",
+    "item-count",
+    "duplicates",
+    "mcq",
+    "length"
+  ],
+  "aiSafetyGovernanceUi": true
 }

@@ -868,7 +868,7 @@ export default function GrammarBuilder({ language = 'vi', apiKey = '', aiModel =
     }
   };
 
-  const callGrammarAi = async (prompt, task, maxOutputTokens = 2800) => {
+  const callGrammarAi = async (prompt, task, maxOutputTokens = 2800, validation = {}) => {
     const raw = await callAI({
       apiKey,
       model: aiModel,
@@ -879,6 +879,7 @@ export default function GrammarBuilder({ language = 'vi', apiKey = '', aiModel =
       maxOutputTokens,
       governanceProfile: task === 'validate' ? 'document' : 'worksheet',
       loadingLabel: `Grammar Builder · ${task}`,
+      validation: { kind: 'json', ...validation },
     });
     return extractJson(raw);
   };
@@ -906,7 +907,7 @@ export default function GrammarBuilder({ language = 'vi', apiKey = '', aiModel =
           let sectionRemaining = requested;
           while (sectionRemaining > 0) {
             const count = Math.min(7, sectionRemaining);
-            const json = await callGrammarAi(sectionDraftPrompt(project, section, count, generated.map((item) => item.stem)), 'draft', 2800);
+            const json = await callGrammarAi(sectionDraftPrompt(project, section, count, generated.map((item) => item.stem)), 'draft', 2800, { requiredFields: ['items'], collectionKey: 'items', expectedCount: count, detectDuplicates: true });
             const batch = normalizeAiItems(json, project).slice(0, count).map((item) => ({ ...item, section: item.section || section.title }));
             if (!batch.length) throw new Error(vi ? `AI không tạo được item cho ${section.title}.` : `AI returned no items for ${section.title}.`);
             generated.push(...batch);
@@ -918,7 +919,7 @@ export default function GrammarBuilder({ language = 'vi', apiKey = '', aiModel =
         while (remaining > 0) {
           const count = Math.min(7, remaining);
           const fallbackSection = { title: `Part ${Math.max(1, sections.length)} — Additional Practice`, format: project.formats.join(', '), focus: grammarPoint(project) };
-          const json = await callGrammarAi(sectionDraftPrompt(project, fallbackSection, count, generated.map((item) => item.stem)), 'draft', 2800);
+          const json = await callGrammarAi(sectionDraftPrompt(project, fallbackSection, count, generated.map((item) => item.stem)), 'draft', 2800, { requiredFields: ['items'], collectionKey: 'items', expectedCount: count, detectDuplicates: true });
           const batch = normalizeAiItems(json, project).slice(0, count);
           if (!batch.length) break;
           generated.push(...batch);

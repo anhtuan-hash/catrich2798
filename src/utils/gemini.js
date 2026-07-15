@@ -7,10 +7,17 @@ import {
   getFallbackEnabled,
   getProviderInfo,
 } from './aiProviders.js';
-import { appendAiAudit, guardAiRequest, recordAiRequest } from './aiGovernance.js';
+import { appendAiAudit, getAiGovernanceSettings, guardAiRequest, recordAiRequest } from './aiGovernance.js';
 import { buildAiRoutingCandidates, classifyAiError, noteProviderHealth, shouldFallbackAiError } from './aiSmartRouting.js';
 import { enrichAiTaskOptions, resolveAiTask } from './aiTaskRegistry.js';
 import { getRoutingPreferences } from './aiProviderOverrides.js';
+import { applyAiPrivacyFilter, summarizeAiPrivacyReport } from './aiPrivacyFilter.js';
+import {
+  buildAiRepairPrompt,
+  createAiValidationError,
+  summarizeAiValidation,
+  validateAiOutput,
+} from './aiOutputValidator.js';
 
 export const DEFAULT_GEMINI_MODEL = 'gemini-flash-latest';
 export const DEFAULT_MAX_OUTPUT_TOKENS = 1600;
@@ -263,8 +270,27 @@ function emitAiOperation(type, detail = {}) {
 
 export async function callAIWithMeta(options = {}) {
   const startedAt = Date.now();
-  const enrichedOptions = enrichAiTaskOptions(options);
-  const task = resolveAiTask(enrichedOptions);
+  const taskOptions = enrichAiTaskOptions(options);
+  const task = resolveAiTask(taskOptions);
+  const governanceSettings = getAiGovernanceSettings();
+
+  let privacyResult;
+  try {
+    privacyResult = applyAiPrivacyFilter(taskOptions, governanceSettings.privacy);
+  } catch (error) {
+    const privacy = summarizeAiPrivacyReport(error?.privacyReport || {});
+    appendAiAudit({
+      type: 'privacy',
+      status: 'blocked',
+      label: 'AI request blocked by Privacy Filter',
+      profile: String(taskOptions.governanceProfile || taskOptions.profile || ''),
+      detail: { taskId: task.id, code: error?.code || '', privacy },
+    });
+    throw error;
+  }
+
+  const enrichedOptions = privacyResult.options;
+  const privacySummary = summarizeAiPrivacyReport(privacyResult.report);
   let governance;
   try {
     governance = guardAiRequest(enrichedOptions);
@@ -274,13 +300,15 @@ export async function callAIWithMeta(options = {}) {
       status: 'blocked',
       label: 'AI request blocked by governance',
       profile: String(enrichedOptions.governanceProfile || enrichedOptions.profile || ''),
-      detail: { taskId: task.id, code: error?.code || '', error: error?.message || String(error) },
+      detail: { taskId: task.id, code: error?.code || '', error: error?.message || String(error), privacy: privacySummary },
     });
     throw error;
   }
 
   const active = getActiveAiConfig();
-  const effectiveRoutingMode = enrichedOptions.routingMode || getRoutingPreferences().mode || 'smart';
+  const effectiveRoutingMode = privacySummary.forceLocal
+    ? 'local'
+    : enrichedOptions.routingMode || getRoutingPreferences().mode || 'smart';
   const preferredProvider = enrichedOptions.provider || active.provider || getAiProvider() || DEFAULT_PROVIDER;
   const preferredInfo = getProviderInfo(preferredProvider);
   const configs = getAiConfigs();
@@ -299,13 +327,14 @@ export async function callAIWithMeta(options = {}) {
     legacyActiveProvider: preferredProvider,
     options: {
       ...enrichedOptions,
+      routingMode: effectiveRoutingMode,
       provider: preferredProvider,
       manualProvider: enrichedOptions.manualProvider || (enrichedOptions.provider ? preferredProvider : undefined),
       manualModel: enrichedOptions.manualModel || (enrichedOptions.provider ? (enrichedOptions.model || configs[preferredProvider]?.model) : undefined),
     },
   });
 
-  if (!candidates.length && (String(configs[preferredProvider]?.apiKey || '').trim() || preferredInfo.requiresApiKey === false)) {
+  if (!candidates.length && !privacySummary.forceLocal && (String(configs[preferredProvider]?.apiKey || '').trim() || preferredInfo.requiresApiKey === false)) {
     candidates = [{
       id: preferredProvider,
       provider: preferredInfo,
@@ -318,7 +347,7 @@ export async function callAIWithMeta(options = {}) {
   }
 
   const preferDefaultFirst = enrichedOptions.preferDefaultProvider !== false;
-  if ((enrichedOptions.provider || preferDefaultFirst) && candidates.some((candidate) => candidate.id === preferredProvider)) {
+  if (!privacySummary.forceLocal && (enrichedOptions.provider || preferDefaultFirst) && candidates.some((candidate) => candidate.id === preferredProvider)) {
     candidates = [
       ...candidates.filter((candidate) => candidate.id === preferredProvider),
       ...candidates.filter((candidate) => candidate.id !== preferredProvider),
@@ -328,9 +357,12 @@ export async function callAIWithMeta(options = {}) {
   const fallbackEnabled = enrichedOptions.fallback ?? getFallbackEnabled();
   if (!fallbackEnabled) candidates = candidates.slice(0, 1);
   if (!candidates.length) {
-    const error = new Error('No configured AI provider is available for this task.');
-    error.code = 'AI_NO_PROVIDER_CONFIGURED';
+    const error = new Error(privacySummary.forceLocal
+      ? 'Privacy Filter yêu cầu provider local nhưng chưa có Ollama, LM Studio hoặc LocalAI khả dụng.'
+      : 'No configured AI provider is available for this task.');
+    error.code = privacySummary.forceLocal ? 'AI_PRIVACY_NO_LOCAL_PROVIDER' : 'AI_NO_PROVIDER_CONFIGURED';
     error.taskId = task.id;
+    error.privacy = privacySummary;
     throw error;
   }
 
@@ -345,6 +377,7 @@ export async function callAIWithMeta(options = {}) {
     taskId: task.id,
     routingMode: effectiveRoutingMode,
     candidateCount: candidates.length,
+    privacy: privacySummary,
   };
   emitAiOperation('bes-ai-operation-start', operationDetail);
 
@@ -352,20 +385,28 @@ export async function callAIWithMeta(options = {}) {
   let result = '';
   let finalCandidate = candidates[0];
   let finalError = null;
+  let finalValidation = null;
+  let providerCalls = 0;
+  let repairAttempted = false;
+  let repaired = false;
+  let repairAttempts = 0;
 
   for (let index = 0; index < candidates.length; index += 1) {
     const candidate = candidates[index];
     const info = getProviderInfo(candidate.id);
     finalCandidate = candidate;
+    const attemptStartedAt = Date.now();
     emitAiOperation('bes-ai-operation-update', {
       ...operationDetail,
       provider: info.label || candidate.id,
       model: candidate.model,
       rank: index + 1,
       fallbackUsed: index > 0,
+      phase: 'generate',
     });
     try {
-      result = await callSingleProvider({
+      providerCalls += 1;
+      let candidateResult = await callSingleProvider({
         ...enrichedOptions,
         provider: candidate.id,
         apiKey: candidate.apiKey,
@@ -377,12 +418,70 @@ export async function callAIWithMeta(options = {}) {
           emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id });
         },
       });
+
+      let validation = validateAiOutput(candidateResult, {
+        options: enrichedOptions,
+        task,
+        settings: governance.settings.outputValidation,
+      });
+      finalValidation = validation;
+
+      const allowedRepairs = Math.max(0, Number(validation.config?.maxRepairAttempts) || 0);
+      while (!validation.valid && validation.config?.autoRepair && repairAttempts < allowedRepairs) {
+        repairAttempted = true;
+        repairAttempts += 1;
+        emitAiOperation('bes-ai-operation-update', {
+          ...operationDetail,
+          provider: info.label || candidate.id,
+          model: candidate.model,
+          rank: index + 1,
+          fallbackUsed: index > 0,
+          phase: 'repair',
+          validationIssues: validation.issues.map((item) => item.code).slice(0, 8),
+        });
+        const repairPrompt = buildAiRepairPrompt({
+          originalOutput: candidateResult,
+          validation,
+          task,
+          originalPrompt: enrichedOptions.prompt || '',
+        });
+        providerCalls += 1;
+        candidateResult = await callSingleProvider({
+          ...enrichedOptions,
+          provider: candidate.id,
+          apiKey: candidate.apiKey,
+          model: candidate.model,
+          baseUrl: candidate.baseUrl,
+          prompt: repairPrompt,
+          systemInstruction: 'You are Brian AI Output Repair. Correct formatting and validation defects exactly. Never add commentary outside the requested final output.',
+          temperature: 0.1,
+          maxOutputTokens: governance.maxOutputTokens,
+          onAdaptiveRetry: (detail) => emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id, phase: 'repair' }),
+        });
+        validation = validateAiOutput(candidateResult, {
+          options: enrichedOptions,
+          task,
+          settings: governance.settings.outputValidation,
+        });
+        finalValidation = validation;
+        if (validation.valid) repaired = true;
+      }
+
+      if (!validation.valid) throw createAiValidationError(validation);
+      result = privacyResult.restoreText(validation.normalizedText || candidateResult, { json: validation.config?.kind === 'json' });
       noteProviderHealth(candidate.id, { success: true });
-      attempts.push({ provider: candidate.id, model: candidate.model, status: 'success', durationMs: Date.now() - startedAt });
+      attempts.push({
+        provider: candidate.id,
+        model: candidate.model,
+        status: 'success',
+        durationMs: Date.now() - attemptStartedAt,
+        validation: summarizeAiValidation(validation, { repairAttempted, repaired, repairAttempts }),
+      });
       finalError = null;
       break;
     } catch (error) {
       finalError = error;
+      if (error?.validation) finalValidation = error.validation;
       const kind = classifyAiError(error);
       noteProviderHealth(candidate.id, { success: false, error: error?.message || String(error) });
       attempts.push({
@@ -392,6 +491,8 @@ export async function callAIWithMeta(options = {}) {
         errorType: kind,
         statusCode: Number(error?.status || 0),
         error: String(error?.message || error).slice(0, 360),
+        durationMs: Date.now() - attemptStartedAt,
+        validation: finalValidation ? summarizeAiValidation(finalValidation, { repairAttempted, repaired, repairAttempts }) : undefined,
       });
       const canContinue = fallbackEnabled && index < candidates.length - 1 && (shouldFallbackAiError(error) || kind === 'unknown');
       if (!canContinue) break;
@@ -400,6 +501,9 @@ export async function callAIWithMeta(options = {}) {
 
   const durationMs = Date.now() - startedAt;
   const finalInfo = getProviderInfo(finalCandidate?.id || preferredProvider);
+  const validationSummary = finalValidation
+    ? summarizeAiValidation(finalValidation, { repairAttempted, repaired, repairAttempts })
+    : { enabled: false, valid: true, skipped: true, kind: 'text', issueCount: 0, issueCodes: [], repairAttempted, repaired, repairAttempts };
   const meta = {
     operationId,
     taskId: task.id,
@@ -413,9 +517,12 @@ export async function callAIWithMeta(options = {}) {
     fallbackUsed: attempts.length > 1,
     candidateRank: Math.max(1, attempts.length),
     attempts,
+    providerCalls,
     durationMs,
     createdAt: new Date().toISOString(),
-    validated: false,
+    validated: Boolean(validationSummary.valid),
+    privacy: { ...privacySummary, restored: Boolean(privacySummary.applied) },
+    validation: validationSummary,
   };
 
   if (result && !finalError) {
@@ -429,6 +536,9 @@ export async function callAIWithMeta(options = {}) {
       error: '',
       profile: governance.profileKey,
       operationId,
+      privacy: privacySummary,
+      validation: validationSummary,
+      providerCalls,
     });
     if (typeof window !== 'undefined') window.__BES_LAST_AI_META__ = meta;
     emitAiOperation('bes-ai-operation-end', { ...operationDetail, ...meta, success: true });
@@ -450,6 +560,8 @@ export async function callAIWithMeta(options = {}) {
   error.attempts = attempts;
   error.operationId = operationId;
   error.taskId = task.id;
+  error.privacy = privacySummary;
+  error.validationSummary = validationSummary;
   recordAiRequest({
     provider: meta.providerName,
     model: meta.model,
@@ -460,6 +572,9 @@ export async function callAIWithMeta(options = {}) {
     error: error?.message || String(error),
     profile: governance.profileKey,
     operationId,
+    privacy: { ...privacySummary, restored: Boolean(privacySummary.applied) },
+    validation: validationSummary,
+    providerCalls,
   });
   emitAiOperation('bes-ai-operation-end', { ...operationDetail, ...meta, success: false, error: error?.message || String(error) });
   throw error;

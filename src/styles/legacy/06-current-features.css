@@ -1878,3 +1878,21 @@ html[data-theme="dark"] .bes-workspace-tabs,html[data-theme="dark"] .bes-workspa
 @media(max-width:980px){.ai-gov-hero{grid-template-columns:1fr}.ai-gov-orbit{display:none}.ai-gov-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.ai-gov-layout{grid-template-columns:1fr}}
 @media(max-width:660px){.ai-governance-page{width:calc(100% - 24px);padding-top:14px}.ai-gov-hero{border-radius:25px;padding:25px 20px;min-height:0}.ai-gov-hero h1{font-size:38px}.ai-gov-stats{grid-template-columns:1fr 1fr;gap:9px}.ai-gov-stats article{padding:14px;min-height:108px}.ai-gov-stats strong{font-size:24px}.ai-gov-card{padding:16px;border-radius:22px}.ai-gov-number-grid,.ai-gov-targets{grid-template-columns:1fr}.ai-gov-card>header{flex-direction:column}.ai-gov-audit-actions{width:100%}.ai-gov-audit-actions select{flex:1}.ai-gov-footer-actions{align-items:stretch;flex-direction:column}.ai-gov-footer-actions p{text-align:left}.ai-action-panel,.ai-action-confirm{padding:7px}.ai-action-confirm>section{border-radius:20px}}
 @media(prefers-reduced-motion:reduce){.ai-action-grid>button,.ai-gov-switch-grid label>span:after,.ai-gov-targets label>i:after{transition:none!important}}
+
+/* V12.33 · Unified AI Core Phase 2 — Privacy Filter & Output Guard */
+.ai-gov-safety{grid-column:1/-1}
+.ai-gov-safety>header{align-items:center}
+.ai-gov-safety-metrics{display:grid!important;grid-template-columns:auto auto;gap:2px 8px!important;align-items:baseline!important;padding:10px 14px;border-radius:16px;background:linear-gradient(135deg,#f0ebff,#edf7ff);border:1px solid #ddd5fb}
+.ai-gov-safety-metrics b{font-size:20px;color:#5b36bb;line-height:1}
+.ai-gov-safety-metrics small{font-size:11px;color:var(--muted,#697386);font-weight:800}
+.ai-gov-safety-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.ai-gov-safety-grid>div{min-width:0;padding:16px;border-radius:20px;background:color-mix(in srgb,var(--surface,#fff) 94%,#eee8ff);border:1px solid #e2e6ed}
+.ai-gov-safety-grid h3{margin:0 0 12px;font-size:15px;color:var(--ink,#182033)}
+.ai-gov-select-row{display:grid;grid-template-columns:1fr minmax(190px,250px);gap:12px;align-items:center;margin-bottom:10px}
+.ai-gov-select-row>span{font-size:13px;color:var(--muted,#697386);font-weight:850}
+.ai-gov-select-row select{height:42px;border:1px solid #dfe4ec;border-radius:13px;background:var(--surface,#fff);color:var(--ink,#182033);padding:0 11px;font:800 12px inherit;outline:none}
+.ai-gov-select-row select:focus{border-color:#6d45c6;box-shadow:0 0 0 3px rgba(109,69,198,.12)}
+.ai-gov-number-grid-single{grid-template-columns:minmax(180px,280px)}
+.ai-gov-safety-note{margin:12px 0 0;padding:10px 12px;border-radius:14px;background:#eef7f3;color:#326451;font-size:12px;line-height:1.45;font-weight:750}
+@media(max-width:900px){.ai-gov-safety-grid{grid-template-columns:1fr}.ai-gov-safety-metrics{display:none!important}}
+@media(max-width:660px){.ai-gov-select-row{grid-template-columns:1fr}.ai-gov-number-grid-single{grid-template-columns:1fr}}

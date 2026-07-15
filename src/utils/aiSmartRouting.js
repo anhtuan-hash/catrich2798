@@ -138,6 +138,7 @@ export function buildAiRoutingCandidates({ legacyProviders = [], legacyConfigs =
 export function classifyAiError(error) {
   const message = String(error?.message || error || '').toLowerCase();
   const status = Number(error?.status || 0);
+  if (error?.code === 'AI_OUTPUT_VALIDATION_FAILED') return 'output-validation';
   if (error?.code === 'AI_PROVIDER_CREDIT_LIMIT' || /credit|billing|quota exceeded|insufficient/.test(message)) return 'capacity';
   if (status === 429 || /rate limit|too many requests|429/.test(message)) return 'rate-limit';
   if (status === 401 || status === 403 || /authentication|unauthorized|invalid api key|missing authentication|forbidden/.test(message)) return 'auth';
@@ -148,7 +149,7 @@ export function classifyAiError(error) {
 }
 
 export function shouldFallbackAiError(error) {
-  return ['capacity', 'rate-limit', 'provider-unavailable', 'network', 'context', 'auth'].includes(classifyAiError(error));
+  return ['capacity', 'rate-limit', 'provider-unavailable', 'network', 'context', 'auth', 'output-validation'].includes(classifyAiError(error));
 }
 
 export function noteProviderHealth(providerId, { success = false, error = '' } = {}) {

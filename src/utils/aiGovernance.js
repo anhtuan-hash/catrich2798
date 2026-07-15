@@ -8,13 +8,36 @@ const MAX_USAGE_DAYS = 45;
 let currentUser = { id: 'guest', email: '', role: 'guest', name: 'Guest' };
 
 export const DEFAULT_AI_GOVERNANCE = Object.freeze({
-  schemaVersion: 1,
+  schemaVersion: 2,
   enabled: true,
   allowActions: true,
   requireActionConfirmation: true,
   dailyRequestLimit: 120,
   dailyTokenBudget: 180000,
   maxOutputTokens: 2800,
+  privacy: {
+    enabled: true,
+    mode: 'mask',
+    maskEmails: true,
+    maskPhones: true,
+    maskStudentIds: true,
+    maskNationalIds: true,
+    maskBirthDates: true,
+    maskAddresses: true,
+    maskNamedPeople: true,
+    maskSecrets: true,
+    scanAttachments: true,
+    blockSensitiveImages: false,
+    forceLocalForSensitive: false,
+  },
+  outputValidation: {
+    enabled: true,
+    validateJson: true,
+    rejectEmpty: true,
+    detectDuplicates: true,
+    autoRepair: true,
+    maxRepairAttempts: 1,
+  },
   actionTargets: {
     'worksheet-factory': true,
     'exam-studio': true,
@@ -85,14 +108,34 @@ export function normalizeAiGovernanceSettings(raw) {
   Object.keys(defaults.profiles).forEach((key) => {
     profiles[key] = normalizeProfile(source.profiles?.[key], defaults.profiles[key]);
   });
+  const privacySource = source.privacy && typeof source.privacy === 'object' ? source.privacy : {};
+  const validationSource = source.outputValidation && typeof source.outputValidation === 'object' ? source.outputValidation : {};
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     enabled: source.enabled !== false,
     allowActions: source.allowActions !== false,
     requireActionConfirmation: source.requireActionConfirmation !== false,
     dailyRequestLimit: clampNumber(source.dailyRequestLimit, 1, 5000, defaults.dailyRequestLimit),
     dailyTokenBudget: clampNumber(source.dailyTokenBudget, 1000, 5000000, defaults.dailyTokenBudget),
     maxOutputTokens: clampNumber(source.maxOutputTokens, 256, 8192, defaults.maxOutputTokens),
+    privacy: {
+      ...defaults.privacy,
+      ...privacySource,
+      enabled: privacySource.enabled !== false,
+      mode: ['mask', 'block', 'off'].includes(privacySource.mode) ? privacySource.mode : defaults.privacy.mode,
+      forceLocalForSensitive: Boolean(privacySource.forceLocalForSensitive),
+      blockSensitiveImages: Boolean(privacySource.blockSensitiveImages),
+    },
+    outputValidation: {
+      ...defaults.outputValidation,
+      ...validationSource,
+      enabled: validationSource.enabled !== false,
+      validateJson: validationSource.validateJson !== false,
+      rejectEmpty: validationSource.rejectEmpty !== false,
+      detectDuplicates: validationSource.detectDuplicates !== false,
+      autoRepair: validationSource.autoRepair !== false,
+      maxRepairAttempts: clampNumber(validationSource.maxRepairAttempts, 0, 2, defaults.outputValidation.maxRepairAttempts),
+    },
     actionTargets: targets,
     profiles,
     updatedAt: String(source.updatedAt || ''),
@@ -110,7 +153,7 @@ export function saveAiGovernanceSettings(next) {
     type: 'settings',
     status: 'success',
     label: 'AI governance settings updated',
-    detail: { enabled: normalized.enabled, allowActions: normalized.allowActions, dailyRequestLimit: normalized.dailyRequestLimit, dailyTokenBudget: normalized.dailyTokenBudget },
+    detail: { enabled: normalized.enabled, allowActions: normalized.allowActions, dailyRequestLimit: normalized.dailyRequestLimit, dailyTokenBudget: normalized.dailyTokenBudget, privacyMode: normalized.privacy.mode, outputValidation: normalized.outputValidation.enabled },
   });
   return normalized;
 }
@@ -152,11 +195,14 @@ function normalizeUsage(raw) {
         outputTokens: clampNumber(item?.outputTokens, 0, 1000000000, 0),
         actions: clampNumber(item?.actions, 0, 1000000, 0),
         durationMs: clampNumber(item?.durationMs, 0, 1000000000, 0),
+        privacyRedactions: clampNumber(item?.privacyRedactions, 0, 1000000000, 0),
+        validationFailures: clampNumber(item?.validationFailures, 0, 1000000000, 0),
+        validationRepairs: clampNumber(item?.validationRepairs, 0, 1000000000, 0),
         providers: item?.providers && typeof item.providers === 'object' ? item.providers : {},
         users: item?.users && typeof item.users === 'object' ? item.users : {},
       };
     });
-  return { schemaVersion: 1, days: cleanDays };
+  return { schemaVersion: 2, days: cleanDays };
 }
 
 function readUsage() {
@@ -169,7 +215,7 @@ function writeUsage(usage) {
 
 function ensureDay(usage, date) {
   if (!usage.days[date]) {
-    usage.days[date] = { requests: 0, successes: 0, errors: 0, inputTokens: 0, outputTokens: 0, actions: 0, durationMs: 0, providers: {}, users: {} };
+    usage.days[date] = { requests: 0, successes: 0, errors: 0, inputTokens: 0, outputTokens: 0, actions: 0, durationMs: 0, privacyRedactions: 0, validationFailures: 0, validationRepairs: 0, providers: {}, users: {} };
   }
   return usage.days[date];
 }
@@ -248,7 +294,7 @@ function incrementUser(map, user, amount = 1) {
   map[key] = clampNumber(map[key], 0, 1000000, 0) + amount;
 }
 
-export function recordAiRequest({ provider = '', model = '', prompt = '', result = '', durationMs = 0, success = true, error = '', profile = 'default', operationId = '' } = {}) {
+export function recordAiRequest({ provider = '', model = '', prompt = '', result = '', durationMs = 0, success = true, error = '', profile = 'default', operationId = '', privacy = {}, validation = {}, providerCalls = 1 } = {}) {
   const usage = readUsage();
   const date = dayKey();
   const day = ensureDay(usage, date);
@@ -260,6 +306,9 @@ export function recordAiRequest({ provider = '', model = '', prompt = '', result
   day.inputTokens += inputTokens;
   day.outputTokens += outputTokens;
   day.durationMs += Math.max(0, Math.round(Number(durationMs) || 0));
+  day.privacyRedactions += Math.max(0, Math.round(Number(privacy?.maskedCount) || 0));
+  day.validationFailures += validation?.valid === false ? 1 : 0;
+  day.validationRepairs += validation?.repaired ? 1 : 0;
   incrementProvider(day.providers, provider || model || 'Unknown');
   incrementUser(day.users, currentUser);
   writeUsage(usage);
@@ -271,7 +320,7 @@ export function recordAiRequest({ provider = '', model = '', prompt = '', result
     model,
     profile,
     operationId,
-    detail: { inputTokens, outputTokens, durationMs: Math.max(0, Math.round(Number(durationMs) || 0)), error: String(error || '').slice(0, 500) },
+    detail: { inputTokens, outputTokens, durationMs: Math.max(0, Math.round(Number(durationMs) || 0)), error: String(error || '').slice(0, 500), providerCalls: Math.max(1, Number(providerCalls) || 1), privacy: { applied: Boolean(privacy?.applied), riskLevel: privacy?.riskLevel || 'low', maskedCount: Number(privacy?.maskedCount) || 0, categories: Array.isArray(privacy?.categories) ? privacy.categories.slice(0, 12) : [] }, validation: { valid: validation?.valid !== false, kind: validation?.kind || 'text', issueCount: Number(validation?.issueCount) || 0, issueCodes: Array.isArray(validation?.issueCodes) ? validation.issueCodes.slice(0, 12) : [], repairAttempted: Boolean(validation?.repairAttempted), repaired: Boolean(validation?.repaired) } },
   });
   return { inputTokens, outputTokens };
 }
@@ -317,7 +366,7 @@ export function clearAiAudit() {
 }
 
 export function resetAiUsage() {
-  safeWrite(AI_GOVERNANCE_USAGE_KEY, { schemaVersion: 1, days: {} });
+  safeWrite(AI_GOVERNANCE_USAGE_KEY, { schemaVersion: 2, days: {} });
   appendAiAudit({ type: 'usage', status: 'success', label: 'AI usage counters reset', detail: {} });
 }
 
