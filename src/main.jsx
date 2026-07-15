@@ -21,6 +21,7 @@ import './ui-core/styles/department-color-system-v1222.css';
 import './ui-core/styles/department-detail-workspace-v1223.css';
 import './ui-core/styles/admin-center-v1224.css';
 import './ui-core/styles/settings-experience-v1225.css';
+import './ui-core/styles/lesson-pack-workflow-v1229.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import AppErrorBoundary from './components/AppErrorBoundary.jsx';

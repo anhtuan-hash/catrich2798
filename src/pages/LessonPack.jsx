@@ -35,6 +35,22 @@ const TARGETS = [
   ['student-practice', '#/practice', 'Learner Sprint'],
 ];
 
+const LESSON_PACK_WORKFLOW = [
+  { id: 1, icon: '◎', vi: 'Mục tiêu & lớp học', en: 'Goals & class', subVi: 'Xác định mục tiêu, lớp học', subEn: 'Set goals and learners' },
+  { id: 2, icon: '▤', vi: 'Nguồn học liệu', en: 'Learning sources', subVi: 'Chọn & thêm học liệu', subEn: 'Choose and add resources' },
+  { id: 3, icon: '▦', vi: 'Khung bài dạy', en: 'Lesson frame', subVi: 'Cấu trúc & thời lượng', subEn: 'Structure and timing' },
+  { id: 4, icon: '✦', vi: 'Hoạt động & AI', en: 'Activities & AI', subVi: 'Tạo hoạt động & hỗ trợ AI', subEn: 'Build activities with AI' },
+  { id: 5, icon: '▶', vi: 'Trình chiếu & giao bài', en: 'Deliver lesson', subVi: 'Trình chiếu & giao cho HS', subEn: 'Present and assign' },
+  { id: 6, icon: '↥', vi: 'Xuất bản', en: 'Publish', subVi: 'Xuất bản & chia sẻ', subEn: 'Publish and share' },
+];
+
+const DEFAULT_SEQUENCE = [
+  ['warm-up', 'Mở đầu', 'Gợi mở – Kích hoạt kiến thức nền', 5],
+  ['worksheet', 'Luyện tập', 'Thực hành – Củng cố kiến thức', 20],
+  ['interactive', 'Vận dụng', 'Vận dụng – Giải quyết vấn đề', 15],
+  ['assessment', 'Đánh giá', 'Đánh giá – Phản hồi – Tổng kết', 5],
+];
+
 function label(type, language) { return TYPE_LABELS[type]?.[language === 'vi' ? 1 : 0] || type; }
 function escapeHtml(value) { return String(value || '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char])); }
 function download(name, content, type = 'application/json') {
@@ -135,7 +151,7 @@ export default function LessonPack({ currentUser, language = 'vi' }) {
   const runtime = useRuntimeCore();
   const [packs, setPacks] = useState([]);
   const [selectedId, setSelectedId] = useState('');
-  const [tab, setTab] = useState('builder');
+  const [step, setStep] = useState(3);
   const [editingId, setEditingId] = useState('');
   const [notice, setNotice] = useState('');
   const [saving, setSaving] = useState(false);
@@ -174,7 +190,7 @@ export default function LessonPack({ currentUser, language = 'vi' }) {
   const updateItem = (id, patch) => updatePack({ items: pack.items.map((item) => item.id === id ? createLessonPackItem({ ...item, ...patch }) : item) });
   const newPack = () => {
     const next = saveLessonPackLocal(currentUser, createLessonPack({ title: language === 'vi' ? 'Gói bài dạy mới' : 'New Lesson Pack' }, currentUser));
-    setSelectedId(next.id); setTab('builder');
+    setSelectedId(next.id); setStep(1);
   };
   const addItem = (type = 'other') => {
     const item = createLessonPackItem({ type, title: language === 'vi' ? `Hoạt động ${pack.items.length + 1}` : `Activity ${pack.items.length + 1}` });
@@ -210,50 +226,215 @@ export default function LessonPack({ currentUser, language = 'vi' }) {
     window.setTimeout(() => { window.location.hash = route; }, 260);
   };
 
+  const selectPack = (id) => {
+    setSelectedId(id);
+    setActiveLessonPackId(currentUser, id);
+  };
+  const issues = useMemo(() => {
+    if (!pack) return [];
+    const next = [];
+    if (!String(pack.title || '').trim()) next.push(language === 'vi' ? 'Chưa có tên gói bài dạy.' : 'Lesson pack title is missing.');
+    if (!String(pack.className || '').trim()) next.push(language === 'vi' ? 'Chưa chọn lớp học.' : 'Class is missing.');
+    if (!String(pack.objectives || '').trim()) next.push(language === 'vi' ? 'Chưa mô tả mục tiêu bài học.' : 'Lesson objectives are missing.');
+    if (!pack.items.length) next.push(language === 'vi' ? 'Chưa có hoạt động.' : 'No activities yet.');
+    if (pack.items.some((item) => !String(item.content || '').trim())) next.push(language === 'vi' ? 'Một số hoạt động chưa có nội dung.' : 'Some activities have no content.');
+    if (totalMinutes !== Number(pack.duration || 0)) next.push(language === 'vi' ? `Tổng hoạt động ${totalMinutes} phút, khác thời lượng mục tiêu ${pack.duration} phút.` : `Activities total ${totalMinutes} minutes, target is ${pack.duration}.`);
+    return next;
+  }, [pack, totalMinutes, language]);
+  const resourceCounts = useMemo(() => {
+    const items = pack?.items || [];
+    return {
+      docs: items.filter((item) => ['resource', 'worksheet', 'reading', 'grammar'].includes(item.type)).length,
+      images: items.reduce((sum, item) => sum + Number(item.metadata?.imageCount || 0), 0),
+      videos: items.reduce((sum, item) => sum + Number(item.metadata?.videoCount || 0), 0),
+      audio: items.filter((item) => item.type === 'listening').length,
+      links: items.filter((item) => item.route).length,
+    };
+  }, [pack?.items]);
+  const completion = useMemo(() => {
+    if (!pack) return 0;
+    const checks = [
+      Boolean(pack.title && pack.className && pack.objectives),
+      Boolean(pack.items.some((item) => item.sourceApp !== 'manual') || pending.length),
+      Boolean(pack.items.length && totalMinutes > 0),
+      Boolean(pack.items.length && pack.items.every((item) => item.content || item.objective)),
+      Boolean(pack.items.length),
+      pack.status === 'published',
+    ];
+    return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  }, [pack, pending.length, totalMinutes]);
+  const addSuggestedActivity = () => {
+    if (!pack) return;
+    const used = new Set(pack.items.map((item) => item.type));
+    const suggestion = DEFAULT_SEQUENCE.find(([type]) => !used.has(type)) || ['interactive', language === 'vi' ? 'Hoạt động mở rộng' : 'Extension activity', language === 'vi' ? 'Hoạt động do trợ lý đề xuất' : 'Suggested activity', 10];
+    const item = createLessonPackItem({ type: suggestion[0], title: language === 'vi' ? suggestion[1] : `Suggested ${suggestion[0]}`, objective: language === 'vi' ? suggestion[2] : 'Suggested learning objective', minutes: suggestion[3], mode: suggestion[0] === 'warm-up' ? 'whole-class' : 'group' });
+    updatePack({ items: [...pack.items, item] });
+    setEditingId(item.id);
+    flash(language === 'vi' ? 'Đã thêm một hoạt động gợi ý. Hãy hoàn thiện nội dung.' : 'Suggested activity added.');
+  };
+  const addQuestionActivity = () => {
+    if (!pack) return;
+    const item = createLessonPackItem({ type: 'assessment', title: language === 'vi' ? 'Câu hỏi kiểm tra nhanh' : 'Quick check questions', objective: language === 'vi' ? 'Kiểm tra mức độ đạt mục tiêu bài học.' : 'Check lesson objective attainment.', minutes: 5, mode: 'individual' });
+    updatePack({ items: [...pack.items, item] });
+    setEditingId(item.id);
+  };
+  const balanceDuration = () => {
+    if (!pack?.items.length) { flash(language === 'vi' ? 'Hãy thêm hoạt động trước khi cân chỉnh thời lượng.' : 'Add activities before balancing time.'); return; }
+    const target = Math.max(pack.items.length, Number(pack.duration || 45));
+    const current = Math.max(1, totalMinutes);
+    let allocated = 0;
+    const items = pack.items.map((item, index) => {
+      const minutes = index === pack.items.length - 1 ? Math.max(1, target - allocated) : Math.max(1, Math.round((item.minutes / current) * target));
+      allocated += minutes;
+      return createLessonPackItem({ ...item, minutes });
+    });
+    updatePack({ items });
+    flash(language === 'vi' ? `Đã cân chỉnh chuỗi hoạt động về khoảng ${target} phút.` : `Timeline balanced to about ${target} minutes.`);
+  };
+  const publishPack = async () => {
+    if (!pack) return;
+    const next = { ...pack, status: 'published', updatedAt: new Date().toISOString() };
+    saveLessonPackLocal(currentUser, next);
+    setSaving(true);
+    const result = await saveLessonPack(currentUser, next);
+    setSaving(false);
+    flash(result.mode === 'cloud' ? (language === 'vi' ? 'Đã xuất bản và lưu lên Cloud.' : 'Published and saved to cloud.') : (language === 'vi' ? 'Đã xuất bản cục bộ.' : 'Published locally.'));
+  };
+
   if (live && pack) return <LiveMode pack={pack} language={language} onExit={() => setLive(false)} />;
 
-  return <div className="page lesson-pack-page">
-    <PackList packs={packs} selectedId={pack?.id} onSelect={(id) => { setSelectedId(id); setActiveLessonPackId(currentUser, id); }} onNew={newPack}
-      onDuplicate={() => { const copy = duplicateLessonPackLocal(currentUser, pack); setSelectedId(copy.id); }}
-      onDelete={() => { if (window.confirm(language === 'vi' ? 'Xóa gói bài dạy này?' : 'Delete this lesson pack?')) deleteLessonPack(currentUser, pack.id); }} language={language} />
-    <section className="lp-workspace">
-      <header className="lp-topbar">
-        <div><small>V11.1 · CONNECTED TEACHING SUITE</small><h1>{pack?.title || 'Lesson Pack'}</h1></div>
-        <div className="lp-status"><span className={runtime.ready ? 'online' : ''}>{runtime.ready ? '● Cloud ready' : '○ Local mode'}</span><button onClick={saveCloud} disabled={saving}>{saving ? '…' : '☁'} {language === 'vi' ? 'Lưu' : 'Save'}</button><button onClick={() => { window.location.hash = `#/classroom-delivery?pack=${encodeURIComponent(pack?.id || '')}`; }}>⌁ {language === 'vi' ? 'Mở phòng học' : 'Open classroom'}</button><button className="primary" onClick={() => setLive(true)}>▶ {language === 'vi' ? 'Trình chiếu nhanh' : 'Quick presentation'}</button></div>
-      </header>
-      <nav className="lp-tabs">
-        {[['builder', '▦', 'Thiết kế', 'Builder'], ['timeline', '≡', 'Tiến trình', 'Timeline'], ['preview', '◉', 'Xem trước', 'Preview'], ['connections', '↗', 'Liên thông', 'Connections']].map(([id, icon, vi, en]) => <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{icon} {language === 'vi' ? vi : en}</button>)}
-        {pending.length ? <button className="lp-import" onClick={importTransfers}>＋ {pending.length} {language === 'vi' ? 'nội dung chờ thêm' : 'incoming items'}</button> : null}
-      </nav>
-      {notice ? <div className="lp-notice">✓ {notice}</div> : null}
-      {!pack ? <div className="lp-empty">No pack selected</div> : null}
-
-      {pack && tab === 'builder' ? <div className="lp-builder">
-        <section className="lp-pack-meta">
-          <label className="title"><span>{language === 'vi' ? 'Tên gói bài dạy' : 'Lesson pack title'}</span><input value={pack.title} onChange={(e) => updatePack({ title: e.target.value })} /></label>
-          <label><span>{language === 'vi' ? 'Lớp' : 'Class'}</span><input value={pack.className} onChange={(e) => updatePack({ className: e.target.value })} placeholder="12A1" /></label>
-          <label><span>Unit</span><input value={pack.unit} onChange={(e) => updatePack({ unit: e.target.value })} /></label>
-          <label><span>CEFR</span><select value={pack.level} onChange={(e) => updatePack({ level: e.target.value })}>{['A1-A2', 'B1', 'B1-B2', 'B2', 'B2-C1', 'C1'].map((value) => <option key={value}>{value}</option>)}</select></label>
-          <label><span>{language === 'vi' ? 'Phiên bản' : 'Variant'}</span><select value={pack.variant} onChange={(e) => updatePack({ variant: e.target.value })}><option value="support">{language === 'vi' ? 'Hỗ trợ' : 'Support'}</option><option value="standard">{language === 'vi' ? 'Chuẩn' : 'Standard'}</option><option value="advanced">{language === 'vi' ? 'Nâng cao' : 'Advanced'}</option></select></label>
-          <label className="wide"><span>{language === 'vi' ? 'Mục tiêu bài học' : 'Lesson objectives'}</span><textarea rows="3" value={pack.objectives} onChange={(e) => updatePack({ objectives: e.target.value })} /></label>
-        </section>
-        <section className="lp-sequence-head"><div><h2>{language === 'vi' ? 'Chuỗi hoạt động' : 'Activity sequence'}</h2><p>{pack.items.length} {language === 'vi' ? 'hoạt động' : 'activities'} · {totalMinutes} min</p></div><div className="lp-add-menu"><select id="lp-add-type" defaultValue="warm-up">{LESSON_PACK_ITEM_TYPES.map((type) => <option key={type} value={type}>{label(type, language)}</option>)}</select><button onClick={() => addItem(document.getElementById('lp-add-type')?.value || 'other')}>＋ {language === 'vi' ? 'Thêm' : 'Add'}</button></div></section>
-        <div className="lp-items">
-          {pack.items.map((item, index) => <article key={item.id} className={`lp-item type-${item.type}`} draggable onDragStart={() => setDragId(item.id)} onDragOver={(e) => e.preventDefault()} onDrop={() => reorder(dragId, item.id)}>
-            <button className="lp-drag" title={language === 'vi' ? 'Kéo để sắp xếp' : 'Drag to reorder'}>⋮⋮</button><div className="lp-index">{index + 1}</div>
-            <div className="lp-item-main" onClick={() => setEditingId(item.id)}><div className="lp-item-meta"><span>{label(item.type, language)}</span><span>{item.minutes} min</span><span>{language === 'vi' ? MODES.find(([v]) => v === item.mode)?.[1] : item.mode}</span>{item.sourceApp !== 'manual' ? <span className="source">{item.sourceApp}</span> : null}</div><h3>{item.title}</h3><p>{item.objective || item.content.slice(0, 150) || (language === 'vi' ? 'Nhấn để thêm nội dung.' : 'Click to add content.')}</p></div>
-            <div className="lp-item-actions"><button onClick={() => setEditingId(item.id)}>✎</button>{item.route ? <button onClick={() => { window.location.href = item.route; }}>↗</button> : null}<button className="danger" onClick={() => removeItem(item.id)}>×</button></div>
-          </article>)}
-          {!pack.items.length ? <button className="lp-empty-sequence" onClick={() => addItem('warm-up')}>＋<b>{language === 'vi' ? 'Bắt đầu bằng hoạt động đầu tiên' : 'Start with your first activity'}</b><span>{language === 'vi' ? 'Hoặc dùng nút “Gửi sang” ở bất kỳ ứng dụng nào để thêm sản phẩm.' : 'Or use “Send to” in any app to add its output.'}</span></button> : null}
+  return <div className="page lesson-pack-page lp29-page" data-workflow-step={step}>
+    <section className="lp29-workspace">
+      <header className="lp29-hero">
+        <div className="lp29-hero-copy">
+          <div className="lp29-title-line"><span className="lp29-app-badge">LP</span><h1>Lesson Pack</h1><span className="lp29-suite">Connected Teaching Suite</span></div>
+          <p>{language === 'vi' ? 'Thiết kế gói bài dạy hiện đại, kết nối mục tiêu – hoạt động – trình chiếu – giao bài.' : 'Design connected lesson packs from goals and activities to presentation and delivery.'}</p>
+          <div className="lp29-hero-actions">
+            <button type="button" className="primary" onClick={newPack}>＋ {language === 'vi' ? 'Tạo gói bài dạy' : 'Create lesson pack'}</button>
+            <label className="lp29-draft-picker"><span>▣</span><select value={pack?.id || ''} onChange={(event) => selectPack(event.target.value)}>{packs.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>
+            <button type="button" className="secondary" disabled={!pack?.items.length} onClick={() => setLive(true)}>▶ {language === 'vi' ? 'Xem demo' : 'View demo'}</button>
+          </div>
+          <div className="lp29-pack-tools">
+            <button type="button" disabled={!pack} onClick={() => { const copy = duplicateLessonPackLocal(currentUser, pack); setSelectedId(copy.id); }}>⧉ {language === 'vi' ? 'Nhân bản' : 'Duplicate'}</button>
+            <button type="button" className="danger" disabled={!pack} onClick={() => { if (window.confirm(language === 'vi' ? 'Xóa gói bài dạy này?' : 'Delete this lesson pack?')) deleteLessonPack(currentUser, pack.id); }}>⌫ {language === 'vi' ? 'Xóa' : 'Delete'}</button>
+          </div>
         </div>
+        <div className="lp29-hero-art" aria-hidden="true">
+          <div className="lp29-art-orbit orbit-one" /><div className="lp29-art-orbit orbit-two" />
+          <div className="lp29-art-board"><div className="lp29-art-toolbar"><i /><i /><i /></div><div className="lp29-art-icons"><span>▤</span><span>▧</span><span>▶</span></div><div className="lp29-art-lines"><i /><i /><i /></div></div>
+          <span className="lp29-art-cube cube-a">LP</span><span className="lp29-art-cube cube-b">AI</span><span className="lp29-art-spark spark-a">✦</span><span className="lp29-art-spark spark-b">✧</span>
+        </div>
+        <div className="lp29-hero-status">
+          <span className={runtime.ready ? 'ready' : ''}>☁ <b>{runtime.ready ? 'Cloud ready' : 'Local mode'}</b></span>
+          <button type="button" onClick={saveCloud} disabled={saving}>↻ <b>{saving ? (language === 'vi' ? 'Đang lưu' : 'Saving') : (language === 'vi' ? 'Tự động lưu' : 'Auto save')}</b></button>
+          <span>◷ <b>{pack?.duration || 45} {language === 'vi' ? 'phút' : 'min'}</b></span>
+          <span>♙ <b>{pack?.className || (language === 'vi' ? 'Chưa chọn lớp' : 'No class')}</b></span>
+          <span>▦ <b>{pack?.items.length || 0} {language === 'vi' ? 'hoạt động' : 'activities'}</b></span>
+        </div>
+      </header>
+
+      <nav className="lp29-workflow" aria-label={language === 'vi' ? 'Quy trình gói bài dạy' : 'Lesson pack workflow'}>
+        {LESSON_PACK_WORKFLOW.map((workflow) => {
+          const completed = workflow.id < step;
+          const active = workflow.id === step;
+          return <button type="button" key={workflow.id} className={`${active ? 'active' : ''} ${completed ? 'completed' : ''}`} onClick={() => setStep(workflow.id)}>
+            <span className="lp29-step-number">{completed ? '✓' : workflow.id}</span>
+            <span><b>{language === 'vi' ? workflow.vi : workflow.en}</b><small>{language === 'vi' ? workflow.subVi : workflow.subEn}</small></span>
+          </button>;
+        })}
+      </nav>
+
+      {notice ? <div className="lp29-notice">✓ {notice}</div> : null}
+      {!pack ? <div className="lp29-empty">{language === 'vi' ? 'Chưa có gói bài dạy.' : 'No lesson pack selected.'}</div> : null}
+
+      {pack && step === 1 ? <div className="lp29-stage lp29-stage-goals">
+        <section className="lp29-card lp29-primary-card">
+          <header className="lp29-section-head"><span>1</span><div><h2>{language === 'vi' ? 'Mục tiêu & lớp học' : 'Goals & class'}</h2><p>{language === 'vi' ? 'Xác định bối cảnh, đối tượng và kết quả học tập mong đợi.' : 'Define context, learners and intended outcomes.'}</p></div></header>
+          <div className="lp29-form-grid">
+            <label className="wide"><span>{language === 'vi' ? 'Tên gói bài dạy' : 'Lesson pack title'}</span><input value={pack.title} onChange={(event) => updatePack({ title: event.target.value })} /></label>
+            <label><span>{language === 'vi' ? 'Lớp' : 'Class'}</span><input value={pack.className} onChange={(event) => updatePack({ className: event.target.value })} placeholder="12A1" /></label>
+            <label><span>Unit</span><input value={pack.unit} onChange={(event) => updatePack({ unit: event.target.value })} /></label>
+            <label><span>CEFR</span><select value={pack.level} onChange={(event) => updatePack({ level: event.target.value })}>{['A1-A2','B1','B1-B2','B2','B2-C1','C1'].map((value) => <option key={value}>{value}</option>)}</select></label>
+            <label><span>{language === 'vi' ? 'Phiên bản' : 'Variant'}</span><select value={pack.variant} onChange={(event) => updatePack({ variant: event.target.value })}><option value="support">{language === 'vi' ? 'Hỗ trợ' : 'Support'}</option><option value="standard">{language === 'vi' ? 'Chuẩn' : 'Standard'}</option><option value="advanced">{language === 'vi' ? 'Nâng cao' : 'Advanced'}</option></select></label>
+            <label><span>{language === 'vi' ? 'Thời lượng mục tiêu' : 'Target duration'}</span><input type="number" min="5" max="600" value={pack.duration} onChange={(event) => updatePack({ duration: Number(event.target.value) || 45 })} /></label>
+            <label className="wide"><span>{language === 'vi' ? 'Mục tiêu bài học' : 'Lesson objectives'}</span><textarea rows="6" value={pack.objectives} onChange={(event) => updatePack({ objectives: event.target.value })} placeholder={language === 'vi' ? 'Sau bài học, học sinh có thể…' : 'By the end of the lesson, students can…'} /></label>
+          </div>
+          <footer className="lp29-card-actions"><button type="button" className="primary" onClick={() => setStep(2)}>{language === 'vi' ? 'Tiếp tục: Nguồn học liệu' : 'Continue: Learning sources'} →</button></footer>
+        </section>
+        <aside className="lp29-support-stack"><ProgressCard completion={completion} language={language} /><QuickCheckCard issues={issues} language={language} onFix={() => setStep(1)} /></aside>
       </div> : null}
 
-      {pack && tab === 'timeline' ? <div className="lp-timeline-view"><header><h2>{language === 'vi' ? 'Tiến trình bài dạy' : 'Lesson timeline'}</h2><div><b>{totalMinutes}</b><span>min</span></div></header><div className="lp-timeline-bar">{pack.items.map((item) => <div key={item.id} style={{ flex: Math.max(1, item.minutes) }} title={`${item.title}: ${item.minutes} min`}><span>{item.minutes}</span></div>)}</div><div className="lp-timeline-list">{pack.items.map((item, index) => <div key={item.id}><span>{String(index + 1).padStart(2, '0')}</span><b>{item.title}</b><small>{label(item.type, language)} · {item.mode}</small><strong>{item.minutes} min</strong></div>)}</div><label className="lp-notes"><span>{language === 'vi' ? 'Ghi chú giáo viên' : 'Teacher notes'}</span><textarea rows="8" value={pack.teacherNotes} onChange={(e) => updatePack({ teacherNotes: e.target.value })} /></label></div> : null}
+      {pack && step === 2 ? <div className="lp29-stage lp29-stage-sources">
+        <section className="lp29-card lp29-primary-card">
+          <header className="lp29-section-head"><span>2</span><div><h2>{language === 'vi' ? 'Nguồn học liệu' : 'Learning sources'}</h2><p>{language === 'vi' ? 'Nhận nội dung từ các ứng dụng Brian và sắp xếp thành nguồn cho bài dạy.' : 'Collect content from Brian apps and organize lesson sources.'}</p></div></header>
+          {pending.length ? <button type="button" className="lp29-import-banner" onClick={importTransfers}>＋ {language === 'vi' ? `Thêm ${pending.length} nội dung đang chờ` : `Add ${pending.length} incoming items`}</button> : <div className="lp29-source-empty"><span>☁</span><b>{language === 'vi' ? 'Chưa có nội dung chờ thêm' : 'No incoming content'}</b><p>{language === 'vi' ? 'Mở một ứng dụng bên dưới, tạo học liệu rồi chọn “Gửi sang → Lesson Pack”.' : 'Create content in an app below, then use Send to → Lesson Pack.'}</p></div>}
+          <div className="lp29-app-grid">{TARGETS.map(([target, route, name]) => <button type="button" key={target} onClick={() => { window.location.hash = route; }}><span>{name.split(' ').map((word) => word[0]).join('').slice(0,2)}</span><b>{name}</b><small>{language === 'vi' ? 'Mở ứng dụng' : 'Open app'} →</small></button>)}</div>
+          <footer className="lp29-card-actions"><button type="button" className="secondary" onClick={() => setStep(1)}>← {language === 'vi' ? 'Quay lại' : 'Back'}</button><button type="button" className="primary" onClick={() => setStep(3)}>{language === 'vi' ? 'Tiếp tục: Khung bài dạy' : 'Continue: Lesson frame'} →</button></footer>
+        </section>
+        <aside className="lp29-support-stack"><ResourceCard counts={resourceCounts} language={language} /><OutputCard language={language} onPreview={() => setStep(5)} /></aside>
+      </div> : null}
 
-      {pack && tab === 'preview' ? <div className="lp-preview"><header><div><small>{pack.unit || 'LESSON PACK'}</small><h2>{pack.title}</h2><p>{pack.objectives}</p></div><div><span>{pack.className || 'Class'}</span><span>{pack.level}</span><span>{totalMinutes} min</span></div></header>{pack.items.map((item, index) => <section key={item.id}><i>{index + 1}</i><div><small>{label(item.type, language)} · {item.minutes} min</small><h3>{item.title}</h3><p>{item.content}</p>{pack.variant === 'support' && item.support ? <aside>💡 {item.support}</aside> : null}{pack.variant === 'advanced' && item.extension ? <aside>★ {item.extension}</aside> : null}</div></section>)}<footer><button onClick={() => download(`${fileName(pack.title)}.json`, JSON.stringify(pack, null, 2))}>JSON</button><button onClick={() => download(`${fileName(pack.title)}.html`, exportHtml(pack, language), 'text/html')}>HTML</button><button onClick={() => window.print()}>⌘P {language === 'vi' ? 'In / PDF' : 'Print / PDF'}</button></footer></div> : null}
+      {pack && step === 3 ? <div className="lp29-stage lp29-stage-frame">
+        <section className="lp29-card lp29-primary-card">
+          <header className="lp29-section-head lp29-frame-head"><span>3</span><div><h2>{language === 'vi' ? 'Khung bài dạy' : 'Lesson frame'}</h2><p>{language === 'vi' ? 'Xây dựng cấu trúc bài học với các phần học và thời lượng phù hợp.' : 'Build a coherent lesson structure and timing.'}</p></div><div className="lp29-add-menu"><select id="lp29-add-type" defaultValue="warm-up">{LESSON_PACK_ITEM_TYPES.map((type) => <option key={type} value={type}>{label(type, language)}</option>)}</select><button type="button" onClick={() => addItem(document.getElementById('lp29-add-type')?.value || 'other')}>＋ {language === 'vi' ? 'Thêm' : 'Add'}</button></div></header>
+          <div className="lp29-frame-grid">
+            <div className="lp29-sequence-list">
+              {pack.items.map((item, index) => <article key={item.id} className={`lp29-sequence-row type-${item.type}`} draggable onDragStart={() => setDragId(item.id)} onDragOver={(event) => event.preventDefault()} onDrop={() => reorder(dragId, item.id)}>
+                <button type="button" className="lp29-drag" title={language === 'vi' ? 'Kéo để sắp xếp' : 'Drag to reorder'}>⋮⋮</button><span className="lp29-type-icon">{item.type === 'warm-up' ? '▶' : item.type === 'assessment' ? '✓' : item.type === 'interactive' ? '↗' : '✎'}</span><button type="button" className="lp29-row-copy" onClick={() => setEditingId(item.id)}><b>{item.title}</b><small>{item.objective || label(item.type, language)}</small></button><span className="lp29-duration">{item.minutes} {language === 'vi' ? 'phút' : 'min'}</span><button type="button" className="lp29-more" onClick={() => setEditingId(item.id)}>•••</button>
+              </article>)}
+              {!pack.items.length ? <button type="button" className="lp29-empty-sequence" onClick={() => addItem('warm-up')}><span>＋</span><b>{language === 'vi' ? 'Tạo hoạt động đầu tiên' : 'Create first activity'}</b><small>{language === 'vi' ? 'Hoặc dùng trợ lý gợi ý một cấu trúc khởi đầu.' : 'Or ask the assistant for a starter structure.'}</small></button> : null}
+            </div>
+            <aside className="lp29-ai-card"><span className="lp29-ai-icon">✦</span><h3>{language === 'vi' ? 'Trợ lý AI gợi ý' : 'AI suggestions'}</h3><p>{language === 'vi' ? 'Tối ưu cấu trúc và thời lượng dựa trên mục tiêu bài học.' : 'Optimize structure and timing from your lesson goals.'}</p><button type="button" onClick={addSuggestedActivity}>⌘ {language === 'vi' ? 'AI gợi ý hoạt động' : 'Suggest activity'}</button><button type="button" onClick={addQuestionActivity}>? {language === 'vi' ? 'Tạo câu hỏi' : 'Create questions'}</button><button type="button" onClick={balanceDuration}>◷ {language === 'vi' ? 'Cân chỉnh thời lượng' : 'Balance timing'}</button><button type="button" className="link" onClick={() => { window.location.hash = '#/ai-workspace'; }}>{language === 'vi' ? 'Mở AI Workspace' : 'Open AI Workspace'} →</button></aside>
+          </div>
+          <footer className="lp29-card-actions"><button type="button" className="secondary" onClick={() => setStep(2)}>← {language === 'vi' ? 'Nguồn học liệu' : 'Sources'}</button><button type="button" className="primary" onClick={() => setStep(4)}>{language === 'vi' ? 'Tiếp tục: Hoạt động & AI' : 'Continue: Activities & AI'} →</button></footer>
+        </section>
+        <aside className="lp29-support-stack"><ProgressCard completion={completion} language={language} /><ResourceCard counts={resourceCounts} language={language} /><OutputCard language={language} onPreview={() => setStep(5)} /><QuickCheckCard issues={issues} language={language} onFix={() => setStep(4)} /></aside>
+      </div> : null}
 
-      {pack && tab === 'connections' ? <div className="lp-connections"><section className="lp-connection-hero"><div><small>CONNECTED WORKFLOW</small><h2>{language === 'vi' ? 'Một gói bài dạy, nhiều ứng dụng' : 'One lesson pack, many apps'}</h2><p>{language === 'vi' ? 'Mở ứng dụng để tạo sản phẩm, dùng “Gửi sang → Lesson Pack”, rồi quay lại đây sắp xếp thành một bài dạy hoàn chỉnh.' : 'Create in any app, use “Send to → Lesson Pack”, then arrange everything into a complete lesson.'}</p></div><span>↗</span></section><div className="lp-app-grid">{TARGETS.map(([target, route, name]) => <button key={target} onClick={() => { window.location.hash = route; }}><span>{name.split(' ').map((word) => word[0]).join('').slice(0, 2)}</span><b>{name}</b><small>{language === 'vi' ? 'Mở ứng dụng' : 'Open app'} →</small></button>)}</div><section className="lp-send-items"><h3>{language === 'vi' ? 'Gửi hoạt động hiện có sang ứng dụng khác' : 'Send existing activities to another app'}</h3>{pack.items.map((item) => <div key={item.id}><b>{item.title}</b><select defaultValue="" onChange={(e) => { const selected = TARGETS.find(([id]) => id === e.target.value); if (selected) sendItem(item, selected[0], selected[1]); e.target.value = ''; }}><option value="">{language === 'vi' ? 'Chọn ứng dụng…' : 'Choose app…'}</option>{TARGETS.map(([id,, name]) => <option key={id} value={id}>{name}</option>)}</select></div>)}</section></div> : null}
+      {pack && step === 4 ? <div className="lp29-stage lp29-stage-activities">
+        <section className="lp29-card lp29-primary-card">
+          <header className="lp29-section-head"><span>4</span><div><h2>{language === 'vi' ? 'Hoạt động & AI' : 'Activities & AI'}</h2><p>{language === 'vi' ? 'Hoàn thiện nội dung, hình thức tổ chức, hỗ trợ và phần mở rộng cho từng hoạt động.' : 'Complete content, delivery, support and extensions for every activity.'}</p></div></header>
+          <div className="lp29-activity-grid">{pack.items.map((item,index) => <article key={item.id} className="lp29-activity-card"><header><span>{String(index+1).padStart(2,'0')}</span><div><b>{item.title}</b><small>{label(item.type,language)} · {item.minutes} min · {language === 'vi' ? MODES.find(([value]) => value === item.mode)?.[1] : item.mode}</small></div></header><p>{item.content || item.objective || (language === 'vi' ? 'Chưa có nội dung. Nhấn Biên tập để hoàn thiện.' : 'No content yet. Edit to complete.')}</p><footer><button type="button" onClick={() => setEditingId(item.id)}>✎ {language === 'vi' ? 'Biên tập' : 'Edit'}</button>{item.route ? <button type="button" onClick={() => { window.location.href=item.route; }}>↗ {language === 'vi' ? 'Mở nguồn' : 'Open source'}</button> : null}<button type="button" className="danger" onClick={() => removeItem(item.id)}>×</button></footer></article>)}</div>
+          <button type="button" className="lp29-add-activity" onClick={addSuggestedActivity}>＋ {language === 'vi' ? 'Thêm hoạt động gợi ý' : 'Add suggested activity'}</button>
+          <footer className="lp29-card-actions"><button type="button" className="secondary" onClick={() => setStep(3)}>← {language === 'vi' ? 'Khung bài dạy' : 'Lesson frame'}</button><button type="button" className="primary" onClick={() => setStep(5)}>{language === 'vi' ? 'Tiếp tục: Trình chiếu & giao bài' : 'Continue: Delivery'} →</button></footer>
+        </section>
+        <aside className="lp29-support-stack"><div className="lp29-card lp29-mini-card lp29-ai-tools"><h3>✦ {language === 'vi' ? 'Công cụ AI nhanh' : 'Quick AI tools'}</h3><button type="button" onClick={addSuggestedActivity}>{language === 'vi' ? 'Gợi ý hoạt động tiếp theo' : 'Suggest next activity'}</button><button type="button" onClick={addQuestionActivity}>{language === 'vi' ? 'Tạo hoạt động đánh giá' : 'Create assessment activity'}</button><button type="button" onClick={balanceDuration}>{language === 'vi' ? 'Cân chỉnh thời lượng' : 'Balance timing'}</button></div><QuickCheckCard issues={issues} language={language} onFix={() => setStep(4)} /></aside>
+      </div> : null}
+
+      {pack && step === 5 ? <div className="lp29-stage lp29-stage-delivery">
+        <section className="lp29-card lp29-primary-card"><header className="lp29-section-head"><span>5</span><div><h2>{language === 'vi' ? 'Trình chiếu & giao bài' : 'Present & deliver'}</h2><p>{language === 'vi' ? 'Xem trước trải nghiệm học tập, trình chiếu trực tiếp hoặc mở phòng học.' : 'Preview the learner experience, present live or open a classroom.'}</p></div></header>
+          <div className="lp29-preview-sheet"><header><div><small>{pack.unit || 'LESSON PACK'}</small><h3>{pack.title}</h3><p>{pack.objectives}</p></div><div><span>{pack.className || 'Class'}</span><span>{pack.level}</span><span>{totalMinutes} min</span></div></header>{pack.items.slice(0,4).map((item,index)=><div key={item.id} className="lp29-preview-row"><span>{index+1}</span><div><b>{item.title}</b><small>{label(item.type,language)} · {item.minutes} min</small></div></div>)}</div>
+          <div className="lp29-delivery-actions"><button type="button" className="primary" disabled={!pack.items.length} onClick={() => setLive(true)}>▶ {language === 'vi' ? 'Trình chiếu nhanh' : 'Quick presentation'}</button><button type="button" onClick={() => { window.location.hash=`#/classroom-delivery?pack=${encodeURIComponent(pack.id)}`; }}>⌁ {language === 'vi' ? 'Mở phòng học' : 'Open classroom'}</button><button type="button" onClick={() => window.print()}>⌘P {language === 'vi' ? 'In bản xem trước' : 'Print preview'}</button></div>
+          <footer className="lp29-card-actions"><button type="button" className="secondary" onClick={() => setStep(4)}>← {language === 'vi' ? 'Hoạt động & AI' : 'Activities & AI'}</button><button type="button" className="primary" onClick={() => setStep(6)}>{language === 'vi' ? 'Tiếp tục: Xuất bản' : 'Continue: Publish'} →</button></footer>
+        </section>
+        <aside className="lp29-support-stack"><ProgressCard completion={completion} language={language} /><OutputCard language={language} onPreview={() => setStep(6)} /></aside>
+      </div> : null}
+
+      {pack && step === 6 ? <div className="lp29-stage lp29-stage-publish">
+        <section className="lp29-card lp29-primary-card"><header className="lp29-section-head"><span>6</span><div><h2>{language === 'vi' ? 'Xuất bản & chia sẻ' : 'Publish & share'}</h2><p>{language === 'vi' ? 'Kiểm tra lần cuối, lưu phiên bản và xuất gói bài dạy theo định dạng phù hợp.' : 'Run final checks, save a version and export the lesson pack.'}</p></div></header>
+          <div className="lp29-publish-grid"><button type="button" onClick={() => download(`${fileName(pack.title)}.json`,JSON.stringify(pack,null,2))}><span>JSON</span><b>{language === 'vi' ? 'Bản sao dữ liệu' : 'Data backup'}</b><small>{language === 'vi' ? 'Lưu toàn bộ cấu trúc và nội dung' : 'Save structure and content'}</small></button><button type="button" onClick={() => download(`${fileName(pack.title)}.html`,exportHtml(pack,language),'text/html')}><span>HTML</span><b>{language === 'vi' ? 'Gói tương tác' : 'Interactive pack'}</b><small>{language === 'vi' ? 'Mở trên trình duyệt hoặc LMS' : 'Open in browser or LMS'}</small></button><button type="button" onClick={() => window.print()}><span>PDF</span><b>{language === 'vi' ? 'Bản in / PDF' : 'Print / PDF'}</b><small>{language === 'vi' ? 'Dành cho giáo viên và học sinh' : 'For teachers and students'}</small></button><button type="button" onClick={() => { window.location.hash=`#/classroom-delivery?pack=${encodeURIComponent(pack.id)}`; }}><span>LIVE</span><b>{language === 'vi' ? 'Lớp học trực tiếp' : 'Live classroom'}</b><small>{language === 'vi' ? 'Mã tham gia, đội và kết quả' : 'Join code, teams and results'}</small></button></div>
+          <div className={`lp29-publish-status ${issues.length ? 'warning' : 'ready'}`}><span>{issues.length ? '!' : '✓'}</span><div><b>{issues.length ? (language === 'vi' ? `${issues.length} mục cần xem lại` : `${issues.length} items need review`) : (language === 'vi' ? 'Gói bài dạy đã sẵn sàng' : 'Lesson pack is ready')}</b><p>{issues[0] || (language === 'vi' ? 'Không phát hiện vấn đề nghiêm trọng trước khi xuất bản.' : 'No critical issues detected before publishing.')}</p></div></div>
+          <footer className="lp29-card-actions"><button type="button" className="secondary" onClick={() => setStep(5)}>← {language === 'vi' ? 'Trình chiếu & giao bài' : 'Delivery'}</button><button type="button" className="primary" disabled={saving} onClick={publishPack}>↥ {saving ? (language === 'vi' ? 'Đang xuất bản…' : 'Publishing…') : (language === 'vi' ? 'Xuất bản gói bài dạy' : 'Publish lesson pack')}</button></footer>
+        </section>
+        <aside className="lp29-support-stack"><QuickCheckCard issues={issues} language={language} onFix={() => setStep(issues.some((item)=>item.includes('lớp')||item.includes('mục tiêu')) ? 1 : 4)} /><ResourceCard counts={resourceCounts} language={language} /></aside>
+      </div> : null}
+
+      <section className="lp29-workflow-preview"><h2>{language === 'vi' ? 'Bản xem nhanh workflow' : 'Workflow overview'}</h2><div className="lp29-preview-cards"><article className="teacher"><span>♙</span><div><h3>Teacher flow</h3><p>{language === 'vi' ? 'Quy trình thiết kế từ mục tiêu đến xuất bản.' : 'Design workflow from goals to publishing.'}</p><div className="lp29-mini-steps">{LESSON_PACK_WORKFLOW.map((item)=><i key={item.id} className={item.id <= step ? 'done' : ''}>{item.id}</i>)}</div></div><button type="button" onClick={() => setStep(Math.min(6,step+1))}>{language === 'vi' ? 'Tiếp tục' : 'Continue'}</button></article><article className="student"><span>♧</span><div><h3>Student delivery</h3><p>{language === 'vi' ? 'Trải nghiệm học tập theo tuần tự hoạt động.' : 'Sequential learner experience.'}</p><div className="lp29-mini-steps blue">{[1,2,3,4].map((item)=><i key={item} className={item <= Math.min(4,pack?.items.length || 0) ? 'done' : ''}>{item}</i>)}</div></div><button type="button" onClick={() => setStep(5)}>{language === 'vi' ? 'Xem trước' : 'Preview'}</button></article><article className="export"><span>↥</span><div><h3>Export outputs</h3><p>{language === 'vi' ? 'Các định dạng xuất bản và chia sẻ.' : 'Publishing and sharing formats.'}</p><div className="lp29-format-chips"><i>PPTX</i><i>PDF</i><i>HTML</i><i>JSON</i></div></div><button type="button" onClick={() => setStep(6)}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button></article></div></section>
     </section>
     {editingItem ? <ItemEditor item={editingItem} language={language} onChange={(patch) => updateItem(editingItem.id, patch)} onClose={() => setEditingId('')} /> : null}
   </div>;
+}
+
+function ProgressCard({ completion, language }) {
+  return <section className="lp29-card lp29-mini-card lp29-progress-card"><header><h3>{language === 'vi' ? 'Tiến độ gói bài dạy' : 'Lesson pack progress'}</h3><button type="button">{language === 'vi' ? 'Xem chi tiết' : 'Details'}</button></header><div className="lp29-progress-content"><span style={{ '--progress': `${completion * 3.6}deg` }}><b>{completion}%</b></span><div><i style={{ width: `${completion}%` }} /><small>{language === 'vi' ? `Đã hoàn thành khoảng ${Math.round(completion / 100 * 6)}/6 bước` : `About ${Math.round(completion / 100 * 6)}/6 steps complete`}</small></div></div></section>;
+}
+function ResourceCard({ counts, language }) {
+  const entries = [['▤',language === 'vi' ? 'Tài liệu' : 'Docs',counts.docs],['▧',language === 'vi' ? 'Hình ảnh' : 'Images',counts.images],['▶','Video',counts.videos],['♫','Audio',counts.audio],['↗',language === 'vi' ? 'Liên kết' : 'Links',counts.links]];
+  return <section className="lp29-card lp29-mini-card"><header><h3>{language === 'vi' ? 'Tài nguyên đính kèm' : 'Attached resources'}</h3><button type="button">{language === 'vi' ? 'Quản lý' : 'Manage'}</button></header><div className="lp29-resource-grid">{entries.map(([icon,title,value])=><div key={title}><span>{icon}</span><b>{title}</b><small>{value}</small></div>)}</div></section>;
+}
+function OutputCard({ language, onPreview }) {
+  return <section className="lp29-card lp29-mini-card"><header><h3>{language === 'vi' ? 'Chuỗi đầu ra' : 'Output chain'}</h3><button type="button" onClick={onPreview}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button></header><div className="lp29-output-chips"><span>{language === 'vi' ? 'Slide trình chiếu' : 'Presentation'}</span><span>{language === 'vi' ? 'Phiếu học tập' : 'Worksheet'}</span><span>{language === 'vi' ? 'Bài tập online' : 'Online task'}</span><span>{language === 'vi' ? 'Bảng tiêu chí' : 'Rubric'}</span></div></section>;
+}
+function QuickCheckCard({ issues, language, onFix }) {
+  return <section className={`lp29-card lp29-mini-card lp29-check-card ${issues.length ? 'warning' : 'ready'}`}><header><h3>{language === 'vi' ? 'Kiểm tra nhanh' : 'Quick check'}</h3><button type="button" onClick={onFix}>↻ {language === 'vi' ? 'Kiểm tra lại' : 'Check again'}</button></header><div><span>{issues.length ? '!' : '✓'}</span><p>{issues[0] || (language === 'vi' ? 'Chưa phát hiện vấn đề. Gói bài của bạn đã sẵn sàng tiếp tục.' : 'No issues found. Your lesson pack is ready to continue.')}</p></div></section>;
 }

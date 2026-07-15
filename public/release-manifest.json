@@ -1,6 +1,6 @@
 {
-  "version": "12.28.0",
-  "release": "Worksheet Factory Modern Hero",
+  "version": "12.29.0",
+  "release": "Lesson Pack Connected Workflow",
   "runtime": "2.5.6",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-15T05:52:15.607Z",
+  "generatedAt": "2026-07-15T07:11:03.210Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -235,7 +235,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "Worksheet Factory Modern Hero",
+  "releaseName": "Lesson Pack Connected Workflow",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -524,5 +524,10 @@
   "worksheetModernHero": true,
   "worksheetFullWidthHero": true,
   "worksheetHeroIllustration": true,
-  "worksheetSidebar": false
+  "worksheetSidebar": false,
+  "lessonPackWorkflowV2": true,
+  "lessonPackSixStepFlow": true,
+  "lessonPackSidebar": false,
+  "lessonPackModernHero": true,
+  "lessonPackConnectedDelivery": true
 }

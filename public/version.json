@@ -1,14 +1,14 @@
 {
-  "version": "12.28.0",
+  "version": "12.29.0",
   "channel": "stable",
-  "releaseName": "Worksheet Factory Modern Hero",
+  "releaseName": "Lesson Pack Connected Workflow",
   "runtimeCore": "3.6.2",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
   "requiredMigration": "supabase/brian_v11_4_2_lesson_integration.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-15T05:52:15.607Z",
+  "generatedAt": "2026-07-15T07:11:03.210Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -313,7 +313,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Worksheet Factory Modern Hero",
+  "release": "Lesson Pack Connected Workflow",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -519,5 +519,10 @@
   "worksheetModernHero": true,
   "worksheetFullWidthHero": true,
   "worksheetHeroIllustration": true,
-  "worksheetSidebar": false
+  "worksheetSidebar": false,
+  "lessonPackWorkflowV2": true,
+  "lessonPackSixStepFlow": true,
+  "lessonPackSidebar": false,
+  "lessonPackModernHero": true,
+  "lessonPackConnectedDelivery": true
 }
