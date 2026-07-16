@@ -6,29 +6,29 @@ import { launchRoute } from '../utils/motion.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 import { UILaunchHero, UILaunchPage, UILaunchPinned, UILaunchStage } from '../ui-core/components/UILaunch.jsx';
-import './HomeV1215.css';
+import './HomeV12406.css';
 
 const palette = {
-  ink: '#191515',
-  cream: '#f3dfd8',
-  peach: '#ffc69d',
-  blush: '#c9aaa6',
-  orange: '#e95f08',
-  plum: '#5d123f',
-  yellow: '#f7d23b',
-  aqua: '#d9f6f7',
-  teal: '#2bb7b3',
-  mint: '#aee3ba',
-  lime: '#c7da56',
-  blue: '#6ed7ff',
-  navy: '#16151c',
+  ink: '#202a21',
+  cream: '#fff8e8',
+  peach: '#ff8a68',
+  blush: '#ffc5ad',
+  orange: '#ff7b55',
+  plum: '#7659b9',
+  yellow: '#ffe68a',
+  aqua: '#c8f1e5',
+  teal: '#55c9c3',
+  mint: '#9be1a9',
+  lime: '#b2c248',
+  blue: '#7ea5f5',
+  navy: '#15251d',
   white: '#ffffff',
 };
 
 const routeColors = {
-  home: palette.peach,
+  home: palette.lime,
   apps: palette.teal,
-  games: palette.plum,
+  games: '#a98bef',
   department: palette.orange,
   library: '#6fba7b',
   admin: '#ef4f6f',
@@ -95,13 +95,6 @@ const iconPaths = {
       <path d="M29 33h13M29 45h11M61 33h13M61 45h11" />
     </>
   ),
-  exam: (
-    <>
-      <path d="M30 14h40v72H30V14Z" />
-      <path d="M40 30h22M40 43h22M40 56h16" />
-      <path d="M63 65l7 7 15-18" />
-    </>
-  ),
   game: (
     <>
       <path d="M25 42h50c8 0 14 6 16 16l3 16c2 9-5 15-13 10L66 74H34L19 84c-8 5-15-1-13-10l3-16c2-10 8-16 16-16Z" />
@@ -144,23 +137,10 @@ const iconPaths = {
       <path d="M35 62 45 38h10l10 24M40 53h20" />
     </>
   ),
-  worksheet: (
-    <>
-      <path d="M27 14h40l12 12v60H27V14Z" />
-      <path d="M67 14v14h14M38 43h30M38 55h30M38 67h20" />
-    </>
-  ),
   textcare: (
     <>
       <path d="M20 22h24v24H20V22ZM56 22h24v24H56V22ZM20 58h24v24H20V58ZM56 58h24v24H56V58Z" />
       <path d="M26 34h12M62 34h12M26 70h12M62 70h12" />
-    </>
-  ),
-  reading: (
-    <>
-      <path d="M18 20h28c5 0 8 3 8 8v55c0-5-3-8-8-8H18V20Z" />
-      <path d="M82 20H54v63c0-5 3-8 8-8h20V20Z" />
-      <path d="M28 36h16M28 48h14M62 36h12M62 48h14" />
     </>
   ),
   wordgraph: (
@@ -171,28 +151,9 @@ const iconPaths = {
       <path d="M44 48 58 33M44 56l14 15" />
     </>
   ),
-  speaking: (
-    <>
-      <path d="M15 20h54v39H40L25 73V59H15V20Z" />
-      <path d="M46 42h39v31H70L58 83V73H46V42Z" />
-      <path d="M27 35h30M27 45h20M58 56h17" />
-    </>
-  ),
   grammar: (
     <>
       <path d="M18 58 34 42l16 16-16 16-16-16ZM42 32l16-16 16 16-16 16-16-16ZM50 70l16-16 16 16-16 16-16-16Z" />
-    </>
-  ),
-  writing: (
-    <>
-      <path d="m20 76 7-23 37-37 18 18-37 37-25 5Z" />
-      <path d="m55 25 18 18M27 53l18 18M20 76l8-8" />
-    </>
-  ),
-  pronunciation: (
-    <>
-      <path d="M18 54v-8M30 66V34M42 77V23M54 68V32M66 61V39M78 54v-8" />
-      <path d="M14 50h70" opacity=".28" />
     </>
   ),
   contact: (
@@ -565,7 +526,12 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
   ].filter((item) => canShowId(item.visibilityId)), [windows, visibilitySnapshot, currentUser?.role]);
 
   return (
-    <UILaunchPage app="home" className={`flat-design-home home-v1137 home-v1215 motion-${effectiveMotionMode}`} aria-label="Brian English homepage">
+    <UILaunchPage
+      app="home"
+      className={`flat-design-home home-v12406 motion-${effectiveMotionMode}`}
+      data-home-theme="avocado-raised"
+      aria-label="Brian English homepage"
+    >
       <UILaunchHero className="flat-hero-zone">
         <div className="flat-hero-copy">
           <p className="flat-kicker">{t.kicker}</p>

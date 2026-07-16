@@ -1,14 +1,14 @@
 {
-  "version": "12.40.5",
+  "version": "12.40.6",
   "channel": "stable",
-  "releaseName": "Retired Apps Cleanup",
-  "runtimeCore": "9.0.5",
-  "schemaVersion": "12.40.5",
+  "releaseName": "Avocado Raised Home",
+  "runtimeCore": "9.0.6",
+  "schemaVersion": "12.40.6",
   "requiresSql": true,
   "requiredMigration": "supabase/brian_v12_37_ai_governance_cloud.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-16T12:22:13.992Z",
+  "generatedAt": "2026-07-16T12:54:03.615Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -66,8 +66,8 @@
     "assessment",
     "custom"
   ],
-  "runtime": "9.0.5",
-  "schema": "12.40.5",
+  "runtime": "9.0.6",
+  "schema": "12.40.6",
   "lessonIntegrationNativeAiBridge": true,
   "lessonIntegrationProviderInheritance": true,
   "lessonIntegrationLargeProposalCards": true,
@@ -208,7 +208,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "Retired Apps Cleanup",
+  "release": "Avocado Raised Home",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -494,7 +494,7 @@
   "openRouterProviderHub": true,
   "multiProviderRuntime": false,
   "providerFallback": false,
-  "appVersion": "12.40.5",
+  "appVersion": "12.40.6",
   "legacyProviderUiRemoved": true,
   "providerCount": 1,
   "openRouterProductionRuntime": true,
@@ -534,5 +534,10 @@
   "openRouterFastFreeFallbackModel": "openrouter/free",
   "retiredAppsFullRemoval": true,
   "retiredAppRoutesBlocked": true,
-  "retiredAppSourceModulesRemoved": true
+  "retiredAppSourceModulesRemoved": true,
+  "homepageTheme": "avocado-raised",
+  "homepagePrimaryColor": "#B2C248",
+  "homepageDimensionalCards": true,
+  "homepageVividRegions": true,
+  "homepageResponsiveLayout": true
 }

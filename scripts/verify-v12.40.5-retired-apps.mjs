@@ -34,6 +34,7 @@ const retiredCssPatterns = [
   /\.(?:reading|speaking|smartid|pc|wf2|wf3)-/i,
   /\.practice-(?:v39|page|player|progress|question-card|results|topline|options)/i,
 ];
+const currentVersion = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
 
 function collectRuntimeFiles(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -71,7 +72,7 @@ assert.equal(mainSource.includes("'practice'"), false, 'The retired Learner Spri
 
 for (const manifestPath of ['public/version.json', 'public/release-manifest.json']) {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  assert.equal(manifest.version, '12.40.5');
+  assert.equal(manifest.version, currentVersion);
   const serializedManifest = JSON.stringify(manifest);
   for (const slug of retiredSlugs) {
     assert.equal(serializedManifest.includes(slug), false, `${manifestPath} still publicly exposes ${slug}`);
