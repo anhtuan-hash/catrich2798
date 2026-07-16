@@ -2,12 +2,23 @@ import { supabase } from './supabase.js';
 
 export const AI_SERVER_CONTRACT = 'bes-ai-core/1.3';
 export const AI_SERVER_ENDPOINT = '/api/ai';
+const ACCESS_TOKEN_CACHE_MS = 20_000;
+const HEALTH_CACHE_MS = 120_000;
+let accessTokenCache = { value: '', expiresAt: 0 };
+let healthCache = { value: null, expiresAt: 0 };
 
 async function getAccessToken() {
   if (!supabase) return '';
+  if (accessTokenCache.expiresAt > Date.now()) return accessTokenCache.value;
   try {
     const { data } = await supabase.auth.getSession();
-    return String(data?.session?.access_token || '');
+    const value = String(data?.session?.access_token || '');
+    const sessionExpiresAt = Math.max(0, Number(data?.session?.expires_at || 0) * 1000 - 5_000);
+    accessTokenCache = {
+      value,
+      expiresAt: Math.min(Date.now() + ACCESS_TOKEN_CACHE_MS, sessionExpiresAt || Date.now() + ACCESS_TOKEN_CACHE_MS),
+    };
+    return value;
   } catch {
     return '';
   }
@@ -153,7 +164,8 @@ export async function callAiImageGateway({ prompt = '', imageDataUrl = '', taskI
   return payload;
 }
 
-export async function getAiServerHealth({ signal } = {}) {
+export async function getAiServerHealth({ signal, force = false } = {}) {
+  if (!force && healthCache.value && healthCache.expiresAt > Date.now()) return healthCache.value;
   const accessToken = await getAccessToken();
   const response = await fetch(AI_SERVER_ENDPOINT, {
     method: 'POST',
@@ -163,6 +175,23 @@ export async function getAiServerHealth({ signal } = {}) {
     },
     signal,
     body: JSON.stringify({ contract: AI_SERVER_CONTRACT, operation: 'health' }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || payload?.ok === false) throw createGatewayError(payload, response.status);
+  healthCache = { value: payload, expiresAt: Date.now() + HEALTH_CACHE_MS };
+  return payload;
+}
+
+export async function warmAiServerGateway({ signal } = {}) {
+  const accessToken = await getAccessToken();
+  const response = await fetch(AI_SERVER_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
+    signal,
+    body: JSON.stringify({ contract: AI_SERVER_CONTRACT, operation: 'warmup' }),
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || payload?.ok === false) throw createGatewayError(payload, response.status);

@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import '../ui-core/styles/apps-hero-v1216.css';
+import '../ui-core/styles/apps-cards-v1217.css';
 import PermissionRequestButton from '../components/PermissionRequestButton.jsx';
 import FlatAppIcon from '../components/FlatAppIcon.jsx';
 import { getAppDesignProfile } from '../data/designProfiles.js';

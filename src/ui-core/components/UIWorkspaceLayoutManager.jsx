@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import '../styles/workspace-layout.css';
 import { loadWorkspace } from '../../utils/workspace.js';
 import { UIOverlayPortal, UIOverlaySurface } from './UIOverlays.jsx';
 import {

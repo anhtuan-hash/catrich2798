@@ -1,4 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import '../ui-core/styles/department-command-v1219.css';
+import '../ui-core/styles/department-interactive-v1220.css';
+import '../ui-core/styles/department-refined-v1221.css';
+import '../ui-core/styles/department-color-system-v1222.css';
 import SectionHeader from '../components/SectionHeader.jsx';
 import PermissionRequestButton from '../components/PermissionRequestButton.jsx';
 import { DEPARTMENT_MODULES, DEPARTMENT_TEMPLATES, POLICY_PINS } from '../data/department.js';

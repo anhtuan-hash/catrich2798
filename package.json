@@ -1,7 +1,7 @@
 {
   "name": "brian-english-studio",
   "private": true,
-  "version": "12.40.8",
+  "version": "12.40.9",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -88,7 +88,7 @@
     "test:v11.5.6": "npm run version:sync && node scripts/check-v11.5.6.mjs",
     "release:guard:v11.5.6": "node scripts/release-guard-v11.5.6.mjs",
     "verify:v11.5.6": "npm run test:v11.5.6 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.6",
-    "version:sync": "node scripts/sync-version-v12.40.8.mjs",
+    "version:sync": "node scripts/sync-version-v12.40.9.mjs",
     "audit:budget": "node scripts/performance-budget-v11.6.0.mjs",
     "release:guard": "node scripts/release-guard-v11.6.1.mjs",
     "test:v11.5.8": "npm run version:sync && node scripts/check-v11.5.8.mjs",
@@ -185,7 +185,11 @@
     "test:v12.40.6": "node scripts/verify-v12.40.6-avocado-home.mjs",
     "verify:v12.40.6": "npm run test:v12.40.5 && npm run test:v12.40.6 && npm run build && npm test && npm run test:department",
     "test:v12.40.8": "node scripts/verify-v12.40.8-visual-harmony.mjs",
-    "verify:v12.40.8": "npm run test:v12.40.5 && npm run test:v12.40.6 && npm run test:v12.40.8 && npm run build && npm test && npm run test:department"
+    "verify:v12.40.8": "npm run test:v12.40.5 && npm run test:v12.40.6 && npm run test:v12.40.8 && npm run build && npm test && npm run test:department",
+    "test:ai:v12.40.9": "node scripts/test-v12.40.9-fast-free-streaming.mjs",
+    "test:v12.40.9": "node scripts/verify-v12.40.9-stability-speed.mjs",
+    "audit:v12.40.9": "node scripts/performance-contract-v12.40.9.mjs",
+    "verify:v12.40.9": "npm run test:v12.40.5 && npm run test:v12.40.6 && npm run test:v12.40.8 && npm run test:ai:v12.40.9 && npm run test:v12.40.9 && npm run build && npm run audit:v12.40.9 && npm test && npm run test:department"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
@@ -198,7 +202,7 @@
     "read-excel-file": "^9.3.1",
     "vite": "^8.1.3"
   },
-  "description": "Brian English Studio V12.40.8 — Three-tier Avocado Visual Harmony with clearer recent applications.",
+  "description": "Brian English Studio V12.40.9 — Stability and Speed with route-level CSS and faster free AI streaming.",
   "engines": {
     "node": "22.x"
   },

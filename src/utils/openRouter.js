@@ -99,6 +99,7 @@ async function callOpenRouterProvider({
       fastFreeSelectionSource: String(payload?.fastFreeSelectionSource || ''),
       fastFreeCatalogDurationMs: Math.max(0, Number(payload?.fastFreeCatalogDurationMs || 0)),
       fastFreeFallback: Boolean(payload?.fastFreeFallback),
+      firstTokenMs: Math.max(0, Number(payload?.firstTokenMs || 0)),
       fallbackUsed: Boolean(payload?.fallbackUsed),
       creditFallback: Boolean(payload?.creditFallback),
       affordableTokens: Math.max(0, Number(payload?.affordableTokens || 0)),

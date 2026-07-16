@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import '../ui-core/styles/settings-experience-v1225.css';
 import { getAiServerHealth } from '../utils/aiServerGateway.js';
 import { runOpenRouterProductionDiagnostics } from '../utils/openRouterDiagnostics.js';
 import { ACCENT_COLORS, UI_PREFERENCES_SYNC_EVENT } from '../ui-core/runtime/uiPreferences.js';

@@ -7,22 +7,13 @@ import './ui-core/styles/platform-core.css';
 import './ui-core/styles/workspace-core.css';
 import './ui-core/styles/activity-core.css';
 import './ui-core/styles/overlay-core.css';
-import './ui-core/styles/command-center.css';
 import './ui-core/styles/design-adapters.css';
-import './ui-core/styles/workspace-layout.css';
 import './ui-core/styles/v11-navigation-restoration.css';
-import './ui-core/styles/apps-hero-v1216.css';
-import './ui-core/styles/apps-cards-v1217.css';
 import './ui-core/styles/widescreen-v1218.css';
-import './ui-core/styles/department-command-v1219.css';
-import './ui-core/styles/department-interactive-v1220.css';
-import './ui-core/styles/department-refined-v1221.css';
-import './ui-core/styles/department-color-system-v1222.css';
 import './ui-core/styles/department-detail-workspace-v1223.css';
-import './ui-core/styles/admin-center-v1224.css';
-import './ui-core/styles/settings-experience-v1225.css';
 import './ui-core/styles/ai-control-plane-v1236.css';
 import './ui-core/styles/chrome-visual-harmony-v12408.css';
+import './ui-core/styles/stability-speed-v12409.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import AppErrorBoundary from './components/AppErrorBoundary.jsx';
@@ -30,7 +21,7 @@ import Footer from './components/Footer.jsx';
 import PermissionRequestButton from './components/PermissionRequestButton.jsx';
 import { initializeAuthSession, logoutUser, subscribeToAuthChanges } from './utils/auth.js';
 import { getActiveAiConfig, getAiConfigs, getAiProvider, getProviderSummary, setAiStorageUser } from './utils/aiProviders.js';
-import { getAiServerHealth } from './utils/aiServerGateway.js';
+import { getAiServerHealth, warmAiServerGateway } from './utils/aiServerGateway.js';
 import { getFirstAllowedRoute, getRoutePermissionId, getPermissionItem, hasRouteAccess } from './utils/permissions.js';
 import { installStoredPersonalFont, waitForPersonalFontLoad } from './utils/personalFont.js';
 import { applyPerformanceAttributes, getStoredMotionMode, getStoredPerformanceMode, resolveMotionMode, resolvePerformanceMode } from './utils/performanceProfile.js';
@@ -142,6 +133,80 @@ const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroo
 const EMBEDDED_WORKSPACE = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === '1';
 
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
+
+const ROUTE_PREFETCHERS = {
+  home: () => import('./pages/Home.jsx'),
+  apps: () => import('./pages/WebApps.jsx'),
+  news: () => import('./pages/NewsReader.jsx'),
+  games: () => import('./pages/Games.jsx'),
+  tools: () => import('./pages/SpecialTools.jsx'),
+  department: () => import('./pages/DepartmentWorkspace.jsx'),
+  homeroom: () => import('./pages/HomeroomWorkspace.jsx'),
+  library: () => import('./pages/Library.jsx'),
+  'resource-library': () => import('./pages/ResourceLibrary.jsx'),
+  settings: () => import('./pages/Settings.jsx'),
+  admin: () => import('./pages/AdminPage.jsx'),
+  tool: () => import('./pages/ToolPage.jsx'),
+};
+
+function routeFromNavigationTarget(target) {
+  const link = target?.closest?.('a[href*="#/"]');
+  if (!link) return '';
+  const hash = String(link.getAttribute('href') || '').split('#/')[1] || '';
+  const route = hash.split(/[?&/]/)[0];
+  return route === 'tool' ? 'tool' : route;
+}
+
+function useDeferredShell(userKey = '') {
+  const [state, setState] = useState({ key: '', phase: 0 });
+  useEffect(() => {
+    if (!userKey) return undefined;
+    let cancelled = false;
+    let idleId = 0;
+    const interactiveTimer = window.setTimeout(() => {
+      if (!cancelled) setState((current) => ({
+        key: userKey,
+        phase: current.key === userKey ? Math.max(current.phase, 1) : 1,
+      }));
+    }, 220);
+    const markIdle = () => {
+      if (!cancelled) setState({ key: userKey, phase: 2 });
+    };
+    if ('requestIdleCallback' in window) idleId = window.requestIdleCallback(markIdle, { timeout: 1400 });
+    else idleId = window.setTimeout(markIdle, 1100);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(interactiveTimer);
+      if ('cancelIdleCallback' in window) window.cancelIdleCallback(idleId);
+      else window.clearTimeout(idleId);
+    };
+  }, [userKey]);
+  const readyForUser = !userKey || state.key === userKey;
+  return {
+    interactiveReady: readyForUser && (!userKey || state.phase >= 1),
+    idleReady: readyForUser && (!userKey || state.phase >= 2),
+  };
+}
+
+function useRoutePrefetch(currentRoute, enabled) {
+  useEffect(() => {
+    if (!enabled || navigator.connection?.saveData) return undefined;
+    let cancelled = false;
+    const preload = (route) => {
+      if (!cancelled) ROUTE_PREFETCHERS[route]?.().catch(() => {});
+    };
+    const neighbor = currentRoute === 'home' ? 'apps' : currentRoute === 'apps' ? 'games' : '';
+    if (neighbor) preload(neighbor);
+    const onPointerOver = (event) => preload(routeFromNavigationTarget(event.target));
+    document.addEventListener('pointerover', onPointerOver, { passive: true });
+    document.addEventListener('focusin', onPointerOver);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('pointerover', onPointerOver);
+      document.removeEventListener('focusin', onPointerOver);
+    };
+  }, [currentRoute, enabled]);
+}
 
 function getInitialRoute() {
   const href = window.location.href || '';
@@ -262,11 +327,19 @@ function App() {
       return undefined;
     }
     let alive = true;
+    let warmed = false;
+    let warmupId = 0;
     const controller = new AbortController();
     const checkGateway = async () => {
       try {
         const health = await getAiServerHealth({ signal: controller.signal });
         if (alive) setAiGatewayReady(Boolean(health?.configured && health?.ok !== false));
+        if (!warmed && health?.configured && health?.ok !== false) {
+          warmed = true;
+          const warm = () => warmAiServerGateway({ signal: controller.signal }).catch(() => {});
+          if ('requestIdleCallback' in window) warmupId = window.requestIdleCallback(warm, { timeout: 2400 });
+          else warmupId = window.setTimeout(warm, 1600);
+        }
       } catch {
         if (alive) setAiGatewayReady(false);
       }
@@ -277,6 +350,8 @@ function App() {
     return () => {
       alive = false;
       controller.abort();
+      if ('cancelIdleCallback' in window) window.cancelIdleCallback(warmupId);
+      else window.clearTimeout(warmupId);
       window.removeEventListener('focus', onFocus);
     };
   }, [authReady, currentUser?.id, currentUser?.email]);
@@ -475,6 +550,8 @@ function App() {
   const toolSlug = route.startsWith('tool/') ? route.replace('tool/', '') : '';
   const selectedTool = allTools.find((item) => item.slug === toolSlug);
   const currentRoute = ROUTES.includes(route) ? route : selectedTool ? 'tool' : 'home';
+  const deferredShell = useDeferredShell(authReady && currentUser ? String(currentUser.id || currentUser.email || 'user') : '');
+  useRoutePrefetch(currentRoute, deferredShell.idleReady);
   const appVisibility = useAppVisibility(currentUser);
   const visibilityId = visibilityIdForRoute(currentRoute, selectedTool);
   const visibilityReady = !currentUser || isAdminRole(currentUser?.role) || appVisibility.ready;
@@ -667,7 +744,7 @@ function App() {
         </div>
       ) : null}
 
-      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+      {deferredShell.interactiveReady && !EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="command-center" label={language === 'vi' ? 'trung tâm lệnh' : 'command center'}>
             <UICommandCenter
@@ -699,26 +776,26 @@ function App() {
         />
       </Suspense>
 
-      <Suspense fallback={null}>
+      {deferredShell.interactiveReady ? <Suspense fallback={null}>
         <GlobalAIReceipt language={language} />
-      </Suspense>
+      </Suspense> : null}
 
-      {effectiveMotionMode === 'full' && (
+      {deferredShell.idleReady && effectiveMotionMode === 'full' && (
         <Suspense fallback={null}>
           <FullMotionEffects route={currentRoute} language={language} loadingState={loadingState} />
         </Suspense>
       )}
-      {currentUser ? (
+      {deferredShell.idleReady && currentUser ? (
         <Suspense fallback={null}>
           <LessonIntegrationBridgeAdapter currentUser={currentUser} />
         </Suspense>
       ) : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
+      {deferredShell.idleReady && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
         <Suspense fallback={null}>
           <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
         </Suspense>
       ) : null}
-      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
+      {deferredShell.interactiveReady && !EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
         <Suspense fallback={null}>
           <UIWorkspaceLayoutManager
             currentUser={currentUser}
@@ -769,7 +846,7 @@ function App() {
         </Suspense>
       </main>
 
-      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+      {deferredShell.idleReady && !EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="global-autosave" label={language === 'vi' ? 'tự lưu' : 'autosave'}>
             <GlobalAutosave route={currentRoute} selectedTool={selectedTool} currentUser={currentUser} language={language} activityCenterOwned />
@@ -777,7 +854,7 @@ function App() {
         </Suspense>
       )}
 
-      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+      {deferredShell.interactiveReady && !EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="ai-messenger" label={language === 'vi' ? 'Brian AI' : 'Brian AI'}>
           <UniversalAIAssist
@@ -798,7 +875,7 @@ function App() {
         </Suspense>
       )}
 
-      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <>
+      {deferredShell.idleReady && !EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <>
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
             <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} appVisibility={appVisibility} />
@@ -808,12 +885,12 @@ function App() {
           <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher activityCenterOwned />
         </Suspense>
       </> : null}
-      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><UnifiedUtilityRail currentUser={currentUser} language={language} currentRoute={currentRoute} /></Suspense> : null}
-      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
+      {deferredShell.idleReady && !EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><UnifiedUtilityRail currentUser={currentUser} language={language} currentRoute={currentRoute} /></Suspense> : null}
+      {deferredShell.idleReady && !EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
       {!EMBEDDED_WORKSPACE && currentRoute !== 'homeroom-portal' ? <>
-        <Suspense fallback={null}>
+        {deferredShell.idleReady ? <Suspense fallback={null}>
           <GlobalMusicPlayer language={language} currentUser={currentUser} externalLauncher />
-        </Suspense>
+        </Suspense> : null}
         <Footer language={language} currentUser={currentUser} />
       </> : null}
       </div>
@@ -823,10 +900,8 @@ function App() {
 
 function RouteFallback({ language }) {
   return (
-    <div className="page narrow">
-      <section className="metro-panel empty-state">
-        <h1>{language === 'vi' ? 'Đang mở trang...' : 'Opening page...'}</h1>
-      </section>
+    <div className="bes-route-loading-v12409" role="status" aria-live="polite">
+      <div><i aria-hidden="true"/><span>{language === 'vi' ? 'Đang mở trang…' : 'Opening page…'}</span></div>
     </div>
   );
 }

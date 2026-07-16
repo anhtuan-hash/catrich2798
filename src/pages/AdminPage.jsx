@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import '../ui-core/styles/admin-center-v1224.css';
 import { getUsers, isAuthConfigured, repairCurrentAdminDatabaseRole, syncMissingProfilesFromAuth, updateUserApproval, updateUserPermissions, updateUserRole } from '../utils/auth.js';
 import { getPermissionRequests, PERMISSION_REQUESTS_EVENT, updatePermissionRequestStatus } from '../utils/permissionRequests.js';
 import {

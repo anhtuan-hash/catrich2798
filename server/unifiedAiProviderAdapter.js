@@ -5,6 +5,7 @@ const TRANSIENT_STATUSES = new Set([408, 409, 425, 429, 500, 502, 503, 504, 524,
 const FAST_FREE_CACHE_TTL_MS = 15 * 60 * 1000;
 const FAST_FREE_NEGATIVE_CACHE_TTL_MS = 3 * 60 * 1000;
 let fastFreeJsonCache = { model: '', source: 'none', expiresAt: 0, catalogDurationMs: 0 };
+let fastFreeTextCache = { model: '', source: 'none', expiresAt: 0, catalogDurationMs: 0 };
 
 function withStatus(error, status, code = '') {
   if (error && typeof error === 'object') {
@@ -74,6 +75,14 @@ function fastFreePrimaryTimeout() {
 
 function fastFreeFallbackTimeout() {
   return clamp(env('OPENROUTER_FAST_FREE_FALLBACK_TIMEOUT_MS'), 20_000, 120_000, 45_000);
+}
+
+function fastFreeTextPrimaryTimeout() {
+  return clamp(env('OPENROUTER_FAST_FREE_TEXT_TIMEOUT_MS'), 8_000, 60_000, 22_000);
+}
+
+function fastFreeTextFallbackTimeout() {
+  return clamp(env('OPENROUTER_FAST_FREE_TEXT_FALLBACK_TIMEOUT_MS'), 15_000, 90_000, 35_000);
 }
 
 function hasImageAttachment(options = {}) {
@@ -163,6 +172,63 @@ async function resolveFastFreeJsonModel(options = {}, { apiKey = '', baseUrl = '
     source: fastFreeJsonCache.source,
     catalogDurationMs: fastFreeJsonCache.catalogDurationMs,
   };
+}
+
+function isUsableFastFreeTextModel(model = {}, options = {}) {
+  const id = String(model?.id || '').toLowerCase();
+  if (!isFreeModelEntry(model)) return false;
+  if (/thinking|:thinking|deepseek-r1|rerank|embedding|moderation|guard|\bocr\b|vision|image/.test(id)) return false;
+  const minimumContext = Math.max(16_000, Math.ceil(String(options.prompt || '').length / 3) + Math.max(1200, Number(options.maxOutputTokens) || 0));
+  return Math.max(0, Number(model?.context_length || 0)) >= minimumContext;
+}
+
+async function resolveFastFreeTextModel(options = {}, { apiKey = '', baseUrl = '' } = {}) {
+  const profile = profileForTask(options);
+  const enabled = billingMode() === 'free'
+    && parseBool(process.env.OPENROUTER_FAST_FREE_MODE, true)
+    && parseBool(process.env.OPENROUTER_FAST_FREE_TEXT_MODE, true)
+    && options.responseMimeType !== 'application/json'
+    && ['diagnostic', 'fast', 'standard'].includes(profile)
+    && !hasImageAttachment(options)
+    && options.fastFreeBypass !== true;
+  if (!enabled) return { enabled: false, active: false, model: FREE_MODEL, source: 'router', catalogDurationMs: 0, kind: 'text' };
+
+  const configured = env('OPENROUTER_FREE_MODEL_TEXT');
+  if (configured && (configured === FREE_MODEL || /:free$/i.test(configured))) {
+    return { enabled: true, active: configured !== FREE_MODEL, model: configured, source: 'environment-text', catalogDurationMs: 0, kind: 'text' };
+  }
+
+  const now = Date.now();
+  if (fastFreeTextCache.model && fastFreeTextCache.expiresAt > now) {
+    return { enabled: true, active: fastFreeTextCache.model !== FREE_MODEL, ...fastFreeTextCache, kind: 'text' };
+  }
+
+  const startedAt = Date.now();
+  try {
+    const query = new URLSearchParams({ output_modalities: 'text', sort: 'latency-low-to-high' });
+    const response = await fetchWithAiTimeout(`${baseUrl}/models?${query}`, {
+      method: 'GET',
+      headers: requestHeaders(apiKey, options.requestId),
+      signal: options.signal,
+    }, 5_000);
+    if (!response.ok) throw new Error(`OpenRouter model catalog returned ${response.status}.`);
+    const payload = await response.json().catch(() => ({}));
+    const selected = (Array.isArray(payload?.data) ? payload.data : []).find((model) => isUsableFastFreeTextModel(model, options));
+    fastFreeTextCache = {
+      model: String(selected?.id || FREE_MODEL),
+      source: selected ? 'latency-catalog-text' : 'router-fallback-text',
+      expiresAt: now + (selected ? FAST_FREE_CACHE_TTL_MS : FAST_FREE_NEGATIVE_CACHE_TTL_MS),
+      catalogDurationMs: Date.now() - startedAt,
+    };
+  } catch {
+    fastFreeTextCache = {
+      model: FREE_MODEL,
+      source: 'catalog-unavailable-text',
+      expiresAt: now + FAST_FREE_NEGATIVE_CACHE_TTL_MS,
+      catalogDurationMs: Date.now() - startedAt,
+    };
+  }
+  return { enabled: true, active: fastFreeTextCache.model !== FREE_MODEL, ...fastFreeTextCache, kind: 'text' };
 }
 
 function parseAffordableTokens(message = '') {
@@ -367,7 +433,9 @@ async function executeChatRequest(options = {}, { stream = false } = {}) {
   const apiKey = env('OPENROUTER_API_KEY');
   if (!apiKey) throw withStatus(new Error('OPENROUTER_API_KEY is not configured on Vercel.'), 503, 'OPENROUTER_SERVER_KEY_MISSING');
   const baseUrl = env('OPENROUTER_BASE_URL', OPENROUTER_BASE_URL).replace(/\/+$/, '');
-  const fastFreeSelection = await resolveFastFreeJsonModel(options, { apiKey, baseUrl });
+  const fastFreeSelection = options.responseMimeType === 'application/json'
+    ? await resolveFastFreeJsonModel(options, { apiKey, baseUrl })
+    : await resolveFastFreeTextModel(options, { apiKey, baseUrl });
   const primary = buildChatBody(options, {
     stream,
     modelOverride: fastFreeSelection.enabled ? fastFreeSelection.model : '',
@@ -377,7 +445,7 @@ async function executeChatRequest(options = {}, { stream = false } = {}) {
     && primary.model !== FREE_MODEL;
   const boundedRouterRequest = options.fastFreeBypass === true
     && primary.billingMode === 'free'
-    && primary.profile === 'json';
+    && ['diagnostic', 'fast', 'standard', 'json'].includes(primary.profile);
   const fastMeta = {
     fastFreeMode: fastFreeSelection.enabled,
     fastFreePrimaryUsed,
@@ -396,9 +464,9 @@ async function executeChatRequest(options = {}, { stream = false } = {}) {
   try {
     const result = await send(primary, {
       timeoutMs: fastFreePrimaryUsed
-        ? fastFreePrimaryTimeout()
+        ? (fastFreeSelection.kind === 'text' ? fastFreeTextPrimaryTimeout() : fastFreePrimaryTimeout())
         : boundedRouterRequest
-          ? fastFreeFallbackTimeout()
+          ? (primary.profile === 'json' ? fastFreeFallbackTimeout() : fastFreeTextFallbackTimeout())
           : options.timeoutMs || primary.timeoutMs,
       maxAttempts: fastFreePrimaryUsed || boundedRouterRequest ? 1 : 2,
     });
@@ -412,7 +480,10 @@ async function executeChatRequest(options = {}, { stream = false } = {}) {
       });
       options.onRetry?.({ attempt: 1, delayMs: 0, status: Number(error?.status || 0), reason: 'fast-free-router-fallback', model: FREE_MODEL });
       try {
-        const result = await send(fallback, { timeoutMs: fastFreeFallbackTimeout(), maxAttempts: 1 });
+        const result = await send(fallback, {
+          timeoutMs: fastFreeSelection.kind === 'text' ? fastFreeTextFallbackTimeout() : fastFreeFallbackTimeout(),
+          maxAttempts: 1,
+        });
         return {
           ...result,
           attempts: 1 + result.attempts,
@@ -494,10 +565,49 @@ export function getServerAiReadiness() {
     freeFallbackModel: FREE_MODEL,
     freeDailyRequestLimitHint: 50,
     fastFreeMode,
+    fastFreeTextMode: fastFreeMode && parseBool(process.env.OPENROUTER_FAST_FREE_TEXT_MODE, true),
     fastFreeJsonModel: env('OPENROUTER_FREE_MODEL_JSON', 'latency-catalog'),
+    fastFreeTextModel: env('OPENROUTER_FREE_MODEL_TEXT', 'latency-catalog-text'),
     fastFreePrimaryTimeoutMs: fastFreePrimaryTimeout(),
     fastFreeFallbackTimeoutMs: fastFreeFallbackTimeout(),
+    fastFreeTextPrimaryTimeoutMs: fastFreeTextPrimaryTimeout(),
+    fastFreeTextFallbackTimeoutMs: fastFreeTextFallbackTimeout(),
     fastFreeCatalogCacheMinutes: FAST_FREE_CACHE_TTL_MS / 60_000,
+  };
+}
+
+export async function warmServerAiRuntime(options = {}) {
+  const readiness = getServerAiReadiness();
+  if (!readiness.configured || !readiness.fastFreeMode) return { ...readiness, warmed: false };
+  const apiKey = env('OPENROUTER_API_KEY');
+  const baseUrl = env('OPENROUTER_BASE_URL', OPENROUTER_BASE_URL).replace(/\/+$/, '');
+  const [text, json] = await Promise.all([
+    resolveFastFreeTextModel({
+      prompt: 'Brian AI fast conversation warmup',
+      maxOutputTokens: 900,
+      routingHint: 'fast',
+      taskId: 'runtime.warmup.text',
+      signal: options.signal,
+    }, { apiKey, baseUrl }),
+    resolveFastFreeJsonModel({
+      prompt: 'Brian AI structured content warmup',
+      responseMimeType: 'application/json',
+      maxOutputTokens: 1800,
+      routingHint: 'fast',
+      taskId: 'runtime.warmup.json',
+      signal: options.signal,
+    }, { apiKey, baseUrl }),
+  ]);
+  return {
+    ...readiness,
+    warmed: true,
+    warmup: {
+      textModel: text.model,
+      textSource: text.source,
+      jsonModel: json.model,
+      jsonSource: json.source,
+      durationMs: Math.max(text.catalogDurationMs || 0, json.catalogDurationMs || 0),
+    },
   };
 }
 
@@ -590,47 +700,115 @@ export async function callServerAI(options = {}) {
   };
 }
 
+async function consumeOpenRouterStream(execution, handlers = {}) {
+  const { response, config } = execution;
+  const reader = response.body?.getReader?.();
+  if (!reader) throw withStatus(new Error('OpenRouter streaming is unavailable.'), 502, 'OPENROUTER_STREAM_UNAVAILABLE');
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let text = '';
+  let actualModel = config.model;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+      let boundary = buffer.indexOf('\n');
+      while (boundary >= 0) {
+        const line = buffer.slice(0, boundary).trim();
+        buffer = buffer.slice(boundary + 1);
+        boundary = buffer.indexOf('\n');
+        if (!line.startsWith('data:')) continue;
+        const raw = line.slice(5).trim();
+        if (!raw || raw === '[DONE]') continue;
+        let data;
+        try { data = JSON.parse(raw); } catch { continue; }
+        if (data?.error) throw normalizeOpenRouterError({ error: data.error }, { status: Number(data.error.code || 502), headers: new Headers() });
+        actualModel = String(data?.model || actualModel);
+        const delta = data?.choices?.[0]?.delta?.content ?? data?.choices?.[0]?.message?.content ?? '';
+        const chunk = Array.isArray(delta) ? delta.map((part) => part?.text || '').join('') : String(delta || '');
+        if (chunk) {
+          text += chunk;
+          handlers.onToken?.(chunk, text);
+        }
+        if (data?.usage) handlers.onUsage?.(data.usage);
+      }
+      if (done) break;
+    }
+  } catch (error) {
+    error.partialText = text;
+    throw error;
+  }
+  return { text: text.trim(), actualModel };
+}
+
 export async function streamServerAI(options = {}, handlers = {}) {
   const cleanPrompt = String(options.prompt || '').trim();
   if (!cleanPrompt) throw withStatus(new Error('AI prompt is empty.'), 400, 'AI_PROMPT_EMPTY');
   const apiKey = env('OPENROUTER_API_KEY');
   if (!apiKey) throw withStatus(new Error('OPENROUTER_API_KEY is not configured on Vercel.'), 503, 'OPENROUTER_SERVER_KEY_MISSING');
   const startedAt = Date.now();
-  const { response, attempts, config, fallbackUsed, creditFallback, affordableTokens } = await executeChatRequest(options, { stream: true });
-  const { model, profile, requestedMaxTokens, actualMaxTokens } = config;
-  const reader = response.body?.getReader?.();
-  if (!reader) throw withStatus(new Error('OpenRouter streaming is unavailable.'), 502, 'OPENROUTER_STREAM_UNAVAILABLE');
-  const decoder = new TextDecoder();
-  let buffer = '';
-  let text = '';
-  let actualModel = model;
-  while (true) {
-    const { value, done } = await reader.read();
-    buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
-    let boundary = buffer.indexOf('\n');
-    while (boundary >= 0) {
-      const line = buffer.slice(0, boundary).trim();
-      buffer = buffer.slice(boundary + 1);
-      boundary = buffer.indexOf('\n');
-      if (!line.startsWith('data:')) continue;
-      const raw = line.slice(5).trim();
-      if (!raw || raw === '[DONE]') continue;
-      let data;
-      try { data = JSON.parse(raw); } catch { continue; }
-      if (data?.error) throw normalizeOpenRouterError({ error: data.error }, { status: Number(data.error.code || 502), headers: new Headers() });
-      actualModel = String(data?.model || actualModel);
-      const delta = data?.choices?.[0]?.delta?.content ?? data?.choices?.[0]?.message?.content ?? '';
-      const chunk = Array.isArray(delta) ? delta.map((part) => part?.text || '').join('') : String(delta || '');
-      if (chunk) {
-        text += chunk;
-        handlers.onToken?.(chunk, text);
-      }
-      if (data?.usage) handlers.onUsage?.(data.usage);
-    }
-    if (done) break;
+  let execution = await executeChatRequest(options, { stream: true });
+  let providerAttempts = execution.attempts;
+  let streamed;
+  try {
+    streamed = await consumeOpenRouterStream(execution, handlers);
+  } catch (error) {
+    const recoverableStreamError = canFallbackFromFastFree(error)
+      || /network|stream|terminated|failed to fetch|connection/i.test(String(error?.message || error));
+    if (options.signal?.aborted || !execution.fastFreePrimaryUsed || error.partialText || !recoverableStreamError) throw error;
+    options.onRetry?.({ attempt: providerAttempts, delayMs: 0, status: Number(error?.status || 0), reason: 'stream-fast-free-fallback', model: FREE_MODEL });
   }
-  if (!text.trim()) throw withStatus(new Error('OpenRouter returned no streamed output text.'), 502, 'OPENROUTER_EMPTY_RESPONSE');
-  return { text: text.trim(), provider: 'openrouter', model: actualModel, requestedModel: model, profile, transport: 'server-gateway-stream', durationMs: Date.now() - startedAt, requestId: options.requestId || null, providerAttempts: attempts, fallbackUsed, creditFallback, affordableTokens, requestedMaxTokens, actualMaxTokens, billingMode: config.billingMode };
+
+  if (!streamed?.text && execution.fastFreePrimaryUsed) {
+    options.onRetry?.({ attempt: providerAttempts, delayMs: 0, status: 200, reason: 'empty-stream-fast-free-fallback', model: FREE_MODEL });
+  }
+
+  if (!streamed?.text && execution.fastFreePrimaryUsed) {
+    const primaryExecution = execution;
+    execution = await executeChatRequest({
+      ...options,
+      sessionId: `${String(options.sessionId || options.requestId || 'bes').slice(0, 150)}:stream-retry:${Date.now()}`,
+      fastFreeBypass: true,
+    }, { stream: true });
+    providerAttempts += execution.attempts;
+    execution = {
+      ...execution,
+      fallbackUsed: true,
+      fastFreeMode: primaryExecution.fastFreeMode || execution.fastFreeMode,
+      fastFreePrimaryUsed: primaryExecution.fastFreePrimaryUsed,
+      fastFreeSelectedModel: primaryExecution.fastFreeSelectedModel,
+      fastFreeSelectionSource: primaryExecution.fastFreeSelectionSource,
+      fastFreeCatalogDurationMs: primaryExecution.fastFreeCatalogDurationMs,
+      fastFreeFallback: true,
+    };
+    streamed = await consumeOpenRouterStream(execution, handlers);
+  }
+
+  if (!streamed?.text) throw withStatus(new Error('OpenRouter returned no streamed output text after one controlled fallback.'), 502, 'OPENROUTER_EMPTY_RESPONSE');
+  const { config } = execution;
+  return {
+    text: streamed.text,
+    provider: 'openrouter',
+    model: streamed.actualModel,
+    requestedModel: config.model,
+    profile: config.profile,
+    transport: 'server-gateway-stream',
+    durationMs: Date.now() - startedAt,
+    requestId: options.requestId || null,
+    providerAttempts,
+    fallbackUsed: execution.fallbackUsed,
+    fastFreeMode: execution.fastFreeMode,
+    fastFreePrimaryUsed: execution.fastFreePrimaryUsed,
+    fastFreeSelectedModel: execution.fastFreeSelectedModel,
+    fastFreeSelectionSource: execution.fastFreeSelectionSource,
+    fastFreeCatalogDurationMs: execution.fastFreeCatalogDurationMs,
+    fastFreeFallback: execution.fastFreeFallback,
+    creditFallback: execution.creditFallback,
+    affordableTokens: execution.affordableTokens,
+    requestedMaxTokens: config.requestedMaxTokens,
+    actualMaxTokens: config.actualMaxTokens,
+    billingMode: config.billingMode,
+  };
 }
 
 export async function callServerImageAI(options = {}) {

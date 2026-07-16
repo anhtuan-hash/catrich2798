@@ -1,6 +1,6 @@
 import { appendApiAudit, createRequestId, enforceRateLimit, requireApprovedUser, sendJson } from './_security.js';
 import { handleLessonAiRequest } from '../server/lessonAiHandler.js';
-import { callServerAI, callServerImageAI, getServerAiReadiness, resolveServerAiProvider, streamServerAI } from '../server/unifiedAiProviderAdapter.js';
+import { callServerAI, callServerImageAI, getServerAiReadiness, resolveServerAiProvider, streamServerAI, warmServerAiRuntime } from '../server/unifiedAiProviderAdapter.js';
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'no-store',
@@ -176,6 +176,15 @@ export default async function handler(req, res) {
     await appendApiAudit(context, { endpoint: '/api/ai', action: 'health', status: readiness.configured ? 'ok' : 'error', requestId, details: readiness });
     return sendJson(res, readiness.configured ? 200 : 503, { ok: readiness.configured, ...readiness, requestId, error: readiness.configured ? '' : 'OPENROUTER_API_KEY is not configured on Vercel.' });
   }
+  if (operation === 'warmup') {
+    if (!readiness.configured) return sendJson(res, 503, { ok: false, ...readiness, requestId, error: 'OPENROUTER_API_KEY is not configured on Vercel.' });
+    try {
+      const result = await warmServerAiRuntime();
+      return sendJson(res, 200, { ok: true, ...result, requestId });
+    } catch (error) {
+      return sendJson(res, 200, { ok: true, ...readiness, warmed: false, warmupError: String(error?.message || error).slice(0, 240), requestId });
+    }
+  }
   if (!readiness.configured) return sendJson(res, 503, { ok: false, error: 'OPENROUTER_API_KEY is not configured on Vercel.', code: 'OPENROUTER_SERVER_KEY_MISSING', requestId, ...readiness });
 
   if (operation === 'image') {
@@ -214,12 +223,23 @@ export default async function handler(req, res) {
   if (wantsStream) {
     sseHeaders(res);
     sse(res, 'status', { phase: 'connecting', requestId, provider: 'openrouter', transport: 'server-gateway-stream' });
+    const streamStartedAt = Date.now();
+    let firstTokenAt = 0;
     try {
-      const result = await streamServerAI(options, {
-        onToken: (delta) => sse(res, 'token', { delta }),
+      const result = await streamServerAI({
+        ...options,
+        onRetry: (detail) => sse(res, 'status', { phase: 'retrying', requestId, ...detail }),
+      }, {
+        onToken: (delta) => {
+          if (!firstTokenAt) {
+            firstTokenAt = Date.now();
+            sse(res, 'status', { phase: 'first-token', requestId, firstTokenMs: firstTokenAt - streamStartedAt });
+          }
+          sse(res, 'token', { delta });
+        },
         onUsage: (usage) => sse(res, 'status', { phase: 'usage', usage }),
       });
-      sse(res, 'done', { ok: true, ...result, requestId, contract: 'bes-ai-core/1.3' });
+      sse(res, 'done', { ok: true, ...result, firstTokenMs: firstTokenAt ? firstTokenAt - streamStartedAt : 0, requestId, contract: 'bes-ai-core/1.3' });
       res.end();
       await appendApiAudit(context, { endpoint: '/api/ai', action: options.taskId, status: 'ok', requestId, details: { model: result.model, durationMs: result.durationMs, streaming: true, fallbackUsed: result.fallbackUsed, creditFallback: result.creditFallback, actualMaxTokens: result.actualMaxTokens } });
       return;

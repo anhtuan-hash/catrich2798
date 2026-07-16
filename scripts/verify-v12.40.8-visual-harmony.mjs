@@ -7,8 +7,7 @@ const shellSource = fs.readFileSync('src/ui-core/components/UnifiedShellChrome.j
 const tabsSource = fs.readFileSync('src/components/WorkspaceTabs.jsx', 'utf8');
 const harmonyCss = fs.readFileSync('src/ui-core/styles/chrome-visual-harmony-v12408.css', 'utf8').toLowerCase();
 
-assert.equal(packageJson.version, '12.40.8');
-assert.equal(packageJson.scripts['version:sync'], 'node scripts/sync-version-v12.40.8.mjs');
+assert.match(packageJson.version, /^12\.40\.(?:8|9)$/);
 assert.match(mainSource, /chrome-visual-harmony-v12408\.css/);
 assert.match(shellSource, /bes-visual-harmony-v12408/);
 assert.match(shellSource, /data-harmony-theme="avocado"/);
@@ -49,7 +48,7 @@ for (const requiredToken of [
 
 for (const manifestPath of ['public/version.json', 'public/release-manifest.json']) {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  assert.equal(manifest.version, '12.40.8');
+  assert.equal(manifest.version, packageJson.version);
   assert.equal(manifest.homepagePrimaryColor, '#B2C248');
   assert.equal(manifest.recentAppsCompactLimit, 5);
   assert.equal(manifest.recentAppsNamedActions, true);

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import '../styles/command-center.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../../data/apps.js';
 import { getAppDesignProfile } from '../../data/designProfiles.js';
 import { visibilityIdForRoute } from '../../data/appVisibilityRegistry.js';

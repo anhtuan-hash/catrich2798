@@ -6,4 +6,4 @@ Mở Terminal và dán đúng một lệnh:
 
 bash "$HOME/Downloads/CAI-V12.40.9.command"
 
-Trình cài đặt sẽ tự giải nén vào thư mục tạm, kiểm tra V12.40.9, build, test, cập nhật GitHub main và kích hoạt Vercel.
+Trình cài đặt sẽ tự giải nén vào thư mục tạm, kiểm tra hiệu năng và AI, build, test, cập nhật GitHub main và kích hoạt Vercel.

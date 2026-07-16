@@ -9,29 +9,38 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) return 'vendor-react';
-            if (id.includes('@supabase')) return 'vendor-supabase';
-            if (id.includes('pdfjs-dist')) return 'vendor-pdf';
-            if (id.includes('mammoth')) return 'vendor-docx';
-            return 'vendor-misc';
-          }
+        strictExecutionOrder: true,
+        // Keep dependencies shared by the app shell out of lazy route chunks.
+        // Recursive manual chunking previously pulled admin/department code and
+        // CSS into the first render even while those routes were closed.
+        codeSplitting: {
+          includeDependenciesRecursively: false,
+          groups: [{
+            name(id) {
+              if (id.includes('node_modules')) {
+                if (id.includes('react') || id.includes('react-dom')) return 'vendor-react';
+                if (id.includes('@supabase')) return 'vendor-supabase';
+                if (id.includes('pdfjs-dist')) return 'vendor-pdf';
+                if (id.includes('mammoth')) return 'vendor-docx';
+                return 'vendor-misc';
+              }
 
-          if (id.includes('/src/components/FullMotionEffects') || id.includes('/src/components/WP8TileTransition') || id.includes('/src/components/Win8Loader') || id.includes('/src/components/WindowsPhoneIndicator')) {
-            return 'motion-full-wp8';
-          }
-          if (id.includes('/src/components/GlobalMusicPlayer')) return 'chrome-music';
-          if (id.includes('/src/components/StatusMenuBar')) return 'chrome-status';
-          if (id.includes('/src/utils/documentParsers') || id.includes('/src/utils/pdfLoader')) return 'document-parsers';
+              if (id.includes('/src/components/FullMotionEffects') || id.includes('/src/components/WP8TileTransition') || id.includes('/src/components/Win8Loader') || id.includes('/src/components/WindowsPhoneIndicator')) {
+                return 'motion-full-wp8';
+              }
+              if (id.includes('/src/components/GlobalMusicPlayer')) return 'chrome-music';
+              if (id.includes('/src/components/StatusMenuBar')) return 'chrome-status';
+              if (id.includes('/src/utils/documentParsers') || id.includes('/src/utils/pdfLoader')) return 'document-parsers';
 
-          if (id.includes('/src/pages/DepartmentWorkspace')) return 'page-department';
-          if (id.includes('/src/pages/SpecializedAppPage') || id.includes('/src/utils/specializedAppEngines')) return 'tool-specialized-apps';
-          if (id.includes('/src/pages/TextCareStudio') || id.includes('/src/pages/LessonArchitect')) return 'tool-docs-lessons';
-          if (id.includes('/src/pages/ReadingStudio') || id.includes('/src/pages/SpeakingStudio') || id.includes('/src/pages/WordGraphStudio')) return 'tool-skills';
-          if (id.includes('/src/pages/TestBuilder') || id.includes('/src/pages/ClassroomGame') || id.includes('/src/pages/DominoWordForm')) return 'tool-games-tests';
-          if (id.includes('/src/pages/AdminPage') || id.includes('/src/pages/AuthPage') || id.includes('/src/pages/SupabaseSetup')) return 'auth-admin';
-          return undefined;
+              if (id.includes('/src/pages/DepartmentWorkspace')) return 'page-department';
+              if (id.includes('/src/pages/SpecializedAppPage') || id.includes('/src/utils/specializedAppEngines')) return 'tool-specialized-apps';
+              if (id.includes('/src/pages/TextCareStudio') || id.includes('/src/pages/LessonArchitect')) return 'tool-docs-lessons';
+              if (id.includes('/src/pages/ReadingStudio') || id.includes('/src/pages/SpeakingStudio') || id.includes('/src/pages/WordGraphStudio')) return 'tool-skills';
+              if (id.includes('/src/pages/TestBuilder') || id.includes('/src/pages/ClassroomGame') || id.includes('/src/pages/DominoWordForm')) return 'tool-games-tests';
+              if (id.includes('/src/pages/AdminPage') || id.includes('/src/pages/AuthPage') || id.includes('/src/pages/SupabaseSetup')) return 'auth-admin';
+              return undefined;
+            },
+          }],
         },
       },
     },

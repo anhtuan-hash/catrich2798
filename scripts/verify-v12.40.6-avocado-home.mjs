@@ -5,7 +5,7 @@ const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const homeSource = fs.readFileSync('src/pages/Home.jsx', 'utf8');
 const homeCss = fs.readFileSync('src/pages/HomeV12406.css', 'utf8').toLowerCase();
 
-assert.match(packageJson.version, /^12\.40\.(?:6|8)$/);
+assert.match(packageJson.version, /^12\.40\.(?:6|8|9)$/);
 assert.match(homeSource, /import ['"]\.\/HomeV12406\.css['"]/);
 assert.match(homeSource, /data-home-theme="avocado-raised"/);
 assert.match(homeSource, /home-v12406/);
