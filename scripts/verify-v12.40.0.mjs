@@ -1,0 +1,35 @@
+import fs from 'node:fs';
+
+const must = (condition, message) => { if (!condition) throw new Error(message); };
+const read = (path) => fs.readFileSync(path, 'utf8');
+const gateway = read('src/utils/aiServerGateway.js');
+const runtime = read('src/utils/openRouter.js');
+const server = read('server/unifiedAiProviderAdapter.js');
+const api = read('api/ai.js');
+const settings = read('src/pages/Settings.jsx');
+const providers = read('src/utils/aiProviders.js');
+const governance = read('src/utils/aiGovernance.js');
+const index = read('index.html');
+
+must(read('src/config/version.js').includes("APP_VERSION = '12.40.0'"), 'V12.40.0 version is missing.');
+must(gateway.includes("AI_SERVER_CONTRACT = 'bes-ai-core/1.3'"), 'Unified server gateway contract is missing.');
+must(runtime.includes("DEFAULT_OPENROUTER_MODEL = 'openrouter/auto'"), 'openrouter/auto is not the runtime default.');
+must(runtime.includes('callAiServerGateway'), 'Browser AI runtime does not use the server gateway.');
+must(!runtime.includes('https://openrouter.ai/api/v1/chat/completions'), 'Browser runtime still calls OpenRouter directly.');
+must(server.includes("env('OPENROUTER_API_KEY')"), 'Server runtime does not read OPENROUTER_API_KEY.');
+must(server.includes('require_parameters: Boolean(isJson)'), 'Structured JSON parameter enforcement is missing.');
+must(server.includes('fetchOpenRouterWithOneRetry'), 'Single server retry policy is missing.');
+must(server.includes("model === 'openrouter/auto'"), 'OpenRouter auto-router support is missing.');
+must(api.includes('streamServerAI'), 'Server streaming gateway is missing.');
+must(settings.includes('OpenRouter Production Gateway'), 'Production gateway diagnostics UI is missing.');
+must(settings.includes('OPENROUTER_API_KEY'), 'Vercel environment guidance is missing.');
+must(providers.includes('SERVER_MANAGED_AI_KEY'), 'Server-managed browser compatibility sentinel is missing.');
+must(providers.includes('removeBrowserProviderSecrets'), 'Browser secret cleanup is missing.');
+must(governance.includes('maxOutputTokens: 8192'), 'Governance output ceiling was not aligned to long tasks.');
+must(governance.includes('requestTimeoutMs: 175000'), 'Production runtime timeout migration is missing.');
+must(governance.includes('transientRetries: 0'), 'Browser retry stacking remains enabled.');
+must(!index.includes('bes-ai-governance-v1165'), 'Legacy fetch interception patch is still loaded.');
+must(!index.includes('bes-elis-v1142'), 'Legacy ELIS public bridge is still loaded.');
+must(!fs.existsSync('public/bes-ai-governance-v1165'), 'Legacy governance runtime directory remains.');
+must(!fs.existsSync('public/bes-elis-v1142'), 'Legacy ELIS public bundle directory remains.');
+console.log('V12.40.0 verification passed: one server-side OpenRouter runtime, streaming, task-aware routing, aligned limits, and legacy runtime patches removed.');

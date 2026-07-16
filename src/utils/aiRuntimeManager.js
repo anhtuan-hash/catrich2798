@@ -11,18 +11,18 @@ export const AI_RUNTIME_CIRCUIT_KEY = 'bes-ai-runtime-circuits:v1';
 
 export const DEFAULT_AI_RUNTIME_SETTINGS = Object.freeze({
   enabled: true,
-  maxConcurrent: 2,
-  requestTimeoutMs: 45000,
-  transientRetries: 1,
-  retryBaseDelayMs: 800,
+  maxConcurrent: 3,
+  requestTimeoutMs: 175000,
+  transientRetries: 0,
+  retryBaseDelayMs: 650,
   dedupeInFlight: true,
   cacheEnabled: true,
   cacheTtlMs: 300000,
   cacheMaxEntries: 40,
   circuitBreakerEnabled: true,
-  circuitFailureThreshold: 3,
+  circuitFailureThreshold: 4,
   circuitFailureWindowMs: 120000,
-  circuitCooldownMs: 90000,
+  circuitCooldownMs: 45000,
 });
 
 const queue = [];
@@ -54,7 +54,7 @@ export function normalizeAiRuntimeSettings(raw = {}) {
   return {
     enabled: raw.enabled !== false,
     maxConcurrent: clamp(raw.maxConcurrent, 1, 6, defaults.maxConcurrent),
-    requestTimeoutMs: clamp(raw.requestTimeoutMs, 5000, 180000, defaults.requestTimeoutMs),
+    requestTimeoutMs: clamp(raw.requestTimeoutMs, 5000, 240000, defaults.requestTimeoutMs),
     transientRetries: clamp(raw.transientRetries, 0, 3, defaults.transientRetries),
     retryBaseDelayMs: clamp(raw.retryBaseDelayMs, 100, 5000, defaults.retryBaseDelayMs),
     dedupeInFlight: raw.dedupeInFlight !== false,

@@ -142,7 +142,7 @@ export default function EnglishLessonIntegrationStudio({
                 text: response.text,
                 provider: response.meta.provider,
                 model: response.meta.model,
-                transport: 'browser-unified',
+                transport: 'server-gateway',
                 requestId: response.meta.operationId,
                 durationMs: response.meta.durationMs,
               };

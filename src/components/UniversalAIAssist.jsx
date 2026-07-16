@@ -437,10 +437,12 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
     setDraft(''); setAttachments([]); setError(''); setNotice('');
 
     if (!hasApiKey) {
-      updateActiveMessages((current) => [...current, { id: `assistant-${Date.now()}-settings`, role: 'assistant', createdAt: Date.now(), content: language === 'vi' ? 'Thầy chưa cấu hình AI provider. Hãy mở Thiết lập → AI Provider, nhập API key rồi quay lại cuộc trò chuyện này.' : 'No AI provider is configured yet. Open Settings → AI Provider, add an API key, then return to this chat.', attachments: [] }]);
+      updateActiveMessages((current) => [...current, { id: `assistant-${Date.now()}-settings`, role: 'assistant', createdAt: Date.now(), content: language === 'vi' ? 'OpenRouter Production Gateway chưa sẵn sàng. Hãy mở Thiết lập và kiểm tra biến OPENROUTER_API_KEY trên Vercel.' : 'The OpenRouter Production Gateway is not ready. Open Settings and verify OPENROUTER_API_KEY on Vercel.', attachments: [] }]);
       return;
     }
 
+    const assistantId = `assistant-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    updateActiveMessages((current) => [...current, { id: assistantId, role: 'assistant', content: language === 'vi' ? 'Đang kết nối OpenRouter…' : 'Connecting to OpenRouter…', createdAt: Date.now(), attachments: [], streaming: true }]);
     setLoading(true);
     try {
       const pageContext = capturePageContext(info, currentRoute, selectedTool);
@@ -449,15 +451,18 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
         apiKey, model: aiModel, prompt,
         attachments: outgoingAttachments.filter((item) => item.kind === 'image').map((item) => ({ name: item.name, mimeType: item.mimeType, dataUrl: item.dataUrl, base64: item.base64 })),
         systemInstruction: 'You are Brian AI, a reliable, context-aware in-app assistant for a Vietnamese high-school English teacher and subject-team leader. Be useful, honest and concise.',
-        temperature: .66, maxOutputTokens: 2400, loadingLabel: language === 'vi' ? 'Brian AI đang đọc ngữ cảnh và soạn câu trả lời...' : 'Brian AI is reading the context and composing a reply...',
+        temperature: .66,
+        maxOutputTokens: 3200,
+        stream: true,
+        onToken: (_delta, aggregate) => updateActiveMessages((current) => current.map((message) => message.id === assistantId ? { ...message, content: aggregate, streaming: true } : message)),
+        loadingLabel: language === 'vi' ? 'Brian AI đang đọc ngữ cảnh và truyền câu trả lời...' : 'Brian AI is reading the context and streaming a reply...',
       });
-      const assistantMessage = { id: `assistant-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, role: 'assistant', content: result, createdAt: Date.now(), attachments: [] };
-      updateActiveMessages((current) => [...current, assistantMessage]);
-      if (voiceModeRef.current) speakText(result, assistantMessage.id);
+      updateActiveMessages((current) => current.map((message) => message.id === assistantId ? { ...message, content: result, streaming: false } : message));
+      if (voiceModeRef.current) speakText(result, assistantId);
     } catch (err) {
       const message = err?.message || (language === 'vi' ? 'Không thể kết nối AI.' : 'Unable to connect to AI.');
       setError(message);
-      updateActiveMessages((current) => [...current, { id: `assistant-${Date.now()}-error`, role: 'assistant', createdAt: Date.now(), content: language === 'vi' ? `Em chưa thể trả lời vì kết nối AI gặp lỗi: ${message}` : `I could not reply because the AI connection failed: ${message}`, attachments: [] }]);
+      updateActiveMessages((current) => current.map((entry) => entry.id === assistantId ? { ...entry, streaming: false, content: language === 'vi' ? `Em chưa thể trả lời vì OpenRouter gặp lỗi: ${message}` : `I could not reply because OpenRouter failed: ${message}` } : entry));
     } finally { setLoading(false); }
   }, [draft, attachments, loading, hasApiKey, language, apiKey, aiModel, info, currentRoute, selectedTool, currentUser, updateActiveMessages, speakText]);
   sendMessageRef.current = sendMessage;
