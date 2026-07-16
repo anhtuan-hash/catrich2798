@@ -8,7 +8,7 @@ import {
 } from './aiGovernanceCloud.js';
 
 export const AI_GOVERNANCE_SETTINGS_KEY = 'bes-ai-governance-settings:v1';
-export const AI_GOVERNANCE_USAGE_KEY = 'bes-ai-governance-usage:v1';
+export const AI_GOVERNANCE_USAGE_KEY = 'bes-ai-governance-usage:v2';
 export const AI_GOVERNANCE_AUDIT_KEY = 'bes-ai-governance-audit:v1';
 export const AI_GOVERNANCE_EVENT = 'bes-ai-governance-updated';
 
@@ -287,6 +287,7 @@ function dayKey(timestamp = Date.now()) {
 
 function emptyDay() {
   return {
+    attempts: 0,
     requests: 0,
     successes: 0,
     errors: 0,
@@ -324,6 +325,7 @@ function normalizeUsage(raw) {
     .forEach(([date, item]) => {
       const fallback = emptyDay();
       cleanDays[date] = {
+        attempts: clampNumber(item?.attempts, 0, 1000000, item?.requests || 0),
         requests: clampNumber(item?.requests, 0, 1000000, 0),
         successes: clampNumber(item?.successes, 0, 1000000, 0),
         errors: clampNumber(item?.errors, 0, 1000000, 0),
@@ -406,17 +408,17 @@ export function getAiUsageSummary(date = dayKey()) {
 
 export function getAiObservabilitySummary(date = dayKey()) {
   const summary = getAiUsageSummary(date);
-  const requestCount = Math.max(1, Number(summary.requests) || 0);
+  const requestCount = Math.max(1, Number(summary.attempts) || 0);
   return {
     date,
-    requestCount: summary.requests,
-    successRate: summary.requests ? Math.round((summary.successes / summary.requests) * 100) : 0,
-    averageLatencyMs: summary.requests ? Math.round(summary.durationMs / summary.requests) : 0,
-    averageQueueWaitMs: summary.requests ? Math.round(summary.runtimeQueueWaitMs / summary.requests) : 0,
-    providerCallAmplification: summary.requests ? Number((summary.providerCalls / summary.requests).toFixed(2)) : 0,
-    fallbackRate: summary.requests ? Math.round((summary.fallbacks / summary.requests) * 100) : 0,
-    repairRate: summary.requests ? Math.round((summary.validationRepairs / summary.requests) * 100) : 0,
-    retryRate: summary.requests ? Math.round((summary.runtimeRetries / requestCount) * 100) : 0,
+    requestCount: summary.attempts,
+    successRate: summary.attempts ? Math.round((summary.successes / summary.attempts) * 100) : 0,
+    averageLatencyMs: summary.attempts ? Math.round(summary.durationMs / summary.attempts) : 0,
+    averageQueueWaitMs: summary.attempts ? Math.round(summary.runtimeQueueWaitMs / summary.attempts) : 0,
+    providerCallAmplification: summary.attempts ? Number((summary.providerCalls / summary.attempts).toFixed(2)) : 0,
+    fallbackRate: summary.attempts ? Math.round((summary.fallbacks / summary.attempts) * 100) : 0,
+    repairRate: summary.attempts ? Math.round((summary.validationRepairs / summary.attempts) * 100) : 0,
+    retryRate: summary.attempts ? Math.round((summary.runtimeRetries / requestCount) * 100) : 0,
     topProviders: topEntries(summary.providers),
     topModels: topEntries(summary.models),
     topTasks: topEntries(summary.tasks),
@@ -525,7 +527,10 @@ export function recordAiRequest({
   const usage = readUsage();
   const date = dayKey();
   const day = ensureDay(usage, date);
-  const inputTokens = estimateTokens(prompt);
+  const estimatedInputTokens = estimateTokens(prompt);
+  // Failed upstream requests remain in diagnostics/audit, but must not consume
+  // the user's successful-request or token budget and lock every AI tool.
+  const inputTokens = success ? estimatedInputTokens : 0;
   const outputTokens = success ? estimateTokens(result) : 0;
   const tokenTotal = inputTokens + outputTokens;
   const normalizedProviderCalls = Math.max(0, Math.round(Number(providerCalls) || 0));
@@ -533,7 +538,8 @@ export function recordAiRequest({
   const cleanTaskId = String(taskId || profile || 'default').slice(0, 80);
   const cleanTransport = String(transport || 'unknown').slice(0, 80);
 
-  day.requests += 1;
+  day.attempts += 1;
+  day.requests += success ? 1 : 0;
   day.successes += success ? 1 : 0;
   day.errors += success ? 0 : 1;
   day.inputTokens += inputTokens;
@@ -553,9 +559,11 @@ export function recordAiRequest({
   incrementMap(day.models, model || 'Unknown');
   incrementMap(day.tasks, cleanTaskId);
   incrementMap(day.transports, cleanTransport);
-  incrementMap(day.users, userKey);
-  incrementMap(day.userTokens, userKey, tokenTotal);
-  incrementMap(day.taskTokens, cleanTaskId, tokenTotal);
+  if (success) {
+    incrementMap(day.users, userKey);
+    incrementMap(day.userTokens, userKey, tokenTotal);
+    incrementMap(day.taskTokens, cleanTaskId, tokenTotal);
+  }
   writeUsage(usage);
 
   appendAiAudit({
@@ -571,7 +579,7 @@ export function recordAiRequest({
     detail: {
       taskId: cleanTaskId,
       transport: cleanTransport,
-      inputTokens,
+      inputTokens: estimatedInputTokens,
       outputTokens,
       durationMs: Math.max(0, Math.round(Number(durationMs) || 0)),
       error: String(error || '').slice(0, 500),

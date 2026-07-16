@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { getActiveAiConfig, getProviderSummary } from '../utils/aiProviders.js';
+import React, { useEffect, useState } from 'react';
 import { getSupabaseStatus, isSupabaseConfigured, supabase } from '../utils/supabase.js';
 import { clearRuntimeErrors, downloadRuntimeReport, getRuntimeErrors } from '../utils/runtimeDiagnostics.js';
 import { getTrashStats, purgeExpiredTrash } from '../utils/trash.js';
@@ -8,6 +7,7 @@ import { loadWorkspace } from '../utils/workspace.js';
 import { listTransfers } from '../utils/contentTransfer.js';
 import { listSyncQueue } from '../utils/syncQueue.js';
 import { getAiGovernanceSettings, getAiUsageSummary } from '../utils/aiGovernance.js';
+import { getAiServerHealth } from '../utils/aiServerGateway.js';
 
 function formatBytes(value) {
   const bytes = Number(value || 0);
@@ -60,12 +60,18 @@ async function newsroomCheck(signal) {
   return `${count} item${count === 1 ? '' : 's'} returned`;
 }
 
+async function aiGatewayCheck(signal) {
+  const health = await getAiServerHealth({ signal });
+  if (!health?.configured) throw new Error('OPENROUTER_API_KEY is not configured on the server');
+  const model = health?.models?.standard || 'openrouter/free';
+  return `${model} · ${health?.billingMode || 'free'} mode`;
+}
+
 export default function SystemHealthCenter({ language = 'vi', currentUser }) {
   const [rows, setRows] = useState([]);
   const [running, setRunning] = useState(false);
   const [lastRun, setLastRun] = useState(null);
   const [errors, setErrors] = useState(() => getRuntimeErrors());
-  const ai = useMemo(() => ({ ...getProviderSummary(), active: getActiveAiConfig() }), []);
   const supabaseStatus = getSupabaseStatus();
   const trashStats = getTrashStats();
   const migrationReport = getMigrationReport();
@@ -79,13 +85,13 @@ export default function SystemHealthCenter({ language = 'vi', currentUser }) {
     setRunning(true);
     const basic = [
       { name: language === 'vi' ? 'Kết nối mạng' : 'Network', ok: navigator.onLine, detail: navigator.onLine ? 'Online' : 'Offline', latency: 0 },
-      { name: language === 'vi' ? 'AI provider' : 'AI provider', ok: Boolean(ai.hasKey), detail: ai.hasKey ? `${ai.providerName} · ${ai.active?.model || 'default model'}` : (language === 'vi' ? 'Chưa cấu hình API key' : 'API key not configured'), latency: 0 },
       { name: language === 'vi' ? 'Cấu hình Supabase' : 'Supabase config', ok: supabaseStatus.configured, detail: supabaseStatus.configured ? 'Environment variables present' : 'Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY', latency: 0 },
       { name: language === 'vi' ? 'Di chuyển cấu hình' : 'Configuration migration', ok: Boolean(migrationReport), detail: migrationReport ? `${migrationReport.results?.filter((item) => item.status === 'migrated').length || 0} migrated · ${migrationReport.results?.filter((item) => item.status === 'failed').length || 0} failed` : 'No migration report', latency: 0 },
       { name: language === 'vi' ? 'Quản trị AI' : 'AI Governance', ok: aiGovernance.enabled && aiUsage.requests < aiGovernance.dailyRequestLimit && aiUsage.tokenTotal < aiGovernance.dailyTokenBudget, detail: aiGovernance.enabled ? `${aiUsage.requests}/${aiGovernance.dailyRequestLimit} requests · ${aiUsage.tokenTotal}/${aiGovernance.dailyTokenBudget} tokens` : (language === 'vi' ? 'AI đang bị tạm dừng bởi Admin' : 'AI is paused by Admin'), latency: 0 },
     ];
     const asyncRows = await Promise.all([
       timedCheck(language === 'vi' ? 'Bộ nhớ trình duyệt' : 'Browser storage', () => storageCheck(), 3500),
+      timedCheck(language === 'vi' ? 'OpenRouter Gateway' : 'OpenRouter Gateway', (signal) => aiGatewayCheck(signal), 12000),
       timedCheck('Supabase Auth', () => supabaseCheck(), 6500),
       timedCheck(language === 'vi' ? 'Newsroom RSS API' : 'Newsroom RSS API', (signal) => newsroomCheck(signal), 9000),
     ]);

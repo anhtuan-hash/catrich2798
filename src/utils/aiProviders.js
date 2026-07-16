@@ -111,8 +111,11 @@ export function getProviderSummary() {
     provider: DEFAULT_PROVIDER,
     providerName: 'OpenRouter',
     model: active.model,
-    hasKey: true,
+    // The browser cannot know whether the server key is present. Consumers must
+    // use the authenticated /api/ai health check before enabling AI controls.
+    hasKey: false,
     serverManaged: true,
+    readinessRequired: true,
     fallbackEnabled: false,
   };
 }

@@ -296,13 +296,11 @@ export default function Settings({
       const diagnostic = await runOpenRouterProductionDiagnostics({
         onStatus: ({ phase }) => setTestResult(phase === 'health'
           ? (language === 'vi' ? '⏳ Đang kiểm tra gateway máy chủ…' : '⏳ Checking the server gateway…')
-          : phase === 'stream'
-            ? (language === 'vi' ? '⏳ Đang đo streaming và token đầu tiên…' : '⏳ Measuring streaming and first token…')
-            : (language === 'vi' ? '⏳ Đang kiểm tra Structured JSON…' : '⏳ Checking Structured JSON…')),
+          : (language === 'vi' ? '⏳ Đang chạy một yêu cầu OpenRouter thật…' : '⏳ Running one real OpenRouter request…')),
       });
       setGatewayHealth(diagnostic.health);
-      const firstToken = diagnostic.stream.firstTokenMs == null ? '—' : `${diagnostic.stream.firstTokenMs} ms`;
-      setTestResult(`✅ Gateway OK · first token ${firstToken} · stream ${diagnostic.stream.totalMs} ms · JSON ${diagnostic.json.totalMs} ms · ${diagnostic.stream.model || diagnostic.health?.models?.fast || 'openrouter/auto'}`);
+      const firstToken = diagnostic.generation.firstTokenMs == null ? '—' : `${diagnostic.generation.firstTokenMs} ms`;
+      setTestResult(`✅ Gateway OK · ${diagnostic.generation.billingMode} mode · first token ${firstToken} · ${diagnostic.generation.totalMs} ms · ${diagnostic.generation.model || diagnostic.health?.models?.fast || 'openrouter/free'}`);
     } catch (error) {
       setGatewayHealth((previous) => ({ ...(previous || {}), configured: false, error: error?.message || String(error) }));
       setTestResult(`⚠️ OpenRouter Gateway: ${error.message || String(error)}`);
@@ -590,7 +588,7 @@ export default function Settings({
             <div className="settings-v12391-openrouter-copy">
               <small>{language === 'vi' ? 'Provider duy nhất · key do máy chủ quản lý' : 'Only provider · server-managed key'}</small>
               <strong>OpenRouter</strong>
-              <code>{gatewayHealth?.models?.standard || 'openrouter/auto'}</code>
+              <code>{gatewayHealth?.models?.standard || 'openrouter/free'}</code>
             </div>
             <div className="settings-v12391-openrouter-badges">
               <span>{language === 'vi' ? 'Streaming' : 'Streaming'}</span>
@@ -614,8 +612,8 @@ export default function Settings({
               <div className="settings-v12391-single-provider-note">
                 <strong>{language === 'vi' ? 'API key không còn được nhập trong website' : 'The API key is no longer entered in the website'}</strong>
                 <small>{language === 'vi'
-                  ? 'Đặt OPENROUTER_API_KEY trong Vercel → Project Settings → Environment Variables. Key sẽ không xuất hiện trong localStorage hoặc bundle trình duyệt.'
-                  : 'Set OPENROUTER_API_KEY in Vercel → Project Settings → Environment Variables. The key never appears in localStorage or the browser bundle.'}</small>
+                  ? 'Đặt OPENROUTER_API_KEY trong Vercel → Project Settings → Environment Variables. Bản này mặc định chỉ dùng openrouter/free; model trả phí cần bật chủ động trên máy chủ.'
+                  : 'Set OPENROUTER_API_KEY in Vercel → Project Settings → Environment Variables. This build defaults to openrouter/free; paid models require an explicit server opt-in.'}</small>
               </div>
 
               <div className="settings-v12391-model-grid">
@@ -630,7 +628,7 @@ export default function Settings({
                 ].map(([label, value]) => (
                   <div key={label}>
                     <label>{label}</label>
-                    <input value={value || 'openrouter/auto'} readOnly aria-label={`${label} model`} />
+                    <input value={value || 'openrouter/free'} readOnly aria-label={`${label} model`} />
                   </div>
                 ))}
               </div>
@@ -657,6 +655,7 @@ export default function Settings({
                   language === 'vi' ? 'Vision qua gateway' : 'Gateway vision',
                   language === 'vi' ? 'Hình ảnh qua gateway' : 'Gateway images',
                   language === 'vi' ? 'Không lưu key ở trình duyệt' : 'No browser key storage',
+                  language === 'vi' ? 'Mặc định chỉ dùng model miễn phí' : 'Free models by default',
                 ].map((item) => <span key={item}>✓ {item}</span>)}
               </div>
               <div className="settings-v12391-single-provider-note">

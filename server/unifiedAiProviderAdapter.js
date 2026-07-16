@@ -48,13 +48,17 @@ function parseBool(value, fallback = false) {
 }
 
 function billingMode() {
-  const value = env('OPENROUTER_BILLING_MODE', 'auto').toLowerCase();
-  return ['auto', 'paid', 'free'].includes(value) ? value : 'auto';
+  const requested = env('OPENROUTER_BILLING_MODE', 'free').toLowerCase();
+  const value = ['auto', 'paid', 'free'].includes(requested) ? requested : 'free';
+  // A stale deployment variable must not silently put a low-budget account
+  // back onto paid routing. Paid/auto mode requires an explicit second opt-in.
+  if (value !== 'free' && !parseBool(process.env.OPENROUTER_ALLOW_PAID_MODE, false)) return 'free';
+  return value;
 }
 
 function freeTokenCap(profile = 'standard') {
-  const defaults = { diagnostic: 320, fast: 800, standard: 1600, quality: 2200, json: 2200, long: 3200, vision: 1800, image: 1 };
-  return clamp(env(`OPENROUTER_FREE_MAX_TOKENS_${String(profile).toUpperCase()}`), 64, 6000, defaults[profile] || 1600);
+  const defaults = { diagnostic: 96, fast: 700, standard: 1200, quality: 1600, json: 1600, long: 2000, vision: 1200, image: 1 };
+  return clamp(env(`OPENROUTER_FREE_MAX_TOKENS_${String(profile).toUpperCase()}`), 64, 6000, defaults[profile] || 1200);
 }
 
 function parseAffordableTokens(message = '') {
@@ -121,11 +125,14 @@ function costQualityTradeoff(profile) {
   return clamp(env(`OPENROUTER_AUTO_TRADEOFF_${profile.toUpperCase()}`), 0, 10, defaults[profile] ?? 7);
 }
 
-function buildProviderPreferences({ isJson = false, profile = 'standard' } = {}) {
+function buildProviderPreferences({ isJson = false, profile = 'standard', freeRoute = false } = {}) {
   return {
     allow_fallbacks: true,
-    require_parameters: Boolean(isJson),
-    data_collection: env('OPENROUTER_DATA_COLLECTION', 'deny') === 'allow' ? 'allow' : 'deny',
+    // The free router changes its model pool frequently. Requiring every optional
+    // parameter or forcing a request-level data policy can eliminate all routes.
+    // In free mode, OpenRouter's account privacy setting remains authoritative.
+    require_parameters: Boolean(isJson) && !freeRoute,
+    ...(!freeRoute ? { data_collection: env('OPENROUTER_DATA_COLLECTION', 'deny') === 'allow' ? 'allow' : 'deny' } : {}),
     sort: profile === 'quality' || profile === 'json' ? 'throughput' : 'latency',
     preferred_max_latency: profile === 'fast' || profile === 'diagnostic' ? 8 : profile === 'long' ? 25 : 15,
   };
@@ -159,6 +166,7 @@ function buildChatBody(options, { stream = false, modelOverride = '', maxTokensO
   const configuredModel = modelForProfile(profile);
   const selectedModel = allowClientOverride && requested && !/openrouter\/free/i.test(requested) ? requested : configuredModel;
   const model = String(modelOverride || (mode === 'free' ? FREE_MODEL : selectedModel));
+  const freeRoute = model === FREE_MODEL || /:free$/i.test(model);
   const isJson = options.responseMimeType === 'application/json';
   const requestedMaxTokens = clamp(options.maxOutputTokens, 16, 12_000, 3600);
   const maxTokens = maxTokensOverride == null
@@ -169,7 +177,7 @@ function buildChatBody(options, { stream = false, modelOverride = '', maxTokensO
     messages: buildMessages(options),
     temperature: Math.max(0, Math.min(2, Number(options.temperature) || 0.25)),
     max_tokens: maxTokens,
-    provider: buildProviderPreferences({ isJson, profile }),
+    provider: buildProviderPreferences({ isJson, profile, freeRoute }),
     stream,
   };
   if (isJson) body.response_format = { type: 'json_object' };
@@ -191,6 +199,10 @@ function normalizeOpenRouterError(payload, response) {
   }
   if (response.status === 429) error.code = 'OPENROUTER_RATE_LIMIT';
   if (response.status === 401 || response.status === 403) error.code = 'OPENROUTER_AUTH_ERROR';
+  if (/no endpoints|data polic|privacy setting|no available model/i.test(String(message))) {
+    error.code = 'OPENROUTER_ROUTE_UNAVAILABLE';
+    error.message = `OpenRouter chưa tìm được model phù hợp với tuyến và cài đặt riêng tư hiện tại (${message}). Hãy thử lại sau hoặc kiểm tra Privacy Settings trong OpenRouter.`;
+  }
   return error;
 }
 
@@ -228,7 +240,12 @@ async function executeChatRequest(options = {}, { stream = false } = {}) {
     return { ...result, config: primary, fallbackUsed: false, creditFallback: false, affordableTokens: 0 };
   } catch (error) {
     const canUseFreeFallback = primary.billingMode === 'auto' && error?.code === 'OPENROUTER_CREDIT_LIMIT';
-    if (!canUseFreeFallback) throw error;
+    if (!canUseFreeFallback) {
+      if (primary.billingMode === 'free' && error?.code === 'OPENROUTER_RATE_LIMIT') {
+        error.message = `Quota OpenRouter miễn phí đang hết hoặc bị giới hạn tốc độ (${error.message}). Hãy đợi rồi thử lại; website sẽ không tự chuyển sang model trả phí.`;
+      }
+      throw error;
+    }
     const fallback = buildChatBody(options, {
       stream,
       modelOverride: FREE_MODEL,
@@ -262,24 +279,29 @@ export function resolveServerAiProvider() {
 
 export function getServerAiReadiness() {
   const configured = Boolean(env('OPENROUTER_API_KEY'));
+  const mode = billingMode();
+  const effectiveModel = (profile) => mode === 'free' && profile !== 'image' ? FREE_MODEL : modelForProfile(profile);
   return {
     provider: 'openrouter',
     configured,
     transport: 'server-gateway',
     contract: 'bes-ai-core/1.3',
     models: {
-      fast: modelForProfile('fast'),
-      standard: modelForProfile('standard'),
-      quality: modelForProfile('quality'),
-      json: modelForProfile('json'),
-      long: modelForProfile('long'),
-      vision: modelForProfile('vision'),
+      fast: effectiveModel('fast'),
+      standard: effectiveModel('standard'),
+      quality: effectiveModel('quality'),
+      json: effectiveModel('json'),
+      long: effectiveModel('long'),
+      vision: effectiveModel('vision'),
       image: modelForProfile('image'),
     },
     clientKeyRequired: false,
-    billingMode: billingMode(),
-    freeFallbackEnabled: billingMode() === 'auto',
+    billingMode: mode,
+    freeFirst: mode === 'free',
+    paidModelsAllowed: mode !== 'free',
+    freeFallbackEnabled: mode === 'auto',
     freeFallbackModel: FREE_MODEL,
+    freeDailyRequestLimitHint: 50,
   };
 }
 

@@ -1124,7 +1124,7 @@ ${analysisOutput}
         <div className="lesson-v50-stat-grid">
           <div className="lesson-v50-stat-card">
             <strong>{hasApiKey ? (isVi ? 'AI sẵn sàng' : 'AI ready') : (isVi ? 'Cần API' : 'Need API')}</strong>
-            <small>{aiModel || 'openrouter/auto'}</small>
+            <small>{aiModel || 'openrouter/free'}</small>
           </div>
           <div className="lesson-v50-stat-card">
             <strong>{isVi ? 'Nguồn' : 'Source'}: {workflowMode === 'curriculum-batch' ? (isVi ? 'KHGD + SGK' : 'Curriculum + textbook') : sourceLabel}</strong>

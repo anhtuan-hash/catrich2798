@@ -7,7 +7,7 @@
  */
 
 export const AI_RUNTIME_EVENT = 'bes-ai-runtime-updated';
-export const AI_RUNTIME_CIRCUIT_KEY = 'bes-ai-runtime-circuits:v1';
+export const AI_RUNTIME_CIRCUIT_KEY = 'bes-ai-runtime-circuits:v2';
 
 export const DEFAULT_AI_RUNTIME_SETTINGS = Object.freeze({
   enabled: true,
@@ -428,7 +428,10 @@ export async function runAiProviderRuntime({
         return { value: execution.value, runtime };
       } catch (error) {
         const kind = (classifyError || defaultClassifyError)(error);
-        if (kind !== 'cancelled') recordAiProviderRuntimeFailure(provider, error, settings);
+        // Only transient infrastructure failures should open a circuit. Auth,
+        // credit, policy and validation errors are actionable and must not leave
+        // every AI application blocked after a few attempts.
+        if (isTransientKind(kind)) recordAiProviderRuntimeFailure(provider, error, settings);
         operation.status = kind === 'cancelled' ? 'cancelled' : 'error';
         operation.completedAt = Date.now();
         operation.error = String(error?.message || error).slice(0, 240);

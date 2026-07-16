@@ -21,7 +21,7 @@ import {
 import { createAiRuntimeFingerprint, runAiProviderRuntime } from './aiRuntimeManager.js';
 import { callAiServerGateway } from './aiServerGateway.js';
 
-export const DEFAULT_OPENROUTER_MODEL = 'openrouter/auto';
+export const DEFAULT_OPENROUTER_MODEL = 'openrouter/free';
 export const DEFAULT_MAX_OUTPUT_TOKENS = 1600;
 
 function normalizeMaxOutputTokens(value, fallback = DEFAULT_MAX_OUTPUT_TOKENS) {
@@ -73,7 +73,7 @@ async function callOpenRouterProvider({
     temperature,
     taskId: registryTaskId || aiTaskId || 'default',
     routingHint,
-    requestedModel: normalizeModelName(model, 'openrouter/auto'),
+    requestedModel: normalizeModelName(model, 'openrouter/free'),
     operationId,
     sessionId: registryTaskId || aiTaskId || operationId,
     stream: useStream,
@@ -86,7 +86,7 @@ async function callOpenRouterProvider({
     meta: {
       provider: 'openrouter',
       providerName: 'OpenRouter',
-      model: String(payload?.model || payload?.requestedModel || model || 'openrouter/auto'),
+      model: String(payload?.model || payload?.requestedModel || model || 'openrouter/free'),
       requestedModel: String(payload?.requestedModel || model || ''),
       profile: String(payload?.profile || routingHint || 'standard'),
       transport: String(payload?.transport || (useStream ? 'server-gateway-stream' : 'server-gateway')),
@@ -403,6 +403,11 @@ export async function callAIWithMeta(options = {}) {
         requestedModel: gatewayMeta.requestedModel || candidate.model,
         transport: gatewayMeta.transport || 'server-gateway',
         requestId: gatewayMeta.requestId || '',
+        fallbackUsed: Boolean(gatewayMeta.fallbackUsed),
+        creditFallback: Boolean(gatewayMeta.creditFallback),
+        billingMode: gatewayMeta.billingMode || '',
+        requestedMaxTokens: Number(gatewayMeta.requestedMaxTokens || 0),
+        actualMaxTokens: Number(gatewayMeta.actualMaxTokens || 0),
         status: 'success',
         durationMs: Date.now() - attemptStartedAt,
         validation: summarizeAiValidation(validation, { repairAttempted, repaired, repairAttempts }),
@@ -436,6 +441,7 @@ export async function callAIWithMeta(options = {}) {
   const validationSummary = finalValidation
     ? summarizeAiValidation(finalValidation, { repairAttempted, repaired, repairAttempts })
     : { enabled: false, valid: true, skipped: true, kind: 'text', issueCount: 0, issueCodes: [], repairAttempted, repaired, repairAttempts };
+  const successfulAttempt = attempts.find((attempt) => attempt.status === 'success');
   const meta = {
     operationId,
     taskId: registryTaskId,
@@ -451,7 +457,11 @@ export async function callAIWithMeta(options = {}) {
     model: attempts.find((attempt) => attempt.status === 'success')?.model || finalCandidate?.model || '',
     profile: governance.profileKey,
     routingMode: 'openrouter-task-aware',
-    fallbackUsed: false,
+    fallbackUsed: Boolean(successfulAttempt?.fallbackUsed),
+    creditFallback: Boolean(successfulAttempt?.creditFallback),
+    billingMode: successfulAttempt?.billingMode || '',
+    requestedMaxTokens: Number(successfulAttempt?.requestedMaxTokens || 0),
+    actualMaxTokens: Number(successfulAttempt?.actualMaxTokens || 0),
     candidateRank: Math.max(1, attempts.length),
     attempts,
     providerCalls,
