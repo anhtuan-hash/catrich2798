@@ -141,7 +141,7 @@ export default function TextLabActivities({
           model: aiModel,
           prompt,
           systemInstruction: 'You are a precise instructional designer. Return exactly one valid JSON object with no markdown. Respect the selected TextLab delimiter format. The content field must be one JSON string: encode line breaks as \\n and escape embedded double quotes.',
-          temperature: 0.25,
+          temperature: 0.2,
           responseMimeType: 'application/json',
           loadingLabel: language === 'vi'
             ? 'AI đang nhận diện template và tạo nội dung TextLab...'

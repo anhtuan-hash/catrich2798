@@ -2,6 +2,9 @@ const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 const DEFAULT_MODEL = 'openrouter/auto';
 const FREE_MODEL = 'openrouter/free';
 const TRANSIENT_STATUSES = new Set([408, 409, 425, 429, 500, 502, 503, 504, 524, 529]);
+const FAST_FREE_CACHE_TTL_MS = 15 * 60 * 1000;
+const FAST_FREE_NEGATIVE_CACHE_TTL_MS = 3 * 60 * 1000;
+let fastFreeJsonCache = { model: '', source: 'none', expiresAt: 0, catalogDurationMs: 0 };
 
 function withStatus(error, status, code = '') {
   if (error && typeof error === 'object') {
@@ -63,6 +66,103 @@ function billingMode() {
 function freeTokenCap(profile = 'standard') {
   const defaults = { diagnostic: 96, fast: 700, standard: 1200, quality: 1600, json: 2400, long: 2400, vision: 1200, image: 1 };
   return clamp(env(`OPENROUTER_FREE_MAX_TOKENS_${String(profile).toUpperCase()}`), 64, 6000, defaults[profile] || 1200);
+}
+
+function fastFreePrimaryTimeout() {
+  return clamp(env('OPENROUTER_FAST_FREE_TIMEOUT_MS'), 15_000, 90_000, 40_000);
+}
+
+function fastFreeFallbackTimeout() {
+  return clamp(env('OPENROUTER_FAST_FREE_FALLBACK_TIMEOUT_MS'), 20_000, 120_000, 45_000);
+}
+
+function hasImageAttachment(options = {}) {
+  return (options.attachments || []).some((item) => /^image\//i.test(String(item?.mimeType || '')));
+}
+
+function isFreeModelEntry(model = {}) {
+  const id = String(model?.id || '').trim();
+  if (!/:free$/i.test(id)) return false;
+  const pricing = model?.pricing || {};
+  return Number(pricing.prompt || 0) === 0
+    && Number(pricing.completion || 0) === 0
+    && Number(pricing.request || 0) === 0;
+}
+
+function supportsJsonResponse(model = {}) {
+  const supported = Array.isArray(model?.supported_parameters) ? model.supported_parameters.map((item) => String(item).toLowerCase()) : [];
+  return supported.includes('response_format') || supported.includes('structured_outputs');
+}
+
+function isUsableFastFreeJsonModel(model = {}, options = {}) {
+  const id = String(model?.id || '').toLowerCase();
+  if (!isFreeModelEntry(model) || !supportsJsonResponse(model)) return false;
+  if (/thinking|:thinking|deepseek-r1|rerank|embedding|moderation|guard|\bocr\b/.test(id)) return false;
+  const minimumContext = Math.max(16_000, Math.ceil(String(options.prompt || '').length / 3) + Math.max(1800, Number(options.maxOutputTokens) || 0));
+  return Math.max(0, Number(model?.context_length || 0)) >= minimumContext;
+}
+
+async function resolveFastFreeJsonModel(options = {}, { apiKey = '', baseUrl = '' } = {}) {
+  const enabled = billingMode() === 'free'
+    && parseBool(process.env.OPENROUTER_FAST_FREE_MODE, true)
+    && options.responseMimeType === 'application/json'
+    && !hasImageAttachment(options)
+    && options.fastFreeBypass !== true;
+  if (!enabled) return { enabled: false, active: false, model: FREE_MODEL, source: 'router', catalogDurationMs: 0 };
+
+  const configured = env('OPENROUTER_FREE_MODEL_JSON');
+  if (configured && (configured === FREE_MODEL || /:free$/i.test(configured))) {
+    return { enabled: true, active: configured !== FREE_MODEL, model: configured, source: 'environment', catalogDurationMs: 0 };
+  }
+
+  const now = Date.now();
+  if (fastFreeJsonCache.model && fastFreeJsonCache.expiresAt > now) {
+    return {
+      enabled: true,
+      active: fastFreeJsonCache.model !== FREE_MODEL,
+      model: fastFreeJsonCache.model,
+      source: fastFreeJsonCache.source,
+      catalogDurationMs: fastFreeJsonCache.catalogDurationMs,
+    };
+  }
+
+  const startedAt = Date.now();
+  try {
+    const query = new URLSearchParams({
+      output_modalities: 'text',
+      supported_parameters: 'response_format',
+      sort: 'latency-low-to-high',
+    });
+    const response = await fetchWithAiTimeout(`${baseUrl}/models?${query}`, {
+      method: 'GET',
+      headers: requestHeaders(apiKey, options.requestId),
+      signal: options.signal,
+    }, 5_000);
+    if (!response.ok) throw new Error(`OpenRouter model catalog returned ${response.status}.`);
+    const payload = await response.json().catch(() => ({}));
+    const selected = (Array.isArray(payload?.data) ? payload.data : []).find((model) => isUsableFastFreeJsonModel(model, options));
+    const model = String(selected?.id || FREE_MODEL);
+    fastFreeJsonCache = {
+      model,
+      source: selected ? 'latency-catalog' : 'router-fallback',
+      expiresAt: now + (selected ? FAST_FREE_CACHE_TTL_MS : FAST_FREE_NEGATIVE_CACHE_TTL_MS),
+      catalogDurationMs: Date.now() - startedAt,
+    };
+  } catch {
+    fastFreeJsonCache = {
+      model: FREE_MODEL,
+      source: 'catalog-unavailable',
+      expiresAt: now + FAST_FREE_NEGATIVE_CACHE_TTL_MS,
+      catalogDurationMs: Date.now() - startedAt,
+    };
+  }
+  return {
+    enabled: true,
+    active: fastFreeJsonCache.model !== FREE_MODEL,
+    model: fastFreeJsonCache.model,
+    source: fastFreeJsonCache.source,
+    catalogDurationMs: fastFreeJsonCache.catalogDurationMs,
+  };
 }
 
 function parseAffordableTokens(message = '') {
@@ -137,8 +237,8 @@ function buildProviderPreferences({ isJson = false, profile = 'standard', freeRo
     // Account-level OpenRouter privacy settings remain authoritative in free mode.
     require_parameters: Boolean(isJson),
     ...(!freeRoute ? { data_collection: env('OPENROUTER_DATA_COLLECTION', 'deny') === 'allow' ? 'allow' : 'deny' } : {}),
-    sort: profile === 'quality' || profile === 'json' ? 'throughput' : 'latency',
-    preferred_max_latency: profile === 'fast' || profile === 'diagnostic' ? 8 : profile === 'long' ? 25 : 15,
+    sort: profile === 'quality' ? 'throughput' : 'latency',
+    preferred_max_latency: profile === 'fast' || profile === 'diagnostic' || profile === 'json' ? 8 : profile === 'long' ? 25 : 15,
   };
 }
 
@@ -210,18 +310,21 @@ function normalizeOpenRouterError(payload, response) {
   return error;
 }
 
-async function fetchOpenRouterWithOneRetry(url, init, timeoutMs, onRetry) {
+async function fetchOpenRouterWithOneRetry(url, init, timeoutMs, onRetry, maxAttempts = 2) {
+  const attemptLimit = clamp(maxAttempts, 1, 2, 2);
   let response;
   let payload;
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
+  for (let attempt = 1; attempt <= attemptLimit; attempt += 1) {
     try {
       response = await fetchWithAiTimeout(url, init, timeoutMs);
     } catch (error) {
       if (init?.signal?.aborted) throw error;
-      if (attempt >= 2) {
+      if (attempt >= attemptLimit) {
         const timedOut = /timeout|timed out|abort/i.test(String(error?.message || error?.name || ''));
         const normalized = withStatus(
-          new Error(timedOut ? 'OpenRouter request timed out after one controlled retry.' : `OpenRouter network request failed after one controlled retry (${error?.message || 'network error'}).`),
+          new Error(timedOut
+            ? (attemptLimit > 1 ? 'OpenRouter request timed out after one controlled retry.' : 'OpenRouter request timed out.')
+            : `OpenRouter network request failed${attemptLimit > 1 ? ' after one controlled retry' : ''} (${error?.message || 'network error'}).`),
           504,
           timedOut ? 'OPENROUTER_NETWORK_TIMEOUT' : 'OPENROUTER_NETWORK_ERROR',
         );
@@ -236,7 +339,7 @@ async function fetchOpenRouterWithOneRetry(url, init, timeoutMs, onRetry) {
     if (/text\/event-stream/i.test(String(response.headers.get('content-type') || ''))) return { response, payload: null, attempts: attempt };
     payload = await response.json().catch(() => ({}));
     if (response.ok) return { response, payload, attempts: attempt };
-    if (attempt >= 2 || !TRANSIENT_STATUSES.has(response.status)) break;
+    if (attempt >= attemptLimit || !TRANSIENT_STATUSES.has(response.status)) break;
     const retryAfter = clamp(Number(response.headers.get('retry-after')) * 1000, 250, 3_500, 0);
     const delayMs = retryAfter || (650 + Math.round(Math.random() * 250));
     onRetry?.({ attempt, delayMs, status: response.status });
@@ -245,22 +348,88 @@ async function fetchOpenRouterWithOneRetry(url, init, timeoutMs, onRetry) {
   throw normalizeOpenRouterError(payload || {}, response);
 }
 
+function canFallbackFromFastFree(error) {
+  const code = String(error?.code || '');
+  const status = Number(error?.openRouterStatus || error?.status || 0);
+  if (code === 'OPENROUTER_AUTH_ERROR' || code === 'AI_REQUEST_CANCELLED' || status === 401 || status === 403) return false;
+  return code === 'OPENROUTER_NETWORK_TIMEOUT'
+    || code === 'OPENROUTER_NETWORK_ERROR'
+    || code === 'OPENROUTER_RATE_LIMIT'
+    || code === 'OPENROUTER_ROUTE_UNAVAILABLE'
+    || code === 'OPENROUTER_REQUEST_FAILED'
+    || status === 404
+    || status === 408
+    || status === 429
+    || status >= 500;
+}
+
 async function executeChatRequest(options = {}, { stream = false } = {}) {
   const apiKey = env('OPENROUTER_API_KEY');
   if (!apiKey) throw withStatus(new Error('OPENROUTER_API_KEY is not configured on Vercel.'), 503, 'OPENROUTER_SERVER_KEY_MISSING');
   const baseUrl = env('OPENROUTER_BASE_URL', OPENROUTER_BASE_URL).replace(/\/+$/, '');
-  const primary = buildChatBody(options, { stream });
-  const send = async (config) => fetchOpenRouterWithOneRetry(`${baseUrl}/chat/completions`, {
+  const fastFreeSelection = await resolveFastFreeJsonModel(options, { apiKey, baseUrl });
+  const primary = buildChatBody(options, {
+    stream,
+    modelOverride: fastFreeSelection.enabled ? fastFreeSelection.model : '',
+  });
+  const fastFreePrimaryUsed = fastFreeSelection.active
+    && primary.billingMode === 'free'
+    && primary.model !== FREE_MODEL;
+  const boundedRouterRequest = options.fastFreeBypass === true
+    && primary.billingMode === 'free'
+    && primary.profile === 'json';
+  const fastMeta = {
+    fastFreeMode: fastFreeSelection.enabled,
+    fastFreePrimaryUsed,
+    fastFreeSelectedModel: fastFreeSelection.model,
+    fastFreeSelectionSource: fastFreeSelection.source,
+    fastFreeCatalogDurationMs: fastFreeSelection.catalogDurationMs,
+    fastFreeFallback: false,
+  };
+  const send = async (config, { timeoutMs = config.timeoutMs, maxAttempts = 2 } = {}) => fetchOpenRouterWithOneRetry(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: requestHeaders(apiKey, options.requestId),
     body: JSON.stringify(config.body),
     signal: options.signal,
-  }, options.timeoutMs || config.timeoutMs, options.onRetry);
+  }, timeoutMs, options.onRetry, maxAttempts);
 
   try {
-    const result = await send(primary);
-    return { ...result, config: primary, fallbackUsed: false, creditFallback: false, affordableTokens: 0 };
+    const result = await send(primary, {
+      timeoutMs: fastFreePrimaryUsed
+        ? fastFreePrimaryTimeout()
+        : boundedRouterRequest
+          ? fastFreeFallbackTimeout()
+          : options.timeoutMs || primary.timeoutMs,
+      maxAttempts: fastFreePrimaryUsed || boundedRouterRequest ? 1 : 2,
+    });
+    return { ...result, config: primary, fallbackUsed: false, creditFallback: false, affordableTokens: 0, ...fastMeta };
   } catch (error) {
+    if (fastFreePrimaryUsed && canFallbackFromFastFree(error)) {
+      const fallback = buildChatBody(options, {
+        stream,
+        modelOverride: FREE_MODEL,
+        maxTokensOverride: Math.min(primary.requestedMaxTokens, freeTokenCap(primary.profile)),
+      });
+      options.onRetry?.({ attempt: 1, delayMs: 0, status: Number(error?.status || 0), reason: 'fast-free-router-fallback', model: FREE_MODEL });
+      try {
+        const result = await send(fallback, { timeoutMs: fastFreeFallbackTimeout(), maxAttempts: 1 });
+        return {
+          ...result,
+          attempts: 1 + result.attempts,
+          config: fallback,
+          fallbackUsed: true,
+          creditFallback: false,
+          affordableTokens: 0,
+          ...fastMeta,
+          fastFreeFallback: true,
+        };
+      } catch (fallbackError) {
+        fallbackError.originalFastFreeError = error.message;
+        if (!fallbackError.code || fallbackError.code === 'OPENROUTER_REQUEST_FAILED') fallbackError.code = 'OPENROUTER_FAST_FREE_FALLBACK_FAILED';
+        fallbackError.message = `Model miễn phí ưu tiên và tuyến miễn phí dự phòng đều chưa phản hồi (${fallbackError.message}). Hãy thử lại sau; website không chuyển sang model trả phí.`;
+        throw fallbackError;
+      }
+    }
     const canUseFreeFallback = primary.billingMode === 'auto' && error?.code === 'OPENROUTER_CREDIT_LIMIT';
     if (!canUseFreeFallback) {
       if (primary.billingMode === 'free' && error?.code === 'OPENROUTER_RATE_LIMIT') {
@@ -275,13 +444,14 @@ async function executeChatRequest(options = {}, { stream = false } = {}) {
     });
     options.onRetry?.({ attempt: 0, delayMs: 0, status: 402, reason: 'credit-free-fallback', model: FREE_MODEL });
     try {
-      const result = await send(fallback);
+      const result = await send(fallback, { timeoutMs: fallback.timeoutMs, maxAttempts: 2 });
       return {
         ...result,
         config: fallback,
         fallbackUsed: true,
         creditFallback: true,
         affordableTokens: Math.max(0, Number(error.affordableTokens) || 0),
+        ...fastMeta,
       };
     } catch (fallbackError) {
       fallbackError.originalCreditError = error.message;
@@ -300,6 +470,7 @@ export function resolveServerAiProvider() {
 export function getServerAiReadiness() {
   const configured = Boolean(env('OPENROUTER_API_KEY'));
   const mode = billingMode();
+  const fastFreeMode = mode === 'free' && parseBool(process.env.OPENROUTER_FAST_FREE_MODE, true);
   const effectiveModel = (profile) => mode === 'free' && profile !== 'image' ? FREE_MODEL : modelForProfile(profile);
   return {
     provider: 'openrouter',
@@ -322,6 +493,11 @@ export function getServerAiReadiness() {
     freeFallbackEnabled: mode === 'auto',
     freeFallbackModel: FREE_MODEL,
     freeDailyRequestLimitHint: 50,
+    fastFreeMode,
+    fastFreeJsonModel: env('OPENROUTER_FREE_MODEL_JSON', 'latency-catalog'),
+    fastFreePrimaryTimeoutMs: fastFreePrimaryTimeout(),
+    fastFreeFallbackTimeoutMs: fastFreeFallbackTimeout(),
+    fastFreeCatalogCacheMinutes: FAST_FREE_CACHE_TTL_MS / 60_000,
   };
 }
 
@@ -342,20 +518,46 @@ export async function callServerAI(options = {}) {
   // bounded retry with a fresh session id and never loop beyond it.
   if (!text && (execution.config.billingMode === 'free' || execution.config.model === FREE_MODEL)) {
     freeRouteRetry = true;
-    options.onRetry?.({ attempt: execution.attempts, delayMs: 0, status: 200, reason: 'empty-free-response' });
+    const previousExecution = execution;
+    const emptyFastFreePrimary = previousExecution.fastFreePrimaryUsed && !previousExecution.fastFreeFallback;
+    options.onRetry?.({
+      attempt: previousExecution.attempts,
+      delayMs: 0,
+      status: 200,
+      reason: emptyFastFreePrimary ? 'empty-fast-free-fallback' : 'empty-free-response',
+      model: FREE_MODEL,
+    });
     const retrySession = `${String(options.sessionId || options.requestId || 'bes').slice(0, 150)}:empty-retry:${Date.now()}`;
-    const retryExecution = await executeChatRequest({ ...options, sessionId: retrySession }, { stream: false });
+    const retryExecution = await executeChatRequest({ ...options, sessionId: retrySession, fastFreeBypass: true }, { stream: false });
     providerAttempts += retryExecution.attempts;
     execution = {
       ...retryExecution,
-      fallbackUsed: execution.fallbackUsed || retryExecution.fallbackUsed,
-      creditFallback: execution.creditFallback || retryExecution.creditFallback,
-      affordableTokens: Math.max(execution.affordableTokens || 0, retryExecution.affordableTokens || 0),
+      fallbackUsed: previousExecution.fallbackUsed || retryExecution.fallbackUsed || emptyFastFreePrimary,
+      creditFallback: previousExecution.creditFallback || retryExecution.creditFallback,
+      affordableTokens: Math.max(previousExecution.affordableTokens || 0, retryExecution.affordableTokens || 0),
+      fastFreeMode: previousExecution.fastFreeMode || retryExecution.fastFreeMode,
+      fastFreePrimaryUsed: previousExecution.fastFreePrimaryUsed || retryExecution.fastFreePrimaryUsed,
+      fastFreeSelectedModel: previousExecution.fastFreeSelectedModel || retryExecution.fastFreeSelectedModel,
+      fastFreeSelectionSource: previousExecution.fastFreeSelectionSource || retryExecution.fastFreeSelectionSource,
+      fastFreeCatalogDurationMs: Math.max(previousExecution.fastFreeCatalogDurationMs || 0, retryExecution.fastFreeCatalogDurationMs || 0),
+      fastFreeFallback: previousExecution.fastFreeFallback || retryExecution.fastFreeFallback || emptyFastFreePrimary,
     };
     text = extractResponseText(execution.payload);
   }
 
-  const { payload, config, fallbackUsed, creditFallback, affordableTokens } = execution;
+  const {
+    payload,
+    config,
+    fallbackUsed,
+    creditFallback,
+    affordableTokens,
+    fastFreeMode = false,
+    fastFreePrimaryUsed = false,
+    fastFreeSelectedModel = '',
+    fastFreeSelectionSource = '',
+    fastFreeCatalogDurationMs = 0,
+    fastFreeFallback = false,
+  } = execution;
   const { model, profile, requestedMaxTokens, actualMaxTokens } = config;
   if (!text) {
     const actualModel = String(payload?.model || model);
@@ -373,6 +575,12 @@ export async function callServerAI(options = {}) {
     providerAttempts,
     freeRouteRetry,
     fallbackUsed,
+    fastFreeMode,
+    fastFreePrimaryUsed,
+    fastFreeSelectedModel,
+    fastFreeSelectionSource,
+    fastFreeCatalogDurationMs,
+    fastFreeFallback,
     creditFallback,
     affordableTokens,
     requestedMaxTokens,

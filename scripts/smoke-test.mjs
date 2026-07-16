@@ -169,7 +169,7 @@ const aiGovernanceRuntimeSource = fs.readFileSync(new URL('../src/utils/aiGovern
 const aiServerAdapterSource = fs.readFileSync(new URL('../server/unifiedAiProviderAdapter.js', import.meta.url), 'utf8');
 const aiServerGatewaySource = fs.readFileSync(new URL('../src/utils/aiServerGateway.js', import.meta.url), 'utf8');
 add('V12.40 task-aware AI token budget applied globally', aiGovernanceRuntimeSource.includes('maxOutputTokens: 8192') && aiGovernanceRuntimeSource.includes('clampNumber(options.maxOutputTokens') && (aiServerAdapterSource.includes('max_tokens: clamp(options.maxOutputTokens') || aiServerAdapterSource.includes('requestedMaxTokens = clamp(options.maxOutputTokens')), 'task contracts can use up to 8,192 output tokens through the server gateway');
-add('V12.40 OpenRouter retry is centralized and bounded', aiServerAdapterSource.includes('fetchOpenRouterWithOneRetry') && aiServerAdapterSource.includes('attempt <= 2') && aiGovernanceRuntimeSource.includes('transientRetries: 0'), 'one transient server retry and zero browser retry prevent stacked retries');
+add('V12.40 OpenRouter retry is centralized and bounded', aiServerAdapterSource.includes('fetchOpenRouterWithOneRetry') && aiServerAdapterSource.includes('attempt <= attemptLimit') && aiServerAdapterSource.includes('clamp(maxAttempts, 1, 2, 2)') && aiGovernanceRuntimeSource.includes('transientRetries: 0'), 'at most one transient server retry and zero browser retry prevent stacked retries');
 add('V10.68 homeroom file import uses compact token budget', homeroomSource.includes('AI_IMPORT_OUTPUT_BUDGET = 1200') && homeroomSource.includes('AI_IMPORT_SOURCE_LIMIT = 60000') && homeroomSource.includes('omit properties that are absent'), '1,200 output tokens and compact JSON extraction');
 
 const homeroomPhase3TabsSource = fs.readFileSync(new URL('../src/components/HomeroomPhase3Tabs.jsx', import.meta.url), 'utf8');
@@ -514,4 +514,3 @@ if (failed.length) {
   process.exit(1);
 }
 console.log(`\nAll ${checks.length} smoke checks passed.`);
-
