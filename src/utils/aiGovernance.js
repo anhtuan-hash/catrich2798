@@ -17,13 +17,13 @@ const MAX_USAGE_DAYS = 45;
 let currentUser = { id: 'guest', email: '', role: 'guest', name: 'Guest' };
 
 export const DEFAULT_AI_GOVERNANCE = Object.freeze({
-  schemaVersion: 4,
+  schemaVersion: 5,
   enabled: true,
   allowActions: true,
   requireActionConfirmation: true,
   dailyRequestLimit: 120,
   dailyTokenBudget: 180000,
-  maxOutputTokens: 2800,
+  maxOutputTokens: 8192,
   fairUse: {
     enabled: true,
     perUserDailyRequestLimit: 60,
@@ -57,18 +57,18 @@ export const DEFAULT_AI_GOVERNANCE = Object.freeze({
   },
   runtime: {
     enabled: true,
-    maxConcurrent: 2,
-    requestTimeoutMs: 45000,
-    transientRetries: 1,
-    retryBaseDelayMs: 800,
+    maxConcurrent: 3,
+    requestTimeoutMs: 175000,
+    transientRetries: 0,
+    retryBaseDelayMs: 650,
     dedupeInFlight: true,
     cacheEnabled: true,
     cacheTtlMs: 300000,
     cacheMaxEntries: 40,
     circuitBreakerEnabled: true,
-    circuitFailureThreshold: 3,
+    circuitFailureThreshold: 4,
     circuitFailureWindowMs: 120000,
-    circuitCooldownMs: 90000,
+    circuitCooldownMs: 45000,
   },
   actionTargets: {
     'worksheet-factory': true,
@@ -79,12 +79,12 @@ export const DEFAULT_AI_GOVERNANCE = Object.freeze({
     'current-app': true,
   },
   profiles: {
-    chat: { label: 'Brian AI Chat', maxOutputTokens: 2400 },
-    worksheet: { label: 'Worksheet Factory', maxOutputTokens: 3200 },
-    document: { label: 'Document analysis', maxOutputTokens: 2800 },
-    administration: { label: 'School administration', maxOutputTokens: 1800 },
-    diagnostic: { label: 'Provider connection test', maxOutputTokens: 64 },
-    default: { label: 'Default', maxOutputTokens: 2200 },
+    chat: { label: 'Brian AI Chat', maxOutputTokens: 3200 },
+    worksheet: { label: 'Worksheet Factory', maxOutputTokens: 7200 },
+    document: { label: 'Document analysis', maxOutputTokens: 8000 },
+    administration: { label: 'School administration', maxOutputTokens: 4000 },
+    diagnostic: { label: 'Provider connection test', maxOutputTokens: 128 },
+    default: { label: 'Default', maxOutputTokens: 4800 },
   },
   updatedAt: '',
 });
@@ -142,26 +142,28 @@ function normalizeProfile(profile, fallback) {
 export function normalizeAiGovernanceSettings(raw) {
   const source = raw && typeof raw === 'object' ? raw : {};
   const defaults = DEFAULT_AI_GOVERNANCE;
+  const sourceSchema = Number(source.schemaVersion || 0);
+  const legacyRuntime = sourceSchema < 5;
   const targets = { ...defaults.actionTargets };
   Object.keys(targets).forEach((key) => {
     if (typeof source.actionTargets?.[key] === 'boolean') targets[key] = source.actionTargets[key];
   });
   const profiles = {};
   Object.keys(defaults.profiles).forEach((key) => {
-    profiles[key] = normalizeProfile(source.profiles?.[key], defaults.profiles[key]);
+    profiles[key] = legacyRuntime ? normalizeProfile(defaults.profiles[key], defaults.profiles[key]) : normalizeProfile(source.profiles?.[key], defaults.profiles[key]);
   });
   const fairUseSource = source.fairUse && typeof source.fairUse === 'object' ? source.fairUse : {};
   const privacySource = source.privacy && typeof source.privacy === 'object' ? source.privacy : {};
   const validationSource = source.outputValidation && typeof source.outputValidation === 'object' ? source.outputValidation : {};
   const runtimeSource = source.runtime && typeof source.runtime === 'object' ? source.runtime : {};
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     enabled: source.enabled !== false,
     allowActions: source.allowActions !== false,
     requireActionConfirmation: source.requireActionConfirmation !== false,
     dailyRequestLimit: clampNumber(source.dailyRequestLimit, 1, 5000, defaults.dailyRequestLimit),
     dailyTokenBudget: clampNumber(source.dailyTokenBudget, 1000, 5000000, defaults.dailyTokenBudget),
-    maxOutputTokens: clampNumber(source.maxOutputTokens, 256, 8192, defaults.maxOutputTokens),
+    maxOutputTokens: legacyRuntime ? defaults.maxOutputTokens : clampNumber(source.maxOutputTokens, 256, 8192, defaults.maxOutputTokens),
     fairUse: {
       ...defaults.fairUse,
       ...fairUseSource,
@@ -192,20 +194,20 @@ export function normalizeAiGovernanceSettings(raw) {
     },
     runtime: {
       ...defaults.runtime,
-      ...runtimeSource,
-      enabled: runtimeSource.enabled !== false,
-      maxConcurrent: clampNumber(runtimeSource.maxConcurrent, 1, 6, defaults.runtime.maxConcurrent),
-      requestTimeoutMs: clampNumber(runtimeSource.requestTimeoutMs, 5000, 180000, defaults.runtime.requestTimeoutMs),
-      transientRetries: clampNumber(runtimeSource.transientRetries, 0, 3, defaults.runtime.transientRetries),
-      retryBaseDelayMs: clampNumber(runtimeSource.retryBaseDelayMs, 100, 5000, defaults.runtime.retryBaseDelayMs),
-      dedupeInFlight: runtimeSource.dedupeInFlight !== false,
-      cacheEnabled: runtimeSource.cacheEnabled !== false,
-      cacheTtlMs: clampNumber(runtimeSource.cacheTtlMs, 10000, 3600000, defaults.runtime.cacheTtlMs),
-      cacheMaxEntries: clampNumber(runtimeSource.cacheMaxEntries, 5, 200, defaults.runtime.cacheMaxEntries),
-      circuitBreakerEnabled: runtimeSource.circuitBreakerEnabled !== false,
-      circuitFailureThreshold: clampNumber(runtimeSource.circuitFailureThreshold, 2, 10, defaults.runtime.circuitFailureThreshold),
-      circuitFailureWindowMs: clampNumber(runtimeSource.circuitFailureWindowMs, 10000, 900000, defaults.runtime.circuitFailureWindowMs),
-      circuitCooldownMs: clampNumber(runtimeSource.circuitCooldownMs, 10000, 900000, defaults.runtime.circuitCooldownMs),
+      ...(legacyRuntime ? {} : runtimeSource),
+      enabled: legacyRuntime ? defaults.runtime.enabled : runtimeSource.enabled !== false,
+      maxConcurrent: legacyRuntime ? defaults.runtime.maxConcurrent : clampNumber(runtimeSource.maxConcurrent, 1, 6, defaults.runtime.maxConcurrent),
+      requestTimeoutMs: legacyRuntime ? defaults.runtime.requestTimeoutMs : clampNumber(runtimeSource.requestTimeoutMs, 5000, 240000, defaults.runtime.requestTimeoutMs),
+      transientRetries: legacyRuntime ? defaults.runtime.transientRetries : clampNumber(runtimeSource.transientRetries, 0, 3, defaults.runtime.transientRetries),
+      retryBaseDelayMs: legacyRuntime ? defaults.runtime.retryBaseDelayMs : clampNumber(runtimeSource.retryBaseDelayMs, 100, 5000, defaults.runtime.retryBaseDelayMs),
+      dedupeInFlight: legacyRuntime ? defaults.runtime.dedupeInFlight : runtimeSource.dedupeInFlight !== false,
+      cacheEnabled: legacyRuntime ? defaults.runtime.cacheEnabled : runtimeSource.cacheEnabled !== false,
+      cacheTtlMs: legacyRuntime ? defaults.runtime.cacheTtlMs : clampNumber(runtimeSource.cacheTtlMs, 10000, 3600000, defaults.runtime.cacheTtlMs),
+      cacheMaxEntries: legacyRuntime ? defaults.runtime.cacheMaxEntries : clampNumber(runtimeSource.cacheMaxEntries, 5, 200, defaults.runtime.cacheMaxEntries),
+      circuitBreakerEnabled: legacyRuntime ? defaults.runtime.circuitBreakerEnabled : runtimeSource.circuitBreakerEnabled !== false,
+      circuitFailureThreshold: legacyRuntime ? defaults.runtime.circuitFailureThreshold : clampNumber(runtimeSource.circuitFailureThreshold, 2, 10, defaults.runtime.circuitFailureThreshold),
+      circuitFailureWindowMs: legacyRuntime ? defaults.runtime.circuitFailureWindowMs : clampNumber(runtimeSource.circuitFailureWindowMs, 10000, 900000, defaults.runtime.circuitFailureWindowMs),
+      circuitCooldownMs: legacyRuntime ? defaults.runtime.circuitCooldownMs : clampNumber(runtimeSource.circuitCooldownMs, 10000, 900000, defaults.runtime.circuitCooldownMs),
     },
     actionTargets: targets,
     profiles,

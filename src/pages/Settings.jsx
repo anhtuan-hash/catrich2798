@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { runAITask } from '../utils/aiTaskRuntime.js';
+import { getAiServerHealth } from '../utils/aiServerGateway.js';
+import { runOpenRouterProductionDiagnostics } from '../utils/openRouterDiagnostics.js';
 import { ACCENT_COLORS, UI_PREFERENCES_SYNC_EVENT } from '../ui-core/runtime/uiPreferences.js';
 import { changeCurrentPassword } from '../utils/auth.js';
 import {
@@ -200,6 +201,7 @@ export default function Settings({
   const [saved, setSaved] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState('');
+  const [gatewayHealth, setGatewayHealth] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(() => readBoolean('bes-global-notice-sound', true));
   const [liveSyncEnabled, setLiveSyncEnabled] = useState(() => readBoolean('bes-global-notice-live-sync', true));
   const [dataSyncEnabled, setDataSyncEnabled] = useState(() => readBoolean('bes-global-data-sync', true));
@@ -215,10 +217,7 @@ export default function Settings({
   const currentProvider = useMemo(() => getProviderInfo(selectedProvider), [selectedProvider]);
   const currentConfig = configs[selectedProvider] || {};
   const accountScope = getAiSettingsScope();
-  const configuredProviders = useMemo(
-    () => PROVIDERS.filter((provider) => Boolean(String(configs[provider.id]?.apiKey || '').trim())),
-    [configs],
-  );
+  const configuredProviders = useMemo(() => gatewayHealth?.configured ? PROVIDERS : [], [gatewayHealth]);
 
 
   const authProviders = useMemo(() => Array.isArray(currentUser?.authProviders) ? currentUser.authProviders : [], [currentUser?.authProviders]);
@@ -239,6 +238,14 @@ export default function Settings({
   useEffect(() => {
     setMusicSettings(readMusicSettings(currentUser));
   }, [currentUser?.id, currentUser?.email]);
+
+  useEffect(() => {
+    let active = true;
+    getAiServerHealth()
+      .then((health) => { if (active) setGatewayHealth(health); })
+      .catch((error) => { if (active) setGatewayHealth({ configured: false, error: error?.message || String(error) }); });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     const onSync = (event) => {
@@ -282,27 +289,23 @@ export default function Settings({
 
 
 
-  const testProvider = async (providerId = selectedProvider, useFallback = false) => {
-    const providerInfo = getProviderInfo(providerId);
-    const config = configs[providerId] || {};
+  const testProvider = async () => {
     setTestResult('');
     setTesting(true);
     try {
-      const text = await runAITask('system.connectionTest', {
-        provider: providerId,
-        apiKey: config.apiKey,
-        model: config.model || providerInfo.defaultModel,
-        baseUrl: config.baseUrl || providerInfo.baseUrl,
-        prompt: 'Reply with exactly: Brian English Studio API OK',
-        temperature: 0,
-        maxOutputTokens: 48,
-        governanceProfile: 'diagnostic',
-        loadingLabel: language === 'vi' ? `Kiểm tra kết nối ${providerInfo.label}` : `Testing ${providerInfo.label}`,
-        fallback: useFallback,
+      const diagnostic = await runOpenRouterProductionDiagnostics({
+        onStatus: ({ phase }) => setTestResult(phase === 'health'
+          ? (language === 'vi' ? '⏳ Đang kiểm tra gateway máy chủ…' : '⏳ Checking the server gateway…')
+          : phase === 'stream'
+            ? (language === 'vi' ? '⏳ Đang đo streaming và token đầu tiên…' : '⏳ Measuring streaming and first token…')
+            : (language === 'vi' ? '⏳ Đang kiểm tra Structured JSON…' : '⏳ Checking Structured JSON…')),
       });
-      setTestResult(`✅ ${providerInfo.label}: ${text}`);
+      setGatewayHealth(diagnostic.health);
+      const firstToken = diagnostic.stream.firstTokenMs == null ? '—' : `${diagnostic.stream.firstTokenMs} ms`;
+      setTestResult(`✅ Gateway OK · first token ${firstToken} · stream ${diagnostic.stream.totalMs} ms · JSON ${diagnostic.json.totalMs} ms · ${diagnostic.stream.model || diagnostic.health?.models?.fast || 'openrouter/auto'}`);
     } catch (error) {
-      setTestResult(`⚠️ ${providerInfo.label}: ${error.message || String(error)}`);
+      setGatewayHealth((previous) => ({ ...(previous || {}), configured: false, error: error?.message || String(error) }));
+      setTestResult(`⚠️ OpenRouter Gateway: ${error.message || String(error)}`);
     } finally {
       setTesting(false);
     }
@@ -513,7 +516,7 @@ export default function Settings({
           </p>
           <div className="settings-v47-hero-chips">
             <span><b>{PROVIDERS.length}</b><small>Provider</small></span>
-            <span><b>{configuredProviders.length}</b><small>API key</small></span>
+            <span><b>{gatewayHealth?.configured ? 1 : 0}</b><small>Gateway</small></span>
             <span><b>{theme === 'dark' ? 'Dark' : 'Light'}</b><small>{language === 'vi' ? 'Giao diện' : 'Theme'}</small></span>
           </div>
         </div>
@@ -577,100 +580,88 @@ export default function Settings({
           <CardHeader
             icon="↗"
             tone="blue"
-            title={language === 'vi' ? 'OpenRouter AI Gateway' : 'OpenRouter AI Gateway'}
-            subtitle={language === 'vi' ? 'Một API key duy nhất vận hành toàn bộ AI trên website, mọi ứng dụng và mọi chức năng.' : 'One API key powers every AI feature across the entire website.'}
-            action={<span className="settings-v47-account-pill">{currentUser?.email || accountScope}</span>}
+            title={language === 'vi' ? 'OpenRouter Production Gateway' : 'OpenRouter Production Gateway'}
+            subtitle={language === 'vi' ? 'Một gateway máy chủ, một API key trên Vercel và định tuyến model theo từng nhiệm vụ AI.' : 'One server gateway, one Vercel API key, and task-aware model routing.'}
+            action={<span className="settings-v47-account-pill">bes-ai-core/1.3</span>}
           />
 
           <div className="settings-v12391-openrouter-status">
             <span className="settings-v12391-openrouter-logo">OR</span>
             <div className="settings-v12391-openrouter-copy">
-              <small>{language === 'vi' ? 'Provider duy nhất của hệ thống' : 'Only system provider'}</small>
+              <small>{language === 'vi' ? 'Provider duy nhất · key do máy chủ quản lý' : 'Only provider · server-managed key'}</small>
               <strong>OpenRouter</strong>
-              <code>{currentConfig.model || currentProvider.defaultModel}</code>
+              <code>{gatewayHealth?.models?.standard || 'openrouter/auto'}</code>
             </div>
             <div className="settings-v12391-openrouter-badges">
-              <span>1 provider</span>
-              <span>1 API key</span>
-              <span>{language === 'vi' ? 'Toàn website' : 'Site-wide'}</span>
+              <span>{language === 'vi' ? 'Streaming' : 'Streaming'}</span>
+              <span>{language === 'vi' ? 'JSON Guard' : 'JSON Guard'}</span>
+              <span>{language === 'vi' ? 'Định tuyến theo tác vụ' : 'Task-aware routing'}</span>
             </div>
-            <b className={String(currentConfig.apiKey || '').trim() ? 'ready' : 'warning'}>
-              {String(currentConfig.apiKey || '').trim()
-                ? `● ${language === 'vi' ? 'Đã kết nối key' : 'Key configured'}`
-                : `○ ${language === 'vi' ? 'Chưa nhập API key' : 'API key missing'}`}
+            <b className={gatewayHealth?.configured ? 'ready' : 'warning'}>
+              {gatewayHealth?.configured
+                ? `● ${language === 'vi' ? 'Gateway sẵn sàng' : 'Gateway ready'}`
+                : `○ ${language === 'vi' ? 'Chưa cấu hình trên Vercel' : 'Not configured on Vercel'}`}
             </b>
           </div>
 
           <div className="settings-v12391-openrouter-layout">
             <section className="settings-v12391-openrouter-editor" ref={providerEditorRef}>
               <div className="settings-v12391-openrouter-links">
-                <a href={currentProvider.helpUrl} target="_blank" rel="noreferrer noopener">▤ {language === 'vi' ? 'Hướng dẫn OpenRouter' : 'OpenRouter guide'}</a>
-                <a className="get-key" href={currentProvider.keyUrl} target="_blank" rel="noreferrer noopener">↗ {language === 'vi' ? 'Lấy OpenRouter API key' : 'Get OpenRouter API key'}</a>
+                <a href={currentProvider.helpUrl} target="_blank" rel="noreferrer noopener">▤ {language === 'vi' ? 'Tài liệu OpenRouter' : 'OpenRouter docs'}</a>
+                <a className="get-key" href={currentProvider.keyUrl} target="_blank" rel="noreferrer noopener">↗ {language === 'vi' ? 'Tạo API key' : 'Create API key'}</a>
               </div>
 
-              <label>{language === 'vi' ? 'OpenRouter API key dùng chung' : 'Shared OpenRouter API key'}</label>
-              <input
-                type="password"
-                value={currentConfig.apiKey || ''}
-                onChange={(event) => updateConfig({ apiKey: event.target.value })}
-                placeholder="sk-or-v1-…"
-                autoComplete="off"
-                spellCheck="false"
-              />
-              <small className="settings-v12391-key-preview">{language === 'vi' ? 'Trạng thái:' : 'Status:'} {maskKey(currentConfig.apiKey)}</small>
+              <div className="settings-v12391-single-provider-note">
+                <strong>{language === 'vi' ? 'API key không còn được nhập trong website' : 'The API key is no longer entered in the website'}</strong>
+                <small>{language === 'vi'
+                  ? 'Đặt OPENROUTER_API_KEY trong Vercel → Project Settings → Environment Variables. Key sẽ không xuất hiện trong localStorage hoặc bundle trình duyệt.'
+                  : 'Set OPENROUTER_API_KEY in Vercel → Project Settings → Environment Variables. The key never appears in localStorage or the browser bundle.'}</small>
+              </div>
 
               <div className="settings-v12391-model-grid">
-                <div>
-                  <label>{language === 'vi' ? 'Model văn bản / JSON' : 'Text / JSON model'}</label>
-                  <input list="openrouter-text-models" value={currentConfig.model || currentProvider.defaultModel} onChange={(event) => updateConfig({ model: event.target.value })} />
-                  <datalist id="openrouter-text-models">{(currentProvider.models || []).map((model) => <option key={model} value={model} />)}</datalist>
-                </div>
-                <div>
-                  <label>{language === 'vi' ? 'Model Vision' : 'Vision model'}</label>
-                  <input value={currentConfig.visionModel || currentProvider.defaultVisionModel} onChange={(event) => updateConfig({ visionModel: event.target.value })} />
-                </div>
-                <div>
-                  <label>{language === 'vi' ? 'Model tạo / chỉnh ảnh' : 'Image generation / editing model'}</label>
-                  <input value={currentConfig.imageModel || currentProvider.defaultImageModel} onChange={(event) => updateConfig({ imageModel: event.target.value })} />
-                </div>
+                {[
+                  ['Fast', gatewayHealth?.models?.fast],
+                  ['Standard', gatewayHealth?.models?.standard],
+                  ['Quality', gatewayHealth?.models?.quality],
+                  ['JSON', gatewayHealth?.models?.json],
+                  ['Long', gatewayHealth?.models?.long],
+                  ['Vision', gatewayHealth?.models?.vision],
+                  ['Image', gatewayHealth?.models?.image],
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <label>{label}</label>
+                    <input value={value || 'openrouter/auto'} readOnly aria-label={`${label} model`} />
+                  </div>
+                ))}
               </div>
-
-              <details className="settings-v12391-openrouter-advanced">
-                <summary>{language === 'vi' ? 'Cấu hình nâng cao' : 'Advanced configuration'}</summary>
-                <label>Base URL</label>
-                <input value={currentConfig.baseUrl || currentProvider.baseUrl} onChange={(event) => updateConfig({ baseUrl: event.target.value })} />
-              </details>
 
               <div className="settings-v47-provider-actions settings-v12391-openrouter-actions">
-                <button type="button" className="primary" onClick={saveSettings}>{language === 'vi' ? 'Lưu cho toàn website' : 'Save site-wide'}</button>
-                <button type="button" className="secondary" disabled={testing} onClick={() => testProvider('openrouter', false)}>{testing ? (language === 'vi' ? 'Đang kiểm tra...' : 'Testing...') : (language === 'vi' ? 'Kiểm tra kết nối' : 'Test connection')}</button>
+                <button type="button" className="primary" disabled={testing} onClick={testProvider}>{testing ? (language === 'vi' ? 'Đang kiểm tra thật...' : 'Running live test...') : (language === 'vi' ? 'Kiểm tra gateway thật' : 'Run live gateway test')}</button>
+                <button type="button" className="secondary" onClick={() => window.location.reload()}>{language === 'vi' ? 'Nạp lại trạng thái' : 'Reload status'}</button>
               </div>
-              {saved ? <div className="settings-v47-message ok">✅ {language === 'vi' ? 'Đã lưu OpenRouter cho toàn bộ website.' : 'OpenRouter saved for the entire website.'}</div> : null}
               {testResult ? <div className={`settings-v47-message ${testResult.startsWith('✅') ? 'ok' : ''}`}>{testResult}</div> : null}
+              {!gatewayHealth?.configured && gatewayHealth?.error ? <div className="settings-v47-message">⚠️ {gatewayHealth.error}</div> : null}
             </section>
 
             <aside className="settings-v12391-openrouter-coverage">
-              <h3>{language === 'vi' ? 'Phạm vi sử dụng chung' : 'Shared coverage'}</h3>
-              <p>{language === 'vi' ? 'Cùng một key được AI Core sử dụng xuyên suốt các khu vực sau:' : 'The same key is used by AI Core across:'}</p>
+              <h3>{language === 'vi' ? 'Runtime sản xuất' : 'Production runtime'}</h3>
+              <p>{language === 'vi' ? 'Toàn bộ ứng dụng dùng chung một đường xử lý:' : 'Every app shares one processing path:'}</p>
               <div className="settings-v12391-coverage-grid">
                 {[
-                  language === 'vi' ? 'Brian AI' : 'Brian AI',
-                  'Worksheet Factory',
-                  'Grammar Builder',
-                  'Exam Studio',
-                  'Writing Studio',
-                  'Reading Studio',
-                  language === 'vi' ? 'Nói & phát âm' : 'Speaking & pronunciation',
-                  language === 'vi' ? 'Giáo án' : 'Lesson design',
-                  language === 'vi' ? 'Tổ chuyên môn' : 'Department',
-                  language === 'vi' ? 'Chủ nhiệm' : 'Homeroom',
-                  language === 'vi' ? 'Phân tích tài liệu' : 'Document analysis',
-                  'Vision & SmartID',
+                  language === 'vi' ? 'Gateway máy chủ duy nhất' : 'Single server gateway',
+                  language === 'vi' ? 'Streaming nội dung' : 'Streaming responses',
+                  language === 'vi' ? 'Timeout theo tác vụ' : 'Task-specific timeouts',
+                  language === 'vi' ? 'Một retry lỗi mạng' : 'One network retry',
+                  language === 'vi' ? 'Circuit theo model' : 'Model-scoped circuit',
+                  language === 'vi' ? 'Structured JSON bắt buộc' : 'Required structured JSON',
+                  language === 'vi' ? 'Vision qua gateway' : 'Gateway vision',
+                  language === 'vi' ? 'Hình ảnh qua gateway' : 'Gateway images',
+                  language === 'vi' ? 'Không lưu key ở trình duyệt' : 'No browser key storage',
                 ].map((item) => <span key={item}>✓ {item}</span>)}
               </div>
               <div className="settings-v12391-single-provider-note">
-                <strong>{language === 'vi' ? 'Không còn bộ chọn provider' : 'No provider selector remains'}</strong>
-                <small>{language === 'vi' ? 'Không có provider dự phòng, không có key riêng theo ứng dụng và không có thẻ provider khác.' : 'No fallback providers, per-app keys, or additional provider cards.'}</small>
+                <strong>{language === 'vi' ? 'Biến môi trường tối thiểu' : 'Required environment variable'}</strong>
+                <small><code>OPENROUTER_API_KEY</code></small>
               </div>
             </aside>
           </div>
@@ -762,36 +753,30 @@ export default function Settings({
         </article>
 
         <article className="settings-v47-card settings-v47-security-card">
-          <CardHeader icon="🛡" tone="amber" title={language === 'vi' ? 'Bảo mật & API key' : 'Security & API keys'} subtitle={language === 'vi' ? 'Quản lý API key và trạng thái bảo mật.' : 'Manage API keys and security status.'} />
+          <CardHeader icon="🛡" tone="amber" title={language === 'vi' ? 'Bảo mật OpenRouter' : 'OpenRouter security'} subtitle={language === 'vi' ? 'API key chỉ tồn tại trên máy chủ Vercel.' : 'The API key exists only on the Vercel server.'} />
           <div className="settings-v47-key-list">
-            {PROVIDERS.slice(0, 4).map((provider) => {
-              const config = configs[provider.id] || {};
-              const ready = Boolean(String(config.apiKey || '').trim());
-              return (
-                <button key={provider.id} type="button" onClick={() => { setSelectedProvider(provider.id); providerEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }}>
-                  <span className={`provider-logo small tone-${PROVIDER_TONES[provider.id]}`}>{PROVIDER_ICONS[provider.id]}</span>
-                  <strong>{provider.label}</strong>
-                  <code>{maskKey(config.apiKey)}</code>
-                  <em className={ready ? 'active' : ''}>{ready ? (language === 'vi' ? 'Hoạt động' : 'Active') : (language === 'vi' ? 'Chưa có key' : 'No key')}</em>
-                  <b>⋮</b>
-                </button>
-              );
-            })}
+            <button type="button" onClick={() => providerEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
+              <span className="provider-logo small tone-indigo">↗</span>
+              <strong>OpenRouter Production Gateway</strong>
+              <code>OPENROUTER_API_KEY</code>
+              <em className={gatewayHealth?.configured ? 'active' : ''}>{gatewayHealth?.configured ? (language === 'vi' ? 'Máy chủ sẵn sàng' : 'Server ready') : (language === 'vi' ? 'Cần cấu hình Vercel' : 'Configure Vercel')}</em>
+              <b>›</b>
+            </button>
           </div>
-          <button type="button" className="settings-v47-add-key" onClick={() => providerEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>＋ {language === 'vi' ? 'Cấu hình OpenRouter API key' : 'Configure OpenRouter API key'}</button>
-          <div className="settings-v47-security-note">🔒 {language === 'vi' ? 'API key được lưu riêng theo tài khoản trên trình duyệt này.' : 'API keys are stored per account in this browser.'}</div>
+          <button type="button" className="settings-v47-add-key" onClick={testProvider}>⌁ {language === 'vi' ? 'Kiểm tra OpenRouter Gateway' : 'Test OpenRouter Gateway'}</button>
+          <div className="settings-v47-security-note">🔒 {language === 'vi' ? 'Website không còn lưu API key, Base URL hoặc model override trong trình duyệt.' : 'The website no longer stores API keys, base URLs, or model overrides in the browser.'}</div>
         </article>
 
         <article className="settings-v47-card settings-v47-summary-card">
           <CardHeader icon="▥" tone="sky" title={language === 'vi' ? 'Tóm tắt hệ thống' : 'System summary'} subtitle={language === 'vi' ? 'Thông tin nhanh và thao tác tiện ích.' : 'Quick status and utility actions.'} />
           <div className="settings-v47-summary-stats">
             <span><b>{PROVIDERS.length}</b><small>Provider</small></span>
-            <span><b>{configuredProviders.length}</b><small>API key</small></span>
+            <span><b>{gatewayHealth?.configured ? 1 : 0}</b><small>Gateway</small></span>
             <span><b>{resolvedPerformance}</b><small>Profile</small></span>
             <span><b>99.9%</b><small>Uptime</small></span>
           </div>
           <div className="settings-v47-quick-actions">
-            <button type="button" disabled={testing} onClick={() => testProvider(selectedProvider, true)}>⌁ {language === 'vi' ? 'Kiểm tra kết nối' : 'Test connection'}</button>
+            <button type="button" disabled={testing} onClick={testProvider}>⌁ {language === 'vi' ? 'Kiểm tra kết nối' : 'Test connection'}</button>
             <button type="button" onClick={clearCache}>⌫ {language === 'vi' ? 'Xóa cache' : 'Clear cache'}</button>
             <button type="button" onClick={exportSettings}>⇧ {language === 'vi' ? 'Xuất cài đặt' : 'Export settings'}</button>
             <button type="button" onClick={() => importInputRef.current?.click()}>⇩ {language === 'vi' ? 'Nhập cài đặt' : 'Import settings'}</button>

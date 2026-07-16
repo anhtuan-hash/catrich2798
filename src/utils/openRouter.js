@@ -19,8 +19,9 @@ import {
   validateAiOutput,
 } from './aiOutputValidator.js';
 import { createAiRuntimeFingerprint, runAiProviderRuntime } from './aiRuntimeManager.js';
+import { callAiServerGateway } from './aiServerGateway.js';
 
-export const DEFAULT_OPENROUTER_MODEL = 'openrouter/free';
+export const DEFAULT_OPENROUTER_MODEL = 'openrouter/auto';
 export const DEFAULT_MAX_OUTPUT_TOKENS = 1600;
 
 function normalizeMaxOutputTokens(value, fallback = DEFAULT_MAX_OUTPUT_TOKENS) {
@@ -45,112 +46,55 @@ function normalizeModelName(model, fallback = DEFAULT_OPENROUTER_MODEL) {
   return clean || fallback;
 }
 
-function isOpenRouterFreeModel(model = '') {
-  const value = String(model || '').trim().toLowerCase();
-  return value === 'openrouter/free' || value.endsWith(':free');
-}
-
-function isOpenRouterCreditError(message = '') {
-  return /requires more credits|insufficient credits|can only afford|credit balance|upgrade to a paid account|billing/i.test(String(message));
-}
-
-function normalizeAttachment(item = {}) {
-  if (item.dataUrl) return item.dataUrl;
-  if (item.base64 && item.mimeType) return `data:${item.mimeType};base64,${item.base64}`;
-  return '';
-}
-
 async function callOpenRouterProvider({
-  apiKey,
   model,
-  baseUrl,
   prompt,
   attachments = [],
   systemInstruction = '',
   temperature = 0.7,
   responseMimeType = '',
   maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS,
-  onAdaptiveRetry,
   signal,
+  registryTaskId = '',
+  aiTaskId = '',
+  routingHint = 'smart',
+  operationId = '',
+  onToken,
+  onGatewayStatus,
+  stream,
 }) {
-  const key = String(apiKey || '').trim().replace(/^Bearer\s+/i, '');
-  if (!key) {
-    const error = new Error('Chưa có OpenRouter API key. Hãy nhập key trong Cài đặt → OpenRouter AI Gateway.');
-    error.code = 'OPENROUTER_KEY_REQUIRED';
-    throw error;
-  }
-  const cleanBase = String(baseUrl || 'https://openrouter.ai/api/v1').replace(/\/+$/, '');
-  const url = `${cleanBase}/chat/completions`;
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${key}`,
-    'HTTP-Referer': (typeof window !== 'undefined' && window.location?.origin) || 'http://localhost',
-    'X-Title': 'Brian English Studio',
-  };
-  const images = (Array.isArray(attachments) ? attachments : [])
-    .filter((item) => String(item?.mimeType || '').startsWith('image/'))
-    .map(normalizeAttachment)
-    .filter(Boolean)
-    .slice(0, 4);
-  const userContent = images.length
-    ? [{ type: 'text', text: String(prompt || '') }, ...images.map((urlValue) => ({ type: 'image_url', image_url: { url: urlValue } }))]
-    : String(prompt || '');
-  const messages = [];
-  if (systemInstruction) messages.push({ role: 'system', content: systemInstruction });
-  messages.push({ role: 'user', content: userContent });
-  const body = {
-    model: normalizeModelName(model),
-    messages,
+  const useStream = stream !== false && responseMimeType !== 'application/json';
+  const payload = await callAiServerGateway({
+    prompt,
+    systemInstruction,
+    attachments,
+    responseMimeType,
+    maxOutputTokens: normalizeMaxOutputTokens(maxOutputTokens),
     temperature,
-    max_tokens: normalizeMaxOutputTokens(maxOutputTokens),
+    taskId: registryTaskId || aiTaskId || 'default',
+    routingHint,
+    requestedModel: normalizeModelName(model, 'openrouter/auto'),
+    operationId,
+    sessionId: registryTaskId || aiTaskId || operationId,
+    stream: useStream,
+    signal,
+    onToken,
+    onStatus: onGatewayStatus,
+  });
+  return {
+    text: String(payload?.text || '').trim(),
+    meta: {
+      provider: 'openrouter',
+      providerName: 'OpenRouter',
+      model: String(payload?.model || payload?.requestedModel || model || 'openrouter/auto'),
+      requestedModel: String(payload?.requestedModel || model || ''),
+      profile: String(payload?.profile || routingHint || 'standard'),
+      transport: String(payload?.transport || (useStream ? 'server-gateway-stream' : 'server-gateway')),
+      requestId: String(payload?.requestId || ''),
+      providerAttempts: Math.max(1, Number(payload?.providerAttempts || 1)),
+      usage: payload?.usage || null,
+    },
   };
-  if (responseMimeType === 'application/json') body.response_format = { type: 'json_object' };
-
-  const executeRequest = async (requestBody) => {
-    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(requestBody), signal });
-    const data = await response.json().catch(() => ({}));
-    return { response, data };
-  };
-
-  let { response, data } = await executeRequest(body);
-  if (!response.ok) {
-    let message = data?.error?.message || data?.message || '';
-    if (isOpenRouterCreditError(message) && !isOpenRouterFreeModel(body.model)) {
-      const previousModel = body.model;
-      body.model = 'openrouter/free';
-      body.max_tokens = Math.min(body.max_tokens, 1200);
-      onAdaptiveRetry?.({ provider: 'openrouter', previousModel, model: body.model, maxOutputTokens: body.max_tokens, reason: 'free-model-fallback' });
-      ({ response, data } = await executeRequest(body));
-      message = data?.error?.message || data?.message || '';
-    }
-    if (!response.ok) {
-      const affordableMatch = String(message).match(/can only afford\s+(\d+)/i);
-      const affordable = affordableMatch ? Number.parseInt(affordableMatch[1], 10) : 0;
-      if (Number.isFinite(affordable) && affordable >= 24 && body.max_tokens > 16) {
-        const adaptiveMax = Math.max(16, Math.min(body.max_tokens - 8, affordable - 8));
-        if (adaptiveMax < body.max_tokens) {
-          body.max_tokens = adaptiveMax;
-          onAdaptiveRetry?.({ provider: 'openrouter', model: body.model, affordableTokens: affordable, maxOutputTokens: adaptiveMax, reason: 'credit-limit' });
-          ({ response, data } = await executeRequest(body));
-        }
-      }
-    }
-  }
-  if (!response.ok) {
-    const message = data?.error?.message || data?.message || `OpenRouter request failed with status ${response.status}`;
-    const error = new Error(message);
-    error.status = response.status;
-    error.provider = 'openrouter';
-    error.model = body.model;
-    if (isOpenRouterCreditError(message)) error.code = 'OPENROUTER_CREDIT_LIMIT';
-    throw error;
-  }
-  const content = data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.text ?? '';
-  const text = Array.isArray(content)
-    ? content.map((part) => typeof part === 'string' ? part : (part?.text || '')).join('\n')
-    : String(content || '');
-  if (!text.trim()) throw new Error('OpenRouter returned an empty response.');
-  return text.trim();
 }
 
 async function callSingleProvider(options = {}) {
@@ -219,7 +163,7 @@ export async function callAIWithMeta(options = {}) {
     legacyActiveProvider: preferredProvider,
     options: {
       ...enrichedOptions,
-      routingMode: 'openrouter',
+      routingMode: 'openrouter-task-aware',
       provider: DEFAULT_PROVIDER,
       manualProvider: DEFAULT_PROVIDER,
       manualModel: enrichedOptions.manualModel || enrichedOptions.model || configs.openrouter?.model,
@@ -227,12 +171,12 @@ export async function callAIWithMeta(options = {}) {
     },
   });
 
-  if (!candidates.length && !privacySummary.forceLocal && (String(configs[preferredProvider]?.apiKey || '').trim() || preferredInfo.requiresApiKey === false)) {
+  if (!candidates.length && !privacySummary.forceLocal) {
     candidates = [{
       id: preferredProvider,
       provider: preferredInfo,
       config: configs[preferredProvider],
-      apiKey: configs[preferredProvider]?.apiKey || '',
+      apiKey: '__SERVER_GATEWAY__',
       model: configs[preferredProvider]?.model || preferredInfo.defaultModel,
       baseUrl: configs[preferredProvider]?.baseUrl || preferredInfo.baseUrl,
       rank: 1,
@@ -252,9 +196,9 @@ export async function callAIWithMeta(options = {}) {
   if (!fallbackEnabled) candidates = candidates.slice(0, 1);
   if (!candidates.length) {
     const error = new Error(privacySummary.forceLocal
-      ? 'Chính sách riêng tư đang yêu cầu xử lý cục bộ, nhưng hệ thống V12.39.1 chỉ sử dụng OpenRouter. Hãy đổi chính sách sang Che dữ liệu hoặc Chặn request.'
-      : 'Chưa có OpenRouter API key. Hãy nhập key trong Cài đặt → OpenRouter AI Gateway.');
-    error.code = privacySummary.forceLocal ? 'AI_PRIVACY_LOCAL_UNAVAILABLE' : 'OPENROUTER_KEY_REQUIRED';
+      ? 'Chính sách riêng tư đang yêu cầu xử lý cục bộ, nhưng hệ thống chỉ sử dụng OpenRouter qua gateway máy chủ. Hãy đổi chính sách sang Che dữ liệu hoặc Chặn request.'
+      : 'OpenRouter gateway chưa sẵn sàng. Hãy cấu hình OPENROUTER_API_KEY trên Vercel.');
+    error.code = privacySummary.forceLocal ? 'AI_PRIVACY_LOCAL_UNAVAILABLE' : 'OPENROUTER_SERVER_KEY_MISSING';
     error.taskId = registryTaskId;
     error.privacy = privacySummary;
     throw error;
@@ -272,7 +216,7 @@ export async function callAIWithMeta(options = {}) {
     taskGroup: task.id,
     promptVersion: enrichedOptions.promptVersion || '',
     promptRegistryVersion: enrichedOptions.promptRegistryVersion || '',
-    routingMode: 'openrouter',
+    routingMode: 'openrouter-task-aware',
     candidateCount: candidates.length,
     privacy: privacySummary,
   };
@@ -322,7 +266,7 @@ export async function callAIWithMeta(options = {}) {
     });
     try {
       const generationFingerprint = createAiRuntimeFingerprint({
-        providerId: candidate.id,
+        providerId: `${candidate.id}:${enrichedOptions.routingHint || task.routingMode || candidate.model || 'standard'}`,
         model: candidate.model,
         taskId: task.id,
         prompt: enrichedOptions.prompt || '',
@@ -334,7 +278,7 @@ export async function callAIWithMeta(options = {}) {
       });
       const generationRuntime = await runAiProviderRuntime({
         operationId: `${operationId}:${candidate.id}:generate`,
-        providerId: candidate.id,
+        providerId: `${candidate.id}:${enrichedOptions.routingHint || task.routingMode || candidate.model || 'standard'}`,
         model: candidate.model,
         taskId: task.id,
         fingerprint: generationFingerprint,
@@ -351,15 +295,20 @@ export async function callAIWithMeta(options = {}) {
           baseUrl: candidate.baseUrl,
           maxOutputTokens: governance.maxOutputTokens,
           signal,
-          onAdaptiveRetry: (detail) => {
-            enrichedOptions.onAdaptiveRetry?.(detail);
-            emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id });
-          },
+          registryTaskId,
+          aiTaskId: task.id,
+          routingHint: enrichedOptions.routingHint || task.routingMode,
+          operationId,
+          stream: enrichedOptions.stream,
+          onToken: enrichedOptions.onToken,
+          onGatewayStatus: (detail) => emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id }),
         }),
       });
       mergeRuntime(generationRuntime.runtime);
       providerCalls += generationRuntime.runtime.networkAttempts;
-      let candidateResult = generationRuntime.value;
+      let gatewayMeta = generationRuntime.value?.meta || {};
+      providerCalls += Math.max(0, Number(gatewayMeta.providerAttempts || 1) - 1);
+      let candidateResult = String(generationRuntime.value?.text || '');
 
       let validation = validateAiOutput(candidateResult, {
         options: enrichedOptions,
@@ -389,11 +338,11 @@ export async function callAIWithMeta(options = {}) {
         });
         const repairRuntime = await runAiProviderRuntime({
           operationId: `${operationId}:${candidate.id}:repair:${repairAttempts}`,
-          providerId: candidate.id,
+          providerId: `${candidate.id}:repair`,
           model: candidate.model,
           taskId: `${task.id}:repair`,
           fingerprint: createAiRuntimeFingerprint({
-            providerId: candidate.id,
+            providerId: `${candidate.id}:repair`,
             model: candidate.model,
             taskId: `${task.id}:repair`,
             prompt: repairPrompt,
@@ -418,12 +367,18 @@ export async function callAIWithMeta(options = {}) {
             temperature: 0.1,
             maxOutputTokens: governance.maxOutputTokens,
             signal,
-            onAdaptiveRetry: (detail) => emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id, phase: 'repair' }),
+            registryTaskId: `${registryTaskId}:repair`,
+            aiTaskId: `${task.id}:repair`,
+            routingHint: 'quality',
+            operationId: `${operationId}:repair:${repairAttempts}`,
+            stream: false,
           }),
         });
         mergeRuntime(repairRuntime.runtime);
         providerCalls += repairRuntime.runtime.networkAttempts;
-        candidateResult = repairRuntime.value;
+        gatewayMeta = repairRuntime.value?.meta || gatewayMeta;
+        providerCalls += Math.max(0, Number(repairRuntime.value?.meta?.providerAttempts || 1) - 1);
+        candidateResult = String(repairRuntime.value?.text || '');
         validation = validateAiOutput(candidateResult, {
           options: enrichedOptions,
           task,
@@ -438,7 +393,10 @@ export async function callAIWithMeta(options = {}) {
       noteProviderHealth(candidate.id, { success: true });
       attempts.push({
         provider: candidate.id,
-        model: candidate.model,
+        model: gatewayMeta.model || candidate.model,
+        requestedModel: gatewayMeta.requestedModel || candidate.model,
+        transport: gatewayMeta.transport || 'server-gateway',
+        requestId: gatewayMeta.requestId || '',
         status: 'success',
         durationMs: Date.now() - attemptStartedAt,
         validation: summarizeAiValidation(validation, { repairAttempted, repaired, repairAttempts }),
@@ -481,12 +439,12 @@ export async function callAIWithMeta(options = {}) {
     promptVersion: enrichedOptions.promptVersion || '',
     promptRegistryVersion: enrichedOptions.promptRegistryVersion || '',
     engine: 'ai',
-    transport: 'browser-unified',
+    transport: attempts.find((attempt) => attempt.status === 'success')?.transport || 'server-gateway',
     provider: DEFAULT_PROVIDER,
     providerName: 'OpenRouter',
-    model: finalCandidate?.model || '',
+    model: attempts.find((attempt) => attempt.status === 'success')?.model || finalCandidate?.model || '',
     profile: governance.profileKey,
-    routingMode: 'openrouter',
+    routingMode: 'openrouter-task-aware',
     fallbackUsed: false,
     candidateRank: Math.max(1, attempts.length),
     attempts,

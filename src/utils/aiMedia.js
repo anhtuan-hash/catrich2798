@@ -4,6 +4,7 @@ import { appendAiAudit, getAiGovernanceSettings, guardAiRequest, recordAiRequest
 import { applyAiPrivacyFilter, summarizeAiPrivacyReport } from './aiPrivacyFilter.js';
 import { classifyAiError } from './aiSmartRouting.js';
 import { createAiRuntimeFingerprint, runAiProviderRuntime } from './aiRuntimeManager.js';
+import { callAiImageGateway } from './aiServerGateway.js';
 
 const OPENROUTER_ID = 'openrouter';
 
@@ -19,21 +20,12 @@ function normalizeDataUrl(dataUrl = '', { optional = false } = {}) {
   return { mimeType: match[1], base64: match[2], dataUrl: String(dataUrl) };
 }
 
-function extractOpenRouterImage(payload = {}) {
-  const item = payload?.data?.[0] || payload?.images?.[0] || {};
-  if (item.b64_json) return `data:${item.media_type || 'image/png'};base64,${item.b64_json}`;
-  if (item.url) return String(item.url);
-  const messageImages = payload?.choices?.[0]?.message?.images || [];
-  const image = messageImages[0];
-  return String(image?.image_url?.url || image?.url || '');
-}
-
 export function getAiMediaReadiness() {
   const config = getAiConfigs()?.openrouter || {};
-  const ready = Boolean(String(config.apiKey || '').trim());
   return {
-    imageAnalysisReady: ready,
-    imageGenerationReady: ready,
+    imageAnalysisReady: true,
+    imageGenerationReady: true,
+    serverManaged: true,
     imageGenerationProvider: OPENROUTER_ID,
     imageGenerationModel: String(config.imageModel || getProviderInfo().defaultImageModel || ''),
   };
@@ -97,15 +89,7 @@ export async function callAIImageWithMeta({
   const governance = guardAiRequest({ ...privacyResult.options, aiTaskId, governanceProfile, maxOutputTokens: 256 });
   const config = getAiConfigs()?.openrouter || {};
   const providerInfo = getProviderInfo();
-  const key = String(apiKey || config.apiKey || '').trim().replace(/^Bearer\s+/i, '');
-  if (!key) {
-    const error = new Error('Chưa có OpenRouter API key. Hãy nhập key trong Cài đặt → OpenRouter AI Gateway.');
-    error.code = 'OPENROUTER_KEY_REQUIRED';
-    throw error;
-  }
-  const cleanBase = String(baseUrl || config.baseUrl || providerInfo.baseUrl).replace(/\/+$/, '');
   const selectedModel = String(model || (Array.isArray(models) ? models[0] : '') || config.imageModel || providerInfo.defaultImageModel).trim();
-  if (!selectedModel) throw new Error('Chưa cấu hình OpenRouter image model.');
 
   const operationId = `ai-media-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   const operation = {
@@ -125,67 +109,45 @@ export async function callAIImageWithMeta({
     const attachment = privacyResult.options.attachments?.[0] || source;
     const runtimeResult = await runAiProviderRuntime({
       operationId: `${operationId}:openrouter:${selectedModel}`,
-      providerId: OPENROUTER_ID,
-      model: selectedModel,
+      providerId: `${OPENROUTER_ID}:${selectedModel || 'image'}`,
+      model: selectedModel || 'openrouter-image',
       taskId: aiTaskId,
-      fingerprint: createAiRuntimeFingerprint({ providerId: OPENROUTER_ID, model: selectedModel, taskId: aiTaskId, prompt: privacyResult.options.prompt || prompt, responseMimeType: 'image/png', attachments: attachment ? [attachment] : [] }),
+      fingerprint: createAiRuntimeFingerprint({ providerId: `${OPENROUTER_ID}:${selectedModel || 'image'}`, model: selectedModel, taskId: aiTaskId, prompt: privacyResult.options.prompt || prompt, responseMimeType: 'image/png', attachments: attachment ? [attachment] : [] }),
       settings: governance.settings.runtime,
       cacheAllowed: false,
       classifyError: classifyAiError,
       onUpdate: (detail) => emitAiOperation('bes-ai-operation-update', { ...operation, ...detail, phase: detail.phase || 'generate-image' }),
-      executor: async ({ signal }) => {
-        const body = {
-          model: selectedModel,
-          prompt: String(privacyResult.options.prompt || prompt).trim(),
-          n: 1,
-          output_format: 'png',
-        };
-        if (attachment?.dataUrl) {
-          body.input_references = [{ type: 'image_url', image_url: { url: attachment.dataUrl } }];
-        }
-        const response = await fetch(`${cleanBase}/images`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${key}`,
-            'HTTP-Referer': (typeof window !== 'undefined' && window.location?.origin) || 'http://localhost',
-            'X-Title': 'Brian English Studio',
-          },
-          signal,
-          body: JSON.stringify(body),
-        });
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          const requestError = new Error(payload?.error?.message || payload?.message || `OpenRouter image request failed with status ${response.status}`);
-          requestError.status = response.status;
-          throw requestError;
-        }
-        return payload;
-      },
+      executor: async ({ signal }) => callAiImageGateway({
+        prompt: String(privacyResult.options.prompt || prompt).trim(),
+        imageDataUrl: attachment?.dataUrl || '',
+        taskId: aiTaskId,
+        operationId,
+        signal,
+      }),
     });
-    const image = extractOpenRouterImage(runtimeResult.value);
+    const image = String(runtimeResult.value?.imageDataUrl || '');
     if (!image) throw new Error('OpenRouter did not return an image. Check the configured image model.');
     const durationMs = Date.now() - startedAt;
     const meta = {
       operationId,
       taskId: aiTaskId,
       engine: 'ai',
-      transport: 'browser-unified',
+      transport: 'server-gateway',
       provider: OPENROUTER_ID,
       providerName: 'OpenRouter',
-      model: selectedModel,
+      model: String(runtimeResult.value?.model || selectedModel || 'openrouter-image'),
       durationMs,
       createdAt: new Date().toISOString(),
       privacy: { ...privacySummary, restored: false },
       runtime: { ...runtimeResult.runtime, durationMs },
       mediaType: 'image',
     };
-    recordAiRequest({ provider: 'OpenRouter', model: selectedModel, prompt: prompt || '', result: '[IMAGE]', durationMs, success: true, error: '', profile: governance.profileKey, taskId: aiTaskId, transport: meta.transport, operationId, privacy: privacySummary, providerCalls: runtimeResult.runtime.networkAttempts, fallbackUsed: false, attempts: [{ provider: OPENROUTER_ID, model: selectedModel, status: 'success' }], runtime: meta.runtime });
+    recordAiRequest({ provider: 'OpenRouter', model: String(runtimeResult.value?.model || selectedModel || 'openrouter-image'), prompt: prompt || '', result: '[IMAGE]', durationMs, success: true, error: '', profile: governance.profileKey, taskId: aiTaskId, transport: meta.transport, operationId, privacy: privacySummary, providerCalls: runtimeResult.runtime.networkAttempts, fallbackUsed: false, attempts: [{ provider: OPENROUTER_ID, model: String(runtimeResult.value?.model || selectedModel || 'openrouter-image'), status: 'success' }], runtime: meta.runtime });
     emitAiOperation('bes-ai-operation-end', { ...operation, ...meta, success: true });
     return { imageDataUrl: image, text: '', meta };
   } catch (error) {
     const durationMs = Date.now() - startedAt;
-    recordAiRequest({ provider: 'OpenRouter', model: selectedModel, prompt: prompt || '', result: '', durationMs, success: false, error: error?.message || String(error), profile: governance.profileKey, taskId: aiTaskId, transport: 'browser-unified', operationId, privacy: privacySummary, providerCalls: 1, fallbackUsed: false, attempts: [{ provider: OPENROUTER_ID, model: selectedModel, status: 'error', error: error?.message || String(error) }] });
+    recordAiRequest({ provider: 'OpenRouter', model: selectedModel, prompt: prompt || '', result: '', durationMs, success: false, error: error?.message || String(error), profile: governance.profileKey, taskId: aiTaskId, transport: 'server-gateway', operationId, privacy: privacySummary, providerCalls: 1, fallbackUsed: false, attempts: [{ provider: OPENROUTER_ID, model: selectedModel, status: 'error', error: error?.message || String(error) }] });
     appendAiAudit({ type: 'media', status: 'error', label: 'OpenRouter image request failed', profile: governance.profileKey, detail: { taskId: aiTaskId, model: selectedModel, error: error?.message || String(error) } });
     emitAiOperation('bes-ai-operation-end', { ...operation, success: false, durationMs, error: error?.message || String(error) });
     throw error;

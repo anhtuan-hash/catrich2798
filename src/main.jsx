@@ -203,7 +203,7 @@ function App() {
   const [accentColor, setAccentColor] = useState(() => BOOT_UI_PREFERENCES.accentColor);
   const [displayDensity, setDisplayDensity] = useState(() => BOOT_UI_PREFERENCES.displayDensity);
   const [apiKey, setApiKey] = useState(() => getActiveAiConfig().apiKey || '');
-  const [aiModel, setAiModel] = useState(() => getActiveAiConfig().model || 'openrouter/free');
+  const [aiModel, setAiModel] = useState(() => getActiveAiConfig().model || 'openrouter/auto');
   const [aiProvider, setAiProviderState] = useState(() => getAiProvider());
   const [providerConfigs, setProviderConfigs] = useState(() => getAiConfigs());
   const [currentUser, setCurrentUser] = useState(null);
@@ -307,7 +307,7 @@ function App() {
       setAiProviderState(getAiProvider());
       setProviderConfigs(getAiConfigs());
       setApiKey(active.apiKey || '');
-      setAiModel(active.model || active.providerInfo?.defaultModel || 'openrouter/free');
+      setAiModel(active.model || active.providerInfo?.defaultModel || 'openrouter/auto');
     };
     window.addEventListener('bes-ai-settings-updated', onAiSettings);
     return () => window.removeEventListener('bes-ai-settings-updated', onAiSettings);
@@ -368,7 +368,7 @@ function App() {
     setAiProviderState(getAiProvider());
     setProviderConfigs(getAiConfigs());
     setApiKey(active.apiKey || '');
-    setAiModel(active.model || active.providerInfo?.defaultModel || 'openrouter/free');
+    setAiModel(active.model || active.providerInfo?.defaultModel || 'openrouter/auto');
   }, [currentUser?.id, currentUser?.email]);
 
   useEffect(() => {

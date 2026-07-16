@@ -24757,7 +24757,7 @@ function mN({ settings: f, projects: m, onChange: g, onImport: k }) {
 
 Set models with environment variables:
 OPENROUTER_API_KEY=<your key>
-OPENROUTER_MODEL=openrouter/free` })
+OPENROUTER_MODEL=openrouter/auto` })
       ] })
     ] })
   ] });
