@@ -92,6 +92,7 @@ async function callOpenRouterProvider({
       transport: String(payload?.transport || (useStream ? 'server-gateway-stream' : 'server-gateway')),
       requestId: String(payload?.requestId || ''),
       providerAttempts: Math.max(1, Number(payload?.providerAttempts || 1)),
+      freeRouteRetry: Boolean(payload?.freeRouteRetry),
       fallbackUsed: Boolean(payload?.fallbackUsed),
       creditFallback: Boolean(payload?.creditFallback),
       affordableTokens: Math.max(0, Number(payload?.affordableTokens || 0)),

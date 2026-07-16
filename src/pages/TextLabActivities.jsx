@@ -37,6 +37,7 @@ TASK:
 6. The content must be directly parsable by TextLab. Do not include headings, markdown, numbering, commentary, or code fences inside the content field unless the template format itself requires them.
 7. For MCQ, the correct answer must be the second field after the question, followed by distractors.
 8. For blank/cloze templates, put every answer inside {curly brackets}.
+9. The content value must be a valid JSON string. Encode every line break as \\n and escape every double quote inside content. Never place a literal unescaped newline or control character inside a JSON string.
 
 Return STRICT JSON only:
 {
@@ -139,8 +140,8 @@ export default function TextLabActivities({
           apiKey,
           model: aiModel,
           prompt,
-          systemInstruction: 'You are a precise instructional designer. Return valid JSON only. Respect the exact delimiter and line format requested by the selected TextLab template.',
-          temperature: 0.55,
+          systemInstruction: 'You are a precise instructional designer. Return exactly one valid JSON object with no markdown. Respect the selected TextLab delimiter format. The content field must be one JSON string: encode line breaks as \\n and escape embedded double quotes.',
+          temperature: 0.25,
           responseMimeType: 'application/json',
           loadingLabel: language === 'vi'
             ? 'AI đang nhận diện template và tạo nội dung TextLab...'

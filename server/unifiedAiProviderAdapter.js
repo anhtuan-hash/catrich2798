@@ -12,6 +12,10 @@ function withStatus(error, status, code = '') {
 }
 
 function clamp(value, min, max, fallback) {
+  // Environment variables that are not configured arrive here as an empty
+  // string. Number('') is 0, which previously collapsed 130s JSON timeouts to
+  // 5s and 2400-token free responses to only 64 tokens.
+  if (value == null || String(value).trim() === '') return fallback;
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.min(max, Math.max(min, Math.round(parsed)));
@@ -57,7 +61,7 @@ function billingMode() {
 }
 
 function freeTokenCap(profile = 'standard') {
-  const defaults = { diagnostic: 96, fast: 700, standard: 1200, quality: 1600, json: 1600, long: 2000, vision: 1200, image: 1 };
+  const defaults = { diagnostic: 96, fast: 700, standard: 1200, quality: 1600, json: 2400, long: 2400, vision: 1200, image: 1 };
   return clamp(env(`OPENROUTER_FREE_MAX_TOKENS_${String(profile).toUpperCase()}`), 64, 6000, defaults[profile] || 1200);
 }
 
@@ -128,10 +132,10 @@ function costQualityTradeoff(profile) {
 function buildProviderPreferences({ isJson = false, profile = 'standard', freeRoute = false } = {}) {
   return {
     allow_fallbacks: true,
-    // The free router changes its model pool frequently. Requiring every optional
-    // parameter or forcing a request-level data policy can eliminate all routes.
-    // In free mode, OpenRouter's account privacy setting remains authoritative.
-    require_parameters: Boolean(isJson) && !freeRoute,
+    // JSON tasks must only use endpoints that implement response_format. Without
+    // this filter, the free router may return prose or truncated pseudo-JSON.
+    // Account-level OpenRouter privacy settings remain authoritative in free mode.
+    require_parameters: Boolean(isJson),
     ...(!freeRoute ? { data_collection: env('OPENROUTER_DATA_COLLECTION', 'deny') === 'allow' ? 'allow' : 'deny' } : {}),
     sort: profile === 'quality' || profile === 'json' ? 'throughput' : 'latency',
     preferred_max_latency: profile === 'fast' || profile === 'diagnostic' ? 8 : profile === 'long' ? 25 : 15,
@@ -210,7 +214,25 @@ async function fetchOpenRouterWithOneRetry(url, init, timeoutMs, onRetry) {
   let response;
   let payload;
   for (let attempt = 1; attempt <= 2; attempt += 1) {
-    response = await fetchWithAiTimeout(url, init, timeoutMs);
+    try {
+      response = await fetchWithAiTimeout(url, init, timeoutMs);
+    } catch (error) {
+      if (init?.signal?.aborted) throw error;
+      if (attempt >= 2) {
+        const timedOut = /timeout|timed out|abort/i.test(String(error?.message || error?.name || ''));
+        const normalized = withStatus(
+          new Error(timedOut ? 'OpenRouter request timed out after one controlled retry.' : `OpenRouter network request failed after one controlled retry (${error?.message || 'network error'}).`),
+          504,
+          timedOut ? 'OPENROUTER_NETWORK_TIMEOUT' : 'OPENROUTER_NETWORK_ERROR',
+        );
+        normalized.cause = error;
+        throw normalized;
+      }
+      const delayMs = 650 + Math.round(Math.random() * 250);
+      onRetry?.({ attempt, delayMs, status: 0, reason: 'network-or-timeout' });
+      await wait(delayMs);
+      continue;
+    }
     if (/text\/event-stream/i.test(String(response.headers.get('content-type') || ''))) return { response, payload: null, attempts: attempt };
     payload = await response.json().catch(() => ({}));
     if (response.ok) return { response, payload, attempts: attempt };
@@ -251,8 +273,6 @@ async function executeChatRequest(options = {}, { stream = false } = {}) {
       modelOverride: FREE_MODEL,
       maxTokensOverride: Math.min(primary.requestedMaxTokens, freeTokenCap(primary.profile)),
     });
-    // Free routes change frequently; keep the JSON instruction but do not reject an otherwise usable free route solely because it cannot guarantee response_format.
-    if (fallback.body?.provider) fallback.body.provider.require_parameters = false;
     options.onRetry?.({ attempt: 0, delayMs: 0, status: 402, reason: 'credit-free-fallback', model: FREE_MODEL });
     try {
       const result = await send(fallback);
@@ -312,10 +332,35 @@ export async function callServerAI(options = {}) {
   const apiKey = env('OPENROUTER_API_KEY');
   if (!apiKey) throw withStatus(new Error('OPENROUTER_API_KEY is not configured on Vercel.'), 503, 'OPENROUTER_SERVER_KEY_MISSING');
   const startedAt = Date.now();
-  const { payload, attempts, config, fallbackUsed, creditFallback, affordableTokens } = await executeChatRequest(options, { stream: false });
+  let execution = await executeChatRequest(options, { stream: false });
+  let text = extractResponseText(execution.payload);
+  let providerAttempts = execution.attempts;
+  let freeRouteRetry = false;
+
+  // A free provider can occasionally return HTTP 200 with an empty choice. That
+  // response cannot trigger OpenRouter's normal provider fallback, so perform one
+  // bounded retry with a fresh session id and never loop beyond it.
+  if (!text && (execution.config.billingMode === 'free' || execution.config.model === FREE_MODEL)) {
+    freeRouteRetry = true;
+    options.onRetry?.({ attempt: execution.attempts, delayMs: 0, status: 200, reason: 'empty-free-response' });
+    const retrySession = `${String(options.sessionId || options.requestId || 'bes').slice(0, 150)}:empty-retry:${Date.now()}`;
+    const retryExecution = await executeChatRequest({ ...options, sessionId: retrySession }, { stream: false });
+    providerAttempts += retryExecution.attempts;
+    execution = {
+      ...retryExecution,
+      fallbackUsed: execution.fallbackUsed || retryExecution.fallbackUsed,
+      creditFallback: execution.creditFallback || retryExecution.creditFallback,
+      affordableTokens: Math.max(execution.affordableTokens || 0, retryExecution.affordableTokens || 0),
+    };
+    text = extractResponseText(execution.payload);
+  }
+
+  const { payload, config, fallbackUsed, creditFallback, affordableTokens } = execution;
   const { model, profile, requestedMaxTokens, actualMaxTokens } = config;
-  const text = extractResponseText(payload);
-  if (!text) throw withStatus(new Error('OpenRouter returned no output text.'), 502, 'OPENROUTER_EMPTY_RESPONSE');
+  if (!text) {
+    const actualModel = String(payload?.model || model);
+    throw withStatus(new Error(`OpenRouter returned no output text after one controlled retry (${actualModel}).`), 502, 'OPENROUTER_EMPTY_RESPONSE');
+  }
   return {
     text,
     provider: 'openrouter',
@@ -325,7 +370,8 @@ export async function callServerAI(options = {}) {
     transport: 'server-gateway',
     durationMs: Date.now() - startedAt,
     requestId: options.requestId || null,
-    providerAttempts: attempts,
+    providerAttempts,
+    freeRouteRetry,
     fallbackUsed,
     creditFallback,
     affordableTokens,
