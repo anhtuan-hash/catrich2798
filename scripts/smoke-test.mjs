@@ -106,7 +106,7 @@ const appUsageSource = fs.readFileSync(new URL('../src/utils/appUsage.js', impor
 const launcherSettingsSqlSource = fs.readFileSync(new URL('../supabase/launcher_settings_v10_83_1.sql', import.meta.url), 'utf8');
 const permissionsSource = fs.readFileSync(new URL('../src/utils/permissions.js', import.meta.url), 'utf8');
 const aiIndicatorSource = fs.readFileSync(new URL('../src/components/GlobalAIIndicator.jsx', import.meta.url), 'utf8');
-const geminiSource = fs.readFileSync(new URL('../src/utils/gemini.js', import.meta.url), 'utf8');
+const geminiSource = fs.readFileSync(new URL('../src/utils/openRouter.js', import.meta.url), 'utf8');
 const textLabCssSource = fs.readFileSync(new URL('../public/embedded/brian-textlab-activities/style.css', import.meta.url), 'utf8');
 add('V10.62 personal font reaches embedded TextLab', textLabCssSource.includes('/fonts/personal-font.ttf') && textLabCssSource.includes('font-family:var(--font)!important'), 'BrianGesco enforced in iframe app');
 add('V10.62 navigation text-size control present', globalNavSource.includes('global-font-size-btn') && globalNavSource.includes('setFontScale'), 'A+ control cycles global font scale');
@@ -165,8 +165,8 @@ add('V10.67 Supabase portal RPC migration included', homeroomPhase2SqlSource.inc
 add('V10.67 private workspace local key stays backward compatible', homeroomStoreSource.includes("const STORE_PREFIX = 'bes-homeroom-workspace-v1'"), 'Phase 1 local data remains visible after upgrade');
 
 
-add('V10.68 explicit AI token budget applied globally', geminiSource.includes('DEFAULT_MAX_OUTPUT_TOKENS = 1600') && geminiSource.includes('max_tokens: normalizeMaxOutputTokens') && geminiSource.includes('maxOutputTokens: normalizeMaxOutputTokens'), 'Gemini, OpenAI-compatible and Claude requests are capped');
-add('V10.68 OpenRouter affordable-token retry present', geminiSource.includes('can only afford\\s+(\\d+)') && geminiSource.includes('affordable - 64'), 'credit-limited requests retry with a smaller cap');
+add('V10.68 explicit AI token budget applied globally', geminiSource.includes('DEFAULT_MAX_OUTPUT_TOKENS = 1600') && geminiSource.includes('max_tokens: normalizeMaxOutputTokens') && geminiSource.includes('max_tokens: normalizeMaxOutputTokens(maxOutputTokens)'), 'OpenRouter requests are capped centrally');
+add('V10.68 OpenRouter affordable-token retry present', geminiSource.includes('can only afford\\s+(\\d+)') && geminiSource.includes('affordable - 8'), 'credit-limited requests retry with a smaller cap');
 add('V10.68 homeroom file import uses compact token budget', homeroomSource.includes('AI_IMPORT_OUTPUT_BUDGET = 1200') && homeroomSource.includes('AI_IMPORT_SOURCE_LIMIT = 60000') && homeroomSource.includes('omit properties that are absent'), '1,200 output tokens and compact JSON extraction');
 
 const homeroomPhase3TabsSource = fs.readFileSync(new URL('../src/components/HomeroomPhase3Tabs.jsx', import.meta.url), 'utf8');
@@ -343,9 +343,9 @@ const smartIdSource = fs.readFileSync(new URL('../src/pages/SmartIdStudio.jsx', 
 const smartIdCssSource = fs.readFileSync(new URL('../src/pages/SmartIdStudio.css', import.meta.url), 'utf8');
 add('V10.82.5 SmartID app card is registered', appDataSource.includes("slug: 'smart-id'") && APPS.some((item) => item.slug === 'smart-id'), 'SmartID appears in the Apps directory');
 add('V10.82.5 SmartID route is wired', toolPageSource.includes("tool?.slug === 'smart-id'") && toolPageSource.includes('SmartIdStudio'), 'dedicated lazy-loaded SmartID page');
-add('V10.82.5 SmartID uses account Gemini settings', smartIdSource.includes('getAiConfigs') && smartIdSource.includes("configs?.gemini?.apiKey") && !smartIdSource.includes('const apiKey = ""'), 'no hardcoded API key');
+add('V12.39 SmartID uses the shared account OpenRouter key', smartIdSource.includes('getAiConfigs') && smartIdSource.includes('configs?.openrouter') && smartIdSource.includes('OpenRouter') && !smartIdSource.includes('const apiKey = ""'), 'no hardcoded or separate SmartID key');
 add('V10.82.5 SmartID supports upload, camera, AI edit and print', ['handleUpload', 'captureCamera', 'handleAiEdit', 'exportSinglePhoto', 'exportPrintSheet'].every((token) => smartIdSource.includes(token)), 'complete portrait workflow present');
-add('V10.82.5 SmartID uses current Gemini image models with fallback', smartIdSource.includes("gemini-3.1-flash-image") && smartIdSource.includes("gemini-2.5-flash-image"), 'image editing model fallback present');
+add('V12.39 SmartID uses the configured OpenRouter image model', smartIdSource.includes('imageModel') && smartIdSource.includes('callAIImageWithMeta'), 'shared image runtime is present');
 add('V10.82.5 SmartID layout remains inside a centered content rail', smartIdCssSource.includes('max-width:1440px') && smartIdCssSource.includes('.smartid-editor-shell') && smartIdCssSource.includes('@media(max-width:720px)'), 'desktop, tablet and mobile styles present');
 add('V10.82.3 Newsroom reader has search, publisher filter, saving and speech', newsReaderSource.includes('newsroom-v823-search') && newsReaderSource.includes('newsroom-v823-source-filter') && newsReaderSource.includes('bes-news-saved-items') && newsReaderSource.includes('SpeechSynthesisUtterance'), 'focused reading controls present');
 add('V10.82 Newsroom tool route and icon remain wired', toolPageSource.includes("tool?.slug === 'news-reader'") && iconSource.includes("'news-reader': 'news'"), 'legacy tool URL and flat news icon remain available');
@@ -412,7 +412,7 @@ add('V10.83.1 AI accepts files and screenshots', universalAiSource.includes('pre
 add('V10.83.1 AI uses live page context and conversation threads', universalAiSource.includes('capturePageContext') && universalAiSource.includes('Visible form values') && universalAiSource.includes('bes-ai-chat-threads:') && universalAiSource.includes('showHistory'), 'page-aware prompting and multi-thread history present');
 add('V10.83.1 AI result can return to the active app', universalAiSource.includes('bes-ai-use-result') && universalAiSource.includes('Dùng kết quả trong ứng dụng') && worksheetFactorySource.includes('bes-ai-use-result'), 'custom event and Worksheet Factory receiver present');
 add('V10.83.1 AI voice mode is wired', universalAiSource.includes('SpeechRecognition') && universalAiSource.includes('speechSynthesis') && universalAiSource.includes('toggleVoiceMode') && universalAiSource.includes('voiceModeRef.current = next'), 'speech input, auto-send and spoken replies present');
-add('V10.83.1 multimodal payloads cover supported providers', geminiSource.includes('inlineData') && geminiSource.includes('image_url') && geminiSource.includes("type: 'image'") && geminiSource.includes('attachments'), 'Gemini, OpenAI-compatible and Claude image payloads present');
+add('V12.39 OpenRouter multimodal payload is centralized', geminiSource.includes("type: 'image_url'") && geminiSource.includes('attachments') && geminiSource.includes('/chat/completions'), 'OpenRouter vision payload is present');
 add('V10.83.1 responsive launcher and AI styles present', cssSource.includes('V10.83.1 — Custom Launcher + Brian AI multimodal upgrade') && cssSource.includes('.launcher-admin-panel') && cssSource.includes('.ai-messenger-history') && cssSource.includes('@media(max-width:760px)'), 'desktop, dark, mobile and reduced-motion styles present');
 
 const errorBoundarySource = fs.readFileSync(new URL('../src/components/AppErrorBoundary.jsx', import.meta.url), 'utf8');
@@ -448,7 +448,7 @@ add('V12.23.0 Department detail rail is full-width and notification center opens
 const settingsV1225Source = fs.readFileSync(new URL('../src/pages/Settings.jsx', import.meta.url), 'utf8');
 const settingsV1225Css = fs.readFileSync(new URL('../src/ui-core/styles/settings-experience-v1225.css', import.meta.url), 'utf8');
 const uiPrefsV1225Source = fs.readFileSync(new URL('../src/ui-core/runtime/uiPreferences.js', import.meta.url), 'utf8');
-add('V12.25.0 Provider Command Center and Appearance Studio simplify AI defaults and enable multi-style UI customization', settingsV1225Source.includes('AI Provider Command Center') && settingsV1225Source.includes('Dùng mặc định') && settingsV1225Source.includes('providerSearch') && settingsV1225Source.includes('Appearance Studio') && settingsV1225Source.includes('settings-v125-live-preview') && settingsV1225Css.includes("data-surface-style='glass'") && settingsV1225Css.includes("data-motion-style='tile'") && uiPrefsV1225Source.includes('backgroundStyle') && uiPrefsV1225Source.includes('motionStyle'), 'one-click provider selection, filters, live preview, surfaces, backgrounds and motion styles present');
+add('V12.39.1 OpenRouter-only Gateway replaces the retired provider command center while retaining Appearance Studio', settingsV1225Source.includes('OpenRouter AI Gateway') && settingsV1225Source.includes('Lưu cho toàn website') && !settingsV1225Source.includes('AI Provider Command Center') && !settingsV1225Source.includes('providerSearch') && settingsV1225Source.includes('Appearance Studio') && settingsV1225Source.includes('settings-v125-live-preview') && settingsV1225Css.includes("data-surface-style='glass'") && settingsV1225Css.includes("data-motion-style='tile'") && uiPrefsV1225Source.includes('backgroundStyle') && uiPrefsV1225Source.includes('motionStyle'), 'single OpenRouter gateway, no provider selector, and full appearance customization present');
 add('V10.83.3 command center styling is responsive and centered', cssSource.includes('V10.83.3 — Global Command Center + Smart Launcher discovery') && cssSource.includes('.global-command-palette') && cssSource.includes('.launcher-discovery-bar') && cssSource.includes('width:min(1360px,calc(100% - 48px))'), 'desktop, mobile, dark and reduced-motion styles present');
 
 

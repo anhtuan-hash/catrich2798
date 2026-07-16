@@ -20,7 +20,7 @@ import {
 } from './aiOutputValidator.js';
 import { createAiRuntimeFingerprint, runAiProviderRuntime } from './aiRuntimeManager.js';
 
-export const DEFAULT_GEMINI_MODEL = 'gemini-flash-latest';
+export const DEFAULT_OPENROUTER_MODEL = 'openrouter/free';
 export const DEFAULT_MAX_OUTPUT_TOKENS = 1600;
 
 function normalizeMaxOutputTokens(value, fallback = DEFAULT_MAX_OUTPUT_TOKENS) {
@@ -40,16 +40,9 @@ export const ACTIVITY_OUTPUT_FORMATS = {
   wordsearch: `Return lines only. Format: WORD | clue. Use uppercase single words with no spaces, maximum 15 letters.`,
 };
 
-function normalizeModelName(model, fallback = DEFAULT_GEMINI_MODEL) {
+function normalizeModelName(model, fallback = DEFAULT_OPENROUTER_MODEL) {
   const clean = String(model || fallback).trim();
   return clean || fallback;
-}
-
-function buildMessages(prompt, systemInstruction = '') {
-  const messages = [];
-  if (systemInstruction) messages.push({ role: 'system', content: systemInstruction });
-  messages.push({ role: 'user', content: prompt });
-  return messages;
 }
 
 function isOpenRouterFreeModel(model = '') {
@@ -61,58 +54,52 @@ function isOpenRouterCreditError(message = '') {
   return /requires more credits|insufficient credits|can only afford|credit balance|upgrade to a paid account|billing/i.test(String(message));
 }
 
-async function callGeminiProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, signal }) {
-  const key = String(apiKey || '').trim();
-  if (!key) throw new Error('Missing Gemini API key.');
-  const cleanBase = String(baseUrl || 'https://generativelanguage.googleapis.com/v1beta').replace(/\/+$/, '');
-  const chosenModel = normalizeModelName(model, DEFAULT_GEMINI_MODEL);
-  const url = `${cleanBase}/models/${encodeURIComponent(chosenModel)}:generateContent`;
-  const imageParts = (Array.isArray(attachments) ? attachments : []).filter((item) => String(item?.mimeType || '').startsWith('image/') && item?.base64).slice(0, 4).map((item) => ({ inlineData: { mimeType: item.mimeType, data: item.base64 } }));
-  const body = {
-    contents: [{ role: 'user', parts: [{ text: prompt }, ...imageParts] }],
-    generationConfig: { temperature, maxOutputTokens: normalizeMaxOutputTokens(maxOutputTokens) },
-  };
-  if (systemInstruction) body.systemInstruction = { parts: [{ text: systemInstruction }] };
-  if (responseMimeType) body.generationConfig.responseMimeType = responseMimeType;
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-    body: JSON.stringify(body),
-    signal,
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const message = data?.error?.message || `Gemini request failed with status ${response.status}`;
-    throw new Error(message);
-  }
-  const text = data?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('\n').trim();
-  if (!text) throw new Error('Gemini returned an empty response.');
-  return text;
+function normalizeAttachment(item = {}) {
+  if (item.dataUrl) return item.dataUrl;
+  if (item.base64 && item.mimeType) return `data:${item.mimeType};base64,${item.base64}`;
+  return '';
 }
 
-async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', provider = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry, requiresApiKey = true, signal }) {
-  const key = String(apiKey || '').trim();
-  if (requiresApiKey && !key) throw new Error(`Missing ${provider || 'AI'} API key.`);
-  const cleanBase = String(baseUrl || '').replace(/\/+$/, '');
-  if (!cleanBase) throw new Error('Missing OpenAI-compatible base URL.');
-  const url = `${cleanBase}/chat/completions`;
-  const headers = { 'Content-Type': 'application/json' };
-  if (key) headers.Authorization = `Bearer ${key}`;
-  if (provider === 'openrouter') {
-    headers['HTTP-Referer'] = (typeof window !== 'undefined' && window.location?.origin) || 'http://localhost';
-    headers['X-Title'] = 'Brian English Studio';
+async function callOpenRouterProvider({
+  apiKey,
+  model,
+  baseUrl,
+  prompt,
+  attachments = [],
+  systemInstruction = '',
+  temperature = 0.7,
+  responseMimeType = '',
+  maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS,
+  onAdaptiveRetry,
+  signal,
+}) {
+  const key = String(apiKey || '').trim().replace(/^Bearer\s+/i, '');
+  if (!key) {
+    const error = new Error('Chưa có OpenRouter API key. Hãy nhập key trong Cài đặt → OpenRouter AI Gateway.');
+    error.code = 'OPENROUTER_KEY_REQUIRED';
+    throw error;
   }
-
-  const imageParts = (Array.isArray(attachments) ? attachments : []).filter((item) => String(item?.mimeType || '').startsWith('image/') && item?.dataUrl).slice(0, 4);
-  const userContent = imageParts.length
-    ? [{ type: 'text', text: prompt }, ...imageParts.map((item) => ({ type: 'image_url', image_url: { url: item.dataUrl } }))]
-    : prompt;
+  const cleanBase = String(baseUrl || 'https://openrouter.ai/api/v1').replace(/\/+$/, '');
+  const url = `${cleanBase}/chat/completions`;
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${key}`,
+    'HTTP-Referer': (typeof window !== 'undefined' && window.location?.origin) || 'http://localhost',
+    'X-Title': 'Brian English Studio',
+  };
+  const images = (Array.isArray(attachments) ? attachments : [])
+    .filter((item) => String(item?.mimeType || '').startsWith('image/'))
+    .map(normalizeAttachment)
+    .filter(Boolean)
+    .slice(0, 4);
+  const userContent = images.length
+    ? [{ type: 'text', text: String(prompt || '') }, ...images.map((urlValue) => ({ type: 'image_url', image_url: { url: urlValue } }))]
+    : String(prompt || '');
   const messages = [];
   if (systemInstruction) messages.push({ role: 'system', content: systemInstruction });
   messages.push({ role: 'user', content: userContent });
   const body = {
-    model: normalizeModelName(model, 'gpt-4o-mini'),
+    model: normalizeModelName(model),
     messages,
     temperature,
     max_tokens: normalizeMaxOutputTokens(maxOutputTokens),
@@ -126,146 +113,48 @@ async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, at
   };
 
   let { response, data } = await executeRequest(body);
-  if (!response.ok && provider === 'openrouter') {
+  if (!response.ok) {
     let message = data?.error?.message || data?.message || '';
-    const creditLimited = isOpenRouterCreditError(message);
-
-    // Old Brian versions stored a paid OpenRouter model as the default. When that
-    // model rejects a zero-credit account, retry on OpenRouter's free router first.
-    if (creditLimited && !isOpenRouterFreeModel(body.model)) {
+    if (isOpenRouterCreditError(message) && !isOpenRouterFreeModel(body.model)) {
       const previousModel = body.model;
       body.model = 'openrouter/free';
       body.max_tokens = Math.min(body.max_tokens, 1200);
-      if (typeof onAdaptiveRetry === 'function') {
-        onAdaptiveRetry({
-          provider,
-          previousModel,
-          model: body.model,
-          maxOutputTokens: body.max_tokens,
-          reason: 'free-model-fallback',
-        });
-      }
+      onAdaptiveRetry?.({ provider: 'openrouter', previousModel, model: body.model, maxOutputTokens: body.max_tokens, reason: 'free-model-fallback' });
       ({ response, data } = await executeRequest(body));
       message = data?.error?.message || data?.message || '';
     }
-
-    // If OpenRouter reports the exact affordable token ceiling, make one bounded
-    // retry. Diagnostic requests can now stay below the former 256-token floor.
     if (!response.ok) {
       const affordableMatch = String(message).match(/can only afford\s+(\d+)/i);
       const affordable = affordableMatch ? Number.parseInt(affordableMatch[1], 10) : 0;
-      // Backward-compatibility marker for the original V10.68 retry contract: affordable - 64.
       if (Number.isFinite(affordable) && affordable >= 24 && body.max_tokens > 16) {
         const adaptiveMax = Math.max(16, Math.min(body.max_tokens - 8, affordable - 8));
         if (adaptiveMax < body.max_tokens) {
           body.max_tokens = adaptiveMax;
-          if (typeof onAdaptiveRetry === 'function') {
-            onAdaptiveRetry({ provider, model: body.model, affordableTokens: affordable, maxOutputTokens: adaptiveMax, reason: 'credit-limit' });
-          }
+          onAdaptiveRetry?.({ provider: 'openrouter', model: body.model, affordableTokens: affordable, maxOutputTokens: adaptiveMax, reason: 'credit-limit' });
           ({ response, data } = await executeRequest(body));
         }
       }
     }
   }
   if (!response.ok) {
-    const message = data?.error?.message || data?.message || `${provider || 'AI'} request failed with status ${response.status}`;
-    const affordableMatch = String(message).match(/can only afford\s+(\d+)/i);
-    const creditLimited = provider === 'openrouter' && isOpenRouterCreditError(message);
+    const message = data?.error?.message || data?.message || `OpenRouter request failed with status ${response.status}`;
     const error = new Error(message);
     error.status = response.status;
-    if (creditLimited) {
-      error.code = 'AI_PROVIDER_CREDIT_LIMIT';
-      error.provider = provider;
-      error.model = body.model;
-      error.affordableTokens = affordableMatch ? Number.parseInt(affordableMatch[1], 10) : 0;
-      error.requestedTokens = body.max_tokens;
-    }
+    error.provider = 'openrouter';
+    error.model = body.model;
+    if (isOpenRouterCreditError(message)) error.code = 'OPENROUTER_CREDIT_LIMIT';
     throw error;
   }
-  const text = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text || '';
-  if (!String(text).trim()) throw new Error(`${provider || 'AI'} returned an empty response.`);
-  return String(text).trim();
+  const content = data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.text ?? '';
+  const text = Array.isArray(content)
+    ? content.map((part) => typeof part === 'string' ? part : (part?.text || '')).join('\n')
+    : String(content || '');
+  if (!text.trim()) throw new Error('OpenRouter returned an empty response.');
+  return text.trim();
 }
 
-async function callCohereProvider({ apiKey, model, baseUrl, prompt, systemInstruction = '', temperature = 0.7, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, signal }) {
-  const key = String(apiKey || '').trim();
-  if (!key) throw new Error('Missing Cohere API key.');
-  const cleanBase = String(baseUrl || 'https://api.cohere.com/v2').replace(/\/+$/, '');
-  const messages = buildMessages(prompt, systemInstruction);
-  const response = await fetch(`${cleanBase}/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-    signal,
-    body: JSON.stringify({
-      model: normalizeModelName(model, 'command-a-03-2025'),
-      messages,
-      temperature,
-      max_tokens: normalizeMaxOutputTokens(maxOutputTokens),
-    }),
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data?.message || data?.error?.message || `Cohere request failed with status ${response.status}`);
-  const content = data?.message?.content;
-  const text = Array.isArray(content) ? content.map((item) => item?.text || '').join('\n').trim() : String(content || data?.text || '').trim();
-  if (!text) throw new Error('Cohere returned an empty response.');
-  return text;
-}
-
-async function callClaudeProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, signal }) {
-  const key = String(apiKey || '').trim();
-  if (!key) throw new Error('Missing Claude API key.');
-  const cleanBase = String(baseUrl || 'https://api.anthropic.com/v1').replace(/\/+$/, '');
-  const response = await fetch(`${cleanBase}/messages`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    signal,
-    body: JSON.stringify({
-      model: normalizeModelName(model, 'claude-3-5-haiku-latest'),
-      max_tokens: normalizeMaxOutputTokens(maxOutputTokens),
-      temperature,
-      system: systemInstruction || undefined,
-      messages: [{ role: 'user', content: [
-        { type: 'text', text: prompt },
-        ...(Array.isArray(attachments) ? attachments : []).filter((item) => String(item?.mimeType || '').startsWith('image/') && item?.base64).slice(0, 4).map((item) => ({ type: 'image', source: { type: 'base64', media_type: item.mimeType, data: item.base64 } })),
-      ] }],
-    }),
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const message = data?.error?.message || `Claude request failed with status ${response.status}`;
-    throw new Error(message);
-  }
-  const text = data?.content?.map((part) => part.text || '').join('\n').trim();
-  if (!text) throw new Error('Claude returned an empty response.');
-  return text;
-}
-
-async function callSingleProvider({ provider, apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry, signal }) {
-  const info = getProviderInfo(provider || DEFAULT_PROVIDER);
-  const config = {
-    provider: info.id,
-    apiKey,
-    model: model || info.defaultModel,
-    baseUrl: baseUrl || info.baseUrl,
-    prompt,
-    attachments,
-    systemInstruction,
-    temperature,
-    responseMimeType,
-    maxOutputTokens: normalizeMaxOutputTokens(maxOutputTokens),
-    onAdaptiveRetry,
-    requiresApiKey: info.requiresApiKey !== false,
-    signal,
-  };
-  if (info.kind === 'gemini') return callGeminiProvider(config);
-  if (info.kind === 'claude') return callClaudeProvider(config);
-  if (info.kind === 'cohere') return callCohereProvider(config);
-  return callOpenAICompatibleProvider(config);
+async function callSingleProvider(options = {}) {
+  return callOpenRouterProvider({ ...options, provider: 'openrouter' });
 }
 
 function emitAiOperation(type, detail = {}) {
@@ -311,10 +200,8 @@ export async function callAIWithMeta(options = {}) {
   }
 
   const active = getActiveAiConfig();
-  const effectiveRoutingMode = privacySummary.forceLocal
-    ? 'local'
-    : enrichedOptions.routingMode || getRoutingPreferences().mode || 'smart';
-  const preferredProvider = enrichedOptions.provider || active.provider || getAiProvider() || DEFAULT_PROVIDER;
+  const effectiveRoutingMode = 'openrouter';
+  const preferredProvider = DEFAULT_PROVIDER;
   const preferredInfo = getProviderInfo(preferredProvider);
   const configs = getAiConfigs();
   const preferredStored = configs[preferredProvider] || {};
@@ -332,10 +219,10 @@ export async function callAIWithMeta(options = {}) {
     legacyActiveProvider: preferredProvider,
     options: {
       ...enrichedOptions,
-      routingMode: effectiveRoutingMode,
-      provider: preferredProvider,
-      manualProvider: enrichedOptions.manualProvider || (enrichedOptions.provider ? preferredProvider : undefined),
-      manualModel: enrichedOptions.manualModel || (enrichedOptions.provider ? (enrichedOptions.model || configs[preferredProvider]?.model) : undefined),
+      routingMode: 'openrouter',
+      provider: DEFAULT_PROVIDER,
+      manualProvider: DEFAULT_PROVIDER,
+      manualModel: enrichedOptions.manualModel || enrichedOptions.model || configs.openrouter?.model,
       runtimeSettings: governanceSettings.runtime,
     },
   });
@@ -352,7 +239,7 @@ export async function callAIWithMeta(options = {}) {
     }];
   }
 
-  const preferDefaultFirst = enrichedOptions.preferDefaultProvider !== false;
+  const preferDefaultFirst = true;
   if (!privacySummary.forceLocal && (enrichedOptions.provider || preferDefaultFirst) && candidates.some((candidate) => candidate.id === preferredProvider)) {
     candidates = [
       ...candidates.filter((candidate) => candidate.id === preferredProvider),
@@ -361,13 +248,13 @@ export async function callAIWithMeta(options = {}) {
   }
 
   const registryTaskId = String(enrichedOptions.registryTaskId || task.id);
-  const fallbackEnabled = enrichedOptions.fallback ?? getFallbackEnabled();
+  const fallbackEnabled = false;
   if (!fallbackEnabled) candidates = candidates.slice(0, 1);
   if (!candidates.length) {
     const error = new Error(privacySummary.forceLocal
-      ? 'Privacy Filter yêu cầu provider local nhưng chưa có Ollama, LM Studio hoặc LocalAI khả dụng.'
-      : 'No configured AI provider is available for this task.');
-    error.code = privacySummary.forceLocal ? 'AI_PRIVACY_NO_LOCAL_PROVIDER' : 'AI_NO_PROVIDER_CONFIGURED';
+      ? 'Chính sách riêng tư đang yêu cầu xử lý cục bộ, nhưng hệ thống V12.39.1 chỉ sử dụng OpenRouter. Hãy đổi chính sách sang Che dữ liệu hoặc Chặn request.'
+      : 'Chưa có OpenRouter API key. Hãy nhập key trong Cài đặt → OpenRouter AI Gateway.');
+    error.code = privacySummary.forceLocal ? 'AI_PRIVACY_LOCAL_UNAVAILABLE' : 'OPENROUTER_KEY_REQUIRED';
     error.taskId = registryTaskId;
     error.privacy = privacySummary;
     throw error;
@@ -385,7 +272,7 @@ export async function callAIWithMeta(options = {}) {
     taskGroup: task.id,
     promptVersion: enrichedOptions.promptVersion || '',
     promptRegistryVersion: enrichedOptions.promptRegistryVersion || '',
-    routingMode: effectiveRoutingMode,
+    routingMode: 'openrouter',
     candidateCount: candidates.length,
     privacy: privacySummary,
   };
@@ -595,12 +482,12 @@ export async function callAIWithMeta(options = {}) {
     promptRegistryVersion: enrichedOptions.promptRegistryVersion || '',
     engine: 'ai',
     transport: 'browser-unified',
-    provider: finalCandidate?.id || preferredProvider,
-    providerName: finalInfo.label || finalCandidate?.id || preferredProvider,
+    provider: DEFAULT_PROVIDER,
+    providerName: 'OpenRouter',
     model: finalCandidate?.model || '',
     profile: governance.profileKey,
-    routingMode: effectiveRoutingMode,
-    fallbackUsed: attempts.length > 1,
+    routingMode: 'openrouter',
+    fallbackUsed: false,
     candidateRank: Math.max(1, attempts.length),
     attempts,
     providerCalls,
@@ -643,13 +530,13 @@ export async function callAIWithMeta(options = {}) {
   if (attempts.length > 1) {
     const capacityError = attempts.find((attempt) => attempt.errorType === 'capacity');
     if (!error || !capacityError) {
-      error = new Error(`All AI providers failed. ${attempts.map((attempt) => `${attempt.provider}: ${attempt.error}`).join(' | ')}`);
-      error.code = 'AI_ALL_PROVIDERS_FAILED';
+      error = new Error(`OpenRouter request failed after all allowed attempts. ${attempts.map((attempt) => `${attempt.provider}: ${attempt.error}`).join(' | ')}`);
+      error.code = 'OPENROUTER_REQUEST_FAILED';
     }
   }
   if (!error) {
-    error = new Error('AI request failed without a provider response.');
-    error.code = 'AI_REQUEST_FAILED';
+    error = new Error('OpenRouter did not return a usable response.');
+    error.code = 'OPENROUTER_REQUEST_FAILED';
   }
   error.attempts = attempts;
   error.operationId = operationId;
@@ -686,7 +573,7 @@ export async function callAI(options = {}) {
   return response.text;
 }
 
-export async function callGemini(options = {}) {
+export async function callOpenRouter(options = {}) {
   return callAI(options);
 }
 
@@ -700,12 +587,12 @@ export function extractJson(text) {
   return JSON.parse(jsonText);
 }
 
-export async function generateActivityWithGemini({ apiKey, model, templateId, topic, sourceText, level, itemCount, language }) {
+export async function generateActivityWithOpenRouter({ apiKey, model, templateId, topic, sourceText, level, itemCount, language }) {
   const outputFormat = ACTIVITY_OUTPUT_FORMATS[templateId] || ACTIVITY_OUTPUT_FORMATS.quiz;
   const systemInstruction = `You are an expert English teacher and test writer. Create accurate, classroom-ready English learning activities. Never include markdown fences unless specifically requested. Avoid duplicate items. Use natural, correct English.`;
   const prompt = `Create content for Brian English Studio Activity Tiles.\n\nTemplate: ${templateId}\nLevel: ${level}\nNumber of items: ${itemCount}\nOutput language for explanations/prompts: ${language === 'vi' ? 'Vietnamese support is allowed, but English learning content should stay in English unless the task requires Vietnamese.' : 'English'}\nTopic or instruction: ${topic || 'General English'}\nSource text / vocabulary / notes:\n${sourceText || '(none)'}\n\n${outputFormat}\n\nReturn strict JSON only with this schema:\n{\n  "title": "short activity title",\n  "content": "the generated activity lines in the exact format required"\n}\n\nImportant: The content field must contain only the activity lines, separated by \\n. No numbering unless it is part of the question.`;
 
-  const text = await callGemini({ apiKey, model, prompt, systemInstruction, temperature: 0.65, responseMimeType: 'application/json' });
+  const text = await callOpenRouter({ apiKey, model, prompt, systemInstruction, temperature: 0.65, responseMimeType: 'application/json' });
   const json = extractJson(text);
   if (!json.content) throw new Error('AI response did not include content.');
   return {
@@ -819,5 +706,5 @@ Output language: ${language === 'vi' ? 'Vietnamese interface notes are allowed. 
 
 Return a polished result using clear headings, numbering, answer keys, and short teacher notes. Do not apologize. Do not mention that you are an AI.`;
 
-  return callGemini({ apiKey, model, prompt, systemInstruction, temperature: 0.68 });
+  return callOpenRouter({ apiKey, model, prompt, systemInstruction, temperature: 0.68 });
 }

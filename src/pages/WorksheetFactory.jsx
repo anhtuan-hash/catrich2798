@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { spreadsheetToTextSafe } from '../utils/safeSpreadsheet.js';
-import { extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/openRouter.js';
 import { runAITask } from '../utils/aiTaskRuntime.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { addBankItems, addHistoryEntry, loadBank, loadHistory } from '../utils/library.js';

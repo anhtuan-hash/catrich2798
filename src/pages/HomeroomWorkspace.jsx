@@ -16,7 +16,7 @@ import {
   SearchCommandTab,
   StudentSupportTab,
 } from '../components/HomeroomPhase3Tabs.jsx';
-import { extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/openRouter.js';
 import { runAITask } from '../utils/aiTaskRuntime.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import {

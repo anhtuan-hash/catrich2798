@@ -877,7 +877,7 @@ ${analysisOutput}
   const generate = async () => {
     setError('');
     if (!hasApiKey) {
-      setError(language === 'vi' ? 'Chưa có AI provider. Vào Settings để cấu hình API key trước.' : 'Missing AI provider. Configure API key in Settings first.');
+      setError(language === 'vi' ? 'Chưa có OpenRouter API key. Vào Cài đặt → OpenRouter AI Gateway để cấu hình.' : 'Missing OpenRouter API key. Configure it in Settings → OpenRouter AI Gateway.');
       return;
     }
     if (workflowMode === 'existing-plan' && !fileText.trim()) {
@@ -1124,7 +1124,7 @@ ${analysisOutput}
         <div className="lesson-v50-stat-grid">
           <div className="lesson-v50-stat-card">
             <strong>{hasApiKey ? (isVi ? 'AI sẵn sàng' : 'AI ready') : (isVi ? 'Cần API' : 'Need API')}</strong>
-            <small>{aiModel || 'GPT-4o mini'}</small>
+            <small>{aiModel || 'openrouter/free'}</small>
           </div>
           <div className="lesson-v50-stat-card">
             <strong>{isVi ? 'Nguồn' : 'Source'}: {workflowMode === 'curriculum-batch' ? (isVi ? 'KHGD + SGK' : 'Curriculum + textbook') : sourceLabel}</strong>

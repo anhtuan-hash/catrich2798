@@ -14,17 +14,9 @@ import {
   setFallbackEnabled,
 } from '../utils/aiProviders.js';
 
-const PROVIDER_ICONS = {
-  gemini: 'G', openai: '◎', groq: 'GQ', cerebras: 'C', mistral: 'M',
-  sambanova: 'S', cohere: 'Co', openrouter: '↗', nvidia: 'N', cloudflare: '☁',
-  claude: 'AI', custom: '⌘',
-};
+const PROVIDER_ICONS = { openrouter: '↗' };
 
-const PROVIDER_TONES = {
-  gemini: 'blue', openai: 'mint', groq: 'violet', cerebras: 'cyan', mistral: 'amber',
-  sambanova: 'peach', cohere: 'sky', openrouter: 'indigo', nvidia: 'green',
-  cloudflare: 'orange', claude: 'rose', custom: 'slate',
-};
+const PROVIDER_TONES = { openrouter: 'indigo' };
 
 const DEFAULT_MUSIC_SETTINGS = {
   enabled: false,
@@ -127,10 +119,9 @@ function SettingsHeroIllustration() {
         {Array.from({ length: 5 }).map((_, index) => <i key={`l-${index}`} className={`left p${index}`} />)}
         {Array.from({ length: 5 }).map((_, index) => <i key={`r-${index}`} className={`right p${index}`} />)}
       </div>
-      <div className="settings-v47-provider-node node-google">G</div>
-      <div className="settings-v47-provider-node node-openai">◎</div>
-      <div className="settings-v47-provider-node node-ai">AI</div>
-      <div className="settings-v47-provider-node node-sun">✺</div>
+      <div className="settings-v47-provider-node node-router">OR</div>
+      <div className="settings-v47-provider-node node-ai">TXT</div>
+      <div className="settings-v47-provider-node node-sun">IMG</div>
       <div className="settings-v47-key-card">🔑 <span>••••••••</span></div>
       <div className="settings-v47-shield"><span>🔒</span></div>
     </div>
@@ -203,7 +194,7 @@ export default function Settings({
   setMotionStyle,
 }) {
   const initial = getEmptyLocal();
-  const [selectedProvider, setSelectedProvider] = useState(aiProvider || initial.provider);
+  const [selectedProvider, setSelectedProvider] = useState('openrouter');
   const [configs, setConfigs] = useState(providerConfigs || initial.configs);
   const [fallback, setFallback] = useState(initial.fallbackEnabled);
   const [saved, setSaved] = useState(false);
@@ -215,8 +206,6 @@ export default function Settings({
   const [musicSettings, setMusicSettings] = useState(() => readMusicSettings(currentUser));
   const [uiSyncState, setUiSyncState] = useState({ status: currentUser?.provider === 'supabase' ? 'loading' : 'local', message: '' });
   const [advancedOpen, setAdvancedOpen] = useState(true);
-  const [providerSearch, setProviderSearch] = useState('');
-  const [providerFilter, setProviderFilter] = useState('all');
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
   const [passwordStatus, setPasswordStatus] = useState({ loading: false, message: '', ok: false });
   const [showPasswords, setShowPasswords] = useState(false);
@@ -230,28 +219,7 @@ export default function Settings({
     () => PROVIDERS.filter((provider) => Boolean(String(configs[provider.id]?.apiKey || '').trim())),
     [configs],
   );
-  const visibleProviders = useMemo(() => {
-    const query = providerSearch.trim().toLowerCase();
-    return [...PROVIDERS]
-      .filter((provider) => {
-        const ready = Boolean(String(configs[provider.id]?.apiKey || '').trim());
-        if (providerFilter === 'recommended' && !provider.recommended) return false;
-        if (providerFilter === 'configured' && !ready) return false;
-        if (providerFilter === 'free' && !String(provider.plan || '').startsWith('free') && provider.plan !== 'trial') return false;
-        if (!query) return true;
-        return [provider.label, provider.shortLabel, provider.descriptionVi, provider.descriptionEn, provider.defaultModel]
-          .some((value) => String(value || '').toLowerCase().includes(query));
-      })
-      .sort((left, right) => {
-        if (left.id === aiProvider) return -1;
-        if (right.id === aiProvider) return 1;
-        const leftReady = Boolean(String(configs[left.id]?.apiKey || '').trim());
-        const rightReady = Boolean(String(configs[right.id]?.apiKey || '').trim());
-        if (leftReady !== rightReady) return leftReady ? -1 : 1;
-        if (Boolean(left.recommended) !== Boolean(right.recommended)) return left.recommended ? -1 : 1;
-        return left.label.localeCompare(right.label);
-      });
-  }, [aiProvider, configs, providerFilter, providerSearch]);
+
 
   const authProviders = useMemo(() => Array.isArray(currentUser?.authProviders) ? currentUser.authProviders : [], [currentUser?.authProviders]);
   const googleConnected = authProviders.includes('google');
@@ -260,7 +228,7 @@ export default function Settings({
 
   useEffect(() => {
     const onUpdate = () => {
-      setSelectedProvider(getAiProvider());
+      setSelectedProvider('openrouter');
       setConfigs(getAiConfigs());
       setFallback(getFallbackEnabled());
     };
@@ -301,32 +269,18 @@ export default function Settings({
 
   const saveSettings = () => {
     const normalized = saveAiConfigs(configs);
-    setAiProvider(selectedProvider);
+    setAiProvider('openrouter');
     setFallbackEnabled(fallback);
     setProviderConfigs?.(normalized);
-    setAiProviderState?.(selectedProvider);
-    const active = normalized[selectedProvider] || {};
+    setAiProviderState?.('openrouter');
+    const active = normalized.openrouter || {};
     setApiKey?.(active.apiKey || '');
     setAiModel?.(active.model || currentProvider.defaultModel);
     setSaved(true);
     window.setTimeout(() => setSaved(false), 1800);
   };
 
-  const activateProvider = (providerId) => {
-    const provider = getProviderInfo(providerId);
-    const normalized = saveAiConfigs(configs);
-    const config = normalized[providerId] || {};
-    setSelectedProvider(providerId);
-    setAiProvider(providerId);
-    setFallbackEnabled(fallback);
-    setProviderConfigs?.(normalized);
-    setAiProviderState?.(providerId);
-    setApiKey?.(config.apiKey || '');
-    setAiModel?.(config.model || provider.defaultModel);
-    setSaved(true);
-    setTestResult(language === 'vi' ? `✅ ${provider.label} đã được đặt làm provider mặc định.` : `✅ ${provider.label} is now the default provider.`);
-    window.setTimeout(() => setSaved(false), 1800);
-  };
+
 
   const testProvider = async (providerId = selectedProvider, useFallback = false) => {
     const providerInfo = getProviderInfo(providerId);
@@ -554,8 +508,8 @@ export default function Settings({
           <h1>{language === 'vi' ? 'Cài đặt AI & hệ thống' : 'AI & system settings'}</h1>
           <p>
             {language === 'vi'
-              ? 'Chọn nhà cung cấp AI, quản lý API key, tùy chỉnh giao diện, âm thanh, đồng bộ và thiết lập fallback thông minh.'
-              : 'Choose AI providers, manage API keys, customize appearance, audio, sync, and smart fallback settings.'}
+              ? 'Quản lý OpenRouter API key dùng chung, tùy chỉnh giao diện, âm thanh và đồng bộ hệ thống.'
+              : 'Manage the shared OpenRouter API key, appearance, audio, and system sync.'}
           </p>
           <div className="settings-v47-hero-chips">
             <span><b>{PROVIDERS.length}</b><small>Provider</small></span>
@@ -619,95 +573,106 @@ export default function Settings({
           </div>
         </article>
 
-        <article className="settings-v47-card settings-v47-provider-card settings-v125-provider-command">
+        <article className="settings-v47-card settings-v47-provider-card settings-v12391-openrouter-card">
           <CardHeader
-            icon="⚡"
+            icon="↗"
             tone="blue"
-            title={language === 'vi' ? 'AI Provider Command Center' : 'AI Provider Command Center'}
-            subtitle={language === 'vi' ? 'Chọn provider mặc định bằng một lần bấm, lọc nhanh và kiểm tra cấu hình ngay tại chỗ.' : 'Choose the default provider in one click, filter quickly, and validate configuration in place.'}
+            title={language === 'vi' ? 'OpenRouter AI Gateway' : 'OpenRouter AI Gateway'}
+            subtitle={language === 'vi' ? 'Một API key duy nhất vận hành toàn bộ AI trên website, mọi ứng dụng và mọi chức năng.' : 'One API key powers every AI feature across the entire website.'}
             action={<span className="settings-v47-account-pill">{currentUser?.email || accountScope}</span>}
           />
 
-          <div className="settings-v125-active-provider">
-            <span className={`provider-logo large tone-${PROVIDER_TONES[aiProvider] || 'slate'}`}>{PROVIDER_ICONS[aiProvider] || 'AI'}</span>
-            <div><small>{language === 'vi' ? 'Provider mặc định hiện tại' : 'Current default provider'}</small><strong>{getProviderInfo(aiProvider).label}</strong><code>{(configs[aiProvider] || {}).model || getProviderInfo(aiProvider).defaultModel}</code></div>
-            <span className={String((configs[aiProvider] || {}).apiKey || '').trim() ? 'ready' : 'warning'}>{String((configs[aiProvider] || {}).apiKey || '').trim() ? '● ' + (language === 'vi' ? 'Đã có API key' : 'API key ready') : '○ ' + (language === 'vi' ? 'Chưa có API key' : 'No API key')}</span>
-            <button type="button" onClick={() => testProvider(aiProvider, false)} disabled={testing}>⌁ {language === 'vi' ? 'Kiểm tra nhanh' : 'Quick test'}</button>
+          <div className="settings-v12391-openrouter-status">
+            <span className="settings-v12391-openrouter-logo">OR</span>
+            <div className="settings-v12391-openrouter-copy">
+              <small>{language === 'vi' ? 'Provider duy nhất của hệ thống' : 'Only system provider'}</small>
+              <strong>OpenRouter</strong>
+              <code>{currentConfig.model || currentProvider.defaultModel}</code>
+            </div>
+            <div className="settings-v12391-openrouter-badges">
+              <span>1 provider</span>
+              <span>1 API key</span>
+              <span>{language === 'vi' ? 'Toàn website' : 'Site-wide'}</span>
+            </div>
+            <b className={String(currentConfig.apiKey || '').trim() ? 'ready' : 'warning'}>
+              {String(currentConfig.apiKey || '').trim()
+                ? `● ${language === 'vi' ? 'Đã kết nối key' : 'Key configured'}`
+                : `○ ${language === 'vi' ? 'Chưa nhập API key' : 'API key missing'}`}
+            </b>
           </div>
 
-          <div className="settings-v125-provider-toolbar">
-            <label className="settings-v125-provider-search"><span>⌕</span><input value={providerSearch} onChange={(event) => setProviderSearch(event.target.value)} placeholder={language === 'vi' ? 'Tìm provider, model hoặc tính năng...' : 'Search provider, model, or capability...'} /></label>
-            <div className="settings-v125-provider-filters" role="tablist">
-              {[
-                ['all', language === 'vi' ? 'Tất cả' : 'All'],
-                ['recommended', language === 'vi' ? 'Nên dùng' : 'Recommended'],
-                ['configured', language === 'vi' ? 'Đã có key' : 'Configured'],
-                ['free', language === 'vi' ? 'Miễn phí' : 'Free'],
-              ].map(([value, label]) => <button key={value} type="button" className={providerFilter === value ? 'active' : ''} onClick={() => setProviderFilter(value)}>{label}</button>)}
-            </div>
-          </div>
+          <div className="settings-v12391-openrouter-layout">
+            <section className="settings-v12391-openrouter-editor" ref={providerEditorRef}>
+              <div className="settings-v12391-openrouter-links">
+                <a href={currentProvider.helpUrl} target="_blank" rel="noreferrer noopener">▤ {language === 'vi' ? 'Hướng dẫn OpenRouter' : 'OpenRouter guide'}</a>
+                <a className="get-key" href={currentProvider.keyUrl} target="_blank" rel="noreferrer noopener">↗ {language === 'vi' ? 'Lấy OpenRouter API key' : 'Get OpenRouter API key'}</a>
+              </div>
 
-          <div className="settings-v47-provider-layout settings-v125-provider-layout">
-            <div className="settings-v47-provider-list settings-v125-provider-list" aria-label={language === 'vi' ? 'Danh sách AI provider' : 'AI provider list'}>
-              {visibleProviders.map((provider) => {
-                const config = configs[provider.id] || {};
-                const active = selectedProvider === provider.id;
-                const isDefault = aiProvider === provider.id;
-                const ready = Boolean(String(config.apiKey || '').trim());
-                const description = language === 'vi' ? provider.descriptionVi : provider.descriptionEn;
-                return (
-                  <article key={provider.id} className={`settings-v47-provider-row settings-v125-provider-row ${active ? 'active' : ''} ${ready ? 'configured' : ''} ${isDefault ? 'is-default' : ''}`}>
-                    <button type="button" className="settings-v47-provider-select" onClick={() => setSelectedProvider(provider.id)} aria-pressed={active}>
-                      <span className={`provider-logo tone-${PROVIDER_TONES[provider.id] || 'slate'}`}>{PROVIDER_ICONS[provider.id] || 'AI'}</span>
-                      <span className="provider-row-copy">
-                        <span className="provider-row-title"><strong>{provider.label}</strong>{provider.recommended ? <i>{language === 'vi' ? 'Nên dùng' : 'Recommended'}</i> : null}{isDefault ? <i className="default-chip">{language === 'vi' ? 'Mặc định' : 'Default'}</i> : null}</span>
-                        <small>{description}</small>
-                        <code>{config.model || provider.defaultModel}</code>
-                      </span>
-                      <span className={`provider-plan plan-${provider.plan || 'custom'}`}>{planLabel(provider, language)}</span>
-                      <b className={ready ? 'ready' : ''}>{ready ? '●' : '○'}</b>
-                    </button>
-                    <div className="settings-v125-provider-actions-inline">
-                      <button type="button" className={isDefault ? 'current' : 'make-default'} onClick={() => activateProvider(provider.id)} disabled={isDefault}>{isDefault ? '✓ ' + (language === 'vi' ? 'Đang mặc định' : 'Default') : '★ ' + (language === 'vi' ? 'Dùng mặc định' : 'Set default')}</button>
-                      <button type="button" className="edit" onClick={() => { setSelectedProvider(provider.id); providerEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }}>{ready ? (language === 'vi' ? 'Sửa cấu hình' : 'Edit') : (language === 'vi' ? 'Cấu hình' : 'Configure')}</button>
-                    </div>
-                    {(provider.helpUrl || provider.keyUrl) ? (
-                      <div className="settings-v47-provider-links">
-                        {provider.helpUrl ? <a href={provider.helpUrl} target="_blank" rel="noreferrer noopener">▤ {language === 'vi' ? 'Hướng dẫn' : 'Guide'}</a> : null}
-                        {provider.keyUrl ? <a className="get-key" href={provider.keyUrl} target="_blank" rel="noreferrer noopener">↗ {language === 'vi' ? 'Lấy API key' : 'Get API key'}</a> : null}
-                      </div>
-                    ) : null}
-                  </article>
-                );
-              })}
-              {!visibleProviders.length ? <div className="settings-v125-provider-empty">{language === 'vi' ? 'Không tìm thấy provider phù hợp.' : 'No matching providers found.'}</div> : null}
-            </div>
+              <label>{language === 'vi' ? 'OpenRouter API key dùng chung' : 'Shared OpenRouter API key'}</label>
+              <input
+                type="password"
+                value={currentConfig.apiKey || ''}
+                onChange={(event) => updateConfig({ apiKey: event.target.value })}
+                placeholder="sk-or-v1-…"
+                autoComplete="off"
+                spellCheck="false"
+              />
+              <small className="settings-v12391-key-preview">{language === 'vi' ? 'Trạng thái:' : 'Status:'} {maskKey(currentConfig.apiKey)}</small>
 
-            <div className="settings-v47-provider-detail settings-v125-provider-detail" ref={providerEditorRef}>
-              <div className="settings-v47-provider-detail-head">
-                <span className={`provider-logo large tone-${PROVIDER_TONES[selectedProvider] || 'slate'}`}>{PROVIDER_ICONS[selectedProvider] || 'AI'}</span>
-                <div><strong>{currentProvider.label}</strong><small>{selectedProvider === aiProvider ? (language === 'vi' ? 'Provider mặc định' : 'Default provider') : (language === 'vi' ? 'Đang chỉnh sửa' : 'Editing')}</small></div>
-                <span className={`provider-plan plan-${currentProvider.plan || 'custom'}`}>{planLabel(currentProvider, language)}</span>
+              <div className="settings-v12391-model-grid">
+                <div>
+                  <label>{language === 'vi' ? 'Model văn bản / JSON' : 'Text / JSON model'}</label>
+                  <input list="openrouter-text-models" value={currentConfig.model || currentProvider.defaultModel} onChange={(event) => updateConfig({ model: event.target.value })} />
+                  <datalist id="openrouter-text-models">{(currentProvider.models || []).map((model) => <option key={model} value={model} />)}</datalist>
+                </div>
+                <div>
+                  <label>{language === 'vi' ? 'Model Vision' : 'Vision model'}</label>
+                  <input value={currentConfig.visionModel || currentProvider.defaultVisionModel} onChange={(event) => updateConfig({ visionModel: event.target.value })} />
+                </div>
+                <div>
+                  <label>{language === 'vi' ? 'Model tạo / chỉnh ảnh' : 'Image generation / editing model'}</label>
+                  <input value={currentConfig.imageModel || currentProvider.defaultImageModel} onChange={(event) => updateConfig({ imageModel: event.target.value })} />
+                </div>
               </div>
-              <p>{language === 'vi' ? currentProvider.descriptionVi : currentProvider.descriptionEn}</p>
-              <div className="settings-v47-detail-links">
-                {currentProvider.helpUrl ? <a href={currentProvider.helpUrl} target="_blank" rel="noreferrer noopener">▤ {language === 'vi' ? 'Xem hướng dẫn chính thức' : 'Official setup guide'}</a> : null}
-                {currentProvider.keyUrl ? <a className="get-key" href={currentProvider.keyUrl} target="_blank" rel="noreferrer noopener">↗ {language === 'vi' ? 'Mở trang lấy API key' : 'Open API key page'}</a> : null}
+
+              <details className="settings-v12391-openrouter-advanced">
+                <summary>{language === 'vi' ? 'Cấu hình nâng cao' : 'Advanced configuration'}</summary>
+                <label>Base URL</label>
+                <input value={currentConfig.baseUrl || currentProvider.baseUrl} onChange={(event) => updateConfig({ baseUrl: event.target.value })} />
+              </details>
+
+              <div className="settings-v47-provider-actions settings-v12391-openrouter-actions">
+                <button type="button" className="primary" onClick={saveSettings}>{language === 'vi' ? 'Lưu cho toàn website' : 'Save site-wide'}</button>
+                <button type="button" className="secondary" disabled={testing} onClick={() => testProvider('openrouter', false)}>{testing ? (language === 'vi' ? 'Đang kiểm tra...' : 'Testing...') : (language === 'vi' ? 'Kiểm tra kết nối' : 'Test connection')}</button>
               </div>
-              <label>API key</label>
-              <input type="password" value={currentConfig.apiKey || ''} onChange={(event) => updateConfig({ apiKey: event.target.value })} placeholder={`${currentProvider.label} API key...`} autoComplete="off" spellCheck="false" />
-              <div className="settings-v47-field-grid">
-                <div><label>Model</label><input list={`models-${currentProvider.id}`} value={currentConfig.model || currentProvider.defaultModel} onChange={(event) => updateConfig({ model: event.target.value })} /><datalist id={`models-${currentProvider.id}`}>{(currentProvider.models || []).map((model) => <option key={model} value={model} />)}</datalist></div>
-                <div><label>Base URL</label><input value={currentConfig.baseUrl || currentProvider.baseUrl} onChange={(event) => updateConfig({ baseUrl: event.target.value })} />{currentProvider.requiresBaseUrlEdit ? <small className="settings-v47-field-help">{language === 'vi' ? 'Thay YOUR_ACCOUNT_ID bằng Account ID Cloudflare của anh.' : 'Replace YOUR_ACCOUNT_ID with your Cloudflare Account ID.'}</small> : null}</div>
+              {saved ? <div className="settings-v47-message ok">✅ {language === 'vi' ? 'Đã lưu OpenRouter cho toàn bộ website.' : 'OpenRouter saved for the entire website.'}</div> : null}
+              {testResult ? <div className={`settings-v47-message ${testResult.startsWith('✅') ? 'ok' : ''}`}>{testResult}</div> : null}
+            </section>
+
+            <aside className="settings-v12391-openrouter-coverage">
+              <h3>{language === 'vi' ? 'Phạm vi sử dụng chung' : 'Shared coverage'}</h3>
+              <p>{language === 'vi' ? 'Cùng một key được AI Core sử dụng xuyên suốt các khu vực sau:' : 'The same key is used by AI Core across:'}</p>
+              <div className="settings-v12391-coverage-grid">
+                {[
+                  language === 'vi' ? 'Brian AI' : 'Brian AI',
+                  'Worksheet Factory',
+                  'Grammar Builder',
+                  'Exam Studio',
+                  'Writing Studio',
+                  'Reading Studio',
+                  language === 'vi' ? 'Nói & phát âm' : 'Speaking & pronunciation',
+                  language === 'vi' ? 'Giáo án' : 'Lesson design',
+                  language === 'vi' ? 'Tổ chuyên môn' : 'Department',
+                  language === 'vi' ? 'Chủ nhiệm' : 'Homeroom',
+                  language === 'vi' ? 'Phân tích tài liệu' : 'Document analysis',
+                  'Vision & SmartID',
+                ].map((item) => <span key={item}>✓ {item}</span>)}
               </div>
-              <div className="settings-v47-inline-toggle"><div><strong>{language === 'vi' ? 'Fallback thông minh' : 'Smart fallback'}</strong><small>{language === 'vi' ? 'Tự thử provider khác đã có key khi provider chính lỗi hoặc hết quota.' : 'Try another configured provider if the primary fails or reaches quota.'}</small></div><Toggle checked={fallback} onChange={setFallback} label="Fallback" /></div>
-              <div className="settings-v47-provider-actions settings-v125-detail-actions">
-                <button type="button" className="primary" onClick={() => { saveSettings(); activateProvider(selectedProvider); }}>{language === 'vi' ? 'Lưu & dùng mặc định' : 'Save & set default'}</button>
-                <button type="button" className="secondary" onClick={saveSettings}>{language === 'vi' ? 'Chỉ lưu cấu hình' : 'Save only'}</button>
-                <button type="button" className="secondary" disabled={testing} onClick={() => testProvider(selectedProvider, false)}>{testing ? (language === 'vi' ? 'Đang kiểm tra...' : 'Testing...') : (language === 'vi' ? 'Kiểm tra kết nối' : 'Test connection')}</button>
+              <div className="settings-v12391-single-provider-note">
+                <strong>{language === 'vi' ? 'Không còn bộ chọn provider' : 'No provider selector remains'}</strong>
+                <small>{language === 'vi' ? 'Không có provider dự phòng, không có key riêng theo ứng dụng và không có thẻ provider khác.' : 'No fallback providers, per-app keys, or additional provider cards.'}</small>
               </div>
-              {saved ? <div className="settings-v47-message ok">✅ {language === 'vi' ? 'Đã lưu cấu hình AI.' : 'AI configuration saved.'}</div> : null}
-            </div>
+            </aside>
           </div>
         </article>
 
@@ -813,7 +778,7 @@ export default function Settings({
               );
             })}
           </div>
-          <button type="button" className="settings-v47-add-key" onClick={() => providerEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>＋ {language === 'vi' ? 'Thêm API key mới' : 'Add a new API key'}</button>
+          <button type="button" className="settings-v47-add-key" onClick={() => providerEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>＋ {language === 'vi' ? 'Cấu hình OpenRouter API key' : 'Configure OpenRouter API key'}</button>
           <div className="settings-v47-security-note">🔒 {language === 'vi' ? 'API key được lưu riêng theo tài khoản trên trình duyệt này.' : 'API keys are stored per account in this browser.'}</div>
         </article>
 

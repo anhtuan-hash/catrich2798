@@ -1,8 +1,134 @@
+===== NHÁNH HIỆN TẠI =====
+brian-ai-core
+
+===== FILE CÓ TÊN LIÊN QUAN ĐẾN AI =====
+api/ai.js
+server/lessonAiHandler.js
+server/unifiedAiProviderAdapter.js
+src/components/AICopilotPanel.jsx
+src/components/AISmartModelSelector.jsx
+src/components/GlobalAIIndicator.jsx
+src/components/GlobalAIReceipt.jsx
+src/components/UnifiedUtilityRail.jsx
+src/components/UniversalAIAssist.jsx
+src/data/aiProviderCatalog.js
+src/main.jsx
+src/pages/AIGovernanceCenter.jsx
+src/pages/AITool.jsx
+src/styles/v1157-ai-provider-hub.css
+src/ui-core/styles/ai-control-plane-v1236.css
+src/ui-core/styles/department-detail-workspace-v1223.css
+src/utils/aiActions.js
+src/utils/aiGovernance.js
+src/utils/aiGovernanceCloud.js
+src/utils/aiMedia.js
+src/utils/aiOutputValidator.js
+src/utils/aiPrivacyFilter.js
+src/utils/aiPromptRegistry.js
+src/utils/aiProviderHubRuntime.js
+src/utils/aiProviderOverrides.js
+src/utils/aiProviders.js
+src/utils/aiRuntimeManager.js
+src/utils/aiSmartRouting.js
+src/utils/aiTaskRegistry.js
+src/utils/aiTaskRuntime.js
+src/utils/aiWorkspaceFallback.js
+src/utils/gemini.js
+src/utils/providerHubInputGuard.js
+
+===== FILE CÓ NỘI DUNG LIÊN QUAN ĐẾN AI =====
+api/ai.js
+server/lessonAiHandler.js
+server/unifiedAiProviderAdapter.js
+src/components/AICopilotPanel.jsx
+src/components/AISmartModelSelector.jsx
+src/components/ApiNotice.jsx
+src/components/GlobalAIIndicator.jsx
+src/components/GlobalAIReceipt.jsx
+src/components/LessonArchitectCurriculumBuilder.jsx
+src/components/UniversalAIAssist.jsx
+src/data/aiProviderCatalog.js
+src/data/apps.js
+src/main.jsx
+src/pages/AIGovernanceCenter.jsx
+src/pages/AITool.jsx
+src/pages/DepartmentWorkspace.jsx
+src/pages/EnglishLessonIntegrationStudio.jsx
+src/pages/GrammarBuilder.jsx
+src/pages/HomeroomWorkspace.jsx
+src/pages/LessonArchitect.jsx
+src/pages/PronunciationCoach.css
+src/pages/PronunciationCoach.jsx
+src/pages/ReadingStudio.jsx
+src/pages/ResourceLibrary.jsx
+src/pages/Settings.jsx
+src/pages/SmartIdStudio.jsx
+src/pages/SpeakingStudio.jsx
+src/pages/SpecializedAppPage.jsx
+src/pages/SystemHealthCenter.jsx
+src/pages/TextCareStudio.jsx
+src/pages/TextLabActivities.jsx
+src/pages/WordGraphStudio.jsx
+src/pages/WorksheetFactory.css
+src/pages/WorksheetFactory.jsx
+src/pages/WritingStudio.css
+src/pages/WritingStudio.jsx
+src/styles/legacy-active.css
+src/styles/legacy/01-foundation.css
+src/styles/legacy/03-operations.css
+src/styles/legacy/04-modern-shell.css
+src/styles/legacy/06-current-features.css
+src/styles/v1093.css
+src/styles/v1157-ai-provider-hub.css
+src/ui-core/components/UIActivityCenter.jsx
+src/ui-core/runtime/uiPreferences.js
+src/ui-core/styles/design-adapters.css
+src/ui-core/styles/settings-experience-v1225.css
+src/ui-core/styles/ui-core.css
+src/utils/aiGovernance.js
+src/utils/aiGovernanceCloud.js
+src/utils/aiMedia.js
+src/utils/aiPromptRegistry.js
+src/utils/aiProviderHubRuntime.js
+src/utils/aiProviderOverrides.js
+src/utils/aiProviders.js
+src/utils/aiRuntimeManager.js
+src/utils/aiSmartRouting.js
+src/utils/aiTaskRegistry.js
+src/utils/aiTaskRuntime.js
+src/utils/aiWorkspaceFallback.js
+src/utils/auth.js
+src/utils/bursReadability.js
+src/utils/gemini.js
+src/utils/library.js
+src/utils/permissions.js
+src/utils/providerHubInputGuard.js
+src/vendor/englishLessonIntegration/chunks/exportDocx-CWf1oqaU.js
+src/vendor/englishLessonIntegration/chunks/index-Dw89E-Vn.js
+src/vendor/englishLessonIntegration/chunks/mount-Dps-kMHu.js
+
+===== CÁC API ROUTE HIỆN CÓ =====
+api/_googleDrive.js
+api/_resourceCategoryFolders.js
+api/_resourcePreviewToken.js
+api/_security.js
+api/ai.js
+api/google-drive-callback.js
+api/google-drive-connect.js
+api/google-drive-delete.js
+api/google-drive-file.js
+api/google-drive-move.js
+api/google-drive-preview-session.js
+api/google-drive-upload.js
+api/news-article.js
+api/news-feed.js
+api/resource-sync.js
+api/work-hub-archive-resource.js
+server/lessonAiHandler.js
+server/unifiedAiProviderAdapter.js
+
+===== PACKAGE.JSON =====
 {
-  "name": "brian-english-studio",
-  "private": true,
-  "version": "12.39.1",
-  "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "npm run version:sync && vite build",
@@ -88,7 +214,7 @@
     "test:v11.5.6": "npm run version:sync && node scripts/check-v11.5.6.mjs",
     "release:guard:v11.5.6": "node scripts/release-guard-v11.5.6.mjs",
     "verify:v11.5.6": "npm run test:v11.5.6 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.6",
-    "version:sync": "node scripts/sync-version-v12.39.1.mjs",
+    "version:sync": "node scripts/sync-version-v12.38.0.mjs",
     "audit:budget": "node scripts/performance-budget-v11.6.0.mjs",
     "release:guard": "node scripts/release-guard-v11.6.1.mjs",
     "test:v11.5.8": "npm run version:sync && node scripts/check-v11.5.8.mjs",
@@ -165,11 +291,7 @@
     "test:v12.37.0": "node scripts/test-v12.37.0-ai-cloud-sync.mjs",
     "verify:v12.37.0": "node scripts/verify-v12.37.0.mjs && npm run test:v12.37.0 && npm run build && npm test && npm run test:department",
     "test:v12.38.0": "node scripts/test-v12.38.0-ai-task-registry.mjs",
-    "verify:v12.38.0": "node scripts/verify-v12.38.0.mjs && npm run test:v12.38.0 && npm run build && npm test && npm run test:department",
-    "test:v12.39.0": "node scripts/test-v12.39.0-openrouter-one-key.mjs",
-    "verify:v12.39.0": "node scripts/verify-v12.39.0.mjs && npm run test:v12.39.0 && npm run build && npm test && npm run test:department",
-    "test:v12.39.1": "node scripts/test-v12.39.1-openrouter-ui.mjs",
-    "verify:v12.39.1": "node scripts/verify-v12.39.1.mjs && npm run test:v12.39.1 && npm run build && npm test && npm run test:department"
+    "verify:v12.38.0": "node scripts/verify-v12.38.0.mjs && npm run test:v12.38.0 && npm run build && npm test && npm run test:department"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
@@ -182,11 +304,6 @@
     "read-excel-file": "^9.3.1",
     "vite": "^8.1.3"
   },
-  "description": "Brian English Studio V12.39.1 — hard-removes the legacy provider command center and exposes only one OpenRouter gateway card, key, and runtime across the website.",
-  "engines": {
-    "node": "22.x"
-  },
-  "packageManager": "npm@10.8.0",
   "devDependencies": {
     "@playwright/test": "^1.61.1"
   }

@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { generateGenericToolOutput } from '../utils/gemini.js';
+import { generateGenericToolOutput } from '../utils/openRouter.js';
 import { addHistoryEntry, exportAsHtml, exportAsWord, slugify as librarySlugify } from '../utils/library.js';
 import { loadMammoth, loadPdfjs } from '../utils/documentParsers.js';
 

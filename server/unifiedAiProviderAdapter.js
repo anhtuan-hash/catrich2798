@@ -1,4 +1,5 @@
 const DEFAULT_TIMEOUT_MS = 70_000;
+const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 
 function withStatus(error, status) {
   if (error && typeof error === 'object') error.status = error.status || status;
@@ -15,115 +16,65 @@ export async function fetchWithAiTimeout(url, init, timeoutMs = DEFAULT_TIMEOUT_
   }
 }
 
-function extractOpenAIResponseText(data) {
-  if (typeof data?.output_text === 'string') return data.output_text.trim();
-  return (data?.output || [])
-    .flatMap((item) => item?.content || [])
-    .filter((part) => part?.type === 'output_text' || typeof part?.text === 'string')
-    .map((part) => part?.text || '')
-    .join('\n')
-    .trim();
+function extractResponseText(data = {}) {
+  const content = data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.text ?? '';
+  if (Array.isArray(content)) return content.map((part) => typeof part === 'string' ? part : (part?.text || '')).join('\n').trim();
+  return String(content || '').trim();
 }
 
-function extractGeminiText(data) {
-  return (data?.candidates?.[0]?.content?.parts || [])
-    .map((part) => part?.text || '')
-    .join('\n')
-    .trim();
+export function resolveServerAiProvider() {
+  return 'openrouter';
 }
 
-export function resolveServerAiProvider(requested = '') {
-  const provider = String(process.env.AI_PROVIDER || requested || 'openai').trim().toLowerCase();
-  return ['openai', 'gemini'].includes(provider) ? provider : 'openai';
-}
-
-export function getServerAiReadiness(requested = '') {
-  const provider = resolveServerAiProvider(requested);
-  if (provider === 'gemini') {
-    return {
-      provider,
-      configured: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_MODEL),
-      model: process.env.GEMINI_MODEL || '',
-      transport: 'server-gateway',
-    };
-  }
+export function getServerAiReadiness() {
   return {
-    provider,
-    configured: Boolean(process.env.OPENAI_API_KEY && process.env.OPENAI_MODEL),
-    model: process.env.OPENAI_MODEL || '',
+    provider: 'openrouter',
+    configured: Boolean(String(process.env.OPENROUTER_API_KEY || '').trim()),
+    model: String(process.env.OPENROUTER_MODEL || 'openrouter/free').trim(),
     transport: 'server-gateway',
   };
 }
 
-async function callOpenAI({ prompt, maxOutputTokens, requestId, timeoutMs }) {
-  const apiKey = String(process.env.OPENAI_API_KEY || '').trim();
-  const model = String(process.env.OPENAI_MODEL || '').trim();
-  if (!apiKey || !model) throw withStatus(new Error('OpenAI server provider is not configured.'), 503);
-  const response = await fetchWithAiTimeout('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      ...(requestId ? { 'X-Client-Request-Id': requestId } : {}),
-    },
-    body: JSON.stringify({
-      model,
-      input: prompt,
-      store: false,
-      max_output_tokens: Math.max(16, Math.min(12_000, Number(maxOutputTokens) || 3600)),
-    }),
-  }, timeoutMs);
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw withStatus(new Error(data?.error?.message || `OpenAI request failed with status ${response.status}.`), response.status >= 500 ? 502 : response.status);
-  const text = extractOpenAIResponseText(data);
-  if (!text) throw withStatus(new Error('OpenAI returned no output text.'), 502);
-  return { text, provider: 'openai', model, transport: 'server-gateway' };
-}
-
-async function callGemini({ prompt, maxOutputTokens, temperature, timeoutMs }) {
-  const apiKey = String(process.env.GEMINI_API_KEY || '').trim();
-  const model = String(process.env.GEMINI_MODEL || '').trim();
-  if (!apiKey || !model) throw withStatus(new Error('Gemini server provider is not configured.'), 503);
-  const response = await fetchWithAiTimeout(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-    method: 'POST',
-    headers: { 'x-goog-api-key': apiKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: Math.max(0, Math.min(2, Number(temperature) || 0.25)),
-        maxOutputTokens: Math.max(16, Math.min(12_000, Number(maxOutputTokens) || 3600)),
-      },
-    }),
-  }, timeoutMs);
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw withStatus(new Error(data?.error?.message || `Gemini request failed with status ${response.status}.`), response.status >= 500 ? 502 : response.status);
-  const text = extractGeminiText(data);
-  if (!text) throw withStatus(new Error('Gemini returned no output text.'), 502);
-  return { text, provider: 'gemini', model, transport: 'server-gateway' };
-}
-
-/**
- * Shared server-side provider transport used by every /api/ai compatibility mode
- * and the embedded lesson integration endpoint. Provider secrets remain in env.
- */
 export async function callServerAI({
-  provider = '',
   prompt = '',
   maxOutputTokens = 3600,
   temperature = 0.25,
   requestId = '',
   timeoutMs = DEFAULT_TIMEOUT_MS,
 } = {}) {
-  const resolvedProvider = resolveServerAiProvider(provider);
   const cleanPrompt = String(prompt || '').trim();
   if (!cleanPrompt) throw withStatus(new Error('AI prompt is empty.'), 400);
   if (cleanPrompt.length > 140_000) throw withStatus(new Error('AI prompt is too large.'), 413);
+  const apiKey = String(process.env.OPENROUTER_API_KEY || '').trim();
+  const model = String(process.env.OPENROUTER_MODEL || 'openrouter/free').trim();
+  const baseUrl = String(process.env.OPENROUTER_BASE_URL || OPENROUTER_BASE_URL).replace(/\/+$/, '');
+  if (!apiKey) throw withStatus(new Error('OPENROUTER_API_KEY is not configured on the server.'), 503);
   const startedAt = Date.now();
-  const result = resolvedProvider === 'gemini'
-    ? await callGemini({ prompt: cleanPrompt, maxOutputTokens, temperature, timeoutMs })
-    : await callOpenAI({ prompt: cleanPrompt, maxOutputTokens, requestId, timeoutMs });
+  const response = await fetchWithAiTimeout(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': String(process.env.APP_URL || process.env.VERCEL_URL || 'https://brian-english-studio.vercel.app'),
+      'X-Title': 'Brian English Studio',
+      ...(requestId ? { 'X-Client-Request-Id': requestId } : {}),
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'user', content: cleanPrompt }],
+      temperature: Math.max(0, Math.min(2, Number(temperature) || 0.25)),
+      max_tokens: Math.max(16, Math.min(12_000, Number(maxOutputTokens) || 3600)),
+    }),
+  }, timeoutMs);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw withStatus(new Error(data?.error?.message || data?.message || `OpenRouter request failed with status ${response.status}.`), response.status >= 500 ? 502 : response.status);
+  const text = extractResponseText(data);
+  if (!text) throw withStatus(new Error('OpenRouter returned no output text.'), 502);
   return {
-    ...result,
+    text,
+    provider: 'openrouter',
+    model,
+    transport: 'server-gateway',
     durationMs: Date.now() - startedAt,
     requestId: requestId || null,
   };

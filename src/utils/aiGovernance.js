@@ -177,7 +177,7 @@ export function normalizeAiGovernanceSettings(raw) {
       ...privacySource,
       enabled: privacySource.enabled !== false,
       mode: ['mask', 'block', 'off'].includes(privacySource.mode) ? privacySource.mode : defaults.privacy.mode,
-      forceLocalForSensitive: Boolean(privacySource.forceLocalForSensitive),
+      forceLocalForSensitive: false,
       blockSensitiveImages: Boolean(privacySource.blockSensitiveImages),
     },
     outputValidation: {

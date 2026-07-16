@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/openRouter.js';
 import { runAITask } from '../utils/aiTaskRuntime.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { canPublishDepartment } from '../utils/permissions.js';

@@ -1,0 +1,816 @@
+===== NHÁNH HIỆN TẠI =====
+brian-ai-core
+
+===== KÍCH THƯỚC CÁC FILE AI TRUNG TÂM =====
+     292 src/utils/aiProviders.js
+     438 src/utils/aiProviderHubRuntime.js
+     474 src/utils/aiRuntimeManager.js
+     175 src/utils/aiSmartRouting.js
+     193 src/utils/aiTaskRuntime.js
+     823 src/utils/gemini.js
+     661 src/components/UniversalAIAssist.jsx
+     744 src/pages/AITool.jsx
+     364 src/pages/AIGovernanceCenter.jsx
+     850 src/main.jsx
+
+===== IMPORT, EXPORT, FUNCTION VÀ API CALL =====
+
+----- src/utils/aiProviders.js -----
+1:import { PROVIDER_CATALOG, getProviderCatalogEntry, mergeProviderInfo } from '../data/aiProviderCatalog.js';
+2:import {
+10:export const AI_PROVIDER_KEY = 'bes-ai-provider';
+11:export const AI_CONFIGS_KEY = 'bes-ai-configs';
+12:export const AI_FALLBACK_KEY = 'bes-ai-fallback-enabled';
+13:export const AI_USER_SCOPE_KEY = 'bes-ai-user-scope';
+15:export const PROVIDERS = [
+23:    models: ['gemini-flash-latest','gemini-2.5-flash','gemini-2.5-flash-lite','gemini-2.5-pro','gemini-2.0-flash'],
+30:    descriptionEn: 'Paid provider retained for backward compatibility.',
+32:    models: ['gpt-4.1-mini','gpt-4.1','gpt-4o-mini','gpt-4o'],
+41:    models: ['llama-3.3-70b-versatile','llama-3.1-8b-instant','openai/gpt-oss-120b','openai/gpt-oss-20b'],
+50:    models: ['gpt-oss-120b','zai-glm-4.7'],
+59:    models: ['mistral-small-latest','mistral-medium-latest','mistral-large-latest','ministral-8b-latest'],
+68:    models: ['Meta-Llama-3.3-70B-Instruct','DeepSeek-V3.1','gpt-oss-120b','MiniMax-M2.7'],
+77:    models: ['command-a-03-2025','command-r-plus-08-2024','command-r-08-2024','command-a-reasoning-08-2025'],
+81:    defaultModel: 'openrouter/free', baseUrl: 'https://openrouter.ai/api/v1', kind: 'openai',
+83:    descriptionVi: 'Router miễn phí; nên dùng openrouter/free hoặc model có hậu tố :free.',
+84:    descriptionEn: 'Free router; use openrouter/free or a model ending in :free.',
+86:    models: ['openrouter/free','meta-llama/llama-3.3-70b-instruct:free','qwen/qwen3-8b:free','google/gemma-3-27b-it:free'],
+92:    descriptionVi: 'Serverless API miễn phí cho phát triển; phù hợp làm fallback.',
+93:    descriptionEn: 'Free serverless development APIs, useful as a fallback.',
+95:    models: ['meta/llama-3.3-70b-instruct','meta/llama-3.1-8b-instruct','nvidia/llama-3.3-nemotron-super-49b-v1.5'],
+104:    models: ['@cf/meta/llama-3.1-8b-instruct-fp8-fast','@cf/meta/llama-3.2-3b-instruct','@cf/openai/gpt-oss-120b'],
+111:    descriptionEn: 'Paid provider retained for backward compatibility.',
+112:    helpUrl: 'https://docs.anthropic.com/en/api/getting-started', keyUrl: 'https://console.anthropic.com/settings/keys',
+113:    models: ['claude-3-5-haiku-latest','claude-3-5-sonnet-latest','claude-3-opus-latest'],
+117:    defaultModel: 'custom-model', baseUrl: 'https://your-endpoint.example/v1', kind: 'openai',
+122:    models: ['custom-model','local-model','gpt-4o-mini'],
+126:export const DEFAULT_PROVIDER = 'gemini';
+128:export function getProviderInfo(providerId) {
+129:  const legacy = PROVIDERS.find((item) => item.id === providerId) || {};
+130:  return mergeProviderInfo(providerId || DEFAULT_PROVIDER, legacy);
+134:export function defaultConfigs() {
+135:  return Object.fromEntries(PROVIDERS.map((provider) => [
+136:    provider.id,
+139:      model: provider.defaultModel,
+140:      baseUrl: provider.baseUrl,
+141:      enabled: provider.id === DEFAULT_PROVIDER,
+146:function normalizeScope(value = '') {
+154:function getStorageScope() {
+155:  return normalizeScope(localStorage.getItem(AI_USER_SCOPE_KEY) || 'guest');
+158:function scopedKey(key) {
+162:const OPENROUTER_FREE_MODEL_MIGRATION_KEY = 'bes-openrouter-free-model-migration:v126';
+165:function migrateLegacyOpenRouterModel(stored = {}) {
+166:  if (typeof localStorage === 'undefined') return stored;
+168:  if (localStorage.getItem(marker) === 'done') return stored;
+170:  const model = String(current.model || '').trim().toLowerCase();
+172:  if (LEGACY_OPENROUTER_PAID_MODELS.has(model)) {
+175:      openrouter: { ...current, model: 'openrouter/free' },
+177:    localStorage.setItem(scopedKey(AI_CONFIGS_KEY), JSON.stringify(next));
+179:  localStorage.setItem(marker, 'done');
+183:function readJson(key, fallback, allowLegacy = false) {
+185:    const scopedRaw = localStorage.getItem(scopedKey(key));
+186:    const raw = scopedRaw || (allowLegacy ? localStorage.getItem(key) : '');
+187:    if (!raw) return fallback;
+188:    return JSON.parse(raw) ?? fallback;
+190:    return fallback;
+194:export function getAiSettingsScope() {
+198:export function setAiStorageUser(user = null) {
+200:  const oldScope = localStorage.getItem(AI_USER_SCOPE_KEY);
+201:  localStorage.setItem(AI_USER_SCOPE_KEY, scope);
+206:export function getAiProvider() {
+207:  const legacyProvider = localStorage.getItem(scopedKey(AI_PROVIDER_KEY)) || localStorage.getItem(AI_PROVIDER_KEY) || DEFAULT_PROVIDER;
+211:export function setAiProvider(providerId) {
+212:  const id = providerId || DEFAULT_PROVIDER;
+213:  localStorage.setItem(scopedKey(AI_PROVIDER_KEY), id);
+218:export function getFallbackEnabled() {
+220:  if (typeof routing.fallbackEnabled === 'boolean') return routing.fallbackEnabled;
+221:  const value = localStorage.getItem(scopedKey(AI_FALLBACK_KEY));
+223:  const legacy = localStorage.getItem(AI_FALLBACK_KEY);
+227:export function setFallbackEnabled(value) {
+228:  localStorage.setItem(scopedKey(AI_FALLBACK_KEY), value ? 'true' : 'false');
+229:  saveRoutingPreferences({ fallbackEnabled: Boolean(value) });
+233:export function getAiConfigs() {
+236:  const legacyNormalized = Object.fromEntries(PROVIDERS.map((provider) => {
+237:    const current = stored?.[provider.id] || {};
+239:      provider.id,
+241:        ...base[provider.id],
+243:        model: current.model || base[provider.id].model,
+244:        baseUrl: current.baseUrl || base[provider.id].baseUrl,
+251:export function saveAiConfigs(configs) {
+254:  for (const provider of PROVIDER_CATALOG) {
+255:    const patch = configs?.[provider.id];
+257:    normalized[provider.id] = { ...normalized[provider.id], ...patch };
+258:    saveProviderOverride(provider.id, normalized[provider.id], { activate: false });
+260:  const legacySubset = Object.fromEntries(PROVIDERS.map((provider) => [
+261:    provider.id,
+262:    normalized[provider.id] || current[provider.id] || {},
+264:  localStorage.setItem(scopedKey(AI_CONFIGS_KEY), JSON.stringify(legacySubset));
+269:export function getActiveAiConfig() {
+270:  const provider = getAiProvider();
+272:  const info = getProviderInfo(provider);
+274:    provider,
+275:    providerInfo: info,
+276:    fallbackEnabled: getFallbackEnabled(),
+277:    ...(configs[provider] || {}),
+281:export function getProviderSummary() {
+282:  const provider = getAiProvider();
+284:  const active = configs[provider] || {};
+286:    provider,
+287:    providerName: getProviderInfo(provider).label,
+288:    model: active.model || getProviderInfo(provider).defaultModel,
+289:    hasKey: getProviderInfo(provider).requiresApiKey === false || Boolean(String(active.apiKey || '').trim()),
+290:    fallbackEnabled: getFallbackEnabled(),
+
+----- src/utils/aiProviderHubRuntime.js -----
+1:import { PROVIDER_CATALOG, AI_PROVIDER_CATEGORIES, getProviderCatalogEntry } from '../data/aiProviderCatalog.js';
+2:import { getAiConfigs, getAiProvider } from './aiProviders.js';
+3:import { runAITask } from './aiTaskRuntime.js';
+4:import {
+14:import { AI_ROUTING_MODES, getRoutingModeInfo } from './aiSmartRouting.js';
+16:const HUB_ID = 'v1157-ai-provider-hub';
+17:const LEGACY_HIDDEN_CLASS = 'v1157-legacy-provider-card-hidden';
+27:function escapeHtml(value = '') {
+31:function normalizeKey(value = '') {
+35:function getLegacyConfigs() {
+39:function getMergedConfigs() {
+43:function getActiveProvider() {
+49:function isProviderConfigured(provider, config = {}) {
+51:  if (provider.requiresApiKey === false) return Boolean(String(config.baseUrl || provider.baseUrl || '').trim());
+55:function providerStatus(provider, config = {}, activeProvider = '') {
+56:  if (!isProviderConfigured(provider, config)) return { id: 'empty', label: provider.requiresApiKey === false ? 'Chưa chạy local' : 'Chưa có key' };
+58:  if (provider.id === activeProvider) return { id: 'active', label: 'Đang dùng' };
+62:function categoryLabel(provider) {
+63:  return AI_PROVIDER_CATEGORIES[provider.category]?.label || provider.category || 'Khác';
+66:function matchesFilter(provider, config) {
+67:  const configured = isProviderConfigured(provider, config);
+69:  if (currentFilter !== 'all' && currentFilter !== 'configured' && provider.category !== currentFilter) return false;
+70:  const haystack = `${provider.label} ${provider.shortLabel} ${provider.note} ${provider.category}`.toLowerCase();
+74:function providerCardHtml(provider, config, activeProvider) {
+75:  const status = providerStatus(provider, config, activeProvider);
+76:  const selected = provider.id === selectedProviderId;
+77:  const actionUrl = provider.apiKeyUrl || provider.docsUrl || '#';
+78:  const model = config.model || provider.defaultModel || 'Chưa chọn model';
+79:  return `<article class="v1157-provider-item ${selected ? 'selected' : ''}" data-provider-id="${escapeHtml(provider.id)}">
+80:    <button type="button" class="v1157-provider-select" data-provider-select="${escapeHtml(provider.id)}" aria-pressed="${selected}">
+81:      <span class="v1157-provider-logo">${escapeHtml(provider.icon || provider.shortLabel?.slice(0, 2) || 'AI')}</span>
+82:      <span class="v1157-provider-copy"><strong>${escapeHtml(provider.label)}</strong><small>${escapeHtml(model)}</small></span>
+83:      <span class="v1157-provider-badges"><em class="tier ${escapeHtml(provider.category)}">${escapeHtml(provider.local ? 'LOCAL' : provider.freeTier ? 'FREE' : provider.category.toUpperCase())}</em><i class="status ${status.id}">${escapeHtml(status.label)}</i></span>
+85:    <div class="v1157-provider-links">
+86:      <a href="${escapeHtml(actionUrl)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(provider.actionLabel)} cho ${escapeHtml(provider.label)}">🔑 ${escapeHtml(provider.actionLabel)} <span>↗</span></a>
+87:      ${provider.docsUrl ? `<a class="docs" href="${escapeHtml(provider.docsUrl)}" target="_blank" rel="noopener noreferrer" title="Mở tài liệu chính thức">Hướng dẫn ↗</a>` : ''}
+92:function fallbackOrderHtml(configs) {
+94:  const ids = prefs.fallbackOrder.filter((id) => PROVIDER_CATALOG.some((provider) => provider.id === id));
+96:    const provider = getProviderCatalogEntry(id);
+97:    const configured = isProviderConfigured(provider, configs[id] || {});
+98:    return `<li data-fallback-id="${escapeHtml(id)}" class="${configured ? 'configured' : 'unconfigured'}">
+99:      <span class="number">${index + 1}</span><span class="name">${escapeHtml(provider.shortLabel)}</span>
+100:      <span class="fallback-state">${configured ? 'Sẵn sàng' : 'Chưa cấu hình'}</span>
+101:      <button type="button" data-fallback-up="${escapeHtml(id)}" aria-label="Đưa ${escapeHtml(provider.shortLabel)} lên">↑</button>
+102:      <button type="button" data-fallback-down="${escapeHtml(id)}" aria-label="Đưa ${escapeHtml(provider.shortLabel)} xuống">↓</button>
+107:function configurationHtml(provider, config, activeProvider) {
+109:  const status = providerStatus(provider, config, activeProvider);
+111:  const modelValue = config.model || provider.defaultModel || '';
+112:  const baseValue = config.baseUrl || provider.baseUrl || '';
+113:  const modelOptions = (provider.models || []).map((model) => `<option value="${escapeHtml(model)}"></option>`).join('');
+114:  const keyField = provider.requiresApiKey === false
+118:      <div><span class="v1157-provider-logo large">${escapeHtml(provider.icon || 'AI')}</span><div><small>Provider đang cấu hình</small><h3>${escapeHtml(provider.label)}</h3><p>${escapeHtml(provider.note || '')}</p></div></div>
+123:      <label class="v1157-form-field"><span>Model</span><input id="v1157-model" list="v1157-model-options" value="${escapeHtml(modelValue)}" placeholder="Nhập model do provider hỗ trợ" /><datalist id="v1157-model-options">${modelOptions}</datalist></label>
+126:      <label class="v1157-form-field"><span>Phân loại</span><input value="${escapeHtml(categoryLabel(provider))}" readonly /></label>
+128:    <div class="v1157-provider-instructions"><b>Cách thiết lập nhanh</b><span>1. Nhấn “${escapeHtml(provider.actionLabel)}” → 2. Sao chép key → 3. Dán vào đây → 4. Kiểm tra kết nối → 5. Lưu cấu hình.</span></div>
+130:      <button type="button" id="v1157-test-provider">Kiểm tra kết nối</button>
+131:      <button type="button" id="v1157-remove-provider" class="danger">Xóa cấu hình</button>
+132:      <button type="button" id="v1157-save-provider" class="primary">Lưu & dùng provider này</button>
+136:function hubHtml() {
+142:  const filtered = PROVIDER_CATALOG.filter((provider) => matchesFilter(provider, configs[provider.id] || {}));
+144:  return `<section id="${HUB_ID}" class="v1157-provider-hub" aria-label="AI Provider Hub nâng cao">
+146:      <div class="v1157-hub-title"><span class="v1157-hub-icon">⚡</span><div><small>V11.5.7 · Free AI Provider Hub</small><h2>AI Provider Hub</h2><p>Chọn provider, lấy API key, đổi model và tự động chuyển khi provider lỗi hoặc hết quota.</p></div></div>
+151:        ${[['all', 'Tất cả'], ['free', 'Miễn phí'], ['trial', 'Trial'], ['local', 'Local'], ['paid', 'Trả phí'], ['configured', 'Đã cấu hình']].map(([id, label]) => `<button type="button" data-provider-filter="${id}" class="${currentFilter === id ? 'active' : ''}">${label}</button>`).join('')}
+153:      <label class="v1157-provider-search"><span>⌕</span><input id="v1157-provider-search" value="${escapeHtml(searchTerm)}" placeholder="Tìm provider…" /></label>
+157:      <div class="v1157-provider-browser">
+158:        <div class="v1157-section-heading"><div><small>Danh sách provider</small><h3>${filtered.length} lựa chọn</h3></div><span>Nhấn provider để cấu hình</span></div>
+159:        <div class="v1157-provider-list">${filtered.map((provider) => providerCardHtml(provider, configs[provider.id] || {}, activeProvider)).join('') || '<div class="v1157-empty-provider">Không có provider phù hợp bộ lọc.</div>'}</div>
+161:      <div class="v1157-provider-config">${configurationHtml(selected, selectedConfig, activeProvider)}</div>
+164:      <div class="v1157-section-heading"><div><small>Smart fallback</small><h3>Chuỗi chuyển đổi linh động</h3></div><div class="v1157-routing-toggles"><label class="v1157-fallback-toggle"><input id="v1157-fallback-enabled" type="checkbox" ${prefs.fallbackEnabled !== false ? 'checked' : ''} /><span>Tự chuyển provider khi lỗi</span></label><label class="v1157-fallback-toggle"><input id="v1157-allow-paid" type="checkbox" ${prefs.allowPaid === true ? 'checked' : ''} /><span>Cho phép model trả phí</span></label></div></div>
+165:      <ol class="v1157-fallback-list">${fallbackOrderHtml(configs)}</ol>
+166:      <div class="v1157-routing-note"><span>401/403</span> bỏ provider và cảnh báo key · <span>429</span> chuyển provider · <span>5xx/timeout</span> thử lại rồi chuyển · <span>không hỗ trợ ảnh</span> chọn model vision.</div>
+171:function findLegacyProviderCard() {
+190:function attachHubEvents(root) {
+191:  root.querySelectorAll('[data-provider-select]').forEach((button) => {
+192:    button.addEventListener('click', () => { selectedProviderId = button.dataset.providerSelect || 'gemini'; statusMessage = ''; renderHub(); });
+194:  root.querySelectorAll('[data-provider-filter]').forEach((button) => {
+195:    button.addEventListener('click', () => { currentFilter = button.dataset.providerFilter || 'all'; renderHub(); });
+197:  root.querySelector('#v1157-provider-search')?.addEventListener('input', (event) => {
+209:  root.querySelector('#v1157-fallback-enabled')?.addEventListener('change', (event) => {
+210:    saveRoutingPreferences({ fallbackEnabled: event.target.checked });
+211:    statusMessage = event.target.checked ? 'Đã bật Smart fallback.' : 'Đã tắt Smart fallback.';
+217:    statusMessage = event.target.checked ? 'Đã cho phép dùng provider trả phí khi cần.' : 'Đã khóa provider trả phí trong chế độ tự động.';
+221:  root.querySelector('#v1157-save-provider')?.addEventListener('click', () => saveCurrentProvider(root));
+222:  root.querySelector('#v1157-test-provider')?.addEventListener('click', () => testCurrentProvider(root));
+223:  root.querySelector('#v1157-remove-provider')?.addEventListener('click', () => {
+226:    statusMessage = 'Đã xóa cấu hình provider.';
+230:  root.querySelectorAll('[data-fallback-up], [data-fallback-down]').forEach((button) => {
+231:    button.addEventListener('click', () => moveFallback(button.dataset.fallbackUp || button.dataset.fallbackDown, Boolean(button.dataset.fallbackUp)));
+235:function readCurrentForm(root) {
+236:  const provider = getProviderCatalogEntry(selectedProviderId);
+239:    model: String(root.querySelector('#v1157-model')?.value || provider.defaultModel || '').trim(),
+240:    baseUrl: String(root.querySelector('#v1157-base-url')?.value || provider.baseUrl || '').trim().replace(/\/+$/, ''),
+245:function validateProviderForm(provider, form) {
+246:  if (provider.requiresApiKey !== false && !form.apiKey) return 'Hãy nhập API key trước khi lưu.';
+250:  if (!form.model) return 'Hãy chọn hoặc nhập model.';
+254:function saveCurrentProvider(root) {
+255:  const provider = getProviderCatalogEntry(selectedProviderId);
+257:  const validation = validateProviderForm(provider, form);
+260:  if (provider.category === 'paid' && currentPrefs.allowPaid !== true) {
+261:    const approved = window.confirm(`${provider.label} có thể phát sinh chi phí. Bật quyền dùng provider trả phí và tiếp tục?`);
+267:  saveRoutingPreferences({ mode, manualProvider: selectedProviderId, manualModel: mode === 'manual' ? form.model : '', allowPaid: provider.category === 'paid' ? true : currentPrefs.allowPaid });
+268:  statusMessage = `Đã lưu ${provider.label} và đặt làm provider ưu tiên.`;
+273:async function testCurrentProvider(root) {
+274:  const provider = getProviderCatalogEntry(selectedProviderId);
+276:  const validation = validateProviderForm(provider, form);
+278:  statusMessage = `Đang kiểm tra ${provider.label}…`;
+283:      provider: selectedProviderId,
+285:      model: form.model,
+291:      fallback: false,
+294:      manualModel: form.model,
+295:      loadingLabel: `Kiểm tra kết nối ${provider.label}`,
+298:    statusMessage = `Kết nối ${provider.label} thành công${String(result).trim() ? ` · ${String(result).trim().slice(0, 48)}` : ''}.`;
+308:function moveFallback(providerId, up) {
+310:  const order = [...prefs.fallbackOrder];
+311:  const index = order.indexOf(providerId);
+316:  saveRoutingPreferences({ fallbackOrder: order });
+317:  statusMessage = 'Đã cập nhật thứ tự fallback.';
+322:function renderHub() {
+344:function removeHubOutsideSettings() {
+350:function buildInlineSelector(container, id) {
+353:  const configured = PROVIDER_CATALOG.filter((provider) => isProviderConfigured(provider, configs[provider.id] || {}));
+354:  const providerId = prefs.manualProvider || getActiveProvider();
+355:  const provider = getProviderCatalogEntry(providerId);
+356:  const config = configs[providerId] || {};
+357:  const currentModel = prefs.manualModel || config.model || provider.defaultModel || '';
+358:  const models = [...new Set([currentModel, ...(provider.models || [])].filter(Boolean))];
+362:  wrapper.innerHTML = `<label title="Hệ thống tự chọn provider/model phù hợp"><span>✦</span><select data-inline-mode>${AI_ROUTING_MODES.map((mode) => `<option value="${mode.id}" ${prefs.mode === mode.id ? 'selected' : ''}>${escapeHtml(mode.shortLabel)}</option>`).join('')}</select></label>
+363:    <label title="Chọn provider"><select data-inline-provider>${configured.map((item) => `<option value="${item.id}" ${item.id === providerId ? 'selected' : ''}>${escapeHtml(item.shortLabel)}</option>`).join('') || `<option value="${provider.id}">${escapeHtml(provider.shortLabel)}</option>`}</select></label>
+364:    <label class="model" title="Chọn model"><select data-inline-model>${models.map((model) => `<option value="${escapeHtml(model)}" ${model === currentModel ? 'selected' : ''}>${escapeHtml(model)}</option>`).join('') || '<option value="">Model tự động</option>'}</select></label>
+367:  wrapper.querySelector('[data-inline-provider]')?.addEventListener('change', (event) => {
+371:    saveRoutingPreferences({ manualProvider: nextProvider, manualModel: (configs[nextProvider]?.model || nextInfo.defaultModel || ''), mode: 'manual' });
+373:  wrapper.querySelector('[data-inline-model]')?.addEventListener('change', (event) => {
+374:    saveRoutingPreferences({ manualProvider: providerId, manualModel: event.target.value, mode: 'manual' });
+382:function scanInlineSelectors() {
+387:    if (textarea.closest('.v1157-provider-hub') || textarea.closest('.v1157-inline-route-selector')) continue;
+394:    if (!matched || !container || container.querySelector('.v1157-inline-route-selector, .v1157-model-selector')) continue;
+400:function scheduleRender() {
+408:export function installAIProviderHubRuntime() {
+430:export function uninstallAIProviderHubRuntime() {
+
+----- src/utils/aiRuntimeManager.js -----
+4: * Centralizes queueing, transient retry, timeout, in-flight de-duplication,
+5: * short-lived response caching and provider circuit breakers. The runtime is
+6: * intentionally transport-agnostic: callers provide the provider executor.
+9:export const AI_RUNTIME_EVENT = 'bes-ai-runtime-updated';
+10:export const AI_RUNTIME_CIRCUIT_KEY = 'bes-ai-runtime-circuits:v1';
+12:export const DEFAULT_AI_RUNTIME_SETTINGS = Object.freeze({
+17:  retryBaseDelayMs: 800,
+39:  timeouts: 0,
+46:function clamp(value, min, max, fallback) {
+48:  if (!Number.isFinite(number)) return fallback;
+52:export function normalizeAiRuntimeSettings(raw = {}) {
+59:    retryBaseDelayMs: clamp(raw.retryBaseDelayMs, 100, 5000, defaults.retryBaseDelayMs),
+71:function emit(detail = {}) {
+77:function safeReadCircuits() {
+78:  if (typeof localStorage === 'undefined') return {};
+80:    const parsed = JSON.parse(localStorage.getItem(AI_RUNTIME_CIRCUIT_KEY) || '{}');
+87:function safeWriteCircuits(value) {
+88:  if (typeof localStorage === 'undefined') return;
+89:  try { localStorage.setItem(AI_RUNTIME_CIRCUIT_KEY, JSON.stringify(value)); } catch { /* storage may be unavailable */ }
+92:function normalizeProviderId(providerId = '') {
+93:  return String(providerId || 'unknown').trim().toLowerCase() || 'unknown';
+96:function pruneCircuitEntry(entry = {}, now = Date.now()) {
+109:export function getAiProviderCircuit(providerId, runtimeSettings = DEFAULT_AI_RUNTIME_SETTINGS) {
+111:  const id = normalizeProviderId(providerId);
+118:    providerId: id,
+129:export function isAiProviderCircuitOpen(providerId, runtimeSettings = DEFAULT_AI_RUNTIME_SETTINGS) {
+130:  return getAiProviderCircuit(providerId, runtimeSettings).open;
+133:export function recordAiProviderRuntimeSuccess(providerId) {
+134:  const id = normalizeProviderId(providerId);
+139:  emit({ reason: 'provider-success', providerId: id });
+142:export function recordAiProviderRuntimeFailure(providerId, error, runtimeSettings = DEFAULT_AI_RUNTIME_SETTINGS) {
+144:  const id = normalizeProviderId(providerId);
+159:  emit({ reason: shouldOpen ? 'circuit-opened' : 'provider-failure', providerId: id });
+163:export function resetAiProviderCircuits() {
+168:function simpleHash(value = '') {
+178:export function createAiRuntimeFingerprint({ providerId = '', model = '', taskId = '', prompt = '', systemInstruction = '', responseMimeType = '', maxOutputTokens = 0, temperature = '', attachments = [] } = {}) {
+180:  return `air-${simpleHash([providerId, model, taskId, responseMimeType, maxOutputTokens, temperature, systemInstruction, prompt, attachmentSignature].join('\u241f'))}`;
+183:function cleanExpiredCache(now = Date.now()) {
+189:function trimCache(maxEntries) {
+198:export function clearAiRuntimeCache() {
+203:function pushRecent(operation) {
+208:function makeAbortError(code = 'AI_REQUEST_CANCELLED', message = 'AI request was cancelled.') {
+215:function wait(ms, signal) {
+230:function mergeAbortSignals(externalSignal, timeoutMs) {
+241:  }, timeoutMs);
+252:function defaultClassifyError(error) {
+255:  if (error?.code === 'AI_REQUEST_TIMEOUT') return 'timeout';
+258:  if (status >= 500 || /temporarily unavailable|overloaded|server error/.test(message)) return 'provider-unavailable';
+259:  if (/network|failed to fetch|load failed|timeout|timed out/.test(message)) return 'network';
+263:function isTransientKind(kind) {
+264:  return ['network', 'rate-limit', 'provider-unavailable', 'timeout'].includes(kind);
+267:async function executeWithRetry({ executor, settings, signal, classifyError, onUpdate }) {
+271:    const timeout = mergeAbortSignals(signal, settings.requestTimeoutMs);
+273:      const value = await executor({ signal: timeout.signal, attempt });
+274:      timeout.cleanup();
+277:      const didTimeout = timeout.didTimeout();
+278:      timeout.cleanup();
+281:        error = makeAbortError('AI_REQUEST_TIMEOUT', `AI provider timed out after ${settings.requestTimeoutMs} ms.`);
+283:        sessionStats.timeouts += 1;
+291:      const delayMs = Math.min(12000, settings.retryBaseDelayMs * (2 ** (attempt - 1)) + Math.round(Math.random() * 180));
+293:      onUpdate?.({ phase: 'retry', retryAttempt: attempt, retryDelayMs: delayMs, errorType: kind });
+294:      emit({ reason: 'retry', retryDelayMs: delayMs, errorType: kind });
+301:function processQueue() {
+324:function schedule({ operationId, settings, signal, run }) {
+344:export async function runAiProviderRuntime({
+346:  providerId = 'unknown',
+347:  model = '',
+359:  const provider = normalizeProviderId(providerId);
+360:  const key = fingerprint || `${provider}:${model}:${taskId}:${operationId}`;
+363:  if (settings.enabled && settings.circuitBreakerEnabled && isAiProviderCircuitOpen(provider, settings)) {
+365:    const circuit = getAiProviderCircuit(provider, settings);
+366:    const error = new Error(`AI provider ${provider} is temporarily paused by the circuit breaker.`);
+368:    error.provider = provider;
+369:    error.retryAfterMs = circuit.remainingMs;
+370:    emit({ reason: 'circuit-rejected', providerId: provider, operationId });
+381:      emit({ reason: 'cache-hit', providerId: provider, operationId });
+392:    emit({ reason: 'dedupe-hit', providerId: provider, operationId });
+401:      const operation = { operationId, providerId: provider, model, taskId, startedAt: Date.now(), queueWaitMs, status: 'running' };
+408:        recordAiProviderRuntimeSuccess(provider);
+427:        emit({ reason: 'completed', operationId, providerId: provider });
+431:        if (kind !== 'cancelled') recordAiProviderRuntimeFailure(provider, error, settings);
+437:        emit({ reason: operation.status, operationId, providerId: provider, errorType: kind });
+451:export function getAiRuntimeSnapshot(runtimeSettings = DEFAULT_AI_RUNTIME_SETTINGS) {
+454:  const circuitRows = Object.keys(circuits).map((providerId) => getAiProviderCircuit(providerId, settings)).filter((item) => item.open);
+468:export function resetAiRuntimeSession() {
+472:  sessionStats = { queued: 0, completed: 0, failed: 0, cancelled: 0, retries: 0, timeouts: 0, cacheHits: 0, dedupeHits: 0, circuitRejects: 0, queueWaitMs: 0 };
+
+----- src/utils/aiSmartRouting.js -----
+1:import { PROVIDER_CATALOG, getProviderCatalogEntry, mergeProviderInfo } from '../data/aiProviderCatalog.js';
+2:import {
+8:import { isAiProviderCircuitOpen } from './aiRuntimeManager.js';
+10:export const AI_ROUTING_MODES = [
+11:  { id: 'smart', label: 'Tự động thông minh', shortLabel: 'Tự động', description: 'Tự chọn provider và model phù hợp với yêu cầu.' },
+12:  { id: 'free', label: 'Ưu tiên miễn phí', shortLabel: 'Miễn phí', description: 'Ưu tiên free tier, trial và local; bỏ qua provider trả phí.' },
+13:  { id: 'fast', label: 'Ưu tiên tốc độ', shortLabel: 'Nhanh', description: 'Ưu tiên provider phản hồi nhanh.' },
+14:  { id: 'quality', label: 'Ưu tiên chất lượng', shortLabel: 'Chất lượng', description: 'Ưu tiên model mạnh nhất đang được cấu hình.' },
+16:  { id: 'vision', label: 'Ảnh / PDF', shortLabel: 'Vision', description: 'Chỉ ưu tiên model hỗ trợ hình ảnh.' },
+18:  { id: 'manual', label: 'Chọn thủ công', shortLabel: 'Thủ công', description: 'Cố định provider và model đã chọn.' },
+21:export function getRoutingModeInfo(mode) {
+25:export function analyzeAiRequest(options = {}) {
+50:function isConfigured(provider, config = {}) {
+52:  if (provider.requiresApiKey === false) return Boolean(String(config.baseUrl || provider.baseUrl || '').trim());
+56:function supportsProfile(provider, profile) {
+57:  const caps = new Set(provider.capabilities || []);
+59:  if (profile.privacyLevel === 'private' && !provider.local) return false;
+63:function scoreProvider(provider, config, profile, prefs, activeProvider) {
+66:  if (provider.id === activeProvider) score += mode === 'smart' ? 96 : 24;
+67:  if (provider.id === prefs.manualProvider) score += 1000;
+68:  if (provider.freeTier) score += 12;
+69:  if (provider.local) score += 6;
+72:  if (mode === 'free') score += provider.category === 'free' ? 80 : provider.category === 'trial' ? 45 : provider.local ? 70 : -200;
+73:  if (mode === 'fast') score += Number(provider.speed || 0) * 22;
+74:  if (mode === 'quality') score += Number(provider.quality || 0) * 22;
+75:  if (mode === 'long-context') score += Number(provider.context || 0) * 24;
+76:  if (mode === 'vision') score += (provider.capabilities || []).includes('vision') ? 100 : -300;
+77:  if (mode === 'local') score += provider.local ? 300 : -500;
+78:  if (profile.requiresVision) score += (provider.capabilities || []).includes('vision') ? 90 : -300;
+79:  if (profile.requiresLongContext) score += Number(provider.context || 0) * 18;
+80:  if (profile.requiresJson) score += (provider.capabilities || []).includes('json') ? 24 : 0;
+81:  if (profile.taskType === 'teaching-content' && ['cerebras', 'groq', 'gemini', 'mistral'].includes(provider.id)) score += 16;
+82:  if (profile.taskType === 'document-analysis' && ['gemini', 'claude', 'mistral'].includes(provider.id)) score += 18;
+83:  if (profile.taskType === 'image-analysis' && ['gemini', 'openai', 'claude'].includes(provider.id)) score += 22;
+84:  const fallbackIndex = prefs.fallbackOrder.indexOf(provider.id);
+85:  if (fallbackIndex >= 0) score += Math.max(0, 30 - fallbackIndex * 2);
+89:export function buildAiRoutingCandidates({ legacyProviders = [], legacyConfigs = {}, legacyActiveProvider = '', options = {} } = {}) {
+96:  const legacyMap = new Map((legacyProviders || []).map((provider) => [provider.id, provider]));
+97:  const catalog = PROVIDER_CATALOG.map((provider) => mergeProviderInfo(provider.id, legacyMap.get(provider.id) || {}));
+98:  for (const provider of legacyProviders || []) {
+99:    if (!catalog.some((item) => item.id === provider.id)) catalog.push(mergeProviderInfo(provider.id, provider));
+101:  const activeProvider = getEffectiveActiveProvider(options.provider || legacyActiveProvider);
+103:    .map((provider) => ({ provider, config: { ...(mergedConfigs[provider.id] || {}), ...((prefs.providerHealth || {})[provider.id] || {}) } }))
+104:    .filter(({ provider, config }) => isConfigured(provider, config))
+105:    .filter(({ provider }) => supportsProfile(provider, profile))
+106:    .filter(({ provider }) => options.ignoreCircuitBreaker || !isAiProviderCircuitOpen(provider.id, options.runtimeSettings))
+107:    .filter(({ provider }) => provider.category !== 'paid' || prefs.allowPaid || (prefs.mode === 'manual' && provider.id === (options.manualProvider || prefs.manualProvider || activeProvider)) || (options.provider && provider.id === options.provider));
+111:    candidates = candidates.filter(({ provider }) => !excluded.has(provider.id));
+116:    candidates.sort((a, b) => Number(b.provider.id === manualId) - Number(a.provider.id === manualId));
+118:    candidates.sort((a, b) => scoreProvider(b.provider, b.config, profile, prefs, activeProvider) - scoreProvider(a.provider, a.config, profile, prefs, activeProvider));
+121:  if (!candidates.some(({ provider }) => provider.id === activeProvider)) {
+122:    const provider = getProviderCatalogEntry(activeProvider);
+124:    if (isConfigured(provider, config) && supportsProfile(provider, profile)) candidates.unshift({ provider, config });
+127:  return candidates.map(({ provider, config }, index) => ({
+128:    id: provider.id,
+129:    provider,
+131:    model: (prefs.mode === 'manual' && provider.id === (prefs.manualProvider || activeProvider) && (options.manualModel || prefs.manualModel))
+132:      || config.model
+133:      || provider.defaultModel,
+134:    baseUrl: config.baseUrl || provider.baseUrl,
+140:export function classifyAiError(error) {
+144:  if (error?.code === 'AI_REQUEST_TIMEOUT') return 'timeout';
+150:  if (status >= 500 || /server error|temporarily unavailable|model unavailable|overloaded/.test(message)) return 'provider-unavailable';
+152:  if (/timeout|timed out/.test(message)) return 'timeout';
+158:export function shouldFallbackAiError(error) {
+159:  return ['capacity', 'rate-limit', 'provider-unavailable', 'network', 'timeout', 'circuit-open', 'context', 'auth', 'output-validation'].includes(classifyAiError(error));
+162:export function noteProviderHealth(providerId, { success = false, error = '' } = {}) {
+163:  if (!providerId) return;
+165:  const health = prefs.providerHealth && typeof prefs.providerHealth === 'object' ? prefs.providerHealth : {};
+166:  health[providerId] = success
+167:    ? { ...(health[providerId] || {}), lastSuccessAt: new Date().toISOString(), lastError: '' }
+168:    : { ...(health[providerId] || {}), lastErrorAt: new Date().toISOString(), lastError: String(error || '').slice(0, 240) };
+169:  saveRoutingPreferences({ providerHealth: health });
+172:export function getRoutingDisplay() {
+
+----- src/utils/aiTaskRuntime.js -----
+1:import { appendAiAudit } from './aiGovernance.js';
+2:import { callAIWithMeta } from './gemini.js';
+3:import {
+10:export const AI_TASK_RUNTIME_EVENT = 'bes-ai-ta[REDACTED]';
+14:function safeParse(raw, fallback) {
+15:  try { return JSON.parse(raw); } catch { return fallback; }
+18:function readMetrics() {
+20:  const parsed = safeParse(window.localStorage.getItem(METRICS_KEY), { tasks: {}, recent: [] });
+27:function writeMetrics(value) {
+29:  try { window.localStorage.setItem(METRICS_KEY, JSON.stringify(value)); } catch { /* local metrics are best effort */ }
+33:function recordTaskRun({ definition, success, meta = {}, error = null, startedAt }) {
+45:    fallbacks: 0,
+61:    fallbacks: previous.fallbacks + (meta.fallbackUsed ? 1 : 0),
+63:    totalProviderCalls: previous.totalProviderCalls + Math.max(0, Number(meta.providerCalls) || 0),
+65:    lastProvider: meta.provider || previous.lastProvider,
+66:    lastModel: meta.model || previous.lastModel,
+76:    provider: meta.provider || '',
+77:    model: meta.model || '',
+80:    fallbackUsed: Boolean(meta.fallbackUsed),
+88:function normalizeInvocation(input = {}, overrides = {}) {
+100:export async function runAITaskWithMeta(taskId, input = {}, overrides = {}) {
+123:      provider: meta.provider,
+124:      model: meta.model,
+131:        providerCalls: meta.providerCalls,
+132:        fallbackUsed: meta.fallbackUsed,
+155:export async function runAITask(taskId, input = {}, overrides = {}) {
+161:export async function runLegacyAITask(taskId, options = {}) {
+165:export function getAiTaskRuntimeMetrics() {
+178:      fallbacks: Number(metric.fallbacks) || 0,
+186:export function getRecentAiTaskRuns() {
+190:export function resetAiTaskRuntimeMetrics() {
+191:  if (typeof window !== 'undefined') window.localStorage.removeItem(METRICS_KEY);
+
+----- src/utils/gemini.js -----
+1:import {
+10:import { appendAiAudit, getAiGovernanceSettings, guardAiRequest, recordAiRequest } from './aiGovernance.js';
+11:import { buildAiRoutingCandidates, classifyAiError, noteProviderHealth, shouldFallbackAiError } from './aiSmartRouting.js';
+12:import { enrichAiTaskOptions, resolveAiTask } from './aiTaskRegistry.js';
+13:import { getRoutingPreferences } from './aiProviderOverrides.js';
+14:import { applyAiPrivacyFilter, summarizeAiPrivacyReport } from './aiPrivacyFilter.js';
+15:import {
+21:import { createAiRuntimeFingerprint, runAiProviderRuntime } from './aiRuntimeManager.js';
+23:export const DEFAULT_GEMINI_MODEL = 'gemini-flash-latest';
+24:export const DEFAULT_MAX_OUTPUT_TOKENS = 1600;
+26:function normalizeMaxOutputTokens(value, fallback = DEFAULT_MAX_OUTPUT_TOKENS) {
+28:  if (!Number.isFinite(parsed)) return fallback;
+32:export const ACTIVITY_OUTPUT_FORMATS = {
+43:function normalizeModelName(model, fallback = DEFAULT_GEMINI_MODEL) {
+44:  const clean = String(model || fallback).trim();
+45:  return clean || fallback;
+48:function buildMessages(prompt, systemInstruction = '') {
+55:function isOpenRouterFreeModel(model = '') {
+56:  const value = String(model || '').trim().toLowerCase();
+60:function isOpenRouterCreditError(message = '') {
+64:async function callGeminiProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, signal }) {
+68:  const chosenModel = normalizeModelName(model, DEFAULT_GEMINI_MODEL);
+69:  const url = `${cleanBase}/models/${encodeURIComponent(chosenModel)}:generateContent`;
+78:  const response = await fetch(url, {
+94:async function callOpenAICompatibleProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', provider = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry, requiresApiKey = true, signal }) {
+96:  if (requiresApiKey && !key) throw new Error(`Missing ${provider || 'AI'} API key.`);
+102:  if (provider === 'openrouter') {
+115:    model: normalizeModelName(model, 'gpt-4o-mini'),
+123:    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(requestBody), signal });
+129:  if (!response.ok && provider === 'openrouter') {
+133:    // Old Brian versions stored a paid OpenRouter model as the default. When that
+134:    // model rejects a zero-credit account, retry on OpenRouter's free router first.
+135:    if (creditLimited && !isOpenRouterFreeModel(body.model)) {
+136:      const previousModel = body.model;
+137:      body.model = 'openrouter/free';
+141:          provider,
+143:          model: body.model,
+145:          reason: 'free-model-fallback',
+153:    // retry. Diagnostic requests can now stay below the former 256-token floor.
+157:      // Backward-compatibility marker for the original V10.68 retry contract: affordable - 64.
+163:            onAdaptiveRetry({ provider, model: body.model, affordableTokens: affordable, maxOutputTokens: adaptiveMax, reason: 'credit-limit' });
+171:    const message = data?.error?.message || data?.message || `${provider || 'AI'} request failed with status ${response.status}`;
+173:    const creditLimited = provider === 'openrouter' && isOpenRouterCreditError(message);
+178:      error.provider = provider;
+179:      error.model = body.model;
+186:  if (!String(text).trim()) throw new Error(`${provider || 'AI'} returned an empty response.`);
+190:async function callCohereProvider({ apiKey, model, baseUrl, prompt, systemInstruction = '', temperature = 0.7, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, signal }) {
+195:  const response = await fetch(`${cleanBase}/chat`, {
+200:      model: normalizeModelName(model, 'command-a-03-2025'),
+214:async function callClaudeProvider({ apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, signal }) {
+218:  const response = await fetch(`${cleanBase}/messages`, {
+228:      model: normalizeModelName(model, 'claude-3-5-haiku-latest'),
+248:async function callSingleProvider({ provider, apiKey, model, baseUrl, prompt, attachments = [], systemInstruction = '', temperature = 0.7, responseMimeType = '', maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS, onAdaptiveRetry, signal }) {
+249:  const info = getProviderInfo(provider || DEFAULT_PROVIDER);
+251:    provider: info.id,
+253:    model: model || info.defaultModel,
+271:function emitAiOperation(type, detail = {}) {
+276:export async function callAIWithMeta(options = {}) {
+317:  const preferredProvider = enrichedOptions.provider || active.provider || getAiProvider() || DEFAULT_PROVIDER;
+324:    model: enrichedOptions.model || preferredStored.model || preferredInfo.defaultModel,
+336:      provider: preferredProvider,
+337:      manualProvider: enrichedOptions.manualProvider || (enrichedOptions.provider ? preferredProvider : undefined),
+338:      manualModel: enrichedOptions.manualModel || (enrichedOptions.provider ? (enrichedOptions.model || configs[preferredProvider]?.model) : undefined),
+346:      provider: preferredInfo,
+349:      model: configs[preferredProvider]?.model || preferredInfo.defaultModel,
+356:  if (!privacySummary.forceLocal && (enrichedOptions.provider || preferDefaultFirst) && candidates.some((candidate) => candidate.id === preferredProvider)) {
+364:  const fallbackEnabled = enrichedOptions.fallback ?? getFallbackEnabled();
+365:  if (!fallbackEnabled) candidates = candidates.slice(0, 1);
+368:      ? 'Privacy Filter yêu cầu provider local nhưng chưa có Ollama, LM Studio hoặc LocalAI khả dụng.'
+369:      : 'No configured AI provider is available for this task.');
+379:    provider: candidates[0]?.provider?.label || candidates[0]?.id || preferredProvider,
+380:    model: candidates[0]?.model || '',
+399:  let providerCalls = 0;
+430:      provider: info.label || candidate.id,
+431:      model: candidate.model,
+433:      fallbackUsed: index > 0,
+438:        providerId: candidate.id,
+439:        model: candidate.model,
+450:        providerId: candidate.id,
+451:        model: candidate.model,
+458:        onUpdate: (detail) => emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id, model: candidate.model }),
+461:          provider: candidate.id,
+463:          model: candidate.model,
+469:            emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id });
+474:      providerCalls += generationRuntime.runtime.networkAttempts;
+490:          provider: info.label || candidate.id,
+491:          model: candidate.model,
+493:          fallbackUsed: index > 0,
+505:          providerId: candidate.id,
+506:          model: candidate.model,
+509:            providerId: candidate.id,
+510:            model: candidate.model,
+522:          onUpdate: (detail) => emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id, phase: 'repair' }),
+525:            provider: candidate.id,
+527:            model: candidate.model,
+534:            onAdaptiveRetry: (detail) => emitAiOperation('bes-ai-operation-update', { ...operationDetail, ...detail, provider: info.label || candidate.id, phase: 'repair' }),
+538:        providerCalls += repairRuntime.runtime.networkAttempts;
+553:        provider: candidate.id,
+554:        model: candidate.model,
+565:      runtimeAggregate.timedOut = runtimeAggregate.timedOut || kind === 'timeout';
+569:        provider: candidate.id,
+570:        model: candidate.model,
+578:      const canContinue = fallbackEnabled && index < candidates.length - 1 && (shouldFallbackAiError(error) || kind === 'unknown');
+598:    provider: finalCandidate?.id || preferredProvider,
+599:    providerName: finalInfo.label || finalCandidate?.id || preferredProvider,
+600:    model: finalCandidate?.model || '',
+603:    fallbackUsed: attempts.length > 1,
+606:    providerCalls,
+617:      provider: meta.providerName,
+618:      model: meta.model,
+632:      providerCalls,
+633:      fallbackUsed: meta.fallbackUsed,
+646:      error = new Error(`All AI providers failed. ${attempts.map((attempt) => `${attempt.provider}: ${attempt.error}`).join(' | ')}`);
+651:    error = new Error('AI request failed without a provider response.');
+660:    provider: meta.providerName,
+661:    model: meta.model,
+675:    providerCalls,
+676:    fallbackUsed: meta.fallbackUsed,
+684:export async function callAI(options = {}) {
+689:export async function callGemini(options = {}) {
+693:export function extractJson(text) {
+703:export async function generateActivityWithGemini({ apiKey, model, templateId, topic, sourceText, level, itemCount, language }) {
+708:  const text = await callGemini({ apiKey, model, prompt, systemInstruction, temperature: 0.65, responseMimeType: 'application/json' });
+717:export const AI_TOOL_PRESETS = {
+783:export async function generateGenericToolOutput({ apiKey, model, slug, instruction, sourceText, level, itemCount, language }) {
+822:  return callGemini({ apiKey, model, prompt, systemInstruction, temperature: 0.68 });
+
+----- src/components/UniversalAIAssist.jsx -----
+1:import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+2:import { createPortal } from 'react-dom';
+3:import { runAITask } from '../utils/aiTaskRuntime.js';
+4:import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
+5:import { spreadsheetToTextSafe } from '../utils/safeSpreadsheet.js';
+6:import { buildAiActionSuggestions, executeAiAction, prepareAiAction } from '../utils/aiActions.js';
+7:import { createSpeechRecognition, speechRecognitionMessage } from '../utils/mediaCapture.js';
+44:function routeInfo(route, tool, language) {
+66:function userScope(currentUser) {
+69:function threadsKey(currentUser) { return `bes-ai-chat-threads:${userScope(currentUser)}`; }
+70:function activeThreadKey(currentUser) { return `bes-ai-chat-active:${userScope(currentUser)}`; }
+71:function legacyKey(currentUser) { return `bes-ai-chat-history:${userScope(currentUser)}`; }
+73:function safeLocalGet(key, fallback = '') {
+74:  if (typeof window === 'undefined') return fallback;
+75:  try { return window.localStorage?.getItem(key) ?? fallback; } catch { return fallback; }
+77:function safeLocalSet(key, value) {
+79:  try { window.localStorage?.setItem(key, value); return true; } catch { return false; }
+82:function initialGreeting(language, title) {
+85:function createThread(language, info) {
+89:function normalizeMessage(raw) {
+95:function normalizeThread(raw, language, info) {
+100:function loadThreads(currentUser, language, info) {
+112:function MessageText({ content }) {
+116:function stripHtml(html = '') {
+120:async function readPptxText(arrayBuffer) {
+134:async function readSpreadsheetText(arrayBuffer) {
+137:function fileToDataUrl(file) {
+140:async function prepareAttachment(file) {
+163:function capturePageContext(info, currentRoute, selectedTool) {
+177:function buildConversationPrompt({ messages, newest, info, language, currentUser, pageContext, attachments }) {
+214:function setReactFieldValue(element, value) {
+222:export default function UniversalAIAssist({ language = 'vi', currentRoute = 'home', selectedTool = null, apiKey = '', aiModel = '', hasApiKey = false, currentUser = null, providerName = '', accent = '#5B2A86', soft = '#E9DAFF', ink = '#20102F', externalLauncher = false }) {
+440:      updateActiveMessages((current) => [...current, { id: `assistant-${Date.now()}-settings`, role: 'assistant', createdAt: Date.now(), content: language === 'vi' ? 'Thầy chưa cấu hình AI provider. Hãy mở Thiết lập → AI Provider, nhập API key rồi quay lại cuộc trò chuyện này.' : 'No AI provider is configured yet. Open Settings → AI Provider, add an API key, then return to this chat.', attachments: [] }]);
+449:        apiKey, model: aiModel, prompt,
+479:    try { sessionStorage.setItem('bes-ai-pending-result', JSON.stringify({ text: message.content, route: currentRoute, toolSlug: selectedTool?.slug || '', createdAt: Date.now() })); } catch { /* optional */ }
+553:            <div className="ai-messenger-heading"><strong>Brian AI</strong><span><i /> {voiceMode ? (language === 'vi' ? 'Chế độ giọng nói' : 'Voice mode') : (language === 'vi' ? 'Đang hoạt động' : 'Active')} · {providerName || aiModel || 'AI'}</span></div>
+605:              {!hasApiKey && <div className="ai-messenger-config-note"><span>!</span><p>{language === 'vi' ? 'Cần cấu hình AI provider để gửi tin nhắn.' : 'Configure an AI provider to send messages.'}</p><button type="button" onClick={() => { window.location.hash = '#/settings'; setOpen(false); }}>{language === 'vi' ? 'Mở thiết lập' : 'Open settings'}</button></div>}
+
+----- src/pages/AITool.jsx -----
+1:import React, { useMemo, useState } from 'react';
+2:import LiveActivityPlayer from '../components/LiveActivityPlayer.jsx';
+3:import { AI_TOOL_PRESETS, generateGenericToolOutput } from '../utils/gemini.js';
+4:import { addHistoryEntry, addQuestionsFromTextToBank, exportAsHtml, exportAsWord, parseMcqFromText, savePromptEntry, slugify as librarySlugify } from '../utils/library.js';
+5:import { buildGoogleFormsAppsScript, buildGoogleFormsCsv, buildGoogleFormsGuideHtml, normalizeQuestionsForGoogleForms } from '../utils/googleForms.js';
+7:function useToast() {
+17:function downloadFile(filename, content, type = 'text/plain;charset=utf-8') {
+29:function slugify(text) {
+185:function getExamMode(modeId) {
+189:function getDefaultExamOptions(modeId) {
+193:function buildExamInstruction(modeId, options = {}, language = 'vi') {
+234:function questionsToStrictGoogleFormText(title, questions) {
+246:export default function AITool({ tool, language, apiKey, aiModel, hasApiKey }) {
+318:      setError(language === 'vi' ? 'Chưa có AI provider. Vào Settings để cấu hình provider/API key trước.' : 'Missing AI provider. Configure a provider/API key in Settings first.');
+329:        model: aiModel,
+376:      model: aiModel,
+
+----- src/pages/AIGovernanceCenter.jsx -----
+1:import React, { useEffect, useMemo, useState } from 'react';
+2:import {
+16:import {
+23:import {
+30:import { getAiPromptRegistrySummary, listAiPromptDefinitions } from '../utils/aiPromptRegistry.js';
+31:import {
+51:  diagnostic: ['Kiểm tra kết nối provider', 'Provider connection test'],
+55:function formatNumber(value) {
+59:function percent(value) {
+63:function formatMs(value) {
+69:function MetricBars({ rows = [], emptyLabel = 'No data' }) {
+75:function downloadJson(filename, data) {
+85:export default function AIGovernanceCenter({ language = 'vi', currentUser = null }) {
+125:  const providerRows = useMemo(() => Object.entries(summary.providers || {}).sort((a, b) => b[1] - a[1]), [summary.providers]);
+173:          <p>{vi ? 'Điều phối provider, quyền riêng tư, kiểm định, ngân sách, task contract và phiên bản prompt từ một AI Registry thống nhất.' : 'Control providers, privacy, validation, budgets, task contracts and prompt versions through one unified AI Registry.'}</p>
+232:          <header><div><span>03</span><div><h2>{vi ? 'Hồ sơ giới hạn model' : 'Model limit profiles'}</h2><p>{vi ? 'Giới hạn output theo loại công việc để tiết kiệm chi phí.' : 'Cap output by task type to control cost.'}</p></div></div></header>
+238:        <section className="ai-gov-card ai-gov-providers">
+239:          <header><div><span>04</span><div><h2>{vi ? 'Provider hôm nay' : 'Providers today'}</h2><p>{vi ? 'Số yêu cầu được xử lý bởi từng provider hoặc fallback.' : 'Requests handled by each provider or fallback.'}</p></div></div></header>
+240:          <div className="ai-gov-provider-list">
+241:            {providerRows.length ? providerRows.map(([provider, count]) => <article key={provider}><span>{provider.slice(0, 2).toUpperCase()}</span><div><strong>{provider}</strong><small>{formatNumber(count)} {vi ? 'yêu cầu' : 'requests'}</small></div><b>{summary.requests ? Math.round((count / summary.requests) * 100) : 0}%</b></article>) : <p className="ai-gov-empty">{vi ? 'Chưa có yêu cầu AI hôm nay.' : 'No AI requests today.'}</p>}
+261:                <label><div><strong>{vi ? 'Tự sửa output không hợp lệ' : 'Auto-repair invalid output'}</strong><small>{vi ? 'Gửi một lượt sửa định dạng trước khi fallback provider.' : 'Runs a repair pass before provider fallback.'}</small></div><input type="checkbox" checked={settings.outputValidation?.autoRepair !== false} onChange={(event) => patch({ outputValidation: { ...settings.outputValidation, autoRepair: event.target.checked } })}/><span/></label>
+271:          <header><div><span>06</span><div><h2>{vi ? 'Độ ổn định AI Runtime' : 'AI Runtime reliability'}</h2><p>{vi ? 'Điều phối hàng đợi, timeout, retry, chống gọi trùng và tự cô lập provider lỗi.' : 'Manage queues, timeouts, retries, de-duplication and provider circuit breakers.'}</p></div></div><b className="ai-gov-runtime-badge">{runtime.activeCount} {vi ? 'đang chạy' : 'active'} · {runtime.queuedCount} {vi ? 'đang chờ' : 'queued'}</b></header>
+274:            <article><small>{vi ? 'Retry phiên này' : 'Session retries'}</small><strong>{formatNumber(runtime.stats?.retries)}</strong><span>{vi ? `${formatNumber(summary.runtimeRetries)} retry đã ghi hôm nay` : `${formatNumber(summary.runtimeRetries)} retries logged today`}</span></article>
+276:            <article><small>{vi ? 'Circuit đang mở' : 'Open circuits'}</small><strong>{formatNumber(runtime.openCircuitCount)}</strong><span>{runtime.openCircuitCount ? runtime.openCircuits.map((item) => item.providerId).join(', ') : (vi ? 'Tất cả provider đang khả dụng' : 'All providers available')}</span></article>
+281:              <label><div><strong>{vi ? 'Chống request trùng đang chạy' : 'De-duplicate in-flight requests'}</strong><small>{vi ? 'Hai thao tác giống nhau dùng chung một lần gọi provider.' : 'Identical requests share one provider call.'}</small></div><input type="checkbox" checked={settings.runtime?.dedupeInFlight !== false} onChange={(event) => patch({ runtime: { ...settings.runtime, dedupeInFlight: event.target.checked } })}/><span/></label>
+283:              <label><div><strong>{vi ? 'Circuit breaker cho provider' : 'Provider circuit breaker'}</strong><small>{vi ? 'Tạm dừng provider lỗi liên tiếp rồi tự mở lại sau thời gian nghỉ.' : 'Temporarily pauses repeatedly failing providers and recovers automatically.'}</small></div><input type="checkbox" checked={settings.runtime?.circuitBreakerEnabled !== false} onChange={(event) => patch({ runtime: { ...settings.runtime, circuitBreakerEnabled: event.target.checked } })}/><span/></label>
+294:          <div className="ai-gov-runtime-actions"><button type="button" onClick={() => { clearAiRuntimeCache(); refresh(); }}>{vi ? 'Xóa cache phiên' : 'Clear session cache'}</button><button type="button" onClick={() => { resetAiProviderCircuits(); refresh(); }}>{vi ? 'Mở lại tất cả provider' : 'Reset provider circuits'}</button><button type="button" className="danger-text" onClick={() => { if (window.confirm(vi ? 'Đặt lại toàn bộ thống kê AI Runtime của phiên này?' : 'Reset all AI Runtime session statistics?')) { resetAiRuntimeSession(); refresh(); } }}>{vi ? 'Đặt lại Runtime' : 'Reset runtime'}</button></div>
+298:          <header><div><span>07</span><div><h2>{vi ? 'AI Control Plane & quan sát vận hành' : 'AI Control Plane & observability'}</h2><p>{vi ? 'Áp dụng fair-use theo tài khoản và theo dõi task, model, transport, fallback cùng độ trễ trong một nơi.' : 'Apply account-level fair use and trace tasks, models, transports, fallbacks and latency in one place.'}</p></div></div><b className="ai-gov-control-plane-badge">bes-ai-core/1.2</b></header>
+300:            <article><small>{vi ? 'Lượt gọi provider' : 'Provider calls'}</small><strong>{formatNumber(summary.providerCalls)}</strong><span>{observability.providerCallAmplification}× {vi ? 'mỗi request' : 'per request'}</span></article>
+301:            <article><small>Fallback</small><strong>{formatNumber(summary.fallbacks)}</strong><span>{observability.fallbackRate}% {vi ? 'tỷ lệ chuyển provider' : 'provider switch rate'}</span></article>
+322:              <div className="ai-gov-observability-group"><div><strong>{vi ? 'Provider & model' : 'Providers and models'}</strong><small>{vi ? 'lượt xử lý' : 'handled requests'}</small></div><MetricBars rows={observability.topProviders.slice(0, 4)} emptyLabel={vi ? 'Chưa có dữ liệu provider.' : 'No provider data.'}/></div>
+336:          <div className="ai-gov-ta[REDACTED]"><table className="ai-gov-task-table"><thead><tr><th>Task ID</th><th>{vi ? 'Ứng dụng' : 'App'}</th><th>{vi ? 'Prompt' : 'Prompt'}</th><th>{vi ? 'Hợp đồng' : 'Contract'}</th><th>{vi ? 'Lượt chạy' : 'Runs'}</th><th>{vi ? 'Thành công' : 'Success'}</th><th>{vi ? 'Repair' : 'Repair'}</th><th>{vi ? 'TB thời gian' : 'Avg time'}</th><th>{vi ? 'Provider gần nhất' : 'Last provider'}</th></tr></thead><tbody>{promptDefinitions.map((definition) => { const metric = taskMetrics.find((item) => item.id === definition.id) || {}; return <tr key={definition.id}><td><code>{definition.id}</code><small>{definition.label}</small></td><td>{definition.app}</td><td><b>v{definition.version}</b><small>{definition.privacyProfile}</small></td><td><span data-contract={definition.output}>{definition.output}</span></td><td>{formatNumber(metric.runs)}</td><td>{metric.runs ? `${metric.successRate}%` : '—'}</td><td>{formatNumber(metric.repairs)}</td><td>{metric.runs ? formatMs(metric.averageDurationMs) : '—'}</td><td>{metric.lastProvider ? <><b>{metric.lastProvider}</b><small>{metric.lastModel || ''}</small></> : '—'}</td></tr>; })}</tbody></table></div>
+345:            <article><span>03</span><div><strong>{vi ? 'Server AI Gateway' : 'Server AI Gateway'}</strong><p>{vi ? '/api/ai và Lesson Integration dùng cùng server provider adapter.' : '/api/ai and Lesson Integration share one server provider adapter.'}</p></div><b>{vi ? 'Đã hợp nhất' : 'Unified'}</b></article>
+347:          <p className="ai-gov-transport-note">{vi ? 'Hợp đồng gateway: bes-ai-core/1.4 · Metadata gồm provider, model, transport, thời gian và request ID.' : 'Gateway contract: bes-ai-core/1.4 · Metadata includes provider, model, transport, duration and request ID.'}</p>
+353:        <div className="ai-gov-table-wrap"><table><thead><tr><th>{vi ? 'Ngày' : 'Date'}</th><th>{vi ? 'Yêu cầu' : 'Requests'}</th><th>{vi ? 'Thành công' : 'Success'}</th><th>{vi ? 'Lỗi' : 'Errors'}</th><th>Input</th><th>Output</th><th>{vi ? 'Provider calls' : 'Provider calls'}</th><th>Fallback</th><th>{vi ? 'Đã che' : 'Redacted'}</th><th>{vi ? 'Tự sửa' : 'Repairs'}</th><th>Retry</th><th>Cache</th><th>{vi ? 'Hành động' : 'Actions'}</th></tr></thead><tbody>{days.slice(0, 14).map((day) => <tr key={day.date}><td>{day.date}</td><td>{formatNumber(day.requests)}</td><td>{formatNumber(day.successes)}</td><td>{formatNumber(day.errors)}</td><td>{formatNumber(day.inputTokens)}</td><td>{formatNumber(day.outputTokens)}</td><td>{formatNumber(day.providerCalls)}</td><td>{formatNumber(day.fallbacks)}</td><td>{formatNumber(day.privacyRedactions)}</td><td>{formatNumber(day.validationRepairs)}</td><td>{formatNumber(day.runtimeRetries)}</td><td>{formatNumber(day.runtimeCacheHits)}</td><td>{formatNumber(day.actions)}</td></tr>)}{!days.length && <tr><td colSpan="13">{vi ? 'Chưa có dữ liệu sử dụng.' : 'No usage data.'}</td></tr>}</tbody></table></div>
+358:        <div className="ai-gov-audit-list">{filteredAudit.map((item) => <details key={item.id} data-status={item.status}><summary><article data-status={item.status}><span>{item.type === 'action' ? '↳' : item.status === 'error' || item.status === 'blocked' ? '!' : 'AI'}</span><div><strong>{item.label}</strong><p>{[item.taskId, item.provider, item.model, item.transport, item.target].filter(Boolean).join(' · ') || (vi ? 'Sự kiện hệ thống' : 'System event')}</p><small>{new Date(item.createdAt).toLocaleString(vi ? 'vi-VN' : 'en-US')} · {item.actor?.email || item.actor?.name || 'guest'}</small></div><b>{item.status}</b></article></summary><div className="ai-gov-audit-detail"><dl><div><dt>Task</dt><dd>{item.taskId || '—'}</dd></div><div><dt>Transport</dt><dd>{item.transport || '—'}</dd></div><div><dt>Operation ID</dt><dd>{item.operationId || '—'}</dd></div><div><dt>{vi ? 'Thời lượng' : 'Duration'}</dt><dd>{formatMs(item.detail?.durationMs)}</dd></div></dl><code>{JSON.stringify(item.detail || {}, null, 2)}</code></div></details>)}{!filteredAudit.length && <p className="ai-gov-empty">{vi ? 'Không có sự kiện phù hợp.' : 'No matching events.'}</p>}</div>
+
+----- src/main.jsx -----
+1:import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
+2:import { createRoot } from 'react-dom/client';
+3:import './index.css';
+4:import './styles/legacy-active.css';
+5:import './ui-core/styles/ui-core.css';
+6:import './ui-core/styles/platform-core.css';
+7:import './ui-core/styles/workspace-core.css';
+8:import './ui-core/styles/activity-core.css';
+9:import './ui-core/styles/overlay-core.css';
+10:import './ui-core/styles/command-center.css';
+11:import './ui-core/styles/design-adapters.css';
+12:import './ui-core/styles/workspace-layout.css';
+13:import './ui-core/styles/v11-navigation-restoration.css';
+14:import './ui-core/styles/apps-hero-v1216.css';
+15:import './ui-core/styles/apps-cards-v1217.css';
+16:import './ui-core/styles/widescreen-v1218.css';
+17:import './ui-core/styles/department-command-v1219.css';
+18:import './ui-core/styles/department-interactive-v1220.css';
+19:import './ui-core/styles/department-refined-v1221.css';
+20:import './ui-core/styles/department-color-system-v1222.css';
+21:import './ui-core/styles/department-detail-workspace-v1223.css';
+22:import './ui-core/styles/admin-center-v1224.css';
+23:import './ui-core/styles/settings-experience-v1225.css';
+24:import './ui-core/styles/ai-control-plane-v1236.css';
+25:import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
+26:import { getAppDesignProfile } from './data/designProfiles.js';
+27:import AppErrorBoundary from './components/AppErrorBoundary.jsx';
+28:import Footer from './components/Footer.jsx';
+29:import PermissionRequestButton from './components/PermissionRequestButton.jsx';
+30:import { initializeAuthSession, logoutUser, subscribeToAuthChanges } from './utils/auth.js';
+31:import { getActiveAiConfig, getAiConfigs, getAiProvider, getProviderSummary, setAiStorageUser } from './utils/aiProviders.js';
+32:import { getFirstAllowedRoute, getRoutePermissionId, getPermissionItem, hasRouteAccess } from './utils/permissions.js';
+33:import { installStoredPersonalFont, waitForPersonalFontLoad } from './utils/personalFont.js';
+34:import { applyPerformanceAttributes, getStoredMotionMode, getStoredPerformanceMode, resolveMotionMode, resolvePerformanceMode } from './utils/performanceProfile.js';
+35:import { setLibraryStorageUser } from './utils/library.js';
+36:import { recordAppUsage } from './utils/appUsage.js';
+37:import { setTrashStorageUser } from './utils/trash.js';
+38:import { runConfigurationMigrations } from './utils/configMigration.js';
+39:import { setAiGovernanceUser } from './utils/aiGovernance.js';
+40:import { bootRuntimeCore } from './services/runtime/core.js';
+41:import { installAccessibilityBootstrap } from './utils/accessibility.js';
+42:import { collectWebVitals } from './utils/webVitals.js';
+43:import { installPwaEventCapture, registerBrianPwa } from './utils/pwa.js';
+44:import { APP_VERSION } from './config/version.js';
+45:import { isAdminRole } from './utils/roles.js';
+46:import { isAppHiddenForUser, useAppVisibility } from './utils/appVisibility.js';
+47:import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
+48:import { installProviderHubInputGuard } from './utils/providerHubInputGuard.js';
+49:import { installBursReadability } from './utils/bursReadability.js';
+50:import {
+57:import { getRouteLayout } from './ui-core/layouts/routeLayout.js';
+58:import { UIToastCenter } from './ui-core/components/UIOverlays.jsx';
+59:import { UIRouteSurface } from './ui-core/components/UIPlatform.jsx';
+60:import { resolveWorkspaceId } from './ui-core/runtime/workspaceRegistry.js';
+61:import { rememberWorkspaceVisit } from './ui-core/runtime/workspaceMemory.js';
+81:      const lastReload = Number(window.sessionStorage.getItem(PRELOAD_RECOVERY_KEY) || 0);
+83:      if (shouldReload) window.sessionStorage.setItem(PRELOAD_RECOVERY_KEY, String(Date.now()));
+88:    try { window.sessionStorage.removeItem(PRELOAD_RECOVERY_KEY); } catch { /* optional */ }
+145:function getInitialRoute() {
+186:function getActiveDesignProfile(currentRoute, selectedTool) {
+191:function normalizeMetroIntensity(value) {
+198:function App() {
+206:  const [aiModel, setAiModel] = useState(() => getActiveAiConfig().model || 'gemini-flash-latest');
+208:  const [providerConfigs, setProviderConfigs] = useState(() => getAiConfigs());
+212:  const [aiOperationState, setAiOperationState] = useState({ active: false, label: '', provider: '' });
+262:    if (!currentUser || currentUser?.provider !== 'supabase') {
+288:  }, [authReady, currentUser?.id, currentUser?.email, currentUser?.provider]);
+310:      setAiModel(active.model || active.providerInfo?.defaultModel || 'gemini-flash-latest');
+327:        provider: detail.provider || '',
+337:        provider: detail.provider || current.provider || '',
+347:        setAiOperationState({ active: false, label: '', provider: '' });
+371:    setAiModel(active.model || active.providerInfo?.defaultModel || 'gemini-flash-latest');
+418:    if (currentUser?.provider === 'supabase') {
+428:    currentUser?.provider,
+488:    providerConfigs,
+584:      <Suspense fallback={null}><GlobalAccessibilityAnnouncer /></Suspense>
+608:      {!EMBEDDED_WORKSPACE ? <Suspense fallback={null}>
+644:        <Suspense fallback={null}>
+662:      <Suspense fallback={null}>
+666:      <Suspense fallback={null}>
+671:          provider={aiOperationState.provider}
+675:      <Suspense fallback={null}>
+680:        <Suspense fallback={null}>
+685:        <Suspense fallback={null}>
+690:        <Suspense fallback={null}>
+695:        <Suspense fallback={null}>
+705:        <Suspense fallback={<RouteFallback language={language} />}>
+747:        <Suspense fallback={null}>
+755:        <Suspense fallback={null}>
+765:            providerName={context.aiSummary.providerName}
+776:        <Suspense fallback={null}>
+781:        <Suspense fallback={null}>
+785:      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><UnifiedUtilityRail currentUser={currentUser} language={language} currentRoute={currentRoute} /></Suspense> : null}
+786:      {!EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
+788:        <Suspense fallback={null}>
+798:function RouteFallback({ language }) {
+808:function AccessDenied({ language, currentUser, route, selectedTool, temporarilyHidden = false }) {
+809:  const fallback = getFirstAllowedRoute(currentUser);
+837:          <button className="primary" onClick={() => (window.location.hash = `#/${fallback}`)}>
+
+===== BIẾN MÔI TRƯỜNG ĐƯỢC SỬ DỤNG =====
+import.meta.env.BASE_URL
+import.meta.env.VITE_ADMIN_EMAILS
+import.meta.env.VITE_YOUTUBE_API_KEY
+process.env.AI_ALLOWED_ORIGINS
+process.env.AI_AUTH_MODE
+process.env.AI_PROVIDER
+process.env.AI_RATE_LIMIT_PER_MINUTE
+process.env.APP_URL
+process.env.GEMINI_API_KEY
+process.env.GEMINI_MODEL
+process.env.GOOGLE_DRIVE_CLIENT_ID
+process.env.GOOGLE_DRIVE_CLIENT_SECRET
+process.env.GOOGLE_DRIVE_REDIRECT_URI
+process.env.GOOGLE_OAUTH_STATE_SECRET
+process.env.NODE_ENV
+process.env.OPENAI_API_KEY
+process.env.OPENAI_MODEL
+process.env.SUPABASE_ANON_KEY
+process.env.SUPABASE_PUBLISHABLE_KEY
+process.env.SUPABASE_SERVICE_ROLE_KEY
+process.env.SUPABASE_URL
+process.env.VERCEL_PROJECT_PRODUCTION_URL
+process.env.VITE_SUPABASE_ANON_KEY
+process.env.VITE_SUPABASE_URL
+
+===== API VÀ SERVER LIÊN QUAN ĐẾN AI =====
+api/ai.js
+server/lessonAiHandler.js
+server/unifiedAiProviderAdapter.js

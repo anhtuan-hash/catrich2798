@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/openRouter.js';
 import { runAITask } from '../utils/aiTaskRuntime.js';
 import { addBankItems, addHistoryEntry } from '../utils/library.js';
 
@@ -126,8 +126,8 @@ export default function TextLabActivities({
         frameRef.current?.contentWindow?.postMessage({
           type: 'BTL_AI_ERROR',
           message: language === 'vi'
-            ? 'Chưa có API key AI. Hãy vào Cài đặt → AI Provider Hub để cấu hình provider và API key.'
-            : 'No AI API key is configured. Open Settings → AI Provider Hub to configure a provider and API key.',
+            ? 'Chưa có OpenRouter API key. Hãy vào Cài đặt → OpenRouter AI Gateway để nhập key dùng chung.'
+            : 'No OpenRouter API key is configured. Open Settings → OpenRouter AI Gateway to enter the shared key.',
         }, '*');
         return;
       }
