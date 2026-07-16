@@ -29,6 +29,7 @@ import Footer from './components/Footer.jsx';
 import PermissionRequestButton from './components/PermissionRequestButton.jsx';
 import { initializeAuthSession, logoutUser, subscribeToAuthChanges } from './utils/auth.js';
 import { getActiveAiConfig, getAiConfigs, getAiProvider, getProviderSummary, setAiStorageUser } from './utils/aiProviders.js';
+import { getAiServerHealth } from './utils/aiServerGateway.js';
 import { getFirstAllowedRoute, getRoutePermissionId, getPermissionItem, hasRouteAccess } from './utils/permissions.js';
 import { installStoredPersonalFont, waitForPersonalFontLoad } from './utils/personalFont.js';
 import { applyPerformanceAttributes, getStoredMotionMode, getStoredPerformanceMode, resolveMotionMode, resolvePerformanceMode } from './utils/performanceProfile.js';
@@ -206,6 +207,7 @@ function App() {
   const [aiModel, setAiModel] = useState(() => getActiveAiConfig().model || 'openrouter/auto');
   const [aiProvider, setAiProviderState] = useState(() => getAiProvider());
   const [providerConfigs, setProviderConfigs] = useState(() => getAiConfigs());
+  const [aiGatewayReady, setAiGatewayReady] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [loadingState, setLoadingState] = useState({ active: false, label: '' });
@@ -254,6 +256,31 @@ function App() {
       unsubscribe?.();
     };
   }, []);
+
+  useEffect(() => {
+    if (!authReady || !currentUser) {
+      setAiGatewayReady(false);
+      return undefined;
+    }
+    let alive = true;
+    const controller = new AbortController();
+    const checkGateway = async () => {
+      try {
+        const health = await getAiServerHealth({ signal: controller.signal });
+        if (alive) setAiGatewayReady(Boolean(health?.configured && health?.ok !== false));
+      } catch {
+        if (alive) setAiGatewayReady(false);
+      }
+    };
+    checkGateway();
+    const onFocus = () => checkGateway();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      alive = false;
+      controller.abort();
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [authReady, currentUser?.id, currentUser?.email]);
 
   useEffect(() => {
     if (!authReady) return undefined;
@@ -488,7 +515,8 @@ function App() {
     providerConfigs,
     setProviderConfigs,
     aiSummary: getProviderSummary(),
-    hasApiKey: getProviderSummary().hasKey || apiKey.trim().length > 8,
+    hasApiKey: aiGatewayReady || getProviderSummary().hasKey || apiKey.trim().length > 8,
+    aiGatewayReady,
     currentUser,
     authReady,
     setCurrentUser,

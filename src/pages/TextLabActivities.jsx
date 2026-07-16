@@ -126,8 +126,8 @@ export default function TextLabActivities({
         frameRef.current?.contentWindow?.postMessage({
           type: 'BTL_AI_ERROR',
           message: language === 'vi'
-            ? 'Chưa có OpenRouter API key. Hãy vào Cài đặt → OpenRouter AI Gateway để nhập key dùng chung.'
-            : 'No OpenRouter API key is configured. Open Settings → OpenRouter AI Gateway to enter the shared key.',
+            ? 'OpenRouter Gateway chưa sẵn sàng. Hãy kiểm tra OPENROUTER_API_KEY trên Vercel và thử lại.'
+            : 'The OpenRouter Gateway is not ready. Check OPENROUTER_API_KEY on Vercel and try again.',
         }, '*');
         return;
       }

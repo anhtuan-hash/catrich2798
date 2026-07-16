@@ -1,5 +1,6 @@
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 const DEFAULT_MODEL = 'openrouter/auto';
+const FREE_MODEL = 'openrouter/free';
 const TRANSIENT_STATUSES = new Set([408, 409, 425, 429, 500, 502, 503, 504, 524, 529]);
 
 function withStatus(error, status, code = '') {
@@ -44,6 +45,21 @@ function env(name, fallback = '') {
 function parseBool(value, fallback = false) {
   if (value == null || value === '') return fallback;
   return /^(1|true|yes|on)$/i.test(String(value));
+}
+
+function billingMode() {
+  const value = env('OPENROUTER_BILLING_MODE', 'auto').toLowerCase();
+  return ['auto', 'paid', 'free'].includes(value) ? value : 'auto';
+}
+
+function freeTokenCap(profile = 'standard') {
+  const defaults = { diagnostic: 320, fast: 800, standard: 1600, quality: 2200, json: 2200, long: 3200, vision: 1800, image: 1 };
+  return clamp(env(`OPENROUTER_FREE_MAX_TOKENS_${String(profile).toUpperCase()}`), 64, 6000, defaults[profile] || 1600);
+}
+
+function parseAffordableTokens(message = '') {
+  const match = String(message).match(/can only afford\s+(\d+)/i);
+  return match ? Math.max(0, Number(match[1]) || 0) : 0;
 }
 
 function normalizeAttachment(item = {}) {
@@ -135,17 +151,24 @@ function requestHeaders(apiKey, requestId = '') {
   };
 }
 
-function buildChatBody(options, { stream = false } = {}) {
+function buildChatBody(options, { stream = false, modelOverride = '', maxTokensOverride = null } = {}) {
   const profile = profileForTask(options);
   const allowClientOverride = parseBool(process.env.OPENROUTER_ALLOW_CLIENT_MODEL_OVERRIDE, false);
   const requested = String(options.requestedModel || '').trim();
-  const model = allowClientOverride && requested && !/openrouter\/free/i.test(requested) ? requested : modelForProfile(profile);
+  const mode = billingMode();
+  const configuredModel = modelForProfile(profile);
+  const selectedModel = allowClientOverride && requested && !/openrouter\/free/i.test(requested) ? requested : configuredModel;
+  const model = String(modelOverride || (mode === 'free' ? FREE_MODEL : selectedModel));
   const isJson = options.responseMimeType === 'application/json';
+  const requestedMaxTokens = clamp(options.maxOutputTokens, 16, 12_000, 3600);
+  const maxTokens = maxTokensOverride == null
+    ? (mode === 'free' ? Math.min(requestedMaxTokens, freeTokenCap(profile)) : requestedMaxTokens)
+    : clamp(maxTokensOverride, 16, 12_000, requestedMaxTokens);
   const body = {
     model,
     messages: buildMessages(options),
     temperature: Math.max(0, Math.min(2, Number(options.temperature) || 0.25)),
-    max_tokens: clamp(options.maxOutputTokens, 16, 12_000, 3600),
+    max_tokens: maxTokens,
     provider: buildProviderPreferences({ isJson, profile }),
     stream,
   };
@@ -154,7 +177,7 @@ function buildChatBody(options, { stream = false } = {}) {
   if (model === 'openrouter/auto') {
     body.plugins = [{ id: 'auto-router', cost_quality_tradeoff: costQualityTradeoff(profile) }];
   }
-  return { body, model, profile, timeoutMs: timeoutForProfile(profile) };
+  return { body, model, profile, timeoutMs: timeoutForProfile(profile), requestedMaxTokens, actualMaxTokens: maxTokens, billingMode: mode };
 }
 
 function normalizeOpenRouterError(payload, response) {
@@ -162,7 +185,10 @@ function normalizeOpenRouterError(payload, response) {
   const error = withStatus(new Error(String(message)), response.status >= 500 ? 502 : response.status, 'OPENROUTER_REQUEST_FAILED');
   error.openRouterStatus = response.status;
   error.retryAfter = Number(response.headers?.get?.('retry-after') || 0);
-  if (/credit|billing|can only afford|insufficient/i.test(String(message))) error.code = 'OPENROUTER_CREDIT_LIMIT';
+  if (/credit|billing|can only afford|insufficient/i.test(String(message))) {
+    error.code = 'OPENROUTER_CREDIT_LIMIT';
+    error.affordableTokens = parseAffordableTokens(message);
+  }
   if (response.status === 429) error.code = 'OPENROUTER_RATE_LIMIT';
   if (response.status === 401 || response.status === 403) error.code = 'OPENROUTER_AUTH_ERROR';
   return error;
@@ -183,6 +209,51 @@ async function fetchOpenRouterWithOneRetry(url, init, timeoutMs, onRetry) {
     await wait(delayMs);
   }
   throw normalizeOpenRouterError(payload || {}, response);
+}
+
+async function executeChatRequest(options = {}, { stream = false } = {}) {
+  const apiKey = env('OPENROUTER_API_KEY');
+  if (!apiKey) throw withStatus(new Error('OPENROUTER_API_KEY is not configured on Vercel.'), 503, 'OPENROUTER_SERVER_KEY_MISSING');
+  const baseUrl = env('OPENROUTER_BASE_URL', OPENROUTER_BASE_URL).replace(/\/+$/, '');
+  const primary = buildChatBody(options, { stream });
+  const send = async (config) => fetchOpenRouterWithOneRetry(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: requestHeaders(apiKey, options.requestId),
+    body: JSON.stringify(config.body),
+    signal: options.signal,
+  }, options.timeoutMs || config.timeoutMs, options.onRetry);
+
+  try {
+    const result = await send(primary);
+    return { ...result, config: primary, fallbackUsed: false, creditFallback: false, affordableTokens: 0 };
+  } catch (error) {
+    const canUseFreeFallback = primary.billingMode === 'auto' && error?.code === 'OPENROUTER_CREDIT_LIMIT';
+    if (!canUseFreeFallback) throw error;
+    const fallback = buildChatBody(options, {
+      stream,
+      modelOverride: FREE_MODEL,
+      maxTokensOverride: Math.min(primary.requestedMaxTokens, freeTokenCap(primary.profile)),
+    });
+    // Free routes change frequently; keep the JSON instruction but do not reject an otherwise usable free route solely because it cannot guarantee response_format.
+    if (fallback.body?.provider) fallback.body.provider.require_parameters = false;
+    options.onRetry?.({ attempt: 0, delayMs: 0, status: 402, reason: 'credit-free-fallback', model: FREE_MODEL });
+    try {
+      const result = await send(fallback);
+      return {
+        ...result,
+        config: fallback,
+        fallbackUsed: true,
+        creditFallback: true,
+        affordableTokens: Math.max(0, Number(error.affordableTokens) || 0),
+      };
+    } catch (fallbackError) {
+      fallbackError.originalCreditError = error.message;
+      fallbackError.affordableTokens = Math.max(0, Number(error.affordableTokens) || 0);
+      if (!fallbackError.code || fallbackError.code === 'OPENROUTER_REQUEST_FAILED') fallbackError.code = 'OPENROUTER_FREE_FALLBACK_FAILED';
+      fallbackError.message = `OpenRouter không đủ credit và tuyến miễn phí hiện chưa phản hồi (${fallbackError.message}). Hãy thử lại sau hoặc nạp thêm credit.`;
+      throw fallbackError;
+    }
+  }
 }
 
 export function resolveServerAiProvider() {
@@ -206,6 +277,9 @@ export function getServerAiReadiness() {
       image: modelForProfile('image'),
     },
     clientKeyRequired: false,
+    billingMode: billingMode(),
+    freeFallbackEnabled: billingMode() === 'auto',
+    freeFallbackModel: FREE_MODEL,
   };
 }
 
@@ -215,12 +289,9 @@ export async function callServerAI(options = {}) {
   if (cleanPrompt.length > 180_000) throw withStatus(new Error('AI prompt is too large.'), 413, 'AI_PROMPT_TOO_LARGE');
   const apiKey = env('OPENROUTER_API_KEY');
   if (!apiKey) throw withStatus(new Error('OPENROUTER_API_KEY is not configured on Vercel.'), 503, 'OPENROUTER_SERVER_KEY_MISSING');
-  const baseUrl = env('OPENROUTER_BASE_URL', OPENROUTER_BASE_URL).replace(/\/+$/, '');
-  const { body, model, profile, timeoutMs } = buildChatBody(options, { stream: false });
   const startedAt = Date.now();
-  const { payload, attempts } = await fetchOpenRouterWithOneRetry(`${baseUrl}/chat/completions`, {
-    method: 'POST', headers: requestHeaders(apiKey, options.requestId), body: JSON.stringify(body), signal: options.signal,
-  }, options.timeoutMs || timeoutMs, options.onRetry);
+  const { payload, attempts, config, fallbackUsed, creditFallback, affordableTokens } = await executeChatRequest(options, { stream: false });
+  const { model, profile, requestedMaxTokens, actualMaxTokens } = config;
   const text = extractResponseText(payload);
   if (!text) throw withStatus(new Error('OpenRouter returned no output text.'), 502, 'OPENROUTER_EMPTY_RESPONSE');
   return {
@@ -233,6 +304,12 @@ export async function callServerAI(options = {}) {
     durationMs: Date.now() - startedAt,
     requestId: options.requestId || null,
     providerAttempts: attempts,
+    fallbackUsed,
+    creditFallback,
+    affordableTokens,
+    requestedMaxTokens,
+    actualMaxTokens,
+    billingMode: config.billingMode,
     usage: payload?.usage || null,
   };
 }
@@ -242,12 +319,9 @@ export async function streamServerAI(options = {}, handlers = {}) {
   if (!cleanPrompt) throw withStatus(new Error('AI prompt is empty.'), 400, 'AI_PROMPT_EMPTY');
   const apiKey = env('OPENROUTER_API_KEY');
   if (!apiKey) throw withStatus(new Error('OPENROUTER_API_KEY is not configured on Vercel.'), 503, 'OPENROUTER_SERVER_KEY_MISSING');
-  const baseUrl = env('OPENROUTER_BASE_URL', OPENROUTER_BASE_URL).replace(/\/+$/, '');
-  const { body, model, profile, timeoutMs } = buildChatBody(options, { stream: true });
   const startedAt = Date.now();
-  const { response, attempts } = await fetchOpenRouterWithOneRetry(`${baseUrl}/chat/completions`, {
-    method: 'POST', headers: requestHeaders(apiKey, options.requestId), body: JSON.stringify(body), signal: options.signal,
-  }, options.timeoutMs || timeoutMs, options.onRetry);
+  const { response, attempts, config, fallbackUsed, creditFallback, affordableTokens } = await executeChatRequest(options, { stream: true });
+  const { model, profile, requestedMaxTokens, actualMaxTokens } = config;
   const reader = response.body?.getReader?.();
   if (!reader) throw withStatus(new Error('OpenRouter streaming is unavailable.'), 502, 'OPENROUTER_STREAM_UNAVAILABLE');
   const decoder = new TextDecoder();
@@ -280,7 +354,7 @@ export async function streamServerAI(options = {}, handlers = {}) {
     if (done) break;
   }
   if (!text.trim()) throw withStatus(new Error('OpenRouter returned no streamed output text.'), 502, 'OPENROUTER_EMPTY_RESPONSE');
-  return { text: text.trim(), provider: 'openrouter', model: actualModel, requestedModel: model, profile, transport: 'server-gateway-stream', durationMs: Date.now() - startedAt, requestId: options.requestId || null, providerAttempts: attempts };
+  return { text: text.trim(), provider: 'openrouter', model: actualModel, requestedModel: model, profile, transport: 'server-gateway-stream', durationMs: Date.now() - startedAt, requestId: options.requestId || null, providerAttempts: attempts, fallbackUsed, creditFallback, affordableTokens, requestedMaxTokens, actualMaxTokens, billingMode: config.billingMode };
 }
 
 export async function callServerImageAI(options = {}) {

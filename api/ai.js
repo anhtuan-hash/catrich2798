@@ -221,7 +221,7 @@ export default async function handler(req, res) {
       });
       sse(res, 'done', { ok: true, ...result, requestId, contract: 'bes-ai-core/1.3' });
       res.end();
-      await appendApiAudit(context, { endpoint: '/api/ai', action: options.taskId, status: 'ok', requestId, details: { model: result.model, durationMs: result.durationMs, streaming: true } });
+      await appendApiAudit(context, { endpoint: '/api/ai', action: options.taskId, status: 'ok', requestId, details: { model: result.model, durationMs: result.durationMs, streaming: true, fallbackUsed: result.fallbackUsed, creditFallback: result.creditFallback, actualMaxTokens: result.actualMaxTokens } });
       return;
     } catch (error) {
       sse(res, 'error', { ok: false, error: error?.message || 'AI stream failed.', code: error?.code || 'OPENROUTER_STREAM_ERROR', status: Number(error?.status || 500), requestId });
@@ -233,7 +233,7 @@ export default async function handler(req, res) {
 
   try {
     const result = await callServerAI(options);
-    await appendApiAudit(context, { endpoint: '/api/ai', action: options.taskId, status: 'ok', requestId, details: { model: result.model, requestedModel: result.requestedModel, profile: result.profile, durationMs: result.durationMs, providerAttempts: result.providerAttempts } });
+    await appendApiAudit(context, { endpoint: '/api/ai', action: options.taskId, status: 'ok', requestId, details: { model: result.model, requestedModel: result.requestedModel, profile: result.profile, durationMs: result.durationMs, providerAttempts: result.providerAttempts, fallbackUsed: result.fallbackUsed, creditFallback: result.creditFallback, actualMaxTokens: result.actualMaxTokens } });
     return sendJson(res, 200, { ok: true, ...result, requestId, contract: 'bes-ai-core/1.3' });
   } catch (error) {
     await appendApiAudit(context, { endpoint: '/api/ai', action: options.taskId, status: 'error', requestId, details: { error: String(error?.message || error).slice(0, 300), code: error?.code || '' } });

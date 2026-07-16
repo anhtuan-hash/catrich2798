@@ -92,6 +92,12 @@ async function callOpenRouterProvider({
       transport: String(payload?.transport || (useStream ? 'server-gateway-stream' : 'server-gateway')),
       requestId: String(payload?.requestId || ''),
       providerAttempts: Math.max(1, Number(payload?.providerAttempts || 1)),
+      fallbackUsed: Boolean(payload?.fallbackUsed),
+      creditFallback: Boolean(payload?.creditFallback),
+      affordableTokens: Math.max(0, Number(payload?.affordableTokens || 0)),
+      requestedMaxTokens: Math.max(0, Number(payload?.requestedMaxTokens || maxOutputTokens || 0)),
+      actualMaxTokens: Math.max(0, Number(payload?.actualMaxTokens || maxOutputTokens || 0)),
+      billingMode: String(payload?.billingMode || 'auto'),
       usage: payload?.usage || null,
     },
   };
