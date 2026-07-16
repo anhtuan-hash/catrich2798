@@ -13,6 +13,18 @@ import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 import { openWorkspaceLayoutManager } from '../ui-core/runtime/workspaceLayout.js';
 
 const EXCLUDED = new Set(['login', 'register', 'setup', 'homeroom-portal']);
+const COMPACT_TAB_LIMIT = 5;
+
+function tabStatus(tab, active, language) {
+  if (active) return language === 'vi' ? 'Đang sử dụng' : 'In use';
+  if (tab.pinned) return language === 'vi' ? 'Đã ghim' : 'Pinned';
+  const value = Number(tab.lastActiveAt || tab.openedAt || 0);
+  if (!value) return language === 'vi' ? 'Đã mở gần đây' : 'Recently opened';
+  const time = new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-US', {
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).format(new Date(value));
+  return language === 'vi' ? `Dùng lúc ${time}` : `Used at ${time}`;
+}
 
 function routeDescriptor(route, selectedTool, profile, language) {
   if (route === 'tool' && selectedTool?.slug) {
@@ -44,6 +56,7 @@ function routeDescriptor(route, selectedTool, profile, language) {
 
 export default function WorkspaceTabs({ currentUser, route, selectedTool, activeProfile, language = 'vi', appVisibility }) {
   const [workspace, setWorkspace] = useState(() => loadWorkspace(currentUser));
+  const [showAll, setShowAll] = useState(false);
   const draggedRef = useRef('');
   const current = useMemo(() => routeDescriptor(route, selectedTool, activeProfile, language), [route, selectedTool?.slug, activeProfile?.accent, language]);
 
@@ -81,6 +94,16 @@ export default function WorkspaceTabs({ currentUser, route, selectedTool, active
     return !isAppHiddenForUser(appVisibility?.snapshot, currentUser, visibilityId);
   });
 
+  const activeTab = visibleTabs.find((tab) => tab.id === workspace.activeId);
+  const compactTabs = [
+    ...(activeTab ? [activeTab] : []),
+    ...visibleTabs
+      .filter((tab) => tab.id !== activeTab?.id)
+      .sort((a, b) => Number(b.lastActiveAt || b.openedAt || 0) - Number(a.lastActiveAt || a.openedAt || 0)),
+  ].slice(0, COMPACT_TAB_LIMIT);
+  const displayedTabs = showAll ? visibleTabs : compactTabs;
+  const hiddenCount = Math.max(0, visibleTabs.length - compactTabs.length);
+
   if (!currentUser || EXCLUDED.has(route) || visibleTabs.length < 2) return null;
 
   const openTab = (tab) => {
@@ -100,16 +123,29 @@ export default function WorkspaceTabs({ currentUser, route, selectedTool, active
   };
 
   return (
-    <nav className="bes-workspace-tabs" aria-label={language === 'vi' ? 'Không gian làm việc đang mở' : 'Open workspaces'}>
-      <div className="bes-workspace-tabs-track">
-        {visibleTabs.map((tab) => {
+    <nav
+      className="bes-workspace-tabs bes-recent-apps-v12408"
+      data-expanded={showAll ? 'true' : 'false'}
+      aria-label={language === 'vi' ? 'Ứng dụng gần đây' : 'Recent applications'}
+    >
+      <div className="bes-recent-apps-heading">
+        <span className="bes-recent-apps-clock" aria-hidden="true">↺</span>
+        <span>
+          <strong>{language === 'vi' ? 'Ứng dụng gần đây' : 'Recent apps'}</strong>
+          <small>{visibleTabs.length} {language === 'vi' ? 'ứng dụng đang mở' : 'apps open'}</small>
+        </span>
+      </div>
+
+      <div className="bes-workspace-tabs-viewport">
+        <div className="bes-workspace-tabs-track">
+        {displayedTabs.map((tab) => {
           const active = tab.id === workspace.activeId;
           return (
             <div
               key={tab.id}
               className={`bes-workspace-tab${active ? ' is-active' : ''}${tab.pinned ? ' is-pinned' : ''}`}
               style={{ '--workspace-tab-accent': tab.accent }}
-              draggable
+              draggable={showAll}
               onDragStart={() => { draggedRef.current = tab.id; }}
               onDragOver={(event) => event.preventDefault()}
               onDrop={() => {
@@ -120,7 +156,10 @@ export default function WorkspaceTabs({ currentUser, route, selectedTool, active
             >
               <button type="button" className="bes-workspace-tab-main" onClick={() => openTab(tab)} title={language === 'vi' ? tab.titleVi : tab.title}>
                 <span className="bes-workspace-tab-mark">{tab.icon}</span>
-                <span>{language === 'vi' ? tab.titleVi : tab.title}</span>
+                <span className="bes-workspace-tab-copy">
+                  <strong>{language === 'vi' ? tab.titleVi : tab.title}</strong>
+                  <small>{tabStatus(tab, active, language)}</small>
+                </span>
               </button>
               <button
                 type="button"
@@ -128,14 +167,29 @@ export default function WorkspaceTabs({ currentUser, route, selectedTool, active
                 aria-label={tab.pinned ? (language === 'vi' ? 'Bỏ ghim tab' : 'Unpin tab') : (language === 'vi' ? 'Ghim tab' : 'Pin tab')}
                 title={tab.pinned ? (language === 'vi' ? 'Bỏ ghim' : 'Unpin') : (language === 'vi' ? 'Ghim' : 'Pin')}
                 onClick={(event) => { event.stopPropagation(); setWorkspace(toggleWorkspacePin(currentUser, tab.id)); }}
-              >{tab.pinned ? '◆' : '◇'}</button>
+              >{tab.pinned ? (language === 'vi' ? 'Bỏ ghim' : 'Unpin') : (language === 'vi' ? 'Ghim' : 'Pin')}</button>
               {!tab.pinned ? <button type="button" className="bes-workspace-tab-close" onClick={(event) => closeTab(event, tab)} aria-label={language === 'vi' ? 'Đóng tab' : 'Close tab'}>×</button> : null}
             </div>
           );
         })}
+        </div>
       </div>
-      <button type="button" className="bes-workspace-layout" onClick={() => openWorkspaceLayoutManager()} title={language === 'vi' ? 'Bố cục không gian' : 'Workspace layout'}>◫</button>
-      <button type="button" className="bes-workspace-new" onClick={() => { window.location.hash = '#/apps'; }} title={language === 'vi' ? 'Mở ứng dụng khác' : 'Open another app'}>＋</button>
+
+      <div className="bes-recent-apps-actions">
+        {visibleTabs.length > COMPACT_TAB_LIMIT ? (
+          <button type="button" className="bes-workspace-all" onClick={() => setShowAll((value) => !value)} aria-expanded={showAll}>
+            <span aria-hidden="true">{showAll ? '−' : '▦'}</span>
+            <b>{showAll ? (language === 'vi' ? 'Thu gọn' : 'Collapse') : (language === 'vi' ? `Tất cả ${visibleTabs.length}` : `All ${visibleTabs.length}`)}</b>
+            {!showAll && hiddenCount ? <i>+{hiddenCount}</i> : null}
+          </button>
+        ) : null}
+        <button type="button" className="bes-workspace-layout" onClick={() => openWorkspaceLayoutManager()} title={language === 'vi' ? 'Chia màn hình làm việc' : 'Split workspace'}>
+          <span aria-hidden="true">◫</span><b>{language === 'vi' ? 'Chia màn hình' : 'Split view'}</b>
+        </button>
+        <button type="button" className="bes-workspace-new" onClick={() => { window.location.hash = '#/apps'; }} title={language === 'vi' ? 'Mở ứng dụng khác' : 'Open another app'}>
+          <span aria-hidden="true">＋</span><b>{language === 'vi' ? 'Mở ứng dụng' : 'Open app'}</b>
+        </button>
+      </div>
     </nav>
   );
 }

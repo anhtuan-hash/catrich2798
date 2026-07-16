@@ -5,7 +5,7 @@ const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const homeSource = fs.readFileSync('src/pages/Home.jsx', 'utf8');
 const homeCss = fs.readFileSync('src/pages/HomeV12406.css', 'utf8').toLowerCase();
 
-assert.equal(packageJson.version, '12.40.6');
+assert.match(packageJson.version, /^12\.40\.(?:6|8)$/);
 assert.match(homeSource, /import ['"]\.\/HomeV12406\.css['"]/);
 assert.match(homeSource, /data-home-theme="avocado-raised"/);
 assert.match(homeSource, /home-v12406/);
@@ -27,7 +27,7 @@ for (const requiredToken of [
 
 for (const manifestPath of ['public/version.json', 'public/release-manifest.json']) {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  assert.equal(manifest.version, '12.40.6');
+  assert.equal(manifest.version, packageJson.version);
   assert.equal(manifest.homepageTheme, 'avocado-raised');
   assert.equal(manifest.homepagePrimaryColor, '#B2C248');
   assert.equal(manifest.homepageDimensionalCards, true);

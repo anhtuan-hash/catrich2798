@@ -35,7 +35,11 @@ export default function UnifiedShellChrome({
   return (
     <>
       {showTopChrome ? (
-        <div className="bes-top-chrome bes-v11-navigation-restored" data-ui="v11-shell-chrome">
+        <div
+          className="bes-top-chrome bes-v11-navigation-restored bes-visual-harmony-v12408"
+          data-ui="v11-shell-chrome"
+          data-harmony-theme="avocado"
+        >
           <StatusMenuBar
             route={route}
             {...context}
