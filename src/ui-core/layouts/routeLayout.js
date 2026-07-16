@@ -3,7 +3,7 @@ const ROUTE_LAYOUTS = new Map([
   ['settings', 'settings'], ['ai-governance', 'settings'], ['setup', 'settings'],
   ['department', 'management'], ['homeroom', 'management'], ['admin', 'management'], ['work-hub', 'management'], ['data-governance', 'management'], ['platform-readiness', 'management'], ['cloud-operations', 'management'], ['production-hardening', 'management'], ['qa', 'management'],
   ['library', 'library'], ['resource-library', 'library'], ['knowledge-hub', 'library'], ['resources', 'library'], ['trash', 'library'], ['assessment-core', 'workbench'],
-  ['news', 'editor'], ['practice', 'editor'],
+  ['news', 'editor'],
   ['login', 'auth'], ['register', 'auth'],
 ]);
 

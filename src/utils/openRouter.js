@@ -590,13 +590,6 @@ export const AI_TOOL_PRESETS = {
     outputHint: 'Multiple-choice quiz with answer key',
     defaultInstruction: 'Past Simple vs Past Continuous, level B2, 10 questions',
   },
-  'exam-studio': {
-    title: 'Exam Studio',
-    description: 'Build complete tests, THPT-style items, test matrices and Google Forms-ready content.',
-    taskVi: 'Tạo đề kiểm tra, câu hỏi kiểu THPT, ma trận đề và định dạng Google Forms khi cần.',
-    outputHint: 'Complete exam / THPT item set / test matrix / Google Forms format',
-    defaultInstruction: 'Create a 45-minute grade 12 English test, B2 level, with 40 questions, answer key, matrix and Google Forms-ready format',
-  },
   'wordform-generator': {
     title: 'WordForm Forge',
     description: 'Create B2-C1 word form questions from target word families.',
@@ -618,20 +611,6 @@ export const AI_TOOL_PRESETS = {
     outputHint: 'Word family graph outline',
     defaultInstruction: 'Create a word family graph for resilience, meticulous, plausible, undermine and invaluable',
   },
-  'reading-studio': {
-    title: 'Reading Studio',
-    description: 'Create reading passages, comprehension questions, summaries and vocabulary support.',
-    taskVi: 'Tạo bài đọc, câu hỏi đọc hiểu, tóm tắt, giải thích từ vựng và hoạt động khai thác văn bản.',
-    outputHint: 'Reading package',
-    defaultInstruction: 'Create a 350-word B2 reading passage about AI in education with 8 MCQs, vocabulary notes and a short summary task',
-  },
-  'speaking-studio': {
-    title: 'Speaking Studio',
-    description: 'Generate speaking prompt cards, pair-work tasks, debates, role plays and presentation tasks.',
-    taskVi: 'Tạo thẻ speaking, hoạt động cặp/nhóm, debate, role play và nhiệm vụ thuyết trình.',
-    outputHint: 'Speaking activity set',
-    defaultInstruction: 'Create 20 speaking cards for B2 students about school, technology and future careers, with follow-up questions',
-  },
   textcare: {
     title: 'TextCare Fixer',
     description: 'Upload, paste, detect, create and normalize Vietnamese administrative documents.',
@@ -651,7 +630,7 @@ export const AI_TOOL_PRESETS = {
 export async function generateGenericToolOutput({ apiKey, model, slug, instruction, sourceText, level, itemCount, language }) {
   const preset = AI_TOOL_PRESETS[slug] || AI_TOOL_PRESETS.text2quiz;
   const quantityLine = Number(itemCount) > 0 ? `Quantity: ${itemCount}\n` : '';
-  const assessmentSlugs = new Set(['text2quiz', 'exam-studio', 'wordform-generator', 'cloze-test-builder', 'reading-studio']);
+  const assessmentSlugs = new Set(['text2quiz', 'wordform-generator', 'cloze-test-builder']);
   const googleFormRules = assessmentSlugs.has(slug) ? `
 
 GOOGLE FORM COMPATIBILITY RULES:

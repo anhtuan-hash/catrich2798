@@ -152,23 +152,16 @@ const iconPaths = {
 };
 
 export const flatIconForSlug = {
-  'worksheet-factory': 'worksheet',
   'textlab-activities': 'activity',
   'lesson-plan-ai': 'lesson',
-  'exam-studio': 'exam',
   textcare: 'textcare',
   'news-reader': 'news',
   'vietnam-tax': 'tax',
-  'smart-id': 'identity',
-  'reading-studio': 'reading',
   word2graph: 'wordgraph',
-  'speaking-studio': 'speaking',
-  'student-practice': 'practice',
   'department-workspace': 'department',
   'homeroom-hub': 'homeroom',
   'game-hub': 'game',
   'library-hub': 'library',
-  'practice-hub': 'practice',
   'games-hub': 'game',
   'admin-hub': 'admin',
 };

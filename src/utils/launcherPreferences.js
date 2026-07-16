@@ -14,10 +14,7 @@ export const DEFAULT_LAUNCHER_GROUPS = [
 const DEFAULT_PINNED = [
   'resource-library-hub',
   'lesson-plan-ai',
-  'worksheet-factory',
   'textlab-activities',
-  'exam-studio',
-  'reading-studio',
 ];
 
 const DEFAULT_NAV = [

@@ -36,8 +36,6 @@ import {
 
 const ACTION_TARGETS = [
   ['current-app', 'Ứng dụng hiện tại', 'Current app'],
-  ['worksheet-factory', 'Worksheet Factory', 'Worksheet Factory'],
-  ['exam-studio', 'Exam Studio', 'Exam Studio'],
   ['word2graph', 'WordGraph Studio', 'WordGraph Studio'],
   ['textlab-activities', 'TextLab Activities', 'TextLab Activities'],
   ['library', 'Thư viện', 'Library'],
@@ -45,7 +43,7 @@ const ACTION_TARGETS = [
 
 const PROFILE_LABELS = {
   chat: ['Brian AI Chat', 'Brian AI Chat'],
-  worksheet: ['Worksheet Factory', 'Worksheet Factory'],
+  worksheet: ['Nội dung dạy học', 'Teaching content'],
   document: ['Phân tích tài liệu', 'Document analysis'],
   administration: ['Hành chính – chuyên môn', 'School administration'],
   diagnostic: ['Kiểm tra kết nối provider', 'Provider connection test'],
@@ -341,7 +339,7 @@ export default function AIGovernanceCenter({ language = 'vi', currentUser = null
           <header><div><span>09</span><div><h2>{vi ? 'Độ phủ Unified AI Core' : 'Unified AI Core coverage'}</h2><p>{vi ? 'Ba đường gọi AI cũ đã được đưa về các adapter và hợp đồng dùng chung.' : 'The former AI call paths now use shared adapters and contracts.'}</p></div></div><b className="ai-gov-transport-badge">100% core</b></header>
           <div className="ai-gov-transport-grid">
             <article><span>01</span><div><strong>{vi ? 'Văn bản & tài liệu' : 'Text and documents'}</strong><p>{vi ? 'callAI → Privacy → Governance → Smart Router → Output Guard.' : 'callAI → Privacy → Governance → Smart Router → Output Guard.'}</p></div><b>{vi ? 'Đã hợp nhất' : 'Unified'}</b></article>
-            <article><span>02</span><div><strong>{vi ? 'Ảnh & Vision' : 'Images and vision'}</strong><p>{vi ? 'SmartID dùng chung OpenRouter AI Gateway cho Vision và xử lý ảnh.' : 'SmartID uses the shared OpenRouter AI Gateway for vision and image processing.'}</p></div><b>{vi ? 'Đã hợp nhất' : 'Unified'}</b></article>
+            <article><span>02</span><div><strong>{vi ? 'Nội dung có cấu trúc' : 'Structured content'}</strong><p>{vi ? 'Các công cụ AI dùng chung OpenRouter AI Gateway và bộ kiểm định đầu ra.' : 'AI tools share the OpenRouter AI Gateway and output validation layer.'}</p></div><b>{vi ? 'Đã hợp nhất' : 'Unified'}</b></article>
             <article><span>03</span><div><strong>{vi ? 'Server AI Gateway' : 'Server AI Gateway'}</strong><p>{vi ? '/api/ai và Lesson Integration dùng cùng server provider adapter.' : '/api/ai and Lesson Integration share one server provider adapter.'}</p></div><b>{vi ? 'Đã hợp nhất' : 'Unified'}</b></article>
           </div>
           <p className="ai-gov-transport-note">{vi ? 'Hợp đồng gateway: bes-ai-core/1.4 · Metadata gồm provider, model, transport, thời gian và request ID.' : 'Gateway contract: bes-ai-core/1.4 · Metadata includes provider, model, transport, duration and request ID.'}</p>

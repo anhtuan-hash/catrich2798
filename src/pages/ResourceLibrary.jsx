@@ -652,9 +652,9 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
 
   const openWithApp = (item) => {
     const map = {
-      assessment: 'exam-studio', worksheet: 'textlab-activities', reference: 'reading-studio',
+      assessment: 'textlab-activities', worksheet: 'textlab-activities', reference: 'word2graph',
       'lesson-plan': 'lesson-plan-ai', presentation: 'lesson-plan-ai', 'professional-form': 'lesson-plan-ai',
-      audio: 'speaking-studio', media: 'textlab-activities', gifted: 'reading-studio', 'thpt-exam': 'exam-studio',
+      audio: 'textlab-activities', media: 'textlab-activities', gifted: 'lesson-plan-ai', 'thpt-exam': 'textlab-activities',
     };
     const slug = map[normaliseResourceCategory(item.category)] || 'textlab-activities';
     try { sessionStorage.setItem('bes-resource-open-item', JSON.stringify(item)); } catch { /* ignore */ }

@@ -22498,11 +22498,7 @@ const X3 = [
   "Học sinh có năng lực vượt trội"
 ], Lg = [
   { id: "lesson", name: "Lesson Architect", description: "Gửi cấu trúc bài dạy và tiến trình đã chuẩn hóa.", icon: "PanelsTopLeft", defaultUrl: "", payloadType: "lesson-plan" },
-  { id: "worksheet", name: "Worksheet Factory", description: "Tạo worksheet từ nhiệm vụ và mục tiêu trong giáo án.", icon: "FileText", defaultUrl: "", payloadType: "worksheet-brief" },
-  { id: "exam", name: "Exam Studio", description: "Tạo bài kiểm tra bám sát nội dung và mức CEFR.", icon: "ClipboardCheck", defaultUrl: "", payloadType: "assessment-blueprint" },
   { id: "activity", name: "Activity Studio", description: "Chuyển hoạt động thành trò chơi hoặc nhiệm vụ tương tác.", icon: "Sparkles", defaultUrl: "", payloadType: "activity-pack" },
-  { id: "speaking", name: "Speaking Studio", description: "Tạo prompts, role cards và rubric nói.", icon: "Mic2", defaultUrl: "", payloadType: "speaking-pack" },
-  { id: "reading", name: "Reading Studio", description: "Tạo văn bản đọc, chú giải và câu hỏi.", icon: "BookOpenText", defaultUrl: "", payloadType: "reading-pack" },
   { id: "wordgraph", name: "WordGraph Studio", description: "Tạo word family, collocations và semantic map.", icon: "Network", defaultUrl: "", payloadType: "vocabulary-pack" }
 ], Ug = `LESSON PLAN
 

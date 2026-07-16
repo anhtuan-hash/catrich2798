@@ -6,8 +6,6 @@ import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 import { notifyUI, UIOverlayClose, UIOverlayHeader, UIOverlayPortal, UIOverlaySurface } from '../ui-core/components/UIOverlays.jsx';
 
 const TARGETS = [
-  { id: 'worksheet-factory', route: '#/tool/worksheet-factory', label: 'Worksheet Factory', labelVi: 'Worksheet Factory', icon: 'WF', descVi: 'Tạo phiếu học tập từ nội dung hiện tại', desc: 'Create a worksheet from current content' },
-  { id: 'exam-studio', route: '#/tool/exam-studio', label: 'Exam Studio', labelVi: 'Exam Studio', icon: 'EX', descVi: 'Chuyển thành câu hỏi hoặc đề kiểm tra', desc: 'Turn it into questions or a test' },
   { id: 'word2graph', route: '#/tool/word2graph', label: 'WordGraph Studio', labelVi: 'WordGraph Studio', icon: 'WG', descVi: 'Tạo sơ đồ từ vựng và ý tưởng', desc: 'Build a vocabulary or idea map' },
   { id: 'textlab-activities', route: '#/tool/textlab-activities', label: 'TextLab Activities', labelVi: 'TextLab Activities', icon: 'TL', descVi: 'Biến nội dung thành hoạt động tương tác', desc: 'Turn content into interactive activities' },
   { id: 'lesson-plan-ai', route: '#/tool/lesson-plan-ai', label: 'Lesson Architect', labelVi: 'Lesson Architect', icon: 'LA', descVi: 'Đưa nội dung vào kế hoạch bài dạy', desc: 'Use content in a lesson plan' },

@@ -147,12 +147,7 @@ const WORKFLOW_STEPS = [
 
 const DESTINATIONS = [
   { id: 'lesson-plan-ai', route: '#/tool/lesson-plan-ai', icon: 'LA', label: 'Lesson Architect', desc: 'Đưa mục tiêu, presentation, practice và assessment vào giáo án.' },
-  { id: 'exam-studio', route: '#/tool/exam-studio', icon: 'EX', label: 'Exam Studio', desc: 'Ghép item thành đề, tạo mã đề và ma trận.' },
-  { id: 'worksheet-factory', route: '#/tool/worksheet-factory', icon: 'WF', label: 'Worksheet Factory', desc: 'Dàn trang bản học sinh và bản giáo viên.' },
   { id: 'textlab-activities', route: '#/tool/textlab-activities', icon: 'AC', label: 'Activity Studio', desc: 'Chuyển bài thành sorting, error hunt và game.' },
-  { id: 'reading-studio', route: '#/tool/reading-studio', icon: 'RS', label: 'Reading Studio', desc: 'Tạo bài đọc chứa cấu trúc mục tiêu.' },
-  { id: 'writing-studio', route: '#/tool/writing-studio', icon: 'WS', label: 'Writing Studio', desc: 'Tạo guided writing, checklist và model answer.' },
-  { id: 'speaking-studio', route: '#/tool/speaking-studio', icon: 'SS', label: 'Speaking Studio', desc: 'Tạo role-play và sentence frames.' },
   { id: 'english-lesson-integration', route: '#/tool/english-lesson-integration', icon: 'EL', label: 'AI Lesson Integration', desc: 'Chèn Grammar Pack vào giáo án đang chỉnh sửa.' },
 ];
 

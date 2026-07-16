@@ -101,7 +101,6 @@ const Settings = lazy(() => import('./pages/Settings.jsx'));
 const Library = lazy(() => import('./pages/Library.jsx'));
 const ResourceLibrary = lazy(() => import('./pages/ResourceLibrary.jsx'));
 const NewsReader = lazy(() => import('./pages/NewsReader.jsx'));
-const StudentPractice = lazy(() => import('./pages/StudentPractice.jsx'));
 const QAHealthCheck = lazy(() => import('./pages/QAHealthCheck.jsx'));
 const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
@@ -138,7 +137,7 @@ const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 const UnifiedShellChrome = lazy(() => import('./ui-core/components/UnifiedShellChrome.jsx'));
 const UIWorkspaceLayoutManager = lazy(() => import('./ui-core/components/UIWorkspaceLayoutManager.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'assessment-core', 'platform-readiness', 'cloud-operations', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'assessment-core', 'platform-readiness', 'cloud-operations', 'data-governance', 'production-hardening', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
 const EMBEDDED_WORKSPACE = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === '1';
 
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
@@ -169,7 +168,6 @@ const ROUTE_DESIGN_PROFILES = {
   'cloud-operations': { accent: '#167B68', soft: '#E4F6EF', ink: '#183F3C' },
   'data-governance': { accent: '#A24B35', soft: '#FFF0E8', ink: '#4A1E14' },
   'production-hardening': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
-  practice: { accent: '#00A4EF', soft: '#DCF4FF', ink: '#063048' },
   admin: { accent: '#D13438', soft: '#FFE1E3', ink: '#351014' },
   'app-vault': { accent: '#684CC6', soft: '#EFE8FF', ink: '#211541' },
   settings: { accent: '#123C69', soft: '#DCEBFA', ink: '#07192C' },
@@ -568,7 +566,7 @@ function App() {
  'cloud-operations': ['Cloud Operations', 'Vận hành nền'],
  'data-governance': ['Data Governance', 'Quản trị dữ liệu'],
       'production-hardening': ['Production Hardening', 'Sẵn sàng Production'], 'app-vault': ['Hidden Apps Vault', 'Thư mục ứng dụng đã ẩn'],
-      practice: ['Classroom', 'Lớp học'], settings: ['Settings', 'Cài đặt'], admin: ['Admin', 'Quản trị'],
+      settings: ['Settings', 'Cài đặt'], admin: ['Admin', 'Quản trị'],
       'ai-governance': ['AI Governance', 'Quản trị AI'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'],
       qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác'],
     };
@@ -757,7 +755,6 @@ function App() {
           {canAccessRoute && currentRoute === 'data-governance' && currentUser && <UIRouteSurface route="data-governance" variant="platform"><DataGovernance {...context} /></UIRouteSurface>}
           {canAccessRoute && currentRoute === 'production-hardening' && currentUser && <UIRouteSurface route="production-hardening" variant="operations"><ProductionHardening {...context} /></UIRouteSurface>}
           {canAccessRoute && currentRoute === 'app-vault' && currentUser && <HiddenAppsVault {...context} />}
-          {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
           {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}
           {canAccessRoute && currentRoute === 'ai-governance' && currentUser && <AIGovernanceCenter {...context} />}
           {canAccessRoute && currentRoute === 'trash' && currentUser && <TrashCenter {...context} />}

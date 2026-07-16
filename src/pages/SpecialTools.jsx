@@ -35,7 +35,7 @@ export default function SpecialTools({ tools, language, hasApiKey, currentUser }
       ) : (
         <UILaunchStage className="metro-panel empty-state">
           <h2>{language === 'vi' ? 'Các ứng dụng công cụ đã được chuyển sang thẻ Ứng dụng' : 'Tool apps have been moved to the Apps tab'}</h2>
-          <p>{language === 'vi' ? 'Lesson Architect và Learner Sprint hiện nằm trong lưới Ứng dụng để giáo viên mở nhanh hơn.' : 'Lesson Architect and Learner Sprint now appear in the Apps grid for faster access.'}</p>
+          <p>{language === 'vi' ? 'Lesson Architect hiện nằm trong lưới Ứng dụng để giáo viên mở nhanh hơn.' : 'Lesson Architect now appears in the Apps grid for faster access.'}</p>
           <button className="primary" onClick={() => (window.location.hash = '#/apps')}>{language === 'vi' ? 'Mở thẻ Ứng dụng' : 'Open Apps'}</button>
         </UILaunchStage>
       )}

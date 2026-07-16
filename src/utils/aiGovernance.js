@@ -71,8 +71,6 @@ export const DEFAULT_AI_GOVERNANCE = Object.freeze({
     circuitCooldownMs: 45000,
   },
   actionTargets: {
-    'worksheet-factory': true,
-    'exam-studio': true,
     'word2graph': true,
     'textlab-activities': true,
     library: true,
@@ -80,7 +78,7 @@ export const DEFAULT_AI_GOVERNANCE = Object.freeze({
   },
   profiles: {
     chat: { label: 'Brian AI Chat', maxOutputTokens: 3200 },
-    worksheet: { label: 'Worksheet Factory', maxOutputTokens: 7200 },
+    worksheet: { label: 'Teaching content', maxOutputTokens: 7200 },
     document: { label: 'Document analysis', maxOutputTokens: 8000 },
     administration: { label: 'School administration', maxOutputTokens: 4000 },
     diagnostic: { label: 'Provider connection test', maxOutputTokens: 128 },

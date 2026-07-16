@@ -71,13 +71,6 @@ export const AI_TASK_REGISTRY = Object.freeze({
     routingMode: 'quality',
     outputKind: 'json',
   },
-  pronunciation: {
-    id: 'pronunciation',
-    label: 'Pronunciation coach',
-    governanceProfile: 'worksheet',
-    routingMode: 'quality',
-    outputKind: 'json',
-  },
   lesson: {
     id: 'lesson',
     label: 'Lesson design',
@@ -129,21 +122,14 @@ const TASK_ALIASES = Object.freeze({
   chat: 'chat',
   'brian-ai-chat': 'chat',
   worksheet: 'worksheet',
-  'worksheet-factory': 'worksheet',
   'teacher-content-creation': 'teaching-content',
   'teaching-content': 'teaching-content',
   exam: 'exam',
-  'exam-studio': 'exam',
   grammar: 'grammar',
   'grammar-builder': 'grammar',
   writing: 'writing',
-  'writing-studio': 'writing',
   reading: 'reading',
-  'reading-studio': 'reading',
   speaking: 'speaking',
-  'speaking-studio': 'speaking',
-  pronunciation: 'pronunciation',
-  'pronunciation-coach': 'pronunciation',
   lesson: 'lesson',
   'lesson-design': 'lesson',
   'lesson-architect': 'lesson',
@@ -151,9 +137,7 @@ const TASK_ALIASES = Object.freeze({
   'document-analysis': 'document',
   'image-analysis': 'image-analysis',
   vision: 'image-analysis',
-  'smartid-vision': 'image-analysis',
   'image-edit': 'image-edit',
-  'smartid-image-edit': 'image-edit',
   administration: 'administration',
   'school-administration': 'administration',
   department: 'administration',
@@ -183,13 +167,13 @@ function inferTaskId(options = {}) {
 
   const signal = `${options.loadingLabel || ''} ${options.aiLabel || ''} ${String(options.prompt || '').slice(0, 1800)}`.toLowerCase();
   if (/connection test|kiểm tra kết nối|brian_ok|api ok/.test(signal)) return 'diagnostic';
-  if (/worksheet|phiếu bài tập|worksheet factory/.test(signal)) return 'worksheet';
-  if (/exam studio|đề thi|kiểm tra trắc nghiệm|test builder/.test(signal)) return 'exam';
+  if (/worksheet|phiếu bài tập/.test(signal)) return 'worksheet';
+  if (/đề thi|kiểm tra trắc nghiệm|test builder/.test(signal)) return 'exam';
   if (/grammar builder|ngữ pháp|verb form|word form/.test(signal)) return 'grammar';
-  if (/writing studio|writing coach|bài viết|rubric/.test(signal)) return 'writing';
-  if (/reading studio|reading passage|bài đọc/.test(signal)) return 'reading';
-  if (/speaking studio|bài nói|speech assessment/.test(signal)) return 'speaking';
-  if (/pronunciation|phát âm|ipa|shadowing/.test(signal)) return 'pronunciation';
+  if (/writing coach|bài viết|rubric/.test(signal)) return 'writing';
+  if (/reading passage|bài đọc/.test(signal)) return 'reading';
+  if (/bài nói|speech assessment/.test(signal)) return 'speaking';
+  if (/pronunciation|phát âm|ipa|shadowing/.test(signal)) return 'teaching-content';
   if (/lesson architect|giáo án|lesson plan|kế hoạch bài dạy/.test(signal)) return 'lesson';
   if (/document|tài liệu|pdf|docx|phân tích nguồn|summari[sz]e|tóm tắt/.test(signal)) return 'document';
   if (/tổ chuyên môn|chủ nhiệm|phụ huynh|học sinh|báo cáo|thông báo|biên bản|hành chính/.test(signal)) return 'administration';

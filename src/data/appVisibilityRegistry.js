@@ -18,14 +18,6 @@ export const ROUTE_APP_SHORTCUTS = [
     status: 'Resource shelf', statusVi: 'Kho nội dung đã lưu',
   },
   {
-    slug: 'practice-hub', route: 'practice', icon: 'CL', tone: 'blue',
-    group: 'Classroom', groupVi: 'Lớp học',
-    title: 'Classroom', titleVi: 'Lớp học',
-    desc: 'Scored practice sessions with progress tracking for learners.',
-    descVi: 'Giao bài luyện, theo dõi tiến độ và chấm điểm học sinh.',
-    status: 'Practice flow', statusVi: 'Giao bài · Theo dõi',
-  },
-  {
     slug: 'admin-hub', route: 'admin', icon: 'AD', tone: 'red',
     group: 'Administration', groupVi: 'Quản trị',
     title: 'Admin', titleVi: 'Quản trị',

@@ -21,7 +21,6 @@ export const ROUTE_PERMISSION_IDS = {
   'data-governance': 'route:data-governance',
   'production-hardening': 'route:production-hardening',
   'app-vault': 'route:app-vault',
-  practice: 'route:practice',
   qa: 'route:qa',
   settings: 'route:settings',
   department: DEPARTMENT_WORKSPACE_PERMISSION_ID,
@@ -112,15 +111,6 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Thư viện nội dung',
     desc: 'View and manage saved outputs, prompts, activities and local teaching content.',
     descVi: 'Xem và quản lí output, prompt, hoạt động và nội dung dạy học đã lưu.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS.practice,
-    type: 'content',
-    section: 'content',
-    title: 'Learner Practice',
-    titleVi: 'Bài luyện tập học sinh',
-    desc: 'Open the scored student practice module.',
-    descVi: 'Mở module bài luyện tập có chấm điểm cho học sinh.',
   },
   {
     id: ROUTE_PERMISSION_IDS.qa,
@@ -321,7 +311,6 @@ export function hasAnyDepartmentAccess(user) {
 
 export function getRoutePermissionId(route) {
   if (route === 'news') return getToolPermissionId('news-reader');
-  if (route === 'practice') return ROUTE_PERMISSION_IDS.practice;
   if (route === 'department') return DEPARTMENT_WORKSPACE_PERMISSION_ID;
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
   if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'cloud-operations' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
@@ -343,7 +332,6 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   // Teachers can open these dashboards even when some cards are locked.
   // Locked cards stay visible and show a request-access button.
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
-  if (route === 'practice') return hasPermissionId(user, ROUTE_PERMISSION_IDS.practice) || hasToolAccess(user, 'student-practice');
   if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'cloud-operations' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
 }

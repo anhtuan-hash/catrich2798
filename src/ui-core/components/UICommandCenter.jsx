@@ -44,7 +44,6 @@ const ROUTES = [
   ['knowledge-hub', 'Kho học liệu thông minh', 'Smart Knowledge', 'K', '#315FC4'],
   ['work-hub', 'Trung tâm công việc', 'Work Hub', 'WH', '#14866D'],
   ['assessment-core', 'Ngân hàng câu hỏi', 'Assessment Core', 'AC', '#CC7621'],
-  ['practice', 'Lớp học', 'Classroom', '⚡', '#00A4EF'],
   ['resources', 'Tài nguyên', 'Resources', 'RE', '#D99A1E'],
   ['settings', 'Cài đặt', 'Settings', '⚙', '#123C69'],
   ['qa', 'Trạng thái hệ thống', 'System Health', '♥', '#123C69'],

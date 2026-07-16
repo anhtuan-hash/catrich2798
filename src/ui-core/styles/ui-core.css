@@ -229,7 +229,7 @@ html[data-design-language='apple'] .bui-shell-chrome { background: color-mix(in 
   align-items: start;
   gap: clamp(16px, 2vw, 28px) !important;
 }
-.bui-workbench :is(.gb-card, .wf2-card, .ws-card, .pc-card) {
+.bui-workbench .gb-card {
   min-width: 0;
   border: var(--ui-border-width) solid var(--ui-color-outline) !important;
   border-radius: var(--ui-radius-card) !important;

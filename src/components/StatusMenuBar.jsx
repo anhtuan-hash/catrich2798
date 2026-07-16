@@ -407,7 +407,7 @@ function permissionTargetRoute(permissionId) {
   const item = getPermissionItem(id);
   if (item?.route) return item.route;
   if (item?.slug) return `tool/${item.slug}`;
-  if (['apps', 'games', 'tools', 'department', 'library', 'resource-library', 'practice', 'qa', 'settings'].includes(item?.section)) return item.section;
+  if (['apps', 'games', 'tools', 'department', 'library', 'resource-library', 'qa', 'settings'].includes(item?.section)) return item.section;
   return 'apps';
 }
 

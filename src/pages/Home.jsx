@@ -205,16 +205,9 @@ const iconPaths = {
 
 const slugIconMap = {
   'lesson-plan-ai': 'lesson',
-  'exam-studio': 'exam',
   textcare: 'textcare',
-  'reading-studio': 'reading',
   word2graph: 'wordgraph',
-  'speaking-studio': 'speaking',
-  'worksheet-factory': 'worksheet',
   'grammar-builder': 'grammar',
-  'writing-studio': 'writing',
-  'pronunciation-coach': 'pronunciation',
-  'student-practice': 'sprint',
   'department-workspace': 'department',
   'game-hub': 'game',
 };
@@ -511,28 +504,16 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
   const windows = useMemo(() => {
     const profile = (slug) => getAppDesignProfile(slug);
     const lessonStyle = profile('lesson-plan-ai');
-    const examStyle = profile('exam-studio');
     const gameStyle = profile('game-hub');
     const wordStyle = profile('word2graph');
-    const readingStyle = profile('reading-studio');
-    const speakingStyle = profile('speaking-studio');
     const textcareStyle = profile('textcare');
-    const worksheetStyle = profile('worksheet-factory');
     const grammarStyle = profile('grammar-builder');
-    const writingStyle = profile('writing-studio');
-    const pronunciationStyle = profile('pronunciation-coach');
 
     const lesson = makeAppWindow('lesson-plan-ai', {
       variant: 'hero', className: 'flat-window-main', bg: lessonStyle.soft, accent: lessonStyle.accent,
       color: lessonStyle.accent, icon: lessonStyle.icon, meta: isVi ? 'Thiết kế bài dạy thông minh' : 'Smart lesson design',
       text: isVi ? 'Thiết kế giáo án, học liệu và xuất bài dạy tương tác.' : 'Design lesson plans, materials and interactive teaching pages.',
       motion: { delay: '-1.2s', duration: '9.5s', x: '7px', y: '-13px', rotate: '.7deg', depth: .78 },
-    });
-    const exam = makeAppWindow('exam-studio', {
-      variant: 'motion', className: 'flat-window-exam', bg: examStyle.soft, accent: examStyle.accent,
-      color: examStyle.accent, icon: examStyle.icon, meta: isVi ? 'Kiểm tra & đánh giá' : 'Assessment',
-      text: isVi ? 'Tạo đề, cloze và câu hỏi.' : 'Build tests, cloze tasks and questions.',
-      motion: { delay: '-3.8s', duration: '8.1s', x: '-8px', y: '-11px', rotate: '-1.1deg', depth: .5 },
     });
     const game = makeAppWindow('game-hub', {
       variant: 'motion', className: 'flat-window-game', bg: gameStyle.soft, accent: gameStyle.accent,
@@ -546,29 +527,11 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
       text: isVi ? 'Word family và collocation.' : 'Word families and collocations.',
       motion: { delay: '-2.7s', duration: '9.2s', x: '10px', y: '-10px', rotate: '.8deg', depth: .62 },
     });
-    const reading = makeAppWindow('reading-studio', {
-      variant: 'motion', className: 'flat-window-reading', bg: readingStyle.soft, accent: readingStyle.accent,
-      color: readingStyle.accent, icon: readingStyle.icon, meta: isVi ? 'Đọc hiểu & từ vựng' : 'Reading & vocabulary',
-      text: isVi ? 'Bài đọc, câu hỏi và từ vựng.' : 'Readings, questions and vocabulary.',
-      motion: { delay: '-6.2s', duration: '9.8s', x: '-8px', y: '-13px', rotate: '-.6deg', depth: .55 },
-    });
-    const speaking = makeAppWindow('speaking-studio', {
-      variant: 'motion', className: 'flat-window-speaking', bg: speakingStyle.soft, accent: speakingStyle.accent,
-      color: speakingStyle.accent, icon: speakingStyle.icon, meta: isVi ? 'Luyện nói & phản xạ' : 'Speaking & fluency',
-      text: isVi ? 'Thẻ nói và phản xạ.' : 'Speaking cards and fluency drills.',
-      motion: { delay: '-4.4s', duration: '7.9s', x: '7px', y: '-12px', rotate: '1deg', depth: .5 },
-    });
     const textcare = makeAppWindow('textcare', {
       variant: 'motion', className: 'flat-window-textcare', bg: textcareStyle.soft, accent: textcareStyle.accent,
       color: textcareStyle.accent, icon: textcareStyle.icon, meta: isVi ? 'Chỉnh sửa tự động' : 'Automatic editing',
       text: isVi ? 'Chuẩn hoá văn bản.' : 'Normalize documents.',
       motion: { delay: '-1.9s', duration: '8.6s', x: '-6px', y: '-10px', rotate: '-1deg', depth: .48 },
-    });
-    const worksheet = makeAppWindow('worksheet-factory', {
-      variant: 'motion', className: 'flat-window-worksheet', bg: worksheetStyle.soft, accent: worksheetStyle.accent,
-      color: worksheetStyle.accent, icon: worksheetStyle.icon, meta: isVi ? 'Phiếu học tập' : 'Worksheets',
-      text: isVi ? 'Tạo worksheet từ file và chủ đề.' : 'Create worksheets from files and topics.',
-      motion: { delay: '-7.1s', duration: '9.4s', x: '-7px', y: '-9px', rotate: '.7deg', depth: .52 },
     });
     const grammar = makeAppWindow('grammar-builder', {
       variant: 'motion', className: 'flat-window-grammar', bg: grammarStyle.soft, accent: grammarStyle.accent,
@@ -576,23 +539,10 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
       text: isVi ? 'Tạo, kiểm định và phân phối học liệu.' : 'Build, audit and publish grammar packs.',
       motion: { delay: '-5.8s', duration: '10.1s', x: '-8px', y: '-9px', rotate: '.6deg', depth: .4 },
     });
-    const writing = makeAppWindow('writing-studio', {
-      variant: 'motion', className: 'flat-window-writing', bg: writingStyle.soft, accent: writingStyle.accent,
-      color: writingStyle.accent, icon: writingStyle.icon, meta: isVi ? 'Viết & sáng tạo' : 'Writing & creativity',
-      text: isVi ? 'Lập dàn ý, viết và chỉnh sửa.' : 'Plan, draft and revise writing.',
-      motion: { delay: '-4.9s', duration: '9.6s', x: '6px', y: '-10px', rotate: '-.5deg', depth: .46 },
-    });
-    const pronunciation = makeAppWindow('pronunciation-coach', {
-      variant: 'motion', className: 'flat-window-pronunciation', bg: pronunciationStyle.soft, accent: pronunciationStyle.accent,
-      color: pronunciationStyle.accent, icon: pronunciationStyle.icon, meta: isVi ? 'Phát âm chuẩn' : 'Pronunciation',
-      text: isVi ? 'Âm, trọng âm và nối âm.' : 'Sounds, stress and connected speech.',
-      motion: { delay: '-6.7s', duration: '8.4s', x: '8px', y: '-8px', rotate: '.9deg', depth: .42 },
-    });
-    return { lesson, exam, game, word, reading, speaking, textcare, worksheet, grammar, writing, pronunciation };
+    return { lesson, game, word, textcare, grammar };
   }, [isVi]);
 
   const chips = useMemo(() => {
-    const practiceStyle = getAppDesignProfile('student-practice');
     const libraryStyle = getAppDesignProfile('library-hub');
     const integrationStyle = getAppDesignProfile('english-lesson-integration');
     return [
@@ -604,14 +554,6 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
         meta: isVi ? integrationStyle.styleVi : integrationStyle.style,
       }),
       windows.lesson,
-      windows.exam,
-      makeAppWindow('student-practice', {
-        icon: practiceStyle.icon,
-        accent: practiceStyle.accent,
-        color: practiceStyle.accent,
-        text: isVi ? 'Luyện tập.' : 'Practice.',
-        meta: isVi ? practiceStyle.styleVi : practiceStyle.style,
-      }),
       { title: isVi ? 'Thư viện' : 'Library', icon: 'library', target: canLibrary ? '#/library' : '#/login', label: 'LB', accent: libraryStyle.accent, color: libraryStyle.accent, requiresUser: true, visibilityId: visibilityIdForRoute('library') },
       { title: hasApiKey ? (isVi ? 'Kết nối AI' : 'AI Access') : (isVi ? 'Cài đặt AI' : 'AI Setup'), icon: 'ai', target: currentUser ? '#/settings' : '#/login', label: 'AI', accent: hasApiKey ? palette.teal : palette.yellow, color: hasApiKey ? palette.teal : palette.yellow, requiresUser: true, visibilityId: 'route:settings' },
     ].filter((item) => canShowId(item.visibilityId));
@@ -619,8 +561,7 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
 
 
   const featuredWindows = useMemo(() => [
-    windows.pronunciation, windows.textcare, windows.speaking, windows.lesson,
-    windows.reading, windows.game, windows.word, windows.exam,
+    windows.textcare, windows.lesson, windows.game, windows.word, windows.grammar,
   ].filter((item) => canShowId(item.visibilityId)), [windows, visibilitySnapshot, currentUser?.role]);
 
   return (

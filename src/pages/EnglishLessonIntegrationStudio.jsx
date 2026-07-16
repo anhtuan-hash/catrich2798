@@ -31,11 +31,7 @@ function integrationUrls() {
   const root = window.location.origin;
   return {
     lesson: `${root}/#/tool/lesson-plan-ai`,
-    worksheet: `${root}/#/tool/worksheet-factory`,
-    exam: `${root}/#/tool/exam-studio`,
     activity: `${root}/#/tool/textlab-activities`,
-    speaking: `${root}/#/tool/speaking-studio`,
-    reading: `${root}/#/tool/reading-studio`,
     wordgraph: `${root}/#/tool/word2graph`,
   };
 }

@@ -2,22 +2,22 @@ const WORKSPACE_DEFINITIONS = [
   {
     id: 'teaching', icon: 'TE', accent: '#EF7A42',
     label: 'Teaching', labelVi: 'Giảng dạy',
-    description: 'Lesson planning, worksheets, grammar and classroom activities.',
-    descriptionVi: 'Giáo án, worksheet, ngữ pháp và hoạt động lớp học.',
+    description: 'Lesson planning, grammar and classroom activities.',
+    descriptionVi: 'Giáo án, ngữ pháp và hoạt động lớp học.',
     landingTarget: '#/apps?workspace=teaching',
   },
   {
     id: 'assessment', icon: 'AS', accent: '#CC7621',
     label: 'Assessment', labelVi: 'Đánh giá',
-    description: 'Question banks, tests and learner practice.',
-    descriptionVi: 'Ngân hàng câu hỏi, đề thi và luyện tập.',
+    description: 'Question banks, blueprints and assessment management.',
+    descriptionVi: 'Ngân hàng câu hỏi, blueprint và quản lí đánh giá.',
     landingTarget: '#/assessment-core',
   },
   {
     id: 'content', icon: 'CO', accent: '#167D78',
     label: 'Content & Skills', labelVi: 'Nội dung & Kĩ năng',
-    description: 'Reading, writing, speaking, pronunciation, vocabulary and documents.',
-    descriptionVi: 'Đọc, viết, nói, phát âm, từ vựng và xử lí văn bản.',
+    description: 'Vocabulary, grammar and document tools.',
+    descriptionVi: 'Từ vựng, ngữ pháp và công cụ xử lí văn bản.',
     landingTarget: '#/apps?workspace=content',
   },
   {
@@ -63,7 +63,7 @@ export const WORKSPACES = Object.freeze(WORKSPACE_DEFINITIONS.map((item) => Obje
 
 const ROUTE_WORKSPACE = {
   home: 'teaching', apps: 'teaching',
-  'assessment-core': 'assessment', practice: 'assessment',
+  'assessment-core': 'assessment',
   news: 'resources', library: 'resources', 'resource-library': 'resources', 'knowledge-hub': 'resources', resources: 'resources',
   department: 'management', homeroom: 'management', 'homeroom-portal': 'management', 'work-hub': 'management', admin: 'management', 'ai-governance': 'ai',
   games: 'games',
@@ -73,13 +73,11 @@ const ROUTE_WORKSPACE = {
 };
 
 const TOOL_WORKSPACE = {
-  'lesson-plan-ai': 'teaching', 'worksheet-factory': 'teaching', 'textlab-activities': 'teaching',
+  'lesson-plan-ai': 'teaching', 'textlab-activities': 'teaching',
   'english-lesson-integration': 'teaching', 'grammar-builder': 'teaching',
-  'exam-studio': 'assessment', 'student-practice': 'assessment',
-  'reading-studio': 'content', 'writing-studio': 'content', 'speaking-studio': 'content',
-  'pronunciation-coach': 'content', word2graph: 'content', textcare: 'content',
+  word2graph: 'content', textcare: 'content',
   'department-workspace': 'management', 'work-hub': 'management',
-  'resource-library-hub': 'resources', 'knowledge-hub': 'resources', 'news-reader': 'resources', 'smart-id': 'ai',
+  'resource-library-hub': 'resources', 'knowledge-hub': 'resources', 'news-reader': 'resources',
   'game-hub': 'games',
   'vietnam-tax': 'system', 'platform-readiness': 'system',
   'cloud-operations': 'system', 'data-governance': 'system', 'production-hardening': 'system',
