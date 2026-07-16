@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AI_TOOL_PRESETS, generateGenericToolOutput } from '../utils/gemini.js';
+import { AI_TOOL_PRESETS, generateGenericToolOutput } from '../utils/openRouter.js';
 import { addHistoryEntry, downloadFile, exportAsWord, LIBRARY_EVENT, loadHistory, slugify } from '../utils/library.js';
 
 const GROUP_COLORS = {

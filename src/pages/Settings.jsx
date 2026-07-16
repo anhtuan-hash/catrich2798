@@ -14,17 +14,9 @@ import {
   setFallbackEnabled,
 } from '../utils/aiProviders.js';
 
-const PROVIDER_ICONS = {
-  gemini: 'G', openai: '◎', groq: 'GQ', cerebras: 'C', mistral: 'M',
-  sambanova: 'S', cohere: 'Co', openrouter: '↗', nvidia: 'N', cloudflare: '☁',
-  claude: 'AI', custom: '⌘',
-};
+const PROVIDER_ICONS = { openrouter: '↗' };
 
-const PROVIDER_TONES = {
-  gemini: 'blue', openai: 'mint', groq: 'violet', cerebras: 'cyan', mistral: 'amber',
-  sambanova: 'peach', cohere: 'sky', openrouter: 'indigo', nvidia: 'green',
-  cloudflare: 'orange', claude: 'rose', custom: 'slate',
-};
+const PROVIDER_TONES = { openrouter: 'indigo' };
 
 const DEFAULT_MUSIC_SETTINGS = {
   enabled: false,
@@ -127,10 +119,10 @@ function SettingsHeroIllustration() {
         {Array.from({ length: 5 }).map((_, index) => <i key={`l-${index}`} className={`left p${index}`} />)}
         {Array.from({ length: 5 }).map((_, index) => <i key={`r-${index}`} className={`right p${index}`} />)}
       </div>
-      <div className="settings-v47-provider-node node-google">G</div>
-      <div className="settings-v47-provider-node node-openai">◎</div>
+      <div className="settings-v47-provider-node node-google">↗</div>
+      <div className="settings-v47-provider-node node-router">OR</div>
       <div className="settings-v47-provider-node node-ai">AI</div>
-      <div className="settings-v47-provider-node node-sun">✺</div>
+      <div className="settings-v47-provider-node node-sun">1</div>
       <div className="settings-v47-key-card">🔑 <span>••••••••</span></div>
       <div className="settings-v47-shield"><span>🔒</span></div>
     </div>
@@ -554,8 +546,8 @@ export default function Settings({
           <h1>{language === 'vi' ? 'Cài đặt AI & hệ thống' : 'AI & system settings'}</h1>
           <p>
             {language === 'vi'
-              ? 'Chọn nhà cung cấp AI, quản lý API key, tùy chỉnh giao diện, âm thanh, đồng bộ và thiết lập fallback thông minh.'
-              : 'Choose AI providers, manage API keys, customize appearance, audio, sync, and smart fallback settings.'}
+              ? 'Quản lý OpenRouter API key dùng chung, tùy chỉnh giao diện, âm thanh và đồng bộ hệ thống.'
+              : 'Manage the shared OpenRouter API key, appearance, audio, and system sync.'}
           </p>
           <div className="settings-v47-hero-chips">
             <span><b>{PROVIDERS.length}</b><small>Provider</small></span>
@@ -698,9 +690,9 @@ export default function Settings({
               <input type="password" value={currentConfig.apiKey || ''} onChange={(event) => updateConfig({ apiKey: event.target.value })} placeholder={`${currentProvider.label} API key...`} autoComplete="off" spellCheck="false" />
               <div className="settings-v47-field-grid">
                 <div><label>Model</label><input list={`models-${currentProvider.id}`} value={currentConfig.model || currentProvider.defaultModel} onChange={(event) => updateConfig({ model: event.target.value })} /><datalist id={`models-${currentProvider.id}`}>{(currentProvider.models || []).map((model) => <option key={model} value={model} />)}</datalist></div>
-                <div><label>Base URL</label><input value={currentConfig.baseUrl || currentProvider.baseUrl} onChange={(event) => updateConfig({ baseUrl: event.target.value })} />{currentProvider.requiresBaseUrlEdit ? <small className="settings-v47-field-help">{language === 'vi' ? 'Thay YOUR_ACCOUNT_ID bằng Account ID Cloudflare của anh.' : 'Replace YOUR_ACCOUNT_ID with your Cloudflare Account ID.'}</small> : null}</div>
+                <div><label>Base URL</label><input value={currentConfig.baseUrl || currentProvider.baseUrl} onChange={(event) => updateConfig({ baseUrl: event.target.value })} /></div>
               </div>
-              <div className="settings-v47-inline-toggle"><div><strong>{language === 'vi' ? 'Fallback thông minh' : 'Smart fallback'}</strong><small>{language === 'vi' ? 'Tự thử provider khác đã có key khi provider chính lỗi hoặc hết quota.' : 'Try another configured provider if the primary fails or reaches quota.'}</small></div><Toggle checked={fallback} onChange={setFallback} label="Fallback" /></div>
+              <div className="settings-v47-inline-toggle"><div><strong>{language === 'vi' ? 'OpenRouter model routing' : 'OpenRouter model routing'}</strong><small>{language === 'vi' ? 'OpenRouter tự định tuyến model theo cấu hình và khả năng sẵn có.' : 'OpenRouter routes requests through the configured model gateway.'}</small></div><Toggle checked={fallback} onChange={setFallback} label="Fallback" /></div>
               <div className="settings-v47-provider-actions settings-v125-detail-actions">
                 <button type="button" className="primary" onClick={() => { saveSettings(); activateProvider(selectedProvider); }}>{language === 'vi' ? 'Lưu & dùng mặc định' : 'Save & set default'}</button>
                 <button type="button" className="secondary" onClick={saveSettings}>{language === 'vi' ? 'Chỉ lưu cấu hình' : 'Save only'}</button>
@@ -813,7 +805,7 @@ export default function Settings({
               );
             })}
           </div>
-          <button type="button" className="settings-v47-add-key" onClick={() => providerEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>＋ {language === 'vi' ? 'Thêm API key mới' : 'Add a new API key'}</button>
+          <button type="button" className="settings-v47-add-key" onClick={() => providerEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>＋ {language === 'vi' ? 'Cấu hình OpenRouter API key' : 'Configure OpenRouter API key'}</button>
           <div className="settings-v47-security-note">🔒 {language === 'vi' ? 'API key được lưu riêng theo tài khoản trên trình duyệt này.' : 'API keys are stored per account in this browser.'}</div>
         </article>
 

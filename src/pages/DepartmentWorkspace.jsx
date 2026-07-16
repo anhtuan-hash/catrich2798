@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import SectionHeader from '../components/SectionHeader.jsx';
 import PermissionRequestButton from '../components/PermissionRequestButton.jsx';
 import { DEPARTMENT_MODULES, DEPARTMENT_TEMPLATES, POLICY_PINS } from '../data/department.js';
-import { extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/openRouter.js';
 import { runAITask } from '../utils/aiTaskRuntime.js';
 import { canPublishDepartment, hasDepartmentModuleAccess } from '../utils/permissions.js';
 import { repairCurrentAdminDatabaseRole } from '../utils/auth.js';

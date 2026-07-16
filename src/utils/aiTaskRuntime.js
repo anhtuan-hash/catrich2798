@@ -1,5 +1,5 @@
 import { appendAiAudit } from './aiGovernance.js';
-import { callAIWithMeta } from './gemini.js';
+import { callAIWithMeta } from './openRouter.js';
 import {
   AI_PROMPT_REGISTRY_VERSION,
   buildAiTaskRequest,

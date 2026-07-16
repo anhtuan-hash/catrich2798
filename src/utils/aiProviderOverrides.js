@@ -1,18 +1,17 @@
-import { PROVIDER_CATALOG, getProviderCatalogEntry } from '../data/aiProviderCatalog.js';
+import { getProviderCatalogEntry } from '../data/aiProviderCatalog.js';
 
 const STORAGE_KEY = 'bes-ai-provider-overrides-v1157';
 const ROUTING_KEY = 'bes-ai-smart-routing-v1157';
 const USER_SCOPE_KEY = 'bes-ai-user-scope';
-const OPENROUTER_MIGRATION_FLAG = 'openrouterFreeModelV126';
-const LEGACY_OPENROUTER_PAID_MODELS = new Set(['openai/gpt-4o-mini', 'gpt-4o-mini']);
-
+const MIGRATION_KEY = 'bes-openrouter-only-migration-v1239';
+const OPENROUTER_ID = 'openrouter';
 const DEFAULT_ROUTING = {
-  mode: 'smart',
-  manualProvider: '',
+  mode: 'openrouter',
+  manualProvider: OPENROUTER_ID,
   manualModel: '',
-  allowPaid: false,
-  fallbackEnabled: true,
-  fallbackOrder: ['cerebras', 'groq', 'gemini', 'mistral', 'openrouter', 'github-models', 'cohere', 'huggingface', 'nvidia', 'sambanova', 'vercel', 'ollama', 'lmstudio', 'localai'],
+  allowPaid: true,
+  fallbackEnabled: false,
+  fallbackOrder: [OPENROUTER_ID],
 };
 
 function safeParse(value, fallback) {
@@ -25,11 +24,7 @@ function safeParse(value, fallback) {
 }
 
 function normalizeScope(value = '') {
-  return String(value || 'guest')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9@._-]+/g, '-')
-    .replace(/^-+|-+$/g, '') || 'guest';
+  return String(value || 'guest').trim().toLowerCase().replace(/[^a-z0-9@._-]+/g, '-').replace(/^-+|-+$/g, '') || 'guest';
 }
 
 function scopedStorageKey(key) {
@@ -44,9 +39,9 @@ function readStore(key, fallback) {
   const scopedRaw = window.localStorage.getItem(scopedKey);
   if (scopedRaw) return safeParse(scopedRaw, fallback);
   const legacyRaw = window.localStorage.getItem(key);
-  if (!legacyRaw) return fallback;
-  const migrated = safeParse(legacyRaw, fallback);
+  const migrated = legacyRaw ? safeParse(legacyRaw, fallback) : fallback;
   window.localStorage.setItem(scopedKey, JSON.stringify(migrated));
+  if (scopedKey !== key) window.localStorage.removeItem(key);
   return migrated;
 }
 
@@ -57,96 +52,98 @@ function writeStore(key, value) {
 
 function emitSettingsUpdated(detail = {}) {
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return;
-  window.dispatchEvent(new CustomEvent('bes-ai-settings-updated', { detail: { source: 'v11.5.7', ...detail } }));
-  window.dispatchEvent(new CustomEvent('bes-ai-routing-updated', { detail: { source: 'v11.5.7', ...detail } }));
+  const payload = { source: 'v12.39.0', provider: OPENROUTER_ID, ...detail };
+  window.dispatchEvent(new CustomEvent('bes-ai-settings-updated', { detail: payload }));
+  window.dispatchEvent(new CustomEvent('bes-ai-routing-updated', { detail: payload }));
+}
+
+function normalizeOpenRouterConfig(input = {}) {
+  const info = getProviderCatalogEntry(OPENROUTER_ID);
+  return {
+    apiKey: String(input.apiKey || '').trim().replace(/^Bearer\s+/i, ''),
+    model: String(input.model || info.defaultModel).trim() || info.defaultModel,
+    visionModel: String(input.visionModel || info.defaultVisionModel).trim() || info.defaultVisionModel,
+    imageModel: String(input.imageModel || info.defaultImageModel).trim() || info.defaultImageModel,
+    baseUrl: String(input.baseUrl || info.baseUrl).trim().replace(/\/+$/, '') || info.baseUrl,
+    enabled: true,
+    updatedAt: input.updatedAt || new Date().toISOString(),
+    lastSuccessAt: input.lastSuccessAt || '',
+    lastError: input.lastError || '',
+    lastErrorAt: input.lastErrorAt || '',
+  };
+}
+
+function migrateToOpenRouterOnly(rawState = {}) {
+  const configs = rawState?.configs && typeof rawState.configs === 'object' ? rawState.configs : {};
+  const direct = configs.openrouter || {};
+  let apiKey = String(direct.apiKey || '').trim();
+  if (!apiKey) {
+    const legacyWithKey = Object.values(configs).find((item) => String(item?.apiKey || '').trim());
+    if (legacyWithKey && String(rawState.activeProvider || '') === OPENROUTER_ID) apiKey = String(legacyWithKey.apiKey || '').trim();
+  }
+  return {
+    activeProvider: OPENROUTER_ID,
+    configs: { openrouter: normalizeOpenRouterConfig({ ...direct, apiKey }) },
+    migrations: { ...(rawState.migrations || {}), [MIGRATION_KEY]: true },
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 export function getProviderOverrideState() {
-  let state = readStore(STORAGE_KEY, {});
-  const configs = state.configs && typeof state.configs === 'object' ? state.configs : {};
-  if (state?.migrations?.[OPENROUTER_MIGRATION_FLAG] !== true) {
-    const openrouter = configs.openrouter || {};
-    const model = String(openrouter.model || '').trim().toLowerCase();
-    const nextConfigs = LEGACY_OPENROUTER_PAID_MODELS.has(model)
-      ? { ...configs, openrouter: { ...openrouter, model: 'openrouter/free', updatedAt: new Date().toISOString() } }
-      : configs;
-    state = {
-      ...state,
-      configs: nextConfigs,
-      migrations: { ...(state.migrations || {}), [OPENROUTER_MIGRATION_FLAG]: true },
-      updatedAt: state.updatedAt || new Date().toISOString(),
-    };
-    writeStore(STORAGE_KEY, state);
-  }
-  return {
-    activeProvider: String(state.activeProvider || ''),
-    configs: state.configs && typeof state.configs === 'object' ? state.configs : {},
-    updatedAt: state.updatedAt || '',
-  };
+  const raw = readStore(STORAGE_KEY, {});
+  const migrated = migrateToOpenRouterOnly(raw);
+  if (JSON.stringify(raw) !== JSON.stringify(migrated)) writeStore(STORAGE_KEY, migrated);
+  return migrated;
 }
 
 export function getProviderOverrides() {
   return getProviderOverrideState().configs;
 }
 
-export function getProviderOverride(providerId) {
-  return getProviderOverrides()[providerId] || {};
+export function getProviderOverride() {
+  return getProviderOverrides().openrouter || normalizeOpenRouterConfig();
 }
 
-export function saveProviderOverride(providerId, patch = {}, { activate = true } = {}) {
-  const id = String(providerId || '').trim();
-  if (!id) throw new Error('Thiếu mã provider.');
+export function saveProviderOverride(_providerId, patch = {}, { activate = true } = {}) {
   const current = getProviderOverrideState();
-  const previous = current.configs[id] || {};
-  const nextConfig = {
-    ...previous,
-    ...patch,
-    apiKey: String(patch.apiKey ?? previous.apiKey ?? '').trim().replace(/^Bearer\s+/i, ''),
-    model: String(patch.model ?? previous.model ?? getProviderCatalogEntry(id)?.defaultModel ?? '').trim(),
-    baseUrl: String(patch.baseUrl ?? previous.baseUrl ?? getProviderCatalogEntry(id)?.baseUrl ?? '').trim().replace(/\/+$/, ''),
-    enabled: patch.enabled ?? previous.enabled ?? true,
-    updatedAt: new Date().toISOString(),
-  };
+  const nextConfig = normalizeOpenRouterConfig({ ...current.configs.openrouter, ...patch });
   const next = {
-    activeProvider: activate ? id : current.activeProvider,
-    configs: { ...current.configs, [id]: nextConfig },
+    ...current,
+    activeProvider: activate ? OPENROUTER_ID : current.activeProvider,
+    configs: { openrouter: nextConfig },
     updatedAt: new Date().toISOString(),
   };
   writeStore(STORAGE_KEY, next);
-  emitSettingsUpdated({ provider: id, action: 'save-provider' });
+  emitSettingsUpdated({ action: 'save-openrouter' });
   return nextConfig;
 }
 
-export function setActiveProviderOverride(providerId) {
-  const id = String(providerId || '').trim();
+export function setActiveProviderOverride() {
   const current = getProviderOverrideState();
-  writeStore(STORAGE_KEY, { ...current, activeProvider: id, updatedAt: new Date().toISOString() });
-  emitSettingsUpdated({ provider: id, action: 'set-active-provider' });
-  return id;
+  writeStore(STORAGE_KEY, { ...current, activeProvider: OPENROUTER_ID, updatedAt: new Date().toISOString() });
+  emitSettingsUpdated({ action: 'set-openrouter-active' });
+  return OPENROUTER_ID;
 }
 
-export function removeProviderOverride(providerId) {
-  const id = String(providerId || '').trim();
+export function removeProviderOverride() {
+  const empty = normalizeOpenRouterConfig({ apiKey: '' });
   const current = getProviderOverrideState();
-  const nextConfigs = { ...current.configs };
-  delete nextConfigs[id];
-  writeStore(STORAGE_KEY, {
-    ...current,
-    activeProvider: current.activeProvider === id ? '' : current.activeProvider,
-    configs: nextConfigs,
-    updatedAt: new Date().toISOString(),
-  });
-  emitSettingsUpdated({ provider: id, action: 'remove-provider' });
+  writeStore(STORAGE_KEY, { ...current, activeProvider: OPENROUTER_ID, configs: { openrouter: empty }, updatedAt: new Date().toISOString() });
+  emitSettingsUpdated({ action: 'clear-openrouter-key' });
 }
 
 export function getRoutingPreferences() {
   const stored = readStore(ROUTING_KEY, {});
-  const order = Array.isArray(stored.fallbackOrder) ? stored.fallbackOrder.filter((id) => PROVIDER_CATALOG.some((provider) => provider.id === id)) : [];
-  return {
+  const next = {
     ...DEFAULT_ROUTING,
-    ...stored,
-    fallbackOrder: [...order, ...DEFAULT_ROUTING.fallbackOrder.filter((id) => !order.includes(id))],
+    manualModel: String(stored.manualModel || ''),
+    mode: 'openrouter',
+    manualProvider: OPENROUTER_ID,
+    fallbackEnabled: false,
+    fallbackOrder: [OPENROUTER_ID],
   };
+  writeStore(ROUTING_KEY, next);
+  return next;
 }
 
 export function saveRoutingPreferences(patch = {}) {
@@ -154,54 +151,36 @@ export function saveRoutingPreferences(patch = {}) {
   const next = {
     ...current,
     ...patch,
-    fallbackOrder: Array.isArray(patch.fallbackOrder) ? [...new Set(patch.fallbackOrder)] : current.fallbackOrder,
+    mode: 'openrouter',
+    manualProvider: OPENROUTER_ID,
+    fallbackEnabled: false,
+    fallbackOrder: [OPENROUTER_ID],
     updatedAt: new Date().toISOString(),
   };
   writeStore(ROUTING_KEY, next);
-  emitSettingsUpdated({ action: 'save-routing', routing: next });
+  emitSettingsUpdated({ action: 'save-openrouter-routing' });
   return next;
 }
 
 export function mergeAiConfigs(legacyConfigs = {}) {
-  const overrides = getProviderOverrides();
-  const merged = { ...(legacyConfigs || {}) };
-  for (const provider of PROVIDER_CATALOG) {
-    const legacy = merged[provider.id] || {};
-    const override = overrides[provider.id] || {};
-    merged[provider.id] = {
-      ...legacy,
-      ...override,
-      model: override.model || legacy.model || provider.defaultModel,
-      baseUrl: override.baseUrl || legacy.baseUrl || provider.baseUrl,
-      apiKey: override.apiKey ?? legacy.apiKey ?? '',
-      enabled: override.enabled ?? legacy.enabled ?? true,
-    };
-  }
-  return merged;
+  const stored = getProviderOverride();
+  const legacy = legacyConfigs?.openrouter || {};
+  return { openrouter: normalizeOpenRouterConfig({ ...legacy, ...stored, apiKey: stored.apiKey || legacy.apiKey || '' }) };
 }
 
-export function getEffectiveActiveProvider(legacyProvider = '') {
-  const state = getProviderOverrideState();
-  const routing = getRoutingPreferences();
-  if (routing.mode === 'manual' && routing.manualProvider) return routing.manualProvider;
-  return state.activeProvider || legacyProvider || 'gemini';
+export function getEffectiveActiveProvider() {
+  return OPENROUTER_ID;
 }
 
 export function getSmartProviderSummary(legacy = {}) {
-  const state = getProviderOverrideState();
-  const routing = getRoutingPreferences();
-  const providerId = getEffectiveActiveProvider(legacy.provider || legacy.id || '');
-  const provider = getProviderCatalogEntry(providerId);
-  const config = state.configs[providerId] || {};
-  const model = routing.mode === 'manual' && routing.manualModel ? routing.manualModel : (config.model || legacy.model || provider.defaultModel);
-  const hasKey = provider.requiresApiKey === false || Boolean(String(config.apiKey || legacy.apiKey || '').trim());
+  const config = getProviderOverride();
   return {
-    provider: providerId,
-    providerName: provider.label,
-    model,
-    hasKey,
-    routingMode: routing.mode,
-    modeLabel: routing.mode,
+    provider: OPENROUTER_ID,
+    providerName: 'OpenRouter',
+    model: config.model || legacy.model || 'openrouter/free',
+    mode: 'openrouter',
+    fallbackEnabled: false,
+    configured: Boolean(config.apiKey),
   };
 }
 

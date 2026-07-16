@@ -44,7 +44,7 @@ const copy = {
     analyzing: 'Đang phân tích ảnh...',
     style: 'Phong cách xử lý',
     settings: 'Mở cài đặt AI',
-    keyRequired: 'SmartID cần một provider hỗ trợ vision để phân tích ảnh; chức năng tạo ảnh mới hiện cần khóa Gemini. Crop, lưu và in vẫn dùng được khi chưa cấu hình AI.',
+    keyRequired: 'SmartID dùng chung OpenRouter API key để phân tích và xử lý ảnh. Crop, lưu và in vẫn dùng được khi chưa cấu hình AI.',
     back: 'Quay lại ứng dụng',
     preview: 'Bản xem trước',
     source: 'Ảnh gốc',
@@ -108,7 +108,7 @@ const copy = {
     analyzing: 'Analyzing photo...',
     style: 'Processing style',
     settings: 'Open AI settings',
-    keyRequired: 'SmartID needs a vision provider for analysis; creating a new edited image currently requires a Gemini key. Crop, download and print remain available without AI.',
+    keyRequired: 'SmartID uses the shared OpenRouter API key for image analysis and editing. Crop, download and print remain available without AI.',
     back: 'Back to apps',
     preview: 'Preview',
     source: 'Original',
@@ -247,7 +247,7 @@ function Icon({ name, size = 20 }) {
   );
 }
 
-export default function SmartIdStudio({ language = 'vi', apiKey = '', aiProvider = 'gemini' }) {
+export default function SmartIdStudio({ language = 'vi', apiKey = '', aiProvider = 'openrouter' }) {
   const t = copy[language] || copy.vi;
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
@@ -277,10 +277,10 @@ export default function SmartIdStudio({ language = 'vi', apiKey = '', aiProvider
   const currentSize = useMemo(() => PHOTO_SIZES.find((item) => item.id === settings.preset) || PHOTO_SIZES[1], [settings.preset]);
   const currentRatio = `${currentSize.widthMm} / ${currentSize.heightMm}`;
   const configs = getAiConfigs();
-  const accountGeminiKey = String(configs?.gemini?.apiKey || '').trim();
+  const accountOpenRouterKey = String(configs?.openrouter?.apiKey || '').trim();
   const mediaReadiness = getAiMediaReadiness();
   const visionReady = mediaReadiness.imageAnalysisReady;
-  const imageGenerationReady = Boolean(accountGeminiKey) || mediaReadiness.imageGenerationReady || (aiProvider === 'gemini' && Boolean(String(apiKey || '').trim()));
+  const imageGenerationReady = Boolean(accountOpenRouterKey) || mediaReadiness.imageGenerationReady || (aiProvider === 'openrouter' && Boolean(String(apiKey || '').trim()));
   const aiConnected = visionReady || imageGenerationReady;
 
   useEffect(() => () => {
@@ -407,8 +407,8 @@ export default function SmartIdStudio({ language = 'vi', apiKey = '', aiProvider
       const response = await callAIImageWithMeta({
         imageDataUrl: sourceImage,
         prompt: finalPrompt,
-        apiKey: aiProvider === 'gemini' ? apiKey : '',
-        models: ['gemini-3.1-flash-image', 'gemini-2.5-flash-image'],
+        apiKey: aiProvider === 'openrouter' ? apiKey : accountOpenRouterKey,
+        model: configs?.openrouter?.imageModel || '',
         governanceProfile: 'document',
         loadingLabel: t.processing,
         aiTaskId: 'smartid-image-edit',

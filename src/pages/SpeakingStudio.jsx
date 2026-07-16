@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/openRouter.js';
 import { runAITask } from '../utils/aiTaskRuntime.js';
 import { addHistoryEntry, downloadFile, exportAsWord, slugify } from '../utils/library.js';
 import { createMediaRecorder, createSpeechRecognition, describeMediaError, extensionForMimeType, getMicrophoneSupport, requestMicrophoneStream, speechRecognitionMessage, stopStream } from '../utils/mediaCapture.js';

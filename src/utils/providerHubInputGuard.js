@@ -56,7 +56,7 @@ function findProviderList(editor) {
   const candidates = [...scope.querySelectorAll('button,a,[role="button"]')].filter((node) => {
     if (editor?.contains(node)) return false;
     const text = textOf(node);
-    return text.includes('lấy api key') || text.includes('api key') || text.includes('openrouter') || text.includes('google gemini') || text.includes('groqcloud');
+    return text.includes('lấy api key') || text.includes('api key') || text.includes('openrouter');
   });
   if (candidates.length < 2) return null;
   const ancestor = commonAncestor(candidates.slice(0, Math.min(6, candidates.length)));

@@ -44,7 +44,7 @@ export default function EnglishLessonIntegrationStudio({
   currentUser,
   language = 'vi',
   theme = 'light',
-  aiProvider = 'gemini',
+  aiProvider = 'openrouter',
   apiKey = '',
   aiModel = '',
 }) {
@@ -77,7 +77,7 @@ export default function EnglishLessonIntegrationStudio({
         const activeAI = getActiveAiConfig();
         const providerInfo = getProviderInfo(activeAI.provider || aiProvider);
         const nativeAiConfigured = Boolean(String(activeAI.apiKey || apiKey || '').trim());
-        const resolvedProvider = ['openai', 'gemini'].includes(activeAI.provider) ? activeAI.provider : 'openai';
+        const resolvedProvider = 'openrouter';
         const userId = currentUser?.id || currentUser?.authId || session?.user?.id || currentUser?.email;
         if (!userId) throw new Error(language === 'vi' ? 'Phiên đăng nhập Brian chưa sẵn sàng.' : 'The Brian sign-in session is not ready.');
 

@@ -1,110 +1,76 @@
 import { getAiConfigs, getProviderInfo } from './aiProviders.js';
-import { callAIWithMeta } from './gemini.js';
-import {
-  appendAiAudit,
-  getAiGovernanceSettings,
-  guardAiRequest,
-  recordAiRequest,
-} from './aiGovernance.js';
+import { callAIWithMeta } from './openRouter.js';
+import { appendAiAudit, getAiGovernanceSettings, guardAiRequest, recordAiRequest } from './aiGovernance.js';
 import { applyAiPrivacyFilter, summarizeAiPrivacyReport } from './aiPrivacyFilter.js';
 import { classifyAiError } from './aiSmartRouting.js';
 import { createAiRuntimeFingerprint, runAiProviderRuntime } from './aiRuntimeManager.js';
 
-const DEFAULT_IMAGE_MODELS = ['gemini-3.1-flash-image', 'gemini-2.5-flash-image'];
+const OPENROUTER_ID = 'openrouter';
 
 function emitAiOperation(type, detail = {}) {
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return;
   window.dispatchEvent(new CustomEvent(type, { detail }));
 }
 
-function normalizeDataUrl(dataUrl = '') {
+function normalizeDataUrl(dataUrl = '', { optional = false } = {}) {
+  if (!dataUrl && optional) return null;
   const match = String(dataUrl || '').match(/^data:([^;]+);base64,(.+)$/);
   if (!match) throw new Error('The image attachment is not a valid base64 data URL.');
   return { mimeType: match[1], base64: match[2], dataUrl: String(dataUrl) };
 }
 
-function extractGeneratedImage(payload) {
-  const parts = payload?.candidates?.[0]?.content?.parts || [];
-  const part = parts.find((item) => item?.inlineData?.data || item?.inline_data?.data);
-  const inline = part?.inlineData || part?.inline_data;
-  if (!inline?.data) return '';
-  return `data:${inline.mimeType || inline.mime_type || 'image/png'};base64,${inline.data}`;
-}
-
-async function fetchJsonWithRetry(url, init, retries = 1) {
-  let lastError;
-  for (let attempt = 0; attempt <= retries; attempt += 1) {
-    try {
-      const response = await fetch(url, init);
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        const error = new Error(payload?.error?.message || `AI media request failed with status ${response.status}`);
-        error.status = response.status;
-        throw error;
-      }
-      return payload;
-    } catch (error) {
-      lastError = error;
-      if (attempt < retries) await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
-    }
-  }
-  throw lastError;
+function extractOpenRouterImage(payload = {}) {
+  const item = payload?.data?.[0] || payload?.images?.[0] || {};
+  if (item.b64_json) return `data:${item.media_type || 'image/png'};base64,${item.b64_json}`;
+  if (item.url) return String(item.url);
+  const messageImages = payload?.choices?.[0]?.message?.images || [];
+  const image = messageImages[0];
+  return String(image?.image_url?.url || image?.url || '');
 }
 
 export function getAiMediaReadiness() {
-  const configs = getAiConfigs();
-  const gemini = configs?.gemini || {};
+  const config = getAiConfigs()?.openrouter || {};
+  const ready = Boolean(String(config.apiKey || '').trim());
   return {
-    imageAnalysisReady: Object.entries(configs || {}).some(([providerId, config]) => {
-      const info = getProviderInfo(providerId);
-      return config?.enabled !== false
-        && (info?.capabilities || []).includes('vision')
-        && (info?.requiresApiKey === false || Boolean(String(config?.apiKey || '').trim()));
-    }),
-    imageGenerationReady: Boolean(String(gemini.apiKey || '').trim()),
-    imageGenerationProvider: 'gemini',
-    imageGenerationModel: String(gemini.model || DEFAULT_IMAGE_MODELS[0]),
+    imageAnalysisReady: ready,
+    imageGenerationReady: ready,
+    imageGenerationProvider: OPENROUTER_ID,
+    imageGenerationModel: String(config.imageModel || getProviderInfo().defaultImageModel || ''),
   };
 }
 
-/**
- * Unified vision analysis entry point.
- * Uses the same task registry, Privacy Filter, Governance, smart routing,
- * provider health, Output Guard, retry and provenance as every text request.
- */
 export async function callAIVisionWithMeta({ imageDataUrl, prompt, ...options } = {}) {
   const image = normalizeDataUrl(imageDataUrl);
+  const config = getAiConfigs()?.openrouter || {};
   return callAIWithMeta({
     ...options,
+    provider: OPENROUTER_ID,
+    model: options.model || config.visionModel || config.model,
     aiTaskId: options.aiTaskId || 'image-analysis',
     governanceProfile: options.governanceProfile || 'document',
-    routingMode: options.routingMode || 'vision',
+    routingMode: 'openrouter',
     prompt: String(prompt || '').trim(),
     attachments: [
       ...(Array.isArray(options.attachments) ? options.attachments : []),
       { mimeType: image.mimeType, base64: image.base64, dataUrl: image.dataUrl, name: options.fileName || 'image' },
     ],
+    fallback: false,
   });
 }
 
-/**
- * Unified image editing/generation entry point for SmartID and future media apps.
- * Phase 3 initially uses Gemini image models, but all privacy, governance,
- * audit, usage and operation metadata are centralized here instead of inside UI pages.
- */
 export async function callAIImageWithMeta({
   prompt = '',
   imageDataUrl = '',
-  models = DEFAULT_IMAGE_MODELS,
+  model = '',
+  models = [],
   apiKey = '',
   baseUrl = '',
   governanceProfile = 'document',
-  loadingLabel = 'AI is processing an image…',
-  retries = 1,
+  loadingLabel = 'OpenRouter is processing an image…',
   aiTaskId = 'image-edit',
 } = {}) {
   const startedAt = Date.now();
-  const source = normalizeDataUrl(imageDataUrl);
+  const source = normalizeDataUrl(imageDataUrl, { optional: true });
   const governanceSettings = getAiGovernanceSettings();
   let privacyResult;
   try {
@@ -112,67 +78,41 @@ export async function callAIImageWithMeta({
       aiTaskId,
       governanceProfile,
       prompt,
-      attachments: [{ mimeType: source.mimeType, base64: source.base64, dataUrl: source.dataUrl, name: 'source-image' }],
+      attachments: source ? [{ mimeType: source.mimeType, base64: source.base64, dataUrl: source.dataUrl, name: 'source-image' }] : [],
     }, governanceSettings.privacy);
   } catch (error) {
     const privacy = summarizeAiPrivacyReport(error?.privacyReport || {});
-    appendAiAudit({
-      type: 'privacy',
-      status: 'blocked',
-      label: 'AI image request blocked by Privacy Filter',
-      profile: governanceProfile,
-      detail: { taskId: aiTaskId, code: error?.code || '', privacy },
-    });
+    appendAiAudit({ type: 'privacy', status: 'blocked', label: 'OpenRouter image request blocked by Privacy Filter', profile: governanceProfile, detail: { taskId: aiTaskId, code: error?.code || '', privacy } });
     throw error;
   }
 
   const privacySummary = summarizeAiPrivacyReport(privacyResult.report);
   if (privacySummary.forceLocal) {
-    const error = new Error('Privacy Filter yêu cầu AI local, nhưng chỉnh sửa ảnh hiện chỉ hỗ trợ Gemini image models.');
-    error.code = 'AI_MEDIA_LOCAL_NOT_SUPPORTED';
+    const error = new Error('Chính sách đang yêu cầu AI local, nhưng hệ thống chỉ sử dụng OpenRouter. Hãy đổi chính sách sang Che dữ liệu hoặc Chặn request.');
+    error.code = 'AI_PRIVACY_LOCAL_UNAVAILABLE';
     error.privacy = privacySummary;
     throw error;
   }
 
-  let governance;
-  try {
-    governance = guardAiRequest({
-      ...privacyResult.options,
-      aiTaskId,
-      governanceProfile,
-      maxOutputTokens: 256,
-    });
-  } catch (error) {
-    appendAiAudit({
-      type: 'request',
-      status: 'blocked',
-      label: 'AI image request blocked by governance',
-      profile: governanceProfile,
-      taskId: aiTaskId,
-      transport: 'browser-unified',
-      detail: { taskId: aiTaskId, code: error?.code || '', error: error?.message || String(error), governance: error?.governance || {}, privacy: privacySummary },
-    });
-    throw error;
-  }
-  const configs = getAiConfigs();
-  const providerInfo = getProviderInfo('gemini');
-  const config = configs?.gemini || {};
-  const key = String(apiKey || config.apiKey || '').trim();
+  const governance = guardAiRequest({ ...privacyResult.options, aiTaskId, governanceProfile, maxOutputTokens: 256 });
+  const config = getAiConfigs()?.openrouter || {};
+  const providerInfo = getProviderInfo();
+  const key = String(apiKey || config.apiKey || '').trim().replace(/^Bearer\s+/i, '');
   if (!key) {
-    const error = new Error('SmartID image editing requires a configured Gemini API key.');
-    error.code = 'AI_MEDIA_PROVIDER_NOT_CONFIGURED';
+    const error = new Error('Chưa có OpenRouter API key. Hãy nhập key trong Cài đặt → OpenRouter AI Gateway.');
+    error.code = 'OPENROUTER_KEY_REQUIRED';
     throw error;
   }
-  const cleanBase = String(baseUrl || config.baseUrl || providerInfo.baseUrl || 'https://generativelanguage.googleapis.com/v1beta').replace(/\/+$/, '');
-  const modelList = [...new Set((Array.isArray(models) ? models : [models]).map((item) => String(item || '').trim()).filter(Boolean))];
-  if (!modelList.length) modelList.push(...DEFAULT_IMAGE_MODELS);
+  const cleanBase = String(baseUrl || config.baseUrl || providerInfo.baseUrl).replace(/\/+$/, '');
+  const selectedModel = String(model || (Array.isArray(models) ? models[0] : '') || config.imageModel || providerInfo.defaultImageModel).trim();
+  if (!selectedModel) throw new Error('Chưa cấu hình OpenRouter image model.');
 
   const operationId = `ai-media-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   const operation = {
     id: operationId,
     operationId,
-    provider: providerInfo.label || 'Google Gemini',
-    model: modelList[0],
+    provider: 'OpenRouter',
+    model: selectedModel,
     label: loadingLabel,
     profile: governance.profileKey,
     taskId: aiTaskId,
@@ -181,153 +121,73 @@ export async function callAIImageWithMeta({
   };
   emitAiOperation('bes-ai-operation-start', operation);
 
-  const attempts = [];
-  const runtimeAggregate = { queueWaitMs: 0, networkAttempts: 0, retries: 0, cacheHit: false, deduplicated: false, timedOut: false, circuitOpen: false };
-  const mergeRuntime = (runtime = {}) => {
-    runtimeAggregate.queueWaitMs += Math.max(0, Number(runtime.queueWaitMs) || 0);
-    runtimeAggregate.networkAttempts += Math.max(0, Number(runtime.networkAttempts) || 0);
-    runtimeAggregate.retries += Math.max(0, Number(runtime.retries) || 0);
-    runtimeAggregate.cacheHit ||= Boolean(runtime.cacheHit);
-    runtimeAggregate.deduplicated ||= Boolean(runtime.deduplicated);
-    runtimeAggregate.timedOut ||= Boolean(runtime.timedOut);
-    runtimeAggregate.circuitOpen ||= Boolean(runtime.circuitOpen);
-  };
-  let result = '';
-  let finalModel = modelList[0];
-  let finalError = null;
-  for (const model of modelList) {
-    finalModel = model;
-    const attemptStartedAt = Date.now();
-    emitAiOperation('bes-ai-operation-update', { ...operation, model, phase: 'generate-image' });
-    try {
-      const attachment = privacyResult.options.attachments?.[0] || source;
-      const runtimeResult = await runAiProviderRuntime({
-        operationId: `${operationId}:gemini:${model}`,
-        providerId: 'gemini',
-        model,
-        taskId: aiTaskId,
-        fingerprint: createAiRuntimeFingerprint({
-          providerId: 'gemini',
-          model,
-          taskId: aiTaskId,
-          prompt: privacyResult.options.prompt || prompt,
-          responseMimeType: 'image/png',
-          attachments: [attachment],
-        }),
-        settings: { ...governance.settings.runtime, transientRetries: Math.max(Number(retries) || 0, governance.settings.runtime?.transientRetries || 0) },
-        cacheAllowed: false,
-        classifyError: classifyAiError,
-        onUpdate: (detail) => emitAiOperation('bes-ai-operation-update', { ...operation, ...detail, model, phase: detail.phase || 'generate-image' }),
-        executor: async ({ signal }) => {
-          const response = await fetch(`${cleanBase}/models/${encodeURIComponent(model)}:generateContent`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-            signal,
-            body: JSON.stringify({
-              contents: [{ parts: [
-                { text: privacyResult.options.prompt || prompt },
-                { inlineData: { mimeType: attachment.mimeType || source.mimeType, data: attachment.base64 || source.base64 } },
-              ] }],
-              generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
-            }),
-          });
-          const payload = await response.json().catch(() => ({}));
-          if (!response.ok) {
-            const requestError = new Error(payload?.error?.message || `AI media request failed with status ${response.status}`);
-            requestError.status = response.status;
-            throw requestError;
-          }
-          return payload;
-        },
-      });
-      mergeRuntime(runtimeResult.runtime);
-      const payload = runtimeResult.value;
-      result = extractGeneratedImage(payload);
-      if (!result) throw new Error('The image model returned no image output.');
-      attempts.push({ model, status: 'success', durationMs: Date.now() - attemptStartedAt });
-      finalError = null;
-      break;
-    } catch (error) {
-      finalError = error;
-      attempts.push({
-        model,
-        status: 'error',
-        statusCode: Number(error?.status || 0),
-        error: String(error?.message || error).slice(0, 320),
-        durationMs: Date.now() - attemptStartedAt,
-      });
-    }
-  }
-
-  const durationMs = Date.now() - startedAt;
-  const meta = {
-    operationId,
-    taskId: aiTaskId,
-    engine: 'ai',
-    transport: 'browser-unified',
-    mediaType: 'image',
-    provider: 'gemini',
-    providerName: providerInfo.label || 'Google Gemini',
-    model: finalModel,
-    profile: governance.profileKey,
-    fallbackUsed: attempts.length > 1,
-    attempts,
-    providerCalls: runtimeAggregate.networkAttempts,
-    durationMs,
-    createdAt: new Date().toISOString(),
-    privacy: { ...privacySummary, restored: false },
-    validation: { enabled: true, valid: Boolean(result), kind: 'image', issueCount: result ? 0 : 1, issueCodes: result ? [] : ['missing_image_output'] },
-    runtime: { ...runtimeAggregate, durationMs },
-  };
-
-  if (result && !finalError) {
-    recordAiRequest({
-      provider: meta.providerName,
-      model: meta.model,
-      prompt: privacyResult.options.prompt || prompt,
-      result: `[generated image: ${result.slice(5, 32)}…]`,
-      durationMs,
-      success: true,
-      profile: governance.profileKey,
+  try {
+    const attachment = privacyResult.options.attachments?.[0] || source;
+    const runtimeResult = await runAiProviderRuntime({
+      operationId: `${operationId}:openrouter:${selectedModel}`,
+      providerId: OPENROUTER_ID,
+      model: selectedModel,
       taskId: aiTaskId,
-      transport: meta.transport,
-      operationId,
-      privacy: privacySummary,
-      validation: meta.validation,
-      providerCalls: meta.providerCalls,
-      fallbackUsed: meta.fallbackUsed,
-      attempts,
-      runtime: meta.runtime,
+      fingerprint: createAiRuntimeFingerprint({ providerId: OPENROUTER_ID, model: selectedModel, taskId: aiTaskId, prompt: privacyResult.options.prompt || prompt, responseMimeType: 'image/png', attachments: attachment ? [attachment] : [] }),
+      settings: governance.settings.runtime,
+      cacheAllowed: false,
+      classifyError: classifyAiError,
+      onUpdate: (detail) => emitAiOperation('bes-ai-operation-update', { ...operation, ...detail, phase: detail.phase || 'generate-image' }),
+      executor: async ({ signal }) => {
+        const body = {
+          model: selectedModel,
+          prompt: String(privacyResult.options.prompt || prompt).trim(),
+          n: 1,
+          output_format: 'png',
+        };
+        if (attachment?.dataUrl) {
+          body.input_references = [{ type: 'image_url', image_url: { url: attachment.dataUrl } }];
+        }
+        const response = await fetch(`${cleanBase}/images`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${key}`,
+            'HTTP-Referer': (typeof window !== 'undefined' && window.location?.origin) || 'http://localhost',
+            'X-Title': 'Brian English Studio',
+          },
+          signal,
+          body: JSON.stringify(body),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const requestError = new Error(payload?.error?.message || payload?.message || `OpenRouter image request failed with status ${response.status}`);
+          requestError.status = response.status;
+          throw requestError;
+        }
+        return payload;
+      },
     });
-    if (typeof window !== 'undefined') window.__BES_LAST_AI_META__ = meta;
+    const image = extractOpenRouterImage(runtimeResult.value);
+    if (!image) throw new Error('OpenRouter did not return an image. Check the configured image model.');
+    const durationMs = Date.now() - startedAt;
+    const meta = {
+      operationId,
+      taskId: aiTaskId,
+      engine: 'ai',
+      transport: 'browser-unified',
+      provider: OPENROUTER_ID,
+      providerName: 'OpenRouter',
+      model: selectedModel,
+      durationMs,
+      createdAt: new Date().toISOString(),
+      privacy: { ...privacySummary, restored: false },
+      runtime: { ...runtimeResult.runtime, durationMs },
+      mediaType: 'image',
+    };
+    recordAiRequest({ provider: 'OpenRouter', model: selectedModel, prompt: prompt || '', result: '[IMAGE]', durationMs, success: true, error: '', profile: governance.profileKey, taskId: aiTaskId, transport: meta.transport, operationId, privacy: privacySummary, providerCalls: runtimeResult.runtime.networkAttempts, fallbackUsed: false, attempts: [{ provider: OPENROUTER_ID, model: selectedModel, status: 'success' }], runtime: meta.runtime });
     emitAiOperation('bes-ai-operation-end', { ...operation, ...meta, success: true });
-    return { imageDataUrl: result, meta };
+    return { imageDataUrl: image, text: '', meta };
+  } catch (error) {
+    const durationMs = Date.now() - startedAt;
+    recordAiRequest({ provider: 'OpenRouter', model: selectedModel, prompt: prompt || '', result: '', durationMs, success: false, error: error?.message || String(error), profile: governance.profileKey, taskId: aiTaskId, transport: 'browser-unified', operationId, privacy: privacySummary, providerCalls: 1, fallbackUsed: false, attempts: [{ provider: OPENROUTER_ID, model: selectedModel, status: 'error', error: error?.message || String(error) }] });
+    appendAiAudit({ type: 'media', status: 'error', label: 'OpenRouter image request failed', profile: governance.profileKey, detail: { taskId: aiTaskId, model: selectedModel, error: error?.message || String(error) } });
+    emitAiOperation('bes-ai-operation-end', { ...operation, success: false, durationMs, error: error?.message || String(error) });
+    throw error;
   }
-
-  const error = finalError || new Error('AI image generation failed.');
-  error.code = error.code || 'AI_MEDIA_REQUEST_FAILED';
-  error.attempts = attempts;
-  error.operationId = operationId;
-  error.privacy = privacySummary;
-  recordAiRequest({
-    provider: meta.providerName,
-    model: meta.model,
-    prompt: privacyResult.options.prompt || prompt,
-    result: '',
-    durationMs,
-    success: false,
-    error: error.message,
-    profile: governance.profileKey,
-    taskId: aiTaskId,
-    transport: meta.transport,
-    operationId,
-    privacy: privacySummary,
-    validation: meta.validation,
-    providerCalls: meta.providerCalls || 1,
-    fallbackUsed: meta.fallbackUsed,
-    attempts,
-    runtime: meta.runtime,
-  });
-  emitAiOperation('bes-ai-operation-end', { ...operation, ...meta, success: false, error: error.message });
-  throw error;
 }
