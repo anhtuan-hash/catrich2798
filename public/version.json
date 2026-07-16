@@ -1,14 +1,14 @@
 {
-  "version": "12.39.0",
+  "version": "12.39.1",
   "channel": "stable",
-  "releaseName": "OpenRouter One-Key AI Runtime",
-  "runtimeCore": "8.0.0",
-  "schemaVersion": "12.39.0",
+  "releaseName": "OpenRouter Only Hard Cleanup",
+  "runtimeCore": "8.0.1",
+  "schemaVersion": "12.39.1",
   "requiresSql": true,
   "requiredMigration": "supabase/brian_v12_37_ai_governance_cloud.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-16T03:08:38.381Z",
+  "generatedAt": "2026-07-16T03:25:23.582Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -68,8 +68,8 @@
     "assessment",
     "custom"
   ],
-  "runtime": "8.0.0",
-  "schema": "12.39.0",
+  "runtime": "8.0.1",
+  "schema": "12.39.1",
   "lessonIntegrationNativeAiBridge": true,
   "lessonIntegrationProviderInheritance": true,
   "lessonIntegrationLargeProposalCards": true,
@@ -306,7 +306,7 @@
     "knowledge-hub",
     "resources-hub"
   ],
-  "release": "OpenRouter One-Key AI Runtime",
+  "release": "OpenRouter Only Hard Cleanup",
   "launchCore": true,
   "migratedLaunchApps": [
     "home",
@@ -598,5 +598,8 @@
   "openRouterLegacyConfigMigration": true,
   "openRouterProviderHub": true,
   "multiProviderRuntime": false,
-  "providerFallback": false
+  "providerFallback": false,
+  "appVersion": "12.39.1",
+  "legacyProviderUiRemoved": true,
+  "providerCount": 1
 }

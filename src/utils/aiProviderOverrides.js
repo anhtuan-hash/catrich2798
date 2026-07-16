@@ -52,7 +52,7 @@ function writeStore(key, value) {
 
 function emitSettingsUpdated(detail = {}) {
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return;
-  const payload = { source: 'v12.39.0', provider: OPENROUTER_ID, ...detail };
+  const payload = { source: 'v12.39.1', provider: OPENROUTER_ID, ...detail };
   window.dispatchEvent(new CustomEvent('bes-ai-settings-updated', { detail: payload }));
   window.dispatchEvent(new CustomEvent('bes-ai-routing-updated', { detail: payload }));
 }

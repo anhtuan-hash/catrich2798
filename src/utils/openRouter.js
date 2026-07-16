@@ -252,7 +252,7 @@ export async function callAIWithMeta(options = {}) {
   if (!fallbackEnabled) candidates = candidates.slice(0, 1);
   if (!candidates.length) {
     const error = new Error(privacySummary.forceLocal
-      ? 'Chính sách riêng tư đang yêu cầu xử lý cục bộ, nhưng hệ thống V12.39.0 chỉ sử dụng OpenRouter. Hãy đổi chính sách sang Che dữ liệu hoặc Chặn request.'
+      ? 'Chính sách riêng tư đang yêu cầu xử lý cục bộ, nhưng hệ thống V12.39.1 chỉ sử dụng OpenRouter. Hãy đổi chính sách sang Che dữ liệu hoặc Chặn request.'
       : 'Chưa có OpenRouter API key. Hãy nhập key trong Cài đặt → OpenRouter AI Gateway.');
     error.code = privacySummary.forceLocal ? 'AI_PRIVACY_LOCAL_UNAVAILABLE' : 'OPENROUTER_KEY_REQUIRED';
     error.taskId = registryTaskId;

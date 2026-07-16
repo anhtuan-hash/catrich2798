@@ -1,8 +1,8 @@
 {
-  "version": "12.39.0",
-  "release": "OpenRouter One-Key AI Runtime",
-  "runtime": "8.0.0",
-  "schema": "12.39.0",
+  "version": "12.39.1",
+  "release": "OpenRouter Only Hard Cleanup",
+  "runtime": "8.0.1",
+  "schema": "12.39.1",
   "connectedTeachingSuite": true,
   "lessonArchitectAnnualBuilder": true,
   "curriculumExtraction": true,
@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": true,
-  "generatedAt": "2026-07-16T03:08:38.383Z",
+  "generatedAt": "2026-07-16T03:25:23.583Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -46,8 +46,8 @@
   "grammarBuilder": true,
   "writingStudio": true,
   "pronunciationCoach": true,
-  "runtimeCore": "8.0.0",
-  "schemaVersion": "12.39.0",
+  "runtimeCore": "8.0.1",
+  "schemaVersion": "12.39.1",
   "aiLessonIntegrationStudio": true,
   "englishLessonIntegrationRoute": "#/tool/english-lesson-integration",
   "lessonIntegrationCloudSync": true,
@@ -240,7 +240,7 @@
     "balanced",
     "detailed"
   ],
-  "releaseName": "OpenRouter One-Key AI Runtime",
+  "releaseName": "OpenRouter Only Hard Cleanup",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
@@ -603,5 +603,8 @@
   "openRouterLegacyConfigMigration": true,
   "openRouterProviderHub": true,
   "multiProviderRuntime": false,
-  "providerFallback": false
+  "providerFallback": false,
+  "legacyProviderUiRemoved": true,
+  "providerCount": 1,
+  "appVersion": "12.39.1"
 }
