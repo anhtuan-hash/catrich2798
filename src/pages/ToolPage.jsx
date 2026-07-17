@@ -10,7 +10,7 @@ const PromptStudio = lazy(() => import('./PromptStudio.jsx'));
 const ClassroomGame = lazy(() => import('./ClassroomGame.jsx'));
 const TestBuilder = lazy(() => import('./TestBuilder.jsx'));
 const AITool = lazy(() => import('./AITool.jsx'));
-const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
+const TextLabActivities = lazy(() => import('./TextLabActivitiesWithExternalAI.jsx'));
 const EnglishLessonIntegrationStudio = lazy(() => import('./EnglishLessonIntegrationStudio.jsx'));
 const GrammarBuilder = lazy(() => import('./GrammarBuilder.jsx'));
 const THPTPracticeHub = lazy(() => import('./THPTPracticeHubCloud.jsx'));
