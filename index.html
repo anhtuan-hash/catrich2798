@@ -12,6 +12,7 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/pwa/icon-192.png" />
     <link rel="icon" type="image/png" href="/brian-english-brand-mark.png" />
+    <link rel="stylesheet" href="/src/styles/brian-gesco-global.css" />
     <title>Brian English · Digital Teaching Studio</title>
 
     <script id="bes-auth-route-redirect">
@@ -72,25 +73,11 @@
         }
       })();
     </script>
-    <style id="brian-personal-font-boot">
-      @font-face{font-family:BrianGesco;src:local('1FTV HF Gesco'),local('1FTVHFGesco'),local('1FTV-HF-Gesco'),url('/bes-fonts/brian-personal-font.ttf?v=12.13.0') format('truetype'),url('/fonts/personal-font.ttf?v=12.13.0') format('truetype');font-weight:100 900;font-style:normal;font-display:swap;}
-      html,body,#root{font-family:BrianGesco,'Brian Personal','1FTV HF Gesco',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important;}
-    </style>
-  <meta name="bes-app-version" content="12.13.0">
-  
-  <!-- BES_NATIVE_APPEARANCE_V127_START -->
-  <!-- Appearance is owned by React UI Core. Legacy MutationObserver appearance engine retired. -->
-  <!-- BES_NATIVE_APPEARANCE_V127_END -->
-  
-  <!-- BES_AI_GOVERNANCE_V1165_START -->
-<!-- BES_AI_GOVERNANCE_V1165_END -->
-  
-  <!-- BES_UI_CORE_AI_DOCK_V127_START -->
-<link rel="preload" href="/fonts/personal-font.ttf?v=12.13.0" as="font" type="font/ttf" crossorigin />
-<link rel="stylesheet" href="/bes-fonts/brian-font.css" />
-<!-- React UI Core owns the sole Brian AI Dock; legacy injected dock retired in V12.6. -->
-<!-- BES_UI_CORE_AI_DOCK_V127_END -->
-</head>
+    <meta name="bes-app-version" content="12.40.9-font-global">
+
+    <!-- Appearance is owned by React UI Core. -->
+    <!-- React UI Core owns the sole Brian AI Dock; legacy injected dock retired. -->
+  </head>
   <body>
     <div id="root"></div>
     <script id="bes-boot-watchdog">
@@ -128,5 +115,5 @@
       })();
     </script>
     <script type="module" src="/src/main.jsx"></script>
-</body>
+  </body>
 </html>
