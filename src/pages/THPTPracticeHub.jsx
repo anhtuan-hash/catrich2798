@@ -11,6 +11,8 @@ import {
   updateResourceLibrary,
   upsertResourceCloud,
 } from '../utils/resourceLibrary.js';
+import { applyAccountHtmlFont } from '../utils/htmlFontProfile.js';
+import HtmlFontAccountControl from '../components/HtmlFontAccountControl.jsx';
 import './THPTPracticeHub.css';
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
@@ -127,6 +129,7 @@ export default function THPTPracticeHub({ language = 'vi', currentUser }) {
   const [query, setQuery] = useState('');
   const [activeId, setActiveId] = useState('');
   const [activeHtml, setActiveHtml] = useState('');
+  const [accountFontProfile, setAccountFontProfile] = useState(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState('');
   const [playerBusy, setPlayerBusy] = useState(false);
@@ -195,6 +198,11 @@ export default function THPTPracticeHub({ language = 'vi', currentUser }) {
       });
     return () => { cancelled = true; };
   }, [activeLesson?.cloudId, activeLesson?.id, activeLesson?.updatedAt]);
+
+  const displayedHtml = useMemo(
+    () => applyAccountHtmlFont(activeHtml, accountFontProfile),
+    [activeHtml, accountFontProfile?.dataUrl, accountFontProfile?.item?.id, accountFontProfile?.item?.updatedAt],
+  );
 
   const counts = useMemo(() => ({
     shared: lessons.filter((item) => item.status === 'approved').length,
@@ -399,7 +407,8 @@ export default function THPTPracticeHub({ language = 'vi', currentUser }) {
       const key = lesson.cloudId || lesson.id;
       const html = htmlCacheRef.current.get(key) || await fetchHtml(lesson);
       htmlCacheRef.current.set(key, html);
-      const url = URL.createObjectURL(new Blob([safeStandalonePlayer(lesson.title, html)], { type: HTML_MIME }));
+      const rendered = applyAccountHtmlFont(html, accountFontProfile);
+      const url = URL.createObjectURL(new Blob([safeStandalonePlayer(lesson.title, rendered)], { type: HTML_MIME }));
       window.open(url, '_blank', 'noopener,noreferrer');
       window.setTimeout(() => URL.revokeObjectURL(url), 120000);
     } catch (error) {
@@ -492,12 +501,13 @@ export default function THPTPracticeHub({ language = 'vi', currentUser }) {
       </section>
 
       <section className="thpt-player-card">
+        <HtmlFontAccountControl currentUser={currentUser} language={language} onChange={setAccountFontProfile} />
         <div className="thpt-player-head">
           <div><span>03 · SANDBOXED LIVE PLAYER</span><h2>{activeLesson?.title || (vi ? 'Trình chạy bài học' : 'Lesson player')}</h2></div>
           {activeLesson ? <button type="button" className="thpt-secondary" onClick={() => openInNewTab(activeLesson)} disabled={playerBusy}>{vi ? 'Mở cửa sổ riêng ↗' : 'Open in a new window ↗'}</button> : null}
         </div>
         <div className="thpt-player-shell">
-          {playerBusy ? <div className="thpt-player-empty">{vi ? 'Đang tải bài từ kho học liệu…' : 'Loading the lesson from the resource library…'}</div> : activeLesson && activeHtml ? <iframe key={`${activeLesson.cloudId || activeLesson.id}:${activeLesson.updatedAt}`} title={activeLesson.title} srcDoc={activeHtml} sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads" referrerPolicy="no-referrer" /> : <div className="thpt-player-empty">{vi ? 'Chọn một bài HTML để chạy trực tiếp.' : 'Choose an HTML lesson to run it directly.'}</div>}
+          {playerBusy ? <div className="thpt-player-empty">{vi ? 'Đang tải bài từ kho học liệu…' : 'Loading the lesson from the resource library…'}</div> : activeLesson && displayedHtml ? <iframe key={`${activeLesson.cloudId || activeLesson.id}:${activeLesson.updatedAt}:${accountFontProfile?.item?.id || 'original'}`} title={activeLesson.title} srcDoc={displayedHtml} sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads" referrerPolicy="no-referrer" /> : <div className="thpt-player-empty">{vi ? 'Chọn một bài HTML để chạy trực tiếp.' : 'Choose an HTML lesson to run it directly.'}</div>}
         </div>
       </section>
     </div>
