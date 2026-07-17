@@ -12,6 +12,7 @@ function applyCompatVariables() {
   root.style.setProperty('--macos-route-shift-back', `${(-38 * intensity).toFixed(2)}px`);
   root.style.setProperty('--macos-route-blur', `${(3 * intensity).toFixed(2)}px`);
   root.style.setProperty('--macos-spaces-shift', `${(12 * intensity).toFixed(2)}vw`);
+  root.style.setProperty('--macos-spaces-shift-back', `${(-12 * intensity).toFixed(2)}vw`);
 }
 
 function installStyle() {
@@ -60,7 +61,7 @@ function installStyle() {
       to { opacity:1; transform:translate3d(0,0,0) scale(1); }
     }
     @keyframes besMacRouteSpacesBack {
-      from { opacity:.1; transform:translate3d(calc(-1 * var(--macos-spaces-shift)),0,0) scale(.975); }
+      from { opacity:.1; transform:translate3d(var(--macos-spaces-shift-back),0,0) scale(.975); }
       70% { opacity:1; }
       to { opacity:1; transform:translate3d(0,0,0) scale(1); }
     }
@@ -68,22 +69,26 @@ function installStyle() {
   document.head.appendChild(style);
 }
 
+function setIfChanged(element, name, value) {
+  if (element.style.getPropertyValue(name) !== value) element.style.setProperty(name, value);
+}
+
 function protect(element) {
   if (!(element instanceof Element)) return;
   if (!element.classList.contains('bes-macos-preserve-transform')) {
     const transform = getComputedStyle(element).transform;
     if (transform && transform !== 'none') {
-      element.style.setProperty('--bes-macos-original-transform', transform);
+      setIfChanged(element, '--bes-macos-original-transform', transform);
       element.classList.add('bes-macos-preserve-transform');
     }
   }
   if (element.classList.contains('bes-macos-mission-card')) {
     const index = Number.parseInt(element.style.getPropertyValue('--macos-card-index') || '0', 10) || 0;
-    element.style.setProperty('--macos-card-delay', `${index * 18}ms`);
+    setIfChanged(element, '--macos-card-delay', `${index * 18}ms`);
   }
   if (element.matches('.bes-macos-mission-grid > button')) {
     const index = Number.parseInt(element.style.getPropertyValue('--mission-index') || '0', 10) || 0;
-    element.style.setProperty('--mission-delay', `${index * 22}ms`);
+    setIfChanged(element, '--mission-delay', `${index * 22}ms`);
   }
 }
 
@@ -106,7 +111,7 @@ function boot() {
       mutation.addedNodes.forEach((node) => { if (node instanceof Element) scan(node); });
     });
   });
-  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
