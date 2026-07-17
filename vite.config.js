@@ -1,3 +1,4 @@
+import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -8,6 +9,10 @@ export default defineConfig({
     cssCodeSplit: true,
     sourcemap: false,
     rollupOptions: {
+      input: {
+        app: fileURLToPath(new URL('./index.html', import.meta.url)),
+        auth: fileURLToPath(new URL('./auth.html', import.meta.url)),
+      },
       output: {
         strictExecutionOrder: true,
         // Keep dependencies shared by the app shell out of lazy route chunks.
