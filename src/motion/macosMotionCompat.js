@@ -97,6 +97,40 @@ function scan(root = document) {
   root.querySelectorAll?.(`${SELECTOR},.bes-macos-mission-card,.bes-macos-mission-grid > button`).forEach(protect);
 }
 
+function runLauncherSourceZoom(event) {
+  const root = document.documentElement;
+  if (root.dataset.macosMotion !== 'on' || root.dataset.macosSourceZoom !== 'on' || root.dataset.macosRoute !== 'source-zoom') return;
+  if (document.querySelector('.bes-macos-source-layer')) return;
+  const detail = event.detail || {};
+  const rect = detail.rect || {};
+  const width = Number(rect.w ?? rect.width);
+  const height = Number(rect.h ?? rect.height);
+  const x = Number(rect.x);
+  const y = Number(rect.y);
+  if (![x, y, width, height].every(Number.isFinite) || width < 20 || height < 20) return;
+  const speed = Math.min(1.5, Math.max(.65, Number.parseFloat(getComputedStyle(root).getPropertyValue('--macos-motion-speed')) || 1));
+  const layer = document.createElement('div');
+  layer.className = 'bes-macos-source-layer';
+  layer.setAttribute('aria-hidden', 'true');
+  layer.innerHTML = '<div class="bes-macos-source-backdrop"></div><div class="bes-macos-source-card"><span></span></div>';
+  const card = layer.querySelector('.bes-macos-source-card');
+  card.querySelector('span').textContent = String(detail.label || 'Brian').slice(0, 48);
+  Object.assign(card.style, {
+    left: `${x}px`, top: `${y}px`, width: `${width}px`, height: `${height}px`,
+    borderRadius: '20px', background: detail.color || 'var(--active-app-accent,#315fc4)', color: '#fff',
+  });
+  document.body.appendChild(layer);
+  const duration = Math.round(430 * speed);
+  card.animate([
+    { left: `${x}px`, top: `${y}px`, width: `${width}px`, height: `${height}px`, borderRadius: '20px' },
+    { left: '12px', top: '12px', width: `${innerWidth - 24}px`, height: `${innerHeight - 24}px`, borderRadius: '28px' },
+  ], { duration, easing: 'cubic-bezier(.2,.85,.2,1)', fill: 'forwards' });
+  layer.querySelector('.bes-macos-source-backdrop').animate([{ opacity: 0 }, { opacity: .34 }], { duration: Math.round(duration * .72), fill: 'forwards' });
+  window.setTimeout(() => {
+    layer.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 170, easing: 'ease-out' }).finished.catch(() => {}).finally(() => layer.remove());
+  }, duration);
+}
+
 function boot() {
   applyCompatVariables();
   installStyle();
@@ -105,6 +139,7 @@ function boot() {
     applyCompatVariables();
     window.requestAnimationFrame(() => scan());
   });
+  window.addEventListener('bes-tile-launch', runLauncherSourceZoom);
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.type === 'attributes') protect(mutation.target);
