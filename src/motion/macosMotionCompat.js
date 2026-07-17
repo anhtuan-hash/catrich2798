@@ -75,20 +75,21 @@ function setIfChanged(element, name, value) {
 
 function protect(element) {
   if (!(element instanceof Element)) return;
-  if (!element.classList.contains('bes-macos-preserve-transform')) {
-    const transform = getComputedStyle(element).transform;
-    if (transform && transform !== 'none') {
-      setIfChanged(element, '--bes-macos-original-transform', transform);
-      element.classList.add('bes-macos-preserve-transform');
-    }
-  }
-  if (element.classList.contains('bes-macos-mission-card')) {
+  const missionCard = element.classList.contains('bes-macos-mission-card');
+  const missionTile = element.matches('.bes-macos-mission-grid > button');
+  if (missionCard) {
     const index = Number.parseInt(element.style.getPropertyValue('--macos-card-index') || '0', 10) || 0;
     setIfChanged(element, '--macos-card-delay', `${index * 18}ms`);
   }
-  if (element.matches('.bes-macos-mission-grid > button')) {
+  if (missionTile) {
     const index = Number.parseInt(element.style.getPropertyValue('--mission-index') || '0', 10) || 0;
     setIfChanged(element, '--mission-delay', `${index * 22}ms`);
+  }
+  if (missionCard || missionTile || element.classList.contains('bes-macos-preserve-transform')) return;
+  const transform = getComputedStyle(element).transform;
+  if (transform && transform !== 'none') {
+    setIfChanged(element, '--bes-macos-original-transform', transform);
+    element.classList.add('bes-macos-preserve-transform');
   }
 }
 
