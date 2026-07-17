@@ -1,5 +1,6 @@
 import React from 'react';
 import StatusMenuBar from '../../components/StatusMenuBar.jsx';
+import GlobalChatbotDock from '../../components/GlobalChatbotDock.jsx';
 import GlobalFlatNavigation from '../../components/GlobalFlatNavigation.jsx';
 import WorkspaceTabs from '../../components/WorkspaceTabs.jsx';
 import AppErrorBoundary from '../../components/AppErrorBoundary.jsx';
@@ -47,6 +48,7 @@ export default function UnifiedShellChrome({
             language={language}
             activityCenterOwned
           />
+          <GlobalChatbotDock currentUser={currentUser} language={language} />
           <UIActivityCenter
             currentUser={currentUser}
             route={route}
