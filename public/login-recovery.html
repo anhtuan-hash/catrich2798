@@ -23,16 +23,16 @@
     <h1>Đang khôi phục đăng nhập</h1>
     <p>Trang này xoá cache giao diện Brian và huỷ Service Worker cũ. Tài khoản, dữ liệu Supabase và tài liệu của bạn không bị xoá.</p>
     <div id="status" role="status">Đang làm sạch phiên trình duyệt…</div>
-    <button id="retry" type="button" hidden>Mở lại đăng nhập</button>
+    <button id="retry" type="button" hidden>Mở trang đăng nhập riêng</button>
   </main>
   <script>
     (async () => {
       const status = document.getElementById('status');
       const retry = document.getElementById('retry');
       const goLogin = () => {
-        const url = new URL('/', location.origin);
-        url.searchParams.set('loginRecovery', String(Date.now()));
-        url.hash = '#/login';
+        const url = new URL('/auth.html', location.origin);
+        url.searchParams.set('mode', 'login');
+        url.searchParams.set('recovered', String(Date.now()));
         location.replace(url.toString());
       };
       retry.addEventListener('click', goLogin);
@@ -52,7 +52,7 @@
           sessionStorage.removeItem('bes-ui-recovery-reload-v10832');
           sessionStorage.removeItem('bes-vite-preload-recovery-v1086');
         } catch {}
-        status.textContent = 'Đã làm sạch. Đang mở trang đăng nhập…';
+        status.textContent = 'Đã làm sạch. Đang mở trang đăng nhập riêng…';
         setTimeout(goLogin, 500);
       } catch (error) {
         status.textContent = 'Không thể tự động làm sạch hoàn toàn. Hãy bấm nút bên dưới.';
