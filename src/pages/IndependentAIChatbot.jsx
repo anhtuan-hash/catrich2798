@@ -1,26 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './IndependentAIChatbot.css';
-
-const STORAGE_KEY = 'brian-independent-ai-chatbot-url';
-
-function readConfiguredUrl() {
-  try {
-    const saved = window.localStorage.getItem(STORAGE_KEY)?.trim();
-    if (saved) return saved;
-  } catch {
-    // Local storage may be unavailable in private or restricted browsing modes.
-  }
-  return String(import.meta.env?.VITE_INDEPENDENT_CHATBOT_URL || '').trim();
-}
-
-function normalizeUrl(value) {
-  const raw = String(value || '').trim();
-  if (!raw) throw new Error('empty');
-  const withProtocol = /^[a-z][a-z\d+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`;
-  const parsed = new URL(withProtocol);
-  if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('protocol');
-  return parsed.toString();
-}
+import { isAdminRole } from '../utils/roles.js';
+import {
+  clearSharedChatbotSettings,
+  loadSharedChatbotSettings,
+  readChatbotSettingsLocal,
+  saveSharedChatbotSettings,
+  subscribeSharedChatbotSettings,
+} from '../utils/independentChatbotSettings.js';
 
 function getHostname(value) {
   try {
@@ -30,17 +17,47 @@ function getHostname(value) {
   }
 }
 
-export default function IndependentAIChatbot({ language = 'vi' }) {
+export default function IndependentAIChatbot({ language = 'vi', currentUser = null }) {
   const vi = language === 'vi';
-  const initialUrl = useMemo(() => readConfiguredUrl(), []);
+  const admin = isAdminRole(currentUser?.role);
   const frameShellRef = useRef(null);
-  const [chatbotUrl, setChatbotUrl] = useState(initialUrl);
-  const [draftUrl, setDraftUrl] = useState(initialUrl);
-  const [editing, setEditing] = useState(!initialUrl);
+  const [settings, setSettings] = useState(() => readChatbotSettingsLocal());
+  const [draftUrl, setDraftUrl] = useState(() => readChatbotSettingsLocal().url);
+  const [editing, setEditing] = useState(false);
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [frameKey, setFrameKey] = useState(0);
-  const [loading, setLoading] = useState(Boolean(initialUrl));
+  const [loading, setLoading] = useState(Boolean(settings.url));
   const [slowLoad, setSlowLoad] = useState(false);
   const [message, setMessage] = useState('');
+
+  const chatbotUrl = settings.url;
+
+  useEffect(() => {
+    let active = true;
+    setSettingsLoading(true);
+    const apply = (next) => {
+      if (!active) return;
+      setSettings(next);
+      setDraftUrl(next.url || '');
+      setLoading(Boolean(next.url));
+      setFrameKey((current) => current + 1);
+    };
+    const unsubscribe = subscribeSharedChatbotSettings(currentUser, apply);
+    loadSharedChatbotSettings(currentUser)
+      .then((next) => {
+        apply(next);
+        if (active && admin && !next.url) setEditing(true);
+      })
+      .catch((error) => {
+        if (active) setMessage(vi ? `Không thể đọc cấu hình chatbot dùng chung: ${error.message || error}` : `Could not load shared chatbot settings: ${error.message || error}`);
+      })
+      .finally(() => { if (active) setSettingsLoading(false); });
+    return () => {
+      active = false;
+      unsubscribe?.();
+    };
+  }, [currentUser?.id, currentUser?.email, currentUser?.role, currentUser?.provider]);
 
   useEffect(() => {
     if (!loading) return undefined;
@@ -49,39 +66,50 @@ export default function IndependentAIChatbot({ language = 'vi' }) {
     return () => window.clearTimeout(timer);
   }, [loading, frameKey, chatbotUrl]);
 
-  const saveUrl = (event) => {
+  const saveUrl = async (event) => {
     event.preventDefault();
+    if (!admin || saving) return;
+    setSaving(true);
+    setMessage('');
     try {
-      const normalized = normalizeUrl(draftUrl);
-      try {
-        window.localStorage.setItem(STORAGE_KEY, normalized);
-      } catch {
-        // The active session still works when persistent storage is unavailable.
-      }
-      setChatbotUrl(normalized);
-      setDraftUrl(normalized);
+      const result = await saveSharedChatbotSettings(currentUser, draftUrl);
+      setSettings(result.settings);
+      setDraftUrl(result.settings.url);
       setEditing(false);
       setLoading(true);
       setSlowLoad(false);
       setFrameKey((current) => current + 1);
-      setMessage(vi ? 'Đã lưu website chatbot độc lập.' : 'Independent chatbot website saved.');
-    } catch {
-      setMessage(vi ? 'Hãy nhập một địa chỉ website hợp lệ bắt đầu bằng http:// hoặc https://.' : 'Enter a valid website address beginning with http:// or https://.');
+      setMessage(result.cloud
+        ? (vi ? 'Đã lưu website chatbot dùng chung cho toàn bộ giáo viên.' : 'Shared chatbot website saved for all teachers.')
+        : (vi ? 'Đã lưu cấu hình trên thiết bị này. Cần Supabase để đồng bộ giữa các tài khoản.' : 'Saved on this device. Supabase is required for cross-account sync.'));
+    } catch (error) {
+      const detail = String(error?.message || error || '');
+      setMessage(vi
+        ? `Không thể lưu cấu hình dùng chung. Hãy bảo đảm đã chạy file supabase/brian_shared_chatbot_settings.sql. ${detail}`
+        : `Could not save shared settings. Make sure supabase/brian_shared_chatbot_settings.sql has been applied. ${detail}`);
+    } finally {
+      setSaving(false);
     }
   };
 
-  const removeUrl = () => {
+  const removeUrl = async () => {
+    if (!admin || saving) return;
+    if (!window.confirm(vi ? 'Xoá website chatbot dùng chung cho tất cả giáo viên?' : 'Remove the shared chatbot website for every teacher?')) return;
+    setSaving(true);
+    setMessage('');
     try {
-      window.localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // Ignore storage errors and clear the active session.
+      const result = await clearSharedChatbotSettings(currentUser);
+      setSettings(result.settings);
+      setDraftUrl('');
+      setEditing(true);
+      setLoading(false);
+      setSlowLoad(false);
+      setMessage(vi ? 'Đã xoá cấu hình chatbot dùng chung.' : 'Shared chatbot configuration removed.');
+    } catch (error) {
+      setMessage(vi ? `Không thể xoá cấu hình dùng chung: ${error.message || error}` : `Could not remove shared settings: ${error.message || error}`);
+    } finally {
+      setSaving(false);
     }
-    setChatbotUrl('');
-    setDraftUrl('');
-    setEditing(true);
-    setLoading(false);
-    setSlowLoad(false);
-    setMessage(vi ? 'Đã xoá cấu hình chatbot khỏi trình duyệt này.' : 'Chatbot configuration removed from this browser.');
   };
 
   const reloadFrame = () => {
@@ -109,30 +137,30 @@ export default function IndependentAIChatbot({ language = 'vi' }) {
     <div className="independent-chatbot-page">
       <section className="independent-chatbot-hero">
         <div className="independent-chatbot-title">
-          <span className="independent-chatbot-kicker">INDEPENDENT AI APP</span>
-          <h1>{vi ? 'Chatbot AI độc lập' : 'Independent AI Chatbot'}</h1>
+          <span className="independent-chatbot-kicker">SHARED INDEPENDENT AI APP</span>
+          <h1>{vi ? 'Chatbot AI đa nền tảng' : 'Cross-platform AI Chatbot'}</h1>
           <p>
             {vi
-              ? 'Website chatbot chạy trong vùng riêng, không sử dụng API key, lịch sử trò chuyện hay cơ chế AI của Brian.'
-              : 'The chatbot website runs in its own isolated area without using Brian’s API key, chat history or AI gateway.'}
+              ? 'Quản trị viên chọn website chatbot dùng chung. Giáo viên chỉ sử dụng cấu hình đã được quản trị viên phê duyệt.'
+              : 'An administrator selects the shared chatbot website. Teachers only use the administrator-approved configuration.'}
           </p>
         </div>
         <div className="independent-chatbot-badges" aria-label={vi ? 'Trạng thái tích hợp' : 'Integration status'}>
           <span><b>01</b>{vi ? 'Website riêng' : 'Separate website'}</span>
-          <span><b>02</b>{vi ? 'API riêng' : 'Separate API'}</span>
-          <span><b>03</b>{vi ? 'Dữ liệu riêng' : 'Separate data'}</span>
+          <span><b>02</b>{vi ? 'Cấu hình dùng chung' : 'Shared configuration'}</span>
+          <span><b>03</b>{admin ? (vi ? 'Admin quản lý' : 'Admin managed') : (vi ? 'Giáo viên sử dụng' : 'Teacher access')}</span>
         </div>
       </section>
 
-      {editing ? (
+      {admin && editing ? (
         <form className="independent-chatbot-config" onSubmit={saveUrl}>
           <div className="independent-chatbot-config-copy">
-            <span>{vi ? 'CẤU HÌNH MỘT LẦN' : 'ONE-TIME SETUP'}</span>
-            <h2>{vi ? 'Dán địa chỉ website chatbot' : 'Paste the chatbot website address'}</h2>
+            <span>{vi ? 'CHỈ TÀI KHOẢN QUẢN TRỊ' : 'ADMINISTRATORS ONLY'}</span>
+            <h2>{vi ? 'Cấu hình website chatbot dùng chung' : 'Configure the shared chatbot website'}</h2>
             <p>
               {vi
-                ? 'Brian chỉ lưu URL trên trình duyệt này. Chatbot vẫn đăng nhập, lưu dữ liệu và gọi AI bằng hệ thống của chính nó.'
-                : 'Brian stores only the URL in this browser. The chatbot keeps its own login, data and AI requests.'}
+                ? 'URL được đồng bộ qua Supabase. Mọi tài khoản giáo viên sẽ tự nhận đúng website này và không có quyền thay đổi.'
+                : 'The URL is synchronized through Supabase. Every teacher account receives this website and cannot change it.'}
             </p>
           </div>
           <div className="independent-chatbot-config-fields">
@@ -146,33 +174,46 @@ export default function IndependentAIChatbot({ language = 'vi' }) {
                 inputMode="url"
                 autoComplete="url"
                 spellCheck="false"
+                disabled={saving}
               />
-              <button type="submit" className="independent-chatbot-primary">
-                {chatbotUrl ? (vi ? 'Lưu & tải lại' : 'Save & reload') : (vi ? 'Kết nối chatbot' : 'Connect chatbot')}
+              <button type="submit" className="independent-chatbot-primary" disabled={saving}>
+                {saving ? (vi ? 'Đang lưu…' : 'Saving…') : chatbotUrl ? (vi ? 'Lưu cho toàn hệ thống' : 'Save for everyone') : (vi ? 'Kết nối chatbot' : 'Connect chatbot')}
               </button>
             </div>
             <div className="independent-chatbot-config-actions">
-              {chatbotUrl ? <button type="button" onClick={() => setEditing(false)}>{vi ? 'Huỷ' : 'Cancel'}</button> : null}
-              {chatbotUrl ? <button type="button" className="danger" onClick={removeUrl}>{vi ? 'Xoá cấu hình' : 'Remove configuration'}</button> : null}
+              {chatbotUrl ? <button type="button" disabled={saving} onClick={() => { setDraftUrl(chatbotUrl); setEditing(false); }}>{vi ? 'Huỷ' : 'Cancel'}</button> : null}
+              {chatbotUrl ? <button type="button" disabled={saving} className="danger" onClick={removeUrl}>{vi ? 'Xoá cấu hình dùng chung' : 'Remove shared configuration'}</button> : null}
             </div>
           </div>
         </form>
       ) : null}
 
+      {!admin && chatbotUrl ? (
+        <div className="independent-chatbot-message" role="status">
+          {vi ? 'Cấu hình này do tài khoản quản trị quản lý. Tài khoản giáo viên chỉ có quyền sử dụng chatbot.' : 'This configuration is managed by an administrator. Teacher accounts can only use the chatbot.'}
+        </div>
+      ) : null}
+
       {message ? <p className="independent-chatbot-message" role="status">{message}</p> : null}
 
-      {chatbotUrl ? (
+      {settingsLoading ? (
+        <section className="independent-chatbot-empty">
+          <div className="independent-chatbot-empty-icon">AI</div>
+          <h2>{vi ? 'Đang đọc cấu hình quản trị…' : 'Loading administrator settings…'}</h2>
+          <p>{vi ? 'Brian đang đồng bộ website chatbot dùng chung.' : 'Brian is synchronizing the shared chatbot website.'}</p>
+        </section>
+      ) : chatbotUrl ? (
         <section className="independent-chatbot-workspace">
           <header className="independent-chatbot-toolbar">
             <div className="independent-chatbot-site">
               <span className="independent-chatbot-live-dot" aria-hidden="true" />
               <div>
-                <small>{vi ? 'ĐANG NHÚNG WEBSITE' : 'EMBEDDED WEBSITE'}</small>
+                <small>{vi ? 'CHATBOT DÙNG CHUNG' : 'SHARED CHATBOT'}</small>
                 <strong>{getHostname(chatbotUrl)}</strong>
               </div>
             </div>
             <div className="independent-chatbot-toolbar-actions">
-              <button type="button" onClick={() => { setDraftUrl(chatbotUrl); setEditing(true); }}>{vi ? 'Đổi website' : 'Change website'}</button>
+              {admin ? <button type="button" onClick={() => { setDraftUrl(chatbotUrl); setEditing(true); }}>{vi ? 'Cấu hình website' : 'Configure website'}</button> : null}
               <button type="button" onClick={reloadFrame}>{vi ? 'Tải lại' : 'Reload'}</button>
               <button type="button" onClick={openFullscreen}>{vi ? 'Toàn màn hình' : 'Full screen'}</button>
               <button type="button" className="independent-chatbot-open" onClick={openExternal}>{vi ? 'Mở cửa sổ riêng ↗' : 'Open separately ↗'}</button>
@@ -190,7 +231,7 @@ export default function IndependentAIChatbot({ language = 'vi' }) {
 
             <iframe
               key={`${chatbotUrl}-${frameKey}`}
-              title={vi ? 'Website Chatbot AI độc lập' : 'Independent AI chatbot website'}
+              title={vi ? 'Website Chatbot AI đa nền tảng' : 'Cross-platform AI chatbot website'}
               src={chatbotUrl}
               allow="microphone; camera; clipboard-read; clipboard-write; fullscreen; autoplay"
               sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-downloads allow-modals allow-presentation"
@@ -201,7 +242,7 @@ export default function IndependentAIChatbot({ language = 'vi' }) {
             {slowLoad ? (
               <div className="independent-chatbot-slow">
                 <strong>{vi ? 'Website tải lâu hoặc chặn iframe' : 'The website is slow or may block iframe embedding'}</strong>
-                <p>{vi ? 'Một số chatbot chỉ cho phép mở ở cửa sổ riêng. Nội dung và tài khoản của chatbot vẫn không liên kết với Brian.' : 'Some chatbot sites only allow a separate window. Its content and account remain disconnected from Brian.'}</p>
+                <p>{vi ? 'Một số chatbot chỉ cho phép mở ở cửa sổ riêng. Hãy dùng nút bên dưới để tiếp tục.' : 'Some chatbot sites only allow a separate window. Use the button below to continue.'}</p>
                 <button type="button" onClick={openExternal}>{vi ? 'Mở website chatbot ↗' : 'Open chatbot website ↗'}</button>
               </div>
             ) : null}
@@ -211,16 +252,18 @@ export default function IndependentAIChatbot({ language = 'vi' }) {
             <span>i</span>
             <p>
               {vi
-                ? 'Nếu màn hình trắng hoặc báo “refused to connect”, website chatbot đang chặn iframe bằng X-Frame-Options hoặc Content-Security-Policy. Khi đó hãy dùng nút “Mở cửa sổ riêng” hoặc cho phép tên miền Brian trong cấu hình của chatbot.'
-                : 'A blank screen or “refused to connect” means the chatbot blocks iframe embedding through X-Frame-Options or Content-Security-Policy. Use “Open separately” or allow Brian’s domain in the chatbot configuration.'}
+                ? 'Brian đồng bộ URL do quản trị viên thiết lập. Phiên đăng nhập bên trong website chatbot vẫn do chính website đó quản lý theo giới hạn bảo mật của trình duyệt.'
+                : 'Brian synchronizes the administrator-selected URL. Sign-in sessions inside the chatbot website remain controlled by that website under browser security rules.'}
             </p>
           </footer>
         </section>
       ) : (
         <section className="independent-chatbot-empty">
           <div className="independent-chatbot-empty-icon">AI</div>
-          <h2>{vi ? 'Chưa có website chatbot' : 'No chatbot website configured'}</h2>
-          <p>{vi ? 'Nhập URL ở khung cấu hình để biến chatbot thành một ứng dụng riêng trong Brian.' : 'Enter a URL above to turn the chatbot into a separate app inside Brian.'}</p>
+          <h2>{admin ? (vi ? 'Chưa có website chatbot' : 'No chatbot website configured') : (vi ? 'Quản trị viên chưa cấu hình chatbot' : 'The administrator has not configured the chatbot')}</h2>
+          <p>{admin
+            ? (vi ? 'Nhập URL ở khung cấu hình để cấp chatbot dùng chung cho giáo viên.' : 'Enter a URL above to provide a shared chatbot for teachers.')
+            : (vi ? 'Tài khoản giáo viên không thể tự thêm hoặc đổi website. Hãy liên hệ quản trị viên.' : 'Teacher accounts cannot add or change the website. Contact an administrator.')}</p>
         </section>
       )}
     </div>
