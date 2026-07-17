@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   loadAccountHtmlFont,
   MAX_ACCOUNT_FONT_SIZE,
-  removeAccountHtmlFont,
+  removeAllAccountHtmlFonts,
   uploadAccountHtmlFont,
 } from '../utils/htmlFontProfile.js';
 import './HtmlFontAccountControl.css';
@@ -71,7 +71,7 @@ export default function HtmlFontAccountControl({ currentUser, language = 'vi', o
     setBusy('remove');
     setMessage('');
     try {
-      await removeAccountHtmlFont(profile.item);
+      await removeAllAccountHtmlFonts();
       publish(null);
       setMessage(vi ? 'Đã xoá font khỏi tài khoản. Các bài sẽ dùng font gốc.' : 'The account font was removed. Lessons now use their original fonts.');
     } catch (error) {
