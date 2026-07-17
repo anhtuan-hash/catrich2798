@@ -20,7 +20,7 @@ function isHubLesson(item) {
 async function syncRoleAwareCatalog() {
   const token = await getAccessToken();
   if (!token) return { ok: false, reason: 'auth' };
-  const response = await fetch('/api/thpt-html-lessons', {
+  const response = await fetch('/api/resource-sync?scope=thpt-html-lessons', {
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',
   });
