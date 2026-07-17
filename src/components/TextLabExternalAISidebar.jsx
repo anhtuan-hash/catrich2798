@@ -2,14 +2,15 @@ import React, { useEffect, useMemo, useState } from 'react';
 import './TextLabExternalAISidebar.css';
 
 const START_URL = 'brian://start';
-const SESSION_KEY = 'bes-textlab-internet-browser-v2';
+const SESSION_KEY = 'bes-textlab-internet-browser-v3';
 const MAX_TABS = 6;
 const MAX_RECENT = 30;
+const MAX_READER_CHARS = 450000;
 
 const SEARCH_ENGINES = Object.freeze({
   duckduckgo: {
     label: 'DuckDuckGo',
-    build: (query) => `https://duckduckgo.com/?q=${encodeURIComponent(query)}`,
+    build: (query) => `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`,
   },
   bing: {
     label: 'Bing',
@@ -32,12 +33,21 @@ const SHORTCUTS = Object.freeze([
   { id: 'drive', name: 'Google Drive', url: 'https://drive.google.com/', mark: 'D', tone: 'yellow' },
 ]);
 
+const EXTERNAL_ONLY_HOSTS = Object.freeze([
+  'chatgpt.com',
+  'gemini.google.com',
+  'drive.google.com',
+  'docs.google.com',
+  'accounts.google.com',
+  'canva.com',
+]);
+
 function makeId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   return `tab-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function createTab(url = START_URL, title = 'Trang mới') {
+function createTab(url = START_URL, title = 'Trang mới', mode = 'reader') {
   return {
     id: makeId(),
     title,
@@ -45,6 +55,7 @@ function createTab(url = START_URL, title = 'Trang mới') {
     index: 0,
     reloadKey: 0,
     loading: url !== START_URL,
+    mode,
   };
 }
 
@@ -61,6 +72,16 @@ function inferTitle(url, fallback = '') {
   if (url === START_URL) return fallback || 'Trang mới';
   const shortcut = SHORTCUTS.find((item) => url.startsWith(item.url));
   return shortcut?.name || safeHostname(url) || fallback || 'Website';
+}
+
+function isExternalOnly(url) {
+  if (url === START_URL) return false;
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return EXTERNAL_ONLY_HOSTS.some((host) => hostname === host || hostname.endsWith(`.${host}`));
+  } catch {
+    return false;
+  }
 }
 
 function resolveInput(value, engineId) {
@@ -95,14 +116,18 @@ function readSession() {
   try {
     const parsed = JSON.parse(window.localStorage.getItem(SESSION_KEY) || 'null');
     if (!parsed || !Array.isArray(parsed.tabs) || !parsed.tabs.length) throw new Error('empty');
-    const tabs = parsed.tabs.slice(0, MAX_TABS).map((tab) => ({
-      id: String(tab.id || makeId()),
-      title: String(tab.title || 'Website').slice(0, 80),
-      history: Array.isArray(tab.history) && tab.history.length ? tab.history.slice(-40) : [START_URL],
-      index: Math.max(0, Math.min(Number(tab.index || 0), Math.max(0, (tab.history?.length || 1) - 1))),
-      reloadKey: 0,
-      loading: false,
-    }));
+    const tabs = parsed.tabs.slice(0, MAX_TABS).map((tab) => {
+      const history = Array.isArray(tab.history) && tab.history.length ? tab.history.slice(-40) : [START_URL];
+      return {
+        id: String(tab.id || makeId()),
+        title: String(tab.title || 'Website').slice(0, 80),
+        history,
+        index: Math.max(0, Math.min(Number(tab.index || 0), Math.max(0, history.length - 1))),
+        reloadKey: 0,
+        loading: false,
+        mode: tab.mode === 'original' ? 'original' : 'reader',
+      };
+    });
     return {
       tabs,
       activeTabId: tabs.some((tab) => tab.id === parsed.activeTabId) ? parsed.activeTabId : tabs[0].id,
@@ -122,6 +147,78 @@ function BrowserMark({ url }) {
   return <span className={`textlab-browser-mark ${shortcut?.tone || 'web'}`} aria-hidden="true">{shortcut?.mark || '◉'}</span>;
 }
 
+function renderInline(value, onNavigate) {
+  const text = String(value || '');
+  const pattern = /(\[[^\]]+\]\(https?:\/\/[^)]+\)|https?:\/\/[^\s<>)]+)/g;
+  const parts = text.split(pattern).filter(Boolean);
+  return parts.map((part, index) => {
+    const markdown = part.match(/^\[([^\]]+)\]\((https?:\/\/[^)]+)\)$/);
+    const rawUrl = /^https?:\/\//i.test(part) ? part.replace(/[.,;:!?]+$/, '') : '';
+    if (!markdown && !rawUrl) return <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>;
+    const label = markdown?.[1] || rawUrl;
+    const url = markdown?.[2] || rawUrl;
+    return (
+      <a
+        key={`${url}-${index}`}
+        href={url}
+        onClick={(event) => {
+          event.preventDefault();
+          onNavigate(url);
+        }}
+      >
+        {label}
+      </a>
+    );
+  });
+}
+
+function ReaderDocument({ text, onNavigate }) {
+  const lines = useMemo(() => {
+    const raw = String(text || '').replace(/^---[\s\S]*?---\s*/m, '').split(/\r?\n/);
+    return raw.slice(0, 2600);
+  }, [text]);
+
+  return (
+    <article className="textlab-reader-document">
+      {lines.map((line, index) => {
+        const trimmed = line.trim();
+        if (!trimmed) return <div className="reader-spacer" key={`space-${index}`} />;
+        if (/^!\[[^\]]*\]\([^)]*\)$/.test(trimmed)) return null;
+        const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
+        if (heading) {
+          const level = Math.min(6, heading[1].length + 1);
+          return React.createElement(`h${level}`, { key: `h-${index}` }, renderInline(heading[2], onNavigate));
+        }
+        const bullet = trimmed.match(/^[-*+]\s+(.+)$/);
+        if (bullet) return <div className="reader-bullet" key={`b-${index}`}><span>•</span><p>{renderInline(bullet[1], onNavigate)}</p></div>;
+        const ordered = trimmed.match(/^(\d+)[.)]\s+(.+)$/);
+        if (ordered) return <div className="reader-bullet" key={`o-${index}`}><span>{ordered[1]}.</span><p>{renderInline(ordered[2], onNavigate)}</p></div>;
+        if (/^>\s?/.test(trimmed)) return <blockquote key={`q-${index}`}>{renderInline(trimmed.replace(/^>\s?/, ''), onNavigate)}</blockquote>;
+        if (/^```/.test(trimmed)) return null;
+        if (/^(Title|URL Source|Published Time|Markdown Content):/i.test(trimmed)) {
+          const [label, ...rest] = trimmed.split(':');
+          return <p className="reader-meta" key={`m-${index}`}><strong>{label}:</strong>{renderInline(rest.join(':').trim(), onNavigate)}</p>;
+        }
+        return <p key={`p-${index}`}>{renderInline(trimmed, onNavigate)}</p>;
+      })}
+    </article>
+  );
+}
+
+function ExternalOnlyView({ url, title, vi }) {
+  return (
+    <section className="textlab-browser-external-only">
+      <BrowserMark url={url} />
+      <h2>{title || inferTitle(url)}</h2>
+      <p>{vi
+        ? 'Website này cần đăng nhập hoặc tương tác trực tiếp và không cho phép chạy an toàn bên trong Brian.'
+        : 'This website requires direct sign-in or interaction and cannot run safely inside Brian.'}</p>
+      <button type="button" onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}>{vi ? 'Mở website trong cửa sổ riêng' : 'Open website separately'} ↗</button>
+      <small>{safeHostname(url)}</small>
+    </section>
+  );
+}
+
 export default function TextLabExternalAISidebar({ language = 'vi', open = true, onToggle }) {
   const vi = language === 'vi';
   const initial = useMemo(readSession, []);
@@ -133,13 +230,16 @@ export default function TextLabExternalAISidebar({ language = 'vi', open = true,
   const [address, setAddress] = useState('');
   const [showPanel, setShowPanel] = useState('');
   const [notice, setNotice] = useState('');
+  const [readerCache, setReaderCache] = useState({});
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId) || tabs[0];
   const currentUrl = activeTab?.history?.[activeTab.index] || START_URL;
   const isStart = currentUrl === START_URL;
+  const externalOnly = isExternalOnly(currentUrl);
   const canGoBack = Boolean(activeTab && activeTab.index > 0);
   const canGoForward = Boolean(activeTab && activeTab.index < activeTab.history.length - 1);
   const isBookmarked = bookmarks.some((item) => item.url === currentUrl);
+  const readerState = readerCache[activeTabId] || { status: 'idle', text: '', error: '' };
 
   useEffect(() => {
     setAddress(isStart ? '' : currentUrl);
@@ -152,6 +252,35 @@ export default function TextLabExternalAISidebar({ language = 'vi', open = true,
       // Browser state remains available for the current session.
     }
   }, [tabs, activeTabId, bookmarks, recent, engine]);
+
+  useEffect(() => {
+    if (!activeTab || isStart || activeTab.mode !== 'reader' || externalOnly) return undefined;
+    const controller = new AbortController();
+    setReaderCache((current) => ({ ...current, [activeTabId]: { status: 'loading', text: '', error: '' } }));
+    const readerUrl = `https://r.jina.ai/${currentUrl}`;
+    fetch(readerUrl, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Reader HTTP ${response.status}`);
+        return response.text();
+      })
+      .then((text) => {
+        const clean = String(text || '').slice(0, MAX_READER_CHARS);
+        if (!clean.trim()) throw new Error('Reader returned empty content');
+        setReaderCache((current) => ({ ...current, [activeTabId]: { status: 'ready', text: clean, error: '' } }));
+      })
+      .catch((error) => {
+        if (error?.name === 'AbortError') return;
+        setReaderCache((current) => ({
+          ...current,
+          [activeTabId]: {
+            status: 'error',
+            text: '',
+            error: error?.message || 'Reader failed',
+          },
+        }));
+      });
+    return () => controller.abort();
+  }, [activeTabId, activeTab?.reloadKey, activeTab?.mode, currentUrl, externalOnly, isStart]);
 
   const flash = (message) => {
     setNotice(message);
@@ -187,6 +316,7 @@ export default function TextLabExternalAISidebar({ language = 'vi', open = true,
         index: history.length - 1,
         reloadKey: tab.reloadKey + 1,
         loading: resolved.url !== START_URL,
+        mode: options.mode || 'reader',
       };
     });
     addRecent(resolved.url, resolved.title);
@@ -200,7 +330,7 @@ export default function TextLabExternalAISidebar({ language = 'vi', open = true,
     }
     const resolved = value === START_URL ? { url: START_URL, title } : resolveInput(value, engine);
     if (resolved.error) return;
-    const tab = createTab(resolved.url, resolved.title || title);
+    const tab = createTab(resolved.url, resolved.title || title, 'reader');
     setTabs((current) => [...current, tab]);
     setActiveTabId(tab.id);
     addRecent(resolved.url, resolved.title);
@@ -231,12 +361,12 @@ export default function TextLabExternalAISidebar({ language = 'vi', open = true,
 
   const goBack = () => {
     if (!canGoBack) return;
-    updateTab(activeTabId, (tab) => ({ ...tab, index: tab.index - 1, reloadKey: tab.reloadKey + 1, loading: tab.history[tab.index - 1] !== START_URL }));
+    updateTab(activeTabId, (tab) => ({ ...tab, index: tab.index - 1, reloadKey: tab.reloadKey + 1, loading: true }));
   };
 
   const goForward = () => {
     if (!canGoForward) return;
-    updateTab(activeTabId, (tab) => ({ ...tab, index: tab.index + 1, reloadKey: tab.reloadKey + 1, loading: tab.history[tab.index + 1] !== START_URL }));
+    updateTab(activeTabId, (tab) => ({ ...tab, index: tab.index + 1, reloadKey: tab.reloadKey + 1, loading: true }));
   };
 
   const reload = () => {
@@ -245,6 +375,10 @@ export default function TextLabExternalAISidebar({ language = 'vi', open = true,
   };
 
   const goHome = () => navigate(START_URL, { resolved: { url: START_URL, title: 'Trang mới' } });
+
+  const setMode = (mode) => {
+    updateTab(activeTabId, (tab) => ({ ...tab, mode, reloadKey: tab.reloadKey + 1, loading: mode === 'original' }));
+  };
 
   const toggleBookmark = () => {
     if (isStart) return;
@@ -262,7 +396,7 @@ export default function TextLabExternalAISidebar({ language = 'vi', open = true,
     else navigate(item.url, { resolved: { url: item.url, title: item.title || inferTitle(item.url) } });
   };
 
-  const visibleFrames = tabs.filter((tab) => tab.history[tab.index] !== START_URL);
+  const visibleFrames = tabs.filter((tab) => tab.mode === 'original' && tab.history[tab.index] !== START_URL);
 
   return (
     <>
@@ -300,12 +434,16 @@ export default function TextLabExternalAISidebar({ language = 'vi', open = true,
           <form onSubmit={submitAddress}>
             <span aria-hidden="true">{isStart ? '⌕' : '🔒'}</span>
             <input value={address} onChange={(event) => setAddress(event.target.value)} onFocus={(event) => event.target.select()} placeholder={vi ? 'Nhập địa chỉ hoặc từ khoá tìm kiếm…' : 'Enter an address or search…'} aria-label={vi ? 'Địa chỉ hoặc từ khoá' : 'Address or search'} spellCheck="false" />
-            <button type="submit" title={vi ? 'Đi' : 'Go'}>Đi</button>
+            <button type="submit" title={vi ? 'Đi' : 'Go'}>{vi ? 'Đi' : 'Go'}</button>
           </form>
           <div className="textlab-browser-utility-buttons">
             <select value={engine} onChange={(event) => setEngine(event.target.value)} aria-label={vi ? 'Công cụ tìm kiếm' : 'Search engine'}>
               {Object.entries(SEARCH_ENGINES).map(([id, item]) => <option key={id} value={id}>{item.label}</option>)}
             </select>
+            <div className="textlab-browser-mode-switch" role="group" aria-label={vi ? 'Chế độ hiển thị trang' : 'Page display mode'}>
+              <button type="button" onClick={() => setMode('reader')} disabled={isStart || externalOnly} className={activeTab?.mode !== 'original' ? 'is-active' : ''}>{vi ? 'Đọc' : 'Reader'}</button>
+              <button type="button" onClick={() => setMode('original')} disabled={isStart || externalOnly} className={activeTab?.mode === 'original' ? 'is-active' : ''}>{vi ? 'Gốc' : 'Original'}</button>
+            </div>
             <button type="button" onClick={toggleBookmark} disabled={isStart} className={isBookmarked ? 'is-active' : ''} title={vi ? 'Dấu trang' : 'Bookmark'}>{isBookmarked ? '★' : '☆'}</button>
             <button type="button" onClick={() => setShowPanel((value) => value === 'bookmarks' ? '' : 'bookmarks')} className={showPanel === 'bookmarks' ? 'is-active' : ''} title={vi ? 'Danh sách dấu trang' : 'Bookmarks'}>▣</button>
             <button type="button" onClick={() => setShowPanel((value) => value === 'history' ? '' : 'history')} className={showPanel === 'history' ? 'is-active' : ''} title={vi ? 'Lịch sử gần đây' : 'Recent history'}>◷</button>
@@ -334,7 +472,7 @@ export default function TextLabExternalAISidebar({ language = 'vi', open = true,
             <section className="textlab-browser-start-page">
               <div className="textlab-browser-start-hero">
                 <span>B</span>
-                <div><strong>{vi ? 'Duyệt web trong khi tạo hoạt động' : 'Browse while building activities'}</strong><p>{vi ? 'Tìm kiếm, mở từ điển, AI, video và công cụ giảng dạy mà không rời TextLab.' : 'Search and open dictionaries, AI, videos, and teaching tools without leaving TextLab.'}</p></div>
+                <div><strong>{vi ? 'Duyệt web trong khi tạo hoạt động' : 'Browse while building activities'}</strong><p>{vi ? 'Chế độ Đọc hiển thị nội dung các trang công khai ngay trong Brian; các website đăng nhập sẽ mở riêng.' : 'Reader mode displays public page content inside Brian; sign-in websites open separately.'}</p></div>
               </div>
               <form className="textlab-browser-start-search" onSubmit={submitAddress}>
                 <span>⌕</span><input value={address} onChange={(event) => setAddress(event.target.value)} placeholder={vi ? 'Tìm kiếm trên Internet…' : 'Search the Internet…'} /><button type="submit">{vi ? 'Tìm' : 'Search'}</button>
@@ -355,19 +493,33 @@ export default function TextLabExternalAISidebar({ language = 'vi', open = true,
             </section>
           ) : null}
 
+          {!isStart && externalOnly ? <ExternalOnlyView url={currentUrl} title={activeTab?.title} vi={vi} /> : null}
+
+          {!isStart && !externalOnly && activeTab?.mode !== 'original' ? (
+            <section className="textlab-reader-surface">
+              {readerState.status === 'loading' || readerState.status === 'idle' ? <div className="textlab-browser-loading"><span /><strong>{vi ? `Đang đọc ${activeTab?.title || safeHostname(currentUrl)}…` : `Reading ${activeTab?.title || safeHostname(currentUrl)}…`}</strong></div> : null}
+              {readerState.status === 'ready' ? <ReaderDocument text={readerState.text} onNavigate={(url) => navigate(url)} /> : null}
+              {readerState.status === 'error' ? (
+                <div className="textlab-reader-error">
+                  <span>!</span><h2>{vi ? 'Không thể đọc trang này' : 'Could not read this page'}</h2>
+                  <p>{vi ? 'Trang có thể chặn trình đọc hoặc yêu cầu đăng nhập. Bạn có thể thử chế độ Gốc hoặc mở ngoài.' : 'The page may block readers or require sign-in. Try Original mode or open it separately.'}</p>
+                  <div><button type="button" onClick={reload}>{vi ? 'Thử lại' : 'Retry'}</button><button type="button" onClick={() => setMode('original')}>{vi ? 'Thử trang gốc' : 'Try original'}</button><button type="button" onClick={() => window.open(currentUrl, '_blank', 'noopener,noreferrer')}>{vi ? 'Mở ngoài' : 'Open outside'} ↗</button></div>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+
           {visibleFrames.map((tab) => {
             const src = tab.history[tab.index];
             return (
-              <iframe key={`${tab.id}:${tab.reloadKey}`} className={activeTabId === tab.id && !isStart ? 'is-active' : ''} title={`${tab.title || 'Website'} embedded browser`} src={src} referrerPolicy="strict-origin-when-cross-origin" allow="clipboard-read; clipboard-write; microphone; camera; fullscreen" onLoad={() => updateTab(tab.id, (current) => ({ ...current, loading: false }))} />
+              <iframe key={`${tab.id}:${tab.reloadKey}`} className={activeTabId === tab.id && !isStart && tab.mode === 'original' ? 'is-active' : ''} title={`${tab.title || 'Website'} embedded browser`} src={src} referrerPolicy="strict-origin-when-cross-origin" allow="clipboard-read; clipboard-write; microphone; camera; fullscreen" onLoad={() => updateTab(tab.id, (current) => ({ ...current, loading: false }))} />
             );
           })}
-
-          {!isStart && activeTab?.loading ? <div className="textlab-browser-loading" aria-live="polite"><span /><strong>{vi ? `Đang mở ${activeTab.title || safeHostname(currentUrl)}…` : `Opening ${activeTab.title || safeHostname(currentUrl)}…`}</strong></div> : null}
         </div>
 
         <div className="textlab-browser-statusbar">
-          <span><i className={activeTab?.loading ? 'is-loading' : ''} />{isStart ? (vi ? 'Trang bắt đầu' : 'Start page') : activeTab?.loading ? (vi ? 'Đang tải' : 'Loading') : (vi ? 'Đã tải' : 'Loaded')}</span>
-          <p>{vi ? 'Một số website chặn iframe. Khi khung trắng, dùng nút ↗ để mở trang hiện tại trong cửa sổ riêng.' : 'Some websites block iframe embedding. Use ↗ when a page appears blank.'}</p>
+          <span><i className={readerState.status === 'loading' || activeTab?.loading ? 'is-loading' : ''} />{isStart ? (vi ? 'Trang bắt đầu' : 'Start page') : externalOnly ? (vi ? 'Cần mở ngoài' : 'Open separately') : activeTab?.mode === 'original' ? (vi ? 'Chế độ Gốc' : 'Original mode') : readerState.status === 'ready' ? (vi ? 'Chế độ Đọc' : 'Reader mode') : (vi ? 'Đang xử lý' : 'Processing')}</span>
+          <p>{vi ? 'Chế độ Đọc dùng Jina Reader cho URL công khai. Không dùng với tài liệu riêng tư hoặc trang chứa thông tin đăng nhập.' : 'Reader mode uses Jina Reader for public URLs. Do not use it for private documents or sign-in pages.'}</p>
         </div>
       </aside>
 
