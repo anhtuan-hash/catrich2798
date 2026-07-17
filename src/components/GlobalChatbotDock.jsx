@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import './GlobalChatbotDock.css';
 
 const DEFAULT_SITES = [
@@ -52,6 +53,7 @@ function loadState(user) {
 export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
   const vi = language === 'vi';
   const initial = useMemo(() => loadState(currentUser), [currentUser?.id, currentUser?.email]);
+  const [portalTarget, setPortalTarget] = useState(null);
   const [open, setOpen] = useState(false);
   const [sites, setSites] = useState(initial.sites);
   const [activeId, setActiveId] = useState(initial.activeId);
@@ -63,6 +65,13 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
   const [message, setMessage] = useState('');
 
   const activeSite = sites.find((site) => site.id === activeId) || sites[0];
+
+  useEffect(() => {
+    const findTarget = () => setPortalTarget(document.querySelector('.global-notice-utilities'));
+    findTarget();
+    const timer = window.setTimeout(findTarget, 80);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const next = loadState(currentUser);
@@ -140,18 +149,22 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
     setReloadKey((value) => value + 1);
   };
 
+  const trigger = (
+    <button
+      type="button"
+      className={`global-chatbot-trigger ${open ? 'is-open' : ''}`}
+      onClick={() => setOpen((value) => !value)}
+      aria-expanded={open}
+      title={vi ? 'Mở bảng chatbot' : 'Open chatbot panel'}
+    >
+      <span aria-hidden="true">▣</span>
+      <strong>{vi ? 'Chatbot' : 'Chatbot'}</strong>
+    </button>
+  );
+
   return (
     <>
-      <button
-        type="button"
-        className={`global-chatbot-trigger ${open ? 'is-open' : ''}`}
-        onClick={() => setOpen((value) => !value)}
-        aria-expanded={open}
-        title={vi ? 'Mở bảng chatbot' : 'Open chatbot panel'}
-      >
-        <span aria-hidden="true">▣</span>
-        <strong>{vi ? 'Chatbot' : 'Chatbot'}</strong>
-      </button>
+      {portalTarget ? createPortal(trigger, portalTarget) : trigger}
 
       {open ? (
         <div className="global-chatbot-layer" role="presentation" onMouseDown={(event) => {
