@@ -13,7 +13,7 @@ const AITool = lazy(() => import('./AITool.jsx'));
 const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
 const EnglishLessonIntegrationStudio = lazy(() => import('./EnglishLessonIntegrationStudio.jsx'));
 const GrammarBuilder = lazy(() => import('./GrammarBuilder.jsx'));
-const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
+const THPTPracticeHub = lazy(() => import('./THPTPracticeHubCloud.jsx'));
 
 function ToolFallback({ language = 'vi' }) {
   return (
