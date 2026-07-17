@@ -55,6 +55,7 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
   const initial = useMemo(() => loadState(currentUser), [currentUser?.id, currentUser?.email]);
   const [portalTarget, setPortalTarget] = useState(null);
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [sites, setSites] = useState(initial.sites);
   const [activeId, setActiveId] = useState(initial.activeId);
   const [draftName, setDraftName] = useState('');
@@ -158,94 +159,96 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
       title={vi ? 'Mở bảng chatbot' : 'Open chatbot panel'}
     >
       <span aria-hidden="true">▣</span>
-      <strong>{vi ? 'Chatbot' : 'Chatbot'}</strong>
+      <strong>Chatbot</strong>
     </button>
   );
+
+  const panel = open ? (
+    <div className="global-chatbot-layer" role="presentation" onMouseDown={(event) => {
+      if (event.target === event.currentTarget) setOpen(false);
+    }}>
+      <aside className={`global-chatbot-drawer ${expanded ? 'is-expanded' : ''}`} role="dialog" aria-modal="true" aria-label={vi ? 'Bảng chatbot' : 'Chatbot panel'}>
+        <header className="global-chatbot-header">
+          <div>
+            <span>{vi ? 'CHATBOT ĐA NỀN TẢNG' : 'MULTI-SITE CHATBOT'}</span>
+            <h2>{activeSite?.name || 'Chatbot'}</h2>
+            <small>{activeSite ? new URL(activeSite.url).hostname : ''}</small>
+          </div>
+          <nav>
+            <button type="button" onClick={() => setShowManager((value) => !value)} title={vi ? 'Quản lý website' : 'Manage websites'}>⚙</button>
+            <button type="button" onClick={() => setExpanded((value) => !value)} title={expanded ? (vi ? 'Thu nhỏ' : 'Restore size') : (vi ? 'Mở rộng' : 'Expand')}>{expanded ? '↙' : '↗'}</button>
+            <button type="button" onClick={() => { setLoaded(false); setReloadKey((value) => value + 1); }} title={vi ? 'Tải lại' : 'Reload'}>↻</button>
+            <button type="button" onClick={() => setOpen(false)} title={vi ? 'Đóng' : 'Close'}>×</button>
+          </nav>
+        </header>
+
+        <div className="global-chatbot-sitebar">
+          <div>
+            {sites.map((site) => (
+              <button key={site.id} type="button" className={site.id === activeId ? 'active' : ''} onClick={() => selectSite(site.id)}>
+                <span>{site.name.slice(0, 1).toUpperCase()}</span>
+                <b>{site.name}</b>
+              </button>
+            ))}
+          </div>
+          <button type="button" className="add-site" onClick={() => setShowManager(true)}>＋</button>
+        </div>
+
+        {showManager ? (
+          <section className="global-chatbot-manager">
+            <header>
+              <div>
+                <strong>{vi ? 'Website chatbot đã lưu' : 'Saved chatbot websites'}</strong>
+                <small>{vi ? 'Tối đa 20 website trên trình duyệt này.' : 'Up to 20 websites on this browser.'}</small>
+              </div>
+              <button type="button" onClick={() => setShowManager(false)}>×</button>
+            </header>
+            <form onSubmit={saveSite}>
+              <input value={draftName} onChange={(event) => setDraftName(event.target.value)} placeholder={vi ? 'Tên website, ví dụ NoTrack AI' : 'Website name'} maxLength={50} />
+              <input value={draftUrl} onChange={(event) => setDraftUrl(event.target.value)} placeholder="https://..." inputMode="url" />
+              <button type="submit">{vi ? 'Lưu website' : 'Save website'}</button>
+            </form>
+            <div className="global-chatbot-saved-list">
+              {sites.map((site) => (
+                <article key={site.id}>
+                  <button type="button" onClick={() => selectSite(site.id)}>
+                    <span>{site.name.slice(0, 1).toUpperCase()}</span>
+                    <div><strong>{site.name}</strong><small>{site.url}</small></div>
+                  </button>
+                  <button type="button" className="danger" onClick={() => removeSite(site.id)} title={vi ? 'Xoá website' : 'Remove website'}>×</button>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <main className="global-chatbot-frame-wrap">
+          {!loaded ? <div className="global-chatbot-loading"><span /><strong>{vi ? `Đang kết nối ${activeSite?.name || 'chatbot'}…` : `Connecting to ${activeSite?.name || 'chatbot'}…`}</strong></div> : null}
+          {activeSite ? (
+            <iframe
+              key={`${activeSite.id}:${reloadKey}`}
+              src={activeSite.url}
+              title={`${activeSite.name} chatbot`}
+              allow="clipboard-read; clipboard-write; microphone; camera; fullscreen"
+              referrerPolicy="strict-origin-when-cross-origin"
+              onLoad={() => setLoaded(true)}
+            />
+          ) : null}
+        </main>
+
+        <footer className="global-chatbot-footer">
+          <span>{vi ? 'Website có thể chặn nhúng trong iframe.' : 'The website may block iframe embedding.'}</span>
+          <button type="button" onClick={() => activeSite && window.open(activeSite.url, '_blank', 'noopener,noreferrer')} disabled={!activeSite}>↗ {vi ? 'Mở riêng' : 'Open separately'}</button>
+        </footer>
+        {message ? <div className="global-chatbot-toast">{message}</div> : null}
+      </aside>
+    </div>
+  ) : null;
 
   return (
     <>
       {portalTarget ? createPortal(trigger, portalTarget) : trigger}
-
-      {open ? (
-        <div className="global-chatbot-layer" role="presentation" onMouseDown={(event) => {
-          if (event.target === event.currentTarget) setOpen(false);
-        }}>
-          <aside className="global-chatbot-drawer" role="dialog" aria-modal="true" aria-label={vi ? 'Bảng chatbot' : 'Chatbot panel'}>
-            <header className="global-chatbot-header">
-              <div>
-                <span>{vi ? 'CHATBOT ĐA NỀN TẢNG' : 'MULTI-SITE CHATBOT'}</span>
-                <h2>{activeSite?.name || 'Chatbot'}</h2>
-                <small>{activeSite ? new URL(activeSite.url).hostname : ''}</small>
-              </div>
-              <nav>
-                <button type="button" onClick={() => setShowManager((value) => !value)} title={vi ? 'Quản lý website' : 'Manage websites'}>⚙</button>
-                <button type="button" onClick={() => { setLoaded(false); setReloadKey((value) => value + 1); }} title={vi ? 'Tải lại' : 'Reload'}>↻</button>
-                <button type="button" onClick={() => setOpen(false)} title={vi ? 'Đóng' : 'Close'}>×</button>
-              </nav>
-            </header>
-
-            <div className="global-chatbot-sitebar">
-              <div>
-                {sites.map((site) => (
-                  <button key={site.id} type="button" className={site.id === activeId ? 'active' : ''} onClick={() => selectSite(site.id)}>
-                    <span>{site.name.slice(0, 1).toUpperCase()}</span>
-                    <b>{site.name}</b>
-                  </button>
-                ))}
-              </div>
-              <button type="button" className="add-site" onClick={() => setShowManager(true)}>＋</button>
-            </div>
-
-            {showManager ? (
-              <section className="global-chatbot-manager">
-                <header>
-                  <div>
-                    <strong>{vi ? 'Website chatbot đã lưu' : 'Saved chatbot websites'}</strong>
-                    <small>{vi ? 'Tối đa 20 website trên trình duyệt này.' : 'Up to 20 websites on this browser.'}</small>
-                  </div>
-                  <button type="button" onClick={() => setShowManager(false)}>×</button>
-                </header>
-                <form onSubmit={saveSite}>
-                  <input value={draftName} onChange={(event) => setDraftName(event.target.value)} placeholder={vi ? 'Tên website, ví dụ NoTrack AI' : 'Website name'} maxLength={50} />
-                  <input value={draftUrl} onChange={(event) => setDraftUrl(event.target.value)} placeholder="https://..." inputMode="url" />
-                  <button type="submit">{vi ? 'Lưu website' : 'Save website'}</button>
-                </form>
-                <div className="global-chatbot-saved-list">
-                  {sites.map((site) => (
-                    <article key={site.id}>
-                      <button type="button" onClick={() => selectSite(site.id)}>
-                        <span>{site.name.slice(0, 1).toUpperCase()}</span>
-                        <div><strong>{site.name}</strong><small>{site.url}</small></div>
-                      </button>
-                      <button type="button" className="danger" onClick={() => removeSite(site.id)} title={vi ? 'Xoá website' : 'Remove website'}>×</button>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-
-            <main className="global-chatbot-frame-wrap">
-              {!loaded ? <div className="global-chatbot-loading"><span /><strong>{vi ? `Đang kết nối ${activeSite?.name || 'chatbot'}…` : `Connecting to ${activeSite?.name || 'chatbot'}…`}</strong></div> : null}
-              {activeSite ? (
-                <iframe
-                  key={`${activeSite.id}:${reloadKey}`}
-                  src={activeSite.url}
-                  title={`${activeSite.name} chatbot`}
-                  allow="clipboard-read; clipboard-write; microphone; camera; fullscreen"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  onLoad={() => setLoaded(true)}
-                />
-              ) : null}
-            </main>
-
-            <footer className="global-chatbot-footer">
-              <span>{vi ? 'Website có thể chặn nhúng trong iframe.' : 'The website may block iframe embedding.'}</span>
-              <button type="button" onClick={() => activeSite && window.open(activeSite.url, '_blank', 'noopener,noreferrer')} disabled={!activeSite}>↗ {vi ? 'Mở riêng' : 'Open separately'}</button>
-            </footer>
-            {message ? <div className="global-chatbot-toast">{message}</div> : null}
-          </aside>
-        </div>
-      ) : null}
+      {panel && typeof document !== 'undefined' ? createPortal(panel, document.body) : panel}
     </>
   );
 }
