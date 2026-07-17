@@ -32,7 +32,21 @@ export async function requireUser(req) {
   return data.user;
 }
 
-const MANAGER_ROLES = new Set(['admin', 'ttcm', 'leader', 'head', 'manager', 'department_leader', 'to_truong']);
+const MANAGER_ROLES = new Set([
+  'admin',
+  'ttcm',
+  'leader',
+  'head',
+  'manager',
+  'department_head',
+  'department-head',
+  'department leader',
+  'department_leader',
+  'subject_leader',
+  'subject leader',
+  'to_truong',
+  'tổ trưởng',
+]);
 
 function profileIsApproved(profile = {}) {
   if (profile.approved === false || profile.is_approved === false) return false;
