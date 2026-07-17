@@ -4,6 +4,13 @@ export const APPS = [
   DEPARTMENT_APP,
 
   {
+    slug: 'independent-ai-chatbot', icon: 'AI', tone: 'mint', group: 'Independent Apps', groupVi: 'Ứng dụng độc lập',
+    title: 'Independent AI Chatbot', titleVi: 'Chatbot AI độc lập',
+    desc: 'Embed a separate AI chatbot website with its own account, API, data and conversation history.',
+    descVi: 'Nhúng một website chatbot AI riêng với tài khoản, API, dữ liệu và lịch sử trò chuyện độc lập.',
+    status: 'External website · Isolated', statusVi: 'Website riêng · Hoạt động độc lập', api: false, featured: true,
+  },
+  {
     slug: 'thpt-practice-hub', icon: 'TH', tone: 'orange', group: 'Exam Preparation', groupVi: 'Luyện thi THPT',
     title: 'THPT Interactive Practice Hub', titleVi: 'Luyện thi THPT',
     desc: 'Upload, name, organize and run interactive HTML learning files directly in the browser.',
