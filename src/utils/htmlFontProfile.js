@@ -41,6 +41,18 @@ function blobToDataUrl(blob) {
   });
 }
 
+async function listAccountHtmlFontItems() {
+  const token = await getAccessToken();
+  if (!token) return [];
+  const response = await fetch('/api/resource-sync?scope=html-user-fonts', {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Không thể đồng bộ font tài khoản.');
+  return (data.items || []).map(fromCloudRow);
+}
+
 async function fetchFontData(item) {
   const token = await getAccessToken();
   if (!token) throw new Error('Phiên đăng nhập đã hết hạn.');
@@ -65,15 +77,7 @@ async function fetchFontData(item) {
 }
 
 export async function loadAccountHtmlFont() {
-  const token = await getAccessToken();
-  if (!token) return null;
-  const response = await fetch('/api/resource-sync?scope=html-user-fonts', {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: 'no-store',
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Không thể đồng bộ font tài khoản.');
-  const items = (data.items || []).map(fromCloudRow);
+  const items = await listAccountHtmlFontItems();
   for (const item of items) {
     try {
       return await fetchFontData(item);
@@ -123,6 +127,16 @@ export async function removeAccountHtmlFont(item) {
   return data;
 }
 
+export async function removeAllAccountHtmlFonts(keepResourceId = '') {
+  const items = await listAccountHtmlFontItems();
+  const keep = String(keepResourceId || '');
+  const targets = items.filter((item) => String(item.cloudId || item.id || '') !== keep);
+  const results = await Promise.allSettled(targets.map((item) => removeAccountHtmlFont(item)));
+  const failed = results.find((result) => result.status === 'rejected');
+  if (failed && !keep) throw failed.reason;
+  return { ok: !failed, removed: targets.length };
+}
+
 export async function uploadAccountHtmlFont(file, currentUser, previousItem = null) {
   if (!file) throw new Error('Hãy chọn một file font.');
   if (!FONT_FILE_PATTERN.test(file.name || '')) throw new Error('Chỉ chấp nhận .ttf, .otf, .woff hoặc .woff2.');
@@ -131,6 +145,10 @@ export async function uploadAccountHtmlFont(file, currentUser, previousItem = nu
 
   const mimeType = inferFontMime(file.name, file.type);
   const checksum = await sha256(file);
+  if (previousItem?.checksum && previousItem.checksum === checksum) {
+    return { item: previousItem, dataUrl: await blobToDataUrl(file), mimeType };
+  }
+
   const now = new Date().toISOString();
   const base = {
     title: file.name.replace(FONT_FILE_PATTERN, ''),
@@ -172,11 +190,9 @@ export async function uploadAccountHtmlFont(file, currentUser, previousItem = nu
   if (!cloud.ok) throw new Error(cloud.reason || 'Không thể lưu font vào tài khoản.');
   const saved = { ...base, ...cloud.item };
   const dataUrl = await blobToDataUrl(file);
+  const savedId = saved.cloudId || saved.id;
 
-  if (previousItem && (previousItem.cloudId || previousItem.id) !== (saved.cloudId || saved.id)) {
-    removeAccountHtmlFont(previousItem).catch(() => {});
-  }
-
+  removeAllAccountHtmlFonts(savedId).catch(() => {});
   return { item: saved, dataUrl, mimeType };
 }
 
