@@ -1,48 +1,49 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import './TextLabExternalAISidebar.css';
 
-const PLATFORM_LINKS = Object.freeze({
-  chatgpt: 'https://chatgpt.com/',
-  gemini: 'https://gemini.google.com/app',
+const PLATFORMS = Object.freeze({
+  chatgpt: {
+    id: 'chatgpt',
+    name: 'ChatGPT',
+    shortName: 'ChatGPT',
+    url: 'https://chatgpt.com/',
+    domain: 'chatgpt.com',
+    mark: '◎',
+  },
+  gemini: {
+    id: 'gemini',
+    name: 'Google Gemini',
+    shortName: 'Gemini',
+    url: 'https://gemini.google.com/app',
+    domain: 'gemini.google.com',
+    mark: '✦',
+  },
 });
 
-const DEFAULT_PROMPTS = Object.freeze({
-  vi: [
-    'Viết giáo án tiếng Anh về chủ đề môi trường cho lớp 10 trong 45 phút.',
-    'Gợi ý 10 hoạt động khởi động (warm-up) cho bài học về chủ đề gia đình.',
-    'Tạo 5 câu hỏi tư duy bậc cao (HOTS) cho bài đọc sau.',
-    'Đề xuất một dự án nhóm cho chủ đề “Bảo vệ môi trường”.',
-  ],
-  en: [
-    'Write a 45-minute Grade 10 English lesson plan about the environment.',
-    'Suggest 10 warm-up activities for a lesson about family.',
-    'Create 5 higher-order thinking questions for the following reading text.',
-    'Suggest a group project for the topic “Protecting the environment”.',
-  ],
-});
+function createBrowserState(platform) {
+  return {
+    history: [PLATFORMS[platform].url],
+    index: 0,
+    reloadKey: 0,
+  };
+}
 
-const CUSTOM_PROMPTS_KEY = 'bes-textlab-external-ai-prompts-v1';
-
-function readCustomPrompts() {
+function normaliseAddress(value, fallback) {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
   try {
-    const value = JSON.parse(window.localStorage.getItem(CUSTOM_PROMPTS_KEY) || '[]');
-    return Array.isArray(value) ? value.filter(Boolean).slice(0, 12) : [];
+    const candidate = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    const parsed = new URL(candidate);
+    if (!['http:', 'https:'].includes(parsed.protocol)) return fallback;
+    return parsed.toString();
   } catch {
-    return [];
+    return fallback;
   }
 }
 
-function saveCustomPrompts(prompts) {
-  try {
-    window.localStorage.setItem(CUSTOM_PROMPTS_KEY, JSON.stringify(prompts.slice(0, 12)));
-  } catch {
-    // The sidebar remains usable when storage is unavailable.
-  }
-}
-
-function PlatformMark({ platform }) {
-  if (platform === 'gemini') return <span className="textlab-ai-platform-mark gemini" aria-hidden="true">✦</span>;
-  return <span className="textlab-ai-platform-mark chatgpt" aria-hidden="true">◎</span>;
+function BrowserMark({ platform }) {
+  const item = PLATFORMS[platform];
+  return <span className={`textlab-browser-mark ${platform}`} aria-hidden="true">{item.mark}</span>;
 }
 
 export default function TextLabExternalAISidebar({
@@ -52,195 +53,175 @@ export default function TextLabExternalAISidebar({
 }) {
   const vi = language === 'vi';
   const [platform, setPlatform] = useState('chatgpt');
-  const [customPrompts, setCustomPrompts] = useState(readCustomPrompts);
-  const [showAddPrompt, setShowAddPrompt] = useState(false);
-  const [draftPrompt, setDraftPrompt] = useState('');
-  const [notice, setNotice] = useState('');
+  const [browser, setBrowser] = useState(() => ({
+    chatgpt: createBrowserState('chatgpt'),
+    gemini: createBrowserState('gemini'),
+  }));
+  const [address, setAddress] = useState(PLATFORMS.chatgpt.url);
+  const [loading, setLoading] = useState({ chatgpt: true, gemini: true });
 
-  const prompts = useMemo(
-    () => [...DEFAULT_PROMPTS[vi ? 'vi' : 'en'], ...customPrompts],
-    [customPrompts, vi],
-  );
+  const activeBrowser = browser[platform];
+  const currentUrl = activeBrowser.history[activeBrowser.index];
+  const canGoBack = activeBrowser.index > 0;
+  const canGoForward = activeBrowser.index < activeBrowser.history.length - 1;
 
-  const platformName = platform === 'gemini' ? 'Google Gemini' : 'ChatGPT';
+  useEffect(() => {
+    setAddress(currentUrl);
+  }, [currentUrl, platform]);
 
-  const copyPrompt = async (prompt) => {
-    const value = String(prompt || '').trim();
-    if (!value) return;
-    try {
-      await navigator.clipboard.writeText(value);
-      setNotice(vi ? 'Đã sao chép prompt.' : 'Prompt copied.');
-    } catch {
-      const textarea = document.createElement('textarea');
-      textarea.value = value;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      textarea.remove();
-      setNotice(vi ? 'Đã sao chép prompt.' : 'Prompt copied.');
-    }
-    window.setTimeout(() => setNotice(''), 2200);
+  const updateActive = (updater) => {
+    setBrowser((current) => ({
+      ...current,
+      [platform]: updater(current[platform]),
+    }));
   };
 
-  const openPlatform = (targetPlatform = platform, prompt = '') => {
-    const url = PLATFORM_LINKS[targetPlatform] || PLATFORM_LINKS.chatgpt;
-    window.open(url, '_blank', 'noopener,noreferrer');
-    if (prompt) void copyPrompt(prompt);
+  const navigate = (nextUrl) => {
+    const safeUrl = normaliseAddress(nextUrl, PLATFORMS[platform].url);
+    updateActive((state) => {
+      const history = state.history.slice(0, state.index + 1);
+      if (history[history.length - 1] !== safeUrl) history.push(safeUrl);
+      return {
+        ...state,
+        history,
+        index: history.length - 1,
+        reloadKey: state.reloadKey + 1,
+      };
+    });
+    setLoading((current) => ({ ...current, [platform]: true }));
   };
 
-  const addPrompt = () => {
-    const nextPrompt = draftPrompt.trim();
-    if (!nextPrompt) return;
-    const next = [nextPrompt, ...customPrompts.filter((item) => item !== nextPrompt)].slice(0, 12);
-    setCustomPrompts(next);
-    saveCustomPrompts(next);
-    setDraftPrompt('');
-    setShowAddPrompt(false);
-    setNotice(vi ? 'Đã thêm prompt nhanh.' : 'Quick prompt added.');
-    window.setTimeout(() => setNotice(''), 2200);
+  const submitAddress = (event) => {
+    event.preventDefault();
+    navigate(address);
   };
 
-  const removeCustomPrompt = (prompt) => {
-    const next = customPrompts.filter((item) => item !== prompt);
-    setCustomPrompts(next);
-    saveCustomPrompts(next);
+  const goBack = () => {
+    if (!canGoBack) return;
+    updateActive((state) => ({ ...state, index: state.index - 1, reloadKey: state.reloadKey + 1 }));
+    setLoading((current) => ({ ...current, [platform]: true }));
   };
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        className="textlab-ai-sidebar-reopen"
-        onClick={onToggle}
-        aria-label={vi ? 'Hiện thanh trợ lý AI' : 'Show AI assistant sidebar'}
-      >
-        <span>AI</span>
-        <b>{vi ? 'Trợ lý' : 'Assistant'}</b>
-        <i aria-hidden="true">‹</i>
-      </button>
-    );
-  }
+  const goForward = () => {
+    if (!canGoForward) return;
+    updateActive((state) => ({ ...state, index: state.index + 1, reloadKey: state.reloadKey + 1 }));
+    setLoading((current) => ({ ...current, [platform]: true }));
+  };
+
+  const reload = () => {
+    updateActive((state) => ({ ...state, reloadKey: state.reloadKey + 1 }));
+    setLoading((current) => ({ ...current, [platform]: true }));
+  };
+
+  const goHome = () => navigate(PLATFORMS[platform].url);
+
+  const platformFrames = useMemo(() => Object.keys(PLATFORMS), []);
 
   return (
-    <aside className="textlab-ai-sidebar" aria-label={vi ? 'Trợ lý AI bên ngoài' : 'External AI assistant'}>
-      <header className="textlab-ai-sidebar-header">
-        <div>
-          <span className="textlab-ai-sidebar-kicker">EXTERNAL AI</span>
-          <h2>{vi ? 'Trợ lý AI bên ngoài' : 'External AI assistant'} <small title={vi ? 'Mở nền tảng AI trong tab mới' : 'Opens AI platforms in a new tab'}>i</small></h2>
-          <p>{vi
-            ? 'Kết nối nhanh với các nền tảng AI để hỗ trợ soạn bài, brainstorm ý tưởng và hoàn thiện hoạt động.'
-            : 'Quickly access AI platforms for lesson planning, brainstorming, and activity design.'}</p>
-        </div>
-        <button type="button" className="textlab-ai-hide" onClick={onToggle}>
-          <span aria-hidden="true">»</span>{vi ? 'Ẩn thanh bên' : 'Hide sidebar'}
-        </button>
-      </header>
-
-      <div className="textlab-ai-platform-tabs" role="tablist" aria-label={vi ? 'Chọn nền tảng AI' : 'Choose an AI platform'}>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={platform === 'chatgpt'}
-          className={platform === 'chatgpt' ? 'is-active' : ''}
-          onClick={() => setPlatform('chatgpt')}
-        >
-          <PlatformMark platform="chatgpt" />
-          <span>ChatGPT</span>
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={platform === 'gemini'}
-          className={platform === 'gemini' ? 'is-active' : ''}
-          onClick={() => setPlatform('gemini')}
-        >
-          <PlatformMark platform="gemini" />
-          <span>Google Gemini</span>
-        </button>
-      </div>
-
-      <section className="textlab-ai-section">
-        <div className="textlab-ai-section-heading">
+    <>
+      <aside
+        className={`textlab-browser-sidebar ${open ? 'is-visible' : 'is-hidden'}`}
+        aria-label={vi ? 'Trình duyệt AI bên ngoài' : 'External AI browser'}
+        aria-hidden={!open}
+      >
+        <div className="textlab-browser-titlebar">
           <div>
-            <h3>{vi ? 'Prompt nhanh cho giáo viên' : 'Quick prompts for teachers'}</h3>
-            <p>{vi ? 'Sao chép hoặc mở nền tảng đang chọn.' : 'Copy or open the selected platform.'}</p>
+            <span>EXTERNAL AI BROWSER</span>
+            <strong>{vi ? 'Trợ lý AI bên ngoài' : 'External AI assistant'}</strong>
           </div>
-          <button type="button" onClick={() => setShowAddPrompt((value) => !value)}>
-            {showAddPrompt ? '×' : '+'} {vi ? (showAddPrompt ? 'Đóng' : 'Thêm prompt') : (showAddPrompt ? 'Close' : 'Add prompt')}
+          <button type="button" onClick={onToggle} title={vi ? 'Ẩn thanh bên' : 'Hide sidebar'}>
+            <span aria-hidden="true">»</span>{vi ? 'Ẩn thanh bên' : 'Hide sidebar'}
           </button>
         </div>
 
-        {showAddPrompt ? (
-          <div className="textlab-ai-add-prompt">
-            <textarea
-              value={draftPrompt}
-              onChange={(event) => setDraftPrompt(event.target.value)}
-              placeholder={vi ? 'Nhập prompt thường dùng của bạn…' : 'Enter a prompt you use often…'}
-              rows={3}
-              maxLength={700}
-            />
-            <div>
-              <small>{draftPrompt.length}/700</small>
-              <button type="button" onClick={addPrompt} disabled={!draftPrompt.trim()}>{vi ? 'Lưu prompt' : 'Save prompt'}</button>
-            </div>
-          </div>
-        ) : null}
-
-        <div className="textlab-ai-prompt-list">
-          {prompts.map((prompt, index) => {
-            const custom = customPrompts.includes(prompt);
+        <div className="textlab-browser-tabs" role="tablist" aria-label={vi ? 'Nền tảng AI' : 'AI platforms'}>
+          {platformFrames.map((id) => {
+            const item = PLATFORMS[id];
             return (
-              <article key={`${prompt}-${index}`} className="textlab-ai-prompt-row">
-                <span className={`prompt-number tone-${index % 4}`} aria-hidden="true">{index + 1}</span>
-                <p>{prompt}</p>
-                <div>
-                  <button type="button" title={vi ? 'Sao chép prompt' : 'Copy prompt'} onClick={() => copyPrompt(prompt)} aria-label={vi ? 'Sao chép prompt' : 'Copy prompt'}>▣</button>
-                  <button type="button" title={`${vi ? 'Mở bằng' : 'Open with'} ${platformName}`} onClick={() => openPlatform(platform, prompt)} aria-label={`${vi ? 'Mở bằng' : 'Open with'} ${platformName}`}>↗</button>
-                  {custom ? <button type="button" className="remove" title={vi ? 'Xoá prompt' : 'Delete prompt'} onClick={() => removeCustomPrompt(prompt)} aria-label={vi ? 'Xoá prompt' : 'Delete prompt'}>×</button> : null}
-                </div>
-              </article>
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={platform === id}
+                className={platform === id ? 'is-active' : ''}
+                onClick={() => setPlatform(id)}
+              >
+                <BrowserMark platform={id} />
+                <span><strong>{item.name}</strong><small>{item.domain}</small></span>
+              </button>
             );
           })}
         </div>
-      </section>
 
-      <section className="textlab-ai-section textlab-ai-launch-section">
-        <div className="textlab-ai-section-heading simple">
-          <div>
-            <h3>{vi ? 'Mở nhanh & trò chuyện' : 'Open and start chatting'}</h3>
-            <p>{vi ? 'Nền tảng sẽ mở trong tab mới để không làm mất nội dung TextLab.' : 'The platform opens in a new tab so your TextLab work stays intact.'}</p>
-          </div>
+        <div className="textlab-browser-toolbar" aria-label={vi ? 'Điều khiển trình duyệt' : 'Browser controls'}>
+          <button type="button" onClick={goBack} disabled={!canGoBack} title={vi ? 'Quay lại' : 'Back'} aria-label={vi ? 'Quay lại' : 'Back'}>←</button>
+          <button type="button" onClick={goForward} disabled={!canGoForward} title={vi ? 'Đi tới' : 'Forward'} aria-label={vi ? 'Đi tới' : 'Forward'}>→</button>
+          <button type="button" onClick={reload} title={vi ? 'Tải lại' : 'Reload'} aria-label={vi ? 'Tải lại' : 'Reload'}>↻</button>
+          <button type="button" onClick={goHome} title={vi ? 'Trang chủ nền tảng' : 'Platform home'} aria-label={vi ? 'Trang chủ nền tảng' : 'Platform home'}>⌂</button>
+          <form onSubmit={submitAddress}>
+            <span aria-hidden="true">🔒</span>
+            <input
+              value={address}
+              onChange={(event) => setAddress(event.target.value)}
+              onFocus={(event) => event.target.select()}
+              aria-label={vi ? 'Địa chỉ website' : 'Website address'}
+              spellCheck="false"
+            />
+          </form>
+          <button
+            type="button"
+            className="external-fallback"
+            onClick={() => window.open(currentUrl, '_blank', 'noopener,noreferrer')}
+            title={vi ? 'Mở cửa sổ riêng khi nền tảng không cho phép nhúng' : 'Open separately if embedding is blocked'}
+            aria-label={vi ? 'Mở cửa sổ riêng' : 'Open separately'}
+          >↗</button>
         </div>
 
-        <article className="textlab-ai-launch-card chatgpt">
-          <div>
-            <PlatformMark platform="chatgpt" />
-            <span><strong>ChatGPT</strong><small>{vi ? 'Mở ChatGPT để chat và làm việc.' : 'Open ChatGPT to chat and work.'}</small></span>
-          </div>
-          <button type="button" onClick={() => openPlatform('chatgpt')}>{vi ? 'Mở trong tab mới' : 'Open in new tab'} ↗</button>
-          <i aria-hidden="true">◌</i>
-        </article>
+        <div className="textlab-browser-viewport">
+          {loading[platform] ? (
+            <div className="textlab-browser-loading" aria-live="polite">
+              <span />
+              <strong>{vi ? `Đang kết nối ${PLATFORMS[platform].name}…` : `Connecting to ${PLATFORMS[platform].name}…`}</strong>
+            </div>
+          ) : null}
 
-        <article className="textlab-ai-launch-card gemini">
-          <div>
-            <PlatformMark platform="gemini" />
-            <span><strong>Google Gemini</strong><small>{vi ? 'Mở Gemini để chat và làm việc.' : 'Open Gemini to chat and work.'}</small></span>
-          </div>
-          <button type="button" onClick={() => openPlatform('gemini')}>{vi ? 'Mở trong tab mới' : 'Open in new tab'} ↗</button>
-          <i aria-hidden="true">✦</i>
-        </article>
-      </section>
+          {platformFrames.map((id) => {
+            const state = browser[id];
+            const src = state.history[state.index];
+            return (
+              <iframe
+                key={`${id}:${state.reloadKey}`}
+                className={platform === id ? 'is-active' : ''}
+                title={`${PLATFORMS[id].name} embedded browser`}
+                src={src}
+                referrerPolicy="strict-origin-when-cross-origin"
+                allow="clipboard-read; clipboard-write; microphone; camera; fullscreen"
+                onLoad={() => setLoading((current) => ({ ...current, [id]: false }))}
+              />
+            );
+          })}
+        </div>
 
-      <footer className="textlab-ai-sidebar-tip">
-        <span aria-hidden="true">💡</span>
-        <p><strong>{vi ? 'Mẹo sử dụng' : 'Tip'}</strong>{vi
-          ? 'Sao chép prompt trước, sau đó dán vào ChatGPT hoặc Gemini để tiếp tục làm việc.'
-          : 'Copy a prompt first, then paste it into ChatGPT or Gemini to continue working.'}</p>
-      </footer>
+        <div className="textlab-browser-statusbar">
+          <span><i className={loading[platform] ? 'is-loading' : ''} />{loading[platform] ? (vi ? 'Đang tải' : 'Loading') : (vi ? 'Đã kết nối' : 'Connected')}</span>
+          <p>{vi
+            ? 'ChatGPT hoặc Gemini có thể chặn iframe theo chính sách của nhà cung cấp. Khi đó dùng nút ↗ ở thanh địa chỉ.'
+            : 'ChatGPT or Gemini may block iframe embedding. Use the ↗ button when that happens.'}</p>
+        </div>
+      </aside>
 
-      {notice ? <div className="textlab-ai-notice" role="status">✓ {notice}</div> : null}
-    </aside>
+      {!open ? (
+        <button
+          type="button"
+          className="textlab-browser-reopen"
+          onClick={onToggle}
+          aria-label={vi ? 'Hiện trình duyệt AI' : 'Show AI browser'}
+        >
+          <span>AI</span>
+          <b>{vi ? 'Mở trợ lý' : 'Open assistant'}</b>
+          <i aria-hidden="true">‹</i>
+        </button>
+      ) : null}
+    </>
   );
 }
