@@ -12,6 +12,19 @@ function cleanArray(value) {
   return Array.isArray(value) ? value.map((entry) => String(entry || '').trim()).filter(Boolean) : [];
 }
 
+function isHtmlLessonRow(row) {
+  const fileName = String(row?.file_name || '').toLowerCase();
+  const mimeType = String(row?.mime_type || '').toLowerCase();
+  const tags = Array.isArray(row?.tags) ? row.tags.map((tag) => String(tag).toLowerCase()) : [];
+  return (mimeType.includes('text/html') || /\.html?$/.test(fileName) || tags.includes('thpt-interactive-html'))
+    && !row?.deleted_at;
+}
+
+function queryParam(req, name) {
+  if (req.query?.[name] !== undefined) return Array.isArray(req.query[name]) ? req.query[name][0] : req.query[name];
+  try { return new URL(req.url, 'http://localhost').searchParams.get(name); } catch { return ''; }
+}
+
 function rowFromItem(item, user, manager, existing = null) {
   const requestedStatus = String(item.status || existing?.status || 'pending').trim().toLowerCase();
   const status = manager && VALID_STATUS.has(requestedStatus) ? requestedStatus : 'pending';
@@ -80,15 +93,37 @@ async function findExisting(client, item) {
   return null;
 }
 
+async function listThptHtmlLessons(client, user, manager) {
+  let query = client
+    .from('resource_items')
+    .select('*')
+    .eq('category', 'thpt-exam')
+    .order('updated_at', { ascending: false });
+
+  if (!manager) query = query.or(`status.eq.approved,uploader_id.eq.${user.id}`);
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return (data || []).filter(isHtmlLessonRow);
+}
+
 export default async function handler(req, res) {
   try {
-    if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
     const user = await requireUser(req);
     const client = adminClient();
+    const manager = await isManagerUser(client, user);
+
+    if (req.method === 'GET') {
+      const scope = String(queryParam(req, 'scope') || '');
+      if (scope !== 'thpt-html-lessons') return send(res, 400, { error: 'Unsupported resource scope' });
+      const items = await listThptHtmlLessons(client, user, manager);
+      return send(res, 200, { ok: true, manager, items });
+    }
+
+    if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
     const item = req.body?.item || req.body || {};
     if (!item || typeof item !== 'object') throw new Error('Missing resource data');
 
-    const manager = await isManagerUser(client, user);
     const uploaderMatches = !item.uploaderId
       || item.uploaderId === user.id
       || String(item.uploaderName || '').toLowerCase() === String(user.email || '').toLowerCase();
