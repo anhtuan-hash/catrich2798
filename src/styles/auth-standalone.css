@@ -1,0 +1,253 @@
+@font-face {
+  font-family: 'Brian Personal';
+  src: local('1FTV HF Gesco'), local('1FTVHFGesco'), url('/fonts/personal-font.ttf?v=12.13.0') format('truetype');
+  font-display: swap;
+  font-weight: 100 900;
+}
+
+:root {
+  font-family: 'Brian Personal', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #122235;
+  background: #eef4fb;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+html, body, #auth-root { min-height: 100%; }
+body { margin: 0; min-height: 100vh; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: wait; opacity: .66; }
+
+.auth-alone-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(18px, 4vw, 54px);
+  background:
+    radial-gradient(circle at 10% 10%, rgba(178,194,72,.32), transparent 34%),
+    radial-gradient(circle at 90% 82%, rgba(75,137,230,.22), transparent 30%),
+    #eef4fb;
+}
+
+.auth-alone-shell {
+  width: min(1120px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, .92fr);
+  border: 2px solid #17212b;
+  border-radius: 28px;
+  overflow: hidden;
+  background: #fffdf8;
+  box-shadow: 14px 16px 0 rgba(23,33,43,.14);
+}
+
+.auth-alone-brand {
+  padding: clamp(34px, 6vw, 76px);
+  background: linear-gradient(145deg, #dfe98a, #b2c248 58%, #91a22d);
+  border-right: 2px solid #17212b;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 650px;
+}
+
+.auth-alone-brand img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  padding: 10px;
+  border: 2px solid #17212b;
+  border-radius: 18px;
+  background: #fffdf8;
+  box-shadow: 6px 7px 0 rgba(23,33,43,.13);
+}
+
+.auth-alone-brand > span {
+  margin-top: 30px;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.auth-alone-brand h1 {
+  margin: 12px 0 18px;
+  font-size: clamp(40px, 5vw, 72px);
+  line-height: .96;
+  letter-spacing: -.045em;
+}
+
+.auth-alone-brand p {
+  margin: 0;
+  max-width: 560px;
+  font-size: 19px;
+  line-height: 1.55;
+  color: #2e3a24;
+}
+
+.auth-alone-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.auth-alone-chips b {
+  padding: 9px 12px;
+  border: 2px solid #17212b;
+  border-radius: 999px;
+  background: rgba(255,253,248,.8);
+  font-size: 13px;
+}
+
+.auth-alone-card {
+  padding: clamp(30px, 5vw, 62px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #fffdf8;
+}
+
+.auth-alone-heading > span {
+  display: inline-block;
+  padding: 7px 10px;
+  border: 2px solid #17212b;
+  border-radius: 9px;
+  background: #f48aa5;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.auth-alone-heading h2 {
+  margin: 18px 0 8px;
+  font-size: clamp(34px, 4vw, 52px);
+  line-height: 1;
+  letter-spacing: -.035em;
+}
+
+.auth-alone-heading p {
+  margin: 0 0 28px;
+  color: #647080;
+  font-size: 17px;
+}
+
+.auth-alone-card label {
+  margin: 14px 0 7px;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.auth-alone-card input {
+  width: 100%;
+  min-height: 52px;
+  padding: 11px 14px;
+  border: 2px solid #17212b;
+  border-radius: 12px;
+  background: #fff;
+  color: #122235;
+  outline: none;
+}
+
+.auth-alone-card input:focus {
+  box-shadow: 0 0 0 4px rgba(58,123,213,.2);
+  border-color: #275fa8;
+}
+
+.auth-alone-label-row {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.auth-alone-link {
+  border: 0;
+  background: transparent;
+  color: #245eaa;
+  font-weight: 900;
+  padding: 0 0 7px;
+}
+
+.auth-alone-password {
+  position: relative;
+}
+
+.auth-alone-password input { padding-right: 72px; }
+.auth-alone-password button {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  bottom: 6px;
+  min-width: 58px;
+  border: 0;
+  border-radius: 8px;
+  background: #edf3fa;
+  color: #1d3652;
+  font-weight: 900;
+}
+
+.auth-alone-message {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 2px solid #17212b;
+  border-radius: 12px;
+  line-height: 1.45;
+  font-weight: 800;
+}
+
+.auth-alone-message.error { background: #ffe4e9; color: #7d2034; }
+.auth-alone-message.success { background: #e1f5e7; color: #18552e; }
+
+.auth-alone-primary,
+.auth-alone-google,
+.auth-alone-secondary {
+  min-height: 52px;
+  margin-top: 16px;
+  padding: 11px 16px;
+  border: 2px solid #17212b;
+  border-radius: 12px;
+  font-weight: 900;
+}
+
+.auth-alone-primary { background: #17212b; color: #fff; }
+.auth-alone-google { background: #dcecff; color: #173b63; }
+.auth-alone-secondary { background: #fff; color: #17212b; }
+
+.auth-alone-fatal {
+  width: min(620px, 100%);
+  padding: 38px;
+  border: 2px solid #17212b;
+  border-radius: 24px;
+  background: #fffdf8;
+  box-shadow: 10px 12px 0 rgba(23,33,43,.14);
+}
+
+.auth-alone-fatal strong {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  background: #f05a7e;
+  color: #fff;
+  border: 2px solid #17212b;
+  border-radius: 13px;
+}
+
+.auth-alone-fatal h1 { font-size: clamp(32px, 5vw, 54px); line-height: 1; }
+.auth-alone-fatal p { color: #687380; overflow-wrap: anywhere; }
+.auth-alone-fatal button {
+  min-height: 48px;
+  padding: 10px 18px;
+  border: 2px solid #17212b;
+  border-radius: 12px;
+  background: #17212b;
+  color: white;
+  font-weight: 900;
+}
+
+@media (max-width: 860px) {
+  .auth-alone-shell { grid-template-columns: 1fr; }
+  .auth-alone-brand { min-height: auto; border-right: 0; border-bottom: 2px solid #17212b; padding: 30px; }
+  .auth-alone-brand h1 { font-size: clamp(36px, 10vw, 58px); }
+  .auth-alone-card { padding: 30px; }
+}
