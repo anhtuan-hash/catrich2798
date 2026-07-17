@@ -12,6 +12,10 @@ function cleanArray(value) {
   return Array.isArray(value) ? value.map((entry) => String(entry || '').trim()).filter(Boolean) : [];
 }
 
+function itemHasTag(item, tag) {
+  return cleanArray(item?.tags).map((entry) => entry.toLowerCase()).includes(String(tag || '').toLowerCase());
+}
+
 function isHtmlLessonRow(row) {
   const fileName = String(row?.file_name || '').toLowerCase();
   const mimeType = String(row?.mime_type || '').toLowerCase();
@@ -77,7 +81,7 @@ function rowFromItem(item, user, manager, existing = null) {
   };
 }
 
-async function findExisting(client, item) {
+async function findExisting(client, item, user) {
   const candidateId = item.cloudId || item.id;
   if (isUuid(candidateId)) {
     const { data, error } = await client.from('resource_items').select('*').eq('id', candidateId).maybeSingle();
@@ -94,7 +98,9 @@ async function findExisting(client, item) {
 
   const checksum = String(item.checksum || '');
   if (checksum) {
-    const { data, error } = await client.from('resource_items').select('*').eq('checksum', checksum).limit(1).maybeSingle();
+    let query = client.from('resource_items').select('*').eq('checksum', checksum);
+    if (itemHasTag(item, 'html-user-font')) query = query.eq('uploader_id', user.id);
+    const { data, error } = await query.limit(1).maybeSingle();
     if (error) throw new Error(error.message);
     if (data) return data;
   }
@@ -153,7 +159,10 @@ export default async function handler(req, res) {
       || String(item.uploaderName || '').toLowerCase() === String(user.email || '').toLowerCase();
     if (!manager && !uploaderMatches) throw new Error('Bạn chỉ có thể đồng bộ tài liệu do mình tải lên');
 
-    const existing = await findExisting(client, item);
+    const existing = await findExisting(client, item, user);
+    if (!manager && existing?.uploader_id && existing.uploader_id !== user.id) {
+      throw new Error('Bạn không có quyền cập nhật tài nguyên của tài khoản khác');
+    }
     const row = rowFromItem(item, user, manager, existing);
     let saved;
 
