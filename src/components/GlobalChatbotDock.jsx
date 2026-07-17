@@ -28,6 +28,14 @@ function normalizeUrl(value) {
   }
 }
 
+function hostnameOf(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+}
+
 function loadState(user) {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey(user)) || 'null');
@@ -60,12 +68,14 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
   const [activeId, setActiveId] = useState(initial.activeId);
   const [draftName, setDraftName] = useState('');
   const [draftUrl, setDraftUrl] = useState('');
+  const [quickUrl, setQuickUrl] = useState('');
   const [showManager, setShowManager] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState('');
 
   const activeSite = sites.find((site) => site.id === activeId) || sites[0];
+  const activeHost = activeSite ? hostnameOf(activeSite.url) : '';
 
   useEffect(() => {
     const findTarget = () => setPortalTarget(document.querySelector('.global-notice-utilities'));
@@ -142,6 +152,32 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
     flash(vi ? 'Đã lưu website chatbot.' : 'Chatbot website saved.');
   };
 
+  const visitQuickUrl = (event) => {
+    event.preventDefault();
+    const url = normalizeUrl(quickUrl);
+    if (!url) {
+      flash(vi ? 'Nhập địa chỉ website hợp lệ.' : 'Enter a valid website URL.');
+      return;
+    }
+    const duplicate = sites.find((site) => site.url === url);
+    if (duplicate) {
+      selectSite(duplicate.id);
+      setQuickUrl('');
+      return;
+    }
+    const site = {
+      id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      name: hostnameOf(url) || 'Chatbot',
+      url,
+    };
+    setSites((current) => [...current, site].slice(0, 20));
+    setActiveId(site.id);
+    setQuickUrl('');
+    setLoaded(false);
+    setReloadKey((value) => value + 1);
+    flash(vi ? 'Đã thêm website vào danh sách.' : 'Website added to your list.');
+  };
+
   const removeSite = (id) => {
     setSites((current) => {
       const next = current.filter((site) => site.id !== id);
@@ -164,7 +200,7 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
       aria-expanded={open}
       title={vi ? 'Mở bảng chatbot' : 'Open chatbot panel'}
     >
-      <span aria-hidden="true">▣</span>
+      <span aria-hidden="true">✦</span>
       <strong>Chatbot</strong>
     </button>
   );
@@ -180,10 +216,10 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
     >
       <aside className={`global-chatbot-drawer ${expanded ? 'is-expanded' : ''}`} role="dialog" aria-modal={open ? 'true' : 'false'} aria-label={vi ? 'Bảng chatbot' : 'Chatbot panel'}>
         <header className="global-chatbot-header">
-          <div>
-            <span>{vi ? 'CHATBOT ĐA NỀN TẢNG' : 'MULTI-SITE CHATBOT'}</span>
-            <h2>{activeSite?.name || 'Chatbot'}</h2>
-            <small>{activeSite ? new URL(activeSite.url).hostname : ''}</small>
+          <div className="global-chatbot-brandmark">AI</div>
+          <div className="global-chatbot-heading">
+            <h2>{vi ? 'Chatbot đa nền tảng' : 'Multi-platform chatbot'}</h2>
+            <p><span />{vi ? 'Đang hoạt động tại' : 'Active at'}: <strong>{activeHost || '—'}</strong></p>
           </div>
           <nav>
             <button type="button" onClick={() => setShowManager((value) => !value)} title={vi ? 'Quản lý website' : 'Manage websites'}>⚙</button>
@@ -202,31 +238,44 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
               </button>
             ))}
           </div>
-          <button type="button" className="add-site" onClick={() => setShowManager(true)}>＋</button>
+          <button type="button" className="add-site" onClick={() => setShowManager(true)} aria-label={vi ? 'Thêm website' : 'Add website'}>＋</button>
         </div>
+
+        <section className="global-chatbot-address-card">
+          <div>
+            <strong>{vi ? 'Truy cập website khác' : 'Visit another website'}</strong>
+            <small>{vi ? 'Nhập URL để thêm nhanh vào danh sách chatbot.' : 'Enter a URL to add it to your chatbot list.'}</small>
+          </div>
+          <form onSubmit={visitQuickUrl}>
+            <span aria-hidden="true">⌕</span>
+            <input value={quickUrl} onChange={(event) => setQuickUrl(event.target.value)} placeholder={vi ? 'Nhập URL (ví dụ: example.com)' : 'Enter URL (for example: example.com)'} inputMode="url" />
+            <button type="submit">➤ {vi ? 'Đi đến' : 'Go'}</button>
+          </form>
+        </section>
 
         {showManager ? (
           <section className="global-chatbot-manager">
             <header>
               <div>
-                <strong>{vi ? 'Website chatbot đã lưu' : 'Saved chatbot websites'}</strong>
-                <small>{vi ? 'Tối đa 20 website trên trình duyệt này.' : 'Up to 20 websites on this browser.'}</small>
+                <strong>{vi ? 'Quản lý website đã lưu' : 'Manage saved websites'}</strong>
+                <small>{vi ? `Đã lưu ${sites.length}/20 website trên trình duyệt này.` : `${sites.length}/20 websites saved on this browser.`}</small>
               </div>
               <button type="button" onClick={() => setShowManager(false)}>×</button>
             </header>
             <form onSubmit={saveSite}>
               <input value={draftName} onChange={(event) => setDraftName(event.target.value)} placeholder={vi ? 'Tên website, ví dụ NoTrack AI' : 'Website name'} maxLength={50} />
               <input value={draftUrl} onChange={(event) => setDraftUrl(event.target.value)} placeholder="https://..." inputMode="url" />
-              <button type="submit">{vi ? 'Lưu website' : 'Save website'}</button>
+              <button type="submit">＋ {vi ? 'Lưu website' : 'Save website'}</button>
             </form>
             <div className="global-chatbot-saved-list">
               {sites.map((site) => (
-                <article key={site.id}>
+                <article key={site.id} className={site.id === activeId ? 'is-active' : ''}>
                   <button type="button" onClick={() => selectSite(site.id)}>
                     <span>{site.name.slice(0, 1).toUpperCase()}</span>
-                    <div><strong>{site.name}</strong><small>{site.url}</small></div>
+                    <div><strong>{site.name}</strong><small>{hostnameOf(site.url)}</small></div>
                   </button>
-                  <button type="button" className="danger" onClick={() => removeSite(site.id)} title={vi ? 'Xoá website' : 'Remove website'}>×</button>
+                  {site.id === activeId ? <em>{vi ? 'Đang dùng' : 'Active'}</em> : null}
+                  <button type="button" className="danger" onClick={() => removeSite(site.id)} title={vi ? 'Xoá website' : 'Remove website'}>⋮</button>
                 </article>
               ))}
             </div>
@@ -234,7 +283,13 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
         ) : null}
 
         <main className="global-chatbot-frame-wrap">
-          {!loaded ? <div className="global-chatbot-loading"><span /><strong>{vi ? `Đang kết nối ${activeSite?.name || 'chatbot'}…` : `Connecting to ${activeSite?.name || 'chatbot'}…`}</strong></div> : null}
+          {!loaded ? (
+            <div className="global-chatbot-loading">
+              <div className="global-chatbot-orbit"><span>✦</span></div>
+              <strong>{vi ? `Đang kết nối với ${activeSite?.name || 'chatbot'}…` : `Connecting to ${activeSite?.name || 'chatbot'}…`}</strong>
+              <small>{vi ? 'Phiên trò chuyện sẽ được giữ nguyên khi đóng và mở lại bảng.' : 'Your session remains loaded when the panel is closed and reopened.'}</small>
+            </div>
+          ) : null}
           {activeSite ? (
             <iframe
               key={`${activeSite.id}:${reloadKey}`}
@@ -248,7 +303,7 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
         </main>
 
         <footer className="global-chatbot-footer">
-          <span>{vi ? 'Đóng/mở bảng không tải lại cuộc trò chuyện.' : 'Closing and reopening keeps the conversation loaded.'}</span>
+          <span>✦ {vi ? 'Chatbot đa nền tảng · Nhanh chóng · Tiện lợi' : 'Multi-platform chatbot · Fast · Convenient'}</span>
           <button type="button" onClick={() => activeSite && window.open(activeSite.url, '_blank', 'noopener,noreferrer')} disabled={!activeSite}>↗ {vi ? 'Mở riêng' : 'Open separately'}</button>
         </footer>
         {message ? <div className="global-chatbot-toast">{message}</div> : null}
