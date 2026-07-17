@@ -78,6 +78,8 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
     const next = loadState(currentUser);
     setSites(next.sites);
     setActiveId(next.activeId);
+    setLoaded(false);
+    setReloadKey((value) => value + 1);
   }, [currentUser?.id, currentUser?.email]);
 
   useEffect(() => {
@@ -102,6 +104,10 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
   };
 
   const selectSite = (id) => {
+    if (id === activeId) {
+      setShowManager(false);
+      return;
+    }
     setActiveId(id);
     setLoaded(false);
     setReloadKey((value) => value + 1);
@@ -118,7 +124,7 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
     }
     const duplicate = sites.find((site) => site.url === url);
     if (duplicate) {
-      setActiveId(duplicate.id);
+      selectSite(duplicate.id);
       flash(vi ? 'Website này đã được lưu.' : 'This website is already saved.');
       return;
     }
@@ -163,11 +169,16 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
     </button>
   );
 
-  const panel = open ? (
-    <div className="global-chatbot-layer" role="presentation" onMouseDown={(event) => {
-      if (event.target === event.currentTarget) setOpen(false);
-    }}>
-      <aside className={`global-chatbot-drawer ${expanded ? 'is-expanded' : ''}`} role="dialog" aria-modal="true" aria-label={vi ? 'Bảng chatbot' : 'Chatbot panel'}>
+  const panel = (
+    <div
+      className={`global-chatbot-layer ${open ? 'is-open' : 'is-hidden'}`}
+      role="presentation"
+      aria-hidden={!open}
+      onMouseDown={(event) => {
+        if (open && event.target === event.currentTarget) setOpen(false);
+      }}
+    >
+      <aside className={`global-chatbot-drawer ${expanded ? 'is-expanded' : ''}`} role="dialog" aria-modal={open ? 'true' : 'false'} aria-label={vi ? 'Bảng chatbot' : 'Chatbot panel'}>
         <header className="global-chatbot-header">
           <div>
             <span>{vi ? 'CHATBOT ĐA NỀN TẢNG' : 'MULTI-SITE CHATBOT'}</span>
@@ -237,18 +248,18 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
         </main>
 
         <footer className="global-chatbot-footer">
-          <span>{vi ? 'Website có thể chặn nhúng trong iframe.' : 'The website may block iframe embedding.'}</span>
+          <span>{vi ? 'Đóng/mở bảng không tải lại cuộc trò chuyện.' : 'Closing and reopening keeps the conversation loaded.'}</span>
           <button type="button" onClick={() => activeSite && window.open(activeSite.url, '_blank', 'noopener,noreferrer')} disabled={!activeSite}>↗ {vi ? 'Mở riêng' : 'Open separately'}</button>
         </footer>
         {message ? <div className="global-chatbot-toast">{message}</div> : null}
       </aside>
     </div>
-  ) : null;
+  );
 
   return (
     <>
       {portalTarget ? createPortal(trigger, portalTarget) : trigger}
-      {panel && typeof document !== 'undefined' ? createPortal(panel, document.body) : panel}
+      {typeof document !== 'undefined' ? createPortal(panel, document.body) : panel}
     </>
   );
 }
