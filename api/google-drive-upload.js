@@ -5,14 +5,32 @@ import { normaliseResourceCategory } from './_resourceCategoryFolders.js';
 export const config = { api: { bodyParser: false, sizeLimit: '20mb' } };
 
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
-const ALLOWED_MIME = new Set(['application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.openxmlformats-officedocument.presentationml.presentation','text/plain','text/csv','application/zip','image/png','image/jpeg','image/webp','audio/mpeg','audio/wav','video/mp4']);
-const ALLOWED_EXT = /\.(pdf|docx|xlsx|pptx|txt|csv|zip|png|jpe?g|webp|mp3|wav|mp4)$/i;
-
+const ALLOWED_MIME = new Set([
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/plain',
+  'text/csv',
+  'text/html',
+  'application/zip',
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'audio/mpeg',
+  'audio/wav',
+  'video/mp4',
+]);
+const ALLOWED_EXT = /\.(pdf|docx|xlsx|pptx|txt|csv|html?|zip|png|jpe?g|webp|mp3|wav|mp4)$/i;
 
 function hasExpectedSignature(buffer, mimeType, fileName) {
   const ext = String(fileName || '').split('.').pop().toLowerCase();
   const starts = (...bytes) => bytes.every((value, index) => buffer[index] === value);
-  if (['txt', 'csv'].includes(ext)) return true;
+  if (['txt', 'csv', 'html', 'htm'].includes(ext)) {
+    if (!buffer.length || buffer.includes(0)) return false;
+    const text = buffer.toString('utf8').trim();
+    return Boolean(text) && (ext === 'html' || ext === 'htm' ? /<(?:!doctype\s+html|html|head|body|script|style|main|section|div)\b/i.test(text) : true);
+  }
   if (ext === 'pdf') return buffer.subarray(0, 5).toString('ascii') === '%PDF-';
   if (['docx', 'xlsx', 'pptx', 'zip'].includes(ext)) return starts(0x50, 0x4b);
   if (ext === 'png') return starts(0x89, 0x50, 0x4e, 0x47);
@@ -63,6 +81,7 @@ export default async function handler(req, res) {
       parents: [dateFolder],
       appProperties: {
         besResource: 'true',
+        interactiveHtml: /\.html?$/i.test(fileName) ? 'true' : 'false',
         category,
         uploaderId: user.id,
         targetFolder: resourceCategoryFolderName(category),
