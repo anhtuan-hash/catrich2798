@@ -14,6 +14,7 @@ const TextLabActivities = lazy(() => import('./TextLabActivitiesWithExternalAI.j
 const EnglishLessonIntegrationStudio = lazy(() => import('./EnglishLessonIntegrationStudio.jsx'));
 const GrammarBuilder = lazy(() => import('./GrammarBuilder.jsx'));
 const THPTPracticeHub = lazy(() => import('./THPTPracticeHubCloud.jsx'));
+const IndependentAIChatbot = lazy(() => import('./IndependentAIChatbot.jsx'));
 
 function ToolFallback({ language = 'vi' }) {
   return (
@@ -61,6 +62,10 @@ export default function ToolPage(props) {
   const [content, setContent] = useState('Past Simple\nPast Continuous\nwhile\nwhen\nwas watching\nwent out');
   const [title, setTitle] = useState('My Activity');
   const preview = useMemo(() => buildPreview(content, selected, language), [content, selected, language]);
+
+  if (tool?.slug === 'independent-ai-chatbot') {
+    return renderLazy(IndependentAIChatbot, props);
+  }
 
   if (tool?.slug === 'thpt-practice-hub') {
     return renderLazy(THPTPracticeHub, props);
