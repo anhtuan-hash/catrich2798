@@ -20,6 +20,14 @@ function isHtmlLessonRow(row) {
     && !row?.deleted_at;
 }
 
+function isUserHtmlFontRow(row) {
+  const fileName = String(row?.file_name || '').toLowerCase();
+  const tags = Array.isArray(row?.tags) ? row.tags.map((tag) => String(tag).toLowerCase()) : [];
+  return tags.includes('html-user-font')
+    && /\.(ttf|otf|woff2?)$/.test(fileName)
+    && !row?.deleted_at;
+}
+
 function queryParam(req, name) {
   if (req.query?.[name] !== undefined) return Array.isArray(req.query[name]) ? req.query[name][0] : req.query[name];
   try { return new URL(req.url, 'http://localhost').searchParams.get(name); } catch { return ''; }
@@ -107,6 +115,16 @@ async function listThptHtmlLessons(client, user, manager) {
   return (data || []).filter(isHtmlLessonRow);
 }
 
+async function listUserHtmlFonts(client, user) {
+  const { data, error } = await client
+    .from('resource_items')
+    .select('*')
+    .eq('uploader_id', user.id)
+    .order('updated_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data || []).filter(isUserHtmlFontRow);
+}
+
 export default async function handler(req, res) {
   try {
     const user = await requireUser(req);
@@ -115,9 +133,15 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET') {
       const scope = String(queryParam(req, 'scope') || '');
-      if (scope !== 'thpt-html-lessons') return send(res, 400, { error: 'Unsupported resource scope' });
-      const items = await listThptHtmlLessons(client, user, manager);
-      return send(res, 200, { ok: true, manager, items });
+      if (scope === 'thpt-html-lessons') {
+        const items = await listThptHtmlLessons(client, user, manager);
+        return send(res, 200, { ok: true, manager, items });
+      }
+      if (scope === 'html-user-fonts') {
+        const items = await listUserHtmlFonts(client, user);
+        return send(res, 200, { ok: true, items });
+      }
+      return send(res, 400, { error: 'Unsupported resource scope' });
     }
 
     if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
