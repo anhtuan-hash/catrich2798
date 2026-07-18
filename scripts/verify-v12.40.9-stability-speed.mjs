@@ -23,7 +23,7 @@ assert.match(main, /deferredShell\.idleReady/);
 assert.doesNotMatch(main, /styles\/apps-hero-v1216\.css/);
 assert.doesNotMatch(main, /styles\/admin-center-v1224\.css/);
 assert.doesNotMatch(main, /styles\/settings-experience-v1225\.css/);
-assert.match(fs.readFileSync('src/pages/WebApps.jsx', 'utf8'), /apps-hero-v1216\.css/);
+assert.match(fs.readFileSync('src/pages/WebAppsBase.jsx', 'utf8'), /apps-hero-v1216\.css/);
 assert.match(fs.readFileSync('src/pages/AdminPage.jsx', 'utf8'), /admin-center-v1224\.css/);
 assert.match(fs.readFileSync('src/pages/Settings.jsx', 'utf8'), /settings-experience-v1225\.css/);
 assert.match(fs.readFileSync('src/pages/DepartmentWorkspace.jsx', 'utf8'), /department-command-v1219\.css/);
