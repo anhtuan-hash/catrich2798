@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+const index = fs.readFileSync('index.html', 'utf8');
 const main = fs.readFileSync('src/main.jsx', 'utf8');
 const gateway = fs.readFileSync('src/utils/aiServerGateway.js', 'utf8');
 const server = fs.readFileSync('server/unifiedAiProviderAdapter.js', 'utf8');
@@ -11,6 +12,7 @@ const speedCss = fs.readFileSync('src/ui-core/styles/stability-speed-v12409.css'
 const typographyCss = fs.readFileSync('src/ui-core/styles/typography-v3.css', 'utf8');
 const widescreenCss = fs.readFileSync('src/ui-core/styles/widescreen-v1218.css', 'utf8');
 const bursRuntime = fs.readFileSync('src/utils/bursReadability.js', 'utf8');
+const configMigration = fs.readFileSync('src/utils/configMigration.js', 'utf8');
 
 assert.equal(pkg.version, '12.40.9');
 assert.equal(pkg.scripts['version:sync'], 'node scripts/sync-version-v12.40.9.mjs');
@@ -45,6 +47,20 @@ assert.match(speedCss, /typography-v3\.css/);
 assert.match(vite, /codeSplitting:/);
 assert.match(vite, /includeDependenciesRecursively: false/);
 assert.match(vite, /strictExecutionOrder: true/);
+
+/* The retired macOS Motion System must stay fully removed. */
+assert.doesNotMatch(index, /src\/motion\/macosMotion/i);
+for (const retiredPath of [
+  'src/motion/macosMotion.js',
+  'src/motion/macosMotionCompat.js',
+  'src/motion/macosMotion.css',
+]) {
+  assert.equal(fs.existsSync(retiredPath), false, `${retiredPath} must remain deleted`);
+}
+assert.doesNotMatch(speedCss, /data-macos-motion|bes-macos|mac-os|mac-motion|dock-motion/);
+assert.doesNotMatch(speedCss, /animation-duration\s*:\s*0\.001ms/);
+assert.match(configMigration, /bes-macos-motion/);
+assert.match(configMigration, /status: 'removed'/);
 
 /* BURS Unified Typography V3 release gate. */
 assert.match(bursRuntime, /comfortable-v3/);
@@ -102,4 +118,4 @@ for (const manifestPath of ['public/version.json', 'public/release-manifest.json
   assert.equal(manifest.aiStreamingFallback, true);
 }
 
-console.log('V12.40.9 Stability, Speed & BURS Typography V3 static checks passed.');
+console.log('V12.40.9 Stability, Speed, retired macOS Motion cleanup & BURS Typography V3 static checks passed.');
