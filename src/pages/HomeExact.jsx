@@ -54,7 +54,7 @@ function Icon({ name }) {
 function AppCard({ card, currentUser, vi }) {
   const accent = COLORS[card.tone] || COLORS.blue;
   return (
-    <button type="button" className={`bhe-app-card bhe-tone-${card.tone} ${card.featured ? 'is-featured' : ''}`} style={{ gridArea: card.area, '--bhe-accent': accent }} onClick={(event) => go(targetFor(card), card.title, accent, currentUser, event.currentTarget)} aria-label={`${vi ? 'Mở' : 'Open'} ${card.title}`}>
+    <button type="button" data-home-card={card.id} className={`bhe-app-card bhe-tone-${card.tone} ${card.featured ? 'is-featured' : ''}`} style={{ gridArea: card.area, '--bhe-accent': accent }} onClick={(event) => go(targetFor(card), card.title, accent, currentUser, event.currentTarget)} aria-label={`${vi ? 'Mở' : 'Open'} ${card.title}`}>
       <span className="bhe-window-strip"><i/><i/><i/></span>
       <span className="bhe-card-inner">
         <span className="bhe-app-icon"><Icon name={card.icon}/></span>
@@ -79,9 +79,10 @@ export default function HomeExact({ currentUser, language = 'vi', appVisibility 
   const date = new Intl.DateTimeFormat(vi ? 'vi-VN' : 'en-US', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }).format(now);
   const time = new Intl.DateTimeFormat(vi ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: false }).format(now);
   const visibleCards = APP_CARDS.filter((card) => !isAppHiddenForUser(appVisibility?.snapshot, currentUser, card.visibilityId || (card.slug ? `tool:${card.slug}` : 'route:apps')));
+  const mosaicComplete = visibleCards.length === APP_CARDS.length;
 
   return (
-    <div className="brian-home-exact" data-home-exact="true">
+    <div className={`brian-home-exact ${mosaicComplete ? '' : 'is-adaptive-home'}`.trim()} data-home-exact="true" data-visible-card-count={visibleCards.length}>
       <div className="bhe-layout">
         <section className="bhe-hero-panel">
           <span className="bhe-kicker">BRIAN ENGLISH STUDIO</span><span className="bhe-hero-star" aria-hidden="true">✦</span><span className="bhe-orbit" aria-hidden="true"/>
