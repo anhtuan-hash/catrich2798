@@ -1,0 +1,46 @@
+/* Restore the shared application chrome on the approved 3D Home.
+ * This file is loaded last so the Home keeps its approved cards and dock
+ * while using the same status/menu and navigation bars as every other route.
+ */
+
+/* HomeApproved3D.css intentionally hid the global shell. Restore only that shell. */
+html.bes-home-approved-3d body .metro-clean-system .bes-top-chrome {
+  display: block !important;
+}
+
+/* The shared shell replaces the private navigation embedded in the 3D Home. */
+html body #root .brian-home-approved3d .bhe3d-navbar {
+  display: none !important;
+}
+
+/* With the private navbar removed, keep only the content row and pinned dock row. */
+html body #root .brian-home-approved3d .bhe3d-page {
+  grid-template-rows: minmax(600px, 1fr) auto !important;
+  min-height: calc(100svh - var(--bes-harmony-top-offset, 128px)) !important;
+}
+
+/* One static five-colour spectrum for both lines, preserving the existing 3D shadows. */
+html body #root .brian-home-approved3d .bhe3d-title span,
+html body #root .brian-home-approved3d .bhe3d-title strong {
+  color: #ff4f9a !important;
+  background-image: linear-gradient(
+    90deg,
+    #ff4f9a 0%,
+    #ff7a45 24%,
+    #ffd84d 44%,
+    #9a57f5 68%,
+    #2f9bff 100%
+  ) !important;
+  background-position: center !important;
+  background-size: 100% 100% !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  animation: none !important;
+}
+
+@media (max-width: 760px) {
+  html body #root .brian-home-approved3d .bhe3d-page {
+    grid-template-rows: auto auto !important;
+  }
+}
