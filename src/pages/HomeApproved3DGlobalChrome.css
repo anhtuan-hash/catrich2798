@@ -1,6 +1,7 @@
 /* Restore the shared application chrome on the approved 3D Home.
  * This file is loaded last so the Home keeps its approved cards and dock
  * while using the same status/menu, navigation and footer as every other route.
+ * Final recovery selectors intentionally outrank the older Home-only hide rules.
  */
 
 /*
