@@ -5,6 +5,7 @@ import './HomeExactTypography.css';
 import './HomeExactPolish.css';
 import './HomeExactGraphics.css';
 import './HomeExactGraphicsRefine.css';
+import './HomeExactFinal.css';
 
 export default function HomeExactEntry(props) {
   useEffect(() => {
