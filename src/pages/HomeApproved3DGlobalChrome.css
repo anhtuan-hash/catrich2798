@@ -1,11 +1,63 @@
 /* Restore the shared application chrome on the approved 3D Home.
  * This file is loaded last so the Home keeps its approved cards and dock
- * while using the same status/menu and navigation bars as every other route.
+ * while using the same status/menu, navigation and footer as every other route.
  */
 
-/* HomeApproved3D.css intentionally hid the global shell. Restore only that shell. */
-html.bes-home-approved-3d body .metro-clean-system .bes-top-chrome {
+/*
+ * HomeApproved3DRefine.css hides these elements with #root-scoped !important
+ * declarations. Match that scope and add the route shell classes so the shared
+ * chrome is restored reliably instead of depending on stylesheet order alone.
+ */
+html body #root .app-shell.metro-clean-system[data-route="home"] > .bes-top-chrome,
+html body #root .app-shell.metro-clean-system[data-route="home"] .bes-top-chrome {
   display: block !important;
+  visibility: visible !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+html body #root .app-shell.metro-clean-system[data-route="home"] > .bes-top-chrome .global-notice-shell {
+  display: block !important;
+  visibility: visible !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 64px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+}
+
+html body #root .app-shell.metro-clean-system[data-route="home"] > .bes-top-chrome .global-flat-navigation {
+  display: flex !important;
+  visibility: visible !important;
+  width: min(1900px, calc(100vw - 24px)) !important;
+  height: auto !important;
+  min-height: 64px !important;
+  margin: 0 auto !important;
+  padding: 8px 0 !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+}
+
+/* Restore the complete professional-information footer with its original frame. */
+html body #root .app-shell.metro-clean-system[data-route="home"] > .footer.signature-footer-v50 {
+  display: block !important;
+  visibility: visible !important;
+  width: min(1480px, calc(100vw - 32px)) !important;
+  max-width: 1480px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 18px auto 22px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  opacity: 1 !important;
 }
 
 /* The shared shell replaces the private navigation embedded in the 3D Home. */
@@ -40,6 +92,10 @@ html body #root .brian-home-approved3d .bhe3d-title strong {
 }
 
 @media (max-width: 760px) {
+  html body #root .app-shell.metro-clean-system[data-route="home"] > .footer.signature-footer-v50 {
+    width: calc(100vw - 18px) !important;
+  }
+
   html body #root .brian-home-approved3d .bhe3d-page {
     grid-template-rows: auto auto !important;
   }
