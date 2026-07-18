@@ -2,6 +2,10 @@ const MIGRATION_EVENT = 'bes-config-migration-complete';
 const BACKUP_PREFIX = 'bes-config-backup-v1086';
 const REPORT_KEY = 'bes-config-migration-report-v1086';
 
+const RETIRED_STORAGE_PATTERNS = [
+  /^bes-macos-motion(?:-|:|$)/,
+];
+
 const STORAGE_SCHEMAS = [
   {
     id: 'launcher',
@@ -116,10 +120,26 @@ function matchingKeys(storage, schema) {
   return keys;
 }
 
+function removeRetiredStorage(storage) {
+  const keys = [];
+  for (let i = 0; i < storage.length; i += 1) {
+    const key = storage.key(i);
+    if (key && RETIRED_STORAGE_PATTERNS.some((pattern) => pattern.test(key))) keys.push(key);
+  }
+  return keys.map((key) => {
+    try {
+      storage.removeItem(key);
+      return { id: 'retired-config', key, targetKey: null, status: 'removed' };
+    } catch (error) {
+      return { id: 'retired-config', key, targetKey: null, status: 'failed', error: String(error?.message || error) };
+    }
+  });
+}
+
 export function runConfigurationMigrations() {
   if (typeof window === 'undefined' || !window.localStorage) return { ranAt: Date.now(), results: [] };
   const storage = window.localStorage;
-  const results = [];
+  const results = [...removeRetiredStorage(storage)];
 
   STORAGE_SCHEMAS.forEach((schema) => {
     if (schema.legacyKeys?.length) {
