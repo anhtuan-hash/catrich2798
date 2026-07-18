@@ -1,8 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../data/apps.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { launchRoute } from '../utils/motion.js';
-import InlineAppFrame from '../components/InlineAppFrame.jsx';
 import HomeExactGraphic from './HomeExactGraphics.jsx';
 import './HomeExact.css';
 
@@ -52,10 +51,10 @@ function Icon({ name }) {
   return <svg {...common}>{paths[name] || paths.grammar}</svg>;
 }
 
-function AppCard({ card, vi, onOpen }) {
+function AppCard({ card, currentUser, vi }) {
   const accent = COLORS[card.tone] || COLORS.blue;
   return (
-    <button type="button" className={`bhe-app-card bhe-tone-${card.tone} ${card.featured ? 'is-featured' : ''}`} style={{ gridArea: card.area, '--bhe-accent': accent }} onClick={(event) => onOpen(card, event.currentTarget)} aria-label={`${vi ? 'Chạy trong thẻ' : 'Run in card'} ${card.title}`}>
+    <button type="button" className={`bhe-app-card bhe-tone-${card.tone} ${card.featured ? 'is-featured' : ''}`} style={{ gridArea: card.area, '--bhe-accent': accent }} onClick={(event) => go(targetFor(card), card.title, accent, currentUser, event.currentTarget)} aria-label={`${vi ? 'Mở' : 'Open'} ${card.title}`}>
       <span className="bhe-window-strip"><i/><i/><i/></span>
       <span className="bhe-card-inner">
         <span className="bhe-app-icon"><Icon name={card.icon}/></span>
@@ -71,7 +70,6 @@ function AppCard({ card, vi, onOpen }) {
 
 export default function HomeExact({ currentUser, language = 'vi', appVisibility }) {
   const vi = language === 'vi';
-  const [activeCard, setActiveCard] = useState(null);
   const name = useMemo(() => {
     const source = currentUser?.name || currentUser?.email || (vi ? 'Khách' : 'Guest');
     const parts = String(source).trim().split(/\s+/).filter(Boolean);
@@ -81,16 +79,6 @@ export default function HomeExact({ currentUser, language = 'vi', appVisibility 
   const date = new Intl.DateTimeFormat(vi ? 'vi-VN' : 'en-US', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }).format(now);
   const time = new Intl.DateTimeFormat(vi ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: false }).format(now);
   const visibleCards = APP_CARDS.filter((card) => !isAppHiddenForUser(appVisibility?.snapshot, currentUser, card.visibilityId || (card.slug ? `tool:${card.slug}` : 'route:apps')));
-
-  const openCardInline = (card, sourceEl) => {
-    const target = targetFor(card);
-    const isPublic = ['#/home', '#/news'].includes(target);
-    if (!currentUser && !isPublic) {
-      go('#/login', card.title, COLORS[card.tone] || COLORS.blue, currentUser, sourceEl);
-      return;
-    }
-    setActiveCard(card);
-  };
 
   return (
     <div className="brian-home-exact" data-home-exact="true">
@@ -104,21 +92,7 @@ export default function HomeExact({ currentUser, language = 'vi', appVisibility 
           <button type="button" className="bhe-start-card" onClick={(event) => go('#/apps', 'GO', '#8fb315', currentUser, event.currentTarget)}><span>⬆</span><div><strong>{vi ? 'Bắt đầu ngay hôm nay' : 'Start today'}</strong><small>{vi ? 'Khám phá bộ công cụ của bạn' : 'Explore your toolkit'}</small></div><b>→</b></button>
           <span className="bhe-leaves" aria-hidden="true"><i/><i/><i/><i/></span>
         </section>
-        <section className={`bhe-app-board ${activeCard ? 'is-inline-running' : ''}`} aria-label={vi ? 'Bộ ứng dụng của bạn' : 'Your app collection'}>
-          {activeCard ? (
-            <InlineAppFrame
-              key={activeCard.id}
-              target={targetFor(activeCard)}
-              title={activeCard.title}
-              subtitle={activeCard.desc}
-              language={language}
-              accent={COLORS[activeCard.tone] || COLORS.blue}
-              onClose={() => setActiveCard(null)}
-            />
-          ) : (
-            <div className="bhe-app-grid">{visibleCards.map((card) => <AppCard key={card.id} card={card} vi={vi} onOpen={openCardInline}/>)}</div>
-          )}
-        </section>
+        <section className="bhe-app-board" aria-label={vi ? 'Bộ ứng dụng của bạn' : 'Your app collection'}><div className="bhe-app-grid">{visibleCards.map((card) => <AppCard key={card.id} card={card} currentUser={currentUser} vi={vi}/>)}</div></section>
       </div>
     </div>
   );
