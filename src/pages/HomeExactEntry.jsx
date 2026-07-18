@@ -6,6 +6,7 @@ import './HomeExactPolish.css';
 import './HomeExactGraphics.css';
 import './HomeExactGraphicsRefine.css';
 import './HomeExactFinal.css';
+import './HomeSharedShell.css';
 
 export default function HomeExactEntry(props) {
   useEffect(() => {
