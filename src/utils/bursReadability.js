@@ -31,7 +31,7 @@ function directText(element) {
 
 function isMeaningful(element) {
   if (!element || element.matches?.('script,style,svg,path,canvas,video,audio,br,hr')) return false;
-  if (element.closest?.('svg') || element.getAttribute?.('aria-hidden') === 'true' || element.hasAttribute?.('data-burs-skip')) return false;
+  if (element.closest?.('svg,[aria-hidden="true"]') || element.hasAttribute?.('data-burs-skip')) return false;
   const text = directText(element);
   return text.length >= 2 && meaningfulPattern.test(text);
 }
@@ -91,7 +91,8 @@ function scanRoot(root = document) {
     if (!(element instanceof Element)) return;
 
     const semantic = Boolean(element.closest?.(semanticSelector));
-    const control = !semantic && element.matches?.(controlSelector);
+    const hiddenFromAccessibility = Boolean(element.closest?.('[aria-hidden="true"]'));
+    const control = !semantic && !hiddenFromAccessibility && element.matches?.(controlSelector);
     const meaningful = !semantic && isMeaningful(element);
     const baseSize = Number.parseFloat(getComputedStyle(element).fontSize || '0');
     const validSize = Number.isFinite(baseSize) ? baseSize : 0;
@@ -101,16 +102,16 @@ function scanRoot(root = document) {
     element.classList.toggle('burs-readable-text', Boolean(meaningful && underMinimum));
     element.classList.toggle('burs-long-token', isLongUnbrokenToken(element));
 
-    if (underMinimum) {
+    if ((control || meaningful) && underMinimum) {
       element.dataset.bursUnderMin = control ? 'control' : 'text';
       const detail = describeElement(element, validSize);
       if (control) underControls.push(detail);
-      else if (meaningful) underText.push(detail);
+      else underText.push(detail);
     } else {
       delete element.dataset.bursUnderMin;
     }
 
-    if (!element.matches('pre,code,table,textarea,input') && element.clientWidth > 0 && element.scrollWidth > element.clientWidth + 2) {
+    if (!hiddenFromAccessibility && !element.matches('pre,code,table,textarea,input') && element.clientWidth > 0 && element.scrollWidth > element.clientWidth + 2) {
       element.dataset.bursOverflow = 'true';
       if (overflows.length < 40) overflows.push(describeElement(element, validSize));
     } else {
