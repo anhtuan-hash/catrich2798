@@ -50,15 +50,15 @@ jobs:
         run: npm run build
 
       - name: Run typography matrix
-        run: npx playwright test tests/e2e/typography-v3.spec.js --project=chromium-desktop
+        run: npx playwright test tests/e2e/typography-v3.spec.js --project=chromium-desktop --reporter=line
 
-      - name: Upload failure report
+      - name: Upload compact failure report
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: typography-v3-playwright-report
+          name: typography-v3-failure-contexts
           path: |
-            reports/playwright
-            test-results
+            test-results/**/error-context.md
+            test-results/**/test-failed-1.png
           if-no-files-found: ignore
           retention-days: 7
