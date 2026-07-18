@@ -1,0 +1,14 @@
+import React, { useEffect } from 'react';
+import HomeExact from './HomeExact.jsx';
+import './HomeExactFix.css';
+
+export default function HomeExactEntry(props) {
+  useEffect(() => {
+    const reset = () => window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    reset();
+    const frame = window.requestAnimationFrame(reset);
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  return <HomeExact {...props} />;
+}
