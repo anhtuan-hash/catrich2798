@@ -1,0 +1,312 @@
+/* Preview refinements from the 1536×960 review screenshot. Loaded after HomeExact.css. */
+html:has(.brian-home-exact),
+html:has(.brian-home-exact) body {
+  scroll-behavior: auto !important;
+}
+
+html body .metro-clean-system[data-route="home"] > main.wp8-page-stage {
+  overflow: visible !important;
+}
+
+.brian-home-exact {
+  min-height: 100svh !important;
+  padding-top: 8px !important;
+}
+
+.bhe-navbar {
+  position: relative !important;
+  inset: auto !important;
+  min-height: 62px !important;
+  margin-bottom: 10px !important;
+  gap: 14px !important;
+  overflow: visible !important;
+}
+
+.bhe-nav-links,
+.bhe-nav-actions {
+  gap: 6px !important;
+}
+
+.bhe-nav-links button,
+.bhe-search,
+.bhe-ai,
+.bhe-scale,
+.bhe-icon-button,
+.bhe-user {
+  min-height: 44px !important;
+}
+
+.bhe-nav-links button {
+  padding-inline: 11px !important;
+  font-size: 12px !important;
+}
+
+.bhe-brand {
+  min-height: 44px !important;
+  padding-inline: 4px !important;
+}
+
+.bhe-brand strong {
+  font-size: 23px !important;
+}
+
+.bhe-brand span {
+  font-size: 16px !important;
+}
+
+.bhe-layout {
+  height: calc(100svh - 102px) !important;
+  min-height: 720px !important;
+  max-height: 860px !important;
+  gap: 18px !important;
+}
+
+.bhe-hero-panel,
+.bhe-app-board {
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+.bhe-hero-panel {
+  padding: 40px 32px 22px !important;
+}
+
+.bhe-hero-panel h1 {
+  margin: 20px 0 24px !important;
+  line-height: .84 !important;
+}
+
+.bhe-hero-panel h1 span,
+.bhe-hero-panel h1 strong {
+  font-family: Inter, "Arial Black", "SF Pro Display", system-ui, sans-serif !important;
+  font-size: clamp(82px, 7.1vw, 120px) !important;
+  line-height: .82 !important;
+  letter-spacing: -.075em !important;
+  white-space: nowrap !important;
+}
+
+.bhe-hero-panel > p {
+  max-width: 385px !important;
+  margin-bottom: 27px !important;
+  font-size: 15px !important;
+  line-height: 1.48 !important;
+}
+
+.bhe-info-card,
+.bhe-start-card {
+  border-radius: 20px !important;
+  background: rgba(255, 253, 246, .92) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    0 4px 9px rgba(73,74,53,.08),
+    0 14px 24px rgba(75,77,50,.10) !important;
+}
+
+.bhe-profile-card {
+  min-height: 78px !important;
+  padding-block: 10px !important;
+}
+
+.bhe-progress-card {
+  min-height: 78px !important;
+  margin-top: 14px !important;
+  padding-block: 11px !important;
+}
+
+.bhe-start-card {
+  min-height: 88px !important;
+  margin-top: 14px !important;
+  padding-block: 13px !important;
+}
+
+.bhe-app-board {
+  padding: 14px !important;
+}
+
+.bhe-app-grid {
+  height: 100% !important;
+  min-height: 0 !important;
+  grid-template-rows: 1.08fr .92fr .92fr 1fr !important;
+  gap: 12px !important;
+}
+
+.bhe-card-copy strong {
+  overflow-wrap: normal !important;
+  word-break: keep-all !important;
+  hyphens: none !important;
+  white-space: normal !important;
+}
+
+.bhe-card-copy small {
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.bhe-app-card[style*="grid-area: grammar"],
+.bhe-app-card[style*="grid-area: textcare"] {
+  grid-template-rows: 36px 1fr !important;
+}
+
+.bhe-app-card[style*="grid-area: grammar"] .bhe-window-strip,
+.bhe-app-card[style*="grid-area: textcare"] .bhe-window-strip {
+  min-height: 36px !important;
+}
+
+.bhe-app-card[style*="grid-area: grammar"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: textcare"] .bhe-card-inner {
+  grid-template-columns: 62px minmax(0, 1fr) 44px !important;
+  gap: 16px !important;
+  padding: 15px 18px 17px !important;
+}
+
+.bhe-app-card[style*="grid-area: grammar"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: textcare"] .bhe-app-icon {
+  width: 62px !important;
+  height: 62px !important;
+}
+
+.bhe-app-card[style*="grid-area: grammar"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: textcare"] .bhe-card-copy strong {
+  font-size: clamp(20px, 1.45vw, 25px) !important;
+}
+
+.bhe-app-card[style*="grid-area: lesson"] .bhe-card-inner {
+  padding: 24px 24px 18px !important;
+}
+
+.bhe-app-card[style*="grid-area: lesson"] .bhe-card-copy strong {
+  font-size: clamp(27px, 2vw, 35px) !important;
+}
+
+.bhe-app-card[style*="grid-area: lesson"] .bhe-card-copy small {
+  font-size: 15px !important;
+}
+
+.bhe-app-card[style*="grid-area: game"],
+.bhe-app-card[style*="grid-area: word"],
+.bhe-app-card[style*="grid-area: reading"],
+.bhe-app-card[style*="grid-area: listening"],
+.bhe-app-card[style*="grid-area: worksheet"],
+.bhe-app-card[style*="grid-area: exam"],
+.bhe-app-card[style*="grid-area: resource"],
+.bhe-app-card[style*="grid-area: ai"] {
+  grid-template-rows: 34px 1fr !important;
+}
+
+.bhe-app-card[style*="grid-area: game"] .bhe-window-strip,
+.bhe-app-card[style*="grid-area: word"] .bhe-window-strip,
+.bhe-app-card[style*="grid-area: reading"] .bhe-window-strip,
+.bhe-app-card[style*="grid-area: listening"] .bhe-window-strip,
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-window-strip,
+.bhe-app-card[style*="grid-area: exam"] .bhe-window-strip,
+.bhe-app-card[style*="grid-area: resource"] .bhe-window-strip,
+.bhe-app-card[style*="grid-area: ai"] .bhe-window-strip {
+  min-height: 34px !important;
+  padding-inline: 13px !important;
+}
+
+.bhe-app-card[style*="grid-area: game"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: word"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: reading"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: listening"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: exam"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: resource"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: ai"] .bhe-card-inner {
+  grid-template-columns: 54px minmax(0, 1fr) !important;
+  align-content: center !important;
+  align-items: center !important;
+  gap: 11px !important;
+  padding: 12px 13px 14px !important;
+}
+
+.bhe-app-card[style*="grid-area: game"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: word"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: reading"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: listening"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: exam"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: resource"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: ai"] .bhe-app-icon {
+  width: 54px !important;
+  height: 54px !important;
+  border-radius: 16px !important;
+}
+
+.bhe-app-card[style*="grid-area: game"] .bhe-app-icon svg,
+.bhe-app-card[style*="grid-area: word"] .bhe-app-icon svg,
+.bhe-app-card[style*="grid-area: reading"] .bhe-app-icon svg,
+.bhe-app-card[style*="grid-area: listening"] .bhe-app-icon svg,
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-app-icon svg,
+.bhe-app-card[style*="grid-area: exam"] .bhe-app-icon svg,
+.bhe-app-card[style*="grid-area: resource"] .bhe-app-icon svg,
+.bhe-app-card[style*="grid-area: ai"] .bhe-app-icon svg {
+  width: 33px !important;
+  height: 33px !important;
+}
+
+.bhe-app-card[style*="grid-area: game"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: word"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: reading"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: listening"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: exam"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: resource"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: ai"] .bhe-card-copy {
+  align-self: center !important;
+  gap: 5px !important;
+  padding-right: 28px !important;
+}
+
+.bhe-app-card[style*="grid-area: game"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: word"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: reading"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: listening"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: exam"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: resource"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: ai"] .bhe-card-copy strong {
+  font-size: clamp(15px, 1.08vw, 19px) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.025em !important;
+}
+
+.bhe-app-card[style*="grid-area: game"] .bhe-card-copy small,
+.bhe-app-card[style*="grid-area: word"] .bhe-card-copy small,
+.bhe-app-card[style*="grid-area: reading"] .bhe-card-copy small,
+.bhe-app-card[style*="grid-area: listening"] .bhe-card-copy small,
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-card-copy small,
+.bhe-app-card[style*="grid-area: exam"] .bhe-card-copy small,
+.bhe-app-card[style*="grid-area: resource"] .bhe-card-copy small,
+.bhe-app-card[style*="grid-area: ai"] .bhe-card-copy small {
+  font-size: 10px !important;
+  line-height: 1.32 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bhe-app-card[style*="grid-area: game"] .bhe-card-arrow,
+.bhe-app-card[style*="grid-area: word"] .bhe-card-arrow,
+.bhe-app-card[style*="grid-area: reading"] .bhe-card-arrow,
+.bhe-app-card[style*="grid-area: listening"] .bhe-card-arrow,
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-card-arrow,
+.bhe-app-card[style*="grid-area: exam"] .bhe-card-arrow,
+.bhe-app-card[style*="grid-area: resource"] .bhe-card-arrow,
+.bhe-app-card[style*="grid-area: ai"] .bhe-card-arrow {
+  position: absolute !important;
+  right: 11px !important;
+  bottom: 11px !important;
+  width: 36px !important;
+  height: 36px !important;
+  font-size: 20px !important;
+}
+
+@media (max-width: 1380px) {
+  .bhe-layout {
+    height: auto !important;
+    min-height: 760px !important;
+    max-height: none !important;
+  }
+}

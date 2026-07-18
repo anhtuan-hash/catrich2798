@@ -7,6 +7,7 @@ import UIActivityCenter from './UIActivityCenter.jsx';
 
 /**
  * Global shell chrome.
+ * Home owns an isolated single-row navigation matching its approved design.
  * The former workspace/recent-app strip has been removed site-wide.
  */
 export default function UnifiedShellChrome({
@@ -17,7 +18,7 @@ export default function UnifiedShellChrome({
   onLogout,
   ...context
 }) {
-  const showTopChrome = route !== 'homeroom-portal';
+  const showTopChrome = !['home', 'homeroom-portal'].includes(route);
 
   return showTopChrome ? (
     <div
