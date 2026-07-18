@@ -22,7 +22,7 @@ concurrency:
 jobs:
   typography-matrix:
     name: 5 scales × 5 viewports × Home/Apps
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
 
     steps:
@@ -39,9 +39,12 @@ jobs:
         run: npm ci
 
       - name: Install Chromium
+        shell: bash
         run: |
           npx playwright install --with-deps chromium
-          echo "BES_CHROMIUM_EXECUTABLE=$(node -e \"const { chromium } = require('@playwright/test'); process.stdout.write(chromium.executablePath())\")" >> "$GITHUB_ENV"
+          BROWSER_PATH="$(node --input-type=module -e "import { chromium } from '@playwright/test'; process.stdout.write(chromium.executablePath())")"
+          test -x "$BROWSER_PATH"
+          echo "BES_CHROMIUM_EXECUTABLE=$BROWSER_PATH" >> "$GITHUB_ENV"
 
       - name: Build production bundle
         run: npm run build
