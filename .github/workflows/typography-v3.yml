@@ -40,7 +40,10 @@ jobs:
         run: npm ci
 
       - name: Run BURS V3 release gate
-        run: node scripts/verify-v12.40.9-stability-speed.mjs
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/verify-v12.40.9-stability-speed.mjs 2>&1 | tee burs-release-gate.log
 
       - name: Install Chromium
         shell: bash
@@ -62,6 +65,7 @@ jobs:
         with:
           name: typography-v3-failure-contexts
           path: |
+            burs-release-gate.log
             test-results/**/error-context.md
             test-results/**/test-failed-1.png
           if-no-files-found: ignore
