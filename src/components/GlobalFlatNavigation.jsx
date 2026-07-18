@@ -6,19 +6,20 @@ import { launchRoute } from '../utils/motion.js';
 import { loadLauncherConfig, loadLauncherConfigFromCloud, normalizeLauncherConfig, subscribeLauncherConfig } from '../utils/launcherPreferences.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
+import { FONT_SCALE_LEVELS } from '../ui-core/runtime/uiPreferences.js';
 
 const copy = {
   vi: {
     home: 'Trang chủ', apps: 'Ứng dụng', news: 'Đọc báo', games: 'Trò chơi', department: 'Tổ chuyên môn', homeroom: 'Chủ nhiệm',
     library: 'Thư viện', 'resource-library': 'Kho học liệu', 'knowledge-hub': 'Kho thông minh', 'work-hub': 'Công việc', 'assessment-core': 'Assessment', 'platform-readiness': 'Sẵn sàng nền tảng', 'cloud-operations': 'Vận hành nền', 'data-governance': 'Quản trị dữ liệu', resources: 'Tài nguyên', contact: 'Liên hệ', admin: 'Quản trị', 'app-vault': 'Ứng dụng đã ẩn',
     login: 'Đăng nhập', settings: 'Cài đặt', logout: 'Thoát', subtitle: 'Hệ thống dạy học sáng tạo',
-    account: 'Tài khoản', guest: 'Khách', aiReady: 'AI sẵn sàng', aiOff: 'AI chưa cài', fontSize: 'Tăng cỡ chữ', search: 'Tìm nhanh', more: 'Thêm', close: 'Đóng', qa: 'Trạng thái', 'ai-governance': 'Quản trị AI', trash: 'Thùng rác',
+    account: 'Tài khoản', guest: 'Khách', aiReady: 'AI sẵn sàng', aiOff: 'AI chưa cài', fontSize: 'Cỡ chữ', fontDecrease: 'Giảm cỡ chữ', fontIncrease: 'Tăng cỡ chữ', fontReset: 'Đặt lại cỡ chữ 100%', search: 'Tìm nhanh', more: 'Thêm', close: 'Đóng', qa: 'Trạng thái', 'ai-governance': 'Quản trị AI', trash: 'Thùng rác',
   },
   en: {
     home: 'Home', apps: 'Apps', news: 'News', games: 'Games', department: 'Department', homeroom: 'Homeroom',
     library: 'Library', 'resource-library': 'Resources Hub', 'knowledge-hub': 'Smart Knowledge', 'work-hub': 'Work Hub', 'assessment-core': 'Assessment', 'platform-readiness': 'Platform Readiness', 'cloud-operations': 'Cloud Operations', 'data-governance': 'Data Governance', resources: 'Resources', contact: 'Contact', admin: 'Admin', 'app-vault': 'Hidden Apps',
     login: 'Sign in', settings: 'Settings', logout: 'Logout', subtitle: 'Brian English',
-    account: 'Account', guest: 'Guest', aiReady: 'AI ready', aiOff: 'AI not set', fontSize: 'Increase text size', search: 'Quick search', more: 'More', close: 'Close', qa: 'System health', 'ai-governance': 'AI Governance', trash: 'Trash',
+    account: 'Account', guest: 'Guest', aiReady: 'AI ready', aiOff: 'AI not set', fontSize: 'Text size', fontDecrease: 'Decrease text size', fontIncrease: 'Increase text size', fontReset: 'Reset text size to 100%', search: 'Quick search', more: 'More', close: 'Close', qa: 'System health', 'ai-governance': 'AI Governance', trash: 'Trash',
   },
 };
 
@@ -158,13 +159,10 @@ export default function GlobalFlatNavigation({
 
   const accountName = shortName(currentUser?.name || currentUser?.email, currentUser ? t.account : t.guest);
   const accountRoute = currentUser ? getFirstAllowedRoute(currentUser) : 'login';
-
-  const increaseFontSize = () => {
-    const sizes = [100, 110, 120, 130];
-    const index = sizes.indexOf(Number(fontScale));
-    const next = sizes[(index + 1) % sizes.length];
-    setFontScale?.(next);
-  };
+  const normalizedScale = FONT_SCALE_LEVELS.includes(Number(fontScale)) ? Number(fontScale) : FONT_SCALE_LEVELS[0];
+  const scaleIndex = FONT_SCALE_LEVELS.indexOf(normalizedScale);
+  const decreaseFontSize = () => setFontScale?.(FONT_SCALE_LEVELS[Math.max(0, scaleIndex - 1)]);
+  const increaseFontSize = () => setFontScale?.(FONT_SCALE_LEVELS[Math.min(FONT_SCALE_LEVELS.length - 1, scaleIndex + 1)]);
 
   const activeId = route === 'tool' && selectedTool?.slug ? `tool:${selectedTool.slug}` : `route:${route}`;
 
@@ -214,15 +212,37 @@ export default function GlobalFlatNavigation({
         <button type="button" className={`global-flat-mini ${hasApiKey ? 'ai-ready' : ''}`} onClick={(event) => go(currentUser ? '#/settings' : '#/login', 'AI', hasApiKey ? '#2bb7b3' : '#f7d23b', event.currentTarget)}>
           {hasApiKey ? t.aiReady : t.aiOff}
         </button>
-        <button
-          type="button"
-          className="global-flat-mini global-font-size-btn"
-          onClick={increaseFontSize}
-          aria-label={`${t.fontSize}: ${fontScale}%`}
-          title={`${t.fontSize}: ${fontScale}%`}
-        >
-          <span aria-hidden="true">A+</span><small>{fontScale}%</small>
-        </button>
+        <div className="global-font-scale-controls" role="group" aria-label={`${t.fontSize}: ${normalizedScale}%`}>
+          <button
+            type="button"
+            className="global-flat-mini global-font-size-btn global-font-scale-step"
+            onClick={decreaseFontSize}
+            disabled={scaleIndex === 0}
+            aria-label={t.fontDecrease}
+            title={t.fontDecrease}
+          >
+            A−
+          </button>
+          <button
+            type="button"
+            className="global-flat-mini global-font-size-btn global-font-scale-value"
+            onClick={() => setFontScale?.(100)}
+            aria-label={t.fontReset}
+            title={t.fontReset}
+          >
+            <small aria-live="polite">{normalizedScale}%</small>
+          </button>
+          <button
+            type="button"
+            className="global-flat-mini global-font-size-btn global-font-scale-step"
+            onClick={increaseFontSize}
+            disabled={scaleIndex === FONT_SCALE_LEVELS.length - 1}
+            aria-label={t.fontIncrease}
+            title={t.fontIncrease}
+          >
+            A+
+          </button>
+        </div>
         <button type="button" className="global-flat-mini" onClick={() => setLanguage?.(language === 'vi' ? 'en' : 'vi')}>{language === 'vi' ? 'VI' : 'EN'}</button>
         <button type="button" className="global-flat-mini icon-only" onClick={() => setTheme?.(theme === 'dark' ? 'light' : 'dark')} aria-label={language === 'vi' ? 'Đổi chế độ sáng tối' : 'Toggle theme'}>{theme === 'dark' ? '☀' : '☾'}</button>
         <button type="button" className="global-flat-account" onClick={(event) => go(`#/${accountRoute}`, 'ME', '#191515', event.currentTarget)}>
