@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { canPublishDepartment } from '../utils/permissions.js';
 import {
@@ -98,11 +98,82 @@ function CustomAppDialog({ open, language, currentUser, leader, draft, setDraft,
   );
 }
 
-function CustomAppCard({ app, language, currentUser, leader, busy, onSubmit, onReview, onDelete }) {
+function CustomAppInlinePlayer({ app, language, onClose }) {
+  const shellRef = useRef(null);
+  const [frameKey, setFrameKey] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [slowLoad, setSlowLoad] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    setSlowLoad(false);
+    const scrollTimer = window.setTimeout(() => shellRef.current?.scrollIntoView({ block: 'start', behavior: 'auto' }), 0);
+    const slowTimer = window.setTimeout(() => setSlowLoad(true), 10000);
+    return () => {
+      window.clearTimeout(scrollTimer);
+      window.clearTimeout(slowTimer);
+    };
+  }, [app.id, app.url, frameKey]);
+
+  const reload = () => {
+    setLoading(true);
+    setSlowLoad(false);
+    setFrameKey((current) => current + 1);
+  };
+
+  const fullscreen = async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await shellRef.current?.requestFullscreen?.();
+    } catch {
+      // The embedded app remains usable even when fullscreen is unavailable.
+    }
+  };
+
+  return (
+    <section ref={shellRef} className="custom-app-inline-player" style={{ '--custom-app-accent': app.accent }} aria-label={`${text(language, 'Ứng dụng đang chạy', 'Running app')}: ${app.label}`}>
+      <header>
+        <div className="custom-app-inline-identity">
+          <span>{app.icon}</span>
+          <div><small>{text(language, 'CHẠY TRỰC TIẾP TẠI ĐÂY', 'RUNNING HERE')}</small><strong>{app.label}</strong><em>{hostOf(app.url)}</em></div>
+        </div>
+        <div className="custom-app-inline-actions">
+          <button type="button" onClick={reload}>{text(language, 'Tải lại', 'Reload')}</button>
+          <button type="button" onClick={fullscreen}>{text(language, 'Toàn màn hình', 'Full screen')}</button>
+          <button type="button" onClick={() => window.open(app.url, '_blank', 'noopener,noreferrer')}>{text(language, 'Mở tab riêng', 'Open separately')} ↗</button>
+          <button type="button" className="close" onClick={onClose} aria-label={text(language, 'Đóng trình chạy', 'Close player')}>×</button>
+        </div>
+      </header>
+      <div className="custom-app-inline-viewport">
+        {loading ? <div className="custom-app-inline-loading">{text(language, 'Đang tải ứng dụng trực tiếp…', 'Loading the app directly…')}</div> : null}
+        <iframe
+          key={`${app.id}:${frameKey}`}
+          title={app.label}
+          src={app.url}
+          allow="microphone; camera; clipboard-read; clipboard-write; fullscreen; autoplay; geolocation; display-capture"
+          allowFullScreen
+          sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals allow-presentation allow-top-navigation-by-user-activation"
+          referrerPolicy="strict-origin-when-cross-origin"
+          onLoad={() => { setLoading(false); setSlowLoad(false); }}
+        />
+        {slowLoad ? (
+          <div className="custom-app-inline-slow">
+            <strong>{text(language, 'Website tải lâu hoặc không cho phép nhúng', 'The website is slow or blocks embedding')}</strong>
+            <p>{text(language, 'Một số website chặn iframe vì chính sách bảo mật. Khi đó, hãy dùng nút Mở tab riêng.', 'Some websites block iframes for security reasons. Use Open separately when that happens.')}</p>
+            <button type="button" onClick={() => window.open(app.url, '_blank', 'noopener,noreferrer')}>{text(language, 'Mở tab riêng', 'Open separately')} ↗</button>
+          </div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function CustomAppCard({ app, language, currentUser, leader, busy, onOpenInline, onSubmit, onReview, onDelete }) {
   const status = STATUS_META[app.status] || STATUS_META.private;
   const owner = isCustomAppOwner(currentUser, app);
   const editable = canEditCustomApp(currentUser, app);
   const canSubmit = owner && ['private', 'rejected'].includes(app.status);
+  const canRunInline = app.status === 'approved' || leader;
 
   return (
     <article className={`custom-app-card status-${status.tone}`} style={{ '--custom-app-accent': app.accent }}>
@@ -118,7 +189,8 @@ function CustomAppCard({ app, language, currentUser, leader, busy, onSubmit, onR
         <em>{hostOf(app.url)}</em>
       </div>
       <div className="custom-app-card-actions">
-        <button type="button" className="open" onClick={() => window.open(app.url, '_blank', 'noopener,noreferrer')}>{text(language, 'Mở ứng dụng', 'Open app')} ↗</button>
+        {canRunInline ? <button type="button" className="open" onClick={() => onOpenInline(app)}>{text(language, 'Chạy tại đây', 'Run here')}</button> : null}
+        <button type="button" className={canRunInline ? 'external' : 'open'} onClick={() => window.open(app.url, '_blank', 'noopener,noreferrer')}>{text(language, 'Mở tab riêng', 'Open separately')} ↗</button>
         {canSubmit ? <button type="button" disabled={busy} onClick={() => onSubmit(app.id)}>{text(language, 'Gửi TTCM duyệt', 'Submit')}</button> : null}
         {leader && app.status === 'pending' ? <button type="button" className="approve" disabled={busy} onClick={() => onReview(app.id, 'approved')}>{text(language, 'Duyệt chia sẻ', 'Approve')}</button> : null}
         {leader && app.status === 'pending' ? <button type="button" className="reject" disabled={busy} onClick={() => onReview(app.id, 'rejected')}>{text(language, 'Chưa duyệt', 'Reject')}</button> : null}
@@ -136,13 +208,19 @@ export default function CustomAppsExtension({ language = 'vi', currentUser }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [draft, setDraft] = useState(EMPTY_DRAFT);
   const [apps, setApps] = useState([]);
+  const [activeApp, setActiveApp] = useState(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
   const refresh = useCallback(async () => {
     const items = await listCustomApps(currentUser);
     setApps(items);
-  }, [currentUser?.id, currentUser?.email, currentUser?.role]);
+    setActiveApp((current) => {
+      if (!current) return null;
+      const next = items.find((item) => item.id === current.id);
+      return next && (next.status === 'approved' || leader) ? next : null;
+    });
+  }, [currentUser?.id, currentUser?.email, currentUser?.role, leader]);
 
   useEffect(() => {
     refresh();
@@ -236,6 +314,7 @@ export default function CustomAppsExtension({ language = 'vi', currentUser }) {
     setBusy(true);
     const result = await deleteCustomApp(currentUser, id);
     if (!result.ok) setMessage(result.message || text(language, 'Không thể xoá ứng dụng.', 'Could not delete the app.'));
+    if (activeApp?.id === id) setActiveApp(null);
     await refresh();
     setBusy(false);
   };
@@ -266,13 +345,14 @@ export default function CustomAppsExtension({ language = 'vi', currentUser }) {
           </header>
           {message ? <div className="custom-app-panel-message">{message}</div> : null}
           <div className="custom-app-card-grid">
-            {apps.map((app) => <CustomAppCard key={app.id} app={app} language={language} currentUser={currentUser} leader={leader} busy={busy} onSubmit={submitApp} onReview={reviewApp} onDelete={removeApp} />)}
+            {apps.map((app) => <CustomAppCard key={app.id} app={app} language={language} currentUser={currentUser} leader={leader} busy={busy} onOpenInline={setActiveApp} onSubmit={submitApp} onReview={reviewApp} onDelete={removeApp} />)}
             {!apps.length ? (
               <button type="button" className="custom-app-empty-card" onClick={openDialog}>
                 <span>＋</span><strong>{text(language, 'Thêm ứng dụng đầu tiên', 'Add the first app')}</strong><small>{text(language, 'Dán một liên kết để bắt đầu.', 'Paste a link to get started.')}</small>
               </button>
             ) : null}
           </div>
+          {activeApp ? <CustomAppInlinePlayer key={activeApp.id} app={activeApp} language={language} onClose={() => setActiveApp(null)} /> : null}
         </section>,
         panelHost,
       ) : null}
