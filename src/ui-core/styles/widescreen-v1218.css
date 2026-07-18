@@ -136,6 +136,17 @@
   .app-shell.bes-widescreen-16x9 .bui-launch--apps.density-compact .launcher-custom-grid {
     grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
   }
+
+  /* Large typography needs fewer, wider cards even on a widescreen canvas. */
+  html[data-font-scale='130'] .app-shell.bes-widescreen-16x9 .bui-launch--apps .launcher-custom-grid,
+  html[data-font-scale='130'] .app-shell.bes-widescreen-16x9 .bui-launch--apps.density-compact .launcher-custom-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  html[data-font-scale='140'] .app-shell.bes-widescreen-16x9 .bui-launch--apps .launcher-custom-grid,
+  html[data-font-scale='140'] .app-shell.bes-widescreen-16x9 .bui-launch--apps.density-compact .launcher-custom-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
 }
 
 @media (min-width: 2100px) {
@@ -145,6 +156,16 @@
   .app-shell.bes-widescreen-16x9 .bui-launch--apps.density-compact .launcher-custom-grid {
     grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
   }
+
+  html[data-font-scale='130'] .app-shell.bes-widescreen-16x9 .bui-launch--apps .launcher-custom-grid,
+  html[data-font-scale='130'] .app-shell.bes-widescreen-16x9 .bui-launch--apps.density-compact .launcher-custom-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  html[data-font-scale='140'] .app-shell.bes-widescreen-16x9 .bui-launch--apps .launcher-custom-grid,
+  html[data-font-scale='140'] .app-shell.bes-widescreen-16x9 .bui-launch--apps.density-compact .launcher-custom-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
 }
 
 @media (min-width: 2700px) {
@@ -153,6 +174,16 @@
   }
   .app-shell.bes-widescreen-16x9 .bui-launch--apps.density-compact .launcher-custom-grid {
     grid-template-columns: repeat(9, minmax(0, 1fr)) !important;
+  }
+
+  html[data-font-scale='130'] .app-shell.bes-widescreen-16x9 .bui-launch--apps .launcher-custom-grid,
+  html[data-font-scale='130'] .app-shell.bes-widescreen-16x9 .bui-launch--apps.density-compact .launcher-custom-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  html[data-font-scale='140'] .app-shell.bes-widescreen-16x9 .bui-launch--apps .launcher-custom-grid,
+  html[data-font-scale='140'] .app-shell.bes-widescreen-16x9 .bui-launch--apps.density-compact .launcher-custom-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 }
 
