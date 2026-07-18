@@ -162,13 +162,13 @@ html[data-font-scale="130"] .brian-home-exact .bhe-app-card:not([data-home-card=
 html[data-font-scale="120"] .brian-home-exact .bhe-app-card:not(.is-featured) .bhe-card-copy,
 html[data-font-scale="130"] .brian-home-exact .bhe-app-card:not(.is-featured) .bhe-card-copy,
 .brian-home-exact.is-adaptive-home .bhe-app-card:not(.is-featured) .bhe-card-copy {
-  max-width: calc(100% - 112px) !important;
+  max-width: min(62%, calc(100% - 112px)) !important;
   padding-right: 8px !important;
 }
 
 html[data-font-scale="130"] .brian-home-exact .bhe-app-card[data-home-card="grammar"] .bhe-card-copy,
 html[data-font-scale="130"] .brian-home-exact .bhe-app-card[data-home-card="textcare"] .bhe-card-copy {
-  max-width: calc(100% - 220px) !important;
+  max-width: min(62%, calc(100% - 220px)) !important;
 }
 
 html[data-font-scale="120"] .brian-home-exact .bhe-card-graphic,
