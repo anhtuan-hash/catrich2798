@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import HomeExact from './HomeExact.jsx';
 import './HomeExactFix.css';
+import './HomeExactTypography.css';
 
 export default function HomeExactEntry(props) {
   useEffect(() => {
