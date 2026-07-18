@@ -1,8 +1,4 @@
-import { DEPARTMENT_APP } from './department.js';
-
 export const APPS = [
-  DEPARTMENT_APP,
-
   {
     slug: 'independent-ai-chatbot', icon: 'AI', tone: 'mint', group: 'Independent Apps', groupVi: 'Ứng dụng độc lập',
     title: 'Independent AI Chatbot', titleVi: 'Chatbot AI độc lập',
