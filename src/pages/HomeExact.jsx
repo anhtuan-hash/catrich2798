@@ -119,7 +119,7 @@ export default function HomeExact({ currentUser, language = 'vi', theme, setThem
       <div className="bhe-layout">
         <section className="bhe-hero-panel">
           <span className="bhe-kicker">BRIAN ENGLISH STUDIO</span><span className="bhe-hero-star" aria-hidden="true">✦</span><span className="bhe-orbit" aria-hidden="true"/>
-          <h1><span>brian</span><strong>english</strong></h1>
+          <h1><span>BRIAN</span><strong>STUDIO</strong></h1>
           <p>{vi ? 'Không gian dạy học số của Brian English: mở nhanh ứng dụng, trò chơi, thư viện và công cụ quản lý trong một hệ thống thống nhất.' : 'Brian English digital teaching workspace: quickly open apps, games, libraries and management tools in one unified system.'}</p>
           <article className="bhe-info-card bhe-profile-card"><span className="bhe-profile-icon">●</span><div><strong>{vi ? `Xin chào, ${name}!` : `Hello, ${name}!`}</strong><small>{date} · {time}</small></div><span className="bhe-weather">☀<b>27°C</b><small>Hà Nội</small></span></article>
           <article className="bhe-info-card bhe-progress-card"><span className="bhe-progress-icon">▥</span><div><span><strong>{vi ? 'Tiến độ hôm nay' : 'Today progress'}</strong><b>7/10</b></span><i><em/></i></div></article>
