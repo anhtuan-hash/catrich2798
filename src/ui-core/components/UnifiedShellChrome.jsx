@@ -6,8 +6,7 @@ import AppErrorBoundary from '../../components/AppErrorBoundary.jsx';
 import UIActivityCenter from './UIActivityCenter.jsx';
 
 /**
- * Global shell chrome.
- * Home owns an isolated single-row navigation matching its approved design.
+ * Global shell chrome shared by Home and the other application routes.
  * The former workspace/recent-app strip has been removed site-wide.
  */
 export default function UnifiedShellChrome({
@@ -18,7 +17,7 @@ export default function UnifiedShellChrome({
   onLogout,
   ...context
 }) {
-  const showTopChrome = !['home', 'homeroom-portal'].includes(route);
+  const showTopChrome = route !== 'homeroom-portal';
 
   return showTopChrome ? (
     <div
