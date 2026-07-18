@@ -3,6 +3,7 @@ import HomeExact from './HomeExact.jsx';
 import './HomeApproved3D.css';
 import './HomeApproved3DRefine.css';
 import './HomeApproved3DBalance.css';
+import './HomeApproved3DGlobalChrome.css';
 
 export default function HomeExactEntry(props) {
   useEffect(() => {
