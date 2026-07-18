@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import './GlobalChatbotDock.css';
+import './GlobalChatbotDockSmooth.css';
 
 const DEFAULT_SITES = [
   { id: 'notrack', name: 'NoTrack AI', url: 'https://notrack.ai/' },
@@ -61,8 +62,10 @@ function loadState(user) {
 export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
   const vi = language === 'vi';
   const initial = useMemo(() => loadState(currentUser), [currentUser?.id, currentUser?.email]);
+  const revealTimerRef = useRef(0);
   const [portalTarget, setPortalTarget] = useState(null);
   const [open, setOpen] = useState(false);
+  const [surfaceReady, setSurfaceReady] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [sites, setSites] = useState(initial.sites);
   const [activeId, setActiveId] = useState(initial.activeId);
@@ -99,6 +102,22 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
       // Keep the current session functional when storage is unavailable.
     }
   }, [sites, activeId, currentUser?.id, currentUser?.email]);
+
+  useEffect(() => {
+    window.clearTimeout(revealTimerRef.current);
+    if (!open) {
+      setSurfaceReady(false);
+      return undefined;
+    }
+
+    setSurfaceReady(false);
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    revealTimerRef.current = window.setTimeout(() => {
+      setSurfaceReady(true);
+    }, reducedMotion ? 0 : 170);
+
+    return () => window.clearTimeout(revealTimerRef.current);
+  }, [open]);
 
   useEffect(() => {
     const close = (event) => {
@@ -207,7 +226,7 @@ export default function GlobalChatbotDock({ currentUser, language = 'vi' }) {
 
   const panel = (
     <div
-      className={`global-chatbot-layer ${open ? 'is-open' : 'is-hidden'}`}
+      className={`global-chatbot-layer ${open ? 'is-open' : 'is-hidden'} ${surfaceReady ? 'is-settled' : 'is-transitioning'}`}
       role="presentation"
       aria-hidden={!open}
       onMouseDown={(event) => {
