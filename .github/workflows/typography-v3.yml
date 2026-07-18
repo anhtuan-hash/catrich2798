@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/ui-core/styles/**'
       - 'src/utils/bursReadability.js'
+      - 'scripts/verify-v12.40.9-stability-speed.mjs'
       - 'tests/e2e/typography-v3.spec.js'
       - 'playwright.config.js'
       - 'package.json'
@@ -37,6 +38,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Run BURS V3 release gate
+        run: node scripts/verify-v12.40.9-stability-speed.mjs
 
       - name: Install Chromium
         shell: bash
