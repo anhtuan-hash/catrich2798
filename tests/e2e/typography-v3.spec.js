@@ -81,6 +81,7 @@ async function auditTypography(page, route) {
       '.global-notice-shell',
       '.global-flat-navigation',
       '.bes-recent-apps-v12408',
+      '.global-chatbot-trigger',
     ];
     const roots = selectors.flatMap((selector) => Array.from(document.querySelectorAll(selector)));
     const candidateSelector = 'p,li,dd,dt,small,label,a,button,input,textarea,select,option,strong,b,em,span';
@@ -97,7 +98,7 @@ async function auditTypography(page, route) {
 
     const undersized = [];
     for (const element of candidates) {
-      if (!(element instanceof Element) || element.closest('svg') || element.getAttribute('aria-hidden') === 'true') continue;
+      if (!(element instanceof Element) || element.closest('svg,[aria-hidden="true"]')) continue;
       const style = getComputedStyle(element);
       const rect = element.getBoundingClientRect();
       if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0 || rect.width < 1 || rect.height < 1) continue;
@@ -130,7 +131,7 @@ async function auditTypography(page, route) {
       undersized,
       horizontalOverflow: pageOverflow || rootOverflow,
       columns,
-      bursReport: window.BURS?.report || null,
+      bursReport: window.BURS?.lastReport || null,
     };
   }, route);
 }
