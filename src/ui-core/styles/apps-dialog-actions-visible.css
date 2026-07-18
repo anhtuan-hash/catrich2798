@@ -1,0 +1,89 @@
+/* Keep custom app dialog actions visible at every zoom level. */
+.custom-app-dialog{
+  display:flex!important;
+  flex-direction:column!important;
+  max-height:calc(100dvh - 28px)!important;
+  overflow:hidden!important;
+}
+
+.custom-app-dialog>header{
+  flex:0 0 auto;
+}
+
+.custom-app-dialog .custom-app-form-grid{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding-right:8px;
+  padding-bottom:10px;
+  scrollbar-gutter:stable;
+}
+
+.custom-app-dialog-message{
+  flex:0 0 auto;
+}
+
+.custom-app-dialog>footer{
+  position:sticky;
+  bottom:0;
+  z-index:3;
+  flex:0 0 auto;
+  margin:14px -23px -23px!important;
+  padding:14px 23px 18px;
+  border-top:1px solid rgba(76,58,94,.13);
+  background:linear-gradient(180deg,rgba(255,253,249,.92),#fffdf9 24%);
+  box-shadow:0 -12px 26px rgba(52,35,67,.08);
+}
+
+.custom-app-dialog>footer button{
+  min-width:116px;
+}
+
+@media(max-height:760px){
+  .custom-app-dialog{
+    padding:18px!important;
+  }
+
+  .custom-app-dialog h2{
+    font-size:1.55rem!important;
+  }
+
+  .custom-app-dialog p{
+    font-size:.8rem!important;
+  }
+
+  .custom-app-dialog .custom-app-form-grid{
+    margin-top:14px!important;
+    gap:10px!important;
+  }
+
+  .custom-app-form-grid textarea{
+    min-height:72px!important;
+  }
+
+  .custom-app-dialog>footer{
+    margin:12px -18px -18px!important;
+    padding:12px 18px 14px!important;
+  }
+}
+
+@media(max-width:720px){
+  .custom-app-dialog-backdrop{
+    padding:10px!important;
+    align-items:stretch!important;
+  }
+
+  .custom-app-dialog{
+    width:100%!important;
+    max-height:calc(100dvh - 20px)!important;
+  }
+
+  .custom-app-dialog>footer{
+    justify-content:stretch!important;
+  }
+
+  .custom-app-dialog>footer button{
+    flex:1 1 140px;
+  }
+}
