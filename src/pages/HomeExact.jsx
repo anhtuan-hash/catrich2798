@@ -5,41 +5,40 @@ import { launchRoute } from '../utils/motion.js';
 import './HomeExact.css';
 
 const ALL_APPS = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS];
+const COLORS = { blue: '#2c86e8', coral: '#ff5b5f', yellow: '#e7aa00', mint: '#00aa91', purple: '#7f45da', sky: '#1578e5', orange: '#f18a00', rose: '#ff5467', aqua: '#00a991', lavender: '#9234cc' };
 
 const APP_CARDS = [
-  { id: 'grammar', slug: 'grammar-builder', title: 'Grammar Builder', titleVi: 'Grammar Builder', desc: 'Build, audit and publish grammar resources.', descVi: 'Tạo, kiểm định và phân phối học liệu.', tone: 'blue', icon: 'grammar', area: 'grammar' },
-  { id: 'textcare', slug: 'textcare', title: 'TextCare Fixer', titleVi: 'TextCare Fixer', desc: 'Normalize documents quickly.', descVi: 'Chuẩn hoá văn bản nhanh chóng.', tone: 'coral', icon: 'text', area: 'textcare' },
-  { id: 'lesson', slug: 'lesson-plan-ai', title: 'Lesson Architect', titleVi: 'Lesson Architect', desc: 'Design lesson plans, materials and interactive lessons.', descVi: 'Thiết kế giáo án, học liệu và xuất bài dạy tương tác.', tone: 'yellow', icon: 'lesson', area: 'lesson', featured: true },
-  { id: 'game', slug: 'game-hub', title: 'Game Hub', titleVi: 'Game Hub', desc: 'A library of engaging classroom games.', descVi: 'Thư viện trò chơi học tập hấp dẫn.', tone: 'mint', icon: 'game', area: 'game' },
-  { id: 'word', slug: 'word2graph', title: 'WordGraph Studio', titleVi: 'WordGraph Studio', desc: 'Explore relationships between words.', descVi: 'Khám phá mối liên hệ giữa các từ vựng.', tone: 'purple', icon: 'word', area: 'word' },
-  { id: 'reading', title: 'Reading Lab', titleVi: 'Reading Lab', desc: 'Read, analyse and answer intelligently.', descVi: 'Đọc hiểu, phân tích và trả lời thông minh.', tone: 'sky', icon: 'reading', area: 'reading', target: '#/news', visibilityId: 'route:news' },
-  { id: 'listening', title: 'Listening Lab', titleVi: 'Listening Lab', desc: 'Active listening and effective notes.', descVi: 'Luyện nghe chủ động và ghi chú hiệu quả.', tone: 'orange', icon: 'listening', area: 'listening', target: '#/apps', visibilityId: 'route:apps' },
-  { id: 'worksheet', slug: 'textlab-activities', title: 'Worksheet Factory', titleVi: 'Worksheet Factory', desc: 'Create worksheets and learning materials quickly.', descVi: 'Tạo phiếu bài tập và học liệu nhanh.', tone: 'rose', icon: 'worksheet', area: 'worksheet' },
-  { id: 'exam', slug: 'assessment-core', title: 'Exam Studio', titleVi: 'Exam Studio', desc: 'Create tests, blueprints and grading workflows.', descVi: 'Tạo đề, ma trận và chấm chữa.', tone: 'aqua', icon: 'exam', area: 'exam' },
-  { id: 'resource', slug: 'resource-library-hub', title: 'Resource Hub', titleVi: 'Resource Hub', desc: 'Teaching files, forms and reusable templates.', descVi: 'Tài liệu, biểu mẫu và mẫu thiết kế.', tone: 'blue', icon: 'resource', area: 'resource' },
-  { id: 'ai', slug: 'independent-ai-chatbot', title: 'AI Assistant', titleVi: 'AI Assistant', desc: 'An AI companion for teaching and learning.', descVi: 'Trợ lý AI đồng hành trong dạy và học.', tone: 'lavender', icon: 'ai', area: 'ai' },
+  { id: 'grammar', slug: 'grammar-builder', title: 'Grammar Builder', desc: 'Tạo, kiểm định và phân phối học liệu.', tone: 'blue', icon: 'grammar', area: 'grammar' },
+  { id: 'textcare', slug: 'textcare', title: 'TextCare Fixer', desc: 'Chuẩn hoá văn bản nhanh chóng.', tone: 'coral', icon: 'text', area: 'textcare' },
+  { id: 'lesson', slug: 'lesson-plan-ai', title: 'Lesson Architect', desc: 'Thiết kế giáo án, học liệu và xuất bài dạy tương tác.', tone: 'yellow', icon: 'lesson', area: 'lesson', featured: true },
+  { id: 'game', slug: 'game-hub', title: 'Game Hub', desc: 'Thư viện trò chơi học tập hấp dẫn.', tone: 'mint', icon: 'game', area: 'game' },
+  { id: 'word', slug: 'word2graph', title: 'WordGraph Studio', desc: 'Khám phá mối liên hệ giữa các từ vựng.', tone: 'purple', icon: 'word', area: 'word' },
+  { id: 'reading', title: 'Reading Lab', desc: 'Đọc hiểu, phân tích và trả lời thông minh.', tone: 'sky', icon: 'reading', area: 'reading', target: '#/news', visibilityId: 'route:news' },
+  { id: 'listening', title: 'Listening Lab', desc: 'Luyện nghe chủ động và ghi chú hiệu quả.', tone: 'orange', icon: 'listening', area: 'listening', target: '#/apps', visibilityId: 'route:apps' },
+  { id: 'worksheet', slug: 'textlab-activities', title: 'Worksheet Factory', desc: 'Tạo phiếu bài tập và học liệu nhanh.', tone: 'rose', icon: 'worksheet', area: 'worksheet' },
+  { id: 'exam', slug: 'assessment-core', title: 'Exam Studio', desc: 'Tạo đề, ma trận và chấm chữa.', tone: 'aqua', icon: 'exam', area: 'exam' },
+  { id: 'resource', slug: 'resource-library-hub', title: 'Resource Hub', desc: 'Tài liệu, biểu mẫu và mẫu thiết kế.', tone: 'blue', icon: 'resource', area: 'resource' },
+  { id: 'ai', slug: 'independent-ai-chatbot', title: 'AI Assistant', desc: 'Trợ lý AI đồng hành trong dạy và học.', tone: 'lavender', icon: 'ai', area: 'ai' },
 ];
 
 const NAV_ITEMS = [
-  { key: 'home', label: 'Trang chủ', labelEn: 'Home', icon: 'home', target: '#/home' },
-  { key: 'apps', label: 'Ứng dụng', labelEn: 'Apps', icon: 'apps', target: '#/apps' },
-  { key: 'news', label: 'Đọc báo', labelEn: 'News', icon: 'book', target: '#/news' },
-  { key: 'games', label: 'Trò chơi', labelEn: 'Games', icon: 'game', target: '#/games' },
-  { key: 'department', label: 'Tổ chuyên môn', labelEn: 'Department', icon: 'team', target: '#/department' },
-  { key: 'library', label: 'Thư viện', labelEn: 'Library', icon: 'library', target: '#/resource-library' },
-];
+  ['home', 'Trang chủ', 'Home', 'home', '#/home'],
+  ['apps', 'Ứng dụng', 'Apps', 'apps', '#/apps'],
+  ['news', 'Đọc báo', 'News', 'book', '#/news'],
+  ['games', 'Trò chơi', 'Games', 'game', '#/games'],
+  ['department', 'Tổ chuyên môn', 'Department', 'team', '#/department'],
+  ['library', 'Thư viện', 'Library', 'library', '#/resource-library'],
+].map(([key, label, labelEn, icon, target]) => ({ key, label, labelEn, icon, target }));
 
 function targetFor(card) {
   if (card.target) return card.target;
   const app = ALL_APPS.find((item) => item.slug === card.slug);
-  if (!app) return '#/apps';
-  return app.route ? `#/${app.route}` : `#/tool/${app.slug}`;
+  return app ? (app.route ? `#/${app.route}` : `#/tool/${app.slug}`) : '#/apps';
 }
 
 function go(target, label, color, currentUser, sourceEl) {
-  const publicTargets = new Set(['#/home', '#/news']);
-  const finalTarget = !currentUser && !publicTargets.has(target) ? '#/login' : target;
-  launchRoute({ target: finalTarget, label, color, sourceEl });
+  const isPublic = ['#/home', '#/news'].includes(target);
+  launchRoute({ target: !currentUser && !isPublic ? '#/login' : target, label, color, sourceEl });
 }
 
 function Icon({ name }) {
@@ -70,21 +69,13 @@ function Icon({ name }) {
 }
 
 function AppCard({ card, currentUser, vi }) {
-  const title = vi ? card.titleVi : card.title;
-  const desc = vi ? card.descVi : card.desc;
-  const colorMap = { blue: '#2c86e8', coral: '#ff5b5f', yellow: '#e7aa00', mint: '#00aa91', purple: '#7f45da', sky: '#1578e5', orange: '#f18a00', rose: '#ff5467', aqua: '#00a991', lavender: '#9234cc' };
+  const accent = COLORS[card.tone] || COLORS.blue;
   return (
-    <button
-      type="button"
-      className={`bhe-app-card bhe-tone-${card.tone} ${card.featured ? 'is-featured' : ''}`}
-      style={{ gridArea: card.area, '--bhe-accent': colorMap[card.tone] || '#2c86e8' }}
-      onClick={(event) => go(targetFor(card), title, colorMap[card.tone] || '#2c86e8', currentUser, event.currentTarget)}
-      aria-label={`${vi ? 'Mở' : 'Open'} ${title}`}
-    >
-      <span className="bhe-window-strip"><i /><i /><i /></span>
+    <button type="button" className={`bhe-app-card bhe-tone-${card.tone} ${card.featured ? 'is-featured' : ''}`} style={{ gridArea: card.area, '--bhe-accent': accent }} onClick={(event) => go(targetFor(card), card.title, accent, currentUser, event.currentTarget)} aria-label={`${vi ? 'Mở' : 'Open'} ${card.title}`}>
+      <span className="bhe-window-strip"><i/><i/><i/></span>
       <span className="bhe-card-inner">
-        <span className="bhe-app-icon"><Icon name={card.icon} /></span>
-        <span className="bhe-card-copy"><strong>{title}</strong><small>{desc}</small></span>
+        <span className="bhe-app-icon"><Icon name={card.icon}/></span>
+        <span className="bhe-card-copy"><strong>{card.title}</strong><small>{vi ? card.desc : card.desc}</small></span>
         {card.featured ? <span className="bhe-crown" aria-hidden="true">♛</span> : null}
         <span className="bhe-card-arrow" aria-hidden="true">→</span>
         {card.featured ? <span className="bhe-feature-actions"><i>▰ {vi ? 'Bài dạy' : 'Lesson'}</i><i>✎ {vi ? 'Thiết kế' : 'Design'}</i><i>⇧ {vi ? 'Xuất file' : 'Export'}</i></span> : null}
@@ -93,12 +84,12 @@ function AppCard({ card, currentUser, vi }) {
   );
 }
 
-export default function HomeExact({ currentUser, language = 'vi', theme, setTheme, hasApiKey, appVisibility, fontScale = 1.3 }) {
+export default function HomeExact({ currentUser, language = 'vi', theme, setTheme, hasApiKey, appVisibility, fontScale = 100 }) {
   const vi = language === 'vi';
   const name = useMemo(() => {
     const source = currentUser?.name || currentUser?.email || (vi ? 'Khách' : 'Guest');
-    const pieces = String(source).trim().split(/\s+/).filter(Boolean);
-    return pieces.at(-1) || source;
+    const parts = String(source).trim().split(/\s+/).filter(Boolean);
+    return parts.at(-1) || source;
   }, [currentUser, vi]);
   const now = new Date();
   const date = new Intl.DateTimeFormat(vi ? 'vi-VN' : 'en-US', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }).format(now);
@@ -108,21 +99,15 @@ export default function HomeExact({ currentUser, language = 'vi', theme, setThem
   return (
     <div className="brian-home-exact" data-home-exact="true">
       <header className="bhe-navbar">
-        <button type="button" className="bhe-brand" onClick={(event) => go('#/home', 'HOME', '#9abb24', currentUser || { guest: true }, event.currentTarget)}>
-          <img src="/brian-english-brand-mark.png" alt="" /><strong>Brian</strong><span>English Studio</span>
-        </button>
+        <button type="button" className="bhe-brand" onClick={(event) => go('#/home', 'HOME', '#9abb24', currentUser || { guest: true }, event.currentTarget)}><img src="/brian-english-brand-mark.png" alt=""/><strong>Brian</strong><span>English Studio</span></button>
         <nav className="bhe-nav-links" aria-label={vi ? 'Điều hướng trang chủ' : 'Homepage navigation'}>
-          {NAV_ITEMS.map((item) => (
-            <button key={item.key} type="button" className={item.key === 'home' ? 'is-active' : ''} onClick={(event) => go(item.target, vi ? item.label : item.labelEn, '#9abb24', currentUser, event.currentTarget)}>
-              <Icon name={item.icon} /><span>{vi ? item.label : item.labelEn}</span>
-            </button>
-          ))}
+          {NAV_ITEMS.map((item) => <button key={item.key} type="button" className={item.key === 'home' ? 'is-active' : ''} onClick={(event) => go(item.target, vi ? item.label : item.labelEn, '#9abb24', currentUser, event.currentTarget)}><Icon name={item.icon}/><span>{vi ? item.label : item.labelEn}</span></button>)}
           <button type="button" onClick={(event) => go('#/settings', vi ? 'Thêm' : 'More', '#d7d0b8', currentUser, event.currentTarget)}><Icon name="plus"/><span>{vi ? 'Thêm' : 'More'}</span></button>
         </nav>
         <div className="bhe-nav-actions">
           <button type="button" className="bhe-search" onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true }))}><Icon name="search"/><span>⌘K</span></button>
           <button type="button" className="bhe-ai" onClick={(event) => go('#/settings', 'AI', '#b2c248', currentUser, event.currentTarget)}>✦ {hasApiKey ? (vi ? 'AI sẵn sàng' : 'AI ready') : (vi ? 'Cài đặt AI' : 'AI setup')}</button>
-          <button type="button" className="bhe-scale" onClick={(event) => go('#/settings', 'A+', '#9160db', currentUser, event.currentTarget)}>A+ {Math.round(Number(fontScale || 1.3) * 100)}%</button>
+          <button type="button" className="bhe-scale" onClick={(event) => go('#/settings', 'A+', '#9160db', currentUser, event.currentTarget)}>A+ {Math.round(Number(fontScale || 100))}%</button>
           <button type="button" className="bhe-icon-button" onClick={() => setTheme?.(theme === 'dark' ? 'light' : 'dark')}><Icon name="moon"/></button>
           <button type="button" className="bhe-icon-button"><Icon name="bell"/><b>3</b></button>
           <button type="button" className="bhe-user" onClick={(event) => go(currentUser ? '#/settings' : '#/login', 'ME', '#183329', currentUser, event.currentTarget)}><span>{name.slice(0, 1).toUpperCase()}</span><strong>{name}</strong></button>
@@ -131,22 +116,15 @@ export default function HomeExact({ currentUser, language = 'vi', theme, setThem
 
       <div className="bhe-layout">
         <section className="bhe-hero-panel">
-          <span className="bhe-kicker">BRIAN ENGLISH STUDIO</span>
-          <span className="bhe-hero-star" aria-hidden="true">✦</span>
-          <span className="bhe-orbit" aria-hidden="true" />
+          <span className="bhe-kicker">BRIAN ENGLISH STUDIO</span><span className="bhe-hero-star" aria-hidden="true">✦</span><span className="bhe-orbit" aria-hidden="true"/>
           <h1><span>brian</span><strong>english</strong></h1>
           <p>{vi ? 'Không gian dạy học số của Brian English: mở nhanh ứng dụng, trò chơi, thư viện và công cụ quản lý trong một hệ thống thống nhất.' : 'Brian English digital teaching workspace: quickly open apps, games, libraries and management tools in one unified system.'}</p>
           <article className="bhe-info-card bhe-profile-card"><span className="bhe-profile-icon">●</span><div><strong>{vi ? `Xin chào, ${name}!` : `Hello, ${name}!`}</strong><small>{date} · {time}</small></div><span className="bhe-weather">☀<b>27°C</b><small>Hà Nội</small></span></article>
-          <article className="bhe-info-card bhe-progress-card"><span className="bhe-progress-icon">▥</span><div><span><strong>{vi ? 'Tiến độ hôm nay' : 'Today progress'}</strong><b>7/10</b></span><i><em /></i></div></article>
+          <article className="bhe-info-card bhe-progress-card"><span className="bhe-progress-icon">▥</span><div><span><strong>{vi ? 'Tiến độ hôm nay' : 'Today progress'}</strong><b>7/10</b></span><i><em/></i></div></article>
           <button type="button" className="bhe-start-card" onClick={(event) => go('#/apps', 'GO', '#8fb315', currentUser, event.currentTarget)}><span>⬆</span><div><strong>{vi ? 'Bắt đầu ngay hôm nay' : 'Start today'}</strong><small>{vi ? 'Khám phá bộ công cụ của bạn' : 'Explore your toolkit'}</small></div><b>→</b></button>
           <span className="bhe-leaves" aria-hidden="true"><i/><i/><i/><i/></span>
         </section>
-
-        <section className="bhe-app-board" aria-label={vi ? 'Bộ ứng dụng của bạn' : 'Your app collection'}>
-          <div className="bhe-app-grid">
-            {visibleCards.map((card) => <AppCard key={card.id} card={card} currentUser={currentUser} vi={vi} />)}
-          </div>
-        </section>
+        <section className="bhe-app-board" aria-label={vi ? 'Bộ ứng dụng của bạn' : 'Your app collection'}><div className="bhe-app-grid">{visibleCards.map((card) => <AppCard key={card.id} card={card} currentUser={currentUser} vi={vi}/>)}</div></section>
       </div>
     </div>
   );
