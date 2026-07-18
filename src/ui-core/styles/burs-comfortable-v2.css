@@ -105,3 +105,5 @@ html body .metro-clean-system .global-font-scale-controls button:focus-visible {
     min-width: 48px !important;
   }
 }
+
+/* Preview refresh: no runtime behavior change. */
