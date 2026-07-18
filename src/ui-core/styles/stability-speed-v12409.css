@@ -3,7 +3,7 @@
 /* Brian English Studio V12.40.9 — Stability & Speed without visual drift */
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   overscroll-behavior-y: none;
 }
 
@@ -52,12 +52,74 @@ html body .metro-clean-system .bes-recent-apps-v12408 .bes-workspace-tab {
   border: 3px solid rgba(32, 42, 33, .18);
   border-top-color: #738123;
   border-radius: 50%;
-  animation: bes-v12409-spin .72s linear infinite;
+  animation: none;
 }
 
-@keyframes bes-v12409-spin { to { transform: rotate(360deg); } }
+/*
+ * Global static-motion policy.
+ * Removes macOS-like floating, spring, zoom, fade and smooth-transition motion
+ * from every route while keeping controls and layouts functional.
+ */
+html body #root,
+html body #root *,
+html body #root *::before,
+html body #root *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+  view-transition-name: none !important;
+}
+
+html::view-transition-old(root),
+html::view-transition-new(root) {
+  animation: none !important;
+}
+
+/* Remove full-screen tile/app launch movement. Navigation changes instantly. */
+html body #root .tile-launch-layer,
+html body #root .tile-launch-backdrop,
+html body #root .tile-launch-card {
+  display: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Remove the macOS-style lift, zoom and card-straightening interactions. */
+html body #root .brian-home-exact .bhe-app-card,
+html body #root .brian-home-exact .bhe-app-card[style],
+html body #root .brian-home-exact .bhe-app-card:hover,
+html body #root .brian-home-exact .bhe-app-card:focus,
+html body #root .brian-home-exact .bhe-app-card:focus-visible,
+html body #root .brian-home-exact .bhe-app-card:active,
+html body #root .brian-home-exact .bhe-nav-links button:hover,
+html body #root .brian-home-exact .bhe-nav-actions button:hover,
+html body #root .brian-home-exact .bhe-brand:hover,
+html body #root .brian-home-exact .bhe-card-arrow:hover,
+html body #root .brian-home-exact .bhe-icon-button:hover {
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Neutralize any explicitly named macOS/Dock motion helpers elsewhere. */
+html body #root [class*='macos'],
+html body #root [class*='mac-os'],
+html body #root [class*='mac-motion'],
+html body #root [class*='dock-motion'] {
+  animation: none !important;
+  transition: none !important;
+}
+
+html body #root [class*='macos']:hover,
+html body #root [class*='mac-os']:hover,
+html body #root [class*='mac-motion']:hover,
+html body #root [class*='dock-motion']:hover {
+  transform: none !important;
+}
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .bes-route-loading-v12409 i { animation-duration: 1.4s; }
 }
