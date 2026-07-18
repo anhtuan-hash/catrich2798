@@ -165,6 +165,17 @@ html[data-burs='comfortable-v3'] body .metro-clean-system .global-font-scale-con
   font-size: var(--burs-font-shell-control) !important;
 }
 
+html[data-burs='comfortable-v3'] body .global-chatbot-trigger {
+  min-height: var(--burs-touch-size, 44px) !important;
+  font-size: var(--burs-font-shell-control) !important;
+  line-height: 1.2 !important;
+}
+
+html[data-burs='comfortable-v3'] body .global-chatbot-trigger :is(strong, b, span) {
+  font-size: var(--burs-font-shell-control) !important;
+  line-height: 1.2 !important;
+}
+
 /* --------------------------------------------------------------------------
    Approved 3D Home
    -------------------------------------------------------------------------- */
@@ -199,13 +210,36 @@ html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-info-r
 }
 
 html[data-burs='comfortable-v3'] body #root .brian-home-approved3d :is(
+  .bhe3d-navtools .is-font span,
+  .bhe3d-bell em,
   .bhe3d-info-row small,
+  .bhe3d-info-row strong em,
   .bhe3d-tip small,
   .bhe3d-card-copy small,
-  .bhe3d-dock-item small
+  .bhe3d-card-tag,
+  .bhe3d-feature-tabs i,
+  .bhe3d-card-badge,
+  .bhe3d-dock header small,
+  .bhe3d-dock-item small,
+  .bhe3d-dock-add span
 ) {
   font-size: var(--burs-font-micro, 13px) !important;
   line-height: 1.42 !important;
+}
+
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d :is(
+  .bhe3d-card-copy em,
+  .bhe3d-dock-item strong
+) {
+  font-size: var(--burs-font-label, 15px) !important;
+  line-height: 1.2 !important;
+}
+
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-card-copy em {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
 html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-app-card:not(.bhe3d-card-lesson) .bhe3d-card-copy strong {
@@ -274,8 +308,42 @@ html[data-burs='comfortable-v3'] body .bui-launch--apps .flat-app-window-cta {
 }
 
 html[data-burs='comfortable-v3'] body .bui-launch--apps .launcher-discovery-bar :is(input, button),
-html[data-burs='comfortable-v3'] body .bui-launch--apps .launcher-density-switch button {
+html[data-burs='comfortable-v3'] body .bui-launch--apps .launcher-density-switch button,
+html[data-burs='comfortable-v3'] body .bui-launch--apps .launcher-admin-actions button {
   font-size: var(--burs-font-control, 15px) !important;
+}
+
+html[data-burs='comfortable-v3'] body .bui-launch--apps .apps-directory-hero-v1216 .flat-apps-stats :is(small, em),
+html[data-burs='comfortable-v3'] body .bui-launch--apps :is(
+  .launcher-command-button small,
+  .launcher-density-switch > span,
+  .custom-app-hero-actions > span,
+  .custom-app-sharing-panel > header span,
+  .custom-app-sharing-metrics small,
+  .custom-app-panel-message,
+  .custom-app-status,
+  .custom-app-card-copy small,
+  .custom-app-card-copy em,
+  .custom-app-review-note,
+  .custom-app-empty-card small,
+  .custom-app-inline-identity small,
+  .custom-app-inline-identity em,
+  .custom-app-inline-slow p
+) {
+  font-size: var(--burs-font-micro, 13px) !important;
+  line-height: 1.4 !important;
+}
+
+html[data-burs='comfortable-v3'] body .bui-launch--apps :is(
+  .custom-app-add-button,
+  .custom-app-card-actions button,
+  .custom-app-inline-actions button,
+  .custom-app-inline-slow button,
+  .custom-app-dialog button
+) {
+  min-height: var(--burs-touch-size, 44px) !important;
+  font-size: var(--burs-font-control, 15px) !important;
+  line-height: 1.2 !important;
 }
 
 html[data-font-scale='130'] body .bui-launch--apps .launcher-custom-grid,
