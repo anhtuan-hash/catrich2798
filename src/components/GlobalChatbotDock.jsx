@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import './GlobalChatbotDock.css';
+import './GlobalChatbotDockSmooth.css';
 
 const DEFAULT_SITES = [
   { id: 'notrack', name: 'NoTrack AI', url: 'https://notrack.ai/' },
