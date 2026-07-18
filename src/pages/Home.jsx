@@ -1,1 +1,1 @@
-export { default } from './HomeExact.jsx';
+export { default } from './HomeExactEntry.jsx';
