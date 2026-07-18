@@ -1,0 +1,33 @@
+/* Use the same global V11 status/menu and navigation chrome on Home. */
+.brian-home-exact > .bhe-navbar {
+  display: none !important;
+}
+
+.brian-home-exact {
+  min-height: calc(100svh - 138px) !important;
+  padding-top: 12px !important;
+}
+
+.bhe-layout {
+  height: calc(100svh - 166px) !important;
+  min-height: 700px !important;
+  max-height: 820px !important;
+}
+
+@media (max-width: 1380px) {
+  .bhe-layout {
+    height: auto !important;
+    min-height: 720px !important;
+    max-height: none !important;
+  }
+}
+
+@media (max-width: 1100px) {
+  .brian-home-exact {
+    min-height: 0 !important;
+  }
+
+  .bhe-layout {
+    min-height: 0 !important;
+  }
+}
