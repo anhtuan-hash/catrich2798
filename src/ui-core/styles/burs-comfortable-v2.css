@@ -21,9 +21,10 @@
   --burs-reading-line-height: 1.6;
 }
 
+/* Keep the inherited baseline stable. BURS runtime scales legacy text once. */
 html[data-burs='comfortable-v2'] body,
 html[data-burs='comfortable-v2'] .app-shell {
-  font-size: var(--burs-font-body);
+  font-size: 16px;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -31,10 +32,6 @@ html[data-burs='comfortable-v2'] .app-shell {
 
 html[data-burs='comfortable-v2'] :where(p, li, dd, dt, blockquote) {
   line-height: var(--burs-reading-line-height);
-}
-
-html[data-burs='comfortable-v2'] :where(input, textarea, select) {
-  font-size: var(--burs-font-control);
 }
 
 /* Runtime-added safeguards. Inline BURS sizing wins over legacy !important rules. */
