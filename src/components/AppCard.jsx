@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PermissionRequestButton from './PermissionRequestButton.jsx';
 import FlatAppIcon from './FlatAppIcon.jsx';
-import InlineAppFrame from './InlineAppFrame.jsx';
 import { getAppDesignProfile } from '../data/designProfiles.js';
 import { getToolPermissionId, hasToolAccess } from '../utils/permissions.js';
+import { launchRoute } from '../utils/motion.js';
+
+function launchTarget(target, item, sourceEl = null) {
+  const profile = getAppDesignProfile(item?.slug);
+  launchRoute({
+    target,
+    label: item?.icon || 'AP',
+    color: profile.accent || '#191515',
+    sourceEl,
+  });
+}
 
 export default function AppCard({ item, language, currentUser }) {
-  const [running, setRunning] = useState(false);
   const title = language === 'vi' ? item.titleVi || item.title : item.title;
   const desc = language === 'vi' ? item.descVi || item.desc : item.desc;
   const group = language === 'vi' ? item.groupVi || item.group : item.group;
@@ -17,29 +26,10 @@ export default function AppCard({ item, language, currentUser }) {
   const profile = getAppDesignProfile(item.slug);
   const styleName = language === 'vi' ? profile.styleVi : profile.style;
   const statusText = language === 'vi' ? item.statusVi || item.status : item.status || item.statusVi;
-  const cardClassName = `tool-card app-card-v3 creative-app-card tile-card metro-card tone-${tone} ${item.featured ? 'featured' : ''} ${locked ? 'locked-card' : ''} ${running ? 'is-inline-running' : ''}`.trim();
-
-  if (running && !locked) {
-    return (
-      <article
-        className={cardClassName}
-        style={{ '--app-accent': profile.accent, '--app-soft': profile.soft, '--app-ink': profile.ink }}
-      >
-        <InlineAppFrame
-          target={target}
-          title={title}
-          subtitle={desc}
-          language={language}
-          accent={profile.accent}
-          onClose={() => setRunning(false)}
-        />
-      </article>
-    );
-  }
 
   return (
     <article
-      className={cardClassName}
+      className={`tool-card app-card-v3 creative-app-card tile-card metro-card tone-${tone} ${item.featured ? 'featured' : ''} ${locked ? 'locked-card' : ''}`.trim()}
       style={{ '--app-accent': profile.accent, '--app-soft': profile.soft, '--app-ink': profile.ink }}
       aria-disabled={locked ? 'true' : 'false'}
     >
@@ -57,13 +47,13 @@ export default function AppCard({ item, language, currentUser }) {
       </div>
       <div className="card-meta compact">
         <span>{locked ? (language === 'vi' ? 'Cần admin duyệt' : 'Admin approval required') : item.api ? (language === 'vi' ? 'AI hỗ trợ' : 'AI powered') : (language === 'vi' ? 'Sẵn sàng' : 'Ready')}</span>
-        <span>{language === 'vi' ? 'Chạy trong thẻ' : 'Run in card'}</span>
+        <span>{language === 'vi' ? 'Mở nhanh' : 'Quick launch'}</span>
       </div>
       {locked ? (
         <PermissionRequestButton currentUser={currentUser} permissionId={permissionId} item={item} language={language} />
       ) : (
-        <button className="primary full" onClick={() => setRunning(true)}>
-          {language === 'vi' ? 'Chạy ngay trong thẻ' : 'Run inside card'}
+        <button className="primary full" onClick={(event) => launchTarget(target, item, event.currentTarget)}>
+          {language === 'vi' ? 'Mở ứng dụng' : 'Open app'}
         </button>
       )}
     </article>
