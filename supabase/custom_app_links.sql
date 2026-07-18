@@ -52,6 +52,20 @@ with check (
   and status in ('private', 'pending')
 );
 
+drop policy if exists "leaders create shared custom apps" on public.custom_app_links;
+create policy "leaders create shared custom apps"
+on public.custom_app_links
+for insert
+to authenticated
+with check (
+  owner_id = auth.uid()
+  and exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid()
+      and lower(coalesce(p.role, '')) in ('admin', 'department_head', 'department-head', 'department_leader', 'ttcm', 'to_truong')
+  )
+);
+
 drop policy if exists "teachers update own unapproved custom apps" on public.custom_app_links;
 create policy "teachers update own unapproved custom apps"
 on public.custom_app_links
