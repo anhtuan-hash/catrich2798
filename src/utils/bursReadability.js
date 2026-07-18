@@ -5,7 +5,8 @@ const FONT_SCALE_LEVELS = Object.freeze([100, 110, 120, 130, 140]);
 const meaningfulPattern = /[\p{L}\p{N}]/u;
 const controlSelector = 'button,input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),textarea,select,option,[role="button"],[role="tab"],[role="menuitem"],[contenteditable="true"]';
 const shellSelector = '.bes-top-chrome,.global-notice-shell,.global-flat-navigation';
-const displaySelector = 'h1,h2,[role="heading"][aria-level="1"],[role="heading"][aria-level="2"],.burs-type-display,.burs-type-page-title';
+const displaySelector = 'h1,h2,[role="heading"][aria-level="1"],[role="heading"][aria-level="2"]';
+const semanticSelector = '[class*="burs-type-"]';
 const managedFonts = new WeakMap();
 
 const shadowCss = `
@@ -101,8 +102,9 @@ function scanRoot(root = document) {
   /* Measure every base size before reapplying managed sizes, preventing nested scaling. */
   elements.forEach(restoreOriginalFont);
   const measurements = elements.map((element) => {
-    const control = element.matches?.(controlSelector) || false;
-    const meaningful = isMeaningful(element);
+    const semantic = Boolean(element.closest?.(semanticSelector));
+    const control = !semantic && (element.matches?.(controlSelector) || false);
+    const meaningful = !semantic && isMeaningful(element);
     if (!control && !meaningful) return { element, control, meaningful, baseSize: 0 };
     const size = Number.parseFloat(getComputedStyle(element).fontSize || '0');
     return { element, control, meaningful, baseSize: Number.isFinite(size) ? size : 0 };
