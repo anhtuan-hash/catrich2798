@@ -9,6 +9,7 @@ const api = fs.readFileSync('api/ai.js', 'utf8');
 const vite = fs.readFileSync('vite.config.js', 'utf8');
 const speedCss = fs.readFileSync('src/ui-core/styles/stability-speed-v12409.css', 'utf8').toLowerCase();
 const typographyCss = fs.readFileSync('src/ui-core/styles/typography-v3.css', 'utf8');
+const widescreenCss = fs.readFileSync('src/ui-core/styles/widescreen-v1218.css', 'utf8');
 const bursRuntime = fs.readFileSync('src/utils/bursReadability.js', 'utf8');
 
 assert.equal(pkg.version, '12.40.9');
@@ -50,6 +51,7 @@ assert.match(bursRuntime, /comfortable-v3/);
 assert.match(bursRuntime, /burs:readability-report/);
 assert.match(bursRuntime, /dataSet|dataset\.bursUnderMin/i);
 assert.match(bursRuntime, /audit: \(\) => scanRoot\(document\)/);
+assert.match(bursRuntime, /closest\?\.\('svg,\[aria-hidden="true"\]'/);
 assert.doesNotMatch(bursRuntime, /style\.setProperty\(['"]font-size/);
 assert.doesNotMatch(bursRuntime, /overflow-wrap:anywhere[^}]*burs-layout-safe/);
 
@@ -59,11 +61,22 @@ for (const token of [
   "html[data-burs='comfortable-v3']",
   '.brian-home-approved3d',
   '.bui-launch--apps',
+  '.global-chatbot-trigger',
+  '.custom-app-status',
   "html[data-font-scale='130']",
   "html[data-font-scale='140']",
   '[data-burs-under-min]',
 ]) {
   assert.ok(typographyCss.includes(token), `Typography V3 missing ${token}`);
+}
+
+for (const layoutContract of [
+  "html[data-font-scale='130'] .app-shell.bes-widescreen-16x9",
+  "html[data-font-scale='140'] .app-shell.bes-widescreen-16x9",
+  'repeat(4, minmax(0, 1fr))',
+  'repeat(3, minmax(0, 1fr))',
+]) {
+  assert.ok(widescreenCss.includes(layoutContract), `Widescreen typography contract missing ${layoutContract}`);
 }
 
 const smallFontDeclarations = [];
