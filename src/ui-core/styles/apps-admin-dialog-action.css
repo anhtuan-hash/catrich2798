@@ -1,0 +1,57 @@
+/* Admin/TTCM modal: keep the two-button footer permanently visible. */
+.custom-app-dialog:has(> footer > button:nth-child(2):last-child){
+  position:relative!important;
+  padding-bottom:92px!important;
+}
+
+.custom-app-dialog:has(> footer > button:nth-child(2):last-child) .custom-app-form-grid{
+  padding-bottom:18px!important;
+}
+
+.custom-app-dialog:has(> footer > button:nth-child(2):last-child)>footer{
+  position:absolute!important;
+  left:0!important;
+  right:0!important;
+  bottom:0!important;
+  z-index:8!important;
+  margin:0!important;
+  padding:14px 23px 18px!important;
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  transform:none!important;
+  background:#fffdf9!important;
+  border-top:1px solid rgba(76,58,94,.14)!important;
+  box-shadow:0 -12px 26px rgba(52,35,67,.09)!important;
+}
+
+.custom-app-dialog:has(> footer > button:nth-child(2):last-child)>footer .primary{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:180px!important;
+  background:#6d4ccb!important;
+  color:#fff!important;
+  border-color:#6d4ccb!important;
+}
+
+@media(max-height:760px){
+  .custom-app-dialog:has(> footer > button:nth-child(2):last-child){
+    padding-bottom:78px!important;
+  }
+
+  .custom-app-dialog:has(> footer > button:nth-child(2):last-child)>footer{
+    padding:11px 18px 13px!important;
+  }
+}
+
+@media(max-width:720px){
+  .custom-app-dialog:has(> footer > button:nth-child(2):last-child)>footer{
+    gap:8px!important;
+  }
+
+  .custom-app-dialog:has(> footer > button:nth-child(2):last-child)>footer button{
+    flex:1 1 0!important;
+    min-width:0!important;
+  }
+}
