@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../data/apps.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { launchRoute } from '../utils/motion.js';
+import HomeExactGraphic from './HomeExactGraphics.jsx';
 import './HomeExact.css';
 
 const ALL_APPS = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS];
@@ -75,7 +76,8 @@ function AppCard({ card, currentUser, vi }) {
       <span className="bhe-window-strip"><i/><i/><i/></span>
       <span className="bhe-card-inner">
         <span className="bhe-app-icon"><Icon name={card.icon}/></span>
-        <span className="bhe-card-copy"><strong>{card.title}</strong><small>{vi ? card.desc : card.desc}</small></span>
+        <span className="bhe-card-copy"><strong>{card.title}</strong><small>{card.desc}</small></span>
+        <HomeExactGraphic type={card.id}/>
         {card.featured ? <span className="bhe-crown" aria-hidden="true">♛</span> : null}
         <span className="bhe-card-arrow" aria-hidden="true">→</span>
         {card.featured ? <span className="bhe-feature-actions"><i>▰ {vi ? 'Bài dạy' : 'Lesson'}</i><i>✎ {vi ? 'Thiết kế' : 'Design'}</i><i>⇧ {vi ? 'Xuất file' : 'Export'}</i></span> : null}
