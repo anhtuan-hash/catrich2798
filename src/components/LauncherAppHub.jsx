@@ -51,6 +51,8 @@ const copy = {
     reload: 'Tải lại',
     fullscreen: 'Toàn màn hình',
     exitFullscreen: 'Thoát toàn màn hình',
+    fullscreenFallback: 'Trình duyệt đang chặn toàn màn hình thật. Brian đã chuyển sang chế độ phủ kín cửa sổ.',
+    fullscreenFailed: 'Không thể bật toàn màn hình. Hãy kiểm tra quyền toàn màn hình của trình duyệt.',
     loading: 'Đang tải ứng dụng…',
     embedWarning: 'Website này có thể đang chặn chế độ nhúng. Brian sẽ không mở tab mới.',
     reviewEmpty: 'Không có đề xuất nào đang chờ duyệt.',
@@ -106,6 +108,8 @@ const copy = {
     reload: 'Reload',
     fullscreen: 'Full screen',
     exitFullscreen: 'Exit full screen',
+    fullscreenFallback: 'The browser blocked native full screen. Brian switched to a full-window fallback.',
+    fullscreenFailed: 'Full screen could not be enabled. Check the browser full-screen permission.',
     loading: 'Loading app…',
     embedWarning: 'This website may block embedding. Brian will not open a new browser tab.',
     reviewEmpty: 'There are no suggestions waiting for review.',
@@ -142,36 +146,82 @@ function StatusBadge({ status, t }) {
 function LinkedAppFrame({ app, language, onClose }) {
   const t = copy[language] || copy.vi;
   const shellRef = useRef(null);
+  const fallbackRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [showWarning, setShowWarning] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [nativeFullscreen, setNativeFullscreen] = useState(false);
+  const [fallbackFullscreen, setFallbackFullscreen] = useState(false);
+  const [fullscreenNotice, setFullscreenNotice] = useState('');
+  const isFullscreen = nativeFullscreen || fallbackFullscreen;
+
+  const fullscreenElement = () => (
+    document.fullscreenElement
+    || document.webkitFullscreenElement
+    || document.mozFullScreenElement
+    || document.msFullscreenElement
+    || null
+  );
+
+  const clearFallbackFullscreen = () => {
+    fallbackRef.current = false;
+    setFallbackFullscreen(false);
+    document.documentElement.classList.remove('launcher-link-fallback-fullscreen');
+    document.body.classList.remove('launcher-link-fallback-fullscreen');
+  };
+
+  const enableFallbackFullscreen = (message = t.fullscreenFallback) => {
+    fallbackRef.current = true;
+    setFallbackFullscreen(true);
+    document.documentElement.classList.add('launcher-link-fallback-fullscreen');
+    document.body.classList.add('launcher-link-fallback-fullscreen');
+    setFullscreenNotice(message);
+    window.setTimeout(() => setFullscreenNotice(''), 3600);
+  };
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    const fullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
-    const syncFullscreen = () => setIsFullscreen(fullscreenElement() === shellRef.current);
+    const syncFullscreen = () => {
+      const active = Boolean(fullscreenElement());
+      setNativeFullscreen(active);
+      if (active) clearFallbackFullscreen();
+    };
+
     const onKeyDown = (event) => {
       if (event.key !== 'Escape') return;
       if (fullscreenElement()) return;
+      if (fallbackRef.current) {
+        event.preventDefault();
+        clearFallbackFullscreen();
+        return;
+      }
       onClose?.();
     };
 
     window.addEventListener('keydown', onKeyDown);
     document.addEventListener('fullscreenchange', syncFullscreen);
     document.addEventListener('webkitfullscreenchange', syncFullscreen);
+    document.addEventListener('mozfullscreenchange', syncFullscreen);
+    document.addEventListener('MSFullscreenChange', syncFullscreen);
     syncFullscreen();
 
     return () => {
       document.body.style.overflow = previousOverflow;
+      clearFallbackFullscreen();
       window.removeEventListener('keydown', onKeyDown);
       document.removeEventListener('fullscreenchange', syncFullscreen);
       document.removeEventListener('webkitfullscreenchange', syncFullscreen);
+      document.removeEventListener('mozfullscreenchange', syncFullscreen);
+      document.removeEventListener('MSFullscreenChange', syncFullscreen);
 
-      if (fullscreenElement() === shellRef.current) {
-        const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (fullscreenElement()) {
+        const exit = document.exitFullscreen
+          || document.webkitExitFullscreen
+          || document.webkitCancelFullScreen
+          || document.mozCancelFullScreen
+          || document.msExitFullscreen;
         try {
           const result = exit?.call(document);
           result?.catch?.(() => {});
@@ -181,9 +231,10 @@ function LinkedAppFrame({ app, language, onClose }) {
   }, [onClose]);
 
   useEffect(() => {
+    if (!loading) return undefined;
     const timer = window.setTimeout(() => setShowWarning(true), 7000);
     return () => window.clearTimeout(timer);
-  }, [reloadKey]);
+  }, [reloadKey, loading]);
 
   const reload = () => {
     setLoading(true);
@@ -191,40 +242,89 @@ function LinkedAppFrame({ app, language, onClose }) {
     setReloadKey((value) => value + 1);
   };
 
-  const toggleFullscreen = async () => {
-    const shell = shellRef.current;
-    if (!shell) return;
-
-    const active = document.fullscreenElement || document.webkitFullscreenElement || null;
+  const exitNativeFullscreen = () => {
+    const exit = document.exitFullscreen
+      || document.webkitExitFullscreen
+      || document.webkitCancelFullScreen
+      || document.mozCancelFullScreen
+      || document.msExitFullscreen;
     try {
-      if (active === shell) {
-        const exit = document.exitFullscreen || document.webkitExitFullscreen;
-        await exit?.call(document);
+      const result = exit?.call(document);
+      return result && typeof result.then === 'function' ? result : Promise.resolve();
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (fullscreenElement()) {
+      exitNativeFullscreen().catch(() => clearFallbackFullscreen());
+      return;
+    }
+
+    if (fallbackRef.current) {
+      clearFallbackFullscreen();
+      return;
+    }
+
+    const target = document.documentElement;
+    const request = target.requestFullscreen
+      || target.webkitRequestFullscreen
+      || target.webkitRequestFullScreen
+      || target.mozRequestFullScreen
+      || target.msRequestFullscreen;
+
+    if (!request) {
+      enableFallbackFullscreen();
+      return;
+    }
+
+    try {
+      // Keep this call synchronous inside the click event. Retrying after an await
+      // loses the browser's user-activation token in Chrome and Safari.
+      const result = request.call(target);
+      if (result && typeof result.then === 'function') {
+        result
+          .then(() => {
+            setNativeFullscreen(Boolean(fullscreenElement()));
+            if (!fullscreenElement()) enableFallbackFullscreen();
+          })
+          .catch((error) => {
+            console.warn('[LinkedAppFrame] Native fullscreen rejected', error);
+            enableFallbackFullscreen();
+          });
         return;
       }
 
-      const request = shell.requestFullscreen || shell.webkitRequestFullscreen;
-      if (!request) return;
-      try {
-        await request.call(shell, { navigationUI: 'hide' });
-      } catch {
-        await request.call(shell);
-      }
+      window.setTimeout(() => {
+        if (fullscreenElement()) setNativeFullscreen(true);
+        else enableFallbackFullscreen();
+      }, 180);
     } catch (error) {
       console.warn('[LinkedAppFrame] Fullscreen unavailable', error);
+      enableFallbackFullscreen(t.fullscreenFailed);
     }
+  };
+
+  const closeFrame = () => {
+    clearFallbackFullscreen();
+    if (fullscreenElement()) {
+      exitNativeFullscreen().finally(() => onClose?.());
+      return;
+    }
+    onClose?.();
   };
 
   return (
     <div
       ref={shellRef}
-      className={`launcher-link-frame-shell${isFullscreen ? ' is-fullscreen' : ''}`}
+      className={`launcher-link-frame-shell${isFullscreen ? ' is-fullscreen' : ''}${fallbackFullscreen ? ' is-fallback-fullscreen' : ''}`}
       role="dialog"
       aria-modal="true"
       aria-label={app.name}
     >
       <header className="launcher-link-frame-toolbar">
-        <button type="button" className="launcher-link-frame-close" onClick={onClose} aria-label={t.close}>← <span>{t.close}</span></button>
+        <button type="button" className="launcher-link-frame-close" onClick={closeFrame} aria-label={t.close}>← <span>{t.close}</span></button>
         <div className="launcher-link-frame-title">
           <i style={{ '--link-accent': app.accent }}>{initials(app.name)}</i>
           <span><strong>{app.name}</strong><small>{hostOf(app.url)}</small></span>
@@ -245,6 +345,7 @@ function LinkedAppFrame({ app, language, onClose }) {
       <div className="launcher-link-frame-body">
         {loading ? <div className="launcher-link-frame-loading"><span /><strong>{t.loading}</strong></div> : null}
         {showWarning ? <div className="launcher-link-frame-warning">{t.embedWarning}</div> : null}
+        {fullscreenNotice ? <div className="launcher-link-fullscreen-notice" role="status">{fullscreenNotice}</div> : null}
         <iframe
           key={`${app.id}-${reloadKey}`}
           src={app.url}

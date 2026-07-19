@@ -145,3 +145,60 @@ html[data-theme="dark"] .launcher-link-app-card small,html[data-theme="dark"] .l
   .launcher-link-frame-title>i{display:none}
 }
 @media(prefers-reduced-motion:reduce){.launcher-link-app-card,.launcher-link-empty,.launcher-link-frame-loading>span{animation:none!important;transition:none!important}}
+
+/* V11.6.7 linked-app fullscreen reliability fix */
+html.launcher-link-fallback-fullscreen,
+html.launcher-link-fallback-fullscreen body{
+  width:100%!important;
+  height:100%!important;
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+}
+html:fullscreen,
+html:-webkit-full-screen{
+  width:100%!important;
+  height:100%!important;
+  overflow:hidden!important;
+  background:#eef3f9!important;
+}
+html:fullscreen .launcher-link-frame-shell,
+html:-webkit-full-screen .launcher-link-frame-shell,
+.launcher-link-frame-shell.is-fallback-fullscreen{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  width:100dvw!important;
+  height:100vh!important;
+  height:100dvh!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  z-index:2147483647!important;
+}
+.launcher-link-frame-shell.is-fallback-fullscreen{
+  box-shadow:0 0 0 100vmax #eef3f9!important;
+}
+.launcher-link-fullscreen-notice{
+  position:absolute;
+  z-index:6;
+  left:50%;
+  top:16px;
+  transform:translateX(-50%);
+  width:min(640px,calc(100% - 28px));
+  padding:11px 14px;
+  border:1px solid #8fb4df;
+  border-radius:12px;
+  background:#eef6ff;
+  color:#214f82;
+  font-size:.8125rem;
+  font-weight:900;
+  text-align:center;
+  box-shadow:0 12px 28px rgba(26,69,116,.18);
+}
+html[data-theme="dark"] .launcher-link-fullscreen-notice{
+  border-color:#466b97;
+  background:#172b43;
+  color:#dbeaff;
+}
