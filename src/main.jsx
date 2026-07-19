@@ -101,7 +101,6 @@ const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
 const GlobalRuntimeGuard = lazy(() => import('./components/GlobalRuntimeGuard.jsx'));
 const TrashCenter = lazy(() => import('./pages/TrashCenter.jsx'));
 const SystemHealthCenter = lazy(() => import('./pages/SystemHealthCenter.jsx'));
-const WorkspaceTabs = lazy(() => import('./components/WorkspaceTabs.jsx'));
 const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.jsx'));
 const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.jsx'));
 const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.jsx'));
@@ -497,13 +496,6 @@ function App() {
           <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
         </AppErrorBoundary>
       </div> : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
-        <Suspense fallback={null}>
-          <AppErrorBoundary compact scope="workspace-tabs" label={language === 'vi' ? 'tab không gian làm việc' : 'workspace tabs'}>
-            <WorkspaceTabs currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} activeProfile={activeDesignProfile} language={language} appVisibility={appVisibility} />
-          </AppErrorBoundary>
-        </Suspense>
-      ) : null}
       {tileLaunch ? (
         <div
           key={tileLaunch.id}

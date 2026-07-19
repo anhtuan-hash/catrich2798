@@ -424,8 +424,6 @@ add('V10.84 unified design tokens and centered rail are present', cssSource.incl
 
 
 // V10.85.0 — Connected Workflow
-const workspaceTabsSource = fs.readFileSync(new URL('../src/components/WorkspaceTabs.jsx', import.meta.url), 'utf8');
-const workspaceSource = fs.readFileSync(new URL('../src/utils/workspace.js', import.meta.url), 'utf8');
 const transferHubSource = fs.readFileSync(new URL('../src/components/ContentTransferHub.jsx', import.meta.url), 'utf8');
 const transferInboxSource = fs.readFileSync(new URL('../src/components/TransferInboxBanner.jsx', import.meta.url), 'utf8');
 const transferSource = fs.readFileSync(new URL('../src/utils/contentTransfer.js', import.meta.url), 'utf8');
@@ -433,14 +431,13 @@ const versionHistorySource = fs.readFileSync(new URL('../src/utils/versionHistor
 const syncQueueSource = fs.readFileSync(new URL('../src/utils/syncQueue.js', import.meta.url), 'utf8');
 const syncQueueIndicatorSource = fs.readFileSync(new URL('../src/components/SyncQueueIndicator.jsx', import.meta.url), 'utf8');
 const configMigrationSource = fs.readFileSync(new URL('../src/utils/configMigration.js', import.meta.url), 'utf8');
-add('V10.85 workspace tabs are mounted globally', mainSource.includes('WorkspaceTabs') && workspaceTabsSource.includes('draggable') && workspaceTabsSource.includes('toggleWorkspacePin') && workspaceSource.includes('BroadcastChannel'), 'open, pin, close, reorder and cross-tab refresh paths present');
 add('V10.85 content transfer hub connects retained apps', mainSource.includes('ContentTransferHub') && transferHubSource.includes('Exam Studio') && transferHubSource.includes('word2graph') && transferHubSource.includes('textlab-activities') && transferSource.includes('captureCurrentPagePayload'), 'page context can be sent to retained Exam, WordGraph, TextLab, lesson and library targets');
 add('V10.85 incoming content can be applied in retained destination apps', mainSource.includes('TransferInboxBanner') && transferInboxSource.includes('TRANSFER_APPLY_EVENT') && transferHubSource.includes('exam-studio') && transferHubSource.includes('textlab-activities'), 'global receiver and retained destination targets present');
 add('V10.85 AI results can enter connected workflow', universalAiSource.includes('sendResultToApp') && universalAiSource.includes("bes-content-transfer-open") && universalAiSource.includes('Gửi sang…'), 'Brian AI response actions open the transfer hub');
 add('V10.85 autosave keeps bounded version history', autosaveSource.includes('addVersion') && autosaveSource.includes('Lịch sử bản nháp') && versionHistorySource.includes('MAX_VERSIONS = 20') && versionHistorySource.includes('MAX_TOTAL_CHARS'), '20-version history, storage budget and restore controls present');
 add('V10.85 offline sync queue is visible and retried online', mainSource.includes('SyncQueueIndicator') && syncQueueSource.includes('processSyncQueue') && syncQueueIndicatorSource.includes("window.addEventListener('online'") && syncQueueIndicatorSource.includes('Hàng đợi đồng bộ'), 'offline transfer queue, retry and status panel present');
 add('V10.85 configuration migration protects legacy launcher data', mainSource.includes('runConfigurationMigrations') && configMigrationSource.includes('bes-launcher-config-v3') && configMigrationSource.includes('bes-launcher-config-v4') && launcherPreferencesSource.includes('bes-launcher-config-v4'), 'legacy config is backed up and migrated before rendering');
-add('V10.85 connected workflow styles are responsive and centered', cssSource.includes('V10.85.0 — Connected Workflow') && cssSource.includes('.bes-workspace-tabs') && cssSource.includes('.bes-transfer-panel') && cssSource.includes('.bes-version-panel') && cssSource.includes('.bes-sync-queue'), 'desktop, mobile, dark and reduced-motion styles present');
+add('V10.85 connected workflow styles are responsive and centered', cssSource.includes('V10.85.0 — Connected Workflow') && cssSource.includes('.bes-transfer-panel') && cssSource.includes('.bes-version-panel') && cssSource.includes('.bes-sync-queue'), 'desktop, mobile, dark and reduced-motion styles present');
 
 
 // V10.86.0 — AI Action Engine + Governance Center

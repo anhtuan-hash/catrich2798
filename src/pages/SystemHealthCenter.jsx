@@ -4,7 +4,6 @@ import { getSupabaseStatus, isSupabaseConfigured, supabase } from '../utils/supa
 import { clearRuntimeErrors, downloadRuntimeReport, getRuntimeErrors } from '../utils/runtimeDiagnostics.js';
 import { getTrashStats, purgeExpiredTrash } from '../utils/trash.js';
 import { getMigrationReport } from '../utils/configMigration.js';
-import { loadWorkspace } from '../utils/workspace.js';
 import { listTransfers } from '../utils/contentTransfer.js';
 import { listSyncQueue } from '../utils/syncQueue.js';
 import { getAiGovernanceSettings, getAiUsageSummary } from '../utils/aiGovernance.js';
@@ -69,7 +68,6 @@ export default function SystemHealthCenter({ language = 'vi', currentUser }) {
   const supabaseStatus = getSupabaseStatus();
   const trashStats = getTrashStats();
   const migrationReport = getMigrationReport();
-  const workspaceStats = loadWorkspace(currentUser);
   const transferStats = listTransfers(currentUser);
   const syncStats = listSyncQueue(currentUser);
   const aiGovernance = getAiGovernanceSettings();
@@ -147,7 +145,6 @@ export default function SystemHealthCenter({ language = 'vi', currentUser }) {
             <div><dt>{language === 'vi' ? 'Dung lượng thùng rác' : 'Trash storage'}</dt><dd>{formatBytes(trashStats.bytes)}</dd></div>
             <div><dt>{language === 'vi' ? 'Thời hạn giữ' : 'Retention'}</dt><dd>{trashStats.retentionDays} days</dd></div>
             <div><dt>{language === 'vi' ? 'Lỗi đã ghi' : 'Logged errors'}</dt><dd>{errors.length}</dd></div>
-            <div><dt>{language === 'vi' ? 'Tab đang mở' : 'Open tabs'}</dt><dd>{workspaceStats.tabs.length}</dd></div>
             <div><dt>{language === 'vi' ? 'Nội dung liên ứng dụng' : 'Cross-app items'}</dt><dd>{transferStats.filter((item) => item.status === 'pending').length}</dd></div>
             <div><dt>{language === 'vi' ? 'Chờ đồng bộ' : 'Sync queue'}</dt><dd>{syncStats.filter((item) => item.status !== 'completed').length}</dd></div>
             <div><dt>{language === 'vi' ? 'Yêu cầu AI hôm nay' : 'AI requests today'}</dt><dd>{aiUsage.requests}</dd></div>

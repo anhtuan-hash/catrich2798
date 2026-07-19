@@ -42,20 +42,6 @@ const STORAGE_SCHEMAS = [
       };
     },
   },
-  {
-    id: 'workspace-tabs',
-    pattern: /^bes-workspace-tabs:/,
-    targetVersion: 1,
-    migrate(value) {
-      const source = value && typeof value === 'object' ? value : {};
-      return {
-        schemaVersion: 1,
-        tabs: Array.isArray(source.tabs) ? source.tabs.slice(0, 12) : [],
-        activeId: String(source.activeId || ''),
-        updatedAt: Number(source.updatedAt) || Date.now(),
-      };
-    },
-  },
 ];
 
 function safeParse(raw) {
@@ -120,6 +106,20 @@ export function runConfigurationMigrations() {
   if (typeof window === 'undefined' || !window.localStorage) return { ranAt: Date.now(), results: [] };
   const storage = window.localStorage;
   const results = [];
+
+
+  // Retire stale open-app tab state from V10.85/V11 without recreating it.
+  const retiredWorkspaceKeys = [];
+  for (let i = 0; i < storage.length; i += 1) {
+    const key = storage.key(i);
+    if (key?.startsWith('bes-workspace-tabs:')) retiredWorkspaceKeys.push(key);
+  }
+  retiredWorkspaceKeys.forEach((key) => {
+    const raw = storage.getItem(key);
+    writeBackup(storage, key, raw);
+    storage.removeItem(key);
+    results.push({ id: 'workspace-tabs-retired', key, status: 'removed' });
+  });
 
   STORAGE_SCHEMAS.forEach((schema) => {
     if (schema.legacyKeys?.length) {
