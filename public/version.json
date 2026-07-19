@@ -8,7 +8,7 @@
   "requiredMigration": "supabase/brian_v12_37_ai_governance_cloud.sql",
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-16T15:09:09.472Z",
+  "generatedAt": "2026-07-18T15:42:31.720Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
