@@ -1,4 +1,12 @@
 export const APP_DESIGN_PROFILES = {
+  'thpt-practice-hub': {
+    accent: '#D85F2A',
+    soft: '#FFF0DF',
+    ink: '#3B1B0D',
+    icon: 'exam',
+    style: 'Interactive THPT practice library',
+    styleVi: 'Kho luyện thi THPT tương tác',
+  },
   'lesson-pack': {
     accent: '#315FC4',
     soft: '#EAF0FF',

@@ -4,6 +4,14 @@ export const APPS = [
   DEPARTMENT_APP,
 
   {
+    slug: 'thpt-practice-hub', icon: 'TH', tone: 'orange', group: 'Exam Preparation', groupVi: 'Luyện thi THPT',
+    title: 'THPT Interactive Practice Hub', titleVi: 'Luyện thi THPT',
+    desc: 'Upload, review, organize and run interactive HTML exam-preparation lessons directly inside Brian.',
+    descVi: 'Tải lên, duyệt, quản lý và chạy trực tiếp các bài luyện thi THPT tương tác dạng HTML.',
+    status: 'HTML library · TTCM approval', statusVi: 'Kho HTML · TTCM duyệt', api: true, featured: true,
+  },
+
+  {
     slug: 'work-hub', route: 'work-hub', icon: 'WH', tone: 'mint', group: 'Connected Workflow', groupVi: 'Công việc liên thông',
     title: 'Unified Work Hub', titleVi: 'Trung tâm công việc',
     desc: 'Manage tasks, submissions, feedback, schedules and approval workflows in one place.',

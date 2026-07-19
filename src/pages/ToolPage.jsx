@@ -14,6 +14,7 @@ const TestBuilder = lazy(() => import('./TestBuilder.jsx'));
 const StudentPractice = lazy(() => import('./StudentPractice.jsx'));
 const AITool = lazy(() => import('./AITool.jsx'));
 const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
+const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
 
 const specializedToolSlugs = new Set([
   'exam-studio',
@@ -68,6 +69,10 @@ export default function ToolPage(props) {
 
   if (tool?.slug === 'textlab-activities') {
     return renderLazy(TextLabActivities, props);
+  }
+
+  if (tool?.slug === 'thpt-practice-hub') {
+    return renderLazy(THPTPracticeHub, props);
   }
 
   if (tool?.slug === 'word2graph') {

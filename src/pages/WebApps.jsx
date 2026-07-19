@@ -21,7 +21,7 @@ import { HIDDEN_APPS_FOLDER, ROUTE_APP_SHORTCUTS, appVisibilityId } from '../dat
 import { getHiddenAppIds } from '../utils/appVisibility.js';
 
 const APP_ORDER = [
-  'hidden-apps-vault',   'resource-library-hub', 'lesson-plan-ai', 'textlab-activities', 'exam-studio', 'reading-studio',
+  'hidden-apps-vault',   'thpt-practice-hub', 'resource-library-hub', 'lesson-plan-ai', 'textlab-activities', 'exam-studio', 'reading-studio',
   'news-reader', 'vietnam-tax', 'word2graph', 'textcare', 'student-practice', 'game-hub',
   'department-workspace', 'homeroom-hub', 'library-hub', 'practice-hub', 'games-hub', 'admin-hub',
 ];
@@ -102,7 +102,7 @@ function defaultGroupOf(item) {
   if (['lesson-plan-ai', 'textcare', 'library-hub', 'resource-library-hub'].includes(item.slug)) return 'plan';
   if (item.slug === 'homeroom-hub') return 'manage';
   if (['textlab-activities', 'reading-studio', 'news-reader', 'vietnam-tax', 'word2graph', 'game-hub', 'games-hub'].includes(item.slug)) return 'create';
-  if (['exam-studio', 'student-practice', 'practice-hub'].includes(item.slug)) return 'assess';
+  if (['thpt-practice-hub', 'exam-studio', 'student-practice', 'practice-hub'].includes(item.slug)) return 'assess';
   return 'manage';
 }
 
