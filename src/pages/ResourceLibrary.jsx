@@ -221,6 +221,15 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     refreshLibrary();
 
     const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
+    const requestedCategory = params.get('category');
+    if (requestedCategory) {
+      setCategory(normaliseResourceCategory(requestedCategory));
+      setTab('explore');
+      setQuery('');
+      setGradeFilter('all');
+      setSchoolYearFilter('all');
+      setCurrentPage(1);
+    }
     if (params.get('drive') === 'connected') setDriveMessage('Google Drive đã kết nối thành công. Các thư mục phân loại đã được đồng bộ.');
     if (params.get('drive') === 'error') setDriveMessage(`Google Drive chưa kết nối: ${params.get('message') || 'Lỗi không xác định'}`);
 
