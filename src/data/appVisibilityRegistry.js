@@ -5,8 +5,8 @@ export const ROUTE_APP_SHORTCUTS = [
     slug: 'homeroom-hub', route: 'homeroom', icon: 'HR', tone: 'mint',
     group: 'School Management', groupVi: 'Quản lý lớp học',
     title: 'Homeroom Teacher', titleVi: 'Giáo viên chủ nhiệm',
-    desc: 'Progress summaries, subject feedback, team competition, family/student portals and school-wide reports.',
-    descVi: 'Tổng hợp tiến độ, nhận xét bộ môn, thi đua, cổng phụ huynh/học sinh và báo cáo toàn trường.',
+    desc: 'Learning analytics, subject feedback, team competition, family/student portals and school-wide summaries.',
+    descVi: 'Phân tích học tập, nhận xét bộ môn, thi đua, cổng phụ huynh/học sinh và thống kê toàn trường.',
     status: 'Phase 2 · Connected', statusVi: 'GVCN · Liên thông',
   },
   {
@@ -16,6 +16,14 @@ export const ROUTE_APP_SHORTCUTS = [
     desc: 'Saved teaching resources, prompts, questions, reports and exported lesson materials.',
     descVi: 'Kho tài liệu, prompt, câu hỏi, báo cáo và học liệu đã lưu.',
     status: 'Resource shelf', statusVi: 'Kho nội dung đã lưu',
+  },
+  {
+    slug: 'practice-hub', route: 'practice', icon: 'CL', tone: 'blue',
+    group: 'Classroom', groupVi: 'Lớp học',
+    title: 'Classroom', titleVi: 'Lớp học',
+    desc: 'Scored practice sessions with progress tracking for learners.',
+    descVi: 'Giao bài luyện, theo dõi tiến độ và chấm điểm học sinh.',
+    status: 'Practice flow', statusVi: 'Giao bài · Theo dõi',
   },
   {
     slug: 'admin-hub', route: 'admin', icon: 'AD', tone: 'red',

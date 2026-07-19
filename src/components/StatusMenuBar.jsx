@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { UIOverlayClose, UIOverlayHeader, UIOverlayPortal, UIOverlaySurface } from '../ui-core/components/UIOverlays.jsx';
 import {
   getMyPermissionRequests,
   getPermissionRequests,
@@ -407,7 +406,7 @@ function permissionTargetRoute(permissionId) {
   const item = getPermissionItem(id);
   if (item?.route) return item.route;
   if (item?.slug) return `tool/${item.slug}`;
-  if (['apps', 'games', 'tools', 'department', 'library', 'resource-library', 'qa', 'settings'].includes(item?.section)) return item.section;
+  if (['apps', 'games', 'tools', 'department', 'library', 'resource-library', 'practice', 'qa', 'settings'].includes(item?.section)) return item.section;
   return 'apps';
 }
 
@@ -807,7 +806,6 @@ export default function StatusMenuBar({
   hasApiKey,
   theme = 'light',
   setTheme,
-  activityCenterOwned = false,
 }) {
   const [panelOpen, setPanelOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
@@ -1308,10 +1306,6 @@ export default function StatusMenuBar({
   };
 
   const openPanel = () => {
-    if (activityCenterOwned) {
-      window.dispatchEvent(new CustomEvent('brian:activity-center-open', { detail: { tab: 'notifications' } }));
-      return;
-    }
     setPanelOpen(true);
     setActiveTab('all');
   };
@@ -1330,14 +1324,14 @@ export default function StatusMenuBar({
             icon="✓"
             value={todayNotifications.length}
             label={language === 'vi' ? 'việc hôm nay' : 'today'}
-            onClick={openPanel}
+            onClick={() => { setPanelOpen(true); setActiveTab('all'); }}
           />
           <GlobalStatusPill
             tone="blue"
             icon="👥"
             value={pendingPermissionCount}
             label={language === 'vi' ? 'tài khoản chờ duyệt' : 'accounts pending'}
-            onClick={() => activityCenterOwned ? window.dispatchEvent(new CustomEvent('brian:activity-center-open', { detail: { tab: 'work' } })) : (setPanelOpen(true), setActiveTab('action'))}
+            onClick={() => { setPanelOpen(true); setActiveTab('action'); }}
           />
           <GlobalStatusPill
             tone="amber"
@@ -1385,28 +1379,25 @@ export default function StatusMenuBar({
         <button
           type="button"
           className={`global-notice-open ${panelOpen ? 'is-open' : ''} ${visibleNotifications.length ? 'has-unread' : ''} ${newNoticeAnimating ? 'has-new-notice' : ''}`}
-          onClick={() => {
-            if (activityCenterOwned) window.dispatchEvent(new CustomEvent('brian:activity-center-open', { detail: { tab: 'notifications' } }));
-            else setPanelOpen((value) => !value);
-          }}
-          aria-expanded={activityCenterOwned ? false : panelOpen}
+          onClick={() => setPanelOpen((value) => !value)}
+          aria-expanded={panelOpen}
         >
           <span aria-hidden="true">☷</span>
-          <strong>{activityCenterOwned ? (language === 'vi' ? 'Mở Trung tâm hoạt động' : 'Open Activity Center') : (language === 'vi' ? 'Mở bảng thông báo' : 'Open notifications')}</strong>
+          <strong>{language === 'vi' ? 'Mở bảng thông báo' : 'Open notifications'}</strong>
           <b aria-label={language === 'vi' ? `${visibleNotifications.length} thông báo chưa đọc` : `${visibleNotifications.length} unread notifications`}>{visibleNotifications.length}</b>
         </button>
       </div>
 
       {panelOpen ? (
-        <UIOverlayPortal open={panelOpen} placement="drawer-right" onDismiss={() => setPanelOpen(false)} className="global-notice-panel-layer bui-notice-overlay">
-          <UIOverlaySurface as="aside" variant="drawer" className={`global-notice-panel bui-notice-panel ${activeTab === 'youtube' ? 'youtube-open' : ''}`} role="dialog" aria-modal="true" aria-label={t.panelTitle}>
-            <UIOverlayHeader className="global-notice-panel-header">
+        <div className="global-notice-panel-layer" onMouseDown={(event) => event.target === event.currentTarget && setPanelOpen(false)}>
+          <aside className={`global-notice-panel ${activeTab === 'youtube' ? 'youtube-open' : ''}`} aria-label={t.panelTitle}>
+            <header className="global-notice-panel-header">
               <div>
                 <span>{language === 'vi' ? 'Brian English Studio' : 'Brian English Studio'}</span>
                 <h2>{t.panelTitle} <b>{visibleNotifications.length}</b></h2>
               </div>
-              <UIOverlayClose className="global-notice-panel-close" onClick={() => setPanelOpen(false)} label={t.close} />
-            </UIOverlayHeader>
+              <button type="button" className="global-notice-panel-close" onClick={() => setPanelOpen(false)} aria-label={t.close}>×</button>
+            </header>
 
             <div className="global-notice-tabs" role="tablist">
               <button type="button" className={activeTab === 'all' ? 'active' : ''} onClick={() => setActiveTab('all')}>
@@ -1746,8 +1737,8 @@ export default function StatusMenuBar({
                 {language === 'vi' ? 'Xem tất cả thông báo' : 'View all notifications'}
               </button>
             </footer>
-          </UIOverlaySurface>
-        </UIOverlayPortal>
+          </aside>
+        </div>
       ) : null}
 
       {youtubeVideoId && youtubePlaybackMode === 'audio' ? (

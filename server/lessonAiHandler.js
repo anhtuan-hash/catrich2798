@@ -1,5 +1,3 @@
-import { callServerAI, fetchWithAiTimeout, getServerAiReadiness, resolveServerAiProvider } from './unifiedAiProviderAdapter.js';
-
 const json = (res, status, payload, extraHeaders = {}) => {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -105,6 +103,13 @@ ${safeJson(body.constraints)}`;
 
 const buildPrompt = (body) => body.task === 'generate-resource' ? resourcePrompt(body) : body.task === 'lesson-assistant' ? assistantPrompt(body) : rewritePrompt(body);
 
+const fetchWithTimeout = async (url, init, timeoutMs = 70_000) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try { return await fetch(url, { ...init, signal: controller.signal }); }
+  finally { clearTimeout(timer); }
+};
+
 const authMode = () => {
   const explicit = String(process.env.AI_AUTH_MODE || '').trim().toLowerCase();
   if (explicit) return ['none', 'supabase'].includes(explicit) ? explicit : 'invalid';
@@ -148,7 +153,7 @@ const verifySupabaseUser = async (req) => {
   if (!url || !anonKey) throw Object.assign(new Error('Supabase AI authentication is not configured.'), { status: 503 });
   const token = getBearerToken(req);
   if (!token) throw Object.assign(new Error('Authentication required.'), { status: 401 });
-  const response = await fetchWithAiTimeout(`${url}/auth/v1/user`, {
+  const response = await fetchWithTimeout(`${url}/auth/v1/user`, {
     method: 'GET',
     headers: { apikey: anonKey, Authorization: `Bearer ${token}` },
   }, 12_000);
@@ -179,6 +184,46 @@ const enforceRateLimit = (req, identity) => {
   }
 };
 
+const openAI = async (prompt) => {
+  if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not configured.');
+  const model = process.env.OPENAI_MODEL;
+  if (!model) throw new Error('OPENAI_MODEL is not configured.');
+  const response = await fetchWithTimeout('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, input: prompt, store: false, max_output_tokens: 12_000 }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data?.error?.message || `OpenAI error ${response.status}`);
+  const text = (data.output || [])
+    .flatMap((item) => item.content || [])
+    .filter((part) => part.type === 'output_text')
+    .map((part) => part.text)
+    .join('\n')
+    .trim();
+  if (!text) throw new Error('OpenAI returned no output text.');
+  return { text, model };
+};
+
+const gemini = async (prompt) => {
+  if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not configured.');
+  const model = process.env.GEMINI_MODEL;
+  if (!model) throw new Error('GEMINI_MODEL is not configured.');
+  const response = await fetchWithTimeout(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+    method: 'POST',
+    headers: { 'x-goog-api-key': process.env.GEMINI_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.2, maxOutputTokens: 12_000 },
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data?.error?.message || `Gemini error ${response.status}`);
+  const text = (data.candidates?.[0]?.content?.parts || []).map((part) => part.text || '').join('\n').trim();
+  if (!text) throw new Error('Gemini returned no output text.');
+  return { text, model };
+};
+
 export async function handleLessonAiRequest(req, res) {
   if (!validateOrigin(req)) return json(res, 403, { error: 'Origin is not allowed.' });
   const cors = corsHeaders(req);
@@ -198,24 +243,22 @@ export async function handleLessonAiRequest(req, res) {
     try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); }
     catch { return json(res, 400, { error: 'Invalid JSON body.' }, cors); }
     if (!['rewrite', 'generate-resource', 'lesson-assistant', 'health'].includes(body.task)) return json(res, 400, { error: 'Unsupported task.' }, cors);
-    const provider = resolveServerAiProvider(body.provider);
+    const provider = process.env.AI_PROVIDER || body.provider || 'openai';
+    if (!['openai', 'gemini'].includes(provider)) return json(res, 400, { error: 'Unsupported AI provider.' }, cors);
 
     const auth = await verifySupabaseUser(req);
     enforceRateLimit(req, auth.userId);
 
     if (body.task === 'health') {
-      const readiness = getServerAiReadiness(provider);
-      return json(res, 200, { ...readiness, task: 'health', authMode: auth.mode }, cors);
+      const configured = provider === 'gemini'
+        ? Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_MODEL)
+        : Boolean(process.env.OPENAI_API_KEY && process.env.OPENAI_MODEL);
+      const model = provider === 'gemini' ? process.env.GEMINI_MODEL : process.env.OPENAI_MODEL;
+      return json(res, 200, { provider, configured, model: model || null, task: 'health', authMode: auth.mode }, cors);
     }
     const prompt = buildPrompt(body);
-    const result = await callServerAI({
-      provider,
-      prompt,
-      maxOutputTokens: 12_000,
-      temperature: 0.2,
-      requestId: String(body.requestId || ''),
-    });
-    return json(res, 200, { ...result, task: body.task }, cors);
+    const result = provider === 'gemini' ? await gemini(prompt) : await openAI(prompt);
+    return json(res, 200, { ...result, provider, task: body.task }, cors);
   } catch (error) {
     const status = Number(error?.status || 500);
     const message = error?.name === 'AbortError' ? 'AI provider timed out.' : error instanceof Error ? error.message : 'Unknown server error.';

@@ -3,7 +3,11 @@ import { createTransfer } from '../utils/contentTransfer.js';
 
 const TARGETS = {
   lesson: 'lesson-plan-ai',
+  worksheet: 'worksheet-factory',
+  exam: 'exam-studio',
   activity: 'textlab-activities',
+  speaking: 'speaking-studio',
+  reading: 'reading-studio',
   wordgraph: 'word2graph',
 };
 

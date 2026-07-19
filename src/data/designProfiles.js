@@ -1,4 +1,20 @@
 export const APP_DESIGN_PROFILES = {
+  'lesson-pack': {
+    accent: '#315FC4',
+    soft: '#EAF0FF',
+    ink: '#10264A',
+    icon: 'lesson-pack',
+    style: 'Connected lesson sequence',
+    styleVi: 'Tiến trình bài dạy liên thông',
+  },
+  'worksheet-factory': {
+    accent: '#D94D70',
+    soft: '#FFE4EC',
+    ink: '#3B101A',
+    icon: 'worksheet',
+    style: 'AI worksheet production line',
+    styleVi: 'Nhà máy phiếu học tập AI',
+  },
   'textlab-activities': {
     accent: '#2F73D9',
     soft: '#DDEBFF',
@@ -23,6 +39,14 @@ export const APP_DESIGN_PROFILES = {
     style: 'Lesson canvas',
     styleVi: 'Khung giáo án sáng tạo',
   },
+  'exam-studio': {
+    accent: '#123C69',
+    soft: '#DCEBFA',
+    ink: '#07192C',
+    icon: 'exam',
+    style: 'Assessment dashboard',
+    styleVi: 'Bảng kiểm tra rõ cấu trúc',
+  },
   'game-hub': {
     accent: '#5B2A86',
     soft: '#E9DAFF',
@@ -39,6 +63,15 @@ export const APP_DESIGN_PROFILES = {
     style: 'Vocabulary network',
     styleVi: 'Mạng từ vựng',
   },
+  'smart-id': {
+    accent: '#6750A4',
+    soft: '#EEE5FF',
+    ink: '#2C174D',
+    icon: 'identity',
+    style: 'AI portrait studio',
+    styleVi: 'Studio ảnh thẻ AI',
+  },
+
   'vietnam-tax': {
     accent: '#1769AA',
     soft: '#E8F3FF',
@@ -54,6 +87,22 @@ export const APP_DESIGN_PROFILES = {
     icon: 'news',
     style: 'Live editorial reader',
     styleVi: 'Trình đọc báo trực tiếp',
+  },
+  'reading-studio': {
+    accent: '#D99A1E',
+    soft: '#FFF0C8',
+    ink: '#392406',
+    icon: 'reading',
+    style: 'Magazine reading page',
+    styleVi: 'Trang đọc kiểu magazine',
+  },
+  'speaking-studio': {
+    accent: '#00A6A6',
+    soft: '#D8FAFA',
+    ink: '#073434',
+    icon: 'speaking',
+    style: 'Conversation window',
+    styleVi: 'Cửa sổ hội thoại',
   },
   textcare: {
     accent: '#B8332A',
@@ -71,6 +120,22 @@ export const APP_DESIGN_PROFILES = {
     style: 'Contextual grammar builder',
     styleVi: 'Xưởng ngữ pháp theo ngữ cảnh',
   },
+  'writing-studio': {
+    accent: '#169AB2',
+    soft: '#DCF5F8',
+    ink: '#073B45',
+    icon: 'writing',
+    style: 'Writing process studio',
+    styleVi: 'Studio quy trình viết',
+  },
+  'pronunciation-coach': {
+    accent: '#D98521',
+    soft: '#FFF0D8',
+    ink: '#432606',
+    icon: 'pronunciation',
+    style: 'Pronunciation and connected speech',
+    styleVi: 'Phát âm và lời nói liên kết',
+  },
   'homeroom-hub': {
     accent: '#1F8F70',
     soft: '#DDF7ED',
@@ -87,6 +152,14 @@ export const APP_DESIGN_PROFILES = {
     style: 'Department dashboard',
     styleVi: 'Bảng quản lý tổ chuyên môn',
   },
+  'student-practice': {
+    accent: '#FF7A54',
+    soft: '#FFE4DA',
+    ink: '#361509',
+    icon: 'practice',
+    style: 'Practice sprint card',
+    styleVi: 'Thẻ luyện tập tốc độ',
+  },
   'library-hub': {
     accent: '#6FBA7B',
     soft: '#E4F6E6',
@@ -94,6 +167,14 @@ export const APP_DESIGN_PROFILES = {
     icon: 'library',
     style: 'Resource shelf',
     styleVi: 'Kệ tài nguyên',
+  },
+  'practice-hub': {
+    accent: '#00A4EF',
+    soft: '#DCF4FF',
+    ink: '#063048',
+    icon: 'practice',
+    style: 'Learner tracking',
+    styleVi: 'Theo dõi luyện tập',
   },
   'games-hub': {
     accent: '#5B2A86',

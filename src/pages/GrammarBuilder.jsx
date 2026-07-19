@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { extractJson } from '../utils/openRouter.js';
-import { runAITask } from '../utils/aiTaskRuntime.js';
+import { callAI, extractJson } from '../utils/gemini.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { addHistoryEntry, addQuestionsFromTextToBank, exportAsHtml, exportAsWord } from '../utils/library.js';
 import { createTransfer, TRANSFER_APPLY_EVENT } from '../utils/contentTransfer.js';
@@ -147,7 +146,12 @@ const WORKFLOW_STEPS = [
 
 const DESTINATIONS = [
   { id: 'lesson-plan-ai', route: '#/tool/lesson-plan-ai', icon: 'LA', label: 'Lesson Architect', desc: 'Đưa mục tiêu, presentation, practice và assessment vào giáo án.' },
+  { id: 'exam-studio', route: '#/tool/exam-studio', icon: 'EX', label: 'Exam Studio', desc: 'Ghép item thành đề, tạo mã đề và ma trận.' },
+  { id: 'worksheet-factory', route: '#/tool/worksheet-factory', icon: 'WF', label: 'Worksheet Factory', desc: 'Dàn trang bản học sinh và bản giáo viên.' },
   { id: 'textlab-activities', route: '#/tool/textlab-activities', icon: 'AC', label: 'Activity Studio', desc: 'Chuyển bài thành sorting, error hunt và game.' },
+  { id: 'reading-studio', route: '#/tool/reading-studio', icon: 'RS', label: 'Reading Studio', desc: 'Tạo bài đọc chứa cấu trúc mục tiêu.' },
+  { id: 'writing-studio', route: '#/tool/writing-studio', icon: 'WS', label: 'Writing Studio', desc: 'Tạo guided writing, checklist và model answer.' },
+  { id: 'speaking-studio', route: '#/tool/speaking-studio', icon: 'SS', label: 'Speaking Studio', desc: 'Tạo role-play và sentence frames.' },
   { id: 'english-lesson-integration', route: '#/tool/english-lesson-integration', icon: 'EL', label: 'AI Lesson Integration', desc: 'Chèn Grammar Pack vào giáo án đang chỉnh sửa.' },
 ];
 
@@ -864,8 +868,8 @@ export default function GrammarBuilder({ language = 'vi', apiKey = '', aiModel =
     }
   };
 
-  const callGrammarAi = async (prompt, task, maxOutputTokens = 2800, validation = {}) => {
-    const raw = await runAITask('grammar.generateBatch', {
+  const callGrammarAi = async (prompt, task, maxOutputTokens = 2800) => {
+    const raw = await callAI({
       apiKey,
       model: aiModel,
       prompt,
@@ -875,7 +879,6 @@ export default function GrammarBuilder({ language = 'vi', apiKey = '', aiModel =
       maxOutputTokens,
       governanceProfile: task === 'validate' ? 'document' : 'worksheet',
       loadingLabel: `Grammar Builder · ${task}`,
-      validation: { kind: 'json', ...validation },
     });
     return extractJson(raw);
   };
@@ -903,7 +906,7 @@ export default function GrammarBuilder({ language = 'vi', apiKey = '', aiModel =
           let sectionRemaining = requested;
           while (sectionRemaining > 0) {
             const count = Math.min(7, sectionRemaining);
-            const json = await callGrammarAi(sectionDraftPrompt(project, section, count, generated.map((item) => item.stem)), 'draft', 2800, { requiredFields: ['items'], collectionKey: 'items', expectedCount: count, detectDuplicates: true });
+            const json = await callGrammarAi(sectionDraftPrompt(project, section, count, generated.map((item) => item.stem)), 'draft', 2800);
             const batch = normalizeAiItems(json, project).slice(0, count).map((item) => ({ ...item, section: item.section || section.title }));
             if (!batch.length) throw new Error(vi ? `AI không tạo được item cho ${section.title}.` : `AI returned no items for ${section.title}.`);
             generated.push(...batch);
@@ -915,7 +918,7 @@ export default function GrammarBuilder({ language = 'vi', apiKey = '', aiModel =
         while (remaining > 0) {
           const count = Math.min(7, remaining);
           const fallbackSection = { title: `Part ${Math.max(1, sections.length)} — Additional Practice`, format: project.formats.join(', '), focus: grammarPoint(project) };
-          const json = await callGrammarAi(sectionDraftPrompt(project, fallbackSection, count, generated.map((item) => item.stem)), 'draft', 2800, { requiredFields: ['items'], collectionKey: 'items', expectedCount: count, detectDuplicates: true });
+          const json = await callGrammarAi(sectionDraftPrompt(project, fallbackSection, count, generated.map((item) => item.stem)), 'draft', 2800);
           const batch = normalizeAiItems(json, project).slice(0, count);
           if (!batch.length) break;
           generated.push(...batch);
@@ -1090,8 +1093,8 @@ Issues: ${(json.issues || []).length}`);
   const classGoal = String(project.learnerNotes || '').trim() || `${project.grade} · ${project.level} · ${project.purpose}`;
 
   return (
-    <div className="gb-page bui-workbench" data-ui="workbench" data-workbench="grammar-builder" data-stage={activeStage} data-design="modern-saas">
-      <section className="gb-toolbar gb-toolbar-modern bui-workbench-header">
+    <div className="gb-page" data-stage={activeStage} data-design="modern-saas">
+      <section className="gb-toolbar gb-toolbar-modern">
         <div className="gb-brand-lockup">
           <span className="gb-brand-mark">GB</span>
           <div><strong>Grammar Builder</strong><small>V2.4</small></div>
@@ -1110,7 +1113,7 @@ Issues: ${(json.issues || []).length}`);
 
       {notice ? <div className="gb-notice" role="status">✓ {notice}<button type="button" onClick={() => setNotice('')}>×</button></div> : null}
 
-      <section className="gb-context-strip bui-workbench-metrics" aria-label="Tóm tắt dự án">
+      <section className="gb-context-strip" aria-label="Tóm tắt dự án">
         <ContextMetric icon="◎" label="Mục tiêu lớp học" value={classGoal} />
         <ContextMetric icon="☷" label="Số câu dự kiến" value={`${project.questionCount} câu`} />
         <ContextMetric icon="◷" label="Thời gian làm bài" value="45 phút" />
@@ -1118,7 +1121,7 @@ Issues: ${(json.issues || []).length}`);
         <ContextMetric icon="▣" label="Cập nhật lần cuối" value={updatedLabel} />
       </section>
 
-      <nav className="gb-workflow bui-workbench-workflow" aria-label="Grammar Builder workflow">
+      <nav className="gb-workflow" aria-label="Grammar Builder workflow">
         {WORKFLOW_STEPS.map(([number, label], index) => {
           const active = activeStage === 'setup' ? index < 4 : activeStage === 'editor' ? index <= 5 : true;
           return <button type="button" key={number} className={active ? 'active' : ''} aria-current={active ? 'step' : undefined} onClick={() => setActiveStage(index < 4 ? 'setup' : index < 6 ? 'editor' : 'publish')}><b>{number}</b><span>{label}</span></button>;
@@ -1126,7 +1129,7 @@ Issues: ${(json.issues || []).length}`);
       </nav>
 
       {activeStage === 'setup' ? (
-        <section className="gb-setup-grid bui-workbench-canvas">
+        <section className="gb-setup-grid">
           <article className="gb-card gb-card-mode">
             <SectionHeading number="01" eyebrow="BUILD MODE" title="Chọn mục đích tạo" description="Mỗi chế độ thay đổi logic blueprint và đầu ra." />
             <div className="gb-mode-grid">

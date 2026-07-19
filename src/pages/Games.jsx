@@ -13,7 +13,6 @@ import {
   requestCustomGameApproval,
   updateCustomGameStatus,
 } from '../utils/customGames.js';
-import { UILaunchGrid, UILaunchHero, UILaunchPage, UILaunchStage } from '../ui-core/components/UILaunch.jsx';
 
 const SAVED_KEY = 'bes-game-hub-links-v1';
 
@@ -724,7 +723,7 @@ function GamesV44HeroArt({ language }) {
 
 function GamesV44Hero({ language, totalSaved, onPlayNow }) {
   return (
-    <UILaunchHero className="games-v44-hero" id="games-v44-home">
+    <section className="games-v44-hero" id="games-v44-home">
       <div className="games-v44-hero-copy">
         <span className="games-v44-kicker">★ Brian English Studio Games</span>
         <h1>{language === 'vi' ? <>Trò chơi lớp học<br/><span>Học vui – Nhớ lâu – Dạy dễ</span></> : <>Classroom games<br/><span>Play more – Remember more – Teach better</span></>}</h1>
@@ -740,7 +739,7 @@ function GamesV44Hero({ language, totalSaved, onPlayNow }) {
         </div>
       </div>
       <GamesV44HeroArt language={language} />
-    </UILaunchHero>
+    </section>
   );
 }
 
@@ -992,7 +991,7 @@ export default function Games({ language, currentUser }) {
 
   if (currentUser && !hasToolAccess(currentUser, 'game-hub')) {
     return (
-      <UILaunchPage app="games-access" className="page narrow">
+      <div className="page narrow">
         <SectionHeader
           eyebrow="Game Hub"
           title={language === 'vi' ? 'Game Hub đang chờ cấp quyền' : 'Game Hub access required'}
@@ -1003,14 +1002,14 @@ export default function Games({ language, currentUser }) {
         <div className="card-grid two">
           <AppCard item={GAME_APPS[0]} language={language} currentUser={currentUser} />
         </div>
-      </UILaunchPage>
+      </div>
     );
   }
 
   return (
-    <UILaunchPage app="games" className="page game-hub-page game-hub-v33 game-hub-v58 game-hub-v1 game-hub-v44">
+    <div className="page game-hub-page game-hub-v33 game-hub-v58 game-hub-v1 game-hub-v44">
       <div className="games-v44-shell games-v58-no-sidebar">
-        <main className="games-v44-main games-v58-main bui-launch-content">
+        <main className="games-v44-main games-v58-main">
           <div className="games-v44-top-actions">
             <button type="button" onClick={() => document.documentElement.classList.toggle('games-v44-soft-dark')}>☼</button>
             <button type="button" onClick={() => scrollGamesSection('games-v44-workspace')}>⚙</button>
@@ -1021,7 +1020,7 @@ export default function Games({ language, currentUser }) {
             totalSaved={Object.values(saved).reduce((sum, list) => sum + list.length, 0)}
             onPlayNow={() => scrollGamesSection('games-v44-workspace')}
           />
-          <UILaunchStage className="game-hub-shell panel games-v46-shell bui-launch-workspace" id="games-v44-workspace">
+          <section className="game-hub-shell panel games-v46-shell" id="games-v44-workspace">
             <div className="games-v46-board">
               <header className="games-v46-board-head">
                 <div>
@@ -1041,13 +1040,13 @@ export default function Games({ language, currentUser }) {
                 <span className={`games-v46-selected-chip tone-${active.color}`}>{active.icon} {active.label}</span>
               </header>
 
-              <UILaunchGrid as="div" className="games-v46-platform-grid bui-launch-game-grid">
+              <div className="games-v46-platform-grid">
                 {Object.entries(platformMap).map(([key, item]) => {
                   const statusMeta = item.isCustom ? getCustomGameStatusMeta(item.status, language) : null;
                   const owner = item.isCustom ? isCustomGameOwner(currentUser, item) : false;
                   const editable = item.isCustom ? canEditCustomGame(currentUser, item) : false;
                   return (
-                    <article key={key} className={`bui-launch-tile games-v46-platform-card tone-${item.color} ${platform === key ? 'active' : ''} ${item.isCustom ? `custom status-${item.status}` : ''}`}>
+                    <article key={key} className={`games-v46-platform-card tone-${item.color} ${platform === key ? 'active' : ''} ${item.isCustom ? `custom status-${item.status}` : ''}`}>
                       <button type="button" className="games-v46-platform-main" onClick={() => setPlatform(key)}>
                         <span className="games-v46-platform-icon">{item.icon}</span>
                         <span className="games-v46-platform-copy">
@@ -1088,10 +1087,10 @@ export default function Games({ language, currentUser }) {
                   <strong>{language === 'vi' ? 'Thêm trò chơi tùy chỉnh' : 'Add custom game'}</strong>
                   <small>{language === 'vi' ? 'Thêm trò chơi hoặc website bất kỳ' : 'Add any game or website'}</small>
                 </button>
-              </UILaunchGrid>
+              </div>
             </div>
 
-            <div className="games-v46-launch-band bui-launch-action-band">
+            <div className="games-v46-launch-band">
               <button type="button" className="games-v46-load-button" onClick={() => openUrl('', platform)}>
                 <span>🚀</span>
                 {active.embed ? (language === 'vi' ? 'Tải vào Studio' : 'Load in Studio') : (language === 'vi' ? 'Mở trò chơi' : 'Open game')}
@@ -1101,7 +1100,7 @@ export default function Games({ language, currentUser }) {
                 : (language === 'vi' ? `${active.label} sẽ mở trong một tab mới.` : `${active.label} will open in a new tab.`)}</small>
             </div>
 
-            <section className="games-v46-live-card bui-launch-preview">
+            <section className="games-v46-live-card">
               <header className="games-v46-live-head">
                 <div className="games-v46-live-title">
                   <span className={`games-v46-live-icon tone-${frameActive.color}`}>{frameActive.icon}</span>
@@ -1139,7 +1138,7 @@ export default function Games({ language, currentUser }) {
                 </div>
               )}
             </section>
-          </UILaunchStage>
+          </section>
 
           <CustomGameDialog
             language={language}
@@ -1155,6 +1154,6 @@ export default function Games({ language, currentUser }) {
           />
         </main>
       </div>
-    </UILaunchPage>
+    </div>
   );
 }

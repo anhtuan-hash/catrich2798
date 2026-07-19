@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { runAITask } from '../utils/aiTaskRuntime.js';
+import { callAI } from '../utils/gemini.js';
 import { addHistoryEntry, downloadFile } from '../utils/library.js';
 import { supabase } from '../utils/supabase.js';
 import {
@@ -206,7 +206,7 @@ export default function LessonArchitectCurriculumBuilder({ language = 'vi', hasA
     setAnalysing(true);
     try {
       const prompt = buildCurriculumExtractionPrompt({ profile, curriculumText });
-      const raw = await runAITask('lesson.curriculumExtract', {
+      const raw = await callAI({
         prompt,
         model: aiModel,
         systemInstruction: 'Extract the Grade 11 English curriculum sequence accurately and return valid JSON only. Preserve official Global Success lesson names.',
@@ -265,7 +265,7 @@ export default function LessonArchitectCurriculumBuilder({ language = 'vi', hasA
     setActiveLessonId(row.id);
     try {
       const prompt = buildAnnualLessonPrompt({ profile, row, curriculumText, textbookText, extraRequirements });
-      let result = await runAITask('lesson.curriculumBuild', {
+      let result = await callAI({
         prompt,
         model: aiModel,
         systemInstruction: 'Write a complete Grade 11 English lesson plan in English only. Follow the Global Success textbook, Official Dispatch 5512 and the learner digital competence framework in Circular No. 02/2025/TT-BGDĐT. Never use Vietnamese instructional headings.',
@@ -276,7 +276,7 @@ export default function LessonArchitectCurriculumBuilder({ language = 'vi', hasA
       });
       let quality = validateEnglishLessonOutput(result);
       if (!quality.ok) {
-        result = await runAITask('lesson.cleanEnglish', {
+        result = await callAI({
           prompt: buildEnglishCorrectionPrompt(result, quality),
           model: aiModel,
           systemInstruction: 'Revise the document into an English-only lesson plan with complete headings and visible, evidence-based digital competence integration.',

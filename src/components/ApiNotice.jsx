@@ -5,8 +5,8 @@ export default function ApiNotice({ language, hasApiKey }) {
     return (
       <div className="api-notice success">
         <div>
-          <strong>🔐 OpenRouter Gateway ready</strong>
-          <p>{language === 'vi' ? 'Máy chủ đã xác thực OpenRouter. API key không được lưu trong trình duyệt.' : 'The server has verified OpenRouter. The API key is not stored in this browser.'}</p>
+          <strong>🔐 API Key ready</strong>
+          <p>{language === 'vi' ? 'Các công cụ AI dùng key đã lưu trong trình duyệt.' : 'AI tools can use the key stored in this browser.'}</p>
         </div>
         <button onClick={() => (window.location.hash = '#/settings')}>{language === 'vi' ? 'Cài đặt' : 'Settings'}</button>
       </div>
@@ -14,12 +14,12 @@ export default function ApiNotice({ language, hasApiKey }) {
   }
 
   return (
-      <div className="api-notice">
-        <div>
-        <strong>⚠ OpenRouter Gateway unavailable</strong>
-        <p>{language === 'vi' ? 'Máy chủ chưa xác thực được OPENROUTER_API_KEY hoặc phiên đăng nhập đã hết hạn.' : 'The server could not verify OPENROUTER_API_KEY, or the sign-in session has expired.'}</p>
+    <div className="api-notice">
+      <div>
+        <strong>🔑 API Key Required</strong>
+        <p>{language === 'vi' ? 'Công cụ AI cần API key từ provider đã chọn: Gemini, OpenAI, Claude, Groq, OpenRouter, Mistral hoặc endpoint riêng.' : 'AI tools need an API key from your selected provider: Gemini, OpenAI, Claude, Groq, OpenRouter, Mistral or custom endpoints.'}</p>
       </div>
-      <button onClick={() => (window.location.hash = '#/settings')}>{language === 'vi' ? 'Kiểm tra gateway' : 'Check gateway'}</button>
+      <button onClick={() => (window.location.hash = '#/settings')}>{language === 'vi' ? 'Nhập API key' : 'Add API key'}</button>
     </div>
   );
 }

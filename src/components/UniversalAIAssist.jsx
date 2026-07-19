@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { runAITask } from '../utils/aiTaskRuntime.js';
+import { callAI } from '../utils/gemini.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { spreadsheetToTextSafe } from '../utils/safeSpreadsheet.js';
 import { buildAiActionSuggestions, executeAiAction, prepareAiAction } from '../utils/aiActions.js';
@@ -437,32 +437,27 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
     setDraft(''); setAttachments([]); setError(''); setNotice('');
 
     if (!hasApiKey) {
-      updateActiveMessages((current) => [...current, { id: `assistant-${Date.now()}-settings`, role: 'assistant', createdAt: Date.now(), content: language === 'vi' ? 'OpenRouter Production Gateway chưa sẵn sàng. Hãy mở Thiết lập và kiểm tra biến OPENROUTER_API_KEY trên Vercel.' : 'The OpenRouter Production Gateway is not ready. Open Settings and verify OPENROUTER_API_KEY on Vercel.', attachments: [] }]);
+      updateActiveMessages((current) => [...current, { id: `assistant-${Date.now()}-settings`, role: 'assistant', createdAt: Date.now(), content: language === 'vi' ? 'Thầy chưa cấu hình AI provider. Hãy mở Thiết lập → AI Provider, nhập API key rồi quay lại cuộc trò chuyện này.' : 'No AI provider is configured yet. Open Settings → AI Provider, add an API key, then return to this chat.', attachments: [] }]);
       return;
     }
 
-    const assistantId = `assistant-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    updateActiveMessages((current) => [...current, { id: assistantId, role: 'assistant', content: language === 'vi' ? 'Đang kết nối OpenRouter…' : 'Connecting to OpenRouter…', createdAt: Date.now(), attachments: [], streaming: true }]);
     setLoading(true);
     try {
       const pageContext = capturePageContext(info, currentRoute, selectedTool);
       const prompt = buildConversationPrompt({ messages: messagesRef.current, newest: userMessage, info, language, currentUser, pageContext, attachments: outgoingAttachments });
-      const result = await runAITask('assistant.pageChat', {
+      const result = await callAI({
         apiKey, model: aiModel, prompt,
         attachments: outgoingAttachments.filter((item) => item.kind === 'image').map((item) => ({ name: item.name, mimeType: item.mimeType, dataUrl: item.dataUrl, base64: item.base64 })),
         systemInstruction: 'You are Brian AI, a reliable, context-aware in-app assistant for a Vietnamese high-school English teacher and subject-team leader. Be useful, honest and concise.',
-        temperature: .66,
-        maxOutputTokens: 3200,
-        stream: true,
-        onToken: (_delta, aggregate) => updateActiveMessages((current) => current.map((message) => message.id === assistantId ? { ...message, content: aggregate, streaming: true } : message)),
-        loadingLabel: language === 'vi' ? 'Brian AI đang đọc ngữ cảnh và truyền câu trả lời...' : 'Brian AI is reading the context and streaming a reply...',
+        temperature: .66, maxOutputTokens: 2400, loadingLabel: language === 'vi' ? 'Brian AI đang đọc ngữ cảnh và soạn câu trả lời...' : 'Brian AI is reading the context and composing a reply...',
       });
-      updateActiveMessages((current) => current.map((message) => message.id === assistantId ? { ...message, content: result, streaming: false } : message));
-      if (voiceModeRef.current) speakText(result, assistantId);
+      const assistantMessage = { id: `assistant-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, role: 'assistant', content: result, createdAt: Date.now(), attachments: [] };
+      updateActiveMessages((current) => [...current, assistantMessage]);
+      if (voiceModeRef.current) speakText(result, assistantMessage.id);
     } catch (err) {
       const message = err?.message || (language === 'vi' ? 'Không thể kết nối AI.' : 'Unable to connect to AI.');
       setError(message);
-      updateActiveMessages((current) => current.map((entry) => entry.id === assistantId ? { ...entry, streaming: false, content: language === 'vi' ? `Em chưa thể trả lời vì OpenRouter gặp lỗi: ${message}` : `I could not reply because OpenRouter failed: ${message}` } : entry));
+      updateActiveMessages((current) => [...current, { id: `assistant-${Date.now()}-error`, role: 'assistant', createdAt: Date.now(), content: language === 'vi' ? `Em chưa thể trả lời vì kết nối AI gặp lỗi: ${message}` : `I could not reply because the AI connection failed: ${message}`, attachments: [] }]);
     } finally { setLoading(false); }
   }, [draft, attachments, loading, hasApiKey, language, apiKey, aiModel, info, currentRoute, selectedTool, currentUser, updateActiveMessages, speakText]);
   sendMessageRef.current = sendMessage;
@@ -546,13 +541,13 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
 
   const sortedThreads = [...threads].sort((a, b) => b.updatedAt - a.updatedAt);
   const portal = (
-    <div className={`ai-messenger-root ai-messenger-v10860 bui-ai-dock ${open ? 'is-open' : 'is-collapsed'} ${draggingFiles ? 'is-file-dragging' : ''}`} style={{ '--ai-chat-accent': accent, '--ai-chat-soft': soft, '--ai-chat-ink': ink }} data-ui="ai-dock" data-ui-core="v12.6" data-route={currentRoute} data-external-launcher={externalLauncher ? 'true' : 'false'}
+    <div className={`ai-messenger-root ai-messenger-v10860 ${open ? 'is-open' : 'is-collapsed'} ${draggingFiles ? 'is-file-dragging' : ''}`} style={{ '--ai-chat-accent': accent, '--ai-chat-soft': soft, '--ai-chat-ink': ink }} data-route={currentRoute} data-external-launcher={externalLauncher ? 'true' : 'false'}
       onDragEnter={(event) => { if (open && event.dataTransfer?.types?.includes('Files')) { event.preventDefault(); setDraggingFiles(true); } }}
       onDragOver={(event) => { if (open && event.dataTransfer?.types?.includes('Files')) event.preventDefault(); }}
       onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setDraggingFiles(false); }}
       onDrop={(event) => { if (!open) return; event.preventDefault(); setDraggingFiles(false); addFiles(event.dataTransfer.files); }}>
       {open ? (
-        <section className="ai-messenger-window bui-ai-dock-window" role="dialog" aria-modal="false" aria-label={language === 'vi' ? 'Trò chuyện với trợ lí AI' : 'Chat with AI assistant'}>
+        <section className="ai-messenger-window" role="dialog" aria-label={language === 'vi' ? 'Trò chuyện với trợ lí AI' : 'Chat with AI assistant'}>
           <header className="ai-messenger-header">
             <div className="ai-messenger-avatar" aria-hidden="true">{SVG.sparkle}</div>
             <div className="ai-messenger-heading"><strong>Brian AI</strong><span><i /> {voiceMode ? (language === 'vi' ? 'Chế độ giọng nói' : 'Voice mode') : (language === 'vi' ? 'Đang hoạt động' : 'Active')} · {providerName || aiModel || 'AI'}</span></div>
@@ -610,7 +605,7 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
               {!hasApiKey && <div className="ai-messenger-config-note"><span>!</span><p>{language === 'vi' ? 'Cần cấu hình AI provider để gửi tin nhắn.' : 'Configure an AI provider to send messages.'}</p><button type="button" onClick={() => { window.location.hash = '#/settings'; setOpen(false); }}>{language === 'vi' ? 'Mở thiết lập' : 'Open settings'}</button></div>}
               {(error || notice) && <div className={error ? 'ai-messenger-error' : 'ai-messenger-notice'}>{error || notice}</div>}
 
-              <footer className="ai-messenger-composer bui-ai-dock-composer">
+              <footer className="ai-messenger-composer">
                 <div className="ai-composer-tools">
                   <input ref={fileInputRef} type="file" multiple hidden accept="image/*,.pdf,.docx,.pptx,.xlsx,.xls,.txt,.md,.csv,.json,.html,.htm" onChange={(event) => { addFiles(event.target.files); event.target.value = ''; }}/>
                   <button type="button" onClick={() => fileInputRef.current?.click()} disabled={attachmentBusy} title={language === 'vi' ? 'Đính kèm file' : 'Attach files'}>{SVG.attach}<span>{language === 'vi' ? 'Tệp' : 'Files'}</span></button>
@@ -618,8 +613,8 @@ export default function UniversalAIAssist({ language = 'vi', currentRoute = 'hom
                   <button type="button" onClick={startListening} className={listening ? 'active' : ''} title={language === 'vi' ? 'Nhập bằng giọng nói' : 'Voice input'}>{SVG.mic}<span>{listening ? (language === 'vi' ? 'Đang nghe' : 'Listening') : (language === 'vi' ? 'Nói' : 'Speak')}</span></button>
                   <small>{attachments.length}/5</small>
                 </div>
-                <div className="ai-composer-input-row bui-ai-dock-input-row">
-                  <textarea className="bui-ai-dock-editor" ref={textareaRef} rows={4} value={draft} onChange={(event) => setDraft(event.target.value.slice(0, 7000))} onKeyDown={onComposerKeyDown} onPaste={(event) => { const imageFiles = [...(event.clipboardData?.files || [])].filter((file) => file.type.startsWith('image/')); if (imageFiles.length) { event.preventDefault(); addFiles(imageFiles); } }} placeholder={language === 'vi' ? 'Nhắn tin, kéo file hoặc dán ảnh cho Brian AI...' : 'Message, drop a file or paste an image...'} aria-label={language === 'vi' ? 'Tin nhắn cho trợ lí AI' : 'Message to AI assistant'}/>
+                <div className="ai-composer-input-row">
+                  <textarea ref={textareaRef} rows={4} value={draft} onChange={(event) => setDraft(event.target.value.slice(0, 7000))} onKeyDown={onComposerKeyDown} onPaste={(event) => { const imageFiles = [...(event.clipboardData?.files || [])].filter((file) => file.type.startsWith('image/')); if (imageFiles.length) { event.preventDefault(); addFiles(imageFiles); } }} placeholder={language === 'vi' ? 'Nhắn tin, kéo file hoặc dán ảnh cho Brian AI...' : 'Message, drop a file or paste an image...'} aria-label={language === 'vi' ? 'Tin nhắn cho trợ lí AI' : 'Message to AI assistant'}/>
                   <button type="button" onClick={() => sendMessage()} disabled={(!draft.trim() && !attachments.length) || loading} aria-label={language === 'vi' ? 'Gửi tin nhắn' : 'Send message'}>{SVG.send}</button>
                 </div>
                 <small>{voiceMode ? (language === 'vi' ? 'Voice mode: AI tự gửi khi nhận xong và đọc câu trả lời.' : 'Voice mode: auto-send and read replies aloud.') : (language === 'vi' ? 'Enter để gửi · Shift + Enter xuống dòng' : 'Enter to send · Shift + Enter for a new line')}</small>

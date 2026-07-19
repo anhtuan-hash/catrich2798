@@ -1,0 +1,393 @@
+/* Brian V11.5.9 — BURS Comfortable
+   Unified readability, card geometry and responsive layout tokens. */
+
+html[data-burs="comfortable"] {
+  --burs-font-micro: .8125rem;
+  --burs-font-meta: .875rem;
+  --burs-font-caption: .9375rem;
+  --burs-font-body: 1rem;
+  --burs-font-body-lg: 1.0625rem;
+  --burs-font-control: 1rem;
+  --burs-font-option: 1.125rem;
+  --burs-font-section: clamp(1.375rem, 1.8vw, 1.625rem);
+  --burs-font-card-title: clamp(1.65rem, 2.25vw, 2.125rem);
+  --burs-font-page-title: clamp(2.25rem, 4vw, 4rem);
+  --burs-line-body: 1.62;
+  --burs-radius-sm: .875rem;
+  --burs-radius-md: 1.125rem;
+  --burs-radius-lg: 1.5rem;
+  --burs-radius-xl: 1.875rem;
+  --burs-control-height: 3.25rem;
+  --burs-touch-size: 2.75rem;
+  --burs-card-pad: clamp(1.25rem, 2.2vw, 2rem);
+  --burs-card-gap: clamp(1rem, 1.8vw, 1.5rem);
+  --burs-page-pad: clamp(.875rem, 2.2vw, 2rem);
+  --burs-line: color-mix(in srgb, var(--active-app-ink, #17324f) 16%, transparent);
+  --burs-line-strong: color-mix(in srgb, var(--active-app-ink, #17324f) 28%, transparent);
+  --burs-surface: color-mix(in srgb, #fff 96%, var(--active-app-soft, #edf4ff));
+  --burs-soft: color-mix(in srgb, #fff 80%, var(--active-app-soft, #edf4ff));
+  --burs-shadow: 0 .75rem 2.25rem rgba(29, 48, 82, .08);
+  --burs-shadow-hover: 0 1rem 2.8rem rgba(29, 48, 82, .13);
+}
+
+html[data-burs="comfortable"],
+html[data-burs="comfortable"] body {
+  min-width: 320px;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+}
+
+html[data-burs="comfortable"] .metro-clean-system {
+  font-size: var(--burs-font-body);
+  line-height: var(--burs-line-body);
+}
+
+html[data-burs="comfortable"] .metro-clean-system :where(p, li, td, th, dd, dt) {
+  line-height: var(--burs-line-body);
+}
+
+html[data-burs="comfortable"] .metro-clean-system :where(small, .burs-readable-text) {
+  font-size: var(--burs-font-meta) !important;
+  line-height: 1.45 !important;
+}
+
+html[data-burs="comfortable"] .metro-clean-system :where(
+  .eyebrow, .kicker,
+  [class$="-eyebrow"], [class*="-eyebrow "],
+  [class$="-kicker"], [class*="-kicker "],
+  [class$="-badge"], [class*="-badge "],
+  [class$="-chip"], [class*="-chip "],
+  [class$="-meta"], [class*="-meta "],
+  [class$="-label"], [class*="-label "]
+) {
+  font-size: var(--burs-font-meta) !important;
+  line-height: 1.35 !important;
+}
+
+html[data-burs="comfortable"] .metro-clean-system :where(button, input, textarea, select, option, [role="button"], .burs-readable-control) {
+  font-size: var(--burs-font-control) !important;
+}
+
+html[data-burs="comfortable"] .metro-clean-system :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+  min-height: var(--burs-control-height);
+  padding: .75rem 1rem;
+  border-radius: var(--burs-radius-sm);
+  line-height: 1.45;
+}
+
+html[data-burs="comfortable"] .metro-clean-system :where(button, [role="button"], a[class*="btn"], a[class*="button"]) {
+  min-height: var(--burs-touch-size);
+  line-height: 1.25;
+}
+
+html[data-burs="comfortable"] .metro-clean-system :where(h1, .page-title, [class$="-page-title"]) {
+  font-size: var(--burs-font-page-title);
+  line-height: 1.04;
+  letter-spacing: -.04em;
+}
+
+html[data-burs="comfortable"] .metro-clean-system :where(h2, [class$="-section-title"], [class*="-section-title "]) {
+  line-height: 1.13;
+}
+
+html[data-burs="comfortable"] .metro-clean-system :where(h3, h4) {
+  line-height: 1.25;
+}
+
+/* Shared Soft Editorial / Modern SaaS card geometry */
+html[data-burs="comfortable"] .metro-clean-system :where(
+  .panel, .metro-panel, .inner-panel, .builder-panel, .preview-panel,
+  .v1093-panel, .v1094-panel, .v1095-panel, .v1096-panel, .v1097-panel, .v1098-panel,
+  .settings-v47-card, .ai-gov-card, .department-v40-card, .hrp-card,
+  .la113-card, .exam-work-panel, .exam-v946-panel, .tax-studio-panel,
+  .gb-card, .ws-card, .pc-card, .wf-panel
+) {
+  min-width: 0;
+  border-radius: var(--burs-radius-lg) !important;
+  border-color: var(--burs-line) !important;
+  box-shadow: var(--burs-shadow) !important;
+}
+
+html[data-burs="comfortable"] .metro-clean-system :where(
+  .panel, .metro-panel, .inner-panel, .builder-panel, .preview-panel,
+  .v1093-panel, .v1094-panel, .v1095-panel, .v1096-panel, .v1097-panel, .v1098-panel,
+  .settings-v47-card, .ai-gov-card, .department-v40-card, .hrp-card,
+  .la113-card, .exam-work-panel, .exam-v946-panel, .tax-studio-panel
+):hover {
+  box-shadow: var(--burs-shadow-hover) !important;
+}
+
+html[data-burs="comfortable"] .metro-clean-system :where(
+  .panel, .metro-panel, .inner-panel, .builder-panel, .preview-panel,
+  .settings-v47-card, .ai-gov-card, .department-v40-card, .hrp-card,
+  .la113-card, .exam-work-panel, .exam-v946-panel, .tax-studio-panel
+) :where(p, li) {
+  font-size: var(--burs-font-body);
+}
+
+/* Page containers */
+html[data-burs="comfortable"] .metro-clean-system #bes-main-content > :where(.page, [class$="-page"], [class$="-app"]) {
+  width: min(100%, 1560px);
+  margin-inline: auto;
+}
+
+html[data-burs="comfortable"] .metro-clean-system :where(.page, .tool-page) {
+  padding-inline: var(--burs-page-pad);
+}
+
+/* Global form/readability patterns */
+html[data-burs="comfortable"] .metro-clean-system :where(
+  .form-grid, [class$="-form-grid"], [class*="-form-grid "],
+  .two-fields, .two-col, .hr-two-column
+) {
+  gap: var(--burs-card-gap);
+}
+
+html[data-burs="comfortable"] .metro-clean-system :where(label, [class$="-field"] > span, [class*="-field "] > span) {
+  font-size: var(--burs-font-caption);
+}
+
+html[data-burs="comfortable"] .metro-clean-system :where(.status-badge, .soft-badge, [class*="status-pill"], [class*="count-pill"]) {
+  min-height: 1.875rem;
+  padding: .35rem .7rem;
+  font-size: var(--burs-font-meta) !important;
+}
+
+/* Navigation: readable, still compact */
+html[data-burs="comfortable"] .metro-clean-system :where(.flat-menu-pill, .global-flat-mini, .metro-small-btn) {
+  min-height: 2.65rem;
+  padding-inline: .9rem;
+  font-size: .9375rem !important;
+}
+
+html[data-burs="comfortable"] .metro-clean-system .flat-menu-pill small {
+  font-size: .8125rem !important;
+}
+
+/* Grammar Builder */
+html[data-burs="comfortable"] .gb-page { font-size: var(--burs-font-body); }
+html[data-burs="comfortable"] .gb-toolbar { gap: .875rem; padding: .75rem .875rem; border-radius: var(--burs-radius-md); }
+html[data-burs="comfortable"] .gb-project-title small,
+html[data-burs="comfortable"] .gb-toolbar-state span,
+html[data-burs="comfortable"] .gb-toolbar-actions button,
+html[data-burs="comfortable"] .gb-kicker,
+html[data-burs="comfortable"] .gb-card-heading > div:nth-child(2) > span,
+html[data-burs="comfortable"] .gb-focus-summary span,
+html[data-burs="comfortable"] .gb-subheading span,
+html[data-burs="comfortable"] .gb-ai-state span,
+html[data-burs="comfortable"] .gb-modal > header span,
+html[data-burs="comfortable"] .gb-ai-context span,
+html[data-burs="comfortable"] .gb-ai-result span,
+html[data-burs="comfortable"] .gb-blueprint-list span,
+html[data-burs="comfortable"] .gb-blueprint-list p,
+html[data-burs="comfortable"] .gb-vault-list p,
+html[data-burs="comfortable"] .gb-vault-list span,
+html[data-burs="comfortable"] .gb-ai-issues span,
+html[data-burs="comfortable"] .gb-ai-issues strong,
+html[data-burs="comfortable"] .gb-item-drawer header span,
+html[data-burs="comfortable"] .gb-version-dock span {
+  font-size: var(--burs-font-meta) !important;
+}
+html[data-burs="comfortable"] .gb-project-title input { font-size: 1.125rem !important; }
+html[data-burs="comfortable"] .gb-toolbar-actions button,
+html[data-burs="comfortable"] .gb-link-btn,
+html[data-burs="comfortable"] .gb-chip-checks button,
+html[data-burs="comfortable"] .gb-domain-hints button,
+html[data-burs="comfortable"] .gb-vault-list button,
+html[data-burs="comfortable"] .gb-version-dock button { font-size: var(--burs-font-caption) !important; }
+html[data-burs="comfortable"] .gb-workflow button { min-height: 4.5rem; padding: .75rem 1rem; }
+html[data-burs="comfortable"] .gb-workflow button span { font-size: var(--burs-font-caption) !important; }
+html[data-burs="comfortable"] .gb-workflow button b { width: 2.25rem; height: 2.25rem; font-size: var(--burs-font-meta) !important; }
+html[data-burs="comfortable"] .gb-card { padding: var(--burs-card-pad) !important; }
+html[data-burs="comfortable"] .gb-card-heading h2 { font-size: var(--burs-font-card-title) !important; }
+html[data-burs="comfortable"] .gb-card-heading p { font-size: var(--burs-font-body) !important; }
+html[data-burs="comfortable"] .gb-mode-grid strong { font-size: var(--burs-font-option) !important; }
+html[data-burs="comfortable"] .gb-mode-grid span,
+html[data-burs="comfortable"] .gb-ai-task-grid small { font-size: var(--burs-font-caption) !important; }
+html[data-burs="comfortable"] .gb-ai-task-grid strong { font-size: 1.0625rem !important; }
+html[data-burs="comfortable"] .gb-field > span,
+html[data-burs="comfortable"] .gb-number-row span,
+html[data-burs="comfortable"] .gb-subheading strong,
+html[data-burs="comfortable"] .gb-difficulty-grid b,
+html[data-burs="comfortable"] .gb-difficulty-grid em { font-size: var(--burs-font-caption) !important; }
+html[data-burs="comfortable"] .gb-field input,
+html[data-burs="comfortable"] .gb-field select,
+html[data-burs="comfortable"] .gb-field textarea,
+html[data-burs="comfortable"] .gb-source-input { font-size: var(--burs-font-body) !important; }
+html[data-burs="comfortable"] .gb-item-card { border-radius: var(--burs-radius-md) !important; padding: 1.25rem !important; }
+html[data-burs="comfortable"] .gb-item-card :where(p, .gb-question-preview) { font-size: var(--burs-font-body-lg) !important; }
+html[data-burs="comfortable"] .gb-ai-task-select strong { font-size: 1rem !important; }
+html[data-burs="comfortable"] .gb-ai-task-select small,
+html[data-burs="comfortable"] .gb-ai-progress p,
+html[data-burs="comfortable"] .gb-ai-issues p,
+html[data-burs="comfortable"] .gb-ai-issues small { font-size: var(--burs-font-meta) !important; }
+html[data-burs="comfortable"] .gb-ai-result pre { font-size: var(--burs-font-body) !important; line-height: 1.7; }
+
+/* Writing Studio */
+html[data-burs="comfortable"] .ws-page { font-size: var(--burs-font-body); }
+html[data-burs="comfortable"] .ws-card { padding: var(--burs-card-pad) !important; }
+html[data-burs="comfortable"] .ws-card-head h2 { font-size: var(--burs-font-card-title) !important; }
+html[data-burs="comfortable"] .ws-card-head p,
+html[data-burs="comfortable"] .ws-field > span,
+html[data-burs="comfortable"] .ws-analysis-note,
+html[data-burs="comfortable"] .ws-learner-summary,
+html[data-burs="comfortable"] .ws-ai-task-grid small { font-size: var(--burs-font-caption) !important; }
+html[data-burs="comfortable"] .ws-choice-grid strong,
+html[data-burs="comfortable"] .ws-ai-task-grid strong { font-size: var(--burs-font-option) !important; }
+html[data-burs="comfortable"] .ws-choice-grid span { font-size: var(--burs-font-caption) !important; }
+html[data-burs="comfortable"] .ws-field input,
+html[data-burs="comfortable"] .ws-field select,
+html[data-burs="comfortable"] .ws-field textarea { font-size: var(--burs-font-body) !important; }
+html[data-burs="comfortable"] .ws-editor-layout { gap: var(--burs-card-gap); }
+html[data-burs="comfortable"] .ws-draft-pane,
+html[data-burs="comfortable"] .ws-review-pane { border-radius: var(--burs-radius-lg) !important; }
+
+/* Pronunciation Coach */
+html[data-burs="comfortable"] .pc-app { font-size: var(--burs-font-body); }
+html[data-burs="comfortable"] .pc-card { padding: var(--burs-card-pad) !important; }
+html[data-burs="comfortable"] .pc-card-head h2 { font-size: var(--burs-font-card-title) !important; }
+html[data-burs="comfortable"] .pc-card-head p,
+html[data-burs="comfortable"] .pc-field > span,
+html[data-burs="comfortable"] .pc-ai-grid small,
+html[data-burs="comfortable"] .pc-level-note,
+html[data-burs="comfortable"] .pc-feedback-copy { font-size: var(--burs-font-caption) !important; }
+html[data-burs="comfortable"] .pc-mode-grid strong,
+html[data-burs="comfortable"] .pc-ai-grid strong { font-size: var(--burs-font-option) !important; }
+html[data-burs="comfortable"] .pc-mode-grid span { font-size: var(--burs-font-caption) !important; }
+html[data-burs="comfortable"] .pc-field input,
+html[data-burs="comfortable"] .pc-field select,
+html[data-burs="comfortable"] .pc-field textarea { font-size: var(--burs-font-body) !important; }
+html[data-burs="comfortable"] .pc-recorder-pane,
+html[data-burs="comfortable"] .pc-performance-pane,
+html[data-burs="comfortable"] .pc-player { border-radius: var(--burs-radius-lg) !important; }
+
+/* Worksheet Factory */
+html[data-burs="comfortable"] .worksheet-factory-page { font-size: var(--burs-font-body); }
+html[data-burs="comfortable"] .wf-panel { padding: var(--burs-card-pad) !important; }
+html[data-burs="comfortable"] .wf-panel-heading h2 { font-size: var(--burs-font-card-title) !important; }
+html[data-burs="comfortable"] .wf-panel-heading p,
+html[data-burs="comfortable"] .wf-kicker,
+html[data-burs="comfortable"] .wf-source-insight,
+html[data-burs="comfortable"] .wf-generation-message,
+html[data-burs="comfortable"] .wf-result-message { font-size: var(--burs-font-caption) !important; }
+html[data-burs="comfortable"] .wf-activity-type-grid strong { font-size: 1rem !important; }
+html[data-burs="comfortable"] .wf-activity-type-grid small,
+html[data-burs="comfortable"] .wf-quality-tags span { font-size: var(--burs-font-meta) !important; }
+html[data-burs="comfortable"] .wf-settings-form :where(input, select, textarea),
+html[data-burs="comfortable"] .wf-input-stack :where(input, select, textarea) { font-size: var(--burs-font-body) !important; }
+
+/* Settings / Provider Hub / AI Governance / AI Workspace */
+html[data-burs="comfortable"] :where(.settings-v47-card, .ai-gov-card) { padding: var(--burs-card-pad) !important; }
+html[data-burs="comfortable"] :where(.settings-v47-card, .ai-gov-card) :where(h2, h3) { font-size: var(--burs-font-section) !important; }
+html[data-burs="comfortable"] :where(.settings-v47-provider-node, .settings-v47-card, .ai-gov-card) :where(p, small, span) { line-height: 1.5; }
+html[data-burs="comfortable"] .settings-v47-provider-node { min-height: 5.25rem; padding: 1rem !important; border-radius: var(--burs-radius-md) !important; }
+html[data-burs="comfortable"] .settings-v47-provider-node strong { font-size: 1rem !important; }
+html[data-burs="comfortable"] .settings-v47-provider-node small { font-size: var(--burs-font-meta) !important; }
+html[data-burs="comfortable"] [data-route="ai-workspace"] :where(.panel, .metro-panel, textarea, pre) { font-size: var(--burs-font-body) !important; }
+html[data-burs="comfortable"] [data-route="ai-governance"] :where(.ai-gov-card p, .ai-gov-card li, .ai-gov-card small) { font-size: var(--burs-font-caption) !important; }
+
+/* Department / Homeroom / Library / admin */
+html[data-burs="comfortable"] [data-route="department"] :where(.hr-muted, .muted-line, small, td, th),
+html[data-burs="comfortable"] [data-route="homeroom"] :where(.hr-muted, .muted-line, small, td, th),
+html[data-burs="comfortable"] [data-route="library"] :where(.muted-line, small),
+html[data-burs="comfortable"] [data-route="resource-library"] :where(.muted-line, small),
+html[data-burs="comfortable"] [data-route="admin"] :where(.muted-line, small, td, th) {
+  font-size: var(--burs-font-meta) !important;
+}
+html[data-burs="comfortable"] :where(.hr-panel, .department-v40-card, .hrp-card, .library-section, .admin-v41-panel) {
+  border-radius: var(--burs-radius-lg) !important;
+}
+html[data-burs="comfortable"] :where(.hr-form-grid, .department-v52-form-grid) :where(input, select, textarea) {
+  font-size: var(--burs-font-body) !important;
+  min-height: var(--burs-control-height);
+}
+
+/* Tables must remain readable and become horizontally scrollable */
+html[data-burs="comfortable"] .metro-clean-system :where(.hr-table-wrap, [class*="table-wrap"], [class*="table-scroll"]) {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+html[data-burs="comfortable"] .metro-clean-system :where(table) {
+  font-size: var(--burs-font-caption);
+}
+html[data-burs="comfortable"] .metro-clean-system :where(th, td) {
+  padding: .75rem .875rem;
+}
+
+/* Responsive contracts */
+@media (min-width: 1440px) {
+  html[data-burs="comfortable"] .metro-clean-system #bes-main-content > :where(.page, [class$="-page"], [class$="-app"]) {
+    max-width: 1560px;
+  }
+  html[data-burs="comfortable"] :where(.gb-setup-grid, .ws-setup-grid, .pc-setup-grid) { gap: 1.5rem !important; }
+}
+
+@media (max-width: 1179px) {
+  html[data-burs="comfortable"] :where(.gb-setup-grid, .ws-setup-grid, .pc-setup-grid) { gap: 1.25rem !important; }
+  html[data-burs="comfortable"] :where(.gb-mode-grid, .ws-choice-grid, .pc-mode-grid, .gb-ai-task-grid, .ws-ai-task-grid, .pc-ai-grid) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  html[data-burs="comfortable"] :where(.gb-editor-layout, .ws-editor-layout, .pc-recorder-layout) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 999px) {
+  html[data-burs="comfortable"] :where(.gb-setup-grid, .ws-setup-grid, .pc-setup-grid, .wf-config-layout, .wf-generation-layout, .wf-result-layout) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  html[data-burs="comfortable"] :where(.gb-card, .ws-card, .pc-card, .wf-panel) { padding: 1.5rem !important; }
+  html[data-burs="comfortable"] :where(.gb-workflow, .ws-workflow, .pc-workflow) { overflow-x: auto; grid-auto-flow: column; grid-auto-columns: minmax(9.5rem, 1fr); }
+}
+
+@media (max-width: 899px) {
+  html[data-burs="comfortable"] :where(.metric-grid, [class$="-metrics"], [class$="-metric-grid"], [class*="-metric-grid "]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  html[data-burs="comfortable"] :where(.review-pane, [class$="-review-pane"]) { position:static; width:auto; max-width:none; }
+}
+
+@media (max-width: 699px) {
+  html[data-burs="comfortable"] {
+    --burs-card-pad: 1.125rem;
+    --burs-page-pad: .75rem;
+    --burs-card-gap: .875rem;
+  }
+  html[data-burs="comfortable"] .metro-clean-system :where(button, [role="button"]) { min-height: 2.875rem; }
+  html[data-burs="comfortable"] :where(.gb-mode-grid, .ws-choice-grid, .pc-mode-grid, .gb-ai-task-grid, .ws-ai-task-grid, .pc-ai-grid) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  html[data-burs="comfortable"] :where(.gb-form-grid.two, .gb-form-grid.three, .ws-form-grid.two, .pc-field-grid, .wf-two-fields, .two-fields, .two-col) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  html[data-burs="comfortable"] :where(.metric-grid, [class$="-metrics"], [class$="-metric-grid"], [class*="-metric-grid "]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  html[data-burs="comfortable"] :where(.gb-toolbar, .ws-product-bar, .pc-product-bar) {
+    position:relative !important;
+    top:auto !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 420px) {
+  html[data-burs="comfortable"] :where(.metric-grid, [class$="-metrics"], [class$="-metric-grid"], [class*="-metric-grid "]) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  html[data-burs="comfortable"] .metro-clean-system :where(.panel, .metro-panel, .inner-panel, .gb-card, .ws-card, .pc-card, .wf-panel) {
+    border-radius: 1.125rem !important;
+  }
+}
+
+/* BURS runtime marker classes */
+html[data-burs="comfortable"] .burs-readable-text {
+  font-size: var(--burs-font-meta) !important;
+}
+html[data-burs="comfortable"] .burs-readable-control {
+  font-size: var(--burs-font-control) !important;
+  min-height: var(--burs-touch-size);
+}
+html[data-burs="comfortable"] .burs-layout-safe {
+  min-width: 0 !important;
+  max-width: 100%;
+}

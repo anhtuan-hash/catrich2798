@@ -1,6 +1,0 @@
-.thpt-sort-portal{margin:-2px 0 13px}
-.thpt-sort-control{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:10px 12px;border:2px solid #182317;border-radius:16px;background:rgba(255,255,255,.72)}
-.thpt-sort-control label{font-size:14px;font-weight:950;white-space:nowrap}
-.thpt-sort-control select{min-height:42px;min-width:180px;padding:0 38px 0 13px;border:2px solid #182317;border-radius:13px;background:#fff;font:inherit;font-weight:900;color:#182317;cursor:pointer}
-.thpt-sort-control select:focus{outline:3px solid rgba(121,165,246,.55);outline-offset:2px}
-@media(max-width:600px){.thpt-sort-control{align-items:stretch;flex-direction:column}.thpt-sort-control select{width:100%;min-width:0}}

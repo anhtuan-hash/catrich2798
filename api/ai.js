@@ -1,6 +1,5 @@
 import { appendApiAudit, createRequestId, enforceRateLimit, requireApprovedUser, sendJson } from './_security.js';
 import { handleLessonAiRequest } from '../server/lessonAiHandler.js';
-import { callServerAI, callServerImageAI, getServerAiReadiness, resolveServerAiProvider, streamServerAI, warmServerAiRuntime } from '../server/unifiedAiProviderAdapter.js';
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'no-store',
@@ -114,33 +113,15 @@ function buildPrompt(mode, payload = {}) {
   return `${sharedStyle}\n\nHelp the teacher with this request:\n${clip(payload)}`;
 }
 
-function isUnifiedContract(body = {}) {
-  return String(body?.contract || '').startsWith('bes-ai-core/') || typeof body?.prompt === 'string';
-}
-
-function anonymousContext(req) {
-  const ip = String(req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
-  return { user: { id: `anonymous:${ip}` }, role: 'teacher', ip, client: {}, adminClient: {} };
-}
-
-async function authorizeAi(req) {
-  const mode = String(process.env.AI_AUTH_MODE || '').trim().toLowerCase();
-  if (mode === 'none') return anonymousContext(req);
-  return requireApprovedUser(req, { roles: ['admin', 'department_head', 'teacher'] });
-}
-
-function sseHeaders(res) {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-cache, no-transform');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no');
-  res.flushHeaders?.();
-}
-
-function sse(res, event, payload) {
-  res.write(`event: ${event}\n`);
-  res.write(`data: ${JSON.stringify(payload)}\n\n`);
+function extractOutputText(data) {
+  if (typeof data?.output_text === 'string') return data.output_text.trim();
+  const chunks = [];
+  for (const item of data?.output || []) {
+    for (const content of item?.content || []) {
+      if (typeof content?.text === 'string') chunks.push(content.text);
+    }
+  }
+  return chunks.join('\n').trim();
 }
 
 export default async function handler(req, res) {
@@ -149,115 +130,115 @@ export default async function handler(req, res) {
     try { routedBody = JSON.parse(routedBody || '{}'); } catch { routedBody = null; }
   }
   const lessonTask = String(routedBody?.task || '');
-  if (req.method === 'OPTIONS' || (!isUnifiedContract(routedBody) && ['rewrite', 'generate-resource', 'lesson-assistant', 'health'].includes(lessonTask))) {
+  if (req.method === 'OPTIONS' || ['rewrite', 'generate-resource', 'lesson-assistant', 'health'].includes(lessonTask)) {
     return handleLessonAiRequest(req, res);
   }
 
   const requestId = createRequestId();
-  if (req.method !== 'POST') return sendJson(res, 405, { ok: false, error: 'Method not allowed. Use POST.', requestId });
-
-  let body = routedBody;
-  if (!body || typeof body !== 'object') return sendJson(res, 400, { ok: false, error: 'Invalid JSON body.', requestId });
-  const rawLength = JSON.stringify(body).length;
-  if (rawLength > 4_200_000) return sendJson(res, 413, { ok: false, error: 'The AI request is too large.', code: 'AI_REQUEST_TOO_LARGE', requestId });
+  if (req.method !== 'POST') {
+    sendJson(res, 405, { ok: false, error: 'Method not allowed. Use POST.', requestId });
+    return;
+  }
 
   let context;
   try {
-    context = await authorizeAi(req);
-    await enforceRateLimit(context, { feature: 'ai_gateway_v1240', perMinute: 18, perDay: 300 });
+    context = await requireApprovedUser(req, { roles: ['admin', 'department_head', 'teacher'] });
+    await enforceRateLimit(context, { feature: 'ai_gateway', perMinute: 12, perDay: 160 });
   } catch (error) {
     if (error?.retryAfter) res.setHeader('Retry-After', String(error.retryAfter));
-    return sendJson(res, error?.status || 401, { ok: false, error: error?.message || 'Authentication failed.', code: error?.code || 'AI_AUTH_ERROR', requestId });
+    sendJson(res, error?.status || 401, { ok: false, error: error?.message || 'Authentication failed.', requestId });
+    return;
   }
 
-  const readiness = getServerAiReadiness();
-  const operation = String(body.operation || (body.mode === 'health' ? 'health' : 'chat'));
-  if (operation === 'health') {
-    await appendApiAudit(context, { endpoint: '/api/ai', action: 'health', status: readiness.configured ? 'ok' : 'error', requestId, details: readiness });
-    return sendJson(res, readiness.configured ? 200 : 503, { ok: readiness.configured, ...readiness, requestId, error: readiness.configured ? '' : 'OPENROUTER_API_KEY is not configured on Vercel.' });
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    await appendApiAudit(context, { endpoint: '/api/ai', action: 'configuration_check', status: 'error', requestId });
+    sendJson(res, 503, {
+      ok: false,
+      error: 'The server AI provider is not configured.',
+      requestId,
+    });
+    return;
   }
-  if (operation === 'warmup') {
-    if (!readiness.configured) return sendJson(res, 503, { ok: false, ...readiness, requestId, error: 'OPENROUTER_API_KEY is not configured on Vercel.' });
-    try {
-      const result = await warmServerAiRuntime();
-      return sendJson(res, 200, { ok: true, ...result, requestId });
-    } catch (error) {
-      return sendJson(res, 200, { ok: true, ...readiness, warmed: false, warmupError: String(error?.message || error).slice(0, 240), requestId });
-    }
-  }
-  if (!readiness.configured) return sendJson(res, 503, { ok: false, error: 'OPENROUTER_API_KEY is not configured on Vercel.', code: 'OPENROUTER_SERVER_KEY_MISSING', requestId, ...readiness });
 
-  if (operation === 'image') {
+  let body = req.body;
+  if (!body || typeof body === 'string') {
     try {
-      await appendApiAudit(context, { endpoint: '/api/ai', action: 'image', status: 'started', requestId, details: { taskId: body.taskId || 'image-edit' } });
-      const result = await callServerImageAI({ prompt: body.prompt, imageDataUrl: body.imageDataUrl, requestId });
-      await appendApiAudit(context, { endpoint: '/api/ai', action: 'image', status: 'ok', requestId, details: { model: result.model, durationMs: result.durationMs } });
-      return sendJson(res, 200, { ok: true, ...result, requestId, contract: 'bes-ai-core/1.3' });
-    } catch (error) {
-      await appendApiAudit(context, { endpoint: '/api/ai', action: 'image', status: 'error', requestId, details: { error: String(error?.message || error).slice(0, 300) } });
-      return sendJson(res, Number(error?.status || 500), { ok: false, error: error?.message || 'Image generation failed.', code: error?.code || 'OPENROUTER_IMAGE_ERROR', requestId });
+      body = JSON.parse(body || '{}');
+    } catch {
+      sendJson(res, 400, { ok: false, error: 'Invalid JSON body.', requestId });
+      return;
     }
   }
 
-  const unified = isUnifiedContract(body);
-  const mode = unified ? 'unified' : String(body?.mode || 'general');
+  const allowedModes = new Set([
+    'health','general','lessonBrief','diagnostic','vault','classInsight','presentation','template',
+    'exam-builder-pro','worksheet-studio','cloze-test-generator','word-formation-lab',
+    'interactive-game-factory','presentation-builder','lesson-to-activity-converter',
+    'teacher-workload-planner','class-performance-analyzer','student-support-tracker',
+    'department-document-hub','student-practice-portal','vocabulary-mastery-app',
+    'speaking-practice-room','meeting-minutes-assistant',
+  ]);
+  const mode = String(body?.mode || 'general');
+  if (!allowedModes.has(mode)) {
+    sendJson(res, 400, { ok: false, error: 'Unsupported AI mode.', requestId });
+    return;
+  }
   const payload = body?.payload ?? {};
-  const prompt = unified ? String(body.prompt || '').trim() : buildPrompt(mode, payload);
-  if (!prompt) return sendJson(res, 400, { ok: false, error: 'AI prompt is empty.', code: 'AI_PROMPT_EMPTY', requestId });
-  const options = {
-    prompt,
-    systemInstruction: String(body.systemInstruction || ''),
-    attachments: Array.isArray(body.attachments) ? body.attachments : [],
-    responseMimeType: String(body.responseMimeType || ''),
-    maxOutputTokens: Math.max(16, Math.min(12_000, Number(body.maxOutputTokens) || 3600)),
-    temperature: Number.isFinite(Number(body.temperature)) ? Number(body.temperature) : 0.25,
-    taskId: String(body.taskId || body.registryTaskId || mode || 'default'),
-    routingHint: String(body.routingHint || 'smart'),
-    requestedModel: String(body.requestedModel || ''),
-    requestId,
-    sessionId: String(body.sessionId || body.operationId || ''),
-  };
-  const wantsStream = Boolean(body.stream) && options.responseMimeType !== 'application/json';
-  await appendApiAudit(context, { endpoint: '/api/ai', action: options.taskId, status: 'started', requestId, details: { promptCharacters: prompt.length, maxOutputTokens: options.maxOutputTokens, responseMimeType: options.responseMimeType, streaming: wantsStream } });
-
-  if (wantsStream) {
-    sseHeaders(res);
-    sse(res, 'status', { phase: 'connecting', requestId, provider: 'openrouter', transport: 'server-gateway-stream' });
-    const streamStartedAt = Date.now();
-    let firstTokenAt = 0;
-    try {
-      const result = await streamServerAI({
-        ...options,
-        onRetry: (detail) => sse(res, 'status', { phase: 'retrying', requestId, ...detail }),
-      }, {
-        onToken: (delta) => {
-          if (!firstTokenAt) {
-            firstTokenAt = Date.now();
-            sse(res, 'status', { phase: 'first-token', requestId, firstTokenMs: firstTokenAt - streamStartedAt });
-          }
-          sse(res, 'token', { delta });
-        },
-        onUsage: (usage) => sse(res, 'status', { phase: 'usage', usage }),
-      });
-      sse(res, 'done', { ok: true, ...result, firstTokenMs: firstTokenAt ? firstTokenAt - streamStartedAt : 0, requestId, contract: 'bes-ai-core/1.3' });
-      res.end();
-      await appendApiAudit(context, { endpoint: '/api/ai', action: options.taskId, status: 'ok', requestId, details: { model: result.model, durationMs: result.durationMs, streaming: true, fallbackUsed: result.fallbackUsed, creditFallback: result.creditFallback, actualMaxTokens: result.actualMaxTokens } });
-      return;
-    } catch (error) {
-      sse(res, 'error', { ok: false, error: error?.message || 'AI stream failed.', code: error?.code || 'OPENROUTER_STREAM_ERROR', status: Number(error?.status || 500), requestId });
-      res.end();
-      await appendApiAudit(context, { endpoint: '/api/ai', action: options.taskId, status: 'error', requestId, details: { error: String(error?.message || error).slice(0, 300), streaming: true } });
-      return;
-    }
+  const serialized = typeof payload === 'string' ? payload : JSON.stringify(payload);
+  if (serialized.length > 20_000) {
+    sendJson(res, 413, { ok: false, error: 'The AI request is too large.', requestId });
+    return;
   }
+
+  const model = process.env.OPENAI_MODEL || 'gpt-5.4-mini';
+  const prompt = buildPrompt(mode, payload);
+  await appendApiAudit(context, {
+    endpoint: '/api/ai', action: mode, status: 'started', requestId,
+    details: { model, promptCharacters: prompt.length },
+  });
 
   try {
-    const result = await callServerAI(options);
-    await appendApiAudit(context, { endpoint: '/api/ai', action: options.taskId, status: 'ok', requestId, details: { model: result.model, requestedModel: result.requestedModel, profile: result.profile, durationMs: result.durationMs, providerAttempts: result.providerAttempts, fallbackUsed: result.fallbackUsed, creditFallback: result.creditFallback, actualMaxTokens: result.actualMaxTokens } });
-    return sendJson(res, 200, { ok: true, ...result, requestId, contract: 'bes-ai-core/1.3' });
+    const response = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        'X-Client-Request-Id': requestId,
+      },
+      body: JSON.stringify({ model, input: prompt, max_output_tokens: 3600 }),
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      await appendApiAudit(context, {
+        endpoint: '/api/ai', action: mode, status: 'provider_error', requestId,
+        details: { providerStatus: response.status },
+      });
+      sendJson(res, response.status >= 500 ? 502 : response.status, {
+        ok: false,
+        error: data?.error?.message || `AI provider request failed with status ${response.status}.`,
+        requestId,
+      });
+      return;
+    }
+
+    const text = extractOutputText(data);
+    if (!text) {
+      sendJson(res, 502, { ok: false, error: 'AI returned no text output.', requestId });
+      return;
+    }
+
+    await appendApiAudit(context, {
+      endpoint: '/api/ai', action: mode, status: 'ok', requestId,
+      details: { model, outputCharacters: text.length },
+    });
+    sendJson(res, 200, { ok: true, text, model, requestId });
   } catch (error) {
-    await appendApiAudit(context, { endpoint: '/api/ai', action: options.taskId, status: 'error', requestId, details: { error: String(error?.message || error).slice(0, 300), code: error?.code || '' } });
-    const status = Number(error?.status || 500);
-    return sendJson(res, status, { ok: false, error: error?.message || 'AI request failed.', code: error?.code || 'OPENROUTER_REQUEST_FAILED', requestId, retryAfterMs: Math.max(0, Number(error?.retryAfter || 0) * 1000) });
+    await appendApiAudit(context, {
+      endpoint: '/api/ai', action: mode, status: 'error', requestId,
+      details: { error: String(error?.message || error).slice(0, 300) },
+    });
+    sendJson(res, 500, { ok: false, error: error?.message || 'AI request failed.', requestId });
   }
 }

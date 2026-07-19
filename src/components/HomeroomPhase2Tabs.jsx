@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { readWorkbookSafe } from '../utils/safeSpreadsheet.js';
-import { runAITask } from '../utils/aiTaskRuntime.js';
+import { callAI } from '../utils/gemini.js';
 import {
   addAnnouncement,
   addCompetitionEvent,
@@ -74,7 +74,7 @@ export function LearningAnalyticsTab({ workspace, onCommit, hasApiKey, currentUs
   const generateAnalysis = async () => {
     if (!hasApiKey) return;
     const compact = analytics.map((item) => ({ name: item.student.fullName, average: item.average, trend: item.trend, absences: item.absenceCount, late: item.lateCount, feedbackAlerts: item.alertFeedback, risk: item.risk }));
-    const result = await runAITask('homeroom.analytics', {
+    const result = await callAI({
       loadingLabel: 'AI đang phân tích học tập toàn lớp…',
       temperature: 0.35,
       maxOutputTokens: 900,
@@ -115,7 +115,7 @@ export function LearningAnalyticsTab({ workspace, onCommit, hasApiKey, currentUs
   };
   const aiMapColumns = async () => {
     if (!hasApiKey || !importState.headers.length) return;
-    const text = await runAITask('homeroom.importData', {
+    const text = await callAI({
       loadingLabel: 'AI đang nhận diện cột bảng điểm…', temperature: 0.1, maxOutputTokens: 320, responseMimeType: 'application/json',
       prompt: `Map spreadsheet headers to this JSON schema. Return JSON only. Keys allowed: studentCode,studentName,subject,period,assessment,score,maxScore,recordedAt,teacherName,note. Values must be exact original headers or empty. Headers: ${JSON.stringify(importState.headers)}`,
     });

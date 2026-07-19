@@ -14,6 +14,26 @@ export const AI_ACTIONS = Object.freeze({
     desc: 'Insert the answer into the active editor or input.',
     descVi: 'Đưa câu trả lời vào vùng soạn thảo đang mở.',
   },
+  'worksheet-factory': {
+    id: 'worksheet-factory',
+    target: 'worksheet-factory',
+    icon: 'WF',
+    title: 'Create worksheet',
+    titleVi: 'Tạo worksheet',
+    desc: 'Open Worksheet Factory with this content as the source.',
+    descVi: 'Mở Worksheet Factory và dùng nội dung này làm nguồn.',
+    hash: '#/tool/worksheet-factory',
+  },
+  'exam-studio': {
+    id: 'exam-studio',
+    target: 'exam-studio',
+    icon: 'EX',
+    title: 'Send to Exam Studio',
+    titleVi: 'Gửi sang Exam Studio',
+    desc: 'Use the answer as a question-set or exam source.',
+    descVi: 'Dùng câu trả lời làm nguồn tạo câu hỏi hoặc đề kiểm tra.',
+    hash: '#/tool/exam-studio',
+  },
   'word2graph': {
     id: 'word2graph',
     target: 'word2graph',
@@ -73,8 +93,14 @@ export function buildAiActionSuggestions({ message = '', currentRoute = '', sele
 
   add('current-app', 100);
   add('library', 45);
+  add('worksheet-factory', hasAny(text, ['question', 'exercise', 'worksheet', 'bài tập', 'câu hỏi', 'cloze', 'gap fill']) ? 95 : 65);
+  add('exam-studio', hasAny(text, ['answer:', 'đáp án', 'a.', 'b.', 'multiple choice', 'trắc nghiệm', 'test']) ? 90 : 50);
   add('word2graph', hasAny(text, ['vocabulary', 'word family', 'collocation', 'synonym', 'từ vựng', 'nghĩa', 'phát âm']) ? 88 : 42);
   add('textlab-activities', hasAny(text, ['game', 'activity', 'matching', 'sorting', 'hoạt động', 'trò chơi']) ? 84 : 40);
+
+  if (currentSlug === 'news' || currentSlug === 'news-reader') add('worksheet-factory', 98);
+  if (currentSlug === 'word2graph') add('worksheet-factory', 92);
+  if (currentSlug === 'worksheet-factory') add('exam-studio', 96);
 
   return ranked.sort((a, b) => b.score - a.score).slice(0, 5).map(({ score, ...action }) => action);
 }

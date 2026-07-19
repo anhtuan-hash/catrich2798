@@ -1,4 +1,0 @@
-Brian English Studio login recovery rollback
-Stable source commit: 7998d1ec7fe869357c539f0edaae746b7bb3d264
-Created: 2026-07-17
-Purpose: force a fresh Vercel production deployment from the last known-good login build.

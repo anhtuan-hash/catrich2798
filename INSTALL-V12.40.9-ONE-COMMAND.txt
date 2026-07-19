@@ -1,9 +1,0 @@
-BRIAN ENGLISH STUDIO V12.40.9 — MỘT LỆNH CÀI ĐẶT
-
-Để nguyên ZIP và file CAI-V12.40.9.command trong Downloads. Không giải nén ZIP.
-
-Mở Terminal và dán đúng một lệnh:
-
-bash "$HOME/Downloads/CAI-V12.40.9.command"
-
-Trình cài đặt sẽ tự giải nén vào thư mục tạm, kiểm tra hiệu năng và AI, build, test, cập nhật GitHub main và kích hoạt Vercel.

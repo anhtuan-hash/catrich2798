@@ -14,7 +14,10 @@ export const DEFAULT_LAUNCHER_GROUPS = [
 const DEFAULT_PINNED = [
   'resource-library-hub',
   'lesson-plan-ai',
+  'worksheet-factory',
   'textlab-activities',
+  'exam-studio',
+  'reading-studio',
 ];
 
 const DEFAULT_NAV = [
@@ -22,12 +25,11 @@ const DEFAULT_NAV = [
   'route:apps',
   'route:news',
   'route:games',
+  'route:department',
   'route:homeroom',
   'route:library',
   'route:resource-library',
 ];
-
-const RETIRED_NAV_IDS = new Set(['route:department']);
 
 function safeStorageGet(key) {
   if (typeof window === 'undefined') return null;
@@ -146,7 +148,7 @@ export function normalizeLauncherConfig(raw, itemIds = []) {
     order,
     pinned: cleanIdList(source.pinned ?? defaults.pinned, safeItemIds.length ? allowed : null).slice(0, 12),
     hidden: cleanIdList(source.hidden, safeItemIds.length ? allowed : null),
-    nav: cleanIdList(source.nav ?? defaults.nav).filter((id) => !RETIRED_NAV_IDS.has(id)).slice(0, 12),
+    nav: cleanIdList(source.nav ?? defaults.nav).slice(0, 12),
     groups,
     assignments,
     launcherStyle,
@@ -261,6 +263,8 @@ export function subscribeLauncherConfig(callback, itemIds = []) {
   return () => {
     window.removeEventListener(LAUNCHER_UPDATED_EVENT, localHandler);
     window.removeEventListener('storage', storageHandler);
-    if (channel) supabase.removeChannel(channel);
+    if (channel && supabase) {
+      try { supabase.removeChannel(channel); } catch { /* cleanup is best effort */ }
+    }
   };
 }

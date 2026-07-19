@@ -8,11 +8,6 @@ function isMissingDriveFile(error) {
   return /file not found|not found|notfound|404/i.test(String(error?.message || ''));
 }
 
-function isOwnAccountFont(resource, user) {
-  const tags = Array.isArray(resource?.tags) ? resource.tags.map((tag) => String(tag).toLowerCase()) : [];
-  return resource?.uploader_id === user.id && tags.includes('html-user-font');
-}
-
 async function findResources(client, resourceId, fileId) {
   if (isUuid(resourceId)) {
     const { data, error } = await client.from('resource_items').select('*').eq('id', resourceId).limit(10);
@@ -38,13 +33,12 @@ export default async function handler(req, res) {
     if (!resourceId && !requestedFileId) throw new Error('Missing resource identifier');
 
     const { client, connection, accessToken } = await getConnection();
-    const resources = await findResources(client, resourceId, requestedFileId);
     const privileged = await isManagerUser(client, user);
-    const ownAccountFont = resources.length > 0 && resources.every((resource) => isOwnAccountFont(resource, user));
-    if (connection.owner_user_id !== user.id && !privileged && !ownAccountFont) {
+    if (connection.owner_user_id !== user.id && !privileged) {
       throw new Error('Only TTCM/Admin can delete resources');
     }
 
+    const resources = await findResources(client, resourceId, requestedFileId);
     const primary = resources[0] || null;
     const fileId = String(primary?.drive_file_id || requestedFileId || '');
 
@@ -84,7 +78,7 @@ export default async function handler(req, res) {
 
     await client.from('resource_activity_logs').insert({
       actor_id: user.id,
-      action: ownAccountFont ? 'delete_account_html_font' : 'delete',
+      action: 'delete',
       details: {
         resourceIds: ids,
         requestedResourceId: resourceId || null,

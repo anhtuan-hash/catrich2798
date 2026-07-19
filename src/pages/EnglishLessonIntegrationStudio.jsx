@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { mountEnglishLessonIntegrationStudio } from '../vendor/englishLessonIntegration/elis.es.js';
 import { APP_VERSION } from '../config/version.js';
 import { getSupabasePublicConfig, isSupabaseConfigured, supabase } from '../utils/supabase.js';
-import { runAITaskWithMeta } from '../utils/aiTaskRuntime.js';
+import { callAI } from '../utils/gemini.js';
 import { getActiveAiConfig, getProviderInfo } from '../utils/aiProviders.js';
 
 function clipLessonAi(value, max = 56000) {
@@ -31,7 +31,11 @@ function integrationUrls() {
   const root = window.location.origin;
   return {
     lesson: `${root}/#/tool/lesson-plan-ai`,
+    worksheet: `${root}/#/tool/worksheet-factory`,
+    exam: `${root}/#/tool/exam-studio`,
     activity: `${root}/#/tool/textlab-activities`,
+    speaking: `${root}/#/tool/speaking-studio`,
+    reading: `${root}/#/tool/reading-studio`,
     wordgraph: `${root}/#/tool/word2graph`,
   };
 }
@@ -40,7 +44,7 @@ export default function EnglishLessonIntegrationStudio({
   currentUser,
   language = 'vi',
   theme = 'light',
-  aiProvider = 'openrouter',
+  aiProvider = 'gemini',
   apiKey = '',
   aiModel = '',
 }) {
@@ -73,7 +77,7 @@ export default function EnglishLessonIntegrationStudio({
         const activeAI = getActiveAiConfig();
         const providerInfo = getProviderInfo(activeAI.provider || aiProvider);
         const nativeAiConfigured = Boolean(String(activeAI.apiKey || apiKey || '').trim());
-        const resolvedProvider = 'openrouter';
+        const resolvedProvider = ['openai', 'gemini'].includes(activeAI.provider) ? activeAI.provider : 'openai';
         const userId = currentUser?.id || currentUser?.authId || session?.user?.id || currentUser?.email;
         if (!userId) throw new Error(language === 'vi' ? 'Phiên đăng nhập Brian chưa sẵn sàng.' : 'The Brian sign-in session is not ready.');
 
@@ -122,7 +126,7 @@ export default function EnglishLessonIntegrationStudio({
                 model: activeAI.model || providerInfo.defaultModel,
                 authMode: 'brian-native',
               };
-              const response = await runAITaskWithMeta('lesson.integration', {
+              const text = await callAI({
                 provider: activeAI.provider,
                 apiKey: activeAI.apiKey || apiKey,
                 model: activeAI.model || aiModel || providerInfo.defaultModel,
@@ -134,14 +138,7 @@ export default function EnglishLessonIntegrationStudio({
                 governanceProfile: 'teaching-content',
                 loadingLabel: language === 'vi' ? 'AI Copilot đang phân tích giáo án…' : 'AI Copilot is analyzing the lesson…',
               });
-              return {
-                text: response.text,
-                provider: response.meta.provider,
-                model: response.meta.model,
-                transport: 'server-gateway',
-                requestId: response.meta.operationId,
-                durationMs: response.meta.durationMs,
-              };
+              return { text, provider: activeAI.provider, model: activeAI.model || providerInfo.defaultModel };
             } : undefined,
           },
           integrationUrls: integrationUrls(),

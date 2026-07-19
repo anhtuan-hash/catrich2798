@@ -140,7 +140,7 @@ export async function createCollaborationSpace(input, user) {
   const spaces = [result.data, ...readLocal(keys.spaces, []).filter((item) => item.id !== result.data.id)];
   writeLocal(keys.spaces, spaces);
   await addCollaborationMember({ space_id: result.data.id, user_id: user.id, member_role: 'owner', display_name: user.name || user.email, email: user.email }, user, { skipAudit: true });
-  await recordAuditEvent({ action: 'collaboration.space_created', entity_type: 'collaboration_space', entity_id: result.data.id, source_module: 'governance-core', after_data: result.data }, user);
+  await recordAuditEvent({ action: 'collaboration.space_created', entity_type: 'collaboration_space', entity_id: result.data.id, source_module: 'collaboration-hub', after_data: result.data }, user);
   dispatch(COLLABORATION_UPDATED, { type: 'space-created', id: result.data.id });
   return result.data;
 }
@@ -166,7 +166,7 @@ export async function addCollaborationMember(input, actor, { skipAudit = false }
   const keys = localKeys(actor);
   const next = [data, ...readLocal(keys.members, []).filter((entry) => !(entry.space_id === data.space_id && entry.user_id === data.user_id))];
   writeLocal(keys.members, next);
-  if (!skipAudit) await recordAuditEvent({ action: 'collaboration.member_added', entity_type: 'collaboration_member', entity_id: data.id, source_module: 'governance-core', after_data: data }, actor);
+  if (!skipAudit) await recordAuditEvent({ action: 'collaboration.member_added', entity_type: 'collaboration_member', entity_id: data.id, source_module: 'collaboration-hub', after_data: data }, actor);
   dispatch(COLLABORATION_UPDATED, { type: 'member-added', spaceId: data.space_id });
   return data;
 }
@@ -182,7 +182,7 @@ export async function createThread(input, user) {
   };
   const result = await safeInsert(TABLES.threads, payload, () => ({ ...payload, id: uid('thread'), created_at: nowIso(), updated_at: nowIso() }));
   const keys = localKeys(user); writeLocal(keys.threads, [result.data, ...readLocal(keys.threads, [])]);
-  await recordAuditEvent({ action: 'collaboration.thread_created', entity_type: 'collaboration_thread', entity_id: result.data.id, source_module: 'governance-core', after_data: result.data }, user);
+  await recordAuditEvent({ action: 'collaboration.thread_created', entity_type: 'collaboration_thread', entity_id: result.data.id, source_module: 'collaboration-hub', after_data: result.data }, user);
   dispatch(COLLABORATION_UPDATED, { type: 'thread-created', spaceId: input.space_id });
   return result.data;
 }
@@ -201,7 +201,7 @@ export async function addThreadComment(input, user, people = []) {
   };
   const result = await safeInsert(TABLES.comments, payload, () => ({ ...payload, id: uid('comment'), created_at: nowIso(), updated_at: nowIso() }));
   const keys = localKeys(user); writeLocal(keys.comments, [...readLocal(keys.comments, []), result.data]);
-  await recordAuditEvent({ action: 'collaboration.comment_added', entity_type: 'collaboration_comment', entity_id: result.data.id, source_module: 'governance-core', after_data: { ...result.data, body: result.data.body.slice(0, 500) } }, user);
+  await recordAuditEvent({ action: 'collaboration.comment_added', entity_type: 'collaboration_comment', entity_id: result.data.id, source_module: 'collaboration-hub', after_data: { ...result.data, body: result.data.body.slice(0, 500) } }, user);
   dispatch(COLLABORATION_UPDATED, { type: 'comment-added', threadId: input.thread_id });
   return result.data;
 }
@@ -210,7 +210,7 @@ export async function resolveThread(thread, user, status = 'resolved') {
   const patch = { status, resolved_at: status === 'resolved' ? nowIso() : null, updated_at: nowIso() };
   const result = await safeUpdate(TABLES.threads, thread.id, patch, thread);
   const keys = localKeys(user); writeLocal(keys.threads, readLocal(keys.threads, []).map((item) => item.id === thread.id ? result.data : item));
-  await recordAuditEvent({ action: status === 'resolved' ? 'collaboration.thread_resolved' : 'collaboration.thread_reopened', entity_type: 'collaboration_thread', entity_id: thread.id, source_module: 'governance-core', before_data: thread, after_data: result.data }, user);
+  await recordAuditEvent({ action: status === 'resolved' ? 'collaboration.thread_resolved' : 'collaboration.thread_reopened', entity_type: 'collaboration_thread', entity_id: thread.id, source_module: 'collaboration-hub', before_data: thread, after_data: result.data }, user);
   dispatch(COLLABORATION_UPDATED, { type: 'thread-updated', id: thread.id });
   return result.data;
 }
@@ -239,7 +239,7 @@ export async function createContentVersion(input, user) {
   };
   const result = await safeInsert(TABLES.versions, payload, () => ({ ...payload, id: uid('version'), created_at: nowIso() }));
   const keys = localKeys(user); writeLocal(keys.versions, [result.data, ...readLocal(keys.versions, [])]);
-  await recordAuditEvent({ action: input.restore_of ? 'content.version_restored' : 'content.version_created', entity_type: input.entity_type, entity_id: input.entity_id, source_module: 'governance-core', after_data: { version_no: nextVersion, title: payload.title } }, user);
+  await recordAuditEvent({ action: input.restore_of ? 'content.version_restored' : 'content.version_created', entity_type: input.entity_type, entity_id: input.entity_id, source_module: 'collaboration-hub', after_data: { version_no: nextVersion, title: payload.title } }, user);
   dispatch(COLLABORATION_UPDATED, { type: 'version-created', entityId: input.entity_id });
   return result.data;
 }

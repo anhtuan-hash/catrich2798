@@ -22498,7 +22498,11 @@ const X3 = [
   "Học sinh có năng lực vượt trội"
 ], Lg = [
   { id: "lesson", name: "Lesson Architect", description: "Gửi cấu trúc bài dạy và tiến trình đã chuẩn hóa.", icon: "PanelsTopLeft", defaultUrl: "", payloadType: "lesson-plan" },
+  { id: "worksheet", name: "Worksheet Factory", description: "Tạo worksheet từ nhiệm vụ và mục tiêu trong giáo án.", icon: "FileText", defaultUrl: "", payloadType: "worksheet-brief" },
+  { id: "exam", name: "Exam Studio", description: "Tạo bài kiểm tra bám sát nội dung và mức CEFR.", icon: "ClipboardCheck", defaultUrl: "", payloadType: "assessment-blueprint" },
   { id: "activity", name: "Activity Studio", description: "Chuyển hoạt động thành trò chơi hoặc nhiệm vụ tương tác.", icon: "Sparkles", defaultUrl: "", payloadType: "activity-pack" },
+  { id: "speaking", name: "Speaking Studio", description: "Tạo prompts, role cards và rubric nói.", icon: "Mic2", defaultUrl: "", payloadType: "speaking-pack" },
+  { id: "reading", name: "Reading Studio", description: "Tạo văn bản đọc, chú giải và câu hỏi.", icon: "BookOpenText", defaultUrl: "", payloadType: "reading-pack" },
   { id: "wordgraph", name: "WordGraph Studio", description: "Tạo word family, collocations và semantic map.", icon: "Network", defaultUrl: "", payloadType: "vocabulary-pack" }
 ], Ug = `LESSON PLAN
 
@@ -23616,7 +23620,7 @@ const C_ = (f) => f === "admin" ? "admin" : f === "ttcm" || f === "department_he
   return {
     ...f,
     language: m.language || f.language,
-    aiProvider: m.ai?.request && m.ai?.configured ? "host" : m.ai?.provider || "openrouter",
+    aiProvider: m.ai?.request && m.ai?.configured ? "host" : m.ai?.provider === "openai" || m.ai?.provider === "gemini" ? m.ai.provider : f.aiProvider,
     aiEndpoint: m.ai?.endpoint || f.aiEndpoint,
     integrationUrls: { ...f.integrationUrls, ...m.integrationUrls || {} },
     dataProvider: m.supabase ? "supabase" : f.dataProvider,
@@ -23771,7 +23775,7 @@ const C_ = (f) => f === "admin" ? "admin" : f === "ttcm" || f === "department_he
   const m = sr(f) ? f : {}, g = sr(m.supabase) ? m.supabase : {}, k = sr(m.integrationUrls) ? Object.fromEntries(Object.entries(m.integrationUrls).filter(([, T]) => typeof T == "string").map(([T, E]) => [T.slice(0, 100), String(E).slice(0, 2e3)])) : {};
   return {
     language: gr(m.language, ["vi", "en"], "vi"),
-    aiProvider: "openrouter",
+    aiProvider: gr(m.aiProvider, ["demo", "openai", "gemini"], "demo"),
     aiEndpoint: jt(m.aiEndpoint, "/api/lesson-ai").slice(0, 2e3),
     integrationUrls: k,
     defaultResourceLanguage: gr(m.defaultResourceLanguage, ["english", "bilingual"], "english"),
@@ -24200,7 +24204,7 @@ const j0 = "elis.supabase.session.v1", Z_ = (f) => {
         "Content-Type": "application/json",
         ...L ? { Authorization: `Bearer ${L}` } : {}
       },
-      body: JSON.stringify({ ...m, provider: "openrouter" }),
+      body: JSON.stringify({ ...m, provider: f.aiProvider === "host" ? g?.provider || "openai" : f.aiProvider }),
       signal: T.signal,
       credentials: "same-origin"
     }), de = await X.json().catch(() => ({}));
@@ -24570,7 +24574,7 @@ function mN({ settings: f, projects: m, onChange: g, onImport: k }) {
             /* @__PURE__ */ s.jsx("p", { children: "Bộ máy nội bộ hoạt động không cần API." })
           ] })
         ] }),
-        /* @__PURE__ */ s.jsx("div", { className: "segmented", children: ["openrouter"].map((W) => /* @__PURE__ */ s.jsx("button", { disabled: !!E.managedSettings, className: f.aiProvider === W ? "active" : "", onClick: () => g({ ...f, aiProvider: W }), children: "OpenRouter" }, W)) }),
+        /* @__PURE__ */ s.jsx("div", { className: "segmented", children: ["demo", "openai", "gemini"].map((W) => /* @__PURE__ */ s.jsx("button", { disabled: !!E.managedSettings, className: f.aiProvider === W ? "active" : "", onClick: () => g({ ...f, aiProvider: W }), children: W === "demo" ? "Bộ máy nội bộ" : W === "openai" ? "OpenAI" : "Gemini" }, W)) }),
         /* @__PURE__ */ s.jsxs("label", { className: "field", children: [
           /* @__PURE__ */ s.jsx("span", { children: "Secure server endpoint" }),
           /* @__PURE__ */ s.jsx("input", { readOnly: !!E.managedSettings, value: f.aiEndpoint, onChange: (W) => g({ ...f, aiEndpoint: W.target.value }), placeholder: "/api/lesson-ai" }),
@@ -24746,14 +24750,14 @@ function mN({ settings: f, projects: m, onChange: g, onImport: k }) {
         /* @__PURE__ */ s.jsx("pre", { className: "code-sample", children: `POST /api/lesson-ai
 {
   "task": "rewrite | generate-resource",
-  "provider": "openrouter",
+  "provider": "openai | gemini",
   "lesson": { ... },
   "constraints": { "subject": "English", "level": "THPT" }
 }
 
 Set models with environment variables:
-OPENROUTER_API_KEY=<your key>
-OPENROUTER_MODEL=openrouter/auto` })
+OPENAI_MODEL=<supported model>
+GEMINI_MODEL=<supported model>` })
       ] })
     ] })
   ] });

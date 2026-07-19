@@ -5,45 +5,14 @@ import { normaliseResourceCategory } from './_resourceCategoryFolders.js';
 export const config = { api: { bodyParser: false, sizeLimit: '20mb' } };
 
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
-const ALLOWED_MIME = new Set([
-  'application/pdf',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'text/plain',
-  'text/csv',
-  'text/html',
-  'application/zip',
-  'image/png',
-  'image/jpeg',
-  'image/webp',
-  'audio/mpeg',
-  'audio/wav',
-  'video/mp4',
-]);
-const FONT_MIME = new Set([
-  'font/ttf',
-  'font/otf',
-  'font/woff',
-  'font/woff2',
-  'application/font-sfnt',
-  'application/vnd.ms-opentype',
-  'application/x-font-ttf',
-  'application/x-font-opentype',
-  'application/x-font-woff',
-  'application/octet-stream',
-]);
-const ALLOWED_EXT = /\.(pdf|docx|xlsx|pptx|txt|csv|html?|zip|png|jpe?g|webp|mp3|wav|mp4|ttf|otf|woff2?)$/i;
-const FONT_EXT = /\.(ttf|otf|woff2?)$/i;
+const ALLOWED_MIME = new Set(['application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.openxmlformats-officedocument.presentationml.presentation','text/plain','text/csv','application/zip','image/png','image/jpeg','image/webp','audio/mpeg','audio/wav','video/mp4']);
+const ALLOWED_EXT = /\.(pdf|docx|xlsx|pptx|txt|csv|zip|png|jpe?g|webp|mp3|wav|mp4)$/i;
+
 
 function hasExpectedSignature(buffer, mimeType, fileName) {
   const ext = String(fileName || '').split('.').pop().toLowerCase();
   const starts = (...bytes) => bytes.every((value, index) => buffer[index] === value);
-  if (['txt', 'csv', 'html', 'htm'].includes(ext)) {
-    if (!buffer.length || buffer.includes(0)) return false;
-    const text = buffer.toString('utf8').trim();
-    return Boolean(text) && (ext === 'html' || ext === 'htm' ? /<(?:!doctype\s+html|html|head|body|script|style|main|section|div)\b/i.test(text) : true);
-  }
+  if (['txt', 'csv'].includes(ext)) return true;
   if (ext === 'pdf') return buffer.subarray(0, 5).toString('ascii') === '%PDF-';
   if (['docx', 'xlsx', 'pptx', 'zip'].includes(ext)) return starts(0x50, 0x4b);
   if (ext === 'png') return starts(0x89, 0x50, 0x4e, 0x47);
@@ -52,13 +21,6 @@ function hasExpectedSignature(buffer, mimeType, fileName) {
   if (ext === 'wav') return buffer.subarray(0, 4).toString('ascii') === 'RIFF' && buffer.subarray(8, 12).toString('ascii') === 'WAVE';
   if (ext === 'mp3') return buffer.subarray(0, 3).toString('ascii') === 'ID3' || (buffer[0] === 0xff && (buffer[1] & 0xe0) === 0xe0);
   if (ext === 'mp4') return buffer.subarray(4, 8).toString('ascii') === 'ftyp';
-  if (ext === 'ttf') {
-    const signature = buffer.subarray(0, 4).toString('ascii');
-    return starts(0x00, 0x01, 0x00, 0x00) || ['true', 'typ1'].includes(signature);
-  }
-  if (ext === 'otf') return buffer.subarray(0, 4).toString('ascii') === 'OTTO';
-  if (ext === 'woff') return buffer.subarray(0, 4).toString('ascii') === 'wOFF';
-  if (ext === 'woff2') return buffer.subarray(0, 4).toString('ascii') === 'wOF2';
   return ALLOWED_MIME.has(mimeType);
 }
 
@@ -86,9 +48,8 @@ export default async function handler(req, res) {
     const fileName = decodeURIComponent(String(req.headers['x-file-name'] || meta.fileName || 'resource.bin')).replace(/[\r\n]/g, '').slice(0, 180);
     const mimeType = String(req.headers['content-type'] || 'application/octet-stream').split(';')[0].trim().toLowerCase();
     const declaredLength = Number(req.headers['content-length'] || 0);
-    const isFont = FONT_EXT.test(fileName);
     if (declaredLength > MAX_UPLOAD_BYTES) throw new Error('File exceeds the 20 MB upload limit.');
-    if (!ALLOWED_EXT.test(fileName) || !(ALLOWED_MIME.has(mimeType) || (isFont && FONT_MIME.has(mimeType)))) throw new Error('This file type is not allowed.');
+    if (!ALLOWED_EXT.test(fileName) || !ALLOWED_MIME.has(mimeType)) throw new Error('This file type is not allowed.');
     const { client, connection, accessToken } = await getConnection();
     const folderMap = connection.folder_map || {};
     const pendingRoot = folderMap['00_CHO_DUYET'] || await ensureFolder(accessToken, '00_CHO_DUYET', connection.root_folder_id);
@@ -102,8 +63,6 @@ export default async function handler(req, res) {
       parents: [dateFolder],
       appProperties: {
         besResource: 'true',
-        interactiveHtml: /\.html?$/i.test(fileName) ? 'true' : 'false',
-        accountHtmlFont: isFont && Array.isArray(meta.tags) && meta.tags.includes('html-user-font') ? 'true' : 'false',
         category,
         uploaderId: user.id,
         targetFolder: resourceCategoryFolderName(category),

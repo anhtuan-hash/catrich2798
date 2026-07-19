@@ -1,6 +1,0 @@
-===== NHÁNH =====
-brian-ai-core
-
-===== CÁC FILE MÔI TRƯỜNG =====
-
-===== TÊN BIẾN AI ĐÃ KHAI BÁO =====

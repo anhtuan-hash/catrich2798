@@ -44,17 +44,6 @@ function normaliseStoredItem(item) {
   };
 }
 
-function isAccountHtmlFont(item) {
-  const tags = Array.isArray(item?.tags) ? item.tags.map((tag) => String(tag).toLowerCase()) : [];
-  return tags.includes('html-user-font');
-}
-
-function visibleLibraryItems(items) {
-  return (Array.isArray(items) ? items : [])
-    .map(normaliseStoredItem)
-    .filter((item) => !isAccountHtmlFont(item));
-}
-
 export function loadResourceLibrary() {
   try {
     const parsed = JSON.parse(localStorage.getItem(KEY) || 'null');
@@ -64,7 +53,7 @@ export function loadResourceLibrary() {
         ...parsed,
         version: 2,
         categories: seedCategories,
-        items: visibleLibraryItems(parsed.items),
+        items: parsed.items.map(normaliseStoredItem),
       };
     }
 
@@ -76,7 +65,7 @@ export function loadResourceLibrary() {
         ...legacy,
         version: 2,
         categories: seedCategories,
-        items: visibleLibraryItems(legacy.items),
+        items: legacy.items.map(normaliseStoredItem),
       };
       localStorage.setItem(KEY, JSON.stringify(migrated));
       return migrated;
@@ -94,7 +83,7 @@ export function saveResourceLibrary(data) {
     ...data,
     version: 2,
     categories: seedCategories,
-    items: visibleLibraryItems(data?.items),
+    items: Array.isArray(data?.items) ? data.items.map(normaliseStoredItem) : [],
   };
   localStorage.setItem(KEY, JSON.stringify(next));
   window.dispatchEvent(new CustomEvent(RESOURCE_EVENT, { detail: next }));
@@ -117,13 +106,12 @@ export async function syncResourcesFromCloud() {
   if (!auth?.user) return { ok: false, reason: 'Chưa đăng nhập' };
   const { data, error } = await supabase.from('resource_items').select('*').order('created_at', { ascending: false });
   if (error) return { ok: false, reason: error.message };
-  const cloudItems = (data || []).map(fromCloudRow).filter((item) => !isAccountHtmlFont(item));
+  const cloudItems = (data || []).map(fromCloudRow);
   updateResourceLibrary((store) => {
     const cloudIds = new Set(cloudItems.map((item) => item.cloudId).filter(Boolean));
     const driveIds = new Set(cloudItems.map((item) => item.driveFileId).filter(Boolean));
     const checksums = new Set(cloudItems.map((item) => item.checksum).filter(Boolean));
     const localOnly = store.items.filter((item) => {
-      if (isAccountHtmlFont(item)) return false;
       if (item.cloudId && cloudIds.has(item.cloudId)) return false;
       if (item.driveFileId && driveIds.has(item.driveFileId)) return false;
       if (item.checksum && checksums.has(item.checksum)) return false;
@@ -131,7 +119,7 @@ export async function syncResourcesFromCloud() {
     });
     store.items = [...cloudItems, ...localOnly];
   });
-  return { ok: true, count: cloudItems.length, rows: cloudItems };
+  return { ok: true, count: data?.length || 0, rows: cloudItems };
 }
 
 export async function fetchResourceCategoryOverview() {
@@ -240,6 +228,7 @@ export async function sha256(file) {
   const digest = await crypto.subtle.digest('SHA-256', buffer);
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
+
 
 export async function syncResourceViaServer(item) {
   const token = await getAccessToken();

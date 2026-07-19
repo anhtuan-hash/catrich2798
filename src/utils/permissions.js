@@ -15,12 +15,21 @@ export const ROUTE_PERMISSION_IDS = {
   'resource-library': 'route:resource-library',
   'knowledge-hub': 'route:knowledge-hub',
   'work-hub': 'route:work-hub',
+  'ai-workspace': 'route:ai-workspace',
+  'content-factory': 'route:content-factory',
+  'content-ecosystem': 'route:content-ecosystem',
+  'lesson-pack': 'route:lesson-pack',
+  'classroom-delivery': 'route:classroom-delivery',
   'assessment-core': 'route:assessment-core',
+  'learning-intelligence': 'route:learning-intelligence',
   'platform-readiness': 'route:platform-readiness',
+  'automation-center': 'route:automation-center',
   'cloud-operations': 'route:cloud-operations',
+  'collaboration-hub': 'route:collaboration-hub',
   'data-governance': 'route:data-governance',
   'production-hardening': 'route:production-hardening',
   'app-vault': 'route:app-vault',
+  practice: 'route:practice',
   qa: 'route:qa',
   settings: 'route:settings',
   department: DEPARTMENT_WORKSPACE_PERMISSION_ID,
@@ -66,7 +75,52 @@ export const CORE_PERMISSION_ITEMS = [
     desc: 'Manage tasks, submissions, feedback and approvals.',
     descVi: 'Quản lí nhiệm vụ, sản phẩm nộp, phản hồi và phê duyệt.',
   },
-    {
+  {
+    id: ROUTE_PERMISSION_IDS['ai-workspace'],
+    type: 'content',
+    section: 'content',
+    title: 'Brian AI Workspace',
+    titleVi: 'Không gian làm việc AI',
+    desc: 'Create and transform long-form teaching content with AI.',
+    descVi: 'Tạo và chuyển đổi học liệu dài bằng AI.',
+  },
+  {
+    id: ROUTE_PERMISSION_IDS['content-factory'],
+    type: 'content',
+    section: 'content',
+    title: 'Teaching Content Factory',
+    titleVi: 'Xưởng tạo học liệu',
+    desc: 'Generate worksheets, quizzes and interactive activities.',
+    descVi: 'Tạo worksheet, quiz và hoạt động tương tác.',
+  },
+  {
+    id: ROUTE_PERMISSION_IDS['content-ecosystem'],
+    type: 'content',
+    section: 'content',
+    title: 'Teaching Content Ecosystem',
+    titleVi: 'Hệ sinh thái nội dung dạy học',
+    desc: 'Manage reusable assets, structured canvases, production recipes and connected content kits.',
+    descVi: 'Quản lí tài sản tái sử dụng, canvas theo khối, dây chuyền sản xuất và bộ nội dung liên thông.',
+  },
+  {
+    id: ROUTE_PERMISSION_IDS['lesson-pack'],
+    type: 'content',
+    section: 'content',
+    title: 'Lesson Pack',
+    titleVi: 'Gói bài dạy liên thông',
+    desc: 'Combine outputs from teaching apps into a live lesson sequence.',
+    descVi: 'Kết hợp sản phẩm từ các ứng dụng thành tiến trình bài dạy trực tiếp.',
+  },
+  {
+    id: ROUTE_PERMISSION_IDS['classroom-delivery'],
+    type: 'content',
+    section: 'content',
+    title: 'Classroom Delivery',
+    titleVi: 'Điều phối lớp học',
+    desc: 'Run live Lesson Pack sessions with student join codes, teams, response collection and results.',
+    descVi: 'Tổ chức phiên Lesson Pack trực tiếp với mã tham gia, đội, thu câu trả lời và kết quả.',
+  },
+  {
     id: ROUTE_PERMISSION_IDS['assessment-core'],
     type: 'content',
     section: 'content',
@@ -74,6 +128,15 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Ngân hàng câu hỏi và đề thi',
     desc: 'Manage question banks, blueprints and test versions.',
     descVi: 'Quản lí ngân hàng câu hỏi, blueprint và mã đề.',
+  },
+  {
+    id: ROUTE_PERMISSION_IDS['learning-intelligence'],
+    type: 'content',
+    section: 'content',
+    title: 'Learning Intelligence',
+    titleVi: 'Trung tâm phân tích học tập',
+    desc: 'Track learner mastery, recurring errors and adaptive interventions.',
+    descVi: 'Theo dõi mức độ thành thạo, lỗi lặp lại và kế hoạch can thiệp thích ứng.',
   },
   {
     id: ROUTE_PERMISSION_IDS['platform-readiness'],
@@ -84,7 +147,16 @@ export const CORE_PERMISSION_ITEMS = [
     desc: 'Install the PWA and review security, accessibility and performance readiness.',
     descVi: 'Cài PWA và kiểm tra trạng thái bảo mật, khả năng tiếp cận và hiệu năng.',
   },
-    {
+  {
+    id: ROUTE_PERMISSION_IDS['automation-center'],
+    type: 'content',
+    section: 'operations',
+    title: 'Automation Center',
+    titleVi: 'Trung tâm tự động hóa',
+    desc: 'Create automation rules, approve actions and review operational audit logs.',
+    descVi: 'Tạo quy tắc tự động hóa, phê duyệt hành động và xem nhật ký vận hành.',
+  },
+  {
     id: ROUTE_PERMISSION_IDS['cloud-operations'],
     type: 'system',
     section: 'operations',
@@ -93,7 +165,16 @@ export const CORE_PERMISSION_ITEMS = [
     desc: 'Monitor durable automation queues, server schedules, retries and operations digests.',
     descVi: 'Theo dõi hàng đợi tự động hóa, lịch máy chủ, retry và bản tin vận hành.',
   },
-    {
+  {
+    id: ROUTE_PERMISSION_IDS['collaboration-hub'],
+    type: 'content',
+    section: 'operations',
+    title: 'Collaboration Hub',
+    titleVi: 'Không gian cộng tác',
+    desc: 'Coordinate projects, members, discussion threads, presence and content versions.',
+    descVi: 'Điều phối dự án, thành viên, thảo luận, hiện diện và lịch sử phiên bản.',
+  },
+  {
     id: ROUTE_PERMISSION_IDS['data-governance'],
     type: 'system',
     section: 'operations',
@@ -111,6 +192,15 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Thư viện nội dung',
     desc: 'View and manage saved outputs, prompts, activities and local teaching content.',
     descVi: 'Xem và quản lí output, prompt, hoạt động và nội dung dạy học đã lưu.',
+  },
+  {
+    id: ROUTE_PERMISSION_IDS.practice,
+    type: 'content',
+    section: 'content',
+    title: 'Learner Practice',
+    titleVi: 'Bài luyện tập học sinh',
+    desc: 'Open the scored student practice module.',
+    descVi: 'Mở module bài luyện tập có chấm điểm cho học sinh.',
   },
   {
     id: ROUTE_PERMISSION_IDS.qa,
@@ -311,9 +401,10 @@ export function hasAnyDepartmentAccess(user) {
 
 export function getRoutePermissionId(route) {
   if (route === 'news') return getToolPermissionId('news-reader');
+  if (route === 'practice') return ROUTE_PERMISSION_IDS.practice;
   if (route === 'department') return DEPARTMENT_WORKSPACE_PERMISSION_ID;
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'cloud-operations' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
+  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'lesson-pack' || route === 'assessment-core' || route === 'learning-intelligence' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
@@ -332,7 +423,8 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   // Teachers can open these dashboards even when some cards are locked.
   // Locked cards stay visible and show a request-access button.
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'cloud-operations' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
+  if (route === 'practice') return hasPermissionId(user, ROUTE_PERMISSION_IDS.practice) || hasToolAccess(user, 'student-practice');
+  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'ai-workspace' || route === 'content-factory' || route === 'lesson-pack' || route === 'assessment-core' || route === 'learning-intelligence' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
 }
 

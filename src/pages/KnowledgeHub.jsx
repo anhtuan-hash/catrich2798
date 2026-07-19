@@ -149,25 +149,25 @@ export default function KnowledgeHub({ currentUser }) {
 
   const averageQuality = resources.length ? Math.round(resources.reduce((sum, item) => sum + Number(metadata[item.id]?.quality_score || 0), 0) / resources.length) : 0;
 
-  return <section className="v1093-page v1093-knowledge-hub bui-library" data-ui="library" data-library-app="knowledge-hub">
-    <header className="v1093-hero v1093-hero-knowledge bui-library-header">
+  return <section className="v1093-page v1093-knowledge-hub">
+    <header className="v1093-hero v1093-hero-knowledge">
       <div><span className="v1093-kicker">V10.93 · Knowledge Core</span><h1>Kho học liệu thông minh</h1><p>Tìm kiếm, phân loại, bộ sưu tập và vòng đời tài liệu trong một nơi.</p></div>
       <button className="v1093-primary" onClick={() => window.location.hash = '#/resource-library'}>↑ Tải tài liệu</button>
     </header>
     {error && <div className="v1093-alert error"><b>Không thể tải kho học liệu</b><span>{error}</span><button onClick={load}>Thử lại</button></div>}
     {notice && <div className="v1093-alert success">{notice}</div>}
 
-    <div className="v1093-search-row bui-library-toolbar"><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tìm theo tên, kỹ năng, CEFR, unit hoặc nội dung…" /><select value={cefr} onChange={(e) => setCefr(e.target.value)}><option value="all">Mọi CEFR</option>{['A1','A2','B1','B2','C1','C2'].map((value) => <option key={value}>{value}</option>)}</select><select value={lifecycle} onChange={(e) => setLifecycle(e.target.value)}><option value="all">Mọi vòng đời</option><option value="active">Đang sử dụng</option><option value="needs_review">Cần rà soát</option><option value="superseded">Đã thay thế</option><option value="archived">Lưu trữ</option></select><button onClick={() => setView(view === 'grid' ? 'list' : 'grid')}>{view === 'grid' ? '☷ Danh sách' : '▦ Thẻ lớn'}</button></div>
+    <div className="v1093-search-row"><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tìm theo tên, kỹ năng, CEFR, unit hoặc nội dung…" /><select value={cefr} onChange={(e) => setCefr(e.target.value)}><option value="all">Mọi CEFR</option>{['A1','A2','B1','B2','C1','C2'].map((value) => <option key={value}>{value}</option>)}</select><select value={lifecycle} onChange={(e) => setLifecycle(e.target.value)}><option value="all">Mọi vòng đời</option><option value="active">Đang sử dụng</option><option value="needs_review">Cần rà soát</option><option value="superseded">Đã thay thế</option><option value="archived">Lưu trữ</option></select><button onClick={() => setView(view === 'grid' ? 'list' : 'grid')}>{view === 'grid' ? '☷ Danh sách' : '▦ Thẻ lớn'}</button></div>
 
-    <div className="v1093-metrics bui-library-metrics"><article><strong>{resources.length}</strong><span>Tài liệu có quyền truy cập</span></article><article><strong>{Object.keys(metadata).length}</strong><span>Đã có metadata</span></article><article><strong>{duplicateGroups.length}</strong><span>Cần kiểm tra trùng</span></article><article><strong>{averageQuality}%</strong><span>Điểm chất lượng TB</span></article></div>
+    <div className="v1093-metrics"><article><strong>{resources.length}</strong><span>Tài liệu có quyền truy cập</span></article><article><strong>{Object.keys(metadata).length}</strong><span>Đã có metadata</span></article><article><strong>{duplicateGroups.length}</strong><span>Cần kiểm tra trùng</span></article><article><strong>{averageQuality}%</strong><span>Điểm chất lượng TB</span></article></div>
 
-    <div className="v1093-knowledge-layout bui-library-layout">
-      <aside className="v1093-sidebar-card bui-library-navigation">
+    <div className="v1093-knowledge-layout">
+      <aside className="v1093-sidebar-card">
         {[['all','Tất cả'],['favorites','Yêu thích'],['recent','Gần đây'],['review','Cần rà soát'],['duplicates','Trùng lặp']].map(([value,label]) => <button key={value} className={space === value ? 'active' : ''} onClick={() => setSpace(value)}>{label}<span>{value === 'all' ? resources.length : value === 'favorites' ? Object.values(userState).filter((entry) => entry.favorite).length : value === 'recent' ? Object.values(userState).filter((entry) => entry.last_opened_at).length : value === 'review' ? Object.values(metadata).filter((entry) => entry.lifecycle_status === 'needs_review').length : duplicateGroups.length}</span></button>)}
         <form className="v1093-collection-form" onSubmit={createCollection}><label>Tạo bộ sưu tập</label><input value={collectionTitle} onChange={(e) => setCollectionTitle(e.target.value)} placeholder="Tên bộ sưu tập" /><button>+ Tạo</button></form>
         <div className="v1093-collection-list">{collections.map((collection) => <button key={collection.id} onClick={() => { setSpace('all'); setQuery(''); }}><span>▤</span><b>{collection.title}</b><small>{collectionItems.filter((row) => row.collection_id === collection.id).length}</small></button>)}</div>
       </aside>
-      <section className={`v1093-resource-list bui-library-content ${view}`}>
+      <section className={`v1093-resource-list ${view}`}>
         {filtered.map((resource) => {
           const meta = metadata[resource.id] || {};
           const state = userState[resource.id] || {};

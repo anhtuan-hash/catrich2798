@@ -1,7 +1,7 @@
 export const WORKSPACE_EVENT = 'bes-workspace-updated';
 const PREFIX = 'bes-workspace-tabs';
 const MAX_TABS = 12;
-const RETIRED_TAB_IDS = new Set(['tool:listening-lab', 'route:content-ecosystem', 'route:collaboration-hub', 'route:automation-center']);
+const RETIRED_TAB_IDS = new Set(['tool:listening-lab']);
 
 function scope(user) {
   return String(user?.id || user?.email || 'guest').trim().toLowerCase().replace(/[^a-z0-9@._-]+/g, '-') || 'guest';
