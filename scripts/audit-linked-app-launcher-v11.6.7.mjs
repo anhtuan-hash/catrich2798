@@ -1,0 +1,41 @@
+import fs from 'node:fs';
+import {
+  isCustomAppRecord,
+  normalizeCustomApp,
+  normalizeCustomAppUrl,
+} from '../src/utils/customApps.js';
+import { canPublishDepartment } from '../src/utils/permissions.js';
+
+const checks = [];
+const add = (name, pass) => checks.push({ name, pass: Boolean(pass) });
+const read = (path) => fs.existsSync(path) ? fs.readFileSync(path, 'utf8') : '';
+
+const appsPage = read('src/pages/WebApps.jsx');
+const hub = read('src/components/LauncherAppHub.jsx');
+const store = read('src/utils/customApps.js');
+const games = read('src/utils/customGames.js');
+const css = read('src/styles/launcher-app-hub-v1167.css');
+
+add('Launcher hub component exists', Boolean(hub));
+add('WebApps mounts launcher hub', appsPage.includes('<LauncherAppHub') && appsPage.includes('currentUser={currentUser}'));
+add('Role-aware TTCM approval', hub.includes('canPublishDepartment(currentUser)') && store.includes('reviewCustomApp'));
+add('Teacher submission defaults pending', store.includes("const status = leader ? 'approved' : 'pending'"));
+add('TTCM creation defaults approved', canPublishDepartment({ role: 'ttcm' }) && canPublishDepartment({ role: 'department_head' }));
+add('Normal teacher cannot review', !canPublishDepartment({ role: 'teacher' }));
+add('HTTP URL normalization', normalizeCustomAppUrl('example.com').startsWith('https://example.com'));
+add('Unsafe protocols rejected', normalizeCustomAppUrl('javascript:alert(1)') === '');
+add('Cloud records are separated from games', games.includes('isLauncherAppRecord') && games.includes('!isLauncherAppRecord(item)'));
+add('Custom app marker works', isCustomAppRecord({ color: 'app-link:#3478d4' }));
+add('Custom app normalization works', normalizeCustomApp({ label: 'Quiz', home: 'https://example.com', color: 'app-link:#123456', status: 'approved' }).accent === '#123456');
+add('Inline iframe is sandboxed', hub.includes('<iframe') && hub.includes('sandbox=') && !hub.includes('target="_blank"'));
+add('No new-tab embed mode is created', store.includes("embed_mode: 'iframe'") && !store.includes("embed_mode: 'newtab'"));
+add('Responsive UI CSS exists', css.includes('.launcher-link-hub') && css.includes('.launcher-link-frame-shell') && css.includes('@media(max-width:720px)'));
+add('Existing custom_game_platforms table reused', store.includes("CUSTOM_APPS_TABLE = 'custom_game_platforms'"));
+
+for (const item of checks) console.log(`${item.pass ? '✓' : '✗'} ${item.name}`);
+const failed = checks.filter((item) => !item.pass);
+if (failed.length) {
+  console.error(`\n❌ Linked app launcher audit FAILED (${checks.length - failed.length}/${checks.length})`);
+  process.exit(1);
+}
+console.log(`\n✅ Linked app launcher audit PASS (${checks.length}/${checks.length})`);

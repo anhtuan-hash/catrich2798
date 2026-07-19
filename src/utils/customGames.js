@@ -18,6 +18,10 @@ function safeJson(value, fallback) {
   }
 }
 
+function isLauncherAppRecord(item = {}) {
+  return String(item.color || '').startsWith('app-link:');
+}
+
 function normalizeStatus(value) {
   return ['private', 'pending', 'approved', 'rejected'].includes(value) ? value : 'private';
 }
@@ -96,7 +100,7 @@ export async function listCustomGames(user) {
       .from(CUSTOM_GAMES_TABLE)
       .select('*')
       .order('created_at', { ascending: false });
-    if (!error && Array.isArray(data)) return data.map(normalizeGame).filter((item) => item.label && item.home);
+    if (!error && Array.isArray(data)) return data.filter((item) => !isLauncherAppRecord(item)).map(normalizeGame).filter((item) => item.label && item.home);
     console.warn('Custom games cloud read failed; using local fallback:', error?.message || error);
   }
   return readLocalAll().filter((item) => visibleToUser(item, user));

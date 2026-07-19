@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import PermissionRequestButton from '../components/PermissionRequestButton.jsx';
 import FlatAppIcon from '../components/FlatAppIcon.jsx';
+import LauncherAppHub from '../components/LauncherAppHub.jsx';
+import '../styles/launcher-app-hub-v1167.css';
 import { getAppDesignProfile } from '../data/designProfiles.js';
 import { getRoutePermissionId, getToolPermissionId, hasRouteAccess, hasToolAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/motion.js';
@@ -265,7 +267,7 @@ function LauncherStyleSelector({ language, value = 'radial', items = [], onChang
   );
 }
 
-function LauncherDock({ language, style = 'radial', items = [] }) {
+function LauncherDock({ language, style = 'radial', items = [], currentUser }) {
   const t = copy[language] || copy.vi;
   const dockItems = items.slice(0, 6);
   if (!dockItems.length) return null;
@@ -289,6 +291,7 @@ function LauncherDock({ language, style = 'radial', items = [] }) {
           })}
         </div>
       </div>
+      <LauncherAppHub language={language} currentUser={currentUser} />
     </section>
   );
 }
@@ -507,7 +510,7 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
           onChange={(launcherStyle) => patchDraft((current) => ({ ...current, launcherStyle }))}
         />
       ) : (
-        <LauncherDock language={language} style={workingConfig.launcherStyle || 'radial'} items={pinnedItems} />
+        <LauncherDock language={language} style={workingConfig.launcherStyle || 'radial'} items={pinnedItems} currentUser={currentUser} />
       )}
 
       <section className="launcher-discovery-bar" aria-label={t.search}>
