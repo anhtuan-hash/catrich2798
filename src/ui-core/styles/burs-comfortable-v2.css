@@ -1,0 +1,109 @@
+/* Brian English Studio — BURS Comfortable 2.0 typography foundation.
+ * Semantic text tokens are updated by uiPreferences.js for the selected
+ * 100–140% reading level. Geometry and display text use separate scales.
+ */
+
+:root {
+  --ui-font-scale-factor: 1;
+  --ui-font-scale-display: 1;
+  --ui-font-scale-shell: 1;
+  --burs-font-micro: 13px;
+  --burs-font-caption: 14px;
+  --burs-font-label: 15px;
+  --burs-font-body: 16px;
+  --burs-font-body-large: 18px;
+  --burs-font-control: 15px;
+  --burs-font-card-title: 21px;
+  --burs-font-section-title: 32px;
+  --burs-font-page-title: 52px;
+  --burs-font-display: 68px;
+  --burs-touch-size: 44px;
+  --burs-reading-line-height: 1.6;
+}
+
+/* Keep the inherited baseline stable. BURS runtime scales legacy text once. */
+html[data-burs='comfortable-v2'] body,
+html[data-burs='comfortable-v2'] .app-shell {
+  font-size: 16px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html[data-burs='comfortable-v2'] :where(p, li, dd, dt, blockquote) {
+  line-height: var(--burs-reading-line-height);
+}
+
+/* Runtime-added safeguards. Inline BURS sizing wins over legacy !important rules. */
+.burs-readable-control {
+  min-height: var(--burs-touch-size) !important;
+}
+
+.burs-readable-text {
+  text-rendering: optimizeLegibility;
+}
+
+.burs-layout-safe {
+  min-width: 0 !important;
+  overflow-wrap: anywhere;
+}
+
+/* Semantic utilities for progressive migration of every app. */
+.burs-type-micro { font-size: var(--burs-font-micro) !important; }
+.burs-type-caption { font-size: var(--burs-font-caption) !important; }
+.burs-type-label { font-size: var(--burs-font-label) !important; }
+.burs-type-body { font-size: var(--burs-font-body) !important; line-height: var(--burs-reading-line-height) !important; }
+.burs-type-body-large { font-size: var(--burs-font-body-large) !important; line-height: 1.55 !important; }
+.burs-type-card-title { font-size: var(--burs-font-card-title) !important; line-height: 1.12 !important; }
+.burs-type-section-title { font-size: var(--burs-font-section-title) !important; line-height: 1.08 !important; }
+.burs-type-page-title { font-size: var(--burs-font-page-title) !important; line-height: 1.02 !important; }
+.burs-type-display { font-size: var(--burs-font-display) !important; line-height: .95 !important; }
+
+/* A− | value | A+ control used by the shared navigation. */
+html body .metro-clean-system .global-font-scale-controls {
+  display: inline-flex !important;
+  flex: 0 0 auto;
+  align-items: stretch;
+  gap: 3px;
+  min-height: 40px;
+  padding: 2px;
+  border: 1.5px solid var(--bes-harmony-ink, #202a21);
+  border-radius: 13px;
+  background: #a98bef;
+  box-shadow: 0 3px 0 rgba(32, 42, 33, .14);
+}
+
+html body .metro-clean-system .global-font-scale-controls .global-font-size-btn {
+  min-width: 38px !important;
+  min-height: 36px !important;
+  padding: 5px 8px !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  font-weight: 900 !important;
+}
+
+html body .metro-clean-system .global-font-scale-controls .global-font-scale-value {
+  min-width: 54px !important;
+  background: rgba(255, 255, 255, .2) !important;
+}
+
+html body .metro-clean-system .global-font-scale-controls button:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+}
+
+html body .metro-clean-system .global-font-scale-controls button:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, .72) !important;
+  outline-offset: 1px;
+}
+
+@media (max-width: 760px) {
+  html body .metro-clean-system .global-font-scale-controls .global-font-scale-value {
+    min-width: 48px !important;
+  }
+}
+
+/* Preview refresh: no runtime behavior change. */

@@ -25,8 +25,6 @@ export const ACCENT_COLORS = Object.freeze({
   graphite: '#4b5563',
 });
 
-export const FONT_SCALE_LEVELS = Object.freeze([100, 110, 120, 130, 140]);
-
 const ALLOWED_DESIGN_LANGUAGES = new Set(Object.values(DESIGN_LANGUAGES));
 const ALLOWED_THEMES = new Set(['light', 'dark']);
 const ALLOWED_LANGUAGES = new Set(['vi', 'en']);
@@ -36,7 +34,7 @@ const ALLOWED_BORDERS = new Set(['off', 'soft', 'strong']);
 const ALLOWED_INDICATORS = new Set(['on', 'off']);
 const ALLOWED_MOTION = new Set(['lite', 'full', 'off']);
 const ALLOWED_PERFORMANCE = new Set(['auto', 'low', 'balanced', 'high']);
-const ALLOWED_FONT_SCALES = new Set(FONT_SCALE_LEVELS);
+const ALLOWED_FONT_SCALES = new Set([100, 110, 120, 130]);
 const ALLOWED_SURFACE_STYLES = new Set(['flat', 'soft', 'glass', 'contrast']);
 const ALLOWED_CORNER_STYLES = new Set(['sharp', 'balanced', 'round']);
 const ALLOWED_SHADOW_STYLES = new Set(['none', 'soft', 'floating']);
@@ -174,36 +172,6 @@ export function persistLocalUiPreferences(value, { touch = true } = {}) {
   return normalized;
 }
 
-function roundedPx(value) {
-  return `${Number(value.toFixed(3))}px`;
-}
-
-function applyTypographyScale(fontScale) {
-  if (typeof document === 'undefined') return;
-  const root = document.documentElement;
-  const contentScale = Number(fontScale) / 100;
-  const displayScale = 1 + ((contentScale - 1) * .5);
-  const shellScale = 1 + ((contentScale - 1) * .4);
-  const setPx = (name, base, scale = contentScale) => root.style.setProperty(name, roundedPx(base * scale));
-
-  /* Keep rem geometry stable; BURS scales text semantically instead. */
-  root.style.fontSize = '100%';
-  root.style.setProperty('--ui-font-scale-factor', String(contentScale));
-  root.style.setProperty('--ui-font-scale-display', String(displayScale));
-  root.style.setProperty('--ui-font-scale-shell', String(shellScale));
-  setPx('--burs-font-micro', 13);
-  setPx('--burs-font-caption', 14);
-  setPx('--burs-font-label', 15);
-  setPx('--burs-font-body', 16);
-  setPx('--burs-font-body-large', 18);
-  setPx('--burs-font-control', 15);
-  setPx('--burs-font-card-title', 21);
-  setPx('--burs-font-section-title', 32, displayScale);
-  setPx('--burs-font-page-title', 52, displayScale);
-  setPx('--burs-font-display', 68, displayScale);
-  setPx('--burs-touch-size', 44, shellScale);
-}
-
 export function applyUiPreferences(value, { persist = false, touch = false, notify = true } = {}) {
   const preferences = persist ? persistLocalUiPreferences(value, { touch }) : normalizeUiPreferences(value);
   if (typeof document !== 'undefined') {
@@ -225,16 +193,13 @@ export function applyUiPreferences(value, { persist = false, touch = false, noti
     setDataset('backgroundStyle', preferences.backgroundStyle);
     setDataset('motionStyle', preferences.motionStyle);
     document.documentElement.style.colorScheme = preferences.theme;
-    applyTypographyScale(preferences.fontScale);
+    document.documentElement.style.fontSize = `${preferences.fontScale}%`;
     document.documentElement.style.setProperty('--ui-user-accent', ACCENT_COLORS[preferences.accentColor]);
   }
   if (notify && typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(UI_PREFERENCES_EVENT, { detail: { preferences } }));
     window.dispatchEvent(new CustomEvent('brian:design-language-change', {
       detail: { language: preferences.designLanguage, preferences },
-    }));
-    window.dispatchEvent(new CustomEvent('bes:font-scale-changed', {
-      detail: { scale: preferences.fontScale },
     }));
   }
   return preferences;
