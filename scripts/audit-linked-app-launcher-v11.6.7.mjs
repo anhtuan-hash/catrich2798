@@ -28,6 +28,10 @@ add('Cloud records are separated from games', games.includes('isLauncherAppRecor
 add('Custom app marker works', isCustomAppRecord({ color: 'app-link:#3478d4' }));
 add('Custom app normalization works', normalizeCustomApp({ label: 'Quiz', home: 'https://example.com', color: 'app-link:#123456', status: 'approved' }).accent === '#123456');
 add('Inline iframe is sandboxed', hub.includes('<iframe') && hub.includes('sandbox=') && !hub.includes('target="_blank"'));
+add('Browser fullscreen API is wired', hub.includes('requestFullscreen') && hub.includes('exitFullscreen') && hub.includes('fullscreenchange'));
+add('Fullscreen toolbar control exists', hub.includes('toggleFullscreen') && hub.includes('aria-pressed={isFullscreen}'));
+add('Escape exits fullscreen before closing app', hub.includes('if (fullscreenElement()) return;'));
+add('Fullscreen CSS state exists', css.includes(':fullscreen') && css.includes('.launcher-link-frame-actions'));
 add('No new-tab embed mode is created', store.includes("embed_mode: 'iframe'") && !store.includes("embed_mode: 'newtab'"));
 add('Responsive UI CSS exists', css.includes('.launcher-link-hub') && css.includes('.launcher-link-frame-shell') && css.includes('@media(max-width:720px)'));
 add('Existing custom_game_platforms table reused', store.includes("CUSTOM_APPS_TABLE = 'custom_game_platforms'"));

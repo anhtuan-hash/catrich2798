@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { canPublishDepartment } from '../utils/permissions.js';
 import {
   createCustomApp,
@@ -44,6 +44,8 @@ const copy = {
     preview: 'Chạy thử',
     close: 'Đóng ứng dụng',
     reload: 'Tải lại',
+    fullscreen: 'Toàn màn hình',
+    exitFullscreen: 'Thoát toàn màn hình',
     loading: 'Đang tải ứng dụng…',
     embedWarning: 'Website này có thể đang chặn chế độ nhúng. Brian sẽ không mở tab mới.',
     reviewEmpty: 'Không có đề xuất nào đang chờ duyệt.',
@@ -92,6 +94,8 @@ const copy = {
     preview: 'Preview',
     close: 'Close app',
     reload: 'Reload',
+    fullscreen: 'Full screen',
+    exitFullscreen: 'Exit full screen',
     loading: 'Loading app…',
     embedWarning: 'This website may block embedding. Brian will not open a new browser tab.',
     reviewEmpty: 'There are no suggestions waiting for review.',
@@ -127,22 +131,49 @@ function StatusBadge({ status, t }) {
 
 function LinkedAppFrame({ app, language, onClose }) {
   const t = copy[language] || copy.vi;
+  const shellRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [showWarning, setShowWarning] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const onKeyDown = (event) => { if (event.key === 'Escape') onClose?.(); };
+
+    const fullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+    const syncFullscreen = () => setIsFullscreen(fullscreenElement() === shellRef.current);
+    const onKeyDown = (event) => {
+      if (event.key !== 'Escape') return;
+      if (fullscreenElement()) return;
+      onClose?.();
+    };
+
     window.addEventListener('keydown', onKeyDown);
-    const timer = window.setTimeout(() => setShowWarning(true), 7000);
+    document.addEventListener('fullscreenchange', syncFullscreen);
+    document.addEventListener('webkitfullscreenchange', syncFullscreen);
+    syncFullscreen();
+
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', onKeyDown);
-      window.clearTimeout(timer);
+      document.removeEventListener('fullscreenchange', syncFullscreen);
+      document.removeEventListener('webkitfullscreenchange', syncFullscreen);
+
+      if (fullscreenElement() === shellRef.current) {
+        const exit = document.exitFullscreen || document.webkitExitFullscreen;
+        try {
+          const result = exit?.call(document);
+          result?.catch?.(() => {});
+        } catch { /* browser may already be leaving fullscreen */ }
+      }
     };
-  }, [onClose, reloadKey]);
+  }, [onClose]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowWarning(true), 7000);
+    return () => window.clearTimeout(timer);
+  }, [reloadKey]);
 
   const reload = () => {
     setLoading(true);
@@ -150,15 +181,56 @@ function LinkedAppFrame({ app, language, onClose }) {
     setReloadKey((value) => value + 1);
   };
 
+  const toggleFullscreen = async () => {
+    const shell = shellRef.current;
+    if (!shell) return;
+
+    const active = document.fullscreenElement || document.webkitFullscreenElement || null;
+    try {
+      if (active === shell) {
+        const exit = document.exitFullscreen || document.webkitExitFullscreen;
+        await exit?.call(document);
+        return;
+      }
+
+      const request = shell.requestFullscreen || shell.webkitRequestFullscreen;
+      if (!request) return;
+      try {
+        await request.call(shell, { navigationUI: 'hide' });
+      } catch {
+        await request.call(shell);
+      }
+    } catch (error) {
+      console.warn('[LinkedAppFrame] Fullscreen unavailable', error);
+    }
+  };
+
   return (
-    <div className="launcher-link-frame-shell" role="dialog" aria-modal="true" aria-label={app.name}>
+    <div
+      ref={shellRef}
+      className={`launcher-link-frame-shell${isFullscreen ? ' is-fullscreen' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label={app.name}
+    >
       <header className="launcher-link-frame-toolbar">
         <button type="button" className="launcher-link-frame-close" onClick={onClose} aria-label={t.close}>← <span>{t.close}</span></button>
         <div className="launcher-link-frame-title">
           <i style={{ '--link-accent': app.accent }}>{initials(app.name)}</i>
           <span><strong>{app.name}</strong><small>{hostOf(app.url)}</small></span>
         </div>
-        <button type="button" onClick={reload}>↻ <span>{t.reload}</span></button>
+        <div className="launcher-link-frame-actions">
+          <button
+            type="button"
+            className={isFullscreen ? 'is-active' : ''}
+            onClick={toggleFullscreen}
+            aria-label={isFullscreen ? t.exitFullscreen : t.fullscreen}
+            aria-pressed={isFullscreen}
+          >
+            {isFullscreen ? '⤢' : '⛶'} <span>{isFullscreen ? t.exitFullscreen : t.fullscreen}</span>
+          </button>
+          <button type="button" onClick={reload}>↻ <span>{t.reload}</span></button>
+        </div>
       </header>
       <div className="launcher-link-frame-body">
         {loading ? <div className="launcher-link-frame-loading"><span /><strong>{t.loading}</strong></div> : null}
