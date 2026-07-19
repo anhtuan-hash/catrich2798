@@ -14,6 +14,7 @@ export const ROUTE_PERMISSION_IDS = {
   library: 'route:library',
   'resource-library': 'route:resource-library',
   'knowledge-hub': 'route:knowledge-hub',
+  dashboard: 'route:dashboard',
   'work-hub': 'route:work-hub',
   'content-factory': 'route:content-factory',
   'content-ecosystem': 'route:content-ecosystem',
@@ -62,6 +63,15 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Kho học liệu thông minh',
     desc: 'Search, classify, favorite and organize approved resources.',
     descVi: 'Tìm kiếm, phân loại, yêu thích và tổ chức học liệu đã duyệt.',
+  },
+  {
+    id: ROUTE_PERMISSION_IDS.dashboard,
+    type: 'content',
+    section: 'content',
+    title: 'Work Dashboard',
+    titleVi: 'Bảng điều hành',
+    desc: 'View role-aware schedules, action items, approvals and department summaries.',
+    descVi: 'Xem lịch, việc cần xử lý, phê duyệt và tổng hợp tổ chuyên môn theo vai trò.',
   },
   {
     id: ROUTE_PERMISSION_IDS['work-hub'],
@@ -371,7 +381,7 @@ export function getRoutePermissionId(route) {
   if (route === 'practice') return ROUTE_PERMISSION_IDS.practice;
   if (route === 'department') return DEPARTMENT_WORKSPACE_PERMISSION_ID;
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'content-factory' || route === 'lesson-pack' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
+  if (route === 'dashboard' || route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'content-factory' || route === 'lesson-pack' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
@@ -385,6 +395,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (route === 'trash') return Boolean(user);
   if (route === 'tool') return hasToolAccess(user, selectedTool?.slug);
   if (route === 'news') return Boolean(user);
+  if (route === 'dashboard') return Boolean(user);
   if (route === 'department') return hasAnyDepartmentAccess(user);
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
   // Teachers can open these dashboards even when some cards are locked.

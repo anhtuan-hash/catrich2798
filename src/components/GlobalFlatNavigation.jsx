@@ -9,13 +9,13 @@ import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 
 const copy = {
   vi: {
-    home: 'Trang chủ', apps: 'Ứng dụng', news: 'Đọc báo', games: 'Trò chơi', department: 'Tổ chuyên môn', homeroom: 'Chủ nhiệm',
+    home: 'Trang chủ', apps: 'Ứng dụng', news: 'Đọc báo', games: 'Trò chơi', dashboard: 'Bảng điều hành', department: 'Tổ chuyên môn', homeroom: 'Chủ nhiệm',
     library: 'Thư viện', 'resource-library': 'Kho học liệu', 'knowledge-hub': 'Kho thông minh', 'work-hub': 'Công việc', 'content-factory': 'Content Factory', 'lesson-pack': 'Gói bài dạy', 'assessment-core': 'Assessment', 'platform-readiness': 'Sẵn sàng nền tảng', 'automation-center': 'Tự động hóa', 'cloud-operations': 'Vận hành nền', 'collaboration-hub': 'Cộng tác', 'data-governance': 'Quản trị dữ liệu', resources: 'Tài nguyên', contact: 'Liên hệ', admin: 'Quản trị', 'app-vault': 'Ứng dụng đã ẩn',
     login: 'Đăng nhập', settings: 'Cài đặt', logout: 'Thoát', subtitle: 'Hệ thống dạy học sáng tạo',
     account: 'Tài khoản', guest: 'Khách', aiReady: 'AI sẵn sàng', aiOff: 'AI chưa cài', fontSize: 'Tăng cỡ chữ', search: 'Tìm nhanh', chatbot: 'Chatbot', more: 'Thêm', close: 'Đóng', qa: 'Trạng thái', 'ai-governance': 'Quản trị AI', trash: 'Thùng rác',
   },
   en: {
-    home: 'Home', apps: 'Apps', news: 'News', games: 'Games', department: 'Department', homeroom: 'Homeroom',
+    home: 'Home', apps: 'Apps', news: 'News', games: 'Games', dashboard: 'Dashboard', department: 'Department', homeroom: 'Homeroom',
     library: 'Library', 'resource-library': 'Resources Hub', 'knowledge-hub': 'Smart Knowledge', 'work-hub': 'Work Hub', 'content-factory': 'Content Factory', 'lesson-pack': 'Lesson Pack', 'assessment-core': 'Assessment', 'platform-readiness': 'Platform Readiness', 'automation-center': 'Automation Center', 'cloud-operations': 'Cloud Operations', 'collaboration-hub': 'Collaboration', 'data-governance': 'Data Governance', resources: 'Resources', contact: 'Contact', admin: 'Admin', 'app-vault': 'Hidden Apps',
     login: 'Sign in', settings: 'Settings', logout: 'Logout', subtitle: 'Brian English',
     account: 'Account', guest: 'Guest', aiReady: 'AI ready', aiOff: 'AI not set', fontSize: 'Increase text size', search: 'Quick search', chatbot: 'Chatbot', more: 'More', close: 'Close', qa: 'System health', 'ai-governance': 'AI Governance', trash: 'Trash',
@@ -23,17 +23,17 @@ const copy = {
 };
 
 const routeColors = {
-  home: '#ffc69d', apps: '#f05a7e', news: '#167d78', games: '#5b2a86', department: '#3b4cca', homeroom: '#1f8f70',
+  home: '#ffc69d', apps: '#f05a7e', news: '#167d78', games: '#5b2a86', dashboard: '#315fc4', department: '#3b4cca', homeroom: '#1f8f70',
   library: '#6fba7b', 'resource-library': '#2878d0', 'knowledge-hub': '#315fc4', 'work-hub': '#14866d', 'content-factory': '#ef7a42', 'lesson-pack': '#315fc4', 'assessment-core': '#cc7621', 'platform-readiness': '#0f766e', 'automation-center': '#1269b0', 'cloud-operations': '#167b68', 'collaboration-hub': '#315fc4', 'data-governance': '#a24b35', resources: '#d99a1e', contact: '#00a6a6', admin: '#d13438', 'app-vault': '#684cc6',
   settings: '#123c69', qa: '#123c69', 'ai-governance': '#6d45c6', trash: '#a43b57', login: '#191515',
 };
 
 const routeIcons = {
-  home: '⌂', apps: '▦', news: '▤', games: '◈', department: '▦', homeroom: '♙', library: '▤', 'resource-library': '▥', 'knowledge-hub': 'K', 'work-hub': 'WH', 'content-factory': 'CF', 'lesson-pack': 'LP', 'assessment-core': 'AC', 'platform-readiness': 'PR', 'automation-center': 'AU', 'cloud-operations': 'CO', 'collaboration-hub': 'CH', 'data-governance': 'DG',
+  home: '⌂', apps: '▦', news: '▤', games: '◈', dashboard: 'DB', department: '▦', homeroom: '♙', library: '▤', 'resource-library': '▥', 'knowledge-hub': 'K', 'work-hub': 'WH', 'content-factory': 'CF', 'lesson-pack': 'LP', 'assessment-core': 'AC', 'platform-readiness': 'PR', 'automation-center': 'AU', 'cloud-operations': 'CO', 'collaboration-hub': 'CH', 'data-governance': 'DG',
   resources: '▦', contact: '✉', admin: '☼', 'app-vault': 'HV', settings: '⚙', qa: '♥', 'ai-governance': 'AI', trash: '⌫', login: '↪',
 };
 
-const ROUTE_KEYS = ['home', 'apps', 'news', 'games', 'department', 'homeroom', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'content-factory', 'lesson-pack', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'resources', 'contact', 'admin', 'app-vault', 'settings', 'qa', 'ai-governance', 'trash'];
+const ROUTE_KEYS = ['home', 'apps', 'news', 'games', 'dashboard', 'department', 'homeroom', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'content-factory', 'lesson-pack', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'resources', 'contact', 'admin', 'app-vault', 'settings', 'qa', 'ai-governance', 'trash'];
 
 function shortName(value, fallback) {
   const text = String(value || '').trim();

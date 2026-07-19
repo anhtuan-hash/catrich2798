@@ -107,6 +107,7 @@ const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.
 const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.jsx'));
 const AIGovernanceCenter = lazy(() => import('./pages/AIGovernanceCenter.jsx'));
 const WorkHub = lazy(() => import('./pages/WorkHub.jsx'));
+const WorkDashboard = lazy(() => import('./pages/WorkDashboard.jsx'));
 const KnowledgeHub = lazy(() => import('./pages/KnowledgeHub.jsx'));
 const ContentFactory = lazy(() => import('./pages/ContentFactory.jsx'));
 const AssessmentCore = lazy(() => import('./pages/AssessmentCore.jsx'));
@@ -123,7 +124,7 @@ const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAcces
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'content-factory', 'content-ecosystem', 'lesson-pack', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'work-hub', 'content-factory', 'content-ecosystem', 'lesson-pack', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
 
 function getInitialRoute() {
@@ -146,6 +147,7 @@ const ROUTE_DESIGN_PROFILES = {
   library: { accent: '#6FBA7B', soft: '#E4F6E6', ink: '#17351D' },
   'resource-library': { accent: '#2878D0', soft: '#E7F2FF', ink: '#0D2947' },
   'knowledge-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
+  dashboard: { accent: '#315FC4', soft: '#EAF3FF', ink: '#10264A' },
   'work-hub': { accent: '#14866D', soft: '#E6F8F2', ink: '#0B3A31' },
   'content-factory': { accent: '#EF7A42', soft: '#FFF0E8', ink: '#5C2410' },
   'content-ecosystem': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
@@ -435,6 +437,7 @@ function App() {
       home: ['Home', 'Trang chủ'], apps: ['Apps', 'Ứng dụng'], news: ['Newsroom', 'Đọc báo'], games: ['Games', 'Trò chơi'],
       department: ['Department', 'Tổ chuyên môn'], homeroom: ['Homeroom', 'Giáo viên chủ nhiệm'], library: ['Library', 'Thư viện'],
       'resource-library': ['Resource Library', 'Kho học liệu'], 'knowledge-hub': ['Smart Knowledge Library', 'Kho học liệu thông minh'],
+      dashboard: ['Work Dashboard', 'Bảng điều hành'],
       'work-hub': ['Unified Work Hub', 'Trung tâm công việc'],
       'content-factory': ['Teaching Content Factory', 'Xưởng tạo học liệu'], 'lesson-pack': ['Lesson Pack', 'Gói bài dạy'], 'assessment-core': ['Assessment Core', 'Ngân hàng câu hỏi'],
       'platform-readiness': ['Platform Readiness', 'Sẵn sàng nền tảng'],
@@ -590,6 +593,7 @@ function App() {
           {canAccessRoute && currentRoute === 'library' && currentUser && <Library {...context} />}
           {canAccessRoute && currentRoute === 'resource-library' && currentUser && <ResourceLibrary {...context} />}
           {canAccessRoute && currentRoute === 'knowledge-hub' && currentUser && <KnowledgeHub {...context} />}
+          {canAccessRoute && currentRoute === 'dashboard' && currentUser && <WorkDashboard {...context} />}
           {canAccessRoute && currentRoute === 'work-hub' && currentUser && <WorkHub {...context} />}
           {canAccessRoute && currentRoute === 'content-factory' && currentUser && <ContentFactory {...context} />}
           {canAccessRoute && currentRoute === 'content-ecosystem' && currentUser && <ContentEcosystem {...context} />}

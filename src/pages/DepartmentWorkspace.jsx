@@ -1290,6 +1290,16 @@ function DepartmentHeroIllustration({ language }) {
 
 export default function DepartmentWorkspace({ language, currentUser, hasApiKey }) {
   const [activeTab, setActiveTab] = useState('dashboard');
+  useEffect(() => {
+    try {
+      const requestedTab = sessionStorage.getItem('bes-dashboard-department-tab') || '';
+      if (!requestedTab) return;
+      sessionStorage.removeItem('bes-dashboard-department-tab');
+      setActiveTab(requestedTab);
+    } catch {
+      // Dashboard deep-link hints are optional.
+    }
+  }, []);
   const [data, setData] = useState(() => readData(currentUser?.id, language, !canPublishDepartment(currentUser)));
   const [toast, setToast] = useState('');
   const [report, setReport] = useState(() => makeReport(readData(currentUser?.id, language, !canPublishDepartment(currentUser))));

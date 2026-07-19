@@ -1,4 +1,13 @@
 export const APP_DESIGN_PROFILES = {
+  'work-dashboard': {
+    accent: '#315FC4',
+    soft: '#EAF3FF',
+    ink: '#10264A',
+    icon: 'dashboard',
+    style: 'Role-aware operations dashboard',
+    styleVi: 'Bảng điều hành theo vai trò',
+  },
+
   'thpt-practice-hub': {
     accent: '#D85F2A',
     soft: '#FFF0DF',

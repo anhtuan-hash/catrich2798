@@ -4,6 +4,15 @@ export const APPS = [
   DEPARTMENT_APP,
 
   {
+    slug: 'work-dashboard', route: 'dashboard', icon: 'DB', tone: 'blue', group: 'Management', groupVi: 'Quản lý',
+    title: 'Work Dashboard', titleVi: 'Bảng điều hành',
+    desc: 'Combine schedules, action items, professional activities, approvals and department health in one role-aware dashboard.',
+    descVi: 'Tổng hợp lịch làm việc, việc cần xử lý, hoạt động chuyên môn, phê duyệt và tình hình tổ theo đúng vai trò.',
+    status: 'Realtime · Role-aware · 14-day view', statusVi: 'Realtime · Theo vai trò · 14 ngày', api: true, featured: true,
+  },
+
+
+  {
     slug: 'thpt-practice-hub', icon: 'TH', tone: 'orange', group: 'Exam Preparation', groupVi: 'Luyện thi THPT',
     title: 'THPT Interactive Practice Hub', titleVi: 'Luyện thi THPT',
     desc: 'Upload, review, organize and run interactive HTML exam-preparation lessons directly inside Brian.',
