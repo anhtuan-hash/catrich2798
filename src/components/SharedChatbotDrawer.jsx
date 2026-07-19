@@ -272,15 +272,7 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
       data-size={size}
       aria-hidden={!open}
     >
-      <button
-        type="button"
-        className="shared-chatbot-backdrop"
-        aria-label={vi ? 'Đóng chatbot' : 'Close chatbot'}
-        tabIndex={open ? 0 : -1}
-        onClick={() => setOpen(false)}
-      />
-
-      <aside className="shared-chatbot-drawer" role="dialog" aria-modal="true" inert={open ? undefined : true} aria-label={vi ? 'Chatbot dùng chung' : 'Shared chatbot'}>
+      <aside className="shared-chatbot-drawer" role="complementary" inert={open ? undefined : true} aria-label={vi ? 'Chatbot dùng chung' : 'Shared chatbot'}>
         <header className="shared-chatbot-header">
           <div className="shared-chatbot-brand">
             <span className="shared-chatbot-brand-icon">{initials(active?.name)}</span>
@@ -334,11 +326,6 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
           />
           {loading ? <div className="shared-chatbot-loading">{vi ? 'Đang tải cấu hình chatbot…' : 'Loading chatbot settings…'}</div> : null}
         </div>
-
-        <footer className="shared-chatbot-footer">
-          <span>🔒 {vi ? 'Chatbot hoạt động độc lập với API và lịch sử của Brian.' : 'This chatbot is independent from Brian AI keys and history.'}</span>
-          <button type="button" onClick={() => setOpen(false)}>{vi ? 'Thu drawer' : 'Hide drawer'}</button>
-        </footer>
 
         {managerOpen && manager ? (
           <section className="shared-chatbot-manager" aria-label={vi ? 'Quản lý chatbot' : 'Manage chatbots'}>

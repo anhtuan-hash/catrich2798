@@ -29,3 +29,166 @@ html[data-theme="dark"] .shared-chatbot-drawer{background:#0e1725;color:#eaf1fb;
 @media(max-width:760px){.shared-chatbot-layer{--chatbot-drawer-width:100vw!important}.shared-chatbot-drawer{border-left:0}.shared-chatbot-manager{inset:6px;border-radius:16px}.shared-chatbot-manager-body{grid-template-columns:1fr}.shared-chatbot-manager-list{max-height:42vh}.shared-chatbot-footer span{display:none}}
 @media(max-width:480px){.shared-chatbot-header{padding:12px}.shared-chatbot-toolbar{padding:10px}.shared-chatbot-toolbar label{grid-template-columns:1fr}.shared-chatbot-toolbar-buttons{display:grid;grid-template-columns:1fr 1fr}.shared-chatbot-toolbar-buttons button:first-child:nth-last-child(3){grid-column:1/-1}.shared-chatbot-status{grid-template-columns:auto 1fr}.shared-chatbot-status small{grid-column:1/-1;white-space:normal}.shared-chatbot-manager>header p{display:none}}
 @media(prefers-reduced-motion:reduce){.shared-chatbot-drawer,.shared-chatbot-backdrop{transition:none}}
+
+
+/* SHARED_CHATBOT_DRAWER_LAYOUT_V2
+   Keep the active app visible, widen the chatbot, and let the iframe fill the drawer. */
+
+.shared-chatbot-layer {
+  --chatbot-drawer-width: 780px;
+  pointer-events: none !important;
+}
+
+.shared-chatbot-layer[data-size="compact"] {
+  --chatbot-drawer-width: 560px;
+}
+
+.shared-chatbot-layer[data-size="wide"] {
+  --chatbot-drawer-width: 1020px;
+}
+
+.shared-chatbot-backdrop {
+  display: none !important;
+}
+
+.shared-chatbot-drawer {
+  display: flex !important;
+  flex-direction: column !important;
+  width: min(var(--chatbot-drawer-width), 62vw, 100vw) !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  pointer-events: auto !important;
+  overflow: hidden !important;
+  background: #f7f4ee !important;
+}
+
+.shared-chatbot-layer.is-open {
+  pointer-events: none !important;
+}
+
+.shared-chatbot-layer.is-open .shared-chatbot-drawer {
+  pointer-events: auto !important;
+}
+
+.shared-chatbot-header {
+  flex: 0 0 auto !important;
+  padding: 12px 15px !important;
+  min-height: 76px;
+}
+
+.shared-chatbot-brand-icon {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 13px !important;
+}
+
+.shared-chatbot-brand strong {
+  font-size: 18px !important;
+}
+
+.shared-chatbot-toolbar {
+  flex: 0 0 auto !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 10px !important;
+  padding: 10px 12px !important;
+}
+
+.shared-chatbot-toolbar label {
+  flex: 1 1 300px !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(190px, 1fr) !important;
+  align-items: center !important;
+  gap: 9px !important;
+  min-width: 0 !important;
+}
+
+.shared-chatbot-toolbar select {
+  min-width: 0 !important;
+  min-height: 40px !important;
+}
+
+.shared-chatbot-toolbar-buttons {
+  flex: 0 0 auto !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 7px !important;
+}
+
+.shared-chatbot-toolbar-buttons button {
+  min-height: 40px !important;
+  white-space: nowrap !important;
+}
+
+.shared-chatbot-status {
+  flex: 0 0 auto !important;
+  min-height: 34px !important;
+  padding: 7px 12px !important;
+}
+
+.shared-chatbot-frame-wrap {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: hidden !important;
+  background: #fff !important;
+}
+
+.shared-chatbot-frame-wrap iframe {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  border: 0 !important;
+}
+
+.shared-chatbot-footer {
+  display: none !important;
+}
+
+html[data-theme="dark"] .shared-chatbot-drawer {
+  background: #0e1725 !important;
+}
+
+@media (max-width: 1180px) {
+  .shared-chatbot-layer {
+    --chatbot-drawer-width: 720px;
+  }
+
+  .shared-chatbot-layer[data-size="wide"] {
+    --chatbot-drawer-width: 900px;
+  }
+
+  .shared-chatbot-drawer {
+    width: min(var(--chatbot-drawer-width), 72vw, 100vw) !important;
+  }
+
+  .shared-chatbot-toolbar {
+    align-items: stretch !important;
+    flex-wrap: wrap !important;
+  }
+
+  .shared-chatbot-toolbar label {
+    flex-basis: 100% !important;
+  }
+
+  .shared-chatbot-toolbar-buttons {
+    width: 100% !important;
+  }
+
+  .shared-chatbot-toolbar-buttons button {
+    flex: 1 1 0 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .shared-chatbot-drawer {
+    width: 100vw !important;
+  }
+
+  .shared-chatbot-toolbar label {
+    grid-template-columns: 1fr !important;
+  }
+}
