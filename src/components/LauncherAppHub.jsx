@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { canPublishDepartment } from '../utils/permissions.js';
 import {
   createCustomApp,
@@ -49,10 +50,15 @@ const copy = {
     preview: 'Chạy thử',
     close: 'Đóng ứng dụng',
     reload: 'Tải lại',
+    openWindow: 'Mở cửa sổ riêng',
+    fit: 'Vừa khung',
+    fill: 'Lấp đầy',
+    zoomOut: 'Thu nhỏ',
+    zoomIn: 'Phóng to',
     fullscreen: 'Toàn màn hình',
     exitFullscreen: 'Thoát toàn màn hình',
-    fullscreenFallback: 'Trình duyệt đang chặn toàn màn hình thật. Brian đã chuyển sang chế độ phủ kín cửa sổ.',
-    fullscreenFailed: 'Không thể bật toàn màn hình. Hãy kiểm tra quyền toàn màn hình của trình duyệt.',
+    fullscreenFallback: 'Ứng dụng đã phủ kín cửa sổ. Trình duyệt không cho ẩn thanh địa chỉ, nhưng chế độ App Stage vẫn hoạt động.',
+    fullscreenFailed: 'Trình duyệt không cho bật toàn màn hình thật. Ứng dụng vẫn đang chạy trong App Stage toàn cửa sổ.',
     loading: 'Đang tải ứng dụng…',
     embedWarning: 'Website này có thể đang chặn chế độ nhúng. Brian sẽ không mở tab mới.',
     reviewEmpty: 'Không có đề xuất nào đang chờ duyệt.',
@@ -106,10 +112,15 @@ const copy = {
     preview: 'Preview',
     close: 'Close app',
     reload: 'Reload',
+    openWindow: 'Open separate window',
+    fit: 'Fit',
+    fill: 'Fill',
+    zoomOut: 'Zoom out',
+    zoomIn: 'Zoom in',
     fullscreen: 'Full screen',
     exitFullscreen: 'Exit full screen',
-    fullscreenFallback: 'The browser blocked native full screen. Brian switched to a full-window fallback.',
-    fullscreenFailed: 'Full screen could not be enabled. Check the browser full-screen permission.',
+    fullscreenFallback: 'The app already fills the window. The browser did not hide its chrome, but App Stage remains active.',
+    fullscreenFailed: 'Native full screen was blocked. The app is still running in a full-window App Stage.',
     loading: 'Loading app…',
     embedWarning: 'This website may block embedding. Brian will not open a new browser tab.',
     reviewEmpty: 'There are no suggestions waiting for review.',
@@ -145,15 +156,15 @@ function StatusBadge({ status, t }) {
 
 function LinkedAppFrame({ app, language, onClose }) {
   const t = copy[language] || copy.vi;
-  const shellRef = useRef(null);
-  const fallbackRef = useRef(false);
+  const stageRef = useRef(null);
+  const noticeTimerRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [showWarning, setShowWarning] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [nativeFullscreen, setNativeFullscreen] = useState(false);
-  const [fallbackFullscreen, setFallbackFullscreen] = useState(false);
   const [fullscreenNotice, setFullscreenNotice] = useState('');
-  const isFullscreen = nativeFullscreen || fallbackFullscreen;
+  const [viewMode, setViewMode] = useState('fill');
+  const [zoom, setZoom] = useState(100);
 
   const fullscreenElement = () => (
     document.fullscreenElement
@@ -163,40 +174,49 @@ function LinkedAppFrame({ app, language, onClose }) {
     || null
   );
 
-  const clearFallbackFullscreen = () => {
-    fallbackRef.current = false;
-    setFallbackFullscreen(false);
-    document.documentElement.classList.remove('launcher-link-fallback-fullscreen');
-    document.body.classList.remove('launcher-link-fallback-fullscreen');
+  const showNotice = (message) => {
+    setFullscreenNotice(message);
+    if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current);
+    noticeTimerRef.current = window.setTimeout(() => setFullscreenNotice(''), 4200);
   };
 
-  const enableFallbackFullscreen = (message = t.fullscreenFallback) => {
-    fallbackRef.current = true;
-    setFallbackFullscreen(true);
-    document.documentElement.classList.add('launcher-link-fallback-fullscreen');
-    document.body.classList.add('launcher-link-fallback-fullscreen');
-    setFullscreenNotice(message);
-    window.setTimeout(() => setFullscreenNotice(''), 3600);
+  const exitNativeFullscreen = () => {
+    const exit = document.exitFullscreen
+      || document.webkitExitFullscreen
+      || document.webkitCancelFullScreen
+      || document.mozCancelFullScreen
+      || document.msExitFullscreen;
+    try {
+      const result = exit?.call(document);
+      return result && typeof result.then === 'function' ? result : Promise.resolve();
+    } catch (error) {
+      return Promise.reject(error);
+    }
   };
 
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const html = document.documentElement;
+    const body = document.body;
+    const previousHtmlOverflow = html.style.overflow;
+    const previousBodyOverflow = body.style.overflow;
+    const previousBodyOverscroll = body.style.overscrollBehavior;
+
+    html.classList.add('launcher-app-stage-open');
+    body.classList.add('launcher-app-stage-open');
+    html.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    body.style.overscrollBehavior = 'none';
 
     const syncFullscreen = () => {
-      const active = Boolean(fullscreenElement());
-      setNativeFullscreen(active);
-      if (active) clearFallbackFullscreen();
+      const active = fullscreenElement();
+      const stage = stageRef.current;
+      setNativeFullscreen(Boolean(active && stage && (active === stage || stage.contains(active))));
     };
 
     const onKeyDown = (event) => {
       if (event.key !== 'Escape') return;
       if (fullscreenElement()) return;
-      if (fallbackRef.current) {
-        event.preventDefault();
-        clearFallbackFullscreen();
-        return;
-      }
+      event.preventDefault();
       onClose?.();
     };
 
@@ -208,22 +228,25 @@ function LinkedAppFrame({ app, language, onClose }) {
     syncFullscreen();
 
     return () => {
-      document.body.style.overflow = previousOverflow;
-      clearFallbackFullscreen();
+      if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current);
       window.removeEventListener('keydown', onKeyDown);
       document.removeEventListener('fullscreenchange', syncFullscreen);
       document.removeEventListener('webkitfullscreenchange', syncFullscreen);
       document.removeEventListener('mozfullscreenchange', syncFullscreen);
       document.removeEventListener('MSFullscreenChange', syncFullscreen);
+      html.classList.remove('launcher-app-stage-open');
+      body.classList.remove('launcher-app-stage-open');
+      html.style.overflow = previousHtmlOverflow;
+      body.style.overflow = previousBodyOverflow;
+      body.style.overscrollBehavior = previousBodyOverscroll;
 
       if (fullscreenElement()) {
-        const exit = document.exitFullscreen
-          || document.webkitExitFullscreen
-          || document.webkitCancelFullScreen
-          || document.mozCancelFullScreen
-          || document.msExitFullscreen;
         try {
-          const result = exit?.call(document);
+          const result = (document.exitFullscreen
+            || document.webkitExitFullscreen
+            || document.webkitCancelFullScreen
+            || document.mozCancelFullScreen
+            || document.msExitFullscreen)?.call(document);
           result?.catch?.(() => {});
         } catch { /* browser may already be leaving fullscreen */ }
       }
@@ -242,32 +265,10 @@ function LinkedAppFrame({ app, language, onClose }) {
     setReloadKey((value) => value + 1);
   };
 
-  const exitNativeFullscreen = () => {
-    const exit = document.exitFullscreen
-      || document.webkitExitFullscreen
-      || document.webkitCancelFullScreen
-      || document.mozCancelFullScreen
-      || document.msExitFullscreen;
-    try {
-      const result = exit?.call(document);
-      return result && typeof result.then === 'function' ? result : Promise.resolve();
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  };
+  const requestNativeFullscreen = () => {
+    const target = stageRef.current;
+    if (!target) return;
 
-  const toggleFullscreen = () => {
-    if (fullscreenElement()) {
-      exitNativeFullscreen().catch(() => clearFallbackFullscreen());
-      return;
-    }
-
-    if (fallbackRef.current) {
-      clearFallbackFullscreen();
-      return;
-    }
-
-    const target = document.documentElement;
     const request = target.requestFullscreen
       || target.webkitRequestFullscreen
       || target.webkitRequestFullScreen
@@ -275,39 +276,35 @@ function LinkedAppFrame({ app, language, onClose }) {
       || target.msRequestFullscreen;
 
     if (!request) {
-      enableFallbackFullscreen();
+      showNotice(t.fullscreenFallback);
       return;
     }
 
     try {
-      // Keep this call synchronous inside the click event. Retrying after an await
-      // loses the browser's user-activation token in Chrome and Safari.
+      // V12 App Stage rule: call once, synchronously, on the stage itself.
+      // The stage already covers the viewport, so rejection never breaks immersion.
       const result = request.call(target);
       if (result && typeof result.then === 'function') {
-        result
-          .then(() => {
-            setNativeFullscreen(Boolean(fullscreenElement()));
-            if (!fullscreenElement()) enableFallbackFullscreen();
-          })
-          .catch((error) => {
-            console.warn('[LinkedAppFrame] Native fullscreen rejected', error);
-            enableFallbackFullscreen();
-          });
-        return;
+        result.catch((error) => {
+          console.warn('[LinkedAppStage] Native fullscreen rejected', error);
+          showNotice(t.fullscreenFailed);
+        });
       }
-
-      window.setTimeout(() => {
-        if (fullscreenElement()) setNativeFullscreen(true);
-        else enableFallbackFullscreen();
-      }, 180);
     } catch (error) {
-      console.warn('[LinkedAppFrame] Fullscreen unavailable', error);
-      enableFallbackFullscreen(t.fullscreenFailed);
+      console.warn('[LinkedAppStage] Native fullscreen unavailable', error);
+      showNotice(t.fullscreenFailed);
     }
   };
 
+  const toggleFullscreen = () => {
+    if (fullscreenElement()) {
+      exitNativeFullscreen().catch(() => showNotice(t.fullscreenFailed));
+      return;
+    }
+    requestNativeFullscreen();
+  };
+
   const closeFrame = () => {
-    clearFallbackFullscreen();
     if (fullscreenElement()) {
       exitNativeFullscreen().finally(() => onClose?.());
       return;
@@ -315,13 +312,24 @@ function LinkedAppFrame({ app, language, onClose }) {
     onClose?.();
   };
 
-  return (
-    <div
-      ref={shellRef}
-      className={`launcher-link-frame-shell${isFullscreen ? ' is-fullscreen' : ''}${fallbackFullscreen ? ' is-fallback-fullscreen' : ''}`}
+  const openSeparateWindow = () => {
+    const child = window.open(app.url, '_blank', 'noopener,noreferrer');
+    if (child) child.opener = null;
+  };
+
+  const decreaseZoom = () => setZoom((value) => Math.max(80, value - 10));
+  const increaseZoom = () => setZoom((value) => Math.min(140, value + 10));
+
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
+    <section
+      ref={stageRef}
+      className={`launcher-link-frame-shell launcher-app-stage is-${viewMode}${nativeFullscreen ? ' is-native-fullscreen' : ''}`}
       role="dialog"
       aria-modal="true"
       aria-label={app.name}
+      style={{ '--app-stage-scale': String(zoom / 100) }}
     >
       <header className="launcher-link-frame-toolbar">
         <button type="button" className="launcher-link-frame-close" onClick={closeFrame} aria-label={t.close}>← <span>{t.close}</span></button>
@@ -330,34 +338,46 @@ function LinkedAppFrame({ app, language, onClose }) {
           <span><strong>{app.name}</strong><small>{hostOf(app.url)}</small></span>
         </div>
         <div className="launcher-link-frame-actions">
+          <button type="button" onClick={() => setViewMode((mode) => mode === 'fit' ? 'fill' : 'fit')} aria-label={viewMode === 'fit' ? t.fill : t.fit}>
+            {viewMode === 'fit' ? '▣' : '▢'} <span>{viewMode === 'fit' ? t.fill : t.fit}</span>
+          </button>
+          <div className="launcher-link-frame-zoom" aria-label={`${zoom}%`}>
+            <button type="button" onClick={decreaseZoom} disabled={zoom <= 80} aria-label={t.zoomOut}>−</button>
+            <strong>{zoom}%</strong>
+            <button type="button" onClick={increaseZoom} disabled={zoom >= 140} aria-label={t.zoomIn}>＋</button>
+          </div>
           <button
             type="button"
-            className={isFullscreen ? 'is-active' : ''}
+            className={nativeFullscreen ? 'is-active' : ''}
             onClick={toggleFullscreen}
-            aria-label={isFullscreen ? t.exitFullscreen : t.fullscreen}
-            aria-pressed={isFullscreen}
+            aria-label={nativeFullscreen ? t.exitFullscreen : t.fullscreen}
+            aria-pressed={nativeFullscreen}
           >
-            {isFullscreen ? '⤢' : '⛶'} <span>{isFullscreen ? t.exitFullscreen : t.fullscreen}</span>
+            {nativeFullscreen ? '⤢' : '⛶'} <span>{nativeFullscreen ? t.exitFullscreen : t.fullscreen}</span>
           </button>
           <button type="button" onClick={reload}>↻ <span>{t.reload}</span></button>
+          <button type="button" onClick={openSeparateWindow}>↗ <span>{t.openWindow}</span></button>
         </div>
       </header>
       <div className="launcher-link-frame-body">
         {loading ? <div className="launcher-link-frame-loading"><span /><strong>{t.loading}</strong></div> : null}
         {showWarning ? <div className="launcher-link-frame-warning">{t.embedWarning}</div> : null}
         {fullscreenNotice ? <div className="launcher-link-fullscreen-notice" role="status">{fullscreenNotice}</div> : null}
-        <iframe
-          key={`${app.id}-${reloadKey}`}
-          src={app.url}
-          title={app.name}
-          sandbox="allow-same-origin allow-scripts allow-forms allow-downloads allow-modals allow-pointer-lock allow-presentation"
-          allow="clipboard-read; clipboard-write; camera; microphone; fullscreen"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-          onLoad={() => { setLoading(false); setShowWarning(false); }}
-        />
+        <div className="launcher-app-stage-canvas">
+          <iframe
+            key={`${app.id}-${reloadKey}`}
+            src={app.url}
+            title={app.name}
+            sandbox="allow-same-origin allow-scripts allow-forms allow-downloads allow-modals allow-pointer-lock allow-presentation"
+            allow="fullscreen; autoplay; clipboard-read; clipboard-write; camera; microphone"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+            onLoad={() => { setLoading(false); setShowWarning(false); }}
+          />
+        </div>
       </div>
-    </div>
+    </section>,
+    document.body,
   );
 }
 
