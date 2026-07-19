@@ -97,6 +97,7 @@ const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
 const UniversalAIAssist = lazy(() => import('./components/UniversalAIAssist.jsx'));
 const GlobalAIIndicator = lazy(() => import('./components/GlobalAIIndicator.jsx'));
 const GlobalCommandPalette = lazy(() => import('./components/GlobalCommandPalette.jsx'));
+const SharedChatbotDrawer = lazy(() => import('./components/SharedChatbotDrawer.jsx'));
 const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
 const GlobalRuntimeGuard = lazy(() => import('./components/GlobalRuntimeGuard.jsx'));
 const TrashCenter = lazy(() => import('./pages/TrashCenter.jsx'));
@@ -560,6 +561,14 @@ function App() {
           <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
         </Suspense>
       ) : null}
+      {currentUser && !['homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
+        <Suspense fallback={null}>
+          <AppErrorBoundary compact scope="shared-chatbot-drawer" label={language === 'vi' ? 'chatbot dùng chung' : 'shared chatbot'}>
+            <SharedChatbotDrawer currentUser={currentUser} language={language} />
+          </AppErrorBoundary>
+        </Suspense>
+      ) : null}
+
       <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute}>
         <Suspense fallback={<RouteFallback language={language} />}>
           {currentRoute === 'home' && (!currentUser || visibilityReady) && <Home {...context} />}

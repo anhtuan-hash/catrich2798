@@ -12,13 +12,13 @@ const copy = {
     home: 'Trang chủ', apps: 'Ứng dụng', news: 'Đọc báo', games: 'Trò chơi', department: 'Tổ chuyên môn', homeroom: 'Chủ nhiệm',
     library: 'Thư viện', 'resource-library': 'Kho học liệu', 'knowledge-hub': 'Kho thông minh', 'work-hub': 'Công việc', 'content-factory': 'Content Factory', 'lesson-pack': 'Gói bài dạy', 'assessment-core': 'Assessment', 'platform-readiness': 'Sẵn sàng nền tảng', 'automation-center': 'Tự động hóa', 'cloud-operations': 'Vận hành nền', 'collaboration-hub': 'Cộng tác', 'data-governance': 'Quản trị dữ liệu', resources: 'Tài nguyên', contact: 'Liên hệ', admin: 'Quản trị', 'app-vault': 'Ứng dụng đã ẩn',
     login: 'Đăng nhập', settings: 'Cài đặt', logout: 'Thoát', subtitle: 'Hệ thống dạy học sáng tạo',
-    account: 'Tài khoản', guest: 'Khách', aiReady: 'AI sẵn sàng', aiOff: 'AI chưa cài', fontSize: 'Tăng cỡ chữ', search: 'Tìm nhanh', more: 'Thêm', close: 'Đóng', qa: 'Trạng thái', 'ai-governance': 'Quản trị AI', trash: 'Thùng rác',
+    account: 'Tài khoản', guest: 'Khách', aiReady: 'AI sẵn sàng', aiOff: 'AI chưa cài', fontSize: 'Tăng cỡ chữ', search: 'Tìm nhanh', chatbot: 'Chatbot', more: 'Thêm', close: 'Đóng', qa: 'Trạng thái', 'ai-governance': 'Quản trị AI', trash: 'Thùng rác',
   },
   en: {
     home: 'Home', apps: 'Apps', news: 'News', games: 'Games', department: 'Department', homeroom: 'Homeroom',
     library: 'Library', 'resource-library': 'Resources Hub', 'knowledge-hub': 'Smart Knowledge', 'work-hub': 'Work Hub', 'content-factory': 'Content Factory', 'lesson-pack': 'Lesson Pack', 'assessment-core': 'Assessment', 'platform-readiness': 'Platform Readiness', 'automation-center': 'Automation Center', 'cloud-operations': 'Cloud Operations', 'collaboration-hub': 'Collaboration', 'data-governance': 'Data Governance', resources: 'Resources', contact: 'Contact', admin: 'Admin', 'app-vault': 'Hidden Apps',
     login: 'Sign in', settings: 'Settings', logout: 'Logout', subtitle: 'Brian English',
-    account: 'Account', guest: 'Guest', aiReady: 'AI ready', aiOff: 'AI not set', fontSize: 'Increase text size', search: 'Quick search', more: 'More', close: 'Close', qa: 'System health', 'ai-governance': 'AI Governance', trash: 'Trash',
+    account: 'Account', guest: 'Guest', aiReady: 'AI ready', aiOff: 'AI not set', fontSize: 'Increase text size', search: 'Quick search', chatbot: 'Chatbot', more: 'More', close: 'Close', qa: 'System health', 'ai-governance': 'AI Governance', trash: 'Trash',
   },
 };
 
@@ -225,6 +225,17 @@ export default function GlobalFlatNavigation({
         </button>
         <button type="button" className="global-flat-mini" onClick={() => setLanguage?.(language === 'vi' ? 'en' : 'vi')}>{language === 'vi' ? 'VI' : 'EN'}</button>
         <button type="button" className="global-flat-mini icon-only" onClick={() => setTheme?.(theme === 'dark' ? 'light' : 'dark')} aria-label={language === 'vi' ? 'Đổi chế độ sáng tối' : 'Toggle theme'}>{theme === 'dark' ? '☀' : '☾'}</button>
+        {currentUser ? (
+          <button
+            type="button"
+            className="global-flat-mini global-chatbot-trigger"
+            onClick={() => window.dispatchEvent(new CustomEvent('bes-chatbot-drawer-open'))}
+            aria-label={t.chatbot || 'Chatbot'}
+            title={language === 'vi' ? 'Mở chatbot dùng chung của tổ' : 'Open the department chatbot drawer'}
+          >
+            <span aria-hidden="true">✦</span><b>{t.chatbot || 'Chatbot'}</b>
+          </button>
+        ) : null}
         <button type="button" className="global-flat-account" onClick={(event) => go(`#/${accountRoute}`, 'ME', '#191515', event.currentTarget)}>
           <span>{initial(currentUser?.name || currentUser?.email)}</span>
           <strong>{accountName}</strong>

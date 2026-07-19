@@ -116,7 +116,8 @@
     "test:v11.6.7": "node scripts/test-v11.6.7-ai-dock.mjs",
     "audit:removed-apps": "node scripts/audit-removed-apps-v11.6.7.mjs",
     "audit:linked-app-launcher": "node scripts/audit-linked-app-launcher-v11.6.7.mjs",
-    "audit:thpt-practice-hub": "node scripts/audit-thpt-practice-hub-v11.6.7.mjs"
+    "audit:thpt-practice-hub": "node scripts/audit-thpt-practice-hub-v11.6.7.mjs",
+    "audit:shared-chatbot-drawer": "node scripts/audit-shared-chatbot-drawer-v11.6.7.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
