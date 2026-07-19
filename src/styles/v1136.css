@@ -14,7 +14,6 @@
 .launcher-v1136 .launcher-style-selector,
 .launcher-v1136 .launcher-live-dock,
 .launcher-v1136 .launcher-discovery-bar,
-.launcher-v1136 .launcher-recent-strip,
 .launcher-v1136 .launcher-admin-panel,
 .launcher-v1136 .launcher-group-rail,
 .launcher-v1136 .launcher-custom-grid,
@@ -180,7 +179,7 @@ html[data-theme="dark"] .launcher-style-mini-preview.is-radial,html[data-theme="
   .launcher-v1136.density-compact .launcher-custom-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
 }
 @media(max-width:900px){
-  .launcher-v1136 .flat-apps-hero,.launcher-v1136 .launcher-style-selector,.launcher-v1136 .launcher-live-dock,.launcher-v1136 .launcher-discovery-bar,.launcher-v1136 .launcher-recent-strip,.launcher-v1136 .launcher-admin-panel,.launcher-v1136 .launcher-group-rail,.launcher-v1136 .launcher-custom-grid,.launcher-v1136 .launcher-pinned-apps{width:min(100% - 28px,1360px)!important}
+  .launcher-v1136 .flat-apps-hero,.launcher-v1136 .launcher-style-selector,.launcher-v1136 .launcher-live-dock,.launcher-v1136 .launcher-discovery-bar,.launcher-v1136 .launcher-admin-panel,.launcher-v1136 .launcher-group-rail,.launcher-v1136 .launcher-custom-grid,.launcher-v1136 .launcher-pinned-apps{width:min(100% - 28px,1360px)!important}
   .launcher-style-options{grid-template-columns:1fr}.launcher-style-option{grid-template-columns:minmax(180px,.8fr) minmax(250px,1.2fr)!important}
   .launcher-v1136 .launcher-custom-grid,.launcher-v1136.density-compact .launcher-custom-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   .launcher-live-dock.is-radial .launcher-live-apps button[data-index="0"]{left:5%}.launcher-live-dock.is-radial .launcher-live-apps button[data-index="5"]{right:3%}

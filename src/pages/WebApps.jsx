@@ -15,7 +15,6 @@ import {
   saveLauncherConfigToCloud,
   subscribeLauncherConfig,
 } from '../utils/launcherPreferences.js';
-import { getAppUsage, subscribeAppUsage } from '../utils/appUsage.js';
 import { HIDDEN_APPS_FOLDER, ROUTE_APP_SHORTCUTS, appVisibilityId } from '../data/appVisibilityRegistry.js';
 import { getHiddenAppIds } from '../utils/appVisibility.js';
 
@@ -37,7 +36,7 @@ const copy = {
     groupName: 'Tên nhóm mới', create: 'Tạo nhóm', dragHint: 'Kéo thẻ để sắp xếp · dùng các nút trên thẻ để ghim, ẩn, đưa lên thanh điều hướng hoặc đổi nhóm.',
     pin: 'Ghim', unpin: 'Bỏ ghim', hide: 'Ẩn', show: 'Hiện', navOn: 'Đưa lên thanh điều hướng', navOff: 'Gỡ khỏi thanh điều hướng',
     group: 'Nhóm', saved: 'Đã lưu và đồng bộ cấu hình launcher toàn hệ thống.', savedLocal: 'Đã lưu trên thiết bị. Hãy chạy migration launcher để đồng bộ toàn hệ thống.', saving: 'Đang lưu…', navLimit: 'Thanh điều hướng tối đa 12 mục.', empty: 'Nhóm này chưa có ứng dụng.',
-    search: 'Tìm ứng dụng', searchPlaceholder: 'Nhập tên, chức năng hoặc nhóm ứng dụng…', recent: 'Mở gần đây', density: 'Mật độ', comfortable: 'Thoáng', compact: 'Gọn', command: 'Tìm nhanh toàn hệ thống', noSearch: 'Không có ứng dụng phù hợp với từ khóa.',
+    search: 'Tìm ứng dụng', searchPlaceholder: 'Nhập tên, chức năng hoặc nhóm ứng dụng…', density: 'Mật độ', comfortable: 'Thoáng', compact: 'Gọn', command: 'Tìm nhanh toàn hệ thống', noSearch: 'Không có ứng dụng phù hợp với từ khóa.',
     launcherStyleTitle: 'Tùy biến launcher', launcherStyleHint: 'Chọn cách các ứng dụng đã ghim xuất hiện trong launcher.',
     radialLauncher: 'Launcher tròn', radialLauncherDesc: 'Ứng dụng được sắp xếp quanh một dock tròn, rõ ràng và dễ chọn.',
     waterLauncher: 'Hộp nước', waterLauncherDesc: 'Ứng dụng nổi và chuyển động nhẹ bên trong một hộp nước mềm mại.',
@@ -53,7 +52,7 @@ const copy = {
     dragHint: 'Drag cards to reorder. Use card controls to pin, hide, add to navigation or move between groups.', pin: 'Pin', unpin: 'Unpin',
     hide: 'Hide', show: 'Show', navOn: 'Add to navigation', navOff: 'Remove from navigation', group: 'Group', saved: 'Launcher configuration saved and synced.', savedLocal: 'Saved on this device. Run the launcher migration for system-wide sync.', saving: 'Saving…',
     navLimit: 'The navigation supports up to 12 items.', empty: 'No apps in this group yet.',
-    search: 'Search apps', searchPlaceholder: 'Type an app, feature or group…', recent: 'Recently opened', density: 'Density', comfortable: 'Comfortable', compact: 'Compact', command: 'Search the whole system', noSearch: 'No app matches this search.',
+    search: 'Search apps', searchPlaceholder: 'Type an app, feature or group…', density: 'Density', comfortable: 'Comfortable', compact: 'Compact', command: 'Search the whole system', noSearch: 'No app matches this search.',
     launcherStyleTitle: 'Customize launcher', launcherStyleHint: 'Choose how pinned apps appear in the launcher.',
     radialLauncher: 'Circular launcher', radialLauncherDesc: 'Apps orbit a circular dock for a clear, playful launcher.',
     waterLauncher: 'Water box', waterLauncherDesc: 'Apps float gently inside a soft liquid container.',
@@ -309,7 +308,6 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
   const [density, setDensity] = useState(() => {
     try { return localStorage.getItem('bes-launcher-density') === 'compact' ? 'compact' : 'comfortable'; } catch { return 'comfortable'; }
   });
-  const [usage, setUsage] = useState(() => getAppUsage(currentUser));
   const dragItemRef = useRef('');
   const editModeRef = useRef(false);
 
@@ -345,10 +343,6 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
 
   useEffect(() => { editModeRef.current = editMode; }, [editMode]);
 
-  useEffect(() => {
-    setUsage(getAppUsage(currentUser));
-    return subscribeAppUsage(currentUser, setUsage);
-  }, [currentUser]);
 
   useEffect(() => {
     try { localStorage.setItem('bes-launcher-density', density); } catch { /* optional */ }
@@ -396,12 +390,6 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
     return normalizedSearch.split(/\s+/).filter(Boolean).every((token) => haystack.includes(token));
   });
   const pinnedItems = orderedItems.filter((item) => workingConfig.pinned.includes(launcherItemId(item)) && !workingConfig.hidden.includes(launcherItemId(item)));
-  const itemLookup = useMemo(() => {
-    const map = new Map();
-    baseItems.forEach((item) => { map.set(launcherNavId(item), item); map.set(launcherItemId(item), item); });
-    return map;
-  }, [baseItems]);
-  const recentItems = usage.map((entry) => itemLookup.get(entry.id)).filter(Boolean).filter((item, index, list) => list.indexOf(item) === index).slice(0, 6);
 
   const patchDraft = (updater) => setDraftConfig((current) => normalizeLauncherConfig(typeof updater === 'function' ? updater(current) : { ...current, ...updater }, itemIds));
   const togglePin = (id) => patchDraft((current) => ({ ...current, pinned: current.pinned.includes(id) ? current.pinned.filter((value) => value !== id) : [...current.pinned, id].slice(-12) }));
@@ -536,17 +524,6 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
         </div>
       </section>
 
-      {recentItems.length > 0 && !editMode && (
-        <section className="launcher-recent-strip" aria-label={t.recent}>
-          <div><strong>{t.recent}</strong><small>{language === 'vi' ? 'Tiếp tục công việc đang làm' : 'Continue where you left off'}</small></div>
-          <div className="launcher-recent-chips">
-            {recentItems.map((item) => {
-              const profile = getAppDesignProfile(item.slug);
-              return <button key={`recent-${item.slug}`} type="button" style={{ '--recent-accent': profile.accent }} onClick={(event) => launch(targetFor(item), item.icon || 'AP', profile.accent, event.currentTarget)}><FlatAppIcon type={profile.icon} slug={item.slug} /><span>{titleOf(item, language)}</span></button>;
-            })}
-          </div>
-        </section>
-      )}
 
       {editMode && (
         <section className="launcher-admin-panel">
