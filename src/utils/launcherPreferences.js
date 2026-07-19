@@ -14,11 +14,31 @@ export const DEFAULT_LAUNCHER_GROUPS = [
 const DEFAULT_PINNED = [
   'resource-library-hub',
   'lesson-plan-ai',
-  'worksheet-factory',
   'textlab-activities',
   'exam-studio',
   'reading-studio',
 ];
+
+
+const RETIRED_LAUNCHER_IDS = new Set([
+  'tool:worksheet-factory',
+  'worksheet-factory',
+  'tool:smart-id',
+  'smart-id',
+  'tool:speaking-studio',
+  'speaking-studio',
+  'tool:english-lesson-integration',
+  'english-lesson-integration',
+  'tool:grammar-builder',
+  'grammar-builder',
+  'tool:writing-studio',
+  'writing-studio',
+  'tool:pronunciation-coach',
+  'pronunciation-coach',
+  'route:ai-workspace',
+  'route:classroom-delivery',
+  'route:learning-intelligence',
+]);
 
 const DEFAULT_NAV = [
   'route:home',
@@ -86,6 +106,7 @@ function cleanIdList(value, allowed = null) {
     try { list = JSON.parse(list); } catch { list = list.split(','); }
   }
   list = Array.isArray(list) ? list : [];
+  list = list.filter((item) => !RETIRED_LAUNCHER_IDS.has(String(item || '').trim()));
   const seen = new Set();
   return list.map((item) => String(item || '').trim()).filter((item) => {
     if (!item || seen.has(item)) return false;

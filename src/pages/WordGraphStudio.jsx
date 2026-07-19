@@ -699,7 +699,7 @@ export default function WordGraphStudio({ tool, language, apiKey, aiModel, hasAp
           </article>
         </section>
 
-        <section className="wordgraph-ai-workspace wordgraph-v821-workspace">
+        <section className="wordgraph-ai-builder wordgraph-v821-workspace">
           <article ref={aiPanelRef} className={`panel wordgraph-ai-panel wordgraph-v821-ai-panel ${activeWorkflow === 'create' ? 'is-active' : ''}`}>
             <div className="wordgraph-step-title"><span>1</span><div><p className="eyebrow">AI Content Maker</p><h2>{language === 'vi' ? 'Ô AI tạo sơ đồ' : 'AI map maker'}</h2><p>{language === 'vi' ? 'Nhập yêu cầu, chọn prompt mẫu nếu cần, rồi bấm AI tạo. Nội dung sẽ tự chuyển thành sơ đồ.' : 'Type your request, optionally use a preset, then generate a visual map.'}</p></div></div>
             <label>{language === 'vi' ? 'Yêu cầu AI' : 'AI request'}</label>

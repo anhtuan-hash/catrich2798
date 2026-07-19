@@ -1,4 +1,4 @@
-const VERSION = '11.6.7';
+const VERSION = '11.3.2';
 const SHELL_CACHE = `bes-shell-${VERSION}`;
 const RUNTIME_CACHE = `bes-runtime-${VERSION}`;
 const CORE = [

@@ -7,14 +7,6 @@ export const APP_DESIGN_PROFILES = {
     style: 'Connected lesson sequence',
     styleVi: 'Tiến trình bài dạy liên thông',
   },
-  'worksheet-factory': {
-    accent: '#D94D70',
-    soft: '#FFE4EC',
-    ink: '#3B101A',
-    icon: 'worksheet',
-    style: 'AI worksheet production line',
-    styleVi: 'Nhà máy phiếu học tập AI',
-  },
   'textlab-activities': {
     accent: '#2F73D9',
     soft: '#DDEBFF',
@@ -22,14 +14,6 @@ export const APP_DESIGN_PROFILES = {
     icon: 'activity',
     style: 'Interactive activity lab',
     styleVi: 'Phòng tạo hoạt động tương tác',
-  },
-  'english-lesson-integration': {
-    accent: '#6D4CCB',
-    soft: '#EEE7FF',
-    ink: '#25154A',
-    icon: 'ai',
-    style: 'AI lesson integration workspace',
-    styleVi: 'Không gian tích hợp giáo án AI',
   },
   'lesson-plan-ai': {
     accent: '#E86D1F',
@@ -63,14 +47,6 @@ export const APP_DESIGN_PROFILES = {
     style: 'Vocabulary network',
     styleVi: 'Mạng từ vựng',
   },
-  'smart-id': {
-    accent: '#6750A4',
-    soft: '#EEE5FF',
-    ink: '#2C174D',
-    icon: 'identity',
-    style: 'AI portrait studio',
-    styleVi: 'Studio ảnh thẻ AI',
-  },
 
   'vietnam-tax': {
     accent: '#1769AA',
@@ -96,14 +72,6 @@ export const APP_DESIGN_PROFILES = {
     style: 'Magazine reading page',
     styleVi: 'Trang đọc kiểu magazine',
   },
-  'speaking-studio': {
-    accent: '#00A6A6',
-    soft: '#D8FAFA',
-    ink: '#073434',
-    icon: 'speaking',
-    style: 'Conversation window',
-    styleVi: 'Cửa sổ hội thoại',
-  },
   textcare: {
     accent: '#B8332A',
     soft: '#FFE0DD',
@@ -111,30 +79,6 @@ export const APP_DESIGN_PROFILES = {
     icon: 'textcare',
     style: 'Clean document stack',
     styleVi: 'Chồng văn bản chuẩn hoá',
-  },
-  'grammar-builder': {
-    accent: '#3974D8',
-    soft: '#E1ECFF',
-    ink: '#102B59',
-    icon: 'grammar',
-    style: 'Contextual grammar builder',
-    styleVi: 'Xưởng ngữ pháp theo ngữ cảnh',
-  },
-  'writing-studio': {
-    accent: '#169AB2',
-    soft: '#DCF5F8',
-    ink: '#073B45',
-    icon: 'writing',
-    style: 'Writing process studio',
-    styleVi: 'Studio quy trình viết',
-  },
-  'pronunciation-coach': {
-    accent: '#D98521',
-    soft: '#FFF0D8',
-    ink: '#432606',
-    icon: 'pronunciation',
-    style: 'Pronunciation and connected speech',
-    styleVi: 'Phát âm và lời nói liên kết',
   },
   'homeroom-hub': {
     accent: '#1F8F70',

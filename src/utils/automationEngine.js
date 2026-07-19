@@ -236,7 +236,7 @@ function createPracticeDraft(rule, context) {
     itemCount: Number(rule.action_config?.item_count || 15),
     source: 'automation-center-v1096',
   };
-  sessionStorage.setItem('bes-v1094-learning-to-content', JSON.stringify(draft));
+  sessionStorage.setItem('bes-automation-practice-to-content', JSON.stringify(draft));
   return draft;
 }
 

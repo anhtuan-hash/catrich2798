@@ -1,5 +1,5 @@
 export const APP_VERSION = '11.6.7';
-export const RELEASE_NAME = 'Brian AI Dock V2 + Persistent Personal Font';
-export const RUNTIME_CORE_VERSION = '2.6.1';
+export const RELEASE_NAME = 'Streamlined Application Catalog';
+export const RUNTIME_CORE_VERSION = '2.6.7';
 export const SCHEMA_VERSION = '11.4.2';
 export function getVersionInfo(){return {application:APP_VERSION,release:RELEASE_NAME,runtime:RUNTIME_CORE_VERSION,schema:SCHEMA_VERSION};}

@@ -3,9 +3,7 @@ import React, { Suspense, lazy, useMemo, useState } from 'react';
 const WordGraphStudio = lazy(() => import('./WordGraphStudio.jsx'));
 const ReadingStudio = lazy(() => import('./ReadingStudio.jsx'));
 const NewsReader = lazy(() => import('./NewsReader.jsx'));
-const SmartIdStudio = lazy(() => import('./SmartIdStudio.jsx'));
 const VietnamTaxStudio = lazy(() => import('./VietnamTaxStudio.jsx'));
-const SpeakingStudio = lazy(() => import('./SpeakingStudio.jsx'));
 const TextCareStudio = lazy(() => import('./TextCareStudio.jsx'));
 const LessonArchitect = lazy(() => import('./LessonArchitect.jsx'));
 const SpecializedAppPage = lazy(() => import('./SpecializedAppPage.jsx'));
@@ -16,11 +14,6 @@ const TestBuilder = lazy(() => import('./TestBuilder.jsx'));
 const StudentPractice = lazy(() => import('./StudentPractice.jsx'));
 const AITool = lazy(() => import('./AITool.jsx'));
 const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
-const WorksheetFactory = lazy(() => import('./WorksheetFactory.jsx'));
-const EnglishLessonIntegrationStudio = lazy(() => import('./EnglishLessonIntegrationStudio.jsx'));
-const GrammarBuilder = lazy(() => import('./GrammarBuilder.jsx'));
-const WritingStudio = lazy(() => import('./WritingStudio.jsx'));
-const PronunciationCoach = lazy(() => import('./PronunciationCoach.jsx'));
 
 const specializedToolSlugs = new Set([
   'exam-studio',
@@ -73,26 +66,6 @@ export default function ToolPage(props) {
   const [title, setTitle] = useState('My Activity');
   const preview = useMemo(() => buildPreview(content, selected, language), [content, selected, language]);
 
-  if (tool?.slug === 'english-lesson-integration') {
-    return renderLazy(EnglishLessonIntegrationStudio, props);
-  }
-
-  if (tool?.slug === 'grammar-builder') {
-    return renderLazy(GrammarBuilder, props);
-  }
-
-  if (tool?.slug === 'writing-studio') {
-    return renderLazy(WritingStudio, props);
-  }
-
-  if (tool?.slug === 'pronunciation-coach') {
-    return renderLazy(PronunciationCoach, props);
-  }
-
-  if (tool?.slug === 'worksheet-factory') {
-    return renderLazy(WorksheetFactory, props);
-  }
-
   if (tool?.slug === 'textlab-activities') {
     return renderLazy(TextLabActivities, props);
   }
@@ -109,16 +82,8 @@ export default function ToolPage(props) {
     return renderLazy(NewsReader, props);
   }
 
-  if (tool?.slug === 'smart-id') {
-    return renderLazy(SmartIdStudio, props);
-  }
-
   if (tool?.slug === 'vietnam-tax') {
     return renderLazy(VietnamTaxStudio, props);
-  }
-
-  if (tool?.slug === 'speaking-studio') {
-    return renderLazy(SpeakingStudio, props);
   }
 
   if (tool?.slug === 'textcare') {

@@ -401,15 +401,7 @@ export const AI_TOOL_PRESETS = {
     taskVi: 'Tạo bài đọc, câu hỏi đọc hiểu, tóm tắt, giải thích từ vựng và hoạt động khai thác văn bản.',
     outputHint: 'Reading package',
     defaultInstruction: 'Create a 350-word B2 reading passage about AI in education with 8 MCQs, vocabulary notes and a short summary task',
-  },
-  'speaking-studio': {
-    title: 'Speaking Studio',
-    description: 'Generate speaking prompt cards, pair-work tasks, debates, role plays and presentation tasks.',
-    taskVi: 'Tạo thẻ speaking, hoạt động cặp/nhóm, debate, role play và nhiệm vụ thuyết trình.',
-    outputHint: 'Speaking activity set',
-    defaultInstruction: 'Create 20 speaking cards for B2 students about school, technology and future careers, with follow-up questions',
-  },
-  textcare: {
+  },  textcare: {
     title: 'TextCare Fixer',
     description: 'Upload, paste, detect, create and normalize Vietnamese administrative documents.',
     taskVi: 'Nhận diện, tạo mới hoặc chuẩn hoá văn bản hành chính theo Nghị định 30/2020/NĐ-CP.',

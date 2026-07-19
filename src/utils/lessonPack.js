@@ -139,9 +139,7 @@ export function duplicateLessonPackLocal(user, raw) {
 export function itemFromTransfer(transfer) {
   const source = String(transfer?.sourceApp || 'manual');
   const typeMap = {
-    'worksheet-factory': 'worksheet',
     'reading-studio': 'reading',
-    'speaking-studio': 'speaking',
     'exam-studio': 'assessment',
     'assessment-core': 'assessment',
     'student-practice': 'homework',

@@ -69,17 +69,6 @@
       ]
     },
     {
-      "name": "AI Workspace",
-      "short_name": "AI",
-      "url": "/#/ai-workspace",
-      "icons": [
-        {
-          "src": "/pwa/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
       "name": "Automation Center",
       "short_name": "Automation",
       "url": "/#/automation-center",

@@ -353,7 +353,7 @@
   [data-tool="exam-studio"],
   
   [data-tool="reading-studio"],
-  [data-tool="speaking-studio"],
+  [data-tool="retired-speaking-studio"],
   [data-tool="word2graph"],
   [data-tool="textcare"],
   [data-tool="student-practice"],
@@ -374,7 +374,7 @@
 .metro-clean-system[data-tool="exam-studio"]{--standard-accent:#e57c55;--standard-soft:#fff0e7;--standard-ink:#4e345d;--standard-line:#5a4067;}
 
 .metro-clean-system[data-tool="reading-studio"]{--standard-accent:#d99a1e;--standard-soft:#fff0c8;--standard-ink:#392406;--standard-line:#6c4a08;}
-.metro-clean-system[data-tool="speaking-studio"]{--standard-accent:#00a6a6;--standard-soft:#d8fafa;--standard-ink:#073434;--standard-line:#066466;}
+.metro-clean-system[data-tool="retired-speaking-studio"]{--standard-accent:#00a6a6;--standard-soft:#d8fafa;--standard-ink:#073434;--standard-line:#066466;}
 .metro-clean-system[data-tool="word2graph"]{--standard-accent:#2e9e5d;--standard-soft:#ddf6e6;--standard-ink:#0f2d1c;--standard-line:#175c36;}
 .metro-clean-system[data-tool="textcare"]{--standard-accent:#b8332a;--standard-soft:#ffe0dd;--standard-ink:#35110e;--standard-line:#6d201b;}
 .metro-clean-system[data-tool="student-practice"],
@@ -386,7 +386,7 @@
 
 /* Standard page rhythm: Back → Hero → Workflow → Workspace → Output */
 .metro-clean-system:is(
-  [data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],
+  [data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],
   [data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]
 ) .page{
   width:min(1680px,calc(100vw - 40px))!important;
@@ -398,7 +398,7 @@
   align-content:start!important;
 }
 .metro-clean-system:is(
-  [data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],
+  [data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],
   [data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]
 ) .back-btn{
   justify-self:start!important;
@@ -416,7 +416,7 @@
 }
 
 /* Hero standard: flat raised art + bold poster typography + right status cards */
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"]) .tool-hero,
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-hero,
 .metro-clean-system[data-tool="textcare"] .textcare-compact-hero,
 .metro-clean-system[data-tool="student-practice"] .route-hero,
 .metro-clean-system[data-route="practice"] .route-hero,
@@ -439,7 +439,7 @@
   box-shadow:10px 10px 0 color-mix(in srgb,var(--standard-line) 11%, transparent)!important;
   overflow:hidden!important;
 }
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"]) .tool-hero::before,
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-hero::before,
 .metro-clean-system[data-tool="textcare"] .textcare-compact-hero::before{
   content:""!important;
   grid-column:1!important;
@@ -452,7 +452,7 @@
     linear-gradient(180deg,#fff 0%, color-mix(in srgb,var(--standard-soft) 70%,#fff) 100%)!important;
   box-shadow:10px 10px 0 color-mix(in srgb,var(--standard-accent) 23%, transparent)!important;
 }
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"]) .tool-hero::after,
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-hero::after,
 .metro-clean-system[data-tool="textcare"] .textcare-compact-hero::after{
   content:""!important;
   position:absolute!important;
@@ -465,7 +465,7 @@
   background:var(--standard-accent)!important;
   box-shadow:7px 7px 0 color-mix(in srgb,var(--standard-line) 11%, transparent)!important;
 }
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"]) .tool-hero>div:first-child,
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-hero>div:first-child,
 .metro-clean-system[data-tool="textcare"] .textcare-compact-hero>div:first-child,
 .metro-clean-system:is([data-route="practice"]) .route-hero-copy,
 .metro-clean-system[data-route="department"] .department-hero-copy-v60,
@@ -478,7 +478,7 @@
   padding:0!important;
   box-shadow:none!important;
 }
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"]) .tool-hero h1,
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-hero h1,
 .metro-clean-system[data-tool="textcare"] .textcare-compact-hero h1,
 .metro-clean-system:is([data-route="practice"]) .route-hero h1,
 .metro-clean-system[data-route="department"] .department-showcase-hero-v60 h1,
@@ -493,7 +493,7 @@
   max-width:100%!important;
   overflow-wrap:anywhere!important;
 }
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"]) .tool-hero p,
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-hero p,
 .metro-clean-system[data-tool="textcare"] .textcare-compact-hero p,
 .metro-clean-system:is([data-route="practice"]) .route-hero p,
 .metro-clean-system[data-route="department"] .department-showcase-hero-v60 p,
@@ -505,7 +505,7 @@
   line-height:1.45!important;
   max-width:760px!important;
 }
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"]) .tool-state,
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-state,
 .metro-clean-system[data-tool="textcare"] .textcare-compact-hero .tool-state{
   grid-column:3!important;
   display:grid!important;
@@ -513,7 +513,7 @@
   gap:12px!important;
   align-content:center!important;
 }
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"]) .tool-state span,
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-state span,
 .metro-clean-system[data-tool="textcare"] .textcare-compact-hero .tool-state span{
   display:flex!important;
   min-height:70px!important;
@@ -529,7 +529,7 @@
 }
 
 /* Workflow/action cards: 3 equal cards per row with clear active states */
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(
   .reading-template-guide,
   .exam-profile-grid,
   .question-type-grid,
@@ -551,7 +551,7 @@
   grid-template-columns:repeat(3,minmax(0,1fr))!important;
   gap:16px!important;
 }
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(
   .exam-profile-card,
   .question-type-grid button,
   .speaking-band-row button,
@@ -574,7 +574,7 @@
   box-shadow:0 10px 22px color-mix(in srgb,var(--standard-line) 7%, transparent)!important;
   overflow:hidden!important;
 }
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(
   .exam-profile-card *,
   .question-type-grid button *,
   .speaking-band-row button *,
@@ -595,22 +595,22 @@
   overflow-wrap:anywhere!important;
   word-break:normal!important;
 }
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(button.active,button.selected,label.selected,.selected,.active){
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(button.active,button.selected,label.selected,.selected,.active){
   border-color:var(--standard-accent)!important;
   background:linear-gradient(135deg,var(--standard-accent) 0%, color-mix(in srgb,var(--standard-accent) 78%, #fff) 100%)!important;
   color:#fff!important;
   box-shadow:0 12px 26px color-mix(in srgb,var(--standard-accent) 25%, transparent)!important;
 }
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(button.active,button.selected,label.selected,.selected,.active) *{
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(button.active,button.selected,label.selected,.selected,.active) *{
   color:inherit!important;
 }
 
 /* Main workspaces: left content wider, right sidebar supportive */
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(
   .reading-builder-grid,
   .speaking-builder-grid,
   .speaking-live-grid,
-  .wordgraph-ai-workspace,
+  .wordgraph-ai-builder,
   .textcare-workbench-v23,
   .practice-results,
   .department-workspace-body,
@@ -624,7 +624,7 @@
   gap:18px!important;
   align-items:start!important;
 }
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.panel,.metro-panel,.builder-panel,.preview-panel,.inner-panel,.department-work-panel,.department-list-panel,.library-card,.admin-panel,.admin-card,.game-open-panel){
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.panel,.metro-panel,.builder-panel,.preview-panel,.inner-panel,.department-work-panel,.department-list-panel,.library-card,.admin-panel,.admin-card,.game-open-panel){
   border-radius:24px!important;
   border:2px solid color-mix(in srgb,var(--standard-line) 18%, #fff)!important;
   background:var(--standard-card)!important;
@@ -632,7 +632,7 @@
 }
 
 /* Output panels: every long AI/export output stays inside a scrollable frame */
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="exam-studio"],[data-tool="lesson-plan-ai"]) :is(
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="exam-studio"],[data-tool="lesson-plan-ai"]) :is(
   .ai-output,
   .lesson-v50-output,
   .preview-box,
@@ -655,7 +655,7 @@
   overflow-wrap:anywhere!important;
   word-break:normal!important;
 }
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="exam-studio"],[data-tool="lesson-plan-ai"]) :is(pre,textarea,.preview-box *){
+.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="exam-studio"],[data-tool="lesson-plan-ai"]) :is(pre,textarea,.preview-box *){
   max-width:100%!important;
 }
 
@@ -666,7 +666,7 @@
 }
 
 @media (max-width: 1280px){
-  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"]) .tool-hero,
+  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-hero,
   .metro-clean-system[data-tool="textcare"] .textcare-compact-hero,
   .metro-clean-system[data-tool="student-practice"] .route-hero,
   .metro-clean-system[data-route="practice"] .route-hero,
@@ -674,28 +674,28 @@
   .metro-clean-system[data-route="library"] .library-showcase-hero,
   .metro-clean-system[data-route="games"] .games-showcase-hero,
   .metro-clean-system[data-route="admin"] .admin-showcase-hero,
-  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.reading-builder-grid,.speaking-builder-grid,.speaking-live-grid,.wordgraph-ai-workspace,.textcare-workbench-v23,.practice-results,.department-workspace-body,.library-content-grid,.library-screen-body,.game-hub-shell,.admin-main-pane){
+  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.reading-builder-grid,.speaking-builder-grid,.speaking-live-grid,.wordgraph-ai-builder,.textcare-workbench-v23,.practice-results,.department-workspace-body,.library-content-grid,.library-screen-body,.game-hub-shell,.admin-main-pane){
     grid-template-columns:1fr!important;
   }
-  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"]) .tool-hero::before,
+  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-hero::before,
   .metro-clean-system[data-tool="textcare"] .textcare-compact-hero::before,
-  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"]) .tool-state,
+  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-state,
   .metro-clean-system[data-tool="textcare"] .textcare-compact-hero .tool-state,
-  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"]) .tool-hero>div:first-child,
+  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-hero>div:first-child,
   .metro-clean-system[data-tool="textcare"] .textcare-compact-hero>div:first-child{
     grid-column:auto!important;
   }
 }
 @media (max-width: 980px){
-  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.reading-template-guide,.exam-profile-grid,.question-type-grid,.speaking-band-row,.speaking-card-list,.wordgraph-prompt-bank,.doc-type-grid-v23,.practice-grid,.department-quick-grid-v60,.department-spotlight-grid-v60,.library-ai-grid,.library-spotlight-grid,.games-spotlight-grid,.card-grid.two,.admin-spotlight-grid,.admin-diagnostic-grid){
+  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.reading-template-guide,.exam-profile-grid,.question-type-grid,.speaking-band-row,.speaking-card-list,.wordgraph-prompt-bank,.doc-type-grid-v23,.practice-grid,.department-quick-grid-v60,.department-spotlight-grid-v60,.library-ai-grid,.library-spotlight-grid,.games-spotlight-grid,.card-grid.two,.admin-spotlight-grid,.admin-diagnostic-grid){
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
   }
 }
 @media (max-width: 720px){
-  .metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) .page{
+  .metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) .page{
     width:min(100%,calc(100vw - 18px))!important;
   }
-  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.reading-template-guide,.exam-profile-grid,.question-type-grid,.speaking-band-row,.speaking-card-list,.wordgraph-prompt-bank,.doc-type-grid-v23,.practice-grid,.department-quick-grid-v60,.department-spotlight-grid-v60,.library-ai-grid,.library-spotlight-grid,.games-spotlight-grid,.card-grid.two,.admin-spotlight-grid,.admin-diagnostic-grid){
+  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.reading-template-guide,.exam-profile-grid,.question-type-grid,.speaking-band-row,.speaking-card-list,.wordgraph-prompt-bank,.doc-type-grid-v23,.practice-grid,.department-quick-grid-v60,.department-spotlight-grid-v60,.library-ai-grid,.library-spotlight-grid,.games-spotlight-grid,.card-grid.two,.admin-spotlight-grid,.admin-diagnostic-grid){
     grid-template-columns:1fr!important;
   }
 }
@@ -1855,7 +1855,7 @@ button:active,.button:active,.btn:active,.bes-nav-pill:active,.flat-app-chip:act
 /* =========================================================
    V10.33 — Speaking Studio illustrated hero + balanced layout
    ========================================================= */
-.metro-clean-system[data-tool="speaking-studio"] .page.speaking-page.speaking-v29-page{
+.metro-clean-system[data-tool="retired-speaking-studio"] .page.speaking-page.speaking-v29-page{
   width:min(1760px,calc(100vw - 32px))!important;
   max-width:1760px!important;
   gap:18px!important;
@@ -2207,7 +2207,7 @@ button:active,.button:active,.btn:active,.bes-nav-pill:active,.flat-app-chip:act
 }
 
 @media(max-width:760px){
-  .metro-clean-system[data-tool="speaking-studio"] .page.speaking-page.speaking-v29-page{width:calc(100vw - 18px)!important;border-radius:22px!important;padding-top:10px!important}
+  .metro-clean-system[data-tool="retired-speaking-studio"] .page.speaking-page.speaking-v29-page{width:calc(100vw - 18px)!important;border-radius:22px!important;padding-top:10px!important}
   .speaking-v33-hero{border-radius:23px}
   .speaking-v33-copy{padding:26px 18px 12px}
   .speaking-v33-version{font-size:.8125rem;min-height:32px}
@@ -2248,20 +2248,20 @@ button:active,.button:active,.btn:active,.bes-nav-pill:active,.flat-app-chip:act
    ========================================================= */
 
 /* Keep every major section inside a centered content rail so cards never touch the viewport edges. */
-.metro-clean-system[data-tool="speaking-studio"] .page.speaking-page.speaking-v29-page{
+.metro-clean-system[data-tool="retired-speaking-studio"] .page.speaking-page.speaking-v29-page{
   width:100%!important;
   max-width:none!important;
   margin:0!important;
   padding:18px clamp(18px,2.4vw,42px) 42px!important;
   box-sizing:border-box!important;
 }
-.metro-clean-system[data-tool="speaking-studio"] .page.speaking-page.speaking-v29-page > .speaking-v33-hero{
+.metro-clean-system[data-tool="retired-speaking-studio"] .page.speaking-page.speaking-v29-page > .speaking-v33-hero{
   width:min(100%,1420px)!important;
   margin-left:auto!important;
   margin-right:auto!important;
   box-sizing:border-box!important;
 }
-.metro-clean-system[data-tool="speaking-studio"] .page.speaking-page.speaking-v29-page > :is(
+.metro-clean-system[data-tool="retired-speaking-studio"] .page.speaking-page.speaking-v29-page > :is(
   .speaking-v33-status-grid,
   .speaking-v33-flow-grid,
   .speaking-v29-builder-grid,
@@ -2272,17 +2272,17 @@ button:active,.button:active,.btn:active,.bes-nav-pill:active,.flat-app-chip:act
   margin-right:auto!important;
   box-sizing:border-box!important;
 }
-.metro-clean-system[data-tool="speaking-studio"] .speaking-v29-back{
+.metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-back{
   margin-left:max(0px,calc((100% - 1420px)/2))!important;
 }
 
 /* Workflow cards: restrained, editorial, and consistent instead of playful tiles. */
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-grid{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-grid{
   grid-template-columns:repeat(3,minmax(0,1fr))!important;
   gap:20px!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card,
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card.active{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card,
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card.active{
   position:relative!important;
   grid-template-columns:46px minmax(0,1fr) auto!important;
   gap:16px!important;
@@ -2296,7 +2296,7 @@ html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-ca
   box-shadow:0 10px 28px rgba(22,77,87,.075)!important;
   transform:none!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card::before{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card::before{
   content:"";
   position:absolute;
   inset:0 auto 0 0;
@@ -2304,20 +2304,20 @@ html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-ca
   background:transparent;
   transition:background .2s ease!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card:hover{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card:hover{
   border-color:#9dc4c8!important;
   background:#fff!important;
   box-shadow:0 16px 34px rgba(22,77,87,.105)!important;
   transform:translateY(-2px)!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card.active{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card.active{
   border-color:#78b8bc!important;
   box-shadow:0 16px 34px rgba(22,77,87,.11)!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card.active::before{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card.active::before{
   background:#159aa1!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-icon{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-icon{
   width:46px!important;
   height:46px!important;
   border:1px solid #bad6d9!important;
@@ -2329,17 +2329,17 @@ html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-ca
   font-weight:950!important;
   letter-spacing:.08em!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card.active .speaking-v29-flow-icon{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card.active .speaking-v29-flow-icon{
   border-color:#159aa1!important;
   background:#159aa1!important;
   color:#fff!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-copy,
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card.active .speaking-v29-flow-copy{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-copy,
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card.active .speaking-v29-flow-copy{
   color:#103f49!important;
   min-width:0!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-copy span{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-copy span{
   display:block!important;
   width:max-content!important;
   margin:0 0 7px!important;
@@ -2353,22 +2353,22 @@ html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-ca
   letter-spacing:.1em!important;
   text-transform:uppercase!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-copy strong{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-copy strong{
   color:#103f49!important;
   font-size:1.15rem!important;
   line-height:1.2!important;
   font-weight:900!important;
   letter-spacing:-.015em!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-copy p{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-copy p{
   margin:7px 0 0!important;
   color:#62777d!important;
   font-size:.9rem!important;
   line-height:1.42!important;
   font-weight:620!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-cta,
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card.active .speaking-v29-flow-cta{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-cta,
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card.active .speaking-v29-flow-cta{
   min-height:40px!important;
   padding:9px 13px!important;
   border:1px solid #bfd4d7!important;
@@ -2379,67 +2379,67 @@ html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-ca
   font-size:.84rem!important;
   font-weight:850!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-cta:hover{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-cta:hover{
   border-color:#159aa1!important;
   background:#f1faf9!important;
   color:#0a7078!important;
 }
 
 /* Main creation/output workspace: wider breathing room and cleaner panels. */
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-builder-grid{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-builder-grid{
   grid-template-columns:minmax(0,1.28fr) minmax(390px,.72fr)!important;
   gap:24px!important;
   align-items:start!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-builder-panel,
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-builder-panel,
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel{
   padding:24px!important;
   border:1px solid #cbdcdf!important;
   border-radius:18px!important;
   background:#fff!important;
   box-shadow:0 12px 30px rgba(18,72,82,.075)!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-builder-panel h2,
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel h2{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-builder-panel h2,
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel h2{
   margin:0 0 18px!important;
   color:#103f49!important;
   font-size:1.65rem!important;
   line-height:1.12!important;
   letter-spacing:-.025em!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-builder-panel label{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-builder-panel label{
   margin-top:15px!important;
   color:#294e56!important;
   font-size:.82rem!important;
   font-weight:900!important;
   letter-spacing:.045em!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-builder-panel :is(textarea,input,select){
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-builder-panel :is(textarea,input,select){
   border:1px solid #bdced2!important;
   border-radius:11px!important;
   background:#fff!important;
   box-shadow:0 1px 0 rgba(255,255,255,.9) inset!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-builder-panel :is(textarea,input,select):focus{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-builder-panel :is(textarea,input,select):focus{
   border-color:#168f97!important;
   box-shadow:0 0 0 3px rgba(22,143,151,.10)!important;
   outline:none!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-builder-panel .preview-actions button,
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel .preview-actions button,
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel > .primary.full{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-builder-panel .preview-actions button,
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel .preview-actions button,
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel > .primary.full{
   border-radius:10px!important;
   box-shadow:none!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-builder-panel .primary,
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel > .primary.full{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-builder-panel .primary,
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel > .primary.full{
   background:#108d95!important;
   border:1px solid #108d95!important;
 }
 
 /* Professional speaking-card selector: compact rectangular tabs with clear numbering. */
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel .speaking-card-list,
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-live-left .speaking-card-list{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel .speaking-card-list,
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-live-left .speaking-card-list{
   display:grid!important;
   grid-template-columns:repeat(2,minmax(0,1fr))!important;
   gap:10px!important;
@@ -2448,7 +2448,7 @@ html body .metro-clean-system[data-tool="speaking-studio"] .speaking-live-left .
   padding:2px 5px 2px 1px!important;
   scrollbar-width:thin!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-list button{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-card-list button{
   display:grid!important;
   grid-template-columns:30px minmax(0,1fr)!important;
   align-items:center!important;
@@ -2464,11 +2464,11 @@ html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-list b
   text-align:left!important;
   transition:border-color .18s ease,background .18s ease,box-shadow .18s ease!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-list button:hover{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-card-list button:hover{
   border-color:#83b7bb!important;
   background:#f7fbfb!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-list button strong{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-card-list button strong{
   display:grid!important;
   place-items:center!important;
   width:30px!important;
@@ -2479,7 +2479,7 @@ html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-list b
   font-size:.8125rem!important;
   font-weight:950!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-list button span{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-card-list button span{
   min-width:0!important;
   color:inherit!important;
   font-size:.84rem!important;
@@ -2487,19 +2487,19 @@ html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-list b
   font-weight:800!important;
   overflow-wrap:anywhere!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-list button.active{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-card-list button.active{
   border-color:#136f77!important;
   background:#0f727a!important;
   color:#fff!important;
   box-shadow:0 7px 16px rgba(15,114,122,.18)!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-list button.active strong{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-card-list button.active strong{
   background:rgba(255,255,255,.16)!important;
   color:#fff!important;
 }
 
 /* Selected card preview: quieter hierarchy, less toy-like rounding. */
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel .speaking-card-preview{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel .speaking-card-preview{
   min-height:245px!important;
   margin-top:14px!important;
   padding:21px 22px!important;
@@ -2509,7 +2509,7 @@ html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-
   box-shadow:none!important;
   overflow:visible!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-preview .speaking-card-number{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-card-preview .speaking-card-number{
   display:inline-flex!important;
   margin-bottom:9px!important;
   padding:0!important;
@@ -2521,43 +2521,43 @@ html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-previe
   letter-spacing:.1em!important;
   text-transform:uppercase!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-preview h3{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-card-preview h3{
   margin:0 0 9px!important;
   color:#103f49!important;
   font-size:1.42rem!important;
   line-height:1.16!important;
   letter-spacing:-.02em!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-preview > p{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-card-preview > p{
   margin:0 0 14px!important;
   color:#49666d!important;
   font-size:.96rem!important;
   line-height:1.5!important;
   font-weight:650!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-preview ul{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-card-preview ul{
   margin:0!important;
   padding:13px 0 0 20px!important;
   border-top:1px solid #dce7e9!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-card-preview li{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-card-preview li{
   margin:7px 0!important;
   color:#1f3338!important;
   line-height:1.4!important;
 }
 
 /* Export controls use compact toolbar styling instead of oversized pills. */
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel .preview-head{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel .preview-head{
   align-items:flex-start!important;
   gap:16px!important;
   padding-bottom:16px!important;
   border-bottom:1px solid #dce7e9!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel .preview-head .preview-actions{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel .preview-head .preview-actions{
   justify-content:flex-end!important;
   gap:7px!important;
 }
-html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel .preview-head .preview-actions button{
+html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel .preview-head .preview-actions button{
   min-height:34px!important;
   padding:7px 10px!important;
   border:1px solid #c6d8db!important;
@@ -2569,57 +2569,57 @@ html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-
 }
 
 @media(max-width:1180px){
-  html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card,
-  html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card.active{
+  html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card,
+  html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card.active{
     grid-template-columns:42px minmax(0,1fr)!important;
   }
-  html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-cta{
+  html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card .speaking-v29-flow-cta{
     grid-column:1 / -1!important;
     width:100%!important;
   }
-  html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-builder-grid{
+  html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-builder-grid{
     grid-template-columns:1fr!important;
   }
-  html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel .speaking-card-list{
+  html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel .speaking-card-list{
     grid-template-columns:repeat(3,minmax(0,1fr))!important;
   }
 }
 
 @media(max-width:820px){
-  .metro-clean-system[data-tool="speaking-studio"] .page.speaking-page.speaking-v29-page{
+  .metro-clean-system[data-tool="retired-speaking-studio"] .page.speaking-page.speaking-v29-page{
     padding-left:14px!important;
     padding-right:14px!important;
   }
-  html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-grid{
+  html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-grid{
     grid-template-columns:1fr!important;
     gap:12px!important;
   }
-  html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card,
-  html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v33-flow-card.active{
+  html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card,
+  html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v33-flow-card.active{
     min-height:0!important;
   }
-  html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel .speaking-card-list,
-  html body .metro-clean-system[data-tool="speaking-studio"] .speaking-live-left .speaking-card-list{
+  html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel .speaking-card-list,
+  html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-live-left .speaking-card-list{
     grid-template-columns:1fr!important;
   }
 }
 
 @media(max-width:560px){
-  html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-builder-panel,
-  html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel{
+  html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-builder-panel,
+  html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel{
     padding:17px!important;
     border-radius:14px!important;
   }
-  html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel .preview-head{
+  html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel .preview-head{
     display:block!important;
   }
-  html body .metro-clean-system[data-tool="speaking-studio"] .speaking-v29-output-panel .preview-head .preview-actions{
+  html body .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-v29-output-panel .preview-head .preview-actions{
     justify-content:flex-start!important;
     margin-top:12px!important;
   }
 }
 
-.metro-clean-system[data-tool="speaking-studio"] :is(.speaking-v29-live:fullscreen,.speaking-v29-live.detached-fullscreen){
+.metro-clean-system[data-tool="retired-speaking-studio"] :is(.speaking-v29-live:fullscreen,.speaking-v29-live.detached-fullscreen){
   width:100%!important;
   max-width:none!important;
   margin:0!important;

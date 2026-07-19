@@ -14,7 +14,6 @@ import {
 
 const ACTION_TARGETS = [
   ['current-app', 'Ứng dụng hiện tại', 'Current app'],
-  ['worksheet-factory', 'Worksheet Factory', 'Worksheet Factory'],
   ['exam-studio', 'Exam Studio', 'Exam Studio'],
   ['word2graph', 'WordGraph Studio', 'WordGraph Studio'],
   ['textlab-activities', 'TextLab Activities', 'TextLab Activities'],
@@ -23,7 +22,6 @@ const ACTION_TARGETS = [
 
 const PROFILE_LABELS = {
   chat: ['Brian AI Chat', 'Brian AI Chat'],
-  worksheet: ['Worksheet Factory', 'Worksheet Factory'],
   document: ['Phân tích tài liệu', 'Document analysis'],
   administration: ['Hành chính – chuyên môn', 'School administration'],
   default: ['Mặc định', 'Default'],

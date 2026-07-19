@@ -4,13 +4,11 @@ import { enqueueSync } from '../utils/syncQueue.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 
-const CONNECTED_TEACHING_APPS = new Set(['worksheet-factory','reading-studio','speaking-studio','exam-studio','lesson-plan-ai','student-practice','assessment-core','content-factory','word2graph','textlab-activities','news']);
+const CONNECTED_TEACHING_APPS = new Set(['reading-studio','exam-studio','lesson-plan-ai','student-practice','assessment-core','content-factory','word2graph','textlab-activities','news']);
 
 const TARGETS = [
   { id: 'content-ecosystem', route: '#/content-ecosystem', label: 'Content Ecosystem', labelVi: 'Hệ sinh thái nội dung', icon: 'CE', descVi: 'Lưu thành tài sản và đưa vào dây chuyền nhiều ứng dụng', desc: 'Save as an asset and run it through multi-app production recipes' },
-  { id: 'lesson-pack', route: '#/lesson-pack', label: 'Lesson Pack', labelVi: 'Gói bài dạy', icon: 'LP', descVi: 'Thêm nội dung vào tiến trình bài dạy', desc: 'Add content to a connected lesson sequence' },
-  { id: 'worksheet-factory', route: '#/tool/worksheet-factory', label: 'Worksheet Factory', labelVi: 'Worksheet Factory', icon: 'WF', descVi: 'Tạo phiếu học tập từ nội dung hiện tại', desc: 'Create a worksheet from current content' },
-  { id: 'exam-studio', route: '#/tool/exam-studio', label: 'Exam Studio', labelVi: 'Exam Studio', icon: 'EX', descVi: 'Chuyển thành câu hỏi hoặc đề kiểm tra', desc: 'Turn it into questions or a test' },
+  { id: 'lesson-pack', route: '#/lesson-pack', label: 'Lesson Pack', labelVi: 'Gói bài dạy', icon: 'LP', descVi: 'Thêm nội dung vào tiến trình bài dạy', desc: 'Add content to a connected lesson sequence' },  { id: 'exam-studio', route: '#/tool/exam-studio', label: 'Exam Studio', labelVi: 'Exam Studio', icon: 'EX', descVi: 'Chuyển thành câu hỏi hoặc đề kiểm tra', desc: 'Turn it into questions or a test' },
   { id: 'word2graph', route: '#/tool/word2graph', label: 'WordGraph Studio', labelVi: 'WordGraph Studio', icon: 'WG', descVi: 'Tạo sơ đồ từ vựng và ý tưởng', desc: 'Build a vocabulary or idea map' },
   { id: 'textlab-activities', route: '#/tool/textlab-activities', label: 'TextLab Activities', labelVi: 'TextLab Activities', icon: 'TL', descVi: 'Biến nội dung thành hoạt động tương tác', desc: 'Turn content into interactive activities' },
   { id: 'lesson-plan-ai', route: '#/tool/lesson-plan-ai', label: 'Lesson Architect', labelVi: 'Lesson Architect', icon: 'LA', descVi: 'Đưa nội dung vào kế hoạch bài dạy', desc: 'Use content in a lesson plan' },

@@ -14,11 +14,7 @@ export const ECOSYSTEM_ASSET_TYPES = [
 
 export const ECOSYSTEM_TARGETS = [
   { id: 'content-factory', route: '#/content-factory', label: 'Content Factory', icon: 'CF' },
-  { id: 'lesson-pack', route: '#/lesson-pack', label: 'Lesson Pack', icon: 'LP' },
-  { id: 'worksheet-factory', route: '#/tool/worksheet-factory', label: 'Worksheet Factory', icon: 'WF' },
-  { id: 'reading-studio', route: '#/tool/reading-studio', label: 'Reading Studio', icon: 'RD' },
-  { id: 'speaking-studio', route: '#/tool/speaking-studio', label: 'Speaking Studio', icon: 'SP' },
-  { id: 'word2graph', route: '#/tool/word2graph', label: 'WordGraph', icon: 'WG' },
+  { id: 'lesson-pack', route: '#/lesson-pack', label: 'Lesson Pack', icon: 'LP' },  { id: 'reading-studio', route: '#/tool/reading-studio', label: 'Reading Studio', icon: 'RD' },  { id: 'word2graph', route: '#/tool/word2graph', label: 'WordGraph', icon: 'WG' },
   { id: 'textlab-activities', route: '#/tool/textlab-activities', label: 'TextLab', icon: 'TL' },
   { id: 'lesson-plan-ai', route: '#/tool/lesson-plan-ai', label: 'Lesson Architect', icon: 'LA' },
   { id: 'assessment-core', route: '#/assessment-core', label: 'Assessment Core', icon: 'AC' },
@@ -33,7 +29,7 @@ export const ECOSYSTEM_RECIPES = [
     titleVi: 'Hệ sinh thái bài đọc',
     description: 'Passage, vocabulary map, worksheet, speaking follow-up, assessment and homework.',
     descriptionVi: 'Bài đọc, sơ đồ từ vựng, worksheet, hoạt động nói, đánh giá và bài tập về nhà.',
-    outputs: ['reading-studio', 'word2graph', 'worksheet-factory', 'speaking-studio', 'assessment-core', 'student-practice'],
+    outputs: ['reading-studio', 'word2graph', 'assessment-core', 'student-practice'],
   },
   {
     id: 'vocabulary-cycle',
@@ -49,7 +45,7 @@ export const ECOSYSTEM_RECIPES = [
     titleVi: 'Gói bài dạy hoàn chỉnh',
     description: 'Lesson plan, worksheet, classroom activity, assessment and connected Lesson Pack.',
     descriptionVi: 'Giáo án, worksheet, hoạt động lớp học, đánh giá và Lesson Pack liên thông.',
-    outputs: ['lesson-plan-ai', 'worksheet-factory', 'textlab-activities', 'assessment-core', 'lesson-pack'],
+    outputs: ['lesson-plan-ai', 'textlab-activities', 'assessment-core', 'lesson-pack'],
   },
   {
     id: 'news-teaching',
@@ -57,7 +53,7 @@ export const ECOSYSTEM_RECIPES = [
     titleVi: 'Từ bản tin đến lớp học',
     description: 'Adapt a news source into reading, vocabulary, discussion, critical-thinking tasks and a quiz.',
     descriptionVi: 'Chuyển bản tin thành bài đọc, từ vựng, thảo luận, tư duy phản biện và quiz.',
-    outputs: ['reading-studio', 'word2graph', 'speaking-studio', 'textlab-activities', 'assessment-core'],
+    outputs: ['reading-studio', 'word2graph', 'textlab-activities', 'assessment-core'],
   },
 ];
 
@@ -112,8 +108,6 @@ export function buildRecipePayload(asset, target, recipe) {
   const instructionByTarget = {
     'reading-studio': 'Create a leveled reading passage, comprehension questions, evidence notes and vocabulary support.',
     word2graph: `Create a word graph using these priority terms: ${keywords.join(', ')}. Include word family, collocations, examples, synonyms and antonyms.`,
-    'worksheet-factory': 'Create an editable differentiated worksheet with student and teacher versions.',
-    'speaking-studio': 'Create speaking cards, pair work, debate prompts and a clear rubric.',
     'textlab-activities': 'Create a set of native interactive classroom activities with timer, teams and scoring options.',
     'lesson-plan-ai': 'Create a lesson timeline aligned with objectives, activities, outputs, assessment and differentiation.',
     'assessment-core': 'Create a balanced question set with CEFR, skill, topic, difficulty, answer and explanation metadata.',

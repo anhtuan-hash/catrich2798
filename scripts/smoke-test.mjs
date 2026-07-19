@@ -7,7 +7,6 @@ import { PETRUS_KY_ACADEMIC_PLAN_DOCUMENT, PETRUS_KY_ACADEMIC_PLAN_2026_2027, PE
 import { makeDefaultHomeroomWorkspace } from '../src/utils/homeroomStore.js';
 import { addConductRecord, addConductReward, addCustomConductRule, applyAutomaticConductWeekClosures, buildConductAuditTrail, calculateWeeklyConduct, calculateConductPeriod, buildPeriodRangesFromAcademicCalendar, cancelConductRecord, conductRecordsForWeek, conductWeeksForWorkspace, createAcademicCalendarDefaults, finalizeConductWeek, getConductWeekSummary, inferConductPeriodRanges, reopenConductWeek, resolveConductWeekStart, startOfConductWeek, endOfConductWeek, updateConductRecord, validateAcademicCalendar, DEFAULT_CONDUCT_LOCK_PASSWORD, verifyConductLockPassword, changeConductLockPassword, resetConductLockPassword, resetConductWeekData, isConductWeekLocked } from '../src/utils/homeroomConduct.js';
 import fs from 'node:fs';
-import { WORKSHEET_ACTIVITY_TYPES, auditWorksheet, generateOfflineWorksheet, worksheetToHtml, worksheetMcqBankItems } from '../src/utils/worksheetFactory.js';
 import { createDefaultLauncherConfig, normalizeLauncherConfig } from '../src/utils/launcherPreferences.js';
 
 const checks = [];
@@ -62,6 +61,12 @@ const removedSlugs = [
   'meeting-minutes-assistant',
 ];
 const appSlugs = new Set(APPS.map((item) => item.slug));
+const retiredV1167Slugs = [
+  'worksheet-factory', 'smart-id', 'speaking-studio', 'english-lesson-integration',
+  'grammar-builder', 'writing-studio', 'pronunciation-coach', 'ai-workspace',
+  'classroom-delivery', 'learning-intelligence',
+];
+add('V11.6.7 retired app cards are absent', retiredV1167Slugs.every((slug) => !appSlugs.has(slug)), `${APPS.length} active app cards remain`);
 add('V9.4.4 removed requested app cards', removedSlugs.every((slug) => !appSlugs.has(slug)), `${APPS.length} active app cards`);
 add('V9.4.4 specialized routes cleaned', SPECIALIZED_TOOL_SLUGS.length === 1 && SPECIALIZED_TOOL_SLUGS[0] === 'exam-studio', SPECIALIZED_TOOL_SLUGS.join(', '));
 
@@ -339,14 +344,6 @@ add('V10.82.3 Newsroom has Vietnamese and English channels', newsReaderSource.in
 add('V10.82.3 Newsroom uses same-origin RSS aggregation', newsReaderSource.includes('/api/news-feed?language=') && newsFeedSource.includes('giaoducthoidai.vn/rss/giao-duc-17.rss') && newsFeedSource.includes('feeds.bbci.co.uk/news/rss.xml'), 'Vietnamese education and English feeds configured');
 add('V10.82.3 full-article endpoint is wired', newsReaderSource.includes('/api/news-article?url=') && newsArticleSource.includes('articleJsonLd') && newsArticleSource.includes('fetchJinaReader') && newsArticleSource.includes('ALLOWED_HOSTS'), 'publisher HTML, JSON-LD and resilient reader fallback present');
 
-const smartIdSource = fs.readFileSync(new URL('../src/pages/SmartIdStudio.jsx', import.meta.url), 'utf8');
-const smartIdCssSource = fs.readFileSync(new URL('../src/pages/SmartIdStudio.css', import.meta.url), 'utf8');
-add('V10.82.5 SmartID app card is registered', appDataSource.includes("slug: 'smart-id'") && APPS.some((item) => item.slug === 'smart-id'), 'SmartID appears in the Apps directory');
-add('V10.82.5 SmartID route is wired', toolPageSource.includes("tool?.slug === 'smart-id'") && toolPageSource.includes('SmartIdStudio'), 'dedicated lazy-loaded SmartID page');
-add('V10.82.5 SmartID uses account Gemini settings', smartIdSource.includes('getAiConfigs') && smartIdSource.includes("configs?.gemini?.apiKey") && !smartIdSource.includes('const apiKey = ""'), 'no hardcoded API key');
-add('V10.82.5 SmartID supports upload, camera, AI edit and print', ['handleUpload', 'captureCamera', 'handleAiEdit', 'exportSinglePhoto', 'exportPrintSheet'].every((token) => smartIdSource.includes(token)), 'complete portrait workflow present');
-add('V10.82.5 SmartID uses current Gemini image models with fallback', smartIdSource.includes("gemini-3.1-flash-image") && smartIdSource.includes("gemini-2.5-flash-image"), 'image editing model fallback present');
-add('V10.82.5 SmartID layout remains inside a centered content rail', smartIdCssSource.includes('max-width:1440px') && smartIdCssSource.includes('.smartid-editor-shell') && smartIdCssSource.includes('@media(max-width:720px)'), 'desktop, tablet and mobile styles present');
 add('V10.82.3 Newsroom reader has search, publisher filter, saving and speech', newsReaderSource.includes('newsroom-v823-search') && newsReaderSource.includes('newsroom-v823-source-filter') && newsReaderSource.includes('bes-news-saved-items') && newsReaderSource.includes('SpeechSynthesisUtterance'), 'focused reading controls present');
 add('V10.82 Newsroom tool route and icon remain wired', toolPageSource.includes("tool?.slug === 'news-reader'") && iconSource.includes("'news-reader': 'news'"), 'legacy tool URL and flat news icon remain available');
 add('V10.82.3 Newsroom responsive editorial design layer present', cssSource.includes('V10.82.3 — Newsroom direct navigation') && cssSource.includes('.newsroom-v823-hero') && cssSource.includes('.newsroom-v823-reader-overlay') && cssSource.includes('@media(max-width:720px)'), 'desktop, dark, tablet and mobile styles present');
@@ -369,28 +366,7 @@ add('V10.82.6 Vietnam Tax Studio includes Gross-to-Net and insurance calculation
 add('V10.82.6 Vietnam Tax Studio is dependency-free and responsive', taxStudioSource.includes('SavingsCurve') && taxStudioCss.includes('.tax-studio-main-grid') && taxStudioCss.includes('@media (max-width: 760px)'), 'native SVG chart and responsive layout present');
 
 
-const worksheetFactorySource = fs.readFileSync(new URL('../src/pages/WorksheetFactory.jsx', import.meta.url), 'utf8');
-const worksheetFactoryCss = fs.readFileSync(new URL('../src/pages/WorksheetFactory.css', import.meta.url), 'utf8');
-const worksheetFactoryUtil = fs.readFileSync(new URL('../src/utils/worksheetFactory.js', import.meta.url), 'utf8');
-const offlineWorksheet = generateOfflineWorksheet({
-  sourceText: 'Artificial intelligence supports teachers. Students need guidance to use technology responsibly. Clear learning objectives improve classroom outcomes. Privacy remains important in digital education.',
-  title: 'AI in Education',
-  level: 'B2',
-  audience: 'THPT',
-  activityTypes: ['multiple_choice', 'gap_fill', 'true_false', 'reading_comprehension'],
-  itemsPerActivity: 4,
-  language: 'vi',
-});
-const worksheetAudit = auditWorksheet(offlineWorksheet);
-const worksheetHtml = worksheetToHtml(offlineWorksheet, { teacherVersion: true, language: 'vi' });
-const worksheetBank = worksheetMcqBankItems(offlineWorksheet, { level: 'B2', source: 'Smoke test' });
-add('V10.83 Worksheet Factory app card is registered', appDataSource.includes("slug: 'worksheet-factory'") && APPS.some((item) => item.slug === 'worksheet-factory'), 'Worksheet Factory appears in the Apps directory');
-add('V10.83 Worksheet Factory dedicated route is wired', toolPageSource.includes("tool?.slug === 'worksheet-factory'") && toolPageSource.includes('WorksheetFactory'), 'lazy-loaded Worksheet Factory page');
-add('V10.83 Worksheet Factory supports eleven activity types', WORKSHEET_ACTIVITY_TYPES.length >= 11 && worksheetFactoryUtil.includes('sentence_transformation') && worksheetFactoryUtil.includes('vocabulary_context'), `${WORKSHEET_ACTIVITY_TYPES.length} activity types`);
-add('V10.83 Worksheet Factory offline generator creates complete activities', offlineWorksheet.activities.length === 4 && worksheetAudit.totalItems >= 13 && worksheetAudit.missingAnswers.length === 0, `${worksheetAudit.activityCount} activities, ${worksheetAudit.totalItems} items`);
-add('V10.83 Worksheet Factory exports teacher HTML and Question Bank items', worksheetHtml.includes('BRIAN ENGLISH · WORKSHEET FACTORY') && worksheetHtml.includes('Đáp án') && worksheetBank.length >= 8, `${worksheetBank.length} bank items`);
-add('V10.83 Worksheet Factory imports document formats and real DOCX export', worksheetFactorySource.includes('readPdfTextFromBuffer') && worksheetFactorySource.includes('readDocxTextFromBuffer') && worksheetFactorySource.includes('readPptxText') && (worksheetFactorySource.includes('readSpreadsheetText') || worksheetFactorySource.includes('spreadsheetToTextSafe')) && worksheetFactoryUtil.includes('worksheetToDocxBlob'), 'PDF, DOCX, PPTX, XLSX and DOCX export paths present');
-add('V10.83 Worksheet Factory quality audit and centered responsive layout present', (worksheetFactorySource.includes('QualityCard') || worksheetFactorySource.includes('detailedAudit')) && worksheetFactoryUtil.includes('nearDuplicates') && (worksheetFactoryCss.includes('width:min(100%,1440px)') || worksheetFactoryCss.includes('max-width:1540px')) && worksheetFactoryCss.includes('@media(max-width:560px)'), 'quality checks and safe content rail present');
+
 
 
 const launcherIds = APPS.map((item) => item.slug || item.route).filter(Boolean);
@@ -400,7 +376,7 @@ const launcherNormalized = normalizeLauncherConfig({
   order: [...launcherIds].reverse(),
   hidden: launcherIds.slice(0, 1),
   pinned: launcherIds.slice(1, 3),
-  nav: ['route:home', 'tool:worksheet-factory'],
+  nav: ['route:home', 'tool:textlab-activities'],
   groups: [...launcherDefaults.groups, { id: 'custom', label: 'Custom', labelVi: 'Nhóm riêng', accent: '#167D78' }],
   assignments: { [launcherIds[1]]: 'custom' },
 }, launcherIds);
@@ -410,7 +386,7 @@ add('V10.83.1 launcher drives the global navigation', globalNavSource.includes('
 add('V10.83.1 launcher cloud sync and Admin RLS are wired', launcherPreferencesSource.includes("from('bes_launcher_settings')") && launcherPreferencesSource.includes('postgres_changes') && launcherPreferencesSource.includes('saveLauncherConfigToCloud') && launcherSettingsSqlSource.includes('public.is_admin()') && launcherSettingsSqlSource.includes('Authenticated users can read launcher settings'), 'Supabase sync, realtime refresh and Admin-only writes present');
 add('V10.83.1 AI accepts files and screenshots', universalAiSource.includes('prepareAttachment') && universalAiSource.includes('getDisplayMedia') && universalAiSource.includes('captureScreenshot') && universalAiSource.includes('onDrop'), 'drag/drop, file picker, paste and screen capture paths present');
 add('V10.83.1 AI uses live page context and conversation threads', universalAiSource.includes('capturePageContext') && universalAiSource.includes('Visible form values') && universalAiSource.includes('bes-ai-chat-threads:') && universalAiSource.includes('showHistory'), 'page-aware prompting and multi-thread history present');
-add('V10.83.1 AI result can return to the active app', universalAiSource.includes('bes-ai-use-result') && universalAiSource.includes('Dùng kết quả trong ứng dụng') && worksheetFactorySource.includes('bes-ai-use-result'), 'custom event and Worksheet Factory receiver present');
+add('V10.83.1 AI result can return to the active app', universalAiSource.includes('bes-ai-use-result') && universalAiSource.includes('Dùng kết quả trong ứng dụng'), 'custom event for the active app remains present');
 add('V10.83.1 AI voice mode is wired', universalAiSource.includes('SpeechRecognition') && universalAiSource.includes('speechSynthesis') && universalAiSource.includes('toggleVoiceMode') && universalAiSource.includes('voiceModeRef.current = next'), 'speech input, auto-send and spoken replies present');
 add('V10.83.1 multimodal payloads cover supported providers', geminiSource.includes('inlineData') && geminiSource.includes('image_url') && geminiSource.includes("type: 'image'") && geminiSource.includes('attachments'), 'Gemini, OpenAI-compatible and Claude image payloads present');
 add('V10.83.1 responsive launcher and AI styles present', cssSource.includes('V10.83.1 — Custom Launcher + Brian AI multimodal upgrade') && cssSource.includes('.launcher-admin-panel') && cssSource.includes('.ai-messenger-history') && cssSource.includes('@media(max-width:760px)'), 'desktop, dark, mobile and reduced-motion styles present');
@@ -458,8 +434,8 @@ const syncQueueSource = fs.readFileSync(new URL('../src/utils/syncQueue.js', imp
 const syncQueueIndicatorSource = fs.readFileSync(new URL('../src/components/SyncQueueIndicator.jsx', import.meta.url), 'utf8');
 const configMigrationSource = fs.readFileSync(new URL('../src/utils/configMigration.js', import.meta.url), 'utf8');
 add('V10.85 workspace tabs are mounted globally', mainSource.includes('WorkspaceTabs') && workspaceTabsSource.includes('draggable') && workspaceTabsSource.includes('toggleWorkspacePin') && workspaceSource.includes('BroadcastChannel'), 'open, pin, close, reorder and cross-tab refresh paths present');
-add('V10.85 content transfer hub connects core apps', mainSource.includes('ContentTransferHub') && transferHubSource.includes('Worksheet Factory') && transferHubSource.includes('Exam Studio') && transferHubSource.includes('word2graph') && transferSource.includes('captureCurrentPagePayload'), 'page context can be sent to worksheet, exam, WordGraph, TextLab, lesson and library targets');
-add('V10.85 incoming content can be applied in destination apps', mainSource.includes('TransferInboxBanner') && transferInboxSource.includes('TRANSFER_APPLY_EVENT') && worksheetFactorySource.includes('bes-content-transfer-apply') && worksheetFactorySource.includes('data-transfer-target="primary"'), 'global receiver plus Worksheet Factory adapter present');
+add('V10.85 content transfer hub connects retained apps', mainSource.includes('ContentTransferHub') && transferHubSource.includes('Exam Studio') && transferHubSource.includes('word2graph') && transferHubSource.includes('textlab-activities') && transferSource.includes('captureCurrentPagePayload'), 'page context can be sent to retained Exam, WordGraph, TextLab, lesson and library targets');
+add('V10.85 incoming content can be applied in retained destination apps', mainSource.includes('TransferInboxBanner') && transferInboxSource.includes('TRANSFER_APPLY_EVENT') && transferHubSource.includes('exam-studio') && transferHubSource.includes('textlab-activities'), 'global receiver and retained destination targets present');
 add('V10.85 AI results can enter connected workflow', universalAiSource.includes('sendResultToApp') && universalAiSource.includes("bes-content-transfer-open") && universalAiSource.includes('Gửi sang…'), 'Brian AI response actions open the transfer hub');
 add('V10.85 autosave keeps bounded version history', autosaveSource.includes('addVersion') && autosaveSource.includes('Lịch sử bản nháp') && versionHistorySource.includes('MAX_VERSIONS = 20') && versionHistorySource.includes('MAX_TOTAL_CHARS'), '20-version history, storage budget and restore controls present');
 add('V10.85 offline sync queue is visible and retried online', mainSource.includes('SyncQueueIndicator') && syncQueueSource.includes('processSyncQueue') && syncQueueIndicatorSource.includes("window.addEventListener('online'") && syncQueueIndicatorSource.includes('Hàng đợi đồng bộ'), 'offline transfer queue, retry and status panel present');
@@ -474,7 +450,7 @@ const aiGovernancePageSource = fs.readFileSync(new URL('../src/pages/AIGovernanc
 add('V10.86 AI Governance is enforced centrally', geminiSource.includes('guardAiRequest') && geminiSource.includes('recordAiRequest') && geminiSource.includes('governance.maxOutputTokens') && aiGovernanceSource.includes('dailyRequestLimit') && aiGovernanceSource.includes('dailyTokenBudget'), 'all callAI consumers share pause, quota and output-token controls');
 add('V10.86 AI usage and audit are account-aware', mainSource.includes('setAiGovernanceUser') && aiGovernanceSource.includes('recordAiRequest') && aiGovernanceSource.includes('recordAiAction') && aiGovernanceSource.includes('actor:'), 'request, error and action events include the active account');
 add('V10.86 controlled AI action plans are available in chat', universalAiSource.includes('openActionPicker') && universalAiSource.includes('prepareAiAction') && universalAiSource.includes('ai-action-confirm') && universalAiSource.includes('Thực hiện'), 'message actions show suggested targets, preview and confirmation');
-add('V10.86 AI actions connect current app, Worksheet, Exam, WordGraph, TextLab and Library', aiActionsSource.includes("'current-app'") && aiActionsSource.includes("'worksheet-factory'") && aiActionsSource.includes("'exam-studio'") && aiActionsSource.includes("'word2graph'") && aiActionsSource.includes("'textlab-activities'") && aiActionsSource.includes('addHistoryEntry'), 'safe cross-app targets and private library save are wired');
+add('V10.86 AI actions connect retained apps', aiActionsSource.includes("'current-app'") && aiActionsSource.includes("'exam-studio'") && aiActionsSource.includes("'word2graph'") && aiActionsSource.includes("'textlab-activities'") && !aiActionsSource.includes("'worksheet-factory'") && aiActionsSource.includes('addHistoryEntry'), 'safe retained cross-app targets and private library save are wired');
 add('V10.86 Admin AI Governance route and navigation are wired', mainSource.includes("currentRoute === 'ai-governance'") && globalNavSource.includes('route:ai-governance') && commandPaletteSource.includes("route: 'ai-governance'") && aiGovernancePageSource.includes("currentUser?.role !== 'admin'"), 'admin-only page is discoverable from More and Command Center');
 add('V10.86 Governance Center exposes controls, profiles and audit report', aiGovernancePageSource.includes('dailyRequestLimit') && aiGovernancePageSource.includes('actionTargets') && aiGovernancePageSource.includes('profiles') && aiGovernancePageSource.includes('exportAiGovernanceReport') && aiGovernancePageSource.includes('readAiAudit'), 'limits, target flags, task profiles, usage and JSON export present');
 add('V10.86 AI governance styling is centered and responsive', cssSource.includes('V10.86.0 — AI Action Engine + Governance Center') && cssSource.includes('.ai-governance-page') && cssSource.includes('.ai-action-panel') && cssSource.includes('@media(max-width:660px)'), 'desktop, dark, mobile and reduced-motion styles present');

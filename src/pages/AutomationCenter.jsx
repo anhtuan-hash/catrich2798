@@ -20,7 +20,7 @@ const TEMPLATES = [
     action_config: { title: 'Tài liệu mới được duyệt' }, requires_approval: false,
   },
   {
-    id: 'tpl-risk', name: 'Tạo bài luyện cho học sinh cần hỗ trợ', description: 'Tạo bản nháp bài luyện khi Learning Intelligence phát hiện rủi ro.',
+    id: 'tpl-risk', name: 'Tạo bài luyện cho học sinh cần hỗ trợ', description: 'Tạo bản nháp bài luyện khi hệ thống nhận tín hiệu học sinh cần hỗ trợ.',
     trigger_type: 'event', trigger_config: { event: 'learner_risk' }, action_type: 'practice_draft',
     action_config: { title: 'Bài luyện thích ứng', message: 'Tạo worksheet 15 câu tập trung vào điểm yếu mới phát hiện.', level: 'B2', item_count: 15 }, requires_approval: true,
   },

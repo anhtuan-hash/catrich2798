@@ -27,9 +27,7 @@ const MODES = [
   ['whole-class', 'Cả lớp'], ['homework', 'Ở nhà'],
 ];
 const TARGETS = [
-  ['worksheet-factory', '#/tool/worksheet-factory', 'Worksheet Factory'],
   ['reading-studio', '#/tool/reading-studio', 'Reading Studio'],
-  ['speaking-studio', '#/tool/speaking-studio', 'Speaking Studio'],
   ['assessment-core', '#/assessment-core', 'Assessment Core'],
   ['exam-studio', '#/tool/exam-studio', 'Exam Studio'],
   ['student-practice', '#/practice', 'Learner Sprint'],
@@ -219,7 +217,6 @@ export default function LessonPack({ currentUser, language = 'vi' }) {
     <section className="lp-workspace">
       <header className="lp-topbar">
         <div><small>V11.1 · CONNECTED TEACHING SUITE</small><h1>{pack?.title || 'Lesson Pack'}</h1></div>
-        <div className="lp-status"><span className={runtime.ready ? 'online' : ''}>{runtime.ready ? '● Cloud ready' : '○ Local mode'}</span><button onClick={saveCloud} disabled={saving}>{saving ? '…' : '☁'} {language === 'vi' ? 'Lưu' : 'Save'}</button><button onClick={() => { window.location.hash = `#/classroom-delivery?pack=${encodeURIComponent(pack?.id || '')}`; }}>⌁ {language === 'vi' ? 'Mở phòng học' : 'Open classroom'}</button><button className="primary" onClick={() => setLive(true)}>▶ {language === 'vi' ? 'Trình chiếu nhanh' : 'Quick presentation'}</button></div>
       </header>
       <nav className="lp-tabs">
         {[['builder', '▦', 'Thiết kế', 'Builder'], ['timeline', '≡', 'Tiến trình', 'Timeline'], ['preview', '◉', 'Xem trước', 'Preview'], ['connections', '↗', 'Liên thông', 'Connections']].map(([id, icon, vi, en]) => <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{icon} {language === 'vi' ? vi : en}</button>)}

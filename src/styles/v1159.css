@@ -164,126 +164,13 @@ html[data-burs="comfortable"] .metro-clean-system .flat-menu-pill small {
   font-size: .8125rem !important;
 }
 
-/* Grammar Builder */
-html[data-burs="comfortable"] .gb-page { font-size: var(--burs-font-body); }
-html[data-burs="comfortable"] .gb-toolbar { gap: .875rem; padding: .75rem .875rem; border-radius: var(--burs-radius-md); }
-html[data-burs="comfortable"] .gb-project-title small,
-html[data-burs="comfortable"] .gb-toolbar-state span,
-html[data-burs="comfortable"] .gb-toolbar-actions button,
-html[data-burs="comfortable"] .gb-kicker,
-html[data-burs="comfortable"] .gb-card-heading > div:nth-child(2) > span,
-html[data-burs="comfortable"] .gb-focus-summary span,
-html[data-burs="comfortable"] .gb-subheading span,
-html[data-burs="comfortable"] .gb-ai-state span,
-html[data-burs="comfortable"] .gb-modal > header span,
-html[data-burs="comfortable"] .gb-ai-context span,
-html[data-burs="comfortable"] .gb-ai-result span,
-html[data-burs="comfortable"] .gb-blueprint-list span,
-html[data-burs="comfortable"] .gb-blueprint-list p,
-html[data-burs="comfortable"] .gb-vault-list p,
-html[data-burs="comfortable"] .gb-vault-list span,
-html[data-burs="comfortable"] .gb-ai-issues span,
-html[data-burs="comfortable"] .gb-ai-issues strong,
-html[data-burs="comfortable"] .gb-item-drawer header span,
-html[data-burs="comfortable"] .gb-version-dock span {
-  font-size: var(--burs-font-meta) !important;
-}
-html[data-burs="comfortable"] .gb-project-title input { font-size: 1.125rem !important; }
-html[data-burs="comfortable"] .gb-toolbar-actions button,
-html[data-burs="comfortable"] .gb-link-btn,
-html[data-burs="comfortable"] .gb-chip-checks button,
-html[data-burs="comfortable"] .gb-domain-hints button,
-html[data-burs="comfortable"] .gb-vault-list button,
-html[data-burs="comfortable"] .gb-version-dock button { font-size: var(--burs-font-caption) !important; }
-html[data-burs="comfortable"] .gb-workflow button { min-height: 4.5rem; padding: .75rem 1rem; }
-html[data-burs="comfortable"] .gb-workflow button span { font-size: var(--burs-font-caption) !important; }
-html[data-burs="comfortable"] .gb-workflow button b { width: 2.25rem; height: 2.25rem; font-size: var(--burs-font-meta) !important; }
-html[data-burs="comfortable"] .gb-card { padding: var(--burs-card-pad) !important; }
-html[data-burs="comfortable"] .gb-card-heading h2 { font-size: var(--burs-font-card-title) !important; }
-html[data-burs="comfortable"] .gb-card-heading p { font-size: var(--burs-font-body) !important; }
-html[data-burs="comfortable"] .gb-mode-grid strong { font-size: var(--burs-font-option) !important; }
-html[data-burs="comfortable"] .gb-mode-grid span,
-html[data-burs="comfortable"] .gb-ai-task-grid small { font-size: var(--burs-font-caption) !important; }
-html[data-burs="comfortable"] .gb-ai-task-grid strong { font-size: 1.0625rem !important; }
-html[data-burs="comfortable"] .gb-field > span,
-html[data-burs="comfortable"] .gb-number-row span,
-html[data-burs="comfortable"] .gb-subheading strong,
-html[data-burs="comfortable"] .gb-difficulty-grid b,
-html[data-burs="comfortable"] .gb-difficulty-grid em { font-size: var(--burs-font-caption) !important; }
-html[data-burs="comfortable"] .gb-field input,
-html[data-burs="comfortable"] .gb-field select,
-html[data-burs="comfortable"] .gb-field textarea,
-html[data-burs="comfortable"] .gb-source-input { font-size: var(--burs-font-body) !important; }
-html[data-burs="comfortable"] .gb-item-card { border-radius: var(--burs-radius-md) !important; padding: 1.25rem !important; }
-html[data-burs="comfortable"] .gb-item-card :where(p, .gb-question-preview) { font-size: var(--burs-font-body-lg) !important; }
-html[data-burs="comfortable"] .gb-ai-task-select strong { font-size: 1rem !important; }
-html[data-burs="comfortable"] .gb-ai-task-select small,
-html[data-burs="comfortable"] .gb-ai-progress p,
-html[data-burs="comfortable"] .gb-ai-issues p,
-html[data-burs="comfortable"] .gb-ai-issues small { font-size: var(--burs-font-meta) !important; }
-html[data-burs="comfortable"] .gb-ai-result pre { font-size: var(--burs-font-body) !important; line-height: 1.7; }
-
-/* Writing Studio */
-html[data-burs="comfortable"] .ws-page { font-size: var(--burs-font-body); }
-html[data-burs="comfortable"] .ws-card { padding: var(--burs-card-pad) !important; }
-html[data-burs="comfortable"] .ws-card-head h2 { font-size: var(--burs-font-card-title) !important; }
-html[data-burs="comfortable"] .ws-card-head p,
-html[data-burs="comfortable"] .ws-field > span,
-html[data-burs="comfortable"] .ws-analysis-note,
-html[data-burs="comfortable"] .ws-learner-summary,
-html[data-burs="comfortable"] .ws-ai-task-grid small { font-size: var(--burs-font-caption) !important; }
-html[data-burs="comfortable"] .ws-choice-grid strong,
-html[data-burs="comfortable"] .ws-ai-task-grid strong { font-size: var(--burs-font-option) !important; }
-html[data-burs="comfortable"] .ws-choice-grid span { font-size: var(--burs-font-caption) !important; }
-html[data-burs="comfortable"] .ws-field input,
-html[data-burs="comfortable"] .ws-field select,
-html[data-burs="comfortable"] .ws-field textarea { font-size: var(--burs-font-body) !important; }
-html[data-burs="comfortable"] .ws-editor-layout { gap: var(--burs-card-gap); }
-html[data-burs="comfortable"] .ws-draft-pane,
-html[data-burs="comfortable"] .ws-review-pane { border-radius: var(--burs-radius-lg) !important; }
-
-/* Pronunciation Coach */
-html[data-burs="comfortable"] .pc-app { font-size: var(--burs-font-body); }
-html[data-burs="comfortable"] .pc-card { padding: var(--burs-card-pad) !important; }
-html[data-burs="comfortable"] .pc-card-head h2 { font-size: var(--burs-font-card-title) !important; }
-html[data-burs="comfortable"] .pc-card-head p,
-html[data-burs="comfortable"] .pc-field > span,
-html[data-burs="comfortable"] .pc-ai-grid small,
-html[data-burs="comfortable"] .pc-level-note,
-html[data-burs="comfortable"] .pc-feedback-copy { font-size: var(--burs-font-caption) !important; }
-html[data-burs="comfortable"] .pc-mode-grid strong,
-html[data-burs="comfortable"] .pc-ai-grid strong { font-size: var(--burs-font-option) !important; }
-html[data-burs="comfortable"] .pc-mode-grid span { font-size: var(--burs-font-caption) !important; }
-html[data-burs="comfortable"] .pc-field input,
-html[data-burs="comfortable"] .pc-field select,
-html[data-burs="comfortable"] .pc-field textarea { font-size: var(--burs-font-body) !important; }
-html[data-burs="comfortable"] .pc-recorder-pane,
-html[data-burs="comfortable"] .pc-performance-pane,
-html[data-burs="comfortable"] .pc-player { border-radius: var(--burs-radius-lg) !important; }
-
-/* Worksheet Factory */
-html[data-burs="comfortable"] .worksheet-factory-page { font-size: var(--burs-font-body); }
-html[data-burs="comfortable"] .wf-panel { padding: var(--burs-card-pad) !important; }
-html[data-burs="comfortable"] .wf-panel-heading h2 { font-size: var(--burs-font-card-title) !important; }
-html[data-burs="comfortable"] .wf-panel-heading p,
-html[data-burs="comfortable"] .wf-kicker,
-html[data-burs="comfortable"] .wf-source-insight,
-html[data-burs="comfortable"] .wf-generation-message,
-html[data-burs="comfortable"] .wf-result-message { font-size: var(--burs-font-caption) !important; }
-html[data-burs="comfortable"] .wf-activity-type-grid strong { font-size: 1rem !important; }
-html[data-burs="comfortable"] .wf-activity-type-grid small,
-html[data-burs="comfortable"] .wf-quality-tags span { font-size: var(--burs-font-meta) !important; }
-html[data-burs="comfortable"] .wf-settings-form :where(input, select, textarea),
-html[data-burs="comfortable"] .wf-input-stack :where(input, select, textarea) { font-size: var(--burs-font-body) !important; }
-
-/* Settings / Provider Hub / AI Governance / AI Workspace */
+/* Settings / Provider Hub / AI Governance */
 html[data-burs="comfortable"] :where(.settings-v47-card, .ai-gov-card) { padding: var(--burs-card-pad) !important; }
 html[data-burs="comfortable"] :where(.settings-v47-card, .ai-gov-card) :where(h2, h3) { font-size: var(--burs-font-section) !important; }
 html[data-burs="comfortable"] :where(.settings-v47-provider-node, .settings-v47-card, .ai-gov-card) :where(p, small, span) { line-height: 1.5; }
 html[data-burs="comfortable"] .settings-v47-provider-node { min-height: 5.25rem; padding: 1rem !important; border-radius: var(--burs-radius-md) !important; }
 html[data-burs="comfortable"] .settings-v47-provider-node strong { font-size: 1rem !important; }
 html[data-burs="comfortable"] .settings-v47-provider-node small { font-size: var(--burs-font-meta) !important; }
-html[data-burs="comfortable"] [data-route="ai-workspace"] :where(.panel, .metro-panel, textarea, pre) { font-size: var(--burs-font-body) !important; }
 html[data-burs="comfortable"] [data-route="ai-governance"] :where(.ai-gov-card p, .ai-gov-card li, .ai-gov-card small) { font-size: var(--burs-font-caption) !important; }
 
 /* Department / Homeroom / Library / admin */

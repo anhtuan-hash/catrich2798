@@ -60,13 +60,7 @@ export default function ContentFactory({ currentUser }) {
   }, [client, localKey, runtime.session]);
 
   useEffect(() => {
-    const transfer = safeJsonParse(sessionStorage.getItem('bes-v1093-ai-to-content-factory'), null);
-    if (transfer) {
-      setProject((current) => ({ ...current, title: transfer.title || current.title, source_text: transfer.sourceText || transfer.aiOutput || '', instruction: transfer.instruction || current.instruction }));
-      sessionStorage.removeItem('bes-v1093-ai-to-content-factory');
-      setNotice('Đã nhận nội dung từ AI Workspace.');
-    }
-    const learningTransfer = safeJsonParse(sessionStorage.getItem('bes-v1094-learning-to-content'), null);
+    const learningTransfer = safeJsonParse(sessionStorage.getItem('bes-automation-practice-to-content'), null);
     if (learningTransfer) {
       setProject((current) => ({
         ...current,
@@ -77,8 +71,8 @@ export default function ContentFactory({ currentUser }) {
         item_count: Number(learningTransfer.itemCount || current.item_count),
         output_type: 'worksheet',
       }));
-      sessionStorage.removeItem('bes-v1094-learning-to-content');
-      setNotice('Đã nhận kế hoạch luyện tập thích ứng từ Learning Intelligence.');
+      sessionStorage.removeItem('bes-automation-practice-to-content');
+      setNotice('Đã nhận bản nháp luyện tập từ Trung tâm tự động hóa.');
     }
     loadProjects();
   }, [loadProjects]);

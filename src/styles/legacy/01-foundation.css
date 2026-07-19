@@ -2609,9 +2609,9 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 .metro-clean-system[data-tool="reading-studio"] :is(.builder-panel,.preview-panel,.reading-card,.reading-output,.ai-copilot-panel){background:#fff9e6!important;border:2.5px solid var(--workspace-line)!important;border-radius:22px!important;box-shadow:5px 5px 0 rgba(23,19,18,.11)!important;}
 
 /* Speaking Studio: cyan conversation window */
-.metro-clean-system[data-tool="speaking-studio"]{--workspace-accent:#00A6A6!important;--workspace-soft:#D8FAFA!important;--workspace-app-ink:#073434!important;}
-.metro-clean-system[data-tool="speaking-studio"] :is(.speaking-grid,.speaking-layout,.builder-grid){gap:18px!important;}
-.metro-clean-system[data-tool="speaking-studio"] :is(.speaking-card,.speaking-output,.speaking-panel,.builder-panel,.preview-panel,.ai-copilot-panel){background:#f3ffff!important;border:2.5px solid var(--workspace-line)!important;border-radius:22px!important;box-shadow:5px 5px 0 rgba(23,19,18,.11)!important;}
+.metro-clean-system[data-tool="retired-speaking-studio"]{--workspace-accent:#00A6A6!important;--workspace-soft:#D8FAFA!important;--workspace-app-ink:#073434!important;}
+.metro-clean-system[data-tool="retired-speaking-studio"] :is(.speaking-grid,.speaking-layout,.builder-grid){gap:18px!important;}
+.metro-clean-system[data-tool="retired-speaking-studio"] :is(.speaking-card,.speaking-output,.speaking-panel,.builder-panel,.preview-panel,.ai-copilot-panel){background:#f3ffff!important;border:2.5px solid var(--workspace-line)!important;border-radius:22px!important;box-shadow:5px 5px 0 rgba(23,19,18,.11)!important;}
 
 /* TextCare Fixer: red document workflow */
 .metro-clean-system[data-tool="textcare"]{--workspace-accent:#B8332A!important;--workspace-soft:#FFE0DD!important;--workspace-app-ink:#35110E!important;}
@@ -2885,7 +2885,7 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
    ========================================================= */
 .metro-clean-system[data-tool="exam-studio"] .page.exam-studio-page,
 .metro-clean-system[data-tool="reading-studio"] .page.reading-studio-page,
-.metro-clean-system[data-tool="speaking-studio"] .page.speaking-page,
+.metro-clean-system[data-tool="retired-speaking-studio"] .page.speaking-page,
 .metro-clean-system[data-tool="word2graph"] .page.wordgraph-page,
 .metro-clean-system[data-tool="textcare"] .page.textcare-page,
 .metro-clean-system[data-tool="student-practice"] .page.practice-page,
@@ -2905,7 +2905,7 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 
 .metro-clean-system[data-tool="exam-studio"] .page.exam-studio-page > *,
 .metro-clean-system[data-tool="reading-studio"] .page.reading-studio-page > *,
-.metro-clean-system[data-tool="speaking-studio"] .page.speaking-page > *,
+.metro-clean-system[data-tool="retired-speaking-studio"] .page.speaking-page > *,
 .metro-clean-system[data-tool="word2graph"] .page.wordgraph-page > *,
 .metro-clean-system[data-tool="textcare"] .page.textcare-page > *,
 .metro-clean-system[data-tool="student-practice"] .page.practice-page > *,
@@ -2917,7 +2917,7 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
   min-width:0!important;
 }
 
-.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) .back-btn{
+.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) .back-btn{
   justify-self:start!important;
   display:inline-flex!important;
   align-items:center!important;
@@ -2932,7 +2932,7 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
   font-weight:900!important;
 }
 
-.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.tool-hero,.route-hero,.games-showcase-hero,.department-showcase-hero-v60,.library-showcase-hero,.admin-showcase-hero,.textcare-compact-hero){
+.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.tool-hero,.route-hero,.games-showcase-hero,.department-showcase-hero-v60,.library-showcase-hero,.admin-showcase-hero,.textcare-compact-hero){
   border:3px solid var(--workspace-line)!important;
   border-radius:28px!important;
   padding:24px!important;
@@ -2944,14 +2944,14 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
   overflow:hidden!important;
 }
 
-.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.tool-hero>div:first-child,.route-hero-copy,.games-hero-copy-v58,.department-hero-copy-v60,.library-hero-copy-v61,.admin-hero-copy-v62){
+.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.tool-hero>div:first-child,.route-hero-copy,.games-hero-copy-v58,.department-hero-copy-v60,.library-hero-copy-v61,.admin-hero-copy-v62){
   border-radius:24px!important;
   border:2px solid color-mix(in srgb,var(--workspace-line) 82%, transparent)!important;
   background:rgba(255,252,246,.72)!important;
   padding:24px!important;
 }
 
-.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.tool-hero h1,.route-hero h1,.games-showcase-hero h1,.department-showcase-hero-v60 h1,.library-showcase-hero h1,.admin-showcase-hero h1,.textcare-compact-hero h1){
+.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.tool-hero h1,.route-hero h1,.games-showcase-hero h1,.department-showcase-hero-v60 h1,.library-showcase-hero h1,.admin-showcase-hero h1,.textcare-compact-hero h1){
   font-size:clamp(2.8rem,4.4vw,5rem)!important;
   line-height:.94!important;
   letter-spacing:-.045em!important;
@@ -2980,7 +2980,7 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 
 
 
-.metro-clean-system[data-tool="word2graph"] .wordgraph-ai-workspace{
+.metro-clean-system[data-tool="word2graph"] .wordgraph-ai-builder{
   display:grid!important;
   grid-template-columns:minmax(400px,.9fr) minmax(0,1.1fr)!important;
   gap:18px!important;
@@ -3002,13 +3002,13 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
   grid-template-columns:repeat(2,minmax(0,1fr))!important;
 }
 
-.metro-clean-system[data-tool="speaking-studio"] .speaking-builder-grid,
-.metro-clean-system[data-tool="speaking-studio"] .speaking-live-grid{
+.metro-clean-system[data-tool="retired-speaking-studio"] .speaking-builder-grid,
+.metro-clean-system[data-tool="retired-speaking-studio"] .speaking-live-grid{
   grid-template-columns:minmax(390px,.9fr) minmax(0,1.1fr)!important;
   gap:18px!important;
 }
-.metro-clean-system[data-tool="speaking-studio"] .feedback-columns,
-.metro-clean-system[data-tool="speaking-studio"] .speaking-feedback-grid{
+.metro-clean-system[data-tool="retired-speaking-studio"] .feedback-columns,
+.metro-clean-system[data-tool="retired-speaking-studio"] .speaking-feedback-grid{
   display:grid!important;
   grid-template-columns:repeat(2,minmax(0,1fr))!important;
   gap:14px!important;
@@ -3085,7 +3085,7 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 
 /* Comfortable desktop reading */
-.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.panel,.metro-panel,.builder-panel,.preview-panel,.exam-work-panel,.inner-panel,.department-work-panel,.department-list-panel,.library-card,.library-panel,.admin-panel,.admin-card,.question-editor-card,.practice-question-card,.result-summary,.game-open-panel){
+.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.panel,.metro-panel,.builder-panel,.preview-panel,.exam-work-panel,.inner-panel,.department-work-panel,.department-list-panel,.library-card,.library-panel,.admin-panel,.admin-card,.question-editor-card,.practice-question-card,.result-summary,.game-open-panel){
   border-radius:24px!important;
 }
 
@@ -3093,10 +3093,10 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
   .metro-clean-system[data-tool="exam-studio"] .exam-stepper,
   .metro-clean-system[data-tool="exam-studio"] .exam-workspace-grid-v947,
   .metro-clean-system[data-tool="exam-studio"] .exam-workspace-grid,
-  .metro-clean-system[data-tool="word2graph"] .wordgraph-ai-workspace,
+  .metro-clean-system[data-tool="word2graph"] .wordgraph-ai-builder,
   .metro-clean-system[data-tool="reading-studio"] .reading-builder-grid,
-  .metro-clean-system[data-tool="speaking-studio"] .speaking-builder-grid,
-  .metro-clean-system[data-tool="speaking-studio"] .speaking-live-grid,
+  .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-builder-grid,
+  .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-live-grid,
   .metro-clean-system[data-tool="textcare"] .textcare-workbench-v23,
   .metro-clean-system[data-tool="student-practice"] .practice-grid,
   .metro-clean-system[data-tool="student-practice"] .practice-results,
@@ -3125,8 +3125,8 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
   .metro-clean-system[data-tool="reading-studio"] .template-example-grid,
   .metro-clean-system[data-tool="word2graph"] .wordgraph-option-grid,
   .metro-clean-system[data-tool="word2graph"] .wordgraph-prompt-bank,
-  .metro-clean-system[data-tool="speaking-studio"] .feedback-columns,
-  .metro-clean-system[data-tool="speaking-studio"] .speaking-feedback-grid,
+  .metro-clean-system[data-tool="retired-speaking-studio"] .feedback-columns,
+  .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-feedback-grid,
   .metro-clean-system[data-route="department"] .feature-suggestion-grid,
   .metro-clean-system[data-route="department"] .games-spotlight-grid,
   .metro-clean-system[data-route="library"] .library-spotlight-grid,
@@ -3135,7 +3135,7 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
   }
   .metro-clean-system[data-tool="exam-studio"] .page.exam-studio-page,
   .metro-clean-system[data-tool="reading-studio"] .page.reading-studio-page,
-  .metro-clean-system[data-tool="speaking-studio"] .page.speaking-page,
+  .metro-clean-system[data-tool="retired-speaking-studio"] .page.speaking-page,
   .metro-clean-system[data-tool="word2graph"] .page.wordgraph-page,
   .metro-clean-system[data-tool="textcare"] .page.textcare-page,
   .metro-clean-system[data-tool="student-practice"] .page.practice-page,

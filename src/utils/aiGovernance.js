@@ -16,7 +16,6 @@ export const DEFAULT_AI_GOVERNANCE = Object.freeze({
   dailyTokenBudget: 180000,
   maxOutputTokens: 2800,
   actionTargets: {
-    'worksheet-factory': true,
     'exam-studio': true,
     'word2graph': true,
     'textlab-activities': true,
@@ -25,7 +24,6 @@ export const DEFAULT_AI_GOVERNANCE = Object.freeze({
   },
   profiles: {
     chat: { label: 'Brian AI Chat', maxOutputTokens: 2400 },
-    worksheet: { label: 'Worksheet Factory', maxOutputTokens: 3200 },
     document: { label: 'Document analysis', maxOutputTokens: 2800 },
     administration: { label: 'School administration', maxOutputTokens: 1800 },
     default: { label: 'Default', maxOutputTokens: 2200 },

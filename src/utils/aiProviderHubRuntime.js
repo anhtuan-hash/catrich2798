@@ -388,7 +388,7 @@ function scanInlineSelectors() {
     let matched = false;
     for (let depth = 0; depth < 6 && container; depth += 1, container = container.parentElement) {
       const text = (container.textContent || '').replace(/\s+/g, ' ').slice(0, 1800);
-      if (/Brian AI|AI Workspace|AI Copilot|Tạo bằng AI|Chạy Brian AI|AI nhận diện|AI hỗ trợ|Generate with AI/i.test(text)) { matched = true; break; }
+      if (/Brian AI|AI Copilot|Tạo bằng AI|Chạy Brian AI|AI nhận diện|AI hỗ trợ|Generate with AI/i.test(text)) { matched = true; break; }
     }
     if (!matched || !container || container.querySelector('.v1157-inline-route-selector, .v1157-model-selector')) continue;
     serial += 1;

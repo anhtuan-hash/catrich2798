@@ -207,11 +207,6 @@ const slugIconMap = {
   textcare: 'textcare',
   'reading-studio': 'reading',
   word2graph: 'wordgraph',
-  'speaking-studio': 'speaking',
-  'worksheet-factory': 'worksheet',
-  'grammar-builder': 'grammar',
-  'writing-studio': 'writing',
-  'pronunciation-coach': 'pronunciation',
   'student-practice': 'sprint',
   'department-workspace': 'department',
   'game-hub': 'game',
@@ -513,12 +508,7 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
     const gameStyle = profile('game-hub');
     const wordStyle = profile('word2graph');
     const readingStyle = profile('reading-studio');
-    const speakingStyle = profile('speaking-studio');
     const textcareStyle = profile('textcare');
-    const worksheetStyle = profile('worksheet-factory');
-    const grammarStyle = profile('grammar-builder');
-    const writingStyle = profile('writing-studio');
-    const pronunciationStyle = profile('pronunciation-coach');
 
     const lesson = makeAppWindow('lesson-plan-ai', {
       variant: 'hero', className: 'flat-window-main', bg: lessonStyle.soft, accent: lessonStyle.accent,
@@ -549,58 +539,19 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
       color: readingStyle.accent, icon: readingStyle.icon, meta: isVi ? 'Đọc hiểu & từ vựng' : 'Reading & vocabulary',
       text: isVi ? 'Bài đọc, câu hỏi và từ vựng.' : 'Readings, questions and vocabulary.',
       motion: { delay: '-6.2s', duration: '9.8s', x: '-8px', y: '-13px', rotate: '-.6deg', depth: .55 },
-    });
-    const speaking = makeAppWindow('speaking-studio', {
-      variant: 'motion', className: 'flat-window-speaking', bg: speakingStyle.soft, accent: speakingStyle.accent,
-      color: speakingStyle.accent, icon: speakingStyle.icon, meta: isVi ? 'Luyện nói & phản xạ' : 'Speaking & fluency',
-      text: isVi ? 'Thẻ nói và phản xạ.' : 'Speaking cards and fluency drills.',
-      motion: { delay: '-4.4s', duration: '7.9s', x: '7px', y: '-12px', rotate: '1deg', depth: .5 },
-    });
-    const textcare = makeAppWindow('textcare', {
+    });    const textcare = makeAppWindow('textcare', {
       variant: 'motion', className: 'flat-window-textcare', bg: textcareStyle.soft, accent: textcareStyle.accent,
       color: textcareStyle.accent, icon: textcareStyle.icon, meta: isVi ? 'Chỉnh sửa tự động' : 'Automatic editing',
       text: isVi ? 'Chuẩn hoá văn bản.' : 'Normalize documents.',
       motion: { delay: '-1.9s', duration: '8.6s', x: '-6px', y: '-10px', rotate: '-1deg', depth: .48 },
-    });
-    const worksheet = makeAppWindow('worksheet-factory', {
-      variant: 'motion', className: 'flat-window-worksheet', bg: worksheetStyle.soft, accent: worksheetStyle.accent,
-      color: worksheetStyle.accent, icon: worksheetStyle.icon, meta: isVi ? 'Phiếu học tập' : 'Worksheets',
-      text: isVi ? 'Tạo worksheet từ file và chủ đề.' : 'Create worksheets from files and topics.',
-      motion: { delay: '-7.1s', duration: '9.4s', x: '-7px', y: '-9px', rotate: '.7deg', depth: .52 },
-    });
-    const grammar = makeAppWindow('grammar-builder', {
-      variant: 'motion', className: 'flat-window-grammar', bg: grammarStyle.soft, accent: grammarStyle.accent,
-      color: grammarStyle.accent, icon: grammarStyle.icon, meta: isVi ? 'Grammar workflow V2' : 'Grammar workflow V2',
-      text: isVi ? 'Tạo, kiểm định và phân phối học liệu.' : 'Build, audit and publish grammar packs.',
-      motion: { delay: '-5.8s', duration: '10.1s', x: '-8px', y: '-9px', rotate: '.6deg', depth: .4 },
-    });
-    const writing = makeAppWindow('writing-studio', {
-      variant: 'motion', className: 'flat-window-writing', bg: writingStyle.soft, accent: writingStyle.accent,
-      color: writingStyle.accent, icon: writingStyle.icon, meta: isVi ? 'Viết & sáng tạo' : 'Writing & creativity',
-      text: isVi ? 'Lập dàn ý, viết và chỉnh sửa.' : 'Plan, draft and revise writing.',
-      motion: { delay: '-4.9s', duration: '9.6s', x: '6px', y: '-10px', rotate: '-.5deg', depth: .46 },
-    });
-    const pronunciation = makeAppWindow('pronunciation-coach', {
-      variant: 'motion', className: 'flat-window-pronunciation', bg: pronunciationStyle.soft, accent: pronunciationStyle.accent,
-      color: pronunciationStyle.accent, icon: pronunciationStyle.icon, meta: isVi ? 'Phát âm chuẩn' : 'Pronunciation',
-      text: isVi ? 'Âm, trọng âm và nối âm.' : 'Sounds, stress and connected speech.',
-      motion: { delay: '-6.7s', duration: '8.4s', x: '8px', y: '-8px', rotate: '.9deg', depth: .42 },
-    });
-    return { lesson, exam, game, word, reading, speaking, textcare, worksheet, grammar, writing, pronunciation };
+    });    return { lesson, exam, game, word, reading, textcare };
   }, [isVi]);
 
   const chips = useMemo(() => {
     const practiceStyle = getAppDesignProfile('student-practice');
     const libraryStyle = getAppDesignProfile('library-hub');
-    const integrationStyle = getAppDesignProfile('english-lesson-integration');
     return [
-      makeAppWindow('english-lesson-integration', {
-        icon: integrationStyle.icon,
-        accent: integrationStyle.accent,
-        color: integrationStyle.accent,
-        text: isVi ? 'Tích hợp NLS, AI và hòa nhập.' : 'Integrate digital, AI and inclusive learning.',
-        meta: isVi ? integrationStyle.styleVi : integrationStyle.style,
-      }),
+      
       windows.lesson,
       windows.exam,
       makeAppWindow('student-practice', {
@@ -617,9 +568,8 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', setLangu
 
 
   const featuredWindows = useMemo(() => [
-    windows.lesson, windows.exam, windows.textcare, windows.speaking,
-    windows.reading, windows.word, windows.worksheet, windows.game,
-    windows.grammar, windows.writing, windows.pronunciation,
+    windows.lesson, windows.exam, windows.textcare,
+    windows.reading, windows.word, windows.game,
   ].filter((item) => canShowId(item.visibilityId)), [windows, visibilitySnapshot, currentUser?.role]);
 
   return (
