@@ -425,3 +425,31 @@ html[data-theme="dark"] .thpt-practice-page .thpt-card-actions {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* THPT_LAYOUT_V3_FIX — ngăn 39 bài bị co ép */
+.thpt-practice-page .thpt-card-grid {
+  gap: 12px !important;
+  padding: 12px !important;
+  max-height: min(68vh, 760px) !important;
+  overflow-y: auto !important;
+  align-items: stretch !important;
+}
+
+.thpt-practice-page .thpt-lesson-card {
+  flex: 0 0 auto !important;
+  min-height: 194px !important;
+  border: 1px solid #c8d3e5 !important;
+  border-radius: 18px !important;
+  box-shadow: 0 3px 12px rgba(35,55,90,.09) !important;
+}
+
+.thpt-practice-page .thpt-card-actions {
+  align-self: stretch !important;
+  align-content: start !important;
+}
+
+@media (max-width: 860px) {
+  .thpt-practice-page .thpt-lesson-card {
+    min-height: 0 !important;
+  }
+}
