@@ -19,11 +19,23 @@ export function regularScoreKey(round, studentId, columnId) {
   return `${Number(round)}:${String(studentId)}:${String(columnId)}`;
 }
 
+export function regularBonusColumnId(round) {
+  return `regular-r${Number(round)}-bonus`;
+}
+
+export function regularBonusKey(round, studentId) {
+  return regularScoreKey(round, studentId, regularBonusColumnId(round));
+}
+
 export function parseRegularScore(value) {
   if (value === '' || value === null || value === undefined) return null;
   const number = Number(String(value).trim().replace(',', '.'));
   if (!Number.isFinite(number) || number < 0 || number > 10) return null;
   return Math.round(number * 100) / 100;
+}
+
+export function parseRegularBonus(value) {
+  return parseRegularScore(value);
 }
 
 function defaultColumns(round) {
@@ -99,25 +111,42 @@ export function buildRegularAssessmentScoreMap(workspace, { subject, period, rou
     const round = getRegularRecordRound(record);
     if (!round) return;
     const roundConfig = normalizedRounds.find((item) => item.round === round);
-    if (!roundConfig) return;
+    if (!roundConfig || !record.studentId) return;
+    const score = parseRegularScore(record.score);
+    if (score === null) return;
+
+    const bonusId = regularBonusColumnId(round);
+    const isBonus = record.regularBonus === true
+      || record.assessmentColumnId === bonusId
+      || safeText(record.assessmentColumnLabel).toLowerCase() === 'điểm cộng';
+    if (isBonus) {
+      map[regularBonusKey(round, record.studentId)] = String(score);
+      return;
+    }
+
     const legacyLabel = legacyColumnLabel(record).toLowerCase();
     const column = roundConfig.columns.find((item) => item.id === record.assessmentColumnId)
       || roundConfig.columns.find((item) => item.label.toLowerCase() === legacyLabel);
-    if (!column || !record.studentId) return;
-    const score = parseRegularScore(record.score);
-    if (score === null) return;
+    if (!column) return;
     map[regularScoreKey(round, record.studentId, column.id)] = String(score);
   });
 
   return map;
 }
 
-export function calculateRegularStudentAverage(scoreMap, round, studentId, columns) {
+export function calculateRegularStudentBaseAverage(scoreMap, round, studentId, columns) {
   const values = (columns || [])
     .map((column) => parseRegularScore(scoreMap?.[regularScoreKey(round, studentId, column.id)]))
     .filter(Number.isFinite);
   if (!values.length) return null;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+export function calculateRegularStudentAverage(scoreMap, round, studentId, columns) {
+  const baseAverage = calculateRegularStudentBaseAverage(scoreMap, round, studentId, columns);
+  if (!Number.isFinite(baseAverage)) return null;
+  const bonus = parseRegularBonus(scoreMap?.[regularBonusKey(round, studentId)]) || 0;
+  return Math.min(10, baseAverage + bonus);
 }
 
 export function calculateRegularRoundClassAverage(scoreMap, round, students, columns) {
@@ -185,6 +214,33 @@ export function saveRegularAssessmentRound(workspace, input = {}) {
         updatedAt: savedAt,
       });
     });
+
+    const bonusId = regularBonusColumnId(round);
+    const bonus = parseRegularBonus(scoreMap[regularBonusKey(round, student.id)]);
+    if (bonus !== null) {
+      const previous = existing.get(`${student.id}:${bonusId}`);
+      nextRecords.push({
+        id: previous?.id || makeId('learning-regular-bonus'),
+        studentId: student.id,
+        subject,
+        period,
+        assessment: `Điểm thường xuyên · Đợt ${round} · Điểm cộng`,
+        assessmentType: 'regular',
+        regularAssessment: true,
+        regularBonus: true,
+        assessmentRound: round,
+        assessmentRoundName: `Đợt ${round}`,
+        assessmentColumnId: bonusId,
+        assessmentColumnLabel: 'Điểm cộng',
+        score: bonus,
+        maxScore: 10,
+        teacherName,
+        note: 'Điểm cộng được cộng sau khi tính trung bình các cột; kết quả tối đa 10.',
+        recordedAt,
+        createdAt: previous?.createdAt || savedAt,
+        updatedAt: savedAt,
+      });
+    }
   });
 
   return {

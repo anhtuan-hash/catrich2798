@@ -4,9 +4,12 @@ import {
   buildRegularAssessmentScoreMap,
   calculateRegularRoundClassAverage,
   calculateRegularStudentAverage,
+  calculateRegularStudentBaseAverage,
   getRegularAssessmentRounds,
   normalizeRegularAssessmentRounds,
+  parseRegularBonus,
   parseRegularScore,
+  regularBonusKey,
   regularScoreKey,
   saveRegularAssessmentRound,
 } from '../utils/regularAssessment.js';
@@ -71,9 +74,18 @@ export default function RegularAssessmentGradebook({ workspace, onCommit, curren
     setMessage('');
   };
 
+  const normalizeScoreInput = (rawValue) => String(rawValue).replace(/[^0-9.,]/g, '').slice(0, 5);
+
   const setScore = (studentId, columnId, rawValue) => {
-    const normalized = String(rawValue).replace(/[^0-9.,]/g, '').slice(0, 5);
+    const normalized = normalizeScoreInput(rawValue);
     setScoreMap((current) => ({ ...current, [regularScoreKey(activeRound, studentId, columnId)]: normalized }));
+    setDirty(true);
+    setMessage('');
+  };
+
+  const setBonus = (studentId, rawValue) => {
+    const normalized = normalizeScoreInput(rawValue);
+    setScoreMap((current) => ({ ...current, [regularBonusKey(activeRound, studentId)]: normalized }));
     setDirty(true);
     setMessage('');
   };
@@ -126,6 +138,12 @@ export default function RegularAssessmentGradebook({ workspace, onCommit, curren
           }
         });
       });
+      students.forEach((student) => {
+        const rawBonus = scoreMap[regularBonusKey(round.round, student.id)];
+        if (rawBonus !== '' && rawBonus !== undefined && rawBonus !== null && parseRegularBonus(rawBonus) === null) {
+          invalid.push(`${student.fullName} · ${round.name} · Điểm cộng`);
+        }
+      });
     });
     return invalid;
   };
@@ -156,7 +174,11 @@ export default function RegularAssessmentGradebook({ workspace, onCommit, curren
       });
       const recordCount = roundNumbers.reduce((sum, round) => {
         const config = rounds.find((item) => item.round === round);
-        return sum + students.reduce((studentSum, student) => studentSum + config.columns.filter((column) => parseRegularScore(scoreMap[regularScoreKey(round, student.id, column.id)]) !== null).length, 0);
+        return sum + students.reduce((studentSum, student) => {
+          const scoreCount = config.columns.filter((column) => parseRegularScore(scoreMap[regularScoreKey(round, student.id, column.id)]) !== null).length;
+          const bonusCount = parseRegularBonus(scoreMap[regularBonusKey(round, student.id)]) !== null ? 1 : 0;
+          return studentSum + scoreCount + bonusCount;
+        }, 0);
       }, 0);
       await onCommit(next, `Đã lưu ${recordCount} cột điểm thường xuyên cho ${roundNumbers.length === 4 ? 'cả 4 đợt' : `Đợt ${roundNumbers[0]}`}.`);
       setDirty(false);
@@ -183,13 +205,20 @@ export default function RegularAssessmentGradebook({ workspace, onCommit, curren
     return [column.id, values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null];
   })), [currentRound.columns, students, scoreMap, activeRound]);
 
+  const bonusAverage = useMemo(() => {
+    const values = students
+      .map((student) => parseRegularBonus(scoreMap[regularBonusKey(activeRound, student.id)]))
+      .filter(Number.isFinite);
+    return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+  }, [students, scoreMap, activeRound]);
+
   return (
     <section className="hr-panel hr-regular-gradebook">
       <div className="hr-panel-head hr-regular-gradebook-head">
         <div>
           <small>Sổ điểm toàn lớp</small>
           <h2>Điểm kiểm tra thường xuyên · 4 đợt</h2>
-          <p>Mỗi đợt gồm nhiều cột; điểm đợt là trung bình cộng của các cột có dữ liệu.</p>
+          <p>Mỗi đợt gồm nhiều cột và một cột điểm cộng. Điểm thường xuyên = trung bình các cột + điểm cộng, tối đa 10.</p>
         </div>
         <div className="hr-head-actions">
           <button type="button" className="secondary" onClick={togglePeriodLock}>{isLocked ? 'Mở khóa học kỳ' : 'Khóa học kỳ'}</button>
@@ -208,12 +237,12 @@ export default function RegularAssessmentGradebook({ workspace, onCommit, curren
       <div className="hr-regular-round-tabs" role="tablist" aria-label="Bốn đợt kiểm tra thường xuyên">
         {rounds.map((round) => {
           const average = roundAverages.find((item) => item.round === round.round)?.average;
-          return <button key={round.round} type="button" role="tab" aria-selected={activeRound === round.round} className={activeRound === round.round ? 'active' : ''} onClick={() => setActiveRound(round.round)}><span>{round.name}</span><small>{round.columns.length} cột · TB {formatAverage(average)}</small></button>;
+          return <button key={round.round} type="button" role="tab" aria-selected={activeRound === round.round} className={activeRound === round.round ? 'active' : ''} onClick={() => setActiveRound(round.round)}><span>{round.name}</span><small>{round.columns.length} cột + điểm cộng · Điểm TX {formatAverage(average)}</small></button>;
         })}
       </div>
 
       <div className="hr-regular-table-toolbar">
-        <div><strong>{currentRound.name}</strong><span>{students.length} học sinh · {currentRound.columns.length} cột điểm</span></div>
+        <div><strong>{currentRound.name}</strong><span>{students.length} học sinh · {currentRound.columns.length} cột điểm + 1 cột điểm cộng</span></div>
         <button type="button" className="secondary" disabled={isLocked} onClick={addColumn}>＋ Thêm cột điểm</button>
       </div>
 
@@ -228,11 +257,17 @@ export default function RegularAssessmentGradebook({ workspace, onCommit, curren
               <th className="sticky-col code">Mã HS</th>
               <th className="sticky-col name">Họ và tên</th>
               {currentRound.columns.map((column) => <th key={column.id} className="score-column"><div><input value={column.label} disabled={isLocked} onChange={(event) => updateColumnLabel(column.id, event.target.value)} aria-label={`Tên ${column.label}`} />{currentRound.columns.length > 1 ? <button type="button" disabled={isLocked} onClick={() => removeColumn(column.id)} title="Xóa cột">×</button> : null}</div></th>)}
-              <th className="average-column">TB {currentRound.name}</th>
+              <th className="bonus-column">Điểm cộng</th>
+              <th className="average-column">Điểm TX<br /><small>TB cột + cộng · tối đa 10</small></th>
             </tr>
           </thead>
           <tbody>
             {students.map((student, index) => {
+              const baseAverage = calculateRegularStudentBaseAverage(scoreMap, activeRound, student.id, currentRound.columns);
+              const bonusKey = regularBonusKey(activeRound, student.id);
+              const bonusValue = scoreMap[bonusKey] ?? '';
+              const bonus = parseRegularBonus(bonusValue);
+              const bonusInvalid = bonusValue !== '' && bonus === null;
               const average = calculateRegularStudentAverage(scoreMap, activeRound, student.id, currentRound.columns);
               return <tr key={student.id}>
                 <td className="sticky-col index">{index + 1}</td>
@@ -244,7 +279,8 @@ export default function RegularAssessmentGradebook({ workspace, onCommit, curren
                   const invalid = value !== '' && parseRegularScore(value) === null;
                   return <td key={column.id} className={invalid ? 'invalid' : ''}><input type="text" inputMode="decimal" disabled={isLocked} value={value} onChange={(event) => setScore(student.id, column.id, event.target.value)} aria-label={`${student.fullName} · ${column.label}`} placeholder="—" /></td>;
                 })}
-                <td className="average-cell"><strong>{formatAverage(average)}</strong><small>{Number.isFinite(average) ? '/10' : ''}</small></td>
+                <td className={`bonus-cell ${bonusInvalid ? 'invalid' : ''}`}><input type="text" inputMode="decimal" disabled={isLocked} value={bonusValue} onChange={(event) => setBonus(student.id, event.target.value)} aria-label={`${student.fullName} · Điểm cộng ${currentRound.name}`} placeholder="0" /></td>
+                <td className="average-cell"><strong>{formatAverage(average)}</strong><small>{Number.isFinite(average) ? `/10 · ${formatAverage(baseAverage)} + ${formatAverage(bonus || 0)}` : ''}</small></td>
               </tr>;
             })}
           </tbody>
@@ -252,6 +288,7 @@ export default function RegularAssessmentGradebook({ workspace, onCommit, curren
             <tr>
               <th className="sticky-col index" colSpan="3">Trung bình lớp</th>
               {currentRound.columns.map((column) => <th key={column.id}>{formatAverage(columnAverages[column.id])}</th>)}
+              <th className="bonus-cell">{formatAverage(bonusAverage)}</th>
               <th>{formatAverage(roundAverages.find((item) => item.round === activeRound)?.average)}</th>
             </tr>
           </tfoot>
@@ -259,7 +296,7 @@ export default function RegularAssessmentGradebook({ workspace, onCommit, curren
       </div>
 
       {!students.length ? <div className="hr-regular-empty"><span>＋</span><h3>Chưa có học sinh</h3><p>Hãy thêm danh sách lớp trước khi nhập điểm.</p></div> : null}
-      <p className="hr-security-note">Ô trống không được tính vào trung bình. Xóa nội dung một ô rồi lưu sẽ xóa điểm tương ứng. Điểm hợp lệ từ 0 đến 10.</p>
+      <p className="hr-security-note">Công thức: Điểm thường xuyên = min(10, trung bình các cột có dữ liệu + điểm cộng). Ô trống không tính vào trung bình; điểm và điểm cộng hợp lệ từ 0 đến 10.</p>
     </section>
   );
 }
