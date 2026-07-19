@@ -17,6 +17,7 @@ import {
   subscribeApprovedThptResources,
 } from '../utils/thptResourceBridge.js';
 import './THPTPracticeHub.css';
+import './THPTPracticeHubLayoutV2.css';
 
 const EMPTY_DRAFT = { title: '', description: '', topic: '', grade: '12', cefr: 'B2–C1', visibility: 'department', status: 'approved' };
 const STATUS_LABELS = {
