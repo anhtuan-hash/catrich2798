@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { readWorkbookSafe } from '../utils/safeSpreadsheet.js';
+import RegularAssessmentGradebook from './RegularAssessmentGradebook.jsx';
 import { callAI } from '../utils/gemini.js';
 import {
   addAnnouncement,
@@ -168,20 +169,7 @@ export function LearningAnalyticsTab({ workspace, onCommit, hasApiKey, currentUs
       <article className="hr-panel"><div className="hr-panel-head"><div><small>Excel / CSV</small><h2>Nhập bảng điểm hàng loạt</h2></div><div className="hr-head-actions"><button type="button" className="secondary" onClick={() => fileRef.current?.click()}>Chọn file</button><button type="button" className="secondary" disabled={!hasApiKey || !importState.headers.length} onClick={aiMapColumns}>AI nhận diện cột</button><button type="button" className="primary" disabled={!importState.rows.length || !importState.mapping.score} onClick={importScores}>Nhập dữ liệu</button></div></div><input ref={fileRef} type="file" hidden accept=".xlsx,.xls,.csv" onChange={(e) => readScoreFile(e.target.files?.[0])} />{importState.fileName ? <p><b>{importState.fileName}</b> · {importState.rows.length} dòng</p> : <p className="hr-muted">Hệ thống tự nhận diện mã học sinh, họ tên, môn, loại điểm, điểm và thang điểm.</p>}{importState.error ? <p className="hr-error">{importState.error}</p> : null}{importState.headers.length ? <div className="hr-column-map">{Object.entries({ studentCode:'Mã HS',studentName:'Họ tên',subject:'Môn',period:'Học kỳ',assessment:'Loại điểm',score:'Điểm',maxScore:'Thang điểm',recordedAt:'Ngày' }).map(([key,label]) => <label key={key}><span>{label}</span><select value={importState.mapping[key] || ''} onChange={(e) => setImportState((current) => ({ ...current, mapping: { ...current.mapping, [key]: e.target.value } }))}><option value="">Không dùng</option>{importState.headers.map((header) => <option key={header}>{header}</option>)}</select></label>)}</div> : null}</article>
     </section>
 
-    <section className="hr-panel">
-      <div className="hr-panel-head"><div><small>Dữ liệu học tập</small><h2>Thêm kết quả đánh giá</h2></div><div className="hr-head-actions"><button type="button" className="secondary" onClick={togglePeriodLock}>{isPeriodLocked ? 'Mở khóa học kỳ' : 'Khóa học kỳ'}</button><button type="button" className="primary" disabled={isPeriodLocked} onClick={saveRecord}>{isPeriodLocked ? 'Đã khóa' : 'Lưu kết quả'}</button></div></div>
-      <div className="hr-form-grid four">
-        <label><span>Học sinh</span><select value={draft.studentId} onChange={(e) => setDraft({ ...draft, studentId: e.target.value })}><option value="">Chọn học sinh</option>{workspace.students.filter((item) => item.active !== false).map((student) => <option key={student.id} value={student.id}>{student.code ? `${student.code} · ` : ''}{student.fullName}</option>)}</select></label>
-        <label><span>Môn học</span><input value={draft.subject} onChange={(e) => setDraft({ ...draft, subject: e.target.value })} /></label>
-        <label><span>Giai đoạn</span><input value={draft.period} onChange={(e) => setDraft({ ...draft, period: e.target.value })} /></label>
-        <label><span>Loại đánh giá</span><input value={draft.assessment} onChange={(e) => setDraft({ ...draft, assessment: e.target.value })} /></label>
-        <label><span>Điểm</span><input type="number" step="0.1" min="0" value={draft.score} onChange={(e) => setDraft({ ...draft, score: e.target.value })} /></label>
-        <label><span>Thang điểm</span><input type="number" min="1" value={draft.maxScore} onChange={(e) => setDraft({ ...draft, maxScore: e.target.value })} /></label>
-        <label><span>Ngày ghi nhận</span><input type="date" value={draft.recordedAt} onChange={(e) => setDraft({ ...draft, recordedAt: e.target.value })} /></label>
-        <label><span>Giáo viên bộ môn</span><input value={draft.teacherName} onChange={(e) => setDraft({ ...draft, teacherName: e.target.value })} /></label>
-      </div>
-      <label className="hr-wide-field"><span>Ghi chú</span><textarea value={draft.note} onChange={(e) => setDraft({ ...draft, note: e.target.value })} /></label>
-    </section>
+    <RegularAssessmentGradebook workspace={workspace} onCommit={onCommit} currentUser={currentUser} />
 
     <section className="hr-panel">
       <div className="hr-panel-head"><div><small>Phân tích nâng cao</small><h2>Bản đồ nguy cơ và xu hướng</h2></div><div className="hr-head-actions"><select value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)}><option value="all">Tất cả môn</option>{subjects.map((subject) => <option key={subject}>{subject}</option>)}</select><button type="button" className="secondary" disabled={!hasApiKey || !analytics.length} onClick={generateAnalysis}>AI phân tích lớp</button></div></div>
