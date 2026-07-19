@@ -27,12 +27,17 @@ const copy = {
     rejected: 'Cần chỉnh sửa',
     formTitleLeader: 'Thêm ứng dụng vào launcher',
     formTitleTeacher: 'Gửi ứng dụng cho TTCM duyệt',
+    formSubtitleLeader: 'Lưu một website dạy học và mở ngay bên trong Brian.',
+    formSubtitleTeacher: 'Gửi đường dẫn để TTCM kiểm tra trước khi xuất hiện trong launcher.',
     editTitle: 'Chỉnh sửa ứng dụng',
     name: 'Tên ứng dụng',
     namePlaceholder: 'Ví dụ: Quizizz, AI Exam Tools…',
     url: 'Đường dẫn website',
     urlPlaceholder: 'https://example.com',
     accent: 'Màu nhận diện',
+    previewCard: 'Xem trước thẻ ứng dụng',
+    previewName: 'Tên ứng dụng',
+    previewHost: 'Đường dẫn website',
     cancel: 'Huỷ',
     saveRun: 'Lưu và chạy ngay',
     submit: 'Gửi TTCM duyệt',
@@ -77,12 +82,17 @@ const copy = {
     rejected: 'Needs changes',
     formTitleLeader: 'Add an app to the launcher',
     formTitleTeacher: 'Submit an app for leader review',
+    formSubtitleLeader: 'Save a teaching website and open it directly inside Brian.',
+    formSubtitleTeacher: 'Send a link for leader review before it appears in the launcher.',
     editTitle: 'Edit app',
     name: 'App name',
     namePlaceholder: 'Example: Quizizz, AI Exam Tools…',
     url: 'Website URL',
     urlPlaceholder: 'https://example.com',
     accent: 'Accent color',
+    previewCard: 'App card preview',
+    previewName: 'App name',
+    previewHost: 'Website address',
     cancel: 'Cancel',
     saveRun: 'Save and run',
     submit: 'Submit for review',
@@ -270,18 +280,72 @@ function AppForm({ language, leader, editing, busy, onCancel, onSubmit }) {
     onSubmit?.({ ...draft, name: draft.name.trim(), url });
   };
 
+  const previewName = draft.name.trim() || t.previewName;
+  const previewHost = normalizeCustomAppUrl(draft.url) ? hostOf(normalizeCustomAppUrl(draft.url)) : t.previewHost;
+
   return (
     <form className="launcher-link-form" onSubmit={submit}>
-      <header>
-        <div><small>{leader ? 'TTCM' : language === 'vi' ? 'GIÁO VIÊN' : 'TEACHER'}</small><h3>{editing ? t.editTitle : leader ? t.formTitleLeader : t.formTitleTeacher}</h3></div>
-        <button type="button" onClick={onCancel} aria-label={t.cancel}>×</button>
+      <header className="launcher-link-form-header">
+        <div className="launcher-link-form-heading">
+          <small><i>＋</i>{leader ? 'TTCM' : language === 'vi' ? 'GIÁO VIÊN' : 'TEACHER'}</small>
+          <h3>{editing ? t.editTitle : leader ? t.formTitleLeader : t.formTitleTeacher}</h3>
+          <p>{leader ? t.formSubtitleLeader : t.formSubtitleTeacher}</p>
+        </div>
+        <button type="button" className="launcher-link-modal-close" onClick={onCancel} aria-label={t.cancel}>×</button>
       </header>
-      <label><span>{t.name}</span><input autoFocus value={draft.name} maxLength={80} onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))} placeholder={t.namePlaceholder} /></label>
-      <label><span>{t.url}</span><input type="url" inputMode="url" value={draft.url} onChange={(event) => setDraft((current) => ({ ...current, url: event.target.value }))} placeholder={t.urlPlaceholder} /></label>
-      <label className="launcher-link-color-field"><span>{t.accent}</span><input type="color" value={draft.accent} onChange={(event) => setDraft((current) => ({ ...current, accent: event.target.value }))} /><b style={{ '--preview-accent': draft.accent }}>{initials(draft.name)}</b></label>
-      <p className="launcher-link-security">⌁ {t.security}</p>
+
+      <div className="launcher-link-form-content">
+        <div className="launcher-link-form-fields">
+          <label className="launcher-link-field">
+            <span>{t.name}</span>
+            <input autoFocus value={draft.name} maxLength={80} onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))} placeholder={t.namePlaceholder} />
+          </label>
+
+          <label className="launcher-link-field">
+            <span>{t.url}</span>
+            <input type="url" inputMode="url" value={draft.url} onChange={(event) => setDraft((current) => ({ ...current, url: event.target.value }))} placeholder={t.urlPlaceholder} />
+          </label>
+
+          <div className="launcher-link-color-row">
+            <label className="launcher-link-color-field">
+              <span>{t.accent}</span>
+              <span className="launcher-link-color-control">
+                <input type="color" value={draft.accent} onChange={(event) => setDraft((current) => ({ ...current, accent: event.target.value }))} />
+                <b>{draft.accent.toUpperCase()}</b>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <aside className="launcher-link-form-preview" aria-label={t.previewCard}>
+          <small>{t.previewCard}</small>
+          <div className="launcher-link-preview-card" style={{ '--preview-accent': draft.accent }}>
+            <i>{initials(draft.name)}</i>
+            <span>
+              <strong>{previewName}</strong>
+              <em>{previewHost}</em>
+            </span>
+            <b>↗</b>
+          </div>
+          <div className="launcher-link-preview-swatches" aria-hidden="true">
+            <span style={{ '--swatch': draft.accent }} />
+            <span style={{ '--swatch': '#17233a' }} />
+            <span style={{ '--swatch': '#f3f7fc' }} />
+          </div>
+        </aside>
+      </div>
+
+      <div className="launcher-link-form-note">
+        <i>⌁</i>
+        <span>{t.security}</span>
+      </div>
+
       {error ? <p className="launcher-link-form-error">{error}</p> : null}
-      <footer><button type="button" onClick={onCancel}>{t.cancel}</button><button type="submit" className="primary" disabled={busy}>{editing ? t.save : leader ? t.saveRun : t.submit}</button></footer>
+
+      <footer className="launcher-link-form-footer">
+        <button type="button" onClick={onCancel}>{t.cancel}</button>
+        <button type="submit" className="primary" disabled={busy}>{editing ? t.save : leader ? t.saveRun : t.submit}</button>
+      </footer>
     </form>
   );
 }

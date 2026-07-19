@@ -34,6 +34,11 @@ add('Escape exits fullscreen before closing app', hub.includes('if (fullscreenEl
 add('Fullscreen CSS state exists', css.includes(':fullscreen') && css.includes('.launcher-link-frame-actions'));
 add('No new-tab embed mode is created', store.includes("embed_mode: 'iframe'") && !store.includes("embed_mode: 'newtab'"));
 add('Responsive UI CSS exists', css.includes('.launcher-link-hub') && css.includes('.launcher-link-frame-shell') && css.includes('@media(max-width:720px)'));
+add('Polished form header exists', hub.includes('launcher-link-form-heading') && hub.includes('formSubtitleLeader'));
+add('Live app-card preview exists', hub.includes('launcher-link-preview-card') && hub.includes('previewHost'));
+add('Form uses responsive two-zone layout', css.includes('grid-template-columns:minmax(0,1fr) 235px') && css.includes('.launcher-link-form-preview'));
+add('Form footer is visually separated', css.includes('.launcher-link-form-footer') && css.includes('border-top:1px solid #d8e0ea'));
+add('Large text and mobile modal stay usable', css.includes('@media(max-width:860px)') && css.includes('grid-template-columns:1fr'));
 add('Existing custom_game_platforms table reused', store.includes("CUSTOM_APPS_TABLE = 'custom_game_platforms'"));
 
 for (const item of checks) console.log(`${item.pass ? '✓' : '✗'} ${item.name}`);
