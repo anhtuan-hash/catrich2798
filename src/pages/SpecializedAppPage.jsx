@@ -1365,7 +1365,7 @@ English-only correction: Regenerate the exam in English only. No Vietnamese stem
         <div className="exam-v96-stat-grid exam-v35-action-grid">
           <button type="button" className="exam-v96-stat-card exam-v35-action-card" onClick={() => setStatus(hasApiKey ? 'AI ready' : 'Optional AI')}>
             <span className="exam-v35-action-icon is-ai">✦</span>
-            <span className="exam-v35-action-copy"><strong>{hasApiKey ? (language === 'vi' ? 'AI sẵn sàng' : 'AI ready') : (language === 'vi' ? 'AI tuỳ chọn' : 'Optional AI')}</strong><small>{hasApiKey ? 'OpenAI / Gemini' : (language === 'vi' ? 'Có thể cấu hình sau' : 'Can be configured later')}</small></span>
+            <span className="exam-v35-action-copy"><strong>{hasApiKey ? (language === 'vi' ? 'Hệ thống sẵn sàng' : 'AI ready') : (language === 'vi' ? 'AI tuỳ chọn' : 'Optional AI')}</strong><small>{hasApiKey ? 'OpenAI / Gemini' : (language === 'vi' ? 'Có thể cấu hình sau' : 'Can be configured later')}</small></span>
             <em className="exam-v35-ready-pill">{hasApiKey ? 'Sẵn sàng' : 'Tuỳ chọn'}</em>
             <i className="exam-v35-action-arrow">›</i>
           </button>

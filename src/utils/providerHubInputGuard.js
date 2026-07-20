@@ -1,1 +1,2 @@
-export function installProviderHubInputGuard() { return () => {}; }
+export function isProviderApiKeyInput() { return false; }
+export function installProviderHubInputGuard() {}

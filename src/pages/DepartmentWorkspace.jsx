@@ -384,7 +384,7 @@ const DEPARTMENT_FEATURE_SUGGESTIONS = [
     titleVi: 'Bộ mẫu văn bản hành chính theo trường',
     title: 'School administrative document templates',
     categoryVi: 'AI TTCM',
-    category: 'AI Copilot',
+    category: 'Hỗ trợ',
     priorityVi: 'Cao',
     priority: 'High',
     effortVi: 'Trung bình',
@@ -1174,7 +1174,7 @@ function getDepartmentAIPrompt(actionId, data, submissions, extraInstruction, la
   const action = DEPARTMENT_AI_ACTIONS.find((item) => item.id === actionId) || DEPARTMENT_AI_ACTIONS[0];
   const context = buildDepartmentContext(data, submissions);
   const aiSource = limitAiSourceText(sourceText);
-  const common = `Bạn là AI Copilot cho TTCM tổ Tiếng Anh THPT tại Việt Nam. Viết bằng tiếng Việt, văn phong rõ ràng, hành chính nhưng không dài dòng. Luôn bám dữ liệu, không bịa số liệu. Nếu dữ liệu thiếu, ghi rõ \"chưa có dữ liệu\" và đề xuất việc cần nhập thêm.\n\nDữ liệu tổ chuyên môn:\n${JSON.stringify(context, null, 2)}\n\nYêu cầu thêm của TTCM:\n${extraInstruction || '(không có)'}\n\nVăn bản/tệp TTCM cung cấp thêm:\n${aiSource ? `Nguồn: ${sourceName || 'văn bản dán trực tiếp'}\n${aiSource}` : '(không có)'}`;
+  const common = `Bạn là Hỗ trợ cho TTCM tổ Tiếng Anh THPT tại Việt Nam. Viết bằng tiếng Việt, văn phong rõ ràng, hành chính nhưng không dài dòng. Luôn bám dữ liệu, không bịa số liệu. Nếu dữ liệu thiếu, ghi rõ \"chưa có dữ liệu\" và đề xuất việc cần nhập thêm.\n\nDữ liệu tổ chuyên môn:\n${JSON.stringify(context, null, 2)}\n\nYêu cầu thêm của TTCM:\n${extraInstruction || '(không có)'}\n\nVăn bản/tệp TTCM cung cấp thêm:\n${aiSource ? `Nguồn: ${sourceName || 'văn bản dán trực tiếp'}\n${aiSource}` : '(không có)'}`;
   const actionPrompts = {
     leaderBrief: 'Hãy tạo bản TÓM TẮT ĐIỀU HÀNH cho TTCM gồm: 1) tình hình chung, 2) việc cần xử lý ngay, 3) rủi ro, 4) hồ sơ cần duyệt, 5) đề xuất 5 hành động trong 7 ngày tới. Có bullet rõ ràng.',
     monthlyPlan: 'Hãy soạn KẾ HOẠCH THÁNG/TUẦN của tổ Tiếng Anh. Cấu trúc: mục tiêu, nhiệm vụ trọng tâm, phân công, deadline, minh chứng cần nộp, cách theo dõi. Có bảng dạng markdown.',
@@ -1283,7 +1283,7 @@ function DepartmentHeroIllustration({ language }) {
 
       <div className="dept-v40-ai-card">
         <div className="robot-face"><i /><i /><b /></div>
-        <strong>AI Copilot</strong>
+        <strong>Hỗ trợ</strong>
       </div>
     </div>
   );
@@ -1789,7 +1789,7 @@ export default function DepartmentWorkspace({ language, currentUser, hasApiKey }
   };
 
   const buildAIReport = async () => {
-    if (!hasApiKey) return showToast(language === 'vi' ? 'Mở Cài đặt → Kiểm tra kết nối OpenRouter Gateway trước khi tạo báo cáo AI.' : 'Configure AI settings before generating an AI report.');
+    if (!hasApiKey) return showToast(language === 'vi' ? 'Mở Cài đặt → Kiểm tra kết nối Dịch vụ đã gỡ trước khi tạo báo cáo AI.' : 'Configure AI settings before generating an AI report.');
     setAiLoading(true);
     try {
       const reportTypeVi = {
@@ -1857,7 +1857,7 @@ export default function DepartmentWorkspace({ language, currentUser, hasApiKey }
 Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có thể ban hành trong tổ chuyên môn.`
       : defaults.instruction);
     setActiveTab('aiCopilot');
-    showToast(language === 'vi' ? 'Đã chuyển tài liệu/yêu cầu sang AI TTCM.' : 'Sent source and instruction to AI Copilot.');
+    showToast(language === 'vi' ? 'Đã chuyển tài liệu/yêu cầu sang AI TTCM.' : 'Sent source and instruction to Hỗ trợ.');
   };
 
   const handleModuleAssistFile = async (event) => {
@@ -1875,7 +1875,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
   };
 
   const runDepartmentAI = async () => {
-    if (!hasApiKey) return showToast(language === 'vi' ? 'Mở Cài đặt → Kiểm tra kết nối OpenRouter Gateway trước khi dùng AI Copilot.' : 'Configure AI settings before using AI Copilot.');
+    if (!hasApiKey) return showToast(language === 'vi' ? 'Mở Cài đặt → Kiểm tra kết nối Dịch vụ đã gỡ trước khi dùng Hỗ trợ.' : 'Configure AI settings before using Hỗ trợ.');
     setAiLoading(true);
     try {
       const prompt = getDepartmentAIPrompt(aiAction, data, submissions, aiInstruction, language, aiSourceText, aiSourceName);
@@ -1885,7 +1885,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
         temperature: 0.42,
       });
       setAiOutput(text);
-      showToast(language === 'vi' ? 'AI đã tạo nội dung hỗ trợ TTCM.' : 'AI Copilot output generated.');
+      showToast(language === 'vi' ? 'AI đã tạo nội dung hỗ trợ TTCM.' : 'Hỗ trợ output generated.');
     } catch (error) {
       showToast(error?.message || (language === 'vi' ? 'Không tạo được nội dung AI.' : 'AI generation failed.'));
     } finally {
@@ -1955,7 +1955,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
   const polishAdministrativeDocument = async () => {
     const source = String(adminDocOutput || aiOutput || aiSourceText || '').trim();
     if (!source) return showToast(language === 'vi' ? 'Chưa có nội dung để chuẩn hóa bằng AI.' : 'No content to polish with AI.');
-    if (!hasApiKey) return showToast(language === 'vi' ? 'Mở Cài đặt → Kiểm tra kết nối OpenRouter Gateway trước khi chuẩn hóa văn bản.' : 'Configure AI settings before polishing the document.');
+    if (!hasApiKey) return showToast(language === 'vi' ? 'Mở Cài đặt → Kiểm tra kết nối Dịch vụ đã gỡ trước khi chuẩn hóa văn bản.' : 'Configure AI settings before polishing the document.');
     setAiLoading(true);
     try {
       const prompt = `Bạn là TTCM/ thư ký tổ chuyên môn tại trường THPT Việt Nam. Hãy chuẩn hóa văn bản hành chính sau cho trang trọng, đúng thể thức cơ bản, có đề mục rõ, không bịa số liệu. Loại văn bản: ${adminDocDraft.type}. Đơn vị: ${adminDocDraft.agency} - ${adminDocDraft.department}. Người ký: ${adminDocDraft.signer} (${adminDocDraft.position}).\n\nNội dung cần chuẩn hóa:\n${source}`;
@@ -2310,12 +2310,12 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
             <span className="department-v40-tag">English Department Workspace</span>
             <h1>{language === 'vi' ? 'Tổ chuyên môn Tiếng Anh' : 'English Department Workspace'}</h1>
             <p>{language === 'vi'
-              ? 'Quản lý kế hoạch, lịch công tác, giao việc, hồ sơ minh chứng, nghiên cứu bài học, kiểm tra nội bộ và báo cáo với AI hỗ trợ TTCM.'
+              ? 'Quản lý kế hoạch, lịch công tác, giao việc, hồ sơ minh chứng, nghiên cứu bài học, kiểm tra nội bộ và báo cáo với Hỗ trợ TTCM.'
               : 'Manage plans, work schedules, assignments, evidence, lesson study, internal review and reports with AI support for department leaders.'}</p>
             <div className="department-v40-hero-actions">
               <button className="primary dept-action-teal" onClick={() => canPublish ? setActiveTab('plans') : document.querySelector('.department-teacher-workspace-v64')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>＋ {canPublish ? (language === 'vi' ? 'Tạo kế hoạch' : 'Create plan') : (language === 'vi' ? 'Xem việc được giao' : 'View assignments')}</button>
               <button className="primary dept-action-blue" onClick={() => canPublish ? setActiveTab('submissions') : document.querySelector('.department-teacher-workspace-v64')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>◔ {language === 'vi' ? 'Giao việc / duyệt hồ sơ' : 'Assign / review'}</button>
-              <button className="primary dept-action-coral" onClick={() => setActiveTab('aiCopilot')}>✦ {language === 'vi' ? 'AI hỗ trợ TTCM' : 'AI Copilot'}</button>
+              <button className="primary dept-action-coral" onClick={() => setActiveTab('aiCopilot')}>✦ {language === 'vi' ? 'Hỗ trợ TTCM' : 'Hỗ trợ'}</button>
             </div>
           </div>
         </div>
@@ -2609,7 +2609,7 @@ function DepartmentOperationsDashboard({ data, stats, health, language, setActiv
           <div className="title-wrap">
             <span className="card-icon purple">✦</span>
             <div>
-              <h3>{language === 'vi' ? 'Báo cáo & AI Copilot' : 'Reports & AI Copilot'}</h3>
+              <h3>{language === 'vi' ? 'Báo cáo & Hỗ trợ' : 'Reports & Hỗ trợ'}</h3>
             </div>
           </div>
         </div>
@@ -2621,7 +2621,7 @@ function DepartmentOperationsDashboard({ data, stats, health, language, setActiv
             <div><span>{language === 'vi' ? 'Cloud' : 'Cloud'}</span><strong>{cloudInfo.available ? 'OK' : 'LOCAL'}</strong></div>
           </div>
           <div className="department-v40-list-block">
-            <strong>{language === 'vi' ? 'AI Copilot gợi ý' : 'AI Copilot suggestions'}</strong>
+            <strong>{language === 'vi' ? 'Hỗ trợ gợi ý' : 'Hỗ trợ suggestions'}</strong>
             <ul>
               {reportSuggestions.map((item) => (
                 <li key={item}>
@@ -2675,14 +2675,14 @@ function ModuleAssistPanel({ language, module, moduleAi, hasApiKey, aiSourceName
         <span className="module-assist-icon">📎🤖</span>
         <div>
           <strong>{language === 'vi' ? `Tài liệu & AI bổ trợ: ${module.titleVi || module.shortVi}` : `Documents & AI support: ${module.title || module.short}`}</strong>
-          <p>{moduleAi?.instruction || (language === 'vi' ? 'Tải/dán tài liệu để AI hỗ trợ phân hệ này.' : 'Upload/paste a document for AI support in this module.')}</p>
+          <p>{moduleAi?.instruction || (language === 'vi' ? 'Tải/dán tài liệu để Hỗ trợ phân hệ này.' : 'Upload/paste a document for AI support in this module.')}</p>
           <small>{ready ? `${language === 'vi' ? 'Nguồn hiện có' : 'Current source'}: ${aiSourceName || (language === 'vi' ? 'văn bản dán trực tiếp' : 'direct text')} · ${String(aiSourceText).length.toLocaleString('vi-VN')} ký tự` : (language === 'vi' ? 'Chưa có tài liệu nguồn. Có thể tải file hoặc dán từ clipboard.' : 'No source yet. Upload a file or paste from clipboard.')}</small>
         </div>
       </div>
       <div className="module-assist-actions">
         <button className="secondary" type="button" onClick={() => inputRef?.current?.click?.()}>{language === 'vi' ? 'Upload tài liệu' : 'Upload document'}</button>
         <button className="secondary" type="button" onClick={onPaste}>{language === 'vi' ? 'Dán văn bản' : 'Paste text'}</button>
-        <button className="primary" type="button" onClick={onOpenAI} disabled={!hasApiKey}>{language === 'vi' ? 'AI hỗ trợ' : 'AI support'}</button>
+        <button className="primary" type="button" onClick={onOpenAI} disabled={!hasApiKey}>{language === 'vi' ? 'Hỗ trợ' : 'AI support'}</button>
         <button className="secondary" type="button" onClick={onAdminDoc} disabled={!hasApiKey}>{language === 'vi' ? 'Soạn VB hành chính' : 'Draft admin doc'}</button>
         <button className="ghost" type="button" onClick={onClear} disabled={!ready}>{language === 'vi' ? 'Xóa nguồn' : 'Clear'}</button>
       </div>
@@ -3271,7 +3271,7 @@ function SubmissionsPanel({
               <li>{language === 'vi' ? 'Rà soát kỹ nội dung trước khi gửi cho giáo viên.' : 'Review the request carefully before sending.'}</li>
               <li>{language === 'vi' ? 'Nêu rõ tiêu chí, file cần nộp và thời hạn hoàn thành.' : 'State criteria, required files and the deadline clearly.'}</li>
               <li>{language === 'vi' ? 'Ưu tiên tài liệu có cấu trúc rõ ràng để dễ theo dõi.' : 'Prefer structured documents that are easy to track.'}</li>
-              <li>{language === 'vi' ? 'Sử dụng AI hỗ trợ để soạn thảo nhanh hơn.' : 'Use AI assistance to draft requests faster.'}</li>
+              <li>{language === 'vi' ? 'Sử dụng Hỗ trợ để soạn thảo nhanh hơn.' : 'Use AI assistance to draft requests faster.'}</li>
             </ul>
           </article>
 
@@ -3476,8 +3476,8 @@ function DepartmentAIPanel({ language, hasApiKey, aiAction, setAiAction, aiInstr
     <div className="department-list-panel department-ai-panel">
       <div className="department-ai-hero">
         <div>
-          <span className="eyebrow">AI Copilot</span>
-          <h2>{language === 'vi' ? 'AI hỗ trợ TTCM tổ Tiếng Anh' : 'AI for English department leaders'}</h2>
+          <span className="eyebrow">Hỗ trợ</span>
+          <h2>{language === 'vi' ? 'Hỗ trợ TTCM tổ Tiếng Anh' : 'AI for English department leaders'}</h2>
           <p>{language === 'vi'
             ? 'Dùng dữ liệu kế hoạch, họp tổ, nhiệm vụ, minh chứng, hồ sơ chờ duyệt và lịch 14 ngày tới để tạo nội dung hỗ trợ điều hành.'
             : 'Use department plans, meetings, tasks, evidence, pending submissions and upcoming deadlines to generate leadership support.'}</p>
@@ -3491,7 +3491,7 @@ function DepartmentAIPanel({ language, hasApiKey, aiAction, setAiAction, aiInstr
 
       {!hasApiKey ? (
         <div className="department-ai-warning">
-          {language === 'vi' ? 'OpenRouter Gateway chưa sẵn sàng. Mở Cài đặt → Kiểm tra kết nối.' : 'No API key configured. Open AI Settings before using AI Copilot.'}
+          {language === 'vi' ? 'Dịch vụ đã gỡ chưa sẵn sàng. Mở Cài đặt → Kiểm tra kết nối.' : 'No API key configured. Open AI Settings before using Hỗ trợ.'}
         </div>
       ) : null}
 
@@ -3508,7 +3508,7 @@ function DepartmentAIPanel({ language, hasApiKey, aiAction, setAiAction, aiInstr
           <div className="department-ai-source-box metro-panel">
             <div className="department-ai-source-head">
               <div>
-                <strong>{language === 'vi' ? 'Nguồn văn bản cho AI TTCM' : 'Source text for AI Copilot'}</strong>
+                <strong>{language === 'vi' ? 'Nguồn văn bản cho AI TTCM' : 'Source text for Hỗ trợ'}</strong>
                 <p>{language === 'vi' ? 'Tải tệp .txt/.docx/.pdf hoặc dán nội dung biên bản/báo cáo để AI phân tích cùng dữ liệu tổ.' : 'Upload a .txt/.docx/.pdf file or paste meeting/report content for AI to analyze with department data.'}</p>
               </div>
               <span className={String(aiSourceText || '').trim() ? 'status-badge' : 'status-badge warning'}>

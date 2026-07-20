@@ -23,9 +23,9 @@ const copy = {
     today: 'Hôm nay',
     realApps: 'Ứng dụng đang có',
     featured: 'Thẻ nổi bật',
-    aiStatus: 'Kết nối AI',
-    ready: 'Sẵn sàng',
-    setup: 'Cần thiết lập',
+    
+    
+    
     lastAccess: 'Cập nhật lúc',
     open: 'Mở',
     dashboardTitle: 'Bảng điều hành của bạn',
@@ -46,9 +46,9 @@ const copy = {
     today: 'Today',
     realApps: 'Available apps',
     featured: 'Featured cards',
-    aiStatus: 'AI connection',
-    ready: 'Ready',
-    setup: 'Setup needed',
+    
+    
+    
     lastAccess: 'Updated at',
     open: 'Open',
     dashboardTitle: 'Your work dashboard',
@@ -288,14 +288,7 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', appVisib
         description: 'Bài đọc, câu hỏi và từ vựng thông minh.',
         descriptionEn: 'Smart reading passages, questions and vocabulary.',
       }),
-      {
-        id: 'assistant', icon: 'bot', title: 'AI Assistant', titleEn: 'AI Assistant',
-        eyebrow: 'Trợ lý AI', eyebrowEn: 'AI assistant',
-        description: 'Hỗ trợ giải đáp, gợi ý và tạo nội dung bằng AI.',
-        descriptionEn: 'Get help, suggestions and AI-generated content.',
-        accent: '#dd5f7e', soft: '#fff0f4', rotate: '.5deg',
-        action: 'chatbot', label: 'AI', requiresUser: true,
-      },
+
       appCard('game-hub', {
         icon: 'game', eyebrow: 'Trò chơi học tập', eyebrowEn: 'Learning games',
         accent: '#7552d6', soft: '#f4efff', rotate: '1deg',
@@ -371,7 +364,6 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', appVisib
             <div className="boh-overview-grid">
               <OverviewMetric icon="library" value={visibleAppCount} label={t.realApps} tone="teal" />
               <OverviewMetric icon="lesson" value={cards.length} label={t.featured} tone="violet" />
-              <OverviewMetric icon="bot" value={hasApiKey ? t.ready : t.setup} label={t.aiStatus} tone="orange" />
             </div>
             <footer><span>◷ {t.lastAccess}: {time}</span><button type="button" onClick={(event) => launch('#/apps', 'AP', '#4f8d35', currentUser, event.currentTarget)}>{t.open} →</button></footer>
           </section>

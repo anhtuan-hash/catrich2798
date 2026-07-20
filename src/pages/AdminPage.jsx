@@ -71,7 +71,7 @@ function AdminV41Sidebar({ language, currentUser }) {
         </div>
         <div>
           <strong>{language === 'vi' ? 'AI Admin Assistant' : 'AI Admin Assistant'}</strong>
-          <p>{language === 'vi' ? 'Trợ lý AI hỗ trợ quản trị hệ thống 24/7.' : 'AI assistant for system administration, available 24/7.'}</p>
+          <p>{language === 'vi' ? 'Trợ lý Hỗ trợ quản trị hệ thống 24/7.' : 'AI assistant for system administration, available 24/7.'}</p>
         </div>
         <button type="button" onClick={() => goToAdminSection('assistant')}>{language === 'vi' ? 'Mở trợ lý' : 'Open assistant'}</button>
       </div>

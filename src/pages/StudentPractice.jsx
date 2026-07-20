@@ -278,7 +278,7 @@ export default function StudentPractice({ language, apiKey, aiModel, hasApiKey }
         <div className="practice-v39-status-strip">
           <article>
             <span className="practice-v39-status-icon ai">AI</span>
-            <div><strong>{language === 'vi' ? 'AI Copilot sẵn sàng' : 'AI Copilot ready'}</strong><small>{hasApiKey ? (language === 'vi' ? 'Hỗ trợ tạo câu hỏi và gợi ý nội dung' : 'Question generation and content suggestions') : (language === 'vi' ? 'Cần cấu hình API key' : 'API key required')}</small></div>
+            <div><strong>{language === 'vi' ? 'Hỗ trợ sẵn sàng' : 'Hỗ trợ ready'}</strong><small>{hasApiKey ? (language === 'vi' ? 'Hỗ trợ tạo câu hỏi và gợi ý nội dung' : 'Question generation and content suggestions') : (language === 'vi' ? 'Cần cấu hình API key' : 'API key required')}</small></div>
           </article>
           <article>
             <span className="practice-v39-status-icon bank">{bank.length}</span>

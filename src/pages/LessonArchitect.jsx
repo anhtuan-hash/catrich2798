@@ -1123,7 +1123,7 @@ ${analysisOutput}
 
         <div className="lesson-v50-stat-grid">
           <div className="lesson-v50-stat-card">
-            <strong>{hasApiKey ? (isVi ? 'AI sẵn sàng' : 'AI ready') : (isVi ? 'Cần API' : 'Need API')}</strong>
+            <strong>{hasApiKey ? (isVi ? 'Hệ thống sẵn sàng' : 'AI ready') : (isVi ? 'Cần API' : 'Need API')}</strong>
             <small>{aiModel || 'GPT-4o mini'}</small>
           </div>
           <div className="lesson-v50-stat-card">

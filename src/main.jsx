@@ -42,9 +42,11 @@ import { isAdminRole } from './utils/roles.js';
 import { isAppHiddenForUser, useAppVisibility } from './utils/appVisibility.js';
 import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
 import { installBursReadability } from './utils/bursReadability.js';
+import { installAiRemovalGuard } from './utils/aiRemovalGuard.js';
 
 runConfigurationMigrations();
 installBursReadability();
+installAiRemovalGuard();
 installAccessibilityBootstrap();
 installPwaEventCapture();
 registerBrianPwa().catch((error) => console.warn('[PWA] registration failed', error));
@@ -92,8 +94,8 @@ const HomeroomPortal = lazy(() => import('./pages/HomeroomPortal.jsx'));
 const FullMotionEffects = lazy(() => import('./components/FullMotionEffects.jsx')); // clean Metro motion layer
 const GlobalMusicPlayer = lazy(() => import('./components/GlobalMusicPlayer.jsx'));
 const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
-const UniversalAIAssist = lazy(() => import('./components/UniversalAIAssist.jsx'));
-const GlobalAIIndicator = lazy(() => import('./components/GlobalAIIndicator.jsx'));
+
+
 const GlobalCommandPalette = lazy(() => import('./components/GlobalCommandPalette.jsx'));
 const SharedChatbotDrawer = lazy(() => import('./components/SharedChatbotDrawer.jsx'));
 const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
@@ -103,7 +105,7 @@ const SystemHealthCenter = lazy(() => import('./pages/SystemHealthCenter.jsx'));
 const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.jsx'));
 const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.jsx'));
 const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.jsx'));
-const AIGovernanceCenter = lazy(() => import('./pages/AIGovernanceCenter.jsx'));
+
 const WorkHub = lazy(() => import('./pages/WorkHub.jsx'));
 const WorkDashboard = lazy(() => import('./pages/WorkDashboard.jsx'));
 const KnowledgeHub = lazy(() => import('./pages/KnowledgeHub.jsx'));
@@ -122,7 +124,7 @@ const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAcces
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'work-hub', 'content-factory', 'content-ecosystem', 'lesson-pack', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'work-hub', 'content-factory', 'content-ecosystem', 'lesson-pack', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
 
 function getInitialRoute() {
@@ -164,7 +166,7 @@ const ROUTE_DESIGN_PROFILES = {
   resources: { accent: '#D99A1E', soft: '#FFF0C8', ink: '#392406' },
   contact: { accent: '#00A6A6', soft: '#D8FAFA', ink: '#073434' },
   qa: { accent: '#123C69', soft: '#DCEBFA', ink: '#07192C' },
-  'ai-governance': { accent: '#6D45C6', soft: '#EEE7FF', ink: '#24114F' },
+
   trash: { accent: '#A43B57', soft: '#FFE5EC', ink: '#3C101D' },
   tools: { accent: '#E86D1F', soft: '#FFE3CD', ink: '#211510' },
   login: { accent: '#191515', soft: '#F3DFD8', ink: '#191515' },
@@ -446,7 +448,7 @@ function App() {
       'production-hardening': ['Production Hardening', 'Sẵn sàng Production'],
       'app-vault': ['Hidden Apps Vault', 'Thư mục ứng dụng đã ẩn'],
       practice: ['Classroom', 'Lớp học'], settings: ['Settings', 'Cài đặt'],
-      admin: ['Admin', 'Quản trị'], 'ai-governance': ['AI Governance', 'Quản trị AI'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác'],
+      admin: ['Admin', 'Quản trị'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác'],
     };
     if (selectedTool?.slug) {
       const profile = getAppDesignProfile(selectedTool.slug);
@@ -538,17 +540,7 @@ function App() {
       <Suspense fallback={null}>
         <GlobalRuntimeGuard language={language} />
       </Suspense>
-
-      <Suspense fallback={null}>
-        <GlobalAIIndicator
-          active={aiOperationState.active}
-          language={language}
-          label={aiOperationState.label}
-          provider={aiOperationState.provider}
-        />
-      </Suspense>
-
-      {effectiveMotionMode === 'full' && (
+{effectiveMotionMode === 'full' && (
         <Suspense fallback={null}>
           <FullMotionEffects route={currentRoute} language={language} loadingState={loadingState} />
         </Suspense>
@@ -606,7 +598,7 @@ function App() {
           {canAccessRoute && currentRoute === 'app-vault' && currentUser && <HiddenAppsVault {...context} />}
           {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
           {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}
-          {canAccessRoute && currentRoute === 'ai-governance' && currentUser && <AIGovernanceCenter {...context} />}
+
           {canAccessRoute && currentRoute === 'trash' && currentUser && <TrashCenter {...context} />}
           {currentRoute === 'contact' && <Contact {...context} />}
           {canAccessRoute && currentRoute === 'settings' && currentUser && <Settings {...context} />}
@@ -625,29 +617,7 @@ function App() {
           </AppErrorBoundary>
         </Suspense>
       )}
-
-      {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
-        <Suspense fallback={null}>
-          <AppErrorBoundary compact scope="ai-messenger" label={language === 'vi' ? 'Brian AI' : 'Brian AI'}>
-          <UniversalAIAssist
-            language={language}
-            currentRoute={currentRoute}
-            selectedTool={selectedTool}
-            apiKey={apiKey}
-            aiModel={aiModel}
-            hasApiKey={context.hasApiKey}
-            currentUser={currentUser}
-            providerName={context.aiSummary.providerName}
-            accent={activeDesignProfile.accent}
-            soft={activeDesignProfile.soft}
-            ink={activeDesignProfile.ink}
-            externalLauncher
-          />
-          </AppErrorBoundary>
-        </Suspense>
-      )}
-
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'dashboard'].includes(currentRoute) ? <>
+{currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'dashboard'].includes(currentRoute) ? <>
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
             <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} appVisibility={appVisibility} />

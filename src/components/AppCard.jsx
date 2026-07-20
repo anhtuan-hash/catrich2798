@@ -46,7 +46,7 @@ export default function AppCard({ item, language, currentUser }) {
         </div>
       </div>
       <div className="card-meta compact">
-        <span>{locked ? (language === 'vi' ? 'Cần admin duyệt' : 'Admin approval required') : item.api ? (language === 'vi' ? 'AI hỗ trợ' : 'AI powered') : (language === 'vi' ? 'Sẵn sàng' : 'Ready')}</span>
+        <span>{locked ? (language === 'vi' ? 'Cần admin duyệt' : 'Admin approval required') : item.api ? (language === 'vi' ? 'Hỗ trợ' : 'AI powered') : (language === 'vi' ? 'Sẵn sàng' : 'Ready')}</span>
         <span>{language === 'vi' ? 'Mở nhanh' : 'Quick launch'}</span>
       </div>
       {locked ? (

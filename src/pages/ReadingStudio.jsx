@@ -1184,7 +1184,7 @@ export default function ReadingStudio({ tool, language, apiKey, aiModel, hasApiK
           <article className="reading-v36-summary-card">
             <div className="reading-v36-summary-icon ai">AI</div>
             <div>
-              <strong>{language === 'vi' ? 'AI sẵn sàng' : 'AI ready'}</strong>
+              <strong>{language === 'vi' ? 'Hệ thống sẵn sàng' : 'AI ready'}</strong>
               <small>{hasApiKey ? 'API connected' : (language === 'vi' ? 'Cần API key' : 'Need API key')}</small>
             </div>
             <span className={`reading-v36-summary-dot ${hasApiKey ? 'is-on' : ''}`} />

@@ -30,7 +30,7 @@ const ROUTES = [
   { route: 'production-hardening', vi: 'Sẵn sàng Production', en: 'Production Hardening', icon: 'PH', color: '#0F766E', leaderOnly: true },
   { route: 'practice', vi: 'Lớp học', en: 'Classroom', icon: '⚡', color: '#00A4EF' },
   { route: 'settings', vi: 'Cài đặt', en: 'Settings', icon: '⚙', color: '#123C69' },
-  { route: 'ai-governance', vi: 'Quản trị AI', en: 'AI Governance', icon: 'AI', color: '#6D45C6', adminOnly: true },
+
   { route: 'app-vault', vi: 'Ứng dụng đã ẩn', en: 'Hidden Apps Vault', icon: 'HV', color: '#684CC6', adminOnly: true },
   { route: 'admin', vi: 'Quản trị', en: 'Admin', icon: '☼', color: '#D13438', adminOnly: true },
 ];
@@ -40,16 +40,14 @@ const text = {
     placeholder: 'Tìm ứng dụng, trang hoặc lệnh…',
     title: 'Tìm nhanh toàn hệ thống',
     hint: 'Nhập để tìm · ↑↓ chọn · Enter mở · Esc đóng',
-    recent: 'Gần đây', pinned: 'Đã ghim', results: 'Kết quả', commands: 'Lệnh nhanh', empty: 'Không tìm thấy kết quả phù hợp.',
-    openAi: 'Mở Brian AI', askPage: 'Hỏi AI về trang hiện tại', theme: 'Đổi chế độ sáng/tối', customize: 'Tùy biến Launcher', settings: 'Mở Cài đặt',
+    recent: 'Gần đây', pinned: 'Đã ghim', results: 'Kết quả', commands: 'Lệnh nhanh', empty: 'Không tìm thấy kết quả phù hợp.', theme: 'Đổi chế độ sáng/tối', customize: 'Tùy biến Launcher', settings: 'Mở Cài đặt',
     current: 'Đang mở', frequent: 'Dùng thường xuyên', route: 'Trang', tool: 'Ứng dụng', command: 'Lệnh', keyboard: '⌘ K',
   },
   en: {
     placeholder: 'Search apps, pages or commands…',
     title: 'Search the whole system',
     hint: 'Type to search · ↑↓ select · Enter open · Esc close',
-    recent: 'Recent', pinned: 'Pinned', results: 'Results', commands: 'Quick commands', empty: 'No matching results.',
-    openAi: 'Open Brian AI', askPage: 'Ask AI about this page', theme: 'Toggle light/dark mode', customize: 'Customize Launcher', settings: 'Open Settings',
+    recent: 'Recent', pinned: 'Pinned', results: 'Results', commands: 'Quick commands', empty: 'No matching results.', theme: 'Toggle light/dark mode', customize: 'Customize Launcher', settings: 'Open Settings',
     current: 'Current', frequent: 'Frequently used', route: 'Page', tool: 'App', command: 'Command', keyboard: '⌘ K',
   },
 };
@@ -202,11 +200,7 @@ export default function GlobalCommandPalette({
       run: () => window.dispatchEvent(new CustomEvent('bes-ai-open')),
       keywords: 'AI Brian chat assistant trợ lí chatbot',
     },
-    {
-      id: 'command:ask-page', kind: 'command', title: t.askPage, subtitle: language === 'vi' ? 'Gửi ngữ cảnh trang hiện tại cho Brian AI' : 'Send the current-page context to Brian AI', icon: '◎', color: '#167D78',
-      run: () => window.dispatchEvent(new CustomEvent('bes-ai-open', { detail: { prompt: language === 'vi' ? 'Hãy phân tích trang hiện tại và gợi ý cho tôi bước tiếp theo.' : 'Analyze the current page and suggest my next step.' } })),
-      keywords: 'ask current page context analyze explain hỏi trang hiện tại',
-    },
+
     {
       id: 'command:theme', kind: 'command', title: t.theme, subtitle: theme === 'dark' ? 'Dark → Light' : 'Light → Dark', icon: theme === 'dark' ? '☀' : '☾', color: '#5B2A86',
       run: () => setTheme?.(theme === 'dark' ? 'light' : 'dark'),

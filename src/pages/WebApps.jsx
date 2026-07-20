@@ -32,7 +32,7 @@ const copy = {
   vi: {
     brand: 'Brian English', kicker: 'Creative App Directory', titleA: 'cửa sổ', titleB: 'ứng dụng', titleC: 'sáng tạo',
     subtitle: 'Kéo thả, ghim, nhóm và chọn ứng dụng xuất hiện trên thanh điều hướng. Mỗi thẻ vẫn giữ màu nhận diện riêng và không kéo sát hai viền màn hình.',
-    open: 'Mở ứng dụng', locked: 'Cần quyền', aiOn: 'AI sẵn sàng', aiOff: 'Cài AI', role: 'Vai trò', total: 'Công cụ',
+    open: 'Mở ứng dụng', locked: 'Cần quyền', aiOn: 'Hệ thống sẵn sàng', aiOff: 'Cài AI', role: 'Vai trò', total: 'Công cụ',
     pinned: 'Ứng dụng đã ghim', flow: 'Các ứng dụng yêu thích được truy cập nhanh tại đây.', customize: 'Tùy biến launcher', finish: 'Thoát chỉnh sửa',
     save: 'Lưu thay đổi', reset: 'Khôi phục mặc định', all: 'Tất cả', hidden: 'Đã ẩn', addGroup: 'Tạo nhóm ứng dụng',
     groupName: 'Tên nhóm mới', create: 'Tạo nhóm', dragHint: 'Kéo thẻ để sắp xếp · dùng các nút trên thẻ để ghim, ẩn, đưa lên thanh điều hướng hoặc đổi nhóm.',

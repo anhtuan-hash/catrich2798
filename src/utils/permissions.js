@@ -185,17 +185,17 @@ export const CORE_PERMISSION_ITEMS = [
     section: 'content',
     title: 'System Health Center',
     titleVi: 'Trung tâm trạng thái hệ thống',
-    desc: 'Check connectivity, browser storage, AI, Supabase, Newsroom and recent runtime errors.',
-    descVi: 'Kiểm tra kết nối, bộ nhớ, AI, Supabase, Newsroom và lỗi runtime gần đây.',
+    desc: 'Check connectivity, browser storage, Supabase, Newsroom and recent runtime errors.',
+    descVi: 'Kiểm tra kết nối, bộ nhớ, Supabase, Newsroom và lỗi runtime gần đây.',
   },
   {
     id: ROUTE_PERMISSION_IDS.settings,
     type: 'system',
     section: 'content',
-    title: 'AI Settings',
-    titleVi: 'Cài đặt AI',
-    desc: 'Configure personal AI provider keys and app preferences.',
-    descVi: 'Cấu hình khóa AI cá nhân và tuỳ chọn giao diện.',
+    title: 'System Settings',
+    titleVi: 'Cài đặt hệ thống',
+    desc: 'Configure account and application preferences.',
+    descVi: 'Cấu hình tài khoản và tuỳ chọn giao diện.',
   },
 ];
 

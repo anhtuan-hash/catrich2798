@@ -674,7 +674,7 @@ export default function TextCareStudio({ tool, language, apiKey, aiModel, hasApi
           <section className="textcare-v37-status-strip">
             <article>
               <div className="textcare-v37-status-icon green">AI</div>
-              <div><strong>AI sẵn sàng</strong><span>{hasApiKey ? 'API connected • Mô hình hoạt động tốt' : 'Cần API key để chạy AI'}</span></div>
+              <div><strong>Hệ thống sẵn sàng</strong><span>{hasApiKey ? 'API connected • Mô hình hoạt động tốt' : 'Cần API key để chạy AI'}</span></div>
             </article>
             <article>
               <div className="textcare-v37-status-icon purple">DOC</div>

@@ -196,7 +196,7 @@ export default function TextLabActivities({
         <div className="textlab-page-status">
           <span className="textlab-status-title">Brian TextLab Activities</span>
           <span className={hasApiKey ? 'ready' : 'pending'}>
-            {hasApiKey ? (language === 'vi' ? 'AI sẵn sàng' : 'AI ready') : (language === 'vi' ? 'Chưa cấu hình AI' : 'AI not configured')}
+            {hasApiKey ? (language === 'vi' ? 'Hệ thống sẵn sàng' : 'AI ready') : (language === 'vi' ? 'Chưa cấu hình AI' : 'AI not configured')}
           </span>
         </div>
         <div className="textlab-integrated-actions">

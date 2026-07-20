@@ -1,21 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { callAI } from '../utils/gemini.js';
+import React, { useMemo, useRef, useState } from 'react';
 import { changeCurrentPassword } from '../utils/auth.js';
-import {
-  PROVIDERS,
-  getAiConfigs,
-  getAiProvider,
-  getAiSettingsScope,
-  getFallbackEnabled,
-  getProviderInfo,
-  saveAiConfigs,
-  setAiProvider,
-  setFallbackEnabled,
-} from '../utils/aiProviders.js';
-
-const PROVIDER_ICONS = { openrouter: '↗' };
-
-const PROVIDER_TONES = { openrouter: 'indigo' };
 
 const DEFAULT_MUSIC_SETTINGS = {
   enabled: false,
@@ -26,14 +10,6 @@ const DEFAULT_MUSIC_SETTINGS = {
   volume: 0.42,
   loop: true,
 };
-
-function getEmptyLocal() {
-  return {
-    provider: getAiProvider(),
-    configs: getAiConfigs(),
-    fallbackEnabled: getFallbackEnabled(),
-  };
-}
 
 function userKey(currentUser) {
   return currentUser?.id || currentUser?.email || 'guest';
@@ -56,21 +32,19 @@ function saveMusicSettings(currentUser, value) {
     localStorage.setItem(musicStorageKey(currentUser), JSON.stringify(value));
     window.dispatchEvent(new CustomEvent('bes-global-music-settings-updated'));
   } catch {
-    // Ignore localStorage failures.
+    // Storage is optional.
   }
 }
 
 function readBoolean(key, fallback = true) {
   const value = localStorage.getItem(key);
-  if (value === null) return fallback;
-  return value !== 'false';
+  return value === null ? fallback : value !== 'false';
 }
 
 function writeBoolean(key, value) {
   localStorage.setItem(key, value ? 'true' : 'false');
   window.dispatchEvent(new CustomEvent('bes-system-settings-updated', { detail: { key, value } }));
 }
-
 
 function downloadJson(name, data) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
@@ -82,527 +56,213 @@ function downloadJson(name, data) {
   URL.revokeObjectURL(url);
 }
 
-function SettingsHeroIllustration() {
-  return (
-    <div className="settings-v47-illustration" aria-hidden="true">
-      <span className="settings-v47-orb orb-a" />
-      <span className="settings-v47-orb orb-b" />
-      <span className="settings-v47-orb orb-c" />
-      <div className="settings-v47-slider-card"><i /><i /><b /><b /></div>
-      <div className="settings-v47-mini-status"><span>••••••</span><b>✓</b></div>
-      <div className="settings-v47-palette"><i /><i /><i /><i /><i /></div>
-      <div className="settings-v47-ai-chip">
-        <strong>AI</strong>
-        {Array.from({ length: 5 }).map((_, index) => <i key={`l-${index}`} className={`left p${index}`} />)}
-        {Array.from({ length: 5 }).map((_, index) => <i key={`r-${index}`} className={`right p${index}`} />)}
-      </div>
-      <div className="settings-v47-provider-node node-google">OR</div>
-      <div className="settings-v47-provider-node node-openai">↗</div>
-      <div className="settings-v47-provider-node node-ai">API</div>
-      <div className="settings-v47-provider-node node-sun">☁</div>
-      <div className="settings-v47-key-card">🔒 <span>SERVER</span></div>
-      <div className="settings-v47-shield"><span>🔒</span></div>
-    </div>
-  );
-}
-
-function CardHeader({ icon, title, subtitle, tone = 'blue', action = null }) {
+function CardHeader({ icon, title, subtitle, tone = 'blue' }) {
   return (
     <header className="settings-v47-card-head">
       <div className="settings-v47-card-title">
         <span className={`settings-v47-card-icon tone-${tone}`}>{icon}</span>
-        <div>
-          <h2>{title}</h2>
-          {subtitle ? <p>{subtitle}</p> : null}
-        </div>
+        <div><h2>{title}</h2>{subtitle ? <p>{subtitle}</p> : null}</div>
       </div>
-      {action}
     </header>
   );
 }
 
 function Toggle({ checked, onChange, label }) {
-  return (
-    <button type="button" className={`settings-v47-toggle ${checked ? 'on' : ''}`} onClick={() => onChange(!checked)} aria-pressed={checked} aria-label={label}>
-      <span />
-    </button>
-  );
+  return <button type="button" className={`settings-v47-toggle ${checked ? 'on' : ''}`} onClick={() => onChange(!checked)} aria-pressed={checked} aria-label={label}><span /></button>;
 }
 
 export default function Settings({
-  language,
-  setLanguage,
-  theme,
-  setTheme,
-  setApiKey,
-  setAiModel,
-  aiProvider,
-  setAiProviderState,
-  providerConfigs,
-  setProviderConfigs,
   currentUser,
-  motionMode = 'lite',
-  setMotionMode,
-  effectiveMotionMode = motionMode,
-  performanceMode = 'auto',
-  setPerformanceMode,
-  resolvedPerformance = 'balanced',
-  themeIntensity = 'balanced',
-  setThemeIntensity,
-  tileBorder = 'soft',
-  setTileBorder,
-  indicatorMode = 'on',
-  setIndicatorMode,
+  language = 'vi', setLanguage,
+  theme = 'light', setTheme,
+  motionMode = 'lite', setMotionMode,
+  performanceMode = 'auto', setPerformanceMode,
+  resolvedPerformance = 'auto',
+  themeIntensity = 'balanced', setThemeIntensity,
+  tileBorder = 'soft', setTileBorder,
+  indicatorMode = 'on', setIndicatorMode,
+  fontScale = 100, setFontScale,
   setGlobalLoading,
 }) {
-  const initial = getEmptyLocal();
-  const [selectedProvider, setSelectedProvider] = useState(aiProvider || initial.provider);
-  const [configs, setConfigs] = useState(providerConfigs || initial.configs);
-  const [fallback, setFallback] = useState(initial.fallbackEnabled);
-  const [saved, setSaved] = useState(false);
-  const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState('');
+  const vi = language === 'vi';
+  const [accentColor, setAccentColor] = useState(() => localStorage.getItem('bes-accent-color') || 'blue');
+  const [displayDensity, setDisplayDensity] = useState(() => localStorage.getItem('bes-display-density') || 'medium');
   const [soundEnabled, setSoundEnabled] = useState(() => readBoolean('bes-global-notice-sound', true));
   const [liveSyncEnabled, setLiveSyncEnabled] = useState(() => readBoolean('bes-global-notice-live-sync', true));
   const [dataSyncEnabled, setDataSyncEnabled] = useState(() => readBoolean('bes-global-data-sync', true));
   const [musicSettings, setMusicSettings] = useState(() => readMusicSettings(currentUser));
-  const [accentColor, setAccentColor] = useState(() => localStorage.getItem('bes-settings-accent') || 'blue');
-  const [displayDensity, setDisplayDensity] = useState(() => localStorage.getItem('bes-settings-density') || 'medium');
-  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [message, setMessage] = useState('');
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
   const [passwordStatus, setPasswordStatus] = useState({ loading: false, message: '', ok: false });
-  const [showPasswords, setShowPasswords] = useState(false);
   const importInputRef = useRef(null);
-  const providerEditorRef = useRef(null);
-
-  const currentProvider = useMemo(() => getProviderInfo(selectedProvider), [selectedProvider]);
-  const currentConfig = configs[selectedProvider] || {};
-  const accountScope = getAiSettingsScope();
-  const configuredProviders = useMemo(() => PROVIDERS, []);
-
   const authProviders = useMemo(() => Array.isArray(currentUser?.authProviders) ? currentUser.authProviders : [], [currentUser?.authProviders]);
-  const googleConnected = authProviders.includes('google');
-  const emailPasswordEnabled = authProviders.includes('email') || (currentUser?.provider === 'supabase' && authProviders.length === 0);
   const canChangePassword = currentUser?.provider === 'supabase';
 
-  useEffect(() => {
-    const onUpdate = () => {
-      setSelectedProvider(getAiProvider());
-      setConfigs(getAiConfigs());
-      setFallback(getFallbackEnabled());
-    };
-    window.addEventListener('bes-ai-settings-updated', onUpdate);
-    return () => window.removeEventListener('bes-ai-settings-updated', onUpdate);
-  }, []);
-
-  useEffect(() => {
-    setMusicSettings(readMusicSettings(currentUser));
-  }, [currentUser?.id, currentUser?.email]);
-
-  useEffect(() => {
-    localStorage.setItem('bes-settings-accent', accentColor);
-    document.documentElement.dataset.settingsAccent = accentColor;
-  }, [accentColor]);
-
-  useEffect(() => {
-    localStorage.setItem('bes-settings-density', displayDensity);
-    document.documentElement.dataset.settingsDensity = displayDensity;
-  }, [displayDensity]);
-
-  const updateConfig = (patch) => {
-    setConfigs((previous) => ({
-      ...previous,
-      [selectedProvider]: {
-        ...(previous[selectedProvider] || {}),
-        ...patch,
-      },
-    }));
+  const setAccent = (value) => {
+    setAccentColor(value);
+    localStorage.setItem('bes-accent-color', value);
+    document.documentElement.dataset.accent = value;
   };
-
-  const patchMusicSettings = (patch) => {
-    setMusicSettings((previous) => {
-      const next = { ...previous, ...patch };
-      saveMusicSettings(currentUser, next);
-      return next;
-    });
+  const setDensity = (value) => {
+    setDisplayDensity(value);
+    localStorage.setItem('bes-display-density', value);
+    document.documentElement.dataset.density = value;
   };
-
-  const saveSettings = () => {
-    setAiProviderState?.('openrouter');
-    setApiKey?.('');
-    setAiModel?.(currentConfig.model || currentProvider.defaultModel);
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 1800);
+  const applyTheme = (value) => {
+    setTheme?.(value);
+    localStorage.setItem('bet-theme', value);
+    localStorage.setItem('bes-theme-mode', value);
   };
-
-  const testProvider = async () => {
-    setTestResult('');
-    setTesting(true);
-    try {
-      const text = await callAI({
-        prompt: 'Reply with exactly: Brian English Studio OpenRouter Gateway OK',
-        temperature: 0,
-        maxOutputTokens: 80,
-        profile: 'administration',
-        clientLabel: 'Settings gateway health check',
-      });
-      setTestResult(`✅ OpenRouter Server Gateway: ${text}`);
-    } catch (error) {
-      setTestResult(`⚠️ OpenRouter Server Gateway: ${error.message || String(error)}`);
-    } finally {
-      setTesting(false);
-    }
+  const patchMusic = (patch) => {
+    const next = { ...musicSettings, ...patch };
+    setMusicSettings(next);
+    saveMusicSettings(currentUser, next);
   };
+  const toggleSound = (value) => { setSoundEnabled(value); writeBoolean('bes-global-notice-sound', value); };
+  const toggleLiveSync = (value) => { setLiveSyncEnabled(value); writeBoolean('bes-global-notice-live-sync', value); };
+  const toggleDataSync = (value) => { setDataSyncEnabled(value); writeBoolean('bes-global-data-sync', value); };
 
-  const applyThemeMode = (mode) => {
-    if (mode === 'auto') {
-      const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-      setTheme(prefersDark ? 'dark' : 'light');
-      localStorage.setItem('bes-theme-mode', 'auto');
-      return;
-    }
-    localStorage.setItem('bes-theme-mode', mode);
-    setTheme(mode);
-  };
-
-  const toggleSound = (next) => {
-    setSoundEnabled(next);
-    writeBoolean('bes-global-notice-sound', next);
-  };
-
-  const toggleLiveSync = (next) => {
-    setLiveSyncEnabled(next);
-    writeBoolean('bes-global-notice-live-sync', next);
-  };
-
-  const toggleDataSync = (next) => {
-    setDataSyncEnabled(next);
-    writeBoolean('bes-global-data-sync', next);
-  };
-
-  const exportSettings = () => {
-    downloadJson('brian-english-studio-settings.json', {
-      version: '10.47.0',
-      exportedAt: new Date().toISOString(),
-      ai: { gateway: 'openrouter', serverManaged: true },
-      interface: {
-        language,
-        theme,
-        accentColor,
-        displayDensity,
-        themeIntensity,
-        tileBorder,
-        indicatorMode,
-        motionMode,
-        performanceMode,
-      },
-      system: {
-        soundEnabled,
-        liveSyncEnabled,
-        dataSyncEnabled,
-        musicSettings,
-      },
-    });
-  };
+  const exportSettings = () => downloadJson('brian-english-studio-settings.json', {
+    version: 'no-ai', exportedAt: new Date().toISOString(),
+    interface: { language, theme, accentColor, displayDensity, motionMode, performanceMode, themeIntensity, tileBorder, indicatorMode, fontScale },
+    system: { soundEnabled, liveSyncEnabled, dataSyncEnabled, musicSettings },
+  });
 
   const importSettings = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     try {
       const payload = JSON.parse(await file.text());
-      if (payload.interface?.language) setLanguage?.(payload.interface.language);
-      if (payload.interface?.theme) setTheme?.(payload.interface.theme);
-      if (payload.interface?.accentColor) setAccentColor(payload.interface.accentColor);
-      if (payload.interface?.displayDensity) setDisplayDensity(payload.interface.displayDensity);
-      if (payload.interface?.themeIntensity) setThemeIntensity?.(payload.interface.themeIntensity);
-      if (payload.interface?.tileBorder) setTileBorder?.(payload.interface.tileBorder);
-      if (payload.interface?.indicatorMode) setIndicatorMode?.(payload.interface.indicatorMode);
-      if (payload.interface?.motionMode) setMotionMode?.(payload.interface.motionMode);
-      if (payload.interface?.performanceMode) setPerformanceMode?.(payload.interface.performanceMode);
-      if (typeof payload.system?.soundEnabled === 'boolean') toggleSound(payload.system.soundEnabled);
-      if (typeof payload.system?.liveSyncEnabled === 'boolean') toggleLiveSync(payload.system.liveSyncEnabled);
-      if (typeof payload.system?.dataSyncEnabled === 'boolean') toggleDataSync(payload.system.dataSyncEnabled);
-      if (payload.system?.musicSettings) {
-        setMusicSettings(payload.system.musicSettings);
-        saveMusicSettings(currentUser, payload.system.musicSettings);
-      }
-      setTestResult(language === 'vi' ? '✅ Đã nhập cài đặt giao diện. AI được quản lý tập trung trên máy chủ.' : '✅ Interface settings imported. AI is managed centrally on the server.');
+      const ui = payload.interface || {};
+      const system = payload.system || {};
+      if (ui.language) setLanguage?.(ui.language);
+      if (ui.theme) applyTheme(ui.theme);
+      if (ui.accentColor) setAccent(ui.accentColor);
+      if (ui.displayDensity) setDensity(ui.displayDensity);
+      if (ui.motionMode) setMotionMode?.(ui.motionMode);
+      if (ui.performanceMode) setPerformanceMode?.(ui.performanceMode);
+      if (ui.themeIntensity) setThemeIntensity?.(ui.themeIntensity);
+      if (ui.tileBorder) setTileBorder?.(ui.tileBorder);
+      if (ui.indicatorMode) setIndicatorMode?.(ui.indicatorMode);
+      if (ui.fontScale) setFontScale?.(Number(ui.fontScale));
+      if (typeof system.soundEnabled === 'boolean') toggleSound(system.soundEnabled);
+      if (typeof system.liveSyncEnabled === 'boolean') toggleLiveSync(system.liveSyncEnabled);
+      if (typeof system.dataSyncEnabled === 'boolean') toggleDataSync(system.dataSyncEnabled);
+      if (system.musicSettings) patchMusic(system.musicSettings);
+      setMessage(vi ? '✅ Đã nhập cài đặt hệ thống.' : '✅ System settings imported.');
     } catch {
-      setTestResult(language === 'vi' ? '⚠️ Tệp cài đặt không hợp lệ.' : '⚠️ Invalid settings file.');
+      setMessage(vi ? '⚠️ Tệp cài đặt không hợp lệ.' : '⚠️ Invalid settings file.');
     } finally {
       event.target.value = '';
     }
   };
 
+  const clearCache = () => {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('bes-cache:') || key?.startsWith('bes-temp:') || key?.startsWith('bes-ai-') || key?.startsWith('brian-ai')) keys.push(key);
+    }
+    keys.forEach((key) => localStorage.removeItem(key));
+    setMessage(vi ? `✅ Đã xoá ${keys.length} mục dữ liệu tạm.` : `✅ Cleared ${keys.length} temporary items.`);
+  };
+
   const resetSettings = () => {
-    const defaults = getEmptyLocal();
-    setSelectedProvider(defaults.provider);
-    setConfigs(defaults.configs);
-    setFallback(defaults.fallbackEnabled);
-    applyThemeMode('light');
-    setAccentColor('blue');
-    setDisplayDensity('medium');
+    applyTheme('light');
+    setAccent('blue');
+    setDensity('medium');
+    setMotionMode?.('lite');
+    setPerformanceMode?.('auto');
     setThemeIntensity?.('balanced');
     setTileBorder?.('soft');
     setIndicatorMode?.('on');
-    setMotionMode?.('lite');
-    setPerformanceMode?.('auto');
-    toggleSound(true);
-    toggleLiveSync(true);
-    toggleDataSync(true);
-    const nextMusic = { ...DEFAULT_MUSIC_SETTINGS };
-    setMusicSettings(nextMusic);
-    saveMusicSettings(currentUser, nextMusic);
-    setTestResult(language === 'vi' ? '✅ Đã khôi phục giao diện mặc định.' : '✅ Default settings restored.');
+    setFontScale?.(100);
+    toggleSound(true); toggleLiveSync(true); toggleDataSync(true);
+    patchMusic(DEFAULT_MUSIC_SETTINGS);
+    setMessage(vi ? '✅ Đã khôi phục cài đặt mặc định.' : '✅ Default settings restored.');
   };
-
-  const clearCache = () => {
-    const protectedKeys = new Set([
-      'bet-theme',
-      'bes-theme-intensity',
-      'bes-tile-border',
-      'bes-windows-indicator',
-    ]);
-    const keys = [];
-    for (let index = 0; index < localStorage.length; index += 1) {
-      const key = localStorage.key(index);
-      if (key?.startsWith('bes-cache:') || key?.startsWith('bes-temp:')) keys.push(key);
-    }
-    keys.forEach((key) => { if (!protectedKeys.has(key)) localStorage.removeItem(key); });
-    setTestResult(language === 'vi' ? `✅ Đã xoá ${keys.length} mục cache tạm.` : `✅ Cleared ${keys.length} temporary cache items.`);
-  };
-
-  const openNotifications = () => window.dispatchEvent(new CustomEvent('bes-global-notice-open'));
 
   const submitPasswordChange = async (event) => {
     event.preventDefault();
-    setPasswordStatus({ loading: false, message: '', ok: false });
     if (!canChangePassword) {
-      setPasswordStatus({ loading: false, ok: false, message: language === 'vi' ? 'Chức năng đổi mật khẩu chỉ dùng khi Supabase Auth đang hoạt động.' : 'Password changes require Supabase Auth.' });
+      setPasswordStatus({ loading: false, ok: false, message: vi ? 'Chức năng đổi mật khẩu cần Supabase Auth.' : 'Password changes require Supabase Auth.' });
       return;
     }
-    if (passwordForm.next.length < 8) {
-      setPasswordStatus({ loading: false, ok: false, message: language === 'vi' ? 'Mật khẩu mới phải có ít nhất 8 kí tự.' : 'The new password must contain at least 8 characters.' });
+    if (passwordForm.next.length < 8 || passwordForm.next !== passwordForm.confirm) {
+      setPasswordStatus({ loading: false, ok: false, message: vi ? 'Kiểm tra mật khẩu mới và phần xác nhận.' : 'Check the new password and confirmation.' });
       return;
     }
-    if (passwordForm.next !== passwordForm.confirm) {
-      setPasswordStatus({ loading: false, ok: false, message: language === 'vi' ? 'Mật khẩu xác nhận không khớp.' : 'Password confirmation does not match.' });
-      return;
-    }
-    setPasswordStatus({ loading: true, message: '', ok: false });
-    setGlobalLoading?.(true, language === 'vi' ? 'Đang cập nhật mật khẩu tài khoản...' : 'Updating account password...');
+    setPasswordStatus({ loading: true, ok: false, message: '' });
+    setGlobalLoading?.(true, vi ? 'Đang cập nhật mật khẩu...' : 'Updating password...');
     const result = await changeCurrentPassword({ currentPassword: passwordForm.current, newPassword: passwordForm.next });
     setGlobalLoading?.(false);
-    if (!result.ok) {
-      const translated = String(result.message || '').includes('Current password')
-        ? (language === 'vi' ? 'Mật khẩu hiện tại không chính xác.' : result.message)
-        : result.message;
-      setPasswordStatus({ loading: false, ok: false, message: translated || (language === 'vi' ? 'Không thể đổi mật khẩu.' : 'Could not change password.') });
-      return;
-    }
-    setPasswordForm({ current: '', next: '', confirm: '' });
-    setPasswordStatus({
-      loading: false,
-      ok: true,
-      message: result.createdPassword
-        ? (language === 'vi' ? 'Đã tạo mật khẩu cho tài khoản Google. Từ giờ có thể đăng nhập bằng Google hoặc email/mật khẩu.' : 'A password was created for the Google account. You can now use Google or email/password sign-in.')
-        : (language === 'vi' ? 'Đã đổi mật khẩu thành công.' : 'Password changed successfully.'),
-    });
+    setPasswordStatus({ loading: false, ok: Boolean(result.ok), message: result.ok ? (vi ? 'Đã đổi mật khẩu.' : 'Password updated.') : (result.message || (vi ? 'Không thể đổi mật khẩu.' : 'Could not update password.')) });
+    if (result.ok) setPasswordForm({ current: '', next: '', confirm: '' });
   };
 
-  const accentOptions = [
-    ['blue', '#4d7dff'],
-    ['violet', '#7d57dd'],
-    ['green', '#2aa96b'],
-    ['orange', '#f18a18'],
-    ['pink', '#db3977'],
-    ['teal', '#0da6a0'],
-  ];
-
-  const currentThemeMode = localStorage.getItem('bes-theme-mode') || theme;
+  const accents = [['blue','#4d7dff'],['violet','#7d57dd'],['green','#2aa96b'],['orange','#f18a18'],['pink','#db3977'],['teal','#0da6a0']];
 
   return (
     <div className="page settings-page-v47">
       <section className="settings-v47-hero">
         <div className="settings-v47-hero-copy">
           <span className="settings-v47-eyebrow">⚙ Settings</span>
-          <h1>{language === 'vi' ? 'Cài đặt AI & hệ thống' : 'AI & system settings'}</h1>
-          <p>
-            {language === 'vi'
-              ? 'AI sử dụng duy nhất OpenRouter qua gateway máy chủ. API key được bảo vệ trong Vercel; Admin quản lý model và hạn mức dùng chung.'
-              : 'AI uses OpenRouter only through the server gateway. The API key stays protected in Vercel; Admin manages the shared model and quotas.'}
-          </p>
+          <h1>{vi ? 'Cài đặt hệ thống' : 'System settings'}</h1>
+          <p>{vi ? 'Tùy chỉnh tài khoản, giao diện, chuyển cảnh, âm thanh, đồng bộ và hiệu năng.' : 'Customize account, appearance, motion, sound, sync and performance.'}</p>
           <div className="settings-v47-hero-chips">
-            <span><b>1</b><small>OpenRouter</small></span>
-            <span><b>Server</b><small>API key</small></span>
-            <span><b>{theme === 'dark' ? 'Dark' : 'Light'}</b><small>{language === 'vi' ? 'Giao diện' : 'Theme'}</small></span>
+            <span><b>{theme === 'dark' ? 'Dark' : 'Light'}</b><small>{vi ? 'Giao diện' : 'Theme'}</small></span>
+            <span><b>{motionMode}</b><small>{vi ? 'Chuyển cảnh' : 'Motion'}</small></span>
+            <span><b>{resolvedPerformance}</b><small>{vi ? 'Hiệu năng' : 'Performance'}</small></span>
           </div>
         </div>
-        <SettingsHeroIllustration />
+        <div className="settings-v47-illustration" aria-hidden="true"><div className="settings-v47-slider-card"><i /><i /><b /><b /></div><div className="settings-v47-palette"><i /><i /><i /><i /><i /></div><div className="settings-v47-shield"><span>🔒</span></div></div>
       </section>
 
       <section className="settings-v47-dashboard">
         <article className="settings-v47-card settings-v65-account-card">
-          <CardHeader
-            icon="👤"
-            tone="blue"
-            title={language === 'vi' ? 'Tài khoản & mật khẩu' : 'Account & password'}
-            subtitle={language === 'vi' ? 'Quản lý phương thức đăng nhập và thay đổi mật khẩu tài khoản.' : 'Manage sign-in methods and change your account password.'}
-            action={<span className="settings-v47-account-pill">{currentUser?.role || 'teacher'}</span>}
-          />
-
-          <div className="settings-v65-account-layout">
-            <div className="settings-v65-profile-panel">
-              <div className="settings-v65-avatar">{currentUser?.avatarUrl ? <img src={currentUser.avatarUrl} alt="" /> : String(currentUser?.name || currentUser?.email || 'B').slice(0, 1).toUpperCase()}</div>
-              <div className="settings-v65-profile-copy">
-                <strong>{currentUser?.name || (language === 'vi' ? 'Tài khoản giáo viên' : 'Teacher account')}</strong>
-                <span>{currentUser?.email || '—'}</span>
-                <small>{currentUser?.school || 'Brian English Studio'}</small>
-              </div>
-              <div className="settings-v65-provider-badges">
-                <span className={emailPasswordEnabled ? 'active' : ''}>✉ {language === 'vi' ? 'Email / mật khẩu' : 'Email / password'}</span>
-                <span className={googleConnected ? 'active google' : ''}>G {googleConnected ? (language === 'vi' ? 'Google đã kết nối' : 'Google connected') : (language === 'vi' ? 'Google chưa kết nối' : 'Google not connected')}</span>
-              </div>
-              <p>{language === 'vi'
-                ? (emailPasswordEnabled ? 'Nhập mật khẩu hiện tại để xác minh trước khi thay đổi.' : 'Tài khoản đang dùng Google. Có thể tạo thêm mật khẩu để đăng nhập bằng email khi cần.')
-                : (emailPasswordEnabled ? 'Enter the current password to verify the change.' : 'This account uses Google. You can create a password for email sign-in as well.')}</p>
-            </div>
-
-            <form className="settings-v65-password-form" onSubmit={submitPasswordChange}>
-              {emailPasswordEnabled ? (
-                <label>
-                  <span>{language === 'vi' ? 'Mật khẩu hiện tại' : 'Current password'}</span>
-                  <input type={showPasswords ? 'text' : 'password'} value={passwordForm.current} onChange={(event) => setPasswordForm((previous) => ({ ...previous, current: event.target.value }))} autoComplete="current-password" placeholder={language === 'vi' ? 'Nhập mật khẩu hiện tại' : 'Enter current password'} />
-                </label>
-              ) : null}
-              <div className="settings-v65-password-grid">
-                <label>
-                  <span>{emailPasswordEnabled ? (language === 'vi' ? 'Mật khẩu mới' : 'New password') : (language === 'vi' ? 'Tạo mật khẩu mới' : 'Create a password')}</span>
-                  <input type={showPasswords ? 'text' : 'password'} value={passwordForm.next} onChange={(event) => setPasswordForm((previous) => ({ ...previous, next: event.target.value }))} autoComplete="new-password" placeholder={language === 'vi' ? 'Ít nhất 8 kí tự' : 'At least 8 characters'} />
-                </label>
-                <label>
-                  <span>{language === 'vi' ? 'Xác nhận mật khẩu' : 'Confirm password'}</span>
-                  <input type={showPasswords ? 'text' : 'password'} value={passwordForm.confirm} onChange={(event) => setPasswordForm((previous) => ({ ...previous, confirm: event.target.value }))} autoComplete="new-password" placeholder={language === 'vi' ? 'Nhập lại mật khẩu mới' : 'Repeat the new password'} />
-                </label>
-              </div>
-              <div className="settings-v65-password-actions">
-                <label className="settings-v65-show-password"><input type="checkbox" checked={showPasswords} onChange={(event) => setShowPasswords(event.target.checked)} /> <span>{language === 'vi' ? 'Hiện mật khẩu' : 'Show passwords'}</span></label>
-                <button type="submit" className="primary" disabled={passwordStatus.loading || !canChangePassword}>{passwordStatus.loading ? (language === 'vi' ? 'Đang cập nhật...' : 'Updating...') : emailPasswordEnabled ? (language === 'vi' ? 'Đổi mật khẩu' : 'Change password') : (language === 'vi' ? 'Tạo mật khẩu' : 'Create password')}</button>
-              </div>
-              {passwordStatus.message ? <div className={`settings-v65-password-message ${passwordStatus.ok ? 'ok' : ''}`}>{passwordStatus.ok ? '✓ ' : '⚠ '}{passwordStatus.message}</div> : null}
-            </form>
-          </div>
-        </article>
-
-        <article className="settings-v47-card settings-v47-provider-card settings-v47-server-ai-card">
-          <CardHeader
-            icon="↗"
-            tone="blue"
-            title="OpenRouter Server Gateway"
-            subtitle={language === 'vi' ? 'Một gateway AI duy nhất cho toàn bộ website; không lưu API key trong trình duyệt.' : 'One AI gateway for the entire website; no API key is stored in the browser.'}
-            action={<span className="settings-v47-account-pill">SERVER MANAGED</span>}
-          />
-          <div className="settings-v47-provider-detail">
-            <div className="settings-v47-provider-detail-head">
-              <span className="provider-logo large tone-indigo">↗</span>
-              <div><strong>OpenRouter</strong><small>{language === 'vi' ? 'Gateway dùng chung đang hoạt động' : 'Shared gateway active'}</small></div>
-              <span className="provider-plan plan-server-managed">OpenRouter only</span>
-            </div>
-            <p>{language === 'vi' ? 'Mọi ứng dụng AI gửi yêu cầu đến /api/ai. Máy chủ xác thực tài khoản, kiểm tra quyền, quota và nhật ký trước khi gọi OpenRouter.' : 'Every AI app calls /api/ai. The server validates the account, permissions, quotas and audit logs before calling OpenRouter.'}</p>
-            <div className="settings-v47-security-note">🔒 {language === 'vi' ? 'OPENROUTER_API_KEY chỉ nằm trong Vercel Environment Variables. Giáo viên không cần và không thể nhập API key.' : 'OPENROUTER_API_KEY exists only in Vercel Environment Variables. Teachers neither need nor can enter an API key.'}</div>
-            <div className="settings-v47-field-grid">
-              <div><label>{language === 'vi' ? 'Gateway' : 'Gateway'}</label><input value="/api/ai" readOnly /></div>
-              <div><label>{language === 'vi' ? 'Model' : 'Model'}</label><input value={currentConfig.model || currentProvider.defaultModel} readOnly /></div>
-            </div>
-            <div className="settings-v47-provider-actions">
-              <button type="button" className="secondary" disabled={testing} onClick={testProvider}>{testing ? (language === 'vi' ? 'Đang kiểm tra...' : 'Testing...') : (language === 'vi' ? 'Kiểm tra gateway' : 'Test gateway')}</button>
-              {currentUser?.role === 'admin' ? <button type="button" className="primary" onClick={() => { window.location.hash = '#/ai-governance'; }}>{language === 'vi' ? 'Quản trị model & hạn mức' : 'Manage model & quotas'}</button> : null}
-            </div>
-          </div>
+          <CardHeader icon="👤" tone="blue" title={vi ? 'Tài khoản & mật khẩu' : 'Account & password'} subtitle={vi ? 'Quản lý tài khoản đăng nhập hiện tại.' : 'Manage the current signed-in account.'} />
+          <div className="settings-v65-profile-panel"><div className="settings-v65-avatar">{String(currentUser?.name || currentUser?.email || 'B').slice(0,1).toUpperCase()}</div><div className="settings-v65-profile-copy"><strong>{currentUser?.name || currentUser?.email || 'Brian English'}</strong><small>{currentUser?.email || '—'}</small><small>{authProviders.join(' · ') || currentUser?.provider || 'local'}</small></div></div>
+          <form className="settings-v65-password-form" onSubmit={submitPasswordChange}>
+            <input type="password" placeholder={vi ? 'Mật khẩu hiện tại' : 'Current password'} value={passwordForm.current} onChange={(e) => setPasswordForm((p) => ({...p,current:e.target.value}))} />
+            <input type="password" placeholder={vi ? 'Mật khẩu mới' : 'New password'} value={passwordForm.next} onChange={(e) => setPasswordForm((p) => ({...p,next:e.target.value}))} />
+            <input type="password" placeholder={vi ? 'Xác nhận mật khẩu mới' : 'Confirm new password'} value={passwordForm.confirm} onChange={(e) => setPasswordForm((p) => ({...p,confirm:e.target.value}))} />
+            <button type="submit" disabled={passwordStatus.loading}>{vi ? 'Đổi mật khẩu' : 'Change password'}</button>
+          </form>
+          {passwordStatus.message ? <p>{passwordStatus.message}</p> : null}
         </article>
 
         <article className="settings-v47-card settings-v47-appearance-card">
-          <CardHeader icon="🎨" tone="violet" title={language === 'vi' ? 'Giao diện' : 'Appearance'} subtitle={language === 'vi' ? 'Tùy chỉnh giao diện, màu nhấn và mật độ.' : 'Customize theme, accent, and density.'} />
-          <div className="settings-v47-theme-grid">
-            <button className={currentThemeMode === 'dark' ? 'active' : ''} onClick={() => applyThemeMode('dark')}>☾<span>{language === 'vi' ? 'Tối' : 'Dark'}</span></button>
-            <button className={currentThemeMode === 'light' ? 'active' : ''} onClick={() => applyThemeMode('light')}>☀<span>{language === 'vi' ? 'Sáng' : 'Light'}</span></button>
-            <button className={currentThemeMode === 'auto' ? 'active' : ''} onClick={() => applyThemeMode('auto')}>◐<span>{language === 'vi' ? 'Tự động' : 'Auto'}</span></button>
+          <CardHeader icon="◐" tone="violet" title={vi ? 'Giao diện & chữ' : 'Appearance & text'} subtitle={vi ? 'Điều chỉnh chế độ hiển thị và khả năng đọc.' : 'Adjust display and readability.'} />
+          <div className="settings-v47-density-row"><button className={theme === 'light' ? 'active' : ''} onClick={() => applyTheme('light')}>Light</button><button className={theme === 'dark' ? 'active' : ''} onClick={() => applyTheme('dark')}>Dark</button></div>
+          <div className="settings-v47-color-row">{accents.map(([name,color]) => <button key={name} className={accentColor === name ? 'active' : ''} style={{'--swatch':color}} onClick={() => setAccent(name)} aria-label={name} />)}</div>
+          <div className="settings-v47-density-row">{[['relaxed',vi?'Thoáng':'Relaxed'],['medium',vi?'Vừa':'Medium'],['compact',vi?'Gọn':'Compact']].map(([value,label]) => <button key={value} className={displayDensity === value ? 'active' : ''} onClick={() => setDensity(value)}>{label}</button>)}</div>
+          <label>{vi ? 'Cỡ chữ' : 'Text size'} <select value={fontScale} onChange={(e) => setFontScale?.(Number(e.target.value))}><option value="100">100%</option><option value="110">110%</option><option value="120">120%</option><option value="130">130%</option></select></label>
+          <div className="settings-v47-advanced-grid">
+            <label><span>{vi ? 'Độ đậm giao diện' : 'Interface strength'}</span><select value={themeIntensity} onChange={(e) => setThemeIntensity?.(e.target.value)}><option value="soft">Soft</option><option value="balanced">Balanced</option><option value="strong">Strong</option><option value="bold">Bold</option></select></label>
+            <label><span>{vi ? 'Viền thẻ' : 'Card border'}</span><select value={tileBorder} onChange={(e) => setTileBorder?.(e.target.value)}><option value="off">Off</option><option value="soft">Soft</option><option value="strong">Strong</option></select></label>
+            <label><span>Windows indicator</span><select value={indicatorMode} onChange={(e) => setIndicatorMode?.(e.target.value)}><option value="on">On</option><option value="off">Off</option></select></label>
           </div>
-          <label>{language === 'vi' ? 'Màu nhấn' : 'Accent color'}</label>
-          <div className="settings-v47-accent-row">
-            {accentOptions.map(([name, color]) => <button key={name} className={accentColor === name ? 'active' : ''} style={{ '--swatch': color }} onClick={() => setAccentColor(name)} aria-label={name} />)}
-          </div>
-          <label>{language === 'vi' ? 'Mật độ hiển thị' : 'Display density'}</label>
-          <div className="settings-v47-density-row">
-            {[['relaxed', language === 'vi' ? 'Thoáng' : 'Relaxed'], ['medium', language === 'vi' ? 'Vừa' : 'Medium'], ['compact', language === 'vi' ? 'Gọn' : 'Compact']].map(([value, label]) => (
-              <button key={value} className={displayDensity === value ? 'active' : ''} onClick={() => setDisplayDensity(value)}>{label}</button>
-            ))}
-          </div>
-          <button type="button" className="settings-v47-text-button" onClick={() => setAdvancedOpen((value) => !value)}>{advancedOpen ? '−' : '+'} {language === 'vi' ? 'Thiết lập giao diện nâng cao' : 'Advanced appearance'}</button>
-          {advancedOpen ? (
-            <div className="settings-v47-advanced-grid">
-              <label><span>{language === 'vi' ? 'Độ đậm Metro' : 'Metro strength'}</span><select value={themeIntensity} onChange={(event) => setThemeIntensity?.(event.target.value)}><option value="soft">Soft</option><option value="balanced">Balanced</option><option value="strong">Strong</option><option value="bold">Bold</option></select></label>
-              <label><span>{language === 'vi' ? 'Viền tile' : 'Tile border'}</span><select value={tileBorder} onChange={(event) => setTileBorder?.(event.target.value)}><option value="off">Off</option><option value="soft">Soft</option><option value="strong">Strong</option></select></label>
-              <label><span>Windows indicator</span><select value={indicatorMode} onChange={(event) => setIndicatorMode?.(event.target.value)}><option value="on">On</option><option value="off">Off</option></select></label>
-            </div>
-          ) : null}
         </article>
 
         <article className="settings-v47-card settings-v47-audio-card">
-          <CardHeader icon="♫" tone="green" title={language === 'vi' ? 'Âm thanh & nhạc nền' : 'Sound & background music'} subtitle={language === 'vi' ? 'Quản lý âm thanh và nhạc nền trong studio.' : 'Manage system sound and background music.'} />
-          <div className="settings-v47-setting-list">
-            <div><span>🔔</span><div><strong>{language === 'vi' ? 'Âm báo' : 'Notification sound'}</strong><small>{language === 'vi' ? 'Phát âm khi có thông báo mới.' : 'Play a sound for new notifications.'}</small></div><Toggle checked={soundEnabled} onChange={toggleSound} label="Sound" /></div>
-            <div><span>♫</span><div><strong>{language === 'vi' ? 'Nhạc nền' : 'Background music'}</strong><small>{language === 'vi' ? 'Phát nhạc xuyên suốt hệ thống.' : 'Play music across the system.'}</small></div><Toggle checked={musicSettings.enabled} onChange={(next) => { patchMusicSettings({ enabled: next, expanded: next }); window.dispatchEvent(new CustomEvent('bes-global-music-command', { detail: { action: next ? 'toggle' : 'toggle' } })); }} label="Music" /></div>
-          </div>
-          <div className="settings-v47-slider-row"><span>🔊</span><div><strong>{language === 'vi' ? 'Âm lượng tổng' : 'Master volume'}</strong><input type="range" min="0" max="1" step="0.01" value={musicSettings.volume} onChange={(event) => patchMusicSettings({ volume: Number(event.target.value) })} /></div><b>{Math.round(musicSettings.volume * 100)}%</b></div>
-          <div className="settings-v47-slider-row"><span>↻</span><div><strong>{language === 'vi' ? 'Lặp lại nhạc nền' : 'Loop background music'}</strong><input type="range" min="0" max="1" step="1" value={musicSettings.loop ? 1 : 0} onChange={(event) => patchMusicSettings({ loop: event.target.value === '1' })} /></div><b>{musicSettings.loop ? 'ON' : 'OFF'}</b></div>
-          <button type="button" className="settings-v47-text-button" onClick={() => window.dispatchEvent(new CustomEvent('bes-global-music-command', { detail: { action: 'expand' } }))}>{language === 'vi' ? 'Mở bảng điều khiển nhạc' : 'Open music controls'} →</button>
+          <CardHeader icon="♫" tone="green" title={vi ? 'Âm thanh & nhạc nền' : 'Sound & music'} subtitle={vi ? 'Điều khiển âm báo và nhạc nền.' : 'Control notifications and background music.'} />
+          <div className="settings-v47-setting-list"><div><span>🔔</span><div><strong>{vi?'Âm báo':'Notification sound'}</strong></div><Toggle checked={soundEnabled} onChange={toggleSound} label="Sound" /></div><div><span>♫</span><div><strong>{vi?'Nhạc nền':'Background music'}</strong></div><Toggle checked={musicSettings.enabled} onChange={(next) => patchMusic({enabled:next,expanded:next})} label="Music" /></div></div>
+          <div className="settings-v47-slider-row"><span>🔊</span><div><strong>{vi?'Âm lượng':'Volume'}</strong><input type="range" min="0" max="1" step="0.01" value={musicSettings.volume} onChange={(e) => patchMusic({volume:Number(e.target.value)})} /></div><b>{Math.round(musicSettings.volume*100)}%</b></div>
         </article>
 
         <article className="settings-v47-card settings-v47-sync-card">
-          <CardHeader icon="☁" tone="mint" title={language === 'vi' ? 'Đồng bộ & thông báo' : 'Sync & notifications'} subtitle={language === 'vi' ? 'Đồng bộ dữ liệu và tùy chỉnh thông báo.' : 'Control data sync and notifications.'} />
-          <div className="settings-v47-setting-list">
-            <div><span>↕</span><div><strong>{language === 'vi' ? 'Đồng bộ dữ liệu' : 'Data sync'}</strong><small>{language === 'vi' ? 'Tự động đồng bộ giữa các thiết bị.' : 'Automatically sync across devices.'}</small></div><Toggle checked={dataSyncEnabled} onChange={toggleDataSync} label="Data sync" /></div>
-            <div><span>⟳</span><div><strong>{language === 'vi' ? 'Đồng bộ live (real-time)' : 'Live sync'}</strong><small>{language === 'vi' ? 'Cập nhật dữ liệu tức thì.' : 'Refresh data in real time.'}</small></div><Toggle checked={liveSyncEnabled} onChange={toggleLiveSync} label="Live sync" /></div>
-            <button type="button" className="settings-v47-notice-row" onClick={openNotifications}><span>♧</span><div><strong>{language === 'vi' ? 'Trung tâm thông báo' : 'Notification center'}</strong><small>{language === 'vi' ? 'Quản lý tất cả thông báo hệ thống.' : 'Manage all system notifications.'}</small></div><b>{language === 'vi' ? 'Mở' : 'Open'} ›</b></button>
-          </div>
-        </article>
-
-        <article className="settings-v47-card settings-v47-security-card">
-          <CardHeader icon="🛡" tone="amber" title={language === 'vi' ? 'Bảo mật AI phía máy chủ' : 'Server-side AI security'} subtitle={language === 'vi' ? 'API key, quyền, quota và nhật ký đều được kiểm soát trước khi gửi yêu cầu.' : 'API key, permissions, quotas and audit logs are enforced before every request.'} />
-          <div className="settings-v47-key-list">
-            <div className="settings-v47-server-security-row"><span className="provider-logo small tone-indigo">↗</span><strong>OpenRouter Gateway</strong><code>OPENROUTER_API_KEY</code><em className="active">Vercel Server</em></div>
-            <div className="settings-v47-server-security-row"><span className="provider-logo small tone-green">✓</span><strong>{language === 'vi' ? 'Xác thực người dùng' : 'User authentication'}</strong><code>Supabase JWT</code><em className="active">Required</em></div>
-            <div className="settings-v47-server-security-row"><span className="provider-logo small tone-violet">▥</span><strong>{language === 'vi' ? 'Quota & nhật ký' : 'Quota & audit'}</strong><code>Supabase Server</code><em className="active">Central</em></div>
-          </div>
-          <div className="settings-v47-security-note">🔒 {language === 'vi' ? 'Trình duyệt không nhận, không lưu và không truyền API key OpenRouter.' : 'The browser never receives, stores or transmits the OpenRouter API key.'}</div>
+          <CardHeader icon="☁" tone="mint" title={vi ? 'Đồng bộ & thông báo' : 'Sync & notifications'} subtitle={vi ? 'Kiểm soát đồng bộ dữ liệu hệ thống.' : 'Control system data synchronization.'} />
+          <div className="settings-v47-setting-list"><div><span>↕</span><div><strong>{vi?'Đồng bộ dữ liệu':'Data sync'}</strong></div><Toggle checked={dataSyncEnabled} onChange={toggleDataSync} label="Data sync" /></div><div><span>⟳</span><div><strong>{vi?'Đồng bộ trực tiếp':'Live sync'}</strong></div><Toggle checked={liveSyncEnabled} onChange={toggleLiveSync} label="Live sync" /></div></div>
         </article>
 
         <article className="settings-v47-card settings-v47-summary-card">
-          <CardHeader icon="▥" tone="sky" title={language === 'vi' ? 'Tóm tắt hệ thống' : 'System summary'} subtitle={language === 'vi' ? 'Thông tin nhanh và thao tác tiện ích.' : 'Quick status and utility actions.'} />
-          <div className="settings-v47-summary-stats">
-            <span><b>1</b><small>OpenRouter</small></span>
-            <span><b>Server</b><small>API key</small></span>
-            <span><b>{resolvedPerformance}</b><small>Profile</small></span>
-            <span><b>99.9%</b><small>Uptime</small></span>
-          </div>
-          <div className="settings-v47-quick-actions">
-            <button type="button" disabled={testing} onClick={testProvider}>⌁ {language === 'vi' ? 'Kiểm tra kết nối' : 'Test connection'}</button>
-            <button type="button" onClick={clearCache}>⌫ {language === 'vi' ? 'Xóa cache' : 'Clear cache'}</button>
-            <button type="button" onClick={exportSettings}>⇧ {language === 'vi' ? 'Xuất cài đặt' : 'Export settings'}</button>
-            <button type="button" onClick={() => importInputRef.current?.click()}>⇩ {language === 'vi' ? 'Nhập cài đặt' : 'Import settings'}</button>
-            <input ref={importInputRef} hidden type="file" accept="application/json,.json" onChange={importSettings} />
-          </div>
-          <div className="settings-v47-system-selects">
-            <label><span>{language === 'vi' ? 'Ngôn ngữ' : 'Language'}</span><select value={language} onChange={(event) => setLanguage?.(event.target.value)}><option value="vi">Tiếng Việt</option><option value="en">English</option></select></label>
-            <label><span>{language === 'vi' ? 'Chuyển cảnh' : 'Motion'}</span><select value={motionMode} onChange={(event) => setMotionMode?.(event.target.value)}><option value="lite">Lite</option><option value="full">Full</option><option value="off">Off</option></select></label>
-            <label><span>{language === 'vi' ? 'Hiệu năng' : 'Performance'}</span><select value={performanceMode} onChange={(event) => setPerformanceMode?.(event.target.value)}><option value="auto">Auto</option><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></select></label>
-          </div>
-          <button type="button" className="settings-v47-reset" onClick={resetSettings}>⟳ {language === 'vi' ? 'Đặt lại về mặc định' : 'Reset to defaults'}</button>
+          <CardHeader icon="▥" tone="sky" title={vi ? 'Tiện ích hệ thống' : 'System utilities'} subtitle={vi ? 'Xuất, nhập và đặt lại cài đặt.' : 'Export, import and reset settings.'} />
+          <div className="settings-v47-quick-actions"><button onClick={clearCache}>⌫ {vi?'Xóa cache':'Clear cache'}</button><button onClick={exportSettings}>⇧ {vi?'Xuất cài đặt':'Export settings'}</button><button onClick={() => importInputRef.current?.click()}>⇩ {vi?'Nhập cài đặt':'Import settings'}</button><input ref={importInputRef} hidden type="file" accept="application/json,.json" onChange={importSettings} /></div>
+          <div className="settings-v47-system-selects"><label><span>{vi?'Ngôn ngữ':'Language'}</span><select value={language} onChange={(e) => setLanguage?.(e.target.value)}><option value="vi">Tiếng Việt</option><option value="en">English</option></select></label><label><span>{vi?'Chuyển cảnh':'Motion'}</span><select value={motionMode} onChange={(e) => setMotionMode?.(e.target.value)}><option value="lite">Lite</option><option value="full">Full</option><option value="off">Off</option></select></label><label><span>{vi?'Hiệu năng':'Performance'}</span><select value={performanceMode} onChange={(e) => setPerformanceMode?.(e.target.value)}><option value="auto">Auto</option><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></select></label></div>
+          <button className="settings-v47-reset" onClick={resetSettings}>⟳ {vi?'Đặt lại mặc định':'Reset defaults'}</button>
         </article>
       </section>
-
-      {testResult ? <div className={`settings-v47-global-message ${testResult.startsWith('✅') ? 'ok' : ''}`}>{testResult}</div> : null}
+      {message ? <div className={`settings-v47-global-message ${message.startsWith('✅') ? 'ok' : ''}`}>{message}</div> : null}
       <footer className="settings-v47-footer">© 2026 Brian English Studio. All rights reserved.</footer>
     </div>
   );

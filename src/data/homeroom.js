@@ -46,7 +46,7 @@ export const HOMEROOM_TABS = [
   { key: 'portals', icon: '◎', titleVi: 'Cổng kết nối', title: 'Portals' },
   { key: 'records', icon: '▤', titleVi: 'Hồ sơ & báo cáo', title: 'Records' },
   { key: 'safety', icon: '⌾', titleVi: 'An toàn dữ liệu', title: 'Data safety' },
-  { key: 'ai', icon: 'AI', titleVi: 'AI GVCN', title: 'AI Homeroom' },
+
   { key: 'schoolStats', icon: '▥', titleVi: 'Toàn trường', title: 'School statistics', adminOnly: true },
 ];
 

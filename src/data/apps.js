@@ -11,7 +11,6 @@ export const APPS = [
     status: 'Realtime · Role-aware · 14-day view', statusVi: 'Realtime · Theo vai trò · 14 ngày', api: true, featured: true,
   },
 
-
   {
     slug: 'thpt-practice-hub', icon: 'TH', tone: 'orange', group: 'Exam Preparation', groupVi: 'Luyện thi THPT',
     title: 'THPT Interactive Practice Hub', titleVi: 'Luyện thi THPT',
@@ -68,7 +67,6 @@ export const APPS = [
     status: 'PWA · Security · WCAG · Web Vitals', statusVi: 'PWA · Bảo mật · WCAG · Hiệu năng', api: true, featured: true,
   },
 
-
   {
     slug: 'automation-center', route: 'automation-center', icon: 'AU', tone: 'blue', group: 'Operations', groupVi: 'Tự động hóa & vận hành',
     title: 'Automation Center', titleVi: 'Trung tâm tự động hóa',
@@ -98,7 +96,6 @@ export const APPS = [
     status: 'Audit · Backup · Trash · RLS', statusVi: 'Audit · Sao lưu · Thùng rác · RLS', api: true, featured: true,
   },
 
-
   {
       slug: 'resource-library-hub',
       route: 'resource-library',
@@ -108,10 +105,10 @@ export const APPS = [
       groupVi: 'Học liệu dùng chung',
       title: 'Brian Resource Library',
       titleVi: 'Kho học liệu Tổ Tiếng Anh',
-      desc: 'A shared English teaching-resource library backed by the department leader’s Google Drive, AI search and approval workflows.',
-      descVi: 'Kho sách và học liệu dùng chung, tự lưu lên Google Drive của TTCM, có AI phân loại, tìm kiếm và quy trình duyệt.',
-      status: 'Google Drive · AI Knowledge',
-      statusVi: 'Google Drive · Kho tri thức AI',
+      desc: 'A shared English teaching-resource library backed by the department leader’s Google Drive, search, classification and approval workflows.',
+      descVi: 'Kho sách và học liệu dùng chung, tự lưu lên Google Drive của TTCM, có phân loại, tìm kiếm và quy trình duyệt.',
+      status: 'Google Drive · Collections',
+      statusVi: 'Google Drive · Bộ sưu tập',
       api: true,
       featured: true,
     },
@@ -132,7 +129,6 @@ export const APPS = [
       api: true,
       featured: true,
     },
-
 
   {
       slug: 'vietnam-tax',
@@ -173,10 +169,10 @@ export const APPS = [
       groupVi: 'Đánh giá',
       title: 'Exam Studio',
       titleVi: 'Exam Studio',
-      desc: 'Create exams from upload/paste text or AI keywords with clean preview and interactive HTML export.',
-      descVi: 'Tạo đề từ file/text hoặc AI, nhận dạng câu hỏi, preview sạch và xuất HTML tương tác.',
-      status: '4-step flow · AI',
-      statusVi: 'Quy trình 4 bước · AI',
+      desc: 'Create exams from uploaded or pasted content with clean preview and interactive HTML export.',
+      descVi: 'Tạo đề từ file hoặc văn bản, nhận dạng câu hỏi, preview sạch và xuất HTML tương tác.',
+      status: '4-step flow · Offline',
+      statusVi: 'Quy trình 4 bước · Offline',
       api: true,
       featured: true,
     },
@@ -190,8 +186,8 @@ export const APPS = [
       titleVi: 'WordGraph Studio',
       desc: 'Map word families, collocations and examples.',
       descVi: 'Vẽ sơ đồ word family, collocation và ví dụ.',
-      status: 'AI powered',
-      statusVi: 'AI hỗ trợ',
+      status: 'Manual · Offline',
+      statusVi: 'Thủ công · Offline',
       api: true,
     },
   {
@@ -204,8 +200,8 @@ export const APPS = [
       titleVi: 'Reading Studio',
       desc: 'Create passages, MCQs, summaries and vocabulary support.',
       descVi: 'Tạo bài đọc, MCQ, tóm tắt và từ vựng hỗ trợ.',
-      status: 'AI powered',
-      statusVi: 'AI hỗ trợ',
+      status: 'Manual · Offline',
+      statusVi: 'Thủ công · Offline',
       api: true,
       featured: true,
     },  {
@@ -232,8 +228,8 @@ export const APPS = [
       titleVi: 'Learner Sprint',
       desc: 'Turn bank questions into scored practice.',
       descVi: 'Tạo bài luyện tập có chấm điểm từ ngân hàng câu hỏi.',
-      status: 'AI powered',
-      statusVi: 'AI hỗ trợ',
+      status: 'Manual · Offline',
+      statusVi: 'Thủ công · Offline',
       api: true,
       featured: true,
     },
@@ -241,14 +237,14 @@ export const APPS = [
       slug: 'textcare',
       icon: 'TC',
       tone: 'red',
-      group: 'Document AI',
+      group: 'Document Tools',
       groupVi: 'Văn bản',
       title: 'TextCare Fixer',
       titleVi: 'TextCare Fixer',
       desc: 'Upload, paste, detect and normalize administrative documents.',
       descVi: 'Tải file/dán text, nhận diện và chuẩn hoá văn bản hành chính.',
-      status: 'AI powered',
-      statusVi: 'AI hỗ trợ',
+      status: 'Manual · Offline',
+      statusVi: 'Thủ công · Offline',
       api: true,
     },];
 
@@ -308,13 +304,6 @@ export const ARCHIVED_APPS = [
 ];
 
 export const RESOURCE_ITEMS = [
-  {
-    icon: 'AI',
-    title: 'AI Access',
-    titleVi: 'Kết nối AI',
-    text: 'Configure Gemini, OpenAI, Claude, Groq, OpenRouter, Mistral or custom endpoints.',
-    textVi: 'Cấu hình Gemini, OpenAI, Claude, Groq, OpenRouter, Mistral hoặc endpoint riêng.',
-  },
   {
     icon: 'WF',
     title: 'Teacher Flow',

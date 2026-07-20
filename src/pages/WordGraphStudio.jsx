@@ -669,7 +669,7 @@ export default function WordGraphStudio({ tool, language, apiKey, aiModel, hasAp
           </div>
 
           <div className="wordgraph-v821-hero-footer">
-            <div className="wordgraph-v821-ai-state"><span className="wordgraph-v821-tip-icon">✦</span><div><strong>{language === 'vi' ? 'AI sẵn sàng' : 'AI ready'}</strong><small>{hasApiKey ? 'API connected · Phản hồi nhanh' : (language === 'vi' ? 'Nhập API key trong Cài đặt' : 'Add an API key in Settings')}</small></div></div>
+            <div className="wordgraph-v821-ai-state"><span className="wordgraph-v821-tip-icon">✦</span><div><strong>{language === 'vi' ? 'Hệ thống sẵn sàng' : 'AI ready'}</strong><small>{hasApiKey ? 'API connected · Phản hồi nhanh' : (language === 'vi' ? 'Nhập API key trong Cài đặt' : 'Add an API key in Settings')}</small></div></div>
             <div className="wordgraph-v821-quick-tip"><span className="wordgraph-v821-tip-icon">♧</span><div><strong>{language === 'vi' ? 'Mẹo nhanh' : 'Quick tip'}</strong><small>{language === 'vi' ? 'Kéo thả để sắp xếp node. Dùng Auto layout để tối ưu bố cục tự động.' : 'Drag nodes to arrange them. Use Auto layout to optimize the map.'}</small></div></div>
           </div>
         </section>
