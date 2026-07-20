@@ -14,6 +14,7 @@ const TestBuilder = lazy(() => import('./TestBuilder.jsx'));
 const StudentPractice = lazy(() => import('./StudentPractice.jsx'));
 const AITool = lazy(() => import('./AITool.jsx'));
 const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
+const TextLabTemplateLibrary = lazy(() => import('./TextLabTemplateLibrary.jsx'));
 const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
 
 const specializedToolSlugs = new Set([
@@ -69,6 +70,10 @@ export default function ToolPage(props) {
 
   if (tool?.slug === 'textlab-activities') {
     return renderLazy(TextLabActivities, props);
+  }
+
+  if (tool?.slug === 'textlab-template-library') {
+    return renderLazy(TextLabTemplateLibrary, props);
   }
 
   if (tool?.slug === 'thpt-practice-hub') {

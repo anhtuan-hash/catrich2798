@@ -147,6 +147,21 @@ export const APPS = [
     },
 
   {
+      slug: 'textlab-template-library',
+      icon: 'TC',
+      tone: 'blue',
+      group: 'Teaching Design',
+      groupVi: 'Tạo học liệu',
+      title: 'Brian TextLab Template Library',
+      titleVi: 'Thư viện mẫu Brian TextLab',
+      desc: 'Browse 36 classroom activity structures and copy a blank template or completed example without AI.',
+      descVi: 'Xem 36 cấu trúc hoạt động lớp học, sao chép mẫu trống hoặc ví dụ hoàn chỉnh, hoàn toàn không dùng AI.',
+      status: '36 templates · No AI · Copy-ready',
+      statusVi: '36 mẫu · Không AI · Sao chép nhanh',
+      api: false,
+      featured: true,
+    },
+  {
       slug: 'textlab-activities',
       icon: 'TL',
       tone: 'blue',

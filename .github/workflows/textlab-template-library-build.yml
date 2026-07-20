@@ -1,0 +1,41 @@
+name: TextLab Template Library Verification
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/data/apps.js'
+      - 'src/data/textLabTemplateLibrary.js'
+      - 'src/pages/ToolPage.jsx'
+      - 'src/pages/TextLabTemplateLibrary.jsx'
+      - 'src/styles/textlab-template-library.css'
+      - 'scripts/audit-textlab-template-library.mjs'
+      - '.github/workflows/textlab-template-library-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit template catalogue
+        run: node scripts/audit-textlab-template-library.mjs
+
+      - name: Build application
+        run: npm run build
