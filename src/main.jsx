@@ -649,7 +649,7 @@ function App() {
         </Suspense>
       )}
 
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <>
+      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'dashboard'].includes(currentRoute) ? <>
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
             <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} appVisibility={appVisibility} />
@@ -661,7 +661,7 @@ function App() {
       </> : null}
       {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><UnifiedUtilityRail currentUser={currentUser} language={language} currentRoute={currentRoute} /></Suspense> : null}
       {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
-      {currentRoute !== 'homeroom-portal' ? <>
+      {!['homeroom-portal', 'dashboard'].includes(currentRoute) ? <>
         <Suspense fallback={null}>
           <GlobalMusicPlayer language={language} currentUser={currentUser} externalLauncher />
         </Suspense>

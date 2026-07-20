@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { subscribeTable } from '../services/runtime/core.js';
 import {
   DASHBOARD_SOURCE_EVENTS,
+  createEmptyDashboardSnapshot,
   dashboardDueLabel,
   formatDashboardDate,
   getDashboardDueState,
@@ -57,6 +58,10 @@ const COPY = {
     cloud: 'Cloud',
     local: 'Cục bộ',
     empty: 'Chưa có dữ liệu',
+    loadingSource: 'Đang tải',
+    partialTitle: 'Một số nguồn chưa phản hồi',
+    partialText: 'Dashboard đang tiếp tục bằng dữ liệu đã tải được. Bạn có thể thử lại bất cứ lúc nào.',
+    retry: 'Thử lại',
   },
   en: {
     pageTitle: 'Work Dashboard',
@@ -104,6 +109,10 @@ const COPY = {
     cloud: 'Cloud',
     local: 'Local',
     empty: 'No data',
+    loadingSource: 'Loading',
+    partialTitle: 'Some sources did not respond',
+    partialText: 'The dashboard is continuing with available data. You can retry at any time.',
+    retry: 'Retry',
   },
 };
 
@@ -140,6 +149,18 @@ function formatDay(value, language) {
 
 function EmptyState({ icon = '◇', children }) {
   return <div className="wd5-empty"><span>{icon}</span><p>{children}</p></div>;
+}
+
+function LoadingRows({ count = 5, compact = false }) {
+  return (
+    <div className={`wd5-skeleton-list${compact ? ' compact' : ''}`} aria-hidden="true">
+      {Array.from({ length: count }, (_, index) => (
+        <div className="wd5-skeleton-row" key={index}>
+          <i /><span><b /><small /></span><em />
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function ScrollCard({ className = '', icon, title, action, actionLabel, children, footer, tone = 'blue' }) {
@@ -223,13 +244,22 @@ function ResourceCard({ item, language }) {
 }
 
 function SourcePill({ label, value, t }) {
-  const tone = value === 'cloud' || value === 'cloud-or-local' ? 'cloud' : value === 'empty' ? 'empty' : 'local';
-  return <span className={`wd5-source-pill tone-${tone}`}><i /><b>{label}</b><small>{tone === 'cloud' ? t.cloud : tone === 'local' ? t.local : t.empty}</small></span>;
+  const tone = value === 'cloud' || value === 'cloud-or-local'
+    ? 'cloud'
+    : value === 'loading'
+      ? 'loading'
+      : value === 'error'
+        ? 'error'
+        : value === 'empty'
+          ? 'empty'
+          : 'local';
+  const text = tone === 'cloud' ? t.cloud : tone === 'local' ? t.local : tone === 'loading' ? t.loadingSource : tone === 'error' ? t.retry : t.empty;
+  return <span className={`wd5-source-pill tone-${tone}`}><i /><b>{label}</b><small>{text}</small></span>;
 }
 
 export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const t = COPY[language] || COPY.vi;
-  const [snapshot, setSnapshot] = useState(null);
+  const [snapshot, setSnapshot] = useState(() => createEmptyDashboardSnapshot(currentUser));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [taskFilter, setTaskFilter] = useState('all');
@@ -241,7 +271,11 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     if (!quiet) setLoading(true);
     setError('');
     try {
-      setSnapshot(await loadDashboardSnapshot(currentUser));
+      const nextSnapshot = await loadDashboardSnapshot(currentUser);
+      setSnapshot(nextSnapshot);
+      if (nextSnapshot?.sourceErrors?.length) {
+        setError(nextSnapshot.sourceErrors.map((item) => `${item.source}: ${item.message}`).join(' · '));
+      }
     } catch (loadError) {
       setError(loadError?.message || String(loadError));
     } finally {
@@ -295,16 +329,15 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const metricNote = language === 'vi' ? 'Bấm để lọc nhanh' : 'Click to filter';
   const bottomItems = bottomMode === 'resources' ? (snapshot?.recentResources || []) : (snapshot?.continueItems || []);
 
+  const initialLoading = loading && !snapshot?.generatedAt;
+  const partialErrors = snapshot?.sourceErrors || [];
+
   const scrollCarousel = (direction) => {
     carouselRef.current?.scrollBy({ left: direction * Math.max(320, carouselRef.current.clientWidth * 0.72), behavior: 'smooth' });
   };
 
-  if (loading && !snapshot) {
-    return <div className="wd5-loading"><span>BE</span><strong>{t.refreshing}</strong></div>;
-  }
-
   return (
-    <section className="wd5-page" aria-label={t.pageTitle}>
+    <section className={`wd5-page${initialLoading ? ' is-loading' : ''}`} aria-label={t.pageTitle} aria-busy={loading}>
       <header className="wd5-hero">
         <div className="wd5-hero-copy">
           <span className="wd5-brand-chip">BRIAN ENGLISH · COMMAND CENTER</span>
@@ -336,7 +369,20 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         </aside>
       </header>
 
-      {error ? <div className="wd5-error">⚠ {error}</div> : null}
+      {initialLoading ? (
+        <div className="wd5-sync-strip" role="status">
+          <span className="wd5-sync-spinner" aria-hidden="true" />
+          <div><strong>{t.refreshing}</strong><small>Work Hub · {t.department} · {t.resources} · {t.homeroom}</small></div>
+        </div>
+      ) : null}
+
+      {partialErrors.length || error ? (
+        <div className="wd5-error wd5-partial-error">
+          <span aria-hidden="true">!</span>
+          <div><strong>{t.partialTitle}</strong><small>{t.partialText}</small></div>
+          <button type="button" onClick={() => refresh()}>{t.retry}</button>
+        </div>
+      ) : null}
 
       <section className="wd5-metrics" aria-label="Dashboard metrics">
         <MetricCard kind="today" value={snapshot?.stats?.today || 0} label={t.today} note={metricNote} selected={taskFilter === 'today'} onClick={() => setTaskFilter(taskFilter === 'today' ? 'all' : 'today')} />
@@ -352,13 +398,13 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
           <div className="wd5-filter-bar sticky">
             {['all', 'today', 'soon', 'overdue', 'pending'].map((key) => <button type="button" key={key} className={taskFilter === key ? 'active' : ''} onClick={() => setTaskFilter(key)}>{key === 'all' ? t.all : key === 'today' ? t.today : key === 'soon' ? t.soon : key === 'overdue' ? t.urgent : t.pending}</button>)}
           </div>
-          <div className="wd5-scroll-list">{tasks.length ? tasks.map((item) => <TaskRow key={item.id} item={item} language={language} />) : <EmptyState icon="✓">{t.emptyTasks}</EmptyState>}</div>
+          <div className="wd5-scroll-list">{initialLoading ? <LoadingRows count={6} /> : tasks.length ? tasks.map((item) => <TaskRow key={item.id} item={item} language={language} />) : <EmptyState icon="✓">{t.emptyTasks}</EmptyState>}</div>
         </ScrollCard>
 
         <ScrollCard className="wd5-schedule-card" icon="▣" title={t.schedule} tone="blue" action={() => { window.location.hash = '#/department'; }} actionLabel={t.viewAll}
           footer={<div className="wd5-card-footer-row"><span>{schedule.length} {t.scheduleCount}</span><button type="button" onClick={() => setScheduleRange(scheduleRange === 14 ? 7 : 14)}>{scheduleRange === 14 ? '7 ngày' : '14 ngày'} ↕</button></div>}>
           <div className="wd5-filter-bar sticky"><button type="button" className={scheduleRange === 0 ? 'active' : ''} onClick={() => setScheduleRange(0)}>Hôm nay</button><button type="button" className={scheduleRange === 7 ? 'active' : ''} onClick={() => setScheduleRange(7)}>7 ngày</button><button type="button" className={scheduleRange === 14 ? 'active' : ''} onClick={() => setScheduleRange(14)}>14 ngày</button></div>
-          <div className="wd5-scroll-list">{schedule.length ? schedule.map((item) => <ScheduleRow key={item.id} item={item} language={language} />) : <EmptyState icon="▣">{t.emptySchedule}</EmptyState>}</div>
+          <div className="wd5-scroll-list">{initialLoading ? <LoadingRows count={6} /> : schedule.length ? schedule.map((item) => <ScheduleRow key={item.id} item={item} language={language} />) : <EmptyState icon="▣">{t.emptySchedule}</EmptyState>}</div>
         </ScrollCard>
       </section>
 
@@ -366,19 +412,19 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         <ScrollCard className="wd5-approval-card" icon="✓" title={t.approvals} tone="violet" action={() => openDashboardTarget({ route: 'department', departmentTab: 'submissions' })} actionLabel={t.viewAll}
           footer={<div className="wd5-card-footer-row"><span>{snapshot?.approvals?.length || 0} {t.pending.toLowerCase()}</span><button type="button" onClick={() => setTaskFilter('pending')}>{t.viewAll} →</button></div>}>
           <div className="wd5-feature-art approval" aria-hidden="true"><span>✓</span><i /><i /><i /></div>
-          <div className="wd5-scroll-list mini">{(snapshot?.approvals || []).length ? snapshot.approvals.map((item) => <MiniListRow key={item.id} item={item} language={language} badge={item.status || 'Chờ duyệt'} />) : <EmptyState icon="✓">{t.emptyApproval}</EmptyState>}</div>
+          <div className="wd5-scroll-list mini">{initialLoading ? <LoadingRows count={4} compact /> : (snapshot?.approvals || []).length ? snapshot.approvals.map((item) => <MiniListRow key={item.id} item={item} language={language} badge={item.status || 'Chờ duyệt'} />) : <EmptyState icon="✓">{t.emptyApproval}</EmptyState>}</div>
         </ScrollCard>
 
         <ScrollCard className="wd5-department-card" icon="●" title={t.department} tone="green" action={() => { window.location.hash = '#/department'; }} actionLabel={t.viewAll}
           footer={<div className="wd5-card-footer-row"><span>{snapshot?.professional?.length || 0} hoạt động</span><button type="button" onClick={() => { window.location.hash = '#/department'; }}>{completion}% →</button></div>}>
           <div className="wd5-feature-art department" aria-hidden="true"><span>●</span><i /><i /><i /></div>
-          <div className="wd5-scroll-list mini">{(snapshot?.professional || []).length ? snapshot.professional.map((item) => <MiniListRow key={item.id} item={item} language={language} badge={item.status || 'Mới'} />) : <EmptyState icon="●">{t.emptyDepartment}</EmptyState>}</div>
+          <div className="wd5-scroll-list mini">{initialLoading ? <LoadingRows count={4} compact /> : (snapshot?.professional || []).length ? snapshot.professional.map((item) => <MiniListRow key={item.id} item={item} language={language} badge={item.status || 'Mới'} />) : <EmptyState icon="●">{t.emptyDepartment}</EmptyState>}</div>
         </ScrollCard>
 
         <ScrollCard className="wd5-homeroom-card" icon="◆" title={t.homeroom} tone="orange" action={() => { window.location.hash = '#/homeroom'; }} actionLabel={t.viewAll}
           footer={<div className="wd5-card-footer-row"><span>{snapshot?.homeroom?.className || '—'}</span><button type="button" onClick={() => { window.location.hash = '#/homeroom'; }}>{t.viewAll} →</button></div>}>
           <div className="wd5-feature-art homeroom" aria-hidden="true"><span>◆</span><i /><i /><i /></div>
-          {snapshot?.homeroom ? <div className="wd5-homeroom-list">
+          {initialLoading ? <div className="wd5-homeroom-list"><LoadingRows count={4} compact /></div> : snapshot?.homeroom ? <div className="wd5-homeroom-list">
             <button type="button" onClick={() => { window.location.hash = '#/homeroom'; }}><span>{t.students}</span><strong>{snapshot.homeroom.studentCount}</strong><b>›</b></button>
             <button type="button" onClick={() => { window.location.hash = '#/homeroom'; }}><span>{t.absent}</span><strong>{snapshot.homeroom.absentToday}</strong><b>›</b></button>
             <button type="button" onClick={() => { window.location.hash = '#/homeroom'; }}><span>{t.reminders}</span><strong>{snapshot.homeroom.reminders}</strong><b>›</b></button>
@@ -390,7 +436,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       <ScrollCard className="wd5-carousel-card" icon="↔" title={bottomMode === 'continue' ? t.continue : t.resources} tone="blue" action={() => { window.location.hash = bottomMode === 'continue' ? '#/apps' : '#/resource-library'; }} actionLabel={t.viewAll}
         footer={<div className="wd5-source-strip"><strong>{t.source}</strong><SourcePill label="Work Hub" value={snapshot?.sources?.workHub || 'empty'} t={t} /><SourcePill label="Tổ chuyên môn" value={snapshot?.sources?.department || 'empty'} t={t} /><SourcePill label="Kho học liệu" value={snapshot?.sources?.resources || 'empty'} t={t} /><SourcePill label="Chủ nhiệm" value={snapshot?.sources?.homeroom || 'empty'} t={t} /></div>}>
         <div className="wd5-carousel-toolbar"><div><button type="button" className={bottomMode === 'continue' ? 'active' : ''} onClick={() => setBottomMode('continue')}>{t.continue}</button><button type="button" className={bottomMode === 'resources' ? 'active' : ''} onClick={() => setBottomMode('resources')}>{t.resources}</button></div><span><button type="button" onClick={() => scrollCarousel(-1)}>‹</button><button type="button" onClick={() => scrollCarousel(1)}>›</button></span></div>
-        <div className="wd5-carousel" ref={carouselRef}>{bottomItems.length ? bottomItems.map((item) => bottomMode === 'resources' ? <ResourceCard key={item.id} item={item} language={language} /> : <DraftCard key={`${item.id}:${item.target}`} item={item} language={language} />) : <EmptyState icon="↔">{bottomMode === 'resources' ? t.emptyResources : t.emptyContinue}</EmptyState>}</div>
+        <div className="wd5-carousel" ref={carouselRef}>{initialLoading ? <LoadingRows count={5} compact /> : bottomItems.length ? bottomItems.map((item) => bottomMode === 'resources' ? <ResourceCard key={item.id} item={item} language={language} /> : <DraftCard key={`${item.id}:${item.target}`} item={item} language={language} />) : <EmptyState icon="↔">{bottomMode === 'resources' ? t.emptyResources : t.emptyContinue}</EmptyState>}</div>
       </ScrollCard>
     </section>
   );

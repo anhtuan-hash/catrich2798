@@ -66,6 +66,33 @@ export const DASHBOARD_SOURCE_EVENTS = [
 ];
 
 const DAY = 86400000;
+const SOURCE_TIMEOUT_MS = 4500;
+
+function sourceTimeout(label, timeout = SOURCE_TIMEOUT_MS) {
+  const error = new Error(`${label} did not respond within ${timeout}ms.`);
+  error.code = 'DASHBOARD_SOURCE_TIMEOUT';
+  error.source = label;
+  return error;
+}
+
+function withSourceTimeout(promise, label, timeout = SOURCE_TIMEOUT_MS) {
+  let timer = null;
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise((_, reject) => {
+      timer = setTimeout(() => reject(sourceTimeout(label, timeout)), timeout);
+    }),
+  ]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
+function settledValue(result, fallback, label, errors) {
+  if (result.status === 'fulfilled') return result.value;
+  errors.push({ source: label, message: result.reason?.message || String(result.reason || label) });
+  return fallback;
+}
+
 const DONE_WORK = new Set(['completed', 'approved', 'archived', 'cancelled']);
 const DONE_DEPARTMENT = new Set(['Hoàn thành', 'Đã duyệt', 'Đã hoàn thành', 'completed', 'approved', 'archived']);
 const DEPARTMENT_LOCAL_PREFIX = 'bes-department-workspace-v1';
@@ -507,16 +534,50 @@ function timelineWithin(items, days = 14, now = new Date()) {
   }).sort((a, b) => dateValue(a.date) - dateValue(b.date));
 }
 
+export function createEmptyDashboardSnapshot(currentUser, now = new Date()) {
+  const leader = isDepartmentLeaderRole(currentUser?.role);
+  const admin = isAdminRole(currentUser?.role);
+  const department = normalizeDepartment({});
+  return {
+    generatedAt: '',
+    role: leader ? 'leader' : 'teacher',
+    leader,
+    admin,
+    stats: { today: 0, overdue: 0, dueSoon: 0, pendingApproval: 0, upcoming: 0, notifications: 0 },
+    timeline: [],
+    attention: [],
+    professional: [],
+    approvals: [],
+    continueItems: [],
+    recentResources: [],
+    homeroom: null,
+    department,
+    departmentHealth: computeDepartmentHealth(department, [], [], now),
+    requests: [],
+    submissions: [],
+    notifications: [],
+    sourceErrors: [],
+    sources: { workHub: 'loading', department: 'loading', resources: 'loading', homeroom: 'loading' },
+  };
+}
+
 export async function loadDashboardSnapshot(currentUser, now = new Date()) {
   const leader = isDepartmentLeaderRole(currentUser?.role);
   const admin = isAdminRole(currentUser?.role);
-  const [workResult, departmentResult, resourceResult, homeroomResult, notifications] = await Promise.all([
-    loadWorkHub(currentUser),
-    loadDepartment(currentUser),
-    loadResources(),
-    loadHomeroom(currentUser),
-    listWorkHubNotifications(currentUser?.id, 30).catch(() => []),
+  const settled = await Promise.allSettled([
+    withSourceTimeout(loadWorkHub(currentUser), 'workHub'),
+    withSourceTimeout(loadDepartment(currentUser), 'department'),
+    withSourceTimeout(loadResources(), 'resources'),
+    withSourceTimeout(loadHomeroom(currentUser), 'homeroom'),
+    withSourceTimeout(listWorkHubNotifications(currentUser?.id, 30), 'notifications', 3000),
   ]);
+  const sourceErrors = [];
+  const workResult = settledValue(settled[0], { items: readLocalWorkHub(currentUser), source: 'error' }, 'workHub', sourceErrors);
+  const departmentResult = settledValue(settled[1], { department: normalizeDepartment(readLocalDepartment(currentUser) || {}), submissions: [], requests: [], source: 'error' }, 'department', sourceErrors);
+  const resourceFallback = loadResourceLibrary();
+  const resourceResult = settledValue(settled[2], { items: asArray(resourceFallback?.items).map(normalizeResource), source: 'error' }, 'resources', sourceErrors);
+  const homeroomResult = settledValue(settled[3], { workspace: null, source: 'error' }, 'homeroom', sourceErrors);
+  const notifications = settledValue(settled[4], [], 'notifications', sourceErrors);
 
   const departmentEntities = buildDepartmentEntities(departmentResult.department);
   const workItems = workResult.items.map((item) => normalizeWorkItem(item, currentUser));
@@ -625,6 +686,7 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
     requests: departmentResult.requests,
     submissions: departmentResult.submissions,
     notifications,
+    sourceErrors,
     sources: {
       workHub: workResult.source,
       department: departmentResult.source,
