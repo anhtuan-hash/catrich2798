@@ -223,6 +223,29 @@ button.primary{background:var(--ink);color:#fff}
 .ws-cell.found{background:#dcf8e8;border-color:#16834d;color:#0c5a34}
 .word-chip{display:inline-flex;align-items:center;border:2px solid #9ab8d0;border-radius:999px;padding:9px 13px;background:#fff;font-weight:850}
 .word-chip.found{background:#dcf8e8;border-color:#16834d;color:#0c5a34;text-decoration:line-through}
+
+.hangman-premium .hud{justify-content:space-between}
+.hangman-board{display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:start}
+.hangman-stage{display:grid;justify-items:center;gap:14px;padding-top:8px}
+.hangman-svg{width:220px;height:220px;color:#2f3136}
+.hangman-svg .gallows{fill:none;stroke:currentColor;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.hangman-svg .hang-part{fill:none;stroke:#2f3136;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s ease}
+.hangman-svg .hang-part-1{fill:none}
+.hangman-hearts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.hangman-hearts .heart{font-size:22px;line-height:1}
+.hangman-hearts .heart.is-alive{color:#ff5b6a}
+.hangman-hearts .heart.is-lost{color:#d9dee7}
+.hangman-side{display:grid;gap:12px}
+.hang-clue{margin:8px 0 0;font-size:18px;line-height:1.5;color:#33485e}
+.hang-mask{font-size:40px;letter-spacing:.22em;font-weight:900;color:#0f2742;padding:8px 0 0}
+.letter-grid{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:8px}
+.letter-grid .letter{min-height:42px;border:2px solid #d9e2ec;border-radius:12px;background:#fff;color:#2f4863;font-weight:800;cursor:pointer}
+.letter-grid .letter.correct{background:#e9f7ef;border-color:#22a560;color:#157243}
+.letter-grid .letter.wrong{background:#fff0f2;border-color:#f0a0ae;color:#c94e66}
+.letter-grid .letter:disabled{cursor:default}
+.score-badge{display:inline-flex;align-items:center;min-height:30px;padding:0 12px;border-radius:999px;background:#f0eaff;color:#7857cc;font-size:12px;font-weight:850}
+@media(max-width:900px){.hangman-board{grid-template-columns:1fr}.hang-mask{font-size:32px}.letter-grid{grid-template-columns:repeat(7,minmax(0,1fr))}}
+
 @media(max-width:600px){.app{padding:12px}.panel,.hero{border-radius:16px;padding:16px}.result-grid{grid-template-columns:1fr}.tf-actions{grid-template-columns:1fr}}
 `;
 
@@ -760,13 +783,19 @@ document.querySelectorAll('.crossword-row').forEach(row=>row.querySelector('butt
 
 function hangmanGame(data){
   const items=data.items||[];
-  const html=`<section class="panel"><div class="hud"><strong id="hangStatus"></strong><span id="hangScore"></span></div></section><section class="panel"><h2 id="hangClue"></h2><div id="hangMask" style="font-size:38px;letter-spacing:.18em;font-weight:900;margin:20px 0"></div><p id="hangLives" class="score"></p><div id="hangLetters" class="toolbar"></div></section>`;
+  const html=`<section class="panel hangman-premium"><div class="hud"><strong id="hangStatus"></strong><span id="hangScore"></span></div></section><section class="panel hangman-board"><div class="hangman-stage"><svg viewBox="0 0 220 220" class="hangman-svg" aria-hidden="true"><path d="M30 195h110M55 195V30h90M55 30h112M145 30v22" class="gallows"/><circle cx="145" cy="73" r="16" class="hang-part hang-part-1"/><path d="M145 89v42" class="hang-part hang-part-2"/><path d="M145 101l-22 18" class="hang-part hang-part-3"/><path d="M145 101l22 18" class="hang-part hang-part-4"/><path d="M145 131l-18 28" class="hang-part hang-part-5"/><path d="M145 131l18 28" class="hang-part hang-part-6"/></svg><div class="hangman-hearts" id="hangHearts"></div></div><div class="hangman-side"><div class="score-row"><span class="score-badge">Gợi ý</span><p id="hangClue" class="hang-clue"></p></div><div id="hangMask" class="hang-mask"></div><p id="hangLives" class="score"></p><div id="hangLetters" class="letter-grid"></div></div></section>`;
   const script=`
 const words=${JSON.stringify(items.map(x=>({word:x.word.toUpperCase(),clue:x.clue})))};
-let index=0,totalScore=0,lives=6,found=new Set();const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-const renderHang=()=>{const current=words[index];document.getElementById('hangClue').textContent=current.clue;document.getElementById('hangMask').textContent=[...current.word].map(c=>c===' '?' ':found.has(c)?c:'_').join(' ');document.getElementById('hangLives').textContent='Lượt sai còn lại: '+lives;document.getElementById('hangStatus').textContent='Từ '+(index+1)+'/'+words.length;document.getElementById('hangScore').textContent='Điểm '+totalScore;const area=document.getElementById('hangLetters');area.innerHTML='';letters.forEach(letter=>{const b=document.createElement('button');b.textContent=letter;b.onclick=()=>guess(letter,b);area.appendChild(b);});};
-const nextHang=()=>{index++;if(index>=words.length){document.body.insertAdjacentHTML('beforeend','<div class="finish-overlay"><section class="finish-card"><div class="finish-icon">🏆</div><h2>Hoàn thành!</h2><div class="result-grid"><div class="result-box"><b>'+totalScore+'/'+words.length+'</b><span>Từ đoán đúng</span></div></div><button class="primary" onclick="location.reload()">Chơi lại</button></section></div>');return;}lives=6;found=new Set();renderHang();};
-const guess=(letter,button)=>{button.disabled=true;const word=words[index].word;if(word.includes(letter)){found.add(letter);button.classList.add('correct');}else{lives--;button.classList.add('wrong');}document.getElementById('hangMask').textContent=[...word].map(c=>c===' '?' ':found.has(c)?c:'_').join(' ');document.getElementById('hangLives').textContent='Lượt sai còn lại: '+lives;if([...word].every(c=>c===' '||found.has(c))){totalScore++;setTimeout(nextHang,500);}else if(lives<=0){setTimeout(nextHang,700);}};
+let index=0,totalScore=0,lives=6,found=new Set();
+const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const hangParts=()=>[...document.querySelectorAll('.hang-part')];
+const renderHearts=()=>{const box=document.getElementById('hangHearts');box.innerHTML='';for(let i=0;i<6;i++){const heart=document.createElement('span');heart.className='heart '+(i<lives?'is-alive':'is-lost');heart.textContent='❤';box.appendChild(heart);}};
+const renderBody=()=>{const lost=6-lives;hangParts().forEach((node,idx)=>node.style.opacity=idx<lost?1:.14);};
+const renderMask=(word)=>[...word].map(c=>c===' '?' ':found.has(c)?c:'_').join(' ');
+const finishAll=()=>{document.body.insertAdjacentHTML('beforeend','<div class="finish-overlay"><section class="finish-card"><div class="finish-icon">🏆</div><h2>Hoàn thành!</h2><div class="result-grid"><div class="result-box"><b>'+totalScore+'/'+words.length+'</b><span>Từ đoán đúng</span></div><div class="result-box"><b>'+Math.round((words.length?totalScore/words.length:1)*100)+'%</b><span>Tỷ lệ</span></div></div><button class="primary" onclick="location.reload()">Chơi lại</button></section></div>');};
+const nextWord=()=>{index++;if(index>=words.length){finishAll();return;}lives=6;found=new Set();renderHang();};
+const renderHang=()=>{const current=words[index];document.getElementById('hangStatus').textContent='Từ '+(index+1)+'/'+words.length;document.getElementById('hangScore').textContent='Điểm '+totalScore;document.getElementById('hangClue').textContent=current.clue||'Không có gợi ý';document.getElementById('hangMask').textContent=renderMask(current.word);document.getElementById('hangLives').textContent='Số lần đoán sai: '+(6-lives);renderHearts();renderBody();const area=document.getElementById('hangLetters');area.innerHTML='';letters.forEach(letter=>{const button=document.createElement('button');button.className='letter';button.textContent=letter;button.onclick=()=>guess(letter,button);area.appendChild(button);});};
+const guess=(letter,button)=>{if(button.disabled)return;button.disabled=true;const current=words[index].word;if(current.includes(letter)){found.add(letter);button.classList.add('correct');}else{lives=Math.max(0,lives-1);button.classList.add('wrong');}document.getElementById('hangMask').textContent=renderMask(current);document.getElementById('hangLives').textContent='Số lần đoán sai: '+(6-lives);renderHearts();renderBody();if([...current].every(c=>c===' '||found.has(c))){totalScore++;setTimeout(nextWord,550);}else if(lives<=0){setTimeout(nextWord,700);}};
 renderHang();`;
   return shell(data,html,script);
 }
