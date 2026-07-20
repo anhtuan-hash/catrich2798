@@ -5,10 +5,15 @@ on:
     paths:
       - 'src/pages/HomeroomWorkspace.jsx'
       - 'src/components/Homeroom*.jsx'
+      - 'src/components/RegularAssessmentGradebook.jsx'
+      - 'src/components/StudentRosterImportPanel.jsx'
       - 'src/components/homeroom/**'
       - 'src/utils/homeroom*.js'
+      - 'src/utils/regularAssessment.js'
       - 'src/data/homeroom*.js'
       - 'src/styles/homeroom*.css'
+      - 'scripts/audit-homeroom-*.mjs'
+      - 'tests/e2e/homeroom-*.spec.js'
       - 'public/templates/**'
       - 'package.json'
       - 'package-lock.json'
@@ -18,9 +23,9 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,6 +36,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Run homeroom integrity audits
+        run: |
+          npm run audit:homeroom-gradebook
+          npm run audit:homeroom-integrity
       - name: Build application
         id: app_build
         continue-on-error: true
@@ -38,6 +47,16 @@ jobs:
         run: |
           set -o pipefail
           npm run build > build.log 2>&1
+      - name: Install Chromium for homeroom browser test
+        if: steps.app_build.outcome == 'success'
+        run: npx playwright install --with-deps chromium
+      - name: Run homeroom browser test
+        if: steps.app_build.outcome == 'success'
+        shell: bash
+        run: |
+          CHROME_PATH="$(find "$HOME/.cache/ms-playwright" -type f -path '*chrome-linux*/chrome' | head -n 1)"
+          test -n "$CHROME_PATH"
+          BES_CHROMIUM_EXECUTABLE="$CHROME_PATH" npm run test:e2e:homeroom
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
@@ -45,6 +64,14 @@ jobs:
           name: homeroom-build-log
           path: build.log
           if-no-files-found: error
+          retention-days: 3
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: homeroom-playwright-report
+          path: reports/playwright
+          if-no-files-found: ignore
           retention-days: 3
       - name: Fail when build failed
         if: steps.app_build.outcome == 'failure'

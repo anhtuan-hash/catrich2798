@@ -98,7 +98,8 @@ function detectDelimiter(text) {
 export async function readTabularFile(file) {
   if (!file) throw new Error('Chưa chọn file.');
   const name = safeText(file.name).toLowerCase();
-  if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+  if (name.endsWith('.xls')) throw new Error('File Excel .xls cũ chưa được hỗ trợ. Hãy mở file và lưu lại dưới dạng .xlsx.');
+  if (name.endsWith('.xlsx')) {
     return readXlsxFile(file, { dateFormat: 'dd/mm/yyyy' });
   }
   const text = (await file.text()).replace(/^\uFEFF/, '');
@@ -174,8 +175,10 @@ const LEARNING_ALIASES = {
 export async function parseLearningFile(file) {
   const rows = mapRows(await readTabularFile(file), LEARNING_ALIASES, 'score');
   const items = rows.map((row) => {
-    const score = Number(String(row.score ?? '').replace(',', '.'));
-    const maxScore = Number(String(row.maxScore ?? '10').replace(',', '.')) || 10;
+    const score = Number(String(row.score ?? '').trim().replace(',', '.'));
+    const maxScore = row.maxScore === '' || row.maxScore === null || row.maxScore === undefined
+      ? 10
+      : Number(String(row.maxScore).trim().replace(',', '.'));
     return {
       studentCode: safeText(row.studentCode),
       studentName: safeText(row.studentName),
@@ -194,16 +197,21 @@ export async function parseLearningFile(file) {
   return items;
 }
 
-function normalizedScores(workspace, studentId) {
-  return (workspace.learningRecords || []).filter((item) => item.studentId === studentId).map((item) => {
-    const max = Number(item.maxScore || 10) || 10;
-    return max > 0 ? Number(item.score || 0) / max * 10 : 0;
+function normalizedScores(workspace, studentId, subject = '') {
+  const subjectKey = fold(subject);
+  return (workspace.learningRecords || []).filter((item) => (
+    item.studentId === studentId && (!subjectKey || fold(item.subject) === subjectKey)
+  )).map((item) => {
+    const max = Number(item.maxScore);
+    const score = Number(item.score);
+    return Number.isFinite(max) && max > 0 && Number.isFinite(score) ? score / max * 10 : null;
   }).filter(Number.isFinite);
 }
 
-export function studentMetrics(workspace, studentId) {
+export function studentMetrics(workspace, studentId, options = {}) {
+  const subject = typeof options === 'string' ? options : safeText(options?.subject);
   const attendanceRows = Object.values(workspace.attendance || {}).map((rows) => rows?.[studentId]).filter(Boolean);
-  const scores = normalizedScores(workspace, studentId);
+  const scores = normalizedScores(workspace, studentId, subject);
   const average = scores.length ? scores.reduce((sum, score) => sum + score, 0) / scores.length : null;
   return {
     average,

@@ -30,7 +30,50 @@ function uid(prefix = 'item') {
 }
 
 function makePin() {
+  if (globalThis.crypto?.getRandomValues) {
+    const value = globalThis.crypto.getRandomValues(new Uint32Array(1))[0] % 900000;
+    return String(100000 + value);
+  }
   return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function identityText(value) {
+  return safeText(value)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function sameIdentityValue(left, right) {
+  return Boolean(safeText(left) && safeText(right) && identityText(left) === identityText(right));
+}
+
+function findStudentDuplicateIndex(students, student) {
+  if (student.code) {
+    const codeIndex = students.findIndex((item) => item.code && identityText(item.code) === identityText(student.code));
+    if (codeIndex >= 0) return codeIndex;
+  }
+
+  const sameName = students
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => identityText(item.fullName) === identityText(student.fullName));
+  if (!sameName.length) return -1;
+
+  const eligible = sameName.filter(({ item }) => !(student.code && item.code));
+  if (!eligible.length) return -1;
+
+  const corroborated = eligible.filter(({ item }) => (
+    sameIdentityValue(item.birthDate, student.birthDate)
+    || sameIdentityValue(item.parentPhone, student.parentPhone)
+    || sameIdentityValue(item.parentEmail, student.parentEmail)
+  ));
+  if (corroborated.length === 1) return corroborated[0].index;
+
+  if (!student.code && eligible.length === 1 && !eligible[0].item.code) return eligible[0].index;
+  return -1;
 }
 
 export function makeDefaultHomeroomWorkspace(user = null) {
@@ -266,8 +309,10 @@ export function loadLocalHomeroomWorkspace(user, workspaceId = 'default') {
   }
 }
 
-export function saveLocalHomeroomWorkspace(workspace, user) {
-  const normalized = normalizeHomeroomWorkspace({ ...workspace, updatedAt: nowIso() }, user);
+export function saveLocalHomeroomWorkspace(workspace, user, options = {}) {
+  const touchUpdatedAt = options.touchUpdatedAt !== false;
+  const updatedAt = touchUpdatedAt ? nowIso() : safeText(workspace?.updatedAt, nowIso());
+  const normalized = normalizeHomeroomWorkspace({ ...workspace, updatedAt }, user);
   try {
     localStorage.setItem(workspaceKey(user, normalized.id), JSON.stringify(normalized));
     const items = readLocalIndex(user).filter((item) => item.id !== normalized.id);
@@ -382,7 +427,7 @@ export async function loadHomeroomWorkspace(user, workspaceId = 'default') {
   const cloudUpdated = Date.parse(data.updated_at || cloud.updatedAt || 0) || 0;
   const localUpdated = Date.parse(local?.updatedAt || 0) || 0;
   const selected = local && localUpdated > cloudUpdated ? local : cloud;
-  saveLocalHomeroomWorkspace(selected, user);
+  saveLocalHomeroomWorkspace(selected, user, { touchUpdatedAt: false });
   return { ok: true, workspace: selected, source: selected === local ? 'local' : 'cloud' };
 }
 
@@ -412,7 +457,7 @@ export async function saveHomeroomWorkspace(workspace, user) {
 
   if (error) return { ok: false, offline: true, message: error.message, workspace: normalized };
   const saved = normalizeHomeroomWorkspace(data?.payload || payload, user);
-  saveLocalHomeroomWorkspace(saved, user);
+  saveLocalHomeroomWorkspace(saved, user, { touchUpdatedAt: false });
   return { ok: true, workspace: saved, source: 'cloud' };
 }
 
@@ -443,13 +488,22 @@ export function addStudent(workspace, input = {}) {
   };
   if (!student.fullName) throw new Error('Student name is required.');
   const current = normalizeHomeroomWorkspace(workspace);
-  const duplicateIndex = current.students.findIndex((item) => (
-    (student.code && item.code && item.code.toLowerCase() === student.code.toLowerCase())
-    || item.fullName.toLowerCase() === student.fullName.toLowerCase()
-  ));
+  const duplicateIndex = findStudentDuplicateIndex(current.students, student);
   const students = [...current.students];
-  if (duplicateIndex >= 0) students[duplicateIndex] = { ...students[duplicateIndex], ...student, id: students[duplicateIndex].id };
-  else students.push(student);
+  if (duplicateIndex >= 0) {
+    const previous = students[duplicateIndex];
+    const patch = { ...student };
+    ['code', 'fullName', 'birthDate', 'gender', 'phone', 'parentName', 'parentPhone', 'parentEmail', 'address', 'notes', 'teamId', 'inactiveReason', 'inactiveAt', 'transferClass'].forEach((key) => {
+      if (!safeText(input[key] ?? input[key === 'fullName' ? 'name' : key])) delete patch[key];
+    });
+    if (input.supportLevel === undefined || input.supportLevel === null || input.supportLevel === '') delete patch.supportLevel;
+    if (input.active === undefined) delete patch.active;
+    if (input.lifecycleStatus === undefined) delete patch.lifecycleStatus;
+    delete patch.id;
+    delete patch.createdAt;
+    if (!input.portalPin) { delete patch.portalPin; delete patch.pinUpdatedAt; }
+    students[duplicateIndex] = { ...previous, ...patch, id: previous.id, createdAt: previous.createdAt || student.createdAt, updatedAt: nowIso() };
+  } else students.push(student);
   return { ...current, students, updatedAt: nowIso() };
 }
 
@@ -603,6 +657,7 @@ export function updateGradeSettings(workspace, patch = {}) {
 
 export function addScheduleItem(workspace, input = {}) {
   const current = normalizeHomeroomWorkspace(workspace);
+  const now = nowIso();
   const item = {
     id: safeText(input.id, uid('schedule')),
     title: safeText(input.title),
@@ -614,20 +669,22 @@ export function addScheduleItem(workspace, input = {}) {
     audience: safeText(input.audience, 'Toàn lớp'),
     note: safeText(input.note),
     status: safeText(input.status, 'Sắp tới'),
-    createdAt: input.createdAt || nowIso(),
-    updatedAt: nowIso(),
+    createdAt: input.createdAt || now,
+    updatedAt: now,
   };
   if (!item.title) throw new Error('Schedule title is required.');
-  const duplicate = current.schedule.findIndex((entry) => (
-    entry.title.toLowerCase() === item.title.toLowerCase()
-    && entry.date === item.date
-    && entry.startTime === item.startTime
-  ));
+  const duplicate = input.id
+    ? current.schedule.findIndex((entry) => entry.id === input.id)
+    : current.schedule.findIndex((entry) => (
+      identityText(entry.title) === identityText(item.title)
+      && entry.date === item.date
+      && entry.startTime === item.startTime
+    ));
   const schedule = [...current.schedule];
-  if (duplicate >= 0) schedule[duplicate] = { ...schedule[duplicate], ...item, id: schedule[duplicate].id };
+  if (duplicate >= 0) schedule[duplicate] = { ...schedule[duplicate], ...item, id: schedule[duplicate].id, createdAt: schedule[duplicate].createdAt || item.createdAt };
   else schedule.push(item);
   schedule.sort((a, b) => `${a.date} ${a.startTime}`.localeCompare(`${b.date} ${b.startTime}`));
-  return { ...current, schedule, updatedAt: nowIso() };
+  return { ...current, schedule, updatedAt: now };
 }
 
 export function addMeeting(workspace, input = {}) {
@@ -653,6 +710,7 @@ export function addMeeting(workspace, input = {}) {
 
 export function addParentContact(workspace, input = {}) {
   const current = normalizeHomeroomWorkspace(workspace);
+  const now = nowIso();
   const item = {
     id: safeText(input.id, uid('contact')),
     studentId: safeText(input.studentId),
@@ -665,10 +723,13 @@ export function addParentContact(workspace, input = {}) {
     followUpDate: safeText(input.followUpDate),
     attachmentName: safeText(input.attachmentName),
     responseStatus: safeText(input.responseStatus, 'pending'),
-    createdAt: input.createdAt || nowIso(),
+    createdAt: input.createdAt || now,
+    updatedAt: now,
   };
   if (!item.subject && !item.message) throw new Error('Contact content is required.');
-  return { ...current, parentContacts: [item, ...current.parentContacts], updatedAt: nowIso() };
+  const existing = current.parentContacts.find((entry) => entry.id === item.id);
+  const merged = existing ? { ...existing, ...item, createdAt: existing.createdAt || item.createdAt } : item;
+  return { ...current, parentContacts: [merged, ...current.parentContacts.filter((entry) => entry.id !== item.id)], updatedAt: now };
 }
 
 export function addRecord(workspace, input = {}) {
@@ -694,32 +755,38 @@ export function exportWorkspaceJson(workspace) {
 
 export function addLearningRecord(workspace, input = {}) {
   const current = normalizeHomeroomWorkspace(workspace);
-  const maxScore = Number(input.maxScore || 10) || 10;
-  const score = Number(input.score);
+  const rawScore = Number(String(input.score ?? '').trim().replace(',', '.'));
+  const rawMaxScore = input.maxScore === '' || input.maxScore === null || input.maxScore === undefined
+    ? 10
+    : Number(String(input.maxScore).trim().replace(',', '.'));
+  if (!Number.isFinite(rawScore)) throw new Error('Điểm phải là một số hợp lệ.');
+  if (!Number.isFinite(rawMaxScore) || rawMaxScore <= 0) throw new Error('Thang điểm phải là một số lớn hơn 0.');
+  if (rawScore < 0 || rawScore > rawMaxScore) throw new Error(`Điểm phải nằm trong khoảng 0–${rawMaxScore}.`);
+  const now = nowIso();
   const item = {
     id: safeText(input.id, uid('learning')),
     studentId: safeText(input.studentId),
     subject: safeText(input.subject),
     period: safeText(input.period),
     assessment: safeText(input.assessment, 'Điểm đánh giá'),
-    score: Number.isFinite(score) ? score : 0,
-    maxScore,
+    score: Math.round(rawScore * 100) / 100,
+    maxScore: Math.round(rawMaxScore * 100) / 100,
     teacherName: safeText(input.teacherName),
     note: safeText(input.note),
     recordedAt: safeText(input.recordedAt, new Date().toISOString().slice(0, 10)),
-    createdAt: input.createdAt || nowIso(),
-    updatedAt: nowIso(),
+    createdAt: input.createdAt || now,
+    updatedAt: now,
   };
   if (!item.studentId || !item.subject) throw new Error('Student and subject are required.');
   const duplicateIndex = current.learningRecords.findIndex((entry) => (
-    entry.id === item.id
-    || (entry.studentId === item.studentId && entry.subject.toLowerCase() === item.subject.toLowerCase()
+    (input.id && entry.id === input.id)
+    || (!input.id && entry.studentId === item.studentId && identityText(entry.subject) === identityText(item.subject)
       && entry.period === item.period && entry.assessment === item.assessment && entry.recordedAt === item.recordedAt)
   ));
   const learningRecords = [...current.learningRecords];
-  if (duplicateIndex >= 0) learningRecords[duplicateIndex] = { ...learningRecords[duplicateIndex], ...item, id: learningRecords[duplicateIndex].id };
+  if (duplicateIndex >= 0) learningRecords[duplicateIndex] = { ...learningRecords[duplicateIndex], ...item, id: learningRecords[duplicateIndex].id, createdAt: learningRecords[duplicateIndex].createdAt || item.createdAt };
   else learningRecords.unshift(item);
-  return { ...current, learningRecords, updatedAt: nowIso() };
+  return { ...current, learningRecords, updatedAt: now };
 }
 
 export function addSubjectFeedback(workspace, input = {}) {

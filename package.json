@@ -122,6 +122,10 @@
     "audit:dashboard-luxury-cards": "node scripts/audit-dashboard-luxury-cards-v11.6.7.mjs",
     "audit:openrouter-only": "node scripts/audit-openrouter-only-v11.6.7.mjs",
     "audit:no-ai": "node scripts/audit-no-ai.mjs",
+    "audit:homeroom-gradebook": "node scripts/audit-homeroom-regular-gradebook-v11.6.7.mjs",
+    "audit:homeroom-integrity": "node scripts/audit-homeroom-integrity-v11.6.7.mjs",
+    "test:e2e:homeroom": "playwright test tests/e2e/homeroom-integrity.spec.js --project=chromium-desktop",
+    "verify:homeroom": "npm run audit:homeroom-gradebook && npm run audit:homeroom-integrity && npm run build",
     "verify:no-ai": "npm run build && npm run audit:no-ai"
   },
   "dependencies": {

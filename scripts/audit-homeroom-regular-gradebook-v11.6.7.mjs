@@ -10,7 +10,7 @@ import {
 } from '../src/utils/regularAssessment.js';
 
 const component = fs.readFileSync('src/components/RegularAssessmentGradebook.jsx', 'utf8');
-const host = fs.readFileSync('src/components/HomeroomPhase2Tabs.jsx', 'utf8');
+const host = fs.readFileSync('src/components/homeroom/HomeroomCoreTabs.jsx', 'utf8');
 const css = fs.readFileSync('src/styles/homeroom-regular-gradebook-v1167.css', 'utf8');
 
 const checks = [];
@@ -78,7 +78,7 @@ const cleared = saveRegularAssessmentRound(saved, {
 });
 add('Xóa điểm cộng rồi lưu sẽ xóa bản ghi tương ứng', cleared.learningRecords.filter((record) => record.regularBonus === true).length === 1);
 
-add('Form cũ đã được thay bằng sổ điểm', host.includes('<RegularAssessmentGradebook') && !host.includes('<h2>Thêm kết quả đánh giá</h2>'));
+add('Sổ điểm được gắn trong tab Học tập', host.includes('<RegularAssessmentGradebook') && host.includes("import RegularAssessmentGradebook from '../RegularAssessmentGradebook.jsx'"));
 add('Bảng hiển thị toàn bộ danh sách lớp', component.includes('students.map((student, index)') && component.includes('hr-regular-table'));
 add('Có thêm và xóa cột động', component.includes('addColumn') && component.includes('removeColumn'));
 add('Có cột điểm cộng theo từng đợt', component.includes('regularBonusKey(activeRound') && component.includes('className="bonus-column"'));
