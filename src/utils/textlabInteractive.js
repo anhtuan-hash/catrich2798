@@ -488,8 +488,194 @@ document.querySelectorAll('[data-back]').forEach(card=>{
   return shell(data, `<section class="panel"><pre style="white-space:pre-wrap;font:inherit">${text}</pre></section>`);
 }
 
+
+function gameSummaryScript(totalExpr, label = 'mục') {
+  return `
+const GAME_TOTAL=${totalExpr};
+let gameDone=0,gameScore=0;
+const gameHud=()=>{
+  const el=document.getElementById('gameHud');
+  const bar=document.getElementById('gameProgress');
+  if(el)el.textContent='Hoàn thành '+gameDone+'/'+GAME_TOTAL+' · Điểm '+gameScore;
+  if(bar)bar.style.width=(GAME_TOTAL?gameDone/GAME_TOTAL*100:0)+'%';
+};
+const gameFinish=()=>{
+  const percent=GAME_TOTAL?Math.round(gameScore/GAME_TOTAL*100):100;
+  const wrap=document.createElement('div');
+  wrap.className='finish-overlay';
+  wrap.innerHTML='<section class="finish-card"><div class="finish-icon">'+(percent>=80?'🏆':percent>=60?'🌟':'💪')+'</div><h2>'+(percent>=80?'Hoàn thành xuất sắc!':percent>=60?'Hoàn thành tốt!':'Đã hoàn thành!')+'</h2><div class="result-grid"><div class="result-box"><b>'+gameScore+'/'+GAME_TOTAL+'</b><span>Điểm</span></div><div class="result-box"><b>'+percent+'%</b><span>Tỷ lệ</span></div><div class="result-box"><b>'+GAME_TOTAL+'</b><span>${label}</span></div></div><div class="finish-actions"><button class="primary" onclick="location.reload()">↻ Chơi lại</button><button onclick="this.closest(\\'.finish-overlay\\').remove()">Xem lại</button></div></section>';
+  document.body.appendChild(wrap);
+};
+gameHud();
+`;
+}
+
+function gameHudHtml(note='Hoàn thành hoạt động để xem tổng kết'){
+  return `<section class="panel"><div class="hud"><strong id="gameHud"></strong><span>${esc(note)}</span></div><div class="progress-shell"><div id="gameProgress" class="progress-bar"></div></div></section>`;
+}
+
+function categorySortGame(data){
+  const groups=data.groups||[];
+  const items=[];
+  groups.forEach(group=>group.items.forEach(item=>items.push({item,group:group.name})));
+  items.sort(()=>Math.random()-.5);
+  const html=gameHudHtml('Chọn đúng nhóm cho từng từ')+`<section class="panel"><div class="grid">${items.map(entry=>`<article class="card sort-card"><b>${esc(entry.item)}</b><select data-answer="${esc(entry.group)}"><option value="">Chọn nhóm</option>${groups.map(group=>`<option value="${esc(group.name)}">${esc(group.name)}</option>`).join('')}</select><p class="feedback"></p></article>`).join('')}</div><div class="toolbar"><button class="primary" id="checkSort">Kiểm tra</button></div></section>`;
+  const script=gameSummaryScript(items.length,'mục')+`
+document.getElementById('checkSort').onclick=()=>{
+  gameDone=0;gameScore=0;
+  document.querySelectorAll('.sort-card').forEach(card=>{
+    const select=card.querySelector('select');
+    const ok=select.value===select.dataset.answer;
+    card.classList.remove('correct','wrong');card.classList.add(ok?'correct':'wrong');
+    const fb=card.querySelector('.feedback');fb.className='feedback '+(ok?'ok':'no');fb.textContent=ok?'✓ Chính xác':'✗ Đúng: '+select.dataset.answer;
+    if(select.value)gameDone++;if(ok)gameScore++;
+  });
+  gameHud();if(gameDone===GAME_TOTAL)setTimeout(gameFinish,500);
+};`;
+  return shell(data,html,script);
+}
+
+function reorderGame(data,sentenceMode=false){
+  const original=sentenceMode?(data.items||[]).flatMap(sentence=>sentence.split(/\\s+/).filter(Boolean)):[...(data.items||[])];
+  const shuffled=[...original].sort(()=>Math.random()-.5);
+  const html=gameHudHtml('Dùng nút lên/xuống để sắp xếp')+`<section class="panel"><div id="orderList">${shuffled.map(item=>`<div class="order-item"><button data-dir="up">↑</button><button data-dir="down">↓</button><span>${esc(item)}</span></div>`).join('')}</div><div class="toolbar"><button class="primary" id="checkOrder">Kiểm tra</button><span id="orderResult" class="score"></span></div></section>`;
+  const script=gameSummaryScript(original.length,sentenceMode?'từ':'câu')+`
+const correctOrder=${JSON.stringify(original)};
+document.querySelectorAll('[data-dir]').forEach(button=>button.onclick=()=>{
+  const row=button.parentElement,list=row.parentElement;
+  if(button.dataset.dir==='up'&&row.previousElementSibling)list.insertBefore(row,row.previousElementSibling);
+  if(button.dataset.dir==='down'&&row.nextElementSibling)list.insertBefore(row.nextElementSibling,row);
+});
+document.getElementById('checkOrder').onclick=()=>{
+  const current=[...document.querySelectorAll('.order-item span')].map(x=>x.textContent);
+  gameDone=GAME_TOTAL;gameScore=current.reduce((sum,item,index)=>sum+(item===correctOrder[index]?1:0),0);
+  document.querySelectorAll('.order-item').forEach((row,index)=>row.classList.add(current[index]===correctOrder[index]?'correct':'wrong'));
+  document.getElementById('orderResult').textContent=gameScore===GAME_TOTAL?'✓ Chính xác!':'Đúng vị trí '+gameScore+'/'+GAME_TOTAL;
+  gameHud();setTimeout(gameFinish,650);
+};`;
+  return shell(data,html,script);
+}
+
+function wordScrambleGame(data){
+  const items=data.items||[];
+  const html=gameHudHtml('Giải từng từ rồi kiểm tra')+items.map((entry,index)=>{
+    const shuffled=[...entry.word.toUpperCase()].sort(()=>Math.random()-.5).join(' ');
+    return `<section class="panel scramble-row" data-answer="${esc(entry.word.toUpperCase())}"><h2>${index+1}. ${shuffled}</h2><p>${esc(entry.clue)}</p><input class="blank"><button>Kiểm tra</button><p class="feedback"></p></section>`;
+  }).join('');
+  const script=gameSummaryScript(items.length,'từ')+`
+document.querySelectorAll('.scramble-row').forEach(row=>row.querySelector('button').onclick=()=>{
+  if(row.dataset.done)return;row.dataset.done='1';gameDone++;
+  const ok=row.querySelector('input').value.trim().toUpperCase()===row.dataset.answer;
+  if(ok)gameScore++;row.classList.add(ok?'correct':'wrong');
+  const fb=row.querySelector('.feedback');fb.className='feedback '+(ok?'ok':'no');fb.textContent=ok?'✓ Chính xác':'✗ Đáp án: '+row.dataset.answer;
+  gameHud();if(gameDone===GAME_TOTAL)setTimeout(gameFinish,500);
+});`;
+  return shell(data,html,script);
+}
+
+function buildWordSearch(words){
+  const size=Math.max(10,Math.min(16,Math.max(...words.map(w=>w.length),10)));
+  const grid=Array.from({length:size},()=>Array(size).fill(''));
+  words.forEach(word=>{
+    const clean=word.toUpperCase().replace(/[^A-Z]/g,'');
+    let placed=false;
+    for(let tries=0;tries<100&&!placed;tries++){
+      const horizontal=Math.random()>.5;
+      const row=Math.floor(Math.random()*(horizontal?size:size-clean.length+1));
+      const col=Math.floor(Math.random()*(horizontal?size-clean.length+1:size));
+      let ok=true;
+      for(let i=0;i<clean.length;i++){const r=row+(horizontal?0:i),c=col+(horizontal?i:0);if(grid[r][c]&&grid[r][c]!==clean[i])ok=false;}
+      if(ok){for(let i=0;i<clean.length;i++){const r=row+(horizontal?0:i),c=col+(horizontal?i:0);grid[r][c]=clean[i];}placed=true;}
+    }
+  });
+  const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  grid.forEach(row=>row.forEach((cell,index)=>{if(!cell)row[index]=letters[Math.floor(Math.random()*letters.length)]}));
+  return grid;
+}
+
+function wordSearchGame(data){
+  const words=(data.items||[]).map(x=>String(x).toUpperCase()).filter(Boolean);
+  const grid=buildWordSearch(words);
+  const html=gameHudHtml('Tìm từ trong bảng rồi đánh dấu danh sách')+`<section class="panel"><div style="display:grid;grid-template-columns:repeat(${grid.length},1fr);gap:3px">${grid.flat().map(letter=>`<span class="tile" style="padding:6px;text-align:center;font-weight:900">${letter}</span>`).join('')}</div><h3>Danh sách từ</h3><div class="toolbar">${words.map(word=>`<button class="word-chip">${esc(word)}</button>`).join('')}</div></section>`;
+  const script=gameSummaryScript(words.length,'từ')+`
+document.querySelectorAll('.word-chip').forEach(button=>button.onclick=()=>{
+  if(button.dataset.done)return;button.dataset.done='1';button.classList.add('correct');button.textContent='✓ '+button.textContent;gameDone++;gameScore++;
+  gameHud();if(gameDone===GAME_TOTAL)setTimeout(gameFinish,450);
+});`;
+  return shell(data,html,script);
+}
+
+function crosswordGame(data){
+  const items=data.items||[];
+  const html=gameHudHtml('Đọc gợi ý và nhập từ khóa')+items.map((entry,index)=>`<section class="panel crossword-row" data-answer="${esc(entry.word.toUpperCase())}"><h2>${index+1}. ${esc(entry.clue)}</h2><p class="score">${'_ '.repeat(entry.word.length)}</p><input class="blank"><button>Kiểm tra</button><p class="feedback"></p></section>`).join('');
+  const script=gameSummaryScript(items.length,'từ')+`
+document.querySelectorAll('.crossword-row').forEach(row=>row.querySelector('button').onclick=()=>{
+  if(row.dataset.done)return;row.dataset.done='1';gameDone++;
+  const ok=row.querySelector('input').value.trim().toUpperCase()===row.dataset.answer;if(ok)gameScore++;
+  row.classList.add(ok?'correct':'wrong');const fb=row.querySelector('.feedback');fb.className='feedback '+(ok?'ok':'no');fb.textContent=ok?'✓ Chính xác':'✗ Đáp án: '+row.dataset.answer;
+  gameHud();if(gameDone===GAME_TOTAL)setTimeout(gameFinish,500);
+});`;
+  return shell(data,html,script);
+}
+
+function hangmanGame(data){
+  const items=data.items||[];
+  const html=`<section class="panel"><div class="hud"><strong id="hangStatus"></strong><span id="hangScore"></span></div></section><section class="panel"><h2 id="hangClue"></h2><div id="hangMask" style="font-size:38px;letter-spacing:.18em;font-weight:900;margin:20px 0"></div><p id="hangLives" class="score"></p><div id="hangLetters" class="toolbar"></div></section>`;
+  const script=`
+const words=${JSON.stringify(items.map(x=>({word:x.word.toUpperCase(),clue:x.clue})))};
+let index=0,totalScore=0,lives=6,found=new Set();const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const renderHang=()=>{const current=words[index];document.getElementById('hangClue').textContent=current.clue;document.getElementById('hangMask').textContent=[...current.word].map(c=>c===' '?' ':found.has(c)?c:'_').join(' ');document.getElementById('hangLives').textContent='Lượt sai còn lại: '+lives;document.getElementById('hangStatus').textContent='Từ '+(index+1)+'/'+words.length;document.getElementById('hangScore').textContent='Điểm '+totalScore;const area=document.getElementById('hangLetters');area.innerHTML='';letters.forEach(letter=>{const b=document.createElement('button');b.textContent=letter;b.onclick=()=>guess(letter,b);area.appendChild(b);});};
+const nextHang=()=>{index++;if(index>=words.length){document.body.insertAdjacentHTML('beforeend','<div class="finish-overlay"><section class="finish-card"><div class="finish-icon">🏆</div><h2>Hoàn thành!</h2><div class="result-grid"><div class="result-box"><b>'+totalScore+'/'+words.length+'</b><span>Từ đoán đúng</span></div></div><button class="primary" onclick="location.reload()">Chơi lại</button></section></div>');return;}lives=6;found=new Set();renderHang();};
+const guess=(letter,button)=>{button.disabled=true;const word=words[index].word;if(word.includes(letter)){found.add(letter);button.classList.add('correct');}else{lives--;button.classList.add('wrong');}document.getElementById('hangMask').textContent=[...word].map(c=>c===' '?' ':found.has(c)?c:'_').join(' ');document.getElementById('hangLives').textContent='Lượt sai còn lại: '+lives;if([...word].every(c=>c===' '||found.has(c))){totalScore++;setTimeout(nextHang,500);}else if(lives<=0){setTimeout(nextHang,700);}};
+renderHang();`;
+  return shell(data,html,script);
+}
+
+function bingoGame(data){
+  const items=(data.items||[]).slice(0,25);
+  const html=`<section class="panel"><div class="hud"><strong id="bingoStatus">Đã đánh dấu 0 ô</strong><span>Tạo một hàng, cột hoặc đường chéo</span></div></section><section class="panel"><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">${items.map((item,index)=>`<button class="tile bingo-cell" data-index="${index}">${esc(item)}</button>`).join('')}</div></section>`;
+  const script=`
+const cells=[...document.querySelectorAll('.bingo-cell')],lines=[];
+for(let r=0;r<5;r++)lines.push([0,1,2,3,4].map(c=>r*5+c));
+for(let c=0;c<5;c++)lines.push([0,1,2,3,4].map(r=>r*5+c));
+lines.push([0,6,12,18,24],[4,8,12,16,20]);
+const checkBingo=()=>lines.some(line=>line.every(i=>cells[i]&&cells[i].classList.contains('correct')));
+cells.forEach(cell=>cell.onclick=()=>{cell.classList.toggle('correct');document.getElementById('bingoStatus').textContent='Đã đánh dấu '+document.querySelectorAll('.bingo-cell.correct').length+' ô';if(checkBingo())setTimeout(()=>document.body.insertAdjacentHTML('beforeend','<div class="finish-overlay"><section class="finish-card"><div class="finish-icon">🎉</div><h2>BINGO!</h2><p>Bạn đã hoàn thành một hàng hợp lệ.</p><button class="primary" onclick="location.reload()">Chơi lại</button></section></div>'),300);});`;
+  return shell(data,html,script);
+}
+
+function writingGame(data,mode){
+  const prompt=data.prompt||'Write your response.';
+  const settings={summary:{min:60,max:80,seconds:600,instruction:'Viết tóm tắt ngắn gọn.'},retelling:{min:90,max:180,seconds:600,instruction:'Kể lại theo trình tự.'},creative:{min:120,max:150,seconds:900,instruction:'Viết phần kết sáng tạo.'},speaking:{min:1,max:300,seconds:60,instruction:'Chuẩn bị rồi nói trong một phút.'}}[mode];
+  const html=`<section class="panel"><div class="hud"><strong id="timer">${settings.seconds}s</strong><span>${esc(settings.instruction)}</span></div><div class="progress-shell"><div id="timeBar" class="progress-bar"></div></div></section><section class="panel"><h2>${esc(prompt)}</h2><textarea id="response" class="open-answer"></textarea><div class="hud"><strong id="wordCount">0 từ</strong><span>Mục tiêu ${settings.min}–${settings.max} từ</span></div><div class="toolbar"><button class="primary" id="startTimer">${mode==='speaking'?'Bắt đầu nói':'Bắt đầu làm bài'}</button><button id="finishWriting">Hoàn thành</button><button id="saveWriting">Lưu trên thiết bị</button></div></section>`;
+  const script=`
+const TOTAL_TIME=${settings.seconds};let remaining=TOTAL_TIME,timerId=null;const area=document.getElementById('response');
+const countWords=()=>area.value.trim()?area.value.trim().split(/\\s+/).length:0;
+const updateWords=()=>document.getElementById('wordCount').textContent=countWords()+' từ';area.oninput=updateWords;
+document.getElementById('startTimer').onclick=()=>{if(timerId)return;timerId=setInterval(()=>{remaining--;document.getElementById('timer').textContent=remaining+'s';document.getElementById('timeBar').style.width=((TOTAL_TIME-remaining)/TOTAL_TIME*100)+'%';if(remaining<=0){clearInterval(timerId);timerId=null;finishWriting();}},1000);};
+document.getElementById('saveWriting').onclick=()=>{localStorage.setItem('textlab-${mode}',area.value);alert('Đã lưu trên thiết bị.');};area.value=localStorage.getItem('textlab-${mode}')||'';updateWords();
+const finishWriting=()=>{const words=countWords(),ok=words>=${settings.min}&&words<=${settings.max};document.body.insertAdjacentHTML('beforeend','<div class="finish-overlay"><section class="finish-card"><div class="finish-icon">'+(ok?'🏆':'📝')+'</div><h2>Đã hoàn thành</h2><div class="result-grid"><div class="result-box"><b>'+words+'</b><span>Số từ</span></div><div class="result-box"><b>${settings.min}–${settings.max}</b><span>Mục tiêu</span></div><div class="result-box"><b>'+remaining+'s</b><span>Thời gian còn lại</span></div></div><p>'+(ok?'Nội dung đạt độ dài đề xuất.':'Hãy điều chỉnh độ dài để đạt mục tiêu.')+'</p><div class="finish-actions"><button class="primary" onclick="location.reload()">Làm lại</button><button onclick="this.closest(\\'.finish-overlay\\').remove()">Xem lại</button></div></section></div>');};
+document.getElementById('finishWriting').onclick=finishWriting;`;
+  return shell(data,html,script);
+}
+
 export function buildInteractiveHtml(template, raw) {
   const data = parse(raw, template.kind);
+  switch (template.id) {
+    case 'category-sort': return categorySortGame(data);
+    case 'rank-order': return reorderGame(data, false);
+    case 'sentence-builder': return reorderGame(data, true);
+    case 'paragraph-builder': return reorderGame(data, false);
+    case 'word-scramble': return wordScrambleGame(data);
+    case 'word-search': return wordSearchGame(data);
+    case 'crossword': return crosswordGame(data);
+    case 'hangman': return hangmanGame(data);
+    case 'bingo': return bingoGame(data);
+    case 'summary-builder': return writingGame(data, 'summary');
+    case 'retelling': return writingGame(data, 'retelling');
+    case 'creative-ending': return writingGame(data, 'creative');
+    case 'one-minute-speaking': return writingGame(data, 'speaking');
+  }
   switch (template.kind) {
     case 'quiz': return quizHtml(data);
     case 'truefalse': return trueFalseHtml(data);
