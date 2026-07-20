@@ -78,9 +78,27 @@ function parseDelimited(text, delimiter) {
 }
 
 function detectDelimiter(text) {
-  const first = text.split(/\r?\n/).slice(0, 5).join('\n');
-  const counts = [[',', (first.match(/,/g) || []).length], [';', (first.match(/;/g) || []).length], ['\t', (first.match(/\t/g) || []).length]];
-  return counts.sort((a, b) => b[1] - a[1])[0][0];
+  const sampleLines = String(text || '').replace(/^\uFEFF/, '').split(/\r?\n/).filter((line) => clean(line)).slice(0, 12);
+  const candidates = [',', ';', '\t'];
+  const scored = candidates.map((delimiter) => {
+    const widths = sampleLines.map((line) => parseDelimited(line, delimiter)[0]?.length || 1);
+    const useful = widths.filter((width) => width > 1);
+    const consistency = useful.length ? useful.filter((width) => width === useful[0]).length : 0;
+    return { delimiter, score: useful.length * 10 + consistency * 5 + Math.max(0, ...(widths || [1])) };
+  });
+  return scored.sort((a, b) => b.score - a.score)[0]?.delimiter || ',';
+}
+
+function expandSingleCellRows(rows) {
+  const normalized = (rows || []).map((row) => Array.isArray(row) ? row : [row]);
+  const nonEmpty = normalized.filter((row) => row.some((cell) => clean(cell)));
+  if (!nonEmpty.length) return normalized;
+  const mostlySingleCell = nonEmpty.filter((row) => row.filter((cell) => clean(cell)).length <= 1).length >= Math.ceil(nonEmpty.length * 0.7);
+  if (!mostlySingleCell) return normalized;
+  const joined = nonEmpty.map((row) => clean(row.find((cell) => clean(cell)) || '')).join('\n');
+  const delimiter = detectDelimiter(joined);
+  const reparsed = parseDelimited(joined, delimiter);
+  return reparsed.some((row) => row.length > 1) ? reparsed : normalized;
 }
 
 function fieldForHeader(header) {
@@ -92,7 +110,7 @@ function fieldForHeader(header) {
 }
 
 function rowsToStudents(rows) {
-  const normalizedRows = rows.map((row) => Array.isArray(row) ? row : []).filter((row) => row.some((cell) => clean(cell)));
+  const normalizedRows = expandSingleCellRows(rows).map((row) => Array.isArray(row) ? row.map((cell) => clean(cell).replace(/^\uFEFF/, '')) : []).filter((row) => row.some((cell) => clean(cell)));
   if (!normalizedRows.length) throw new Error('File không có dữ liệu.');
   const headerIndex = normalizedRows.findIndex((row) => row.some((cell) => fieldForHeader(cell) === 'fullName'));
   if (headerIndex < 0) throw new Error('Không nhận diện được cột “Họ và tên”. Hãy dùng file mẫu.');
@@ -116,19 +134,24 @@ function rowsToStudents(rows) {
 async function readRows(file) {
   const name = clean(file?.name).toLowerCase();
   if (name.endsWith('.xlsx') || name.endsWith('.xls')) return readXlsxFile(file, { dateFormat: 'dd/mm/yyyy' });
-  const text = await file.text();
-  return parseDelimited(text.replace(/^\uFEFF/, ''), name.endsWith('.tsv') ? '\t' : detectDelimiter(text));
+  const text = (await file.text()).replace(/^\uFEFF/, '');
+  return parseDelimited(text, name.endsWith('.tsv') ? '\t' : detectDelimiter(text));
 }
 
 function downloadTemplate() {
   const header = FIELDS.map(([, label]) => label);
   const example = ['126701', 'Nguyễn Minh Anh', '15/08/2009', 'Nữ', '0912345678', 'Nguyễn Văn A', '0987654321', 'phuhuynh@example.com', 'Thủ Dầu Một, Bình Dương', ''];
-  const csv = '\uFEFF' + [header, example].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const delimiter = ';';
+  const escape = (value) => {
+    const text = String(value ?? '');
+    return /[;"\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
+  const csv = '\uFEFFsep=;\r\n' + [header, example].map((row) => row.map(escape).join(delimiter)).join('\r\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'mau-danh-sach-hoc-sinh.csv';
+  link.download = 'mau-danh-sach-hoc-sinh-excel-vn.csv';
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -174,7 +197,7 @@ export default function StudentRosterImportPanel({ existingStudents = [], onImpo
     <section className="hr-panel sri-panel" aria-label="Nhập nhanh danh sách học sinh">
       <div className="hr-panel-head sri-head">
         <div><small>NHẬN DIỆN TỰ ĐỘNG · KHÔNG DÙNG AI</small><h2>Nhập nhanh danh sách học sinh</h2><p>Tải file mẫu, điền dữ liệu rồi tải lên. Hệ thống nhận dạng cột ngay trên thiết bị và cho xem trước trước khi lưu.</p></div>
-        <div className="hr-head-actions"><button type="button" className="secondary" onClick={downloadTemplate}>Tải file mẫu CSV</button><button type="button" className="secondary" onClick={() => inputRef.current?.click()}>Chọn file</button><button type="button" className="text-btn" onClick={onClose}>Đóng</button></div>
+        <div className="hr-head-actions"><button type="button" className="secondary" onClick={downloadTemplate}>Tải file mẫu Excel CSV</button><button type="button" className="secondary" onClick={() => inputRef.current?.click()}>Chọn file</button><button type="button" className="text-btn" onClick={onClose}>Đóng</button></div>
       </div>
       <input ref={inputRef} hidden type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" onChange={(event) => chooseFile(event.target.files?.[0])} />
       <div className="sri-drop" onClick={() => inputRef.current?.click()} role="button" tabIndex={0} onKeyDown={(event) => event.key === 'Enter' && inputRef.current?.click()}>
