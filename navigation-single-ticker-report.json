@@ -1,0 +1,19 @@
+{
+  "routes": {
+    "home": "#/home",
+    "apps": "#/apps",
+    "homeroom": "#/utils/homeroomStore.js",
+    "department": "#/utils/departmentStore.js",
+    "news": "#/tool/news-reader",
+    "games": "#/www.baamboozle.com/games",
+    "more": "#/apps"
+  },
+  "main_file": "src/main.jsx",
+  "files_written": [
+    "src/utils/optionTwoGlobalShell.js",
+    "src/styles/option-two-global-shell.css",
+    "api/news-brief.js"
+  ],
+  "legacy_notification_bar": "hidden safely by class; no React nodes are deleted",
+  "textlab_route": "#/tool/textlab-template-library/"
+}

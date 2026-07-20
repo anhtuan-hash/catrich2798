@@ -1,487 +1,237 @@
-const SHELL_ID = 'brian-option-two-shell';
-const RETIRED_CLASS = 'ot2-retired-shell';
+/* Brian English · Option 2 shell — single live news ticker */
+const OPTION_TWO_SHELL_ID = 'brian-option-two-global-shell';
+const NEWS_CACHE_KEY = 'brian-option2-single-news-cache-v1';
+const ROUTES = {"home": "#/home", "apps": "#/apps", "homeroom": "#/utils/homeroomStore.js", "department": "#/utils/departmentStore.js", "news": "#/tool/news-reader", "games": "#/www.baamboozle.com/games", "more": "#/apps"};
 
-const NAV_ITEMS = [
-  { label: 'Trang chủ', fallback: '#/', icon: 'home' },
-  { label: 'Ứng dụng', fallback: '#/apps', icon: 'apps' },
-  { label: 'TextLab', fallback: '#/tool/textlab-template-library', icon: 'textlab' },
-  { label: 'Đọc báo', fallback: '#/tool/news-reader', icon: 'news' },
-  { label: 'Trò chơi', fallback: '#/games', icon: 'games' },
-  { label: 'Thêm', fallback: '#/apps', icon: 'more' },
-];
+const escapeHtml = (value = '') => String(value)
+  .replaceAll('&', '&amp;')
+  .replaceAll('<', '&lt;')
+  .replaceAll('>', '&gt;')
+  .replaceAll('"', '&quot;')
+  .replaceAll("'", '&#039;');
 
-const NEWS_CONFIG = [
-  { key: 'thoi-su', category: 'Thời sự', rss: 'https://vnexpress.net/rss/thoi-su.rss' },
-  { key: 'giao-duc', category: 'Giáo dục', rss: 'https://vnexpress.net/rss/giao-duc.rss' },
-  { key: 'the-gioi', category: 'Thế giới', rss: 'https://vnexpress.net/rss/the-gioi.rss' },
-];
-
-const NEWS_CACHE_KEY = 'brian-option-two-live-news-v3';
-const NEWS_CACHE_MAX_AGE = 6 * 60 * 60 * 1000;
-const NEWS_REFRESH_INTERVAL = 10 * 60 * 1000;
-const NEWS_ROTATE_INTERVAL = 8500;
-const newsState = new Map();
-let newsRotationTimer = null;
-let newsRefreshTimer = null;
-
-function icon(name) {
-  const paths = {
-    home: '<path d="M3 11.5 12 4l9 7.5v8a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"/>',
-    apps: '<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',
-    textlab: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 12h5M10 16h5"/>',
-    news: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h6M7 12h10M7 16h10M16 8h1"/>',
-    games: '<path d="M8 8h8a5 5 0 0 1 4.5 7.2l-1.2 2.4a2 2 0 0 1-3.2.5L14 16h-4l-2.1 2.1a2 2 0 0 1-3.2-.5l-1.2-2.4A5 5 0 0 1 8 8z"/><path d="M8 11v4M6 13h4M16 12h.01M18 14h.01"/>',
-    more: '<path d="M5 12h14M12 5v14"/>',
-    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
-    bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>',
-    volume: '<path d="M4 10v4h4l5 4V6l-5 4z"/><path d="M17 9a4 4 0 0 1 0 6"/>',
-    sync: '<path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 9a7 7 0 0 1 12-2l2 2M18 15a7 7 0 0 1-12 2l-2-2"/>',
-    chatbot: '<path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/>',
-    user: '<circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/>',
-    logout: '<path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"/>',
-    brief: '<path d="M4 6h16v13H4z"/><path d="M8 6V4h8v2M4 11h16"/>',
-    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-    chevron: '<path d="m9 18 6-6-6-6"/>',
-  };
-  return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[name] || paths.apps}</svg>`;
-}
-
-function normalizedText(node) {
-  return (node?.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
-}
-
-function findLegacyControl(label) {
-  const target = label.toLowerCase();
-  const candidates = [...document.querySelectorAll('#root a, #root button, #root [role="button"]')];
-  return candidates.find((node) => {
-    if (node.closest(`#${SHELL_ID}`)) return false;
-    const text = normalizedText(node);
-    return text === target || text.startsWith(`${target} `) || text.includes(target);
-  });
-}
-
-function navigate(label, fallback) {
-  const legacy = findLegacyControl(label);
-  if (legacy) {
-    legacy.click();
+const routeTo = (route) => {
+  if (!route) return;
+  if (/^https?:\/\//i.test(route)) {
+    window.location.assign(route);
     return;
   }
-  if (fallback.startsWith('#')) window.location.hash = fallback.slice(1);
-  else window.location.assign(fallback);
-}
-
-function activeNavLabel() {
-  const hash = window.location.hash.toLowerCase();
-  if (hash.includes('textlab')) return 'TextLab';
-  if (hash.includes('news') || hash.includes('reader') || hash.includes('doc-bao')) return 'Đọc báo';
-  if (hash.includes('game') || hash.includes('tro-choi')) return 'Trò chơi';
-  if (hash.includes('apps') || hash.includes('ung-dung')) return 'Ứng dụng';
-  return 'Trang chủ';
-}
-
-function updateActiveNav(shell) {
-  const active = activeNavLabel();
-  shell.querySelectorAll('[data-ot2-nav]').forEach((button) => {
-    button.classList.toggle('is-active', button.dataset.ot2Nav === active);
-    button.setAttribute('aria-current', button.dataset.ot2Nav === active ? 'page' : 'false');
-  });
-}
-
-function findRetiredShells() {
-  const candidates = [...document.querySelectorAll('#root header, #root nav, #root section, #root > div > div, #root > div > section')];
-  candidates.forEach((node) => {
-    if (node.closest(`#${SHELL_ID}`)) return;
-    const text = normalizedText(node);
-    const rect = node.getBoundingClientRect();
-    const isUtility = text.includes('trung tâm thông báo') && (text.includes('âm báo') || text.includes('đồng bộ live') || text.includes('mở bảng thông báo'));
-    const isNavigation = text.includes('brian english') && text.includes('trang chủ') && text.includes('ứng dụng') && (text.includes('đọc báo') || text.includes('trò chơi'));
-    if ((isUtility || isNavigation) && rect.height > 20 && rect.height < 260) {
-      node.classList.add(RETIRED_CLASS);
-      node.setAttribute('data-ot2-retired', isUtility ? 'utility' : 'navigation');
-    }
-  });
-}
-
-function lightOnly() {
-  const root = document.documentElement;
-  root.dataset.theme = 'light';
-  root.classList.remove('dark', 'dark-mode', 'theme-dark');
-  root.classList.add('light', 'theme-light', 'ot2-light-only');
-  root.style.colorScheme = 'light';
-  document.body?.classList.remove('dark', 'dark-mode', 'theme-dark');
-  document.body?.classList.add('ot2-light-only');
-  ['theme', 'appearance', 'color-theme', 'brian-theme'].forEach((key) => {
-    try { localStorage.setItem(key, 'light'); } catch { /* optional */ }
-  });
-}
-
-
-function escapeNewsText(value) {
-  const element = document.createElement('textarea');
-  element.textContent = String(value || '');
-  return element.innerHTML;
-}
-
-function fetchWithTimeout(url, options = {}, timeout = 9000) {
-  const controller = new AbortController();
-  const timer = window.setTimeout(() => controller.abort(), timeout);
-  return fetch(url, { ...options, signal: controller.signal })
-    .finally(() => window.clearTimeout(timer));
-}
-
-function cleanNewsTitle(value) {
-  return String(value || '')
-    .replace(/<!\[CDATA\[|\]\]>/g, '')
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function validArticleUrl(value) {
-  try {
-    const url = new URL(String(value || ''));
-    return /^https?:$/.test(url.protocol) ? url.href : '';
-  } catch {
-    return '';
+  if (route.startsWith('#')) {
+    window.location.hash = route.slice(1);
+    return;
   }
-}
+  window.location.assign(route);
+};
 
-function parseXmlFeed(xmlText, config) {
-  const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
-  if (doc.querySelector('parsererror')) throw new Error('RSS XML không hợp lệ');
-  return [...doc.querySelectorAll('item')].slice(0, 10).map((item) => ({
-    category: config.category,
-    title: cleanNewsTitle(item.querySelector('title')?.textContent),
-    url: validArticleUrl(item.querySelector('link')?.textContent),
-    publishedAt: item.querySelector('pubDate')?.textContent || '',
-  })).filter((item) => item.title && item.url);
-}
+const formatClock = () => new Intl.DateTimeFormat('vi-VN', {
+  hour: '2-digit', minute: '2-digit', hour12: false,
+}).format(new Date());
 
-function parseRss2Json(payload, config) {
-  if (!payload || payload.status !== 'ok' || !Array.isArray(payload.items)) return [];
-  return payload.items.slice(0, 10).map((item) => ({
-    category: config.category,
-    title: cleanNewsTitle(item.title),
-    url: validArticleUrl(item.link || item.guid),
-    publishedAt: item.pubDate || '',
-  })).filter((item) => item.title && item.url);
-}
-
-async function loadNewsFeed(config) {
-  const rss2json = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(config.rss)}`;
-  const allOrigins = `https://api.allorigins.win/raw?url=${encodeURIComponent(config.rss)}`;
-  const attempts = [
-    async () => {
-      const response = await fetchWithTimeout(rss2json, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`rss2json ${response.status}`);
-      return parseRss2Json(await response.json(), config);
-    },
-    async () => {
-      const response = await fetchWithTimeout(allOrigins, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`allorigins ${response.status}`);
-      return parseXmlFeed(await response.text(), config);
-    },
-    async () => {
-      const response = await fetchWithTimeout(config.rss, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`rss ${response.status}`);
-      return parseXmlFeed(await response.text(), config);
-    },
-  ];
-
-  let lastError = null;
-  for (const attempt of attempts) {
-    try {
-      const items = await attempt();
-      if (items.length) return items;
-    } catch (error) {
-      lastError = error;
-    }
-  }
-  throw lastError || new Error('Không có dữ liệu RSS');
-}
-
-function readNewsCache() {
-  try {
-    const value = JSON.parse(localStorage.getItem(NEWS_CACHE_KEY) || 'null');
-    if (!value || !value.savedAt || !value.feeds) return null;
-    if (Date.now() - value.savedAt > NEWS_CACHE_MAX_AGE) return null;
-    return value;
-  } catch {
-    return null;
-  }
-}
-
-function saveNewsCache() {
-  try {
-    const feeds = {};
-    NEWS_CONFIG.forEach((config) => {
-      const state = newsState.get(config.key);
-      if (state?.items?.length) feeds[config.key] = state.items;
-    });
-    localStorage.setItem(NEWS_CACHE_KEY, JSON.stringify({ savedAt: Date.now(), feeds }));
-  } catch {
-    // Cache is optional.
-  }
-}
-
-function relativeNewsTime(value) {
-  const timestamp = Date.parse(value || '');
-  if (!Number.isFinite(timestamp)) return 'Tin mới';
-  const diffMinutes = Math.max(0, Math.round((Date.now() - timestamp) / 60000));
-  if (diffMinutes < 1) return 'Vừa đăng';
-  if (diffMinutes < 60) return `${diffMinutes} phút trước`;
-  const hours = Math.round(diffMinutes / 60);
+const formatPublished = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const diff = Date.now() - date.getTime();
+  const minutes = Math.max(0, Math.floor(diff / 60000));
+  if (minutes < 1) return 'vừa xong';
+  if (minutes < 60) return `${minutes} phút trước`;
+  const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours} giờ trước`;
-  return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit' }).format(new Date(timestamp));
-}
+  return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit' }).format(date);
+};
 
-function renderNewsButton(button, config, item, state = 'ready') {
-  const category = button.querySelector('.ot2-news-category');
-  const title = button.querySelector('.ot2-news-title');
-  const meta = button.querySelector('.ot2-news-meta');
-  category.textContent = config.category;
-  button.classList.toggle('is-loading', state === 'loading');
-  button.classList.toggle('is-error', state === 'error');
+const findLegacyNotificationBar = () => {
+  const keys = ['trung tâm thông báo', 'việc hôm nay', 'tài khoản chờ duyệt', 'mở bảng thông báo'];
+  const nodes = [...document.querySelectorAll('body *')]
+    .filter((node) => {
+      if (!(node instanceof HTMLElement)) return false;
+      if (node.closest(`#${OPTION_TWO_SHELL_ID}`)) return false;
+      const text = (node.innerText || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      if (!text || text.length > 900) return false;
+      return keys.every((key) => text.includes(key));
+    })
+    .sort((a, b) => (a.innerText || '').length - (b.innerText || '').length);
 
-  if (state === 'loading') {
-    title.textContent = 'Đang cập nhật tin mới…';
-    meta.textContent = 'Kết nối nguồn tin';
-    button.dataset.articleUrl = '';
-    return;
-  }
-  if (state === 'error' || !item) {
-    title.textContent = 'Chưa lấy được tin · Nhấn để thử lại';
-    meta.textContent = 'Kiểm tra kết nối';
-    button.dataset.articleUrl = '';
-    return;
-  }
+  const candidate = nodes[0];
+  if (!candidate) return false;
+  candidate.classList.add('brian-retired-notification-control-bar');
+  candidate.setAttribute('aria-hidden', 'true');
+  return true;
+};
 
-  title.textContent = item.title;
-  meta.textContent = relativeNewsTime(item.publishedAt);
-  button.dataset.articleUrl = item.url;
-  button.title = `${config.category}: ${item.title}`;
-}
+const suppressLegacyNotificationBar = () => {
+  findLegacyNotificationBar();
+  let attempts = 0;
+  const timer = window.setInterval(() => {
+    attempts += 1;
+    findLegacyNotificationBar();
+    if (attempts >= 20) window.clearInterval(timer);
+  }, 400);
+};
 
-function rotateNews(shell) {
-  NEWS_CONFIG.forEach((config) => {
-    const state = newsState.get(config.key);
-    const button = shell.querySelector(`[data-news-key="${config.key}"]`);
-    if (!button || !state?.items?.length) return;
-    state.index = (state.index + 1) % Math.min(state.items.length, 6);
-    renderNewsButton(button, config, state.items[state.index]);
-  });
-}
+const navItems = [
+  ['home', '⌂', 'Trang chủ', ROUTES.home],
+  ['apps', '▦', 'Ứng dụng', ROUTES.apps],
+  ['homeroom', '♙', 'Chủ nhiệm', ROUTES.homeroom],
+  ['department', '◇', 'Tổ chuyên môn', ROUTES.department],
+  ['textlab', '▣', 'TextLab', '#/tool/textlab-template-library/'],
+  ['news', '▤', 'Đọc báo', ROUTES.news],
+  ['games', '⌘', 'Trò chơi', ROUTES.games],
+  ['more', '+', 'Thêm', ROUTES.more],
+];
 
-function updateNewsStatus(shell, message, status = 'ready') {
-  const statusNode = shell.querySelector('[data-news-status]');
+const makeNav = () => navItems.map(([key, icon, label, route]) => `
+  <button type="button" class="brian-o2-nav-button" data-nav-key="${key}" data-route="${escapeHtml(route)}">
+    <span aria-hidden="true">${icon}</span><b>${label}</b>
+  </button>`).join('');
+
+const renderTickerItems = (items) => {
+  const safeItems = Array.isArray(items) && items.length ? items : [{
+    title: 'Đang cập nhật tin vắn mới nhất…', url: ROUTES.news, publishedAt: '', source: 'Brian English',
+  }];
+  const group = safeItems.map((item) => `
+    <a class="brian-o2-news-item" href="${escapeHtml(item.url || ROUTES.news)}" target="_blank" rel="noopener noreferrer">
+      <span class="brian-o2-news-source">${escapeHtml(item.source || 'Tin mới')}</span>
+      <span class="brian-o2-news-title">${escapeHtml(item.title)}</span>
+      ${item.publishedAt ? `<time>${escapeHtml(formatPublished(item.publishedAt))}</time>` : ''}
+    </a><span class="brian-o2-news-separator" aria-hidden="true">◆</span>`).join('');
+  return `<div class="brian-o2-news-group">${group}</div><div class="brian-o2-news-group" aria-hidden="true">${group}</div>`;
+};
+
+const loadNews = async (shell, force = false) => {
+  const track = shell.querySelector('[data-news-track]');
+  const updated = shell.querySelector('[data-news-updated]');
   const refresh = shell.querySelector('[data-news-refresh]');
-  if (statusNode) statusNode.textContent = message;
-  if (refresh) {
-    refresh.classList.toggle('is-spinning', status === 'loading');
-    refresh.disabled = status === 'loading';
-  }
-}
+  refresh?.classList.add('is-loading');
 
-async function refreshLiveNews(shell, force = false) {
-  if (!shell || shell.dataset.newsLoading === 'true') return;
-  shell.dataset.newsLoading = 'true';
-  updateNewsStatus(shell, 'Đang cập nhật', 'loading');
-
-  NEWS_CONFIG.forEach((config) => {
-    const current = newsState.get(config.key);
-    if (!current?.items?.length || force) {
-      const button = shell.querySelector(`[data-news-key="${config.key}"]`);
-      if (button) renderNewsButton(button, config, null, 'loading');
-    }
-  });
-
-  const results = await Promise.allSettled(NEWS_CONFIG.map(async (config) => ({
-    config,
-    items: await loadNewsFeed(config),
-  })));
-
-  let successCount = 0;
-  results.forEach((result, index) => {
-    const config = NEWS_CONFIG[index];
-    const button = shell.querySelector(`[data-news-key="${config.key}"]`);
-    if (result.status === 'fulfilled' && result.value.items.length) {
-      const items = result.value.items;
-      newsState.set(config.key, { items, index: 0 });
-      renderNewsButton(button, config, items[0]);
-      successCount += 1;
-      return;
-    }
-
-    const cached = newsState.get(config.key);
+  try {
+    const response = await fetch(`/api/news-brief?limit=14${force ? `&t=${Date.now()}` : ''}`, {
+      cache: 'no-store', headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json();
+    const items = Array.isArray(payload.items) ? payload.items.filter((item) => item?.title) : [];
+    if (!items.length) throw new Error('Không có dữ liệu tin');
+    localStorage.setItem(NEWS_CACHE_KEY, JSON.stringify({ savedAt: Date.now(), items }));
+    track.innerHTML = renderTickerItems(items);
+    const chars = items.reduce((sum, item) => sum + String(item.title || '').length, 0);
+    const mobileFactor = window.innerWidth < 760 ? 0.28 : 0.20;
+    track.style.setProperty('--brian-news-duration', `${Math.max(42, Math.round(chars * mobileFactor))}s`);
+    updated.textContent = `Cập nhật ${formatClock()}`;
+  } catch (error) {
+    let cached = null;
+    try { cached = JSON.parse(localStorage.getItem(NEWS_CACHE_KEY) || 'null'); } catch { cached = null; }
     if (cached?.items?.length) {
-      renderNewsButton(button, config, cached.items[cached.index || 0]);
+      track.innerHTML = renderTickerItems(cached.items);
+      updated.textContent = 'Tin đã lưu gần nhất';
     } else {
-      renderNewsButton(button, config, null, 'error');
+      track.innerHTML = renderTickerItems([]);
+      updated.textContent = 'Chưa thể cập nhật';
     }
-  });
-
-  if (successCount) {
-    saveNewsCache();
-    updateNewsStatus(shell, `Cập nhật ${new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(new Date())}`);
-  } else {
-    updateNewsStatus(shell, 'Không thể cập nhật');
+  } finally {
+    refresh?.classList.remove('is-loading');
   }
+};
 
-  shell.dataset.newsLoading = 'false';
-  window.clearInterval(newsRotationTimer);
-  newsRotationTimer = window.setInterval(() => rotateNews(shell), NEWS_ROTATE_INTERVAL);
-}
-
-function initialiseLiveNews(shell) {
-  const cached = readNewsCache();
-  if (cached?.feeds) {
-    NEWS_CONFIG.forEach((config) => {
-      const items = Array.isArray(cached.feeds[config.key]) ? cached.feeds[config.key] : [];
-      const button = shell.querySelector(`[data-news-key="${config.key}"]`);
-      if (items.length) {
-        newsState.set(config.key, { items, index: 0 });
-        renderNewsButton(button, config, items[0]);
-      }
-    });
-    updateNewsStatus(shell, 'Đang dùng tin đã lưu');
-  }
-
-  refreshLiveNews(shell, false);
-  window.clearInterval(newsRefreshTimer);
-  newsRefreshTimer = window.setInterval(() => refreshLiveNews(shell, false), NEWS_REFRESH_INTERVAL);
-}
-
-function shellMarkup() {
-  const nav = NAV_ITEMS.map((item) => `
-    <button class="ot2-nav-button" type="button" data-ot2-nav="${item.label}" data-label="${item.label}" data-fallback="${item.fallback}">
-      <span class="ot2-nav-icon">${icon(item.icon)}</span><span>${item.label}</span>
-    </button>`).join('');
-
-  const news = NEWS_CONFIG.map((item) => `
-    <button class="ot2-news-item is-loading" type="button" data-news-key="${item.key}">
-      <span class="ot2-news-category">${item.category}</span>
-      <span class="ot2-news-copy">
-        <span class="ot2-news-title">Đang cập nhật tin mới…</span>
-        <span class="ot2-news-meta">Kết nối nguồn tin</span>
-      </span>
-      <span class="ot2-news-arrow">${icon('chevron')}</span>
-    </button>`).join('');
-
-  return `
-    <div class="ot2-newsbar">
-      <div class="ot2-news-label"><span class="ot2-live-dot"></span><strong>Tin vắn thời sự</strong><span class="ot2-time" data-ot2-clock></span></div>
-      <div class="ot2-news-track">${news}</div>
-      <div class="ot2-news-actions">
-        <span class="ot2-news-status" data-news-status>Đang khởi tạo</span>
-        <button class="ot2-news-refresh" type="button" data-news-refresh aria-label="Cập nhật tin mới">${icon('sync')}</button>
-        <button class="ot2-all-news" type="button" data-news-target="Đọc báo">Xem bản tin ${icon('chevron')}</button>
-      </div>
-    </div>
-
-    <div class="ot2-utilitybar">
-      <button class="ot2-brand" type="button" data-ot2-brand>
-        <span class="ot2-brand-mark">B</span>
-        <span class="ot2-brand-copy"><strong>Brian English</strong><small>Teaching Workspace</small></span>
-      </button>
-
-      <div class="ot2-status-cluster">
-        <button class="ot2-status-card is-success" type="button" data-control="Trung tâm thông báo">${icon('brief')}<span><strong>0 việc hôm nay</strong><small>Trung tâm thông báo</small></span></button>
-        <button class="ot2-status-card" type="button" data-control="tài khoản">${icon('user')}<span><strong>0 tài khoản</strong><small>Đang hoạt động</small></span></button>
-        <span class="ot2-sync-badge">${icon('sync')}<span><strong>Đồng bộ live</strong><small>Đang bật</small></span><i></i></span>
-      </div>
-
-      <div class="ot2-quick-tools">
-        <button type="button" class="ot2-tool-button" data-control="Âm báo" aria-label="Âm báo">${icon('volume')}</button>
-        <button type="button" class="ot2-tool-button" data-control="Mở bảng thông báo" aria-label="Thông báo">${icon('bell')}<span class="ot2-badge">0</span></button>
-        <button type="button" class="ot2-scale-button">A+ <strong>100%</strong></button>
-        <button type="button" class="ot2-language-button">VI</button>
-      </div>
-    </div>
-
-    <div class="ot2-navbar">
-      <div class="ot2-nav-tabs">${nav}</div>
-      <div class="ot2-nav-actions">
-        <button type="button" class="ot2-command" data-control="Tìm nhanh">${icon('search')}<span>Tìm nhanh</span><kbd>⌘K</kbd></button>
-        <button type="button" class="ot2-chat" data-control="Chatbot">${icon('chatbot')}<span>Chatbot</span></button>
-        <button type="button" class="ot2-user" data-control="Anh"><span class="ot2-user-avatar">T</span><span><strong>Anh Tuấn</strong><small>Giáo viên</small></span></button>
-        <button type="button" class="ot2-logout" data-control="Thoát" aria-label="Thoát">${icon('logout')}</button>
-      </div>
-    </div>`;
-}
-
-function bindShell(shell) {
-  shell.querySelectorAll('[data-ot2-nav]').forEach((button) => {
-    button.addEventListener('click', () => navigate(button.dataset.label, button.dataset.fallback));
+const updateActiveNavigation = (shell) => {
+  const hash = window.location.hash.toLowerCase();
+  shell.querySelectorAll('.brian-o2-nav-button').forEach((button) => {
+    const key = button.dataset.navKey;
+    const active =
+      (key === 'home' && (hash.includes('/home') || hash === '' || hash === '#/')) ||
+      (key === 'apps' && hash.includes('/apps')) ||
+      (key === 'homeroom' && /homeroom|chu-nhiem|chunhiem/.test(hash)) ||
+      (key === 'department' && /department|to-chuyen-mon|tochuyenmon/.test(hash)) ||
+      (key === 'textlab' && hash.includes('textlab-template-library')) ||
+      (key === 'news' && /news|doc-bao|newsroom/.test(hash)) ||
+      (key === 'games' && /game|tro-choi/.test(hash));
+    button.classList.toggle('is-active', Boolean(active));
+    button.setAttribute('aria-current', active ? 'page' : 'false');
   });
-  shell.querySelector('[data-ot2-brand]')?.addEventListener('click', () => navigate('Trang chủ', '#/'));
-  shell.querySelectorAll('[data-news-target]').forEach((button) => {
-    button.addEventListener('click', () => navigate(button.dataset.newsTarget, '#/tool/news-reader'));
-  });
-  shell.querySelectorAll('[data-news-key]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const articleUrl = validArticleUrl(button.dataset.articleUrl);
-      if (articleUrl) {
-        window.open(articleUrl, '_blank', 'noopener,noreferrer');
-        return;
-      }
-      refreshLiveNews(shell, true);
-    });
-  });
-  shell.querySelector('[data-news-refresh]')?.addEventListener('click', () => refreshLiveNews(shell, true));
-  shell.querySelectorAll('[data-control]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const legacy = findLegacyControl(button.dataset.control);
-      if (legacy) legacy.click();
-    });
-  });
-  shell.querySelector('.ot2-scale-button')?.addEventListener('click', () => {
-    const legacy = findLegacyControl('100%') || findLegacyControl('A+');
-    if (legacy) legacy.click();
-  });
-  shell.querySelector('.ot2-language-button')?.addEventListener('click', () => {
-    const legacy = findLegacyControl('VI');
-    if (legacy) legacy.click();
-  });
+};
 
-  const clock = shell.querySelector('[data-ot2-clock]');
-  const tick = () => {
-    if (!clock) return;
-    clock.textContent = new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(new Date());
-  };
-  tick();
-  window.setInterval(tick, 30000);
-
-  window.addEventListener('hashchange', () => updateActiveNav(shell));
-  updateActiveNav(shell);
-  initialiseLiveNews(shell);
-}
-
-export function installOptionTwoShell() {
+export function installOptionTwoGlobalShell() {
   const mount = () => {
-    lightOnly();
-    if (!document.getElementById(SHELL_ID)) {
-      const shell = document.createElement('header');
-      shell.id = SHELL_ID;
-      shell.className = 'ot2-shell';
-      shell.setAttribute('aria-label', 'Brian English Option 2 navigation');
-      shell.innerHTML = shellMarkup();
-      document.body.insertBefore(shell, document.body.firstChild);
-      bindShell(shell);
-    }
+    document.documentElement.dataset.theme = 'light';
+    document.documentElement.style.colorScheme = 'light';
+    document.body.classList.add('brian-option-two-shell-active');
+    document.getElementById(OPTION_TWO_SHELL_ID)?.remove();
 
-    findRetiredShells();
-    const observer = new MutationObserver(() => {
-      lightOnly();
-      findRetiredShells();
-    });
+    const shell = document.createElement('header');
+    shell.id = OPTION_TWO_SHELL_ID;
+    shell.className = 'brian-option-two-shell';
+    shell.innerHTML = `
+      <section class="brian-o2-newsbar" aria-label="Tin vắn thời sự">
+        <div class="brian-o2-news-label"><i></i><strong>TIN VẮN THỜI SỰ</strong><time data-clock>${formatClock()}</time></div>
+        <div class="brian-o2-news-viewport">
+          <div class="brian-o2-news-track" data-news-track>${renderTickerItems([])}</div>
+        </div>
+        <div class="brian-o2-news-actions">
+          <span data-news-updated>Đang cập nhật</span>
+          <button type="button" data-news-refresh aria-label="Cập nhật tin">↻</button>
+          <button type="button" data-open-news>Xem bản tin ›</button>
+        </div>
+      </section>
+
+      <section class="brian-o2-utilitybar">
+        <button type="button" class="brian-o2-brand" data-route="${escapeHtml(ROUTES.home)}">
+          <span>B</span><span><strong>Brian English</strong><small>Teaching Workspace</small></span>
+        </button>
+        <div class="brian-o2-utility-status">
+          <div><span class="is-green">▣</span><b>0 việc hôm nay</b><small>Trung tâm thông báo</small></div>
+          <div><span>♙</span><b>0 tài khoản</b><small>Đang hoạt động</small></div>
+          <div><span>↻</span><b>Đồng bộ live</b><small>Đang bật</small><i></i></div>
+        </div>
+        <div class="brian-o2-utility-actions">
+          <button type="button" aria-label="Âm thanh">◖</button>
+          <button type="button" aria-label="Thông báo">♧<sup>0</sup></button>
+          <button type="button" class="is-accent">A+ 100%</button>
+          <button type="button">VI</button>
+        </div>
+      </section>
+
+      <nav class="brian-o2-navigation" aria-label="Điều hướng chính">
+        <div class="brian-o2-nav-list">${makeNav()}</div>
+        <div class="brian-o2-nav-tools">
+          <button type="button" class="brian-o2-search">⌕ <span>Tìm nhanh</span><kbd>⌘K</kbd></button>
+          <button type="button" class="brian-o2-chatbot">▣ <span>Chatbot</span></button>
+          <button type="button" class="brian-o2-profile"><i>T</i><span><b>Anh Tuấn</b><small>Giáo viên</small></span></button>
+          <button type="button" class="brian-o2-logout" aria-label="Thoát">⇥</button>
+        </div>
+      </nav>`;
+
     const root = document.getElementById('root');
-    if (root) observer.observe(root, { childList: true, subtree: true });
+    if (root) root.before(shell); else document.body.prepend(shell);
+
+    shell.addEventListener('click', (event) => {
+      const routeTarget = event.target.closest('[data-route]');
+      if (routeTarget) routeTo(routeTarget.dataset.route);
+      if (event.target.closest('[data-open-news]')) routeTo(ROUTES.news);
+      if (event.target.closest('[data-news-refresh]')) loadNews(shell, true);
+    });
+
+    updateActiveNavigation(shell);
+    loadNews(shell);
+    suppressLegacyNotificationBar();
+
+    window.addEventListener('hashchange', () => updateActiveNavigation(shell), { passive: true });
+    window.setInterval(() => {
+      const clock = shell.querySelector('[data-clock]');
+      if (clock) clock.textContent = formatClock();
+    }, 30000);
+    window.setInterval(() => loadNews(shell), 10 * 60 * 1000);
   };
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once: true });
-  else mount();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount, { once: true });
+  } else {
+    mount();
+  }
 }
+
+export const initOptionTwoGlobalShell = installOptionTwoGlobalShell;
+export const initializeOptionTwoGlobalShell = installOptionTwoGlobalShell;
+export const mountOptionTwoGlobalShell = installOptionTwoGlobalShell;
+export const startOptionTwoGlobalShell = installOptionTwoGlobalShell;
+export const installOptionTwoShell = installOptionTwoGlobalShell;
+export default installOptionTwoGlobalShell;

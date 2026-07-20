@@ -705,3 +705,5 @@ createRoot(document.getElementById('root')).render(
     <><App /><TextLabGlobalShortcut /></>
   </AppErrorBoundary>,
 );
+
+queueMicrotask(() => installOptionTwoGlobalShell());
