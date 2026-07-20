@@ -50,6 +50,9 @@ import { installOptionTwoShell } from './utils/optionTwoGlobalShell.js';
 
 import './styles/notification-center-recovery.css';
 import { installNotificationCenterRecovery } from './utils/notificationCenterRecovery.js';
+import { installPersonnelEntryBridge } from './utils/personnelEntryBridge.js';
+import './styles/personnelEntryBridge.css';
+installPersonnelEntryBridge();
 
 installNotificationCenterRecovery();
 installOptionTwoShell();

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <title>Nhân sự • Tổ Tiếng Anh</title>
+  <style>
+    :root{
+      --bg:#f6f8fc;--paper:#fff;--ink:#112548;--muted:#6f7f98;--line:#e5eaf2;
+      --blue:#3267d6;--blue-soft:#edf3ff;--green:#20a366;--green-soft:#eaf8f1;
+      --orange:#f08a31;--orange-soft:#fff3e7;--violet:#8555df;--violet-soft:#f3edff;
+      --red:#ef5b62;--shadow:0 12px 28px rgba(32,55,92,.07);--radius:18px;
+    }
+    *{box-sizing:border-box}html,body{height:100%}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;overflow:hidden}
+    button,input,select{font:inherit}button{color:inherit}.app{display:grid;grid-template-columns:245px minmax(0,1fr);height:100vh}
+    .sidebar{display:flex;flex-direction:column;min-height:0;padding:24px 15px 18px;background:#fff;border-right:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:11px;padding:0 10px 24px}.crest{display:grid;place-items:center;width:42px;height:48px;border-radius:13px 13px 18px 18px;background:linear-gradient(160deg,#174c9b,#0c2b62);color:#fff;font-weight:900;box-shadow:0 8px 16px rgba(27,73,145,.22)}.brand strong{font-family:Georgia,serif;font-size:19px;letter-spacing:.02em}.brand small{display:block;color:#56708f;font-size:9px;margin-top:2px;letter-spacing:.04em}
+    .nav-scroll{min-height:0;overflow:auto;padding-right:4px}.nav-item{display:flex;align-items:center;gap:12px;width:100%;min-height:45px;padding:0 14px;border:0;border-radius:12px;background:transparent;color:#425674;font-weight:700;text-align:left;cursor:pointer}.nav-item:hover{background:#f5f8fc}.nav-item.active{color:#1757c6;background:#eef4ff;box-shadow:inset 3px 0 #2868db}.nav-icon{width:20px;text-align:center;font-size:18px}.nav-label{margin:16px 14px 7px;color:#8a98ac;font-size:10px;font-weight:850;letter-spacing:.12em;text-transform:uppercase}
+    .org-card{margin-top:auto;padding:14px;border:1px solid var(--line);border-radius:15px;background:#fbfcff}.org-title{display:flex;justify-content:space-between;font-size:11px;font-weight:900;letter-spacing:.06em}.org-tree{display:grid;justify-items:center;gap:7px;margin-top:12px}.node{display:grid;place-items:center;min-width:108px;min-height:36px;padding:6px 10px;border-radius:8px;background:#edf3ff;color:#244b91;font-size:11px;font-weight:800}.node.active{color:#fff;background:#215fc7}.tree-line{width:1px;height:10px;background:#b8c8e2}.tree-groups{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%}.tree-groups .node{min-width:0;font-size:9px;background:#fff;border:1px solid var(--line);color:#516681}
+    .main{display:grid;grid-template-rows:auto auto minmax(0,1fr);min-width:0;min-height:0;padding:22px 24px 18px;gap:16px}
+    .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}.title h1{margin:0;font-size:30px;letter-spacing:-.035em}.title-row{display:flex;align-items:center;gap:12px}.phase{display:inline-flex;align-items:center;min-height:28px;padding:0 12px;border-radius:999px;color:#225bc1;background:#edf3ff;font-size:12px;font-weight:850}.scope{color:#5f718d}.top-actions{display:flex;align-items:center;gap:10px}.search{display:flex;align-items:center;gap:8px;width:270px;min-height:42px;padding:0 13px;border:1px solid var(--line);border-radius:13px;background:#fff}.search input{width:100%;border:0;outline:0;background:transparent}.icon-btn{position:relative;display:grid;place-items:center;width:42px;height:42px;border:1px solid var(--line);border-radius:13px;background:#fff;cursor:pointer}.badge{position:absolute;right:-2px;top:-4px;display:grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:#eb4b55;color:#fff;font-size:10px;font-weight:900}.profile{display:flex;align-items:center;gap:9px;padding:4px 8px 4px 5px;border:0;background:transparent}.avatar{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;color:#fff;background:linear-gradient(145deg,#546f9e,#203e72);font-weight:850}.profile strong{display:block;font-size:12px}.profile small{display:block;color:var(--muted);font-size:10px}.add-dept{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 15px;border:1px dashed #8baded;border-radius:12px;color:#2861c6;background:#f8fbff;font-weight:800;cursor:not-allowed}.coming{color:#8350db;font-size:11px}
+    .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.kpi{display:flex;align-items:center;gap:14px;min-height:105px;padding:17px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--shadow)}.kpi-icon{display:grid;place-items:center;flex:0 0 auto;width:54px;height:54px;border-radius:50%;font-size:25px}.kpi-icon.blue{color:var(--blue);background:var(--blue-soft)}.kpi-icon.green{color:var(--green);background:var(--green-soft)}.kpi-icon.orange{color:var(--orange);background:var(--orange-soft)}.kpi-icon.violet{color:var(--violet);background:var(--violet-soft)}.kpi b{font-size:25px}.kpi strong{display:block;margin-top:2px}.kpi small{display:block;margin-top:4px;color:var(--muted)}.kpi-link{margin-left:auto;align-self:flex-end;color:currentColor;font-size:11px;font-weight:800;cursor:pointer}
+    .workspace{display:grid;grid-template-columns:.92fr 1.34fr .92fr .92fr;gap:13px;min-height:0}.panel{display:flex;flex-direction:column;min-width:0;min-height:0;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--shadow);overflow:hidden}.panel-head{display:flex;align-items:center;justify-content:space-between;min-height:54px;padding:0 14px;border-bottom:1px solid var(--line)}.panel-head h2{margin:0;font-size:14px}.panel-link{border:0;background:transparent;color:#2864cc;font-size:11px;font-weight:800;cursor:pointer}.panel-scroll{min-height:0;overflow:auto;padding:10px}.panel-scroll::-webkit-scrollbar,.kanban-col::-webkit-scrollbar{width:6px}.panel-scroll::-webkit-scrollbar-thumb,.kanban-col::-webkit-scrollbar-thumb{background:#d8e0ec;border-radius:99px}
+    .leave-card,.assignment-card,.training-card,.task-card{border:1px solid var(--line);border-radius:13px;background:#fff}.leave-card{padding:12px;margin-bottom:10px}.person-line{display:flex;align-items:center;gap:9px}.mini-avatar{display:grid;place-items:center;flex:0 0 auto;width:36px;height:36px;border-radius:50%;color:#fff;background:linear-gradient(145deg,#5a78a8,#254671);font-size:11px;font-weight:900}.person-line strong{font-size:12px}.person-line small{display:block;color:var(--muted);font-size:10px}.status{margin-left:auto;padding:5px 8px;border-radius:7px;font-size:9px;font-weight:850}.status.pending{color:#c96d16;background:#fff0dc}.status.approved{color:#198155;background:#eaf8f1}.status.done{color:#2864cc;background:#edf3ff}.meta{display:grid;gap:5px;margin-top:10px;color:#586a83;font-size:10px}.card-actions{display:flex;align-items:center;justify-content:space-between;margin-top:10px;color:#8794a8;font-size:9px}.approve{min-height:28px;padding:0 10px;border:1px solid #9dd7b8;border-radius:8px;color:#16804f;background:#f3fcf7;font-size:10px;font-weight:850;cursor:pointer}
+    .kanban{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));min-height:0;height:100%}.kanban-col{min-width:0;overflow:auto;padding:10px;border-right:1px solid var(--line)}.kanban-col:last-child{border-right:0}.kanban-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;font-size:10px;font-weight:900}.count{display:grid;place-items:center;min-width:22px;height:22px;border-radius:7px;background:#f1f4f8}.task-card{padding:10px;margin-bottom:9px}.task-card strong{font-size:10px;line-height:1.45}.tag{display:inline-flex;margin-top:9px;padding:4px 7px;border-radius:6px;color:#7851ce;background:#f2ecff;font-size:8px;font-weight:850}.tag.orange{color:#c76d1c;background:#fff1e2}.tag.blue{color:#245fc7;background:#edf3ff}.task-foot{display:flex;justify-content:space-between;margin-top:9px;color:#78889d;font-size:8px}.task-next{width:100%;min-height:28px;border:1px dashed #c6d1e1;border-radius:8px;background:#fafcff;color:#2864cc;font-size:9px;font-weight:800;cursor:pointer}.add-task{width:100%;min-height:36px;border:0;background:transparent;color:#2864cc;font-size:10px;font-weight:800;cursor:pointer}
+    .assignment-card{padding:11px;margin-bottom:9px}.workload{display:flex;align-items:center;justify-content:space-between;margin-top:9px;font-size:9px}.bar{height:5px;margin-top:7px;border-radius:99px;background:#edf1f6;overflow:hidden}.bar i{display:block;height:100%;border-radius:inherit;background:#2c68d5}.bar i.orange{background:#ed8a2d}.assignment-foot{display:flex;justify-content:space-between;margin-top:7px;color:#78889d;font-size:8px}.load{padding:4px 7px;border-radius:6px;color:#2864cc;background:#edf3ff;font-weight:800}.load.full{color:#c66c1d;background:#fff1e2}
+    .training-card{display:grid;grid-template-columns:52px 1fr;gap:10px;padding:11px;margin-bottom:9px}.date{display:grid;place-items:center;align-content:center;width:50px;height:54px;border-radius:10px;color:#235fc7;background:#edf3ff}.date b{font-size:18px;line-height:1}.date small{font-size:8px;font-weight:900}.training-card strong{font-size:10px;line-height:1.4}.training-meta{display:grid;gap:3px;margin-top:7px;color:#75849a;font-size:8px}.training-action{justify-self:end;margin-top:6px;padding:4px 8px;border:0;border-radius:6px;color:#2864cc;background:#edf3ff;font-size:8px;font-weight:850;cursor:pointer}
+    .modal-backdrop{position:fixed;inset:0;z-index:50;display:none;place-items:center;padding:20px;background:rgba(16,31,56,.38);backdrop-filter:blur(5px)}.modal-backdrop.open{display:grid}.modal{width:min(520px,100%);padding:20px;border-radius:18px;background:#fff;box-shadow:0 30px 70px rgba(20,40,75,.25)}.modal h3{margin:0 0 14px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:grid;gap:5px}.field.full{grid-column:1/-1}.field label{font-size:11px;font-weight:800}.field input,.field select{min-height:42px;padding:0 11px;border:1px solid var(--line);border-radius:10px;outline:0}.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:16px}.btn{min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:#fff;font-weight:800;cursor:pointer}.btn.primary{color:#fff;border-color:#2864cc;background:#2864cc}.toast{position:fixed;right:22px;bottom:22px;z-index:80;padding:12px 15px;border-radius:12px;color:#fff;background:#14376c;box-shadow:var(--shadow);font-weight:800;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:none}
+    .quick-actions{position:fixed;right:22px;bottom:22px;z-index:20;display:flex;gap:8px}.fab{display:grid;place-items:center;width:43px;height:43px;border:1px solid #cbd8eb;border-radius:14px;background:#fff;color:#2864cc;box-shadow:var(--shadow);cursor:pointer}
+    @media(max-width:1350px){.app{grid-template-columns:210px minmax(0,1fr)}.workspace{grid-template-columns:1fr 1.25fr 1fr}.workspace .panel:last-child{display:none}.search{width:210px}}
+    @media(max-width:1020px){body{overflow:auto}.app{grid-template-columns:1fr;height:auto}.sidebar{display:none}.main{min-height:100vh}.kpis{grid-template-columns:1fr 1fr}.workspace{grid-template-columns:1fr;overflow:visible}.panel{min-height:520px}.topbar{flex-direction:column}.top-actions{width:100%;flex-wrap:wrap}.search{flex:1;min-width:230px}}
+    @media(max-width:620px){.main{padding:14px}.kpis{grid-template-columns:1fr}.title h1{font-size:25px}.profile{display:none}.workspace{gap:10px}.kanban{grid-template-columns:1fr}.kanban-col{border-right:0;border-bottom:1px solid var(--line)}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="crest">BE</span><span><strong>BRIAN<br>ENGLISH</strong><small>TEACHING WORKSPACE</small></span></div>
+    <div class="nav-scroll">
+      <button class="nav-item" data-section="overview"><span class="nav-icon">⌂</span>Tổng quan</button>
+      <button class="nav-item active" data-section="staff"><span class="nav-icon">♙</span>Nhân sự</button>
+      <button class="nav-item" data-section="recruit"><span class="nav-icon">♧</span>Tuyển dụng</button>
+      <button class="nav-item" data-section="files"><span class="nav-icon">▤</span>Hồ sơ</button>
+      <button class="nav-item" data-section="time"><span class="nav-icon">◷</span>Chấm công</button>
+      <button class="nav-item" data-section="pay"><span class="nav-icon">▣</span>Lương & phúc lợi</button>
+      <button class="nav-item" data-section="review"><span class="nav-icon">☆</span>Đánh giá</button>
+      <button class="nav-item" data-section="training"><span class="nav-icon">◇</span>Đào tạo</button>
+      <button class="nav-item" data-section="report"><span class="nav-icon">▥</span>Báo cáo</button>
+      <button class="nav-item" data-section="settings"><span class="nav-icon">⚙</span>Thiết lập</button>
+    </div>
+    <div class="org-card">
+      <div class="org-title"><span>SƠ ĐỒ TỔ CHỨC</span><span>⌃</span></div>
+      <div class="org-tree"><div class="node">Brian English</div><div class="tree-line"></div><div class="node">Khối chuyên môn</div><div class="tree-line"></div><div class="node active">Tổ Tiếng Anh<br>12 nhân sự</div><div class="tree-line"></div><div class="tree-groups"><div class="node">THCS 6–7<br>4</div><div class="node">THCS 8–9<br>4</div><div class="node">THPT<br>4</div></div></div>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="title"><h1>Nhân sự • Tổ Tiếng Anh</h1><div class="title-row"><span class="phase">Giai đoạn 1</span><span class="scope">Phạm vi: chỉ Tổ Tiếng Anh ⓘ</span></div></div>
+      <div class="top-actions">
+        <label class="search">⌕<input id="globalSearch" placeholder="Tìm kiếm nhân sự, nhiệm vụ..." /></label>
+        <button class="icon-btn" id="notifyBtn">♢<span class="badge">3</span></button>
+        <button class="icon-btn">?</button>
+        <button class="profile"><span class="avatar">NT</span><span><strong>Nguyễn Thị Lan</strong><small>Trưởng tổ</small></span>⌄</button>
+        <button class="add-dept" title="Sẽ kích hoạt khi mở rộng nhiều tổ">♙ Thêm tổ <span class="coming">Sắp ra mắt</span></button>
+      </div>
+    </header>
+    <section class="kpis">
+      <article class="kpi"><span class="kpi-icon blue">♙</span><div><b id="staffCount">12</b><strong>Giáo viên</strong><small>Đang hoạt động</small></div><span class="kpi-link" id="addStaff">+ Thêm</span></article>
+      <article class="kpi"><span class="kpi-icon green">▣</span><div><b id="leaveCount">2</b><strong>Đơn nghỉ phép</strong><small>Đang chờ duyệt</small></div><span class="kpi-link">Xem chi tiết ›</span></article>
+      <article class="kpi"><span class="kpi-icon orange">☑</span><div><b id="taskCount">7</b><strong>Nhiệm vụ chờ xử lý</strong><small>Cần hoàn thành</small></div><span class="kpi-link" id="addTaskTop">+ Thêm</span></article>
+      <article class="kpi"><span class="kpi-icon violet">♙</span><div><b>3</b><strong>Hồ sơ chưa hoàn thiện</strong><small>Cần cập nhật</small></div><span class="kpi-link" id="exportBtn">Xuất báo cáo ›</span></article>
+    </section>
+    <section class="workspace">
+      <article class="panel"><div class="panel-head"><h2>▣ Nghỉ phép & vắng mặt</h2><button class="panel-link">Xem tất cả</button></div><div class="panel-scroll" id="leaveList"></div></article>
+      <article class="panel"><div class="panel-head"><h2>◇ Nhiệm vụ trong tổ</h2><button class="panel-link" id="addTask">＋</button></div><div class="kanban" id="kanban"></div></article>
+      <article class="panel"><div class="panel-head"><h2>▣ Phân công giảng dạy</h2><button class="panel-link">Xem tất cả</button></div><div class="panel-scroll" id="assignments"></div></article>
+      <article class="panel"><div class="panel-head"><h2>▣ Bồi dưỡng chuyên môn</h2><button class="panel-link">Xem tất cả</button></div><div class="panel-scroll" id="trainingList"></div></article>
+    </section>
+  </main>
+</div>
+<div class="quick-actions"><button class="fab" id="backHome" title="Trở về Brian English">⌂</button><button class="fab" id="refreshBtn" title="Làm mới">↻</button></div>
+<div class="modal-backdrop" id="staffModal"><form class="modal" id="staffForm"><h3>Thêm nhân sự Tổ Tiếng Anh</h3><div class="form-grid"><div class="field"><label>Họ và tên</label><input name="name" required /></div><div class="field"><label>Vai trò</label><select name="role"><option>Giáo viên</option><option>Tổ phó</option><option>Tổ trưởng</option></select></div><div class="field"><label>Khối phụ trách</label><input name="grades" placeholder="6, 7" /></div><div class="field"><label>Số tiết/tuần</label><input name="periods" type="number" min="0" max="30" value="16" /></div><div class="field full"><label>Email</label><input name="email" type="email" /></div></div><div class="modal-actions"><button type="button" class="btn" data-close>Hủy</button><button class="btn primary">Lưu nhân sự</button></div></form></div>
+<div class="modal-backdrop" id="taskModal"><form class="modal" id="taskForm"><h3>Thêm nhiệm vụ trong tổ</h3><div class="form-grid"><div class="field full"><label>Tên nhiệm vụ</label><input name="title" required /></div><div class="field"><label>Nhóm</label><select name="group"><option>THCS</option><option>THPT</option><option>Tiểu học</option><option>Tổ</option></select></div><div class="field"><label>Hạn hoàn thành</label><input name="due" type="date" required /></div></div><div class="modal-actions"><button type="button" class="btn" data-close>Hủy</button><button class="btn primary">Thêm nhiệm vụ</button></div></form></div>
+<div class="toast" id="toast"></div>
+<script>
+const seed={
+ staff:[
+  {name:'Nguyễn Thị Lan',role:'Trưởng tổ',grades:'6, 7',periods:18,classes:8,initial:'NL'},
+  {name:'Trần Minh Đức',role:'GV THCS',grades:'8, 9',periods:20,classes:8,initial:'TĐ'},
+  {name:'Phạm Thị Hương',role:'GV Tiểu học',grades:'4, 5',periods:16,classes:7,initial:'PH'},
+  {name:'Lê Thu Trang',role:'GV Tiểu học',grades:'3, 4',periods:14,classes:6,initial:'LT'},
+  {name:'Nguyễn Văn Nam',role:'GV THPT',grades:'10, 11, 12',periods:18,classes:7,initial:'NN'},
+  {name:'Đỗ Mai Phương',role:'GV THCS',grades:'6, 7',periods:17,classes:7,initial:'ĐP'},
+  {name:'Vũ Thanh Tâm',role:'GV THCS',grades:'8, 9',periods:16,classes:6,initial:'VT'},
+  {name:'Bùi Anh Tuấn',role:'GV THPT',grades:'10, 11',periods:18,classes:7,initial:'BT'},
+  {name:'Lê Hoàng Nam',role:'GV THPT',grades:'12',periods:15,classes:5,initial:'HN'},
+  {name:'Trần Quốc Bảo',role:'Tổ phó',grades:'9, 10',periods:17,classes:6,initial:'QB'},
+  {name:'Phạm Thùy Linh',role:'Giáo viên',grades:'6, 8',periods:16,classes:6,initial:'PL'},
+  {name:'Đặng Thu Hà',role:'Giáo viên',grades:'10, 11',periods:16,classes:6,initial:'DH'}
+ ],
+ leaves:[
+  {name:'Phạm Thị Hương',role:'GV Tiểu học',date:'20/05/2026 – 21/05/2026 (2 ngày)',reason:'Nghỉ phép cá nhân',status:'pending'},
+  {name:'Trần Minh Đức',role:'GV THCS',date:'19/05/2026 (1 ngày)',reason:'Nghỉ ốm',status:'pending'},
+  {name:'Lê Thu Trang',role:'GV Tiểu học',date:'15/05/2026 – 16/05/2026',reason:'Nghỉ phép cá nhân',status:'approved'},
+  {name:'Nguyễn Văn Nam',role:'GV THPT',date:'12/05/2026 (1 ngày)',reason:'Nghỉ ốm',status:'done'}
+ ],
+ tasks:[
+  {title:'Xây dựng đề kiểm tra học kỳ II – Khối 6',group:'THCS',due:'25/05',stage:'todo'},
+  {title:'Rà soát giáo án tháng 5',group:'Tiểu học',due:'26/05',stage:'todo'},
+  {title:'Chuẩn bị tài liệu dự án Speak Out',group:'THPT',due:'28/05',stage:'todo'},
+  {title:'Tổ chức chuyên đề PPDH tích cực',group:'Tổ',due:'22/05',stage:'doing'},
+  {title:'Đánh giá năng lực nói Khối 8',group:'THCS',due:'24/05',stage:'doing'},
+  {title:'Dự giờ & góp ý tháng 4',group:'Tổ',due:'15/05',stage:'done'},
+  {title:'Báo cáo chất lượng tháng 4',group:'Tổ',due:'13/05',stage:'done'},
+  {title:'Rà soát SGK & tài liệu bổ trợ',group:'Tiểu học',due:'10/05',stage:'done'}
+ ],
+ training:[
+  {day:'22',month:'THG 5',title:'Chuyên đề: Dạy học giao tiếp hiệu quả',time:'14:00 – 16:30',place:'Phòng đa năng',action:'Sắp diễn ra'},
+  {day:'29',month:'THG 5',title:'Ứng dụng AI trong giảng dạy Tiếng Anh',time:'14:00 – 16:30',place:'Room 201',action:'Sắp diễn ra'},
+  {day:'05',month:'THG 6',title:'Đánh giá năng lực theo CEFR',time:'14:00 – 16:30',place:'Phòng đa năng',action:'Đăng ký'},
+  {day:'12',month:'THG 6',title:'Tổ chức hoạt động ngoại khóa bằng Tiếng Anh',time:'14:00 – 16:30',place:'Room 201',action:'Đăng ký'}
+ ]
+};
+const KEY='brian-personnel-option3-v1';
+let state=JSON.parse(localStorage.getItem(KEY)||'null')||structuredClone(seed);
+const $=s=>document.querySelector(s); const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function save(){localStorage.setItem(KEY,JSON.stringify(state));render()}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1900)}
+function initials(name){return name.split(/\s+/).slice(-2).map(x=>x[0]).join('').toUpperCase()}
+function renderLeaves(){const labels={pending:'Chờ duyệt',approved:'Đã duyệt',done:'Đã hoàn thành'};$('#leaveList').innerHTML=state.leaves.map((x,i)=>`<div class="leave-card"><div class="person-line"><span class="mini-avatar">${esc(initials(x.name))}</span><span><strong>${esc(x.name)}</strong><small>${esc(x.role)}</small></span><span class="status ${x.status}">${labels[x.status]}</span></div><div class="meta"><span>▣ ${esc(x.date)}</span><span>◇ ${esc(x.reason)}</span></div><div class="card-actions"><span>Đơn lưu trên thiết bị</span>${x.status==='pending'?`<button class="approve" data-approve="${i}">Duyệt</button>`:'<span>•••</span>'}</div></div>`).join('')}
+function renderTasks(){const cols=[['todo','Cần làm'],['doing','Đang thực hiện'],['done','Hoàn thành']];$('#kanban').innerHTML=cols.map(([stage,label])=>{const items=state.tasks.filter(x=>x.stage===stage);return `<div class="kanban-col"><div class="kanban-title"><span>${label}</span><span class="count">${items.length}</span></div>${items.map(x=>{const idx=state.tasks.indexOf(x);return `<div class="task-card"><strong>${esc(x.title)}</strong><span class="tag ${x.group==='Tiểu học'?'orange':x.group==='THCS'?'blue':''}">${esc(x.group)}</span><div class="task-foot"><span>▣ Hạn: ${esc(x.due)}</span><span>●</span></div>${stage!=='done'?`<button class="task-next" data-next="${idx}">${stage==='todo'?'Bắt đầu':'Hoàn thành'} →</button>`:''}</div>`}).join('')}<button class="add-task" data-add-task>＋ Thêm nhiệm vụ</button></div>`}).join('')}
+function renderAssignments(filter=''){const q=filter.toLowerCase();$('#assignments').innerHTML=state.staff.filter(x=>!q||`${x.name} ${x.role} ${x.grades}`.toLowerCase().includes(q)).slice(0,8).map(x=>`<div class="assignment-card"><div class="person-line"><span class="mini-avatar">${esc(x.initial||initials(x.name))}</span><span><strong>${esc(x.name)}</strong><small>${esc(x.role)}</small></span><strong style="margin-left:auto">${x.periods}/20 tiết</strong></div><div class="bar"><i class="${x.periods>=20?'orange':''}" style="width:${Math.min(100,x.periods/20*100)}%"></i></div><div class="assignment-foot"><span>${x.classes} lớp • Khối ${esc(x.grades)}</span><span class="load ${x.periods>=20?'full':''}">${x.periods>=20?'Đầy tải':'Bình thường'}</span></div></div>`).join('')||'<p style="color:#7a899c">Không tìm thấy nhân sự phù hợp.</p>'}
+function renderTraining(){ $('#trainingList').innerHTML=state.training.map((x,i)=>`<div class="training-card"><div class="date"><b>${esc(x.day)}</b><small>${esc(x.month)}</small></div><div><strong>${esc(x.title)}</strong><div class="training-meta"><span>◷ ${esc(x.time)}</span><span>⌖ ${esc(x.place)}</span></div><button class="training-action" data-training="${i}">${esc(x.action)}</button></div></div>`).join('') }
+function render(){ $('#staffCount').textContent=state.staff.length;$('#leaveCount').textContent=state.leaves.filter(x=>x.status==='pending').length;$('#taskCount').textContent=state.tasks.filter(x=>x.stage!=='done').length;renderLeaves();renderTasks();renderAssignments($('#globalSearch').value);renderTraining() }
+function openModal(id){$(id).classList.add('open')}function closeModals(){document.querySelectorAll('.modal-backdrop').forEach(x=>x.classList.remove('open'))}
+document.addEventListener('click',e=>{const a=e.target.closest('[data-approve]');if(a){state.leaves[+a.dataset.approve].status='approved';save();toast('Đã duyệt đơn nghỉ phép')}const n=e.target.closest('[data-next]');if(n){const task=state.tasks[+n.dataset.next];task.stage=task.stage==='todo'?'doing':'done';save();toast('Đã cập nhật trạng thái nhiệm vụ')}if(e.target.closest('[data-add-task]'))openModal('#taskModal');if(e.target.closest('[data-close]'))closeModals();const tr=e.target.closest('[data-training]');if(tr){state.training[+tr.dataset.training].action='Đã đăng ký';save();toast('Đã đăng ký hoạt động bồi dưỡng')}});
+$('#globalSearch').addEventListener('input',e=>renderAssignments(e.target.value));
+$('#addStaff').onclick=()=>openModal('#staffModal');$('#addTask').onclick=$('#addTaskTop').onclick=()=>openModal('#taskModal');
+$('#staffForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);const name=f.get('name').trim();state.staff.unshift({name,role:f.get('role'),grades:f.get('grades')||'Chưa phân công',periods:+f.get('periods')||0,classes:0,initial:initials(name),email:f.get('email')});save();closeModals();e.target.reset();toast('Đã thêm nhân sự mới')};
+$('#taskForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);state.tasks.unshift({title:f.get('title'),group:f.get('group'),due:f.get('due').split('-').reverse().slice(0,2).join('/'),stage:'todo'});save();closeModals();e.target.reset();toast('Đã thêm nhiệm vụ')};
+$('#exportBtn').onclick=()=>{const rows=[['Họ tên','Vai trò','Khối','Số tiết','Số lớp'],...state.staff.map(x=>[x.name,x.role,x.grades,x.periods,x.classes])];const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='nhan-su-to-tieng-anh.csv';a.click();URL.revokeObjectURL(a.href);toast('Đã xuất báo cáo CSV')};
+$('#notifyBtn').onclick=()=>toast('3 thông báo: hồ sơ, nghỉ phép và nhiệm vụ');$('#refreshBtn').onclick=()=>{state=structuredClone(seed);save();toast('Đã khôi phục dữ liệu mẫu')};$('#backHome').onclick=()=>location.href='/#/apps';
+document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));b.classList.add('active');toast(b.dataset.section==='staff'?'Đang ở Nhân sự Tổ Tiếng Anh':'Mục này sẽ được mở rộng ở giai đoạn sau')});
+render();
+</script>
+</body></html>

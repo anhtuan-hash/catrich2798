@@ -1,0 +1,7 @@
+{
+  "entry": "src/main.jsx",
+  "standalone": "public/nhan-su/index.html",
+  "bridge": "src/utils/personnelEntryBridge.js",
+  "design": "Option 3 operations dashboard",
+  "light_only": true
+}
