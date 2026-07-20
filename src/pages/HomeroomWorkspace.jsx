@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { spreadsheetToTextSafe } from '../utils/safeSpreadsheet.js';
 import SectionHeader from '../components/SectionHeader.jsx';
 import HomeroomConductTab from '../components/HomeroomConductTab.jsx';
+import StudentRosterImportPanel from '../components/StudentRosterImportPanel.jsx';
 import {
   AnnouncementsTab,
   CompetitionTab,
@@ -265,11 +266,12 @@ function OverviewTab({ workspace, language, goTab }) {
   );
 }
 
-function StudentsTab({ workspace, onCommit, language, openAi, hasApiKey }) {
+function StudentsTab({ workspace, onCommit, language }) {
   const [draft, setDraft] = useState(EMPTY_STUDENT);
   const [editingId, setEditingId] = useState('');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
+  const [showImporter, setShowImporter] = useState(false);
   const students = useMemo(() => workspace.students.filter((student) => {
     const matches = `${student.fullName} ${student.code} ${student.parentName} ${student.parentPhone}`.toLowerCase().includes(query.toLowerCase());
     if (!matches) return false;
@@ -277,16 +279,6 @@ function StudentsTab({ workspace, onCommit, language, openAi, hasApiKey }) {
     if (filter === 'inactive') return student.active === false;
     return student.active !== false;
   }), [workspace.students, query, filter]);
-
-  const generateStudentComment = async () => {
-    if (!hasApiKey || !safeText(draft.fullName)) return;
-    const targetId = editingId || workspace.students.find((item) => item.fullName.toLowerCase() === draft.fullName.toLowerCase())?.id;
-    const attendanceRows = targetId ? Object.entries(workspace.attendance).map(([date, rows]) => ({ date, ...(rows?.[targetId] || {}) })).filter((item) => item.status) : [];
-    const counts = ATTENDANCE_STATUSES.map((item) => `${item.labelVi}: ${attendanceRows.filter((row) => row.status === item.id).length}`).join(', ');
-    const prompt = `Bạn là giáo viên chủ nhiệm THPT. Viết một nhận xét học sinh bằng tiếng Việt, khách quan, tích cực, có định hướng hỗ trợ và không bịa dữ liệu.\nHọc sinh: ${draft.fullName}\nMã HS: ${draft.code || 'chưa có'}\nThông tin hiện có: ${draft.notes || 'chưa có ghi chú'}\nChuyên cần: ${counts || 'chưa có dữ liệu'}\nMức theo dõi: ${draft.supportLevel}\nYêu cầu: 90-140 từ, gồm điểm tích cực, điểm cần cải thiện và một đề xuất phối hợp cụ thể. Chỉ trả về nội dung nhận xét.`;
-    const comment = await callAI({ prompt, temperature: 0.45, maxOutputTokens: 520, loadingLabel: 'AI đang viết nhận xét học sinh…' });
-    setDraft((current) => ({ ...current, notes: comment }));
-  };
 
   const save = async () => {
     if (!safeText(draft.fullName)) return;
@@ -296,6 +288,10 @@ function StudentsTab({ workspace, onCommit, language, openAi, hasApiKey }) {
     } else next = addStudent(workspace, draft);
     await onCommit(next, language === 'vi' ? 'Đã lưu hồ sơ học sinh.' : 'Student saved.');
     setDraft(EMPTY_STUDENT); setEditingId('');
+  };
+
+  const importStudents = async (rows) => {
+    await onCommit(upsertStudents(workspace, rows), `Đã nhận diện và nhập ${rows.length} học sinh từ file. Dòng trùng mã hoặc họ tên đã được cập nhật.`);
   };
 
   const edit = (student) => {
@@ -324,10 +320,11 @@ function StudentsTab({ workspace, onCommit, language, openAi, hasApiKey }) {
 
   return (
     <div className="hr-tab-stack">
+      {showImporter ? <StudentRosterImportPanel existingStudents={workspace.students} onImport={importStudents} onClose={() => setShowImporter(false)} /> : null}
       <section className="hr-panel hr-student-form">
         <div className="hr-panel-head">
           <div><small>{editingId ? (language === 'vi' ? 'Chỉnh sửa hồ sơ' : 'Edit profile') : (language === 'vi' ? 'Hồ sơ mới' : 'New profile')}</small><h2>{language === 'vi' ? 'Thông tin học sinh' : 'Student information'}</h2></div>
-          <div className="hr-head-actions"><button type="button" className="secondary" onClick={openAi}>AI nhập danh sách</button><button type="button" className="secondary" disabled={!hasApiKey || !safeText(draft.fullName)} onClick={generateStudentComment}>AI viết nhận xét</button><button type="button" className="secondary" onClick={exportCsv}>Xuất CSV</button><button type="button" className="primary" onClick={save}>{editingId ? 'Cập nhật' : 'Thêm học sinh'}</button></div>
+          <div className="hr-head-actions"><button type="button" className="secondary" onClick={() => setShowImporter((value) => !value)}>Nhập nhanh từ file</button><button type="button" className="secondary" onClick={exportCsv}>Xuất CSV</button><button type="button" className="primary" onClick={save}>{editingId ? 'Cập nhật' : 'Thêm học sinh'}</button></div>
         </div>
         <div className="hr-form-grid four">
           {[
@@ -350,12 +347,11 @@ function StudentsTab({ workspace, onCommit, language, openAi, hasApiKey }) {
           <div className="hr-table-wrap"><table className="hr-table"><thead><tr><th>Học sinh</th><th>Liên hệ</th><th>Phụ huynh</th><th>Theo dõi</th><th /></tr></thead><tbody>
             {students.map((student, index) => <tr key={student.id}><td><div className="hr-person-cell"><span>{String(index + 1).padStart(2, '0')}</span><p><b>{student.fullName}</b><small>{student.code || 'Chưa có mã'} · {student.birthDate ? formatDate(student.birthDate) : 'Chưa có ngày sinh'}</small></p></div></td><td><b>{student.phone || '—'}</b><small>{student.address || 'Chưa có địa chỉ'}</small></td><td><b>{student.parentName || '—'}</b><small>{student.parentPhone || student.parentEmail || 'Chưa có liên hệ'}</small></td><td><span className={`hr-support-chip ${student.supportLevel}`}>{student.supportLevel === 'attention' ? 'Cần lưu ý' : student.supportLevel === 'priority' ? 'Ưu tiên' : 'Bình thường'}</span><small>{student.notes || 'Không có ghi chú'}</small></td><td><div className="hr-row-actions"><button type="button" onClick={() => edit(student)}>Sửa</button>{student.active === false ? <button type="button" onClick={() => restore(student)}>Khôi phục</button> : <><button type="button" onClick={() => transfer(student)}>Chuyển lớp</button><button type="button" className="danger" onClick={() => archive(student)}>Lưu trữ</button></>}</div></td></tr>)}
           </tbody></table></div>
-        ) : <EmptyState title="Chưa có học sinh" text="Thêm thủ công hoặc dùng AI đọc danh sách từ Excel, Word, PDF, CSV." action={openAi} actionLabel="Nhập danh sách bằng AI" />}
+        ) : <EmptyState title="Chưa có học sinh" text="Tải file mẫu, điền danh sách và để hệ thống tự nhận diện hoàn toàn không cần AI." action={() => setShowImporter(true)} actionLabel="Nhập nhanh từ file" />}
       </section>
     </div>
   );
 }
-
 function AttendanceTab({ workspace, onCommit, language, currentUser }) {
   const [date, setDate] = useState(today());
   const [session, setSession] = useState('morning');
@@ -811,7 +807,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser, hasApi
         {activeTab === 'overview' ? <OverviewTab workspace={workspace} language={language} goTab={setActiveTab} /> : null}
         {activeTab === 'classes' ? <ClassLifecycleTab workspace={workspace} catalog={catalog} currentId={workspaceId} onSwitch={switchWorkspace} onCreate={createWorkspace} onDuplicate={duplicateWorkspace} onStatusChange={changeWorkspaceStatus} currentUser={currentUser} /> : null}
         {activeTab === 'search' ? <SearchCommandTab workspace={workspace} onCommit={commit} goTab={setActiveTab} /> : null}
-        {activeTab === 'students' ? <StudentsTab workspace={workspace} onCommit={commit} language={language} openAi={openAi} hasApiKey={hasApiKey} /> : null}
+        {activeTab === 'students' ? <StudentsTab workspace={workspace} onCommit={commit} language={language} /> : null}
         {activeTab === 'support' ? <StudentSupportTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
         {activeTab === 'attendance' ? <AttendanceTab workspace={workspace} onCommit={commit} language={language} currentUser={currentUser} /> : null}
         {activeTab === 'learning' ? <LearningAnalyticsTab workspace={workspace} onCommit={commit} hasApiKey={hasApiKey} currentUser={currentUser} /> : null}
