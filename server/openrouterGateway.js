@@ -75,7 +75,7 @@ export function normalizeServerAiSettings(value = {}) {
   return {
     id: 'global',
     enabled: source.enabled !== false,
-    model: openrouter/free,
+    model: 'openrouter/free',
     perMinuteLimit: clamp(source.perMinuteLimit ?? source.per_minute_limit, 1, 120, DEFAULT_SERVER_AI_SETTINGS.perMinuteLimit),
     dailyRequestLimit: clamp(source.dailyRequestLimit ?? source.daily_request_limit, 1, 10000, DEFAULT_SERVER_AI_SETTINGS.dailyRequestLimit),
     dailyTokenBudget: clamp(source.dailyTokenBudget ?? source.daily_token_budget, 1000, 100000000, DEFAULT_SERVER_AI_SETTINGS.dailyTokenBudget),
@@ -108,7 +108,7 @@ export async function writeServerAiSettings(context, patch = {}) {
   const payload = {
     id: 'global',
     enabled: next.enabled,
-    model: openrouter/free,
+    model: 'openrouter/free',
     per_minute_limit: next.perMinuteLimit,
     daily_request_limit: next.dailyRequestLimit,
     daily_token_budget: next.dailyTokenBudget,
@@ -235,11 +235,11 @@ function userMessageForError(status, message = '') {
 }
 
 export function resolveOpenRouterRequestPlan(settings = {}, profile = 'default') {
-  const configured = openrouter/free;
+  const configured = 'openrouter/free';
   const explicitPrimary = validModel(process.env.OPENROUTER_PRIMARY_MODEL, '');
   const staleDefault = configured === 'openrouter/free' || configured === 'openrouter/auto';
-  const primaryModel = openrouter/free;
-  const fallbackModel = openrouter/free;
+  const primaryModel = 'openrouter/free';
+  const fallbackModel = 'openrouter/free';
   return {
     configuredModel: configured,
     primaryModel,

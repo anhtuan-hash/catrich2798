@@ -1805,7 +1805,7 @@ ${limitAiSourceText(cleanSource, 30000)}`;
   };
 
   const buildAIReport = async () => {
-    if (!hasApiKey) return showToast(language === 'vi' ? 'Vào Cài đặt AI để thêm key trước khi tạo báo cáo AI.' : 'Configure AI settings before generating an AI report.');
+    if (!hasApiKey) return showToast(language === 'vi' ? 'Mở Cài đặt → Kiểm tra kết nối OpenRouter Gateway trước khi tạo báo cáo AI.' : 'Configure AI settings before generating an AI report.');
     setAiLoading(true);
     try {
       const reportTypeVi = {
@@ -1891,7 +1891,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
   };
 
   const runDepartmentAI = async () => {
-    if (!hasApiKey) return showToast(language === 'vi' ? 'Vào Cài đặt AI để thêm key trước khi dùng AI Copilot.' : 'Configure AI settings before using AI Copilot.');
+    if (!hasApiKey) return showToast(language === 'vi' ? 'Mở Cài đặt → Kiểm tra kết nối OpenRouter Gateway trước khi dùng AI Copilot.' : 'Configure AI settings before using AI Copilot.');
     setAiLoading(true);
     try {
       const prompt = getDepartmentAIPrompt(aiAction, data, submissions, aiInstruction, language, aiSourceText, aiSourceName);
@@ -1971,7 +1971,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
   const polishAdministrativeDocument = async () => {
     const source = String(adminDocOutput || aiOutput || aiSourceText || '').trim();
     if (!source) return showToast(language === 'vi' ? 'Chưa có nội dung để chuẩn hóa bằng AI.' : 'No content to polish with AI.');
-    if (!hasApiKey) return showToast(language === 'vi' ? 'Vào Cài đặt AI để thêm key trước khi chuẩn hóa văn bản.' : 'Configure AI settings before polishing the document.');
+    if (!hasApiKey) return showToast(language === 'vi' ? 'Mở Cài đặt → Kiểm tra kết nối OpenRouter Gateway trước khi chuẩn hóa văn bản.' : 'Configure AI settings before polishing the document.');
     setAiLoading(true);
     try {
       const prompt = `Bạn là TTCM/ thư ký tổ chuyên môn tại trường THPT Việt Nam. Hãy chuẩn hóa văn bản hành chính sau cho trang trọng, đúng thể thức cơ bản, có đề mục rõ, không bịa số liệu. Loại văn bản: ${adminDocDraft.type}. Đơn vị: ${adminDocDraft.agency} - ${adminDocDraft.department}. Người ký: ${adminDocDraft.signer} (${adminDocDraft.position}).\n\nNội dung cần chuẩn hóa:\n${source}`;
@@ -2832,7 +2832,7 @@ function WorkScheduleImportCard({
           <span>🔑</span>
           <div>
             <strong>{language === 'vi' ? 'Cần cấu hình AI Provider' : 'AI Provider setup required'}</strong>
-            <p>{language === 'vi' ? 'Vào Cài đặt → AI Provider Hub để lưu API key, sau đó quay lại tải file.' : 'Open Settings → AI Provider Hub, save an API key, then upload the file again.'}</p>
+            <p>{language === 'vi' ? 'AI sử dụng OpenRouter Gateway phía máy chủ. Mở Cài đặt → Kiểm tra kết nối nếu AI chưa sẵn sàng.' : 'Open Settings → AI Provider Hub, save an API key, then upload the file again.'}</p>
           </div>
           <button className="secondary" type="button" onClick={() => { window.location.hash = '#/settings'; }}>{language === 'vi' ? 'Mở Cài đặt' : 'Open Settings'}</button>
         </div>
@@ -3516,7 +3516,7 @@ function DepartmentAIPanel({ language, hasApiKey, aiAction, setAiAction, aiInstr
 
       {!hasApiKey ? (
         <div className="department-ai-warning">
-          {language === 'vi' ? 'Chưa có API key. Vào Cài đặt AI để thêm key trước khi dùng AI Copilot.' : 'No API key configured. Open AI Settings before using AI Copilot.'}
+          {language === 'vi' ? 'OpenRouter Gateway chưa sẵn sàng. Mở Cài đặt → Kiểm tra kết nối.' : 'No API key configured. Open AI Settings before using AI Copilot.'}
         </div>
       ) : null}
 

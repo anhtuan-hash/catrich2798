@@ -405,7 +405,7 @@ function App() {
     providerConfigs,
     setProviderConfigs,
     aiSummary: getProviderSummary(),
-    hasApiKey: getProviderSummary().hasKey || apiKey.trim().length > 8,
+    hasApiKey: Boolean(getProviderSummary().serverManaged || getProviderSummary().hasKey || apiKey.trim().length > 8),
     currentUser,
     authReady,
     setCurrentUser,
