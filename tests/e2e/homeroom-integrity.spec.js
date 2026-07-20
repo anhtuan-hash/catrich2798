@@ -38,7 +38,7 @@ test('homeroom integrity workflow', async ({ page }) => {
   await expect(page.locator('.hr-stat').first().locator('strong')).toHaveText('8.0');
   const directForm = page.locator('.hr-panel').filter({ has: page.getByRole('heading', { name: 'Kết quả học tập' }) });
   await directForm.getByLabel('Học sinh').selectOption('s1');
-  await directForm.getByLabel('Điểm').fill('11');
+  await directForm.getByLabel('Điểm', { exact: true }).fill('11');
   await directForm.getByRole('button', { name: 'Lưu điểm' }).click();
   await expect(directForm.locator('.hr-error')).toContainText('0–10');
   await page.getByRole('button', { name: /Lịch công việc/ }).click();
