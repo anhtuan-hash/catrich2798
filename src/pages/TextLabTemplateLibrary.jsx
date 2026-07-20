@@ -5,7 +5,7 @@ import {
   downloadHtml,
   sampleFor,
 } from '../utils/textlabInteractive.js';
-import '../styles/textlab-proposal-one-premium.css';
+import '../styles/textlab-proposal-one-immersive.css';
 
 const CATEGORY_ORDER = ['Tất cả', 'Kiểm tra', 'Từ vựng', 'Câu & đoạn văn', 'Ngữ pháp', 'Trò chơi', 'Nói & viết'];
 const CATEGORY_META = {
@@ -100,6 +100,85 @@ function formatTime(value) {
   return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(value);
 }
 
+function escapeStandalone(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function buildProposalHangmanHtml(raw) {
+  const parsed = splitRawContent(raw, 'Hangman');
+  const items = parsed.body
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [word = '', ...clueParts] = line.split('|');
+      return {
+        word: word.trim().toUpperCase(),
+        clue: clueParts.join('|').trim(),
+      };
+    })
+    .filter((item) => item.word);
+
+  const safeItems = items.length ? items : [{ word: 'TEXTLAB', clue: 'A tool for creating interactive learning activities.' }];
+  const dataJson = JSON.stringify(safeItems).replace(/</g, '\\u003c');
+
+  return `<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeStandalone(parsed.title)}</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f8fc;color:#10243f;font:16px/1.45 "1FTV HF Gesco","SF Pro Display",Inter,Arial,sans-serif}.game{max-width:920px;margin:auto;padding:22px}.top,.board{border:1px solid #dbe3ec;border-radius:20px;background:#fff;box-shadow:0 16px 36px rgba(20,43,69,.09)}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;margin-bottom:16px}.top small{display:block;color:#6b7c90;font-weight:800}.top strong{font-size:24px}.score{padding:8px 13px;border-radius:999px;background:#edf5ff;color:#2b69bf;font-weight:900}.board{display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;padding:22px}.stage{display:grid;justify-items:center;align-content:center;gap:14px;padding:8px;border-radius:18px;background:linear-gradient(180deg,#fbfdff,#f4f8fc)}.figure{width:245px;height:245px}.gallows{fill:none;stroke:#23384f;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round}.part{fill:none;stroke:#dc4e65;stroke-width:5.5;stroke-linecap:round;stroke-linejoin:round;opacity:.08;transition:opacity .25s ease,filter .25s ease}.part.show{opacity:1;filter:drop-shadow(0 4px 5px rgba(220,78,101,.18))}.hearts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.heart{font-size:23px;line-height:1}.heart.alive{color:#ff5268}.heart.lost{color:#d7dee7;transform:scale(.86)}.content{display:grid;align-content:center;gap:15px;min-width:0}.clue-card{padding:15px 17px;border:1px solid #e0e7ef;border-radius:16px;background:#fbfdff}.clue-label{display:inline-flex;align-items:center;min-height:29px;padding:0 11px;border-radius:999px;background:#f1ebff;color:#7352c9;font-size:12px;font-weight:900}.clue{margin:9px 0 0;color:#334a62;font-size:18px;font-weight:750}.mask{overflow-wrap:anywhere;padding:4px 0;font-size:clamp(30px,5vw,48px);font-weight:950;letter-spacing:.18em}.lives{font-weight:850;color:#4a6077}.letters{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:7px}.letter{min-width:0;min-height:43px;padding:0;border:2px solid #d9e2ec;border-radius:11px;background:#fff;color:#2e4863;font:inherit;font-weight:900;cursor:pointer;transition:.16s}.letter:hover:not(:disabled){transform:translateY(-2px);border-color:#8aadd2}.letter.correct{background:#e8f8ef;border-color:#2bad69;color:#147342}.letter.wrong{background:#fff0f2;border-color:#ee98a8;color:#c74a62}.letter:disabled{cursor:default}.summary{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:rgba(8,26,46,.68)}.summary-card{width:min(520px,100%);padding:28px;border:2px solid #10243f;border-radius:24px;background:#fff;text-align:center;box-shadow:0 14px 0 #10243f}.summary-card h2{font-size:38px;margin:8px 0}.summary-card button{min-height:44px;padding:0 18px;border:0;border-radius:999px;background:#082b58;color:#fff;font:inherit;font-weight:900;cursor:pointer}@media(max-width:720px){.game{padding:10px}.board{grid-template-columns:1fr}.figure{width:205px;height:205px}.letters{grid-template-columns:repeat(7,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<main class="game">
+  <header class="top"><div><small>BRIAN TEXTLAB · HANGMAN</small><strong>${escapeStandalone(parsed.title)}</strong></div><span id="score" class="score">Điểm 0</span></header>
+  <section class="board">
+    <div class="stage">
+      <svg viewBox="0 0 250 250" class="figure" aria-label="Nhân vật Hangman">
+        <path d="M25 224h140M54 224V28h104M54 28h130M158 28v27" class="gallows"/>
+        <circle cx="158" cy="79" r="19" class="part part-1"/>
+        <path d="M158 98v51" class="part part-2"/>
+        <path d="M158 113l-29 22" class="part part-3"/>
+        <path d="M158 113l29 22" class="part part-4"/>
+        <path d="M158 149l-23 36" class="part part-5"/>
+        <path d="M158 149l23 36" class="part part-6"/>
+      </svg>
+      <div id="hearts" class="hearts"></div>
+    </div>
+    <div class="content">
+      <div class="clue-card"><span class="clue-label">Gợi ý</span><p id="clue" class="clue"></p></div>
+      <div id="mask" class="mask"></div>
+      <div id="lives" class="lives"></div>
+      <div id="letters" class="letters"></div>
+    </div>
+  </section>
+</main>
+<script>
+const WORDS=${dataJson};
+let index=0,score=0,lives=6,found=new Set();
+const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const parts=()=>[...document.querySelectorAll('.part')];
+function renderHearts(){const box=document.getElementById('hearts');box.innerHTML='';for(let i=0;i<6;i++){const el=document.createElement('span');el.className='heart '+(i<lives?'alive':'lost');el.textContent='❤';box.appendChild(el)}}
+function renderFigure(){const lost=6-lives;parts().forEach((part,i)=>part.classList.toggle('show',i<lost))}
+function mask(word){return [...word].map(char=>char===' '?' ':found.has(char)?char:'_').join(' ')}
+function finish(){document.body.insertAdjacentHTML('beforeend','<div class="summary"><section class="summary-card"><div style="font-size:62px">🏆</div><h2>Hoàn thành!</h2><p>Bạn đoán đúng <strong>'+score+'/'+WORDS.length+'</strong> từ.</p><button onclick="location.reload()">Chơi lại</button></section></div>')}
+function next(){index++;if(index>=WORDS.length){finish();return}lives=6;found=new Set();render()}
+function guess(letter,button){if(button.disabled)return;button.disabled=true;const word=WORDS[index].word;if(word.includes(letter)){found.add(letter);button.classList.add('correct')}else{lives=Math.max(0,lives-1);button.classList.add('wrong')}document.getElementById('mask').textContent=mask(word);document.getElementById('lives').textContent='Lượt sai còn lại: '+lives;renderHearts();renderFigure();if([...word].every(char=>char===' '||found.has(char))){score++;document.getElementById('score').textContent='Điểm '+score;setTimeout(next,650)}else if(lives<=0){setTimeout(next,850)}}
+function render(){const item=WORDS[index];document.getElementById('clue').textContent=item.clue||'Không có gợi ý';document.getElementById('mask').textContent=mask(item.word);document.getElementById('lives').textContent='Lượt sai còn lại: '+lives;document.getElementById('score').textContent='Điểm '+score;renderHearts();renderFigure();const area=document.getElementById('letters');area.innerHTML='';alphabet.forEach(letter=>{const button=document.createElement('button');button.className='letter';button.textContent=letter;button.onclick=()=>guess(letter,button);area.appendChild(button)})}
+render();
+<\/script>
+</body>
+</html>`;
+}
+
 function LibraryCard({ template, selected, onSelect }) {
   const category = categoryOf(template);
   const meta = CATEGORY_META[category] || CATEGORY_META['Từ vựng'];
@@ -109,7 +188,7 @@ function LibraryCard({ template, selected, onSelect }) {
       <span className="p1-card-copy">
         <strong>{template.titleVi || template.title}</strong>
         <small>{template.title}</small>
-        <em>{template.index || 0} mẫu</em>
+        <em>Mẫu #{template.index || 0}</em>
       </span>
       <span className="p1-card-arrow"><Icon name="chevron" size={16} /></span>
     </button>
@@ -141,6 +220,19 @@ export default function TextLabTemplateLibrary() {
   const iframeRef = useRef(null);
   const importRef = useRef(null);
   const draftKey = `brian-textlab-proposal1:${selected.id}`;
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    const previousBackground = document.body.style.background;
+    document.body.style.overflow = 'hidden';
+    document.body.style.background = '#f7f2e8';
+    document.documentElement.classList.add('textlab-immersive-active');
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.background = previousBackground;
+      document.documentElement.classList.remove('textlab-immersive-active');
+    };
+  }, []);
 
   useEffect(() => {
     const sample = splitRawContent(normalizeSample(selected), selected.title);
@@ -178,7 +270,10 @@ export default function TextLabTemplateLibrary() {
   }, [toast]);
 
   const rawContent = useMemo(() => `TITLE: ${title.trim() || selected.title}\n\n${body.trim()}`, [title, body, selected.title]);
-  const interactiveHtml = useMemo(() => buildInteractiveHtml(selected, rawContent), [selected, rawContent, previewKey]);
+  const interactiveHtml = useMemo(
+    () => selected.id === 'hangman' ? buildProposalHangmanHtml(rawContent) : buildInteractiveHtml(selected, rawContent),
+    [selected, rawContent, previewKey],
+  );
 
   const filteredTemplates = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -190,7 +285,6 @@ export default function TextLabTemplateLibrary() {
   }, [query, category]);
 
   const groupedTemplates = useMemo(() => CATEGORY_ORDER.slice(1).map((group) => ({ group, items: filteredTemplates.filter((item) => categoryOf(item) === group) })).filter((entry) => entry.items.length), [filteredTemplates]);
-  const previewGroups = groupedTemplates.map((entry) => ({ ...entry, items: entry.items.slice(0, 2) }));
 
   const tabContent = {
     blank: `TITLE: Tên hoạt động\n\n${selected.format || 'ITEM 1\nITEM 2'}`,
@@ -198,7 +292,12 @@ export default function TextLabTemplateLibrary() {
     guide: `${guideFor(selected)}\n\nVí dụ:\n${normalizeSample(selected)}`,
   };
 
-  const scrollToPreview = () => previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const scrollToPreview = () => {
+    const node = previewRef.current;
+    if (!node) return;
+    node.classList.add('is-highlighted');
+    window.setTimeout(() => node.classList.remove('is-highlighted'), 720);
+  };
   const chooseQuick = (id) => {
     const match = TEXTLAB_TEMPLATES.find((item) => item.id === id); if (!match) return;
     setSelectedId(match.id); setTimeout(() => scrollToPreview(), 120);
@@ -237,19 +336,19 @@ export default function TextLabTemplateLibrary() {
     <div className="proposal-one-page">
       {toast && <div className="p1-toast">{toast}</div>}
       <div className="p1-topbar">
-        <div className="p1-brand-box">
+        <button type="button" className="p1-brand-box" onClick={() => { window.location.hash = '#/apps'; }} title="Trở về ứng dụng Brian">
           <span className="p1-brand-mark"><Icon name="brand" size={26} /></span>
-          <div>
+          <span className="p1-brand-copy">
             <strong>Brian TextLab · No AI</strong>
             <small>Interactive HTML Studio</small>
-          </div>
-        </div>
+          </span>
+        </button>
 
         <div className="p1-shortcut-row">
           {TOP_SHORTCUTS.map((item) => (
             <button key={item.id} type="button" className="p1-shortcut-button" onClick={() => {
               if (item.type === 'tab') setActiveTab(item.id);
-              if (item.id === 'templates') libraryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              if (item.id === 'templates') libraryRef.current?.querySelector('.p1-search-box input')?.focus();
               if (item.id === 'preview') scrollToPreview();
               if (item.id === 'download') downloadHtml(filenameFor(selected, title), interactiveHtml);
             }}>
@@ -288,7 +387,7 @@ export default function TextLabTemplateLibrary() {
           </div>
 
           <div className="p1-sidebar-groups">
-            {previewGroups.map(({ group, items }) => (
+            {groupedTemplates.map(({ group, items }) => (
               <section key={group} className="p1-group">
                 <h3>{(CATEGORY_META[group]?.label || group)}</h3>
                 <div className="p1-group-list">
@@ -297,7 +396,7 @@ export default function TextLabTemplateLibrary() {
               </section>
             ))}
           </div>
-          <button type="button" className="p1-view-all" onClick={() => { setCategory('Tất cả'); setQuery(''); }}>{`Xem tất cả ${TEXTLAB_TEMPLATES.length} template`} <Icon name="chevron" size={16} /></button>
+          <button type="button" className="p1-view-all" onClick={() => { setCategory('Tất cả'); setQuery(''); libraryRef.current?.querySelector('.p1-sidebar-groups')?.scrollTo({ top: 0, behavior: 'smooth' }); }}>{`Xem tất cả ${TEXTLAB_TEMPLATES.length} template`} <Icon name="chevron" size={16} /></button>
         </aside>
 
         <section className="p1-main">
