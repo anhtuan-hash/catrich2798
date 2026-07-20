@@ -502,7 +502,7 @@ export default function AITool({ tool, language, apiKey, aiModel, hasApiKey }) {
         <div className="tool-state">
           <span>✨ AI</span>
           <span>{hasApiKey ? '🔐 API OK' : '🔑 Need API Key'}</span>
-          <span>{aiModel || 'gemini-3.5-flash'}</span>
+          <span>{aiModel || 'server-managed'}</span>
         </div>
       </section>
 

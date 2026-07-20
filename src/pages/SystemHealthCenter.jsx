@@ -68,6 +68,7 @@ export default function SystemHealthCenter({ language = 'vi', currentUser }) {
   const supabaseStatus = getSupabaseStatus();
   const trashStats = getTrashStats();
   const migrationReport = getMigrationReport();
+  const workspaceStats = { tabs: [] };
   const transferStats = listTransfers(currentUser);
   const syncStats = listSyncQueue(currentUser);
   const aiGovernance = getAiGovernanceSettings();
@@ -77,7 +78,7 @@ export default function SystemHealthCenter({ language = 'vi', currentUser }) {
     setRunning(true);
     const basic = [
       { name: language === 'vi' ? 'Kết nối mạng' : 'Network', ok: navigator.onLine, detail: navigator.onLine ? 'Online' : 'Offline', latency: 0 },
-      { name: language === 'vi' ? 'AI provider' : 'AI provider', ok: Boolean(ai.hasKey), detail: ai.hasKey ? `${ai.providerName} · ${ai.active?.model || 'default model'}` : (language === 'vi' ? 'Chưa cấu hình API key' : 'API key not configured'), latency: 0 },
+      { name: language === 'vi' ? 'AI provider' : 'AI provider', ok: Boolean(ai.hasKey), detail: ai.hasKey ? `${ai.providerName} · ${ai.active?.model || 'default model'}` : (language === 'vi' ? 'Chưa cấu hình Server gateway' : 'Server gateway not configured'), latency: 0 },
       { name: language === 'vi' ? 'Cấu hình Supabase' : 'Supabase config', ok: supabaseStatus.configured, detail: supabaseStatus.configured ? 'Environment variables present' : 'Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY', latency: 0 },
       { name: language === 'vi' ? 'Di chuyển cấu hình' : 'Configuration migration', ok: Boolean(migrationReport), detail: migrationReport ? `${migrationReport.results?.filter((item) => item.status === 'migrated').length || 0} migrated · ${migrationReport.results?.filter((item) => item.status === 'failed').length || 0} failed` : 'No migration report', latency: 0 },
       { name: language === 'vi' ? 'Quản trị AI' : 'AI Governance', ok: aiGovernance.enabled && aiUsage.requests < aiGovernance.dailyRequestLimit && aiUsage.tokenTotal < aiGovernance.dailyTokenBudget, detail: aiGovernance.enabled ? `${aiUsage.requests}/${aiGovernance.dailyRequestLimit} requests · ${aiUsage.tokenTotal}/${aiGovernance.dailyTokenBudget} tokens` : (language === 'vi' ? 'AI đang bị tạm dừng bởi Admin' : 'AI is paused by Admin'), latency: 0 },
@@ -145,6 +146,7 @@ export default function SystemHealthCenter({ language = 'vi', currentUser }) {
             <div><dt>{language === 'vi' ? 'Dung lượng thùng rác' : 'Trash storage'}</dt><dd>{formatBytes(trashStats.bytes)}</dd></div>
             <div><dt>{language === 'vi' ? 'Thời hạn giữ' : 'Retention'}</dt><dd>{trashStats.retentionDays} days</dd></div>
             <div><dt>{language === 'vi' ? 'Lỗi đã ghi' : 'Logged errors'}</dt><dd>{errors.length}</dd></div>
+            <div><dt>{language === 'vi' ? 'Tab đang mở' : 'Open tabs'}</dt><dd>{workspaceStats.tabs.length}</dd></div>
             <div><dt>{language === 'vi' ? 'Nội dung liên ứng dụng' : 'Cross-app items'}</dt><dd>{transferStats.filter((item) => item.status === 'pending').length}</dd></div>
             <div><dt>{language === 'vi' ? 'Chờ đồng bộ' : 'Sync queue'}</dt><dd>{syncStats.filter((item) => item.status !== 'completed').length}</dd></div>
             <div><dt>{language === 'vi' ? 'Yêu cầu AI hôm nay' : 'AI requests today'}</dt><dd>{aiUsage.requests}</dd></div>

@@ -1,157 +1,153 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  AI_GOVERNANCE_EVENT,
-  clearAiAudit,
-  exportAiGovernanceReport,
-  getAiGovernanceSettings,
-  getAiUsageDays,
-  getAiUsageSummary,
-  readAiAudit,
-  resetAiGovernanceSettings,
-  resetAiUsage,
-  saveAiGovernanceSettings,
-} from '../utils/aiGovernance.js';
+import { callAI } from '../utils/gemini.js';
+import { supabase } from '../utils/supabase.js';
 
-const ACTION_TARGETS = [
-  ['current-app', 'Ứng dụng hiện tại', 'Current app'],
-  ['exam-studio', 'Exam Studio', 'Exam Studio'],
-  ['word2graph', 'WordGraph Studio', 'WordGraph Studio'],
-  ['textlab-activities', 'TextLab Activities', 'TextLab Activities'],
-  ['library', 'Thư viện', 'Library'],
-];
-
-const PROFILE_LABELS = {
-  chat: ['Brian AI Chat', 'Brian AI Chat'],
-  document: ['Phân tích tài liệu', 'Document analysis'],
-  administration: ['Hành chính – chuyên môn', 'School administration'],
-  default: ['Mặc định', 'Default'],
+const FALLBACK_SETTINGS = {
+  enabled: true,
+  model: 'openrouter/free',
+  perMinuteLimit: 12,
+  dailyRequestLimit: 160,
+  dailyTokenBudget: 180000,
+  maxOutputTokens: 2800,
+  profiles: { chat: 2400, worksheet: 2800, document: 2600, administration: 1800, 'teaching-content': 3200, default: 2200 },
 };
 
-function formatNumber(value) {
+function number(value) {
   return new Intl.NumberFormat('vi-VN').format(Number(value) || 0);
 }
 
-function percent(value) {
-  return `${Math.min(100, Math.max(0, Number(value) || 0))}%`;
+async function token() {
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data?.session?.access_token) throw new Error('Phiên đăng nhập đã hết hạn.');
+  return data.session.access_token;
 }
 
-function downloadJson(filename, data) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.click();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+async function gateway(method = 'GET', body) {
+  const accessToken = await token();
+  const response = await fetch('/api/ai-governance', {
+    method,
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.ok) {
+    const error = new Error(data.error || `Không thể tải AI Governance (${response.status}).`);
+    error.code = data.code || '';
+    throw error;
+  }
+  return data;
 }
 
 export default function AIGovernanceCenter({ language = 'vi', currentUser = null }) {
   const vi = language === 'vi';
-  const [settings, setSettings] = useState(getAiGovernanceSettings);
-  const [summary, setSummary] = useState(getAiUsageSummary);
-  const [days, setDays] = useState(getAiUsageDays);
-  const [audit, setAudit] = useState(readAiAudit);
-  const [filter, setFilter] = useState('all');
-  const [saved, setSaved] = useState(false);
+  const [data, setData] = useState(null);
+  const [settings, setSettings] = useState(FALLBACK_SETTINGS);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
 
-  const refresh = () => {
-    setSettings(getAiGovernanceSettings());
-    setSummary(getAiUsageSummary());
-    setDays(getAiUsageDays());
-    setAudit(readAiAudit());
+  const load = async () => {
+    setBusy(true);
+    try {
+      const next = await gateway('GET');
+      setData(next);
+      setSettings({ ...FALLBACK_SETTINGS, ...(next.settings || {}) });
+      setMessage('');
+    } catch (error) {
+      setMessage(`⚠ ${error.message || error}`);
+    } finally {
+      setBusy(false);
+    }
   };
 
-  useEffect(() => {
-    const onUpdate = () => refresh();
-    window.addEventListener(AI_GOVERNANCE_EVENT, onUpdate);
-    const timer = window.setInterval(refresh, 5000);
-    return () => { window.removeEventListener(AI_GOVERNANCE_EVENT, onUpdate); window.clearInterval(timer); };
-  }, []);
+  useEffect(() => { load(); }, []);
 
-  const filteredAudit = useMemo(() => audit.filter((item) => filter === 'all' || item.type === filter || item.status === filter).slice(0, 120), [audit, filter]);
-  const providerRows = useMemo(() => Object.entries(summary.providers || {}).sort((a, b) => b[1] - a[1]), [summary.providers]);
-
-  const patch = (next) => setSettings((current) => ({ ...current, ...next }));
-  const save = () => {
-    setSettings(saveAiGovernanceSettings(settings));
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 1800);
+  const save = async () => {
+    setBusy(true);
+    try {
+      const next = await gateway('PUT', { settings });
+      setData(next);
+      setSettings({ ...FALLBACK_SETTINGS, ...(next.settings || {}) });
+      setMessage(vi ? '✓ Đã lưu cấu hình OpenRouter dùng chung trên máy chủ.' : '✓ Shared OpenRouter settings saved on the server.');
+    } catch (error) {
+      setMessage(`⚠ ${error.message || error}`);
+    } finally {
+      setBusy(false);
+    }
   };
+
+  const test = async () => {
+    setBusy(true);
+    try {
+      const text = await callAI({ prompt: 'Reply exactly: Brian OpenRouter Gateway OK', temperature: 0, maxOutputTokens: 80, governanceProfile: 'administration', loadingLabel: 'Đang kiểm tra OpenRouter Gateway…' });
+      setMessage(`✓ ${text}`);
+      await load();
+    } catch (error) {
+      setMessage(`⚠ ${error.message || error}`);
+      setBusy(false);
+    }
+  };
+
+  const totals = data?.totals || {};
+  const audits = useMemo(() => Array.isArray(data?.audit) ? data.audit : [], [data?.audit]);
 
   if (currentUser?.role !== 'admin') {
-    return <div className="page narrow"><section className="metro-panel empty-state"><h1>{vi ? 'Chỉ Admin được truy cập' : 'Admin access only'}</h1><p>{vi ? 'Trung tâm quản trị AI chứa giới hạn và nhật ký toàn hệ thống.' : 'AI Governance contains system-wide limits and audit logs.'}</p></section></div>;
+    return <div className="page narrow"><section className="metro-panel empty-state"><h1>{vi ? 'Chỉ Admin được truy cập' : 'Admin access only'}</h1><p>{vi ? 'Model, hạn mức và nhật ký AI được quản lý tập trung trên máy chủ.' : 'Model, quotas and audit logs are managed centrally on the server.'}</p></section></div>;
   }
 
-  return (
-    <div className="ai-governance-page">
-      <section className="ai-gov-hero">
-        <div className="ai-gov-hero-copy">
-          <span className="ai-gov-eyebrow">V10.86 · AI GOVERNANCE</span>
-          <h1>{vi ? 'Trung tâm quản trị Brian AI' : 'Brian AI Governance Center'}</h1>
-          <p>{vi ? 'Kiểm soát hạn mức, hành động liên ứng dụng, hồ sơ model và nhật ký vận hành AI trên toàn hệ thống.' : 'Control limits, cross-app actions, model profiles and AI audit activity across the system.'}</p>
-          <div className="ai-gov-hero-actions">
-            <button type="button" className="primary" onClick={save}>{saved ? (vi ? 'Đã lưu' : 'Saved') : (vi ? 'Lưu cấu hình' : 'Save settings')}</button>
-            <button type="button" className="secondary" onClick={() => downloadJson(`Brian-AI-Governance-${new Date().toISOString().slice(0, 10)}.json`, exportAiGovernanceReport())}>{vi ? 'Xuất báo cáo JSON' : 'Export JSON report'}</button>
-          </div>
+  return <div className="ai-governance-page">
+    <section className="ai-gov-hero">
+      <div className="ai-gov-hero-copy">
+        <span className="ai-gov-eyebrow">OPENROUTER ONLY · SERVER GATEWAY</span>
+        <h1>{vi ? 'Trung tâm quản trị Brian AI' : 'Brian AI Governance Center'}</h1>
+        <p>{vi ? 'Một API key trên Vercel, một gateway cho toàn website, quota và nhật ký được kiểm tra trên server.' : 'One Vercel API key, one gateway for the whole website, with server-side quotas and audit.'}</p>
+        <div className="ai-gov-hero-actions">
+          <button type="button" className="primary" disabled={busy} onClick={save}>{busy ? (vi ? 'Đang xử lý…' : 'Working…') : (vi ? 'Lưu cấu hình dùng chung' : 'Save shared settings')}</button>
+          <button type="button" className="secondary" disabled={busy} onClick={test}>{vi ? 'Kiểm tra Gateway' : 'Test gateway'}</button>
+          <button type="button" className="secondary" disabled={busy} onClick={load}>{vi ? 'Làm mới' : 'Refresh'}</button>
         </div>
-        <div className="ai-gov-orbit" aria-hidden="true"><span>AI</span><i/><i/><i/></div>
-      </section>
-
-      <section className="ai-gov-stats" aria-label={vi ? 'Thống kê hôm nay' : 'Today statistics'}>
-        <article><small>{vi ? 'Yêu cầu hôm nay' : 'Requests today'}</small><strong>{formatNumber(summary.requests)}<em>/ {formatNumber(summary.requestLimit)}</em></strong><div><i style={{ width: percent(summary.requestPercent) }}/></div></article>
-        <article><small>{vi ? 'Token ước tính' : 'Estimated tokens'}</small><strong>{formatNumber(summary.tokenTotal)}<em>/ {formatNumber(summary.tokenBudget)}</em></strong><div><i style={{ width: percent(summary.tokenPercent) }}/></div></article>
-        <article><small>{vi ? 'Thành công' : 'Successful'}</small><strong>{formatNumber(summary.successes)}</strong><p>{summary.requests ? Math.round((summary.successes / summary.requests) * 100) : 0}% {vi ? 'tỉ lệ thành công' : 'success rate'}</p></article>
-        <article><small>{vi ? 'Hành động AI' : 'AI actions'}</small><strong>{formatNumber(summary.actions)}</strong><p>{vi ? 'đã thực hiện có kiểm soát' : 'controlled actions executed'}</p></article>
-      </section>
-
-      <div className="ai-gov-layout">
-        <section className="ai-gov-card ai-gov-controls">
-          <header><div><span>01</span><div><h2>{vi ? 'Kiểm soát toàn hệ thống' : 'System-wide controls'}</h2><p>{vi ? 'Tắt AI khẩn cấp hoặc giới hạn mức sử dụng trong ngày.' : 'Pause AI or cap daily usage.'}</p></div></div></header>
-          <div className="ai-gov-switch-grid">
-            <label><div><strong>{vi ? 'Bật Brian AI' : 'Enable Brian AI'}</strong><small>{vi ? 'Áp dụng cho toàn bộ ứng dụng dùng callAI.' : 'Applies to every app using callAI.'}</small></div><input type="checkbox" checked={settings.enabled} onChange={(event) => patch({ enabled: event.target.checked })}/><span/></label>
-            <label><div><strong>{vi ? 'Cho phép hành động AI' : 'Allow AI actions'}</strong><small>{vi ? 'Cho phép gửi kết quả sang ứng dụng và thư viện.' : 'Allow cross-app and library actions.'}</small></div><input type="checkbox" checked={settings.allowActions} onChange={(event) => patch({ allowActions: event.target.checked })}/><span/></label>
-            <label><div><strong>{vi ? 'Luôn yêu cầu xác nhận' : 'Always require confirmation'}</strong><small>{vi ? 'Hiện xem trước trước khi thay đổi dữ liệu.' : 'Preview before changing data.'}</small></div><input type="checkbox" checked={settings.requireActionConfirmation} onChange={(event) => patch({ requireActionConfirmation: event.target.checked })}/><span/></label>
-          </div>
-          <div className="ai-gov-number-grid">
-            <label><span>{vi ? 'Số yêu cầu tối đa/ngày' : 'Daily request limit'}</span><input type="number" min="1" max="5000" value={settings.dailyRequestLimit} onChange={(event) => patch({ dailyRequestLimit: event.target.value })}/></label>
-            <label><span>{vi ? 'Ngân sách token/ngày' : 'Daily token budget'}</span><input type="number" min="1000" max="5000000" step="1000" value={settings.dailyTokenBudget} onChange={(event) => patch({ dailyTokenBudget: event.target.value })}/></label>
-            <label><span>{vi ? 'Trần output mỗi yêu cầu' : 'Max output per request'}</span><input type="number" min="256" max="8192" step="128" value={settings.maxOutputTokens} onChange={(event) => patch({ maxOutputTokens: event.target.value })}/></label>
-          </div>
-        </section>
-
-        <section className="ai-gov-card ai-gov-actions-card">
-          <header><div><span>02</span><div><h2>{vi ? 'Hành động được phép' : 'Allowed actions'}</h2><p>{vi ? 'Bật hoặc tắt từng đích đến của AI Action Engine.' : 'Enable or disable each AI Action target.'}</p></div></div></header>
-          <div className="ai-gov-targets">
-            {ACTION_TARGETS.map(([id, labelVi, labelEn]) => <label key={id}><span>{id === 'current-app' ? '↳' : id === 'library' ? '▤' : id.slice(0, 2).toUpperCase()}</span><strong>{vi ? labelVi : labelEn}</strong><input type="checkbox" checked={settings.actionTargets?.[id] !== false} onChange={(event) => patch({ actionTargets: { ...settings.actionTargets, [id]: event.target.checked } })}/><i/></label>)}
-          </div>
-        </section>
-
-        <section className="ai-gov-card ai-gov-profiles">
-          <header><div><span>03</span><div><h2>{vi ? 'Hồ sơ giới hạn model' : 'Model limit profiles'}</h2><p>{vi ? 'Giới hạn output theo loại công việc để tiết kiệm chi phí.' : 'Cap output by task type to control cost.'}</p></div></div></header>
-          <div className="ai-gov-profile-list">
-            {Object.entries(settings.profiles || {}).map(([id, profile]) => <label key={id}><div><strong>{vi ? PROFILE_LABELS[id]?.[0] || profile.label : PROFILE_LABELS[id]?.[1] || profile.label}</strong><small>{id}</small></div><input type="number" min="256" max="8192" step="128" value={profile.maxOutputTokens} onChange={(event) => patch({ profiles: { ...settings.profiles, [id]: { ...profile, maxOutputTokens: event.target.value } } })}/><span>tokens</span></label>)}
-          </div>
-        </section>
-
-        <section className="ai-gov-card ai-gov-providers">
-          <header><div><span>04</span><div><h2>{vi ? 'Provider hôm nay' : 'Providers today'}</h2><p>{vi ? 'Số yêu cầu được xử lý bởi từng provider hoặc fallback.' : 'Requests handled by each provider or fallback.'}</p></div></div></header>
-          <div className="ai-gov-provider-list">
-            {providerRows.length ? providerRows.map(([provider, count]) => <article key={provider}><span>{provider.slice(0, 2).toUpperCase()}</span><div><strong>{provider}</strong><small>{formatNumber(count)} {vi ? 'yêu cầu' : 'requests'}</small></div><b>{summary.requests ? Math.round((count / summary.requests) * 100) : 0}%</b></article>) : <p className="ai-gov-empty">{vi ? 'Chưa có yêu cầu AI hôm nay.' : 'No AI requests today.'}</p>}
-          </div>
-        </section>
+        {message ? <div className="ai-gov-empty">{message}</div> : null}
       </div>
+      <div className="ai-gov-orbit" aria-hidden="true"><span>OR</span><i/><i/><i/></div>
+    </section>
 
-      <section className="ai-gov-card ai-gov-history">
-        <header><div><span>05</span><div><h2>{vi ? 'Lịch sử sử dụng' : 'Usage history'}</h2><p>{vi ? 'Theo dõi 45 ngày gần nhất trên thiết bị này.' : 'Track the last 45 days on this device.'}</p></div></div><button type="button" className="danger-text" onClick={() => { if (window.confirm(vi ? 'Đặt lại toàn bộ bộ đếm sử dụng AI?' : 'Reset all AI usage counters?')) { resetAiUsage(); refresh(); } }}>{vi ? 'Đặt lại bộ đếm' : 'Reset counters'}</button></header>
-        <div className="ai-gov-table-wrap"><table><thead><tr><th>{vi ? 'Ngày' : 'Date'}</th><th>{vi ? 'Yêu cầu' : 'Requests'}</th><th>{vi ? 'Thành công' : 'Success'}</th><th>{vi ? 'Lỗi' : 'Errors'}</th><th>Input</th><th>Output</th><th>{vi ? 'Hành động' : 'Actions'}</th></tr></thead><tbody>{days.slice(0, 14).map((day) => <tr key={day.date}><td>{day.date}</td><td>{formatNumber(day.requests)}</td><td>{formatNumber(day.successes)}</td><td>{formatNumber(day.errors)}</td><td>{formatNumber(day.inputTokens)}</td><td>{formatNumber(day.outputTokens)}</td><td>{formatNumber(day.actions)}</td></tr>)}{!days.length && <tr><td colSpan="7">{vi ? 'Chưa có dữ liệu sử dụng.' : 'No usage data.'}</td></tr>}</tbody></table></div>
+    <section className="ai-gov-stats">
+      <article><small>Provider</small><strong>OpenRouter</strong><p>{data?.configured ? (vi ? 'API key đã có trên Vercel' : 'Vercel key configured') : (vi ? 'Thiếu OPENROUTER_API_KEY' : 'OPENROUTER_API_KEY missing')}</p></article>
+      <article><small>{vi ? 'Yêu cầu hôm nay' : 'Requests today'}</small><strong>{number(totals.requests)}<em>/ {number(settings.dailyRequestLimit)}</em></strong></article>
+      <article><small>{vi ? 'Token hôm nay' : 'Tokens today'}</small><strong>{number((totals.inputTokens || 0) + (totals.outputTokens || 0))}<em>/ {number(settings.dailyTokenBudget)}</em></strong></article>
+      <article><small>{vi ? 'Thành công / lỗi' : 'Success / errors'}</small><strong>{number(totals.successes)}<em>/ {number(totals.errors)}</em></strong></article>
+    </section>
+
+    <div className="ai-gov-layout">
+      <section className="ai-gov-card ai-gov-controls">
+        <header><div><span>01</span><div><h2>{vi ? 'Cấu hình OpenRouter dùng chung' : 'Shared OpenRouter configuration'}</h2><p>{vi ? 'Giáo viên không thể nhập key, đổi provider hoặc vượt giới hạn này.' : 'Teachers cannot enter keys, change providers, or bypass these limits.'}</p></div></div></header>
+        <div className="ai-gov-switch-grid">
+          <label><div><strong>{vi ? 'Bật Brian AI' : 'Enable Brian AI'}</strong><small>{vi ? 'Tắt khẩn cấp cho toàn website.' : 'Emergency stop for the whole website.'}</small></div><input type="checkbox" checked={settings.enabled !== false} onChange={(event) => setSettings((current) => ({ ...current, enabled: event.target.checked }))}/><span/></label>
+        </div>
+        <div className="ai-gov-number-grid">
+          <label><span>OpenRouter model</span><input value={settings.model || ''} onChange={(event) => setSettings((current) => ({ ...current, model: event.target.value }))} placeholder="openrouter/free" /></label>
+          <label><span>{vi ? 'Yêu cầu/phút/người' : 'Requests/minute/user'}</span><input type="number" min="1" max="120" value={settings.perMinuteLimit} onChange={(event) => setSettings((current) => ({ ...current, perMinuteLimit: event.target.value }))}/></label>
+          <label><span>{vi ? 'Yêu cầu/ngày/người' : 'Requests/day/user'}</span><input type="number" min="1" max="10000" value={settings.dailyRequestLimit} onChange={(event) => setSettings((current) => ({ ...current, dailyRequestLimit: event.target.value }))}/></label>
+          <label><span>{vi ? 'Token/ngày/người' : 'Tokens/day/user'}</span><input type="number" min="1000" max="100000000" step="1000" value={settings.dailyTokenBudget} onChange={(event) => setSettings((current) => ({ ...current, dailyTokenBudget: event.target.value }))}/></label>
+          <label><span>{vi ? 'Output tối đa/yêu cầu' : 'Max output/request'}</span><input type="number" min="128" max="8192" step="128" value={settings.maxOutputTokens} onChange={(event) => setSettings((current) => ({ ...current, maxOutputTokens: event.target.value }))}/></label>
+        </div>
       </section>
 
-      <section className="ai-gov-card ai-gov-audit">
-        <header><div><span>06</span><div><h2>{vi ? 'Nhật ký AI & hành động' : 'AI and action audit'}</h2><p>{vi ? 'Lưu yêu cầu, lỗi, chặn hạn mức và hành động liên ứng dụng.' : 'Requests, failures, blocked quotas and cross-app actions.'}</p></div></div><div className="ai-gov-audit-actions"><select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="all">{vi ? 'Tất cả' : 'All'}</option><option value="request">Request</option><option value="action">Action</option><option value="settings">Settings</option><option value="error">Error</option><option value="blocked">Blocked</option></select><button type="button" onClick={() => { if (window.confirm(vi ? 'Xóa nhật ký AI trên thiết bị này?' : 'Clear the AI audit log?')) { clearAiAudit(); refresh(); } }}>{vi ? 'Xóa nhật ký' : 'Clear log'}</button></div></header>
-        <div className="ai-gov-audit-list">{filteredAudit.map((item) => <article key={item.id} data-status={item.status}><span>{item.type === 'action' ? '↳' : item.status === 'error' || item.status === 'blocked' ? '!' : 'AI'}</span><div><strong>{item.label}</strong><p>{[item.provider, item.model, item.target].filter(Boolean).join(' · ') || (vi ? 'Sự kiện hệ thống' : 'System event')}</p><small>{new Date(item.createdAt).toLocaleString(vi ? 'vi-VN' : 'en-US')} · {item.actor?.email || item.actor?.name || 'guest'}</small></div><b>{item.status}</b></article>)}{!filteredAudit.length && <p className="ai-gov-empty">{vi ? 'Không có sự kiện phù hợp.' : 'No matching events.'}</p>}</div>
+      <section className="ai-gov-card ai-gov-profiles">
+        <header><div><span>02</span><div><h2>{vi ? 'Giới hạn theo loại tác vụ' : 'Task profile limits'}</h2><p>{vi ? 'Server luôn lấy mức thấp hơn giữa yêu cầu của app và mức Admin đặt.' : 'The server always applies the lower of app request and Admin limit.'}</p></div></div></header>
+        <div className="ai-gov-profile-list">
+          {Object.entries(settings.profiles || {}).map(([id, value]) => <label key={id}><div><strong>{id}</strong><small>OpenRouter</small></div><input type="number" min="128" max="8192" step="128" value={typeof value === 'object' ? value.maxOutputTokens : value} onChange={(event) => setSettings((current) => ({ ...current, profiles: { ...current.profiles, [id]: event.target.value } }))}/><span>tokens</span></label>)}
+        </div>
       </section>
-
-      <section className="ai-gov-footer-actions"><button type="button" className="secondary" onClick={() => { if (window.confirm(vi ? 'Khôi phục cấu hình AI Governance mặc định?' : 'Restore default AI Governance settings?')) { setSettings(resetAiGovernanceSettings()); refresh(); } }}>{vi ? 'Khôi phục mặc định' : 'Restore defaults'}</button><p>{vi ? 'Các giới hạn được thực thi tập trung tại callAI và áp dụng cho toàn bộ ứng dụng.' : 'Limits are enforced centrally in callAI and apply across all apps.'}</p></section>
     </div>
-  );
+
+    <section className="ai-gov-card ai-gov-history">
+      <header><div><span>03</span><div><h2>{vi ? 'Sử dụng theo tài khoản hôm nay' : 'Usage by account today'}</h2><p>{vi ? 'Dữ liệu thật từ Supabase, không còn bộ đếm localStorage.' : 'Real Supabase data; localStorage counters are no longer used.'}</p></div></div></header>
+      <div className="ai-gov-table-wrap"><table><thead><tr><th>User ID</th><th>Requests</th><th>Success</th><th>Errors</th><th>Input</th><th>Output</th></tr></thead><tbody>{(data?.users || []).map((row) => <tr key={`${row.day}-${row.user_id}`}><td>{String(row.user_id || '').slice(0, 12)}…</td><td>{number(row.requests)}</td><td>{number(row.successes)}</td><td>{number(row.errors)}</td><td>{number(row.input_tokens)}</td><td>{number(row.output_tokens)}</td></tr>)}{!(data?.users || []).length ? <tr><td colSpan="6">{vi ? 'Chưa có dữ liệu hoặc migration chưa được chạy.' : 'No data or migration not installed.'}</td></tr> : null}</tbody></table></div>
+    </section>
+
+    <section className="ai-gov-card ai-gov-audit">
+      <header><div><span>04</span><div><h2>{vi ? 'Nhật ký server AI' : 'Server AI audit'}</h2><p>{vi ? 'Mỗi yêu cầu ghi actor, model, token, trạng thái và request ID.' : 'Each request records actor, model, tokens, status, and request ID.'}</p></div></div></header>
+      <div className="ai-gov-audit-list">{audits.map((item) => <article key={item.id} data-status={item.status}><span>{item.status === 'ok' ? 'AI' : '!'}</span><div><strong>{item.action}</strong><p>{item.details?.model || 'OpenRouter'} · {item.request_id || '—'}</p><small>{new Date(item.created_at).toLocaleString(vi ? 'vi-VN' : 'en-US')} · {item.actor_role}</small></div><b>{item.status}</b></article>)}{!audits.length ? <p className="ai-gov-empty">{vi ? 'Chưa có nhật ký AI trên server.' : 'No server AI audit yet.'}</p> : null}</div>
+    </section>
+  </div>;
 }

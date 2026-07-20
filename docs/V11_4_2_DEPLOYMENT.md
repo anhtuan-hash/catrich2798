@@ -31,27 +31,7 @@ The verify script should return successful checks for the table, RLS and policie
 
 ## 4. Configure Vercel environment
 
-Retain the current Brian Supabase variables. Add one AI provider:
-
-```env
-AI_AUTH_MODE=supabase
-OPENAI_API_KEY=...
-OPENAI_MODEL=...
-```
-
-or:
-
-```env
-AI_AUTH_MODE=supabase
-GEMINI_API_KEY=...
-GEMINI_MODEL=...
-```
-
-Optional cross-origin configuration:
-
-```env
-AI_ALLOWED_ORIGINS=https://your-domain.example
-```
+AI uses OpenRouter only. Configure `OPENROUTER_API_KEY` and retain `SUPABASE_SERVICE_ROLE_KEY`. Run `supabase/brian_v11_6_7_openrouter_gateway.sql`. All apps call `/api/ai`; the browser never receives the key.
 
 ## 5. Deploy
 

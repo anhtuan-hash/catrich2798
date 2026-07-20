@@ -41,11 +41,9 @@ import { APP_VERSION } from './config/version.js';
 import { isAdminRole } from './utils/roles.js';
 import { isAppHiddenForUser, useAppVisibility } from './utils/appVisibility.js';
 import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
-import { installProviderHubInputGuard } from './utils/providerHubInputGuard.js';
 import { installBursReadability } from './utils/bursReadability.js';
 
 runConfigurationMigrations();
-installProviderHubInputGuard();
 installBursReadability();
 installAccessibilityBootstrap();
 installPwaEventCapture();
@@ -191,7 +189,7 @@ function App() {
   const [language, setLanguage] = useState(() => localStorage.getItem('bet-language') || 'vi');
   const [theme, setTheme] = useState(() => localStorage.getItem('bet-theme') || 'light');
   const [apiKey, setApiKey] = useState(() => getActiveAiConfig().apiKey || '');
-  const [aiModel, setAiModel] = useState(() => getActiveAiConfig().model || 'gemini-flash-latest');
+  const [aiModel, setAiModel] = useState(() => getActiveAiConfig().model || 'Admin quản lý trên máy chủ');
   const [aiProvider, setAiProviderState] = useState(() => getAiProvider());
   const [providerConfigs, setProviderConfigs] = useState(() => getAiConfigs());
   const [currentUser, setCurrentUser] = useState(null);
@@ -259,7 +257,7 @@ function App() {
       setAiProviderState(getAiProvider());
       setProviderConfigs(getAiConfigs());
       setApiKey(active.apiKey || '');
-      setAiModel(active.model || active.providerInfo?.defaultModel || 'gemini-flash-latest');
+      setAiModel(active.model || active.providerInfo?.defaultModel || 'Admin quản lý trên máy chủ');
     };
     window.addEventListener('bes-ai-settings-updated', onAiSettings);
     return () => window.removeEventListener('bes-ai-settings-updated', onAiSettings);
@@ -320,7 +318,7 @@ function App() {
     setAiProviderState(getAiProvider());
     setProviderConfigs(getAiConfigs());
     setApiKey(active.apiKey || '');
-    setAiModel(active.model || active.providerInfo?.defaultModel || 'gemini-flash-latest');
+    setAiModel(active.model || active.providerInfo?.defaultModel || 'Admin quản lý trên máy chủ');
   }, [currentUser?.id, currentUser?.email]);
 
   useEffect(() => {

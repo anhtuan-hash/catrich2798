@@ -22,27 +22,16 @@ Trước khi sử dụng đồng bộ cloud, chạy SQL theo thứ tự:
 2. `supabase/brian_v11_4_2_lesson_integration.sql`
 3. `supabase/brian_v11_4_2_verify.sql`
 
-## AI phía server
+## AI phía server — OpenRouter only
 
-Endpoint: `/api/lesson-ai`
-
-OpenAI:
+Toàn bộ website gọi gateway xác thực `/api/ai`. API key không xuất hiện trong mã frontend hoặc trình duyệt.
 
 ```env
-OPENAI_API_KEY=...
-OPENAI_MODEL=...
-AI_AUTH_MODE=supabase
+OPENROUTER_API_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
-Hoặc Gemini:
-
-```env
-GEMINI_API_KEY=...
-GEMINI_MODEL=...
-AI_AUTH_MODE=supabase
-```
-
-Không có API key, ứng dụng vẫn hoạt động bằng bộ máy quy tắc nội bộ.
+Model và hạn mức dùng chung do Admin quản lý tại `/#/ai-governance`. Chạy migration `supabase/brian_v11_6_7_openrouter_gateway.sql`.
 
 ## Kiến trúc tích hợp
 
