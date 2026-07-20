@@ -44,6 +44,7 @@ import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
 import { installBursReadability } from './utils/bursReadability.js';
 import { installAiRemovalGuard } from './utils/aiRemovalGuard.js';
 
+import TextLabGlobalShortcut from './components/TextLabGlobalShortcut.jsx';
 runConfigurationMigrations();
 installBursReadability();
 installAiRemovalGuard();
@@ -690,6 +691,6 @@ function AccessDenied({ language, currentUser, route, selectedTool, temporarilyH
 
 createRoot(document.getElementById('root')).render(
   <AppErrorBoundary scope="application-root">
-    <App />
+    <><App /><TextLabGlobalShortcut /></>
   </AppErrorBoundary>,
 );

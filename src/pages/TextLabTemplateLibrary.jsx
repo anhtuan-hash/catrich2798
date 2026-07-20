@@ -5,7 +5,7 @@ import {
   downloadHtml,
   sampleFor,
 } from '../utils/textlabInteractive.js';
-import '../styles/textlab-proposal-one-immersive.css';
+import '../styles/textlab-proposal-one-shell.css';
 
 const CATEGORY_ORDER = ['Tất cả', 'Kiểm tra', 'Từ vựng', 'Câu & đoạn văn', 'Ngữ pháp', 'Trò chơi', 'Nói & viết'];
 const CATEGORY_META = {
@@ -222,19 +222,6 @@ export default function TextLabTemplateLibrary() {
   const draftKey = `brian-textlab-proposal1:${selected.id}`;
 
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    const previousBackground = document.body.style.background;
-    document.body.style.overflow = 'hidden';
-    document.body.style.background = '#f7f2e8';
-    document.documentElement.classList.add('textlab-immersive-active');
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.body.style.background = previousBackground;
-      document.documentElement.classList.remove('textlab-immersive-active');
-    };
-  }, []);
-
-  useEffect(() => {
     const sample = splitRawContent(normalizeSample(selected), selected.title);
     let restored = null;
     try {
@@ -332,6 +319,8 @@ export default function TextLabTemplateLibrary() {
     reader.readAsText(file); event.target.value = '';
   };
 
+  const contentLineCount = Math.max(1, body.split(/\r?\n/).length);
+
   return (
     <div className="proposal-one-page">
       {toast && <div className="p1-toast">{toast}</div>}
@@ -368,6 +357,49 @@ export default function TextLabTemplateLibrary() {
           <button type="button" className="p1-profile-button"><span className="p1-avatar"><Icon name="person" size={16} /></span><span><strong>Brian English</strong><small>Giáo viên</small></span><Icon name="chevrondown" size={16} /></button>
         </div>
       </div>
+
+
+      <section className="p1-hero" aria-labelledby="textlab-hero-title">
+        <div className="p1-hero-copy">
+          <span className="p1-hero-kicker">INTERACTIVE AUTHORING · OFFLINE FIRST</span>
+          <h1 id="textlab-hero-title">Biến nội dung thành hoạt động học tập sống động.</h1>
+          <p>
+            Chọn một template, đưa dữ liệu của bạn vào và xuất một tệp HTML hoàn chỉnh —
+            chạy trực tiếp trên trình duyệt, không AI, không API và không phụ thuộc Internet.
+          </p>
+          <div className="p1-hero-actions">
+            <button type="button" className="p1-hero-primary" onClick={() => libraryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+              <Icon name="templates" /> Khám phá 36 template
+            </button>
+            <button type="button" className="p1-hero-secondary" onClick={() => chooseQuick('hangman')}>
+              <Icon name="hangman" /> Mở Hangman
+            </button>
+          </div>
+          <div className="p1-hero-metrics" aria-label="Thông tin TextLab">
+            <span><strong>36</strong><small>hoạt động</small></span>
+            <span><strong>100%</strong><small>ngoại tuyến</small></span>
+            <span><strong>0</strong><small>AI / API</small></span>
+          </div>
+        </div>
+
+        <div className="p1-hero-visual" aria-hidden="true">
+          <div className="p1-orbit p1-orbit-one" />
+          <div className="p1-orbit p1-orbit-two" />
+          <div className="p1-floating-card p1-card-quiz">
+            <span className="p1-floating-icon is-violet"><Icon name="quiz" size={24} /></span>
+            <div><strong>Quiz Show</strong><small>Phản hồi tức thì</small></div>
+          </div>
+          <div className="p1-floating-card p1-card-wordsearch">
+            <span className="p1-floating-icon is-green"><Icon name="wordsearch" size={24} /></span>
+            <div><strong>Word Search</strong><small>Kéo chọn trực tiếp</small></div>
+          </div>
+          <div className="p1-floating-card p1-card-hangman">
+            <span className="p1-floating-icon is-orange"><Icon name="hangman" size={24} /></span>
+            <div><strong>Hangman</strong><small>Nhân vật · 6 lượt sai</small></div>
+          </div>
+          <div className="p1-hero-center-mark"><Icon name="brand" size={42} /></div>
+        </div>
+      </section>
 
       <div className="p1-layout">
         <aside className="p1-sidebar" ref={libraryRef}>
@@ -433,13 +465,68 @@ export default function TextLabTemplateLibrary() {
               </div>
               {activeTab === 'content' ? (
                 <div className="p1-editor-form">
-                  <label><span>Tiêu đề hoạt động</span><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nhập tiêu đề..." /></label>
-                  <label><span>Hướng dẫn <em>(không bắt buộc)</em><small>{instructions.length}/200</small></span><textarea className="p1-instructions" maxLength={200} value={instructions} onChange={(e) => setInstructions(e.target.value)} /></label>
-                  <label><span>Chủ đề / Danh mục</span><div className="p1-topic-box"><span className="p1-topic-chip">{selected.titleVi || selected.title}</span><Icon name="chevrondown" size={16} /></div></label>
-                  <label><span>Danh sách từ và gợi ý <em>Mỗi dòng: {selected.format || 'ITEM'}</em></span><textarea className="p1-content" spellCheck={false} value={body} onChange={(e) => setBody(e.target.value)} /></label>
-                  <div className="p1-editor-actions">
+                  <div className="p1-composer-heading">
+                    <div>
+                      <span className="p1-composer-kicker">AUTHORING CANVAS</span>
+                      <h3>Thiết kế nội dung hoạt động</h3>
+                      <p>Chỉnh nội dung theo từng khối. Mọi thay đổi được lưu trên thiết bị và đưa vào Live Preview khi tạo hoạt động.</p>
+                    </div>
+                    <span className="p1-composer-index">01</span>
+                  </div>
+
+                  <section className="p1-field-card p1-field-card-title">
+                    <div className="p1-field-rail"><span>01</span><small>IDENTITY</small></div>
+                    <div className="p1-field-body">
+                      <label className="p1-modern-field">
+                        <span>Tiêu đề hoạt động</span>
+                        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nhập tiêu đề..." />
+                      </label>
+                      <label className="p1-modern-field">
+                        <span>Hướng dẫn <em>{instructions.length}/200</em></span>
+                        <textarea className="p1-instructions" maxLength={200} value={instructions} onChange={(e) => setInstructions(e.target.value)} />
+                      </label>
+                    </div>
+                  </section>
+
+                  <section className="p1-field-card">
+                    <div className="p1-field-rail"><span>02</span><small>FORMAT</small></div>
+                    <div className="p1-field-body p1-format-body">
+                      <div>
+                        <small>Chủ đề / Danh mục</small>
+                        <strong>{selected.titleVi || selected.title}</strong>
+                      </div>
+                      <div className="p1-format-pills">
+                        <span>{categoryOf(selected)}</span>
+                        <span>{selected.format || 'ITEM'}</span>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="p1-field-card p1-field-card-content">
+                    <div className="p1-field-rail"><span>03</span><small>CONTENT</small></div>
+                    <div className="p1-field-body">
+                      <div className="p1-code-heading">
+                        <div>
+                          <small>Danh sách nội dung</small>
+                          <strong>Mỗi dòng theo định dạng: {selected.format || 'ITEM'}</strong>
+                        </div>
+                        <button type="button" onClick={() => copyText(body, 'Đã sao chép danh sách nội dung')}><Icon name="copy" size={16} /> Sao chép</button>
+                      </div>
+                      <div className="p1-code-editor">
+                        <div className="p1-line-gutter" aria-hidden="true">
+                          {Array.from({ length: contentLineCount }, (_, index) => <span key={index}>{String(index + 1).padStart(2, '0')}</span>)}
+                        </div>
+                        <textarea className="p1-content" spellCheck={false} value={body} onChange={(e) => setBody(e.target.value)} />
+                      </div>
+                    </div>
+                  </section>
+
+                  <div className="p1-import-dock">
                     <input type="file" hidden ref={importRef} accept=".txt,.csv,text/plain,text/csv" onChange={importData} />
-                    <button type="button" className="p1-outline-button" onClick={() => importRef.current?.click()}><Icon name="upload" />Nhập dữ liệu (CSV / TXT)</button>
+                    <button type="button" onClick={() => importRef.current?.click()}>
+                      <span className="p1-import-icon"><Icon name="upload" size={20} /></span>
+                      <span><strong>Nhập dữ liệu</strong><small>Thả tệp CSV / TXT hoặc bấm để chọn</small></span>
+                    </button>
                     <div className="p1-editor-actions-right">
                       <button type="button" className="p1-outline-button" onClick={saveDraft}><Icon name="save" />Lưu nháp</button>
                       <button type="button" className="p1-create-button" onClick={() => { setPreviewKey((x) => x + 1); scrollToPreview(); }}><Icon name="play" />Tạo hoạt động</button>
@@ -447,6 +534,7 @@ export default function TextLabTemplateLibrary() {
                   </div>
                 </div>
               ) : (
+
                 <div className="p1-reference-panel">
                   <div className="p1-reference-head"><span>{activeTab === 'blank' ? 'Mẫu trống' : activeTab === 'sample' ? 'Ví dụ hoàn chỉnh' : 'Cách nhập'}</span><button type="button" onClick={() => copyText(tabContent[activeTab], 'Đã sao chép nội dung mẫu')}><Icon name="copy" />Sao chép</button></div>
                   <pre>{tabContent[activeTab]}</pre>
@@ -469,7 +557,22 @@ export default function TextLabTemplateLibrary() {
           </div>
         </section>
       </div>
-      <div className="p1-bottom-status"><span><span className="p1-status-dot" /> Sẵn sàng</span><span>Dữ liệu được lưu trên thiết bị này</span><span>Không sử dụng AI</span><span>Hoạt động ngoại tuyến 100%</span></div>
+      <footer className="p1-product-footer">
+        <div className="p1-footer-brand">
+          <span className="p1-footer-mark"><Icon name="brand" size={22} /></span>
+          <div><strong>Brian TextLab</strong><small>Interactive HTML Studio · No AI</small></div>
+        </div>
+        <div className="p1-footer-links">
+          <button type="button" onClick={() => libraryRef.current?.scrollIntoView({ behavior: 'smooth' })}>Thư viện mẫu</button>
+          <button type="button" onClick={() => setActiveTab('guide')}>Hướng dẫn nhập</button>
+          <button type="button" onClick={openPreview}>Mở Live Preview</button>
+        </div>
+        <div className="p1-footer-status">
+          <span><i /> Sẵn sàng</span>
+          <span>Lưu cục bộ</span>
+          <span>Offline 100%</span>
+        </div>
+      </footer>
     </div>
   );
 }
