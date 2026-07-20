@@ -54,18 +54,40 @@ function normalizeAttachments(items = []) {
 
 export async function callAI(options = {}) {
   const operationId = `ai-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  const baseLabel = options.loadingLabel || options.aiLabel || '';
   const operationDetail = {
     id: operationId,
     provider: 'OpenRouter · Server Gateway',
     model: 'Admin quản lý',
-    label: options.loadingLabel || options.aiLabel || '',
+    label: baseLabel,
     maxOutputTokens: normalizeMaxOutputTokens(options.maxOutputTokens),
     profile: String(options.governanceProfile || options.profile || 'default'),
   };
+  const controller = new AbortController();
+  const startedAt = Date.now();
+  const timeoutMs = Math.min(118_000, Math.max(30_000, Number(options.timeoutMs) || 116_000));
+  let timeoutId = 0;
+  let progressId = 0;
 
   emitAiOperation('bes-ai-operation-start', operationDetail);
   try {
     const token = await accessToken();
+    timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+    progressId = window.setInterval(() => {
+      const elapsedSeconds = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
+      const phase = elapsedSeconds < 18
+        ? 'Đang phân tích yêu cầu…'
+        : elapsedSeconds < 48
+          ? 'Đang chờ model OpenRouter phản hồi…'
+          : elapsedSeconds < 82
+            ? 'Đang thử tuyến model ổn định hơn…'
+            : 'Đang hoàn tất kết quả…';
+      emitAiOperation('bes-ai-operation-update', {
+        ...operationDetail,
+        label: `${baseLabel || 'AI đang xử lý'} · ${phase} ${elapsedSeconds}s`,
+      });
+    }, 12_000);
+
     const response = await fetch('/api/ai', {
       method: 'POST',
       headers: {
@@ -81,8 +103,9 @@ export async function callAI(options = {}) {
         responseMimeType: String(options.responseMimeType || ''),
         maxOutputTokens: normalizeMaxOutputTokens(options.maxOutputTokens),
         profile: String(options.governanceProfile || options.profile || options.aiProfile || 'default'),
-        clientLabel: String(options.loadingLabel || options.aiLabel || '').slice(0, 160),
+        clientLabel: String(baseLabel).slice(0, 160),
       }),
+      signal: controller.signal,
     });
 
     const data = await response.json().catch(() => ({}));
@@ -91,6 +114,7 @@ export async function callAI(options = {}) {
       error.code = data?.code || 'AI_GATEWAY_ERROR';
       error.status = response.status;
       error.requestId = data?.requestId || '';
+      error.retryAfter = Number(response.headers.get('Retry-After') || 0);
       throw error;
     }
 
@@ -103,11 +127,22 @@ export async function callAI(options = {}) {
     emitAiOperation('bes-ai-operation-update', {
       ...operationDetail,
       model: data.model || 'OpenRouter',
+      label: `${baseLabel || 'AI đang xử lý'} · Hoàn tất trong ${Math.max(1, Math.round((Date.now() - startedAt) / 1000))}s`,
     });
     const text = String(data.text || '').trim();
     if (!text) throw new Error('OpenRouter Gateway không trả về nội dung.');
     return text;
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      const timeoutError = new Error('OpenRouter phản hồi quá lâu nên Brian đã dừng yêu cầu để tránh màn hình chờ vô hạn. Hãy thử lại với file nhỏ hơn hoặc nội dung ngắn hơn.');
+      timeoutError.code = 'AI_CLIENT_TIMEOUT';
+      timeoutError.status = 504;
+      throw timeoutError;
+    }
+    throw error;
   } finally {
+    window.clearTimeout(timeoutId);
+    window.clearInterval(progressId);
     emitAiOperation('bes-ai-operation-end', operationDetail);
   }
 }

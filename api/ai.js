@@ -5,6 +5,7 @@ import {
   readServerAiSettings,
   writeServerAiSettings,
   reserveServerAiQuota,
+  resolveOpenRouterRequestPlan,
   resolveOutputLimit,
   settleServerAiQuota,
 } from '../server/openrouterGateway.js';
@@ -112,6 +113,7 @@ async function handleGovernance(req, res, requestId) {
     sendJson(res, 200, {
       ok: true, configured: Boolean(process.env.OPENROUTER_API_KEY), provider: 'openrouter',
       settings: config.settings, settingsSource: config.databaseBacked ? 'supabase' : 'environment',
+      effectiveRouting: resolveOpenRouterRequestPlan(config.settings, 'default'),
       ...runtime, requestId,
     });
   } catch (error) {
@@ -202,6 +204,8 @@ export default async function handler(req, res) {
       responseMimeType: normalized.responseMimeType,
       maxOutputTokens: outputReserve,
       requestId,
+      profile: normalized.profile,
+      action: normalized.action,
     });
 
     const outputTokens = result.usage.outputTokens || estimateTokens(result.text);
@@ -220,6 +224,9 @@ export default async function handler(req, res) {
         inputTokens: result.usage.inputTokens || inputTokens,
         outputTokens,
         totalTokens: result.usage.totalTokens || inputTokens + outputTokens,
+        configuredModel: result.configuredModel,
+        attempts: result.attempts,
+        durationMs: result.durationMs,
       },
     });
 
@@ -229,6 +236,8 @@ export default async function handler(req, res) {
       provider: 'openrouter',
       model: result.model,
       usage: result.usage,
+      attempts: result.attempts?.length || 1,
+      durationMs: result.durationMs || 0,
       requestId,
     });
   } catch (error) {
@@ -245,6 +254,9 @@ export default async function handler(req, res) {
           provider: 'openrouter',
           code: String(error?.code || ''),
           error: String(error?.message || error).slice(0, 500),
+          attempts: error?.attempts || [],
+          durationMs: Number(error?.durationMs || 0),
+          configuredModel: String(error?.configuredModel || ''),
         },
       });
     }
