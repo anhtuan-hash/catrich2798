@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   apply:
+    if: ${{ hashFiles('.homeroom-patch/part-*') != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout branch
@@ -29,12 +30,14 @@ jobs:
           test "$(wc -c < /tmp/homeroom.patch)" -eq 68013
       - name: Apply patch files
         shell: bash
-        run: patch -p1 --batch < /tmp/homeroom.patch
-      - name: Prepare clean commit
+        run: |
+          cp .github/workflows/homeroom-build.yml /tmp/homeroom-build.yml
+          patch -p1 --batch < /tmp/homeroom.patch
+          cp /tmp/homeroom-build.yml .github/workflows/homeroom-build.yml
+      - name: Commit code fixes
         shell: bash
         run: |
           rm -rf .homeroom-patch
-          rm -f .github/workflows/apply-homeroom-integrity-fixes.yml
           git config user.name "Brian Homeroom Fix Bot"
           git config user.email "actions@users.noreply.github.com"
           git add -A
