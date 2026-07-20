@@ -1,4 +1,0 @@
-:root,html,body,#root{color-scheme:light!important}
-html,body{background-color:#fff!important}
-html.dark,body.dark,.theme-dark,.dark-mode,.night,.night-mode,[data-theme="dark"],[data-color-scheme="dark"],[data-appearance="dark"]{color-scheme:light!important}
-[data-theme-toggle],[data-appearance-toggle],[aria-label*="dark mode" i],[title*="dark mode" i]{display:none!important}
