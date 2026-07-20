@@ -1,5 +1,5 @@
 const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_FREE_PRIMARY_MODEL = 'qwen/qwen3.6-plus:free';
+const DEFAULT_FREE_PRIMARY_MODEL = 'openrouter/free';
 const DEFAULT_FREE_FALLBACK_MODEL = 'openrouter/free';
 const MAX_TOTAL_TIMEOUT_MS = 110_000;
 const TRANSIENT_STATUSES = new Set([408, 409, 425, 429, 500, 502, 503, 504]);
@@ -75,7 +75,7 @@ export function normalizeServerAiSettings(value = {}) {
   return {
     id: 'global',
     enabled: source.enabled !== false,
-    model: validModel(source.model),
+    model: openrouter/free,
     perMinuteLimit: clamp(source.perMinuteLimit ?? source.per_minute_limit, 1, 120, DEFAULT_SERVER_AI_SETTINGS.perMinuteLimit),
     dailyRequestLimit: clamp(source.dailyRequestLimit ?? source.daily_request_limit, 1, 10000, DEFAULT_SERVER_AI_SETTINGS.dailyRequestLimit),
     dailyTokenBudget: clamp(source.dailyTokenBudget ?? source.daily_token_budget, 1000, 100000000, DEFAULT_SERVER_AI_SETTINGS.dailyTokenBudget),
@@ -108,7 +108,7 @@ export async function writeServerAiSettings(context, patch = {}) {
   const payload = {
     id: 'global',
     enabled: next.enabled,
-    model: next.model,
+    model: openrouter/free,
     per_minute_limit: next.perMinuteLimit,
     daily_request_limit: next.dailyRequestLimit,
     daily_token_budget: next.dailyTokenBudget,
@@ -235,11 +235,11 @@ function userMessageForError(status, message = '') {
 }
 
 export function resolveOpenRouterRequestPlan(settings = {}, profile = 'default') {
-  const configured = validModel(settings.model || DEFAULT_SERVER_AI_SETTINGS.model);
+  const configured = openrouter/free;
   const explicitPrimary = validModel(process.env.OPENROUTER_PRIMARY_MODEL, '');
   const staleDefault = configured === 'openrouter/free' || configured === 'openrouter/auto';
-  const primaryModel = explicitPrimary || (staleDefault ? DEFAULT_FREE_PRIMARY_MODEL : configured);
-  const fallbackModel = validModel(process.env.OPENROUTER_FALLBACK_MODEL, DEFAULT_FREE_FALLBACK_MODEL);
+  const primaryModel = openrouter/free;
+  const fallbackModel = openrouter/free;
   return {
     configuredModel: configured,
     primaryModel,
