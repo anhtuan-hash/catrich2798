@@ -48,6 +48,10 @@ import TextLabGlobalShortcut from './components/TextLabGlobalShortcut.jsx';
 import './styles/option-two-global-shell.css';
 import { installOptionTwoShell } from './utils/optionTwoGlobalShell.js';
 
+import './styles/notification-center-recovery.css';
+import { installNotificationCenterRecovery } from './utils/notificationCenterRecovery.js';
+
+installNotificationCenterRecovery();
 installOptionTwoShell();
 runConfigurationMigrations();
 installBursReadability();

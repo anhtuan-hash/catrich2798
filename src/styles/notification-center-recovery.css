@@ -1,0 +1,41 @@
+.brian-notification-recovery-card{
+  position:absolute;
+  z-index:999;
+  inset:12px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding:28px;
+  border:1px solid #dbe5ef;
+  border-radius:18px;
+  background:rgba(255,255,255,.98);
+  color:#17314f;
+  box-shadow:0 16px 34px rgba(23,49,79,.10);
+  text-align:center;
+}
+.brian-notification-recovery-icon{
+  display:grid;
+  place-items:center;
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  background:#eef6ff;
+  color:#2e73c5;
+  font-size:26px;
+  font-weight:900;
+}
+.brian-notification-recovery-card h3{margin:0;font-size:22px;letter-spacing:-.02em}
+.brian-notification-recovery-card p{max-width:440px;margin:0;color:#667b92;font-size:14px;line-height:1.55}
+.brian-notification-recovery-card button{
+  min-height:42px;
+  padding:0 18px;
+  border:1px solid #173f70;
+  border-radius:12px;
+  background:#173f70;
+  color:#fff;
+  font-weight:800;
+  cursor:pointer;
+}
+.brian-notification-recovery-card small{max-width:500px;color:#8a99a9;font-size:11px;line-height:1.45}
