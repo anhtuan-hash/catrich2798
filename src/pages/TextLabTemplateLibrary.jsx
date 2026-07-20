@@ -1,77 +1,56 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  TEXTLAB_COPY_TEMPLATES,
-  TEXTLAB_TEMPLATE_CATEGORIES,
-  TEXTLAB_TEMPLATE_COUNT,
-} from '../data/textLabTemplateLibrary.js';
-import '../styles/textlab-template-library.css';
+  TEXTLAB_CATEGORIES,
+  TEXTLAB_TEMPLATES,
+  buildStandaloneHtml,
+  downloadStandaloneHtml,
+  downloadTemplateText,
+  parseTemplateContent,
+} from '../utils/textlabInteractive.js';
+import '../styles/textlab-template-interactive.css';
 
-const FAVORITES_KEY = 'bes-textlab-template-library-favorites-v1';
-const RECENT_KEY = 'bes-textlab-template-library-recent-v1';
+const STORAGE_PREFIX = 'bes-textlab-interactive-v1';
 
-function readStoredList(key) {
+function readJson(key, fallback) {
   try {
-    const parsed = JSON.parse(localStorage.getItem(key) || '[]');
-    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+    const parsed = JSON.parse(localStorage.getItem(key) || 'null');
+    return parsed ?? fallback;
   } catch {
-    return [];
+    return fallback;
   }
 }
 
-function writeStoredList(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* optional storage */ }
+function copyText(value) {
+  if (!value) return Promise.resolve(false);
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(value).then(() => true).catch(() => false);
+  const area = document.createElement('textarea');
+  area.value = value;
+  area.style.position = 'fixed';
+  area.style.opacity = '0';
+  document.body.appendChild(area);
+  area.select();
+  const ok = document.execCommand('copy');
+  area.remove();
+  return Promise.resolve(ok);
 }
 
-async function copyText(value) {
-  const text = String(value || '');
-  if (!text) return false;
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.setAttribute('readonly', '');
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    const copied = document.execCommand('copy');
-    textarea.remove();
-    return copied;
-  }
-}
-
-function downloadText(filename, content) {
-  const blob = new Blob([String(content || '')], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1200);
-}
-
-function TemplateCard({ item, active, favorite, onSelect, onToggleFavorite }) {
+function TemplateCard({ template, selected, favorite, onSelect, onFavorite }) {
   return (
-    <article className={`tlt-card ${active ? 'active' : ''}`}>
-      <button type="button" className="tlt-card-main" onClick={() => onSelect(item.id)}>
-        <span className="tlt-card-icon" aria-hidden="true">{item.icon}</span>
-        <span className="tlt-card-copy">
-          <small>{item.tag}{item.isNew ? ' · MỚI' : ''}</small>
-          <b>{item.name}</b>
-          <em>{item.nameVi}</em>
+    <article className={`tli-template-card ${selected ? 'selected' : ''}`}>
+      <button type="button" className="tli-template-main" onClick={() => onSelect(template)}>
+        <span className="tli-template-icon">{template.icon}</span>
+        <span>
+          <small>{template.categoryLabel}</small>
+          <b>{template.title}</b>
+          <em>{template.titleVi}</em>
         </span>
-        <span className="tlt-card-arrow" aria-hidden="true">→</span>
+        <i>→</i>
       </button>
       <button
         type="button"
-        className={`tlt-favorite ${favorite ? 'is-favorite' : ''}`}
-        aria-label={favorite ? `Bỏ yêu thích ${item.name}` : `Yêu thích ${item.name}`}
-        title={favorite ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
-        onClick={() => onToggleFavorite(item.id)}
+        className={`tli-favorite ${favorite ? 'active' : ''}`}
+        aria-label={favorite ? 'Bỏ yêu thích' : 'Thêm yêu thích'}
+        onClick={() => onFavorite(template.id)}
       >
         {favorite ? '★' : '☆'}
       </button>
@@ -79,249 +58,269 @@ function TemplateCard({ item, active, favorite, onSelect, onToggleFavorite }) {
   );
 }
 
+function EmptyPreview({ errors }) {
+  return (
+    <div className="tli-empty-preview">
+      <span>HTML</span>
+      <h3>Chưa thể tạo hoạt động</h3>
+      <p>Kiểm tra lại cấu trúc nội dung theo hướng dẫn của template.</p>
+      {errors?.length ? <ul>{errors.map((error) => <li key={error}>{error}</li>)}</ul> : null}
+    </div>
+  );
+}
+
 export default function TextLabTemplateLibrary({ language = 'vi' }) {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('all');
-  const [selectedId, setSelectedId] = useState(TEXTLAB_COPY_TEMPLATES[0].id);
-  const [view, setView] = useState('blank');
-  const [favorites, setFavorites] = useState(() => readStoredList(FAVORITES_KEY));
-  const [recent, setRecent] = useState(() => readStoredList(RECENT_KEY));
-  const [onlyFavorites, setOnlyFavorites] = useState(false);
-  const [notice, setNotice] = useState('');
+  const [selectedId, setSelectedId] = useState(() => localStorage.getItem(`${STORAGE_PREFIX}:selected`) || TEXTLAB_TEMPLATES[0].id);
+  const [favorites, setFavorites] = useState(() => readJson(`${STORAGE_PREFIX}:favorites`, []));
+  const [recent, setRecent] = useState(() => readJson(`${STORAGE_PREFIX}:recent`, []));
+  const [editorMode, setEditorMode] = useState('content');
+  const [content, setContent] = useState('');
+  const [message, setMessage] = useState('');
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
+  const iframeRef = useRef(null);
 
   const selected = useMemo(
-    () => TEXTLAB_COPY_TEMPLATES.find((item) => item.id === selectedId) || TEXTLAB_COPY_TEMPLATES[0],
+    () => TEXTLAB_TEMPLATES.find((template) => template.id === selectedId) || TEXTLAB_TEMPLATES[0],
     [selectedId],
   );
 
-  const filteredTemplates = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    return TEXTLAB_COPY_TEMPLATES.filter((item) => {
-      const categoryMatch = category === 'all' || item.category === category;
-      const favoriteMatch = !onlyFavorites || favorites.includes(item.id);
-      const textMatch = !normalized || [item.name, item.nameVi, item.tag, item.desc]
-        .join(' ')
-        .toLowerCase()
-        .includes(normalized);
-      return categoryMatch && favoriteMatch && textMatch;
-    });
-  }, [query, category, onlyFavorites, favorites]);
-
   useEffect(() => {
-    if (!notice) return undefined;
-    const timer = window.setTimeout(() => setNotice(''), 2400);
-    return () => window.clearTimeout(timer);
-  }, [notice]);
-
-  const chooseTemplate = (id) => {
-    setSelectedId(id);
-    setView('blank');
+    const saved = localStorage.getItem(`${STORAGE_PREFIX}:draft:${selected.id}`);
+    setContent(saved || selected.example);
+    setEditorMode('content');
+    localStorage.setItem(`${STORAGE_PREFIX}:selected`, selected.id);
     setRecent((current) => {
-      const next = [id, ...current.filter((entry) => entry !== id)].slice(0, 6);
-      writeStoredList(RECENT_KEY, next);
+      const next = [selected.id, ...current.filter((id) => id !== selected.id)].slice(0, 6);
+      localStorage.setItem(`${STORAGE_PREFIX}:recent`, JSON.stringify(next));
       return next;
     });
-    window.requestAnimationFrame(() => {
-      document.querySelector('.tlt-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [selected.id]);
+
+  useEffect(() => {
+    if (!selected?.id) return;
+    const timer = window.setTimeout(() => {
+      localStorage.setItem(`${STORAGE_PREFIX}:draft:${selected.id}`, content);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [content, selected?.id]);
+
+  const parsed = useMemo(() => parseTemplateContent(selected, content), [selected, content]);
+  const html = useMemo(() => buildStandaloneHtml(selected, content), [selected, content, previewKey]);
+
+  const visibleTemplates = useMemo(() => {
+    const target = query.trim().toLowerCase();
+    return TEXTLAB_TEMPLATES.filter((template) => {
+      if (category !== 'all' && template.category !== category) return false;
+      if (showFavoritesOnly && !favorites.includes(template.id)) return false;
+      if (!target) return true;
+      return `${template.title} ${template.titleVi} ${template.descriptionVi} ${template.categoryLabel}`.toLowerCase().includes(target);
     });
+  }, [query, category, favorites, showFavoritesOnly]);
+
+  const flash = (text) => {
+    setMessage(text);
+    window.clearTimeout(window.__textlabTemplateMessage);
+    window.__textlabTemplateMessage = window.setTimeout(() => setMessage(''), 2600);
   };
+
+  const selectTemplate = (template) => setSelectedId(template.id);
 
   const toggleFavorite = (id) => {
     setFavorites((current) => {
-      const next = current.includes(id)
-        ? current.filter((entry) => entry !== id)
-        : [...current, id];
-      writeStoredList(FAVORITES_KEY, next);
+      const next = current.includes(id) ? current.filter((item) => item !== id) : [...current, id];
+      localStorage.setItem(`${STORAGE_PREFIX}:favorites`, JSON.stringify(next));
       return next;
     });
   };
 
-  const handleCopy = async (kind) => {
-    const content = kind === 'example' ? selected.example : selected.blank;
-    const copied = await copyText(content);
-    setNotice(copied
-      ? (kind === 'example' ? 'Đã sao chép mẫu minh họa.' : 'Đã sao chép mẫu trống.')
-      : 'Không thể sao chép tự động. Hãy chọn nội dung và sao chép thủ công.');
+  const setPreset = (mode) => {
+    setEditorMode(mode);
+    if (mode === 'blank') setContent(selected.blank);
+    if (mode === 'example') setContent(selected.example);
+  };
+
+  const openStandalone = () => {
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'noopener,noreferrer');
+    window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+  };
+
+  const fullscreen = async () => {
+    const frame = iframeRef.current;
+    if (!frame) return;
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await frame.requestFullscreen();
+    } catch {
+      openStandalone();
+    }
+  };
+
+  const copy = async (value, success) => {
+    const ok = await copyText(value);
+    flash(ok ? success : 'Không thể sao chép. Hãy chọn nội dung và sao chép thủ công.');
   };
 
   const recentTemplates = recent
-    .map((id) => TEXTLAB_COPY_TEMPLATES.find((item) => item.id === id))
+    .map((id) => TEXTLAB_TEMPLATES.find((template) => template.id === id))
     .filter(Boolean);
 
-  const content = view === 'example' ? selected.example : selected.blank;
-  const title = language === 'vi' ? 'Thư viện mẫu hoạt động' : 'Activity Template Library';
-  const subtitle = language === 'vi'
-    ? `${TEXTLAB_TEMPLATE_COUNT} mẫu sẵn để xem và sao chép · Không AI · Không API key`
-    : `${TEXTLAB_TEMPLATE_COUNT} copy-ready templates · No AI · No API key`;
-
   return (
-    <div className="page tlt-page">
-      <section className="tlt-hero">
-        <button type="button" className="back-btn" onClick={() => (window.location.hash = '#/apps')}>
-          ← {language === 'vi' ? 'Quay lại Ứng dụng' : 'Back to Apps'}
-        </button>
-        <div className="tlt-hero-main">
-          <div className="tlt-logo" aria-hidden="true">TL</div>
-          <div>
-            <p>BRIAN TEXTLAB · TEMPLATE LIBRARY</p>
-            <h1>{title}</h1>
-            <span>{subtitle}</span>
-          </div>
+    <div className="page tli-page">
+      <section className="tli-hero">
+        <div>
+          <p>BRIAN TEXTLAB · INTERACTIVE HTML FACTORY</p>
+          <h1>36 mẫu hoạt động tương tác</h1>
+          <span>Dán nội dung theo mẫu → xem hoạt động trực tiếp → tải một file HTML chạy ngoại tuyến.</span>
         </div>
-        <aside className="tlt-offline-status">
-          <b>100% OFFLINE</b>
-          <span>Chọn mẫu → xem cấu trúc → sao chép</span>
-          <small>Không gửi dữ liệu ra ngoài</small>
+        <aside>
+          <strong>NO AI</strong>
+          <small>Không API · Không gửi dữ liệu · Không cần mạng</small>
         </aside>
       </section>
 
-      <section className="tlt-toolbar" aria-label="Bộ lọc template">
-        <label className="tlt-search">
-          <span aria-hidden="true">⌕</span>
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Tìm theo tên, kỹ năng hoặc dạng hoạt động…"
-          />
-          {query ? <button type="button" onClick={() => setQuery('')}>×</button> : null}
+      {message ? <div className="tli-toast">✓ {message}</div> : null}
+
+      <section className="tli-toolbar">
+        <label className="tli-search">
+          <span>⌕</span>
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm template hoặc kỹ năng…" />
         </label>
-        <button
-          type="button"
-          className={`tlt-favorite-filter ${onlyFavorites ? 'active' : ''}`}
-          onClick={() => setOnlyFavorites((value) => !value)}
-        >
-          ★ Yêu thích <b>{favorites.length}</b>
-        </button>
-        <div className="tlt-count"><strong>{filteredTemplates.length}</strong><span>mẫu đang hiển thị</span></div>
-      </section>
-
-      <nav className="tlt-categories" aria-label="Nhóm template">
-        {TEXTLAB_TEMPLATE_CATEGORIES.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className={category === item.id ? 'active' : ''}
-            onClick={() => setCategory(item.id)}
-          >
-            {item.label}
-            <span>{item.id === 'all' ? TEXTLAB_TEMPLATE_COUNT : TEXTLAB_COPY_TEMPLATES.filter((templateItem) => templateItem.category === item.id).length}</span>
-          </button>
-        ))}
-      </nav>
-
-      {recentTemplates.length ? (
-        <section className="tlt-recent">
-          <div><small>VỪA MỞ</small><b>Tiếp tục nhanh</b></div>
-          {recentTemplates.map((item) => (
-            <button key={item.id} type="button" onClick={() => chooseTemplate(item.id)}>
-              <span>{item.icon}</span>{item.name}
+        <div className="tli-category-row">
+          {TEXTLAB_CATEGORIES.map((item) => (
+            <button key={item.id} type="button" className={category === item.id ? 'active' : ''} onClick={() => setCategory(item.id)}>
+              {item.label}
             </button>
           ))}
-        </section>
-      ) : null}
-
-      <main className="tlt-workspace">
-        <section className="tlt-library" aria-label="Danh mục mẫu hoạt động">
-          <div className="tlt-section-head">
-            <div><small>DANH MỤC</small><h2>{TEXTLAB_TEMPLATE_COUNT} mẫu hoạt động</h2></div>
-            <p>18 mẫu TextLab gốc và 18 mẫu mở rộng theo cơ chế hoạt động lớp học.</p>
-          </div>
-          {filteredTemplates.length ? (
-            <div className="tlt-grid">
-              {filteredTemplates.map((item) => (
-                <TemplateCard
-                  key={item.id}
-                  item={item}
-                  active={item.id === selected.id}
-                  favorite={favorites.includes(item.id)}
-                  onSelect={chooseTemplate}
-                  onToggleFavorite={toggleFavorite}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="tlt-empty">
-              <span>⌕</span>
-              <h3>Không tìm thấy template phù hợp</h3>
-              <p>Thử xóa từ khóa, chọn nhóm khác hoặc tắt bộ lọc yêu thích.</p>
-              <button type="button" onClick={() => { setQuery(''); setCategory('all'); setOnlyFavorites(false); }}>Hiển thị tất cả</button>
-            </div>
-          )}
-        </section>
-
-        <section className="tlt-detail">
-          <header className="tlt-detail-head">
-            <div className="tlt-detail-icon" aria-hidden="true">{selected.icon}</div>
-            <div>
-              <small>{selected.tag}{selected.isNew ? ' · MẪU MỞ RỘNG' : ' · MẪU GỐC'}</small>
-              <h2>{selected.name}</h2>
-              <p>{selected.nameVi}</p>
-            </div>
-            <button
-              type="button"
-              className={`tlt-detail-favorite ${favorites.includes(selected.id) ? 'active' : ''}`}
-              onClick={() => toggleFavorite(selected.id)}
-            >
-              {favorites.includes(selected.id) ? '★ Đã yêu thích' : '☆ Yêu thích'}
-            </button>
-          </header>
-
-          <div className="tlt-description">
-            <p>{selected.desc}</p>
-            <div><span>Số lượng khuyến nghị</span><b>{selected.recommended}</b></div>
-          </div>
-
-          <div className="tlt-view-tabs" role="tablist">
-            <button type="button" className={view === 'blank' ? 'active' : ''} onClick={() => setView('blank')}>Mẫu trống</button>
-            <button type="button" className={view === 'example' ? 'active' : ''} onClick={() => setView('example')}>Ví dụ hoàn chỉnh</button>
-            <button type="button" className={view === 'guide' ? 'active' : ''} onClick={() => setView('guide')}>Cách sử dụng</button>
-          </div>
-
-          {view === 'guide' ? (
-            <div className="tlt-guide">
-              <ol>
-                <li><b>Chọn mẫu phù hợp</b><span>Đọc mô tả và số lượng mục khuyến nghị.</span></li>
-                <li><b>Sao chép mẫu trống</b><span>Thay các phần trong dấu ngoặc vuông bằng nội dung của bạn.</span></li>
-                <li><b>Kiểm tra cấu trúc</b><span>Giữ nguyên nhãn, thứ tự trường và định dạng đáp án.</span></li>
-                <li><b>Dán vào nơi cần dùng</b><span>Word, Google Docs, biểu mẫu, công cụ trò chơi hoặc chatbot do bạn tự chọn.</span></li>
-              </ol>
-              <div className="tlt-guide-note">
-                <b>Không có AI trong ứng dụng này.</b>
-                <p>{selected.usage}</p>
-              </div>
-            </div>
-          ) : (
-            <div className="tlt-code-panel">
-              <div className="tlt-code-head">
-                <span>{view === 'example' ? 'VÍ DỤ MINH HỌA' : 'MẪU CẤU TRÚC TRỐNG'}</span>
-                <div>
-                  <button type="button" onClick={() => handleCopy(view)}>⧉ Sao chép</button>
-                  <button
-                    type="button"
-                    onClick={() => downloadText(`${selected.id}-${view}.txt`, content)}
-                  >
-                    ↓ TXT
-                  </button>
-                </div>
-              </div>
-              <pre tabIndex="0">{content}</pre>
-            </div>
-          )}
-
-          <div className="tlt-copy-actions">
-            <button type="button" className="secondary" onClick={() => handleCopy('blank')}>Sao chép mẫu trống</button>
-            <button type="button" className="primary" onClick={() => handleCopy('example')}>Sao chép ví dụ hoàn chỉnh</button>
-          </div>
-        </section>
-      </main>
-
-      <section className="tlt-principles">
-        <article><span>01</span><div><b>Không AI</b><p>Không OpenRouter, Gemini, prompt hoặc API key.</p></div></article>
-        <article><span>02</span><div><b>Không nhập dữ liệu</b><p>Ứng dụng chỉ hiển thị mẫu có sẵn để sao chép.</p></div></article>
-        <article><span>03</span><div><b>Dùng ở mọi nơi</b><p>Sao chép sang Word, Docs, LMS hoặc công cụ khác.</p></div></article>
+          <button type="button" className={showFavoritesOnly ? 'active favorite' : 'favorite'} onClick={() => setShowFavoritesOnly((value) => !value)}>
+            ★ Yêu thích
+          </button>
+        </div>
       </section>
 
-      {notice ? <div className="tlt-toast" role="status"><span>✓</span>{notice}</div> : null}
+      <div className="tli-workspace">
+        <aside className="tli-catalogue">
+          {recentTemplates.length && !query && category === 'all' && !showFavoritesOnly ? (
+            <section className="tli-recent">
+              <header><small>MỞ GẦN ĐÂY</small></header>
+              <div>
+                {recentTemplates.map((template) => (
+                  <button key={template.id} type="button" onClick={() => selectTemplate(template)} title={template.titleVi}>
+                    <span>{template.icon}</span>{template.title}
+                  </button>
+                ))}
+              </div>
+            </section>
+          ) : null}
+          <div className="tli-catalogue-head">
+            <span><b>{visibleTemplates.length}</b> template</span>
+            <small>Chọn để tạo HTML</small>
+          </div>
+          <div className="tli-template-grid">
+            {visibleTemplates.map((template) => (
+              <TemplateCard
+                key={template.id}
+                template={template}
+                selected={selected.id === template.id}
+                favorite={favorites.includes(template.id)}
+                onSelect={selectTemplate}
+                onFavorite={toggleFavorite}
+              />
+            ))}
+          </div>
+        </aside>
+
+        <main className="tli-builder">
+          <section className="tli-template-summary">
+            <span className="tli-summary-icon">{selected.icon}</span>
+            <div>
+              <small>{selected.categoryLabel} · {selected.title}</small>
+              <h2>{selected.titleVi}</h2>
+              <p>{selected.descriptionVi}</p>
+            </div>
+            <aside>
+              <small>Số lượng khuyến nghị</small>
+              <b>{selected.recommended}</b>
+            </aside>
+          </section>
+
+          <section className="tli-editor-panel">
+            <header className="tli-editor-tabs">
+              <button type="button" className={editorMode === 'content' ? 'active' : ''} onClick={() => setEditorMode('content')}>Nội dung của bạn</button>
+              <button type="button" className={editorMode === 'blank' ? 'active' : ''} onClick={() => setPreset('blank')}>Mẫu trống</button>
+              <button type="button" className={editorMode === 'example' ? 'active' : ''} onClick={() => setPreset('example')}>Ví dụ hoàn chỉnh</button>
+              <button type="button" className={editorMode === 'guide' ? 'active' : ''} onClick={() => setEditorMode('guide')}>Cách nhập</button>
+            </header>
+
+            {editorMode === 'guide' ? (
+              <div className="tli-guide">
+                <h3>Cấu trúc nội dung</h3>
+                <p>{selected.syntax}</p>
+                <ol>
+                  <li>Sao chép mẫu trống hoặc dùng ví dụ hoàn chỉnh.</li>
+                  <li>Thay nội dung bằng dữ liệu bài học của bạn.</li>
+                  <li>Phần xem trước HTML tự cập nhật ngay khi bạn nhập.</li>
+                  <li>Tải HTML để mở trên mọi trình duyệt hoặc gửi cho học sinh.</li>
+                </ol>
+                <p className="tli-security-note">Mọi xử lý diễn ra trong trình duyệt. Không có AI và không có nội dung nào được gửi ra ngoài.</p>
+              </div>
+            ) : (
+              <>
+                <div className="tli-editor-bar">
+                  <span>{editorMode === 'blank' ? 'MẪU TRỐNG' : editorMode === 'example' ? 'VÍ DỤ HOÀN CHỈNH' : 'NỘI DUNG ĐANG TẠO'}</span>
+                  <div>
+                    <button type="button" onClick={() => copy(content, 'Đã sao chép nội dung.')}>⧉ Sao chép</button>
+                    <button type="button" onClick={() => downloadTemplateText(selected, content)}>↓ TXT</button>
+                  </div>
+                </div>
+                <textarea
+                  className="tli-content-editor"
+                  value={content}
+                  onChange={(event) => { setContent(event.target.value); setEditorMode('content'); }}
+                  spellCheck={false}
+                  aria-label="Nội dung hoạt động"
+                />
+              </>
+            )}
+          </section>
+
+          <section className="tli-preview-panel">
+            <header>
+              <div>
+                <small>LIVE PREVIEW</small>
+                <h3>Hoạt động tương tác trực tiếp</h3>
+              </div>
+              <div>
+                <button type="button" onClick={() => setPreviewKey((value) => value + 1)}>↻ Chạy lại</button>
+                <button type="button" onClick={openStandalone}>↗ Mở riêng</button>
+                <button type="button" onClick={fullscreen}>⛶ Toàn màn hình</button>
+                <button type="button" className="primary" onClick={() => downloadStandaloneHtml(selected, content)}>↓ Tải HTML</button>
+              </div>
+            </header>
+            {parsed.errors?.length ? (
+              <EmptyPreview errors={parsed.errors} />
+            ) : (
+              <iframe
+                key={`${selected.id}-${previewKey}`}
+                ref={iframeRef}
+                title={`Xem trước ${selected.titleVi}`}
+                srcDoc={html}
+                sandbox="allow-scripts allow-downloads allow-modals"
+              />
+            )}
+          </section>
+
+          <section className="tli-bottom-actions">
+            <button type="button" onClick={() => copy(selected.blank, 'Đã sao chép mẫu trống.')}>Sao chép mẫu trống</button>
+            <button type="button" onClick={() => copy(selected.example, 'Đã sao chép ví dụ.')}>Sao chép ví dụ hoàn chỉnh</button>
+            <button type="button" className="primary" disabled={parsed.errors?.length} onClick={() => downloadStandaloneHtml(selected, content)}>Tải hoạt động HTML</button>
+          </section>
+        </main>
+      </div>
     </div>
   );
 }
