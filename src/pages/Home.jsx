@@ -4,6 +4,8 @@ import { getFirstAllowedRoute, hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/motion.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
+import WorkDashboard from './WorkDashboard.jsx';
+import './HomeDashboardEmbed.css';
 
 const ALL_APPS = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS];
 
@@ -26,6 +28,10 @@ const copy = {
     setup: 'Cần thiết lập',
     lastAccess: 'Cập nhật lúc',
     open: 'Mở',
+    dashboardTitle: 'Bảng điều hành của bạn',
+    dashboardSub: 'Toàn bộ công việc, lịch 14 ngày, phê duyệt, hoạt động tổ chuyên môn, chủ nhiệm và học liệu gần đây được hiển thị trực tiếp dưới trang chủ.',
+    openDashboard: 'Mở toàn màn hình',
+    signInDashboard: 'Đăng nhập để xem bảng điều hành cá nhân',
   },
   en: {
     welcome: 'Welcome back to Brian!',
@@ -45,6 +51,10 @@ const copy = {
     setup: 'Setup needed',
     lastAccess: 'Updated at',
     open: 'Open',
+    dashboardTitle: 'Your work dashboard',
+    dashboardSub: 'Tasks, the 14-day schedule, approvals, department activity, homeroom data and recent resources now appear directly below the homepage.',
+    openDashboard: 'Open full screen',
+    signInDashboard: 'Sign in to view your personal dashboard',
   },
 };
 
@@ -325,6 +335,7 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', appVisib
     const visibilityId = item.route ? visibilityIdForRoute(item.route) : `tool:${item.slug}`;
     return !isAppHiddenForUser(visibilitySnapshot, currentUser, visibilityId);
   }).length;
+  const canDashboard = Boolean(currentUser && hasRouteAccess(currentUser, 'dashboard'));
 
   return (
     <div className="brian-overlap-home" aria-label="Brian English homepage">
@@ -375,6 +386,33 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', appVisib
           {cards.map((item) => <FeatureCard key={item.id} item={item} currentUser={currentUser} language={language} />)}
         </div>
       </section>
+
+      {canDashboard || !currentUser ? (
+        <section className="boh-dashboard-section" aria-label={t.dashboardTitle}>
+          <header className="boh-dashboard-heading">
+            <div>
+              <span>BRIAN COMMAND CENTER</span>
+              <h2>{t.dashboardTitle}</h2>
+              <p>{t.dashboardSub}</p>
+            </div>
+            <button type="button" onClick={(event) => launch(canDashboard ? '#/dashboard' : '#/login', 'DB', '#315fc4', currentUser, event.currentTarget)}>
+              {canDashboard ? t.openDashboard : t.signInDashboard} <b>→</b>
+            </button>
+          </header>
+
+          {canDashboard ? (
+            <div className="boh-dashboard-shell">
+              <WorkDashboard currentUser={currentUser} language={language} />
+            </div>
+          ) : (
+            <div className="boh-dashboard-login">
+              <span aria-hidden="true">▦</span>
+              <div><strong>{t.signInDashboard}</strong><small>{t.dashboardSub}</small></div>
+              <button type="button" onClick={(event) => launch('#/login', 'IN', '#315fc4', currentUser, event.currentTarget)}>{vi ? 'Đăng nhập' : 'Sign in'} →</button>
+            </div>
+          )}
+        </section>
+      ) : null}
     </div>
   );
 }
