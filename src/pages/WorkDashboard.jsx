@@ -10,6 +10,7 @@ import {
   openDashboardTarget,
 } from '../utils/dashboardAggregator.js';
 import '../styles/work-dashboard-v1167.css';
+import '../styles/work-dashboard-luxury-v1167.css';
 
 const COPY = {
   vi: {

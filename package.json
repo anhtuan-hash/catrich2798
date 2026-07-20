@@ -118,7 +118,8 @@
     "audit:linked-app-launcher": "node scripts/audit-linked-app-launcher-v11.6.7.mjs",
     "audit:thpt-practice-hub": "node scripts/audit-thpt-practice-hub-v11.6.7.mjs",
     "audit:shared-chatbot-drawer": "node scripts/audit-shared-chatbot-drawer-v11.6.7.mjs",
-    "audit:work-dashboard": "node scripts/audit-work-dashboard-v11.6.7.mjs"
+    "audit:work-dashboard": "node scripts/audit-work-dashboard-v11.6.7.mjs",
+    "audit:dashboard-luxury-cards": "node scripts/audit-dashboard-luxury-cards-v11.6.7.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
