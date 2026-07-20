@@ -1,6 +1,9 @@
 name: Homeroom Audit Source Export
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - agent/homeroom-audit-hardening
