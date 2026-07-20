@@ -216,6 +216,13 @@ button.primary{background:var(--ink);color:#fff}
 @keyframes burst{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(540deg)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes finishPop{from{opacity:0;transform:scale(.78) translateY(30px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+.wordsearch-grid{display:grid;grid-template-columns:repeat(var(--ws-size),minmax(26px,1fr));gap:4px;touch-action:none;user-select:none}
+.ws-cell{aspect-ratio:1;border:2px solid #9ab8d0;border-radius:8px;padding:0;display:grid;place-items:center;font-weight:900;background:#f7fbff}
+.ws-cell.selecting{background:#fff4a8;border-color:#d79a00;transform:scale(1.06)}
+.ws-cell.found{background:#dcf8e8;border-color:#16834d;color:#0c5a34}
+.word-chip{display:inline-flex;align-items:center;border:2px solid #9ab8d0;border-radius:999px;padding:9px 13px;background:#fff;font-weight:850}
+.word-chip.found{background:#dcf8e8;border-color:#16834d;color:#0c5a34;text-decoration:line-through}
 @media(max-width:600px){.app{padding:12px}.panel,.hero{border-radius:16px;padding:16px}.result-grid{grid-template-columns:1fr}.tf-actions{grid-template-columns:1fr}}
 `;
 
@@ -594,14 +601,147 @@ function buildWordSearch(words){
 }
 
 function wordSearchGame(data){
-  const words=(data.items||[]).map(x=>String(x).toUpperCase()).filter(Boolean);
-  const grid=buildWordSearch(words);
-  const html=gameHudHtml('Tìm từ trong bảng rồi đánh dấu danh sách')+`<section class="panel"><div style="display:grid;grid-template-columns:repeat(${grid.length},1fr);gap:3px">${grid.flat().map(letter=>`<span class="tile" style="padding:6px;text-align:center;font-weight:900">${letter}</span>`).join('')}</div><h3>Danh sách từ</h3><div class="toolbar">${words.map(word=>`<button class="word-chip">${esc(word)}</button>`).join('')}</div></section>`;
+  const words=(data.items||[]).map(item=>String(item).toUpperCase().replace(/[^A-Z]/g,'')).filter(Boolean);
+  const size=Math.max(10,Math.min(16,Math.max(...words.map(word=>word.length),10)));
+  const grid=Array.from({length:size},()=>Array(size).fill(''));
+  const placements=[];
+
+  const directions=[
+    [0,1],[1,0],[1,1],[-1,1],
+    [0,-1],[-1,0],[-1,-1],[1,-1]
+  ];
+
+  words.forEach(word=>{
+    let placed=false;
+    for(let tries=0;tries<400&&!placed;tries++){
+      const [dr,dc]=directions[Math.floor(Math.random()*directions.length)];
+      const startRow=Math.floor(Math.random()*size);
+      const startCol=Math.floor(Math.random()*size);
+      const endRow=startRow+dr*(word.length-1);
+      const endCol=startCol+dc*(word.length-1);
+      if(endRow<0||endRow>=size||endCol<0||endCol>=size)continue;
+
+      let ok=true;
+      for(let i=0;i<word.length;i++){
+        const r=startRow+dr*i,c=startCol+dc*i;
+        if(grid[r][c]&&grid[r][c]!==word[i]){ok=false;break;}
+      }
+      if(!ok)continue;
+
+      const cells=[];
+      for(let i=0;i<word.length;i++){
+        const r=startRow+dr*i,c=startCol+dc*i;
+        grid[r][c]=word[i];
+        cells.push([r,c]);
+      }
+      placements.push({word,cells});
+      placed=true;
+    }
+  });
+
+  const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  grid.forEach(row=>row.forEach((cell,index)=>{
+    if(!cell)row[index]=alphabet[Math.floor(Math.random()*alphabet.length)];
+  }));
+
+  const cellsHtml=grid.flatMap((row,r)=>row.map((letter,c)=>
+    `<button class="ws-cell" data-r="${r}" data-c="${c}" aria-label="Hàng ${r+1}, cột ${c+1}: ${letter}">${letter}</button>`
+  )).join('');
+
+  const html=gameHudHtml('Kéo từ chữ đầu đến chữ cuối để tìm từ')+
+    `<section class="panel">
+      <div id="wordGrid" class="wordsearch-grid" style="--ws-size:${size}">${cellsHtml}</div>
+      <h3>Danh sách từ</h3>
+      <div class="toolbar">${words.map(word=>`<span class="word-chip" data-word="${word}">${esc(word)}</span>`).join('')}</div>
+      <p id="wsMessage" class="feedback" aria-live="polite"></p>
+    </section>`;
+
   const script=gameSummaryScript(words.length,'từ')+`
-document.querySelectorAll('.word-chip').forEach(button=>button.onclick=()=>{
-  if(button.dataset.done)return;button.dataset.done='1';button.classList.add('correct');button.textContent='✓ '+button.textContent;gameDone++;gameScore++;
-  gameHud();if(gameDone===GAME_TOTAL)setTimeout(gameFinish,450);
-});`;
+const WORDS=${JSON.stringify(words)};
+const SIZE=${size};
+let selecting=false,startCell=null,currentCells=[];
+
+const allCells=[...document.querySelectorAll('.ws-cell')];
+const getCell=(r,c)=>document.querySelector('.ws-cell[data-r="'+r+'"][data-c="'+c+'"]');
+const clearSelecting=()=>allCells.forEach(cell=>cell.classList.remove('selecting'));
+
+const lineCells=(start,end)=>{
+  const sr=Number(start.dataset.r),sc=Number(start.dataset.c);
+  const er=Number(end.dataset.r),ec=Number(end.dataset.c);
+  const dr=Math.sign(er-sr),dc=Math.sign(ec-sc);
+  const rowDistance=Math.abs(er-sr),colDistance=Math.abs(ec-sc);
+  const valid=rowDistance===0||colDistance===0||rowDistance===colDistance;
+  if(!valid)return [];
+  const length=Math.max(rowDistance,colDistance)+1;
+  const result=[];
+  for(let i=0;i<length;i++){
+    const r=sr+dr*i,c=sc+dc*i;
+    const cell=getCell(r,c);
+    if(!cell)return [];
+    result.push(cell);
+  }
+  return result;
+};
+
+const previewLine=end=>{
+  clearSelecting();
+  currentCells=lineCells(startCell,end);
+  currentCells.forEach(cell=>cell.classList.add('selecting'));
+};
+
+const finishSelection=()=>{
+  if(!selecting)return;
+  selecting=false;
+  const letters=currentCells.map(cell=>cell.textContent).join('');
+  const reversed=[...letters].reverse().join('');
+  const match=WORDS.find(word=>word===letters||word===reversed);
+  const message=document.getElementById('wsMessage');
+
+  if(match){
+    const chip=document.querySelector('.word-chip[data-word="'+match+'"]');
+    if(chip&&!chip.classList.contains('found')){
+      currentCells.forEach(cell=>{cell.classList.remove('selecting');cell.classList.add('found');});
+      chip.classList.add('found');
+      chip.textContent='✓ '+chip.textContent;
+      gameDone++;gameScore++;
+      message.className='feedback ok';
+      message.textContent='✓ Tìm thấy: '+match;
+      gameHud();
+      if(gameDone===GAME_TOTAL)setTimeout(gameFinish,550);
+    }else{
+      clearSelecting();
+      message.className='feedback';
+      message.textContent='Từ này đã được tìm thấy.';
+    }
+  }else{
+    clearSelecting();
+    message.className='feedback no';
+    message.textContent='Chưa đúng. Hãy kéo theo hàng ngang, dọc hoặc đường chéo.';
+  }
+  startCell=null;
+  currentCells=[];
+};
+
+allCells.forEach(cell=>{
+  cell.addEventListener('pointerdown',event=>{
+    event.preventDefault();
+    selecting=true;
+    startCell=cell;
+    currentCells=[cell];
+    clearSelecting();
+    cell.classList.add('selecting');
+    cell.setPointerCapture?.(event.pointerId);
+  });
+
+  cell.addEventListener('pointerenter',()=>{
+    if(selecting&&startCell)previewLine(cell);
+  });
+
+  cell.addEventListener('pointerup',finishSelection);
+});
+
+document.addEventListener('pointerup',finishSelection);
+`;
   return shell(data,html,script);
 }
 
