@@ -10,11 +10,19 @@ const NAV_ITEMS = [
   { label: 'Thêm', fallback: '#/apps', icon: 'more' },
 ];
 
-const NEWS_ITEMS = [
-  { category: 'Thời sự', title: 'Điểm tin nổi bật trong ngày', target: 'Đọc báo' },
-  { category: 'Giáo dục', title: 'Bản tin giáo dục và trường học', target: 'Đọc báo' },
-  { category: 'Thế giới', title: 'Tin quốc tế đáng chú ý', target: 'Đọc báo' },
+const NEWS_CONFIG = [
+  { key: 'thoi-su', category: 'Thời sự', rss: 'https://vnexpress.net/rss/thoi-su.rss' },
+  { key: 'giao-duc', category: 'Giáo dục', rss: 'https://vnexpress.net/rss/giao-duc.rss' },
+  { key: 'the-gioi', category: 'Thế giới', rss: 'https://vnexpress.net/rss/the-gioi.rss' },
 ];
+
+const NEWS_CACHE_KEY = 'brian-option-two-live-news-v3';
+const NEWS_CACHE_MAX_AGE = 6 * 60 * 60 * 1000;
+const NEWS_REFRESH_INTERVAL = 10 * 60 * 1000;
+const NEWS_ROTATE_INTERVAL = 8500;
+const newsState = new Map();
+let newsRotationTimer = null;
+let newsRefreshTimer = null;
 
 function icon(name) {
   const paths = {
@@ -107,16 +115,259 @@ function lightOnly() {
   });
 }
 
+
+function escapeNewsText(value) {
+  const element = document.createElement('textarea');
+  element.textContent = String(value || '');
+  return element.innerHTML;
+}
+
+function fetchWithTimeout(url, options = {}, timeout = 9000) {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeout);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => window.clearTimeout(timer));
+}
+
+function cleanNewsTitle(value) {
+  return String(value || '')
+    .replace(/<!\[CDATA\[|\]\]>/g, '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function validArticleUrl(value) {
+  try {
+    const url = new URL(String(value || ''));
+    return /^https?:$/.test(url.protocol) ? url.href : '';
+  } catch {
+    return '';
+  }
+}
+
+function parseXmlFeed(xmlText, config) {
+  const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+  if (doc.querySelector('parsererror')) throw new Error('RSS XML không hợp lệ');
+  return [...doc.querySelectorAll('item')].slice(0, 10).map((item) => ({
+    category: config.category,
+    title: cleanNewsTitle(item.querySelector('title')?.textContent),
+    url: validArticleUrl(item.querySelector('link')?.textContent),
+    publishedAt: item.querySelector('pubDate')?.textContent || '',
+  })).filter((item) => item.title && item.url);
+}
+
+function parseRss2Json(payload, config) {
+  if (!payload || payload.status !== 'ok' || !Array.isArray(payload.items)) return [];
+  return payload.items.slice(0, 10).map((item) => ({
+    category: config.category,
+    title: cleanNewsTitle(item.title),
+    url: validArticleUrl(item.link || item.guid),
+    publishedAt: item.pubDate || '',
+  })).filter((item) => item.title && item.url);
+}
+
+async function loadNewsFeed(config) {
+  const rss2json = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(config.rss)}`;
+  const allOrigins = `https://api.allorigins.win/raw?url=${encodeURIComponent(config.rss)}`;
+  const attempts = [
+    async () => {
+      const response = await fetchWithTimeout(rss2json, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`rss2json ${response.status}`);
+      return parseRss2Json(await response.json(), config);
+    },
+    async () => {
+      const response = await fetchWithTimeout(allOrigins, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`allorigins ${response.status}`);
+      return parseXmlFeed(await response.text(), config);
+    },
+    async () => {
+      const response = await fetchWithTimeout(config.rss, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`rss ${response.status}`);
+      return parseXmlFeed(await response.text(), config);
+    },
+  ];
+
+  let lastError = null;
+  for (const attempt of attempts) {
+    try {
+      const items = await attempt();
+      if (items.length) return items;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('Không có dữ liệu RSS');
+}
+
+function readNewsCache() {
+  try {
+    const value = JSON.parse(localStorage.getItem(NEWS_CACHE_KEY) || 'null');
+    if (!value || !value.savedAt || !value.feeds) return null;
+    if (Date.now() - value.savedAt > NEWS_CACHE_MAX_AGE) return null;
+    return value;
+  } catch {
+    return null;
+  }
+}
+
+function saveNewsCache() {
+  try {
+    const feeds = {};
+    NEWS_CONFIG.forEach((config) => {
+      const state = newsState.get(config.key);
+      if (state?.items?.length) feeds[config.key] = state.items;
+    });
+    localStorage.setItem(NEWS_CACHE_KEY, JSON.stringify({ savedAt: Date.now(), feeds }));
+  } catch {
+    // Cache is optional.
+  }
+}
+
+function relativeNewsTime(value) {
+  const timestamp = Date.parse(value || '');
+  if (!Number.isFinite(timestamp)) return 'Tin mới';
+  const diffMinutes = Math.max(0, Math.round((Date.now() - timestamp) / 60000));
+  if (diffMinutes < 1) return 'Vừa đăng';
+  if (diffMinutes < 60) return `${diffMinutes} phút trước`;
+  const hours = Math.round(diffMinutes / 60);
+  if (hours < 24) return `${hours} giờ trước`;
+  return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit' }).format(new Date(timestamp));
+}
+
+function renderNewsButton(button, config, item, state = 'ready') {
+  const category = button.querySelector('.ot2-news-category');
+  const title = button.querySelector('.ot2-news-title');
+  const meta = button.querySelector('.ot2-news-meta');
+  category.textContent = config.category;
+  button.classList.toggle('is-loading', state === 'loading');
+  button.classList.toggle('is-error', state === 'error');
+
+  if (state === 'loading') {
+    title.textContent = 'Đang cập nhật tin mới…';
+    meta.textContent = 'Kết nối nguồn tin';
+    button.dataset.articleUrl = '';
+    return;
+  }
+  if (state === 'error' || !item) {
+    title.textContent = 'Chưa lấy được tin · Nhấn để thử lại';
+    meta.textContent = 'Kiểm tra kết nối';
+    button.dataset.articleUrl = '';
+    return;
+  }
+
+  title.textContent = item.title;
+  meta.textContent = relativeNewsTime(item.publishedAt);
+  button.dataset.articleUrl = item.url;
+  button.title = `${config.category}: ${item.title}`;
+}
+
+function rotateNews(shell) {
+  NEWS_CONFIG.forEach((config) => {
+    const state = newsState.get(config.key);
+    const button = shell.querySelector(`[data-news-key="${config.key}"]`);
+    if (!button || !state?.items?.length) return;
+    state.index = (state.index + 1) % Math.min(state.items.length, 6);
+    renderNewsButton(button, config, state.items[state.index]);
+  });
+}
+
+function updateNewsStatus(shell, message, status = 'ready') {
+  const statusNode = shell.querySelector('[data-news-status]');
+  const refresh = shell.querySelector('[data-news-refresh]');
+  if (statusNode) statusNode.textContent = message;
+  if (refresh) {
+    refresh.classList.toggle('is-spinning', status === 'loading');
+    refresh.disabled = status === 'loading';
+  }
+}
+
+async function refreshLiveNews(shell, force = false) {
+  if (!shell || shell.dataset.newsLoading === 'true') return;
+  shell.dataset.newsLoading = 'true';
+  updateNewsStatus(shell, 'Đang cập nhật', 'loading');
+
+  NEWS_CONFIG.forEach((config) => {
+    const current = newsState.get(config.key);
+    if (!current?.items?.length || force) {
+      const button = shell.querySelector(`[data-news-key="${config.key}"]`);
+      if (button) renderNewsButton(button, config, null, 'loading');
+    }
+  });
+
+  const results = await Promise.allSettled(NEWS_CONFIG.map(async (config) => ({
+    config,
+    items: await loadNewsFeed(config),
+  })));
+
+  let successCount = 0;
+  results.forEach((result, index) => {
+    const config = NEWS_CONFIG[index];
+    const button = shell.querySelector(`[data-news-key="${config.key}"]`);
+    if (result.status === 'fulfilled' && result.value.items.length) {
+      const items = result.value.items;
+      newsState.set(config.key, { items, index: 0 });
+      renderNewsButton(button, config, items[0]);
+      successCount += 1;
+      return;
+    }
+
+    const cached = newsState.get(config.key);
+    if (cached?.items?.length) {
+      renderNewsButton(button, config, cached.items[cached.index || 0]);
+    } else {
+      renderNewsButton(button, config, null, 'error');
+    }
+  });
+
+  if (successCount) {
+    saveNewsCache();
+    updateNewsStatus(shell, `Cập nhật ${new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(new Date())}`);
+  } else {
+    updateNewsStatus(shell, 'Không thể cập nhật');
+  }
+
+  shell.dataset.newsLoading = 'false';
+  window.clearInterval(newsRotationTimer);
+  newsRotationTimer = window.setInterval(() => rotateNews(shell), NEWS_ROTATE_INTERVAL);
+}
+
+function initialiseLiveNews(shell) {
+  const cached = readNewsCache();
+  if (cached?.feeds) {
+    NEWS_CONFIG.forEach((config) => {
+      const items = Array.isArray(cached.feeds[config.key]) ? cached.feeds[config.key] : [];
+      const button = shell.querySelector(`[data-news-key="${config.key}"]`);
+      if (items.length) {
+        newsState.set(config.key, { items, index: 0 });
+        renderNewsButton(button, config, items[0]);
+      }
+    });
+    updateNewsStatus(shell, 'Đang dùng tin đã lưu');
+  }
+
+  refreshLiveNews(shell, false);
+  window.clearInterval(newsRefreshTimer);
+  newsRefreshTimer = window.setInterval(() => refreshLiveNews(shell, false), NEWS_REFRESH_INTERVAL);
+}
+
 function shellMarkup() {
   const nav = NAV_ITEMS.map((item) => `
     <button class="ot2-nav-button" type="button" data-ot2-nav="${item.label}" data-label="${item.label}" data-fallback="${item.fallback}">
       <span class="ot2-nav-icon">${icon(item.icon)}</span><span>${item.label}</span>
     </button>`).join('');
 
-  const news = NEWS_ITEMS.map((item) => `
-    <button class="ot2-news-item" type="button" data-news-target="${item.target}">
+  const news = NEWS_CONFIG.map((item) => `
+    <button class="ot2-news-item is-loading" type="button" data-news-key="${item.key}">
       <span class="ot2-news-category">${item.category}</span>
-      <span class="ot2-news-title">${item.title}</span>
+      <span class="ot2-news-copy">
+        <span class="ot2-news-title">Đang cập nhật tin mới…</span>
+        <span class="ot2-news-meta">Kết nối nguồn tin</span>
+      </span>
       <span class="ot2-news-arrow">${icon('chevron')}</span>
     </button>`).join('');
 
@@ -124,7 +375,11 @@ function shellMarkup() {
     <div class="ot2-newsbar">
       <div class="ot2-news-label"><span class="ot2-live-dot"></span><strong>Tin vắn thời sự</strong><span class="ot2-time" data-ot2-clock></span></div>
       <div class="ot2-news-track">${news}</div>
-      <button class="ot2-all-news" type="button" data-news-target="Đọc báo">Xem bản tin ${icon('chevron')}</button>
+      <div class="ot2-news-actions">
+        <span class="ot2-news-status" data-news-status>Đang khởi tạo</span>
+        <button class="ot2-news-refresh" type="button" data-news-refresh aria-label="Cập nhật tin mới">${icon('sync')}</button>
+        <button class="ot2-all-news" type="button" data-news-target="Đọc báo">Xem bản tin ${icon('chevron')}</button>
+      </div>
     </div>
 
     <div class="ot2-utilitybar">
@@ -166,6 +421,17 @@ function bindShell(shell) {
   shell.querySelectorAll('[data-news-target]').forEach((button) => {
     button.addEventListener('click', () => navigate(button.dataset.newsTarget, '#/tool/news-reader'));
   });
+  shell.querySelectorAll('[data-news-key]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const articleUrl = validArticleUrl(button.dataset.articleUrl);
+      if (articleUrl) {
+        window.open(articleUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      refreshLiveNews(shell, true);
+    });
+  });
+  shell.querySelector('[data-news-refresh]')?.addEventListener('click', () => refreshLiveNews(shell, true));
   shell.querySelectorAll('[data-control]').forEach((button) => {
     button.addEventListener('click', () => {
       const legacy = findLegacyControl(button.dataset.control);
@@ -191,6 +457,7 @@ function bindShell(shell) {
 
   window.addEventListener('hashchange', () => updateActiveNav(shell));
   updateActiveNav(shell);
+  initialiseLiveNews(shell);
 }
 
 export function installOptionTwoShell() {
