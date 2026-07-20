@@ -27,15 +27,18 @@ jobs:
           gzip -t /tmp/homeroom.patch.gz
           gzip -d -c /tmp/homeroom.patch.gz > /tmp/homeroom.patch
           test "$(wc -c < /tmp/homeroom.patch)" -eq 68013
-      - name: Apply verified patch
+      - name: Apply patch files
+        shell: bash
+        run: patch -p1 --batch < /tmp/homeroom.patch
+      - name: Prepare clean commit
         shell: bash
         run: |
-          set -euxo pipefail
-          patch -p1 --batch < /tmp/homeroom.patch
           rm -rf .homeroom-patch
           rm -f .github/workflows/apply-homeroom-integrity-fixes.yml
           git config user.name "Brian Homeroom Fix Bot"
           git config user.email "actions@users.noreply.github.com"
           git add -A
           git commit -m "Fix homeroom data integrity and restore gradebook"
-          git push origin HEAD:agent/homeroom-integrity-fixes
+      - name: Push fixed branch
+        shell: bash
+        run: git push origin HEAD:agent/homeroom-integrity-fixes
