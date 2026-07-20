@@ -133,7 +133,8 @@ function rowsToStudents(rows) {
 
 async function readRows(file) {
   const name = clean(file?.name).toLowerCase();
-  if (name.endsWith('.xlsx') || name.endsWith('.xls')) return readXlsxFile(file, { dateFormat: 'dd/mm/yyyy' });
+  if (name.endsWith('.xls')) throw new Error('File Excel .xls cũ chưa được hỗ trợ. Hãy mở file và lưu lại dưới dạng .xlsx.');
+  if (name.endsWith('.xlsx')) return readXlsxFile(file, { dateFormat: 'dd/mm/yyyy' });
   const text = (await file.text()).replace(/^\uFEFF/, '');
   return parseDelimited(text, name.endsWith('.tsv') ? '\t' : detectDelimiter(text));
 }
@@ -165,7 +166,8 @@ export default function StudentRosterImportPanel({ existingStudents = [], onImpo
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const existingKeys = useMemo(() => new Set(existingStudents.flatMap((item) => [item.code ? `code:${fold(item.code)}` : '', item.fullName ? `name:${fold(item.fullName)}` : '']).filter(Boolean)), [existingStudents]);
+  const existingCodes = useMemo(() => new Set(existingStudents.map((item) => item.code ? fold(item.code) : '').filter(Boolean)), [existingStudents]);
+  const existingNameOnly = useMemo(() => new Set(existingStudents.filter((item) => !item.code).map((item) => fold(item.fullName)).filter(Boolean)), [existingStudents]);
   const selectedRows = rows.filter((row) => row.__selected && row.fullName);
   const duplicateCount = rows.filter((row) => row.__duplicate).length;
 
@@ -175,7 +177,10 @@ export default function StudentRosterImportPanel({ existingStudents = [], onImpo
     try {
       const parsed = rowsToStudents(await readRows(file)).map((item) => ({
         ...item,
-        __duplicate: Boolean((item.code && existingKeys.has(`code:${fold(item.code)}`)) || existingKeys.has(`name:${fold(item.fullName)}`)),
+        __duplicate: Boolean(
+          (item.code && existingCodes.has(fold(item.code)))
+          || (!item.code && existingNameOnly.has(fold(item.fullName)))
+        ),
       }));
       setRows(parsed);
     } catch (err) { setError(err?.message || 'Không thể đọc file.'); }
@@ -199,10 +204,10 @@ export default function StudentRosterImportPanel({ existingStudents = [], onImpo
         <div><small>NHẬN DIỆN TỰ ĐỘNG · KHÔNG DÙNG AI</small><h2>Nhập nhanh danh sách học sinh</h2><p>Tải file mẫu, điền dữ liệu rồi tải lên. Hệ thống nhận dạng cột ngay trên thiết bị và cho xem trước trước khi lưu.</p></div>
         <div className="hr-head-actions"><button type="button" className="secondary" onClick={downloadTemplate}>Tải file mẫu Excel CSV</button><button type="button" className="secondary" onClick={() => inputRef.current?.click()}>Chọn file</button><button type="button" className="text-btn" onClick={onClose}>Đóng</button></div>
       </div>
-      <input ref={inputRef} hidden type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" onChange={(event) => chooseFile(event.target.files?.[0])} />
+      <input ref={inputRef} hidden type="file" accept=".xlsx,.csv,.tsv,.txt" onChange={(event) => chooseFile(event.target.files?.[0])} />
       <div className="sri-drop" onClick={() => inputRef.current?.click()} role="button" tabIndex={0} onKeyDown={(event) => event.key === 'Enter' && inputRef.current?.click()}>
         <strong>{busy ? 'Đang đọc file…' : fileName || 'Kéo thả hoặc bấm để chọn file'}</strong>
-        <span>Hỗ trợ Excel XLSX/XLS và CSV/TSV/TXT · không gửi dữ liệu ra ngoài</span>
+        <span>Hỗ trợ Excel XLSX và CSV/TSV/TXT · không gửi dữ liệu ra ngoài</span>
       </div>
       {error ? <div className="sri-error">⚠ {error}</div> : null}
       {rows.length ? <>
