@@ -1,0 +1,35 @@
+name: Homeroom Build Verification
+
+on:
+  pull_request:
+    paths:
+      - 'src/pages/HomeroomWorkspace.jsx'
+      - 'src/components/Homeroom*.jsx'
+      - 'src/components/homeroom/**'
+      - 'src/utils/homeroom*.js'
+      - 'src/data/homeroom*.js'
+      - 'src/styles/homeroom*.css'
+      - 'public/templates/**'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build application
+        run: npm run build
