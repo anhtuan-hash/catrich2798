@@ -210,8 +210,11 @@ export function AnnouncementsTab({ workspace, onCommit, currentUser }) {
     window.alert(result.ok ? (result.offline ? 'Đã cập nhật bản cổng trên thiết bị. Cần Supabase để truy cập từ thiết bị khác.' : 'Đã xuất bản dữ liệu cổng kết nối.') : `Không thể xuất bản: ${result.message}`);
   };
   const chooseAttachment = async (file) => {
-    try { setDraft((value) => ({ ...value, ...(await readSmallAttachment(file)) })); setFileError(''); }
-    catch (error) { setFileError(error.message); }
+    try {
+      const attachment = await readSmallAttachment(file);
+      setDraft((value) => ({ ...value, ...attachment }));
+      setFileError('');
+    } catch (error) { setFileError(error.message); }
   };
   const receiptFor = (id) => receipts.filter((item) => (item.notice_id || item.noticeId) === id);
   const responseFor = (id) => responses.filter((item) => (item.notice_id || item.noticeId) === id);
