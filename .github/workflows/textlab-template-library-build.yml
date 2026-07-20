@@ -1,6 +1,9 @@
 name: TextLab Template Library Verification
 
 on:
+  push:
+    branches:
+      - agent/textlab-template-library-no-ai
   pull_request:
     branches:
       - main
