@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { TEXTLAB_TEMPLATES, buildInteractiveHtml, downloadHtml, sampleFor } from '../utils/textlabInteractive.js';
+import { TEXTLAB_TEMPLATES, buildInteractiveHtml, downloadHtml, normalizedSampleFor } from '../utils/textlabInteractive.js';
 import '../styles/textlab-template-interactive.css';
 
 const CATEGORIES = ['Tất cả','Kiểm tra','Từ vựng','Câu & đoạn','Đọc hiểu','Nói & viết','Trò chơi'];
@@ -15,7 +15,7 @@ const categoryOf = template => {
 export default function TextLabTemplateLibrary() {
   const [selectedId, setSelectedId] = useState(TEXTLAB_TEMPLATES[1].id);
   const selected = TEXTLAB_TEMPLATES.find(template => template.id === selectedId) || TEXTLAB_TEMPLATES[0];
-  const [content, setContent] = useState(() => sampleFor(selected.kind));
+  const [content, setContent] = useState(() => normalizedSampleFor(selected));
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Tất cả');
   const [tab, setTab] = useState('content');
@@ -23,7 +23,7 @@ export default function TextLabTemplateLibrary() {
   const iframeRef = useRef(null);
 
   useEffect(() => {
-    setContent(sampleFor(selected.kind));
+    setContent(normalizedSampleFor(selected));
     setTab('content');
     setPreviewKey(key => key + 1);
   }, [selectedId]);
@@ -58,7 +58,7 @@ export default function TextLabTemplateLibrary() {
   const shownText = tab === 'blank'
     ? `TITLE: Tên hoạt động\n\n${selected.format}`
     : tab === 'sample'
-      ? sampleFor(selected.kind)
+      ? normalizedSampleFor(selected)
       : content;
 
   return <div className="tlx-page">
