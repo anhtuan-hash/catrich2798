@@ -3,6 +3,7 @@ import {
   callOpenRouter,
   estimateTokens,
   readServerAiSettings,
+  writeServerAiSettings,
   reserveServerAiQuota,
   resolveOutputLimit,
   settleServerAiQuota,
@@ -55,17 +56,85 @@ function normalizeRequest(body = {}) {
   };
 }
 
+
+async function usageAndAudit(context) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [usageResult, auditResult] = await Promise.all([
+    (context.adminClient || context.client)
+      .from('ai_usage_daily')
+      .select('*')
+      .eq('day', today)
+      .order('requests', { ascending: false })
+      .limit(500),
+    (context.adminClient || context.client)
+      .from('api_security_events')
+      .select('*')
+      .eq('endpoint', '/api/ai')
+      .order('created_at', { ascending: false })
+      .limit(120),
+  ]);
+  const rows = Array.isArray(usageResult.data) ? usageResult.data : [];
+  const totals = rows.reduce((sum, row) => ({
+    requests: sum.requests + Number(row.requests || 0),
+    successes: sum.successes + Number(row.successes || 0),
+    errors: sum.errors + Number(row.errors || 0),
+    inputTokens: sum.inputTokens + Number(row.input_tokens || 0),
+    outputTokens: sum.outputTokens + Number(row.output_tokens || 0),
+    reservedTokens: sum.reservedTokens + Number(row.reserved_tokens || 0),
+  }), { requests: 0, successes: 0, errors: 0, inputTokens: 0, outputTokens: 0, reservedTokens: 0 });
+  return {
+    date: today,
+    totals,
+    users: rows,
+    audit: Array.isArray(auditResult.data) ? auditResult.data : [],
+    databaseReady: !usageResult.error,
+  };
+}
+
+
+async function handleGovernance(req, res, requestId) {
+  try {
+    const context = await requireApprovedUser(req, { roles: ['admin'] });
+    if (req.method === 'PUT') {
+      const body = parseBody(req);
+      if (!body) {
+        sendJson(res, 400, { ok: false, code: 'INVALID_JSON', error: 'Invalid JSON body.', requestId });
+        return;
+      }
+      const settings = await writeServerAiSettings(context, body.settings || body);
+      await appendApiAudit(context, {
+        endpoint: '/api/ai', action: 'governance_update_settings', status: 'ok', requestId,
+        details: { model: settings.model, enabled: settings.enabled, dailyRequestLimit: settings.dailyRequestLimit, dailyTokenBudget: settings.dailyTokenBudget },
+      });
+    }
+    const config = await readServerAiSettings(context);
+    const runtime = await usageAndAudit(context);
+    sendJson(res, 200, {
+      ok: true, configured: Boolean(process.env.OPENROUTER_API_KEY), provider: 'openrouter',
+      settings: config.settings, settingsSource: config.databaseBacked ? 'supabase' : 'environment',
+      ...runtime, requestId,
+    });
+  } catch (error) {
+    sendJson(res, error?.status || 500, { ok: false, code: error?.code || 'AI_GOVERNANCE_ERROR', error: error?.message || 'Unable to load AI Governance.', requestId });
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.statusCode = 204;
-    res.setHeader('Allow', 'POST, OPTIONS');
+    res.setHeader('Allow', 'GET, PUT, POST, OPTIONS');
     res.end();
     return;
   }
 
   const requestId = createRequestId();
+  const scope = String(req.query?.scope || '');
+  if (scope === 'governance' && (req.method === 'GET' || req.method === 'PUT')) {
+    await handleGovernance(req, res, requestId);
+    return;
+  }
   if (req.method !== 'POST') {
-    sendJson(res, 405, { ok: false, code: 'METHOD_NOT_ALLOWED', error: 'Method not allowed. Use POST.', requestId });
+    sendJson(res, 405, { ok: false, code: 'METHOD_NOT_ALLOWED', error: 'Use POST for AI or GET/PUT with scope=governance.', requestId });
     return;
   }
 

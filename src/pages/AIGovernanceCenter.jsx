@@ -24,7 +24,7 @@ async function token() {
 
 async function gateway(method = 'GET', body) {
   const accessToken = await token();
-  const response = await fetch('/api/ai-governance', {
+  const response = await fetch('/api/ai?scope=governance', {
     method,
     headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
