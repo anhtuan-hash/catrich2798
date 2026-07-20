@@ -1,9 +1,6 @@
 name: TextLab Template Library Verification
 
 on:
-  push:
-    branches:
-      - agent/textlab-template-library-no-ai
   pull_request:
     branches:
       - main
@@ -18,89 +15,15 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  integrate-and-verify:
+  verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout feature branch
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: agent/textlab-template-library-no-ai
-          fetch-depth: 1
-
-      - name: Register library in app catalogue and ToolPage
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          apps_path = Path('src/data/apps.js')
-          apps = apps_path.read_text(encoding='utf-8')
-          slug = "slug: 'textlab-template-library'"
-          if slug not in apps:
-              marker = "  {\n      slug: 'textlab-activities',"
-              block = """  {
-      slug: 'textlab-template-library',
-      icon: 'TC',
-      tone: 'blue',
-      group: 'Teaching Design',
-      groupVi: 'Tạo học liệu',
-      title: 'Brian TextLab Template Library',
-      titleVi: 'Thư viện mẫu Brian TextLab',
-      desc: 'Browse 36 classroom activity structures and copy a blank template or completed example without AI.',
-      descVi: 'Xem 36 cấu trúc hoạt động lớp học, sao chép mẫu trống hoặc ví dụ hoàn chỉnh, hoàn toàn không dùng AI.',
-      status: '36 templates · No AI · Copy-ready',
-      statusVi: '36 mẫu · Không AI · Sao chép nhanh',
-      api: false,
-      featured: true,
-    },
-"""
-              if marker not in apps:
-                  raise SystemExit('Could not find TextLab catalogue insertion marker.')
-              apps = apps.replace(marker, block + marker, 1)
-              apps_path.write_text(apps, encoding='utf-8')
-
-          tool_path = Path('src/pages/ToolPage.jsx')
-          tool = tool_path.read_text(encoding='utf-8')
-          import_line = "const TextLabTemplateLibrary = lazy(() => import('./TextLabTemplateLibrary.jsx'));"
-          if import_line not in tool:
-              marker = "const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));"
-              if marker not in tool:
-                  raise SystemExit('Could not find TextLab lazy import marker.')
-              tool = tool.replace(marker, marker + "\n" + import_line, 1)
-
-          route_block = """  if (tool?.slug === 'textlab-template-library') {
-    return renderLazy(TextLabTemplateLibrary, props);
-  }
-
-"""
-          if "tool?.slug === 'textlab-template-library'" not in tool:
-              marker = """  if (tool?.slug === 'textlab-activities') {
-    return renderLazy(TextLabActivities, props);
-  }
-
-"""
-              if marker not in tool:
-                  raise SystemExit('Could not find TextLab route marker.')
-              tool = tool.replace(marker, marker + route_block, 1)
-          tool_path.write_text(tool, encoding='utf-8')
-          PY
-
-      - name: Commit integration changes when needed
-        shell: bash
-        run: |
-          if git diff --quiet; then
-            echo 'Catalogue and ToolPage already registered.'
-          else
-            git config user.name 'Brian TextLab Bot'
-            git config user.email 'actions@users.noreply.github.com'
-            git add src/data/apps.js src/pages/ToolPage.jsx
-            git commit -m 'Register no-AI TextLab template library'
-            git push origin HEAD:agent/textlab-template-library-no-ai
-          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
