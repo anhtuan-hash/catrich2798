@@ -141,7 +141,7 @@ add('V10.63 exact replay player supports saved apps', livePlayerSource.includes(
 add('V10.63 Supabase library RLS migration included', librarySqlSource.includes('create table if not exists public.library_items') && librarySqlSource.includes('auth.uid() = user_id'), 'account ownership policies included');
 
 const departmentSource = fs.readFileSync(new URL('../src/pages/DepartmentWorkspace.jsx', import.meta.url), 'utf8');
-add('V10.64 department file-to-schedule AI importer present', departmentSource.includes('AI đọc lịch từ file') && departmentSource.includes('parseScheduleAIResponse') && departmentSource.includes('handleWorkScheduleImportFile'), 'upload, extraction and preview flow present');
+add('V10.64 department offline file-to-schedule importer present', departmentSource.includes('Không dùng AI') && departmentSource.includes('parseOfflineScheduleFile') && departmentSource.includes('handleWorkScheduleImportFile') && departmentSource.includes("from '../utils/offlineScheduleParser.js'"), 'offline upload, detection and preview flow present');
 add('V10.64 bulk weekly schedule import prevents duplicates', departmentSource.includes('scheduleFingerprint') && departmentSource.includes('addImportedSchedules') && departmentSource.includes('bỏ qua ${skipped} mục trùng'), 'bulk add and duplicate protection present');
 add('V10.64 schedule import interface styled responsively', cssSource.includes('department-schedule-import-card') && cssSource.includes('department-schedule-preview-grid') && cssSource.includes('@media (max-width:760px)'), 'professional desktop and mobile layout present');
 

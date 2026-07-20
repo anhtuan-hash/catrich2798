@@ -6,6 +6,7 @@ import { callAI, extractJson } from '../utils/gemini.js';
 import { canPublishDepartment, hasDepartmentModuleAccess } from '../utils/permissions.js';
 import { repairCurrentAdminDatabaseRole } from '../utils/auth.js';
 import { loadMammoth, loadPdfjs } from '../utils/documentParsers.js';
+import { makeOfflineScheduleCsvTemplate, parseOfflineScheduleFile, parseOfflineScheduleText } from '../utils/offlineScheduleParser.js';
 import {
   DEPARTMENT_SNAPSHOT_EVENT,
   canUseCloudDepartmentStore,
@@ -488,7 +489,7 @@ function normalizeImportedScheduleItem(item, index, fallbackWeekStart, fileName 
   if (fileName) noteParts.push(`Nguồn: ${fileName}`);
   return {
     id: cryptoId(),
-    selected: true,
+    selected: source.selected !== false,
     title,
     owner: owner || 'TTCM',
     date,
@@ -1606,74 +1607,41 @@ export default function DepartmentWorkspace({ language, currentUser, hasApiKey }
     setWorkScheduleDraft(EMPTY_WORK_SCHEDULE);
   };
 
+  const applyOfflineScheduleResult = (parsed, sourceName = scheduleImportFileName) => {
+    const targetWeekStart = weekStartIso(parsed?.weekStart || scheduleImportWeekStart || today());
+    const normalizedItems = toArray(parsed?.items)
+      .map((item, index) => normalizeImportedScheduleItem(item, index, targetWeekStart, sourceName))
+      .filter((item) => item.title);
+    if (!normalizedItems.length) {
+      throw new Error(language === 'vi'
+        ? 'Không tìm thấy mốc lịch làm việc rõ ràng. Mỗi công việc nên có ngày hoặc thứ trong tuần.'
+        : 'No actionable schedule entries were found. Each item should include a date or weekday.');
+    }
+    setScheduleImportItems(normalizedItems);
+    setScheduleImportWeekStart(targetWeekStart);
+    setScheduleImportSummary(String(parsed?.summary || '').trim());
+    setScheduleImportWarnings(toArray(parsed?.warnings).map((item) => String(item || '').trim()).filter(Boolean));
+    showToast(language === 'vi'
+      ? `Đã nhận diện ${normalizedItems.length} mục lịch không cần AI. Hãy rà soát trước khi thêm.`
+      : `Detected ${normalizedItems.length} schedule items without AI. Review them before adding.`);
+  };
+
   const analyzeWorkScheduleSource = async (sourceText = scheduleImportSource, sourceName = scheduleImportFileName) => {
     const cleanSource = String(sourceText || '').trim();
-    if (!cleanSource) return showToast(language === 'vi' ? 'Chưa có nội dung file để AI nhận diện.' : 'No file content is available for AI analysis.');
-    if (!hasApiKey) {
-      showToast(language === 'vi' ? 'Hãy cấu hình API key trong Cài đặt AI trước khi đọc lịch từ file.' : 'Configure an AI API key before importing a schedule from a file.');
-      return;
-    }
-
+    if (!cleanSource) return showToast(language === 'vi' ? 'Chưa có nội dung file để nhận diện.' : 'No file content is available for detection.');
     const targetWeekStart = weekStartIso(scheduleImportWeekStart || today());
-    const targetWeekEnd = addIsoDays(targetWeekStart, 6);
     setScheduleImportBusy(true);
     setScheduleImportItems([]);
     setScheduleImportSummary('');
     setScheduleImportWarnings([]);
     try {
-      const prompt = `Bạn là trợ lý hành chính cho Tổ trưởng chuyên môn tiếng Anh tại trường THPT Việt Nam. Hãy đọc toàn bộ văn bản nguồn và nhận diện TẤT CẢ mốc lịch làm việc có thể hành động: cuộc họp, lịch dự giờ, chuyên đề, tập huấn, kiểm tra đánh giá, hạn nộp hồ sơ, hoạt động học sinh, nhiệm vụ có ngày/giờ hoặc mốc tuần. Không bịa thêm sự kiện. Không đưa các câu mô tả chung không có hành động vào lịch.
-
-Tuần mục tiêu do người dùng chọn: ${targetWeekStart} đến ${targetWeekEnd}.
-- Nếu tài liệu ghi rõ ngày, giữ đúng ngày đó kể cả nằm ngoài tuần mục tiêu.
-- Nếu tài liệu chỉ ghi thứ/ngày trong tuần mà không có ngày tháng, ánh xạ vào tuần mục tiêu.
-- Nếu chỉ có hạn nộp, dùng loại "Hạn nộp hồ sơ".
-- Nếu không có giờ, để startTime và endTime là chuỗi rỗng.
-- Chuẩn hóa ngày thành YYYY-MM-DD và giờ thành HH:MM (24 giờ).
-- Owner phải là người phụ trách/thành phần được nêu; nếu không có thì dùng "TTCM".
-- Type chỉ được dùng một trong: ${WORK_SCHEDULE_TYPES.join(', ')}.
-- Status mặc định là "Chưa làm".
-
-Trả về JSON thuần, không markdown, đúng schema:
-{
-  "weekStart": "YYYY-MM-DD",
-  "summary": "Tóm tắt ngắn nội dung file",
-  "warnings": ["Các điểm còn mơ hồ hoặc thiếu ngày/giờ"],
-  "items": [
-    {
-      "title": "Nội dung công việc",
-      "owner": "Người phụ trách / thành phần",
-      "date": "YYYY-MM-DD",
-      "startTime": "HH:MM",
-      "endTime": "HH:MM",
-      "location": "Địa điểm / phòng / link",
-      "type": "Một loại hợp lệ",
-      "status": "Chưa làm",
-      "note": "Nội dung chuẩn bị, sản phẩm hoặc minh chứng",
-      "confidence": 0.0
-    }
-  ]
-}
-
-Tên file: ${sourceName || 'không rõ'}
-Nội dung file:
-${limitAiSourceText(cleanSource, 30000)}`;
-
-      const raw = await callAI({
-        prompt,
-        systemInstruction: 'Extract actionable Vietnamese school-department schedule entries. Return valid JSON only. Preserve factual dates and do not invent events.',
-        temperature: 0.15,
-        responseMimeType: 'application/json',
-        loadingLabel: language === 'vi' ? 'AI đang đọc file và nhận diện lịch làm việc' : 'AI is extracting the work schedule',
+      const parsed = parseOfflineScheduleText(cleanSource, {
+        weekStart: targetWeekStart,
+        fileName: sourceName || '',
       });
-      const parsed = parseScheduleAIResponse(raw, targetWeekStart, sourceName);
-      if (!parsed.items.length) throw new Error(language === 'vi' ? 'AI chưa tìm thấy mốc lịch làm việc rõ ràng trong file.' : 'AI did not find any actionable schedule entries in the file.');
-      setScheduleImportItems(parsed.items);
-      setScheduleImportWeekStart(parsed.weekStart || targetWeekStart);
-      setScheduleImportSummary(parsed.summary);
-      setScheduleImportWarnings(parsed.warnings);
-      showToast(language === 'vi' ? `AI đã nhận diện ${parsed.items.length} mục lịch. Hãy rà soát trước khi thêm.` : `AI found ${parsed.items.length} schedule items. Review them before adding.`);
+      applyOfflineScheduleResult(parsed, sourceName);
     } catch (error) {
-      showToast(error?.message || (language === 'vi' ? 'Không thể nhận diện lịch từ file.' : 'Could not extract a schedule from the file.'));
+      showToast(error?.message || (language === 'vi' ? 'Không thể nhận diện lịch từ file.' : 'Could not detect a schedule from the file.'));
     } finally {
       setScheduleImportBusy(false);
     }
@@ -1682,18 +1650,34 @@ ${limitAiSourceText(cleanSource, 30000)}`;
   const handleWorkScheduleImportFile = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    const targetWeekStart = weekStartIso(scheduleImportWeekStart || today());
+    setScheduleImportBusy(true);
+    setScheduleImportItems([]);
+    setScheduleImportSummary('');
+    setScheduleImportWarnings([]);
     try {
-      if (file.size > 8 * 1024 * 1024) throw new Error(language === 'vi' ? 'Tệp quá lớn. Vui lòng dùng tệp dưới 8MB.' : 'File is too large. Use a file under 8MB.');
-      const text = await readAiSourceFileText(file);
-      if (!String(text || '').trim()) throw new Error(language === 'vi' ? 'Tệp không có văn bản có thể đọc.' : 'The file contains no readable text.');
-      setScheduleImportSource(text);
+      if (file.size > 12 * 1024 * 1024) throw new Error(language === 'vi' ? 'Tệp quá lớn. Vui lòng dùng tệp dưới 12MB.' : 'File is too large. Use a file under 12MB.');
+      const parsed = await parseOfflineScheduleFile(file, {
+        weekStart: targetWeekStart,
+        readText: readAiSourceFileText,
+      });
+      if (!String(parsed?.sourceText || '').trim()) throw new Error(language === 'vi' ? 'Tệp không có dữ liệu có thể đọc.' : 'The file contains no readable data.');
+      setScheduleImportSource(parsed.sourceText);
       setScheduleImportFileName(file.name);
-      await analyzeWorkScheduleSource(text, file.name);
+      applyOfflineScheduleResult(parsed, file.name);
     } catch (error) {
-      showToast(error?.message || (language === 'vi' ? 'Không đọc được file. Hỗ trợ PDF, DOCX, TXT, MD, CSV và HTML.' : 'Could not read the file. PDF, DOCX, TXT, MD, CSV and HTML are supported.'));
+      showToast(error?.message || (language === 'vi'
+        ? 'Không đọc được file. Hỗ trợ XLSX, CSV, PDF có chữ, DOCX, TXT, MD và HTML.'
+        : 'Could not read the file. XLSX, CSV, text-based PDF, DOCX, TXT, MD and HTML are supported.'));
     } finally {
+      setScheduleImportBusy(false);
       if (event.target) event.target.value = '';
     }
+  };
+
+  const downloadScheduleImportTemplate = () => {
+    downloadText('mau-nhap-lich-lam-viec-to.csv', makeOfflineScheduleCsvTemplate(), 'text/csv;charset=utf-8');
+    showToast(language === 'vi' ? 'Đã tải file mẫu nhập lịch CSV.' : 'Schedule CSV template downloaded.');
   };
 
   const updateScheduleImportItem = (id, patch) => {
@@ -2424,7 +2408,6 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
           removeItem={removeItem}
           onExportCalendar={handleExportCalendar}
           canManage={canPublish}
-          hasApiKey={hasApiKey}
           importWeekStart={scheduleImportWeekStart}
           setImportWeekStart={setScheduleImportWeekStart}
           importFileName={scheduleImportFileName}
@@ -2435,6 +2418,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
           importInputRef={scheduleImportInputRef}
           onImportFile={handleWorkScheduleImportFile}
           onAnalyzeAgain={() => analyzeWorkScheduleSource()}
+          onDownloadTemplate={downloadScheduleImportTemplate}
           onUpdateImportItem={updateScheduleImportItem}
           onRemoveImportItem={removeScheduleImportItem}
           onSelectAllImportItems={selectAllScheduleImportItems}
@@ -2762,7 +2746,6 @@ function MeetingsPanel({ data, language, draft, setDraft, addMeeting, addAutoMee
 
 function WorkScheduleImportCard({
   language,
-  hasApiKey,
   importWeekStart,
   setImportWeekStart,
   importFileName,
@@ -2773,6 +2756,7 @@ function WorkScheduleImportCard({
   importInputRef,
   onImportFile,
   onAnalyzeAgain,
+  onDownloadTemplate,
   onUpdateImportItem,
   onRemoveImportItem,
   onSelectAllImportItems,
@@ -2789,15 +2773,15 @@ function WorkScheduleImportCard({
         <div className="department-schedule-import-title">
           <span className="department-schedule-import-icon">✨</span>
           <div>
-            <span className="eyebrow">{language === 'vi' ? 'AI đọc lịch từ file' : 'AI file-to-schedule'}</span>
+            <span className="eyebrow">{language === 'vi' ? 'Nhập lịch từ file · Không dùng AI' : 'Offline file-to-schedule'}</span>
             <h3>{language === 'vi' ? 'Nhận diện và thêm hàng loạt vào lịch làm việc tuần' : 'Extract and bulk-add the weekly work schedule'}</h3>
             <p>{language === 'vi'
-              ? 'Tải PDF, DOCX, TXT, MD, CSV hoặc HTML. AI sẽ đọc ngày, giờ, người phụ trách, địa điểm, loại công việc và nội dung chuẩn bị.'
-              : 'Upload PDF, DOCX, TXT, MD, CSV or HTML. AI extracts dates, times, owners, locations, work types and preparation notes.'}</p>
+              ? 'Tải XLSX, CSV, PDF có chữ, DOCX, TXT, MD hoặc HTML. Bộ quy tắc ngoại tuyến tự tách ngày, giờ, người phụ trách, địa điểm và ghi chú; không gửi dữ liệu ra ngoài.'
+              : 'Upload XLSX, CSV, text-based PDF, DOCX, TXT, MD or HTML. The offline rules engine extracts dates, times, owners, locations and notes without sending data externally.'}</p>
           </div>
         </div>
-        <span className={`department-schedule-ai-status ${hasApiKey ? 'ready' : 'missing'}`}>
-          {hasApiKey ? (language === 'vi' ? 'AI sẵn sàng' : 'AI ready') : (language === 'vi' ? 'Chưa có API key' : 'API key missing')}
+        <span className="department-schedule-ai-status ready">
+          {language === 'vi' ? 'Hoạt động ngoại tuyến' : 'Offline ready'}
         </span>
       </div>
 
@@ -2815,42 +2799,33 @@ function WorkScheduleImportCard({
         <input
           ref={importInputRef}
           type="file"
-          accept=".pdf,.docx,.txt,.md,.csv,.html,.htm,text/plain,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          accept=".xlsx,.xls,.pdf,.docx,.txt,.md,.csv,.html,.htm,text/plain,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           hidden
           onChange={onImportFile}
         />
         <button className="primary department-schedule-upload-btn" type="button" disabled={importBusy} onClick={() => importInputRef?.current?.click?.()}>
-          {importBusy ? (language === 'vi' ? 'AI đang đọc file...' : 'AI is reading...') : (language === 'vi' ? 'Tải file & tự nhận diện' : 'Upload & auto-detect')}
+          {importBusy ? (language === 'vi' ? 'Đang đọc file...' : 'Reading file...') : (language === 'vi' ? 'Tải file & nhận diện' : 'Upload & detect')}
         </button>
+        <button className="secondary" type="button" disabled={importBusy} onClick={onDownloadTemplate}>{language === 'vi' ? 'Tải file mẫu CSV' : 'Download CSV template'}</button>
         {importFileName ? <span className="department-schedule-file-chip" title={importFileName}>📎 {importFileName}</span> : null}
         {importFileName ? <button className="secondary" type="button" disabled={importBusy} onClick={onAnalyzeAgain}>{language === 'vi' ? 'Phân tích lại' : 'Analyze again'}</button> : null}
         {importFileName || importItems.length ? <button className="ghost danger" type="button" disabled={importBusy} onClick={onClearImport}>{language === 'vi' ? 'Xóa bản nhập' : 'Clear import'}</button> : null}
       </div>
 
-      {!hasApiKey ? (
-        <div className="department-schedule-key-warning">
-          <span>🔑</span>
-          <div>
-            <strong>{language === 'vi' ? 'Cần cấu hình AI Provider' : 'AI Provider setup required'}</strong>
-            <p>{language === 'vi' ? 'AI sử dụng OpenRouter Gateway phía máy chủ. Mở Cài đặt → Kiểm tra kết nối nếu AI chưa sẵn sàng.' : 'Open Settings → AI Provider Hub, save an API key, then upload the file again.'}</p>
-          </div>
-          <button className="secondary" type="button" onClick={() => { window.location.hash = '#/settings'; }}>{language === 'vi' ? 'Mở Cài đặt' : 'Open Settings'}</button>
-        </div>
-      ) : null}
 
       {importBusy ? (
         <div className="department-schedule-import-progress" role="status" aria-live="polite">
           <span className="department-schedule-progress-orbit" aria-hidden="true" />
           <div>
-            <strong>{language === 'vi' ? 'AI đang đọc và chuẩn hóa lịch làm việc' : 'AI is extracting and normalizing the schedule'}</strong>
-            <p>{language === 'vi' ? 'Hệ thống đang đối chiếu ngày, thứ, giờ, người phụ trách và loại công việc trong tài liệu.' : 'The system is resolving dates, weekdays, times, owners and work categories.'}</p>
+            <strong>{language === 'vi' ? 'Đang đọc và chuẩn hóa lịch làm việc' : 'Reading and normalizing the schedule'}</strong>
+            <p>{language === 'vi' ? 'Bộ quy tắc ngoại tuyến đang đối chiếu ngày, thứ, giờ, người phụ trách và loại công việc trong tài liệu.' : 'The offline rules engine is resolving dates, weekdays, times, owners and work categories.'}</p>
           </div>
         </div>
       ) : null}
 
       {importSummary || importWarnings.length ? (
         <div className="department-schedule-import-insight">
-          {importSummary ? <p><strong>{language === 'vi' ? 'AI tóm tắt:' : 'AI summary:'}</strong> {importSummary}</p> : null}
+          {importSummary ? <p><strong>{language === 'vi' ? 'Kết quả nhận diện:' : 'Detection summary:'}</strong> {importSummary}</p> : null}
           {importWarnings.length ? (
             <div>
               <strong>{language === 'vi' ? 'Cần kiểm tra:' : 'Review notes:'}</strong>
@@ -2907,7 +2882,7 @@ function WorkScheduleImportCard({
                   </div>
                 </div>
                 <div className="department-schedule-preview-meta">
-                  {item.confidence !== null ? <span className={item.confidence >= 0.75 ? 'high' : item.confidence >= 0.5 ? 'medium' : 'low'}>{Math.round(item.confidence * 100)}% AI</span> : null}
+                  {item.confidence !== null ? <span className={item.confidence >= 0.75 ? 'high' : item.confidence >= 0.5 ? 'medium' : 'low'}>{Math.round(item.confidence * 100)}% khớp</span> : null}
                   <button className="ghost danger" type="button" onClick={() => onRemoveImportItem(item.id)} aria-label={language === 'vi' ? 'Xóa mục' : 'Remove item'}>×</button>
                 </div>
               </article>
@@ -2929,7 +2904,6 @@ function WorkSchedulePanel({
   removeItem,
   onExportCalendar,
   canManage = true,
-  hasApiKey,
   importWeekStart,
   setImportWeekStart,
   importFileName,
@@ -2940,6 +2914,7 @@ function WorkSchedulePanel({
   importInputRef,
   onImportFile,
   onAnalyzeAgain,
+  onDownloadTemplate,
   onUpdateImportItem,
   onRemoveImportItem,
   onSelectAllImportItems,
@@ -2959,7 +2934,6 @@ function WorkSchedulePanel({
       {canManage ? (
         <WorkScheduleImportCard
           language={language}
-          hasApiKey={hasApiKey}
           importWeekStart={importWeekStart}
           setImportWeekStart={setImportWeekStart}
           importFileName={importFileName}
@@ -2970,6 +2944,7 @@ function WorkSchedulePanel({
           importInputRef={importInputRef}
           onImportFile={onImportFile}
           onAnalyzeAgain={onAnalyzeAgain}
+          onDownloadTemplate={onDownloadTemplate}
           onUpdateImportItem={onUpdateImportItem}
           onRemoveImportItem={onRemoveImportItem}
           onSelectAllImportItems={onSelectAllImportItems}
