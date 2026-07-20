@@ -45,6 +45,10 @@ import { installBursReadability } from './utils/bursReadability.js';
 import { installAiRemovalGuard } from './utils/aiRemovalGuard.js';
 
 import TextLabGlobalShortcut from './components/TextLabGlobalShortcut.jsx';
+import './styles/option-two-global-shell.css';
+import { installOptionTwoShell } from './utils/optionTwoGlobalShell.js';
+
+installOptionTwoShell();
 runConfigurationMigrations();
 installBursReadability();
 installAiRemovalGuard();
