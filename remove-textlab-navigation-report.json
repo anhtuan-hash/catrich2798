@@ -1,0 +1,9 @@
+{
+  "file": "src/utils/optionTwoGlobalShell.js",
+  "removedNavigationEntries": 1,
+  "textLabAppPreserved": true,
+  "changes": [
+    "Xóa 1 mục TextLab khỏi thanh điều hướng Option 2",
+    "Gỡ điều kiện active của nút TextLab đã xóa"
+  ]
+}
