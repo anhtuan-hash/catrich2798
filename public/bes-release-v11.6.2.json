@@ -1,0 +1,16 @@
+{
+  "version": "11.6.2",
+  "name": "Brian Appearance Engine V2",
+  "features": [
+    "system-wide accent scale",
+    "theme studio",
+    "motion engine",
+    "background and card effects",
+    "adaptive performance",
+    "accessibility modes",
+    "cross-tab synchronization",
+    "theme import and export"
+  ],
+  "databaseMigration": false,
+  "dependenciesAdded": false
+}

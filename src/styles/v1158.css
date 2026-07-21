@@ -1,0 +1,30 @@
+/* V11.5.8 — Provider Hub API-key input focus/paste stability */
+html[data-bes-provider-key-editing="true"] [data-bes-provider-editor-locked="true"] {
+  position: relative !important;
+  z-index: 80 !important;
+  isolation: isolate;
+  pointer-events: auto !important;
+}
+html[data-bes-provider-key-editing="true"] [data-bes-provider-list="true"] {
+  pointer-events: none !important;
+}
+html[data-bes-provider-key-editing="true"] [data-bes-provider-editor-locked="true"] * {
+  pointer-events: auto;
+}
+[data-bes-api-key-input="true"] {
+  position: relative !important;
+  z-index: 82 !important;
+  min-height: 48px !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  caret-color: currentColor !important;
+  cursor: text !important;
+}
+[data-bes-api-key-input="true"]:focus {
+  border-color: #5b7df4 !important;
+  box-shadow: 0 0 0 4px rgba(91, 125, 244, .16) !important;
+  outline: none !important;
+}
+@media (max-width: 900px) {
+  [data-bes-api-key-input="true"] { min-height: 52px !important; font-size: 16px !important; }
+}

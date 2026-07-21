@@ -1,0 +1,141 @@
+.hrc-offline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--route-accent, #1f8f70) 34%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--route-soft, #ddf7ed) 88%, white);
+  color: var(--route-ink, #0b382b);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+
+.hrc-offline-badge::before {
+  content: "●";
+  color: #16855f;
+  font-size: 10px;
+}
+
+.hrc-offline-panel {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--route-accent, #1f8f70) 28%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--route-soft, #ddf7ed) 72%, white), white 68%);
+}
+
+.hrc-offline-panel::after {
+  content: "OFFLINE";
+  position: absolute;
+  right: -14px;
+  bottom: -22px;
+  color: color-mix(in srgb, var(--route-accent, #1f8f70) 9%, transparent);
+  font-size: clamp(58px, 9vw, 118px);
+  font-weight: 950;
+  letter-spacing: -.08em;
+  pointer-events: none;
+}
+
+.hrc-import-preview {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px dashed color-mix(in srgb, var(--route-accent, #1f8f70) 38%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--route-soft, #ddf7ed) 60%, white);
+}
+
+.hrc-import-preview b { margin-right: auto; }
+.hrc-import-preview .hr-error { flex-basis: 100%; margin: 0; }
+
+.hr-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.hr-row-actions button,
+.hr-compact-list > div > button,
+.hr-preview-table td > button {
+  min-height: 34px;
+  padding: 7px 10px;
+  border-radius: 9px;
+}
+
+.hr-panel button.danger,
+.hr-row-actions button.danger {
+  border-color: rgba(190, 45, 62, .22);
+  background: rgba(190, 45, 62, .08);
+  color: #9d2034;
+}
+
+.hr-panel button.danger:hover,
+.hr-row-actions button.danger:hover {
+  background: rgba(190, 45, 62, .14);
+}
+
+.hr-table-wrap,
+.hr-preview-table {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.hr-table .hr-row-actions { min-width: 220px; }
+
+.hr-record-grid article > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hr-record-grid article > div button {
+  min-height: 36px;
+}
+
+.hr-scheduled-list article {
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.hr-scheduled-list article .hr-row-actions {
+  margin-left: auto;
+}
+
+.hr-contact-list article .hr-row-actions {
+  margin-top: 12px;
+  justify-content: flex-start;
+}
+
+.hr-team-roster label,
+.hr-toggle-grid label {
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.hr-team-roster label:hover,
+.hr-toggle-grid label:hover {
+  transform: translateY(-1px);
+}
+
+.hr-pin {
+  display: inline-flex;
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: #f1f5f3;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .14em;
+}
+
+@media (max-width: 820px) {
+  .hrc-offline-badge { white-space: normal; }
+  .hr-row-actions { justify-content: flex-start; }
+  .hr-table .hr-row-actions { min-width: 160px; }
+  .hr-scheduled-list article .hr-row-actions { margin-left: 0; }
+}

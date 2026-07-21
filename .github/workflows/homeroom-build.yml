@@ -1,0 +1,53 @@
+name: Homeroom Build Verification
+
+on:
+  pull_request:
+    paths:
+      - 'src/pages/HomeroomWorkspace.jsx'
+      - 'src/components/Homeroom*.jsx'
+      - 'src/components/homeroom/**'
+      - 'src/utils/homeroom*.js'
+      - 'src/data/homeroom*.js'
+      - 'src/styles/homeroom*.css'
+      - 'public/templates/**'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build application
+        id: app_build
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run build > build.log 2>&1
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: homeroom-build-log
+          path: build.log
+          if-no-files-found: error
+          retention-days: 3
+      - name: Fail when build failed
+        if: steps.app_build.outcome == 'failure'
+        run: |
+          tail -n 120 build.log
+          exit 1

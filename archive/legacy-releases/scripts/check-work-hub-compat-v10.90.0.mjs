@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+import fs from 'node:fs';import path from 'node:path';
+const cwd=process.cwd();let p=0,f=0;function c(ok,m){if(ok){p++;console.log(`✓ ${m}`)}else{f++;console.error(`✗ ${m}`)}}function file(x){return path.join(cwd,x)}
+for(const x of ['public/bes-unified-work-hub-v10890.js','public/bes-unified-work-hub-v10890.css','public/bes-work-hub-v10.89.0.json','supabase/work_hub_v10_89_0.sql'])c(fs.existsSync(file(x)),`Giữ ${x}`);
+const html=fs.readFileSync(file('index.html'),'utf8'),modules=JSON.parse(fs.readFileSync(file('public/bes-modules-v10.88.0.json'),'utf8'));c((html.match(/bes-unified-work-hub-v10890\.js/g)||[]).length===1,'Work Hub JS còn một tag');c((html.match(/bes-unified-work-hub-v10890\.css/g)||[]).length===1,'Work Hub CSS còn một tag');c(modules.modules.some(x=>x.id==='work-hub'&&x.route==='#/work-hub'),'Module Work Hub còn đăng ký');c(fs.readFileSync(file('public/bes-unified-work-hub-v10890.js'),'utf8').includes('#/work-hub'),'Route Work Hub còn hoạt động');console.log(`\nWork Hub Compatibility V10.90.0: ${p}/${p+f} đạt.`);if(f)process.exit(1);

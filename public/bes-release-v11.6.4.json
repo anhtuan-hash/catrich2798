@@ -1,0 +1,13 @@
+{
+  "version": "11.6.4",
+  "name": "Brian AI Composer Horizontal Hotfix",
+  "type": "update-only",
+  "requires": ">=11.6.3",
+  "changes": [
+    "Restores the Brian AI textarea to a full-width horizontal composer",
+    "Prevents vertical writing mode and min-content width collapse",
+    "Pins the send button inside the input area without reducing textarea width",
+    "Reapplies the layout after React rerenders and route changes",
+    "Scopes the repair to the Brian AI panel only"
+  ]
+}

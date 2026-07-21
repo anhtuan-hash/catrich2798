@@ -1,0 +1,6 @@
+Giữ nguyên hai file font cá nhân đang có trong dự án V10.80 của bạn tại thư mục này:
+
+- BrianGesco.ttf
+- 1FTV-HF-Gesco-id0oy5.ttf
+
+Gói V10.81.3 không đóng gói lại file font. Khi thay source, hãy giữ/copy lại hai file font từ dự án hiện tại để giao diện tiếp tục dùng đúng font cá nhân.

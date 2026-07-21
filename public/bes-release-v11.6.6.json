@@ -1,0 +1,13 @@
+{
+  "version": "11.6.6",
+  "name": "Brian AI Composer Clean Rebuild",
+  "type": "update-only",
+  "requires": ">=11.6.5",
+  "changes": [
+    "Removes the V11.6.4 composer hotfix and its injected assets",
+    "Rebuilds the Brian AI input guard from the wide footer container instead of the collapsed textarea parent",
+    "Repairs textarea, text input, and contenteditable composers",
+    "Detects and neutralizes grid, flex, absolute-position, min-content, and vertical-writing conflicts",
+    "Keeps the repair scoped to the Brian AI floating panel"
+  ]
+}

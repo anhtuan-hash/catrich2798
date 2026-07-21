@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="/bes-command-center-v10870.css">
+  <title>V10.87 Command Center Test</title>
+</head>
+<body data-role="admin">
+  <main>
+    <a href="#/apps">Ứng dụng</a>
+    <a href="#/library">Thư viện học liệu</a>
+    <a href="#/tool/exam-studio">Exam Studio</a>
+    <p id="result">running</p>
+  </main>
+  <script defer src="/bes-command-center-v10870.js"></script>
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        var ok = Boolean(
+          window.BES_COMMAND_CENTER &&
+          window.BES_COMMAND_CENTER.version === '10.87.0' &&
+          document.getElementById('bes-command-trigger') &&
+          document.getElementById('bes-command-dock') &&
+          document.getElementById('bes-command-overlay')
+        );
+        document.body.setAttribute('data-result', ok ? 'passed' : 'failed');
+        document.getElementById('result').textContent = ok ? 'passed' : 'failed';
+      }, 800);
+    });
+  </script>
+</body>
+</html>

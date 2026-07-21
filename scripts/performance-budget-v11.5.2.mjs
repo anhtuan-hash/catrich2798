@@ -1,0 +1,23 @@
+import fs from 'node:fs';
+import path from 'node:path';
+const assets=path.join(process.cwd(),'dist','assets');
+if(!fs.existsSync(assets)) throw new Error('dist/assets is missing. Run npm run build first.');
+const files=fs.readdirSync(assets).map(name=>({name,size:fs.statSync(path.join(assets,name)).size}));
+const sum=(items)=>items.reduce((t,i)=>t+i.size,0);
+const js=files.filter(f=>/\.(?:js|mjs)$/i.test(f.name));
+const css=files.filter(f=>/\.css$/i.test(f.name));
+const budgetedJs=js.filter(f=>!/pdf\.worker|vendor-pdf/i.test(f.name));
+const largest=[...budgetedJs].sort((a,b)=>b.size-a.size)[0]||{name:'none',size:0};
+const writingJs=js.find(f=>/^WritingStudio-/.test(f.name))||{name:'missing',size:0};
+const writingCss=css.find(f=>/^WritingStudio-/.test(f.name))||{name:'missing',size:0};
+const results=[
+ ['Largest application JS chunk',largest.size,1600*1024,largest.name],
+ ['Writing Studio JS chunk',writingJs.size,190*1024,writingJs.name],
+ ['Writing Studio CSS chunk',writingCss.size,120*1024,writingCss.name],
+ ['Total CSS',sum(css),1750*1024,`${css.length} files`],
+ ['Total JS',sum(js),13.5*1024*1024,`${js.length} files`],
+ ['Total dist assets',sum(files),37*1024*1024,`${files.length} files`],
+];
+let failed=0;const fmt=v=>`${(v/1024).toFixed(1)} KB`;
+for(const [name,value,limit,detail] of results){const ok=value>0&&value<=limit;if(!ok)failed++;console.log(`${ok?'PASS':'FAIL'}  ${name}: ${fmt(value)} / ${fmt(limit)} · ${detail}`);}
+if(failed)process.exit(1);console.log('V11.5.2 performance budget passed.');

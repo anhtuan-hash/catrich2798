@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+let passed=0,failed=0;const read=(f)=>fs.readFileSync(f,'utf8');const exists=(f)=>fs.existsSync(f);const pass=(n,c)=>{if(c){console.log(`✓ ${n}`);passed++;}else{console.error(`✗ ${n}`);failed++;}};
+const pkg=JSON.parse(read('package.json'));const version=JSON.parse(read('public/version.json'));const release=JSON.parse(read('public/release-manifest.json'));
+const media=read('src/utils/mediaCapture.js');const pc=read('src/pages/PronunciationCoach.jsx');const speaking=read('src/pages/SpeakingStudio.jsx');const chat=read('src/components/UniversalAIAssist.jsx');const css=read('src/styles/v1154.css');const main=read('src/main.jsx');const apiEntries=fs.readdirSync('api').filter((name)=>!name.startsWith('_')&&/\.(?:js|mjs|ts|py|go)$/i.test(name));
+pass('package version 11.5.4',pkg.version==='11.5.4');pass('version registry 11.5.4',version.version==='11.5.4'&&release.version==='11.5.4');pass('runtime core 2.5.4',version.runtimeCore==='2.5.4'&&release.runtime==='2.5.4');
+pass('shared media capture utility',exists('src/utils/mediaCapture.js')&&media.includes('requestMicrophoneStream')&&media.includes('createMediaRecorder'));
+pass('adaptive audio mime type',media.includes('audio/webm;codecs=opus')&&media.includes('audio/mp4')&&media.includes('extensionForMimeType'));
+pass('permission diagnostics',media.includes('NotAllowedError')&&media.includes('NotReadableError')&&media.includes('SecurityError'));
+pass('speech recognition fallback',media.includes('speechRecognitionMessage')&&media.includes("network:"));
+pass('Pronunciation uses shared recorder',pc.includes("from '../utils/mediaCapture.js'")&&pc.includes('createMediaRecorder(stream')&&pc.includes('recorder.start(250)'));
+pass('Pronunciation recording independent from transcript',pc.includes('Đã lưu bản ghi thành công')&&pc.includes('Awaiting transcript'));
+pass('Speaking uses shared recorder',speaking.includes("from '../utils/mediaCapture.js'")&&speaking.includes('createMediaRecorder(stream')&&speaking.toLowerCase().includes('recording still works'));
+pass('AI voice fallback',chat.includes("from '../utils/mediaCapture.js'")&&chat.includes('createSpeechRecognition')&&chat.includes('speechRecognitionMessage'));
+pass('AI composer auto grows',chat.includes('Math.min(260, Math.max(96')&&chat.includes('rows={4}'));
+pass('expanded AI composer CSS',css.includes('min-height:96px!important')&&css.includes('max-height:260px!important')&&css.includes('width:min(560px'));
+pass('new CSS imported last',main.includes("import './styles/v1154.css';"));
+pass('Vercel functions <=12',apiEntries.length<=12);pass('no extra API function',!exists('api/transcribe.js')&&!exists('api/speech.js'));pass('public npm registry only',!read('package-lock.json').includes('applied-caas-gateway'));
+console.log(`\nV11.5.4 Media & AI Composer Check: ${passed}/${passed+failed} passed`);console.log(`Deployable API entries: ${apiEntries.length}`);if(failed)process.exit(1);

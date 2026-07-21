@@ -1,0 +1,13 @@
+{
+  "version": "11.6.7",
+  "name": "Brian AI Dock V2 + Persistent Personal Font",
+  "type": "update-only",
+  "requires": ">=11.6.6",
+  "changes": [
+    "Removes the legacy floating Brian AI interface and all previous composer repair injections",
+    "Creates a new isolated Brian AI Dock V2 inside Shadow DOM so application CSS cannot collapse its composer",
+    "Adds a fully horizontal composer, attachments, voice dictation, page context and provider diagnostics",
+    "Copies the existing personal font from the project to a stable public URL so it loads on every browser and device",
+    "Applies the deployed personal font consistently across the application while protecting icon fonts"
+  ]
+}
