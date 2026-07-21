@@ -1,0 +1,383 @@
+/* Department Workspace · modern field system
+   Loaded after DepartmentWorkspaceV2.css through src/data/department.js. */
+
+.department-page-v2 {
+  --dept-field-bg: rgba(248, 250, 252, 0.94);
+  --dept-field-bg-hover: #ffffff;
+  --dept-field-border: #d8e1ee;
+  --dept-field-border-hover: #b9c7da;
+  --dept-field-focus: #5b63e8;
+  --dept-field-ring: rgba(91, 99, 232, 0.16);
+  --dept-field-text: #172033;
+  --dept-field-placeholder: #8a96a9;
+}
+
+/* The workspace now contains four modules. */
+.department-page-v2 .department-v2-tabs {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* Remove the obsolete report shortcut that remains in legacy JSX. */
+.department-page-v2 .department-v2-quick-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.department-page-v2 .department-v2-quick-actions > button:last-child {
+  display: none !important;
+}
+
+/* Unified contemporary input language for the whole department workspace. */
+.department-page-v2 :where(input:not([type='checkbox']):not([type='radio']):not([type='file']), textarea, select),
+.department-page-v2 .department-workhub-embed :where(input:not([type='checkbox']):not([type='radio']):not([type='file']), textarea, select) {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid var(--dept-field-border) !important;
+  border-radius: 15px !important;
+  background: var(--dept-field-bg) !important;
+  color: var(--dept-field-text) !important;
+  padding: 0 16px !important;
+  font: inherit;
+  font-size: 0.96rem !important;
+  font-weight: 560;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 1px 2px rgba(15, 23, 42, 0.035) !important;
+  outline: none !important;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease !important;
+}
+
+.department-page-v2 :where(textarea),
+.department-page-v2 .department-workhub-embed :where(textarea) {
+  min-height: 118px;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+  resize: vertical;
+}
+
+.department-page-v2 :where(select),
+.department-page-v2 .department-workhub-embed :where(select) {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  padding-right: 46px !important;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #64748b 50%),
+    linear-gradient(135deg, #64748b 50%, transparent 50%) !important;
+  background-position:
+    calc(100% - 21px) calc(50% - 2px),
+    calc(100% - 15px) calc(50% - 2px) !important;
+  background-size: 6px 6px, 6px 6px !important;
+  background-repeat: no-repeat !important;
+}
+
+.department-page-v2 :where(input, textarea)::placeholder,
+.department-page-v2 .department-workhub-embed :where(input, textarea)::placeholder {
+  color: var(--dept-field-placeholder) !important;
+  opacity: 1;
+  font-weight: 500;
+}
+
+.department-page-v2 :where(input:not([type='checkbox']):not([type='radio']):not([type='file']), textarea, select):hover,
+.department-page-v2 .department-workhub-embed :where(input:not([type='checkbox']):not([type='radio']):not([type='file']), textarea, select):hover {
+  border-color: var(--dept-field-border-hover) !important;
+  background-color: var(--dept-field-bg-hover) !important;
+}
+
+.department-page-v2 :where(input:not([type='checkbox']):not([type='radio']):not([type='file']), textarea, select):focus,
+.department-page-v2 .department-workhub-embed :where(input:not([type='checkbox']):not([type='radio']):not([type='file']), textarea, select):focus {
+  border-color: var(--dept-field-focus) !important;
+  background-color: #ffffff !important;
+  box-shadow:
+    0 0 0 4px var(--dept-field-ring),
+    0 10px 28px rgba(47, 54, 144, 0.09) !important;
+}
+
+.department-page-v2 :where(input, textarea, select):disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+  background: #eef2f7 !important;
+}
+
+.department-page-v2 input[type='date'],
+.department-page-v2 input[type='time'],
+.department-page-v2 input[type='datetime-local'],
+.department-page-v2 .department-workhub-embed input[type='date'],
+.department-page-v2 .department-workhub-embed input[type='time'],
+.department-page-v2 .department-workhub-embed input[type='datetime-local'] {
+  color-scheme: light;
+}
+
+/* Field labels are now quieter and more structured. */
+.department-page-v2 :where(.department-v2-form-grid, .department-v2-control-strip) label > span,
+.department-page-v2 .department-workhub-embed label > span {
+  display: block;
+  margin: 0 0 8px;
+  color: #667085;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+/* Work Hub create surface: replace the inherited boxed form appearance. */
+.department-page-v2 .department-workhub-embed .v1093-create-form {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(203, 213, 225, 0.78) !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(99, 102, 241, 0.11), transparent 34%),
+    linear-gradient(145deg, #ffffff 0%, #fbfcff 62%, #f5f7ff 100%) !important;
+  padding: clamp(22px, 2.6vw, 34px) !important;
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.1),
+    0 2px 8px rgba(15, 23, 42, 0.035) !important;
+}
+
+.department-page-v2 .department-workhub-embed .v1093-create-form::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, #4f46e5, #7c3aed 52%, #22c55e);
+}
+
+.department-page-v2 .department-workhub-embed .v1093-create-form > input,
+.department-page-v2 .department-workhub-embed .v1093-create-form > textarea {
+  margin-top: 14px;
+}
+
+.department-page-v2 .department-workhub-embed .v1093-create-form > input {
+  min-height: 58px;
+  font-size: 1rem !important;
+}
+
+.department-page-v2 .department-workhub-embed .v1093-create-form > textarea {
+  min-height: 132px;
+}
+
+.department-page-v2 .department-workhub-embed .v1093-panel-heading {
+  align-items: center;
+  gap: 18px;
+}
+
+.department-page-v2 .department-workhub-embed .v1093-panel-heading > div > span,
+.department-page-v2 .department-workhub-embed .work-bulk-assignment-heading span {
+  color: #6366f1 !important;
+  font-size: 0.72rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.department-page-v2 .department-workhub-embed .v1093-panel-heading h2 {
+  margin-top: 5px;
+  color: #111827;
+  font-size: clamp(1.3rem, 2vw, 1.75rem);
+  letter-spacing: -0.035em;
+}
+
+/* Modern primary and secondary actions. */
+.department-page-v2 .department-workhub-embed .v1093-create-form .v1093-panel-heading > button[type='submit'],
+.department-page-v2 .department-workhub-embed .work-delivery-submission-box button[type='submit'] {
+  min-height: 46px;
+  border: 0 !important;
+  border-radius: 13px !important;
+  background: linear-gradient(135deg, #4f46e5, #6366f1 55%, #7c3aed) !important;
+  color: #ffffff !important;
+  padding: 0 19px !important;
+  font-weight: 780 !important;
+  box-shadow: 0 12px 28px rgba(79, 70, 229, 0.24) !important;
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease !important;
+}
+
+.department-page-v2 .department-workhub-embed .v1093-create-form .v1093-panel-heading > button[type='submit']:hover,
+.department-page-v2 .department-workhub-embed .work-delivery-submission-box button[type='submit']:hover {
+  transform: translateY(-1px);
+  filter: saturate(1.08);
+  box-shadow: 0 16px 34px rgba(79, 70, 229, 0.3) !important;
+}
+
+.department-page-v2 .department-workhub-embed button:disabled {
+  cursor: not-allowed !important;
+  filter: grayscale(0.25);
+  opacity: 0.58;
+  transform: none !important;
+}
+
+/* Assignment selector becomes a clean inset workspace. */
+.department-page-v2 .department-workhub-embed .work-bulk-assignment {
+  margin-top: 18px;
+  border: 1px solid #e0e5f2 !important;
+  border-radius: 18px !important;
+  background: rgba(247, 248, 255, 0.86) !important;
+  padding: 18px !important;
+  box-shadow: inset 0 1px 0 #ffffff;
+}
+
+.department-page-v2 .department-workhub-embed .work-bulk-mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.department-page-v2 .department-workhub-embed .work-bulk-mode button,
+.department-page-v2 .department-workhub-embed .work-assignee-picker-tools button {
+  min-height: 40px;
+  border: 1px solid #d8dfec !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  color: #334155 !important;
+  padding: 0 15px !important;
+  font-weight: 720 !important;
+  box-shadow: 0 2px 7px rgba(15, 23, 42, 0.04) !important;
+}
+
+.department-page-v2 .department-workhub-embed .work-bulk-mode button.active {
+  border-color: transparent !important;
+  background: linear-gradient(135deg, #4f46e5, #6366f1) !important;
+  color: #ffffff !important;
+  box-shadow: 0 9px 22px rgba(79, 70, 229, 0.22) !important;
+}
+
+.department-page-v2 .department-workhub-embed .work-assignee-picker-tools {
+  display: grid;
+  grid-template-columns: minmax(210px, 1fr) auto auto;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.department-page-v2 .department-workhub-embed .work-assignee-grid label {
+  border: 1px solid #e1e7f0 !important;
+  border-radius: 15px !important;
+  background: rgba(255, 255, 255, 0.86) !important;
+  transition: border-color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+
+.department-page-v2 .department-workhub-embed .work-assignee-grid label:hover {
+  border-color: #b8c2df !important;
+  background: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+.department-page-v2 .department-workhub-embed .work-assignee-grid label.selected {
+  border-color: #818cf8 !important;
+  background: #eef2ff !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.09);
+}
+
+.department-page-v2 .department-workhub-embed input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: #5b63e8;
+}
+
+.department-page-v2 .department-workhub-embed .work-delivery-form-note {
+  margin-top: 16px !important;
+  border: 1px solid #d5eadf !important;
+  border-radius: 13px !important;
+  background: #f2fbf6 !important;
+  color: #276148 !important;
+  padding: 12px 14px !important;
+  font-weight: 620;
+}
+
+/* Search and filtering controls. */
+.department-page-v2 .department-workhub-embed .v1093-search {
+  width: min(320px, 100%) !important;
+  min-height: 46px !important;
+  border-radius: 13px !important;
+  background-color: #f8fafc !important;
+}
+
+.department-page-v2 .department-workhub-embed .v1093-form-grid {
+  gap: 12px !important;
+  margin-top: 14px;
+}
+
+/* Modernize the task detail drawer input surfaces too. */
+.department-page-v2 .department-workhub-embed .v1093-drawer,
+.department-page-v2 .department-workhub-embed .work-delivery-drawer {
+  border-left: 1px solid rgba(203, 213, 225, 0.72) !important;
+  background: rgba(255, 255, 255, 0.97) !important;
+  backdrop-filter: blur(20px);
+  box-shadow: -28px 0 70px rgba(15, 23, 42, 0.16) !important;
+}
+
+.department-page-v2 .department-workhub-embed .work-delivery-submission-box,
+.department-page-v2 .department-workhub-embed .v1093-comments,
+.department-page-v2 .department-workhub-embed .work-delivery-danger-zone {
+  border-radius: 18px !important;
+}
+
+.department-page-v2 .department-workhub-embed .work-delivery-file-picker {
+  border: 1px dashed #bdc8da !important;
+  border-radius: 15px !important;
+  background: #f8fafc !important;
+  padding: 14px !important;
+}
+
+.department-page-v2 .department-workhub-embed input[type='file'] {
+  width: 100%;
+  color: #64748b;
+  font: inherit;
+}
+
+.department-page-v2 .department-workhub-embed input[type='file']::file-selector-button {
+  margin-right: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #e9edff;
+  color: #4338ca;
+  padding: 9px 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+/* Keep the four navigation cards balanced at narrower breakpoints. */
+@media (max-width: 1080px) {
+  .department-page-v2 .department-v2-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .department-page-v2 .department-v2-quick-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .department-page-v2 .department-v2-tabs,
+  .department-page-v2 .department-v2-quick-actions,
+  .department-page-v2 .department-workhub-embed .work-assignee-picker-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .department-page-v2 .department-workhub-embed .v1093-create-form {
+    padding: 20px 16px !important;
+    border-radius: 19px !important;
+  }
+
+  .department-page-v2 .department-workhub-embed .v1093-panel-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .department-page-v2 .department-workhub-embed .v1093-panel-heading > button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .department-page-v2 :where(input, textarea, select, button),
+  .department-page-v2 .department-workhub-embed :where(input, textarea, select, button) {
+    transition: none !important;
+  }
+}
