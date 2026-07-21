@@ -1,0 +1,169 @@
+/* Activity Preview fullscreen controls */
+.proposal-grid .zoom-controls{
+  flex-wrap:nowrap;
+}
+
+.proposal-grid .preview-fullscreen-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-width:132px;
+  min-height:31px;
+  padding:6px 10px!important;
+  border:1px solid #cfe1da!important;
+  background:#fff!important;
+  color:#0d4f43!important;
+  font-size:11px;
+  font-weight:850;
+  white-space:nowrap;
+}
+
+.proposal-grid .preview-fullscreen-button:hover{
+  border-color:#87b5a5!important;
+  background:#eef7f3!important;
+}
+
+.proposal-grid .preview-fullscreen-button[aria-pressed="true"]{
+  border-color:#176b59!important;
+  background:#176b59!important;
+  color:#fff!important;
+}
+
+.proposal-grid .preview-fullscreen-button span{
+  min-width:0!important;
+  color:inherit!important;
+  font-size:inherit!important;
+  font-weight:inherit!important;
+  text-align:inherit!important;
+}
+
+.proposal-grid .preview-fullscreen-icon{
+  font-size:15px!important;
+  line-height:1;
+}
+
+.preview-panel:fullscreen,
+.preview-panel:-webkit-full-screen,
+.preview-panel.preview-fallback-fullscreen{
+  width:100vw!important;
+  max-width:none!important;
+  height:100vh!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:16px!important;
+  border:0!important;
+  border-radius:0!important;
+  display:flex!important;
+  flex-direction:column;
+  overflow:hidden!important;
+  background:#f3f8f5!important;
+  box-shadow:none!important;
+}
+
+.preview-panel:fullscreen .preview-heading,
+.preview-panel:-webkit-full-screen .preview-heading,
+.preview-panel.preview-fallback-fullscreen .preview-heading{
+  flex:0 0 auto;
+  margin-bottom:12px!important;
+}
+
+.preview-panel:fullscreen .preview-workbench,
+.preview-panel:-webkit-full-screen .preview-workbench,
+.preview-panel.preview-fallback-fullscreen .preview-workbench{
+  flex:1 1 auto;
+  min-height:0!important;
+  height:auto!important;
+  border-radius:14px!important;
+}
+
+.preview-panel:fullscreen .proposal-preview-shell,
+.preview-panel:-webkit-full-screen .proposal-preview-shell,
+.preview-panel.preview-fallback-fullscreen .proposal-preview-shell{
+  min-height:0!important;
+  max-height:none!important;
+  height:100%!important;
+  padding:18px!important;
+}
+
+.preview-panel:fullscreen .proposal-preview-shell .activity-stage,
+.preview-panel:-webkit-full-screen .proposal-preview-shell .activity-stage,
+.preview-panel.preview-fallback-fullscreen .proposal-preview-shell .activity-stage{
+  min-height:calc(100vh - 126px)!important;
+}
+
+.preview-panel:fullscreen .preview-template-nav,
+.preview-panel:-webkit-full-screen .preview-template-nav,
+.preview-panel.preview-fallback-fullscreen .preview-template-nav{
+  max-height:calc(100vh - 128px)!important;
+}
+
+.preview-panel:fullscreen .preview-guide,
+.preview-panel:-webkit-full-screen .preview-guide,
+.preview-panel.preview-fallback-fullscreen .preview-guide{
+  overflow:auto;
+}
+
+body.preview-fallback-lock{
+  overflow:hidden!important;
+}
+
+.preview-panel.preview-fallback-fullscreen{
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483000!important;
+}
+
+@media(max-width:900px){
+  .proposal-grid .preview-fullscreen-button{
+    min-width:38px;
+    width:38px;
+    padding:6px!important;
+  }
+
+  .proposal-grid .preview-fullscreen-label{
+    display:none;
+  }
+
+  .preview-panel:fullscreen .preview-workbench,
+  .preview-panel:-webkit-full-screen .preview-workbench,
+  .preview-panel.preview-fallback-fullscreen .preview-workbench{
+    grid-template-columns:150px minmax(0,1fr)!important;
+  }
+
+  .preview-panel:fullscreen .preview-guide,
+  .preview-panel:-webkit-full-screen .preview-guide,
+  .preview-panel.preview-fallback-fullscreen .preview-guide{
+    grid-column:1/-1;
+    max-height:170px;
+  }
+}
+
+@media(max-width:680px){
+  .preview-panel:fullscreen,
+  .preview-panel:-webkit-full-screen,
+  .preview-panel.preview-fallback-fullscreen{
+    padding:10px!important;
+  }
+
+  .preview-panel:fullscreen .preview-workbench,
+  .preview-panel:-webkit-full-screen .preview-workbench,
+  .preview-panel.preview-fallback-fullscreen .preview-workbench{
+    display:block!important;
+    overflow:auto!important;
+  }
+
+  .preview-panel:fullscreen .preview-template-rail,
+  .preview-panel:-webkit-full-screen .preview-template-rail,
+  .preview-panel.preview-fallback-fullscreen .preview-template-rail{
+    display:none!important;
+  }
+
+  .preview-panel:fullscreen .preview-guide,
+  .preview-panel:-webkit-full-screen .preview-guide,
+  .preview-panel.preview-fallback-fullscreen .preview-guide{
+    margin-top:10px;
+    border:1px solid #dce8e3!important;
+    border-radius:12px;
+  }
+}
