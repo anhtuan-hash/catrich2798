@@ -51,14 +51,14 @@ export default function ResourceLibrary(props) {
 
       card.dataset.textlabResourceId = item.cloudId || item.id;
       const buttons = [...card.querySelectorAll('.resource-card-actions button')];
-      const previewButton = buttons.find((button) => {
-        const label = normaliseTitle(button.textContent);
-        return label === 'xem' || label === 'view' || button.dataset.textlabRun === 'true';
+      const previewButton = buttons.find((candidate) => {
+        const label = normaliseTitle(candidate.textContent);
+        return label === 'xem' || label === 'view' || candidate.dataset.textlabRun === 'true';
       });
       if (previewButton) {
         previewButton.dataset.textlabRun = 'true';
         previewButton.classList.add('resource-textlab-run-button');
-        previewButton.textContent = '▶ Chạy trực tiếp';
+        if (previewButton.textContent !== '▶ Chạy trực tiếp') previewButton.textContent = '▶ Chạy trực tiếp';
         previewButton.setAttribute('aria-label', `Chạy trực tiếp ${item.title || item.fileName}`);
       }
     });
