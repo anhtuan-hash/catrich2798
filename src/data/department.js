@@ -1,4 +1,13 @@
-import '../pages/DepartmentWorkspaceFluentPolish.css';
+import '../pages/department-approved/approved-1.css';
+import '../pages/department-approved/approved-2.css';
+import '../pages/department-approved/approved-3.css';
+import '../pages/department-approved/approved-4.css';
+import '../pages/department-approved/approved-5.css';
+import '../pages/department-approved/approved-6.css';
+import '../pages/department-approved/approved-7.css';
+import '../pages/department-approved/approved-8.css';
+import '../pages/department-approved/approved-9.css';
+import '../pages/department-approved/approved-10.css';
 
 export const DEPARTMENT_WORKSPACE_SLUG = 'department-workspace';
 export const DEPARTMENT_WORKSPACE_PERMISSION_ID = `tool:${DEPARTMENT_WORKSPACE_SLUG}`;
