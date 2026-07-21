@@ -14,6 +14,7 @@ function makeStorage() {
 }
 
 globalThis.localStorage = makeStorage();
+globalThis.sessionStorage = makeStorage();
 globalThis.window = {
   clearTimeout,
   setTimeout,
@@ -27,6 +28,7 @@ globalThis.window = {
   navigator: { clipboard: null },
 };
 globalThis.document = { querySelector() { return null; } };
+globalThis.navigator = globalThis.window.navigator;
 globalThis.CustomEvent = class CustomEvent {
   constructor(type, options) {
     this.type = type;
@@ -38,8 +40,10 @@ const server = await createServer({ server: { middlewareMode: true }, appType: '
 try {
   const { default: DepartmentWorkspace } = await server.ssrLoadModule('/src/pages/DepartmentWorkspace.jsx');
   const roles = ['admin', 'ttcm', 'teacher'];
+  const requiredLabels = ['Tổng quan', 'Lịch & hoạt động', 'Hồ sơ & văn bản', 'Trung tâm công việc', 'Báo cáo & thống kê'];
   for (const role of roles) {
     globalThis.localStorage = makeStorage();
+    globalThis.sessionStorage = makeStorage();
     const html = renderToString(React.createElement(DepartmentWorkspace, {
       language: 'vi',
       currentUser: { id: role, name: role, email: `${role}@test.local`, role },
@@ -48,7 +52,13 @@ try {
     if (!html.includes('department-v40-hero-shell')) {
       throw new Error(`Department workspace failed to render for ${role}`);
     }
-    console.log(`✓ department runtime ${role} - ${html.length} chars`);
+    for (const label of requiredLabels) {
+      if (!html.includes(label)) throw new Error(`Missing department module "${label}" for ${role}`);
+    }
+    if (html.includes('AI TTCM') || html.includes('Hỗ trợ TTCM') || html.includes('Tạo báo cáo AI')) {
+      throw new Error(`AI content leaked into the department workspace for ${role}`);
+    }
+    console.log(`✓ department runtime ${role} - ${html.length} chars, five modules, no AI`);
   }
 } finally {
   await server.close();
