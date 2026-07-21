@@ -12,9 +12,9 @@ export const HOMEROOM_APP = {
   titleVi: 'Giáo viên chủ nhiệm',
   desc: 'Manage student profiles, attendance, weekly work, class meetings, parent communication and homeroom reports.',
   descVi: 'Quản lý hồ sơ học sinh, điểm danh, lịch tuần, sinh hoạt lớp, liên lạc phụ huynh và báo cáo chủ nhiệm.',
-  status: 'Complete · Offline-first homeroom workspace',
-  statusVi: 'Hoàn thiện · Nhận diện ngoại tuyến, không dùng AI',
-  api: false,
+  status: 'Phase 3.1 · Weekly conduct scoring',
+  statusVi: 'Giai đoạn 3.1 · Xét rèn luyện theo tuần',
+  api: true,
   featured: true,
 };
 
@@ -46,6 +46,7 @@ export const HOMEROOM_TABS = [
   { key: 'portals', icon: '◎', titleVi: 'Cổng kết nối', title: 'Portals' },
   { key: 'records', icon: '▤', titleVi: 'Hồ sơ & báo cáo', title: 'Records' },
   { key: 'safety', icon: '⌾', titleVi: 'An toàn dữ liệu', title: 'Data safety' },
+  { key: 'ai', icon: 'AI', titleVi: 'AI GVCN', title: 'AI Homeroom' },
   { key: 'schoolStats', icon: '▥', titleVi: 'Toàn trường', title: 'School statistics', adminOnly: true },
 ];
 

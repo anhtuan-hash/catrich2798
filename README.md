@@ -1,46 +1,34 @@
-# Brian English Studio V11.4.2 — AI Lesson Integration Studio
+# Brian English Studio V12.9.0 — Workspace OS Core
 
-V11.4.2 được tích hợp trực tiếp trên source thật V11.3.7, giữ nguyên Animated Home và bổ sung **AI Lesson Integration Studio** dành riêng cho giáo án Tiếng Anh THPT.
+V12.9.0 continues the UI Core migration by grouping the product into eight stable workspaces without changing the existing routes, permissions, data, AI providers or teaching workflows.
 
-## Mở ứng dụng
+## Eight workspaces
 
-- Trang chủ: lối tắt ghim **Tích hợp AI vào giáo án Tiếng Anh**.
-- Trang Ứng dụng/Launcher: tìm `AI Lesson Integration Studio`.
-- Route trực tiếp: `/#/tool/english-lesson-integration`.
+1. Teaching
+2. Assessment
+3. Content & Skills
+4. Management
+5. Resources
+6. AI Studio
+7. Games & Classroom
+8. System
 
-## Cài đặt
+The shell now includes a native Workspace Hub. It remembers the last useful location in each workspace, supports cross-tab session continuity, appears in the global command palette and can open the app catalog with a workspace filter.
+
+## Development
 
 ```bash
 npm ci
-npm run verify:v11.4.2
+npm run verify:v12.9.0
 npm run dev
 ```
 
-Trước khi sử dụng đồng bộ cloud, chạy SQL theo thứ tự:
+Node.js 22.x is required.
 
-1. `supabase/brian_v11_4_2_preflight.sql`
-2. `supabase/brian_v11_4_2_lesson_integration.sql`
-3. `supabase/brian_v11_4_2_verify.sql`
+## Deployment
 
-## AI phía server — OpenRouter only
+The project remains compatible with the existing Vercel configuration and Supabase environment. V12.9.0 does not require a new SQL migration or a new environment variable.
 
-Toàn bộ website gọi gateway xác thực `/api/ai`. API key không xuất hiện trong mã frontend hoặc trình duyệt.
+## Personal font
 
-```env
-OPENROUTER_API_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...
-```
-
-Model và hạn mức dùng chung do Admin quản lý tại `/#/ai-governance`. Chạy migration `supabase/brian_v11_6_7_openrouter_gateway.sql`.
-
-## Kiến trúc tích hợp
-
-- Dùng chung phiên đăng nhập và Supabase client của Brian.
-- Module chạy trong Shadow DOM để tránh xung đột CSS.
-- Dữ liệu local tách theo `user.id`.
-- Connected Workflow gửi nội dung sang Lesson Architect, Worksheet Factory, Exam Studio, Activity Studio, Speaking Studio, Reading Studio và WordGraph Studio.
-- Không cài service worker riêng cho module.
-
-## Lưu ý về font cá nhân
-
-Gói phát hành không chứa font. Khi thay toàn bộ source, giữ lại thư mục font riêng từ repository hiện tại của bạn tại `public/fonts/`.
+Font binaries are not bundled in the release. Preserve the existing files in `public/fonts/` and/or `public/bes-fonts/` when copying this source into the production repository.

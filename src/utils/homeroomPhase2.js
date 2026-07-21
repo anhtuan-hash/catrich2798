@@ -60,12 +60,8 @@ function attendanceSummary(workspace, studentId) {
   };
 }
 
-function visibleNotices(workspace, studentId, role, referenceTime = Date.now()) {
+function visibleNotices(workspace, studentId, role) {
   return (workspace.announcements || []).filter((notice) => {
-    const status = safeText(notice.status, notice.scheduledAt ? 'scheduled' : 'published').toLowerCase();
-    if (['draft', 'cancelled', 'canceled', 'đã hủy'].includes(status)) return false;
-    const scheduledAt = notice.scheduledAt ? Date.parse(notice.scheduledAt) : 0;
-    if (scheduledAt && Number.isFinite(scheduledAt) && scheduledAt > referenceTime) return false;
     if (notice.audience === 'all') return true;
     if (role === 'parent' && notice.audience === 'parents') return true;
     if (role === 'student' && notice.audience === 'students') return true;

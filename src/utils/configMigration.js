@@ -2,6 +2,10 @@ const MIGRATION_EVENT = 'bes-config-migration-complete';
 const BACKUP_PREFIX = 'bes-config-backup-v1086';
 const REPORT_KEY = 'bes-config-migration-report-v1086';
 
+const RETIRED_STORAGE_PATTERNS = [
+  /^bes-macos-motion(?:-|:|$)/,
+];
+
 const STORAGE_SCHEMAS = [
   {
     id: 'launcher',
@@ -39,6 +43,20 @@ const STORAGE_SCHEMAS = [
         actionTargets: source.actionTargets && typeof source.actionTargets === 'object' && !Array.isArray(source.actionTargets) ? source.actionTargets : {},
         profiles: source.profiles && typeof source.profiles === 'object' && !Array.isArray(source.profiles) ? source.profiles : {},
         updatedAt: source.updatedAt || new Date().toISOString(),
+      };
+    },
+  },
+  {
+    id: 'workspace-tabs',
+    pattern: /^bes-workspace-tabs:/,
+    targetVersion: 1,
+    migrate(value) {
+      const source = value && typeof value === 'object' ? value : {};
+      return {
+        schemaVersion: 1,
+        tabs: Array.isArray(source.tabs) ? source.tabs.slice(0, 12) : [],
+        activeId: String(source.activeId || ''),
+        updatedAt: Number(source.updatedAt) || Date.now(),
       };
     },
   },
@@ -102,24 +120,26 @@ function matchingKeys(storage, schema) {
   return keys;
 }
 
+function removeRetiredStorage(storage) {
+  const keys = [];
+  for (let i = 0; i < storage.length; i += 1) {
+    const key = storage.key(i);
+    if (key && RETIRED_STORAGE_PATTERNS.some((pattern) => pattern.test(key))) keys.push(key);
+  }
+  return keys.map((key) => {
+    try {
+      storage.removeItem(key);
+      return { id: 'retired-config', key, targetKey: null, status: 'removed' };
+    } catch (error) {
+      return { id: 'retired-config', key, targetKey: null, status: 'failed', error: String(error?.message || error) };
+    }
+  });
+}
+
 export function runConfigurationMigrations() {
   if (typeof window === 'undefined' || !window.localStorage) return { ranAt: Date.now(), results: [] };
   const storage = window.localStorage;
-  const results = [];
-
-
-  // Retire stale open-app tab state from V10.85/V11 without recreating it.
-  const retiredWorkspaceKeys = [];
-  for (let i = 0; i < storage.length; i += 1) {
-    const key = storage.key(i);
-    if (key?.startsWith('bes-workspace-tabs:')) retiredWorkspaceKeys.push(key);
-  }
-  retiredWorkspaceKeys.forEach((key) => {
-    const raw = storage.getItem(key);
-    writeBackup(storage, key, raw);
-    storage.removeItem(key);
-    results.push({ id: 'workspace-tabs-retired', key, status: 'removed' });
-  });
+  const results = [...removeRetiredStorage(storage)];
 
   STORAGE_SCHEMAS.forEach((schema) => {
     if (schema.legacyKeys?.length) {

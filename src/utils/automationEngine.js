@@ -219,7 +219,7 @@ function createWorkDraft(rule, context) {
     description: rule.action_config?.message || context?.summary || rule.description || '',
     priority: rule.action_config?.priority || 'normal',
     due_at: rule.action_config?.due_at || '',
-    source_module: 'automation-center-v1096',
+    source_module: 'automation-core-v1096',
     automation_rule_id: rule.id,
     created_at: nowIso(),
   };
@@ -234,9 +234,9 @@ function createPracticeDraft(rule, context) {
     instruction: rule.action_config?.message || 'Tạo bài luyện thích ứng dựa trên tín hiệu tự động hóa.',
     level: rule.action_config?.level || 'B2',
     itemCount: Number(rule.action_config?.item_count || 15),
-    source: 'automation-center-v1096',
+    source: 'automation-core-v1096',
   };
-  sessionStorage.setItem('bes-automation-practice-to-content', JSON.stringify(draft));
+  sessionStorage.setItem('bes-v1094-learning-to-content', JSON.stringify(draft));
   return draft;
 }
 

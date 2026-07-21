@@ -1,12 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import '../ui-core/styles/department-command-v1219.css';
+import '../ui-core/styles/department-interactive-v1220.css';
+import '../ui-core/styles/department-refined-v1221.css';
+import '../ui-core/styles/department-color-system-v1222.css';
 import SectionHeader from '../components/SectionHeader.jsx';
 import PermissionRequestButton from '../components/PermissionRequestButton.jsx';
 import { DEPARTMENT_MODULES, DEPARTMENT_TEMPLATES, POLICY_PINS } from '../data/department.js';
-import { callAI, extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/openRouter.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { canPublishDepartment, hasDepartmentModuleAccess } from '../utils/permissions.js';
 import { repairCurrentAdminDatabaseRole } from '../utils/auth.js';
 import { loadMammoth, loadPdfjs } from '../utils/documentParsers.js';
-import { makeOfflineScheduleCsvTemplate, parseOfflineScheduleFile, parseOfflineScheduleText } from '../utils/offlineScheduleParser.js';
 import {
   DEPARTMENT_SNAPSHOT_EVENT,
   canUseCloudDepartmentStore,
@@ -384,7 +388,7 @@ const DEPARTMENT_FEATURE_SUGGESTIONS = [
     titleVi: 'Bộ mẫu văn bản hành chính theo trường',
     title: 'School administrative document templates',
     categoryVi: 'AI TTCM',
-    category: 'Hỗ trợ',
+    category: 'AI Copilot',
     priorityVi: 'Cao',
     priority: 'High',
     effortVi: 'Trung bình',
@@ -489,7 +493,7 @@ function normalizeImportedScheduleItem(item, index, fallbackWeekStart, fileName 
   if (fileName) noteParts.push(`Nguồn: ${fileName}`);
   return {
     id: cryptoId(),
-    selected: source.selected !== false,
+    selected: true,
     title,
     owner: owner || 'TTCM',
     date,
@@ -1174,7 +1178,7 @@ function getDepartmentAIPrompt(actionId, data, submissions, extraInstruction, la
   const action = DEPARTMENT_AI_ACTIONS.find((item) => item.id === actionId) || DEPARTMENT_AI_ACTIONS[0];
   const context = buildDepartmentContext(data, submissions);
   const aiSource = limitAiSourceText(sourceText);
-  const common = `Bạn là Hỗ trợ cho TTCM tổ Tiếng Anh THPT tại Việt Nam. Viết bằng tiếng Việt, văn phong rõ ràng, hành chính nhưng không dài dòng. Luôn bám dữ liệu, không bịa số liệu. Nếu dữ liệu thiếu, ghi rõ \"chưa có dữ liệu\" và đề xuất việc cần nhập thêm.\n\nDữ liệu tổ chuyên môn:\n${JSON.stringify(context, null, 2)}\n\nYêu cầu thêm của TTCM:\n${extraInstruction || '(không có)'}\n\nVăn bản/tệp TTCM cung cấp thêm:\n${aiSource ? `Nguồn: ${sourceName || 'văn bản dán trực tiếp'}\n${aiSource}` : '(không có)'}`;
+  const common = `Bạn là AI Copilot cho TTCM tổ Tiếng Anh THPT tại Việt Nam. Viết bằng tiếng Việt, văn phong rõ ràng, hành chính nhưng không dài dòng. Luôn bám dữ liệu, không bịa số liệu. Nếu dữ liệu thiếu, ghi rõ \"chưa có dữ liệu\" và đề xuất việc cần nhập thêm.\n\nDữ liệu tổ chuyên môn:\n${JSON.stringify(context, null, 2)}\n\nYêu cầu thêm của TTCM:\n${extraInstruction || '(không có)'}\n\nVăn bản/tệp TTCM cung cấp thêm:\n${aiSource ? `Nguồn: ${sourceName || 'văn bản dán trực tiếp'}\n${aiSource}` : '(không có)'}`;
   const actionPrompts = {
     leaderBrief: 'Hãy tạo bản TÓM TẮT ĐIỀU HÀNH cho TTCM gồm: 1) tình hình chung, 2) việc cần xử lý ngay, 3) rủi ro, 4) hồ sơ cần duyệt, 5) đề xuất 5 hành động trong 7 ngày tới. Có bullet rõ ràng.',
     monthlyPlan: 'Hãy soạn KẾ HOẠCH THÁNG/TUẦN của tổ Tiếng Anh. Cấu trúc: mục tiêu, nhiệm vụ trọng tâm, phân công, deadline, minh chứng cần nộp, cách theo dõi. Có bảng dạng markdown.',
@@ -1283,7 +1287,7 @@ function DepartmentHeroIllustration({ language }) {
 
       <div className="dept-v40-ai-card">
         <div className="robot-face"><i /><i /><b /></div>
-        <strong>Hỗ trợ</strong>
+        <strong>AI Copilot</strong>
       </div>
     </div>
   );
@@ -1291,16 +1295,6 @@ function DepartmentHeroIllustration({ language }) {
 
 export default function DepartmentWorkspace({ language, currentUser, hasApiKey }) {
   const [activeTab, setActiveTab] = useState('dashboard');
-  useEffect(() => {
-    try {
-      const requestedTab = sessionStorage.getItem('bes-dashboard-department-tab') || '';
-      if (!requestedTab) return;
-      sessionStorage.removeItem('bes-dashboard-department-tab');
-      setActiveTab(requestedTab);
-    } catch {
-      // Dashboard deep-link hints are optional.
-    }
-  }, []);
   const [data, setData] = useState(() => readData(currentUser?.id, language, !canPublishDepartment(currentUser)));
   const [toast, setToast] = useState('');
   const [report, setReport] = useState(() => makeReport(readData(currentUser?.id, language, !canPublishDepartment(currentUser))));
@@ -1607,41 +1601,74 @@ export default function DepartmentWorkspace({ language, currentUser, hasApiKey }
     setWorkScheduleDraft(EMPTY_WORK_SCHEDULE);
   };
 
-  const applyOfflineScheduleResult = (parsed, sourceName = scheduleImportFileName) => {
-    const targetWeekStart = weekStartIso(parsed?.weekStart || scheduleImportWeekStart || today());
-    const normalizedItems = toArray(parsed?.items)
-      .map((item, index) => normalizeImportedScheduleItem(item, index, targetWeekStart, sourceName))
-      .filter((item) => item.title);
-    if (!normalizedItems.length) {
-      throw new Error(language === 'vi'
-        ? 'Không tìm thấy mốc lịch làm việc rõ ràng. Mỗi công việc nên có ngày hoặc thứ trong tuần.'
-        : 'No actionable schedule entries were found. Each item should include a date or weekday.');
-    }
-    setScheduleImportItems(normalizedItems);
-    setScheduleImportWeekStart(targetWeekStart);
-    setScheduleImportSummary(String(parsed?.summary || '').trim());
-    setScheduleImportWarnings(toArray(parsed?.warnings).map((item) => String(item || '').trim()).filter(Boolean));
-    showToast(language === 'vi'
-      ? `Đã nhận diện ${normalizedItems.length} mục lịch không cần AI. Hãy rà soát trước khi thêm.`
-      : `Detected ${normalizedItems.length} schedule items without AI. Review them before adding.`);
-  };
-
   const analyzeWorkScheduleSource = async (sourceText = scheduleImportSource, sourceName = scheduleImportFileName) => {
     const cleanSource = String(sourceText || '').trim();
-    if (!cleanSource) return showToast(language === 'vi' ? 'Chưa có nội dung file để nhận diện.' : 'No file content is available for detection.');
+    if (!cleanSource) return showToast(language === 'vi' ? 'Chưa có nội dung file để AI nhận diện.' : 'No file content is available for AI analysis.');
+    if (!hasApiKey) {
+      showToast(language === 'vi' ? 'Hãy cấu hình API key trong Cài đặt AI trước khi đọc lịch từ file.' : 'Configure an AI API key before importing a schedule from a file.');
+      return;
+    }
+
     const targetWeekStart = weekStartIso(scheduleImportWeekStart || today());
+    const targetWeekEnd = addIsoDays(targetWeekStart, 6);
     setScheduleImportBusy(true);
     setScheduleImportItems([]);
     setScheduleImportSummary('');
     setScheduleImportWarnings([]);
     try {
-      const parsed = parseOfflineScheduleText(cleanSource, {
-        weekStart: targetWeekStart,
-        fileName: sourceName || '',
+      const prompt = `Bạn là trợ lý hành chính cho Tổ trưởng chuyên môn tiếng Anh tại trường THPT Việt Nam. Hãy đọc toàn bộ văn bản nguồn và nhận diện TẤT CẢ mốc lịch làm việc có thể hành động: cuộc họp, lịch dự giờ, chuyên đề, tập huấn, kiểm tra đánh giá, hạn nộp hồ sơ, hoạt động học sinh, nhiệm vụ có ngày/giờ hoặc mốc tuần. Không bịa thêm sự kiện. Không đưa các câu mô tả chung không có hành động vào lịch.
+
+Tuần mục tiêu do người dùng chọn: ${targetWeekStart} đến ${targetWeekEnd}.
+- Nếu tài liệu ghi rõ ngày, giữ đúng ngày đó kể cả nằm ngoài tuần mục tiêu.
+- Nếu tài liệu chỉ ghi thứ/ngày trong tuần mà không có ngày tháng, ánh xạ vào tuần mục tiêu.
+- Nếu chỉ có hạn nộp, dùng loại "Hạn nộp hồ sơ".
+- Nếu không có giờ, để startTime và endTime là chuỗi rỗng.
+- Chuẩn hóa ngày thành YYYY-MM-DD và giờ thành HH:MM (24 giờ).
+- Owner phải là người phụ trách/thành phần được nêu; nếu không có thì dùng "TTCM".
+- Type chỉ được dùng một trong: ${WORK_SCHEDULE_TYPES.join(', ')}.
+- Status mặc định là "Chưa làm".
+
+Trả về JSON thuần, không markdown, đúng schema:
+{
+  "weekStart": "YYYY-MM-DD",
+  "summary": "Tóm tắt ngắn nội dung file",
+  "warnings": ["Các điểm còn mơ hồ hoặc thiếu ngày/giờ"],
+  "items": [
+    {
+      "title": "Nội dung công việc",
+      "owner": "Người phụ trách / thành phần",
+      "date": "YYYY-MM-DD",
+      "startTime": "HH:MM",
+      "endTime": "HH:MM",
+      "location": "Địa điểm / phòng / link",
+      "type": "Một loại hợp lệ",
+      "status": "Chưa làm",
+      "note": "Nội dung chuẩn bị, sản phẩm hoặc minh chứng",
+      "confidence": 0.0
+    }
+  ]
+}
+
+Tên file: ${sourceName || 'không rõ'}
+Nội dung file:
+${limitAiSourceText(cleanSource, 30000)}`;
+
+      const raw = await runAITask('department.extractSchedule', {
+        prompt,
+        systemInstruction: 'Extract actionable Vietnamese school-department schedule entries. Return valid JSON only. Preserve factual dates and do not invent events.',
+        temperature: 0.15,
+        responseMimeType: 'application/json',
+        loadingLabel: language === 'vi' ? 'AI đang đọc file và nhận diện lịch làm việc' : 'AI is extracting the work schedule',
       });
-      applyOfflineScheduleResult(parsed, sourceName);
+      const parsed = parseScheduleAIResponse(raw, targetWeekStart, sourceName);
+      if (!parsed.items.length) throw new Error(language === 'vi' ? 'AI chưa tìm thấy mốc lịch làm việc rõ ràng trong file.' : 'AI did not find any actionable schedule entries in the file.');
+      setScheduleImportItems(parsed.items);
+      setScheduleImportWeekStart(parsed.weekStart || targetWeekStart);
+      setScheduleImportSummary(parsed.summary);
+      setScheduleImportWarnings(parsed.warnings);
+      showToast(language === 'vi' ? `AI đã nhận diện ${parsed.items.length} mục lịch. Hãy rà soát trước khi thêm.` : `AI found ${parsed.items.length} schedule items. Review them before adding.`);
     } catch (error) {
-      showToast(error?.message || (language === 'vi' ? 'Không thể nhận diện lịch từ file.' : 'Could not detect a schedule from the file.'));
+      showToast(error?.message || (language === 'vi' ? 'Không thể nhận diện lịch từ file.' : 'Could not extract a schedule from the file.'));
     } finally {
       setScheduleImportBusy(false);
     }
@@ -1650,34 +1677,18 @@ export default function DepartmentWorkspace({ language, currentUser, hasApiKey }
   const handleWorkScheduleImportFile = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const targetWeekStart = weekStartIso(scheduleImportWeekStart || today());
-    setScheduleImportBusy(true);
-    setScheduleImportItems([]);
-    setScheduleImportSummary('');
-    setScheduleImportWarnings([]);
     try {
-      if (file.size > 12 * 1024 * 1024) throw new Error(language === 'vi' ? 'Tệp quá lớn. Vui lòng dùng tệp dưới 12MB.' : 'File is too large. Use a file under 12MB.');
-      const parsed = await parseOfflineScheduleFile(file, {
-        weekStart: targetWeekStart,
-        readText: readAiSourceFileText,
-      });
-      if (!String(parsed?.sourceText || '').trim()) throw new Error(language === 'vi' ? 'Tệp không có dữ liệu có thể đọc.' : 'The file contains no readable data.');
-      setScheduleImportSource(parsed.sourceText);
+      if (file.size > 8 * 1024 * 1024) throw new Error(language === 'vi' ? 'Tệp quá lớn. Vui lòng dùng tệp dưới 8MB.' : 'File is too large. Use a file under 8MB.');
+      const text = await readAiSourceFileText(file);
+      if (!String(text || '').trim()) throw new Error(language === 'vi' ? 'Tệp không có văn bản có thể đọc.' : 'The file contains no readable text.');
+      setScheduleImportSource(text);
       setScheduleImportFileName(file.name);
-      applyOfflineScheduleResult(parsed, file.name);
+      await analyzeWorkScheduleSource(text, file.name);
     } catch (error) {
-      showToast(error?.message || (language === 'vi'
-        ? 'Không đọc được file. Hỗ trợ XLSX, CSV, PDF có chữ, DOCX, TXT, MD và HTML.'
-        : 'Could not read the file. XLSX, CSV, text-based PDF, DOCX, TXT, MD and HTML are supported.'));
+      showToast(error?.message || (language === 'vi' ? 'Không đọc được file. Hỗ trợ PDF, DOCX, TXT, MD, CSV và HTML.' : 'Could not read the file. PDF, DOCX, TXT, MD, CSV and HTML are supported.'));
     } finally {
-      setScheduleImportBusy(false);
       if (event.target) event.target.value = '';
     }
-  };
-
-  const downloadScheduleImportTemplate = () => {
-    downloadText('mau-nhap-lich-lam-viec-to.csv', makeOfflineScheduleCsvTemplate(), 'text/csv;charset=utf-8');
-    showToast(language === 'vi' ? 'Đã tải file mẫu nhập lịch CSV.' : 'Schedule CSV template downloaded.');
   };
 
   const updateScheduleImportItem = (id, patch) => {
@@ -1789,7 +1800,7 @@ export default function DepartmentWorkspace({ language, currentUser, hasApiKey }
   };
 
   const buildAIReport = async () => {
-    if (!hasApiKey) return showToast(language === 'vi' ? 'Mở Cài đặt → Kiểm tra kết nối Dịch vụ đã gỡ trước khi tạo báo cáo AI.' : 'Configure AI settings before generating an AI report.');
+    if (!hasApiKey) return showToast(language === 'vi' ? 'Vào Cài đặt AI để thêm key trước khi tạo báo cáo AI.' : 'Configure AI settings before generating an AI report.');
     setAiLoading(true);
     try {
       const reportTypeVi = {
@@ -1800,7 +1811,7 @@ export default function DepartmentWorkspace({ language, currentUser, hasApiKey }
         assessment: 'báo cáo kiểm tra đánh giá',
       }[reportType] || 'báo cáo chuyên môn';
       const prompt = `Bạn là trợ lý cho TTCM tổ Tiếng Anh THPT. Hãy viết ${reportTypeVi} ngắn gọn, đúng văn phong hành chính, dựa trên dữ liệu sau. Cấu trúc rõ đề mục; có phần việc đã làm, tồn tại, nguyên nhân, giải pháp, phân công tiếp theo. Có nhắc số minh chứng giáo viên đã nộp/chờ duyệt nếu có.\n\nDữ liệu workspace:\n${JSON.stringify(data, null, 2)}\n\nDữ liệu giáo viên nộp:\n${JSON.stringify(submissions, null, 2)}`;
-      const text = await callAI({ prompt, systemInstruction: 'Write professional Vietnamese school-department reports. Be specific and concise.', temperature: 0.45 });
+      const text = await runAITask('department.generateReport', { prompt, systemInstruction: 'Write professional Vietnamese school-department reports. Be specific and concise.', temperature: 0.45 });
       setReport(text);
       updateData((old) => ({ ...old, reports: [{ id: cryptoId(), title: `Báo cáo AI - ${reportTypeVi}`, createdAt: new Date().toISOString(), content: text }, ...old.reports] }), language === 'vi' ? 'Đã tạo báo cáo AI.' : 'AI report generated.');
     } catch (error) {
@@ -1857,7 +1868,7 @@ export default function DepartmentWorkspace({ language, currentUser, hasApiKey }
 Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có thể ban hành trong tổ chuyên môn.`
       : defaults.instruction);
     setActiveTab('aiCopilot');
-    showToast(language === 'vi' ? 'Đã chuyển tài liệu/yêu cầu sang AI TTCM.' : 'Sent source and instruction to Hỗ trợ.');
+    showToast(language === 'vi' ? 'Đã chuyển tài liệu/yêu cầu sang AI TTCM.' : 'Sent source and instruction to AI Copilot.');
   };
 
   const handleModuleAssistFile = async (event) => {
@@ -1875,17 +1886,17 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
   };
 
   const runDepartmentAI = async () => {
-    if (!hasApiKey) return showToast(language === 'vi' ? 'Mở Cài đặt → Kiểm tra kết nối Dịch vụ đã gỡ trước khi dùng Hỗ trợ.' : 'Configure AI settings before using Hỗ trợ.');
+    if (!hasApiKey) return showToast(language === 'vi' ? 'Vào Cài đặt AI để thêm key trước khi dùng AI Copilot.' : 'Configure AI settings before using AI Copilot.');
     setAiLoading(true);
     try {
       const prompt = getDepartmentAIPrompt(aiAction, data, submissions, aiInstruction, language, aiSourceText, aiSourceName);
-      const text = await callAI({
+      const text = await runAITask('department.assistant', {
         prompt,
         systemInstruction: 'You are a professional Vietnamese high-school English department leader assistant. Return practical, structured output. Do not invent data.',
         temperature: 0.42,
       });
       setAiOutput(text);
-      showToast(language === 'vi' ? 'AI đã tạo nội dung hỗ trợ TTCM.' : 'Hỗ trợ output generated.');
+      showToast(language === 'vi' ? 'AI đã tạo nội dung hỗ trợ TTCM.' : 'AI Copilot output generated.');
     } catch (error) {
       showToast(error?.message || (language === 'vi' ? 'Không tạo được nội dung AI.' : 'AI generation failed.'));
     } finally {
@@ -1955,11 +1966,11 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
   const polishAdministrativeDocument = async () => {
     const source = String(adminDocOutput || aiOutput || aiSourceText || '').trim();
     if (!source) return showToast(language === 'vi' ? 'Chưa có nội dung để chuẩn hóa bằng AI.' : 'No content to polish with AI.');
-    if (!hasApiKey) return showToast(language === 'vi' ? 'Mở Cài đặt → Kiểm tra kết nối Dịch vụ đã gỡ trước khi chuẩn hóa văn bản.' : 'Configure AI settings before polishing the document.');
+    if (!hasApiKey) return showToast(language === 'vi' ? 'Vào Cài đặt AI để thêm key trước khi chuẩn hóa văn bản.' : 'Configure AI settings before polishing the document.');
     setAiLoading(true);
     try {
       const prompt = `Bạn là TTCM/ thư ký tổ chuyên môn tại trường THPT Việt Nam. Hãy chuẩn hóa văn bản hành chính sau cho trang trọng, đúng thể thức cơ bản, có đề mục rõ, không bịa số liệu. Loại văn bản: ${adminDocDraft.type}. Đơn vị: ${adminDocDraft.agency} - ${adminDocDraft.department}. Người ký: ${adminDocDraft.signer} (${adminDocDraft.position}).\n\nNội dung cần chuẩn hóa:\n${source}`;
-      const text = await callAI({ prompt, systemInstruction: 'Polish Vietnamese school administrative documents. Keep facts unchanged and mark missing data with ellipses.', temperature: 0.35 });
+      const text = await runAITask('department.polishDocument', { prompt, systemInstruction: 'Polish Vietnamese school administrative documents. Keep facts unchanged and mark missing data with ellipses.', temperature: 0.35 });
       setAdminDocOutput(text);
       showToast(language === 'vi' ? 'AI đã chuẩn hóa văn bản hành chính.' : 'AI polished the administrative document.');
     } catch (error) {
@@ -2123,6 +2134,38 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
     } catch {
       showToast(language === 'vi' ? 'File JSON không hợp lệ.' : 'Invalid JSON file.');
     }
+  };
+
+  const handleQuickDocumentUpload = (fileList) => {
+    const files = Array.from(fileList || []).filter(Boolean).slice(0, 12);
+    if (!files.length) return;
+    if (!canPublish) {
+      setActiveTab('submissions');
+      showToast(language === 'vi'
+        ? 'Giáo viên vui lòng nộp hồ sơ tại mục Thông báo & hồ sơ của tôi.'
+        : 'Teachers should submit files from Assigned notices & my submissions.');
+      return;
+    }
+    const uploadedAt = new Date().toISOString();
+    updateData((old) => ({
+      ...old,
+      documents: [
+        ...files.map((file) => ({
+          id: cryptoId(),
+          title: file.name || (language === 'vi' ? 'Hồ sơ mới' : 'New record'),
+          category: language === 'vi' ? 'Tải nhanh từ dashboard' : 'Dashboard quick upload',
+          link: '',
+          fileName: file.name || '',
+          fileSize: Number(file.size) || 0,
+          mimeType: file.type || '',
+          uploadedAt,
+          note: `${formatFileSize(file.size)}${file.type ? ` · ${file.type}` : ''}`,
+        })),
+        ...toArray(old.documents),
+      ],
+    }), language === 'vi'
+      ? `Đã ghi nhận ${files.length} hồ sơ trực tiếp từ dashboard.`
+      : `${files.length} record(s) added directly from the dashboard.`, { autoPublish: true });
   };
 
   const submitEvidence = async () => {
@@ -2302,49 +2345,70 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
   };
 
   return (
-    <div className="page department-page department-page-v60 department-page-v63">
-      <section className="department-v40-hero-shell" aria-label={language === 'vi' ? 'Hero tổ chuyên môn' : 'Department hero'}>
-        <div className="department-v40-hero-card">
-          <DepartmentHeroIllustration language={language} />
-          <div className="department-v40-hero-copy">
-            <span className="department-v40-tag">English Department Workspace</span>
-            <h1>{language === 'vi' ? 'Tổ chuyên môn Tiếng Anh' : 'English Department Workspace'}</h1>
-            <p>{language === 'vi'
-              ? 'Quản lý kế hoạch, lịch công tác, giao việc, hồ sơ minh chứng, nghiên cứu bài học, kiểm tra nội bộ và báo cáo với Hỗ trợ TTCM.'
-              : 'Manage plans, work schedules, assignments, evidence, lesson study, internal review and reports with AI support for department leaders.'}</p>
-            <div className="department-v40-hero-actions">
-              <button className="primary dept-action-teal" onClick={() => canPublish ? setActiveTab('plans') : document.querySelector('.department-teacher-workspace-v64')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>＋ {canPublish ? (language === 'vi' ? 'Tạo kế hoạch' : 'Create plan') : (language === 'vi' ? 'Xem việc được giao' : 'View assignments')}</button>
-              <button className="primary dept-action-blue" onClick={() => canPublish ? setActiveTab('submissions') : document.querySelector('.department-teacher-workspace-v64')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>◔ {language === 'vi' ? 'Giao việc / duyệt hồ sơ' : 'Assign / review'}</button>
-              <button className="primary dept-action-coral" onClick={() => setActiveTab('aiCopilot')}>✦ {language === 'vi' ? 'Hỗ trợ TTCM' : 'Hỗ trợ'}</button>
-            </div>
-          </div>
-        </div>
+    <div className="page department-page department-page-v60 department-page-v63 bui-management" data-ui="management" data-management-app="department">
+      <section className="department-v40-hero-shell department-v1221-hero-shell" aria-label={language === 'vi' ? 'Tổng quan tổ chuyên môn' : 'Department overview'}>
+        <DepartmentRefinedHero
+          language={language}
+          data={data}
+          stats={stats}
+          health={departmentHealth}
+          upcomingItems={upcomingItems}
+          canPublish={canPublish}
+          cloudInfo={cloudInfo}
+          setActiveTab={openDepartmentTab}
+        />
 
-        <div className="department-v40-summary-strip">
-          <button type="button" className="department-v40-summary-item" onClick={() => setActiveTab('submissions')}>
-            <span className="icon amber">🔔</span>
-            <div><strong>{language === 'vi' ? 'Thông báo / duyệt' : 'Requests / review'}</strong><small>{stats.openNotices || 0} {language === 'vi' ? 'chờ duyệt' : 'pending'} · {stats.pendingSubmissions} {language === 'vi' ? 'cần xem' : 'to review'}</small></div>
-            <em>›</em>
+        <div className="department-v40-summary-strip department-v1221-summary-strip">
+          <button type="button" className="department-v40-summary-item department-v1222-summary-card is-schedule" onClick={() => setActiveTab('workSchedule')}>
+            <span className="icon blue">▣</span>
+            <div><strong>{language === 'vi' ? 'Kế hoạch & lịch công tác' : 'Plans & schedule'}</strong><small><b>{stats.workSchedules || 0}</b> {language === 'vi' ? 'lịch hoạt động' : 'schedule items'} · <b>{upcomingItems.length}</b> {language === 'vi' ? 'sắp tới' : 'upcoming'}</small></div>
+            <em>→</em>
           </button>
-          <button type="button" className="department-v40-summary-item" onClick={() => setActiveTab('tasks')}>
-            <span className="icon mint">✅</span>
-            <div><strong>{language === 'vi' ? 'Việc cần làm' : 'Tasks'}</strong><small>{stats.openTasks} {language === 'vi' ? 'đang mở' : 'open'} · {stats.overdue} {language === 'vi' ? 'quá hạn' : 'overdue'}</small></div>
-            <em>›</em>
+          <button type="button" className="department-v40-summary-item department-v1222-summary-card is-tasks" onClick={() => setActiveTab('tasks')}>
+            <span className="icon violet">✓</span>
+            <div><strong>{language === 'vi' ? 'Công việc & phê duyệt' : 'Work & approval'}</strong><small><b>{stats.tasks || 0}</b> {language === 'vi' ? 'tổng công việc' : 'tasks'} · <b>{stats.pendingSubmissions || 0}</b> {language === 'vi' ? 'chờ duyệt' : 'pending'}</small></div>
+            <em>→</em>
           </button>
-          <button type="button" className="department-v40-summary-item" onClick={() => setActiveTab('workSchedule')}>
-            <span className="icon blue">🗓️</span>
-            <div><strong>{language === 'vi' ? 'Lịch tuần này' : 'This week'}</strong><small>{upcomingItems.length} {language === 'vi' ? 'sự kiện' : 'items'} · {data.meetings.length} {language === 'vi' ? 'cuộc họp' : 'meetings'}</small></div>
-            <em>›</em>
+          <button type="button" className="department-v40-summary-item department-v1222-summary-card is-records" onClick={() => setActiveTab('documents')}>
+            <span className="icon mint">□</span>
+            <div><strong>{language === 'vi' ? 'Hồ sơ & minh chứng' : 'Records & evidence'}</strong><small><b>{stats.documents || 0}</b> {language === 'vi' ? 'hồ sơ' : 'records'} · <b>{stats.pendingSubmissions || 0}</b> {language === 'vi' ? 'chờ bổ sung' : 'need updates'}</small></div>
+            <em>→</em>
           </button>
-          <button type="button" className="department-v40-summary-item" onClick={() => setActiveTab('reports')}>
-            <span className="icon purple">◔</span>
-            <div><strong>{language === 'vi' ? 'Báo cáo' : 'Reports'}</strong><small>{stats.reports || 0} {language === 'vi' ? 'báo cáo mới' : 'new reports'}</small></div>
-            <em>›</em>
+          <button type="button" className="department-v40-summary-item department-v1222-summary-card is-ai" onClick={() => setActiveTab('aiCopilot')}>
+            <span className="icon purple">✦</span>
+            <div><strong>{language === 'vi' ? 'Báo cáo & AI Copilot' : 'Reports & AI Copilot'}</strong><small><b>{stats.reports || 0}</b> {language === 'vi' ? 'báo cáo' : 'reports'} · <b>{departmentHealth.riskScore}</b> {language === 'vi' ? 'điểm rủi ro' : 'risk score'}</small></div>
+            <em>→</em>
           </button>
         </div>
       </section>
 
-      <DepartmentOperationsDashboard data={data} stats={stats} health={departmentHealth} language={language} setActiveTab={openDepartmentTab} cloudInfo={cloudInfo} canPublish={canPublish} onSaveCloud={handleSaveCloud} onLoadCloud={handleLoadCloud} upcomingItems={upcomingItems} workloadRows={workloadRows} onExportCalendar={handleExportCalendar} />
+      <DepartmentOperationsDashboard
+        data={data}
+        stats={stats}
+        health={departmentHealth}
+        language={language}
+        setActiveTab={openDepartmentTab}
+        cloudInfo={cloudInfo}
+        canPublish={canPublish}
+        onSaveCloud={handleSaveCloud}
+        onLoadCloud={handleLoadCloud}
+        upcomingItems={upcomingItems}
+        workloadRows={workloadRows}
+        onExportCalendar={handleExportCalendar}
+        onExportJson={handleExportJson}
+        onImportJson={handleImportJson}
+        onExportPortfolio={handleExportPortfolio}
+        onUpdateStatus={updateStatus}
+        onQuickDocumentUpload={handleQuickDocumentUpload}
+        onOpenAISuggestion={(suggestion) => {
+          setAiInstruction(suggestion);
+          setActiveTab('aiCopilot');
+        }}
+        scheduleDraft={workScheduleDraft}
+        setScheduleDraft={setWorkScheduleDraft}
+        addSchedule={addWorkSchedule}
+        onNotify={showToast}
+      />
 
       {!canPublish ? (
         <section className="department-teacher-workspace-v64 panel">
@@ -2364,13 +2428,13 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
         </section>
       ) : null}
 
-      {visibleTabs.length ? (
-      <section className="department-work-panel panel">
+      {visibleTabs.length && activeTab !== 'dashboard' ? (
+      <section className="department-work-panel panel department-v1221-details-panel department-v1223-details-panel" data-active-module={activeTab}>
         <div className="department-tabs">
           {visibleTabs.map((module) => {
             const isAllowed = allowed(module.key);
             return (
-              <button key={module.key} className={activeTab === module.key ? 'active' : ''} disabled={!isAllowed} onClick={() => setActiveTab(module.key)}>
+              <button key={module.key} data-module={module.key} className={activeTab === module.key ? 'active' : ''} disabled={!isAllowed} onClick={() => setActiveTab(module.key)}>
                 <span>{module.icon}</span>{language === 'vi' ? module.shortVi : module.short}
               </button>
             );
@@ -2395,6 +2459,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
         />
         ) : null}
 
+        <div className="department-v1223-module-content" data-module={activeTab}>
         {activeTab === 'dashboard' && allowed('dashboard') && <DashboardPanel data={data} stats={stats} health={departmentHealth} language={language} setActiveTab={openDepartmentTab} cloudInfo={cloudInfo} canPublish={canPublish} onSaveCloud={handleSaveCloud} onLoadCloud={handleLoadCloud} onUseTemplate={useTemplate} upcomingItems={upcomingItems} workloadRows={workloadRows} onExportCalendar={handleExportCalendar} onAddAgenda={addAutoMeetingAgenda} />}
         {activeTab === 'plans' && allowed('plans') && <PlansPanel data={data} language={language} draft={draft} setDraft={setDraft} addPlan={addPlan} updateStatus={updateStatus} removeItem={removeItem} />}
         {activeTab === 'meetings' && allowed('meetings') && <MeetingsPanel data={data} language={language} draft={draft} setDraft={setDraft} addMeeting={addMeeting} addAutoMeetingAgenda={addAutoMeetingAgenda} removeItem={removeItem} />}
@@ -2408,6 +2473,7 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
           removeItem={removeItem}
           onExportCalendar={handleExportCalendar}
           canManage={canPublish}
+          hasApiKey={hasApiKey}
           importWeekStart={scheduleImportWeekStart}
           setImportWeekStart={setScheduleImportWeekStart}
           importFileName={scheduleImportFileName}
@@ -2418,7 +2484,6 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
           importInputRef={scheduleImportInputRef}
           onImportFile={handleWorkScheduleImportFile}
           onAnalyzeAgain={() => analyzeWorkScheduleSource()}
-          onDownloadTemplate={downloadScheduleImportTemplate}
           onUpdateImportItem={updateScheduleImportItem}
           onRemoveImportItem={removeScheduleImportItem}
           onSelectAllImportItems={selectAllScheduleImportItems}
@@ -2432,10 +2497,97 @@ Sau khi phân tích, hãy chuyển nội dung thành văn bản hành chính có
         {activeTab === 'aiCopilot' && allowed('aiCopilot') && <DepartmentAIPanel language={language} hasApiKey={hasApiKey} aiAction={aiAction} setAiAction={setAiAction} aiInstruction={aiInstruction} setAiInstruction={setAiInstruction} aiSourceText={aiSourceText} setAiSourceText={setAiSourceText} aiSourceName={aiSourceName} setAiSourceName={setAiSourceName} aiSourceInputRef={aiSourceInputRef} handleAiSourceFile={handleAiSourceFile} pasteAiSourceFromClipboard={pasteAiSourceFromClipboard} clearAiSourceText={clearAiSourceText} aiOutput={aiOutput} setAiOutput={setAiOutput} aiLoading={aiLoading} runDepartmentAI={runDepartmentAI} applyAIOutput={applyAIOutput} health={departmentHealth} adminDocDraft={adminDocDraft} setAdminDocDraft={setAdminDocDraft} adminDocOutput={adminDocOutput} setAdminDocOutput={setAdminDocOutput} composeAdministrativeDocument={composeAdministrativeDocument} polishAdministrativeDocument={polishAdministrativeDocument} saveAdministrativeDocument={saveAdministrativeDocument} downloadAdministrativeDocument={downloadAdministrativeDocument} />}
         {activeTab === 'reports' && allowed('reports') && <ReportsPanel language={language} report={report} setReport={setReport} reportType={reportType} setReportType={setReportType} buildAIReport={buildAIReport} aiLoading={aiLoading} onDownload={() => downloadText('bao-cao-to-tieng-anh.txt', report)} onCopy={() => navigator.clipboard?.writeText(report).then(() => showToast(language === 'vi' ? 'Đã copy báo cáo.' : 'Report copied.'))} onExportPortfolio={handleExportPortfolio} />}
         {Object.keys(STRUCTURED_MODULES).includes(activeTab) && allowed(activeTab) && <StructuredModulePanel module={moduleByKey.get(activeTab)} config={STRUCTURED_MODULES[activeTab]} data={data} language={language} draft={draft} setDraft={setDraft} addRecord={() => addStructuredRecord(activeTab)} updateStatus={updateStatus} removeItem={removeItem} setActiveTab={setActiveTab} />}
+        </div>
       </section>
       ) : null}
 
       {toast ? <div className="toast">{toast}</div> : null}
+    </div>
+  );
+}
+
+
+// V12.19 compatibility marker: department-v1219-status-row
+function DepartmentRefinedHero({ language, data, stats, health, upcomingItems, canPublish, cloudInfo, setActiveTab }) {
+  const now = parseLocalDate(today()) || new Date();
+  const mondayOffset = (now.getDay() + 6) % 7;
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - mondayOffset);
+  const weekDays = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + index);
+    return {
+      label: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'][index],
+      day: date.getDate(),
+      active: dateKeyForHero(date) === dateKeyForHero(now),
+    };
+  });
+  const progress = Math.max(0, Math.min(100, Number(health?.progress || 0)));
+  const teachers = Math.max(0, Number(data?.teachers?.length || 0));
+  const nextItems = toArray(upcomingItems).slice(0, 2);
+  const currentPeriod = data?.schoolYear || '2026-2027';
+
+  function dateKeyForHero(value) {
+    const date = value instanceof Date ? value : parseLocalDate(value);
+    if (!date || Number.isNaN(date.getTime())) return '';
+    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+  }
+
+  return (
+    <div className="department-v1221-hero-card">
+      <div className="department-v1221-hero-copy">
+        <span className="department-v1221-eyebrow">English Department</span>
+        <h1>{language === 'vi' ? 'Tổ chuyên môn Tiếng Anh' : 'English Department'}</h1>
+        <p>{language === 'vi'
+          ? 'Quản lý kế hoạch, công việc, hồ sơ và báo cáo của tổ trong một không gian gọn gàng, minh bạch và hiệu quả.'
+          : 'Manage plans, work, evidence and reports in one clear and efficient workspace.'}</p>
+        <div className="department-v1221-hero-kpis">
+          <button type="button" onClick={() => setActiveTab('dashboard')}><strong>{teachers}</strong><span>Thành viên</span><i>♙</i></button>
+          <button type="button" onClick={() => setActiveTab('tasks')}><strong>{stats.tasks || 0}</strong><span>Công việc</span><i>✓</i></button>
+          <button type="button" onClick={() => setActiveTab('documents')}><strong>{stats.documents || 0}</strong><span>Hồ sơ</span><i>□</i></button>
+          <button type="button" onClick={() => setActiveTab('reports')}><strong>{stats.reports || 0}</strong><span>Báo cáo</span><i>▥</i></button>
+        </div>
+        <div className="department-v1221-period-row">
+          <span>▣</span>
+          <small>{language === 'vi' ? 'Năm học hiện tại:' : 'Current school year:'}</small>
+          <b>{currentPeriod}</b>
+          <em className={cloudInfo.available ? 'is-online' : 'is-local'}>{cloudInfo.available ? 'Cloud' : 'Local'}</em>
+          <em>{canPublish ? 'TTCM' : (language === 'vi' ? 'Giáo viên' : 'Teacher')}</em>
+        </div>
+      </div>
+
+      <div className="department-v1221-hero-widgets">
+        <section className="department-v1221-week-widget">
+          <div className="widget-title"><strong>{language === 'vi' ? 'Lịch tuần này' : 'This week'}</strong><button type="button" onClick={() => setActiveTab('workSchedule')}>Mở lịch</button></div>
+          <div className="week-days">
+            {weekDays.map((item) => <span key={`${item.label}-${item.day}`} className={item.active ? 'active' : ''}><small>{item.label}</small><b>{item.day}</b></span>)}
+          </div>
+          <div className="week-events">
+            {nextItems.length ? nextItems.map((item) => (
+              <button type="button" key={`${item.collection}-${item.id}`} onClick={() => setActiveTab(item.collection === 'meetings' ? 'meetings' : 'workSchedule')}>
+                <i />
+                <span><b>{item.title}</b><small>{formatDate(item.agendaDate || getItemDate(item))}{item.startTime ? ` · ${item.startTime}` : ''}</small></span>
+              </button>
+            )) : <p>{language === 'vi' ? 'Chưa có lịch sắp tới.' : 'No upcoming schedule.'}</p>}
+          </div>
+        </section>
+
+        <section className="department-v1221-progress-widget">
+          <div className="widget-title"><strong>{language === 'vi' ? 'Tiến độ công việc' : 'Work progress'}</strong><button type="button" onClick={() => setActiveTab('tasks')}>Chi tiết</button></div>
+          <div className="progress-body">
+            <div className="progress-ring" style={{ '--dept-progress': `${progress * 3.6}deg` }}><span><b>{progress}%</b><small>Hoàn thành</small></span></div>
+            <div className="progress-legend">
+              <span><i className="done" />Hoàn thành <b>{Math.max(0, (stats.tasks || 0) - (stats.openTasks || 0))}</b></span>
+              <span><i className="doing" />Đang thực hiện <b>{stats.openTasks || 0}</b></span>
+              <span><i className="risk" />Quá hạn <b>{stats.overdue || 0}</b></span>
+            </div>
+          </div>
+        </section>
+
+        <section className="department-v1221-motto-widget">
+          <div><strong>“</strong><b>{language === 'vi' ? 'Đổi mới – Hợp tác – Hiệu quả' : 'Innovate – Collaborate – Deliver'}</b><small>{language === 'vi' ? 'Cùng nhau xây dựng chất lượng dạy và học.' : 'Building teaching quality together.'}</small></div>
+          <span className="motto-books"><i /><i /><i /></span>
+          <span className="motto-plant"><i /><i /><i /><b /></span>
+        </section>
+      </div>
     </div>
   );
 }
@@ -2463,182 +2615,191 @@ function DepartmentModuleCard({ module, language, currentUser, allowed, active, 
 }
 
 
-function DepartmentOperationsDashboard({ data, stats, health, language, setActiveTab, cloudInfo, canPublish, onSaveCloud, onLoadCloud, upcomingItems, workloadRows, onExportCalendar }) {
-  const scheduleItems = upcomingItems.slice(0, 3);
-  const priorityItems = [...data.tasks, ...data.plans, ...data.assessments]
-    .filter((item) => isOverdue(item) || item.status === 'Chờ duyệt' || item.status === 'Đang làm' || item.status === 'Chưa làm')
-    .slice(0, 3);
-  const recentDocs = data.documents.slice(0, 3);
-  const reportSuggestions = [
-    language === 'vi' ? 'Tổng hợp tiến độ công việc tuần' : 'Summarize weekly progress',
-    language === 'vi' ? 'Gợi ý nội dung báo cáo tháng' : 'Suggest monthly report content',
-    language === 'vi' ? 'Phân tích minh chứng theo chủ đề' : 'Analyze evidence by topic',
-  ];
-  const calendarCells = [
-    ['', '', '1', '2', '3', '4', '5'],
-    ['6', '7', '8', '9', '10', '11', '12'],
-    ['13', '14', '15', '16', '17', '18', '19'],
-    ['20', '21', '22', '23', '24', '25', '26'],
-    ['27', '28', '29', '30', '31', '', ''],
-  ];
+function DepartmentOperationsDashboard({
+  data,
+  stats,
+  health,
+  language,
+  setActiveTab,
+  cloudInfo,
+  canPublish,
+  onSaveCloud,
+  onLoadCloud,
+  upcomingItems,
+  workloadRows,
+  onExportCalendar,
+  onExportJson,
+  onImportJson,
+  onExportPortfolio,
+  onUpdateStatus,
+  onQuickDocumentUpload,
+  onOpenAISuggestion,
+  scheduleDraft,
+  setScheduleDraft,
+  addSchedule,
+  onNotify,
+}) {
+  const attachmentInputRef = useRef(null);
+  const importInputRef = useRef(null);
+
+  const activities = useMemo(() => {
+    const rows = [
+      ...toArray(data.tasks).slice(0, 3).map((item) => ({ ...item, collection: 'tasks', icon: '✓', tone: 'green', meta: `${item.owner || 'TTCM'} · ${formatDate(getItemDate(item))}` })),
+      ...toArray(data.workSchedules).slice(0, 3).map((item) => ({ ...item, collection: 'workSchedules', icon: '▣', tone: 'blue', meta: `${item.type || 'Lịch làm việc'} · ${formatDate(item.date)}` })),
+      ...toArray(data.documents).slice(0, 3).map((item) => ({ ...item, collection: 'documents', icon: '□', tone: 'purple', meta: item.note || item.category || (language === 'vi' ? 'Minh chứng chuyên môn' : 'Professional evidence') })),
+      ...toArray(data.plans).slice(0, 2).map((item) => ({ ...item, collection: 'plans', icon: '♙', tone: 'amber', meta: `${item.owner || 'TTCM'} · ${formatDate(getItemDate(item))}` })),
+    ];
+    return rows.sort((a, b) => String(getItemDate(b) || '').localeCompare(String(getItemDate(a) || ''))).slice(0, 6);
+  }, [data.tasks, data.workSchedules, data.documents, data.plans, language]);
+
+  const openPreparedAiSuggestion = (item) => onOpenAISuggestion?.(item.text);
+
+  const getActivityStatus = (item) => {
+    const raw = String(item?.status || '').toLowerCase();
+    if (item.collection === 'tasks') {
+      if (!isOpenStatus(item.status)) return { label: language === 'vi' ? 'Hoàn thành' : 'Completed', tone: 'success' };
+      if (raw.includes('quá hạn')) return { label: language === 'vi' ? 'Quá hạn' : 'Overdue', tone: 'danger' };
+      if (raw.includes('chờ')) return { label: language === 'vi' ? 'Chờ duyệt' : 'Pending', tone: 'warning' };
+      return { label: language === 'vi' ? 'Đang xử lý' : 'In progress', tone: 'info' };
+    }
+    if (item.collection === 'workSchedules') {
+      if (raw.includes('hoàn thành')) return { label: language === 'vi' ? 'Đã hoàn tất' : 'Completed', tone: 'success' };
+      if (raw.includes('chờ')) return { label: language === 'vi' ? 'Chờ xác nhận' : 'Awaiting confirmation', tone: 'warning' };
+      return { label: language === 'vi' ? 'Đã lên lịch' : 'Scheduled', tone: 'success' };
+    }
+    if (item.collection === 'documents') return { label: language === 'vi' ? 'Minh chứng' : 'Evidence', tone: 'purple' };
+    if (item.collection === 'plans') return { label: language === 'vi' ? 'Kế hoạch' : 'Plan', tone: 'warning' };
+    return { label: language === 'vi' ? 'Sắp diễn ra' : 'Upcoming', tone: 'info' };
+  };
+
+
+  const recentSchedules = useMemo(() => toArray(data.workSchedules)
+    .slice()
+    .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || String(b.startTime || '').localeCompare(String(a.startTime || '')))
+    .slice(0, 5), [data.workSchedules]);
+
+  const openCollection = (collection) => {
+    const routes = { tasks: 'tasks', workSchedules: 'workSchedule', documents: 'documents', plans: 'plans', meetings: 'meetings' };
+    setActiveTab(routes[collection] || 'workSchedule');
+  };
+
+  const applyTemplate = () => {
+    if (!canPublish) return onNotify?.(language === 'vi' ? 'Giáo viên chỉ được xem lịch chung.' : 'Teachers can only view the shared schedule.');
+    const base = parseLocalDate(today()) || new Date();
+    setScheduleDraft({
+      ...EMPTY_WORK_SCHEDULE,
+      title: language === 'vi' ? 'Họp tổ chuyên môn định kỳ' : 'Regular department meeting',
+      owner: 'TTCM, giáo viên tổ Tiếng Anh',
+      date: today(),
+      startTime: '08:00',
+      endTime: '09:30',
+      location: language === 'vi' ? 'Phòng họp chuyên môn' : 'Department meeting room',
+      type: 'Họp tổ',
+      status: 'Chưa làm',
+      note: language === 'vi' ? `Rà soát công việc tuần ${Math.ceil(base.getDate() / 7)}, hồ sơ cần duyệt và nhiệm vụ tiếp theo.` : 'Review weekly work, pending evidence and next actions.',
+    });
+    onNotify?.(language === 'vi' ? 'Đã điền mẫu lịch họp tổ.' : 'Meeting template applied.');
+  };
+
+  const resetSchedule = () => setScheduleDraft({ ...EMPTY_WORK_SCHEDULE, date: today() });
+  const handleAttachment = (files) => {
+    const next = Array.from(files || []).filter(Boolean);
+    if (!next.length) return;
+    onQuickDocumentUpload?.(next);
+  };
+
+  const handleActivityAction = (item) => {
+    if (item.collection === 'tasks' && canPublish && isOpenStatus(item.status)) {
+      onUpdateStatus?.(item.collection, item.id, DONE_STATUS);
+      onNotify?.(language === 'vi' ? 'Đã đánh dấu công việc hoàn thành.' : 'Task marked complete.');
+      return;
+    }
+    openCollection(item.collection);
+  };
 
   return (
-    <section className="department-v40-dashboard" aria-label={language === 'vi' ? 'Dashboard công tác chuyên môn' : 'Department work dashboard'}>
-      <article className="department-v40-card department-v40-calendar-panel">
-        <div className="department-v40-card-head">
-          <div className="title-wrap">
-            <span className="card-icon teal">🗓️</span>
-            <div>
-              <h3>{language === 'vi' ? 'Kế hoạch & lịch công tác' : 'Plans & schedule'}</h3>
-            </div>
-          </div>
+    <section className="department-v40-dashboard department-v1220-dashboard department-v1221-focus-workspace" aria-label={language === 'vi' ? 'Không gian làm việc tổ chuyên môn' : 'Department focus workspace'}>
+      <aside className="department-v1221-activity-pane department-v1222-activity-card">
+        <div className="department-v1222-card-head is-cyan">
+          <div className="department-v1222-card-title"><span>▣</span><div><h2>{language === 'vi' ? 'Hoạt động / Sự kiện của phòng' : 'Department activity / events'}</h2><p>{language === 'vi' ? 'Lịch, nhiệm vụ và hồ sơ vừa cập nhật.' : 'Recently updated schedules, tasks and records.'}</p></div></div>
+          <button type="button" onClick={() => setActiveTab('tasks')}>{language === 'vi' ? 'Xem tất cả hoạt động' : 'View all activity'} →</button>
         </div>
-        <div className="department-v40-card-body two-col">
-          <div className="department-v40-mini-calendar">
-            <div className="calendar-head"><button type="button">‹</button><strong>{language === 'vi' ? 'Tháng 7, 2026' : 'July 2026'}</strong><button type="button">›</button></div>
-            <div className="calendar-weekdays"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div>
-            <div className="calendar-grid">
-              {calendarCells.flat().map((day, index) => (
-                <span key={`${day}-${index}`} className={day === '10' ? 'is-active' : day === '14' || day === '17' || day === '24' ? 'is-marked' : ''}>{day}</span>
-              ))}
-            </div>
-          </div>
-          <div className="department-v40-list-block">
-            <strong>{language === 'vi' ? 'Lịch sắp tới' : 'Upcoming schedule'}</strong>
-            <ul>
-              {scheduleItems.length ? scheduleItems.map((item) => (
-                <li key={`${item.collection}-${item.id}`}>
-                  <span className="bullet" />
-                  <div>
-                    <b>{formatDate(getItemDate(item))}</b>
-                    <em>{item.title}</em>
-                  </div>
-                </li>
-              )) : <li className="empty">{language === 'vi' ? 'Chưa có lịch sắp tới.' : 'No upcoming schedule.'}</li>}
-            </ul>
-          </div>
-        </div>
-        <div className="department-v40-card-actions">
-          <button className="secondary" type="button" onClick={() => setActiveTab('workSchedule')}>{language === 'vi' ? 'Thêm lịch' : 'Add schedule'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('plans')}>{language === 'vi' ? 'Tạo kế hoạch' : 'Create plan'}</button>
-          <button className="secondary" type="button" onClick={onExportCalendar}>{language === 'vi' ? 'Xuất lịch' : 'Export calendar'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('workSchedule')}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button>
-        </div>
-      </article>
 
-      <article className="department-v40-card department-v40-tasks-panel">
-        <div className="department-v40-card-head">
-          <div className="title-wrap">
-            <span className="card-icon blue">☑</span>
-            <div>
-              <h3>{language === 'vi' ? 'Công việc & phê duyệt' : 'Tasks & approval'}</h3>
-            </div>
+        <div className="department-v1221-activity-scroll">
+          <div className="department-v1221-activity-list">
+            {activities.length ? activities.map((item) => {
+              const status = getActivityStatus(item);
+              return (
+                <button type="button" key={`${item.collection}-${item.id}`} data-tone={item.tone} className="department-v1221-activity-row department-v1222-activity-row" onClick={() => handleActivityAction(item)}>
+                  <span className={item.tone}>{item.icon}</span>
+                  <div><b>{item.title}</b><small>{item.meta}</small></div>
+                  <small className={`department-v1222-status is-${status.tone}`}>{status.label}</small>
+                  <em>{item.collection === 'tasks' && canPublish && isOpenStatus(item.status) ? '✓' : '→'}</em>
+                </button>
+              );
+            }) : (
+              <div className="department-v1221-empty-state"><span>◎</span><b>{language === 'vi' ? 'Chưa có hoạt động gần đây' : 'No recent activity'}</b><small>{language === 'vi' ? 'Tạo lịch hoặc công việc đầu tiên để bắt đầu.' : 'Create a schedule or task to get started.'}</small></div>
+            )}
           </div>
         </div>
-        <div className="department-v40-card-body two-col compact-gap">
-          <div className="department-v40-stat-list">
-            <div><span>{language === 'vi' ? 'Việc đang mở' : 'Open tasks'}</span><strong>{stats.openTasks}</strong></div>
-            <div><span>{language === 'vi' ? 'Quá hạn' : 'Overdue'}</span><strong className="danger">{stats.overdue}</strong></div>
-            <div><span>{language === 'vi' ? 'Chờ duyệt' : 'Pending review'}</span><strong className="amber">{stats.pendingSubmissions}</strong></div>
-            <div><span>{language === 'vi' ? 'Đã hoàn thành' : 'Completed'}</span><strong className="success">{Math.max(0, data.tasks.length - stats.openTasks)}</strong></div>
-          </div>
-          <div className="department-v40-list-block">
-            <strong>{language === 'vi' ? 'Việc cần làm' : 'To do now'}</strong>
-            <ul>
-              {priorityItems.length ? priorityItems.map((item) => (
-                <li key={item.id}>
-                  <span className="bullet blue" />
-                  <div>
-                    <em>{item.title}</em>
-                    <b>{isOverdue(item) ? (language === 'vi' ? 'Quá hạn' : 'Overdue') : formatDate(getItemDate(item))}</b>
-                  </div>
-                </li>
-              )) : <li className="empty">{language === 'vi' ? 'Chưa có việc ưu tiên.' : 'No priority tasks.'}</li>}
-            </ul>
-          </div>
-        </div>
-        <div className="department-v40-card-actions">
-          <button className="secondary" type="button" onClick={() => setActiveTab('tasks')}>{language === 'vi' ? 'Giao việc' : 'Assign task'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('submissions')}>{language === 'vi' ? 'Duyệt hồ sơ' : 'Review files'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('meetings')}>{language === 'vi' ? 'Tạo biên bản' : 'Create minutes'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('tasks')}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button>
-        </div>
-      </article>
 
-      <article className="department-v40-card department-v40-evidence-panel">
-        <div className="department-v40-card-head">
-          <div className="title-wrap">
-            <span className="card-icon green">🗂</span>
-            <div>
-              <h3>{language === 'vi' ? 'Hồ sơ & minh chứng' : 'Records & evidence'}</h3>
-            </div>
-          </div>
+        <div className="department-v1221-pane-footer department-v1222-pane-footer">
+          <button type="button" onClick={() => setActiveTab('tasks')}>{language === 'vi' ? 'Xem tất cả hoạt động' : 'View all activity'} →</button>
         </div>
-        <div className="department-v40-card-body two-col compact-gap">
-          <div className="department-v40-stat-list">
-            <div><span>{language === 'vi' ? 'Tổng hồ sơ' : 'Total files'}</span><strong>{data.documents.length + stats.archivedSubmissions}</strong></div>
-            <div><span>{language === 'vi' ? 'Chờ bổ sung' : 'Need update'}</span><strong className="amber">{stats.pendingSubmissions}</strong></div>
-            <div><span>{language === 'vi' ? 'Đã duyệt' : 'Approved'}</span><strong className="success">{stats.archivedSubmissions}</strong></div>
-            <div><span>{language === 'vi' ? 'Lưu trữ' : 'Archived'}</span><strong>{stats.archivedSubmissions}</strong></div>
-          </div>
-          <div className="department-v40-list-block">
-            <strong>{language === 'vi' ? 'Hồ sơ gần đây' : 'Recent records'}</strong>
-            <ul>
-              {recentDocs.length ? recentDocs.map((item) => (
-                <li key={item.id}>
-                  <span className="bullet green" />
-                  <div>
-                    <em>{item.title}</em>
-                    <b>{item.category || (language === 'vi' ? 'Minh chứng' : 'Evidence')}</b>
-                  </div>
-                </li>
-              )) : <li className="empty">{language === 'vi' ? 'Chưa có hồ sơ gần đây.' : 'No recent records.'}</li>}
-            </ul>
-          </div>
-        </div>
-        <div className="department-v40-card-actions">
-          <button className="secondary" type="button" onClick={() => setActiveTab('documents')}>{language === 'vi' ? 'Tải lên hồ sơ' : 'Upload record'}</button>
-          <button className="secondary" type="button" onClick={onLoadCloud}>{language === 'vi' ? 'Kiểm tra cloud' : 'Check cloud'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('submissions')}>{language === 'vi' ? 'Xuất hồ sơ HTML' : 'Export HTML'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('documents')}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button>
-        </div>
-      </article>
+      </aside>
 
-      <article className="department-v40-card department-v40-reports-panel">
-        <div className="department-v40-card-head">
-          <div className="title-wrap">
-            <span className="card-icon purple">✦</span>
-            <div>
-              <h3>{language === 'vi' ? 'Báo cáo & Hỗ trợ' : 'Reports & Hỗ trợ'}</h3>
+      <section className="department-v1221-schedule-pane department-v1222-schedule-card">
+        <div className="department-v1221-schedule-head department-v1222-card-head is-blue">
+          <div className="department-v1222-card-title"><span>▣</span><div><h2>{language === 'vi' ? 'Lịch làm việc hoặc nhiệm vụ mới' : 'New schedule or task'}</h2><p>{language === 'vi' ? 'Tạo mới lịch làm việc hoặc chỉnh sửa lịch đã có.' : 'Create a new schedule or edit an existing one.'}</p></div></div>
+          <div className="department-v1221-head-actions">
+            <button type="button" className="department-v1222-new-task" onClick={resetSchedule}>＋ {language === 'vi' ? 'Nhiệm vụ mới' : 'New task'}</button>
+          </div>
+        </div>
+
+        <div className="department-v1221-schedule-scroll">
+          {canPublish ? (
+            <form className="department-v1221-schedule-form" onSubmit={(event) => { event.preventDefault(); addSchedule?.(); }}>
+              <label className="wide"><span>{language === 'vi' ? 'Tiêu đề lịch làm việc' : 'Schedule title'} <b>*</b></span><input value={scheduleDraft.title} onChange={(event) => setScheduleDraft({ ...scheduleDraft, title: event.target.value })} placeholder={language === 'vi' ? 'Nhập tiêu đề lịch làm việc' : 'Enter schedule title'} required /></label>
+              <label><span>{language === 'vi' ? 'Loại lịch' : 'Schedule type'} <b>*</b></span><select value={scheduleDraft.type} onChange={(event) => setScheduleDraft({ ...scheduleDraft, type: event.target.value })}>{WORK_SCHEDULE_TYPES.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
+              <label><span>{language === 'vi' ? 'Ngày diễn ra' : 'Date'} <b>*</b></span><input type="date" value={scheduleDraft.date} onChange={(event) => setScheduleDraft({ ...scheduleDraft, date: event.target.value })} required /></label>
+              <label><span>{language === 'vi' ? 'Giờ bắt đầu' : 'Start time'}</span><input type="time" value={scheduleDraft.startTime} onChange={(event) => setScheduleDraft({ ...scheduleDraft, startTime: event.target.value })} /></label>
+              <label><span>{language === 'vi' ? 'Giờ kết thúc' : 'End time'}</span><input type="time" value={scheduleDraft.endTime} onChange={(event) => setScheduleDraft({ ...scheduleDraft, endTime: event.target.value })} /></label>
+              <label className="wide"><span>{language === 'vi' ? 'Địa điểm / Hình thức' : 'Location / format'}</span><input value={scheduleDraft.location} onChange={(event) => setScheduleDraft({ ...scheduleDraft, location: event.target.value })} placeholder={language === 'vi' ? 'Chọn địa điểm hoặc nhập link họp' : 'Choose a place or enter a meeting link'} /></label>
+              <label className="wide"><span>{language === 'vi' ? 'Nội dung chính' : 'Main content'} <b>*</b></span><textarea value={scheduleDraft.note} onChange={(event) => setScheduleDraft({ ...scheduleDraft, note: event.target.value })} placeholder={language === 'vi' ? 'Nhập nội dung chính, yêu cầu chuẩn bị và minh chứng cần có...' : 'Enter content, preparation and required evidence...'} /></label>
+              <label><span>{language === 'vi' ? 'Thành phần tham dự' : 'Participants'}</span><input value={scheduleDraft.owner} onChange={(event) => setScheduleDraft({ ...scheduleDraft, owner: event.target.value })} placeholder={language === 'vi' ? 'Chọn hoặc nhập thành viên' : 'Choose or enter participants'} /></label>
+              <label><span>{language === 'vi' ? 'Trạng thái' : 'Status'}</span><select value={scheduleDraft.status} onChange={(event) => setScheduleDraft({ ...scheduleDraft, status: event.target.value })}>{STATUS_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
+              <div className="department-v1221-attachment wide"><div><span>⌁</span><p><b>{language === 'vi' ? 'Tài liệu đính kèm' : 'Attachments'}</b><small>{language === 'vi' ? 'PDF, Word, Excel, PowerPoint hoặc ảnh' : 'PDF, Word, Excel, PowerPoint or images'}</small></p></div><button type="button" onClick={() => attachmentInputRef.current?.click()}>{language === 'vi' ? 'Tải lên tài liệu' : 'Upload files'}</button></div>
+              <div className="department-v1221-form-actions wide"><button type="button" className="ghost" onClick={resetSchedule}>{language === 'vi' ? 'Hủy bỏ' : 'Reset'}</button><button type="submit" className="primary">✓ {language === 'vi' ? 'Lưu lịch làm việc' : 'Save schedule'}</button></div>
+            </form>
+          ) : (
+            <div className="department-v1221-readonly-note"><span>◉</span><div><b>{language === 'vi' ? 'Lịch dùng chung của tổ chuyên môn' : 'Shared department schedule'}</b><small>{language === 'vi' ? 'Giáo viên được xem lịch; TTCM/Admin mới có quyền tạo và chỉnh sửa.' : 'Teachers can view; leaders/admins can create and edit.'}</small></div><button type="button" onClick={() => setActiveTab('workSchedule')}>{language === 'vi' ? 'Mở lịch đầy đủ' : 'Open full schedule'}</button></div>
+          )}
+
+          <section className="department-v1221-saved-schedules">
+            <div className="saved-title"><div><span>{language === 'vi' ? 'ĐÃ LƯU' : 'SAVED'}</span><h3>{language === 'vi' ? 'Lịch gần đây' : 'Recent schedules'}</h3></div><button type="button" onClick={() => setActiveTab('workSchedule')}>{language === 'vi' ? 'Xem tất cả' : 'View all'} →</button></div>
+            <div className="saved-list">
+              {recentSchedules.length ? recentSchedules.map((item) => (
+                <button type="button" key={item.id} onClick={() => setActiveTab('workSchedule')}>
+                  <span className="date"><b>{String(parseLocalDate(item.date)?.getDate() || '--').padStart(2, '0')}</b><small>{parseLocalDate(item.date) ? `T${parseLocalDate(item.date).getMonth() + 1}` : ''}</small></span>
+                  <div><b>{item.title}</b><small>{item.type || 'Lịch làm việc'} · {item.startTime || (language === 'vi' ? 'Cả ngày' : 'All day')}{item.location ? ` · ${item.location}` : ''}</small></div>
+                  <em>{item.status || 'Chưa làm'}</em>
+                </button>
+              )) : <p>{language === 'vi' ? 'Chưa có lịch được lưu.' : 'No saved schedules yet.'}</p>}
             </div>
-          </div>
+          </section>
         </div>
-        <div className="department-v40-card-body two-col compact-gap">
-          <div className="department-v40-stat-list">
-            <div><span>{language === 'vi' ? 'Báo cáo tháng' : 'Monthly reports'}</span><strong>{stats.reports || 0}</strong></div>
-            <div><span>{language === 'vi' ? 'Điểm rủi ro' : 'Risk score'}</span><strong className={health.riskScore >= 60 ? 'danger' : health.riskScore >= 28 ? 'amber' : 'success'}>{health.riskScore}</strong></div>
-            <div><span>{language === 'vi' ? 'Lần dùng AI (tháng)' : 'AI uses (month)'}</span><strong>{Math.max(4, Math.round((stats.reports || 0) + (stats.openTasks || 0) / 2))}</strong></div>
-            <div><span>{language === 'vi' ? 'Cloud' : 'Cloud'}</span><strong>{cloudInfo.available ? 'OK' : 'LOCAL'}</strong></div>
-          </div>
-          <div className="department-v40-list-block">
-            <strong>{language === 'vi' ? 'Hỗ trợ gợi ý' : 'Hỗ trợ suggestions'}</strong>
-            <ul>
-              {reportSuggestions.map((item) => (
-                <li key={item}>
-                  <span className="bullet purple" />
-                  <div><em>{item}</em></div>
-                </li>
-              ))}
-            </ul>
-          </div>
+
+        <input ref={attachmentInputRef} type="file" multiple hidden onChange={(event) => { handleAttachment(event.target.files); event.target.value = ''; }} />
+        <input ref={importInputRef} type="file" accept="application/json,.json" hidden onChange={onImportJson} />
+        <div className="department-v1221-utility-row">
+          <button type="button" onClick={applyTemplate}>▤ {language === 'vi' ? 'Mẫu lịch' : 'Template'}</button>
+          <button type="button" onClick={onExportCalendar}>↗ {language === 'vi' ? 'Xuất ICS' : 'Export ICS'}</button>
+          <button type="button" onClick={onExportPortfolio}>▤ {language === 'vi' ? 'Xuất hồ sơ HTML' : 'Export HTML'}</button>
+          <button type="button" onClick={onExportJson}>⇧ JSON</button>
+          <button type="button" onClick={() => importInputRef.current?.click()}>⇩ JSON</button>
+          <button type="button" onClick={cloudInfo.available ? onLoadCloud : onSaveCloud}>☁ {cloudInfo.available ? 'Cloud' : 'Local'}</button>
         </div>
-        <div className="department-v40-card-actions">
-          <button className="secondary" type="button" onClick={() => setActiveTab('reports')}>{language === 'vi' ? 'Tạo báo cáo' : 'Create report'}</button>
-          <button className="secondary" type="button" onClick={onSaveCloud} disabled={!canPublish}>{language === 'vi' ? 'Xuất JSON' : 'Export JSON'}</button>
-          <button className="secondary" type="button" onClick={onLoadCloud}>{language === 'vi' ? 'Nhập JSON' : 'Import JSON'}</button>
-          <button className="secondary" type="button" onClick={() => setActiveTab('aiCopilot')}>{language === 'vi' ? 'Chat với AI' : 'Chat with AI'}</button>
-        </div>
-      </article>
+      </section>
     </section>
   );
 }
@@ -2663,7 +2824,7 @@ function ModuleAssistPanel({ language, module, moduleAi, hasApiKey, aiSourceName
   const ready = String(aiSourceText || '').trim().length > 0;
   if (!module) return null;
   return (
-    <section className="department-module-assist metro-panel liquid-glass">
+    <section className="department-module-assist metro-panel liquid-glass department-v1222-module-assist" data-module={module.key}>
       <input
         ref={inputRef}
         type="file"
@@ -2675,14 +2836,14 @@ function ModuleAssistPanel({ language, module, moduleAi, hasApiKey, aiSourceName
         <span className="module-assist-icon">📎🤖</span>
         <div>
           <strong>{language === 'vi' ? `Tài liệu & AI bổ trợ: ${module.titleVi || module.shortVi}` : `Documents & AI support: ${module.title || module.short}`}</strong>
-          <p>{moduleAi?.instruction || (language === 'vi' ? 'Tải/dán tài liệu để Hỗ trợ phân hệ này.' : 'Upload/paste a document for AI support in this module.')}</p>
+          <p>{moduleAi?.instruction || (language === 'vi' ? 'Tải/dán tài liệu để AI hỗ trợ phân hệ này.' : 'Upload/paste a document for AI support in this module.')}</p>
           <small>{ready ? `${language === 'vi' ? 'Nguồn hiện có' : 'Current source'}: ${aiSourceName || (language === 'vi' ? 'văn bản dán trực tiếp' : 'direct text')} · ${String(aiSourceText).length.toLocaleString('vi-VN')} ký tự` : (language === 'vi' ? 'Chưa có tài liệu nguồn. Có thể tải file hoặc dán từ clipboard.' : 'No source yet. Upload a file or paste from clipboard.')}</small>
         </div>
       </div>
       <div className="module-assist-actions">
         <button className="secondary" type="button" onClick={() => inputRef?.current?.click?.()}>{language === 'vi' ? 'Upload tài liệu' : 'Upload document'}</button>
         <button className="secondary" type="button" onClick={onPaste}>{language === 'vi' ? 'Dán văn bản' : 'Paste text'}</button>
-        <button className="primary" type="button" onClick={onOpenAI} disabled={!hasApiKey}>{language === 'vi' ? 'Hỗ trợ' : 'AI support'}</button>
+        <button className="primary" type="button" onClick={onOpenAI} disabled={!hasApiKey}>{language === 'vi' ? 'AI hỗ trợ' : 'AI support'}</button>
         <button className="secondary" type="button" onClick={onAdminDoc} disabled={!hasApiKey}>{language === 'vi' ? 'Soạn VB hành chính' : 'Draft admin doc'}</button>
         <button className="ghost" type="button" onClick={onClear} disabled={!ready}>{language === 'vi' ? 'Xóa nguồn' : 'Clear'}</button>
       </div>
@@ -2746,6 +2907,7 @@ function MeetingsPanel({ data, language, draft, setDraft, addMeeting, addAutoMee
 
 function WorkScheduleImportCard({
   language,
+  hasApiKey,
   importWeekStart,
   setImportWeekStart,
   importFileName,
@@ -2756,7 +2918,6 @@ function WorkScheduleImportCard({
   importInputRef,
   onImportFile,
   onAnalyzeAgain,
-  onDownloadTemplate,
   onUpdateImportItem,
   onRemoveImportItem,
   onSelectAllImportItems,
@@ -2773,15 +2934,15 @@ function WorkScheduleImportCard({
         <div className="department-schedule-import-title">
           <span className="department-schedule-import-icon">✨</span>
           <div>
-            <span className="eyebrow">{language === 'vi' ? 'Nhập lịch từ file · Không dùng AI' : 'Offline file-to-schedule'}</span>
+            <span className="eyebrow">{language === 'vi' ? 'AI đọc lịch từ file' : 'AI file-to-schedule'}</span>
             <h3>{language === 'vi' ? 'Nhận diện và thêm hàng loạt vào lịch làm việc tuần' : 'Extract and bulk-add the weekly work schedule'}</h3>
             <p>{language === 'vi'
-              ? 'Tải XLSX, CSV, PDF có chữ, DOCX, TXT, MD hoặc HTML. Bộ quy tắc ngoại tuyến tự tách ngày, giờ, người phụ trách, địa điểm và ghi chú; không gửi dữ liệu ra ngoài.'
-              : 'Upload XLSX, CSV, text-based PDF, DOCX, TXT, MD or HTML. The offline rules engine extracts dates, times, owners, locations and notes without sending data externally.'}</p>
+              ? 'Tải PDF, DOCX, TXT, MD, CSV hoặc HTML. AI sẽ đọc ngày, giờ, người phụ trách, địa điểm, loại công việc và nội dung chuẩn bị.'
+              : 'Upload PDF, DOCX, TXT, MD, CSV or HTML. AI extracts dates, times, owners, locations, work types and preparation notes.'}</p>
           </div>
         </div>
-        <span className="department-schedule-ai-status ready">
-          {language === 'vi' ? 'Hoạt động ngoại tuyến' : 'Offline ready'}
+        <span className={`department-schedule-ai-status ${hasApiKey ? 'ready' : 'missing'}`}>
+          {hasApiKey ? (language === 'vi' ? 'AI sẵn sàng' : 'AI ready') : (language === 'vi' ? 'Chưa có API key' : 'API key missing')}
         </span>
       </div>
 
@@ -2799,33 +2960,42 @@ function WorkScheduleImportCard({
         <input
           ref={importInputRef}
           type="file"
-          accept=".xlsx,.xls,.pdf,.docx,.txt,.md,.csv,.html,.htm,text/plain,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          accept=".pdf,.docx,.txt,.md,.csv,.html,.htm,text/plain,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           hidden
           onChange={onImportFile}
         />
         <button className="primary department-schedule-upload-btn" type="button" disabled={importBusy} onClick={() => importInputRef?.current?.click?.()}>
-          {importBusy ? (language === 'vi' ? 'Đang đọc file...' : 'Reading file...') : (language === 'vi' ? 'Tải file & nhận diện' : 'Upload & detect')}
+          {importBusy ? (language === 'vi' ? 'AI đang đọc file...' : 'AI is reading...') : (language === 'vi' ? 'Tải file & tự nhận diện' : 'Upload & auto-detect')}
         </button>
-        <button className="secondary" type="button" disabled={importBusy} onClick={onDownloadTemplate}>{language === 'vi' ? 'Tải file mẫu CSV' : 'Download CSV template'}</button>
         {importFileName ? <span className="department-schedule-file-chip" title={importFileName}>📎 {importFileName}</span> : null}
         {importFileName ? <button className="secondary" type="button" disabled={importBusy} onClick={onAnalyzeAgain}>{language === 'vi' ? 'Phân tích lại' : 'Analyze again'}</button> : null}
         {importFileName || importItems.length ? <button className="ghost danger" type="button" disabled={importBusy} onClick={onClearImport}>{language === 'vi' ? 'Xóa bản nhập' : 'Clear import'}</button> : null}
       </div>
 
+      {!hasApiKey ? (
+        <div className="department-schedule-key-warning">
+          <span>🔑</span>
+          <div>
+            <strong>{language === 'vi' ? 'Cần cấu hình AI Provider' : 'AI Provider setup required'}</strong>
+            <p>{language === 'vi' ? 'Vào Cài đặt → AI Provider Hub để lưu API key, sau đó quay lại tải file.' : 'Open Settings → AI Provider Hub, save an API key, then upload the file again.'}</p>
+          </div>
+          <button className="secondary" type="button" onClick={() => { window.location.hash = '#/settings'; }}>{language === 'vi' ? 'Mở Cài đặt' : 'Open Settings'}</button>
+        </div>
+      ) : null}
 
       {importBusy ? (
         <div className="department-schedule-import-progress" role="status" aria-live="polite">
           <span className="department-schedule-progress-orbit" aria-hidden="true" />
           <div>
-            <strong>{language === 'vi' ? 'Đang đọc và chuẩn hóa lịch làm việc' : 'Reading and normalizing the schedule'}</strong>
-            <p>{language === 'vi' ? 'Bộ quy tắc ngoại tuyến đang đối chiếu ngày, thứ, giờ, người phụ trách và loại công việc trong tài liệu.' : 'The offline rules engine is resolving dates, weekdays, times, owners and work categories.'}</p>
+            <strong>{language === 'vi' ? 'AI đang đọc và chuẩn hóa lịch làm việc' : 'AI is extracting and normalizing the schedule'}</strong>
+            <p>{language === 'vi' ? 'Hệ thống đang đối chiếu ngày, thứ, giờ, người phụ trách và loại công việc trong tài liệu.' : 'The system is resolving dates, weekdays, times, owners and work categories.'}</p>
           </div>
         </div>
       ) : null}
 
       {importSummary || importWarnings.length ? (
         <div className="department-schedule-import-insight">
-          {importSummary ? <p><strong>{language === 'vi' ? 'Kết quả nhận diện:' : 'Detection summary:'}</strong> {importSummary}</p> : null}
+          {importSummary ? <p><strong>{language === 'vi' ? 'AI tóm tắt:' : 'AI summary:'}</strong> {importSummary}</p> : null}
           {importWarnings.length ? (
             <div>
               <strong>{language === 'vi' ? 'Cần kiểm tra:' : 'Review notes:'}</strong>
@@ -2882,7 +3052,7 @@ function WorkScheduleImportCard({
                   </div>
                 </div>
                 <div className="department-schedule-preview-meta">
-                  {item.confidence !== null ? <span className={item.confidence >= 0.75 ? 'high' : item.confidence >= 0.5 ? 'medium' : 'low'}>{Math.round(item.confidence * 100)}% khớp</span> : null}
+                  {item.confidence !== null ? <span className={item.confidence >= 0.75 ? 'high' : item.confidence >= 0.5 ? 'medium' : 'low'}>{Math.round(item.confidence * 100)}% AI</span> : null}
                   <button className="ghost danger" type="button" onClick={() => onRemoveImportItem(item.id)} aria-label={language === 'vi' ? 'Xóa mục' : 'Remove item'}>×</button>
                 </div>
               </article>
@@ -2904,6 +3074,7 @@ function WorkSchedulePanel({
   removeItem,
   onExportCalendar,
   canManage = true,
+  hasApiKey,
   importWeekStart,
   setImportWeekStart,
   importFileName,
@@ -2914,7 +3085,6 @@ function WorkSchedulePanel({
   importInputRef,
   onImportFile,
   onAnalyzeAgain,
-  onDownloadTemplate,
   onUpdateImportItem,
   onRemoveImportItem,
   onSelectAllImportItems,
@@ -2934,6 +3104,7 @@ function WorkSchedulePanel({
       {canManage ? (
         <WorkScheduleImportCard
           language={language}
+          hasApiKey={hasApiKey}
           importWeekStart={importWeekStart}
           setImportWeekStart={setImportWeekStart}
           importFileName={importFileName}
@@ -2944,7 +3115,6 @@ function WorkSchedulePanel({
           importInputRef={importInputRef}
           onImportFile={onImportFile}
           onAnalyzeAgain={onAnalyzeAgain}
-          onDownloadTemplate={onDownloadTemplate}
           onUpdateImportItem={onUpdateImportItem}
           onRemoveImportItem={onRemoveImportItem}
           onSelectAllImportItems={onSelectAllImportItems}
@@ -3271,7 +3441,7 @@ function SubmissionsPanel({
               <li>{language === 'vi' ? 'Rà soát kỹ nội dung trước khi gửi cho giáo viên.' : 'Review the request carefully before sending.'}</li>
               <li>{language === 'vi' ? 'Nêu rõ tiêu chí, file cần nộp và thời hạn hoàn thành.' : 'State criteria, required files and the deadline clearly.'}</li>
               <li>{language === 'vi' ? 'Ưu tiên tài liệu có cấu trúc rõ ràng để dễ theo dõi.' : 'Prefer structured documents that are easy to track.'}</li>
-              <li>{language === 'vi' ? 'Sử dụng Hỗ trợ để soạn thảo nhanh hơn.' : 'Use AI assistance to draft requests faster.'}</li>
+              <li>{language === 'vi' ? 'Sử dụng AI hỗ trợ để soạn thảo nhanh hơn.' : 'Use AI assistance to draft requests faster.'}</li>
             </ul>
           </article>
 
@@ -3476,8 +3646,8 @@ function DepartmentAIPanel({ language, hasApiKey, aiAction, setAiAction, aiInstr
     <div className="department-list-panel department-ai-panel">
       <div className="department-ai-hero">
         <div>
-          <span className="eyebrow">Hỗ trợ</span>
-          <h2>{language === 'vi' ? 'Hỗ trợ TTCM tổ Tiếng Anh' : 'AI for English department leaders'}</h2>
+          <span className="eyebrow">AI Copilot</span>
+          <h2>{language === 'vi' ? 'AI hỗ trợ TTCM tổ Tiếng Anh' : 'AI for English department leaders'}</h2>
           <p>{language === 'vi'
             ? 'Dùng dữ liệu kế hoạch, họp tổ, nhiệm vụ, minh chứng, hồ sơ chờ duyệt và lịch 14 ngày tới để tạo nội dung hỗ trợ điều hành.'
             : 'Use department plans, meetings, tasks, evidence, pending submissions and upcoming deadlines to generate leadership support.'}</p>
@@ -3491,7 +3661,7 @@ function DepartmentAIPanel({ language, hasApiKey, aiAction, setAiAction, aiInstr
 
       {!hasApiKey ? (
         <div className="department-ai-warning">
-          {language === 'vi' ? 'Dịch vụ đã gỡ chưa sẵn sàng. Mở Cài đặt → Kiểm tra kết nối.' : 'No API key configured. Open AI Settings before using Hỗ trợ.'}
+          {language === 'vi' ? 'Chưa có API key. Vào Cài đặt AI để thêm key trước khi dùng AI Copilot.' : 'No API key configured. Open AI Settings before using AI Copilot.'}
         </div>
       ) : null}
 
@@ -3508,7 +3678,7 @@ function DepartmentAIPanel({ language, hasApiKey, aiAction, setAiAction, aiInstr
           <div className="department-ai-source-box metro-panel">
             <div className="department-ai-source-head">
               <div>
-                <strong>{language === 'vi' ? 'Nguồn văn bản cho AI TTCM' : 'Source text for Hỗ trợ'}</strong>
+                <strong>{language === 'vi' ? 'Nguồn văn bản cho AI TTCM' : 'Source text for AI Copilot'}</strong>
                 <p>{language === 'vi' ? 'Tải tệp .txt/.docx/.pdf hoặc dán nội dung biên bản/báo cáo để AI phân tích cùng dữ liệu tổ.' : 'Upload a .txt/.docx/.pdf file or paste meeting/report content for AI to analyze with department data.'}</p>
               </div>
               <span className={String(aiSourceText || '').trim() ? 'status-badge' : 'status-badge warning'}>

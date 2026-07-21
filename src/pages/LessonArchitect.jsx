@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { callAI } from '../utils/gemini.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { addHistoryEntry, exportAsHtml, exportAsWord, savePromptEntry, slugify as librarySlugify } from '../utils/library.js';
 import { loadMammoth, loadPdfjs } from '../utils/documentParsers.js';
 import LessonArchitectCurriculumBuilder from '../components/LessonArchitectCurriculumBuilder.jsx';
@@ -761,7 +761,7 @@ export default function LessonArchitect({ language, hasApiKey, aiModel, currentU
     setCleaningExtract(true);
     try {
       const prompt = `Clean and reconstruct this textbook PDF extraction for lesson planning.\n\nTASKS:\n- Keep only useful textbook/lesson content.\n- Restore headings, sections, vocabulary lists, grammar boxes, tasks, questions, answer choices and instructions.\n- Remove repeated headers, footers, page numbers, broken line artifacts and irrelevant navigation text.\n- Preserve the original language.\n- Do not summarize too much; keep enough detail for an English lesson plan.\n- If the text is not enough, clearly mark missing parts.\n\nFOCUS LESSON / KEYWORDS:\n${form.lessonTitle || form.query || pdfOptions.focus || '(not specified)'}\n\nRAW PDF EXTRACT:\n${safeTrim(fileText, 42000)}`;
-      const cleaned = await callAI({
+      const cleaned = await runAITask('lesson.cleanEnglish', {
         prompt,
         model: aiModel,
         systemInstruction: 'You clean textbook PDF extraction for English lesson planning. Preserve lesson content and structure accurately.',
@@ -814,7 +814,7 @@ ${analysisOutput}
     setAnalysisLoading(true);
     try {
       const prompt = buildAnalysisPrompt({ workflowMode, form, sourceText: safeTrim(fileText, 36000), extraNotes });
-      const raw = await callAI({
+      const raw = await runAITask('lesson.generatePlan', {
         prompt,
         model: aiModel,
         systemInstruction: 'You analyse lesson inputs and return valid JSON only. You are precise and practical for Vietnamese English teachers.',
@@ -877,7 +877,7 @@ ${analysisOutput}
   const generate = async () => {
     setError('');
     if (!hasApiKey) {
-      setError(language === 'vi' ? 'Chưa có AI provider. Vào Settings để cấu hình API key trước.' : 'Missing AI provider. Configure API key in Settings first.');
+      setError(language === 'vi' ? 'Chưa có OpenRouter API key. Vào Cài đặt → OpenRouter AI Gateway để cấu hình.' : 'Missing OpenRouter API key. Configure it in Settings → OpenRouter AI Gateway.');
       return;
     }
     if (workflowMode === 'existing-plan' && !fileText.trim()) {
@@ -891,7 +891,7 @@ ${analysisOutput}
     setLoading(true);
     try {
       const prompt = buildPromptNow();
-      const text = await callAI({
+      const text = await runAITask('lesson.generatePlan', {
         prompt,
         model: aiModel,
         systemInstruction: 'You write official, practical English lesson plans for Vietnamese secondary/high-school teachers. Follow required structure exactly and avoid generic filler.',
@@ -933,7 +933,7 @@ ${analysisOutput}
     setSlideLoading(true);
     try {
       const prompt = buildSlidePrompt({ form, lessonPlan: output, slideCount, slideStyle, slideAudience, slideLanguage });
-      const text = await callAI({
+      const text = await runAITask('lesson.generateSlides', {
         prompt,
         model: aiModel,
         systemInstruction: 'You convert lesson plans into concise, classroom-ready slide decks. You return valid JSON only.',
@@ -1123,8 +1123,8 @@ ${analysisOutput}
 
         <div className="lesson-v50-stat-grid">
           <div className="lesson-v50-stat-card">
-            <strong>{hasApiKey ? (isVi ? 'Hệ thống sẵn sàng' : 'AI ready') : (isVi ? 'Cần API' : 'Need API')}</strong>
-            <small>{aiModel || 'GPT-4o mini'}</small>
+            <strong>{hasApiKey ? (isVi ? 'AI sẵn sàng' : 'AI ready') : (isVi ? 'Cần API' : 'Need API')}</strong>
+            <small>{aiModel || 'openrouter/free'}</small>
           </div>
           <div className="lesson-v50-stat-card">
             <strong>{isVi ? 'Nguồn' : 'Source'}: {workflowMode === 'curriculum-batch' ? (isVi ? 'KHGD + SGK' : 'Curriculum + textbook') : sourceLabel}</strong>

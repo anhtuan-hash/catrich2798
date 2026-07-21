@@ -1,10 +1,9 @@
-import { canPublishDepartment } from './permissions.js';
 import { isSupabaseConfigured, supabase } from './supabase.js';
+import { canPublishDepartment } from './permissions.js';
 
-export const CUSTOM_APPS_EVENT = 'bes-custom-app-links-updated';
-export const CUSTOM_APPS_TABLE = 'custom_game_platforms';
+export const CUSTOM_APPS_EVENT = 'bes-custom-apps-updated';
+const CUSTOM_APPS_TABLE = 'custom_app_links';
 const LOCAL_KEY = 'bes-custom-app-links-v1';
-const APP_COLOR_PREFIX = 'app-link:';
 
 function emitUpdate() {
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(CUSTOM_APPS_EVENT));
@@ -20,24 +19,26 @@ function safeJson(value, fallback) {
 }
 
 function normalizeStatus(value) {
-  return ['pending', 'approved', 'rejected'].includes(value) ? value : 'pending';
+  return ['private', 'pending', 'approved', 'rejected'].includes(value) ? value : 'private';
 }
 
-export function isCustomAppRecord(item = {}) {
-  return String(item.color || item.accent || '').startsWith(APP_COLOR_PREFIX);
+export function ensureCustomAppUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('//')) return `https:${raw}`;
+  return `https://${raw}`;
 }
 
-function normalizeAccent(value) {
-  const raw = String(value || '').replace(APP_COLOR_PREFIX, '').trim();
-  return /^#[0-9a-f]{6}$/i.test(raw) ? raw : '#3478d4';
-}
-
-export function normalizeCustomApp(item = {}) {
+function normalizeApp(item = {}) {
+  const id = String(item.id || `custom-app-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
   return {
-    id: String(item.id || `custom-app-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
-    name: String(item.label || item.name || '').trim(),
-    url: String(item.home || item.url || '').trim(),
-    accent: normalizeAccent(item.color || item.accent),
+    id,
+    label: String(item.label || item.title || '').trim(),
+    description: String(item.description || item.desc || '').trim(),
+    url: ensureCustomAppUrl(item.url || item.home || ''),
+    icon: String(item.icon || '↗').trim().slice(0, 4) || '↗',
+    accent: String(item.accent || item.color || '#7C5CE7').trim() || '#7C5CE7',
     status: normalizeStatus(item.status),
     ownerId: item.owner_id || item.ownerId || '',
     ownerEmail: item.owner_email || item.ownerEmail || '',
@@ -50,75 +51,51 @@ export function normalizeCustomApp(item = {}) {
   };
 }
 
-export function normalizeCustomAppUrl(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
-  const candidate = /^[a-z][a-z0-9+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`;
-  try {
-    const parsed = new URL(candidate);
-    if (!['http:', 'https:'].includes(parsed.protocol)) return '';
-    parsed.hash = parsed.hash || '';
-    return parsed.toString();
-  } catch {
-    return '';
-  }
-}
-
 function readLocalAll() {
   if (typeof localStorage === 'undefined') return [];
   const value = safeJson(localStorage.getItem(LOCAL_KEY) || '[]', []);
-  return Array.isArray(value)
-    ? value.map(normalizeCustomApp).filter((item) => item.name && item.url)
-    : [];
+  return Array.isArray(value) ? value.map(normalizeApp).filter((item) => item.label && item.url) : [];
 }
 
 function writeLocalAll(items) {
   if (typeof localStorage === 'undefined') return;
-  localStorage.setItem(LOCAL_KEY, JSON.stringify(items.map(normalizeCustomApp).slice(0, 200)));
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(items.map(normalizeApp).slice(0, 300)));
   emitUpdate();
 }
 
-function userIdentity(user) {
-  return {
-    id: String(user?.id || user?.authId || ''),
-    email: String(user?.email || '').trim().toLowerCase(),
-  };
-}
-
-export function isCustomAppOwner(user, app) {
-  if (!app) return false;
-  const identity = userIdentity(user);
-  return Boolean(
-    (identity.id && String(app.ownerId || '') === identity.id)
-    || (identity.email && String(app.ownerEmail || '').trim().toLowerCase() === identity.email)
-  );
+function isOwner(item, user) {
+  if (!user) return item.ownerId === 'guest';
+  const userId = String(user.id || user.authId || '');
+  const email = String(user.email || '').toLowerCase();
+  return (userId && String(item.ownerId || '') === userId)
+    || (email && String(item.ownerEmail || '').toLowerCase() === email);
 }
 
 function visibleToUser(item, user) {
   if (item.status === 'approved') return true;
   if (canPublishDepartment(user)) return true;
-  return isCustomAppOwner(user, item);
+  return isOwner(item, user);
 }
 
 function ownerPayload(user) {
   return {
     owner_id: user?.id || user?.authId || null,
     owner_email: String(user?.email || '').trim().toLowerCase() || null,
-    owner_name: String(user?.name || user?.fullName || user?.email || 'Teacher').trim(),
+    owner_name: String(user?.name || user?.email || 'Guest').trim(),
   };
 }
 
 function toDbPayload(user, draft, status) {
-  const url = normalizeCustomAppUrl(draft.url || draft.home);
+  const now = new Date().toISOString();
   return {
-    label: String(draft.name || draft.label || '').trim().slice(0, 80),
-    icon: '🔗',
-    home: url,
-    color: `${APP_COLOR_PREFIX}${normalizeAccent(draft.accent)}`,
-    embed_mode: 'iframe',
+    label: String(draft.label || '').trim(),
+    description: String(draft.description || '').trim() || null,
+    url: ensureCustomAppUrl(draft.url),
+    icon: String(draft.icon || '↗').trim().slice(0, 4) || '↗',
+    accent: String(draft.accent || '#7C5CE7').trim() || '#7C5CE7',
     status: normalizeStatus(status),
     ...ownerPayload(user),
-    updated_at: new Date().toISOString(),
+    updated_at: now,
   };
 }
 
@@ -127,22 +104,16 @@ export async function listCustomApps(user) {
     const { data, error } = await supabase
       .from(CUSTOM_APPS_TABLE)
       .select('*')
-      .like('color', `${APP_COLOR_PREFIX}%`)
       .order('created_at', { ascending: false });
-
-    if (!error && Array.isArray(data)) {
-      return data.map(normalizeCustomApp).filter((item) => item.name && item.url);
-    }
-    console.warn('[Custom apps] Cloud read failed; using local fallback:', error?.message || error);
+    if (!error && Array.isArray(data)) return data.map(normalizeApp).filter((item) => item.label && item.url);
+    console.warn('Custom apps cloud read failed; using local fallback:', error?.message || error);
   }
   return readLocalAll().filter((item) => visibleToUser(item, user));
 }
 
-export async function createCustomApp(user, draft) {
-  const leader = canPublishDepartment(user);
-  const status = leader ? 'approved' : 'pending';
+export async function createCustomApp(user, draft, status = 'private') {
   const payload = toDbPayload(user, draft, status);
-  if (!payload.label || !payload.home) return { ok: false, message: 'Tên hoặc đường dẫn ứng dụng chưa hợp lệ.' };
+  if (!payload.label || !payload.url) return { ok: false, message: 'Missing app name or URL.' };
 
   if (isSupabaseConfigured && supabase && user?.id) {
     const { data, error } = await supabase
@@ -150,61 +121,27 @@ export async function createCustomApp(user, draft) {
       .insert(payload)
       .select('*')
       .single();
-
     if (!error && data) {
       emitUpdate();
-      return { ok: true, app: normalizeCustomApp(data), cloud: true };
+      return { ok: true, app: normalizeApp(data), cloud: true };
     }
-    return { ok: false, message: error?.message || 'Không thể lưu ứng dụng.' };
+    return { ok: false, message: error?.message || 'Could not save the custom app.' };
   }
 
-  const item = normalizeCustomApp({
+  const item = normalizeApp({
     ...payload,
     id: `custom-app-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    owner_id: user?.id || user?.authId || 'guest',
     created_at: new Date().toISOString(),
   });
   const all = readLocalAll();
-  writeLocalAll([item, ...all]);
+  writeLocalAll([item, ...all.filter((existing) => existing.id !== item.id)]);
   return { ok: true, app: item, cloud: false };
 }
 
-export async function updateCustomApp(user, id, draft) {
-  const all = await listCustomApps(user);
-  const existing = all.find((item) => item.id === id);
-  if (!existing) return { ok: false, message: 'Không tìm thấy ứng dụng.' };
-  const leader = canPublishDepartment(user);
-  if (!leader && !isCustomAppOwner(user, existing)) return { ok: false, message: 'Bạn không có quyền sửa ứng dụng này.' };
-  if (!leader && existing.status === 'approved') return { ok: false, message: 'Ứng dụng đã duyệt chỉ TTCM mới có thể sửa.' };
-
-  const status = leader ? existing.status : 'pending';
-  const payload = toDbPayload(user, draft, status);
-  if (!payload.label || !payload.home) return { ok: false, message: 'Tên hoặc đường dẫn ứng dụng chưa hợp lệ.' };
-  delete payload.owner_id;
-  delete payload.owner_email;
-  delete payload.owner_name;
-
-  if (isSupabaseConfigured && supabase && user?.id) {
-    let query = supabase.from(CUSTOM_APPS_TABLE).update(payload).eq('id', id);
-    if (!leader) query = query.eq('owner_id', user.id).neq('status', 'approved');
-    const { data, error } = await query.select('*').single();
-    if (!error && data) {
-      emitUpdate();
-      return { ok: true, app: normalizeCustomApp(data), cloud: true };
-    }
-    return { ok: false, message: error?.message || 'Không thể cập nhật ứng dụng.' };
-  }
-
-  const local = readLocalAll();
-  const index = local.findIndex((item) => item.id === id);
-  if (index < 0) return { ok: false, message: 'Không tìm thấy ứng dụng.' };
-  local[index] = normalizeCustomApp({ ...local[index], ...payload, updatedAt: new Date().toISOString() });
-  writeLocalAll(local);
-  return { ok: true, app: local[index], cloud: false };
-}
-
-export async function reviewCustomApp(user, id, status, reviewNote = '') {
-  if (!canPublishDepartment(user)) return { ok: false, message: 'Chỉ TTCM hoặc Admin được duyệt ứng dụng.' };
-  const nextStatus = ['approved', 'rejected'].includes(status) ? status : 'pending';
+export async function updateCustomAppStatus(user, id, status, reviewNote = '') {
+  if (!canPublishDepartment(user)) return { ok: false, message: 'Only TTCM/Admin can review custom apps.' };
+  const nextStatus = normalizeStatus(status);
   const now = new Date().toISOString();
 
   if (isSupabaseConfigured && supabase && user?.id) {
@@ -218,21 +155,19 @@ export async function reviewCustomApp(user, id, status, reviewNote = '') {
         updated_at: now,
       })
       .eq('id', id)
-      .like('color', `${APP_COLOR_PREFIX}%`)
       .select('*')
       .single();
-
     if (!error && data) {
       emitUpdate();
-      return { ok: true, app: normalizeCustomApp(data), cloud: true };
+      return { ok: true, app: normalizeApp(data), cloud: true };
     }
-    return { ok: false, message: error?.message || 'Không thể cập nhật trạng thái duyệt.' };
+    return { ok: false, message: error?.message || 'Could not update approval status.' };
   }
 
   const all = readLocalAll();
   const index = all.findIndex((item) => item.id === id);
-  if (index < 0) return { ok: false, message: 'Không tìm thấy ứng dụng.' };
-  all[index] = normalizeCustomApp({
+  if (index < 0) return { ok: false, message: 'Custom app not found.' };
+  all[index] = normalizeApp({
     ...all[index],
     status: nextStatus,
     reviewNote,
@@ -244,58 +179,68 @@ export async function reviewCustomApp(user, id, status, reviewNote = '') {
   return { ok: true, app: all[index], cloud: false };
 }
 
-export async function deleteCustomApp(user, id) {
-  const all = await listCustomApps(user);
-  const target = all.find((item) => item.id === id);
-  if (!target) return { ok: false, message: 'Không tìm thấy ứng dụng.' };
-  const leader = canPublishDepartment(user);
-  if (!leader && (!isCustomAppOwner(user, target) || target.status === 'approved')) {
-    return { ok: false, message: 'Bạn không có quyền xoá ứng dụng này.' };
+export async function requestCustomAppApproval(user, id) {
+  const now = new Date().toISOString();
+  if (isSupabaseConfigured && supabase && user?.id) {
+    const { data, error } = await supabase
+      .from(CUSTOM_APPS_TABLE)
+      .update({ status: 'pending', updated_at: now })
+      .eq('id', id)
+      .eq('owner_id', user.id)
+      .select('*')
+      .single();
+    if (!error && data) {
+      emitUpdate();
+      return { ok: true, app: normalizeApp(data), cloud: true };
+    }
+    return { ok: false, message: error?.message || 'Could not submit the app for review.' };
   }
 
+  const all = readLocalAll();
+  const index = all.findIndex((item) => item.id === id && isOwner(item, user));
+  if (index < 0) return { ok: false, message: 'Custom app not found.' };
+  all[index] = normalizeApp({ ...all[index], status: 'pending', updatedAt: now });
+  writeLocalAll(all);
+  return { ok: true, app: all[index], cloud: false };
+}
+
+export async function deleteCustomApp(user, id) {
   if (isSupabaseConfigured && supabase && user?.id) {
-    let query = supabase.from(CUSTOM_APPS_TABLE).delete().eq('id', id).like('color', `${APP_COLOR_PREFIX}%`);
-    if (!leader) query = query.eq('owner_id', user.id).neq('status', 'approved');
+    let query = supabase.from(CUSTOM_APPS_TABLE).delete().eq('id', id);
+    if (!canPublishDepartment(user)) query = query.eq('owner_id', user.id).neq('status', 'approved');
     const { error } = await query;
     if (!error) {
       emitUpdate();
       return { ok: true, cloud: true };
     }
-    return { ok: false, message: error?.message || 'Không thể xoá ứng dụng.' };
+    return { ok: false, message: error?.message || 'Could not delete the custom app.' };
   }
 
-  writeLocalAll(readLocalAll().filter((item) => item.id !== id));
+  const all = readLocalAll();
+  const target = all.find((item) => item.id === id);
+  if (!target) return { ok: false, message: 'Custom app not found.' };
+  if (!canPublishDepartment(user) && (!isOwner(target, user) || target.status === 'approved')) {
+    return { ok: false, message: 'You cannot delete this app.' };
+  }
+  writeLocalAll(all.filter((item) => item.id !== id));
   return { ok: true, cloud: false };
 }
 
-export function subscribeCustomApps(user, callback) {
-  if (typeof window === 'undefined') return () => {};
-  let active = true;
-  const refresh = async () => {
-    const items = await listCustomApps(user);
-    if (active) callback?.(items);
-  };
-  const localHandler = () => refresh();
-  const storageHandler = (event) => {
-    if (!event?.key || event.key === LOCAL_KEY) refresh();
-  };
+export function canEditCustomApp(user, app) {
+  if (!app) return false;
+  if (canPublishDepartment(user)) return true;
+  return isOwner(app, user) && app.status !== 'approved';
+}
 
-  window.addEventListener(CUSTOM_APPS_EVENT, localHandler);
-  window.addEventListener('storage', storageHandler);
+export function isCustomAppOwner(user, app) {
+  return isOwner(app, user);
+}
 
-  let channel = null;
-  if (isSupabaseConfigured && supabase && user?.id) {
-    channel = supabase
-      .channel(`bes-custom-app-links-${String(user.id).slice(0, 8)}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: CUSTOM_APPS_TABLE }, () => refresh())
-      .subscribe();
-  }
-
-  refresh();
-  return () => {
-    active = false;
-    window.removeEventListener(CUSTOM_APPS_EVENT, localHandler);
-    window.removeEventListener('storage', storageHandler);
-    if (channel) supabase.removeChannel(channel);
-  };
+export function subscribeCustomApps(callback) {
+  if (!isSupabaseConfigured || !supabase || typeof callback !== 'function') return () => {};
+  const channel = supabase
+    .channel(`custom-app-links-${Math.random().toString(36).slice(2)}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: CUSTOM_APPS_TABLE }, () => callback())
+    .subscribe();
+  return () => { supabase.removeChannel(channel); };
 }

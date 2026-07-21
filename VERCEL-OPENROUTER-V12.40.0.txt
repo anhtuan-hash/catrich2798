@@ -1,0 +1,30 @@
+Vercel Environment Variables cho Brian English Studio V12.40.0
+
+BẮT BUỘC
+OPENROUTER_API_KEY=sk-or-v1-...
+
+KHUYẾN NGHỊ
+AI_AUTH_MODE=supabase
+OPENROUTER_DATA_COLLECTION=deny
+OPENROUTER_MODEL=openrouter/auto
+
+TÙY CHỌN — chọn model riêng theo nhóm nhiệm vụ
+OPENROUTER_MODEL_FAST=openrouter/auto
+OPENROUTER_MODEL_STANDARD=openrouter/auto
+OPENROUTER_MODEL_QUALITY=openrouter/auto
+OPENROUTER_MODEL_JSON=openrouter/auto
+OPENROUTER_MODEL_LONG=openrouter/auto
+OPENROUTER_MODEL_VISION=openrouter/auto
+OPENROUTER_IMAGE_MODEL=bytedance-seed/seedream-4.5
+
+TÙY CHỌN — thời gian chờ theo nhóm, đơn vị mili giây
+OPENROUTER_TIMEOUT_DIAGNOSTIC_MS=25000
+OPENROUTER_TIMEOUT_FAST_MS=60000
+OPENROUTER_TIMEOUT_STANDARD_MS=95000
+OPENROUTER_TIMEOUT_QUALITY_MS=120000
+OPENROUTER_TIMEOUT_JSON_MS=130000
+OPENROUTER_TIMEOUT_LONG_MS=170000
+OPENROUTER_TIMEOUT_VISION_MS=140000
+OPENROUTER_TIMEOUT_IMAGE_MS=180000
+
+Sau khi thay đổi biến môi trường, phải Redeploy để Vercel Function nhận cấu hình mới.

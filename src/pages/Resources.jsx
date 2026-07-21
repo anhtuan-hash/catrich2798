@@ -4,7 +4,7 @@ import RouteHero from '../components/RouteHero.jsx';
 
 export default function Resources({ items, language }) {
   return (
-    <div className="page narrow">
+    <div className="page narrow bui-library" data-ui="library" data-library-app="resources-hub">
       <RouteHero
         eyebrow="Resources"
         title={language === 'vi' ? 'Tài nguyên • Hướng dẫn • Lộ trình' : 'Resources • Guides • Roadmap'}
@@ -23,7 +23,7 @@ export default function Resources({ items, language }) {
         accent="teal"
         icon="📁"
       />
-      <div className="resource-grid">
+      <div className="resource-grid bui-library-content">
         {items.map((item) => (
           <article key={item.title} className="resource-card">
             <span>{item.icon}</span>

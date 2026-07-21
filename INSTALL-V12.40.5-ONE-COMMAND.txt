@@ -1,0 +1,5 @@
+BRIAN ENGLISH STUDIO V12.40.5 — MỘT LỆNH CÀI ĐẶT
+
+Để nguyên ZIP và file CAI-V12.40.5.command trong Downloads. Không giải nén ZIP.
+
+bash "$HOME/Downloads/CAI-V12.40.5.command"

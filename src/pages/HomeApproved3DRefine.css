@@ -1,0 +1,412 @@
+/* Final correction for approved 3D Sample 1.
+ * This file is loaded after HomeApproved3D.css.
+ */
+
+/* Home uses only its own navbar. */
+html body #root .app-shell[data-route="home"] > .bes-top-chrome,
+html body #root .app-shell[data-route="home"] .bes-top-chrome,
+html body #root .app-shell[data-route="home"] .global-notice-shell,
+html body #root .app-shell[data-route="home"] .global-flat-navigation,
+html body #root .app-shell[data-route="home"] .global-chatbot-trigger,
+html body #root .app-shell[data-route="home"] .bes-transfer-fab,
+html body #root .app-shell[data-route="home"] .bes-utility-rail,
+html body #root .app-shell[data-route="home"] .sync-queue-indicator,
+html body #root .app-shell[data-route="home"] .pwa-update-banner,
+html body #root .app-shell[data-route="home"] > .footer {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+html,
+html body,
+html body #root,
+html body #root .app-shell[data-route="home"],
+html body #root #bes-main-content[data-route="home"] {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html body #root .app-shell[data-route="home"] {
+  display: block !important;
+  width: 100% !important;
+  min-height: 100svh !important;
+  overflow: visible !important;
+  background: #f4e4dc !important;
+}
+
+html body #root #bes-main-content[data-route="home"] {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100svh !important;
+  overflow: visible !important;
+  background: transparent !important;
+}
+
+html body #root .brian-home-approved3d {
+  width: 100% !important;
+  min-height: 100svh !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  color: #25243b !important;
+  background:
+    radial-gradient(circle at 94% 8%, rgba(126, 92, 234, .30) 0 8%, transparent 26%),
+    radial-gradient(circle at 5% 94%, rgba(232, 90, 150, .16) 0 7%, transparent 24%),
+    radial-gradient(circle at 58% 28%, rgba(255, 255, 255, .74) 0 11%, transparent 31%),
+    linear-gradient(135deg, #ffe2bd 0%, #f7d9cf 38%, #f1d8d4 70%, #ded2ed 100%) !important;
+}
+
+html body #root .brian-home-approved3d::after {
+  top: -148px !important;
+  right: -118px !important;
+  width: 310px !important;
+  height: 310px !important;
+  border-radius: 86px !important;
+  background: linear-gradient(145deg, #ffb12e 0 44%, #7653ed 48%, #416be6 100%) !important;
+  box-shadow: 0 26px 64px rgba(73, 65, 170, .24) !important;
+  opacity: .88 !important;
+}
+
+html body #root .bhe3d-page {
+  display: grid !important;
+  grid-template-rows: auto minmax(650px, 1fr) auto !important;
+  gap: 16px !important;
+  width: min(calc(100% - 32px), 1660px) !important;
+  min-height: 100svh !important;
+  margin: 0 auto !important;
+  padding: 18px 0 22px !important;
+}
+
+/* One compact Home navbar. */
+html body #root .bhe3d-navbar {
+  display: grid !important;
+  grid-template-columns: 238px minmax(500px, 1fr) auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-height: 78px !important;
+  padding: 10px 14px !important;
+  border: 2px solid rgba(255, 255, 255, .86) !important;
+  border-radius: 30px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.97), rgba(248,239,234,.96)) !important;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.98), inset 0 -3px 8px rgba(180,126,110,.10), 0 8px 0 rgba(126,82,73,.12), 0 19px 34px rgba(93,57,63,.15) !important;
+  backdrop-filter: blur(16px) saturate(1.12) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.12) !important;
+}
+
+html body #root .bhe3d-navbar button {
+  min-width: 0 !important;
+  border: 0 !important;
+  font: inherit !important;
+}
+
+html body #root .bhe3d-brand {
+  min-height: 52px !important;
+  padding: 6px 10px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body #root .bhe3d-brand img {
+  width: 44px !important;
+  height: 44px !important;
+}
+
+html body #root .bhe3d-brand strong {
+  font-size: 17px !important;
+}
+
+html body #root .bhe3d-navlinks {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 6px !important;
+}
+
+html body #root .bhe3d-navlinks button {
+  min-height: 48px !important;
+  padding: 0 15px !important;
+  border-radius: 18px !important;
+  color: #40383d !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body #root .bhe3d-navlinks button b {
+  font-size: 13px !important;
+}
+
+html body #root .bhe3d-navlinks button.is-active {
+  color: #b94b22 !important;
+  background: linear-gradient(180deg, #ffe8ca, #ffd2a8) !important;
+  box-shadow: inset 0 2px 0 #fff8ed, inset 0 -3px 5px rgba(210,102,38,.14), 0 5px 0 #e1af7e, 0 10px 17px rgba(188,89,32,.17) !important;
+}
+
+html body #root .bhe3d-navtools {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 7px !important;
+}
+
+html body #root .bhe3d-navtools > button {
+  min-height: 45px !important;
+  padding: 0 12px !important;
+  border: 1px solid rgba(97,74,69,.11) !important;
+  border-radius: 17px !important;
+  background: linear-gradient(180deg, #fffefa, #f3ebe6) !important;
+  box-shadow: inset 0 1px 0 #fff, 0 4px 0 rgba(118,91,82,.13), 0 8px 14px rgba(76,51,51,.09) !important;
+}
+
+html body #root .bhe3d-navtools .is-icon {
+  width: 45px !important;
+  padding: 0 !important;
+  font-size: 19px !important;
+}
+
+html body #root .bhe3d-account {
+  min-width: 106px !important;
+  color: #fff !important;
+  background: linear-gradient(180deg, #30323b, #171920) !important;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.12), 0 5px 0 #0d0e12, 0 10px 15px rgba(17,18,25,.19) !important;
+}
+
+/* Warm canvas instead of the blue route surface. */
+html body #root .bhe3d-main {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(430px, .82fr) minmax(780px, 1.54fr) !important;
+  align-items: stretch !important;
+  gap: 20px !important;
+  min-height: 650px !important;
+  padding: 20px !important;
+  overflow: hidden !important;
+  border: 2px solid rgba(255,255,255,.54) !important;
+  border-radius: 40px !important;
+  background: radial-gradient(circle at 73% 40%, rgba(255,255,255,.72) 0 9%, transparent 28%), radial-gradient(circle at 4% 14%, rgba(255,244,222,.82) 0 12%, transparent 34%), linear-gradient(135deg, rgba(248,214,205,.96), rgba(242,219,211,.94) 55%, rgba(234,219,232,.94)) !important;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.70), 0 20px 46px rgba(91,57,63,.13) !important;
+}
+
+html body #root .bhe3d-hero {
+  z-index: 2 !important;
+  justify-content: center !important;
+  padding: 22px 8px 18px 24px !important;
+  overflow: visible !important;
+  background: transparent !important;
+}
+
+html body #root .bhe3d-hero::before {
+  inset: 10px -52px 10px -6px !important;
+  border-radius: 62px 112px 82px 58px !important;
+  background: linear-gradient(135deg, rgba(255,248,240,.60), rgba(255,238,232,.10)) !important;
+}
+
+html body #root .bhe3d-title span {
+  font-size: clamp(92px, 7vw, 132px) !important;
+}
+
+html body #root .bhe3d-title strong {
+  font-size: clamp(88px, 6.5vw, 122px) !important;
+}
+
+html body #root .bhe3d-hero > p {
+  max-width: 500px !important;
+  margin-top: 34px !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}
+
+html body #root .bhe3d-info-row {
+  width: min(100%, 520px) !important;
+}
+
+html body #root .bhe3d-info-row article {
+  min-height: 84px !important;
+}
+
+/* Card stage and approved composition. */
+html body #root .bhe3d-card-stage {
+  min-width: 0 !important;
+  min-height: 650px !important;
+  overflow: visible !important;
+  border-radius: 34px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body #root .bhe3d-card-stage::before {
+  inset: 3% 0 1% 0 !important;
+  border-radius: 88px 64px 86px 86px !important;
+  background: radial-gradient(circle at 58% 42%, rgba(255,255,255,.66), transparent 30%), linear-gradient(145deg, rgba(255,246,235,.34), rgba(236,218,240,.13)) !important;
+}
+
+html body #root .bhe3d-app-card {
+  padding: 24px !important;
+  border: 3px solid rgba(255,255,255,.82) !important;
+  border-radius: 34px !important;
+  background: linear-gradient(145deg, var(--surface-a), var(--surface-b)) !important;
+  box-shadow: inset 0 3px 0 rgba(255,255,255,.92), inset 0 -8px 14px rgba(111,70,76,.09), 0 13px 0 var(--surface-c), 0 25px 36px var(--shadow) !important;
+}
+
+html body #root .bhe3d-card-copy {
+  top: 28% !important;
+  left: 8% !important;
+  width: 48% !important;
+}
+
+html body #root .bhe3d-card-copy strong {
+  font-size: clamp(20px, 1.38vw, 29px) !important;
+}
+
+html body #root .bhe3d-card-copy small {
+  font-size: 11px !important;
+}
+
+html body #root .bhe3d-app-card .bhe-card-graphic {
+  right: 1.5% !important;
+  bottom: 2% !important;
+  width: 54% !important;
+  height: 69% !important;
+}
+
+html body #root .bhe3d-card-textcare {
+  top: 4% !important;
+  left: 1% !important;
+  width: 27% !important;
+  height: 31% !important;
+  transform: rotate(-2.6deg) !important;
+}
+
+html body #root .bhe3d-card-pronunciation {
+  top: 0 !important;
+  left: 31% !important;
+  width: 28% !important;
+  height: 34% !important;
+  transform: rotate(1.7deg) !important;
+}
+
+html body #root .bhe3d-card-speaking {
+  top: 5% !important;
+  right: 0 !important;
+  width: 29% !important;
+  height: 36% !important;
+  transform: rotate(2.8deg) !important;
+}
+
+html body #root .bhe3d-card-reading {
+  top: 44% !important;
+  left: 0 !important;
+  width: 27% !important;
+  height: 40% !important;
+  transform: rotate(-1.7deg) !important;
+}
+
+html body #root .bhe3d-card-game {
+  bottom: 1% !important;
+  left: 25% !important;
+  width: 25% !important;
+  height: 29% !important;
+  transform: rotate(-1.2deg) !important;
+}
+
+html body #root .bhe3d-card-word {
+  bottom: 0 !important;
+  left: 50% !important;
+  width: 25% !important;
+  height: 31% !important;
+  transform: rotate(1deg) !important;
+}
+
+html body #root .bhe3d-card-exam {
+  right: 0 !important;
+  bottom: 1% !important;
+  width: 25.5% !important;
+  height: 40% !important;
+  transform: rotate(1.6deg) !important;
+}
+
+html body #root .bhe3d-card-lesson {
+  top: 27% !important;
+  left: 20% !important;
+  width: 57% !important;
+  height: 46% !important;
+  border-width: 4px !important;
+  border-radius: 40px !important;
+  box-shadow: inset 0 4px 0 rgba(255,255,255,.90), inset 0 -10px 16px rgba(161,77,28,.09), 0 15px 0 var(--surface-c), 0 29px 43px rgba(112,52,25,.30), 0 0 0 4px rgba(255,173,82,.18) !important;
+  transform: rotate(-.25deg) !important;
+}
+
+html body #root .bhe3d-card-lesson .bhe3d-card-copy {
+  top: 24% !important;
+  left: 6.5% !important;
+  width: 47% !important;
+}
+
+html body #root .bhe3d-card-lesson .bhe3d-card-copy strong {
+  font-size: clamp(38px, 3vw, 56px) !important;
+}
+
+html body #root .bhe3d-card-lesson .bhe-card-graphic {
+  width: 46% !important;
+  height: 73% !important;
+}
+
+html body #root .bhe3d-dock {
+  grid-template-columns: 230px minmax(0, 1fr) !important;
+  min-height: 98px !important;
+  padding: 10px 15px 10px 22px !important;
+  border-radius: 32px !important;
+  background: linear-gradient(180deg, rgba(255,254,250,.97), rgba(247,236,230,.97)) !important;
+}
+
+html body #root .bhe3d-dock-items {
+  grid-template-columns: repeat(6, minmax(116px, 1fr)) 78px !important;
+  gap: 9px !important;
+}
+
+html body #root .brian-home-approved3d *,
+html body #root .brian-home-approved3d *::before,
+html body #root .brian-home-approved3d *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (max-width: 1380px) {
+  html body #root .bhe3d-page { width: min(calc(100% - 22px), 1660px) !important; }
+  html body #root .bhe3d-navbar { grid-template-columns: 205px minmax(440px, 1fr) auto !important; }
+  html body #root .bhe3d-navlinks button { padding-inline: 10px !important; }
+  html body #root .bhe3d-main { grid-template-columns: minmax(385px, .74fr) minmax(690px, 1.42fr) !important; }
+  html body #root .bhe3d-title span { font-size: clamp(84px, 7.2vw, 116px) !important; }
+  html body #root .bhe3d-title strong { font-size: clamp(80px, 6.6vw, 108px) !important; }
+}
+
+@media (max-width: 1180px) {
+  html body #root .bhe3d-page { grid-template-rows: auto auto auto !important; }
+  html body #root .bhe3d-navbar { grid-template-columns: auto 1fr !important; }
+  html body #root .bhe3d-navtools { grid-column: 1 / -1 !important; justify-content: center !important; }
+  html body #root .bhe3d-main { grid-template-columns: 1fr !important; }
+  html body #root .bhe3d-hero { padding: 26px !important; }
+  html body #root .bhe3d-card-stage { min-height: 700px !important; }
+  html body #root .bhe3d-dock { grid-template-columns: 1fr !important; }
+  html body #root .bhe3d-dock-items { overflow-x: auto !important; grid-template-columns: repeat(6, minmax(150px, 1fr)) 84px !important; }
+}
+
+@media (max-width: 760px) {
+  html body #root .bhe3d-page { width: 100% !important; padding: 10px !important; }
+  html body #root .bhe3d-navbar { grid-template-columns: 1fr auto !important; border-radius: 24px !important; }
+  html body #root .bhe3d-brand strong { display: none !important; }
+  html body #root .bhe3d-navlinks { grid-column: 1 / -1 !important; overflow-x: auto !important; justify-content: flex-start !important; }
+  html body #root .bhe3d-navtools { grid-column: 1 / -1 !important; overflow-x: auto !important; justify-content: flex-start !important; }
+  html body #root .bhe3d-main { padding: 12px !important; border-radius: 28px !important; }
+  html body #root .bhe3d-title span { font-size: clamp(72px, 25vw, 112px) !important; }
+  html body #root .bhe3d-title strong { font-size: clamp(68px, 23vw, 104px) !important; }
+  html body #root .bhe3d-info-row { grid-template-columns: 1fr !important; }
+  html body #root .bhe3d-card-stage,
+  html body #root .bhe3d-card-stage.is-adaptive { display: grid !important; grid-template-columns: 1fr !important; gap: 18px !important; min-height: 0 !important; padding: 8px !important; }
+  html body #root .bhe3d-card-stage .bhe3d-app-card { position: relative !important; inset: auto !important; width: 100% !important; height: auto !important; min-height: 250px !important; transform: none !important; }
+  html body #root .bhe3d-card-stage .bhe3d-app-card.is-featured { min-height: 330px !important; }
+  html body #root .bhe3d-dock-items { grid-template-columns: repeat(6, minmax(145px, 1fr)) 80px !important; }
+}

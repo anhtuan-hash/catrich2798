@@ -7,7 +7,7 @@
     "Persists AI Governance controls reliably on the current browser/account",
     "Restores saved controls on the AI Governance route and emits compatibility events",
     "Prevents governance metadata from unnecessarily inflating OpenRouter prompts during rescue",
-    "Retries OpenRouter credit prompt-limit failures with a compact prompt and openrouter/free",
+    "Retries OpenRouter credit prompt-limit failures with a compact prompt and openrouter/auto",
     "Keeps the rescue scoped to AI requests and leaves successful requests untouched"
   ]
 }

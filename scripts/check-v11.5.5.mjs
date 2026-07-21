@@ -10,6 +10,7 @@ const home=read('src/pages/Home.jsx');
 const homeCss=read('src/styles/v1137.css');
 const profiles=read('src/data/designProfiles.js');
 const pronunciation=read('src/pages/PronunciationCoach.jsx');
+const workspace=read('src/utils/workspace.js');
 const main=read('src/main.jsx');
 const apiEntries=fs.readdirSync('api').filter((name)=>!name.startsWith('_')&&/\.(?:js|mjs|ts|py|go)$/i.test(name));
 pass('package version 11.5.5',pkg.version==='11.5.5');
@@ -22,6 +23,7 @@ pass('Listening Lab removed from Home runtime',!home.includes("makeAppWindow('li
 pass('Listening Lab Home CSS removed',!homeCss.includes('.flat-window-listening'));
 pass('Listening Lab design profile removed',!profiles.includes("'listening-lab':"));
 pass('Listening Lab removed from Pronunciation destinations',!pronunciation.includes("id: 'listening-lab'"));
+pass('stale Listening Lab tabs pruned',workspace.includes("RETIRED_TAB_IDS = new Set(['tool:listening-lab'])")&&workspace.includes('RETIRED_TAB_IDS.has(tab.id)'));
 pass('current version imported through config',main.includes("from './config/version.js'"));
 pass('Vercel functions <=12',apiEntries.length<=12);
 pass('public npm registry only',!read('package-lock.json').includes('applied-caas-gateway'));

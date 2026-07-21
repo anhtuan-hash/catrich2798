@@ -1,0 +1,429 @@
+/* Brian English Studio — BURS Unified Typography V3
+ * One CSS-token source of truth for readable text. The runtime audits only;
+ * it no longer writes inline font sizes or changes layout after render.
+ */
+
+:root {
+  --burs-font-shell-label: 13px;
+  --burs-font-shell-control: 14px;
+  --burs-font-compact-title: 18px;
+  --burs-font-dialog-title: var(--burs-font-section-title, 32px);
+  --burs-font-table: var(--burs-font-caption, 14px);
+  --burs-font-helper: var(--burs-font-caption, 14px);
+  --burs-home-hero-a-min: 86px;
+  --burs-home-hero-a-max: 122px;
+  --burs-home-hero-b-min: 82px;
+  --burs-home-hero-b-max: 114px;
+  --burs-home-feature-min: 34px;
+  --burs-home-feature-max: 49px;
+  --burs-home-mobile-min: 58px;
+  --burs-home-mobile-max: 92px;
+}
+
+html[data-font-scale='110'] {
+  --burs-font-shell-label: 13.52px;
+  --burs-font-shell-control: 14.56px;
+  --burs-font-compact-title: 19.8px;
+  --burs-home-hero-a-min: 90px;
+  --burs-home-hero-a-max: 128px;
+  --burs-home-hero-b-min: 86px;
+  --burs-home-hero-b-max: 120px;
+  --burs-home-feature-min: 36px;
+  --burs-home-feature-max: 51px;
+  --burs-home-mobile-min: 61px;
+  --burs-home-mobile-max: 97px;
+}
+
+html[data-font-scale='120'] {
+  --burs-font-shell-label: 14.04px;
+  --burs-font-shell-control: 15.12px;
+  --burs-font-compact-title: 21.6px;
+  --burs-home-hero-a-min: 95px;
+  --burs-home-hero-a-max: 134px;
+  --burs-home-hero-b-min: 90px;
+  --burs-home-hero-b-max: 125px;
+  --burs-home-feature-min: 37px;
+  --burs-home-feature-max: 54px;
+  --burs-home-mobile-min: 64px;
+  --burs-home-mobile-max: 101px;
+}
+
+html[data-font-scale='130'] {
+  --burs-font-shell-label: 14.56px;
+  --burs-font-shell-control: 15.68px;
+  --burs-font-compact-title: 23.4px;
+  --burs-home-hero-a-min: 99px;
+  --burs-home-hero-a-max: 140px;
+  --burs-home-hero-b-min: 94px;
+  --burs-home-hero-b-max: 131px;
+  --burs-home-feature-min: 39px;
+  --burs-home-feature-max: 56px;
+  --burs-home-mobile-min: 67px;
+  --burs-home-mobile-max: 106px;
+}
+
+html[data-font-scale='140'] {
+  --burs-font-shell-label: 15.08px;
+  --burs-font-shell-control: 16.24px;
+  --burs-font-compact-title: 25.2px;
+  --burs-home-hero-a-min: 103px;
+  --burs-home-hero-a-max: 146px;
+  --burs-home-hero-b-min: 98px;
+  --burs-home-hero-b-max: 137px;
+  --burs-home-feature-min: 41px;
+  --burs-home-feature-max: 59px;
+  --burs-home-mobile-min: 70px;
+  --burs-home-mobile-max: 110px;
+}
+
+html[data-burs='comfortable-v3'] body,
+html[data-burs='comfortable-v3'] .app-shell {
+  font-size: var(--burs-font-body, 16px);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html[data-burs='comfortable-v3'] :where(p, li, dd, dt, blockquote) {
+  line-height: var(--burs-reading-line-height, 1.6);
+}
+
+html[data-burs='comfortable-v3'] :where(.description, .helper, .muted, .sub, .meta) {
+  font-size: var(--burs-font-caption, 14px);
+}
+
+html[data-burs='comfortable-v3'] :where(label) {
+  font-size: var(--burs-font-label, 15px);
+}
+
+html[data-burs='comfortable-v3'] :where(input, textarea, select, option) {
+  font-size: var(--burs-font-control, 15px);
+}
+
+html[data-burs='comfortable-v3'] .burs-layout-safe {
+  min-width: 0 !important;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+html[data-burs='comfortable-v3'] .burs-long-token {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Optional QA overlay. Enable with document.documentElement.dataset.bursDebug = 'true'. */
+html[data-burs-debug='true'] [data-burs-under-min] {
+  outline: 2px solid #d92d20 !important;
+  outline-offset: 2px;
+}
+
+html[data-burs-debug='true'] [data-burs-overflow='true'] {
+  box-shadow: inset 0 0 0 2px #f79009 !important;
+}
+
+/* --------------------------------------------------------------------------
+   Shared shell
+   -------------------------------------------------------------------------- */
+html[data-burs='comfortable-v3'] body .metro-clean-system .bes-visual-harmony-v12408 :is(
+  .global-notice-title,
+  .global-status-pill,
+  .global-notice-toggle,
+  .global-notice-open,
+  .global-flat-brand,
+  .global-flat-link,
+  .global-flat-mini,
+  .global-flat-account,
+  .global-flat-logout
+) {
+  font-size: var(--burs-font-shell-control) !important;
+  line-height: 1.2 !important;
+}
+
+html[data-burs='comfortable-v3'] body .metro-clean-system .bes-visual-harmony-v12408 :is(
+  .global-status-pill > small,
+  .global-notice-toggle-label,
+  .global-notice-open strong,
+  .global-flat-link b,
+  .global-flat-mini b,
+  .global-flat-account b,
+  .global-flat-account span
+) {
+  font-size: var(--burs-font-shell-label) !important;
+  line-height: 1.25 !important;
+}
+
+html[data-burs='comfortable-v3'] body .metro-clean-system .bes-recent-apps-v12408 :is(
+  .bes-workspace-tab,
+  .bes-recent-apps-actions > button,
+  .bes-recent-apps-actions > button > b
+) {
+  font-size: var(--burs-font-shell-label) !important;
+  line-height: 1.2 !important;
+}
+
+html[data-burs='comfortable-v3'] body .metro-clean-system .global-font-scale-controls .global-font-size-btn {
+  font-size: var(--burs-font-shell-control) !important;
+}
+
+html[data-burs='comfortable-v3'] body .global-chatbot-trigger {
+  min-height: var(--burs-touch-size, 44px) !important;
+  font-size: var(--burs-font-shell-control) !important;
+  line-height: 1.2 !important;
+}
+
+html[data-burs='comfortable-v3'] body .global-chatbot-trigger :is(strong, b, span) {
+  font-size: var(--burs-font-shell-control) !important;
+  line-height: 1.2 !important;
+}
+
+/* --------------------------------------------------------------------------
+   Approved 3D Home
+   -------------------------------------------------------------------------- */
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-brand strong {
+  font-size: var(--burs-font-body-large, 18px) !important;
+}
+
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-navlinks button b,
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-navtools > button,
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-account :is(b, span) {
+  font-size: var(--burs-font-shell-control) !important;
+  line-height: 1.2 !important;
+}
+
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-title span {
+  font-size: clamp(var(--burs-home-hero-a-min), 6.6vw, var(--burs-home-hero-a-max)) !important;
+}
+
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-title strong {
+  font-size: clamp(var(--burs-home-hero-b-min), 6.05vw, var(--burs-home-hero-b-max)) !important;
+}
+
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-hero > p {
+  max-width: 540px !important;
+  font-size: var(--burs-font-body-large, 18px) !important;
+  line-height: 1.55 !important;
+}
+
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-info-row :is(strong, b) {
+  font-size: var(--burs-font-label, 15px) !important;
+  line-height: 1.25 !important;
+}
+
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d :is(
+  .bhe3d-navtools .is-font span,
+  .bhe3d-bell em,
+  .bhe3d-info-row small,
+  .bhe3d-info-row strong em,
+  .bhe3d-tip small,
+  .bhe3d-card-copy small,
+  .bhe3d-card-tag,
+  .bhe3d-feature-tabs i,
+  .bhe3d-card-badge,
+  .bhe3d-dock header small,
+  .bhe3d-dock-item small,
+  .bhe3d-dock-add span
+) {
+  font-size: var(--burs-font-micro, 13px) !important;
+  line-height: 1.42 !important;
+}
+
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d :is(
+  .bhe3d-card-copy em,
+  .bhe3d-dock-item strong
+) {
+  font-size: var(--burs-font-label, 15px) !important;
+  line-height: 1.2 !important;
+}
+
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-card-copy em {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-app-card:not(.bhe3d-card-lesson) .bhe3d-card-copy strong {
+  font-size: var(--burs-font-compact-title) !important;
+  line-height: 1.06 !important;
+}
+
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-card-lesson .bhe3d-card-copy strong {
+  font-size: clamp(var(--burs-home-feature-min), 2.55vw, var(--burs-home-feature-max)) !important;
+  line-height: .96 !important;
+}
+
+html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-card-lesson .bhe3d-card-copy small {
+  max-width: 330px !important;
+  font-size: var(--burs-font-caption, 14px) !important;
+  line-height: 1.4 !important;
+}
+
+html[data-font-scale='130'] body #root .brian-home-approved3d .bhe3d-main,
+html[data-font-scale='130'] body #root .brian-home-approved3d .bhe3d-card-stage {
+  min-height: 710px !important;
+}
+
+html[data-font-scale='140'] body #root .brian-home-approved3d .bhe3d-main,
+html[data-font-scale='140'] body #root .brian-home-approved3d .bhe3d-card-stage {
+  min-height: 760px !important;
+}
+
+html[data-font-scale='130'] body #root .brian-home-approved3d .bhe3d-page,
+html[data-font-scale='140'] body #root .brian-home-approved3d .bhe3d-page {
+  grid-template-rows: minmax(710px, auto) auto !important;
+}
+
+/* --------------------------------------------------------------------------
+   Applications directory
+   -------------------------------------------------------------------------- */
+html[data-burs='comfortable-v3'] body .bui-launch--apps .launcher-group-rail .flat-apps-group-chip :is(b, small) {
+  font-size: var(--burs-font-micro, 13px) !important;
+  line-height: 1.15 !important;
+}
+
+html[data-burs='comfortable-v3'] body .bui-launch--apps .flat-app-window-copy small {
+  min-height: calc(var(--burs-font-micro, 13px) + 8px) !important;
+  font-size: var(--burs-font-micro, 13px) !important;
+  line-height: 1.1 !important;
+  letter-spacing: .025em !important;
+}
+
+html[data-burs='comfortable-v3'] body .bui-launch--apps .flat-app-window-copy strong {
+  font-size: var(--burs-font-compact-title) !important;
+  line-height: 1.08 !important;
+  -webkit-line-clamp: 3 !important;
+}
+
+html[data-burs='comfortable-v3'] body .bui-launch--apps .flat-app-window-copy em {
+  font-size: var(--burs-font-micro, 13px) !important;
+  line-height: 1.42 !important;
+  -webkit-line-clamp: 3 !important;
+}
+
+html[data-burs='comfortable-v3'] body .bui-launch--apps .flat-app-window-cta {
+  min-height: var(--burs-touch-size, 44px) !important;
+  padding: 8px 12px !important;
+  font-size: var(--burs-font-label, 15px) !important;
+  line-height: 1.15 !important;
+}
+
+html[data-burs='comfortable-v3'] body .bui-launch--apps .launcher-discovery-bar :is(input, button),
+html[data-burs='comfortable-v3'] body .bui-launch--apps .launcher-density-switch button,
+html[data-burs='comfortable-v3'] body .bui-launch--apps .launcher-admin-actions button {
+  font-size: var(--burs-font-control, 15px) !important;
+}
+
+html[data-burs='comfortable-v3'] body .bui-launch--apps .apps-directory-hero-v1216 .flat-apps-stats :is(small, em),
+html[data-burs='comfortable-v3'] body .bui-launch--apps :is(
+  .launcher-command-button small,
+  .launcher-density-switch > span,
+  .custom-app-hero-actions > span,
+  .custom-app-sharing-panel > header span,
+  .custom-app-sharing-metrics small,
+  .custom-app-panel-message,
+  .custom-app-status,
+  .custom-app-card-copy small,
+  .custom-app-card-copy em,
+  .custom-app-review-note,
+  .custom-app-empty-card small,
+  .custom-app-inline-identity small,
+  .custom-app-inline-identity em,
+  .custom-app-inline-slow p
+) {
+  font-size: var(--burs-font-micro, 13px) !important;
+  line-height: 1.4 !important;
+}
+
+html[data-burs='comfortable-v3'] body .bui-launch--apps :is(
+  .custom-app-add-button,
+  .custom-app-card-actions button,
+  .custom-app-inline-actions button,
+  .custom-app-inline-slow button,
+  .custom-app-dialog button
+) {
+  min-height: var(--burs-touch-size, 44px) !important;
+  font-size: var(--burs-font-control, 15px) !important;
+  line-height: 1.2 !important;
+}
+
+html[data-font-scale='130'] body .bui-launch--apps .launcher-custom-grid,
+html[data-font-scale='130'] body .bui-launch--apps.density-compact .launcher-custom-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+html[data-font-scale='140'] body .bui-launch--apps .launcher-custom-grid,
+html[data-font-scale='140'] body .bui-launch--apps.density-compact .launcher-custom-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+html[data-font-scale='130'] body .bui-launch--apps :is(.flat-app-window-card, .flat-app-window-launch, .flat-app-window-body) {
+  min-height: 228px !important;
+}
+
+html[data-font-scale='140'] body .bui-launch--apps :is(.flat-app-window-card, .flat-app-window-launch, .flat-app-window-body) {
+  min-height: 252px !important;
+}
+
+html[data-font-scale='130'] body .bui-launch--apps .flat-app-window-body,
+html[data-font-scale='140'] body .bui-launch--apps .flat-app-window-body {
+  grid-template-columns: 52px minmax(0, 1fr) !important;
+  gap: 12px 14px !important;
+  padding: 16px !important;
+}
+
+html[data-font-scale='130'] body .bui-launch--apps .flat-app-window-art,
+html[data-font-scale='140'] body .bui-launch--apps .flat-app-window-art {
+  width: 50px !important;
+  height: 50px !important;
+}
+
+/* --------------------------------------------------------------------------
+   Form, management and library surfaces migrated to shared roles
+   -------------------------------------------------------------------------- */
+html[data-burs='comfortable-v3'] body :is(.bui-settings-page, .bui-management, .bui-library, .bui-workbench) :is(input, textarea, select, button) {
+  font-size: var(--burs-font-control, 15px);
+}
+
+html[data-burs='comfortable-v3'] body :is(.bui-settings-page, .bui-management, .bui-library, .bui-workbench) :is(label, .eyebrow, .kicker, .badge, .chip) {
+  font-size: var(--burs-font-label, 15px);
+}
+
+html[data-burs='comfortable-v3'] body :is(.bui-settings-page, .bui-management, .bui-library, .bui-workbench) :is(small, .helper, .description, .muted) {
+  font-size: var(--burs-font-caption, 14px);
+  line-height: 1.45;
+}
+
+html[data-burs='comfortable-v3'] body :is(.bui-settings-page, .bui-management, .bui-library, .bui-workbench) table {
+  font-size: var(--burs-font-table, 14px);
+}
+
+@media (max-width: 1120px) {
+  html[data-font-scale='130'] body .bui-launch--apps .launcher-custom-grid,
+  html[data-font-scale='130'] body .bui-launch--apps.density-compact .launcher-custom-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  html[data-font-scale='140'] body .bui-launch--apps .launcher-custom-grid,
+  html[data-font-scale='140'] body .bui-launch--apps.density-compact .launcher-custom-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-title span,
+  html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-title strong {
+    font-size: clamp(var(--burs-home-mobile-min), 20vw, var(--burs-home-mobile-max)) !important;
+  }
+
+  html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-card-stage .bhe3d-app-card,
+  html[data-burs='comfortable-v3'] body #root .brian-home-approved3d .bhe3d-card-stage .bhe3d-app-card.is-featured {
+    min-height: 290px !important;
+  }
+
+  html[data-font-scale='130'] body .bui-launch--apps .launcher-custom-grid,
+  html[data-font-scale='140'] body .bui-launch--apps .launcher-custom-grid,
+  html[data-font-scale='130'] body .bui-launch--apps.density-compact .launcher-custom-grid,
+  html[data-font-scale='140'] body .bui-launch--apps.density-compact .launcher-custom-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

@@ -1262,7 +1262,6 @@ html.newsroom-reader-open body{
 .metro-clean-system[data-route="games"] .global-music-player,
 .metro-clean-system[data-route="department"] .global-music-player,
 .metro-clean-system[data-route="library"] .global-music-player,
-.metro-clean-system[data-route="practice"] .global-music-player,
 .metro-clean-system[data-route="admin"] .global-music-player{
   right:22px!important;
   bottom:92px!important;
@@ -1560,7 +1559,7 @@ html[data-theme="dark"] .bes-crash-recovery h1+p{color:#c5bab4}
 .command-palette-empty{min-height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;padding:30px}.command-palette-empty>span{font-size:42px;color:var(--active-app-accent,#123c69)}.command-palette-empty strong{font-size:16px}.command-palette-empty small{font-size:13px;color:color-mix(in srgb,var(--ink,#191515) 58%,transparent)}
 .command-palette-footer{display:flex;align-items:center;justify-content:flex-end;gap:18px;min-height:46px;padding:8px 16px;border-top:1px solid color-mix(in srgb,var(--ink,#191515) 10%,transparent);color:color-mix(in srgb,var(--ink,#191515) 62%,transparent);font-size:13px}.command-palette-footer span{display:flex;align-items:center;gap:4px}
 
-.launcher-command-center .flat-apps-hero,.launcher-command-center .launcher-discovery-bar,.launcher-command-center .launcher-admin-panel,.launcher-command-center .launcher-group-rail,.launcher-command-center .launcher-custom-grid,.launcher-command-center .launcher-pinned-apps{width:min(1360px,calc(100% - 48px));margin-left:auto;margin-right:auto}
+.launcher-command-center .flat-apps-hero,.launcher-command-center .launcher-discovery-bar,.launcher-command-center .launcher-recent-strip,.launcher-command-center .launcher-admin-panel,.launcher-command-center .launcher-group-rail,.launcher-command-center .launcher-custom-grid,.launcher-command-center .launcher-pinned-apps{width:min(1360px,calc(100% - 48px));margin-left:auto;margin-right:auto}
 .launcher-discovery-bar{
   display:grid;
   grid-template-columns:minmax(280px,1fr) auto auto;
@@ -1578,19 +1577,21 @@ html[data-theme="dark"] .bes-crash-recovery h1+p{color:#c5bab4}
 .launcher-search-box>span{font-size:24px;color:var(--active-app-accent,#123c69);font-weight:950}.launcher-search-box input{min-width:0;width:100%;border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;color:inherit!important;padding:8px 0!important;font:750 13px/1.3 inherit!important}.launcher-search-box button{width:28px;height:28px;border:0;border-radius:50%;background:color-mix(in srgb,var(--ink,#191515) 9%,transparent);font-size:18px;cursor:pointer}.launcher-search-box kbd{font-size:13px;font-weight:900;padding:4px 6px;border:1px solid color-mix(in srgb,var(--ink,#191515) 17%,transparent);border-radius:7px;color:color-mix(in srgb,var(--ink,#191515) 55%,transparent)}
 .launcher-command-button{min-height:46px;display:flex;align-items:center;gap:9px;padding:0 14px;border:1px solid color-mix(in srgb,var(--active-app-accent,#123c69) 42%,transparent);border-radius:14px;background:color-mix(in srgb,var(--active-app-soft,#eef3f8) 70%,#fff);color:var(--active-app-ink,#191515);cursor:pointer}.launcher-command-button>span{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;background:var(--active-app-accent,#123c69);color:#fff;font-weight:950}.launcher-command-button b{font-size:13px;white-space:nowrap}.launcher-command-button small{font-size:13px;font-weight:900;opacity:.55}
 .launcher-density-switch{min-height:46px;display:flex;align-items:center;gap:5px;padding:5px 6px 5px 11px;border:1px solid color-mix(in srgb,var(--ink,#191515) 15%,transparent);border-radius:14px;background:var(--surface,#fff)}.launcher-density-switch>span{font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;margin-right:4px}.launcher-density-switch button{min-width:32px;height:32px;border:0;border-radius:9px;background:transparent;cursor:pointer;font-weight:900}.launcher-density-switch button.active{background:var(--active-app-ink,#191515);color:#fff}
+.launcher-recent-strip{display:grid;grid-template-columns:180px minmax(0,1fr);gap:18px;align-items:center;margin-top:10px;margin-bottom:16px;padding:14px 16px;border-radius:20px;background:color-mix(in srgb,var(--surface,#fff) 88%,#DDF5F1);border:1px solid color-mix(in srgb,#167d78 28%,transparent)}.launcher-recent-strip>div:first-child{display:flex;flex-direction:column;gap:3px}.launcher-recent-strip strong{font-size:14px}.launcher-recent-strip small{font-size:13px;color:color-mix(in srgb,var(--ink,#191515) 58%,transparent)}.launcher-recent-chips{display:flex;gap:8px;overflow:auto;padding:2px;scrollbar-width:thin}.launcher-recent-chips button{flex:0 0 auto;display:flex;align-items:center;gap:8px;min-height:38px;padding:6px 11px;border:1px solid color-mix(in srgb,var(--recent-accent,#191515) 40%,transparent);border-radius:12px;background:color-mix(in srgb,var(--recent-accent,#191515) 11%,#fff);color:var(--ink,#191515);cursor:pointer}.launcher-recent-chips svg{width:18px;height:18px;color:var(--recent-accent,#191515)}.launcher-recent-chips span{max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;font-weight:850}
 .launcher-command-center.density-compact .launcher-custom-grid{gap:12px!important;grid-template-columns:repeat(5,minmax(0,1fr))!important}.launcher-command-center.density-compact .flat-app-window-card{min-height:0!important}.launcher-command-center.density-compact .flat-app-window-body{min-height:174px!important;padding:14px!important}.launcher-command-center.density-compact .flat-app-window-copy strong{font-size:clamp(24px,2.15vw,36px)!important}.launcher-command-center.density-compact .flat-app-window-copy em{font-size:13px!important;line-height:1.22!important}.launcher-command-center.density-compact .flat-app-window-art{width:53px!important;height:53px!important}.launcher-command-center.density-compact .flat-app-window-cta{font-size:13px!important;padding:6px 9px!important}
 
 html[data-theme="dark"] .global-command-palette,.dark .global-command-palette{background:#18191d;color:#f6f1eb;border-color:rgba(255,255,255,.16)}
 html[data-theme="dark"] .command-palette-header,.dark .command-palette-header{background:#1d1f24}
 html[data-theme="dark"] .command-palette-result:hover,html[data-theme="dark"] .command-palette-result.active,.dark .command-palette-result:hover,.dark .command-palette-result.active{background:color-mix(in srgb,var(--command-accent) 24%,#202228)}
 html[data-theme="dark"] .command-palette-command-icon,.dark .command-palette-command-icon{background:color-mix(in srgb,var(--command-accent) 25%,#202228)}
-html[data-theme="dark"] .launcher-discovery-bar,.dark .launcher-discovery-bar{background:#202328;border-color:rgba(255,255,255,.14)}
+html[data-theme="dark"] .launcher-discovery-bar,html[data-theme="dark"] .launcher-recent-strip,.dark .launcher-discovery-bar,.dark .launcher-recent-strip{background:#202328;border-color:rgba(255,255,255,.14)}
 html[data-theme="dark"] .launcher-search-box,html[data-theme="dark"] .launcher-density-switch,.dark .launcher-search-box,.dark .launcher-density-switch{background:#17191d;border-color:rgba(255,255,255,.16)}
+html[data-theme="dark"] .launcher-recent-chips button,.dark .launcher-recent-chips button{background:color-mix(in srgb,var(--recent-accent) 24%,#1b1d21);color:#fff}
 
 @keyframes command-layer-in{from{opacity:0}to{opacity:1}}@keyframes command-palette-in{from{opacity:0;transform:translateY(-14px) scale(.975)}to{opacity:1;transform:none}}
-@media(max-width:1180px){.launcher-command-center.density-compact .launcher-custom-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}.launcher-discovery-bar{grid-template-columns:minmax(250px,1fr) auto}.launcher-density-switch{grid-column:1/-1;justify-self:end}}
-@media(max-width:860px){.launcher-command-center .flat-apps-hero,.launcher-command-center .launcher-discovery-bar,.launcher-command-center .launcher-admin-panel,.launcher-command-center .launcher-group-rail,.launcher-command-center .launcher-custom-grid,.launcher-command-center .launcher-pinned-apps{width:min(100% - 28px,1360px)}.launcher-discovery-bar{grid-template-columns:1fr}.launcher-command-button{justify-content:center}.launcher-density-switch{grid-column:auto;justify-self:stretch;justify-content:flex-end}.launcher-command-center.density-compact .launcher-custom-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.command-palette-section-tag{display:none}}
-@media(max-width:600px){.global-command-palette-layer{padding:12px;place-items:end center}.global-command-palette{width:100%;max-height:calc(100dvh - 24px);border-radius:24px}.command-palette-caption span,.command-palette-current{display:none}.command-palette-result{grid-template-columns:44px minmax(0,1fr) auto 20px;gap:9px}.command-palette-footer{justify-content:center}.command-palette-footer span:last-child{display:none}.launcher-command-center.density-compact .launcher-custom-grid{grid-template-columns:1fr!important}.global-command-trigger small{display:none}.global-command-trigger{min-width:38px!important}}
+@media(max-width:1180px){.launcher-command-center.density-compact .launcher-custom-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}.launcher-discovery-bar{grid-template-columns:minmax(250px,1fr) auto}.launcher-density-switch{grid-column:1/-1;justify-self:end}.launcher-recent-strip{grid-template-columns:150px minmax(0,1fr)}}
+@media(max-width:860px){.launcher-command-center .flat-apps-hero,.launcher-command-center .launcher-discovery-bar,.launcher-command-center .launcher-recent-strip,.launcher-command-center .launcher-admin-panel,.launcher-command-center .launcher-group-rail,.launcher-command-center .launcher-custom-grid,.launcher-command-center .launcher-pinned-apps{width:min(100% - 28px,1360px)}.launcher-discovery-bar{grid-template-columns:1fr}.launcher-command-button{justify-content:center}.launcher-density-switch{grid-column:auto;justify-self:stretch;justify-content:flex-end}.launcher-recent-strip{grid-template-columns:1fr}.launcher-command-center.density-compact .launcher-custom-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.command-palette-section-tag{display:none}}
+@media(max-width:600px){.global-command-palette-layer{padding:12px;place-items:end center}.global-command-palette{width:100%;max-height:calc(100dvh - 24px);border-radius:24px}.command-palette-caption span,.command-palette-current{display:none}.command-palette-result{grid-template-columns:44px minmax(0,1fr) auto 20px;gap:9px}.command-palette-footer{justify-content:center}.command-palette-footer span:last-child{display:none}.launcher-command-center.density-compact .launcher-custom-grid{grid-template-columns:1fr!important}.launcher-recent-chips span{max-width:120px}.global-command-trigger small{display:none}.global-command-trigger{min-width:38px!important}}
 @media(prefers-reduced-motion:reduce){.global-command-palette-layer,.global-command-palette{animation:none}.command-palette-result{transition:none}}
 
 /* =========================================================
@@ -1720,8 +1721,26 @@ html[data-theme="dark"] .bes-autosave-status{background:rgba(33,29,27,.94);color
 
 /* =========================================================
    V10.85.0 — Connected Workflow
-   Content transfer · Version history · Sync queue
+   Workspace tabs · Content transfer · Version history · Sync queue
    ========================================================= */
+.bes-workspace-tabs{
+  position:sticky;top:0;z-index:64;display:flex;align-items:center;gap:8px;
+  width:min(100%,1360px);margin:0 auto;padding:7px clamp(14px,3vw,34px);
+  background:color-mix(in srgb,var(--surface,#fff) 94%,transparent);
+  border-bottom:1px solid var(--line,#ded8d4);backdrop-filter:blur(18px);
+}
+.bes-top-chrome + .bes-workspace-tabs{top:var(--bes-top-chrome-height,0px)}
+.bes-workspace-tabs-track{display:flex;align-items:center;gap:7px;min-width:0;overflow-x:auto;scrollbar-width:none;flex:1}
+.bes-workspace-tabs-track::-webkit-scrollbar{display:none}
+.bes-workspace-tab{--workspace-tab-accent:#3B4CCA;display:flex;align-items:center;min-width:150px;max-width:245px;height:38px;border:1px solid color-mix(in srgb,var(--workspace-tab-accent) 22%,var(--line,#ddd));border-radius:13px;background:var(--surface,#fff);box-shadow:0 2px 10px rgba(31,24,20,.04);overflow:hidden;transition:transform .18s ease,border-color .18s ease,background .18s ease}
+.bes-workspace-tab:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--workspace-tab-accent) 55%,var(--line,#ddd))}
+.bes-workspace-tab.is-active{background:color-mix(in srgb,var(--workspace-tab-accent) 10%,var(--surface,#fff));border-color:var(--workspace-tab-accent);box-shadow:inset 0 -3px 0 var(--workspace-tab-accent)}
+.bes-workspace-tab-main{display:flex;align-items:center;gap:8px;min-width:0;flex:1;height:100%;padding:0 6px 0 8px;border:0;background:transparent;color:var(--text,#1d1b20);text-align:left;cursor:pointer}
+.bes-workspace-tab-main>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:750}
+.bes-workspace-tab-mark{display:grid;place-items:center;width:23px;height:23px;border-radius:8px;flex:0 0 auto;background:var(--workspace-tab-accent);color:#fff;font-size:13px;font-weight:900;letter-spacing:.04em}
+.bes-workspace-tab-pin,.bes-workspace-tab-close{display:grid;place-items:center;width:25px;height:100%;padding:0;border:0;background:transparent;color:color-mix(in srgb,var(--text,#1d1b20) 58%,transparent);cursor:pointer;font-size:14px}
+.bes-workspace-tab-pin:hover,.bes-workspace-tab-close:hover{background:color-mix(in srgb,var(--workspace-tab-accent) 10%,transparent);color:var(--workspace-tab-accent)}
+.bes-workspace-new{display:grid;place-items:center;width:34px;height:34px;border:1px solid var(--line,#ddd);border-radius:11px;background:var(--surface,#fff);font-size:20px;cursor:pointer;color:var(--text,#1d1b20)}
 
 .bes-transfer-fab{position:fixed;left:22px;bottom:22px;z-index:82;display:flex;align-items:center;gap:8px;height:48px;padding:0 17px;border:1px solid color-mix(in srgb,var(--transfer-accent) 35%,transparent);border-radius:999px;background:var(--transfer-accent);color:#fff;box-shadow:0 14px 34px color-mix(in srgb,var(--transfer-accent) 28%,transparent);cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}
 .bes-transfer-fab:hover{transform:translateY(-2px);box-shadow:0 18px 42px color-mix(in srgb,var(--transfer-accent) 36%,transparent)}
@@ -1757,16 +1776,17 @@ html[data-theme="dark"] .bes-autosave-status{background:rgba(33,29,27,.94);color
 .bes-sync-queue{position:fixed;left:50%;bottom:22px;z-index:88;transform:translateX(-50%)}.bes-sync-queue-toggle{display:flex;align-items:center;gap:8px;height:38px;padding:0 13px;border:1px solid var(--line,#ddd);border-radius:999px;background:var(--surface,#fff);color:var(--text,#1d1b20);box-shadow:0 10px 28px rgba(28,22,20,.12);cursor:pointer}.bes-sync-queue-toggle span{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#dff5e7;color:#17633a}.bes-sync-queue.is-offline .bes-sync-queue-toggle span{background:#fff0cc;color:#7a4d00}.bes-sync-queue-toggle b{font-size:13px}
 .bes-sync-queue-panel{position:absolute;left:50%;bottom:48px;transform:translateX(-50%);width:min(380px,calc(100vw - 24px));padding:14px;border:1px solid var(--line,#ddd);border-radius:20px;background:var(--surface,#fff);box-shadow:0 24px 60px rgba(18,14,13,.22)}.bes-sync-queue-panel>header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.bes-sync-queue-panel>header strong{font-size:13px}.bes-sync-queue-panel>header button{border:0;background:transparent;font-size:20px;cursor:pointer}.bes-sync-item{display:grid;grid-template-columns:28px 1fr 28px;align-items:center;gap:8px;padding:9px;border-radius:12px;background:var(--surface-2,#f8f6f4);margin-top:6px}.bes-sync-item>span{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--active-app-soft,#eef);font-size:13px}.bes-sync-item>div{display:grid}.bes-sync-item strong{font-size:13px}.bes-sync-item small{font-size:13px;color:var(--muted,#6f6966)}.bes-sync-item>button{border:0;background:transparent;cursor:pointer;font-size:16px}
 
-html[data-theme="dark"] .bes-transfer-panel,html[data-theme="dark"] .bes-version-panel,html[data-theme="dark"] .bes-sync-queue-panel{background:color-mix(in srgb,var(--surface,#181615) 94%,transparent)}
+html[data-theme="dark"] .bes-workspace-tabs,html[data-theme="dark"] .bes-workspace-tab,html[data-theme="dark"] .bes-transfer-panel,html[data-theme="dark"] .bes-version-panel,html[data-theme="dark"] .bes-sync-queue-panel{background:color-mix(in srgb,var(--surface,#181615) 94%,transparent)}
 
 @media (max-width:760px){
+  .bes-workspace-tabs{padding:6px 10px}.bes-workspace-tab{min-width:135px;max-width:185px}.bes-workspace-tab-main>span:last-child{font-size:13px}
   .bes-transfer-fab{left:12px;bottom:76px;width:46px;padding:0;justify-content:center}.bes-transfer-fab b{display:none}.bes-transfer-overlay{padding:0}.bes-transfer-panel{border-radius:24px 24px 0 0;height:94vh;margin-top:auto}
   .bes-transfer-inbox{display:grid;grid-template-columns:38px 1fr;gap:10px}.bes-transfer-inbox button{width:100%}.bes-transfer-inbox>button{grid-column:1/-1}.bes-transfer-inbox-success{grid-column:1/-1}
   .bes-autosave-cluster{right:10px;bottom:76px}.bes-autosave-cluster .bes-autosave-status b,.bes-autosave-cluster .bes-autosave-status small{display:none}.bes-version-list article{grid-template-columns:38px 1fr 30px}.bes-version-list article button.primary{grid-column:1/-1}.bes-version-panel{max-height:94vh}
   .bes-sync-queue{bottom:20px}.bes-sync-queue-toggle b{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
 
-@media (prefers-reduced-motion:reduce){.bes-transfer-fab,.bes-transfer-panel,.bes-transfer-targets>button{transition:none!important;animation:none!important}}
+@media (prefers-reduced-motion:reduce){.bes-workspace-tab,.bes-transfer-fab,.bes-transfer-panel,.bes-transfer-targets>button{transition:none!important;animation:none!important}}
 
 /* ================================================================
    V10.86.0 — AI Action Engine + Governance Center
@@ -1857,3 +1877,81 @@ html[data-theme="dark"] .bes-transfer-panel,html[data-theme="dark"] .bes-version
 @media(max-width:980px){.ai-gov-hero{grid-template-columns:1fr}.ai-gov-orbit{display:none}.ai-gov-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.ai-gov-layout{grid-template-columns:1fr}}
 @media(max-width:660px){.ai-governance-page{width:calc(100% - 24px);padding-top:14px}.ai-gov-hero{border-radius:25px;padding:25px 20px;min-height:0}.ai-gov-hero h1{font-size:38px}.ai-gov-stats{grid-template-columns:1fr 1fr;gap:9px}.ai-gov-stats article{padding:14px;min-height:108px}.ai-gov-stats strong{font-size:24px}.ai-gov-card{padding:16px;border-radius:22px}.ai-gov-number-grid,.ai-gov-targets{grid-template-columns:1fr}.ai-gov-card>header{flex-direction:column}.ai-gov-audit-actions{width:100%}.ai-gov-audit-actions select{flex:1}.ai-gov-footer-actions{align-items:stretch;flex-direction:column}.ai-gov-footer-actions p{text-align:left}.ai-action-panel,.ai-action-confirm{padding:7px}.ai-action-confirm>section{border-radius:20px}}
 @media(prefers-reduced-motion:reduce){.ai-action-grid>button,.ai-gov-switch-grid label>span:after,.ai-gov-targets label>i:after{transition:none!important}}
+
+/* V12.33 · Unified AI Core Phase 2 — Privacy Filter & Output Guard */
+.ai-gov-safety{grid-column:1/-1}
+.ai-gov-safety>header{align-items:center}
+.ai-gov-safety-metrics{display:grid!important;grid-template-columns:auto auto;gap:2px 8px!important;align-items:baseline!important;padding:10px 14px;border-radius:16px;background:linear-gradient(135deg,#f0ebff,#edf7ff);border:1px solid #ddd5fb}
+.ai-gov-safety-metrics b{font-size:20px;color:#5b36bb;line-height:1}
+.ai-gov-safety-metrics small{font-size:11px;color:var(--muted,#697386);font-weight:800}
+.ai-gov-safety-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.ai-gov-safety-grid>div{min-width:0;padding:16px;border-radius:20px;background:color-mix(in srgb,var(--surface,#fff) 94%,#eee8ff);border:1px solid #e2e6ed}
+.ai-gov-safety-grid h3{margin:0 0 12px;font-size:15px;color:var(--ink,#182033)}
+.ai-gov-select-row{display:grid;grid-template-columns:1fr minmax(190px,250px);gap:12px;align-items:center;margin-bottom:10px}
+.ai-gov-select-row>span{font-size:13px;color:var(--muted,#697386);font-weight:850}
+.ai-gov-select-row select{height:42px;border:1px solid #dfe4ec;border-radius:13px;background:var(--surface,#fff);color:var(--ink,#182033);padding:0 11px;font:800 12px inherit;outline:none}
+.ai-gov-select-row select:focus{border-color:#6d45c6;box-shadow:0 0 0 3px rgba(109,69,198,.12)}
+.ai-gov-number-grid-single{grid-template-columns:minmax(180px,280px)}
+.ai-gov-safety-note{margin:12px 0 0;padding:10px 12px;border-radius:14px;background:#eef7f3;color:#326451;font-size:12px;line-height:1.45;font-weight:750}
+@media(max-width:900px){.ai-gov-safety-grid{grid-template-columns:1fr}.ai-gov-safety-metrics{display:none!important}}
+@media(max-width:660px){.ai-gov-select-row{grid-template-columns:1fr}.ai-gov-number-grid-single{grid-template-columns:1fr}}
+
+/* V12.34 Unified AI Core transport coverage */
+.ai-gov-transport-badge{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 13px;border-radius:999px;background:#e8fff4;color:#087754;border:1px solid #bdebd7;font-size:12px;font-weight:900;white-space:nowrap}
+.ai-gov-transport-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.ai-gov-transport-grid article{display:grid;grid-template-columns:auto 1fr;gap:11px;align-items:start;min-width:0;padding:16px;border-radius:19px;border:1px solid #e2e6ee;background:linear-gradient(145deg,color-mix(in srgb,var(--surface,#fff) 96%,#eee8ff),color-mix(in srgb,var(--surface,#fff) 97%,#e8f6ff))}
+.ai-gov-transport-grid article>span{width:32px;height:32px;border-radius:11px;display:grid;place-items:center;background:#ece8ff;color:#5b36bb;font-size:12px;font-weight:950}
+.ai-gov-transport-grid article strong{display:block;color:var(--ink,#182033);font-size:14px;line-height:1.25}
+.ai-gov-transport-grid article p{margin:5px 0 0;color:var(--muted,#697386);font-size:12px;line-height:1.5}
+.ai-gov-transport-grid article>b{grid-column:2;justify-self:start;padding:5px 9px;border-radius:999px;background:#e9fbf3;color:#087754;font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.ai-gov-transport-note{margin:14px 0 0;padding:11px 13px;border-radius:14px;background:#f7f5ff;color:#5b4b80;font-size:12px;line-height:1.45}
+[data-theme="dark"] .ai-gov-transport-grid article{border-color:#30384a;background:linear-gradient(145deg,#191e2b,#171b27)}
+[data-theme="dark"] .ai-gov-transport-note{background:#211c35;color:#c9bffa}
+@media(max-width:960px){.ai-gov-transport-grid{grid-template-columns:1fr}}
+
+/* V12.35 Unified AI Runtime resilience */
+.ai-gov-runtime{grid-column:1/-1}
+.ai-gov-runtime-badge{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 13px;border-radius:999px;background:#eef7ff;color:#175d9f;border:1px solid #c9e0f7;font-size:12px;font-weight:900;white-space:nowrap}
+.ai-gov-runtime-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin-bottom:14px}
+.ai-gov-runtime-metrics article{padding:14px 15px;border-radius:18px;border:1px solid #e1e7ef;background:linear-gradient(145deg,color-mix(in srgb,var(--surface,#fff) 96%,#eef3ff),color-mix(in srgb,var(--surface,#fff) 98%,#effbf7))}
+.ai-gov-runtime-metrics small{display:block;color:var(--muted,#697386);font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:900}
+.ai-gov-runtime-metrics strong{display:block;margin:7px 0 4px;color:var(--ink,#182033);font-size:25px;letter-spacing:-.04em}
+.ai-gov-runtime-metrics span{display:block;color:var(--muted,#697386);font-size:12px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ai-gov-runtime-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:14px;align-items:start}
+.ai-gov-runtime-numbers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:14px;border:1px solid #e2e7ee;border-radius:19px;background:color-mix(in srgb,var(--surface,#fff) 96%,#f0ecff)}
+.ai-gov-runtime-numbers label{display:grid;gap:6px}
+.ai-gov-runtime-numbers span{font-size:12px;color:var(--muted,#697386);font-weight:850}
+.ai-gov-runtime-numbers input{height:42px;border:1px solid #dfe4ec;border-radius:13px;background:var(--surface,#fff);color:var(--ink,#182033);padding:0 11px;font:800 12px inherit;outline:none}
+.ai-gov-runtime-numbers input:focus{border-color:#6d45c6;box-shadow:0 0 0 3px rgba(109,69,198,.12)}
+.ai-gov-runtime-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:9px;margin-top:14px}
+.ai-gov-runtime-actions button{height:38px;padding:0 13px;border-radius:999px;border:1px solid #dbe2eb;background:var(--surface,#fff);color:var(--ink,#182033);font-weight:850;font-size:12px;cursor:pointer}
+.ai-gov-runtime-actions .danger-text{color:#b42345;background:#fff7f8;border-color:#f2cbd4}
+[data-theme="dark"] .ai-gov-runtime-metrics article,[data-theme="dark"] .ai-gov-runtime-numbers{border-color:#30384a;background:linear-gradient(145deg,#191e2b,#171b27)}
+[data-theme="dark"] .ai-gov-runtime-numbers input,[data-theme="dark"] .ai-gov-runtime-actions button{background:#111522;border-color:#30384b;color:#eef1f7}
+@media(max-width:980px){.ai-gov-runtime-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.ai-gov-runtime-grid{grid-template-columns:1fr}}
+@media(max-width:660px){.ai-gov-runtime-metrics{grid-template-columns:1fr 1fr}.ai-gov-runtime-numbers{grid-template-columns:1fr}.ai-gov-runtime-actions{justify-content:stretch}.ai-gov-runtime-actions button{flex:1 1 100%}}
+
+/* V12.37.0 — AI Governance Cloud Sync */
+.ai-gov-cloud-sync{margin:18px 0 22px;background:linear-gradient(135deg,#ffffff 0%,#f7f9ff 55%,#f1fbf8 100%);border:1px solid rgba(104,91,184,.16);box-shadow:0 18px 45px rgba(39,32,83,.08);position:relative;overflow:hidden}
+.ai-gov-cloud-sync:before{content:"";position:absolute;right:-90px;top:-110px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(107,88,214,.14),rgba(107,88,214,0) 70%);pointer-events:none}
+.ai-gov-cloud-sync>header{position:relative;z-index:1}
+.ai-gov-cloud-sync>header>div>span{background:linear-gradient(135deg,#5b4ccc,#27a48d);color:#fff;box-shadow:0 10px 25px rgba(78,69,188,.24)}
+.ai-gov-cloud-badge{display:inline-flex;align-items:center;min-height:34px;padding:0 13px;border-radius:999px;background:#e9f8f3;color:#14745f;font-size:12px;font-weight:900;white-space:nowrap}
+.ai-gov-cloud-sync[data-cloud-state="migration"] .ai-gov-cloud-badge{background:#fff3df;color:#9b5c00}
+.ai-gov-cloud-sync[data-cloud-state="error"] .ai-gov-cloud-badge{background:#ffe9ec;color:#a72e46}
+.ai-gov-cloud-sync[data-cloud-state="syncing"] .ai-gov-cloud-badge{background:#ecebff;color:#5746bd}
+.ai-gov-cloud-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px;position:relative;z-index:1}
+.ai-gov-cloud-grid article{min-height:116px;border:1px solid rgba(95,83,175,.12);border-radius:20px;padding:17px;background:rgba(255,255,255,.78);backdrop-filter:blur(12px);display:flex;flex-direction:column;justify-content:center}
+.ai-gov-cloud-grid small{font-size:12px;color:#6c6980;font-weight:800}
+.ai-gov-cloud-grid strong{font-size:30px;line-height:1;margin:9px 0;color:#30295d;letter-spacing:-.04em}
+.ai-gov-cloud-grid p{font-size:12px;color:#747087;margin:0;line-height:1.45}
+.ai-gov-cloud-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px;position:relative;z-index:1}
+.ai-gov-cloud-actions button{min-height:40px;padding:0 15px;border-radius:999px;font-weight:850;cursor:pointer}
+.ai-gov-cloud-actions .primary{border:0;background:linear-gradient(135deg,#5548c9,#7165df);color:#fff;box-shadow:0 9px 20px rgba(79,67,191,.2)}
+.ai-gov-cloud-actions .secondary{background:#fff;color:#4b408f;border:1px solid rgba(83,70,164,.2)}
+.ai-gov-cloud-actions button:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+.ai-gov-cloud-error,.ai-gov-cloud-migration{position:relative;z-index:1;border-radius:14px;padding:11px 13px;margin:13px 0 0;font-size:12px;line-height:1.5}
+.ai-gov-cloud-error{background:#fff0f2;color:#8f263d;border:1px solid rgba(180,51,76,.13)}
+.ai-gov-cloud-migration{background:#fff7e8;color:#845300;border:1px solid rgba(193,124,0,.14)}
+@media(max-width:980px){.ai-gov-cloud-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.ai-gov-cloud-grid{grid-template-columns:1fr}.ai-gov-cloud-actions{align-items:stretch}.ai-gov-cloud-actions button{width:100%}}

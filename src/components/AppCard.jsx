@@ -19,7 +19,7 @@ export default function AppCard({ item, language, currentUser }) {
   const title = language === 'vi' ? item.titleVi || item.title : item.title;
   const desc = language === 'vi' ? item.descVi || item.desc : item.desc;
   const group = language === 'vi' ? item.groupVi || item.group : item.group;
-  const target = item.target || item.href || item.externalUrl || (item.route ? `#/${item.route}` : `#/tool/${item.slug}`);
+  const target = item.route ? `#/${item.route}` : `#/tool/${item.slug}`;
   const locked = Boolean(currentUser && currentUser.role !== 'admin' && !hasToolAccess(currentUser, item.slug));
   const permissionId = getToolPermissionId(item.slug);
   const tone = item.tone || 'blue';
@@ -46,7 +46,7 @@ export default function AppCard({ item, language, currentUser }) {
         </div>
       </div>
       <div className="card-meta compact">
-        <span>{locked ? (language === 'vi' ? 'Cần admin duyệt' : 'Admin approval required') : item.api ? (language === 'vi' ? 'Hỗ trợ' : 'AI powered') : (language === 'vi' ? 'Sẵn sàng' : 'Ready')}</span>
+        <span>{locked ? (language === 'vi' ? 'Cần admin duyệt' : 'Admin approval required') : item.api ? (language === 'vi' ? 'AI hỗ trợ' : 'AI powered') : (language === 'vi' ? 'Sẵn sàng' : 'Ready')}</span>
         <span>{language === 'vi' ? 'Mở nhanh' : 'Quick launch'}</span>
       </div>
       {locked ? (

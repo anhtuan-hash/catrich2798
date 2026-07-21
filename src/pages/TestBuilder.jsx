@@ -81,7 +81,7 @@ export default function TestBuilder({ language, apiKey, aiModel, hasApiKey }) {
   }, [filtered, shuffle, count]);
   const examText = useMemo(() => buildExamText(title, selected, includeAnswers), [title, selected, includeAnswers]);
   const formQuestions = useMemo(() => normalizeQuestionsForGoogleForms(selected), [selected]);
-  const formScript = useMemo(() => buildGoogleFormsAppsScript(title, formQuestions, { description: 'Created from Exam Studio / question bank in Brian English Studio V1.0.' }), [title, formQuestions]);
+  const formScript = useMemo(() => buildGoogleFormsAppsScript(title, formQuestions, { description: 'Created from Assessment Core / question bank in Brian English Studio.' }), [title, formQuestions]);
 
   const showToast = (message) => {
     setToast(message);

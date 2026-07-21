@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-const required=['src/config/version.js','src/data/apps.js','src/pages/Home.jsx','src/styles/v1137.css','src/data/designProfiles.js','src/pages/PronunciationCoach.jsx','scripts/check-v11.5.5.mjs','scripts/sync-version-v11.5.5.mjs','scripts/performance-budget-v11.5.5.mjs','public/version.json','public/release-manifest.json','.bes-release/v11.5.5.json'];
+const required=['src/config/version.js','src/data/apps.js','src/pages/Home.jsx','src/styles/v1137.css','src/data/designProfiles.js','src/pages/PronunciationCoach.jsx','src/utils/workspace.js','scripts/check-v11.5.5.mjs','scripts/sync-version-v11.5.5.mjs','scripts/performance-budget-v11.5.5.mjs','public/version.json','public/release-manifest.json','.bes-release/v11.5.5.json'];
 let failed=0;
 for(const file of required){if(!fs.existsSync(file)){console.error(`✗ missing ${file}`);failed++;}else console.log(`✓ ${file}`);}
 const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
@@ -12,6 +12,7 @@ const checks=[
   ['home styles',!fs.readFileSync('src/styles/v1137.css','utf8').includes('.flat-window-listening')],
   ['design profile',!fs.readFileSync('src/data/designProfiles.js','utf8').includes("'listening-lab':")],
   ['connected workflow',!fs.readFileSync('src/pages/PronunciationCoach.jsx','utf8').includes("id: 'listening-lab'")],
+  ['workspace cleanup',fs.readFileSync('src/utils/workspace.js','utf8').includes("tool:listening-lab")],
 ];
 for(const [label,ok] of checks){if(!ok){console.error(`✗ ${label}`);failed++;}else console.log(`✓ ${label}`);}
 const apiEntries=fs.readdirSync('api').filter((name)=>!name.startsWith('_')&&/\.(?:js|mjs|ts|py|go)$/i.test(name));

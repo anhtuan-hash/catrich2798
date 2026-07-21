@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { callAI, extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/openRouter.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { addBankItems, addHistoryEntry } from '../utils/library.js';
 
 function cleanAIContent(value = '') {
@@ -36,6 +37,7 @@ TASK:
 6. The content must be directly parsable by TextLab. Do not include headings, markdown, numbering, commentary, or code fences inside the content field unless the template format itself requires them.
 7. For MCQ, the correct answer must be the second field after the question, followed by distractors.
 8. For blank/cloze templates, put every answer inside {curly brackets}.
+9. The content value must be a valid JSON string. Encode every line break as \\n and escape every double quote inside content. Never place a literal unescaped newline or control character inside a JSON string.
 
 Return STRICT JSON only:
 {
@@ -125,8 +127,8 @@ export default function TextLabActivities({
         frameRef.current?.contentWindow?.postMessage({
           type: 'BTL_AI_ERROR',
           message: language === 'vi'
-            ? 'Chưa có API key AI. Hãy vào Cài đặt → AI Provider Hub để cấu hình provider và API key.'
-            : 'No AI API key is configured. Open Settings → AI Provider Hub to configure a provider and API key.',
+            ? 'OpenRouter Gateway chưa sẵn sàng. Hãy kiểm tra OPENROUTER_API_KEY trên Vercel và thử lại.'
+            : 'The OpenRouter Gateway is not ready. Check OPENROUTER_API_KEY on Vercel and try again.',
         }, '*');
         return;
       }
@@ -134,12 +136,12 @@ export default function TextLabActivities({
       setAiBusy(true);
       try {
         const prompt = buildTextLabAIPrompt({ ...payload, language });
-        const raw = await callAI({
+        const raw = await runAITask('textlab.generateActivity', {
           apiKey,
           model: aiModel,
           prompt,
-          systemInstruction: 'You are a precise instructional designer. Return valid JSON only. Respect the exact delimiter and line format requested by the selected TextLab template.',
-          temperature: 0.55,
+          systemInstruction: 'You are a precise instructional designer. Return exactly one valid JSON object with no markdown. Respect the selected TextLab delimiter format. The content field must be one JSON string: encode line breaks as \\n and escape embedded double quotes.',
+          temperature: 0.2,
           responseMimeType: 'application/json',
           loadingLabel: language === 'vi'
             ? 'AI đang nhận diện template và tạo nội dung TextLab...'
@@ -196,7 +198,7 @@ export default function TextLabActivities({
         <div className="textlab-page-status">
           <span className="textlab-status-title">Brian TextLab Activities</span>
           <span className={hasApiKey ? 'ready' : 'pending'}>
-            {hasApiKey ? (language === 'vi' ? 'Hệ thống sẵn sàng' : 'AI ready') : (language === 'vi' ? 'Chưa cấu hình AI' : 'AI not configured')}
+            {hasApiKey ? (language === 'vi' ? 'AI sẵn sàng' : 'AI ready') : (language === 'vi' ? 'Chưa cấu hình AI' : 'AI not configured')}
           </span>
         </div>
         <div className="textlab-integrated-actions">

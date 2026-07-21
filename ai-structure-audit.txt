@@ -1,0 +1,310 @@
+===== NHÁNH HIỆN TẠI =====
+brian-ai-core
+
+===== FILE CÓ TÊN LIÊN QUAN ĐẾN AI =====
+api/ai.js
+server/lessonAiHandler.js
+server/unifiedAiProviderAdapter.js
+src/components/AICopilotPanel.jsx
+src/components/AISmartModelSelector.jsx
+src/components/GlobalAIIndicator.jsx
+src/components/GlobalAIReceipt.jsx
+src/components/UnifiedUtilityRail.jsx
+src/components/UniversalAIAssist.jsx
+src/data/aiProviderCatalog.js
+src/main.jsx
+src/pages/AIGovernanceCenter.jsx
+src/pages/AITool.jsx
+src/styles/v1157-ai-provider-hub.css
+src/ui-core/styles/ai-control-plane-v1236.css
+src/ui-core/styles/department-detail-workspace-v1223.css
+src/utils/aiActions.js
+src/utils/aiGovernance.js
+src/utils/aiGovernanceCloud.js
+src/utils/aiMedia.js
+src/utils/aiOutputValidator.js
+src/utils/aiPrivacyFilter.js
+src/utils/aiPromptRegistry.js
+src/utils/aiProviderHubRuntime.js
+src/utils/aiProviderOverrides.js
+src/utils/aiProviders.js
+src/utils/aiRuntimeManager.js
+src/utils/aiSmartRouting.js
+src/utils/aiTaskRegistry.js
+src/utils/aiTaskRuntime.js
+src/utils/aiWorkspaceFallback.js
+src/utils/gemini.js
+src/utils/providerHubInputGuard.js
+
+===== FILE CÓ NỘI DUNG LIÊN QUAN ĐẾN AI =====
+api/ai.js
+server/lessonAiHandler.js
+server/unifiedAiProviderAdapter.js
+src/components/AICopilotPanel.jsx
+src/components/AISmartModelSelector.jsx
+src/components/ApiNotice.jsx
+src/components/GlobalAIIndicator.jsx
+src/components/GlobalAIReceipt.jsx
+src/components/LessonArchitectCurriculumBuilder.jsx
+src/components/UniversalAIAssist.jsx
+src/data/aiProviderCatalog.js
+src/data/apps.js
+src/main.jsx
+src/pages/AIGovernanceCenter.jsx
+src/pages/AITool.jsx
+src/pages/DepartmentWorkspace.jsx
+src/pages/EnglishLessonIntegrationStudio.jsx
+src/pages/GrammarBuilder.jsx
+src/pages/HomeroomWorkspace.jsx
+src/pages/LessonArchitect.jsx
+src/pages/PronunciationCoach.css
+src/pages/PronunciationCoach.jsx
+src/pages/ReadingStudio.jsx
+src/pages/ResourceLibrary.jsx
+src/pages/Settings.jsx
+src/pages/SmartIdStudio.jsx
+src/pages/SpeakingStudio.jsx
+src/pages/SpecializedAppPage.jsx
+src/pages/SystemHealthCenter.jsx
+src/pages/TextCareStudio.jsx
+src/pages/TextLabActivities.jsx
+src/pages/WordGraphStudio.jsx
+src/pages/WorksheetFactory.css
+src/pages/WorksheetFactory.jsx
+src/pages/WritingStudio.css
+src/pages/WritingStudio.jsx
+src/styles/legacy-active.css
+src/styles/legacy/01-foundation.css
+src/styles/legacy/03-operations.css
+src/styles/legacy/04-modern-shell.css
+src/styles/legacy/06-current-features.css
+src/styles/v1093.css
+src/styles/v1157-ai-provider-hub.css
+src/ui-core/components/UIActivityCenter.jsx
+src/ui-core/runtime/uiPreferences.js
+src/ui-core/styles/design-adapters.css
+src/ui-core/styles/settings-experience-v1225.css
+src/ui-core/styles/ui-core.css
+src/utils/aiGovernance.js
+src/utils/aiGovernanceCloud.js
+src/utils/aiMedia.js
+src/utils/aiPromptRegistry.js
+src/utils/aiProviderHubRuntime.js
+src/utils/aiProviderOverrides.js
+src/utils/aiProviders.js
+src/utils/aiRuntimeManager.js
+src/utils/aiSmartRouting.js
+src/utils/aiTaskRegistry.js
+src/utils/aiTaskRuntime.js
+src/utils/aiWorkspaceFallback.js
+src/utils/auth.js
+src/utils/bursReadability.js
+src/utils/gemini.js
+src/utils/library.js
+src/utils/permissions.js
+src/utils/providerHubInputGuard.js
+src/vendor/englishLessonIntegration/chunks/exportDocx-CWf1oqaU.js
+src/vendor/englishLessonIntegration/chunks/index-Dw89E-Vn.js
+src/vendor/englishLessonIntegration/chunks/mount-Dps-kMHu.js
+
+===== CÁC API ROUTE HIỆN CÓ =====
+api/_googleDrive.js
+api/_resourceCategoryFolders.js
+api/_resourcePreviewToken.js
+api/_security.js
+api/ai.js
+api/google-drive-callback.js
+api/google-drive-connect.js
+api/google-drive-delete.js
+api/google-drive-file.js
+api/google-drive-move.js
+api/google-drive-preview-session.js
+api/google-drive-upload.js
+api/news-article.js
+api/news-feed.js
+api/resource-sync.js
+api/work-hub-archive-resource.js
+server/lessonAiHandler.js
+server/unifiedAiProviderAdapter.js
+
+===== PACKAGE.JSON =====
+{
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "npm run version:sync && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node scripts/smoke-test.mjs",
+    "test:department": "node scripts/department-runtime-test.mjs",
+    "audit:performance": "node scripts/performance-audit.mjs",
+    "test:e2e:contracts": "node scripts/e2e-contract-test-v10.99.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:chromium": "playwright test --project=chromium-desktop",
+    "test:v11.1": "node scripts/check-v11.1.0.mjs",
+    "release:guard:v11.1": "node scripts/release-guard-v11.1.0.mjs",
+    "verify:v11.1": "npm run test:v11.1 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.1",
+    "test:v11.2": "node scripts/check-v11.2.0.mjs",
+    "release:guard:v11.2": "node scripts/release-guard-v11.2.0.mjs",
+    "verify:v11.2": "npm run test:v11.2 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.2",
+    "test:v11.3": "node scripts/check-v11.3.1.mjs",
+    "release:guard:v11.3": "node scripts/release-guard-v11.3.1.mjs",
+    "verify:v11.3": "npm run test:v11.3.1 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.3.1",
+    "test:v11.3.1": "node scripts/check-v11.3.1.mjs",
+    "release:guard:v11.3.1": "node scripts/release-guard-v11.3.1.mjs",
+    "verify:v11.3.1": "npm run test:v11.3.1 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.3.1",
+    "test:v11.3.2": "node scripts/check-v11.3.2.mjs",
+    "release:guard:v11.3.2": "node scripts/release-guard-v11.3.2.mjs",
+    "verify:v11.3.2": "npm run test:v11.3.2 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.3.2",
+    "test:v11.3.3": "node scripts/check-v11.3.3.mjs",
+    "release:guard:v11.3.3": "node scripts/release-guard-v11.3.3.mjs",
+    "verify:v11.3.3": "npm run test:v11.3.3 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.3.3",
+    "test:v11.3.4": "node scripts/check-v11.3.4.mjs",
+    "release:guard:v11.3.4": "node scripts/release-guard-v11.3.4.mjs",
+    "verify:v11.3.4": "npm run test:v11.3.4 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.3.4",
+    "test:v11.3.5": "node scripts/check-v11.3.5.mjs",
+    "release:guard:v11.3.5": "node scripts/release-guard-v11.3.5.mjs",
+    "verify:v11.3.5": "npm run test:v11.3.5 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.3.5",
+    "test:v11.3.6": "node scripts/check-v11.3.6.mjs",
+    "release:guard:v11.3.6": "node scripts/release-guard-v11.3.6.mjs",
+    "verify:v11.3.6": "npm run test:v11.3.6 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.3.6",
+    "test:v11.3.7": "node scripts/check-v11.3.7.mjs",
+    "release:guard:v11.3.7": "node scripts/release-guard-v11.3.7.mjs",
+    "verify:v11.3.7": "npm run test:v11.3.7 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.3.7",
+    "test:v11.4.2": "node scripts/check-v11.4.2.mjs",
+    "release:guard:v11.4.2": "node scripts/release-guard-v11.4.2.mjs",
+    "verify:v11.4.2": "npm run test:v11.4.2 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.4.2",
+    "test:v11.4.3": "node scripts/check-v11.4.3.mjs",
+    "release:guard:v11.4.3": "node scripts/release-guard-v11.4.3.mjs",
+    "verify:v11.4.3": "npm run test:v11.4.3 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.4.3",
+    "test:v11.4.4": "node scripts/check-v11.4.4.mjs",
+    "release:guard:v11.4.4": "node scripts/release-guard-v11.4.4.mjs",
+    "verify:v11.4.4": "npm run test:v11.4.4 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.4.4",
+    "test:v11.4.5": "node scripts/check-v11.4.5.mjs",
+    "release:guard:v11.4.5": "node scripts/release-guard-v11.4.5.mjs",
+    "verify:v11.4.5": "npm run test:v11.4.5 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.4.5",
+    "test:v11.4.6": "node scripts/check-v11.4.6.mjs",
+    "release:guard:v11.4.6": "node scripts/release-guard-v11.4.6.mjs",
+    "verify:v11.4.6": "npm run test:v11.4.6 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.4.6",
+    "test:v11.4.7": "node scripts/check-v11.4.7.mjs",
+    "release:guard:v11.4.7": "node scripts/release-guard-v11.4.7.mjs",
+    "verify:v11.4.7": "npm run test:v11.4.7 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.4.7",
+    "test:v11.4.8": "node scripts/check-v11.4.8.mjs",
+    "release:guard:v11.4.8": "node scripts/release-guard-v11.4.8.mjs",
+    "verify:v11.4.8": "npm run test:v11.4.8 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.4.8",
+    "test:v11.4.9": "node scripts/check-v11.4.9.mjs",
+    "release:guard:v11.4.9": "node scripts/release-guard-v11.4.9.mjs",
+    "verify:v11.4.9": "npm run test:v11.4.9 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.4.9",
+    "test:v11.5.0": "node scripts/check-v11.5.0.mjs",
+    "release:guard:v11.5.0": "node scripts/release-guard-v11.5.0.mjs",
+    "verify:v11.5.0": "npm run test:v11.5.0 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.0",
+    "test:v11.5.1": "npm run version:sync && node scripts/check-v11.5.1.mjs",
+    "release:guard:v11.5.1": "node scripts/release-guard-v11.5.1.mjs",
+    "verify:v11.5.1": "npm run test:v11.5.1 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.1",
+    "test:v11.5.2": "npm run version:sync && node scripts/check-v11.5.2.mjs",
+    "release:guard:v11.5.2": "node scripts/release-guard-v11.5.2.mjs",
+    "verify:v11.5.2": "npm run test:v11.5.2 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.2",
+    "test:v11.5.3": "npm run version:sync && node scripts/check-v11.5.3.mjs",
+    "release:guard:v11.5.3": "node scripts/release-guard-v11.5.3.mjs",
+    "verify:v11.5.3": "npm run test:v11.5.3 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.3",
+    "test:v11.5.4": "npm run version:sync && node scripts/check-v11.5.4.mjs",
+    "release:guard:v11.5.4": "node scripts/release-guard-v11.5.4.mjs",
+    "verify:v11.5.4": "npm run test:v11.5.4 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.4",
+    "test:v11.5.5": "npm run version:sync && node scripts/check-v11.5.5.mjs",
+    "release:guard:v11.5.5": "node scripts/release-guard-v11.5.5.mjs",
+    "verify:v11.5.5": "npm run test:v11.5.5 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.5",
+    "test:v11.5.6": "npm run version:sync && node scripts/check-v11.5.6.mjs",
+    "release:guard:v11.5.6": "node scripts/release-guard-v11.5.6.mjs",
+    "verify:v11.5.6": "npm run test:v11.5.6 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.6",
+    "version:sync": "node scripts/sync-version-v12.38.0.mjs",
+    "audit:budget": "node scripts/performance-budget-v11.6.0.mjs",
+    "release:guard": "node scripts/release-guard-v11.6.1.mjs",
+    "test:v11.5.8": "npm run version:sync && node scripts/check-v11.5.8.mjs",
+    "release:guard:v11.5.8": "node scripts/release-guard-v11.5.8.mjs",
+    "verify:v11.5.8": "npm run test:v11.5.8 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.8",
+    "audit:burs": "node scripts/burs-audit-v11.5.9.mjs",
+    "test:burs:layout": "node scripts/burs-layout-contract-v11.5.9.mjs",
+    "test:v11.5.9": "npm run version:sync && node scripts/check-v11.5.9.mjs",
+    "release:guard:v11.5.9": "node scripts/release-guard-v11.5.9.mjs",
+    "verify:v11.5.9": "npm run test:v11.5.9 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.5.9",
+    "test:v11.6.0": "npm run version:sync && node scripts/check-v11.6.0.mjs",
+    "release:guard:v11.6.0": "node scripts/release-guard-v11.6.0.mjs",
+    "verify:v11.6.0": "npm run test:v11.6.0 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.6.0",
+    "test:v11.6.1": "npm run version:sync && node scripts/check-v11.6.1.mjs",
+    "release:guard:v11.6.1": "node scripts/release-guard-v11.6.1.mjs",
+    "verify:v11.6.1": "npm run test:v11.6.1 && npm run build && npm run audit:budget && npm test && npm run test:department && npm run test:e2e:contracts && npm run release:guard:v11.6.1",
+    "verify:v11.6.2": "node scripts/verify-v11.6.2.mjs",
+    "verify:v11.6.3": "node scripts/verify-v11.6.3.mjs",
+    "verify:v11.6.4": "node scripts/verify-v11.6.4.mjs",
+    "verify:v11.6.5": "node scripts/verify-v11.6.5.mjs",
+    "test:v11.6.5": "node scripts/test-v11.6.5-resilience.mjs",
+    "verify:v11.6.6": "node scripts/verify-v11.6.6.mjs",
+    "test:v11.6.6": "node scripts/test-v11.6.6-composer.mjs",
+    "verify:v11.6.7": "node scripts/verify-v11.6.7.mjs",
+    "test:v11.6.7": "node scripts/test-v11.6.7-ai-dock.mjs",
+    "verify:v12.0.0": "node scripts/verify-v12.0.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.1.0": "node scripts/verify-v12.1.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.2.0": "node scripts/verify-v12.2.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.3.0": "node scripts/verify-v12.3.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.4.0": "node scripts/verify-v12.4.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.5.0": "node scripts/verify-v12.5.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.6.0": "node scripts/verify-v12.6.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.7.0": "node scripts/verify-v12.7.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.8.0": "node scripts/verify-v12.8.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.9.0": "node scripts/verify-v12.9.0.mjs && npm run test:v12.9.0 && npm run build && npm test && npm run test:department",
+    "test:v12.9.0": "node scripts/test-v12.9.0-workspace.mjs",
+    "verify:v12.10.0": "node scripts/verify-v12.10.0.mjs && npm run test:v12.10.0 && npm run build && npm test && npm run test:department",
+    "test:v12.10.0": "node scripts/test-v12.10.0-activity.mjs",
+    "verify:v12.11.0": "node scripts/verify-v12.11.0.mjs && npm run test:v12.11.0 && npm run build && npm test && npm run test:department",
+    "test:v12.11.0": "node scripts/test-v12.11.0-command-center.mjs",
+    "verify:v12.13.0": "node scripts/verify-v12.13.0.mjs && npm run test:v12.13.0 && npm run build && npm test && npm run test:department",
+    "test:v12.13.0": "node scripts/test-v12.13.0-workspace-layout.mjs",
+    "verify:v12.14.0": "node scripts/verify-v12.14.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.15.0": "npm run build && npm test && npm run test:department",
+    "verify:v12.16.0": "npm run build && npm test && npm run test:department",
+    "verify:v12.16.1": "npm run build && npm test && npm run test:department",
+    "verify:v12.17.0": "npm run build && npm test && npm run test:department",
+    "verify:v12.18.0": "npm run build && npm test && npm run test:department",
+    "verify:v12.19.0": "npm run build && npm test && npm run test:department",
+    "verify:v12.20.0": "npm run build && npm test && npm run test:department",
+    "verify:v12.21.0": "npm run build && npm test && npm run test:department",
+    "verify:v12.22.0": "npm run build && npm test && npm run test:department",
+    "verify:v12.23.0": "node scripts/verify-v12.23.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.24.0": "node scripts/verify-v12.24.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.25.0": "node scripts/verify-v12.25.0.mjs && npm run build && npm test && npm run test:department",
+    "test:v12.26.0": "node scripts/test-v12.26.0-openrouter-stability.mjs",
+    "verify:v12.26.0": "node scripts/verify-v12.26.0.mjs && npm run test:v12.26.0 && npm run build && npm test && npm run test:department",
+    "verify:v12.27.0": "node scripts/verify-v12.27.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.27.1": "node scripts/verify-v12.27.1.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.28.0": "node scripts/verify-v12.28.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.29.0": "node scripts/verify-v12.29.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.30.0": "node scripts/verify-v12.30.0.mjs && npm run build && npm test && npm run test:department",
+    "verify:v12.31.0": "node scripts/verify-v12.31.0.mjs && npm run build && npm test && npm run test:department",
+    "test:v12.32.0": "node scripts/test-v12.32.0-ai-core.mjs",
+    "verify:v12.32.0": "node scripts/verify-v12.32.0.mjs && npm run test:v12.32.0 && npm run build && npm test && npm run test:department",
+    "test:v12.33.0": "node scripts/test-v12.33.0-ai-safety.mjs",
+    "verify:v12.33.0": "node scripts/verify-v12.33.0.mjs && npm run test:v12.33.0 && npm run build && npm test && npm run test:department",
+    "test:v12.34.0": "node scripts/test-v12.34.0-ai-transport.mjs",
+    "verify:v12.34.0": "node scripts/verify-v12.34.0.mjs && npm run test:v12.34.0 && npm run build && npm test && npm run test:department",
+    "test:v12.35.0": "node scripts/test-v12.35.0-ai-runtime.mjs",
+    "verify:v12.35.0": "node scripts/verify-v12.35.0.mjs && npm run test:v12.35.0 && npm run build && npm test && npm run test:department",
+    "test:v12.36.0": "node scripts/test-v12.36.0-ai-control-plane.mjs",
+    "verify:v12.36.0": "node scripts/verify-v12.36.0.mjs && npm run test:v12.36.0 && npm run build && npm test && npm run test:department",
+    "test:v12.37.0": "node scripts/test-v12.37.0-ai-cloud-sync.mjs",
+    "verify:v12.37.0": "node scripts/verify-v12.37.0.mjs && npm run test:v12.37.0 && npm run build && npm test && npm run test:department",
+    "test:v12.38.0": "node scripts/test-v12.38.0-ai-task-registry.mjs",
+    "verify:v12.38.0": "node scripts/verify-v12.38.0.mjs && npm run test:v12.38.0 && npm run build && npm test && npm run test:department"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.0",
+    "@vitejs/plugin-react": "^6.0.3",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.12.0",
+    "pdfjs-dist": "^6.1.200",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "read-excel-file": "^9.3.1",
+    "vite": "^8.1.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
+  }
+}

@@ -14,44 +14,20 @@ export const DEFAULT_LAUNCHER_GROUPS = [
 const DEFAULT_PINNED = [
   'resource-library-hub',
   'lesson-plan-ai',
-  'textlab-template-library',
-  'exam-studio',
-  'reading-studio',
+  'textlab-activities',
 ];
-
-
-const ESSENTIAL_LAUNCHER_IDS = new Set(['textlab-template-library', 'personnel', 'tool:textlab-template-library', 'tool:personnel']);
-
-const RETIRED_LAUNCHER_IDS = new Set([
-  'tool:worksheet-factory',
-  'worksheet-factory',
-  'tool:smart-id',
-  'smart-id',
-  'tool:speaking-studio',
-  'speaking-studio',
-  'tool:english-lesson-integration',
-  'english-lesson-integration',
-  'tool:grammar-builder',
-  'grammar-builder',
-  'tool:writing-studio',
-  'writing-studio',
-  'tool:pronunciation-coach',
-  'pronunciation-coach',
-  'route:ai-workspace',
-  'route:classroom-delivery',
-  'route:learning-intelligence',
-]);
 
 const DEFAULT_NAV = [
   'route:home',
   'route:apps',
   'route:news',
   'route:games',
-  'route:department',
   'route:homeroom',
   'route:library',
   'route:resource-library',
 ];
+
+const RETIRED_NAV_IDS = new Set(['route:department']);
 
 function safeStorageGet(key) {
   if (typeof window === 'undefined') return null;
@@ -108,7 +84,6 @@ function cleanIdList(value, allowed = null) {
     try { list = JSON.parse(list); } catch { list = list.split(','); }
   }
   list = Array.isArray(list) ? list : [];
-  list = list.filter((item) => !RETIRED_LAUNCHER_IDS.has(String(item || '').trim()));
   const seen = new Set();
   return list.map((item) => String(item || '').trim()).filter((item) => {
     if (!item || seen.has(item)) return false;
@@ -170,8 +145,8 @@ export function normalizeLauncherConfig(raw, itemIds = []) {
     version: 5,
     order,
     pinned: cleanIdList(source.pinned ?? defaults.pinned, safeItemIds.length ? allowed : null).slice(0, 12),
-    hidden: cleanIdList(source.hidden, safeItemIds.length ? allowed : null).filter((id) => !ESSENTIAL_LAUNCHER_IDS.has(id)),
-    nav: cleanIdList(source.nav ?? defaults.nav).slice(0, 12),
+    hidden: cleanIdList(source.hidden, safeItemIds.length ? allowed : null),
+    nav: cleanIdList(source.nav ?? defaults.nav).filter((id) => !RETIRED_NAV_IDS.has(id)).slice(0, 12),
     groups,
     assignments,
     launcherStyle,
@@ -286,8 +261,6 @@ export function subscribeLauncherConfig(callback, itemIds = []) {
   return () => {
     window.removeEventListener(LAUNCHER_UPDATED_EVENT, localHandler);
     window.removeEventListener('storage', storageHandler);
-    if (channel && supabase) {
-      try { supabase.removeChannel(channel); } catch { /* cleanup is best effort */ }
-    }
+    if (channel) supabase.removeChannel(channel);
   };
 }

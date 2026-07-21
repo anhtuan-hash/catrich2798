@@ -1,0 +1,280 @@
+/* Proposal 3 — playful 3D accents for homepage application cards. */
+.bhe-card-inner {
+  isolation: isolate;
+}
+
+.bhe-card-copy,
+.bhe-app-icon,
+.bhe-card-arrow,
+.bhe-crown,
+.bhe-feature-actions {
+  position: relative;
+  z-index: 4;
+}
+
+.bhe-card-graphic {
+  position: absolute;
+  z-index: 2;
+  right: 54px;
+  bottom: 6px;
+  display: block;
+  width: 174px;
+  height: 132px;
+  pointer-events: none;
+  filter: drop-shadow(0 12px 13px rgba(43, 55, 47, .15));
+  transform: translateZ(0) rotate(1deg);
+  transform-origin: 55% 65%;
+  transition: transform .32s cubic-bezier(.16, 1, .3, 1), filter .32s ease;
+}
+
+.bhe-card-graphic svg {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: visible;
+}
+
+.bhe-app-card:hover .bhe-card-graphic,
+.bhe-app-card:focus-visible .bhe-card-graphic {
+  transform: translateY(-4px) rotate(-1deg) scale(1.035);
+  filter: drop-shadow(0 17px 16px rgba(43, 55, 47, .19));
+}
+
+/* Wide cards reserve enough space for both copy and illustration. */
+.bhe-app-card[style*="grid-area: grammar"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: textcare"] .bhe-card-copy {
+  max-width: 52%;
+}
+
+.bhe-app-card[style*="grid-area: grammar"] .bhe-card-graphic,
+.bhe-app-card[style*="grid-area: textcare"] .bhe-card-graphic {
+  right: 62px;
+  bottom: 5px;
+  width: 190px;
+  height: 143px;
+}
+
+/* The feature card gets the largest illustration, like the approved mockup. */
+.bhe-app-card.is-featured .bhe-card-inner {
+  grid-template-columns: minmax(0, 48%) minmax(0, 52%) !important;
+}
+
+.bhe-app-card.is-featured .bhe-app-icon {
+  position: absolute;
+  left: 28px;
+  top: 31px;
+}
+
+.bhe-app-card.is-featured .bhe-card-copy {
+  grid-column: 1;
+  align-self: center;
+  padding-left: 102px;
+  padding-right: 0 !important;
+  max-width: none;
+}
+
+.bhe-app-card.is-featured .bhe-card-graphic {
+  right: 18px;
+  top: 38px;
+  bottom: auto;
+  width: 238px;
+  height: 179px;
+}
+
+.bhe-app-card.is-featured .bhe-feature-actions {
+  position: relative;
+  z-index: 5;
+  grid-column: 1 / 3;
+}
+
+/* Compact tiles use a smaller object and keep the text on the left. */
+.bhe-app-card[style*="grid-area: game"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: word"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: reading"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: listening"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: exam"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: resource"] .bhe-card-inner,
+.bhe-app-card[style*="grid-area: ai"] .bhe-card-inner {
+  align-items: flex-start;
+  padding-top: 16px !important;
+}
+
+.bhe-app-card[style*="grid-area: game"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: word"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: reading"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: listening"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: exam"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: resource"] .bhe-app-icon,
+.bhe-app-card[style*="grid-area: ai"] .bhe-app-icon {
+  width: 54px;
+  height: 54px;
+}
+
+.bhe-app-card[style*="grid-area: game"] .bhe-app-icon svg,
+.bhe-app-card[style*="grid-area: word"] .bhe-app-icon svg,
+.bhe-app-card[style*="grid-area: reading"] .bhe-app-icon svg,
+.bhe-app-card[style*="grid-area: listening"] .bhe-app-icon svg,
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-app-icon svg,
+.bhe-app-card[style*="grid-area: exam"] .bhe-app-icon svg,
+.bhe-app-card[style*="grid-area: resource"] .bhe-app-icon svg,
+.bhe-app-card[style*="grid-area: ai"] .bhe-app-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.bhe-app-card[style*="grid-area: game"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: word"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: reading"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: listening"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: exam"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: resource"] .bhe-card-copy,
+.bhe-app-card[style*="grid-area: ai"] .bhe-card-copy {
+  max-width: 54%;
+  gap: 5px;
+}
+
+.bhe-app-card[style*="grid-area: game"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: word"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: reading"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: listening"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: exam"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: resource"] .bhe-card-copy strong,
+.bhe-app-card[style*="grid-area: ai"] .bhe-card-copy strong {
+  font-size: clamp(16px, 1.18vw, 20px) !important;
+}
+
+.bhe-app-card[style*="grid-area: game"] .bhe-card-copy small,
+.bhe-app-card[style*="grid-area: word"] .bhe-card-copy small,
+.bhe-app-card[style*="grid-area: reading"] .bhe-card-copy small,
+.bhe-app-card[style*="grid-area: listening"] .bhe-card-copy small,
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-card-copy small,
+.bhe-app-card[style*="grid-area: exam"] .bhe-card-copy small,
+.bhe-app-card[style*="grid-area: resource"] .bhe-card-copy small,
+.bhe-app-card[style*="grid-area: ai"] .bhe-card-copy small {
+  font-size: 10.5px !important;
+  line-height: 1.35 !important;
+}
+
+.bhe-app-card[style*="grid-area: game"] .bhe-card-graphic,
+.bhe-app-card[style*="grid-area: word"] .bhe-card-graphic,
+.bhe-app-card[style*="grid-area: reading"] .bhe-card-graphic,
+.bhe-app-card[style*="grid-area: listening"] .bhe-card-graphic {
+  right: 4px;
+  bottom: 2px;
+  width: 128px;
+  height: 96px;
+}
+
+.bhe-app-card[style*="grid-area: worksheet"] .bhe-card-graphic,
+.bhe-app-card[style*="grid-area: exam"] .bhe-card-graphic,
+.bhe-app-card[style*="grid-area: resource"] .bhe-card-graphic,
+.bhe-app-card[style*="grid-area: ai"] .bhe-card-graphic {
+  right: 1px;
+  bottom: 0;
+  width: 124px;
+  height: 93px;
+}
+
+.bhe-card-graphic-reading,
+.bhe-card-graphic-listening {
+  opacity: .96;
+}
+
+/* Keep action arrows clickable-looking and visually above the artwork. */
+.bhe-card-arrow {
+  z-index: 7;
+}
+
+@media (max-width: 1380px) {
+  .bhe-card-graphic {
+    opacity: .92;
+  }
+
+  .bhe-app-card[style*="grid-area: grammar"] .bhe-card-graphic,
+  .bhe-app-card[style*="grid-area: textcare"] .bhe-card-graphic {
+    right: 44px;
+    width: 160px;
+    height: 120px;
+  }
+
+  .bhe-app-card.is-featured .bhe-card-graphic {
+    right: 8px;
+    width: 205px;
+    height: 154px;
+  }
+
+  .bhe-app-card.is-featured .bhe-card-copy {
+    padding-left: 88px;
+  }
+
+  .bhe-app-card[style*="grid-area: game"] .bhe-card-graphic,
+  .bhe-app-card[style*="grid-area: word"] .bhe-card-graphic,
+  .bhe-app-card[style*="grid-area: reading"] .bhe-card-graphic,
+  .bhe-app-card[style*="grid-area: listening"] .bhe-card-graphic,
+  .bhe-app-card[style*="grid-area: worksheet"] .bhe-card-graphic,
+  .bhe-app-card[style*="grid-area: exam"] .bhe-card-graphic,
+  .bhe-app-card[style*="grid-area: resource"] .bhe-card-graphic,
+  .bhe-app-card[style*="grid-area: ai"] .bhe-card-graphic {
+    width: 105px;
+    height: 79px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .bhe-app-card.is-featured .bhe-card-graphic {
+    width: 230px;
+    height: 173px;
+  }
+}
+
+@media (max-width: 760px) {
+  .bhe-app-card .bhe-card-copy {
+    max-width: 56% !important;
+  }
+
+  .bhe-card-graphic,
+  .bhe-app-card[style] .bhe-card-graphic {
+    right: 12px;
+    bottom: 8px;
+    top: auto;
+    width: 135px;
+    height: 101px;
+    opacity: .9;
+  }
+
+  .bhe-app-card.is-featured .bhe-card-inner {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 1fr auto !important;
+  }
+
+  .bhe-app-card.is-featured .bhe-app-icon {
+    position: relative;
+    left: auto;
+    top: auto;
+  }
+
+  .bhe-app-card.is-featured .bhe-card-copy {
+    padding-left: 0;
+    max-width: 58% !important;
+  }
+
+  .bhe-app-card.is-featured .bhe-card-graphic {
+    right: 12px;
+    bottom: 48px;
+    width: 170px;
+    height: 128px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bhe-card-graphic,
+  .bhe-app-card:hover .bhe-card-graphic,
+  .bhe-app-card:focus-visible .bhe-card-graphic {
+    transition: none !important;
+    transform: none !important;
+  }
+}

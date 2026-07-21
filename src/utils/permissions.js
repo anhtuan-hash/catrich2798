@@ -14,20 +14,13 @@ export const ROUTE_PERMISSION_IDS = {
   library: 'route:library',
   'resource-library': 'route:resource-library',
   'knowledge-hub': 'route:knowledge-hub',
-  dashboard: 'route:dashboard',
   'work-hub': 'route:work-hub',
-  'content-factory': 'route:content-factory',
-  'content-ecosystem': 'route:content-ecosystem',
-  'lesson-pack': 'route:lesson-pack',
   'assessment-core': 'route:assessment-core',
   'platform-readiness': 'route:platform-readiness',
-  'automation-center': 'route:automation-center',
   'cloud-operations': 'route:cloud-operations',
-  'collaboration-hub': 'route:collaboration-hub',
   'data-governance': 'route:data-governance',
   'production-hardening': 'route:production-hardening',
   'app-vault': 'route:app-vault',
-  practice: 'route:practice',
   qa: 'route:qa',
   settings: 'route:settings',
   department: DEPARTMENT_WORKSPACE_PERMISSION_ID,
@@ -65,15 +58,6 @@ export const CORE_PERMISSION_ITEMS = [
     descVi: 'Tìm kiếm, phân loại, yêu thích và tổ chức học liệu đã duyệt.',
   },
   {
-    id: ROUTE_PERMISSION_IDS.dashboard,
-    type: 'content',
-    section: 'content',
-    title: 'Work Dashboard',
-    titleVi: 'Bảng điều hành',
-    desc: 'View role-aware schedules, action items, approvals and department summaries.',
-    descVi: 'Xem lịch, việc cần xử lý, phê duyệt và tổng hợp tổ chuyên môn theo vai trò.',
-  },
-  {
     id: ROUTE_PERMISSION_IDS['work-hub'],
     type: 'content',
     section: 'content',
@@ -81,33 +65,8 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Trung tâm công việc',
     desc: 'Manage tasks, submissions, feedback and approvals.',
     descVi: 'Quản lí nhiệm vụ, sản phẩm nộp, phản hồi và phê duyệt.',
-  },  {
-    id: ROUTE_PERMISSION_IDS['content-factory'],
-    type: 'content',
-    section: 'content',
-    title: 'Teaching Content Factory',
-    titleVi: 'Xưởng tạo học liệu',
-    desc: 'Generate worksheets, quizzes and interactive activities.',
-    descVi: 'Tạo worksheet, quiz và hoạt động tương tác.',
   },
-  {
-    id: ROUTE_PERMISSION_IDS['content-ecosystem'],
-    type: 'content',
-    section: 'content',
-    title: 'Teaching Content Ecosystem',
-    titleVi: 'Hệ sinh thái nội dung dạy học',
-    desc: 'Manage reusable assets, structured canvases, production recipes and connected content kits.',
-    descVi: 'Quản lí tài sản tái sử dụng, canvas theo khối, dây chuyền sản xuất và bộ nội dung liên thông.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS['lesson-pack'],
-    type: 'content',
-    section: 'content',
-    title: 'Lesson Pack',
-    titleVi: 'Gói bài dạy liên thông',
-    desc: 'Combine outputs from teaching apps into a live lesson sequence.',
-    descVi: 'Kết hợp sản phẩm từ các ứng dụng thành tiến trình bài dạy trực tiếp.',
-  },  {
+    {
     id: ROUTE_PERMISSION_IDS['assessment-core'],
     type: 'content',
     section: 'content',
@@ -115,7 +74,8 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Ngân hàng câu hỏi và đề thi',
     desc: 'Manage question banks, blueprints and test versions.',
     descVi: 'Quản lí ngân hàng câu hỏi, blueprint và mã đề.',
-  },  {
+  },
+  {
     id: ROUTE_PERMISSION_IDS['platform-readiness'],
     type: 'system',
     section: 'content',
@@ -124,16 +84,7 @@ export const CORE_PERMISSION_ITEMS = [
     desc: 'Install the PWA and review security, accessibility and performance readiness.',
     descVi: 'Cài PWA và kiểm tra trạng thái bảo mật, khả năng tiếp cận và hiệu năng.',
   },
-  {
-    id: ROUTE_PERMISSION_IDS['automation-center'],
-    type: 'content',
-    section: 'operations',
-    title: 'Automation Center',
-    titleVi: 'Trung tâm tự động hóa',
-    desc: 'Create automation rules, approve actions and review operational audit logs.',
-    descVi: 'Tạo quy tắc tự động hóa, phê duyệt hành động và xem nhật ký vận hành.',
-  },
-  {
+    {
     id: ROUTE_PERMISSION_IDS['cloud-operations'],
     type: 'system',
     section: 'operations',
@@ -142,16 +93,7 @@ export const CORE_PERMISSION_ITEMS = [
     desc: 'Monitor durable automation queues, server schedules, retries and operations digests.',
     descVi: 'Theo dõi hàng đợi tự động hóa, lịch máy chủ, retry và bản tin vận hành.',
   },
-  {
-    id: ROUTE_PERMISSION_IDS['collaboration-hub'],
-    type: 'content',
-    section: 'operations',
-    title: 'Collaboration Hub',
-    titleVi: 'Không gian cộng tác',
-    desc: 'Coordinate projects, members, discussion threads, presence and content versions.',
-    descVi: 'Điều phối dự án, thành viên, thảo luận, hiện diện và lịch sử phiên bản.',
-  },
-  {
+    {
     id: ROUTE_PERMISSION_IDS['data-governance'],
     type: 'system',
     section: 'operations',
@@ -171,31 +113,22 @@ export const CORE_PERMISSION_ITEMS = [
     descVi: 'Xem và quản lí output, prompt, hoạt động và nội dung dạy học đã lưu.',
   },
   {
-    id: ROUTE_PERMISSION_IDS.practice,
-    type: 'content',
-    section: 'content',
-    title: 'Learner Practice',
-    titleVi: 'Bài luyện tập học sinh',
-    desc: 'Open the scored student practice module.',
-    descVi: 'Mở module bài luyện tập có chấm điểm cho học sinh.',
-  },
-  {
     id: ROUTE_PERMISSION_IDS.qa,
     type: 'system',
     section: 'content',
     title: 'System Health Center',
     titleVi: 'Trung tâm trạng thái hệ thống',
-    desc: 'Check connectivity, browser storage, Supabase, Newsroom and recent runtime errors.',
-    descVi: 'Kiểm tra kết nối, bộ nhớ, Supabase, Newsroom và lỗi runtime gần đây.',
+    desc: 'Check connectivity, browser storage, AI, Supabase, Newsroom and recent runtime errors.',
+    descVi: 'Kiểm tra kết nối, bộ nhớ, AI, Supabase, Newsroom và lỗi runtime gần đây.',
   },
   {
     id: ROUTE_PERMISSION_IDS.settings,
     type: 'system',
     section: 'content',
-    title: 'System Settings',
-    titleVi: 'Cài đặt hệ thống',
-    desc: 'Configure account and application preferences.',
-    descVi: 'Cấu hình tài khoản và tuỳ chọn giao diện.',
+    title: 'AI Settings',
+    titleVi: 'Cài đặt AI',
+    desc: 'Configure personal AI provider keys and app preferences.',
+    descVi: 'Cấu hình khóa AI cá nhân và tuỳ chọn giao diện.',
   },
 ];
 
@@ -348,7 +281,6 @@ export function hasToolAccess(user, slug) {
   if (isAdminRole(user.role)) return true;
   const tool = TOOL_BY_SLUG.get(slug);
   if (!tool) return false;
-  if (tool.publicToAuthenticated) return true;
   return hasPermissionId(user, getToolPermissionId(slug));
 }
 
@@ -379,10 +311,9 @@ export function hasAnyDepartmentAccess(user) {
 
 export function getRoutePermissionId(route) {
   if (route === 'news') return getToolPermissionId('news-reader');
-  if (route === 'practice') return ROUTE_PERMISSION_IDS.practice;
   if (route === 'department') return DEPARTMENT_WORKSPACE_PERMISSION_ID;
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
-  if (route === 'dashboard' || route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'content-factory' || route === 'lesson-pack' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
+  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'cloud-operations' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
@@ -396,14 +327,12 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (route === 'trash') return Boolean(user);
   if (route === 'tool') return hasToolAccess(user, selectedTool?.slug);
   if (route === 'news') return Boolean(user);
-  if (route === 'dashboard') return Boolean(user);
   if (route === 'department') return hasAnyDepartmentAccess(user);
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
   // Teachers can open these dashboards even when some cards are locked.
   // Locked cards stay visible and show a request-access button.
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
-  if (route === 'practice') return hasPermissionId(user, ROUTE_PERMISSION_IDS.practice) || hasToolAccess(user, 'student-practice');
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'content-factory' || route === 'lesson-pack' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
+  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'cloud-operations' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
 }
 

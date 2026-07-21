@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AI_TOOL_PRESETS, generateGenericToolOutput } from '../utils/gemini.js';
+import { AI_TOOL_PRESETS, generateGenericToolOutput } from '../utils/openRouter.js';
 import { addHistoryEntry, downloadFile, exportAsWord, LIBRARY_EVENT, loadHistory, slugify } from '../utils/library.js';
 
 const GROUP_COLORS = {
@@ -669,7 +669,7 @@ export default function WordGraphStudio({ tool, language, apiKey, aiModel, hasAp
           </div>
 
           <div className="wordgraph-v821-hero-footer">
-            <div className="wordgraph-v821-ai-state"><span className="wordgraph-v821-tip-icon">✦</span><div><strong>{language === 'vi' ? 'Hệ thống sẵn sàng' : 'AI ready'}</strong><small>{hasApiKey ? 'API connected · Phản hồi nhanh' : (language === 'vi' ? 'Nhập API key trong Cài đặt' : 'Add an API key in Settings')}</small></div></div>
+            <div className="wordgraph-v821-ai-state"><span className="wordgraph-v821-tip-icon">✦</span><div><strong>{language === 'vi' ? 'AI sẵn sàng' : 'AI ready'}</strong><small>{hasApiKey ? 'API connected · Phản hồi nhanh' : (language === 'vi' ? 'Nhập API key trong Cài đặt' : 'Add an API key in Settings')}</small></div></div>
             <div className="wordgraph-v821-quick-tip"><span className="wordgraph-v821-tip-icon">♧</span><div><strong>{language === 'vi' ? 'Mẹo nhanh' : 'Quick tip'}</strong><small>{language === 'vi' ? 'Kéo thả để sắp xếp node. Dùng Auto layout để tối ưu bố cục tự động.' : 'Drag nodes to arrange them. Use Auto layout to optimize the map.'}</small></div></div>
           </div>
         </section>
@@ -699,7 +699,7 @@ export default function WordGraphStudio({ tool, language, apiKey, aiModel, hasAp
           </article>
         </section>
 
-        <section className="wordgraph-ai-builder wordgraph-v821-workspace">
+        <section className="wordgraph-ai-workspace wordgraph-v821-workspace">
           <article ref={aiPanelRef} className={`panel wordgraph-ai-panel wordgraph-v821-ai-panel ${activeWorkflow === 'create' ? 'is-active' : ''}`}>
             <div className="wordgraph-step-title"><span>1</span><div><p className="eyebrow">AI Content Maker</p><h2>{language === 'vi' ? 'Ô AI tạo sơ đồ' : 'AI map maker'}</h2><p>{language === 'vi' ? 'Nhập yêu cầu, chọn prompt mẫu nếu cần, rồi bấm AI tạo. Nội dung sẽ tự chuyển thành sơ đồ.' : 'Type your request, optionally use a preset, then generate a visual map.'}</p></div></div>
             <label>{language === 'vi' ? 'Yêu cầu AI' : 'AI request'}</label>

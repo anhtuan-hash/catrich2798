@@ -13,15 +13,6 @@ export const AI_ACTIONS = Object.freeze({
     titleVi: 'Dùng trong ứng dụng hiện tại',
     desc: 'Insert the answer into the active editor or input.',
     descVi: 'Đưa câu trả lời vào vùng soạn thảo đang mở.',
-  },  'exam-studio': {
-    id: 'exam-studio',
-    target: 'exam-studio',
-    icon: 'EX',
-    title: 'Send to Exam Studio',
-    titleVi: 'Gửi sang Exam Studio',
-    desc: 'Use the answer as a question-set or exam source.',
-    descVi: 'Dùng câu trả lời làm nguồn tạo câu hỏi hoặc đề kiểm tra.',
-    hash: '#/tool/exam-studio',
   },
   'word2graph': {
     id: 'word2graph',
@@ -82,10 +73,8 @@ export function buildAiActionSuggestions({ message = '', currentRoute = '', sele
 
   add('current-app', 100);
   add('library', 45);
-  add('exam-studio', hasAny(text, ['answer:', 'đáp án', 'a.', 'b.', 'multiple choice', 'trắc nghiệm', 'test']) ? 90 : 50);
   add('word2graph', hasAny(text, ['vocabulary', 'word family', 'collocation', 'synonym', 'từ vựng', 'nghĩa', 'phát âm']) ? 88 : 42);
   add('textlab-activities', hasAny(text, ['game', 'activity', 'matching', 'sorting', 'hoạt động', 'trò chơi']) ? 84 : 40);
-
 
   return ranked.sort((a, b) => b.score - a.score).slice(0, 5).map(({ score, ...action }) => action);
 }

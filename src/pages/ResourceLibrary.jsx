@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { callAI, extractJson } from '../utils/gemini.js';
+import { extractJson } from '../utils/openRouter.js';
+import { runAITask } from '../utils/aiTaskRuntime.js';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { canPublishDepartment } from '../utils/permissions.js';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
@@ -221,15 +222,6 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     refreshLibrary();
 
     const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
-    const requestedCategory = params.get('category');
-    if (requestedCategory) {
-      setCategory(normaliseResourceCategory(requestedCategory));
-      setTab('explore');
-      setQuery('');
-      setGradeFilter('all');
-      setSchoolYearFilter('all');
-      setCurrentPage(1);
-    }
     if (params.get('drive') === 'connected') setDriveMessage('Google Drive đã kết nối thành công. Các thư mục phân loại đã được đồng bộ.');
     if (params.get('drive') === 'error') setDriveMessage(`Google Drive chưa kết nối: ${params.get('message') || 'Lỗi không xác định'}`);
 
@@ -246,6 +238,17 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
       if (channel && supabase) supabase.removeChannel(channel);
     };
   }, [refreshLibrary]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
+    const targetId = params.get('resource') || '';
+    if (!targetId || !store.items.length) return;
+    const item = store.items.find((entry) => String(entry.cloudId || entry.id) === targetId || String(entry.id) === targetId);
+    if (!item || preview?.id === item.id) return;
+    setTab('explore');
+    setCategory(normaliseResourceCategory(item.category) || 'all');
+    setPreview(item);
+  }, [store.items, preview?.id]);
 
   const categoryCards = useMemo(() => {
     const overviewMap = new Map((overviewRows || []).map((row) => [normaliseResourceCategory(row.slug), row]));
@@ -359,7 +362,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     try {
       const text = await extractFileText(files[0]);
       setProgress(40);
-      const raw = await callAI({
+      const raw = await runAITask('library.enrichResource', {
         prompt: `Phân loại tài nguyên dạy học tiếng Anh. Trả JSON gồm title, description, category (lesson-plan|presentation|worksheet|assessment|answer-key|thpt-exam|gifted|audio|media|professional-form|reference|other), grade, schoolYear, unitName, cefr, skills[], tags[], source, aiUses[]. Không bịa nguồn.\nTên file: ${files[0].name}\nNội dung:\n${text.slice(0, 18000)}`,
         responseMimeType: 'application/json', temperature: 0.15, maxOutputTokens: 700, loadingLabel: 'AI đang phân loại học liệu…',
       });
@@ -635,7 +638,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     setBusy('AI đang tìm trong kho học liệu…');
     try {
       const context = visibleItems.slice(0, 25).map((item, index) => `[${index + 1}] ${item.title}\n${item.aiSummary || item.description}\nTags: ${(item.tags || []).join(', ')}\n${String(item.extractedText || '').slice(0, 1200)}`).join('\n\n');
-      const answer = await callAI({
+      const answer = await runAITask('library.answerQuestion', {
         prompt: `Bạn là thủ thư chuyên môn tiếng Anh. Chỉ trả lời dựa trên danh mục dưới đây; nêu rõ tên tài liệu phù hợp. Nếu thiếu dữ liệu thì nói rõ.\nCâu hỏi: ${aiQuery}\n\nKHO:\n${context}`,
         temperature: 0.2, maxOutputTokens: 700, loadingLabel: 'AI đang tìm kiếm kho học liệu…',
       });
@@ -649,9 +652,9 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
 
   const openWithApp = (item) => {
     const map = {
-      assessment: 'exam-studio', worksheet: 'textlab-activities', reference: 'reading-studio',
+      assessment: 'textlab-activities', worksheet: 'textlab-activities', reference: 'word2graph',
       'lesson-plan': 'lesson-plan-ai', presentation: 'lesson-plan-ai', 'professional-form': 'lesson-plan-ai',
-      audio: 'textlab-activities', media: 'textlab-activities', gifted: 'reading-studio', 'thpt-exam': 'exam-studio',
+      audio: 'textlab-activities', media: 'textlab-activities', gifted: 'lesson-plan-ai', 'thpt-exam': 'textlab-activities',
     };
     const slug = map[normaliseResourceCategory(item.category)] || 'textlab-activities';
     try { sessionStorage.setItem('bes-resource-open-item', JSON.stringify(item)); } catch { /* ignore */ }
@@ -662,10 +665,10 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
   const previewCategory = preview ? categoryMap.get(normaliseResourceCategory(preview.category)) || decorateCategory(findResourceCategory(preview.category)) : null;
 
   return (
-    <div className="resource-library-page">
+    <div className="resource-library-page bui-library" data-ui="library" data-library-app="resource-library">
       {busy && <div className="resource-busy-overlay"><div className="resource-spinner"/><strong>{busy}</strong>{progress > 0 && <div className="resource-progress"><i style={{ width: `${progress}%` }}/><span>{progress}%</span></div>}</div>}
 
-      <section className="resource-library-hero">
+      <section className="resource-library-hero bui-library-header">
         <div>
           <span className="resource-eyebrow">BRIAN RESOURCE LIBRARY · V10.81.9</span>
           <h1>Kho học liệu Tổ Tiếng Anh</h1>
@@ -680,9 +683,9 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         <div className="resource-drive-art"><div className="drive-folder back"/><div className="drive-folder front"><b>ENGLISH<br/>RESOURCES</b><span>Google Drive</span></div><div className="resource-floating-file f1">PDF</div><div className="resource-floating-file f2">DOCX</div><div className="resource-floating-file f3">PPTX</div></div>
       </section>
 
-      <section className="resource-stat-grid"><div><b>{stats.total}</b><span>Tài liệu đã duyệt</span></div><div><b>{stats.pending}</b><span>Chờ admin duyệt</span></div><div><b>{stats.contributors}</b><span>Giáo viên đóng góp</span></div><div><b>{formatSize(stats.size)}</b><span>Dung lượng quản lý</span></div></section>
+      <section className="resource-stat-grid bui-library-metrics"><div><b>{stats.total}</b><span>Tài liệu đã duyệt</span></div><div><b>{stats.pending}</b><span>Chờ admin duyệt</span></div><div><b>{stats.contributors}</b><span>Giáo viên đóng góp</span></div><div><b>{formatSize(stats.size)}</b><span>Dung lượng quản lý</span></div></section>
 
-      <section className="resource-category-section">
+      <section className="resource-category-section bui-library-navigation">
         <div className="resource-category-heading">
           <div><span className="resource-eyebrow">DANH MỤC CÓ SẴN</span><h2>Chọn thẻ để mở tài liệu ngay trong app</h2></div>
           <p>Thẻ vẫn luôn hiển thị kể cả khi chưa có tài liệu. Số lượng và nội dung mới được cập nhật bằng Supabase Realtime.</p>
@@ -694,7 +697,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         {selectedCategory && <div className="resource-drive-message resource-folder-open-message">Đã mở thư mục: <strong>{categoryName(selectedCategory, language)}</strong> · <span>{visibleItems.length} file hiển thị</span> · <button type="button" onClick={() => openUpload(selectedCategory.slug)}>Tải file vào thư mục này</button></div>}
       </section>
 
-      <section className="resource-filter-bar">
+      <section className="resource-filter-bar bui-library-toolbar">
         <div className="resource-tabs">
           <button className={tab === 'explore' ? 'active' : ''} onClick={() => setTab('explore')}>Khám phá</button>
           <button className={tab === 'mine' ? 'active' : ''} onClick={() => setTab('mine')}>Tài liệu của tôi</button>
@@ -708,7 +711,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
 
       <section
         ref={folderViewRef}
-        className="resource-folder-view"
+        className="resource-folder-view bui-library-content"
         id="resource-library-results"
         tabIndex={-1}
         aria-live="polite"

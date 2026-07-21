@@ -1,30 +1,27 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import './styles/v1093.css';
-import './styles/v1095.css';
-import './styles/v1096.css';
-import './styles/v1097.css';
-import './styles/v1098.css';
-import './styles/v1099.css';
-import './styles/v1100.css';
-import './styles/v1120.css';
-import './styles/v1131.css';
-import './styles/v1132.css';
-import './styles/v1133.css';
-import './styles/v1136.css';
-import './styles/v1137.css';
-import './styles/v1154.css';
-import './styles/v1158.css';
-import './styles/v1159.css';
+import './styles/legacy-active.css';
+import './ui-core/styles/ui-core.css';
+import './ui-core/styles/platform-core.css';
+import './ui-core/styles/workspace-core.css';
+import './ui-core/styles/activity-core.css';
+import './ui-core/styles/overlay-core.css';
+import './ui-core/styles/design-adapters.css';
+import './ui-core/styles/v11-navigation-restoration.css';
+import './ui-core/styles/widescreen-v1218.css';
+import './ui-core/styles/department-detail-workspace-v1223.css';
+import './ui-core/styles/ai-control-plane-v1236.css';
+import './ui-core/styles/chrome-visual-harmony-v12408.css';
+import './ui-core/styles/stability-speed-v12409.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
-import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
 import AppErrorBoundary from './components/AppErrorBoundary.jsx';
 import Footer from './components/Footer.jsx';
 import PermissionRequestButton from './components/PermissionRequestButton.jsx';
 import { initializeAuthSession, logoutUser, subscribeToAuthChanges } from './utils/auth.js';
 import { getActiveAiConfig, getAiConfigs, getAiProvider, getProviderSummary, setAiStorageUser } from './utils/aiProviders.js';
+import { getAiServerHealth, warmAiServerGateway } from './utils/aiServerGateway.js';
 import { getFirstAllowedRoute, getRoutePermissionId, getPermissionItem, hasRouteAccess } from './utils/permissions.js';
 import { installStoredPersonalFont, waitForPersonalFontLoad } from './utils/personalFont.js';
 import { applyPerformanceAttributes, getStoredMotionMode, getStoredPerformanceMode, resolveMotionMode, resolvePerformanceMode } from './utils/performanceProfile.js';
@@ -41,28 +38,25 @@ import { APP_VERSION } from './config/version.js';
 import { isAdminRole } from './utils/roles.js';
 import { isAppHiddenForUser, useAppVisibility } from './utils/appVisibility.js';
 import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
+import { installProviderHubInputGuard } from './utils/providerHubInputGuard.js';
 import { installBursReadability } from './utils/bursReadability.js';
-import { installAiRemovalGuard } from './utils/aiRemovalGuard.js';
+import {
+  applyUiPreferences,
+  hydrateUiPreferencesFromCloud,
+  installUiPreferencesBootstrap,
+  persistLocalUiPreferences,
+  saveUiPreferencesToCloud,
+} from './ui-core/runtime/uiPreferences.js';
+import { getRouteLayout } from './ui-core/layouts/routeLayout.js';
+import { UIToastCenter } from './ui-core/components/UIOverlays.jsx';
+import { UIRouteSurface } from './ui-core/components/UIPlatform.jsx';
+import { resolveWorkspaceId } from './ui-core/runtime/workspaceRegistry.js';
+import { rememberWorkspaceVisit } from './ui-core/runtime/workspaceMemory.js';
 
-import TextLabGlobalShortcut from './components/TextLabGlobalShortcut.jsx';
-
-import './styles/notification-center-recovery.css';
-import { installNotificationCenterRecovery } from './utils/notificationCenterRecovery.js';
-import { installPersonnelEntryBridge } from './utils/personnelEntryBridge.js';
-import './styles/brian-option-five-canonical-shell.css';
-import { installBrianOptionFiveCanonicalShell } from './utils/brianOptionFiveCanonicalShell.js';
-
-installBrianOptionFiveCanonicalShell();
-import './styles/personnelEntryBridge.css';
-
-
-installPersonnelEntryBridge();
-
-installNotificationCenterRecovery();
-
+const BOOT_UI_PREFERENCES = installUiPreferencesBootstrap();
 runConfigurationMigrations();
+installProviderHubInputGuard();
 installBursReadability();
-installAiRemovalGuard();
 installAccessibilityBootstrap();
 installPwaEventCapture();
 registerBrianPwa().catch((error) => console.warn('[PWA] registration failed', error));
@@ -99,7 +93,6 @@ const Settings = lazy(() => import('./pages/Settings.jsx'));
 const Library = lazy(() => import('./pages/Library.jsx'));
 const ResourceLibrary = lazy(() => import('./pages/ResourceLibrary.jsx'));
 const NewsReader = lazy(() => import('./pages/NewsReader.jsx'));
-const StudentPractice = lazy(() => import('./pages/StudentPractice.jsx'));
 const QAHealthCheck = lazy(() => import('./pages/QAHealthCheck.jsx'));
 const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
@@ -109,39 +102,111 @@ const HomeroomWorkspace = lazy(() => import('./pages/HomeroomWorkspace.jsx'));
 const HomeroomPortal = lazy(() => import('./pages/HomeroomPortal.jsx'));
 const FullMotionEffects = lazy(() => import('./components/FullMotionEffects.jsx')); // clean Metro motion layer
 const GlobalMusicPlayer = lazy(() => import('./components/GlobalMusicPlayer.jsx'));
-const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
-
-
-const GlobalCommandPalette = lazy(() => import('./components/GlobalCommandPalette.jsx'));
-const SharedChatbotDrawer = lazy(() => import('./components/SharedChatbotDrawer.jsx'));
+const UniversalAIAssist = lazy(() => import('./components/UniversalAIAssist.jsx'));
+const GlobalAIIndicator = lazy(() => import('./components/GlobalAIIndicator.jsx'));
+const GlobalAIReceipt = lazy(() => import('./components/GlobalAIReceipt.jsx'));
+const UICommandCenter = lazy(() => import('./ui-core/components/UICommandCenter.jsx'));
 const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
 const GlobalRuntimeGuard = lazy(() => import('./components/GlobalRuntimeGuard.jsx'));
 const TrashCenter = lazy(() => import('./pages/TrashCenter.jsx'));
 const SystemHealthCenter = lazy(() => import('./pages/SystemHealthCenter.jsx'));
 const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.jsx'));
 const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.jsx'));
+const LessonIntegrationBridgeAdapter = lazy(() => import('./components/LessonIntegrationBridgeAdapter.jsx'));
 const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.jsx'));
-
+const AIGovernanceCenter = lazy(() => import('./pages/AIGovernanceCenter.jsx'));
 const WorkHub = lazy(() => import('./pages/WorkHub.jsx'));
-const WorkDashboard = lazy(() => import('./pages/WorkDashboard.jsx'));
 const KnowledgeHub = lazy(() => import('./pages/KnowledgeHub.jsx'));
-const ContentFactory = lazy(() => import('./pages/ContentFactory.jsx'));
 const AssessmentCore = lazy(() => import('./pages/AssessmentCore.jsx'));
 const PlatformReadiness = lazy(() => import('./pages/PlatformReadiness.jsx'));
-const AutomationCenter = lazy(() => import('./pages/AutomationCenter.jsx'));
 const CloudOperations = lazy(() => import('./pages/CloudOperations.jsx'));
-const CollaborationHub = lazy(() => import('./pages/CollaborationHub.jsx'));
 const DataGovernance = lazy(() => import('./pages/DataGovernance.jsx'));
 const ProductionHardening = lazy(() => import('./pages/ProductionHardening.jsx'));
-const LessonPack = lazy(() => import('./pages/LessonPack.jsx'));
-const ContentEcosystem = lazy(() => import('./pages/ContentEcosystem.jsx'));
 const UnifiedUtilityRail = lazy(() => import('./components/UnifiedUtilityRail.jsx'));
 const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAccessibilityAnnouncer.jsx'));
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
+const UnifiedShellChrome = lazy(() => import('./ui-core/components/UnifiedShellChrome.jsx'));
+const UIWorkspaceLayoutManager = lazy(() => import('./ui-core/components/UIWorkspaceLayoutManager.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'work-hub', 'content-factory', 'content-ecosystem', 'lesson-pack', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'assessment-core', 'platform-readiness', 'cloud-operations', 'data-governance', 'production-hardening', 'qa', 'ai-governance', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const EMBEDDED_WORKSPACE = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === '1';
+
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
+
+const ROUTE_PREFETCHERS = {
+  home: () => import('./pages/Home.jsx'),
+  apps: () => import('./pages/WebApps.jsx'),
+  news: () => import('./pages/NewsReader.jsx'),
+  games: () => import('./pages/Games.jsx'),
+  tools: () => import('./pages/SpecialTools.jsx'),
+  department: () => import('./pages/DepartmentWorkspace.jsx'),
+  homeroom: () => import('./pages/HomeroomWorkspace.jsx'),
+  library: () => import('./pages/Library.jsx'),
+  'resource-library': () => import('./pages/ResourceLibrary.jsx'),
+  settings: () => import('./pages/Settings.jsx'),
+  admin: () => import('./pages/AdminPage.jsx'),
+  tool: () => import('./pages/ToolPage.jsx'),
+};
+
+function routeFromNavigationTarget(target) {
+  const link = target?.closest?.('a[href*="#/"]');
+  if (!link) return '';
+  const hash = String(link.getAttribute('href') || '').split('#/')[1] || '';
+  const route = hash.split(/[?&/]/)[0];
+  return route === 'tool' ? 'tool' : route;
+}
+
+function useDeferredShell(userKey = '') {
+  const [state, setState] = useState({ key: '', phase: 0 });
+  useEffect(() => {
+    if (!userKey) return undefined;
+    let cancelled = false;
+    let idleId = 0;
+    const interactiveTimer = window.setTimeout(() => {
+      if (!cancelled) setState((current) => ({
+        key: userKey,
+        phase: current.key === userKey ? Math.max(current.phase, 1) : 1,
+      }));
+    }, 220);
+    const markIdle = () => {
+      if (!cancelled) setState({ key: userKey, phase: 2 });
+    };
+    if ('requestIdleCallback' in window) idleId = window.requestIdleCallback(markIdle, { timeout: 1400 });
+    else idleId = window.setTimeout(markIdle, 1100);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(interactiveTimer);
+      if ('cancelIdleCallback' in window) window.cancelIdleCallback(idleId);
+      else window.clearTimeout(idleId);
+    };
+  }, [userKey]);
+  const readyForUser = !userKey || state.key === userKey;
+  return {
+    interactiveReady: readyForUser && (!userKey || state.phase >= 1),
+    idleReady: readyForUser && (!userKey || state.phase >= 2),
+  };
+}
+
+function useRoutePrefetch(currentRoute, enabled) {
+  useEffect(() => {
+    if (!enabled || navigator.connection?.saveData) return undefined;
+    let cancelled = false;
+    const preload = (route) => {
+      if (!cancelled) ROUTE_PREFETCHERS[route]?.().catch(() => {});
+    };
+    const neighbor = currentRoute === 'home' ? 'apps' : currentRoute === 'apps' ? 'games' : '';
+    if (neighbor) preload(neighbor);
+    const onPointerOver = (event) => preload(routeFromNavigationTarget(event.target));
+    document.addEventListener('pointerover', onPointerOver, { passive: true });
+    document.addEventListener('focusin', onPointerOver);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('pointerover', onPointerOver);
+      document.removeEventListener('focusin', onPointerOver);
+    };
+  }, [currentRoute, enabled]);
+}
 
 function getInitialRoute() {
   const href = window.location.href || '';
@@ -163,26 +228,19 @@ const ROUTE_DESIGN_PROFILES = {
   library: { accent: '#6FBA7B', soft: '#E4F6E6', ink: '#17351D' },
   'resource-library': { accent: '#2878D0', soft: '#E7F2FF', ink: '#0D2947' },
   'knowledge-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
-  dashboard: { accent: '#315FC4', soft: '#EAF3FF', ink: '#10264A' },
   'work-hub': { accent: '#14866D', soft: '#E6F8F2', ink: '#0B3A31' },
-  'content-factory': { accent: '#EF7A42', soft: '#FFF0E8', ink: '#5C2410' },
-  'content-ecosystem': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
-  'lesson-pack': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
   'assessment-core': { accent: '#CC7621', soft: '#FFF3DF', ink: '#522A08' },
   'platform-readiness': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
-  'automation-center': { accent: '#1269B0', soft: '#E4F3FF', ink: '#0B3154' },
   'cloud-operations': { accent: '#167B68', soft: '#E4F6EF', ink: '#183F3C' },
-  'collaboration-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
   'data-governance': { accent: '#A24B35', soft: '#FFF0E8', ink: '#4A1E14' },
   'production-hardening': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
-  practice: { accent: '#00A4EF', soft: '#DCF4FF', ink: '#063048' },
   admin: { accent: '#D13438', soft: '#FFE1E3', ink: '#351014' },
   'app-vault': { accent: '#684CC6', soft: '#EFE8FF', ink: '#211541' },
   settings: { accent: '#123C69', soft: '#DCEBFA', ink: '#07192C' },
   resources: { accent: '#D99A1E', soft: '#FFF0C8', ink: '#392406' },
   contact: { accent: '#00A6A6', soft: '#D8FAFA', ink: '#073434' },
   qa: { accent: '#123C69', soft: '#DCEBFA', ink: '#07192C' },
-
+  'ai-governance': { accent: '#6D45C6', soft: '#EEE7FF', ink: '#24114F' },
   trash: { accent: '#A43B57', soft: '#FFE5EC', ink: '#3C101D' },
   tools: { accent: '#E86D1F', soft: '#FFE3CD', ink: '#211510' },
   login: { accent: '#191515', soft: '#F3DFD8', ink: '#191515' },
@@ -204,12 +262,16 @@ function normalizeMetroIntensity(value) {
 
 function App() {
   const [route, setRoute] = useState(getInitialRoute);
-  const [language, setLanguage] = useState(() => localStorage.getItem('bet-language') || 'vi');
-  const [theme, setTheme] = useState(() => localStorage.getItem('bet-theme') || 'light');
+  const [language, setLanguage] = useState(() => BOOT_UI_PREFERENCES.language);
+  const [theme, setTheme] = useState(() => BOOT_UI_PREFERENCES.theme);
+  const [designLanguage, setDesignLanguage] = useState(() => BOOT_UI_PREFERENCES.designLanguage);
+  const [accentColor, setAccentColor] = useState(() => BOOT_UI_PREFERENCES.accentColor);
+  const [displayDensity, setDisplayDensity] = useState(() => BOOT_UI_PREFERENCES.displayDensity);
   const [apiKey, setApiKey] = useState(() => getActiveAiConfig().apiKey || '');
-  const [aiModel, setAiModel] = useState(() => getActiveAiConfig().model || 'Admin quản lý trên máy chủ');
+  const [aiModel, setAiModel] = useState(() => getActiveAiConfig().model || 'openrouter/free');
   const [aiProvider, setAiProviderState] = useState(() => getAiProvider());
   const [providerConfigs, setProviderConfigs] = useState(() => getAiConfigs());
+  const [aiGatewayReady, setAiGatewayReady] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [loadingState, setLoadingState] = useState({ active: false, label: '' });
@@ -217,17 +279,21 @@ function App() {
   const aiOperationIdsRef = useRef(new Set());
   const aiIndicatorHideTimerRef = useRef(null);
   const languageRef = useRef(language);
-  const [fontScale, setFontScale] = useState(() => {
-    const saved = Number(localStorage.getItem('bes-font-scale') || 100);
-    return [100, 110, 120, 130].includes(saved) ? saved : 100;
-  });
+  const [fontScale, setFontScale] = useState(() => BOOT_UI_PREFERENCES.fontScale);
   const [tileLaunch, setTileLaunch] = useState(null);
-  const [motionMode, setMotionMode] = useState(getStoredMotionMode);
-  const [performanceMode, setPerformanceMode] = useState(getStoredPerformanceMode);
-  const [themeIntensity, setThemeIntensityState] = useState(() => normalizeMetroIntensity(localStorage.getItem('bes-theme-intensity') || 'balanced'));
+  const [motionMode, setMotionMode] = useState(() => BOOT_UI_PREFERENCES.motionMode || getStoredMotionMode());
+  const [performanceMode, setPerformanceMode] = useState(() => BOOT_UI_PREFERENCES.performanceMode || getStoredPerformanceMode());
+  const [themeIntensity, setThemeIntensityState] = useState(() => normalizeMetroIntensity(BOOT_UI_PREFERENCES.themeIntensity));
   const setThemeIntensity = (value) => setThemeIntensityState(normalizeMetroIntensity(value));
-  const [tileBorder, setTileBorder] = useState(() => localStorage.getItem('bes-tile-border') || 'soft');
-  const [indicatorMode, setIndicatorMode] = useState(() => localStorage.getItem('bes-windows-indicator') || 'on');
+  const [tileBorder, setTileBorder] = useState(() => BOOT_UI_PREFERENCES.tileBorder);
+  const [indicatorMode, setIndicatorMode] = useState(() => BOOT_UI_PREFERENCES.indicatorMode);
+  const [surfaceStyle, setSurfaceStyle] = useState(() => BOOT_UI_PREFERENCES.surfaceStyle);
+  const [cornerStyle, setCornerStyle] = useState(() => BOOT_UI_PREFERENCES.cornerStyle);
+  const [shadowStyle, setShadowStyle] = useState(() => BOOT_UI_PREFERENCES.shadowStyle);
+  const [backgroundStyle, setBackgroundStyle] = useState(() => BOOT_UI_PREFERENCES.backgroundStyle);
+  const [motionStyle, setMotionStyle] = useState(() => BOOT_UI_PREFERENCES.motionStyle);
+  const uiPreferencesHydratedRef = useRef('');
+  const uiPreferencesSaveTimerRef = useRef(null);
   const resolvedPerformance = resolvePerformanceMode(performanceMode);
   const effectiveMotionMode = resolveMotionMode(motionMode, performanceMode);
 
@@ -256,6 +322,73 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (!authReady || !currentUser) {
+      setAiGatewayReady(false);
+      return undefined;
+    }
+    let alive = true;
+    let warmed = false;
+    let warmupId = 0;
+    const controller = new AbortController();
+    const checkGateway = async () => {
+      try {
+        const health = await getAiServerHealth({ signal: controller.signal });
+        if (alive) setAiGatewayReady(Boolean(health?.configured && health?.ok !== false));
+        if (!warmed && health?.configured && health?.ok !== false) {
+          warmed = true;
+          const warm = () => warmAiServerGateway({ signal: controller.signal }).catch(() => {});
+          if ('requestIdleCallback' in window) warmupId = window.requestIdleCallback(warm, { timeout: 2400 });
+          else warmupId = window.setTimeout(warm, 1600);
+        }
+      } catch {
+        if (alive) setAiGatewayReady(false);
+      }
+    };
+    checkGateway();
+    const onFocus = () => checkGateway();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      alive = false;
+      controller.abort();
+      if ('cancelIdleCallback' in window) window.cancelIdleCallback(warmupId);
+      else window.clearTimeout(warmupId);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [authReady, currentUser?.id, currentUser?.email]);
+
+  useEffect(() => {
+    if (!authReady) return undefined;
+    const key = currentUser?.id || currentUser?.email || 'guest';
+    let active = true;
+    if (!currentUser || currentUser?.provider !== 'supabase') {
+      uiPreferencesHydratedRef.current = key;
+      return undefined;
+    }
+    uiPreferencesHydratedRef.current = '';
+    hydrateUiPreferencesFromCloud(currentUser).then(({ preferences }) => {
+      if (!active || !preferences) return;
+      setLanguage(preferences.language);
+      setTheme(preferences.theme);
+      setDesignLanguage(preferences.designLanguage);
+      setAccentColor(preferences.accentColor);
+      setDisplayDensity(preferences.displayDensity);
+      setThemeIntensity(preferences.themeIntensity);
+      setTileBorder(preferences.tileBorder);
+      setIndicatorMode(preferences.indicatorMode);
+      setMotionMode(preferences.motionMode);
+      setPerformanceMode(preferences.performanceMode);
+      setFontScale(preferences.fontScale);
+      setSurfaceStyle(preferences.surfaceStyle);
+      setCornerStyle(preferences.cornerStyle);
+      setShadowStyle(preferences.shadowStyle);
+      setBackgroundStyle(preferences.backgroundStyle);
+      setMotionStyle(preferences.motionStyle);
+      uiPreferencesHydratedRef.current = key;
+    });
+    return () => { active = false; };
+  }, [authReady, currentUser?.id, currentUser?.email, currentUser?.provider]);
+
+  useEffect(() => {
     const onTileLaunch = (event) => {
       const detail = event.detail || {};
       setTileLaunch({ id: window.performance?.now?.() || Date.now(), color: detail.color || 'var(--blue)', label: detail.label || 'BR', rect: detail.rect || null });
@@ -275,7 +408,7 @@ function App() {
       setAiProviderState(getAiProvider());
       setProviderConfigs(getAiConfigs());
       setApiKey(active.apiKey || '');
-      setAiModel(active.model || active.providerInfo?.defaultModel || 'Admin quản lý trên máy chủ');
+      setAiModel(active.model || active.providerInfo?.defaultModel || 'openrouter/free');
     };
     window.addEventListener('bes-ai-settings-updated', onAiSettings);
     return () => window.removeEventListener('bes-ai-settings-updated', onAiSettings);
@@ -336,59 +469,94 @@ function App() {
     setAiProviderState(getAiProvider());
     setProviderConfigs(getAiConfigs());
     setApiKey(active.apiKey || '');
-    setAiModel(active.model || active.providerInfo?.defaultModel || 'Admin quản lý trên máy chủ');
+    setAiModel(active.model || active.providerInfo?.defaultModel || 'openrouter/free');
   }, [currentUser?.id, currentUser?.email]);
 
   useEffect(() => {
     languageRef.current = language;
     document.title = language === 'vi' ? 'Brian English · Hệ thống dạy học số' : 'Brian English · Digital Teaching Studio';
     document.documentElement.lang = language === 'vi' ? 'vi' : 'en';
-    document.documentElement.dataset.language = language;
   }, [language]);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem('bet-theme', theme);
-  }, [theme]);
-
-  useEffect(() => {
-    document.documentElement.dataset.fontScale = String(fontScale);
-    document.documentElement.dataset.burs = 'comfortable';
-    document.documentElement.style.fontSize = `${fontScale}%`;
     window.dispatchEvent(new CustomEvent('bes:font-scale-changed', { detail: { scale: fontScale } }));
-    try { localStorage.setItem('bes-font-scale', String(fontScale)); } catch { /* ignore */ }
   }, [fontScale]);
 
   useEffect(() => {
-    document.documentElement.dataset.themeIntensity = themeIntensity;
-    document.documentElement.dataset.tileBorder = tileBorder;
-    document.documentElement.dataset.windowsIndicator = indicatorMode;
-    try {
-      localStorage.setItem('bes-theme-intensity', themeIntensity);
-      localStorage.setItem('bes-tile-border', tileBorder);
-      localStorage.setItem('bes-windows-indicator', indicatorMode);
-    } catch { /* ignore */ }
-  }, [themeIntensity, tileBorder, indicatorMode]);
-  useEffect(() => { localStorage.setItem('bet-language', language); }, [language]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('bes-motion-mode', motionMode);
-      localStorage.setItem('bes-performance-mode', performanceMode);
-    } catch { /* ignore */ }
     applyPerformanceAttributes({ motionMode, performanceMode });
   }, [motionMode, performanceMode]);
+
+  useEffect(() => {
+    const key = currentUser?.id || currentUser?.email || 'guest';
+    const canPersist = authReady && (!currentUser || uiPreferencesHydratedRef.current === key);
+    const value = {
+      designLanguage,
+      theme,
+      language,
+      accentColor,
+      displayDensity,
+      themeIntensity,
+      tileBorder,
+      indicatorMode,
+      motionMode,
+      performanceMode,
+      fontScale,
+      surfaceStyle,
+      cornerStyle,
+      shadowStyle,
+      backgroundStyle,
+      motionStyle,
+      updatedAt: BOOT_UI_PREFERENCES.updatedAt,
+    };
+    if (!canPersist) {
+      applyUiPreferences(value, { persist: false });
+      return undefined;
+    }
+    const preferences = persistLocalUiPreferences(value, { touch: true });
+    applyUiPreferences(preferences, { persist: false });
+    BOOT_UI_PREFERENCES.updatedAt = preferences.updatedAt;
+    window.clearTimeout(uiPreferencesSaveTimerRef.current);
+    if (currentUser?.provider === 'supabase') {
+      uiPreferencesSaveTimerRef.current = window.setTimeout(() => {
+        saveUiPreferencesToCloud(currentUser, preferences);
+      }, 850);
+    }
+    return () => window.clearTimeout(uiPreferencesSaveTimerRef.current);
+  }, [
+    authReady,
+    currentUser?.id,
+    currentUser?.email,
+    currentUser?.provider,
+    designLanguage,
+    theme,
+    language,
+    accentColor,
+    displayDensity,
+    themeIntensity,
+    tileBorder,
+    indicatorMode,
+    motionMode,
+    performanceMode,
+    fontScale,
+    surfaceStyle,
+    cornerStyle,
+    shadowStyle,
+    backgroundStyle,
+    motionStyle,
+  ]);
 
 
   const allTools = useMemo(() => [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS], []);
   const toolSlug = route.startsWith('tool/') ? route.replace('tool/', '') : '';
   const selectedTool = allTools.find((item) => item.slug === toolSlug);
   const currentRoute = ROUTES.includes(route) ? route : selectedTool ? 'tool' : 'home';
+  const deferredShell = useDeferredShell(authReady && currentUser ? String(currentUser.id || currentUser.email || 'user') : '');
+  useRoutePrefetch(currentRoute, deferredShell.idleReady);
   const appVisibility = useAppVisibility(currentUser);
   const visibilityId = visibilityIdForRoute(currentRoute, selectedTool);
   const visibilityReady = !currentUser || isAdminRole(currentUser?.role) || appVisibility.ready;
   const temporarilyHidden = visibilityReady && isAppHiddenForUser(appVisibility.snapshot, currentUser, visibilityId);
-  const visibleForCurrentUser = (item) => ['textlab-template-library', 'personnel'].includes(item.slug) || !isAppHiddenForUser(appVisibility.snapshot, currentUser, `tool:${item.slug}`);
+  const visibleForCurrentUser = (item) => !isAppHiddenForUser(appVisibility.snapshot, currentUser, `tool:${item.slug}`);
   const accessibleApps = APPS.filter(visibleForCurrentUser);
   const accessibleGames = GAME_APPS.filter(visibleForCurrentUser);
   const accessibleTools = SPECIAL_TOOLS.filter(visibleForCurrentUser);
@@ -423,7 +591,8 @@ function App() {
     providerConfigs,
     setProviderConfigs,
     aiSummary: getProviderSummary(),
-    hasApiKey: Boolean(getProviderSummary().serverManaged || getProviderSummary().hasKey || apiKey.trim().length > 8),
+    hasApiKey: aiGatewayReady,
+    aiGatewayReady,
     currentUser,
     authReady,
     setCurrentUser,
@@ -443,9 +612,26 @@ function App() {
     fontScale,
     setFontScale,
     appVisibility,
+    designLanguage,
+    setDesignLanguage,
+    accentColor,
+    setAccentColor,
+    displayDensity,
+    setDisplayDensity,
+    surfaceStyle,
+    setSurfaceStyle,
+    cornerStyle,
+    setCornerStyle,
+    shadowStyle,
+    setShadowStyle,
+    backgroundStyle,
+    setBackgroundStyle,
+    motionStyle,
+    setMotionStyle,
   };
 
   const activeDesignProfile = getActiveDesignProfile(currentRoute, selectedTool);
+  const activeWorkspaceId = resolveWorkspaceId({ route: currentRoute, selectedTool });
 
   useEffect(() => {
     if (!currentUser || !canAccessRoute || ['login', 'register', 'homeroom-portal'].includes(currentRoute)) return;
@@ -453,34 +639,43 @@ function App() {
       home: ['Home', 'Trang chủ'], apps: ['Apps', 'Ứng dụng'], news: ['Newsroom', 'Đọc báo'], games: ['Games', 'Trò chơi'],
       department: ['Department', 'Tổ chuyên môn'], homeroom: ['Homeroom', 'Giáo viên chủ nhiệm'], library: ['Library', 'Thư viện'],
       'resource-library': ['Resource Library', 'Kho học liệu'], 'knowledge-hub': ['Smart Knowledge Library', 'Kho học liệu thông minh'],
-      dashboard: ['Work Dashboard', 'Bảng điều hành'],
       'work-hub': ['Unified Work Hub', 'Trung tâm công việc'],
-      'content-factory': ['Teaching Content Factory', 'Xưởng tạo học liệu'], 'lesson-pack': ['Lesson Pack', 'Gói bài dạy'], 'assessment-core': ['Assessment Core', 'Ngân hàng câu hỏi'],
-      'platform-readiness': ['Platform Readiness', 'Sẵn sàng nền tảng'],
-      'automation-center': ['Automation Center', 'Trung tâm tự động hóa'],
-      'cloud-operations': ['Cloud Operations', 'Vận hành nền'],
-      'collaboration-hub': ['Collaboration Hub', 'Không gian cộng tác'],
-      'data-governance': ['Data Governance', 'Quản trị dữ liệu'],
-      'production-hardening': ['Production Hardening', 'Sẵn sàng Production'],
-      'app-vault': ['Hidden Apps Vault', 'Thư mục ứng dụng đã ẩn'],
-      practice: ['Classroom', 'Lớp học'], settings: ['Settings', 'Cài đặt'],
-      admin: ['Admin', 'Quản trị'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác'],
+      'assessment-core': ['Assessment Core', 'Ngân hàng câu hỏi'], 'platform-readiness': ['Platform Readiness', 'Sẵn sàng nền tảng'],
+ 'cloud-operations': ['Cloud Operations', 'Vận hành nền'],
+ 'data-governance': ['Data Governance', 'Quản trị dữ liệu'],
+      'production-hardening': ['Production Hardening', 'Sẵn sàng Production'], 'app-vault': ['Hidden Apps Vault', 'Thư mục ứng dụng đã ẩn'],
+      settings: ['Settings', 'Cài đặt'], admin: ['Admin', 'Quản trị'],
+      'ai-governance': ['AI Governance', 'Quản trị AI'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'],
+      qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác'],
     };
     if (selectedTool?.slug) {
       const profile = getAppDesignProfile(selectedTool.slug);
-      recordAppUsage(currentUser, {
-        id: `tool:${selectedTool.slug}`, target: `#/tool/${selectedTool.slug}`,
+      const visit = {
+        workspaceId: resolveWorkspaceId({ route: currentRoute, selectedTool }),
+        target: `#/tool/${selectedTool.slug}`,
         title: selectedTool.title || selectedTool.titleVi || selectedTool.slug,
         titleVi: selectedTool.titleVi || selectedTool.title || selectedTool.slug,
-        icon: String(selectedTool.icon || selectedTool.title || 'AP').slice(0, 2).toUpperCase(), color: profile.accent, kind: 'tool',
+        icon: String(selectedTool.icon || selectedTool.title || 'AP').slice(0, 2).toUpperCase(),
+        accent: profile.accent,
+      };
+      recordAppUsage(currentUser, {
+        id: `tool:${selectedTool.slug}`, target: visit.target,
+        title: visit.title, titleVi: visit.titleVi, icon: visit.icon, color: visit.accent, kind: 'tool',
       });
+      rememberWorkspaceVisit(currentUser, visit);
       return;
     }
     const pair = routeTitles[currentRoute] || [currentRoute, currentRoute];
+    const routeVisit = {
+      workspaceId: resolveWorkspaceId({ route: currentRoute }),
+      target: `#/${currentRoute}`, title: pair[0], titleVi: pair[1],
+      icon: String(pair[0] || 'GO').slice(0, 2).toUpperCase(), accent: activeDesignProfile.accent,
+    };
     recordAppUsage(currentUser, {
-      id: `route:${currentRoute}`, target: `#/${currentRoute}`, title: pair[0], titleVi: pair[1],
-      icon: String(pair[0] || 'GO').slice(0, 2).toUpperCase(), color: activeDesignProfile.accent, kind: 'route',
+      id: `route:${currentRoute}`, target: routeVisit.target, title: routeVisit.title, titleVi: routeVisit.titleVi,
+      icon: routeVisit.icon, color: routeVisit.accent, kind: 'route',
     });
+    if (!['home', 'apps', 'contact'].includes(currentRoute)) rememberWorkspaceVisit(currentUser, routeVisit);
   }, [currentRoute, selectedTool?.slug, currentUser?.id, currentUser?.email, canAccessRoute]);
 
   const tileLaunchRect = tileLaunch
@@ -491,8 +686,9 @@ function App() {
     <>
       <a className="bes-skip-link" href="#bes-main-content">{language === 'vi' ? 'Bỏ qua đến nội dung chính' : 'Skip to main content'}</a>
       <Suspense fallback={null}><GlobalAccessibilityAnnouncer /></Suspense>
+      <UIToastCenter />
       <div
-      className="app-shell metro-shell metro-clean-system"
+      className="app-shell metro-shell metro-clean-system bes-widescreen-16x9"
       data-route={currentRoute}
       data-tool={selectedTool?.slug || currentRoute}
       data-performance={resolvedPerformance}
@@ -502,21 +698,31 @@ function App() {
       data-windows-indicator={indicatorMode}
       data-app-version={APP_VERSION}
       data-burs="comfortable"
+      data-ui-core="v12"
+      data-aspect-ratio="16:9"
+      data-design-language={designLanguage}
+      data-layout={getRouteLayout(currentRoute, selectedTool)}
+      data-workspace={activeWorkspaceId}
       style={{
         '--active-app-accent': activeDesignProfile.accent,
         '--active-app-soft': activeDesignProfile.soft,
         '--active-app-ink': activeDesignProfile.ink,
       }}
     >
-      {!['homeroom-portal'].includes(currentRoute) ? <div className="bes-top-chrome">
-        <Suspense fallback={null}>
-          <StatusMenuBar route={currentRoute} {...context} />
-        </Suspense>
-        <AppErrorBoundary compact scope="global-navigation" label={language === 'vi' ? 'thanh điều hướng' : 'navigation'}>
-          <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
-        </AppErrorBoundary>
-      </div> : null}
-      {tileLaunch ? (
+      {!EMBEDDED_WORKSPACE ? <Suspense fallback={null}>
+        <UnifiedShellChrome
+          route={currentRoute}
+          selectedTool={selectedTool}
+          currentUser={currentUser}
+          canAccessRoute={canAccessRoute}
+          activeProfile={activeDesignProfile}
+          language={language}
+          appVisibility={appVisibility}
+          onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }}
+          {...context}
+        />
+      </Suspense> : null}
+      {tileLaunch && !EMBEDDED_WORKSPACE ? (
         <div
           key={tileLaunch.id}
           className="tile-launch-layer"
@@ -538,16 +744,20 @@ function App() {
         </div>
       ) : null}
 
-      {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+      {deferredShell.interactiveReady && !EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>
-          <AppErrorBoundary compact scope="command-palette" label={language === 'vi' ? 'tìm kiếm nhanh' : 'command palette'}>
-            <GlobalCommandPalette
+          <AppErrorBoundary compact scope="command-center" label={language === 'vi' ? 'trung tâm lệnh' : 'command center'}>
+            <UICommandCenter
               language={language}
+              setLanguage={setLanguage}
               currentUser={currentUser}
               theme={theme}
               setTheme={setTheme}
               currentRoute={currentRoute}
               selectedTool={selectedTool}
+              appVisibility={appVisibility}
+              fontScale={fontScale}
+              setFontScale={setFontScale}
             />
           </AppErrorBoundary>
         </Suspense>
@@ -556,25 +766,42 @@ function App() {
       <Suspense fallback={null}>
         <GlobalRuntimeGuard language={language} />
       </Suspense>
-{effectiveMotionMode === 'full' && (
+
+      <Suspense fallback={null}>
+        <GlobalAIIndicator
+          active={aiOperationState.active}
+          language={language}
+          label={aiOperationState.label}
+          provider={aiOperationState.provider}
+        />
+      </Suspense>
+
+      {deferredShell.interactiveReady ? <Suspense fallback={null}>
+        <GlobalAIReceipt language={language} />
+      </Suspense> : null}
+
+      {deferredShell.idleReady && effectiveMotionMode === 'full' && (
         <Suspense fallback={null}>
           <FullMotionEffects route={currentRoute} language={language} loadingState={loadingState} />
         </Suspense>
       )}
-      {currentUser ? (
+      {deferredShell.idleReady && currentUser ? (
         <Suspense fallback={null}>
+          <LessonIntegrationBridgeAdapter currentUser={currentUser} />
         </Suspense>
       ) : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
+      {deferredShell.idleReady && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
         <Suspense fallback={null}>
           <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
         </Suspense>
       ) : null}
-      {currentUser && !['homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
+      {deferredShell.interactiveReady && !EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
         <Suspense fallback={null}>
-          <AppErrorBoundary compact scope="shared-chatbot-drawer" label={language === 'vi' ? 'chatbot dùng chung' : 'shared chatbot'}>
-            <SharedChatbotDrawer currentUser={currentUser} language={language} />
-          </AppErrorBoundary>
+          <UIWorkspaceLayoutManager
+            currentUser={currentUser}
+            language={language}
+            currentTarget={selectedTool?.slug ? `#/tool/${selectedTool.slug}` : `#/${currentRoute}`}
+          />
         </Suspense>
       ) : null}
 
@@ -599,22 +826,15 @@ function App() {
           {canAccessRoute && currentRoute === 'library' && currentUser && <Library {...context} />}
           {canAccessRoute && currentRoute === 'resource-library' && currentUser && <ResourceLibrary {...context} />}
           {canAccessRoute && currentRoute === 'knowledge-hub' && currentUser && <KnowledgeHub {...context} />}
-          {canAccessRoute && currentRoute === 'dashboard' && currentUser && <WorkDashboard {...context} />}
           {canAccessRoute && currentRoute === 'work-hub' && currentUser && <WorkHub {...context} />}
-          {canAccessRoute && currentRoute === 'content-factory' && currentUser && <ContentFactory {...context} />}
-          {canAccessRoute && currentRoute === 'content-ecosystem' && currentUser && <ContentEcosystem {...context} />}
-          {canAccessRoute && currentRoute === 'lesson-pack' && currentUser && <LessonPack {...context} />}
-          {canAccessRoute && currentRoute === 'assessment-core' && currentUser && <AssessmentCore {...context} />}
-          {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <PlatformReadiness {...context} />}
-          {canAccessRoute && currentRoute === 'automation-center' && currentUser && <AutomationCenter {...context} />}
-          {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <CloudOperations {...context} />}
-          {canAccessRoute && currentRoute === 'collaboration-hub' && currentUser && <CollaborationHub {...context} />}
-          {canAccessRoute && currentRoute === 'data-governance' && currentUser && <DataGovernance {...context} />}
-          {canAccessRoute && currentRoute === 'production-hardening' && currentUser && <ProductionHardening {...context} />}
+          {canAccessRoute && currentRoute === 'assessment-core' && currentUser && <UIRouteSurface route="assessment-core" variant="workbench"><AssessmentCore {...context} /></UIRouteSurface>}
+          {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <UIRouteSurface route="platform-readiness" variant="operations"><PlatformReadiness {...context} /></UIRouteSurface>}
+          {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <UIRouteSurface route="cloud-operations" variant="operations"><CloudOperations {...context} /></UIRouteSurface>}
+          {canAccessRoute && currentRoute === 'data-governance' && currentUser && <UIRouteSurface route="data-governance" variant="platform"><DataGovernance {...context} /></UIRouteSurface>}
+          {canAccessRoute && currentRoute === 'production-hardening' && currentUser && <UIRouteSurface route="production-hardening" variant="operations"><ProductionHardening {...context} /></UIRouteSurface>}
           {canAccessRoute && currentRoute === 'app-vault' && currentUser && <HiddenAppsVault {...context} />}
-          {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
           {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}
-
+          {canAccessRoute && currentRoute === 'ai-governance' && currentUser && <AIGovernanceCenter {...context} />}
           {canAccessRoute && currentRoute === 'trash' && currentUser && <TrashCenter {...context} />}
           {currentRoute === 'contact' && <Contact {...context} />}
           {canAccessRoute && currentRoute === 'settings' && currentUser && <Settings {...context} />}
@@ -626,29 +846,51 @@ function App() {
         </Suspense>
       </main>
 
-      {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+      {deferredShell.idleReady && !EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="global-autosave" label={language === 'vi' ? 'tự lưu' : 'autosave'}>
-            <GlobalAutosave route={currentRoute} selectedTool={selectedTool} currentUser={currentUser} language={language} />
+            <GlobalAutosave route={currentRoute} selectedTool={selectedTool} currentUser={currentUser} language={language} activityCenterOwned />
           </AppErrorBoundary>
         </Suspense>
       )}
-{currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'dashboard'].includes(currentRoute) ? <>
+
+      {deferredShell.interactiveReady && !EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+        <Suspense fallback={null}>
+          <AppErrorBoundary compact scope="ai-messenger" label={language === 'vi' ? 'Brian AI' : 'Brian AI'}>
+          <UniversalAIAssist
+            language={language}
+            currentRoute={currentRoute}
+            selectedTool={selectedTool}
+            apiKey={apiKey}
+            aiModel={aiModel}
+            hasApiKey={context.hasApiKey}
+            currentUser={currentUser}
+            providerName={context.aiSummary.providerName}
+            accent={activeDesignProfile.accent}
+            soft={activeDesignProfile.soft}
+            ink={activeDesignProfile.ink}
+            externalLauncher
+          />
+          </AppErrorBoundary>
+        </Suspense>
+      )}
+
+      {deferredShell.idleReady && !EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <>
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
             <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} appVisibility={appVisibility} />
           </AppErrorBoundary>
         </Suspense>
         <Suspense fallback={null}>
-          <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
+          <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher activityCenterOwned />
         </Suspense>
       </> : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><UnifiedUtilityRail currentUser={currentUser} language={language} currentRoute={currentRoute} /></Suspense> : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
-      {!['homeroom-portal', 'dashboard'].includes(currentRoute) ? <>
-        <Suspense fallback={null}>
+      {deferredShell.idleReady && !EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><UnifiedUtilityRail currentUser={currentUser} language={language} currentRoute={currentRoute} /></Suspense> : null}
+      {deferredShell.idleReady && !EMBEDDED_WORKSPACE && currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
+      {!EMBEDDED_WORKSPACE && currentRoute !== 'homeroom-portal' ? <>
+        {deferredShell.idleReady ? <Suspense fallback={null}>
           <GlobalMusicPlayer language={language} currentUser={currentUser} externalLauncher />
-        </Suspense>
+        </Suspense> : null}
         <Footer language={language} currentUser={currentUser} />
       </> : null}
       </div>
@@ -658,10 +900,8 @@ function App() {
 
 function RouteFallback({ language }) {
   return (
-    <div className="page narrow">
-      <section className="metro-panel empty-state">
-        <h1>{language === 'vi' ? 'Đang mở trang...' : 'Opening page...'}</h1>
-      </section>
+    <div className="bes-route-loading-v12409" role="status" aria-live="polite">
+      <div><i aria-hidden="true"/><span>{language === 'vi' ? 'Đang mở trang…' : 'Opening page…'}</span></div>
     </div>
   );
 }
@@ -706,6 +946,6 @@ function AccessDenied({ language, currentUser, route, selectedTool, temporarilyH
 
 createRoot(document.getElementById('root')).render(
   <AppErrorBoundary scope="application-root">
-    <><App /><TextLabGlobalShortcut /></>
+    <App />
   </AppErrorBoundary>,
 );

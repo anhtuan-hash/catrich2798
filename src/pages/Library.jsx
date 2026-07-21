@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import SectionHeader from '../components/SectionHeader.jsx';
 import LiveActivityPlayer from '../components/LiveActivityPlayer.jsx';
 import AICopilotPanel from '../components/AICopilotPanel.jsx';
@@ -27,6 +27,17 @@ import {
   slugify,
   writeList,
 } from '../utils/library.js';
+import { readUniversalSearchTarget } from '../ui-core/runtime/universalSearchIndex.js';
+
+function getLibrarySearchTarget() {
+  if (typeof window === 'undefined') return { tab: 'history', itemId: '' };
+  const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
+  const rawStored = readUniversalSearchTarget();
+  const stored = rawStored && ['history', 'prompt', 'question'].includes(rawStored.contentType) && Date.now() - Number(rawStored.updatedAt || 0) < 15000 ? rawStored : null;
+  const tab = params.get('tab') || (stored?.contentType === 'prompt' ? 'prompts' : stored?.contentType === 'question' ? 'bank' : 'history');
+  const itemId = params.get('item') || stored?.contentId || '';
+  return { tab: ['history', 'prompts', 'bank', 'ai', 'backup'].includes(tab) ? tab : 'history', itemId: String(itemId || '') };
+}
 
 function useLibraryData() {
   const [version, setVersion] = useState(0);
@@ -434,7 +445,7 @@ function HistoryPanel({ language, data, refresh, setToast, setLivePayload }) {
       ) : (
         <div className="library-list">
           {filtered.map((item) => (
-            <article className="library-card" key={item.id}>
+            <article className="library-card" key={item.id} data-search-id={item.id}>
               <div className="library-card-head">
                 <div>
                   <span className="eyebrow">{item.sourceAppTitle || item.toolTitle || item.kind}</span>
@@ -491,7 +502,7 @@ function PromptPanel({ language, data, refresh, setToast }) {
         </div>
         <div className="prompt-list">
           {data.length ? data.map((item) => (
-            <div className="prompt-item" key={item.id}>
+            <div className="prompt-item" key={item.id} data-search-id={item.id}>
               <strong>{item.title}</strong>
               <small>{item.category} · {formatDate(item.createdAt)}</small>
               <p>{item.body}</p>
@@ -561,7 +572,7 @@ function BankPanel({ language, data, refresh, setToast, setLivePayload }) {
 
       <div className="library-list compact-list">
         {filtered.length ? filtered.map((item, index) => (
-          <article className="question-row" key={item.id}>
+          <article className="question-row" key={item.id} data-search-id={item.id}>
             <div>
               <strong>{index + 1}. {item.question}</strong>
               <small>{item.level} · {item.source || item.topic || 'Question bank'}</small>
@@ -651,10 +662,25 @@ function ImportExportPanel({ language, refresh, setToast }) {
 }
 
 export default function Library({ language, apiKey, aiModel, hasApiKey }) {
-  const [tab, setTab] = useState('history');
+  const searchTargetRef = useRef(getLibrarySearchTarget());
+  const [tab, setTab] = useState(searchTargetRef.current.tab);
   const [toast, setToast] = useState('');
   const [livePayload, setLivePayload] = useState(null);
   const { history, prompts, bank, refresh, syncState } = useLibraryData();
+
+  useEffect(() => {
+    const targetId = searchTargetRef.current.itemId;
+    if (!targetId) return undefined;
+    let cleanupTimer = 0;
+    const timer = window.setTimeout(() => {
+      const element = [...document.querySelectorAll('[data-search-id]')].find((node) => node.dataset.searchId === targetId);
+      if (!element) return;
+      element.classList.add('bui-search-target');
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      cleanupTimer = window.setTimeout(() => element.classList.remove('bui-search-target'), 5200);
+    }, 160);
+    return () => { window.clearTimeout(timer); window.clearTimeout(cleanupTimer); };
+  }, [tab, history.length, prompts.length, bank.length]);
   const showToast = (message) => {
     setToast(message);
     window.clearTimeout(showToast.timer);
@@ -668,7 +694,7 @@ export default function Library({ language, apiKey, aiModel, hasApiKey }) {
     ['backup', language === 'vi' ? 'Sao lưu' : 'Backup', 0],
   ];
   return (
-    <div className="page narrow library-page library-page-v61 library-page-v46">
+    <div className="page narrow library-page library-page-v61 library-page-v46 bui-library" data-ui="library" data-library-app="teacher-library">
       <LibraryShowcaseHero
         language={language}
         historyCount={history.length}
@@ -683,7 +709,7 @@ export default function Library({ language, apiKey, aiModel, hasApiKey }) {
         bank={bank}
         onOpen={setTab}
       />
-      <div className="library-tabs library-v46-tabs">
+      <div className="library-tabs library-v46-tabs bui-library-navigation">
         {tabs.map(([id, label, count]) => <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{label}{count ? ` · ${count}` : ''}</button>)}
         <button
           type="button"

@@ -154,18 +154,14 @@ const iconPaths = {
 export const flatIconForSlug = {
   'textlab-activities': 'activity',
   'lesson-plan-ai': 'lesson',
-  'exam-studio': 'exam',
   textcare: 'textcare',
   'news-reader': 'news',
   'vietnam-tax': 'tax',
-  'reading-studio': 'reading',
   word2graph: 'wordgraph',
-  'student-practice': 'practice',
   'department-workspace': 'department',
   'homeroom-hub': 'homeroom',
   'game-hub': 'game',
   'library-hub': 'library',
-  'practice-hub': 'practice',
   'games-hub': 'game',
   'admin-hub': 'admin',
 };

@@ -12,6 +12,31 @@ function cleanArray(value) {
   return Array.isArray(value) ? value.map((entry) => String(entry || '').trim()).filter(Boolean) : [];
 }
 
+function itemHasTag(item, tag) {
+  return cleanArray(item?.tags).map((entry) => entry.toLowerCase()).includes(String(tag || '').toLowerCase());
+}
+
+function isHtmlLessonRow(row) {
+  const fileName = String(row?.file_name || '').toLowerCase();
+  const mimeType = String(row?.mime_type || '').toLowerCase();
+  const tags = Array.isArray(row?.tags) ? row.tags.map((tag) => String(tag).toLowerCase()) : [];
+  return (mimeType.includes('text/html') || /\.html?$/.test(fileName) || tags.includes('thpt-interactive-html'))
+    && !row?.deleted_at;
+}
+
+function isUserHtmlFontRow(row) {
+  const fileName = String(row?.file_name || '').toLowerCase();
+  const tags = Array.isArray(row?.tags) ? row.tags.map((tag) => String(tag).toLowerCase()) : [];
+  return tags.includes('html-user-font')
+    && /\.(ttf|otf|woff2?)$/.test(fileName)
+    && !row?.deleted_at;
+}
+
+function queryParam(req, name) {
+  if (req.query?.[name] !== undefined) return Array.isArray(req.query[name]) ? req.query[name][0] : req.query[name];
+  try { return new URL(req.url, 'http://localhost').searchParams.get(name); } catch { return ''; }
+}
+
 function rowFromItem(item, user, manager, existing = null) {
   const requestedStatus = String(item.status || existing?.status || 'pending').trim().toLowerCase();
   const status = manager && VALID_STATUS.has(requestedStatus) ? requestedStatus : 'pending';
@@ -56,7 +81,7 @@ function rowFromItem(item, user, manager, existing = null) {
   };
 }
 
-async function findExisting(client, item) {
+async function findExisting(client, item, user) {
   const candidateId = item.cloudId || item.id;
   if (isUuid(candidateId)) {
     const { data, error } = await client.from('resource_items').select('*').eq('id', candidateId).maybeSingle();
@@ -73,28 +98,71 @@ async function findExisting(client, item) {
 
   const checksum = String(item.checksum || '');
   if (checksum) {
-    const { data, error } = await client.from('resource_items').select('*').eq('checksum', checksum).limit(1).maybeSingle();
+    let query = client.from('resource_items').select('*').eq('checksum', checksum);
+    if (itemHasTag(item, 'html-user-font')) query = query.eq('uploader_id', user.id);
+    const { data, error } = await query.limit(1).maybeSingle();
     if (error) throw new Error(error.message);
     if (data) return data;
   }
   return null;
 }
 
+async function listThptHtmlLessons(client, user, manager) {
+  let query = client
+    .from('resource_items')
+    .select('*')
+    .eq('category', 'thpt-exam')
+    .order('updated_at', { ascending: false });
+
+  if (!manager) query = query.or(`status.eq.approved,uploader_id.eq.${user.id}`);
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return (data || []).filter(isHtmlLessonRow);
+}
+
+async function listUserHtmlFonts(client, user) {
+  const { data, error } = await client
+    .from('resource_items')
+    .select('*')
+    .eq('uploader_id', user.id)
+    .order('updated_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data || []).filter(isUserHtmlFontRow);
+}
+
 export default async function handler(req, res) {
   try {
-    if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
     const user = await requireUser(req);
     const client = adminClient();
+    const manager = await isManagerUser(client, user);
+
+    if (req.method === 'GET') {
+      const scope = String(queryParam(req, 'scope') || '');
+      if (scope === 'thpt-html-lessons') {
+        const items = await listThptHtmlLessons(client, user, manager);
+        return send(res, 200, { ok: true, manager, items });
+      }
+      if (scope === 'html-user-fonts') {
+        const items = await listUserHtmlFonts(client, user);
+        return send(res, 200, { ok: true, items });
+      }
+      return send(res, 400, { error: 'Unsupported resource scope' });
+    }
+
+    if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
     const item = req.body?.item || req.body || {};
     if (!item || typeof item !== 'object') throw new Error('Missing resource data');
 
-    const manager = await isManagerUser(client, user);
     const uploaderMatches = !item.uploaderId
       || item.uploaderId === user.id
       || String(item.uploaderName || '').toLowerCase() === String(user.email || '').toLowerCase();
     if (!manager && !uploaderMatches) throw new Error('Bạn chỉ có thể đồng bộ tài liệu do mình tải lên');
 
-    const existing = await findExisting(client, item);
+    const existing = await findExisting(client, item, user);
+    if (!manager && existing?.uploader_id && existing.uploader_id !== user.id) {
+      throw new Error('Bạn không có quyền cập nhật tài nguyên của tài khoản khác');
+    }
     const row = rowFromItem(item, user, manager, existing);
     let saved;
 
