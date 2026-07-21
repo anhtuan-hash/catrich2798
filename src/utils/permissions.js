@@ -348,6 +348,7 @@ export function hasToolAccess(user, slug) {
   if (isAdminRole(user.role)) return true;
   const tool = TOOL_BY_SLUG.get(slug);
   if (!tool) return false;
+  if (tool.publicToAuthenticated) return true;
   return hasPermissionId(user, getToolPermissionId(slug));
 }
 

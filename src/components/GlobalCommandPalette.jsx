@@ -37,14 +37,14 @@ const ROUTES = [
 
 const text = {
   vi: {
-    placeholder: 'Tìm ứng dụng, trang hoặc lệnh…',
+    placeholder: 'Tìm ứng dụng, trang hoặc lệnh…', openAi: 'Mở Chatbot',
     title: 'Tìm nhanh toàn hệ thống',
     hint: 'Nhập để tìm · ↑↓ chọn · Enter mở · Esc đóng',
     recent: 'Gần đây', pinned: 'Đã ghim', results: 'Kết quả', commands: 'Lệnh nhanh', empty: 'Không tìm thấy kết quả phù hợp.', theme: 'Đổi chế độ sáng/tối', customize: 'Tùy biến Launcher', settings: 'Mở Cài đặt',
     current: 'Đang mở', frequent: 'Dùng thường xuyên', route: 'Trang', tool: 'Ứng dụng', command: 'Lệnh', keyboard: '⌘ K',
   },
   en: {
-    placeholder: 'Search apps, pages or commands…',
+    placeholder: 'Search apps, pages or commands…', openAi: 'Open Chatbot',
     title: 'Search the whole system',
     hint: 'Type to search · ↑↓ select · Enter open · Esc close',
     recent: 'Recent', pinned: 'Pinned', results: 'Results', commands: 'Quick commands', empty: 'No matching results.', theme: 'Toggle light/dark mode', customize: 'Customize Launcher', settings: 'Open Settings',
@@ -93,7 +93,7 @@ function buildEntries(language, currentUser, visibilitySnapshot) {
       id: `tool:${app.slug}`,
       kind: 'tool',
       slug: app.slug,
-      target: app.route ? `#/${app.route}` : `#/tool/${app.slug}`,
+      target: app.target || app.href || app.externalUrl || (app.route ? `#/${app.route}` : `#/tool/${app.slug}`),
       route: app.route || '',
       app,
       title: language === 'vi' ? app.titleVi || app.title : app.title,

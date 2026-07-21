@@ -1,4 +1,13 @@
 export const APP_DESIGN_PROFILES = {
+  'textlab-template-library': {
+    accent: '#386FD2', soft: '#E7F0FF', ink: '#102A52', icon: 'activity',
+    style: 'Interactive HTML studio', styleVi: 'Thư viện mẫu HTML tương tác',
+  },
+  personnel: {
+    accent: '#2D9B72', soft: '#E5F7EF', ink: '#103B2D', icon: 'users',
+    style: 'English department operations', styleVi: 'Điều hành nhân sự Tổ Tiếng Anh',
+  },
+
   'work-dashboard': {
     accent: '#315FC4',
     soft: '#EAF3FF',

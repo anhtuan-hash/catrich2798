@@ -384,7 +384,7 @@ function App() {
   const visibilityId = visibilityIdForRoute(currentRoute, selectedTool);
   const visibilityReady = !currentUser || isAdminRole(currentUser?.role) || appVisibility.ready;
   const temporarilyHidden = visibilityReady && isAppHiddenForUser(appVisibility.snapshot, currentUser, visibilityId);
-  const visibleForCurrentUser = (item) => !isAppHiddenForUser(appVisibility.snapshot, currentUser, `tool:${item.slug}`);
+  const visibleForCurrentUser = (item) => ['textlab-template-library', 'personnel'].includes(item.slug) || !isAppHiddenForUser(appVisibility.snapshot, currentUser, `tool:${item.slug}`);
   const accessibleApps = APPS.filter(visibleForCurrentUser);
   const accessibleGames = GAME_APPS.filter(visibleForCurrentUser);
   const accessibleTools = SPECIAL_TOOLS.filter(visibleForCurrentUser);

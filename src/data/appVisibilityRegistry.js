@@ -66,7 +66,7 @@ function normalizeCatalogItem(item, source) {
     ...item,
     id,
     source,
-    target: item.route ? `#/${item.route}` : `#/tool/${item.slug}`,
+    target: item.target || item.href || item.externalUrl || (item.route ? `#/${item.route}` : `#/tool/${item.slug}`),
     hideable: item.hideable !== false && !item.adminOnly,
   };
 }

@@ -128,9 +128,10 @@ export function previewRouteTransition(style = getRouteTransitionStyle()) {
 
 export function launchRoute({ target, label = 'GO', color = DEFAULT_COLOR, sourceEl = null, navigate } = {}) {
   if (!target || typeof window === 'undefined') return;
+  const externalTarget = /^https?:\/\//i.test(String(target)) || String(target).startsWith('/');
   const go = typeof navigate === 'function'
     ? navigate
-    : () => { window.location.hash = target; };
+    : () => { if (externalTarget) window.location.assign(target); else window.location.hash = target; };
 
   clearActiveLaunch();
 

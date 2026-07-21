@@ -14,11 +14,13 @@ export const DEFAULT_LAUNCHER_GROUPS = [
 const DEFAULT_PINNED = [
   'resource-library-hub',
   'lesson-plan-ai',
-  'textlab-activities',
+  'textlab-template-library',
   'exam-studio',
   'reading-studio',
 ];
 
+
+const ESSENTIAL_LAUNCHER_IDS = new Set(['textlab-template-library', 'personnel', 'tool:textlab-template-library', 'tool:personnel']);
 
 const RETIRED_LAUNCHER_IDS = new Set([
   'tool:worksheet-factory',
@@ -168,7 +170,7 @@ export function normalizeLauncherConfig(raw, itemIds = []) {
     version: 5,
     order,
     pinned: cleanIdList(source.pinned ?? defaults.pinned, safeItemIds.length ? allowed : null).slice(0, 12),
-    hidden: cleanIdList(source.hidden, safeItemIds.length ? allowed : null),
+    hidden: cleanIdList(source.hidden, safeItemIds.length ? allowed : null).filter((id) => !ESSENTIAL_LAUNCHER_IDS.has(id)),
     nav: cleanIdList(source.nav ?? defaults.nav).slice(0, 12),
     groups,
     assignments,

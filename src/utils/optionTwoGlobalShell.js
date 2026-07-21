@@ -74,7 +74,7 @@ const navItems = [
   ['apps', '▦', 'Ứng dụng', ROUTES.apps],
   ['homeroom', '♙', 'Chủ nhiệm', ROUTES.homeroom],
   ['department', '◇', 'Tổ chuyên môn', ROUTES.department],
-  ['textlab', '▣', 'TextLab', '#/tool/textlab-template-library/'],
+  ['textlab', '▣', 'TextLab', '#/tool/textlab-template-library'],
   ['news', '▤', 'Đọc báo', ROUTES.news],
   ['games', '⌘', 'Trò chơi', ROUTES.games],
   ['more', '+', 'Thêm', ROUTES.more],
@@ -208,7 +208,20 @@ export function installOptionTwoGlobalShell() {
       if (routeTarget) routeTo(routeTarget.dataset.route);
       if (event.target.closest('[data-open-news]')) routeTo(ROUTES.news);
       if (event.target.closest('[data-news-refresh]')) loadNews(shell, true);
+      if (event.target.closest('.brian-o2-search')) window.dispatchEvent(new CustomEvent('bes-command-palette-open'));
     });
+
+
+    if (!window.__brianCommandKBridgeInstalled) {
+      window.__brianCommandKBridgeInstalled = true;
+      document.addEventListener('keydown', (event) => {
+        if ((event.metaKey || event.ctrlKey) && String(event.key).toLowerCase() === 'k') {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          window.dispatchEvent(new CustomEvent('bes-command-palette-open'));
+        }
+      }, true);
+    }
 
     updateActiveNavigation(shell);
     loadNews(shell);

@@ -21,12 +21,14 @@ import { HIDDEN_APPS_FOLDER, ROUTE_APP_SHORTCUTS, appVisibilityId } from '../dat
 import { getHiddenAppIds } from '../utils/appVisibility.js';
 
 const APP_ORDER = [
-  'hidden-apps-vault',   'thpt-practice-hub', 'resource-library-hub', 'lesson-plan-ai', 'textlab-activities', 'exam-studio', 'reading-studio',
-  'news-reader', 'vietnam-tax', 'word2graph', 'textcare', 'student-practice', 'game-hub',
-  'department-workspace', 'homeroom-hub', 'library-hub', 'practice-hub', 'games-hub', 'admin-hub',
+  'textlab-template-library', 'personnel', 'hidden-apps-vault', 'thpt-practice-hub', 'resource-library-hub',
+  'lesson-plan-ai', 'exam-studio', 'reading-studio', 'news-reader', 'vietnam-tax',
+  'word2graph', 'textcare', 'student-practice', 'game-hub', 'department-workspace',
+  'homeroom-hub', 'library-hub', 'practice-hub', 'games-hub', 'admin-hub',
 ];
 
 const ROUTE_APPS = ROUTE_APP_SHORTCUTS;
+const ESSENTIAL_DIRECTORY_SLUGS = new Set(['textlab-template-library', 'personnel']);
 
 const copy = {
   vi: {
@@ -72,6 +74,8 @@ function statusOf(item, language) {
 
 function shortDesc(item, language) {
   const vi = {
+    'textlab-template-library': '36 mẫu HTML tương tác chạy ngoại tuyến.',
+    personnel: 'Nhân sự, phân công và nghiệp vụ Tổ Tiếng Anh.',
     'lesson-plan-ai': 'Giáo án, học liệu, năng lực số.',
     'textlab-activities': '18 hoạt động tương tác từ văn bản.', textcare: 'Chuẩn hoá văn bản hành chính.',
     'reading-studio': 'Bài đọc, câu hỏi và từ vựng.', 'news-reader': 'Tin giáo dục Việt Nam và báo tiếng Anh.',
@@ -82,6 +86,8 @@ function shortDesc(item, language) {
     'practice-hub': 'Giao bài và theo dõi tiến độ.', 'games-hub': 'Game lớp học và launcher.', 'admin-hub': 'Người dùng, quyền, cấu hình.',
   };
   const en = {
+    'textlab-template-library': '36 offline interactive HTML templates.',
+    personnel: 'English department staff and operations.',
     'lesson-plan-ai': 'Lessons, materials and competencies.',
     'textlab-activities': '18 interactive activities from text.', textcare: 'Clean official documents.',
     'reading-studio': 'Readings and vocabulary.', 'news-reader': 'Vietnam education and English news.',
@@ -94,11 +100,13 @@ function shortDesc(item, language) {
   return (language === 'vi' ? vi[item.slug] : en[item.slug]) || descOf(item, language);
 }
 
-function targetFor(item) { return item.route ? `#/${item.route}` : `#/tool/${item.slug}`; }
+function targetFor(item) { return item.target || item.href || item.externalUrl || (item.route ? `#/${item.route}` : `#/tool/${item.slug}`); }
 function launch(target, label, color, sourceEl = null) { launchRoute({ target, label, color: color || '#191515', sourceEl }); }
 function navLaunch(route, label, color, sourceEl) { launch(route.startsWith('#/') ? route : `#/${route}`, label, color, sourceEl); }
 
 function defaultGroupOf(item) {
+  if (item.slug === 'personnel') return 'manage';
+  if (item.slug === 'textlab-template-library') return 'create';
   if (['lesson-plan-ai', 'textcare', 'library-hub', 'resource-library-hub'].includes(item.slug)) return 'plan';
   if (item.slug === 'homeroom-hub') return 'manage';
   if (['textlab-activities', 'reading-studio', 'news-reader', 'vietnam-tax', 'word2graph', 'game-hub', 'games-hub'].includes(item.slug)) return 'create';
@@ -339,7 +347,7 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
     });
   }, [safeApps, isAdmin, globallyHiddenIds]);
 
-  const baseItems = useMemo(() => allBaseItems.filter((item) => item.isHiddenFolder || !globallyHiddenIds.has(appVisibilityId(item))), [allBaseItems, globallyHiddenIds]);
+  const baseItems = useMemo(() => allBaseItems.filter((item) => item.isHiddenFolder || ESSENTIAL_DIRECTORY_SLUGS.has(item.slug) || !globallyHiddenIds.has(appVisibilityId(item))), [allBaseItems, globallyHiddenIds]);
   const itemIds = useMemo(() => allBaseItems.map(launcherItemId), [allBaseItems]);
   const [config, setConfig] = useState(() => loadLauncherConfig(itemIds));
   const [draftConfig, setDraftConfig] = useState(() => loadLauncherConfig(itemIds));
@@ -374,7 +382,7 @@ export default function WebApps({ apps, language = 'vi', hasApiKey, currentUser,
   const workingConfig = normalizeLauncherConfig(editMode ? draftConfig : config, itemIds);
   const orderMap = useMemo(() => new Map(workingConfig.order.map((id, index) => [id, index])), [workingConfig.order]);
   const orderedItems = useMemo(() => [...baseItems].sort((a, b) => (orderMap.get(launcherItemId(a)) ?? 999) - (orderMap.get(launcherItemId(b)) ?? 999)), [baseItems, orderMap]);
-  const visibleItems = orderedItems.filter((item) => editMode || !workingConfig.hidden.includes(launcherItemId(item)));
+  const visibleItems = orderedItems.filter((item) => editMode || ESSENTIAL_DIRECTORY_SLUGS.has(item.slug) || !workingConfig.hidden.includes(launcherItemId(item)));
   const groupOptions = Array.isArray(workingConfig.groups) && workingConfig.groups.length ? workingConfig.groups : DEFAULT_LAUNCHER_GROUPS;
 
   const groupForItem = (item) => workingConfig.assignments[launcherItemId(item)] || defaultGroupOf(item);
