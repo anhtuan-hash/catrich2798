@@ -20,7 +20,7 @@
 
 html,body{color-scheme:light!important}
 
-.brian-option5-final-hide-legacy{
+.brian-option5-final-hide-legacy:not(#brian-option5-final-shell){
   display:none!important;
   visibility:hidden!important;
   height:0!important;
@@ -32,6 +32,29 @@ html,body{color-scheme:light!important}
   border:0!important;
   overflow:hidden!important;
   pointer-events:none!important
+}
+
+
+/* Runtime rescue: older shell observers may try to retire this new shell.
+   These ID-level important rules make that impossible. */
+#brian-option5-final-shell,
+#brian-option5-final-shell.brian-of5-retired,
+#brian-option5-final-shell.brian-o2-retired,
+#brian-option5-final-shell.brian-option-two-retired,
+#brian-option5-final-shell.brian-option5-final-hide-legacy,
+#brian-option5-final-shell[class*="retired"]{
+  display:grid!important;
+  visibility:visible!important;
+  opacity:1!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:12px 20px 0!important;
+  border:0!important;
+  overflow:visible!important;
+  pointer-events:auto!important
 }
 
 #brian-option5-final-shell,

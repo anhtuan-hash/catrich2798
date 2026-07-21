@@ -5,6 +5,49 @@
   const HIDDEN_CLASS = 'brian-option5-final-hide-legacy';
   const STYLE_ID = 'brian-option5-final-runtime-style';
   const NEWS_REFRESH_MS = 4000;
+  const LEGACY_HIDE_CLASSES = [
+    HIDDEN_CLASS,
+    'brian-of5-retired',
+    'brian-o2-retired',
+    'brian-option-two-retired',
+    'option-two-retired'
+  ];
+
+  function protectFinalShell(shell) {
+    if (!shell) return;
+
+    LEGACY_HIDE_CLASSES.forEach((className) => {
+      shell.classList.remove(className);
+    });
+
+    shell.removeAttribute('data-brian-of5-retired');
+    shell.removeAttribute('data-brian-option5-hidden');
+    shell.removeAttribute('aria-hidden');
+    shell.hidden = false;
+
+    const importantStyles = {
+      display: 'grid',
+      visibility: 'visible',
+      opacity: '1',
+      width: '100%',
+      height: 'auto',
+      minHeight: '0',
+      maxHeight: 'none',
+      margin: '0',
+      padding: '12px 20px 0',
+      border: '0',
+      overflow: 'visible',
+      pointerEvents: 'auto'
+    };
+
+    Object.entries(importantStyles).forEach(([property, value]) => {
+      const cssProperty = property.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+      shell.style.setProperty(cssProperty, value, 'important');
+    });
+
+    shell.dataset.brianOption5Protected = 'true';
+  }
+
 
   const NAV_ITEMS = [
     { label: 'Trang chủ', icon: 'home', tone: 'green', aliases: ['Trang chủ'], fallback: '#/home' },
@@ -51,7 +94,9 @@
   }
 
   function insideShell(node) {
-    return Boolean(node && node.closest && node.closest(`#${SHELL_ID}`));
+    if (!node) return false;
+    if (node.id === SHELL_ID) return true;
+    return Boolean(node.closest && node.closest(`#${SHELL_ID}`));
   }
 
   function visibleRect(node) {
@@ -134,6 +179,7 @@
 
   function hideLegacyRows() {
     legacyScanQueued = false;
+    protectFinalShell(document.getElementById(SHELL_ID));
     const best = findBestLegacyRows();
 
     ['news', 'menu', 'nav'].forEach((type) => {
@@ -157,6 +203,7 @@
       if (!insideShell(node)) node.classList.add(HIDDEN_CLASS);
     });
 
+    protectFinalShell(document.getElementById(SHELL_ID));
     updateTickerFromLegacy();
   }
 
@@ -502,7 +549,7 @@
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-      .${HIDDEN_CLASS}{
+      .${HIDDEN_CLASS}:not(#${SHELL_ID}){
         display:none!important;
         visibility:hidden!important;
         height:0!important;
@@ -539,14 +586,41 @@
       bindShell(shell);
     }
 
+    protectFinalShell(shell);
     hideLegacyRows();
 
     if (!observer) {
-      observer = new MutationObserver(queueLegacyScan);
+      observer = new MutationObserver((mutations) => {
+        const shell = document.getElementById(SHELL_ID);
+        let shellWasTouched = false;
+
+        for (const mutation of mutations) {
+          if (
+            mutation.target === shell ||
+            (shell && shell.contains && shell.contains(mutation.target))
+          ) {
+            shellWasTouched = true;
+            break;
+          }
+        }
+
+        if (shellWasTouched) protectFinalShell(shell);
+        queueLegacyScan();
+      });
+
       observer.observe(document.body, {
         childList: true,
         subtree: true,
-        characterData: true
+        characterData: true,
+        attributes: true,
+        attributeFilter: [
+          'class',
+          'style',
+          'hidden',
+          'aria-hidden',
+          'data-brian-of5-retired',
+          'data-brian-option5-hidden'
+        ]
       });
     }
 
@@ -558,8 +632,23 @@
   }
 
   function ensureMounted() {
-    if (!document.getElementById(SHELL_ID)) mount();
-    else hideLegacyRows();
+    const shell = document.getElementById(SHELL_ID);
+    if (!shell) {
+      mount();
+      return;
+    }
+
+    protectFinalShell(shell);
+    hideLegacyRows();
+
+    const computed = getComputedStyle(shell);
+    if (
+      computed.display === 'none' ||
+      computed.visibility === 'hidden' ||
+      shell.getBoundingClientRect().height < 80
+    ) {
+      protectFinalShell(shell);
+    }
   }
 
   if (document.readyState === 'loading') {
@@ -569,7 +658,7 @@
   }
 
   window.addEventListener('load', ensureMounted);
-  setInterval(ensureMounted, 1500);
+  setInterval(ensureMounted, 500);
 
   document.addEventListener('keydown', (event) => {
     if ((event.metaKey || event.ctrlKey) && String(event.key).toLowerCase() === 'k') {
