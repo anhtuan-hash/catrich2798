@@ -1,4 +1,4 @@
-const SHELL_ID = 'brian-option-five-shell';
+const SHELL_ID = 'brian-option-five-canonical-shell';
 const RETIRED_CLASS = 'brian-of5-retired';
 const NEWS_CACHE_KEY = 'brian-option-five-news-v1';
 const NEWS_CACHE_MAX_AGE = 6 * 60 * 60 * 1000;
@@ -119,21 +119,40 @@ function lightOnly() {
 }
 
 function retireLegacyShells() {
-  const candidates = [...document.querySelectorAll(
-    '#root header, #root nav, #root section, #root > div > div, #root > div > section, #root > div > header'
-  )];
+  const labels = [
+    'trang chủ', 'ứng dụng', 'chủ nhiệm', 'tổ chuyên môn',
+    'nhân sự', 'đọc báo', 'trò chơi', 'textlab'
+  ];
+
+  document.querySelectorAll([
+    '#brian-option-two-shell',
+    '#brian-option-two-global-shell',
+    '#brian-option-five-shell',
+    '.brian-option-two-shell',
+    '.brian-option-two-global-shell',
+    '.option-two-global-shell',
+    '[data-brian-option-two-shell]',
+    '[data-brian-legacy-navigation]'
+  ].join(',')).forEach((node) => {
+    if (!isInsideNewShell(node)) node.classList.add(RETIRED_CLASS);
+  });
+
+  const candidates = [...document.querySelectorAll([
+    'body > header', 'body > nav', 'body > section', 'body > div',
+    '#root header', '#root nav', '#root [role="navigation"]',
+    '#root > div > header', '#root > div > nav',
+    '#root > div > section', '#root > div > div'
+  ].join(','))];
 
   candidates.forEach((node) => {
-    if (isInsideNewShell(node) || node.classList.contains(RETIRED_CLASS)) return;
-    const text = normalize(node.textContent);
+    if (node.id === SHELL_ID || isInsideNewShell(node) || node.classList.contains(RETIRED_CLASS)) return;
     const rect = node.getBoundingClientRect();
-    if (rect.height < 25 || rect.height > 280) return;
-
-    const looksLikeNews = text.includes('tin vắn thời sự') && text.includes('xem bản tin');
+    if (rect.height < 28 || rect.height > 300 || rect.width < 300) return;
+    const text = normalize(node.textContent);
+    const navHits = labels.reduce((count, label) => count + (text.includes(label) ? 1 : 0), 0);
+    const looksLikeNews = text.includes('tin vắn thời sự') && (text.includes('xem bản tin') || text.includes('cập nhật'));
     const looksLikeUtility = text.includes('việc hôm nay') && text.includes('đồng bộ live');
-    const looksLikeNavigation = text.includes('trang chủ') && text.includes('ứng dụng')
-      && (text.includes('chủ nhiệm') || text.includes('tổ chuyên môn') || text.includes('textlab'));
-
+    const looksLikeNavigation = navHits >= 3 && text.includes('trang chủ') && text.includes('ứng dụng');
     if (looksLikeNews || looksLikeUtility || looksLikeNavigation) {
       node.classList.add(RETIRED_CLASS);
       node.dataset.brianOf5Retired = looksLikeNews ? 'news' : looksLikeUtility ? 'menu' : 'navigation';
@@ -428,7 +447,14 @@ function togglePopover(shell, target) {
 }
 
 function openCommandPalette() {
-  window.dispatchEvent(new CustomEvent('bes-command-palette-open'));
+  const legacyButton = findLegacyControl(['Tìm nhanh', 'Mở tìm kiếm', 'Command K', '⌘K']);
+  if (legacyButton) { legacyButton.click(); return; }
+  const globalOpeners = [window.openCommandPalette, window.__openCommandPalette, window.brianOpenCommandPalette];
+  for (const opener of globalOpeners) {
+    if (typeof opener === 'function') { opener(); return; }
+  }
+  ['bes-command-palette-open', 'brian:command-palette-open', 'open-command-palette']
+    .forEach((name) => window.dispatchEvent(new CustomEvent(name)));
 }
 
 function bindShell(shell) {
@@ -518,9 +544,15 @@ function bindShell(shell) {
 function mountShell() {
   lightOnly();
 
-  document.querySelectorAll(
-    '#brian-option-two-shell, #brian-option-two-global-shell, #brian-option-five-shell'
-  ).forEach((node) => node.remove());
+  document.querySelectorAll([
+    '#brian-option-two-shell',
+    '#brian-option-two-global-shell',
+    '#brian-option-five-shell',
+    '#brian-option-five-canonical-shell',
+    '.brian-option-two-shell',
+    '.brian-option-two-global-shell',
+    '.option-two-global-shell'
+  ].join(',')).forEach((node) => node.remove());
 
   const shell = document.createElement('div');
   shell.id = SHELL_ID;
@@ -546,7 +578,7 @@ function mountShell() {
   });
 }
 
-export function installOptionFiveShell() {
+export function installBrianOptionFiveCanonicalShell() {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', mountShell, { once: true });
   } else {

@@ -49,11 +49,13 @@ import TextLabGlobalShortcut from './components/TextLabGlobalShortcut.jsx';
 import './styles/notification-center-recovery.css';
 import { installNotificationCenterRecovery } from './utils/notificationCenterRecovery.js';
 import { installPersonnelEntryBridge } from './utils/personnelEntryBridge.js';
-import './styles/personnelEntryBridge.css';
-import './styles/option-five-global-shell.css';
-import { installOptionFiveShell } from './utils/optionFiveGlobalShell.js';
+import './styles/brian-option-five-canonical-shell.css';
+import { installBrianOptionFiveCanonicalShell } from './utils/brianOptionFiveCanonicalShell.js';
 
-installOptionFiveShell();
+installBrianOptionFiveCanonicalShell();
+import './styles/personnelEntryBridge.css';
+
+
 installPersonnelEntryBridge();
 
 installNotificationCenterRecovery();
@@ -707,5 +709,3 @@ createRoot(document.getElementById('root')).render(
     <><App /><TextLabGlobalShortcut /></>
   </AppErrorBoundary>,
 );
-
-queueMicrotask(() => installOptionTwoGlobalShell());
