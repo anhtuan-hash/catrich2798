@@ -35,6 +35,39 @@ html,body{color-scheme:light!important}
 }
 
 
+
+/* Content restore V3: legacy-hide classes are forbidden from hiding React. */
+#root,
+#root.brian-option5-final-hide-legacy,
+#root.brian-of5-retired,
+#root.brian-o2-retired,
+#root.brian-option-two-retired,
+#root.option-two-retired{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:1px!important;
+  max-height:none!important;
+  overflow:visible!important;
+  pointer-events:auto!important
+}
+
+#root .brian-option5-final-hide-legacy,
+#root .brian-of5-retired,
+#root .brian-o2-retired,
+#root .brian-option-two-retired,
+#root .option-two-retired{
+  display:revert!important;
+  visibility:visible!important;
+  opacity:1!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+  pointer-events:auto!important
+}
+
 /* Runtime rescue: older shell observers may try to retire this new shell.
    These ID-level important rules make that impossible. */
 #brian-option5-final-shell,

@@ -99,27 +99,89 @@
     return Boolean(node.closest && node.closest(`#${SHELL_ID}`));
   }
 
-  function visibleRect(node) {
-    try {
-      const rect = node.getBoundingClientRect();
-      return {
-        rect,
-        valid:
-          rect.width >= Math.max(500, window.innerWidth * 0.52) &&
-          rect.height >= 34 &&
-          rect.height <= 240 &&
-          rect.top >= -30 &&
-          rect.top <= 560
-      };
-    } catch {
-      return { rect: null, valid: false };
+  function restoreApplicationContent() {
+    const root = document.getElementById('root');
+    if (!root) return;
+
+    const suspiciousSelector = [
+      `#root.${HIDDEN_CLASS}`,
+      `#root .${HIDDEN_CLASS}`,
+      '#root.brian-of5-retired',
+      '#root .brian-of5-retired',
+      '#root.brian-o2-retired',
+      '#root .brian-o2-retired',
+      '#root.brian-option-two-retired',
+      '#root .brian-option-two-retired',
+      '#root.option-two-retired',
+      '#root .option-two-retired',
+      '#root[data-brian-option5-hidden]',
+      '#root [data-brian-option5-hidden]',
+      '#root[data-brian-of5-retired]',
+      '#root [data-brian-of5-retired]'
+    ].join(',');
+
+    const nodes = new Set([root, ...document.querySelectorAll(suspiciousSelector)]);
+
+    nodes.forEach((node) => {
+      LEGACY_HIDE_CLASSES.forEach((className) => node.classList.remove(className));
+      node.removeAttribute('data-brian-option5-hidden');
+      node.removeAttribute('data-brian-of5-retired');
+      node.removeAttribute('aria-hidden');
+      node.hidden = false;
+
+      [
+        'display',
+        'visibility',
+        'opacity',
+        'width',
+        'height',
+        'min-height',
+        'max-height',
+        'margin',
+        'padding',
+        'border',
+        'overflow',
+        'pointer-events'
+      ].forEach((property) => node.style.removeProperty(property));
+    });
+
+    if (getComputedStyle(root).display === 'none') {
+      root.style.setProperty('display', 'block', 'important');
     }
+    root.style.setProperty('visibility', 'visible', 'important');
+    root.style.setProperty('opacity', '1', 'important');
+    root.style.setProperty('width', '100%', 'important');
+    root.style.removeProperty('height');
+    root.style.removeProperty('max-height');
+    root.style.removeProperty('overflow');
+    root.dataset.brianOption5ContentRestored = 'true';
   }
 
-  function classify(node) {
-    if (!node || insideShell(node)) return null;
-    const { rect, valid } = visibleRect(node);
-    if (!valid) return null;
+  function outsideApplication(node) {
+    if (!node || insideShell(node)) return false;
+    const root = document.getElementById('root');
+    if (!root) return true;
+    if (node === root || root.contains(node) || node.contains(root)) return false;
+    return true;
+  }
+
+  function topRowClassification(node) {
+    if (!outsideApplication(node)) return null;
+
+    let rect;
+    try {
+      rect = node.getBoundingClientRect();
+    } catch {
+      return null;
+    }
+
+    if (
+      rect.width < Math.max(500, window.innerWidth * 0.52) ||
+      rect.height < 32 ||
+      rect.height > 260 ||
+      rect.top < -40 ||
+      rect.top > 620
+    ) return null;
 
     const text = normalize(node.textContent);
     const isNews =
@@ -131,20 +193,17 @@
       text.includes('tài khoản') &&
       text.includes('đồng bộ live');
 
-    const requiredNav = [
+    const navHits = [
       'trang chủ',
       'ứng dụng',
       'chủ nhiệm',
-      'tổ chuyên môn'
-    ];
-    const navHits = requiredNav.filter((label) => text.includes(label)).length;
-    const isNav =
-      navHits >= 3 &&
-      (
-        text.includes('luyện thi thpt') ||
-        text.includes('đọc báo') ||
-        text.includes('trò chơi')
-      );
+      'tổ chuyên môn',
+      'luyện thi thpt',
+      'đọc báo',
+      'trò chơi'
+    ].filter((label) => text.includes(label)).length;
+
+    const isNav = navHits >= 4;
 
     if (isNews) return { type: 'news', area: rect.width * rect.height };
     if (isMenu) return { type: 'menu', area: rect.width * rect.height };
@@ -152,42 +211,19 @@
     return null;
   }
 
-  function findBestLegacyRows() {
-    const selectors = [
-      'body > header',
-      'body > nav',
-      'body > section',
-      'body > div',
-      '#root > header',
-      '#root > nav',
-      '#root > section',
-      '#root > div',
-      '#root [role="navigation"]',
-      '#root div'
-    ].join(',');
+  function findLegacyRowsOutsideRoot() {
+    const root = document.getElementById('root');
+    const shell = document.getElementById(SHELL_ID);
+    const candidates = new Set();
 
-    const best = { news: null, menu: null, nav: null };
-    document.querySelectorAll(selectors).forEach((node) => {
-      const result = classify(node);
-      if (!result) return;
-      if (!best[result.type] || result.area < best[result.type].area) {
-        best[result.type] = { node, area: result.area };
+    [...document.body.children].forEach((node) => {
+      if (node !== root && node !== shell && !node.contains(root)) {
+        candidates.add(node);
+        node.querySelectorAll(':scope > header, :scope > nav, :scope > section, :scope > div')
+          .forEach((child) => {
+            if (outsideApplication(child)) candidates.add(child);
+          });
       }
-    });
-    return best;
-  }
-
-  function hideLegacyRows() {
-    legacyScanQueued = false;
-    protectFinalShell(document.getElementById(SHELL_ID));
-    const best = findBestLegacyRows();
-
-    ['news', 'menu', 'nav'].forEach((type) => {
-      const entry = best[type];
-      if (!entry) return;
-      entry.node.classList.add(HIDDEN_CLASS);
-      entry.node.setAttribute('data-brian-option5-hidden', type);
-      if (type === 'news') legacyNews = entry.node;
     });
 
     document.querySelectorAll([
@@ -198,12 +234,90 @@
       '.brian-option-two-shell',
       '.brian-option-two-global-shell',
       '.option-two-global-shell',
-      '[data-nav-key="textlab"]'
+      '[data-brian-legacy-navigation]'
     ].join(',')).forEach((node) => {
-      if (!insideShell(node)) node.classList.add(HIDDEN_CLASS);
+      if (outsideApplication(node)) candidates.add(node);
     });
 
-    protectFinalShell(document.getElementById(SHELL_ID));
+    const best = { news: null, menu: null, nav: null };
+    candidates.forEach((node) => {
+      const result = topRowClassification(node);
+      if (!result) return;
+      if (!best[result.type] || result.area < best[result.type].area) {
+        best[result.type] = { node, area: result.area };
+      }
+    });
+
+    return best;
+  }
+
+  function hideFloatingPersonnelBridge() {
+    const root = document.getElementById('root');
+    const shell = document.getElementById(SHELL_ID);
+
+    [...document.body.children].forEach((node) => {
+      if (node === root || node === shell || node.contains(root)) return;
+
+      const text = normalize(node.textContent);
+      if (text !== 'nhân sự' && text !== 'nhan su') return;
+
+      let rect;
+      try {
+        rect = node.getBoundingClientRect();
+      } catch {
+        return;
+      }
+
+      const position = getComputedStyle(node).position;
+      const looksFloating =
+        rect.width <= 320 &&
+        rect.height <= 110 &&
+        (
+          ['fixed', 'absolute', 'sticky'].includes(position) ||
+          rect.bottom >= window.innerHeight - 180
+        );
+
+      if (looksFloating) {
+        node.classList.add(HIDDEN_CLASS);
+        node.dataset.brianOption5Hidden = 'personnel-bridge';
+      }
+    });
+  }
+
+  function hideLegacyRows() {
+    legacyScanQueued = false;
+    const shell = document.getElementById(SHELL_ID);
+
+    protectFinalShell(shell);
+    restoreApplicationContent();
+
+    const best = findLegacyRowsOutsideRoot();
+
+    ['news', 'menu', 'nav'].forEach((type) => {
+      const entry = best[type];
+      if (!entry || !outsideApplication(entry.node)) return;
+
+      if (type === 'news') legacyNews = entry.node;
+      entry.node.classList.add(HIDDEN_CLASS);
+      entry.node.dataset.brianOption5Hidden = type;
+    });
+
+    document.querySelectorAll([
+      '#brian-option-two-shell',
+      '#brian-option-two-global-shell',
+      '#brian-option-five-shell',
+      '#brian-option-five-canonical-shell',
+      '.brian-option-two-shell',
+      '.brian-option-two-global-shell',
+      '.option-two-global-shell',
+      '[data-brian-legacy-navigation]'
+    ].join(',')).forEach((node) => {
+      if (outsideApplication(node)) node.classList.add(HIDDEN_CLASS);
+    });
+
+    hideFloatingPersonnelBridge();
+    restoreApplicationContent();
+    protectFinalShell(shell);
     updateTickerFromLegacy();
   }
 
@@ -567,6 +681,7 @@
 
   function mount() {
     installStylesheetFallback();
+    restoreApplicationContent();
 
     document.documentElement.dataset.theme = 'light';
     document.documentElement.style.colorScheme = 'light';
@@ -586,6 +701,7 @@
       bindShell(shell);
     }
 
+    restoreApplicationContent();
     protectFinalShell(shell);
     hideLegacyRows();
 
@@ -604,6 +720,7 @@
           }
         }
 
+        restoreApplicationContent();
         if (shellWasTouched) protectFinalShell(shell);
         queueLegacyScan();
       });
@@ -638,8 +755,10 @@
       return;
     }
 
+    restoreApplicationContent();
     protectFinalShell(shell);
     hideLegacyRows();
+    restoreApplicationContent();
 
     const computed = getComputedStyle(shell);
     if (
