@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { addBankItems, addHistoryEntry } from '../utils/library.js';
 import { publishTextLabResource } from '../utils/textlabResourcePublisher.js';
 
+const TEXTLAB_RELEASE = '20260721-premium-v3';
+
 export default function TextLabActivities({ language = 'vi', fontScale = 100, currentUser }) {
   const frameRef = useRef(null);
   const shellRef = useRef(null);
@@ -10,7 +12,7 @@ export default function TextLabActivities({ language = 'vi', fontScale = 100, cu
   const [publishNotice, setPublishNotice] = useState('');
 
   const appUrl = useMemo(
-    () => `${import.meta.env.BASE_URL || '/'}embedded/brian-textlab-activities/index.html?embedded=1`,
+    () => `${import.meta.env.BASE_URL || '/'}embedded/brian-textlab-activities/index.html?embedded=1&release=${TEXTLAB_RELEASE}`,
     []
   );
 

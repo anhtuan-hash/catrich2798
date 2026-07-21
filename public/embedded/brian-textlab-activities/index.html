@@ -3,358 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="textlab-export-release" content="premium-v2" />
   <title>Brian TextLab Activities</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="proposal-4-workspace.css" />
-  <link rel="stylesheet" href="preview-tools.css" />
-  <link rel="stylesheet" href="resource-publish.css" />
+  <link rel="stylesheet" href="style.css?v=20260721-premium-v2" />
+  <link rel="stylesheet" href="proposal-4-workspace.css?v=20260721-premium-v2" />
+  <link rel="stylesheet" href="preview-tools.css?v=20260721-premium-v2" />
+  <link rel="stylesheet" href="resource-publish.css?v=20260721-premium-v2" />
 </head>
 <body>
   <div class="app-shell proposal-workspace">
     <main class="grid-layout proposal-grid">
       <section class="panel templates-panel proposal-card" aria-labelledby="templatesHeading">
         <div class="panel-head proposal-panel-head">
-          <div class="section-heading">
-            <span class="step">1</span>
-            <div>
-              <h2 id="templatesHeading">Choose Template</h2>
-              <p>Chọn dạng hoạt động muốn tạo.</p>
-            </div>
-          </div>
-
-          <label class="template-search-wrap">
-            <span aria-hidden="true">⌕</span>
-            <input
-              id="searchTemplates"
-              class="search"
-              placeholder="Tìm template..."
-              autocomplete="off"
-            />
-          </label>
+          <div class="section-heading"><span class="step">1</span><div><h2 id="templatesHeading">Choose Template</h2><p>Chọn dạng hoạt động muốn tạo.</p></div></div>
+          <label class="template-search-wrap"><span aria-hidden="true">⌕</span><input id="searchTemplates" class="search" placeholder="Tìm template..." autocomplete="off" /></label>
         </div>
-
-        <div class="template-scroll-shell">
-          <button
-            class="template-scroll-button previous"
-            id="templatePrev"
-            type="button"
-            aria-label="Cuộn template sang trái"
-          >‹</button>
-
-          <div id="templateGrid" class="template-grid" tabindex="0"></div>
-
-          <button
-            class="template-scroll-button next"
-            id="templateNext"
-            type="button"
-            aria-label="Cuộn template sang phải"
-          >›</button>
-        </div>
-
-        <div class="template-info proposal-tip">
-          <span class="proposal-tip-icon" aria-hidden="true">✦</span>
-          <div>
-            <strong id="templateTitle">Quick Quiz</strong>
-            <span id="templateDescription">Tạo bài trắc nghiệm tự chấm điểm.</span>
-            <small id="templateHint">Chọn template để nạp sample tự động.</small>
-          </div>
-        </div>
+        <div class="template-scroll-shell"><button class="template-scroll-button previous" id="templatePrev" type="button" aria-label="Cuộn template sang trái">‹</button><div id="templateGrid" class="template-grid" tabindex="0"></div><button class="template-scroll-button next" id="templateNext" type="button" aria-label="Cuộn template sang phải">›</button></div>
+        <div class="template-info proposal-tip"><span class="proposal-tip-icon" aria-hidden="true">✦</span><div><strong id="templateTitle">Quick Quiz</strong><span id="templateDescription">Tạo bài trắc nghiệm tự chấm điểm.</span><small id="templateHint">Chọn template để nạp sample tự động.</small></div></div>
       </section>
 
       <section class="panel input-panel proposal-card" aria-labelledby="contentHeading">
         <div class="panel-head proposal-panel-head">
-          <div class="section-heading">
-            <span class="step">2</span>
-            <div>
-              <h2 id="contentHeading">Your Content</h2>
-              <p>Sample đúng định dạng được nạp ngay khi chọn template.</p>
-            </div>
-          </div>
-
-          <div class="mini-actions">
-            <button class="btn ghost" id="btnSample" type="button">⇩ Load sample</button>
-            <button class="btn danger-outline" id="btnClear" type="button">⌫ Clear</button>
-          </div>
+          <div class="section-heading"><span class="step">2</span><div><h2 id="contentHeading">Your Content</h2><p>Sample đúng định dạng được nạp ngay khi chọn template.</p></div></div>
+          <div class="mini-actions"><button class="btn ghost" id="btnSample" type="button">⇩ Load sample</button><button class="btn danger-outline" id="btnClear" type="button">⌫ Clear</button></div>
         </div>
-
-        <div class="code-editor-shell">
-          <pre id="contentLineNumbers" class="editor-line-numbers" aria-hidden="true">1</pre>
-          <textarea
-            id="contentInput"
-            spellcheck="false"
-            wrap="off"
-            placeholder="Chọn template để xem định dạng nhập liệu..."
-          ></textarea>
-        </div>
-
-        <div class="input-tools proposal-input-tools">
-          <div class="input-tools-left">
-            <label class="file-upload">
-              ⇩ Upload .txt/.csv
-              <input type="file" id="fileInput" accept=".txt,.csv,.tsv,.md" />
-            </label>
-            <button class="btn ghost" id="btnNormalize" type="button">✦ Auto clean</button>
-          </div>
-
-          <div class="editor-metrics" aria-live="polite">
-            <span>Dòng: <b id="contentLineCount">1</b></span>
-            <span>Ký tự: <b id="contentCharCount">0</b></span>
-          </div>
-        </div>
-
-        <div class="alert hidden" id="inputAlert">
-          Hãy nhập nội dung trước khi tạo hoạt động.
-        </div>
+        <div class="code-editor-shell"><pre id="contentLineNumbers" class="editor-line-numbers" aria-hidden="true">1</pre><textarea id="contentInput" spellcheck="false" wrap="off" placeholder="Chọn template để xem định dạng nhập liệu..."></textarea></div>
+        <div class="input-tools proposal-input-tools"><div class="input-tools-left"><label class="file-upload">⇩ Upload .txt/.csv<input type="file" id="fileInput" accept=".txt,.csv,.tsv,.md" /></label><button class="btn ghost" id="btnNormalize" type="button">✦ Auto clean</button></div><div class="editor-metrics" aria-live="polite"><span>Dòng: <b id="contentLineCount">1</b></span><span>Ký tự: <b id="contentCharCount">0</b></span></div></div>
+        <div class="alert hidden" id="inputAlert">Hãy nhập nội dung trước khi tạo hoạt động.</div>
       </section>
 
       <section class="panel preview-panel proposal-card" aria-labelledby="previewHeading">
         <div class="panel-head proposal-panel-head preview-heading">
-          <div class="section-heading">
-            <span class="step">3</span>
-            <div>
-              <h2 id="previewHeading">Activity Preview</h2>
-              <p>Xem thử, tương tác và kiểm tra hoạt động.</p>
-            </div>
-          </div>
-
-          <div class="zoom-controls">
-            <button class="btn icon" id="zoomOut" type="button" aria-label="Thu nhỏ">−</button>
-            <span id="zoomLevel">100%</span>
-            <button class="btn icon" id="zoomIn" type="button" aria-label="Phóng to">+</button>
-            <button
-              class="btn preview-fullscreen-button"
-              id="btnPreviewFullscreen"
-              type="button"
-              aria-label="Mở Activity Preview toàn màn hình"
-              aria-pressed="false"
-            >
-              <span class="preview-fullscreen-icon" aria-hidden="true">⛶</span>
-              <span class="preview-fullscreen-label">Toàn màn hình</span>
-            </button>
-          </div>
+          <div class="section-heading"><span class="step">3</span><div><h2 id="previewHeading">Activity Preview</h2><p>Xem thử, tương tác và kiểm tra hoạt động.</p></div></div>
+          <div class="zoom-controls"><button class="btn icon" id="zoomOut" type="button" aria-label="Thu nhỏ">−</button><span id="zoomLevel">100%</span><button class="btn icon" id="zoomIn" type="button" aria-label="Phóng to">+</button><button class="btn preview-fullscreen-button" id="btnPreviewFullscreen" type="button" aria-label="Mở Activity Preview toàn màn hình" aria-pressed="false"><span class="preview-fullscreen-icon" aria-hidden="true">⛶</span><span class="preview-fullscreen-label">Toàn màn hình</span></button></div>
         </div>
-
         <div class="preview-workbench">
-          <nav class="preview-template-rail" aria-label="Danh sách template">
-            <div class="preview-rail-title">
-              <strong>Templates</strong>
-              <span>38 hoạt động</span>
-            </div>
-            <div id="previewTemplateNav" class="preview-template-nav"></div>
-          </nav>
-
-          <div class="preview-shell proposal-preview-shell">
-            <div
-              id="activityPreview"
-              class="activity-stage empty"
-              aria-live="polite"
-            >Activity preview appears here...</div>
-          </div>
-
-          <aside class="preview-guide">
-            <div class="preview-guide-head">
-              <span class="guide-icon" aria-hidden="true">i</span>
-              <div>
-                <strong>Hướng dẫn</strong>
-                <small id="guideTemplateName">Quick Quiz</small>
-              </div>
-            </div>
-
-            <ul id="guideList" class="guide-list">
-              <li>Chọn đáp án đúng nhất.</li>
-              <li>Mỗi câu chỉ được trả lời một lần.</li>
-              <li>Hoàn thành để xem điểm và tổng kết.</li>
-            </ul>
-
-            <button class="btn primary preview-start" id="btnFinish" type="button">
-              ▶ Bắt đầu làm bài
-            </button>
-          </aside>
+          <nav class="preview-template-rail" aria-label="Danh sách template"><div class="preview-rail-title"><strong>Templates</strong><span>38 hoạt động</span></div><div id="previewTemplateNav" class="preview-template-nav"></div></nav>
+          <div class="preview-shell proposal-preview-shell"><div id="activityPreview" class="activity-stage empty" aria-live="polite">Activity preview appears here...</div></div>
+          <aside class="preview-guide"><div class="preview-guide-head"><span class="guide-icon" aria-hidden="true">i</span><div><strong>Hướng dẫn</strong><small id="guideTemplateName">Quick Quiz</small></div></div><ul id="guideList" class="guide-list"><li>Chọn đáp án đúng nhất.</li><li>Mỗi câu chỉ được trả lời một lần.</li><li>Hoàn thành để xem điểm và tổng kết.</li></ul><button class="btn primary preview-start" id="btnFinish" type="button">▶ Bắt đầu làm bài</button></aside>
         </div>
       </section>
 
       <section class="panel ready-panel proposal-savebar" id="readyPanel" aria-labelledby="saveHeading">
-        <div class="savebar-heading">
-          <span class="step">4</span>
-          <div>
-            <h2 id="saveHeading">Lưu &amp; Tải hoạt động</h2>
-            <p>Quản lý hoạt động của bạn.</p>
-          </div>
-        </div>
-
-        <div class="ready-actions proposal-ready-actions">
-          <button class="btn soft-action" id="btnDownloadSample" type="button">
-            ⇩ Tải hoạt động mẫu
-          </button>
-          <button class="btn soft-action" id="btnSaveDevice" type="button">
-            ▣ Lưu vào thiết bị
-          </button>
-          <button class="btn soft-action" id="btnSaveLibrary" type="button">
-            ▥ Thêm vào Kho học liệu
-          </button>
-          <button class="btn soft-action" id="btnAddBank" type="button">
-            ▤ Thêm vào Ngân hàng câu hỏi
-          </button>
-          <button class="btn primary" id="btnDownload" type="button">
-            ⇩ Download my work (.html)
-          </button>
-          <button class="btn danger" id="btnNew" type="button">
-            ✹ Tạo hoạt động mới
-          </button>
-        </div>
-
-        <div id="activityReady" class="activity-stage hidden"></div>
-        <div class="alert hidden" id="libraryAlert"></div>
+        <div class="savebar-heading"><span class="step">4</span><div><h2 id="saveHeading">Lưu &amp; Tải hoạt động</h2><p>Quản lý hoạt động của bạn.</p></div></div>
+        <div class="ready-actions proposal-ready-actions"><button class="btn soft-action" id="btnDownloadSample" type="button">⇩ Tải hoạt động mẫu</button><button class="btn soft-action" id="btnSaveDevice" type="button">▣ Lưu vào thiết bị</button><button class="btn soft-action" id="btnSaveLibrary" type="button">▥ Thêm vào Kho học liệu</button><button class="btn soft-action" id="btnAddBank" type="button">▤ Thêm vào Ngân hàng câu hỏi</button><button class="btn primary" id="btnDownload" type="button">⇩ Download my work (.html)</button><button class="btn danger" id="btnNew" type="button">✹ Tạo hoạt động mới</button></div>
+        <div id="activityReady" class="activity-stage hidden"></div><div class="alert hidden" id="libraryAlert"></div>
       </section>
     </main>
 
-    <footer class="studio-footer">
-      <div class="studio-footer-brand">
-        <div class="studio-footer-logo">B</div>
-        <div>
-          <strong>Brian English Studio</strong>
-          <span>Teach Smarter, Learn Better</span>
-        </div>
-      </div>
-
-      <div class="studio-footer-column">
-        <strong>Về chúng tôi</strong>
-        <span>Giới thiệu</span>
-        <span>Điều khoản</span>
-        <span>Chính sách</span>
-      </div>
-
-      <div class="studio-footer-column">
-        <strong>Hỗ trợ</strong>
-        <span>Hướng dẫn sử dụng</span>
-        <span>Câu hỏi thường gặp</span>
-        <span>Liên hệ</span>
-      </div>
-
-      <div class="studio-footer-column">
-        <strong>Kết nối</strong>
-        <div class="studio-socials" aria-label="Mạng xã hội">
-          <span>f</span><span>◎</span><span>▶</span><span>♪</span>
-        </div>
-        <small>© 2026 Brian English Studio.</small>
-      </div>
-    </footer>
-
-    <div class="compatibility-controls" aria-hidden="true">
-      <select id="styleSelect" tabindex="-1">
-        <option value="flat" selected>Blue Flat</option>
-      </select>
-      <button id="btnGuideVi" type="button" tabindex="-1">Hướng dẫn</button>
-      <button id="btnGuideEn" type="button" tabindex="-1">Instructions</button>
-      <button id="btnOnlineGuide" type="button" tabindex="-1">Online guide</button>
-    </div>
+    <footer class="studio-footer"><div class="studio-footer-brand"><div class="studio-footer-logo">B</div><div><strong>Brian English Studio</strong><span>Teach Smarter, Learn Better</span></div></div><div class="studio-footer-column"><strong>Về chúng tôi</strong><span>Giới thiệu</span><span>Điều khoản</span><span>Chính sách</span></div><div class="studio-footer-column"><strong>Hỗ trợ</strong><span>Hướng dẫn sử dụng</span><span>Câu hỏi thường gặp</span><span>Liên hệ</span></div><div class="studio-footer-column"><strong>Kết nối</strong><div class="studio-socials" aria-label="Mạng xã hội"><span>f</span><span>◎</span><span>▶</span><span>♪</span></div><small>© 2026 Brian English Studio.</small></div></footer>
+    <div class="compatibility-controls" aria-hidden="true"><select id="styleSelect" tabindex="-1"><option value="flat" selected>Blue Flat</option></select><button id="btnGuideVi" type="button" tabindex="-1">Hướng dẫn</button><button id="btnGuideEn" type="button" tabindex="-1">Instructions</button><button id="btnOnlineGuide" type="button" tabindex="-1">Online guide</button></div>
   </div>
 
-  <dialog id="modalVi" class="modal">
-    <button class="modal-close" data-close>×</button>
-    <h3>Hướng dẫn sử dụng Brian TextLab Activities</h3>
-    <ol>
-      <li>Chọn một template trong hàng cuộn ngang.</li>
-      <li>Sample đúng định dạng sẽ được nạp ngay vào phần Your Content.</li>
-      <li>Chỉnh sửa dữ liệu và xem preview cập nhật trực tiếp.</li>
-      <li>Bấm Bắt đầu làm bài để khởi tạo lại lượt chơi.</li>
-      <li>Thêm vào Kho học liệu để chia sẻ và chạy trực tiếp, hoặc tải HTML để sử dụng offline.</li>
-    </ol>
-  </dialog>
-
-  <dialog id="modalEn" class="modal">
-    <button class="modal-close" data-close>×</button>
-    <h3>TextLab Instructions</h3>
-    <ol>
-      <li>Choose a template from the horizontal scroller.</li>
-      <li>The correct sample loads automatically.</li>
-      <li>Edit the content and interact with the live preview.</li>
-      <li>Publish to the Resource Library for direct browser play or export for offline use.</li>
-    </ol>
-  </dialog>
-
-  <dialog id="modalOnline" class="modal">
-    <button class="modal-close" data-close>×</button>
-    <h3>Đưa sản phẩm lên online</h3>
-    <ol>
-      <li>Bấm “Thêm vào Kho học liệu” để chia sẻ cho giáo viên trong tổ.</li>
-      <li>Học liệu đã duyệt có thể chạy trực tiếp trong Kho học liệu, không cần tải xuống.</li>
-      <li>Download my work vẫn tạo một tệp HTML dùng local khi cần.</li>
-    </ol>
-  </dialog>
+  <dialog id="modalVi" class="modal"><button class="modal-close" data-close>×</button><h3>Hướng dẫn sử dụng Brian TextLab Activities</h3><ol><li>Chọn một template trong hàng cuộn ngang.</li><li>Sample đúng định dạng sẽ được nạp ngay vào phần Your Content.</li><li>Chỉnh sửa dữ liệu và xem preview cập nhật trực tiếp.</li><li>Bấm Bắt đầu làm bài để khởi tạo lại lượt chơi.</li><li>Thêm vào Kho học liệu để chia sẻ và chạy trực tiếp, hoặc tải HTML để sử dụng offline.</li></ol></dialog>
+  <dialog id="modalEn" class="modal"><button class="modal-close" data-close>×</button><h3>TextLab Instructions</h3><ol><li>Choose a template from the horizontal scroller.</li><li>The correct sample loads automatically.</li><li>Edit the content and interact with the live preview.</li><li>Publish to the Resource Library for direct browser play or export for offline use.</li></ol></dialog>
+  <dialog id="modalOnline" class="modal"><button class="modal-close" data-close>×</button><h3>Đưa sản phẩm lên online</h3><ol><li>Bấm “Thêm vào Kho học liệu” để chia sẻ cho giáo viên trong tổ.</li><li>Học liệu đã duyệt có thể chạy trực tiếp trong Kho học liệu, không cần tải xuống.</li><li>Download my work vẫn tạo một tệp HTML dùng local khi cần.</li></ol></dialog>
 
   <dialog id="resourcePublishModal" class="resource-publish-dialog">
-    <header>
-      <div>
-        <span>BRIAN RESOURCE LIBRARY</span>
-        <h2>Thêm vào Kho học liệu</h2>
-        <p>Đóng gói hoạt động thành HTML tự chứa để giáo viên có thể chạy trực tiếp trong kho.</p>
-      </div>
-      <button type="button" data-resource-publish-close aria-label="Đóng">×</button>
-    </header>
+    <header><div><span>BRIAN RESOURCE LIBRARY</span><h2>Thêm vào Kho học liệu</h2><p>Đóng gói hoạt động thành HTML tự chứa để giáo viên có thể chạy trực tiếp trong kho.</p></div><button type="button" data-resource-publish-close aria-label="Đóng">×</button></header>
     <form id="resourcePublishForm" class="resource-publish-form">
-      <label>Tên học liệu
-        <input name="title" required maxlength="160" placeholder="Ví dụ: Verb Tenses Challenge – Unit 1" />
-      </label>
-      <label>Mô tả
-        <textarea name="description" maxlength="800" placeholder="Mục tiêu, nội dung và cách sử dụng hoạt động..."></textarea>
-      </label>
-      <div class="resource-publish-grid">
-        <label>Danh mục
-          <select name="category">
-            <option value="worksheet">Worksheet / Hoạt động</option>
-            <option value="assessment">Kiểm tra – đánh giá</option>
-            <option value="thpt-exam">Luyện thi THPT</option>
-            <option value="gifted">Bồi dưỡng học sinh giỏi</option>
-            <option value="audio">Listening / Audio</option>
-            <option value="other">Khác</option>
-          </select>
-        </label>
-        <label>Khối lớp
-          <input name="grade" placeholder="10, 11, 12" />
-        </label>
-        <label>CEFR
-          <input name="cefr" placeholder="B1–C1" />
-        </label>
-      </div>
-      <div class="resource-publish-grid">
-        <label>Năm học
-          <input name="schoolYear" placeholder="2026–2027" />
-        </label>
-        <label>Unit / Chủ đề
-          <input name="unitName" placeholder="Unit 1 · A Long and Healthy Life" />
-        </label>
-        <label>Từ khóa
-          <input name="tags" placeholder="grammar, tenses, interactive" />
-        </label>
-      </div>
-      <label>Kỹ năng
-        <div class="resource-publish-skills">
-          <button type="button" data-resource-skill="Vocabulary">Vocabulary</button>
-          <button type="button" data-resource-skill="Grammar">Grammar</button>
-          <button type="button" data-resource-skill="Reading">Reading</button>
-          <button type="button" data-resource-skill="Listening">Listening</button>
-          <button type="button" data-resource-skill="Speaking">Speaking</button>
-          <button type="button" data-resource-skill="Writing">Writing</button>
-          <button type="button" data-resource-skill="Pronunciation">Pronunciation</button>
-        </div>
-      </label>
-      <label class="resource-publish-check">
-        <input type="checkbox" name="allowDownload" />
-        <span>Cho phép giáo viên tải bản HTML. Bỏ chọn để chỉ chạy trực tiếp trong Kho học liệu.</span>
-      </label>
+      <label>Tên học liệu<input name="title" required maxlength="160" placeholder="Ví dụ: Verb Tenses Challenge – Unit 1" /></label>
+      <label>Mô tả<textarea name="description" maxlength="800" placeholder="Mục tiêu, nội dung và cách sử dụng hoạt động..."></textarea></label>
+      <div class="resource-publish-grid"><label>Danh mục<select name="category"><option value="worksheet">Worksheet / Hoạt động</option><option value="assessment">Kiểm tra – đánh giá</option><option value="thpt-exam">Luyện thi THPT</option><option value="gifted">Bồi dưỡng học sinh giỏi</option><option value="audio">Listening / Audio</option><option value="other">Khác</option></select></label><label>Khối lớp<input name="grade" placeholder="10, 11, 12" /></label><label>CEFR<input name="cefr" placeholder="B1–C1" /></label></div>
+      <div class="resource-publish-grid"><label>Năm học<input name="schoolYear" placeholder="2026–2027" /></label><label>Unit / Chủ đề<input name="unitName" placeholder="Unit 1 · A Long and Healthy Life" /></label><label>Từ khóa<input name="tags" placeholder="grammar, tenses, interactive" /></label></div>
+      <label>Kỹ năng<div class="resource-publish-skills"><button type="button" data-resource-skill="Vocabulary">Vocabulary</button><button type="button" data-resource-skill="Grammar">Grammar</button><button type="button" data-resource-skill="Reading">Reading</button><button type="button" data-resource-skill="Listening">Listening</button><button type="button" data-resource-skill="Speaking">Speaking</button><button type="button" data-resource-skill="Writing">Writing</button><button type="button" data-resource-skill="Pronunciation">Pronunciation</button></div></label>
+      <label class="resource-publish-check"><input type="checkbox" name="allowDownload" /><span>Cho phép giáo viên tải bản HTML. Bỏ chọn để chỉ chạy trực tiếp trong Kho học liệu.</span></label>
       <div id="resourcePublishStatus" class="resource-publish-status" role="status"></div>
-      <div class="resource-publish-actions">
-        <button type="button" data-resource-publish-close>Hủy</button>
-        <button type="submit" class="primary" id="resourcePublishSubmit">Thêm vào Kho học liệu</button>
-      </div>
+      <div class="resource-publish-actions"><button type="button" data-resource-publish-close>Hủy</button><button type="submit" class="primary" id="resourcePublishSubmit">Thêm vào Kho học liệu</button></div>
     </form>
   </dialog>
 
-  <script src="app.js"></script>
-  <script src="extra-games.js"></script>
-  <script src="extra-export.js"></script>
-  <script src="resource-publish.js"></script>
-  <script src="preview-tools.js"></script>
+  <script src="app.js?v=20260721-premium-v2"></script>
+  <script src="extra-games.js?v=20260721-premium-v2"></script>
+  <script src="premium-export-v2.js?v=20260721-premium-v2"></script>
+  <script src="resource-publish.js?v=20260721-premium-v2"></script>
+  <script src="preview-tools.js?v=20260721-premium-v2"></script>
 </body>
 </html>
