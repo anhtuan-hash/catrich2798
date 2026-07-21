@@ -231,18 +231,7 @@ export function installOptionTwoGlobalShell() {
         </div>
       </section>
 
-      <nav class="brian-o2-navigation" aria-label="Điều hướng chính">
-        <button type="button" class="brian-o2-brand brian-o2-nav-brand" data-route="${escapeHtml(ROUTES.home)}" aria-label="Mở trang chủ Brian English">
-          <span>B</span><span><strong>Brian English</strong><small>Teaching Workspace</small></span>
-        </button>
-        <div class="brian-o2-nav-list">${makeNav()}</div>
-        <div class="brian-o2-nav-tools">
-          <button type="button" class="brian-o2-search">⌕ <span>Tìm nhanh</span><kbd>⌘K</kbd></button>
-          <button type="button" class="brian-o2-chatbot">▣ <span>Chatbot</span></button>
-          <button type="button" class="brian-o2-profile"><i>T</i><span><b>Anh Tuấn</b><small>Giáo viên</small></span></button>
-          <button type="button" class="brian-o2-logout" aria-label="Thoát">⇥</button>
-        </div>
-      </nav>`;
+`;
 
     const root = document.getElementById('root');
     if (root) root.before(shell); else document.body.prepend(shell);
@@ -267,7 +256,6 @@ export function installOptionTwoGlobalShell() {
       }, true);
     }
 
-    updateActiveNavigation(shell);
     loadNews(shell);
     suppressLegacyNotificationBar();
     suppressDuplicateLegacyNavigation();

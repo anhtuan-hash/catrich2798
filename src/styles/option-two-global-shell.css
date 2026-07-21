@@ -179,3 +179,18 @@ html,body{color-scheme:light!important}.brian-option-two-shell{position:relative
   .brian-o2-nav-brand>span:last-child{display:none!important}
   .brian-o2-search span,.brian-o2-search kbd,.brian-o2-chatbot span{display:none!important}
 }
+
+
+/* 2026-07-21 · Navigation fully retired */
+#brian-option-two-global-shell .brian-o2-navigation,
+#brian-option-two-global-shell nav.brian-o2-navigation{
+  display:none!important;
+  visibility:hidden!important;
+  width:0!important;
+  height:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  overflow:hidden!important;
+}
