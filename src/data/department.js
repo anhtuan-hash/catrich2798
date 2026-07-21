@@ -1,3 +1,5 @@
+import '../pages/DepartmentWorkspaceModernFields.css';
+
 export const DEPARTMENT_WORKSPACE_SLUG = 'department-workspace';
 export const DEPARTMENT_WORKSPACE_PERMISSION_ID = `tool:${DEPARTMENT_WORKSPACE_SLUG}`;
 export const DEPARTMENT_PUBLISH_PERMISSION_ID = 'department:publish';
@@ -11,8 +13,8 @@ export const DEPARTMENT_APP = {
   groupVi: 'Tổ chuyên môn',
   title: 'English Department Workspace',
   titleVi: 'Tổ chuyên môn',
-  desc: 'Manage department schedules, records, shared work, submissions and reports without AI.',
-  descVi: 'Quản lý lịch hoạt động, hồ sơ, công việc dùng chung, sản phẩm nộp và báo cáo của tổ mà không sử dụng AI.',
+  desc: 'Manage department schedules, records, shared work, submissions and approvals without AI.',
+  descVi: 'Quản lý lịch hoạt động, hồ sơ, công việc dùng chung, sản phẩm nộp và phê duyệt của tổ mà không sử dụng AI.',
   status: 'Subject leader',
   statusVi: 'TTCM',
   api: false,
@@ -63,17 +65,6 @@ export const DEPARTMENT_MODULES = [
     short: 'Work center',
     desc: 'Use the shared Work Hub for assignment, submission, feedback, revision, approval and archiving.',
     descVi: 'Dùng chung Trung tâm công việc để giao việc, nộp sản phẩm, phản hồi, yêu cầu sửa, phê duyệt và lưu trữ.',
-  },
-  {
-    id: 'department:reports',
-    key: 'reports',
-    icon: '📈',
-    title: 'Reports & Statistics',
-    titleVi: 'Báo cáo & thống kê',
-    shortVi: 'Báo cáo & thống kê',
-    short: 'Reports',
-    desc: 'Generate deterministic weekly, monthly, semester and annual reports from real department data.',
-    descVi: 'Tạo báo cáo tuần, tháng, học kỳ và năm học theo mẫu cố định từ dữ liệu thật của tổ.',
   },
 ];
 
