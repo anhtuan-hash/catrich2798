@@ -8,6 +8,7 @@ import '../pages/department-approved/approved-7.css';
 import '../pages/department-approved/approved-8.css';
 import '../pages/department-approved/approved-9.css';
 import '../pages/department-approved/approved-10.css';
+import '../pages/department-approved/approved-11.css';
 
 export const DEPARTMENT_WORKSPACE_SLUG = 'department-workspace';
 export const DEPARTMENT_WORKSPACE_PERMISSION_ID = `tool:${DEPARTMENT_WORKSPACE_SLUG}`;
