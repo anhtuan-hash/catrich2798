@@ -45,17 +45,19 @@ import { installBursReadability } from './utils/bursReadability.js';
 import { installAiRemovalGuard } from './utils/aiRemovalGuard.js';
 
 import TextLabGlobalShortcut from './components/TextLabGlobalShortcut.jsx';
-import './styles/option-two-global-shell.css';
-import { installOptionTwoShell } from './utils/optionTwoGlobalShell.js';
 
 import './styles/notification-center-recovery.css';
 import { installNotificationCenterRecovery } from './utils/notificationCenterRecovery.js';
 import { installPersonnelEntryBridge } from './utils/personnelEntryBridge.js';
 import './styles/personnelEntryBridge.css';
+import './styles/option-five-global-shell.css';
+import { installOptionFiveShell } from './utils/optionFiveGlobalShell.js';
+
+installOptionFiveShell();
 installPersonnelEntryBridge();
 
 installNotificationCenterRecovery();
-installOptionTwoShell();
+
 runConfigurationMigrations();
 installBursReadability();
 installAiRemovalGuard();
