@@ -16,16 +16,8 @@ function makeLink(className, label) {
 }
 
 function installNavigationEntry() {
-  if (document.querySelector('[data-brian-personnel-entry="nav"]')) return;
-  const candidates = [
-    '.option-two-nav-left', '.option-two-navigation', '.option-two-nav',
-    '.app-nav', '.main-navigation', 'nav[aria-label]', 'header nav'
-  ];
-  const nav = candidates.map((selector) => document.querySelector(selector)).find(Boolean);
-  if (!nav) return;
-  const link = makeLink('brian-personnel-nav-entry', 'Nhân sự');
-  link.dataset.brianPersonnelEntry = 'nav';
-  nav.appendChild(link);
+  document.querySelectorAll('[data-brian-personnel-entry="nav"]').forEach((node) => node.remove());
+  return true;
 }
 
 function installAppsCard() {

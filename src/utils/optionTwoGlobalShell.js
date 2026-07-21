@@ -117,7 +117,7 @@ const navItems = [
   ['apps', '▦', 'Ứng dụng', ROUTES.apps],
   ['homeroom', '♙', 'Chủ nhiệm', ROUTES.homeroom],
   ['department', '◇', 'Tổ chuyên môn', ROUTES.department],
-
+  ['personnel', '♙', 'Nhân sự', '/nhan-su/index.html'],
   ['news', '▤', 'Đọc báo', ROUTES.news],
   ['games', '⌘', 'Trò chơi', ROUTES.games],
   ['more', '+', 'Thêm', ROUTES.more],
@@ -185,6 +185,7 @@ const updateActiveNavigation = (shell) => {
       (key === 'apps' && hash.includes('/apps')) ||
       (key === 'homeroom' && /homeroom|chu-nhiem|chunhiem/.test(hash)) ||
       (key === 'department' && /department|to-chuyen-mon|tochuyenmon/.test(hash)) ||
+      (key === 'personnel' && /personnel|nhan-su|staff/.test(hash)) ||
 
       (key === 'news' && /news|doc-bao|newsroom/.test(hash)) ||
       (key === 'games' && /game|tro-choi/.test(hash));

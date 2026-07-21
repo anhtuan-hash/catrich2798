@@ -1,0 +1,21 @@
+{
+  "navigation": [
+    "Trang chủ",
+    "Ứng dụng",
+    "Chủ nhiệm",
+    "Tổ chuyên môn",
+    "Nhân sự",
+    "Đọc báo",
+    "Trò chơi",
+    "Thêm"
+  ],
+  "textLabShortcutRemoved": true,
+  "textLabAppPreserved": true,
+  "commandKPreserved": true,
+  "changes": [
+    "Viết lại toàn bộ navItems và loại TextLab khỏi thanh điều hướng",
+    "Thêm trạng thái active cho Nhân sự",
+    "Áp dụng thiết kế điều hướng mới, một hàng, cuộn ngang tinh tế",
+    "Ngừng bridge chèn nút Nhân sự và thẻ dự phòng gây xuống dòng"
+  ]
+}
