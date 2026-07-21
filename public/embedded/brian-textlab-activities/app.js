@@ -161,6 +161,114 @@ const TEMPLATES = [
     "desc": "Tạo bảng học tập có tìm kiếm và che đáp án.",
     "hint": "Mỗi dòng có cùng số cột, ngăn cách bằng dấu |; dòng đầu là tiêu đề.",
     "sample": "Word | Part of speech | Meaning\nbiodiversity | noun | variety of living organisms\nrenewable | adjective | able to be naturally replaced\nconserve | verb | protect from loss or waste\nemission | noun | substance released into the air\nresilient | adjective | able to recover after difficulty\nfeasible | adjective | possible and practical\naccountability | noun | responsibility for actions\ntransparency | noun | openness and clarity"
+  },
+  {
+    "id": "showdown",
+    "icon": "🏆",
+    "name": "Showdown Quiz",
+    "tag": "Gameshow",
+    "desc": "Trắc nghiệm sân khấu có đồng hồ, streak và điểm thưởng theo tốc độ.",
+    "hint": "Mỗi dòng: Câu hỏi | Đáp án đúng | Sai 1 | Sai 2 | Sai 3 | Giải thích",
+    "sample": "Which action best demonstrates responsible consumption? | repairing a usable device | replacing a phone every year | discarding clothes after one use | choosing excessive packaging | Repairing extends a product's useful life and reduces waste.\nWhat does the adjective resilient mean? | able to recover after difficulty | unwilling to accept evidence | likely to disappear immediately | impossible to measure accurately | Resilient people or systems can adapt and recover.\nWhich energy source is renewable? | solar power | coal | petroleum | natural gas | Sunlight is naturally replenished.\nWhat is the noun form of transparent? | transparency | transparently | transparentness | transparence | Transparency is the standard noun in this context.\nWhich policy is the most feasible for a school? | installing labelled recycling bins | banning all electricity use | replacing every building immediately | closing the campus permanently | A feasible policy is practical and achievable.\nWhy is biodiversity important? | it supports stable ecosystems | it eliminates every disease | it prevents all natural disasters | it makes every species identical | Diverse ecosystems are generally more stable and adaptable."
+  },
+  {
+    "id": "guessword",
+    "icon": "🔤",
+    "name": "Guess the Word",
+    "tag": "Word Game",
+    "desc": "Đoán từ theo gợi ý với bàn phím chữ cái và sáu lượt sai.",
+    "hint": "Mỗi dòng: TỪ HOẶC CỤM TỪ | Gợi ý",
+    "sample": "BIODIVERSITY | the variety of living species in an area\nRESILIENT | able to recover after difficulty\nFEASIBLE | practical and possible to carry out\nACCOUNTABILITY | responsibility for decisions and actions\nTRANSPARENCY | openness and clarity in sharing information\nCONSERVATION | protection of nature and natural resources"
+  },
+  {
+    "id": "exactanswer",
+    "icon": "⌨️",
+    "name": "Exact Answer",
+    "tag": "Typed",
+    "desc": "Học sinh tự nhập đáp án; hỗ trợ nhiều đáp án chấp nhận được.",
+    "hint": "Mỗi dòng: Câu hỏi | Đáp án chính | Đáp án thay thế 1 | Đáp án thay thế 2",
+    "sample": "What is the noun form of resilient? | resilience\nWhich verb means to protect natural resources? | conserve | preserve\nWhat is the opposite of renewable? | non-renewable | nonrenewable\nWhat do we call the natural home of an organism? | habitat\nWhich noun means openness in sharing information? | transparency\nWhat is the process of turning waste into reusable material? | recycling | recycle"
+  },
+  {
+    "id": "spellsprint",
+    "icon": "🎧",
+    "name": "Spell Sprint",
+    "tag": "Spelling",
+    "desc": "Nghe hoặc đọc gợi ý rồi đánh vần từ trước khi hết giờ.",
+    "hint": "Mỗi dòng: TỪ | Gợi ý | Câu ví dụ",
+    "sample": "sustainable | able to continue without exhausting resources | The school adopted a sustainable transport plan.\nbiodiversity | variety of living organisms | The wetland supports remarkable biodiversity.\nresilient | able to recover after difficulty | The community remained resilient after the storm.\nfeasible | practical and possible | The committee selected the most feasible proposal.\naccountability | responsibility for actions | Public accountability improves trust.\nconservation | protection of natural resources | Wildlife conservation requires long-term planning."
+  },
+  {
+    "id": "targetmatch",
+    "icon": "🎯",
+    "name": "Target Match",
+    "tag": "Fast Match",
+    "desc": "Chọn thật nhanh mục tương ứng với gợi ý đang xuất hiện.",
+    "hint": "Mỗi dòng: Gợi ý | Mục đúng",
+    "sample": "energy from sunlight | solar power\nthe natural home of an organism | habitat\ngas released into the atmosphere | emission\nthe protection of nature | conservation\nable to recover after difficulty | resilient\npossible and practical | feasible\nresponsibility for actions | accountability\nopenness in sharing information | transparency"
+  },
+  {
+    "id": "mysteryboxes",
+    "icon": "🎁",
+    "name": "Mystery Boxes",
+    "tag": "Reveal",
+    "desc": "Mở hộp bí mật để nhận câu hỏi, nhiệm vụ hoặc điểm thưởng.",
+    "hint": "Mỗi dòng: Tên hộp | Nội dung ẩn",
+    "sample": "Box 1 | Define biodiversity in your own words.\nBox 2 | Give one example of renewable energy.\nBox 3 | BONUS: Your team receives 100 points.\nBox 4 | Use feasible in a complete sentence.\nBox 5 | Explain one benefit of public transport.\nBox 6 | Name two ways to reduce plastic waste.\nBox 7 | Challenge another team with an environmental question.\nBox 8 | Speak for thirty seconds about conservation.\nBox 9 | BONUS: Choose the next player."
+  },
+  {
+    "id": "revealtiles",
+    "icon": "🧩",
+    "name": "Reveal Tiles",
+    "tag": "Guess",
+    "desc": "Mở dần các ô che và đoán hình hoặc từ bí mật.",
+    "hint": "Mỗi dòng: ĐÁP ÁN | Gợi ý | Hình/emoji hoặc PLANT_DIAGRAM",
+    "sample": "VOLCANO | a mountain that can erupt | 🌋\nRECYCLING | processing used material so it can be used again | ♻️\nBIODIVERSITY | the variety of living species | 🦋🌿🐝\nSOLAR ENERGY | renewable power from sunlight | ☀️🔋\nCONSERVATION | protecting nature and resources | 🌳🛡️\nPLANT | identify the living organism in the diagram | PLANT_DIAGRAM"
+  },
+  {
+    "id": "memoryflash",
+    "icon": "⚡",
+    "name": "Memory Flash",
+    "tag": "Memory",
+    "desc": "Quan sát thông tin trong thời gian ngắn rồi trả lời câu hỏi ghi nhớ.",
+    "hint": "Mỗi dòng: Mục | Chi tiết cần ghi nhớ",
+    "sample": "Solar power | comes from sunlight\nWind power | uses moving air\nHydropower | uses flowing water\nHabitat | natural home of an organism\nLandfill | place where waste is buried\nResilient | able to recover after difficulty\nFeasible | possible and practical\nTransparency | openness in sharing information"
+  },
+  {
+    "id": "labellab",
+    "icon": "📍",
+    "name": "Label Lab",
+    "tag": "Diagram",
+    "desc": "Đặt nhãn vào đúng vị trí trên sơ đồ tương tác.",
+    "hint": "Mỗi dòng: SƠ ĐỒ | Nhãn | Tọa độ X% | Tọa độ Y%",
+    "sample": "PLANT_DIAGRAM | flower | 51 | 13\nPLANT_DIAGRAM | leaf | 72 | 40\nPLANT_DIAGRAM | stem | 51 | 51\nPLANT_DIAGRAM | roots | 51 | 84\nPLANT_DIAGRAM | soil | 50 | 72"
+  },
+  {
+    "id": "picturequiz",
+    "icon": "🖼️",
+    "name": "Picture Quiz",
+    "tag": "Visual MCQ",
+    "desc": "Trắc nghiệm có hình, emoji hoặc sơ đồ minh họa.",
+    "hint": "Mỗi dòng: Hình/emoji | Câu hỏi | Đúng | Sai 1 | Sai 2 | Sai 3",
+    "sample": "🌞 | Which renewable source is shown? | solar energy | wind energy | hydropower | geothermal energy\n🌬️ | Which source uses moving air? | wind power | coal power | nuclear power | tidal power\n♻️ | What action does this symbol represent? | recycling | mining | deforestation | landfilling\n🌳 | Which process removes this resource on a large scale? | deforestation | irrigation | urban gardening | conservation\n🐝🌼 | Which concept is illustrated by different living species? | biodiversity | uniformity | combustion | isolation\nPLANT_DIAGRAM | Which part absorbs water from the soil? | roots | flower | leaf | fruit"
+  },
+  {
+    "id": "sortsprint",
+    "icon": "🏁",
+    "name": "Sort Sprint",
+    "tag": "Speed Sort",
+    "desc": "Phân loại liên tục dưới áp lực thời gian và tốc độ tăng dần.",
+    "hint": "Mỗi dòng: Nhóm | Mục cần phân loại",
+    "sample": "Renewable Energy | solar power\nRenewable Energy | wind power\nRenewable Energy | hydropower\nEnvironmental Problem | air pollution\nEnvironmental Problem | deforestation\nEnvironmental Problem | plastic waste\nSustainable Action | using public transport\nSustainable Action | carrying a reusable bottle\nSustainable Action | repairing old devices\nKey Quality | accountability\nKey Quality | transparency\nKey Quality | resilience"
+  },
+  {
+    "id": "wordmagnets",
+    "icon": "🧲",
+    "name": "Word Magnets",
+    "tag": "Sentence",
+    "desc": "Kéo hoặc bấm các từ như nam châm để tạo câu hoàn chỉnh.",
+    "hint": "Mỗi dòng là một câu hoàn chỉnh.",
+    "sample": "Renewable energy can reduce greenhouse gas emissions.\nOur school has installed clearly labelled recycling bins.\nStudents should carry reusable bottles whenever possible.\nTransparent decisions can strengthen public trust.\nThe conservation project involves the whole community.\nA feasible solution must be both practical and affordable."
   }
 ];
 
@@ -885,6 +993,1258 @@ standaloneJs=function enhancedStandaloneJs(){
 
 /* BRIAN_TEXTLAB_GAME_ENGINE_V2_END */
 
+/* BRIAN_TEXTLAB_EXPANDED_12_GAMES_START
+   Twelve original Brian gameplay implementations inspired by common classroom
+   activity patterns. No Wordwall code, assets, branding or interface is copied. */
+
+function isExpandedGame(id){
+  return [
+    "showdown","guessword","exactanswer","spellsprint","targetmatch",
+    "mysteryboxes","revealtiles","memoryflash","labellab","picturequiz",
+    "sortsprint","wordmagnets"
+  ].includes(id);
+}
+
+function clampExpandedNumber(value,min,max,fallback){
+  const parsed=Number(value);
+  return Number.isFinite(parsed)?Math.min(max,Math.max(min,parsed)):fallback;
+}
+
+function expandedAnswerKey(value=""){
+  return String(value)
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu," ")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function expandedLevenshtein(a,b){
+  const x=expandedAnswerKey(a),y=expandedAnswerKey(b);
+  const row=Array.from({length:y.length+1},(_,i)=>i);
+  for(let i=1;i<=x.length;i++){
+    let previous=row[0];
+    row[0]=i;
+    for(let j=1;j<=y.length;j++){
+      const old=row[j];
+      row[j]=Math.min(
+        row[j]+1,
+        row[j-1]+1,
+        previous+(x[i-1]===y[j-1]?0:1)
+      );
+      previous=old;
+    }
+  }
+  return row[y.length];
+}
+
+function expandedAnswerAccepted(value,accepted){
+  const key=expandedAnswerKey(value);
+  return accepted.some(answer=>{
+    const target=expandedAnswerKey(answer);
+    if(key===target)return true;
+    return target.length>=6&&key.length>=5&&expandedLevenshtein(key,target)<=1;
+  });
+}
+
+function expandedVisualMarkup(source,alt=""){
+  const value=String(source||"").trim();
+  const safeAlt=escapeHtml(alt||"Visual");
+
+  if(/^data:image\//i.test(value)||/^https?:\/\//i.test(value)){
+    return `<img class="btl-expanded-image" src="${escapeHtml(value)}" alt="${safeAlt}">`;
+  }
+
+  if(value==="PLANT_DIAGRAM"){
+    return `<svg class="btl-scene-svg" viewBox="0 0 520 360" role="img" aria-label="Sơ đồ cây">
+      <rect width="520" height="360" rx="26" fill="#eef8ff"/>
+      <circle cx="430" cy="64" r="36" fill="#ffd768"/>
+      <path d="M0 270 C130 235 380 245 520 270 V360 H0Z" fill="#d8b27a"/>
+      <path d="M260 280 C258 220 260 148 260 75" stroke="#388b55" stroke-width="18" stroke-linecap="round"/>
+      <path d="M260 174 C214 139 180 136 148 158 C181 202 222 207 260 174Z" fill="#65b968"/>
+      <path d="M260 138 C302 105 341 109 372 135 C340 174 299 178 260 138Z" fill="#52a95e"/>
+      <g transform="translate(260 62)">
+        <circle cx="0" cy="0" r="22" fill="#f6b934"/>
+        <circle cx="-25" cy="-4" r="23" fill="#ff7e91"/>
+        <circle cx="25" cy="-4" r="23" fill="#ff7e91"/>
+        <circle cx="-12" cy="-27" r="23" fill="#ff91a2"/>
+        <circle cx="12" cy="-27" r="23" fill="#ff91a2"/>
+        <circle cx="0" cy="0" r="12" fill="#f4ca39"/>
+      </g>
+      <path d="M260 278 C220 303 207 329 197 352 M260 278 C244 315 245 333 244 360 M260 278 C288 310 309 332 322 356 M260 278 C296 292 345 301 372 327" stroke="#835c3d" stroke-width="8" stroke-linecap="round"/>
+    </svg>`;
+  }
+
+  if(value==="WATER_CYCLE"){
+    return `<svg class="btl-scene-svg" viewBox="0 0 520 360" role="img" aria-label="Sơ đồ vòng tuần hoàn nước">
+      <rect width="520" height="360" rx="26" fill="#eaf7ff"/>
+      <circle cx="425" cy="65" r="38" fill="#ffd15d"/>
+      <path d="M0 255 C120 220 226 232 330 250 C400 264 460 244 520 224 V360 H0Z" fill="#48a8df"/>
+      <path d="M0 240 L115 130 L225 244Z" fill="#7f9caf"/>
+      <path d="M72 175 L115 130 L157 177Z" fill="#eef7ff"/>
+      <g fill="#fff">
+        <ellipse cx="260" cy="92" rx="58" ry="28"/>
+        <ellipse cx="313" cy="96" rx="45" ry="24"/>
+        <ellipse cx="215" cy="102" rx="42" ry="23"/>
+      </g>
+      <path d="M360 250 C392 214 398 176 383 134" fill="none" stroke="#318cc6" stroke-width="8" stroke-dasharray="12 9"/>
+      <path d="M155 125 C183 95 214 87 247 88" fill="none" stroke="#318cc6" stroke-width="8" stroke-dasharray="12 9"/>
+      <path d="M250 126 L235 204 M287 128 L273 210 M324 127 L310 203" stroke="#4aaee2" stroke-width="7" stroke-linecap="round"/>
+    </svg>`;
+  }
+
+  if(value.length<=12&&!/\s/.test(value)){
+    return `<div class="btl-expanded-emoji" role="img" aria-label="${safeAlt}">${escapeHtml(value)}</div>`;
+  }
+
+  return `<div class="btl-expanded-word-visual">${escapeHtml(value||alt||"Visual")}</div>`;
+}
+
+function parseExpandedData(id,raw){
+  const lines=splitLines(raw);
+
+  if(id==="showdown"){
+    return lines.map((line,index)=>{
+      const p=parts(line);
+      const correct=p[1]||"";
+      return {
+        q:p[0]||`Question ${index+1}`,
+        correct,
+        choices:shuffle([correct,...p.slice(2,5).filter(Boolean)]),
+        explanation:p[5]||""
+      };
+    }).filter(item=>item.q&&item.correct);
+  }
+
+  if(id==="guessword"){
+    return lines.map(line=>{
+      const p=parts(line);
+      return {
+        word:(p[0]||"").toUpperCase().replace(/\s+/g," ").trim(),
+        clue:p[1]||""
+      };
+    }).filter(item=>item.word);
+  }
+
+  if(id==="exactanswer"){
+    return lines.map((line,index)=>{
+      const p=parts(line);
+      return {
+        q:p[0]||`Question ${index+1}`,
+        answers:p.slice(1).filter(Boolean)
+      };
+    }).filter(item=>item.q&&item.answers.length);
+  }
+
+  if(id==="spellsprint"){
+    return lines.map(line=>{
+      const p=parts(line);
+      return {word:p[0]||"",clue:p[1]||"",example:p[2]||""};
+    }).filter(item=>item.word);
+  }
+
+  if(id==="targetmatch"){
+    return lines.map((line,index)=>{
+      const p=parts(line);
+      return {id:index,prompt:p[0]||"",match:p[1]||""};
+    }).filter(item=>item.prompt&&item.match);
+  }
+
+  if(id==="mysteryboxes"){
+    return lines.map((line,index)=>{
+      const p=parts(line);
+      return {id:index,title:p[0]||`Box ${index+1}`,content:p.slice(1).join(" | ")||""};
+    }).filter(item=>item.content);
+  }
+
+  if(id==="revealtiles"){
+    return lines.map(line=>{
+      const p=parts(line);
+      return {answer:p[0]||"",clue:p[1]||"",visual:p[2]||p[0]||""};
+    }).filter(item=>item.answer);
+  }
+
+  if(id==="memoryflash"){
+    return lines.map((line,index)=>{
+      const p=parts(line);
+      return {id:index,item:p[0]||"",detail:p[1]||""};
+    }).filter(item=>item.item&&item.detail);
+  }
+
+  if(id==="labellab"){
+    const parsed=lines.map((line,index)=>{
+      const p=parts(line);
+      return {
+        id:index,
+        visual:p[0]||"PLANT_DIAGRAM",
+        label:p[1]||`Label ${index+1}`,
+        x:clampExpandedNumber(p[2],4,96,50),
+        y:clampExpandedNumber(p[3],5,95,50)
+      };
+    }).filter(item=>item.label);
+    return {visual:parsed[0]?.visual||"PLANT_DIAGRAM",items:parsed};
+  }
+
+  if(id==="picturequiz"){
+    return lines.map((line,index)=>{
+      const p=parts(line);
+      const correct=p[2]||"";
+      return {
+        visual:p[0]||"",
+        q:p[1]||`Question ${index+1}`,
+        correct,
+        choices:shuffle([correct,...p.slice(3,6).filter(Boolean)])
+      };
+    }).filter(item=>item.q&&item.correct);
+  }
+
+  if(id==="sortsprint"){
+    return lines.map((line,index)=>{
+      const p=parts(line);
+      return {id:index,cat:p[0]||"Other",item:p[1]||""};
+    }).filter(item=>item.item);
+  }
+
+  if(id==="wordmagnets"){
+    return lines.map(line=>line.trim()).filter(Boolean);
+  }
+
+  return [];
+}
+
+const parseDataBeforeExpandedGames=parseData;
+function parseDataExpandedGames(id,raw){
+  return isExpandedGame(id)?parseExpandedData(id,raw):parseDataBeforeExpandedGames(id,raw);
+}
+parseData=parseDataExpandedGames;
+
+function expandedRoundFrame(label,content=""){
+  return `<div class="q-card btl-round btl-expanded-round">
+    <div class="btl-round-number">${escapeHtml(label)}</div>
+    ${content}
+  </div>`;
+}
+
+Object.assign(ACTIVITY_RENDERERS,{
+  showdown(data,opt){
+    return gameFrame(
+      opt.title||"Showdown Quiz",
+      "Trả lời nhanh để nhận điểm tốc độ và streak bonus.",
+      data.length,
+      `<div data-expanded-host></div>`,
+      {scoreLabel:"Điểm",progressLabel:"Câu"}
+    );
+  },
+
+  guessword(data,opt){
+    return gameFrame(
+      opt.title||"Guess the Word",
+      "Đoán từ theo gợi ý. Bạn có sáu lượt sai cho mỗi từ.",
+      data.length,
+      `<div data-expanded-host></div>`,
+      {scoreLabel:"Đã đoán",progressLabel:"Từ"}
+    );
+  },
+
+  exactanswer(data,opt){
+    return gameFrame(
+      opt.title||"Exact Answer",
+      "Tự nhập đáp án; hệ thống chấp nhận các phương án tương đương đã khai báo.",
+      data.length,
+      `<div data-expanded-host></div>`,
+      {progressLabel:"Câu"}
+    );
+  },
+
+  spellsprint(data,opt){
+    return gameFrame(
+      opt.title||"Spell Sprint",
+      "Nghe hoặc đọc gợi ý rồi đánh vần trước khi hết giờ.",
+      data.length,
+      `<div data-expanded-host></div>`,
+      {progressLabel:"Từ"}
+    );
+  },
+
+  targetmatch(data,opt){
+    return gameFrame(
+      opt.title||"Target Match",
+      "Chọn thật nhanh mục tương ứng với gợi ý.",
+      data.length,
+      `<div data-expanded-host></div>`,
+      {progressLabel:"Cặp"}
+    );
+  },
+
+  mysteryboxes(data,opt){
+    return gameFrame(
+      opt.title||"Mystery Boxes",
+      "Mở từng hộp, hoàn thành nhiệm vụ và khám phá toàn bộ nội dung.",
+      data.length,
+      `<div class="btl-box-grid">
+        ${data.map((box,index)=>`<button class="btl-mystery-box" type="button" data-box-index="${index}">
+          <span>?</span><strong>${escapeHtml(box.title)}</strong>
+        </button>`).join("")}
+      </div>
+      <div class="btl-box-stage" data-box-stage>
+        <div class="btl-box-placeholder">Chọn một hộp để mở.</div>
+      </div>`,
+      {scoreLabel:"Đã mở",progressLabel:"Hộp"}
+    );
+  },
+
+  revealtiles(data,opt){
+    return gameFrame(
+      opt.title||"Reveal Tiles",
+      "Mở càng ít ô càng nhận được nhiều điểm.",
+      data.length,
+      `<div data-expanded-host></div>`,
+      {scoreLabel:"Điểm",progressLabel:"Vòng"}
+    );
+  },
+
+  memoryflash(data,opt){
+    return gameFrame(
+      opt.title||"Memory Flash",
+      "Ghi nhớ bảng thông tin trước khi nó biến mất.",
+      data.length,
+      `<div data-expanded-host></div>`,
+      {progressLabel:"Câu"}
+    );
+  },
+
+  labellab(data,opt){
+    return gameFrame(
+      opt.title||"Label Lab",
+      "Chọn một nhãn rồi đặt vào đúng điểm trên sơ đồ.",
+      data.items.length,
+      `<div class="btl-label-layout">
+        <div class="btl-label-scene" data-label-scene>
+          ${expandedVisualMarkup(data.visual,"Sơ đồ cần gắn nhãn")}
+          ${data.items.map(item=>`<button
+            class="btl-label-target"
+            type="button"
+            data-label-target="${item.id}"
+            data-label="${escapeHtml(item.label)}"
+            style="left:${item.x}%;top:${item.y}%"
+            aria-label="Vị trí nhãn ${escapeHtml(item.label)}"
+          ><span>${item.id+1}</span></button>`).join("")}
+        </div>
+        <div class="btl-label-bank" data-label-bank>
+          ${shuffle(data.items).map(item=>`<button
+            class="word-chip btl-label-chip"
+            type="button"
+            draggable="true"
+            data-label-chip="${item.id}"
+          >${escapeHtml(item.label)}</button>`).join("")}
+        </div>
+      </div>`,
+      {scoreLabel:"Đúng",progressLabel:"Nhãn"}
+    );
+  },
+
+  picturequiz(data,opt){
+    return gameFrame(
+      opt.title||"Picture Quiz",
+      "Quan sát hình hoặc sơ đồ rồi chọn đáp án đúng.",
+      data.length,
+      `<div data-expanded-host></div>`,
+      {progressLabel:"Câu"}
+    );
+  },
+
+  sortsprint(data,opt){
+    return gameFrame(
+      opt.title||"Sort Sprint",
+      "Phân loại liên tục; thời gian cho mỗi mục sẽ giảm dần.",
+      data.length,
+      `<div data-expanded-host></div>`,
+      {progressLabel:"Mục"}
+    );
+  },
+
+  wordmagnets(data,opt){
+    return gameFrame(
+      opt.title||"Word Magnets",
+      "Bấm hoặc kéo các từ để tái tạo câu hoàn chỉnh.",
+      data.length,
+      `<div data-expanded-host></div>`,
+      {progressLabel:"Câu"}
+    );
+  }
+});
+
+function bindExpandedGame(container,id,data,options={}){
+  const total=id==="labellab"?(data.items?.length||0):(Array.isArray(data)?data.length:0);
+  const state=createGameRuntime(container,id,data,{
+    title:options.title||selectedTemplate?.name||"Activity",
+    total
+  });
+  const host=container.querySelector("[data-expanded-host]");
+
+  if(!total){
+    announceGame(state,"Chưa có đủ dữ liệu để chơi.","error");
+    return;
+  }
+
+  if(id==="showdown"){
+    let index=0;
+    let remaining=20;
+
+    const draw=()=>{
+      clearInterval(container.__btlRoundTimer);
+      if(index>=data.length){
+        finishGame(state,{
+          title:"Showdown hoàn tất!",
+          score:state.score,
+          total:data.length*1000,
+          message:`Tổng điểm: ${state.score}`,
+          detail:`Chuỗi đúng tốt nhất: ${state.bestStreak}`
+        });
+        return;
+      }
+
+      const item=data[index];
+      remaining=20;
+      host.innerHTML=expandedRoundFrame(
+        `Câu ${index+1}/${data.length}`,
+        `<div class="btl-showdown-timer"><b data-showdown-seconds>${remaining}</b><span>giây</span></div>
+         <h3>${escapeHtml(item.q)}</h3>
+         <div class="q-options">
+           ${item.choices.map(choice=>`<button class="option-btn" type="button" data-showdown-choice="${escapeHtml(choice)}">${escapeHtml(choice)}</button>`).join("")}
+         </div>
+         <div class="feedback" data-expanded-feedback></div>`
+      );
+
+      const secondsEl=host.querySelector("[data-showdown-seconds]");
+      const resolve=(choice,button,expired=false)=>{
+        clearInterval(container.__btlRoundTimer);
+        host.querySelectorAll("[data-showdown-choice]").forEach(itemButton=>itemButton.disabled=true);
+        const correct=!expired&&sameGameAnswer(choice,item.correct);
+        state.progress++;
+        if(correct){
+          state.streak++;
+          state.bestStreak=Math.max(state.bestStreak,state.streak);
+          const points=Math.min(1000,450+remaining*25+state.streak*25);
+          state.score+=points;
+          button?.classList.add("correct");
+          announceGame(state,`Chính xác! +${points} điểm`,"success");
+        }else{
+          state.mistakes++;
+          state.streak=0;
+          button?.classList.add("wrong");
+          host.querySelectorAll("[data-showdown-choice]").forEach(itemButton=>{
+            if(sameGameAnswer(itemButton.dataset.showdownChoice,item.correct))itemButton.classList.add("correct");
+          });
+          announceGame(state,expired?"Hết giờ!":"Chưa đúng.","error");
+        }
+        syncGameRuntime(state);
+        const feedback=host.querySelector("[data-expanded-feedback]");
+        if(feedback)feedback.textContent=item.explanation||`Đáp án: ${item.correct}`;
+        index++;
+        setTimeout(draw,1050);
+      };
+
+      host.querySelectorAll("[data-showdown-choice]").forEach(button=>{
+        button.addEventListener("click",()=>resolve(button.dataset.showdownChoice,button));
+      });
+
+      container.__btlRoundTimer=setInterval(()=>{
+        remaining--;
+        if(secondsEl)secondsEl.textContent=String(Math.max(0,remaining));
+        if(remaining<=0)resolve("",null,true);
+      },1000);
+    };
+
+    draw();
+    return;
+  }
+
+  if(id==="guessword"){
+    let index=0;
+    let guessed=new Set();
+    let wrong=0;
+    let keyHandler=null;
+
+    const cleanLetters=value=>String(value).toUpperCase().replace(/[^A-Z]/g,"");
+    const uniqueLetters=value=>[...new Set(cleanLetters(value).split(""))];
+
+    const setKeyboardHandler=handler=>{
+      if(keyHandler)document.removeEventListener("keydown",keyHandler);
+      keyHandler=handler;
+      document.addEventListener("keydown",keyHandler);
+      const baseCleanup=container.__btlGameCleanup;
+      container.__btlGameCleanup=()=>{
+        baseCleanup?.();
+        if(keyHandler)document.removeEventListener("keydown",keyHandler);
+      };
+    };
+
+    const draw=()=>{
+      if(index>=data.length){
+        finishGame(state,{title:"Đã hoàn thành Guess the Word"});
+        return;
+      }
+
+      guessed=new Set();
+      wrong=0;
+      const item=data[index];
+      host.innerHTML=expandedRoundFrame(
+        `Từ ${index+1}/${data.length}`,
+        `<div class="btl-hangman-layout">
+          <svg class="btl-hangman-svg" viewBox="0 0 250 250" role="img" aria-label="Tiến độ đoán từ">
+            <path d="M35 220 H215 M70 220 V30 H165 V58" class="gallows"/>
+            <circle cx="165" cy="82" r="23" data-hang-part="1"/>
+            <path d="M165 105 V158" data-hang-part="2"/>
+            <path d="M165 120 L130 145" data-hang-part="3"/>
+            <path d="M165 120 L200 145" data-hang-part="4"/>
+            <path d="M165 158 L135 202" data-hang-part="5"/>
+            <path d="M165 158 L195 202" data-hang-part="6"/>
+          </svg>
+          <div>
+            <div class="btl-word-mask" data-word-mask></div>
+            <p class="btl-word-clue">${escapeHtml(item.clue)}</p>
+            <p>Còn lại: <b data-wrong-left>6</b> lượt sai</p>
+            <div class="btl-alpha-keyboard">
+              ${"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(letter=>`<button type="button" class="btl-alpha-key" data-letter="${letter}">${letter}</button>`).join("")}
+            </div>
+            <div class="toolbar">
+              <button class="btn ghost" type="button" data-reveal-letter>Gợi ý một chữ</button>
+            </div>
+          </div>
+        </div>`
+      );
+
+      const word=item.word;
+      const letters=uniqueLetters(word);
+      const mask=host.querySelector("[data-word-mask]");
+      const update=()=>{
+        mask.innerHTML=[...word].map(char=>{
+          if(char===" ")return `<span class="space"> </span>`;
+          const visible=guessed.has(char);
+          return `<span class="${visible?"visible":""}">${visible?escapeHtml(char):"_"}</span>`;
+        }).join("");
+        host.querySelector("[data-wrong-left]").textContent=String(Math.max(0,6-wrong));
+        host.querySelectorAll("[data-hang-part]").forEach(part=>{
+          part.classList.toggle("shown",Number(part.dataset.hangPart)<=wrong);
+        });
+      };
+
+      const finishRound=won=>{
+        host.querySelectorAll("[data-letter], [data-reveal-letter]").forEach(button=>button.disabled=true);
+        state.progress++;
+        if(won){
+          state.score++;
+          state.streak++;
+          state.bestStreak=Math.max(state.bestStreak,state.streak);
+          announceGame(state,`Chính xác: ${word}`,"success");
+        }else{
+          state.mistakes++;
+          state.streak=0;
+          letters.forEach(letter=>guessed.add(letter));
+          update();
+          announceGame(state,`Đáp án là ${word}`,"error");
+        }
+        syncGameRuntime(state);
+        index++;
+        setTimeout(draw,950);
+      };
+
+      const choose=letter=>{
+        if(!letter||guessed.has(letter))return;
+        guessed.add(letter);
+        const button=host.querySelector(`[data-letter="${letter}"]`);
+        if(button)button.disabled=true;
+        if(!letters.includes(letter)){
+          wrong++;
+          flashGame(button,false);
+        }
+        update();
+        if(letters.every(letterItem=>guessed.has(letterItem)))finishRound(true);
+        else if(wrong>=6)finishRound(false);
+      };
+
+      host.querySelectorAll("[data-letter]").forEach(button=>{
+        button.addEventListener("click",()=>choose(button.dataset.letter));
+      });
+
+      host.querySelector("[data-reveal-letter]")?.addEventListener("click",event=>{
+        const available=letters.filter(letter=>!guessed.has(letter));
+        if(!available.length)return;
+        state.mistakes++;
+        choose(available[Math.floor(Math.random()*available.length)]);
+        event.currentTarget.disabled=true;
+      });
+
+      setKeyboardHandler(event=>{
+        const letter=String(event.key||"").toUpperCase();
+        if(/^[A-Z]$/.test(letter))choose(letter);
+      });
+
+      update();
+    };
+
+    draw();
+    return;
+  }
+
+  if(id==="exactanswer"){
+    let index=0;
+    const draw=()=>{
+      if(index>=data.length){
+        finishGame(state,{title:"Exact Answer hoàn tất!"});
+        return;
+      }
+      const item=data[index];
+      host.innerHTML=expandedRoundFrame(
+        `Câu ${index+1}/${data.length}`,
+        `<h3>${escapeHtml(item.q)}</h3>
+         <div class="btl-typed-answer">
+           <input class="blank-input" data-exact-input autocomplete="off" placeholder="Nhập đáp án...">
+           <button class="btn primary" type="button" data-check-exact>Kiểm tra</button>
+         </div>
+         <div class="feedback" data-expanded-feedback></div>`
+      );
+
+      const inputEl=host.querySelector("[data-exact-input]");
+      const check=()=>{
+        const value=inputEl.value;
+        if(!value.trim())return;
+        const correct=expandedAnswerAccepted(value,item.answers);
+        inputEl.disabled=true;
+        host.querySelector("[data-check-exact]").disabled=true;
+        recordGame(state,correct);
+        flashGame(inputEl,correct);
+        host.querySelector("[data-expanded-feedback]").textContent=correct
+          ?"Chính xác!"
+          :`Đáp án chấp nhận: ${item.answers.join(" / ")}`;
+        announceGame(state,correct?"Chính xác!":"Chưa đúng.",correct?"success":"error");
+        index++;
+        setTimeout(draw,850);
+      };
+      host.querySelector("[data-check-exact]").addEventListener("click",check);
+      inputEl.addEventListener("keydown",event=>{if(event.key==="Enter")check()});
+      inputEl.focus();
+    };
+    draw();
+    return;
+  }
+
+  if(id==="spellsprint"){
+    let index=0;
+    let remaining=30;
+
+    const speak=word=>{
+      if(!("speechSynthesis" in window))return;
+      speechSynthesis.cancel();
+      const utterance=new SpeechSynthesisUtterance(word);
+      utterance.lang="en-US";
+      utterance.rate=.82;
+      speechSynthesis.speak(utterance);
+    };
+
+    const draw=()=>{
+      clearInterval(container.__btlRoundTimer);
+      if(index>=data.length){
+        finishGame(state,{title:"Spell Sprint hoàn tất!"});
+        return;
+      }
+
+      const item=data[index];
+      remaining=30;
+      host.innerHTML=expandedRoundFrame(
+        `Từ ${index+1}/${data.length}`,
+        `<div class="btl-spell-clue">${escapeHtml(item.clue)}</div>
+         ${item.example?`<p class="btl-spell-example">${escapeHtml(item.example.replace(new RegExp(item.word,"ig"),"_____"))}</p>`:""}
+         <div class="btl-spell-clock"><b data-spell-seconds>${remaining}</b>s</div>
+         <div class="btl-typed-answer">
+           <button class="btn ghost" type="button" data-speak-word>🔊 Nghe từ</button>
+           <input class="blank-input" data-spell-input autocomplete="off" placeholder="Đánh vần từ...">
+           <button class="btn primary" type="button" data-check-spell>Kiểm tra</button>
+         </div>`
+      );
+
+      const inputEl=host.querySelector("[data-spell-input]");
+      const secondsEl=host.querySelector("[data-spell-seconds]");
+      let resolved=false;
+
+      const resolve=(expired=false)=>{
+        if(resolved)return;
+        if(!expired&&!inputEl.value.trim())return;
+        resolved=true;
+        clearInterval(container.__btlRoundTimer);
+        const correct=!expired&&sameGameAnswer(inputEl.value,item.word);
+        recordGame(state,correct);
+        inputEl.disabled=true;
+        host.querySelectorAll("button").forEach(button=>button.disabled=true);
+        announceGame(
+          state,
+          correct?`Chính xác: ${item.word}`:`Đáp án: ${item.word}`,
+          correct?"success":"error"
+        );
+        index++;
+        setTimeout(draw,900);
+      };
+
+      host.querySelector("[data-speak-word]").addEventListener("click",()=>speak(item.word));
+      host.querySelector("[data-check-spell]").addEventListener("click",()=>resolve(false));
+      inputEl.addEventListener("keydown",event=>{if(event.key==="Enter")resolve(false)});
+
+      container.__btlRoundTimer=setInterval(()=>{
+        remaining--;
+        secondsEl.textContent=String(Math.max(0,remaining));
+        if(remaining<=0)resolve(true);
+      },1000);
+
+      inputEl.focus();
+    };
+
+    draw();
+    return;
+  }
+
+  if(id==="targetmatch"){
+    const deck=shuffle(data);
+    let index=0;
+    const available=new Set(data.map(item=>item.id));
+
+    const draw=()=>{
+      if(index>=deck.length){
+        finishGame(state,{title:"Đã tìm đủ tất cả mục!"});
+        return;
+      }
+      const item=deck[index];
+      const choices=shuffle(data.filter(choice=>available.has(choice.id)));
+      host.innerHTML=expandedRoundFrame(
+        `Cặp ${index+1}/${deck.length}`,
+        `<div class="btl-target-prompt">${escapeHtml(item.prompt)}</div>
+         <div class="btl-target-grid">
+           ${choices.map(choice=>`<button class="btl-target-option" type="button" data-target-id="${choice.id}">${escapeHtml(choice.match)}</button>`).join("")}
+         </div>`
+      );
+
+      host.querySelectorAll("[data-target-id]").forEach(button=>{
+        button.addEventListener("click",()=>{
+          const correct=Number(button.dataset.targetId)===item.id;
+          if(!correct){
+            state.mistakes++;
+            syncGameRuntime(state);
+            flashGame(button,false);
+            announceGame(state,"Chưa đúng, hãy thử lại.","error");
+            return;
+          }
+          button.classList.add("correct");
+          available.delete(item.id);
+          recordGame(state,true);
+          announceGame(state,"Tìm đúng mục!","success");
+          index++;
+          setTimeout(draw,620);
+        });
+      });
+    };
+
+    draw();
+    return;
+  }
+
+  if(id==="mysteryboxes"){
+    const stage=container.querySelector("[data-box-stage]");
+    const completed=new Set();
+
+    const openBox=index=>{
+      const item=data[index];
+      if(!item||completed.has(index))return;
+      stage.innerHTML=`<article class="btl-open-box">
+        <span class="btl-open-box-icon">🎁</span>
+        <h3>${escapeHtml(item.title)}</h3>
+        <p>${escapeHtml(item.content)}</p>
+        <div class="toolbar btl-center">
+          <button class="btn primary" type="button" data-complete-box>Đã hoàn thành</button>
+          <button class="btn ghost" type="button" data-close-box>Đóng</button>
+        </div>
+      </article>`;
+
+      stage.querySelector("[data-close-box]").addEventListener("click",()=>{
+        stage.innerHTML=`<div class="btl-box-placeholder">Chọn một hộp khác.</div>`;
+      });
+
+      stage.querySelector("[data-complete-box]").addEventListener("click",()=>{
+        completed.add(index);
+        const box=container.querySelector(`[data-box-index="${index}"]`);
+        box.disabled=true;
+        box.classList.add("opened");
+        box.querySelector("span").textContent="✓";
+        recordGame(state,true);
+        stage.innerHTML=`<div class="btl-box-placeholder success">Đã hoàn thành ${escapeHtml(item.title)}.</div>`;
+        if(completed.size===data.length){
+          setTimeout(()=>finishGame(state,{title:"Đã mở tất cả Mystery Boxes!"}),400);
+        }
+      });
+    };
+
+    container.querySelectorAll("[data-box-index]").forEach(button=>{
+      button.addEventListener("click",()=>openBox(Number(button.dataset.boxIndex)));
+    });
+    return;
+  }
+
+  if(id==="revealtiles"){
+    let index=0;
+
+    const draw=()=>{
+      if(index>=data.length){
+        finishGame(state,{
+          title:"Reveal Tiles hoàn tất!",
+          score:state.score,
+          total:data.length*1000,
+          message:`Tổng điểm: ${state.score}`
+        });
+        return;
+      }
+
+      const item=data[index];
+      let opened=0;
+      host.innerHTML=expandedRoundFrame(
+        `Vòng ${index+1}/${data.length}`,
+        `<p class="btl-reveal-clue">${escapeHtml(item.clue)}</p>
+         <div class="btl-reveal-board">
+           <div class="btl-reveal-visual">${expandedVisualMarkup(item.visual,item.answer)}</div>
+           <div class="btl-reveal-grid">
+             ${Array.from({length:16},(_,tileIndex)=>`<button type="button" class="btl-reveal-tile" data-tile="${tileIndex}">${tileIndex+1}</button>`).join("")}
+           </div>
+         </div>
+         <div class="btl-typed-answer">
+           <input class="blank-input" data-reveal-input autocomplete="off" placeholder="Đoán đáp án...">
+           <button class="btn primary" type="button" data-check-reveal>Đoán</button>
+           <button class="btn ghost" type="button" data-give-reveal>Hiện đáp án</button>
+         </div>`
+      );
+
+      host.querySelectorAll("[data-tile]").forEach(tile=>{
+        tile.addEventListener("click",()=>{
+          if(tile.classList.contains("opened"))return;
+          tile.classList.add("opened");
+          tile.textContent="";
+          opened++;
+        });
+      });
+
+      const finishRound=correct=>{
+        state.progress++;
+        if(correct){
+          const points=Math.max(200,1000-opened*50);
+          state.score+=points;
+          state.streak++;
+          state.bestStreak=Math.max(state.bestStreak,state.streak);
+          announceGame(state,`Chính xác! +${points} điểm`,"success");
+        }else{
+          state.mistakes++;
+          state.streak=0;
+          announceGame(state,`Đáp án: ${item.answer}`,"error");
+        }
+        syncGameRuntime(state);
+        host.querySelectorAll("[data-tile]").forEach(tile=>{
+          tile.classList.add("opened");
+          tile.textContent="";
+          tile.disabled=true;
+        });
+        host.querySelectorAll("button,input").forEach(control=>control.disabled=true);
+        index++;
+        setTimeout(draw,1000);
+      };
+
+      const inputEl=host.querySelector("[data-reveal-input]");
+      host.querySelector("[data-check-reveal]").addEventListener("click",()=>{
+        if(!inputEl.value.trim())return;
+        if(sameGameAnswer(inputEl.value,item.answer))finishRound(true);
+        else{
+          state.mistakes++;
+          syncGameRuntime(state);
+          flashGame(inputEl,false);
+          announceGame(state,"Chưa đúng; hãy mở thêm ô hoặc thử lại.","error");
+        }
+      });
+      host.querySelector("[data-give-reveal]").addEventListener("click",()=>finishRound(false));
+      inputEl.addEventListener("keydown",event=>{
+        if(event.key==="Enter")host.querySelector("[data-check-reveal]").click();
+      });
+    };
+
+    draw();
+    return;
+  }
+
+  if(id==="memoryflash"){
+    let index=0;
+    let phase="memorize";
+    const shuffledItems=shuffle(data);
+
+    const ask=()=>{
+      if(index>=shuffledItems.length){
+        finishGame(state,{title:"Memory Flash hoàn tất!"});
+        return;
+      }
+
+      phase="question";
+      const current=shuffledItems[index];
+      const wrongPool=shuffle(data.filter(item=>item.id!==current.id)).slice(0,3);
+      const choices=shuffle([current,...wrongPool]);
+      host.innerHTML=expandedRoundFrame(
+        `Câu ${index+1}/${data.length}`,
+        `<p>Chi tiết nào thuộc về mục sau?</p>
+         <div class="btl-memory-question">${escapeHtml(current.item)}</div>
+         <div class="q-options">
+           ${choices.map(choice=>`<button class="option-btn" type="button" data-memory-id="${choice.id}">${escapeHtml(choice.detail)}</button>`).join("")}
+         </div>`
+      );
+
+      host.querySelectorAll("[data-memory-id]").forEach(button=>{
+        button.addEventListener("click",()=>{
+          const correct=Number(button.dataset.memoryId)===current.id;
+          host.querySelectorAll("[data-memory-id]").forEach(choice=>{
+            choice.disabled=true;
+            if(Number(choice.dataset.memoryId)===current.id)choice.classList.add("correct");
+          });
+          if(!correct)button.classList.add("wrong");
+          recordGame(state,correct);
+          announceGame(state,correct?"Ghi nhớ chính xác!":"Chưa đúng.",correct?"success":"error");
+          index++;
+          setTimeout(ask,720);
+        });
+      });
+    };
+
+    host.innerHTML=expandedRoundFrame(
+      "Ghi nhớ trong 8 giây",
+      `<div class="btl-memory-countdown"><b data-memory-seconds>8</b></div>
+       <div class="btl-memory-board">
+         ${data.map(item=>`<article><strong>${escapeHtml(item.item)}</strong><span>${escapeHtml(item.detail)}</span></article>`).join("")}
+       </div>`
+    );
+
+    let seconds=8;
+    const secondsEl=host.querySelector("[data-memory-seconds]");
+    container.__btlRoundTimer=setInterval(()=>{
+      seconds--;
+      secondsEl.textContent=String(Math.max(0,seconds));
+      if(seconds<=0){
+        clearInterval(container.__btlRoundTimer);
+        ask();
+      }
+    },1000);
+    return;
+  }
+
+  if(id==="labellab"){
+    const items=data.items;
+    let selected=null;
+    let dragged=null;
+
+    const chooseChip=chip=>{
+      if(!chip||chip.disabled)return;
+      selected=Number(chip.dataset.labelChip);
+      container.querySelectorAll("[data-label-chip]").forEach(item=>item.classList.remove("selected"));
+      chip.classList.add("selected");
+    };
+
+    const attempt=(target,chipId)=>{
+      const expected=Number(target.dataset.labelTarget);
+      const chip=container.querySelector(`[data-label-chip="${chipId}"]`);
+      if(!chip||chip.disabled||target.classList.contains("placed"))return;
+      const correct=expected===chipId;
+
+      if(!correct){
+        state.mistakes++;
+        syncGameRuntime(state);
+        flashGame(target,false);
+        announceGame(state,"Nhãn chưa đúng vị trí.","error");
+        return;
+      }
+
+      target.classList.add("placed");
+      target.innerHTML=`<span>${escapeHtml(target.dataset.label)}</span>`;
+      chip.disabled=true;
+      chip.classList.add("done");
+      selected=null;
+      recordGame(state,true);
+      announceGame(state,"Đặt nhãn chính xác!","success");
+      if(state.progress===state.total){
+        setTimeout(()=>finishGame(state,{title:"Đã hoàn thành Label Lab!"}),450);
+      }
+    };
+
+    container.querySelectorAll("[data-label-chip]").forEach(chip=>{
+      chip.addEventListener("click",()=>chooseChip(chip));
+      chip.addEventListener("dragstart",event=>{
+        dragged=Number(chip.dataset.labelChip);
+        event.dataTransfer?.setData("text/plain",String(dragged));
+      });
+    });
+
+    container.querySelectorAll("[data-label-target]").forEach(target=>{
+      target.addEventListener("click",()=>{
+        if(selected!==null)attempt(target,selected);
+      });
+      target.addEventListener("dragover",event=>event.preventDefault());
+      target.addEventListener("drop",event=>{
+        event.preventDefault();
+        const idFromTransfer=Number(event.dataTransfer?.getData("text/plain"));
+        attempt(target,Number.isFinite(idFromTransfer)?idFromTransfer:dragged);
+      });
+    });
+    return;
+  }
+
+  if(id==="picturequiz"){
+    let index=0;
+
+    const draw=()=>{
+      if(index>=data.length){
+        finishGame(state,{title:"Picture Quiz hoàn tất!"});
+        return;
+      }
+      const item=data[index];
+      host.innerHTML=expandedRoundFrame(
+        `Câu ${index+1}/${data.length}`,
+        `<div class="btl-picture-visual">${expandedVisualMarkup(item.visual,item.q)}</div>
+         <h3>${escapeHtml(item.q)}</h3>
+         <div class="q-options">
+           ${item.choices.map(choice=>`<button class="option-btn" type="button" data-picture-choice="${escapeHtml(choice)}">${escapeHtml(choice)}</button>`).join("")}
+         </div>`
+      );
+
+      host.querySelectorAll("[data-picture-choice]").forEach(button=>{
+        button.addEventListener("click",()=>{
+          const correct=sameGameAnswer(button.dataset.pictureChoice,item.correct);
+          host.querySelectorAll("[data-picture-choice]").forEach(choice=>{
+            choice.disabled=true;
+            if(sameGameAnswer(choice.dataset.pictureChoice,item.correct))choice.classList.add("correct");
+          });
+          if(!correct)button.classList.add("wrong");
+          recordGame(state,correct);
+          announceGame(state,correct?"Chính xác!":`Đáp án: ${item.correct}`,correct?"success":"error");
+          index++;
+          setTimeout(draw,780);
+        });
+      });
+    };
+
+    draw();
+    return;
+  }
+
+  if(id==="sortsprint"){
+    const deck=shuffle(data);
+    const categories=[...new Set(data.map(item=>item.cat))];
+    let index=0;
+    let seconds=6;
+
+    const draw=()=>{
+      clearInterval(container.__btlRoundTimer);
+      if(index>=deck.length){
+        finishGame(state,{
+          title:"Sort Sprint hoàn tất!",
+          detail:`Chuỗi đúng tốt nhất: ${state.bestStreak}`
+        });
+        return;
+      }
+
+      const item=deck[index];
+      seconds=Math.max(3,6-Math.floor(index/4));
+      host.innerHTML=expandedRoundFrame(
+        `Mục ${index+1}/${deck.length}`,
+        `<div class="btl-sprint-clock"><b data-sprint-seconds>${seconds}</b>s</div>
+         <div class="btl-sprint-item">${escapeHtml(item.item)}</div>
+         <div class="btl-sprint-categories">
+           ${categories.map(category=>`<button class="btl-sprint-category" type="button" data-sprint-cat="${escapeHtml(category)}">${escapeHtml(category)}</button>`).join("")}
+         </div>`
+      );
+
+      let resolved=false;
+      const resolve=(choice,button,expired=false)=>{
+        if(resolved)return;
+        resolved=true;
+        clearInterval(container.__btlRoundTimer);
+        const correct=!expired&&sameGameAnswer(choice,item.cat);
+        host.querySelectorAll("[data-sprint-cat]").forEach(categoryButton=>{
+          categoryButton.disabled=true;
+          if(sameGameAnswer(categoryButton.dataset.sprintCat,item.cat))categoryButton.classList.add("correct");
+        });
+        if(button&&!correct)button.classList.add("wrong");
+        recordGame(state,correct);
+        announceGame(
+          state,
+          correct?"Phân loại chính xác!":expired?`Hết giờ: ${item.cat}`:`Nhóm đúng: ${item.cat}`,
+          correct?"success":"error"
+        );
+        index++;
+        setTimeout(draw,620);
+      };
+
+      host.querySelectorAll("[data-sprint-cat]").forEach(button=>{
+        button.addEventListener("click",()=>resolve(button.dataset.sprintCat,button,false));
+      });
+
+      const secondsEl=host.querySelector("[data-sprint-seconds]");
+      container.__btlRoundTimer=setInterval(()=>{
+        seconds--;
+        secondsEl.textContent=String(Math.max(0,seconds));
+        if(seconds<=0)resolve("",null,true);
+      },1000);
+    };
+
+    draw();
+    return;
+  }
+
+  if(id==="wordmagnets"){
+    let index=0;
+
+    const draw=()=>{
+      if(index>=data.length){
+        finishGame(state,{title:"Word Magnets hoàn tất!"});
+        return;
+      }
+
+      const sentence=data[index];
+      const words=sentence.split(/\s+/).filter(Boolean);
+      host.innerHTML=expandedRoundFrame(
+        `Câu ${index+1}/${data.length}`,
+        `<div class="btl-magnet-board" data-magnet-board></div>
+         <div class="btl-magnet-pool" data-magnet-pool>
+           ${shuffle(words.map((word,wordIndex)=>({word,wordIndex}))).map(item=>`<button
+             class="btl-magnet"
+             type="button"
+             draggable="true"
+             data-magnet-word="${escapeHtml(item.word)}"
+             data-magnet-id="${item.wordIndex}"
+           >${escapeHtml(item.word)}</button>`).join("")}
+         </div>
+         <div class="toolbar">
+           <button class="btn primary" type="button" data-check-magnets>Kiểm tra</button>
+           <button class="btn ghost" type="button" data-reset-magnets>Làm lại</button>
+         </div>`
+      );
+
+      const board=host.querySelector("[data-magnet-board]");
+      const pool=host.querySelector("[data-magnet-pool]");
+      let dragged=null;
+
+      const moveToBoard=magnet=>{
+        if(!magnet)return;
+        board.appendChild(magnet);
+        magnet.classList.add("on-board");
+      };
+      const moveToPool=magnet=>{
+        if(!magnet)return;
+        pool.appendChild(magnet);
+        magnet.classList.remove("on-board");
+      };
+
+      host.querySelectorAll("[data-magnet-word]").forEach(magnet=>{
+        magnet.addEventListener("click",()=>{
+          if(magnet.parentElement===board)moveToPool(magnet);
+          else moveToBoard(magnet);
+        });
+        magnet.addEventListener("dragstart",()=>{dragged=magnet});
+      });
+
+      [board,pool].forEach(zone=>{
+        zone.addEventListener("dragover",event=>event.preventDefault());
+        zone.addEventListener("drop",event=>{
+          event.preventDefault();
+          if(zone===board)moveToBoard(dragged);
+          else moveToPool(dragged);
+        });
+      });
+
+      board.addEventListener("dragover",event=>{
+        event.preventDefault();
+        if(!dragged||dragged.parentElement!==board)return;
+        const after=[...board.children].find(child=>{
+          if(child===dragged)return false;
+          const rect=child.getBoundingClientRect();
+          return event.clientX<rect.left+rect.width/2;
+        });
+        if(after)board.insertBefore(dragged,after);
+        else board.appendChild(dragged);
+      });
+
+      host.querySelector("[data-reset-magnets]").addEventListener("click",()=>{
+        [...board.children].forEach(moveToPool);
+      });
+
+      host.querySelector("[data-check-magnets]").addEventListener("click",()=>{
+        const built=[...board.children].map(item=>item.dataset.magnetWord).join(" ");
+        const correct=sameGameAnswer(built,sentence);
+        if(!correct){
+          state.mistakes++;
+          syncGameRuntime(state);
+          flashGame(board,false);
+          announceGame(state,"Thứ tự chưa đúng.","error");
+          return;
+        }
+        recordGame(state,true);
+        board.classList.add("correct");
+        announceGame(state,"Câu hoàn chỉnh!","success");
+        index++;
+        setTimeout(draw,720);
+      });
+    };
+
+    draw();
+  }
+}
+
+const bindInteractiveActivityBeforeExpandedGames=bindInteractiveActivity;
+function bindInteractiveActivityExpandedGames(container,id,data,options={}){
+  if(isExpandedGame(id))return bindExpandedGame(container,id,data,options);
+  return bindInteractiveActivityBeforeExpandedGames(container,id,data,options);
+}
+bindInteractiveActivity=bindInteractiveActivityExpandedGames;
+bindActivity=bindInteractiveActivity;
+
+standaloneJs=function expandedThirtyGameStandaloneJs(){
+  const id=selectedTemplate.id;
+  const raw=input.value.trim();
+  const title=selectedTemplate.name;
+
+  const baseFunctions=[
+    escapeHtml,splitLines,parts,shuffle,
+    normalizeGameAnswer,sameGameAnswer,safeJsonAttr,formatGameTime,
+    gameFrame,syncGameRuntime,cleanupGame,createGameRuntime,announceGame,
+    flashGame,emitGameConfetti,finishGame,recordGame,setGameTotals,
+    renderTypedBlankGame,renderClozeGame,makeWordSearchGame,
+    straightSelectionPath,bingoWin,renderInteractiveActivity
+  ];
+
+  const expandedFunctions=[
+    isExpandedGame,clampExpandedNumber,expandedAnswerKey,expandedLevenshtein,
+    expandedAnswerAccepted,expandedVisualMarkup,parseExpandedData,
+    parseDataExpandedGames,expandedRoundFrame,bindExpandedGame,
+    bindInteractiveActivityExpandedGames
+  ];
+
+  return `const __ACTIVITY_ID__=${JSON.stringify(id)};
+const __RAW__=${JSON.stringify(raw)};
+const __TITLE__=${JSON.stringify(title)};
+const parseDataBeforeExpandedGames=${parseDataBeforeExpandedGames.toString()};
+const bindInteractiveActivityBeforeExpandedGames=${bindInteractiveActivityBeforeExpandedGames.toString()};
+${baseFunctions.map(fn=>fn.toString()).join("\n")}
+${expandedFunctions.map(fn=>fn.toString()).join("\n")}
+let parseData=parseDataExpandedGames;
+const ACTIVITY_RENDERERS=${objectToSource(ACTIVITY_RENDERERS)};
+let bindInteractiveActivity=bindInteractiveActivityExpandedGames;
+let bindActivity=bindInteractiveActivity;
+let renderActivity=renderInteractiveActivity;
+const selectedTemplate={name:__TITLE__};
+const data=parseData(__ACTIVITY_ID__,__RAW__);
+renderActivity(document.getElementById("stage"),__ACTIVITY_ID__,data,{title:__TITLE__});`;
+};
+
+/* BRIAN_TEXTLAB_EXPANDED_12_GAMES_END */
+
 /* Export ZIP without external libraries */
 function crc32(str){
   const table = crc32.table || (crc32.table = (()=>{let c, table=[]; for(let n=0;n<256;n++){c=n; for(let k=0;k<8;k++) c=((c&1)?(0xEDB88320^(c>>>1)):(c>>>1)); table[n]=c>>>0;} return table})());
@@ -980,7 +2340,121 @@ function downloadWork(){
 const EXPORT_CSS = `body{font-family:system-ui,Arial,sans-serif;background:#eaf4ff;margin:0;padding:24px;color:#0f2747}.standalone{max-width:1100px;margin:0 auto}.activity-stage{background:#fff;border-radius:24px;padding:22px;box-shadow:0 18px 40px rgba(15,39,71,.12)}button{font:inherit}.btn{border:0;border-radius:14px;padding:10px 14px;font-weight:800;cursor:pointer}.primary,.btn.primary{background:#1479ff;color:#fff}.ghost,.btn.ghost{background:#edf6ff;color:#1479ff}.q-card,.mini-card,.drop-box,.clue-card{border:2px solid #e6f0ff;border-radius:20px;padding:16px;background:#fff}.card-stack{display:grid;gap:14px}.option-btn,.chip,.match-btn,.cell-btn,.word-chip,.category-chip{border:2px solid #dbeafe;background:#f8fbff;border-radius:14px;padding:10px 12px;cursor:pointer;font-weight:800}.correct{background:#e8fff4!important;border-color:#65d6a2!important;color:#05603a}.wrong{background:#fff1f0!important;border-color:#fda29b!important;color:#b42318}.act-header{display:flex;justify-content:space-between;gap:12px;margin-bottom:14px}.act-title{margin:0;font-size:30px}.act-sub{color:#5f7694;font-weight:700}.score-pill{background:#eaf4ff;color:#1479ff;padding:9px 13px;border-radius:999px;font-weight:900}.q-options{display:grid;gap:8px;margin-top:12px}.flip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}.flip-card{min-height:150px;display:grid;place-items:center;text-align:center;background:linear-gradient(135deg,#eff8ff,#fff);border:2px solid #dbeafe;border-radius:24px;padding:16px;cursor:pointer;font-size:20px;font-weight:900}.wheel-wrap{display:grid;place-items:center;gap:16px}.wheel{width:min(360px,80vw);aspect-ratio:1;border-radius:50%;border:12px solid #fff;box-shadow:0 16px 30px rgba(15,39,71,.15);transition:transform 3s cubic-bezier(.12,.8,.22,1);position:relative}.prompt-card{font-size:26px;font-weight:900;text-align:center;padding:36px;border-radius:24px;background:linear-gradient(135deg,#eaf4ff,#fff)}.grid-two{display:grid;grid-template-columns:1fr 1fr;gap:14px}.match-list{display:grid;gap:8px}.memory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}.memory-card{min-height:88px;border:2px solid #dbeafe;background:#eaf4ff;border-radius:16px;display:grid;place-items:center;text-align:center;cursor:pointer;font-weight:900;padding:8px}.memory-card.revealed,.memory-card.done{background:#fff}.blank-input{border:2px solid #dbeafe;border-radius:12px;padding:8px;min-width:120px;margin:0 4px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.feedback{margin-top:10px;font-weight:900}.bingo-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.bingo-cell{aspect-ratio:1;border:2px solid #dbeafe;background:#fff;border-radius:14px;cursor:pointer;padding:6px;font-size:12px;font-weight:800;overflow:hidden}.bingo-cell.on{background:#dff7ff;border-color:#1479ff}.wordsearch{display:grid;gap:6px;width:max-content;max-width:100%;overflow:auto}.ws-row{display:flex;gap:6px}.ws-cell{width:34px;height:34px;border:1px solid #dbeafe;border-radius:8px;display:grid;place-items:center;font-weight:900;cursor:pointer;background:#fff}.ws-cell.sel{background:#eaf4ff}.ws-cell.found{background:#e8fff4;color:#05603a}.crossword-row{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:center;margin:8px 0}.letter-input{width:38px;height:38px;text-align:center;border:2px solid #dbeafe;border-radius:10px;margin:2px;font-weight:900;text-transform:uppercase}.sentence-board{min-height:62px;border:2px dashed #b8d7ff;border-radius:18px;padding:10px;display:flex;flex-wrap:wrap;gap:8px}.wheel-labels{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.table-wrap{overflow:auto}.act-table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden}.act-table th,.act-table td{border:1px solid #dbeafe;padding:10px;text-align:left}.act-table th{background:#eaf4ff}@media(max-width:700px){.grid-two{grid-template-columns:1fr}.crossword-row{grid-template-columns:1fr}.act-header{flex-direction:column}}
 /* BRIAN_TEXTLAB_GAME_ENGINE_V2_CSS_START */
 .btl-game{position:relative;min-height:420px}.btl-game-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:10px}.btl-game-metrics{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btl-game-metrics span{background:#eef6ff;border:1px solid #cfe2ff;border-radius:999px;padding:8px 11px;font-weight:800;color:#184c8d}.btl-progress{height:10px;border-radius:999px;background:#e7edf5;overflow:hidden;margin:10px 0 20px}.btl-progress i{display:block;height:100%;width:0;background:#1479ff;transition:width .3s ease}.btl-game-live{min-height:26px;font-weight:800;text-align:center;margin-top:12px}.btl-game-live[data-type="success"]{color:#067647}.btl-game-live[data-type="error"]{color:#b42318}.btl-round{max-width:820px;margin:0 auto}.btl-round h3{font-size:clamp(22px,3vw,34px);margin:12px 0 20px}.btl-round-number{font-size:13px;font-weight:900;color:#1479ff;text-transform:uppercase;letter-spacing:.08em}.btl-answer-correct{animation:btlCorrect .62s ease}.btl-answer-wrong{animation:btlWrong .5s ease}.btl-study-card{min-height:290px;display:grid;place-items:center;text-align:center;padding:30px;border:2px solid #cfe2ff;border-radius:28px;background:#fff;font-size:clamp(26px,4vw,46px);font-weight:900;transition:transform .35s,background .35s}.btl-study-card.flipped{transform:rotateX(8deg);background:#eef8ff}.btl-study-card small{display:block;font-size:14px;color:#657b98;margin-top:16px}.btl-center{justify-content:center}.btl-wheel-pointer{font-size:30px;color:#123a6b;margin-bottom:-22px;z-index:2}.btl-check{display:inline-flex;gap:8px;align-items:center;font-weight:800}.btl-history{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}.btl-picker-box{min-height:210px;border-radius:28px;background:#eef6ff;border:2px solid #cfe2ff;display:grid;place-items:center;text-align:center;padding:28px;font-size:clamp(28px,5vw,56px);font-weight:900}.btl-picker-box.rolling{animation:btlRoll .42s linear}.btl-passage{font-size:18px;line-height:2}.btl-word-bank,.btl-sort-bank,.btl-word-list{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}.btl-cloze-slot{min-width:100px;border:0;border-bottom:3px solid #1479ff;background:#eef6ff;color:#123a6b;border-radius:10px 10px 3px 3px;padding:7px 10px;font-weight:900;cursor:pointer}.btl-cloze-slot.correct{background:#e8fff4}.btl-cloze-slot.wrong{background:#fff1f0}.btl-scramble{font-size:clamp(30px,6vw,56px);font-weight:950;letter-spacing:.16em;text-align:center;padding:24px;background:#eef6ff;border-radius:22px}.btl-order-list{display:grid;gap:10px}.btl-order-item{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}.btl-order-item.dragging{opacity:.45}.btl-drag{font-size:24px;cursor:grab}.btl-order-actions{display:flex;gap:6px}.btl-category-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.drop-box{min-height:150px}.btl-sort-item{cursor:grab}.btl-bingo-caller{display:grid;place-items:center;gap:10px;margin-bottom:18px}.btl-wordsearch{touch-action:none;user-select:none}.ws-cell.selecting{background:#dbeafe;outline:2px solid #1479ff}.btl-letter-row{display:flex;flex-wrap:wrap}.btl-prompt-timer{width:82px;height:82px;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;background:#eef6ff;border:5px solid #1479ff;color:#123a6b;font-size:22px}.btl-table-tools{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.btl-table-cell{width:100%;border:0;background:transparent;text-align:left;padding:8px;cursor:pointer;font:inherit}.btl-table-cell.masked{background:#eaf4ff;color:#1479ff;font-weight:900;text-align:center}.btl-summary-backdrop{position:absolute;inset:0;z-index:30;background:rgba(13,36,65,.58);display:grid;place-items:center;padding:18px;border-radius:24px}.btl-summary{width:min(620px,100%);background:#fff;border-radius:28px;padding:28px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.25)}.btl-summary h3{font-size:32px;margin:8px 0}.btl-summary-icon{font-size:58px}.btl-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0}.btl-summary-grid div{background:#eef6ff;border-radius:18px;padding:14px 8px}.btl-summary-grid b{display:block;font-size:24px;color:#1479ff}.btl-summary-grid span{font-size:12px;font-weight:800;color:#607895}.btl-summary-detail{font-weight:800;color:#405a78}.btl-confetti{position:absolute;top:5%;width:9px;height:16px;background:#1479ff;z-index:35;animation:btlConfetti 1.8s var(--delay) ease-in forwards}.btl-confetti:nth-child(3n){background:#f59e0b}.btl-confetti:nth-child(3n+1){background:#17b26a}@keyframes btlCorrect{50%{transform:scale(1.02);box-shadow:0 0 0 8px rgba(23,178,106,.15)}}@keyframes btlWrong{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}@keyframes btlRoll{25%{transform:rotate(-2deg) scale(.98)}50%{transform:rotate(2deg) scale(1.02)}75%{transform:rotate(-1deg)}}@keyframes btlConfetti{to{transform:translate(var(--drift),520px) rotate(720deg);opacity:0}}@media(max-width:720px){.btl-game-head{flex-direction:column}.btl-game-metrics{justify-content:flex-start}.btl-summary-grid{grid-template-columns:repeat(2,1fr)}.btl-order-item{grid-template-columns:auto 1fr}.btl-order-actions{grid-column:1/-1}.btl-game{min-height:360px}}
-/* BRIAN_TEXTLAB_GAME_ENGINE_V2_CSS_END */`;
+/* BRIAN_TEXTLAB_GAME_ENGINE_V2_CSS_END */
+/* BRIAN_TEXTLAB_EXPANDED_12_GAMES_CSS_START */
+.btl-expanded-round{min-height:310px}
+.btl-showdown-timer,.btl-spell-clock,.btl-sprint-clock,.btl-memory-countdown{
+  width:78px;height:78px;margin:0 auto 12px;display:grid;place-items:center;
+  border:6px solid #1479ff;border-radius:50%;background:#eef6ff;color:#123a6b
+}
+.btl-showdown-timer b,.btl-spell-clock b,.btl-sprint-clock b,.btl-memory-countdown b{
+  display:block;font-size:27px;line-height:1
+}
+.btl-showdown-timer span{font-size:10px;font-weight:900;text-transform:uppercase}
+.btl-hangman-layout{display:grid;grid-template-columns:minmax(220px,320px) 1fr;gap:24px;align-items:center}
+.btl-hangman-svg{width:100%;max-height:290px}
+.btl-hangman-svg path,.btl-hangman-svg circle{
+  fill:none;stroke:#123a6b;stroke-width:8;stroke-linecap:round;opacity:0
+}
+.btl-hangman-svg .gallows{opacity:1;stroke:#55708f}
+.btl-hangman-svg [data-hang-part].shown{opacity:1;animation:btlDrawPart .3s ease}
+.btl-word-mask{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 18px}
+.btl-word-mask span{min-width:27px;padding:2px 3px;border-bottom:3px solid #123a6b;text-align:center;font-size:29px;font-weight:950}
+.btl-word-mask span.space{min-width:16px;border:0}
+.btl-word-clue{text-align:center;color:#48627f;font-weight:800}
+.btl-alpha-keyboard{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+.btl-alpha-key{width:38px;height:38px;border:2px solid #cfe2ff;border-radius:10px;background:#fff;color:#123a6b;font-weight:900;cursor:pointer}
+.btl-alpha-key:hover{background:#eaf4ff}
+.btl-alpha-key:disabled{opacity:.35;cursor:not-allowed}
+.btl-typed-answer{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin:18px 0}
+.btl-typed-answer .blank-input{min-width:min(380px,100%);font-size:17px}
+.btl-spell-clue,.btl-target-prompt,.btl-memory-question,.btl-sprint-item{
+  padding:24px;border:2px solid #dbeafe;border-radius:22px;background:#eef6ff;
+  color:#123a6b;text-align:center;font-size:clamp(22px,4vw,38px);font-weight:950
+}
+.btl-spell-example{text-align:center;color:#607895;font-style:italic}
+.btl-target-grid,.btl-sprint-categories{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:18px
+}
+.btl-target-option,.btl-sprint-category{
+  min-height:58px;border:2px solid #dbeafe;border-radius:15px;background:#fff;
+  color:#123a6b;padding:10px;font-weight:850;cursor:pointer
+}
+.btl-box-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:12px}
+.btl-mystery-box{
+  min-height:120px;display:grid;place-items:center;gap:5px;border:2px solid #dbeafe;
+  border-radius:20px;background:linear-gradient(145deg,#eef6ff,#fff);color:#123a6b;
+  cursor:pointer;transition:.2s ease
+}
+.btl-mystery-box span{font-size:35px;font-weight:950}
+.btl-mystery-box:hover{transform:translateY(-3px);border-color:#1479ff}
+.btl-mystery-box.opened{background:#e8fff4;border-color:#65d6a2;color:#05603a}
+.btl-box-stage{margin-top:16px;min-height:180px;display:grid;place-items:center}
+.btl-box-placeholder,.btl-open-box{
+  width:min(680px,100%);padding:26px;border:2px dashed #cfe2ff;border-radius:22px;
+  background:#f8fbff;text-align:center;color:#48627f
+}
+.btl-box-placeholder.success{border-style:solid;border-color:#65d6a2;background:#e8fff4;color:#05603a}
+.btl-open-box{border-style:solid;background:#fff}
+.btl-open-box-icon{font-size:48px}
+.btl-open-box h3{font-size:27px;margin:8px 0}
+.btl-open-box p{font-size:19px;line-height:1.55}
+.btl-reveal-clue{text-align:center;color:#48627f;font-weight:850}
+.btl-reveal-board{position:relative;width:min(520px,100%);aspect-ratio:4/3;margin:14px auto;overflow:hidden;border:2px solid #dbeafe;border-radius:24px;background:#eef6ff}
+.btl-reveal-visual{position:absolute;inset:0;display:grid;place-items:center;padding:18px}
+.btl-reveal-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr)}
+.btl-reveal-tile{border:1px solid rgba(255,255,255,.55);background:linear-gradient(145deg,#166fe8,#0e57c9);color:#fff;font-weight:900;cursor:pointer;transition:transform .38s,opacity .38s}
+.btl-reveal-tile:hover{background:#2a82f5}
+.btl-reveal-tile.opened{opacity:0;transform:scale(.55) rotate(7deg);pointer-events:none}
+.btl-expanded-image,.btl-scene-svg{width:100%;height:100%;max-height:330px;object-fit:contain}
+.btl-expanded-emoji{font-size:clamp(72px,16vw,150px);line-height:1.1;text-align:center}
+.btl-expanded-word-visual{font-size:clamp(36px,8vw,82px);font-weight:950;text-align:center;color:#123a6b}
+.btl-memory-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.btl-memory-board article{padding:15px;border:2px solid #dbeafe;border-radius:16px;background:#fff}
+.btl-memory-board strong,.btl-memory-board span{display:block}
+.btl-memory-board strong{color:#1479ff;font-size:17px}
+.btl-memory-board span{margin-top:5px;color:#48627f}
+.btl-label-layout{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:18px}
+.btl-label-scene{position:relative;min-height:390px;border:2px solid #dbeafe;border-radius:24px;overflow:hidden;background:#eef6ff}
+.btl-label-scene>.btl-scene-svg,.btl-label-scene>.btl-expanded-image{position:absolute;inset:0;width:100%;height:100%}
+.btl-label-target{
+  position:absolute;transform:translate(-50%,-50%);min-width:34px;min-height:34px;
+  display:grid;place-items:center;border:3px solid #fff;border-radius:999px;background:#1479ff;
+  color:#fff;box-shadow:0 6px 18px rgba(15,39,71,.22);cursor:pointer;z-index:3
+}
+.btl-label-target.placed{min-width:88px;padding:7px 10px;border-radius:12px;background:#e8fff4;color:#05603a;border-color:#65d6a2}
+.btl-label-target.placed span{font-size:12px}
+.btl-label-bank{align-content:start;display:flex;flex-direction:column;gap:9px;padding:14px;border:2px solid #dbeafe;border-radius:20px;background:#fff}
+.btl-label-chip{width:100%;text-align:left}
+.btl-label-chip.selected{outline:3px solid rgba(20,121,255,.22);background:#eaf4ff}
+.btl-label-chip.done{opacity:.35;text-decoration:line-through}
+.btl-picture-visual{width:min(520px,100%);height:260px;margin:0 auto 18px;display:grid;place-items:center;border:2px solid #dbeafe;border-radius:24px;background:#eef6ff;overflow:hidden}
+.btl-sprint-item{margin:16px auto;max-width:680px}
+.btl-sprint-clock{border-color:#f59e0b;background:#fff7e6}
+.btl-magnet-board,.btl-magnet-pool{
+  min-height:88px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px;
+  padding:14px;border:2px dashed #b8d7ff;border-radius:18px;background:#f8fbff
+}
+.btl-magnet-board{margin-bottom:14px;background:#eef6ff}
+.btl-magnet-pool{border-style:solid;background:#fff}
+.btl-magnet{
+  border:2px solid #d2b48c;border-radius:8px;background:#fff8dc;color:#553c1f;
+  padding:10px 13px;font-weight:900;cursor:grab;box-shadow:0 4px 0 #d8bd8d
+}
+.btl-magnet.on-board{background:#eaf4ff;border-color:#93c5fd;color:#123a6b;box-shadow:0 4px 0 #93b9e9}
+@keyframes btlDrawPart{from{stroke-dasharray:90;stroke-dashoffset:90}to{stroke-dashoffset:0}}
+@media(max-width:760px){
+  .btl-hangman-layout,.btl-label-layout{grid-template-columns:1fr}
+  .btl-label-bank{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .btl-label-scene{min-height:330px}
+  .btl-target-grid,.btl-sprint-categories{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .btl-target-grid,.btl-sprint-categories,.btl-label-bank{grid-template-columns:1fr}
+  .btl-alpha-key{width:34px;height:34px}
+  .btl-box-grid{grid-template-columns:repeat(2,1fr)}
+}
+/* BRIAN_TEXTLAB_EXPANDED_12_GAMES_CSS_END */`;
 /* Standalone core is a trimmed copy of the parser/renderer/binder engine. */
 const STANDALONE_CORE = `
 ${escapeHtml.toString()}
