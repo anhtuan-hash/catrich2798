@@ -1,23 +1,167 @@
 /* Brian TextLab Activities - original implementation */
 const TEMPLATES = [
-  {id:"quiz", icon:"✅", name:"Quick Quiz", tag:"MCQ", desc:"Tạo bài trắc nghiệm tự chấm điểm.", hint:"Mỗi dòng: Câu hỏi | Đáp án đúng | Đáp án sai 1 | Đáp án sai 2 | Đáp án sai 3", sample:"What does meticulous mean? | very careful and detailed | careless | quick | ordinary\nWhich word means extremely useful? | invaluable | irrelevant | harmful | basic\nChoose the noun form of sustain. | sustainability | sustainable | sustainably | sustained"},
-  {id:"truefalse", icon:"🔎", name:"True / False", tag:"Check", desc:"Học sinh chọn đúng/sai cho từng nhận định.", hint:"Mỗi dòng: Nhận định | true/false", sample:"Resilience means the ability to recover from difficulty. | true\nMeticulous means careless and messy. | false\nTransparency is related to openness and clarity. | true"},
-  {id:"flashcards", icon:"🃏", name:"Flip Cards", tag:"Vocab", desc:"Tạo thẻ lật từ vựng, câu hỏi, định nghĩa.", hint:"Mỗi dòng: Mặt trước | Mặt sau", sample:"resilience | the ability to recover quickly\nmeticulous | very careful and precise\nplausible | seeming reasonable or likely"},
-  {id:"wheel", icon:"🎡", name:"Spin Selector", tag:"Random", desc:"Vòng quay chọn ngẫu nhiên từ/câu hỏi/nhiệm vụ.", hint:"Mỗi dòng là một mục trên vòng quay.", sample:"Define resilience\nGive a sentence with meticulous\nExplain transparency\nUse sustainability in a sentence\nAsk a friend a question"},
-  {id:"picker", icon:"🎲", name:"Random Picker", tag:"Random", desc:"Bốc thăm ngẫu nhiên nội dung từ danh sách.", hint:"Mỗi dòng là một mục để bốc thăm.", sample:"Student A answers question 1\nTeam B gets bonus 10 points\nChoose one word and create a sentence\nExplain one grammar rule"},
-  {id:"matching", icon:"🔗", name:"Match Link", tag:"Pairs", desc:"Nối cặp từ và nghĩa/câu hỏi và đáp án.", hint:"Mỗi dòng: Mục A | Mục B", sample:"resilience | ability to recover\nmeticulous | careful and detailed\nplausible | reasonable or likely\nundermine | weaken gradually"},
-  {id:"memory", icon:"🧠", name:"Memory Match", tag:"Pairs", desc:"Lật thẻ để tìm cặp tương ứng.", hint:"Mỗi dòng: Mục A | Mục B", sample:"transparent | transparency\nsustain | sustainability\naccountable | accountability\ncomprehend | comprehension"},
-  {id:"fillblank", icon:"✍️", name:"Blank Builder", tag:"Cloze", desc:"Tạo bài điền chỗ trống từ đoạn văn.", hint:"Viết đoạn văn, đặt đáp án trong {ngoặc nhọn}. Ví dụ: The policy requires {transparency}.", sample:"The company needs more {transparency} in its decisions.\nHer {resilience} helped her overcome the setback.\nThis solution is {feasible} for a small school."},
-  {id:"cloze", icon:"📄", name:"Cloze Passage", tag:"Reading", desc:"Tạo cloze test từ đoạn văn dài.", hint:"Dùng {answer} cho mỗi chỗ trống trong đoạn văn.", sample:"A successful school requires {accountability}, {transparency}, and long-term {sustainability}. Teachers should work {collaboratively} to support students."},
-  {id:"unscramble", icon:"🔤", name:"Word Scramble", tag:"Spelling", desc:"Xáo chữ, học sinh nhập lại từ đúng.", hint:"Mỗi dòng: Từ đúng | Gợi ý", sample:"resilience | ability to recover\nmeticulous | very careful\ntransparency | openness\nsustainability | long-term support"},
-  {id:"sentence", icon:"🧩", name:"Sentence Builder", tag:"Syntax", desc:"Xáo trật tự từ, học sinh bấm để ghép câu.", hint:"Mỗi dòng là một câu hoàn chỉnh.", sample:"The students were discussing the environmental issue.\nShe has become increasingly confident.\nTransparency can improve public trust."},
-  {id:"ordering", icon:"↕️", name:"Order Race", tag:"Sequence", desc:"Sắp xếp các bước/sự kiện/câu theo đúng thứ tự.", hint:"Mỗi dòng là một mục theo thứ tự đúng.", sample:"Read the question carefully.\nUnderline the keywords.\nEliminate impossible answers.\nChoose the best option.\nReview your answer."},
-  {id:"categories", icon:"🧺", name:"Category Sort", tag:"Sort", desc:"Phân loại item vào nhóm đúng.", hint:"Mỗi dòng: Tên nhóm | Item", sample:"Noun | resilience\nNoun | transparency\nAdjective | meticulous\nAdjective | plausible\nVerb | undermine\nAdverb | objectively"},
-  {id:"bingo", icon:"▦", name:"Vocabulary Bingo", tag:"Board", desc:"Tạo bảng bingo từ danh sách từ/cụm từ.", hint:"Mỗi dòng là một ô bingo. Cần ít nhất 24 mục.", sample:"resilience\nmeticulous\nplausible\nundermine\ninvaluable\nunprecedented\ntransparency\nsustainability\naccountability\ncomprehensive\ninclusive\ndetrimental\nobjective\nfeasible\nirrelevant\nprofound\nreluctant\ncollaborative\ninnovative\nethical\ncredible\nvalid\nrepresentative\nmaturity\nstability"},
-  {id:"wordsearch", icon:"🔍", name:"Word Search", tag:"Puzzle", desc:"Tạo ô chữ tìm từ đơn giản.", hint:"Mỗi dòng là một từ cần giấu. Nên dùng từ không dấu, không khoảng trắng.", sample:"resilience\nmeticulous\nplausible\nundermine\nvaluable\ntransparent\nsustain\naccountable"},
-  {id:"crossword", icon:"🧱", name:"Crossword Lite", tag:"Puzzle", desc:"Tạo crossword dạng clue + ô nhập chữ.", hint:"Mỗi dòng: Đáp án | Gợi ý", sample:"resilience | ability to recover from difficulty\nmeticulous | very careful and detailed\nplausible | seeming reasonable\nundermine | to weaken gradually"},
-  {id:"prompts", icon:"💬", name:"Prompt Cards", tag:"Speaking", desc:"Tạo thẻ câu hỏi/nhiệm vụ nói để bốc ngẫu nhiên.", hint:"Mỗi dòng là một câu hỏi hoặc nhiệm vụ.", sample:"Do you think resilience is more important than talent? Why?\nDescribe a meticulous person you know.\nGive an example of transparency in school.\nUse three target words in one answer."},
-  {id:"table", icon:"📊", name:"Study Table", tag:"Reference", desc:"Tạo bảng học tập nhanh từ dữ liệu văn bản.", hint:"Mỗi dòng: Cột 1 | Cột 2 | Cột 3 ...", sample:"Word | Family | Meaning\nresilience | resilient / resiliently | ability to recover\nmeticulous | meticulously / meticulousness | very careful\nplausible | plausibly / plausibility | reasonable"}
+  {
+    "id": "quiz",
+    "icon": "✅",
+    "name": "Quick Quiz",
+    "tag": "MCQ",
+    "desc": "Tạo bài trắc nghiệm tự chấm điểm.",
+    "hint": "Mỗi dòng: Câu hỏi | Đáp án đúng | Đáp án sai 1 | Đáp án sai 2 | Đáp án sai 3",
+    "sample": "Which habit most effectively reduces single-use plastic? | carrying a reusable bottle | buying bottled water daily | using a new straw each time | wrapping fruit in plastic\nWhat does resilient mean? | able to recover from difficulty | unwilling to change | extremely expensive | impossible to measure\nWhich noun is formed from the adjective sustainable? | sustainability | sustain | sustainably | sustained\nWhich sentence uses meticulous correctly? | The researcher kept meticulous records of every trial. | The storm became meticulous overnight. | We arrived meticulous at noon. | The machine ran meticulous.\nWhat is the closest meaning of feasible? | practical and possible | harmful and permanent | unclear and doubtful | rare and accidental\nWhich action demonstrates transparency? | publishing clear decision-making criteria | hiding the final report | deleting all feedback | refusing to explain a change"
+  },
+  {
+    "id": "truefalse",
+    "icon": "🔎",
+    "name": "True / False",
+    "tag": "Check",
+    "desc": "Học sinh chọn đúng/sai cho từng nhận định.",
+    "hint": "Mỗi dòng: Nhận định | true/false",
+    "sample": "Renewable energy comes from sources that can be naturally replenished. | true\nA carbon footprint measures only the amount of water a person drinks. | false\nRecycling can reduce the volume of waste sent to landfill. | true\nBiodiversity refers to a single species living in one habitat. | false\nPublic transport can help reduce traffic-related emissions. | true\nSustainable development ignores the needs of future generations. | false"
+  },
+  {
+    "id": "flashcards",
+    "icon": "🃏",
+    "name": "Flip Cards",
+    "tag": "Vocab",
+    "desc": "Tạo thẻ lật từ vựng, câu hỏi, định nghĩa.",
+    "hint": "Mỗi dòng: Mặt trước | Mặt sau",
+    "sample": "biodiversity | the variety of living organisms in an area\ncarbon footprint | the total greenhouse gases caused by an activity\nrenewable energy | energy from sources that are naturally replaced\nconservation | the protection of nature and natural resources\nresilient | able to recover or adapt after difficulty\nfeasible | possible and practical to carry out\naccountability | responsibility for decisions and actions\ntransparency | openness and clarity in sharing information"
+  },
+  {
+    "id": "wheel",
+    "icon": "🎡",
+    "name": "Spin Selector",
+    "tag": "Random",
+    "desc": "Vòng quay chọn ngẫu nhiên từ/câu hỏi/nhiệm vụ.",
+    "hint": "Mỗi dòng là một mục trên vòng quay.",
+    "sample": "Define biodiversity in your own words.\nGive one example of renewable energy.\nName one way to reduce household waste.\nUse sustainable in a complete sentence.\nExplain why public transport benefits cities.\nDescribe an environmental problem in your community.\nAsk a classmate a question about conservation.\nGive a 30-second solution to plastic pollution."
+  },
+  {
+    "id": "picker",
+    "icon": "🎲",
+    "name": "Random Picker",
+    "tag": "Random",
+    "desc": "Bốc thăm ngẫu nhiên nội dung từ danh sách.",
+    "hint": "Mỗi dòng là một mục để bốc thăm.",
+    "sample": "Team Green answers the next question.\nTeam Blue receives a ten-point bonus.\nStudent A gives an example sentence.\nStudent B explains one key term.\nPair 1 has thirty seconds to discuss.\nPair 2 chooses the next speaker.\nThe class votes for the clearest explanation.\nEveryone writes one exit-ticket sentence."
+  },
+  {
+    "id": "matching",
+    "icon": "🔗",
+    "name": "Match Link",
+    "tag": "Pairs",
+    "desc": "Nối cặp từ và nghĩa/câu hỏi và đáp án.",
+    "hint": "Mỗi dòng: Mục A | Mục B",
+    "sample": "renewable | able to be naturally replaced\nconserve | protect something from loss or damage\nemission | gas released into the atmosphere\nhabitat | the natural home of an organism\nlandfill | a place where waste is buried\nefficient | working well without wasting resources\nrecycle | process material so it can be used again\necosystem | organisms and their physical environment"
+  },
+  {
+    "id": "memory",
+    "icon": "🧠",
+    "name": "Memory Match",
+    "tag": "Pairs",
+    "desc": "Lật thẻ để tìm cặp tương ứng.",
+    "hint": "Mỗi dòng: Mục A | Mục B",
+    "sample": "sustain | sustainability\nconserve | conservation\npollute | pollution\nprotect | protection\nefficient | efficiency\nresponsible | responsibility\ntransparent | transparency\nresilient | resilience"
+  },
+  {
+    "id": "fillblank",
+    "icon": "✍️",
+    "name": "Blank Builder",
+    "tag": "Cloze",
+    "desc": "Tạo bài điền chỗ trống từ đoạn văn.",
+    "hint": "Viết nội dung và đặt mỗi đáp án trong {ngoặc nhọn}.",
+    "sample": "Solar and wind power are forms of {renewable} energy.\nStudents can reduce waste by using a {reusable} bottle.\nA healthy forest supports rich {biodiversity}.\nThe council published the report to improve {transparency}.\nThe proposed recycling plan is both affordable and {feasible}.\nCommunities need long-term {resilience} after natural disasters."
+  },
+  {
+    "id": "cloze",
+    "icon": "📄",
+    "name": "Cloze Passage",
+    "tag": "Reading",
+    "desc": "Tạo cloze test từ đoạn văn dài.",
+    "hint": "Dùng {answer} cho từng chỗ trống trong một đoạn văn hoàn chỉnh.",
+    "sample": "Many schools are trying to become more {sustainable}. They install energy-efficient lights, reduce paper {waste}, and encourage students to carry {reusable} containers. Some schools also create gardens that support local {biodiversity}. These projects are most successful when students work {collaboratively}, teachers explain each goal clearly, and leaders show {accountability}. By measuring progress and sharing results with {transparency}, a school can build lasting environmental {awareness}."
+  },
+  {
+    "id": "unscramble",
+    "icon": "🔤",
+    "name": "Word Scramble",
+    "tag": "Spelling",
+    "desc": "Xáo chữ, học sinh nhập lại từ đúng.",
+    "hint": "Mỗi dòng: Từ đúng | Gợi ý",
+    "sample": "recycle | process used materials again\nhabitat | natural home of an animal or plant\nemission | gas released into the air\nresilient | able to recover from difficulty\nfeasible | practical and possible\nconserve | protect and avoid waste\nlandfill | place where rubbish is buried\necosystem | living things and their environment"
+  },
+  {
+    "id": "sentence",
+    "icon": "🧩",
+    "name": "Sentence Builder",
+    "tag": "Syntax",
+    "desc": "Xáo trật tự từ, học sinh bấm để ghép câu.",
+    "hint": "Mỗi dòng là một câu hoàn chỉnh, không thêm số thứ tự.",
+    "sample": "Our school has reduced its use of single-use plastic.\nRenewable energy can lower greenhouse-gas emissions.\nStudents should separate recyclable materials carefully.\nThe new conservation project involves the whole community.\nPublic transport is becoming increasingly reliable.\nTransparent decisions can strengthen public trust."
+  },
+  {
+    "id": "ordering",
+    "icon": "↕️",
+    "name": "Order Race",
+    "tag": "Sequence",
+    "desc": "Sắp xếp các bước, sự kiện hoặc câu theo đúng thứ tự.",
+    "hint": "Mỗi dòng là một bước theo thứ tự đúng từ trên xuống dưới.",
+    "sample": "Identify the environmental problem.\nCollect reliable information about its causes.\nDiscuss possible solutions with the group.\nChoose the most feasible solution.\nCreate a clear action plan.\nEvaluate the results and make improvements."
+  },
+  {
+    "id": "categories",
+    "icon": "🧺",
+    "name": "Category Sort",
+    "tag": "Sort",
+    "desc": "Phân loại mục vào nhóm đúng.",
+    "hint": "Mỗi dòng: Tên nhóm | Mục cần phân loại",
+    "sample": "Renewable source | solar power\nRenewable source | wind power\nRenewable source | hydropower\nEnvironmental problem | air pollution\nEnvironmental problem | deforestation\nEnvironmental problem | plastic waste\nSustainable action | using public transport\nSustainable action | carrying a reusable bottle\nSustainable action | repairing old devices\nKey quality | accountability\nKey quality | transparency\nKey quality | resilience"
+  },
+  {
+    "id": "bingo",
+    "icon": "▦",
+    "name": "Vocabulary Bingo",
+    "tag": "Board",
+    "desc": "Tạo bảng bingo từ danh sách từ hoặc cụm từ.",
+    "hint": "Mỗi dòng là một ô. Sample có đúng 24 mục; ô FREE được tạo tự động.",
+    "sample": "biodiversity\nrenewable\nrecycle\nhabitat\nemission\nlandfill\necosystem\nconservation\nsustainable\nreusable\nefficient\nresilient\nfeasible\ntransparent\naccountability\nawareness\ndeforestation\npollution\nclimate\nresources\ncommunity\nresponsibility\nwildlife\nenergy"
+  },
+  {
+    "id": "wordsearch",
+    "icon": "🔍",
+    "name": "Word Search",
+    "tag": "Puzzle",
+    "desc": "Tạo bảng tìm từ tương tác.",
+    "hint": "Mỗi dòng là một từ không dấu và không có khoảng trắng.",
+    "sample": "RECYCLE\nHABITAT\nEMISSION\nLANDFILL\nECOSYSTEM\nRENEWABLE\nRESILIENT\nFEASIBLE\nWILDLIFE\nCLIMATE"
+  },
+  {
+    "id": "crossword",
+    "icon": "🧱",
+    "name": "Crossword Lite",
+    "tag": "Puzzle",
+    "desc": "Tạo câu đố chữ từ đáp án và gợi ý.",
+    "hint": "Mỗi dòng: Đáp án một từ | Gợi ý",
+    "sample": "RECYCLE | use waste material to make something new\nHABITAT | the natural home of an organism\nEMISSION | gas or substance released into the air\nLANDFILL | place where rubbish is buried\nECOSYSTEM | organisms interacting with their environment\nRESILIENT | able to recover after difficulty\nFEASIBLE | possible and practical\nCLIMATE | typical weather conditions of a region"
+  },
+  {
+    "id": "prompts",
+    "icon": "💬",
+    "name": "Prompt Cards",
+    "tag": "Speaking",
+    "desc": "Tạo thẻ câu hỏi hoặc nhiệm vụ nói.",
+    "hint": "Mỗi dòng là một câu hỏi hoặc nhiệm vụ nói hoàn chỉnh.",
+    "sample": "Describe one environmental problem in your local area.\nExplain two benefits of renewable energy.\nSuggest three ways students can reduce plastic waste.\nDo individual actions really help the environment? Explain.\nCompare recycling with reusing an item.\nDescribe a school project that could improve biodiversity.\nUse the words feasible and sustainable in one response.\nGive a one-minute speech about responsible consumption."
+  },
+  {
+    "id": "table",
+    "icon": "📊",
+    "name": "Study Table",
+    "tag": "Reference",
+    "desc": "Tạo bảng học tập có tìm kiếm và che đáp án.",
+    "hint": "Mỗi dòng có cùng số cột, ngăn cách bằng dấu |; dòng đầu là tiêu đề.",
+    "sample": "Word | Part of speech | Meaning\nbiodiversity | noun | variety of living organisms\nrenewable | adjective | able to be naturally replaced\nconserve | verb | protect from loss or waste\nemission | noun | substance released into the air\nresilient | adjective | able to recover after difficulty\nfeasible | adjective | possible and practical\naccountability | noun | responsibility for actions\ntransparency | noun | openness and clarity"
+  }
 ];
 
 let selectedTemplate = TEMPLATES[0];
@@ -40,57 +184,9 @@ function uid(){return Math.random().toString(36).slice(2,9)}
 function normalizeText(text){
   return text.replace(/\t/g," | ").replace(/[ ]+\|[ ]+/g," | ").replace(/[ ]{2,}/g," ").trim();
 }
-function aiPromptForTemplate(template=selectedTemplate){
-  return [
-    `Template: ${template.name} (${template.id})`,
-    `Mục tiêu: ${template.desc}`,
-    `Định dạng bắt buộc: ${template.hint}`,
-    `Yêu cầu đầu ra: chỉ trả về nội dung hoạt động theo đúng định dạng trên; không markdown; không giải thích; không đánh số nếu template không yêu cầu; không lặp ý.`
-  ].join("\n");
-}
-function setAIStatus(text, state="idle"){
-  const el=$("#aiStatus");
-  if(!el) return;
-  el.textContent=text;
-  el.dataset.state=state;
-}
-function showAIAlert(message, type="error"){
-  const box=$("#aiAlert");
-  if(!box) return;
-  box.textContent=message || "";
-  box.classList.toggle("hidden", !message);
-  box.dataset.type=type;
-}
-function updateAIPromptPreview(){
-  const el=$("#aiPromptPreview");
-  if(el) el.textContent=aiPromptForTemplate(selectedTemplate);
-}
-function requestAIGeneration(forceSelected=false){
-  const request=$("#aiRequest")?.value?.trim() || "";
-  if(!request){
-    showAIAlert("Hãy nhập yêu cầu trước khi tạo bằng AI.");
-    $("#aiRequest")?.focus();
-    return;
-  }
-  const autoDetect = forceSelected ? false : Boolean($("#aiAutoDetect")?.checked);
-  setAIStatus("Đang phân tích yêu cầu...", "loading");
-  showAIAlert("");
-  $("#btnAIGenerate").disabled=true;
-  $("#btnAISelected").disabled=true;
-  window.parent.postMessage({
-    type:"BTL_AI_GENERATE",
-    payload:{
-      request,
-      level:$("#aiLevel")?.value || "B2",
-      itemCount:Number($("#aiItemCount")?.value || 10),
-      autoDetect,
-      selectedTemplateId:selectedTemplate.id,
-      templates:TEMPLATES.map(({id,name,tag,desc,hint})=>({id,name,tag,desc,hint}))
-    }
-  }, "*");
-}
-function handleAIMessage(event){
+function handleHostMessage(event){
   const data=event?.data || {};
+
   if(data.type==="BTL_FONT_SCALE"){
     const raw=Number(data.scale || 100);
     const scale=Math.min(130,Math.max(90,Number.isFinite(raw)?raw:100));
@@ -98,35 +194,18 @@ function handleAIMessage(event){
     document.documentElement.dataset.fontScale=String(scale);
     return;
   }
+
   if(data.type==="BTL_LOAD_SAVED_ACTIVITY"){
     const saved=data.payload || {};
     selectTemplate(saved.templateId || "quiz", {loadSample:false});
     input.value=String(saved.content || "").trim();
     renderPreview();
     if(input.value) finishActivity();
-    return;
-  }
-  if(data.type==="BTL_AI_RESULT"){
-    const result=data.payload || {};
-    if(result.templateId) selectTemplate(result.templateId, {loadSample:false});
-    input.value=String(result.content || "").trim();
-    renderPreview();
-    const promptText=result.promptUsed || aiPromptForTemplate(selectedTemplate);
-    if($("#aiPromptPreview")) $("#aiPromptPreview").textContent=promptText;
-    setAIStatus(`Đã tạo bằng ${selectedTemplate.name}`, "success");
-    showAIAlert(result.reason ? `AI chọn ${selectedTemplate.name}: ${result.reason}` : "Nội dung đã được tạo và đưa vào preview.", "success");
-    $("#btnAIGenerate").disabled=false;
-    $("#btnAISelected").disabled=false;
-  }
-  if(data.type==="BTL_AI_ERROR"){
-    setAIStatus("AI chưa tạo được", "error");
-    showAIAlert(data.message || "Không thể tạo nội dung bằng AI.");
-    $("#btnAIGenerate").disabled=false;
-    $("#btnAISelected").disabled=false;
   }
 }
 function setTheme(value){document.body.dataset.style=value; localStorage.setItem("btl-style", value)}
 function init(){
+  verifyAllTemplateSamples();
   const params=new URLSearchParams(window.location.search);
   const initialScale=Number(params.get("fontScale") || 100);
   if(Number.isFinite(initialScale)) document.documentElement.style.fontSize=`${Math.min(130,Math.max(90,initialScale))}%`;
@@ -135,7 +214,7 @@ function init(){
   renderTemplateGrid();
   selectTemplate("quiz", {loadSample:true});
   bindUI();
-  updateAIPromptPreview();
+
   renderPreview();
 }
 function renderTemplateGrid(filter=""){
@@ -157,7 +236,7 @@ function selectTemplate(id, options={}){
   input.placeholder = selectedTemplate.hint;
   if(options.loadSample !== false) input.value = selectedTemplate.sample;
   renderTemplateGrid($("#searchTemplates").value || "");
-  updateAIPromptPreview();
+
   renderPreview();
 }
 function bindUI(){
@@ -167,16 +246,11 @@ function bindUI(){
   });
   $("#searchTemplates").addEventListener("input", e=>renderTemplateGrid(e.target.value));
   $("#styleSelect").addEventListener("change", e=>setTheme(e.target.value));
-  $("#btnSample").addEventListener("click", ()=>{input.value=selectedTemplate.sample; renderPreview(); setAIStatus(`Đã nạp sample ${selectedTemplate.name}`, "success")});
+  $("#btnSample").addEventListener("click", ()=>{ input.value=selectedTemplate.sample; renderPreview(); });
   $("#btnClear").addEventListener("click", ()=>{input.value=""; renderPreview()});
   $("#btnNormalize").addEventListener("click", ()=>{input.value=normalizeText(input.value); renderPreview()});
-  $("#btnCopyPrompt").addEventListener("click", copyAIPrompt);
-  $("#btnAIGenerate").addEventListener("click", ()=>requestAIGeneration(false));
-  $("#btnAISelected").addEventListener("click", ()=>requestAIGeneration(true));
-  $("#aiAutoDetect").addEventListener("change", e=>{
-    $("#btnAIGenerate").textContent = e.target.checked ? "✨ AI nhận diện & tạo" : "✨ AI tạo theo mẫu đang chọn";
-  });
-  window.addEventListener("message", handleAIMessage);
+
+  window.addEventListener("message", handleHostMessage);
   $("#fileInput").addEventListener("change", handleUpload);
   input.addEventListener("input", debounce(renderPreview, 250));
   $("#zoomIn").addEventListener("click", ()=>setZoom(zoom+.1));
@@ -222,6 +296,34 @@ function parseData(id, raw){
     default: return lines;
   }
 }
+const TEMPLATE_SAMPLE_MINIMUMS = Object.freeze({
+  quiz:4,truefalse:4,flashcards:6,wheel:6,picker:6,matching:6,memory:6,
+  fillblank:4,cloze:6,unscramble:6,sentence:5,ordering:5,categories:8,
+  bingo:24,wordsearch:8,crossword:6,prompts:6,table:6
+});
+
+function sampleItemCount(template){
+  const parsed=parseData(template.id,template.sample);
+  if(template.id==="fillblank" || template.id==="cloze") return parsed.answers?.length || 0;
+  return Array.isArray(parsed) ? parsed.length : 0;
+}
+
+function verifyAllTemplateSamples(){
+  const problems=TEMPLATES
+    .map(template=>({
+      id:template.id,
+      count:sampleItemCount(template),
+      minimum:TEMPLATE_SAMPLE_MINIMUMS[template.id] || 1
+    }))
+    .filter(item=>item.count<item.minimum);
+
+  if(problems.length){
+    console.error("Brian TextLab sample audit failed",problems);
+    return false;
+  }
+  return true;
+}
+
 function renderPreview(){
   const raw = input.value.trim();
   finished = false;
@@ -263,15 +365,6 @@ function handleUpload(e){
   const reader = new FileReader();
   reader.onload = () => {input.value = String(reader.result||""); renderPreview()};
   reader.readAsText(file);
-}
-function copyAIPrompt(){
-  const prompt = `Bạn là chuyên gia thiết kế hoạt động dạy tiếng Anh.
-
-${aiPromptForTemplate(selectedTemplate)}
-
-Yêu cầu bổ sung: nội dung chính xác, tự nhiên, phù hợp trình độ người học và không trùng lặp.`;
-  navigator.clipboard?.writeText(prompt);
-  alert("Đã copy prompt đúng cấu trúc template.");
 }
 function renderActivity(container, id, data, options={}){
   container.innerHTML = ACTIVITY_RENDERERS[id]?.(data, options) || `<p>Unsupported activity.</p>`;

@@ -33,16 +33,6 @@ export const AI_ACTIONS = Object.freeze({
     descVi: 'Chuyển từ vựng và quan hệ từ thành nguồn WordGraph.',
     hash: '#/tool/word2graph',
   },
-  'textlab-activities': {
-    id: 'textlab-activities',
-    target: 'textlab-activities',
-    icon: 'TL',
-    title: 'Create activity',
-    titleVi: 'Tạo hoạt động TextLab',
-    desc: 'Use the answer to build an interactive classroom activity.',
-    descVi: 'Dùng câu trả lời để tạo hoạt động tương tác.',
-    hash: '#/tool/textlab-activities',
-  },
   library: {
     id: 'library',
     target: 'library',
@@ -84,8 +74,6 @@ export function buildAiActionSuggestions({ message = '', currentRoute = '', sele
   add('library', 45);
   add('exam-studio', hasAny(text, ['answer:', 'đáp án', 'a.', 'b.', 'multiple choice', 'trắc nghiệm', 'test']) ? 90 : 50);
   add('word2graph', hasAny(text, ['vocabulary', 'word family', 'collocation', 'synonym', 'từ vựng', 'nghĩa', 'phát âm']) ? 88 : 42);
-  add('textlab-activities', hasAny(text, ['game', 'activity', 'matching', 'sorting', 'hoạt động', 'trò chơi']) ? 84 : 40);
-
 
   return ranked.sort((a, b) => b.score - a.score).slice(0, 5).map(({ score, ...action }) => action);
 }

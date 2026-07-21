@@ -55,62 +55,20 @@
           <div>
             <span class="step">2</span>
             <h2>Your Content</h2>
-            <p>Dán hoặc nhập nội dung bên dưới.</p>
+            <p>Chọn template để nạp sample đúng định dạng, sau đó chỉnh sửa nội dung.</p>
           </div>
           <div class="mini-actions">
             <button class="btn ghost" id="btnSample">Load sample</button>
             <button class="btn ghost" id="btnClear">Clear</button>
           </div>
         </div>
-        <section class="ai-builder" id="aiBuilder">
-          <div class="ai-builder-head">
-            <div>
-              <span class="ai-badge">✨ AI Template Builder</span>
-              <h3>Nhập yêu cầu để AI tạo hoạt động</h3>
-              <p>AI có thể tự nhận diện template phù hợp, chọn đúng cấu trúc prompt và tạo nội dung sẵn sàng để preview.</p>
-            </div>
-            <span class="ai-status" id="aiStatus">AI sẵn sàng</span>
-          </div>
-          <textarea id="aiRequest" class="ai-request" spellcheck="false" placeholder="Ví dụ: Tạo 12 câu trắc nghiệm B2 về môi trường, mỗi câu có 4 phương án và không trùng lặp..."></textarea>
-          <div class="ai-options">
-            <label>
-              Trình độ
-              <select id="aiLevel">
-                <option value="A2">A2</option>
-                <option value="B1">B1</option>
-                <option value="B2" selected>B2</option>
-                <option value="C1">C1</option>
-                <option value="C2">C2</option>
-              </select>
-            </label>
-            <label>
-              Số lượng
-              <input id="aiItemCount" type="number" min="1" max="100" value="10" />
-            </label>
-            <label class="ai-detect-toggle">
-              <input id="aiAutoDetect" type="checkbox" checked />
-              <span>Tự nhận diện template</span>
-            </label>
-          </div>
-          <div class="ai-actions">
-            <button class="btn primary" id="btnAIGenerate">✨ AI nhận diện & tạo</button>
-            <button class="btn ghost" id="btnAISelected">Tạo theo template đang chọn</button>
-          </div>
-          <details class="ai-prompt-details">
-            <summary>Prompt mẫu ứng với template</summary>
-            <pre id="aiPromptPreview"></pre>
-          </details>
-          <div class="alert hidden" id="aiAlert"></div>
-        </section>
-
-        <textarea id="contentInput" spellcheck="false" placeholder="Chọn template để xem định dạng nhập liệu..."></textarea>
+<textarea id="contentInput" spellcheck="false" placeholder="Chọn template để xem định dạng nhập liệu..."></textarea>
         <div class="input-tools">
           <label class="file-upload">
             Upload .txt/.csv
             <input type="file" id="fileInput" accept=".txt,.csv,.tsv,.md"/>
           </label>
           <button class="btn ghost" id="btnNormalize">Auto clean</button>
-          <button class="btn ghost" id="btnCopyPrompt">Copy AI prompt</button>
         </div>
         <div class="alert hidden" id="inputAlert">Please enter content before proceeding.</div>
       </section>

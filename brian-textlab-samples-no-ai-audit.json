@@ -1,0 +1,79 @@
+{
+  "template_count": 18,
+  "templates": [
+    {
+      "id": "quiz",
+      "name": "Quick Quiz"
+    },
+    {
+      "id": "truefalse",
+      "name": "True / False"
+    },
+    {
+      "id": "flashcards",
+      "name": "Flip Cards"
+    },
+    {
+      "id": "wheel",
+      "name": "Spin Selector"
+    },
+    {
+      "id": "picker",
+      "name": "Random Picker"
+    },
+    {
+      "id": "matching",
+      "name": "Match Link"
+    },
+    {
+      "id": "memory",
+      "name": "Memory Match"
+    },
+    {
+      "id": "fillblank",
+      "name": "Blank Builder"
+    },
+    {
+      "id": "cloze",
+      "name": "Cloze Passage"
+    },
+    {
+      "id": "unscramble",
+      "name": "Word Scramble"
+    },
+    {
+      "id": "sentence",
+      "name": "Sentence Builder"
+    },
+    {
+      "id": "ordering",
+      "name": "Order Race"
+    },
+    {
+      "id": "categories",
+      "name": "Category Sort"
+    },
+    {
+      "id": "bingo",
+      "name": "Vocabulary Bingo"
+    },
+    {
+      "id": "wordsearch",
+      "name": "Word Search"
+    },
+    {
+      "id": "crossword",
+      "name": "Crossword Lite"
+    },
+    {
+      "id": "prompts",
+      "name": "Prompt Cards"
+    },
+    {
+      "id": "table",
+      "name": "Study Table"
+    }
+  ],
+  "auto_load_on_select": true,
+  "ai_removed": true
+}
