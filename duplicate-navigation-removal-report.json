@@ -1,0 +1,11 @@
+{
+  "js": "src/utils/optionTwoGlobalShell.js",
+  "css": "src/styles/option-two-global-shell.css",
+  "changes": [
+    "Thêm bộ nhận diện an toàn cho thanh điều hướng legacy bị trùng",
+    "Gỡ logo khỏi utility bar",
+    "Đưa logo Brian English lên đầu thanh điều hướng Option 2",
+    "Kích hoạt ẩn thanh legacy khi mount",
+    "Thêm layout logo + nav và lớp ẩn legacy vào CSS"
+  ]
+}

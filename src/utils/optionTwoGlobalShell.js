@@ -69,6 +69,49 @@ const suppressLegacyNotificationBar = () => {
   }, 400);
 };
 
+
+const findDuplicateLegacyNavigation = () => {
+  const required = ['trang chủ', 'ứng dụng', 'đọc báo', 'trò chơi', 'thêm'];
+  const candidates = [...document.querySelectorAll('#root nav, #root header, #root [role="navigation"], #root div')]
+    .filter((node) => {
+      if (!(node instanceof HTMLElement)) return false;
+      if (node.closest(`#${OPTION_TWO_SHELL_ID}`)) return false;
+      if (node.classList.contains('brian-retired-legacy-navigation')) return true;
+      const text = (node.innerText || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      if (!text || text.length < 40 || text.length > 700) return false;
+      if (!text.includes('brian english')) return false;
+      return required.every((label) => text.includes(label));
+    })
+    .sort((a, b) => {
+      const aText = (a.innerText || '').length;
+      const bText = (b.innerText || '').length;
+      return aText - bText;
+    });
+
+  const candidate = candidates[0];
+  if (!candidate) return false;
+  candidate.classList.add('brian-retired-legacy-navigation');
+  candidate.setAttribute('aria-hidden', 'true');
+  candidate.style.setProperty('display', 'none', 'important');
+  candidate.style.setProperty('height', '0', 'important');
+  candidate.style.setProperty('min-height', '0', 'important');
+  candidate.style.setProperty('margin', '0', 'important');
+  candidate.style.setProperty('padding', '0', 'important');
+  candidate.style.setProperty('border', '0', 'important');
+  candidate.style.setProperty('overflow', 'hidden', 'important');
+  return true;
+};
+
+const suppressDuplicateLegacyNavigation = () => {
+  findDuplicateLegacyNavigation();
+  let attempts = 0;
+  const timer = window.setInterval(() => {
+    attempts += 1;
+    findDuplicateLegacyNavigation();
+    if (attempts >= 30) window.clearInterval(timer);
+  }, 350);
+};
+
 const navItems = [
   ['home', '⌂', 'Trang chủ', ROUTES.home],
   ['apps', '▦', 'Ứng dụng', ROUTES.apps],
@@ -174,9 +217,6 @@ export function installOptionTwoGlobalShell() {
       </section>
 
       <section class="brian-o2-utilitybar">
-        <button type="button" class="brian-o2-brand" data-route="${escapeHtml(ROUTES.home)}">
-          <span>B</span><span><strong>Brian English</strong><small>Teaching Workspace</small></span>
-        </button>
         <div class="brian-o2-utility-status">
           <div><span class="is-green">▣</span><b>0 việc hôm nay</b><small>Trung tâm thông báo</small></div>
           <div><span>♙</span><b>0 tài khoản</b><small>Đang hoạt động</small></div>
@@ -191,6 +231,9 @@ export function installOptionTwoGlobalShell() {
       </section>
 
       <nav class="brian-o2-navigation" aria-label="Điều hướng chính">
+        <button type="button" class="brian-o2-brand brian-o2-nav-brand" data-route="${escapeHtml(ROUTES.home)}" aria-label="Mở trang chủ Brian English">
+          <span>B</span><span><strong>Brian English</strong><small>Teaching Workspace</small></span>
+        </button>
         <div class="brian-o2-nav-list">${makeNav()}</div>
         <div class="brian-o2-nav-tools">
           <button type="button" class="brian-o2-search">⌕ <span>Tìm nhanh</span><kbd>⌘K</kbd></button>
@@ -226,8 +269,9 @@ export function installOptionTwoGlobalShell() {
     updateActiveNavigation(shell);
     loadNews(shell);
     suppressLegacyNotificationBar();
+    suppressDuplicateLegacyNavigation();
 
-    window.addEventListener('hashchange', () => updateActiveNavigation(shell), { passive: true });
+    window.addEventListener('hashchange', () => { updateActiveNavigation(shell); suppressDuplicateLegacyNavigation(); }, { passive: true });
     window.setInterval(() => {
       const clock = shell.querySelector('[data-clock]');
       if (clock) clock.textContent = formatClock();
