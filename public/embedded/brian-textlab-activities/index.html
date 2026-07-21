@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="proposal-4-workspace.css" />
   <link rel="stylesheet" href="preview-tools.css" />
+  <link rel="stylesheet" href="resource-publish.css" />
 </head>
 <body>
   <div class="app-shell proposal-workspace">
@@ -189,7 +190,7 @@
             ▣ Lưu vào thiết bị
           </button>
           <button class="btn soft-action" id="btnSaveLibrary" type="button">
-            ▥ Thêm vào Thư viện
+            ▥ Thêm vào Kho học liệu
           </button>
           <button class="btn soft-action" id="btnAddBank" type="button">
             ▤ Thêm vào Ngân hàng câu hỏi
@@ -257,7 +258,7 @@
       <li>Sample đúng định dạng sẽ được nạp ngay vào phần Your Content.</li>
       <li>Chỉnh sửa dữ liệu và xem preview cập nhật trực tiếp.</li>
       <li>Bấm Bắt đầu làm bài để khởi tạo lại lượt chơi.</li>
-      <li>Lưu vào Thư viện hoặc tải HTML ngoại tuyến để sử dụng trên lớp.</li>
+      <li>Thêm vào Kho học liệu để chia sẻ và chạy trực tiếp, hoặc tải HTML để sử dụng offline.</li>
     </ol>
   </dialog>
 
@@ -268,7 +269,7 @@
       <li>Choose a template from the horizontal scroller.</li>
       <li>The correct sample loads automatically.</li>
       <li>Edit the content and interact with the live preview.</li>
-      <li>Start a fresh attempt or export the activity for offline use.</li>
+      <li>Publish to the Resource Library for direct browser play or export for offline use.</li>
     </ol>
   </dialog>
 
@@ -276,15 +277,84 @@
     <button class="modal-close" data-close>×</button>
     <h3>Đưa sản phẩm lên online</h3>
     <ol>
-      <li>Bấm Download my work để tải một tệp HTML duy nhất.</li>
-      <li>Mở trực tiếp tệp HTML bằng trình duyệt để chạy local.</li>
-      <li>Có thể tải chính tệp HTML đó lên hosting tĩnh.</li>
+      <li>Bấm “Thêm vào Kho học liệu” để chia sẻ cho giáo viên trong tổ.</li>
+      <li>Học liệu đã duyệt có thể chạy trực tiếp trong Kho học liệu, không cần tải xuống.</li>
+      <li>Download my work vẫn tạo một tệp HTML dùng local khi cần.</li>
     </ol>
+  </dialog>
+
+  <dialog id="resourcePublishModal" class="resource-publish-dialog">
+    <header>
+      <div>
+        <span>BRIAN RESOURCE LIBRARY</span>
+        <h2>Thêm vào Kho học liệu</h2>
+        <p>Đóng gói hoạt động thành HTML tự chứa để giáo viên có thể chạy trực tiếp trong kho.</p>
+      </div>
+      <button type="button" data-resource-publish-close aria-label="Đóng">×</button>
+    </header>
+    <form id="resourcePublishForm" class="resource-publish-form">
+      <label>Tên học liệu
+        <input name="title" required maxlength="160" placeholder="Ví dụ: Verb Tenses Challenge – Unit 1" />
+      </label>
+      <label>Mô tả
+        <textarea name="description" maxlength="800" placeholder="Mục tiêu, nội dung và cách sử dụng hoạt động..."></textarea>
+      </label>
+      <div class="resource-publish-grid">
+        <label>Danh mục
+          <select name="category">
+            <option value="worksheet">Worksheet / Hoạt động</option>
+            <option value="assessment">Kiểm tra – đánh giá</option>
+            <option value="thpt-exam">Luyện thi THPT</option>
+            <option value="gifted">Bồi dưỡng học sinh giỏi</option>
+            <option value="audio">Listening / Audio</option>
+            <option value="other">Khác</option>
+          </select>
+        </label>
+        <label>Khối lớp
+          <input name="grade" placeholder="10, 11, 12" />
+        </label>
+        <label>CEFR
+          <input name="cefr" placeholder="B1–C1" />
+        </label>
+      </div>
+      <div class="resource-publish-grid">
+        <label>Năm học
+          <input name="schoolYear" placeholder="2026–2027" />
+        </label>
+        <label>Unit / Chủ đề
+          <input name="unitName" placeholder="Unit 1 · A Long and Healthy Life" />
+        </label>
+        <label>Từ khóa
+          <input name="tags" placeholder="grammar, tenses, interactive" />
+        </label>
+      </div>
+      <label>Kỹ năng
+        <div class="resource-publish-skills">
+          <button type="button" data-resource-skill="Vocabulary">Vocabulary</button>
+          <button type="button" data-resource-skill="Grammar">Grammar</button>
+          <button type="button" data-resource-skill="Reading">Reading</button>
+          <button type="button" data-resource-skill="Listening">Listening</button>
+          <button type="button" data-resource-skill="Speaking">Speaking</button>
+          <button type="button" data-resource-skill="Writing">Writing</button>
+          <button type="button" data-resource-skill="Pronunciation">Pronunciation</button>
+        </div>
+      </label>
+      <label class="resource-publish-check">
+        <input type="checkbox" name="allowDownload" />
+        <span>Cho phép giáo viên tải bản HTML. Bỏ chọn để chỉ chạy trực tiếp trong Kho học liệu.</span>
+      </label>
+      <div id="resourcePublishStatus" class="resource-publish-status" role="status"></div>
+      <div class="resource-publish-actions">
+        <button type="button" data-resource-publish-close>Hủy</button>
+        <button type="submit" class="primary" id="resourcePublishSubmit">Thêm vào Kho học liệu</button>
+      </div>
+    </form>
   </dialog>
 
   <script src="app.js"></script>
   <script src="extra-games.js"></script>
   <script src="extra-export.js"></script>
+  <script src="resource-publish.js"></script>
   <script src="preview-tools.js"></script>
 </body>
 </html>
