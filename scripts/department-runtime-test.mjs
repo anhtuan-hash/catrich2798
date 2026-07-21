@@ -40,28 +40,27 @@ const server = await createServer({ server: { middlewareMode: true }, appType: '
 try {
   const { default: DepartmentWorkspace } = await server.ssrLoadModule('/src/pages/DepartmentWorkspace.jsx');
   const roles = ['admin', 'ttcm', 'teacher'];
-  const requiredLabels = ['Tổng quan', 'Lịch & hoạt động', 'Hồ sơ & văn bản', 'Trung tâm công việc'];
+  const requiredLabels = ['Tổng quan', 'Lịch & hoạt động', 'Hồ sơ & văn bản', 'Trung tâm công việc', 'Kho học liệu'];
   for (const role of roles) {
     globalThis.localStorage = makeStorage();
     globalThis.sessionStorage = makeStorage();
     const html = renderToString(React.createElement(DepartmentWorkspace, {
       language: 'vi',
       currentUser: { id: role, name: role, email: `${role}@test.local`, role },
-      hasApiKey: true,
     }));
-    if (!html.includes('department-v40-hero-shell')) {
-      throw new Error(`Department workspace failed to render for ${role}`);
+    if (!html.includes('department-fluent-workspace')) {
+      throw new Error(`Brian Fluent Workspace failed to render for ${role}`);
     }
     for (const label of requiredLabels) {
-      if (!html.includes(label)) throw new Error(`Missing department module "${label}" for ${role}`);
+      if (!html.includes(label)) throw new Error(`Missing department navigation "${label}" for ${role}`);
     }
-    if (html.includes('Báo cáo & thống kê')) {
-      throw new Error(`Removed reports module leaked into the department workspace for ${role}`);
+    if (html.includes('department-v40-hero-shell') || html.includes('department-v2-tabs') || html.includes('v1093-work-hub')) {
+      throw new Error(`Legacy Department UI leaked into Brian Fluent Workspace for ${role}`);
     }
-    if (html.includes('AI TTCM') || html.includes('Hỗ trợ TTCM') || html.includes('Tạo báo cáo AI')) {
-      throw new Error(`AI content leaked into the department workspace for ${role}`);
+    if (html.includes('Báo cáo & thống kê') || html.includes('AI TTCM') || html.includes('Hỗ trợ TTCM') || html.includes('Tạo báo cáo AI')) {
+      throw new Error(`Removed content leaked into the department workspace for ${role}`);
     }
-    console.log(`✓ department runtime ${role} - ${html.length} chars, four modules, no reports tab, no AI`);
+    console.log(`✓ department fluent runtime ${role} - ${html.length} chars, four modules, no legacy UI, no AI`);
   }
 } finally {
   await server.close();
