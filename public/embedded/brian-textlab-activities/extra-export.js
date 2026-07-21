@@ -68,10 +68,10 @@
   }
 })();`;
 
-  const buildHtml = async () => {
+  const buildHtml = async (options = {}) => {
     const raw = String(document.querySelector("#contentInput")?.value || "").trim();
     const templateId = selectedTemplate?.id || "activity";
-    const title = selectedTemplate?.name || "Brian Activity";
+    const title = String(options.titleOverride || selectedTemplate?.name || "Brian Activity").trim();
     const [appSource, extraSource] = await Promise.all([
       readSource("app.js"),
       readSource("extra-games.js")
@@ -119,6 +119,19 @@
     document.body.appendChild(frame);
   });
 
+  const buildVerifiedHtml = async (options = {}) => {
+    const html = await buildHtml(options);
+    await validate(html);
+    return html;
+  };
+
+  window.BrianTextLabExport = Object.freeze({
+    buildHtml,
+    validate,
+    buildVerifiedHtml,
+    safeFilename,
+  });
+
   button.addEventListener("click", async (event) => {
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -129,8 +142,7 @@
     button.disabled = true;
     button.textContent = "Đang đóng gói 38 template...";
     try {
-      const html = await buildHtml();
-      await validate(html);
+      const html = await buildVerifiedHtml();
       const filename = `brian-${safeFilename(selectedTemplate?.name || selectedTemplate?.id)}.html`;
       const blob = new Blob(["\uFEFF", html], { type: "text/html;charset=utf-8" });
       const url = URL.createObjectURL(blob);

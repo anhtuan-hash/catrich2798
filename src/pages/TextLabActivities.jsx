@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { addBankItems, addHistoryEntry } from '../utils/library.js';
+import { publishTextLabResource } from '../utils/textlabResourcePublisher.js';
 
-export default function TextLabActivities({ language = 'vi', fontScale = 100 }) {
+export default function TextLabActivities({ language = 'vi', fontScale = 100, currentUser }) {
   const frameRef = useRef(null);
   const shellRef = useRef(null);
   const [frameKey, setFrameKey] = useState(0);
   const [frameHeight, setFrameHeight] = useState(1280);
+  const [publishNotice, setPublishNotice] = useState('');
 
   const appUrl = useMemo(
     () => `${import.meta.env.BASE_URL || '/'}embedded/brian-textlab-activities/index.html?embedded=1`,
@@ -24,7 +26,11 @@ export default function TextLabActivities({ language = 'vi', fontScale = 100 }) 
   }, [fontScale, frameKey]);
 
   useEffect(() => {
-    const handleMessage = (event) => {
+    const sendToTextLab = (message) => {
+      frameRef.current?.contentWindow?.postMessage(message, '*');
+    };
+
+    const handleMessage = async (event) => {
       if (event.source !== frameRef.current?.contentWindow) return;
 
       if (event.data?.type === 'BTL_RESIZE') {
@@ -60,6 +66,28 @@ export default function TextLabActivities({ language = 'vi', fontScale = 100 }) 
         return;
       }
 
+      if (event.data?.type === 'BTL_PUBLISH_RESOURCE') {
+        const payload = event.data?.payload || {};
+        setPublishNotice(language === 'vi' ? 'Đang đưa hoạt động vào Kho học liệu…' : 'Publishing to the resource library…');
+        sendToTextLab({ type: 'BTL_RESOURCE_PUBLISH_STATE', state: 'uploading' });
+        try {
+          const result = await publishTextLabResource(payload, currentUser);
+          setPublishNotice(result.message || 'Đã thêm hoạt động vào Kho học liệu.');
+          sendToTextLab({
+            type: 'BTL_RESOURCE_PUBLISH_RESULT',
+            ok: true,
+            status: result.status,
+            resourceId: result.item?.cloudId || result.item?.id || '',
+            message: result.message,
+          });
+        } catch (error) {
+          const message = error?.message || 'Không thể thêm hoạt động vào Kho học liệu.';
+          setPublishNotice(message);
+          sendToTextLab({ type: 'BTL_RESOURCE_PUBLISH_RESULT', ok: false, message });
+        }
+        return;
+      }
+
       if (event.data?.type === 'BTL_ADD_BANK') {
         addBankItems(event.data?.payload?.items || []);
       }
@@ -67,7 +95,7 @@ export default function TextLabActivities({ language = 'vi', fontScale = 100 }) 
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [currentUser, language, frameKey]);
 
   const goFullscreen = async () => {
     const target = shellRef.current;
@@ -90,8 +118,9 @@ export default function TextLabActivities({ language = 'vi', fontScale = 100 }) 
         <div className="textlab-page-status">
           <span className="textlab-status-title">Brian TextLab Activities</span>
           <span className="ready">
-            {language === 'vi' ? 'HTML tương tác ngoại tuyến' : 'Offline interactive HTML'}
+            {language === 'vi' ? 'HTML tương tác · Chia sẻ qua Kho học liệu' : 'Interactive HTML · Shared resource library'}
           </span>
+          {publishNotice ? <span className="textlab-publish-notice" role="status">{publishNotice}</span> : null}
         </div>
 
         <div className="textlab-integrated-actions">
