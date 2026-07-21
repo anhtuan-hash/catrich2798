@@ -1,4 +1,4 @@
-/* Brian TextLab preview fullscreen and single-file HTML export */
+/* Brian TextLab preview fullscreen and verified single-file HTML export */
 (() => {
   "use strict";
 
@@ -38,7 +38,10 @@
 
     if (icon) icon.textContent = active ? "✕" : "⛶";
     if (label) label.textContent = active ? "Thoát toàn màn hình" : "Toàn màn hình";
-    fullscreenButton.setAttribute("aria-label", active ? "Thoát chế độ toàn màn hình" : "Mở Activity Preview toàn màn hình");
+    fullscreenButton.setAttribute(
+      "aria-label",
+      active ? "Thoát chế độ toàn màn hình" : "Mở Activity Preview toàn màn hình"
+    );
     fullscreenButton.setAttribute("aria-pressed", active ? "true" : "false");
   }
 
@@ -94,6 +97,66 @@
       .slice(0, 70) || "activity";
   }
 
+  /*
+   * Function.prototype.toString() returns object-method syntax for renderers
+   * declared as `quiz(data, options) { ... }`. The previous exporter placed
+   * that source after a property colon, producing invalid JavaScript such as:
+   *   "quiz":quiz(data, options) { ... }
+   * Convert method syntax to a real function expression before serialising.
+   */
+  function toExportableFunctionSource(fn) {
+    const source = Function.prototype.toString.call(fn).trim();
+
+    if (/^(?:async\s+)?function\b/.test(source)) return source;
+    if (/^(?:async\s*)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>/.test(source)) return source;
+
+    const asyncMethod = source.match(/^async\s+([A-Za-z_$][\w$]*)\s*\(/);
+    if (asyncMethod) {
+      return source.replace(
+        /^async\s+([A-Za-z_$][\w$]*)\s*\(/,
+        "async function $1("
+      );
+    }
+
+    if (/^[A-Za-z_$][\w$]*\s*\(/.test(source)) {
+      return `function ${source}`;
+    }
+
+    return source;
+  }
+
+  function serializeExportObject(object) {
+    const entries = Object.entries(object).map(([key, value]) => {
+      const serialized = typeof value === "function"
+        ? toExportableFunctionSource(value)
+        : JSON.stringify(value);
+      return `${JSON.stringify(key)}:${serialized}`;
+    });
+
+    return `{\n${entries.join(",\n")}\n}`;
+  }
+
+  function installOfflineExportSerializer() {
+    window.objectToSource = serializeExportObject;
+  }
+
+  function validateStandaloneHtml(html) {
+    const parsed = new DOMParser().parseFromString(html, "text/html");
+    const stage = parsed.querySelector("#stage");
+    const scripts = [...parsed.querySelectorAll("script")];
+
+    if (!stage) throw new Error("Tệp xuất thiếu vùng hiển thị hoạt động.");
+    if (!scripts.length) throw new Error("Tệp xuất thiếu mã JavaScript hoạt động.");
+    if (parsed.querySelector("script[src], link[rel='stylesheet']")) {
+      throw new Error("Tệp xuất vẫn còn phụ thuộc vào tệp bên ngoài.");
+    }
+
+    scripts.forEach((script) => {
+      const source = script.textContent || "";
+      if (source.trim()) new Function(source);
+    });
+  }
+
   function downloadSingleHtml(event) {
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -110,7 +173,10 @@
     }
 
     try {
+      installOfflineExportSerializer();
       const html = standaloneSingleHtml();
+      validateStandaloneHtml(html);
+
       const templateName = typeof selectedTemplate !== "undefined"
         ? selectedTemplate?.name
         : "activity";
@@ -128,13 +194,14 @@
       link.click();
       link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 1200);
-      notify(`Đã tải ${filename}. Mở trực tiếp bằng trình duyệt để chạy local.`);
+      notify(`Đã tải ${filename}. Tệp đã được kiểm tra và có thể mở trực tiếp để chạy offline.`);
     } catch (error) {
       console.error("Single HTML export failed", error);
-      notify("Không thể tạo tệp HTML. Hãy thử lại.", "error");
+      notify(`Không thể tạo tệp HTML chạy offline: ${error.message || "lỗi không xác định"}.`, "error");
     }
   }
 
+  installOfflineExportSerializer();
   fullscreenButton?.addEventListener("click", togglePreviewFullscreen);
   downloadButton?.addEventListener("click", downloadSingleHtml, true);
 
