@@ -6,6 +6,7 @@
   <title>Brian TextLab Activities</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="proposal-4-workspace.css" />
+  <link rel="stylesheet" href="preview-tools.css" />
 </head>
 <body>
   <div class="app-shell proposal-workspace">
@@ -119,6 +120,16 @@
             <button class="btn icon" id="zoomOut" type="button" aria-label="Thu nhỏ">−</button>
             <span id="zoomLevel">100%</span>
             <button class="btn icon" id="zoomIn" type="button" aria-label="Phóng to">+</button>
+            <button
+              class="btn preview-fullscreen-button"
+              id="btnPreviewFullscreen"
+              type="button"
+              aria-label="Mở Activity Preview toàn màn hình"
+              aria-pressed="false"
+            >
+              <span class="preview-fullscreen-icon" aria-hidden="true">⛶</span>
+              <span class="preview-fullscreen-label">Toàn màn hình</span>
+            </button>
           </div>
         </div>
 
@@ -184,7 +195,7 @@
             ▤ Thêm vào Ngân hàng câu hỏi
           </button>
           <button class="btn primary" id="btnDownload" type="button">
-            ⇩ Download my work
+            ⇩ Download my work (.html)
           </button>
           <button class="btn danger" id="btnNew" type="button">
             ✹ Tạo hoạt động mới
@@ -265,12 +276,13 @@
     <button class="modal-close" data-close>×</button>
     <h3>Đưa sản phẩm lên online</h3>
     <ol>
-      <li>Bấm Download my work để tải tệp hoạt động.</li>
-      <li>Mở trực tiếp trên trình duyệt hoặc tải lên hosting tĩnh.</li>
-      <li>Hoạt động không cần AI, API hoặc kết nối cơ sở dữ liệu.</li>
+      <li>Bấm Download my work để tải một tệp HTML duy nhất.</li>
+      <li>Mở trực tiếp tệp HTML bằng trình duyệt để chạy local.</li>
+      <li>Có thể tải chính tệp HTML đó lên hosting tĩnh.</li>
     </ol>
   </dialog>
 
   <script src="app.js"></script>
+  <script src="preview-tools.js"></script>
 </body>
 </html>
