@@ -395,3 +395,17 @@ body.embedded-mode .ready-panel{margin-bottom:4px}
 
 /* V10.62 — enforce the personal font across all embedded TextLab controls. */
 html,body,.app-shell,button,input,textarea,select,option,dialog,pre,code,kbd,samp,*::before,*::after{font-family:var(--font)!important;}
+
+/* BRIAN_TEXTLAB_HIDE_BLUE_HERO_START
+   Requested: remove the blue Brian TextLab Activities banner only.
+   The white outer command bar and all activity functionality remain intact. */
+.hero{
+  display:none !important;
+}
+.app-shell{
+  padding-top:0 !important;
+}
+.grid-layout{
+  margin-top:0 !important;
+}
+/* BRIAN_TEXTLAB_HIDE_BLUE_HERO_END */
