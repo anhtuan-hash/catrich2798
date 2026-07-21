@@ -1002,6 +1002,319 @@ ${checkWordSelection.toString()}
 function objectToSource(obj){
   return "{\n"+Object.entries(obj).map(([k,v])=>`${JSON.stringify(k)}:${v.toString()}`).join(",\n")+"\n}";
 }
+/* BRIAN_TEXTLAB_APPROVED_MODERN_SCROLL_START */
+(() => {
+  const GUIDE_RULES = {
+    quiz: [
+      "Chọn đáp án đúng nhất cho từng câu.",
+      "Mỗi câu chỉ được trả lời một lần.",
+      "Hoàn thành để xem điểm và tổng kết."
+    ],
+    truefalse: [
+      "Đọc kỹ từng nhận định.",
+      "Chọn Đúng hoặc Sai một lần duy nhất.",
+      "Hệ thống phản hồi và tổng kết tự động."
+    ],
+    flashcards: [
+      "Bấm vào thẻ để lật mặt sau.",
+      "Đánh dấu Đã nhớ hoặc Cần ôn.",
+      "Hoàn thành toàn bộ bộ thẻ để xem kết quả."
+    ],
+    wheel: [
+      "Bấm Spin để quay vòng chọn.",
+      "Các mục đã chọn được lưu trong lịch sử.",
+      "Có thể quay lại cho đến khi hết danh sách."
+    ],
+    picker: [
+      "Bấm Pick để bốc một mục ngẫu nhiên.",
+      "Kết quả không lặp cho đến khi hết lượt.",
+      "Chơi lại để tạo một vòng bốc mới."
+    ],
+    matching: [
+      "Chọn một mục ở cột trái.",
+      "Chọn mục tương ứng ở cột phải.",
+      "Ghép hết các cặp để hoàn thành."
+    ],
+    memory: [
+      "Lật hai thẻ trong mỗi lượt.",
+      "Cặp đúng sẽ được giữ lại.",
+      "Tìm đủ tất cả các cặp để kết thúc."
+    ],
+    fillblank: [
+      "Nhập đáp án vào từng chỗ trống.",
+      "Kiểm tra chính tả trước khi nộp.",
+      "Nộp bài để xem phản hồi và tổng kết."
+    ],
+    cloze: [
+      "Chọn từ trong ngân hàng từ.",
+      "Đặt từ vào đúng chỗ trống.",
+      "Hoàn thành đoạn văn để xem kết quả."
+    ],
+    unscramble: [
+      "Sắp xếp lại các chữ cái.",
+      "Nhập từ đúng theo gợi ý.",
+      "Nhấn Enter để kiểm tra nhanh."
+    ],
+    sentence: [
+      "Bấm các từ theo đúng thứ tự.",
+      "Dùng Hoàn tác khi cần sửa.",
+      "Kiểm tra từng câu trước khi chuyển tiếp."
+    ],
+    ordering: [
+      "Kéo các mục lên hoặc xuống.",
+      "Có thể dùng nút mũi tên để sắp xếp.",
+      "Kiểm tra khi tất cả mục đã đúng vị trí."
+    ],
+    categories: [
+      "Kéo từng mục vào nhóm phù hợp.",
+      "Có thể chọn mục rồi chọn nhóm.",
+      "Phân loại hết để hoàn thành."
+    ],
+    bingo: [
+      "Bấm Gọi từ để nhận một mục ngẫu nhiên.",
+      "Chỉ đánh dấu những từ đã được gọi.",
+      "Hoàn thành một hàng để nhận Bingo."
+    ],
+    wordsearch: [
+      "Kéo từ chữ đầu đến chữ cuối.",
+      "Hỗ trợ ngang, dọc và đường chéo.",
+      "Tìm đủ danh sách từ để kết thúc."
+    ],
+    crossword: [
+      "Đọc gợi ý và nhập từng chữ cái.",
+      "Dùng phím mũi tên để di chuyển ô.",
+      "Kiểm tra khi hoàn thành toàn bộ đáp án."
+    ],
+    prompts: [
+      "Đọc nhiệm vụ nói trên thẻ.",
+      "Hoàn thành trong thời gian quy định.",
+      "Đánh dấu Hoàn thành hoặc Bỏ qua."
+    ],
+    table: [
+      "Tìm kiếm nhanh trong bảng.",
+      "Bật chế độ che đáp án để tự học.",
+      "Bấm vào ô để xem hoặc ẩn nội dung."
+    ]
+  };
+
+  const iconFor = (template) => template?.icon || "□";
+
+  function renderPreviewRail() {
+    const rail = document.querySelector("#previewTemplateNav");
+    if (!rail || !Array.isArray(TEMPLATES)) return;
+
+    rail.innerHTML = TEMPLATES.map((template) => `
+      <button
+        type="button"
+        class="preview-template-item ${template.id === selectedTemplate?.id ? "active" : ""}"
+        data-preview-template="${escapeHtml(template.id)}"
+        aria-pressed="${template.id === selectedTemplate?.id ? "true" : "false"}"
+      >
+        <span aria-hidden="true">${iconFor(template)}</span>
+        <strong>${escapeHtml(template.name)}</strong>
+      </button>
+    `).join("");
+  }
+
+  function updateEditorMetrics() {
+    const value = String(input?.value || "");
+    const logicalLines = value.length ? value.split(/\r?\n/) : [""];
+    const lineNumbers = document.querySelector("#contentLineNumbers");
+    const lineCount = document.querySelector("#contentLineCount");
+    const charCount = document.querySelector("#contentCharCount");
+
+    if (lineNumbers) {
+      lineNumbers.textContent = logicalLines.map((_, index) => index + 1).join("\n");
+    }
+    if (lineCount) lineCount.textContent = String(logicalLines.length);
+    if (charCount) charCount.textContent = String(value.length);
+  }
+
+  function updateGuide() {
+    const name = document.querySelector("#guideTemplateName");
+    const list = document.querySelector("#guideList");
+    if (name) name.textContent = selectedTemplate?.name || "Activity";
+    if (!list) return;
+
+    const rules = GUIDE_RULES[selectedTemplate?.id] || [
+      selectedTemplate?.desc || "Tương tác trực tiếp với hoạt động.",
+      selectedTemplate?.hint || "Chỉnh sửa nội dung theo đúng định dạng.",
+      "Hoàn thành để xem kết quả và tổng kết."
+    ];
+
+    list.innerHTML = rules.map((rule) => `<li>${escapeHtml(rule)}</li>`).join("");
+  }
+
+  function syncTemplateCards() {
+    document.querySelectorAll("#templateGrid .template-card").forEach((card) => {
+      const active = card.dataset.template === selectedTemplate?.id;
+      card.classList.toggle("active", active);
+      card.setAttribute("aria-pressed", active ? "true" : "false");
+      card.setAttribute(
+        "title",
+        TEMPLATES.find((template) => template.id === card.dataset.template)?.desc || ""
+      );
+    });
+  }
+
+  function scrollSelectedTemplateIntoView() {
+    const active = document.querySelector(
+      `#templateGrid .template-card[data-template="${CSS.escape(selectedTemplate?.id || "")}"]`
+    );
+    active?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center"
+    });
+  }
+
+  function syncApprovedWorkspace({ scrollCard = false } = {}) {
+    renderPreviewRail();
+    updateEditorMetrics();
+    updateGuide();
+    syncTemplateCards();
+
+    if (scrollCard) {
+      requestAnimationFrame(scrollSelectedTemplateIntoView);
+    }
+  }
+
+  function showDeviceStatus(message, type = "success") {
+    if (typeof showLibraryAlert === "function") {
+      showLibraryAlert(message, type);
+      return;
+    }
+
+    const alert = document.querySelector("#libraryAlert");
+    if (!alert) return;
+    alert.textContent = message;
+    alert.classList.remove("hidden");
+    setTimeout(() => alert.classList.add("hidden"), 2600);
+  }
+
+  function saveDraftToDevice() {
+    const payload = {
+      version: 1,
+      templateId: selectedTemplate?.id || "quiz",
+      content: String(input?.value || ""),
+      savedAt: new Date().toISOString()
+    };
+
+    localStorage.setItem("brian-textlab-local-draft", JSON.stringify(payload));
+    showDeviceStatus("Đã lưu bản nháp trên thiết bị.");
+  }
+
+  function downloadCurrentSample() {
+    const sample = String(selectedTemplate?.sample || "");
+    const blob = new Blob([sample], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `brian-textlab-${selectedTemplate?.id || "sample"}-sample.txt`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 0);
+    showDeviceStatus("Đã tải sample đúng định dạng.");
+  }
+
+  function initApprovedWorkspace() {
+    const grid = document.querySelector("#templateGrid");
+    const previous = document.querySelector("#templatePrev");
+    const next = document.querySelector("#templateNext");
+    const previewRail = document.querySelector("#previewTemplateNav");
+    const lineNumbers = document.querySelector("#contentLineNumbers");
+    const downloadSample = document.querySelector("#btnDownloadSample");
+    const saveDevice = document.querySelector("#btnSaveDevice");
+
+    previous?.addEventListener("click", () => {
+      grid?.scrollBy({ left: -Math.max(420, grid.clientWidth * 0.72), behavior: "smooth" });
+    });
+
+    next?.addEventListener("click", () => {
+      grid?.scrollBy({ left: Math.max(420, grid.clientWidth * 0.72), behavior: "smooth" });
+    });
+
+    previewRail?.addEventListener("click", (event) => {
+      const item = event.target.closest("[data-preview-template]");
+      if (!item) return;
+      selectTemplate(item.dataset.previewTemplate, { loadSample: true });
+    });
+
+    input?.addEventListener("scroll", () => {
+      if (lineNumbers) lineNumbers.scrollTop = input.scrollTop;
+    });
+
+    input?.addEventListener("input", updateEditorMetrics);
+    downloadSample?.addEventListener("click", downloadCurrentSample);
+    saveDevice?.addEventListener("click", saveDraftToDevice);
+
+    document.querySelector("#templateGrid")?.addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+      event.preventDefault();
+      grid?.scrollBy({
+        left: event.key === "ArrowRight" ? 260 : -260,
+        behavior: "smooth"
+      });
+    });
+
+    syncApprovedWorkspace({ scrollCard: true });
+  }
+
+  const originalRenderTemplateGrid = renderTemplateGrid;
+  renderTemplateGrid = function approvedRenderTemplateGrid(filter = "") {
+    originalRenderTemplateGrid(filter);
+    syncTemplateCards();
+  };
+
+  const originalSelectTemplate = selectTemplate;
+  selectTemplate = function approvedSelectTemplate(id, options = {}) {
+    originalSelectTemplate(id, options);
+    syncApprovedWorkspace({ scrollCard: true });
+  };
+
+  const originalRenderPreview = renderPreview;
+  renderPreview = function approvedRenderPreview() {
+    originalRenderPreview();
+    updateEditorMetrics();
+    updateGuide();
+  };
+
+  finishActivity = function approvedFinishActivity() {
+    if (!input.value.trim()) {
+      document.querySelector("#inputAlert")?.classList.remove("hidden");
+      return;
+    }
+
+    currentData = parseData(selectedTemplate.id, input.value.trim());
+    preview.className = "activity-stage";
+    renderActivity(preview, selectedTemplate.id, currentData, {
+      title: selectedTemplate.name,
+      mode: "ready"
+    });
+    finished = true;
+    preview.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  resetAll = function approvedResetAll() {
+    finished = false;
+    if (ready) {
+      ready.className = "activity-stage hidden";
+      ready.innerHTML = "";
+    }
+    selectTemplate("quiz", { loadSample: true });
+    document.querySelector(".templates-panel")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+    showDeviceStatus("Đã tạo hoạt động mới.");
+  };
+
+  const originalInit = init;
+  init = function approvedInit() {
+    originalInit();
+    initApprovedWorkspace();
+  };
+})();
+/* BRIAN_TEXTLAB_APPROVED_MODERN_SCROLL_END */
+
 document.addEventListener("DOMContentLoaded", () => {
   const embeddedMode = new URLSearchParams(window.location.search).get("embedded") === "1";
   if (embeddedMode) document.body.classList.add("embedded-mode");
