@@ -1,3 +1,5 @@
+import '../pages/DepartmentWorkspaceFluentPolish.css';
+
 export const DEPARTMENT_WORKSPACE_SLUG = 'department-workspace';
 export const DEPARTMENT_WORKSPACE_PERMISSION_ID = `tool:${DEPARTMENT_WORKSPACE_SLUG}`;
 export const DEPARTMENT_PUBLISH_PERMISSION_ID = 'department:publish';
