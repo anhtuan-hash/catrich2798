@@ -40,7 +40,7 @@ const server = await createServer({ server: { middlewareMode: true }, appType: '
 try {
   const { default: DepartmentWorkspace } = await server.ssrLoadModule('/src/pages/DepartmentWorkspace.jsx');
   const roles = ['admin', 'ttcm', 'teacher'];
-  const requiredLabels = ['Tổng quan', 'Lịch & hoạt động', 'Hồ sơ & văn bản', 'Trung tâm công việc', 'Báo cáo & thống kê'];
+  const requiredLabels = ['Tổng quan', 'Lịch & hoạt động', 'Hồ sơ & văn bản', 'Trung tâm công việc'];
   for (const role of roles) {
     globalThis.localStorage = makeStorage();
     globalThis.sessionStorage = makeStorage();
@@ -55,10 +55,13 @@ try {
     for (const label of requiredLabels) {
       if (!html.includes(label)) throw new Error(`Missing department module "${label}" for ${role}`);
     }
+    if (html.includes('Báo cáo & thống kê')) {
+      throw new Error(`Removed reports module leaked into the department workspace for ${role}`);
+    }
     if (html.includes('AI TTCM') || html.includes('Hỗ trợ TTCM') || html.includes('Tạo báo cáo AI')) {
       throw new Error(`AI content leaked into the department workspace for ${role}`);
     }
-    console.log(`✓ department runtime ${role} - ${html.length} chars, five modules, no AI`);
+    console.log(`✓ department runtime ${role} - ${html.length} chars, four modules, no reports tab, no AI`);
   }
 } finally {
   await server.close();
