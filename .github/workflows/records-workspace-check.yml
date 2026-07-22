@@ -9,9 +9,28 @@ on:
       - .github/workflows/records-workspace-check.yml
 
 jobs:
-  build-and-test:
+  browser-test:
+    name: test-${{ matrix.id }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: dashboard
+            grep: dashboard renders at proposal scale
+          - id: macbook
+            grep: MacBook viewport uses genuinely readable typography
+          - id: notification-toggle
+            grep: notification panel opens and closes
+          - id: task-persistence
+            grep: creates and persists a task
+          - id: task-complete
+            grep: complete task workspace supports assignment
+          - id: records-complete
+            grep: complete records workspace supports submission
+          - id: remaining-interactions
+            grep: notifications, search and meetings remain interactive
     defaults:
       run:
         working-directory: department-app
@@ -32,16 +51,15 @@ jobs:
       - name: Build standalone app
         run: npm run build
 
-      - name: Verify records workspace contract
+      - name: Verify workspace contract
         run: |
           test -f dist/index.html
           test -f src/RecordsWorkspace.jsx
           test -f src/records-workspace.css
           grep -q "RecordsWorkspace" src/main.jsx
-          grep -q "complete records workspace supports submission" tests/workspace.spec.js
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium >/tmp/playwright-install.log 2>&1
 
-      - name: Run all browser tests
-        run: npm run test:e2e
+      - name: Run ${{ matrix.id }} browser test
+        run: npx playwright test -g "${{ matrix.grep }}" --reporter=line
