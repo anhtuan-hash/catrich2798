@@ -1,0 +1,53 @@
+import { test, expect } from '@playwright/test';
+
+test.beforeEach(async ({ page }) => {
+  await page.goto('/to-chuyen-mon/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+});
+
+test('complete evidence workspace supports files, verification, archive and persistence', async ({ page }) => {
+  await page.getByTestId('tab-evidence').click();
+  const workspace = page.locator('.task-workspace-bridge');
+  await expect(workspace.getByRole('heading', { name: 'Minh chứng và xác minh' })).toBeVisible();
+
+  await workspace.getByRole('button', { name: 'Thêm minh chứng' }).click();
+  const modal = page.getByTestId('evidence-editor-modal');
+  await modal.getByLabel('Tên minh chứng').fill('Minh chứng chuyên đề chuyển đổi số tháng 7');
+  await modal.getByLabel('Loại minh chứng').selectOption('Chuyên đề');
+  await modal.getByLabel('Tiêu chí minh chứng').selectOption('Ứng dụng công nghệ');
+  await modal.getByLabel('Người phụ trách minh chứng').selectOption('Phạm Thu Hà');
+  await modal.getByLabel('Mô tả minh chứng').fill('Tài liệu, hình ảnh và sản phẩm sau buổi sinh hoạt chuyên đề.');
+  await modal.getByLabel('Liên kết minh chứng').fill('Kế hoạch chuyên đề ứng dụng AI\nSinh hoạt chuyên đề kiểm tra đánh giá');
+  await modal.locator('input[type=file]').setInputFiles({
+    name: 'minh-chung-chuyen-de.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('evidence-demo'),
+  });
+  await modal.getByRole('button', { name: 'Thêm minh chứng' }).click();
+
+  await workspace.getByLabel('Tìm minh chứng').fill('chuyển đổi số tháng 7');
+  const row = workspace.getByTestId(/evidence-/).filter({ hasText: 'Minh chứng chuyên đề chuyển đổi số tháng 7' });
+  await expect(row).toBeVisible();
+  await expect(row.getByText('Chờ xác minh')).toBeVisible();
+  await row.locator('.ew-main').click();
+
+  const detail = page.getByTestId('evidence-detail-panel');
+  await expect(detail.getByText('minh-chung-chuyen-de.pdf')).toBeVisible();
+  await expect(detail.getByText('Kế hoạch chuyên đề ứng dụng AI')).toBeVisible();
+  await detail.getByLabel('Phản hồi minh chứng').fill('Minh chứng đầy đủ, đề nghị lưu kho chuyên môn.');
+  await detail.getByRole('button', { name: 'Gửi phản hồi' }).click();
+  await expect(detail.getByText('Minh chứng đầy đủ, đề nghị lưu kho chuyên môn.')).toBeVisible();
+  await detail.getByRole('button', { name: 'Xác minh' }).click();
+  await expect(detail.getByText('Đã xác minh').first()).toBeVisible();
+  await detail.getByRole('button', { name: 'Lưu kho' }).click();
+  await expect(detail.getByText('Đã lưu kho').first()).toBeVisible();
+
+  await page.reload();
+  await page.getByTestId('tab-evidence').click();
+  const restored = page.locator('.task-workspace-bridge');
+  await restored.getByLabel('Tìm minh chứng').fill('chuyển đổi số tháng 7');
+  const restoredRow = restored.getByTestId(/evidence-/).filter({ hasText: 'Minh chứng chuyên đề chuyển đổi số tháng 7' });
+  await expect(restoredRow).toBeVisible();
+  await expect(restoredRow.getByText('Đã lưu kho')).toBeVisible();
+});
