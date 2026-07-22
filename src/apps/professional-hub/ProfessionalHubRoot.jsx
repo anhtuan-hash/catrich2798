@@ -33,25 +33,25 @@ const NOTIFICATION_STORAGE_KEY = 'department-v2-notifications';
 const REPORT_HISTORY_KEY = 'department-v3-report-history';
 
 const FALLBACK_TASKS = [
-  { id: 1, title: 'Xây dựng ma trận đề kiểm tra học kỳ II môn Tiếng Anh 6', assignee: 'Nguyễn Thị Mai', initials: 'NM', due: '20/05/2025', status: 'Đang thực hiện', progress: 60, tone: 'purple' },
-  { id: 2, title: 'Dự giờ đồng nghiệp – Tháng 5', assignee: 'Trần Minh Đức', initials: 'TĐ', due: '15/05/2025', status: 'Đang thực hiện', progress: 40, tone: 'green' },
-  { id: 3, title: 'Biên soạn chuyên đề: Dạy học phát triển năng lực giao tiếp', assignee: 'Phạm Thu Hà', initials: 'PH', due: '25/05/2025', status: 'Chưa bắt đầu', progress: 0, tone: 'orange' },
-  { id: 4, title: 'Tổng hợp minh chứng thi đua học kỳ II', assignee: 'Lê Hoàng Nam', initials: 'LN', due: '10/05/2025', status: 'Quá hạn', progress: 100, tone: 'red' },
-  { id: 5, title: 'Hoàn thiện kế hoạch bồi dưỡng học sinh giỏi', assignee: 'Đỗ Thị Hương', initials: 'ĐH', due: '28/05/2025', status: 'Đã nộp', progress: 100, tone: 'blue' },
+  { id: 1, title: 'Xây dựng ma trận đề kiểm tra học kỳ II môn Tiếng Anh 6', assignee: 'Chưa phân công', initials: 'NM', due: '20/05/2025', status: 'Đang thực hiện', progress: 60, tone: 'purple' },
+  { id: 2, title: 'Dự giờ đồng nghiệp – Tháng 5', assignee: 'Chưa phân công', initials: 'TĐ', due: '15/05/2025', status: 'Đang thực hiện', progress: 40, tone: 'green' },
+  { id: 3, title: 'Biên soạn chuyên đề: Dạy học phát triển năng lực giao tiếp', assignee: 'Chưa phân công', initials: 'PH', due: '25/05/2025', status: 'Chưa bắt đầu', progress: 0, tone: 'orange' },
+  { id: 4, title: 'Tổng hợp minh chứng thi đua học kỳ II', assignee: 'Chưa phân công', initials: 'LN', due: '10/05/2025', status: 'Quá hạn', progress: 100, tone: 'red' },
+  { id: 5, title: 'Hoàn thiện kế hoạch bồi dưỡng học sinh giỏi', assignee: 'Chưa phân công', initials: 'ĐH', due: '28/05/2025', status: 'Đã nộp', progress: 100, tone: 'blue' },
 ];
 
 const FALLBACK_RECORDS = [
-  { id: 1, title: 'Kế hoạch bài dạy Unit 8 – Lớp 6A1', owner: 'Nguyễn Thị Mai', status: 'Đã duyệt', date: '06/05/2025', tone: 'green' },
-  { id: 2, title: 'Sáng kiến kinh nghiệm: Ứng dụng AI', owner: 'Trần Minh Đức', status: 'Chờ duyệt', date: '05/05/2025', tone: 'orange' },
-  { id: 3, title: 'Minh chứng thao giảng – 15/04/2025', owner: 'Phạm Thu Hà', status: 'Đã duyệt', date: '16/04/2025', tone: 'green' },
-  { id: 4, title: 'Báo cáo chuyên đề STEM', owner: 'Lê Hoàng Nam', status: 'Cần chỉnh sửa', date: '02/05/2025', tone: 'red' },
+  { id: 1, title: 'Kế hoạch bài dạy Unit 8 – Lớp 6A1', owner: 'Chưa phân công', status: 'Đã duyệt', date: '06/05/2025', tone: 'green' },
+  { id: 2, title: 'Sáng kiến kinh nghiệm: Ứng dụng AI', owner: 'Chưa phân công', status: 'Chờ duyệt', date: '05/05/2025', tone: 'orange' },
+  { id: 3, title: 'Minh chứng thao giảng – 15/04/2025', owner: 'Chưa phân công', status: 'Đã duyệt', date: '16/04/2025', tone: 'green' },
+  { id: 4, title: 'Báo cáo chuyên đề STEM', owner: 'Chưa phân công', status: 'Cần chỉnh sửa', date: '02/05/2025', tone: 'red' },
 ];
 
 const FALLBACK_PLANS = [
-  { id: 1, title: 'Kế hoạch năm học', progress: 82, status: 'Đang thực hiện', type: 'Năm học', owner: 'Nguyễn Thị Mai', description: 'Kế hoạch tổng thể hoạt động chuyên môn, bồi dưỡng giáo viên và nâng cao chất lượng học tập.', startISO: '2026-08-01', dueISO: '2027-05-31', milestones: [{ id: 11, label: 'Hoàn thiện chỉ tiêu năm học', done: true }, { id: 12, label: 'Phân công chuyên môn', done: true }, { id: 13, label: 'Rà soát tiến độ học kỳ I', done: false }] },
-  { id: 2, title: 'Kế hoạch học kỳ I', progress: 64, status: 'Đang thực hiện', type: 'Học kỳ', owner: 'Trần Minh Đức', description: 'Kế hoạch triển khai chương trình, kiểm tra đánh giá và sinh hoạt chuyên đề học kỳ I.', startISO: '2026-08-15', dueISO: '2026-12-31', milestones: [{ id: 21, label: 'Thống nhất phân phối chương trình', done: true }, { id: 22, label: 'Xây dựng ma trận kiểm tra', done: false }] },
-  { id: 3, title: 'Kế hoạch tháng 8', progress: 35, status: 'Cần cập nhật', type: 'Tháng', owner: 'Phạm Thu Hà', description: 'Chuẩn bị năm học mới, hoàn thiện hồ sơ tổ và tổ chức chuyên đề đầu năm.', startISO: '2026-08-01', dueISO: '2026-08-31', milestones: [{ id: 31, label: 'Họp tổ đầu năm', done: true }, { id: 32, label: 'Hoàn thiện hồ sơ chuyên môn', done: false }] },
-  { id: 4, title: 'Kế hoạch chuyên đề ứng dụng AI', progress: 90, status: 'Gần hoàn thành', type: 'Chuyên đề', owner: 'Đỗ Thị Hương', description: 'Tổ chức chuỗi hoạt động ứng dụng AI an toàn và hiệu quả trong dạy học tiếng Anh.', startISO: '2026-07-15', dueISO: '2026-09-15', milestones: [{ id: 41, label: 'Xây dựng nội dung chuyên đề', done: true }, { id: 42, label: 'Chuẩn bị minh chứng', done: true }, { id: 43, label: 'Tổ chức báo cáo', done: false }] },
+  { id: 1, title: 'Kế hoạch năm học', progress: 82, status: 'Đang thực hiện', type: 'Năm học', owner: 'Chưa phân công', description: 'Kế hoạch tổng thể hoạt động chuyên môn, bồi dưỡng giáo viên và nâng cao chất lượng học tập.', startISO: '2026-08-01', dueISO: '2027-05-31', milestones: [{ id: 11, label: 'Hoàn thiện chỉ tiêu năm học', done: true }, { id: 12, label: 'Phân công chuyên môn', done: true }, { id: 13, label: 'Rà soát tiến độ học kỳ I', done: false }] },
+  { id: 2, title: 'Kế hoạch học kỳ I', progress: 64, status: 'Đang thực hiện', type: 'Học kỳ', owner: 'Chưa phân công', description: 'Kế hoạch triển khai chương trình, kiểm tra đánh giá và sinh hoạt chuyên đề học kỳ I.', startISO: '2026-08-15', dueISO: '2026-12-31', milestones: [{ id: 21, label: 'Thống nhất phân phối chương trình', done: true }, { id: 22, label: 'Xây dựng ma trận kiểm tra', done: false }] },
+  { id: 3, title: 'Kế hoạch tháng 8', progress: 35, status: 'Cần cập nhật', type: 'Tháng', owner: 'Chưa phân công', description: 'Chuẩn bị năm học mới, hoàn thiện hồ sơ tổ và tổ chức chuyên đề đầu năm.', startISO: '2026-08-01', dueISO: '2026-08-31', milestones: [{ id: 31, label: 'Họp tổ đầu năm', done: true }, { id: 32, label: 'Hoàn thiện hồ sơ chuyên môn', done: false }] },
+  { id: 4, title: 'Kế hoạch chuyên đề ứng dụng AI', progress: 90, status: 'Gần hoàn thành', type: 'Chuyên đề', owner: 'Chưa phân công', description: 'Tổ chức chuỗi hoạt động ứng dụng AI an toàn và hiệu quả trong dạy học tiếng Anh.', startISO: '2026-07-15', dueISO: '2026-09-15', milestones: [{ id: 41, label: 'Xây dựng nội dung chuyên đề', done: true }, { id: 42, label: 'Chuẩn bị minh chứng', done: true }, { id: 43, label: 'Tổ chức báo cáo', done: false }] },
 ];
 
 function relativeDate(days) {

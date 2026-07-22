@@ -3,7 +3,7 @@ import React from 'react';
 const DEFAULT_NOTIFICATIONS = [
   { id: 1, title: 'Có 2 công việc sắp đến hạn', detail: 'Ma trận đề kiểm tra học kỳ II, Minh chứng thi đua HKII', time: '5 phút trước', read: false },
   { id: 2, title: 'Cuộc họp tổ vào 15:30 hôm nay', detail: 'Nội dung: Đánh giá hoạt động tháng 5', time: '30 phút trước', read: false },
-  { id: 3, title: 'Hồ sơ của Nguyễn Thị Mai đã được phê duyệt', detail: 'Kế hoạch bài dạy Unit 8 – Lớp 6A1', time: '1 giờ trước', read: false },
+  { id: 3, title: 'Hồ sơ của Chưa phân công đã được phê duyệt', detail: 'Kế hoạch bài dạy Unit 8 – Lớp 6A1', time: '1 giờ trước', read: false },
   { id: 4, title: 'Minh chứng mới được cập nhật', detail: 'Thầy Nam đã thêm minh chứng mới cho chuyên đề STEM', time: '2 giờ trước', read: true },
   { id: 5, title: 'Báo cáo tháng đã hoàn thành', detail: 'Bạn có thể xem và xuất báo cáo', time: '3 giờ trước', read: true },
 ];

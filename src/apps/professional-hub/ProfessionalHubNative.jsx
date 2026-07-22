@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { DepartmentRoot } from './ProfessionalHubRoot.jsx';
+import { BrianUsersProvider } from './BrianUsersContext.jsx';
 import './professional-hub-native-host.css';
 
 export default function ProfessionalHubNative({ language = 'vi' }) {
@@ -15,7 +16,9 @@ export default function ProfessionalHubNative({ language = 'vi' }) {
       data-language={language}
       aria-label={language === 'vi' ? 'Hub Chuyên môn' : 'Professional Hub'}
     >
-      <DepartmentRoot />
+      <BrianUsersProvider>
+        <DepartmentRoot />
+      </BrianUsersProvider>
     </section>
   );
 }

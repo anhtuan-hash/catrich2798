@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import './calendar-workspace.css';
 
 const TYPES = ['Họp tổ', 'Sinh hoạt chuyên môn', 'Dự giờ', 'Thao giảng', 'Kiểm tra hồ sơ', 'Nộp báo cáo', 'Ngoại khóa'];
-const PEOPLE = ['Toàn tổ', 'Nguyễn Thị Mai', 'Trần Minh Đức', 'Phạm Thu Hà', 'Lê Hoàng Nam', 'Đỗ Thị Hương'];
+const PEOPLE = ['Toàn tổ', 'Chưa phân công', 'Chưa phân công', 'Chưa phân công', 'Chưa phân công', 'Chưa phân công'];
 const TYPE_TONE = {
   'Họp tổ': 'purple',
   'Sinh hoạt chuyên môn': 'blue',
@@ -240,7 +240,7 @@ export default function CalendarWorkspace({ events, setEvents, updateEvent, dele
 
 export const createDefaultCalendarEvents = () => [
   { id: 1, title: 'Họp tổ chuyên môn tháng 8', type: 'Họp tổ', dateISO: relativeDate(2), startTime: '08:00', endTime: '09:30', location: 'Phòng Hub Chuyên môn', attendees: ['Toàn tổ'], description: 'Thống nhất kế hoạch tháng và phân công nhiệm vụ.', reminder: 30, attachments: [] },
-  { id: 2, title: 'Dự giờ lớp 11A1', type: 'Dự giờ', dateISO: relativeDate(4), startTime: '09:45', endTime: '10:30', location: 'Lớp 11A1', attendees: ['Nguyễn Thị Mai', 'Trần Minh Đức'], description: 'Dự giờ tiết đọc hiểu và góp ý sau tiết dạy.', reminder: 60, attachments: [] },
+  { id: 2, title: 'Dự giờ lớp 11A1', type: 'Dự giờ', dateISO: relativeDate(4), startTime: '09:45', endTime: '10:30', location: 'Lớp 11A1', attendees: ['Chưa phân công', 'Chưa phân công'], description: 'Dự giờ tiết đọc hiểu và góp ý sau tiết dạy.', reminder: 60, attachments: [] },
   { id: 3, title: 'Sinh hoạt chuyên đề AI', type: 'Sinh hoạt chuyên môn', dateISO: relativeDate(7), startTime: '14:00', endTime: '16:00', location: 'Phòng đa năng', attendees: ['Toàn tổ'], description: 'Chia sẻ quy trình ứng dụng AI trong thiết kế hoạt động học.', reminder: 1440, attachments: [] },
   { id: 4, title: 'Hạn nộp báo cáo tháng', type: 'Nộp báo cáo', dateISO: relativeDate(10), startTime: '16:30', endTime: '17:00', location: 'Trực tuyến', attendees: ['Toàn tổ'], description: 'Nộp báo cáo tiến độ chuyên môn tháng.', reminder: 1440, attachments: [] },
 ];

@@ -1,16 +1,17 @@
 import React, { useMemo, useRef, useState } from 'react';
 import './meetings-workspace.css';
+import { useBrianUsers } from './BrianUsersContext.jsx';
 
-const PEOPLE=['Nguyễn Thị Mai','Trần Minh Đức','Phạm Thu Hà','Lê Hoàng Nam','Đỗ Thị Hương'];
 const TYPES=['Họp định kỳ','Sinh hoạt chuyên đề','Rút kinh nghiệm','Triển khai nhiệm vụ','Đột xuất'];
 const STATUS=['Sắp diễn ra','Đang chuẩn bị','Đã kết thúc','Đã lưu biên bản'];
 const today=()=>new Date().toISOString().slice(0,10);
 const addDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
 const fmt=iso=>iso&&/^\d{4}-/.test(iso)?iso.split('-').reverse().join('/'):iso;
-const normalize=(m,i=0)=>({type:TYPES[i%TYPES.length],status:'Sắp diễn ra',dateISO:addDays(i*7),start:'14:00',end:'15:30',location:'Phòng họp chuyên môn',chair:'Nguyễn Thị Mai',secretary:'Trần Minh Đức',attendees:[...PEOPLE],agenda:[],minutes:'',conclusions:'',attachments:[],tasks:[],comments:[],history:[],...m});
+const normalize=(m,i=0)=>({type:TYPES[i%TYPES.length],status:'Sắp diễn ra',dateISO:addDays(i*7),start:'14:00',end:'15:30',location:'Phòng họp chuyên môn',chair:'Chưa phân công',secretary:'Chưa phân công',attendees:[...PEOPLE],agenda:[],minutes:'',conclusions:'',attachments:[],tasks:[],comments:[],history:[],...m});
 const slug=v=>(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-');
 
-function Icon({name,size=18}){const p={plus:<path d="M12 5v14M5 12h14"/>,search:<><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,close:<path d="m6 6 12 12M18 6 6 18"/>,edit:<><path d="m4 20 4-1 11-11-3-3L5 16z"/><path d="m14 6 3 3"/></>,trash:<><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></>,file:<><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v5h5"/></>,check:<path d="m5 12 4 4L19 6"/>,users:<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></>,clock:<><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></>};return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{p[name]}</svg>}
+function Icon({name,size=18}){
+  const { people: PEOPLE } = useBrianUsers();const p={plus:<path d="M12 5v14M5 12h14"/>,search:<><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,close:<path d="m6 6 12 12M18 6 6 18"/>,edit:<><path d="m4 20 4-1 11-11-3-3L5 16z"/><path d="m14 6 3 3"/></>,trash:<><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></>,file:<><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v5h5"/></>,check:<path d="m5 12 4 4L19 6"/>,users:<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></>,clock:<><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></>};return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{p[name]}</svg>}
 
 export function createDefaultMeetings(){return[
 {id:1,title:'Sinh hoạt tổ chuyên môn tháng 8',type:'Họp định kỳ',status:'Đang chuẩn bị',dateISO:addDays(3),agenda:[{id:11,text:'Rà soát phân phối chương trình',done:true},{id:12,text:'Thống nhất kế hoạch kiểm tra đầu năm',done:false}],minutes:'',conclusions:'Phân công hoàn thiện kế hoạch trước cuối tuần.'},

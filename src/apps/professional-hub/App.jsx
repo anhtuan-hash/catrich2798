@@ -11,21 +11,21 @@ const TABS = [
   ['reports', 'Báo cáo', 'chart'],
 ];
 
-const PEOPLE = ['Toàn tổ', 'Nguyễn Thị Mai', 'Trần Minh Đức', 'Phạm Thu Hà', 'Lê Hoàng Nam', 'Đỗ Thị Hương'];
+const PEOPLE = ['Toàn tổ', 'Chưa phân công', 'Chưa phân công', 'Chưa phân công', 'Chưa phân công', 'Chưa phân công'];
 const TASK_STATUSES = ['Chưa bắt đầu', 'Đang thực hiện', 'Đã nộp', 'Hoàn thành', 'Quá hạn'];
 
 const DEFAULT_TASKS = [
-  { id: 1, title: 'Xây dựng ma trận đề kiểm tra học kỳ II môn Tiếng Anh 6', assignee: 'Nguyễn Thị Mai', initials: 'NM', due: '20/05/2025', status: 'Đang thực hiện', progress: 60, tone: 'purple' },
-  { id: 2, title: 'Dự giờ đồng nghiệp – Tháng 5', assignee: 'Trần Minh Đức', initials: 'TĐ', due: '15/05/2025', status: 'Đang thực hiện', progress: 40, tone: 'green' },
-  { id: 3, title: 'Biên soạn chuyên đề: Dạy học phát triển năng lực giao tiếp', assignee: 'Phạm Thu Hà', initials: 'PH', due: '25/05/2025', status: 'Chưa bắt đầu', progress: 0, tone: 'orange' },
-  { id: 4, title: 'Tổng hợp minh chứng thi đua học kỳ II', assignee: 'Lê Hoàng Nam', initials: 'LN', due: '10/05/2025', status: 'Quá hạn', progress: 100, tone: 'red' },
-  { id: 5, title: 'Hoàn thiện kế hoạch bồi dưỡng học sinh giỏi', assignee: 'Đỗ Thị Hương', initials: 'ĐH', due: '28/05/2025', status: 'Đã nộp', progress: 100, tone: 'blue' },
+  { id: 1, title: 'Xây dựng ma trận đề kiểm tra học kỳ II môn Tiếng Anh 6', assignee: 'Chưa phân công', initials: 'NM', due: '20/05/2025', status: 'Đang thực hiện', progress: 60, tone: 'purple' },
+  { id: 2, title: 'Dự giờ đồng nghiệp – Tháng 5', assignee: 'Chưa phân công', initials: 'TĐ', due: '15/05/2025', status: 'Đang thực hiện', progress: 40, tone: 'green' },
+  { id: 3, title: 'Biên soạn chuyên đề: Dạy học phát triển năng lực giao tiếp', assignee: 'Chưa phân công', initials: 'PH', due: '25/05/2025', status: 'Chưa bắt đầu', progress: 0, tone: 'orange' },
+  { id: 4, title: 'Tổng hợp minh chứng thi đua học kỳ II', assignee: 'Chưa phân công', initials: 'LN', due: '10/05/2025', status: 'Quá hạn', progress: 100, tone: 'red' },
+  { id: 5, title: 'Hoàn thiện kế hoạch bồi dưỡng học sinh giỏi', assignee: 'Chưa phân công', initials: 'ĐH', due: '28/05/2025', status: 'Đã nộp', progress: 100, tone: 'blue' },
 ];
 
 const DEFAULT_NOTIFICATIONS = [
   { id: 1, title: 'Có 2 công việc sắp đến hạn', detail: 'Ma trận đề kiểm tra học kỳ II, Minh chứng thi đua HKII', time: '5 phút trước', tone: 'purple', icon: 'clipboard', read: false },
   { id: 2, title: 'Cuộc họp tổ vào 15:30 hôm nay', detail: 'Nội dung: Đánh giá hoạt động tháng 5', time: '30 phút trước', tone: 'blue', icon: 'users', read: false },
-  { id: 3, title: 'Hồ sơ của Nguyễn Thị Mai đã được phê duyệt', detail: 'Kế hoạch bài dạy Unit 8 – Lớp 6A1', time: '1 giờ trước', tone: 'green', icon: 'check', read: false },
+  { id: 3, title: 'Hồ sơ của Chưa phân công đã được phê duyệt', detail: 'Kế hoạch bài dạy Unit 8 – Lớp 6A1', time: '1 giờ trước', tone: 'green', icon: 'check', read: false },
   { id: 4, title: 'Minh chứng mới được cập nhật', detail: 'Thầy Nam đã thêm minh chứng mới cho chuyên đề STEM', time: '2 giờ trước', tone: 'orange', icon: 'folder', read: true },
   { id: 5, title: 'Báo cáo tháng 4/2025 đã hoàn thành', detail: 'Bạn có thể xem và xuất báo cáo', time: '3 giờ trước', tone: 'pink', icon: 'report', read: true },
 ];
@@ -45,10 +45,10 @@ const DEFAULT_PLANS = [
 ];
 
 const DEFAULT_RECORDS = [
-  { id: 1, title: 'Kế hoạch bài dạy Unit 8 – Lớp 6A1', owner: 'Nguyễn Thị Mai', status: 'Đã duyệt', date: '06/05/2025', tone: 'green' },
-  { id: 2, title: 'Sáng kiến kinh nghiệm: Ứng dụng AI', owner: 'Trần Minh Đức', status: 'Chờ duyệt', date: '05/05/2025', tone: 'orange' },
-  { id: 3, title: 'Minh chứng thao giảng – 15/04/2025', owner: 'Phạm Thu Hà', status: 'Đã duyệt', date: '16/04/2025', tone: 'green' },
-  { id: 4, title: 'Báo cáo chuyên đề STEM', owner: 'Lê Hoàng Nam', status: 'Cần chỉnh sửa', date: '02/05/2025', tone: 'red' },
+  { id: 1, title: 'Kế hoạch bài dạy Unit 8 – Lớp 6A1', owner: 'Chưa phân công', status: 'Đã duyệt', date: '06/05/2025', tone: 'green' },
+  { id: 2, title: 'Sáng kiến kinh nghiệm: Ứng dụng AI', owner: 'Chưa phân công', status: 'Chờ duyệt', date: '05/05/2025', tone: 'orange' },
+  { id: 3, title: 'Minh chứng thao giảng – 15/04/2025', owner: 'Chưa phân công', status: 'Đã duyệt', date: '16/04/2025', tone: 'green' },
+  { id: 4, title: 'Báo cáo chuyên đề STEM', owner: 'Chưa phân công', status: 'Cần chỉnh sửa', date: '02/05/2025', tone: 'red' },
 ];
 
 const DEFAULT_MEETINGS = [
@@ -178,7 +178,7 @@ function Overview({ state, actions }) {
         <article className="panel meeting-panel"><div className="section-head"><h2>Ghi chú phiên họp tổ</h2><span className="date-chip">{formatDate(meeting.date)} · SH tổ định kỳ</span></div><h3>Nội dung chính</h3><p>{meeting.summary}</p><h3>Việc cần làm <small>(trích xuất tự động)</small></h3><div className="meeting-checklist">{meeting.actions.map((action) => <label key={action.id}><input type="checkbox" checked={action.done} onChange={() => toggleMeetingAction(meeting.id, action.id)}/><span>{action.label}</span><em>{action.owner}</em><time>{action.due}</time></label>)}</div><button className="link-button" onClick={() => setTab('meetings')}>Xem toàn bộ biên bản cuộc họp <Icon name="arrow" size={15}/></button></article>
         <article className="panel report-panel"><SectionHeader title="Báo cáo" action="Xem tất cả" onAction={() => setTab('reports')}/><div className="report-list">{reports.slice(0, 3).map((report) => <button key={report.id} onClick={() => setToast(`Đã mở ${report.title}.`)}><span className="icon-box blue"><Icon name="report" size={18}/></span><span><strong>{report.title}</strong><small>Cập nhật: {report.date}</small></span></button>)}</div><div className="export-row"><button onClick={() => exportReport('word')}>▣ Word</button><button onClick={() => exportReport('pdf')}>▣ PDF</button><button onClick={() => exportReport('html')}>&lt;/&gt; HTML</button></div></article>
       </section>
-      <section className="panel profile-strip"><div className="teacher-profile"><span className="teacher-photo">NM</span><div><h2>Nguyễn Thị Mai</h2><span className="role-badge">Giáo viên</span><dl><div><dt>Tổ</dt><dd>Tiếng Anh</dd></div><div><dt>Trình độ</dt><dd>Thạc sĩ</dd></div><div><dt>Thâm niên</dt><dd>8 năm</dd></div></dl></div></div><div className="approval-history"><h2>Lịch sử phê duyệt</h2>{state.records.slice(0, 3).map((record) => <button key={record.id} onClick={() => setTab('records')}><span className={`icon-box ${record.tone}`}><Icon name={record.status === 'Chờ duyệt' ? 'calendar' : 'check'} size={18}/></span><span><strong>{record.title}</strong><small>{record.status} · {record.date}</small></span><em>Xem</em></button>)}</div><div className="featured-evidence"><h2>Minh chứng nổi bật</h2><div>{evidence.slice(0, 4).map((item) => <EvidenceCard key={item.id} item={item} onOpen={() => setTab('evidence')}/>)}</div></div></section>
+      <section className="panel profile-strip"><div className="teacher-profile"><span className="teacher-photo">NM</span><div><h2>Chưa phân công</h2><span className="role-badge">Giáo viên</span><dl><div><dt>Tổ</dt><dd>Tiếng Anh</dd></div><div><dt>Trình độ</dt><dd>Thạc sĩ</dd></div><div><dt>Thâm niên</dt><dd>8 năm</dd></div></dl></div></div><div className="approval-history"><h2>Lịch sử phê duyệt</h2>{state.records.slice(0, 3).map((record) => <button key={record.id} onClick={() => setTab('records')}><span className={`icon-box ${record.tone}`}><Icon name={record.status === 'Chờ duyệt' ? 'calendar' : 'check'} size={18}/></span><span><strong>{record.title}</strong><small>{record.status} · {record.date}</small></span><em>Xem</em></button>)}</div><div className="featured-evidence"><h2>Minh chứng nổi bật</h2><div>{evidence.slice(0, 4).map((item) => <EvidenceCard key={item.id} item={item} onOpen={() => setTab('evidence')}/>)}</div></div></section>
     </div>
     <NotificationDrawer items={notifications} setItems={setNotifications} open={drawerOpen} onClose={() => setDrawerOpen(false)} setToast={setToast}/>
   </div>;
@@ -245,7 +245,7 @@ function FormModal({ type, onClose, onSubmit }) {
     report: { eyebrow: 'BÁO CÁO', title: 'Tạo báo cáo mới', fields: [['title','Tên báo cáo','text'],['period','Kỳ báo cáo','text'],['date','Ngày cập nhật','date']] },
   };
   const config = configs[type];
-  const initial = { title: '', assignee: 'Toàn tổ', owner: 'Nguyễn Thị Mai', due: '2025-05-30', date: '2025-05-30', status: 'Chưa bắt đầu', time: '14:00–15:30', place: 'Phòng họp 2', progress: 0, summary: '', evidenceType: 'Tài liệu', period: 'Tháng 5/2025' };
+  const initial = { title: '', assignee: 'Toàn tổ', owner: 'Chưa phân công', due: '2025-05-30', date: '2025-05-30', status: 'Chưa bắt đầu', time: '14:00–15:30', place: 'Phòng họp 2', progress: 0, summary: '', evidenceType: 'Tài liệu', period: 'Tháng 5/2025' };
   const [form, setForm] = useState(initial);
   const submit = (event) => { event.preventDefault(); if (!form.title.trim()) return; onSubmit(form); };
   return <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><form className="modal" onSubmit={submit} data-testid={`${type}-modal`}><header><div><span>{config.eyebrow}</span><h2>{config.title}</h2></div><button type="button" className="icon-button" onClick={onClose}><Icon name="close"/></button></header><div className="modal-fields">{config.fields.map(([key,label,fieldType]) => <label key={key}>{label}{fieldType === 'people' ? <select value={form[key]} onChange={(event) => setForm({ ...form, [key]: event.target.value })}>{PEOPLE.map((person) => <option key={person}>{person}</option>)}</select> : fieldType === 'status' ? <select value={form[key]} onChange={(event) => setForm({ ...form, [key]: event.target.value })}>{TASK_STATUSES.map((status) => <option key={status}>{status}</option>)}</select> : fieldType === 'evidenceType' ? <select value={form[key]} onChange={(event) => setForm({ ...form, [key]: event.target.value })}>{['Tài liệu','Hình ảnh','Video','Báo cáo'].map((item) => <option key={item}>{item}</option>)}</select> : fieldType === 'textarea' ? <textarea value={form[key]} onChange={(event) => setForm({ ...form, [key]: event.target.value })} rows="4"/> : <input autoFocus={key === 'title'} type={fieldType} value={form[key]} onChange={(event) => setForm({ ...form, [key]: event.target.value })} min={fieldType === 'number' ? 0 : undefined} max={fieldType === 'number' ? 100 : undefined}/>}</label>)}</div><footer><button type="button" onClick={onClose}>Hủy</button><button className="primary-button" type="submit">Lưu</button></footer></form></div>;

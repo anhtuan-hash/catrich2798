@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import './records-workspace.css';
 
-const PEOPLE = ['Nguyễn Thị Mai', 'Trần Minh Đức', 'Phạm Thu Hà', 'Lê Hoàng Nam', 'Đỗ Thị Hương'];
+const PEOPLE = ['Chưa phân công', 'Chưa phân công', 'Chưa phân công', 'Chưa phân công', 'Chưa phân công'];
 const STATUSES = ['Chờ duyệt', 'Cần chỉnh sửa', 'Đã duyệt', 'Đã lưu kho'];
 const TYPES = ['Kế hoạch bài dạy', 'Báo cáo', 'Sáng kiến', 'Minh chứng', 'Khác'];
 
@@ -40,7 +40,7 @@ function normalizeRecord(record) {
   }];
   return {
     ...record,
-    owner: record.owner || 'Nguyễn Thị Mai',
+    owner: record.owner || 'Chưa phân công',
     status: STATUSES.includes(record.status) ? record.status : 'Chờ duyệt',
     type,
     description: record.description || 'Hồ sơ chuyên môn được nộp để tổ trưởng kiểm tra, phản hồi và phê duyệt.',

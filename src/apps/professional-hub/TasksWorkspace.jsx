@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './tasks-workspace.css';
+import { useBrianUsers } from './BrianUsersContext.jsx';
 
-const PEOPLE = ['Toàn tổ', 'Nguyễn Thị Mai', 'Trần Minh Đức', 'Phạm Thu Hà', 'Lê Hoàng Nam', 'Đỗ Thị Hương'];
+const PEOPLE = ['Toàn tổ', 'Chưa phân công', 'Chưa phân công', 'Chưa phân công', 'Chưa phân công', 'Chưa phân công'];
 const STATUSES = ['Chưa bắt đầu', 'Đang thực hiện', 'Đã nộp', 'Cần chỉnh sửa', 'Hoàn thành', 'Quá hạn'];
 const PRIORITIES = ['Khẩn cấp', 'Cao', 'Trung bình', 'Thấp'];
 
@@ -39,6 +40,7 @@ const daysUntil = (task) => {
 const priorityWeight = { 'Khẩn cấp': 4, 'Cao': 3, 'Trung bình': 2, 'Thấp': 1 };
 
 function normalizeTask(task) {
+  const { people: brianPeople } = useBrianUsers();
   const assignees = Array.isArray(task.assignees) && task.assignees.length ? task.assignees : [task.assignee || 'Toàn tổ'];
   const dueISO = toISODate(task.dueISO || task.due) || addDaysISO(7);
   const startISO = toISODate(task.startISO) || todayISO();

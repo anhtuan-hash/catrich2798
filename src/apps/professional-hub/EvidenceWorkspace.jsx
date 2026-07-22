@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import './evidence-workspace.css';
+import { useBrianUsers } from './BrianUsersContext.jsx';
 
-const PEOPLE=['Nguyễn Thị Mai','Trần Minh Đức','Phạm Thu Hà','Lê Hoàng Nam','Đỗ Thị Hương'];
 const TYPES=['Dự giờ','Thao giảng','Chuyên đề','Bồi dưỡng học sinh giỏi','Kiểm tra nội bộ','Thi đua','Khác'];
 const CRITERIA=['Hoạt động chuyên môn','Đổi mới phương pháp','Ứng dụng công nghệ','Chất lượng học sinh','Phát triển đội ngũ','Công tác quản lý'];
 const STATUSES=['Chờ xác minh','Cần bổ sung','Đã xác minh','Đã lưu kho'];
@@ -12,12 +12,13 @@ const initials=(name='')=>name.split(' ').slice(-2).map(part=>part[0]).join('').
 const isWorkspaceItem=item=>Boolean(item?.status&&item?.criterion&&item?.owner&&Array.isArray(item?.attachments));
 
 export function createDefaultEvidence(){return [
-  {id:1,title:'Minh chứng thao giảng Unit 5 – Lớp 11A1',type:'Thao giảng',criterion:'Đổi mới phương pháp',owner:'Nguyễn Thị Mai',dateISO:today(),status:'Đã xác minh',description:'Hình ảnh, kế hoạch bài dạy và phiếu nhận xét sau tiết thao giảng.',links:['Kế hoạch chuyên đề ứng dụng AI'],attachments:[{id:11,name:'ke-hoach-bai-day.pdf',size:245000},{id:12,name:'hinh-anh-thao-giang.jpg',size:480000}],comments:[],history:[{id:111,action:'Đã xác minh minh chứng',actor:'Demo Teacher Admin',time:new Date().toLocaleString('vi-VN')}]},
-  {id:2,title:'Minh chứng bồi dưỡng học sinh giỏi tháng 7',type:'Bồi dưỡng học sinh giỏi',criterion:'Chất lượng học sinh',owner:'Trần Minh Đức',dateISO:today(),status:'Chờ xác minh',description:'Kế hoạch, danh sách học sinh và sản phẩm luyện tập.',links:['Hoàn thiện kế hoạch bồi dưỡng học sinh giỏi'],attachments:[{id:21,name:'danh-sach-hoc-sinh.xlsx',size:96000}],comments:[],history:[]},
-  {id:3,title:'Minh chứng sinh hoạt chuyên đề AI',type:'Chuyên đề',criterion:'Ứng dụng công nghệ',owner:'Đỗ Thị Hương',dateISO:today(),status:'Cần bổ sung',description:'Tài liệu trình chiếu và phản hồi sau chuyên đề.',links:['Kế hoạch chuyên đề ứng dụng AI'],attachments:[{id:31,name:'slides-chuyen-de.pptx',size:920000}],comments:[],history:[]}
+  {id:1,title:'Minh chứng thao giảng Unit 5 – Lớp 11A1',type:'Thao giảng',criterion:'Đổi mới phương pháp',owner:'Chưa phân công',dateISO:today(),status:'Đã xác minh',description:'Hình ảnh, kế hoạch bài dạy và phiếu nhận xét sau tiết thao giảng.',links:['Kế hoạch chuyên đề ứng dụng AI'],attachments:[{id:11,name:'ke-hoach-bai-day.pdf',size:245000},{id:12,name:'hinh-anh-thao-giang.jpg',size:480000}],comments:[],history:[{id:111,action:'Đã xác minh minh chứng',actor:'Demo Teacher Admin',time:new Date().toLocaleString('vi-VN')}]},
+  {id:2,title:'Minh chứng bồi dưỡng học sinh giỏi tháng 7',type:'Bồi dưỡng học sinh giỏi',criterion:'Chất lượng học sinh',owner:'Chưa phân công',dateISO:today(),status:'Chờ xác minh',description:'Kế hoạch, danh sách học sinh và sản phẩm luyện tập.',links:['Hoàn thiện kế hoạch bồi dưỡng học sinh giỏi'],attachments:[{id:21,name:'danh-sach-hoc-sinh.xlsx',size:96000}],comments:[],history:[]},
+  {id:3,title:'Minh chứng sinh hoạt chuyên đề AI',type:'Chuyên đề',criterion:'Ứng dụng công nghệ',owner:'Chưa phân công',dateISO:today(),status:'Cần bổ sung',description:'Tài liệu trình chiếu và phản hồi sau chuyên đề.',links:['Kế hoạch chuyên đề ứng dụng AI'],attachments:[{id:31,name:'slides-chuyen-de.pptx',size:920000}],comments:[],history:[]}
 ]}
 
-function Icon({name,size=18}){const paths={plus:<path d="M12 5v14M5 12h14"/>,search:<><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,close:<path d="m6 6 12 12M18 6 6 18"/>,file:<><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v5h5M8 13h8M8 17h6"/></>,edit:<><path d="m4 20 4-1 11-11-3-3L5 16z"/><path d="m14 6 3 3"/></>,trash:<><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></>,check:<path d="m5 12 4 4L19 6"/>,archive:<><path d="M4 7h16v13H4zM3 4h18v3H3z"/><path d="M9 11h6"/></>,link:<><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></>};return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>}
+function Icon({name,size=18}){
+  const { people: PEOPLE } = useBrianUsers();const paths={plus:<path d="M12 5v14M5 12h14"/>,search:<><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,close:<path d="m6 6 12 12M18 6 6 18"/>,file:<><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v5h5M8 13h8M8 17h6"/></>,edit:<><path d="m4 20 4-1 11-11-3-3L5 16z"/><path d="m14 6 3 3"/></>,trash:<><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></>,check:<path d="m5 12 4 4L19 6"/>,archive:<><path d="M4 7h16v13H4zM3 4h18v3H3z"/><path d="M9 11h6"/></>,link:<><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></>};return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>}
 
 function EvidenceForm({item,onClose,onSave}){
   const fileRef=useRef(null);const [error,setError]=useState('');
