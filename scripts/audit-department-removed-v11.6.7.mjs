@@ -77,6 +77,9 @@ pass('Dashboard uses generic work health', aggregator.includes('workHealth') && 
 const index = read('index.html');
 pass('Obsolete personal font URL removed', !index.includes('/fonts/personal-font.ttf'));
 pass('Deployed personal font remains active', index.includes('/bes-fonts/brian-personal-font.ttf') && index.includes('/bes-fonts/brian-font.css'));
+pass('Boot watchdog only runs when root is empty', index.includes('root.childElementCount > 0') && index.includes('root.textContent.trim().length > 0'));
+pass('Boot watchdog no longer depends on app-shell', !index.includes("root.querySelector('.app-shell"));
+pass('Recovery screen has a stable marker class', index.includes('class="bes-crash-recovery"'));
 
 const serviceWorker = read('public/sw.js');
 pass('Service Worker cache version matches app', serviceWorker.includes("const VERSION = '11.6.7'"));
