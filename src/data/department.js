@@ -11,13 +11,13 @@ export const DEPARTMENT_APP = {
   groupVi: 'Tổ chuyên môn',
   title: 'English Department Workspace',
   titleVi: 'Tổ chuyên môn',
-  desc: 'Manage department schedules, records, shared work, submissions and approvals without AI.',
-  descVi: 'Quản lý lịch hoạt động, hồ sơ, công việc dùng chung, sản phẩm nộp và phê duyệt của tổ mà không sử dụng AI.',
-  status: 'Subject leader',
-  statusVi: 'TTCM',
+  desc: 'Run the English department through schedules, shared work, records, approvals and detailed teacher profiles.',
+  descVi: 'Điều hành lịch hoạt động, công việc, hồ sơ, phê duyệt và thông tin chi tiết giáo viên trong Tổ Tiếng Anh.',
+  status: '5 modules · Role-aware · No AI',
+  statusVi: '5 phân hệ · Theo vai trò · Không AI',
   api: false,
-  featured: false,
-  hideFromLauncher: true,
+  featured: true,
+  hideFromLauncher: false,
 };
 
 export const DEPARTMENT_MODULES = [
@@ -25,6 +25,7 @@ export const DEPARTMENT_MODULES = [
   { id: 'department:work-schedule', key: 'workSchedule', icon: 'CA', title: 'Schedule & Activities', titleVi: 'Lịch & hoạt động', shortVi: 'Lịch & hoạt động', short: 'Schedule', desc: 'Manage plans, meetings, observations, lesson study, assessment work, training and student activities in one schedule.', descVi: 'Quản lý kế hoạch, họp tổ, dự giờ, nghiên cứu bài học, kiểm tra, bồi dưỡng và hoạt động học sinh trong một lịch chung.' },
   { id: 'department:documents', key: 'documents', icon: 'DO', title: 'Records & Documents', titleVi: 'Hồ sơ & văn bản', shortVi: 'Hồ sơ & văn bản', short: 'Records', desc: 'Store, classify, search and open department records, official documents, templates and approved evidence.', descVi: 'Lưu, phân loại, tìm kiếm và mở hồ sơ tổ, văn bản, mẫu biểu và minh chứng đã duyệt.' },
   { id: 'department:work-hub', key: 'workHub', icon: 'WK', title: 'Department Work Center', titleVi: 'Trung tâm công việc', shortVi: 'Trung tâm công việc', short: 'Work center', desc: 'Use the shared Work Hub for assignment, submission, feedback, revision, approval and archiving.', descVi: 'Dùng chung Trung tâm công việc để giao việc, nộp sản phẩm, phản hồi, yêu cầu sửa, phê duyệt và lưu trữ.' },
+  { id: 'department:teachers', key: 'teachers', icon: 'GV', title: 'Teacher Directory', titleVi: 'Danh sách giáo viên', shortVi: 'Giáo viên', short: 'Teachers', desc: 'Manage teacher profiles, employment details, qualifications, assignments, evidence and privacy levels.', descVi: 'Quản lý hồ sơ giáo viên, thông tin công tác, trình độ, phân công, minh chứng và mức độ riêng tư.' },
 ];
 
 export const DEPARTMENT_PERMISSION_ITEMS = [
