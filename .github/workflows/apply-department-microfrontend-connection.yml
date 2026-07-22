@@ -1,0 +1,99 @@
+name: Apply Department microfrontend connection
+
+on:
+  push:
+    branches:
+      - feature/connect-department-microfrontend
+    paths:
+      - .github/workflows/apply-department-microfrontend-connection.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout integration branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/connect-department-microfrontend
+          fetch-depth: 0
+
+      - name: Add reverse proxy and external launcher target
+        run: |
+          python <<'PY'
+          import json
+          from pathlib import Path
+
+          destination = 'https://brian-department-workspace-anhtuan.vercel.app'
+
+          vercel_path = Path('vercel.json')
+          config = json.loads(vercel_path.read_text())
+          rewrites = [item for item in config.get('rewrites', []) if item.get('source') not in {'/to-chuyen-mon', '/to-chuyen-mon/(.*)'}]
+          proxy_rules = [
+              {'source': '/to-chuyen-mon', 'destination': f'{destination}/to-chuyen-mon/'},
+              {'source': '/to-chuyen-mon/(.*)', 'destination': f'{destination}/to-chuyen-mon/$1'},
+          ]
+          config['rewrites'] = proxy_rules + rewrites
+          vercel_path.write_text(json.dumps(config, ensure_ascii=False, indent=2) + '\n')
+
+          apps_path = Path('src/data/apps.js')
+          apps = apps_path.read_text()
+          if "slug: 'department-workspace'" not in apps:
+              marker = 'export const APPS = [\n'
+              app = """  {
+    slug: 'department-workspace', externalPath: '/to-chuyen-mon/', icon: 'TC', tone: 'purple', group: 'Management', groupVi: 'Tổ chuyên môn',
+    title: 'Department Workspace', titleVi: 'Tổ chuyên môn',
+    desc: 'Open the independent department workspace for schedules, tasks, plans, records, evidence and reports.',
+    descVi: 'Mở không gian Tổ chuyên môn độc lập để quản lý lịch, nhiệm vụ, kế hoạch, hồ sơ, minh chứng và báo cáo.',
+    status: 'Independent microfrontend · Role-aware', statusVi: 'Ứng dụng độc lập · Theo vai trò', api: true, featured: true,
+  },
+
+"""
+              if marker not in apps:
+                  raise SystemExit('APPS marker not found')
+              apps = apps.replace(marker, marker + app, 1)
+              apps_path.write_text(apps)
+
+          webapps_path = Path('src/pages/WebApps.jsx')
+          webapps = webapps_path.read_text()
+          old_target = "function targetFor(item) { return item.route ? `#/${item.route}` : `#/tool/${item.slug}`; }"
+          new_target = "function targetFor(item) { return item.externalPath || (item.route ? `#/${item.route}` : `#/tool/${item.slug}`); }"
+          old_launch = "function launch(target, label, color, sourceEl = null) { launchRoute({ target, label, color: color || '#191515', sourceEl }); }"
+          new_launch = "function launch(target, label, color, sourceEl = null) {\n  const externalPath = typeof target === 'string' && target.startsWith('/');\n  launchRoute({\n    target, label, color: color || '#191515', sourceEl,\n    navigate: externalPath ? () => window.location.assign(target) : undefined,\n  });\n}"
+          if old_target not in webapps:
+              raise SystemExit('targetFor marker not found')
+          if old_launch not in webapps:
+              raise SystemExit('launch marker not found')
+          webapps = webapps.replace(old_target, new_target, 1).replace(old_launch, new_launch, 1)
+          webapps_path.write_text(webapps)
+          PY
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build Brian integration
+        run: npx vite build
+
+      - name: Verify connection contract
+        run: |
+          grep -q "externalPath: '/to-chuyen-mon/'" src/data/apps.js
+          grep -q "window.location.assign(target)" src/pages/WebApps.jsx
+          grep -q "brian-department-workspace-anhtuan.vercel.app/to-chuyen-mon" vercel.json
+          test -f dist/index.html
+
+      - name: Commit integration atomically
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add vercel.json src/data/apps.js src/pages/WebApps.jsx
+          git diff --cached --quiet || git commit -m "Connect standalone Department app through reverse proxy"
+          git push origin HEAD:feature/connect-department-microfrontend
