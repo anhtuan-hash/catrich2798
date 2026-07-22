@@ -34,24 +34,57 @@ jobs:
           cat department-removal-audit.txt
           exit 0
 
-      - name: Upload removal audit report
-        uses: actions/upload-artifact@v4
-        with:
-          name: department-removal-audit
-          path: department-removal-audit.txt
-          if-no-files-found: error
-
       - name: Install dependencies
         run: npm ci
 
-      - name: Build website
-        run: npm run build
-
-      - name: Enforce removal audit
+      - name: Build website and keep a diagnostic log
         shell: bash
         run: |
+          set +e
+          npm run build > department-removal-build.txt 2>&1
+          status=$?
+          echo "BUILD_EXIT_CODE=$status" >> "$GITHUB_ENV"
+          cat department-removal-build.txt
+          exit 0
+
+      - name: Create manual ZIP packages
+        shell: bash
+        run: |
+          git archive --format=zip --output=Brian-English-Studio-Department-Removed-source.zip HEAD
+          if [ -d dist ]; then
+            cd dist
+            zip -qr ../Brian-English-Studio-Department-Removed-static.zip .
+            cd ..
+          fi
+          sha256sum Brian-English-Studio-Department-Removed-*.zip > SHA256SUMS.txt
+
+      - name: Upload audit, build log and ZIP package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Brian-English-Studio-Department-Removed
+          path: |
+            department-removal-audit.txt
+            department-removal-build.txt
+            Brian-English-Studio-Department-Removed-source.zip
+            Brian-English-Studio-Department-Removed-static.zip
+            SHA256SUMS.txt
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Enforce removal audit and build
+        shell: bash
+        run: |
+          failed=0
           if [ "${AUDIT_EXIT_CODE}" != "0" ]; then
-            echo "Department removal audit failed. Download the department-removal-audit artifact for the exact remaining references."
+            echo "Department removal audit failed."
+            failed=1
+          fi
+          if [ "${BUILD_EXIT_CODE}" != "0" ]; then
+            echo "Website build failed."
+            failed=1
+          fi
+          if [ "$failed" != "0" ]; then
+            echo "Download the Brian-English-Studio-Department-Removed artifact for the exact audit and build logs."
             exit 1
           fi
-          echo "Department removal audit passed."
+          echo "Department removal audit passed and the website built successfully."
