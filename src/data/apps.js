@@ -286,3 +286,20 @@ export const ARCHIVED_APPS = [
   'TalkDeck Prompts',
   'WriteMirror',
 ];
+
+export const RESOURCE_ITEMS = [
+  {
+    icon: 'WF',
+    title: 'Teacher Flow',
+    titleVi: 'Quy trình',
+    text: 'Choose a tool, paste content, generate, teach live, or export offline.',
+    textVi: 'Chọn công cụ, dán nội dung, tạo hoạt động, dạy trực tiếp hoặc xuất file.',
+  },
+  {
+    icon: 'DB',
+    title: 'V1.0 Official Dashboard',
+    titleVi: 'Dashboard chính thức V1.0',
+    text: 'The dashboard is organized by workflow groups for faster opening, creating and saving.',
+    textVi: 'Dashboard được sắp xếp theo nhóm chức năng để mở nhanh, tạo nhanh và lưu nhanh.',
+  },
+];
