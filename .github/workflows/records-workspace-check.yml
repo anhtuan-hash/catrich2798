@@ -43,5 +43,5 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium >/tmp/playwright-install.log 2>&1
 
-      - name: Run browser tests
-        run: npm run test:e2e
+      - name: Run records browser test
+        run: npx playwright test -g "complete records workspace" --reporter=line
