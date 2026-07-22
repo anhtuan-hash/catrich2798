@@ -49,6 +49,13 @@ const DEFAULT_NAV = [
   'route:resource-library',
 ];
 
+let realtimeSubscriptionSequence = 0;
+
+function nextLauncherRealtimeTopic() {
+  realtimeSubscriptionSequence += 1;
+  return `bes-launcher-settings-v1167-${Date.now().toString(36)}-${realtimeSubscriptionSequence}`;
+}
+
 function safeStorageGet(key) {
   if (typeof window === 'undefined') return null;
   try { return window.localStorage?.getItem(key) ?? null; } catch { return null; }
@@ -247,7 +254,9 @@ export async function resetLauncherConfigToCloud(itemIds = []) {
 
 export function subscribeLauncherConfig(callback, itemIds = []) {
   if (typeof window === 'undefined') return () => {};
+  let active = true;
   const safeCallback = (raw) => {
+    if (!active) return;
     try { callback?.(normalizeLauncherConfig(raw, itemIds)); } catch (error) { console.error('[Launcher] subscriber failed', error); }
   };
   const localHandler = (event) => safeCallback(event?.detail || loadLauncherConfig(itemIds));
@@ -262,7 +271,7 @@ export function subscribeLauncherConfig(callback, itemIds = []) {
   if (isSupabaseConfigured && supabase) {
     try {
       channel = supabase
-        .channel('bes-launcher-settings-v1085')
+        .channel(nextLauncherRealtimeTopic())
         .on('postgres_changes', {
           event: '*', schema: 'public', table: 'bes_launcher_settings', filter: `id=eq.${LAUNCHER_CLOUD_ROW_ID}`,
         }, (payload) => {
@@ -280,10 +289,13 @@ export function subscribeLauncherConfig(callback, itemIds = []) {
   }
 
   return () => {
+    active = false;
     window.removeEventListener(LAUNCHER_UPDATED_EVENT, localHandler);
     window.removeEventListener('storage', storageHandler);
     if (channel && supabase) {
-      try { supabase.removeChannel(channel); } catch { /* cleanup is best effort */ }
+      const staleChannel = channel;
+      channel = null;
+      Promise.resolve(supabase.removeChannel(staleChannel)).catch(() => {});
     }
   };
 }
