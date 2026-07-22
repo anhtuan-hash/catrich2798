@@ -1,0 +1,101 @@
+name: Standalone Workspace Check
+
+on:
+  pull_request:
+    branches:
+      - feature/department-standalone-microfrontend
+    paths:
+      - department-app/**
+      - .github/workflows/records-workspace-check.yml
+
+jobs:
+  browser-test:
+    name: test-${{ matrix.id }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: dashboard
+            grep: scoped dashboard navigation smoke test
+          - id: macbook
+            grep: MacBook viewport uses genuinely readable typography
+          - id: notification-toggle
+            grep: notification panel opens and closes
+          - id: task-persistence
+            grep: creates and persists a task
+          - id: task-complete
+            grep: complete task workspace supports assignment
+          - id: records-complete
+            grep: complete records workspace supports submission
+          - id: plans-complete
+            grep: complete plans workspace supports create
+          - id: calendar-complete
+            grep: complete calendar workspace supports views
+          - id: meetings-complete
+            grep: complete meetings workspace supports minutes
+          - id: evidence-create
+            grep: evidence workspace creates files
+          - id: evidence-status
+            grep: evidence workspace supports feedback
+          - id: remaining-interactions
+            grep: scoped notifications search and meetings smoke test
+    defaults:
+      run:
+        working-directory: department-app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: department-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund --silent
+
+      - name: Build standalone app
+        run: npm run build
+
+      - name: Verify workspace contract
+        run: |
+          test -f dist/index.html
+          test -f src/RecordsWorkspace.jsx
+          test -f src/records-workspace.css
+          test -f src/PlansWorkspace.jsx
+          test -f src/plans-workspace.css
+          test -f src/CalendarWorkspace.jsx
+          test -f src/calendar-workspace.css
+          test -f src/MeetingsWorkspace.jsx
+          test -f src/meetings-workspace.css
+          test -f src/EvidenceWorkspace.jsx
+          test -f src/evidence-workspace.css
+          grep -q "RecordsWorkspace" src/main.jsx
+          grep -q "PlansWorkspace" src/main.jsx
+          grep -q "CalendarWorkspace" src/main.jsx
+          grep -q "MeetingsWorkspace" src/main.jsx
+          grep -q "EvidenceWorkspace" src/main.jsx
+          grep -q "department-v2-calendar-events" src/main.jsx
+          grep -q "department-v2-meetings" src/main.jsx
+          grep -q "department-v2-evidence" src/main.jsx
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium >/tmp/playwright-install.log 2>&1
+
+      - name: Run ${{ matrix.id }} browser test
+        run: npx playwright test -g "${{ matrix.grep }}" --reporter=line
+
+      - name: Upload Playwright diagnostics
+        if: failure() && (matrix.id == 'evidence-create' || matrix.id == 'evidence-status')
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-${{ matrix.id }}
+          path: |
+            department-app/test-results
+            department-app/playwright-report
+          if-no-files-found: warn
+          retention-days: 2

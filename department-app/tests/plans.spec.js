@@ -1,0 +1,38 @@
+import { test, expect } from '@playwright/test';
+
+test('complete plans workspace supports create, edit, milestones, feedback and persistence', async ({ page }) => {
+  await page.goto('/to-chuyen-mon/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.getByTestId('tab-plans').click();
+  const workspace = page.locator('.task-workspace-bridge');
+  await expect(workspace.getByRole('heading', { name: 'Kế hoạch và tiến độ' })).toBeVisible();
+  await workspace.getByRole('button', { name: 'Tạo kế hoạch' }).click();
+  const modal = page.getByTestId('plan-editor-modal');
+  await modal.getByLabel('Tên kế hoạch').fill('Kế hoạch bồi dưỡng học sinh giỏi');
+  await modal.getByLabel('Loại kế hoạch').selectOption('Chuyên đề');
+  await modal.getByLabel('Người phụ trách').selectOption('Đỗ Thị Hương');
+  await modal.getByLabel('Trạng thái kế hoạch').selectOption('Đang thực hiện');
+  await modal.getByLabel('Mô tả kế hoạch').fill('Xây dựng chương trình bồi dưỡng và hệ thống đề luyện theo từng giai đoạn.');
+  await modal.getByLabel('Mốc tiến độ').fill('Khảo sát năng lực học sinh\nXây dựng chương trình\nTổ chức kiểm tra định kỳ');
+  await modal.getByRole('button', { name: 'Tạo kế hoạch' }).click();
+  await workspace.getByLabel('Tìm kế hoạch').fill('bồi dưỡng');
+  const plan = workspace.getByTestId(/plan-/).filter({ hasText: 'Kế hoạch bồi dưỡng học sinh giỏi' });
+  await expect(plan).toBeVisible();
+  await plan.getByRole('button', { name: 'Xem chi tiết' }).click();
+  const detail = page.getByTestId('plan-detail-panel');
+  await detail.getByRole('checkbox').first().check();
+  await detail.getByLabel('Phản hồi kế hoạch').fill('Cần bổ sung lịch kiểm tra theo tháng.');
+  await detail.getByRole('button', { name: 'Gửi phản hồi' }).click();
+  await expect(detail.getByText('Cần bổ sung lịch kiểm tra theo tháng.')).toBeVisible();
+  await detail.getByRole('button', { name: 'Chỉnh sửa' }).click();
+  const edit = page.getByTestId('plan-editor-modal');
+  await edit.getByLabel('Tên kế hoạch').fill('Kế hoạch bồi dưỡng học sinh giỏi – hoàn chỉnh');
+  await edit.getByRole('button', { name: 'Lưu thay đổi' }).click();
+  await expect(workspace.getByText('Kế hoạch bồi dưỡng học sinh giỏi – hoàn chỉnh')).toBeVisible();
+  await page.reload();
+  await page.getByTestId('tab-plans').click();
+  const restored = page.locator('.task-workspace-bridge');
+  await restored.getByLabel('Tìm kế hoạch').fill('hoàn chỉnh');
+  await expect(restored.getByText('Kế hoạch bồi dưỡng học sinh giỏi – hoàn chỉnh')).toBeVisible();
+});

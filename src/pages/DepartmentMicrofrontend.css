@@ -1,0 +1,146 @@
+.department-microfrontend {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 0 0 28px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(219, 222, 237, 0.96);
+  border-radius: 24px;
+  background: #f7f8fd;
+  box-shadow: 0 18px 54px rgba(35, 39, 78, 0.10);
+  isolation: isolate;
+}
+
+.department-microfrontend-header {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 86px;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(219, 222, 237, 0.96);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.department-microfrontend-header > div {
+  min-width: 0;
+}
+
+.department-microfrontend-header span {
+  display: block;
+  margin-bottom: 6px;
+  color: #6651e8;
+  font: 900 11px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.14em;
+}
+
+.department-microfrontend-header h1 {
+  margin: 0;
+  color: #17192b;
+  font: 850 clamp(22px, 2vw, 31px)/1.1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: -0.035em;
+}
+
+.department-microfrontend-new {
+  flex: 0 0 auto;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid #d8d2ff;
+  border-radius: 14px;
+  background: #f7f5ff;
+  color: #5c48d8;
+  font: 800 13px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-decoration: none;
+  transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.department-microfrontend-new:hover {
+  transform: translateY(-1px);
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(91, 72, 216, 0.13);
+}
+
+.department-microfrontend-frame {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: clamp(720px, calc(100dvh - 250px), 980px);
+  overflow: hidden;
+  background: #f7f8fd;
+}
+
+.department-microfrontend-frame iframe {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #f7f8fd;
+}
+
+.department-microfrontend-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  background: #f7f8fd;
+  color: #575c72;
+  font: 750 14px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.department-microfrontend-loading span {
+  width: 34px;
+  height: 34px;
+  border: 4px solid #ddd8ff;
+  border-top-color: #6752e8;
+  border-radius: 50%;
+  animation: department-embedded-spin 800ms linear infinite;
+}
+
+@keyframes department-embedded-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 760px) {
+  .department-microfrontend {
+    margin-bottom: 18px;
+    border-radius: 18px;
+  }
+
+  .department-microfrontend-header {
+    min-height: 74px;
+    padding: 14px 16px;
+  }
+
+  .department-microfrontend-header span {
+    font-size: 9px;
+  }
+
+  .department-microfrontend-header h1 {
+    font-size: 22px;
+  }
+
+  .department-microfrontend-new {
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: 11px;
+  }
+
+  .department-microfrontend-frame {
+    height: max(680px, calc(100dvh - 220px));
+  }
+}

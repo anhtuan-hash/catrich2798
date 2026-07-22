@@ -6,6 +6,13 @@ export const APPS = [
     descVi: 'Tổng hợp lịch làm việc, việc cần xử lý, hoạt động chuyên môn, phê duyệt và tình hình tổ theo đúng vai trò.',
     status: 'Realtime · Role-aware · 14-day view', statusVi: 'Realtime · Theo vai trò · 14 ngày', api: true, featured: true,
   },
+  {
+    slug: 'department-workspace', icon: 'TC', tone: 'purple', group: 'School Management', groupVi: 'Quản lý tổ chuyên môn',
+    title: 'English Department Workspace', titleVi: 'Tổ chuyên môn',
+    desc: 'Manage schedules, assignments, plans, records, meetings, evidence and reports in one Supabase-connected workspace.',
+    descVi: 'Quản lý lịch, giao việc, kế hoạch, hồ sơ, sinh hoạt tổ, minh chứng và báo cáo trong một không gian kết nối Supabase.',
+    status: 'Supabase · TTCM · Role-aware', statusVi: 'Supabase · TTCM · Theo vai trò', api: true, featured: true,
+  },
 
   {
     slug: 'thpt-practice-hub', icon: 'TH', tone: 'orange', group: 'Exam Preparation', groupVi: 'Luyện thi THPT',
@@ -278,25 +285,6 @@ export const ARCHIVED_APPS = [
   'ReadSpark MCQ',
   'TalkDeck Prompts',
   'WriteMirror',
-  'TextOptimus Reader',
-  'Mystery Tiles',
-  'Sprint Arena',
-  'SpinBurst',
-  'Link Clash',
-  'Rubric Foundry',
-  'Exam Weaver',
-  'Prompt Vault',
-  'Blueprint Grid',
-  'ModelTest Planner',
-  'TryHard Exam Lab',
-  'SpeakEasy Coach',
-  'SkillCheck AI',
-  'Syntax Tree Studio',
-  'PromptChef',
-  'BookTranslate Studio',
-  'BookOCR Clean',
-  'ArticleAudio Studio',
-  'PDFClear Clean',
 ];
 
 export const RESOURCE_ITEMS = [

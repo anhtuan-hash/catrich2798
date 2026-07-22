@@ -1,0 +1,185 @@
+name: Integrate complete task workspace
+
+on:
+  push:
+    branches:
+      - feature/department-standalone-microfrontend
+    paths:
+      - .github/workflows/integrate-complete-task-workspace.yml
+      - department-app/src/TasksWorkspace.jsx
+      - department-app/src/tasks-workspace.css
+  pull_request:
+    branches:
+      - feature/department-new-known-good
+    paths:
+      - .github/workflows/integrate-complete-task-workspace.yml
+      - department-app/src/TasksWorkspace.jsx
+      - department-app/src/tasks-workspace.css
+
+permissions:
+  contents: write
+
+jobs:
+  integrate-test-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout standalone branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/department-standalone-microfrontend
+          fetch-depth: 0
+
+      - name: Connect task workspace and extend browser tests
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          app_path = Path('department-app/src/App.jsx')
+          app = app_path.read_text()
+          import_line = "import TasksWorkspace from './TasksWorkspace.jsx';"
+          if import_line not in app:
+              marker = "import React, { useEffect, useMemo, useRef, useState } from 'react';"
+              if marker not in app:
+                  raise SystemExit('React import marker not found')
+              app = app.replace(marker, marker + '\n' + import_line, 1)
+
+          old_page = "tasks: <TasksPage tasks={tasks} onCreate={() => setModalType('task')} updateTask={updateTask} deleteTask={deleteTask}/>,"
+          new_page = "tasks: <TasksWorkspace tasks={tasks} setTasks={setTasks} updateTask={updateTask} deleteTask={deleteTask} setToast={setToast}/>,"
+          if old_page in app:
+              app = app.replace(old_page, new_page, 1)
+          elif new_page not in app:
+              raise SystemExit('Tasks page mapping marker not found')
+          app_path.write_text(app)
+
+          test_path = Path('department-app/tests/workspace.spec.js')
+          test = test_path.read_text()
+          old_create = """test('creates and persists a task, filters and updates status', async ({ page }) => {
+  await page.getByTestId('tab-tasks').click();
+  await page.getByRole('button', { name: 'Tạo nhiệm vụ' }).click();
+  await page.getByLabel('Tên nhiệm vụ').fill('Kiểm tra chức năng nhiệm vụ');
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  await expect(page.getByText('Kiểm tra chức năng nhiệm vụ')).toBeVisible();
+  await page.reload();
+  await page.getByTestId('tab-tasks').click();
+  await expect(page.getByText('Kiểm tra chức năng nhiệm vụ')).toBeVisible();
+  const createdTask = page.getByTestId(/task-/).filter({ hasText: 'Kiểm tra chức năng nhiệm vụ' });
+  await createdTask.getByRole('button', { name: /Tùy chọn Kiểm tra chức năng nhiệm vụ/ }).click();
+  await createdTask.getByRole('button', { name: 'Hoàn thành', exact: true }).click();
+  await expect(page.getByText('Hoàn thành').first()).toBeVisible();
+});"""
+          new_create = """test('creates and persists a task, filters and updates status', async ({ page }) => {
+  await page.getByTestId('tab-tasks').click();
+  await page.getByRole('button', { name: 'Tạo nhiệm vụ' }).click();
+  const modal = page.getByTestId('task-editor-modal');
+  await modal.getByLabel('Tên nhiệm vụ').fill('Kiểm tra chức năng nhiệm vụ');
+  await modal.getByLabel('Mô tả chi tiết').fill('Kiểm tra lưu dữ liệu và cập nhật trạng thái.');
+  await modal.getByRole('button', { name: 'Tạo nhiệm vụ' }).click();
+  await expect(page.getByText('Kiểm tra chức năng nhiệm vụ')).toBeVisible();
+  await page.reload();
+  await page.getByTestId('tab-tasks').click();
+  await expect(page.getByText('Kiểm tra chức năng nhiệm vụ')).toBeVisible();
+  const createdTask = page.getByTestId(/task-/).filter({ hasText: 'Kiểm tra chức năng nhiệm vụ' });
+  await createdTask.getByRole('button', { name: /Tùy chọn Kiểm tra chức năng nhiệm vụ/ }).click();
+  await createdTask.getByRole('button', { name: 'Hoàn thành', exact: true }).click();
+  await expect(createdTask.getByText('Hoàn thành')).toBeVisible();
+});"""
+          if old_create in test:
+              test = test.replace(old_create, new_create, 1)
+          elif new_create not in test:
+              raise SystemExit('Existing task browser test marker not found')
+
+          extended = """
+
+test('complete task workspace supports assignment, search, details, feedback and editing', async ({ page }) => {
+  await page.getByTestId('tab-tasks').click();
+  await expect(page.getByRole('heading', { name: 'Giao việc và theo dõi' })).toBeVisible();
+  await expect(page.getByText('Tổng nhiệm vụ')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Tạo nhiệm vụ' }).click();
+  const modal = page.getByTestId('task-editor-modal');
+  await modal.getByLabel('Tên nhiệm vụ').fill('Chuẩn bị chuyên đề chuyển đổi số');
+  await modal.getByLabel('Mô tả chi tiết').fill('Hoàn thiện nội dung, minh chứng và tài liệu trình chiếu.');
+  await modal.getByText('Nguyễn Thị Mai', { exact: true }).click();
+  await modal.getByText('Trần Minh Đức', { exact: true }).click();
+  await modal.getByLabel('Mức độ ưu tiên').selectOption('Cao');
+  await modal.getByLabel('Trạng thái').selectOption('Đang thực hiện');
+  await modal.getByLabel('Tiến độ nhiệm vụ').fill('35');
+  await modal.getByLabel('Tiêu chí hoàn thành').fill('Có kế hoạch chi tiết\\nCó tài liệu trình chiếu\\nCó minh chứng triển khai');
+  await modal.locator('input[type=file]').setInputFiles({ name: 'ke-hoach.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buffer: Buffer.from('demo') });
+  await modal.getByRole('button', { name: 'Tạo nhiệm vụ' }).click();
+
+  await page.getByLabel('Tìm nhiệm vụ').fill('chuyển đổi số');
+  const task = page.getByTestId(/task-/).filter({ hasText: 'Chuẩn bị chuyên đề chuyển đổi số' });
+  await expect(task).toBeVisible();
+  await expect(task.getByText('Cao')).toBeVisible();
+  await task.locator('.tw-task-main').click();
+
+  const detail = page.getByTestId('task-detail-panel');
+  await expect(detail.getByText('Nguyễn Thị Mai, Trần Minh Đức')).toBeVisible();
+  await expect(detail.getByText('ke-hoach.docx')).toBeVisible();
+  await detail.getByRole('checkbox').first().check();
+  await detail.getByLabel('Nội dung phản hồi').fill('Vui lòng bổ sung thời lượng cho từng hoạt động.');
+  await detail.getByRole('button', { name: 'Gửi phản hồi' }).click();
+  await expect(detail.getByText('Vui lòng bổ sung thời lượng cho từng hoạt động.')).toBeVisible();
+
+  await detail.getByRole('button', { name: 'Chỉnh sửa' }).click();
+  const editModal = page.getByTestId('task-editor-modal');
+  await editModal.getByLabel('Tên nhiệm vụ').fill('Chuẩn bị chuyên đề chuyển đổi số – hoàn chỉnh');
+  await editModal.getByRole('button', { name: 'Lưu thay đổi' }).click();
+  await expect(page.getByText('Chuẩn bị chuyên đề chuyển đổi số – hoàn chỉnh')).toBeVisible();
+
+  await page.getByLabel('Lọc ưu tiên').selectOption('Cao');
+  await expect(page.getByText('Chuẩn bị chuyên đề chuyển đổi số – hoàn chỉnh')).toBeVisible();
+  await page.reload();
+  await page.getByTestId('tab-tasks').click();
+  await page.getByLabel('Tìm nhiệm vụ').fill('hoàn chỉnh');
+  await expect(page.getByText('Chuẩn bị chuyên đề chuyển đổi số – hoàn chỉnh')).toBeVisible();
+});
+"""
+          if "complete task workspace supports assignment" not in test:
+              insert_marker = "\ntest('notifications, search, meetings and record approval work'"
+              if insert_marker not in test:
+                  raise SystemExit('Test insertion marker not found')
+              test = test.replace(insert_marker, extended + insert_marker, 1)
+          test_path.write_text(test)
+          PY
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: department-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: department-app
+        run: npm ci --no-audit --no-fund --silent
+
+      - name: Build standalone app
+        working-directory: department-app
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        working-directory: department-app
+        run: npx playwright install --with-deps chromium >/tmp/playwright-install.log 2>&1
+
+      - name: Run all user interaction tests
+        working-directory: department-app
+        run: npm run test:e2e
+
+      - name: Verify task workspace contract
+        run: |
+          grep -q "TasksWorkspace" department-app/src/App.jsx
+          grep -q "complete task workspace supports assignment" department-app/tests/workspace.spec.js
+          test -f department-app/src/TasksWorkspace.jsx
+          test -f department-app/src/tasks-workspace.css
+          test -f department-app/dist/index.html
+
+      - name: Commit verified task workspace
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add department-app/src/App.jsx department-app/tests/workspace.spec.js
+          git diff --cached --quiet || git commit -m "Integrate complete task management workspace"
+          git push origin HEAD:feature/department-standalone-microfrontend
