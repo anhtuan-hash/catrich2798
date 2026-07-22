@@ -14,6 +14,9 @@ on:
       - department-app/**
       - .github/workflows/department-standalone-check.yml
 
+permissions:
+  contents: write
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -24,6 +27,73 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'push' && 'feature/department-standalone-microfrontend' || github.ref }}
+          fetch-depth: 0
+
+      - name: Apply visible notification controls
+        if: github.event_name == 'push'
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          app_path = Path('src/App.jsx')
+          app = app_path.read_text()
+
+          old_close = '<button className="icon-button compact drawer-close" onClick={onClose} aria-label="Đóng thông báo"><Icon name="close" size={17}/></button>'
+          new_close = '<button type="button" className="drawer-close-label" onClick={onClose} aria-label="Ẩn bảng thông báo"><span>Ẩn bảng</span><b aria-hidden="true">×</b></button>'
+          if old_close in app:
+              app = app.replace(old_close, new_close, 1)
+          elif new_close not in app:
+              raise SystemExit('Notification close marker not found')
+
+          old_meta = '<small>{unread} thông báo chưa đọc</small>'
+          new_meta = '<small>{unread} thông báo chưa đọc · UI 1.4</small>'
+          if old_meta in app:
+              app = app.replace(old_meta, new_meta, 1)
+          elif new_meta not in app:
+              raise SystemExit('Notification version marker not found')
+
+          old_bell = '<button className="icon-button bell-button" onClick={() => setDrawerOpen((open) => !open)} aria-label="Mở thông báo">'
+          new_bell = '<button type="button" className={`icon-button bell-button ${drawerOpen ? \'is-open\' : \'\'}`} onClick={() => setDrawerOpen((open) => !open)} aria-label={drawerOpen ? \'Đóng thông báo\' : \'Mở thông báo\'} title={drawerOpen ? \'Đóng bảng thông báo\' : \'Mở bảng thông báo\'}>'
+          if old_bell in app:
+              app = app.replace(old_bell, new_bell, 1)
+          elif new_bell not in app:
+              raise SystemExit('Notification bell marker not found')
+          app_path.write_text(app)
+
+          main_path = Path('src/main.jsx')
+          main = main_path.read_text()
+          style_import = "import './notification-controls.css';"
+          if style_import not in main:
+              marker = "import './macbook-readable.css';"
+              if marker not in main:
+                  raise SystemExit('CSS import marker not found')
+              main = main.replace(marker, marker + '\n' + style_import, 1)
+              main_path.write_text(main)
+
+          Path('src/notification-controls.css').write_text(r'''/* Explicit, visible notification controls. */
+.drawer-head-actions{position:relative;z-index:120;display:flex;align-items:center;justify-content:flex-end;gap:10px;pointer-events:auto!important}
+.drawer-close-label{position:relative;z-index:121;display:inline-flex!important;align-items:center;justify-content:center;gap:7px;min-width:104px;height:38px;padding:0 11px;border:1px solid #cfc9ff;border-radius:10px;background:#f1efff;color:#5945df;font-size:12px;font-weight:760;line-height:1;cursor:pointer;pointer-events:auto!important;touch-action:manipulation;box-shadow:0 5px 14px rgba(89,69,223,.10)}
+.drawer-close-label b{font-size:21px;font-weight:500;line-height:1}
+.drawer-close-label:hover,.drawer-close-label:focus-visible{border-color:#7562f2;background:#e7e3ff;outline:3px solid rgba(103,85,239,.16);outline-offset:2px}
+.notification-drawer{position:relative;z-index:80;pointer-events:auto!important;animation:notification-panel-in 180ms ease-out both;transform-origin:top right}
+.notification-drawer header,.notification-list,.notification-footer,.notification-drawer button{pointer-events:auto!important}
+.bell-button{position:relative;z-index:90;pointer-events:auto!important;touch-action:manipulation}
+.bell-button.is-open,body:has(.notification-drawer) .bell-button{border-color:#bcb4ff;background:#f0edff;color:#6755ef;box-shadow:0 6px 18px rgba(103,85,239,.14)}
+.workspace-grid.notifications-hidden .content-column{animation:notification-content-expand 180ms ease-out both}
+@keyframes notification-panel-in{from{opacity:0;transform:translateX(14px) scale(.985)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes notification-content-expand{from{opacity:.92}to{opacity:1}}
+@media(min-width:1180px) and (max-width:1720px){.drawer-close-label{min-width:112px;height:42px;font-size:13px}}
+@media(prefers-reduced-motion:reduce){.notification-drawer,.workspace-grid.notifications-hidden .content-column{animation:none}}
+''')
+
+          test_path = Path('tests/workspace.spec.js')
+          test = test_path.read_text()
+          test = test.replace("await expect(page.getByRole('button', { name: 'Đóng thông báo' })).toBeVisible();", "await expect(page.getByText(/UI 1\\.4/)).toBeVisible();\n  await expect(page.getByRole('button', { name: 'Ẩn bảng thông báo' })).toBeVisible();")
+          test = test.replace("await page.getByRole('button', { name: 'Đóng thông báo' }).click();", "await page.getByRole('button', { name: 'Ẩn bảng thông báo' }).click();")
+          test_path.write_text(test)
+          PY
 
       - name: Use Node 22
         uses: actions/setup-node@v4
@@ -46,9 +116,22 @@ jobs:
           grep -q "min-height:640px" src/styles.css
           grep -q "department-v2-tasks" src/App.jsx
           grep -q "window.print" src/App.jsx
+          grep -q "Ẩn bảng" src/App.jsx
+          grep -q "UI 1.4" src/App.jsx
+          grep -q "notification-controls.css" src/main.jsx
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium >/tmp/playwright-install.log 2>&1
 
       - name: Test real user interactions
         run: npm run test:e2e
+
+      - name: Commit verified notification fix
+        if: github.event_name == 'push'
+        working-directory: .
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add department-app/src/App.jsx department-app/src/main.jsx department-app/src/notification-controls.css department-app/tests/workspace.spec.js
+          git diff --cached --quiet || git commit -m "Make notification panel visibly toggleable"
+          git push origin HEAD:feature/department-standalone-microfrontend
