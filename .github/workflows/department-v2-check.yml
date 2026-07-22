@@ -42,62 +42,18 @@ jobs:
           Path('src/pages/DepartmentWorkspaceV2.css').write_bytes(gzip.decompress(base64.b64decode(css)))
           PY
 
-      - name: Replace this workflow with the permanent build check
-        shell: bash
-        run: |
-          cat > .github/workflows/department-v2-check.yml <<'YAML'
-          name: Department Workspace v2 Check
-
-          on:
-            push:
-              branches:
-                - feature/department-v2-option-d-faithful
-            pull_request:
-              branches:
-                - feature/department-new-known-good
-
-          jobs:
-            build:
-              runs-on: ubuntu-latest
-              timeout-minutes: 15
-              steps:
-                - name: Checkout
-                  uses: actions/checkout@v4
-
-                - name: Use Node 22
-                  uses: actions/setup-node@v4
-                  with:
-                    node-version: 22
-                    cache: npm
-
-                - name: Install dependencies
-                  run: npm ci
-
-                - name: Build production bundle
-                  run: npm run build
-
-                - name: Verify faithful Option D workspace
-                  run: |
-                    test -f src/pages/DepartmentWorkspaceV2.jsx
-                    test -f src/pages/DepartmentWorkspaceV2.css
-                    grep -q "createPortal" src/pages/DepartmentWorkspaceV2.jsx
-                    grep -q "dw2-summary-row" src/pages/DepartmentWorkspaceV2.jsx
-                    grep -q "DEPARTMENT_V2_OPTION_D_REBUILD" src/pages/DepartmentWorkspaceV2.css
-                    grep -q "position:fixed" src/pages/DepartmentWorkspaceV2.css
-                    grep -q "department-workspace" src/data/apps.js
-                    grep -q "DepartmentWorkspaceV2" src/pages/ToolPage.jsx
-          YAML
-
-      - name: Commit the rebuilt workspace atomically
+      - name: Commit only the rebuilt application files
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm -r .github/option-d-payload
-          git rm -f .github/workflows/apply-faithful-option-d.yml
-          git add src/pages/DepartmentWorkspaceV2.jsx src/pages/DepartmentWorkspaceV2.css .github/workflows/department-v2-check.yml
-          git commit -m "Rebuild Department workspace to match approved Option D"
-          git push origin HEAD:feature/department-v2-option-d-faithful
+          git add src/pages/DepartmentWorkspaceV2.jsx src/pages/DepartmentWorkspaceV2.css
+          if git diff --cached --quiet; then
+            echo "Rebuilt application files are already current."
+          else
+            git commit -m "Rebuild Department workspace to match approved Option D"
+            git push origin HEAD:feature/department-v2-option-d-faithful
+          fi
 
       - name: Use Node 22
         uses: actions/setup-node@v4
@@ -111,7 +67,13 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
-      - name: Verify rebuilt interface
+      - name: Verify faithful Option D workspace
         run: |
+          test -f src/pages/DepartmentWorkspaceV2.jsx
+          test -f src/pages/DepartmentWorkspaceV2.css
           grep -q "createPortal" src/pages/DepartmentWorkspaceV2.jsx
+          grep -q "dw2-summary-row" src/pages/DepartmentWorkspaceV2.jsx
           grep -q "DEPARTMENT_V2_OPTION_D_REBUILD" src/pages/DepartmentWorkspaceV2.css
+          grep -q "position:fixed" src/pages/DepartmentWorkspaceV2.css
+          grep -q "department-workspace" src/data/apps.js
+          grep -q "DepartmentWorkspaceV2" src/pages/ToolPage.jsx
