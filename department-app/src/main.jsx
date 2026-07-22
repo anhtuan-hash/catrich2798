@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import TasksWorkspace from './TasksWorkspace.jsx';
 import RecordsWorkspace from './RecordsWorkspace.jsx';
+import PlansWorkspace from './PlansWorkspace.jsx';
 import './styles.css';
 import './laptop-scale.css';
 import './macbook-readable.css';
@@ -11,6 +12,7 @@ import './task-workspace-bridge.css';
 
 const TASK_STORAGE_KEY = 'department-v2-tasks';
 const RECORD_STORAGE_KEY = 'department-v2-records';
+const PLAN_STORAGE_KEY = 'department-v2-plans';
 
 const FALLBACK_TASKS = [
   { id: 1, title: 'Xây dựng ma trận đề kiểm tra học kỳ II môn Tiếng Anh 6', assignee: 'Nguyễn Thị Mai', initials: 'NM', due: '20/05/2025', status: 'Đang thực hiện', progress: 60, tone: 'purple' },
@@ -27,6 +29,13 @@ const FALLBACK_RECORDS = [
   { id: 4, title: 'Báo cáo chuyên đề STEM', owner: 'Lê Hoàng Nam', status: 'Cần chỉnh sửa', date: '02/05/2025', tone: 'red' },
 ];
 
+const FALLBACK_PLANS = [
+  { id: 1, title: 'Kế hoạch năm học', progress: 82, status: 'Đang thực hiện', type: 'Năm học', owner: 'Nguyễn Thị Mai', description: 'Kế hoạch tổng thể hoạt động chuyên môn, bồi dưỡng giáo viên và nâng cao chất lượng học tập.', startISO: '2026-08-01', dueISO: '2027-05-31', milestones: [{ id: 11, label: 'Hoàn thiện chỉ tiêu năm học', done: true }, { id: 12, label: 'Phân công chuyên môn', done: true }, { id: 13, label: 'Rà soát tiến độ học kỳ I', done: false }] },
+  { id: 2, title: 'Kế hoạch học kỳ I', progress: 64, status: 'Đang thực hiện', type: 'Học kỳ', owner: 'Trần Minh Đức', description: 'Kế hoạch triển khai chương trình, kiểm tra đánh giá và sinh hoạt chuyên đề học kỳ I.', startISO: '2026-08-15', dueISO: '2026-12-31', milestones: [{ id: 21, label: 'Thống nhất phân phối chương trình', done: true }, { id: 22, label: 'Xây dựng ma trận kiểm tra', done: false }] },
+  { id: 3, title: 'Kế hoạch tháng 8', progress: 35, status: 'Cần cập nhật', type: 'Tháng', owner: 'Phạm Thu Hà', description: 'Chuẩn bị năm học mới, hoàn thiện hồ sơ tổ và tổ chức chuyên đề đầu năm.', startISO: '2026-08-01', dueISO: '2026-08-31', milestones: [{ id: 31, label: 'Họp tổ đầu năm', done: true }, { id: 32, label: 'Hoàn thiện hồ sơ chuyên môn', done: false }] },
+  { id: 4, title: 'Kế hoạch chuyên đề ứng dụng AI', progress: 90, status: 'Gần hoàn thành', type: 'Chuyên đề', owner: 'Đỗ Thị Hương', description: 'Tổ chức chuỗi hoạt động ứng dụng AI an toàn và hiệu quả trong dạy học tiếng Anh.', startISO: '2026-07-15', dueISO: '2026-09-15', milestones: [{ id: 41, label: 'Xây dựng nội dung chuyên đề', done: true }, { id: 42, label: 'Chuẩn bị minh chứng', done: true }, { id: 43, label: 'Tổ chức báo cáo', done: false }] },
+];
+
 function relativeDate(days) {
   const date = new Date();
   date.setHours(12, 0, 0, 0);
@@ -40,36 +49,20 @@ function normalizeLegacyDates(items) {
     const completed = ['Hoàn thành', 'Đã nộp'].includes(task.status);
     const overdue = task.status === 'Quá hạn';
     const dueOffset = overdue ? -2 : completed ? -4 : 3 + index * 3;
-    return {
-      ...task,
-      startISO: relativeDate(completed ? -12 : -3),
-      dueISO: relativeDate(dueOffset),
-      legacyDue: task.due,
-    };
+    return { ...task, startISO: relativeDate(completed ? -12 : -3), dueISO: relativeDate(dueOffset), legacyDue: task.due };
   });
 }
 
 function readStored(key, fallback) {
-  try {
-    const value = localStorage.getItem(key);
-    return value ? JSON.parse(value) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function readTasks() {
-  return normalizeLegacyDates(readStored(TASK_STORAGE_KEY, FALLBACK_TASKS));
-}
-
-function readRecords() {
-  return readStored(RECORD_STORAGE_KEY, FALLBACK_RECORDS);
+  try { const value = localStorage.getItem(key); return value ? JSON.parse(value) : fallback; }
+  catch { return fallback; }
 }
 
 function DepartmentRoot() {
   const [workspaceMode, setWorkspaceMode] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [records, setRecords] = useState([]);
+  const [plans, setPlans] = useState([]);
   const [toast, setToast] = useState('');
 
   useEffect(() => {
@@ -85,20 +78,9 @@ function DepartmentRoot() {
       const button = event.target.closest?.('[data-testid^="tab-"]');
       if (!button) return;
       const tab = button.getAttribute('data-testid')?.replace('tab-', '');
-      if (tab === 'tasks') {
-        window.setTimeout(() => {
-          setTasks(readTasks());
-          setWorkspaceMode('tasks');
-        }, 0);
-        return;
-      }
-      if (tab === 'records') {
-        window.setTimeout(() => {
-          setRecords(readRecords());
-          setWorkspaceMode('records');
-        }, 0);
-        return;
-      }
+      if (tab === 'tasks') { window.setTimeout(() => { setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY, FALLBACK_TASKS))); setWorkspaceMode('tasks'); }, 0); return; }
+      if (tab === 'records') { window.setTimeout(() => { setRecords(readStored(RECORD_STORAGE_KEY, FALLBACK_RECORDS)); setWorkspaceMode('records'); }, 0); return; }
+      if (tab === 'plans') { window.setTimeout(() => { setPlans(readStored(PLAN_STORAGE_KEY, FALLBACK_PLANS)); setWorkspaceMode('plans'); }, 0); return; }
       if (workspaceMode) {
         event.preventDefault();
         event.stopPropagation();
@@ -110,47 +92,25 @@ function DepartmentRoot() {
     return () => document.removeEventListener('click', handleNavigation, true);
   }, [workspaceMode]);
 
-  useEffect(() => {
-    if (workspaceMode !== 'tasks') return;
-    try { localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(tasks)); } catch { /* local preview */ }
-  }, [tasks, workspaceMode]);
-
-  useEffect(() => {
-    if (workspaceMode !== 'records') return;
-    try { localStorage.setItem(RECORD_STORAGE_KEY, JSON.stringify(records)); } catch { /* local preview */ }
-  }, [records, workspaceMode]);
-
-  useEffect(() => {
-    if (!toast) return undefined;
-    const timer = window.setTimeout(() => setToast(''), 2600);
-    return () => window.clearTimeout(timer);
-  }, [toast]);
+  useEffect(() => { if (workspaceMode === 'tasks') try { localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(tasks)); } catch {} }, [tasks, workspaceMode]);
+  useEffect(() => { if (workspaceMode === 'records') try { localStorage.setItem(RECORD_STORAGE_KEY, JSON.stringify(records)); } catch {} }, [records, workspaceMode]);
+  useEffect(() => { if (workspaceMode === 'plans') try { localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(plans)); } catch {} }, [plans, workspaceMode]);
+  useEffect(() => { if (!toast) return undefined; const timer = window.setTimeout(() => setToast(''), 2600); return () => window.clearTimeout(timer); }, [toast]);
 
   const updateTask = (id, patch) => setTasks((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
-  const deleteTask = (id) => {
-    setTasks((items) => items.filter((item) => item.id !== id));
-    setToast('Đã xóa nhiệm vụ.');
-  };
+  const deleteTask = (id) => { setTasks((items) => items.filter((item) => item.id !== id)); setToast('Đã xóa nhiệm vụ.'); };
   const updateRecord = (id, patch) => setRecords((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
-  const deleteRecord = (id) => {
-    setRecords((items) => items.filter((item) => item.id !== id));
-    setToast('Đã xóa hồ sơ.');
-  };
+  const deleteRecord = (id) => { setRecords((items) => items.filter((item) => item.id !== id)); setToast('Đã xóa hồ sơ.'); };
+  const updatePlan = (id, patch) => setPlans((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
+  const deletePlan = (id) => { setPlans((items) => items.filter((item) => item.id !== id)); setToast('Đã xóa kế hoạch.'); };
 
   return <>
     <App/>
-    {workspaceMode === 'tasks' && <section className="task-workspace-bridge" aria-label="Không gian Giao việc hoàn chỉnh">
-      <TasksWorkspace tasks={tasks} setTasks={setTasks} updateTask={updateTask} deleteTask={deleteTask} setToast={setToast}/>
-    </section>}
-    {workspaceMode === 'records' && <section className="task-workspace-bridge" aria-label="Không gian Hồ sơ hoàn chỉnh">
-      <RecordsWorkspace records={records} setRecords={setRecords} updateRecord={updateRecord} deleteRecord={deleteRecord} setToast={setToast}/>
-    </section>}
+    {workspaceMode === 'tasks' && <section className="task-workspace-bridge" aria-label="Không gian Giao việc hoàn chỉnh"><TasksWorkspace tasks={tasks} setTasks={setTasks} updateTask={updateTask} deleteTask={deleteTask} setToast={setToast}/></section>}
+    {workspaceMode === 'records' && <section className="task-workspace-bridge" aria-label="Không gian Hồ sơ hoàn chỉnh"><RecordsWorkspace records={records} setRecords={setRecords} updateRecord={updateRecord} deleteRecord={deleteRecord} setToast={setToast}/></section>}
+    {workspaceMode === 'plans' && <section className="task-workspace-bridge" aria-label="Không gian Kế hoạch hoàn chỉnh"><PlansWorkspace plans={plans} setPlans={setPlans} updatePlan={updatePlan} deletePlan={deletePlan} setToast={setToast}/></section>}
     {toast && <div className="bridge-toast" role="status">{toast}</div>}
   </>;
 }
 
-createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <DepartmentRoot/>
-  </React.StrictMode>,
-);
+createRoot(document.getElementById('root')).render(<React.StrictMode><DepartmentRoot/></React.StrictMode>);
