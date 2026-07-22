@@ -10,10 +10,32 @@ import './task-workspace-bridge.css';
 
 const TASK_STORAGE_KEY = 'department-v2-tasks';
 
+function relativeDate(days) {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function normalizeLegacyDates(items) {
+  return items.map((task, index) => {
+    if (task.dueISO) return task;
+    const completed = ['Hoàn thành', 'Đã nộp'].includes(task.status);
+    const overdue = task.status === 'Quá hạn';
+    const dueOffset = overdue ? -2 : completed ? -4 : 3 + index * 3;
+    return {
+      ...task,
+      startISO: relativeDate(completed ? -12 : -3),
+      dueISO: relativeDate(dueOffset),
+      legacyDue: task.due,
+    };
+  });
+}
+
 function readTasks() {
   try {
     const value = localStorage.getItem(TASK_STORAGE_KEY);
-    return value ? JSON.parse(value) : [];
+    return normalizeLegacyDates(value ? JSON.parse(value) : []);
   } catch {
     return [];
   }
