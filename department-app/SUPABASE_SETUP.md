@@ -2,8 +2,10 @@
 
 Bản hiện tại hoạt động theo hai chế độ:
 
-- **Cục bộ:** không có biến môi trường Supabase; dữ liệu tiếp tục lưu bằng `localStorage`.
-- **Supabase:** có đủ cấu hình và nhận được phiên đăng nhập Brian; dữ liệu được nạp và đồng bộ với Supabase.
+- **Cục bộ:** mặc định, kể cả khi Brian đã có sẵn `VITE_SUPABASE_URL` và `VITE_SUPABASE_ANON_KEY`. Dữ liệu tiếp tục lưu bằng `localStorage`.
+- **Supabase:** chỉ bật khi có đủ cấu hình và `VITE_DEPARTMENT_CLOUD_ENABLED=true`.
+
+Cơ chế bật có chủ đích giúp bản Tổ chuyên môn không tự chuyển sang chế độ cloud trước khi migration, thành viên và phiên đăng nhập đã sẵn sàng.
 
 ## 1. Tạo cấu trúc dữ liệu
 
@@ -87,7 +89,7 @@ Quyền hiện tại:
 | `teacher` | Có | Chưa bật | Không | Không |
 | `viewer` | Có | Không | Không | Không |
 
-Giai đoạn đầu đặt giáo viên ở chế độ chỉ xem để tránh ghi đè collection của toàn tổ. Quyền nộp hồ sơ và minh chứng cá nhân sẽ được mở bằng API theo từng bản ghi ở giai đoạn kế tiếp.
+Giai đoạn đầu đặt giáo viên ở chế độ chỉ xem để tránh ghi đè collection của toàn tổ. Quyền nộp hồ sơ và minh chứng cá nhân sẽ được mở theo từng bản ghi ở giai đoạn kế tiếp.
 
 ## 5. Cấu hình biến môi trường
 
@@ -97,15 +99,22 @@ Sao chép `.env.example` thành `.env.local`:
 cp .env.example .env.local
 ```
 
-Điền:
+Trong lúc vẫn kiểm tra bản local, giữ:
 
 ```env
+VITE_DEPARTMENT_CLOUD_ENABLED=false
+```
+
+Sau khi migration, Tổ Tiếng Anh và thành viên đã được tạo đầy đủ, điền:
+
+```env
+VITE_DEPARTMENT_CLOUD_ENABLED=true
 VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 VITE_DEPARTMENT_ID=<DEPARTMENT_UUID>
 ```
 
-Chỉ dùng **anon key** ở frontend. Không dùng `service_role` key.
+Cả bốn giá trị đều bắt buộc để bật cloud. Chỉ dùng **anon key** ở frontend. Không dùng `service_role` key.
 
 ## 6. Phiên đăng nhập
 
@@ -119,22 +128,52 @@ Chỉ dùng **anon key** ở frontend. Không dùng `service_role` key.
 
 Khi ứng dụng được tích hợp cùng origin với Brian, nó sẽ tự dùng phiên Supabase hiện có.
 
-## 7. Kiểm tra
+## 7. Kiểm tra bản local trước khi bật cloud
 
 ```bash
+rm -rf dist test-results playwright-report
 npm run build
 npm run test:e2e
 npm run dev
 ```
 
-Góc trái phía dưới hiển thị:
+Kết quả Playwright cần là:
+
+```text
+15 passed
+```
+
+Góc trái phía dưới phải hiển thị:
+
+```text
+TTCM · Cục bộ
+```
+
+## 8. Kiểm tra sau khi bật cloud
+
+Đổi:
+
+```env
+VITE_DEPARTMENT_CLOUD_ENABLED=true
+```
+
+Sau đó khởi động lại hoàn toàn:
+
+```bash
+rm -rf dist
+npm run build
+npm run dev
+```
+
+Các trạng thái có thể xuất hiện:
 
 - `TTCM · Supabase`: đã kết nối và có quyền quản trị.
 - `Giáo viên · Supabase`: đã kết nối, chế độ chỉ xem.
-- `TTCM · Cục bộ`: chưa cấu hình Supabase, dùng localStorage.
-- `Chưa đăng nhập · Chỉ xem`: có cấu hình nhưng chưa nhận được phiên Brian.
+- `TTCM · Cục bộ`: cloud chưa bật hoặc chưa đủ bốn biến cấu hình.
+- `Chưa đăng nhập · Chỉ xem`: cloud đã bật nhưng chưa nhận được phiên Brian.
+- `Chưa được cấp quyền · Chỉ xem`: tài khoản chưa có trong `department_members`.
 
-## 8. Không đưa bí mật lên GitHub
+## 9. Không đưa bí mật lên GitHub
 
 Không commit các tệp sau:
 
