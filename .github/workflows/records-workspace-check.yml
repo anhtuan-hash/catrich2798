@@ -18,7 +18,7 @@ jobs:
       matrix:
         include:
           - id: dashboard
-            grep: dashboard renders at proposal scale
+            grep: scoped dashboard navigation smoke test
           - id: macbook
             grep: MacBook viewport uses genuinely readable typography
           - id: notification-toggle
@@ -36,7 +36,7 @@ jobs:
           - id: meetings-complete
             grep: complete meetings workspace supports minutes
           - id: remaining-interactions
-            grep: notifications, search and meetings remain interactive
+            grep: scoped notifications search and meetings smoke test
     defaults:
       run:
         working-directory: department-app
