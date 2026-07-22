@@ -15,6 +15,7 @@ const StudentPractice = lazy(() => import('./StudentPractice.jsx'));
 const AITool = lazy(() => import('./AITool.jsx'));
 const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
 const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
+const DepartmentMicrofrontend = lazy(() => import('./DepartmentMicrofrontend.jsx'));
 
 const specializedToolSlugs = new Set([
   'exam-studio',
@@ -66,6 +67,10 @@ export default function ToolPage(props) {
   const [content, setContent] = useState('Past Simple\nPast Continuous\nwhile\nwhen\nwas watching\nwent out');
   const [title, setTitle] = useState('My Activity');
   const preview = useMemo(() => buildPreview(content, selected, language), [content, selected, language]);
+
+  if (tool?.slug === 'department-workspace') {
+    return renderLazy(DepartmentMicrofrontend, props);
+  }
 
   if (tool?.slug === 'textlab-activities') {
     return renderLazy(TextLabActivities, props);
