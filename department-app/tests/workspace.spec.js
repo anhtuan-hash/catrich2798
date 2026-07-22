@@ -42,6 +42,25 @@ test('MacBook viewport uses genuinely readable typography and redistributed layo
   expect(summaryColumns).toBe(3);
 });
 
+test('notification panel opens and closes from both controls', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.reload();
+
+  const drawer = page.getByTestId('notification-drawer');
+  await expect(drawer).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Đóng thông báo' })).toBeVisible();
+
+  const widthWithDrawer = await page.locator('.content-column').evaluate((element) => element.getBoundingClientRect().width);
+  await page.getByRole('button', { name: 'Đóng thông báo' }).click();
+  await expect(drawer).toHaveCount(0);
+
+  const widthWithoutDrawer = await page.locator('.content-column').evaluate((element) => element.getBoundingClientRect().width);
+  expect(widthWithoutDrawer).toBeGreaterThan(widthWithDrawer);
+
+  await page.getByRole('button', { name: 'Mở thông báo' }).click();
+  await expect(page.getByTestId('notification-drawer')).toBeVisible();
+});
+
 test('creates and persists a task, filters and updates status', async ({ page }) => {
   await page.getByTestId('tab-tasks').click();
   await page.getByRole('button', { name: 'Tạo nhiệm vụ' }).click();
