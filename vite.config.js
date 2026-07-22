@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -8,6 +9,10 @@ export default defineConfig({
     cssCodeSplit: true,
     sourcemap: false,
     rollupOptions: {
+      input: {
+        main: resolve(process.cwd(), 'index.html'),
+        department: resolve(process.cwd(), 'to-chuyen-mon/index.html'),
+      },
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
@@ -31,6 +36,7 @@ export default defineConfig({
           if (id.includes('/src/pages/ReadingStudio') || id.includes('/src/pages/SpeakingStudio') || id.includes('/src/pages/WordGraphStudio')) return 'tool-skills';
           if (id.includes('/src/pages/TestBuilder') || id.includes('/src/pages/ClassroomGame') || id.includes('/src/pages/DominoWordForm')) return 'tool-games-tests';
           if (id.includes('/src/pages/AdminPage') || id.includes('/src/pages/AuthPage') || id.includes('/src/pages/SupabaseSetup')) return 'auth-admin';
+          if (id.includes('/department-app/src/')) return 'department-workspace';
           return undefined;
         },
       },
