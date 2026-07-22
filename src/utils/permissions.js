@@ -158,7 +158,6 @@ export const CORE_PERMISSION_ITEMS = [
     desc: 'Review audit events, permission overrides, backups, restores and deleted items.',
     descVi: 'Kiểm tra audit log, quyền ngoại lệ, sao lưu, khôi phục và dữ liệu đã xóa.',
   },
-
   {
     id: ROUTE_PERMISSION_IDS.library,
     type: 'content',
@@ -281,7 +280,6 @@ export function getToolSection(slug) {
   return SECTION_BY_SLUG.get(slug) || '';
 }
 
-
 export function hasExplicitPermissionId(user, permissionId) {
   if (!user) return false;
   if (isAdminRole(user.role)) return true;
@@ -338,8 +336,6 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (route === 'news') return Boolean(user);
   if (route === 'dashboard') return Boolean(user);
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
-  // Teachers can open these dashboards even when some cards are locked.
-  // Locked cards stay visible and show a request-access button.
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
   if (route === 'practice') return hasPermissionId(user, ROUTE_PERMISSION_IDS.practice) || hasToolAccess(user, 'student-practice');
   if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'content-factory' || route === 'lesson-pack' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
@@ -359,4 +355,10 @@ export function summarizePermissions(user, language = 'vi') {
   if (permissions.mode === PERMISSION_MODE_ALL) return language === 'vi' ? 'Toàn quyền giáo viên' : 'Full teacher access';
   const count = permissions.allowed.length;
   return language === 'vi' ? `${count}/${ALL_PERMISSION_IDS.length} quyền được cấp` : `${count}/${ALL_PERMISSION_IDS.length} permissions granted`;
+}
+
+// Compatibility helper for shared publishing features. It no longer grants access
+// to a Department workspace; it only checks the retained leader/admin role.
+export function canPublishDepartment(user) {
+  return Boolean(user && (isAdminRole(user.role) || isDepartmentLeaderRole(user.role)));
 }
