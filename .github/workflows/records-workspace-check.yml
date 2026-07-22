@@ -1,0 +1,47 @@
+name: Records Workspace Check
+
+on:
+  pull_request:
+    branches:
+      - feature/department-standalone-microfrontend
+    paths:
+      - department-app/**
+      - .github/workflows/records-workspace-check.yml
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: department-app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: department-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund --silent
+
+      - name: Build standalone app
+        run: npm run build
+
+      - name: Verify records workspace contract
+        run: |
+          test -f dist/index.html
+          test -f src/RecordsWorkspace.jsx
+          test -f src/records-workspace.css
+          grep -q "RecordsWorkspace" src/main.jsx
+          grep -q "complete records workspace supports submission" tests/workspace.spec.js
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium >/tmp/playwright-install.log 2>&1
+
+      - name: Run browser tests
+        run: npm run test:e2e
