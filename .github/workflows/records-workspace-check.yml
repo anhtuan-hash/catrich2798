@@ -88,3 +88,14 @@ jobs:
 
       - name: Run ${{ matrix.id }} browser test
         run: npx playwright test -g "${{ matrix.grep }}" --reporter=line
+
+      - name: Upload Playwright diagnostics
+        if: failure() && (matrix.id == 'evidence-create' || matrix.id == 'evidence-status')
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-${{ matrix.id }}
+          path: |
+            department-app/test-results
+            department-app/playwright-report
+          if-no-files-found: warn
+          retention-days: 2
