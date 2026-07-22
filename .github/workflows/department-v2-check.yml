@@ -1,4 +1,4 @@
-name: Department Workspace v2 Rebuild
+name: Department Workspace v2 Check
 
 on:
   push:
@@ -8,52 +8,13 @@ on:
     branches:
       - feature/department-new-known-good
 
-permissions:
-  contents: write
-
 jobs:
-  rebuild-and-check:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout faithful branch
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: feature/department-v2-option-d-faithful
-          fetch-depth: 0
-
-      - name: Reconstruct the approved Option D interface
-        shell: bash
-        run: |
-          python - <<'PY'
-          import base64
-          import gzip
-          from pathlib import Path
-
-          payload = Path('.github/option-d-payload')
-          jsx_parts = sorted(payload.glob('jsx-*.txt'))
-          css_parts = sorted(payload.glob('css-*.txt'))
-          if len(jsx_parts) != 5 or len(css_parts) != 3:
-              raise SystemExit(f'Incomplete payload: JSX={len(jsx_parts)}, CSS={len(css_parts)}')
-
-          jsx = ''.join(path.read_text(encoding='utf-8').strip() for path in jsx_parts)
-          css = ''.join(path.read_text(encoding='utf-8').strip() for path in css_parts)
-          Path('src/pages/DepartmentWorkspaceV2.jsx').write_bytes(gzip.decompress(base64.b64decode(jsx)))
-          Path('src/pages/DepartmentWorkspaceV2.css').write_bytes(gzip.decompress(base64.b64decode(css)))
-          PY
-
-      - name: Commit only the rebuilt application files
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/pages/DepartmentWorkspaceV2.jsx src/pages/DepartmentWorkspaceV2.css
-          if git diff --cached --quiet; then
-            echo "Rebuilt application files are already current."
-          else
-            git commit -m "Rebuild Department workspace to match approved Option D"
-            git push origin HEAD:feature/department-v2-option-d-faithful
-          fi
 
       - name: Use Node 22
         uses: actions/setup-node@v4
