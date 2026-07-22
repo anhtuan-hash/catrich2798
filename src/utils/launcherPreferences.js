@@ -37,9 +37,6 @@ const RETIRED_LAUNCHER_IDS = new Set([
   'route:ai-workspace',
   'route:classroom-delivery',
   'route:learning-intelligence',
-  'department-workspace',
-  'tool:department-workspace',
-  'route:department',
 ]);
 
 const DEFAULT_NAV = [
