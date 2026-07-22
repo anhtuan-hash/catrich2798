@@ -6,6 +6,12 @@ on:
       - feature/department-v2-option-d
     paths:
       - .github/workflows/apply-option-d-rebuild.yml
+  pull_request:
+    branches:
+      - feature/department-new-known-good
+    paths:
+      - .github/workflows/apply-option-d-rebuild.yml
+      - scripts/option-d-rebuild/**
 
 permissions:
   contents: write
