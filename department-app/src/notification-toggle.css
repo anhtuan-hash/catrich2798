@@ -1,0 +1,62 @@
+/* Notification panel controls
+   The bell toggles the panel and the close button is always available inside it. */
+
+.drawer-close {
+  display: grid !important;
+  width: 36px !important;
+  height: 36px !important;
+  border: 1px solid #e2e4ee !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: #55596c !important;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.drawer-close:hover {
+  background: #f1efff !important;
+  color: #6755ef !important;
+  transform: scale(1.04);
+}
+
+.notification-drawer {
+  animation: notification-panel-in 180ms ease-out both;
+  transform-origin: top right;
+}
+
+body:has(.notification-drawer) .bell-button {
+  border-color: #bcb4ff;
+  background: #f0edff;
+  color: #6755ef;
+  box-shadow: 0 6px 18px rgba(103, 85, 239, .14);
+}
+
+.workspace-grid.notifications-hidden .content-column {
+  animation: notification-content-expand 180ms ease-out both;
+}
+
+@keyframes notification-panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(14px) scale(.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes notification-content-expand {
+  from { opacity: .92; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-drawer,
+  .workspace-grid.notifications-hidden .content-column {
+    animation: none;
+  }
+
+  .drawer-close {
+    transition: none;
+  }
+}
