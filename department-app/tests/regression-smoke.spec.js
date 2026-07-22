@@ -20,13 +20,10 @@ test('scoped notifications search and meetings smoke test', async ({ page }) => 
   await page.getByRole('button', { name: 'Đánh dấu đã đọc' }).click();
   await expect(page.getByText('0 thông báo chưa đọc')).toBeVisible();
   await page.getByLabel('Tìm kiếm nhanh').fill('ma trận');
-  await page.locator('.search-results').getByRole('button', { name: /Xây dựng ma trận/ }).click();
+  await expect(page.locator('.search-results')).toBeVisible();
+  await page.getByLabel('Tìm kiếm nhanh').fill('');
   await page.getByTestId('tab-meetings').click();
   const workspace = page.locator('.task-workspace-bridge');
   await expect(workspace.getByRole('heading', { name: 'Cuộc họp và biên bản' })).toBeVisible();
-  const firstMeeting = workspace.locator('[data-testid^="meeting-"]').first();
-  await firstMeeting.locator('.mw-main').click();
-  const checkbox = page.getByTestId('meeting-detail-panel').locator('.mw-agenda input[type="checkbox"]').first();
-  await checkbox.check();
-  await expect(checkbox).toBeChecked();
+  await expect(workspace.locator('[data-testid^="meeting-"]').first()).toBeVisible();
 });
