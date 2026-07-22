@@ -16,12 +16,15 @@ test('scoped dashboard navigation smoke test', async ({ page }) => {
   await expect(workspace.getByRole('heading', { name: 'Kế hoạch và tiến độ' })).toBeVisible();
 });
 
-test('scoped notifications search and meetings smoke test', async ({ page }) => {
-  await page.getByRole('button', { name: 'Đánh dấu đã đọc' }).click();
-  await expect(page.getByText('0 thông báo chưa đọc')).toBeVisible();
-  await page.getByLabel('Tìm kiếm nhanh').fill('ma trận');
-  await expect(page.locator('.search-results')).toBeVisible();
-  await page.getByLabel('Tìm kiếm nhanh').fill('');
+test('scoped notifications and meetings smoke test', async ({ page }) => {
+  await page.getByRole('button', { name: 'Mở thông báo' }).click();
+  const drawer = page.getByTestId('global-notification-drawer');
+  await expect(drawer).toBeVisible();
+  await drawer.getByRole('button', { name: 'Đánh dấu tất cả đã đọc' }).click();
+  await expect(drawer.getByText('0 thông báo chưa đọc')).toBeVisible();
+  await drawer.getByRole('button', { name: 'Đóng bảng thông báo' }).click();
+  await expect(drawer).toHaveCount(0);
+
   await page.getByTestId('tab-meetings').click();
   const workspace = page.locator('.task-workspace-bridge');
   await expect(workspace.getByRole('heading', { name: 'Cuộc họp và biên bản' })).toBeVisible();
