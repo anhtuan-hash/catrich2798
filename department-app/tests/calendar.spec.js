@@ -11,11 +11,15 @@ test('complete calendar workspace supports views, creation, editing and persiste
   const workspace = page.locator('.task-workspace-bridge');
   await expect(workspace.getByRole('heading', { name: 'Lịch công tác và hoạt động' })).toBeVisible();
 
-  await workspace.getByRole('button', { name: 'Tuần', exact: true }).click();
-  await expect(workspace.locator('.cw-calendar.cw-tuần')).toBeVisible();
-  await workspace.getByRole('button', { name: 'Ngày', exact: true }).click();
-  await expect(workspace.locator('.cw-calendar.cw-ngày')).toBeVisible();
-  await workspace.getByRole('button', { name: 'Tháng', exact: true }).click();
+  const weekButton = workspace.getByRole('button', { name: 'Tuần', exact: true });
+  const dayButton = workspace.getByRole('button', { name: 'Ngày', exact: true });
+  const monthButton = workspace.getByRole('button', { name: 'Tháng', exact: true });
+  await weekButton.click();
+  await expect(weekButton).toHaveClass(/active/);
+  await dayButton.click();
+  await expect(dayButton).toHaveClass(/active/);
+  await monthButton.click();
+  await expect(monthButton).toHaveClass(/active/);
 
   await workspace.getByRole('button', { name: 'Tạo hoạt động' }).click();
   const modal = page.getByTestId('calendar-event-modal');
@@ -30,7 +34,6 @@ test('complete calendar workspace supports views, creation, editing and persiste
   await modal.getByLabel('Giờ bắt đầu').fill('13:30');
   await modal.getByLabel('Giờ kết thúc').fill('15:00');
   await modal.getByLabel('Địa điểm').fill('Lớp 12A1');
-  await modal.getByText('Toàn tổ', { exact: true }).click();
   await modal.getByLabel('Nhắc trước').selectOption('60');
   await modal.getByLabel('Nội dung hoạt động').fill('Thao giảng minh họa kỹ thuật tổ chức hoạt động đọc hiểu.');
   await modal.getByLabel('Tài liệu đính kèm').setInputFiles({
@@ -41,25 +44,25 @@ test('complete calendar workspace supports views, creation, editing and persiste
   await modal.getByRole('button', { name: 'Tạo hoạt động' }).click();
 
   await workspace.getByLabel('Tìm hoạt động').fill('Thao giảng chuyên đề');
-  const eventChip = workspace.getByRole('button', { name: /Thao giảng chuyên đề lớp 12A1/ }).first();
+  const eventChip = workspace.locator('.cw-event-chip').filter({ hasText: 'Thao giảng chuyên đề lớp 12A1' }).first();
   await expect(eventChip).toBeVisible();
   await eventChip.click();
 
   const detail = page.getByTestId('calendar-event-detail');
-  await expect(detail.getByText('Lớp 12A1')).toBeVisible();
-  await expect(detail.getByText('ke-hoach-thao-giang.pdf')).toBeVisible();
-  await expect(detail.getByText('13:30 – 15:00')).toBeVisible();
+  await expect(detail.locator('.cw-detail-grid article').filter({ hasText: 'Địa điểm' }).getByText('Lớp 12A1', { exact: true })).toBeVisible();
+  await expect(detail.getByText('ke-hoach-thao-giang.pdf', { exact: true })).toBeVisible();
+  await expect(detail.getByText('13:30 – 15:00', { exact: true })).toBeVisible();
   await detail.getByRole('button', { name: 'Chỉnh sửa' }).click();
 
   const editModal = page.getByTestId('calendar-event-modal');
   await editModal.getByLabel('Tên hoạt động').fill('Thao giảng chuyên đề lớp 12A1 – hoàn chỉnh');
   await editModal.getByRole('button', { name: 'Lưu thay đổi' }).click();
   await workspace.getByLabel('Tìm hoạt động').fill('hoàn chỉnh');
-  await expect(workspace.getByRole('button', { name: /Thao giảng chuyên đề lớp 12A1 – hoàn chỉnh/ }).first()).toBeVisible();
+  await expect(workspace.locator('.cw-event-chip').filter({ hasText: 'Thao giảng chuyên đề lớp 12A1 – hoàn chỉnh' }).first()).toBeVisible();
 
   await page.reload();
   await page.getByTestId('tab-calendar').click();
   const restored = page.locator('.task-workspace-bridge');
   await restored.getByLabel('Tìm hoạt động').fill('hoàn chỉnh');
-  await expect(restored.getByRole('button', { name: /Thao giảng chuyên đề lớp 12A1 – hoàn chỉnh/ }).first()).toBeVisible();
+  await expect(restored.locator('.cw-event-chip').filter({ hasText: 'Thao giảng chuyên đề lớp 12A1 – hoàn chỉnh' }).first()).toBeVisible();
 });
