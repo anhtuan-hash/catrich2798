@@ -27,14 +27,22 @@ test('complete meetings workspace supports minutes, tasks, editing and persisten
 
   const detail = page.getByTestId('meeting-detail-panel');
   await expect(detail.getByText('Phòng Hội đồng')).toBeVisible();
-  await detail.getByRole('checkbox').first().check();
+  const firstAgenda = detail.locator('.mw-agenda input[type="checkbox"]').first();
+  await firstAgenda.check();
+  await expect(firstAgenda).toBeChecked();
+
   await detail.getByLabel('Nội dung biên bản').fill('Tổ đã thảo luận ma trận, cấu trúc đề và phân công giáo viên phụ trách từng phần.');
   await detail.getByRole('button', { name: 'Lưu biên bản' }).click();
-  await expect(detail.getByText('Đã lưu biên bản')).toBeVisible();
+  await expect(detail.locator('.mw-status')).toHaveText('Đã lưu biên bản');
 
   await detail.getByLabel('Tên nhiệm vụ sau họp').fill('Hoàn thiện ma trận kiểm tra chung');
   await detail.getByRole('button', { name: 'Tạo nhiệm vụ' }).click();
   await expect(detail.getByText('Hoàn thiện ma trận kiểm tra chung')).toBeVisible();
+
+  await expect.poll(async () => page.evaluate(() => {
+    const tasks = JSON.parse(localStorage.getItem('department-v2-tasks') || '[]');
+    return tasks.some((task) => task.title === 'Hoàn thiện ma trận kiểm tra chung');
+  })).toBe(true);
 
   await detail.getByLabel('Phản hồi cuộc họp').fill('Cần bổ sung minh chứng họp vào kho hồ sơ.');
   await detail.getByRole('button', { name: 'Gửi phản hồi' }).click();
@@ -55,7 +63,7 @@ test('complete meetings workspace supports minutes, tasks, editing and persisten
   await expect(restored.getByText('Sinh hoạt chuyên đề kiểm tra đánh giá – hoàn chỉnh')).toBeVisible();
 
   await page.getByTestId('tab-tasks').click();
-  const tasks = page.locator('.task-workspace-bridge');
-  await tasks.getByLabel('Tìm nhiệm vụ').fill('ma trận kiểm tra chung');
-  await expect(tasks.getByText('Hoàn thiện ma trận kiểm tra chung')).toBeVisible();
+  const tasksWorkspace = page.locator('.task-workspace-bridge');
+  await tasksWorkspace.getByLabel('Tìm nhiệm vụ').fill('ma trận kiểm tra chung');
+  await expect(tasksWorkspace.getByText('Hoàn thiện ma trận kiểm tra chung')).toBeVisible();
 });
