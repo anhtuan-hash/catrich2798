@@ -8,6 +8,13 @@ on:
       - .github/workflows/integrate-complete-task-workspace.yml
       - department-app/src/TasksWorkspace.jsx
       - department-app/src/tasks-workspace.css
+  pull_request:
+    branches:
+      - feature/department-new-known-good
+    paths:
+      - .github/workflows/integrate-complete-task-workspace.yml
+      - department-app/src/TasksWorkspace.jsx
+      - department-app/src/tasks-workspace.css
 
 permissions:
   contents: write
