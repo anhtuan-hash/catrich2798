@@ -59,9 +59,11 @@
       (() => {
         const showRecovery = () => {
           const root = document.getElementById('root');
-          if (!root || root.querySelector('.app-shell,.bes-crash-recovery')) return;
+          if (!root || root.querySelector('.bes-crash-recovery')) return;
+          const hasRenderedUi = root.childElementCount > 0 || root.textContent.trim().length > 0;
+          if (hasRenderedUi) return;
           root.innerHTML = `
-            <main style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#eef4fb;color:#191515">
+            <main class="bes-crash-recovery" style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#eef4fb;color:#191515">
               <section style="width:min(680px,100%);padding:38px;border:2px solid #191515;border-radius:28px;background:#fffdf8;box-shadow:10px 12px 0 rgba(25,21,21,.15);font-family:'Brian Personal',system-ui,sans-serif">
                 <div style="width:54px;height:54px;display:grid;place-items:center;border:2px solid #191515;border-radius:16px;background:#f05a7e;color:#fff;font-weight:900">BE</div>
                 <p style="margin:20px 0 6px;font-size:12px;font-weight:900;letter-spacing:.1em;color:#a43b57">KHÔI PHỤC KHỞI ĐỘNG</p>
