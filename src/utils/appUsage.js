@@ -1,5 +1,5 @@
 export const APP_USAGE_EVENT = 'bes-app-usage-updated';
-const APP_USAGE_PREFIX = 'bes-app-usage-v1:';
+const APP_USAGE_PREFIX = 'bes-app-usage-v2:';
 
 function scopeFor(user) {
   return String(user?.id || user?.email || 'guest')
