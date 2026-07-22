@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  apply-and-verify-removal:
+  verify-removal:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -26,12 +26,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-
-      - name: Apply manual cleanup
-        shell: bash
-        run: |
-          cat scripts/manual-department-cleanup/dashboardAggregator.b64.* | base64 -d > src/utils/dashboardAggregator.js
-          node scripts/manual-department-cleanup/apply-dashboard-cleanup.mjs
 
       - name: Audit retired Department implementation
         shell: bash
@@ -69,15 +63,12 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Commit verified cleanup to branch
+      - name: Mark branch as verified
         shell: bash
         run: |
+          printf 'Department removal audit: PASS\nWebsite build: PASS\nVerified source commit: %s\nVerified at: %s\n' "$GITHUB_SHA" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" > manual-cleanup-verified.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/utils/dashboardAggregator.js src/pages/WorkDashboard.jsx src/styles/work-dashboard-v1167.css
-          if git diff --cached --quiet; then
-            echo "No cleanup changes to commit."
-          else
-            git commit -m "Finish manual Department removal and restore build"
-            git push origin HEAD:agent/remove-department-completely
-          fi
+          git add manual-cleanup-verified.txt
+          git commit -m "Verify manual Department removal build"
+          git push origin HEAD:agent/remove-department-completely
