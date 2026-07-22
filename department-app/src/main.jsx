@@ -8,11 +8,13 @@ import CalendarWorkspace, { createDefaultCalendarEvents } from './CalendarWorksp
 import MeetingsWorkspace, { createDefaultMeetings } from './MeetingsWorkspace.jsx';
 import EvidenceWorkspace, { createDefaultEvidence } from './EvidenceWorkspace.jsx';
 import ReportsWorkspace from './ReportsWorkspace.jsx';
+import GlobalNotificationDrawer, { readGlobalNotifications } from './GlobalNotificationDrawer.jsx';
 import './styles.css';
 import './laptop-scale.css';
 import './macbook-readable.css';
 import './notification-toggle.css';
 import './task-workspace-bridge.css';
+import './shell-fixes.css';
 
 const TASK_STORAGE_KEY = 'department-v2-tasks';
 const RECORD_STORAGE_KEY = 'department-v2-records';
@@ -20,6 +22,7 @@ const PLAN_STORAGE_KEY = 'department-v2-plans';
 const CALENDAR_STORAGE_KEY = 'department-v2-calendar-events';
 const MEETING_STORAGE_KEY = 'department-v2-meetings';
 const EVIDENCE_STORAGE_KEY = 'department-v2-evidence';
+const NOTIFICATION_STORAGE_KEY = 'department-v2-notifications';
 const REPORT_HISTORY_KEY = 'department-v3-report-history';
 
 const FALLBACK_TASKS = [
@@ -58,10 +61,14 @@ function DepartmentRoot(){
   const [meetings,setMeetings]=useState([]);
   const [evidence,setEvidence]=useState([]);
   const [reportHistory,setReportHistory]=useState(()=>readStored(REPORT_HISTORY_KEY,[]));
+  const [notifications,setNotifications]=useState(()=>readGlobalNotifications());
+  const [globalDrawerOpen,setGlobalDrawerOpen]=useState(false);
   const [toast,setToast]=useState('');
 
   useEffect(()=>{const nextTab=sessionStorage.getItem('department-next-tab');if(!nextTab)return undefined;sessionStorage.removeItem('department-next-tab');const timer=window.setTimeout(()=>document.querySelector(`[data-testid="tab-${nextTab}"]`)?.click(),120);return()=>window.clearTimeout(timer)},[]);
-  useEffect(()=>{const handleNavigation=event=>{const button=event.target.closest?.('[data-testid^="tab-"]');if(!button)return;const tab=button.getAttribute('data-testid')?.replace('tab-','');if(tab==='tasks'){window.setTimeout(()=>{setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY,FALLBACK_TASKS)));setWorkspaceMode('tasks')},0);return}if(tab==='records'){window.setTimeout(()=>{setRecords(readStored(RECORD_STORAGE_KEY,FALLBACK_RECORDS));setWorkspaceMode('records')},0);return}if(tab==='plans'){window.setTimeout(()=>{setPlans(readStored(PLAN_STORAGE_KEY,FALLBACK_PLANS));setWorkspaceMode('plans')},0);return}if(tab==='calendar'){window.setTimeout(()=>{setEvents(readStored(CALENDAR_STORAGE_KEY,createDefaultCalendarEvents()));setWorkspaceMode('calendar')},0);return}if(tab==='meetings'){window.setTimeout(()=>{setMeetings(readStored(MEETING_STORAGE_KEY,createDefaultMeetings()));setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY,FALLBACK_TASKS)));setWorkspaceMode('meetings')},0);return}if(tab==='evidence'){window.setTimeout(()=>{setEvidence(readEvidence());setWorkspaceMode('evidence')},0);return}if(tab==='reports'){window.setTimeout(()=>{setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY,FALLBACK_TASKS)));setRecords(readStored(RECORD_STORAGE_KEY,FALLBACK_RECORDS));setPlans(readStored(PLAN_STORAGE_KEY,FALLBACK_PLANS));setMeetings(readStored(MEETING_STORAGE_KEY,createDefaultMeetings()));setEvidence(readEvidence());setReportHistory(readStored(REPORT_HISTORY_KEY,[]));setWorkspaceMode('reports')},0);return}if(workspaceMode){event.preventDefault();event.stopPropagation();sessionStorage.setItem('department-next-tab',tab);window.location.reload()}};document.addEventListener('click',handleNavigation,true);return()=>document.removeEventListener('click',handleNavigation,true)},[workspaceMode]);
+  useEffect(()=>{const handleNavigation=event=>{const button=event.target.closest?.('[data-testid^="tab-"]');if(!button)return;const tab=button.getAttribute('data-testid')?.replace('tab-','');if(tab==='overview'){setWorkspaceMode(null);return}if(tab==='tasks'){window.setTimeout(()=>{setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY,FALLBACK_TASKS)));setWorkspaceMode('tasks')},0);return}if(tab==='records'){window.setTimeout(()=>{setRecords(readStored(RECORD_STORAGE_KEY,FALLBACK_RECORDS));setWorkspaceMode('records')},0);return}if(tab==='plans'){window.setTimeout(()=>{setPlans(readStored(PLAN_STORAGE_KEY,FALLBACK_PLANS));setWorkspaceMode('plans')},0);return}if(tab==='calendar'){window.setTimeout(()=>{setEvents(readStored(CALENDAR_STORAGE_KEY,createDefaultCalendarEvents()));setWorkspaceMode('calendar')},0);return}if(tab==='meetings'){window.setTimeout(()=>{setMeetings(readStored(MEETING_STORAGE_KEY,createDefaultMeetings()));setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY,FALLBACK_TASKS)));setWorkspaceMode('meetings')},0);return}if(tab==='evidence'){window.setTimeout(()=>{setEvidence(readEvidence());setWorkspaceMode('evidence')},0);return}if(tab==='reports'){window.setTimeout(()=>{setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY,FALLBACK_TASKS)));setRecords(readStored(RECORD_STORAGE_KEY,FALLBACK_RECORDS));setPlans(readStored(PLAN_STORAGE_KEY,FALLBACK_PLANS));setMeetings(readStored(MEETING_STORAGE_KEY,createDefaultMeetings()));setEvidence(readEvidence());setReportHistory(readStored(REPORT_HISTORY_KEY,[]));setWorkspaceMode('reports')},0);return}};document.addEventListener('click',handleNavigation,true);return()=>document.removeEventListener('click',handleNavigation,true)},[]);
+  useEffect(()=>{const handleBell=event=>{const button=event.target.closest?.('.bell-button');if(!button)return;event.preventDefault();event.stopPropagation();setGlobalDrawerOpen(open=>!open)};document.addEventListener('click',handleBell,true);return()=>document.removeEventListener('click',handleBell,true)},[]);
+  useEffect(()=>{document.querySelectorAll('.bell-button').forEach(button=>button.setAttribute('aria-label',globalDrawerOpen?'Đóng thông báo':'Mở thông báo'))},[globalDrawerOpen,workspaceMode]);
 
   useEffect(()=>{if(workspaceMode==='tasks'||workspaceMode==='meetings')try{localStorage.setItem(TASK_STORAGE_KEY,JSON.stringify(tasks))}catch{}},[tasks,workspaceMode]);
   useEffect(()=>{if(workspaceMode==='records')try{localStorage.setItem(RECORD_STORAGE_KEY,JSON.stringify(records))}catch{}},[records,workspaceMode]);
@@ -70,6 +77,7 @@ function DepartmentRoot(){
   useEffect(()=>{if(workspaceMode==='meetings')try{localStorage.setItem(MEETING_STORAGE_KEY,JSON.stringify(meetings))}catch{}},[meetings,workspaceMode]);
   useEffect(()=>{if(workspaceMode==='evidence')try{localStorage.setItem(EVIDENCE_STORAGE_KEY,JSON.stringify(evidence))}catch{}},[evidence,workspaceMode]);
   useEffect(()=>{try{localStorage.setItem(REPORT_HISTORY_KEY,JSON.stringify(reportHistory))}catch{}},[reportHistory]);
+  useEffect(()=>{try{localStorage.setItem(NOTIFICATION_STORAGE_KEY,JSON.stringify(notifications))}catch{}},[notifications]);
   useEffect(()=>{if(!toast)return undefined;const timer=window.setTimeout(()=>setToast(''),2600);return()=>window.clearTimeout(timer)},[toast]);
 
   const updateTask=(id,patch)=>setTasks(items=>items.map(item=>item.id===id?{...item,...patch}:item));
@@ -85,7 +93,7 @@ function DepartmentRoot(){
   const updateEvidence=(id,patch)=>setEvidence(items=>items.map(item=>item.id===id?{...item,...patch}:item));
   const deleteEvidence=id=>{setEvidence(items=>items.filter(item=>item.id!==id));setToast('Đã xóa minh chứng.')};
 
-  return <><App/>
+  return <div className={`department-root ${workspaceMode?'has-external-workspace':''}`}><App/>
     {workspaceMode==='tasks'&&<section className="task-workspace-bridge" aria-label="Không gian Giao việc hoàn chỉnh"><TasksWorkspace tasks={tasks} setTasks={setTasks} updateTask={updateTask} deleteTask={deleteTask} setToast={setToast}/></section>}
     {workspaceMode==='records'&&<section className="task-workspace-bridge" aria-label="Không gian Hồ sơ hoàn chỉnh"><RecordsWorkspace records={records} setRecords={setRecords} updateRecord={updateRecord} deleteRecord={deleteRecord} setToast={setToast}/></section>}
     {workspaceMode==='plans'&&<section className="task-workspace-bridge" aria-label="Không gian Kế hoạch hoàn chỉnh"><PlansWorkspace plans={plans} setPlans={setPlans} updatePlan={updatePlan} deletePlan={deletePlan} setToast={setToast}/></section>}
@@ -93,8 +101,9 @@ function DepartmentRoot(){
     {workspaceMode==='meetings'&&<section className="task-workspace-bridge" aria-label="Không gian Sinh hoạt tổ hoàn chỉnh"><MeetingsWorkspace meetings={meetings} setMeetings={setMeetings} updateMeeting={updateMeeting} deleteMeeting={deleteMeeting} setTasks={setTasks} setToast={setToast}/></section>}
     {workspaceMode==='evidence'&&<section className="task-workspace-bridge" aria-label="Không gian Minh chứng hoàn chỉnh"><EvidenceWorkspace evidence={evidence} setEvidence={setEvidence} updateEvidence={updateEvidence} deleteEvidence={deleteEvidence} setToast={setToast}/></section>}
     {workspaceMode==='reports'&&<section className="task-workspace-bridge" aria-label="Không gian Báo cáo hoàn chỉnh"><ReportsWorkspace tasks={tasks} records={records} plans={plans} meetings={meetings} evidence={evidence} reportHistory={reportHistory} setReportHistory={setReportHistory} setToast={setToast}/></section>}
+    <GlobalNotificationDrawer open={globalDrawerOpen} notifications={notifications} setNotifications={setNotifications} onClose={()=>setGlobalDrawerOpen(false)} setToast={setToast}/>
     {toast&&<div className="bridge-toast" role="status">{toast}</div>}
-  </>;
+  </div>;
 }
 
 createRoot(document.getElementById('root')).render(<React.StrictMode><DepartmentRoot/></React.StrictMode>);
