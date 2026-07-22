@@ -1,10 +1,11 @@
 -- Brian Department Workspace — English department bootstrap
 -- Run after department-schema.sql in the Supabase SQL Editor.
--- This script is idempotent and targets the existing Brian admin account.
+-- This script is idempotent and targets the real Brian admin account.
 
 do $$
 declare
   v_department_id constant uuid := '00000000-0000-0000-0000-000000000001';
+  v_admin_email constant text := 'anhtuan@pek.edu.vn';
   v_user_id uuid;
   v_existing_department_id uuid;
 begin
@@ -33,13 +34,14 @@ begin
   select id
   into v_user_id
   from auth.users
-  where lower(email) = lower('anhtuanpek@gmail.com')
+  where lower(email) = lower(v_admin_email)
   order by created_at asc
   limit 1;
 
   if v_user_id is null then
     raise exception
-      'Supabase Auth does not contain anhtuanpek@gmail.com. Sign in to Brian with this account once, then run this bootstrap again.';
+      'Supabase Auth does not contain %. Sign in to Brian with this account once or create it in Authentication > Users, then run this bootstrap again.',
+      v_admin_email;
   end if;
 
   insert into public.department_members (
@@ -55,7 +57,7 @@ begin
     v_user_id,
     'department_head',
     'Nguyễn Anh Tuấn',
-    'anhtuanpek@gmail.com',
+    v_admin_email,
     true
   )
   on conflict (department_id, user_id) do update
@@ -64,6 +66,14 @@ begin
       email = excluded.email,
       active = true,
       updated_at = now();
+
+  -- Disable the earlier mistakenly bootstrapped GitHub/commit email if present.
+  update public.department_members
+  set active = false,
+      updated_at = now()
+  where department_id = v_department_id
+    and lower(coalesce(email, '')) = lower('anhtuanpek@gmail.com')
+    and user_id <> v_user_id;
 end
 $$;
 
@@ -78,4 +88,4 @@ select
 from public.departments d
 join public.department_members dm on dm.department_id = d.id
 where d.id = '00000000-0000-0000-0000-000000000001'::uuid
-  and lower(dm.email) = lower('anhtuanpek@gmail.com');
+  and lower(dm.email) = lower('anhtuan@pek.edu.vn');
