@@ -1,0 +1,55 @@
+/* Brian English Studio V11.6.8 — Anime.js interaction bridge */
+
+.bes-anime-ripple-host {
+  position: relative !important;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bes-anime-ripple {
+  position: absolute;
+  z-index: 20;
+  display: block;
+  border-radius: 999px;
+  pointer-events: none;
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  transform: scale(0);
+  opacity: .8;
+  animation: bes-anime-ripple-wave 620ms cubic-bezier(.16, 1, .3, 1) forwards;
+}
+
+@keyframes bes-anime-ripple-wave {
+  0% { transform: scale(0); opacity: .72; }
+  72% { opacity: .22; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+html[data-anime-motion="animejs-4.5.0"] .boh-stage .boh-card,
+html[data-anime-motion="fallback"] .boh-stage .boh-card {
+  will-change: transform;
+}
+
+html[data-anime-motion] #bes-main-content :where(
+  .boh-card-body,
+  .boh-copy-panel,
+  .boh-overview-metric,
+  .metro-panel,
+  .panel
+) {
+  backface-visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bes-anime-ripple {
+    display: none !important;
+    animation: none !important;
+  }
+}
+
+html[data-performance="low"] .bes-anime-ripple,
+.metro-clean-system[data-performance="low"] .bes-anime-ripple,
+html[data-motion="off"] .bes-anime-ripple,
+.metro-clean-system[data-motion="off"] .bes-anime-ripple {
+  display: none !important;
+  animation: none !important;
+}
