@@ -1,0 +1,78 @@
+name: Apply faithful Option D rebuild
+
+on:
+  push:
+    branches:
+      - feature/department-v2-option-d
+    paths:
+      - .github/workflows/apply-option-d-rebuild.yml
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/department-v2-option-d
+          fetch-depth: 0
+
+      - name: Rebuild Department workspace from staged chunks
+        shell: bash
+        run: |
+          cat scripts/option-d-rebuild/jsx-* | base64 -d | gzip -d > src/pages/DepartmentWorkspaceV2.jsx
+          cat scripts/option-d-rebuild/css-* | base64 -d | gzip -d > src/pages/DepartmentWorkspaceV2.css
+          rm -f src/pages/DepartmentWorkspaceV2Polish.css src/pages/DepartmentWorkspaceV2Compact.css
+          rm -rf scripts/option-d-rebuild
+          cat > .github/workflows/department-v2-check.yml <<'YAML'
+          name: Department Workspace v2 Check
+
+          on:
+            push:
+              branches:
+                - feature/department-v2-option-d
+            pull_request:
+              branches:
+                - feature/department-new-known-good
+
+          jobs:
+            build:
+              runs-on: ubuntu-latest
+              timeout-minutes: 15
+              steps:
+                - name: Checkout
+                  uses: actions/checkout@v4
+
+                - name: Use Node 22
+                  uses: actions/setup-node@v4
+                  with:
+                    node-version: 22
+                    cache: npm
+
+                - name: Install dependencies
+                  run: npm ci
+
+                - name: Build production bundle
+                  run: npm run build
+
+                - name: Verify faithful Option D workspace
+                  run: |
+                    test -f src/pages/DepartmentWorkspaceV2.jsx
+                    test -f src/pages/DepartmentWorkspaceV2.css
+                    grep -q "dwD-shell" src/pages/DepartmentWorkspaceV2.jsx
+                    grep -q "position:fixed" src/pages/DepartmentWorkspaceV2.css
+                    grep -q "department-workspace" src/data/apps.js
+                    grep -q "DepartmentWorkspaceV2" src/pages/ToolPage.jsx
+          YAML
+
+      - name: Commit faithful rebuild
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Rebuild Department v2 to faithfully match option D"
+          git push origin HEAD:feature/department-v2-option-d
