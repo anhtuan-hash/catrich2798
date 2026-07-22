@@ -25,7 +25,7 @@ select
 from public.departments d
 join public.department_members dm on dm.department_id = d.id
 where d.id = '00000000-0000-0000-0000-000000000001'::uuid
-  and lower(dm.email) = lower('anhtuanpek@gmail.com');
+  and lower(dm.email) = lower('anhtuan@pek.edu.vn');
 
 select
   schemaname,
