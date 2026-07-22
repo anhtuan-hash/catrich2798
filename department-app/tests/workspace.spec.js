@@ -143,7 +143,51 @@ test('complete task workspace supports assignment, search, files, feedback and e
   await expect(reloadedWorkspace.getByText('Chuẩn bị chuyên đề chuyển đổi số – hoàn chỉnh')).toBeVisible();
 });
 
-test('notifications, search, meetings and record approval work', async ({ page }) => {
+test('complete records workspace supports submission, review, approval and archive', async ({ page }) => {
+  await page.getByTestId('tab-records').click();
+  const workspace = page.locator('.task-workspace-bridge');
+  await expect(workspace.getByRole('heading', { name: 'Nộp và phê duyệt hồ sơ' })).toBeVisible();
+  await expect(workspace.getByText('Chờ duyệt').first()).toBeVisible();
+
+  await workspace.getByRole('button', { name: 'Nộp hồ sơ' }).click();
+  const modal = page.getByTestId('record-editor-modal');
+  await modal.getByLabel('Tên hồ sơ').fill('Kế hoạch bài dạy Unit 3 – Lớp 11A1');
+  await modal.getByLabel('Người nộp').selectOption('Đỗ Thị Hương');
+  await modal.getByLabel('Loại hồ sơ').selectOption('Kế hoạch bài dạy');
+  await modal.getByLabel('Mô tả hồ sơ').fill('Hồ sơ cần được kiểm tra nội dung hoạt động và tiêu chí đánh giá.');
+  await modal.locator('input[type=file]').setInputFiles({
+    name: 'unit-3-lesson-plan.docx',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    buffer: Buffer.from('record-demo'),
+  });
+  await modal.getByRole('button', { name: 'Nộp hồ sơ' }).click();
+
+  await workspace.getByLabel('Tìm hồ sơ').fill('Unit 3');
+  const record = workspace.getByTestId(/record-/).filter({ hasText: 'Kế hoạch bài dạy Unit 3 – Lớp 11A1' });
+  await expect(record).toBeVisible();
+  await expect(record.getByText('Chờ duyệt')).toBeVisible();
+  await record.locator('.rw-record-main').click();
+
+  const detail = page.getByTestId('record-detail-panel');
+  await expect(detail.getByText('unit-3-lesson-plan.docx')).toBeVisible();
+  await detail.getByLabel('Nhận xét hồ sơ').fill('Hồ sơ đạt yêu cầu, đề nghị lưu cùng minh chứng đánh giá.');
+  await detail.getByRole('button', { name: 'Gửi nhận xét' }).click();
+  await expect(detail.getByText('Hồ sơ đạt yêu cầu, đề nghị lưu cùng minh chứng đánh giá.')).toBeVisible();
+  await detail.getByRole('button', { name: 'Duyệt' }).click();
+  await expect(detail.getByText('Đã duyệt').first()).toBeVisible();
+  await detail.getByRole('button', { name: 'Lưu kho' }).click();
+  await expect(detail.getByText('Đã lưu kho').first()).toBeVisible();
+
+  await page.reload();
+  await page.getByTestId('tab-records').click();
+  const restoredWorkspace = page.locator('.task-workspace-bridge');
+  await restoredWorkspace.getByLabel('Tìm hồ sơ').fill('Unit 3');
+  const restoredRecord = restoredWorkspace.getByTestId(/record-/).filter({ hasText: 'Kế hoạch bài dạy Unit 3 – Lớp 11A1' });
+  await expect(restoredRecord).toBeVisible();
+  await expect(restoredRecord.getByText('Đã lưu kho')).toBeVisible();
+});
+
+test('notifications, search and meetings remain interactive', async ({ page }) => {
   await page.getByRole('button', { name: 'Đánh dấu đã đọc' }).click();
   await expect(page.getByText('0 thông báo chưa đọc')).toBeVisible();
   await page.getByLabel('Tìm kiếm nhanh').fill('ma trận');
@@ -152,7 +196,4 @@ test('notifications, search, meetings and record approval work', async ({ page }
   const checkbox = page.getByRole('checkbox').first();
   await checkbox.check();
   await expect(checkbox).toBeChecked();
-  await page.getByTestId('tab-records').click();
-  await page.getByRole('button', { name: 'Duyệt' }).first().click();
-  await expect(page.getByText('Đã duyệt').first()).toBeVisible();
 });
