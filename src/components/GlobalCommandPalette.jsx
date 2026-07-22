@@ -16,7 +16,6 @@ const ROUTES = [
   { route: 'news', vi: 'Đọc báo', en: 'Newsroom', icon: '▤', color: '#167D78' },
   { route: 'games', vi: 'Trò chơi', en: 'Games', icon: '◈', color: '#5B2A86' },
   { route: 'dashboard', vi: 'Bảng điều hành', en: 'Work Dashboard', icon: 'DB', color: '#315FC4' },
-  { route: 'department', vi: 'Tổ chuyên môn', en: 'Department', icon: '▦', color: '#3B4CCA' },
   { route: 'homeroom', vi: 'Giáo viên chủ nhiệm', en: 'Homeroom', icon: '♙', color: '#1F8F70' },
   { route: 'library', vi: 'Thư viện', en: 'Library', icon: '▤', color: '#6FBA7B' },
   { route: 'resource-library', vi: 'Kho học liệu', en: 'Resource Library', icon: '▥', color: '#2878D0' },
