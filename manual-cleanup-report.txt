@@ -1,0 +1,82 @@
+Department removal audit exit code: 0
+npm ci exit code: 0
+Website build exit code: 1
+Source commit: b89731833c887223fadee3b26e7e5c2c2d0108b6
+Checked at: 2026-07-22T03:51:54Z
+
+=== AUDIT ===
+Department removal audit passed: route, catalog entry, UI, styles, permissions, store and tests are absent.
+
+=== INSTALL (last 120 lines) ===
+
+added 69 packages in 6s
+
+=== BUILD (last 160 lines) ===
+
+> brian-english-studio@11.6.7 build
+> npm run version:sync && vite build
+
+
+> brian-english-studio@11.6.7 version:sync
+> node scripts/sync-version-v11.6.7.mjs
+
+Version registry synchronized: 11.6.7
+[36mvite v8.1.3 [32mbuilding client environment for production...[36m[39m
+[2Ktransforming...
+/fonts/personal-font.ttf referenced in /fonts/personal-font.ttf didn't resolve at build time, it will remain unchanged to be resolved at runtime
+✓ 294 modules transformed.
+rendering chunks...
+[31m✗[39m Build failed in 900ms
+[31merror during build:
+[31mBuild failed with 9 errors:
+
+[31m[MISSING_EXPORT] [0m"canPublishDepartment" is not exported by "src/utils/permissions.js".
+   [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m src/pages/Games.jsx:5:10 [38;5;246m][0m
+   [38;5;246m│[0m
+ [38;5;246m5 │[0m [38;5;249mi[0m[38;5;249mm[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m[38;5;249m{[0m[38;5;249m [0mcanPublishDepartment[38;5;249m,[0m[38;5;249m [0m[38;5;249mh[0m[38;5;249ma[0m[38;5;249ms[0m[38;5;249mT[0m[38;5;249mo[0m[38;5;249mo[0m[38;5;249ml[0m[38;5;249mA[0m[38;5;249mc[0m[38;5;249mc[0m[38;5;249me[0m[38;5;249ms[0m[38;5;249ms[0m[38;5;249m [0m[38;5;249m}[0m[38;5;249m [0m[38;5;249mf[0m[38;5;249mr[0m[38;5;249mo[0m[38;5;249mm[0m[38;5;249m [0m[38;5;249m"[0m[38;5;249m.[0m[38;5;249m.[0m[38;5;249m/[0m[38;5;249mu[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249ml[0m[38;5;249ms[0m[38;5;249m/[0m[38;5;249mp[0m[38;5;249me[0m[38;5;249mr[0m[38;5;249mm[0m[38;5;249mi[0m[38;5;249ms[0m[38;5;249ms[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249ms[0m[38;5;249m.[0m[38;5;249mj[0m[38;5;249ms[0m[38;5;249m"[0m[38;5;249m;[0m
+ [38;5;240m  │[0m          ──────────┬─────────  
+ [38;5;240m  │[0m                    ╰─────────── Missing export
+[38;5;246m───╯[0m
+
+[31m[MISSING_EXPORT] [0m"canPublishDepartment" is not exported by "src/utils/permissions.js".
+   [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m src/components/LauncherAppHub.jsx:3:10 [38;5;246m][0m
+   [38;5;246m│[0m
+ [38;5;246m3 │[0m [38;5;249mi[0m[38;5;249mm[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m[38;5;249m{[0m[38;5;249m [0mcanPublishDepartment[38;5;249m [0m[38;5;249m}[0m[38;5;249m [0m[38;5;249mf[0m[38;5;249mr[0m[38;5;249mo[0m[38;5;249mm[0m[38;5;249m [0m[38;5;249m"[0m[38;5;249m.[0m[38;5;249m.[0m[38;5;249m/[0m[38;5;249mu[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249ml[0m[38;5;249ms[0m[38;5;249m/[0m[38;5;249mp[0m[38;5;249me[0m[38;5;249mr[0m[38;5;249mm[0m[38;5;249mi[0m[38;5;249ms[0m[38;5;249ms[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249ms[0m[38;5;249m.[0m[38;5;249mj[0m[38;5;249ms[0m[38;5;249m"[0m[38;5;249m;[0m
+ [38;5;240m  │[0m          ──────────┬─────────  
+ [38;5;240m  │[0m                    ╰─────────── Missing export
+[38;5;246m───╯[0m
+
+[31m[MISSING_EXPORT] [0m"canPublishDepartment" is not exported by "src/utils/permissions.js".
+   [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m src/utils/customGames.js:2:10 [38;5;246m][0m
+   [38;5;246m│[0m
+ [38;5;246m2 │[0m [38;5;249mi[0m[38;5;249mm[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m[38;5;249m{[0m[38;5;249m [0mcanPublishDepartment[38;5;249m [0m[38;5;249m}[0m[38;5;249m [0m[38;5;249mf[0m[38;5;249mr[0m[38;5;249mo[0m[38;5;249mm[0m[38;5;249m [0m[38;5;249m"[0m[38;5;249m.[0m[38;5;249m/[0m[38;5;249mp[0m[38;5;249me[0m[38;5;249mr[0m[38;5;249mm[0m[38;5;249mi[0m[38;5;249ms[0m[38;5;249ms[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249ms[0m[38;5;249m.[0m[38;5;249mj[0m[38;5;249ms[0m[38;5;249m"[0m[38;5;249m;[0m
+ [38;5;240m  │[0m          ──────────┬─────────  
+ [38;5;240m  │[0m                    ╰─────────── Missing export
+[38;5;246m───╯[0m
+
+[31m[MISSING_EXPORT] [0m"canPublishDepartment" is not exported by "src/utils/permissions.js".
+   [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m src/pages/THPTPracticeHub.jsx:2:10 [38;5;246m][0m
+   [38;5;246m│[0m
+ [38;5;246m2 │[0m [38;5;249mi[0m[38;5;249mm[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m[38;5;249m{[0m[38;5;249m [0mcanPublishDepartment[38;5;249m [0m[38;5;249m}[0m[38;5;249m [0m[38;5;249mf[0m[38;5;249mr[0m[38;5;249mo[0m[38;5;249mm[0m[38;5;249m [0m[38;5;249m"[0m[38;5;249m.[0m[38;5;249m.[0m[38;5;249m/[0m[38;5;249mu[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249ml[0m[38;5;249ms[0m[38;5;249m/[0m[38;5;249mp[0m[38;5;249me[0m[38;5;249mr[0m[38;5;249mm[0m[38;5;249mi[0m[38;5;249ms[0m[38;5;249ms[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249ms[0m[38;5;249m.[0m[38;5;249mj[0m[38;5;249ms[0m[38;5;249m"[0m[38;5;249m;[0m
+ [38;5;240m  │[0m          ──────────┬─────────  
+ [38;5;240m  │[0m                    ╰─────────── Missing export
+[38;5;246m───╯[0m
+
+[31m[MISSING_EXPORT] [0m"canPublishDepartment" is not exported by "src/utils/permissions.js".
+   [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m src/pages/ResourceLibraryBase.jsx:4:10 [38;5;246m][0m
+   [38;5;246m│[0m
+ [38;5;246m4 │[0m [38;5;249mi[0m[38;5;249mm[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m[38;5;249m{[0m[38;5;249m [0mcanPublishDepartment[38;5;249m [0m[38;5;249m}[0m[38;5;249m [0m[38;5;249mf[0m[38;5;249mr[0m[38;5;249mo[0m[38;5;249mm[0m[38;5;249m [0m[38;5;249m"[0m[38;5;249m.[0m[38;5;249m.[0m[38;5;249m/[0m[38;5;249mu[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249ml[0m[38;5;249ms[0m[38;5;249m/[0m[38;5;249mp[0m[38;5;249me[0m[38;5;249mr[0m[38;5;249mm[0m[38;5;249mi[0m[38;5;249ms[0m[38;5;249ms[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249ms[0m[38;5;249m.[0m[38;5;249mj[0m[38;5;249ms[0m[38;5;249m"[0m[38;5;249m;[0m
+ [38;5;240m  │[0m          ──────────┬─────────  
+ [38;5;240m  │[0m                    ╰─────────── Missing export
+[38;5;246m───╯[0m
+
+...[31m
+    at aggregateBindingErrorsIntoJsError (file:///home/runner/work/catrich2798/catrich2798/node_modules/rolldown/dist/shared/error-BHRSI0R7.mjs:48:18)
+    at unwrapBindingResult (file:///home/runner/work/catrich2798/catrich2798/node_modules/rolldown/dist/shared/error-BHRSI0R7.mjs:18:128)
+    at #build (file:///home/runner/work/catrich2798/catrich2798/node_modules/rolldown/dist/shared/rolldown-build-CtPvmZgJ.mjs:3276:34)
+    at async buildEnvironment (file:///home/runner/work/catrich2798/catrich2798/node_modules/vite/dist/node/chunks/node.js:32622:66)
+    at async Object.build (file:///home/runner/work/catrich2798/catrich2798/node_modules/vite/dist/node/chunks/node.js:33044:19)
+    at async Object.buildApp (file:///home/runner/work/catrich2798/catrich2798/node_modules/vite/dist/node/chunks/node.js:33041:153)
+    at async CAC.<anonymous> (file:///home/runner/work/catrich2798/catrich2798/node_modules/vite/dist/node/cli.js:777:3) {
+  errors: [Getter/Setter]
+}[39m
