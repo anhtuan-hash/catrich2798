@@ -1,0 +1,102 @@
+name: Fix task row menu
+
+on:
+  push:
+    branches:
+      - feature/department-standalone-microfrontend
+    paths:
+      - .github/workflows/fix-task-row-menu.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout standalone branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/department-standalone-microfrontend
+          fetch-depth: 0
+
+      - name: Patch task action menus
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          jsx_path = Path('department-app/src/TasksWorkspace.jsx')
+          text = jsx_path.read_text()
+
+          text = text.replace(
+              "import React, { useMemo, useRef, useState } from 'react';",
+              "import React, { useEffect, useMemo, useRef, useState } from 'react';",
+              1,
+          )
+
+          old_signature = "function TaskRow({ task, selected, onSelect, onOpen, onUpdate, onEdit, onDelete, setToast }) {"
+          new_signature = "function TaskRow({ task, selected, onSelect, onOpen, onUpdate, onEdit, onDelete, setToast, menuOpen, onToggleMenu }) {"
+          if old_signature not in text:
+              raise SystemExit('TaskRow signature marker not found')
+          text = text.replace(old_signature, new_signature, 1)
+
+          old_state = "  const [menuOpen, setMenuOpen] = useState(false);\n"
+          new_state = "  const [menuDirection, setMenuDirection] = useState('down');\n"
+          if old_state not in text:
+              raise SystemExit('TaskRow menu state marker not found')
+          text = text.replace(old_state, new_state, 1)
+
+          text = text.replace("    setMenuOpen(false);", "    onToggleMenu(null);", 1)
+
+          old_menu = '''    <div className="tw-row-menu"><button aria-label={`Tùy chọn ${item.title}`} onClick={() => setMenuOpen((value) => !value)}><Icon name="more"/></button>{menuOpen && <div><button onClick={() => onOpen(item)}>Xem chi tiết</button><button onClick={() => { onEdit(item); setMenuOpen(false); }}>Chỉnh sửa</button><button onClick={() => setStatus('Đang thực hiện')}>Bắt đầu</button><button onClick={() => setStatus('Đã nộp')}>Đánh dấu đã nộp</button><button onClick={() => setStatus('Hoàn thành')}>Hoàn thành</button><button className="danger" onClick={() => { if (window.confirm('Xóa nhiệm vụ này?')) onDelete(item.id); setMenuOpen(false); }}>Xóa nhiệm vụ</button></div>}</div>'''
+          new_menu = '''    <div className="tw-row-menu"><button aria-label={`Tùy chọn ${item.title}`} aria-expanded={menuOpen} onClick={(event) => { const rect = event.currentTarget.getBoundingClientRect(); setMenuDirection(window.innerHeight - rect.bottom < 270 ? 'up' : 'down'); onToggleMenu(menuOpen ? null : item.id); }}><Icon name="more"/></button>{menuOpen && <div className={menuDirection === 'up' ? 'opens-up' : 'opens-down'}><button onClick={() => { onOpen(item); onToggleMenu(null); }}>Xem chi tiết</button><button onClick={() => { onEdit(item); onToggleMenu(null); }}>Chỉnh sửa</button><button onClick={() => setStatus('Đang thực hiện')}>Bắt đầu</button><button onClick={() => setStatus('Đã nộp')}>Đánh dấu đã nộp</button><button onClick={() => setStatus('Hoàn thành')}>Hoàn thành</button><button className="danger" onClick={() => { if (window.confirm('Xóa nhiệm vụ này?')) onDelete(item.id); onToggleMenu(null); }}>Xóa nhiệm vụ</button></div>}</div>'''
+          if old_menu not in text:
+              raise SystemExit('Task row menu marker not found')
+          text = text.replace(old_menu, new_menu, 1)
+
+          selected_marker = "  const [selected, setSelected] = useState([]);\n"
+          selected_replacement = "  const [selected, setSelected] = useState([]);\n  const [openMenuId, setOpenMenuId] = useState(null);\n\n  useEffect(() => {\n    const closeMenu = (event) => {\n      if (!event.target.closest?.('.tw-row-menu')) setOpenMenuId(null);\n    };\n    const closeOnEscape = (event) => {\n      if (event.key === 'Escape') setOpenMenuId(null);\n    };\n    document.addEventListener('pointerdown', closeMenu);\n    document.addEventListener('keydown', closeOnEscape);\n    return () => {\n      document.removeEventListener('pointerdown', closeMenu);\n      document.removeEventListener('keydown', closeOnEscape);\n    };\n  }, []);\n"
+          if selected_marker not in text:
+              raise SystemExit('TasksWorkspace selected state marker not found')
+          text = text.replace(selected_marker, selected_replacement, 1)
+
+          old_map = '''<TaskRow key={task.id} task={task} selected={selected.includes(task.id)} onSelect={(id) => setSelected((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id])} onOpen={(item) => setDetailId(item.id)} onUpdate={updateTask} onEdit={(item) => setEditor(item)} onDelete={deleteTask} setToast={setToast}/>'''
+          new_map = '''<TaskRow key={task.id} task={task} selected={selected.includes(task.id)} onSelect={(id) => setSelected((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id])} onOpen={(item) => setDetailId(item.id)} onUpdate={updateTask} onEdit={(item) => setEditor(item)} onDelete={deleteTask} setToast={setToast} menuOpen={openMenuId === task.id} onToggleMenu={setOpenMenuId}/>'''
+          if old_map not in text:
+              raise SystemExit('TaskRow map marker not found')
+          text = text.replace(old_map, new_map, 1)
+          jsx_path.write_text(text)
+
+          css_path = Path('department-app/src/tasks-workspace.css')
+          css = css_path.read_text()
+          addon = '''\n/* Keep row action menus singular and visible near the bottom edge. */\n.tw-task-row:has(.tw-row-menu > div){position:relative;z-index:70}\n.tw-row-menu > div.opens-down{top:38px;bottom:auto}\n.tw-row-menu > div.opens-up{top:auto;bottom:38px}\n.tw-row-menu > button[aria-expanded="true"]{background:#f0edff;color:#624ce7}\n'''
+          if 'div.opens-up' not in css:
+              css_path.write_text(css + addon)
+
+          workflow = Path('.github/workflows/fix-task-row-menu.yml')
+          workflow.unlink()
+          PY
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: department-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: department-app
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        working-directory: department-app
+        run: npm run build
+
+      - name: Commit verified menu fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "Fix duplicate and clipped task row menus"
+          git push origin HEAD:feature/department-standalone-microfrontend
