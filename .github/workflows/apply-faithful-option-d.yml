@@ -1,0 +1,89 @@
+name: Apply faithful Option D rebuild
+
+on:
+  push:
+    branches:
+      - feature/department-v2-option-d
+    paths:
+      - .github/workflows/apply-faithful-option-d.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/department-v2-option-d
+          fetch-depth: 0
+
+      - name: Reconstruct approved Option D implementation
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64
+          import gzip
+          from pathlib import Path
+
+          payload = Path('.github/option-d-payload')
+          jsx = ''.join(path.read_text(encoding='utf-8').strip() for path in sorted(payload.glob('jsx-*.txt')))
+          css = ''.join(path.read_text(encoding='utf-8').strip() for path in sorted(payload.glob('css-*.txt')))
+          Path('src/pages/DepartmentWorkspaceV2.jsx').write_bytes(gzip.decompress(base64.b64decode(jsx)))
+          Path('src/pages/DepartmentWorkspaceV2.css').write_bytes(gzip.decompress(base64.b64decode(css)))
+          PY
+
+          cat > .github/workflows/department-v2-check.yml <<'YAML'
+          name: Department Workspace v2 Check
+
+          on:
+            push:
+              branches:
+                - feature/department-v2-option-d
+            pull_request:
+              branches:
+                - feature/department-new-known-good
+
+          jobs:
+            build:
+              runs-on: ubuntu-latest
+              timeout-minutes: 15
+              steps:
+                - name: Checkout
+                  uses: actions/checkout@v4
+
+                - name: Use Node 22
+                  uses: actions/setup-node@v4
+                  with:
+                    node-version: 22
+                    cache: npm
+
+                - name: Install dependencies
+                  run: npm ci
+
+                - name: Build production bundle
+                  run: npm run build
+
+                - name: Verify faithful Option D workspace
+                  run: |
+                    test -f src/pages/DepartmentWorkspaceV2.jsx
+                    test -f src/pages/DepartmentWorkspaceV2.css
+                    grep -q "createPortal" src/pages/DepartmentWorkspaceV2.jsx
+                    grep -q "dw2-summary-row" src/pages/DepartmentWorkspaceV2.jsx
+                    grep -q "DEPARTMENT_V2_OPTION_D_REBUILD" src/pages/DepartmentWorkspaceV2.css
+                    grep -q "position:fixed" src/pages/DepartmentWorkspaceV2.css
+                    grep -q "department-workspace" src/data/apps.js
+                    grep -q "DepartmentWorkspaceV2" src/pages/ToolPage.jsx
+          YAML
+
+      - name: Commit rebuilt interface
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/pages/DepartmentWorkspaceV2.jsx src/pages/DepartmentWorkspaceV2.css .github/workflows/department-v2-check.yml
+          git rm -r .github/option-d-payload .github/workflows/apply-faithful-option-d.yml
+          git commit -m "Rebuild Department workspace to match approved Option D"
+          git push origin HEAD:feature/department-v2-option-d
