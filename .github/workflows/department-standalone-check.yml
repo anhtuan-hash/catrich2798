@@ -15,9 +15,9 @@ on:
       - .github/workflows/department-standalone-check.yml
 
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: department-app
@@ -30,18 +30,25 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: department-app/package.json
+          cache-dependency-path: department-app/package-lock.json
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund --silent
 
       - name: Build standalone app
         run: npm run build
 
-      - name: Verify reverse-proxy contract
+      - name: Verify standalone visual contract
         run: |
           test -f dist/index.html
           grep -q "base: '/to-chuyen-mon/'" vite.config.js
-          grep -q '"source": "/to-chuyen-mon/(.*)"' vercel.json
           grep -q "workspace-grid" src/App.jsx
-          grep -q "grid-template-columns:minmax(0,1fr) 330px" src/styles.css
+          grep -q "min-height:640px" src/styles.css
+          grep -q "department-v2-tasks" src/App.jsx
+          grep -q "window.print" src/App.jsx
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium >/tmp/playwright-install.log 2>&1
+
+      - name: Test real user interactions
+        run: npm run test:e2e
