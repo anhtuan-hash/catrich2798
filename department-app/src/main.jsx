@@ -6,6 +6,7 @@ import RecordsWorkspace from './RecordsWorkspace.jsx';
 import PlansWorkspace from './PlansWorkspace.jsx';
 import CalendarWorkspace, { createDefaultCalendarEvents } from './CalendarWorkspace.jsx';
 import MeetingsWorkspace, { createDefaultMeetings } from './MeetingsWorkspace.jsx';
+import EvidenceWorkspace, { createDefaultEvidence } from './EvidenceWorkspace.jsx';
 import './styles.css';
 import './laptop-scale.css';
 import './macbook-readable.css';
@@ -17,6 +18,7 @@ const RECORD_STORAGE_KEY = 'department-v2-records';
 const PLAN_STORAGE_KEY = 'department-v2-plans';
 const CALENDAR_STORAGE_KEY = 'department-v2-calendar-events';
 const MEETING_STORAGE_KEY = 'department-v2-meetings';
+const EVIDENCE_STORAGE_KEY = 'department-v2-evidence';
 
 const FALLBACK_TASKS = [
   { id: 1, title: 'Xây dựng ma trận đề kiểm tra học kỳ II môn Tiếng Anh 6', assignee: 'Nguyễn Thị Mai', initials: 'NM', due: '20/05/2025', status: 'Đang thực hiện', progress: 60, tone: 'purple' },
@@ -51,16 +53,18 @@ function DepartmentRoot(){
   const [plans,setPlans]=useState([]);
   const [events,setEvents]=useState([]);
   const [meetings,setMeetings]=useState([]);
+  const [evidence,setEvidence]=useState([]);
   const [toast,setToast]=useState('');
 
   useEffect(()=>{const nextTab=sessionStorage.getItem('department-next-tab');if(!nextTab)return undefined;sessionStorage.removeItem('department-next-tab');const timer=window.setTimeout(()=>document.querySelector(`[data-testid="tab-${nextTab}"]`)?.click(),120);return()=>window.clearTimeout(timer)},[]);
-  useEffect(()=>{const handleNavigation=event=>{const button=event.target.closest?.('[data-testid^="tab-"]');if(!button)return;const tab=button.getAttribute('data-testid')?.replace('tab-','');if(tab==='tasks'){window.setTimeout(()=>{setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY,FALLBACK_TASKS)));setWorkspaceMode('tasks')},0);return}if(tab==='records'){window.setTimeout(()=>{setRecords(readStored(RECORD_STORAGE_KEY,FALLBACK_RECORDS));setWorkspaceMode('records')},0);return}if(tab==='plans'){window.setTimeout(()=>{setPlans(readStored(PLAN_STORAGE_KEY,FALLBACK_PLANS));setWorkspaceMode('plans')},0);return}if(tab==='calendar'){window.setTimeout(()=>{setEvents(readStored(CALENDAR_STORAGE_KEY,createDefaultCalendarEvents()));setWorkspaceMode('calendar')},0);return}if(tab==='meetings'){window.setTimeout(()=>{setMeetings(readStored(MEETING_STORAGE_KEY,createDefaultMeetings()));setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY,FALLBACK_TASKS)));setWorkspaceMode('meetings')},0);return}if(workspaceMode){event.preventDefault();event.stopPropagation();sessionStorage.setItem('department-next-tab',tab);window.location.reload()}};document.addEventListener('click',handleNavigation,true);return()=>document.removeEventListener('click',handleNavigation,true)},[workspaceMode]);
+  useEffect(()=>{const handleNavigation=event=>{const button=event.target.closest?.('[data-testid^="tab-"]');if(!button)return;const tab=button.getAttribute('data-testid')?.replace('tab-','');if(tab==='tasks'){window.setTimeout(()=>{setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY,FALLBACK_TASKS)));setWorkspaceMode('tasks')},0);return}if(tab==='records'){window.setTimeout(()=>{setRecords(readStored(RECORD_STORAGE_KEY,FALLBACK_RECORDS));setWorkspaceMode('records')},0);return}if(tab==='plans'){window.setTimeout(()=>{setPlans(readStored(PLAN_STORAGE_KEY,FALLBACK_PLANS));setWorkspaceMode('plans')},0);return}if(tab==='calendar'){window.setTimeout(()=>{setEvents(readStored(CALENDAR_STORAGE_KEY,createDefaultCalendarEvents()));setWorkspaceMode('calendar')},0);return}if(tab==='meetings'){window.setTimeout(()=>{setMeetings(readStored(MEETING_STORAGE_KEY,createDefaultMeetings()));setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY,FALLBACK_TASKS)));setWorkspaceMode('meetings')},0);return}if(tab==='evidence'){window.setTimeout(()=>{setEvidence(readStored(EVIDENCE_STORAGE_KEY,createDefaultEvidence()));setWorkspaceMode('evidence')},0);return}if(workspaceMode){event.preventDefault();event.stopPropagation();sessionStorage.setItem('department-next-tab',tab);window.location.reload()}};document.addEventListener('click',handleNavigation,true);return()=>document.removeEventListener('click',handleNavigation,true)},[workspaceMode]);
 
   useEffect(()=>{if(workspaceMode==='tasks'||workspaceMode==='meetings')try{localStorage.setItem(TASK_STORAGE_KEY,JSON.stringify(tasks))}catch{}},[tasks,workspaceMode]);
   useEffect(()=>{if(workspaceMode==='records')try{localStorage.setItem(RECORD_STORAGE_KEY,JSON.stringify(records))}catch{}},[records,workspaceMode]);
   useEffect(()=>{if(workspaceMode==='plans')try{localStorage.setItem(PLAN_STORAGE_KEY,JSON.stringify(plans))}catch{}},[plans,workspaceMode]);
   useEffect(()=>{if(workspaceMode==='calendar')try{localStorage.setItem(CALENDAR_STORAGE_KEY,JSON.stringify(events))}catch{}},[events,workspaceMode]);
   useEffect(()=>{if(workspaceMode==='meetings')try{localStorage.setItem(MEETING_STORAGE_KEY,JSON.stringify(meetings))}catch{}},[meetings,workspaceMode]);
+  useEffect(()=>{if(workspaceMode==='evidence')try{localStorage.setItem(EVIDENCE_STORAGE_KEY,JSON.stringify(evidence))}catch{}},[evidence,workspaceMode]);
   useEffect(()=>{if(!toast)return undefined;const timer=window.setTimeout(()=>setToast(''),2600);return()=>window.clearTimeout(timer)},[toast]);
 
   const updateTask=(id,patch)=>setTasks(items=>items.map(item=>item.id===id?{...item,...patch}:item));
@@ -73,6 +77,8 @@ function DepartmentRoot(){
   const deleteEvent=id=>{setEvents(items=>items.filter(item=>item.id!==id));setToast('Đã xóa hoạt động.')};
   const updateMeeting=(id,patch)=>setMeetings(items=>items.map(item=>item.id===id?{...item,...patch}:item));
   const deleteMeeting=id=>{setMeetings(items=>items.filter(item=>item.id!==id));setToast('Đã xóa cuộc họp.')};
+  const updateEvidence=(id,patch)=>setEvidence(items=>items.map(item=>item.id===id?{...item,...patch}:item));
+  const deleteEvidence=id=>{setEvidence(items=>items.filter(item=>item.id!==id));setToast('Đã xóa minh chứng.')};
 
   return <><App/>
     {workspaceMode==='tasks'&&<section className="task-workspace-bridge" aria-label="Không gian Giao việc hoàn chỉnh"><TasksWorkspace tasks={tasks} setTasks={setTasks} updateTask={updateTask} deleteTask={deleteTask} setToast={setToast}/></section>}
@@ -80,6 +86,7 @@ function DepartmentRoot(){
     {workspaceMode==='plans'&&<section className="task-workspace-bridge" aria-label="Không gian Kế hoạch hoàn chỉnh"><PlansWorkspace plans={plans} setPlans={setPlans} updatePlan={updatePlan} deletePlan={deletePlan} setToast={setToast}/></section>}
     {workspaceMode==='calendar'&&<section className="task-workspace-bridge" aria-label="Không gian Lịch hoàn chỉnh"><CalendarWorkspace events={events} setEvents={setEvents} updateEvent={updateEvent} deleteEvent={deleteEvent} setToast={setToast}/></section>}
     {workspaceMode==='meetings'&&<section className="task-workspace-bridge" aria-label="Không gian Sinh hoạt tổ hoàn chỉnh"><MeetingsWorkspace meetings={meetings} setMeetings={setMeetings} updateMeeting={updateMeeting} deleteMeeting={deleteMeeting} setTasks={setTasks} setToast={setToast}/></section>}
+    {workspaceMode==='evidence'&&<section className="task-workspace-bridge" aria-label="Không gian Minh chứng hoàn chỉnh"><EvidenceWorkspace evidence={evidence} setEvidence={setEvidence} updateEvidence={updateEvidence} deleteEvidence={deleteEvidence} setToast={setToast}/></section>}
     {toast&&<div className="bridge-toast" role="status">{toast}</div>}
   </>;
 }
