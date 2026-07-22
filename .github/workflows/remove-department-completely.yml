@@ -27,20 +27,45 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Audit retired Department implementation
+      - name: Run audit, install and build diagnostics
         shell: bash
         run: |
-          node scripts/remove-department-completely.mjs | tee department-removal-audit.txt
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build website
-        shell: bash
-        run: |
-          npm run build 2>&1 | tee department-removal-build.txt
+          set +e
+          node scripts/remove-department-completely.mjs > department-removal-audit.txt 2>&1
+          audit_code=$?
+          npm ci > department-removal-install.txt 2>&1
+          install_code=$?
+          if [ "$install_code" = "0" ]; then
+            npm run build > department-removal-build.txt 2>&1
+            build_code=$?
+          else
+            echo "Build skipped because npm ci failed." > department-removal-build.txt
+            build_code=99
+          fi
+          {
+            echo "Department removal audit exit code: $audit_code"
+            echo "npm ci exit code: $install_code"
+            echo "Website build exit code: $build_code"
+            echo "Source commit: $GITHUB_SHA"
+            echo "Checked at: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo
+            echo "=== AUDIT ==="
+            cat department-removal-audit.txt
+            echo
+            echo "=== INSTALL (last 120 lines) ==="
+            tail -n 120 department-removal-install.txt
+            echo
+            echo "=== BUILD (last 160 lines) ==="
+            tail -n 160 department-removal-build.txt
+          } > manual-cleanup-report.txt
+          echo "AUDIT_CODE=$audit_code" >> "$GITHUB_ENV"
+          echo "INSTALL_CODE=$install_code" >> "$GITHUB_ENV"
+          echo "BUILD_CODE=$build_code" >> "$GITHUB_ENV"
+          cat manual-cleanup-report.txt
+          exit 0
 
       - name: Create verified ZIP packages
+        if: env.AUDIT_CODE == '0' && env.INSTALL_CODE == '0' && env.BUILD_CODE == '0'
         shell: bash
         run: |
           zip -qr Brian-English-Studio-Department-Removed-source.zip . \
@@ -50,25 +75,36 @@ jobs:
           cd ..
           sha256sum Brian-English-Studio-Department-Removed-*.zip > SHA256SUMS.txt
 
-      - name: Upload verified manual package
+      - name: Upload diagnostic and verified package
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Brian-English-Studio-Department-Removed-Verified
+          name: Brian-English-Studio-Department-Removed-Diagnostic
           path: |
+            manual-cleanup-report.txt
             department-removal-audit.txt
+            department-removal-install.txt
             department-removal-build.txt
             Brian-English-Studio-Department-Removed-source.zip
             Brian-English-Studio-Department-Removed-static.zip
             SHA256SUMS.txt
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
 
-      - name: Mark branch as verified
+      - name: Commit diagnostic report to branch
+        if: always()
         shell: bash
         run: |
-          printf 'Department removal audit: PASS\nWebsite build: PASS\nVerified source commit: %s\nVerified at: %s\n' "$GITHUB_SHA" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" > manual-cleanup-verified.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add manual-cleanup-verified.txt
-          git commit -m "Verify manual Department removal build"
+          git add manual-cleanup-report.txt
+          git commit -m "Record manual Department cleanup verification"
           git push origin HEAD:agent/remove-department-completely
+
+      - name: Enforce successful verification
+        if: always()
+        shell: bash
+        run: |
+          if [ "${AUDIT_CODE:-1}" != "0" ] || [ "${INSTALL_CODE:-1}" != "0" ] || [ "${BUILD_CODE:-1}" != "0" ]; then
+            exit 1
+          fi
