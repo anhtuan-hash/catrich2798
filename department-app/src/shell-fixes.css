@@ -15,7 +15,7 @@ body{overflow-y:auto}
 .app-header nav button span{display:block!important;overflow:visible!important;text-overflow:clip!important;white-space:nowrap!important}
 .app-header .header-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:10px!important;min-width:max-content!important;overflow:visible!important}
 .app-header .brand-button{min-width:max-content!important;padding-right:2px!important}
-.task-workspace-bridge{overflow:visible!important;min-height:calc(100vh - 110px)}
+.task-workspace-bridge{height:auto!important;min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-gutter:stable}
 .global-notification-scrim{position:fixed;z-index:399;inset:0;border:0;background:rgba(24,25,44,.28);backdrop-filter:blur(3px);cursor:default}
 .global-notification-drawer{position:fixed;z-index:400;top:0;right:0;width:min(430px,100vw);height:100vh;overflow:auto;background:#fff;box-shadow:-24px 0 70px rgba(27,28,54,.24);animation:globalDrawerIn .18s ease-out}
 .global-notification-drawer header{position:sticky;z-index:2;top:0;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:24px;border-bottom:1px solid #e9eaf2;background:rgba(255,255,255,.97);backdrop-filter:blur(14px)}
