@@ -1,0 +1,81 @@
+name: Apply Department UI v2
+
+on:
+  push:
+    branches:
+      - feature/department-standalone-microfrontend
+    paths:
+      - .github/workflows/apply-department-ui-v2.yml
+      - .github/department-ui-v2-payload/**
+
+permissions:
+  contents: write
+
+jobs:
+  apply-build-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout standalone branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/department-standalone-microfrontend
+          fetch-depth: 0
+
+      - name: Reconstruct UI v2 source
+        run: |
+          rm -rf /tmp/department-ui-v2
+          mkdir -p /tmp/department-ui-v2
+          cat .github/department-ui-v2-payload/part-*.txt | base64 --decode > /tmp/department-ui-v2.tar.gz
+          tar -xzf /tmp/department-ui-v2.tar.gz -C /tmp/department-ui-v2
+          test -f /tmp/department-ui-v2/src/App.jsx
+          test -f /tmp/department-ui-v2/src/styles.css
+          test -f /tmp/department-ui-v2/tests/workspace.spec.js
+          cp /tmp/department-ui-v2/src/App.jsx department-app/src/App.jsx
+          cp /tmp/department-ui-v2/src/main.jsx department-app/src/main.jsx
+          cp /tmp/department-ui-v2/src/styles.css department-app/src/styles.css
+          cp /tmp/department-ui-v2/package.json department-app/package.json
+          cp /tmp/department-ui-v2/index.html department-app/index.html
+          cp /tmp/department-ui-v2/vite.config.js department-app/vite.config.js
+          cp /tmp/department-ui-v2/playwright.config.js department-app/playwright.config.js
+          mkdir -p department-app/tests
+          cp /tmp/department-ui-v2/tests/workspace.spec.js department-app/tests/workspace.spec.js
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: department-app/package.json
+
+      - name: Install dependencies
+        working-directory: department-app
+        run: npm install --no-audit --no-fund
+
+      - name: Build production bundle
+        working-directory: department-app
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        working-directory: department-app
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser interaction tests
+        working-directory: department-app
+        run: npm run test:e2e
+
+      - name: Verify visual and functional contract
+        run: |
+          grep -q "min-height:640px" department-app/src/styles.css
+          grep -q "department-v2-tasks" department-app/src/App.jsx
+          grep -q "window.print" department-app/src/App.jsx
+          grep -q "test('creates and persists a task" department-app/tests/workspace.spec.js
+          test -f department-app/dist/index.html
+
+      - name: Commit tested UI v2
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add department-app/src/App.jsx department-app/src/main.jsx department-app/src/styles.css department-app/package.json department-app/package-lock.json department-app/index.html department-app/vite.config.js department-app/playwright.config.js department-app/tests/workspace.spec.js
+          git diff --cached --quiet || git commit -m "Rebuild standalone Department UI and validate interactions"
+          git push origin HEAD:feature/department-standalone-microfrontend
