@@ -88,7 +88,6 @@ const QAHealthCheck = lazy(() => import('./pages/QAHealthCheck.jsx'));
 const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
 const SupabaseSetup = lazy(() => import('./pages/SupabaseSetup.jsx'));
-const DepartmentWorkspace = lazy(() => import('./pages/DepartmentWorkspace.jsx'));
 const HomeroomWorkspace = lazy(() => import('./pages/HomeroomWorkspace.jsx'));
 const HomeroomPortal = lazy(() => import('./pages/HomeroomPortal.jsx'));
 const FullMotionEffects = lazy(() => import('./components/FullMotionEffects.jsx')); // clean Metro motion layer
@@ -124,7 +123,7 @@ const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAcces
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'department', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'work-hub', 'content-factory', 'content-ecosystem', 'lesson-pack', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'work-hub', 'content-factory', 'content-ecosystem', 'lesson-pack', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
 
 function getInitialRoute() {
@@ -141,7 +140,6 @@ const ROUTE_DESIGN_PROFILES = {
   apps: { accent: '#F05A7E', soft: '#FFE1EA', ink: '#2F111A' },
   news: { accent: '#167D78', soft: '#DDF5F1', ink: '#083B38' },
   games: { accent: '#5B2A86', soft: '#E9DAFF', ink: '#20102F' },
-  department: { accent: '#3B4CCA', soft: '#E0E4FF', ink: '#12183B' },
   homeroom: { accent: '#1F8F70', soft: '#DDF7ED', ink: '#0B382B' },
   'homeroom-portal': { accent: '#1F8F70', soft: '#DDF7ED', ink: '#0B382B' },
   library: { accent: '#6FBA7B', soft: '#E4F6E6', ink: '#17351D' },
@@ -435,7 +433,7 @@ function App() {
     if (!currentUser || !canAccessRoute || ['login', 'register', 'homeroom-portal'].includes(currentRoute)) return;
     const routeTitles = {
       home: ['Home', 'Trang chủ'], apps: ['Apps', 'Ứng dụng'], news: ['Newsroom', 'Đọc báo'], games: ['Games', 'Trò chơi'],
-      department: ['Department', 'Tổ chuyên môn'], homeroom: ['Homeroom', 'Giáo viên chủ nhiệm'], library: ['Library', 'Thư viện'],
+      homeroom: ['Homeroom', 'Giáo viên chủ nhiệm'], library: ['Library', 'Thư viện'],
       'resource-library': ['Resource Library', 'Kho học liệu'], 'knowledge-hub': ['Smart Knowledge Library', 'Kho học liệu thông minh'],
       dashboard: ['Work Dashboard', 'Bảng điều hành'],
       'work-hub': ['Unified Work Hub', 'Trung tâm công việc'],
@@ -540,7 +538,7 @@ function App() {
       <Suspense fallback={null}>
         <GlobalRuntimeGuard language={language} />
       </Suspense>
-{effectiveMotionMode === 'full' && (
+ {effectiveMotionMode === 'full' && (
         <Suspense fallback={null}>
           <FullMotionEffects route={currentRoute} language={language} loadingState={loadingState} />
         </Suspense>
@@ -576,7 +574,6 @@ function App() {
           {canAccessRoute && currentRoute === 'news' && currentUser && <NewsReader {...context} />}
           {canAccessRoute && currentRoute === 'games' && currentUser && <Games games={accessibleGames} {...context} />}
           {canAccessRoute && currentRoute === 'tools' && currentUser && <SpecialTools tools={accessibleTools} {...context} />}
-          {canAccessRoute && currentRoute === 'department' && currentUser && <DepartmentWorkspace {...context} />}
           {canAccessRoute && currentRoute === 'homeroom' && currentUser && <HomeroomWorkspace {...context} />}
           {currentRoute === 'homeroom-portal' && <HomeroomPortal {...context} />}
           {currentRoute === 'resources' && <Resources items={RESOURCE_ITEMS} {...context} />}
@@ -617,7 +614,7 @@ function App() {
           </AppErrorBoundary>
         </Suspense>
       )}
-{currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'dashboard'].includes(currentRoute) ? <>
+ {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'dashboard'].includes(currentRoute) ? <>
         <Suspense fallback={null}>
           <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
             <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} appVisibility={appVisibility} />

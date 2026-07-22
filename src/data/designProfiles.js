@@ -105,14 +105,6 @@ export const APP_DESIGN_PROFILES = {
     style: 'Homeroom command center',
     styleVi: 'Trung tâm công tác chủ nhiệm',
   },
-  'department-workspace': {
-    accent: '#3B4CCA',
-    soft: '#E0E4FF',
-    ink: '#12183B',
-    icon: 'department',
-    style: 'Department dashboard',
-    styleVi: 'Bảng quản lý tổ chuyên môn',
-  },
   'student-practice': {
     accent: '#FF7A54',
     soft: '#FFE4DA',

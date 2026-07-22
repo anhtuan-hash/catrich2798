@@ -1,8 +1,4 @@
-import { DEPARTMENT_APP } from './department.js';
-
 export const APPS = [
-  DEPARTMENT_APP,
-
   {
     slug: 'work-dashboard', route: 'dashboard', icon: 'DB', tone: 'blue', group: 'Management', groupVi: 'Quản lý',
     title: 'Work Dashboard', titleVi: 'Bảng điều hành',

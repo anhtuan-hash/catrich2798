@@ -1,7 +1,6 @@
 import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../data/apps.js';
 import { HOMEROOM_PERMISSION_ID, HOMEROOM_PERMISSION_ITEM } from '../data/homeroom.js';
-import { isAdminRole, isDepartmentLeaderRole, normalizeSystemRole } from './roles.js';
-import { DEPARTMENT_MODULES, DEPARTMENT_PERMISSION_ITEMS, DEPARTMENT_PUBLISH_PERMISSION_ID, DEPARTMENT_WORKSPACE_PERMISSION_ID, DEPARTMENT_WORKSPACE_SLUG } from '../data/department.js';
+import { isAdminRole, isDepartmentLeaderRole } from './roles.js';
 
 export const PERMISSION_MODE_ALL = 'all';
 export const PERMISSION_MODE_CUSTOM = 'custom';
@@ -30,7 +29,6 @@ export const ROUTE_PERMISSION_IDS = {
   practice: 'route:practice',
   qa: 'route:qa',
   settings: 'route:settings',
-  department: DEPARTMENT_WORKSPACE_PERMISSION_ID,
   homeroom: HOMEROOM_PERMISSION_ID,
 };
 
@@ -220,7 +218,7 @@ export const TOOL_PERMISSION_ITEMS = [
   ...SPECIAL_TOOLS.map((item) => makeToolPermissionItem(item, 'tools')),
 ];
 
-export const PERMISSION_ITEMS = [...CORE_PERMISSION_ITEMS, ...TOOL_PERMISSION_ITEMS, ...DEPARTMENT_PERMISSION_ITEMS];
+export const PERMISSION_ITEMS = [...CORE_PERMISSION_ITEMS, ...TOOL_PERMISSION_ITEMS];
 export const ALL_PERMISSION_IDS = PERMISSION_ITEMS.map((item) => item.id);
 
 export const PERMISSION_GROUPS = [
@@ -247,12 +245,6 @@ export const PERMISSION_GROUPS = [
     title: 'Teaching tools',
     titleVi: 'Công cụ dạy học',
     ids: TOOL_PERMISSION_ITEMS.filter((item) => item.section === 'tools').map((item) => item.id),
-  },
-  {
-    key: 'department',
-    title: 'English department workspace',
-    titleVi: 'Tổ chuyên môn',
-    ids: DEPARTMENT_PERMISSION_ITEMS.map((item) => item.id),
   },
 ];
 
@@ -297,43 +289,6 @@ export function hasExplicitPermissionId(user, permissionId) {
   return Array.isArray(permissions.allowed) && permissions.allowed.includes(permissionId);
 }
 
-export function canPublishDepartment(user) {
-  if (!user) return false;
-  const role = normalizeSystemRole(user.role, 'teacher');
-  if (isAdminRole(role)) return true;
-
-  // A real TTCM/department-leader account may be stored as a specific role.
-  // This is intentionally separate from normal "teacher" so teachers with broad
-  // app access still cannot see or use leader operation tools.
-  if (isDepartmentLeaderRole(role)) return true;
-
-  // HARD GUARD: normal teacher accounts must never unlock TTCM operation tools,
-  // even when they have broad tool access or an old publish permission in local/cloud data.
-  // A department leader should be represented explicitly, not as a regular teacher.
-  const leaderMarkers = [
-    user.departmentRole,
-    user.department_role,
-    user.position,
-    user.title,
-    user.jobTitle,
-    user.job_title,
-  ].map((value) => String(value || '').toLowerCase());
-
-  const isDepartmentLeader = leaderMarkers.some((value) => (
-    value.includes('ttcm')
-    || value.includes('tổ trưởng')
-    || value.includes('to truong')
-    || value.includes('department leader')
-    || value.includes('department head')
-    || value.includes('subject leader')
-  ));
-
-  if (!isDepartmentLeader) return false;
-
-  // Only explicit department leaders may use the publish/assign/review permission.
-  return hasExplicitPermissionId(user, DEPARTMENT_PUBLISH_PERMISSION_ID);
-}
-
 export function hasPermissionId(user, permissionId) {
   if (!user) return false;
   if (isAdminRole(user.role)) return true;
@@ -363,23 +318,9 @@ export function hasAnyToolInSection(user, section) {
   return TOOL_PERMISSION_ITEMS.some((item) => item.section === section && hasPermissionId(user, item.id));
 }
 
-export function hasDepartmentModuleAccess(user, moduleId) {
-  if (!user) return false;
-  if (isAdminRole(user.role)) return true;
-  if (hasToolAccess(user, DEPARTMENT_WORKSPACE_SLUG)) return true;
-  return hasPermissionId(user, moduleId);
-}
-
-export function hasAnyDepartmentAccess(user) {
-  if (!user) return false;
-  if (isAdminRole(user.role)) return true;
-  return hasToolAccess(user, DEPARTMENT_WORKSPACE_SLUG) || DEPARTMENT_MODULES.some((module) => hasPermissionId(user, module.id));
-}
-
 export function getRoutePermissionId(route) {
   if (route === 'news') return getToolPermissionId('news-reader');
   if (route === 'practice') return ROUTE_PERMISSION_IDS.practice;
-  if (route === 'department') return DEPARTMENT_WORKSPACE_PERMISSION_ID;
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
   if (route === 'dashboard' || route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'content-factory' || route === 'lesson-pack' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
@@ -396,7 +337,6 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (route === 'tool') return hasToolAccess(user, selectedTool?.slug);
   if (route === 'news') return Boolean(user);
   if (route === 'dashboard') return Boolean(user);
-  if (route === 'department') return hasAnyDepartmentAccess(user);
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
   // Teachers can open these dashboards even when some cards are locked.
   // Locked cards stay visible and show a request-access button.
