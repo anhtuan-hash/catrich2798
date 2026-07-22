@@ -1,0 +1,62 @@
+name: Build standalone Department app
+
+on:
+  push:
+    branches:
+      - feature/department-standalone-microfrontend
+    paths:
+      - .github/workflows/build-department-standalone.yml
+      - .github/department-standalone-payload/**
+
+permissions:
+  contents: write
+
+jobs:
+  reconstruct-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/department-standalone-microfrontend
+          fetch-depth: 0
+
+      - name: Reconstruct independent Vite application
+        run: |
+          cat .github/department-standalone-payload/part-*.txt | base64 --decode > /tmp/department-app.tar.gz
+          rm -rf department-app
+          tar -xzf /tmp/department-app.tar.gz
+          test -f department-app/package.json
+          test -f department-app/src/App.jsx
+          test -f department-app/src/styles.css
+
+      - name: Commit standalone application
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add department-app
+          git diff --cached --quiet || git commit -m "Build standalone Department microfrontend"
+          git push origin HEAD:feature/department-standalone-microfrontend
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: department-app/package.json
+
+      - name: Install dependencies
+        working-directory: department-app
+        run: npm install --no-audit --no-fund
+
+      - name: Build production bundle
+        working-directory: department-app
+        run: npm run build
+
+      - name: Verify independent deployment contract
+        run: |
+          test -f department-app/dist/index.html
+          grep -q "/to-chuyen-mon/" department-app/vite.config.js
+          grep -q "workspace-grid" department-app/src/App.jsx
+          grep -q "grid-template-columns:minmax(0,1fr) 330px" department-app/src/styles.css
