@@ -1,3 +1,6 @@
+const CLOUD_ENABLED = ['1', 'true', 'yes', 'on'].includes(
+  String(import.meta.env.VITE_DEPARTMENT_CLOUD_ENABLED || '').trim().toLowerCase(),
+);
 const CLOUD_URL = String(import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
 const CLOUD_ANON_KEY = String(import.meta.env.VITE_SUPABASE_ANON_KEY || '');
 const CONFIGURED_DEPARTMENT_ID = String(import.meta.env.VITE_DEPARTMENT_ID || '');
@@ -16,7 +19,9 @@ const COLLECTION_TYPES = Object.freeze({
 
 const SAVE_TIMERS = new Map();
 
-export const isDepartmentCloudConfigured = Boolean(CLOUD_URL && CLOUD_ANON_KEY);
+export const isDepartmentCloudConfigured = Boolean(
+  CLOUD_ENABLED && CLOUD_URL && CLOUD_ANON_KEY && CONFIGURED_DEPARTMENT_ID,
+);
 
 export function createLocalDepartmentContext() {
   return {
@@ -29,7 +34,9 @@ export function createLocalDepartmentContext() {
     departmentId: CONFIGURED_DEPARTMENT_ID || null,
     accessToken: '',
     canManage: true,
-    message: 'Dữ liệu đang được lưu cục bộ trên thiết bị này.',
+    message: CLOUD_ENABLED
+      ? 'Supabase chưa đủ cấu hình. Dữ liệu đang được lưu cục bộ trên thiết bị này.'
+      : 'Dữ liệu đang được lưu cục bộ trên thiết bị này.',
     collections: {},
   };
 }
@@ -53,22 +60,27 @@ function readAccessToken() {
   if (DEV_ACCESS_TOKEN) return DEV_ACCESS_TOKEN;
   if (typeof window === 'undefined') return '';
 
-  const injected = extractAccessToken(window.__BRIAN_SUPABASE_SESSION__);
-  if (injected) return injected;
+  try {
+    const injected = extractAccessToken(window.__BRIAN_SUPABASE_SESSION__);
+    if (injected) return injected;
 
-  const explicit = localStorage.getItem('brian-department-session')
-    || localStorage.getItem('brian-supabase-session')
-    || localStorage.getItem('brian-department-access-token');
-  if (explicit && !explicit.trim().startsWith('{')) return explicit.trim();
-  const explicitToken = extractAccessToken(explicit);
-  if (explicitToken) return explicitToken;
+    const explicit = localStorage.getItem('brian-department-session')
+      || localStorage.getItem('brian-supabase-session')
+      || localStorage.getItem('brian-department-access-token');
+    if (explicit && !explicit.trim().startsWith('{')) return explicit.trim();
+    const explicitToken = extractAccessToken(explicit);
+    if (explicitToken) return explicitToken;
 
-  for (let index = 0; index < localStorage.length; index += 1) {
-    const key = localStorage.key(index);
-    if (!key || !/^sb-.*-auth-token$/.test(key)) continue;
-    const token = extractAccessToken(localStorage.getItem(key));
-    if (token) return token;
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (!key || !/^sb-.*-auth-token$/.test(key)) continue;
+      const token = extractAccessToken(localStorage.getItem(key));
+      if (token) return token;
+    }
+  } catch (error) {
+    console.warn('[Department cloud] could not inspect browser session', error);
   }
+
   return '';
 }
 
@@ -125,7 +137,7 @@ export async function initializeDepartmentCloud() {
       role: 'viewer',
       roleLabel: 'Chưa đăng nhập',
       canManage: false,
-      message: 'Đã có cấu hình Supabase nhưng chưa nhận được phiên đăng nhập Brian.',
+      message: 'Đã bật Supabase cho Tổ chuyên môn nhưng chưa nhận được phiên đăng nhập Brian.',
     };
   }
 
@@ -134,6 +146,7 @@ export async function initializeDepartmentCloud() {
     const membershipQuery = new URLSearchParams({
       select: 'department_id,role,display_name,email,active',
       user_id: `eq.${user.id}`,
+      department_id: `eq.${CONFIGURED_DEPARTMENT_ID}`,
       active: 'eq.true',
       limit: '1',
     });
@@ -153,10 +166,6 @@ export async function initializeDepartmentCloud() {
         canManage: false,
         message: 'Tài khoản này chưa được thêm vào danh sách thành viên Tổ chuyên môn.',
       };
-    }
-
-    if (CONFIGURED_DEPARTMENT_ID && membership.department_id !== CONFIGURED_DEPARTMENT_ID) {
-      throw new Error('Tài khoản không thuộc Tổ chuyên môn đã cấu hình.');
     }
 
     const entityQuery = new URLSearchParams({
@@ -222,7 +231,9 @@ export function scheduleDepartmentCollectionSave(context, key, items, delay = 65
       });
     } catch (error) {
       console.error(`[Department cloud] failed to save ${entityType}`, error);
-      window.dispatchEvent(new CustomEvent('department-cloud-error', { detail: { entityType, message: error.message } }));
+      window.dispatchEvent(new CustomEvent('department-cloud-error', {
+        detail: { entityType, message: error.message },
+      }));
     } finally {
       SAVE_TIMERS.delete(timerKey);
     }
@@ -235,8 +246,9 @@ export function shouldBlockReadOnlyMutation(target) {
   if (control.closest('.app-header') || control.closest('.global-notification-drawer')) return false;
 
   const aria = control.getAttribute?.('aria-label') || '';
+  const normalizedAria = aria.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const text = `${aria} ${control.textContent || ''}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  if (/^(tim|loc|sap xep)/.test(aria.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase())) return false;
+  if (/^(tim|loc|sap xep)/.test(normalizedAria)) return false;
   if (control.tagName === 'SELECT' && /(loc|sap xep|che do)/.test(text)) return false;
   if (control.matches?.('input[type="search"]')) return false;
   if (control.matches?.('input[type="checkbox"],input[type="range"],input[type="file"],input[type="date"],input[type="time"],textarea')) return true;
