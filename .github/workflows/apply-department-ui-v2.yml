@@ -46,6 +46,20 @@ jobs:
           cp /tmp/department-ui-v2/playwright.config.js department-app/playwright.config.js
           mkdir -p department-app/tests
           cp /tmp/department-ui-v2/tests/workspace.spec.js department-app/tests/workspace.spec.js
+          python <<'PY'
+          from pathlib import Path
+          path = Path('department-app/tests/workspace.spec.js')
+          text = path.read_text()
+          text = text.replace(
+              "  await page.getByRole('button', { name: /Tùy chọn Kiểm tra chức năng nhiệm vụ/ }).click();\n  await page.getByRole('button', { name: 'Hoàn thành' }).click();\n",
+              "  const createdTask = page.getByTestId(/task-/).filter({ hasText: 'Kiểm tra chức năng nhiệm vụ' });\n  await createdTask.getByRole('button', { name: /Tùy chọn Kiểm tra chức năng nhiệm vụ/ }).click();\n  await createdTask.getByRole('button', { name: 'Hoàn thành', exact: true }).click();\n",
+          )
+          text = text.replace(
+              "  await page.getByRole('button', { name: /Xây dựng ma trận/ }).click();\n",
+              "  await page.locator('.search-results').getByRole('button', { name: /Xây dựng ma trận/ }).click();\n",
+          )
+          path.write_text(text)
+          PY
 
       - name: Use Node 22
         uses: actions/setup-node@v4
@@ -89,7 +103,7 @@ jobs:
           grep -q "min-height:640px" department-app/src/styles.css
           grep -q "department-v2-tasks" department-app/src/App.jsx
           grep -q "window.print" department-app/src/App.jsx
-          grep -q "test('creates and persists a task" department-app/tests/workspace.spec.js
+          grep -q "const createdTask" department-app/tests/workspace.spec.js
           test -f department-app/dist/index.html
 
       - name: Commit tested UI v2
