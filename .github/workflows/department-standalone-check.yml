@@ -1,0 +1,47 @@
+name: Department Standalone Check
+
+on:
+  push:
+    branches:
+      - feature/department-standalone-microfrontend
+    paths:
+      - department-app/**
+      - .github/workflows/department-standalone-check.yml
+  pull_request:
+    branches:
+      - feature/department-new-known-good
+    paths:
+      - department-app/**
+      - .github/workflows/department-standalone-check.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: department-app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: department-app/package.json
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build standalone app
+        run: npm run build
+
+      - name: Verify reverse-proxy contract
+        run: |
+          test -f dist/index.html
+          grep -q "base: '/to-chuyen-mon/'" vite.config.js
+          grep -q '"source": "/to-chuyen-mon/(.*)"' vercel.json
+          grep -q "workspace-grid" src/App.jsx
+          grep -q "grid-template-columns:minmax(0,1fr) 330px" src/styles.css
