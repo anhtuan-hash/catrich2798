@@ -7,6 +7,12 @@ on:
     paths:
       - .github/workflows/apply-department-ui-v2.yml
       - .github/department-ui-v2-payload/**
+  pull_request:
+    branches:
+      - feature/department-new-known-good
+    paths:
+      - .github/workflows/apply-department-ui-v2.yml
+      - .github/department-ui-v2-payload/**
 
 permissions:
   contents: write
