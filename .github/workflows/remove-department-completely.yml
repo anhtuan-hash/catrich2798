@@ -4,20 +4,19 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  remove-department:
+  verify-removal:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout removal branch
+      - name: Checkout pull request branch
         uses: actions/checkout@v4
         with:
-          ref: agent/remove-department-completely
           fetch-depth: 0
-          persist-credentials: true
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -25,8 +24,22 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Remove every old Department implementation
-        run: node scripts/remove-department-completely.mjs
+      - name: Produce Department removal audit report
+        shell: bash
+        run: |
+          set +e
+          node scripts/remove-department-completely.mjs > department-removal-audit.txt 2>&1
+          status=$?
+          echo "AUDIT_EXIT_CODE=$status" >> "$GITHUB_ENV"
+          cat department-removal-audit.txt
+          exit 0
+
+      - name: Upload removal audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: department-removal-audit
+          path: department-removal-audit.txt
+          if-no-files-found: error
 
       - name: Install dependencies
         run: npm ci
@@ -34,10 +47,11 @@ jobs:
       - name: Build website
         run: npm run build
 
-      - name: Commit clean removal to pull request branch
+      - name: Enforce removal audit
+        shell: bash
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Remove the old Department Workspace completely"
-          git push origin HEAD:agent/remove-department-completely
+          if [ "${AUDIT_EXIT_CODE}" != "0" ]; then
+            echo "Department removal audit failed. Download the department-removal-audit artifact for the exact remaining references."
+            exit 1
+          fi
+          echo "Department removal audit passed."
