@@ -1,15 +1,15 @@
 Department removal audit exit code: 0
 npm ci exit code: 0
-Website build exit code: 1
-Source commit: b89731833c887223fadee3b26e7e5c2c2d0108b6
-Checked at: 2026-07-22T03:51:54Z
+Website build exit code: 0
+Source commit: e475d3d554c481d368183f75237ce9fa2662dc17
+Checked at: 2026-07-22T03:55:10Z
 
 === AUDIT ===
 Department removal audit passed: route, catalog entry, UI, styles, permissions, store and tests are absent.
 
 === INSTALL (last 120 lines) ===
 
-added 69 packages in 6s
+added 69 packages in 3s
 
 === BUILD (last 160 lines) ===
 
@@ -26,57 +26,91 @@ Version registry synchronized: 11.6.7
 /fonts/personal-font.ttf referenced in /fonts/personal-font.ttf didn't resolve at build time, it will remain unchanged to be resolved at runtime
 ✓ 294 modules transformed.
 rendering chunks...
-[31m✗[39m Build failed in 900ms
-[31merror during build:
-[31mBuild failed with 9 errors:
+computing gzip size...
+dist/index.html                                           6.52 kB │ gzip:   2.40 kB
+dist/assets/pdf.worker-BASQQs-o.mjs                   2,366.08 kB
+dist/assets/Home-CNyobZLH.css                             4.38 kB │ gzip:   1.37 kB
+dist/assets/HomeroomWorkspace-C2NotlDL.css                4.53 kB │ gzip:   1.57 kB
+dist/assets/VietnamTaxStudio-B8mAexKl.css                13.68 kB │ gzip:   3.35 kB
+dist/assets/THPTPracticeHub-D5jhiRsR.css                 21.33 kB │ gzip:   4.63 kB
+dist/assets/WebApps-USuhrxG0.css                         23.75 kB │ gzip:   4.86 kB
+dist/assets/ResourceLibrary-CI_61s9P.css                 31.01 kB │ gzip:   6.35 kB
+dist/assets/WorkDashboard-CkqykUr2.css                   48.90 kB │ gzip:   9.90 kB
+dist/assets/index-DrC49HCh.css                        1,282.44 kB │ gzip: 186.65 kB
+dist/assets/AITool-KQpjWcgW.js                            0.04 kB │ gzip:   0.06 kB
+dist/assets/PromptStudio-KQpjWcgW.js                      0.04 kB │ gzip:   0.06 kB
+dist/assets/SharedChatbotDrawer-KQpjWcgW.js               0.04 kB │ gzip:   0.06 kB
+dist/assets/useRuntimeCore-B7Gx4dCu.js                    0.29 kB │ gzip:   0.22 kB
+dist/assets/PwaUpdateBanner-gzMSleVB.js                   0.59 kB │ gzip:   0.42 kB
+dist/assets/autosave-46OKupWq.js                          0.75 kB │ gzip:   0.40 kB
+dist/assets/GlobalAccessibilityAnnouncer-Qv2kojVY.js      0.89 kB │ gzip:   0.49 kB
+dist/assets/shared-Dw1be_R3.js                            0.90 kB │ gzip:   0.54 kB
+dist/assets/rolldown-runtime-aKtaBQYM.js                  1.08 kB │ gzip:   0.62 kB
+dist/assets/document-parsers-CfNIH12s.js                  1.38 kB │ gzip:   0.75 kB
+dist/assets/syncQueue-7LUxCqFO.js                         1.60 kB │ gzip:   0.75 kB
+dist/assets/GlobalRuntimeGuard-_Vic_SG1.js                1.71 kB │ gzip:   0.89 kB
+dist/assets/AppCard-CTyVvgEp.js                           2.03 kB │ gzip:   1.00 kB
+dist/assets/UnifiedUtilityRail-DWJnqZPH.js                2.10 kB │ gzip:   0.92 kB
+dist/assets/Contact-DEViRhew.js                           2.14 kB │ gzip:   1.05 kB
+dist/assets/motion-full-wp8-DB2vaVux.js                   2.32 kB │ gzip:   1.03 kB
+dist/assets/SpecialTools-CwB_RudQ.js                      2.39 kB │ gzip:   1.25 kB
+dist/assets/QAHealthCheck-BpqfHmC_.js                     2.41 kB │ gzip:   1.22 kB
+dist/assets/RouteHero-g0NMjwBz.js                         2.46 kB │ gzip:   0.86 kB
+dist/assets/TransferInboxBanner-C_omWkM8.js               2.53 kB │ gzip:   1.29 kB
+dist/assets/contentTransfer-C0HzzGC8.js                   2.74 kB │ gzip:   1.28 kB
+dist/assets/SyncQueueIndicator-BmrEEWdX.js                2.75 kB │ gzip:   1.20 kB
+dist/assets/chrome-status-DJx5Uv4U.js                     2.82 kB │ gzip:   1.50 kB
+dist/assets/workHubDelivery-d4cs2cqY.js                   3.68 kB │ gzip:   1.76 kB
+dist/assets/TrashCenter-CVk6AOEM.js                       3.68 kB │ gzip:   1.65 kB
+dist/assets/Resources-BQmfRRx3.js                         3.74 kB │ gzip:   1.62 kB
+dist/assets/FlatAppIcon-DXci8tRr.js                       5.17 kB │ gzip:   1.74 kB
+dist/assets/ContentTransferHub-CJ5Hd4_b.js                6.07 kB │ gzip:   2.46 kB
+dist/assets/HiddenAppsVault-BjSmYCAY.js                   7.27 kB │ gzip:   2.89 kB
+dist/assets/chrome-music-BiIFSEP-.js                      7.50 kB │ gzip:   2.84 kB
+dist/assets/TextLabActivities-DZCOYMb5.js                 7.66 kB │ gzip:   3.37 kB
+dist/assets/ToolPage-BggZgsQN.js                          7.94 kB │ gzip:   2.86 kB
+dist/assets/SystemHealthCenter-CWmxgvsh.js                8.49 kB │ gzip:   3.34 kB
+dist/assets/ProductionHardening-D2RRyoOW.js               9.08 kB │ gzip:   3.33 kB
+dist/assets/GlobalAutosave-Zf4tQjBj.js                    9.20 kB │ gzip:   3.49 kB
+dist/assets/automationEngine-Hp55Zc0J.js                 10.01 kB │ gzip:   3.74 kB
+dist/assets/homeroomPhase2-B1aXb0_o.js                   10.54 kB │ gzip:   3.57 kB
+dist/assets/resourceLibrary-BYL3vxXp.js                  11.12 kB │ gzip:   4.36 kB
+dist/assets/GlobalCommandPalette-Di8Tjakp.js             11.38 kB │ gzip:   4.70 kB
+dist/assets/ContentFactory-D5Xewm0A.js                   12.89 kB │ gzip:   5.04 kB
+dist/assets/KnowledgeHub-DwL769AV.js                     13.31 kB │ gzip:   4.17 kB
+dist/assets/CollaborationHub-BhnElCTW.js                 13.82 kB │ gzip:   4.11 kB
+dist/assets/Home-C1TXSdAs.js                             14.29 kB │ gzip:   5.19 kB
+dist/assets/Settings-BoEj4Elc.js                         15.15 kB │ gzip:   4.73 kB
+dist/assets/DataGovernance-DQb392iY.js                   15.36 kB │ gzip:   4.27 kB
+dist/assets/HomeroomPortal-BO12v8Qe.js                   15.64 kB │ gzip:   4.14 kB
+dist/assets/PlatformReadiness-DFZGeW9F.js                16.23 kB │ gzip:   5.51 kB
+dist/assets/AssessmentCore-mVTF1UC4.js                   16.33 kB │ gzip:   5.36 kB
+dist/assets/collaborationGovernance-Dk2SNcmj.js          17.83 kB │ gzip:   5.48 kB
+dist/assets/VietnamTaxStudio-DBqDSuhW.js                 18.99 kB │ gzip:   5.88 kB
+dist/assets/AutomationCenter-4mis2Uat.js                 19.08 kB │ gzip:   5.25 kB
+dist/assets/WorkDashboard-BLkJLCp8.js                    19.90 kB │ gzip:   6.57 kB
+dist/assets/CloudOperations-D_XQSBaL.js                  20.08 kB │ gzip:   6.07 kB
+dist/assets/StudentPractice-GdqC3xhd.js                  21.97 kB │ gzip:   6.33 kB
+dist/assets/ContentEcosystem-BZ0pwodZ.js                 22.06 kB │ gzip:   7.46 kB
+dist/assets/NewsReader-CK1aZR6s.js                       27.58 kB │ gzip:   7.99 kB
+dist/assets/LessonPack-CpOyzmj-.js                       27.77 kB │ gzip:   8.94 kB
+dist/assets/WorkHub-BYbEz7t5.js                          30.65 kB │ gzip:   9.34 kB
+dist/assets/Games-B2G5CcNP.js                            34.32 kB │ gzip:  10.20 kB
+dist/assets/THPTPracticeHub-MjGfKyCP.js                  35.60 kB │ gzip:  11.11 kB
+dist/assets/tool-games-tests-BcvO4VvJ.js                 38.08 kB │ gzip:  12.12 kB
+dist/assets/homeroomStore-B9fbCyrC.js                    39.78 kB │ gzip:   9.75 kB
+dist/assets/Library-DKSt0Jv2.js                          41.34 kB │ gzip:  11.08 kB
+dist/assets/WebApps-BuKveOrY.js                          51.47 kB │ gzip:  15.66 kB
+dist/assets/vendor-misc-CGio2Vs1.js                      55.65 kB │ gzip:  17.05 kB
+dist/assets/ResourceLibrary-BxmSKYvo.js                  60.06 kB │ gzip:  19.05 kB
+dist/assets/tool-specialized-apps-qIDgOEpg.js            83.37 kB │ gzip:  25.79 kB
+dist/assets/index-DGSnLtB0.js                            94.83 kB │ gzip:  31.43 kB
+dist/assets/tool-skills-DhwCADoj.js                     111.63 kB │ gzip:  34.84 kB
+dist/assets/vendor-react-TLP-6a_O.js                    178.41 kB │ gzip:  55.99 kB
+dist/assets/tool-docs-lessons-C-FvL17Y.js               240.45 kB │ gzip:  73.72 kB
+dist/assets/HomeroomWorkspace-2qd0HZbu.js               265.99 kB │ gzip:  60.35 kB
+dist/assets/auth-admin-ChK4jDQL.js                      304.44 kB │ gzip:  80.75 kB
+dist/assets/vendor-docx-BMErakRo.js                     491.87 kB │ gzip: 118.76 kB
+dist/assets/vendor-pdf-Df3Q0w-G.js                      514.89 kB │ gzip: 153.50 kB
 
-[31m[MISSING_EXPORT] [0m"canPublishDepartment" is not exported by "src/utils/permissions.js".
-   [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m src/pages/Games.jsx:5:10 [38;5;246m][0m
-   [38;5;246m│[0m
- [38;5;246m5 │[0m [38;5;249mi[0m[38;5;249mm[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m[38;5;249m{[0m[38;5;249m [0mcanPublishDepartment[38;5;249m,[0m[38;5;249m [0m[38;5;249mh[0m[38;5;249ma[0m[38;5;249ms[0m[38;5;249mT[0m[38;5;249mo[0m[38;5;249mo[0m[38;5;249ml[0m[38;5;249mA[0m[38;5;249mc[0m[38;5;249mc[0m[38;5;249me[0m[38;5;249ms[0m[38;5;249ms[0m[38;5;249m [0m[38;5;249m}[0m[38;5;249m [0m[38;5;249mf[0m[38;5;249mr[0m[38;5;249mo[0m[38;5;249mm[0m[38;5;249m [0m[38;5;249m"[0m[38;5;249m.[0m[38;5;249m.[0m[38;5;249m/[0m[38;5;249mu[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249ml[0m[38;5;249ms[0m[38;5;249m/[0m[38;5;249mp[0m[38;5;249me[0m[38;5;249mr[0m[38;5;249mm[0m[38;5;249mi[0m[38;5;249ms[0m[38;5;249ms[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249ms[0m[38;5;249m.[0m[38;5;249mj[0m[38;5;249ms[0m[38;5;249m"[0m[38;5;249m;[0m
- [38;5;240m  │[0m          ──────────┬─────────  
- [38;5;240m  │[0m                    ╰─────────── Missing export
-[38;5;246m───╯[0m
-
-[31m[MISSING_EXPORT] [0m"canPublishDepartment" is not exported by "src/utils/permissions.js".
-   [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m src/components/LauncherAppHub.jsx:3:10 [38;5;246m][0m
-   [38;5;246m│[0m
- [38;5;246m3 │[0m [38;5;249mi[0m[38;5;249mm[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m[38;5;249m{[0m[38;5;249m [0mcanPublishDepartment[38;5;249m [0m[38;5;249m}[0m[38;5;249m [0m[38;5;249mf[0m[38;5;249mr[0m[38;5;249mo[0m[38;5;249mm[0m[38;5;249m [0m[38;5;249m"[0m[38;5;249m.[0m[38;5;249m.[0m[38;5;249m/[0m[38;5;249mu[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249ml[0m[38;5;249ms[0m[38;5;249m/[0m[38;5;249mp[0m[38;5;249me[0m[38;5;249mr[0m[38;5;249mm[0m[38;5;249mi[0m[38;5;249ms[0m[38;5;249ms[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249ms[0m[38;5;249m.[0m[38;5;249mj[0m[38;5;249ms[0m[38;5;249m"[0m[38;5;249m;[0m
- [38;5;240m  │[0m          ──────────┬─────────  
- [38;5;240m  │[0m                    ╰─────────── Missing export
-[38;5;246m───╯[0m
-
-[31m[MISSING_EXPORT] [0m"canPublishDepartment" is not exported by "src/utils/permissions.js".
-   [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m src/utils/customGames.js:2:10 [38;5;246m][0m
-   [38;5;246m│[0m
- [38;5;246m2 │[0m [38;5;249mi[0m[38;5;249mm[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m[38;5;249m{[0m[38;5;249m [0mcanPublishDepartment[38;5;249m [0m[38;5;249m}[0m[38;5;249m [0m[38;5;249mf[0m[38;5;249mr[0m[38;5;249mo[0m[38;5;249mm[0m[38;5;249m [0m[38;5;249m"[0m[38;5;249m.[0m[38;5;249m/[0m[38;5;249mp[0m[38;5;249me[0m[38;5;249mr[0m[38;5;249mm[0m[38;5;249mi[0m[38;5;249ms[0m[38;5;249ms[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249ms[0m[38;5;249m.[0m[38;5;249mj[0m[38;5;249ms[0m[38;5;249m"[0m[38;5;249m;[0m
- [38;5;240m  │[0m          ──────────┬─────────  
- [38;5;240m  │[0m                    ╰─────────── Missing export
-[38;5;246m───╯[0m
-
-[31m[MISSING_EXPORT] [0m"canPublishDepartment" is not exported by "src/utils/permissions.js".
-   [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m src/pages/THPTPracticeHub.jsx:2:10 [38;5;246m][0m
-   [38;5;246m│[0m
- [38;5;246m2 │[0m [38;5;249mi[0m[38;5;249mm[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m[38;5;249m{[0m[38;5;249m [0mcanPublishDepartment[38;5;249m [0m[38;5;249m}[0m[38;5;249m [0m[38;5;249mf[0m[38;5;249mr[0m[38;5;249mo[0m[38;5;249mm[0m[38;5;249m [0m[38;5;249m"[0m[38;5;249m.[0m[38;5;249m.[0m[38;5;249m/[0m[38;5;249mu[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249ml[0m[38;5;249ms[0m[38;5;249m/[0m[38;5;249mp[0m[38;5;249me[0m[38;5;249mr[0m[38;5;249mm[0m[38;5;249mi[0m[38;5;249ms[0m[38;5;249ms[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249ms[0m[38;5;249m.[0m[38;5;249mj[0m[38;5;249ms[0m[38;5;249m"[0m[38;5;249m;[0m
- [38;5;240m  │[0m          ──────────┬─────────  
- [38;5;240m  │[0m                    ╰─────────── Missing export
-[38;5;246m───╯[0m
-
-[31m[MISSING_EXPORT] [0m"canPublishDepartment" is not exported by "src/utils/permissions.js".
-   [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m src/pages/ResourceLibraryBase.jsx:4:10 [38;5;246m][0m
-   [38;5;246m│[0m
- [38;5;246m4 │[0m [38;5;249mi[0m[38;5;249mm[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m[38;5;249m{[0m[38;5;249m [0mcanPublishDepartment[38;5;249m [0m[38;5;249m}[0m[38;5;249m [0m[38;5;249mf[0m[38;5;249mr[0m[38;5;249mo[0m[38;5;249mm[0m[38;5;249m [0m[38;5;249m"[0m[38;5;249m.[0m[38;5;249m.[0m[38;5;249m/[0m[38;5;249mu[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249ml[0m[38;5;249ms[0m[38;5;249m/[0m[38;5;249mp[0m[38;5;249me[0m[38;5;249mr[0m[38;5;249mm[0m[38;5;249mi[0m[38;5;249ms[0m[38;5;249ms[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249ms[0m[38;5;249m.[0m[38;5;249mj[0m[38;5;249ms[0m[38;5;249m"[0m[38;5;249m;[0m
- [38;5;240m  │[0m          ──────────┬─────────  
- [38;5;240m  │[0m                    ╰─────────── Missing export
-[38;5;246m───╯[0m
-
-...[31m
-    at aggregateBindingErrorsIntoJsError (file:///home/runner/work/catrich2798/catrich2798/node_modules/rolldown/dist/shared/error-BHRSI0R7.mjs:48:18)
-    at unwrapBindingResult (file:///home/runner/work/catrich2798/catrich2798/node_modules/rolldown/dist/shared/error-BHRSI0R7.mjs:18:128)
-    at #build (file:///home/runner/work/catrich2798/catrich2798/node_modules/rolldown/dist/shared/rolldown-build-CtPvmZgJ.mjs:3276:34)
-    at async buildEnvironment (file:///home/runner/work/catrich2798/catrich2798/node_modules/vite/dist/node/chunks/node.js:32622:66)
-    at async Object.build (file:///home/runner/work/catrich2798/catrich2798/node_modules/vite/dist/node/chunks/node.js:33044:19)
-    at async Object.buildApp (file:///home/runner/work/catrich2798/catrich2798/node_modules/vite/dist/node/chunks/node.js:33041:153)
-    at async CAC.<anonymous> (file:///home/runner/work/catrich2798/catrich2798/node_modules/vite/dist/node/cli.js:777:3) {
-  errors: [Getter/Setter]
-}[39m
+[32m✓ built in 1.25s[39m
