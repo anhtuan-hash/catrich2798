@@ -5,36 +5,56 @@ export default function DepartmentMicrofrontend({ language = 'vi' }) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const previousOverflow = document.documentElement.style.overflow;
-    document.documentElement.style.overflow = 'hidden';
-    return () => {
-      document.documentElement.style.overflow = previousOverflow;
-    };
+    // Remove classes left by the former fullscreen/focus-mode implementation.
+    // The Department Workspace now behaves like every other app inside Brian.
+    document.documentElement.classList.remove('department-microfrontend-active');
+    document.body.classList.remove('department-microfrontend-active');
   }, []);
 
-  const backLabel = language === 'vi' ? 'Quay lại Brian' : 'Back to Brian';
-  const loadingLabel = language === 'vi' ? 'Đang mở Tổ chuyên môn…' : 'Opening Department Workspace…';
+  const title = language === 'vi' ? 'Tổ chuyên môn' : 'Department Workspace';
+  const eyebrow = language === 'vi' ? 'KHÔNG GIAN QUẢN TRỊ' : 'MANAGEMENT WORKSPACE';
+  const loadingLabel = language === 'vi'
+    ? 'Đang tải không gian Tổ chuyên môn…'
+    : 'Loading Department Workspace…';
+  const openLabel = language === 'vi' ? 'Mở cửa sổ riêng' : 'Open separately';
 
   return (
-    <section className="department-microfrontend" aria-label={language === 'vi' ? 'Ứng dụng Tổ chuyên môn' : 'Department Workspace'}>
-      {!loaded ? <div className="department-microfrontend-loading"><span /><strong>{loadingLabel}</strong></div> : null}
-      <iframe
-        title={language === 'vi' ? 'Tổ chuyên môn' : 'Department Workspace'}
-        src="/to-chuyen-mon/"
-        allow="clipboard-read; clipboard-write"
-        onLoad={() => setLoaded(true)}
-      />
-      <button
-        type="button"
-        className="department-microfrontend-back"
-        onClick={() => { window.location.hash = '#/apps'; }}
-        aria-label={backLabel}
-      >
-        <span aria-hidden="true">←</span><strong>{backLabel}</strong>
-      </button>
-      <a className="department-microfrontend-new" href="/to-chuyen-mon/" target="_blank" rel="noreferrer">
-        {language === 'vi' ? 'Mở cửa sổ riêng' : 'Open separately'}
-      </a>
+    <section
+      className="department-microfrontend department-microfrontend--embedded"
+      aria-label={title}
+      data-testid="department-microfrontend"
+    >
+      <header className="department-microfrontend-header">
+        <div>
+          <span>{eyebrow}</span>
+          <h1>{title}</h1>
+        </div>
+
+        <a
+          className="department-microfrontend-new"
+          href="/to-chuyen-mon/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {openLabel}
+        </a>
+      </header>
+
+      <div className="department-microfrontend-frame">
+        {!loaded ? (
+          <div className="department-microfrontend-loading" role="status">
+            <span aria-hidden="true" />
+            <strong>{loadingLabel}</strong>
+          </div>
+        ) : null}
+
+        <iframe
+          title={title}
+          src="/to-chuyen-mon/?embedded=1"
+          allow="clipboard-read; clipboard-write"
+          onLoad={() => setLoaded(true)}
+        />
+      </div>
     </section>
   );
 }
