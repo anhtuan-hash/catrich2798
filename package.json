@@ -89,7 +89,7 @@
     "verify:v11.5.6": "npm run test:v11.5.6 && npm run build && npm run audit:budget && npm test && npm run test:e2e:contracts && npm run release:guard:v11.5.6",
     "version:sync": "node scripts/sync-version-v11.6.7.mjs",
     "audit:budget": "node scripts/performance-budget-v11.6.0.mjs",
-    "release:guard": "npm run audit:removed-apps",
+    "release:guard": "npm run audit:removed-apps && npm run audit:department-removed",
     "test:v11.5.8": "npm run version:sync && node scripts/check-v11.5.8.mjs",
     "release:guard:v11.5.8": "node scripts/release-guard-v11.5.8.mjs",
     "verify:v11.5.8": "npm run test:v11.5.8 && npm run build && npm run audit:budget && npm test && npm run test:e2e:contracts && npm run release:guard:v11.5.8",
@@ -121,7 +121,8 @@
     "audit:dashboard-luxury-cards": "node scripts/audit-dashboard-luxury-cards-v11.6.7.mjs",
     "audit:openrouter-only": "node scripts/audit-openrouter-only-v11.6.7.mjs",
     "audit:no-ai": "node scripts/audit-no-ai.mjs",
-    "verify:no-ai": "npm run build && npm run audit:no-ai"
+    "verify:no-ai": "npm run build && npm run audit:no-ai",
+    "audit:department-removed": "node scripts/audit-department-removed-v11.6.7.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

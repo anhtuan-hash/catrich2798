@@ -4,13 +4,13 @@ import path from 'node:path';
 const removedSlugs = [
   'worksheet-factory', 'smart-id', 'speaking-studio', 'english-lesson-integration',
   'grammar-builder', 'writing-studio', 'pronunciation-coach', 'ai-workspace',
-  'classroom-delivery', 'classroom-join', 'learning-intelligence',
+  'classroom-delivery', 'classroom-join', 'learning-intelligence', 'department-workspace',
 ];
 
 const removedTitles = [
   'Worksheet Factory', 'SmartID Identity', 'Speaking Studio', 'AI Lesson Integration Studio',
   'Grammar Builder', 'Writing Studio', 'Pronunciation Coach', 'Brian AI Workspace',
-  'Classroom Delivery', 'Learning Intelligence',
+  'Classroom Delivery', 'Learning Intelligence', 'Department Workspace',
 ];
 
 const removedPaths = [
@@ -25,6 +25,8 @@ const removedPaths = [
   'src/pages/AIWorkspace.jsx', 'src/utils/aiWorkspaceFallback.js',
   'src/pages/ClassroomDelivery.jsx', 'src/pages/ClassroomJoin.jsx', 'src/utils/classroomDelivery.js',
   'src/pages/LearningIntelligence.jsx',
+  'src/pages/DepartmentWorkspace.jsx', 'src/pages/DepartmentWorkspaceModernFields.css', 'src/pages/DepartmentWorkspaceV2.css',
+  'src/pages/department', 'src/data/department.js', 'src/utils/departmentStore.js',
   'src/styles/v1094.css', 'src/styles/v1110.css',
   'supabase/brian_v10_94_learning_intelligence.sql',
   'supabase/brian_v11_1_classroom_delivery.sql',
@@ -78,7 +80,7 @@ if ('requiredMigration' in version || 'requiredMigration' in release) fail('reti
 else pass('no retired SQL migration is required');
 
 if (fs.existsSync('dist/assets')) {
-  const chunkPattern = /WorksheetFactory|SmartId|SpeakingStudio|EnglishLesson|GrammarBuilder|WritingStudio|PronunciationCoach|AIWorkspace|ClassroomDelivery|ClassroomJoin|LearningIntelligence/i;
+  const chunkPattern = /WorksheetFactory|SmartId|SpeakingStudio|EnglishLesson|GrammarBuilder|WritingStudio|PronunciationCoach|AIWorkspace|ClassroomDelivery|ClassroomJoin|LearningIntelligence|DepartmentWorkspace/i;
   const chunks = fs.readdirSync('dist/assets').filter((name) => chunkPattern.test(name));
   if (chunks.length) fail(`retired production chunks found: ${chunks.join(', ')}`);
   else pass('no retired production chunks');
