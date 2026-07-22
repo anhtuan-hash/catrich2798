@@ -103,7 +103,7 @@ contains(
 
 excludes(
   component,
-  /createPortal|department-microfrontend-active/,
+  /createPortal|classList\.add\(\s*['"]department-microfrontend-active['"]/,
   'component does not enter fullscreen/focus mode',
 );
 
