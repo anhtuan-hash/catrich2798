@@ -27,9 +27,9 @@ test('complete evidence workspace supports files, verification, archive and pers
   await modal.getByRole('button', { name: 'Thêm minh chứng' }).click();
 
   await workspace.getByLabel('Tìm minh chứng').fill('chuyển đổi số tháng 7');
-  const row = workspace.getByTestId(/evidence-/).filter({ hasText: 'Minh chứng chuyên đề chuyển đổi số tháng 7' });
+  const row = workspace.locator('[data-testid^="evidence-"]').filter({ hasText: 'Minh chứng chuyên đề chuyển đổi số tháng 7' });
   await expect(row).toBeVisible();
-  await expect(row.getByText('Chờ xác minh')).toBeVisible();
+  await expect(row.locator('.ew-status')).toHaveText('Chờ xác minh');
   await row.locator('.ew-main').click();
 
   const detail = page.getByTestId('evidence-detail-panel');
@@ -38,16 +38,21 @@ test('complete evidence workspace supports files, verification, archive and pers
   await detail.getByLabel('Phản hồi minh chứng').fill('Minh chứng đầy đủ, đề nghị lưu kho chuyên môn.');
   await detail.getByRole('button', { name: 'Gửi phản hồi' }).click();
   await expect(detail.getByText('Minh chứng đầy đủ, đề nghị lưu kho chuyên môn.')).toBeVisible();
-  await detail.getByRole('button', { name: 'Xác minh' }).click();
-  await expect(detail.getByText('Đã xác minh').first()).toBeVisible();
-  await detail.getByRole('button', { name: 'Lưu kho' }).click();
-  await expect(detail.getByText('Đã lưu kho').first()).toBeVisible();
+  await detail.getByRole('button', { name: 'Xác minh', exact: true }).click();
+  await expect(detail.locator('header .ew-status')).toHaveText('Đã xác minh');
+  await detail.getByRole('button', { name: 'Lưu kho', exact: true }).click();
+  await expect(detail.locator('header .ew-status')).toHaveText('Đã lưu kho');
+
+  await page.waitForFunction(() => {
+    const items = JSON.parse(localStorage.getItem('department-v2-evidence') || '[]');
+    return items.some((item) => item.title === 'Minh chứng chuyên đề chuyển đổi số tháng 7' && item.status === 'Đã lưu kho');
+  });
 
   await page.reload();
   await page.getByTestId('tab-evidence').click();
   const restored = page.locator('.task-workspace-bridge');
   await restored.getByLabel('Tìm minh chứng').fill('chuyển đổi số tháng 7');
-  const restoredRow = restored.getByTestId(/evidence-/).filter({ hasText: 'Minh chứng chuyên đề chuyển đổi số tháng 7' });
+  const restoredRow = restored.locator('[data-testid^="evidence-"]').filter({ hasText: 'Minh chứng chuyên đề chuyển đổi số tháng 7' });
   await expect(restoredRow).toBeVisible();
-  await expect(restoredRow.getByText('Đã lưu kho')).toBeVisible();
+  await expect(restoredRow.locator('.ew-status')).toHaveText('Đã lưu kho');
 });
