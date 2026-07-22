@@ -17,18 +17,29 @@ test('dashboard renders at proposal scale and tabs work', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Kế hoạch và tiến độ' })).toBeVisible();
 });
 
-test('MacBook viewport uses enlarged, readable density', async ({ page }) => {
+test('MacBook viewport uses genuinely readable typography and redistributed layout', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.reload();
-  const hero = page.locator('.hero-card');
-  const heroBox = await hero.boundingBox();
-  expect(heroBox.height).toBeGreaterThanOrEqual(245);
+
+  const heroBox = await page.locator('.hero-card').boundingBox();
+  const taskPanelBox = await page.locator('.task-panel').boundingBox();
   const heroTitleSize = await page.locator('.hero-copy h1').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
   const taskTitleSize = await page.locator('.task-copy strong').first().evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+  const kpiLabelSize = await page.locator('.kpi-card p').first().evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+  const notificationTitleSize = await page.locator('.notification-list strong').first().evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+  const sectionTitleSize = await page.locator('.task-panel .section-head h2').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
   const headerHeight = await page.locator('.app-header').evaluate((element) => element.getBoundingClientRect().height);
-  expect(heroTitleSize).toBeGreaterThanOrEqual(34);
-  expect(taskTitleSize).toBeGreaterThanOrEqual(12);
-  expect(headerHeight).toBeGreaterThanOrEqual(86);
+  const summaryColumns = await page.locator('.summary-row').evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length);
+
+  expect(heroBox.height).toBeGreaterThanOrEqual(360);
+  expect(taskPanelBox.width).toBeGreaterThan(950);
+  expect(heroTitleSize).toBeGreaterThanOrEqual(42);
+  expect(taskTitleSize).toBeGreaterThanOrEqual(15);
+  expect(kpiLabelSize).toBeGreaterThanOrEqual(16);
+  expect(notificationTitleSize).toBeGreaterThanOrEqual(14);
+  expect(sectionTitleSize).toBeGreaterThanOrEqual(21);
+  expect(headerHeight).toBeGreaterThanOrEqual(92);
+  expect(summaryColumns).toBe(3);
 });
 
 test('creates and persists a task, filters and updates status', async ({ page }) => {
