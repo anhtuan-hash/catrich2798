@@ -1,26 +1,88 @@
 /* Notification panel controls
-   The bell toggles the panel and the close button is always available inside it. */
+   The existing React button keeps its onClick handler; this file makes the
+   control unmistakably visible and guarantees that it receives pointer input. */
 
-.drawer-close {
-  display: grid !important;
-  width: 36px !important;
-  height: 36px !important;
-  border: 1px solid #e2e4ee !important;
-  border-radius: 10px !important;
-  background: #fff !important;
-  color: #55596c !important;
-  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+.drawer-head-actions {
+  position: relative;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  pointer-events: auto !important;
 }
 
-.drawer-close:hover {
+.drawer-close {
+  position: relative !important;
+  z-index: 121 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  width: 112px !important;
+  min-width: 112px !important;
+  height: 40px !important;
+  padding: 0 11px !important;
+  border: 1px solid #cfc9ff !important;
+  border-radius: 10px !important;
   background: #f1efff !important;
-  color: #6755ef !important;
-  transform: scale(1.04);
+  color: #5945df !important;
+  font-size: 12px !important;
+  font-weight: 760 !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  box-shadow: 0 5px 14px rgba(89, 69, 223, .10) !important;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.drawer-close svg {
+  display: none !important;
+}
+
+.drawer-close::before {
+  content: "Ẩn bảng";
+  white-space: nowrap;
+}
+
+.drawer-close::after {
+  content: "×";
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.drawer-close:hover,
+.drawer-close:focus-visible {
+  border-color: #7562f2 !important;
+  background: #e7e3ff !important;
+  color: #4d38d2 !important;
+  outline: 3px solid rgba(103, 85, 239, .16) !important;
+  outline-offset: 2px;
+  transform: translateY(-1px);
 }
 
 .notification-drawer {
+  position: relative;
+  z-index: 80;
+  pointer-events: auto !important;
   animation: notification-panel-in 180ms ease-out both;
   transform-origin: top right;
+}
+
+.notification-drawer header,
+.notification-list,
+.notification-footer,
+.notification-drawer button {
+  pointer-events: auto !important;
+}
+
+.bell-button {
+  position: relative;
+  z-index: 90;
+  pointer-events: auto !important;
+  touch-action: manipulation;
 }
 
 body:has(.notification-drawer) .bell-button {
@@ -35,19 +97,22 @@ body:has(.notification-drawer) .bell-button {
 }
 
 @keyframes notification-panel-in {
-  from {
-    opacity: 0;
-    transform: translateX(14px) scale(.985);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
+  from { opacity: 0; transform: translateX(14px) scale(.985); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
 }
 
 @keyframes notification-content-expand {
   from { opacity: .92; }
   to { opacity: 1; }
+}
+
+@media (min-width: 1180px) and (max-width: 1720px) {
+  .drawer-close {
+    width: 120px !important;
+    min-width: 120px !important;
+    height: 42px !important;
+    font-size: 13px !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
