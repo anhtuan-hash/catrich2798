@@ -4,6 +4,7 @@ import App from './App.jsx';
 import TasksWorkspace from './TasksWorkspace.jsx';
 import RecordsWorkspace from './RecordsWorkspace.jsx';
 import PlansWorkspace from './PlansWorkspace.jsx';
+import CalendarWorkspace, { createDefaultCalendarEvents } from './CalendarWorkspace.jsx';
 import './styles.css';
 import './laptop-scale.css';
 import './macbook-readable.css';
@@ -13,6 +14,7 @@ import './task-workspace-bridge.css';
 const TASK_STORAGE_KEY = 'department-v2-tasks';
 const RECORD_STORAGE_KEY = 'department-v2-records';
 const PLAN_STORAGE_KEY = 'department-v2-plans';
+const CALENDAR_STORAGE_KEY = 'department-v2-calendar-events';
 
 const FALLBACK_TASKS = [
   { id: 1, title: 'Xây dựng ma trận đề kiểm tra học kỳ II môn Tiếng Anh 6', assignee: 'Nguyễn Thị Mai', initials: 'NM', due: '20/05/2025', status: 'Đang thực hiện', progress: 60, tone: 'purple' },
@@ -63,6 +65,7 @@ function DepartmentRoot() {
   const [tasks, setTasks] = useState([]);
   const [records, setRecords] = useState([]);
   const [plans, setPlans] = useState([]);
+  const [events, setEvents] = useState([]);
   const [toast, setToast] = useState('');
 
   useEffect(() => {
@@ -81,6 +84,7 @@ function DepartmentRoot() {
       if (tab === 'tasks') { window.setTimeout(() => { setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY, FALLBACK_TASKS))); setWorkspaceMode('tasks'); }, 0); return; }
       if (tab === 'records') { window.setTimeout(() => { setRecords(readStored(RECORD_STORAGE_KEY, FALLBACK_RECORDS)); setWorkspaceMode('records'); }, 0); return; }
       if (tab === 'plans') { window.setTimeout(() => { setPlans(readStored(PLAN_STORAGE_KEY, FALLBACK_PLANS)); setWorkspaceMode('plans'); }, 0); return; }
+      if (tab === 'calendar') { window.setTimeout(() => { setEvents(readStored(CALENDAR_STORAGE_KEY, createDefaultCalendarEvents())); setWorkspaceMode('calendar'); }, 0); return; }
       if (workspaceMode) {
         event.preventDefault();
         event.stopPropagation();
@@ -95,6 +99,7 @@ function DepartmentRoot() {
   useEffect(() => { if (workspaceMode === 'tasks') try { localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(tasks)); } catch {} }, [tasks, workspaceMode]);
   useEffect(() => { if (workspaceMode === 'records') try { localStorage.setItem(RECORD_STORAGE_KEY, JSON.stringify(records)); } catch {} }, [records, workspaceMode]);
   useEffect(() => { if (workspaceMode === 'plans') try { localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(plans)); } catch {} }, [plans, workspaceMode]);
+  useEffect(() => { if (workspaceMode === 'calendar') try { localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(events)); } catch {} }, [events, workspaceMode]);
   useEffect(() => { if (!toast) return undefined; const timer = window.setTimeout(() => setToast(''), 2600); return () => window.clearTimeout(timer); }, [toast]);
 
   const updateTask = (id, patch) => setTasks((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
@@ -103,12 +108,15 @@ function DepartmentRoot() {
   const deleteRecord = (id) => { setRecords((items) => items.filter((item) => item.id !== id)); setToast('Đã xóa hồ sơ.'); };
   const updatePlan = (id, patch) => setPlans((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
   const deletePlan = (id) => { setPlans((items) => items.filter((item) => item.id !== id)); setToast('Đã xóa kế hoạch.'); };
+  const updateEvent = (id, patch) => setEvents((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
+  const deleteEvent = (id) => { setEvents((items) => items.filter((item) => item.id !== id)); setToast('Đã xóa hoạt động.'); };
 
   return <>
     <App/>
     {workspaceMode === 'tasks' && <section className="task-workspace-bridge" aria-label="Không gian Giao việc hoàn chỉnh"><TasksWorkspace tasks={tasks} setTasks={setTasks} updateTask={updateTask} deleteTask={deleteTask} setToast={setToast}/></section>}
     {workspaceMode === 'records' && <section className="task-workspace-bridge" aria-label="Không gian Hồ sơ hoàn chỉnh"><RecordsWorkspace records={records} setRecords={setRecords} updateRecord={updateRecord} deleteRecord={deleteRecord} setToast={setToast}/></section>}
     {workspaceMode === 'plans' && <section className="task-workspace-bridge" aria-label="Không gian Kế hoạch hoàn chỉnh"><PlansWorkspace plans={plans} setPlans={setPlans} updatePlan={updatePlan} deletePlan={deletePlan} setToast={setToast}/></section>}
+    {workspaceMode === 'calendar' && <section className="task-workspace-bridge" aria-label="Không gian Lịch hoàn chỉnh"><CalendarWorkspace events={events} setEvents={setEvents} updateEvent={updateEvent} deleteEvent={deleteEvent} setToast={setToast}/></section>}
     {toast && <div className="bridge-toast" role="status">{toast}</div>}
   </>;
 }
