@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './tasks-workspace.css';
 
 const PEOPLE = ['Toàn tổ', 'Nguyễn Thị Mai', 'Trần Minh Đức', 'Phạm Thu Hà', 'Lê Hoàng Nam', 'Đỗ Thị Hương'];
@@ -192,14 +192,14 @@ function TaskDetail({ task, onClose, onEdit, onUpdate, onDelete, setToast }) {
   </div>;
 }
 
-function TaskRow({ task, selected, onSelect, onOpen, onUpdate, onEdit, onDelete, setToast }) {
+function TaskRow({ task, selected, onSelect, onOpen, onUpdate, onEdit, onDelete, setToast, menuOpen, onToggleMenu }) {
   const item = normalizeTask(task);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuDirection, setMenuDirection] = useState('down');
   const effectiveStatus = isOverdue(item) ? 'Quá hạn' : item.status;
   const setStatus = (status) => {
     onUpdate(item.id, { status, progress: ['Hoàn thành', 'Đã nộp'].includes(status) ? 100 : status === 'Chưa bắt đầu' ? 0 : Math.max(item.progress, 20), history: [...item.history, { id: Date.now(), text: `Chuyển trạng thái sang ${status}`, time: new Date().toLocaleString('vi-VN') }] });
     setToast(`Đã cập nhật ${item.title}.`);
-    setMenuOpen(false);
+    onToggleMenu(null);
   };
   return <article className={`tw-task-row ${selected ? 'selected' : ''}`} data-testid={`task-${item.id}`}>
     <label className="tw-row-check"><input aria-label={`Chọn ${item.title}`} type="checkbox" checked={selected} onChange={() => onSelect(item.id)}/></label>
@@ -209,7 +209,7 @@ function TaskRow({ task, selected, onSelect, onOpen, onUpdate, onEdit, onDelete,
     <span className="tw-due"><small>Hạn hoàn thành</small><strong>{formatDate(item.dueISO)}</strong></span>
     <span className="tw-progress"><strong>{item.progress}%</strong><i><b style={{ width: `${item.progress}%` }}/></i></span>
     <span className="tw-row-meta"><b><Icon name="paperclip" size={15}/>{item.attachments.length}</b><b><Icon name="message" size={15}/>{item.feedback.length}</b></span>
-    <div className="tw-row-menu"><button aria-label={`Tùy chọn ${item.title}`} onClick={() => setMenuOpen((value) => !value)}><Icon name="more"/></button>{menuOpen && <div><button onClick={() => onOpen(item)}>Xem chi tiết</button><button onClick={() => { onEdit(item); setMenuOpen(false); }}>Chỉnh sửa</button><button onClick={() => setStatus('Đang thực hiện')}>Bắt đầu</button><button onClick={() => setStatus('Đã nộp')}>Đánh dấu đã nộp</button><button onClick={() => setStatus('Hoàn thành')}>Hoàn thành</button><button className="danger" onClick={() => { if (window.confirm('Xóa nhiệm vụ này?')) onDelete(item.id); setMenuOpen(false); }}>Xóa nhiệm vụ</button></div>}</div>
+    <div className="tw-row-menu"><button aria-label={`Tùy chọn ${item.title}`} aria-expanded={menuOpen} onClick={(event) => { const rect = event.currentTarget.getBoundingClientRect(); setMenuDirection(window.innerHeight - rect.bottom < 270 ? 'up' : 'down'); onToggleMenu(menuOpen ? null : item.id); }}><Icon name="more"/></button>{menuOpen && <div className={menuDirection === 'up' ? 'opens-up' : 'opens-down'}><button onClick={() => { onOpen(item); onToggleMenu(null); }}>Xem chi tiết</button><button onClick={() => { onEdit(item); onToggleMenu(null); }}>Chỉnh sửa</button><button onClick={() => setStatus('Đang thực hiện')}>Bắt đầu</button><button onClick={() => setStatus('Đã nộp')}>Đánh dấu đã nộp</button><button onClick={() => setStatus('Hoàn thành')}>Hoàn thành</button><button className="danger" onClick={() => { if (window.confirm('Xóa nhiệm vụ này?')) onDelete(item.id); onToggleMenu(null); }}>Xóa nhiệm vụ</button></div>}</div>
   </article>;
 }
 
@@ -222,6 +222,22 @@ export default function TasksWorkspace({ tasks, setTasks, updateTask, deleteTask
   const [editor, setEditor] = useState(null);
   const [detailId, setDetailId] = useState(null);
   const [selected, setSelected] = useState([]);
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  useEffect(() => {
+    const closeMenu = (event) => {
+      if (!event.target.closest?.('.tw-row-menu')) setOpenMenuId(null);
+    };
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setOpenMenuId(null);
+    };
+    document.addEventListener('pointerdown', closeMenu);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeMenu);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, []);
 
   const normalized = useMemo(() => tasks.map(normalizeTask), [tasks]);
   const visible = useMemo(() => {
@@ -275,7 +291,7 @@ export default function TasksWorkspace({ tasks, setTasks, updateTask, deleteTask
       <div className="tw-toolbar"><label className="tw-search"><Icon name="search"/><input aria-label="Tìm nhiệm vụ" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm tên nhiệm vụ, nội dung hoặc giáo viên..."/></label><div className="tw-toolbar-selects"><label><span>Trạng thái</span><select aria-label="Lọc trạng thái" value={status} onChange={(event) => setStatus(event.target.value)}>{['Tất cả', ...STATUSES].map((item) => <option key={item}>{item}</option>)}</select></label><label><span>Người nhận</span><select aria-label="Lọc người nhận" value={assignee} onChange={(event) => setAssignee(event.target.value)}>{['Tất cả', ...PEOPLE].map((item) => <option key={item}>{item}</option>)}</select></label><label><span>Ưu tiên</span><select aria-label="Lọc ưu tiên" value={priority} onChange={(event) => setPriority(event.target.value)}>{['Tất cả', ...PRIORITIES].map((item) => <option key={item}>{item}</option>)}</select></label><label><span>Sắp xếp</span><select aria-label="Sắp xếp nhiệm vụ" value={sort} onChange={(event) => setSort(event.target.value)}>{['Hạn gần nhất', 'Ưu tiên cao', 'Tiến độ cao', 'Mới cập nhật'].map((item) => <option key={item}>{item}</option>)}</select></label></div></div>
       <div className="tw-list-head"><div><strong>{visible.length} nhiệm vụ</strong><small>Hiển thị theo bộ lọc hiện tại</small></div><div>{selected.length > 0 && <><span>Đã chọn {selected.length}</span><button onClick={() => bulkStatus('Đang thực hiện')}>Bắt đầu</button><button onClick={() => bulkStatus('Đã nộp')}>Đã nộp</button><button onClick={() => bulkStatus('Hoàn thành')}>Hoàn thành</button></>}<button className="tw-clear" onClick={clearFilters}><Icon name="filter"/> Xóa bộ lọc</button></div></div>
       <div className="tw-columns"><span/><span>Nhiệm vụ & người nhận</span><span>Ưu tiên</span><span>Trạng thái</span><span>Thời hạn</span><span>Tiến độ</span><span>Tương tác</span><span/></div>
-      <div className="tw-task-list">{visible.map((task) => <TaskRow key={task.id} task={task} selected={selected.includes(task.id)} onSelect={(id) => setSelected((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id])} onOpen={(item) => setDetailId(item.id)} onUpdate={updateTask} onEdit={(item) => setEditor(item)} onDelete={deleteTask} setToast={setToast}/>)}</div>
+      <div className="tw-task-list">{visible.map((task) => <TaskRow key={task.id} task={task} selected={selected.includes(task.id)} onSelect={(id) => setSelected((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id])} onOpen={(item) => setDetailId(item.id)} onUpdate={updateTask} onEdit={(item) => setEditor(item)} onDelete={deleteTask} setToast={setToast} menuOpen={openMenuId === task.id} onToggleMenu={setOpenMenuId}/>)}</div>
       {!visible.length && <div className="tw-empty"><Icon name="search" size={30}/><h3>Không tìm thấy nhiệm vụ phù hợp</h3><p>Thử thay đổi từ khóa hoặc xóa bớt bộ lọc.</p><button onClick={clearFilters}>Xóa bộ lọc</button></div>}
     </section>
     {editor && <TaskForm task={editor.id ? editor : null} onClose={() => setEditor(null)} onSave={saveTask}/>} 
