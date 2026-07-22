@@ -16,7 +16,8 @@ export const DEPARTMENT_APP = {
   status: 'Subject leader',
   statusVi: 'TTCM',
   api: false,
-  featured: true,
+  featured: false,
+  hideFromLauncher: true,
 };
 
 export const DEPARTMENT_MODULES = [
