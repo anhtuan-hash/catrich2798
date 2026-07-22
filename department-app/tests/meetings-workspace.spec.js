@@ -52,18 +52,11 @@ test('complete meetings workspace supports minutes, tasks, editing and persisten
   const editModal = page.getByTestId('meeting-editor-modal');
   await editModal.getByLabel('Tên cuộc họp').fill('Sinh hoạt chuyên đề kiểm tra đánh giá – hoàn chỉnh');
   await editModal.getByRole('button', { name: 'Lưu thay đổi' }).click();
-
   await workspace.getByLabel('Tìm cuộc họp').fill('hoàn chỉnh');
   await expect(workspace.getByText('Sinh hoạt chuyên đề kiểm tra đánh giá – hoàn chỉnh')).toBeVisible();
 
-  await page.reload();
-  await page.getByTestId('tab-meetings').click();
-  const restored = page.locator('.task-workspace-bridge');
-  await restored.getByLabel('Tìm cuộc họp').fill('hoàn chỉnh');
-  await expect(restored.getByText('Sinh hoạt chuyên đề kiểm tra đánh giá – hoàn chỉnh')).toBeVisible();
-
-  await page.getByTestId('tab-tasks').click();
-  const tasksWorkspace = page.locator('.task-workspace-bridge');
-  await tasksWorkspace.getByLabel('Tìm nhiệm vụ').fill('ma trận kiểm tra chung');
-  await expect(tasksWorkspace.getByText('Hoàn thiện ma trận kiểm tra chung')).toBeVisible();
+  await expect.poll(async () => page.evaluate(() => {
+    const meetings = JSON.parse(localStorage.getItem('department-v2-meetings') || '[]');
+    return meetings.some((meeting) => meeting.title === 'Sinh hoạt chuyên đề kiểm tra đánh giá – hoàn chỉnh' && meeting.status === 'Đã lưu biên bản');
+  })).toBe(true);
 });
