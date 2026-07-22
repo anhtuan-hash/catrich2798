@@ -2,7 +2,7 @@ import React from 'react';
 
 const labels = {
   vi: {
-    home: 'Trang chủ', apps: 'Ứng dụng', games: 'Trò chơi', tools: 'Công cụ', department: 'Tổ chuyên môn',
+    home: 'Trang chủ', apps: 'Ứng dụng', games: 'Trò chơi', tools: 'Công cụ', department: 'Hub Chuyên môn',
     resources: 'Tài nguyên', library: 'Thư viện', practice: 'Luyện tập', qa: 'Kiểm tra hệ thống',
     contact: 'Liên hệ', settings: 'Cài đặt', admin: 'Quản trị', setup: 'Supabase', login: 'Đăng nhập', register: 'Đăng kí', tool: 'Công cụ đang mở',
     active: 'Đang mở', ready: 'Sẵn sàng', loading: 'Đang chuyển cảnh', motion: 'Windows Phone 8 Motion',

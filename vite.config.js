@@ -9,17 +9,14 @@ export default defineConfig({
   plugins: [react()],
   define: {
     'import.meta.env.VITE_DEPARTMENT_CLOUD_ENABLED': JSON.stringify(departmentCloudEnabled),
-    'import.meta.env.VITE_DEPARTMENT_ID': JSON.stringify(departmentId),
-  },
+    'import.meta.env.VITE_DEPARTMENT_ID': JSON.stringify(departmentId)},
   build: {
     target: 'es2020',
     cssCodeSplit: true,
     sourcemap: false,
     rollupOptions: {
       input: {
-        main: resolve(process.cwd(), 'index.html'),
-        department: resolve(process.cwd(), 'to-chuyen-mon/index.html'),
-      },
+        main: resolve(process.cwd(), 'index.html')},
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
@@ -45,9 +42,5 @@ export default defineConfig({
           if (id.includes('/src/pages/AdminPage') || id.includes('/src/pages/AuthPage') || id.includes('/src/pages/SupabaseSetup')) return 'auth-admin';
           if (id.includes('/department-app/src/')) return 'department-workspace';
           return undefined;
-        },
-      },
-    },
-    chunkSizeWarningLimit: 650,
-  },
-});
+        }}},
+    chunkSizeWarningLimit: 650}});

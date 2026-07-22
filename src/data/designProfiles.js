@@ -8,13 +8,13 @@ export const APP_DESIGN_PROFILES = {
     styleVi: 'Bảng điều hành theo vai trò',
   },
 
-  'department-workspace': {
+  'professional-hub': {
     accent: '#6752E8',
     soft: '#F0EDFF',
     ink: '#211B53',
     icon: 'department',
     style: 'Supabase-connected department workspace',
-    styleVi: 'Không gian Tổ chuyên môn kết nối Supabase',
+    styleVi: 'Không gian Hub Chuyên môn kết nối Supabase',
   },
 
   'thpt-practice-hub': {

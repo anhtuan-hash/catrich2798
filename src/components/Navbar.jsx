@@ -7,7 +7,7 @@ const labels = {
     home: 'Trang chủ',
     apps: 'Ứng dụng',
     games: 'Trò chơi',
-    department: 'Tổ chuyên môn',
+    department: 'Hub Chuyên môn',
     library: 'Thư viện',
     admin: 'Quản trị',
     login: 'Đăng nhập',

@@ -448,7 +448,7 @@ export default function LessonArchitectCurriculumBuilder({ language = 'vi', hasA
             <label className="span-2">Khung năng lực số<input value={profile.digitalFramework || 'Circular No. 02/2025/TT-BGDĐT'} onChange={(event) => patchProfile('digitalFramework', event.target.value)} /></label>
             <label className="span-2">Mức tích hợp năng lực số<input value={profile.digitalTargetLevel || ''} onChange={(event) => patchProfile('digitalTargetLevel', event.target.value)} /></label>
             <label>Trường<input value={profile.school} onChange={(event) => patchProfile('school', event.target.value)} /></label>
-            <label>Tổ chuyên môn<input value={profile.department} onChange={(event) => patchProfile('department', event.target.value)} /></label>
+            <label>Hub Chuyên môn<input value={profile.department} onChange={(event) => patchProfile('department', event.target.value)} /></label>
             <label>Giáo viên<input value={profile.teacher} onChange={(event) => patchProfile('teacher', event.target.value)} /></label>
             <label>Cả năm – số tiết<input type="number" min="0" value={profile.totalPeriods} onChange={(event) => patchProfile('totalPeriods', event.target.value)} /></label>
             <label>Số tuần<input type="number" min="0" value={profile.weeks} onChange={(event) => patchProfile('weeks', event.target.value)} /></label>

@@ -1,0 +1,13 @@
+.professional-hub-native-app {
+  width: 100%;
+  min-width: 0;
+  min-height: 720px;
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+}
+
+.professional-hub-native-app,
+.professional-hub-native-app * {
+  box-sizing: border-box;
+}

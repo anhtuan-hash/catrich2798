@@ -161,7 +161,7 @@ export const flatIconForSlug = {
   'reading-studio': 'reading',
   word2graph: 'wordgraph',
   'student-practice': 'practice',
-  'department-workspace': 'department',
+  'professional-hub': 'department',
   'homeroom-hub': 'homeroom',
   'game-hub': 'game',
   'library-hub': 'library',

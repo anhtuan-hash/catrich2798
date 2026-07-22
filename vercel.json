@@ -4,14 +4,6 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/to-chuyen-mon",
-      "destination": "/to-chuyen-mon/index.html"
-    },
-    {
-      "source": "/to-chuyen-mon/",
-      "destination": "/to-chuyen-mon/index.html"
-    },
-    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

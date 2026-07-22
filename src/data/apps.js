@@ -7,8 +7,8 @@ export const APPS = [
     status: 'Realtime · Role-aware · 14-day view', statusVi: 'Realtime · Theo vai trò · 14 ngày', api: true, featured: true,
   },
   {
-    slug: 'department-workspace', icon: 'TC', tone: 'purple', group: 'School Management', groupVi: 'Quản lý tổ chuyên môn',
-    title: 'English Department Workspace', titleVi: 'Tổ chuyên môn',
+    slug: 'professional-hub', icon: 'TC', tone: 'purple', group: 'School Management', groupVi: 'Quản lý tổ chuyên môn',
+    title: 'English Professional Hub', titleVi: 'Hub Chuyên môn',
     desc: 'Manage schedules, assignments, plans, records, meetings, evidence and reports in one Supabase-connected workspace.',
     descVi: 'Quản lý lịch, giao việc, kế hoạch, hồ sơ, sinh hoạt tổ, minh chứng và báo cáo trong một không gian kết nối Supabase.',
     status: 'Supabase · TTCM · Role-aware', statusVi: 'Supabase · TTCM · Theo vai trò', api: true, featured: true,
