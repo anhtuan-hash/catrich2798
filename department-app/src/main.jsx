@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import TasksWorkspace from './TasksWorkspace.jsx';
@@ -9,12 +9,20 @@ import MeetingsWorkspace, { createDefaultMeetings } from './MeetingsWorkspace.js
 import EvidenceWorkspace, { createDefaultEvidence } from './EvidenceWorkspace.jsx';
 import ReportsWorkspace from './ReportsWorkspace.jsx';
 import GlobalNotificationDrawer, { readGlobalNotifications } from './GlobalNotificationDrawer.jsx';
+import {
+  collectionFromContext,
+  createLocalDepartmentContext,
+  initializeDepartmentCloud,
+  scheduleDepartmentCollectionSave,
+  shouldBlockReadOnlyMutation,
+} from './department-cloud.js';
 import './styles.css';
 import './laptop-scale.css';
 import './macbook-readable.css';
 import './notification-toggle.css';
 import './task-workspace-bridge.css';
 import './shell-fixes.css';
+import './department-cloud.css';
 
 const TASK_STORAGE_KEY = 'department-v2-tasks';
 const RECORD_STORAGE_KEY = 'department-v2-records';
@@ -47,62 +55,243 @@ const FALLBACK_PLANS = [
   { id: 4, title: 'Kế hoạch chuyên đề ứng dụng AI', progress: 90, status: 'Gần hoàn thành', type: 'Chuyên đề', owner: 'Đỗ Thị Hương', description: 'Tổ chức chuỗi hoạt động ứng dụng AI an toàn và hiệu quả trong dạy học tiếng Anh.', startISO: '2026-07-15', dueISO: '2026-09-15', milestones: [{ id: 41, label: 'Xây dựng nội dung chuyên đề', done: true }, { id: 42, label: 'Chuẩn bị minh chứng', done: true }, { id: 43, label: 'Tổ chức báo cáo', done: false }] },
 ];
 
-function relativeDate(days) { const date = new Date(); date.setHours(12,0,0,0); date.setDate(date.getDate()+days); return date.toISOString().slice(0,10); }
-function normalizeLegacyDates(items) { return items.map((task,index)=>{ if(task.dueISO) return task; const completed=['Hoàn thành','Đã nộp'].includes(task.status); const overdue=task.status==='Quá hạn'; const dueOffset=overdue?-2:completed?-4:3+index*3; return {...task,startISO:relativeDate(completed?-12:-3),dueISO:relativeDate(dueOffset),legacyDue:task.due}; }); }
-function readStored(key,fallback){try{const value=localStorage.getItem(key);return value?JSON.parse(value):fallback}catch{return fallback}}
-function readEvidence(){const stored=readStored(EVIDENCE_STORAGE_KEY,null);return Array.isArray(stored)&&stored.every(item=>item&&item.status&&item.criterion&&item.owner&&Array.isArray(item.attachments))?stored:createDefaultEvidence()}
+function relativeDate(days) {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
 
-function DepartmentRoot(){
-  const [workspaceMode,setWorkspaceMode]=useState(null);
-  const [tasks,setTasks]=useState([]);
-  const [records,setRecords]=useState([]);
-  const [plans,setPlans]=useState([]);
-  const [events,setEvents]=useState([]);
-  const [meetings,setMeetings]=useState([]);
-  const [evidence,setEvidence]=useState([]);
-  const [reportHistory,setReportHistory]=useState(()=>readStored(REPORT_HISTORY_KEY,[]));
-  const [notifications,setNotifications]=useState(()=>readGlobalNotifications());
-  const [globalDrawerOpen,setGlobalDrawerOpen]=useState(false);
-  const [toast,setToast]=useState('');
+function normalizeLegacyDates(items) {
+  return items.map((task, index) => {
+    if (task.dueISO) return task;
+    const completed = ['Hoàn thành', 'Đã nộp'].includes(task.status);
+    const overdue = task.status === 'Quá hạn';
+    const dueOffset = overdue ? -2 : completed ? -4 : 3 + index * 3;
+    return { ...task, startISO: relativeDate(completed ? -12 : -3), dueISO: relativeDate(dueOffset), legacyDue: task.due };
+  });
+}
 
-  useEffect(()=>{const nextTab=sessionStorage.getItem('department-next-tab');if(!nextTab)return undefined;sessionStorage.removeItem('department-next-tab');const timer=window.setTimeout(()=>document.querySelector(`[data-testid="tab-${nextTab}"]`)?.click(),120);return()=>window.clearTimeout(timer)},[]);
-  useEffect(()=>{const handleNavigation=event=>{const button=event.target.closest?.('[data-testid^="tab-"]');if(!button)return;const tab=button.getAttribute('data-testid')?.replace('tab-','');if(tab==='overview'){setWorkspaceMode(null);return}if(tab==='tasks'){window.setTimeout(()=>{setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY,FALLBACK_TASKS)));setWorkspaceMode('tasks')},0);return}if(tab==='records'){window.setTimeout(()=>{setRecords(readStored(RECORD_STORAGE_KEY,FALLBACK_RECORDS));setWorkspaceMode('records')},0);return}if(tab==='plans'){window.setTimeout(()=>{setPlans(readStored(PLAN_STORAGE_KEY,FALLBACK_PLANS));setWorkspaceMode('plans')},0);return}if(tab==='calendar'){window.setTimeout(()=>{setEvents(readStored(CALENDAR_STORAGE_KEY,createDefaultCalendarEvents()));setWorkspaceMode('calendar')},0);return}if(tab==='meetings'){window.setTimeout(()=>{setMeetings(readStored(MEETING_STORAGE_KEY,createDefaultMeetings()));setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY,FALLBACK_TASKS)));setWorkspaceMode('meetings')},0);return}if(tab==='evidence'){window.setTimeout(()=>{setEvidence(readEvidence());setWorkspaceMode('evidence')},0);return}if(tab==='reports'){window.setTimeout(()=>{setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY,FALLBACK_TASKS)));setRecords(readStored(RECORD_STORAGE_KEY,FALLBACK_RECORDS));setPlans(readStored(PLAN_STORAGE_KEY,FALLBACK_PLANS));setMeetings(readStored(MEETING_STORAGE_KEY,createDefaultMeetings()));setEvidence(readEvidence());setReportHistory(readStored(REPORT_HISTORY_KEY,[]));setWorkspaceMode('reports')},0);return}};document.addEventListener('click',handleNavigation,true);return()=>document.removeEventListener('click',handleNavigation,true)},[]);
-  useEffect(()=>{const handleBell=event=>{const button=event.target.closest?.('.bell-button');if(!button)return;event.preventDefault();event.stopPropagation();setGlobalDrawerOpen(open=>!open)};document.addEventListener('click',handleBell,true);return()=>document.removeEventListener('click',handleBell,true)},[]);
-  useEffect(()=>{document.querySelectorAll('.bell-button').forEach(button=>button.setAttribute('aria-label',globalDrawerOpen?'Đóng thông báo':'Mở thông báo'))},[globalDrawerOpen,workspaceMode]);
+function readStored(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
-  useEffect(()=>{if(workspaceMode==='tasks'||workspaceMode==='meetings')try{localStorage.setItem(TASK_STORAGE_KEY,JSON.stringify(tasks))}catch{}},[tasks,workspaceMode]);
-  useEffect(()=>{if(workspaceMode==='records')try{localStorage.setItem(RECORD_STORAGE_KEY,JSON.stringify(records))}catch{}},[records,workspaceMode]);
-  useEffect(()=>{if(workspaceMode==='plans')try{localStorage.setItem(PLAN_STORAGE_KEY,JSON.stringify(plans))}catch{}},[plans,workspaceMode]);
-  useEffect(()=>{if(workspaceMode==='calendar')try{localStorage.setItem(CALENDAR_STORAGE_KEY,JSON.stringify(events))}catch{}},[events,workspaceMode]);
-  useEffect(()=>{if(workspaceMode==='meetings')try{localStorage.setItem(MEETING_STORAGE_KEY,JSON.stringify(meetings))}catch{}},[meetings,workspaceMode]);
-  useEffect(()=>{if(workspaceMode==='evidence')try{localStorage.setItem(EVIDENCE_STORAGE_KEY,JSON.stringify(evidence))}catch{}},[evidence,workspaceMode]);
-  useEffect(()=>{try{localStorage.setItem(REPORT_HISTORY_KEY,JSON.stringify(reportHistory))}catch{}},[reportHistory]);
-  useEffect(()=>{try{localStorage.setItem(NOTIFICATION_STORAGE_KEY,JSON.stringify(notifications))}catch{}},[notifications]);
-  useEffect(()=>{if(!toast)return undefined;const timer=window.setTimeout(()=>setToast(''),2600);return()=>window.clearTimeout(timer)},[toast]);
+function writeStored(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* local cache is best effort */ }
+}
 
-  const updateTask=(id,patch)=>setTasks(items=>items.map(item=>item.id===id?{...item,...patch}:item));
-  const deleteTask=id=>{setTasks(items=>items.filter(item=>item.id!==id));setToast('Đã xóa nhiệm vụ.')};
-  const updateRecord=(id,patch)=>setRecords(items=>items.map(item=>item.id===id?{...item,...patch}:item));
-  const deleteRecord=id=>{setRecords(items=>items.filter(item=>item.id!==id));setToast('Đã xóa hồ sơ.')};
-  const updatePlan=(id,patch)=>setPlans(items=>items.map(item=>item.id===id?{...item,...patch}:item));
-  const deletePlan=id=>{setPlans(items=>items.filter(item=>item.id!==id));setToast('Đã xóa kế hoạch.')};
-  const updateEvent=(id,patch)=>setEvents(items=>items.map(item=>item.id===id?{...item,...patch}:item));
-  const deleteEvent=id=>{setEvents(items=>items.filter(item=>item.id!==id));setToast('Đã xóa hoạt động.')};
-  const updateMeeting=(id,patch)=>setMeetings(items=>items.map(item=>item.id===id?{...item,...patch}:item));
-  const deleteMeeting=id=>{setMeetings(items=>items.filter(item=>item.id!==id));setToast('Đã xóa cuộc họp.')};
-  const updateEvidence=(id,patch)=>setEvidence(items=>items.map(item=>item.id===id?{...item,...patch}:item));
-  const deleteEvidence=id=>{setEvidence(items=>items.filter(item=>item.id!==id));setToast('Đã xóa minh chứng.')};
+function readEvidence() {
+  const stored = readStored(EVIDENCE_STORAGE_KEY, null);
+  return Array.isArray(stored) && stored.every((item) => item && item.status && item.criterion && item.owner && Array.isArray(item.attachments))
+    ? stored
+    : createDefaultEvidence();
+}
 
-  return <div className={`department-root ${workspaceMode?'has-external-workspace':''}`}><App/>
-    {workspaceMode==='tasks'&&<section className="task-workspace-bridge" aria-label="Không gian Giao việc hoàn chỉnh"><TasksWorkspace tasks={tasks} setTasks={setTasks} updateTask={updateTask} deleteTask={deleteTask} setToast={setToast}/></section>}
-    {workspaceMode==='records'&&<section className="task-workspace-bridge" aria-label="Không gian Hồ sơ hoàn chỉnh"><RecordsWorkspace records={records} setRecords={setRecords} updateRecord={updateRecord} deleteRecord={deleteRecord} setToast={setToast}/></section>}
-    {workspaceMode==='plans'&&<section className="task-workspace-bridge" aria-label="Không gian Kế hoạch hoàn chỉnh"><PlansWorkspace plans={plans} setPlans={setPlans} updatePlan={updatePlan} deletePlan={deletePlan} setToast={setToast}/></section>}
-    {workspaceMode==='calendar'&&<section className="task-workspace-bridge" aria-label="Không gian Lịch hoàn chỉnh"><CalendarWorkspace events={events} setEvents={setEvents} updateEvent={updateEvent} deleteEvent={deleteEvent} setToast={setToast}/></section>}
-    {workspaceMode==='meetings'&&<section className="task-workspace-bridge" aria-label="Không gian Sinh hoạt tổ hoàn chỉnh"><MeetingsWorkspace meetings={meetings} setMeetings={setMeetings} updateMeeting={updateMeeting} deleteMeeting={deleteMeeting} setTasks={setTasks} setToast={setToast}/></section>}
-    {workspaceMode==='evidence'&&<section className="task-workspace-bridge" aria-label="Không gian Minh chứng hoàn chỉnh"><EvidenceWorkspace evidence={evidence} setEvidence={setEvidence} updateEvidence={updateEvidence} deleteEvidence={deleteEvidence} setToast={setToast}/></section>}
-    {workspaceMode==='reports'&&<section className="task-workspace-bridge" aria-label="Không gian Báo cáo hoàn chỉnh"><ReportsWorkspace tasks={tasks} records={records} plans={plans} meetings={meetings} evidence={evidence} reportHistory={reportHistory} setReportHistory={setReportHistory} setToast={setToast}/></section>}
-    <GlobalNotificationDrawer open={globalDrawerOpen} notifications={notifications} setNotifications={setNotifications} onClose={()=>setGlobalDrawerOpen(false)} setToast={setToast}/>
-    {toast&&<div className="bridge-toast" role="status">{toast}</div>}
+function DepartmentRoot() {
+  const [workspaceMode, setWorkspaceMode] = useState(null);
+  const [tasks, setTasks] = useState(() => normalizeLegacyDates(readStored(TASK_STORAGE_KEY, FALLBACK_TASKS)));
+  const [records, setRecords] = useState(() => readStored(RECORD_STORAGE_KEY, FALLBACK_RECORDS));
+  const [plans, setPlans] = useState(() => readStored(PLAN_STORAGE_KEY, FALLBACK_PLANS));
+  const [events, setEvents] = useState(() => readStored(CALENDAR_STORAGE_KEY, createDefaultCalendarEvents()));
+  const [meetings, setMeetings] = useState(() => readStored(MEETING_STORAGE_KEY, createDefaultMeetings()));
+  const [evidence, setEvidence] = useState(() => readEvidence());
+  const [reportHistory, setReportHistory] = useState(() => readStored(REPORT_HISTORY_KEY, []));
+  const [notifications, setNotifications] = useState(() => readGlobalNotifications());
+  const [globalDrawerOpen, setGlobalDrawerOpen] = useState(false);
+  const [toast, setToast] = useState('');
+  const [cloudContext, setCloudContext] = useState(() => createLocalDepartmentContext());
+  const [appRevision, setAppRevision] = useState(0);
+  const cloudHydrated = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    initializeDepartmentCloud().then((context) => {
+      if (cancelled) return;
+      setCloudContext(context);
+
+      if (context.mode === 'cloud') {
+        const nextTasks = normalizeLegacyDates(collectionFromContext(context, 'tasks', tasks));
+        const nextRecords = collectionFromContext(context, 'records', records);
+        const nextPlans = collectionFromContext(context, 'plans', plans);
+        const nextEvents = collectionFromContext(context, 'calendar', events);
+        const nextMeetings = collectionFromContext(context, 'meetings', meetings);
+        const nextEvidence = collectionFromContext(context, 'evidence', evidence);
+        const nextReports = collectionFromContext(context, 'reportHistory', reportHistory);
+        const nextNotifications = collectionFromContext(context, 'notifications', notifications);
+
+        setTasks(nextTasks);
+        setRecords(nextRecords);
+        setPlans(nextPlans);
+        setEvents(nextEvents);
+        setMeetings(nextMeetings);
+        setEvidence(nextEvidence);
+        setReportHistory(nextReports);
+        setNotifications(nextNotifications);
+
+        writeStored(TASK_STORAGE_KEY, nextTasks);
+        writeStored(RECORD_STORAGE_KEY, nextRecords);
+        writeStored(PLAN_STORAGE_KEY, nextPlans);
+        writeStored(CALENDAR_STORAGE_KEY, nextEvents);
+        writeStored(MEETING_STORAGE_KEY, nextMeetings);
+        writeStored(EVIDENCE_STORAGE_KEY, nextEvidence);
+        writeStored(REPORT_HISTORY_KEY, nextReports);
+        writeStored(NOTIFICATION_STORAGE_KEY, nextNotifications);
+        setAppRevision((value) => value + 1);
+      }
+
+      cloudHydrated.current = true;
+      if (context.mode === 'offline' || context.mode === 'forbidden' || context.mode === 'signed_out') setToast(context.message);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    const handleCloudError = (event) => setToast(`Không thể đồng bộ ${event.detail?.entityType || 'dữ liệu'} lên Supabase.`);
+    window.addEventListener('department-cloud-error', handleCloudError);
+    return () => window.removeEventListener('department-cloud-error', handleCloudError);
+  }, []);
+
+  useEffect(() => {
+    if (cloudContext.mode === 'local' || cloudContext.canManage) return undefined;
+    const blockMutation = (event) => {
+      if (!shouldBlockReadOnlyMutation(event.target)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setToast('Vai trò Giáo viên hiện chỉ được xem, tìm kiếm và mở chi tiết dữ liệu.');
+    };
+    document.addEventListener('click', blockMutation, true);
+    document.addEventListener('change', blockMutation, true);
+    return () => {
+      document.removeEventListener('click', blockMutation, true);
+      document.removeEventListener('change', blockMutation, true);
+    };
+  }, [cloudContext.mode, cloudContext.canManage]);
+
+  useEffect(() => {
+    const nextTab = sessionStorage.getItem('department-next-tab');
+    if (!nextTab) return undefined;
+    sessionStorage.removeItem('department-next-tab');
+    const timer = window.setTimeout(() => document.querySelector(`[data-testid="tab-${nextTab}"]`)?.click(), 120);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleNavigation = (event) => {
+      const button = event.target.closest?.('[data-testid^="tab-"]');
+      if (!button) return;
+      const tab = button.getAttribute('data-testid')?.replace('tab-', '');
+      if (tab === 'overview') { setWorkspaceMode(null); return; }
+      if (tab === 'tasks') { window.setTimeout(() => { setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY, FALLBACK_TASKS))); setWorkspaceMode('tasks'); }, 0); return; }
+      if (tab === 'records') { window.setTimeout(() => { setRecords(readStored(RECORD_STORAGE_KEY, FALLBACK_RECORDS)); setWorkspaceMode('records'); }, 0); return; }
+      if (tab === 'plans') { window.setTimeout(() => { setPlans(readStored(PLAN_STORAGE_KEY, FALLBACK_PLANS)); setWorkspaceMode('plans'); }, 0); return; }
+      if (tab === 'calendar') { window.setTimeout(() => { setEvents(readStored(CALENDAR_STORAGE_KEY, createDefaultCalendarEvents())); setWorkspaceMode('calendar'); }, 0); return; }
+      if (tab === 'meetings') { window.setTimeout(() => { setMeetings(readStored(MEETING_STORAGE_KEY, createDefaultMeetings())); setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY, FALLBACK_TASKS))); setWorkspaceMode('meetings'); }, 0); return; }
+      if (tab === 'evidence') { window.setTimeout(() => { setEvidence(readEvidence()); setWorkspaceMode('evidence'); }, 0); return; }
+      if (tab === 'reports') {
+        window.setTimeout(() => {
+          setTasks(normalizeLegacyDates(readStored(TASK_STORAGE_KEY, FALLBACK_TASKS)));
+          setRecords(readStored(RECORD_STORAGE_KEY, FALLBACK_RECORDS));
+          setPlans(readStored(PLAN_STORAGE_KEY, FALLBACK_PLANS));
+          setMeetings(readStored(MEETING_STORAGE_KEY, createDefaultMeetings()));
+          setEvidence(readEvidence());
+          setReportHistory(readStored(REPORT_HISTORY_KEY, []));
+          setWorkspaceMode('reports');
+        }, 0);
+      }
+    };
+    document.addEventListener('click', handleNavigation, true);
+    return () => document.removeEventListener('click', handleNavigation, true);
+  }, []);
+
+  useEffect(() => {
+    const handleBell = (event) => {
+      const button = event.target.closest?.('.bell-button');
+      if (!button) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setGlobalDrawerOpen((open) => !open);
+    };
+    document.addEventListener('click', handleBell, true);
+    return () => document.removeEventListener('click', handleBell, true);
+  }, []);
+
+  useEffect(() => {
+    document.querySelectorAll('.bell-button').forEach((button) => button.setAttribute('aria-label', globalDrawerOpen ? 'Đóng thông báo' : 'Mở thông báo'));
+  }, [globalDrawerOpen, workspaceMode]);
+
+  useEffect(() => {
+    writeStored(TASK_STORAGE_KEY, tasks);
+    if (cloudHydrated.current) scheduleDepartmentCollectionSave(cloudContext, 'tasks', tasks);
+  }, [tasks, cloudContext]);
+  useEffect(() => {
+    writeStored(RECORD_STORAGE_KEY, records);
+    if (cloudHydrated.current) scheduleDepartmentCollectionSave(cloudContext, 'records', records);
+  }, [records, cloudContext]);
+  useEffect(() => {
+    writeStored(PLAN_STORAGE_KEY, plans);
+    if (cloudHydrated.current) scheduleDepartmentCollectionSave(cloudContext, 'plans', plans);
+  }, [plans, cloudContext]);
+  useEffect(() => {
+    writeStored(CALENDAR_STORAGE_KEY, events);
+    if (cloudHydrated.current) scheduleDepartmentCollectionSave(cloudContext, 'calendar', events);
+  }, [events, cloudContext]);
+  useEffect(() => {
+    writeStored(MEETING_STORAGE_KEY, meetings);
+    if (cloudHydrated.current) scheduleDepartmentCollectionSave(cloudContext, 'meetings', meetings);
+  }, [meetings, cloudContext]);
+  useEffect(() => {
+    writeStored(EVIDENCE_STORAGE_KEY, evidence);
+    if (cloudHydrated.current) scheduleDepartmentCollectionSave(cloudContext, 'evidence', evidence);
+  }, [evidence, cloudContext]);
+  useEffect(() => {
+    writeStored(REPORT_HISTORY_KEY, reportHistory);
+    if (cloudHydrated.current) scheduleDepartmentCollectionSave(cloudContext, 'reportHistory', reportHistory);
+  }, [reportHistory, cloudContext]);
+  useEffect(() => {
+    writeStored(NOTIFICATION_STORAGE_KEY, notifications);
+    if (cloudHydrated.current) scheduleDepartmentCollectionSave(cloudContext, 'notifications', notifications);
+  }, [notifications, cloudContext]);
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = window.setTimeout(() => setToast(''), 2600);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  const updateTask = (id, patch) => setTasks((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
+  const deleteTask = (id) => { setTasks((items) => items.filter((item) => item.id !== id)); setToast('Đã xóa nhiệm vụ.'); };
+  const updateRecord = (id, patch) => setRecords((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
+  const deleteRecord = (id) => { setRecords((items) => items.filter((item) => item.id !== id)); setToast('Đã xóa hồ sơ.'); };
+  const updatePlan = (id, patch) => setPlans((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
+  const deletePlan = (id) => { setPlans((items) => items.filter((item) => item.id !== id)); setToast('Đã xóa kế hoạch.'); };
+  const updateEvent = (id, patch) => setEvents((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
+  const deleteEvent = (id) => { setEvents((items) => items.filter((item) => item.id !== id)); setToast('Đã xóa hoạt động.'); };
+  const updateMeeting = (id, patch) => setMeetings((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
+  const deleteMeeting = (id) => { setMeetings((items) => items.filter((item) => item.id !== id)); setToast('Đã xóa cuộc họp.'); };
+  const updateEvidence = (id, patch) => setEvidence((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
+  const deleteEvidence = (id) => { setEvidence((items) => items.filter((item) => item.id !== id)); setToast('Đã xóa minh chứng.'); };
+
+  const modeLabel = cloudContext.mode === 'cloud' ? 'Supabase' : cloudContext.mode === 'local' ? 'Cục bộ' : 'Chỉ xem';
+
+  return <div className={`department-root ${workspaceMode ? 'has-external-workspace' : ''} ${!cloudContext.canManage && cloudContext.mode !== 'local' ? 'is-read-only' : ''}`}>
+    <App key={`app-${appRevision}`}/>
+    <div className={`department-cloud-pill is-${cloudContext.status}`} title={cloudContext.message} data-testid="department-cloud-status">
+      <i/><span><strong>{cloudContext.roleLabel}</strong><small>{modeLabel}</small></span>
+    </div>
+    {!cloudContext.canManage && cloudContext.mode !== 'local' && <div className="department-readonly-banner" role="status">Chế độ {cloudContext.roleLabel}: chỉ xem, tìm kiếm và mở chi tiết.</div>}
+    {workspaceMode === 'tasks' && <section className="task-workspace-bridge" aria-label="Không gian Giao việc hoàn chỉnh"><TasksWorkspace tasks={tasks} setTasks={setTasks} updateTask={updateTask} deleteTask={deleteTask} setToast={setToast}/></section>}
+    {workspaceMode === 'records' && <section className="task-workspace-bridge" aria-label="Không gian Hồ sơ hoàn chỉnh"><RecordsWorkspace records={records} setRecords={setRecords} updateRecord={updateRecord} deleteRecord={deleteRecord} setToast={setToast}/></section>}
+    {workspaceMode === 'plans' && <section className="task-workspace-bridge" aria-label="Không gian Kế hoạch hoàn chỉnh"><PlansWorkspace plans={plans} setPlans={setPlans} updatePlan={updatePlan} deletePlan={deletePlan} setToast={setToast}/></section>}
+    {workspaceMode === 'calendar' && <section className="task-workspace-bridge" aria-label="Không gian Lịch hoàn chỉnh"><CalendarWorkspace events={events} setEvents={setEvents} updateEvent={updateEvent} deleteEvent={deleteEvent} setToast={setToast}/></section>}
+    {workspaceMode === 'meetings' && <section className="task-workspace-bridge" aria-label="Không gian Sinh hoạt tổ hoàn chỉnh"><MeetingsWorkspace meetings={meetings} setMeetings={setMeetings} updateMeeting={updateMeeting} deleteMeeting={deleteMeeting} setTasks={setTasks} setToast={setToast}/></section>}
+    {workspaceMode === 'evidence' && <section className="task-workspace-bridge" aria-label="Không gian Minh chứng hoàn chỉnh"><EvidenceWorkspace evidence={evidence} setEvidence={setEvidence} updateEvidence={updateEvidence} deleteEvidence={deleteEvidence} setToast={setToast}/></section>}
+    {workspaceMode === 'reports' && <section className="task-workspace-bridge" aria-label="Không gian Báo cáo hoàn chỉnh"><ReportsWorkspace tasks={tasks} records={records} plans={plans} meetings={meetings} evidence={evidence} reportHistory={reportHistory} setReportHistory={setReportHistory} setToast={setToast}/></section>}
+    <GlobalNotificationDrawer open={globalDrawerOpen} notifications={notifications} setNotifications={setNotifications} onClose={() => setGlobalDrawerOpen(false)} setToast={setToast}/>
+    {toast && <div className="bridge-toast" role="status">{toast}</div>}
   </div>;
 }
 
