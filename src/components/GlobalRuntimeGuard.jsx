@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { recordRuntimeError } from '../utils/runtimeDiagnostics.js';
+import { installBrianAnimeMotion } from '../utils/animeMotionRuntime.js';
 
 export default function GlobalRuntimeGuard({ language = 'vi' }) {
   const [online, setOnline] = useState(() => navigator.onLine);
   const [runtimeMessage, setRuntimeMessage] = useState('');
 
   useEffect(() => {
+    const uninstallAnimeMotion = installBrianAnimeMotion();
     const onOnline = () => setOnline(true);
     const onOffline = () => setOnline(false);
     const onError = (event) => {
@@ -22,6 +24,7 @@ export default function GlobalRuntimeGuard({ language = 'vi' }) {
     window.addEventListener('error', onError);
     window.addEventListener('unhandledrejection', onRejection);
     return () => {
+      uninstallAnimeMotion();
       window.removeEventListener('online', onOnline);
       window.removeEventListener('offline', onOffline);
       window.removeEventListener('error', onError);
