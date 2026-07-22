@@ -19,7 +19,6 @@ const DEFAULT_PINNED = [
   'reading-studio',
 ];
 
-
 const RETIRED_LAUNCHER_IDS = new Set([
   'tool:worksheet-factory',
   'worksheet-factory',
@@ -38,6 +37,9 @@ const RETIRED_LAUNCHER_IDS = new Set([
   'route:ai-workspace',
   'route:classroom-delivery',
   'route:learning-intelligence',
+  'department-workspace',
+  'tool:department-workspace',
+  'route:department',
 ]);
 
 const DEFAULT_NAV = [
@@ -45,7 +47,6 @@ const DEFAULT_NAV = [
   'route:apps',
   'route:news',
   'route:games',
-  'route:department',
   'route:homeroom',
   'route:library',
   'route:resource-library',
@@ -74,12 +75,12 @@ function decodeConfig(value) {
 }
 
 export function launcherItemId(item) {
-  if (!item) return '';
+  if (!item || item.hideFromLauncher) return '';
   return String(item.slug || item.route || '').trim();
 }
 
 export function launcherNavId(item) {
-  if (!item) return '';
+  if (!item || item.hideFromLauncher) return '';
   if (item.route) return `route:${String(item.route).trim()}`;
   return item.slug ? `tool:${String(item.slug).trim()}` : '';
 }
