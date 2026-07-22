@@ -1,0 +1,36 @@
+name: Department Workspace v2 Check
+
+on:
+  push:
+    branches:
+      - feature/department-v2-option-d
+  pull_request:
+    branches:
+      - feature/department-new-known-good
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Verify Department v2 assets
+        run: |
+          test -f src/pages/DepartmentWorkspaceV2.jsx
+          test -f src/pages/DepartmentWorkspaceV2.css
+          grep -q "department-workspace" src/data/apps.js
+          grep -q "DepartmentWorkspaceV2" src/pages/ToolPage.jsx
