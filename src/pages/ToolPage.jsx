@@ -1,5 +1,4 @@
 import React, { Suspense, lazy, useMemo, useState } from 'react';
-import './DepartmentWorkspaceV2Compact.css';
 
 const WordGraphStudio = lazy(() => import('./WordGraphStudio.jsx'));
 const ReadingStudio = lazy(() => import('./ReadingStudio.jsx'));
@@ -108,7 +107,6 @@ export default function ToolPage(props) {
   if (specializedToolSlugs.has(tool?.slug)) {
     return renderLazy(SpecializedAppPage, props);
   }
-
 
   if (tool?.slug === 'domino-wordform') {
     return renderLazy(DominoWordForm, props);
