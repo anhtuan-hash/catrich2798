@@ -11,7 +11,6 @@ Apply the visual language and balanced layout system of **Lesson Architect** to 
 - WordGraph Studio
 - TextCare Fixer
 - Learner Sprint
-- Tổ chuyên môn
 - Thư viện
 - Trò chơi
 - Quản trị
@@ -25,7 +24,7 @@ Apply the visual language and balanced layout system of **Lesson Architect** to 
   - Exam Studio: 2-column workflow + structured stepper
   - WordGraph / Reading / Speaking / TextCare: better control/result balance
   - Learner Sprint: improved setup/result layout
-  - Department / Library / Games / Admin: more stable dashboard grids
+  - Library / Games / Admin: more stable dashboard grids
 - Responsive fallback for smaller widths.
 
 ## Validation
