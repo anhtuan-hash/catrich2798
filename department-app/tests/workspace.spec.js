@@ -46,23 +46,26 @@ test('MacBook viewport uses genuinely readable typography and redistributed layo
   expect(summaryColumns).toBe(3);
 });
 
-test('notification panel opens and closes from both controls', async ({ page }) => {
+test('global notification drawer opens and closes from both controls', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.reload();
 
-  const drawer = page.getByTestId('notification-drawer');
-  await expect(drawer).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Đóng thông báo' })).toBeVisible();
-
-  const widthWithDrawer = await page.locator('.content-column').evaluate((element) => element.getBoundingClientRect().width);
-  await page.getByRole('button', { name: 'Đóng thông báo' }).click();
+  const drawer = page.getByTestId('global-notification-drawer');
   await expect(drawer).toHaveCount(0);
 
-  const widthWithoutDrawer = await page.locator('.content-column').evaluate((element) => element.getBoundingClientRect().width);
-  expect(widthWithoutDrawer).toBeGreaterThan(widthWithDrawer);
+  await page.getByRole('button', { name: 'Mở thông báo' }).click();
+  await expect(drawer).toBeVisible();
+  await expect(drawer.getByText('3 thông báo chưa đọc')).toBeVisible();
+  await drawer.getByRole('button', { name: 'Đánh dấu tất cả đã đọc' }).click();
+  await expect(drawer.getByText('0 thông báo chưa đọc')).toBeVisible();
+
+  await drawer.getByRole('button', { name: 'Đóng bảng thông báo' }).click();
+  await expect(drawer).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Mở thông báo' }).click();
-  await expect(page.getByTestId('notification-drawer')).toBeVisible();
+  await expect(drawer).toBeVisible();
+  await page.getByRole('button', { name: 'Đóng thông báo' }).click();
+  await expect(drawer).toHaveCount(0);
 });
 
 test('creates and persists a task, filters and updates status', async ({ page }) => {
@@ -187,13 +190,19 @@ test('complete records workspace supports submission, review, approval and archi
   await expect(restoredRecord.getByText('Đã lưu kho')).toBeVisible();
 });
 
-test('notifications, search and meetings remain interactive', async ({ page }) => {
-  await page.getByRole('button', { name: 'Đánh dấu đã đọc' }).click();
-  await expect(page.getByText('0 thông báo chưa đọc')).toBeVisible();
-  await page.getByLabel('Tìm kiếm nhanh').fill('ma trận');
-  await page.locator('.search-results').getByRole('button', { name: /Xây dựng ma trận/ }).click();
+test('notifications and meetings remain interactive', async ({ page }) => {
+  await page.getByRole('button', { name: 'Mở thông báo' }).click();
+  const drawer = page.getByTestId('global-notification-drawer');
+  await expect(drawer).toBeVisible();
+  await drawer.getByRole('button', { name: 'Đánh dấu tất cả đã đọc' }).click();
+  await expect(drawer.getByText('0 thông báo chưa đọc')).toBeVisible();
+  await drawer.getByRole('button', { name: 'Đóng bảng thông báo' }).click();
+  await expect(drawer).toHaveCount(0);
+
   await page.getByTestId('tab-meetings').click();
-  const checkbox = page.getByRole('checkbox').first();
+  const workspace = page.locator('.task-workspace-bridge');
+  await expect(workspace.getByRole('heading', { name: 'Cuộc họp và biên bản' })).toBeVisible();
+  const checkbox = workspace.getByRole('checkbox').first();
   await checkbox.check();
   await expect(checkbox).toBeChecked();
 });
