@@ -33,6 +33,8 @@ jobs:
             grep: complete plans workspace supports create
           - id: calendar-complete
             grep: complete calendar workspace supports views
+          - id: meetings-complete
+            grep: complete meetings workspace supports minutes
           - id: remaining-interactions
             grep: notifications, search and meetings remain interactive
     defaults:
@@ -64,10 +66,14 @@ jobs:
           test -f src/plans-workspace.css
           test -f src/CalendarWorkspace.jsx
           test -f src/calendar-workspace.css
+          test -f src/MeetingsWorkspace.jsx
+          test -f src/meetings-workspace.css
           grep -q "RecordsWorkspace" src/main.jsx
           grep -q "PlansWorkspace" src/main.jsx
           grep -q "CalendarWorkspace" src/main.jsx
+          grep -q "MeetingsWorkspace" src/main.jsx
           grep -q "department-v2-calendar-events" src/main.jsx
+          grep -q "department-v2-meetings" src/main.jsx
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium >/tmp/playwright-install.log 2>&1
