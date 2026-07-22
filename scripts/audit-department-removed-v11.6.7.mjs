@@ -74,6 +74,19 @@ pass('Dashboard retains Resource Library integration', dashboard.includes('#/res
 pass('Dashboard retains Homeroom integration', dashboard.includes('#/homeroom') && aggregator.includes('loadHomeroom'));
 pass('Dashboard uses generic work health', aggregator.includes('workHealth') && !aggregator.includes('departmentHealth'));
 
+const index = read('index.html');
+pass('Obsolete personal font URL removed', !index.includes('/fonts/personal-font.ttf'));
+pass('Deployed personal font remains active', index.includes('/bes-fonts/brian-personal-font.ttf') && index.includes('/bes-fonts/brian-font.css'));
+
+const serviceWorker = read('public/sw.js');
+pass('Service Worker cache version matches app', serviceWorker.includes("const VERSION = '11.6.7'"));
+pass('Legacy Service Worker cache version removed', !serviceWorker.includes("const VERSION = '11.3.2'"));
+
+const launcher = read('src/utils/launcherPreferences.js');
+pass('Launcher realtime uses unique channel topics', launcher.includes('nextLauncherRealtimeTopic()'));
+pass('Legacy fixed launcher realtime topic removed', !launcher.includes(".channel('bes-launcher-settings-v1085')"));
+pass('Launcher realtime cleanup ignores stale callbacks', launcher.includes('let active = true') && launcher.includes('active = false'));
+
 for (const [name, ok] of checks.map((name) => [name, !failures.some((item) => item.startsWith(name))])) {
   console.log(`${ok ? '✓' : '✗'} ${name}`);
 }
