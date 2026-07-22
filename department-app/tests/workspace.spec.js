@@ -84,7 +84,7 @@ test('creates and persists a task, filters and updates status', async ({ page })
   const createdTask = restoredWorkspace.getByTestId(/task-/).filter({ hasText: 'Kiểm tra chức năng nhiệm vụ' });
   await createdTask.getByRole('button', { name: /Tùy chọn Kiểm tra chức năng nhiệm vụ/ }).click();
   await createdTask.getByRole('button', { name: 'Hoàn thành', exact: true }).click();
-  await expect(createdTask.getByText('Hoàn thành')).toBeVisible();
+  await expect(createdTask.locator('.tw-status')).toHaveText('Hoàn thành');
 });
 
 test('complete task workspace supports assignment, search, files, feedback and editing', async ({ page }) => {
