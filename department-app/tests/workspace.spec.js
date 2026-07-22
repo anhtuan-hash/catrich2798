@@ -17,6 +17,20 @@ test('dashboard renders at proposal scale and tabs work', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Kế hoạch và tiến độ' })).toBeVisible();
 });
 
+test('MacBook viewport uses enlarged, readable density', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.reload();
+  const hero = page.locator('.hero-card');
+  const heroBox = await hero.boundingBox();
+  expect(heroBox.height).toBeGreaterThanOrEqual(245);
+  const heroTitleSize = await page.locator('.hero-copy h1').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+  const taskTitleSize = await page.locator('.task-copy strong').first().evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+  const headerHeight = await page.locator('.app-header').evaluate((element) => element.getBoundingClientRect().height);
+  expect(heroTitleSize).toBeGreaterThanOrEqual(34);
+  expect(taskTitleSize).toBeGreaterThanOrEqual(12);
+  expect(headerHeight).toBeGreaterThanOrEqual(86);
+});
+
 test('creates and persists a task, filters and updates status', async ({ page }) => {
   await page.getByTestId('tab-tasks').click();
   await page.getByRole('button', { name: 'Tạo nhiệm vụ' }).click();
