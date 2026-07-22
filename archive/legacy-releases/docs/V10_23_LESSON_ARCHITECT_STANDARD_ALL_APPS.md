@@ -1,7 +1,6 @@
 # V10.23 — Lesson Architect Standard Applied Across Apps
 
 ## Updated
-- Restored the **Tổ chuyên môn** card in the app drawer.
 - Restored the **Thư viện** card in the app drawer by adding the library route card back to the app directory.
 - Applied the **Lesson Architect / Flat Creative Teaching OS** standard more broadly across the major app workspaces:
   - cream / paper-like backgrounds,
