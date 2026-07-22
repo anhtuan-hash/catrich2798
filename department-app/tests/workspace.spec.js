@@ -64,7 +64,7 @@ test('global notification drawer opens and closes from both controls', async ({ 
 
   await page.getByRole('button', { name: 'Mở thông báo' }).click();
   await expect(drawer).toBeVisible();
-  await page.getByRole('button', { name: 'Đóng thông báo' }).click();
+  await page.locator('.global-notification-scrim').click();
   await expect(drawer).toHaveCount(0);
 });
 
@@ -202,7 +202,12 @@ test('notifications and meetings remain interactive', async ({ page }) => {
   await page.getByTestId('tab-meetings').click();
   const workspace = page.locator('.task-workspace-bridge');
   await expect(workspace.getByRole('heading', { name: 'Cuộc họp và biên bản' })).toBeVisible();
-  const checkbox = workspace.getByRole('checkbox').first();
-  await checkbox.check();
-  await expect(checkbox).toBeChecked();
+  const firstMeeting = workspace.locator('[data-testid^="meeting-"]').first();
+  await expect(firstMeeting).toBeVisible();
+  await firstMeeting.locator('.mw-main').click();
+  const detail = page.getByTestId('meeting-detail-panel');
+  await expect(detail).toBeVisible();
+  const agendaCheckbox = detail.locator('.mw-agenda input[type="checkbox"]').first();
+  await agendaCheckbox.check();
+  await expect(agendaCheckbox).toBeChecked();
 });
