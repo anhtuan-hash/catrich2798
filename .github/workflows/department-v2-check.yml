@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - feature/department-v2-option-d-faithful
+  pull_request:
+    branches:
+      - feature/department-new-known-good
 
 permissions:
   contents: write
