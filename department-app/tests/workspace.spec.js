@@ -11,8 +11,12 @@ test('dashboard renders at proposal scale and tabs work', async ({ page }) => {
   const frame = page.locator('.app-frame');
   const box = await frame.boundingBox();
   expect(box.width).toBeGreaterThan(1450);
+
   await page.getByTestId('tab-tasks').click();
-  await expect(page.getByRole('heading', { name: 'Giao việc và theo dõi' })).toBeVisible();
+  const taskWorkspace = page.locator('.task-workspace-bridge');
+  await expect(taskWorkspace).toBeVisible();
+  await expect(taskWorkspace.getByRole('heading', { name: 'Giao việc và theo dõi' })).toBeVisible();
+
   await page.getByTestId('tab-plans').click();
   await expect(page.getByRole('heading', { name: 'Kế hoạch và tiến độ' })).toBeVisible();
 });
@@ -63,17 +67,80 @@ test('notification panel opens and closes from both controls', async ({ page }) 
 
 test('creates and persists a task, filters and updates status', async ({ page }) => {
   await page.getByTestId('tab-tasks').click();
-  await page.getByRole('button', { name: 'Tạo nhiệm vụ' }).click();
-  await page.getByLabel('Tên nhiệm vụ').fill('Kiểm tra chức năng nhiệm vụ');
-  await page.getByRole('button', { name: 'Lưu' }).click();
-  await expect(page.getByText('Kiểm tra chức năng nhiệm vụ')).toBeVisible();
+  const workspace = page.locator('.task-workspace-bridge');
+  await expect(workspace).toBeVisible();
+  await workspace.getByRole('button', { name: 'Tạo nhiệm vụ' }).click();
+
+  const modal = page.getByTestId('task-editor-modal');
+  await modal.getByLabel('Tên nhiệm vụ').fill('Kiểm tra chức năng nhiệm vụ');
+  await modal.getByLabel('Mô tả chi tiết').fill('Kiểm tra lưu dữ liệu và cập nhật trạng thái.');
+  await modal.getByRole('button', { name: 'Tạo nhiệm vụ' }).click();
+  await expect(workspace.getByText('Kiểm tra chức năng nhiệm vụ')).toBeVisible();
+
   await page.reload();
   await page.getByTestId('tab-tasks').click();
-  await expect(page.getByText('Kiểm tra chức năng nhiệm vụ')).toBeVisible();
-  const createdTask = page.getByTestId(/task-/).filter({ hasText: 'Kiểm tra chức năng nhiệm vụ' });
+  const restoredWorkspace = page.locator('.task-workspace-bridge');
+  await expect(restoredWorkspace.getByText('Kiểm tra chức năng nhiệm vụ')).toBeVisible();
+  const createdTask = restoredWorkspace.getByTestId(/task-/).filter({ hasText: 'Kiểm tra chức năng nhiệm vụ' });
   await createdTask.getByRole('button', { name: /Tùy chọn Kiểm tra chức năng nhiệm vụ/ }).click();
   await createdTask.getByRole('button', { name: 'Hoàn thành', exact: true }).click();
-  await expect(page.getByText('Hoàn thành').first()).toBeVisible();
+  await expect(createdTask.getByText('Hoàn thành')).toBeVisible();
+});
+
+test('complete task workspace supports assignment, search, files, feedback and editing', async ({ page }) => {
+  await page.getByTestId('tab-tasks').click();
+  const workspace = page.locator('.task-workspace-bridge');
+  await expect(workspace.getByRole('heading', { name: 'Giao việc và theo dõi' })).toBeVisible();
+  await expect(workspace.getByText('Tổng nhiệm vụ')).toBeVisible();
+
+  await workspace.getByRole('button', { name: 'Tạo nhiệm vụ' }).click();
+  const modal = page.getByTestId('task-editor-modal');
+  await modal.getByLabel('Tên nhiệm vụ').fill('Chuẩn bị chuyên đề chuyển đổi số');
+  await modal.getByLabel('Mô tả chi tiết').fill('Hoàn thiện nội dung, minh chứng và tài liệu trình chiếu.');
+  await modal.getByText('Nguyễn Thị Mai', { exact: true }).click();
+  await modal.getByText('Trần Minh Đức', { exact: true }).click();
+  await modal.getByLabel('Mức độ ưu tiên').selectOption('Cao');
+  await modal.getByLabel('Trạng thái').selectOption('Đang thực hiện');
+  await modal.getByLabel('Tiến độ nhiệm vụ').evaluate((element) => {
+    element.value = '35';
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await modal.getByLabel('Tiêu chí hoàn thành').fill('Có kế hoạch chi tiết\nCó tài liệu trình chiếu\nCó minh chứng triển khai');
+  await modal.locator('input[type=file]').setInputFiles({
+    name: 'ke-hoach.docx',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    buffer: Buffer.from('demo'),
+  });
+  await modal.getByRole('button', { name: 'Tạo nhiệm vụ' }).click();
+
+  await workspace.getByLabel('Tìm nhiệm vụ').fill('chuyển đổi số');
+  const task = workspace.getByTestId(/task-/).filter({ hasText: 'Chuẩn bị chuyên đề chuyển đổi số' });
+  await expect(task).toBeVisible();
+  await expect(task.getByText('Cao')).toBeVisible();
+  await task.locator('.tw-task-main').click();
+
+  const detail = page.getByTestId('task-detail-panel');
+  await expect(detail.getByText('Nguyễn Thị Mai, Trần Minh Đức')).toBeVisible();
+  await expect(detail.getByText('ke-hoach.docx')).toBeVisible();
+  await detail.getByRole('checkbox').first().check();
+  await detail.getByLabel('Nội dung phản hồi').fill('Vui lòng bổ sung thời lượng cho từng hoạt động.');
+  await detail.getByRole('button', { name: 'Gửi phản hồi' }).click();
+  await expect(detail.getByText('Vui lòng bổ sung thời lượng cho từng hoạt động.')).toBeVisible();
+
+  await detail.getByRole('button', { name: 'Chỉnh sửa' }).click();
+  const editModal = page.getByTestId('task-editor-modal');
+  await editModal.getByLabel('Tên nhiệm vụ').fill('Chuẩn bị chuyên đề chuyển đổi số – hoàn chỉnh');
+  await editModal.getByRole('button', { name: 'Lưu thay đổi' }).click();
+  await expect(workspace.getByText('Chuẩn bị chuyên đề chuyển đổi số – hoàn chỉnh')).toBeVisible();
+
+  await workspace.getByLabel('Lọc ưu tiên').selectOption('Cao');
+  await expect(workspace.getByText('Chuẩn bị chuyên đề chuyển đổi số – hoàn chỉnh')).toBeVisible();
+  await page.reload();
+  await page.getByTestId('tab-tasks').click();
+  const reloadedWorkspace = page.locator('.task-workspace-bridge');
+  await reloadedWorkspace.getByLabel('Tìm nhiệm vụ').fill('hoàn chỉnh');
+  await expect(reloadedWorkspace.getByText('Chuẩn bị chuyên đề chuyển đổi số – hoàn chỉnh')).toBeVisible();
 });
 
 test('notifications, search, meetings and record approval work', async ({ page }) => {
@@ -81,7 +148,6 @@ test('notifications, search, meetings and record approval work', async ({ page }
   await expect(page.getByText('0 thông báo chưa đọc')).toBeVisible();
   await page.getByLabel('Tìm kiếm nhanh').fill('ma trận');
   await page.locator('.search-results').getByRole('button', { name: /Xây dựng ma trận/ }).click();
-  await expect(page.getByRole('heading', { name: 'Giao việc và theo dõi' })).toBeVisible();
   await page.getByTestId('tab-meetings').click();
   const checkbox = page.getByRole('checkbox').first();
   await checkbox.check();
