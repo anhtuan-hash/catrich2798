@@ -1,4 +1,4 @@
-name: Records Workspace Check
+name: Standalone Workspace Check
 
 on:
   pull_request:
@@ -29,6 +29,8 @@ jobs:
             grep: complete task workspace supports assignment
           - id: records-complete
             grep: complete records workspace supports submission
+          - id: plans-complete
+            grep: complete plans workspace supports create
           - id: remaining-interactions
             grep: notifications, search and meetings remain interactive
     defaults:
@@ -56,7 +58,10 @@ jobs:
           test -f dist/index.html
           test -f src/RecordsWorkspace.jsx
           test -f src/records-workspace.css
+          test -f src/PlansWorkspace.jsx
+          test -f src/plans-workspace.css
           grep -q "RecordsWorkspace" src/main.jsx
+          grep -q "PlansWorkspace" src/main.jsx
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium >/tmp/playwright-install.log 2>&1
