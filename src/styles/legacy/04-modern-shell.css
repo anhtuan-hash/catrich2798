@@ -675,436 +675,80 @@ html[data-theme="dark"] .metro-clean-system .signature-footer-v50-bottom,
 }
 
 /* ===== V10.52 Department submission workspace refinement ===== */
-.metro-clean-system[data-route="department"] .department-list-panel.submissions-panel{
-  width:min(1180px, calc(100% - 28px));
-  margin:0 auto;
-  padding:24px;
-  border:1px solid #dfe7f4;
-  border-radius:28px;
-  background:linear-gradient(180deg,#ffffff 0%,#fbfcff 100%);
-  box-shadow:0 18px 42px rgba(24,55,105,.08);
-}
 
-.metro-clean-system[data-route="department"] .submissions-panel>.department-section-heading-row{
-  align-items:flex-start;
-  gap:20px;
-  padding:0 2px 18px;
-  border-bottom:1px solid #edf1f8;
-}
-.metro-clean-system[data-route="department"] .submissions-panel>.department-section-heading-row h2{
-  margin:0 0 6px;
-  color:#0f2f5b;
-  font-size:clamp(2rem,3.3vw,3.35rem);
-  line-height:1;
-  letter-spacing:-.04em;
-}
-.metro-clean-system[data-route="department"] .submissions-panel>.department-section-heading-row .muted-line{
-  max-width:780px;
-  margin:0;
-  color:#61728c;
-  font-size:1rem;
-  line-height:1.55;
-}
-.metro-clean-system[data-route="department"] .department-submission-scope{
-  flex:none;
-  min-width:180px;
-  padding:14px 16px;
-  border:1px solid #dfe7f4;
-  border-radius:18px;
-  background:#f6f9ff;
-  display:grid;
-  gap:3px;
-  box-shadow:0 8px 18px rgba(37,73,130,.05);
-}
-.metro-clean-system[data-route="department"] .department-submission-scope span,
-.metro-clean-system[data-route="department"] .department-submission-scope small{color:#6a7d99;font-size:.8125rem}
-.metro-clean-system[data-route="department"] .department-submission-scope strong{color:#173c70;font-size:1.02rem}
 
-.metro-clean-system[data-route="department"] .department-request-workbench-v52{
-  display:grid;
-  grid-template-columns:minmax(0,1.75fr) minmax(280px,.8fr);
-  gap:18px;
-  align-items:start;
-  margin-top:18px;
-}
-.metro-clean-system[data-route="department"] .department-v52-request-column,
-.metro-clean-system[data-route="department"] .department-v52-guidance-column{
-  display:grid;
-  gap:16px;
-  min-width:0;
-}
 
-.metro-clean-system[data-route="department"] .department-v52-open-requests-card,
-.metro-clean-system[data-route="department"] .department-v52-form-card,
-.metro-clean-system[data-route="department"] .department-v52-guidance-card{
-  border-radius:22px;
-  border:1px solid #dfe7f4;
-  background:#fff;
-  box-shadow:0 12px 28px rgba(29,63,116,.06);
-}
-.metro-clean-system[data-route="department"] .department-v52-open-requests-card{
-  padding:16px;
-  background:linear-gradient(180deg,#f7faff 0%,#ffffff 100%);
-  border-color:#d8e4fb;
-}
-.metro-clean-system[data-route="department"] .department-v52-form-card{
-  padding:18px;
-  background:linear-gradient(180deg,#fffaf4 0%,#fffefd 100%);
-  border-color:#f0dfc5;
-}
 
-.metro-clean-system[data-route="department"] .department-v52-subhead{
-  margin-bottom:12px;
-  align-items:center;
-}
-.metro-clean-system[data-route="department"] .department-v52-subhead h3,
-.metro-clean-system[data-route="department"] .department-v52-form-title h3,
-.metro-clean-system[data-route="department"] .department-v52-guidance-title h3{
-  margin:0;
-  color:#16345f;
-}
-.metro-clean-system[data-route="department"] .department-v52-subhead h3{font-size:1.18rem}
-.metro-clean-system[data-route="department"] .department-v52-subhead p{margin:4px 0 0;font-size:.86rem}
-.metro-clean-system[data-route="department"] .submission-status-pill{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-height:30px;
-  padding:6px 10px;
-  border-radius:999px;
-  border:1px solid #d4e0f5;
-  background:#eef4ff;
-  color:#3d67b7;
-  font-size:.8125rem;
-  font-weight:800;
-}
 
-.metro-clean-system[data-route="department"] .department-v52-request-list{
-  display:grid;
-  gap:10px;
-}
-.metro-clean-system[data-route="department"] .department-v52-request-list .department-request-card{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
-  gap:14px;
-  align-items:center;
-  padding:14px 16px;
-  border:1px solid #d8e4fb;
-  border-radius:18px;
-  background:#fff;
-  box-shadow:0 8px 18px rgba(30,71,136,.05);
-}
-.metro-clean-system[data-route="department"] .department-v52-request-list .department-request-card.open{
-  background:linear-gradient(180deg,#ffffff 0%,#f6f9ff 100%);
-}
-.metro-clean-system[data-route="department"] .department-v52-request-list .department-request-card.selected{
-  border-color:#7d9cff;
-  box-shadow:0 10px 22px rgba(79,112,221,.14);
-}
-.metro-clean-system[data-route="department"] .department-v52-request-list .department-request-card>div:first-child{
-  position:relative;
-  padding-left:44px;
-}
-.metro-clean-system[data-route="department"] .department-v52-request-list .department-request-card>div:first-child::before{
-  content:"📣";
-  position:absolute;
-  left:0;
-  top:0;
-  width:34px;
-  height:34px;
-  border-radius:12px;
-  display:grid;
-  place-items:center;
-  background:#eaf1ff;
-}
-.metro-clean-system[data-route="department"] .department-request-card strong{
-  display:block;
-  color:#183660;
-  font-size:.98rem;
-  line-height:1.35;
-}
-.metro-clean-system[data-route="department"] .department-request-card span,
-.metro-clean-system[data-route="department"] .department-request-card small{
-  display:block;
-  margin-top:5px;
-  color:#667995;
-  font-size:.8125rem;
-}
-.metro-clean-system[data-route="department"] .department-request-card p{
-  margin:8px 0 0;
-  color:#526783;
-  line-height:1.48;
-  font-size:.84rem;
-}
-.metro-clean-system[data-route="department"] .department-request-card .department-item-actions{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  gap:8px;
-}
 
-.metro-clean-system[data-route="department"] .department-v52-form-title{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:14px;
-  margin-bottom:15px;
-}
-.metro-clean-system[data-route="department"] .department-v52-form-title h3{font-size:1.25rem}
-.metro-clean-system[data-route="department"] .department-v52-form-title p{
-  margin:5px 0 0;
-  color:#728097;
-  font-size:.84rem;
-  line-height:1.5;
-}
-.metro-clean-system[data-route="department"] .department-v52-form-title>span{
-  width:34px;
-  height:34px;
-  border-radius:12px;
-  display:grid;
-  place-items:center;
-  background:#fff0d8;
-  color:#b87518;
-  font-weight:900;
-  font-size:.8125rem;
-}
 
-.metro-clean-system[data-route="department"] .department-v52-request-form{
-  display:grid!important;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:14px 16px!important;
-  padding:0!important;
-  border:0!important;
-  background:transparent!important;
-}
-.metro-clean-system[data-route="department"] .department-v52-field{
-  display:grid;
-  gap:7px;
-  min-width:0;
-  color:#344d70;
-  font-size:.8125rem;
-  font-weight:800;
-}
-.metro-clean-system[data-route="department"] .department-v52-field>span{padding-left:2px}
-.metro-clean-system[data-route="department"] .department-v52-span-2{grid-column:1/-1}
-.metro-clean-system[data-route="department"] .department-v52-field input,
-.metro-clean-system[data-route="department"] .department-v52-field select,
-.metro-clean-system[data-route="department"] .department-v52-field textarea,
-.metro-clean-system[data-route="department"] .department-v52-file-input{
-  width:100%;
-  min-height:44px;
-  border:1px solid #d9e1ee;
-  border-radius:12px;
-  background:#fff;
-  color:#1e365b;
-  font:inherit;
-  font-weight:600;
-  padding:10px 12px;
-  box-sizing:border-box;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
-}
-.metro-clean-system[data-route="department"] .department-v52-field textarea{
-  min-height:116px;
-  resize:vertical;
-  line-height:1.5;
-}
-.metro-clean-system[data-route="department"] .department-v52-field input:focus,
-.metro-clean-system[data-route="department"] .department-v52-field select:focus,
-.metro-clean-system[data-route="department"] .department-v52-field textarea:focus{
-  outline:none;
-  border-color:#728ef1;
-  box-shadow:0 0 0 4px rgba(114,142,241,.12);
-}
-.metro-clean-system[data-route="department"] .department-v52-file-input{
-  display:grid;
-  gap:6px;
-  padding:9px 10px;
-}
-.metro-clean-system[data-route="department"] .department-v52-file-input input{
-  min-height:unset;
-  border:0;
-  border-radius:0;
-  padding:0;
-  background:transparent;
-}
-.metro-clean-system[data-route="department"] .department-v52-file-input small,
-.metro-clean-system[data-route="department"] .department-v52-counter{
-  color:#8a96a9;
-  font-size:.8125rem;
-  font-weight:600;
-}
-.metro-clean-system[data-route="department"] .department-v52-counter{
-  justify-self:end;
-  margin-top:-2px;
-}
-.metro-clean-system[data-route="department"] .department-v52-submit-button{
-  grid-column:1/-1;
-  justify-self:start;
-  min-height:46px!important;
-  padding:11px 18px!important;
-  border:0!important;
-  border-radius:13px!important;
-  background:linear-gradient(135deg,#5a63e9,#7548d8)!important;
-  color:#fff!important;
-  font-weight:850!important;
-  box-shadow:0 12px 24px rgba(89,78,215,.2)!important;
-}
 
-.metro-clean-system[data-route="department"] .department-v52-guidance-card{
-  padding:18px;
-}
-.metro-clean-system[data-route="department"] .department-v52-guidance-card.tone-mint{
-  background:linear-gradient(180deg,#f1fcf7 0%,#fbfffd 100%);
-  border-color:#d5eee2;
-}
-.metro-clean-system[data-route="department"] .department-v52-guidance-card.tone-lilac{
-  background:linear-gradient(180deg,#f7f3ff 0%,#fdfbff 100%);
-  border-color:#e3d9fa;
-}
-.metro-clean-system[data-route="department"] .department-v52-guidance-title{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:14px;
-}
-.metro-clean-system[data-route="department"] .department-v52-guidance-title>span{
-  width:34px;
-  height:34px;
-  border-radius:12px;
-  display:grid;
-  place-items:center;
-  background:#fff;
-  box-shadow:0 6px 14px rgba(31,72,125,.06);
-}
-.metro-clean-system[data-route="department"] .department-v52-guidance-title h3{font-size:1rem}
-.metro-clean-system[data-route="department"] .department-v52-guidance-card ul{
-  list-style:none;
-  margin:0;
-  padding:0;
-  display:grid;
-  gap:12px;
-}
-.metro-clean-system[data-route="department"] .department-v52-guidance-card ul li{
-  position:relative;
-  padding-left:24px;
-  color:#557088;
-  font-size:.82rem;
-  line-height:1.5;
-}
-.metro-clean-system[data-route="department"] .department-v52-guidance-card ul li::before{
-  content:"✓";
-  position:absolute;
-  left:0;
-  top:1px;
-  width:16px;
-  height:16px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:#dff7e9;
-  color:#2a9c5d;
-  font-size:.8125rem;
-  font-weight:900;
-}
-.metro-clean-system[data-route="department"] .department-v52-workflow-list{
-  list-style:none;
-  margin:0;
-  padding:0;
-  display:grid;
-  gap:0;
-}
-.metro-clean-system[data-route="department"] .department-v52-workflow-list li{
-  display:grid;
-  grid-template-columns:34px 1fr;
-  gap:12px;
-  position:relative;
-  padding-bottom:20px;
-}
-.metro-clean-system[data-route="department"] .department-v52-workflow-list li:not(:last-child)::after{
-  content:"";
-  position:absolute;
-  left:16px;
-  top:34px;
-  bottom:2px;
-  width:2px;
-  background:#d8c8fa;
-}
-.metro-clean-system[data-route="department"] .department-v52-workflow-list li>span{
-  width:34px;
-  height:34px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:#eadfff;
-  color:#7648ca;
-  font-weight:900;
-  z-index:1;
-}
-.metro-clean-system[data-route="department"] .department-v52-workflow-list strong{
-  display:block;
-  color:#334866;
-  font-size:.84rem;
-  line-height:1.4;
-}
-.metro-clean-system[data-route="department"] .department-v52-workflow-list small{
-  display:block;
-  margin-top:3px;
-  color:#7a879b;
-  font-size:.8125rem;
-  line-height:1.45;
-}
 
-.metro-clean-system[data-route="department"] .submissions-panel>.department-filter-row,
-.metro-clean-system[data-route="department"] .submissions-panel>.department-submission-privacy-note,
-.metro-clean-system[data-route="department"] .submissions-panel>.department-item-list,
-.metro-clean-system[data-route="department"] .submissions-panel>.department-submission-form:not(.department-v52-request-form){
-  margin-top:18px;
-}
-.metro-clean-system[data-route="department"] .submissions-panel>.department-filter-row{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  padding-top:16px;
-  border-top:1px solid #edf1f8;
-}
-.metro-clean-system[data-route="department"] .submissions-panel>.department-filter-row button{
-  min-height:36px!important;
-  padding:8px 13px!important;
-  border-radius:999px!important;
-  border:1px solid #dce5f3!important;
-  background:#fff!important;
-  color:#49617f!important;
-  font-weight:750!important;
-  box-shadow:none!important;
-}
-.metro-clean-system[data-route="department"] .submissions-panel>.department-filter-row button.active{
-  background:#eef3ff!important;
-  border-color:#91a9ef!important;
-  color:#355eb9!important;
-}
 
-@media (max-width:1050px){
-  .metro-clean-system[data-route="department"] .department-request-workbench-v52{grid-template-columns:1fr}
-  .metro-clean-system[data-route="department"] .department-v52-guidance-column{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-@media (max-width:760px){
-  .metro-clean-system[data-route="department"] .department-list-panel.submissions-panel{
-    width:calc(100% - 18px);
-    padding:16px;
-    border-radius:22px;
-  }
-  .metro-clean-system[data-route="department"] .submissions-panel>.department-section-heading-row{
-    display:grid;
-    grid-template-columns:1fr;
-  }
-  .metro-clean-system[data-route="department"] .department-submission-scope{width:100%;min-width:0}
-  .metro-clean-system[data-route="department"] .department-v52-request-form{grid-template-columns:1fr}
-  .metro-clean-system[data-route="department"] .department-v52-span-2,
-  .metro-clean-system[data-route="department"] .department-v52-submit-button{grid-column:auto}
-  .metro-clean-system[data-route="department"] .department-v52-guidance-column{grid-template-columns:1fr}
-  .metro-clean-system[data-route="department"] .department-v52-request-list .department-request-card{grid-template-columns:1fr}
-  .metro-clean-system[data-route="department"] .department-request-card .department-item-actions{align-items:flex-start;flex-direction:row;flex-wrap:wrap}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* V10.55 YouTube search and player inside global notification panel */
 .metro-clean-system .global-notice-panel.youtube-open{width:min(760px,100vw)!important;}
@@ -2355,435 +1999,119 @@ html[data-theme="dark"] .global-ai-progress-steps b{color:#c2cee0!important;}
 .library-card .playable-badge{display:inline-flex;margin-left:8px;padding:4px 8px;border-radius:999px;background:#eaf7ef;color:#1c7b4d;font-size:.8125rem;font-weight:850}
 
 /* ===== V10.64 Department AI file-to-weekly-schedule importer ===== */
-.metro-clean-system[data-route="department"] .department-schedule-import-card{
-  position:relative;
-  overflow:hidden;
-  margin:18px 0;
-  padding:20px;
-  border-radius:26px;
-  border:1px solid rgba(181,198,235,.92);
-  background:
-    radial-gradient(circle at 92% 6%,rgba(111,91,226,.12),transparent 28%),
-    linear-gradient(180deg,#f8fbff 0%,#f4f7ff 100%);
-  box-shadow:0 18px 36px rgba(32,66,132,.09);
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-import-card::before{
-  content:"";
-  position:absolute;
-  inset:0 0 auto 0;
-  height:5px;
-  background:linear-gradient(90deg,#4a78ee,#7f66df,#42b998);
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-import-head{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:18px;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-import-title{
-  display:flex;
-  align-items:flex-start;
-  gap:14px;
-  min-width:0;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-import-icon{
-  flex:0 0 auto;
-  width:52px;
-  height:52px;
-  display:grid;
-  place-items:center;
-  border-radius:17px;
-  background:linear-gradient(145deg,#e9edff,#d9e4ff);
-  border:1px solid #cdd9fa;
-  box-shadow:0 12px 22px rgba(67,91,166,.13),inset 0 1px 0 rgba(255,255,255,.9);
-  font-size:1.35rem;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-import-title .eyebrow{
-  display:inline-flex;
-  align-items:center;
-  min-height:26px;
-  padding:5px 10px;
-  border-radius:999px;
-  background:#edf1ff;
-  border:1px solid #d8e0ff;
-  color:#4f5fc7;
-  font-size:.8125rem;
-  font-weight:850;
-  letter-spacing:.02em;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-import-title h3{
-  margin:8px 0 5px;
-  color:#17325d;
-  font-size:clamp(1.15rem,2vw,1.55rem);
-  line-height:1.15;
-  letter-spacing:-.025em;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-import-title p{
-  margin:0;
-  max-width:850px;
-  color:#63728d;
-  line-height:1.55;
-  font-size:.94rem;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-ai-status{
-  flex:0 0 auto;
-  padding:8px 12px;
-  border-radius:999px;
-  font-size:.8125rem;
-  font-weight:850;
-  white-space:nowrap;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-ai-status.ready{
-  color:#16724c;
-  background:#e9f9f1;
-  border:1px solid #bfe8d2;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-ai-status.missing{
-  color:#9b5f08;
-  background:#fff6df;
-  border:1px solid #efd59a;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-import-controls{
-  display:flex;
-  flex-wrap:wrap;
-  align-items:flex-end;
-  gap:10px;
-  margin-top:18px;
-  padding:14px;
-  border-radius:20px;
-  background:rgba(255,255,255,.78);
-  border:1px solid rgba(213,223,244,.9);
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-week-field{
-  display:grid;
-  gap:5px;
-  min-width:210px;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-week-field>span{
-  color:#4d5f7c;
-  font-size:.8125rem;
-  font-weight:800;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-week-field input{
-  min-height:42px;
-  border-radius:13px;
-  border:1px solid #cfd9ec;
-  background:#fff;
-  color:#233d68;
-  padding:8px 12px;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-week-field small{
-  color:#7d89a0;
-  font-size:.8125rem;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-upload-btn{
-  min-height:44px!important;
-  padding:10px 17px!important;
-  border-radius:14px!important;
-  background:linear-gradient(135deg,#526ee8,#7563da)!important;
-  border:0!important;
-  color:#fff!important;
-  box-shadow:0 12px 24px rgba(77,90,201,.22)!important;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-file-chip{
-  display:inline-flex;
-  align-items:center;
-  max-width:260px;
-  min-height:42px;
-  padding:9px 12px;
-  border-radius:13px;
-  background:#eef7ff;
-  border:1px solid #cfe3f6;
-  color:#365c83;
-  font-size:.8125rem;
-  font-weight:750;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-key-warning,
-.metro-clean-system[data-route="department"] .department-schedule-import-progress{
-  display:grid;
-  grid-template-columns:auto minmax(0,1fr) auto;
-  align-items:center;
-  gap:13px;
-  margin-top:14px;
-  padding:14px 16px;
-  border-radius:18px;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-key-warning{
-  background:#fff8e8;
-  border:1px solid #f0d8a4;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-key-warning>span{
-  width:40px;
-  height:40px;
-  display:grid;
-  place-items:center;
-  border-radius:13px;
-  background:#fff1c8;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-key-warning strong,
-.metro-clean-system[data-route="department"] .department-schedule-import-progress strong{
-  display:block;
-  color:#263f68;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-key-warning p,
-.metro-clean-system[data-route="department"] .department-schedule-import-progress p{
-  margin:3px 0 0;
-  color:#6d7890;
-  font-size:.84rem;
-  line-height:1.45;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-import-progress{
-  grid-template-columns:auto minmax(0,1fr);
-  background:linear-gradient(90deg,#eef3ff,#f2f8ff);
-  border:1px solid #d3def5;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-progress-orbit{
-  width:38px;
-  height:38px;
-  border-radius:50%;
-  border:4px solid #dbe3fb;
-  border-top-color:#596fe0;
-  animation:department-schedule-spin .8s linear infinite;
-}
 
-@keyframes department-schedule-spin{to{transform:rotate(360deg)}}
 
-.metro-clean-system[data-route="department"] .department-schedule-import-insight{
-  display:grid;
-  gap:8px;
-  margin-top:14px;
-  padding:14px 16px;
-  border-radius:18px;
-  background:#eefaf4;
-  border:1px solid #cce9d9;
-  color:#355f4d;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-import-insight p{
-  margin:0;
-  line-height:1.5;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-import-insight ul{
-  margin:6px 0 0;
-  padding-left:20px;
-  color:#66756e;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview{
-  margin-top:16px;
-  padding:15px;
-  border-radius:22px;
-  background:rgba(255,255,255,.82);
-  border:1px solid #d8e1f1;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-toolbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:14px;
-  margin-bottom:12px;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-toolbar strong{
-  display:block;
-  color:#183660;
-  font-size:1rem;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-toolbar span{
-  display:block;
-  margin-top:3px;
-  color:#76849d;
-  font-size:.8125rem;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-actions{
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-  gap:9px;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-list{
-  display:grid;
-  gap:12px;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-item{
-  display:grid;
-  grid-template-columns:48px minmax(0,1fr) auto;
-  gap:12px;
-  align-items:start;
-  padding:14px;
-  border-radius:19px;
-  border:1px solid #e0e6f1;
-  box-shadow:0 8px 18px rgba(39,63,111,.05);
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-item.tone-0{background:linear-gradient(180deg,#f5f8ff,#fbfcff)}
-.metro-clean-system[data-route="department"] .department-schedule-preview-item.tone-1{background:linear-gradient(180deg,#f4fbf7,#fbfffd)}
-.metro-clean-system[data-route="department"] .department-schedule-preview-item.tone-2{background:linear-gradient(180deg,#fff9ed,#fffdf8)}
-.metro-clean-system[data-route="department"] .department-schedule-preview-item.tone-3{background:linear-gradient(180deg,#f8f3ff,#fdfbff)}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-select{
-  display:grid;
-  justify-items:center;
-  gap:8px;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-select input{
-  width:20px;
-  height:20px;
-  accent-color:#5c6fe2;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-select span{
-  width:34px;
-  height:34px;
-  display:grid;
-  place-items:center;
-  border-radius:12px;
-  background:#fff;
-  border:1px solid #d9e1ef;
-  color:#4d64b5;
-  font-weight:900;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-fields{
-  min-width:0;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-title{
-  width:100%;
-  min-height:43px;
-  padding:9px 12px;
-  border-radius:13px;
-  border:1px solid #cad6e9;
-  background:#fff;
-  color:#17345d;
-  font-size:1rem;
-  font-weight:850;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-grid{
-  display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:9px;
-  margin-top:9px;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-grid label{
-  display:grid;
-  gap:4px;
-  min-width:0;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-grid label.wide{grid-column:span 2}
-.metro-clean-system[data-route="department"] .department-schedule-preview-grid label.full{grid-column:1/-1}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-grid label>span{
-  color:#667590;
-  font-size:.8125rem;
-  font-weight:800;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-grid input,
-.metro-clean-system[data-route="department"] .department-schedule-preview-grid select,
-.metro-clean-system[data-route="department"] .department-schedule-preview-grid textarea{
-  width:100%;
-  min-width:0;
-  min-height:39px;
-  border-radius:11px;
-  border:1px solid #d2dbea;
-  background:rgba(255,255,255,.92);
-  color:#294364;
-  padding:8px 10px;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-grid textarea{
-  min-height:68px;
-  resize:vertical;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-meta{
-  display:grid;
-  justify-items:end;
-  gap:10px;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-meta>span{
-  padding:6px 8px;
-  border-radius:999px;
-  font-size:.8125rem;
-  font-weight:900;
-  white-space:nowrap;
-}
 
-.metro-clean-system[data-route="department"] .department-schedule-preview-meta>span.high{background:#e8f8ef;color:#16734b;border:1px solid #bde6d0}
-.metro-clean-system[data-route="department"] .department-schedule-preview-meta>span.medium{background:#fff5dd;color:#96620a;border:1px solid #ecd39d}
-.metro-clean-system[data-route="department"] .department-schedule-preview-meta>span.low{background:#fff0f0;color:#af3f45;border:1px solid #efc3c5}
 
-.metro-clean-system[data-route="department"] .work-schedule-panel>.work-schedule-form{
-  margin-top:18px;
-  padding:18px!important;
-  border-radius:22px!important;
-  background:linear-gradient(180deg,#fffaf2,#fffdf9)!important;
-  border:1px solid #ecddc1!important;
-}
 
-@media (max-width:1100px){
-  .metro-clean-system[data-route="department"] .department-schedule-preview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .metro-clean-system[data-route="department"] .department-schedule-preview-grid label.wide{grid-column:span 1}
-}
 
-@media (max-width:760px){
-  .metro-clean-system[data-route="department"] .department-schedule-import-card{padding:16px;border-radius:22px}
-  .metro-clean-system[data-route="department"] .department-schedule-import-head,
-  .metro-clean-system[data-route="department"] .department-schedule-preview-toolbar{flex-direction:column;align-items:stretch}
-  .metro-clean-system[data-route="department"] .department-schedule-ai-status{align-self:flex-start}
-  .metro-clean-system[data-route="department"] .department-schedule-import-controls{align-items:stretch}
-  .metro-clean-system[data-route="department"] .department-schedule-week-field,
-  .metro-clean-system[data-route="department"] .department-schedule-import-controls button,
-  .metro-clean-system[data-route="department"] .department-schedule-file-chip{width:100%;max-width:none}
-  .metro-clean-system[data-route="department"] .department-schedule-key-warning{grid-template-columns:auto minmax(0,1fr)}
-  .metro-clean-system[data-route="department"] .department-schedule-key-warning button{grid-column:1/-1;width:100%}
-  .metro-clean-system[data-route="department"] .department-schedule-preview-item{grid-template-columns:38px minmax(0,1fr)}
-  .metro-clean-system[data-route="department"] .department-schedule-preview-meta{grid-column:1/-1;display:flex;justify-content:flex-end}
-  .metro-clean-system[data-route="department"] .department-schedule-preview-grid{grid-template-columns:1fr}
-  .metro-clean-system[data-route="department"] .department-schedule-preview-grid label.wide,
-  .metro-clean-system[data-route="department"] .department-schedule-preview-grid label.full{grid-column:auto}
-  .metro-clean-system[data-route="department"] .department-schedule-preview-actions{justify-content:stretch}
-  .metro-clean-system[data-route="department"] .department-schedule-preview-actions button{flex:1 1 100%}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* =========================================================
    V10.65 — Google quick sign-in + account password management
@@ -2980,4 +2308,3 @@ html[data-theme="dark"] .metro-clean-system[data-route="settings"] .settings-v65
   .metro-clean-system[data-route="settings"] .settings-v65-password-actions{align-items:stretch;flex-direction:column}
   .metro-clean-system[data-route="settings"] .settings-v65-password-actions .primary{width:100%}
 }
-

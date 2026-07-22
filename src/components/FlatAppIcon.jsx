@@ -148,8 +148,7 @@ const iconPaths = {
       <path d="M18 25h64v50H18V25Z" />
       <path d="m19 28 31 25 31-25" />
     </>
-  ),
-};
+  )};
 
 export const flatIconForSlug = {
   'textlab-activities': 'activity',
@@ -161,14 +160,12 @@ export const flatIconForSlug = {
   'reading-studio': 'reading',
   word2graph: 'wordgraph',
   'student-practice': 'practice',
-  'department-workspace': 'department',
   'homeroom-hub': 'homeroom',
   'game-hub': 'game',
   'library-hub': 'library',
   'practice-hub': 'practice',
   'games-hub': 'game',
-  'admin-hub': 'admin',
-};
+  'admin-hub': 'admin'};
 
 export default function FlatAppIcon({ type, slug, className = '' }) {
   const key = flatIconForSlug[slug] || type || 'apps';

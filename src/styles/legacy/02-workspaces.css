@@ -341,36 +341,12 @@
 
 
 
-@media (max-width: 920px){
-  
-  
-}
+
 
 /* =========================================================
    V10.23 — Lesson Architect design standard applied system-wide
    ========================================================= */
-.metro-clean-system:is(
-  [data-tool="exam-studio"],
-  
-  [data-tool="reading-studio"],
-  [data-tool="retired-speaking-studio"],
-  [data-tool="word2graph"],
-  [data-tool="textcare"],
-  [data-tool="student-practice"],
-  [data-route="practice"],
-  [data-route="department"],
-  [data-route="library"],
-  [data-route="games"],
-  [data-route="admin"]
-){
-  --standard-paper:#fffaf1;
-  --standard-card:#fffdf8;
-  --standard-line:#173f46;
-  --standard-muted:#5f746f;
-  --standard-accent:var(--workspace-accent,#1e9f8c);
-  --standard-soft:var(--workspace-soft,#e4f7ef);
-  --standard-ink:var(--workspace-app-ink,#123f48);
-}
+
 .metro-clean-system[data-tool="exam-studio"]{--standard-accent:#e57c55;--standard-soft:#fff0e7;--standard-ink:#4e345d;--standard-line:#5a4067;}
 
 .metro-clean-system[data-tool="reading-studio"]{--standard-accent:#d99a1e;--standard-soft:#fff0c8;--standard-ink:#392406;--standard-line:#6c4a08;}
@@ -379,48 +355,20 @@
 .metro-clean-system[data-tool="textcare"]{--standard-accent:#b8332a;--standard-soft:#ffe0dd;--standard-ink:#35110e;--standard-line:#6d201b;}
 .metro-clean-system[data-tool="student-practice"],
 .metro-clean-system[data-route="practice"]{--standard-accent:#ff7a54;--standard-soft:#ffe4da;--standard-ink:#361509;--standard-line:#7a3822;}
-.metro-clean-system[data-route="department"]{--standard-accent:#3b4cca;--standard-soft:#e0e4ff;--standard-ink:#12183b;--standard-line:#273181;}
+
 .metro-clean-system[data-route="library"]{--standard-accent:#6fba7b;--standard-soft:#e4f6e6;--standard-ink:#17351d;--standard-line:#2c7136;}
 .metro-clean-system[data-route="games"]{--standard-accent:#5b2a86;--standard-soft:#e9daff;--standard-ink:#20102f;--standard-line:#4a236c;}
 .metro-clean-system[data-route="admin"]{--standard-accent:#d13438;--standard-soft:#ffe1e3;--standard-ink:#351014;--standard-line:#7a2427;}
 
 /* Standard page rhythm: Back → Hero → Workflow → Workspace → Output */
-.metro-clean-system:is(
-  [data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],
-  [data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]
-) .page{
-  width:min(1680px,calc(100vw - 40px))!important;
-  max-width:1680px!important;
-  margin-inline:auto!important;
-  display:grid!important;
-  grid-template-columns:1fr!important;
-  gap:20px!important;
-  align-content:start!important;
-}
-.metro-clean-system:is(
-  [data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],
-  [data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]
-) .back-btn{
-  justify-self:start!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  gap:8px!important;
-  min-height:52px!important;
-  padding:0 20px!important;
-  border-radius:999px!important;
-  border:2px solid var(--standard-line)!important;
-  background:var(--standard-card)!important;
-  color:var(--standard-ink)!important;
-  box-shadow:5px 5px 0 color-mix(in srgb,var(--standard-line) 12%, transparent)!important;
-  font-weight:900!important;
-}
+
+
 
 /* Hero standard: flat raised art + bold poster typography + right status cards */
 .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-hero,
 .metro-clean-system[data-tool="textcare"] .textcare-compact-hero,
 .metro-clean-system[data-tool="student-practice"] .route-hero,
 .metro-clean-system[data-route="practice"] .route-hero,
-.metro-clean-system[data-route="department"] .department-showcase-hero-v60,
 .metro-clean-system[data-route="library"] .library-showcase-hero,
 .metro-clean-system[data-route="games"] .games-showcase-hero,
 .metro-clean-system[data-route="admin"] .admin-showcase-hero{
@@ -468,7 +416,6 @@
 .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-hero>div:first-child,
 .metro-clean-system[data-tool="textcare"] .textcare-compact-hero>div:first-child,
 .metro-clean-system:is([data-route="practice"]) .route-hero-copy,
-.metro-clean-system[data-route="department"] .department-hero-copy-v60,
 .metro-clean-system[data-route="library"] .library-hero-copy-v61,
 .metro-clean-system[data-route="games"] .games-hero-copy-v58,
 .metro-clean-system[data-route="admin"] .admin-hero-copy-v62{
@@ -481,7 +428,6 @@
 .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-hero h1,
 .metro-clean-system[data-tool="textcare"] .textcare-compact-hero h1,
 .metro-clean-system:is([data-route="practice"]) .route-hero h1,
-.metro-clean-system[data-route="department"] .department-showcase-hero-v60 h1,
 .metro-clean-system[data-route="library"] .library-showcase-hero h1,
 .metro-clean-system[data-route="games"] .games-showcase-hero h1,
 .metro-clean-system[data-route="admin"] .admin-showcase-hero h1{
@@ -496,7 +442,6 @@
 .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-hero p,
 .metro-clean-system[data-tool="textcare"] .textcare-compact-hero p,
 .metro-clean-system:is([data-route="practice"]) .route-hero p,
-.metro-clean-system[data-route="department"] .department-showcase-hero-v60 p,
 .metro-clean-system[data-route="library"] .library-showcase-hero p,
 .metro-clean-system[data-route="games"] .games-showcase-hero p,
 .metro-clean-system[data-route="admin"] .admin-showcase-hero p{
@@ -529,107 +474,15 @@
 }
 
 /* Workflow/action cards: 3 equal cards per row with clear active states */
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(
-  .reading-template-guide,
-  .exam-profile-grid,
-  .question-type-grid,
-  .speaking-band-row,
-  .speaking-card-list,
-  .wordgraph-prompt-bank,
-  .doc-type-grid-v23,
-  .practice-grid,
-  .department-quick-grid-v60,
-  .department-spotlight-grid-v60,
-  .library-ai-grid,
-  .library-spotlight-grid,
-  .games-spotlight-grid,
-  .card-grid.two,
-  .admin-spotlight-grid,
-  .admin-diagnostic-grid
-){
-  display:grid!important;
-  grid-template-columns:repeat(3,minmax(0,1fr))!important;
-  gap:16px!important;
-}
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(
-  .exam-profile-card,
-  .question-type-grid button,
-  .speaking-band-row button,
-  .speaking-card-preview,
-  .wordgraph-prompt-bank button,
-  .doc-type-grid-v23 button,
-  .practice-grid>.panel,
-  .department-spotlight-card-v60,
-  .library-card,
-  .library-quick-panel,
-  .games-float-card,
-  .game-open-panel,
-  .admin-float-card,
-  .admin-card
-){
-  min-width:0!important;
-  border-radius:24px!important;
-  border:2px solid color-mix(in srgb,var(--standard-line) 18%, #fff)!important;
-  background:var(--standard-card)!important;
-  box-shadow:0 10px 22px color-mix(in srgb,var(--standard-line) 7%, transparent)!important;
-  overflow:hidden!important;
-}
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(
-  .exam-profile-card *,
-  .question-type-grid button *,
-  .speaking-band-row button *,
-  .speaking-card-preview *,
-  .wordgraph-prompt-bank button *,
-  .doc-type-grid-v23 button *,
-  .practice-grid>.panel *,
-  .department-spotlight-card-v60 *,
-  .library-card *,
-  .library-quick-panel *,
-  .games-float-card *,
-  .game-open-panel *,
-  .admin-float-card *,
-  .admin-card *
-){
-  max-width:100%!important;
-  white-space:normal!important;
-  overflow-wrap:anywhere!important;
-  word-break:normal!important;
-}
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(button.active,button.selected,label.selected,.selected,.active){
-  border-color:var(--standard-accent)!important;
-  background:linear-gradient(135deg,var(--standard-accent) 0%, color-mix(in srgb,var(--standard-accent) 78%, #fff) 100%)!important;
-  color:#fff!important;
-  box-shadow:0 12px 26px color-mix(in srgb,var(--standard-accent) 25%, transparent)!important;
-}
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(button.active,button.selected,label.selected,.selected,.active) *{
-  color:inherit!important;
-}
+
+
+
+
+
 
 /* Main workspaces: left content wider, right sidebar supportive */
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(
-  .reading-builder-grid,
-  .speaking-builder-grid,
-  .speaking-live-grid,
-  .wordgraph-ai-builder,
-  .textcare-workbench-v23,
-  .practice-results,
-  .department-workspace-body,
-  .library-content-grid,
-  .library-screen-body,
-  .game-hub-shell,
-  .admin-main-pane
-){
-  display:grid!important;
-  grid-template-columns:minmax(0,1.38fr) minmax(300px,.72fr)!important;
-  gap:18px!important;
-  align-items:start!important;
-}
-.metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.panel,.metro-panel,.builder-panel,.preview-panel,.inner-panel,.department-work-panel,.department-list-panel,.library-card,.admin-panel,.admin-card,.game-open-panel){
-  border-radius:24px!important;
-  border:2px solid color-mix(in srgb,var(--standard-line) 18%, #fff)!important;
-  background:var(--standard-card)!important;
-  box-shadow:0 10px 22px color-mix(in srgb,var(--standard-line) 7%, transparent)!important;
-}
+
+
 
 /* Output panels: every long AI/export output stays inside a scrollable frame */
 .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="exam-studio"],[data-tool="lesson-plan-ai"]) :is(
@@ -670,11 +523,9 @@
   .metro-clean-system[data-tool="textcare"] .textcare-compact-hero,
   .metro-clean-system[data-tool="student-practice"] .route-hero,
   .metro-clean-system[data-route="practice"] .route-hero,
-  .metro-clean-system[data-route="department"] .department-showcase-hero-v60,
   .metro-clean-system[data-route="library"] .library-showcase-hero,
   .metro-clean-system[data-route="games"] .games-showcase-hero,
-  .metro-clean-system[data-route="admin"] .admin-showcase-hero,
-  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.reading-builder-grid,.speaking-builder-grid,.speaking-live-grid,.wordgraph-ai-builder,.textcare-workbench-v23,.practice-results,.department-workspace-body,.library-content-grid,.library-screen-body,.game-hub-shell,.admin-main-pane){
+  .metro-clean-system[data-route="admin"] .admin-showcase-hero{
     grid-template-columns:1fr!important;
   }
   .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"]) .tool-hero::before,
@@ -686,19 +537,8 @@
     grid-column:auto!important;
   }
 }
-@media (max-width: 980px){
-  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.reading-template-guide,.exam-profile-grid,.question-type-grid,.speaking-band-row,.speaking-card-list,.wordgraph-prompt-bank,.doc-type-grid-v23,.practice-grid,.department-quick-grid-v60,.department-spotlight-grid-v60,.library-ai-grid,.library-spotlight-grid,.games-spotlight-grid,.card-grid.two,.admin-spotlight-grid,.admin-diagnostic-grid){
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-  }
-}
-@media (max-width: 720px){
-  .metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) .page{
-    width:min(100%,calc(100vw - 18px))!important;
-  }
-  .metro-clean-system:is([data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.reading-template-guide,.exam-profile-grid,.question-type-grid,.speaking-band-row,.speaking-card-list,.wordgraph-prompt-bank,.doc-type-grid-v23,.practice-grid,.department-quick-grid-v60,.department-spotlight-grid-v60,.library-ai-grid,.library-spotlight-grid,.games-spotlight-grid,.card-grid.two,.admin-spotlight-grid,.admin-diagnostic-grid){
-    grid-template-columns:1fr!important;
-  }
-}
+
+
 
 /* =========================================================
    V10.24 — Lesson Architect balanced compact layout
@@ -1371,22 +1211,9 @@
 
 
 
-@media (max-width: 1240px){
-  
-  
-}
-@media (max-width: 1100px){
-  
-  
-  
-}
-@media (max-width: 760px){
-  
-  
-  
-  
-  
-}
+
+
+
 
 /* =========================================================
    V10.28 — Reading Studio raised-flat compact layout
@@ -1835,22 +1662,11 @@ button:active,.button:active,.btn:active,.bes-nav-pill:active,.flat-app-chip:act
 
 
 
-@media (max-width: 1380px){
-  
-  
-}
 
-@media (max-width: 980px){
-  
-  
-  
-  
-}
 
-@media (max-width: 680px){
-  
-  
-}
+
+
+
 
 /* =========================================================
    V10.33 — Speaking Studio illustrated hero + balanced layout
@@ -3963,4 +3779,3 @@ html body .metro-clean-system[data-tool="exam-studio"] .exam-footer-actions.exam
   .metro-clean-system[data-tool="textcare"] .textcare-v37-preview-actions{justify-content:flex-start!important}
   .metro-clean-system[data-tool="textcare"] .textcare-v37-a4-wrap{height:560px!important;padding:10px!important}
 }
-

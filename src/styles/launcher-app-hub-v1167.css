@@ -165,4 +165,3 @@ html[data-theme="dark"] .launcher-link-fullscreen-notice{border-color:#466b97;ba
   .launcher-link-frame-shell.is-fit .launcher-link-frame-body{padding:7px}
 }
 @media(prefers-reduced-motion:reduce){.launcher-link-app-card,.launcher-link-empty,.launcher-link-frame-loading>span{animation:none!important;transition:none!important}}
-

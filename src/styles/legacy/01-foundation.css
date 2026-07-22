@@ -139,7 +139,7 @@ button:disabled{opacity:.55;cursor:not-allowed}input,textarea,select{width:100%;
 input:focus,textarea:focus,select:focus,button:focus-visible{outline:3px solid var(--cyan)!important;outline-offset:0;}
 
 /* Grids */
-.card-grid,.metro-main-app-grid,.metro-quick-grid,.metro-benefit-grid,.metro-phone-grid,.metro-panorama-row,.app-grid,.game-grid,.resource-grid,.library-grid,.admin-grid,.department-panel-grid,.department-quick-grid-v60,.department-spotlight-grid-v60,.dept-metric-grid-v63,.feature-suggestion-grid,.provider-grid,.compact-list,.metric-grid,.activity-stack,.grid,.builder-grid,.template-grid{display:grid;gap:var(--gap);}
+.card-grid,.metro-main-app-grid,.metro-quick-grid,.metro-benefit-grid,.metro-phone-grid,.metro-panorama-row,.app-grid,.game-grid,.resource-grid,.library-grid,.admin-grid,.department-quick-grid-v60,.department-spotlight-grid-v60,.dept-metric-grid-v63,.feature-suggestion-grid,.provider-grid,.compact-list,.metric-grid,.activity-stack,.grid,.builder-grid,.template-grid{display:grid;gap:var(--gap);}
 .card-grid.two,.builder-grid,.exam-workspace-grid,.exam-workspace-grid-v947,.direct-interactive-body{grid-template-columns:minmax(320px,420px) minmax(0,1fr);align-items:start;}
 .card-grid.three,.metric-grid,.resource-grid,.library-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}.compact-list{grid-template-columns:1fr;}.wrap-scroll{overflow:auto;}
 
@@ -154,7 +154,7 @@ input:focus,textarea:focus,select:focus,button:focus-visible{outline:3px solid v
 .route-hero-tile:nth-child(2),.metro-live-tile:nth-child(2){background:var(--purple)!important}.route-hero-tile:nth-child(3),.metro-live-tile:nth-child(3){background:var(--teal)!important}.route-hero-tile:nth-child(4),.metro-live-tile:nth-child(4){background:var(--orange)!important}
 .route-hero-tile *,.metro-live-tile *,.route-hero-visual *,.metro-hero-visual *{color:#fff!important;}
 .route-hero-stats{display:flex;gap:8px;flex-wrap:wrap}.route-hero-stat b{font-size:1rem}.route-hero-stat small{font-size:.8125rem;}
-.tool-page .builder-grid,.ai-tool-page .ai-provider-hub,.settings-grid,.department-workspace-body,.department-command-dashboard-v63,.game-layout,.domino-layout{display:grid;grid-template-columns:minmax(320px,420px) minmax(0,1fr);gap:var(--gap);align-items:start;}
+.tool-page .builder-grid,.ai-tool-page .ai-provider-hub,.settings-grid,.game-layout,.domino-layout{display:grid;grid-template-columns:minmax(320px,420px) minmax(0,1fr);gap:var(--gap);align-items:start;}
 .direct-interactive-sidebar,.exam-left-rail,.admin-left-rail,.department-side-menu{background:var(--surface)!important;border:1px solid var(--line)!important;padding:14px;}
 
 /* Home: Teacher Command Center */
@@ -192,8 +192,8 @@ input:focus,textarea:focus,select:focus,button:focus-visible{outline:3px solid v
 .app-card-v3,.tool-card,.tile-card,.android-app-card,.game-platform-card,.feature-suggestion-card,.template{background:var(--blue)!important;color:#fff!important;border:0!important;min-height:170px;text-align:left;display:grid;gap:10px;align-content:start;}.app-card-v3:nth-child(8n/**/+2),.tool-card:nth-child(8n/**/+2),.tile-card:nth-child(8n/**/+2),.template:nth-child(8n/**/+2){background:var(--purple)!important}.app-card-v3:nth-child(8n/**/+3),.tool-card:nth-child(8n/**/+3),.tile-card:nth-child(8n/**/+3),.template:nth-child(8n/**/+3){background:var(--teal)!important}.app-card-v3:nth-child(8n/**/+4),.tool-card:nth-child(8n/**/+4),.tile-card:nth-child(8n/**/+4),.template:nth-child(8n/**/+4){background:var(--orange)!important}.app-card-v3:nth-child(8n/**/+5),.tool-card:nth-child(8n/**/+5),.tile-card:nth-child(8n/**/+5),.template:nth-child(8n/**/+5){background:var(--green)!important}.app-card-v3:nth-child(8n/**/+6),.tool-card:nth-child(8n/**/+6),.tile-card:nth-child(8n/**/+6),.template:nth-child(8n/**/+6){background:var(--pink)!important}.app-card-v3:nth-child(8n/**/+7),.tool-card:nth-child(8n/**/+7),.tile-card:nth-child(8n/**/+7),.template:nth-child(8n/**/+7){background:var(--cyan)!important}.app-card-v3:nth-child(8n),.tool-card:nth-child(8n),.tile-card:nth-child(8n),.template:nth-child(8n){background:var(--blue-dark)!important}.app-card-v3 *,.tool-card *,.tile-card *,.android-app-card *,.game-platform-card *,.template *{color:#fff!important}.app-card-v3 .chip,.app-card-v3 .pill,.app-group-chip,.app-card-v3 button,.tool-card button,.template button{background:rgba(255,255,255,.2)!important;color:#fff!important;border:1px solid rgba(255,255,255,.34)!important;}.app-card-topline{display:flex;gap:8px;justify-content:space-between;align-items:flex-start;}.card-meta{display:flex;gap:8px;flex-wrap:wrap}.full{width:100%}
 
 /* Workspace modules */
-.auth-page,.settings-page,.ai-tool-page,.exam-studio-page,.reading-studio-page,.department-page,.game-hub-page,.library-page,.resources-page,.contact-page{display:grid;gap:var(--gap);}.settings-grid,.ai-provider-hub,.department-workspace-body,.department-command-dashboard-v63,.game-layout,.domino-layout{grid-template-columns:minmax(320px,420px) minmax(0,1fr);}.direct-question-card,.direct-reading-passage,.direct-side-card,.direct-reading-side-card,.direct-result-card{background:var(--surface)!important;border:1px solid var(--line)!important;padding:16px;}.direct-question-nav,.direct-question-palette{display:flex;gap:8px;flex-wrap:wrap}.direct-question-nav button{width:42px;height:42px;padding:0}.direct-progress-track,.progress{height:10px;background:var(--surface-3)!important;overflow:hidden}.direct-progress-track i,.progress i{display:block;height:100%;background:var(--blue)!important;}
-.admin-page,.department-page,.game-hub-page{background:var(--page)!important}.admin-main-pane,.department-workspace-center-v60{display:grid;gap:var(--gap)}.admin-user-card,.department-item-card,.department-request-card,.department-module-card,.dept-command-card-v63,.dept-priority-card-v63,.dept-calendar-card-v63{background:var(--surface)!important;border:1px solid var(--line)!important;padding:14px;}
+.auth-page,.settings-page,.ai-tool-page,.exam-studio-page,.reading-studio-page,.game-hub-page,.library-page,.resources-page,.contact-page{display:grid;gap:var(--gap);}.settings-grid,.ai-provider-hub,.game-layout,.domino-layout{grid-template-columns:minmax(320px,420px) minmax(0,1fr);}.direct-question-card,.direct-reading-passage,.direct-side-card,.direct-reading-side-card,.direct-result-card{background:var(--surface)!important;border:1px solid var(--line)!important;padding:16px;}.direct-question-nav,.direct-question-palette{display:flex;gap:8px;flex-wrap:wrap}.direct-question-nav button{width:42px;height:42px;padding:0}.direct-progress-track,.progress{height:10px;background:var(--surface-3)!important;overflow:hidden}.direct-progress-track i,.progress i{display:block;height:100%;background:var(--blue)!important;}
+.admin-page,.game-hub-page{background:var(--page)!important}.admin-main-pane{display:grid;gap:var(--gap)}.admin-user-card,.department-item-card,.department-request-card,.dept-command-card-v63,.dept-priority-card-v63,.dept-calendar-card-v63{background:var(--surface)!important;border:1px solid var(--line)!important;padding:14px;}
 .table-wrap{overflow:auto}table,.act-table{width:100%;border-collapse:collapse;background:var(--surface)!important;}th,td{border:1px solid var(--line);padding:9px;text-align:left;vertical-align:top}th{background:var(--surface-2);color:var(--ink)}
 .domino-board,.domino-hand,.game-board,.board{background:var(--surface)!important;border:1px solid var(--line)!important;padding:14px;min-height:180px}.domino-tile,.game-question-card,.card{background:var(--surface-2)!important;border:1px solid var(--line)!important;padding:12px;}
 
@@ -219,7 +219,7 @@ input:focus,textarea:focus,select:focus,button:focus-visible{outline:3px solid v
 .hidden{display:none!important}.centered{text-align:center}.full-width{width:100%}.is-locked,.locked-card{opacity:.72}.success-note,.ok-note{border-color:#66b885!important;background:#e8f6ed!important;color:#0b4f24!important}.warning-note{border-color:#d8a647!important;background:#fff6de!important;color:#6a4200!important}.error-box,.test-result:not(.ok-note){border-color:var(--red)!important;background:#fdecec!important;color:#7c1b1d!important}.spinner,.loader{width:28px;height:28px;border:4px solid var(--surface-3);border-top-color:var(--blue);border-radius:50%!important;}
 
 @media(max-width:1320px){.metro-app-status-row{grid-template-columns:repeat(4,minmax(0,1fr));}.metro-brand-tile{grid-column:span 2}.metro-app-hero-row,.route-hero,.metro-home-hero{grid-template-columns:1fr}.metro-main-app-grid{grid-template-columns:repeat(4,minmax(0,1fr));}.metro-main-app-tile:nth-child(n){grid-column:auto;grid-row:auto;min-height:160px}.metro-main-app-tile:nth-child(n) .metro-main-tile-content{min-height:160px}.metro-quick-tile.size-wide{grid-column:auto}.metro-quick-grid,.metro-benefit-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.metro-panorama-row{grid-template-columns:repeat(2,minmax(0,1fr));}}
-@media(max-width:900px){.page,.bes-status-bar,.bes-navbar-inner,.footer{width:calc(100vw - 18px)}.bes-navbar-inner{align-items:flex-start}.bes-nav-pills{order:3;width:100%;overflow:auto;flex-wrap:nowrap;padding-bottom:4px}.bes-nav-pill-label{display:none}.route-hero,.metro-home-hero,.tool-page .builder-grid,.ai-tool-page .ai-provider-hub,.settings-grid,.department-workspace-body,.department-command-dashboard-v63,.game-layout,.domino-layout,.card-grid.two,.builder-grid,.exam-workspace-grid,.exam-workspace-grid-v947,.direct-interactive-body{grid-template-columns:1fr!important}.metro-app-status-row,.metro-main-app-grid,.metro-quick-grid,.metro-benefit-grid,.metro-panorama-row,.route-hero-board-grid,.metro-phone-grid{grid-template-columns:1fr!important}.metro-brand-tile{grid-column:auto}.metro-app-hero-tile{grid-template-columns:1fr;min-height:300px}.metro-app-hero-tile h1{font-size:clamp(2.6rem,13vw,4.4rem)}.route-hero,.metro-home-hero{padding:0!important}.route-hero-visual,.metro-hero-visual{min-height:220px}.metro-live-tile.tile-large,.metro-live-tile.tile-wide{grid-column:auto;grid-row:auto}.footer{align-items:flex-start;flex-direction:column}.signature-footer-profile{width:100%;}.signature-block strong:nth-of-type(n/**/+2),.signature-block em{display:none!important}}
+@media(max-width:900px){.page,.bes-status-bar,.bes-navbar-inner,.footer{width:calc(100vw - 18px)}.bes-navbar-inner{align-items:flex-start}.bes-nav-pills{order:3;width:100%;overflow:auto;flex-wrap:nowrap;padding-bottom:4px}.bes-nav-pill-label{display:none}.route-hero,.metro-home-hero,.tool-page .builder-grid,.ai-tool-page .ai-provider-hub,.settings-grid,.game-layout,.domino-layout,.card-grid.two,.builder-grid,.exam-workspace-grid,.exam-workspace-grid-v947,.direct-interactive-body{grid-template-columns:1fr!important}.metro-app-status-row,.metro-main-app-grid,.metro-quick-grid,.metro-benefit-grid,.metro-panorama-row,.route-hero-board-grid,.metro-phone-grid{grid-template-columns:1fr!important}.metro-brand-tile{grid-column:auto}.metro-app-hero-tile{grid-template-columns:1fr;min-height:300px}.metro-app-hero-tile h1{font-size:clamp(2.6rem,13vw,4.4rem)}.route-hero,.metro-home-hero{padding:0!important}.route-hero-visual,.metro-hero-visual{min-height:220px}.metro-live-tile.tile-large,.metro-live-tile.tile-wide{grid-column:auto;grid-row:auto}.footer{align-items:flex-start;flex-direction:column}.signature-footer-profile{width:100%;}.signature-block strong:nth-of-type(n/**/+2),.signature-block em{display:none!important}}
 @media(max-width:560px){.page{padding:14px 0 34px}.bes-account-text,.bes-brand-text small{display:none}.metro-home-hero .metro-hero-copy{min-height:auto}.metro-hero-status{grid-template-columns:1fr}.metro-app-status-row{gap:10px}.metro-status-tile,.metro-brand-tile{min-height:92px}.metro-app-hero-tile{padding:24px!important}.metro-main-tile-content{grid-template-columns:1fr;align-items:start}.metro-main-tile-icon{width:46px;height:46px}.tile-launch-card{width:84vw;height:34vh}.signature-footer-logos img{width:28px!important;height:28px!important}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 .metro-clean-system[data-motion="off"] *,.metro-clean-system[data-performance="low"] *{animation:none!important;transition:none!important;}
@@ -2172,7 +2172,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
    ========================================================= */
 .metro-clean-system[data-route="tool"],
 .metro-clean-system[data-route="games"],
-.metro-clean-system[data-route="department"],
 .metro-clean-system[data-route="library"],
 .metro-clean-system[data-route="practice"],
 .metro-clean-system[data-route="admin"]{
@@ -2194,7 +2193,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] main.wp8-page-stage,
 .metro-clean-system[data-route="games"] main.wp8-page-stage,
-.metro-clean-system[data-route="department"] main.wp8-page-stage,
 .metro-clean-system[data-route="library"] main.wp8-page-stage,
 .metro-clean-system[data-route="practice"] main.wp8-page-stage,
 .metro-clean-system[data-route="admin"] main.wp8-page-stage{
@@ -2203,19 +2201,16 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] .bes-status-shell,
 .metro-clean-system[data-route="games"] .bes-status-shell,
-.metro-clean-system[data-route="department"] .bes-status-shell,
 .metro-clean-system[data-route="library"] .bes-status-shell,
 .metro-clean-system[data-route="practice"] .bes-status-shell,
 .metro-clean-system[data-route="admin"] .bes-status-shell,
 .metro-clean-system[data-route="tool"] .global-music-player,
 .metro-clean-system[data-route="games"] .global-music-player,
-.metro-clean-system[data-route="department"] .global-music-player,
 .metro-clean-system[data-route="library"] .global-music-player,
 .metro-clean-system[data-route="practice"] .global-music-player,
 .metro-clean-system[data-route="admin"] .global-music-player,
 .metro-clean-system[data-route="tool"] .wp8-global-indicator,
 .metro-clean-system[data-route="games"] .wp8-global-indicator,
-.metro-clean-system[data-route="department"] .wp8-global-indicator,
 .metro-clean-system[data-route="library"] .wp8-global-indicator,
 .metro-clean-system[data-route="practice"] .wp8-global-indicator,
 .metro-clean-system[data-route="admin"] .wp8-global-indicator{display:none!important;}
@@ -2223,7 +2218,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 /* pinned creative navigation for all app workspaces */
 .metro-clean-system[data-route="tool"] .bes-top-chrome,
 .metro-clean-system[data-route="games"] .bes-top-chrome,
-.metro-clean-system[data-route="department"] .bes-top-chrome,
 .metro-clean-system[data-route="library"] .bes-top-chrome,
 .metro-clean-system[data-route="practice"] .bes-top-chrome,
 .metro-clean-system[data-route="admin"] .bes-top-chrome{
@@ -2237,7 +2231,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] .bes-navbar,
 .metro-clean-system[data-route="games"] .bes-navbar,
-.metro-clean-system[data-route="department"] .bes-navbar,
 .metro-clean-system[data-route="library"] .bes-navbar,
 .metro-clean-system[data-route="practice"] .bes-navbar,
 .metro-clean-system[data-route="admin"] .bes-navbar{
@@ -2249,7 +2242,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] .bes-navbar-inner,
 .metro-clean-system[data-route="games"] .bes-navbar-inner,
-.metro-clean-system[data-route="department"] .bes-navbar-inner,
 .metro-clean-system[data-route="library"] .bes-navbar-inner,
 .metro-clean-system[data-route="practice"] .bes-navbar-inner,
 .metro-clean-system[data-route="admin"] .bes-navbar-inner{
@@ -2259,37 +2251,31 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] .bes-brand,
 .metro-clean-system[data-route="games"] .bes-brand,
-.metro-clean-system[data-route="department"] .bes-brand,
 .metro-clean-system[data-route="library"] .bes-brand,
 .metro-clean-system[data-route="practice"] .bes-brand,
 .metro-clean-system[data-route="admin"] .bes-brand,
 .metro-clean-system[data-route="tool"] .bes-nav-pill,
 .metro-clean-system[data-route="games"] .bes-nav-pill,
-.metro-clean-system[data-route="department"] .bes-nav-pill,
 .metro-clean-system[data-route="library"] .bes-nav-pill,
 .metro-clean-system[data-route="practice"] .bes-nav-pill,
 .metro-clean-system[data-route="admin"] .bes-nav-pill,
 .metro-clean-system[data-route="tool"] .bes-account-pill,
 .metro-clean-system[data-route="games"] .bes-account-pill,
-.metro-clean-system[data-route="department"] .bes-account-pill,
 .metro-clean-system[data-route="library"] .bes-account-pill,
 .metro-clean-system[data-route="practice"] .bes-account-pill,
 .metro-clean-system[data-route="admin"] .bes-account-pill,
 .metro-clean-system[data-route="tool"] .bes-ai-pill,
 .metro-clean-system[data-route="games"] .bes-ai-pill,
-.metro-clean-system[data-route="department"] .bes-ai-pill,
 .metro-clean-system[data-route="library"] .bes-ai-pill,
 .metro-clean-system[data-route="practice"] .bes-ai-pill,
 .metro-clean-system[data-route="admin"] .bes-ai-pill,
 .metro-clean-system[data-route="tool"] .bes-mini-pill,
 .metro-clean-system[data-route="games"] .bes-mini-pill,
-.metro-clean-system[data-route="department"] .bes-mini-pill,
 .metro-clean-system[data-route="library"] .bes-mini-pill,
 .metro-clean-system[data-route="practice"] .bes-mini-pill,
 .metro-clean-system[data-route="admin"] .bes-mini-pill,
 .metro-clean-system[data-route="tool"] .bes-logout-pill,
 .metro-clean-system[data-route="games"] .bes-logout-pill,
-.metro-clean-system[data-route="department"] .bes-logout-pill,
 .metro-clean-system[data-route="library"] .bes-logout-pill,
 .metro-clean-system[data-route="practice"] .bes-logout-pill,
 .metro-clean-system[data-route="admin"] .bes-logout-pill{
@@ -2301,13 +2287,11 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] .bes-nav-pill.active,
 .metro-clean-system[data-route="games"] .bes-nav-pill.active,
-.metro-clean-system[data-route="department"] .bes-nav-pill.active,
 .metro-clean-system[data-route="library"] .bes-nav-pill.active,
 .metro-clean-system[data-route="practice"] .bes-nav-pill.active,
 .metro-clean-system[data-route="admin"] .bes-nav-pill.active,
 .metro-clean-system[data-route="tool"] .bes-ai-pill.ok,
 .metro-clean-system[data-route="games"] .bes-ai-pill.ok,
-.metro-clean-system[data-route="department"] .bes-ai-pill.ok,
 .metro-clean-system[data-route="library"] .bes-ai-pill.ok,
 .metro-clean-system[data-route="practice"] .bes-ai-pill.ok,
 .metro-clean-system[data-route="admin"] .bes-ai-pill.ok{
@@ -2317,13 +2301,11 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] .bes-account-avatar,
 .metro-clean-system[data-route="games"] .bes-account-avatar,
-.metro-clean-system[data-route="department"] .bes-account-avatar,
 .metro-clean-system[data-route="library"] .bes-account-avatar,
 .metro-clean-system[data-route="practice"] .bes-account-avatar,
 .metro-clean-system[data-route="admin"] .bes-account-avatar,
 .metro-clean-system[data-route="tool"] .bes-brand-logo,
 .metro-clean-system[data-route="games"] .bes-brand-logo,
-.metro-clean-system[data-route="department"] .bes-brand-logo,
 .metro-clean-system[data-route="library"] .bes-brand-logo,
 .metro-clean-system[data-route="practice"] .bes-brand-logo,
 .metro-clean-system[data-route="admin"] .bes-brand-logo{
@@ -2334,7 +2316,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 /* shared app workspace canvas */
 .metro-clean-system[data-route="tool"] .page,
 .metro-clean-system[data-route="games"] .page,
-.metro-clean-system[data-route="department"] .page,
 .metro-clean-system[data-route="library"] .page,
 .metro-clean-system[data-route="practice"] .page,
 .metro-clean-system[data-route="admin"] .page{
@@ -2347,7 +2328,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] .page::before,
 .metro-clean-system[data-route="games"] .page::before,
-.metro-clean-system[data-route="department"] .page::before,
 .metro-clean-system[data-route="library"] .page::before,
 .metro-clean-system[data-route="practice"] .page::before,
 .metro-clean-system[data-route="admin"] .page::before{
@@ -2363,7 +2343,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] .back-btn,
 .metro-clean-system[data-route="games"] .back-btn,
-.metro-clean-system[data-route="department"] .back-btn,
 .metro-clean-system[data-route="library"] .back-btn,
 .metro-clean-system[data-route="practice"] .back-btn,
 .metro-clean-system[data-route="admin"] .back-btn{
@@ -2379,7 +2358,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] .panel,
 .metro-clean-system[data-route="games"] .panel,
-.metro-clean-system[data-route="department"] .panel,
 .metro-clean-system[data-route="library"] .panel,
 .metro-clean-system[data-route="practice"] .panel,
 .metro-clean-system[data-route="admin"] .panel{
@@ -2391,7 +2369,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] :is(input,textarea,select),
 .metro-clean-system[data-route="games"] :is(input,textarea,select),
-.metro-clean-system[data-route="department"] :is(input,textarea,select),
 .metro-clean-system[data-route="library"] :is(input,textarea,select),
 .metro-clean-system[data-route="practice"] :is(input,textarea,select),
 .metro-clean-system[data-route="admin"] :is(input,textarea,select){
@@ -2403,13 +2380,11 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] textarea,
 .metro-clean-system[data-route="games"] textarea,
-.metro-clean-system[data-route="department"] textarea,
 .metro-clean-system[data-route="library"] textarea,
 .metro-clean-system[data-route="practice"] textarea,
 .metro-clean-system[data-route="admin"] textarea{line-height:1.35!important;}
 .metro-clean-system[data-route="tool"] :is(button,.primary,.secondary,a.secondary),
 .metro-clean-system[data-route="games"] :is(button,.primary,.secondary,a.secondary),
-.metro-clean-system[data-route="department"] :is(button,.primary,.secondary,a.secondary),
 .metro-clean-system[data-route="library"] :is(button,.primary,.secondary,a.secondary),
 .metro-clean-system[data-route="practice"] :is(button,.primary,.secondary,a.secondary),
 .metro-clean-system[data-route="admin"] :is(button,.primary,.secondary,a.secondary){
@@ -2418,7 +2393,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] :is(.primary,button.primary),
 .metro-clean-system[data-route="games"] :is(.primary,button.primary),
-.metro-clean-system[data-route="department"] :is(.primary,button.primary),
 .metro-clean-system[data-route="library"] :is(.primary,button.primary),
 .metro-clean-system[data-route="practice"] :is(.primary,button.primary),
 .metro-clean-system[data-route="admin"] :is(.primary,button.primary){
@@ -2429,7 +2403,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] :is(.secondary,button.secondary,a.secondary),
 .metro-clean-system[data-route="games"] :is(.secondary,button.secondary,a.secondary),
-.metro-clean-system[data-route="department"] :is(.secondary,button.secondary,a.secondary),
 .metro-clean-system[data-route="library"] :is(.secondary,button.secondary,a.secondary),
 .metro-clean-system[data-route="practice"] :is(.secondary,button.secondary,a.secondary),
 .metro-clean-system[data-route="admin"] :is(.secondary,button.secondary,a.secondary){
@@ -2439,7 +2412,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] .eyebrow,
 .metro-clean-system[data-route="games"] .eyebrow,
-.metro-clean-system[data-route="department"] .eyebrow,
 .metro-clean-system[data-route="library"] .eyebrow,
 .metro-clean-system[data-route="practice"] .eyebrow,
 .metro-clean-system[data-route="admin"] .eyebrow{
@@ -2458,7 +2430,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 /* shared hero style */
 .metro-clean-system[data-route="tool"] :is(.tool-hero,.lesson-v40-hero,.textcare-compact-hero),
 .metro-clean-system[data-route="games"] :is(.games-showcase-hero,.game-hub-shell),
-.metro-clean-system[data-route="department"] :is(.department-showcase-hero-v60),
 .metro-clean-system[data-route="library"] :is(.library-showcase-hero),
 .metro-clean-system[data-route="practice"] :is(.route-hero),
 .metro-clean-system[data-route="admin"] :is(.admin-showcase-hero){
@@ -2481,7 +2452,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] :is(.tool-hero,.lesson-v40-hero,.textcare-compact-hero)::after,
 .metro-clean-system[data-route="games"] :is(.games-showcase-hero,.game-hub-shell)::after,
-.metro-clean-system[data-route="department"] :is(.department-showcase-hero-v60)::after,
 .metro-clean-system[data-route="library"] :is(.library-showcase-hero)::after,
 .metro-clean-system[data-route="practice"] :is(.route-hero)::after,
 .metro-clean-system[data-route="admin"] :is(.admin-showcase-hero)::after{
@@ -2498,7 +2468,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] :is(.tool-hero h1,.lesson-v40-hero h1,.textcare-compact-hero h1),
 .metro-clean-system[data-route="games"] :is(.games-showcase-hero h1,.game-hub-shell h1),
-.metro-clean-system[data-route="department"] :is(.department-showcase-hero-v60 h1),
 .metro-clean-system[data-route="library"] :is(.library-showcase-hero h1),
 .metro-clean-system[data-route="practice"] :is(.route-hero h1),
 .metro-clean-system[data-route="admin"] :is(.admin-showcase-hero h1){
@@ -2512,7 +2481,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] :is(.tool-hero p,.lesson-v40-hero p,.textcare-compact-hero p),
 .metro-clean-system[data-route="games"] :is(.games-showcase-hero p,.game-hub-shell p),
-.metro-clean-system[data-route="department"] :is(.department-showcase-hero-v60 p),
 .metro-clean-system[data-route="library"] :is(.library-showcase-hero p),
 .metro-clean-system[data-route="practice"] :is(.route-hero p),
 .metro-clean-system[data-route="admin"] :is(.admin-showcase-hero p){
@@ -2524,7 +2492,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] :is(.tool-state,.lesson-v40-hero-card,.textcare-hero-note),
 .metro-clean-system[data-route="games"] .games-hero-side-panel,
-.metro-clean-system[data-route="department"] .department-hero-side-panel-v60,
 .metro-clean-system[data-route="library"] .library-hero-side,
 .metro-clean-system[data-route="admin"] .admin-hero-side{
   position:relative!important;
@@ -2539,7 +2506,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] :is(.tool-state span,.lesson-v40-hero-card>div,.textcare-hero-note),
 .metro-clean-system[data-route="games"] :is(.games-spotlight-card,.games-quick-panel),
-.metro-clean-system[data-route="department"] :is(.department-spotlight-card-v60,.department-quick-panel-v60,.department-year-card-v60),
 .metro-clean-system[data-route="library"] :is(.library-hero-stat,.library-quick-panel),
 .metro-clean-system[data-route="admin"] :is(.admin-spotlight-card,.admin-quick-panel){
   background:#fffaf0!important;
@@ -2630,18 +2596,16 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 
 /* route app color identities */
 .metro-clean-system[data-route="games"]{--workspace-accent:#5B2A86!important;--workspace-soft:#E9DAFF!important;--workspace-app-ink:#20102F!important;}
-.metro-clean-system[data-route="department"]{--workspace-accent:#3B4CCA!important;--workspace-soft:#E0E4FF!important;--workspace-app-ink:#12183B!important;}
+
 .metro-clean-system[data-route="library"]{--workspace-accent:#6FBA7B!important;--workspace-soft:#E4F6E6!important;--workspace-app-ink:#17351D!important;}
 .metro-clean-system[data-route="admin"]{--workspace-accent:#D13438!important;--workspace-soft:#FFE1E3!important;--workspace-app-ink:#351014!important;}
 .metro-clean-system[data-route="games"] :is(.game-platform-tabs,.game-open-panel,.games-popular-strip,.games-hero-main-card,.game-hub-shell),
-.metro-clean-system[data-route="department"] :is(.department-work-panel,.department-teacher-workspace-v64,.department-command-dashboard-v63,.dept-command-card-v63),
 .metro-clean-system[data-route="library"] :is(.library-panel,.library-list,.builder-panel,.preview-panel),
 .metro-clean-system[data-route="admin"] :is(.admin-panel,.admin-card,.builder-panel,.preview-panel){background:rgba(255,250,240,.94)!important;border:2.5px solid var(--workspace-line)!important;border-radius:22px!important;box-shadow:5px 5px 0 rgba(23,19,18,.11)!important;}
 
 /* common cards and output areas */
 .metro-clean-system[data-route="tool"] :is(.card,.hint-box,.success-note,.warning-note,.error-box,.file-chip-row span,.status-badge,.template,.question-row,.preview-item,.doc-type-grid-v23 button,.exam-chip-grid button,.exam-type-grid button,.source-pill),
 .metro-clean-system[data-route="games"] :is(.card,.hint-box,.success-note,.warning-note,.error-box,.file-chip-row span,.status-badge,.template,.question-row,.preview-item),
-.metro-clean-system[data-route="department"] :is(.card,.hint-box,.success-note,.warning-note,.error-box,.file-chip-row span,.status-badge,.template,.question-row,.preview-item),
 .metro-clean-system[data-route="library"] :is(.card,.hint-box,.success-note,.warning-note,.error-box,.file-chip-row span,.status-badge,.template,.question-row,.preview-item),
 .metro-clean-system[data-route="practice"] :is(.card,.hint-box,.success-note,.warning-note,.error-box,.file-chip-row span,.status-badge,.template,.question-row,.preview-item),
 .metro-clean-system[data-route="admin"] :is(.card,.hint-box,.success-note,.warning-note,.error-box,.file-chip-row span,.status-badge,.template,.question-row,.preview-item){
@@ -2650,7 +2614,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="tool"] :is(pre,.ai-output,.preview-box,.admin-preview-doc,.specialized-markdown-preview),
 .metro-clean-system[data-route="games"] :is(pre,.ai-output,.preview-box,.admin-preview-doc,.specialized-markdown-preview),
-.metro-clean-system[data-route="department"] :is(pre,.ai-output,.preview-box,.admin-preview-doc,.specialized-markdown-preview),
 .metro-clean-system[data-route="library"] :is(pre,.ai-output,.preview-box,.admin-preview-doc,.specialized-markdown-preview),
 .metro-clean-system[data-route="practice"] :is(pre,.ai-output,.preview-box,.admin-preview-doc,.specialized-markdown-preview),
 .metro-clean-system[data-route="admin"] :is(pre,.ai-output,.preview-box,.admin-preview-doc,.specialized-markdown-preview){
@@ -2663,19 +2626,16 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 @media(max-width:1100px){
   .metro-clean-system[data-route="tool"] .bes-navbar-inner,
   .metro-clean-system[data-route="games"] .bes-navbar-inner,
-  .metro-clean-system[data-route="department"] .bes-navbar-inner,
   .metro-clean-system[data-route="library"] .bes-navbar-inner,
   .metro-clean-system[data-route="practice"] .bes-navbar-inner,
   .metro-clean-system[data-route="admin"] .bes-navbar-inner,
   .metro-clean-system[data-route="tool"] .page,
   .metro-clean-system[data-route="games"] .page,
-  .metro-clean-system[data-route="department"] .page,
   .metro-clean-system[data-route="library"] .page,
   .metro-clean-system[data-route="practice"] .page,
   .metro-clean-system[data-route="admin"] .page{width:min(100% - 28px,980px)!important;}
   .metro-clean-system[data-route="tool"] :is(.tool-hero,.lesson-v40-hero,.textcare-compact-hero),
   .metro-clean-system[data-route="games"] :is(.games-showcase-hero,.game-hub-shell),
-  .metro-clean-system[data-route="department"] :is(.department-showcase-hero-v60),
   .metro-clean-system[data-route="library"] :is(.library-showcase-hero),
   .metro-clean-system[data-route="practice"] :is(.route-hero),
   .metro-clean-system[data-route="admin"] :is(.admin-showcase-hero),
@@ -2690,19 +2650,16 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 @media(max-width:640px){
   .metro-clean-system[data-route="tool"] .page,
   .metro-clean-system[data-route="games"] .page,
-  .metro-clean-system[data-route="department"] .page,
   .metro-clean-system[data-route="library"] .page,
   .metro-clean-system[data-route="practice"] .page,
   .metro-clean-system[data-route="admin"] .page{width:min(100% - 20px,520px)!important;padding:18px 0 56px!important;}
   .metro-clean-system[data-route="tool"] :is(.tool-hero h1,.lesson-v40-hero h1,.textcare-compact-hero h1),
   .metro-clean-system[data-route="games"] :is(.games-showcase-hero h1,.game-hub-shell h1),
-  .metro-clean-system[data-route="department"] :is(.department-showcase-hero-v60 h1),
   .metro-clean-system[data-route="library"] :is(.library-showcase-hero h1),
   .metro-clean-system[data-route="practice"] :is(.route-hero h1),
   .metro-clean-system[data-route="admin"] :is(.admin-showcase-hero h1){font-size:clamp(2.35rem,15vw,4.2rem)!important;}
   .metro-clean-system[data-route="tool"] :is(.tool-hero,.lesson-v40-hero,.textcare-compact-hero),
   .metro-clean-system[data-route="games"] :is(.games-showcase-hero,.game-hub-shell),
-  .metro-clean-system[data-route="department"] :is(.department-showcase-hero-v60),
   .metro-clean-system[data-route="library"] :is(.library-showcase-hero),
   .metro-clean-system[data-route="practice"] :is(.route-hero),
   .metro-clean-system[data-route="admin"] :is(.admin-showcase-hero){padding:22px!important;border-radius:22px!important;}
@@ -2890,7 +2847,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 .metro-clean-system[data-tool="textcare"] .page.textcare-page,
 .metro-clean-system[data-tool="student-practice"] .page.practice-page,
 .metro-clean-system[data-route="practice"] .page.practice-page,
-.metro-clean-system[data-route="department"] .page.department-page-v63,
 .metro-clean-system[data-route="library"] .page.library-page-v61,
 .metro-clean-system[data-route="games"] .page.game-hub-page,
 .metro-clean-system[data-route="admin"] .page.admin-page-v62{
@@ -2910,52 +2866,19 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 .metro-clean-system[data-tool="textcare"] .page.textcare-page > *,
 .metro-clean-system[data-tool="student-practice"] .page.practice-page > *,
 .metro-clean-system[data-route="practice"] .page.practice-page > *,
-.metro-clean-system[data-route="department"] .page.department-page-v63 > *,
 .metro-clean-system[data-route="library"] .page.library-page-v61 > *,
 .metro-clean-system[data-route="games"] .page.game-hub-page > *,
 .metro-clean-system[data-route="admin"] .page.admin-page-v62 > *{
   min-width:0!important;
 }
 
-.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) .back-btn{
-  justify-self:start!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  gap:8px!important;
-  min-height:54px!important;
-  padding:0 20px!important;
-  border-radius:999px!important;
-  border:2px solid var(--workspace-line)!important;
-  background:#fffdf8!important;
-  color:var(--workspace-app-ink)!important;
-  box-shadow:5px 5px 0 rgba(23,19,18,.10)!important;
-  font-weight:900!important;
-}
 
-.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.tool-hero,.route-hero,.games-showcase-hero,.department-showcase-hero-v60,.library-showcase-hero,.admin-showcase-hero,.textcare-compact-hero){
-  border:3px solid var(--workspace-line)!important;
-  border-radius:28px!important;
-  padding:24px!important;
-  background:
-    radial-gradient(circle at 92% 88%, color-mix(in srgb,var(--workspace-accent) 18%, transparent), transparent 22%),
-    radial-gradient(circle at 8% 10%, color-mix(in srgb,var(--workspace-soft) 70%, white), transparent 36%),
-    linear-gradient(135deg,#fffaf1 0%, color-mix(in srgb,var(--workspace-soft) 58%, #fffaf5) 100%)!important;
-  box-shadow:8px 8px 0 rgba(23,19,18,.10)!important;
-  overflow:hidden!important;
-}
 
-.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.tool-hero>div:first-child,.route-hero-copy,.games-hero-copy-v58,.department-hero-copy-v60,.library-hero-copy-v61,.admin-hero-copy-v62){
-  border-radius:24px!important;
-  border:2px solid color-mix(in srgb,var(--workspace-line) 82%, transparent)!important;
-  background:rgba(255,252,246,.72)!important;
-  padding:24px!important;
-}
 
-.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.tool-hero h1,.route-hero h1,.games-showcase-hero h1,.department-showcase-hero-v60 h1,.library-showcase-hero h1,.admin-showcase-hero h1,.textcare-compact-hero h1){
-  font-size:clamp(2.8rem,4.4vw,5rem)!important;
-  line-height:.94!important;
-  letter-spacing:-.045em!important;
-}
+
+
+
+
 
 /* Tool workspaces */
 .metro-clean-system[data-tool="exam-studio"] .exam-stepper{
@@ -3036,18 +2959,8 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 
 /* Route workspaces */
-.metro-clean-system[data-route="department"] .department-workspace-body{
-  grid-template-columns:minmax(300px,.78fr) minmax(0,1.22fr)!important;
-  gap:18px!important;
-}
-.metro-clean-system[data-route="department"] .department-panel-grid,
-.metro-clean-system[data-route="department"] .department-command-dashboard-v63,
-.metro-clean-system[data-route="department"] .dept-dash-layout-v63,
-.metro-clean-system[data-route="department"] .department-quick-grid-v60,
-.metro-clean-system[data-route="department"] .feature-suggestion-grid{
-  grid-template-columns:repeat(2,minmax(0,1fr))!important;
-  gap:16px!important;
-}
+
+
 
 .metro-clean-system[data-route="library"] .library-screen-body,
 .metro-clean-system[data-route="library"] .library-content-grid{
@@ -3085,9 +2998,7 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 
 /* Comfortable desktop reading */
-.metro-clean-system:is([data-tool="exam-studio"],[data-tool="reading-studio"],[data-tool="retired-speaking-studio"],[data-tool="word2graph"],[data-tool="textcare"],[data-tool="student-practice"],[data-route="practice"],[data-route="department"],[data-route="library"],[data-route="games"],[data-route="admin"]) :is(.panel,.metro-panel,.builder-panel,.preview-panel,.exam-work-panel,.inner-panel,.department-work-panel,.department-list-panel,.library-card,.library-panel,.admin-panel,.admin-card,.question-editor-card,.practice-question-card,.result-summary,.game-open-panel){
-  border-radius:24px!important;
-}
+
 
 @media (max-width: 1180px){
   .metro-clean-system[data-tool="exam-studio"] .exam-stepper,
@@ -3102,11 +3013,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
   .metro-clean-system[data-tool="student-practice"] .practice-results,
   .metro-clean-system[data-route="practice"] .practice-grid,
   .metro-clean-system[data-route="practice"] .practice-results,
-  .metro-clean-system[data-route="department"] .department-workspace-body,
-  .metro-clean-system[data-route="department"] .department-panel-grid,
-  .metro-clean-system[data-route="department"] .department-command-dashboard-v63,
-  .metro-clean-system[data-route="department"] .dept-dash-layout-v63,
-  .metro-clean-system[data-route="department"] .department-quick-grid-v60,
   .metro-clean-system[data-route="library"] .library-screen-body,
   .metro-clean-system[data-route="library"] .library-content-grid,
   .metro-clean-system[data-route="library"] .library-ai-grid,
@@ -3127,8 +3033,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
   .metro-clean-system[data-tool="word2graph"] .wordgraph-prompt-bank,
   .metro-clean-system[data-tool="retired-speaking-studio"] .feedback-columns,
   .metro-clean-system[data-tool="retired-speaking-studio"] .speaking-feedback-grid,
-  .metro-clean-system[data-route="department"] .feature-suggestion-grid,
-  .metro-clean-system[data-route="department"] .games-spotlight-grid,
   .metro-clean-system[data-route="library"] .library-spotlight-grid,
   .metro-clean-system[data-route="admin"] .admin-spotlight-grid{
     grid-template-columns:1fr!important;
@@ -3140,7 +3044,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
   .metro-clean-system[data-tool="textcare"] .page.textcare-page,
   .metro-clean-system[data-tool="student-practice"] .page.practice-page,
   .metro-clean-system[data-route="practice"] .page.practice-page,
-  .metro-clean-system[data-route="department"] .page.department-page-v63,
   .metro-clean-system[data-route="library"] .page.library-page-v61,
   .metro-clean-system[data-route="games"] .page.game-hub-page,
   .metro-clean-system[data-route="admin"] .page.admin-page-v62{
@@ -4029,75 +3932,3 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 @media (max-width: 960px){
   .metro-clean-system[data-tool="exam-studio"] .exam-v96-workspace,.metro-clean-system[data-tool="exam-studio"] .exam-workspace-grid-v947,.metro-clean-system[data-tool="exam-studio"] .exam-workspace-grid,.metro-clean-system[data-tool="exam-studio"] .exam-stepper.exam-v19-stepper,.metro-clean-system[data-tool="exam-studio"] .exam-type-grid.exam-type-grid-v946,.metro-clean-system[data-tool="exam-studio"] .question-format-groups{grid-template-columns:1fr!important}.metro-clean-system[data-tool="exam-studio"] .exam-v96-left-rail{position:static!important;max-width:none!important}.metro-clean-system[data-tool="exam-studio"] .exam-v96-stat-grid{grid-template-columns:1fr!important}.metro-clean-system[data-tool="exam-studio"] .exam-v96-hero-art{min-height:260px!important}.metro-clean-system[data-tool="exam-studio"] .exam-v96-hero-copy h1{font-size:clamp(2.8rem,14vw,4rem)!important}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@media (max-width: 1320px){
-  
-  
-}
-@media (max-width: 1100px){
-  
-  
-}
-@media (max-width: 760px){
-  
-  
-}
-

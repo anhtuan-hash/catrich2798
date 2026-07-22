@@ -174,7 +174,7 @@ html[data-burs="comfortable"] .settings-v47-provider-node small { font-size: var
 html[data-burs="comfortable"] [data-route="ai-governance"] :where(.ai-gov-card p, .ai-gov-card li, .ai-gov-card small) { font-size: var(--burs-font-caption) !important; }
 
 /* Department / Homeroom / Library / admin */
-html[data-burs="comfortable"] [data-route="department"] :where(.hr-muted, .muted-line, small, td, th),
+
 html[data-burs="comfortable"] [data-route="homeroom"] :where(.hr-muted, .muted-line, small, td, th),
 html[data-burs="comfortable"] [data-route="library"] :where(.muted-line, small),
 html[data-burs="comfortable"] [data-route="resource-library"] :where(.muted-line, small),

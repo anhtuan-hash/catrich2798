@@ -498,7 +498,7 @@ html[data-theme="dark"] .resource-library-page{color:#e4f2ff}html[data-theme="da
 @media(max-width:1050px){.resource-library-hero{grid-template-columns:1fr}.resource-drive-art{min-height:240px}.resource-stat-grid{grid-template-columns:repeat(2,1fr)}.resource-toolbar{grid-template-columns:1fr}.resource-library-list{grid-template-columns:1fr}.resource-ai-search{grid-template-columns:1fr}.resource-upload-grid{grid-template-columns:1fr}.resource-dropzone{min-height:220px}}
 @media(max-width:650px){.resource-library-page{width:min(100% - 18px,1440px);margin-top:12px}.resource-library-hero{padding:28px 22px;border-radius:22px}.resource-library-hero h1{font-size:2.7rem}.resource-stat-grid{grid-template-columns:1fr 1fr}.resource-upload-modal,.resource-preview-modal{max-height:calc(100vh - 14px);border-radius:18px}.resource-modal-backdrop{padding:7px}.resource-upload-grid,.resource-preview-body{padding:15px;grid-template-columns:1fr}.resource-form-row{grid-template-columns:1fr}.resource-ai-input{grid-template-columns:1fr}.resource-library-card{grid-template-columns:54px 1fr;padding:14px}.resource-file-icon{width:52px;height:62px}.resource-drive-art{display:none}}
 
-/* ========================================================================== 
+/* ==========================================================================
    V10.82.0 — Newsroom Reader
    Vietnamese education news + English-language press in a focused reader.
    ========================================================================== */
@@ -2045,4 +2045,3 @@ html[data-theme="dark"] .metro-clean-system .global-notice-interaction-hint stro
     grid-column:auto!important;
   }
 }
-

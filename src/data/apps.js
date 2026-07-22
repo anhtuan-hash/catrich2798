@@ -4,100 +4,80 @@ export const APPS = [
     title: 'Work Dashboard', titleVi: 'Bảng điều hành',
     desc: 'Combine schedules, action items, professional activities, approvals and department health in one role-aware dashboard.',
     descVi: 'Tổng hợp lịch làm việc, việc cần xử lý, hoạt động chuyên môn, phê duyệt và tình hình tổ theo đúng vai trò.',
-    status: 'Realtime · Role-aware · 14-day view', statusVi: 'Realtime · Theo vai trò · 14 ngày', api: true, featured: true,
-  },
-  {
-    slug: 'department-workspace', icon: 'TC', tone: 'purple', group: 'School Management', groupVi: 'Quản lý tổ chuyên môn',
-    title: 'English Department Workspace', titleVi: 'Tổ chuyên môn',
-    desc: 'Manage schedules, assignments, plans, records, meetings, evidence and reports in one Supabase-connected workspace.',
-    descVi: 'Quản lý lịch, giao việc, kế hoạch, hồ sơ, sinh hoạt tổ, minh chứng và báo cáo trong một không gian kết nối Supabase.',
-    status: 'Supabase · TTCM · Role-aware', statusVi: 'Supabase · TTCM · Theo vai trò', api: true, featured: true,
-  },
+    status: 'Realtime · Role-aware · 14-day view', statusVi: 'Realtime · Theo vai trò · 14 ngày', api: true, featured: true},
 
   {
     slug: 'thpt-practice-hub', icon: 'TH', tone: 'orange', group: 'Exam Preparation', groupVi: 'Luyện thi THPT',
     title: 'THPT Interactive Practice Hub', titleVi: 'Luyện thi THPT',
     desc: 'Upload, review, organize and run interactive HTML exam-preparation lessons directly inside Brian.',
     descVi: 'Tải lên, duyệt, quản lý và chạy trực tiếp các bài luyện thi THPT tương tác dạng HTML.',
-    status: 'HTML library · TTCM approval', statusVi: 'Kho HTML · TTCM duyệt', api: true, featured: true,
-  },
+    status: 'HTML library · TTCM approval', statusVi: 'Kho HTML · TTCM duyệt', api: true, featured: true},
 
   {
     slug: 'work-hub', route: 'work-hub', icon: 'WH', tone: 'mint', group: 'Connected Workflow', groupVi: 'Công việc liên thông',
     title: 'Unified Work Hub', titleVi: 'Trung tâm công việc',
     desc: 'Manage tasks, submissions, feedback, schedules and approval workflows in one place.',
     descVi: 'Quản lí nhiệm vụ, sản phẩm nộp, phản hồi, lịch và phê duyệt trong một nơi.',
-    status: 'Realtime · Role-aware', statusVi: 'Realtime · Theo vai trò', api: true, featured: true,
-  },
+    status: 'Realtime · Role-aware', statusVi: 'Realtime · Theo vai trò', api: true, featured: true},
   {
     slug: 'knowledge-hub', route: 'knowledge-hub', icon: 'KH', tone: 'blue', group: 'Teaching Resources', groupVi: 'Học liệu thông minh',
     title: 'Smart Knowledge Library', titleVi: 'Kho học liệu thông minh',
     desc: 'Search, classify, favorite and organize approved resources with lifecycle metadata.',
     descVi: 'Tìm kiếm, phân loại, yêu thích và tổ chức học liệu theo metadata và vòng đời.',
-    status: 'Metadata · Collections', statusVi: 'Metadata · Bộ sưu tập', api: true, featured: true,
-  },  {
+    status: 'Metadata · Collections', statusVi: 'Metadata · Bộ sưu tập', api: true, featured: true},  {
     slug: 'content-factory', route: 'content-factory', icon: 'CF', tone: 'orange', group: 'Teaching Design', groupVi: 'Tạo học liệu',
     title: 'Teaching Content Factory', titleVi: 'Xưởng tạo học liệu',
     desc: 'Turn one source into worksheets, quizzes, cloze tests, flashcards and lesson sequences.',
     descVi: 'Biến một nguồn thành worksheet, quiz, cloze test, flashcard và chuỗi hoạt động.',
-    status: '8 output types · Export', statusVi: '8 loại sản phẩm · Xuất file', api: true, featured: true,
-  },
+    status: '8 output types · Export', statusVi: '8 loại sản phẩm · Xuất file', api: true, featured: true},
   {
     slug: 'content-ecosystem', route: 'content-ecosystem', icon: 'CE', tone: 'blue', group: 'Connected Teaching', groupVi: 'Hệ sinh thái nội dung',
     title: 'Teaching Content Ecosystem', titleVi: 'Hệ sinh thái nội dung dạy học',
     desc: 'Organize reusable assets, edit structured canvases, run multi-app production recipes and assemble complete content kits.',
     descVi: 'Tổ chức tài sản tái sử dụng, biên tập canvas theo khối, chạy dây chuyền nhiều ứng dụng và đóng gói bộ nội dung hoàn chỉnh.',
-    status: 'Assets · Canvas · Recipes · Kits', statusVi: 'Tài sản · Canvas · Dây chuyền · Bộ nội dung', api: true, featured: true,
-  },
+    status: 'Assets · Canvas · Recipes · Kits', statusVi: 'Tài sản · Canvas · Dây chuyền · Bộ nội dung', api: true, featured: true},
   {
     slug: 'lesson-pack', route: 'lesson-pack', icon: 'LP', tone: 'blue', group: 'Connected Teaching', groupVi: 'Dạy học liên thông',
     title: 'Lesson Pack', titleVi: 'Gói bài dạy liên thông',
     desc: 'Combine lesson plans, worksheets, reading, speaking, assessment and homework into one live teaching sequence.',
     descVi: 'Kết hợp giáo án, worksheet, đọc, nói, đánh giá và bài tập về nhà thành một tiến trình dạy học trực tiếp.',
-    status: 'Sequence · Live mode · Export', statusVi: 'Tiến trình · Dạy trực tiếp · Xuất file', api: true, featured: true,
-  },  {
+    status: 'Sequence · Live mode · Export', statusVi: 'Tiến trình · Dạy trực tiếp · Xuất file', api: true, featured: true},  {
     slug: 'assessment-core', route: 'assessment-core', icon: 'AC', tone: 'orange', group: 'Assessment', groupVi: 'Đánh giá',
     title: 'Assessment Core', titleVi: 'Ngân hàng câu hỏi & đề thi',
     desc: 'Manage question banks, import items, build blueprints and generate multiple test codes.',
     descVi: 'Quản lí ngân hàng câu hỏi, nhập dữ liệu, tạo blueprint và nhiều mã đề.',
-    status: 'Question bank · Blueprints', statusVi: 'Ngân hàng · Blueprint', api: true, featured: true,
-  },
+    status: 'Question bank · Blueprints', statusVi: 'Ngân hàng · Blueprint', api: true, featured: true},
   {
     slug: 'platform-readiness', route: 'platform-readiness', icon: 'PR', tone: 'mint', group: 'Platform', groupVi: 'Nền tảng',
     title: 'Platform Readiness', titleVi: 'PWA, bảo mật & tiếp cận',
     desc: 'Install the site as an app, audit security headers, tune accessibility and monitor performance budgets.',
     descVi: 'Cài website như ứng dụng, kiểm tra bảo mật, điều chỉnh khả năng tiếp cận và theo dõi ngân sách hiệu năng.',
-    status: 'PWA · Security · WCAG · Web Vitals', statusVi: 'PWA · Bảo mật · WCAG · Hiệu năng', api: true, featured: true,
-  },
+    status: 'PWA · Security · WCAG · Web Vitals', statusVi: 'PWA · Bảo mật · WCAG · Hiệu năng', api: true, featured: true},
 
   {
     slug: 'automation-center', route: 'automation-center', icon: 'AU', tone: 'blue', group: 'Operations', groupVi: 'Tự động hóa & vận hành',
     title: 'Automation Center', titleVi: 'Trung tâm tự động hóa',
     desc: 'Build event and schedule rules, approve sensitive actions, inspect run history and monitor platform operations.',
     descVi: 'Tạo quy tắc theo sự kiện và lịch, phê duyệt hành động nhạy cảm, xem nhật ký và giám sát vận hành.',
-    status: 'Rules · Approvals · Audit log', statusVi: 'Quy tắc · Phê duyệt · Nhật ký', api: true, featured: true,
-  },
+    status: 'Rules · Approvals · Audit log', statusVi: 'Quy tắc · Phê duyệt · Nhật ký', api: true, featured: true},
   {
     slug: 'cloud-operations', route: 'cloud-operations', icon: 'CO', tone: 'mint', group: 'Operations', groupVi: 'Tự động hóa & vận hành',
     title: 'Cloud Operations', titleVi: 'Vận hành nền 24/7',
     desc: 'Run automation with durable queues, Supabase Cron, controlled retries, approval gates and operations digests.',
     descVi: 'Chạy tự động hóa bằng hàng đợi bền vững, Supabase Cron, retry, phê duyệt và bản tin vận hành.',
-    status: '24/7 worker · Queue · Digest', statusVi: 'Worker 24/7 · Hàng đợi · Bản tin', api: true, featured: true,
-  },
+    status: '24/7 worker · Queue · Digest', statusVi: 'Worker 24/7 · Hàng đợi · Bản tin', api: true, featured: true},
   {
     slug: 'collaboration-hub', route: 'collaboration-hub', icon: 'CH', tone: 'blue', group: 'Collaboration', groupVi: 'Cộng tác & phiên bản',
     title: 'Collaboration Hub', titleVi: 'Không gian cộng tác',
     desc: 'Coordinate projects, members, threaded discussions, Realtime presence and version history.',
     descVi: 'Điều phối dự án, thành viên, thảo luận theo luồng, hiện diện Realtime và lịch sử phiên bản.',
-    status: 'Spaces · Presence · Versions', statusVi: 'Dự án · Hiện diện · Phiên bản', api: true, featured: true,
-  },
+    status: 'Spaces · Presence · Versions', statusVi: 'Dự án · Hiện diện · Phiên bản', api: true, featured: true},
   {
     slug: 'data-governance', route: 'data-governance', icon: 'DG', tone: 'orange', group: 'Governance', groupVi: 'Quản trị dữ liệu',
     title: 'Data Governance', titleVi: 'Quản trị dữ liệu & tuân thủ',
     desc: 'Audit actions, control permission overrides, create snapshots and restore deleted content safely.',
     descVi: 'Theo dõi thao tác, kiểm soát quyền ngoại lệ, tạo snapshot và khôi phục dữ liệu an toàn.',
-    status: 'Audit · Backup · Trash · RLS', statusVi: 'Audit · Sao lưu · Thùng rác · RLS', api: true, featured: true,
-  },
+    status: 'Audit · Backup · Trash · RLS', statusVi: 'Audit · Sao lưu · Thùng rác · RLS', api: true, featured: true},
 
   {
       slug: 'resource-library-hub',
@@ -113,8 +93,7 @@ export const APPS = [
       status: 'Google Drive · Collections',
       statusVi: 'Google Drive · Bộ sưu tập',
       api: true,
-      featured: true,
-    },
+      featured: true},
 
   {
       slug: 'news-reader',
@@ -130,8 +109,7 @@ export const APPS = [
       status: 'Live RSS · Reading mode',
       statusVi: 'RSS trực tiếp · Chế độ đọc',
       api: true,
-      featured: true,
-    },
+      featured: true},
 
   {
       slug: 'vietnam-tax',
@@ -146,8 +124,7 @@ export const APPS = [
       status: '2026 tax scale · Offline calculator',
       statusVi: 'Biểu thuế 2026 · Tính offline',
       api: true,
-      featured: true,
-    },
+      featured: true},
 
   {
       slug: 'textlab-activities',
@@ -162,8 +139,7 @@ export const APPS = [
       status: '18 templates · Offline',
       statusVi: '18 mẫu · Offline',
       api: true,
-      featured: true,
-    },
+      featured: true},
   {
       slug: 'exam-studio',
       icon: 'EX',
@@ -177,8 +153,7 @@ export const APPS = [
       status: '4-step flow · Offline',
       statusVi: 'Quy trình 4 bước · Offline',
       api: true,
-      featured: true,
-    },
+      featured: true},
   {
       slug: 'word2graph',
       icon: 'WG',
@@ -191,8 +166,7 @@ export const APPS = [
       descVi: 'Vẽ sơ đồ word family, collocation và ví dụ.',
       status: 'Manual · Offline',
       statusVi: 'Thủ công · Offline',
-      api: true,
-    },
+      api: true},
   {
       slug: 'reading-studio',
       icon: 'RD',
@@ -206,8 +180,7 @@ export const APPS = [
       status: 'Manual · Offline',
       statusVi: 'Thủ công · Offline',
       api: true,
-      featured: true,
-    },  {
+      featured: true},  {
       slug: 'lesson-plan-ai',
       icon: 'LA',
       tone: 'blue',
@@ -220,8 +193,7 @@ export const APPS = [
       status: '5512 + annual curriculum',
       statusVi: '5512 + English-only annual lesson plans with digital competence',
       api: true,
-      featured: true,
-    },  {
+      featured: true},  {
       slug: 'student-practice',
       icon: 'LS',
       tone: 'pink',
@@ -234,8 +206,7 @@ export const APPS = [
       status: 'Manual · Offline',
       statusVi: 'Thủ công · Offline',
       api: true,
-      featured: true,
-    },
+      featured: true},
   {
       slug: 'textcare',
       icon: 'TC',
@@ -248,8 +219,7 @@ export const APPS = [
       descVi: 'Tải file/dán text, nhận diện và chuẩn hoá văn bản hành chính.',
       status: 'Manual · Offline',
       statusVi: 'Thủ công · Offline',
-      api: true,
-    },];
+      api: true}];
 
 export const GAME_APPS = [
   {
@@ -266,9 +236,7 @@ export const GAME_APPS = [
     status: 'Launcher',
     statusVi: 'Cổng mở nhanh',
     api: true,
-    featured: true,
-  },
-];
+    featured: true}];
 
 
 export const SPECIAL_TOOLS = [];
@@ -284,8 +252,7 @@ export const ARCHIVED_APPS = [
   'THPT Item Lab',
   'ReadSpark MCQ',
   'TalkDeck Prompts',
-  'WriteMirror',
-];
+  'WriteMirror'];
 
 export const RESOURCE_ITEMS = [
   {
@@ -293,13 +260,10 @@ export const RESOURCE_ITEMS = [
     title: 'Teacher Flow',
     titleVi: 'Quy trình',
     text: 'Choose a tool, paste content, generate, teach live, or export offline.',
-    textVi: 'Chọn công cụ, dán nội dung, tạo hoạt động, dạy trực tiếp hoặc xuất file.',
-  },
+    textVi: 'Chọn công cụ, dán nội dung, tạo hoạt động, dạy trực tiếp hoặc xuất file.'},
   {
     icon: 'DB',
     title: 'V1.0 Official Dashboard',
     titleVi: 'Dashboard chính thức V1.0',
     text: 'The dashboard is organized by workflow groups for faster opening, creating and saving.',
-    textVi: 'Dashboard được sắp xếp theo nhóm chức năng để mở nhanh, tạo nhanh và lưu nhanh.',
-  },
-];
+    textVi: 'Dashboard được sắp xếp theo nhóm chức năng để mở nhanh, tạo nhanh và lưu nhanh.'}];
