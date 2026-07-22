@@ -6,6 +6,11 @@ on:
       - feature/connect-department-microfrontend
     paths:
       - .github/workflows/apply-department-microfrontend-connection.yml
+  pull_request:
+    branches:
+      - feature/department-new-known-good
+    paths:
+      - .github/workflows/apply-department-microfrontend-connection.yml
 
 permissions:
   contents: write
@@ -63,11 +68,14 @@ jobs:
           new_target = "function targetFor(item) { return item.externalPath || (item.route ? `#/${item.route}` : `#/tool/${item.slug}`); }"
           old_launch = "function launch(target, label, color, sourceEl = null) { launchRoute({ target, label, color: color || '#191515', sourceEl }); }"
           new_launch = "function launch(target, label, color, sourceEl = null) {\n  const externalPath = typeof target === 'string' && target.startsWith('/');\n  launchRoute({\n    target, label, color: color || '#191515', sourceEl,\n    navigate: externalPath ? () => window.location.assign(target) : undefined,\n  });\n}"
-          if old_target not in webapps:
+          if old_target in webapps:
+              webapps = webapps.replace(old_target, new_target, 1)
+          elif new_target not in webapps:
               raise SystemExit('targetFor marker not found')
-          if old_launch not in webapps:
+          if old_launch in webapps:
+              webapps = webapps.replace(old_launch, new_launch, 1)
+          elif 'window.location.assign(target)' not in webapps:
               raise SystemExit('launch marker not found')
-          webapps = webapps.replace(old_target, new_target, 1).replace(old_launch, new_launch, 1)
           webapps_path.write_text(webapps)
           PY
 
