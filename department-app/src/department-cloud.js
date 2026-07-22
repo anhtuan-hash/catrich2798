@@ -104,10 +104,10 @@ function roleLabel(role) {
 
 function groupEntities(rows = []) {
   const collections = {};
-  Object.values(COLLECTION_TYPES).forEach((type) => { collections[type] = []; });
   rows.forEach((row) => {
     if (!row?.entity_type || !row?.payload) return;
     if (!collections[row.entity_type]) collections[row.entity_type] = [];
+    if (row.external_id === '__empty__' || row.payload.__department_empty === true) return;
     collections[row.entity_type].push(row.payload);
   });
   return collections;
@@ -199,8 +199,9 @@ export async function initializeDepartmentCloud() {
 
 export function collectionFromContext(context, key, fallback) {
   const type = COLLECTION_TYPES[key] || key;
-  const items = context?.collections?.[type];
-  return Array.isArray(items) && items.length ? items : fallback;
+  const collections = context?.collections;
+  if (!collections || !Object.prototype.hasOwnProperty.call(collections, type)) return fallback;
+  return Array.isArray(collections[type]) ? collections[type] : fallback;
 }
 
 export function scheduleDepartmentCollectionSave(context, key, items, delay = 650) {
