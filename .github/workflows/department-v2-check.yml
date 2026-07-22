@@ -8,6 +8,9 @@ on:
     branches:
       - feature/department-new-known-good
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,6 +18,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply visual polish to loaded stylesheet
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          target = Path('src/pages/DepartmentWorkspaceV2.css')
+          source = Path('src/pages/DepartmentWorkspaceV2Polish.css')
+          css = target.read_text(encoding='utf-8')
+          polish = source.read_text(encoding='utf-8').strip()
+          marker = '/* DEPARTMENT_V2_VISUAL_POLISH_START */'
+          if marker not in css:
+              target.write_text(css.rstrip() + '\n\n' + polish + '\n', encoding='utf-8')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/pages/DepartmentWorkspaceV2.css
+          if ! git diff --cached --quiet; then
+            git commit -m "Polish Department v2 typography and contrast"
+            git push origin HEAD:feature/department-v2-option-d
+          fi
 
       - name: Use Node 22
         uses: actions/setup-node@v4
@@ -32,5 +59,7 @@ jobs:
         run: |
           test -f src/pages/DepartmentWorkspaceV2.jsx
           test -f src/pages/DepartmentWorkspaceV2.css
+          test -f src/pages/DepartmentWorkspaceV2Polish.css
           grep -q "department-workspace" src/data/apps.js
           grep -q "DepartmentWorkspaceV2" src/pages/ToolPage.jsx
+          grep -q "DEPARTMENT_V2_VISUAL_POLISH_START" src/pages/DepartmentWorkspaceV2.css
