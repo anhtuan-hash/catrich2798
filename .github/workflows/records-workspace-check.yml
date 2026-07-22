@@ -35,8 +35,10 @@ jobs:
             grep: complete calendar workspace supports views
           - id: meetings-complete
             grep: complete meetings workspace supports minutes
-          - id: evidence-complete
-            grep: evidence workspace
+          - id: evidence-create
+            grep: evidence workspace creates files
+          - id: evidence-status
+            grep: evidence workspace supports feedback
           - id: remaining-interactions
             grep: scoped notifications search and meetings smoke test
     defaults:
