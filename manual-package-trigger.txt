@@ -1,0 +1,1 @@
+Rebuild the verified Department-removed source and static ZIP packages after the final cleanup workflow update.
