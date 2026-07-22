@@ -28,9 +28,12 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
-      - name: Verify Department v2 assets
+      - name: Verify faithful Option D workspace
         run: |
           test -f src/pages/DepartmentWorkspaceV2.jsx
           test -f src/pages/DepartmentWorkspaceV2.css
+          grep -q "dwD-shell" src/pages/DepartmentWorkspaceV2.jsx
+          grep -q "position:fixed" src/pages/DepartmentWorkspaceV2.css
+          grep -q "dwD-top-grid" src/pages/DepartmentWorkspaceV2.css
           grep -q "department-workspace" src/data/apps.js
           grep -q "DepartmentWorkspaceV2" src/pages/ToolPage.jsx
