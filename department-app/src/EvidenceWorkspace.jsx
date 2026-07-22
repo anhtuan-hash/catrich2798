@@ -9,6 +9,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 const formatDate=value=>{if(!value)return 'Chưa cập nhật';const [y,m,d]=value.split('-');return `${d}/${m}/${y}`};
 const slug=(value='')=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const initials=(name='')=>name.split(' ').slice(-2).map(part=>part[0]).join('').toUpperCase();
+const isWorkspaceItem=item=>Boolean(item?.status&&item?.criterion&&item?.owner&&Array.isArray(item?.attachments));
 
 export function createDefaultEvidence(){return [
   {id:1,title:'Minh chứng thao giảng Unit 5 – Lớp 11A1',type:'Thao giảng',criterion:'Đổi mới phương pháp',owner:'Nguyễn Thị Mai',dateISO:today(),status:'Đã xác minh',description:'Hình ảnh, kế hoạch bài dạy và phiếu nhận xét sau tiết thao giảng.',links:['Kế hoạch chuyên đề ứng dụng AI'],attachments:[{id:11,name:'ke-hoach-bai-day.pdf',size:245000},{id:12,name:'hinh-anh-thao-giang.jpg',size:480000}],comments:[],history:[{id:111,action:'Đã xác minh minh chứng',actor:'Demo Teacher Admin',time:new Date().toLocaleString('vi-VN')}]},
@@ -19,8 +20,7 @@ export function createDefaultEvidence(){return [
 function Icon({name,size=18}){const paths={plus:<path d="M12 5v14M5 12h14"/>,search:<><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,close:<path d="m6 6 12 12M18 6 6 18"/>,file:<><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v5h5M8 13h8M8 17h6"/></>,edit:<><path d="m4 20 4-1 11-11-3-3L5 16z"/><path d="m14 6 3 3"/></>,trash:<><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></>,check:<path d="m5 12 4 4L19 6"/>,archive:<><path d="M4 7h16v13H4zM3 4h18v3H3z"/><path d="M9 11h6"/></>,link:<><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></>};return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>}
 
 function EvidenceForm({item,onClose,onSave}){
-  const fileRef=useRef(null);
-  const [error,setError]=useState('');
+  const fileRef=useRef(null);const [error,setError]=useState('');
   const [form,setForm]=useState(()=>({title:item?.title||'',type:item?.type||TYPES[0],criterion:item?.criterion||CRITERIA[0],owner:item?.owner||PEOPLE[0],dateISO:item?.dateISO||today(),description:item?.description||'',links:(item?.links||[]).join('\n'),attachments:item?.attachments||[]}));
   const addFiles=files=>setForm(current=>({...current,attachments:[...current.attachments,...Array.from(files||[]).map((file,index)=>({id:`${Date.now()}-${index}`,name:file.name,size:file.size,type:file.type}))]}));
   const submit=event=>{event.preventDefault();if(!form.title.trim())return setError('Vui lòng nhập tên minh chứng.');if(!form.attachments.length)return setError('Vui lòng đính kèm ít nhất một tệp.');onSave({...item,...form,title:form.title.trim(),description:form.description.trim(),links:form.links.split('\n').map(value=>value.trim()).filter(Boolean)})};
@@ -36,9 +36,7 @@ function EvidenceForm({item,onClose,onSave}){
       <label className="span-2">Liên kết nhiệm vụ, hồ sơ hoặc kế hoạch<textarea aria-label="Liên kết minh chứng" rows="3" value={form.links} onChange={event=>setForm({...form,links:event.target.value})} placeholder="Mỗi liên kết một dòng"/></label>
       <div className="span-2 ew-file-field"><div><strong>Tệp minh chứng</strong><small>PDF, Word, hình ảnh, bảng tính hoặc video.</small></div><button type="button" onClick={()=>fileRef.current?.click()}>Chọn tệp</button><input ref={fileRef} hidden multiple type="file" onChange={event=>addFiles(event.target.files)}/></div>
       {!!form.attachments.length&&<div className="span-2 ew-file-list">{form.attachments.map(file=><span key={file.id}><Icon name="file" size={15}/>{file.name}<button type="button" onClick={()=>setForm(current=>({...current,attachments:current.attachments.filter(value=>value.id!==file.id)}))}>×</button></span>)}</div>}
-    </div>
-    {error&&<p className="ew-error">{error}</p>}
-    <footer><button type="button" onClick={onClose}>Hủy</button><button className="ew-primary" type="submit">{item?'Lưu thay đổi':'Thêm minh chứng'}</button></footer>
+    </div>{error&&<p className="ew-error">{error}</p>}<footer><button type="button" onClick={onClose}>Hủy</button><button className="ew-primary" type="submit">{item?'Lưu thay đổi':'Thêm minh chứng'}</button></footer>
   </form></div>
 }
 
@@ -59,14 +57,15 @@ function EvidenceDetail({item,onClose,onEdit,onUpdate,onDelete,setToast}){
 
 export default function EvidenceWorkspace({evidence=[],setEvidence,updateEvidence,deleteEvidence,setToast}){
   const [query,setQuery]=useState('');const [status,setStatus]=useState('Tất cả');const [type,setType]=useState('Tất cả');const [criterion,setCriterion]=useState('Tất cả');const [editor,setEditor]=useState(null);const [detailId,setDetailId]=useState(null);const [selected,setSelected]=useState([]);
-  const sourceEvidence=evidence.length?evidence:createDefaultEvidence();
+  const compatible=evidence.filter(isWorkspaceItem);
+  const sourceEvidence=compatible.length?compatible:createDefaultEvidence();
   const visible=useMemo(()=>sourceEvidence.filter(item=>{const text=`${item.title||''} ${item.owner||''} ${item.type||''} ${item.criterion||''} ${item.description||''}`.toLowerCase();return(!query||text.includes(query.toLowerCase()))&&(status==='Tất cả'||item.status===status)&&(type==='Tất cả'||item.type===type)&&(criterion==='Tất cả'||item.criterion===criterion)}),[sourceEvidence,query,status,type,criterion]);
   const detail=sourceEvidence.find(item=>item.id===detailId)||null;
   const counts={pending:sourceEvidence.filter(item=>item.status==='Chờ xác minh').length,revision:sourceEvidence.filter(item=>item.status==='Cần bổ sung').length,verified:sourceEvidence.filter(item=>item.status==='Đã xác minh').length,archived:sourceEvidence.filter(item=>item.status==='Đã lưu kho').length};
-  const applyUpdate=(id,patch)=>{if(evidence.length)updateEvidence(id,patch);else setEvidence(createDefaultEvidence().map(item=>item.id===id?{...item,...patch}:item))};
-  const applyDelete=id=>{if(evidence.length)deleteEvidence(id);else{setEvidence(createDefaultEvidence().filter(item=>item.id!==id));setToast('Đã xóa minh chứng.')}};
-  const save=data=>{if(editor?.id){applyUpdate(editor.id,{...data,history:[...(editor.history||[]),{id:Date.now(),action:'Đã chỉnh sửa minh chứng',actor:'Demo Teacher Admin',time:new Date().toLocaleString('vi-VN')}]});setToast('Đã cập nhật minh chứng.')}else{const id=Date.now();setEvidence(items=>[{...data,id,status:'Chờ xác minh',comments:[],history:[{id:`new-${id}`,action:'Đã thêm minh chứng',actor:data.owner,time:new Date().toLocaleString('vi-VN')}]},...(items.length?items:createDefaultEvidence())]);setToast('Đã thêm minh chứng mới.')}setEditor(null)};
-  const bulkUpdate=nextStatus=>{if(!selected.length)return;setEvidence(items=>(items.length?items:createDefaultEvidence()).map(item=>selected.includes(item.id)?{...item,status:nextStatus}:item));setToast(`Đã cập nhật ${selected.length} minh chứng.`);setSelected([])};
+  const applyUpdate=(id,patch)=>{if(compatible.length)updateEvidence(id,patch);else setEvidence(createDefaultEvidence().map(item=>item.id===id?{...item,...patch}:item))};
+  const applyDelete=id=>{if(compatible.length)deleteEvidence(id);else{setEvidence(createDefaultEvidence().filter(item=>item.id!==id));setToast('Đã xóa minh chứng.')}};
+  const save=data=>{if(editor?.id){applyUpdate(editor.id,{...data,history:[...(editor.history||[]),{id:Date.now(),action:'Đã chỉnh sửa minh chứng',actor:'Demo Teacher Admin',time:new Date().toLocaleString('vi-VN')}]});setToast('Đã cập nhật minh chứng.')}else{const id=Date.now();setEvidence(items=>[{...data,id,status:'Chờ xác minh',comments:[],history:[{id:`new-${id}`,action:'Đã thêm minh chứng',actor:data.owner,time:new Date().toLocaleString('vi-VN')}]},...(items.filter(isWorkspaceItem).length?items.filter(isWorkspaceItem):createDefaultEvidence())]);setToast('Đã thêm minh chứng mới.')}setEditor(null)};
+  const bulkUpdate=nextStatus=>{if(!selected.length)return;setEvidence(sourceEvidence.map(item=>selected.includes(item.id)?{...item,status:nextStatus}:item));setToast(`Đã cập nhật ${selected.length} minh chứng.`);setSelected([])};
   const allVisibleSelected=visible.length>0&&visible.every(item=>selected.includes(item.id));
   return <main className="ew-workspace">
     <section className="ew-hero"><div><span>QUẢN TRỊ CHUYÊN MÔN</span><h1>Minh chứng và xác minh</h1><p>Tập hợp, phân loại và theo dõi toàn bộ minh chứng hoạt động của tổ chuyên môn.</p></div><button className="ew-primary" onClick={()=>setEditor({})}><Icon name="plus"/>Thêm minh chứng</button></section>
