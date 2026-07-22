@@ -26,6 +26,12 @@ const vercel = read('vercel.json');
 
 check(page.includes('ProfessionalHubNative'), 'Brian page imports Professional Hub native component');
 check(native.includes('data-testid="professional-hub-native-app"'), 'native Professional Hub component');
+const rootModule = read('src/apps/professional-hub/ProfessionalHubRoot.jsx');
+check(native.includes("import { DepartmentRoot } from './ProfessionalHubRoot.jsx'"), 'native wrapper imports DepartmentRoot');
+check(native.includes('<DepartmentRoot />'), 'native wrapper renders DepartmentRoot');
+check(rootModule.includes('export { DepartmentRoot }'), 'DepartmentRoot is exported');
+check(!rootModule.includes('createRoot('), 'no nested ReactDOM root');
+
 check(!native.includes('<iframe'), 'no iframe');
 check(!native.includes('/to-chuyen-mon/'), 'no standalone route dependency');
 check(/professional-hub|Hub Chuyên môn/.test(apps), 'Professional Hub launcher card retained');
