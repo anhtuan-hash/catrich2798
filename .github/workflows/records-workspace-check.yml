@@ -35,6 +35,8 @@ jobs:
             grep: complete calendar workspace supports views
           - id: meetings-complete
             grep: complete meetings workspace supports minutes
+          - id: evidence-complete
+            grep: complete evidence workspace supports files
           - id: remaining-interactions
             grep: scoped notifications search and meetings smoke test
     defaults:
@@ -68,12 +70,16 @@ jobs:
           test -f src/calendar-workspace.css
           test -f src/MeetingsWorkspace.jsx
           test -f src/meetings-workspace.css
+          test -f src/EvidenceWorkspace.jsx
+          test -f src/evidence-workspace.css
           grep -q "RecordsWorkspace" src/main.jsx
           grep -q "PlansWorkspace" src/main.jsx
           grep -q "CalendarWorkspace" src/main.jsx
           grep -q "MeetingsWorkspace" src/main.jsx
+          grep -q "EvidenceWorkspace" src/main.jsx
           grep -q "department-v2-calendar-events" src/main.jsx
           grep -q "department-v2-meetings" src/main.jsx
+          grep -q "department-v2-evidence" src/main.jsx
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium >/tmp/playwright-install.log 2>&1
