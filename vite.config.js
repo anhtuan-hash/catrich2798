@@ -2,8 +2,15 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+const departmentCloudEnabled = process.env.VITE_DEPARTMENT_CLOUD_ENABLED || 'true';
+const departmentId = process.env.VITE_DEPARTMENT_ID || '00000000-0000-0000-0000-000000000001';
+
 export default defineConfig({
   plugins: [react()],
+  define: {
+    'import.meta.env.VITE_DEPARTMENT_CLOUD_ENABLED': JSON.stringify(departmentCloudEnabled),
+    'import.meta.env.VITE_DEPARTMENT_ID': JSON.stringify(departmentId),
+  },
   build: {
     target: 'es2020',
     cssCodeSplit: true,
