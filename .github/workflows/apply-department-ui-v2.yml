@@ -56,7 +56,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: department-app
-        run: npm install --no-audit --no-fund
+        run: npm install --no-audit --no-fund --silent
 
       - name: Build production bundle
         working-directory: department-app
@@ -64,13 +64,27 @@ jobs:
 
       - name: Install Playwright Chromium
         working-directory: department-app
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium >/tmp/playwright-install.log 2>&1
 
       - name: Run browser interaction tests
+        id: e2e
+        continue-on-error: true
         working-directory: department-app
-        run: npm run test:e2e
+        run: npm run test:e2e -- --reporter=json > playwright-results.json 2>&1
+
+      - name: Upload Playwright diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: department-ui-v2-playwright
+          path: |
+            department-app/playwright-results.json
+            department-app/test-results
+          if-no-files-found: warn
+          retention-days: 3
 
       - name: Verify visual and functional contract
+        if: steps.e2e.outcome == 'success'
         run: |
           grep -q "min-height:640px" department-app/src/styles.css
           grep -q "department-v2-tasks" department-app/src/App.jsx
@@ -79,9 +93,14 @@ jobs:
           test -f department-app/dist/index.html
 
       - name: Commit tested UI v2
+        if: steps.e2e.outcome == 'success'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add department-app/src/App.jsx department-app/src/main.jsx department-app/src/styles.css department-app/package.json department-app/package-lock.json department-app/index.html department-app/vite.config.js department-app/playwright.config.js department-app/tests/workspace.spec.js
           git diff --cached --quiet || git commit -m "Rebuild standalone Department UI and validate interactions"
           git push origin HEAD:feature/department-standalone-microfrontend
+
+      - name: Fail when browser tests fail
+        if: steps.e2e.outcome != 'success'
+        run: exit 1
