@@ -151,8 +151,6 @@ create policy "Admins can update all permission requests"
 -- V1.0 upgrade: English Department Workspace permissions.
 -- No additional table is required for local-first department data in this build.
 -- Admin can grant the route card and granular submodule permissions through profiles.permissions:
---   tool:department-workspace
---   department:dashboard
 --   department:plans
 --   department:meetings
 --   department:lesson-study
@@ -160,12 +158,10 @@ create policy "Admins can update all permission requests"
 --   department:assessment
 --   department:tasks
 --   department:documents
---   department:submissions
 --   department:teacher-development
 --   department:student-activities
 --   department:reports
 --   department:policies
---   department:publish
 
 -- V1.0 upgrade: shared cloud snapshot for English Department Workspace.
 -- This lets TTCM save one shared department workspace per school year.
@@ -220,7 +216,6 @@ create policy "Approved users can update department snapshots"
 
 -- V1.0 upgrade: stricter TTCM publishing and teacher evidence submissions.
 -- Teachers may read the shared workspace snapshot, but only admin or an explicitly appointed TTCM/tổ phó
--- with permission "department:publish" can save the official shared snapshot, create submission notices, review all submissions,
 -- and open every uploaded evidence file. Normal teachers can only read their own submissions/files and can submit only against open notices.
 create or replace function public.can_publish_department()
 returns boolean
@@ -236,7 +231,6 @@ as $$
       and approved = true
       and (
         lower(coalesce(role, '')) in ('admin', 'ttcm', 'to_truong', 'tổ trưởng', 'department_leader', 'department leader', 'subject_leader', 'subject leader', 'leader')
-        or coalesce(permissions->'allowed', '[]'::jsonb) ? 'department:publish'
       )
   );
 $$;
@@ -532,10 +526,8 @@ create policy "Department publishers can review all submissions"
 -- The uploaded file stays in the private storage bucket; archive_folder is the logical folder shown in the app.
 
 -- To appoint a non-admin TTCM/tổ phó who can publish shared department data without full admin rights,
--- grant the custom permission "department:publish" in the Admin page.
 -- SQL example:
 -- update public.profiles
--- set permissions = jsonb_build_object('mode','custom','allowed', coalesce(permissions->'allowed','[]'::jsonb) || '["tool:department-workspace","department:dashboard","department:submissions","department:publish"]'::jsonb)
 -- where email = 'leader@example.com';
 
 -- V5.6 admin account visibility repair.
