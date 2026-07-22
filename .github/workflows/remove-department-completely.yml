@@ -1,3 +1,4 @@
+# one-time cleanup trigger
 name: Remove Department Workspace completely
 
 on:
