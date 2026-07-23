@@ -4,6 +4,20 @@
 
 Brian English Studio is rebuilt as one calm, premium workspace rather than a collection of unrelated visual layers. The design language follows the approved concept: warm neutral surfaces, deep green brand accents, clear editorial typography, restrained depth and spacious layouts.
 
+## Implementation status
+
+| Area | Status | Runtime behavior preserved |
+| --- | --- | --- |
+| Premium tokens | Complete | Light/dark modes and existing theme switch |
+| Global shell | Complete | Routes, permissions, app visibility and launcher preferences |
+| Notification center | Complete | Per-account storage, safe targets and cross-tab synchronization |
+| Homepage | Complete | Auth-aware CTAs, app visibility and embedded Dashboard |
+| Applications directory | Complete | Search, groups, drag order, pin, hide, navigation, cloud save/reset and permission requests |
+| Work Dashboard | Complete | Aggregator, realtime source events, filters and destination routes |
+| Shared form/table/dialog primitives | Next | Not applied to inner workflows yet |
+| Work Hub, Homeroom, Professional Hub | Pending visual migration | Business logic unchanged |
+| Teaching applications | Pending visual migration | Business logic unchanged |
+
 ## Non-negotiable architecture
 
 - Keep one native Brian React application.
