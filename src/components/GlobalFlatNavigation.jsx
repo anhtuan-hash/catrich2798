@@ -6,6 +6,7 @@ import './GlobalGoogleMaterialOverride.css';
 import './GlobalNotificationCenter.css';
 import './GlobalNotificationCenterLayoutFix.css';
 import './GlobalCommandPaletteGoogle.css';
+import './GlobalCommandPaletteFocusFix.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
