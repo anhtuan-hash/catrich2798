@@ -1,0 +1,91 @@
+{
+  "generated_at": "2026-07-23T01:54:31.073Z",
+  "source": "Giáo viên chủ nhiệm",
+  "privacy": "Screenshots remain local and are excluded from Git.",
+  "states": [
+    {
+      "name": "desktop-main",
+      "label": "Desktop — Tổng quan",
+      "file": "desktop-main.png",
+      "url": "http://127.0.0.1:5173/#/apps",
+      "viewport": {
+        "width": 1440,
+        "height": 960,
+        "devicePixelRatio": 1
+      },
+      "sha256": "baf2e57b28a1b885732232f25dbe00e6b7f04657c364e052abcd68ab4c2adc17"
+    },
+    {
+      "name": "ipad-landscape-main",
+      "label": "iPad ngang — Tổng quan",
+      "file": "ipad-landscape-main.png",
+      "url": "http://127.0.0.1:5173/#/apps",
+      "viewport": {
+        "width": 1180,
+        "height": 820,
+        "devicePixelRatio": 1
+      },
+      "sha256": "16119590dad835a03844559df25ac164b20d1452e10261146a2bc628bae388d6"
+    },
+    {
+      "name": "ipad-portrait-main",
+      "label": "iPad dọc — Tổng quan",
+      "file": "ipad-portrait-main.png",
+      "url": "http://127.0.0.1:5173/#/apps",
+      "viewport": {
+        "width": 820,
+        "height": 1180,
+        "devicePixelRatio": 1
+      },
+      "sha256": "799656a424a82f66e12acda7878fc7e7f5a54aafd2d5e72e9d7bacf93a54fe65"
+    },
+    {
+      "name": "desktop-drawer",
+      "label": "Desktop — Drawer",
+      "file": "desktop-drawer.png",
+      "url": "http://127.0.0.1:5173/#/homeroom",
+      "viewport": {
+        "width": 1440,
+        "height": 960,
+        "devicePixelRatio": 1
+      },
+      "sha256": "9a09521bb72a3c7058fef80804e5feb3da05210c9936bdf7001a686a84f2eee8"
+    },
+    {
+      "name": "desktop-modal",
+      "label": "Desktop — Modal",
+      "file": "desktop-modal.png",
+      "url": "http://127.0.0.1:5173/#/homeroom",
+      "viewport": {
+        "width": 1440,
+        "height": 960,
+        "devicePixelRatio": 1
+      },
+      "sha256": "cadd72d300f3119b28e99f2ec9b2e50b3436a9d18eb0b3639ad334d9b6b58308"
+    },
+    {
+      "name": "desktop-last-row-menu",
+      "label": "Desktop — Menu hàng cuối",
+      "file": "desktop-last-row-menu.png",
+      "url": "http://127.0.0.1:5173/#/homeroom",
+      "viewport": {
+        "width": 1440,
+        "height": 960,
+        "devicePixelRatio": 1
+      },
+      "sha256": "bcb9be63c7a90a0676df02b42b072fb72dd96760ec6483d9a4099fafa0b45b75"
+    },
+    {
+      "name": "desktop-empty-loading-error",
+      "label": "Desktop — Empty/Loading/Error",
+      "file": "desktop-empty-loading-error.png",
+      "url": "http://127.0.0.1:5173/#/homeroom",
+      "viewport": {
+        "width": 1440,
+        "height": 960,
+        "devicePixelRatio": 1
+      },
+      "sha256": "063b9f0c46520cd9fbbe674cf9953dd014686e5301a7ba1b1f9e16fb7fe21778"
+    }
+  ]
+}

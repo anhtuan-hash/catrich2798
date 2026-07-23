@@ -422,3 +422,25 @@ Hub Chuyên môn mới phải tham chiếu trực tiếp và đầy đủ ứng 
 ## 10. Trạng thái
 
 **Phase 0 đang thực hiện. Chưa tạo skeleton Hub Chuyên môn và chưa thay đổi giao diện Production.**
+
+## 8. Baseline trực quan đã khóa
+
+Ảnh gốc được lưu local và bị loại khỏi Git để tránh lộ dữ liệu học sinh.
+
+| Trạng thái | Viewport | SHA-256 |
+| --- | --- | --- |
+| Desktop — Tổng quan | 1440×960 | `baf2e57b28a1b885732232f25dbe00e6b7f04657c364e052abcd68ab4c2adc17` |
+| iPad ngang — Tổng quan | 1180×820 | `16119590dad835a03844559df25ac164b20d1452e10261146a2bc628bae388d6` |
+| iPad dọc — Tổng quan | 820×1180 | `799656a424a82f66e12acda7878fc7e7f5a54aafd2d5e72e9d7bacf93a54fe65` |
+| Desktop — Drawer | 1440×960 | `9a09521bb72a3c7058fef80804e5feb3da05210c9936bdf7001a686a84f2eee8` |
+| Desktop — Modal | 1440×960 | `cadd72d300f3119b28e99f2ec9b2e50b3436a9d18eb0b3639ad334d9b6b58308` |
+| Desktop — Menu hàng cuối | 1440×960 | `bcb9be63c7a90a0676df02b42b072fb72dd96760ec6483d9a4099fafa0b45b75` |
+| Desktop — Empty/Loading/Error | 1440×960 | `063b9f0c46520cd9fbbe674cf9953dd014686e5301a7ba1b1f9e16fb7fe21778` |
+
+Ảnh local nằm trong:
+
+```text
+docs/professional-hub/audit-evidence/private-baseline/
+```
+
+**Cổng visual baseline của Phase 0 đã hoàn thành.**
