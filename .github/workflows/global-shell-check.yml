@@ -1,0 +1,64 @@
+name: Global shell navigation check
+
+on:
+  pull_request:
+    paths:
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/components/GlobalFlatNavigation.css'
+      - 'src/components/StatusMenuBar.jsx'
+      - '.github/workflows/global-shell-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify shell contracts
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const component = fs.readFileSync('src/components/GlobalFlatNavigation.jsx', 'utf8');
+          const styles = fs.readFileSync('src/components/GlobalFlatNavigation.css', 'utf8');
+          const status = fs.readFileSync('src/components/StatusMenuBar.jsx', 'utf8');
+          const requiredComponentTokens = [
+            'brian-global-shell',
+            'brian-shell-panel-menu',
+            'brian-shell-panel-notifications',
+            'bes-global-notification',
+            'bes:notification',
+            'bes-command-palette-open',
+          ];
+          const requiredStyleTokens = [
+            '.brian-global-shell',
+            '.brian-shell-menu-grid',
+            '.brian-shell-notification-list',
+            '@media (max-width: 560px)',
+          ];
+          for (const token of requiredComponentTokens) {
+            if (!component.includes(token)) throw new Error(`Missing component contract: ${token}`);
+          }
+          for (const token of requiredStyleTokens) {
+            if (!styles.includes(token)) throw new Error(`Missing style contract: ${token}`);
+          }
+          if (!status.includes('return null')) throw new Error('Duplicate StatusMenuBar was not retired');
+          console.log('Global shell static contracts passed.');
+          NODE
+
+      - name: Build Brian
+        run: npm run build
