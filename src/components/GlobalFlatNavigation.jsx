@@ -5,6 +5,7 @@ import GlobalWorkHubNotificationBridge from './GlobalWorkHubNotificationBridge.j
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalNotificationCenter.css';
 import './GlobalNotificationCenterLayoutFix.css';
+import './GlobalCommandPaletteGoogle.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
