@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { APPS } from '../data/apps.js';
 import { getAppDesignProfile } from '../data/designProfiles.js';
 import { getFirstAllowedRoute, hasRouteAccess, hasToolAccess } from '../utils/permissions.js';
@@ -6,34 +6,71 @@ import { launchRoute } from '../utils/motion.js';
 import { loadLauncherConfig, loadLauncherConfigFromCloud, normalizeLauncherConfig, subscribeLauncherConfig } from '../utils/launcherPreferences.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
+import './GlobalFlatNavigation.css';
 
 const copy = {
   vi: {
     home: 'Trang chủ', apps: 'Ứng dụng', news: 'Đọc báo', games: 'Trò chơi', dashboard: 'Bảng điều hành', homeroom: 'Chủ nhiệm',
-    library: 'Thư viện', 'resource-library': 'Kho học liệu', 'knowledge-hub': 'Kho thông minh', 'work-hub': 'Công việc', 'content-factory': 'Content Factory', 'lesson-pack': 'Gói bài dạy', 'assessment-core': 'Assessment', 'platform-readiness': 'Sẵn sàng nền tảng', 'automation-center': 'Tự động hóa', 'cloud-operations': 'Vận hành nền', 'collaboration-hub': 'Cộng tác', 'data-governance': 'Quản trị dữ liệu', resources: 'Tài nguyên', contact: 'Liên hệ', admin: 'Quản trị', 'app-vault': 'Ứng dụng đã ẩn',
-    login: 'Đăng nhập', settings: 'Cài đặt', logout: 'Thoát', subtitle: 'Hệ thống dạy học sáng tạo',
-    account: 'Tài khoản', guest: 'Khách', fontSize: 'Tăng cỡ chữ', search: 'Tìm nhanh', chatbot: 'Chatbot', more: 'Thêm', close: 'Đóng', qa: 'Trạng thái', trash: 'Thùng rác',
+    library: 'Thư viện', 'resource-library': 'Kho học liệu', 'knowledge-hub': 'Kho thông minh', 'work-hub': 'Công việc',
+    'content-factory': 'Xưởng học liệu', 'lesson-pack': 'Gói bài dạy', 'assessment-core': 'Ngân hàng đề',
+    'platform-readiness': 'Sẵn sàng nền tảng', 'automation-center': 'Tự động hóa', 'cloud-operations': 'Vận hành nền',
+    'collaboration-hub': 'Cộng tác', 'data-governance': 'Quản trị dữ liệu', resources: 'Tài nguyên', contact: 'Liên hệ',
+    admin: 'Quản trị', 'app-vault': 'Ứng dụng đã ẩn', settings: 'Cài đặt', qa: 'Trạng thái', trash: 'Thùng rác',
+    login: 'Đăng nhập', logout: 'Đăng xuất', account: 'Tài khoản', guest: 'Khách',
+    menu: 'Menu', menuTitle: 'Không gian làm việc', menuSearch: 'Tìm ứng dụng hoặc khu vực…', noMenuResult: 'Không tìm thấy mục phù hợp.',
+    notifications: 'Thông báo', all: 'Tất cả', unread: 'Chưa đọc', markAll: 'Đánh dấu đã đọc', clearRead: 'Xóa mục đã đọc',
+    emptyNotifications: 'Chưa có thông báo mới.', notificationHint: 'Thông báo từ các ứng dụng sẽ xuất hiện tại đây.',
+    close: 'Đóng', search: 'Tìm nhanh', fontSize: 'Cỡ chữ', language: 'Ngôn ngữ', appearance: 'Giao diện',
+    aiReady: 'AI sẵn sàng', aiOff: 'AI chưa cấu hình', profile: 'Hồ sơ và tùy chọn', openSettings: 'Mở cài đặt',
+    workspace: 'Công việc', teaching: 'Dạy học', resourcesGroup: 'Học liệu', system: 'Hệ thống', toolsGroup: 'Ứng dụng',
+    justNow: 'Vừa xong', minutesAgo: 'phút trước', hoursAgo: 'giờ trước',
   },
   en: {
     home: 'Home', apps: 'Apps', news: 'News', games: 'Games', dashboard: 'Dashboard', homeroom: 'Homeroom',
-    library: 'Library', 'resource-library': 'Resources Hub', 'knowledge-hub': 'Smart Knowledge', 'work-hub': 'Work Hub', 'content-factory': 'Content Factory', 'lesson-pack': 'Lesson Pack', 'assessment-core': 'Assessment', 'platform-readiness': 'Platform Readiness', 'automation-center': 'Automation Center', 'cloud-operations': 'Cloud Operations', 'collaboration-hub': 'Collaboration', 'data-governance': 'Data Governance', resources: 'Resources', contact: 'Contact', admin: 'Admin', 'app-vault': 'Hidden Apps',
-    login: 'Sign in', settings: 'Settings', logout: 'Logout', subtitle: 'Brian English',
-    account: 'Account', guest: 'Guest', fontSize: 'Increase text size', search: 'Quick search', chatbot: 'Chatbot', more: 'More', close: 'Close', qa: 'System health', trash: 'Trash',
+    library: 'Library', 'resource-library': 'Resource Hub', 'knowledge-hub': 'Smart Knowledge', 'work-hub': 'Work Hub',
+    'content-factory': 'Content Factory', 'lesson-pack': 'Lesson Pack', 'assessment-core': 'Assessment',
+    'platform-readiness': 'Platform Readiness', 'automation-center': 'Automation', 'cloud-operations': 'Cloud Operations',
+    'collaboration-hub': 'Collaboration', 'data-governance': 'Data Governance', resources: 'Resources', contact: 'Contact',
+    admin: 'Admin', 'app-vault': 'Hidden Apps', settings: 'Settings', qa: 'System health', trash: 'Trash',
+    login: 'Sign in', logout: 'Logout', account: 'Account', guest: 'Guest',
+    menu: 'Menu', menuTitle: 'Workspace', menuSearch: 'Find an app or workspace…', noMenuResult: 'No matching item found.',
+    notifications: 'Notifications', all: 'All', unread: 'Unread', markAll: 'Mark all read', clearRead: 'Clear read',
+    emptyNotifications: 'No new notifications.', notificationHint: 'Updates from your apps will appear here.',
+    close: 'Close', search: 'Quick search', fontSize: 'Text size', language: 'Language', appearance: 'Appearance',
+    aiReady: 'AI ready', aiOff: 'AI not configured', profile: 'Profile and preferences', openSettings: 'Open settings',
+    workspace: 'Workspace', teaching: 'Teaching', resourcesGroup: 'Resources', system: 'System', toolsGroup: 'Apps',
+    justNow: 'Just now', minutesAgo: 'min ago', hoursAgo: 'hr ago',
   },
 };
 
 const routeColors = {
   home: '#ffc69d', apps: '#f05a7e', news: '#167d78', games: '#5b2a86', dashboard: '#315fc4', homeroom: '#1f8f70',
-  library: '#6fba7b', 'resource-library': '#2878d0', 'knowledge-hub': '#315fc4', 'work-hub': '#14866d', 'content-factory': '#ef7a42', 'lesson-pack': '#315fc4', 'assessment-core': '#cc7621', 'platform-readiness': '#0f766e', 'automation-center': '#1269b0', 'cloud-operations': '#167b68', 'collaboration-hub': '#315fc4', 'data-governance': '#a24b35', resources: '#d99a1e', contact: '#00a6a6', admin: '#d13438', 'app-vault': '#684cc6',
-  settings: '#123c69', qa: '#123c69', trash: '#a43b57', login: '#191515',
+  library: '#6fba7b', 'resource-library': '#2878d0', 'knowledge-hub': '#315fc4', 'work-hub': '#14866d',
+  'content-factory': '#ef7a42', 'lesson-pack': '#315fc4', 'assessment-core': '#cc7621', 'platform-readiness': '#0f766e',
+  'automation-center': '#1269b0', 'cloud-operations': '#167b68', 'collaboration-hub': '#315fc4', 'data-governance': '#a24b35',
+  resources: '#d99a1e', contact: '#00a6a6', admin: '#d13438', 'app-vault': '#684cc6', settings: '#123c69',
+  qa: '#123c69', trash: '#a43b57', login: '#191515',
 };
 
 const routeIcons = {
-  home: '⌂', apps: '▦', news: '▤', games: '◈', dashboard: 'DB', homeroom: '♙', library: '▤', 'resource-library': '▥', 'knowledge-hub': 'K', 'work-hub': 'WH', 'content-factory': 'CF', 'lesson-pack': 'LP', 'assessment-core': 'AC', 'platform-readiness': 'PR', 'automation-center': 'AU', 'cloud-operations': 'CO', 'collaboration-hub': 'CH', 'data-governance': 'DG',
-  resources: '▦', contact: '✉', admin: '☼', 'app-vault': 'HV', settings: '⚙', qa: '♥', trash: '⌫', login: '↪',
+  home: '⌂', apps: '▦', news: '▤', games: '◈', dashboard: 'DB', homeroom: 'CN', library: 'TV',
+  'resource-library': 'HL', 'knowledge-hub': 'KT', 'work-hub': 'CV', 'content-factory': 'CF', 'lesson-pack': 'LP',
+  'assessment-core': 'ĐG', 'platform-readiness': 'PR', 'automation-center': 'AU', 'cloud-operations': 'CO',
+  'collaboration-hub': 'CH', 'data-governance': 'DG', resources: 'TN', contact: '✉', admin: 'QT',
+  'app-vault': 'HV', settings: '⚙', qa: '♥', trash: '⌫', login: '↪',
 };
 
-const ROUTE_KEYS = ['home', 'apps', 'news', 'games', 'dashboard', 'homeroom', 'library', 'resource-library', 'knowledge-hub', 'work-hub', 'content-factory', 'lesson-pack', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'resources', 'contact', 'admin', 'app-vault', 'settings', 'qa', 'trash'];
+const routeGroups = {
+  home: 'workspace', dashboard: 'workspace', homeroom: 'workspace', 'work-hub': 'workspace', 'collaboration-hub': 'workspace',
+  apps: 'toolsGroup', games: 'toolsGroup', news: 'toolsGroup', 'content-factory': 'teaching', 'lesson-pack': 'teaching',
+  'assessment-core': 'teaching', 'automation-center': 'teaching', library: 'resourcesGroup', 'resource-library': 'resourcesGroup',
+  'knowledge-hub': 'resourcesGroup', resources: 'resourcesGroup', 'platform-readiness': 'system', 'cloud-operations': 'system',
+  'data-governance': 'system', settings: 'system', qa: 'system', trash: 'system', admin: 'system', 'app-vault': 'system', contact: 'system',
+};
+
+const ROUTE_KEYS = Object.keys(routeColors);
+const GROUP_ORDER = ['workspace', 'teaching', 'resourcesGroup', 'toolsGroup', 'system'];
+const NOTIFICATION_EVENT_NAMES = ['bes-global-notification', 'bes:notification'];
 
 function shortName(value, fallback) {
   const text = String(value || '').trim();
@@ -68,6 +105,7 @@ function buildRegistry(language) {
       id: `route:${route}`,
       kind: 'route',
       route,
+      group: routeGroups[route] || 'toolsGroup',
       target: `#/${route}`,
       label: t[route] || route,
       icon: routeIcons[route] || '•',
@@ -80,6 +118,7 @@ function buildRegistry(language) {
       id: `tool:${app.slug}`,
       kind: 'tool',
       slug: app.slug,
+      group: 'toolsGroup',
       target: `#/tool/${app.slug}`,
       label: appLabel(app, language),
       icon: String(app.icon || app.title || 'AP').slice(0, 2).toUpperCase(),
@@ -100,6 +139,48 @@ function canShow(entry, currentUser, visibilitySnapshot) {
   return hasRouteAccess(currentUser, entry.route);
 }
 
+function notificationStorageKey(currentUser) {
+  const identity = currentUser?.id || currentUser?.email || 'guest';
+  return `bes-global-notifications:${identity}`;
+}
+
+function readStoredNotifications(key) {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(key) || '[]');
+    return Array.isArray(parsed) ? parsed.slice(0, 100) : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizeNotification(detail = {}) {
+  const createdAt = detail.createdAt || detail.created_at || new Date().toISOString();
+  const id = String(detail.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+  return {
+    id,
+    title: String(detail.title || detail.subject || 'Brian English'),
+    message: String(detail.message || detail.body || detail.description || ''),
+    source: String(detail.source || detail.app || ''),
+    kind: String(detail.kind || detail.type || 'info'),
+    target: String(detail.target || detail.href || detail.url || ''),
+    createdAt,
+    read: Boolean(detail.read || detail.readAt || detail.read_at),
+  };
+}
+
+function relativeTime(value, language, t) {
+  const timestamp = new Date(value).getTime();
+  if (!Number.isFinite(timestamp)) return '';
+  const diff = Math.max(0, Date.now() - timestamp);
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return t.justNow;
+  if (minutes < 60) return `${minutes} ${t.minutesAgo}`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} ${t.hoursAgo}`;
+  const locale = language === 'vi' ? 'vi-VN' : 'en-US';
+  return new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(timestamp));
+}
+
 export default function GlobalFlatNavigation({
   route = 'home', selectedTool = null, language = 'vi', setLanguage, theme = 'light', setTheme,
   hasApiKey, currentUser, onLogout, fontScale = 100, setFontScale, appVisibility: externalAppVisibility,
@@ -108,7 +189,12 @@ export default function GlobalFlatNavigation({
   const isAdmin = currentUser?.role === 'admin';
   const appVisibility = externalAppVisibility || { snapshot: {} };
   const [launcherConfig, setLauncherConfig] = useState(() => normalizeLauncherConfig(loadLauncherConfig()));
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [activePanel, setActivePanel] = useState(null);
+  const [menuQuery, setMenuQuery] = useState('');
+  const [notificationFilter, setNotificationFilter] = useState('all');
+  const storageKey = useMemo(() => notificationStorageKey(currentUser), [currentUser?.id, currentUser?.email]);
+  const [notifications, setNotifications] = useState(() => readStoredNotifications(storageKey));
+  const panelRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -120,12 +206,53 @@ export default function GlobalFlatNavigation({
   }, []);
 
   useEffect(() => {
-    const onKeyDown = (event) => { if (event.key === 'Escape') setMenuOpen(false); };
-    const onRoute = () => setMenuOpen(false);
+    setNotifications(readStoredNotifications(storageKey));
+  }, [storageKey]);
+
+  useEffect(() => {
+    try { window.localStorage.setItem(storageKey, JSON.stringify(notifications.slice(0, 100))); } catch { /* optional */ }
+  }, [notifications, storageKey]);
+
+  useEffect(() => {
+    const onNotification = (event) => {
+      const next = normalizeNotification(event.detail || {});
+      setNotifications((current) => [next, ...current.filter((item) => item.id !== next.id)].slice(0, 100));
+    };
+    const onOpen = () => setActivePanel('notifications');
+    const onStorage = (event) => {
+      if (event.key === storageKey) setNotifications(readStoredNotifications(storageKey));
+    };
+    NOTIFICATION_EVENT_NAMES.forEach((name) => window.addEventListener(name, onNotification));
+    window.addEventListener('bes-notification-center-open', onOpen);
+    window.addEventListener('storage', onStorage);
+    return () => {
+      NOTIFICATION_EVENT_NAMES.forEach((name) => window.removeEventListener(name, onNotification));
+      window.removeEventListener('bes-notification-center-open', onOpen);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, [storageKey]);
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setActivePanel(null);
+    };
+    const onRoute = () => {
+      setActivePanel(null);
+      setMenuQuery('');
+    };
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('hashchange', onRoute);
-    return () => { window.removeEventListener('keydown', onKeyDown); window.removeEventListener('hashchange', onRoute); };
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('hashchange', onRoute);
+    };
   }, []);
+
+  useEffect(() => {
+    if (!activePanel) return;
+    const timer = window.setTimeout(() => panelRef.current?.focus?.(), 40);
+    return () => window.clearTimeout(timer);
+  }, [activePanel]);
 
   const registry = useMemo(() => buildRegistry(language), [language]);
   const entries = useMemo(() => {
@@ -133,7 +260,7 @@ export default function GlobalFlatNavigation({
     const requested = navItems.length ? navItems : ['route:home', 'route:apps', 'route:news', 'route:games'];
     const mandatory = ['route:home', 'route:apps'];
     const ids = [...mandatory, ...requested];
-    if (isAdmin) ids.push('route:app-vault', 'route:admin');
+    if (isAdmin) ids.push('route:admin');
     const seen = new Set();
     return ids
       .map((id) => registry.get(id))
@@ -142,129 +269,208 @@ export default function GlobalFlatNavigation({
         seen.add(entry.id);
         return true;
       })
-      .slice(0, 12);
+      .slice(0, 7);
   }, [launcherConfig?.nav, registry, currentUser, isAdmin, appVisibility?.snapshot]);
 
   const drawerEntries = useMemo(() => {
-    const baseIds = [...entries.map((entry) => entry.id), 'route:library', 'route:resource-library', 'route:knowledge-hub', 'route:work-hub', 'route:content-factory', 'route:lesson-pack', 'route:assessment-core', 'route:platform-readiness', 'route:automation-center', 'route:cloud-operations', 'route:collaboration-hub', 'route:data-governance', 'route:trash', 'route:settings'];
-    if (isAdmin) baseIds.push('route:app-vault', 'route:qa', 'route:admin');
+    const requestedIds = Array.isArray(launcherConfig?.order) ? launcherConfig.order : [];
+    const baseIds = [
+      ...entries.map((entry) => entry.id),
+      ...requestedIds,
+      'route:dashboard', 'route:homeroom', 'route:work-hub', 'route:library', 'route:resource-library',
+      'route:knowledge-hub', 'route:content-factory', 'route:lesson-pack', 'route:assessment-core',
+      'route:automation-center', 'route:collaboration-hub', 'route:settings', 'route:trash',
+    ];
+    if (isAdmin) baseIds.push('route:platform-readiness', 'route:cloud-operations', 'route:data-governance', 'route:app-vault', 'route:qa', 'route:admin');
+    APPS.forEach((app) => baseIds.push(`tool:${app.slug}`));
     const seen = new Set();
     return baseIds.map((id) => registry.get(id)).filter((entry) => {
       if (!entry || seen.has(entry.id) || !canShow(entry, currentUser, appVisibility?.snapshot)) return false;
       seen.add(entry.id);
       return true;
     });
-  }, [entries, registry, currentUser, isAdmin, appVisibility?.snapshot]);
+  }, [entries, launcherConfig?.order, registry, currentUser, isAdmin, appVisibility?.snapshot]);
+
+  const filteredDrawerEntries = useMemo(() => {
+    const query = menuQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi' : 'en');
+    if (!query) return drawerEntries;
+    return drawerEntries.filter((entry) => `${entry.label} ${entry.slug || ''} ${entry.route || ''}`.toLocaleLowerCase().includes(query));
+  }, [drawerEntries, menuQuery, language]);
+
+  const menuGroups = useMemo(() => GROUP_ORDER.map((group) => ({
+    id: group,
+    label: t[group],
+    entries: filteredDrawerEntries.filter((entry) => entry.group === group),
+  })).filter((group) => group.entries.length), [filteredDrawerEntries, t]);
 
   const accountName = shortName(currentUser?.name || currentUser?.email, currentUser ? t.account : t.guest);
   const accountRoute = currentUser ? getFirstAllowedRoute(currentUser) : 'login';
+  const activeId = route === 'tool' && selectedTool?.slug ? `tool:${selectedTool.slug}` : `route:${route}`;
+  const activeEntry = registry.get(activeId);
+  const activeLabel = selectedTool ? appLabel(selectedTool, language) : activeEntry?.label || t.home;
+  const activeColor = activeEntry?.color || getAppDesignProfile(selectedTool?.slug || '').accent || routeColors.home;
+  const unreadCount = notifications.filter((item) => !item.read).length;
+  const visibleNotifications = notificationFilter === 'unread' ? notifications.filter((item) => !item.read) : notifications;
 
   const increaseFontSize = () => {
     const sizes = [100, 110, 120, 130];
     const index = sizes.indexOf(Number(fontScale));
-    const next = sizes[(index + 1) % sizes.length];
-    setFontScale?.(next);
+    setFontScale?.(sizes[(index + 1) % sizes.length]);
   };
 
-  const activeId = route === 'tool' && selectedTool?.slug ? `tool:${selectedTool.slug}` : `route:${route}`;
+  const togglePanel = (panel) => {
+    setActivePanel((current) => current === panel ? null : panel);
+    if (panel !== 'menu') setMenuQuery('');
+  };
+
+  const markNotificationRead = (id) => {
+    setNotifications((current) => current.map((item) => item.id === id ? { ...item, read: true } : item));
+  };
+
+  const openNotification = (item, event) => {
+    markNotificationRead(item.id);
+    if (!item.target) return;
+    setActivePanel(null);
+    if (item.target.startsWith('#/')) go(item.target, item.title, activeColor, event.currentTarget);
+    else window.location.assign(item.target);
+  };
 
   return (
-    <nav className="global-flat-navigation" aria-label={language === 'vi' ? 'Điều hướng toàn hệ thống' : 'Global navigation'}>
-      <button type="button" className="global-flat-brand" onClick={(event) => go('#/home', 'BE', routeColors.home, event.currentTarget)}>
-        <img className="global-flat-brand-logo" src="/brian-english-brand-mark.png" alt="Brian English logo" />
-        <strong>Brian English</strong>
-      </button>
+    <nav className="brian-global-shell" aria-label={language === 'vi' ? 'Điều hướng toàn hệ thống' : 'Global navigation'}>
+      <div className="brian-shell-bar">
+        <button type="button" className="brian-shell-brand" onClick={(event) => go('#/home', 'BE', routeColors.home, event.currentTarget)}>
+          <img src="/brian-english-brand-mark.png" alt="" />
+          <span><strong>Brian English</strong><small>Teaching Studio</small></span>
+        </button>
 
-      <div className="global-flat-links" data-custom-launcher="true">
-        {entries.map((entry) => (
-          <button
-            key={entry.id}
-            type="button"
-            className={`global-flat-link ${activeId === entry.id ? 'active' : ''} ${entry.kind === 'tool' ? 'is-tool-shortcut' : ''}`}
-            style={{ '--global-nav-accent': entry.color }}
-            onClick={(event) => go(entry.target, entry.label, entry.color, event.currentTarget)}
-            aria-current={activeId === entry.id ? 'page' : undefined}
-            title={entry.label}
-          >
-            <span aria-hidden="true">{entry.icon}</span>
-            <b>{entry.label}</b>
+        <div className="brian-shell-context" style={{ '--context-accent': activeColor }}>
+          <span aria-hidden="true">{activeEntry?.icon || String(selectedTool?.icon || 'BR').slice(0, 2)}</span>
+          <div><small>{language === 'vi' ? 'Đang mở' : 'Current'}</small><strong>{activeLabel}</strong></div>
+        </div>
+
+        <div className="brian-shell-primary" data-custom-launcher="true">
+          {entries.map((entry) => (
+            <button
+              key={entry.id}
+              type="button"
+              className={activeId === entry.id ? 'active' : ''}
+              style={{ '--nav-accent': entry.color }}
+              onClick={(event) => go(entry.target, entry.label, entry.color, event.currentTarget)}
+              aria-current={activeId === entry.id ? 'page' : undefined}
+              title={entry.label}
+            >
+              <span aria-hidden="true">{entry.icon}</span><b>{entry.label}</b>
+            </button>
+          ))}
+        </div>
+
+        <div className="brian-shell-actions">
+          <button type="button" className="brian-shell-icon-button global-command-trigger" onClick={() => window.dispatchEvent(new CustomEvent('bes-command-palette-open'))} aria-label={t.search} title={`${t.search} · ⌘K / Ctrl+K`}>
+            <span aria-hidden="true">⌕</span><small>⌘K</small>
           </button>
-        ))}
+          {currentUser ? (
+            <button type="button" className={`brian-shell-icon-button ${activePanel === 'notifications' ? 'active' : ''}`} onClick={() => togglePanel('notifications')} aria-label={`${t.notifications}: ${unreadCount}`} aria-expanded={activePanel === 'notifications'}>
+              <span aria-hidden="true">♢</span>{unreadCount > 0 ? <b className="brian-shell-badge">{unreadCount > 99 ? '99+' : unreadCount}</b> : null}
+            </button>
+          ) : null}
+          <button type="button" className={`brian-shell-menu-button ${activePanel === 'menu' ? 'active' : ''}`} onClick={() => togglePanel('menu')} aria-expanded={activePanel === 'menu'}>
+            <span aria-hidden="true">☰</span><b>{t.menu}</b>
+          </button>
+          <button type="button" className={`brian-shell-account ${activePanel === 'account' ? 'active' : ''}`} onClick={(event) => currentUser ? togglePanel('account') : go(`#/${accountRoute}`, 'ME', '#191515', event.currentTarget)} aria-expanded={currentUser ? activePanel === 'account' : undefined}>
+            <span>{initial(currentUser?.name || currentUser?.email)}</span><strong>{accountName}</strong>
+          </button>
+        </div>
       </div>
 
-      <div className="global-flat-actions">
-        <button
-          type="button"
-          className={`global-flat-mini global-nav-more-toggle ${menuOpen ? 'active' : ''}`}
-          onClick={() => setMenuOpen((value) => !value)}
-          aria-expanded={menuOpen}
-          aria-controls="bes-global-nav-drawer"
-        >
-          <span aria-hidden="true">☰</span><b>{t.more}</b>
-        </button>
-        <button
-          type="button"
-          className="global-flat-mini global-command-trigger"
-          onClick={() => window.dispatchEvent(new CustomEvent('bes-command-palette-open'))}
-          aria-label={t.search}
-          title={`${t.search} · ⌘K / Ctrl+K`}
-        >
-          <span aria-hidden="true">⌕</span><small>⌘K</small>
-        </button>
-        <button type="button" className={`global-flat-mini ${hasApiKey ? 'ai-ready' : ''}`} onClick={(event) => go(currentUser ? '#/settings' : '#/login', 'AI', hasApiKey ? '#2bb7b3' : '#f7d23b', event.currentTarget)}>
-          {hasApiKey ? t.aiReady : t.aiOff}
-        </button>
-        <button
-          type="button"
-          className="global-flat-mini global-font-size-btn"
-          onClick={increaseFontSize}
-          aria-label={`${t.fontSize}: ${fontScale}%`}
-          title={`${t.fontSize}: ${fontScale}%`}
-        >
-          <span aria-hidden="true">A+</span><small>{fontScale}%</small>
-        </button>
-        <button type="button" className="global-flat-mini" onClick={() => setLanguage?.(language === 'vi' ? 'en' : 'vi')}>{language === 'vi' ? 'VI' : 'EN'}</button>
-        <button type="button" className="global-flat-mini icon-only" onClick={() => setTheme?.(theme === 'dark' ? 'light' : 'dark')} aria-label={language === 'vi' ? 'Đổi chế độ sáng tối' : 'Toggle theme'}>{theme === 'dark' ? '☀' : '☾'}</button>
-        {currentUser ? (
-          <button
-            type="button"
-            className="global-flat-mini global-chatbot-trigger"
-            onClick={() => window.dispatchEvent(new CustomEvent('bes-chatbot-drawer-open'))}
-            aria-label={t.chatbot || 'Chatbot'}
-            title={language === 'vi' ? 'Mở chatbot dùng chung của tổ' : 'Open the department chatbot drawer'}
-          >
-            <span aria-hidden="true">✦</span><b>{t.chatbot || 'Chatbot'}</b>
-          </button>
-        ) : null}
-        <button type="button" className="global-flat-account" onClick={(event) => go(`#/${accountRoute}`, 'ME', '#191515', event.currentTarget)}>
-          <span>{initial(currentUser?.name || currentUser?.email)}</span>
-          <strong>{accountName}</strong>
-        </button>
-        {currentUser ? <button type="button" className="global-flat-logout" onClick={onLogout}>{t.logout}</button> : null}
-      </div>
-
-      {menuOpen ? (
-        <div className="global-nav-drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setMenuOpen(false); }}>
-          <section id="bes-global-nav-drawer" className="global-nav-drawer" aria-label={t.more}>
-            <header>
-              <div><span>BRIAN ENGLISH</span><strong>{language === 'vi' ? 'Điều hướng nhanh' : 'Quick navigation'}</strong></div>
-              <button type="button" onClick={() => setMenuOpen(false)} aria-label={t.close}>×</button>
+      {activePanel ? (
+        <div className="brian-shell-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setActivePanel(null); }}>
+          <section ref={panelRef} tabIndex={-1} className={`brian-shell-panel brian-shell-panel-${activePanel}`} aria-label={activePanel === 'notifications' ? t.notifications : activePanel === 'menu' ? t.menuTitle : t.profile}>
+            <header className="brian-shell-panel-header">
+              <div>
+                <small>BRIAN ENGLISH</small>
+                <h2>{activePanel === 'notifications' ? t.notifications : activePanel === 'menu' ? t.menuTitle : t.profile}</h2>
+              </div>
+              <button type="button" onClick={() => setActivePanel(null)} aria-label={t.close}>×</button>
             </header>
-            <div className="global-nav-drawer-grid">
-              {drawerEntries.map((entry) => (
-                <button
-                  type="button"
-                  key={entry.id}
-                  className={activeId === entry.id ? 'active' : ''}
-                  style={{ '--drawer-accent': entry.color }}
-                  onClick={(event) => { setMenuOpen(false); go(entry.target, entry.label, entry.color, event.currentTarget); }}
-                >
-                  <span aria-hidden="true">{entry.icon}</span>
-                  <b>{entry.label}</b>
-                </button>
-              ))}
-            </div>
-            <footer><small>{language === 'vi' ? 'Kéo thả và chọn mục trên thanh điều hướng trong Trình tùy biến Launcher.' : 'Arrange and choose navigation items in Launcher customization.'}</small></footer>
+
+            {activePanel === 'menu' ? (
+              <div className="brian-shell-menu-content">
+                <label className="brian-shell-menu-search">
+                  <span aria-hidden="true">⌕</span>
+                  <input value={menuQuery} onChange={(event) => setMenuQuery(event.target.value)} placeholder={t.menuSearch} autoFocus />
+                  {menuQuery ? <button type="button" onClick={() => setMenuQuery('')} aria-label={t.close}>×</button> : null}
+                </label>
+                <div className="brian-shell-menu-groups">
+                  {menuGroups.map((group) => (
+                    <section key={group.id} className="brian-shell-menu-group">
+                      <h3>{group.label}</h3>
+                      <div className="brian-shell-menu-grid">
+                        {group.entries.map((entry) => (
+                          <button key={entry.id} type="button" className={activeId === entry.id ? 'active' : ''} style={{ '--item-accent': entry.color }} onClick={(event) => { setActivePanel(null); go(entry.target, entry.label, entry.color, event.currentTarget); }}>
+                            <span aria-hidden="true">{entry.icon}</span>
+                            <div><b>{entry.label}</b><small>{entry.kind === 'tool' ? t.toolsGroup : group.label}</small></div>
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                  {!menuGroups.length ? <div className="brian-shell-empty"><span>⌕</span><strong>{t.noMenuResult}</strong></div> : null}
+                </div>
+              </div>
+            ) : null}
+
+            {activePanel === 'notifications' ? (
+              <div className="brian-shell-notification-content">
+                <div className="brian-shell-notification-toolbar">
+                  <div className="brian-shell-tabs">
+                    <button type="button" className={notificationFilter === 'all' ? 'active' : ''} onClick={() => setNotificationFilter('all')}>{t.all}<span>{notifications.length}</span></button>
+                    <button type="button" className={notificationFilter === 'unread' ? 'active' : ''} onClick={() => setNotificationFilter('unread')}>{t.unread}<span>{unreadCount}</span></button>
+                  </div>
+                  <div className="brian-shell-notification-actions">
+                    <button type="button" disabled={!unreadCount} onClick={() => setNotifications((current) => current.map((item) => ({ ...item, read: true })))}>{t.markAll}</button>
+                    <button type="button" disabled={!notifications.some((item) => item.read)} onClick={() => setNotifications((current) => current.filter((item) => !item.read))}>{t.clearRead}</button>
+                  </div>
+                </div>
+                <div className="brian-shell-notification-list">
+                  {visibleNotifications.map((item) => (
+                    <article key={item.id} className={`${item.read ? 'read' : 'unread'} kind-${item.kind}`}>
+                      <button type="button" className="brian-shell-notification-main" onClick={(event) => openNotification(item, event)}>
+                        <span className="brian-shell-notification-dot" aria-hidden="true" />
+                        <div>
+                          <div className="brian-shell-notification-meta"><b>{item.source || 'Brian English'}</b><time>{relativeTime(item.createdAt, language, t)}</time></div>
+                          <h3>{item.title}</h3>
+                          {item.message ? <p>{item.message}</p> : null}
+                        </div>
+                      </button>
+                      {!item.read ? <button type="button" className="brian-shell-mark-read" onClick={() => markNotificationRead(item.id)} aria-label={t.markAll}>✓</button> : null}
+                    </article>
+                  ))}
+                  {!visibleNotifications.length ? (
+                    <div className="brian-shell-empty brian-shell-notification-empty"><span>♢</span><strong>{t.emptyNotifications}</strong><p>{t.notificationHint}</p></div>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+
+            {activePanel === 'account' ? (
+              <div className="brian-shell-account-content">
+                <section className="brian-shell-profile-card">
+                  <span>{initial(currentUser?.name || currentUser?.email)}</span>
+                  <div><h3>{currentUser?.name || accountName}</h3><p>{currentUser?.email || currentUser?.role || ''}</p></div>
+                  <em>{currentUser?.role || t.account}</em>
+                </section>
+                <div className="brian-shell-preferences">
+                  <button type="button" onClick={increaseFontSize}><span>A+</span><div><b>{t.fontSize}</b><small>{fontScale}%</small></div></button>
+                  <button type="button" onClick={() => setLanguage?.(language === 'vi' ? 'en' : 'vi')}><span>文</span><div><b>{t.language}</b><small>{language === 'vi' ? 'Tiếng Việt' : 'English'}</small></div></button>
+                  <button type="button" onClick={() => setTheme?.(theme === 'dark' ? 'light' : 'dark')}><span>{theme === 'dark' ? '☀' : '☾'}</span><div><b>{t.appearance}</b><small>{theme === 'dark' ? 'Dark' : 'Light'}</small></div></button>
+                  <button type="button" onClick={(event) => { setActivePanel(null); go('#/settings', 'AI', hasApiKey ? '#2bb7b3' : '#f7d23b', event.currentTarget); }}><span>AI</span><div><b>{hasApiKey ? t.aiReady : t.aiOff}</b><small>{t.openSettings}</small></div></button>
+                </div>
+                <div className="brian-shell-account-footer">
+                  <button type="button" onClick={(event) => { setActivePanel(null); go('#/settings', 'ST', routeColors.settings, event.currentTarget); }}>{t.openSettings}</button>
+                  <button type="button" className="danger" onClick={onLogout}>{t.logout}</button>
+                </div>
+              </div>
+            ) : null}
           </section>
         </div>
       ) : null}
