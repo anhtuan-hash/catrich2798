@@ -1,5 +1,21 @@
 export const APPS = [
   {
+    slug: 'professional-hub',
+    icon: 'PH',
+    tone: 'mint',
+    group: 'Management',
+    groupVi: 'Quản lý',
+    title: 'Professional Hub',
+    titleVi: 'Hub Chuyên môn',
+    desc: 'A role-aware professional team workspace using real Brian accounts, Supabase membership and shared activity notifications.',
+    descVi: 'Không gian quản lý tổ chuyên môn theo vai trò, sử dụng tài khoản Brian thật, membership Supabase và Activity Center chung.',
+    status: 'Phase 1 Preview · No mock data',
+    statusVi: 'Phase 1 Preview · Không dữ liệu mẫu',
+    api: true,
+    featured: true,
+  },
+
+  {
     slug: 'work-dashboard', route: 'dashboard', icon: 'DB', tone: 'blue', group: 'Management', groupVi: 'Quản lý',
     title: 'Work Dashboard', titleVi: 'Bảng điều hành',
     desc: 'Combine schedules, action items, professional activities, approvals and department health in one role-aware dashboard.',
