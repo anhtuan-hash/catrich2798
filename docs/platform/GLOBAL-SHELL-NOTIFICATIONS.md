@@ -1,6 +1,19 @@
 # Global Shell Notifications
 
-Brian now exposes one notification surface for every native application. Apps should publish through `src/utils/globalNotifications.js`; they should not create a separate global drawer or write directly to another app's storage.
+## Visual direction
+
+Brian uses one restrained floating shell instead of stacked toolbars:
+
+- one compact glass navigation bar
+- pill-style primary navigation
+- centered application launcher on desktop
+- floating notification and account panels
+- full-width bottom sheets on small phones
+- app accent colors used mainly for state and emphasis
+
+Native applications must not create a second permanent top navigation, app menu, notification bell, account switcher, or theme controller.
+
+Brian exposes one notification surface for every native application. Apps should publish through `src/utils/globalNotifications.js`; they should not create a separate global drawer or write directly to another app's storage.
 
 ## Publish a notification
 
@@ -57,7 +70,7 @@ import { openGlobalNotificationCenter } from '../utils/globalNotifications.js';
 openGlobalNotificationCenter(buttonElement);
 ```
 
-The drawer returns keyboard focus to the supplied trigger after it closes.
+The panel returns keyboard focus to the supplied trigger after it closes.
 
 ## Storage and account isolation
 
@@ -65,4 +78,4 @@ The shell stores at most 100 notification items under a key derived from the cur
 
 ## Professional Hub cloud boundary
 
-The Phase 2 Professional Hub schema includes `professional_hub_notifications`, with recipient-only reads and controlled `read_at` updates. This PR does not query or mutate that table because the migration has not yet been applied. Phase 3 should bridge authorized cloud rows into this same shell contract instead of introducing a second drawer.
+The Phase 2 Professional Hub schema includes `professional_hub_notifications`, with recipient-only reads and controlled `read_at` updates. This PR does not query or mutate that table because the migration has not yet been applied. Phase 3 should bridge authorized cloud rows into this same shell contract instead of introducing a second notification panel.
