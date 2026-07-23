@@ -10,6 +10,7 @@ import './GlobalCommandPaletteGoogle.css';
 import './GlobalCommandPaletteFocusFix.css';
 import './GlobalHomeDashboardRemoval.css';
 import './GlobalHomeGooglePolish.css';
+import './GlobalHome16x9Fit.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
