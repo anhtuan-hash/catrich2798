@@ -1,0 +1,103 @@
+/* English Hub homepage: one desktop canvas in a strict 16:9 frame. */
+
+/* Remove the welcome callout completely, including its decorative diamond. */
+body .brian-overlap-home .boh-welcome {
+  display: none !important;
+}
+
+@media (min-width: 900px) and (min-height: 620px) {
+  body .metro-clean-system[data-route='home'] main.wp8-page-stage,
+  body .metro-clean-system[data-route='home'] .wp8-page-stage {
+    min-height: 0 !important;
+    height: calc(100svh - 104px) !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    display: grid !important;
+    place-items: start center !important;
+  }
+
+  body .brian-overlap-home {
+    width: min(1600px, calc(100vw - 18px), calc((100svh - 108px) * 16 / 9)) !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 16 / 9 !important;
+    margin: 0 auto !important;
+    overflow: hidden !important;
+    position: relative !important;
+    border-radius: 0 !important;
+  }
+
+  body .brian-overlap-home > .boh-hero,
+  body .brian-overlap-home .boh-hero {
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    aspect-ratio: 16 / 9 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body .brian-overlap-home .boh-copy-panel {
+    padding-top: clamp(28px, 3.2vw, 52px) !important;
+    padding-bottom: clamp(22px, 2.4vw, 38px) !important;
+  }
+
+  body .brian-overlap-home .boh-eyebrow {
+    margin-bottom: 12px !important;
+  }
+
+  body .brian-overlap-home .boh-copy-panel > h1 {
+    margin-bottom: 12px !important;
+  }
+
+  body .brian-overlap-home .boh-copy-panel > h1::after {
+    font-size: clamp(3rem, 4.35vw, 5rem) !important;
+  }
+
+  body .brian-overlap-home .boh-copy-panel > h2 {
+    margin-top: 0 !important;
+    margin-bottom: 12px !important;
+    font-size: clamp(2.15rem, 3.55vw, 4.15rem) !important;
+    line-height: .98 !important;
+  }
+
+  body .brian-overlap-home .boh-subtitle {
+    margin-top: 0 !important;
+    margin-bottom: 16px !important;
+    line-height: 1.48 !important;
+  }
+
+  body .brian-overlap-home .boh-actions {
+    margin-top: 14px !important;
+  }
+
+  body .brian-overlap-home .boh-actions button {
+    min-height: 46px !important;
+  }
+
+  body .brian-overlap-home .boh-trust-row {
+    margin-top: 14px !important;
+  }
+
+  body .brian-overlap-home .boh-overview {
+    margin-top: 16px !important;
+  }
+
+  /* Keep the approved card arrangement, only tighten the cluster vertically. */
+  body .brian-overlap-home .boh-card-textcare { --eh-shift-y: 4px; }
+  body .brian-overlap-home .boh-card-exam-studio { --eh-shift-y: -18px; }
+  body .brian-overlap-home .boh-card-lesson-plan-ai { --eh-shift-y: -12px; }
+  body .brian-overlap-home .boh-card-reading-studio { --eh-shift-y: -38px; }
+  body .brian-overlap-home .boh-card-game-hub { --eh-shift-y: -62px; }
+  body .brian-overlap-home .boh-card-notifications { --eh-shift-y: -74px; }
+  body .brian-overlap-home .boh-card-library { --eh-shift-y: -84px; }
+}
+
+/* Smaller screens keep their responsive flow, but the removed welcome block stays gone. */
+@media (max-width: 899px), (max-height: 619px) {
+  body .brian-overlap-home {
+    min-height: 0 !important;
+  }
+}
