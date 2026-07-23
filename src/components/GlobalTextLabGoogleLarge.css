@@ -1,0 +1,185 @@
+/* English Hub — TextLab Activities outer shell, Google Material 3 large layout. */
+
+body .textlab-integrated-page.textlab-frameless-page {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 22px clamp(18px, 2.4vw, 38px) 44px !important;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(232, 240, 254, .9), transparent 30%),
+    radial-gradient(circle at 94% 8%, rgba(230, 244, 234, .78), transparent 28%),
+    #f8fafd !important;
+  color: #202124 !important;
+}
+
+body .textlab-page-commandbar {
+  position: sticky !important;
+  top: 96px !important;
+  z-index: 40 !important;
+  width: 100% !important;
+  min-height: 88px !important;
+  margin: 0 0 22px !important;
+  padding: 14px 18px !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 18px !important;
+  border: 1px solid rgba(60, 64, 67, .12) !important;
+  border-radius: 30px !important;
+  background: rgba(255, 255, 255, .94) !important;
+  box-shadow: 0 8px 28px rgba(60, 64, 67, .10), 0 1px 3px rgba(60, 64, 67, .08) !important;
+  backdrop-filter: blur(18px) saturate(1.05) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.05) !important;
+}
+
+body .textlab-page-commandbar .back-btn {
+  min-height: 50px !important;
+  padding: 0 20px !important;
+  border: 1px solid #c2e7ff !important;
+  border-radius: 999px !important;
+  background: #e8f0fe !important;
+  color: #0b57d0 !important;
+  box-shadow: none !important;
+  font-size: 16px !important;
+  font-weight: 750 !important;
+  letter-spacing: -.01em !important;
+}
+
+body .textlab-page-commandbar .back-btn:hover {
+  background: #d3e3fd !important;
+  transform: translateY(-1px) !important;
+}
+
+body .textlab-page-status {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+
+body .textlab-status-title {
+  color: #202124 !important;
+  font-size: clamp(20px, 1.8vw, 28px) !important;
+  font-weight: 800 !important;
+  letter-spacing: -.035em !important;
+  line-height: 1.12 !important;
+}
+
+body .textlab-page-status .ready,
+body .textlab-publish-notice {
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #e6f4ea !important;
+  color: #137333 !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+body .textlab-publish-notice {
+  background: #fff4ce !important;
+  color: #5f4700 !important;
+}
+
+body .textlab-integrated-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: 9px !important;
+}
+
+body .textlab-integrated-actions button {
+  min-height: 48px !important;
+  padding: 0 18px !important;
+  border: 1px solid rgba(60, 64, 67, .12) !important;
+  border-radius: 999px !important;
+  background: #f1f3f4 !important;
+  color: #3c4043 !important;
+  box-shadow: none !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  transition: background .18s ease, transform .18s ease, box-shadow .18s ease !important;
+}
+
+body .textlab-integrated-actions button:hover {
+  background: #e8eaed !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(60, 64, 67, .10) !important;
+}
+
+body .textlab-direct-workspace {
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(60, 64, 67, .12) !important;
+  border-radius: 32px !important;
+  background: #f8fafd !important;
+  box-shadow: 0 18px 48px rgba(60, 64, 67, .12), 0 2px 6px rgba(60, 64, 67, .08) !important;
+}
+
+body .textlab-integrated-frame.textlab-direct-frame {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  border: 0 !important;
+  border-radius: 32px !important;
+  background: #f8fafd !important;
+}
+
+@media (max-width: 1100px) {
+  body .textlab-page-commandbar {
+    top: 82px !important;
+    grid-template-columns: 1fr auto !important;
+  }
+
+  body .textlab-page-status {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    justify-content: flex-start !important;
+    padding: 3px 4px 0 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  body .textlab-integrated-page.textlab-frameless-page {
+    padding: 12px 8px 28px !important;
+  }
+
+  body .textlab-page-commandbar {
+    position: relative !important;
+    top: auto !important;
+    margin-bottom: 12px !important;
+    padding: 12px !important;
+    grid-template-columns: 1fr !important;
+    border-radius: 24px !important;
+  }
+
+  body .textlab-page-commandbar .back-btn,
+  body .textlab-integrated-actions button {
+    min-height: 46px !important;
+  }
+
+  body .textlab-page-status,
+  body .textlab-integrated-actions {
+    justify-content: flex-start !important;
+  }
+
+  body .textlab-direct-workspace,
+  body .textlab-integrated-frame.textlab-direct-frame {
+    border-radius: 24px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body .textlab-page-commandbar *,
+  body .textlab-direct-workspace * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
