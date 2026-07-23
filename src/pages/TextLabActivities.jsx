@@ -7,7 +7,6 @@ const TEXTLAB_RELEASE = '20260724-google-large-v1';
 export default function TextLabActivities({ language = 'vi', fontScale = 100, currentUser }) {
   const frameRef = useRef(null);
   const shellRef = useRef(null);
-  const [frameKey, setFrameKey] = useState(0);
   const [frameHeight, setFrameHeight] = useState(1280);
   const [publishNotice, setPublishNotice] = useState('');
 
@@ -25,7 +24,7 @@ export default function TextLabActivities({ language = 'vi', fontScale = 100, cu
 
   useEffect(() => {
     syncFramePreferences();
-  }, [fontScale, frameKey]);
+  }, [fontScale]);
 
   useEffect(() => {
     const sendToTextLab = (message) => {
@@ -97,50 +96,82 @@ export default function TextLabActivities({ language = 'vi', fontScale = 100, cu
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [currentUser, language, frameKey]);
+  }, [currentUser, language]);
 
-  const goFullscreen = async () => {
-    const target = shellRef.current;
-    if (!target) return;
+  const startCreating = () => {
+    shellRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.setTimeout(() => frameRef.current?.focus(), 450);
+  };
+
+  const openGuide = () => {
     try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else await target.requestFullscreen();
+      const frameDocument = frameRef.current?.contentDocument;
+      const guide = frameDocument?.getElementById(language === 'vi' ? 'modalVi' : 'modalEn');
+      if (guide?.showModal) guide.showModal();
+      else startCreating();
     } catch {
-      window.open(appUrl, '_blank', 'noopener,noreferrer');
+      startCreating();
     }
   };
 
   return (
     <div className="page textlab-integrated-page textlab-frameless-page">
-      <div className="textlab-page-commandbar">
-        <button className="back-btn" type="button" onClick={() => (window.location.hash = '#/apps')}>
-          ← {language === 'vi' ? 'Quay lại Ứng dụng' : 'Back to Apps'}
-        </button>
+      <section className="textlab-material-hero" aria-labelledby="textlabHeroTitle">
+        <div className="textlab-hero-copy">
+          <div className="textlab-hero-title-row">
+            <span className="textlab-hero-app-icon" aria-hidden="true">{'</>'}</span>
+            <div>
+              <span className="textlab-hero-eyebrow">ENGLISH HUB · INTERACTIVE ACTIVITY STUDIO</span>
+              <h1 id="textlabHeroTitle">TextLab Activities</h1>
+            </div>
+          </div>
 
-        <div className="textlab-page-status">
-          <span className="textlab-status-title">Brian TextLab Activities</span>
-          <span className="ready">
-            {language === 'vi' ? 'HTML tương tác · Chia sẻ qua Kho học liệu' : 'Interactive HTML · Shared resource library'}
-          </span>
-          {publishNotice ? <span className="textlab-publish-notice" role="status">{publishNotice}</span> : null}
+          <p className="textlab-hero-description">
+            {language === 'vi'
+              ? 'Tạo các hoạt động HTML tương tác một cách nhanh chóng, xem trước trực tiếp và chia sẻ lên Kho học liệu để đồng nghiệp cùng khai thác.'
+              : 'Create interactive HTML activities quickly, preview them live, and share them through the Resource Library.'}
+          </p>
+
+          <div className="textlab-hero-features" aria-label={language === 'vi' ? 'Tính năng nổi bật' : 'Key features'}>
+            <span><b aria-hidden="true">⚡</b>{language === 'vi' ? 'Tạo hoạt động nhanh' : 'Build activities fast'}</span>
+            <span><b aria-hidden="true">◉</b>{language === 'vi' ? 'Xem trước trực tiếp' : 'Live preview'}</span>
+            <span><b aria-hidden="true">↗</b>{language === 'vi' ? 'Chia sẻ qua Kho học liệu' : 'Share to the library'}</span>
+          </div>
+
+          <div className="textlab-hero-actions">
+            <button className="textlab-hero-primary" type="button" onClick={startCreating}>
+              <span aria-hidden="true">＋</span>
+              {language === 'vi' ? 'Bắt đầu tạo hoạt động' : 'Start creating'}
+            </button>
+            <button className="textlab-hero-secondary" type="button" onClick={openGuide}>
+              <span aria-hidden="true">▣</span>
+              {language === 'vi' ? 'Xem hướng dẫn' : 'View guide'}
+            </button>
+          </div>
+
+          {publishNotice ? <div className="textlab-hero-notice" role="status">{publishNotice}</div> : null}
         </div>
 
-        <div className="textlab-integrated-actions">
-          <button type="button" onClick={() => setFrameKey((value) => value + 1)}>
-            ↻ {language === 'vi' ? 'Tải lại' : 'Reload'}
-          </button>
-          <button type="button" onClick={goFullscreen}>
-            ⛶ {language === 'vi' ? 'Toàn màn hình' : 'Fullscreen'}
-          </button>
-          <button type="button" onClick={() => window.open(appUrl, '_blank', 'noopener,noreferrer')}>
-            ↗ {language === 'vi' ? 'Mở riêng' : 'Open separately'}
-          </button>
+        <div className="textlab-hero-visual" aria-hidden="true">
+          <span className="textlab-orbit textlab-orbit-people">●●</span>
+          <span className="textlab-orbit textlab-orbit-code">{'</>'}</span>
+          <span className="textlab-orbit textlab-orbit-share">↗</span>
+          <div className="textlab-visual-browser">
+            <div className="textlab-visual-browser-bar"><i /><i /><i /></div>
+            <div className="textlab-visual-browser-body">
+              <div className="textlab-visual-media"><span>◇</span></div>
+              <div className="textlab-visual-lines"><i /><i /><i /></div>
+              <div className="textlab-visual-option"><span>○</span><i /></div>
+              <div className="textlab-visual-option is-correct"><span>✓</span><i /></div>
+            </div>
+          </div>
+          <span className="textlab-spark textlab-spark-one">✦</span>
+          <span className="textlab-spark textlab-spark-two">✦</span>
         </div>
-      </div>
+      </section>
 
       <div className="textlab-direct-workspace" ref={shellRef}>
         <iframe
-          key={frameKey}
           ref={frameRef}
           className="textlab-integrated-frame textlab-direct-frame"
           title="Brian TextLab Activities"
