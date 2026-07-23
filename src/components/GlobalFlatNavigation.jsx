@@ -8,6 +8,7 @@ import './GlobalNotificationCenterLayoutFix.css';
 import './GlobalCommandPaletteGoogle.css';
 import './GlobalCommandPaletteFocusFix.css';
 import './GlobalHomeDashboardRemoval.css';
+import './GlobalHomeGooglePolish.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
