@@ -1,11 +1,23 @@
 name: Global shell navigation check
 
 on:
+  push:
+    branches:
+      - 'feature/global-shell-navigation-notifications-*'
+    paths:
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/components/GlobalFlatNavigation.css'
+      - 'src/components/StatusMenuBar.jsx'
+      - 'src/components/TransferInboxBanner.jsx'
+      - 'src/utils/globalNotifications.js'
+      - '.github/workflows/global-shell-check.yml'
   pull_request:
     paths:
       - 'src/components/GlobalFlatNavigation.jsx'
       - 'src/components/GlobalFlatNavigation.css'
       - 'src/components/StatusMenuBar.jsx'
+      - 'src/components/TransferInboxBanner.jsx'
+      - 'src/utils/globalNotifications.js'
       - '.github/workflows/global-shell-check.yml'
   workflow_dispatch:
 
@@ -36,6 +48,9 @@ jobs:
           const component = fs.readFileSync('src/components/GlobalFlatNavigation.jsx', 'utf8');
           const styles = fs.readFileSync('src/components/GlobalFlatNavigation.css', 'utf8');
           const status = fs.readFileSync('src/components/StatusMenuBar.jsx', 'utf8');
+          const notifications = fs.readFileSync('src/utils/globalNotifications.js', 'utf8');
+          const transfer = fs.readFileSync('src/components/TransferInboxBanner.jsx', 'utf8');
+
           const requiredComponentTokens = [
             'brian-global-shell',
             'brian-shell-menu-content',
@@ -43,6 +58,9 @@ jobs:
             'bes-global-notification',
             'bes:notification',
             'bes-command-palette-open',
+            'notificationState.key !== storageKey',
+            'resolveSafeNotificationTarget',
+            'aria-modal="true"',
           ];
           const requiredStyleTokens = [
             '.brian-global-shell',
@@ -50,11 +68,29 @@ jobs:
             '.brian-shell-notification-list',
             '@media (max-width: 560px)',
           ];
+          const requiredNotificationTokens = [
+            'publishGlobalNotification',
+            'publishGlobalNotificationOnce',
+            'openGlobalNotificationCenter',
+            'bes-global-notification',
+          ];
+          const requiredTransferTokens = [
+            'publishGlobalNotificationOnce',
+            'transfer:${identity}:${next.id}',
+            'notificationTarget',
+          ];
+
           for (const token of requiredComponentTokens) {
             if (!component.includes(token)) throw new Error(`Missing component contract: ${token}`);
           }
           for (const token of requiredStyleTokens) {
             if (!styles.includes(token)) throw new Error(`Missing style contract: ${token}`);
+          }
+          for (const token of requiredNotificationTokens) {
+            if (!notifications.includes(token)) throw new Error(`Missing notification contract: ${token}`);
+          }
+          for (const token of requiredTransferTokens) {
+            if (!transfer.includes(token)) throw new Error(`Missing transfer notification contract: ${token}`);
           }
           if (!status.includes('return null')) throw new Error('Duplicate StatusMenuBar was not retired');
           console.log('Global shell static contracts passed.');
