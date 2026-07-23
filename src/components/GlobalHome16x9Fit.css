@@ -1,4 +1,4 @@
-/* English Hub homepage: navigation, content and footer move as one full-width hub shell. */
+/* English Hub homepage: full-width first screen followed by a complete scrollable footer. */
 
 body .brian-overlap-home .boh-welcome {
   display: none !important;
@@ -7,26 +7,31 @@ body .brian-overlap-home .boh-welcome {
 @media (min-width: 900px) and (min-height: 620px) {
   body .metro-clean-system[data-route='home'] {
     position: relative !important;
-    width: 100vw !important;
+    width: 100% !important;
     max-width: none !important;
-    height: 100svh !important;
-    min-height: 0 !important;
+    min-height: 100svh !important;
+    height: auto !important;
     margin: 0 !important;
-    overflow: hidden !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
     background: #f8fafd !important;
   }
 
-  /* Hub navigation: full width and visually attached to the content below. */
+  /* Navigation remains attached to the home experience while the page can scroll. */
   body .metro-clean-system[data-route='home'] > .bes-top-chrome {
-    position: absolute !important;
-    z-index: 60 !important;
-    inset: 0 0 auto 0 !important;
+    position: sticky !important;
+    z-index: 1000 !important;
+    top: 0 !important;
+    inset-inline: 0 !important;
     width: 100% !important;
-    height: 96px !important;
+    min-height: 96px !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 10px 18px 8px !important;
     box-sizing: border-box !important;
-    background: #f8fafd !important;
+    background: rgba(248, 250, 253, .94) !important;
+    backdrop-filter: blur(18px) saturate(1.08) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(1.08) !important;
     overflow: visible !important;
   }
 
@@ -39,16 +44,16 @@ body .brian-overlap-home .boh-welcome {
     border-radius: 28px !important;
   }
 
-  /* Hub content: use the complete viewport width instead of a centered narrow 16:9 card. */
+  /* The first screen remains a complete, full-width home canvas. */
   body .metro-clean-system[data-route='home'] > main.wp8-page-stage,
   body .metro-clean-system[data-route='home'] > .wp8-page-stage {
-    position: absolute !important;
+    position: relative !important;
     z-index: 1 !important;
-    inset: 96px 0 42px 0 !important;
+    inset: auto !important;
     width: 100% !important;
     max-width: none !important;
-    height: auto !important;
-    min-height: 0 !important;
+    height: max(680px, calc(100svh - 96px)) !important;
+    min-height: max(680px, calc(100svh - 96px)) !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
@@ -134,7 +139,7 @@ body .brian-overlap-home .boh-welcome {
     margin-top: 14px !important;
   }
 
-  /* Keep the approved overlap composition, while using the newly available width. */
+  /* Preserve the approved overlapping card composition. */
   body .brian-overlap-home .boh-card-textcare { --eh-shift-x: 34px; --eh-shift-y: 2px; }
   body .brian-overlap-home .boh-card-exam-studio { --eh-shift-x: 46px; --eh-shift-y: -16px; }
   body .brian-overlap-home .boh-card-lesson-plan-ai { --eh-shift-x: -34px; --eh-shift-y: -10px; }
@@ -143,50 +148,175 @@ body .brian-overlap-home .boh-welcome {
   body .brian-overlap-home .boh-card-notifications { --eh-shift-x: 48px; --eh-shift-y: -70px; }
   body .brian-overlap-home .boh-card-library { --eh-shift-x: -54px; --eh-shift-y: -80px; }
 
-  /* Hub footer: compact strip attached to the same shell, always visible with the other hubs. */
+  /* Full footer appears naturally after the first screen. */
   body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 {
-    position: absolute !important;
-    z-index: 55 !important;
-    inset: auto 0 0 0 !important;
+    position: relative !important;
+    z-index: 2 !important;
+    inset: auto !important;
     width: 100% !important;
     max-width: none !important;
-    height: 42px !important;
-    min-height: 42px !important;
+    height: auto !important;
+    min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     border: 0 !important;
     border-top: 1px solid rgba(60, 64, 67, .10) !important;
     border-radius: 0 !important;
-    background: rgba(255,255,255,.96) !important;
-    box-shadow: 0 -2px 10px rgba(60,64,67,.06) !important;
-    overflow: hidden !important;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(211, 227, 253, .62), transparent 28%),
+      radial-gradient(circle at 92% 18%, rgba(230, 244, 234, .70), transparent 30%),
+      #f8fafd !important;
+    box-shadow: none !important;
+    overflow: visible !important;
   }
 
   body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-main {
-    display: none !important;
+    width: min(1480px, calc(100% - 72px)) !important;
+    margin: 0 auto !important;
+    padding: 52px 0 38px !important;
+    display: grid !important;
+    grid-template-columns: minmax(250px, .9fr) minmax(320px, 1fr) minmax(380px, 1.2fr) !important;
+    gap: 28px !important;
+    align-items: stretch !important;
+    background: transparent !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-brand,
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-profile,
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-credentials {
+    min-width: 0 !important;
+    padding: 26px !important;
+    border: 1px solid rgba(60, 64, 67, .11) !important;
+    border-radius: 28px !important;
+    background: rgba(255, 255, 255, .90) !important;
+    box-shadow: 0 1px 2px rgba(60, 64, 67, .08), 0 12px 32px rgba(60, 64, 67, .08) !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-brand {
+    display: grid !important;
+    align-content: start !important;
+    gap: 24px !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-brian-logo {
+    width: min(230px, 100%) !important;
+    max-width: 100% !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-affiliations {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 16px !important;
+    margin-top: auto !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-affiliations img {
+    width: auto !important;
+    max-width: 150px !important;
+    height: 44px !important;
+    object-fit: contain !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-logo-divider {
+    width: 1px !important;
+    height: 38px !important;
+    background: #dfe3e7 !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-language-badge,
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-section-label {
+    display: inline-flex !important;
+    width: fit-content !important;
+    align-items: center !important;
+    min-height: 32px !important;
+    padding: 0 13px !important;
+    border-radius: 999px !important;
+    background: #d3e3fd !important;
+    color: #041e49 !important;
+    font-size: .76rem !important;
+    font-weight: 800 !important;
+    letter-spacing: .08em !important;
+    text-transform: uppercase !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-profile h2 {
+    margin: 18px 0 18px !important;
+    color: #1f1f1f !important;
+    font-size: clamp(1.7rem, 2.2vw, 2.35rem) !important;
+    line-height: 1.05 !important;
+    letter-spacing: -.045em !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-details,
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-credentials ul {
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    display: grid !important;
+    gap: 12px !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-detail,
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-credentials li {
+    display: grid !important;
+    grid-template-columns: 24px minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 10px !important;
+    color: #5f6368 !important;
+    font-size: .93rem !important;
+    line-height: 1.48 !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-detail-icon,
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-star {
+    width: 24px !important;
+    height: 24px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 50% !important;
+    background: #e8f0fe !important;
+    color: #0b57d0 !important;
+    font-size: .72rem !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-credentials ul {
+    margin-top: 20px !important;
   }
 
   body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-bottom {
     width: 100% !important;
-    height: 42px !important;
-    min-height: 42px !important;
+    min-height: 58px !important;
     margin: 0 !important;
-    padding: 0 28px !important;
+    padding: 0 clamp(28px, 4vw, 72px) !important;
     box-sizing: border-box !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 18px !important;
-    background: transparent !important;
+    gap: 20px !important;
+    border-top: 1px solid rgba(60, 64, 67, .09) !important;
+    background: rgba(255, 255, 255, .78) !important;
     color: #5f6368 !important;
-    font-size: .76rem !important;
+    font-size: .82rem !important;
     font-weight: 600 !important;
   }
 
   body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-bottom-separator {
     flex: 1 1 auto !important;
     height: 1px !important;
-    background: #e2e5e9 !important;
+    background: #dfe3e7 !important;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1180px) {
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-main {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-credentials {
+    grid-column: 1 / -1 !important;
   }
 }
 
@@ -194,4 +324,47 @@ body .brian-overlap-home .boh-welcome {
   body .brian-overlap-home {
     min-height: 0 !important;
   }
+}
+
+@media (max-width: 760px) {
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-main {
+    width: calc(100% - 28px) !important;
+    padding: 30px 0 24px !important;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-bottom {
+    min-height: 0 !important;
+    padding: 18px 20px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-bottom-separator {
+    width: 100% !important;
+    flex: 0 0 1px !important;
+  }
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 {
+  background: #17191c !important;
+  border-top-color: rgba(255, 255, 255, .08) !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-brand,
+html[data-theme='dark'] body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-profile,
+html[data-theme='dark'] body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-credentials {
+  background: #202124 !important;
+  border-color: #3c4043 !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-profile h2 {
+  color: #e8eaed !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-detail,
+html[data-theme='dark'] body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-credentials li,
+html[data-theme='dark'] body .metro-clean-system[data-route='home'] > footer.signature-footer-v50 .signature-footer-v50-bottom {
+  color: #bdc1c6 !important;
 }
