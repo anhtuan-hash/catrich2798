@@ -51,11 +51,24 @@ Source: `src/pages/Home.jsx` and `HomePremium.css`
 - Workspace overview metrics.
 - Existing role-aware Work Dashboard remains available below the new homepage surface.
 
+### Applications directory
+
+Source: `src/pages/WebApps.jsx` and `WebAppsPremium.css`
+
+- Replaces overlapping pseudo-window cards and the duplicate page-level navigation.
+- Editorial page header and role-aware application statistics.
+- Sticky search and command bar.
+- Pinned application quick-access row.
+- Calm modular card grid using the shared token system.
+- Workflow-group filtering and comfortable/compact density modes.
+- Admin launcher editor retains drag ordering, pin, hide, navigation placement, custom groups, cloud save and reset.
+- Locked applications retain the existing permission-request workflow.
+
 ## Migration sequence
 
-1. **Foundation** — tokens, shell, homepage and notification contract.
-2. **Directory** — rebuild the Apps page using the same card anatomy and spacing.
-3. **Shared surfaces** — forms, tables, empty states, toolbars and dialogs.
+1. **Foundation** — tokens, shell, homepage and notification contract. **Complete.**
+2. **Directory** — rebuild the Apps page using the same card anatomy and spacing. **Complete.**
+3. **Shared surfaces** — forms, tables, empty states, toolbars and dialogs. **Next.**
 4. **Management workspaces** — Dashboard, Work Hub, Homeroom and Professional Hub.
 5. **Teaching applications** — Lesson Architect, Reading Studio, Exam Studio and retained utilities.
 6. **Final polish** — dark mode, motion, responsive screenshots and accessibility review.
@@ -75,4 +88,4 @@ Each migration phase must satisfy:
 
 ## Current boundary
 
-This branch completes the Foundation phase. Inner application workflows are intentionally migrated in subsequent reviewable phases rather than changed through a single unsafe global CSS override.
+This branch completes the Foundation and Applications Directory phases. The next boundary is the shared component layer: buttons, inputs, selects, toolbars, tables, empty states and dialogs. Inner application workflows remain untouched until those shared primitives are stable.
