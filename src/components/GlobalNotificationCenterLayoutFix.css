@@ -1,0 +1,139 @@
+/* Notification center layout safety layer.
+   The panel is anchored to the viewport so app font scaling, grid sizing,
+   and narrow popover parents cannot collapse it. */
+
+body .brian-nav__popover-wrap {
+  overflow: visible !important;
+  contain: none !important;
+}
+
+body .brian-nav__notifications.brian-notification-center {
+  position: fixed !important;
+  inset: 92px 22px auto auto !important;
+  z-index: 2147482000 !important;
+  box-sizing: border-box !important;
+  inline-size: min(650px, calc(100vw - 44px)) !important;
+  width: min(650px, calc(100vw - 44px)) !important;
+  min-inline-size: min(560px, calc(100vw - 44px)) !important;
+  min-width: min(560px, calc(100vw - 44px)) !important;
+  max-inline-size: calc(100vw - 44px) !important;
+  max-width: calc(100vw - 44px) !important;
+  block-size: auto !important;
+  height: auto !important;
+  max-block-size: calc(100dvh - 112px) !important;
+  max-height: calc(100dvh - 112px) !important;
+  margin: 0 !important;
+  transform: none !important;
+  translate: none !important;
+  scale: 1 !important;
+  writing-mode: horizontal-tb !important;
+  direction: ltr !important;
+  text-orientation: mixed !important;
+  overflow: hidden !important;
+  font-size: 16px !important;
+  line-height: 1.4 !important;
+  isolation: isolate !important;
+}
+
+body .brian-nav__notifications.brian-notification-center,
+body .brian-nav__notifications.brian-notification-center * {
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+}
+
+body .brian-nav__notifications.brian-notification-center > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+body .brian-notification-center__header,
+body .brian-notification-center__tabs,
+body .brian-notification-center__search-row,
+body .brian-notification-center__list,
+body .brian-notification-center__footer,
+body .brian-notification-settings {
+  inline-size: 100% !important;
+  width: 100% !important;
+}
+
+body .brian-notification-center__list {
+  min-inline-size: 0 !important;
+  min-width: 0 !important;
+}
+
+body .brian-notification-card {
+  inline-size: 100% !important;
+  width: 100% !important;
+  min-inline-size: 0 !important;
+  min-width: 0 !important;
+}
+
+body .brian-notification-card__main,
+body .brian-notification-card__copy,
+body .brian-notification-card__meta {
+  min-inline-size: 0 !important;
+  min-width: 0 !important;
+}
+
+@media (max-width: 900px) {
+  body .brian-nav__notifications.brian-notification-center {
+    inset: 84px 12px auto auto !important;
+    inline-size: min(620px, calc(100vw - 24px)) !important;
+    width: min(620px, calc(100vw - 24px)) !important;
+    min-inline-size: min(520px, calc(100vw - 24px)) !important;
+    min-width: min(520px, calc(100vw - 24px)) !important;
+    max-inline-size: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-block-size: calc(100dvh - 98px) !important;
+    max-height: calc(100dvh - 98px) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  body .brian-nav__notifications.brian-notification-center {
+    inset: auto 8px 8px 8px !important;
+    inline-size: auto !important;
+    width: auto !important;
+    min-inline-size: 0 !important;
+    min-width: 0 !important;
+    max-inline-size: none !important;
+    max-width: none !important;
+    max-block-size: min(84dvh, 760px) !important;
+    max-height: min(84dvh, 760px) !important;
+    border-radius: 26px !important;
+    padding: 13px !important;
+  }
+
+  body .brian-notification-center__header {
+    align-items: flex-start !important;
+  }
+
+  body .brian-notification-center__mark-all {
+    max-width: 150px !important;
+    white-space: normal !important;
+    text-align: right !important;
+  }
+
+  body .brian-notification-center__tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    border-radius: 22px !important;
+  }
+
+  body .brian-notification-card {
+    grid-template-columns: 44px minmax(0, 1fr) !important;
+  }
+
+  body .brian-notification-card__icon {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  body .brian-notification-card__main {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+
+  body .brian-notification-card__actions {
+    grid-column: 2 !important;
+    justify-self: end !important;
+  }
+}
