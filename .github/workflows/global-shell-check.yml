@@ -1,4 +1,4 @@
-name: Brian premium UI foundation check
+name: Brian premium UI check
 
 on:
   push:
@@ -11,10 +11,13 @@ on:
       - 'src/components/TransferInboxBanner.jsx'
       - 'src/pages/Home.jsx'
       - 'src/pages/HomePremium.css'
+      - 'src/pages/WebApps.jsx'
+      - 'src/pages/WebAppsPremium.css'
       - 'src/styles/brian-premium-tokens.css'
       - 'src/utils/globalNotifications.js'
       - 'docs/design/BRIAN-PREMIUM-UI-BLUEPRINT.md'
       - 'tests/e2e/global-shell.spec.js'
+      - 'tests/e2e/premium-apps.spec.js'
       - '.github/workflows/global-shell-check.yml'
   pull_request:
     paths:
@@ -24,10 +27,13 @@ on:
       - 'src/components/TransferInboxBanner.jsx'
       - 'src/pages/Home.jsx'
       - 'src/pages/HomePremium.css'
+      - 'src/pages/WebApps.jsx'
+      - 'src/pages/WebAppsPremium.css'
       - 'src/styles/brian-premium-tokens.css'
       - 'src/utils/globalNotifications.js'
       - 'docs/design/BRIAN-PREMIUM-UI-BLUEPRINT.md'
       - 'tests/e2e/global-shell.spec.js'
+      - 'tests/e2e/premium-apps.spec.js'
       - '.github/workflows/global-shell-check.yml'
   workflow_dispatch:
 
@@ -62,9 +68,12 @@ jobs:
           const transfer = fs.readFileSync('src/components/TransferInboxBanner.jsx', 'utf8');
           const home = fs.readFileSync('src/pages/Home.jsx', 'utf8');
           const homeStyles = fs.readFileSync('src/pages/HomePremium.css', 'utf8');
+          const apps = fs.readFileSync('src/pages/WebApps.jsx', 'utf8');
+          const appStyles = fs.readFileSync('src/pages/WebAppsPremium.css', 'utf8');
           const tokens = fs.readFileSync('src/styles/brian-premium-tokens.css', 'utf8');
           const blueprint = fs.readFileSync('docs/design/BRIAN-PREMIUM-UI-BLUEPRINT.md', 'utf8');
-          const browserTest = fs.readFileSync('tests/e2e/global-shell.spec.js', 'utf8');
+          const shellBrowserTest = fs.readFileSync('tests/e2e/global-shell.spec.js', 'utf8');
+          const appsBrowserTest = fs.readFileSync('tests/e2e/premium-apps.spec.js', 'utf8');
 
           const requiredComponentTokens = [
             'brian-global-shell',
@@ -100,6 +109,24 @@ jobs:
             'grid-template-columns: repeat(5',
             '@media (max-width: 680px)',
           ];
+          const requiredAppsTokens = [
+            'bp-apps-page',
+            'bp-apps-command-bar',
+            'bp-apps-editor',
+            'bp-apps-grid',
+            'saveLauncherConfigToCloud',
+            'resetLauncherConfigToCloud',
+            'subscribeLauncherConfig',
+            'PermissionRequestButton',
+          ];
+          const requiredAppsStyleTokens = [
+            '.bp-apps-hero',
+            '.bp-apps-command-bar',
+            '.bp-app-card',
+            '.bp-app-editor-controls',
+            'grid-template-columns: repeat(4',
+            '@media (max-width: 680px)',
+          ];
           const requiredDesignTokens = [
             '--bp-bg',
             '--bp-primary',
@@ -118,10 +145,16 @@ jobs:
             'transfer:${identity}:${next.id}',
             'notificationTarget',
           ];
-          const requiredBrowserTokens = [
+          const requiredShellBrowserTokens = [
             'shell-user-a',
             'shell-user-b',
             'javascript:window.__unsafeNotificationExecuted=true',
+            'document.documentElement.scrollWidth <= window.innerWidth + 1',
+          ];
+          const requiredAppsBrowserTokens = [
+            'Mọi công cụ. Một không gian.',
+            'Tùy chỉnh thư viện',
+            'bp-app-editor-controls',
             'document.documentElement.scrollWidth <= window.innerWidth + 1',
           ];
 
@@ -129,13 +162,16 @@ jobs:
           for (const token of requiredStyleTokens) if (!styles.includes(token)) throw new Error(`Missing shell style contract: ${token}`);
           for (const token of requiredHomeTokens) if (!home.includes(token)) throw new Error(`Missing homepage contract: ${token}`);
           for (const token of requiredHomeStyleTokens) if (!homeStyles.includes(token)) throw new Error(`Missing homepage style contract: ${token}`);
+          for (const token of requiredAppsTokens) if (!apps.includes(token)) throw new Error(`Missing apps directory contract: ${token}`);
+          for (const token of requiredAppsStyleTokens) if (!appStyles.includes(token)) throw new Error(`Missing apps directory style contract: ${token}`);
           for (const token of requiredDesignTokens) if (!tokens.includes(token)) throw new Error(`Missing design token: ${token}`);
           for (const token of requiredNotificationTokens) if (!notifications.includes(token)) throw new Error(`Missing notification contract: ${token}`);
           for (const token of requiredTransferTokens) if (!transfer.includes(token)) throw new Error(`Missing transfer notification contract: ${token}`);
-          for (const token of requiredBrowserTokens) if (!browserTest.includes(token)) throw new Error(`Missing browser smoke contract: ${token}`);
+          for (const token of requiredShellBrowserTokens) if (!shellBrowserTest.includes(token)) throw new Error(`Missing shell browser contract: ${token}`);
+          for (const token of requiredAppsBrowserTokens) if (!appsBrowserTest.includes(token)) throw new Error(`Missing apps browser contract: ${token}`);
           if (!status.includes('return null')) throw new Error('Duplicate StatusMenuBar was not retired');
           if (!blueprint.includes('Current boundary')) throw new Error('Premium UI migration boundary is undocumented');
-          console.log('Brian premium UI foundation contracts passed.');
+          console.log('Brian premium UI contracts passed.');
           NODE
 
       - name: Build Brian
@@ -144,5 +180,5 @@ jobs:
       - name: Install WebKit browser
         run: npx playwright install --with-deps webkit
 
-      - name: Run global shell browser smoke tests
-        run: npx playwright test tests/e2e/global-shell.spec.js --project=webkit-desktop
+      - name: Run premium UI browser smoke tests
+        run: npx playwright test tests/e2e/global-shell.spec.js tests/e2e/premium-apps.spec.js --project=webkit-desktop
