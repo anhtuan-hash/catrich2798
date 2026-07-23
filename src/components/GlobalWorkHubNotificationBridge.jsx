@@ -51,6 +51,7 @@ function formatDueDate(value, language) {
 function mapDatabaseNotification(row, language, readStates) {
   const itemId = String(row?.item_id || '');
   const id = `work-hub:${itemId || row?.id}`;
+  const notificationType = String(row?.notification_type || '').toLowerCase();
   return {
     id,
     title: String(row?.title || (language === 'vi' ? 'Công việc mới' : 'New task')),
@@ -61,6 +62,12 @@ function mapDatabaseNotification(row, language, readStates) {
     createdAt: row?.created_at || new Date().toISOString(),
     read: Boolean(row?.read_at) || Boolean(readStates.get(id)),
     itemId,
+    notificationId: row?.id ?? null,
+    category: 'work',
+    status: notificationType,
+    chip: notificationType === 'changes_requested'
+      ? (language === 'vi' ? 'Cần phản hồi' : 'Needs reply')
+      : '',
     source: 'work-hub-notification',
   };
 }
@@ -84,6 +91,9 @@ function mapAssignedTask(item, language, readStates) {
     createdAt: item?.created_at || item?.updated_at || new Date().toISOString(),
     read: Boolean(readStates.get(id)),
     itemId,
+    category: 'work',
+    priority: String(item?.priority || '').toLowerCase(),
+    status: String(item?.status || '').toLowerCase(),
     source: 'work-hub-item',
   };
 }
