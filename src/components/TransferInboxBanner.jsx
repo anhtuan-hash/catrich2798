@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { pendingTransferFor, TRANSFER_APPLY_EVENT, TRANSFER_UPDATED_EVENT, updateTransfer } from '../utils/contentTransfer.js';
+import { publishGlobalNotificationOnce } from '../utils/globalNotifications.js';
 
 function nativeSetValue(element, value) {
   if (element instanceof HTMLTextAreaElement) {
@@ -18,19 +19,42 @@ function targetKey(route, selectedTool) {
   return route;
 }
 
+function targetRoute(route, selectedTool) {
+  if (route === 'tool' && selectedTool?.slug) return `#/tool/${selectedTool.slug}`;
+  return `#/${route || 'home'}`;
+}
+
 export default function TransferInboxBanner({ currentUser, route, selectedTool, language = 'vi' }) {
   const target = useMemo(() => targetKey(route, selectedTool), [route, selectedTool?.slug]);
+  const notificationTarget = useMemo(() => targetRoute(route, selectedTool), [route, selectedTool?.slug]);
   const [item, setItem] = useState(() => pendingTransferFor(currentUser, target));
   const [notice, setNotice] = useState('');
 
   useEffect(() => {
-    const refresh = () => setItem(pendingTransferFor(currentUser, target));
+    const refresh = () => {
+      const next = pendingTransferFor(currentUser, target);
+      setItem(next);
+      if (!next) return;
+
+      const identity = currentUser?.id || currentUser?.email || 'guest';
+      publishGlobalNotificationOnce(`transfer:${identity}:${next.id}`, {
+        id: `transfer:${next.id}`,
+        title: language === 'vi' ? 'Có nội dung mới được gửi tới' : 'New content was sent to you',
+        message: language === 'vi'
+          ? `${next.title} · Từ ${next.sourceTitle}`
+          : `${next.title} · From ${next.sourceTitle}`,
+        source: next.sourceTitle || 'Brian English',
+        kind: 'transfer',
+        target: notificationTarget,
+      });
+    };
+
     refresh();
     window.addEventListener(TRANSFER_UPDATED_EVENT, refresh);
     let channel = null;
     try { channel = new BroadcastChannel('bes-transfer-v1085'); channel.onmessage = refresh; } catch { channel = null; }
     return () => { window.removeEventListener(TRANSFER_UPDATED_EVENT, refresh); channel?.close?.(); };
-  }, [currentUser?.id, currentUser?.email, target]);
+  }, [currentUser?.id, currentUser?.email, target, notificationTarget, language]);
 
   if (!currentUser || !item) return null;
 
