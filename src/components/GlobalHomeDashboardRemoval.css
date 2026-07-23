@@ -1,0 +1,4 @@
+/* Remove the embedded Work Dashboard from the homepage while keeping #/dashboard available. */
+.brian-overlap-home > .boh-dashboard-section {
+  display: none !important;
+}
