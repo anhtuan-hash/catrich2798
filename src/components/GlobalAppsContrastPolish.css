@@ -1,0 +1,242 @@
+/* English Hub Apps — compact hero, stronger card identity and safe artwork. */
+
+body .metro-clean-system[data-route='apps'] .flat-apps-hero {
+  min-height: 0 !important;
+  padding: clamp(18px, 2.2vw, 28px) clamp(24px, 3vw, 38px) !important;
+  gap: 20px !important;
+  border-radius: 28px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-hero-copy {
+  display: grid !important;
+  align-content: center !important;
+  gap: 10px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-kicker {
+  min-height: 30px !important;
+  margin: 0 0 4px !important;
+  padding: 0 12px !important;
+  font-size: .72rem !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-hero h1 {
+  max-width: 760px !important;
+  font-size: clamp(2.35rem, 4vw, 4.5rem) !important;
+  line-height: .94 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-subtitle {
+  max-width: 760px !important;
+  margin: 0 !important;
+  font-size: clamp(.92rem, 1.1vw, 1.04rem) !important;
+  line-height: 1.48 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-stats {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(72px, 88px)) !important;
+  gap: 8px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-stats > div {
+  min-height: 72px !important;
+  padding: 11px 12px !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,.86) !important;
+  border: 1px solid rgba(60,64,67,.1) !important;
+  box-shadow: 0 4px 12px rgba(60,64,67,.06) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-stats strong {
+  color: #202124 !important;
+  font-size: 1.45rem !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-stats small {
+  color: #5f6368 !important;
+  font-size: .7rem !important;
+  font-weight: 760 !important;
+}
+
+/* Cards use the app's own accent as a clear identity signal while text remains dark. */
+body .metro-clean-system[data-route='apps'] .flat-app-window-card {
+  min-height: 272px !important;
+  overflow: hidden !important;
+  border-width: 1px !important;
+  border-color: color-mix(in srgb, var(--app-accent, #1a73e8) 34%, rgba(60,64,67,.14)) !important;
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--app-soft, #e8f0fe) 74%, #fff) 0%,
+      color-mix(in srgb, var(--app-soft, #e8f0fe) 42%, #fff) 46%,
+      #fff 100%) !important;
+  box-shadow: 0 1px 2px rgba(60,64,67,.07), 0 12px 30px rgba(60,64,67,.1) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 auto 0 0 !important;
+  width: 6px !important;
+  z-index: 4 !important;
+  background: var(--app-accent, #1a73e8) !important;
+  pointer-events: none !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover {
+  border-color: color-mix(in srgb, var(--app-accent, #1a73e8) 60%, rgba(60,64,67,.14)) !important;
+  box-shadow: 0 3px 8px rgba(60,64,67,.09), 0 20px 44px rgba(60,64,67,.15) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-launch {
+  height: auto !important;
+  min-height: 272px !important;
+  overflow: visible !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-chrome {
+  min-height: 44px !important;
+  padding: 8px 16px 8px 20px !important;
+  background: color-mix(in srgb, var(--app-accent, #1a73e8) 22%, #fff) !important;
+  overflow: visible !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-chrome b {
+  max-width: 100% !important;
+  color: var(--app-ink, #202124) !important;
+  background: rgba(255,255,255,.8) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-accent, #1a73e8) 24%, transparent) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-body {
+  min-height: 228px !important;
+  grid-template-columns: 66px minmax(0,1fr) !important;
+  grid-template-rows: minmax(0,1fr) auto !important;
+  gap: 16px !important;
+  padding: 24px 22px 22px 28px !important;
+  overflow: visible !important;
+  background:
+    linear-gradient(150deg,
+      color-mix(in srgb, var(--app-soft, #e8f0fe) 54%, #fff) 0%,
+      rgba(255,255,255,.98) 66%) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-art {
+  width: 66px !important;
+  height: 66px !important;
+  min-width: 66px !important;
+  min-height: 66px !important;
+  padding: 10px !important;
+  border-radius: 20px !important;
+  overflow: visible !important;
+  background: color-mix(in srgb, var(--app-accent, #1a73e8) 18%, #fff) !important;
+  color: var(--app-ink, #202124) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-accent, #1a73e8) 30%, transparent) !important;
+  box-sizing: border-box !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-art > *,
+body .metro-clean-system[data-route='apps'] .flat-app-window-art svg,
+body .metro-clean-system[data-route='apps'] .flat-app-window-art img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  object-fit: contain !important;
+  overflow: visible !important;
+  flex: 0 0 auto !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy {
+  overflow: visible !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy small {
+  color: var(--app-ink, #3c4043) !important;
+  opacity: .78 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong {
+  color: #202124 !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  word-break: normal !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy em {
+  color: #4f5459 !important;
+  -webkit-line-clamp: 3 !important;
+  overflow: hidden !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-cta {
+  min-height: 40px !important;
+  padding: 0 15px !important;
+  background: var(--app-ink, #174ea6) !important;
+  color: #fff !important;
+  box-shadow: 0 5px 12px color-mix(in srgb, var(--app-ink, #174ea6) 24%, transparent) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-request {
+  position: relative !important;
+  z-index: 5 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .launcher-custom-grid {
+  align-items: stretch !important;
+}
+
+body .metro-clean-system[data-route='apps'] .launcher-custom-grid > * {
+  min-width: 0 !important;
+}
+
+@media (max-width: 900px) {
+  body .metro-clean-system[data-route='apps'] .flat-apps-hero {
+    grid-template-columns: 1fr !important;
+    padding: 22px !important;
+  }
+
+  body .metro-clean-system[data-route='apps'] .flat-apps-stats {
+    justify-content: start !important;
+  }
+}
+
+@media (max-width: 620px) {
+  body .metro-clean-system[data-route='apps'] .flat-apps-hero h1 {
+    font-size: clamp(2.15rem, 11vw, 3.2rem) !important;
+  }
+
+  body .metro-clean-system[data-route='apps'] .flat-app-window-body {
+    grid-template-columns: 58px minmax(0,1fr) !important;
+    padding: 20px 18px 20px 24px !important;
+  }
+
+  body .metro-clean-system[data-route='apps'] .flat-app-window-art {
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    min-height: 58px !important;
+  }
+}
+
+[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-card,
+body .metro-clean-system[data-theme='dark'][data-route='apps'] .flat-app-window-card {
+  background: color-mix(in srgb, var(--app-soft, #26334a) 18%, #202124) !important;
+}
+
+[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-body,
+body .metro-clean-system[data-theme='dark'][data-route='apps'] .flat-app-window-body {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--app-accent, #8ab4f8) 13%, #202124), #202124 70%) !important;
+}
+
+[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong,
+[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-copy em,
+body .metro-clean-system[data-theme='dark'][data-route='apps'] .flat-app-window-copy strong,
+body .metro-clean-system[data-theme='dark'][data-route='apps'] .flat-app-window-copy em {
+  color: #f1f3f4 !important;
+}
