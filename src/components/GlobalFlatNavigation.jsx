@@ -17,6 +17,7 @@ import './GlobalAppsContrastPolish.css';
 import './GlobalAppsAndroidLauncher.css';
 import './GlobalNewsAndroidGoogle.css';
 import './GlobalNewsDrawerScroll.css';
+import './GlobalTextLabGoogleLarge.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
