@@ -23,7 +23,7 @@ const copy = {
     close: 'Đóng', search: 'Tìm nhanh', fontSize: 'Cỡ chữ', language: 'Ngôn ngữ', appearance: 'Giao diện',
     aiReady: 'AI sẵn sàng', aiOff: 'AI chưa cấu hình', profile: 'Hồ sơ và tùy chọn', openSettings: 'Mở cài đặt',
     workspace: 'Công việc', teaching: 'Dạy học', resourcesGroup: 'Học liệu', system: 'Hệ thống', toolsGroup: 'Ứng dụng',
-    justNow: 'Vừa xong', minutesAgo: 'phút trước', hoursAgo: 'giờ trước',
+    justNow: 'Vừa xong', minutesAgo: 'phút trước', hoursAgo: 'giờ trước', current: 'Đang mở',
   },
   en: {
     home: 'Home', apps: 'Apps', news: 'News', games: 'Games', dashboard: 'Dashboard', homeroom: 'Homeroom',
@@ -39,7 +39,7 @@ const copy = {
     close: 'Close', search: 'Quick search', fontSize: 'Text size', language: 'Language', appearance: 'Appearance',
     aiReady: 'AI ready', aiOff: 'AI not configured', profile: 'Profile and preferences', openSettings: 'Open settings',
     workspace: 'Workspace', teaching: 'Teaching', resourcesGroup: 'Resources', system: 'System', toolsGroup: 'Apps',
-    justNow: 'Just now', minutesAgo: 'min ago', hoursAgo: 'hr ago',
+    justNow: 'Just now', minutesAgo: 'min ago', hoursAgo: 'hr ago', current: 'Current',
   },
 };
 
@@ -132,7 +132,7 @@ function buildRegistry(language) {
 function canShow(entry, currentUser, visibilitySnapshot) {
   if (!entry) return false;
   if (!currentUser) return entry.route === 'home';
-  if (currentUser.role === 'admin') return true;
+  if (String(currentUser.role || '').toLowerCase() === 'admin') return true;
   const visibilityId = entry.kind === 'tool' ? entry.id : visibilityIdForRoute(entry.route);
   if (isAppHiddenForUser(visibilitySnapshot, currentUser, visibilityId)) return false;
   if (entry.kind === 'tool') return hasToolAccess(currentUser, entry.slug);
@@ -161,7 +161,7 @@ function normalizeNotification(detail = {}) {
     title: String(detail.title || detail.subject || 'Brian English'),
     message: String(detail.message || detail.body || detail.description || ''),
     source: String(detail.source || detail.app || ''),
-    kind: String(detail.kind || detail.type || 'info'),
+    kind: String(detail.kind || detail.type || 'info').replace(/[^a-z0-9_-]/gi, '').toLowerCase() || 'info',
     target: String(detail.target || detail.href || detail.url || ''),
     createdAt,
     read: Boolean(detail.read || detail.readAt || detail.read_at),
@@ -181,20 +181,46 @@ function relativeTime(value, language, t) {
   return new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(timestamp));
 }
 
+function resolveSafeNotificationTarget(target) {
+  const value = String(target || '').trim();
+  if (!value) return null;
+  if (value.startsWith('#/')) return { type: 'route', value };
+  try {
+    const url = new URL(value, window.location.origin);
+    if (!['http:', 'https:'].includes(url.protocol)) return null;
+    return { type: 'url', value: url.href };
+  } catch {
+    return null;
+  }
+}
+
 export default function GlobalFlatNavigation({
   route = 'home', selectedTool = null, language = 'vi', setLanguage, theme = 'light', setTheme,
   hasApiKey, currentUser, onLogout, fontScale = 100, setFontScale, appVisibility: externalAppVisibility,
 }) {
   const t = copy[language] || copy.vi;
-  const isAdmin = currentUser?.role === 'admin';
+  const isAdmin = String(currentUser?.role || '').toLowerCase() === 'admin';
   const appVisibility = externalAppVisibility || { snapshot: {} };
   const [launcherConfig, setLauncherConfig] = useState(() => normalizeLauncherConfig(loadLauncherConfig()));
   const [activePanel, setActivePanel] = useState(null);
   const [menuQuery, setMenuQuery] = useState('');
   const [notificationFilter, setNotificationFilter] = useState('all');
   const storageKey = useMemo(() => notificationStorageKey(currentUser), [currentUser?.id, currentUser?.email]);
-  const [notifications, setNotifications] = useState(() => readStoredNotifications(storageKey));
+  const [notificationState, setNotificationState] = useState(() => ({
+    key: storageKey,
+    items: readStoredNotifications(storageKey),
+  }));
   const panelRef = useRef(null);
+  const lastTriggerRef = useRef(null);
+
+  const notifications = notificationState.key === storageKey ? notificationState.items : [];
+  const updateNotifications = (updater) => {
+    setNotificationState((current) => {
+      const base = current.key === storageKey ? current.items : readStoredNotifications(storageKey);
+      const nextItems = typeof updater === 'function' ? updater(base) : updater;
+      return { key: storageKey, items: Array.isArray(nextItems) ? nextItems.slice(0, 100) : base };
+    });
+  };
 
   useEffect(() => {
     let active = true;
@@ -206,21 +232,31 @@ export default function GlobalFlatNavigation({
   }, []);
 
   useEffect(() => {
-    setNotifications(readStoredNotifications(storageKey));
+    setNotificationState({ key: storageKey, items: readStoredNotifications(storageKey) });
   }, [storageKey]);
 
   useEffect(() => {
-    try { window.localStorage.setItem(storageKey, JSON.stringify(notifications.slice(0, 100))); } catch { /* optional */ }
-  }, [notifications, storageKey]);
+    if (notificationState.key !== storageKey) return;
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(notificationState.items.slice(0, 100)));
+    } catch {
+      /* optional */
+    }
+  }, [notificationState, storageKey]);
 
   useEffect(() => {
     const onNotification = (event) => {
       const next = normalizeNotification(event.detail || {});
-      setNotifications((current) => [next, ...current.filter((item) => item.id !== next.id)].slice(0, 100));
+      updateNotifications((current) => [next, ...current.filter((item) => item.id !== next.id)]);
     };
-    const onOpen = () => setActivePanel('notifications');
+    const onOpen = (event) => {
+      lastTriggerRef.current = event?.detail?.trigger || document.activeElement;
+      setActivePanel('notifications');
+    };
     const onStorage = (event) => {
-      if (event.key === storageKey) setNotifications(readStoredNotifications(storageKey));
+      if (event.key === storageKey) {
+        setNotificationState({ key: storageKey, items: readStoredNotifications(storageKey) });
+      }
     };
     NOTIFICATION_EVENT_NAMES.forEach((name) => window.addEventListener(name, onNotification));
     window.addEventListener('bes-notification-center-open', onOpen);
@@ -232,9 +268,20 @@ export default function GlobalFlatNavigation({
     };
   }, [storageKey]);
 
+  const closePanel = () => {
+    setActivePanel(null);
+    window.setTimeout(() => lastTriggerRef.current?.focus?.(), 0);
+  };
+
+  const togglePanel = (panel, trigger) => {
+    lastTriggerRef.current = trigger || document.activeElement;
+    setActivePanel((current) => current === panel ? null : panel);
+    if (panel !== 'menu') setMenuQuery('');
+  };
+
   useEffect(() => {
     const onKeyDown = (event) => {
-      if (event.key === 'Escape') setActivePanel(null);
+      if (event.key === 'Escape') closePanel();
     };
     const onRoute = () => {
       setActivePanel(null);
@@ -249,17 +296,21 @@ export default function GlobalFlatNavigation({
   }, []);
 
   useEffect(() => {
-    if (!activePanel) return;
+    if (!activePanel) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     const timer = window.setTimeout(() => panelRef.current?.focus?.(), 40);
-    return () => window.clearTimeout(timer);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.clearTimeout(timer);
+    };
   }, [activePanel]);
 
   const registry = useMemo(() => buildRegistry(language), [language]);
   const entries = useMemo(() => {
     const navItems = Array.isArray(launcherConfig?.nav) ? launcherConfig.nav : [];
     const requested = navItems.length ? navItems : ['route:home', 'route:apps', 'route:news', 'route:games'];
-    const mandatory = ['route:home', 'route:apps'];
-    const ids = [...mandatory, ...requested];
+    const ids = ['route:home', 'route:apps', ...requested];
     if (isAdmin) ids.push('route:admin');
     const seen = new Set();
     return ids
@@ -292,9 +343,10 @@ export default function GlobalFlatNavigation({
   }, [entries, launcherConfig?.order, registry, currentUser, isAdmin, appVisibility?.snapshot]);
 
   const filteredDrawerEntries = useMemo(() => {
-    const query = menuQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi' : 'en');
+    const locale = language === 'vi' ? 'vi-VN' : 'en-US';
+    const query = menuQuery.trim().toLocaleLowerCase(locale);
     if (!query) return drawerEntries;
-    return drawerEntries.filter((entry) => `${entry.label} ${entry.slug || ''} ${entry.route || ''}`.toLocaleLowerCase().includes(query));
+    return drawerEntries.filter((entry) => `${entry.label} ${entry.slug || ''} ${entry.route || ''}`.toLocaleLowerCase(locale).includes(query));
   }, [drawerEntries, menuQuery, language]);
 
   const menuGroups = useMemo(() => GROUP_ORDER.map((group) => ({
@@ -318,21 +370,17 @@ export default function GlobalFlatNavigation({
     setFontScale?.(sizes[(index + 1) % sizes.length]);
   };
 
-  const togglePanel = (panel) => {
-    setActivePanel((current) => current === panel ? null : panel);
-    if (panel !== 'menu') setMenuQuery('');
-  };
-
   const markNotificationRead = (id) => {
-    setNotifications((current) => current.map((item) => item.id === id ? { ...item, read: true } : item));
+    updateNotifications((current) => current.map((item) => item.id === id ? { ...item, read: true } : item));
   };
 
   const openNotification = (item, event) => {
     markNotificationRead(item.id);
-    if (!item.target) return;
-    setActivePanel(null);
-    if (item.target.startsWith('#/')) go(item.target, item.title, activeColor, event.currentTarget);
-    else window.location.assign(item.target);
+    const target = resolveSafeNotificationTarget(item.target);
+    if (!target) return;
+    closePanel();
+    if (target.type === 'route') go(target.value, item.title, activeColor, event.currentTarget);
+    else window.location.assign(target.value);
   };
 
   return (
@@ -345,7 +393,7 @@ export default function GlobalFlatNavigation({
 
         <div className="brian-shell-context" style={{ '--context-accent': activeColor }}>
           <span aria-hidden="true">{activeEntry?.icon || String(selectedTool?.icon || 'BR').slice(0, 2)}</span>
-          <div><small>{language === 'vi' ? 'Đang mở' : 'Current'}</small><strong>{activeLabel}</strong></div>
+          <div><small>{t.current}</small><strong>{activeLabel}</strong></div>
         </div>
 
         <div className="brian-shell-primary" data-custom-launcher="true">
@@ -369,28 +417,56 @@ export default function GlobalFlatNavigation({
             <span aria-hidden="true">⌕</span><small>⌘K</small>
           </button>
           {currentUser ? (
-            <button type="button" className={`brian-shell-icon-button ${activePanel === 'notifications' ? 'active' : ''}`} onClick={() => togglePanel('notifications')} aria-label={`${t.notifications}: ${unreadCount}`} aria-expanded={activePanel === 'notifications'}>
+            <button
+              type="button"
+              className={`brian-shell-icon-button ${activePanel === 'notifications' ? 'active' : ''}`}
+              onClick={(event) => togglePanel('notifications', event.currentTarget)}
+              aria-label={`${t.notifications}: ${unreadCount}`}
+              aria-expanded={activePanel === 'notifications'}
+              aria-controls="brian-shell-panel-notifications"
+            >
               <span aria-hidden="true">♢</span>{unreadCount > 0 ? <b className="brian-shell-badge">{unreadCount > 99 ? '99+' : unreadCount}</b> : null}
             </button>
           ) : null}
-          <button type="button" className={`brian-shell-menu-button ${activePanel === 'menu' ? 'active' : ''}`} onClick={() => togglePanel('menu')} aria-expanded={activePanel === 'menu'}>
+          <button
+            type="button"
+            className={`brian-shell-menu-button ${activePanel === 'menu' ? 'active' : ''}`}
+            onClick={(event) => togglePanel('menu', event.currentTarget)}
+            aria-expanded={activePanel === 'menu'}
+            aria-controls="brian-shell-panel-menu"
+          >
             <span aria-hidden="true">☰</span><b>{t.menu}</b>
           </button>
-          <button type="button" className={`brian-shell-account ${activePanel === 'account' ? 'active' : ''}`} onClick={(event) => currentUser ? togglePanel('account') : go(`#/${accountRoute}`, 'ME', '#191515', event.currentTarget)} aria-expanded={currentUser ? activePanel === 'account' : undefined}>
+          <button
+            type="button"
+            className={`brian-shell-account ${activePanel === 'account' ? 'active' : ''}`}
+            onClick={(event) => currentUser ? togglePanel('account', event.currentTarget) : go(`#/${accountRoute}`, 'ME', '#191515', event.currentTarget)}
+            aria-expanded={currentUser ? activePanel === 'account' : undefined}
+            aria-controls={currentUser ? 'brian-shell-panel-account' : undefined}
+          >
             <span>{initial(currentUser?.name || currentUser?.email)}</span><strong>{accountName}</strong>
           </button>
         </div>
       </div>
 
       {activePanel ? (
-        <div className="brian-shell-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setActivePanel(null); }}>
-          <section ref={panelRef} tabIndex={-1} className={`brian-shell-panel brian-shell-panel-${activePanel}`} aria-label={activePanel === 'notifications' ? t.notifications : activePanel === 'menu' ? t.menuTitle : t.profile}>
+        <div className="brian-shell-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closePanel(); }}>
+          <section
+            ref={panelRef}
+            id={`brian-shell-panel-${activePanel}`}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            className={`brian-shell-panel brian-shell-panel-${activePanel}`}
+            aria-label={activePanel === 'notifications' ? t.notifications : activePanel === 'menu' ? t.menuTitle : t.profile}
+            data-testid={`brian-shell-panel-${activePanel}`}
+          >
             <header className="brian-shell-panel-header">
               <div>
                 <small>BRIAN ENGLISH</small>
                 <h2>{activePanel === 'notifications' ? t.notifications : activePanel === 'menu' ? t.menuTitle : t.profile}</h2>
               </div>
-              <button type="button" onClick={() => setActivePanel(null)} aria-label={t.close}>×</button>
+              <button type="button" onClick={closePanel} aria-label={t.close}>×</button>
             </header>
 
             {activePanel === 'menu' ? (
@@ -406,7 +482,7 @@ export default function GlobalFlatNavigation({
                       <h3>{group.label}</h3>
                       <div className="brian-shell-menu-grid">
                         {group.entries.map((entry) => (
-                          <button key={entry.id} type="button" className={activeId === entry.id ? 'active' : ''} style={{ '--item-accent': entry.color }} onClick={(event) => { setActivePanel(null); go(entry.target, entry.label, entry.color, event.currentTarget); }}>
+                          <button key={entry.id} type="button" className={activeId === entry.id ? 'active' : ''} style={{ '--item-accent': entry.color }} onClick={(event) => { closePanel(); go(entry.target, entry.label, entry.color, event.currentTarget); }}>
                             <span aria-hidden="true">{entry.icon}</span>
                             <div><b>{entry.label}</b><small>{entry.kind === 'tool' ? t.toolsGroup : group.label}</small></div>
                           </button>
@@ -427,11 +503,11 @@ export default function GlobalFlatNavigation({
                     <button type="button" className={notificationFilter === 'unread' ? 'active' : ''} onClick={() => setNotificationFilter('unread')}>{t.unread}<span>{unreadCount}</span></button>
                   </div>
                   <div className="brian-shell-notification-actions">
-                    <button type="button" disabled={!unreadCount} onClick={() => setNotifications((current) => current.map((item) => ({ ...item, read: true })))}>{t.markAll}</button>
-                    <button type="button" disabled={!notifications.some((item) => item.read)} onClick={() => setNotifications((current) => current.filter((item) => !item.read))}>{t.clearRead}</button>
+                    <button type="button" disabled={!unreadCount} onClick={() => updateNotifications((current) => current.map((item) => ({ ...item, read: true })))}>{t.markAll}</button>
+                    <button type="button" disabled={!notifications.some((item) => item.read)} onClick={() => updateNotifications((current) => current.filter((item) => !item.read))}>{t.clearRead}</button>
                   </div>
                 </div>
-                <div className="brian-shell-notification-list">
+                <div className="brian-shell-notification-list" aria-live="polite">
                   {visibleNotifications.map((item) => (
                     <article key={item.id} className={`${item.read ? 'read' : 'unread'} kind-${item.kind}`}>
                       <button type="button" className="brian-shell-notification-main" onClick={(event) => openNotification(item, event)}>
@@ -463,10 +539,10 @@ export default function GlobalFlatNavigation({
                   <button type="button" onClick={increaseFontSize}><span>A+</span><div><b>{t.fontSize}</b><small>{fontScale}%</small></div></button>
                   <button type="button" onClick={() => setLanguage?.(language === 'vi' ? 'en' : 'vi')}><span>文</span><div><b>{t.language}</b><small>{language === 'vi' ? 'Tiếng Việt' : 'English'}</small></div></button>
                   <button type="button" onClick={() => setTheme?.(theme === 'dark' ? 'light' : 'dark')}><span>{theme === 'dark' ? '☀' : '☾'}</span><div><b>{t.appearance}</b><small>{theme === 'dark' ? 'Dark' : 'Light'}</small></div></button>
-                  <button type="button" onClick={(event) => { setActivePanel(null); go('#/settings', 'AI', hasApiKey ? '#2bb7b3' : '#f7d23b', event.currentTarget); }}><span>AI</span><div><b>{hasApiKey ? t.aiReady : t.aiOff}</b><small>{t.openSettings}</small></div></button>
+                  <button type="button" onClick={(event) => { closePanel(); go('#/settings', 'AI', hasApiKey ? '#2bb7b3' : '#f7d23b', event.currentTarget); }}><span>AI</span><div><b>{hasApiKey ? t.aiReady : t.aiOff}</b><small>{t.openSettings}</small></div></button>
                 </div>
                 <div className="brian-shell-account-footer">
-                  <button type="button" onClick={(event) => { setActivePanel(null); go('#/settings', 'ST', routeColors.settings, event.currentTarget); }}>{t.openSettings}</button>
+                  <button type="button" onClick={(event) => { closePanel(); go('#/settings', 'ST', routeColors.settings, event.currentTarget); }}>{t.openSettings}</button>
                   <button type="button" className="danger" onClick={onLogout}>{t.logout}</button>
                 </div>
               </div>
