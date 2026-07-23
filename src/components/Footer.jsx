@@ -16,12 +16,12 @@ const ENGLISH_DETAILS = {
     'Master of Arts in Educational Management',
     'Currently pursuing Master of Arts in English Linguistics',
   ],
-  copyright: '© 2026 Brian English. All rights reserved.',
+  copyright: '© 2026 English Hub. All rights reserved.',
 };
 
 const VIETNAMESE_DETAILS = {
   language: 'VI',
-  name: 'NGUYỄN ANH TUẤN (THẦY)',
+  name: 'NGUYỄN ANH TUẤN (MR.)',
   role: 'Tổ trưởng chuyên môn tiếng Anh',
   school: 'Trường Trung – Tiểu học Pétrus Ký',
   phone: '0339 270798',
@@ -35,7 +35,7 @@ const VIETNAMESE_DETAILS = {
     'Thạc sĩ Quản lí giáo dục',
     'Đang theo học Thạc sĩ Ngôn ngữ Anh',
   ],
-  copyright: '© 2026 Brian English. Bảo lưu mọi quyền.',
+  copyright: '© 2026 English Hub. Bảo lưu mọi quyền.',
 };
 
 function DetailRow({ type, children }) {
@@ -54,14 +54,14 @@ export default function Footer({ language }) {
   return (
     <footer
       className={`footer footer-v10 signature-footer-v75 signature-footer-v50 ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
-      aria-label={isVi ? 'Thông tin Brian English' : 'Brian English information'}
+      aria-label={isVi ? 'Thông tin English Hub' : 'English Hub information'}
     >
       <div className="signature-footer-v50-main">
-        <section className="signature-footer-v50-brand" aria-label="Brian English, Pétrus Ký and Cambridge Assessment English">
+        <section className="signature-footer-v50-brand" aria-label="English Hub, Pétrus Ký and Cambridge Assessment English">
           <img
             className="signature-footer-v50-brian-logo"
             src="/brian-english-brand-logo.png"
-            alt="Brian English"
+            alt="English Hub"
           />
           <div className="signature-footer-v50-affiliations">
             <img src="/footer-pek-logo.png" alt="Pétrus Ký School" />
