@@ -1,1 +1,1 @@
-export { default } from './ReadingStudioSampleLibrary.jsx';
+export { default } from './ReadingStudioAccordionLibrary.jsx';
