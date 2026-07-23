@@ -3,6 +3,7 @@ import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalWorkHubNotificationBridge from './GlobalWorkHubNotificationBridge.jsx';
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalNotificationCenter.css';
+import './GlobalNotificationCenterLayoutFix.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
