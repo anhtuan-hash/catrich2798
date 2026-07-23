@@ -1,4 +1,4 @@
-name: Global shell navigation check
+name: Brian premium UI foundation check
 
 on:
   push:
@@ -9,7 +9,11 @@ on:
       - 'src/components/GlobalFlatNavigation.css'
       - 'src/components/StatusMenuBar.jsx'
       - 'src/components/TransferInboxBanner.jsx'
+      - 'src/pages/Home.jsx'
+      - 'src/pages/HomePremium.css'
+      - 'src/styles/brian-premium-tokens.css'
       - 'src/utils/globalNotifications.js'
+      - 'docs/design/BRIAN-PREMIUM-UI-BLUEPRINT.md'
       - 'tests/e2e/global-shell.spec.js'
       - '.github/workflows/global-shell-check.yml'
   pull_request:
@@ -18,7 +22,11 @@ on:
       - 'src/components/GlobalFlatNavigation.css'
       - 'src/components/StatusMenuBar.jsx'
       - 'src/components/TransferInboxBanner.jsx'
+      - 'src/pages/Home.jsx'
+      - 'src/pages/HomePremium.css'
+      - 'src/styles/brian-premium-tokens.css'
       - 'src/utils/globalNotifications.js'
+      - 'docs/design/BRIAN-PREMIUM-UI-BLUEPRINT.md'
       - 'tests/e2e/global-shell.spec.js'
       - '.github/workflows/global-shell-check.yml'
   workflow_dispatch:
@@ -43,7 +51,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify shell contracts
+      - name: Verify premium UI contracts
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
@@ -52,6 +60,10 @@ jobs:
           const status = fs.readFileSync('src/components/StatusMenuBar.jsx', 'utf8');
           const notifications = fs.readFileSync('src/utils/globalNotifications.js', 'utf8');
           const transfer = fs.readFileSync('src/components/TransferInboxBanner.jsx', 'utf8');
+          const home = fs.readFileSync('src/pages/Home.jsx', 'utf8');
+          const homeStyles = fs.readFileSync('src/pages/HomePremium.css', 'utf8');
+          const tokens = fs.readFileSync('src/styles/brian-premium-tokens.css', 'utf8');
+          const blueprint = fs.readFileSync('docs/design/BRIAN-PREMIUM-UI-BLUEPRINT.md', 'utf8');
           const browserTest = fs.readFileSync('tests/e2e/global-shell.spec.js', 'utf8');
 
           const requiredComponentTokens = [
@@ -69,7 +81,31 @@ jobs:
             '.brian-global-shell',
             '.brian-shell-menu-grid',
             '.brian-shell-notification-list',
+            'var(--bp-container)',
             '@media (max-width: 560px)',
+          ];
+          const requiredHomeTokens = [
+            'bp-home-hero',
+            'bp-tools-grid',
+            'bp-overview-section',
+            'WorkDashboard',
+            'lesson-plan-ai',
+            'reading-studio',
+            'exam-studio',
+          ];
+          const requiredHomeStyleTokens = [
+            '.bp-home-hero',
+            '.bp-tool-card',
+            '.bp-overview-grid',
+            'grid-template-columns: repeat(5',
+            '@media (max-width: 680px)',
+          ];
+          const requiredDesignTokens = [
+            '--bp-bg',
+            '--bp-primary',
+            '--bp-container',
+            '--bp-radius-xl',
+            '--bp-shadow-lg',
           ];
           const requiredNotificationTokens = [
             'publishGlobalNotification',
@@ -89,23 +125,17 @@ jobs:
             'document.documentElement.scrollWidth <= window.innerWidth + 1',
           ];
 
-          for (const token of requiredComponentTokens) {
-            if (!component.includes(token)) throw new Error(`Missing component contract: ${token}`);
-          }
-          for (const token of requiredStyleTokens) {
-            if (!styles.includes(token)) throw new Error(`Missing style contract: ${token}`);
-          }
-          for (const token of requiredNotificationTokens) {
-            if (!notifications.includes(token)) throw new Error(`Missing notification contract: ${token}`);
-          }
-          for (const token of requiredTransferTokens) {
-            if (!transfer.includes(token)) throw new Error(`Missing transfer notification contract: ${token}`);
-          }
-          for (const token of requiredBrowserTokens) {
-            if (!browserTest.includes(token)) throw new Error(`Missing browser smoke contract: ${token}`);
-          }
+          for (const token of requiredComponentTokens) if (!component.includes(token)) throw new Error(`Missing component contract: ${token}`);
+          for (const token of requiredStyleTokens) if (!styles.includes(token)) throw new Error(`Missing shell style contract: ${token}`);
+          for (const token of requiredHomeTokens) if (!home.includes(token)) throw new Error(`Missing homepage contract: ${token}`);
+          for (const token of requiredHomeStyleTokens) if (!homeStyles.includes(token)) throw new Error(`Missing homepage style contract: ${token}`);
+          for (const token of requiredDesignTokens) if (!tokens.includes(token)) throw new Error(`Missing design token: ${token}`);
+          for (const token of requiredNotificationTokens) if (!notifications.includes(token)) throw new Error(`Missing notification contract: ${token}`);
+          for (const token of requiredTransferTokens) if (!transfer.includes(token)) throw new Error(`Missing transfer notification contract: ${token}`);
+          for (const token of requiredBrowserTokens) if (!browserTest.includes(token)) throw new Error(`Missing browser smoke contract: ${token}`);
           if (!status.includes('return null')) throw new Error('Duplicate StatusMenuBar was not retired');
-          console.log('Global shell static contracts passed.');
+          if (!blueprint.includes('Current boundary')) throw new Error('Premium UI migration boundary is undocumented');
+          console.log('Brian premium UI foundation contracts passed.');
           NODE
 
       - name: Build Brian
