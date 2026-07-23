@@ -1,0 +1,25 @@
+/* Remove the nested rectangular focus ring inside the Material search pill. */
+body .global-command-palette .command-palette-header input,
+body .global-command-palette .command-palette-header input:hover,
+body .global-command-palette .command-palette-header input:focus,
+body .global-command-palette .command-palette-header input:focus-visible,
+body .global-command-palette .command-palette-header input:active {
+  border: 0 !important;
+  outline: 0 !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+body .global-command-palette .command-palette-header input::-moz-focus-inner {
+  border: 0 !important;
+  padding: 0 !important;
+}
+
+/* Keep one soft, rounded focus treatment on the whole Google-style search field. */
+body .global-command-palette .command-palette-header:focus-within {
+  border-color: #a8c7fa !important;
+  box-shadow: 0 0 0 2px rgba(11, 87, 208, 0.16) !important;
+}
