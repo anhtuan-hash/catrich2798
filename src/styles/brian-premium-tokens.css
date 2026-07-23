@@ -1,0 +1,75 @@
+:root {
+  --bp-bg: #f7f6f1;
+  --bp-surface: #ffffff;
+  --bp-surface-soft: #fbfbf8;
+  --bp-surface-tint: #f1f5ec;
+  --bp-ink: #17211b;
+  --bp-ink-2: #34423a;
+  --bp-muted: #6d786f;
+  --bp-line: rgba(34, 55, 42, .12);
+  --bp-line-strong: rgba(34, 55, 42, .2);
+  --bp-primary: #1e5f3d;
+  --bp-primary-2: #2f7a4d;
+  --bp-primary-soft: #e9f2e7;
+  --bp-sage: #86a871;
+  --bp-blue: #4d84d9;
+  --bp-amber: #d99b2b;
+  --bp-violet: #8b6bd8;
+  --bp-danger: #cf4f4f;
+  --bp-radius-xs: 8px;
+  --bp-radius-sm: 12px;
+  --bp-radius-md: 16px;
+  --bp-radius-lg: 22px;
+  --bp-radius-xl: 30px;
+  --bp-radius-round: 999px;
+  --bp-shadow-xs: 0 1px 2px rgba(22, 34, 27, .05);
+  --bp-shadow-sm: 0 8px 24px rgba(22, 34, 27, .08);
+  --bp-shadow-md: 0 18px 48px rgba(22, 34, 27, .11);
+  --bp-shadow-lg: 0 32px 80px rgba(22, 34, 27, .16);
+  --bp-container: 1440px;
+  --bp-gap-1: 4px;
+  --bp-gap-2: 8px;
+  --bp-gap-3: 12px;
+  --bp-gap-4: 16px;
+  --bp-gap-5: 24px;
+  --bp-gap-6: 32px;
+  --bp-gap-7: 48px;
+  --bp-gap-8: 64px;
+  --bp-ease: cubic-bezier(.22, .8, .2, 1);
+}
+
+html[data-theme='dark'] {
+  --bp-bg: #0f1511;
+  --bp-surface: #151d17;
+  --bp-surface-soft: #19231c;
+  --bp-surface-tint: #1e2a21;
+  --bp-ink: #f0f5f1;
+  --bp-ink-2: #d5ded7;
+  --bp-muted: #98a59b;
+  --bp-line: rgba(224, 238, 227, .11);
+  --bp-line-strong: rgba(224, 238, 227, .2);
+  --bp-primary: #77b98a;
+  --bp-primary-2: #92c79f;
+  --bp-primary-soft: #23372a;
+  --bp-shadow-xs: 0 1px 2px rgba(0, 0, 0, .22);
+  --bp-shadow-sm: 0 8px 24px rgba(0, 0, 0, .28);
+  --bp-shadow-md: 0 18px 48px rgba(0, 0, 0, .34);
+  --bp-shadow-lg: 0 32px 80px rgba(0, 0, 0, .42);
+}
+
+.app-shell {
+  background: var(--bp-bg);
+  color: var(--bp-ink);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+*:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--bp-primary) 35%, transparent);
+  outline-offset: 2px;
+}
