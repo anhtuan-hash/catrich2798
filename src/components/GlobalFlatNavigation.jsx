@@ -11,7 +11,7 @@ import './GlobalCommandPaletteFocusFix.css';
 import './GlobalHomeDashboardRemoval.css';
 import './GlobalHomeGooglePolish.css';
 import './GlobalHome16x9Fit.css';
-import './GlobalHomeFullFooter.css';
+import './GlobalHomeOriginalFooter.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
