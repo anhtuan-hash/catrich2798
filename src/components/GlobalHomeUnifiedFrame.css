@@ -1,0 +1,249 @@
+/* English Hub home: navigation, content and footer share one full-width visual frame. */
+
+@media (min-width: 900px) and (min-height: 620px) {
+  body .metro-clean-system[data-route='home'] {
+    --eh-home-nav-height: 84px;
+    --eh-home-footer-height: 58px;
+    position: relative !important;
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100svh !important;
+    min-height: 100svh !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    background: #f8fafd !important;
+  }
+
+  /* Hub điều hướng */
+  body .metro-clean-system[data-route='home'] > .bes-top-chrome {
+    position: relative !important;
+    top: auto !important;
+    z-index: 1000 !important;
+    width: 100% !important;
+    height: var(--eh-home-nav-height) !important;
+    min-height: var(--eh-home-nav-height) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid rgba(60, 64, 67, .10) !important;
+    box-shadow: 0 1px 3px rgba(60, 64, 67, .08) !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .brian-nav {
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 10px clamp(28px, 4vw, 72px) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    grid-template-columns: auto auto minmax(280px, 1fr) auto !important;
+    gap: clamp(12px, 1.5vw, 24px) !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .brian-nav__brand {
+    padding-inline: 0 10px !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .brian-nav__search {
+    max-width: none !important;
+    border-radius: 999px !important;
+    background: #f1f3f4 !important;
+  }
+
+  /* Hub nội dung */
+  body .metro-clean-system[data-route='home'] > main.wp8-page-stage,
+  body .metro-clean-system[data-route='home'] > .wp8-page-stage[data-route='home'] {
+    position: relative !important;
+    z-index: 1 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: calc(100svh - var(--eh-home-nav-height) - var(--eh-home-footer-height)) !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    display: block !important;
+    background: #f8fafd !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .brian-overlap-home {
+    position: relative !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    aspect-ratio: auto !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+    background: #f8fafd !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .brian-overlap-home > .boh-hero,
+  body .metro-clean-system[data-route='home'] .brian-overlap-home .boh-hero {
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    aspect-ratio: auto !important;
+    margin: 0 !important;
+    grid-template-columns: minmax(440px, 40%) minmax(0, 60%) !important;
+    background:
+      linear-gradient(90deg, #ffffff 0 39.8%, #f8fafd 39.8% 100%) !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .boh-copy-panel {
+    padding: clamp(32px, 4vh, 54px) clamp(28px, 3.5vw, 64px) 24px clamp(42px, 6vw, 104px) !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .boh-stage {
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Let the application composition use the extra horizontal room. */
+  body .metro-clean-system[data-route='home'] .boh-stage .boh-card {
+    max-width: none !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .boh-card-textcare { --eh-shift-x: 34px; }
+  body .metro-clean-system[data-route='home'] .boh-card-exam-studio { --eh-shift-x: 42px; }
+  body .metro-clean-system[data-route='home'] .boh-card-lesson-plan-ai { --eh-shift-x: -6px; }
+  body .metro-clean-system[data-route='home'] .boh-card-reading-studio { --eh-shift-x: 44px; }
+  body .metro-clean-system[data-route='home'] .boh-card-game-hub { --eh-shift-x: -18px; }
+  body .metro-clean-system[data-route='home'] .boh-card-notifications { --eh-shift-x: 52px; }
+  body .metro-clean-system[data-route='home'] .boh-card-library { --eh-shift-x: -12px; }
+
+  /* Hub footer: compact on Home so all three hubs remain in one screen. */
+  body .metro-clean-system[data-route='home'] > footer.signature-footer-v50,
+  body .metro-clean-system[data-route='home'] footer.signature-footer-v50 {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 40 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: var(--eh-home-footer-height) !important;
+    min-height: var(--eh-home-footer-height) !important;
+    margin: 0 !important;
+    padding: 0 clamp(28px, 4vw, 72px) !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-top: 1px solid rgba(60, 64, 67, .10) !important;
+    border-radius: 0 !important;
+    background: rgba(255,255,255,.98) !important;
+    box-shadow: 0 -1px 3px rgba(60,64,67,.06) !important;
+    color: #3c4043 !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .signature-footer-v50-main {
+    height: 100% !important;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 22px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .signature-footer-v50-brand {
+    display: flex !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .signature-footer-v50-brian-logo {
+    width: 112px !important;
+    max-height: 34px !important;
+    object-fit: contain !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .signature-footer-v50-affiliations,
+  body .metro-clean-system[data-route='home'] .signature-footer-v50-credentials,
+  body .metro-clean-system[data-route='home'] .signature-footer-v50-language-badge,
+  body .metro-clean-system[data-route='home'] .signature-footer-v50-details > li:not(.detail-role),
+  body .metro-clean-system[data-route='home'] .signature-footer-v50-bottom > *:not(:first-child) {
+    display: none !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .signature-footer-v50-profile {
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .signature-footer-v50-profile h2 {
+    margin: 0 !important;
+    color: #1f1f1f !important;
+    font-size: .88rem !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .signature-footer-v50-details {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .signature-footer-v50-detail.detail-role {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 6px 10px !important;
+    border-radius: 999px !important;
+    background: #eef3fd !important;
+    color: #185abc !important;
+    font-size: .75rem !important;
+    white-space: nowrap !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .signature-footer-v50-detail-icon {
+    display: none !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .signature-footer-v50-bottom {
+    position: absolute !important;
+    right: clamp(28px, 4vw, 72px) !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: #5f6368 !important;
+    font-size: .72rem !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (max-width: 899px), (max-height: 619px) {
+  body .metro-clean-system[data-route='home'] {
+    width: 100% !important;
+    min-height: 100svh !important;
+    overflow-x: hidden !important;
+  }
+
+  body .metro-clean-system[data-route='home'] .brian-overlap-home {
+    width: 100% !important;
+    max-width: none !important;
+    aspect-ratio: auto !important;
+  }
+}
