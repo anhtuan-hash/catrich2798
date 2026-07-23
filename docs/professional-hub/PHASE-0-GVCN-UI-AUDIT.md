@@ -429,13 +429,12 @@ Hub Chuyên môn mới phải tham chiếu trực tiếp và đầy đủ ứng 
 
 | Trạng thái | Viewport | SHA-256 |
 | --- | --- | --- |
-| Desktop — Tổng quan | 1440×960 | `baf2e57b28a1b885732232f25dbe00e6b7f04657c364e052abcd68ab4c2adc17` |
-| iPad ngang — Tổng quan | 1180×820 | `16119590dad835a03844559df25ac164b20d1452e10261146a2bc628bae388d6` |
-| iPad dọc — Tổng quan | 820×1180 | `799656a424a82f66e12acda7878fc7e7f5a54aafd2d5e72e9d7bacf93a54fe65` |
-| Desktop — Drawer | 1440×960 | `9a09521bb72a3c7058fef80804e5feb3da05210c9936bdf7001a686a84f2eee8` |
-| Desktop — Modal | 1440×960 | `cadd72d300f3119b28e99f2ec9b2e50b3436a9d18eb0b3639ad334d9b6b58308` |
-| Desktop — Menu hàng cuối | 1440×960 | `bcb9be63c7a90a0676df02b42b072fb72dd96760ec6483d9a4099fafa0b45b75` |
-| Desktop — Empty/Loading/Error | 1440×960 | `063b9f0c46520cd9fbbe674cf9953dd014686e5301a7ba1b1f9e16fb7fe21778` |
+| Desktop — Tổng quan | 1440×960 | `9ad323b34026e1219e6a5cf19019eb275ae2bd63fff6123637d05b560903c768` |
+| iPad ngang — Tổng quan | 1180×820 | `8c75bb317cba1be71a49ef79c2360df9febfba37c9b3aa75be9a90793ae193c4` |
+| iPad dọc — Tổng quan | 820×1180 | `c9a6b4d8b613540cfa90f0e68e0d27cbddb6bc4da9d61af2b1f753353eea52ee` |
+| Desktop — Drawer | 1440×960 | `ccf2def801fcb4c99c4e3e1d043c89d90c75a8c80565fe6206eea3bd4ad95a3f` |
+| Desktop — Modal | 1440×960 | `d10552639aae343ddda8771799da284fc1caffc12d04fffd50216bbd5746ff93` |
+| Desktop — Menu hàng cuối | 1440×960 | `e6da6688742c12c1a1c64ef16f0ac4ff80d7f3c70b5234d4a9408f7622a4abec` |
 
 Ảnh local nằm trong:
 
