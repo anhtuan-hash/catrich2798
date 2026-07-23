@@ -100,4 +100,4 @@ Each migration phase must satisfy:
 
 ## Current boundary
 
-This branch completes the Foundation, Applications Directory and Work Dashboard migrations. The next implementation boundary is the shared component layer followed by Work Hub, Homeroom and Professional Hub. Their business logic remains untouched until the shared form, toolbar, table and dialog primitives are stable.
+This branch completes the Foundation, Applications Directory and Work Dashboard migrations. The next implementation boundary is a dedicated shared-primitives module for forms, toolbars, tables, empty states and dialogs, followed by Work Hub, Homeroom and Professional Hub. Their business logic remains untouched until those shared primitives are stable.
