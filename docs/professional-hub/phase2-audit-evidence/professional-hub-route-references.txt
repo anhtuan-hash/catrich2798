@@ -1,0 +1,104 @@
+src/apps/professional-hub/ProfessionalHubApp.jsx:3:import './professional-hub.css';
+src/apps/professional-hub/ProfessionalHubApp.jsx:109:      className="hr-tabs professional-hub-tabs"
+src/apps/professional-hub/ProfessionalHubApp.jsx:130:    <article className={`hr-stat professional-hub-metric ${metric.tone}`}>
+src/apps/professional-hub/ProfessionalHubApp.jsx:146:    <section className={`hr-empty professional-hub-empty ${compact ? 'is-compact' : ''}`}>
+src/apps/professional-hub/ProfessionalHubApp.jsx:147:      <span className="professional-hub-empty-mark" aria-hidden="true">{icon}</span>
+src/apps/professional-hub/ProfessionalHubApp.jsx:149:        <p className="professional-hub-kicker">{eyebrow}</p>
+src/apps/professional-hub/ProfessionalHubApp.jsx:163:    <aside className="hr-panel professional-hub-account-panel">
+src/apps/professional-hub/ProfessionalHubApp.jsx:164:      <header className="professional-hub-panel-header">
+src/apps/professional-hub/ProfessionalHubApp.jsx:166:          <p className="professional-hub-kicker">
+src/apps/professional-hub/ProfessionalHubApp.jsx:171:        <span className="professional-hub-status-dot" aria-hidden="true" />
+src/apps/professional-hub/ProfessionalHubApp.jsx:174:      <dl className="professional-hub-account-list">
+src/apps/professional-hub/ProfessionalHubApp.jsx:193:      <p className="professional-hub-account-note">
+src/apps/professional-hub/ProfessionalHubApp.jsx:208:    <div className="hr-tab-stack professional-hub-tab-stack">
+src/apps/professional-hub/ProfessionalHubApp.jsx:210:        className="hr-stat-grid professional-hub-stat-grid"
+src/apps/professional-hub/ProfessionalHubApp.jsx:222:      <section className="hr-overview-grid professional-hub-overview-grid">
+src/apps/professional-hub/ProfessionalHubApp.jsx:223:        <div className="professional-hub-main-column">
+src/apps/professional-hub/ProfessionalHubApp.jsx:224:          <section className="hr-panel professional-hub-activity-panel">
+src/apps/professional-hub/ProfessionalHubApp.jsx:225:            <header className="professional-hub-panel-header">
+src/apps/professional-hub/ProfessionalHubApp.jsx:227:                <p className="professional-hub-kicker">
+src/apps/professional-hub/ProfessionalHubApp.jsx:246:          <section className="hr-panel professional-hub-schedule-panel">
+src/apps/professional-hub/ProfessionalHubApp.jsx:247:            <header className="professional-hub-panel-header">
+src/apps/professional-hub/ProfessionalHubApp.jsx:249:                <p className="professional-hub-kicker">
+src/apps/professional-hub/ProfessionalHubApp.jsx:287:    <section className="hr-panel professional-hub-section-empty">
+src/apps/professional-hub/ProfessionalHubApp.jsx:298:export default function ProfessionalHubApp({
+src/apps/professional-hub/ProfessionalHubApp.jsx:314:      className="page hr-page professional-hub-page"
+src/apps/professional-hub/ProfessionalHubApp.jsx:315:      data-professional-hub-phase="1.4"
+src/apps/professional-hub/ProfessionalHubApp.jsx:317:      <section className="hr-hero professional-hub-hero">
+src/apps/professional-hub/ProfessionalHubApp.jsx:328:        <div className="hr-hero-art professional-hub-hero-art" aria-hidden="true">
+src/apps/professional-hub/ProfessionalHubApp.jsx:329:          <div className="hr-board professional-hub-board">
+src/apps/professional-hub/ProfessionalHubApp.jsx:340:        <aside className="hr-hero-meta professional-hub-hero-meta">
+src/apps/professional-hub/ProfessionalHubApp.jsx:356:      <main className="hr-workspace-body professional-hub-workspace">
+src/apps/professional-hub/professional-hub.css:1:.professional-hub-page {
+src/apps/professional-hub/professional-hub.css:2:  --professional-hub-accent: var(--route-accent, #1f8f70);
+src/apps/professional-hub/professional-hub.css:3:  --professional-hub-soft: var(--route-soft, #ddf7ed);
+src/apps/professional-hub/professional-hub.css:4:  --professional-hub-ink: var(--route-ink, #0b382b);
+src/apps/professional-hub/professional-hub.css:11:.professional-hub-hero {
+src/apps/professional-hub/professional-hub.css:15:.professional-hub-board {
+src/apps/professional-hub/professional-hub.css:19:      color-mix(in srgb, var(--professional-hub-accent) 84%, #0b382b),
+src/apps/professional-hub/professional-hub.css:20:      var(--professional-hub-ink)
+src/apps/professional-hub/professional-hub.css:24:.professional-hub-board b {
+src/apps/professional-hub/professional-hub.css:28:.professional-hub-hero-meta {
+src/apps/professional-hub/professional-hub.css:32:.professional-hub-tabs {
+src/apps/professional-hub/professional-hub.css:37:.professional-hub-workspace,
+src/apps/professional-hub/professional-hub.css:38:.professional-hub-tab-stack,
+src/apps/professional-hub/professional-hub.css:39:.professional-hub-overview-grid,
+src/apps/professional-hub/professional-hub.css:40:.professional-hub-main-column {
+src/apps/professional-hub/professional-hub.css:44:.professional-hub-tab-stack {
+src/apps/professional-hub/professional-hub.css:49:.professional-hub-stat-grid {
+src/apps/professional-hub/professional-hub.css:56:.professional-hub-metric {
+src/apps/professional-hub/professional-hub.css:70:.professional-hub-metric > strong {
+src/apps/professional-hub/professional-hub.css:76:  color: var(--professional-hub-ink) !important;
+src/apps/professional-hub/professional-hub.css:83:.professional-hub-metric > b,
+src/apps/professional-hub/professional-hub.css:84:.professional-hub-metric > span {
+src/apps/professional-hub/professional-hub.css:96:.professional-hub-metric > b {
+src/apps/professional-hub/professional-hub.css:102:.professional-hub-metric > span {
+src/apps/professional-hub/professional-hub.css:109:.professional-hub-overview-grid {
+src/apps/professional-hub/professional-hub.css:116:.professional-hub-main-column {
+src/apps/professional-hub/professional-hub.css:121:.professional-hub-activity-panel,
+src/apps/professional-hub/professional-hub.css:122:.professional-hub-schedule-panel,
+src/apps/professional-hub/professional-hub.css:123:.professional-hub-account-panel,
+src/apps/professional-hub/professional-hub.css:124:.professional-hub-section-empty {
+src/apps/professional-hub/professional-hub.css:129:.professional-hub-panel-header {
+src/apps/professional-hub/professional-hub.css:137:.professional-hub-panel-header h2 {
+src/apps/professional-hub/professional-hub.css:144:.professional-hub-kicker {
+src/apps/professional-hub/professional-hub.css:146:  color: var(--professional-hub-accent);
+src/apps/professional-hub/professional-hub.css:152:.professional-hub-empty {
+src/apps/professional-hub/professional-hub.css:159:  border: 1px dashed color-mix(in srgb, var(--professional-hub-accent) 28%, transparent) !important;
+src/apps/professional-hub/professional-hub.css:164:      color-mix(in srgb, var(--professional-hub-soft) 56%, white),
+src/apps/professional-hub/professional-hub.css:170:.professional-hub-empty.is-compact {
+src/apps/professional-hub/professional-hub.css:174:.professional-hub-empty-mark {
+src/apps/professional-hub/professional-hub.css:179:  border: 1px solid color-mix(in srgb, var(--professional-hub-accent) 28%, transparent);
+src/apps/professional-hub/professional-hub.css:181:  background: var(--professional-hub-soft);
+src/apps/professional-hub/professional-hub.css:182:  color: var(--professional-hub-ink);
+src/apps/professional-hub/professional-hub.css:187:.professional-hub-empty h2 {
+src/apps/professional-hub/professional-hub.css:194:.professional-hub-empty p {
+src/apps/professional-hub/professional-hub.css:201:.professional-hub-account-panel {
+src/apps/professional-hub/professional-hub.css:209:.professional-hub-account-panel::before,
+src/apps/professional-hub/professional-hub.css:210:.professional-hub-account-panel::after {
+src/apps/professional-hub/professional-hub.css:215:.professional-hub-status-dot {
+src/apps/professional-hub/professional-hub.css:225:.professional-hub-account-list {
+src/apps/professional-hub/professional-hub.css:230:.professional-hub-account-list > div {
+src/apps/professional-hub/professional-hub.css:238:.professional-hub-account-list dt,
+src/apps/professional-hub/professional-hub.css:239:.professional-hub-account-list dd {
+src/apps/professional-hub/professional-hub.css:246:.professional-hub-account-list dt {
+src/apps/professional-hub/professional-hub.css:253:.professional-hub-account-list dd {
+src/apps/professional-hub/professional-hub.css:261:.professional-hub-account-note {
+src/apps/professional-hub/professional-hub.css:268:.professional-hub-section-empty {
+src/apps/professional-hub/professional-hub.css:272:.professional-hub-section-empty > .professional-hub-empty {
+src/apps/professional-hub/professional-hub.css:278:  .professional-hub-stat-grid {
+src/apps/professional-hub/professional-hub.css:282:  .professional-hub-overview-grid {
+src/apps/professional-hub/professional-hub.css:286:  .professional-hub-account-panel {
+src/apps/professional-hub/professional-hub.css:292:  .professional-hub-page {
+src/apps/professional-hub/professional-hub.css:296:  .professional-hub-stat-grid {
+src/apps/professional-hub/professional-hub.css:300:  .professional-hub-metric {
+src/apps/professional-hub/professional-hub.css:304:  .professional-hub-account-list > div {
+src/apps/professional-hub/professional-hub.css:309:  .professional-hub-empty {
+src/apps/professional-hub/professional-hub.css:315:  .professional-hub-page *,
+src/apps/professional-hub/professional-hub.css:316:  .professional-hub-page *::before,
+src/apps/professional-hub/professional-hub.css:317:  .professional-hub-page *::after {
+src/data/apps.js:3:    slug: 'professional-hub',
+src/data/designProfiles.js:2:  'professional-hub': {
+src/pages/ToolPage.jsx:18:const ProfessionalHubApp = lazy(() => import('../apps/professional-hub/ProfessionalHubApp.jsx'));
+src/pages/ToolPage.jsx:70:  if (tool?.slug === 'professional-hub') {
+src/pages/ToolPage.jsx:71:    return renderLazy(ProfessionalHubApp, props);

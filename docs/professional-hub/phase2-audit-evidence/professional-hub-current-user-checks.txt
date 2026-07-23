@@ -1,0 +1,6 @@
+ProfessionalHubApp receives currentUser: YES
+ProfessionalHubApp receives language: YES
+ToolPage references ProfessionalHub: YES
+ToolPage passes props or currentUser: YES
+Professional Hub has separate login UI: NO
+Professional Hub has hard-coded teacher roster: NO

@@ -1,0 +1,46 @@
+scripts/audit-openrouter-only-v11.6.7.mjs:25:add('Browser AI client obtains Supabase session token', browserClient.includes('supabase.auth.getSession()') && browserClient.includes('AI_AUTH_REQUIRED'));
+scripts/check-v11.4.2.mjs:24:pass('Supabase singleton reused',wrapper.includes('getSupabasePublicConfig')&&wrapper.includes('supabase.auth.getSession'));
+scripts/check-v11.5.3.mjs:14:pass('browser recorder',source.includes('MediaRecorder')&&source.includes('getUserMedia'));
+src/components/LessonArchitectCurriculumBuilder.jsx:149:      const sessionResult = supabase ? await supabase.auth.getSession() : { data: { session: null } };
+src/pages/AdminPage.jsx:2:import { getUsers, isAuthConfigured, repairCurrentAdminDatabaseRole, syncMissingProfilesFromAuth, updateUserApproval, updateUserPermissions, updateUserRole } from '../utils/auth.js';
+src/pages/AdminPage.jsx:217:      const [nextUsers, nextRequests] = await Promise.all([getUsers(), getPermissionRequests()]);
+src/pages/AdminPage.jsx:285:      const grant = await updateUserPermissions(target.id, createCustomPermissions(nextAllowed));
+src/pages/AdminPage.jsx:612:                  <button className="metro-small-btn" disabled={loading || user.id === currentUser.id} onClick={() => runAction(() => updateUserRole(user.id, user.role === 'admin' ? 'teacher' : 'admin'))}>
+src/pages/AdminPage.jsx:615:                  <button className="metro-small-btn" disabled={loading || user.id === currentUser.id} onClick={() => runAction(() => updateUserApproval(user.id, !user.approved))}>
+src/pages/AdminPage.jsx:625:                    () => updateUserPermissions(user.id, permissions),
+src/pages/AutomationCenter.jsx:84:  useEffect(() => installAutomationRunner({ getUser: () => currentUser, getRules: () => stateRef.current.rules }), [currentUser]);
+src/pages/SystemHealthCenter.jsx:49:  const { error } = await supabase.auth.getSession();
+src/services/runtime/core.js:117:      const { data, error } = await supabase.auth.getSession();
+src/services/runtime/core.js:122:        const subscription = supabase.auth.onAuthStateChange((_event, session) => {
+src/utils/auth.js:139:  const { data: sessionData } = await supabase.auth.getSession();
+src/utils/auth.js:235:  const { data, error } = await supabase.auth.getSession();
+src/utils/auth.js:240:    await supabase.auth.signOut();
+src/utils/auth.js:252:  const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
+src/utils/auth.js:258:      window.setTimeout(() => supabase.auth.signOut(), 0);
+src/utils/auth.js:338:  const { data, error } = await supabase.auth.signInWithPassword({
+src/utils/auth.js:375:    await supabase.auth.signOut();
+src/utils/auth.js:387:  const { error } = await supabase.auth.resetPasswordForEmail(normalizeEmail(email), { redirectTo });
+src/utils/auth.js:400:  const { data: sessionData } = await supabase.auth.getSession();
+src/utils/auth.js:404:  const { error } = await supabase.auth.updateUser({ password: cleanPassword });
+src/utils/auth.js:419:  const { data: userData, error: userError } = await supabase.auth.getUser();
+src/utils/auth.js:433:    const verify = await supabase.auth.signInWithPassword({
+src/utils/auth.js:444:  const { error } = await supabase.auth.updateUser(payload);
+src/utils/auth.js:467:export async function getUsers() {
+src/utils/auth.js:478:    const { data: sessionData } = await supabase.auth.getSession();
+src/utils/auth.js:542:export async function updateUserRole(id, role) {
+src/utils/auth.js:546:export async function updateUserApproval(id, approved) {
+src/utils/auth.js:550:export async function updateUserPermissions(id, permissions) {
+src/utils/auth.js:585:    const { data, error } = await supabase.auth.getUser();
+src/utils/auth.js:612:    const { data: userData, error: userError } = await supabase.auth.getUser();
+src/utils/auth.js:621:    const { error } = await supabase.auth.updateUser({ data: nextMetadata });
+src/utils/automationEngine.js:367:export function installAutomationRunner({ getUser, getRules } = {}) {
+src/utils/automationEngine.js:373:    const user = typeof getUser === 'function' ? getUser() : null;
+src/utils/automationEngine.js:379:    const user = typeof getUser === 'function' ? getUser() : null;
+src/utils/collaborationGovernance.js:421:      const { data: sessionData } = await client.auth.getSession();
+src/utils/mediaCapture.js:26:    mediaDevices: Boolean(typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia),
+src/utils/mediaCapture.js:58:  if (!support.mediaDevices) throw new DOMException('getUserMedia is unavailable.', 'NotSupportedError');
+src/utils/mediaCapture.js:59:  return navigator.mediaDevices.getUserMedia({
+src/utils/resourceLibrary.js:105:  const { data: auth } = await supabase.auth.getUser();
+src/utils/resourceLibrary.js:181:  const { data: auth } = await supabase.auth.getUser();
+src/utils/resourceLibrary.js:222:  const { data } = await supabase.auth.getSession();
+src/utils/workHubResourceArchive.js:49:  const { data: sessionData } = await client.auth.getSession();

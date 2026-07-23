@@ -1,0 +1,764 @@
+scripts/audit-chatbot-drawer-layout-fix.mjs:9:  ['Drawer là complementary workspace', component.includes('role="complementary"')],
+scripts/audit-dashboard-modern-fix-v11.6.7.mjs:20:add('Empty snapshot is role aware', aggregator.includes('createEmptyDashboardSnapshot') && aggregator.includes("role: leader ? 'leader' : 'teacher'"));
+scripts/audit-linked-app-launcher-v11.6.7.mjs:7:import { canPublishDepartment } from '../src/utils/permissions.js';
+scripts/audit-linked-app-launcher-v11.6.7.mjs:23:add('TTCM creation defaults approved', canPublishDepartment({ role: 'ttcm' }) && canPublishDepartment({ role: 'department_head' }));
+scripts/audit-linked-app-launcher-v11.6.7.mjs:24:add('Normal teacher cannot review', !canPublishDepartment({ role: 'teacher' }));
+scripts/audit-openrouter-only-v11.6.7.mjs:30:add('AI endpoint requires approved authenticated roles', api.includes("requireApprovedUser(req, { roles: ['admin', 'department_head', 'teacher'] })"));
+scripts/audit-openrouter-only-v11.6.7.mjs:34:add('Admin-only governance shares the existing AI function', api.includes("scope === 'governance'") && api.includes("roles: ['admin']") && api.includes('writeServerAiSettings'));
+scripts/audit-openrouter-only-v11.6.7.mjs:35:add('Admin governance page uses the authenticated shared gateway', governancePage.includes("fetch('/api/ai?scope=governance'") && governancePage.includes("currentUser?.role !== 'admin'"));
+scripts/audit-removed-apps-v11.6.7.mjs:37:  'src/utils/permissions.js', 'src/components/ContentTransferHub.jsx', 'src/pages/AIGovernanceCenter.jsx',
+scripts/audit-shared-chatbot-drawer-v11.6.7.mjs:28:add('Không lộ service-role key ở frontend', !drawer.includes('SERVICE_ROLE') && !store.includes('SERVICE_ROLE'));
+scripts/audit-work-dashboard-v11.6.7.mjs:7:const permissions = read('src/utils/permissions.js');
+scripts/audit-work-dashboard-v11.6.7.mjs:22:add('Có quyền route và mọi tài khoản đăng nhập đều mở được', permissions.includes("dashboard: 'route:dashboard'") && permissions.includes("if (route === 'dashboard') return Boolean(user)"));
+scripts/audit-work-dashboard-v2-proposal5.mjs:7:const permissions = read('src/utils/permissions.js');
+scripts/audit-work-dashboard-v2-proposal5.mjs:22:add('Phân quyền route vẫn được giữ', permissions.includes("dashboard: 'route:dashboard'") && permissions.includes("if (route === 'dashboard') return Boolean(user)"));
+scripts/check-v10.99.0.mjs:20:pass('unified roles exist',exists('src/utils/roles.js')&&runtime.includes('loadAssignedRole'));
+scripts/check-v10.99.0.mjs:21:pass('role management UI exists',hardening.includes("from('system_roles')")&&hardening.includes('Save role'));
+scripts/check-v10.99.0.mjs:34:pass('server role table migration',sql.includes('create table if not exists public.system_roles'));
+scripts/check-v11.0.0.mjs:8:const permissions=read('src/utils/permissions.js');
+scripts/check-v11.0.0.mjs:17:pass('Lesson Pack permission',permissions.includes("'lesson-pack': 'route:lesson-pack'")&&permissions.includes("ROUTE_PERMISSION_IDS['lesson-pack']"));
+scripts/check-v11.1.0.mjs:8:const permissions=read('src/utils/permissions.js');
+scripts/check-v11.1.0.mjs:20:pass('Classroom Delivery permission',permissions.includes("'classroom-delivery': 'route:classroom-delivery'")&&permissions.includes("ROUTE_PERMISSION_IDS['classroom-delivery']"));
+scripts/check-v11.2.0.mjs:8:const permissions=read('src/utils/permissions.js');
+scripts/check-v11.2.0.mjs:17:pass('Content Ecosystem permission',permissions.includes("'content-ecosystem': 'route:content-ecosystem'")&&permissions.includes("ROUTE_PERMISSION_IDS['content-ecosystem']"));
+scripts/check-v11.3.2.mjs:19:pass('admin-only app vault route',main.includes("currentRoute === 'app-vault'")&&read('src/utils/permissions.js').includes("route === 'admin' || route === 'app-vault'"));
+scripts/check-v11.3.2.mjs:29:pass('teacher and department roles hidden by default',sql.includes("array['department_head','teacher','student']"));
+scripts/check-v11.3.5.mjs:16:pass('server archive endpoint',archiveApi.includes("roles: ['admin', 'department_head']")&&archiveApi.includes('work-hub-submissions')&&archiveApi.includes('resource_items'));
+scripts/merge-ai-governance-into-gateway.py:9:p=ROOT/'scripts/audit-openrouter-only-v11.6.7.mjs'; t=p.read_text(); t=re.sub(r"^const governanceApi = read\('api/ai-governance\.js'\);\n",'',t,flags=re.M); t=t.replace("add('Admin-only governance endpoint controls shared settings', governanceApi.includes(\"roles: ['admin']\") && governanceApi.includes('writeServerAiSettings'));","add('Admin-only governance shares the existing AI function', api.includes(\"scope === 'governance'\") && api.includes(\"roles: ['admin']\") && api.includes('writeServerAiSettings'));"); t=t.replace("add('Admin governance page uses authenticated server endpoint', governancePage.includes(\"fetch('/api/ai-governance'\") && governancePage.includes(\"currentUser?.role !== 'admin'\"));","add('Admin governance page uses the authenticated shared gateway', governancePage.includes(\"fetch('/api/ai?scope=governance'\") && governancePage.includes(\"currentUser?.role !== 'admin'\"));"); marker="add('Admin governance page uses the authenticated shared gateway'"; i=t.find(marker); e=t.find('\n',i); t=t[:e+1]+"add('Standalone governance function is removed for Vercel Hobby', !fs.existsSync('api/ai-governance.js'));\n"+t[e+1:] if i>=0 and 'Standalone governance function is removed' not in t else t; p.write_text(t)
+scripts/patch-work-dashboard-v11.6.7.py:86:    desc: 'Combine schedules, action items, professional activities, approvals and department health in one role-aware dashboard.',
+scripts/patch-work-dashboard-v11.6.7.py:101:# permissions.js
+scripts/patch-work-dashboard-v11.6.7.py:102:permissions = read("src/utils/permissions.js")
+scripts/patch-work-dashboard-v11.6.7.py:103:if "dashboard: 'route:dashboard'" not in permissions:
+scripts/patch-work-dashboard-v11.6.7.py:105:    if anchor not in permissions:
+scripts/patch-work-dashboard-v11.6.7.py:107:    permissions = permissions.replace(anchor, "  dashboard: 'route:dashboard',\n" + anchor, 1)
+scripts/patch-work-dashboard-v11.6.7.py:109:if "title: 'Work Dashboard'" not in permissions:
+scripts/patch-work-dashboard-v11.6.7.py:119:    desc: 'View role-aware schedules, action items, approvals and department summaries.',
+scripts/patch-work-dashboard-v11.6.7.py:123:    if anchor not in permissions:
+scripts/patch-work-dashboard-v11.6.7.py:125:    permissions = permissions.replace(anchor, item + anchor, 1)
+scripts/patch-work-dashboard-v11.6.7.py:127:if "if (route === 'dashboard') return Boolean(user);" not in permissions:
+scripts/patch-work-dashboard-v11.6.7.py:129:    if anchor not in permissions:
+scripts/patch-work-dashboard-v11.6.7.py:131:    permissions = permissions.replace(anchor, anchor + "\n  if (route === 'dashboard') return Boolean(user);", 1)
+scripts/patch-work-dashboard-v11.6.7.py:134:get_route_start = permissions.find("export function getRoutePermissionId")
+scripts/patch-work-dashboard-v11.6.7.py:135:get_route_end = permissions.find("export function hasRouteAccess", get_route_start)
+scripts/patch-work-dashboard-v11.6.7.py:137:    block = permissions[get_route_start:get_route_end]
+scripts/patch-work-dashboard-v11.6.7.py:144:        permissions = permissions[:get_route_start] + block + permissions[get_route_end:]
+scripts/patch-work-dashboard-v11.6.7.py:145:write("src/utils/permissions.js", permissions)
+scripts/release-guard-v10.99.0.mjs:3:const required=['src/config/version.js','src/utils/roles.js','src/utils/safeSpreadsheet.js','src/components/UnifiedUtilityRail.jsx','src/pages/ProductionHardening.jsx','src/styles/v1099.css','src/styles/legacy/01-foundation.css','api/_security.js','supabase/brian_v10_99_preflight.sql','supabase/brian_v10_99_production_hardening.sql','supabase/brian_v10_99_verify.sql','public/version.json','public/release-manifest.json','playwright.config.js'];
+scripts/release-guard-v11.3.5.mjs:21:for(const marker of ["roles: ['admin', 'department_head']",'library_resource_id','resourceCategoryFolderName','archive_work_submission']){
+scripts/smoke-test.mjs:112:const permissionsSource = fs.readFileSync(new URL('../src/utils/permissions.js', import.meta.url), 'utf8');
+scripts/smoke-test.mjs:166:add('V10.67 public family and subject portals routed', mainSource.includes("'homeroom-portal'") && homeroomPortalSource.includes('PortalLogin') && homeroomPortalSource.includes('FamilyPortal') && homeroomPortalSource.includes('SubjectPortal'), 'public code/PIN route and role-specific views');
+scripts/smoke-test.mjs:352:add('V10.82.4 News is always available to signed-in accounts', launcherPreferencesSource.includes("'route:news'") && permissionsSource.includes("if (route === 'news') return Boolean(user);"), 'News remains available and can be placed on the customizable navigation');
+scripts/smoke-test.mjs:403:add('V10.83.3 command search is permission-aware', commandPaletteSource.includes('hasRouteAccess') && commandPaletteSource.includes('hasToolAccess') && commandPaletteSource.includes('scoreEntry') && commandPaletteSource.includes('currentUser.role'), 'routes, tools and commands are filtered and ranked safely');
+scripts/smoke-test.mjs:451:add('V10.86 Admin AI Governance route and navigation are wired', mainSource.includes("currentRoute === 'ai-governance'") && globalNavSource.includes('route:ai-governance') && commandPaletteSource.includes("route: 'ai-governance'") && aiGovernancePageSource.includes("currentUser?.role !== 'admin'"), 'admin-only page is discoverable from More and Command Center');
+scripts/test-v11.6.6-composer.mjs:77:<aside class="panel" role="dialog">
+src/apps/professional-hub/ProfessionalHubApp.jsx:57:    descriptionEn: 'Upload, classify and verify role-based evidence.',
+src/apps/professional-hub/ProfessionalHubApp.jsx:188:          <dt>{language === 'vi' ? 'Vai trò trong Hub' : 'Hub role'}</dt>
+src/apps/professional-hub/ProfessionalHubApp.jsx:196:          : 'Once assigned, Brian will resolve the leader or teacher role automatically.'}
+src/apps/professional-hub/ProfessionalHubApp.jsx:306:      || currentUser?.full_name
+src/components/AppCard.jsx:5:import { getToolPermissionId, hasToolAccess } from '../utils/permissions.js';
+src/components/AppCard.jsx:23:  const locked = Boolean(currentUser && currentUser.role !== 'admin' && !hasToolAccess(currentUser, item.slug));
+src/components/AppErrorBoundary.jsx:64:        <div className="bes-feature-recovery" role="alert">
+src/components/AppErrorBoundary.jsx:76:      <main className="bes-crash-recovery" role="alert">
+src/components/ContentTransferHub.jsx:44:  }), [query, appVisibility?.snapshot, currentUser?.role]);
+src/components/ContentTransferHub.jsx:81:        <div className="bes-transfer-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
+src/components/ContentTransferHub.jsx:82:          <section className="bes-transfer-panel" role="dialog" aria-modal="true" aria-label={language === 'vi' ? 'Gửi nội dung sang ứng dụng khác' : 'Send content to another app'}>
+src/components/Footer.jsx:6:  role: 'Head of English Department',
+src/components/Footer.jsx:25:  role: 'Tổ trưởng chuyên môn tiếng Anh',
+src/components/Footer.jsx:78:            <DetailRow type="role">{content.role}</DetailRow>
+src/components/GlobalAutosave.jsx:175:        <aside className="bes-draft-recovery" role="status">
+src/components/GlobalAutosave.jsx:196:          <section className="bes-version-panel" role="dialog" aria-modal="true">
+src/components/GlobalCommandPalette.jsx:5:import { getFirstAllowedRoute, hasRouteAccess, hasToolAccess } from '../utils/permissions.js';
+src/components/GlobalCommandPalette.jsx:9:import { isAdminRole, isDepartmentLeaderRole } from '../utils/roles.js';
+src/components/GlobalCommandPalette.jsx:66:  if (isAdminRole(currentUser.role)) return true;
+src/components/GlobalCommandPalette.jsx:70:  if (entry.leaderOnly && !isDepartmentLeaderRole(currentUser.role)) return false;
+src/components/GlobalCommandPalette.jsx:293:    <div className="global-command-palette-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
+src/components/GlobalCommandPalette.jsx:294:      <section className="global-command-palette" role="dialog" aria-modal="true" aria-label={t.title}>
+src/components/GlobalCommandPalette.jsx:301:        <div className="command-palette-results" ref={listRef} role="listbox">
+src/components/GlobalCommandPalette.jsx:306:              role="option"
+src/components/GlobalFlatNavigation.jsx:4:import { getFirstAllowedRoute, hasRouteAccess, hasToolAccess } from '../utils/permissions.js';
+src/components/GlobalFlatNavigation.jsx:96:  if (currentUser.role === 'admin') return true;
+src/components/GlobalFlatNavigation.jsx:108:  const isAdmin = currentUser?.role === 'admin';
+src/components/GlobalRuntimeGuard.jsx:34:    <aside className={`bes-runtime-banner ${online ? 'is-error' : 'is-offline'}`} role="status">
+src/components/HomeroomConductTab.jsx:150:      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Biểu đồ xu hướng điểm rèn luyện">
+src/components/HomeroomConductTab.jsx:590:    if (currentUser?.role !== 'admin') return;
+src/components/HomeroomConductTab.jsx:891:        <div className={`hr-conduct-save-overlay ${recordSaveFeedback.status}`} role="status" aria-live="assertive" aria-busy={recordSaveFeedback.status === 'saving'}>
+src/components/HomeroomConductTab.jsx:907:        <div className="hr-conduct-edit-overlay hr-conduct-lock-overlay" role="dialog" aria-modal="true" aria-labelledby="conduct-lock-dialog-title" onMouseDown={closeWeekLockDialog}>
+src/components/HomeroomConductTab.jsx:938:        <div className="hr-conduct-cancel-overlay" role="dialog" aria-modal="true" aria-labelledby="conduct-cancel-dialog-title" onMouseDown={closeCancelDialog}>
+src/components/HomeroomConductTab.jsx:973:        <div className="hr-conduct-edit-overlay" role="dialog" aria-modal="true" aria-labelledby="conduct-edit-title" onMouseDown={() => { if (recordSaveFeedback.status !== 'saving') { setEditingRecordId(''); setEditDraft(null); } }}>
+src/components/HomeroomConductTab.jsx:1037:        <div className="hr-conduct-edit-overlay" role="dialog" aria-modal="true" aria-labelledby="conduct-reward-title" onMouseDown={() => setShowRewardForm(false)}>
+src/components/HomeroomConductTab.jsx:1054:        <div className="hr-conduct-edit-overlay" role="dialog" aria-modal="true" aria-labelledby="conduct-profile-title" onMouseDown={() => setStudentProfileId('')}>
+src/components/HomeroomConductTab.jsx:1157:        <div className="hr-conduct-week-tabs" role="tablist" aria-label="Nội dung tổng kết tuần">
+src/components/HomeroomConductTab.jsx:1158:          <button type="button" role="tab" aria-selected={weekReviewMode === 'scores'} className={weekReviewMode === 'scores' ? 'active' : ''} onClick={() => setWeekReviewMode('scores')}>Bảng điểm tuần</button>
+src/components/HomeroomConductTab.jsx:1159:          <button type="button" role="tab" aria-selected={weekReviewMode === 'records'} className={weekReviewMode === 'records' ? 'active' : ''} onClick={() => setWeekReviewMode('records')}>Ghi nhận <span>{allWeekRecords.length}</span></button>
+src/components/HomeroomConductTab.jsx:1160:          <button type="button" role="tab" aria-selected={weekReviewMode === 'timeline'} className={weekReviewMode === 'timeline' ? 'active' : ''} onClick={() => setWeekReviewMode('timeline')}>Dòng thời gian</button>
+src/components/HomeroomConductTab.jsx:1161:          <button type="button" role="tab" aria-selected={weekReviewMode === 'audit'} className={weekReviewMode === 'audit' ? 'active' : ''} onClick={() => setWeekReviewMode('audit')}>Nhật ký sửa đổi <span>{weekAuditTrail.length}</span></button>
+src/components/HomeroomConductTab.jsx:1228:            {currentUser?.role === 'admin' ? <button type="button" className="warning" onClick={handleAdminResetLockPassword}>Quản trị: Reset về mặc định</button> : null}
+src/components/LauncherAppHub.jsx:3:import { canPublishDepartment } from '../utils/permissions.js';
+src/components/LauncherAppHub.jsx:329:      role="dialog"
+src/components/LauncherAppHub.jsx:365:        {fullscreenNotice ? <div className="launcher-link-fullscreen-notice" role="status">{fullscreenNotice}</div> : null}
+src/components/LauncherAppHub.jsx:485:  useEffect(() => subscribeCustomApps(currentUser, setApps), [currentUser?.id, currentUser?.email, currentUser?.role]);
+src/components/LauncherAppHub.jsx:564:      {message ? <div className="launcher-link-toast" role="status">{message}</div> : null}
+src/components/LauncherAppHub.jsx:567:        <div className="launcher-link-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setModal(''); }}>
+src/components/LauncherAppHub.jsx:569:            <section className="launcher-link-manager" role="dialog" aria-modal="true" aria-label={leader ? t.review : t.mine}>
+src/components/Navbar.jsx:2:import { getFirstAllowedRoute, hasRouteAccess } from '../utils/permissions.js';
+src/components/Navbar.jsx:76:    ? (currentUser.role === 'admin' ? [...baseItems, ['admin', t.admin]] : baseItems)
+src/components/Navbar.jsx:114:              <small>{currentUser ? currentUser.role : t.guest}</small>
+src/components/PwaUpdateBanner.jsx:9:    <aside className="bes-pwa-update" role="status">
+src/components/RegularAssessmentGradebook.jsx:237:      <div className="hr-regular-round-tabs" role="tablist" aria-label="Bốn đợt kiểm tra thường xuyên">
+src/components/RegularAssessmentGradebook.jsx:240:          return <button key={round.round} type="button" role="tab" aria-selected={activeRound === round.round} className={activeRound === round.round ? 'active' : ''} onClick={() => setActiveRound(round.round)}><span>{round.name}</span><small>{round.columns.length} cột + điểm cộng · Điểm TX {formatAverage(average)}</small></button>;
+src/components/RegularAssessmentGradebook.jsx:249:      {message ? <div className={`hr-regular-message ${message.startsWith('Đã lưu') ? 'success' : ''}`} role="status">{message}</div> : null}
+src/components/StudentRosterImportPanel.jsx:203:      <div className="sri-drop" onClick={() => inputRef.current?.click()} role="button" tabIndex={0} onKeyDown={(event) => event.key === 'Enter' && inputRef.current?.click()}>
+src/components/TransferInboxBanner.jsx:58:    <aside className="bes-transfer-inbox" role="status">
+src/components/homeroom/HomeroomCommunicationTabs.jsx:102:    <section className="hr-panel hr-share-panel"><div><small>Kết nối giáo viên bộ môn</small><h2>Mã cổng nhận xét lớp {workspace.classProfile?.className || ''}</h2><p>Giáo viên bộ môn dùng mã cổng để gửi nhận xét. GVCN duyệt trước khi đưa vào hồ sơ.</p></div><div className="hr-code-box"><b>{code || 'Chưa tạo mã'}</b><button type="button" className="secondary" disabled={!code} onClick={() => copyText(`${window.location.origin}${window.location.pathname}#/homeroom-portal?role=subject&code=${encodeURIComponent(code)}`)}>Sao chép liên kết</button></div></section>
+src/components/homeroom/HomeroomCommunicationTabs.jsx:245:  const shareUrl = (role, code) => `${window.location.origin}${window.location.pathname}#/homeroom-portal?role=${role}&code=${encodeURIComponent(code || '')}`;
+src/components/homeroom/HomeroomCommunicationTabs.jsx:252:    <section className="hr-portal-grid">{[['parentCode', 'PH', 'Phụ huynh', 'parent'], ['studentCode', 'HS', 'Học sinh', 'student'], ['subjectCode', 'BM', 'Giáo viên bộ môn', 'subject']].map(([key, prefix, label, role]) => <article key={key} className="hr-panel hr-portal-card"><small>{label}</small><h3>{config[key] || 'Chưa có mã'}</h3><p>{role === 'subject' ? 'Gửi nhận xét học tập vào hộp thư GVCN.' : 'Xem dữ liệu đúng học sinh đã xác thực.'}</p><div><button type="button" className="secondary" onClick={() => setConfig({ ...config, [key]: generatePortalCode(prefix) })}>Tạo mã mới</button><button type="button" className="secondary" disabled={!config[key]} onClick={() => copyText(shareUrl(role, config[key]))}>Sao chép link</button><button type="button" className="text-btn" onClick={() => window.open(shareUrl(role, config[key]), '_blank', 'noopener,noreferrer')}>Mở thử</button></div></article>)}</section>
+src/components/homeroom/HomeroomCommunicationTabs.jsx:288:  if (currentUser?.role !== 'admin') return <section className="hr-panel"><h2>Thống kê toàn trường</h2><p className="hr-muted">Chỉ tài khoản Admin được cấp quyền xem dữ liệu tổng hợp nhiều lớp.</p></section>;
+src/data/appVisibilityRegistry.js:32:    desc: 'Manage users, permissions, system configuration and activity logs.',
+src/data/apps.js:10:    desc: 'A role-aware professional team workspace using real Brian accounts, Supabase membership and shared activity notifications.',
+src/data/apps.js:21:    desc: 'Combine schedules, action items, professional activities, approvals and department health in one role-aware dashboard.',
+src/features/resource-library/ResourceFileViewer.jsx:282:    <div className="resource-workbook-tabs" role="tablist" aria-label="Trang tính Excel">
+src/features/resource-library/ResourceFileViewer.jsx:283:      {workbook.sheets.map((item, index) => <button type="button" role="tab" aria-selected={sheetIndex === index} className={sheetIndex === index ? 'active' : ''} key={`${item.name}-${index}`} onClick={() => setSheetIndex(index)}>{item.name || `Sheet ${index + 1}`}</button>)}
+src/main.jsx:28:import { getFirstAllowedRoute, getRoutePermissionId, getPermissionItem, hasRouteAccess } from './utils/permissions.js';
+src/main.jsx:41:import { isAdminRole } from './utils/roles.js';
+src/main.jsx:371:  const visibilityReady = !currentUser || isAdminRole(currentUser?.role) || appVisibility.ready;
+src/pages/AdminPage.jsx:13:} from '../utils/permissions.js';
+src/pages/AdminPage.jsx:18:  { id: 'permissions', icon: '🛡', labelVi: 'Phân quyền', label: 'Permissions' },
+src/pages/AdminPage.jsx:30:    permissions: '#admin-v41-permissions',
+src/pages/AdminPage.jsx:83:          <small>{currentUser?.role || 'admin'}</small>
+src/pages/AdminPage.jsx:121:        <div className="role-box">
+src/pages/AdminPage.jsx:122:          <span>{language === 'vi' ? 'Vai trò & quyền' : 'Roles & permissions'}</span>
+src/pages/AdminPage.jsx:157:            : 'Manage accounts, assign role-based permissions, approve access requests and monitor system access across Brian English Studio with a secure, transparent workflow.'}
+src/pages/AdminPage.jsx:161:          <button type="button" className="secondary" onClick={onOpenPermissions}>{language === 'vi' ? 'Phân quyền chi tiết' : 'Granular permissions'}</button>
+src/pages/AdminPage.jsx:162:          <button type="button" className="secondary" onClick={onSync}>{language === 'vi' ? 'Đồng bộ quyền' : 'Sync permissions'}</button>
+src/pages/AdminPage.jsx:269:      setMsg(res?.message || (language === 'vi' ? 'Không thể sửa quyền admin trong database.' : 'Could not repair database admin role.'));
+src/pages/AdminPage.jsx:273:        : 'Admin role synced into public.profiles. Click Sync Auth → Profiles if teacher accounts are still missing.');
+src/pages/AdminPage.jsx:282:    const permissions = normalizePermissions(target.permissions);
+src/pages/AdminPage.jsx:283:    if (target.role !== 'admin' && permissions.mode === 'custom') {
+src/pages/AdminPage.jsx:284:      const nextAllowed = [...new Set([...getAllowedIdsFromPermissions(permissions), request.permission_id])];
+src/pages/AdminPage.jsx:296:  const teacherUsers = useMemo(() => users.filter((user) => user.role !== 'admin'), [users]);
+src/pages/AdminPage.jsx:300:    if (!currentUser || currentUser.role !== 'admin') return false;
+src/pages/AdminPage.jsx:305:    return selfProfile.role !== 'admin' || selfProfile.approved !== true;
+src/pages/AdminPage.jsx:308:  const roleRows = useMemo(() => {
+src/pages/AdminPage.jsx:309:    const allAccessTeachers = users.filter((user) => user.role !== 'admin' && normalizePermissions(user.permissions).mode === 'all').length;
+src/pages/AdminPage.jsx:310:    const customTeachers = users.filter((user) => user.role !== 'admin' && normalizePermissions(user.permissions).mode === 'custom').length;
+src/pages/AdminPage.jsx:315:        members: users.filter((user) => user.role === 'admin').length,
+src/pages/AdminPage.jsx:358:        subtitle: `${currentUser.name || currentUser.email} (${currentUser.role})`,
+src/pages/AdminPage.jsx:364:  if (!currentUser || currentUser.role !== 'admin') {
+src/pages/AdminPage.jsx:385:            onOpenPermissions={() => goToAdminSection('permissions')}
+src/pages/AdminPage.jsx:433:                  language === 'vi' ? 'Vai trò đề nghị' : 'Requested role',
+src/pages/AdminPage.jsx:455:            <article className="admin-v41-panel panel-mint" id="admin-v41-permissions">
+src/pages/AdminPage.jsx:458:                  <h2>{language === 'vi' ? 'Phân quyền chi tiết' : 'Granular permissions'}</h2>
+src/pages/AdminPage.jsx:472:                rows={roleRows.map((row) => ({
+src/pages/AdminPage.jsx:479:                onButtonClick={() => goToAdminSection('permissions')}
+src/pages/AdminPage.jsx:507:                      <em>{user.role === 'admin' ? 'Admin' : (language === 'vi' ? 'Giáo viên' : 'Teacher')}</em>
+src/pages/AdminPage.jsx:597:              <article key={user.id} className={`admin-user-card metro-tile ${user.role === 'admin' ? 'admin-tile' : 'teacher-tile'}`}>
+src/pages/AdminPage.jsx:603:                  <span className="status-badge">{user.role}</span>
+src/pages/AdminPage.jsx:612:                  <button className="metro-small-btn" disabled={loading || user.id === currentUser.id} onClick={() => runAction(() => updateUserRole(user.id, user.role === 'admin' ? 'teacher' : 'admin'))}>
+src/pages/AdminPage.jsx:613:                    {user.role === 'admin' ? (language === 'vi' ? 'Hạ quyền' : 'Make teacher') : (language === 'vi' ? 'Đặt quản trị' : 'Make admin')}
+src/pages/AdminPage.jsx:624:                  onChange={(permissions) => runAction(
+src/pages/AdminPage.jsx:625:                    () => updateUserPermissions(user.id, permissions),
+src/pages/AdminPage.jsx:644:set role = 'admin', approved = true, updated_at = now()
+src/pages/AdminPage.jsx:648:insert into public.profiles (id, email, full_name, school, role, approved, permissions)
+src/pages/AdminPage.jsx:652:  coalesce(u.raw_user_meta_data->>'full_name', u.raw_user_meta_data->>'name', split_part(coalesce(u.email, ''), '@', 1), 'Teacher'),
+src/pages/AdminPage.jsx:663:select id, email, full_name, role, approved, created_at
+src/pages/AdminPage.jsx:705:          <span>{language === 'vi' ? 'quyền admin database' : 'database admin role'}</span>
+src/pages/AdminPage.jsx:713:          : 'The UI can treat your email as admin via VITE_ADMIN_EMAILS, but Supabase RLS only allows reading all profiles when your row in public.profiles has role = admin and approved = true. That can let you open Admin while still only seeing your own profile.'}</p>
+src/pages/AdminPage.jsx:792:  const permissions = normalizePermissions(user.permissions);
+src/pages/AdminPage.jsx:793:  const allowedIds = useMemo(() => getAllowedIdsFromPermissions(permissions), [permissions]);
+src/pages/AdminPage.jsx:794:  const isAdminAccount = user.role === 'admin';
+src/pages/AdminPage.jsx:818:          <strong>{language === 'vi' ? 'Quyền truy cập' : 'Access permissions'}</strong>
+src/pages/AdminPage.jsx:826:            <button className={permissions.mode === 'all' ? 'metro-small-btn active' : 'metro-small-btn'} disabled={disabled} onClick={setFull}>
+src/pages/AdminPage.jsx:829:            <button className={permissions.mode === 'custom' ? 'metro-small-btn active' : 'metro-small-btn'} disabled={disabled} onClick={setCustom}>
+src/pages/AdminPage.jsx:832:            <button className="metro-small-btn" disabled={disabled || permissions.mode !== 'custom'} onClick={selectAll}>
+src/pages/AdminPage.jsx:835:            <button className="metro-small-btn danger" disabled={disabled || permissions.mode !== 'custom'} onClick={clearAll}>
+src/pages/AdminPage.jsx:840:          {permissions.mode === 'all' ? (
+src/pages/AuthPage.jsx:271:  const openOfflineDemo = async (role = 'admin') => {
+src/pages/AuthPage.jsx:274:    const res = await loginOfflineDemo(role);
+src/pages/AuthPage.jsx:370:              ? (language === 'vi' ? 'Xác thực chính thức qua Supabase Auth. Phân quyền rõ ràng cho Admin & Teacher.' : 'Official Supabase Auth. Clear role-based access for Admin & Teacher.')
+src/pages/AutomationCenter.jsx:164:    <nav className="v1096-tabs" role="tablist">{tabs.map(([id, label]) => <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{label}</button>)}</nav>
+src/pages/AutomationCenter.jsx:192:      <section className="v1096-panel"><header><div><span>RUNTIME</span><h2>Trạng thái nền tảng</h2></div><button onClick={load}>Kiểm tra lại</button></header><div className="v1096-ops-list"><article><b>Runtime Core</b><span>{runtimeReport?.runtimeVersion || runtime.phase}</span></article><article><b>Supabase</b><span>{runtimeReport?.configured ? (runtimeReport?.ready ? 'Sẵn sàng' : 'Đang kết nối') : 'Chế độ cục bộ'}</span></article><article><b>Vai trò</b><span>{runtimeReport?.role || runtime.role}</span></article><article><b>Realtime channels</b><span>{runtimeReport?.realtimeChannels ?? 0}</span></article><article><b>Kết nối mạng</b><span>{navigator.onLine ? 'Online' : 'Offline'}</span></article><article><b>Kho dữ liệu Automation</b><span>{state.mode === 'cloud' ? 'Supabase + local cache' : 'Local fallback'}</span></article></div></section>
+src/pages/CloudOperations.jsx:137:    {tab === 'diagnostics' && <div className="v1097-diagnostics-grid"><section className="v1097-panel"><header><div><span>RUNTIME</span><h2>{t.diagnostics}</h2></div></header><div className="v1097-status-list"><article><b>{t.runtime}</b><span>{runtimeReport?.runtimeVersion || runtime.version || '1.4.0'}</span></article><article><b>Supabase</b><span>{runtimeReport?.ready ? t.active : runtimeReport?.configured ? t.inactive : t.local}</span></article><article><b>{t.userRole}</b><span>{runtimeReport?.role || runtime.role}</span></article><article><b>{t.realtime}</b><span>{runtimeReport?.realtimeChannels ?? 0}</span></article><article><b>{t.online}</b><span>{navigator.onLine ? 'Online' : 'Offline'}</span></article><article><b>{t.db}</b><span>{state.mode}</span></article></div></section><section className="v1097-panel"><header><div><span>HEARTBEAT</span><h2>{t.worker}</h2></div></header><pre>{JSON.stringify({ heartbeat: state.heartbeat, status: state.status }, null, 2)}</pre></section></div>}
+src/pages/CollaborationHub.jsx:29:  const [state, setState] = useState({ spaces: [], members: [], threads: [], comments: [], versions: [], permissions: [], mode: 'local' });
+src/pages/CollaborationHub.jsx:37:  const [memberDraft, setMemberDraft] = useState({ user_id: '', member_role: 'member' });
+src/pages/CollaborationHub.jsx:69:  const canManage = leader || selectedSpace?.owner_id === currentUser?.id || members.some((member) => member.user_id === currentUser?.id && ['owner', 'manager'].includes(member.member_role));
+src/pages/CollaborationHub.jsx:115:      await addCollaborationMember({ space_id: selectedSpace.id, user_id: person.id, member_role: memberDraft.member_role, display_name: person.name, email: person.email }, currentUser);
+src/pages/CollaborationHub.jsx:116:      setMemberDraft({ user_id: '', member_role: 'member' });
+src/pages/CollaborationHub.jsx:182:          {tab === 'members' && <section className="v1098-panel v1098-members"><header><div><span>THÀNH VIÊN</span><h3>{members.length} người tham gia</h3></div></header>{canManage && <form onSubmit={submitMember}><select value={memberDraft.user_id} onChange={(e) => setMemberDraft({ ...memberDraft, user_id: e.target.value })}><option value="">Chọn tài khoản…</option>{people.filter((person) => !members.some((member) => member.user_id === person.id)).map((person) => <option key={person.id} value={person.id}>{person.name} · {person.email}</option>)}</select><select value={memberDraft.member_role} onChange={(e) => setMemberDraft({ ...memberDraft, member_role: e.target.value })}>{ROLES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><button disabled={busy || !memberDraft.user_id}>Thêm thành viên</button></form>}<div className="v1098-member-grid">{members.map((member) => <article key={member.id}><i>{String(member.display_name || 'U').slice(0, 1).toUpperCase()}</i><div><b>{member.display_name || member.email}</b><small>{member.email || '—'}</small></div><span>{ROLES.find(([value]) => value === member.member_role)?.[1] || member.member_role}</span></article>)}</div></section>}
+src/pages/DataGovernance.jsx:26:  const [state, setState] = useState({ audit: [], snapshots: [], deleted: [], permissions: [], mode: 'local' });
+src/pages/DataGovernance.jsx:61:    permissions: state.permissions.filter((item) => !item.expires_at || new Date(item.expires_at) > new Date()).length,
+src/pages/DataGovernance.jsx:106:    <div className="v1098-metrics"><article><strong>{metrics.audit24h}</strong><span>Sự kiện 24 giờ</span></article><article><strong>{metrics.snapshots}</strong><span>Snapshot đang giữ</span></article><article><strong>{metrics.deleted}</strong><span>Mục trong thùng rác</span></article><article><strong>{metrics.permissions}</strong><span>Quyền ngoại lệ</span></article></div>
+src/pages/DataGovernance.jsx:108:    <nav className="v1098-tabs">{[['overview', 'Tổng quan'], ['audit', 'Audit log'], ['backups', 'Backup & Restore'], ['trash', 'Thùng rác'], ['permissions', 'Ma trận quyền']].map(([id, label]) => <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{label}</button>)}</nav>
+src/pages/DataGovernance.jsx:111:      <section className="v1098-panel"><header><div><span>RUNTIME</span><h2>Trạng thái nền tảng</h2></div><em data-ok={runtime.ready}>{runtime.ready ? 'Sẵn sàng' : 'Đang kết nối'}</em></header><div className="v1098-status-list"><article><b>Runtime Core</b><span>{runtimeReport?.runtimeVersion || '—'}</span></article><article><b>Vai trò</b><span>{runtime.role}</span></article><article><b>Supabase</b><span>{runtimeReport?.configured ? 'Đã cấu hình' : 'Chưa cấu hình'}</span></article><article><b>Realtime channels</b><span>{runtimeReport?.realtimeChannels ?? 0}</span></article><article><b>Chế độ dữ liệu</b><span>{state.mode === 'cloud' ? 'Cloud' : 'Local fallback'}</span></article></div></section>
+src/pages/DataGovernance.jsx:113:      <section className="v1098-panel wide"><header><div><span>HOẠT ĐỘNG GẦN ĐÂY</span><h2>Dòng thời gian toàn hệ thống</h2></div></header><div className="v1098-audit-list compact">{state.audit.slice(0, 12).map((item) => <article key={item.id}><i>{String(item.action || 'A').slice(0, 2).toUpperCase()}</i><div><b>{item.action}</b><span>{item.actor_email || item.actor_role || 'Hệ thống'} · {item.source_module}</span></div><time>{formatDate(item.created_at)}</time></article>)}</div></section>
+src/pages/DataGovernance.jsx:116:    {tab === 'audit' && <section className="v1098-panel"><header><div><span>IMMUTABLE LOG</span><h2>{filteredAudit.length} sự kiện</h2></div><div className="v1098-filters"><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tìm hành động, người dùng, module…" /><select value={auditFilter} onChange={(e) => setAuditFilter(e.target.value)}><option value="all">Mọi hành động</option>{auditActions.map((action) => <option key={action} value={action}>{action}</option>)}</select></div></header><div className="v1098-audit-table"><div className="head"><b>Thời gian</b><b>Người thực hiện</b><b>Hành động</b><b>Đối tượng</b><b>Module</b></div>{filteredAudit.map((item) => <article key={item.id}><time>{formatDate(item.created_at)}</time><span>{item.actor_email || item.actor_role || 'Hệ thống'}</span><strong>{item.action}</strong><span>{item.entity_type} · {item.entity_id || '—'}</span><span>{item.source_module}</span></article>)}</div></section>}
+src/pages/DataGovernance.jsx:125:    {tab === 'permissions' && <div className="v1098-permission-layout">
+src/pages/DataGovernance.jsx:127:      <section className="v1098-panel"><header><div><span>ACTIVE MATRIX</span><h2>{state.permissions.length} quyền ngoại lệ</h2></div></header><div className="v1098-permission-list">{state.permissions.map((item) => <article key={item.id}><div><b>{item.resource_type} · {item.resource_id}</b><span>{people.find((person) => person.id === item.principal_id)?.name || item.principal_id}</span></div><strong>{PERMISSION_LEVELS.find(([value]) => value === item.permission_level)?.[1] || item.permission_level}</strong><small>{item.expires_at ? `Hết hạn ${formatDate(item.expires_at)}` : 'Không hết hạn'}</small></article>)}</div></section>
+src/pages/Games.jsx:5:import { canPublishDepartment, hasToolAccess } from '../utils/permissions.js';
+src/pages/Games.jsx:33:    <div className="games-v46-dialog-backdrop" role="presentation" onMouseDown={onClose}>
+src/pages/Games.jsx:34:      <section className="games-v46-dialog" role="dialog" aria-modal="true" aria-label={language === 'vi' ? 'Thêm trò chơi tùy chỉnh' : 'Add custom game'} onMouseDown={(event) => event.stopPropagation()}>
+src/pages/Games.jsx:848:  }, [currentUser?.id, currentUser?.email, currentUser?.role]);
+src/pages/HiddenAppsVault.jsx:6:import { isAdminRole } from '../utils/roles.js';
+src/pages/HiddenAppsVault.jsx:69:  if (!isAdminRole(currentUser?.role)) {
+src/pages/Home.jsx:3:import { getFirstAllowedRoute, hasRouteAccess } from '../utils/permissions.js';
+src/pages/HomeroomPortal.jsx:20:    <div className="hrp-role-switch">{[['parent', 'Phụ huynh'], ['student', 'Học sinh'], ['subject', 'GV bộ môn']].map(([id, label]) => <button key={id} type="button" className={form.role === id ? 'active' : ''} onClick={() => setForm({ ...form, role: id })}>{label}</button>)}</div>
+src/pages/HomeroomPortal.jsx:22:    {form.role !== 'subject' ? <div className="hrp-form-two"><label><span>Mã học sinh</span><input value={form.studentCode} onChange={(e) => setForm({ ...form, studentCode: e.target.value })} /></label><label><span>PIN cá nhân</span><input type="password" inputMode="numeric" maxLength="6" value={form.pin} onChange={(e) => setForm({ ...form, pin: e.target.value })} /></label></div> : null}
+src/pages/HomeroomPortal.jsx:61:    const result = await acknowledgePortalNotice({ code: form.code, role: form.role, studentCode: form.studentCode, pin: form.pin, noticeId: notice.id, readerName: student.fullName });
+src/pages/HomeroomPortal.jsx:68:    const result = await submitPortalResponse({ code: form.code, role: form.role, studentCode: form.studentCode, pin: form.pin, noticeId: reply.noticeId, message: reply.message, readerName: student.fullName });
+src/pages/HomeroomPortal.jsx:73:    <header className="hrp-header"><div><small>{form.role === 'parent' ? 'CỔNG PHỤ HUYNH' : 'CỔNG HỌC SINH'}</small><h1>{view.classProfile?.className || 'Lớp chủ nhiệm'}</h1><p>{view.classProfile?.schoolYear || ''} · GVCN {view.classProfile?.adviserName || '—'}</p></div><button type="button" onClick={() => window.location.reload()}>Đăng xuất</button></header>
+src/pages/HomeroomPortal.jsx:92:  const [form, setForm] = useState({ role: params.get('role') || 'parent', code: (params.get('code') || '').toUpperCase(), studentCode: '', pin: '' });
+src/pages/HomeroomPortal.jsx:108:  return form.role === 'subject' ? <SubjectPortal session={state.session} form={form} /> : <FamilyPortal session={state.session} form={form} />;
+src/pages/HomeroomWorkspace.jsx:46:    {HOMEROOM_TABS.filter((tab) => !tab.adminOnly || currentUser?.role === 'admin').map((tab) => <button key={tab.key} type="button" className={active === tab.key ? 'active' : ''} onClick={() => setActive(tab.key)}><span>{tab.icon}</span><b>{language === 'vi' ? tab.titleVi : tab.title}</b></button>)}
+src/pages/LessonArchitect.jsx:1011:  const profileRole = currentUser?.role || (isVi ? 'Giáo viên' : 'Teacher');
+src/pages/LessonArchitect.jsx:1382:        <div className="lesson-v50-ai-overlay" role="status" aria-live="polite">
+src/pages/LessonPack.jsx:83:    <section className="lp-drawer" role="dialog" aria-modal="true">
+src/pages/NewsReader.jsx:626:        <div className={`newsroom-v824-reader-screen ${readerDark ? 'is-dark' : ''}`} role="dialog" aria-modal="true" aria-label={selected.title}>
+src/pages/PlatformReadiness.jsx:103:      <div className="v1095-tabs" role="tablist">
+src/pages/PlatformReadiness.jsx:104:        {tabs.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{label}</button>)}
+src/pages/PlatformReadiness.jsx:121:        <div className="v1095-callout"><strong>{language === 'vi' ? 'Nguyên tắc V10.95' : 'V10.95 principle'}</strong><p>{language === 'vi' ? 'Không hiển thị API key, access token hoặc service-role key trong báo cáo tải xuống.' : 'Downloaded reports never include API keys, access tokens or service-role key values.'}</p></div>
+src/pages/ProductionHardening.jsx:4:import { isDepartmentLeaderRole, normalizeSystemRole, SYSTEM_ROLES } from '../utils/roles.js';
+src/pages/ProductionHardening.jsx:8:  ['roles', 'Unified identity and roles'],
+src/pages/ProductionHardening.jsx:23:  return profile.id || profile.user_id || profile.profile_id || '';
+src/pages/ProductionHardening.jsx:27:  return profile.full_name || profile.name || profile.display_name || profile.email || profileId(profile) || 'Unknown';
+src/pages/ProductionHardening.jsx:34:  const [roles, setRoles] = useState([]);
+src/pages/ProductionHardening.jsx:36:  const [roleForm, setRoleForm] = useState({ user_id: '', role: SYSTEM_ROLES.TEACHER, active: true });
+src/pages/ProductionHardening.jsx:39:  const isLeader = isDepartmentLeaderRole(currentUser?.role);
+src/pages/ProductionHardening.jsx:46:    const [roleResult, profileResult, eventResult] = await Promise.all([
+src/pages/ProductionHardening.jsx:47:      client.from('system_roles').select('*').order('assigned_at', { ascending: false }).limit(300),
+src/pages/ProductionHardening.jsx:48:      client.from('profiles').select('*').limit(300),
+src/pages/ProductionHardening.jsx:51:    if (!roleResult.error) setRoles(roleResult.data || []);
+src/pages/ProductionHardening.jsx:54:    const firstError = roleResult.error || profileResult.error || eventResult.error;
+src/pages/ProductionHardening.jsx:72:    roles: runtime?.role ? 'pass' : 'warn',
+src/pages/ProductionHardening.jsx:80:  const roleByUser = useMemo(() => new Map(roles.map((entry) => [entry.user_id, entry])), [roles]);
+src/pages/ProductionHardening.jsx:90:      roles: roles.map(({ user_id, role, scope, active, assigned_at }) => ({ user_id, role, scope, active, assigned_at })),
+src/pages/ProductionHardening.jsx:104:    if (!isLeader || !roleForm.user_id) return;
+src/pages/ProductionHardening.jsx:110:      user_id: roleForm.user_id,
+src/pages/ProductionHardening.jsx:111:      role: normalizeSystemRole(roleForm.role),
+src/pages/ProductionHardening.jsx:113:      active: Boolean(roleForm.active),
+src/pages/ProductionHardening.jsx:118:    const { error } = await client.from('system_roles').upsert(payload, { onConflict: 'user_id,scope' });
+src/pages/ProductionHardening.jsx:131:        <div><small>V{APP_VERSION} · {RELEASE_NAME}</small><h1>{language === 'vi' ? 'Sẵn sàng vận hành Production' : 'Production operations readiness'}</h1><p>{language === 'vi' ? 'Bảo mật API, quyền thống nhất, giao diện lõi React, kiểm soát dữ liệu và kiểm thử trình duyệt trong một trung tâm.' : 'API security, unified permissions, React-native shell, data integrity and browser testing in one center.'}</p></div>
+src/pages/ProductionHardening.jsx:138:        <article><strong>{runtime?.role || '—'}</strong><span>{language === 'vi' ? 'Vai trò chuẩn hóa' : 'Normalized role'}</span></article>
+src/pages/ProductionHardening.jsx:161:          <header><div><small>Identity Core</small><h2>{language === 'vi' ? 'Vai trò hệ thống' : 'System roles'}</h2></div><button type="button" onClick={loadAdminData}>{language === 'vi' ? 'Làm mới' : 'Refresh'}</button></header>
+src/pages/ProductionHardening.jsx:162:          <form onSubmit={saveRole} className="v1099-role-form">
+src/pages/ProductionHardening.jsx:163:            <label><span>{language === 'vi' ? 'Tài khoản' : 'Account'}</span><select value={roleForm.user_id} onChange={(event) => setRoleForm((current) => ({ ...current, user_id: event.target.value }))} required><option value="">—</option>{profiles.map((profile) => { const id = profileId(profile); return id ? <option key={id} value={id}>{profileLabel(profile)} · {profile.email || id}</option> : null; })}</select></label>
+src/pages/ProductionHardening.jsx:164:            <label><span>{language === 'vi' ? 'Vai trò chuẩn' : 'Canonical role'}</span><select value={roleForm.role} onChange={(event) => setRoleForm((current) => ({ ...current, role: event.target.value }))}><option value={SYSTEM_ROLES.ADMIN}>Admin</option><option value={SYSTEM_ROLES.DEPARTMENT_HEAD}>Department Head</option><option value={SYSTEM_ROLES.TEACHER}>Teacher</option><option value={SYSTEM_ROLES.STUDENT}>Student</option></select></label>
+src/pages/ProductionHardening.jsx:165:            <label className="v1099-role-active"><input type="checkbox" checked={roleForm.active} onChange={(event) => setRoleForm((current) => ({ ...current, active: event.target.checked }))}/><span>{language === 'vi' ? 'Vai trò đang hoạt động' : 'Active role'}</span></label>
+src/pages/ProductionHardening.jsx:166:            <button type="submit" disabled={saving || !roleForm.user_id}>{saving ? '…' : (language === 'vi' ? 'Lưu vai trò' : 'Save role')}</button>
+src/pages/ProductionHardening.jsx:168:          <div className="v1099-role-list">{profiles.slice(0, 30).map((profile) => { const id = profileId(profile); const assigned = roleByUser.get(id); return <div key={id || profileLabel(profile)}><span><b>{profileLabel(profile)}</b><small>{profile.email || id}</small></span><em className={assigned?.active === false ? 'is-off' : ''}>{assigned?.role || normalizeSystemRole(profile.role || 'teacher')}</em></div>; })}</div>
+src/pages/ReadingStudio.jsx:157:    sample: 'Which option best completes the summary of the passage?\nA. AI has no practical role in schools.\nB. AI can support personalized learning and administration, but it raises concerns.\nC. AI is useful only for students with special needs.\nD. AI should replace all traditional lessons.\nAnswer: B\nHighlight: personalized learning experiences; administrative tasks; concerns regarding the implementation of AI\nExplanation: Option B combines the major points of the passage.',
+src/pages/ResourceLibrary.jsx:167:        <div className="textlab-library-runner-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) close(); }}>
+src/pages/ResourceLibrary.jsx:168:          <section ref={runnerRef} className="textlab-library-runner" role="dialog" aria-modal="true" aria-label={`Chạy trực tiếp ${activeItem.title || activeItem.fileName}`}>
+src/pages/ResourceLibraryBase.jsx:4:import { canPublishDepartment } from '../utils/permissions.js';
+src/pages/ResourceLibraryBase.jsx:5:import { isDepartmentLeaderRole } from '../utils/roles.js';
+src/pages/ResourceLibraryBase.jsx:60:  return canPublishDepartment(user) || isDepartmentLeaderRole(user?.role);
+src/pages/ResourceLibraryBase.jsx:132:            <span className="resource-delete-confirm" role="group" aria-label={`Xác nhận xóa ${item.title || item.fileName}`}>
+src/pages/ResourceLibraryBase.jsx:747:          <div className="resource-view-switch" role="group" aria-label="Kiểu hiển thị tài liệu">
+src/pages/SupabaseSetup.jsx:9:set role = 'admin', approved = true
+src/pages/SystemHealthCenter.jsx:157:            {currentUser?.role === 'admin' ? <button type="button" onClick={() => { window.location.hash = '#/ai-governance'; }}>{language === 'vi' ? 'Mở quản trị AI' : 'Open AI Governance'}</button> : null}
+src/pages/THPTPracticeHub.jsx:2:import { canPublishDepartment } from '../utils/permissions.js';
+src/pages/THPTPracticeHub.jsx:61:  useEffect(() => subscribeThptLessons(currentUser, setHubLessons), [currentUser?.id, currentUser?.email, currentUser?.role]);
+src/pages/THPTPracticeHub.jsx:252:      {notice ? <div className="thpt-notice" role="status">{notice}<button type="button" onClick={() => setNotice('')}>×</button></div> : null}
+src/pages/THPTPracticeHub.jsx:313:          <section className="thpt-modal thpt-resource-manager" role="dialog" aria-modal="true" aria-labelledby="thpt-resource-manager-title">
+src/pages/THPTPracticeHub.jsx:329:          <section className="thpt-modal" role="dialog" aria-modal="true" aria-labelledby="thpt-form-title">
+src/pages/TextLabActivities.jsx:125:          {publishNotice ? <span className="textlab-publish-notice" role="status">{publishNotice}</span> : null}
+src/pages/VietnamTaxStudio.jsx:250:    <div className="tax-studio-curve-wrap" role="img" aria-label="Tax savings curve">
+src/pages/WebApps.jsx:7:import { getRoutePermissionId, getToolPermissionId, hasRouteAccess, hasToolAccess } from '../utils/permissions.js';
+src/pages/WebApps.jsx:35:    open: 'Mở ứng dụng', locked: 'Cần quyền', aiOn: 'Hệ thống sẵn sàng', aiOff: 'Cài AI', role: 'Vai trò', total: 'Công cụ',
+src/pages/WebApps.jsx:51:    open: 'Open app', locked: 'Locked', aiOn: 'AI ready', aiOff: 'Set up AI', role: 'Role', total: 'Tools',
+src/pages/WebApps.jsx:92:    'practice-hub': 'Assign and track practice.', 'games-hub': 'Classroom game launchers.', 'admin-hub': 'Users and permissions.',
+src/pages/WebApps.jsx:116:  if (!currentUser || currentUser.role === 'admin') return false;
+src/pages/WebApps.jsx:124:  const isAdmin = currentUser?.role === 'admin';
+src/pages/WebApps.jsx:148:          <span>{(currentUser?.name || currentUser?.email || 'U').slice(0, 1).toUpperCase()}</span><strong>{currentUser?.role || 'user'}</strong>
+src/pages/WebApps.jsx:197:        <div className="launcher-card-controls" role="group" aria-label={`${t.customize}: ${titleOf(item, language)}`}>
+src/pages/WebApps.jsx:301:  const isAdmin = currentUser?.role === 'admin';
+src/pages/WordGraphStudio.jsx:161:    const roleLines = String(block).split('\n')
+src/pages/WordGraphStudio.jsx:169:        { key: 'family', label: 'Word family', items: (family.length ? family : roleLines.length ? roleLines : fallbackFamily(word)).slice(0, 5) },
+src/pages/WordGraphStudio.jsx:362:      role="img"
+src/pages/WorkDashboard.jsx:114:  }, [currentUser?.id, currentUser?.email, currentUser?.role]);
+src/pages/WorkDashboard.jsx:136:  const name = currentUser?.name || currentUser?.full_name || currentUser?.email?.split('@')[0] || t.teacher;
+src/pages/WorkDashboard.jsx:137:  const role = snapshot.leader ? t.leader : t.teacher;
+src/pages/WorkDashboard.jsx:154:          <div className="wd5-profile-main"><span className="wd5-avatar">{initials(name)}<i /></span><div><strong>{name}</strong><em>{role}</em><small>Brian English</small></div></div>
+src/pages/WorkHub.jsx:124:      const { data: profiles } = await client.from('profiles').select('*').limit(500);
+src/pages/WorkHub.jsx:126:        id: profile.id || profile.user_id || profile.profile_id,
+src/pages/WorkHub.jsx:127:        name: profile.full_name || profile.name || profile.email || 'Giáo viên',
+src/pages/WorkHub.jsx:129:        role: profile.role || 'teacher',
+src/pages/WorkHub.jsx:140:    return !EXCLUDED_ASSIGNMENT_ROLES.has(normalizeRole(person.role));
+src/pages/WorkHub.jsx:588:      <div className="v1093-runtime-pill" data-state={runtime.phase}><b>{runtime.ready ? 'Đã kết nối' : 'Đang kết nối'}</b><span>{runtime.role}</span></div>
+src/pages/WorkHub.jsx:619:            <div className="work-bulk-mode" role="group" aria-label="Hình thức giao việc">
+src/pages/WorkHub.jsx:628:                return <label key={person.id} className={checked ? 'selected' : ''}><input type="checkbox" checked={checked} onChange={() => toggleAssignee(person.id)} /><span><strong>{person.name}</strong><small>{person.email || person.role || 'Giáo viên'}</small></span></label>;
+src/pages/v1093/shared.js:1:import { isDepartmentLeaderRole } from '../../utils/roles.js';
+src/pages/v1093/shared.js:4:  return isDepartmentLeaderRole(user?.role);
+src/services/runtime/core.js:2:import { resolveSystemRole } from '../../utils/roles.js';
+src/services/runtime/core.js:15:  role: 'guest',
+src/services/runtime/core.js:45:    profileRole: profile?.role,
+src/services/runtime/core.js:46:    metadataRole: user?.app_metadata?.role || user?.user_metadata?.role,
+src/services/runtime/core.js:55:      .from('system_roles')
+src/services/runtime/core.js:56:      .select('role,active,scope')
+src/services/runtime/core.js:62:    if (!error && data?.role) return data.role;
+src/services/runtime/core.js:70:    () => supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+src/services/runtime/core.js:71:    () => supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle(),
+src/services/runtime/core.js:72:    () => supabase.from('profiles').select('*').eq('profile_id', user.id).maybeSingle(),
+src/services/runtime/core.js:89:  state.role = inferRole(state.user, state.profile, state.systemRole);
+src/services/runtime/core.js:106:      state.role = 'guest';
+src/services/runtime/core.js:209:    role: state.role,
+src/services/runtime/core.js:210:    profileRole: state.profile?.role || '',
+src/services/runtime/core.js:218:      const { error } = await supabase.from('profiles').select('*', { head: true, count: 'exact' }).limit(1);
+src/styles/legacy/03-operations.css:563:.metro-clean-system[data-route="admin"] .role-box{background:#f8f9fd;border:1px solid #eef2fb;border-radius:18px;padding:12px}
+src/styles/legacy/03-operations.css:564:.metro-clean-system[data-route="admin"] .role-box span{display:block;color:#55637d;font-size:.88rem;font-weight:800;margin-bottom:6px}
+src/styles/legacy/03-operations.css:565:.metro-clean-system[data-route="admin"] .role-box ul{padding:0;margin:0;list-style:none;display:grid;gap:7px}
+src/styles/legacy/03-operations.css:566:.metro-clean-system[data-route="admin"] .role-box li{display:flex;align-items:center;gap:8px;color:#20365e;font-size:.88rem}
+src/styles/legacy/03-operations.css:567:.metro-clean-system[data-route="admin"] .role-box li::before{content:"✓";width:18px;height:18px;border-radius:50%;display:inline-grid;place-items:center;background:#edf9ee;color:#2d7f46;font-size:.8125rem;font-weight:900}
+src/styles/legacy/04-modern-shell.css:164:.metro-clean-system .detail-role .signature-footer-v50-detail-icon::before{border-radius:50%;background:#4c83b3}
+src/styles/legacy/05-connected-platform.css:95:.hrp-page,.hrp-shell{min-height:100vh;background:radial-gradient(circle at 15% 10%,#dff6ed 0,transparent 33%),linear-gradient(145deg,#f5faf8,#edf5f2);color:#14342b;font-family:var(--font-family,inherit)}.hrp-page{display:grid;place-items:center;padding:28px}.hrp-login-card{width:min(620px,100%);padding:34px;border:1px solid rgba(25,93,73,.16);border-radius:28px;background:rgba(255,255,255,.92);box-shadow:0 30px 80px rgba(18,70,54,.14)}.hrp-login-copy small,.hrp-header small,.hrp-card-head small,.hrp-student-hero small{font-weight:900;letter-spacing:.12em;color:#1f8f70}.hrp-login-copy h1{font-size:2.35rem;margin:8px 0}.hrp-login-copy p{color:#647970;line-height:1.6}.hrp-role-switch{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:24px 0 18px;padding:5px;border-radius:15px;background:#edf5f2}.hrp-role-switch button{border:0;border-radius:11px;background:transparent;padding:11px;font:inherit;font-weight:850;color:#5f766d;cursor:pointer}.hrp-role-switch button.active{background:#fff;color:#143c31;box-shadow:0 7px 18px rgba(18,70,54,.1)}.hrp-login-card label,.hrp-card label{display:grid;gap:6px;margin:12px 0}.hrp-login-card label>span,.hrp-card label>span{font-size:.8125rem;font-weight:850;color:#4c685f}.hrp-login-card input,.hrp-card input,.hrp-card select,.hrp-card textarea{width:100%;border:1px solid #cfe0da;border-radius:12px;background:#fff;padding:12px 13px;font:inherit;color:#17382e;outline:none}.hrp-login-card input:focus,.hrp-card input:focus,.hrp-card select:focus,.hrp-card textarea:focus{border-color:#1f8f70;box-shadow:0 0 0 3px rgba(31,143,112,.12)}.hrp-card textarea{min-height:120px;resize:vertical}.hrp-form-two,.hrp-grid.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.hrp-primary{width:100%;border:0;border-radius:13px;background:#143c31;color:#fff;padding:13px 16px;font:inherit;font-weight:900;cursor:pointer}.hrp-primary:disabled{opacity:.55;cursor:not-allowed}.hrp-back{display:block;margin:15px auto 0;border:0;background:transparent;color:#4d6e62;font:inherit;cursor:pointer}.hrp-error,.hrp-success{padding:11px 13px;border-radius:11px}.hrp-error{background:#ffe5e6;color:#962d31}.hrp-success{background:#e3f7ed;color:#176144}
+src/styles/legacy/05-connected-platform.css:100:@media(max-width:620px){.hr-analytics-grid,.hr-leaderboard,.hrp-stat-grid{grid-template-columns:1fr}.hr-analytics-card header{grid-template-columns:42px 1fr}.hr-analytics-card header em{grid-column:1/3}.hr-team-roster>label{align-items:flex-start;flex-direction:column}.hr-team-roster select{width:100%}.hr-notice-list header,.hr-notice-list footer{flex-direction:column}.hrp-page{padding:10px}.hrp-login-card{padding:23px;border-radius:22px}.hrp-login-copy h1{font-size:1.85rem}.hrp-role-switch{grid-template-columns:1fr}.hrp-header{padding:20px}.hrp-header h1{font-size:1.55rem}.hrp-main{width:calc(100% - 18px);padding-top:14px}.hrp-student-hero{grid-template-columns:55px 1fr;padding:18px}.hrp-student-hero>span{width:55px;height:55px;border-radius:17px}.hrp-student-hero>strong{grid-column:1/3;font-size:2rem}.hrp-schedule article{grid-template-columns:1fr}}
+src/styles/v1095.css:40:html[data-a11y-targets="large"] :where(button, [role="button"], select, input:not([type="checkbox"]):not([type="radio"]), textarea) {
+src/styles/v1095.css:59:html[data-a11y-underline-links="true"] a:not([role="button"]) { text-decoration: underline !important; text-underline-offset: .18em; }
+src/styles/v1099.css:11:.v1099-admin-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);gap:18px;margin-top:18px}.v1099-admin-card{min-width:0;padding:22px;border:1px solid #cbd9e8;border-radius:22px;background:#fff}.v1099-admin-card>header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.v1099-admin-card h2{margin:3px 0 0}.v1099-admin-card header small{color:#60738c;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.v1099-admin-card header button,.v1099-role-form>button{min-height:40px;padding:0 14px;border:1px solid #a9c3df;border-radius:12px;background:#eaf3fb;color:#123c69;font-weight:900;cursor:pointer}.v1099-role-form{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(170px,.65fr);gap:12px;padding:15px;border-radius:16px;background:#f3f7fb}.v1099-role-form label{display:grid;gap:6px}.v1099-role-form label>span{font-size:13px;color:#60738c;font-weight:800}.v1099-role-form select{min-height:42px;padding:0 11px;border:1px solid #bfd0e3;border-radius:11px;background:#fff;color:#10264a}.v1099-role-form .v1099-role-active{display:flex;align-items:center;gap:8px}.v1099-role-form>button{background:#174f82;color:#fff;border-color:#174f82}.v1099-role-list,.v1099-event-list{display:grid;gap:7px;max-height:390px;margin-top:14px;overflow:auto}.v1099-role-list>div,.v1099-event-list>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 11px;border:1px solid #e0e9f2;border-radius:12px}.v1099-role-list span,.v1099-event-list span{display:grid;gap:2px;min-width:0}.v1099-role-list small,.v1099-event-list small{overflow:hidden;color:#60738c;text-overflow:ellipsis;white-space:nowrap}.v1099-role-list em,.v1099-event-list em{flex:0 0 auto;padding:5px 8px;border-radius:999px;background:#dff4e9;color:#17633a;font-size:13px;font-style:normal;font-weight:900;text-transform:uppercase}.v1099-role-list em.is-off,.v1099-event-list em.is-error{background:#ffe5e5;color:#8a2525}.v1099-event-list em.is-started{background:#e5eefb;color:#275b94}.v1099-admin-message{position:sticky;bottom:12px;margin:14px 0 0;padding:12px 15px;border:1px solid #a9d7ca;border-radius:13px;background:#e7f7f1;color:#155b48;font-weight:800}
+src/styles/v1099.css:12:@media(max-width:980px){.v1099-admin-grid{grid-template-columns:1fr}.v1099-role-form{grid-template-columns:1fr}}
+src/styles/v1159.css:67:html[data-burs="comfortable"] .metro-clean-system :where(button, input, textarea, select, option, [role="button"], .burs-readable-control) {
+src/styles/v1159.css:78:html[data-burs="comfortable"] .metro-clean-system :where(button, [role="button"], a[class*="btn"], a[class*="button"]) {
+src/styles/v1159.css:243:  html[data-burs="comfortable"] .metro-clean-system :where(button, [role="button"]) { min-height: 2.875rem; }
+src/utils/aiRemovalGuard.js:34:  root.querySelectorAll?.('button, a, [role="button"], label').forEach((node) => {
+src/utils/appVisibility.js:3:import { isAdminRole, normalizeSystemRole, SYSTEM_ROLES } from './roles.js';
+src/utils/appVisibility.js:11:  return [...new Set(input.map((role) => normalizeSystemRole(role, '')).filter(Boolean))];
+src/utils/appVisibility.js:23:    hiddenRoles: cleanRoles(record.hidden_roles || record.hiddenRoles),
+src/utils/appVisibility.js:76:  if (!user || !appId || isAdminRole(user.role)) return false;
+src/utils/appVisibility.js:79:  const role = normalizeSystemRole(user.role, SYSTEM_ROLES.TEACHER);
+src/utils/appVisibility.js:80:  return cleanRoles(record.hiddenRoles).includes(role);
+src/utils/appVisibility.js:95:      .select('app_id,app_kind,slug,route,title,title_vi,is_hidden,hidden_roles,reason,updated_by,updated_at')
+src/utils/appVisibility.js:111:  if (!user || !isAdminRole(user.role)) throw new Error('Chỉ tài khoản Admin được thay đổi trạng thái hiển thị ứng dụng.');
+src/utils/appVisibility.js:149:    hidden_roles: record.hiddenRoles,
+src/utils/appVisibility.js:177:  const [ready, setReady] = useState(() => !user || !isSupabaseConfigured || isAdminRole(user?.role));
+src/utils/appVisibility.js:182:    if (user && isSupabaseConfigured && !isAdminRole(user.role)) setReady(false);
+src/utils/appVisibility.js:188:  }, [user?.id, user?.email, user?.role]);
+src/utils/auth.js:2:import { createAllAccessPermissions, normalizePermissions } from './permissions.js';
+src/utils/auth.js:3:import { normalizeSystemRole } from './roles.js';
+src/utils/auth.js:11:export function createOfflineDemoUser(role = 'admin') {
+src/utils/auth.js:12:  const isAdmin = role === 'admin';
+src/utils/auth.js:16:    role: isAdmin ? 'admin' : 'teacher',
+src/utils/auth.js:23:    permissions: createAllAccessPermissions(),
+src/utils/auth.js:46:export async function loginOfflineDemo(role = 'admin') {
+src/utils/auth.js:48:  const user = saveOfflineDemoUser(createOfflineDemoUser(role));
+src/utils/auth.js:117:  if (existingProfile?.role === 'admin' && existingProfile?.approved === true) return existingProfile;
+src/utils/auth.js:121:  // update/list profiles until the database profile is also role=admin.
+src/utils/auth.js:131:    .update({ role: 'admin', approved: true, updated_at: new Date().toISOString() })
+src/utils/auth.js:133:    .select('id,email,full_name,school,role,approved,permissions,created_at,updated_at')
+src/utils/auth.js:161:  const role = normalizeSystemRole(isConfiguredAdmin(email) ? 'admin' : (profile?.role || meta.role || 'teacher'));
+src/utils/auth.js:162:  const approved = role === 'admin' ? true : profile?.approved === true;
+src/utils/auth.js:166:    role,
+src/utils/auth.js:167:    name: profile?.full_name || meta.full_name || meta.name || email.split('@')[0] || 'Teacher',
+src/utils/auth.js:173:    permissions: normalizePermissions(profile?.permissions),
+src/utils/auth.js:182:  const role = normalizeSystemRole(isConfiguredAdmin(email) ? 'admin' : (defaults.role || 'teacher'));
+src/utils/auth.js:186:    full_name: String(defaults.name || defaults.full_name || user.user_metadata?.full_name || email.split('@')[0] || 'Teacher').trim(),
+src/utils/auth.js:188:    role,
+src/utils/auth.js:189:    approved: role === 'admin' ? true : defaults.approved === true,
+src/utils/auth.js:190:    permissions: defaults.permissions || createAllAccessPermissions(),
+src/utils/auth.js:199:    .select('id,email,full_name,school,role,approved,permissions,created_at,updated_at')
+src/utils/auth.js:217:    .select('id,email,full_name,school,role,approved,permissions,created_at,updated_at')
+src/utils/auth.js:291:        full_name: String(name || '').trim(),
+src/utils/auth.js:455:    role: profile.role || 'teacher',
+src/utils/auth.js:456:    name: profile.full_name || email?.split('@')[0] || 'Teacher',
+src/utils/auth.js:462:    permissions: normalizePermissions(profile.permissions),
+src/utils/auth.js:470:    const demoAdmin = active?.role === 'admin' ? active : createOfflineDemoUser('admin');
+src/utils/auth.js:474:  // Repair configured-admin database role before listing. Without this, the UI can
+src/utils/auth.js:489:  const rpc = await supabase.rpc('bes_admin_list_profiles');
+src/utils/auth.js:497:    .select('id,email,full_name,school,role,approved,permissions,created_at,updated_at')
+src/utils/auth.js:542:export async function updateUserRole(id, role) {
+src/utils/auth.js:543:  return updateProfile(id, { role: role === 'admin' ? 'admin' : 'teacher' });
+src/utils/auth.js:550:export async function updateUserPermissions(id, permissions) {
+src/utils/auth.js:551:  return updateProfile(id, { permissions: normalizePermissions(permissions) });
+src/utils/bursReadability.js:5:const controlSelector = 'button,input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),textarea,select,option,[role="button"],[role="tab"],[role="menuitem"],a[href]';
+src/utils/bursReadability.js:10:button,input,textarea,select,option,[role="button"],[role="tab"]{font-size:var(--burs-font-control)!important}
+src/utils/bursReadability.js:11:button,[role="button"],[role="tab"]{min-height:var(--burs-touch-size)}
+src/utils/collaborationGovernance.js:14:  permissions: 'permission_overrides',
+src/utils/collaborationGovernance.js:32:    permissions: scopedLocalKey('bes-v1098-permissions', { id: token }),
+src/utils/collaborationGovernance.js:89:    const name = String(person.name || person.full_name || person.email || '').trim();
+src/utils/collaborationGovernance.js:91:  }).map((person) => person.id || person.user_id || person.profile_id).filter(Boolean);
+src/utils/collaborationGovernance.js:97:    id: profile.id || profile.user_id || profile.profile_id,
+src/utils/collaborationGovernance.js:98:    name: profile.full_name || profile.name || profile.email || 'Giáo viên',
+src/utils/collaborationGovernance.js:100:    role: profile.role || 'teacher',
+src/utils/collaborationGovernance.js:108:    comments: readLocal(keys.comments, []), versions: readLocal(keys.versions, []), permissions: readLocal(keys.permissions, []),
+src/utils/collaborationGovernance.js:110:  const [spaces, members, threads, comments, versions, permissions] = await Promise.all([
+src/utils/collaborationGovernance.js:116:    safeSelect(TABLES.permissions, (query) => query.order('created_at', { ascending: false }).limit(1000), local.permissions),
+src/utils/collaborationGovernance.js:120:    versions: versions.data, permissions: permissions.data,
+src/utils/collaborationGovernance.js:124:  writeLocal(keys.comments, state.comments); writeLocal(keys.versions, state.versions); writeLocal(keys.permissions, state.permissions);
+src/utils/collaborationGovernance.js:142:  await addCollaborationMember({ space_id: result.data.id, user_id: user.id, member_role: 'owner', display_name: user.name || user.email, email: user.email }, user, { skipAudit: true });
+src/utils/collaborationGovernance.js:152:    member_role: input.member_role || 'member',
+src/utils/collaborationGovernance.js:153:    display_name: cleanText(input.display_name || input.name || input.email, 180),
+src/utils/collaborationGovernance.js:252:    actor_role: cleanText(user.role, 80).toLowerCase(),
+src/utils/collaborationGovernance.js:269:    collaboration: [TABLES.spaces, TABLES.members, TABLES.threads, TABLES.comments, TABLES.versions, TABLES.permissions],
+src/utils/collaborationGovernance.js:330:  TABLES.spaces, TABLES.members, TABLES.threads, TABLES.comments, TABLES.versions, TABLES.permissions,
+src/utils/collaborationGovernance.js:443:  const local = { audit: readLocal(keys.audit, []), snapshots: readLocal(keys.snapshots, []), deleted: readLocal(keys.deleted, []), permissions: readLocal(keys.permissions, []) };
+src/utils/collaborationGovernance.js:444:  const [audit, snapshots, deleted, permissions] = await Promise.all([
+src/utils/collaborationGovernance.js:448:    safeSelect(TABLES.permissions, (query) => query.order('created_at', { ascending: false }).limit(1000), local.permissions),
+src/utils/collaborationGovernance.js:450:  const state = { audit: audit.data, snapshots: snapshots.data, deleted: deleted.data, permissions: permissions.data, mode: [audit, snapshots, deleted].every((entry) => entry.cloud) ? 'cloud' : 'local' };
+src/utils/collaborationGovernance.js:451:  writeLocal(keys.audit, state.audit); writeLocal(keys.snapshots, state.snapshots); writeLocal(keys.deleted, state.deleted); writeLocal(keys.permissions, state.permissions);
+src/utils/collaborationGovernance.js:466:    const { data: saved, error } = await client.from(TABLES.permissions).upsert(payload, { onConflict: 'resource_type,resource_id,principal_type,principal_id' }).select('*').single();
+src/utils/collaborationGovernance.js:471:  const keys = localKeys(user); writeLocal(keys.permissions, [data, ...readLocal(keys.permissions, []).filter((item) => item.id !== data.id)]);
+src/utils/collaborationGovernance.js:488:  const tables = [TABLES.audit, TABLES.snapshots, TABLES.deleted, TABLES.permissions];
+src/utils/collaborationGovernance.js:501:    const users = Object.values(state).flat().map((entry) => ({ id: entry.user_id, name: entry.name, role: entry.role, online_at: entry.online_at }));
+src/utils/collaborationGovernance.js:506:      await channel.track({ user_id: user.id, name: user.name || user.email, role: user.role || 'teacher', online_at: nowIso() });
+src/utils/contentTransfer.js:79:  const heading = root.querySelector('h1, h2, [role="heading"]')?.textContent?.trim() || document.title;
+src/utils/customApps.js:1:import { canPublishDepartment } from './permissions.js';
+src/utils/customGames.js:2:import { canPublishDepartment } from './permissions.js';
+src/utils/dashboardAggregator.js:15:import { isAdminRole, isDepartmentLeaderRole } from './roles.js';
+src/utils/dashboardAggregator.js:237:  const leader = isDepartmentLeaderRole(currentUser?.role);
+src/utils/dashboardAggregator.js:240:    role: leader ? 'leader' : 'teacher',
+src/utils/dashboardAggregator.js:242:    admin: isAdminRole(currentUser?.role),
+src/utils/dashboardAggregator.js:259:  const leader = isDepartmentLeaderRole(currentUser?.role);
+src/utils/dashboardAggregator.js:324:    role: leader ? 'leader' : 'teacher', leader, admin: isAdminRole(currentUser?.role),
+src/utils/homeroomPhase2.js:34:function attemptKey(code, role, studentCode) {
+src/utils/homeroomPhase2.js:35:  return `bes-homeroom-portal-attempt-v3:${normalizeCode(code)}:${role}:${safeText(studentCode)}`;
+src/utils/homeroomPhase2.js:38:function readAttempt(code, role, studentCode) {
+src/utils/homeroomPhase2.js:39:  try { return JSON.parse(localStorage.getItem(attemptKey(code, role, studentCode)) || '{}'); } catch { return {}; }
+src/utils/homeroomPhase2.js:42:function writeAttempt(code, role, studentCode, value) {
+src/utils/homeroomPhase2.js:43:  try { localStorage.setItem(attemptKey(code, role, studentCode), JSON.stringify(value)); } catch { /* ignore */ }
+src/utils/homeroomPhase2.js:63:function visibleNotices(workspace, studentId, role) {
+src/utils/homeroomPhase2.js:66:    if (role === 'parent' && notice.audience === 'parents') return true;
+src/utils/homeroomPhase2.js:67:    if (role === 'student' && notice.audience === 'students') return true;
+src/utils/homeroomPhase2.js:73:function makeStudentView(workspace, student, role) {
+src/utils/homeroomPhase2.js:91:      supportLevel: role === 'parent' ? student.supportLevel : undefined,
+src/utils/homeroomPhase2.js:92:      parentName: role === 'parent' ? student.parentName : undefined,
+src/utils/homeroomPhase2.js:99:    announcements: visibleNotices(workspace, student.id, role),
+src/utils/homeroomPhase2.js:195:async function resolveLocalPortal(code, role, studentCode, pin) {
+src/utils/homeroomPhase2.js:201:    if (role === 'subject' && normalizeCode(code) === normalizeCode(record.subjectCode)) {
+src/utils/homeroomPhase2.js:202:      return { ok: true, role, ownerId: record.ownerId, workspaceId: record.workspaceId, view: payload.subjectView, sessionExpiresAt: new Date(Date.now() + Number(payload.meta?.sessionMinutes || 30) * 60000).toISOString() };
+src/utils/homeroomPhase2.js:205:    const attempt = readAttempt(code, role, ref);
+src/utils/homeroomPhase2.js:215:      writeAttempt(code, role, ref, { count: lockedUntil ? 0 : count, lockedUntil, updatedAt: Date.now() });
+src/utils/homeroomPhase2.js:218:    writeAttempt(code, role, ref, { count: 0, lockedUntil: 0, updatedAt: Date.now() });
+src/utils/homeroomPhase2.js:219:    const expectedCode = role === 'parent' ? record.parentCode : record.studentCode;
+src/utils/homeroomPhase2.js:221:    return { ok: true, role, ownerId: record.ownerId, workspaceId: record.workspaceId, studentRef: ref, view: role === 'parent' ? payload.parentViews?.[ref] : payload.studentViews?.[ref], sessionExpiresAt: new Date(Date.now() + Number(payload.meta?.sessionMinutes || 30) * 60000).toISOString() };
+src/utils/homeroomPhase2.js:227:export async function accessHomeroomPortal({ code, role, studentCode = '', pin = '' }) {
+src/utils/homeroomPhase2.js:230:  if (!isSupabaseConfigured || !supabase) return (await resolveLocalPortal(normalizedCode, role, studentCode, pin)) || { ok: false, message: 'Không tìm thấy cổng trên thiết bị này.' };
+src/utils/homeroomPhase2.js:233:    p_role: role,
+src/utils/homeroomPhase2.js:238:    const local = await resolveLocalPortal(normalizedCode, role, studentCode, pin);
+src/utils/homeroomPhase2.js:244:export async function acknowledgePortalNotice({ code, role, studentCode, pin, noticeId, readerName = '' }) {
+src/utils/homeroomPhase2.js:245:  const localItem = { id: uid('receipt'), code: normalizeCode(code), role, studentCode, noticeId, readerName, readAt: new Date().toISOString() };
+src/utils/homeroomPhase2.js:249:    localStorage.setItem(key, JSON.stringify([localItem, ...list.filter((item) => !(item.noticeId === noticeId && item.studentCode === studentCode && item.role === role))]));
+src/utils/homeroomPhase2.js:254:    p_role: role,
+src/utils/homeroomPhase2.js:328:export async function submitPortalResponse({ code, role, studentCode, pin, noticeId = '', message = '', readerName = '' }) {
+src/utils/homeroomPhase2.js:329:  const item = { id: uid('response'), code: normalizeCode(code), role: safeText(role), studentCode: safeText(studentCode), noticeId: safeText(noticeId), message: safeText(message), readerName: safeText(readerName), createdAt: new Date().toISOString(), status: 'new' };
+src/utils/homeroomPhase2.js:338:    p_code: normalizeCode(code), p_role: safeText(role), p_student_code: safeText(studentCode),
+src/utils/homeroomPhase2.js:354:  if (!isSupabaseConfigured || !supabase || user?.role !== 'admin') return { ok: false, offline: true, message: 'Chỉ Admin có quyền xem thống kê toàn trường.', workspaces: [] };
+src/utils/mediaCapture.js:40:      : 'Microphone permission is blocked. Open the site permissions, allow Microphone, then reload.';
+src/utils/permissionRequests.js:2:import { getPermissionItem } from './permissions.js';
+src/utils/permissions.js:3:import { isAdminRole, isDepartmentLeaderRole } from './roles.js';
+src/utils/permissions.js:71:    desc: 'View role-aware schedules, action items, approvals and department summaries.',
+src/utils/permissions.js:267:  const permissions = normalizePermissions(raw);
+src/utils/permissions.js:268:  return permissions.mode === PERMISSION_MODE_ALL ? ALL_PERMISSION_IDS : permissions.allowed;
+src/utils/permissions.js:285:  if (isAdminRole(user.role)) return true;
+src/utils/permissions.js:286:  const permissions = normalizePermissions(user.permissions);
+src/utils/permissions.js:287:  return Array.isArray(permissions.allowed) && permissions.allowed.includes(permissionId);
+src/utils/permissions.js:292:  if (isAdminRole(user.role)) return true;
+src/utils/permissions.js:293:  const permissions = normalizePermissions(user.permissions);
+src/utils/permissions.js:294:  if (permissions.mode === PERMISSION_MODE_ALL) return true;
+src/utils/permissions.js:295:  return permissions.allowed.includes(permissionId);
+src/utils/permissions.js:301:  if (isAdminRole(user.role)) return true;
+src/utils/permissions.js:309:  if (isAdminRole(user.role)) return tools;
+src/utils/permissions.js:315:  if (isAdminRole(user.role)) return true;
+src/utils/permissions.js:331:  if (isAdminRole(user.role)) return true;
+src/utils/permissions.js:333:  if (route === 'production-hardening') return isDepartmentLeaderRole(user.role);
+src/utils/permissions.js:347:  if (isAdminRole(user.role)) return 'admin';
+src/utils/permissions.js:353:  if (isAdminRole(user.role)) return language === 'vi' ? 'Toàn quyền quản trị' : 'Full admin access';
+src/utils/permissions.js:354:  const permissions = normalizePermissions(user.permissions);
+src/utils/permissions.js:355:  if (permissions.mode === PERMISSION_MODE_ALL) return language === 'vi' ? 'Toàn quyền giáo viên' : 'Full teacher access';
+src/utils/permissions.js:356:  const count = permissions.allowed.length;
+src/utils/permissions.js:357:  return language === 'vi' ? `${count}/${ALL_PERMISSION_IDS.length} quyền được cấp` : `${count}/${ALL_PERMISSION_IDS.length} permissions granted`;
+src/utils/permissions.js:361:// to a Department workspace; it only checks the retained leader/admin role.
+src/utils/permissions.js:363:  return Boolean(user && (isAdminRole(user.role) || isDepartmentLeaderRole(user.role)));
+src/utils/platformReadiness.js:18:      if (/service[_-]?role|sb_secret_/i.test(combined)) findings.push(key || `entry-${index}`);
+src/utils/platformReadiness.js:32:      permissions: response.headers.get('permissions-policy') || '',
+src/utils/platformReadiness.js:50:    result('session', 'Authenticated session', runtime.hasSession ? 'pass' : 'info', runtime.hasSession ? `Role: ${runtime.role || 'unknown'}` : 'No active authenticated session.', 'security'),
+src/utils/platformReadiness.js:51:    result('service-role', 'Service-role exposure', suspiciousStorage.length ? 'fail' : 'pass', suspiciousStorage.length ? `Sensitive-looking entries: ${suspiciousStorage.join(', ')}` : 'No service-role key pattern found in local storage.', 'security'),
+src/utils/platformReadiness.js:55:    result('permissions-policy', 'Permissions Policy', headers.permissions ? 'pass' : 'warn', headers.permissions || 'Header not visible yet.', 'headers'),
+src/utils/roles.js:41:  const role = normalizeSystemRole(value, SYSTEM_ROLES.GUEST);
+src/utils/roles.js:42:  return role === SYSTEM_ROLES.ADMIN || role === SYSTEM_ROLES.DEPARTMENT_HEAD;
+src/utils/sharedChatbots.js:2:import { isDepartmentLeaderRole } from './roles.js';
+src/utils/sharedChatbots.js:87:  return Boolean(user?.approved === true && isDepartmentLeaderRole(user?.role));
+src/utils/textlabResourcePublisher.js:1:import { canPublishDepartment } from './permissions.js';
+src/utils/textlabResourcePublisher.js:2:import { isDepartmentLeaderRole } from './roles.js';
+src/utils/textlabResourcePublisher.js:31:  return canPublishDepartment(user) || isDepartmentLeaderRole(user?.role);
+src/utils/thptPracticeHub.js:1:import { canPublishDepartment } from './permissions.js';
+src/utils/thptResourceBridge.js:1:import { canPublishDepartment } from './permissions.js';
+supabase/brian_shared_chatbot_settings.sql:38:      and lower(coalesce(p.role, '')) in (
+supabase/brian_v10_93_consolidated_migration.sql:9:-- 1. Version and compatible role helpers
+supabase/brian_v10_93_consolidated_migration.sql:42:    public.bes_v1093_try_uuid(profile_json->>'profile_id')
+supabase/brian_v10_93_consolidated_migration.sql:50:  jwt_role text:=lower(coalesce(jwt->'app_metadata'->>'role',jwt->'user_metadata'->>'role',jwt->>'role',''));
+supabase/brian_v10_93_consolidated_migration.sql:56:    jwt_role in ('admin','ttcm','leader','department_head','department-head','head')
+supabase/brian_v10_93_consolidated_migration.sql:65:        lower(coalesce(x.j->>'role','')) in ('admin','ttcm','leader','department_head','department-head','head')
+supabase/brian_v10_93_consolidated_migration.sql:84:      and lower(coalesce(x.j->>'role','teacher')) not in ('blocked','disabled','rejected')
+supabase/brian_v10_93_consolidated_migration.sql:187:  role text not null default 'user',
+supabase/brian_v10_93_consolidated_migration.sql:193:  constraint ai_workspace_messages_role_check check(role in('system','user','assistant','tool')),
+supabase/brian_v10_93_preflight.sql:2:select current_database() as database_name, current_user as database_role, now() as checked_at;
+supabase/brian_v10_96_automation_center.sql:35:    public.bes_v1096_try_uuid(profile_json->>'profile_id')
+supabase/brian_v10_96_automation_center.sql:43:  jwt_role text:=lower(coalesce(jwt->'app_metadata'->>'role',jwt->'user_metadata'->>'role',jwt->>'role',''));
+supabase/brian_v10_96_automation_center.sql:48:  if target_user=auth.uid() and (jwt_role in ('admin','ttcm','leader','department_head','department-head','head') or jwt_email='anhtuan@pek.edu.vn') then return true; end if;
+supabase/brian_v10_96_automation_center.sql:55:        lower(coalesce(x.j->>'role','')) in ('admin','ttcm','leader','department_head','department-head','head')
+supabase/brian_v10_96_preflight.sql:4:  current_user as database_role,
+supabase/brian_v10_97_cloud_operations.sql:26:declare jwt jsonb:=coalesce(auth.jwt(),'{}'::jsonb); role_text text:=lower(coalesce(jwt->'app_metadata'->>'role',jwt->'user_metadata'->>'role',jwt->>'role','')); email_text text:=lower(coalesce(jwt->>'email','')); matched boolean:=false;
+supabase/brian_v10_97_cloud_operations.sql:29:  if target_user=auth.uid() and (role_text in('admin','ttcm','leader','department_head','department-head','head') or email_text='anhtuan@pek.edu.vn') then return true; end if;
+supabase/brian_v10_97_cloud_operations.sql:32:    where coalesce(public.bes_v1097_try_uuid(x.j->>'id'),public.bes_v1097_try_uuid(x.j->>'user_id'),public.bes_v1097_try_uuid(x.j->>'profile_id'))=target_user
+supabase/brian_v10_97_cloud_operations.sql:33:      and (lower(coalesce(x.j->>'role','')) in('admin','ttcm','leader','department_head','department-head','head') or lower(coalesce(x.j->>'email',''))='anhtuan@pek.edu.vn')) into matched;
+supabase/brian_v10_97_preflight.sql:2:select current_database() as database_name, current_user as database_role, now() as checked_at;
+supabase/brian_v10_98_collaboration_governance.sql:19:declare jwt jsonb:=coalesce(auth.jwt(),'{}'::jsonb); role_text text:=lower(coalesce(jwt->'app_metadata'->>'role',jwt->'user_metadata'->>'role',jwt->>'role','')); email_text text:=lower(coalesce(jwt->>'email','')); matched boolean:=false;
+supabase/brian_v10_98_collaboration_governance.sql:22:  if target_user=auth.uid() and (role_text in('admin','ttcm','leader','department_head','department-head','head') or email_text='anhtuan@pek.edu.vn') then return true; end if;
+supabase/brian_v10_98_collaboration_governance.sql:25:    where coalesce(public.bes_v1098_try_uuid(x.j->>'id'),public.bes_v1098_try_uuid(x.j->>'user_id'),public.bes_v1098_try_uuid(x.j->>'profile_id'))=target_user
+supabase/brian_v10_98_collaboration_governance.sql:26:      and (lower(coalesce(x.j->>'role','')) in('admin','ttcm','leader','department_head','department-head','head') or lower(coalesce(x.j->>'email',''))='anhtuan@pek.edu.vn')) into matched;
+supabase/brian_v10_98_collaboration_governance.sql:59:  member_role text not null default 'member',
+supabase/brian_v10_98_collaboration_governance.sql:60:  display_name text not null default '',
+supabase/brian_v10_98_collaboration_governance.sql:66:  constraint collaboration_members_role_check check(member_role in('owner','manager','editor','member','viewer')),
+supabase/brian_v10_98_collaboration_governance.sql:146:  constraint permission_overrides_principal_check check(principal_type in('user','role','department')),
+supabase/brian_v10_98_collaboration_governance.sql:158:  actor_role text not null default '',
+supabase/brian_v10_98_collaboration_governance.sql:258:      or exists(select 1 from public.collaboration_members m where m.space_id=s.id and m.user_id=target_user and m.status='active' and m.member_role in('owner','manager'))
+supabase/brian_v10_98_collaboration_governance.sql:275:  insert into public.audit_events(actor_id,actor_email,actor_role,action,entity_type,entity_id,source_module,before_data,after_data)
+supabase/brian_v10_98_collaboration_governance.sql:276:  values(auth.uid(),coalesce(auth.jwt()->>'email',''),coalesce(auth.jwt()->'app_metadata'->>'role',auth.jwt()->'user_metadata'->>'role',''),'governance.soft_delete','resource_item',target_resource::text,'resource-library',resource_data,jsonb_build_object('deleted_item_id',deleted_id));
+supabase/brian_v10_98_collaboration_governance.sql:313:create policy collaboration_members_insert_v1098 on public.collaboration_members for insert to authenticated with check(public.bes_v1098_can_manage_space(space_id,auth.uid()) or (user_id=auth.uid() and member_role='owner'));
+supabase/brian_v10_98_preflight.sql:2:select current_database() as database_name, current_user as database_role, now() as checked_at;
+supabase/brian_v10_99_production_hardening.sql:13:create table if not exists public.system_roles (
+supabase/brian_v10_99_production_hardening.sql:16:  role text not null check (role in ('admin','department_head','teacher','student')),
+supabase/brian_v10_99_production_hardening.sql:24:create index if not exists system_roles_user_active_idx on public.system_roles(user_id,active);
+supabase/brian_v10_99_production_hardening.sql:34:create or replace function public.bes_v1099_normalize_role(value text)
+supabase/brian_v10_99_production_hardening.sql:46:-- Bootstrap canonical roles from any compatible profiles schema.
+supabase/brian_v10_99_production_hardening.sql:53:    uid := coalesce(public.bes_v1099_try_uuid(j->>'id'), public.bes_v1099_try_uuid(j->>'user_id'), public.bes_v1099_try_uuid(j->>'profile_id'));
+supabase/brian_v10_99_production_hardening.sql:55:    normalized := public.bes_v1099_normalize_role(j->>'role');
+supabase/brian_v10_99_production_hardening.sql:56:    insert into public.system_roles(user_id,role,scope,active,metadata)
+supabase/brian_v10_99_production_hardening.sql:66:    on conflict(user_id,scope) do update set role=excluded.role, active=excluded.active;
+supabase/brian_v10_99_production_hardening.sql:70:create or replace function public.bes_v1099_current_role(target_user uuid default auth.uid())
+supabase/brian_v10_99_production_hardening.sql:72:declare result text; profile_role text;
+supabase/brian_v10_99_production_hardening.sql:75:  select role into result from public.system_roles where user_id=target_user and active=true order by assigned_at desc limit 1;
+supabase/brian_v10_99_production_hardening.sql:76:  if result is not null then return public.bes_v1099_normalize_role(result); end if;
+supabase/brian_v10_99_production_hardening.sql:79:      execute 'select role::text from public.profiles where id=$1 limit 1' into profile_role using target_user;
+supabase/brian_v10_99_production_hardening.sql:82:        execute 'select role::text from public.profiles where user_id=$1 limit 1' into profile_role using target_user;
+supabase/brian_v10_99_production_hardening.sql:84:        begin execute 'select role::text from public.profiles where profile_id=$1 limit 1' into profile_role using target_user;
+supabase/brian_v10_99_production_hardening.sql:89:  return public.bes_v1099_normalize_role(profile_role);
+supabase/brian_v10_99_production_hardening.sql:94:select public.bes_v1099_current_role(target_user) in ('admin','department_head') $$;
+supabase/brian_v10_99_production_hardening.sql:96:grant execute on function public.bes_v1099_current_role(uuid) to authenticated;
+supabase/brian_v10_99_production_hardening.sql:99:alter table public.system_roles enable row level security;
+supabase/brian_v10_99_production_hardening.sql:100:drop policy if exists system_roles_read_v1099 on public.system_roles;
+supabase/brian_v10_99_production_hardening.sql:101:create policy system_roles_read_v1099 on public.system_roles for select to authenticated
+supabase/brian_v10_99_production_hardening.sql:103:drop policy if exists system_roles_manage_v1099 on public.system_roles;
+supabase/brian_v10_99_production_hardening.sql:104:create policy system_roles_manage_v1099 on public.system_roles for all to authenticated
+supabase/brian_v10_99_production_hardening.sql:106:grant select on public.system_roles to authenticated;
+supabase/brian_v10_99_production_hardening.sql:107:grant insert,update,delete on public.system_roles to authenticated;
+supabase/brian_v10_99_production_hardening.sql:112:  actor_role text,
+supabase/brian_v10_99_production_hardening.sql:127:-- Browser clients cannot insert arbitrary server audit entries. Service role bypasses RLS.
+supabase/brian_v10_99_production_hardening.sql:245:  ('runtime_core','1.6.0',now(),'{"roles":"canonical","legacy_dom_patches":false}'::jsonb),
+supabase/brian_v10_99_verify.sql:3:select to_regclass('public.system_roles') as system_roles,
+supabase/brian_v10_99_verify.sql:6:select proname from pg_proc join pg_namespace n on n.oid=pronamespace where n.nspname='public' and proname in ('bes_v1099_current_role','bes_v1099_consume_ai_quota','bes_v1099_create_snapshot','bes_v1099_restore_snapshot') order by proname;
+supabase/brian_v10_99_verify.sql:7:select public.bes_v1099_current_role(auth.uid()) as current_role,
+supabase/brian_v11_0_connected_teaching_suite.sql:15:declare role_value text;
+supabase/brian_v11_0_connected_teaching_suite.sql:19:    execute 'select public.bes_v1099_is_leader($1)' into role_value using target_user;
+supabase/brian_v11_0_connected_teaching_suite.sql:20:    return role_value::boolean;
+supabase/brian_v11_0_connected_teaching_suite.sql:22:  if to_regclass('public.system_roles') is not null then
+supabase/brian_v11_0_connected_teaching_suite.sql:23:    select role into role_value from public.system_roles where user_id=target_user and active=true order by assigned_at desc limit 1;
+supabase/brian_v11_0_connected_teaching_suite.sql:24:    return role_value in ('admin','department_head');
+supabase/brian_v11_0_preflight.sql:4:union all select 'system_roles', case when to_regclass('public.system_roles') is not null then 'ready' else 'missing' end
+supabase/brian_v11_2_final_content_ecosystem.sql:22:  if to_regclass('public.system_roles') is not null then
+supabase/brian_v11_2_final_content_ecosystem.sql:23:    return exists(select 1 from public.system_roles where user_id=target_user and active=true and role in ('admin','department_head'));
+supabase/brian_v11_2_preflight.sql:4:select current_database() as database_name,current_user as database_role,now() as checked_at;
+supabase/brian_v11_3_2_app_visibility.sql:15:declare role_value text; jwt_role text;
+supabase/brian_v11_3_2_app_visibility.sql:18:  if to_regprocedure('public.bes_v1099_current_role(uuid)') is not null then
+supabase/brian_v11_3_2_app_visibility.sql:19:    execute 'select public.bes_v1099_current_role($1)' into role_value using target_user;
+supabase/brian_v11_3_2_app_visibility.sql:20:    if lower(coalesce(role_value,''))='admin' then return true; end if;
+supabase/brian_v11_3_2_app_visibility.sql:22:  if to_regclass('public.system_roles') is not null then
+supabase/brian_v11_3_2_app_visibility.sql:23:    select role into role_value from public.system_roles
+supabase/brian_v11_3_2_app_visibility.sql:25:    if lower(coalesce(role_value,''))='admin' then return true; end if;
+supabase/brian_v11_3_2_app_visibility.sql:27:  jwt_role := lower(coalesce(
+supabase/brian_v11_3_2_app_visibility.sql:28:    auth.jwt()->'app_metadata'->>'role',
+supabase/brian_v11_3_2_app_visibility.sql:29:    auth.jwt()->'user_metadata'->>'role',
+supabase/brian_v11_3_2_app_visibility.sql:30:    auth.jwt()->>'role',
+supabase/brian_v11_3_2_app_visibility.sql:33:  return jwt_role in ('admin','administrator');
+supabase/brian_v11_3_2_app_visibility.sql:46:  hidden_roles text[] not null default array['department_head','teacher','student']::text[],
+supabase/brian_v11_3_2_app_visibility.sql:59:alter table public.app_visibility_settings add column if not exists hidden_roles text[] not null default array['department_head','teacher','student']::text[];
+supabase/brian_v11_3_2_app_visibility.sql:100:('app_visibility','11.3.2',now(),jsonb_build_object('admin_only',true,'realtime',true,'hidden_roles',array['department_head','teacher','student']))
+supabase/brian_v11_3_2_app_visibility.sql:105:select app_id,is_hidden,hidden_roles,reason,updated_at
+supabase/brian_v11_3_2_preflight.sql:3:union all select 'public.system_roles', case when to_regclass('public.system_roles') is not null then 'ready' else 'optional/fallback' end
+supabase/brian_v11_3_2_verify.sql:15:-- SQL Editor normally has no website auth.uid(), so use the real Admin UUID for a meaningful role test.
+supabase/brian_v11_3_3_work_assignment_delivery.sql:20:declare role_value text; jwt_role text;
+supabase/brian_v11_3_3_work_assignment_delivery.sql:23:  if to_regprocedure('public.bes_v1099_current_role(uuid)') is not null then
+supabase/brian_v11_3_3_work_assignment_delivery.sql:24:    execute 'select public.bes_v1099_current_role($1)' into role_value using target_user;
+supabase/brian_v11_3_3_work_assignment_delivery.sql:25:    if lower(coalesce(role_value,'')) in ('admin','department_head','head','ttcm','leader') then return true; end if;
+supabase/brian_v11_3_3_work_assignment_delivery.sql:27:  if to_regclass('public.system_roles') is not null then
+supabase/brian_v11_3_3_work_assignment_delivery.sql:28:    select role into role_value from public.system_roles
+supabase/brian_v11_3_3_work_assignment_delivery.sql:30:    if lower(coalesce(role_value,'')) in ('admin','department_head','head','ttcm','leader') then return true; end if;
+supabase/brian_v11_3_3_work_assignment_delivery.sql:34:      execute 'select role from public.profiles where coalesce(id,user_id,profile_id)=$1 limit 1'
+supabase/brian_v11_3_3_work_assignment_delivery.sql:35:      into role_value using target_user;
+supabase/brian_v11_3_3_work_assignment_delivery.sql:36:      if lower(coalesce(role_value,'')) in ('admin','department_head','head','ttcm','leader') then return true; end if;
+supabase/brian_v11_3_3_work_assignment_delivery.sql:40:  jwt_role := lower(coalesce(
+supabase/brian_v11_3_3_work_assignment_delivery.sql:41:    auth.jwt()->'app_metadata'->>'role',
+supabase/brian_v11_3_3_work_assignment_delivery.sql:42:    auth.jwt()->'user_metadata'->>'role',
+supabase/brian_v11_3_3_work_assignment_delivery.sql:43:    auth.jwt()->>'role',''
+supabase/brian_v11_3_3_work_assignment_delivery.sql:45:  return jwt_role in ('admin','administrator','department_head','head','ttcm','leader');
+supabase/brian_v11_3_4_verify.sql:13:select schemaname,tablename,policyname,roles,cmd
+supabase/brian_v11_4_2_preflight.sql:17:    where table_schema='public' and table_name='profiles' and column_name='role'
+supabase/brian_v11_4_2_preflight.sql:19:    raise exception 'public.profiles.role is required.';
+supabase/brian_v11_6_7_openrouter_gateway.sql:7:  actor_role text,
+supabase/custom_games_approval_v10_58.sql:6:  alter table public.profiles drop constraint if exists profiles_role_check;
+supabase/custom_games_approval_v10_58.sql:8:    add constraint profiles_role_check
+supabase/custom_games_approval_v10_58.sql:9:    check (role in (
+supabase/homeroom_phase2_v10_67.sql:58:  reader_role text not null,
+supabase/homeroom_phase2_v10_67.sql:61:  unique (portal_id, notice_id, student_ref, reader_role)
+supabase/homeroom_phase2_v10_67.sql:78:    where p.id = auth.uid() and lower(coalesce(p.role, '')) = 'admin' and p.approved = true
+supabase/homeroom_phase2_v10_67.sql:89:    where p.id = auth.uid() and lower(coalesce(p.role, '')) = 'admin' and p.approved = true
+supabase/homeroom_phase2_v10_67.sql:100:    where p.id = auth.uid() and lower(coalesce(p.role, '')) = 'admin' and p.approved = true
+supabase/homeroom_phase2_v10_67.sql:107:    where p.id = auth.uid() and lower(coalesce(p.role, '')) = 'admin' and p.approved = true
+supabase/homeroom_phase2_v10_67.sql:118:    where p.id = auth.uid() and lower(coalesce(p.role, '')) = 'admin' and p.approved = true
+supabase/homeroom_phase2_v10_67.sql:130:    where p.id = auth.uid() and lower(coalesce(p.role, '')) = 'admin' and p.approved = true
+supabase/homeroom_phase2_v10_67.sql:141:    where p.id = auth.uid() and lower(coalesce(p.role, '')) = 'admin' and p.approved = true
+supabase/homeroom_phase2_v10_67.sql:148:    where p.id = auth.uid() and lower(coalesce(p.role, '')) = 'admin' and p.approved = true
+supabase/homeroom_phase2_v10_67.sql:159:    where p.id = auth.uid() and lower(coalesce(p.role, '')) = 'admin' and p.approved = true
+supabase/homeroom_phase2_v10_67.sql:170:  p_role text,
+supabase/homeroom_phase2_v10_67.sql:181:  v_role text := lower(trim(coalesce(p_role, '')));
+supabase/homeroom_phase2_v10_67.sql:185:  if v_role not in ('parent', 'student', 'subject') then
+supabase/homeroom_phase2_v10_67.sql:192:    when v_role = 'parent' then upper(parent_code) = v_code
+supabase/homeroom_phase2_v10_67.sql:193:    when v_role = 'student' then upper(student_code) = v_code
+supabase/homeroom_phase2_v10_67.sql:202:  if v_role = 'subject' then
+supabase/homeroom_phase2_v10_67.sql:208:    if v_role = 'parent' then
+supabase/homeroom_phase2_v10_67.sql:221:    'role', v_role,
+supabase/homeroom_phase2_v10_67.sql:231:  p_role text,
+supabase/homeroom_phase2_v10_67.sql:244:  v_role text := lower(trim(coalesce(p_role, '')));
+supabase/homeroom_phase2_v10_67.sql:247:  if v_role not in ('parent', 'student') then
+supabase/homeroom_phase2_v10_67.sql:253:  where (v_role = 'parent' and upper(parent_code) = v_code)
+supabase/homeroom_phase2_v10_67.sql:254:     or (v_role = 'student' and upper(student_code) = v_code)
+supabase/homeroom_phase2_v10_67.sql:267:    portal_id, owner_id, workspace_id, notice_id, student_ref, reader_role, reader_name, read_at
+supabase/homeroom_phase2_v10_67.sql:269:    v_portal.id, v_portal.owner_id, v_portal.workspace_id, trim(p_notice_id), v_student_ref, v_role, trim(coalesce(p_reader_name, '')), now()
+supabase/homeroom_phase2_v10_67.sql:271:  on conflict (portal_id, notice_id, student_ref, reader_role)
+supabase/homeroom_phase3_v10_69.sql:19:  reader_role text not null,
+supabase/homeroom_phase3_v10_69.sql:26:  unique(portal_id, reader_role, student_ref)
+supabase/homeroom_phase3_v10_69.sql:29:  on public.bes_homeroom_portal_attempts(portal_id, reader_role, student_ref, locked_until);
+supabase/homeroom_phase3_v10_69.sql:62:  workspace_id text not null, student_ref text not null, code text not null default '', full_name text not null,
+supabase/homeroom_phase3_v10_69.sql:117:      and lower(coalesce(p.role,''))='admin' and p.approved=true
+supabase/homeroom_phase3_v10_69.sql:147:  p_role text,
+supabase/homeroom_phase3_v10_69.sql:159:  v_role text := lower(trim(coalesce(p_role, '')));
+supabase/homeroom_phase3_v10_69.sql:170:  if v_role not in ('parent', 'student', 'subject') then
+supabase/homeroom_phase3_v10_69.sql:175:  where case when v_role='parent' then upper(parent_code)=v_code
+supabase/homeroom_phase3_v10_69.sql:176:             when v_role='student' then upper(student_code)=v_code
+supabase/homeroom_phase3_v10_69.sql:188:  if v_role='subject' then
+supabase/homeroom_phase3_v10_69.sql:192:      where portal_id=v_portal.id and reader_role=v_role and student_ref=v_student_ref;
+supabase/homeroom_phase3_v10_69.sql:204:      insert into public.bes_homeroom_portal_attempts(portal_id,reader_role,student_ref,failed_count,locked_until,last_attempt_at,ip_address)
+supabase/homeroom_phase3_v10_69.sql:205:      values(v_portal.id,v_role,v_student_ref,v_next_failed,
+supabase/homeroom_phase3_v10_69.sql:208:      on conflict(portal_id,reader_role,student_ref) do update set
+supabase/homeroom_phase3_v10_69.sql:216:    insert into public.bes_homeroom_portal_attempts(portal_id,reader_role,student_ref,failed_count,locked_until,last_attempt_at,last_success_at,ip_address)
+supabase/homeroom_phase3_v10_69.sql:217:    values(v_portal.id,v_role,v_student_ref,0,null,now(),now(),inet_client_addr())
+supabase/homeroom_phase3_v10_69.sql:218:    on conflict(portal_id,reader_role,student_ref) do update set
+supabase/homeroom_phase3_v10_69.sql:221:    if v_role='parent' then v_view := v_portal.payload->'parentViews'->v_student_ref;
+supabase/homeroom_phase3_v10_69.sql:227:  return jsonb_build_object('ok',true,'role',v_role,'workspaceId',v_portal.workspace_id,
+supabase/homeroom_phase3_v10_69.sql:233:  p_code text, p_role text, p_student_code text, p_pin text,
+supabase/homeroom_phase3_v10_69.sql:241:  v_role text := lower(trim(coalesce(p_role,'')));
+supabase/homeroom_phase3_v10_69.sql:247:  if v_role not in ('parent','student') then return jsonb_build_object('ok',false,'message','Vai trò không được phép xác nhận.'); end if;
+supabase/homeroom_phase3_v10_69.sql:249:    where (v_role='parent' and upper(parent_code)=v_code) or (v_role='student' and upper(student_code)=v_code) limit 1;
+supabase/homeroom_phase3_v10_69.sql:256:  insert into public.bes_homeroom_portal_receipts(portal_id,owner_id,workspace_id,notice_id,student_ref,reader_role,reader_name,read_at)
+supabase/homeroom_phase3_v10_69.sql:257:  values(v_portal.id,v_portal.owner_id,v_portal.workspace_id,p_notice_id,v_student_ref,v_role,coalesce(p_reader_name,''),now())
+supabase/homeroom_phase3_v10_69.sql:258:  on conflict(portal_id,notice_id,student_ref,reader_role) do update set reader_name=excluded.reader_name,read_at=now();
+supabase/homeroom_phase3_v10_69.sql:278:  reader_role text not null,
+supabase/homeroom_phase3_v10_69.sql:298:  p_code text, p_role text, p_student_code text, p_pin text,
+supabase/homeroom_phase3_v10_69.sql:306:  v_role text := lower(trim(coalesce(p_role,'')));
+supabase/homeroom_phase3_v10_69.sql:313:  if v_role not in ('parent','student') then return jsonb_build_object('ok',false,'message','Vai trò không được phép phản hồi.'); end if;
+supabase/homeroom_phase3_v10_69.sql:316:    where (v_role='parent' and upper(parent_code)=v_code) or (v_role='student' and upper(student_code)=v_code) limit 1;
+supabase/homeroom_phase3_v10_69.sql:323:  insert into public.bes_homeroom_portal_responses(portal_id,owner_id,workspace_id,notice_id,student_ref,reader_role,reader_name,message)
+supabase/homeroom_phase3_v10_69.sql:324:  values(v_portal.id,v_portal.owner_id,v_portal.workspace_id,trim(coalesce(p_notice_id,'')),v_student_ref,v_role,trim(coalesce(p_reader_name,'')),left(trim(p_message),4000))
+supabase/homeroom_workspace_v10_66.sql:40:      and lower(coalesce(p.role, '')) = 'admin'
+supabase/homeroom_workspace_v10_66.sql:56:      and lower(coalesce(p.role, '')) = 'admin'
+supabase/homeroom_workspace_v10_66.sql:72:      and lower(coalesce(p.role, '')) = 'admin'
+supabase/homeroom_workspace_v10_66.sql:81:      and lower(coalesce(p.role, '')) = 'admin'
+supabase/homeroom_workspace_v10_66.sql:97:      and lower(coalesce(p.role, '')) = 'admin'
+supabase/library_sync_v10_63.sql:48:      where p.id = auth.uid() and p.role = 'admin' and p.approved = true
+supabase/resource_library_v10_80.sql:83:-- Drive connection and approval operations are server-side only through the service role.
+supabase/resource_library_v10_81_2_full_fixed.sql:185:-- This function recognises the existing profiles.role = 'admin' model,
+supabase/resource_library_v10_81_2_full_fixed.sql:186:-- while remaining compatible with common TTCM/leader role labels.
+supabase/resource_library_v10_81_2_full_fixed.sql:199:  v_claim_role text;
+supabase/resource_library_v10_81_2_full_fixed.sql:205:  -- Prefer a trusted role claim when the project already writes one to JWT.
+supabase/resource_library_v10_81_2_full_fixed.sql:207:    v_claim_role := lower(coalesce(
+supabase/resource_library_v10_81_2_full_fixed.sql:208:      auth.jwt() -> 'app_metadata' ->> 'role',
+supabase/resource_library_v10_81_2_full_fixed.sql:209:      auth.jwt() -> 'user_metadata' ->> 'role',
+supabase/resource_library_v10_81_2_full_fixed.sql:213:    if v_claim_role in ('admin', 'ttcm', 'leader', 'head', 'manager') then
+supabase/resource_library_v10_81_2_full_fixed.sql:236:      where table_schema = 'public' and table_name = 'profiles' and column_name = 'profile_id'
+supabase/resource_library_v10_81_2_full_fixed.sql:237:    ) then 'profile_id'
+supabase/resource_library_v10_81_2_full_fixed.sql:243:    where table_schema = 'public' and table_name = 'profiles' and column_name = 'role'
+supabase/resource_library_v10_81_2_full_fixed.sql:271:         and lower(coalesce(role::text, '''')) in
+supabase/resource_library_v10_88_1_access_sync_fix.sql:118:--    helper may fail because profiles uses id/user_id/profile_id differently.
+supabase/resource_library_v10_88_1_access_sync_fix.sql:129:  v_role text := '';
+supabase/resource_library_v10_88_1_access_sync_fix.sql:134:  v_role_aliases text[] := array[
+supabase/resource_library_v10_88_1_access_sync_fix.sql:148:    v_role := lower(btrim(coalesce(
+supabase/resource_library_v10_88_1_access_sync_fix.sql:149:      auth.jwt() -> 'app_metadata' ->> 'role',
+supabase/resource_library_v10_88_1_access_sync_fix.sql:150:      auth.jwt() -> 'user_metadata' ->> 'role',
+supabase/resource_library_v10_88_1_access_sync_fix.sql:154:    if v_role = any(v_role_aliases) then
+supabase/resource_library_v10_88_1_access_sync_fix.sql:166:        u.raw_app_meta_data ->> 'role',
+supabase/resource_library_v10_88_1_access_sync_fix.sql:167:        u.raw_user_meta_data ->> 'role',
+supabase/resource_library_v10_88_1_access_sync_fix.sql:170:    into v_email, v_role
+supabase/resource_library_v10_88_1_access_sync_fix.sql:174:    if v_email = 'anhtuan@pek.edu.vn' or v_role = any(v_role_aliases) then
+supabase/resource_library_v10_88_1_access_sync_fix.sql:196:      where table_schema = 'public' and table_name = 'profiles' and column_name = 'profile_id'
+supabase/resource_library_v10_88_1_access_sync_fix.sql:197:    ) then 'profile_id'
+supabase/resource_library_v10_88_1_access_sync_fix.sql:207:    where table_schema = 'public' and table_name = 'profiles' and column_name = 'role'
+supabase/resource_library_v10_88_1_access_sync_fix.sql:213:           and lower(btrim(coalesce(p.role::text, ''''))) = any($2)
+supabase/resource_library_v10_88_1_access_sync_fix.sql:217:    execute v_sql into v_result using p_user_id, v_role_aliases;
+supabase/schema.sql:8:  full_name text,
+supabase/schema.sql:10:  role text not null default 'teacher' check (role in ('teacher', 'admin')),
+supabase/schema.sql:12:  permissions jsonb not null default '{"mode":"all","allowed":[]}'::jsonb,
+supabase/schema.sql:18:  add column if not exists permissions jsonb not null default '{"mode":"all","allowed":[]}'::jsonb;
+supabase/schema.sql:33:      and role = 'admin'
+supabase/schema.sql:45:  insert into public.profiles (id, email, full_name, school, role, approved, permissions)
+supabase/schema.sql:49:    coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', split_part(coalesce(new.email, ''), '@', 1)),
+supabase/schema.sql:57:    full_name = coalesce(public.profiles.full_name, excluded.full_name),
+supabase/schema.sql:59:    permissions = coalesce(public.profiles.permissions, excluded.permissions),
+supabase/schema.sql:97:-- update public.profiles set role = 'admin', approved = true where email = 'your-email@example.com';
+supabase/schema.sql:99:-- Permission examples stored in profiles.permissions:
+supabase/schema.sql:151:-- V1.0 upgrade: English Department Workspace permissions.
+supabase/schema.sql:153:-- Admin can grant the route card and granular submodule permissions through profiles.permissions:
+supabase/schema.sql:233:        lower(coalesce(role, '')) in ('admin', 'ttcm', 'to_truong', 'tổ trưởng', 'department_leader', 'department leader', 'subject_leader', 'subject leader', 'leader')
+supabase/schema.sql:536:create or replace function public.bes_admin_list_profiles()
+supabase/schema.sql:540:  full_name text,
+supabase/schema.sql:542:  role text,
+supabase/schema.sql:544:  permissions jsonb,
+supabase/schema.sql:552:  select p.id, p.email, p.full_name, p.school, p.role, p.approved, p.permissions, p.created_at, p.updated_at
+supabase/schema.sql:558:grant execute on function public.bes_admin_list_profiles() to authenticated;
+supabase/schema.sql:573:  insert into public.profiles (id, email, full_name, school, role, approved, permissions, created_at, updated_at)
+supabase/schema.sql:577:    coalesce(u.raw_user_meta_data->>'full_name', u.raw_user_meta_data->>'name', split_part(coalesce(u.email, ''), '@', 1)),
+supabase/schema.sql:609:    role = coalesce(nullif(patch->>'role', ''), role),
+supabase/schema.sql:611:    permissions = coalesce(patch->'permissions', permissions),
+supabase/schema.sql:612:    full_name = coalesce(nullif(patch->>'full_name', ''), full_name),
+supabase/schema.sql:623:-- sees the same row in public.profiles as role='teacher'. This function lets a
+supabase/schema.sql:625:-- database profile to role='admin', approved=true. Then is_admin() becomes true and
+supabase/schema.sql:626:-- bes_admin_list_profiles() can return all teacher accounts.
+supabase/schema.sql:649:  insert into public.profiles (id, email, full_name, school, role, approved, permissions, created_at, updated_at)
+supabase/schema.sql:663:    role = 'admin',
+supabase/schema.sql:665:    permissions = coalesce(public.profiles.permissions, excluded.permissions),
+supabase/schema.sql:679:  alter table public.profiles drop constraint if exists profiles_role_check;
+supabase/schema.sql:681:    add constraint profiles_role_check
+supabase/schema.sql:682:    check (role in (
+supabase/smart_knowledge_v10_90_0.sql:18:  select coalesce(public.knowledge_try_uuid(profile_json->>'id'),public.knowledge_try_uuid(profile_json->>'user_id'),public.knowledge_try_uuid(profile_json->>'profile_id'));
+supabase/smart_knowledge_v10_90_0.sql:23:declare jwt jsonb:=coalesce(auth.jwt(),'{}'::jsonb); r text:=lower(coalesce(jwt->'app_metadata'->>'role',jwt->'user_metadata'->>'role',jwt->>'role','')); e text:=lower(coalesce(jwt->>'email','')); ok boolean:=false;
+supabase/smart_knowledge_v10_90_0.sql:28:  select exists(select 1 from public.profiles p cross join lateral(select to_jsonb(p) j)x where public.knowledge_profile_uuid(x.j)=target_user and (lower(coalesce(x.j->>'role','')) in ('admin','ttcm','leader','department_head','department-head','head') or lower(coalesce(x.j->>'email',''))='anhtuan@pek.edu.vn')) into ok;
+supabase/smart_knowledge_v10_90_0.sql:40:  select exists(select 1 from public.profiles p cross join lateral(select to_jsonb(p) j)x where public.knowledge_profile_uuid(x.j)=target_user and lower(coalesce(x.j->>'role','teacher')) not in ('blocked','disabled','rejected') and lower(coalesce(x.j->>'status','approved')) not in ('blocked','disabled','rejected') and lower(coalesce(x.j->>'approved','true')) not in ('false','0','no')) into ok;
+supabase/thpt_practice_hub_v11_6_7.sql:6:declare role_value text; email_value text;
+supabase/thpt_practice_hub_v11_6_7.sql:10:  select lower(coalesce(p.role,'')) into role_value from public.profiles p where p.id=target_user limit 1;
+supabase/thpt_practice_hub_v11_6_7.sql:11:  return role_value in ('admin','administrator','department_head','department-head','ttcm','leader','head','manager');
+supabase/work_hub_v10_89_0.sql:22:    profile_json ->> 'profile_id'
+supabase/work_hub_v10_89_0.sql:48:  jwt_role text := lower(coalesce(
+supabase/work_hub_v10_89_0.sql:49:    jwt -> 'app_metadata' ->> 'role',
+supabase/work_hub_v10_89_0.sql:50:    jwt -> 'user_metadata' ->> 'role',
+supabase/work_hub_v10_89_0.sql:51:    jwt ->> 'role',
+supabase/work_hub_v10_89_0.sql:62:    jwt_role in ('admin', 'ttcm', 'leader', 'department_head', 'department-head', 'head')
+supabase/work_hub_v10_89_0.sql:78:        lower(coalesce(x.j ->> 'role', '')) in (
+supabase/work_hub_v10_89_0.sql:119:      and lower(coalesce(x.j ->> 'role', 'teacher')) not in ('blocked', 'disabled', 'rejected')
+supabase/work_hub_v10_89_0.sql:702:  display_name text := '';
+supabase/work_hub_v10_89_0.sql:704:  role_value text := lower(coalesce(
+supabase/work_hub_v10_89_0.sql:705:    jwt -> 'app_metadata' ->> 'role',
+supabase/work_hub_v10_89_0.sql:706:    jwt -> 'user_metadata' ->> 'role',
+supabase/work_hub_v10_89_0.sql:707:    jwt ->> 'role',
+supabase/work_hub_v10_89_0.sql:725:  display_name := coalesce(
+supabase/work_hub_v10_89_0.sql:726:    nullif(profile_data ->> 'full_name', ''),
+supabase/work_hub_v10_89_0.sql:728:    nullif(profile_data ->> 'display_name', ''),
+supabase/work_hub_v10_89_0.sql:729:    nullif(jwt -> 'user_metadata' ->> 'full_name', ''),
+supabase/work_hub_v10_89_0.sql:734:  role_value := lower(coalesce(nullif(profile_data ->> 'role', ''), role_value, 'teacher'));
+supabase/work_hub_v10_89_0.sql:737:    role_value := case when role_value = 'ttcm' then 'ttcm' else 'admin' end;
+supabase/work_hub_v10_89_0.sql:744:    'display_name', display_name,
+supabase/work_hub_v10_89_0.sql:745:    'role', role_value,
+supabase/work_hub_v10_89_0.sql:755:  display_name text,
+supabase/work_hub_v10_89_0.sql:757:  role text
+supabase/work_hub_v10_89_0.sql:773:      coalesce(auth.jwt() -> 'user_metadata' ->> 'full_name', split_part(auth.jwt() ->> 'email', '@', 1)),
+supabase/work_hub_v10_89_0.sql:775:      lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'teacher'));
+supabase/work_hub_v10_89_0.sql:783:      nullif(x.j ->> 'full_name', ''),
+supabase/work_hub_v10_89_0.sql:785:      nullif(x.j ->> 'display_name', ''),
+supabase/work_hub_v10_89_0.sql:788:    ) as display_name,
+supabase/work_hub_v10_89_0.sql:790:    lower(coalesce(x.j ->> 'role', 'teacher')) as role
+supabase/work_hub_v10_89_0.sql:794:    and lower(coalesce(x.j ->> 'role', 'teacher')) not in ('blocked', 'disabled', 'rejected')

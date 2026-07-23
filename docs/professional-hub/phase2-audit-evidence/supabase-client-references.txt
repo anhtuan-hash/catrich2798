@@ -1,0 +1,18 @@
+src/pages/AdminPage.jsx:569:              <p>{language === 'vi' ? 'Thêm biến môi trường VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY trước khi dùng trang quản trị.' : 'Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY before using admin management.'}</p>
+src/pages/AuthPage.jsx:154:        ? 'Chưa cấu hình Supabase. Vui lòng thêm VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY trong Vercel.'
+src/pages/AuthPage.jsx:155:        : 'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel.');
+src/pages/SupabaseSetup.jsx:39:            <span>VITE_SUPABASE_URL: {status.hasUrl ? '✅' : '❌'}</span>
+src/pages/SupabaseSetup.jsx:40:            <span>VITE_SUPABASE_ANON_KEY: {status.hasAnonKey ? '✅' : '❌'}</span>
+src/pages/SupabaseSetup.jsx:62:          <pre className="code-card">{`VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+src/pages/SupabaseSetup.jsx:63:VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+src/pages/SystemHealthCenter.jsx:82:      { name: language === 'vi' ? 'Cấu hình Supabase' : 'Supabase config', ok: supabaseStatus.configured, detail: supabaseStatus.configured ? 'Environment variables present' : 'Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY', latency: 0 },
+src/utils/supabase.js:1:import { createClient } from '@supabase/supabase-js';
+src/utils/supabase.js:5:export const supabaseUrl = String(runtimeEnv.VITE_SUPABASE_URL || '').trim();
+src/utils/supabase.js:6:export const supabaseAnonKey = String(runtimeEnv.VITE_SUPABASE_ANON_KEY || '').trim();
+src/utils/supabase.js:8:export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+src/utils/supabase.js:11:  ? createClient(supabaseUrl, supabaseAnonKey, {
+src/utils/supabase.js:29:    hasUrl: Boolean(supabaseUrl),
+src/utils/supabase.js:30:    hasAnonKey: Boolean(supabaseAnonKey),
+src/utils/supabase.js:31:    projectRef: supabaseUrl.match(/^https:\/\/([^.]+)\.supabase\.co/i)?.[1] || '',
+src/utils/supabase.js:37:    url: supabaseUrl,
+src/utils/supabase.js:38:    anonKey: supabaseAnonKey,
