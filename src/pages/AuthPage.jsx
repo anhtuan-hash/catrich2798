@@ -1,111 +1,77 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { consumeAuthNotice, isAuthConfigured, loginOfflineDemo, loginUser, loginWithGoogle, registerTeacher, requestPasswordReset, updatePassword } from '../utils/auth.js';
+import './AuthPageGoogle.css';
+
+function FeatureIcon({ type }) {
+  if (type === 'shield') {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5.5 5.7v5.7c0 4.3 2.7 7.7 6.5 9.6 3.8-1.9 6.5-5.3 6.5-9.6V5.7L12 3Zm0 3.1 3.8 1.6v3.7c0 2.8-1.5 5.2-3.8 6.7-2.3-1.5-3.8-3.9-3.8-6.7V7.7L12 6.1Zm-1 8.2-1.8-1.8-1.4 1.4 3.2 3.2 5.4-5.4-1.4-1.4-4 4Z" /></svg>;
+  }
+  if (type === 'apps') {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z" /></svg>;
+  }
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.7 6.3A8 8 0 0 0 4.3 9H2l3.5 3.5L9 9H6.4a5.5 5.5 0 0 1 9.5-1L17.7 6.3ZM18.5 11.5 15 15h2.6a5.5 5.5 0 0 1-9.5 1l-1.8 1.7A8 8 0 0 0 19.7 15H22l-3.5-3.5Z" /></svg>;
+}
 
 function AuthVisualPanel({ language, title, recoveryMode, isRegister, configured }) {
-  const cards = language === 'vi'
+  const features = language === 'vi'
     ? [
-      ['🔐', 'Auth bảo mật', 'Supabase Auth chuẩn enterprise'],
-      ['☁️', 'Đồng bộ ứng dụng', 'Dữ liệu real-time trong toàn hệ thống'],
-      ['🎮', 'Truy cập trò chơi & thư viện', 'Hơn 2.000+ tài liệu và game'],
+      ['shield', 'Đăng nhập an toàn', configured ? 'Xác thực qua Supabase Auth.' : 'Chế độ demo dành cho kiểm thử giao diện.'],
+      ['apps', 'Truy cập đúng quyền', 'Ứng dụng, trò chơi và học liệu hiển thị theo tài khoản.'],
+      ['sync', 'Làm việc liền mạch', 'Nhiệm vụ và nội dung được đồng bộ trong hệ thống.'],
     ]
     : [
-      ['🔐', 'Secure auth', 'Enterprise-ready Supabase Auth'],
-      ['☁️', 'System sync', 'Real-time data across the studio'],
-      ['🎮', 'Games & Library access', '2,000+ materials and games'],
+      ['shield', 'Secure sign-in', configured ? 'Authentication powered by Supabase Auth.' : 'Demo mode for interface testing.'],
+      ['apps', 'Role-based access', 'Apps, games, and resources follow account permissions.'],
+      ['sync', 'Connected workflow', 'Tasks and content stay connected across the system.'],
     ];
+
+  const description = recoveryMode
+    ? (language === 'vi' ? 'Thiết lập mật khẩu mới để tiếp tục sử dụng English Hub.' : 'Create a new password to continue using English Hub.')
+    : isRegister
+      ? (language === 'vi' ? 'Tạo tài khoản giáo viên và gửi yêu cầu phê duyệt đến quản trị viên.' : 'Create a teacher account and submit it for administrator approval.')
+      : configured
+        ? (language === 'vi' ? 'Đăng nhập để truy cập không gian làm việc, học liệu và các công cụ được cấp quyền.' : 'Sign in to access your workspace, resources, and permitted tools.')
+        : (language === 'vi' ? 'Supabase chưa được cấu hình. Bạn vẫn có thể mở tài khoản demo để kiểm tra giao diện.' : 'Supabase is not configured. Demo accounts remain available for interface testing.');
+
   return (
-    <section className="auth-v51-visual-card" aria-label="Brian English sign in overview">
-      <div className="auth-v51-brand-row">
-        <img src="/brian-english-brand-mark.png" alt="Brian English" />
-        <strong>Brian English Studio</strong>
+    <section className="auth-google-visual" aria-label={language === 'vi' ? 'Giới thiệu trang đăng nhập English Hub' : 'English Hub sign-in overview'}>
+      <div className="auth-google-brand-row">
+        <img src="/brian-english-brand-mark.png" alt="" aria-hidden="true" />
+        <span>English Hub</span>
       </div>
-      <div className="auth-v51-visual-grid">
-        <div className="auth-v51-copy">
-          <span className="auth-v51-kicker">{language === 'vi' ? 'Teacher workspace' : 'Teacher workspace'}</span>
-          <h1>{title}</h1>
-          <p>
-            {recoveryMode
-              ? (language === 'vi' ? 'Thiết lập lại mật khẩu an toàn và quay lại không gian dạy học Brian English.' : 'Reset your password securely and return to the Brian English teaching workspace.')
-              : isRegister
-                ? (language === 'vi' ? 'Tạo tài khoản giáo viên, chờ duyệt và bắt đầu sử dụng toàn bộ hệ thống.' : 'Create a teacher account, wait for approval, and start using the complete system.')
-                : configured
-                  ? (language === 'vi' ? 'Đăng nhập bằng Supabase Auth chính thức, bảo mật, ổn định và đồng bộ toàn hệ thống.' : 'Sign in with secure, stable, production-ready Supabase Auth across the whole system.')
-                  : (language === 'vi' ? 'Chưa cấu hình Supabase: dùng demo để kiểm tra giao diện và workflow trên máy.' : 'Supabase is not configured: use demo mode to test the interface and workflow locally.')}
-          </p>
-        </div>
-        <div className="auth-v51-illustration" aria-hidden="true">
-          <div className="auth-v51-dashboard-card">
-            <div className="dash-bar"><span /><span /><span /></div>
-            <div className="dash-chart"><i /><i /><i /></div>
-            <div className="dash-profile"><b /><b /><b /></div>
-          </div>
-          <div className="auth-v51-teacher-avatar"><span>👨🏻‍🏫</span></div>
-          <div className="auth-v51-ai-chip">AI</div>
-          <div className="auth-v51-shield">🛡️</div>
-          <div className="auth-v51-books"><i /><i /><i /></div>
-        </div>
+
+      <div className="auth-google-copy">
+        <span className="auth-google-kicker">{language === 'vi' ? 'Không gian giáo viên' : 'Teacher workspace'}</span>
+        <h1>{title}</h1>
+        <p>{description}</p>
       </div>
-      <div className="auth-v51-feature-row">
-        {cards.map(([icon, heading, text]) => (
+
+      <div className="auth-google-visual-art" aria-hidden="true">
+        <div className="auth-google-orbit auth-google-orbit-a" />
+        <div className="auth-google-orbit auth-google-orbit-b" />
+        <div className="auth-google-art-card auth-google-art-card-main">
+          <span className="auth-google-art-logo"><img src="/brian-english-brand-mark.png" alt="" /></span>
+          <div><b>English Hub</b><small>{language === 'vi' ? 'Không gian dạy học số' : 'Digital teaching workspace'}</small></div>
+        </div>
+        <div className="auth-google-art-card auth-google-art-card-small is-blue"><b>Apps</b><span>▦</span></div>
+        <div className="auth-google-art-card auth-google-art-card-small is-green"><b>Auth</b><span>✓</span></div>
+        <div className="auth-google-art-card auth-google-art-card-small is-yellow"><b>Sync</b><span>↻</span></div>
+      </div>
+
+      <div className="auth-google-feature-list">
+        {features.map(([type, heading, text]) => (
           <article key={heading}>
-            <span>{icon}</span>
-            <div>
-              <strong>{heading}</strong>
-              <small>{text}</small>
-            </div>
+            <span className={`auth-google-feature-icon is-${type}`}><FeatureIcon type={type} /></span>
+            <div><strong>{heading}</strong><small>{text}</small></div>
           </article>
         ))}
       </div>
-      <div className="auth-v51-stat-strip">
-        <span><b>120+</b><small>{language === 'vi' ? 'Giáo viên' : 'Teachers'}</small></span>
-        <span><b>3.200+</b><small>{language === 'vi' ? 'Học sinh' : 'Students'}</small></span>
-        <span><b>2.000+</b><small>{language === 'vi' ? 'Tài liệu & Games' : 'Materials & Games'}</small></span>
-        <span><b>99.9%</b><small>Uptime</small></span>
-      </div>
-    </section>
-  );
-}
 
-function AuthModuleCards({ language }) {
-  const items = language === 'vi'
-    ? [
-      ['🔒', 'Auth', 'Quản lý xác thực & phân quyền'],
-      ['🖥️', 'Apps', 'Ứng dụng & công cụ giảng dạy'],
-      ['🎮', 'Games', 'Trò chơi học tập tương tác'],
-      ['🗂️', 'Vault', 'Thư viện & tài liệu giảng dạy'],
-    ]
-    : [
-      ['🔒', 'Auth', 'Authentication & access control'],
-      ['🖥️', 'Apps', 'Teaching apps and tools'],
-      ['🎮', 'Games', 'Interactive learning games'],
-      ['🗂️', 'Vault', 'Teacher library and resources'],
-    ];
-  return (
-    <section className="auth-v51-module-grid" aria-label="System modules">
-      {items.map(([icon, title, text]) => (
-        <article key={title}>
-          <span>{icon}</span>
-          <div><strong>{title}</strong><small>{text}</small></div>
-          <b>›</b>
-        </article>
-      ))}
-    </section>
-  );
-}
-
-function AuthBottomBrand({ language }) {
-  return (
-    <section className="auth-v51-bottom-brand">
-      <div className="auth-v51-bottom-logo">
-        <img src="/brian-english-brand-mark.png" alt="Brian English" />
-        <strong>Brian English<br />Studio</strong>
+      <div className="auth-google-assurance-row" aria-label={language === 'vi' ? 'Các phương thức và tính năng xác thực' : 'Authentication methods and capabilities'}>
+        <span>Supabase Auth</span>
+        <span>Google Sign-In</span>
+        <span>{language === 'vi' ? 'Phân quyền tài khoản' : 'Role-based access'}</span>
       </div>
-      <div>
-        <strong>{language === 'vi' ? 'Nền tảng giảng dạy tiếng Anh thông minh' : 'Smart English teaching platform'}</strong>
-        <p>{language === 'vi' ? 'Giải pháp toàn diện cho giáo viên và học sinh với công nghệ hiện đại.' : 'A complete solution for teachers and learners powered by modern technology.'}</p>
-      </div>
-      <div className="auth-v51-lang-card active"><b>VI</b><strong>Tiếng Việt</strong><span>{language === 'vi' ? 'Học tập thông minh' : 'Smart learning'}</span></div>
-      <div className="auth-v51-lang-card"><b>EN</b><strong>English</strong><span>{language === 'vi' ? 'Kiến tạo tương lai' : 'Better future tomorrow'}</span></div>
     </section>
   );
 }
@@ -129,7 +95,6 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
     window.addEventListener('hashchange', detectRecovery);
     return () => window.removeEventListener('hashchange', detectRecovery);
   }, []);
-
 
   useEffect(() => {
     const notice = consumeAuthNotice();
@@ -280,8 +245,8 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
   };
 
   return (
-    <div className="page auth-page auth-page-v51">
-      <section className="auth-v51-stage">
+    <div className="page auth-page auth-page-v51 auth-google-page">
+      <section className="auth-google-stage">
         <AuthVisualPanel
           language={language}
           title={title}
@@ -290,90 +255,109 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
           configured={configured}
         />
 
-        <form className="auth-v51-form-card" onSubmit={submit}>
-          <div className="auth-v51-lock">🔒</div>
-          <h2>{recoveryMode ? (language === 'vi' ? 'Đặt lại mật khẩu' : 'Reset password') : isRegister ? (language === 'vi' ? 'Tạo tài khoản' : 'Create account') : (language === 'vi' ? 'Đăng nhập' : 'Sign in')}</h2>
-          <p>{language === 'vi' ? 'Chào mừng bạn trở lại Brian English Studio' : 'Welcome back to Brian English Studio'}</p>
+        <form className="auth-google-form" onSubmit={submit}>
+          <header className="auth-google-form-header">
+            <span className="auth-google-form-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M17 8h-1V6a4 4 0 1 0-8 0v2H7a2 2 0 0 0-2 2v9h14v-9a2 2 0 0 0-2-2Zm-7-2a2 2 0 1 1 4 0v2h-4V6Zm7 11H7v-7h10v7Z" /></svg>
+            </span>
+            <div>
+              <span className="auth-google-form-kicker">English Hub</span>
+              <h2>{recoveryMode ? (language === 'vi' ? 'Đặt lại mật khẩu' : 'Reset password') : isRegister ? (language === 'vi' ? 'Tạo tài khoản' : 'Create account') : (language === 'vi' ? 'Đăng nhập' : 'Sign in')}</h2>
+              <p>{language === 'vi' ? 'Tiếp tục vào không gian làm việc của bạn.' : 'Continue to your teaching workspace.'}</p>
+            </div>
+          </header>
 
           {!configured && (
-            <div className="auth-v51-warning">
-              <strong>{language === 'vi' ? 'Chế độ demo sẵn sàng' : 'Demo mode ready'}</strong>
-              <span>{language === 'vi' ? 'Có thể mở demo khi chưa cấu hình Supabase.' : 'You can open demo mode before Supabase is configured.'}</span>
+            <div className="auth-google-notice is-warning">
+              <strong>{language === 'vi' ? 'Chế độ demo đang khả dụng' : 'Demo mode is available'}</strong>
+              <span>{language === 'vi' ? 'Supabase chưa được cấu hình trên môi trường này.' : 'Supabase is not configured in this environment.'}</span>
             </div>
           )}
 
-          {!recoveryMode && isRegister && (
-            <>
-              <label>{language === 'vi' ? 'Họ tên' : 'Full name'}</label>
-              <div className="auth-v51-input-wrap"><span>👤</span><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" placeholder={language === 'vi' ? 'Nhập họ tên' : 'Enter full name'} /></div>
-              <label>{language === 'vi' ? 'Trường / Trung tâm' : 'School / Center'}</label>
-              <div className="auth-v51-input-wrap"><span>🏫</span><input value={form.school} onChange={(e) => setForm({ ...form, school: e.target.value })} autoComplete="organization" placeholder={language === 'vi' ? 'Nhập trường / trung tâm' : 'Enter school / center'} /></div>
-            </>
-          )}
+          <div className="auth-google-fields">
+            {!recoveryMode && isRegister && (
+              <>
+                <label className="auth-google-field">
+                  <span>{language === 'vi' ? 'Họ và tên' : 'Full name'}</span>
+                  <div><i aria-hidden="true">A</i><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" placeholder={language === 'vi' ? 'Nhập họ và tên' : 'Enter full name'} /></div>
+                </label>
+                <label className="auth-google-field">
+                  <span>{language === 'vi' ? 'Trường / Trung tâm' : 'School / Center'}</span>
+                  <div><i aria-hidden="true">S</i><input value={form.school} onChange={(e) => setForm({ ...form, school: e.target.value })} autoComplete="organization" placeholder={language === 'vi' ? 'Nhập trường hoặc trung tâm' : 'Enter school or center'} /></div>
+                </label>
+              </>
+            )}
 
-          {!recoveryMode && (
-            <>
-              <label>Email</label>
-              <div className="auth-v51-input-wrap"><span>✉️</span><input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" placeholder={language === 'vi' ? 'Nhập email của bạn' : 'Enter your email'} /></div>
-            </>
-          )}
+            {!recoveryMode && (
+              <label className="auth-google-field">
+                <span>Email</span>
+                <div><i aria-hidden="true">@</i><input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" placeholder={language === 'vi' ? 'ten@truong.edu.vn' : 'name@school.edu'} /></div>
+              </label>
+            )}
 
-          <div className="auth-v51-label-line">
-            <label>{recoveryMode ? (language === 'vi' ? 'Mật khẩu mới' : 'New password') : (language === 'vi' ? 'Mật khẩu' : 'Password')}</label>
-            {!isRegister && !recoveryMode && configured && <button type="button" onClick={resetPassword}>{language === 'vi' ? 'Quên mật khẩu?' : 'Forgot password?'}</button>}
+            <label className="auth-google-field">
+              <span className="auth-google-label-row">
+                <b>{recoveryMode ? (language === 'vi' ? 'Mật khẩu mới' : 'New password') : (language === 'vi' ? 'Mật khẩu' : 'Password')}</b>
+                {!isRegister && !recoveryMode && configured && <button type="button" onClick={resetPassword}>{language === 'vi' ? 'Quên mật khẩu?' : 'Forgot password?'}</button>}
+              </span>
+              <div><i aria-hidden="true">•</i><input type={showPassword ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} autoComplete={isRegister || recoveryMode ? 'new-password' : 'current-password'} placeholder={language === 'vi' ? 'Nhập mật khẩu' : 'Enter password'} /><button type="button" className="auth-google-password-toggle" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? (language === 'vi' ? 'Ẩn mật khẩu' : 'Hide password') : (language === 'vi' ? 'Hiện mật khẩu' : 'Show password')}>{showPassword ? 'Ẩn' : 'Hiện'}</button></div>
+            </label>
+
+            {(isRegister || recoveryMode) && (
+              <label className="auth-google-field">
+                <span>{language === 'vi' ? 'Xác nhận mật khẩu' : 'Confirm password'}</span>
+                <div><i aria-hidden="true">✓</i><input type="password" value={form.confirm} onChange={(e) => setForm({ ...form, confirm: e.target.value })} autoComplete="new-password" placeholder={language === 'vi' ? 'Nhập lại mật khẩu' : 'Confirm password'} /></div>
+              </label>
+            )}
           </div>
-          <div className="auth-v51-input-wrap"><span>🔒</span><input type={showPassword ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} autoComplete={isRegister || recoveryMode ? 'new-password' : 'current-password'} placeholder={language === 'vi' ? 'Nhập mật khẩu' : 'Enter password'} /><button type="button" onClick={() => setShowPassword((value) => !value)}>{showPassword ? '🙈' : '👁️'}</button></div>
 
-          {(isRegister || recoveryMode) && (
-            <>
-              <label>{language === 'vi' ? 'Xác nhận mật khẩu' : 'Confirm password'}</label>
-              <div className="auth-v51-input-wrap"><span>✅</span><input type="password" value={form.confirm} onChange={(e) => setForm({ ...form, confirm: e.target.value })} autoComplete="new-password" placeholder={language === 'vi' ? 'Nhập lại mật khẩu' : 'Confirm password'} /></div>
-            </>
-          )}
+          {msg ? <div className="auth-message auth-google-message is-error">{msg}</div> : null}
+          {okMsg ? <div className="auth-message success-message auth-google-message is-success">{okMsg}</div> : null}
 
-          {msg ? <div className="auth-message auth-v51-message">{msg}</div> : null}
-          {okMsg ? <div className="auth-message success-message auth-v51-message">{okMsg}</div> : null}
-
-          <button className="auth-v51-submit" type="submit">
-            <span>↪</span>{recoveryMode ? (language === 'vi' ? 'Cập nhật mật khẩu' : 'Update password') : isRegister ? (language === 'vi' ? 'Tạo tài khoản' : 'Create account') : (language === 'vi' ? 'Đăng nhập' : 'Sign in')}
+          <button className="auth-google-submit" type="submit">
+            {recoveryMode ? (language === 'vi' ? 'Cập nhật mật khẩu' : 'Update password') : isRegister ? (language === 'vi' ? 'Tạo tài khoản' : 'Create account') : (language === 'vi' ? 'Đăng nhập' : 'Sign in')}
+            <span aria-hidden="true">→</span>
           </button>
 
           {!recoveryMode && configured ? (
             <>
-              <div className="auth-v65-divider"><span>{language === 'vi' ? 'hoặc tiếp tục với' : 'or continue with'}</span></div>
-              <button type="button" className="auth-v65-google" disabled={googleLoading} onClick={signInGoogle}>
-                <span className="auth-v65-google-mark" aria-hidden="true">G</span>
-                <span>{googleLoading ? (language === 'vi' ? 'Đang mở Google...' : 'Opening Google...') : (language === 'vi' ? 'Đăng nhập nhanh bằng Google' : 'Continue with Google')}</span>
+              <div className="auth-google-divider"><span>{language === 'vi' ? 'hoặc' : 'or'}</span></div>
+              <button type="button" className="auth-google-google-button" disabled={googleLoading} onClick={signInGoogle}>
+                <span className="auth-google-google-mark" aria-hidden="true">G</span>
+                <span>{googleLoading ? (language === 'vi' ? 'Đang mở Google...' : 'Opening Google...') : (language === 'vi' ? 'Tiếp tục với Google' : 'Continue with Google')}</span>
               </button>
-              <small className="auth-v65-google-note">{language === 'vi' ? 'Tài khoản Google mới vẫn cần quản trị viên duyệt trước khi sử dụng.' : 'New Google accounts still require administrator approval before first use.'}</small>
+              <small className="auth-google-google-note">{language === 'vi' ? 'Tài khoản mới cần được quản trị viên phê duyệt trước khi sử dụng.' : 'New accounts require administrator approval before first use.'}</small>
             </>
           ) : null}
 
-          <button type="button" className="auth-v51-secondary" onClick={() => { setRecoveryMode(false); window.location.hash = isRegister || recoveryMode ? '#/login' : '#/register'; }}>
-            <span>👥</span>{recoveryMode
+          <button type="button" className="auth-google-secondary" onClick={() => { setRecoveryMode(false); window.location.hash = isRegister || recoveryMode ? '#/login' : '#/register'; }}>
+            {recoveryMode
               ? (language === 'vi' ? 'Quay lại đăng nhập' : 'Back to sign in')
               : isRegister
                 ? (language === 'vi' ? 'Đã có tài khoản? Đăng nhập' : 'Already have an account? Sign in')
-                : (language === 'vi' ? 'Tạo tài khoản' : 'Create account')}
+                : (language === 'vi' ? 'Chưa có tài khoản? Tạo tài khoản' : 'New to English Hub? Create account')}
           </button>
 
           {!configured && !recoveryMode && (
-            <div className="auth-v51-demo-actions">
-              <button type="button" onClick={() => openOfflineDemo('admin')}>{language === 'vi' ? 'Demo Admin' : 'Demo Admin'}</button>
-              <button type="button" onClick={() => openOfflineDemo('teacher')}>{language === 'vi' ? 'Demo Teacher' : 'Demo Teacher'}</button>
+            <div className="auth-google-demo-actions">
+              <button type="button" onClick={() => openOfflineDemo('admin')}>Demo Admin</button>
+              <button type="button" onClick={() => openOfflineDemo('teacher')}>Demo Teacher</button>
             </div>
           )}
 
-          <div className="auth-v51-security-note">
-            <span>🛡️</span>
+          <div className="auth-google-security-note">
+            <FeatureIcon type="shield" />
             <small>{configured
-              ? (language === 'vi' ? 'Xác thực chính thức qua Supabase Auth. Phân quyền rõ ràng cho Admin & Teacher.' : 'Official Supabase Auth. Clear role-based access for Admin & Teacher.')
-              : (language === 'vi' ? 'Demo dùng localStorage để kiểm thử UI và workflow; không dùng cho dữ liệu thật.' : 'Demo uses localStorage for UI and workflow testing only.')}</small>
+              ? (language === 'vi' ? 'Xác thực qua Supabase Auth và phân quyền theo tài khoản.' : 'Authentication through Supabase Auth with role-based access.')
+              : (language === 'vi' ? 'Demo chỉ dùng để kiểm tra giao diện và quy trình.' : 'Demo mode is for interface and workflow testing only.')}</small>
           </div>
         </form>
       </section>
-      <AuthModuleCards language={language} />
-      <AuthBottomBrand language={language} />
+
+      <footer className="auth-google-page-footer">
+        <span>© 2026 English Hub</span>
+        <span>{language === 'vi' ? 'Không gian dạy học số dành cho giáo viên' : 'Digital teaching workspace for educators'}</span>
+      </footer>
     </div>
   );
 }
