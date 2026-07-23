@@ -225,22 +225,22 @@ function ActivityPreview({ language, onOpenDrawer, onOpenModal, onShowToast, onS
 
 function AccountPanel({ language, displayName, email }) {
   return (
-    <aside className="hr-progress-panel professional-hub-account-panel">
+    <aside className="hr-panel professional-hub-account-panel">
       <p className="professional-hub-kicker">
         {language === 'vi' ? 'TRẠNG THÁI TÀI KHOẢN' : 'ACCOUNT STATUS'}
       </p>
       <h2>{language === 'vi' ? 'Chưa được phân công Hub' : 'No Hub assignment yet'}</h2>
-      <div className="hr-progress-row">
+      <div className="professional-hub-account-row">
         <span>{language === 'vi' ? 'Tài khoản Brian' : 'Brian account'}</span>
         <b>{displayName}</b>
       </div>
       {email ? (
-        <div className="hr-progress-row">
+        <div className="professional-hub-account-row">
           <span>Email</span>
           <b>{email}</b>
         </div>
       ) : null}
-      <div className="hr-progress-row">
+      <div className="professional-hub-account-row">
         <span>{language === 'vi' ? 'Vai trò Hub' : 'Hub role'}</span>
         <b>{language === 'vi' ? 'Chưa xác định' : 'Not resolved'}</b>
       </div>
