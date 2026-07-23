@@ -38,8 +38,8 @@ jobs:
           const status = fs.readFileSync('src/components/StatusMenuBar.jsx', 'utf8');
           const requiredComponentTokens = [
             'brian-global-shell',
-            'brian-shell-panel-menu',
-            'brian-shell-panel-notifications',
+            'brian-shell-menu-content',
+            'brian-shell-notification-content',
             'bes-global-notification',
             'bes:notification',
             'bes-command-palette-open',
