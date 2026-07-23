@@ -140,6 +140,7 @@
   },
   "packageManager": "npm@10.8.0",
   "devDependencies": {
-    "@playwright/test": "^1.61.1"
+    "@playwright/test": "^1.61.1",
+    "supabase": "^2.109.1"
   }
 }
