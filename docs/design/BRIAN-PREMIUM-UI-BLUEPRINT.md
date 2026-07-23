@@ -64,12 +64,24 @@ Source: `src/pages/WebApps.jsx` and `WebAppsPremium.css`
 - Admin launcher editor retains drag ordering, pin, hide, navigation placement, custom groups, cloud save and reset.
 - Locked applications retain the existing permission-request workflow.
 
+### Work Dashboard
+
+Source: `src/pages/WorkDashboard.jsx` and `WorkDashboardPremium.css`
+
+- Rewritten component rather than a stylesheet overlay on the former dashboard.
+- Keeps the existing dashboard aggregator, realtime source events and role-aware snapshot.
+- Editorial greeting and role card with workflow-health progress.
+- Five semantic metrics with task filtering.
+- Dedicated work, schedule, approval, professional, homeroom, recent-work and resource panels.
+- Uses the same component anatomy when embedded on Home and when opened as a full route.
+- Mobile layout removes secondary metadata before allowing horizontal overflow.
+
 ## Migration sequence
 
 1. **Foundation** — tokens, shell, homepage and notification contract. **Complete.**
 2. **Directory** — rebuild the Apps page using the same card anatomy and spacing. **Complete.**
-3. **Shared surfaces** — forms, tables, empty states, toolbars and dialogs. **Next.**
-4. **Management workspaces** — Dashboard, Work Hub, Homeroom and Professional Hub.
+3. **Shared surfaces** — forms, tables, empty states, toolbars and dialogs. **In progress; dashboard establishes the first production surface patterns.**
+4. **Management workspaces** — Dashboard, Work Hub, Homeroom and Professional Hub. **Dashboard complete; remaining workspaces pending.**
 5. **Teaching applications** — Lesson Architect, Reading Studio, Exam Studio and retained utilities.
 6. **Final polish** — dark mode, motion, responsive screenshots and accessibility review.
 
@@ -88,4 +100,4 @@ Each migration phase must satisfy:
 
 ## Current boundary
 
-This branch completes the Foundation and Applications Directory phases. The next boundary is the shared component layer: buttons, inputs, selects, toolbars, tables, empty states and dialogs. Inner application workflows remain untouched until those shared primitives are stable.
+This branch completes the Foundation, Applications Directory and Work Dashboard migrations. The next implementation boundary is the shared component layer followed by Work Hub, Homeroom and Professional Hub. Their business logic remains untouched until the shared form, toolbar, table and dialog primitives are stable.
