@@ -7,6 +7,7 @@ import './GlobalNotificationCenter.css';
 import './GlobalNotificationCenterLayoutFix.css';
 import './GlobalCommandPaletteGoogle.css';
 import './GlobalCommandPaletteFocusFix.css';
+import './GlobalHomeDashboardRemoval.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
