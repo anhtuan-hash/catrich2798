@@ -1,5 +1,21 @@
 export const APPS = [
   {
+    slug: 'professional-hub',
+    icon: 'PH',
+    tone: 'mint',
+    group: 'Management',
+    groupVi: 'Quản lý',
+    title: 'Professional Hub',
+    titleVi: 'Hub Chuyên môn',
+    desc: 'Send team notices and schedules, then receive teacher document submissions.',
+    descVi: 'TTCM gửi thông báo, lịch họp, lịch làm việc và nhận tài liệu giáo viên nộp.',
+    status: 'Realtime notices · File submissions',
+    statusVi: 'Thông báo Realtime · Nộp tài liệu',
+    api: true,
+    featured: true,
+  },
+
+  {
     slug: 'work-dashboard', route: 'dashboard', icon: 'DB', tone: 'blue', group: 'Management', groupVi: 'Quản lý',
     title: 'Work Dashboard', titleVi: 'Bảng điều hành',
     desc: 'Combine schedules, action items, professional activities, approvals and department health in one role-aware dashboard.',

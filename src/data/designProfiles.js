@@ -1,4 +1,13 @@
 export const APP_DESIGN_PROFILES = {
+  'professional-hub': {
+    accent: '#1F8F70',
+    soft: '#DDF7ED',
+    ink: '#0B382B',
+    icon: 'homeroom',
+    style: 'Notices and document submissions',
+    styleVi: 'Thông báo và nộp tài liệu',
+  },
+
   'work-dashboard': {
     accent: '#315FC4',
     soft: '#EAF3FF',
