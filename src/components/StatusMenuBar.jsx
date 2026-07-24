@@ -35,6 +35,17 @@ function compactTime(value, language) {
   }).format(date);
 }
 
+function TickerItem({ sourceLine, headline }) {
+  return (
+    <span className="brian-briefing-bar__ticker-item">
+      <span className="brian-briefing-bar__source">{sourceLine}</span>
+      <span className="brian-briefing-bar__separator" aria-hidden="true">•</span>
+      <strong>{headline}</strong>
+      <span className="brian-briefing-bar__google-dots" aria-hidden="true"><i /><i /><i /><i /></span>
+    </span>
+  );
+}
+
 export default function StatusMenuBar({
   currentUser,
   language = 'vi',
@@ -104,15 +115,6 @@ export default function StatusMenuBar({
     setIndex((current) => (current + step + items.length) % items.length);
   };
 
-  const tickerContent = (
-    <span className="brian-briefing-bar__ticker-item">
-      <span className="brian-briefing-bar__source">{sourceLine}</span>
-      <span className="brian-briefing-bar__separator" aria-hidden="true">•</span>
-      <strong>{headline}</strong>
-      <span className="brian-briefing-bar__google-dots" aria-hidden="true"><i /><i /><i /><i /></span>
-    </span>
-  );
-
   return (
     <aside
       className={`brian-briefing-bar ${route === 'news' ? 'is-news-route' : ''} ${paused ? 'is-paused' : ''}`}
@@ -141,8 +143,8 @@ export default function StatusMenuBar({
             className="brian-briefing-bar__ticker-track"
             onAnimationIteration={() => move(1)}
           >
-            {tickerContent}
-            {tickerContent}
+            <TickerItem sourceLine={sourceLine} headline={headline} />
+            <TickerItem sourceLine={sourceLine} headline={headline} />
           </span>
         </span>
       </button>
