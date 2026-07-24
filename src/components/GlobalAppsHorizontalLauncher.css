@@ -1,0 +1,427 @@
+/* Apps page — option A: one large horizontal launcher strip. */
+body .metro-clean-system[data-route='apps'] {
+  --launcher-ink: #17191d;
+  --launcher-muted: #3f4752;
+  --launcher-line: #d2d7df;
+  --launcher-blue: #0b57d0;
+  --launcher-blue-soft: #e8f0fe;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-directory {
+  grid-template-columns: minmax(0,1fr) !important;
+  grid-template-areas:
+    'hero'
+    'dock'
+    'discover'
+    'editor'
+    'groups'
+    'apps'
+    'pins' !important;
+  gap: 16px !important;
+  padding: clamp(18px,2vw,28px) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .launcher-live-dock,
+body .metro-clean-system[data-route='apps'] .flat-pinned-apps {
+  display: none !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-hero {
+  padding: clamp(20px,2.2vw,30px) !important;
+  border-radius: 28px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-hero h1 {
+  font-size: clamp(2.35rem,3.8vw,4.15rem) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-subtitle {
+  color: #333b45 !important;
+  font-weight: 520 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .launcher-discovery-bar {
+  grid-template-columns: minmax(0,1fr) auto !important;
+  padding: 9px !important;
+  border-radius: 22px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .launcher-density-switch {
+  display: none !important;
+}
+
+body .metro-clean-system[data-route='apps'] .launcher-search-box,
+body .metro-clean-system[data-route='apps'] .launcher-command-button {
+  min-height: 50px !important;
+  border-radius: 17px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .launcher-search-box input,
+body .metro-clean-system[data-route='apps'] .launcher-search-box input::placeholder,
+body .metro-clean-system[data-route='apps'] .launcher-command-button,
+body .metro-clean-system[data-route='apps'] .launcher-command-button b,
+body .metro-clean-system[data-route='apps'] .launcher-command-button small {
+  color: #242a31 !important;
+  opacity: 1 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-rail {
+  grid-area: groups !important;
+  position: static !important;
+  width: 100% !important;
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  border: 1px solid #ccd2db !important;
+  border-radius: 22px !important;
+  background: rgba(255,255,255,.94) !important;
+  box-shadow: 0 4px 14px rgba(32,33,36,.07) !important;
+  scroll-snap-type: x proximity !important;
+  scrollbar-width: none !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-rail::-webkit-scrollbar {
+  display: none !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-rail::before {
+  content: 'PHÂN LOẠI' !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 42px !important;
+  padding: 0 8px !important;
+  color: #202124 !important;
+  font-size: .72rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .08em !important;
+  white-space: nowrap !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 9px !important;
+  padding: 0 14px !important;
+  border: 1px solid #c7cdd6 !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  color: #202124 !important;
+  font-size: .82rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  box-shadow: 0 1px 3px rgba(32,33,36,.08) !important;
+  scroll-snap-align: start !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip b {
+  color: inherit !important;
+  font-weight: 800 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip small {
+  min-width: 25px !important;
+  height: 25px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 999px !important;
+  background: #e9edf2 !important;
+  color: #303741 !important;
+  font-size: .68rem !important;
+  font-weight: 900 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip:hover {
+  border-color: #8fa4c3 !important;
+  background: #f5f8fd !important;
+  color: #174ea6 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active {
+  border-color: var(--launcher-blue) !important;
+  background: var(--launcher-blue) !important;
+  color: #fff !important;
+  box-shadow: 0 5px 13px rgba(11,87,208,.22) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active small {
+  background: rgba(255,255,255,.22) !important;
+  color: #fff !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-apps-collage-grid {
+  grid-area: apps !important;
+  width: 100% !important;
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: stretch !important;
+  gap: 17px !important;
+  padding: 7px 5px 18px !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  background: transparent !important;
+  scroll-snap-type: x mandatory !important;
+  scroll-padding-inline: 5px !important;
+  overscroll-behavior-inline: contain !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #aeb8c6 transparent !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid::-webkit-scrollbar {
+  height: 8px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid::-webkit-scrollbar-thumb {
+  border-radius: 999px !important;
+  background: #b7c0cc !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-card {
+  flex: 0 0 clamp(292px,25vw,340px) !important;
+  width: clamp(292px,25vw,340px) !important;
+  min-width: clamp(292px,25vw,340px) !important;
+  max-width: 340px !important;
+  min-height: 194px !important;
+  border: 1px solid color-mix(in srgb,var(--app-accent,#1a73e8) 24%,#cfd5dd) !important;
+  border-radius: 26px !important;
+  background:
+    radial-gradient(circle at 90% 8%,color-mix(in srgb,var(--app-accent,#1a73e8) 15%,transparent),transparent 36%),
+    linear-gradient(145deg,#fff 0%,color-mix(in srgb,var(--app-soft,#e8f0fe) 45%,#fff) 100%) !important;
+  box-shadow: 0 5px 16px rgba(32,33,36,.09),0 14px 28px color-mix(in srgb,var(--app-accent,#1a73e8) 7%,transparent) !important;
+  scroll-snap-align: start !important;
+  scroll-snap-stop: always !important;
+  overflow: hidden !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card::before {
+  width: 6px !important;
+  border-radius: 26px 0 0 26px !important;
+  opacity: 1 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover,
+body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within {
+  transform: translateY(-5px) scale(1.01) !important;
+  border-color: color-mix(in srgb,var(--app-accent,#1a73e8) 48%,#aeb6c1) !important;
+  box-shadow: 0 12px 28px rgba(32,33,36,.14),0 25px 44px color-mix(in srgb,var(--app-accent,#1a73e8) 13%,transparent) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-launch,
+body .metro-clean-system[data-route='apps'] .flat-app-window-body,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-launch,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body {
+  min-height: 194px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-launch {
+  border-radius: 26px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-body,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body {
+  grid-template-columns: 68px minmax(0,1fr) 38px !important;
+  align-items: center !important;
+  gap: 15px !important;
+  padding: 22px 18px 22px 22px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-art,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-art {
+  width: 64px !important;
+  height: 64px !important;
+  min-width: 64px !important;
+  min-height: 64px !important;
+  padding: 14px !important;
+  border-radius: 20px !important;
+  box-shadow: 0 9px 20px color-mix(in srgb,var(--app-accent,#1a73e8) 31%,transparent),inset 0 1px 0 rgba(255,255,255,.34) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-art svg,
+body .metro-clean-system[data-route='apps'] .flat-app-window-art img,
+body .metro-clean-system[data-route='apps'] .flat-app-window-art > * {
+  max-width: 38px !important;
+  max-height: 38px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy {
+  gap: 7px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy small {
+  width: max-content !important;
+  max-width: 100% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 25px !important;
+  padding: 0 9px !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.82) !important;
+  color: color-mix(in srgb,var(--app-accent,#1a73e8) 72%,#17191d) !important;
+  font-size: .66rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .045em !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--app-accent,#1a73e8) 18%,#d5dbe3) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong {
+  color: #111317 !important;
+  font-size: 1.05rem !important;
+  font-weight: 820 !important;
+  line-height: 1.25 !important;
+  letter-spacing: -.018em !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy em {
+  color: #303741 !important;
+  font-size: .79rem !important;
+  font-weight: 560 !important;
+  line-height: 1.45 !important;
+  -webkit-line-clamp: 3 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-cta {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 13px !important;
+  background: color-mix(in srgb,var(--app-accent,#1a73e8) 18%,#fff) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--app-accent,#1a73e8) 26%,transparent) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-cta::after {
+  color: color-mix(in srgb,var(--app-accent,#1a73e8) 84%,#111317) !important;
+  font-size: 1.22rem !important;
+}
+
+body .metro-clean-system[data-route='apps'] .launcher-empty-group {
+  flex: 0 0 100% !important;
+  min-height: 190px !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-rail,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-rail {
+  border-color: #4a515b !important;
+  background: rgba(34,36,41,.96) !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-rail::before,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-rail::before {
+  color: #f3f5f7 !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-chip,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip {
+  border-color: #59616d !important;
+  background: #292c32 !important;
+  color: #f1f3f4 !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-chip small,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip small {
+  background: #41464f !important;
+  color: #f1f3f4 !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active {
+  border-color: #8ab4f8 !important;
+  background: #8ab4f8 !important;
+  color: #10213d !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-card,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-card {
+  background:
+    radial-gradient(circle at 90% 8%,color-mix(in srgb,var(--app-accent,#8ab4f8) 18%,transparent),transparent 36%),
+    linear-gradient(145deg,#282b31,color-mix(in srgb,var(--app-soft,#26364d) 18%,#202228)) !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-copy strong {
+  color: #fff !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-copy em,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-copy em {
+  color: #d9dde4 !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-copy small,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-copy small {
+  background: rgba(20,22,26,.55) !important;
+  color: color-mix(in srgb,var(--app-accent,#8ab4f8) 72%,#fff) !important;
+}
+
+@media (max-width: 920px) {
+  body .metro-clean-system[data-route='apps'] .launcher-command-button {
+    display: none !important;
+  }
+  body .metro-clean-system[data-route='apps'] .launcher-discovery-bar {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 680px) {
+  body .metro-clean-system[data-route='apps'] .flat-apps-directory {
+    padding: 14px !important;
+  }
+  body .metro-clean-system[data-route='apps'] .flat-apps-group-rail {
+    margin-inline: -2px !important;
+    padding: 8px !important;
+  }
+  body .metro-clean-system[data-route='apps'] .flat-apps-group-rail::before {
+    display: none !important;
+  }
+  body .metro-clean-system[data-route='apps'] .flat-app-window-card,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-card {
+    flex-basis: min(84vw,300px) !important;
+    width: min(84vw,300px) !important;
+    min-width: min(84vw,300px) !important;
+    min-height: 178px !important;
+  }
+  body .metro-clean-system[data-route='apps'] .flat-app-window-launch,
+  body .metro-clean-system[data-route='apps'] .flat-app-window-body,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-launch,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body {
+    min-height: 178px !important;
+  }
+  body .metro-clean-system[data-route='apps'] .flat-app-window-body,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body {
+    grid-template-columns: 58px minmax(0,1fr) 34px !important;
+    gap: 12px !important;
+    padding: 18px 14px 18px 18px !important;
+  }
+  body .metro-clean-system[data-route='apps'] .flat-app-window-art,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-art {
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
+    padding: 12px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body .metro-clean-system[data-route='apps'] .flat-app-window-card {
+    transition: none !important;
+  }
+}
