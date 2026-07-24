@@ -21,12 +21,20 @@ function clampNumber(value, min, max, fallback) {
 }
 
 function normalizeEmbedView(value = {}) {
+  const cropWidth = clampNumber(value.cropWidth, 18, 100, 88);
+  const cropHeight = clampNumber(value.cropHeight, 18, 100, 78);
+  const cropX = clampNumber(value.cropX, 0, 100 - cropWidth, (100 - cropWidth) / 2);
+  const cropY = clampNumber(value.cropY, 0, 100 - cropHeight, (100 - cropHeight) / 2);
   return {
     zoom: clampNumber(value.zoom, 1, 2.4, 1),
     offsetX: clampNumber(value.offsetX, 0, 70, 0),
     offsetY: clampNumber(value.offsetY, 0, 85, 0),
     previewHeight: clampNumber(value.previewHeight, 420, 900, 620),
     canvasHeight: clampNumber(value.canvasHeight, 1000, 2600, 1600),
+    cropX,
+    cropY,
+    cropWidth,
+    cropHeight,
   };
 }
 

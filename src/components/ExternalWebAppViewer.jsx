@@ -3,12 +3,20 @@ import { createPortal } from 'react-dom';
 import { embedTransformStyle, normalizeEmbedView, safeExternalWebAppUrl } from '../utils/externalWebApps.js';
 import './ExternalWebApps.css';
 import './ExternalWebAppCrop.css';
+import './ExternalWebAppViewerCrop.css';
 
 export default function ExternalWebAppViewer({ app, onClose }) {
   const [key, setKey] = useState(0);
   const [check, setCheck] = useState(null);
   const url = safeExternalWebAppUrl(app?.externalUrl || app?.url);
   const view = normalizeEmbedView(app?.embedView);
+  const viewerStyle = {
+    ...embedTransformStyle(view),
+    '--viewer-crop-left': `${-(view.cropX / view.cropWidth) * 100}%`,
+    '--viewer-crop-top': `${-(view.cropY / view.cropHeight) * 100}%`,
+    '--viewer-crop-scale-x': 100 / view.cropWidth,
+    '--viewer-crop-scale-y': 100 / view.cropHeight,
+  };
 
   useEffect(() => {
     if (!app || !url) return undefined;
@@ -44,10 +52,12 @@ export default function ExternalWebAppViewer({ app, onClose }) {
           <div className="bes-ext-actions"><button type="button" onClick={() => setKey((value) => value + 1)}>↻ Tải lại</button><button type="button" className="bes-ext-close" onClick={onClose}>×</button></div>
         </header>
         <div className={`bes-ext-viewer-status ${check?.embeddable === false ? 'blocked' : ''}`}>
-          {check?.checking ? 'Đang kiểm tra khả năng chạy nội bộ…' : check?.embeddable === false ? `Website có thể chặn iframe: ${check.reason || 'chính sách bảo mật'}.` : 'Đang hiển thị vùng nội dung đã được TTCM duyệt.'}
+          {check?.checking ? 'Đang kiểm tra khả năng chạy nội bộ…' : check?.embeddable === false ? `Website có thể chặn iframe: ${check.reason || 'chính sách bảo mật'}.` : 'Đang hiển thị đúng vùng nội dung TTCM đã cắt và duyệt.'}
         </div>
-        <div className="bes-ext-viewer-crop" style={embedTransformStyle({ ...view, previewHeight: 900 })}>
-          <iframe key={key} src={url} title={app.title || app.name} allow="clipboard-read; clipboard-write; microphone; camera; fullscreen; geolocation" sandbox="allow-forms allow-modals allow-presentation allow-same-origin allow-scripts allow-downloads" referrerPolicy="strict-origin-when-cross-origin" />
+        <div className="bes-ext-viewer-stage" style={viewerStyle}>
+          <div className="bes-ext-viewer-crop">
+            <iframe key={key} src={url} title={app.title || app.name} allow="clipboard-read; clipboard-write; microphone; camera; fullscreen; geolocation" sandbox="allow-forms allow-modals allow-presentation allow-same-origin allow-scripts allow-downloads" referrerPolicy="strict-origin-when-cross-origin" />
+          </div>
         </div>
       </section>
     </div>,

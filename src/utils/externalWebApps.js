@@ -42,12 +42,20 @@ function clamp(value, min, max, fallback) {
 }
 
 export function normalizeEmbedView(value = {}) {
+  const cropWidth = clamp(value.cropWidth, 18, 100, 88);
+  const cropHeight = clamp(value.cropHeight, 18, 100, 78);
+  const cropX = clamp(value.cropX, 0, 100 - cropWidth, (100 - cropWidth) / 2);
+  const cropY = clamp(value.cropY, 0, 100 - cropHeight, (100 - cropHeight) / 2);
   return {
     zoom: clamp(value.zoom, 1, 2.4, 1),
     offsetX: clamp(value.offsetX, 0, 70, 0),
     offsetY: clamp(value.offsetY, 0, 85, 0),
     previewHeight: clamp(value.previewHeight, 420, 900, 620),
     canvasHeight: clamp(value.canvasHeight, 1000, 2600, 1600),
+    cropX,
+    cropY,
+    cropWidth,
+    cropHeight,
   };
 }
 
@@ -61,6 +69,11 @@ export function embedTransformStyle(view = {}) {
     '--embed-y': `${yShift}%`,
     '--embed-preview-height': `${clean.previewHeight}px`,
     '--embed-canvas-height': `${clean.canvasHeight}px`,
+    '--embed-crop-x': clean.cropX,
+    '--embed-crop-y': clean.cropY,
+    '--embed-crop-width': clean.cropWidth,
+    '--embed-crop-height': clean.cropHeight,
+    '--embed-crop-aspect': `${clean.cropWidth} / ${clean.cropHeight}`,
   };
 }
 
