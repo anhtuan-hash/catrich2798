@@ -17,6 +17,7 @@ const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
 const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
 const TeachingMethodsHub = lazy(() => import('./TeachingMethodsHub.jsx'));
 const PEKTimetable = lazy(() => import('./PEKTimetable.jsx'));
+const PersonnelHub = lazy(() => import('./PersonnelHub.jsx'));
 const specializedToolSlugs = new Set([
   'exam-studio',
 ]);
@@ -82,6 +83,10 @@ export default function ToolPage(props) {
 
   if (tool?.slug === 'pek-timetable') {
     return renderLazy(PEKTimetable, props);
+  }
+
+  if (tool?.slug === 'personnel-hub') {
+    return renderLazy(PersonnelHub, props);
   }
 
   if (tool?.slug === 'word2graph') {
