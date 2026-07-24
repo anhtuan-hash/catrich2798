@@ -1,6 +1,5 @@
-/* TextCare — Google Workspace recovery
-   Fluid, production-oriented Material 3 UI. This file intentionally overrides
-   Brian's global Metro rules (including !important radius/font resets). */
+/* TextCare — Google Workspace interface
+   Purposefully overrides Brian's global Metro reset inside TextCare only. */
 
 .metro-clean-system[data-tool="textcare"] {
   --tc-blue: #0b57d0;
@@ -13,6 +12,7 @@
   --tc-red-soft: #fce8e6;
   --tc-ink: #202124;
   --tc-muted: #5f6368;
+  --tc-subtle: #80868b;
   --tc-border: #dadce0;
   --tc-border-strong: #9aa0a6;
   --tc-canvas: #f8fafd;
@@ -22,7 +22,6 @@
   background: var(--tc-canvas) !important;
 }
 
-/* Eliminate the fixed-width/scale behaviour that made the app look like a tiny poster. */
 .metro-clean-system[data-tool="textcare"],
 .metro-clean-system[data-tool="textcare"] #bes-main-content,
 .metro-clean-system[data-tool="textcare"] main.wp8-page-stage,
@@ -47,14 +46,13 @@
 .metro-clean-system[data-tool="textcare"] .textcare-google-page {
   min-height: calc(100vh - 112px) !important;
   margin: 0 !important;
-  padding: 18px clamp(18px, 2.1vw, 34px) 56px !important;
+  padding: 16px clamp(16px, 2vw, 32px) 48px !important;
   display: grid !important;
-  gap: 18px !important;
+  gap: 16px !important;
   color: var(--tc-ink) !important;
   background: var(--tc-canvas) !important;
 }
 
-/* Override the personal/Metro font layer: Google's UI depends on neutral typography. */
 .metro-clean-system[data-tool="textcare"] .textcare-google-page,
 .metro-clean-system[data-tool="textcare"] .textcare-google-page * {
   font-family: "Google Sans Text", "Google Sans", Roboto, Arial, sans-serif !important;
@@ -68,11 +66,21 @@
   font: inherit !important;
 }
 
-.textcare-google-page svg { display: block !important; fill: currentColor !important; }
-.textcare-google-page button { cursor: pointer; }
-.textcare-google-page button:disabled { opacity: .5 !important; cursor: not-allowed; }
+.textcare-google-page svg {
+  display: block !important;
+  fill: currentColor !important;
+}
 
-/* Local app toolbar — flat like Docs/Drive, not a floating decorative card. */
+.textcare-google-page button {
+  cursor: pointer;
+}
+
+.textcare-google-page button:disabled {
+  cursor: not-allowed;
+  opacity: .5 !important;
+}
+
+/* App toolbar */
 .metro-clean-system[data-tool="textcare"] .tcg-topbar {
   position: relative !important;
   top: auto !important;
@@ -105,9 +113,12 @@
   color: #3c4043 !important;
   box-shadow: none !important;
 }
+
 .tcg-icon-button:hover,
 .tcg-toolbar-actions button:hover,
-.tcg-zoom-control button:hover { background: var(--tc-surface-soft) !important; }
+.tcg-zoom-control button:hover {
+  background: var(--tc-surface-soft) !important;
+}
 
 .tcg-brand-mark {
   width: 40px !important;
@@ -119,9 +130,26 @@
   color: #fff !important;
   box-shadow: none !important;
 }
-.tcg-title-block { min-width: 188px !important; display: grid !important; gap: 1px !important; }
-.tcg-title-block strong { color: var(--tc-ink) !important; font-size: 1.16rem !important; line-height: 1.2 !important; font-weight: 650 !important; letter-spacing: -.02em !important; }
-.tcg-title-block span { color: var(--tc-muted) !important; font-size: .75rem !important; font-weight: 500 !important; }
+
+.tcg-title-block {
+  min-width: 188px !important;
+  display: grid !important;
+  gap: 1px !important;
+}
+
+.tcg-title-block strong {
+  color: var(--tc-ink) !important;
+  font-size: 1.16rem !important;
+  line-height: 1.2 !important;
+  font-weight: 650 !important;
+  letter-spacing: -.02em !important;
+}
+
+.tcg-title-block span {
+  color: var(--tc-muted) !important;
+  font-size: .75rem !important;
+  font-weight: 500 !important;
+}
 
 .tcg-connection,
 .tcg-autosave {
@@ -139,12 +167,29 @@
   white-space: nowrap !important;
   box-shadow: none !important;
 }
-.tcg-connection i { width: 8px !important; height: 8px !important; border-radius: 50% !important; background: #9aa0a6 !important; }
-.tcg-connection.connected { background: var(--tc-green-soft) !important; color: #137333 !important; }
-.tcg-connection.connected i { background: var(--tc-green) !important; }
-.tcg-autosave { margin-left: auto !important; background: transparent !important; }
 
-/* Material 3 buttons. */
+.tcg-connection i {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #9aa0a6 !important;
+}
+
+.tcg-connection.connected {
+  background: var(--tc-green-soft) !important;
+  color: #137333 !important;
+}
+
+.tcg-connection.connected i {
+  background: var(--tc-green) !important;
+}
+
+.tcg-autosave {
+  margin-left: auto !important;
+  background: transparent !important;
+}
+
+/* Buttons */
 .tcg-filled-button,
 .tcg-tonal-button,
 .tcg-outlined-button,
@@ -165,70 +210,137 @@
   white-space: nowrap !important;
   transition: background .15s ease, box-shadow .15s ease, transform .15s ease !important;
 }
-.tcg-filled-button { border: 1px solid var(--tc-blue) !important; background: var(--tc-blue) !important; color: #fff !important; }
-.tcg-filled-button:hover { border-color: var(--tc-blue-hover) !important; background: var(--tc-blue-hover) !important; box-shadow: 0 2px 6px rgba(11,87,208,.28) !important; }
-.tcg-tonal-button { border: 1px solid transparent !important; background: var(--tc-blue-soft) !important; color: #174ea6 !important; }
-.tcg-tonal-button:hover { background: #dbe8fc !important; }
-.tcg-outlined-button { border: 1px solid var(--tc-border-strong) !important; background: #fff !important; color: var(--tc-blue) !important; }
-.tcg-outlined-button:hover { background: #f6f9fe !important; }
-.tcg-text-button { border: 1px solid transparent !important; background: transparent !important; color: var(--tc-blue) !important; }
-.tcg-text-button:hover { background: var(--tc-blue-soft) !important; }
 
-/* Compact work header instead of the oversized marketing hero. */
+.tcg-filled-button {
+  border: 1px solid var(--tc-blue) !important;
+  background: var(--tc-blue) !important;
+  color: #fff !important;
+}
+
+.tcg-filled-button:hover {
+  border-color: var(--tc-blue-hover) !important;
+  background: var(--tc-blue-hover) !important;
+  box-shadow: 0 2px 6px rgba(11, 87, 208, .28) !important;
+}
+
+.tcg-tonal-button {
+  border: 1px solid transparent !important;
+  background: var(--tc-blue-soft) !important;
+  color: #174ea6 !important;
+}
+
+.tcg-tonal-button:hover {
+  background: #dbe8fc !important;
+}
+
+.tcg-outlined-button {
+  border: 1px solid var(--tc-border-strong) !important;
+  background: #fff !important;
+  color: var(--tc-blue) !important;
+}
+
+.tcg-outlined-button:hover {
+  background: #f6f9fe !important;
+}
+
+.tcg-text-button {
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: var(--tc-blue) !important;
+}
+
+.tcg-text-button:hover {
+  background: var(--tc-blue-soft) !important;
+}
+
+/* Compact work header */
 .metro-clean-system[data-tool="textcare"] .tcg-hero {
   min-height: 0 !important;
   display: grid !important;
-  grid-template-columns: minmax(380px, 1fr) minmax(520px, .95fr) !important;
-  gap: 28px !important;
+  grid-template-columns: minmax(360px, 1fr) minmax(500px, .92fr) !important;
+  gap: 24px !important;
   align-items: center !important;
-  padding: 18px 8px 8px !important;
+  padding: 16px 8px 6px !important;
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
   overflow: visible !important;
 }
+
 .tcg-hero::before,
-.tcg-hero::after { display: none !important; content: none !important; }
-.tcg-kicker { display: none !important; }
+.tcg-hero::after {
+  display: none !important;
+  content: none !important;
+}
+
+.tcg-kicker {
+  display: none !important;
+}
+
 .tcg-hero h1 {
-  max-width: 720px !important;
+  max-width: 690px !important;
   margin: 0 !important;
   color: var(--tc-ink) !important;
-  font-size: clamp(2rem, 2.8vw, 3.25rem) !important;
+  font-size: clamp(1.9rem, 2.6vw, 3rem) !important;
   line-height: 1.08 !important;
   letter-spacing: -.045em !important;
   font-weight: 650 !important;
 }
+
 .tcg-hero p {
-  max-width: 760px !important;
-  margin: 12px 0 0 !important;
+  max-width: 740px !important;
+  margin: 11px 0 0 !important;
   color: var(--tc-muted) !important;
-  font-size: .94rem !important;
+  font-size: .92rem !important;
   line-height: 1.55 !important;
 }
+
 .tcg-hero-metrics {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 12px !important;
+  gap: 10px !important;
 }
+
 .tcg-hero-metrics article {
-  min-height: 104px !important;
+  min-height: 98px !important;
   display: grid !important;
   align-content: center !important;
-  gap: 5px !important;
-  padding: 15px !important;
+  gap: 4px !important;
+  padding: 14px !important;
   border: 1px solid var(--tc-border) !important;
-  border-radius: 16px !important;
+  border-radius: 14px !important;
   background: var(--tc-surface) !important;
-  box-shadow: 0 1px 2px rgba(60,64,67,.12), 0 1px 3px rgba(60,64,67,.08) !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .12), 0 1px 3px rgba(60, 64, 67, .08) !important;
 }
-.tcg-hero-metrics article::before { display: none !important; content: none !important; }
-.tcg-hero-metrics span { color: var(--tc-muted) !important; font-size: .7rem !important; font-weight: 550 !important; }
-.tcg-hero-metrics strong { color: var(--tc-ink) !important; font-size: 1.14rem !important; line-height: 1.15 !important; font-weight: 650 !important; overflow-wrap: anywhere !important; }
-.tcg-hero-metrics small { color: #70757a !important; font-size: .68rem !important; line-height: 1.35 !important; font-weight: 500 !important; }
 
-/* Main workspace fills the browser, similar to Google Docs/Drive split views. */
+.tcg-hero-metrics article::before {
+  display: none !important;
+  content: none !important;
+}
+
+.tcg-hero-metrics span {
+  color: var(--tc-muted) !important;
+  font-size: .68rem !important;
+  font-weight: 550 !important;
+}
+
+.tcg-hero-metrics strong {
+  color: var(--tc-ink) !important;
+  font-size: 1.1rem !important;
+  line-height: 1.15 !important;
+  font-weight: 650 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.tcg-hero-metrics small {
+  color: #70757a !important;
+  font-size: .66rem !important;
+  line-height: 1.35 !important;
+  font-weight: 500 !important;
+}
+
+/* Workspace */
 .tcg-workbench {
   width: 100% !important;
   display: grid !important;
@@ -236,18 +348,23 @@
   gap: 18px !important;
   align-items: start !important;
 }
+
 .tcg-editor-card,
 .tcg-preview-card {
   min-width: 0 !important;
   border: 1px solid var(--tc-border) !important;
   border-radius: 18px !important;
   background: var(--tc-surface) !important;
-  box-shadow: 0 1px 2px rgba(60,64,67,.12), 0 1px 3px rgba(60,64,67,.08) !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .12), 0 1px 3px rgba(60, 64, 67, .08) !important;
   overflow: hidden !important;
 }
-.tcg-editor-card { display: grid !important; align-content: start !important; }
 
-/* Stepper: understated navigation, not three bulky tiles. */
+.tcg-editor-card {
+  display: grid !important;
+  align-content: start !important;
+}
+
+/* Stepper */
 .tcg-stepper {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
@@ -257,6 +374,7 @@
   border-radius: 0 !important;
   background: #fff !important;
 }
+
 .tcg-stepper button {
   min-height: 44px !important;
   display: flex !important;
@@ -273,7 +391,12 @@
   font-size: .8rem !important;
   font-weight: 600 !important;
 }
-.tcg-stepper button::after { display: none !important; content: none !important; }
+
+.tcg-stepper button::after {
+  display: none !important;
+  content: none !important;
+}
+
 .tcg-stepper button span,
 .tcg-stepper button b {
   width: 25px !important;
@@ -285,35 +408,108 @@
   color: #5f6368 !important;
   font-size: .67rem !important;
 }
-.tcg-stepper button span { display: none !important; }
-.tcg-stepper button.active { background: var(--tc-blue-soft) !important; color: var(--tc-blue) !important; }
-.tcg-stepper button.active b { background: var(--tc-blue) !important; color: #fff !important; }
 
-.tcg-panel { display: grid !important; gap: 17px !important; padding: 20px !important; }
-.tcg-panel-heading { display: flex !important; justify-content: space-between !important; align-items: flex-start !important; gap: 18px !important; }
-.tcg-panel-heading > div { display: grid !important; gap: 3px !important; }
-.tcg-panel-heading span { color: var(--tc-blue) !important; font-size: .67rem !important; font-weight: 700 !important; letter-spacing: .08em !important; }
-.tcg-panel-heading h2 { margin: 0 !important; color: var(--tc-ink) !important; font-size: 1.35rem !important; line-height: 1.2 !important; letter-spacing: -.03em !important; font-weight: 650 !important; }
-.tcg-panel-heading small { padding-top: 3px !important; color: var(--tc-muted) !important; font-size: .7rem !important; font-weight: 500 !important; text-align: right !important; }
+.tcg-stepper button span {
+  display: none !important;
+}
 
-/* Upload and source editor. */
+.tcg-stepper button.active {
+  background: var(--tc-blue-soft) !important;
+  color: var(--tc-blue) !important;
+}
+
+.tcg-stepper button.active b {
+  background: var(--tc-blue) !important;
+  color: #fff !important;
+}
+
+.tcg-panel {
+  display: grid !important;
+  gap: 17px !important;
+  padding: 20px !important;
+}
+
+.tcg-panel-heading {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 18px !important;
+}
+
+.tcg-panel-heading > div {
+  display: grid !important;
+  gap: 3px !important;
+}
+
+.tcg-panel-heading span {
+  color: var(--tc-blue) !important;
+  font-size: .67rem !important;
+  font-weight: 700 !important;
+  letter-spacing: .08em !important;
+}
+
+.tcg-panel-heading h2 {
+  margin: 0 !important;
+  color: var(--tc-ink) !important;
+  font-size: 1.35rem !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.03em !important;
+  font-weight: 650 !important;
+}
+
+.tcg-panel-heading small {
+  padding-top: 3px !important;
+  color: var(--tc-muted) !important;
+  font-size: .7rem !important;
+  font-weight: 500 !important;
+  text-align: right !important;
+}
+
+/* Upload */
 .tcg-dropzone {
-  min-height: 112px !important;
+  min-height: 108px !important;
   display: grid !important;
   grid-template-columns: auto minmax(0, 1fr) auto !important;
   gap: 16px !important;
   align-items: center !important;
-  padding: 17px 18px !important;
+  padding: 16px 18px !important;
   border: 1.5px dashed #7baaf7 !important;
   border-radius: 14px !important;
   background: #f7faff !important;
   box-shadow: none !important;
 }
-.tcg-dropzone.dragging { border-color: var(--tc-blue) !important; background: var(--tc-blue-soft) !important; }
-.tcg-upload-icon { width: 46px !important; height: 46px !important; display: grid !important; place-items: center !important; border-radius: 50% !important; background: var(--tc-blue-container) !important; color: var(--tc-blue) !important; }
-.tcg-dropzone > div:nth-child(3) { display: grid !important; gap: 3px !important; }
-.tcg-dropzone strong { color: var(--tc-ink) !important; font-size: .9rem !important; font-weight: 600 !important; }
-.tcg-dropzone span { color: var(--tc-muted) !important; font-size: .72rem !important; font-weight: 500 !important; }
+
+.tcg-dropzone.dragging {
+  border-color: var(--tc-blue) !important;
+  background: var(--tc-blue-soft) !important;
+}
+
+.tcg-upload-icon {
+  width: 46px !important;
+  height: 46px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  background: var(--tc-blue-container) !important;
+  color: var(--tc-blue) !important;
+}
+
+.tcg-dropzone > div:nth-child(3) {
+  display: grid !important;
+  gap: 3px !important;
+}
+
+.tcg-dropzone strong {
+  color: var(--tc-ink) !important;
+  font-size: .9rem !important;
+  font-weight: 600 !important;
+}
+
+.tcg-dropzone span {
+  color: var(--tc-muted) !important;
+  font-size: .72rem !important;
+  font-weight: 500 !important;
+}
 
 .tcg-file-chip {
   min-height: 42px !important;
@@ -327,12 +523,45 @@
   color: #174ea6 !important;
   box-shadow: none !important;
 }
-.tcg-file-chip span { min-width: 0 !important; flex: 1 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; font-size: .76rem !important; font-weight: 600 !important; }
-.tcg-file-chip button { width: 30px !important; height: 30px !important; display: grid !important; place-items: center !important; padding: 0 !important; border: 0 !important; border-radius: 50% !important; background: transparent !important; color: var(--tc-muted) !important; box-shadow: none !important; }
 
-/* Material outlined fields. */
-.tcg-field { display: grid !important; gap: 7px !important; position: relative !important; min-width: 0 !important; margin: 0 !important; }
-.tcg-field > span { color: #3c4043 !important; font-size: .79rem !important; font-weight: 600 !important; }
+.tcg-file-chip span {
+  min-width: 0 !important;
+  flex: 1 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: .76rem !important;
+  font-weight: 600 !important;
+}
+
+.tcg-file-chip button {
+  width: 30px !important;
+  height: 30px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  color: var(--tc-muted) !important;
+  box-shadow: none !important;
+}
+
+/* Generic form fields */
+.tcg-field {
+  display: grid !important;
+  gap: 7px !important;
+  position: relative !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+.tcg-field > span {
+  color: #3c4043 !important;
+  font-size: .79rem !important;
+  font-weight: 600 !important;
+}
+
 .tcg-field input,
 .tcg-field textarea {
   width: 100% !important;
@@ -346,19 +575,178 @@
   font-size: .86rem !important;
   font-weight: 400 !important;
 }
-.tcg-field input { height: 48px !important; padding: 0 13px !important; }
-.tcg-field textarea { padding: 12px 13px !important; line-height: 1.55 !important; resize: vertical !important; }
-.tcg-field input:hover,
-.tcg-field textarea:hover { border-color: #5f6368 !important; }
-.tcg-field input:focus,
-.tcg-field textarea:focus { border-color: var(--tc-blue) !important; box-shadow: inset 0 0 0 1px var(--tc-blue) !important; }
-.tcg-field > small { position: absolute !important; right: 10px !important; bottom: 7px !important; padding: 2px 4px !important; border-radius: 4px !important; background: rgba(255,255,255,.94) !important; color: #70757a !important; font-size: .64rem !important; font-weight: 500 !important; }
-.tcg-large-field textarea { min-height: 230px !important; }
-.tcg-output-field textarea { min-height: 560px !important; font-family: "Times New Roman", Times, serif !important; font-size: .94rem !important; line-height: 1.55 !important; }
-.tcg-action-row { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: 9px !important; }
 
-/* Formatting step. */
-.tcg-type-chips { display: flex !important; flex-wrap: wrap !important; gap: 7px !important; }
+.tcg-field input {
+  height: 48px !important;
+  padding: 0 13px !important;
+}
+
+.tcg-field textarea {
+  padding: 12px 13px !important;
+  line-height: 1.55 !important;
+  resize: vertical !important;
+}
+
+.tcg-field input:hover,
+.tcg-field textarea:hover {
+  border-color: #5f6368 !important;
+}
+
+.tcg-field input:focus,
+.tcg-field textarea:focus {
+  border-color: var(--tc-blue) !important;
+  box-shadow: inset 0 0 0 1px var(--tc-blue) !important;
+}
+
+.tcg-field > small {
+  position: absolute !important;
+  right: 10px !important;
+  bottom: 7px !important;
+  padding: 2px 4px !important;
+  border-radius: 4px !important;
+  background: rgba(255, 255, 255, .94) !important;
+  color: #70757a !important;
+  font-size: .64rem !important;
+  font-weight: 500 !important;
+}
+
+/* Source step: remove AI and present a Google-style document editor. */
+.tcg-source-panel > .tcg-field:not(.tcg-large-field) {
+  display: none !important;
+}
+
+.tcg-source-panel > .tcg-action-row > .tcg-filled-button,
+.tcg-source-panel > .tcg-action-row > .tcg-tonal-button {
+  display: none !important;
+}
+
+.tcg-source-panel > .tcg-action-row {
+  justify-content: flex-end !important;
+  padding-top: 1px !important;
+}
+
+.tcg-source-panel > .tcg-action-row > .tcg-outlined-button {
+  min-height: 40px !important;
+  border-color: var(--tc-border) !important;
+  background: #fff !important;
+  color: var(--tc-blue) !important;
+}
+
+.tcg-source-panel .tcg-large-field {
+  display: grid !important;
+  grid-template-rows: auto minmax(360px, 1fr) auto !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid var(--tc-border) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .08) !important;
+  transition: border-color .15s ease, box-shadow .15s ease !important;
+}
+
+.tcg-source-panel .tcg-large-field:focus-within {
+  border-color: var(--tc-blue) !important;
+  box-shadow: 0 0 0 1px var(--tc-blue) !important;
+}
+
+.tcg-source-panel .tcg-large-field > span {
+  min-height: 52px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 0 16px !important;
+  border-bottom: 1px solid var(--tc-border) !important;
+  background: #fff !important;
+  color: var(--tc-ink) !important;
+  font-size: .9rem !important;
+  font-weight: 650 !important;
+}
+
+.tcg-source-panel .tcg-large-field > span::before {
+  content: "" !important;
+  width: 28px !important;
+  height: 28px !important;
+  flex: 0 0 auto !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(#0b57d0, #0b57d0) 7px 7px / 14px 2px no-repeat,
+    linear-gradient(#0b57d0, #0b57d0) 7px 13px / 14px 2px no-repeat,
+    linear-gradient(#0b57d0, #0b57d0) 7px 19px / 10px 2px no-repeat,
+    var(--tc-blue-soft) !important;
+}
+
+.tcg-source-panel .tcg-large-field > span::after {
+  content: "Văn bản thuần · Tự động lưu" !important;
+  margin-left: auto !important;
+  color: var(--tc-subtle) !important;
+  font-size: .69rem !important;
+  font-weight: 500 !important;
+}
+
+.tcg-source-panel .tcg-large-field textarea {
+  min-height: 360px !important;
+  padding: 22px 24px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: #fff !important;
+  color: var(--tc-ink) !important;
+  box-shadow: none !important;
+  font-family: Roboto, Arial, sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 400 !important;
+  line-height: 1.65 !important;
+  resize: vertical !important;
+  caret-color: var(--tc-blue) !important;
+}
+
+.tcg-source-panel .tcg-large-field textarea::placeholder {
+  color: #80868b !important;
+  opacity: 1 !important;
+}
+
+.tcg-source-panel .tcg-large-field textarea:hover,
+.tcg-source-panel .tcg-large-field textarea:focus {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.tcg-source-panel .tcg-large-field > small {
+  position: static !important;
+  min-height: 38px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  padding: 0 14px !important;
+  border-top: 1px solid var(--tc-border) !important;
+  border-radius: 0 !important;
+  background: #f8fafd !important;
+  color: var(--tc-muted) !important;
+  font-size: .7rem !important;
+  font-weight: 500 !important;
+}
+
+.tcg-output-field textarea {
+  min-height: 560px !important;
+  font-family: "Times New Roman", Times, serif !important;
+  font-size: .94rem !important;
+  line-height: 1.55 !important;
+}
+
+.tcg-action-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 9px !important;
+}
+
+/* Formatting step */
+.tcg-type-chips {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 7px !important;
+}
+
 .tcg-type-chips button {
   min-height: 36px !important;
   padding: 6px 11px !important;
@@ -370,9 +758,23 @@
   font-size: .7rem !important;
   font-weight: 600 !important;
 }
-.tcg-type-chips button.active { border-color: var(--tc-blue) !important; background: var(--tc-blue-soft) !important; color: var(--tc-blue) !important; }
-.tcg-form-grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 14px !important; }
-.tcg-form-grid .wide { grid-column: 1 / -1 !important; }
+
+.tcg-type-chips button.active {
+  border-color: var(--tc-blue) !important;
+  background: var(--tc-blue-soft) !important;
+  color: var(--tc-blue) !important;
+}
+
+.tcg-form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+}
+
+.tcg-form-grid .wide {
+  grid-column: 1 / -1 !important;
+}
+
 .tcg-validation-card {
   display: grid !important;
   grid-template-columns: auto minmax(160px, .55fr) minmax(260px, 1fr) !important;
@@ -384,27 +786,149 @@
   background: var(--tc-surface-soft) !important;
   box-shadow: none !important;
 }
-.tcg-score-ring { --score: 0deg; width: 76px !important; height: 76px !important; display: grid !important; place-items: center !important; border-radius: 50% !important; background: conic-gradient(var(--tc-blue) var(--score), #d8dde4 0) !important; position: relative !important; }
-.tcg-score-ring::after { content: "" !important; display: block !important; position: absolute !important; inset: 7px !important; border-radius: 50% !important; background: #fff !important; }
-.tcg-score-ring strong { position: relative !important; z-index: 1 !important; color: var(--tc-blue) !important; font-size: 1.05rem !important; }
-.tcg-validation-card h3 { margin: 0 !important; color: var(--tc-ink) !important; font-size: .9rem !important; font-weight: 650 !important; }
-.tcg-validation-card p { margin: 5px 0 0 !important; color: var(--tc-muted) !important; font-size: .72rem !important; line-height: 1.4 !important; }
-.tcg-check-grid { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 6px !important; }
-.tcg-check-grid span { min-height: 31px !important; display: flex !important; align-items: center !important; gap: 6px !important; padding: 6px 7px !important; border: 0 !important; border-radius: 8px !important; background: #fff !important; color: #8c1d18 !important; font-size: .65rem !important; font-weight: 550 !important; }
-.tcg-check-grid i { width: 18px !important; height: 18px !important; display: grid !important; place-items: center !important; border-radius: 50% !important; background: var(--tc-red-soft) !important; color: var(--tc-red) !important; font-style: normal !important; font-size: .62rem !important; }
-.tcg-check-grid span.ok { color: #137333 !important; }
-.tcg-check-grid span.ok i { background: var(--tc-green-soft) !important; color: #137333 !important; }
 
-.tcg-empty-note { display: flex !important; gap: 11px !important; padding: 13px !important; border: 0 !important; border-radius: 12px !important; background: #fef7e0 !important; color: #6f5600 !important; box-shadow: none !important; }
-.tcg-empty-note > div { display: grid !important; gap: 3px !important; }
-.tcg-empty-note strong { font-size: .78rem !important; }
-.tcg-empty-note span { font-size: .7rem !important; line-height: 1.4 !important; }
-.tcg-error { margin: 0 20px 20px !important; display: grid !important; grid-template-columns: 1fr auto !important; gap: 3px 12px !important; padding: 12px 14px !important; border: 0 !important; border-radius: 12px !important; background: var(--tc-red-soft) !important; color: #8c1d18 !important; box-shadow: none !important; }
-.tcg-error strong { font-size: .76rem !important; }
-.tcg-error span { font-size: .69rem !important; line-height: 1.4 !important; }
-.tcg-error button { grid-column: 2 !important; grid-row: 1 / 3 !important; align-self: center !important; border: 0 !important; background: transparent !important; color: #8c1d18 !important; font-size: .72rem !important; font-weight: 600 !important; box-shadow: none !important; }
+.tcg-score-ring {
+  --score: 0deg;
+  width: 76px !important;
+  height: 76px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  background: conic-gradient(var(--tc-blue) var(--score), #d8dde4 0) !important;
+  position: relative !important;
+}
 
-/* Preview: dense, functional, Google Docs-like. */
+.tcg-score-ring::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 7px !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+}
+
+.tcg-score-ring strong {
+  position: relative !important;
+  z-index: 1 !important;
+  color: var(--tc-blue) !important;
+  font-size: 1.05rem !important;
+}
+
+.tcg-validation-card h3 {
+  margin: 0 !important;
+  color: var(--tc-ink) !important;
+  font-size: .9rem !important;
+  font-weight: 650 !important;
+}
+
+.tcg-validation-card p {
+  margin: 5px 0 0 !important;
+  color: var(--tc-muted) !important;
+  font-size: .72rem !important;
+  line-height: 1.4 !important;
+}
+
+.tcg-check-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+
+.tcg-check-grid span {
+  min-height: 31px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 6px 7px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #8c1d18 !important;
+  font-size: .65rem !important;
+  font-weight: 550 !important;
+}
+
+.tcg-check-grid i {
+  width: 18px !important;
+  height: 18px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  background: var(--tc-red-soft) !important;
+  color: var(--tc-red) !important;
+  font-style: normal !important;
+  font-size: .62rem !important;
+}
+
+.tcg-check-grid span.ok {
+  color: #137333 !important;
+}
+
+.tcg-check-grid span.ok i {
+  background: var(--tc-green-soft) !important;
+  color: #137333 !important;
+}
+
+.tcg-empty-note {
+  display: flex !important;
+  gap: 11px !important;
+  padding: 13px !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: #fef7e0 !important;
+  color: #6f5600 !important;
+  box-shadow: none !important;
+}
+
+.tcg-empty-note > div {
+  display: grid !important;
+  gap: 3px !important;
+}
+
+.tcg-empty-note strong {
+  font-size: .78rem !important;
+}
+
+.tcg-empty-note span {
+  font-size: .7rem !important;
+  line-height: 1.4 !important;
+}
+
+.tcg-error {
+  margin: 0 20px 20px !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto !important;
+  gap: 3px 12px !important;
+  padding: 12px 14px !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: var(--tc-red-soft) !important;
+  color: #8c1d18 !important;
+  box-shadow: none !important;
+}
+
+.tcg-error strong {
+  font-size: .76rem !important;
+}
+
+.tcg-error span {
+  font-size: .69rem !important;
+  line-height: 1.4 !important;
+}
+
+.tcg-error button {
+  grid-column: 2 !important;
+  grid-row: 1 / 3 !important;
+  align-self: center !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #8c1d18 !important;
+  font-size: .72rem !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+
+/* Preview */
 .tcg-preview-card {
   position: sticky !important;
   top: 118px !important;
@@ -413,101 +937,465 @@
   max-height: calc(100vh - 136px) !important;
   background: #fff !important;
 }
-.tcg-preview-card:fullscreen { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; max-height: 100vh !important; border: 0 !important; border-radius: 0 !important; z-index: 9999 !important; }
-.tcg-preview-head { min-height: 58px !important; display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; padding: 10px 14px 9px 17px !important; border-bottom: 1px solid var(--tc-border) !important; background: #fff !important; }
-.tcg-preview-head > div:first-child { display: grid !important; gap: 1px !important; }
-.tcg-preview-head span { color: var(--tc-blue) !important; font-size: .62rem !important; font-weight: 700 !important; letter-spacing: .07em !important; }
-.tcg-preview-head h2 { margin: 0 !important; color: var(--tc-ink) !important; font-size: 1.05rem !important; line-height: 1.2 !important; letter-spacing: -.02em !important; font-weight: 650 !important; }
-.tcg-review-state { min-height: 31px !important; display: inline-flex !important; align-items: center !important; gap: 6px !important; padding: 5px 9px !important; border: 1px solid var(--tc-border) !important; border-radius: 999px !important; background: #fff !important; color: var(--tc-muted) !important; font-size: .67rem !important; font-weight: 550 !important; box-shadow: none !important; }
-.tcg-review-state.accepted { border-color: #b7dfbf !important; background: var(--tc-green-soft) !important; color: #137333 !important; }
-.tcg-preview-toolbar { min-height: 48px !important; display: flex !important; align-items: center !important; gap: 9px !important; padding: 5px 8px 5px 11px !important; border-bottom: 1px solid var(--tc-border) !important; background: #fff !important; }
-.tcg-preview-toolbar::before { content: "Khổ A4" !important; display: inline-flex !important; align-items: center !important; min-height: 34px !important; padding: 5px 11px !important; border: 1px solid var(--tc-border) !important; border-radius: 9px !important; color: #3c4043 !important; background: #fff !important; font-size: .68rem !important; font-weight: 550 !important; }
-.tcg-preview-toolbar > span { margin-left: auto !important; color: #70757a !important; font-size: .66rem !important; font-weight: 500 !important; }
-.tcg-zoom-control { display: flex !important; align-items: center !important; border: 1px solid var(--tc-border) !important; border-radius: 999px !important; background: #fff !important; overflow: hidden !important; box-shadow: none !important; }
-.tcg-zoom-control button { width: 32px !important; height: 32px !important; min-height: 32px !important; }
-.tcg-zoom-control button:nth-child(2) { width: 52px !important; border-left: 1px solid var(--tc-border) !important; border-right: 1px solid var(--tc-border) !important; border-radius: 0 !important; font-size: .66rem !important; font-weight: 600 !important; }
-.tcg-toolbar-actions { display: flex !important; align-items: center !important; gap: 1px !important; }
-.tcg-toolbar-actions button { width: 34px !important; height: 34px !important; min-height: 34px !important; }
-.tcg-a4-viewport { min-height: 0 !important; overflow: auto !important; padding: 18px !important; background: var(--tc-preview) !important; overscroll-behavior: contain !important; }
-.tcg-a4-stage { min-width: calc(210mm * .6) !important; position: relative !important; display: flex !important; justify-content: center !important; align-items: flex-start !important; }
-.tcg-a4-stage iframe { width: 210mm !important; min-width: 210mm !important; border: 0 !important; border-radius: 0 !important; background: #fff !important; box-shadow: 0 5px 18px rgba(32,33,36,.22) !important; transform-origin: top center !important; }
-.tcg-export-panel { display: grid !important; gap: 9px !important; padding: 10px !important; border-top: 1px solid var(--tc-border) !important; background: #fff !important; }
-.tcg-export-panel > .tcg-filled-button { width: 100% !important; }
-.tcg-export-menu { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 7px !important; }
-.tcg-export-menu button { min-height: 49px !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 7px 9px !important; border: 1px solid var(--tc-border) !important; border-radius: 13px !important; background: #fff !important; color: #3c4043 !important; box-shadow: none !important; text-align: left !important; outline: 0 !important; }
-.tcg-export-menu button:hover { border-color: #8ab4f8 !important; background: #f6f9fe !important; color: var(--tc-blue) !important; }
-.tcg-export-menu span { display: grid !important; gap: 0 !important; }
-.tcg-export-menu b { font-size: .7rem !important; font-weight: 600 !important; }
-.tcg-export-menu small { color: #70757a !important; font-size: .61rem !important; }
 
-.tcg-toast { position: fixed !important; right: 22px !important; bottom: 22px !important; z-index: 9999 !important; min-height: 44px !important; display: flex !important; align-items: center !important; gap: 8px !important; padding: 9px 14px !important; border: 0 !important; border-radius: 10px !important; background: #303134 !important; color: #fff !important; box-shadow: 0 6px 20px rgba(0,0,0,.25) !important; font-size: .76rem !important; font-weight: 550 !important; }
+.tcg-preview-card:fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  z-index: 9999 !important;
+}
 
-/* Keep this tool as a clean canvas; the large legacy footer breaks the Google app illusion. */
-.metro-clean-system[data-tool="textcare"] .signature-footer-v50,
-.metro-clean-system[data-tool="textcare"] > footer { display: none !important; }
+.tcg-preview-head {
+  min-height: 58px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding: 10px 14px 9px 17px !important;
+  border-bottom: 1px solid var(--tc-border) !important;
+  background: #fff !important;
+}
 
-@media (max-width: 1180px) {
-  .tcg-hero { grid-template-columns: 1fr !important; gap: 18px !important; }
-  .tcg-workbench { grid-template-columns: 1fr !important; }
-  .tcg-preview-card { position: relative !important; top: auto !important; max-height: none !important; grid-template-rows: auto auto auto auto !important; }
-  .tcg-a4-viewport { max-height: 780px !important; }
+.tcg-preview-head > div:first-child {
+  display: grid !important;
+  gap: 1px !important;
+}
+
+.tcg-preview-head span {
+  color: var(--tc-blue) !important;
+  font-size: .62rem !important;
+  font-weight: 700 !important;
+  letter-spacing: .07em !important;
+}
+
+.tcg-preview-head h2 {
+  margin: 0 !important;
+  color: var(--tc-ink) !important;
+  font-size: 1.05rem !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.02em !important;
+  font-weight: 650 !important;
+}
+
+.tcg-review-state {
+  min-height: 31px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 5px 10px !important;
+  border: 1px solid var(--tc-border) !important;
+  border-radius: 999px !important;
+  background: #f8fafd !important;
+  color: var(--tc-muted) !important;
+  font-size: .68rem !important;
+  font-weight: 600 !important;
+}
+
+.tcg-review-state.accepted {
+  border-color: #b7dfbf !important;
+  background: var(--tc-green-soft) !important;
+  color: #137333 !important;
+}
+
+.tcg-preview-toolbar {
+  min-height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  padding: 6px 9px !important;
+  border-bottom: 1px solid var(--tc-border) !important;
+  background: #fff !important;
+}
+
+.tcg-preview-toolbar::before {
+  content: "Khổ A4" !important;
+  min-height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 6px 11px !important;
+  border: 1px solid var(--tc-border) !important;
+  border-radius: 8px !important;
+  color: #3c4043 !important;
+  font-size: .68rem !important;
+  font-weight: 600 !important;
+}
+
+.tcg-preview-toolbar > span {
+  margin-left: auto !important;
+  color: var(--tc-muted) !important;
+  font-size: .66rem !important;
+  font-weight: 550 !important;
+}
+
+.tcg-zoom-control {
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+  border: 1px solid var(--tc-border) !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+}
+
+.tcg-zoom-control button {
+  width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+}
+
+.tcg-zoom-control button:nth-child(2) {
+  width: 52px !important;
+  border-left: 1px solid var(--tc-border) !important;
+  border-right: 1px solid var(--tc-border) !important;
+  border-radius: 0 !important;
+  font-size: .66rem !important;
+  font-weight: 600 !important;
+}
+
+.tcg-toolbar-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 1px !important;
+}
+
+.tcg-toolbar-actions button {
+  width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+}
+
+.tcg-a4-viewport {
+  min-height: 0 !important;
+  overflow: auto !important;
+  padding: 18px !important;
+  background: var(--tc-preview) !important;
+  overscroll-behavior: contain !important;
+}
+
+.tcg-a4-stage {
+  min-width: calc(210mm * .6) !important;
+  position: relative !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  transition: height .18s ease !important;
+}
+
+.tcg-a4-stage iframe {
+  width: 210mm !important;
+  min-width: 210mm !important;
+  border: 0 !important;
+  border-radius: 1px !important;
+  background: #fff !important;
+  box-shadow: 0 6px 20px rgba(32, 33, 36, .2) !important;
+  transform-origin: top center !important;
+  transition: transform .18s ease !important;
+}
+
+.tcg-export-panel {
+  display: grid !important;
+  gap: 9px !important;
+  padding: 11px !important;
+  border-top: 1px solid var(--tc-border) !important;
+  background: #fff !important;
+}
+
+.tcg-export-panel > .tcg-filled-button {
+  width: 100% !important;
+}
+
+.tcg-export-menu {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+.tcg-export-menu button {
+  min-height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 7px 9px !important;
+  border: 1px solid var(--tc-border) !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: #3c4043 !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+
+.tcg-export-menu button:hover {
+  border-color: #8ab4f8 !important;
+  background: #f6f9fe !important;
+  color: var(--tc-blue) !important;
+}
+
+.tcg-export-menu span {
+  display: grid !important;
+  gap: 1px !important;
+}
+
+.tcg-export-menu b {
+  font-size: .7rem !important;
+}
+
+.tcg-export-menu small {
+  color: #70757a !important;
+  font-size: .61rem !important;
+}
+
+.tcg-toast {
+  position: fixed !important;
+  right: 22px !important;
+  bottom: 22px !important;
+  z-index: 9999 !important;
+  min-height: 46px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  padding: 10px 15px !important;
+  border-radius: 10px !important;
+  background: #303134 !important;
+  color: #fff !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .24) !important;
+  font-size: .76rem !important;
+  font-weight: 600 !important;
+}
+
+/* Hide decorative site footer in this workspace. */
+.metro-clean-system[data-tool="textcare"] ~ .footer,
+.metro-clean-system[data-tool="textcare"] .footer,
+.metro-clean-system[data-tool="textcare"] .signature-footer-v50 {
+  display: none !important;
+}
+
+@media (max-width: 1280px) {
+  .metro-clean-system[data-tool="textcare"] .tcg-hero {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .tcg-workbench {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tcg-preview-card {
+    position: relative !important;
+    top: auto !important;
+    max-height: none !important;
+  }
+
+  .tcg-a4-viewport {
+    max-height: 760px !important;
+  }
 }
 
 @media (max-width: 760px) {
-  .metro-clean-system[data-tool="textcare"] .textcare-google-page { padding: 8px 8px 32px !important; gap: 10px !important; }
-  .tcg-topbar { min-height: 58px !important; padding: 7px 4px !important; }
-  .tcg-brand-mark { display: none !important; }
-  .tcg-title-block { min-width: 0 !important; }
+  .metro-clean-system[data-tool="textcare"] .textcare-google-page {
+    padding: 8px 8px 32px !important;
+    gap: 10px !important;
+  }
+
+  .tcg-topbar {
+    min-height: 58px !important;
+    gap: 7px !important;
+    padding: 7px !important;
+  }
+
+  .tcg-brand-mark {
+    display: none !important;
+  }
+
+  .tcg-title-block {
+    min-width: 0 !important;
+  }
+
   .tcg-title-block span,
   .tcg-connection,
   .tcg-autosave,
-  .tcg-topbar > .tcg-text-button { display: none !important; }
-  .tcg-topbar > .tcg-filled-button { margin-left: auto !important; padding-inline: 12px !important; }
-  .tcg-hero { padding: 12px 5px 4px !important; }
-  .tcg-hero h1 { font-size: 2rem !important; }
-  .tcg-hero p { font-size: .82rem !important; }
-  .tcg-hero-metrics { grid-template-columns: 1fr !important; }
-  .tcg-hero-metrics article { min-height: 78px !important; }
-  .tcg-editor-card,
-  .tcg-preview-card { border-radius: 14px !important; }
-  .tcg-stepper { padding: 7px !important; }
-  .tcg-stepper button { min-height: 40px !important; padding: 5px !important; font-size: .7rem !important; }
-  .tcg-stepper button b { width: 22px !important; height: 22px !important; }
-  .tcg-panel { padding: 15px !important; gap: 14px !important; }
-  .tcg-panel-heading { display: grid !important; }
-  .tcg-panel-heading small { padding: 0 !important; text-align: left !important; }
-  .tcg-dropzone { grid-template-columns: auto 1fr !important; padding: 14px !important; }
-  .tcg-dropzone > .tcg-outlined-button { grid-column: 1 / -1 !important; width: 100% !important; }
-  .tcg-form-grid { grid-template-columns: 1fr !important; }
-  .tcg-form-grid .wide { grid-column: auto !important; }
-  .tcg-validation-card { grid-template-columns: auto 1fr !important; }
-  .tcg-check-grid { grid-column: 1 / -1 !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .tcg-action-row > * { width: 100% !important; }
-  .tcg-preview-toolbar { flex-wrap: wrap !important; }
-  .tcg-preview-toolbar > span { margin-left: 0 !important; }
-  .tcg-toolbar-actions { margin-left: auto !important; }
-  .tcg-a4-viewport { padding: 10px !important; max-height: 620px !important; }
-  .tcg-export-menu { grid-template-columns: 1fr !important; }
-  .tcg-toast { left: 10px !important; right: 10px !important; bottom: 10px !important; }
-}
+  .tcg-topbar > .tcg-text-button {
+    display: none !important;
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  .textcare-google-page *,
-  .textcare-google-page *::before,
-  .textcare-google-page *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .tcg-topbar > .tcg-filled-button {
+    margin-left: auto !important;
+    padding: 8px 12px !important;
+    font-size: .72rem !important;
+  }
+
+  .tcg-hero {
+    padding: 12px 8px 4px !important;
+  }
+
+  .tcg-hero h1 {
+    font-size: 2rem !important;
+  }
+
+  .tcg-hero-metrics {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tcg-editor-card,
+  .tcg-preview-card {
+    border-radius: 14px !important;
+  }
+
+  .tcg-stepper {
+    padding: 7px !important;
+  }
+
+  .tcg-stepper button {
+    min-height: 40px !important;
+    padding: 5px !important;
+    font-size: .7rem !important;
+  }
+
+  .tcg-stepper button b {
+    display: none !important;
+  }
+
+  .tcg-panel {
+    padding: 15px !important;
+    gap: 14px !important;
+  }
+
+  .tcg-panel-heading {
+    display: grid !important;
+  }
+
+  .tcg-panel-heading small {
+    padding: 0 !important;
+    text-align: left !important;
+  }
+
+  .tcg-dropzone {
+    grid-template-columns: auto 1fr !important;
+    padding: 14px !important;
+  }
+
+  .tcg-dropzone > .tcg-outlined-button {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+  }
+
+  .tcg-source-panel .tcg-large-field {
+    grid-template-rows: auto minmax(300px, 1fr) auto !important;
+  }
+
+  .tcg-source-panel .tcg-large-field > span::after {
+    display: none !important;
+  }
+
+  .tcg-source-panel .tcg-large-field textarea {
+    min-height: 300px !important;
+    padding: 18px !important;
+  }
+
+  .tcg-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tcg-form-grid .wide {
+    grid-column: auto !important;
+  }
+
+  .tcg-validation-card {
+    grid-template-columns: auto 1fr !important;
+  }
+
+  .tcg-check-grid {
+    grid-column: 1 / -1 !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .tcg-action-row > * {
+    width: 100% !important;
+  }
+
+  .tcg-preview-toolbar {
+    flex-wrap: wrap !important;
+  }
+
+  .tcg-preview-toolbar > span {
+    margin-left: 0 !important;
+  }
+
+  .tcg-toolbar-actions {
+    margin-left: auto !important;
+  }
+
+  .tcg-a4-viewport {
+    padding: 10px !important;
+    max-height: 650px !important;
+  }
+
+  .tcg-export-menu {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tcg-toast {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 12px !important;
+  }
 }
 
 html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] {
   --tc-ink: #e8eaed;
   --tc-muted: #bdc1c6;
+  --tc-subtle: #9aa0a6;
   --tc-border: #3c4043;
-  --tc-border-strong: #80868b;
+  --tc-border-strong: #5f6368;
   --tc-canvas: #202124;
   --tc-surface: #292a2d;
   --tc-surface-soft: #303134;
   --tc-preview: #171717;
-  background: var(--tc-canvas) !important;
 }
-html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] :is(.tcg-topbar,.tcg-editor-card,.tcg-preview-card,.tcg-hero-metrics article,.tcg-stepper,.tcg-preview-head,.tcg-preview-toolbar,.tcg-export-panel) { background: var(--tc-surface) !important; border-color: var(--tc-border) !important; }
-html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] :is(.tcg-title-block strong,.tcg-hero h1,.tcg-panel-heading h2,.tcg-preview-head h2,.tcg-hero-metrics strong) { color: var(--tc-ink) !important; }
-html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] :is(.tcg-field input,.tcg-field textarea,.tcg-outlined-button,.tcg-export-menu button,.tcg-type-chips button) { background: #303134 !important; color: var(--tc-ink) !important; border-color: #5f6368 !important; }
+
+html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] :is(
+  .tcg-topbar,
+  .tcg-editor-card,
+  .tcg-preview-card,
+  .tcg-stepper,
+  .tcg-panel,
+  .tcg-source-panel .tcg-large-field,
+  .tcg-source-panel .tcg-large-field > span,
+  .tcg-source-panel .tcg-large-field textarea,
+  .tcg-preview-head,
+  .tcg-preview-toolbar,
+  .tcg-export-panel,
+  .tcg-hero-metrics article
+) {
+  background: var(--tc-surface) !important;
+  color: var(--tc-ink) !important;
+}
+
+html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] :is(
+  .tcg-hero h1,
+  .tcg-title-block strong,
+  .tcg-panel-heading h2,
+  .tcg-preview-head h2,
+  .tcg-source-panel .tcg-large-field > span
+) {
+  color: var(--tc-ink) !important;
+}
+
+html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] :is(
+  .tcg-field input,
+  .tcg-field textarea,
+  .tcg-outlined-button,
+  .tcg-type-chips button,
+  .tcg-export-menu button
+) {
+  background: #292a2d !important;
+  color: var(--tc-ink) !important;
+}
+
+html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] .tcg-source-panel .tcg-large-field > small {
+  background: #303134 !important;
+  color: #bdc1c6 !important;
+}
