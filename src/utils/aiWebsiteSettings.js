@@ -26,7 +26,7 @@ function normalizeEmbedView(value = {}) {
   const cropX = clampNumber(value.cropX, 0, 100 - cropWidth, (100 - cropWidth) / 2);
   const cropY = clampNumber(value.cropY, 0, 100 - cropHeight, (100 - cropHeight) / 2);
   return {
-    zoom: clampNumber(value.zoom, 1, 2.4, 1),
+    zoom: clampNumber(value.zoom, 0.4, 2.4, 1),
     offsetX: clampNumber(value.offsetX, 0, 70, 0),
     offsetY: clampNumber(value.offsetY, 0, 85, 0),
     previewHeight: clampNumber(value.previewHeight, 420, 900, 620),
