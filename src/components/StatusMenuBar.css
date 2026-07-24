@@ -19,65 +19,35 @@
   --briefing-line: rgba(232, 234, 237, .12);
 }
 
-/* The news hub is one uninterrupted ticker inside the same rounded navigation
-   surface. There are no label, pager or secondary action zones. */
-html body .app-shell .brian-nav.brian-nav--with-briefing,
-html body .brian-nav.brian-nav--with-briefing {
-  row-gap: 6px !important;
-  padding-bottom: 8px !important;
-}
-
-html body .app-shell .brian-nav__briefing-slot,
-html body .brian-nav__briefing-slot {
-  grid-column: 1 / -1 !important;
-  grid-row: 2 !important;
-  order: 20 !important;
-  min-width: 0 !important;
-  width: 100% !important;
-  height: 36px !important;
-  display: block !important;
-  overflow: hidden !important;
-  border-radius: 18px !important;
-}
-
-html body .app-shell .brian-nav__briefing-slot:empty,
-html body .brian-nav__briefing-slot:empty {
-  display: none !important;
-}
-
-html body .app-shell .brian-nav__briefing-slot .brian-briefing-bar,
-html body .brian-nav__briefing-slot .brian-briefing-bar {
+/* The briefing bar is the first row of the sticky page chrome, above the
+   primary navigation. It keeps a compact, notification-like single surface. */
+html body .app-shell .bes-top-chrome > .brian-briefing-bar,
+html body .bes-top-chrome > .brian-briefing-bar {
   position: relative !important;
-  z-index: 1 !important;
+  z-index: 1002 !important;
   box-sizing: border-box !important;
   width: 100% !important;
-  height: 36px !important;
-  min-height: 36px !important;
+  height: 38px !important;
+  min-height: 38px !important;
   display: block !important;
   margin: 0 !important;
-  padding: 3px !important;
+  padding: 4px clamp(12px, 2.2vw, 34px) !important;
   border: 0 !important;
-  border-radius: 18px !important;
-  background: var(--briefing-surface) !important;
+  border-bottom: 1px solid var(--briefing-line) !important;
+  border-radius: 0 !important;
+  background: var(--brian-nav-surface, #fff) !important;
   color: var(--briefing-ink) !important;
-  box-shadow: inset 0 0 0 1px var(--briefing-line) !important;
+  box-shadow: none !important;
   font-family: inherit !important;
   font-size: 12px !important;
   line-height: 1 !important;
   overflow: hidden !important;
-  transition: background-color 150ms ease, box-shadow 150ms ease !important;
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
 }
 
-html body .brian-nav__briefing-slot .brian-briefing-bar:hover {
-  background: var(--briefing-surface-hover) !important;
-}
-
-html body .app-shell .brian-nav__briefing-slot .brian-briefing-bar.is-news-route,
-html body .brian-nav__briefing-slot .brian-briefing-bar.is-news-route {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--briefing-blue) 28%, transparent) !important;
-}
-
-html body .brian-nav__briefing-slot .brian-briefing-bar__headline {
+html body .bes-top-chrome > .brian-briefing-bar__headline,
+html body .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__headline {
   position: relative !important;
   width: 100% !important;
   height: 30px !important;
@@ -87,17 +57,26 @@ html body .brian-nav__briefing-slot .brian-briefing-bar__headline {
   padding: 0 !important;
   border: 0 !important;
   border-radius: 15px !important;
-  background: transparent !important;
+  background: var(--briefing-surface) !important;
   color: inherit !important;
-  box-shadow: none !important;
+  box-shadow: inset 0 0 0 1px var(--briefing-line) !important;
   text-align: left !important;
   font: inherit !important;
   cursor: pointer !important;
   overflow: hidden !important;
+  transition: background-color 150ms ease, box-shadow 150ms ease !important;
   -webkit-tap-highlight-color: transparent;
 }
 
-html body .brian-nav__briefing-slot .brian-briefing-bar__headline:focus-visible {
+html body .bes-top-chrome > .brian-briefing-bar:hover .brian-briefing-bar__headline {
+  background: var(--briefing-surface-hover) !important;
+}
+
+html body .bes-top-chrome > .brian-briefing-bar.is-news-route .brian-briefing-bar__headline {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--briefing-blue) 30%, transparent) !important;
+}
+
+html body .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__headline:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--briefing-blue) 28%, transparent) !important;
   outline-offset: -1px !important;
 }
@@ -121,14 +100,14 @@ html body .brian-nav__briefing-slot .brian-briefing-bar__headline:focus-visible 
   align-items: center;
   padding-left: 100%;
   will-change: transform;
-  animation: brian-nav-briefing-marquee var(--briefing-duration, 22s) linear infinite;
+  animation: brian-top-briefing-marquee var(--briefing-duration, 22s) linear infinite;
 }
 
 .brian-briefing-bar.is-paused .brian-briefing-bar__ticker-track {
   animation-play-state: paused;
 }
 
-@keyframes brian-nav-briefing-marquee {
+@keyframes brian-top-briefing-marquee {
   from { transform: translate3d(0, 0, 0); }
   to { transform: translate3d(-100%, 0, 0); }
 }
@@ -178,36 +157,15 @@ html body .brian-nav__briefing-slot .brian-briefing-bar__headline:focus-visible 
 .brian-briefing-bar__google-dots i:nth-child(3) { background: #fbbc04; }
 .brian-briefing-bar__google-dots i:nth-child(4) { background: #34a853; }
 
-@media (min-width: 1181px) {
-  html body .app-shell .brian-nav.brian-nav--with-briefing,
-  html body .brian-nav.brian-nav--with-briefing {
-    grid-template-rows: auto 36px !important;
-    min-height: 112px !important;
-  }
-}
-
-@media (max-width: 1180px) {
-  html body .app-shell .brian-nav__briefing-slot,
-  html body .brian-nav__briefing-slot {
-    grid-row: auto !important;
-    grid-column: 1 / -1 !important;
-    order: 5 !important;
-  }
-}
-
 @media (max-width: 760px) {
-  html body .app-shell .brian-nav__briefing-slot,
-  html body .brian-nav__briefing-slot,
-  html body .brian-nav__briefing-slot .brian-briefing-bar {
-    height: 34px !important;
-    min-height: 34px !important;
+  html body .app-shell .bes-top-chrome > .brian-briefing-bar,
+  html body .bes-top-chrome > .brian-briefing-bar {
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 3px 10px !important;
   }
 
-  html body .brian-nav__briefing-slot .brian-briefing-bar {
-    padding: 2px !important;
-  }
-
-  html body .brian-nav__briefing-slot .brian-briefing-bar__headline,
+  html body .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__headline,
   .brian-briefing-bar__ticker-track {
     height: 30px !important;
   }
