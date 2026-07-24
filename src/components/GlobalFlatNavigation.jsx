@@ -52,7 +52,7 @@ export default function GlobalFlatNavigation(props) {
     <>
       <Navigation {...props} />
       <GlobalUserProfileSettingsBridge {...props} />
-      <GlobalUserProfilePreviewGuard />
+      <GlobalUserProfilePreviewGuard route={props.route} />
       <GlobalAiWebsiteLauncher {...props} />
       <GlobalNewsNavigationTab {...props} />
       <GlobalGamesNavigationTab {...props} />
