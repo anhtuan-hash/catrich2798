@@ -10,12 +10,13 @@ export default function ExternalWebAppViewer({ app, onClose }) {
   const [check, setCheck] = useState(null);
   const url = safeExternalWebAppUrl(app?.externalUrl || app?.url);
   const view = normalizeEmbedView(app?.embedView);
+  const reducedScale = Math.min(view.zoom, 1);
   const viewerStyle = {
     ...embedTransformStyle(view),
     '--viewer-crop-left': `${-(view.cropX / view.cropWidth) * 100}%`,
     '--viewer-crop-top': `${-(view.cropY / view.cropHeight) * 100}%`,
-    '--viewer-crop-scale-x': 100 / view.cropWidth,
-    '--viewer-crop-scale-y': 100 / view.cropHeight,
+    '--viewer-crop-scale-x': 100 / view.cropWidth / reducedScale,
+    '--viewer-crop-scale-y': 100 / view.cropHeight / reducedScale,
   };
 
   useEffect(() => {
