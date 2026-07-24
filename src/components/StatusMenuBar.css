@@ -5,8 +5,6 @@
   --briefing-muted: #5f6368;
   --briefing-blue: #1a73e8;
   --briefing-blue-ink: #1967d2;
-  --briefing-blue-soft: #e8f0fe;
-  --briefing-blue-hover: #d2e3fc;
   --briefing-line: rgba(60, 64, 67, .12);
 }
 
@@ -18,14 +16,11 @@
   --briefing-muted: #bdc1c6;
   --briefing-blue: #8ab4f8;
   --briefing-blue-ink: #aecbfa;
-  --briefing-blue-soft: #233a5e;
-  --briefing-blue-hover: #294b7a;
   --briefing-line: rgba(232, 234, 237, .12);
 }
 
-/* The briefing is portalled into the navigation itself. It occupies a compact
-   second row inside the same rounded Material surface instead of rendering as
-   a detached strip above it. */
+/* The news hub is one uninterrupted ticker inside the same rounded navigation
+   surface. There are no label, pager or secondary action zones. */
 html body .app-shell .brian-nav.brian-nav--with-briefing,
 html body .brian-nav.brian-nav--with-briefing {
   row-gap: 6px !important;
@@ -58,12 +53,9 @@ html body .brian-nav__briefing-slot .brian-briefing-bar {
   width: 100% !important;
   height: 36px !important;
   min-height: 36px !important;
-  display: grid !important;
-  grid-template-columns: max-content minmax(0, 1fr) max-content !important;
-  align-items: center !important;
-  gap: 5px !important;
+  display: block !important;
   margin: 0 !important;
-  padding: 3px 4px 3px 3px !important;
+  padding: 3px !important;
   border: 0 !important;
   border-radius: 18px !important;
   background: var(--briefing-surface) !important;
@@ -73,6 +65,11 @@ html body .brian-nav__briefing-slot .brian-briefing-bar {
   font-size: 12px !important;
   line-height: 1 !important;
   overflow: hidden !important;
+  transition: background-color 150ms ease, box-shadow 150ms ease !important;
+}
+
+html body .brian-nav__briefing-slot .brian-briefing-bar:hover {
+  background: var(--briefing-surface-hover) !important;
 }
 
 html body .app-shell .brian-nav__briefing-slot .brian-briefing-bar.is-news-route,
@@ -80,72 +77,29 @@ html body .brian-nav__briefing-slot .brian-briefing-bar.is-news-route {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--briefing-blue) 28%, transparent) !important;
 }
 
-html body .brian-nav__briefing-slot .brian-briefing-bar button {
-  min-width: 0 !important;
-  margin: 0 !important;
-  border: 0 !important;
-  background: transparent !important;
-  color: inherit !important;
-  box-shadow: none !important;
-  font: inherit !important;
-  cursor: pointer !important;
-  -webkit-tap-highlight-color: transparent;
-}
-
-html body .brian-nav__briefing-slot .brian-briefing-bar__label {
-  height: 30px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 7px !important;
-  padding: 0 12px !important;
-  border-radius: 15px !important;
-  background: var(--briefing-blue-soft) !important;
-  color: var(--briefing-blue-ink) !important;
-  font-size: 12px !important;
-  font-weight: 720 !important;
-  letter-spacing: .01em !important;
-  white-space: nowrap !important;
-  transition: background-color 150ms ease, transform 150ms ease !important;
-}
-
-html body .brian-nav__briefing-slot .brian-briefing-bar__label:hover {
-  background: var(--briefing-blue-hover) !important;
-}
-
-html body .brian-nav__briefing-slot .brian-briefing-bar__label:active,
-html body .brian-nav__briefing-slot .brian-briefing-bar__open:active {
-  transform: scale(.97) !important;
-}
-
-.brian-briefing-bar__live-dot {
-  width: 7px;
-  height: 7px;
-  flex: 0 0 7px;
-  border-radius: 50%;
-  background: #ea4335;
-  box-shadow: 0 0 0 3px rgba(234, 67, 53, .11);
-  animation: brian-nav-briefing-live 2.2s ease-in-out infinite;
-}
-
-@keyframes brian-nav-briefing-live {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(234, 67, 53, .10); }
-  50% { box-shadow: 0 0 0 5px rgba(234, 67, 53, .035); }
-}
-
 html body .brian-nav__briefing-slot .brian-briefing-bar__headline {
   position: relative !important;
   width: 100% !important;
   height: 30px !important;
+  min-width: 0 !important;
   display: block !important;
+  margin: 0 !important;
   padding: 0 !important;
+  border: 0 !important;
   border-radius: 15px !important;
   background: transparent !important;
+  color: inherit !important;
+  box-shadow: none !important;
   text-align: left !important;
+  font: inherit !important;
+  cursor: pointer !important;
   overflow: hidden !important;
+  -webkit-tap-highlight-color: transparent;
 }
 
-html body .brian-nav__briefing-slot .brian-briefing-bar__headline:hover {
-  background: color-mix(in srgb, var(--briefing-surface-hover) 72%, transparent) !important;
+html body .brian-nav__briefing-slot .brian-briefing-bar__headline:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--briefing-blue) 28%, transparent) !important;
+  outline-offset: -1px !important;
 }
 
 .brian-briefing-bar__ticker-viewport {
@@ -154,8 +108,8 @@ html body .brian-nav__briefing-slot .brian-briefing-bar__headline:hover {
   height: 100%;
   display: block;
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
 }
 
 .brian-briefing-bar__ticker-track {
@@ -183,8 +137,8 @@ html body .brian-nav__briefing-slot .brian-briefing-bar__headline:hover {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  padding-right: 30px;
+  gap: 10px;
+  padding-right: 34px;
   white-space: nowrap;
 }
 
@@ -195,7 +149,7 @@ html body .brian-nav__briefing-slot .brian-briefing-bar__headline:hover {
 }
 
 .brian-briefing-bar__separator {
-  color: #c4c7c5;
+  color: color-mix(in srgb, var(--briefing-muted) 42%, transparent);
   font-size: 12px;
 }
 
@@ -210,7 +164,7 @@ html body .brian-nav__briefing-slot .brian-briefing-bar__headline:hover {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  margin-left: 5px;
+  margin-left: 6px;
 }
 
 .brian-briefing-bar__google-dots i {
@@ -223,78 +177,6 @@ html body .brian-nav__briefing-slot .brian-briefing-bar__headline:hover {
 .brian-briefing-bar__google-dots i:nth-child(2) { background: #ea4335; }
 .brian-briefing-bar__google-dots i:nth-child(3) { background: #fbbc04; }
 .brian-briefing-bar__google-dots i:nth-child(4) { background: #34a853; }
-
-.brian-briefing-bar__actions,
-.brian-briefing-bar__pager {
-  display: inline-flex;
-  align-items: center;
-}
-
-.brian-briefing-bar__actions {
-  gap: 3px;
-  white-space: nowrap;
-}
-
-.brian-briefing-bar__pager {
-  height: 30px;
-  gap: 0;
-  padding: 0 1px;
-  border-radius: 15px;
-  background: transparent;
-}
-
-html body .brian-nav__briefing-slot .brian-briefing-bar__pager button {
-  width: 28px !important;
-  height: 28px !important;
-  display: grid !important;
-  place-items: center !important;
-  padding: 0 !important;
-  border-radius: 50% !important;
-  color: var(--briefing-muted) !important;
-  font-size: 18px !important;
-  line-height: 1 !important;
-}
-
-html body .brian-nav__briefing-slot .brian-briefing-bar__pager button:hover {
-  background: var(--briefing-blue-soft) !important;
-  color: var(--briefing-blue-ink) !important;
-}
-
-.brian-briefing-bar__pager > span {
-  min-width: 32px;
-  color: var(--briefing-muted);
-  font-size: 10px;
-  font-weight: 650;
-  text-align: center;
-}
-
-html body .brian-nav__briefing-slot .brian-briefing-bar__open {
-  height: 30px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-  padding: 0 12px !important;
-  border-radius: 15px !important;
-  background: transparent !important;
-  color: var(--briefing-blue-ink) !important;
-  font-size: 11.5px !important;
-  font-weight: 720 !important;
-  transition: background-color 150ms ease, transform 150ms ease !important;
-}
-
-html body .brian-nav__briefing-slot .brian-briefing-bar__open:hover {
-  background: var(--briefing-blue-soft) !important;
-}
-
-.brian-briefing-bar__open b {
-  font-size: 15px;
-  font-weight: 500;
-}
-
-html body .brian-nav__briefing-slot .brian-briefing-bar button:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--briefing-blue) 28%, transparent) !important;
-  outline-offset: 1px !important;
-}
 
 @media (min-width: 1181px) {
   html body .app-shell .brian-nav.brian-nav--with-briefing,
@@ -311,10 +193,6 @@ html body .brian-nav__briefing-slot .brian-briefing-bar button:focus-visible {
     grid-column: 1 / -1 !important;
     order: 5 !important;
   }
-
-  .brian-briefing-bar__pager > span {
-    display: none;
-  }
 }
 
 @media (max-width: 760px) {
@@ -326,53 +204,31 @@ html body .brian-nav__briefing-slot .brian-briefing-bar button:focus-visible {
   }
 
   html body .brian-nav__briefing-slot .brian-briefing-bar {
-    grid-template-columns: max-content minmax(0, 1fr) max-content !important;
-    padding: 2px 3px !important;
+    padding: 2px !important;
   }
 
-  html body .brian-nav__briefing-slot .brian-briefing-bar__label,
   html body .brian-nav__briefing-slot .brian-briefing-bar__headline,
-  html body .brian-nav__briefing-slot .brian-briefing-bar__open,
-  .brian-briefing-bar__pager {
+  .brian-briefing-bar__ticker-track {
     height: 30px !important;
-  }
-
-  .brian-briefing-bar__pager {
-    display: none;
-  }
-
-  html body .brian-nav__briefing-slot .brian-briefing-bar__open {
-    width: 30px !important;
-    justify-content: center !important;
-    padding: 0 !important;
-  }
-
-  .brian-briefing-bar__open > span {
-    display: none;
   }
 }
 
 @media (max-width: 520px) {
-  html body .brian-nav__briefing-slot .brian-briefing-bar__label {
-    width: 30px !important;
-    justify-content: center !important;
-    padding: 0 !important;
-  }
-
-  .brian-briefing-bar__label > span:last-child {
-    display: none;
-  }
-
   .brian-briefing-bar__ticker-item {
-    padding-right: 20px;
+    gap: 8px;
+    padding-right: 22px;
+  }
+
+  .brian-briefing-bar__source {
+    font-size: 11px;
+  }
+
+  .brian-briefing-bar__ticker-item strong {
+    font-size: 12px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .brian-briefing-bar__live-dot {
-    animation: none;
-  }
-
   .brian-briefing-bar__ticker-track {
     box-sizing: border-box;
     width: 100%;
