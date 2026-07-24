@@ -45,9 +45,20 @@ function normalizeApp(value = {}) {
   };
 }
 
+function hasPublishPermission(profile = {}) {
+  const permissions = profile.permissions;
+  const allowed = Array.isArray(permissions)
+    ? permissions
+    : Array.isArray(permissions?.allowed) ? permissions.allowed : [];
+  return allowed.some((value) => [
+    'department:publish', 'department:manage', 'admin:users', 'route:admin',
+  ].includes(String(value || '').toLowerCase()));
+}
+
 function isManager(profile = {}) {
   const roleText = `${profile.role || ''} ${profile.position || ''}`.toLowerCase().trim();
-  return Boolean(profile.approved !== false && [...MANAGER_ROLES].some((role) => roleText.includes(role)));
+  const roleMatch = [...MANAGER_ROLES].some((role) => roleText.includes(role));
+  return Boolean(profile.approved !== false && (roleMatch || hasPublishPermission(profile)));
 }
 
 function withTimeout(promise, ms = 12000) {
@@ -79,7 +90,7 @@ async function authenticate(req) {
   });
 
   const { data: profile, error: profileError } = await withTimeout(
-    db.from('profiles').select('id,email,full_name,role,approved').eq('id', authData.user.id).maybeSingle(),
+    db.from('profiles').select('id,email,full_name,role,approved,permissions').eq('id', authData.user.id).maybeSingle(),
   );
   if (profileError) throw Object.assign(new Error(profileError.message), { status: 403 });
 
@@ -91,6 +102,7 @@ async function authenticate(req) {
       full_name: authData.user.user_metadata?.full_name || authData.user.email || 'Teacher',
       role: 'teacher',
       approved: true,
+      permissions: { mode: 'all', allowed: [] },
     },
     db,
     hasServiceRole: Boolean(serviceKey),
@@ -99,6 +111,14 @@ async function authenticate(req) {
 
 function externalFilter(query) {
   return query.or(`item_type.eq.${KIND},permission_id.like.${PREFIX}%`);
+}
+
+function requestAppUrl(request = {}) {
+  try {
+    return safeUrl(JSON.parse(String(request.message || '{}')).url);
+  } catch {
+    return '';
+  }
 }
 
 export default async function handler(req, res) {
@@ -110,6 +130,9 @@ export default async function handler(req, res) {
       const mode = String(req.query?.mode || 'mine');
       if (mode === 'all' && !isManager(session.profile)) {
         return json(res, 403, { ok: false, message: 'Chỉ TTCM hoặc Admin được xem toàn bộ yêu cầu.' });
+      }
+      if (mode === 'all' && !session.hasServiceRole) {
+        return json(res, 503, { ok: false, message: 'Vercel chưa có SUPABASE_SERVICE_ROLE_KEY nên TTCM chưa thể đọc yêu cầu của giáo viên.' });
       }
 
       let query = session.db
@@ -129,20 +152,21 @@ export default async function handler(req, res) {
       if (!app.name) return json(res, 400, { ok: false, message: 'Vui lòng nhập tên ứng dụng.' });
       if (!app.url) return json(res, 400, { ok: false, message: 'Chỉ chấp nhận website HTTPS hợp lệ.' });
 
-      const requestId = `${PREFIX}${session.user.id}:${Date.now()}`;
-      const { data: existing, error: existingError } = await withTimeout(
-        session.db.from(TABLE)
-          .select('id,status')
+      const { data: pendingRows, error: existingError } = await withTimeout(
+        externalFilter(session.db.from(TABLE)
+          .select('id,status,message,created_at')
           .eq('requester_id', session.user.id)
           .eq('status', 'pending')
-          .or(`permission_id.eq.${requestId},message.ilike.%${app.url.replace(/[%_,]/g, '')}%`)
-          .limit(1),
+          .order('created_at', { ascending: false })
+          .limit(50)),
       );
       if (existingError) throw Object.assign(new Error(existingError.message), { status: 400 });
-      if (existing?.length) {
-        return json(res, 200, { ok: true, alreadyPending: true, request: existing[0], message: 'Website này đã có yêu cầu chờ duyệt.' });
+      const duplicate = (pendingRows || []).find((request) => requestAppUrl(request) === app.url);
+      if (duplicate) {
+        return json(res, 200, { ok: true, alreadyPending: true, request: duplicate, message: 'Website này đã có yêu cầu chờ duyệt.' });
       }
 
+      const requestId = `${PREFIX}${session.user.id}:${Date.now()}`;
       const payload = {
         requester_id: session.user.id,
         requester_email: session.user.email || session.profile.email || '',
@@ -164,6 +188,9 @@ export default async function handler(req, res) {
     if (req.method === 'PATCH') {
       if (!isManager(session.profile)) {
         return json(res, 403, { ok: false, message: 'Chỉ TTCM hoặc Admin được cập nhật yêu cầu.' });
+      }
+      if (!session.hasServiceRole) {
+        return json(res, 503, { ok: false, message: 'Vercel chưa có SUPABASE_SERVICE_ROLE_KEY nên chưa thể duyệt yêu cầu.' });
       }
       const id = cleanText(req.body?.id, 80);
       const status = cleanText(req.body?.status, 20);
