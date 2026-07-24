@@ -50,7 +50,6 @@ const RESOURCE_ITEM_COLUMNS = [
   'title',
   'description',
   'category',
-  'category_id',
   'grade',
   'school_year',
   'unit_name',
@@ -83,7 +82,6 @@ const RESOURCE_ITEM_COLUMNS = [
   'views',
   'downloads',
   'deleted_at',
-  'deleted_by',
 ].join(',');
 
 const SELECT_PROJECTIONS = [
