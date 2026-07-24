@@ -1,0 +1,42 @@
+/* Brian: remove all persistent search bars while preserving the Command/Ctrl+K palette. */
+[data-bes-search-bar-removed="true"],
+.brian-nav__search,
+.brian-notification-center__search-row {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+.global-command-palette [data-bes-search-bar-removed="true"],
+.global-command-palette-layer [data-bes-search-bar-removed="true"] {
+  display: revert !important;
+  visibility: visible !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: revert !important;
+  padding: revert !important;
+  border: revert !important;
+  overflow: visible !important;
+  pointer-events: auto !important;
+}
+
+/* Let the remaining navigation items use the released space naturally. */
+.brian-nav {
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+}
+
+.brian-nav__primary {
+  justify-self: start;
+}
