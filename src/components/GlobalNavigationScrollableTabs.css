@@ -27,7 +27,7 @@
     flex: 0 0 auto !important;
     min-width: max-content !important;
     white-space: nowrap !important;
-    scroll-snap-align: nearest !important;
+    scroll-snap-align: start !important;
   }
 
   html body .app-shell .brian-nav__primary::-webkit-scrollbar {
