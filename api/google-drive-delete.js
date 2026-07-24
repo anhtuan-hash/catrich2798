@@ -10,13 +10,13 @@ function isMissingDriveFile(error) {
 
 async function findResources(client, resourceId, fileId) {
   if (isUuid(resourceId)) {
-    const { data, error } = await client.from('resource_items').select('*').eq('id', resourceId).limit(10);
+    const { data, error } = await client.from('resource_items').select('id,drive_file_id,title,category,status').eq('id', resourceId).limit(10);
     if (error) throw new Error(error.message);
     if (data?.length) return data;
   }
 
   if (fileId) {
-    const { data, error } = await client.from('resource_items').select('*').eq('drive_file_id', fileId).limit(50);
+    const { data, error } = await client.from('resource_items').select('id,drive_file_id,title,category,status').eq('drive_file_id', fileId).limit(50);
     if (error) throw new Error(error.message);
     if (data?.length) return data;
   }
@@ -84,7 +84,7 @@ export default async function handler(req, res) {
         requestedResourceId: resourceId || null,
         fileId: fileId || null,
         title: primary?.title || req.body?.title || null,
-        category: primary?.category || primary?.category_id || req.body?.category || 'other',
+        category: primary?.category || req.body?.category || 'other',
         previousStatus: primary?.status || req.body?.status || null,
         driveAction,
         localOnly: resources.length === 0,
