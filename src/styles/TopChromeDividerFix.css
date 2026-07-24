@@ -1,0 +1,42 @@
+/* Remove legacy dark divider that can reappear below the shared navigation on some routes.
+   Loaded after all historical style layers so the Material top chrome keeps only its subtle outline. */
+
+html body .app-shell > .bes-top-chrome,
+html body .app-shell .bes-top-chrome {
+  border-bottom: 1px solid rgba(60, 64, 67, 0.12) !important;
+  outline: 0 !important;
+}
+
+html body .app-shell > .bes-top-chrome > .brian-nav,
+html body .app-shell .bes-top-chrome > .brian-nav,
+html body .app-shell .brian-nav {
+  border-bottom: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+html body .app-shell > .bes-top-chrome::before,
+html body .app-shell > .bes-top-chrome::after,
+html body .app-shell .bes-top-chrome > .brian-nav::before,
+html body .app-shell .bes-top-chrome > .brian-nav::after {
+  display: none !important;
+  content: none !important;
+}
+
+html body .app-shell > #bes-main-content,
+html body .app-shell > main#bes-main-content,
+html body .app-shell > .wp8-page-stage {
+  border-top: 0 !important;
+  outline-top: 0 !important;
+}
+
+html body .app-shell > #bes-main-content::before,
+html body .app-shell > main#bes-main-content::before {
+  border-top: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] body .app-shell > .bes-top-chrome,
+body.theme-dark .app-shell > .bes-top-chrome {
+  border-bottom-color: rgba(232, 234, 237, 0.12) !important;
+}
