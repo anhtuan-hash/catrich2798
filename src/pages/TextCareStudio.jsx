@@ -1,1 +1,1 @@
-export { default } from './TextCareCompactStudio.jsx';
+export { default } from './TextCareDocxFixedStudio.jsx';
