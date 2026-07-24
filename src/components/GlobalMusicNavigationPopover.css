@@ -1,0 +1,274 @@
+.brian-nav__music-wrap {
+  position: relative;
+}
+
+.brian-nav__music-popover-host {
+  position: static;
+  width: 0;
+  height: 0;
+}
+
+.brian-nav__music.is-playing > span {
+  animation: brian-music-note-pulse 1.15s ease-in-out infinite;
+}
+
+@keyframes brian-music-note-pulse {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-1px) scale(1.08); }
+}
+
+.brian-nav__music-popover {
+  top: calc(100% + 10px) !important;
+  right: 0 !important;
+  width: min(410px, calc(100vw - 28px)) !important;
+  padding: 0 !important;
+  border: 1px solid var(--brian-nav-line) !important;
+  border-radius: 18px !important;
+  background: var(--brian-nav-surface) !important;
+  color: var(--brian-nav-ink) !important;
+  box-shadow: var(--brian-nav-shadow) !important;
+  overflow: hidden !important;
+  z-index: 1010 !important;
+}
+
+.brian-music-popover__header {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 16px 13px;
+  border-bottom: 1px solid var(--brian-nav-line);
+}
+
+.brian-music-popover__header > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.brian-music-popover__header strong {
+  color: var(--brian-nav-ink);
+  font-size: 17px;
+  line-height: 1.15;
+}
+
+.brian-music-popover__header small {
+  color: var(--brian-nav-muted) !important;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.brian-music-popover__header > button {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0 !important;
+  border: 1px solid transparent !important;
+  border-radius: 11px !important;
+  background: transparent !important;
+  color: var(--brian-nav-muted) !important;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.brian-music-popover__header > button:hover {
+  border-color: var(--brian-nav-line) !important;
+  background: var(--brian-nav-soft) !important;
+  color: var(--brian-nav-ink) !important;
+}
+
+.brian-music-popover__body {
+  display: grid;
+  gap: 14px;
+  padding: 14px 16px 16px;
+}
+
+.brian-music-popover__status {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 12px;
+  border: 1px solid var(--brian-nav-line);
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--brian-nav-soft) 70%, transparent);
+}
+
+.brian-music-popover__status > span {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--brian-nav-surface);
+  color: var(--brian-nav-accent);
+  font-size: 22px;
+  box-shadow: inset 0 0 0 1px var(--brian-nav-line);
+}
+
+.brian-music-popover__status.is-playing > span {
+  background: var(--brian-nav-accent);
+  color: white;
+  box-shadow: none;
+}
+
+.brian-music-popover__status > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.brian-music-popover__status small {
+  color: var(--brian-nav-muted) !important;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.brian-music-popover__status strong {
+  overflow: hidden;
+  color: var(--brian-nav-ink);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brian-music-popover__status > button,
+.brian-music-popover__url-row > button,
+.brian-music-popover__upload {
+  min-height: 40px;
+  padding: 0 14px !important;
+  border: 1px solid var(--brian-nav-line) !important;
+  border-radius: 12px !important;
+  background: var(--brian-nav-surface) !important;
+  color: var(--brian-nav-ink) !important;
+  font-size: 12px;
+  font-weight: 780;
+  white-space: nowrap;
+}
+
+.brian-music-popover__status > button {
+  border-color: var(--brian-nav-accent) !important;
+  background: var(--brian-nav-accent) !important;
+  color: white !important;
+}
+
+.brian-music-popover__field {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.brian-music-popover__field > span,
+.brian-music-popover__volume > span {
+  color: var(--brian-nav-muted);
+  font-size: 11px;
+  font-weight: 760;
+}
+
+.brian-music-popover__field select,
+.brian-music-popover__url-row input {
+  width: 100%;
+  min-height: 43px;
+  padding: 0 12px !important;
+  border: 1px solid var(--brian-nav-line) !important;
+  border-radius: 12px !important;
+  outline: none;
+  background: var(--brian-nav-surface) !important;
+  color: var(--brian-nav-ink) !important;
+  font: inherit;
+  font-size: 13px;
+}
+
+.brian-music-popover__field select:focus,
+.brian-music-popover__url-row input:focus {
+  border-color: color-mix(in srgb, var(--brian-nav-accent) 60%, var(--brian-nav-line)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brian-nav-accent) 12%, transparent) !important;
+}
+
+.brian-music-popover__url-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.brian-music-popover__controls {
+  display: grid;
+  grid-template-columns: auto minmax(130px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.brian-music-popover__volume {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(80px, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.brian-music-popover__volume input[type='range'] {
+  width: 100%;
+  min-height: 22px;
+  padding: 0 !important;
+  accent-color: var(--brian-nav-accent);
+}
+
+.brian-music-popover__loop {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 0 10px;
+  border: 1px solid var(--brian-nav-line);
+  border-radius: 12px;
+  color: var(--brian-nav-ink);
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.brian-music-popover__loop input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--brian-nav-accent);
+}
+
+.brian-music-popover__footer {
+  min-height: 45px;
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-top: 1px solid var(--brian-nav-line);
+  background: color-mix(in srgb, var(--brian-nav-soft) 46%, transparent);
+  color: var(--brian-nav-muted);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+@media (max-width: 620px) {
+  .brian-nav__music-popover {
+    position: fixed !important;
+    top: 82px !important;
+    right: 12px !important;
+    left: 12px !important;
+    width: auto !important;
+    max-height: calc(100vh - 96px);
+    overflow: auto !important;
+  }
+
+  .brian-music-popover__controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .brian-music-popover__volume {
+    grid-column: 1 / -1;
+  }
+}

@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import './GlobalMusicNavigationPopover.css';
 
 const DEFAULT_MUSIC_URL = '/audio/brian-soft-loop.wav';
 const DEFAULT_SETTINGS = {
@@ -43,9 +45,7 @@ function dispatchMusicSettingsUpdate() {
 function saveSettings(currentUser, settings) {
   try {
     const safeSettings = { ...settings };
-    if (safeSettings.trackMode === 'upload') {
-      safeSettings.enabled = false;
-    }
+    if (safeSettings.trackMode === 'upload') safeSettings.enabled = false;
     localStorage.setItem(getStorageKey(currentUser), JSON.stringify(safeSettings));
     dispatchMusicSettingsUpdate();
   } catch {
@@ -73,12 +73,13 @@ function saveCurrentTime(currentUser, settings, audio) {
   }
 }
 
-export default function GlobalMusicPlayer({ language = 'vi', currentUser, externalLauncher = false }) {
+export default function GlobalMusicPlayer({ language = 'vi', currentUser }) {
   const [settings, setSettings] = useState(() => readSettings(currentUser));
   const [playing, setPlaying] = useState(false);
   const [fileUrl, setFileUrl] = useState('');
   const [customInput, setCustomInput] = useState(() => readSettings(currentUser).customUrl || '');
   const [message, setMessage] = useState('');
+  const [popoverRoot, setPopoverRoot] = useState(null);
   const audioRef = useRef(null);
   const fileInputRef = useRef(null);
   const lastTrackRef = useRef('');
@@ -94,12 +95,14 @@ export default function GlobalMusicPlayer({ language = 'vi', currentUser, extern
     applyUrl: 'Lưu link',
     volume: 'Âm lượng',
     loop: 'Lặp lại',
-    collapse: 'Thu gọn',
-    expand: 'Mở nhạc nền',
-    note: 'Không tự phát lại từ đầu khi chuyển trang/chức năng.',
-    blocked: 'Trình duyệt cần bạn bấm Play để phát nhạc.',
+    collapse: 'Đóng bảng nhạc nền',
+    note: 'Nhạc tiếp tục phát khi bạn chuyển trang hoặc chức năng.',
+    blocked: 'Trình duyệt cần bạn bấm Phát để bắt đầu âm thanh.',
     uploaded: 'Đã nạp nhạc cho phiên hiện tại.',
     badUrl: 'Nhập link âm thanh hợp lệ trước.',
+    ready: 'Sẵn sàng phát',
+    nowPlaying: 'Đang phát',
+    source: 'Nguồn nhạc',
   } : {
     title: 'Background music',
     subtitle: 'Persists across the system',
@@ -111,12 +114,14 @@ export default function GlobalMusicPlayer({ language = 'vi', currentUser, extern
     applyUrl: 'Save URL',
     volume: 'Volume',
     loop: 'Loop',
-    collapse: 'Collapse',
-    expand: 'Open music',
-    note: 'It will not restart when you move between pages/tools.',
-    blocked: 'Your browser needs you to press Play first.',
+    collapse: 'Close background music',
+    note: 'Music keeps playing while you move between pages and tools.',
+    blocked: 'Your browser needs you to press Play before audio can start.',
     uploaded: 'Audio loaded for this session.',
     badUrl: 'Enter a valid audio URL first.',
+    ready: 'Ready to play',
+    nowPlaying: 'Now playing',
+    source: 'Audio source',
   };
 
   const trackUrl = useMemo(() => {
@@ -135,6 +140,40 @@ export default function GlobalMusicPlayer({ language = 'vi', currentUser, extern
     setCustomInput(next.customUrl || '');
     setPlaying(false);
   }, [currentUser?.id, currentUser?.email]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    setPopoverRoot(document.getElementById('brian-nav-music-popover-root'));
+  }, [currentUser?.id, currentUser?.email, settings.expanded]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('bes-global-music-panel-state', {
+      detail: { expanded: settings.expanded, playing },
+    }));
+  }, [settings.expanded, playing]);
+
+  useEffect(() => {
+    if (!settings.expanded) return undefined;
+
+    const closeOutside = (event) => {
+      const musicWrap = document.querySelector('.brian-nav__music-wrap');
+      if (!musicWrap?.contains(event.target)) patchSettings({ expanded: false });
+    };
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') patchSettings({ expanded: false });
+    };
+    const closeOnRouteChange = () => patchSettings({ expanded: false });
+
+    document.addEventListener('pointerdown', closeOutside);
+    window.addEventListener('keydown', closeOnEscape);
+    window.addEventListener('hashchange', closeOnRouteChange);
+    return () => {
+      document.removeEventListener('pointerdown', closeOutside);
+      window.removeEventListener('keydown', closeOnEscape);
+      window.removeEventListener('hashchange', closeOnRouteChange);
+    };
+  }, [settings.expanded]);
 
   useEffect(() => {
     const syncExternalSettings = () => {
@@ -162,6 +201,14 @@ export default function GlobalMusicPlayer({ language = 'vi', currentUser, extern
         window.dispatchEvent(new CustomEvent('bes-ai-close'));
         window.dispatchEvent(new CustomEvent('bes-sync-queue-close'));
         patchSettings({ expanded: true });
+        return;
+      }
+      if (action === 'toggle-panel') {
+        if (!settings.expanded) {
+          window.dispatchEvent(new CustomEvent('bes-ai-close'));
+          window.dispatchEvent(new CustomEvent('bes-sync-queue-close'));
+        }
+        patchSettings({ expanded: !settings.expanded });
         return;
       }
       if (action === 'collapse') {
@@ -285,51 +332,64 @@ export default function GlobalMusicPlayer({ language = 'vi', currentUser, extern
     patchSettings({ trackMode: 'url', customUrl: value, enabled: false });
   };
 
-  return (
-    <aside className={`global-music-player ${settings.expanded ? 'expanded' : 'compact'}`} aria-label={labels.title} data-external-launcher={externalLauncher ? 'true' : 'false'}>
-      <audio ref={audioRef} preload="none" />
-      {!settings.expanded ? (externalLauncher ? null :
-        <button className={`music-float-btn ${playing ? 'playing' : ''}`} onClick={() => patchSettings({ expanded: true })} title={labels.expand}>
-          <span>{playing ? '♪' : '♫'}</span>
-        </button>
-      ) : (
-        <div className="music-panel panel">
-          <div className="music-head">
-            <div>
-              <strong>{labels.title}</strong>
-              <small>{labels.subtitle}</small>
-            </div>
-            <button className="ghost" onClick={() => patchSettings({ expanded: false })}>{labels.collapse}</button>
-          </div>
-          <div className="music-main-row">
-            <button className="primary music-play" onClick={togglePlayback}>{playing ? labels.pause : labels.play}</button>
-            <select value={settings.trackMode} onChange={(e) => patchSettings({ trackMode: e.target.value, enabled: false })}>
-              <option value="default">{labels.defaultTrack}</option>
-              <option value="upload">{settings.uploadName || labels.upload}</option>
-              <option value="url">{labels.url}</option>
-            </select>
-          </div>
-          {settings.trackMode === 'url' ? (
-            <div className="music-url-row">
-              <input value={customInput} onChange={(e) => setCustomInput(e.target.value)} placeholder="https://.../music.mp3" />
-              <button className="secondary" onClick={applyCustomUrl}>{labels.applyUrl}</button>
-            </div>
-          ) : null}
-          <div className="music-control-row">
-            <button className="secondary" onClick={() => fileInputRef.current?.click()}>{labels.upload}</button>
-            <label>
-              <span>{labels.volume}</span>
-              <input type="range" min="0" max="1" step="0.01" value={settings.volume} onChange={(e) => patchSettings({ volume: Number(e.target.value) })} />
-            </label>
-            <label className="music-loop-toggle">
-              <input type="checkbox" checked={settings.loop} onChange={(e) => patchSettings({ loop: e.target.checked })} />
-              <span>{labels.loop}</span>
-            </label>
-            <input ref={fileInputRef} type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a" hidden onChange={handleUpload} />
-          </div>
-          <p>{message || labels.note}</p>
+  const panel = (
+    <section id="brian-nav-music-popover" className="brian-nav__popover brian-nav__music-popover" aria-label={labels.title}>
+      <header className="brian-music-popover__header">
+        <div>
+          <strong>{labels.title}</strong>
+          <small>{labels.subtitle}</small>
         </div>
-      )}
-    </aside>
+        <button type="button" onClick={() => patchSettings({ expanded: false })} aria-label={labels.collapse} title={labels.collapse}>×</button>
+      </header>
+
+      <div className="brian-music-popover__body">
+        <div className={`brian-music-popover__status ${playing ? 'is-playing' : ''}`}>
+          <span aria-hidden="true">{playing ? '♪' : '♫'}</span>
+          <div>
+            <small>{playing ? labels.nowPlaying : labels.ready}</small>
+            <strong>{settings.trackMode === 'upload' ? (settings.uploadName || labels.upload) : settings.trackMode === 'url' ? labels.url : labels.defaultTrack}</strong>
+          </div>
+          <button type="button" onClick={togglePlayback}>{playing ? labels.pause : labels.play}</button>
+        </div>
+
+        <label className="brian-music-popover__field">
+          <span>{labels.source}</span>
+          <select value={settings.trackMode} onChange={(event) => patchSettings({ trackMode: event.target.value, enabled: false })}>
+            <option value="default">{labels.defaultTrack}</option>
+            <option value="upload">{settings.uploadName || labels.upload}</option>
+            <option value="url">{labels.url}</option>
+          </select>
+        </label>
+
+        {settings.trackMode === 'url' ? (
+          <div className="brian-music-popover__url-row">
+            <input value={customInput} onChange={(event) => setCustomInput(event.target.value)} placeholder="https://.../music.mp3" />
+            <button type="button" onClick={applyCustomUrl}>{labels.applyUrl}</button>
+          </div>
+        ) : null}
+
+        <div className="brian-music-popover__controls">
+          <button type="button" className="brian-music-popover__upload" onClick={() => fileInputRef.current?.click()}>{labels.upload}</button>
+          <label className="brian-music-popover__volume">
+            <span>{labels.volume}</span>
+            <input type="range" min="0" max="1" step="0.01" value={settings.volume} onChange={(event) => patchSettings({ volume: Number(event.target.value) })} />
+          </label>
+          <label className="brian-music-popover__loop">
+            <input type="checkbox" checked={settings.loop} onChange={(event) => patchSettings({ loop: event.target.checked })} />
+            <span>{labels.loop}</span>
+          </label>
+          <input ref={fileInputRef} type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a" hidden onChange={handleUpload} />
+        </div>
+      </div>
+
+      <footer className="brian-music-popover__footer" aria-live="polite">{message || labels.note}</footer>
+    </section>
+  );
+
+  return (
+    <>
+      <audio ref={audioRef} preload="none" hidden />
+      {settings.expanded && popoverRoot ? createPortal(panel, popoverRoot) : null}
+    </>
   );
 }
