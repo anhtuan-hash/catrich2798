@@ -1,0 +1,132 @@
+/* Game Hub: one-row horizontal platform scroller. */
+.metro-clean-system[data-route="games"] .games-v46-platform-grid {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: none !important;
+  grid-template-rows: minmax(132px, auto) !important;
+  grid-auto-flow: column !important;
+  grid-auto-columns: minmax(250px, 280px) !important;
+  align-items: stretch !important;
+  gap: 14px !important;
+  padding: 4px 4px 14px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  overscroll-behavior-inline: contain !important;
+  scroll-behavior: smooth !important;
+  scroll-snap-type: inline mandatory !important;
+  scroll-padding-inline: 4px !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #bdc1c6 #f1f3f4 !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-x !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar {
+  height: 10px !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-track {
+  border-radius: 999px !important;
+  background: #f1f3f4 !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-thumb {
+  min-width: 72px !important;
+  border: 2px solid #f1f3f4 !important;
+  border-radius: 999px !important;
+  background: #bdc1c6 !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-thumb:hover {
+  background: #9aa0a6 !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-platform-card,
+.metro-clean-system[data-route="games"] .games-v46-add-card {
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 132px !important;
+  scroll-snap-align: start !important;
+  scroll-snap-stop: normal !important;
+  scroll-margin-inline: 4px !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-platform-main {
+  min-height: 130px !important;
+  grid-template-columns: 52px minmax(0, 1fr) auto !important;
+  gap: 14px !important;
+  padding: 18px !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-platform-icon {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 17px !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-platform-copy strong {
+  font-size: 1rem !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-platform-copy small {
+  font-size: .8rem !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-platform-card.active {
+  scroll-snap-align: center !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-add-card {
+  grid-template-columns: 48px minmax(0, 1fr) !important;
+  padding: 18px !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-add-card > span {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 16px !important;
+}
+
+/* Preserve action buttons for custom cards without increasing the row height excessively. */
+.metro-clean-system[data-route="games"] .games-v58-custom-actions {
+  align-content: start !important;
+  padding: 0 14px 14px !important;
+}
+
+/* Dark mode scrollbar and track. */
+[data-theme="dark"] .metro-clean-system[data-route="games"] .games-v46-platform-grid,
+.theme-dark .metro-clean-system[data-route="games"] .games-v46-platform-grid {
+  scrollbar-color: #6f7378 #303134 !important;
+}
+
+[data-theme="dark"] .metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-track,
+.theme-dark .metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-track {
+  background: #303134 !important;
+}
+
+[data-theme="dark"] .metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-thumb,
+.theme-dark .metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-thumb {
+  border-color: #303134 !important;
+  background: #6f7378 !important;
+}
+
+@media (max-width: 900px) {
+  .metro-clean-system[data-route="games"] .games-v46-platform-grid {
+    grid-auto-columns: minmax(235px, 72vw) !important;
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .metro-clean-system[data-route="games"] .games-v46-platform-grid {
+    grid-auto-columns: minmax(230px, 84vw) !important;
+    padding-inline: 2px !important;
+  }
+
+  .metro-clean-system[data-route="games"] .games-v46-platform-main {
+    grid-template-columns: 48px minmax(0, 1fr) auto !important;
+    padding: 16px !important;
+  }
+}
