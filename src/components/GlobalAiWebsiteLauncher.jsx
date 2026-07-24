@@ -1,9 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import {
+  aiWebsiteVisibleForUser,
+  canManageAiWebsites,
+  loadAiWebsiteSettings,
+  normalizeAiWebsiteTool,
+  readAiWebsiteSettingsLocal,
+  safeAiWebsiteUrl,
+  saveAiWebsiteSettings,
+  subscribeAiWebsiteSettings,
+} from '../utils/aiWebsiteSettings.js';
 import './GlobalAiWebsiteLauncher.css';
-
-const STORAGE_KEY = 'bes-ai-website-launcher-v1';
-const CONFIG_EVENT = 'bes-ai-websites-updated';
 
 const EMPTY_TOOL = {
   name: '',
@@ -14,63 +21,6 @@ const EMPTY_TOOL = {
   enabled: true,
   pinned: false,
 };
-
-function normalizeTool(tool, index = 0) {
-  const name = String(tool?.name || '').trim();
-  return {
-    id: String(tool?.id || `ai-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`),
-    name,
-    url: String(tool?.url || '').trim(),
-    icon: String(tool?.icon || name.slice(0, 2) || 'AI').trim().slice(0, 3).toUpperCase(),
-    description: String(tool?.description || '').trim(),
-    audience: ['all', 'admin', 'leader', 'teacher'].includes(tool?.audience) ? tool.audience : 'all',
-    enabled: tool?.enabled !== false,
-    pinned: Boolean(tool?.pinned),
-  };
-}
-
-function readTools() {
-  if (typeof window === 'undefined') return [];
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]');
-    return Array.isArray(parsed)
-      ? parsed.map(normalizeTool).filter((tool) => tool.name && tool.url)
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function persistTools(tools) {
-  const normalized = tools
-    .map(normalizeTool)
-    .filter((tool) => tool.name && safeWebsiteUrl(tool.url));
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
-  window.dispatchEvent(new CustomEvent(CONFIG_EVENT, { detail: normalized }));
-  return normalized;
-}
-
-function safeWebsiteUrl(value) {
-  try {
-    const url = new URL(String(value || '').trim());
-    return ['http:', 'https:'].includes(url.protocol) ? url.toString() : '';
-  } catch {
-    return '';
-  }
-}
-
-function currentAudience(user) {
-  const role = `${user?.role || ''} ${user?.position || ''}`.toLowerCase();
-  if (role.includes('admin')) return 'admin';
-  if (role.includes('leader') || role.includes('ttcm') || role.includes('head')) return 'leader';
-  return 'teacher';
-}
-
-function toolAvailableFor(tool, user) {
-  if (!tool.enabled) return false;
-  const audience = currentAudience(user);
-  return tool.audience === 'all' || tool.audience === audience || audience === 'admin';
-}
 
 function moveItem(items, index, direction) {
   const nextIndex = index + direction;
@@ -84,21 +34,29 @@ function AiToolGlyph({ tool }) {
   return <span className="brian-ai-workspace__tool-icon" aria-hidden="true">{tool?.icon || 'AI'}</span>;
 }
 
+function preferenceKey(user) {
+  return `bes-ai-hide-active-name-${String(user?.id || user?.email || 'guest')}`;
+}
+
 export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }) {
   const [host, setHost] = useState(null);
   const [open, setOpen] = useState(false);
   const [manageMode, setManageMode] = useState(false);
-  const [tools, setTools] = useState(readTools);
-  const [draftTools, setDraftTools] = useState(readTools);
+  const [snapshot, setSnapshot] = useState(readAiWebsiteSettingsLocal);
+  const [draftTools, setDraftTools] = useState(() => readAiWebsiteSettingsLocal().tools);
   const [newTool, setNewTool] = useState(EMPTY_TOOL);
   const [activeToolId, setActiveToolId] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
-  const [saved, setSaved] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [hideActiveName, setHideActiveName] = useState(false);
   const rootRef = useRef(null);
 
-  const isAdmin = String(currentUser?.role || '').toLowerCase() === 'admin';
   const vi = language !== 'en';
+  const isManager = canManageAiWebsites(currentUser);
+  const tools = snapshot.tools || [];
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
@@ -117,22 +75,44 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
   }, []);
 
   useEffect(() => {
-    const sync = (event) => {
-      if (event.type === 'storage' && event.key !== STORAGE_KEY) return;
-      const next = Array.isArray(event.detail) ? event.detail.map(normalizeTool) : readTools();
-      setTools(next);
-      if (!manageMode) setDraftTools(next);
-    };
-    window.addEventListener('storage', sync);
-    window.addEventListener(CONFIG_EVENT, sync);
+    if (!currentUser) return undefined;
+    let active = true;
+    setLoading(true);
+    loadAiWebsiteSettings(currentUser)
+      .then((next) => {
+        if (!active) return;
+        setSnapshot(next);
+        setDraftTools(next.tools.map((tool) => ({ ...tool })));
+        setLoading(false);
+      })
+      .catch((error) => {
+        if (!active) return;
+        setNotice(String(error?.message || error));
+        setLoading(false);
+      });
+    const unsubscribe = subscribeAiWebsiteSettings(currentUser, (next) => {
+      if (!active) return;
+      setSnapshot(next);
+      if (!manageMode) setDraftTools(next.tools.map((tool) => ({ ...tool })));
+      setLoading(false);
+    });
     return () => {
-      window.removeEventListener('storage', sync);
-      window.removeEventListener(CONFIG_EVENT, sync);
+      active = false;
+      unsubscribe();
     };
-  }, [manageMode]);
+  }, [currentUser?.id, currentUser?.email, currentUser?.role, manageMode]);
 
-  const availableTools = useMemo(() => tools
-    .filter((tool) => toolAvailableFor(tool, currentUser))
+  useEffect(() => {
+    if (!currentUser) return;
+    try { setHideActiveName(localStorage.getItem(preferenceKey(currentUser)) === '1'); } catch { setHideActiveName(false); }
+  }, [currentUser?.id, currentUser?.email]);
+
+  useEffect(() => {
+    if (!isManager && manageMode) setManageMode(false);
+  }, [isManager, manageMode]);
+
+  const availableTools = useMemo(() => [...tools]
+    .filter((tool) => aiWebsiteVisibleForUser(tool, currentUser))
     .sort((a, b) => Number(b.pinned) - Number(a.pinned)), [currentUser, tools]);
 
   useEffect(() => {
@@ -140,9 +120,7 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
       setActiveToolId('');
       return;
     }
-    if (!availableTools.some((tool) => tool.id === activeToolId)) {
-      setActiveToolId(availableTools[0].id);
-    }
+    if (!availableTools.some((tool) => tool.id === activeToolId)) setActiveToolId(availableTools[0].id);
   }, [activeToolId, availableTools]);
 
   const activeTool = useMemo(
@@ -154,11 +132,10 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
     if (!open) return undefined;
     document.documentElement.classList.add('bes-ai-workspace-open');
     const closeEscape = (event) => {
-      if (event.key === 'Escape') {
-        if (expanded) setExpanded(false);
-        else if (manageMode) setManageMode(false);
-        else setOpen(false);
-      }
+      if (event.key !== 'Escape') return;
+      if (expanded) setExpanded(false);
+      else if (manageMode) setManageMode(false);
+      else setOpen(false);
     };
     window.addEventListener('keydown', closeEscape);
     return () => {
@@ -169,58 +146,83 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
 
   if (!host || !currentUser) return null;
 
-  const openWorkspace = () => {
+  const refreshCloud = async () => {
+    setLoading(true);
+    setNotice('');
+    try {
+      const next = await loadAiWebsiteSettings(currentUser);
+      setSnapshot(next);
+      if (!manageMode) setDraftTools(next.tools.map((tool) => ({ ...tool })));
+    } catch (error) {
+      setNotice(String(error?.message || error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openWorkspace = async () => {
     if (open) {
       setOpen(false);
       setManageMode(false);
       setExpanded(false);
       return;
     }
-    const nextTools = readTools();
-    setTools(nextTools);
-    setDraftTools(nextTools.map((tool) => ({ ...tool })));
-    const nextAvailable = nextTools
-      .filter((tool) => toolAvailableFor(tool, currentUser))
-      .sort((a, b) => Number(b.pinned) - Number(a.pinned));
-    setActiveToolId((current) => nextAvailable.some((tool) => tool.id === current)
-      ? current
-      : (nextAvailable[0]?.id || ''));
-    setManageMode(isAdmin && !nextAvailable.length);
     setOpen(true);
+    setManageMode(false);
+    await refreshCloud();
   };
 
   const beginManage = () => {
+    if (!isManager) return;
     setDraftTools(tools.map((tool) => ({ ...tool })));
     setManageMode(true);
+    setNotice('');
   };
 
-  const saveConfiguration = () => {
-    const next = persistTools(draftTools);
-    setTools(next);
-    setDraftTools(next.map((tool) => ({ ...tool })));
-    const nextAvailable = next
-      .filter((tool) => toolAvailableFor(tool, currentUser))
-      .sort((a, b) => Number(b.pinned) - Number(a.pinned));
-    setActiveToolId((current) => nextAvailable.some((tool) => tool.id === current)
-      ? current
-      : (nextAvailable[0]?.id || ''));
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 1600);
+  const saveConfiguration = async () => {
+    if (!isManager || saving) return;
+    setSaving(true);
+    setNotice('');
+    try {
+      const result = await saveAiWebsiteSettings(currentUser, draftTools);
+      setSnapshot(result.snapshot);
+      setDraftTools(result.snapshot.tools.map((tool) => ({ ...tool })));
+      setNotice(vi ? 'Đã lưu và đồng bộ cho toàn bộ giáo viên.' : 'Saved and synced for all teachers.');
+      window.setTimeout(() => setNotice(''), 2400);
+    } catch (error) {
+      setNotice(String(error?.message || error));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const addTool = () => {
-    const url = safeWebsiteUrl(newTool.url);
-    if (!newTool.name.trim() || !url) return;
+    const url = safeAiWebsiteUrl(newTool.url);
+    if (!isManager || !newTool.name.trim() || !url) return;
     setDraftTools((current) => [
       ...current,
-      normalizeTool({ ...newTool, url, id: `ai-${Date.now()}` }),
+      normalizeAiWebsiteTool({ ...newTool, url, id: `ai-${Date.now()}` }),
     ]);
     setNewTool(EMPTY_TOOL);
   };
 
   const updateDraftTool = (id, patch) => {
+    if (!isManager) return;
     setDraftTools((current) => current.map((tool) => tool.id === id ? { ...tool, ...patch } : tool));
   };
+
+  const toggleHideActiveName = () => {
+    const next = !hideActiveName;
+    setHideActiveName(next);
+    try { localStorage.setItem(preferenceKey(currentUser), next ? '1' : '0'); } catch { /* optional preference */ }
+  };
+
+  const workspaceClass = [
+    'brian-ai-workspace',
+    expanded ? 'is-expanded' : '',
+    hideActiveName ? 'is-name-hidden' : '',
+    availableTools.length <= 1 ? 'has-single-tool' : '',
+  ].filter(Boolean).join(' ');
 
   const workspace = open ? createPortal(
     <div
@@ -230,26 +232,29 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
         if (event.target === event.currentTarget && !expanded) setOpen(false);
       }}
     >
-      <section ref={rootRef} className="brian-ai-workspace" role="dialog" aria-modal="true" aria-label={vi ? 'Không gian AI' : 'AI workspace'}>
+      <section ref={rootRef} className={workspaceClass} role="dialog" aria-modal="true" aria-label={vi ? 'Không gian AI' : 'AI workspace'}>
         <header className="brian-ai-workspace__header">
           <div className="brian-ai-workspace__identity">
             <span className="brian-ai-workspace__mark" aria-hidden="true">AI</span>
             <div>
               <strong>{vi ? 'Không gian AI' : 'AI workspace'}</strong>
               <small>{manageMode
-                ? (vi ? 'Quản lý các website hiển thị trong bảng AI' : 'Manage websites shown in the AI panel')
-                : (activeTool?.name || (vi ? 'Chưa có website được cấu hình' : 'No website configured'))}</small>
+                ? (vi ? 'Admin và TTCM quản lý website dùng chung' : 'Shared websites managed by Admin and department leaders')
+                : (activeTool?.name || (loading ? (vi ? 'Đang đồng bộ…' : 'Syncing…') : (vi ? 'Chưa có website được cấu hình' : 'No website configured')))}</small>
             </div>
           </div>
 
           <div className="brian-ai-workspace__header-actions">
+            {!manageMode ? (
+              <button type="button" onClick={toggleHideActiveName} title={hideActiveName ? (vi ? 'Hiện tên AI' : 'Show AI name') : (vi ? 'Ẩn tên AI' : 'Hide AI name')} aria-label={hideActiveName ? (vi ? 'Hiện tên AI' : 'Show AI name') : (vi ? 'Ẩn tên AI' : 'Hide AI name')}>Aa</button>
+            ) : null}
             {!manageMode && activeTool ? (
               <button type="button" onClick={() => setRefreshKey((value) => value + 1)} title={vi ? 'Tải lại website' : 'Reload website'} aria-label={vi ? 'Tải lại website' : 'Reload website'}>↻</button>
             ) : null}
             {!manageMode ? (
               <button type="button" onClick={() => setExpanded((value) => !value)} title={vi ? 'Mở rộng bảng' : 'Expand panel'} aria-label={vi ? 'Mở rộng bảng' : 'Expand panel'}>{expanded ? '↙' : '⛶'}</button>
             ) : null}
-            {isAdmin ? (
+            {isManager ? (
               <button type="button" className={manageMode ? 'is-active' : ''} onClick={() => manageMode ? setManageMode(false) : beginManage()}>
                 {manageMode ? (vi ? 'Xem website' : 'View websites') : (vi ? 'Quản lý' : 'Manage')}
               </button>
@@ -270,33 +275,36 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
                     setActiveToolId(tool.id);
                     setRefreshKey((value) => value + 1);
                   }}
+                  title={tool.name}
                 >
                   <AiToolGlyph tool={tool} />
                   <span><b>{tool.name}</b>{tool.description ? <small>{tool.description}</small> : null}</span>
                   {tool.pinned ? <em aria-label={vi ? 'Đã ghim' : 'Pinned'}>★</em> : null}
                 </button>
               ))}
-              {!availableTools.length ? (
+              {!loading && !availableTools.length ? (
                 <div className="brian-ai-workspace__switcher-empty">
                   <span>AI</span>
                   <b>{vi ? 'Chưa có website' : 'No websites'}</b>
-                  <small>{isAdmin
+                  <small>{isManager
                     ? (vi ? 'Nhấn “Quản lý” để nhập website AI đầu tiên.' : 'Choose Manage to add the first AI website.')
-                    : (vi ? 'Quản trị viên chưa cấu hình website AI.' : 'The administrator has not configured an AI website.')}</small>
+                    : (vi ? 'Admin hoặc TTCM chưa cấu hình website AI dùng chung.' : 'No shared AI website has been configured.')}</small>
                 </div>
               ) : null}
             </nav>
 
             <main className="brian-ai-workspace__viewer">
-              {activeTool ? (
+              {loading ? (
+                <div className="brian-ai-workspace__loading"><span /><strong>{vi ? 'Đang đồng bộ website AI…' : 'Syncing AI websites…'}</strong></div>
+              ) : activeTool ? (
                 <>
                   <div className="brian-ai-workspace__viewer-bar">
-                    <div><AiToolGlyph tool={activeTool} /><span><b>{activeTool.name}</b><small>{safeWebsiteUrl(activeTool.url)}</small></span></div>
-                    <span>{vi ? 'Website chạy trực tiếp trong English Hub' : 'Website running inside English Hub'}</span>
+                    <div><AiToolGlyph tool={activeTool} /><span className="brian-ai-workspace__active-meta"><b>{activeTool.name}</b><small>{safeAiWebsiteUrl(activeTool.url)}</small></span></div>
+                    <span>{vi ? 'Đã đồng bộ dùng chung' : 'Shared configuration'}</span>
                   </div>
                   <iframe
                     key={`${activeTool.id}-${refreshKey}`}
-                    src={safeWebsiteUrl(activeTool.url)}
+                    src={safeAiWebsiteUrl(activeTool.url)}
                     title={activeTool.name}
                     allow="clipboard-read; clipboard-write; microphone; camera; fullscreen"
                     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts allow-downloads"
@@ -305,13 +313,14 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
               ) : (
                 <div className="brian-ai-workspace__blank">
                   <span aria-hidden="true">✦</span>
-                  <strong>{vi ? 'Sẵn sàng cho website AI của thầy' : 'Ready for your AI websites'}</strong>
-                  <p>{isAdmin
-                    ? (vi ? 'Mở Quản lý, nhập tên và URL. Sau khi lưu, nút AI sẽ mở website trực tiếp tại đây.' : 'Open Manage, enter a name and URL, then save.')
-                    : (vi ? 'Chưa có website AI nào được quản trị viên thiết lập.' : 'No AI website has been configured yet.')}</p>
-                  {isAdmin ? <button type="button" onClick={beginManage}>{vi ? 'Nhập website AI' : 'Add AI website'}</button> : null}
+                  <strong>{vi ? 'Chưa có website AI dùng chung' : 'No shared AI website yet'}</strong>
+                  <p>{isManager
+                    ? (vi ? 'Mở Quản lý, nhập tên và URL rồi lưu. Website sẽ xuất hiện cho mọi giáo viên được cấp quyền.' : 'Add a name and URL, then save for all teachers.')
+                    : (vi ? 'Vui lòng liên hệ Admin hoặc TTCM để cấu hình website AI.' : 'Please ask an Admin or department leader to configure one.')}</p>
+                  {isManager ? <button type="button" onClick={beginManage}>{vi ? 'Nhập website AI' : 'Add AI website'}</button> : null}
                 </div>
               )}
+              {notice && !manageMode ? <div className="brian-ai-workspace__notice">{notice}</div> : null}
             </main>
           </>
         ) : (
@@ -319,12 +328,12 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
             <section className="brian-ai-manager__intro">
               <div>
                 <span aria-hidden="true">＋</span>
-                <div><strong>{vi ? 'Thêm website AI' : 'Add AI website'}</strong><small>{vi ? 'Website sẽ được mở trực tiếp trong bảng AI, không mở tab mới.' : 'The website opens directly inside the AI panel.'}</small></div>
+                <div><strong>{vi ? 'Thêm website AI dùng chung' : 'Add shared AI website'}</strong><small>{vi ? 'Chỉ Admin và TTCM được thay đổi. Giáo viên chỉ sử dụng danh sách đã lưu.' : 'Only Admin and department leaders can edit. Teachers can only use saved websites.'}</small></div>
               </div>
               <div className="brian-ai-manager__new-form">
                 <input value={newTool.name} onChange={(event) => setNewTool((current) => ({ ...current, name: event.target.value }))} placeholder={vi ? 'Tên website' : 'Website name'} />
                 <input value={newTool.url} onChange={(event) => setNewTool((current) => ({ ...current, url: event.target.value }))} placeholder="https://…" />
-                <input value={newTool.icon} onChange={(event) => setNewTool((current) => ({ ...current, icon: event.target.value }))} placeholder={vi ? 'Biểu tượng, tối đa 3 ký tự' : 'Icon, up to 3 characters'} maxLength={3} />
+                <input value={newTool.icon} onChange={(event) => setNewTool((current) => ({ ...current, icon: event.target.value }))} placeholder={vi ? 'Biểu tượng' : 'Icon'} maxLength={3} />
                 <input value={newTool.description} onChange={(event) => setNewTool((current) => ({ ...current, description: event.target.value }))} placeholder={vi ? 'Mô tả ngắn' : 'Short description'} />
                 <select value={newTool.audience} onChange={(event) => setNewTool((current) => ({ ...current, audience: event.target.value }))}>
                   <option value="all">{vi ? 'Mọi tài khoản' : 'Everyone'}</option>
@@ -332,7 +341,7 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
                   <option value="leader">TTCM</option>
                   <option value="admin">Admin</option>
                 </select>
-                <button type="button" onClick={addTool} disabled={!newTool.name.trim() || !safeWebsiteUrl(newTool.url)}>{vi ? 'Thêm website' : 'Add website'}</button>
+                <button type="button" onClick={addTool} disabled={!newTool.name.trim() || !safeAiWebsiteUrl(newTool.url)}>{vi ? 'Thêm' : 'Add'}</button>
               </div>
             </section>
 
@@ -343,12 +352,11 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
                     <AiToolGlyph tool={tool} />
                     <div><strong>{tool.name || (vi ? 'Chưa đặt tên' : 'Untitled')}</strong><small>{tool.url || 'https://…'}</small></div>
                     <div className="brian-ai-manager__order">
-                      <button type="button" onClick={() => setDraftTools((current) => moveItem(current, index, -1))} disabled={index === 0} aria-label={vi ? 'Đưa lên' : 'Move up'}>↑</button>
-                      <button type="button" onClick={() => setDraftTools((current) => moveItem(current, index, 1))} disabled={index === draftTools.length - 1} aria-label={vi ? 'Đưa xuống' : 'Move down'}>↓</button>
+                      <button type="button" onClick={() => setDraftTools((current) => moveItem(current, index, -1))} disabled={index === 0}>↑</button>
+                      <button type="button" onClick={() => setDraftTools((current) => moveItem(current, index, 1))} disabled={index === draftTools.length - 1}>↓</button>
                       <button type="button" className="is-delete" onClick={() => setDraftTools((current) => current.filter((item) => item.id !== tool.id))}>{vi ? 'Xóa' : 'Delete'}</button>
                     </div>
                   </div>
-
                   <div className="brian-ai-manager__fields">
                     <label><span>{vi ? 'Tên' : 'Name'}</span><input value={tool.name} onChange={(event) => updateDraftTool(tool.id, { name: event.target.value })} /></label>
                     <label><span>URL</span><input value={tool.url} onChange={(event) => updateDraftTool(tool.id, { url: event.target.value })} /></label>
@@ -356,22 +364,18 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
                     <label><span>{vi ? 'Đối tượng' : 'Audience'}</span><select value={tool.audience} onChange={(event) => updateDraftTool(tool.id, { audience: event.target.value })}><option value="all">{vi ? 'Mọi tài khoản' : 'Everyone'}</option><option value="teacher">{vi ? 'Giáo viên' : 'Teachers'}</option><option value="leader">TTCM</option><option value="admin">Admin</option></select></label>
                     <label className="is-wide"><span>{vi ? 'Mô tả' : 'Description'}</span><input value={tool.description} onChange={(event) => updateDraftTool(tool.id, { description: event.target.value })} /></label>
                   </div>
-
                   <div className="brian-ai-manager__toggles">
                     <label><input type="checkbox" checked={tool.enabled} onChange={(event) => updateDraftTool(tool.id, { enabled: event.target.checked })} /><span>{vi ? 'Hiển thị' : 'Visible'}</span></label>
                     <label><input type="checkbox" checked={tool.pinned} onChange={(event) => updateDraftTool(tool.id, { pinned: event.target.checked })} /><span>{vi ? 'Ưu tiên mở trước' : 'Open first'}</span></label>
                   </div>
                 </article>
               ))}
-
-              {!draftTools.length ? (
-                <div className="brian-ai-manager__empty"><span>AI</span><strong>{vi ? 'Chưa có website nào' : 'No websites yet'}</strong><small>{vi ? 'Nhập thông tin ở phía trên để bắt đầu.' : 'Use the form above to begin.'}</small></div>
-              ) : null}
+              {!draftTools.length ? <div className="brian-ai-manager__empty"><span>AI</span><strong>{vi ? 'Chưa có website nào' : 'No websites yet'}</strong><small>{vi ? 'Nhập thông tin ở phía trên để bắt đầu.' : 'Use the form above to begin.'}</small></div> : null}
             </div>
 
             <footer className="brian-ai-manager__footer">
-              <span>{vi ? 'Các website sau khi lưu sẽ xuất hiện ngay trong nút AI.' : 'Saved websites appear immediately in the AI button.'}</span>
-              <button type="button" onClick={saveConfiguration}>{saved ? (vi ? 'Đã lưu ✓' : 'Saved ✓') : (vi ? 'Lưu cấu hình' : 'Save configuration')}</button>
+              <span>{notice || (vi ? 'Sau khi lưu, giáo viên sẽ nhận danh sách này tự động.' : 'Teachers receive this list automatically after saving.')}</span>
+              <button type="button" onClick={saveConfiguration} disabled={saving}>{saving ? (vi ? 'Đang đồng bộ…' : 'Syncing…') : (vi ? 'Lưu và đồng bộ' : 'Save and sync')}</button>
             </footer>
           </div>
         )}
