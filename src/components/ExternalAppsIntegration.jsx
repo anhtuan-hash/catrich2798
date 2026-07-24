@@ -5,6 +5,7 @@ import { loadExternalWebApps, subscribeExternalWebApps } from '../utils/external
 import ExternalWebAppManager from './ExternalWebAppManager.jsx';
 import ExternalWebAppViewer from './ExternalWebAppViewer.jsx';
 import './ExternalWebApps.css';
+import './ExternalAppsIntegration.css';
 
 const GROUP_LABELS = { plan: 'Soạn bài', create: 'Tạo học liệu', assess: 'Kiểm tra', manage: 'Quản lý' };
 const TONES = ['#1a73e8', '#188038', '#e37400', '#9334e6', '#12b5cb', '#d93025'];
