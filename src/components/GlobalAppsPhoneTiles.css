@@ -1,0 +1,320 @@
+/* Apps launcher — square rounded phone-style tiles.
+   Loaded after GlobalAppsHorizontalLauncher.css to preserve one horizontal gallery
+   while giving text a dedicated full-width area so it cannot be covered. */
+
+body .metro-clean-system[data-route='apps'] {
+  --phone-tile-ink: #17191d;
+  --phone-tile-body: #353b45;
+  --phone-tile-muted: #505966;
+  --phone-tile-line: #cbd2dc;
+  --phone-tile-blue: #0b57d0;
+}
+
+/* Keep the gallery horizontal, but size every item like a large phone app tile. */
+body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-apps-collage-grid {
+  align-items: stretch !important;
+  gap: 18px !important;
+  padding: 12px 6px 26px !important;
+  scroll-snap-type: x mandatory !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-card {
+  flex: 0 0 clamp(244px, 20vw, 274px) !important;
+  width: clamp(244px, 20vw, 274px) !important;
+  min-width: clamp(244px, 20vw, 274px) !important;
+  max-width: 274px !important;
+  min-height: 0 !important;
+  height: auto !important;
+  aspect-ratio: 1 / 1 !important;
+  scroll-snap-align: start !important;
+  border: 1px solid color-mix(in srgb,var(--app-accent,#1a73e8) 28%,var(--phone-tile-line)) !important;
+  border-radius: 32px !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 88% 10%, color-mix(in srgb,var(--app-accent,#1a73e8) 12%,transparent), transparent 32%),
+    linear-gradient(150deg,#fff 0%,color-mix(in srgb,var(--app-soft,#e8f0fe) 58%,#fff) 100%) !important;
+  box-shadow:
+    0 5px 16px rgba(60,64,67,.10),
+    0 20px 38px color-mix(in srgb,var(--app-accent,#1a73e8) 10%,transparent) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card::before {
+  inset: auto 22px 0 22px !important;
+  width: auto !important;
+  height: 5px !important;
+  border-radius: 999px 999px 0 0 !important;
+  background: var(--app-accent,#1a73e8) !important;
+  opacity: .9 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover,
+body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within {
+  transform: translateY(-7px) scale(1.018) !important;
+  border-color: color-mix(in srgb,var(--app-accent,#1a73e8) 58%,#9ba5b2) !important;
+  box-shadow:
+    0 14px 28px rgba(60,64,67,.17),
+    0 28px 52px color-mix(in srgb,var(--app-accent,#1a73e8) 18%,transparent) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-launch,
+body .metro-clean-system[data-route='apps'] .flat-app-window-body,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body {
+  width: 100% !important;
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+/* Icon and action occupy the top row; all text gets the complete row below. */
+body .metro-clean-system[data-route='apps'] .flat-app-window-body,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body {
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) auto !important;
+  grid-template-rows: auto minmax(0,1fr) !important;
+  grid-template-areas:
+    'icon action'
+    'copy copy' !important;
+  align-items: start !important;
+  align-content: stretch !important;
+  gap: 14px 12px !important;
+  padding: 20px 20px 22px !important;
+  overflow: visible !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-art,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-art {
+  grid-area: icon !important;
+  width: 76px !important;
+  height: 76px !important;
+  min-width: 76px !important;
+  min-height: 76px !important;
+  align-self: start !important;
+  justify-self: start !important;
+  margin: 0 !important;
+  padding: 17px !important;
+  border-radius: 24px !important;
+  background: linear-gradient(145deg,color-mix(in srgb,var(--app-accent,#1a73e8) 84%,#fff),var(--app-accent,#1a73e8)) !important;
+  color: #fff !important;
+  box-shadow:
+    0 11px 24px color-mix(in srgb,var(--app-accent,#1a73e8) 32%,transparent),
+    inset 0 1px 0 rgba(255,255,255,.38) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-art svg,
+body .metro-clean-system[data-route='apps'] .flat-app-window-art img,
+body .metro-clean-system[data-route='apps'] .flat-app-window-art > * {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 42px !important;
+  max-height: 42px !important;
+  color: #fff !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-cta {
+  grid-area: action !important;
+  width: 42px !important;
+  height: 42px !important;
+  align-self: start !important;
+  justify-self: end !important;
+  margin: 2px 0 0 !important;
+  border: 1px solid color-mix(in srgb,var(--app-accent,#1a73e8) 30%,#cbd2dc) !important;
+  border-radius: 15px !important;
+  background: rgba(255,255,255,.90) !important;
+  box-shadow: 0 4px 10px rgba(60,64,67,.12) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-cta::after {
+  color: color-mix(in srgb,var(--app-accent,#1a73e8) 84%,#202124) !important;
+  font-size: 1.26rem !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy {
+  grid-area: copy !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  align-self: stretch !important;
+  gap: 7px !important;
+  overflow: visible !important;
+  text-align: left !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy small {
+  display: inline-flex !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  min-height: 25px !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 3px 9px !important;
+  overflow: hidden !important;
+  border: 1px solid color-mix(in srgb,var(--app-accent,#1a73e8) 30%,#cbd2dc) !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.82) !important;
+  color: color-mix(in srgb,var(--app-accent,#1a73e8) 72%,#17191d) !important;
+  font-size: .68rem !important;
+  font-weight: 900 !important;
+  line-height: 1.15 !important;
+  letter-spacing: .045em !important;
+  text-overflow: ellipsis !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong {
+  display: -webkit-box !important;
+  width: 100% !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  color: var(--phone-tile-ink) !important;
+  font-size: 1.08rem !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+  letter-spacing: -.018em !important;
+  text-overflow: ellipsis !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy em {
+  display: -webkit-box !important;
+  width: 100% !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  color: var(--phone-tile-body) !important;
+  font-size: .81rem !important;
+  font-weight: 570 !important;
+  font-style: normal !important;
+  line-height: 1.43 !important;
+  text-overflow: ellipsis !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 3 !important;
+}
+
+/* Category chips: remove pale text and keep active state unmistakable. */
+body .metro-clean-system[data-route='apps'] .flat-apps-group-rail::before {
+  color: #17191d !important;
+  font-weight: 950 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip,
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip b {
+  color: #17191d !important;
+  font-weight: 800 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip small {
+  background: #e3e7ed !important;
+  color: #303640 !important;
+  font-weight: 850 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active,
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active b,
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active small {
+  color: #063b91 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .launcher-search-box input {
+  color: #17191d !important;
+  font-weight: 650 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .launcher-search-box input::placeholder {
+  color: #555e6a !important;
+  opacity: 1 !important;
+}
+
+/* Editing mode may grow vertically to accommodate controls without shrinking text. */
+body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-launcher-editing {
+  aspect-ratio: auto !important;
+  min-height: 330px !important;
+  overflow: visible !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-launcher-editing .flat-app-window-launch,
+body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-launcher-editing .flat-app-window-body {
+  min-height: 274px !important;
+}
+
+@media (max-width: 720px) {
+  body .metro-clean-system[data-route='apps'] .flat-app-window-card,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-card {
+    flex-basis: min(78vw,238px) !important;
+    width: min(78vw,238px) !important;
+    min-width: min(78vw,238px) !important;
+    max-width: 238px !important;
+    border-radius: 28px !important;
+  }
+
+  body .metro-clean-system[data-route='apps'] .flat-app-window-body,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body {
+    gap: 12px 10px !important;
+    padding: 17px 17px 20px !important;
+  }
+
+  body .metro-clean-system[data-route='apps'] .flat-app-window-art,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-art {
+    width: 66px !important;
+    height: 66px !important;
+    min-width: 66px !important;
+    min-height: 66px !important;
+    padding: 15px !important;
+    border-radius: 21px !important;
+  }
+
+  body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong {
+    font-size: 1rem !important;
+  }
+
+  body .metro-clean-system[data-route='apps'] .flat-app-window-copy em {
+    font-size: .78rem !important;
+    -webkit-line-clamp: 3 !important;
+  }
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'],
+body.theme-dark .metro-clean-system[data-route='apps'] {
+  --phone-tile-ink: #f8f9fa;
+  --phone-tile-body: #d5d9e0;
+  --phone-tile-muted: #bcc3ce;
+  --phone-tile-line: #4a505a;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-card,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-card {
+  background:
+    radial-gradient(circle at 88% 10%,color-mix(in srgb,var(--app-accent,#8ab4f8) 18%,transparent),transparent 32%),
+    linear-gradient(150deg,#2b2e34 0%,color-mix(in srgb,var(--app-soft,#28364b) 18%,#22252b) 100%) !important;
+  border-color: color-mix(in srgb,var(--app-accent,#8ab4f8) 34%,#4a505a) !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-copy small,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-copy small,
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-cta,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-cta {
+  background: rgba(36,39,45,.90) !important;
+  border-color: color-mix(in srgb,var(--app-accent,#8ab4f8) 38%,#535a65) !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-rail::before,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-rail::before,
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-chip,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip,
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-chip b,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip b {
+  color: #f1f3f4 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body .metro-clean-system[data-route='apps'] .flat-app-window-card {
+    transition: none !important;
+  }
+}
