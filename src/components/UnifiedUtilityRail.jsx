@@ -1,34 +1,33 @@
-import React from 'react';
-import QuickDictionaryBubble from './QuickDictionaryBubble.jsx';
-import './QuickDictionaryCompact.css';
-import './QuickDictionarySearchHotfix.css';
-import './QuickDictionaryFinalPolish.css';
-
-const FLOATING_UTILITIES_TEMPORARILY_DISABLED = true;
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function UnifiedUtilityRail({ currentUser, language = 'vi', currentRoute = 'home' }) {
-  if (!currentUser || FLOATING_UTILITIES_TEMPORARILY_DISABLED) return null;
+  const [navigationActions, setNavigationActions] = useState(null);
+
+  useEffect(() => {
+    if (!currentUser || currentRoute === 'dashboard' || typeof document === 'undefined') {
+      setNavigationActions(null);
+      return;
+    }
+
+    setNavigationActions(document.querySelector('.brian-nav__actions'));
+  }, [currentUser, currentRoute]);
+
+  if (!currentUser || currentRoute === 'dashboard' || !navigationActions) return null;
 
   const musicLabel = language === 'vi' ? 'Mở nhạc nền' : 'Open background music';
 
-  return (
-    <>
-      <QuickDictionaryBubble language={language} />
-      <aside
-        className="bes-utility-rail bes-utility-rail--music-only"
-        aria-label={language === 'vi' ? 'Công cụ âm nhạc' : 'Music utility'}
-        data-route={currentRoute}
-      >
-        <button
-          type="button"
-          className="is-music"
-          onClick={() => window.dispatchEvent(new CustomEvent('bes-global-music-command', { detail: { action: 'expand' } }))}
-          title={musicLabel}
-          aria-label={musicLabel}
-        >
-          <span aria-hidden="true">♫</span>
-        </button>
-      </aside>
-    </>
+  return createPortal(
+    <button
+      type="button"
+      className="brian-nav__icon brian-nav__music"
+      style={{ order: -1 }}
+      onClick={() => window.dispatchEvent(new CustomEvent('bes-global-music-command', { detail: { action: 'expand' } }))}
+      title={musicLabel}
+      aria-label={musicLabel}
+    >
+      <span aria-hidden="true">♫</span>
+    </button>,
+    navigationActions,
   );
 }
