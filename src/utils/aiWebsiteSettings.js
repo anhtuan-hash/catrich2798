@@ -4,6 +4,7 @@ const LOCAL_KEY = 'bes-ai-website-launcher-v1';
 const EVENT_NAME = 'bes-ai-websites-updated';
 const SETTINGS_TABLE = 'ai_website_settings';
 const WORKSPACE_KEY = 'english-hub';
+let realtimeSubscriptionSerial = 0;
 
 export function safeAiWebsiteUrl(value) {
   try {
@@ -151,21 +152,49 @@ export async function saveAiWebsiteSettings(user, tools) {
   }
 }
 
+function realtimeTopicFor(user) {
+  realtimeSubscriptionSerial += 1;
+  const identity = String(user?.id || user?.email || 'session').replace(/[^a-z0-9_-]/gi, '-').slice(0, 48);
+  return `bes-ai-websites-${identity}-${Date.now().toString(36)}-${realtimeSubscriptionSerial.toString(36)}`;
+}
+
 export function subscribeAiWebsiteSettings(user, listener) {
   if (typeof window === 'undefined') return () => {};
-  const localHandler = (event) => listener(normalizeSnapshot(event?.detail || readAiWebsiteSettingsLocal()));
-  const storageHandler = (event) => { if (event.key === LOCAL_KEY) listener(readAiWebsiteSettingsLocal()); };
+  const safeListener = typeof listener === 'function' ? listener : () => {};
+  const localHandler = (event) => safeListener(normalizeSnapshot(event?.detail || readAiWebsiteSettingsLocal()));
+  const storageHandler = (event) => { if (event.key === LOCAL_KEY) safeListener(readAiWebsiteSettingsLocal()); };
   window.addEventListener(EVENT_NAME, localHandler);
   window.addEventListener('storage', storageHandler);
+
   let channel = null;
   if (user && isSupabaseConfigured && supabase) {
-    channel = supabase.channel(`bes-ai-websites-${String(user.id || 'session')}`).on('postgres_changes', { event: '*', schema: 'public', table: SETTINGS_TABLE, filter: `workspace_key=eq.${WORKSPACE_KEY}` }, () => {
-      loadAiWebsiteSettings(user).then(listener).catch((error) => console.warn('[AI websites] realtime refresh failed', error));
-    }).subscribe();
+    try {
+      channel = supabase
+        .channel(realtimeTopicFor(user))
+        .on('postgres_changes', { event: '*', schema: 'public', table: SETTINGS_TABLE, filter: `workspace_key=eq.${WORKSPACE_KEY}` }, () => {
+          loadAiWebsiteSettings(user).then(safeListener).catch((error) => console.warn('[AI websites] realtime refresh failed', error));
+        });
+      channel.subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn(`[AI websites] realtime unavailable (${status}); local and manual refresh remain active.`);
+        }
+      });
+    } catch (error) {
+      channel = null;
+      console.warn('[AI websites] realtime subscription skipped; local and manual refresh remain active', error);
+    }
   }
+
   return () => {
     window.removeEventListener(EVENT_NAME, localHandler);
     window.removeEventListener('storage', storageHandler);
-    if (channel && supabase) supabase.removeChannel(channel).catch(() => {});
+    if (channel && supabase) {
+      try {
+        const removal = supabase.removeChannel(channel);
+        removal?.catch?.((error) => console.warn('[AI websites] realtime cleanup failed', error));
+      } catch (error) {
+        console.warn('[AI websites] realtime cleanup skipped', error);
+      }
+    }
   };
 }
