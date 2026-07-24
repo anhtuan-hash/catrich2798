@@ -13,8 +13,8 @@ export const ECOSYSTEM_ASSET_TYPES = [
 ];
 
 export const ECOSYSTEM_TARGETS = [
-  { id: 'content-factory', route: '#/content-factory', label: 'Content Factory', icon: 'CF' },
-  { id: 'lesson-pack', route: '#/lesson-pack', label: 'Lesson Pack', icon: 'LP' },  { id: 'reading-studio', route: '#/tool/reading-studio', label: 'Reading Studio', icon: 'RD' },  { id: 'word2graph', route: '#/tool/word2graph', label: 'WordGraph', icon: 'WG' },
+
+  { id: 'reading-studio', route: '#/tool/reading-studio', label: 'Reading Studio', icon: 'RD' },  { id: 'word2graph', route: '#/tool/word2graph', label: 'WordGraph', icon: 'WG' },
   { id: 'textlab-activities', route: '#/tool/textlab-activities', label: 'TextLab', icon: 'TL' },
   { id: 'lesson-plan-ai', route: '#/tool/lesson-plan-ai', label: 'Lesson Architect', icon: 'LA' },
   { id: 'assessment-core', route: '#/assessment-core', label: 'Assessment Core', icon: 'AC' },
@@ -37,15 +37,15 @@ export const ECOSYSTEM_RECIPES = [
     titleVi: 'Chu trình học từ vựng',
     description: 'Word graph, flashcards, interactive practice, quiz and spaced homework.',
     descriptionVi: 'Sơ đồ từ, flashcard, hoạt động tương tác, quiz và bài ôn giãn cách.',
-    outputs: ['word2graph', 'content-factory', 'textlab-activities', 'assessment-core', 'student-practice'],
+    outputs: ['word2graph', 'textlab-activities', 'assessment-core', 'student-practice'],
   },
   {
-    id: 'complete-lesson-pack',
-    title: 'Complete lesson pack',
-    titleVi: 'Gói bài dạy hoàn chỉnh',
-    description: 'Lesson plan, worksheet, classroom activity, assessment and connected Lesson Pack.',
-    descriptionVi: 'Giáo án, worksheet, hoạt động lớp học, đánh giá và Lesson Pack liên thông.',
-    outputs: ['lesson-plan-ai', 'textlab-activities', 'assessment-core', 'lesson-pack'],
+    id: 'complete-teaching-sequence',
+    title: 'Complete teaching sequence',
+    titleVi: 'Tiến trình dạy học hoàn chỉnh',
+    description: 'Lesson plan, interactive activities, assessment and adaptive practice.',
+    descriptionVi: 'Giáo án, hoạt động tương tác, đánh giá và luyện tập thích ứng.',
+    outputs: ['lesson-plan-ai', 'textlab-activities', 'assessment-core', 'student-practice'],
   },
   {
     id: 'news-teaching',
@@ -113,8 +113,6 @@ export function buildRecipePayload(asset, target, recipe) {
     'assessment-core': 'Create a balanced question set with CEFR, skill, topic, difficulty, answer and explanation metadata.',
     'exam-studio': 'Create a test-ready question set with grouped passages/audio references and answer key.',
     'student-practice': 'Create an adaptive practice set with easier scaffolding, standard items and mastery review.',
-    'content-factory': 'Create reusable teaching outputs from this source and preserve clear metadata.',
-    'lesson-pack': 'Add this source and its planned outputs to a complete connected Lesson Pack.',
   };
   return {
     target: target.id,
@@ -136,17 +134,4 @@ export function buildRecipePayload(asset, target, recipe) {
 export function dispatchRecipe(user, asset, recipe, selectedTargetIds = []) {
   const targets = ECOSYSTEM_TARGETS.filter((target) => selectedTargetIds.includes(target.id));
   return targets.map((target) => ({ target, transfer: createTransfer(user, buildRecipePayload(asset, target, recipe)) }));
-}
-
-export function createLessonPackTransfer(user, assets = [], title = 'Connected content kit') {
-  const content = assets.map((asset, index) => `${index + 1}. ${asset.title}\n${asset.content_text || ''}`).join('\n\n');
-  return createTransfer(user, {
-    target: 'lesson-pack',
-    type: 'content-kit',
-    title,
-    sourceApp: 'content-ecosystem',
-    sourceTitle: 'Content Ecosystem',
-    content,
-    metadata: { assetIds: assets.map((asset) => asset.id), ecosystemVersion: '11.2.0' },
-  });
 }

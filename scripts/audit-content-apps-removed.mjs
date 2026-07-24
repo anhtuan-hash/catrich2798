@@ -1,20 +1,4 @@
-from pathlib import Path
-
-path = Path('scripts/remove-retired-content-apps.py')
-text = path.read_text(encoding='utf-8')
-start_marker = '# 7. Permanent guard against either app returning.\n'
-end_marker = '# 8. Delete dedicated modules and style layer.\n'
-start = text.find(start_marker)
-end = text.find(end_marker)
-if start < 0 or end < 0 or end <= start:
-    raise SystemExit('Could not locate audit block in removal script')
-
-replacement = r'''# 7. Add a dedicated permanent guard for these two removals.
-legacy_audit = read("scripts/audit-removed-apps-v11.6.7.mjs")
-legacy_audit = legacy_audit.replace("'src/pages/ContentFactory.jsx', ", "")
-write("scripts/audit-removed-apps-v11.6.7.mjs", legacy_audit)
-
-content_audit = r"""import fs from 'node:fs';
+import fs from 'node:fs';
 
 const removedPaths = [
   'src/pages/ContentFactory.jsx',
@@ -75,15 +59,3 @@ if (failures) {
   process.exit(1);
 }
 console.log('Content app removal audit passed.');
-"""
-write("scripts/audit-content-apps-removed.mjs", content_audit)
-
-import json
-package = json.loads(read("package.json"))
-package.setdefault("scripts", {})["audit:removed-content-apps"] = "node scripts/audit-content-apps-removed.mjs"
-write("package.json", json.dumps(package, ensure_ascii=False, indent=2) + "\n")
-
-'''
-
-text = text[:start] + replacement + text[end:]
-path.write_text(text, encoding='utf-8')

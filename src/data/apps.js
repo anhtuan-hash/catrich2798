@@ -31,12 +31,7 @@ export const APPS = [
     title: 'Smart Knowledge Library', titleVi: 'Kho học liệu thông minh',
     desc: 'Search, classify, favorite and organize approved resources with lifecycle metadata.',
     descVi: 'Tìm kiếm, phân loại, yêu thích và tổ chức học liệu theo metadata và vòng đời.',
-    status: 'Metadata · Collections', statusVi: 'Metadata · Bộ sưu tập', api: true, featured: true},  {
-    slug: 'content-factory', route: 'content-factory', icon: 'CF', tone: 'orange', group: 'Teaching Design', groupVi: 'Tạo học liệu',
-    title: 'Teaching Content Factory', titleVi: 'Xưởng tạo học liệu',
-    desc: 'Turn one source into worksheets, quizzes, cloze tests, flashcards and lesson sequences.',
-    descVi: 'Biến một nguồn thành worksheet, quiz, cloze test, flashcard và chuỗi hoạt động.',
-    status: '8 output types · Export', statusVi: '8 loại sản phẩm · Xuất file', api: true, featured: true},
+    status: 'Metadata · Collections', statusVi: 'Metadata · Bộ sưu tập', api: true, featured: true},
   {
     slug: 'content-ecosystem', route: 'content-ecosystem', icon: 'CE', tone: 'blue', group: 'Connected Teaching', groupVi: 'Hệ sinh thái nội dung',
     title: 'Teaching Content Ecosystem', titleVi: 'Hệ sinh thái nội dung dạy học',
@@ -44,11 +39,6 @@ export const APPS = [
     descVi: 'Tổ chức tài sản tái sử dụng, biên tập canvas theo khối, chạy dây chuyền nhiều ứng dụng và đóng gói bộ nội dung hoàn chỉnh.',
     status: 'Assets · Canvas · Recipes · Kits', statusVi: 'Tài sản · Canvas · Dây chuyền · Bộ nội dung', api: true, featured: true},
   {
-    slug: 'lesson-pack', route: 'lesson-pack', icon: 'LP', tone: 'blue', group: 'Connected Teaching', groupVi: 'Dạy học liên thông',
-    title: 'Lesson Pack', titleVi: 'Gói bài dạy liên thông',
-    desc: 'Combine lesson plans, worksheets, reading, speaking, assessment and homework into one live teaching sequence.',
-    descVi: 'Kết hợp giáo án, worksheet, đọc, nói, đánh giá và bài tập về nhà thành một tiến trình dạy học trực tiếp.',
-    status: 'Sequence · Live mode · Export', statusVi: 'Tiến trình · Dạy trực tiếp · Xuất file', api: true, featured: true},  {
     slug: 'assessment-core', route: 'assessment-core', icon: 'AC', tone: 'orange', group: 'Assessment', groupVi: 'Đánh giá',
     title: 'Assessment Core', titleVi: 'Ngân hàng câu hỏi & đề thi',
     desc: 'Manage question banks, import items, build blueprints and generate multiple test codes.',

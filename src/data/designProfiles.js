@@ -15,13 +15,6 @@ export const APP_DESIGN_PROFILES = {
     icon: 'exam',
     style: 'Interactive THPT practice library',
     styleVi: 'Kho luyện thi THPT tương tác'},
-  'lesson-pack': {
-    accent: '#315FC4',
-    soft: '#EAF0FF',
-    ink: '#10264A',
-    icon: 'lesson-pack',
-    style: 'Connected lesson sequence',
-    styleVi: 'Tiến trình bài dạy liên thông'},
   'textlab-activities': {
     accent: '#2F73D9',
     soft: '#DDEBFF',
