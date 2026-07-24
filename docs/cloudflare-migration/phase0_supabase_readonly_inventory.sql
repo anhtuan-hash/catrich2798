@@ -46,7 +46,7 @@ select
   b.allowed_mime_types
 from storage.buckets b
 left join storage.objects o on o.bucket_id = b.id
- group by b.id, b.name, b.public, b.file_size_limit, b.allowed_mime_types
+group by b.id, b.name, b.public, b.file_size_limit, b.allowed_mime_types
 order by stored_bytes desc, b.name;
 
 -- 3. Tables currently included in Supabase Realtime publications
@@ -108,24 +108,11 @@ select
 from pg_extension
 order by extname;
 
--- 8. Scheduled cron jobs, when pg_cron is installed and accessible
--- This block safely returns an empty result when the cron schema is unavailable.
-do $$
-begin
-  if to_regclass('cron.job') is null then
-    raise notice 'pg_cron/cron.job is not installed or is not visible.';
-  end if;
-end $$;
-
-select
-  jobid,
-  schedule,
-  command,
-  nodename,
-  database,
-  username,
-  active,
-  jobname
-from cron.job
-where to_regclass('cron.job') is not null
-order by jobid;
+-- 8. Check whether pg_cron's job table is installed and visible.
+-- Job details will be collected separately only when this returns true.
+select exists (
+  select 1
+  from information_schema.tables
+  where table_schema = 'cron'
+    and table_name = 'job'
+) as cron_job_table_visible;
