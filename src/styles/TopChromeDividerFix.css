@@ -1,15 +1,20 @@
-/* Remove the legacy dark divider that can reappear below the shared navigation
-   on a few routes. Keep only the subtle Material outline of the shared chrome. */
+/* Permanently remove the legacy dark divider below the shared navigation.
+   The top chrome must flow directly into the current page background. */
 
 html body .app-shell > .bes-top-chrome,
 html body .app-shell .bes-top-chrome {
-  border-bottom: 1px solid rgba(60, 64, 67, 0.12) !important;
+  border: 0 !important;
+  border-bottom: 0 !important;
   outline: 0 !important;
+  box-shadow: none !important;
 }
 
 html body .app-shell > .bes-top-chrome > .brian-nav,
 html body .app-shell .bes-top-chrome > .brian-nav,
-html body .app-shell .brian-nav {
+html body .app-shell .brian-nav,
+html body .app-shell .status-menu-bar {
+  border: 0 !important;
+  border-top: 0 !important;
   border-bottom: 0 !important;
   outline: 0 !important;
   box-shadow: none !important;
@@ -17,28 +22,69 @@ html body .app-shell .brian-nav {
 
 html body .app-shell > .bes-top-chrome::before,
 html body .app-shell > .bes-top-chrome::after,
+html body .app-shell .bes-top-chrome::before,
+html body .app-shell .bes-top-chrome::after,
 html body .app-shell .bes-top-chrome > .brian-nav::before,
-html body .app-shell .bes-top-chrome > .brian-nav::after {
+html body .app-shell .bes-top-chrome > .brian-nav::after,
+html body .app-shell .brian-nav::before,
+html body .app-shell .brian-nav::after {
   display: none !important;
   content: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
 html body .app-shell > #bes-main-content,
 html body .app-shell > main#bes-main-content,
-html body .app-shell > .wp8-page-stage {
+html body .app-shell > .wp8-page-stage,
+html body .app-shell .bes-top-chrome + #bes-main-content,
+html body .app-shell .bes-top-chrome + main {
+  border: 0 !important;
   border-top: 0 !important;
   outline: 0 !important;
+  box-shadow: none !important;
 }
 
 html body .app-shell > #bes-main-content::before,
 html body .app-shell > main#bes-main-content::before,
 html body .app-shell > #bes-main-content::after,
 html body .app-shell > main#bes-main-content::after {
+  display: none !important;
+  content: none !important;
   border-top: 0 !important;
   box-shadow: none !important;
 }
 
-html[data-theme='dark'] body .app-shell > .bes-top-chrome,
-body.theme-dark .app-shell > .bes-top-chrome {
-  border-bottom-color: rgba(232, 234, 237, 0.12) !important;
+/* CSS failsafe for chatbot launchers left by an older cached bundle. */
+html body .app-shell .shared-chatbot-drawer,
+html body .app-shell .bes-chatbot-root,
+html body .app-shell .bes-chatbot-fab,
+html body .app-shell .bes-chatbot-launcher,
+html body .app-shell .chatbot-root,
+html body .app-shell .chatbot-fab,
+html body .app-shell .chatbot-launcher,
+html body .app-shell .floating-chatbot,
+html body .app-shell .floating-chatbot-button,
+html body .app-shell .ai-chatbot-fab,
+html body .app-shell .ai-chatbot-launcher,
+html body .app-shell .independent-chatbot,
+html body .app-shell .independent-chatbot-launcher,
+html body .app-shell .brian-nav__ai-wrap,
+html body .app-shell .brian-nav__ai-button,
+html body .app-shell [data-chatbot-root],
+html body .app-shell [data-chatbot-launcher],
+html body .app-shell [data-ai-chatbot-launcher],
+html body .brian-ai-workspace,
+html body .brian-ai-workspace-layer {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
 }
