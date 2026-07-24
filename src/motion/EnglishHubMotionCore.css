@@ -1,0 +1,89 @@
+/* English Hub Motion Core — Google Material 3 production layer */
+
+.eh-motion-ripple-layer {
+  position: fixed;
+  z-index: 2147481200;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.eh-motion-ripple-layer > i {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  background: currentColor;
+  color: rgba(11, 87, 208, .42);
+  will-change: transform, opacity;
+}
+
+html[data-theme="dark"] .eh-motion-ripple-layer > i {
+  color: rgba(168, 199, 250, .38);
+}
+
+.eh-motion-particle-layer {
+  position: fixed;
+  z-index: 2147481300;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.eh-motion-particle-layer > i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 8px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--particle-color, #4285f4);
+  will-change: transform, opacity;
+}
+
+html[data-motion-core="on"]:not([data-motion="off"]) [data-eh-motion-card="true"] {
+  transform: translateZ(0);
+  transition:
+    transform 220ms cubic-bezier(.2, 0, 0, 1),
+    box-shadow 220ms cubic-bezier(.2, 0, 0, 1),
+    border-color 220ms cubic-bezier(.2, 0, 0, 1) !important;
+}
+
+html[data-motion-core="on"][data-motion="full"] [data-eh-motion-card="true"]:hover:not(.is-launching):not(.is-launcher-editing) {
+  transform: translateY(-5px) scale(1.008);
+}
+
+html[data-motion-core="on"][data-motion="lite"] [data-eh-motion-card="true"]:hover:not(.is-launching):not(.is-launcher-editing) {
+  transform: translateY(-2px);
+}
+
+html[data-motion-core="on"] [data-eh-motion-card="true"]:focus-within {
+  border-color: color-mix(in srgb, var(--app-accent, #0b57d0) 58%, #fff) !important;
+}
+
+html[data-motion-core="on"] [data-eh-motion-dialog="true"] {
+  transform-origin: 50% 18%;
+}
+
+html[data-motion-core="on"] [data-eh-motion-toast="true"] {
+  transform-origin: 50% 100%;
+}
+
+html[data-motion-core="off"] .eh-motion-ripple-layer,
+html[data-motion="off"] .eh-motion-ripple-layer,
+html[data-motion-core="off"] .eh-motion-particle-layer,
+html[data-motion="off"] .eh-motion-particle-layer {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eh-motion-ripple-layer,
+  .eh-motion-particle-layer {
+    display: none !important;
+  }
+
+  [data-eh-motion-card="true"] {
+    transition: none !important;
+    transform: none !important;
+  }
+}

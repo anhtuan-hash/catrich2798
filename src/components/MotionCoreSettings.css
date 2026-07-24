@@ -1,0 +1,58 @@
+html body .app-shell .settings-motion-core {
+  display: grid !important;
+  gap: 14px !important;
+  padding: 16px !important;
+  border: 1px solid #c4d7f5 !important;
+  border-radius: 20px !important;
+  background: linear-gradient(135deg, #f6f9ff, #fff 58%, #f3fbf5) !important;
+}
+html body .app-shell .settings-motion-core > header { display: flex !important; align-items: flex-start !important; justify-content: space-between !important; gap: 16px !important; }
+.settings-motion-core > header > div { display: grid; gap: 3px; }
+.settings-motion-core > header small { color: #0b57d0 !important; font-size: .68rem !important; font-weight: 800 !important; letter-spacing: .08em !important; }
+.settings-motion-core > header strong { color: #1f1f1f !important; font-size: 1rem !important; }
+.settings-motion-core > header p { max-width: 780px; margin: 0 !important; color: #5f6368 !important; font-size: .8rem !important; line-height: 1.5 !important; }
+.settings-motion-core > header > span { display: inline-flex !important; align-items: center !important; gap: 7px !important; padding: 7px 10px !important; border-radius: 999px !important; background: #f1f3f4 !important; color: #5f6368 !important; font-size: .72rem !important; font-weight: 750 !important; white-space: nowrap !important; }
+.settings-motion-core > header > span i { width: 8px !important; height: 8px !important; border-radius: 50% !important; background: #9aa0a6 !important; }
+.settings-motion-core > header > span.is-ready { background: #e6f4ea !important; color: #137333 !important; }
+.settings-motion-core > header > span.is-ready i { background: #34a853 !important; }
+.motion-core-summary { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; }
+.motion-core-summary > span { min-width: 0 !important; display: flex !important; align-items: baseline !important; gap: 7px !important; padding: 10px 12px !important; border: 1px solid #e0e3e7 !important; border-radius: 14px !important; background: #fff !important; color: #5f6368 !important; font-size: .76rem !important; }
+.motion-core-summary b { color: #0b57d0 !important; font-size: 1rem !important; }
+.motion-core-master,
+.motion-core-feature-grid > div { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 14px !important; padding: 12px 13px !important; border: 1px solid #e0e3e7 !important; border-radius: 15px !important; background: #fff !important; }
+.motion-core-master > div,
+.motion-core-feature-grid > div > span { min-width: 0 !important; display: grid !important; gap: 2px !important; }
+.motion-core-master strong,
+.motion-core-feature-grid strong { color: #1f1f1f !important; font-size: .82rem !important; }
+.motion-core-master small,
+.motion-core-feature-grid small { color: #5f6368 !important; font-size: .72rem !important; line-height: 1.45 !important; }
+.motion-core-master { border-color: #a8c7fa !important; background: #e8f0fe !important; }
+.motion-core-feature-grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+.motion-core-feature-grid[aria-disabled="true"] { opacity: .55 !important; }
+.motion-core-toggle { position: relative !important; width: 46px !important; min-width: 46px !important; height: 28px !important; min-height: 28px !important; padding: 0 !important; border: 0 !important; border-radius: 999px !important; background: #c7c9cc !important; box-shadow: none !important; cursor: pointer !important; }
+.motion-core-toggle span { position: absolute !important; left: 4px !important; top: 4px !important; width: 20px !important; height: 20px !important; border-radius: 50% !important; background: #fff !important; box-shadow: 0 1px 2px rgba(0, 0, 0, .2) !important; transition: transform .18s cubic-bezier(.2, 0, 0, 1) !important; }
+.motion-core-toggle.is-on { background: #0b57d0 !important; }
+.motion-core-toggle.is-on span { transform: translateX(18px) !important; }
+.settings-motion-core > footer { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; }
+.motion-core-preview { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; }
+.motion-core-preview button,
+.motion-core-open-lab { min-height: 38px !important; padding: 0 13px !important; border: 1px solid #dadce0 !important; border-radius: 999px !important; background: #fff !important; color: #3c4043 !important; font: inherit !important; font-size: .76rem !important; font-weight: 700 !important; box-shadow: none !important; cursor: pointer !important; }
+.motion-core-preview button:hover { background: #f1f3f4 !important; }
+.motion-core-open-lab { border-color: #a8c7fa !important; background: #0b57d0 !important; color: #fff !important; }
+.motion-core-open-lab:hover { background: #0842a0 !important; }
+html[data-theme="dark"] body .app-shell .settings-motion-core { border-color: #3c567d !important; background: linear-gradient(135deg, #202d42, #202124 58%, #203229) !important; }
+html[data-theme="dark"] .settings-motion-core > header strong,
+html[data-theme="dark"] .motion-core-master strong,
+html[data-theme="dark"] .motion-core-feature-grid strong { color: #e8eaed !important; }
+html[data-theme="dark"] .motion-core-summary > span,
+html[data-theme="dark"] .motion-core-master,
+html[data-theme="dark"] .motion-core-feature-grid > div,
+html[data-theme="dark"] .motion-core-preview button { border-color: #3c4043 !important; background: #292a2d !important; color: #bdc1c6 !important; }
+html[data-theme="dark"] .motion-core-master { border-color: #3c567d !important; background: #202d42 !important; }
+@media (max-width: 760px) {
+  .motion-core-summary,
+  .motion-core-feature-grid { grid-template-columns: 1fr !important; }
+  .settings-motion-core > footer { align-items: stretch !important; flex-direction: column !important; }
+  .motion-core-open-lab { width: 100% !important; }
+}
+@media (prefers-reduced-motion: reduce) { .motion-core-toggle span { transition: none !important; } }
