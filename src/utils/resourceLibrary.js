@@ -9,7 +9,6 @@ const RESOURCE_LIST_COLUMNS = [
   'title',
   'description',
   'category',
-  'category_id',
   'grade',
   'school_year',
   'unit_name',
@@ -42,7 +41,6 @@ const RESOURCE_LIST_COLUMNS = [
   'views',
   'downloads',
   'deleted_at',
-  'deleted_by',
 ].join(',');
 
 let resourceSyncPromise = null;
