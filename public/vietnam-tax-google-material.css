@@ -1,1 +1,156 @@
-/* placeholder */
+/* Vietnam Tax Studio — Google Material 3 visual system.
+   Presentation-only layer; calculation logic and controls remain untouched. */
+
+html body #root .tax-studio-page {
+  --tax-blue: #0b57d0 !important;
+  --tax-blue-dark: #1f1f1f !important;
+  --tax-soft: #e8f0fe !important;
+  --tax-green: #188038 !important;
+  --tax-green-soft: #e6f4ea;
+  --tax-yellow-soft: #fef7e0;
+  --tax-purple-soft: #f3e8fd;
+  --tax-ink: #1f1f1f;
+  --tax-muted: #5f6368;
+  --tax-line: #dadce0;
+  --tax-surface: #ffffff;
+  --tax-surface-low: #f8fafd;
+  min-height: 100vh !important;
+  padding: clamp(18px, 2.2vw, 32px) clamp(14px, 2.4vw, 36px) 72px !important;
+  background: var(--tax-surface-low) !important;
+  color: var(--tax-ink) !important;
+}
+
+html body #root .tax-studio-page .tax-studio-rail { width: min(1440px, 100%) !important; margin-inline: auto !important; }
+html body #root .tax-studio-page .tax-studio-back { min-height: 40px !important; margin: 0 0 14px !important; padding: 0 16px !important; border: 1px solid var(--tax-line) !important; border-radius: 999px !important; background: var(--tax-surface) !important; color: #174ea6 !important; box-shadow: none !important; font-size: .88rem !important; font-weight: 650 !important; }
+html body #root .tax-studio-page .tax-studio-back:hover { background: #f1f3f4 !important; box-shadow: 0 1px 2px rgba(60,64,67,.18) !important; }
+
+html body #root .tax-studio-page .tax-studio-hero { position: relative !important; display: grid !important; grid-template-columns: minmax(0, 1.55fr) minmax(260px, .55fr) !important; gap: clamp(24px, 3vw, 48px) !important; min-height: 0 !important; margin: 0 0 20px !important; padding: clamp(28px, 3vw, 42px) !important; overflow: hidden !important; border: 1px solid #c6dafc !important; border-radius: 28px !important; background: radial-gradient(circle at 88% 18%, rgba(52,168,83,.12), transparent 28%), linear-gradient(135deg, #f8fbff 0%, #e8f0fe 100%) !important; box-shadow: 0 1px 2px rgba(60,64,67,.12), 0 2px 8px rgba(60,64,67,.08) !important; }
+html body #root .tax-studio-page .tax-studio-hero::after { display: none !important; }
+html body #root .tax-studio-page .tax-studio-hero-copy { position: relative !important; z-index: 2 !important; align-self: center !important; }
+html body #root .tax-studio-page .tax-studio-eyebrow { min-height: 30px !important; padding: 0 12px !important; align-items: center !important; border: 1px solid #a8c7fa !important; border-radius: 999px !important; background: rgba(255,255,255,.82) !important; color: #174ea6 !important; font-size: .72rem !important; font-weight: 750 !important; letter-spacing: .08em !important; }
+html body #root .tax-studio-page .tax-studio-hero h1 { max-width: 780px !important; margin: 16px 0 12px !important; color: var(--tax-ink) !important; font-size: clamp(2.35rem, 4vw, 4.2rem) !important; font-weight: 560 !important; line-height: 1.02 !important; letter-spacing: -.045em !important; text-wrap: balance !important; }
+html body #root .tax-studio-page .tax-studio-hero p { max-width: 780px !important; margin: 0 !important; color: var(--tax-muted) !important; font-size: 1rem !important; font-weight: 450 !important; line-height: 1.58 !important; }
+html body #root .tax-studio-page .tax-studio-badges { gap: 8px !important; margin-top: 18px !important; }
+html body #root .tax-studio-page .tax-studio-badges span { min-height: 34px !important; display: inline-flex !important; align-items: center !important; padding: 0 12px !important; border: 1px solid var(--tax-line) !important; border-radius: 999px !important; background: rgba(255,255,255,.88) !important; color: #3c4043 !important; font-size: .78rem !important; font-weight: 600 !important; }
+html body #root .tax-studio-page .tax-studio-hero-art { min-height: 210px !important; align-self: center !important; justify-self: stretch !important; }
+html body #root .tax-studio-page .tax-studio-receipt { width: min(300px, 100%) !important; padding: 24px !important; transform: rotate(1deg) !important; border: 1px solid var(--tax-line) !important; border-radius: 24px !important; background: rgba(255,255,255,.96) !important; clip-path: none !important; box-shadow: 0 4px 10px rgba(60,64,67,.12), 0 12px 28px rgba(60,64,67,.10) !important; }
+html body #root .tax-studio-page .tax-studio-receipt span { color: var(--tax-muted) !important; font-size: .72rem !important; font-weight: 700 !important; letter-spacing: .08em !important; }
+html body #root .tax-studio-page .tax-studio-receipt strong { color: var(--tax-ink) !important; font-size: 1.35rem !important; font-weight: 650 !important; }
+html body #root .tax-studio-page .tax-studio-receipt i { border-color: var(--tax-line) !important; }
+html body #root .tax-studio-page .tax-studio-receipt em { margin-top: 8px !important; padding: 10px 12px !important; border-radius: 12px !important; background: var(--tax-green-soft) !important; color: #137333 !important; font-size: .88rem !important; font-weight: 650 !important; }
+html body #root .tax-studio-page .tax-studio-coins { right: -6px !important; bottom: 0 !important; gap: 4px !important; }
+html body #root .tax-studio-page .tax-studio-coins b { width: 38px !important; height: 38px !important; border: 2px solid #fbbc04 !important; border-radius: 12px !important; background: var(--tax-yellow-soft) !important; color: #a15c00 !important; box-shadow: 0 2px 6px rgba(60,64,67,.12) !important; }
+html body #root .tax-studio-page .tax-studio-hero-actions { grid-column: 1 / -1 !important; gap: 10px !important; padding-top: 0 !important; }
+html body #root .tax-studio-page .tax-studio-hero-actions button { min-height: 42px !important; padding: 0 18px !important; border: 1px solid var(--tax-line) !important; border-radius: 999px !important; background: var(--tax-surface) !important; color: #174ea6 !important; box-shadow: none !important; font-size: .88rem !important; font-weight: 650 !important; transition: background-color .18s ease, box-shadow .18s ease, transform .18s ease !important; }
+html body #root .tax-studio-page .tax-studio-hero-actions button:first-child { border-color: #0b57d0 !important; background: #0b57d0 !important; color: #fff !important; }
+html body #root .tax-studio-page .tax-studio-hero-actions button:hover { background: #f1f3f4 !important; box-shadow: 0 1px 2px rgba(60,64,67,.18) !important; transform: translateY(-1px) !important; }
+html body #root .tax-studio-page .tax-studio-hero-actions button:first-child:hover { background: #0842a0 !important; }
+
+html body #root .tax-studio-page .tax-studio-main-grid { grid-template-columns: minmax(330px, 380px) minmax(0, 1fr) !important; gap: 20px !important; }
+html body #root .tax-studio-page :is(.tax-studio-input-card, .tax-studio-panel, .tax-studio-reference-panel) { border: 1px solid var(--tax-line) !important; border-radius: 24px !important; background: var(--tax-surface) !important; box-shadow: 0 1px 2px rgba(60,64,67,.08) !important; }
+html body #root .tax-studio-page .tax-studio-input-card { top: 88px !important; padding: 24px !important; }
+html body #root .tax-studio-page .tax-studio-card-heading { gap: 14px !important; margin-bottom: 22px !important; padding-bottom: 18px !important; border-color: #e8eaed !important; }
+html body #root .tax-studio-page .tax-studio-card-heading > span { width: 44px !important; height: 44px !important; border-radius: 14px !important; background: var(--tax-soft) !important; color: #174ea6 !important; font-size: .88rem !important; font-weight: 700 !important; }
+html body #root .tax-studio-page :is(.tax-studio-card-heading small, .tax-studio-panel-title small, .tax-studio-reference-panel small) { color: #0b57d0 !important; font-size: .7rem !important; font-weight: 750 !important; letter-spacing: .09em !important; }
+html body #root .tax-studio-page :is(.tax-studio-card-heading h2, .tax-studio-panel-title h2, .tax-studio-reference-panel h2) { margin-top: 4px !important; color: var(--tax-ink) !important; font-size: 1.35rem !important; font-weight: 560 !important; letter-spacing: -.02em !important; }
+html body #root .tax-studio-page .tax-studio-field { margin-bottom: 22px !important; }
+html body #root .tax-studio-page .tax-studio-field > span { margin-bottom: 9px !important; color: #3c4043 !important; font-size: .82rem !important; font-weight: 600 !important; }
+html body #root .tax-studio-page .tax-studio-money-input input { height: 54px !important; border: 1px solid #9aa0a6 !important; border-radius: 12px !important; background: var(--tax-surface) !important; color: var(--tax-ink) !important; font-size: 1.05rem !important; font-weight: 600 !important; transition: border-color .16s ease, box-shadow .16s ease !important; }
+html body #root .tax-studio-page .tax-studio-money-input input:hover { border-color: #5f6368 !important; }
+html body #root .tax-studio-page .tax-studio-money-input input:focus { border: 2px solid #0b57d0 !important; box-shadow: 0 0 0 2px #d2e3fc !important; }
+html body #root .tax-studio-page .tax-studio-money-input b { color: var(--tax-muted) !important; font-size: .72rem !important; font-weight: 650 !important; }
+html body #root .tax-studio-page .tax-studio-counter { grid-template-columns: 44px minmax(0,1fr) 44px !important; gap: 8px !important; }
+html body #root .tax-studio-page :is(.tax-studio-counter button, .tax-studio-counter input) { height: 44px !important; border: 1px solid var(--tax-line) !important; border-radius: 12px !important; background: var(--tax-surface) !important; color: var(--tax-ink) !important; box-shadow: none !important; }
+html body #root .tax-studio-page .tax-studio-counter button { color: #0b57d0 !important; }
+html body #root .tax-studio-page .tax-studio-counter button:hover { background: var(--tax-soft) !important; }
+html body #root .tax-studio-page .tax-studio-region-grid { gap: 8px !important; }
+html body #root .tax-studio-page .tax-studio-region-grid button { min-height: 66px !important; padding: 11px 12px !important; border: 1px solid var(--tax-line) !important; border-radius: 14px !important; background: var(--tax-surface) !important; color: #3c4043 !important; box-shadow: none !important; }
+html body #root .tax-studio-page .tax-studio-region-grid button:hover { background: #f8f9fa !important; }
+html body #root .tax-studio-page .tax-studio-region-grid button.active { border-color: #a8c7fa !important; background: var(--tax-soft) !important; color: #174ea6 !important; box-shadow: inset 0 0 0 1px #a8c7fa !important; }
+html body #root .tax-studio-page .tax-studio-region-grid button small { color: var(--tax-muted) !important; }
+html body #root .tax-studio-page .tax-studio-segmented { gap: 4px !important; padding: 4px !important; border: 1px solid var(--tax-line) !important; border-radius: 999px !important; background: #f1f3f4 !important; }
+html body #root .tax-studio-page .tax-studio-segmented button { min-height: 38px !important; padding: 0 12px !important; border-radius: 999px !important; color: var(--tax-muted) !important; font-size: .78rem !important; font-weight: 600 !important; }
+html body #root .tax-studio-page .tax-studio-segmented button.active { background: var(--tax-surface) !important; color: #174ea6 !important; box-shadow: 0 1px 2px rgba(60,64,67,.18) !important; }
+html body #root .tax-studio-page .tax-studio-help { color: var(--tax-muted) !important; font-size: .74rem !important; }
+html body #root .tax-studio-page .tax-studio-warning { padding: 14px 15px !important; border: 1px solid #f9ab00 !important; border-radius: 14px !important; background: var(--tax-yellow-soft) !important; color: #6f4e00 !important; font-size: .78rem !important; }
+
+html body #root .tax-studio-page .tax-studio-results-column { gap: 20px !important; }
+html body #root .tax-studio-page .tax-studio-stat-grid { gap: 12px !important; }
+html body #root .tax-studio-page .tax-studio-stat-grid article { min-height: 132px !important; padding: 20px !important; border: 1px solid transparent !important; border-radius: 22px !important; box-shadow: none !important; }
+html body #root .tax-studio-page .tax-studio-stat-grid article:nth-child(1) { border-color: #a8c7fa !important; background: var(--tax-soft) !important; }
+html body #root .tax-studio-page .tax-studio-stat-grid article:nth-child(2) { border-color: #a8dab5 !important; background: var(--tax-green-soft) !important; }
+html body #root .tax-studio-page .tax-studio-stat-grid article:nth-child(3) { border-color: #fdd663 !important; background: var(--tax-yellow-soft) !important; }
+html body #root .tax-studio-page .tax-studio-stat-grid article:nth-child(4) { border-color: #d7aefb !important; background: var(--tax-purple-soft) !important; }
+html body #root .tax-studio-page .tax-studio-stat-grid article span { min-width: 0 !important; height: 28px !important; padding: 0 10px !important; border-radius: 999px !important; background: rgba(255,255,255,.78) !important; color: #174ea6 !important; font-size: .7rem !important; font-weight: 750 !important; letter-spacing: .06em !important; }
+html body #root .tax-studio-page .tax-studio-stat-grid article:nth-child(2) span { color: #137333 !important; }
+html body #root .tax-studio-page .tax-studio-stat-grid article:nth-child(3) span { color: #a15c00 !important; }
+html body #root .tax-studio-page .tax-studio-stat-grid article:nth-child(4) span { color: #681da8 !important; }
+html body #root .tax-studio-page .tax-studio-stat-grid article strong { margin: 16px 0 8px !important; color: var(--tax-ink) !important; font-size: clamp(1.05rem, 1.55vw, 1.45rem) !important; font-weight: 650 !important; }
+html body #root .tax-studio-page .tax-studio-stat-grid article small { color: #3c4043 !important; font-size: .8rem !important; line-height: 1.4 !important; }
+html body #root .tax-studio-page .tax-studio-panel { padding: 24px !important; }
+html body #root .tax-studio-page .tax-studio-panel-title { margin-bottom: 20px !important; }
+html body #root .tax-studio-page .tax-studio-panel-title p { color: var(--tax-muted) !important; }
+html body #root .tax-studio-page .tax-studio-panel-title > span { padding: 8px 12px !important; border-radius: 999px !important; background: var(--tax-green-soft) !important; color: #137333 !important; font-size: .78rem !important; font-weight: 650 !important; }
+html body #root .tax-studio-page .tax-studio-compare-grid { gap: 20px !important; }
+html body #root .tax-studio-page .tax-studio-compare-grid > div { padding: 18px !important; border: 1px solid #e8eaed !important; border-radius: 18px !important; background: #f8fafd !important; }
+html body #root .tax-studio-page .tax-studio-compare-grid h3 { color: #3c4043 !important; font-weight: 600 !important; }
+html body #root .tax-studio-page .tax-studio-bar-row > div { background: #e8eaed !important; }
+html body #root .tax-studio-page .tax-studio-bar-row i.legacy { background: #9aa0a6 !important; }
+html body #root .tax-studio-page .tax-studio-bar-row i.current { background: #0b57d0 !important; }
+html body #root .tax-studio-page .tax-studio-bar-row strong { color: #3c4043 !important; font-weight: 600 !important; }
+html body #root .tax-studio-page .tax-studio-table-wrap { border: 1px solid var(--tax-line) !important; border-radius: 16px !important; background: var(--tax-surface) !important; }
+html body #root .tax-studio-page .tax-studio-table-wrap :is(th, td) { padding: 13px 15px !important; border-color: #e8eaed !important; color: #3c4043 !important; }
+html body #root .tax-studio-page .tax-studio-table-wrap thead th { background: #f1f3f4 !important; color: var(--tax-muted) !important; font-size: .7rem !important; font-weight: 700 !important; letter-spacing: .04em !important; }
+html body #root .tax-studio-page .tax-studio-table-wrap tbody th { color: var(--tax-ink) !important; font-weight: 550 !important; }
+html body #root .tax-studio-page .tax-studio-table-wrap tr.highlight { background: var(--tax-green-soft) !important; }
+html body #root .tax-studio-page .positive-cell { color: #137333 !important; font-weight: 650 !important; }
+html body #root .tax-studio-page .negative-cell { color: #c5221f !important; font-weight: 650 !important; }
+html body #root .tax-studio-page .tax-studio-lower-grid { gap: 20px !important; margin-top: 20px !important; }
+html body #root .tax-studio-page .tax-studio-curve-wrap { height: 290px !important; padding: 12px !important; border: 1px solid var(--tax-line) !important; border-radius: 18px !important; background: #f8fafd !important; }
+html body #root .tax-studio-page .tax-studio-grid-line { stroke: #dadce0 !important; }
+html body #root .tax-studio-page .tax-studio-curve-line { stroke: #0b57d0 !important; stroke-width: 3 !important; }
+html body #root .tax-studio-page .tax-studio-curve-dot { stroke: #0b57d0 !important; }
+html body #root .tax-studio-page .tax-studio-axis-label { fill: var(--tax-muted) !important; }
+html body #root .tax-studio-page .tax-studio-bracket-card { border: 1px solid var(--tax-line) !important; border-radius: 18px !important; background: var(--tax-surface) !important; }
+html body #root .tax-studio-page .tax-studio-bracket-card h3 { padding: 14px 16px !important; background: #f1f3f4 !important; color: #3c4043 !important; font-weight: 600 !important; }
+html body #root .tax-studio-page .tax-studio-bracket-card.current h3 { background: var(--tax-soft) !important; color: #174ea6 !important; }
+html body #root .tax-studio-page .tax-studio-reference-panel { gap: 24px !important; margin-top: 20px !important; padding: 24px !important; }
+html body #root .tax-studio-page .tax-studio-reference-panel p { color: var(--tax-muted) !important; }
+html body #root .tax-studio-page .tax-studio-source-links a { min-height: 44px !important; display: flex !important; align-items: center !important; padding: 0 14px !important; border: 1px solid var(--tax-line) !important; border-radius: 12px !important; background: var(--tax-surface) !important; color: #0b57d0 !important; font-size: .78rem !important; font-weight: 600 !important; }
+html body #root .tax-studio-page .tax-studio-source-links a:hover { background: var(--tax-soft) !important; }
+
+html[data-theme='dark'] body #root .tax-studio-page, body.theme-dark #root .tax-studio-page { --tax-ink: #e8eaed; --tax-muted: #bdc1c6; --tax-line: #3c4043; --tax-surface: #202124; --tax-surface-low: #111315; --tax-soft: #23395d !important; --tax-green-soft: #1e3a2a; --tax-yellow-soft: #493a12; --tax-purple-soft: #3b2850; background: var(--tax-surface-low) !important; color: var(--tax-ink) !important; }
+html[data-theme='dark'] body #root .tax-studio-page .tax-studio-hero, body.theme-dark #root .tax-studio-page .tax-studio-hero { border-color: #3f5271 !important; background: linear-gradient(135deg, #202124 0%, #25334b 100%) !important; }
+html[data-theme='dark'] body #root .tax-studio-page :is(.tax-studio-input-card,.tax-studio-panel,.tax-studio-reference-panel,.tax-studio-receipt,.tax-studio-back,.tax-studio-hero-actions button,.tax-studio-money-input input,.tax-studio-counter button,.tax-studio-counter input,.tax-studio-region-grid button,.tax-studio-table-wrap,.tax-studio-bracket-card,.tax-studio-source-links a), body.theme-dark #root .tax-studio-page :is(.tax-studio-input-card,.tax-studio-panel,.tax-studio-reference-panel,.tax-studio-receipt,.tax-studio-back,.tax-studio-hero-actions button,.tax-studio-money-input input,.tax-studio-counter button,.tax-studio-counter input,.tax-studio-region-grid button,.tax-studio-table-wrap,.tax-studio-bracket-card,.tax-studio-source-links a) { background: var(--tax-surface) !important; border-color: var(--tax-line) !important; color: var(--tax-ink) !important; }
+html[data-theme='dark'] body #root .tax-studio-page :is(.tax-studio-hero h1,.tax-studio-card-heading h2,.tax-studio-panel-title h2,.tax-studio-reference-panel h2,.tax-studio-receipt strong,.tax-studio-stat-grid article strong,.tax-studio-table-wrap tbody th), body.theme-dark #root .tax-studio-page :is(.tax-studio-hero h1,.tax-studio-card-heading h2,.tax-studio-panel-title h2,.tax-studio-reference-panel h2,.tax-studio-receipt strong,.tax-studio-stat-grid article strong,.tax-studio-table-wrap tbody th) { color: var(--tax-ink) !important; }
+html[data-theme='dark'] body #root .tax-studio-page :is(.tax-studio-hero p,.tax-studio-help,.tax-studio-panel-title p,.tax-studio-reference-panel p,.tax-studio-stat-grid article small), body.theme-dark #root .tax-studio-page :is(.tax-studio-hero p,.tax-studio-help,.tax-studio-panel-title p,.tax-studio-reference-panel p,.tax-studio-stat-grid article small) { color: var(--tax-muted) !important; }
+html[data-theme='dark'] body #root .tax-studio-page :is(.tax-studio-compare-grid > div,.tax-studio-curve-wrap), body.theme-dark #root .tax-studio-page :is(.tax-studio-compare-grid > div,.tax-studio-curve-wrap) { border-color: var(--tax-line) !important; background: #17191c !important; }
+html[data-theme='dark'] body #root .tax-studio-page .tax-studio-table-wrap thead th, body.theme-dark #root .tax-studio-page .tax-studio-table-wrap thead th, html[data-theme='dark'] body #root .tax-studio-page .tax-studio-bracket-card h3, body.theme-dark #root .tax-studio-page .tax-studio-bracket-card h3 { background: #292a2d !important; color: #bdc1c6 !important; }
+
+@media (max-width: 1080px) {
+  html body #root .tax-studio-page .tax-studio-hero { grid-template-columns: minmax(0, 1fr) 240px !important; padding: 30px !important; }
+  html body #root .tax-studio-page .tax-studio-main-grid { grid-template-columns: 1fr !important; }
+  html body #root .tax-studio-page .tax-studio-input-card { position: static !important; }
+}
+
+@media (max-width: 780px) {
+  html body #root .tax-studio-page { padding: 12px 10px 48px !important; }
+  html body #root .tax-studio-page .tax-studio-hero { grid-template-columns: 1fr !important; padding: 24px 20px !important; border-radius: 24px !important; }
+  html body #root .tax-studio-page .tax-studio-hero-art { display: none !important; }
+  html body #root .tax-studio-page .tax-studio-hero h1 { font-size: clamp(2.15rem, 10vw, 3.25rem) !important; }
+  html body #root .tax-studio-page .tax-studio-stat-grid { grid-template-columns: 1fr 1fr !important; }
+  html body #root .tax-studio-page :is(.tax-studio-input-card,.tax-studio-panel,.tax-studio-reference-panel) { padding: 19px !important; border-radius: 20px !important; }
+  html body #root .tax-studio-page :is(.tax-studio-compare-grid,.tax-studio-bracket-columns,.tax-studio-reference-panel,.tax-studio-lower-grid) { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 520px) {
+  html body #root .tax-studio-page .tax-studio-stat-grid, html body #root .tax-studio-page .tax-studio-region-grid { grid-template-columns: 1fr !important; }
+  html body #root .tax-studio-page .tax-studio-hero-actions button { flex: 1 1 calc(50% - 5px) !important; }
+  html body #root .tax-studio-page .tax-studio-segmented { border-radius: 16px !important; }
+  html body #root .tax-studio-page .tax-studio-segmented button { border-radius: 12px !important; }
+}
+
+@media print {
+  html body #root .tax-studio-page { background: #fff !important; }
+  html body #root .tax-studio-page .tax-studio-hero { border: 1px solid #dadce0 !important; background: #fff !important; box-shadow: none !important; }
+}
