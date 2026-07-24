@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
+import GlobalNewsNavigationTab from './GlobalNewsNavigationTab.jsx';
 import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
 import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
 import GlobalHomeroomNavigationTab from './GlobalHomeroomNavigationTab.jsx';
@@ -33,6 +34,7 @@ import './GlobalNotificationCenterGoogleFinal.css';
 import './GlobalNotificationCenterNarrow.css';
 import './GlobalNotificationMenuLayerFix.css';
 import './GlobalNavigationFontScaleGuard.css';
+import './GlobalNavigationScrollableTabs.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
@@ -43,6 +45,7 @@ export default function GlobalFlatNavigation(props) {
   return (
     <>
       <Navigation {...props} />
+      <GlobalNewsNavigationTab {...props} />
       <GlobalGamesNavigationTab {...props} />
       <GlobalDashboardNavigationTab {...props} />
       <GlobalHomeroomNavigationTab {...props} />
