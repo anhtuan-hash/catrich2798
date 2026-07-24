@@ -1,0 +1,365 @@
+/* Google Material color polish for the native Homeroom workspace.
+   The palette uses color mainly for hierarchy, state and navigation—not as full-card decoration. */
+.page.hr-page{
+  --hrg-google-blue:#4285f4;
+  --hrg-google-red:#ea4335;
+  --hrg-google-yellow:#fbbc04;
+  --hrg-google-green:#34a853;
+  --hrg-blue-container:#d3e3fd;
+  --hrg-blue-container-strong:#c2e7ff;
+  --hrg-green-container:#c4eed0;
+  --hrg-yellow-container:#ffefc3;
+  --hrg-red-container:#f9dedc;
+  --hrg-purple-container:#eadcff;
+  --hrg-cyan-container:#c4e7ff;
+  --hrg-surface-container-low:#f8fafd;
+  --hrg-surface-container:#f1f3f4;
+  --hrg-surface-container-high:#e9eef6;
+  background:
+    linear-gradient(180deg,#f8fafd 0,#f8fafd 540px,#f6f8fc 100%)!important;
+}
+
+/* Hero: neutral first, Google color as restrained accents. */
+.hr-page .hr-hero{
+  border:1px solid #e1e7f0!important;
+  background:#fff!important;
+  box-shadow:0 1px 2px rgba(60,64,67,.08)!important;
+}
+.hr-page .hr-hero::before{
+  width:420px!important;
+  height:420px!important;
+  right:22%!important;
+  top:-280px!important;
+  background:rgba(66,133,244,.08)!important;
+  border:54px solid rgba(52,168,83,.04)!important;
+}
+.hr-page .hr-hero::after{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  z-index:1!important;
+  right:28px!important;
+  bottom:22px!important;
+  width:92px!important;
+  height:12px!important;
+  border-radius:999px!important;
+  background:linear-gradient(90deg,var(--hrg-google-blue) 0 25%,var(--hrg-google-red) 25% 50%,var(--hrg-google-yellow) 50% 75%,var(--hrg-google-green) 75%)!important;
+  opacity:.9!important;
+  pointer-events:none!important;
+}
+.hr-page .hr-hero-copy>p{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  width:max-content!important;
+  max-width:100%!important;
+  padding:7px 11px!important;
+  border-radius:999px!important;
+  background:#edf4ff!important;
+  color:#174ea6!important;
+  letter-spacing:.065em!important;
+}
+.hr-page .hr-hero-copy>p::before{
+  content:""!important;
+  display:block!important;
+  width:8px!important;
+  height:8px!important;
+  border-radius:50%!important;
+  background:var(--hrg-google-blue)!important;
+  box-shadow:12px 0 0 var(--hrg-google-red),24px 0 0 var(--hrg-google-yellow),36px 0 0 var(--hrg-google-green)!important;
+  margin-right:36px!important;
+}
+.hr-page .hr-hero-copy h1{
+  background:linear-gradient(90deg,#202124 0 56%,#174ea6 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+}
+.hr-page .hr-hero-copy>span{
+  border:1px solid #c6dafc!important;
+  background:#f5f9ff!important;
+  color:#174ea6!important;
+}
+.hr-page .hr-hero-art{
+  border:1px solid #d8e5f7!important;
+  background:#edf4ff!important;
+}
+.hr-page .hr-hero-meta{
+  border-color:#e1e7f0!important;
+  background:#fbfcff!important;
+}
+.hr-page .hr-sync{
+  background:#fff4ce!important;
+  color:#6f4b00!important;
+}
+.hr-page .hr-sync.cloud{
+  background:#e6f4ea!important;
+  color:#137333!important;
+}
+.hr-page .hrc-offline-badge{
+  border:1px solid #b7dfc3!important;
+  background:#f0faf3!important;
+  color:#137333!important;
+}
+
+/* Navigation: selected state is unmistakable, while inactive tabs remain calm. */
+.hr-page .hr-tabs{
+  border:1px solid #e1e7f0!important;
+  background:rgba(255,255,255,.96)!important;
+  box-shadow:0 2px 7px rgba(60,64,67,.08)!important;
+}
+.hr-page .hr-tabs button>span{
+  width:30px!important;
+  height:30px!important;
+  border-radius:10px!important;
+  background:#f1f3f4!important;
+  color:#5f6368!important;
+}
+.hr-page .hr-tabs button:hover>span{
+  background:#d3e3fd!important;
+  color:#174ea6!important;
+}
+.hr-page .hr-tabs button.active{
+  background:#d3e3fd!important;
+  color:#041e49!important;
+  box-shadow:inset 0 0 0 1px #a8c7fa!important;
+}
+.hr-page .hr-tabs button.active>span{
+  background:#0b57d0!important;
+  color:#fff!important;
+}
+
+/* Surface hierarchy: white functional cards, tonal nested areas and light outlines. */
+.hr-page .hr-panel,
+.hr-page .hr-stat,
+.hr-page .hr-leaderboard article{
+  border:1px solid #e1e7f0!important;
+  background:#fff!important;
+  box-shadow:0 1px 2px rgba(60,64,67,.07)!important;
+}
+.hr-page .hr-panel:hover,
+.hr-page .hr-stat:hover{
+  border-color:#d2d9e4!important;
+  box-shadow:0 2px 8px rgba(60,64,67,.09)!important;
+}
+.hr-page .hr-panel-head{
+  padding-bottom:16px!important;
+  border-bottom:1px solid #eef1f5!important;
+}
+.hr-page .hr-panel-head small,
+.hr-page .hr-panel>div>small,
+.hr-page .hr-share-panel>div>small{
+  color:#174ea6!important;
+}
+.hr-page .hr-panel-head h2{color:#202124!important}
+
+/* Overview cards use the four Google colors only as compact visual signals. */
+.hr-page .hr-stat{
+  border-top:4px solid var(--hrg-google-blue)!important;
+}
+.hr-page .hr-stat.tone-green{border-top-color:var(--hrg-google-green)!important}
+.hr-page .hr-stat.tone-red{border-top-color:var(--hrg-google-red)!important}
+.hr-page .hr-stat.tone-orange{border-top-color:var(--hrg-google-yellow)!important}
+.hr-page .hr-stat>span{
+  background:#e8f0fe!important;
+  color:#174ea6!important;
+}
+.hr-page .hr-stat.tone-green>span{background:#e6f4ea!important;color:#137333!important}
+.hr-page .hr-stat.tone-red>span{background:#fce8e6!important;color:#b3261e!important}
+.hr-page .hr-stat.tone-orange>span{background:#fef7e0!important;color:#7a4f01!important}
+
+.hr-page .hr-overview-grid>.hr-panel:nth-child(1){border-top:4px solid var(--hrg-google-blue)!important}
+.hr-page .hr-overview-grid>.hr-panel:nth-child(2){border-top:4px solid var(--hrg-google-green)!important}
+.hr-page .hr-overview-grid>.hr-panel:nth-child(3){border-top:4px solid var(--hrg-google-red)!important}
+.hr-page .hr-overview-grid>.hr-panel:nth-child(4){border-top:4px solid #9334e6!important}
+
+.hr-page .hr-quick-grid button{
+  border-color:#e1e7f0!important;
+  background:#fff!important;
+}
+.hr-page .hr-quick-grid button:nth-child(1)>span{background:#e8f0fe!important;color:#174ea6!important}
+.hr-page .hr-quick-grid button:nth-child(2)>span{background:#e6f4ea!important;color:#137333!important}
+.hr-page .hr-quick-grid button:nth-child(3)>span{background:#fef7e0!important;color:#7a4f01!important}
+.hr-page .hr-quick-grid button:nth-child(4)>span{background:#fce8e6!important;color:#b3261e!important}
+.hr-page .hr-quick-grid button:nth-child(5)>span{background:#f3e8fd!important;color:#681da8!important}
+.hr-page .hr-quick-grid button:nth-child(1):hover{border-color:#a8c7fa!important;background:#f5f9ff!important}
+.hr-page .hr-quick-grid button:nth-child(2):hover{border-color:#81c995!important;background:#f3fbf5!important}
+.hr-page .hr-quick-grid button:nth-child(3):hover{border-color:#fdd663!important;background:#fffbef!important}
+.hr-page .hr-quick-grid button:nth-child(4):hover{border-color:#f28b82!important;background:#fff7f6!important}
+.hr-page .hr-quick-grid button:nth-child(5):hover{border-color:#d7aefb!important;background:#fbf7ff!important}
+
+/* Tonal list rows and progress bars */
+.hr-page .hr-compact-list>div,
+.hr-page .hr-history-list>button,
+.hr-page .hr-student-mini-list>div{
+  border-color:#edf0f4!important;
+  background:#f8fafd!important;
+}
+.hr-page .hr-progress-row:nth-of-type(4n+1) i{background:var(--hrg-google-blue)!important}
+.hr-page .hr-progress-row:nth-of-type(4n+2) i{background:var(--hrg-google-green)!important}
+.hr-page .hr-progress-row:nth-of-type(4n+3) i{background:var(--hrg-google-yellow)!important}
+.hr-page .hr-progress-row:nth-of-type(4n+4) i{background:#9334e6!important}
+
+/* Form controls mirror Google Workspace: neutral fill, blue focus, clear hierarchy. */
+.hr-page input,.hr-page textarea,.hr-page select{
+  border-color:#e1e4e8!important;
+  background:#f8fafd!important;
+}
+.hr-page input:hover,.hr-page textarea:hover,.hr-page select:hover{
+  border-color:#c7cdd5!important;
+  background:#f1f3f4!important;
+}
+.hr-page input:focus,.hr-page textarea:focus,.hr-page select:focus{
+  border-color:#0b57d0!important;
+  background:#fff!important;
+  box-shadow:0 0 0 1px #0b57d0!important;
+}
+.hr-page button.primary{
+  background:#0b57d0!important;
+  color:#fff!important;
+  box-shadow:0 1px 2px rgba(11,87,208,.18)!important;
+}
+.hr-page button.primary:hover{background:#0842a0!important;box-shadow:0 2px 5px rgba(11,87,208,.23)!important}
+.hr-page button.secondary,
+.hr-page .hr-row-actions button,
+.hr-page .text-btn{
+  border-color:#c4c7c5!important;
+  background:#fff!important;
+  color:#0b57d0!important;
+}
+.hr-page button.secondary:hover,
+.hr-page .hr-row-actions button:hover,
+.hr-page .text-btn:hover{
+  border-color:#0b57d0!important;
+  background:#edf4ff!important;
+}
+.hr-page button.danger,
+.hr-page .hr-row-actions button.danger{
+  border-color:#f2b8b5!important;
+  background:#fff8f7!important;
+  color:#b3261e!important;
+}
+
+/* Tables: stronger scan line, subtle avatars, no saturated row backgrounds. */
+.hr-page .hr-table-wrap,.hr-page .hr-preview-table{
+  border-color:#dfe4ea!important;
+  box-shadow:0 1px 2px rgba(60,64,67,.05)!important;
+}
+.hr-page .hr-table th{
+  background:#f1f5fb!important;
+  color:#3c4043!important;
+}
+.hr-page .hr-table tbody tr:nth-child(even) td{background:#fbfcfe!important}
+.hr-page .hr-table tbody tr:hover td{background:#edf4ff!important}
+.hr-page .hr-table tbody tr:nth-child(4n+1) .hr-person-cell>span{background:#e8f0fe!important;color:#174ea6!important}
+.hr-page .hr-table tbody tr:nth-child(4n+2) .hr-person-cell>span{background:#e6f4ea!important;color:#137333!important}
+.hr-page .hr-table tbody tr:nth-child(4n+3) .hr-person-cell>span{background:#fef7e0!important;color:#7a4f01!important}
+.hr-page .hr-table tbody tr:nth-child(4n+4) .hr-person-cell>span{background:#f3e8fd!important;color:#681da8!important}
+
+/* Attendance uses semantic colors consistently. */
+.hr-page .hr-attendance-lock{
+  border:1px solid #b7dfc3!important;
+  background:#f0faf3!important;
+}
+.hr-page .hr-attendance-lock.is-locked{
+  border-color:#f6d58a!important;
+  background:#fff9e8!important;
+}
+.hr-page .hr-attendance-summary>span{border:1px solid transparent!important}
+.hr-page .hr-attendance-summary .present{border-color:#b7dfc3!important;background:#e6f4ea!important}
+.hr-page .hr-attendance-summary .late{border-color:#f6d58a!important;background:#fef7e0!important}
+.hr-page .hr-attendance-summary .excused{border-color:#a8c7fa!important;background:#e8f0fe!important}
+.hr-page .hr-attendance-summary .unexcused{border-color:#f2b8b5!important;background:#fce8e6!important}
+.hr-page .hr-attendance-card.is-present{border-left:4px solid var(--hrg-google-green)!important}
+.hr-page .hr-attendance-card.is-late{border-left:4px solid var(--hrg-google-yellow)!important}
+.hr-page .hr-attendance-card.is-excused{border-left:4px solid var(--hrg-google-blue)!important}
+.hr-page .hr-attendance-card.is-unexcused{border-left:4px solid var(--hrg-google-red)!important}
+.hr-page .hr-status-switch button.active{background:#0b57d0!important}
+
+/* Communication and competition cards gain color-coded identity without full-card saturation. */
+.hr-page .hr-share-panel{
+  border-left:5px solid var(--hrg-google-blue)!important;
+  background:#fbfcff!important;
+}
+.hr-page .hr-feedback-inbox article:nth-child(4n+1){border-left:4px solid var(--hrg-google-blue)!important}
+.hr-page .hr-feedback-inbox article:nth-child(4n+2){border-left:4px solid var(--hrg-google-green)!important}
+.hr-page .hr-feedback-inbox article:nth-child(4n+3){border-left:4px solid var(--hrg-google-yellow)!important}
+.hr-page .hr-feedback-inbox article:nth-child(4n+4){border-left:4px solid var(--hrg-google-red)!important}
+.hr-page .hr-leaderboard article:nth-child(4n+1)>span{background:#e8f0fe!important;color:#174ea6!important}
+.hr-page .hr-leaderboard article:nth-child(4n+2)>span{background:#e6f4ea!important;color:#137333!important}
+.hr-page .hr-leaderboard article:nth-child(4n+3)>span{background:#fef7e0!important;color:#7a4f01!important}
+.hr-page .hr-leaderboard article:nth-child(4n+4)>span{background:#fce8e6!important;color:#b3261e!important}
+.hr-page .hr-leaderboard article.winner{
+  border-color:#f6d58a!important;
+  background:#fffbef!important;
+  box-shadow:inset 0 4px 0 var(--hrg-google-yellow)!important;
+}
+
+/* Chips */
+.hr-page .hr-support-chip,
+.hr-page .hr-status-chip,
+.hr-page .hr-pin{
+  border:1px solid #b7dfc3!important;
+  background:#f0faf3!important;
+}
+.hr-page .hr-support-chip.attention{border-color:#f6d58a!important;background:#fff9e8!important}
+.hr-page .hr-support-chip.priority{border-color:#f2b8b5!important;background:#fff8f7!important}
+
+/* Empty state and offline import */
+.hr-page .hr-empty,.hr-page .hrc-offline-panel{
+  border-color:#c7d3e4!important;
+  background:#f8fafd!important;
+}
+.hr-page .hr-empty>span{
+  background:#d3e3fd!important;
+  color:#0b57d0!important;
+}
+.hr-page .hrc-import-preview{
+  border:1px solid #dfe4ea!important;
+  background:#f8fafd!important;
+}
+
+/* Dark theme keeps the same semantic color meaning with darker Material containers. */
+html[data-theme="dark"] .page.hr-page{
+  --hrg-blue-container:#1d3148;
+  --hrg-green-container:#153d27;
+  --hrg-yellow-container:#493b12;
+  --hrg-red-container:#52211f;
+  --hrg-purple-container:#3d254f;
+  background:#111315!important;
+}
+html[data-theme="dark"] .hr-page .hr-hero,
+html[data-theme="dark"] .hr-page .hr-panel,
+html[data-theme="dark"] .hr-page .hr-stat,
+html[data-theme="dark"] .hr-page .hr-leaderboard article{
+  border-color:#3b4046!important;
+  background:#1b1d1f!important;
+}
+html[data-theme="dark"] .hr-page .hr-hero-copy h1{
+  background:linear-gradient(90deg,#f1f3f4 0 56%,#a8c7fa 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+}
+html[data-theme="dark"] .hr-page .hr-hero-meta,
+html[data-theme="dark"] .hr-page .hr-tabs,
+html[data-theme="dark"] .hr-page .hr-share-panel{background:#202124!important;border-color:#3b4046!important}
+html[data-theme="dark"] .hr-page .hr-tabs button>span{background:#303134!important;color:#bdc1c6!important}
+html[data-theme="dark"] .hr-page .hr-tabs button.active{background:#004a77!important;color:#d3e3fd!important;box-shadow:inset 0 0 0 1px #4f7da5!important}
+html[data-theme="dark"] .hr-page .hr-panel-head{border-color:#303438!important}
+html[data-theme="dark"] .hr-page input,
+html[data-theme="dark"] .hr-page textarea,
+html[data-theme="dark"] .hr-page select{border-color:#44474b!important;background:#282a2d!important}
+html[data-theme="dark"] .hr-page .hr-table th{background:#25282c!important;color:#dfe3e7!important}
+html[data-theme="dark"] .hr-page .hr-table tbody tr:nth-child(even) td{background:#1d1f21!important}
+html[data-theme="dark"] .hr-page .hr-table tbody tr:hover td{background:#1d3148!important}
+html[data-theme="dark"] .hr-page .hr-quick-grid button,
+html[data-theme="dark"] .hr-page .hr-feedback-inbox article,
+html[data-theme="dark"] .hr-page .hr-attendance-card{background:#202124!important;border-color:#3b4046!important}
+
+@media (max-width:620px){
+  .hr-page .hr-hero::after{right:18px!important;bottom:16px!important;width:72px!important;height:9px!important}
+  .hr-page .hr-hero-copy>p::before{display:none!important}
+  .hr-page .hr-hero-copy h1{background:none!important;color:#202124!important;-webkit-text-fill-color:initial!important}
+  html[data-theme="dark"] .hr-page .hr-hero-copy h1{background:none!important;color:#f1f3f4!important;-webkit-text-fill-color:initial!important}
+}
