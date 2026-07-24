@@ -112,12 +112,16 @@ async function cacheFirstSupabaseMedia(request, url) {
   try {
     const fullResponse = await fetch(fullMediaRequest(request));
     if ((fullResponse.ok || fullResponse.type === 'opaque') && fullResponse.status !== 206) {
-      await cache.put(key, fullResponse.clone());
-      await trimMediaCache(cache);
+      try {
+        await cache.put(key, fullResponse.clone());
+        await trimMediaCache(cache);
+      } catch {
+        // The already downloaded response is still returned; never download it twice.
+      }
       return partialResponse(fullResponse, rangeHeader);
     }
   } catch {
-    // Fall through to the original range request.
+    // Fall through to the original range request only when the full request failed.
   }
 
   return fetch(request);
