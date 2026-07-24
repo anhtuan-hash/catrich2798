@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import VietnamAtmosphereOverlay from './VietnamAtmosphereOverlay.jsx';
 import { recordRuntimeError } from '../utils/runtimeDiagnostics.js';
 
 export default function GlobalRuntimeGuard({ language = 'vi' }) {
@@ -29,16 +30,22 @@ export default function GlobalRuntimeGuard({ language = 'vi' }) {
     };
   }, []);
 
-  if (online && !runtimeMessage) return null;
+  const showRuntimeBanner = !online || Boolean(runtimeMessage);
+
   return (
-    <aside className={`bes-runtime-banner ${online ? 'is-error' : 'is-offline'}`} role="status">
-      <span aria-hidden="true">{online ? '!' : '⌁'}</span>
-      <div>
-        <strong>{online ? (language === 'vi' ? 'Hệ thống vừa chặn một lỗi' : 'A runtime error was contained') : (language === 'vi' ? 'Bạn đang ngoại tuyến' : 'You are offline')}</strong>
-        <small>{online ? runtimeMessage : (language === 'vi' ? 'Bản nháp vẫn được lưu trên thiết bị và sẽ tiếp tục khi có mạng.' : 'Drafts remain saved on this device and work can continue.')}</small>
-      </div>
-      {online ? <button type="button" onClick={() => setRuntimeMessage('')}>{language === 'vi' ? 'Đóng' : 'Dismiss'}</button> : null}
-      <button type="button" onClick={() => { window.location.hash = '#/qa'; }}>{language === 'vi' ? 'Kiểm tra' : 'Health'}</button>
-    </aside>
+    <>
+      <VietnamAtmosphereOverlay />
+      {showRuntimeBanner ? (
+        <aside className={`bes-runtime-banner ${online ? 'is-error' : 'is-offline'}`} role="status">
+          <span aria-hidden="true">{online ? '!' : '⌁'}</span>
+          <div>
+            <strong>{online ? (language === 'vi' ? 'Hệ thống vừa chặn một lỗi' : 'A runtime error was contained') : (language === 'vi' ? 'Bạn đang ngoại tuyến' : 'You are offline')}</strong>
+            <small>{online ? runtimeMessage : (language === 'vi' ? 'Bản nháp vẫn được lưu trên thiết bị và sẽ tiếp tục khi có mạng.' : 'Drafts remain saved on this device and work can continue.')}</small>
+          </div>
+          {online ? <button type="button" onClick={() => setRuntimeMessage('')}>{language === 'vi' ? 'Đóng' : 'Dismiss'}</button> : null}
+          <button type="button" onClick={() => { window.location.hash = '#/qa'; }}>{language === 'vi' ? 'Kiểm tra' : 'Health'}</button>
+        </aside>
+      ) : null}
+    </>
   );
 }
