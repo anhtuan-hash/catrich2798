@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getRuntimeClient } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { downloadText, readLocal, safeJsonParse, scopedLocalKey, uid, writeLocal } from './v1093/shared.js';
@@ -6,6 +6,31 @@ import { downloadText, readLocal, safeJsonParse, scopedLocalKey, uid, writeLocal
 const TYPES = [['mcq','Trắc nghiệm'],['cloze','Cloze'],['wordform','Word form'],['ordering','Sắp xếp'],['short_answer','Trả lời ngắn'],['reading','Đọc hiểu'],['listening','Nghe']];
 const SKILLS = ['Grammar','Vocabulary','Reading','Listening','Use of English','Pronunciation'];
 const CEFR = ['A1','A2','B1','B2','C1','C2'];
+
+const ASSESSMENT_ITEM_COLUMNS = 'id,owner_id,visibility,status,question_type,stem,options,correct_answer,explanation,skill,cefr,topic,cognitive_level,difficulty,source,usage_count,created_at,updated_at';
+const BLUEPRINT_COLUMNS = 'id,owner_id,visibility,title,total_items,criteria,created_at,updated_at';
+const TEST_COLUMNS = 'id,owner_id,blueprint_id,visibility,title,status,settings,created_at,updated_at';
+const TEST_ITEM_COLUMNS = 'test_id,item_id,position,option_order,points';
+const ASSESSMENT_CACHE_TTL = 10 * 60 * 1000;
+const assessmentCache = new Map();
+
+function assessmentCacheKey(user) {
+  return String(user?.id || user?.email || 'guest');
+}
+
+function readAssessmentCache(user) {
+  const cached = assessmentCache.get(assessmentCacheKey(user));
+  if (!cached || Date.now() - cached.storedAt > ASSESSMENT_CACHE_TTL) return null;
+  return cached.value;
+}
+
+function writeAssessmentCache(user, value) {
+  assessmentCache.set(assessmentCacheKey(user), { storedAt: Date.now(), value });
+}
+
+function clearAssessmentCache(user) {
+  assessmentCache.delete(assessmentCacheKey(user));
+}
 
 function normalizeOptions(value) {
   if (Array.isArray(value)) return value.filter(Boolean).map(String);
@@ -75,26 +100,43 @@ export default function AssessmentCore({ currentUser }) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
+  const loadPromiseRef = useRef(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async ({ force = false } = {}) => {
     if (client && runtime.session) {
-      const results = await Promise.all([
-        client.from('assessment_items').select('*').order('updated_at', { ascending: false }).limit(3000),
-        client.from('assessment_blueprints').select('*').order('updated_at', { ascending: false }).limit(300),
-        client.from('assessment_tests').select('*').order('updated_at', { ascending: false }).limit(300),
-        client.from('assessment_test_items').select('*').order('position').limit(10000),
-      ]);
-      const firstError = results.find((result) => result.error)?.error;
-      if (!firstError) {
-        setItems((results[0].data || []).map((item) => ({ ...item, options: normalizeOptions(item.options) })));
-        setBlueprints(results[1].data || []); setTests(results[2].data || []); setTestLinks(results[3].data || []);
+      const cached = force ? null : readAssessmentCache(currentUser);
+      if (cached) {
+        setItems(cached.items); setBlueprints(cached.blueprints); setTests(cached.tests); setTestLinks(cached.testLinks);
         return;
       }
-      if (!/does not exist|schema cache/i.test(firstError.message || '')) setError(firstError.message);
+      if (loadPromiseRef.current) return loadPromiseRef.current;
+      const task = (async () => {
+        const results = await Promise.all([
+          client.from('assessment_items').select(ASSESSMENT_ITEM_COLUMNS).order('updated_at', { ascending: false }).limit(3000),
+          client.from('assessment_blueprints').select(BLUEPRINT_COLUMNS).order('updated_at', { ascending: false }).limit(300),
+          client.from('assessment_tests').select(TEST_COLUMNS).order('updated_at', { ascending: false }).limit(300),
+          client.from('assessment_test_items').select(TEST_ITEM_COLUMNS).order('position').limit(10000),
+        ]);
+        const firstError = results.find((result) => result.error)?.error;
+        if (!firstError) {
+          const value = {
+            items: (results[0].data || []).map((item) => ({ ...item, options: normalizeOptions(item.options) })),
+            blueprints: results[1].data || [], tests: results[2].data || [], testLinks: results[3].data || [],
+          };
+          writeAssessmentCache(currentUser, value);
+          setItems(value.items); setBlueprints(value.blueprints); setTests(value.tests); setTestLinks(value.testLinks);
+          return true;
+        }
+        if (!/does not exist|schema cache/i.test(firstError.message || '')) setError(firstError.message);
+        return false;
+      })();
+      loadPromiseRef.current = task;
+      try { if (await task) return; }
+      finally { loadPromiseRef.current = null; }
     }
     const local = readLocal(localKey, { items: [], blueprints: [], tests: [], testLinks: [] });
     setItems(local.items || []); setBlueprints(local.blueprints || []); setTests(local.tests || []); setTestLinks(local.testLinks || []);
-  }, [client, localKey, runtime.session]);
+  }, [client, currentUser?.id, currentUser?.email, localKey, runtime.session]);
 
   useEffect(() => {
     const transfer = safeJsonParse(sessionStorage.getItem('bes-v1093-content-to-assessment'), null);
@@ -127,6 +169,7 @@ export default function AssessmentCore({ currentUser }) {
       const payload = previewItems.map(({ id, ...item }) => ({ ...item, owner_id: currentUser.id, options: item.options || [], status: item.status || 'approved', updated_at: new Date().toISOString() }));
       let saved;
       if (client && runtime.session) {
+        clearAssessmentCache(currentUser);
         const { data, error: insertError } = await client.from('assessment_items').insert(payload).select('*');
         if (insertError) throw insertError;
         saved = (data || []).map((item) => ({ ...item, options: normalizeOptions(item.options) }));
@@ -147,6 +190,7 @@ export default function AssessmentCore({ currentUser }) {
     try {
       let blueprintRow; let testRow; let links;
       if (client && runtime.session) {
+        clearAssessmentCache(currentUser);
         const { data: savedBlueprint, error: blueprintError } = await client.from('assessment_blueprints').insert({ owner_id: currentUser.id, title: blueprint.title, total_items: Number(blueprint.total_items), criteria: { levels: blueprint.levels, skills: blueprint.skills, avoid_used: blueprint.avoid_used } }).select('*').single();
         if (blueprintError) throw blueprintError;
         blueprintRow = savedBlueprint;
