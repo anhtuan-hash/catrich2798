@@ -41,6 +41,7 @@ import './GlobalNotificationMenuLayerFix.css';
 import './GlobalNavigationFontScaleGuard.css';
 import './GlobalNavigationScrollableTabs.css';
 import './GlobalWordGraphGoogleM3.css';
+import './GlobalNotificationCountVisibilityFix.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
