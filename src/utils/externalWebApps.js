@@ -19,6 +19,9 @@ export const EXTERNAL_APP_GROUPS = [
 ];
 
 const REQUEST_TIMEOUT = 14000;
+const FAST_APPROVAL_CACHE_MS = 4500;
+let latestExternalAppsState = null;
+let fastApprovalCacheUntil = 0;
 
 export function safeExternalWebAppUrl(value) {
   const normalized = safeAiWebsiteUrl(value);
@@ -170,7 +173,15 @@ function hydrateRequests(requests = []) {
   return requests.filter(isExternalAppRequest).map((request) => ({ ...request, app: parseRequestPayload(request) }));
 }
 
+function updateRequestStatus(items = [], requestId, status) {
+  return items.map((item) => item.id === requestId ? { ...item, status } : item);
+}
+
 export async function loadExternalWebApps(user, { includeRequests = true } = {}) {
+  if (latestExternalAppsState && Date.now() < fastApprovalCacheUntil) {
+    return latestExternalAppsState;
+  }
+
   const manager = canManageAiWebsites(user);
   const snapshotPromise = loadAiWebsiteSettings(user);
   const minePromise = includeRequests && user?.id
@@ -186,12 +197,13 @@ export async function loadExternalWebApps(user, { includeRequests = true } = {})
     allPromise,
   ]);
 
-  return {
+  latestExternalAppsState = {
     approved: (snapshot.tools || []).map(externalAppFromTool).filter(Boolean),
     mine: hydrateRequests(minePayload.requests || []),
     requests: hydrateRequests(allPayload.requests || []),
     snapshot,
   };
+  return latestExternalAppsState;
 }
 
 export async function submitExternalWebApp(user, draft, language = 'vi') {
@@ -199,6 +211,7 @@ export async function submitExternalWebApp(user, draft, language = 'vi') {
   if (!app.name) throw new Error(language === 'vi' ? 'Vui lòng nhập tên ứng dụng.' : 'Please enter an app name.');
   if (!app.url) throw new Error(language === 'vi' ? 'Chỉ chấp nhận website HTTPS hợp lệ.' : 'Only valid HTTPS websites are accepted.');
   const result = await requestApi('', { method: 'POST', body: JSON.stringify({ app }) });
+  fastApprovalCacheUntil = 0;
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(PERMISSION_REQUESTS_EVENT));
   return result;
 }
@@ -220,24 +233,34 @@ export async function approveExternalWebApp(user, request, embedView = {}) {
   const tools = Array.isArray(payload.tools)
     ? payload.tools.map(normalizeAiWebsiteTool)
     : [approvedTool];
+  const snapshot = {
+    tools,
+    updatedAt: payload.updatedAt || new Date().toISOString(),
+    updatedBy: user?.email || user?.id || '',
+    source: 'supabase-fast-approval',
+    error: '',
+    setupRequired: false,
+  };
+
+  latestExternalAppsState = {
+    approved: tools.map(externalAppFromTool).filter(Boolean),
+    mine: updateRequestStatus(latestExternalAppsState?.mine || [], request.id, 'approved'),
+    requests: updateRequestStatus(latestExternalAppsState?.requests || [], request.id, 'approved'),
+    snapshot,
+  };
+  fastApprovalCacheUntil = Date.now() + FAST_APPROVAL_CACHE_MS;
 
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(PERMISSION_REQUESTS_EVENT));
   return {
     approvedTool,
     request: payload.request || { id: request.id, status: 'approved' },
-    snapshot: {
-      tools,
-      updatedAt: payload.updatedAt || new Date().toISOString(),
-      updatedBy: user?.email || user?.id || '',
-      source: 'supabase-fast-approval',
-      error: '',
-      setupRequired: false,
-    },
+    snapshot,
   };
 }
 
 export async function rejectExternalWebApp(requestId) {
   const result = await requestApi('', { method: 'PATCH', body: JSON.stringify({ id: requestId, status: 'rejected' }) });
+  fastApprovalCacheUntil = 0;
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(PERMISSION_REQUESTS_EVENT));
   return result;
 }
@@ -249,11 +272,13 @@ export async function updateApprovedExternalWebAppView(user, appId, embedView = 
       ? normalizeAiWebsiteTool({ ...tool, embedView: normalizeEmbedView(embedView) })
       : tool
   ));
+  fastApprovalCacheUntil = 0;
   return saveAiWebsiteSettings(user, nextTools);
 }
 
 export async function removeApprovedExternalWebApp(user, appId) {
   const snapshot = await loadAiWebsiteSettings(user);
+  fastApprovalCacheUntil = 0;
   await saveAiWebsiteSettings(user, (snapshot.tools || []).filter(
     (tool) => !(tool.kind === EXTERNAL_APP_KIND && tool.id === appId),
   ));
