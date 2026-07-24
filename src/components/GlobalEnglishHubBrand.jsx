@@ -17,8 +17,20 @@ function normalizeBrandButton(button) {
   button.setAttribute('aria-label', 'English Hub');
 }
 
+function hideRedundantHomeTab() {
+  const homeLabels = new Set(['Trang chủ', 'Home']);
+
+  document.querySelectorAll('.brian-nav__primary > button').forEach((button) => {
+    if (!homeLabels.has(String(button.textContent || '').trim())) return;
+    button.dataset.brianHomeTabHidden = 'true';
+    button.setAttribute('aria-hidden', 'true');
+    button.tabIndex = -1;
+  });
+}
+
 function applyEnglishHubBrand() {
   document.querySelectorAll('.brian-nav__brand').forEach(normalizeBrandButton);
+  hideRedundantHomeTab();
 
   document.querySelectorAll('.brian-overlap-home .boh-copy-panel > h1').forEach((node) => {
     if (node.textContent !== 'English Hub') node.textContent = 'English Hub';
@@ -47,7 +59,7 @@ export default function GlobalEnglishHubBrand() {
 
     applyEnglishHubBrand();
     const observer = new MutationObserver(scheduleApply);
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
     return () => {
       window.cancelAnimationFrame(frame);

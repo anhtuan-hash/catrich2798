@@ -1,3 +1,9 @@
+/* The brand button already returns to Home, so keep the duplicate Home tab out
+   of the visible and keyboard navigation while preserving the React-owned node. */
+body .brian-nav__primary > button[data-brian-home-tab-hidden="true"] {
+  display: none !important;
+}
+
 /* Stable primary-navigation order after the portal-rendered tabs are mounted. */
 body .brian-nav__primary > button:nth-of-type(1) { order: 1 !important; }
 body .brian-nav__primary > button:nth-of-type(2) { order: 2 !important; }
