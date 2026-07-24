@@ -56,17 +56,24 @@ replaceOnce(
   'persistent portal mount',
 );
 
-replaceOnce(
-`      className={\`brian-ai-workspace-layer \${expanded ? 'is-expanded' : ''}\`}
+const cleanLayer = `      className={\`brian-ai-workspace-layer \${expanded ? 'is-expanded' : ''}\`}
       role="presentation"
-`,
-`      className={\`brian-ai-workspace-layer \${expanded ? 'is-expanded' : ''}\`}
+`;
+const legacyHiddenLayer = `      className={\`brian-ai-workspace-layer \${expanded ? 'is-expanded' : ''}\`}
       style={open ? undefined : { display: 'none' }}
       aria-hidden={!open}
       role="presentation"
-`,
-  'hidden persistent layer',
-);
+`;
+const persistentHiddenLayer = `      className={\`brian-ai-workspace-layer \${expanded ? 'is-expanded' : ''} \${!open ? 'is-closed' : ''}\`}
+      aria-hidden={!open}
+      role="presentation"
+`;
+
+if (source.includes(legacyHiddenLayer)) {
+  source = source.replace(legacyHiddenLayer, persistentHiddenLayer);
+} else {
+  replaceOnce(cleanLayer, persistentHiddenLayer, 'hidden persistent layer');
+}
 
 fs.writeFileSync(target, source);
 console.log('AI workspace session persistence patch applied.');
