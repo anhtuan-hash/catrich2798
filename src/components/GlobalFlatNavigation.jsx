@@ -20,6 +20,7 @@ import './GlobalAppsGoogle.css';
 import './GlobalAppsContrastPolish.css';
 import './GlobalAppsAndroidLauncher.css';
 import './GlobalAppsWorkspaceRedesign.css';
+import './GlobalAppsWorkspaceCompact.css';
 import './GlobalNewsAndroidGoogle.css';
 import './GlobalNewsDrawerScroll.css';
 import './GlobalTextLabGoogleLarge.css';
