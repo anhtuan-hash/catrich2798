@@ -41,6 +41,7 @@ function preferenceKey(user) {
 export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }) {
   const [host, setHost] = useState(null);
   const [open, setOpen] = useState(false);
+  const [hasOpened, setHasOpened] = useState(false);
   const [manageMode, setManageMode] = useState(false);
   const [snapshot, setSnapshot] = useState(readAiWebsiteSettingsLocal);
   const [draftTools, setDraftTools] = useState(() => readAiWebsiteSettingsLocal().tools);
@@ -160,16 +161,16 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
     }
   };
 
-  const openWorkspace = async () => {
+  const openWorkspace = () => {
     if (open) {
       setOpen(false);
       setManageMode(false);
       setExpanded(false);
       return;
     }
+    setHasOpened(true);
     setOpen(true);
     setManageMode(false);
-    await refreshCloud();
   };
 
   const beginManage = () => {
@@ -282,9 +283,10 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
     availableTools.length <= 1 ? 'has-single-tool' : '',
   ].filter(Boolean).join(' ');
 
-  const workspace = open ? createPortal(
+  const workspace = hasOpened ? createPortal(
     <div
-      className={`brian-ai-workspace-layer ${expanded ? 'is-expanded' : ''}`}
+      className={`brian-ai-workspace-layer ${expanded ? 'is-expanded' : ''} ${!open ? 'is-closed' : ''}`}
+      aria-hidden={!open}
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !expanded) setOpen(false);

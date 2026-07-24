@@ -10,6 +10,7 @@ import {
   uploadAndShareMusic,
 } from '../utils/sharedMusic.js';
 import './GlobalMusicNavigationPopover.css';
+import './GlobalMusicShared.css';
 
 const DEFAULT_PREFERENCES = {
   expanded: false,
