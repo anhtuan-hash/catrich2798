@@ -1,0 +1,212 @@
+/* Dashboard data deduplication: one Work Hub block, more room for distinct sources. */
+
+.tdb-work-overview-card .tdb-card-body {
+  padding: 20px;
+}
+
+.tdb-work-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tdb-work-stat {
+  min-width: 0;
+  min-height: 110px;
+  padding: 16px 18px;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+  border: 1px solid #e2e6ea;
+  border-radius: 20px;
+  background: #f8fafd;
+  color: var(--tdb-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+
+.tdb-work-stat:hover {
+  transform: translateY(-2px);
+  border-color: #a8c7fa;
+  background: #f3f7ff;
+}
+
+.tdb-work-stat span {
+  color: var(--tdb-muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.tdb-work-stat strong {
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -.035em;
+}
+
+.tdb-work-stat small {
+  overflow: hidden;
+  color: var(--tdb-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tdb-work-stat.is-progress {
+  border-color: #c6dafc;
+  background: var(--tdb-blue-soft);
+  color: var(--tdb-blue);
+}
+
+.tdb-work-stat.is-overdue {
+  border-color: #f2c7c3;
+  background: var(--tdb-red-soft);
+  color: var(--tdb-red);
+}
+
+.tdb-work-stat.is-soon {
+  border-color: #f3d8a8;
+  background: var(--tdb-amber-soft);
+  color: var(--tdb-amber);
+}
+
+.tdb-work-toolbar {
+  margin: 18px 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.tdb-work-toolbar > small {
+  max-width: 620px;
+  color: var(--tdb-muted);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.tdb-work-tabs {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #eef1f4;
+}
+
+.tdb-work-tabs button {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #4d5156;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.tdb-work-tabs button:hover {
+  background: rgba(255,255,255,.74);
+}
+
+.tdb-work-tabs button.is-active {
+  background: #fff;
+  color: var(--tdb-blue);
+  box-shadow: 0 1px 3px rgba(60,64,67,.18);
+}
+
+.tdb-work-view-panel {
+  min-height: 220px;
+  padding: 14px;
+  border: 1px solid #e4e7eb;
+  border-radius: 22px;
+  background: #fbfcfe;
+}
+
+.tdb-work-list {
+  max-height: 520px;
+}
+
+.tdb-selected-day-head {
+  margin: 14px 2px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tdb-selected-day-head strong {
+  color: var(--tdb-ink);
+  font-size: 16px;
+  text-transform: capitalize;
+}
+
+.tdb-selected-day-head span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--tdb-blue-soft);
+  color: var(--tdb-blue);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.tdb-work-calendar-events {
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 3px;
+  scrollbar-color: #c4c7c5 transparent;
+  scrollbar-width: thin;
+}
+
+@media (max-width: 980px) {
+  .tdb-work-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tdb-work-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .tdb-work-toolbar > small {
+    text-align: left;
+  }
+}
+
+@media (max-width: 620px) {
+  .tdb-work-overview-card .tdb-card-body {
+    padding: 14px;
+  }
+
+  .tdb-work-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .tdb-work-stat {
+    min-height: 96px;
+    padding: 13px;
+    border-radius: 17px;
+  }
+
+  .tdb-work-stat strong {
+    font-size: 26px;
+  }
+
+  .tdb-work-tabs {
+    width: 100%;
+  }
+
+  .tdb-work-tabs button {
+    flex: 1;
+    min-width: 0;
+    padding: 0 10px;
+  }
+
+  .tdb-work-view-panel {
+    padding: 10px;
+    border-radius: 18px;
+  }
+}
