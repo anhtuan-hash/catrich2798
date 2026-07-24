@@ -1,19 +1,23 @@
 const AI_REMOVED_ROUTES = new Set(['ai-workspace', 'ai-governance', 'prompt-studio', 'ai-tool']);
-const AI_STORAGE_PREFIXES = ['bes-ai-', 'brian-ai', 'openrouter', 'ai-provider'];
+const AI_STORAGE_PREFIXES = ['bes-ai-hide-active-name-', 'brian-ai-chatbot', 'bes-chatbot'];
 const REMOVE_SELECTORS = [
   '.ai-messenger-v10831', '.global-ai-indicator', '.universal-ai-assist',
   '.ai-copilot-panel', '.ai-smart-model-selector', '.api-notice',
-  '[data-ai-feature]', '[data-provider="openrouter"]',
   '.settings-v47-provider-card', '.settings-v47-security-card',
   '.settings-v65-provider-badges', '.settings-v47-ai-chip',
   '.settings-v47-provider-node', '.shared-chatbot-drawer',
-];
+  '.bes-chatbot-root', '.bes-chatbot-fab', '.bes-chatbot-launcher',
+  '.chatbot-root', '.chatbot-fab', '.chatbot-launcher',
+  '.floating-chatbot', '.floating-chatbot-button',
+  '.ai-chatbot-fab', '.ai-chatbot-launcher',
+  '.brian-ai-workspace', '.brian-ai-workspace-layer',
+  '.brian-nav__ai-wrap', '.brian-nav__ai-button',
+  '[data-chatbot-root]', '[data-chatbot-launcher]',
+  '[data-ai-chatbot-launcher]',
+].join(',');
 const ACTION_PATTERNS = [
-  /\bopenrouter\b/i, /\bai provider\b/i, /\bapi key\b/i,
   /\bbrian ai\b/i, /\bai copilot\b/i, /\bai assistant\b/i,
-  /trợ lý ai/i, /quản trị ai/i, /không gian ai/i, /kết nối ai/i,
-  /dùng ai/i, /tạo bằng ai/i, /phân tích bằng ai/i, /ai đọc/i,
-  /ai hỗ trợ/i, /ai sẵn sàng/i, /ask ai/i, /open ai/i,
+  /trợ lý ai/i, /không gian ai/i, /chat\s*bot/i,
 ];
 
 function cleanStorage() {
@@ -29,12 +33,16 @@ function cleanStorage() {
   }
 }
 
-function removeVisibleAiControls(root = document) {
-  REMOVE_SELECTORS.forEach((selector) => root.querySelectorAll?.(selector).forEach((node) => node.remove()));
-  root.querySelectorAll?.('button, a, [role="button"], label').forEach((node) => {
-    const text = String(node.textContent || '').replace(/\s+/g, ' ').trim();
+function removeLegacyAiNodes(root = document) {
+  if (!root?.querySelectorAll) return;
+  root.querySelectorAll(REMOVE_SELECTORS).forEach((node) => node.remove());
+  root.querySelectorAll('button, a, [role="button"]').forEach((node) => {
+    const text = `${node.textContent || ''} ${node.getAttribute('aria-label') || ''} ${node.getAttribute('title') || ''}`
+      .replace(/\s+/g, ' ')
+      .trim();
     if (text && ACTION_PATTERNS.some((pattern) => pattern.test(text))) node.remove();
   });
+  document.documentElement.classList.remove('bes-ai-workspace-open');
 }
 
 function redirectRemovedRoute() {
@@ -45,12 +53,19 @@ function redirectRemovedRoute() {
 export function installAiRemovalGuard() {
   if (typeof window === 'undefined' || window.__BRIAN_AI_REMOVED__) return;
   window.__BRIAN_AI_REMOVED__ = true;
-  document.documentElement.dataset.ai = 'removed';
+  document.documentElement.dataset.aiChatbot = 'removed';
   cleanStorage();
   redirectRemovedRoute();
-  removeVisibleAiControls();
+  removeLegacyAiNodes();
   window.addEventListener('hashchange', redirectRemovedRoute);
-  const observer = new MutationObserver(() => removeVisibleAiControls());
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => mutation.addedNodes.forEach((node) => {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        if (node.matches?.(REMOVE_SELECTORS)) node.remove();
+        else removeLegacyAiNodes(node);
+      }
+    }));
+  });
   observer.observe(document.documentElement, { childList: true, subtree: true });
   window.addEventListener('bes-ai-open', (event) => event.stopImmediatePropagation(), true);
   window.addEventListener('bes-chatbot-drawer-open', (event) => event.stopImmediatePropagation(), true);
