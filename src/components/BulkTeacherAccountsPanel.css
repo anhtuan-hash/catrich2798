@@ -4,182 +4,582 @@
   bottom: 150px;
   z-index: 1265;
   font-family: inherit;
+  --bulk-primary: #0b57d0;
+  --bulk-primary-container: #d3e3fd;
+  --bulk-on-primary-container: #041e49;
+  --bulk-surface: #ffffff;
+  --bulk-surface-low: #f8fafd;
+  --bulk-surface-container: #f1f3f4;
+  --bulk-outline: #dadce0;
+  --bulk-outline-strong: #c4c7c5;
+  --bulk-ink: #202124;
+  --bulk-muted: #5f6368;
+}
+
+.bes-bulk-accounts.is-open::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: rgba(32, 33, 36, 0.34);
+  backdrop-filter: blur(3px);
 }
 
 .bes-bulk-accounts__launcher {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  min-height: 46px;
-  padding: 10px 15px 10px 11px;
-  border: 1px solid rgba(32, 91, 166, 0.16);
-  border-radius: 16px;
-  background: rgba(245, 250, 255, 0.95);
-  color: #123b70;
-  box-shadow: 0 16px 42px rgba(28, 55, 92, 0.17);
-  backdrop-filter: blur(18px) saturate(1.15);
+  min-height: 48px;
+  padding: 8px 18px 8px 8px;
+  border: 1px solid rgba(11, 87, 208, 0.12);
+  border-radius: 24px;
+  background: rgba(248, 250, 253, 0.96);
+  color: var(--bulk-on-primary-container);
+  box-shadow: 0 8px 24px rgba(60, 64, 67, 0.18), 0 1px 3px rgba(60, 64, 67, 0.12);
+  backdrop-filter: blur(18px) saturate(1.08);
   cursor: pointer;
+  transition: box-shadow 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.bes-bulk-accounts__launcher:hover {
+  background: #eef3fb;
+  box-shadow: 0 12px 30px rgba(60, 64, 67, 0.22), 0 2px 6px rgba(60, 64, 67, 0.14);
+  transform: translateY(-1px);
 }
 
 .bes-bulk-accounts__launcher span {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  background: #1769c2;
-  color: white;
-  font-size: 21px;
+  width: 34px;
+  height: 34px;
+  border-radius: 17px;
+  background: var(--bulk-primary);
+  color: #fff;
+  font-size: 23px;
+  font-weight: 400;
 }
 
-.bes-bulk-accounts__launcher b { font-size: 13px; }
+.bes-bulk-accounts__launcher b {
+  font-size: 13px;
+  font-weight: 700;
+}
 
 .bes-bulk-accounts__panel {
-  position: absolute;
-  right: 0;
-  bottom: 58px;
-  width: min(920px, calc(100vw - 30px));
-  max-height: min(820px, calc(100vh - 80px));
-  overflow: auto;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  display: flex;
+  flex-direction: column;
+  width: min(1120px, calc(100vw - 48px));
+  height: min(760px, calc(100dvh - 48px));
+  min-height: min(560px, calc(100dvh - 32px));
+  overflow: hidden;
   overscroll-behavior: contain;
-  border: 1px solid rgba(32, 74, 125, 0.12);
-  border-radius: 26px;
-  background: rgba(253, 254, 255, 0.98);
-  color: #172131;
-  box-shadow: 0 32px 100px rgba(20, 38, 67, 0.24);
-  backdrop-filter: blur(26px) saturate(1.15);
-  animation: bes-bulk-enter 220ms cubic-bezier(.2,.8,.2,1);
+  border: 1px solid rgba(60, 64, 67, 0.12);
+  border-radius: 28px;
+  background: var(--bulk-surface);
+  color: var(--bulk-ink);
+  box-shadow: 0 24px 72px rgba(32, 33, 36, 0.28), 0 4px 12px rgba(32, 33, 36, 0.14);
+  transform: translate(-50%, -50%);
+  animation: bes-bulk-enter 200ms cubic-bezier(.2, 0, 0, 1);
 }
 
 @keyframes bes-bulk-enter {
-  from { opacity: 0; transform: translateY(12px) scale(.98); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)) scale(.985); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
 .bes-bulk-accounts__panel > header {
+  flex: 0 0 auto;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 22px 24px 18px;
-  border-bottom: 1px solid rgba(28, 66, 112, 0.09);
-  background: radial-gradient(circle at 100% 0%, rgba(75, 145, 226, 0.18), transparent 42%), linear-gradient(135deg, rgba(29, 107, 194, 0.06), transparent);
+  min-height: 72px;
+  padding: 14px 20px 14px 24px;
+  border-bottom: 1px solid var(--bulk-outline);
+  background: linear-gradient(100deg, #f8fafd 0%, #edf3fe 58%, #e8f0fe 100%);
+}
+
+.bes-bulk-accounts__panel > header > div {
+  min-width: 0;
 }
 
 .bes-bulk-accounts__panel > header span {
-  color: #1765b8;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .1em;
+  color: var(--bulk-primary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
 }
 
-.bes-bulk-accounts__panel > header h2 { margin: 5px 0 0; font-size: 25px; }
-.bes-bulk-accounts__panel > header p { margin: 7px 0 0; color: #647286; font-size: 13px; }
+.bes-bulk-accounts__panel > header h2 {
+  margin: 3px 0 0;
+  color: var(--bulk-ink);
+  font-size: clamp(18px, 2vw, 23px);
+  font-weight: 600;
+  letter-spacing: -.025em;
+}
+
+.bes-bulk-accounts__panel > header p {
+  margin: 3px 0 0;
+  overflow: hidden;
+  color: var(--bulk-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .bes-bulk-accounts__panel > header > button {
   display: grid;
+  flex: 0 0 auto;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border: 0;
-  border-radius: 12px;
-  background: rgba(20, 43, 73, .07);
-  color: #26384f;
+  border-radius: 20px;
+  background: transparent;
+  color: var(--bulk-muted);
   font-size: 25px;
   cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.bes-bulk-accounts__panel > header > button:hover {
+  background: rgba(60, 64, 67, 0.09);
+  color: var(--bulk-ink);
 }
 
 .bes-bulk-accounts__generator {
+  flex: 0 0 auto;
   display: grid;
-  grid-template-columns: 100px 110px 100px minmax(190px, 1fr) auto;
+  grid-template-columns: 88px 100px 88px minmax(200px, 1fr) auto;
+  align-items: end;
   gap: 10px;
-  padding: 18px 22px;
-  border-bottom: 1px solid rgba(28, 66, 112, 0.08);
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--bulk-outline);
+  background: var(--bulk-surface);
 }
 
-.bes-bulk-accounts__generator label { display: grid; gap: 5px; }
-.bes-bulk-accounts__generator label span { color: #5e6d80; font-size: 10px; font-weight: 700; }
+.bes-bulk-accounts__generator label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bes-bulk-accounts__generator label span {
+  color: var(--bulk-muted);
+  font-size: 10px;
+  font-weight: 600;
+}
+
 .bes-bulk-accounts input,
 .bes-bulk-accounts textarea {
   box-sizing: border-box;
   width: 100%;
-  border: 1px solid rgba(38, 72, 113, .15);
-  border-radius: 11px;
-  background: rgba(255,255,255,.9);
-  color: #172131;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--bulk-surface-container);
+  color: var(--bulk-ink);
   font: inherit;
   outline: none;
+  transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
 }
-.bes-bulk-accounts input { height: 38px; padding: 8px 10px; font-size: 12px; }
-.bes-bulk-accounts textarea { min-height: 95px; padding: 10px 12px; resize: vertical; font-size: 11px; line-height: 1.45; }
-.bes-bulk-accounts input:focus,
-.bes-bulk-accounts textarea:focus { border-color: #3d8bd8; box-shadow: 0 0 0 3px rgba(61,139,216,.12); }
 
-.bes-bulk-accounts button { font-family: inherit; }
+.bes-bulk-accounts input {
+  height: 36px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.bes-bulk-accounts textarea {
+  min-height: 82px;
+  padding: 9px 11px;
+  resize: vertical;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.bes-bulk-accounts input:hover,
+.bes-bulk-accounts textarea:hover {
+  background: #eceff1;
+}
+
+.bes-bulk-accounts input:focus,
+.bes-bulk-accounts textarea:focus {
+  border-color: var(--bulk-primary);
+  background: var(--bulk-surface);
+  box-shadow: 0 0 0 1px var(--bulk-primary);
+}
+
+.bes-bulk-accounts button {
+  font-family: inherit;
+}
+
 .bes-bulk-accounts__generator > button,
 .bes-bulk-accounts__csv button,
 .bes-bulk-accounts__main-actions button,
 .bes-bulk-accounts__reset button {
+  min-height: 36px;
   border: 0;
-  border-radius: 11px;
-  padding: 9px 12px;
+  border-radius: 18px;
+  padding: 8px 14px;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
+  transition: background 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 }
-.bes-bulk-accounts__generator > button { align-self: end; min-height: 38px; background: #e6f1fc; color: #145b9d; }
+
+.bes-bulk-accounts__generator > button {
+  align-self: end;
+  min-width: 132px;
+  background: var(--bulk-primary-container);
+  color: var(--bulk-on-primary-container);
+}
+
+.bes-bulk-accounts__generator > button:hover,
+.bes-bulk-accounts__csv button:hover,
+.bes-bulk-accounts__main-actions .secondary:hover,
+.bes-bulk-accounts__reset button:hover {
+  filter: brightness(.97);
+}
 
 .bes-bulk-accounts__csv,
 .bes-bulk-accounts__reset {
-  margin: 0 22px 14px;
-  border: 1px solid rgba(38, 72, 113, .1);
-  border-radius: 15px;
-  background: rgba(247, 250, 253, .78);
+  flex: 0 0 auto;
+  margin: 8px 20px 0;
+  overflow: hidden;
+  border: 1px solid var(--bulk-outline);
+  border-radius: 14px;
+  background: var(--bulk-surface-low);
 }
-.bes-bulk-accounts__csv { margin-top: 14px; }
+
+.bes-bulk-accounts__csv[open] {
+  max-height: 178px;
+  overflow: auto;
+}
+
 .bes-bulk-accounts__csv summary,
-.bes-bulk-accounts__reset summary { padding: 12px 14px; font-size: 12px; font-weight: 800; cursor: pointer; }
-.bes-bulk-accounts__csv p { margin: 0 14px 9px; color: #6f7d8e; font-size: 10px; }
-.bes-bulk-accounts__csv textarea { width: calc(100% - 28px); margin: 0 14px; }
-.bes-bulk-accounts__csv > div { display: flex; gap: 8px; padding: 10px 14px 13px; }
-.bes-bulk-accounts__csv button { background: #edf3f9; color: #24507e; }
+.bes-bulk-accounts__reset summary {
+  position: relative;
+  padding: 10px 14px;
+  color: #3c4043;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+  list-style-position: inside;
+}
 
-.bes-bulk-accounts__table-wrap { margin: 0 22px; overflow: auto; border: 1px solid rgba(38,72,113,.1); border-radius: 16px; }
-.bes-bulk-accounts table { width: 100%; min-width: 820px; border-collapse: collapse; }
-.bes-bulk-accounts th { padding: 9px 8px; background: #f1f6fb; color: #506176; font-size: 10px; text-align: left; white-space: nowrap; }
-.bes-bulk-accounts td { padding: 6px; border-top: 1px solid rgba(38,72,113,.07); vertical-align: middle; }
-.bes-bulk-accounts td:first-child { width: 34px; color: #8491a0; font-size: 10px; text-align: center; }
-.bes-bulk-accounts td:nth-child(2) { width: 125px; }
-.bes-bulk-accounts td:nth-child(3) { width: 185px; }
-.bes-bulk-accounts td:nth-child(4) { width: 165px; }
-.bes-bulk-accounts td:nth-child(5) { width: 170px; }
-.bes-bulk-accounts td:nth-child(6) { min-width: 135px; }
-.bes-bulk-accounts td input { height: 33px; padding: 6px 8px; font-size: 11px; }
-.bes-bulk-accounts tr.is-success { background: rgba(42, 163, 90, .055); }
-.bes-bulk-accounts tr.is-error { background: rgba(210, 55, 48, .055); }
-.bes-bulk-accounts td small { display: block; max-width: 180px; color: #6c7785; font-size: 9px; line-height: 1.35; }
-.bes-bulk-accounts tr.is-success td small { color: #177542; font-weight: 800; }
-.bes-bulk-accounts tr.is-error td small { color: #b03832; }
-.password-cell { display: grid; grid-template-columns: 1fr 31px; gap: 4px; }
+.bes-bulk-accounts__csv p {
+  margin: 0 14px 7px;
+  color: var(--bulk-muted);
+  font-size: 9px;
+}
+
+.bes-bulk-accounts__csv textarea {
+  width: calc(100% - 28px);
+  margin: 0 14px;
+}
+
+.bes-bulk-accounts__csv > div {
+  display: flex;
+  gap: 8px;
+  padding: 8px 14px 11px;
+}
+
+.bes-bulk-accounts__csv button,
+.bes-bulk-accounts__reset button {
+  background: #e8f0fe;
+  color: #174ea6;
+}
+
+.bes-bulk-accounts__table-wrap {
+  position: relative;
+  flex: 1 1 310px;
+  min-height: 170px;
+  margin: 8px 20px 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  border: 1px solid var(--bulk-outline);
+  border-radius: 16px;
+  background: var(--bulk-surface);
+}
+
+.bes-bulk-accounts__table-wrap::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.bes-bulk-accounts__table-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bes-bulk-accounts__table-wrap::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: #bdc1c6;
+  background-clip: padding-box;
+}
+
+.bes-bulk-accounts__table-wrap::-webkit-scrollbar-thumb:hover {
+  background: #9aa0a6;
+  background-clip: padding-box;
+}
+
+.bes-bulk-accounts table {
+  width: 100%;
+  min-width: 860px;
+  border-spacing: 0;
+  border-collapse: separate;
+}
+
+.bes-bulk-accounts thead {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.bes-bulk-accounts th {
+  height: 38px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--bulk-outline);
+  background: #f8fafd;
+  color: var(--bulk-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .025em;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.bes-bulk-accounts th:first-child {
+  border-top-left-radius: 15px;
+}
+
+.bes-bulk-accounts th:last-child {
+  border-top-right-radius: 15px;
+}
+
+.bes-bulk-accounts td {
+  height: 44px;
+  padding: 4px 6px;
+  border-bottom: 1px solid #edf0f2;
+  background: var(--bulk-surface);
+  vertical-align: middle;
+  transition: background 120ms ease;
+}
+
+.bes-bulk-accounts tbody tr:hover td {
+  background: #f8fafd;
+}
+
+.bes-bulk-accounts tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.bes-bulk-accounts td:first-child {
+  width: 32px;
+  color: #80868b;
+  font-size: 10px;
+  text-align: center;
+}
+
+.bes-bulk-accounts td:nth-child(2) { width: 126px; }
+.bes-bulk-accounts td:nth-child(3) { width: 180px; }
+.bes-bulk-accounts td:nth-child(4) { width: 166px; }
+.bes-bulk-accounts td:nth-child(5) { width: 180px; }
+.bes-bulk-accounts td:nth-child(6) { min-width: 126px; }
+.bes-bulk-accounts td:last-child { width: 38px; }
+
+.bes-bulk-accounts td input {
+  height: 32px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: #f1f3f4;
+  font-size: 10.5px;
+}
+
+.bes-bulk-accounts tr.is-success td {
+  background: #f2fbf5;
+}
+
+.bes-bulk-accounts tr.is-error td {
+  background: #fff7f6;
+}
+
+.bes-bulk-accounts td small {
+  display: block;
+  max-width: 180px;
+  overflow: hidden;
+  color: var(--bulk-muted);
+  font-size: 9px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+}
+
+.bes-bulk-accounts tr.is-success td small {
+  color: #137333;
+  font-weight: 700;
+}
+
+.bes-bulk-accounts tr.is-error td small {
+  color: #b3261e;
+}
+
+.password-cell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  gap: 4px;
+}
+
 .password-cell button,
-.row-delete { border: 0; border-radius: 9px; cursor: pointer; }
-.password-cell button { background: #eaf1f8; color: #1b5e9c; }
-.row-delete { width: 28px; height: 28px; background: #fff0ee; color: #b2342c; font-size: 17px; }
+.row-delete {
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 15px;
+  cursor: pointer;
+}
 
-.bes-bulk-accounts__main-actions { display: flex; align-items: center; gap: 9px; padding: 15px 22px; }
-.bes-bulk-accounts__main-actions span { margin-left: auto; color: #6c7a8d; font-size: 11px; font-weight: 800; }
-.bes-bulk-accounts__main-actions .secondary { background: #edf2f7; color: #294c71; }
-.bes-bulk-accounts__main-actions .primary { min-width: 145px; background: #1769c2; color: white; box-shadow: 0 9px 23px rgba(23,105,194,.23); }
-.bes-bulk-accounts button:disabled { opacity: .5; cursor: not-allowed; }
+.password-cell button {
+  background: #e8f0fe;
+  color: #185abc;
+}
 
-.bes-bulk-accounts__summary { display: flex; gap: 10px; padding: 0 22px 13px; }
-.bes-bulk-accounts__summary b { padding: 6px 9px; border-radius: 999px; background: #eef5fb; color: #315b85; font-size: 10px; }
+.row-delete {
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  color: #5f6368;
+  font-size: 17px;
+}
 
-.bes-bulk-accounts__reset > div { display: grid; grid-template-columns: 160px 1fr 38px auto; gap: 7px; padding: 0 13px 13px; }
-.bes-bulk-accounts__reset button { background: #e9f1f9; color: #205c94; }
-.bes-bulk-accounts__reset button:last-child { background: #cf3b34; color: white; }
+.row-delete:hover {
+  background: #fce8e6;
+  color: #b3261e;
+}
 
-.bes-bulk-accounts__message { margin: 0 22px 12px; padding: 10px 12px; border-radius: 12px; background: #eef5fb; color: #2b557f; font-size: 11px; font-weight: 700; line-height: 1.4; }
-.bes-bulk-accounts__panel footer { padding: 0 22px 19px; color: #7b8795; font-size: 10px; line-height: 1.4; text-align: center; }
+.bes-bulk-accounts__main-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 58px;
+  padding: 10px 20px;
+  border-top: 1px solid var(--bulk-outline);
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 -4px 14px rgba(60, 64, 67, 0.06);
+}
+
+.bes-bulk-accounts__main-actions span {
+  margin-left: auto;
+  padding: 5px 9px;
+  border-radius: 12px;
+  background: var(--bulk-surface-container);
+  color: var(--bulk-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.bes-bulk-accounts__main-actions .secondary {
+  background: #f1f3f4;
+  color: #3c4043;
+}
+
+.bes-bulk-accounts__main-actions .primary {
+  min-width: 142px;
+  background: var(--bulk-primary);
+  color: #fff;
+  box-shadow: 0 2px 5px rgba(11, 87, 208, .22);
+}
+
+.bes-bulk-accounts__main-actions .primary:hover {
+  background: #0842a0;
+  box-shadow: 0 4px 10px rgba(11, 87, 208, .28);
+}
+
+.bes-bulk-accounts button:disabled {
+  opacity: .48;
+  cursor: not-allowed;
+}
+
+.bes-bulk-accounts__summary {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
+  padding: 8px 20px 0;
+}
+
+.bes-bulk-accounts__summary b {
+  padding: 5px 9px;
+  border-radius: 12px;
+  background: #e6f4ea;
+  color: #137333;
+  font-size: 9px;
+}
+
+.bes-bulk-accounts__summary b + b {
+  background: #fce8e6;
+  color: #b3261e;
+}
+
+.bes-bulk-accounts__reset {
+  margin-top: 8px;
+}
+
+.bes-bulk-accounts__reset[open] {
+  max-height: 104px;
+}
+
+.bes-bulk-accounts__reset > div {
+  display: grid;
+  grid-template-columns: 150px minmax(170px, 1fr) 36px auto;
+  gap: 7px;
+  padding: 0 12px 11px;
+}
+
+.bes-bulk-accounts__reset button:last-child {
+  background: #b3261e;
+  color: #fff;
+}
+
+.bes-bulk-accounts__message {
+  flex: 0 0 auto;
+  margin: 8px 20px 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #e8f0fe;
+  color: #174ea6;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.bes-bulk-accounts__panel footer {
+  flex: 0 0 auto;
+  padding: 8px 20px 12px;
+  color: var(--bulk-muted);
+  font-size: 9px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+html[data-theme='dark'] .bes-bulk-accounts,
+body[data-theme='dark'] .bes-bulk-accounts,
+.theme-dark .bes-bulk-accounts {
+  --bulk-primary: #a8c7fa;
+  --bulk-primary-container: #0842a0;
+  --bulk-on-primary-container: #d3e3fd;
+  --bulk-surface: #202124;
+  --bulk-surface-low: #282a2d;
+  --bulk-surface-container: #303134;
+  --bulk-outline: #5f6368;
+  --bulk-outline-strong: #80868b;
+  --bulk-ink: #e8eaed;
+  --bulk-muted: #bdc1c6;
+}
 
 html[data-theme='dark'] .bes-bulk-accounts__launcher,
 body[data-theme='dark'] .bes-bulk-accounts__launcher,
@@ -187,9 +587,35 @@ body[data-theme='dark'] .bes-bulk-accounts__launcher,
 html[data-theme='dark'] .bes-bulk-accounts__panel,
 body[data-theme='dark'] .bes-bulk-accounts__panel,
 .theme-dark .bes-bulk-accounts__panel {
-  border-color: rgba(255,255,255,.11);
-  background: rgba(28, 32, 39, .97);
-  color: #f2f5f8;
+  border-color: rgba(255, 255, 255, .12);
+  background: var(--bulk-surface);
+  color: var(--bulk-ink);
+}
+
+html[data-theme='dark'] .bes-bulk-accounts__panel > header,
+body[data-theme='dark'] .bes-bulk-accounts__panel > header,
+.theme-dark .bes-bulk-accounts__panel > header,
+html[data-theme='dark'] .bes-bulk-accounts__main-actions,
+body[data-theme='dark'] .bes-bulk-accounts__main-actions,
+.theme-dark .bes-bulk-accounts__main-actions {
+  background: #282a2d;
+}
+
+html[data-theme='dark'] .bes-bulk-accounts th,
+body[data-theme='dark'] .bes-bulk-accounts th,
+.theme-dark .bes-bulk-accounts th,
+html[data-theme='dark'] .bes-bulk-accounts td,
+body[data-theme='dark'] .bes-bulk-accounts td,
+.theme-dark .bes-bulk-accounts td {
+  border-color: #3c4043;
+  background: var(--bulk-surface);
+  color: var(--bulk-ink);
+}
+
+html[data-theme='dark'] .bes-bulk-accounts tbody tr:hover td,
+body[data-theme='dark'] .bes-bulk-accounts tbody tr:hover td,
+.theme-dark .bes-bulk-accounts tbody tr:hover td {
+  background: #282a2d;
 }
 
 html[data-theme='dark'] .bes-bulk-accounts input,
@@ -198,28 +624,133 @@ body[data-theme='dark'] .bes-bulk-accounts input,
 html[data-theme='dark'] .bes-bulk-accounts textarea,
 body[data-theme='dark'] .bes-bulk-accounts textarea,
 .theme-dark .bes-bulk-accounts textarea {
-  border-color: rgba(255,255,255,.12);
-  background: rgba(255,255,255,.055);
-  color: #f4f6f8;
+  border-color: transparent;
+  background: #303134;
+  color: #e8eaed;
 }
 
 @media (max-width: 880px) {
-  .bes-bulk-accounts__generator { grid-template-columns: repeat(2, minmax(0,1fr)); }
-  .bes-bulk-accounts__generator .wide { grid-column: 1 / -1; }
-  .bes-bulk-accounts__generator > button { grid-column: 1 / -1; }
+  .bes-bulk-accounts__panel {
+    width: calc(100vw - 24px);
+    height: calc(100dvh - 24px);
+  }
+
+  .bes-bulk-accounts__generator {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .bes-bulk-accounts__generator .wide {
+    grid-column: 1 / 3;
+  }
 }
 
 @media (max-width: 680px) {
-  .bes-bulk-accounts { right: 12px; bottom: 132px; }
-  .bes-bulk-accounts__launcher b { display: none; }
-  .bes-bulk-accounts__launcher { padding-right: 11px; }
-  .bes-bulk-accounts__panel { position: fixed; inset: 8px; width: auto; max-height: none; border-radius: 21px; }
-  .bes-bulk-accounts__reset > div { grid-template-columns: 1fr; }
-  .bes-bulk-accounts__main-actions { flex-wrap: wrap; }
-  .bes-bulk-accounts__main-actions span { margin-left: 0; }
-  .bes-bulk-accounts__main-actions .primary { margin-left: auto; }
+  .bes-bulk-accounts {
+    right: 12px;
+    bottom: 132px;
+  }
+
+  .bes-bulk-accounts__launcher b {
+    display: none;
+  }
+
+  .bes-bulk-accounts__launcher {
+    padding-right: 8px;
+  }
+
+  .bes-bulk-accounts__panel {
+    width: calc(100vw - 12px);
+    height: calc(100dvh - 12px);
+    min-height: 0;
+    border-radius: 22px;
+  }
+
+  .bes-bulk-accounts__panel > header {
+    min-height: 64px;
+    padding: 11px 12px 11px 16px;
+  }
+
+  .bes-bulk-accounts__panel > header p {
+    display: none;
+  }
+
+  .bes-bulk-accounts__generator {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 10px 12px;
+  }
+
+  .bes-bulk-accounts__generator .wide,
+  .bes-bulk-accounts__generator > button {
+    grid-column: 1 / -1;
+  }
+
+  .bes-bulk-accounts__csv,
+  .bes-bulk-accounts__reset,
+  .bes-bulk-accounts__table-wrap,
+  .bes-bulk-accounts__message {
+    margin-right: 12px;
+    margin-left: 12px;
+  }
+
+  .bes-bulk-accounts__main-actions {
+    flex-wrap: wrap;
+    padding: 9px 12px;
+  }
+
+  .bes-bulk-accounts__main-actions span {
+    margin-left: 0;
+  }
+
+  .bes-bulk-accounts__main-actions .primary {
+    margin-left: auto;
+  }
+
+  .bes-bulk-accounts__reset > div {
+    grid-template-columns: 1fr;
+  }
+
+  .bes-bulk-accounts__panel footer {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+}
+
+@media (max-height: 620px) and (min-width: 681px) {
+  .bes-bulk-accounts__panel {
+    height: calc(100dvh - 20px);
+    min-height: 0;
+  }
+
+  .bes-bulk-accounts__panel > header {
+    min-height: 60px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+
+  .bes-bulk-accounts__panel > header p {
+    display: none;
+  }
+
+  .bes-bulk-accounts__generator {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .bes-bulk-accounts__csv,
+  .bes-bulk-accounts__reset {
+    margin-top: 6px;
+  }
+
+  .bes-bulk-accounts__table-wrap {
+    min-height: 130px;
+    margin-top: 6px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bes-bulk-accounts__panel { animation: none; }
+  .bes-bulk-accounts__panel,
+  .bes-bulk-accounts__launcher {
+    animation: none;
+    transition: none;
+  }
 }
