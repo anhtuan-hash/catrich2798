@@ -1,0 +1,419 @@
+/* Apps page — Android-style app drawer.
+   Loaded after all previous launcher layers. The launcher is now a compact icon grid,
+   not a collection of content cards. */
+
+body .metro-clean-system[data-route='apps'] {
+  --android-drawer-ink: #202124;
+  --android-drawer-muted: #5f6368;
+  --android-drawer-line: #dfe3eb;
+  --android-drawer-surface: rgba(255,255,255,.66);
+  --android-drawer-hover: rgba(232,240,254,.72);
+}
+
+/* Give the app drawer its own calm, frosted surface. */
+body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-apps-collage-grid {
+  grid-area: apps !important;
+  display: grid !important;
+  grid-template-rows: repeat(3, 132px) !important;
+  grid-auto-flow: column !important;
+  grid-auto-columns: 144px !important;
+  align-items: start !important;
+  align-content: start !important;
+  justify-content: start !important;
+  gap: 20px 16px !important;
+  width: 100% !important;
+  min-height: 448px !important;
+  margin: 0 !important;
+  padding: 24px 22px 30px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  border: 1px solid rgba(60,64,67,.12) !important;
+  border-radius: 30px !important;
+  background:
+    radial-gradient(circle at 12% 4%, rgba(255,255,255,.82), transparent 35%),
+    linear-gradient(145deg, rgba(255,255,255,.70), rgba(244,247,252,.58)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.76), 0 10px 30px rgba(60,64,67,.08) !important;
+  backdrop-filter: blur(18px) saturate(1.04) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.04) !important;
+  scroll-snap-type: x proximity !important;
+  scroll-padding-inline: 22px !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(95,99,104,.40) transparent !important;
+  overscroll-behavior-inline: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid::-webkit-scrollbar {
+  height: 6px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid::-webkit-scrollbar-thumb {
+  border-radius: 999px !important;
+  background: rgba(95,99,104,.34) !important;
+}
+
+/* Each item behaves like an Android launcher slot rather than a card. */
+body .metro-clean-system[data-route='apps'] .flat-app-window-card,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-card {
+  position: relative !important;
+  flex: none !important;
+  width: 144px !important;
+  min-width: 144px !important;
+  max-width: 144px !important;
+  height: 132px !important;
+  min-height: 132px !important;
+  max-height: 132px !important;
+  aspect-ratio: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 26px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  scroll-snap-align: start !important;
+  transform: none !important;
+  transition: background-color .16s ease, transform .16s ease !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card::before,
+body .metro-clean-system[data-route='apps'] .flat-app-window-card::after {
+  display: none !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover,
+body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within {
+  border: 0 !important;
+  background: var(--android-drawer-hover) !important;
+  box-shadow: none !important;
+  transform: translateY(-3px) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-launch,
+body .metro-clean-system[data-route='apps'] .flat-app-window-body,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-launch {
+  display: block !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 26px !important;
+  background: transparent !important;
+  color: var(--android-drawer-ink) !important;
+  box-shadow: none !important;
+  text-align: center !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-body,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: 82px minmax(0,1fr) !important;
+  grid-template-areas:
+    'icon'
+    'copy' !important;
+  align-items: start !important;
+  justify-items: center !important;
+  gap: 7px !important;
+  padding: 8px 8px 7px !important;
+  overflow: visible !important;
+  background: transparent !important;
+}
+
+/* Adaptive Android-style squircle icon. */
+body .metro-clean-system[data-route='apps'] .flat-app-window-art,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-art {
+  grid-area: icon !important;
+  width: 78px !important;
+  height: 78px !important;
+  min-width: 78px !important;
+  min-height: 78px !important;
+  max-width: 78px !important;
+  max-height: 78px !important;
+  place-self: center !important;
+  margin: 0 !important;
+  padding: 18px !important;
+  border: 0 !important;
+  border-radius: 24px !important;
+  background:
+    linear-gradient(145deg, color-mix(in srgb,var(--app-accent,#1a73e8) 78%,#fff), var(--app-accent,#1a73e8)) !important;
+  color: #fff !important;
+  box-shadow:
+    0 9px 18px color-mix(in srgb,var(--app-accent,#1a73e8) 28%,transparent),
+    inset 0 1px 0 rgba(255,255,255,.38),
+    inset 0 -1px 0 rgba(0,0,0,.10) !important;
+  transform: none !important;
+  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover .flat-app-window-art,
+body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within .flat-app-window-art {
+  transform: scale(1.065) !important;
+  filter: saturate(1.08) !important;
+  box-shadow:
+    0 12px 24px color-mix(in srgb,var(--app-accent,#1a73e8) 36%,transparent),
+    inset 0 1px 0 rgba(255,255,255,.42),
+    inset 0 -1px 0 rgba(0,0,0,.10) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-art svg,
+body .metro-clean-system[data-route='apps'] .flat-app-window-art img,
+body .metro-clean-system[data-route='apps'] .flat-app-window-art > * {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 42px !important;
+  max-height: 42px !important;
+  color: #fff !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+
+/* Android launcher labels: app name only, centered under the icon. */
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy {
+  grid-area: copy !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0 3px !important;
+  overflow: visible !important;
+  text-align: center !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy small,
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy em,
+body .metro-clean-system[data-route='apps'] .flat-app-window-cta {
+  display: none !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong {
+  display: -webkit-box !important;
+  width: 100% !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  color: var(--android-drawer-ink) !important;
+  font-size: .82rem !important;
+  font-weight: 700 !important;
+  line-height: 1.22 !important;
+  letter-spacing: -.01em !important;
+  text-align: center !important;
+  text-overflow: ellipsis !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.74) !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-launch:focus-visible {
+  outline: 3px solid rgba(11,87,208,.32) !important;
+  outline-offset: 2px !important;
+}
+
+/* Keep the filter bar compact and Android-like. */
+body .metro-clean-system[data-route='apps'] .flat-apps-group-rail {
+  padding: 5px 4px 10px !important;
+  gap: 8px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-rail::before {
+  color: #202124 !important;
+  font-size: .68rem !important;
+  font-weight: 900 !important;
+  line-height: 40px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip {
+  min-height: 40px !important;
+  padding: 0 13px 0 15px !important;
+  border-color: #d5dae2 !important;
+  background: rgba(255,255,255,.88) !important;
+  color: #202124 !important;
+  box-shadow: 0 2px 5px rgba(60,64,67,.07) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip b {
+  color: #202124 !important;
+  font-size: .80rem !important;
+  font-weight: 750 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip small {
+  min-width: 24px !important;
+  height: 24px !important;
+  background: #e7eaef !important;
+  color: #3c4043 !important;
+  font-weight: 800 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active {
+  border-color: #8ab4f8 !important;
+  background: #e8f0fe !important;
+  color: #0b57d0 !important;
+  box-shadow: inset 0 0 0 1px #a8c7fa, 0 3px 8px rgba(11,87,208,.10) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active b,
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active small {
+  color: #063b91 !important;
+}
+
+/* Density does not make sense for a phone-style app drawer. */
+body .metro-clean-system[data-route='apps'] .launcher-density-switch {
+  display: none !important;
+}
+
+/* Editing mode remains usable without changing the normal launcher appearance. */
+body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-launcher-editing {
+  width: 184px !important;
+  min-width: 184px !important;
+  max-width: 184px !important;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 224px !important;
+  padding-bottom: 10px !important;
+  overflow: visible !important;
+  border: 1px solid var(--android-drawer-line) !important;
+  background: rgba(255,255,255,.94) !important;
+  box-shadow: 0 8px 22px rgba(60,64,67,.12) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-launcher-editing .flat-app-window-launch,
+body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-launcher-editing .flat-app-window-body {
+  min-height: 142px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-launcher-editing .launcher-card-controls {
+  display: flex !important;
+}
+
+@media (max-width: 980px) {
+  body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-apps-collage-grid {
+    grid-template-rows: repeat(3, 126px) !important;
+    grid-auto-columns: 132px !important;
+    min-height: 430px !important;
+    gap: 17px 12px !important;
+    padding: 21px 16px 27px !important;
+  }
+
+  body .metro-clean-system[data-route='apps'] .flat-app-window-card,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-card {
+    width: 132px !important;
+    min-width: 132px !important;
+    max-width: 132px !important;
+    height: 126px !important;
+    min-height: 126px !important;
+    max-height: 126px !important;
+  }
+
+  body .metro-clean-system[data-route='apps'] .flat-app-window-art,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-art {
+    width: 72px !important;
+    height: 72px !important;
+    min-width: 72px !important;
+    min-height: 72px !important;
+    max-width: 72px !important;
+    max-height: 72px !important;
+    padding: 17px !important;
+    border-radius: 22px !important;
+  }
+}
+
+@media (max-width: 680px) {
+  body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-apps-collage-grid {
+    grid-template-rows: repeat(3, 116px) !important;
+    grid-auto-columns: 108px !important;
+    min-height: 397px !important;
+    gap: 14px 8px !important;
+    padding: 18px 12px 24px !important;
+    border-radius: 24px !important;
+  }
+
+  body .metro-clean-system[data-route='apps'] .flat-app-window-card,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-card {
+    width: 108px !important;
+    min-width: 108px !important;
+    max-width: 108px !important;
+    height: 116px !important;
+    min-height: 116px !important;
+    max-height: 116px !important;
+    border-radius: 22px !important;
+  }
+
+  body .metro-clean-system[data-route='apps'] .flat-app-window-body,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body {
+    grid-template-rows: 68px minmax(0,1fr) !important;
+    padding: 6px 4px !important;
+  }
+
+  body .metro-clean-system[data-route='apps'] .flat-app-window-art,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-art {
+    width: 64px !important;
+    height: 64px !important;
+    min-width: 64px !important;
+    min-height: 64px !important;
+    max-width: 64px !important;
+    max-height: 64px !important;
+    padding: 15px !important;
+    border-radius: 20px !important;
+  }
+
+  body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong {
+    font-size: .74rem !important;
+  }
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'],
+body.theme-dark .metro-clean-system[data-route='apps'] {
+  --android-drawer-ink: #f1f3f4;
+  --android-drawer-muted: #bdc1c6;
+  --android-drawer-line: #464b54;
+  --android-drawer-surface: rgba(30,32,37,.72);
+  --android-drawer-hover: rgba(60,64,67,.70);
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-collage-grid {
+  border-color: #454a53 !important;
+  background:
+    radial-gradient(circle at 12% 4%, rgba(55,58,64,.80), transparent 35%),
+    linear-gradient(145deg, rgba(35,37,42,.82), rgba(26,28,33,.72)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 12px 30px rgba(0,0,0,.18) !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-copy strong {
+  color: #f1f3f4 !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.46) !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-chip,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip {
+  border-color: #4d535d !important;
+  background: rgba(42,45,51,.90) !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-chip b,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip b {
+  color: #f1f3f4 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body .metro-clean-system[data-route='apps'] .flat-app-window-card,
+  body .metro-clean-system[data-route='apps'] .flat-app-window-art {
+    transition: none !important;
+  }
+}
