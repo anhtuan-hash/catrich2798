@@ -1,395 +1,442 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import {
+  canManageSharedMusic,
+  loadSharedMusic,
+  readSharedMusicLocal,
+  removeSharedMusic,
+  setSharedMusicVisibility,
+  subscribeSharedMusic,
+  uploadAndShareMusic,
+} from '../utils/sharedMusic.js';
 import './GlobalMusicNavigationPopover.css';
 
-const DEFAULT_MUSIC_URL = '/audio/brian-soft-loop.wav';
-const DEFAULT_SETTINGS = {
+const DEFAULT_PREFERENCES = {
   expanded: false,
-  enabled: false,
-  trackMode: 'default',
-  customUrl: '',
-  uploadName: '',
   volume: 0.42,
   loop: true,
 };
 
-function getMusicUserKey(currentUser) {
+function userKey(currentUser) {
   return currentUser?.id || currentUser?.email || 'guest';
 }
 
-function getStorageKey(currentUser) {
-  return `bes-global-music-v1:${getMusicUserKey(currentUser)}`;
+function preferenceKey(currentUser) {
+  return `bes-global-music-v2:${userKey(currentUser)}`;
 }
 
-function getTrackKey(settings) {
-  if (settings.trackMode === 'url') return `url:${settings.customUrl || ''}`;
-  if (settings.trackMode === 'upload') return `upload:${settings.uploadName || 'session-file'}`;
-  return 'default:brian-soft-loop';
-}
-
-function readSettings(currentUser) {
+function readPreferences(currentUser) {
   try {
-    const parsed = JSON.parse(localStorage.getItem(getStorageKey(currentUser)) || '{}');
-    return { ...DEFAULT_SETTINGS, ...parsed };
+    const current = JSON.parse(localStorage.getItem(preferenceKey(currentUser)) || '{}');
+    const legacy = JSON.parse(localStorage.getItem(`bes-global-music-v1:${userKey(currentUser)}`) || '{}');
+    return {
+      ...DEFAULT_PREFERENCES,
+      volume: Number.isFinite(Number(current.volume ?? legacy.volume)) ? Math.max(0, Math.min(1, Number(current.volume ?? legacy.volume))) : DEFAULT_PREFERENCES.volume,
+      loop: typeof current.loop === 'boolean' ? current.loop : (typeof legacy.loop === 'boolean' ? legacy.loop : DEFAULT_PREFERENCES.loop),
+      expanded: Boolean(current.expanded),
+    };
   } catch {
-    return { ...DEFAULT_SETTINGS };
+    return { ...DEFAULT_PREFERENCES };
   }
 }
 
-function dispatchMusicSettingsUpdate() {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('bes-global-music-settings-updated'));
-  }
-}
-
-function saveSettings(currentUser, settings) {
+function savePreferences(currentUser, preferences) {
   try {
-    const safeSettings = { ...settings };
-    if (safeSettings.trackMode === 'upload') safeSettings.enabled = false;
-    localStorage.setItem(getStorageKey(currentUser), JSON.stringify(safeSettings));
-    dispatchMusicSettingsUpdate();
+    localStorage.setItem(preferenceKey(currentUser), JSON.stringify(preferences));
   } catch {
-    // Ignore localStorage quota/privacy mode errors.
+    // Optional local preference only.
   }
 }
 
-function readSavedTime(currentUser, settings) {
-  try {
-    const key = `${getStorageKey(currentUser)}:time:${getTrackKey(settings)}`;
-    const time = Number(localStorage.getItem(key) || '0');
-    return Number.isFinite(time) && time > 0 ? time : 0;
-  } catch {
-    return 0;
-  }
+function formatFileSize(value, language) {
+  const bytes = Math.max(0, Number(value) || 0);
+  if (!bytes) return '';
+  const mb = bytes / (1024 * 1024);
+  return `${mb < 1 ? (bytes / 1024).toFixed(0) : mb.toFixed(mb >= 10 ? 0 : 1)} ${mb < 1 ? 'KB' : 'MB'}`;
 }
 
-function saveCurrentTime(currentUser, settings, audio) {
-  if (!audio || !Number.isFinite(audio.currentTime)) return;
-  try {
-    const key = `${getStorageKey(currentUser)}:time:${getTrackKey(settings)}`;
-    localStorage.setItem(key, String(Math.floor(audio.currentTime)));
-  } catch {
-    // Ignore storage errors.
-  }
+function formatUpdatedAt(value, language) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function trackKey(track) {
+  return track?.path || '';
 }
 
 export default function GlobalMusicPlayer({ language = 'vi', currentUser }) {
-  const [settings, setSettings] = useState(() => readSettings(currentUser));
+  const [preferences, setPreferences] = useState(() => readPreferences(currentUser));
+  const [snapshot, setSnapshot] = useState(() => readSharedMusicLocal(currentUser));
   const [playing, setPlaying] = useState(false);
-  const [fileUrl, setFileUrl] = useState('');
-  const [customInput, setCustomInput] = useState(() => readSettings(currentUser).customUrl || '');
+  const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
   const [popoverRoot, setPopoverRoot] = useState(null);
   const audioRef = useRef(null);
   const fileInputRef = useRef(null);
   const lastTrackRef = useRef('');
+  const messageTimerRef = useRef(null);
 
-  const labels = language === 'vi' ? {
-    title: 'Nhạc nền',
-    subtitle: 'Phát xuyên suốt hệ thống',
+  const vi = language === 'vi';
+  const isAdmin = canManageSharedMusic(currentUser);
+  const track = snapshot.track;
+  const playable = Boolean(track?.signedUrl && (snapshot.shared || isAdmin));
+
+  const labels = vi ? {
+    title: 'Nhạc nền dùng chung',
+    adminSubtitle: 'Admin tải lên và chia sẻ cho giáo viên',
+    teacherSubtitle: 'Đồng bộ từ thư viện nhạc của Admin',
     play: 'Phát',
     pause: 'Tạm dừng',
-    defaultTrack: 'Brian Soft Loop',
-    upload: 'Tải nhạc lên',
-    url: 'Dùng link nhạc',
-    applyUrl: 'Lưu link',
+    ready: 'Sẵn sàng phát',
+    nowPlaying: 'Đang phát',
+    noTrack: 'Admin chưa chia sẻ nhạc',
+    noTrackNote: 'Khi Admin tải lên và chia sẻ, bài nhạc sẽ tự động xuất hiện tại đây.',
+    adminNoTrack: 'Chưa có nhạc dùng chung',
+    uploadShare: 'Tải lên và chia sẻ',
+    replacing: 'Đang tải lên…',
+    refresh: 'Đồng bộ lại',
+    sharing: 'Đang chia sẻ với giáo viên',
+    private: 'Đang tạm ngừng chia sẻ',
+    stopShare: 'Ngừng chia sẻ',
+    resumeShare: 'Chia sẻ lại',
+    deleteTrack: 'Xóa nhạc',
     volume: 'Âm lượng',
     loop: 'Lặp lại',
     collapse: 'Đóng bảng nhạc nền',
-    note: 'Nhạc tiếp tục phát khi bạn chuyển trang hoặc chức năng.',
+    sharedByAdmin: 'Nhạc do Admin chia sẻ',
+    synced: 'Đã đồng bộ',
+    syncing: 'Đang đồng bộ…',
+    localFallback: 'Đang dùng bản lưu gần nhất',
+    uploadDone: 'Đã tải lên và chia sẻ nhạc cho giáo viên.',
+    shareStopped: 'Đã ngừng chia sẻ với giáo viên.',
+    shareResumed: 'Đã chia sẻ lại cho giáo viên.',
+    deleted: 'Đã xóa nhạc dùng chung.',
     blocked: 'Trình duyệt cần bạn bấm Phát để bắt đầu âm thanh.',
-    uploaded: 'Đã nạp nhạc cho phiên hiện tại.',
-    badUrl: 'Nhập link âm thanh hợp lệ trước.',
-    ready: 'Sẵn sàng phát',
-    nowPlaying: 'Đang phát',
-    source: 'Nguồn nhạc',
+    setup: 'Cần cài đặt Supabase',
+    adminHint: 'Chỉ Admin có quyền tải lên, thay thế, chia sẻ hoặc xóa nhạc. Giáo viên chỉ có thể nghe.',
+    teacherHint: 'Bạn chỉ có thể nghe bài nhạc do Admin đang chia sẻ. Danh sách được cập nhật tự động.',
   } : {
-    title: 'Background music',
-    subtitle: 'Persists across the system',
+    title: 'Shared background music',
+    adminSubtitle: 'Admin uploads and shares music with teachers',
+    teacherSubtitle: 'Synced from the Admin music library',
     play: 'Play',
     pause: 'Pause',
-    defaultTrack: 'Brian Soft Loop',
-    upload: 'Upload audio',
-    url: 'Use audio URL',
-    applyUrl: 'Save URL',
+    ready: 'Ready to play',
+    nowPlaying: 'Now playing',
+    noTrack: 'Admin has not shared music yet',
+    noTrackNote: 'A track will appear here automatically when Admin uploads and shares one.',
+    adminNoTrack: 'No shared track yet',
+    uploadShare: 'Upload and share',
+    replacing: 'Uploading…',
+    refresh: 'Sync now',
+    sharing: 'Shared with teachers',
+    private: 'Sharing is paused',
+    stopShare: 'Stop sharing',
+    resumeShare: 'Share again',
+    deleteTrack: 'Delete track',
     volume: 'Volume',
     loop: 'Loop',
     collapse: 'Close background music',
-    note: 'Music keeps playing while you move between pages and tools.',
+    sharedByAdmin: 'Shared by Admin',
+    synced: 'Synced',
+    syncing: 'Syncing…',
+    localFallback: 'Using the latest cached copy',
+    uploadDone: 'Music uploaded and shared with teachers.',
+    shareStopped: 'Sharing with teachers has stopped.',
+    shareResumed: 'Music is shared with teachers again.',
+    deleted: 'Shared music deleted.',
     blocked: 'Your browser needs you to press Play before audio can start.',
-    uploaded: 'Audio loaded for this session.',
-    badUrl: 'Enter a valid audio URL first.',
-    ready: 'Ready to play',
-    nowPlaying: 'Now playing',
-    source: 'Audio source',
+    setup: 'Supabase setup required',
+    adminHint: 'Only Admin can upload, replace, share or delete music. Teachers can only listen.',
+    teacherHint: 'You can only listen to the track currently shared by Admin. It updates automatically.',
   };
 
-  const trackUrl = useMemo(() => {
-    if (settings.trackMode === 'upload' && fileUrl) return fileUrl;
-    if (settings.trackMode === 'url' && settings.customUrl) return settings.customUrl;
-    return DEFAULT_MUSIC_URL;
-  }, [settings.trackMode, settings.customUrl, fileUrl]);
+  const patchPreferences = (patch) => setPreferences((current) => ({ ...current, ...patch }));
 
-  const patchSettings = (patch) => {
-    setSettings((old) => ({ ...old, ...patch }));
+  const showMessage = (value, duration = 2800) => {
+    setMessage(value);
+    window.clearTimeout(messageTimerRef.current);
+    if (duration > 0) messageTimerRef.current = window.setTimeout(() => setMessage(''), duration);
+  };
+
+  const stopPlayback = () => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+    }
+    lastTrackRef.current = '';
+    setPlaying(false);
+  };
+
+  const refresh = async ({ quiet = false } = {}) => {
+    if (!currentUser) return;
+    if (!quiet) setBusy('sync');
+    try {
+      const next = await loadSharedMusic(currentUser);
+      setSnapshot(next);
+      if (!quiet && next.error) showMessage(next.error, 5000);
+    } finally {
+      if (!quiet) setBusy('');
+    }
   };
 
   useEffect(() => {
-    const next = readSettings(currentUser);
-    setSettings(next);
-    setCustomInput(next.customUrl || '');
-    setPlaying(false);
-  }, [currentUser?.id, currentUser?.email]);
+    const nextPreferences = readPreferences(currentUser);
+    setPreferences(nextPreferences);
+    setSnapshot(readSharedMusicLocal(currentUser));
+    stopPlayback();
+    refresh({ quiet: true });
+    const unsubscribe = subscribeSharedMusic(currentUser, (next) => setSnapshot(next));
+    const timer = window.setInterval(() => refresh({ quiet: true }), 25 * 60 * 1000);
+    return () => {
+      unsubscribe();
+      window.clearInterval(timer);
+    };
+  }, [currentUser?.id, currentUser?.email, currentUser?.role]);
+
+  useEffect(() => {
+    savePreferences(currentUser, preferences);
+  }, [currentUser?.id, currentUser?.email, preferences]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
     setPopoverRoot(document.getElementById('brian-nav-music-popover-root'));
-  }, [currentUser?.id, currentUser?.email, settings.expanded]);
+  }, [currentUser?.id, currentUser?.email, preferences.expanded]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     window.dispatchEvent(new CustomEvent('bes-global-music-panel-state', {
-      detail: { expanded: settings.expanded, playing },
+      detail: { expanded: preferences.expanded, playing },
     }));
-  }, [settings.expanded, playing]);
+  }, [preferences.expanded, playing]);
 
   useEffect(() => {
-    if (!settings.expanded) return undefined;
-
+    if (!preferences.expanded) return undefined;
     const closeOutside = (event) => {
-      const musicWrap = document.querySelector('.brian-nav__music-wrap');
-      if (!musicWrap?.contains(event.target)) patchSettings({ expanded: false });
+      const wrap = document.querySelector('.brian-nav__music-wrap');
+      if (!wrap?.contains(event.target)) patchPreferences({ expanded: false });
     };
-    const closeOnEscape = (event) => {
-      if (event.key === 'Escape') patchSettings({ expanded: false });
+    const closeEscape = (event) => {
+      if (event.key === 'Escape') patchPreferences({ expanded: false });
     };
-    const closeOnRouteChange = () => patchSettings({ expanded: false });
-
+    const closeRoute = () => patchPreferences({ expanded: false });
     document.addEventListener('pointerdown', closeOutside);
-    window.addEventListener('keydown', closeOnEscape);
-    window.addEventListener('hashchange', closeOnRouteChange);
+    window.addEventListener('keydown', closeEscape);
+    window.addEventListener('hashchange', closeRoute);
     return () => {
       document.removeEventListener('pointerdown', closeOutside);
-      window.removeEventListener('keydown', closeOnEscape);
-      window.removeEventListener('hashchange', closeOnRouteChange);
+      window.removeEventListener('keydown', closeEscape);
+      window.removeEventListener('hashchange', closeRoute);
     };
-  }, [settings.expanded]);
+  }, [preferences.expanded]);
 
   useEffect(() => {
-    const syncExternalSettings = () => {
-      const next = readSettings(currentUser);
-      setSettings((current) => JSON.stringify(current) === JSON.stringify(next) ? current : next);
-      setCustomInput((current) => current === (next.customUrl || '') ? current : (next.customUrl || ''));
-      const audio = audioRef.current;
-      if (audio) {
-        audio.volume = Math.max(0, Math.min(1, Number(next.volume) || 0));
-        audio.loop = Boolean(next.loop);
-      }
-    };
-    window.addEventListener('bes-global-music-settings-updated', syncExternalSettings);
-    return () => window.removeEventListener('bes-global-music-settings-updated', syncExternalSettings);
-  }, [currentUser?.id, currentUser?.email]);
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.volume = Math.max(0, Math.min(1, Number(preferences.volume) || 0));
+    audio.loop = Boolean(preferences.loop);
+  }, [preferences.volume, preferences.loop]);
 
   useEffect(() => {
-    saveSettings(currentUser, settings);
-  }, [currentUser?.id, currentUser?.email, settings]);
+    if (lastTrackRef.current && lastTrackRef.current !== trackKey(track)) stopPlayback();
+  }, [track?.path, track?.signedUrl, snapshot.shared]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return undefined;
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    audio.addEventListener('play', onPlay);
+    audio.addEventListener('pause', onPause);
+    audio.addEventListener('ended', onPause);
+    return () => {
+      audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('pause', onPause);
+      audio.removeEventListener('ended', onPause);
+    };
+  }, []);
+
+  const prepareTrack = () => {
+    const audio = audioRef.current;
+    if (!audio || !playable || !track?.signedUrl) return null;
+    if (lastTrackRef.current !== track.path || audio.src !== track.signedUrl) {
+      lastTrackRef.current = track.path;
+      audio.src = track.signedUrl;
+      audio.load();
+    }
+    audio.volume = Math.max(0, Math.min(1, Number(preferences.volume) || 0));
+    audio.loop = Boolean(preferences.loop);
+    return audio;
+  };
+
+  const togglePlayback = async () => {
+    if (!playable) {
+      showMessage(labels.noTrackNote);
+      return;
+    }
+    const audio = prepareTrack();
+    if (!audio) return;
+    try {
+      if (audio.paused) await audio.play();
+      else audio.pause();
+    } catch {
+      showMessage(labels.blocked);
+    }
+  };
 
   useEffect(() => {
     const handleCommand = async (event) => {
       const action = event.detail?.action;
-      if (action === 'expand') {
-        window.dispatchEvent(new CustomEvent('bes-ai-close'));
-        window.dispatchEvent(new CustomEvent('bes-sync-queue-close'));
-        patchSettings({ expanded: true });
-        return;
-      }
-      if (action === 'toggle-panel') {
-        if (!settings.expanded) {
-          window.dispatchEvent(new CustomEvent('bes-ai-close'));
-          window.dispatchEvent(new CustomEvent('bes-sync-queue-close'));
-        }
-        patchSettings({ expanded: !settings.expanded });
-        return;
-      }
-      if (action === 'collapse') {
-        patchSettings({ expanded: false });
-        return;
-      }
-      if (action === 'toggle') {
-        window.dispatchEvent(new CustomEvent('bes-ai-close'));
-        window.dispatchEvent(new CustomEvent('bes-sync-queue-close'));
-        patchSettings({ expanded: true });
+      if (action === 'expand') patchPreferences({ expanded: true });
+      else if (action === 'toggle-panel') patchPreferences({ expanded: !preferences.expanded });
+      else if (action === 'collapse') patchPreferences({ expanded: false });
+      else if (action === 'toggle') {
+        patchPreferences({ expanded: true });
         await togglePlayback();
-        return;
-      }
-      if (action === 'default') {
-        patchSettings({ expanded: true, trackMode: 'default', enabled: false });
       }
     };
     window.addEventListener('bes-global-music-command', handleCommand);
     return () => window.removeEventListener('bes-global-music-command', handleCommand);
-  }, [currentUser?.id, currentUser?.email, settings, trackUrl]);
+  }, [preferences.expanded, playable, track?.path, track?.signedUrl, preferences.volume, preferences.loop]);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.volume = Math.max(0, Math.min(1, Number(settings.volume) || 0));
-    audio.loop = Boolean(settings.loop);
-  }, [settings.volume, settings.loop]);
+  useEffect(() => () => window.clearTimeout(messageTimerRef.current), []);
 
-  const prepareTrack = () => {
-    const audio = audioRef.current;
-    if (!audio || !trackUrl) return null;
-    if (lastTrackRef.current !== trackUrl) {
-      lastTrackRef.current = trackUrl;
-      audio.src = trackUrl;
-      const savedTime = readSavedTime(currentUser, settings);
-      if (savedTime > 0) {
-        const restore = () => {
-          if (audio.duration && savedTime < audio.duration - 1) audio.currentTime = savedTime;
-          audio.removeEventListener('loadedmetadata', restore);
-        };
-        audio.addEventListener('loadedmetadata', restore, { once: true });
-      }
-    }
-    return audio;
-  };
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (!playing) {
-      audio.removeAttribute('src');
-      audio.load();
-      lastTrackRef.current = '';
-    }
-  }, [trackUrl, currentUser?.id, currentUser?.email, settings.trackMode, settings.customUrl, settings.uploadName]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    const timer = window.setInterval(() => saveCurrentTime(currentUser, settings, audio), 1800);
-    const handlePause = () => setPlaying(false);
-    const handlePlay = () => setPlaying(true);
-    audio.addEventListener('pause', handlePause);
-    audio.addEventListener('play', handlePlay);
-    audio.addEventListener('ended', handlePause);
-    return () => {
-      saveCurrentTime(currentUser, settings, audio);
-      window.clearInterval(timer);
-      audio.removeEventListener('pause', handlePause);
-      audio.removeEventListener('play', handlePlay);
-      audio.removeEventListener('ended', handlePause);
-    };
-  }, [currentUser?.id, currentUser?.email, settings]);
-
-  useEffect(() => () => {
-    if (fileUrl) URL.revokeObjectURL(fileUrl);
-  }, [fileUrl]);
-
-  const togglePlayback = async () => {
-    const audio = prepareTrack();
-    if (!audio) return;
-    try {
-      if (audio.paused) {
-        patchSettings({ enabled: true });
-        await audio.play();
-        setPlaying(true);
-      } else {
-        audio.pause();
-        saveCurrentTime(currentUser, settings, audio);
-        patchSettings({ enabled: false });
-        setPlaying(false);
-      }
-    } catch {
-      setMessage(labels.blocked);
-      window.clearTimeout(togglePlayback.timer);
-      togglePlayback.timer = window.setTimeout(() => setMessage(''), 2600);
-    }
-  };
-
-  const handleUpload = (event) => {
+  const handleUpload = async (event) => {
     const file = event.target.files?.[0];
-    if (!file) return;
-    if (fileUrl) URL.revokeObjectURL(fileUrl);
-    const nextUrl = URL.createObjectURL(file);
-    setFileUrl(nextUrl);
-    patchSettings({ trackMode: 'upload', uploadName: file.name, enabled: false });
-    setMessage(labels.uploaded);
-    window.clearTimeout(handleUpload.timer);
-    handleUpload.timer = window.setTimeout(() => setMessage(''), 2400);
     event.target.value = '';
+    if (!file || !isAdmin || busy) return;
+    setBusy('upload');
+    stopPlayback();
+    try {
+      const next = await uploadAndShareMusic(currentUser, file);
+      setSnapshot(next);
+      showMessage(labels.uploadDone);
+    } catch (error) {
+      showMessage(String(error?.message || error), 6000);
+    } finally {
+      setBusy('');
+    }
   };
 
-  const applyCustomUrl = () => {
-    const value = customInput.trim();
-    if (!/^https?:\/\//i.test(value) && !value.startsWith('/')) {
-      setMessage(labels.badUrl);
-      window.clearTimeout(applyCustomUrl.timer);
-      applyCustomUrl.timer = window.setTimeout(() => setMessage(''), 2400);
-      return;
+  const toggleSharing = async () => {
+    if (!isAdmin || !track || busy) return;
+    setBusy('share');
+    if (snapshot.shared) stopPlayback();
+    try {
+      const next = await setSharedMusicVisibility(currentUser, !snapshot.shared);
+      setSnapshot(next);
+      showMessage(next.shared ? labels.shareResumed : labels.shareStopped);
+    } catch (error) {
+      showMessage(String(error?.message || error), 6000);
+    } finally {
+      setBusy('');
     }
-    patchSettings({ trackMode: 'url', customUrl: value, enabled: false });
   };
+
+  const deleteTrack = async () => {
+    if (!isAdmin || !track || busy) return;
+    const confirmed = window.confirm(vi ? 'Xóa bài nhạc dùng chung này? Giáo viên sẽ không còn nghe được.' : 'Delete this shared track? Teachers will no longer be able to listen.');
+    if (!confirmed) return;
+    setBusy('delete');
+    stopPlayback();
+    try {
+      const next = await removeSharedMusic(currentUser);
+      setSnapshot(next);
+      showMessage(labels.deleted);
+    } catch (error) {
+      showMessage(String(error?.message || error), 6000);
+    } finally {
+      setBusy('');
+    }
+  };
+
+  const syncLabel = useMemo(() => {
+    if (busy === 'sync' || snapshot.status === 'loading') return labels.syncing;
+    if (snapshot.status === 'error') return snapshot.setupRequired ? labels.setup : labels.localFallback;
+    return labels.synced;
+  }, [busy, snapshot.status, snapshot.setupRequired, language]);
 
   const panel = (
-    <section id="brian-nav-music-popover" className="brian-nav__popover brian-nav__music-popover" aria-label={labels.title}>
+    <section id="brian-nav-music-popover" className="brian-nav__popover brian-nav__music-popover is-shared-music" aria-label={labels.title}>
       <header className="brian-music-popover__header">
         <div>
           <strong>{labels.title}</strong>
-          <small>{labels.subtitle}</small>
+          <small>{isAdmin ? labels.adminSubtitle : labels.teacherSubtitle}</small>
         </div>
-        <button type="button" onClick={() => patchSettings({ expanded: false })} aria-label={labels.collapse} title={labels.collapse}>×</button>
+        <button type="button" onClick={() => patchPreferences({ expanded: false })} aria-label={labels.collapse} title={labels.collapse}>×</button>
       </header>
 
       <div className="brian-music-popover__body">
-        <div className={`brian-music-popover__status ${playing ? 'is-playing' : ''}`}>
-          <span aria-hidden="true">{playing ? '♪' : '♫'}</span>
-          <div>
-            <small>{playing ? labels.nowPlaying : labels.ready}</small>
-            <strong>{settings.trackMode === 'upload' ? (settings.uploadName || labels.upload) : settings.trackMode === 'url' ? labels.url : labels.defaultTrack}</strong>
-          </div>
-          <button type="button" onClick={togglePlayback}>{playing ? labels.pause : labels.play}</button>
+        <div className={`brian-music-popover__sync is-${snapshot.status || 'idle'}`}>
+          <span aria-hidden="true">{snapshot.status === 'error' ? '!' : busy === 'sync' ? '↻' : '✓'}</span>
+          <b>{syncLabel}</b>
+          <button type="button" onClick={() => refresh()} disabled={Boolean(busy)}>{labels.refresh}</button>
         </div>
 
-        <label className="brian-music-popover__field">
-          <span>{labels.source}</span>
-          <select value={settings.trackMode} onChange={(event) => patchSettings({ trackMode: event.target.value, enabled: false })}>
-            <option value="default">{labels.defaultTrack}</option>
-            <option value="upload">{settings.uploadName || labels.upload}</option>
-            <option value="url">{labels.url}</option>
-          </select>
-        </label>
-
-        {settings.trackMode === 'url' ? (
-          <div className="brian-music-popover__url-row">
-            <input value={customInput} onChange={(event) => setCustomInput(event.target.value)} placeholder="https://.../music.mp3" />
-            <button type="button" onClick={applyCustomUrl}>{labels.applyUrl}</button>
+        {track ? (
+          <div className={`brian-music-popover__status ${playing ? 'is-playing' : ''}`}>
+            <span aria-hidden="true">{playing ? '♪' : '♫'}</span>
+            <div>
+              <small>{playing ? labels.nowPlaying : (snapshot.shared ? labels.sharedByAdmin : labels.private)}</small>
+              <strong>{track.title}</strong>
+              <em>{[formatFileSize(track.size, language), formatUpdatedAt(snapshot.updatedAt, language)].filter(Boolean).join(' · ')}</em>
+            </div>
+            <button type="button" onClick={togglePlayback} disabled={!playable || Boolean(busy)}>{playing ? labels.pause : labels.play}</button>
           </div>
-        ) : null}
+        ) : (
+          <div className="brian-music-popover__empty">
+            <span aria-hidden="true">♫</span>
+            <div><strong>{isAdmin ? labels.adminNoTrack : labels.noTrack}</strong><small>{labels.noTrackNote}</small></div>
+          </div>
+        )}
 
-        <div className="brian-music-popover__controls">
-          <button type="button" className="brian-music-popover__upload" onClick={() => fileInputRef.current?.click()}>{labels.upload}</button>
+        <div className="brian-music-popover__controls is-listener-only">
           <label className="brian-music-popover__volume">
             <span>{labels.volume}</span>
-            <input type="range" min="0" max="1" step="0.01" value={settings.volume} onChange={(event) => patchSettings({ volume: Number(event.target.value) })} />
+            <input type="range" min="0" max="1" step="0.01" value={preferences.volume} onChange={(event) => patchPreferences({ volume: Number(event.target.value) })} />
           </label>
           <label className="brian-music-popover__loop">
-            <input type="checkbox" checked={settings.loop} onChange={(event) => patchSettings({ loop: event.target.checked })} />
+            <input type="checkbox" checked={preferences.loop} onChange={(event) => patchPreferences({ loop: event.target.checked })} />
             <span>{labels.loop}</span>
           </label>
-          <input ref={fileInputRef} type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a" hidden onChange={handleUpload} />
         </div>
+
+        {isAdmin ? (
+          <section className="brian-music-admin">
+            <div className="brian-music-admin__heading">
+              <div><strong>ADMIN</strong><small>{snapshot.shared ? labels.sharing : labels.private}</small></div>
+              <span className={snapshot.shared ? 'is-shared' : 'is-private'}>{snapshot.shared ? (vi ? 'ĐANG CHIA SẺ' : 'SHARED') : (vi ? 'TẠM ẨN' : 'PAUSED')}</span>
+            </div>
+            <div className="brian-music-admin__actions">
+              <button type="button" className="is-primary" onClick={() => fileInputRef.current?.click()} disabled={Boolean(busy)}>{busy === 'upload' ? labels.replacing : labels.uploadShare}</button>
+              {track ? <button type="button" onClick={toggleSharing} disabled={Boolean(busy)}>{snapshot.shared ? labels.stopShare : labels.resumeShare}</button> : null}
+              {track ? <button type="button" className="is-danger" onClick={deleteTrack} disabled={Boolean(busy)}>{labels.deleteTrack}</button> : null}
+              <input ref={fileInputRef} type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.webm" hidden onChange={handleUpload} />
+            </div>
+          </section>
+        ) : null}
       </div>
 
-      <footer className="brian-music-popover__footer" aria-live="polite">{message || labels.note}</footer>
+      <footer className="brian-music-popover__footer" aria-live="polite">
+        {message || snapshot.error || (isAdmin ? labels.adminHint : labels.teacherHint)}
+      </footer>
     </section>
   );
 
   return (
     <>
       <audio ref={audioRef} preload="none" hidden />
-      {settings.expanded && popoverRoot ? createPortal(panel, popoverRoot) : null}
+      {preferences.expanded && popoverRoot ? createPortal(panel, popoverRoot) : null}
     </>
   );
 }
