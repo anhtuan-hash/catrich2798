@@ -1,0 +1,280 @@
+/* Final compact and high-contrast layer for the Apps workspace. */
+body .metro-clean-system[data-route='apps'] {
+  --apps-ink: #17191d;
+  --apps-muted: #48515d;
+  --apps-subtle: #5b6470;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-directory {
+  grid-template-columns: 190px minmax(0,1fr) !important;
+  gap: 14px 16px !important;
+  padding: clamp(18px,2vw,27px) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-hero {
+  padding: clamp(18px,2vw,25px) !important;
+  border-radius: 24px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-hero h1 {
+  font-size: clamp(2.2rem,3.55vw,3.9rem) !important;
+  line-height: .98 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-subtitle {
+  margin-top: 10px !important;
+  color: #414a55 !important;
+  font-size: .91rem !important;
+  line-height: 1.5 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-stats {
+  width: min(286px,29vw) !important;
+  padding: 8px !important;
+  border-radius: 19px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-stats div {
+  min-height: 64px !important;
+  padding: 8px 6px !important;
+  border-radius: 13px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-stats strong {
+  font-size: 1.32rem !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-stats small {
+  color: #4e5865 !important;
+  font-size: .64rem !important;
+}
+
+body .metro-clean-system[data-route='apps'] .launcher-discovery-bar {
+  padding: 8px !important;
+  border-radius: 21px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .launcher-search-box,
+body .metro-clean-system[data-route='apps'] .launcher-command-button,
+body .metro-clean-system[data-route='apps'] .launcher-density-switch {
+  min-height: 46px !important;
+  border-radius: 15px !important;
+  color: #303640 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .launcher-search-box input,
+body .metro-clean-system[data-route='apps'] .launcher-search-box input::placeholder,
+body .metro-clean-system[data-route='apps'] .launcher-command-button b,
+body .metro-clean-system[data-route='apps'] .launcher-density-switch > span {
+  color: #3f4752 !important;
+  opacity: 1 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-rail {
+  top: 104px !important;
+  gap: 5px !important;
+  padding: 9px !important;
+  border-radius: 20px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-rail::before {
+  padding: 4px 7px 7px !important;
+  color: #4c5662 !important;
+  font-size: .64rem !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip {
+  min-height: 41px !important;
+  padding: 0 10px 0 12px !important;
+  border-radius: 13px !important;
+  color: #303741 !important;
+  font-size: .79rem !important;
+  font-weight: 720 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip small {
+  min-width: 24px !important;
+  height: 24px !important;
+  border-radius: 8px !important;
+  background: #e4e8ee !important;
+  color: #3f4752 !important;
+  font-size: .67rem !important;
+  font-weight: 800 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active {
+  color: color-mix(in srgb,var(--group-accent,#1a73e8) 66%,#15181c) !important;
+  background: color-mix(in srgb,var(--group-accent,#1a73e8) 13%,#fff) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-apps-collage-grid {
+  grid-template-columns: repeat(4,minmax(0,1fr)) !important;
+  gap: 11px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card,
+body .metro-clean-system[data-route='apps'] .flat-app-window-launch,
+body .metro-clean-system[data-route='apps'] .flat-app-window-body {
+  min-height: 122px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card {
+  border-radius: 18px !important;
+  background: linear-gradient(145deg,#fff 0%,color-mix(in srgb,var(--app-soft,#e8f0fe) 31%,#fff) 100%) !important;
+  box-shadow: 0 2px 8px rgba(32,33,36,.07) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card::before {
+  width: 4px !important;
+  border-radius: 18px 0 0 18px !important;
+  opacity: .9 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover,
+body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(32,33,36,.11),0 12px 24px color-mix(in srgb,var(--app-accent,#1a73e8) 8%,transparent) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-launch {
+  border-radius: 18px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-body,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body {
+  grid-template-columns: 46px minmax(0,1fr) 30px !important;
+  gap: 9px !important;
+  padding: 12px 11px 12px 14px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-art,
+body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-art {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  padding: 10px !important;
+  border-radius: 14px !important;
+  box-shadow: 0 5px 12px color-mix(in srgb,var(--app-accent,#1a73e8) 23%,transparent),inset 0 1px 0 rgba(255,255,255,.32) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-art svg,
+body .metro-clean-system[data-route='apps'] .flat-app-window-art img,
+body .metro-clean-system[data-route='apps'] .flat-app-window-art > * {
+  max-width: 27px !important;
+  max-height: 27px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy {
+  gap: 3px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy small {
+  color: color-mix(in srgb,var(--app-accent,#1a73e8) 63%,#20242a) !important;
+  font-size: .61rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .045em !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong {
+  color: #17191d !important;
+  font-size: .88rem !important;
+  font-weight: 800 !important;
+  line-height: 1.22 !important;
+  letter-spacing: -.01em !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-copy em {
+  color: #46505c !important;
+  font-size: .69rem !important;
+  font-weight: 520 !important;
+  line-height: 1.34 !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-cta {
+  width: 29px !important;
+  height: 29px !important;
+  border-radius: 10px !important;
+  background: color-mix(in srgb,var(--app-accent,#1a73e8) 17%,#fff) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-cta::after {
+  color: color-mix(in srgb,var(--app-accent,#1a73e8) 82%,#15181c) !important;
+  font-size: 1rem !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-pinned-apps {
+  padding: 13px 15px !important;
+  border-radius: 19px !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'],
+body.theme-dark .metro-clean-system[data-route='apps'] {
+  --apps-ink: #f7f8fa;
+  --apps-muted: #d2d7df;
+  --apps-subtle: #c1c7d0;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-subtitle,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-subtitle,
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-copy em,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-copy em,
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .launcher-search-box input,
+body.theme-dark .metro-clean-system[data-route='apps'] .launcher-search-box input,
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .launcher-search-box input::placeholder,
+body.theme-dark .metro-clean-system[data-route='apps'] .launcher-search-box input::placeholder {
+  color: #d4d9e1 !important;
+  opacity: 1 !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-copy strong {
+  color: #fafbfc !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-copy small,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-copy small {
+  color: color-mix(in srgb,var(--app-accent,#8ab4f8) 68%,#fff) !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-chip,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip {
+  color: #e3e7ed !important;
+}
+
+@media (max-width: 1380px) {
+  body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-apps-collage-grid {
+    grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  }
+}
+
+@media (max-width: 1080px) {
+  body .metro-clean-system[data-route='apps'] .flat-apps-directory {
+    grid-template-columns: 178px minmax(0,1fr) !important;
+  }
+  body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-apps-collage-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+}
+
+@media (max-width: 980px) {
+  body .metro-clean-system[data-route='apps'] .flat-apps-directory {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 680px) {
+  body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-apps-collage-grid {
+    grid-template-columns: 1fr !important;
+  }
+  body .metro-clean-system[data-route='apps'] .flat-app-window-card,
+  body .metro-clean-system[data-route='apps'] .flat-app-window-launch,
+  body .metro-clean-system[data-route='apps'] .flat-app-window-body {
+    min-height: 112px !important;
+  }
+}
