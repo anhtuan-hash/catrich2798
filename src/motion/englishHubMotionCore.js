@@ -29,8 +29,10 @@ export function setMotionCoreSettings(patch = {}) {
 
 function appearanceReduceMotion() {
   try {
-    const state = window.BESAppearance?.getState?.();
-    return Boolean(state?.reduceMotion || state?.batterySaver);
+    const runtimeState = window.BESAppearance?.getState?.() || {};
+    const storedState = safeJson(window.localStorage?.getItem('bes-appearance-v2') || '{}', {});
+    const state = { ...storedState, ...runtimeState };
+    return Boolean(state.reduceMotion || state.batterySaver);
   } catch {
     return false;
   }
@@ -104,6 +106,11 @@ export function runEffect(target, effectName, overrides = {}) {
     activeAnimations.set(element, animation);
     animation.addEventListener('finish', () => {
       if (activeAnimations.get(element) === animation) activeAnimations.delete(element);
+      if (overrides.persist !== true) {
+        window.requestAnimationFrame(() => {
+          try { animation.cancel(); } catch { /* already detached */ }
+        });
+      }
     }, { once: true });
     animation.addEventListener('cancel', () => {
       if (activeAnimations.get(element) === animation) activeAnimations.delete(element);
