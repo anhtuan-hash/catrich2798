@@ -29,7 +29,9 @@ import {
   duplicateHomeroomWorkspace,
   getCurrentHomeroomWorkspaceId,
   listHomeroomWorkspaces,
+  listLocalHomeroomWorkspaces,
   loadHomeroomWorkspace,
+  loadLocalHomeroomWorkspace,
   makeDefaultHomeroomWorkspace,
   normalizeHomeroomWorkspace,
   saveHomeroomWorkspace,
@@ -40,6 +42,9 @@ import {
 import { makeWorkspaceId, prepareWorkspaceCommit } from '../utils/homeroomPhase3.js';
 import { HOMEROOM_TABS } from '../data/homeroom.js';
 import '../styles/homeroom-complete.css';
+import '../components/GlobalHomeroomGoogleRedesign.css';
+import '../components/GlobalHomeroomGoogleColorPolish.css';
+import '../components/GlobalHomeroomGoogleReadabilityPolish.css';
 
 function Tabs({ active, setActive, language, currentUser }) {
   return <nav className="hr-tabs" aria-label={language === 'vi' ? 'Chức năng giáo viên chủ nhiệm' : 'Homeroom tools'}>
@@ -50,7 +55,7 @@ function Tabs({ active, setActive, language, currentUser }) {
 export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   const [workspaceId, setWorkspaceId] = useState(() => getCurrentHomeroomWorkspaceId(currentUser));
   const [workspace, setWorkspace] = useState(() => makeDefaultHomeroomWorkspace(currentUser));
-  const [catalog, setCatalog] = useState([]);
+  const [catalog, setCatalog] = useState(() => listLocalHomeroomWorkspaces(currentUser));
   const [classDraft, setClassDraft] = useState(() => makeDefaultHomeroomWorkspace(currentUser).classProfile);
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
@@ -59,14 +64,29 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   const [syncState, setSyncState] = useState('local');
 
   const refreshCatalog = async () => {
+    const localItems = listLocalHomeroomWorkspaces(currentUser);
+    setCatalog(localItems);
     const result = await listHomeroomWorkspaces(currentUser);
-    setCatalog(result.items || []);
-    return result.items || [];
+    const items = result.items || localItems;
+    setCatalog(items);
+    return items;
   };
 
   useEffect(() => {
     let alive = true;
-    setLoading(true);
+    const localWorkspace = loadLocalHomeroomWorkspace(currentUser, workspaceId);
+
+    if (localWorkspace) {
+      const cached = normalizeHomeroomWorkspace(localWorkspace, currentUser);
+      setWorkspace(cached);
+      setClassDraft(cached.classProfile);
+      setSyncState('local');
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
+    refreshCatalog();
     loadHomeroomWorkspace(currentUser, workspaceId).then((result) => {
       if (!alive) return;
       const loaded = normalizeHomeroomWorkspace(result.workspace, currentUser);
@@ -74,9 +94,11 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       setClassDraft(loaded.classProfile);
       setSyncState(result.source === 'cloud' ? 'cloud' : 'local');
       setCurrentHomeroomWorkspaceId(currentUser, loaded.id);
-      refreshCatalog();
       setLoading(false);
+    }).catch(() => {
+      if (alive) setLoading(false);
     });
+
     return () => { alive = false; };
   }, [currentUser?.id, currentUser?.email, workspaceId]);
 

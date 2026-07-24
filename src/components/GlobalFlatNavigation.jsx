@@ -1,11 +1,9 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
 import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
 import GlobalWorkHubNotificationBridge from './GlobalWorkHubNotificationBridge.jsx';
-import GlobalWorkScheduleCompatibleCenter from './GlobalWorkScheduleCompatibleCenter.jsx';
 import GlobalWorkScheduleBridge from './GlobalWorkScheduleBridge.jsx';
-import GlobalWorkScheduleTemplatePanel from './GlobalWorkScheduleTemplatePanel.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalNotificationCenter.css';
@@ -25,11 +23,13 @@ import './GlobalTextLabGoogleLarge.css';
 import '../styles/teacher-dashboard-google-v2.css';
 import './GlobalDashboardVisualFix.css';
 import './GlobalWorkHubGoogleRedesign.css';
-import './GlobalHomeroomGoogleRedesign.css';
-import './GlobalHomeroomGoogleColorPolish.css';
-import './GlobalHomeroomGoogleReadabilityPolish.css';
+
+const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
+const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
 
 export default function GlobalFlatNavigation(props) {
+  const workHubActive = props.route === 'work-hub';
+
   return (
     <>
       <Navigation {...props} />
@@ -37,8 +37,12 @@ export default function GlobalFlatNavigation(props) {
       <GlobalDashboardNavigationTab {...props} />
       <GlobalWorkHubNotificationBridge currentUser={props.currentUser} language={props.language} />
       <GlobalWorkScheduleBridge />
-      <GlobalWorkScheduleCompatibleCenter {...props} />
-      <GlobalWorkScheduleTemplatePanel route={props.route} />
+      {workHubActive ? (
+        <Suspense fallback={null}>
+          <GlobalWorkScheduleCompatibleCenter {...props} />
+          <GlobalWorkScheduleTemplatePanel route={props.route} />
+        </Suspense>
+      ) : null}
       <GlobalEnglishHubBrand />
     </>
   );
