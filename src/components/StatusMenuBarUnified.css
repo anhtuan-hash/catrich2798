@@ -1,4 +1,25 @@
-/* Unified top chrome: the briefing row and navigation share one continuous surface. */
+/* Unified top chrome: briefing and primary navigation share one Google-like surface. */
+:root {
+  --briefing-chip-neutral: rgba(248, 249, 250, .96);
+  --briefing-chip-neutral-hover: #f1f3f4;
+  --briefing-chip-weather: rgba(232, 240, 254, .92);
+  --briefing-chip-weather-hover: #dbe8fd;
+  --briefing-chip-weather-ink: #185abc;
+  --briefing-chip-outline: rgba(60, 64, 67, .16);
+  --briefing-chip-shadow: 0 1px 2px rgba(60, 64, 67, .08);
+}
+
+[data-theme='dark'],
+.theme-dark {
+  --briefing-chip-neutral: rgba(48, 49, 52, .96);
+  --briefing-chip-neutral-hover: #3c4043;
+  --briefing-chip-weather: rgba(26, 57, 92, .92);
+  --briefing-chip-weather-hover: #244c78;
+  --briefing-chip-weather-ink: #aecbfa;
+  --briefing-chip-outline: rgba(232, 234, 237, .16);
+  --briefing-chip-shadow: 0 1px 2px rgba(0, 0, 0, .18);
+}
+
 html body .app-shell .bes-top-chrome,
 html body .bes-top-chrome {
   background: var(--brian-nav-surface, #fff) !important;
@@ -19,13 +40,13 @@ html body .bes-top-chrome > .brian-nav {
 
 html body .app-shell .bes-top-chrome > .brian-briefing-bar,
 html body .bes-top-chrome > .brian-briefing-bar {
-  height: 40px !important;
-  min-height: 40px !important;
+  height: 60px !important;
+  min-height: 60px !important;
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
   align-items: center !important;
-  gap: 8px !important;
-  padding: 4px clamp(16px, 2.2vw, 34px) !important;
+  gap: 16px !important;
+  padding: 6px clamp(18px, 2.2vw, 34px) !important;
   border: 0 !important;
   border-bottom: 1px solid var(--brian-nav-line, var(--briefing-line)) !important;
   background: transparent !important;
@@ -37,85 +58,164 @@ html body .bes-top-chrome > .brian-briefing-bar {
 
 html body .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__headline {
   min-width: 0 !important;
-  height: 32px !important;
-  border-radius: 10px !important;
+  height: 48px !important;
+  border-radius: 18px !important;
   background: transparent !important;
   box-shadow: none !important;
 }
 
 html body .bes-top-chrome > .brian-briefing-bar:hover .brian-briefing-bar__headline,
 html body .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__headline:hover {
-  background: color-mix(in srgb, var(--brian-nav-soft) 72%, transparent) !important;
+  background: color-mix(in srgb, var(--brian-nav-soft) 70%, transparent) !important;
 }
 
 html body .bes-top-chrome > .brian-briefing-bar.is-news-route .brian-briefing-bar__headline {
   background: color-mix(in srgb, var(--briefing-blue) 8%, transparent) !important;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--briefing-blue) 22%, transparent) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--briefing-blue) 18%, transparent) !important;
 }
 
 .brian-briefing-bar__context {
   min-width: max-content;
-  height: 32px;
+  height: 48px;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding-left: 8px;
-  border-left: 1px solid var(--brian-nav-line, var(--briefing-line));
+  gap: 10px;
+  padding: 0;
+  border: 0;
 }
 
 .brian-briefing-bar__clock,
 .brian-briefing-bar__weather {
-  height: 32px;
-  min-height: 32px;
-  display: inline-flex;
+  box-sizing: border-box;
+  height: 48px;
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 28px auto;
+  grid-template-rows: 1fr 1fr;
   align-items: center;
-  gap: 6px;
-  padding: 0 9px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background: transparent;
+  column-gap: 9px;
+  row-gap: 0;
+  padding: 0 16px 0 12px;
+  border: 1px solid var(--briefing-chip-outline);
+  border-radius: 999px;
   color: var(--brian-nav-ink, var(--briefing-ink));
+  box-shadow: var(--briefing-chip-shadow);
   font: inherit;
   line-height: 1;
   white-space: nowrap;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.brian-briefing-bar__clock {
+  background: var(--briefing-chip-neutral);
+}
+
+.brian-briefing-bar__weather {
+  background: var(--briefing-chip-weather);
+  color: var(--briefing-chip-weather-ink);
+  cursor: pointer;
 }
 
 .brian-briefing-bar__clock > span,
 .brian-briefing-bar__weather > span {
-  width: 17px;
-  height: 17px;
+  grid-column: 1;
+  grid-row: 1 / 3;
+  width: 28px;
+  height: 28px;
   display: inline-grid;
   place-items: center;
-  color: var(--brian-nav-accent, var(--briefing-blue));
-  font-size: 15px;
+  align-self: center;
+  border-radius: 50%;
+  font-size: 19px;
   line-height: 1;
+}
+
+.brian-briefing-bar__clock > span {
+  position: relative;
+  box-sizing: border-box;
+  border: 2px solid color-mix(in srgb, var(--brian-nav-muted, #5f6368) 86%, transparent);
+  color: transparent;
+  font-size: 0;
+}
+
+.brian-briefing-bar__clock > span::before,
+.brian-briefing-bar__clock > span::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2px;
+  border-radius: 99px;
+  background: var(--brian-nav-muted, #5f6368);
+  transform-origin: 50% 100%;
+}
+
+.brian-briefing-bar__clock > span::before {
+  height: 7px;
+  transform: translate(-50%, -100%);
+}
+
+.brian-briefing-bar__clock > span::after {
+  height: 6px;
+  transform: translate(-50%, -100%) rotate(122deg);
+}
+
+.brian-briefing-bar__weather > span {
+  color: var(--briefing-chip-weather-ink);
+  background: color-mix(in srgb, var(--briefing-chip-weather-ink) 9%, transparent);
 }
 
 .brian-briefing-bar__clock strong,
 .brian-briefing-bar__weather strong {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: end;
+  padding-bottom: 2px;
   color: var(--brian-nav-ink, var(--briefing-ink));
-  font-size: 12px;
-  font-weight: 780;
+  font-size: 14px;
+  font-weight: 760;
+  line-height: 1.05;
+  letter-spacing: -.01em;
   font-variant-numeric: tabular-nums;
+}
+
+.brian-briefing-bar__weather strong {
+  color: var(--brian-nav-ink, var(--briefing-ink));
 }
 
 .brian-briefing-bar__clock small,
 .brian-briefing-bar__weather small {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: start;
+  padding-top: 2px;
   color: var(--brian-nav-muted, var(--briefing-muted));
-  font-size: 10.5px;
-  font-weight: 650;
+  font-size: 11px;
+  font-weight: 620;
+  line-height: 1.05;
+  letter-spacing: .005em;
 }
 
-.brian-briefing-bar__weather {
-  cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+.brian-briefing-bar__weather small {
+  color: color-mix(in srgb, var(--briefing-chip-weather-ink) 76%, var(--brian-nav-muted, #5f6368));
 }
 
 .brian-briefing-bar__weather:hover,
 .brian-briefing-bar__weather:focus-visible {
-  border-color: var(--brian-nav-line, var(--briefing-line));
-  background: var(--brian-nav-soft, var(--briefing-surface));
+  border-color: color-mix(in srgb, var(--briefing-chip-weather-ink) 32%, var(--briefing-chip-outline));
+  background: var(--briefing-chip-weather-hover);
+  box-shadow: 0 2px 6px rgba(60, 64, 67, .13);
   outline: none;
+  transform: translateY(-1px);
+}
+
+.brian-briefing-bar__weather:active {
+  transform: translateY(0);
+  box-shadow: var(--briefing-chip-shadow);
 }
 
 .brian-briefing-bar__weather.is-loading > span,
@@ -124,7 +224,9 @@ html body .bes-top-chrome > .brian-briefing-bar.is-news-route .brian-briefing-ba
 }
 
 .brian-briefing-bar__weather.is-error {
-  color: var(--brian-nav-muted, var(--briefing-muted));
+  --briefing-chip-weather: color-mix(in srgb, #fce8e6 82%, transparent);
+  --briefing-chip-weather-hover: #fad2cf;
+  --briefing-chip-weather-ink: #b3261e;
 }
 
 @keyframes brian-weather-pulse {
@@ -132,39 +234,65 @@ html body .bes-top-chrome > .brian-briefing-bar.is-news-route .brian-briefing-ba
   50% { opacity: 1; transform: scale(1); }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 980px) {
   html body .app-shell .bes-top-chrome > .brian-briefing-bar,
   html body .bes-top-chrome > .brian-briefing-bar {
+    gap: 10px !important;
     padding-inline: 12px !important;
   }
 
+  .brian-briefing-bar__context {
+    gap: 7px;
+  }
+
   .brian-briefing-bar__clock,
   .brian-briefing-bar__weather {
-    padding-inline: 7px;
+    padding-right: 12px;
   }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 760px) {
   html body .app-shell .bes-top-chrome > .brian-briefing-bar,
   html body .bes-top-chrome > .brian-briefing-bar {
+    height: 46px !important;
+    min-height: 46px !important;
+    gap: 6px !important;
+    padding: 4px 8px !important;
+  }
+
+  html body .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__headline {
     height: 38px !important;
-    min-height: 38px !important;
-    gap: 5px !important;
-    padding: 3px 8px !important;
   }
 
   .brian-briefing-bar__context {
-    height: 30px;
-    gap: 2px;
-    padding-left: 5px;
+    height: 38px;
+    gap: 4px;
   }
 
   .brian-briefing-bar__clock,
   .brian-briefing-bar__weather {
-    height: 30px;
-    min-height: 30px;
-    gap: 4px;
-    padding-inline: 6px;
+    height: 38px;
+    min-height: 38px;
+    grid-template-columns: 22px auto;
+    grid-template-rows: 1fr;
+    gap: 5px;
+    padding: 0 10px 0 8px;
+  }
+
+  .brian-briefing-bar__clock > span,
+  .brian-briefing-bar__weather > span {
+    grid-row: 1;
+    width: 22px;
+    height: 22px;
+    font-size: 15px;
+  }
+
+  .brian-briefing-bar__clock strong,
+  .brian-briefing-bar__weather strong {
+    grid-row: 1;
+    align-self: center;
+    padding: 0;
+    font-size: 12.5px;
   }
 
   .brian-briefing-bar__clock small,
@@ -173,18 +301,19 @@ html body .bes-top-chrome > .brian-briefing-bar.is-news-route .brian-briefing-ba
   }
 }
 
-@media (max-width: 470px) {
+@media (max-width: 520px) {
   .brian-briefing-bar__clock > span {
     display: none;
   }
 
-  .brian-briefing-bar__clock,
-  .brian-briefing-bar__weather {
-    padding-inline: 5px;
+  .brian-briefing-bar__clock {
+    grid-template-columns: auto;
+    padding-inline: 9px;
   }
 
-  .brian-briefing-bar__context {
-    border-left-color: color-mix(in srgb, var(--brian-nav-line) 70%, transparent);
+  .brian-briefing-bar__weather {
+    grid-template-columns: 20px auto;
+    padding-inline: 7px 9px;
   }
 
   .brian-briefing-bar__source {
@@ -196,9 +325,22 @@ html body .bes-top-chrome > .brian-briefing-bar.is-news-route .brian-briefing-ba
   }
 }
 
+@media (max-width: 410px) {
+  .brian-briefing-bar__weather > span {
+    display: none;
+  }
+
+  .brian-briefing-bar__weather {
+    grid-template-columns: auto;
+    padding-inline: 8px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .brian-briefing-bar__weather,
   .brian-briefing-bar__weather.is-loading > span,
   .brian-briefing-bar__weather.is-refreshing > span {
     animation: none;
+    transition: none;
   }
 }
