@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
 import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
+import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
 import GlobalWorkHubNotificationBridge from './GlobalWorkHubNotificationBridge.jsx';
 import GlobalWorkScheduleBridge from './GlobalWorkScheduleBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
@@ -35,6 +36,7 @@ export default function GlobalFlatNavigation(props) {
       <Navigation {...props} />
       <GlobalGamesNavigationTab {...props} />
       <GlobalDashboardNavigationTab {...props} />
+      <GlobalDashboardFooterBridge route={props.route} language={props.language} />
       <GlobalWorkHubNotificationBridge currentUser={props.currentUser} language={props.language} />
       <GlobalWorkScheduleBridge />
       {workHubActive ? (
