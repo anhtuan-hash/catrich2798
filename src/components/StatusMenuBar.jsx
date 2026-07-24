@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/motion.js';
 import './StatusMenuBar.css';
 
 const MAX_HEADLINES = 8;
+const SLOT_CLASS = 'brian-nav__briefing-slot';
+const NAV_ACTIVE_CLASS = 'brian-nav--with-briefing';
 
 function feedCategory(language) {
   return language === 'en' ? 'top' : 'all';
@@ -59,6 +62,52 @@ export default function StatusMenuBar({
   const [items, setItems] = useState(() => (typeof window === 'undefined' ? [] : readCachedHeadlines(channel)));
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [portalTarget, setPortalTarget] = useState(null);
+  const slotRef = useRef(null);
+  const navRef = useRef(null);
+
+  useEffect(() => {
+    if (!allowed || typeof document === 'undefined') return undefined;
+
+    let observer = null;
+
+    const mountIntoNavigation = () => {
+      const nav = document.querySelector('.brian-nav');
+      if (!nav) return false;
+
+      let slot = nav.querySelector(`.${SLOT_CLASS}`);
+      if (!slot) {
+        slot = document.createElement('div');
+        slot.className = SLOT_CLASS;
+        slot.dataset.statusMenuBarOwner = 'true';
+        slot.setAttribute('aria-label', language === 'en' ? 'News hub' : 'Hub tin vắn');
+        nav.appendChild(slot);
+      }
+
+      nav.classList.add(NAV_ACTIVE_CLASS);
+      navRef.current = nav;
+      slotRef.current = slot;
+      setPortalTarget(slot);
+      return true;
+    };
+
+    if (!mountIntoNavigation()) {
+      observer = new MutationObserver(() => {
+        if (mountIntoNavigation()) observer?.disconnect();
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    return () => {
+      observer?.disconnect();
+      const slot = slotRef.current;
+      const nav = navRef.current;
+      if (slot?.dataset.statusMenuBarOwner === 'true') slot.remove();
+      nav?.classList.remove(NAV_ACTIVE_CLASS);
+      slotRef.current = null;
+      navRef.current = null;
+    };
+  }, [allowed, language]);
 
   useEffect(() => {
     setIndex(0);
@@ -91,7 +140,7 @@ export default function StatusMenuBar({
     return () => controller.abort();
   }, [allowed, channel]);
 
-  if (!allowed) return null;
+  if (!allowed || !portalTarget) return null;
 
   const item = items.length ? items[index % items.length] : null;
   const fallback = language === 'en'
@@ -101,7 +150,7 @@ export default function StatusMenuBar({
   const source = item?.source || 'English Hub News';
   const time = compactTime(item?.publishedAt, language);
   const sourceLine = `${source}${time ? ` · ${time}` : ''}`;
-  const tickerSeconds = Math.max(16, Math.min(34, Math.ceil((headline.length + sourceLine.length) / 6)));
+  const tickerSeconds = Math.max(17, Math.min(38, Math.ceil((headline.length + sourceLine.length) / 5.4)));
 
   const openNews = (event) => launchRoute({
     target: '#/news',
@@ -115,7 +164,7 @@ export default function StatusMenuBar({
     setIndex((current) => (current + step + items.length) % items.length);
   };
 
-  return (
+  const hub = (
     <aside
       className={`brian-briefing-bar ${route === 'news' ? 'is-news-route' : ''} ${paused ? 'is-paused' : ''}`}
       aria-label={language === 'en' ? 'News briefing' : 'Tin vắn'}
@@ -144,7 +193,6 @@ export default function StatusMenuBar({
             onAnimationIteration={() => move(1)}
           >
             <TickerItem sourceLine={sourceLine} headline={headline} />
-            <TickerItem sourceLine={sourceLine} headline={headline} />
           </span>
         </span>
       </button>
@@ -158,10 +206,12 @@ export default function StatusMenuBar({
           </div>
         ) : null}
         <button type="button" className="brian-briefing-bar__open" onClick={openNews}>
-          <span>{language === 'en' ? 'Open News' : 'Đọc báo'}</span>
+          <span>{language === 'en' ? 'News' : 'Đọc báo'}</span>
           <b aria-hidden="true">→</b>
         </button>
       </div>
     </aside>
   );
+
+  return createPortal(hub, portalTarget);
 }
