@@ -159,9 +159,9 @@ export default function StatusMenuBar({
     sourceEl: event.currentTarget,
   });
 
-  const move = (step) => {
+  const advance = () => {
     if (items.length < 2) return;
-    setIndex((current) => (current + step + items.length) % items.length);
+    setIndex((current) => (current + 1) % items.length);
   };
 
   const hub = (
@@ -174,11 +174,6 @@ export default function StatusMenuBar({
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={() => setPaused(false)}
     >
-      <button type="button" className="brian-briefing-bar__label" onClick={openNews}>
-        <span className="brian-briefing-bar__live-dot" aria-hidden="true" />
-        <span>{language === 'en' ? 'Briefing' : 'Tin vắn'}</span>
-      </button>
-
       <button
         type="button"
         className="brian-briefing-bar__headline"
@@ -190,26 +185,12 @@ export default function StatusMenuBar({
           <span
             key={`${item?.id || item?.link || index}-${index}`}
             className="brian-briefing-bar__ticker-track"
-            onAnimationIteration={() => move(1)}
+            onAnimationIteration={advance}
           >
             <TickerItem sourceLine={sourceLine} headline={headline} />
           </span>
         </span>
       </button>
-
-      <div className="brian-briefing-bar__actions">
-        {items.length > 1 ? (
-          <div className="brian-briefing-bar__pager" aria-label={language === 'en' ? 'Change headline' : 'Chuyển tin'}>
-            <button type="button" onClick={() => move(-1)} aria-label={language === 'en' ? 'Previous headline' : 'Tin trước'}>‹</button>
-            <span>{index + 1}/{items.length}</span>
-            <button type="button" onClick={() => move(1)} aria-label={language === 'en' ? 'Next headline' : 'Tin tiếp theo'}>›</button>
-          </div>
-        ) : null}
-        <button type="button" className="brian-briefing-bar__open" onClick={openNews}>
-          <span>{language === 'en' ? 'News' : 'Đọc báo'}</span>
-          <b aria-hidden="true">→</b>
-        </button>
-      </div>
     </aside>
   );
 
