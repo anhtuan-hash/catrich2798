@@ -3,7 +3,7 @@ import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
 import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
 import GlobalWorkHubNotificationBridge from './GlobalWorkHubNotificationBridge.jsx';
-import GlobalWorkScheduleCenter from './GlobalWorkScheduleCenter.jsx';
+import GlobalWorkScheduleCompatibleCenter from './GlobalWorkScheduleCompatibleCenter.jsx';
 import GlobalWorkScheduleBridge from './GlobalWorkScheduleBridge.jsx';
 import GlobalWorkScheduleTemplatePanel from './GlobalWorkScheduleTemplatePanel.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
@@ -34,7 +34,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalDashboardNavigationTab {...props} />
       <GlobalWorkHubNotificationBridge currentUser={props.currentUser} language={props.language} />
       <GlobalWorkScheduleBridge />
-      <GlobalWorkScheduleCenter {...props} />
+      <GlobalWorkScheduleCompatibleCenter {...props} />
       <GlobalWorkScheduleTemplatePanel route={props.route} />
       <GlobalEnglishHubBrand />
     </>
