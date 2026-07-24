@@ -56,10 +56,21 @@ jobs:
       - name: Build production bundle
         run: npm run build
       - name: Run permanent removal audit
-        run: npm run audit:removed-apps
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run audit:removed-apps 2>&1 | tee audit-report.txt
+      - name: Upload audit report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: retired-app-audit-report
+          path: audit-report.txt
+          if-no-files-found: ignore
       - name: Commit verified removal
         shell: bash
         run: |
+          rm -f audit-report.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
