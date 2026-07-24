@@ -2,6 +2,7 @@ import { supabase } from './supabase.js';
 
 export const INTERNAL_USERNAME_DOMAIN = 'accounts.brianenglish.studio';
 export const TEACHER_ACCOUNT_FUNCTION = 'teacher-accounts';
+export const TEACHER_ACCOUNT_API = '/api/teacher-accounts';
 
 let bridgeInstalled = false;
 
@@ -60,22 +61,92 @@ export function installUsernameAuthBridge() {
   }
 }
 
-export async function invokeTeacherAccounts(body = {}) {
+async function parseApiResponse(response) {
+  const text = await response.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+  return {
+    status: response.status,
+    ok: response.ok && data?.ok !== false,
+    data: data && typeof data === 'object' ? data : null,
+    message: data?.message || (text && text.length < 300 ? text : ''),
+  };
+}
+
+async function invokeVercelTeacherAccounts(body) {
+  if (!supabase?.auth) return { unavailable: true, message: 'Supabase Auth chưa được cấu hình.' };
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  const token = sessionData?.session?.access_token;
+  if (sessionError || !token) {
+    return { unavailable: false, ok: false, status: 401, message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' };
+  }
+
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), 45000);
+  try {
+    const response = await fetch(TEACHER_ACCOUNT_API, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body || {}),
+      signal: controller.signal,
+    });
+    const parsed = await parseApiResponse(response);
+    return {
+      unavailable: response.status === 404 || response.status === 503,
+      ok: parsed.ok,
+      status: parsed.status,
+      ...(parsed.data || {}),
+      message: parsed.message || (parsed.ok ? '' : 'Dịch vụ tài khoản giáo viên trả về lỗi.'),
+    };
+  } catch (error) {
+    return {
+      unavailable: true,
+      ok: false,
+      status: 0,
+      message: error?.name === 'AbortError'
+        ? 'Dịch vụ tạo tài khoản phản hồi quá chậm. Vui lòng thử lại.'
+        : 'Không kết nối được dịch vụ tài khoản trên Vercel.',
+    };
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
+async function invokeEdgeTeacherAccounts(body) {
   if (!supabase?.functions) {
     return { ok: false, message: 'Supabase Functions chưa được cấu hình.' };
   }
-  const { data, error } = await supabase.functions.invoke(TEACHER_ACCOUNT_FUNCTION, { body });
-  if (error) {
-    const message = String(error?.message || error || '').trim();
-    return {
-      ok: false,
-      message: /404|not found/i.test(message)
-        ? 'Chưa triển khai Edge Function teacher-accounts trên Supabase.'
-        : (message || 'Không thể gọi dịch vụ tài khoản giáo viên.'),
-    };
+  try {
+    const { data, error } = await supabase.functions.invoke(TEACHER_ACCOUNT_FUNCTION, { body });
+    if (error) {
+      const raw = String(error?.message || error || '').trim();
+      let message = raw || 'Không thể gọi Edge Function teacher-accounts.';
+      if (/404|not found/i.test(raw)) message = 'Edge Function teacher-accounts chưa được triển khai.';
+      else if (/failed to send|fetch|network/i.test(raw)) message = 'Không kết nối được Edge Function teacher-accounts.';
+      return { ok: false, message };
+    }
+    if (data?.ok === false) return { ok: false, ...data };
+    return { ok: true, ...(data || {}) };
+  } catch (error) {
+    return { ok: false, message: String(error?.message || 'Không thể gọi Edge Function teacher-accounts.') };
   }
-  if (data?.ok === false) return { ok: false, ...data };
-  return { ok: true, ...(data || {}) };
+}
+
+export async function invokeTeacherAccounts(body = {}) {
+  const primary = await invokeVercelTeacherAccounts(body);
+  if (!primary.unavailable) return primary;
+
+  const fallback = await invokeEdgeTeacherAccounts(body);
+  if (fallback.ok || fallback.results) return fallback;
+
+  return {
+    ok: false,
+    message: [primary.message, fallback.message].filter(Boolean).join(' ')
+      || 'Dịch vụ quản trị tài khoản chưa sẵn sàng.',
+  };
 }
 
 export function generateStrongPassword(length = 12) {
