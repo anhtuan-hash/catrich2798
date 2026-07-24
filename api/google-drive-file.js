@@ -34,7 +34,8 @@ export default async function handler(req, res) {
     }
 
     const { client, connection, accessToken } = await getConnection();
-    let resourceQuery = client.from('resource_items').select('*');
+    const columns = 'id,drive_file_id,status,uploader_id,allow_download,allow_preview,file_name,title,mime_type,views,downloads';
+    let resourceQuery = client.from('resource_items').select(columns);
     resourceQuery = isUuid(resourceId) ? resourceQuery.eq('id', resourceId) : resourceQuery.eq('drive_file_id', fileId);
     const { data: resource, error } = await resourceQuery.maybeSingle();
     if (error || !resource) throw new Error(error?.message || 'Resource not found');
