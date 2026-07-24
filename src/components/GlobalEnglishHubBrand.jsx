@@ -1,20 +1,9 @@
 import { useEffect } from 'react';
 
-function normalizeBrandButton(button) {
-  const directSpans = Array.from(button.children).filter((node) => node.tagName === 'SPAN');
-  const primaryLabel = directSpans[0];
-
-  if (primaryLabel && primaryLabel.textContent !== 'English Hub') {
-    primaryLabel.textContent = 'English Hub';
-  }
-
-  directSpans.slice(1).forEach((node) => node.remove());
-
-  Array.from(button.childNodes).forEach((node) => {
-    if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) node.remove();
-  });
-
+function prepareBrandButton(button) {
   button.setAttribute('aria-label', 'English Hub');
+  button.setAttribute('title', 'English Hub');
+  button.dataset.brianBrandReady = 'true';
 }
 
 function hideRedundantHomeTab() {
@@ -29,7 +18,7 @@ function hideRedundantHomeTab() {
 }
 
 function applyEnglishHubBrand() {
-  document.querySelectorAll('.brian-nav__brand').forEach(normalizeBrandButton);
+  document.querySelectorAll('.brian-nav__brand').forEach(prepareBrandButton);
   hideRedundantHomeTab();
 
   document.querySelectorAll('.brian-overlap-home .boh-copy-panel > h1').forEach((node) => {
