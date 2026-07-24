@@ -3,6 +3,23 @@ import { diagnoseRuntime, getRuntimeClient } from '../services/runtime/core.js';
 import { APP_VERSION, RELEASE_NAME, RUNTIME_CORE_VERSION } from '../config/version.js';
 import { isDepartmentLeaderRole, normalizeSystemRole, SYSTEM_ROLES } from '../utils/roles.js';
 
+const ADMIN_CACHE_KEY = 'bes-production-hardening-admin-cache-v1';
+const ADMIN_CACHE_MAX_AGE = 6 * 60 * 60 * 1000;
+const ROLE_COLUMNS = 'user_id,role,scope,active,assigned_at';
+const SECURITY_EVENT_COLUMNS = 'id,action,endpoint,status,created_at';
+
+function readAdminCache() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(ADMIN_CACHE_KEY) || 'null');
+    if (!cached || Date.now() - Number(cached.storedAt || 0) > ADMIN_CACHE_MAX_AGE) return null;
+    return cached;
+  } catch { return null; }
+}
+
+function writeAdminCache(value) {
+  try { localStorage.setItem(ADMIN_CACHE_KEY, JSON.stringify({ ...value, storedAt: Date.now() })); } catch { /* optional cache */ }
+}
+
 const checks = [
   ['apiAuth', 'AI Gateway authentication'],
   ['roles', 'Unified identity and roles'],
@@ -38,20 +55,37 @@ export default function ProductionHardening({ language = 'vi', currentUser }) {
   const [saving, setSaving] = useState(false);
   const isLeader = isDepartmentLeaderRole(currentUser?.role);
 
-  const loadAdminData = async () => {
+  const loadAdminData = async ({ force = false } = {}) => {
     if (!isLeader) return;
+    const cached = force ? null : readAdminCache();
+    if (cached) {
+      setRoles(cached.roles || []);
+      setProfiles(cached.profiles || []);
+      setEvents(cached.events || []);
+      return;
+    }
     const client = getRuntimeClient();
     if (!client) return;
     setAdminMessage('');
-    const [roleResult, profileResult, eventResult] = await Promise.all([
-      client.from('system_roles').select('*').order('assigned_at', { ascending: false }).limit(300),
-      client.from('profiles').select('*').limit(300),
-      client.from('api_security_events').select('*').order('created_at', { ascending: false }).limit(30),
-    ]);
-    if (!roleResult.error) setRoles(roleResult.data || []);
-    if (!profileResult.error) setProfiles(profileResult.data || []);
-    if (!eventResult.error) setEvents(eventResult.data || []);
-    const firstError = roleResult.error || profileResult.error || eventResult.error;
+    const rolePromise = client.from('system_roles').select(ROLE_COLUMNS).order('assigned_at', { ascending: false }).limit(180);
+    const eventPromise = client.from('api_security_events').select(SECURITY_EVENT_COLUMNS).order('created_at', { ascending: false }).limit(30);
+    let profileResult = null;
+    for (const columns of ['id,full_name,email,role', 'id,email,role', 'user_id,full_name,email,role', 'user_id,email,role', 'profile_id,full_name,email,role', 'profile_id,email,role']) {
+      const result = await client.from('profiles').select(columns).limit(300);
+      if (!result.error) { profileResult = result; break; }
+      if (!/column .* does not exist|42703/i.test(result.error.message || '')) { profileResult = result; break; }
+    }
+    const [roleResult, eventResult] = await Promise.all([rolePromise, eventPromise]);
+    const nextRoles = !roleResult.error ? roleResult.data || [] : [];
+    const nextProfiles = profileResult && !profileResult.error ? profileResult.data || [] : [];
+    const nextEvents = !eventResult.error ? eventResult.data || [] : [];
+    if (!roleResult.error) setRoles(nextRoles);
+    if (profileResult && !profileResult.error) setProfiles(nextProfiles);
+    if (!eventResult.error) setEvents(nextEvents);
+    if (!roleResult.error && profileResult && !profileResult.error && !eventResult.error) {
+      writeAdminCache({ roles: nextRoles, profiles: nextProfiles, events: nextEvents });
+    }
+    const firstError = roleResult.error || profileResult?.error || eventResult.error;
     if (firstError && !/does not exist|relation .* does not exist/i.test(firstError.message || '')) setAdminMessage(firstError.message);
   };
 
@@ -122,7 +156,8 @@ export default function ProductionHardening({ language = 'vi', currentUser }) {
       return;
     }
     setAdminMessage(language === 'vi' ? 'Đã cập nhật vai trò. Người dùng cần đăng nhập lại để nhận quyền mới.' : 'Role updated. The user should sign in again.');
-    await loadAdminData();
+    try { localStorage.removeItem(ADMIN_CACHE_KEY); } catch { /* optional cache */ }
+    await loadAdminData({ force: true });
   };
 
   return (
@@ -158,7 +193,7 @@ export default function ProductionHardening({ language = 'vi', currentUser }) {
 
       {isLeader ? <section className="v1099-admin-grid">
         <article className="v1099-admin-card">
-          <header><div><small>Identity Core</small><h2>{language === 'vi' ? 'Vai trò hệ thống' : 'System roles'}</h2></div><button type="button" onClick={loadAdminData}>{language === 'vi' ? 'Làm mới' : 'Refresh'}</button></header>
+          <header><div><small>Identity Core</small><h2>{language === 'vi' ? 'Vai trò hệ thống' : 'System roles'}</h2></div><button type="button" onClick={() => loadAdminData({ force: true })}>{language === 'vi' ? 'Làm mới' : 'Refresh'}</button></header>
           <form onSubmit={saveRole} className="v1099-role-form">
             <label><span>{language === 'vi' ? 'Tài khoản' : 'Account'}</span><select value={roleForm.user_id} onChange={(event) => setRoleForm((current) => ({ ...current, user_id: event.target.value }))} required><option value="">—</option>{profiles.map((profile) => { const id = profileId(profile); return id ? <option key={id} value={id}>{profileLabel(profile)} · {profile.email || id}</option> : null; })}</select></label>
             <label><span>{language === 'vi' ? 'Vai trò chuẩn' : 'Canonical role'}</span><select value={roleForm.role} onChange={(event) => setRoleForm((current) => ({ ...current, role: event.target.value }))}><option value={SYSTEM_ROLES.ADMIN}>Admin</option><option value={SYSTEM_ROLES.DEPARTMENT_HEAD}>Department Head</option><option value={SYSTEM_ROLES.TEACHER}>Teacher</option><option value={SYSTEM_ROLES.STUDENT}>Student</option></select></label>
