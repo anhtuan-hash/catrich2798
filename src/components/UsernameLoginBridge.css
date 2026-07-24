@@ -1,0 +1,13 @@
+.bes-username-login-hint {
+  display: block;
+  margin: 7px 2px 0;
+  color: rgba(67, 54, 50, 0.68);
+  font-size: 11px;
+  line-height: 1.42;
+}
+
+html[data-theme='dark'] .bes-username-login-hint,
+body[data-theme='dark'] .bes-username-login-hint,
+.theme-dark .bes-username-login-hint {
+  color: rgba(255, 255, 255, 0.62);
+}
