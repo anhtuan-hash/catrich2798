@@ -7,6 +7,13 @@ export const APPS = [
     status: 'Realtime · Role-aware · 14-day view', statusVi: 'Realtime · Theo vai trò · 14 ngày', api: true, featured: true},
 
   {
+    slug: 'personnel-hub', icon: 'NS', tone: 'blue', group: 'Management', groupVi: 'Quản lý',
+    title: 'Personnel Management', titleVi: 'Quản lý nhân sự',
+    desc: 'Manage teacher accounts, personnel records, employment details and profile change requests in one secure directory.',
+    descVi: 'Quản lý tài khoản giáo viên, hồ sơ nhân sự, thông tin công tác và các đề nghị chỉnh sửa trong một danh bạ bảo mật.',
+    status: 'Admin records · Teacher requests', statusVi: 'Admin cập nhật · Giáo viên đề nghị', api: false, featured: true},
+
+  {
     slug: 'thpt-practice-hub', icon: 'TH', tone: 'orange', group: 'Exam Preparation', groupVi: 'Luyện thi THPT',
     title: 'THPT Interactive Practice Hub', titleVi: 'Luyện thi THPT',
     desc: 'Upload, review, organize and run interactive HTML exam-preparation lessons directly inside Brian.',
