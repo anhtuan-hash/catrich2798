@@ -179,16 +179,69 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
     setNotice('');
   };
 
+  const buildNewTool = () => {
+    const url = safeAiWebsiteUrl(newTool.url);
+    if (!newTool.name.trim() || !url) return null;
+    return normalizeAiWebsiteTool({
+      ...newTool,
+      url,
+      id: `ai-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    });
+  };
+
+  const hasPendingNewToolInput = () => (
+    Boolean(String(newTool.name || '').trim())
+    || Boolean(String(newTool.url || '').trim())
+    || Boolean(String(newTool.description || '').trim())
+    || String(newTool.icon || '').trim().toUpperCase() !== 'AI'
+    || newTool.audience !== 'all'
+  );
+
   const saveConfiguration = async () => {
     if (!isManager || saving) return;
+
+    const pendingTool = buildNewTool();
+    if (hasPendingNewToolInput() && !pendingTool) {
+      setNotice(vi
+        ? 'Website đang nhập chưa đủ tên hoặc URL hợp lệ.'
+        : 'The website being entered needs a valid name and URL.');
+      return;
+    }
+
+    const nextTools = pendingTool ? [...draftTools, pendingTool] : [...draftTools];
+    const invalidTool = nextTools.find((tool) => !String(tool?.name || '').trim() || !safeAiWebsiteUrl(tool?.url));
+    if (invalidTool) {
+      setNotice(vi
+        ? `Website “${invalidTool.name || 'chưa đặt tên'}” có tên hoặc URL chưa hợp lệ.`
+        : `“${invalidTool.name || 'Untitled'}” has an invalid name or URL.`);
+      return;
+    }
+
+    const normalizedTools = nextTools.map((tool, index) => normalizeAiWebsiteTool({
+      ...tool,
+      url: safeAiWebsiteUrl(tool.url),
+    }, index));
+
     setSaving(true);
     setNotice('');
     try {
-      const result = await saveAiWebsiteSettings(currentUser, draftTools);
+      const result = await saveAiWebsiteSettings(currentUser, normalizedTools);
+      if (result.snapshot.tools.length !== normalizedTools.length) {
+        throw new Error(vi
+          ? 'Supabase chưa trả lại đầy đủ danh sách vừa lưu.'
+          : 'Supabase did not return the complete saved list.');
+      }
+
       setSnapshot(result.snapshot);
       setDraftTools(result.snapshot.tools.map((tool) => ({ ...tool })));
-      setNotice(vi ? 'Đã lưu và đồng bộ cho toàn bộ giáo viên.' : 'Saved and synced for all teachers.');
-      window.setTimeout(() => setNotice(''), 2400);
+      setNewTool({ ...EMPTY_TOOL });
+      setActiveToolId(pendingTool?.id || result.snapshot.tools[0]?.id || '');
+      setRefreshKey((value) => value + 1);
+      setManageMode(false);
+      setNotice(vi
+        ? `Đã lưu và đồng bộ ${result.snapshot.tools.length} website cho toàn bộ giáo viên.`
+        : `Saved and synced ${result.snapshot.tools.length} website(s) for all teachers.`);
+      window.setTimeout(() => setNotice(''), 3200);
     } catch (error) {
       setNotice(String(error?.message || error));
     } finally {
@@ -197,13 +250,18 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
   };
 
   const addTool = () => {
-    const url = safeAiWebsiteUrl(newTool.url);
-    if (!isManager || !newTool.name.trim() || !url) return;
-    setDraftTools((current) => [
-      ...current,
-      normalizeAiWebsiteTool({ ...newTool, url, id: `ai-${Date.now()}` }),
-    ]);
-    setNewTool(EMPTY_TOOL);
+    const tool = buildNewTool();
+    if (!isManager || !tool) {
+      setNotice(vi
+        ? 'Vui lòng nhập đủ tên và URL hợp lệ.'
+        : 'Enter a valid name and URL.');
+      return;
+    }
+    setDraftTools((current) => [...current, tool]);
+    setNewTool({ ...EMPTY_TOOL });
+    setNotice(vi
+      ? 'Đã thêm vào danh sách. Nhấn “Lưu và đồng bộ” để áp dụng.'
+      : 'Added to the list. Choose “Save and sync” to apply it.');
   };
 
   const updateDraftTool = (id, patch) => {
@@ -250,6 +308,17 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
             ) : null}
             {!manageMode && activeTool ? (
               <button type="button" onClick={() => setRefreshKey((value) => value + 1)} title={vi ? 'Tải lại website' : 'Reload website'} aria-label={vi ? 'Tải lại website' : 'Reload website'}>↻</button>
+            ) : null}
+            {!manageMode && activeTool ? (
+              <button
+                type="button"
+                onClick={() => {
+                  const url = safeAiWebsiteUrl(activeTool.url);
+                  if (url) window.open(url, '_blank', 'noopener,noreferrer');
+                }}
+                title={vi ? 'Mở website trực tiếp trong tab mới' : 'Open website directly in a new tab'}
+                aria-label={vi ? 'Mở website trực tiếp trong tab mới' : 'Open website directly in a new tab'}
+              >↗</button>
             ) : null}
             {!manageMode ? (
               <button type="button" onClick={() => setExpanded((value) => !value)} title={vi ? 'Mở rộng bảng' : 'Expand panel'} aria-label={vi ? 'Mở rộng bảng' : 'Expand panel'}>{expanded ? '↙' : '⛶'}</button>
@@ -307,7 +376,8 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
                     src={safeAiWebsiteUrl(activeTool.url)}
                     title={activeTool.name}
                     allow="clipboard-read; clipboard-write; microphone; camera; fullscreen"
-                    sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts allow-downloads"
+                    sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-presentation allow-same-origin allow-scripts allow-downloads allow-top-navigation-by-user-activation"
+                    referrerPolicy="strict-origin-when-cross-origin"
                   />
                 </>
               ) : (
