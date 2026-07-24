@@ -1,0 +1,345 @@
+/* =========================================================
+   Homeroom Google readability polish
+   Imported after the redesign and color layers.
+   ========================================================= */
+
+.page.hr-page{
+  font-size:17px!important;
+  line-height:1.55!important;
+}
+
+/* Larger, calmer typography */
+.hr-page .hr-hero-copy h1{
+  font-size:clamp(54px,6vw,84px)!important;
+  line-height:.98!important;
+  letter-spacing:-.048em!important;
+}
+.hr-page .hr-hero-copy>span{
+  min-height:42px!important;
+  padding:0 16px!important;
+  font-size:15px!important;
+}
+.hr-page .hr-panel-head small,
+.hr-page .hr-panel>div>small,
+.hr-page .hr-share-panel>div>small{
+  font-size:12px!important;
+  line-height:1.35!important;
+}
+.hr-page .hr-panel-head h2,
+.hr-page .hr-share-panel h2{
+  font-size:clamp(28px,2.3vw,36px)!important;
+  line-height:1.14!important;
+  letter-spacing:-.028em!important;
+}
+.hr-page .hr-panel h3{font-size:20px!important;line-height:1.25!important}
+.hr-page .hr-panel p,
+.hr-page .hr-empty p{
+  font-size:15px!important;
+  line-height:1.68!important;
+}
+.hr-page label{font-size:14px!important}
+.hr-page label>span{font-size:13px!important}
+.hr-page input,
+.hr-page textarea,
+.hr-page select{
+  min-height:50px!important;
+  font-size:15px!important;
+}
+.hr-page textarea{min-height:124px!important}
+
+/* Buttons and controls */
+.hr-page button.primary,
+.hr-page button.secondary,
+.hr-page .hr-row-actions button,
+.hr-page .text-btn{
+  min-height:44px!important;
+  padding-inline:17px!important;
+  font-size:14px!important;
+}
+.hr-page .hr-head-actions,
+.hr-page .hr-filter-row{gap:10px!important}
+
+/* Larger tab bar */
+.hr-page .hr-tabs{padding:8px!important;gap:5px!important}
+.hr-page .hr-tabs button{
+  min-height:50px!important;
+  padding:0 18px!important;
+  font-size:15px!important;
+}
+.hr-page .hr-tabs button>span{
+  width:32px!important;
+  height:32px!important;
+  font-size:16px!important;
+}
+.hr-page .hr-tabs button b{font-size:15px!important}
+
+/* Metrics */
+.hr-page .hr-stat{min-height:128px!important;padding:22px!important}
+.hr-page .hr-stat>span{width:50px!important;height:50px!important;font-size:22px!important}
+.hr-page .hr-stat small{font-size:13px!important}
+.hr-page .hr-stat strong{font-size:38px!important}
+.hr-page .hr-stat em{font-size:12px!important;line-height:1.45!important}
+
+/* Overview actions and list content */
+.hr-page .hr-quick-grid button{min-height:142px!important;padding:18px!important}
+.hr-page .hr-quick-grid button>span{width:42px!important;height:42px!important;font-size:16px!important}
+.hr-page .hr-quick-grid button b{font-size:16px!important}
+.hr-page .hr-quick-grid button small{font-size:12px!important;line-height:1.48!important}
+.hr-page .hr-compact-list>div,
+.hr-page .hr-history-list>button,
+.hr-page .hr-student-mini-list>div{
+  min-height:76px!important;
+  padding:14px!important;
+}
+.hr-page .hr-compact-list time,
+.hr-page .hr-history-list time{font-size:13px!important}
+.hr-page .hr-compact-list b,
+.hr-page .hr-history-list b,
+.hr-page .hr-student-mini-list b{font-size:15px!important}
+.hr-page .hr-compact-list small,
+.hr-page .hr-history-list small,
+.hr-page .hr-student-mini-list small{font-size:12px!important;line-height:1.45!important}
+.hr-page .hr-student-mini-list>div>span{width:44px!important;height:44px!important;font-size:17px!important}
+
+/* =========================================================
+   Rebuild the "Hồ sơ chủ nhiệm" progress card.
+   Explicit background resets prevent old purple presentation
+   rules from leaking into the title and rows.
+   ========================================================= */
+.hr-page .hr-progress-panel{
+  position:relative!important;
+  overflow:hidden!important;
+  padding:26px!important;
+  border:1px solid #dfe5ee!important;
+  border-top:4px solid #7c4dff!important;
+  border-radius:24px!important;
+  background:#fff!important;
+  background-image:none!important;
+  color:#202124!important;
+  box-shadow:0 1px 2px rgba(60,64,67,.08),0 5px 16px rgba(60,64,67,.05)!important;
+}
+.hr-page .hr-progress-panel::before{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  right:-54px!important;
+  top:-62px!important;
+  width:180px!important;
+  height:180px!important;
+  border-radius:50%!important;
+  background:rgba(124,77,255,.055)!important;
+  pointer-events:none!important;
+}
+.hr-page .hr-progress-panel::after{content:none!important;display:none!important}
+.hr-page .hr-progress-panel .hr-panel-head{
+  position:relative!important;
+  z-index:1!important;
+  display:flex!important;
+  align-items:flex-end!important;
+  margin:0 0 4px!important;
+  padding:0 0 18px!important;
+  border:0!important;
+  border-bottom:1px solid #eceff3!important;
+  border-radius:0!important;
+  background:#fff!important;
+  background-image:none!important;
+  color:#202124!important;
+  box-shadow:none!important;
+}
+.hr-page .hr-progress-panel .hr-panel-head>div{
+  display:block!important;
+  width:100%!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  background-image:none!important;
+}
+.hr-page .hr-progress-panel .hr-panel-head small{
+  display:block!important;
+  margin:0 0 7px!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  color:#6b38c9!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  letter-spacing:.075em!important;
+}
+.hr-page .hr-progress-panel .hr-panel-head h2{
+  display:block!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  color:#202124!important;
+  -webkit-text-fill-color:#202124!important;
+  font-size:clamp(30px,2.45vw,38px)!important;
+  font-weight:500!important;
+  line-height:1.12!important;
+  text-shadow:none!important;
+}
+.hr-page .hr-progress-panel .hr-progress-row{
+  position:relative!important;
+  z-index:1!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:10px!important;
+  width:100%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:17px 0!important;
+  border:0!important;
+  border-bottom:1px solid #f0f2f5!important;
+  border-radius:0!important;
+  background:#fff!important;
+  background-image:none!important;
+  color:#202124!important;
+  box-shadow:none!important;
+}
+.hr-page .hr-progress-panel .hr-progress-row:last-child{border-bottom:0!important;padding-bottom:4px!important}
+.hr-page .hr-progress-panel .hr-progress-row>span{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:16px!important;
+  width:100%!important;
+  min-height:auto!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  color:#202124!important;
+  box-shadow:none!important;
+}
+.hr-page .hr-progress-panel .hr-progress-row>span b{
+  display:block!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  color:#202124!important;
+  -webkit-text-fill-color:#202124!important;
+  font-size:16px!important;
+  font-weight:600!important;
+  line-height:1.35!important;
+  text-shadow:none!important;
+}
+.hr-page .hr-progress-panel .hr-progress-row>span small{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:54px!important;
+  min-height:28px!important;
+  margin:0!important;
+  padding:0 10px!important;
+  border:1px solid #d6dbe3!important;
+  border-radius:999px!important;
+  background:#f8fafd!important;
+  background-image:none!important;
+  color:#4f555d!important;
+  -webkit-text-fill-color:#4f555d!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  line-height:1!important;
+  text-shadow:none!important;
+}
+.hr-page .hr-progress-panel .hr-progress-row>div{
+  display:block!important;
+  width:100%!important;
+  height:10px!important;
+  min-height:10px!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  border:0!important;
+  border-radius:999px!important;
+  background:#e8ebf0!important;
+  background-image:none!important;
+  box-shadow:inset 0 1px 2px rgba(60,64,67,.08)!important;
+}
+.hr-page .hr-progress-panel .hr-progress-row>div>i{
+  display:block!important;
+  height:100%!important;
+  min-height:10px!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:999px!important;
+  background:#4285f4!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+.hr-page .hr-progress-panel .hr-progress-row:nth-of-type(1)>div>i{background:#4285f4!important}
+.hr-page .hr-progress-panel .hr-progress-row:nth-of-type(2)>div>i{background:#34a853!important}
+.hr-page .hr-progress-panel .hr-progress-row:nth-of-type(3)>div>i{background:#f9ab00!important}
+.hr-page .hr-progress-panel .hr-progress-row:nth-of-type(4)>div>i{background:#7c4dff!important}
+
+/* Tables */
+.hr-page .hr-table th{padding:15px 16px!important;font-size:12px!important}
+.hr-page .hr-table td{padding:16px!important;font-size:14px!important}
+.hr-page .hr-table td b{font-size:14px!important}
+.hr-page .hr-table td small{font-size:12px!important;line-height:1.45!important}
+.hr-page .hr-person-cell>span{width:42px!important;height:42px!important;font-size:13px!important}
+
+/* Attendance */
+.hr-page .hr-attendance-summary>span{min-height:80px!important}
+.hr-page .hr-attendance-summary b{font-size:30px!important}
+.hr-page .hr-attendance-summary small{font-size:12px!important}
+.hr-page .hr-attendance-name>span{width:40px!important;height:40px!important;font-size:13px!important}
+.hr-page .hr-attendance-name b{font-size:15px!important}
+.hr-page .hr-attendance-name small{font-size:12px!important}
+.hr-page .hr-status-switch button{width:40px!important;height:40px!important;font-size:15px!important}
+
+/* Communication and secondary cards */
+.hr-page .hr-feedback-inbox article,
+.hr-page .hr-contact-list article,
+.hr-page .hr-record-grid article,
+.hr-page .hr-scheduled-list article,
+.hr-page .hr-team-roster label,
+.hr-page .hr-toggle-grid label{padding:18px!important}
+.hr-page .hr-feedback-inbox article p,
+.hr-page .hr-contact-list article p,
+.hr-page .hr-record-grid article p{font-size:14px!important}
+
+/* Dark mode: preserve contrast and remove the purple block effect. */
+html[data-theme="dark"] .hr-page .hr-progress-panel,
+html[data-theme="dark"] .hr-page .hr-progress-panel .hr-panel-head,
+html[data-theme="dark"] .hr-page .hr-progress-panel .hr-progress-row{
+  border-color:#3b4046!important;
+  background:#1b1d1f!important;
+  color:#e8eaed!important;
+}
+html[data-theme="dark"] .hr-page .hr-progress-panel .hr-panel-head h2,
+html[data-theme="dark"] .hr-page .hr-progress-panel .hr-progress-row>span b{
+  color:#e8eaed!important;
+  -webkit-text-fill-color:#e8eaed!important;
+}
+html[data-theme="dark"] .hr-page .hr-progress-panel .hr-panel-head small{color:#c9b2ff!important}
+html[data-theme="dark"] .hr-page .hr-progress-panel .hr-progress-row>span small{
+  border-color:#50545a!important;
+  background:#282a2d!important;
+  color:#d0d4d9!important;
+  -webkit-text-fill-color:#d0d4d9!important;
+}
+html[data-theme="dark"] .hr-page .hr-progress-panel .hr-progress-row>div{background:#34373b!important}
+
+@media (max-width:900px){
+  .page.hr-page{font-size:16px!important}
+  .hr-page .hr-panel-head h2,.hr-page .hr-share-panel h2{font-size:29px!important}
+  .hr-page .hr-tabs button{min-height:48px!important;font-size:14px!important}
+  .hr-page .hr-tabs button b{font-size:14px!important}
+}
+
+@media (max-width:620px){
+  .page.hr-page{font-size:15px!important}
+  .hr-page .hr-hero-copy h1{font-size:46px!important}
+  .hr-page .hr-panel-head h2,.hr-page .hr-share-panel h2{font-size:25px!important}
+  .hr-page .hr-tabs button{min-height:46px!important;padding:0 14px!important}
+  .hr-page .hr-progress-panel{padding:20px!important}
+  .hr-page .hr-progress-panel .hr-panel-head h2{font-size:27px!important}
+  .hr-page .hr-progress-panel .hr-progress-row>span b{font-size:15px!important}
+  .hr-page .hr-progress-panel .hr-progress-row>span small{font-size:12px!important}
+}
