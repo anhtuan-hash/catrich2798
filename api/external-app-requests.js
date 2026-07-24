@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 const TABLE = 'permission_requests';
+const SETTINGS_TABLE = 'ai_website_settings';
+const WORKSPACE_KEY = 'english-hub';
 const PREFIX = 'external-web-app:';
 const KIND = 'external-app';
 const ALLOWED_STATUS = new Set(['pending', 'approved', 'rejected', 'cancelled']);
@@ -23,6 +25,11 @@ function cleanText(value, max = 500) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
 }
 
+function clamp(value, min, max, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : fallback;
+}
+
 function safeUrl(value) {
   try {
     const url = new URL(String(value || '').trim());
@@ -43,6 +50,32 @@ function normalizeApp(value = {}) {
     description: cleanText(value.description, 220),
     groupId: ['plan', 'create', 'assess', 'manage'].includes(value.groupId) ? value.groupId : 'create',
   };
+}
+
+function normalizeEmbedView(value = {}) {
+  const cropWidth = clamp(value.cropWidth, 18, 100, 88);
+  const cropHeight = clamp(value.cropHeight, 18, 100, 78);
+  const cropX = clamp(value.cropX, 0, 100 - cropWidth, (100 - cropWidth) / 2);
+  const cropY = clamp(value.cropY, 0, 100 - cropHeight, (100 - cropHeight) / 2);
+  return {
+    zoom: clamp(value.zoom, 0.4, 2.4, 1),
+    offsetX: clamp(value.offsetX, 0, 70, 0),
+    offsetY: clamp(value.offsetY, 0, 85, 0),
+    previewHeight: clamp(value.previewHeight, 420, 900, 620),
+    canvasHeight: clamp(value.canvasHeight, 1000, 2600, 1600),
+    cropX,
+    cropY,
+    cropWidth,
+    cropHeight,
+  };
+}
+
+function parseRequestApp(request = {}) {
+  try {
+    return normalizeApp(JSON.parse(String(request.message || '{}')));
+  } catch {
+    return normalizeApp({ name: request.item_title, description: request.message });
+  }
 }
 
 function hasPublishPermission(profile = {}) {
@@ -121,6 +154,87 @@ function requestAppUrl(request = {}) {
   }
 }
 
+async function approveRequest(session, req, res) {
+  const id = cleanText(req.body?.id, 80);
+  if (!id) return json(res, 400, { ok: false, message: 'Yêu cầu không hợp lệ.' });
+
+  const [requestResult, settingsResult] = await withTimeout(Promise.all([
+    session.db
+      .from(TABLE)
+      .select('id,requester_id,requester_email,requester_name,item_title,item_type,status,message')
+      .eq('id', id)
+      .single(),
+    session.db
+      .from(SETTINGS_TABLE)
+      .select('workspace_key,tools,updated_at')
+      .eq('workspace_key', WORKSPACE_KEY)
+      .maybeSingle(),
+  ]), 9000);
+
+  if (requestResult.error) throw Object.assign(new Error(requestResult.error.message), { status: 400 });
+  if (settingsResult.error) throw Object.assign(new Error(settingsResult.error.message), { status: 400 });
+
+  const request = requestResult.data;
+  const app = parseRequestApp(request);
+  if (!app.name || !app.url) return json(res, 400, { ok: false, message: 'Yêu cầu không có tên hoặc URL hợp lệ.' });
+
+  const currentTools = Array.isArray(settingsResult.data?.tools) ? settingsResult.data.tools : [];
+  const duplicate = currentTools.find((tool) => tool?.kind === KIND && safeUrl(tool?.url) === app.url);
+  const now = new Date().toISOString();
+  const approvedTool = {
+    ...(duplicate || {}),
+    id: duplicate?.id || `web-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    name: app.name,
+    url: app.url,
+    icon: app.icon,
+    description: app.description,
+    audience: 'all',
+    enabled: true,
+    pinned: false,
+    kind: KIND,
+    groupId: app.groupId,
+    requestId: request.id,
+    submittedBy: request.requester_email || request.requester_name || '',
+    approvedAt: now,
+    embedView: normalizeEmbedView(req.body?.embedView || {}),
+  };
+  const nextTools = [
+    ...currentTools.filter((tool) => tool?.id !== duplicate?.id),
+    approvedTool,
+  ];
+
+  const [settingsWrite, requestWrite] = await withTimeout(Promise.all([
+    session.db
+      .from(SETTINGS_TABLE)
+      .upsert({
+        workspace_key: WORKSPACE_KEY,
+        tools: nextTools,
+        updated_by: session.user.id,
+        updated_by_email: session.user.email || session.profile.email || '',
+        updated_at: now,
+      }, { onConflict: 'workspace_key' })
+      .select('tools,updated_at')
+      .single(),
+    session.db
+      .from(TABLE)
+      .update({ status: 'approved', updated_at: now })
+      .eq('id', id)
+      .select('id,status,updated_at')
+      .single(),
+  ]), 10000);
+
+  if (settingsWrite.error) throw Object.assign(new Error(settingsWrite.error.message), { status: 400 });
+  if (requestWrite.error) throw Object.assign(new Error(requestWrite.error.message), { status: 400 });
+
+  return json(res, 200, {
+    ok: true,
+    approvedTool,
+    tools: Array.isArray(settingsWrite.data?.tools) ? settingsWrite.data.tools : nextTools,
+    updatedAt: settingsWrite.data?.updated_at || now,
+    request: requestWrite.data,
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   try {
@@ -192,6 +306,11 @@ export default async function handler(req, res) {
       if (!session.hasServiceRole) {
         return json(res, 503, { ok: false, message: 'Vercel chưa có SUPABASE_SERVICE_ROLE_KEY nên chưa thể duyệt yêu cầu.' });
       }
+
+      if (cleanText(req.body?.action, 20) === 'approve') {
+        return approveRequest(session, req, res);
+      }
+
       const id = cleanText(req.body?.id, 80);
       const status = cleanText(req.body?.status, 20);
       if (!id || !ALLOWED_STATUS.has(status)) return json(res, 400, { ok: false, message: 'Yêu cầu hoặc trạng thái không hợp lệ.' });
