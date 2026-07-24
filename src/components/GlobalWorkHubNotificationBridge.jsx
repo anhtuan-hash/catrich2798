@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import {
@@ -8,6 +8,8 @@ import {
 } from '../utils/workHubDelivery.js';
 
 const HIDDEN_TASK_STATUSES = new Set(['draft', 'completed', 'approved', 'archived', 'cancelled']);
+const FOCUS_REFRESH_INTERVAL = 30_000;
+const BOOT_IDLE_TIMEOUT = 1_500;
 
 function notificationStorageKey(currentUser) {
   return `bes-global-notifications:${currentUser?.id || currentUser?.email || 'guest'}`;
@@ -142,38 +144,65 @@ function dispatchNotifications(items) {
 export default function GlobalWorkHubNotificationBridge({ currentUser, language = 'vi' }) {
   const runtime = useRuntimeCore();
   const userId = currentUser?.id || '';
+  const refreshInFlightRef = useRef(null);
+  const lastRefreshAtRef = useRef(0);
+  const refreshTimerRef = useRef(0);
 
-  const refresh = useCallback(async () => {
-    if (!userId || !runtime.ready || !runtime.session) return;
-    const readStates = storedReadState(currentUser);
-    const [databaseRows, assignedItems] = await Promise.all([
-      listWorkHubNotifications(userId, 60),
-      listAssignedWorkItems(userId),
-    ]);
+  const refresh = useCallback(() => {
+    if (!userId || !runtime.ready || !runtime.session) return Promise.resolve();
+    if (refreshInFlightRef.current) return refreshInFlightRef.current;
 
-    const databaseNotifications = (databaseRows || []).map((row) => mapDatabaseNotification(row, language, readStates));
-    const databaseItemIds = new Set(databaseNotifications.map((item) => item.itemId).filter(Boolean));
-    const fallbackNotifications = (assignedItems || [])
-      .filter((item) => !databaseItemIds.has(String(item?.id || '')))
-      .map((item) => mapAssignedTask(item, language, readStates));
+    const task = (async () => {
+      const readStates = storedReadState(currentUser);
+      const [databaseRows, assignedItems] = await Promise.all([
+        listWorkHubNotifications(userId, 60),
+        listAssignedWorkItems(userId),
+      ]);
 
-    dispatchNotifications([...databaseNotifications, ...fallbackNotifications]);
+      const databaseNotifications = (databaseRows || []).map((row) => mapDatabaseNotification(row, language, readStates));
+      const databaseItemIds = new Set(databaseNotifications.map((item) => item.itemId).filter(Boolean));
+      const fallbackNotifications = (assignedItems || [])
+        .filter((item) => !databaseItemIds.has(String(item?.id || '')))
+        .map((item) => mapAssignedTask(item, language, readStates));
+
+      dispatchNotifications([...databaseNotifications, ...fallbackNotifications]);
+      lastRefreshAtRef.current = Date.now();
+    })().finally(() => {
+      refreshInFlightRef.current = null;
+    });
+
+    refreshInFlightRef.current = task;
+    return task;
   }, [currentUser, language, runtime.ready, runtime.session, userId]);
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    if (!userId || !runtime.ready || !runtime.session) return undefined;
+
+    if (typeof window.requestIdleCallback === 'function') {
+      const idleId = window.requestIdleCallback(() => refresh(), { timeout: BOOT_IDLE_TIMEOUT });
+      return () => window.cancelIdleCallback?.(idleId);
+    }
+
+    const timerId = window.setTimeout(() => refresh(), 500);
+    return () => window.clearTimeout(timerId);
+  }, [refresh, runtime.ready, runtime.session, userId]);
 
   useEffect(() => {
     if (!userId || !runtime.ready || !runtime.session) return () => {};
-    const refreshSoon = () => window.setTimeout(() => refresh(), 80);
-    const unsubscribeNotifications = subscribeWorkHubNotifications(userId, refreshSoon);
+
+    const refreshSoon = ({ force = false, delay = 120 } = {}) => {
+      if (!force && Date.now() - lastRefreshAtRef.current < FOCUS_REFRESH_INTERVAL) return;
+      window.clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = window.setTimeout(() => refresh(), delay);
+    };
+
+    const unsubscribeNotifications = subscribeWorkHubNotifications(userId, () => refreshSoon({ force: true, delay: 80 }));
     const unsubscribeItems = subscribeTable({
       key: `global-work-hub-items-${userId}`,
       table: 'work_hub_items',
-      onChange: refreshSoon,
+      onChange: () => refreshSoon({ force: true, delay: 80 }),
     });
-    const onDeliveryUpdate = () => refreshSoon();
+    const onDeliveryUpdate = () => refreshSoon({ force: true, delay: 80 });
     const onFocus = () => refreshSoon();
     const onVisibility = () => {
       if (document.visibilityState === 'visible') refreshSoon();
@@ -183,6 +212,7 @@ export default function GlobalWorkHubNotificationBridge({ currentUser, language 
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
+      window.clearTimeout(refreshTimerRef.current);
       unsubscribeNotifications();
       unsubscribeItems();
       window.removeEventListener(WORK_HUB_DELIVERY_EVENT, onDeliveryUpdate);
