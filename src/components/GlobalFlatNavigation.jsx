@@ -1,6 +1,7 @@
 import React from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
+import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
 import GlobalWorkHubNotificationBridge from './GlobalWorkHubNotificationBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import './GlobalGoogleMaterialOverride.css';
@@ -24,6 +25,7 @@ export default function GlobalFlatNavigation(props) {
     <>
       <Navigation {...props} />
       <GlobalGamesNavigationTab {...props} />
+      <GlobalDashboardNavigationTab {...props} />
       <GlobalWorkHubNotificationBridge currentUser={props.currentUser} language={props.language} />
       <GlobalEnglishHubBrand />
     </>
