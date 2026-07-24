@@ -9,6 +9,23 @@
     document.body.appendChild(script);
   });
 
+  const hostWindows = () => {
+    const hosts = [];
+    try { if (window.parent && window.parent !== window && window.parent.location.origin === location.origin) hosts.push(window.parent); } catch { /* cross-origin */ }
+    try { if (window.opener && !window.opener.closed && window.opener.location.origin === location.origin) hosts.push(window.opener); } catch { /* cross-origin */ }
+    return hosts;
+  };
+
+  document.addEventListener('click', (event) => {
+    const control = event.target instanceof Element
+      ? event.target.closest('[data-apply-sitewide],[data-sitewide-reset]')
+      : null;
+    if (!control) return;
+    hostWindows().forEach((host) => {
+      try { host.EnglishHubMotion?.setSettings?.({ enabled: true }); } catch { /* optional */ }
+    });
+  }, true);
+
   const loadFallbackCatalog = async () => {
     window.MOTION_LAB_FALLBACK_CHUNKS = [];
     for (let index = 1; index <= 4; index += 1) {
