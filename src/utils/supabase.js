@@ -138,9 +138,36 @@ function trimReadCache() {
   oldest.forEach(([key]) => readCache.delete(key));
 }
 
+function cloneFetchInput(input) {
+  if (typeof Request === 'undefined' || !(input instanceof Request)) return input;
+  try {
+    // Supabase may retry the same Request object. Cloning prevents this wrapper
+    // from consuming the caller-owned body on the first attempt.
+    return input.clone();
+  } catch (error) {
+    const method = String(input.method || 'GET').toUpperCase();
+    if (method === 'GET' || method === 'HEAD') {
+      return new Request(input.url, {
+        method,
+        headers: new Headers(input.headers),
+        credentials: input.credentials,
+        cache: input.cache,
+        mode: input.mode,
+        redirect: input.redirect,
+        referrer: input.referrer,
+        referrerPolicy: input.referrerPolicy,
+        integrity: input.integrity,
+        keepalive: input.keepalive,
+        signal: input.signal,
+      });
+    }
+    throw new TypeError('Không thể gửi lại yêu cầu vì nội dung request đã được sử dụng.', { cause: error });
+  }
+}
+
 async function egressAwareFetch(input, init) {
   if (!nativeFetch) throw new Error('Fetch API is unavailable.');
-  const originalRequest = new Request(input, init);
+  const originalRequest = new Request(cloneFetchInput(input), init);
   const method = String(originalRequest.method || 'GET').toUpperCase();
   const isRestRequest = originalRequest.url.includes('/rest/v1/');
 
