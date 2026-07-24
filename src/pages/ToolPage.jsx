@@ -15,6 +15,7 @@ const StudentPractice = lazy(() => import('./StudentPractice.jsx'));
 const AITool = lazy(() => import('./AITool.jsx'));
 const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
 const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
+const TeachingMethodsHub = lazy(() => import('./TeachingMethodsHub.jsx'));
 const specializedToolSlugs = new Set([
   'exam-studio',
 ]);
@@ -66,8 +67,12 @@ export default function ToolPage(props) {
   const [title, setTitle] = useState('My Activity');
   const preview = useMemo(() => buildPreview(content, selected, language), [content, selected, language]);
 
-if (tool?.slug === 'textlab-activities') {
+  if (tool?.slug === 'textlab-activities') {
     return renderLazy(TextLabActivities, props);
+  }
+
+  if (tool?.slug === 'teaching-methods-hub') {
+    return renderLazy(TeachingMethodsHub, props);
   }
 
   if (tool?.slug === 'thpt-practice-hub') {
@@ -101,7 +106,6 @@ if (tool?.slug === 'textlab-activities') {
   if (specializedToolSlugs.has(tool?.slug)) {
     return renderLazy(SpecializedAppPage, props);
   }
-
 
   if (tool?.slug === 'domino-wordform') {
     return renderLazy(DominoWordForm, props);
