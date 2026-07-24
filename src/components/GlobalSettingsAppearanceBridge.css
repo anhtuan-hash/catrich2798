@@ -1,0 +1,21 @@
+/* Integrate Appearance Engine V2 into the real Google Material settings card. */
+html body .app-shell #settings-appearance.has-integrated-appearance-engine {
+  grid-column: 1 / -1 !important;
+}
+
+html body .app-shell #settings-appearance.has-integrated-appearance-engine > .settings-m3-row,
+html body .app-shell #settings-appearance.has-integrated-appearance-engine > .settings-m3-two-columns,
+html:has(#settings-appearance) body .bes-quick-appearance,
+html body .app-shell #settings-appearance .bes-quick-appearance[aria-hidden="true"] {
+  display: none !important;
+}
+
+html body .app-shell .settings-engine-portal-slot {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+html body .app-shell [data-settings-engine-duplicate="true"] {
+  display: none !important;
+}
