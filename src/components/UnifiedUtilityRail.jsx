@@ -1,6 +1,7 @@
 import React from 'react';
 import QuickDictionaryBubble from './QuickDictionaryBubble.jsx';
 import './QuickDictionaryCompact.css';
+import './QuickDictionarySearchHotfix.css';
 
 export default function UnifiedUtilityRail({ currentUser, language = 'vi', currentRoute = 'home' }) {
   if (!currentUser) return null;
