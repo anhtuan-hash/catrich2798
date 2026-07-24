@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import VietnamAtmosphereOverlay from './VietnamAtmosphereOverlay.jsx';
+import VietnamAtmosphereAdminPanel from './VietnamAtmosphereAdminPanel.jsx';
 import { recordRuntimeError } from '../utils/runtimeDiagnostics.js';
 
 export default function GlobalRuntimeGuard({ language = 'vi' }) {
@@ -35,6 +36,7 @@ export default function GlobalRuntimeGuard({ language = 'vi' }) {
   return (
     <>
       <VietnamAtmosphereOverlay />
+      <VietnamAtmosphereAdminPanel language={language} />
       {showRuntimeBanner ? (
         <aside className={`bes-runtime-banner ${online ? 'is-error' : 'is-offline'}`} role="status">
           <span aria-hidden="true">{online ? '!' : '⌁'}</span>
