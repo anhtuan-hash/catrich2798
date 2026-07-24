@@ -2,7 +2,10 @@ import { isSupabaseConfigured, supabase } from './supabase.js';
 
 const LOCAL_KEY = 'bes-ai-website-launcher-v1';
 const EVENT_NAME = 'bes-ai-websites-updated';
-const SNAPSHOT_KEY = '__english_hub_ai_websites__';
+const WORK_TABLE = 'work_hub_items';
+const SOURCE_MODULE = 'english-hub-ai-websites';
+const SYSTEM_CONFIG_KIND = 'ai_websites';
+const HIDDEN_WORK_DATE = '2000-01-01T00:00:00.000Z';
 
 export function safeAiWebsiteUrl(value) {
   try {
@@ -79,20 +82,101 @@ export function aiWebsiteVisibleForUser(tool, user) {
   return tool.audience === 'all' || tool.audience === audience || audience === 'admin';
 }
 
+function parseRowPayload(row = {}) {
+  const metadata = row.metadata && typeof row.metadata === 'object' ? row.metadata : {};
+  if (metadata.system_config === SYSTEM_CONFIG_KIND && Array.isArray(metadata.tools)) {
+    return normalizeSnapshot({
+      tools: metadata.tools,
+      updatedAt: metadata.config_updated_at || metadata.updatedAt || row.created_at || row.updated_at,
+      updatedBy: metadata.config_updated_by || metadata.updatedBy || row.created_by || '',
+      source: 'cloud-work-hub',
+      error: '',
+    });
+  }
+
+  try {
+    const parsed = JSON.parse(String(row.description || ''));
+    if (parsed?.system_config === SYSTEM_CONFIG_KIND || Array.isArray(parsed?.tools)) {
+      return normalizeSnapshot({ ...parsed, source: 'cloud-work-hub', error: '' });
+    }
+  } catch { /* legacy description is optional */ }
+  return null;
+}
+
+async function readSharedCloudSnapshot() {
+  const { data, error } = await supabase
+    .from(WORK_TABLE)
+    .select('id,metadata,description,created_at,updated_at,created_by,owner_id')
+    .eq('source_module', SOURCE_MODULE)
+    .order('created_at', { ascending: false })
+    .limit(20);
+  if (error) throw error;
+  for (const row of data || []) {
+    const snapshot = parseRowPayload(row);
+    if (snapshot) return { snapshot, row };
+  }
+  return { snapshot: null, row: null };
+}
+
+function buildSharedRow(user, clean) {
+  const now = clean.updatedAt || new Date().toISOString();
+  const updatedBy = user.id || user.email || '';
+  const metadata = {
+    system_config: SYSTEM_CONFIG_KIND,
+    schema_version: 2,
+    hidden_from_work_hub: true,
+    tools: clean.tools,
+    config_updated_at: now,
+    config_updated_by: updatedBy,
+  };
+  return {
+    title: 'English Hub system configuration',
+    description: JSON.stringify({ system_config: SYSTEM_CONFIG_KIND, tools: clean.tools, updatedAt: now, updatedBy }),
+    item_type: 'task',
+    status: 'archived',
+    priority: 'normal',
+    visibility: 'public',
+    owner_id: user.id,
+    created_by: user.id,
+    assignee_ids: [],
+    watcher_ids: [],
+    due_at: null,
+    source_module: SOURCE_MODULE,
+    metadata,
+    updated_at: HIDDEN_WORK_DATE,
+  };
+}
+
+async function publishSharedCloudSnapshot(user, clean) {
+  const row = buildSharedRow(user, clean);
+  const existing = await readSharedCloudSnapshot();
+
+  if (existing.row?.id) {
+    const { error: updateError } = await supabase
+      .from(WORK_TABLE)
+      .update({
+        description: row.description,
+        metadata: row.metadata,
+        visibility: 'public',
+        status: 'archived',
+        due_at: null,
+        updated_at: HIDDEN_WORK_DATE,
+      })
+      .eq('id', existing.row.id);
+    if (!updateError) return true;
+  }
+
+  const { error: insertError } = await supabase.from(WORK_TABLE).insert(row);
+  if (insertError) throw insertError;
+  return true;
+}
+
 async function publishLocalMigration(user, local) {
   if (!canManageAiWebsites(user) || !local.tools.length || !supabase) return null;
   const now = new Date().toISOString();
-  const payload = { tools: local.tools, updatedAt: now, updatedBy: user.id || user.email || '' };
-  const { error } = await supabase.from('department_workspace_snapshots').upsert({
-    school_year: SNAPSHOT_KEY,
-    semester: 'system',
-    payload,
-    updated_by: user.id || null,
-    updated_by_email: user.email || null,
-    updated_at: now,
-  }, { onConflict: 'school_year' });
-  if (error) throw error;
-  return writeAiWebsiteSettingsLocal({ ...payload, source: 'cloud-migrated' });
+  const clean = normalizeSnapshot({ tools: local.tools, updatedAt: now, updatedBy: user.id || user.email || '' });
+  await publishSharedCloudSnapshot(user, clean);
+  return writeAiWebsiteSettingsLocal({ ...clean, source: 'cloud-migrated', error: '' });
 }
 
 export async function loadAiWebsiteSettings(user) {
@@ -100,28 +184,24 @@ export async function loadAiWebsiteSettings(user) {
   if (!user || !isSupabaseConfigured || !supabase) return local;
 
   try {
-    const { data, error } = await supabase
-      .from('department_workspace_snapshots')
-      .select('payload,updated_by_email,updated_at')
-      .eq('school_year', SNAPSHOT_KEY)
-      .maybeSingle();
-    if (error) throw error;
-
-    if (!data?.payload) {
+    const cloud = await readSharedCloudSnapshot();
+    if (!cloud.snapshot) {
       const migrated = await publishLocalMigration(user, local);
-      return migrated || writeAiWebsiteSettingsLocal({ tools: [], source: 'cloud-empty', updatedAt: new Date().toISOString() });
+      return migrated || writeAiWebsiteSettingsLocal({
+        tools: local.tools,
+        source: local.tools.length ? 'local-cache' : 'cloud-empty',
+        updatedAt: local.updatedAt || new Date().toISOString(),
+        error: '',
+      });
     }
-
-    return writeAiWebsiteSettingsLocal({
-      ...data.payload,
-      updatedAt: data.updated_at || data.payload.updatedAt,
-      updatedBy: data.updated_by_email || data.payload.updatedBy,
-      source: 'cloud',
-      error: '',
-    });
+    return writeAiWebsiteSettingsLocal(cloud.snapshot);
   } catch (error) {
-    console.warn('[AI websites] cloud load failed; using local cache', error);
-    return writeAiWebsiteSettingsLocal({ ...local, source: 'local-fallback', error: String(error?.message || error) });
+    console.warn('[AI websites] shared work-hub load failed; using local cache', error);
+    return writeAiWebsiteSettingsLocal({
+      ...local,
+      source: 'local-fallback',
+      error: 'Không thể tải cấu hình dùng chung. Hệ thống đang dùng bản lưu gần nhất trên thiết bị.',
+    });
   }
 }
 
@@ -130,25 +210,19 @@ export async function saveAiWebsiteSettings(user, tools) {
   const now = new Date().toISOString();
   const clean = normalizeSnapshot({ tools, updatedAt: now, updatedBy: user.id || user.email || '' });
   const previous = readAiWebsiteSettingsLocal();
-  writeAiWebsiteSettingsLocal({ ...clean, source: isSupabaseConfigured ? 'pending-cloud' : 'local' });
+  writeAiWebsiteSettingsLocal({ ...clean, source: isSupabaseConfigured ? 'pending-cloud' : 'local', error: '' });
 
   if (!isSupabaseConfigured || !supabase) return { snapshot: clean, cloud: false };
 
-  const { error } = await supabase.from('department_workspace_snapshots').upsert({
-    school_year: SNAPSHOT_KEY,
-    semester: 'system',
-    payload: { tools: clean.tools, updatedAt: now, updatedBy: user.id || user.email || '' },
-    updated_by: user.id || null,
-    updated_by_email: user.email || null,
-    updated_at: now,
-  }, { onConflict: 'school_year' });
-
-  if (error) {
+  try {
+    await publishSharedCloudSnapshot(user, clean);
+    const snapshot = await loadAiWebsiteSettings(user);
+    return { snapshot, cloud: true };
+  } catch (error) {
     writeAiWebsiteSettingsLocal(previous);
-    throw error;
+    console.error('[AI websites] shared save failed', error);
+    throw new Error('Không thể đồng bộ website AI qua Trung tâm công việc. Vui lòng tải lại trang rồi thử lại.');
   }
-
-  return { snapshot: await loadAiWebsiteSettings(user), cloud: true };
 }
 
 export function subscribeAiWebsiteSettings(user, listener) {
@@ -167,8 +241,8 @@ export function subscribeAiWebsiteSettings(user, listener) {
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
-        table: 'department_workspace_snapshots',
-        filter: `school_year=eq.${SNAPSHOT_KEY}`,
+        table: WORK_TABLE,
+        filter: `source_module=eq.${SOURCE_MODULE}`,
       }, () => {
         loadAiWebsiteSettings(user)
           .then(listener)
