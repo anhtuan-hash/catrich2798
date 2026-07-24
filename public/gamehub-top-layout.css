@@ -1,7 +1,6 @@
-/* Game Hub top layout: compact hero on the left, game selector on the right. */
-
+/* Game Hub top layout: hero 1/3 left, game selector 2/3 right. */
 html body #root .metro-clean-system[data-route="games"] #bes-main-content
-:is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar):has(> .games-v44-hero) {
+:is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar) {
   width: 100% !important;
   max-width: none !important;
   min-width: 0 !important;
@@ -13,11 +12,12 @@ html body #root .metro-clean-system[data-route="games"] #bes-main-content
     "launch launch"
     "live live" !important;
   align-items: stretch !important;
+  grid-auto-flow: row !important;
   gap: 18px !important;
 }
 
 html body #root .metro-clean-system[data-route="games"] #bes-main-content
-:is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar):has(> .games-v44-hero)
+:is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar)
 > .games-v44-top-actions {
   grid-area: actions !important;
   width: 100% !important;
@@ -25,7 +25,7 @@ html body #root .metro-clean-system[data-route="games"] #bes-main-content
 }
 
 html body #root .metro-clean-system[data-route="games"] #bes-main-content
-:is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar):has(> .games-v44-hero)
+:is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar)
 > .games-v44-hero {
   grid-area: hero !important;
   inline-size: 100% !important;
@@ -43,7 +43,7 @@ html body #root .metro-clean-system[data-route="games"] #bes-main-content
 }
 
 html body #root .metro-clean-system[data-route="games"] #bes-main-content
-:is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar):has(> .games-v44-hero)
+:is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar)
 > .games-v46-board {
   grid-area: board !important;
   width: 100% !important;
@@ -52,31 +52,35 @@ html body #root .metro-clean-system[data-route="games"] #bes-main-content
   min-height: 260px !important;
   height: 100% !important;
   align-self: stretch !important;
+  justify-self: stretch !important;
   margin: 0 !important;
   display: grid !important;
   grid-template-rows: auto minmax(0, 1fr) !important;
 }
 
 html body #root .metro-clean-system[data-route="games"] #bes-main-content
-:is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar):has(> .games-v44-hero)
+:is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar)
 > .games-v46-launch-band {
   grid-area: launch !important;
   width: 100% !important;
   max-width: none !important;
+  min-width: 0 !important;
   margin: 0 !important;
 }
 
 html body #root .metro-clean-system[data-route="games"] #bes-main-content
-:is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar):has(> .games-v44-hero)
+:is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar)
 > .games-v46-live-card {
   grid-area: live !important;
   width: 100% !important;
   max-width: none !important;
+  min-width: 0 !important;
   margin: 0 !important;
 }
 
-/* Keep the selector's horizontal row compact inside the right column. */
-html body #root .metro-clean-system[data-route="games"] .games-v46-board .games-v46-platform-grid {
+/* Keep the horizontal game row compact inside the 2/3 selector column. */
+html body #root .metro-clean-system[data-route="games"]
+.games-v46-board .games-v46-platform-grid {
   align-self: end !important;
   margin-top: 14px !important;
 }
@@ -97,7 +101,7 @@ html body #root .metro-clean-system[data-route="games"] .games-v46-board-head p 
 
 @media (max-width: 1100px) {
   html body #root .metro-clean-system[data-route="games"] #bes-main-content
-  :is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar):has(> .games-v44-hero) {
+  :is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar) {
     grid-template-columns: minmax(300px, .9fr) minmax(0, 1.55fr) !important;
     gap: 16px !important;
   }
@@ -105,7 +109,7 @@ html body #root .metro-clean-system[data-route="games"] .games-v46-board-head p 
 
 @media (max-width: 840px) {
   html body #root .metro-clean-system[data-route="games"] #bes-main-content
-  :is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar):has(> .games-v44-hero) {
+  :is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar) {
     grid-template-columns: minmax(0, 1fr) !important;
     grid-template-areas:
       "actions"
@@ -116,10 +120,10 @@ html body #root .metro-clean-system[data-route="games"] .games-v46-board-head p 
   }
 
   html body #root .metro-clean-system[data-route="games"] #bes-main-content
-  :is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar):has(> .games-v44-hero)
+  :is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar)
   > .games-v44-hero,
   html body #root .metro-clean-system[data-route="games"] #bes-main-content
-  :is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar):has(> .games-v44-hero)
+  :is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar)
   > .games-v46-board {
     width: 100% !important;
     max-width: none !important;
