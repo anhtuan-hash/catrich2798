@@ -25,6 +25,12 @@ export function normalizeAiWebsiteTool(tool = {}, index = 0) {
     audience: ['all', 'admin', 'leader', 'teacher'].includes(tool.audience) ? tool.audience : 'all',
     enabled: tool.enabled !== false,
     pinned: Boolean(tool.pinned),
+    kind: tool.kind === 'external-app' ? 'external-app' : 'ai',
+    groupId: ['plan', 'create', 'assess', 'manage'].includes(tool.groupId) ? tool.groupId : 'create',
+    requestId: String(tool.requestId || ''),
+    submittedBy: String(tool.submittedBy || ''),
+    approvedAt: String(tool.approvedAt || ''),
+    accent: String(tool.accent || ''),
   };
 }
 
@@ -175,9 +181,9 @@ export async function loadAiWebsiteSettings(user) {
 }
 
 export async function saveAiWebsiteSettings(user, tools) {
-  if (!canManageAiWebsites(user)) throw new Error('Chỉ Admin hoặc TTCM được quản lý website AI.');
+  if (!canManageAiWebsites(user)) throw new Error('Chỉ Admin hoặc TTCM được quản lý website dùng chung.');
   if (!isSupabaseConfigured || !supabase) {
-    throw new Error('Supabase chưa được cấu hình nên chưa thể lưu website AI dùng chung.');
+    throw new Error('Supabase chưa được cấu hình nên chưa thể lưu website dùng chung.');
   }
 
   const clean = normalizeSnapshot({
@@ -201,7 +207,7 @@ export async function saveAiWebsiteSettings(user, tools) {
     if (String(error?.code || '') === '42501' || /row-level security|permission denied/i.test(String(error?.message || ''))) {
       throw new Error('Supabase đã từ chối quyền ghi. Chỉ tài khoản Admin hoặc TTCM đã được duyệt mới có thể lưu cấu hình.');
     }
-    throw new Error(`Không thể lưu website AI vào Supabase${error?.message ? `: ${error.message}` : '.'}`);
+    throw new Error(`Không thể lưu website dùng chung vào Supabase${error?.message ? `: ${error.message}` : '.'}`);
   }
 }
 
