@@ -1,5 +1,5 @@
-/* Remove legacy dark divider that can reappear below the shared navigation on some routes.
-   Loaded after all historical style layers so the Material top chrome keeps only its subtle outline. */
+/* Remove the legacy dark divider that can reappear below the shared navigation
+   on a few routes. Keep only the subtle Material outline of the shared chrome. */
 
 html body .app-shell > .bes-top-chrome,
 html body .app-shell .bes-top-chrome {
@@ -27,11 +27,13 @@ html body .app-shell > #bes-main-content,
 html body .app-shell > main#bes-main-content,
 html body .app-shell > .wp8-page-stage {
   border-top: 0 !important;
-  outline-top: 0 !important;
+  outline: 0 !important;
 }
 
 html body .app-shell > #bes-main-content::before,
-html body .app-shell > main#bes-main-content::before {
+html body .app-shell > main#bes-main-content::before,
+html body .app-shell > #bes-main-content::after,
+html body .app-shell > main#bes-main-content::after {
   border-top: 0 !important;
   box-shadow: none !important;
 }
