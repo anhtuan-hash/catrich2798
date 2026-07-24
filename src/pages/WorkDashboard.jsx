@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   DASHBOARD_SOURCE_EVENTS,
   createEmptyDashboardSnapshot,
@@ -161,6 +161,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedDay, setSelectedDay] = useState(() => dateKey(new Date()));
+  const lastRefreshRef = useRef(0);
 
   const refresh = useCallback(async ({ quiet = false } = {}) => {
     if (!quiet) setLoading(true);
@@ -168,6 +169,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     try {
       const next = await loadDashboardSnapshot(currentUser);
       setSnapshot(next);
+      lastRefreshRef.current = Date.now();
       if (next.sourceErrors?.length) setError(next.sourceErrors.map((item) => `${item.source}: ${item.message}`).join(' · '));
     } catch (reason) {
       setError(reason?.message || String(reason));
@@ -178,14 +180,27 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
 
   useEffect(() => { refresh(); }, [refresh]);
   useEffect(() => {
-    const update = () => refresh({ quiet: true });
-    DASHBOARD_SOURCE_EVENTS.forEach((eventName) => window.addEventListener(eventName, update));
-    window.addEventListener('storage', update);
-    const timer = window.setInterval(update, 60000);
+    let refreshTimer = 0;
+    const queueUpdate = () => {
+      window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(() => refresh({ quiet: true }), 450);
+    };
+    const refreshIfStale = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (lastRefreshRef.current && Date.now() - lastRefreshRef.current < 10 * 60 * 1000) return;
+      queueUpdate();
+    };
+
+    DASHBOARD_SOURCE_EVENTS.forEach((eventName) => window.addEventListener(eventName, queueUpdate));
+    window.addEventListener('storage', queueUpdate);
+    window.addEventListener('focus', refreshIfStale);
+    document.addEventListener('visibilitychange', refreshIfStale);
     return () => {
-      DASHBOARD_SOURCE_EVENTS.forEach((eventName) => window.removeEventListener(eventName, update));
-      window.removeEventListener('storage', update);
-      window.clearInterval(timer);
+      DASHBOARD_SOURCE_EVENTS.forEach((eventName) => window.removeEventListener(eventName, queueUpdate));
+      window.removeEventListener('storage', queueUpdate);
+      window.removeEventListener('focus', refreshIfStale);
+      document.removeEventListener('visibilitychange', refreshIfStale);
+      window.clearTimeout(refreshTimer);
     };
   }, [refresh]);
 
