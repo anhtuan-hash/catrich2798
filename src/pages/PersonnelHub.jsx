@@ -17,7 +17,7 @@ const EMPTY_RECORD = {
 
 const ADMIN_SECTIONS = [
   {
-    id: 'identity', title: 'Thông tin cơ bản', icon: 'badge',
+    id: 'identity', title: 'Thông tin cá nhân', icon: 'person',
     fields: [
       ['employeeCode', 'Mã nhân sự'], ['fullName', 'Họ và tên'], ['preferredName', 'Tên thường dùng'],
       ['gender', 'Giới tính', 'select', ['', 'Nam', 'Nữ', 'Khác', 'Không công khai']],
@@ -26,7 +26,7 @@ const ADMIN_SECTIONS = [
     ],
   },
   {
-    id: 'employment', title: 'Công tác và tài khoản', icon: 'work',
+    id: 'employment', title: 'Thông tin công tác', icon: 'work',
     fields: [
       ['department', 'Tổ / bộ phận'], ['position', 'Chức vụ'],
       ['employmentType', 'Loại hình', 'select', ['', 'Biên chế', 'Hợp đồng', 'Thỉnh giảng', 'Khác']],
@@ -35,14 +35,14 @@ const ADMIN_SECTIONS = [
     ],
   },
   {
-    id: 'professional', title: 'Năng lực chuyên môn', icon: 'school',
+    id: 'professional', title: 'Phát triển chuyên môn', icon: 'school',
     fields: [
       ['qualification', 'Trình độ chuyên môn'], ['degree', 'Văn bằng / chứng chỉ', 'textarea'],
       ['subjects', 'Môn phụ trách', 'tags'], ['gradeLevels', 'Khối lớp phụ trách', 'tags'],
     ],
   },
   {
-    id: 'contact', title: 'Liên hệ khẩn cấp và ghi chú', icon: 'contact_phone',
+    id: 'contact', title: 'Liên hệ và ghi chú', icon: 'contact_phone',
     fields: [
       ['emergencyContactName', 'Người liên hệ khẩn cấp'], ['emergencyContactPhone', 'SĐT khẩn cấp'],
       ['notes', 'Ghi chú nội bộ', 'textarea'],
@@ -55,6 +55,17 @@ const TEACHER_EDITABLE_KEYS = new Set([
   'qualification', 'degree', 'subjects', 'gradeLevels', 'homeroomClass', 'emergencyContactName',
   'emergencyContactPhone', 'notes',
 ]);
+
+const NAV_ITEMS = [
+  ['overview', 'home', 'Tổng quan'],
+  ['teachers', 'group', 'Giáo viên'],
+  ['assignments', 'assignment', 'Phân công'],
+  ['verification', 'verified_user', 'Xác minh hồ sơ'],
+  ['development', 'school', 'Phát triển chuyên môn'],
+  ['awards', 'workspace_premium', 'Danh hiệu & Khen thưởng'],
+  ['reports', 'bar_chart', 'Báo cáo'],
+  ['settings', 'settings', 'Cài đặt'],
+];
 
 function initials(name = '') {
   return String(name || 'GV').trim().split(/\s+/).slice(-2).map((part) => part[0] || '').join('').toUpperCase() || 'GV';
@@ -75,7 +86,7 @@ function statusLabel(record) {
   if (!record.accountApproved) return 'Tài khoản tạm khóa';
   if (record.employmentStatus === 'leave') return 'Tạm nghỉ';
   if (record.employmentStatus === 'inactive') return 'Đã nghỉ';
-  return 'Đang hoạt động';
+  return 'Đang công tác';
 }
 
 function completeness(record = {}) {
@@ -118,37 +129,38 @@ function MaterialIcon({ children }) {
   return <span className="ph-material-icon" aria-hidden="true">{children}</span>;
 }
 
-function PersonnelHero({ admin, stats, onPrimary }) {
+function AppRail({ active, onNavigate }) {
   return (
-    <section className="ph-hero">
-      <div className="ph-hero-copy">
-        <span className="ph-overline"><MaterialIcon>groups</MaterialIcon> PEOPLE DIRECTORY</span>
-        <h1>Quản lý nhân sự giáo viên</h1>
-        <p>{admin
-          ? 'Một nơi duy nhất để quản lý tài khoản, hồ sơ công tác, năng lực chuyên môn và các đề nghị cập nhật của giáo viên.'
-          : 'Xem hồ sơ nhân sự của bạn, kiểm tra thông tin đang được nhà trường lưu và gửi đề nghị chỉnh sửa khi cần.'}</p>
-        <div className="ph-hero-actions">
-          <button type="button" className="ph-primary" onClick={onPrimary}>
-            <MaterialIcon>{admin ? 'person_add' : 'edit_note'}</MaterialIcon>
-            {admin ? 'Mở hồ sơ đầu tiên' : 'Đề nghị chỉnh sửa'}
+    <aside className="ph-app-rail" aria-label="Điều hướng quản lý nhân sự">
+      <nav>
+        {NAV_ITEMS.map(([id, icon, label]) => (
+          <button type="button" key={id} className={active === id ? 'active' : ''} onClick={() => onNavigate(id)}>
+            <MaterialIcon>{icon}</MaterialIcon><span>{label}</span>
           </button>
-          <span className="ph-sync-note"><MaterialIcon>verified_user</MaterialIcon>Dữ liệu chỉ dành cho tài khoản đã đăng nhập</span>
-        </div>
+        ))}
+      </nav>
+      <div className="ph-rail-note">
+        <div className="ph-rail-illustration"><MaterialIcon>cloud_done</MaterialIcon></div>
+        <strong>Dữ liệu luôn được đồng bộ và bảo mật.</strong>
+        <button type="button" onClick={() => onNavigate('settings')}>Tìm hiểu thêm <MaterialIcon>arrow_forward</MaterialIcon></button>
       </div>
-      <div className="ph-hero-visual" aria-hidden="true">
-        <div className="ph-people-stack">
-          <span className="ph-person p1"><i>AT</i><b>Giáo viên</b></span>
-          <span className="ph-person p2"><i>MH</i><b>TTCM</b></span>
-          <span className="ph-person p3"><i>NC</i><b>Giáo viên</b></span>
-          <span className="ph-person p4"><i>MD</i><b>Giáo viên</b></span>
-          <div className="ph-directory-card">
-            <MaterialIcon>badge</MaterialIcon>
-            <strong>{stats.total}</strong>
-            <small>hồ sơ nhân sự</small>
-          </div>
-        </div>
-      </div>
-    </section>
+    </aside>
+  );
+}
+
+function TopBar({ query, setQuery, pending, currentUser, onFilter }) {
+  return (
+    <header className="ph-topbar">
+      <div className="ph-brand"><span className="ph-brand-mark">B</span><strong>Nhân sự giáo viên</strong></div>
+      <label className="ph-global-search">
+        <MaterialIcon>search</MaterialIcon>
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm kiếm giáo viên, email, mã nhân viên..." />
+      </label>
+      <button type="button" className="ph-filter-button" onClick={onFilter}><MaterialIcon>filter_list</MaterialIcon>Bộ lọc</button>
+      <button type="button" className="ph-icon-button" aria-label="Thông báo"><MaterialIcon>notifications</MaterialIcon>{pending > 0 ? <span>{pending}</span> : null}</button>
+      <button type="button" className="ph-icon-button" aria-label="Trợ giúp"><MaterialIcon>help</MaterialIcon></button>
+      <div className="ph-user-chip"><span>{initials(currentUser?.full_name || currentUser?.email || 'AT')}</span><strong>{currentUser?.full_name || 'Anh Tuấn'}</strong><MaterialIcon>expand_more</MaterialIcon></div>
+    </header>
   );
 }
 
@@ -161,35 +173,39 @@ function StatCard({ icon, label, value, caption, tone }) {
   );
 }
 
-function ProfileList({ records, selectedId, onSelect, filter, setFilter }) {
+function ProfileList({ records, selectedId, onSelect, filter, setFilter, query }) {
   const filters = [
-    ['all', 'Tất cả'], ['active', 'Hoạt động'], ['inactive', 'Tạm khóa'], ['incomplete', 'Thiếu hồ sơ'],
+    ['all', 'Tất cả'], ['active', 'Đang công tác'], ['inactive', 'Tạm khóa'], ['incomplete', 'Thiếu hồ sơ'],
   ];
+  const normalizedQuery = query.trim().toLowerCase();
   const filtered = records.filter((record) => {
+    const matchesQuery = !normalizedQuery || [record.fullName, record.employeeCode, record.loginEmail, record.department, record.position]
+      .some((value) => String(value || '').toLowerCase().includes(normalizedQuery));
+    if (!matchesQuery) return false;
     if (filter === 'active') return record.accountApproved;
     if (filter === 'inactive') return !record.accountApproved;
     if (filter === 'incomplete') return completeness(record) < 75;
     return true;
   });
   return (
-    <section className="ph-directory-panel">
-      <header>
-        <div><span className="ph-section-icon"><MaterialIcon>group</MaterialIcon></span><div><h2>Danh bạ giáo viên</h2><p>{filtered.length} tài khoản</p></div></div>
-      </header>
+    <section className="ph-directory-panel" id="personnel-teachers">
+      <header><div><h2>Danh sách giáo viên</h2><p>{filtered.length} trên {records.length} tài khoản</p></div><MaterialIcon>tune</MaterialIcon></header>
+      <div className="ph-local-search"><MaterialIcon>search</MaterialIcon><span>{query || 'Tìm kiếm giáo viên...'}</span></div>
       <div className="ph-filter-chips" role="tablist">
-        {filters.map(([id, label]) => <button type="button" key={id} className={filter === id ? 'active' : ''} onClick={() => setFilter(id)}>{label}</button>)}
+        {filters.map(([id, label]) => <button type="button" key={id} className={filter === id ? 'active' : ''} onClick={() => setFilter(id)}>{label}{id === 'all' ? ` ${records.length}` : ''}</button>)}
       </div>
       <div className="ph-person-list">
         {filtered.map((record) => (
           <button type="button" className={`ph-person-row ${selectedId === record.id ? 'active' : ''}`} key={record.id} onClick={() => onSelect(record.id)}>
             <span className="ph-avatar">{initials(record.fullName)}</span>
-            <span className="ph-person-copy"><strong>{record.fullName}</strong><small>{record.employeeCode || 'Chưa có mã'} · {roleLabel(record)}</small></span>
-            <span className={`ph-account-dot ${record.accountApproved ? 'on' : 'off'}`} title={statusLabel(record)} />
+            <span className="ph-person-copy"><strong>{record.fullName}</strong><small>{record.department || roleLabel(record)}</small></span>
+            <span className={`ph-verification ${record.accountApproved ? 'verified' : 'pending'}`}><MaterialIcon>{record.accountApproved ? 'check_circle' : 'schedule'}</MaterialIcon>{record.accountApproved ? 'Đã xác minh' : 'Chờ xác minh'}</span>
             <MaterialIcon>chevron_right</MaterialIcon>
           </button>
         ))}
-        {!filtered.length ? <div className="ph-empty">Không có giáo viên phù hợp bộ lọc.</div> : null}
+        {!filtered.length ? <div className="ph-empty">Không có giáo viên phù hợp.</div> : null}
       </div>
+      <footer><span>1–{Math.min(filtered.length, 7)} của {filtered.length}</span><div><button type="button" disabled><MaterialIcon>chevron_left</MaterialIcon></button><button type="button" disabled><MaterialIcon>chevron_right</MaterialIcon></button></div></footer>
     </section>
   );
 }
@@ -228,11 +244,14 @@ function RecordForm({ record, onChange, teacherMode = false }) {
   );
 }
 
-function RecordDetails({ record }) {
+function RecordDetails({ record, activeTab }) {
+  const visibleSections = activeTab === 'overview'
+    ? ADMIN_SECTIONS
+    : ADMIN_SECTIONS.filter((section) => section.id === activeTab);
   return (
     <div className="ph-detail-sections">
-      {ADMIN_SECTIONS.map((section) => (
-        <section key={section.id} className="ph-detail-section">
+      {visibleSections.map((section) => (
+        <section key={section.id} className={`ph-detail-section ${section.id}`}>
           <header><MaterialIcon>{section.icon}</MaterialIcon><h3>{section.title}</h3></header>
           <div className="ph-detail-grid">{section.fields.map(([key, label]) => (
             <div className={['address', 'degree', 'subjects', 'gradeLevels', 'notes'].includes(key) ? 'wide' : ''} key={key}><small>{label}</small><strong>{displayValue(record, key)}</strong></div>
@@ -249,14 +268,25 @@ function ProfileHeader({ record, admin, editing, onEdit, onToggleAccount }) {
     <header className="ph-profile-head">
       <div className="ph-profile-identity">
         <span className="ph-avatar large">{initials(record.fullName)}</span>
-        <div><span className={`ph-status-pill ${record.accountApproved ? 'active' : 'inactive'}`}>{statusLabel(record)}</span><h2>{record.fullName}</h2><p>{record.loginEmail}</p></div>
+        <div><div className="ph-name-line"><h2>{record.fullName}</h2><span className="ph-status-pill active"><MaterialIcon>verified</MaterialIcon>Đã xác minh</span></div><p>{record.loginEmail}</p><span className="ph-employee-code">Mã nhân viên: {record.employeeCode || 'Chưa cập nhật'}</span></div>
       </div>
       <div className="ph-profile-head-actions">
-        <div className="ph-completeness"><span><b>{percent}%</b> hoàn thiện</span><i><em style={{ width: `${percent}%` }} /></i></div>
-        <button type="button" className="ph-tonal" onClick={onEdit}><MaterialIcon>{editing ? 'close' : (admin ? 'edit' : 'edit_note')}</MaterialIcon>{editing ? 'Hủy' : (admin ? 'Chỉnh sửa' : 'Đề nghị chỉnh sửa')}</button>
+        <div className="ph-completeness"><span><b>{percent}%</b><small>Hoàn thiện hồ sơ</small></span><i><em style={{ width: `${percent}%` }} /></i></div>
+        <button type="button" className="ph-tonal" onClick={onEdit}><MaterialIcon>{editing ? 'close' : (admin ? 'edit' : 'edit_note')}</MaterialIcon>{editing ? 'Hủy' : (admin ? 'Chỉnh sửa hồ sơ' : 'Đề nghị chỉnh sửa')}</button>
         {admin ? <button type="button" className={record.accountApproved ? 'ph-outline danger' : 'ph-outline success'} onClick={onToggleAccount}><MaterialIcon>{record.accountApproved ? 'person_off' : 'person_check'}</MaterialIcon>{record.accountApproved ? 'Tạm khóa' : 'Kích hoạt'}</button> : null}
       </div>
     </header>
+  );
+}
+
+function ProfileTabs({ activeTab, setActiveTab, onHistory }) {
+  const tabs = [
+    ['overview', 'Tổng quan'], ['identity', 'Cá nhân'], ['employment', 'Công tác'], ['professional', 'Phát triển chuyên môn'], ['contact', 'Liên hệ'], ['history', 'Lịch sử cập nhật'],
+  ];
+  return (
+    <div className="ph-profile-tabs" role="tablist">
+      {tabs.map(([id, label]) => <button type="button" key={id} className={activeTab === id ? 'active' : ''} onClick={() => id === 'history' ? onHistory() : setActiveTab(id)}>{label}</button>)}
+    </div>
   );
 }
 
@@ -289,10 +319,13 @@ export default function PersonnelHub({ currentUser }) {
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
   const [filter, setFilter] = useState('all');
+  const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState('');
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(EMPTY_RECORD);
   const [reason, setReason] = useState('');
+  const [activeNav, setActiveNav] = useState('overview');
+  const [activeTab, setActiveTab] = useState('overview');
 
   const load = async ({ quiet = false } = {}) => {
     if (!quiet) setLoading(true);
@@ -321,6 +354,7 @@ export default function PersonnelHub({ currentUser }) {
     active: snapshot.records.filter((record) => record.accountApproved).length,
     incomplete: snapshot.records.filter((record) => completeness(record) < 75).length,
     pending: snapshot.requests.filter((request) => request.status === 'pending').length,
+    excellent: snapshot.records.filter((record) => completeness(record) >= 90).length,
   }), [snapshot]);
 
   useEffect(() => {
@@ -392,43 +426,59 @@ export default function PersonnelHub({ currentUser }) {
     finally { setBusy(''); }
   };
 
+  const navigate = (id) => {
+    setActiveNav(id);
+    if (id === 'overview') document.getElementById('personnel-overview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else if (['teachers', 'assignments', 'verification', 'development', 'awards'].includes(id)) document.getElementById('personnel-teachers')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else document.getElementById('personnel-change-requests')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   if (loading) return <div className="ph-loading"><span /><h1>Đang tải hồ sơ nhân sự…</h1></div>;
 
   return (
     <div className="page personnel-hub-page">
-      <PersonnelHero admin={admin} stats={stats} onPrimary={() => admin ? setSelectedId(snapshot.records[0]?.id || '') : startEdit()} />
+      <TopBar query={query} setQuery={setQuery} pending={stats.pending} currentUser={currentUser} onFilter={() => document.getElementById('personnel-teachers')?.scrollIntoView({ behavior: 'smooth' })} />
+      <div className="ph-app-shell">
+        <AppRail active={activeNav} onNavigate={navigate} />
+        <main className="ph-app-main" id="personnel-overview">
+          <section className="ph-page-heading">
+            <div><span className="ph-eyebrow">GOOGLE MATERIAL WORKSPACE</span><h1>Quản lý nhân sự giáo viên</h1><p>Hiệu quả quản lý và nâng cao chất lượng đội ngũ nhà giáo.</p></div>
+            <div className="ph-award-card"><MaterialIcon>workspace_premium</MaterialIcon><div><small>Hồ sơ nổi bật</small><strong>{stats.excellent}</strong><span>Hoàn thiện từ 90%</span></div></div>
+          </section>
 
-      <section className="ph-stat-grid">
-        <StatCard icon="groups" label="Tổng giáo viên" value={stats.total} caption="Tài khoản trong hệ thống" tone="blue" />
-        <StatCard icon="verified" label="Đang hoạt động" value={stats.active} caption="Được phép sử dụng Brian" tone="green" />
-        <StatCard icon="assignment_late" label="Thiếu thông tin" value={stats.incomplete} caption="Hồ sơ hoàn thiện dưới 75%" tone="yellow" />
-        <StatCard icon="edit_notifications" label="Chờ xử lý" value={stats.pending} caption="Đề nghị chỉnh sửa hồ sơ" tone="red" />
-      </section>
+          <section className="ph-stat-grid">
+            <StatCard icon="groups" label="Tổng số giáo viên" value={stats.total} caption="Toàn trường" tone="blue" />
+            <StatCard icon="verified_user" label="Hồ sơ đã xác minh" value={stats.active} caption={`${stats.total ? Math.round((stats.active / stats.total) * 100) : 0}% đã xác minh`} tone="green" />
+            <StatCard icon="assignment" label="Hồ sơ cần bổ sung" value={stats.incomplete} caption="Mức hoàn thiện dưới 75%" tone="yellow" />
+            <StatCard icon="mail" label="Thông báo cần xử lý" value={stats.pending} caption="Chờ Admin xác nhận" tone="red" />
+          </section>
 
-      {message ? <div className="ph-message"><MaterialIcon>info</MaterialIcon>{message}<button type="button" onClick={() => setMessage('')}>×</button></div> : null}
+          {message ? <div className="ph-message"><MaterialIcon>info</MaterialIcon>{message}<button type="button" onClick={() => setMessage('')}>×</button></div> : null}
 
-      <div className={`ph-workspace ${admin ? 'admin' : 'teacher'}`}>
-        {admin ? <ProfileList records={snapshot.records} selectedId={selected?.id} onSelect={(id) => { setSelectedId(id); setEditing(false); }} filter={filter} setFilter={setFilter} /> : null}
+          <div className={`ph-workspace ${admin ? 'admin' : 'teacher'}`}>
+            {admin ? <ProfileList records={snapshot.records} selectedId={selected?.id} onSelect={(id) => { setSelectedId(id); setEditing(false); setActiveTab('overview'); }} filter={filter} setFilter={setFilter} query={query} /> : null}
 
-        <section className="ph-profile-panel">
-          {selected ? (
-            <>
-              <ProfileHeader record={selected} admin={admin} editing={editing} onEdit={startEdit} onToggleAccount={toggleAccount} />
-              <div className="ph-login-strip"><MaterialIcon>alternate_email</MaterialIcon><div><small>Email đăng nhập</small><strong>{selected.loginEmail}</strong></div><span>{selected.accountApproved ? 'Đang được phép truy cập' : 'Đang bị tạm khóa'}</span></div>
-              {editing ? (
-                <div className="ph-editor">
-                  <RecordForm record={form} onChange={updateField} teacherMode={!admin} />
-                  {!admin ? <label className="ph-reason"><span>Lý do đề nghị</span><textarea rows="3" value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Mô tả ngắn gọn vì sao cần cập nhật…" /></label> : null}
-                  <footer className="ph-editor-actions"><button type="button" className="ph-outline" onClick={startEdit}>Hủy</button><button type="button" className="ph-primary" disabled={busy === 'save'} onClick={save}><MaterialIcon>save</MaterialIcon>{busy === 'save' ? 'Đang lưu…' : admin ? 'Lưu hồ sơ' : 'Gửi Admin duyệt'}</button></footer>
-                </div>
-              ) : <RecordDetails record={selected} />}
-            </>
-          ) : <div className="ph-empty large">Chưa có tài khoản giáo viên trong hệ thống.</div>}
-        </section>
+            <section className="ph-profile-panel">
+              {selected ? (
+                <>
+                  <ProfileHeader record={selected} admin={admin} editing={editing} onEdit={startEdit} onToggleAccount={toggleAccount} />
+                  <ProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} onHistory={() => document.getElementById('personnel-change-requests')?.scrollIntoView({ behavior: 'smooth' })} />
+                  {editing ? (
+                    <div className="ph-editor">
+                      <RecordForm record={form} onChange={updateField} teacherMode={!admin} />
+                      {!admin ? <label className="ph-reason"><span>Lý do đề nghị</span><textarea rows="3" value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Mô tả ngắn gọn vì sao cần cập nhật…" /></label> : null}
+                      <footer className="ph-editor-actions"><button type="button" className="ph-outline" onClick={startEdit}>Hủy</button><button type="button" className="ph-primary" disabled={busy === 'save'} onClick={save}><MaterialIcon>save</MaterialIcon>{busy === 'save' ? 'Đang lưu…' : admin ? 'Lưu hồ sơ' : 'Gửi Admin duyệt'}</button></footer>
+                    </div>
+                  ) : <RecordDetails record={selected} activeTab={activeTab} />}
+                </>
+              ) : <div className="ph-empty large">Chưa có tài khoản giáo viên trong hệ thống.</div>}
+            </section>
+          </div>
+
+          <ChangeRequests requests={snapshot.requests} admin={admin} onReview={review} busy={busy} />
+          <footer className="ph-page-footer"><span><MaterialIcon>shield</MaterialIcon>Dữ liệu nhân sự được giới hạn theo vai trò tài khoản.</span><span>Cập nhật gần nhất: {formatDate(snapshot.updatedAt)}</span></footer>
+        </main>
       </div>
-
-      <ChangeRequests requests={snapshot.requests} admin={admin} onReview={review} busy={busy} />
-      <footer className="ph-page-footer"><span><MaterialIcon>shield</MaterialIcon>Dữ liệu nhân sự được giới hạn theo vai trò tài khoản.</span><span>Cập nhật gần nhất: {formatDate(snapshot.updatedAt)}</span></footer>
     </div>
   );
 }
