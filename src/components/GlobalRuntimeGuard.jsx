@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import VietnamAtmosphereOverlay from './VietnamAtmosphereOverlay.jsx';
 import VietnamAtmosphereAdminPanel from './VietnamAtmosphereAdminPanel.jsx';
+import UsernameLoginBridge from './UsernameLoginBridge.jsx';
+import BulkTeacherAccountsPanel from './BulkTeacherAccountsPanel.jsx';
+import UsernameAccountCenter from './UsernameAccountCenter.jsx';
 import { recordRuntimeError } from '../utils/runtimeDiagnostics.js';
 
 export default function GlobalRuntimeGuard({ language = 'vi' }) {
@@ -35,8 +38,11 @@ export default function GlobalRuntimeGuard({ language = 'vi' }) {
 
   return (
     <>
+      <UsernameLoginBridge language={language} />
       <VietnamAtmosphereOverlay />
       <VietnamAtmosphereAdminPanel language={language} />
+      <BulkTeacherAccountsPanel language={language} />
+      <UsernameAccountCenter language={language} />
       {showRuntimeBanner ? (
         <aside className={`bes-runtime-banner ${online ? 'is-error' : 'is-offline'}`} role="status">
           <span aria-hidden="true">{online ? '!' : '⌁'}</span>
