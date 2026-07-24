@@ -1,0 +1,194 @@
+/* Google Workspace tonal differentiation for Dashboard cards. */
+html body .app-shell[data-route="dashboard"] .gd-page {
+  --gd-tone-blue-bg: #f6f9ff;
+  --gd-tone-blue-border: #aecbfa;
+  --gd-tone-green-bg: #f6fbf7;
+  --gd-tone-green-border: #b7dfc3;
+  --gd-tone-yellow-bg: #fffaf0;
+  --gd-tone-yellow-border: #f3d27a;
+  --gd-tone-red-bg: #fff7f6;
+  --gd-tone-red-border: #f4b7b2;
+  --gd-tone-purple-bg: #fbf7ff;
+  --gd-tone-purple-border: #d7b9f4;
+  --gd-tone-cyan-bg: #f5fbfc;
+  --gd-tone-cyan-border: #a8d8dc;
+}
+
+html body .app-shell[data-route="dashboard"] .gd-metric {
+  border-color: var(--gd-tone-blue-border) !important;
+  background: var(--gd-tone-blue-bg) !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-metric.is-green {
+  border-color: var(--gd-tone-green-border) !important;
+  background: var(--gd-tone-green-bg) !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-metric.is-yellow {
+  border-color: var(--gd-tone-yellow-border) !important;
+  background: var(--gd-tone-yellow-bg) !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-metric.is-red {
+  border-color: var(--gd-tone-red-border) !important;
+  background: var(--gd-tone-red-bg) !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-metric:hover {
+  box-shadow: 0 4px 12px rgba(60,64,67,.12) !important;
+  transform: translateY(-2px);
+}
+
+html body .app-shell[data-route="dashboard"] .gd-calendar {
+  border-color: var(--gd-tone-blue-border) !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-calendar > .gd-calendar-header {
+  border-bottom-color: #d2e3fc !important;
+  background: var(--gd-tone-blue-bg) !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-date-rail {
+  background: #fbfdff !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-day {
+  border: 1px solid transparent !important;
+  border-radius: 20px !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-day:hover {
+  border-color: #d2e3fc !important;
+  background: var(--gd-tone-blue-bg) !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-day.is-selected {
+  border-color: var(--gd-tone-blue-border) !important;
+  background: #e8f0fe !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-selected-day {
+  border-right-color: #d2e3fc !important;
+  background: var(--gd-tone-blue-bg) !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-event {
+  border: 1px solid transparent !important;
+  border-radius: 18px !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-event:hover {
+  border-color: #d2e3fc !important;
+  background: var(--gd-tone-blue-bg) !important;
+}
+
+html body .app-shell[data-route="dashboard"] #dashboard-approvals {
+  border-color: var(--gd-tone-red-border) !important;
+  background: var(--gd-tone-red-bg) !important;
+}
+html body .app-shell[data-route="dashboard"] #dashboard-approvals > .gd-surface-header {
+  border-bottom-color: var(--gd-tone-red-border) !important;
+  background: #fce8e6 !important;
+}
+html body .app-shell[data-route="dashboard"] #dashboard-approvals .gd-heading-icon,
+html body .app-shell[data-route="dashboard"] #dashboard-approvals .gd-row-avatar {
+  background: #ffd9d5 !important;
+  color: #d93025 !important;
+}
+html body .app-shell[data-route="dashboard"] #dashboard-approvals .gd-text-button {
+  color: #b3261e !important;
+}
+html body .app-shell[data-route="dashboard"] #dashboard-approvals .gd-text-button:hover,
+html body .app-shell[data-route="dashboard"] #dashboard-approvals .gd-row:hover {
+  background: var(--gd-tone-red-bg) !important;
+}
+
+html body .app-shell[data-route="dashboard"] #dashboard-resources {
+  border-color: var(--gd-tone-yellow-border) !important;
+  background: var(--gd-tone-yellow-bg) !important;
+}
+html body .app-shell[data-route="dashboard"] #dashboard-resources > .gd-surface-header {
+  border-bottom-color: var(--gd-tone-yellow-border) !important;
+  background: #fef7e0 !important;
+}
+html body .app-shell[data-route="dashboard"] #dashboard-resources .gd-heading-icon,
+html body .app-shell[data-route="dashboard"] #dashboard-resources .gd-tile-icon {
+  background: #fff1b8 !important;
+  color: #b06000 !important;
+}
+html body .app-shell[data-route="dashboard"] #dashboard-resources .gd-text-button {
+  color: #8d4b00 !important;
+}
+html body .app-shell[data-route="dashboard"] #dashboard-resources .gd-text-button:hover,
+html body .app-shell[data-route="dashboard"] #dashboard-resources .gd-tile:hover {
+  border-color: var(--gd-tone-yellow-border) !important;
+  background: var(--gd-tone-yellow-bg) !important;
+}
+
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(3) {
+  border-color: var(--gd-tone-purple-border) !important;
+  background: var(--gd-tone-purple-bg) !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(3) > .gd-surface-header {
+  border-bottom-color: var(--gd-tone-purple-border) !important;
+  background: #f3e8fd !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(3) .gd-heading-icon,
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(3) .gd-tile-icon {
+  background: #ead7fb !important;
+  color: #8430ce !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(3) .gd-text-button {
+  color: #6f1ab1 !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(3) .gd-text-button:hover,
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(3) .gd-tile:hover {
+  border-color: var(--gd-tone-purple-border) !important;
+  background: var(--gd-tone-purple-bg) !important;
+}
+
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(4) {
+  border-color: var(--gd-tone-green-border) !important;
+  background: var(--gd-tone-green-bg) !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(4) > .gd-surface-header {
+  border-bottom-color: var(--gd-tone-green-border) !important;
+  background: #e6f4ea !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(4) .gd-heading-icon {
+  background: #ceead6 !important;
+  color: #188038 !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(4) .gd-text-button {
+  color: #137333 !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(4) .gd-text-button:hover,
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(4) .gd-homeroom button:hover {
+  background: var(--gd-tone-green-bg) !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(4) .gd-homeroom button {
+  border-color: var(--gd-tone-green-border) !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-content-grid > .gd-surface:nth-child(4) .gd-homeroom strong {
+  color: #188038 !important;
+}
+
+html body .app-shell[data-route="dashboard"] .gd-quick-surface {
+  border-color: var(--gd-tone-cyan-border) !important;
+  background: var(--gd-tone-cyan-bg) !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-quick-surface > .gd-surface-header {
+  border-bottom-color: var(--gd-tone-cyan-border) !important;
+  background: #e4f7f8 !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-quick-surface .gd-heading-icon,
+html body .app-shell[data-route="dashboard"] .gd-quick-action > span {
+  background: #cceff1 !important;
+  color: #007b83 !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-quick-action {
+  border-color: var(--gd-tone-cyan-border) !important;
+  color: #285154 !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-quick-action:hover {
+  background: #e4f7f8 !important;
+}
+
+html body .app-shell[data-route="dashboard"] .gd-surface-body,
+html body .app-shell[data-route="dashboard"] .gd-row,
+html body .app-shell[data-route="dashboard"] .gd-tile,
+html body .app-shell[data-route="dashboard"] .gd-homeroom button {
+  background: #fff !important;
+}
+html body .app-shell[data-route="dashboard"] .gd-row,
+html body .app-shell[data-route="dashboard"] .gd-tile {
+  border-radius: 18px !important;
+}
