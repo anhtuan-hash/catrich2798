@@ -3,7 +3,6 @@ import { hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/motion.js';
 import './StatusMenuBar.css';
 
-const ROTATION_MS = 9000;
 const MAX_HEADLINES = 8;
 
 function feedCategory(language) {
@@ -34,6 +33,17 @@ function compactTime(value, language) {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
+}
+
+function TickerItem({ sourceLine, headline }) {
+  return (
+    <span className="brian-briefing-bar__ticker-item">
+      <span className="brian-briefing-bar__source">{sourceLine}</span>
+      <span className="brian-briefing-bar__separator" aria-hidden="true">•</span>
+      <strong>{headline}</strong>
+      <span className="brian-briefing-bar__google-dots" aria-hidden="true"><i /><i /><i /><i /></span>
+    </span>
+  );
 }
 
 export default function StatusMenuBar({
@@ -81,14 +91,6 @@ export default function StatusMenuBar({
     return () => controller.abort();
   }, [allowed, channel]);
 
-  useEffect(() => {
-    if (paused || items.length < 2) return undefined;
-    const timer = window.setInterval(() => {
-      setIndex((current) => (current + 1) % items.length);
-    }, ROTATION_MS);
-    return () => window.clearInterval(timer);
-  }, [items.length, paused]);
-
   if (!allowed) return null;
 
   const item = items.length ? items[index % items.length] : null;
@@ -98,11 +100,13 @@ export default function StatusMenuBar({
   const headline = item?.title || fallback;
   const source = item?.source || 'English Hub News';
   const time = compactTime(item?.publishedAt, language);
+  const sourceLine = `${source}${time ? ` · ${time}` : ''}`;
+  const tickerSeconds = Math.max(16, Math.min(34, Math.ceil((headline.length + sourceLine.length) / 6)));
 
   const openNews = (event) => launchRoute({
     target: '#/news',
     label: language === 'en' ? 'NEWS' : 'TIN',
-    color: '#167d78',
+    color: '#1a73e8',
     sourceEl: event.currentTarget,
   });
 
@@ -113,21 +117,36 @@ export default function StatusMenuBar({
 
   return (
     <aside
-      className={`brian-briefing-bar ${route === 'news' ? 'is-news-route' : ''}`}
+      className={`brian-briefing-bar ${route === 'news' ? 'is-news-route' : ''} ${paused ? 'is-paused' : ''}`}
       aria-label={language === 'en' ? 'News briefing' : 'Tin vắn'}
+      style={{ '--briefing-duration': `${tickerSeconds}s` }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={() => setPaused(false)}
     >
       <button type="button" className="brian-briefing-bar__label" onClick={openNews}>
-        <i aria-hidden="true" />
-        <span>{language === 'en' ? 'BRIEF' : 'TIN VẮN'}</span>
+        <span className="brian-briefing-bar__live-dot" aria-hidden="true" />
+        <span>{language === 'en' ? 'Briefing' : 'Tin vắn'}</span>
       </button>
 
-      <button type="button" className="brian-briefing-bar__headline" onClick={openNews} title={headline}>
-        <small>{source}{time ? ` · ${time}` : ''}</small>
-        <strong key={`${item?.id || item?.link || index}-${index}`}>{headline}</strong>
+      <button
+        type="button"
+        className="brian-briefing-bar__headline"
+        onClick={openNews}
+        title={`${sourceLine} — ${headline}`}
+        aria-label={`${sourceLine}. ${headline}`}
+      >
+        <span className="brian-briefing-bar__ticker-viewport" aria-hidden="true">
+          <span
+            key={`${item?.id || item?.link || index}-${index}`}
+            className="brian-briefing-bar__ticker-track"
+            onAnimationIteration={() => move(1)}
+          >
+            <TickerItem sourceLine={sourceLine} headline={headline} />
+            <TickerItem sourceLine={sourceLine} headline={headline} />
+          </span>
+        </span>
       </button>
 
       <div className="brian-briefing-bar__actions">
@@ -139,7 +158,8 @@ export default function StatusMenuBar({
           </div>
         ) : null}
         <button type="button" className="brian-briefing-bar__open" onClick={openNews}>
-          {language === 'en' ? 'News' : 'Đọc báo'} <span aria-hidden="true">→</span>
+          <span>{language === 'en' ? 'Open News' : 'Đọc báo'}</span>
+          <b aria-hidden="true">→</b>
         </button>
       </div>
     </aside>
