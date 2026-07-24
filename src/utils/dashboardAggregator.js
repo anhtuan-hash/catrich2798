@@ -19,6 +19,7 @@ const DONE = new Set(['completed', 'approved', 'archived', 'cancelled']);
 const WORK_LOCAL_PREFIX = 'bes-work-hub-v1093-local';
 const DRAFT_PREFIX = 'bes-global-draft-v1084';
 const WORKSPACE_EVENT = 'bes-workspace-updated';
+const AI_CONFIG_SOURCE_MODULE = 'english-hub-ai-websites';
 
 export const DASHBOARD_REFRESH_EVENT = 'bes-work-dashboard-refresh';
 export const DASHBOARD_SOURCE_EVENTS = [
@@ -33,6 +34,10 @@ export const DASHBOARD_SOURCE_EVENTS = [
 
 const array = (value) => (Array.isArray(value) ? value : []);
 const text = (value, fallback = '') => String(value ?? '').trim() || fallback;
+
+function isHiddenSystemWorkItem(item) {
+  return item?.source_module === AI_CONFIG_SOURCE_MODULE || item?.metadata?.hidden_from_work_hub === true;
+}
 
 function parseDate(value) {
   if (!value) return null;
@@ -92,7 +97,8 @@ function safeLocalJson(key, fallback = null) {
 }
 
 function readLocalWork(user) {
-  return array(safeLocalJson(`${WORK_LOCAL_PREFIX}:${user?.id || user?.email || 'guest'}`, []));
+  return array(safeLocalJson(`${WORK_LOCAL_PREFIX}:${user?.id || user?.email || 'guest'}`, []))
+    .filter((item) => !isHiddenSystemWorkItem(item));
 }
 
 function normalizeWork(item, user) {
@@ -199,7 +205,7 @@ async function loadWork(user) {
   if (client && user?.id) {
     try {
       const { data, error } = await client.from('work_hub_items').select('*').order('updated_at', { ascending: false }).limit(300);
-      if (!error) return { items: data || [], source: 'cloud' };
+      if (!error) return { items: (data || []).filter((item) => !isHiddenSystemWorkItem(item)), source: 'cloud' };
     } catch { /* local fallback */ }
   }
   return { items: readLocalWork(user), source: 'local' };
@@ -274,7 +280,7 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
   const resourceResult = value(1, { items: [], source: 'empty' }, 'resources');
   const homeroomResult = value(2, { workspace: null, source: 'empty' }, 'homeroom');
   const notifications = value(3, [], 'notifications');
-  const workItems = array(workResult.items).map((item) => normalizeWork(item, currentUser));
+  const workItems = array(workResult.items).filter((item) => !isHiddenSystemWorkItem(item)).map((item) => normalizeWork(item, currentUser));
   const relevantWork = leader ? workItems : workItems.filter((item) => item.mine);
   const resources = array(resourceResult.items);
   const homeroom = buildHomeroom(homeroomResult.workspace, now);
