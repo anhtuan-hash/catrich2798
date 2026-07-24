@@ -3,6 +3,9 @@ import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
 import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
 import GlobalWorkHubNotificationBridge from './GlobalWorkHubNotificationBridge.jsx';
+import GlobalWorkScheduleCenter from './GlobalWorkScheduleCenter.jsx';
+import GlobalWorkScheduleBridge from './GlobalWorkScheduleBridge.jsx';
+import GlobalWorkScheduleTemplatePanel from './GlobalWorkScheduleTemplatePanel.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalNotificationCenter.css';
@@ -29,6 +32,9 @@ export default function GlobalFlatNavigation(props) {
       <GlobalGamesNavigationTab {...props} />
       <GlobalDashboardNavigationTab {...props} />
       <GlobalWorkHubNotificationBridge currentUser={props.currentUser} language={props.language} />
+      <GlobalWorkScheduleBridge />
+      <GlobalWorkScheduleCenter {...props} />
+      <GlobalWorkScheduleTemplatePanel route={props.route} />
       <GlobalEnglishHubBrand />
     </>
   );
