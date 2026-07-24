@@ -29,6 +29,13 @@ export const APP_DESIGN_PROFILES = {
     icon: 'activity',
     style: 'Interactive activity lab',
     styleVi: 'Phòng tạo hoạt động tương tác'},
+  'teaching-methods-hub': {
+    accent: '#0B57D0',
+    soft: '#E8F0FE',
+    ink: '#10264A',
+    icon: 'methods',
+    style: 'Professional teaching methods library',
+    styleVi: 'Thư viện phương pháp giảng dạy chuyên môn'},
   'lesson-plan-ai': {
     accent: '#E86D1F',
     soft: '#FFE3CD',
