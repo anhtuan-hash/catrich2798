@@ -4,8 +4,10 @@ import './QuickDictionaryCompact.css';
 import './QuickDictionarySearchHotfix.css';
 import './QuickDictionaryFinalPolish.css';
 
+const FLOATING_UTILITIES_TEMPORARILY_DISABLED = true;
+
 export default function UnifiedUtilityRail({ currentUser, language = 'vi', currentRoute = 'home' }) {
-  if (!currentUser) return null;
+  if (!currentUser || FLOATING_UTILITIES_TEMPORARILY_DISABLED) return null;
 
   const musicLabel = language === 'vi' ? 'Mở nhạc nền' : 'Open background music';
 
