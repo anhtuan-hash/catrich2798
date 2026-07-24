@@ -1,0 +1,154 @@
+name: Remove bottom transfer and chatbot controls
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  remove-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/remove-bottom-transfer-chatbot-20260724
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Inventory related references
+        shell: bash
+        run: |
+          grep -RInE --exclude-dir=node_modules --exclude-dir=dist \
+            'SharedChatbotDrawer|ContentTransferHub|TransferInboxBanner|SyncQueueIndicator|bes-transfer-fab|Gửi sang|Chatbot' src \
+            > before-removal.txt || true
+          cat before-removal.txt
+      - name: Remove global bottom controls
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import json
+          import re
+
+          root = Path('.')
+          main_path = root / 'src/main.jsx'
+          main = main_path.read_text(encoding='utf-8')
+
+          lazy_names = [
+              'SharedChatbotDrawer',
+              'ContentTransferHub',
+              'TransferInboxBanner',
+              'SyncQueueIndicator',
+          ]
+          for name in lazy_names:
+              main, count = re.subn(
+                  rf"^const {name} = lazy\(\(\) => import\('[^']+'\)\);\n",
+                  '',
+                  main,
+                  count=1,
+                  flags=re.M,
+              )
+              if count != 1:
+                  raise SystemExit(f'Expected lazy import not found: {name}')
+
+          patterns = [
+              r"\n\s*\{currentUser && canAccessRoute && !\['login', 'register', 'setup', 'homeroom-portal'\]\.includes\(currentRoute\) \? \(\n\s*<Suspense fallback=\{null\}>\n\s*<TransferInboxBanner.*?</Suspense>\n\s*\) : null\}",
+              r"\n\s*\{currentUser && !\['homeroom-portal', 'classroom-join'\]\.includes\(currentRoute\) \? \(\n\s*<Suspense fallback=\{null\}>\n\s*<AppErrorBoundary compact scope=\"shared-chatbot-drawer\".*?</Suspense>\n\s*\) : null\}",
+              r"\n\s*\{currentUser && canAccessRoute && !\['login', 'register', 'setup', 'homeroom-portal', 'dashboard'\]\.includes\(currentRoute\) \? <>.*?</> : null\}",
+          ]
+          for pattern in patterns:
+              main, count = re.subn(pattern, '', main, count=1, flags=re.S)
+              if count != 1:
+                  raise SystemExit(f'Expected global render block not found: {pattern[:80]}')
+
+          main_path.write_text(main, encoding='utf-8')
+
+          removed_files = [
+              'src/components/SharedChatbotDrawer.jsx',
+              'src/components/ContentTransferHub.jsx',
+              'src/components/TransferInboxBanner.jsx',
+              'src/components/SyncQueueIndicator.jsx',
+          ]
+          for relative in removed_files:
+              path = root / relative
+              if not path.exists():
+                  raise SystemExit(f'Expected source file missing before deletion: {relative}')
+              path.unlink()
+
+          audit_path = root / 'scripts/audit-bottom-controls-removed.mjs'
+          audit_path.write_text("""import fs from 'node:fs';
+
+const removedFiles = [
+  'src/components/SharedChatbotDrawer.jsx',
+  'src/components/ContentTransferHub.jsx',
+  'src/components/TransferInboxBanner.jsx',
+  'src/components/SyncQueueIndicator.jsx',
+];
+const forbiddenInMain = [
+  'SharedChatbotDrawer',
+  'ContentTransferHub',
+  'TransferInboxBanner',
+  'SyncQueueIndicator',
+  'shared-chatbot-drawer',
+  'content-transfer',
+];
+let failures = 0;
+const fail = (message) => { console.error(`✗ ${message}`); failures += 1; };
+const pass = (message) => console.log(`✓ ${message}`);
+for (const file of removedFiles) {
+  if (fs.existsSync(file)) fail(`retired bottom-control source still exists: ${file}`);
+  else pass(`removed ${file}`);
+}
+const main = fs.readFileSync('src/main.jsx', 'utf8');
+for (const token of forbiddenInMain) {
+  if (main.includes(token)) fail(`${token} remains mounted in src/main.jsx`);
+}
+if (fs.existsSync('dist/assets')) {
+  const chunks = fs.readdirSync('dist/assets').filter((name) => /SharedChatbotDrawer|ContentTransferHub|TransferInboxBanner|SyncQueueIndicator/i.test(name));
+  if (chunks.length) fail(`retired chunks found: ${chunks.join(', ')}`);
+  else pass('no retired bottom-control chunks');
+}
+if (failures) process.exit(1);
+console.log('Bottom transfer and chatbot controls audit passed.');
+""", encoding='utf-8')
+
+          package_path = root / 'package.json'
+          package = json.loads(package_path.read_text(encoding='utf-8'))
+          package.setdefault('scripts', {})['audit:bottom-controls-removed'] = 'node scripts/audit-bottom-controls-removed.mjs'
+          package_path.write_text(json.dumps(package, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          workflow = root / '.github/workflows/remove-bottom-transfer-chatbot.yml'
+          workflow.unlink()
+          PY
+      - name: Check remaining references
+        shell: bash
+        run: |
+          grep -RInE --exclude-dir=node_modules --exclude-dir=dist \
+            'SharedChatbotDrawer|ContentTransferHub|TransferInboxBanner|SyncQueueIndicator|bes-transfer-fab|Gửi sang|Chatbot' src \
+            > after-removal.txt || true
+          cat after-removal.txt
+          if grep -qE 'SharedChatbotDrawer|ContentTransferHub|TransferInboxBanner|SyncQueueIndicator' after-removal.txt; then
+            echo 'Retired component references remain.' >&2
+            exit 1
+          fi
+      - name: Install dependencies
+        run: npm ci
+      - name: Build production bundle
+        run: npm run build
+      - name: Run dedicated audit
+        run: npm run audit:bottom-controls-removed
+      - name: Commit verified removal
+        shell: bash
+        run: |
+          rm -f before-removal.txt after-removal.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Remove bottom transfer and chatbot controls"
+          git push origin HEAD:agent/remove-bottom-transfer-chatbot-20260724
