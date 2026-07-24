@@ -15,6 +15,21 @@ export function safeAiWebsiteUrl(value) {
   }
 }
 
+function clampNumber(value, min, max, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : fallback;
+}
+
+function normalizeEmbedView(value = {}) {
+  return {
+    zoom: clampNumber(value.zoom, 1, 2.4, 1),
+    offsetX: clampNumber(value.offsetX, 0, 70, 0),
+    offsetY: clampNumber(value.offsetY, 0, 85, 0),
+    previewHeight: clampNumber(value.previewHeight, 420, 900, 620),
+    canvasHeight: clampNumber(value.canvasHeight, 1000, 2600, 1600),
+  };
+}
+
 export function normalizeAiWebsiteTool(tool = {}, index = 0) {
   const name = String(tool.name || '').trim();
   return {
@@ -32,6 +47,7 @@ export function normalizeAiWebsiteTool(tool = {}, index = 0) {
     submittedBy: String(tool.submittedBy || ''),
     approvedAt: String(tool.approvedAt || ''),
     accent: String(tool.accent || ''),
+    embedView: normalizeEmbedView(tool.embedView),
   };
 }
 
