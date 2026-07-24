@@ -1,0 +1,5 @@
+{
+  "deployment": "briefing-bar-top",
+  "requestedAt": "2026-07-24T18:00:00+07:00",
+  "purpose": "Retrigger and verify the production deployment after the Vercel webhook did not report a status for commit 2622c9c."
+}
