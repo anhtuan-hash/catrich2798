@@ -180,16 +180,23 @@ export async function saveAiWebsiteSettings(user, tools) {
     throw new Error('Supabase chưa được cấu hình nên chưa thể lưu website AI dùng chung.');
   }
 
+  const sourceTools = Array.isArray(tools) ? tools : [];
   const clean = normalizeSnapshot({
-    tools,
+    tools: sourceTools,
     updatedAt: new Date().toISOString(),
     updatedBy: user.id || user.email || '',
   });
+  if (clean.tools.length !== sourceTools.length) {
+    throw new Error('Danh sách có website thiếu tên hoặc URL hợp lệ nên chưa được lưu.');
+  }
   const previous = readAiWebsiteSettingsLocal();
   writeAiWebsiteSettingsLocal({ ...clean, source: 'pending-supabase', error: '', setupRequired: false });
 
   try {
     const saved = await writeCloudSnapshot(user, clean);
+    if (saved.tools.length !== clean.tools.length) {
+      throw new Error('Supabase trả lại danh sách không đầy đủ; thay đổi chưa được xác nhận.');
+    }
     const snapshot = writeAiWebsiteSettingsLocal(saved);
     return { snapshot, cloud: true };
   } catch (error) {
