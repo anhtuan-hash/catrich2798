@@ -1,20 +1,15 @@
 (() => {
   'use strict';
 
-  const EXCLUDED_ANCESTORS = [
-    '.brian-nav',
-    '.brian-nav__actions',
-    '.brian-ai-workspace',
-    '.brian-ai-workspace-layer',
-    '.brian-nav__dictionary-wrap',
-    '.brian-nav__music-wrap',
-    '.bes-vn-admin',
-    '[role="navigation"]',
-  ].join(',');
+  if (window.__BES_CHATBOT_PURGE_V2__) return;
+  window.__BES_CHATBOT_PURGE_V2__ = true;
 
-  const KNOWN_LAUNCHERS = [
+  const ROOT_SELECTORS = [
+    '.shared-chatbot-drawer',
+    '.bes-chatbot-root',
     '.bes-chatbot-fab',
     '.bes-chatbot-launcher',
+    '.chatbot-root',
     '.chatbot-fab',
     '.chatbot-launcher',
     '.chatbot-toggle',
@@ -22,96 +17,119 @@
     '.floating-chatbot-button',
     '.ai-chatbot-fab',
     '.ai-chatbot-launcher',
+    '.independent-chatbot',
+    '.independent-chatbot-launcher',
+    '.global-ai-website-launcher',
+    '.brian-nav__ai-wrap',
+    '.brian-nav__ai-button',
+    '.brian-ai-workspace',
+    '.brian-ai-workspace-layer',
+    '[data-chatbot-root]',
     '[data-chatbot-launcher]',
     '[data-ai-chatbot-launcher]',
+  ];
+
+  const ROOT_QUERY = ROOT_SELECTORS.join(',');
+  const CHATBOT_TEXT = /chat\s*bot(?:\s*ai)?|chatbotai|brian\s*ai|kh[oô]ng\s*gian\s*ai|tr[oợ]\s*l[yý]\s*ai|ai\s*(?:assistant|workspace|copilot)/i;
+  const SAFE_NAV_AREAS = [
+    '.brian-nav__dictionary-wrap',
+    '.brian-nav__music-wrap',
+    '.brian-nav__notification-wrap',
+    '.brian-nav__profile-wrap',
   ].join(',');
-
-  const semanticPattern = /chat\s*bot|chatbot|trợ\s*lý\s*ai|tro\s*ly\s*ai|ai\s*assistant|brian\s*ai\s*assistant/i;
-  const compactIconPattern = /^(ai|🤖|💬|🧠|✨)$/i;
-
-  const hide = (element) => {
-    if (!(element instanceof HTMLElement)) return;
-    element.dataset.besRemovedFloatingChatbot = 'true';
-    element.setAttribute('aria-hidden', 'true');
-    element.style.setProperty('display', 'none', 'important');
-    element.style.setProperty('visibility', 'hidden', 'important');
-    element.style.setProperty('pointer-events', 'none', 'important');
-  };
 
   const markerFor = (element) => [
     element.id,
-    element.className,
-    element.getAttribute('aria-label'),
-    element.getAttribute('title'),
-    element.getAttribute('data-testid'),
+    typeof element.className === 'string' ? element.className : '',
+    element.getAttribute?.('aria-label'),
+    element.getAttribute?.('title'),
+    element.getAttribute?.('data-testid'),
     element.textContent,
-  ].filter(Boolean).join(' ');
+  ].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
 
-  const isFloatingChatbotLauncher = (element) => {
-    if (!(element instanceof HTMLElement)) return false;
-    if (element.closest(EXCLUDED_ANCESTORS)) return false;
-
-    if (element.matches(KNOWN_LAUNCHERS)) return true;
-
-    const role = element.getAttribute('role');
-    const isControl = element.matches('button,a,[role="button"]') || role === 'button';
-    if (!isControl) return false;
-
-    const marker = markerFor(element);
-    const style = window.getComputedStyle(element);
-    if (!['fixed', 'sticky', 'absolute'].includes(style.position)) return false;
-
-    const rect = element.getBoundingClientRect();
-    if (!rect.width || !rect.height) return false;
-
-    const onRightSide = rect.left >= window.innerWidth * 0.62;
-    const belowNavigation = rect.top >= 92;
-    const compact = rect.width <= 120 && rect.height <= 120;
-    const iconOnly = compactIconPattern.test(String(element.textContent || '').trim());
-
-    return onRightSide
-      && belowNavigation
-      && compact
-      && (semanticPattern.test(marker) || iconOnly);
+  const removeNode = (node) => {
+    if (!(node instanceof Element)) return;
+    const removableRoot = node.closest?.(ROOT_QUERY) || node;
+    removableRoot.remove();
   };
 
-  const inspect = (root = document) => {
-    const controls = root instanceof HTMLElement && root.matches('button,a,[role="button"]')
-      ? [root]
-      : Array.from(root.querySelectorAll?.('button,a,[role="button"]') || []);
+  const isSemanticLauncher = (element) => {
+    if (!(element instanceof HTMLElement)) return false;
+    if (!element.matches('button,a,[role="button"],[tabindex]')) return false;
+    if (element.closest(SAFE_NAV_AREAS)) return false;
 
+    const marker = markerFor(element);
+    if (!CHATBOT_TEXT.test(marker)) return false;
+
+    const inTopChrome = Boolean(element.closest('.bes-top-chrome,.brian-nav,.brian-nav__actions'));
+    const style = window.getComputedStyle(element);
+    const isFloating = ['fixed', 'sticky', 'absolute'].includes(style.position);
+    const rect = element.getBoundingClientRect();
+    const nearGlobalChrome = rect.top < 190 || rect.right > window.innerWidth * 0.62;
+
+    return inTopChrome || (isFloating && nearGlobalChrome);
+  };
+
+  const purge = (root = document) => {
+    const directNodes = [];
+    if (root instanceof Element && root.matches(ROOT_QUERY)) directNodes.push(root);
+    root.querySelectorAll?.(ROOT_QUERY).forEach((node) => directNodes.push(node));
+    directNodes.forEach(removeNode);
+
+    const controls = [];
+    if (root instanceof HTMLElement && root.matches('button,a,[role="button"],[tabindex]')) controls.push(root);
+    root.querySelectorAll?.('button,a,[role="button"],[tabindex]').forEach((node) => controls.push(node));
     controls.forEach((control) => {
-      if (!isFloatingChatbotLauncher(control)) return;
-
-      const semanticContainer = control.closest([
-        '.bes-chatbot-root',
-        '.chatbot-root',
-        '.floating-chatbot',
-        '[data-chatbot-root]',
-      ].join(','));
-
-      hide(semanticContainer || control);
+      if (isSemanticLauncher(control)) removeNode(control);
     });
 
-    Array.from(root.querySelectorAll?.(KNOWN_LAUNCHERS) || []).forEach((launcher) => {
-      if (!launcher.closest(EXCLUDED_ANCESTORS)) hide(launcher);
-    });
+    document.documentElement.classList.remove('bes-ai-workspace-open');
+    document.documentElement.dataset.aiChatbot = 'removed';
+  };
+
+  const cleanStorage = () => {
+    try {
+      const prefixes = ['bes-ai-hide-active-name-', 'brian-ai-chatbot', 'bes-chatbot'];
+      const keys = [];
+      for (let index = 0; index < localStorage.length; index += 1) {
+        const key = String(localStorage.key(index) || '').toLowerCase();
+        if (prefixes.some((prefix) => key.startsWith(prefix))) keys.push(key);
+      }
+      keys.forEach((key) => localStorage.removeItem(key));
+    } catch {
+      // Local storage is optional.
+    }
   };
 
   const start = () => {
-    inspect(document);
+    cleanStorage();
+    purge(document);
 
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes') {
+          purge(mutation.target);
+          return;
+        }
         mutation.addedNodes.forEach((node) => {
-          if (node instanceof HTMLElement) inspect(node);
+          if (node instanceof Element) purge(node);
         });
       });
     });
 
-    observer.observe(document.body, { childList: true, subtree: true });
-    window.setTimeout(() => inspect(document), 400);
-    window.setTimeout(() => inspect(document), 1400);
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'id', 'aria-label', 'title', 'style'],
+    });
+
+    [0, 120, 400, 900, 1800, 3500].forEach((delay) => {
+      window.setTimeout(() => purge(document), delay);
+    });
+
+    window.addEventListener('bes-ai-open', (event) => event.stopImmediatePropagation(), true);
+    window.addEventListener('bes-chatbot-drawer-open', (event) => event.stopImmediatePropagation(), true);
   };
 
   if (document.readyState === 'loading') {
