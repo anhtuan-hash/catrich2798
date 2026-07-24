@@ -36,37 +36,5 @@ comment on column public.profiles.auth_mode is
 comment on column public.profiles.must_change_password is
   'When true, Brian shows a blocking password-change prompt after sign-in.';
 
--- Keep username-account metadata synchronized when public.profiles is updated.
-create or replace function public.bes_sync_username_account_metadata()
-returns trigger
-language plpgsql
-security definer
-set search_path = public, auth
-as $$
-begin
-  if new.auth_mode = 'username' then
-    update auth.users
-    set raw_user_meta_data = coalesce(raw_user_meta_data, '{}'::jsonb)
-      || jsonb_build_object(
-        'username', coalesce(new.username, ''),
-        'contact_email', coalesce(new.contact_email, ''),
-        'auth_mode', 'username',
-        'must_change_password', new.must_change_password
-      )
-    where id = new.id;
-  end if;
-  return new;
-end;
-$$;
-
-drop trigger if exists bes_sync_username_account_metadata_trigger on public.profiles;
-create trigger bes_sync_username_account_metadata_trigger
-after insert or update of username, contact_email, auth_mode, must_change_password
-on public.profiles
-for each row
-execute function public.bes_sync_username_account_metadata();
-
--- Re-sync metadata for any username accounts that already exist.
-update public.profiles
-set updated_at = coalesce(updated_at, now())
-where auth_mode = 'username';
+-- The Edge Function writes these fields with the service role. Existing profile
+-- triggers and RLS policies are left untouched to avoid changing current accounts.
