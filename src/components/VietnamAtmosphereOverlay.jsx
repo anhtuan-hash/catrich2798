@@ -1,18 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import {
+  loadVietnamAtmosphereSettings,
+  readVietnamAtmosphereLocal,
+  subscribeVietnamAtmosphereSettings,
+} from '../utils/vietnamAtmosphereSettings.js';
 import './VietnamAtmosphereOverlay.css';
 
-const MOTIF_SEQUENCE = [
-  'flag',
-  'nonla',
-  'lotus',
-  'bamboo',
-  'drum',
-  'halong',
-  'lotus',
-  'nonla',
-  'bamboo',
-  'flag',
-];
+const BUILT_IN_SEQUENCE = ['flag', 'nonla', 'lotus', 'bamboo', 'drum', 'halong', 'lotus', 'nonla', 'bamboo', 'flag'];
 
 const EDGE_ANCHORS = [
   { left: 2, top: 14 },
@@ -25,6 +19,14 @@ const EDGE_ANCHORS = [
   { left: 28, top: 88 },
   { left: 94, top: 34 },
   { left: 61, top: 87 },
+  { left: 1, top: 43 },
+  { left: 77, top: 3 },
+  { left: 18, top: 3 },
+  { left: 92, top: 82 },
+  { left: 36, top: 91 },
+  { left: 67, top: 4 },
+  { left: 5, top: 58 },
+  { left: 88, top: 48 },
 ];
 
 function seededRandom(seed) {
@@ -45,34 +47,51 @@ function getViewportTier() {
   return 'desktop';
 }
 
-function getMotifCount(tier) {
-  if (tier === 'mobile') return 4;
-  if (tier === 'tablet') return 7;
-  return 10;
+function getMotifCount(tier, density) {
+  const requested = Math.max(3, Math.min(18, Number(density) || 10));
+  if (tier === 'mobile') return Math.max(3, Math.min(7, Math.round(requested * 0.42)));
+  if (tier === 'tablet') return Math.max(4, Math.min(12, Math.round(requested * 0.72)));
+  return requested;
 }
 
-function buildMotifs(tier) {
-  const count = getMotifCount(tier);
-  const random = seededRandom(tier === 'mobile' ? 2704 : tier === 'tablet' ? 1975 : 1945);
+function buildSourcePool(settings) {
+  const pool = [];
+  if (settings.showBuiltIns !== false) BUILT_IN_SEQUENCE.forEach((kind) => pool.push({ kind }));
+  settings.images.filter((image) => image.enabled !== false && image.url).forEach((image) => pool.push({ kind: 'custom', image }));
+  return pool;
+}
 
-  return MOTIF_SEQUENCE.slice(0, count).map((kind, index) => {
-    const anchor = EDGE_ANCHORS[index];
+function buildMotifs(tier, settings) {
+  const count = getMotifCount(tier, settings.density);
+  const pool = buildSourcePool(settings);
+  if (!pool.length) return [];
+
+  const random = seededRandom((tier === 'mobile' ? 2704 : tier === 'tablet' ? 1975 : 1945) + settings.images.length * 31 + count * 17);
+  const tierOpacity = tier === 'mobile' ? 0.78 : tier === 'tablet' ? 0.9 : 1;
+  const globalOpacity = Math.max(0.03, Math.min(0.28, Number(settings.opacity) || 0.11));
+  const speed = Math.max(0.4, Math.min(2.5, Number(settings.speed) || 1));
+
+  return Array.from({ length: count }, (_, index) => {
+    const source = pool[index % pool.length];
+    const anchor = EDGE_ANCHORS[index % EDGE_ANCHORS.length];
+    const cycle = Math.floor(index / EDGE_ANCHORS.length);
     const baseSize = tier === 'mobile' ? 44 : tier === 'tablet' ? 58 : 72;
     const sizeRange = tier === 'mobile' ? 28 : tier === 'tablet' ? 44 : 64;
     const size = Math.round(baseSize + random() * sizeRange);
-    const opacity = Number((0.075 + random() * 0.065).toFixed(3));
+    const opacity = Number((globalOpacity * tierOpacity * (0.76 + random() * 0.42)).toFixed(3));
     const driftX = Math.round((random() - 0.5) * (tier === 'mobile' ? 34 : 72));
     const driftY = Math.round((random() - 0.5) * (tier === 'mobile' ? 44 : 88));
     const rotate = Math.round((random() - 0.5) * 18);
-    const duration = Math.round(22 + random() * 24);
+    const duration = Number(((22 + random() * 24) / speed).toFixed(2));
     const delay = Math.round(random() * -24);
     const blur = random() > 0.72 ? Number((0.35 + random() * 0.65).toFixed(2)) : 0;
 
     return {
-      id: `${kind}-${index}`,
-      kind,
-      left: Math.max(0, Math.min(96, anchor.left + (random() - 0.5) * 5)),
-      top: Math.max(0, Math.min(92, anchor.top + (random() - 0.5) * 5)),
+      id: `${source.kind}-${source.image?.id || 'built-in'}-${index}`,
+      kind: source.kind,
+      image: source.image || null,
+      left: Math.max(0, Math.min(96, anchor.left + cycle * 1.4 + (random() - 0.5) * 5)),
+      top: Math.max(0, Math.min(92, anchor.top + (cycle % 2 ? -2 : 2) + (random() - 0.5) * 5)),
       size,
       opacity,
       driftX,
@@ -201,40 +220,36 @@ function VietnamMotif({ kind }) {
 
 export default function VietnamAtmosphereOverlay() {
   const [viewportTier, setViewportTier] = useState(getViewportTier);
-  const [enabled, setEnabled] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    return window.localStorage.getItem('bes-vietnam-atmosphere') !== 'off';
-  });
+  const [settings, setSettings] = useState(readVietnamAtmosphereLocal);
 
   useEffect(() => {
+    let active = true;
     let frame = 0;
+    loadVietnamAtmosphereSettings().then((next) => {
+      if (active) setSettings(next);
+    }).catch(() => null);
+    const unsubscribe = subscribeVietnamAtmosphereSettings((next) => {
+      if (active) setSettings(next);
+    });
     const onResize = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         const nextTier = getViewportTier();
-        setViewportTier((current) => (current === nextTier ? current : nextTier));
+        setViewportTier((current) => current === nextTier ? current : nextTier);
       });
     };
-    const onStorage = (event) => {
-      if (event.key === 'bes-vietnam-atmosphere') setEnabled(event.newValue !== 'off');
-    };
-    const onPreference = (event) => setEnabled(event.detail?.enabled !== false);
-
     window.addEventListener('resize', onResize, { passive: true });
-    window.addEventListener('storage', onStorage);
-    window.addEventListener('bes:vietnam-atmosphere', onPreference);
-
     return () => {
+      active = false;
       cancelAnimationFrame(frame);
+      unsubscribe?.();
       window.removeEventListener('resize', onResize);
-      window.removeEventListener('storage', onStorage);
-      window.removeEventListener('bes:vietnam-atmosphere', onPreference);
     };
   }, []);
 
-  const motifs = useMemo(() => buildMotifs(viewportTier), [viewportTier]);
+  const motifs = useMemo(() => buildMotifs(viewportTier, settings), [viewportTier, settings]);
 
-  if (!enabled) return null;
+  if (!settings.enabled) return null;
 
   return (
     <div className="bes-vn-atmosphere" data-tier={viewportTier} aria-hidden="true">
@@ -257,7 +272,9 @@ export default function VietnamAtmosphereOverlay() {
           }}
         >
           <span className="bes-vn-motif__art">
-            <VietnamMotif kind={motif.kind} />
+            {motif.kind === 'custom'
+              ? <img src={motif.image.url} alt="" draggable="false" />
+              : <VietnamMotif kind={motif.kind} />}
           </span>
         </span>
       ))}

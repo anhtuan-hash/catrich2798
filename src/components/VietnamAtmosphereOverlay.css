@@ -39,11 +39,18 @@
   animation: bes-vn-breathe var(--vn-duration) ease-in-out var(--vn-delay) infinite alternate;
 }
 
-.bes-vn-motif svg {
+.bes-vn-motif svg,
+.bes-vn-motif img {
   display: block;
   width: 100%;
   height: 100%;
   overflow: visible;
+  object-fit: contain;
+}
+
+.bes-vn-motif img {
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 .bes-vn-motif--drum {
@@ -99,7 +106,6 @@ body[data-theme='dark'] .bes-vn-motif,
   }
 
   .bes-vn-motif {
-    opacity: 0.075;
     filter: blur(var(--vn-blur)) drop-shadow(0 5px 12px rgba(85, 64, 37, 0.08));
   }
 }
@@ -111,7 +117,7 @@ body[data-theme='dark'] .bes-vn-motif,
   }
 
   .bes-vn-motif {
-    opacity: 0.065;
+    opacity: calc(var(--vn-opacity) * 0.7);
     transform: none;
   }
 }
