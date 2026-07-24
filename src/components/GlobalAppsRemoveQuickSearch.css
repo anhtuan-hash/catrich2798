@@ -1,0 +1,21 @@
+/* Apps page — remove the redundant system-wide quick-search strip. */
+body .metro-clean-system[data-route='apps'] .launcher-discovery-bar {
+  display: none !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-apps-directory {
+  grid-template-areas:
+    'hero'
+    'dock'
+    'editor'
+    'groups'
+    'apps'
+    'pins' !important;
+  row-gap: 14px !important;
+}
+
+body .metro-clean-system[data-route='apps'] .launcher-command-button,
+body .metro-clean-system[data-route='apps'] [aria-label='Tìm nhanh toàn hệ thống'],
+body .metro-clean-system[data-route='apps'] [title='Tìm nhanh toàn hệ thống'] {
+  display: none !important;
+}
