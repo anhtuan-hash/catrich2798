@@ -4,6 +4,12 @@ import { readLocal, scopedLocalKey, uid, writeLocal } from '../pages/v1093/share
 export const AUTOMATION_EVENT = 'bes-automation-event-v1096';
 export const AUTOMATION_UPDATED = 'bes-automation-updated-v1096';
 
+const RULE_COLUMNS = 'id,owner_id,name,description,enabled,scope,trigger_type,trigger_config,action_type,action_config,requires_approval,last_run_at,next_run_at,run_count,success_count,created_at,updated_at';
+const RUN_COLUMNS = 'id,rule_id,owner_id,rule_name,status,trigger_type,input_json,output_json,error_message,approval_required,approved_at,started_at,finished_at,created_at';
+const EVENT_COLUMNS = 'id,event_type,source,payload,created_at,owner_id';
+const AUTOMATION_CACHE_MAX_AGE = 15 * 60 * 1000;
+const automationLoadPromises = new Map();
+
 export const TRIGGER_TYPES = [
   { value: 'manual', label: 'Chạy thủ công' },
   { value: 'schedule', label: 'Theo lịch máy chủ / ứng dụng' },
@@ -37,6 +43,23 @@ function localKeys(user) {
     notifications: scopedLocalKey('bes-automation-notifications-v1096', user),
     snapshots: scopedLocalKey('bes-automation-snapshots-v1096', user),
   };
+}
+
+
+function automationUserKey(user) {
+  return String(user?.id || user?.email || 'guest');
+}
+
+function automationSyncKey(user) {
+  return scopedLocalKey('bes-automation-cloud-sync-v1096', user);
+}
+
+function readAutomationSync(user) {
+  try { return Number(localStorage.getItem(automationSyncKey(user)) || 0); } catch { return 0; }
+}
+
+function writeAutomationSync(user, value = Date.now()) {
+  try { localStorage.setItem(automationSyncKey(user), String(Number(value) || Date.now())); } catch { /* optional */ }
 }
 
 function notifyUpdate(detail = {}) {
@@ -101,7 +124,7 @@ async function safeTable(client, table, operation, fallback) {
   }
 }
 
-export async function loadAutomationState(user) {
+export async function loadAutomationState(user, { force = false } = {}) {
   const keys = localKeys(user);
   const local = {
     rules: readLocal(keys.rules, []).map((item) => normalizeRule(item, user)),
@@ -113,25 +136,38 @@ export async function loadAutomationState(user) {
   const client = getRuntimeClient();
   if (!client || !user?.id) return { ...local, mode: 'local' };
 
-  const [rules, runs, events] = await Promise.all([
-    safeTable(client, 'automation_rules', (table) => table.select('*').order('updated_at', { ascending: false }).limit(200), null),
-    safeTable(client, 'automation_runs', (table) => table.select('*').order('created_at', { ascending: false }).limit(300), null),
-    safeTable(client, 'automation_events', (table) => table.select('*').order('created_at', { ascending: false }).limit(200), null),
-  ]);
+  const lastSync = readAutomationSync(user);
+  if (!force && lastSync && Date.now() - lastSync < AUTOMATION_CACHE_MAX_AGE) {
+    return { ...local, mode: 'local-cache' };
+  }
 
-  if (!rules || !runs || !events) return { ...local, mode: 'local' };
-  const state = {
-    rules: rules.map((item) => normalizeRule(item, user)),
-    runs: runs.map((item) => normalizeRun(item, user)),
-    events,
-    notifications: local.notifications,
-    snapshots: local.snapshots,
-    mode: 'cloud',
-  };
-  writeLocal(keys.rules, state.rules);
-  writeLocal(keys.runs, state.runs);
-  writeLocal(keys.events, state.events);
-  return state;
+  const userKey = automationUserKey(user);
+  if (automationLoadPromises.has(userKey)) return automationLoadPromises.get(userKey);
+  const task = (async () => {
+    const [rules, runs, events] = await Promise.all([
+      safeTable(client, 'automation_rules', (table) => table.select(RULE_COLUMNS).order('updated_at', { ascending: false }).limit(120), null),
+      safeTable(client, 'automation_runs', (table) => table.select(RUN_COLUMNS).order('created_at', { ascending: false }).limit(120), null),
+      safeTable(client, 'automation_events', (table) => table.select(EVENT_COLUMNS).order('created_at', { ascending: false }).limit(80), null),
+    ]);
+
+    if (!rules || !runs || !events) return { ...local, mode: 'local' };
+    const state = {
+      rules: rules.map((item) => normalizeRule(item, user)),
+      runs: runs.map((item) => normalizeRun(item, user)),
+      events,
+      notifications: local.notifications,
+      snapshots: local.snapshots,
+      mode: 'cloud',
+    };
+    writeLocal(keys.rules, state.rules);
+    writeLocal(keys.runs, state.runs);
+    writeLocal(keys.events, state.events);
+    writeAutomationSync(user);
+    return state;
+  })();
+  automationLoadPromises.set(userKey, task);
+  try { return await task; }
+  finally { automationLoadPromises.delete(userKey); }
 }
 
 export async function saveAutomationRule(rule, user) {
@@ -139,16 +175,18 @@ export async function saveAutomationRule(rule, user) {
   const normalized = normalizeRule({ ...rule, updated_at: nowIso() }, user);
   const client = getRuntimeClient();
   if (client && user?.id) {
-    const saved = await safeTable(client, 'automation_rules', (table) => table.upsert(normalized).select('*').single(), null);
+    const saved = await safeTable(client, 'automation_rules', (table) => table.upsert(normalized).select(RULE_COLUMNS).single(), null);
     if (saved) {
       const local = readLocal(keys.rules, []);
       writeLocal(keys.rules, [saved, ...local.filter((item) => item.id !== saved.id)]);
+      writeAutomationSync(user);
       notifyUpdate({ type: 'rule-saved', rule: saved });
       return normalizeRule(saved, user);
     }
   }
   const local = readLocal(keys.rules, []);
   writeLocal(keys.rules, [normalized, ...local.filter((item) => item.id !== normalized.id)]);
+  writeAutomationSync(user);
   notifyUpdate({ type: 'rule-saved', rule: normalized });
   return normalized;
 }
@@ -160,6 +198,7 @@ export async function deleteAutomationRule(ruleId, user) {
     await safeTable(client, 'automation_rules', (table) => table.delete().eq('id', ruleId), null);
   }
   writeLocal(keys.rules, readLocal(keys.rules, []).filter((item) => item.id !== ruleId));
+  writeAutomationSync(user);
   notifyUpdate({ type: 'rule-deleted', ruleId });
 }
 
@@ -173,14 +212,16 @@ function saveRunLocal(run, user) {
 async function saveRun(run, user) {
   const client = getRuntimeClient();
   if (client && user?.id) {
-    const saved = await safeTable(client, 'automation_runs', (table) => table.upsert(run).select('*').single(), null);
+    const saved = await safeTable(client, 'automation_runs', (table) => table.upsert(run).select(RUN_COLUMNS).single(), null);
     if (saved) {
       saveRunLocal(saved, user);
+      writeAutomationSync(user);
       notifyUpdate({ type: 'run-saved', run: saved });
       return saved;
     }
   }
   saveRunLocal(run, user);
+  writeAutomationSync(user);
   notifyUpdate({ type: 'run-saved', run });
   return run;
 }
@@ -313,6 +354,7 @@ export async function emitAutomationEvent(eventType, payload = {}, user = null) 
   const client = getRuntimeClient();
   if (client && user?.id) await safeTable(client, 'automation_events', (table) => table.insert(event), null);
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(AUTOMATION_EVENT, { detail: event }));
+  writeAutomationSync(user);
   notifyUpdate({ type: 'event-emitted', event });
   return event;
 }

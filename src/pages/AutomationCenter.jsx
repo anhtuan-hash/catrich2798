@@ -64,18 +64,18 @@ export default function AutomationCenter({ currentUser, language = 'vi' }) {
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  const load = useCallback(async () => {
+  const load = useCallback(async ({ force = false, diagnose = false } = {}) => {
     setError('');
     try {
-      const next = await loadAutomationState(currentUser);
+      const next = await loadAutomationState(currentUser, { force });
       setState(next);
-      setRuntimeReport(await diagnoseRuntime());
+      if (diagnose) setRuntimeReport(await diagnoseRuntime());
     } catch (loadError) {
       setError(loadError.message || String(loadError));
     }
   }, [currentUser]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load({ diagnose: true }); }, [load]);
   useEffect(() => {
     const onUpdate = () => load();
     window.addEventListener(AUTOMATION_UPDATED, onUpdate);
@@ -151,7 +151,7 @@ export default function AutomationCenter({ currentUser, language = 'vi' }) {
       <div className="v1096-hero-actions"><button className="secondary" onClick={exportReport}>Xuất báo cáo</button><button className="primary" onClick={() => { setDraft(emptyRule(currentUser)); setTab('rules'); }}>+ Quy tắc mới</button></div>
     </header>
 
-    {error && <div className="v1096-alert error"><b>Không thể hoàn tất thao tác</b><span>{error}</span><button onClick={load}>Thử lại</button></div>}
+    {error && <div className="v1096-alert error"><b>Không thể hoàn tất thao tác</b><span>{error}</span><button onClick={() => load({ force: true, diagnose: true })}>Thử lại</button></div>}
     {notice && <div className="v1096-alert success">{notice}</div>}
 
     <section className="v1096-metrics">

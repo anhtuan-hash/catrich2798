@@ -21,8 +21,13 @@ import './GlobalWorkScheduleCenter.css';
 
 const SCHEDULE_UPDATE_EVENT = 'bes-work-schedule-updated';
 const SCHEDULE_CACHE_KEY = 'bes-system-work-schedule-cache-v1';
+const SCHEDULE_SYNC_KEY = 'bes-system-work-schedule-sync-v1';
+const SCHEDULE_CACHE_MAX_AGE = 15 * 60 * 1000;
 const MAX_IMPORT_SIZE = 10 * 1024 * 1024;
 const MAX_EVENTS = 600;
+const SCHEDULE_COLUMNS = 'id,title,description,item_type,status,priority,visibility,owner_id,created_by,assignee_ids,watcher_ids,due_at,source_module,metadata,created_at,updated_at';
+const PROFILE_CACHE_KEY = 'bes-work-schedule-profile-cache-v1';
+const PROFILE_CACHE_MAX_AGE = 6 * 60 * 60 * 1000;
 const EXCLUDED_PROFILE_ROLES = new Set(['student', 'learner', 'pupil', 'parent', 'guardian', 'guest']);
 const PRIORITY_LABEL = { low: 'Thấp', normal: 'Bình thường', high: 'Cao', urgent: 'Khẩn' };
 
@@ -51,6 +56,56 @@ function readCachedSchedule() {
 function writeCachedSchedule(items) {
   if (typeof window === 'undefined') return;
   try { window.localStorage.setItem(SCHEDULE_CACHE_KEY, JSON.stringify(items)); } catch { /* optional cache */ }
+}
+
+
+function readScheduleSyncStamp() {
+  if (typeof window === 'undefined') return 0;
+  try { return Number(window.localStorage.getItem(SCHEDULE_SYNC_KEY) || 0); } catch { return 0; }
+}
+
+function writeScheduleSyncStamp(value = Date.now()) {
+  if (typeof window === 'undefined') return;
+  try { window.localStorage.setItem(SCHEDULE_SYNC_KEY, String(Number(value) || Date.now())); } catch { /* optional cache */ }
+}
+
+function hasFreshProfileCache() {
+  if (typeof window === 'undefined') return false;
+  try {
+    const value = JSON.parse(window.localStorage.getItem(PROFILE_CACHE_KEY) || 'null');
+    return Boolean(value && Date.now() - Number(value.storedAt || 0) <= PROFILE_CACHE_MAX_AGE);
+  } catch {
+    return false;
+  }
+}
+
+
+function sortScheduleItems(items = []) {
+  return [...items].sort((left, right) => new Date(left?.due_at || 0) - new Date(right?.due_at || 0));
+}
+
+function mergeScheduleItems(current = [], incoming = []) {
+  const map = new Map(current.filter((item) => item?.id).map((item) => [item.id, item]));
+  incoming.filter((item) => item?.id && isScheduleItem(item)).forEach((item) => {
+    map.set(item.id, { ...(map.get(item.id) || {}), ...item });
+  });
+  return sortScheduleItems([...map.values()]);
+}
+
+function readCachedProfiles() {
+  if (typeof window === 'undefined') return [];
+  try {
+    const value = JSON.parse(window.localStorage.getItem(PROFILE_CACHE_KEY) || 'null');
+    if (!value || Date.now() - Number(value.storedAt || 0) > PROFILE_CACHE_MAX_AGE) return [];
+    return Array.isArray(value.items) ? value.items : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeCachedProfiles(items) {
+  if (typeof window === 'undefined') return;
+  try { window.localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify({ storedAt: Date.now(), items })); } catch { /* optional cache */ }
 }
 
 function parseHashState() {
@@ -231,12 +286,13 @@ export default function GlobalWorkScheduleCenter({
   const client = getRuntimeClient();
   const leader = isLeader(currentUser);
   const fileInputRef = useRef(null);
+  const loadPromiseRef = useRef(null);
   const [hashState, setHashState] = useState(parseHashState);
   const [mountNode, setMountNode] = useState(null);
   const [hubNode, setHubNode] = useState(null);
   const [view, setView] = useState(hashState.view);
   const [items, setItems] = useState(readCachedSchedule);
-  const [profiles, setProfiles] = useState([]);
+  const [profiles, setProfiles] = useState(readCachedProfiles);
   const [calendarMode, setCalendarMode] = useState('month');
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
   const [query, setQuery] = useState('');
@@ -304,56 +360,93 @@ export default function GlobalWorkScheduleCenter({
     return () => hubNode.classList.remove('work-schedule-view-active');
   }, [hubNode, view]);
 
-  const load = useCallback(async ({ silent = false } = {}) => {
+  const load = useCallback(async ({ silent = false, force = false } = {}) => {
     if (!currentUser) return;
     if (!client || !runtime.ready || !runtime.session) {
       setItems(readCachedSchedule());
       return;
     }
-    if (!silent) setError('');
-
-    const columns = 'id,title,description,item_type,status,priority,visibility,owner_id,created_by,assignee_ids,watcher_ids,due_at,source_module,metadata,created_at,updated_at';
-    let result = await client
-      .from('work_hub_items')
-      .select(columns)
-      .eq('item_type', WORK_SCHEDULE_ITEM_TYPE)
-      .order('due_at', { ascending: true })
-      .limit(MAX_EVENTS);
-
-    if (result.error) {
-      result = await client
-        .from('work_hub_items')
-        .select(columns)
-        .order('due_at', { ascending: true })
-        .limit(MAX_EVENTS);
-    }
-
-    if (result.error) {
-      if (!silent) setError(result.error.message || 'Không thể tải lịch làm việc.');
+    if (!force && readScheduleSyncStamp() && Date.now() - readScheduleSyncStamp() < SCHEDULE_CACHE_MAX_AGE) {
       setItems(readCachedSchedule());
       return;
     }
+    if (loadPromiseRef.current) return loadPromiseRef.current;
+    if (!silent) setError('');
 
-    const scheduleItems = (result.data || []).filter(isScheduleItem);
-    setItems(scheduleItems);
-    writeCachedSchedule(scheduleItems);
+    const task = (async () => {
+      let result = await client
+        .from('work_hub_items')
+        .select(SCHEDULE_COLUMNS)
+        .eq('item_type', WORK_SCHEDULE_ITEM_TYPE)
+        .order('due_at', { ascending: true })
+        .limit(MAX_EVENTS);
 
-    if (leader) {
-      const { data: profileRows, error: profileError } = await client.from('profiles').select('*').limit(500);
-      if (!profileError) setProfiles((profileRows || []).filter((profile) => profileId(profile)));
+      if (result.error) {
+        result = await client
+          .from('work_hub_items')
+          .select(SCHEDULE_COLUMNS)
+          .order('due_at', { ascending: true })
+          .limit(MAX_EVENTS);
+      }
+
+      if (result.error) {
+        if (!silent) setError(result.error.message || 'Không thể tải lịch làm việc.');
+        setItems(readCachedSchedule());
+        return;
+      }
+
+      const scheduleItems = sortScheduleItems((result.data || []).filter(isScheduleItem));
+      setItems(scheduleItems);
+      writeCachedSchedule(scheduleItems);
+      writeScheduleSyncStamp();
+    })();
+
+    loadPromiseRef.current = task;
+    try { return await task; }
+    finally { loadPromiseRef.current = null; }
+  }, [client, currentUser, runtime.ready, runtime.session]);
+
+  const loadProfiles = useCallback(async () => {
+    if (!leader || !client || !runtime.ready || !runtime.session || hasFreshProfileCache()) return;
+    const attempts = ['id,role', 'user_id,role', 'profile_id,role'];
+    for (const columns of attempts) {
+      const { data, error: profileError } = await client.from('profiles').select(columns).limit(500);
+      if (!profileError) {
+        const profileRows = (data || []).filter((profile) => profileId(profile));
+        setProfiles(profileRows);
+        writeCachedProfiles(profileRows);
+        return;
+      }
+      if (!/column .* does not exist|42703/i.test(profileError.message || '')) return;
     }
-  }, [client, currentUser, leader, runtime.ready, runtime.session]);
+  }, [client, leader, runtime.ready, runtime.session]);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { loadProfiles(); }, [loadProfiles]);
 
   useEffect(() => {
     if (!currentUser?.id || !runtime.ready || !runtime.session) return () => {};
-    const refresh = () => window.setTimeout(() => load({ silent: true }), 80);
     const unsubscribe = subscribeTable({
       key: `global-work-schedule-${currentUser.id}`,
       table: 'work_hub_items',
-      onChange: refresh,
+      filter: `item_type=eq.${WORK_SCHEDULE_ITEM_TYPE}`,
+      onChange: (payload) => {
+        const row = payload?.new && Object.keys(payload.new).length ? payload.new : payload?.old;
+        if (!row?.id) { load({ silent: true, force: true }); return; }
+        setItems((current) => {
+          const next = payload?.eventType === 'DELETE' || !isScheduleItem(row)
+            ? current.filter((item) => item.id !== row.id)
+            : mergeScheduleItems(current, [row]);
+          writeCachedSchedule(next);
+          writeScheduleSyncStamp();
+          return next;
+        });
+      },
     });
+    const refresh = (event) => {
+      if (event?.detail?.localApplied) return;
+      window.setTimeout(() => load({ silent: true, force: true }), 80);
+    };
     window.addEventListener(SCHEDULE_UPDATE_EVENT, refresh);
     return () => {
       unsubscribe();
@@ -502,7 +595,7 @@ export default function GlobalWorkScheduleCenter({
       const created = [];
       for (let index = 0; index < payloads.length; index += 50) {
         const batch = payloads.slice(index, index + 50);
-        const { data, error: insertError } = await client.from('work_hub_items').insert(batch).select('*');
+        const { data, error: insertError } = await client.from('work_hub_items').insert(batch).select(SCHEDULE_COLUMNS);
         if (insertError) throw insertError;
         created.push(...(data || []));
       }
@@ -527,8 +620,14 @@ export default function GlobalWorkScheduleCenter({
         summary: `Đã nhập ${created.length} mục vào lịch làm việc dùng chung.`,
       }, currentUser);
 
+      setItems((current) => {
+        const next = mergeScheduleItems(current, created);
+        writeCachedSchedule(next);
+        writeScheduleSyncStamp();
+        return next;
+      });
       window.dispatchEvent(new CustomEvent(SCHEDULE_UPDATE_EVENT, {
-        detail: { importId, count: created.length },
+        detail: { importId, count: created.length, localApplied: true },
       }));
       window.dispatchEvent(new CustomEvent('bes-global-notification', {
         detail: {
@@ -548,7 +647,6 @@ export default function GlobalWorkScheduleCenter({
       setImportOpen(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
       setNotice(`Đã nhận diện và đồng bộ ${created.length} hoạt động vào lịch chung toàn hệ thống.`);
-      await load({ silent: true });
     } catch (importError) {
       setError(importError.message || 'Không thể nhập lịch làm việc.');
     } finally {
@@ -580,7 +678,7 @@ export default function GlobalWorkScheduleCenter({
           .from('work_hub_items')
           .update({ ...payload, updated_at: new Date().toISOString() })
           .eq('id', editor.id)
-          .select('*')
+          .select(SCHEDULE_COLUMNS)
           .single();
         if (updateError) throw updateError;
         saved = data;
@@ -595,7 +693,7 @@ export default function GlobalWorkScheduleCenter({
               schedule_created_at: new Date().toISOString(),
             },
           })
-          .select('*')
+          .select(SCHEDULE_COLUMNS)
           .single();
         if (insertError) throw insertError;
         saved = data;
@@ -608,11 +706,16 @@ export default function GlobalWorkScheduleCenter({
         source_module: 'work-schedule',
         after_data: saved,
       }, currentUser);
-      window.dispatchEvent(new CustomEvent(SCHEDULE_UPDATE_EVENT, { detail: { itemId: saved.id } }));
+      setItems((current) => {
+        const next = mergeScheduleItems(current, [saved]);
+        writeCachedSchedule(next);
+        writeScheduleSyncStamp();
+        return next;
+      });
+      window.dispatchEvent(new CustomEvent(SCHEDULE_UPDATE_EVENT, { detail: { itemId: saved.id, localApplied: true } }));
       setEditor(null);
       setSelectedId(saved.id);
       setNotice(editor.id ? 'Đã cập nhật lịch làm việc.' : 'Đã thêm hoạt động vào lịch chung.');
-      await load({ silent: true });
     } catch (saveError) {
       setError(saveError.message || 'Không thể lưu lịch làm việc.');
     } finally {
@@ -637,8 +740,13 @@ export default function GlobalWorkScheduleCenter({
       }, currentUser);
       setSelectedId('');
       setNotice('Đã xoá lịch và đồng bộ thay đổi trên toàn hệ thống.');
-      window.dispatchEvent(new CustomEvent(SCHEDULE_UPDATE_EVENT, { detail: { itemId: target.id, deleted: true } }));
-      await load({ silent: true });
+      setItems((current) => {
+        const next = current.filter((item) => item.id !== target.id);
+        writeCachedSchedule(next);
+        writeScheduleSyncStamp();
+        return next;
+      });
+      window.dispatchEvent(new CustomEvent(SCHEDULE_UPDATE_EVENT, { detail: { itemId: target.id, deleted: true, localApplied: true } }));
     } catch (deleteError) {
       setError(deleteError.message || 'Không thể xoá lịch làm việc.');
     } finally {
