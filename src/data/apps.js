@@ -141,6 +141,20 @@ export const APPS = [
       api: true,
       featured: true},
   {
+      slug: 'teaching-methods-hub',
+      icon: 'TM',
+      tone: 'mint',
+      group: 'Professional Learning',
+      groupVi: 'Phát triển chuyên môn',
+      title: 'English Teaching Methods Hub',
+      titleVi: 'Phương pháp giảng dạy tiếng Anh',
+      desc: 'Explore active English teaching methods with theory, classroom procedures, activity ideas, assessment guidance and implementation cautions.',
+      descVi: 'Thư viện phương pháp dạy tiếng Anh tích cực với lý thuyết, quy trình lớp học, hoạt động gợi ý, cách đánh giá và lưu ý triển khai.',
+      status: 'Methods · Theory · Classroom guides',
+      statusVi: 'Phương pháp · Lý thuyết · Hướng dẫn',
+      api: false,
+      featured: true},
+  {
       slug: 'exam-studio',
       icon: 'EX',
       tone: 'purple',
@@ -223,20 +237,20 @@ export const APPS = [
 
 export const GAME_APPS = [
   {
-    slug: 'game-hub',
-    route: 'games',
-    icon: 'GH',
-    tone: 'teal',
-    group: 'Third-party Launchers',
-    groupVi: 'Cổng trò chơi',
-    title: 'Game Hub',
-    titleVi: 'Game Hub',
-    desc: 'Open trusted third-party classroom game platforms and save useful links for lessons.',
-    descVi: 'Mở nhanh các nền tảng game lớp học bên thứ ba và lưu link hữu ích cho bài dạy.',
-    status: 'Launcher',
-    statusVi: 'Cổng mở nhanh',
-    api: true,
-    featured: true}];
+      slug: 'game-hub',
+      route: 'games',
+      icon: 'GH',
+      tone: 'teal',
+      group: 'Third-party Launchers',
+      groupVi: 'Cổng trò chơi',
+      title: 'Game Hub',
+      titleVi: 'Game Hub',
+      desc: 'Open trusted third-party classroom game platforms and save useful links for lessons.',
+      descVi: 'Mở nhanh các nền tảng game lớp học bên thứ ba và lưu link hữu ích cho bài dạy.',
+      status: 'Launcher',
+      statusVi: 'Cổng mở nhanh',
+      api: true,
+      featured: true}];
 
 
 export const SPECIAL_TOOLS = [];
