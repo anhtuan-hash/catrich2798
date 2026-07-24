@@ -47,7 +47,7 @@ export function normalizeEmbedView(value = {}) {
   const cropX = clamp(value.cropX, 0, 100 - cropWidth, (100 - cropWidth) / 2);
   const cropY = clamp(value.cropY, 0, 100 - cropHeight, (100 - cropHeight) / 2);
   return {
-    zoom: clamp(value.zoom, 1, 2.4, 1),
+    zoom: clamp(value.zoom, 0.4, 2.4, 1),
     offsetX: clamp(value.offsetX, 0, 70, 0),
     offsetY: clamp(value.offsetY, 0, 85, 0),
     previewHeight: clamp(value.previewHeight, 420, 900, 620),
@@ -61,7 +61,10 @@ export function normalizeEmbedView(value = {}) {
 
 export function embedTransformStyle(view = {}) {
   const clean = normalizeEmbedView(view);
-  const xShift = clean.offsetX * ((clean.zoom - 1) / clean.zoom);
+  const reducedScale = Math.min(clean.zoom, 1);
+  const xShift = clean.zoom >= 1
+    ? clean.offsetX * ((clean.zoom - 1) / clean.zoom)
+    : clean.offsetX;
   const yShift = clean.offsetY;
   return {
     '--embed-zoom': clean.zoom,
@@ -69,6 +72,8 @@ export function embedTransformStyle(view = {}) {
     '--embed-y': `${yShift}%`,
     '--embed-preview-height': `${clean.previewHeight}px`,
     '--embed-canvas-height': `${clean.canvasHeight}px`,
+    '--embed-source-width': `${100 / reducedScale}%`,
+    '--embed-source-height': `${clean.canvasHeight / reducedScale}px`,
     '--embed-crop-x': clean.cropX,
     '--embed-crop-y': clean.cropY,
     '--embed-crop-width': clean.cropWidth,
