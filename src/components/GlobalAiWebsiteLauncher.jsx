@@ -5,73 +5,46 @@ import './GlobalAiWebsiteLauncher.css';
 const STORAGE_KEY = 'bes-ai-website-launcher-v1';
 const CONFIG_EVENT = 'bes-ai-websites-updated';
 
-const DEFAULT_TOOLS = [
-  {
-    id: 'chatgpt', name: 'ChatGPT', url: 'https://chatgpt.com/', icon: 'C',
-    description: 'Trao đổi, soạn thảo và hỗ trợ công việc tổng quát.', category: 'Chatbot',
-    audience: 'all', enabled: true, pinned: true, openMode: 'new-tab',
-  },
-  {
-    id: 'gemini', name: 'Gemini', url: 'https://gemini.google.com/', icon: 'G',
-    description: 'Trợ lý AI trong hệ sinh thái Google.', category: 'Chatbot',
-    audience: 'all', enabled: true, pinned: true, openMode: 'new-tab',
-  },
-  {
-    id: 'claude', name: 'Claude', url: 'https://claude.ai/', icon: 'A',
-    description: 'Đọc, phân tích và biên tập nội dung dài.', category: 'Soạn thảo',
-    audience: 'all', enabled: true, pinned: false, openMode: 'new-tab',
-  },
-  {
-    id: 'perplexity', name: 'Perplexity', url: 'https://www.perplexity.ai/', icon: 'P',
-    description: 'Tìm kiếm và nghiên cứu thông tin có nguồn dẫn.', category: 'Nghiên cứu',
-    audience: 'all', enabled: true, pinned: false, openMode: 'new-tab',
-  },
-  {
-    id: 'gemini-notebook', name: 'Gemini Notebook', url: 'https://notebooklm.google.com/', icon: 'N',
-    description: 'Học và tổng hợp kiến thức từ tài liệu riêng.', category: 'Tài liệu',
-    audience: 'all', enabled: true, pinned: false, openMode: 'new-tab',
-  },
-  {
-    id: 'copilot', name: 'Microsoft Copilot', url: 'https://copilot.microsoft.com/', icon: 'M',
-    description: 'Hỗ trợ tìm kiếm, viết và làm việc với Microsoft.', category: 'Chatbot',
-    audience: 'all', enabled: true, pinned: false, openMode: 'new-tab',
-  },
-];
-
 const EMPTY_TOOL = {
-  name: '', url: '', icon: 'AI', description: '', category: 'Chatbot', audience: 'all',
-  enabled: true, pinned: false, openMode: 'new-tab',
+  name: '',
+  url: '',
+  icon: 'AI',
+  description: '',
+  audience: 'all',
+  enabled: true,
+  pinned: false,
 };
 
 function normalizeTool(tool, index = 0) {
   const name = String(tool?.name || '').trim();
   return {
-    id: String(tool?.id || `${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`),
+    id: String(tool?.id || `ai-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`),
     name,
     url: String(tool?.url || '').trim(),
     icon: String(tool?.icon || name.slice(0, 2) || 'AI').trim().slice(0, 3).toUpperCase(),
     description: String(tool?.description || '').trim(),
-    category: String(tool?.category || 'Khác').trim() || 'Khác',
     audience: ['all', 'admin', 'leader', 'teacher'].includes(tool?.audience) ? tool.audience : 'all',
     enabled: tool?.enabled !== false,
     pinned: Boolean(tool?.pinned),
-    openMode: tool?.openMode === 'embed' ? 'embed' : 'new-tab',
   };
 }
 
 function readTools() {
-  if (typeof window === 'undefined') return DEFAULT_TOOLS;
+  if (typeof window === 'undefined') return [];
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || 'null');
-    if (!Array.isArray(parsed) || !parsed.length) return DEFAULT_TOOLS;
-    return parsed.map(normalizeTool);
+    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]');
+    return Array.isArray(parsed)
+      ? parsed.map(normalizeTool).filter((tool) => tool.name && tool.url)
+      : [];
   } catch {
-    return DEFAULT_TOOLS;
+    return [];
   }
 }
 
 function persistTools(tools) {
-  const normalized = tools.map(normalizeTool).filter((tool) => tool.name && tool.url);
+  const normalized = tools
+    .map(normalizeTool)
+    .filter((tool) => tool.name && safeWebsiteUrl(tool.url));
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
   window.dispatchEvent(new CustomEvent(CONFIG_EVENT, { detail: normalized }));
   return normalized;
@@ -107,19 +80,22 @@ function moveItem(items, index, direction) {
   return next;
 }
 
+function AiToolGlyph({ tool }) {
+  return <span className="brian-ai-workspace__tool-icon" aria-hidden="true">{tool?.icon || 'AI'}</span>;
+}
+
 export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }) {
   const [host, setHost] = useState(null);
   const [open, setOpen] = useState(false);
   const [manageMode, setManageMode] = useState(false);
-  const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('all');
   const [tools, setTools] = useState(readTools);
   const [draftTools, setDraftTools] = useState(readTools);
   const [newTool, setNewTool] = useState(EMPTY_TOOL);
-  const [embeddedTool, setEmbeddedTool] = useState(null);
+  const [activeToolId, setActiveToolId] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
   const [saved, setSaved] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const rootRef = useRef(null);
-  const searchRef = useRef(null);
 
   const isAdmin = String(currentUser?.role || '').toLowerCase() === 'admin';
   const vi = language !== 'en';
@@ -134,13 +110,16 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
     const frame = window.requestAnimationFrame(findHost);
     const observer = new MutationObserver(findHost);
     observer.observe(document.body, { childList: true, subtree: true });
-    return () => { window.cancelAnimationFrame(frame); observer.disconnect(); };
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
   }, []);
 
   useEffect(() => {
     const sync = (event) => {
       if (event.type === 'storage' && event.key !== STORAGE_KEY) return;
-      const next = event.detail || readTools();
+      const next = Array.isArray(event.detail) ? event.detail.map(normalizeTool) : readTools();
       setTools(next);
       if (!manageMode) setDraftTools(next);
     };
@@ -152,201 +131,273 @@ export default function GlobalAiWebsiteLauncher({ currentUser, language = 'vi' }
     };
   }, [manageMode]);
 
-  useEffect(() => {
-    if (!open) return undefined;
-    const frame = window.requestAnimationFrame(() => searchRef.current?.focus());
-    const closeOutside = (event) => {
-      if (!rootRef.current?.contains(event.target)) {
-        setOpen(false);
-        setManageMode(false);
-      }
-    };
-    const closeEscape = (event) => {
-      if (event.key === 'Escape') {
-        setOpen(false);
-        setManageMode(false);
-      }
-    };
-    document.addEventListener('pointerdown', closeOutside);
-    window.addEventListener('keydown', closeEscape);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      document.removeEventListener('pointerdown', closeOutside);
-      window.removeEventListener('keydown', closeEscape);
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!embeddedTool) return undefined;
-    document.documentElement.classList.add('bes-ai-site-open');
-    const close = (event) => { if (event.key === 'Escape') setEmbeddedTool(null); };
-    window.addEventListener('keydown', close);
-    return () => {
-      document.documentElement.classList.remove('bes-ai-site-open');
-      window.removeEventListener('keydown', close);
-    };
-  }, [embeddedTool]);
-
   const availableTools = useMemo(() => tools
     .filter((tool) => toolAvailableFor(tool, currentUser))
     .sort((a, b) => Number(b.pinned) - Number(a.pinned)), [currentUser, tools]);
 
-  const categories = useMemo(() => [...new Set(availableTools.map((tool) => tool.category))], [availableTools]);
+  useEffect(() => {
+    if (!availableTools.length) {
+      setActiveToolId('');
+      return;
+    }
+    if (!availableTools.some((tool) => tool.id === activeToolId)) {
+      setActiveToolId(availableTools[0].id);
+    }
+  }, [activeToolId, availableTools]);
 
-  const visibleTools = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    return availableTools.filter((tool) => {
-      if (category !== 'all' && tool.category !== category) return false;
-      if (!needle) return true;
-      return `${tool.name} ${tool.description} ${tool.category}`.toLowerCase().includes(needle);
-    });
-  }, [availableTools, category, query]);
+  const activeTool = useMemo(
+    () => availableTools.find((tool) => tool.id === activeToolId) || availableTools[0] || null,
+    [activeToolId, availableTools],
+  );
+
+  useEffect(() => {
+    if (!open) return undefined;
+    document.documentElement.classList.add('bes-ai-workspace-open');
+    const closeEscape = (event) => {
+      if (event.key === 'Escape') {
+        if (expanded) setExpanded(false);
+        else if (manageMode) setManageMode(false);
+        else setOpen(false);
+      }
+    };
+    window.addEventListener('keydown', closeEscape);
+    return () => {
+      document.documentElement.classList.remove('bes-ai-workspace-open');
+      window.removeEventListener('keydown', closeEscape);
+    };
+  }, [expanded, manageMode, open]);
 
   if (!host || !currentUser) return null;
 
-  const openWebsite = (tool) => {
-    const url = safeWebsiteUrl(tool.url);
-    if (!url) return;
-    if (tool.openMode === 'embed') {
-      setEmbeddedTool({ ...tool, url });
+  const openWorkspace = () => {
+    if (open) {
       setOpen(false);
+      setManageMode(false);
+      setExpanded(false);
       return;
     }
-    window.open(url, '_blank', 'noopener,noreferrer');
+    const nextTools = readTools();
+    setTools(nextTools);
+    setDraftTools(nextTools.map((tool) => ({ ...tool })));
+    const nextAvailable = nextTools
+      .filter((tool) => toolAvailableFor(tool, currentUser))
+      .sort((a, b) => Number(b.pinned) - Number(a.pinned));
+    setActiveToolId((current) => nextAvailable.some((tool) => tool.id === current)
+      ? current
+      : (nextAvailable[0]?.id || ''));
+    setManageMode(isAdmin && !nextAvailable.length);
+    setOpen(true);
   };
 
   const beginManage = () => {
     setDraftTools(tools.map((tool) => ({ ...tool })));
     setManageMode(true);
-    setQuery('');
-    setCategory('all');
   };
 
   const saveConfiguration = () => {
     const next = persistTools(draftTools);
     setTools(next);
-    setDraftTools(next);
+    setDraftTools(next.map((tool) => ({ ...tool })));
+    const nextAvailable = next
+      .filter((tool) => toolAvailableFor(tool, currentUser))
+      .sort((a, b) => Number(b.pinned) - Number(a.pinned));
+    setActiveToolId((current) => nextAvailable.some((tool) => tool.id === current)
+      ? current
+      : (nextAvailable[0]?.id || ''));
     setSaved(true);
-    window.setTimeout(() => setSaved(false), 1800);
+    window.setTimeout(() => setSaved(false), 1600);
   };
 
   const addTool = () => {
-    if (!newTool.name.trim() || !safeWebsiteUrl(newTool.url)) return;
-    setDraftTools((current) => [...current, normalizeTool({ ...newTool, id: `ai-${Date.now()}` })]);
+    const url = safeWebsiteUrl(newTool.url);
+    if (!newTool.name.trim() || !url) return;
+    setDraftTools((current) => [
+      ...current,
+      normalizeTool({ ...newTool, url, id: `ai-${Date.now()}` }),
+    ]);
     setNewTool(EMPTY_TOOL);
   };
 
-  const launcher = (
-    <div ref={rootRef} className="brian-nav__popover-wrap brian-nav__ai-wrap">
-      <button
-        type="button"
-        className={`brian-nav__icon brian-nav__ai-button ${open ? 'is-open' : ''}`}
-        aria-label={vi ? 'Công cụ AI' : 'AI tools'}
-        title={vi ? 'Công cụ AI' : 'AI tools'}
-        aria-expanded={open}
-        onClick={() => {
-          setOpen((value) => !value);
-          setManageMode(false);
-        }}
-      >
-        <span aria-hidden="true">AI</span>
-      </button>
+  const updateDraftTool = (id, patch) => {
+    setDraftTools((current) => current.map((tool) => tool.id === id ? { ...tool, ...patch } : tool));
+  };
 
-      {open ? (
-        <section className={`brian-ai-launcher ${manageMode ? 'is-managing' : ''}`} aria-label={vi ? 'Công cụ AI' : 'AI tools'}>
-          <header className="brian-ai-launcher__header">
+  const workspace = open ? createPortal(
+    <div
+      className={`brian-ai-workspace-layer ${expanded ? 'is-expanded' : ''}`}
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !expanded) setOpen(false);
+      }}
+    >
+      <section ref={rootRef} className="brian-ai-workspace" role="dialog" aria-modal="true" aria-label={vi ? 'Không gian AI' : 'AI workspace'}>
+        <header className="brian-ai-workspace__header">
+          <div className="brian-ai-workspace__identity">
+            <span className="brian-ai-workspace__mark" aria-hidden="true">AI</span>
             <div>
-              <span className="brian-ai-launcher__mark" aria-hidden="true">✦</span>
-              <div><strong>{vi ? 'Công cụ AI' : 'AI tools'}</strong><small>{vi ? 'Mở nhanh các website do quản trị viên thiết lập' : 'Open websites configured by the administrator'}</small></div>
+              <strong>{vi ? 'Không gian AI' : 'AI workspace'}</strong>
+              <small>{manageMode
+                ? (vi ? 'Quản lý các website hiển thị trong bảng AI' : 'Manage websites shown in the AI panel')
+                : (activeTool?.name || (vi ? 'Chưa có website được cấu hình' : 'No website configured'))}</small>
             </div>
-            <div className="brian-ai-launcher__header-actions">
-              {isAdmin ? <button type="button" className={manageMode ? 'is-active' : ''} onClick={() => manageMode ? setManageMode(false) : beginManage()}>{manageMode ? (vi ? 'Xem launcher' : 'View launcher') : (vi ? 'Quản lý' : 'Manage')}</button> : null}
-              <button type="button" className="brian-ai-launcher__close" onClick={() => setOpen(false)} aria-label={vi ? 'Đóng' : 'Close'}>×</button>
-            </div>
-          </header>
+          </div>
 
-          {!manageMode ? (
-            <>
-              <div className="brian-ai-launcher__search-row">
-                <label className="brian-ai-launcher__search"><span aria-hidden="true">⌕</span><input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder={vi ? 'Tìm công cụ AI…' : 'Find an AI tool…'} /></label>
-              </div>
-              <div className="brian-ai-launcher__categories">
-                <button type="button" className={category === 'all' ? 'is-active' : ''} onClick={() => setCategory('all')}>{vi ? 'Tất cả' : 'All'}</button>
-                {categories.map((item) => <button type="button" key={item} className={category === item ? 'is-active' : ''} onClick={() => setCategory(item)}>{item}</button>)}
-              </div>
-              <div className="brian-ai-launcher__grid">
-                {visibleTools.map((tool) => (
-                  <button type="button" className="brian-ai-tool" key={tool.id} onClick={() => openWebsite(tool)}>
-                    <span className="brian-ai-tool__icon" aria-hidden="true">{tool.icon}</span>
-                    <span className="brian-ai-tool__copy"><b>{tool.name}</b><small>{tool.description || tool.category}</small></span>
-                    <span className="brian-ai-tool__meta">{tool.pinned ? <em>{vi ? 'Đã ghim' : 'Pinned'}</em> : null}<i aria-hidden="true">↗</i></span>
-                  </button>
-                ))}
-                {!visibleTools.length ? <div className="brian-ai-launcher__empty"><span>⌕</span><strong>{vi ? 'Không tìm thấy công cụ' : 'No tools found'}</strong><small>{vi ? 'Hãy thử từ khóa hoặc nhóm khác.' : 'Try another search or category.'}</small></div> : null}
-              </div>
-              <footer className="brian-ai-launcher__footer"><span>{availableTools.length} {vi ? 'công cụ đang hoạt động' : 'active tools'}</span><small>{vi ? 'Website bên ngoài có thể yêu cầu đăng nhập riêng.' : 'External websites may require a separate sign-in.'}</small></footer>
-            </>
-          ) : (
-            <div className="brian-ai-manager">
-              <section className="brian-ai-manager__new">
-                <div><strong>{vi ? 'Thêm website AI' : 'Add AI website'}</strong><small>{vi ? 'Nhập website sẽ xuất hiện với giáo viên.' : 'Enter a website to show teachers.'}</small></div>
-                <div className="brian-ai-manager__form">
-                  <input value={newTool.name} onChange={(event) => setNewTool((current) => ({ ...current, name: event.target.value }))} placeholder={vi ? 'Tên công cụ' : 'Tool name'} />
-                  <input value={newTool.url} onChange={(event) => setNewTool((current) => ({ ...current, url: event.target.value }))} placeholder="https://…" />
-                  <input value={newTool.description} onChange={(event) => setNewTool((current) => ({ ...current, description: event.target.value }))} placeholder={vi ? 'Mô tả ngắn' : 'Short description'} />
-                  <input value={newTool.category} onChange={(event) => setNewTool((current) => ({ ...current, category: event.target.value }))} placeholder={vi ? 'Nhóm' : 'Category'} />
-                  <button type="button" onClick={addTool} disabled={!newTool.name.trim() || !safeWebsiteUrl(newTool.url)}>{vi ? 'Thêm' : 'Add'}</button>
+          <div className="brian-ai-workspace__header-actions">
+            {!manageMode && activeTool ? (
+              <button type="button" onClick={() => setRefreshKey((value) => value + 1)} title={vi ? 'Tải lại website' : 'Reload website'} aria-label={vi ? 'Tải lại website' : 'Reload website'}>↻</button>
+            ) : null}
+            {!manageMode ? (
+              <button type="button" onClick={() => setExpanded((value) => !value)} title={vi ? 'Mở rộng bảng' : 'Expand panel'} aria-label={vi ? 'Mở rộng bảng' : 'Expand panel'}>{expanded ? '↙' : '⛶'}</button>
+            ) : null}
+            {isAdmin ? (
+              <button type="button" className={manageMode ? 'is-active' : ''} onClick={() => manageMode ? setManageMode(false) : beginManage()}>
+                {manageMode ? (vi ? 'Xem website' : 'View websites') : (vi ? 'Quản lý' : 'Manage')}
+              </button>
+            ) : null}
+            <button type="button" className="is-close" onClick={() => setOpen(false)} aria-label={vi ? 'Đóng' : 'Close'}>×</button>
+          </div>
+        </header>
+
+        {!manageMode ? (
+          <>
+            <nav className="brian-ai-workspace__switcher" aria-label={vi ? 'Chọn website AI' : 'Choose AI website'}>
+              {availableTools.map((tool) => (
+                <button
+                  type="button"
+                  key={tool.id}
+                  className={tool.id === activeTool?.id ? 'is-active' : ''}
+                  onClick={() => {
+                    setActiveToolId(tool.id);
+                    setRefreshKey((value) => value + 1);
+                  }}
+                >
+                  <AiToolGlyph tool={tool} />
+                  <span><b>{tool.name}</b>{tool.description ? <small>{tool.description}</small> : null}</span>
+                  {tool.pinned ? <em aria-label={vi ? 'Đã ghim' : 'Pinned'}>★</em> : null}
+                </button>
+              ))}
+              {!availableTools.length ? (
+                <div className="brian-ai-workspace__switcher-empty">
+                  <span>AI</span>
+                  <b>{vi ? 'Chưa có website' : 'No websites'}</b>
+                  <small>{isAdmin
+                    ? (vi ? 'Nhấn “Quản lý” để nhập website AI đầu tiên.' : 'Choose Manage to add the first AI website.')
+                    : (vi ? 'Quản trị viên chưa cấu hình website AI.' : 'The administrator has not configured an AI website.')}</small>
                 </div>
-              </section>
+              ) : null}
+            </nav>
 
-              <div className="brian-ai-manager__list">
-                {draftTools.map((tool, index) => (
-                  <article className="brian-ai-manager__item" key={tool.id}>
-                    <div className="brian-ai-manager__item-top">
-                      <span>{tool.icon}</span>
-                      <div><strong>{tool.name || (vi ? 'Chưa đặt tên' : 'Untitled')}</strong><small>{tool.url}</small></div>
-                      <div className="brian-ai-manager__order">
-                        <button type="button" onClick={() => setDraftTools((current) => moveItem(current, index, -1))} disabled={index === 0} aria-label={vi ? 'Đưa lên' : 'Move up'}>↑</button>
-                        <button type="button" onClick={() => setDraftTools((current) => moveItem(current, index, 1))} disabled={index === draftTools.length - 1} aria-label={vi ? 'Đưa xuống' : 'Move down'}>↓</button>
-                        <button type="button" className="is-delete" onClick={() => setDraftTools((current) => current.filter((item) => item.id !== tool.id))}>{vi ? 'Xóa' : 'Delete'}</button>
-                      </div>
-                    </div>
-                    <div className="brian-ai-manager__fields">
-                      <label><span>{vi ? 'Tên' : 'Name'}</span><input value={tool.name} onChange={(event) => setDraftTools((current) => current.map((item) => item.id === tool.id ? { ...item, name: event.target.value } : item))} /></label>
-                      <label><span>URL</span><input value={tool.url} onChange={(event) => setDraftTools((current) => current.map((item) => item.id === tool.id ? { ...item, url: event.target.value } : item))} /></label>
-                      <label className="is-wide"><span>{vi ? 'Mô tả' : 'Description'}</span><input value={tool.description} onChange={(event) => setDraftTools((current) => current.map((item) => item.id === tool.id ? { ...item, description: event.target.value } : item))} /></label>
-                      <label><span>{vi ? 'Nhóm' : 'Category'}</span><input value={tool.category} onChange={(event) => setDraftTools((current) => current.map((item) => item.id === tool.id ? { ...item, category: event.target.value } : item))} /></label>
-                      <label><span>{vi ? 'Đối tượng' : 'Audience'}</span><select value={tool.audience} onChange={(event) => setDraftTools((current) => current.map((item) => item.id === tool.id ? { ...item, audience: event.target.value } : item))}><option value="all">{vi ? 'Tất cả' : 'Everyone'}</option><option value="teacher">{vi ? 'Giáo viên' : 'Teachers'}</option><option value="leader">TTCM</option><option value="admin">Admin</option></select></label>
-                      <label><span>{vi ? 'Cách mở' : 'Open mode'}</span><select value={tool.openMode} onChange={(event) => setDraftTools((current) => current.map((item) => item.id === tool.id ? { ...item, openMode: event.target.value } : item))}><option value="new-tab">{vi ? 'Tab mới' : 'New tab'}</option><option value="embed">{vi ? 'Panel trong Hub' : 'In-Hub panel'}</option></select></label>
-                    </div>
-                    <div className="brian-ai-manager__toggles">
-                      <label><input type="checkbox" checked={tool.enabled} onChange={(event) => setDraftTools((current) => current.map((item) => item.id === tool.id ? { ...item, enabled: event.target.checked } : item))} /><span>{vi ? 'Hiển thị' : 'Visible'}</span></label>
-                      <label><input type="checkbox" checked={tool.pinned} onChange={(event) => setDraftTools((current) => current.map((item) => item.id === tool.id ? { ...item, pinned: event.target.checked } : item))} /><span>{vi ? 'Ghim nổi bật' : 'Pin'}</span></label>
-                    </div>
-                  </article>
-                ))}
+            <main className="brian-ai-workspace__viewer">
+              {activeTool ? (
+                <>
+                  <div className="brian-ai-workspace__viewer-bar">
+                    <div><AiToolGlyph tool={activeTool} /><span><b>{activeTool.name}</b><small>{safeWebsiteUrl(activeTool.url)}</small></span></div>
+                    <span>{vi ? 'Website chạy trực tiếp trong English Hub' : 'Website running inside English Hub'}</span>
+                  </div>
+                  <iframe
+                    key={`${activeTool.id}-${refreshKey}`}
+                    src={safeWebsiteUrl(activeTool.url)}
+                    title={activeTool.name}
+                    allow="clipboard-read; clipboard-write; microphone; camera; fullscreen"
+                    sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts allow-downloads"
+                  />
+                </>
+              ) : (
+                <div className="brian-ai-workspace__blank">
+                  <span aria-hidden="true">✦</span>
+                  <strong>{vi ? 'Sẵn sàng cho website AI của thầy' : 'Ready for your AI websites'}</strong>
+                  <p>{isAdmin
+                    ? (vi ? 'Mở Quản lý, nhập tên và URL. Sau khi lưu, nút AI sẽ mở website trực tiếp tại đây.' : 'Open Manage, enter a name and URL, then save.')
+                    : (vi ? 'Chưa có website AI nào được quản trị viên thiết lập.' : 'No AI website has been configured yet.')}</p>
+                  {isAdmin ? <button type="button" onClick={beginManage}>{vi ? 'Nhập website AI' : 'Add AI website'}</button> : null}
+                </div>
+              )}
+            </main>
+          </>
+        ) : (
+          <div className="brian-ai-manager">
+            <section className="brian-ai-manager__intro">
+              <div>
+                <span aria-hidden="true">＋</span>
+                <div><strong>{vi ? 'Thêm website AI' : 'Add AI website'}</strong><small>{vi ? 'Website sẽ được mở trực tiếp trong bảng AI, không mở tab mới.' : 'The website opens directly inside the AI panel.'}</small></div>
               </div>
-              <footer className="brian-ai-manager__footer"><span>{vi ? 'Cấu hình được lưu cho English Hub trên trình duyệt này.' : 'Configuration is saved for English Hub in this browser.'}</span><button type="button" onClick={saveConfiguration}>{saved ? (vi ? 'Đã lưu ✓' : 'Saved ✓') : (vi ? 'Lưu cấu hình' : 'Save configuration')}</button></footer>
+              <div className="brian-ai-manager__new-form">
+                <input value={newTool.name} onChange={(event) => setNewTool((current) => ({ ...current, name: event.target.value }))} placeholder={vi ? 'Tên website' : 'Website name'} />
+                <input value={newTool.url} onChange={(event) => setNewTool((current) => ({ ...current, url: event.target.value }))} placeholder="https://…" />
+                <input value={newTool.icon} onChange={(event) => setNewTool((current) => ({ ...current, icon: event.target.value }))} placeholder={vi ? 'Biểu tượng, tối đa 3 ký tự' : 'Icon, up to 3 characters'} maxLength={3} />
+                <input value={newTool.description} onChange={(event) => setNewTool((current) => ({ ...current, description: event.target.value }))} placeholder={vi ? 'Mô tả ngắn' : 'Short description'} />
+                <select value={newTool.audience} onChange={(event) => setNewTool((current) => ({ ...current, audience: event.target.value }))}>
+                  <option value="all">{vi ? 'Mọi tài khoản' : 'Everyone'}</option>
+                  <option value="teacher">{vi ? 'Giáo viên' : 'Teachers'}</option>
+                  <option value="leader">TTCM</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <button type="button" onClick={addTool} disabled={!newTool.name.trim() || !safeWebsiteUrl(newTool.url)}>{vi ? 'Thêm website' : 'Add website'}</button>
+              </div>
+            </section>
+
+            <div className="brian-ai-manager__list">
+              {draftTools.map((tool, index) => (
+                <article className="brian-ai-manager__item" key={tool.id}>
+                  <div className="brian-ai-manager__item-head">
+                    <AiToolGlyph tool={tool} />
+                    <div><strong>{tool.name || (vi ? 'Chưa đặt tên' : 'Untitled')}</strong><small>{tool.url || 'https://…'}</small></div>
+                    <div className="brian-ai-manager__order">
+                      <button type="button" onClick={() => setDraftTools((current) => moveItem(current, index, -1))} disabled={index === 0} aria-label={vi ? 'Đưa lên' : 'Move up'}>↑</button>
+                      <button type="button" onClick={() => setDraftTools((current) => moveItem(current, index, 1))} disabled={index === draftTools.length - 1} aria-label={vi ? 'Đưa xuống' : 'Move down'}>↓</button>
+                      <button type="button" className="is-delete" onClick={() => setDraftTools((current) => current.filter((item) => item.id !== tool.id))}>{vi ? 'Xóa' : 'Delete'}</button>
+                    </div>
+                  </div>
+
+                  <div className="brian-ai-manager__fields">
+                    <label><span>{vi ? 'Tên' : 'Name'}</span><input value={tool.name} onChange={(event) => updateDraftTool(tool.id, { name: event.target.value })} /></label>
+                    <label><span>URL</span><input value={tool.url} onChange={(event) => updateDraftTool(tool.id, { url: event.target.value })} /></label>
+                    <label><span>{vi ? 'Biểu tượng' : 'Icon'}</span><input value={tool.icon} maxLength={3} onChange={(event) => updateDraftTool(tool.id, { icon: event.target.value })} /></label>
+                    <label><span>{vi ? 'Đối tượng' : 'Audience'}</span><select value={tool.audience} onChange={(event) => updateDraftTool(tool.id, { audience: event.target.value })}><option value="all">{vi ? 'Mọi tài khoản' : 'Everyone'}</option><option value="teacher">{vi ? 'Giáo viên' : 'Teachers'}</option><option value="leader">TTCM</option><option value="admin">Admin</option></select></label>
+                    <label className="is-wide"><span>{vi ? 'Mô tả' : 'Description'}</span><input value={tool.description} onChange={(event) => updateDraftTool(tool.id, { description: event.target.value })} /></label>
+                  </div>
+
+                  <div className="brian-ai-manager__toggles">
+                    <label><input type="checkbox" checked={tool.enabled} onChange={(event) => updateDraftTool(tool.id, { enabled: event.target.checked })} /><span>{vi ? 'Hiển thị' : 'Visible'}</span></label>
+                    <label><input type="checkbox" checked={tool.pinned} onChange={(event) => updateDraftTool(tool.id, { pinned: event.target.checked })} /><span>{vi ? 'Ưu tiên mở trước' : 'Open first'}</span></label>
+                  </div>
+                </article>
+              ))}
+
+              {!draftTools.length ? (
+                <div className="brian-ai-manager__empty"><span>AI</span><strong>{vi ? 'Chưa có website nào' : 'No websites yet'}</strong><small>{vi ? 'Nhập thông tin ở phía trên để bắt đầu.' : 'Use the form above to begin.'}</small></div>
+              ) : null}
             </div>
-          )}
-        </section>
-      ) : null}
-    </div>
-  );
+
+            <footer className="brian-ai-manager__footer">
+              <span>{vi ? 'Các website sau khi lưu sẽ xuất hiện ngay trong nút AI.' : 'Saved websites appear immediately in the AI button.'}</span>
+              <button type="button" onClick={saveConfiguration}>{saved ? (vi ? 'Đã lưu ✓' : 'Saved ✓') : (vi ? 'Lưu cấu hình' : 'Save configuration')}</button>
+            </footer>
+          </div>
+        )}
+      </section>
+    </div>,
+    document.body,
+  ) : null;
 
   return (
     <>
-      {createPortal(launcher, host)}
-      {embeddedTool ? createPortal(
-        <div className="brian-ai-site-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setEmbeddedTool(null); }}>
-          <section className="brian-ai-site-panel" role="dialog" aria-modal="true" aria-label={embeddedTool.name}>
-            <header><div><span>{embeddedTool.icon}</span><div><strong>{embeddedTool.name}</strong><small>{vi ? 'Website AI bên ngoài' : 'External AI website'}</small></div></div><div><a href={embeddedTool.url} target="_blank" rel="noreferrer">{vi ? 'Mở tab mới' : 'Open new tab'} ↗</a><button type="button" onClick={() => setEmbeddedTool(null)} aria-label={vi ? 'Đóng' : 'Close'}>×</button></div></header>
-            <div className="brian-ai-site-panel__notice">{vi ? 'Một số website chặn hiển thị nhúng. Khi đó hãy chọn “Mở tab mới”.' : 'Some websites block embedding. Use “Open new tab” if the page does not display.'}</div>
-            <iframe src={embeddedTool.url} title={embeddedTool.name} allow="clipboard-read; clipboard-write; microphone; camera" sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts allow-downloads" />
-          </section>
+      {createPortal(
+        <div className="brian-nav__ai-wrap">
+          <button
+            type="button"
+            className={`brian-nav__icon brian-nav__ai-button ${open ? 'is-open' : ''}`}
+            aria-label={vi ? 'Mở không gian AI' : 'Open AI workspace'}
+            title={vi ? 'Không gian AI' : 'AI workspace'}
+            aria-expanded={open}
+            onClick={openWorkspace}
+          >
+            <span aria-hidden="true">AI</span>
+          </button>
         </div>,
-        document.body,
-      ) : null}
+        host,
+      )}
+      {workspace}
     </>
   );
 }
