@@ -1,0 +1,225 @@
+/* Dashboard visual alignment and Google Material 3 polish. Loaded last. */
+
+body .app-shell[data-route="dashboard"] main#bes-main-content,
+body .app-shell[data-route="dashboard"] .wp8-page-stage,
+body .app-shell[data-route="dashboard"] .wp8-door-page {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  left: auto !important;
+  right: auto !important;
+  translate: none !important;
+  transform: none !important;
+  overflow: visible !important;
+}
+
+body .app-shell[data-route="dashboard"] .tdb-page {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  left: auto !important;
+  right: auto !important;
+  margin: 0 !important;
+  transform: none !important;
+  padding: 32px clamp(24px, 4vw, 72px) 120px !important;
+  gap: 24px !important;
+  background:
+    radial-gradient(circle at 8% 2%, rgba(168, 199, 250, .34), transparent 26%),
+    radial-gradient(circle at 92% 4%, rgba(196, 238, 208, .36), transparent 24%),
+    linear-gradient(180deg, #f8fafd 0%, #f6f8fc 58%, #f8fafd 100%) !important;
+}
+
+body .app-shell[data-route="dashboard"] .tdb-page > * {
+  width: min(100%, 1480px) !important;
+  margin-inline: auto !important;
+}
+
+body .app-shell[data-route="dashboard"] .tdb-hero {
+  min-height: 300px !important;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, .55fr) !important;
+  padding: clamp(34px, 4vw, 58px) !important;
+  border: 0 !important;
+  border-radius: 32px !important;
+  background: linear-gradient(135deg, rgba(255,255,255,.98), rgba(245,249,255,.96)), #fff !important;
+  box-shadow: 0 1px 2px rgba(60,64,67,.08), 0 18px 48px rgba(60,64,67,.10) !important;
+  isolation: isolate;
+}
+
+body .app-shell[data-route="dashboard"] .tdb-hero::before {
+  content: "";
+  position: absolute;
+  right: clamp(285px, 23vw, 390px);
+  bottom: 28px;
+  width: 250px;
+  height: 190px;
+  border-radius: 28px;
+  z-index: -1;
+  opacity: .95;
+  background:
+    linear-gradient(#fff,#fff) 24px 28px / 154px 16px no-repeat,
+    linear-gradient(#d3e3fd,#d3e3fd) 24px 58px / 112px 10px no-repeat,
+    linear-gradient(90deg,#a8c7fa 0 28%,transparent 28% 36%,#c4eed0 36% 67%,transparent 67% 75%,#fdd663 75%) 24px 94px / 195px 58px no-repeat,
+    linear-gradient(135deg,#e8f0fe,#e6f4ea);
+  box-shadow: 0 12px 34px rgba(60,64,67,.13);
+  transform: rotate(-4deg);
+}
+
+body .app-shell[data-route="dashboard"] .tdb-hero::after {
+  width: 220px !important;
+  height: 220px !important;
+  right: 16% !important;
+  top: -88px !important;
+  background: rgba(168,199,250,.32) !important;
+}
+
+body .app-shell[data-route="dashboard"] .tdb-hero h1 {
+  max-width: 820px !important;
+  font-size: clamp(42px, 4.4vw, 66px) !important;
+  text-wrap: balance;
+}
+
+body .app-shell[data-route="dashboard"] .tdb-profile {
+  min-width: 0 !important;
+  border: 0 !important;
+  border-radius: 28px !important;
+  background: linear-gradient(145deg,#e8f0fe,#f5f9ff) !important;
+  box-shadow: inset 0 0 0 1px rgba(11,87,208,.12), 0 12px 30px rgba(60,64,67,.09) !important;
+}
+
+body .app-shell[data-route="dashboard"] .tdb-avatar {
+  border-radius: 50% !important;
+  box-shadow: 0 8px 20px rgba(11,87,208,.24);
+}
+
+body .app-shell[data-route="dashboard"] .tdb-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+}
+body .app-shell[data-route="dashboard"] .tdb-metric {
+  min-height: 142px !important;
+  border: 0 !important;
+  border-radius: 28px !important;
+  box-shadow: 0 1px 2px rgba(60,64,67,.08), 0 10px 26px rgba(60,64,67,.07) !important;
+  overflow: hidden;
+  position: relative;
+}
+body .app-shell[data-route="dashboard"] .tdb-metric::after {
+  content: "";
+  position: absolute;
+  width: 96px;
+  height: 96px;
+  right: -30px;
+  bottom: -38px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .07;
+}
+body .app-shell[data-route="dashboard"] .tdb-metric.is-blue { background: linear-gradient(145deg,#fff,#edf4ff) !important; }
+body .app-shell[data-route="dashboard"] .tdb-metric.is-amber { background: linear-gradient(145deg,#fff,#fff8df) !important; }
+body .app-shell[data-route="dashboard"] .tdb-metric.is-purple { background: linear-gradient(145deg,#fff,#f7efff) !important; }
+body .app-shell[data-route="dashboard"] .tdb-metric.is-green { background: linear-gradient(145deg,#fff,#ecf8ef) !important; }
+body .app-shell[data-route="dashboard"] .tdb-metric-icon {
+  width: 54px !important;
+  height: 54px !important;
+  border-radius: 18px !important;
+  box-shadow: inset 0 0 0 1px rgba(60,64,67,.06);
+}
+
+body .app-shell[data-route="dashboard"] .tdb-grid-main { grid-template-columns: minmax(0, 1.6fr) minmax(360px, .8fr) !important; }
+body .app-shell[data-route="dashboard"] .tdb-grid-equal { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+body .app-shell[data-route="dashboard"] .tdb-grid-secondary { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+body .app-shell[data-route="dashboard"] .tdb-card {
+  border: 0 !important;
+  border-radius: 28px !important;
+  box-shadow: 0 1px 2px rgba(60,64,67,.08), 0 10px 28px rgba(60,64,67,.07) !important;
+}
+body .app-shell[data-route="dashboard"] .tdb-card-head {
+  min-height: 88px !important;
+  padding: 20px 22px !important;
+  background: linear-gradient(180deg,#fff,#fbfcff);
+}
+body .app-shell[data-route="dashboard"] .tdb-card-title > span {
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 18px !important;
+  box-shadow: inset 0 0 0 1px rgba(11,87,208,.08);
+}
+body .app-shell[data-route="dashboard"] .tdb-card-title h2 { font-size: clamp(21px, 1.55vw, 27px) !important; }
+body .app-shell[data-route="dashboard"] .tdb-card-body { padding: 18px 20px 22px !important; }
+body .app-shell[data-route="dashboard"] .tdb-row {
+  min-height: 76px !important;
+  padding: 13px 14px !important;
+  border: 1px solid transparent !important;
+  border-radius: 20px !important;
+  background: #f8fafd !important;
+}
+body .app-shell[data-route="dashboard"] .tdb-row:hover {
+  border-color: #a8c7fa !important;
+  background: #edf4ff !important;
+  transform: translateY(-1px);
+}
+
+body .app-shell[data-route="dashboard"] .tdb-calendar-strip {
+  display: grid !important;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(72px, 1fr);
+  gap: 9px !important;
+  overflow-x: auto !important;
+  padding: 4px 2px 14px !important;
+  scroll-snap-type: x proximity;
+}
+body .app-shell[data-route="dashboard"] .tdb-calendar-day {
+  min-height: 94px !important;
+  border: 1px solid #dfe3e7 !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+  scroll-snap-align: start;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+body .app-shell[data-route="dashboard"] .tdb-calendar-day:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(60,64,67,.10);
+}
+body .app-shell[data-route="dashboard"] .tdb-calendar-day.is-active {
+  border-color: transparent !important;
+  background: #d3e3fd !important;
+  color: #041e49 !important;
+  box-shadow: inset 0 0 0 2px #0b57d0;
+}
+
+body .app-shell[data-route="dashboard"] .tdb-quick-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+}
+body .app-shell[data-route="dashboard"] .tdb-quick-action {
+  min-height: 126px !important;
+  border: 0 !important;
+  border-radius: 26px !important;
+  background: linear-gradient(145deg,#f8fafd,#eef4ff) !important;
+  box-shadow: inset 0 0 0 1px rgba(11,87,208,.10);
+}
+body .app-shell[data-route="dashboard"] .tdb-quick-action:hover {
+  background: #d3e3fd !important;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(60,64,67,.11);
+}
+
+@media (max-width: 1180px) {
+  body .app-shell[data-route="dashboard"] .tdb-page { padding-inline: 22px !important; }
+  body .app-shell[data-route="dashboard"] .tdb-hero { grid-template-columns: 1fr !important; }
+  body .app-shell[data-route="dashboard"] .tdb-hero::before { display: none; }
+  body .app-shell[data-route="dashboard"] .tdb-profile { width: 100% !important; }
+  body .app-shell[data-route="dashboard"] .tdb-metrics { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+  body .app-shell[data-route="dashboard"] .tdb-grid-main,
+  body .app-shell[data-route="dashboard"] .tdb-grid-secondary { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 760px) {
+  body .app-shell[data-route="dashboard"] .tdb-page { padding: 18px 14px 96px !important; gap: 16px !important; }
+  body .app-shell[data-route="dashboard"] .tdb-hero { min-height: 0 !important; padding: 26px 22px !important; border-radius: 26px !important; }
+  body .app-shell[data-route="dashboard"] .tdb-hero h1 { font-size: clamp(34px, 11vw, 48px) !important; }
+  body .app-shell[data-route="dashboard"] .tdb-metrics,
+  body .app-shell[data-route="dashboard"] .tdb-grid-equal,
+  body .app-shell[data-route="dashboard"] .tdb-quick-grid { grid-template-columns: 1fr !important; }
+}
