@@ -25,6 +25,7 @@ import './GlobalTextLabGoogleLarge.css';
 import '../styles/teacher-dashboard-google-v2.css';
 import './GlobalDashboardVisualFix.css';
 import './GlobalWorkHubGoogleRedesign.css';
+import './GlobalHomeroomGoogleRedesign.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
