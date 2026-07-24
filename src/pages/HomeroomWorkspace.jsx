@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import HomeroomConductTab from '../components/HomeroomConductTab.jsx';
+import HomeroomLearningGradebook from '../components/homeroom/HomeroomLearningGradebook.jsx';
 import {
   AttendanceTab,
   ClassProfileEditor,
-  LearningTab,
   OverviewTab,
   ScheduleTab,
   StudentsTab,
@@ -202,7 +202,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       {activeTab === 'students' ? <StudentsTab workspace={workspace} onCommit={commit} /> : null}
       {activeTab === 'support' ? <StudentSupportTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
       {activeTab === 'attendance' ? <AttendanceTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
-      {activeTab === 'learning' ? <LearningTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
+      {activeTab === 'learning' ? <HomeroomLearningGradebook workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
       {activeTab === 'feedback' ? <FeedbackTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
       {activeTab === 'competition' ? <CompetitionTab workspace={workspace} onCommit={commit} /> : null}
       {activeTab === 'conduct' ? <HomeroomConductTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
