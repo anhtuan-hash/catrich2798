@@ -1,6 +1,15 @@
 const ALLOWED_HOSTS = [
   'giaoducthoidai.vn',
   'tuoitre.vn',
+  'giadinh.suckhoedoisong.vn',
+  'suckhoedoisong.vn',
+  'vnexpress.net',
+  'vietnamnet.vn',
+  'dantri.com.vn',
+  'thanhnien.vn',
+  'nhandan.vn',
+  'laodong.vn',
+  'plo.vn',
   'bbc.com',
   'bbc.co.uk',
   'theguardian.com',
@@ -15,7 +24,8 @@ const ENTITY_MAP = {
 const NOISE_PATTERNS = [
   /quảng cáo/i, /advertisement/i, /đăng ký nhận tin/i, /theo dõi chúng tôi/i, /chia sẻ bài viết/i,
   /bài viết liên quan/i, /tin liên quan/i, /xem thêm/i, /read more/i, /related stories/i,
-  /cookie/i, /privacy policy/i, /terms of use/i, /newsletter/i, /sign up/i,
+  /cookie/i, /privacy policy/i, /terms of use/i, /newsletter/i, /sign up/i, /đăng nhập/i,
+  /tải ứng dụng/i, /mời bạn đọc/i, /bình luận/i, /cùng chuyên mục/i,
 ];
 
 function decodeEntities(value = '') {
@@ -63,10 +73,11 @@ function allowedUrl(raw = '') {
   const host = url.hostname.toLowerCase().replace(/^www\./, '');
   const allowed = ALLOWED_HOSTS.some((item) => host === item || host.endsWith(`.${item}`));
   if (!allowed) throw new Error('Publisher is not supported');
+  url.hash = '';
   return url;
 }
 
-function absoluteUrl(value = '', baseUrl) {
+function absoluteUrl(value = '', baseUrl = '') {
   if (!value) return '';
   try {
     const url = new URL(decodeEntities(value), baseUrl);
@@ -91,11 +102,10 @@ function cleanHtml(html = '') {
   ['script', 'style', 'noscript', 'svg', 'canvas', 'iframe', 'form', 'button', 'nav', 'footer', 'aside'].forEach((tag) => {
     value = removeElementBlocks(value, tag);
   });
-  value = value
+  return value
     .replace(/<!--([\s\S]*?)-->/g, ' ')
     .replace(/<(div|section)[^>]*(?:class|id)=["'][^"']*(?:advert|ads?|banner|sidebar|related|recommend|social|share|comment|newsletter|cookie|paywall|subscription|promo|outbrain|taboola)[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, ' ')
     .replace(/<header\b[\s\S]*?<\/header>/gi, ' ');
-  return value;
 }
 
 function findMeta(html = '', property = '') {
@@ -116,52 +126,37 @@ function findMeta(html = '', property = '') {
 function articleJsonLd(html = '') {
   const scripts = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
   const candidates = [];
-
   const walk = (value) => {
     if (!value) return;
-    if (Array.isArray(value)) {
-      value.forEach(walk);
-      return;
-    }
+    if (Array.isArray(value)) return value.forEach(walk);
     if (typeof value !== 'object') return;
     const type = Array.isArray(value['@type']) ? value['@type'].join(' ') : String(value['@type'] || '');
-    if (/article|newsarticle|reportage|blogposting/i.test(type) || typeof value.articleBody === 'string') {
-      candidates.push(value);
-    }
+    if (/article|newsarticle|reportage|blogposting/i.test(type) || typeof value.articleBody === 'string') candidates.push(value);
     if (value['@graph']) walk(value['@graph']);
     Object.values(value).forEach((child) => {
       if (child && typeof child === 'object' && child !== value['@graph']) walk(child);
     });
   };
-
   for (const match of scripts) {
     const raw = decodeEntities(match[1]).trim().replace(/^\s*<!--|-->\s*$/g, '');
     try { walk(JSON.parse(raw)); } catch { /* malformed publisher JSON-LD */ }
   }
-
   return candidates
     .filter((item) => typeof item.articleBody === 'string' && normalizeText(item.articleBody).length > 180)
     .sort((a, b) => normalizeText(b.articleBody).length - normalizeText(a.articleBody).length)[0] || null;
 }
 
 function findMatchingBlock(html, startIndex, tagName) {
-  const openerEnd = html.indexOf('>', startIndex);
-  if (openerEnd < 0) return '';
   const tokenRegex = new RegExp(`<\\/?${tagName}\\b[^>]*>`, 'gi');
   tokenRegex.lastIndex = startIndex;
   let depth = 0;
   let match;
   while ((match = tokenRegex.exec(html))) {
-    const closing = /^<\//.test(match[0]);
-    if (closing) depth -= 1;
+    if (/^<\//.test(match[0])) depth -= 1;
     else if (!/\/\s*>$/.test(match[0])) depth += 1;
     if (depth === 0) return html.slice(startIndex, tokenRegex.lastIndex);
   }
-  return html.slice(startIndex, Math.min(html.length, startIndex + 160000));
-}
-
-function classToken(tag = '') {
-  return `${getAttr(tag, 'class')} ${getAttr(tag, 'id')}`.trim();
+  return html.slice(startIndex, Math.min(html.length, startIndex + 220000));
 }
 
 function candidateBlocks(html = '') {
@@ -170,15 +165,12 @@ function candidateBlocks(html = '') {
   let match;
   while ((match = tagRegex.exec(html))) {
     const tagName = match[1].toLowerCase();
-    const token = classToken(match[0]);
-    const looksUseful = tagName === 'article'
-      || tagName === 'main'
-      || /article|story|content|body|detail|entry|post|main|cms|news|singular|page-content/i.test(token);
-    const looksNoisy = /related|recommend|sidebar|share|social|comment|advert|ads?|footer|header|nav|menu|cookie|newsletter|promo|author-box/i.test(token);
-    if (looksUseful && !looksNoisy) starts.push({ index: match.index, tagName, token });
-    if (starts.length > 90) break;
+    const token = `${getAttr(match[0], 'class')} ${getAttr(match[0], 'id')}`.trim();
+    const useful = tagName === 'article' || tagName === 'main' || /article|story|content|body|detail|entry|post|main|cms|news|singular|page-content|article-content|detail-content/i.test(token);
+    const noisy = /related|recommend|sidebar|share|social|comment|advert|ads?|footer|header|nav|menu|cookie|newsletter|promo|author-box|latest-news/i.test(token);
+    if (useful && !noisy) starts.push({ index: match.index, tagName, token });
+    if (starts.length > 120) break;
   }
-
   return starts.map((entry) => {
     const fragment = findMatchingBlock(html, entry.index, entry.tagName);
     const text = normalizeText(fragment);
@@ -187,16 +179,16 @@ function candidateBlocks(html = '') {
     const imageCount = (fragment.match(/<img\b/gi) || []).length;
     const linkText = [...fragment.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/gi)].reduce((sum, item) => sum + normalizeText(item[1]).length, 0);
     const linkDensity = text.length ? linkText / text.length : 1;
-    const score = text.length + pCount * 150 + headingCount * 60 + Math.min(imageCount, 5) * 45 - Math.round(linkDensity * text.length * 0.9);
+    const score = text.length + pCount * 180 + headingCount * 80 + Math.min(imageCount, 6) * 35 - Math.round(linkDensity * text.length * 1.1);
     return { ...entry, fragment, text, pCount, score };
-  }).filter((item) => item.text.length > 250 && item.pCount >= 2)
+  }).filter((item) => item.text.length > 320 && item.pCount >= 2)
     .sort((a, b) => b.score - a.score);
 }
 
 function isNoiseText(text = '') {
   const clean = text.trim();
   if (!clean || clean.length < 3) return true;
-  if (NOISE_PATTERNS.some((pattern) => pattern.test(clean)) && clean.length < 260) return true;
+  if (NOISE_PATTERNS.some((pattern) => pattern.test(clean)) && clean.length < 320) return true;
   if (/^(facebook|twitter|email|copy link|zalo|print|share)$/i.test(clean)) return true;
   return false;
 }
@@ -205,15 +197,27 @@ function pushTextBlock(blocks, type, rawText) {
   const text = normalizeText(rawText);
   if (isNoiseText(text)) return;
   if (type === 'paragraph' && text.length < 18) return;
-  const previous = blocks.at(-1);
-  if (previous?.text === text) return;
+  if (blocks.at(-1)?.text === text) return;
   blocks.push({ type, text });
+}
+
+function blocksFromPlainText(text = '') {
+  const normalized = normalizeText(text);
+  let paragraphs = normalized.split(/\n{2,}/).map((item) => item.trim()).filter(Boolean);
+  if (paragraphs.length < 3 && normalized.length > 520) {
+    const sentences = normalized.match(/[^.!?…]+[.!?…]+(?:["”’']+)?|[^.!?…]+$/g) || [normalized];
+    paragraphs = [];
+    for (let index = 0; index < sentences.length; index += 3) paragraphs.push(sentences.slice(index, index + 3).join(' ').trim());
+  }
+  const blocks = [];
+  paragraphs.forEach((paragraph) => pushTextBlock(blocks, 'paragraph', paragraph));
+  return blocks;
 }
 
 function blocksFromHtml(fragment = '', baseUrl = '') {
   const cleaned = cleanHtml(fragment);
   const blocks = [];
-  const blockRegex = /<(h[2-4]|p|blockquote|li|figure|img)\b[^>]*>([\s\S]*?)<\/\1>|<img\b[^>]*>/gi;
+  const blockRegex = /<(h[2-4]|p|blockquote|li|figure)\b[^>]*>([\s\S]*?)<\/\1>|<img\b[^>]*>/gi;
   let match;
   while ((match = blockRegex.exec(cleaned))) {
     const whole = match[0];
@@ -230,35 +234,23 @@ function blocksFromHtml(fragment = '', baseUrl = '') {
       if (src && !blocks.some((item) => item.type === 'image' && item.src === src)) blocks.push({ type: 'image', src, alt: getAttr(imgTag, 'alt') || '', caption });
       continue;
     }
-    const rawText = match[2] || '';
-    if (/^h/.test(type)) pushTextBlock(blocks, 'heading', rawText);
-    else if (type === 'blockquote') pushTextBlock(blocks, 'quote', rawText);
-    else if (type === 'li') pushTextBlock(blocks, 'list', rawText);
-    else pushTextBlock(blocks, 'paragraph', rawText);
+    if (/^h/.test(type)) pushTextBlock(blocks, 'heading', match[2]);
+    else if (type === 'blockquote') pushTextBlock(blocks, 'quote', match[2]);
+    else if (type === 'li') pushTextBlock(blocks, 'list', match[2]);
+    else pushTextBlock(blocks, 'paragraph', match[2]);
   }
-
   if (blocks.filter((item) => item.text).length < 4) {
-    const text = normalizeText(cleaned);
-    const paragraphs = text.split(/\n{2,}|(?<=[.!?…])\s+(?=[A-ZÀ-Ỹ])/).map((item) => item.trim()).filter((item) => item.length > 35);
-    paragraphs.forEach((paragraph) => pushTextBlock(blocks, 'paragraph', paragraph));
+    blocksFromPlainText(normalizeText(cleaned)).forEach((block) => pushTextBlock(blocks, block.type, block.text));
   }
-
-  return blocks.slice(0, 320);
+  return blocks.slice(0, 360);
 }
 
-function blocksFromPlainText(text = '') {
-  const blocks = [];
-  const normalized = normalizeText(text);
-  let paragraphs = normalized.split(/\n{2,}/).map((item) => item.trim()).filter(Boolean);
-  if (paragraphs.length < 2 && normalized.length > 520) {
-    const sentences = normalized.match(/[^.!?…]+[.!?…]+(?:["”’']+)?|[^.!?…]+$/g) || [normalized];
-    paragraphs = [];
-    for (let index = 0; index < sentences.length; index += 3) {
-      paragraphs.push(sentences.slice(index, index + 3).join(' ').trim());
-    }
-  }
-  paragraphs.forEach((paragraph) => pushTextBlock(blocks, 'paragraph', paragraph));
-  return blocks;
+function textFromBlocks(blocks = []) {
+  return blocks.filter((item) => item.text).map((item) => item.text).join('\n\n').trim();
+}
+
+function wordCount(text = '') {
+  return String(text || '').trim().split(/\s+/).filter(Boolean).length;
 }
 
 function imageFromJsonLd(value, baseUrl) {
@@ -267,14 +259,6 @@ function imageFromJsonLd(value, baseUrl) {
   if (Array.isArray(value)) return imageFromJsonLd(value[0], baseUrl);
   if (typeof value === 'object') return absoluteUrl(value.url || value.contentUrl || '', baseUrl);
   return '';
-}
-
-function textFromBlocks(blocks = []) {
-  return blocks.filter((item) => item.text).map((item) => item.text).join('\n\n').trim();
-}
-
-function wordCount(text = '') {
-  return text.split(/\s+/).filter(Boolean).length;
 }
 
 function extractFromHtml(html, url) {
@@ -295,8 +279,8 @@ function extractFromHtml(html, url) {
       };
     }
   }
-
-  const best = candidateBlocks(cleanHtml(html))[0];
+  const cleaned = cleanHtml(html);
+  const best = candidateBlocks(cleaned)[0];
   const fragment = best?.fragment || cleanHtml(html.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i)?.[1] || html);
   const blocks = blocksFromHtml(fragment, url);
   const text = textFromBlocks(blocks);
@@ -319,7 +303,7 @@ function findAmpUrl(html = '', baseUrl = '') {
   return absoluteUrl(getAttr(tag, 'href'), baseUrl);
 }
 
-async function fetchText(url, { timeout = 12000, headers = {} } = {}) {
+async function fetchText(url, { timeout = 14000, headers = {} } = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
   try {
@@ -327,9 +311,10 @@ async function fetchText(url, { timeout = 12000, headers = {} } = {}) {
       signal: controller.signal,
       redirect: 'follow',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/150 Safari/537.36 Brian-English-Studio/10.82.3',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/150 Safari/537.36',
         Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,text/plain;q=0.8,*/*;q=0.5',
-        'Accept-Language': 'vi,en-GB;q=0.9,en;q=0.8',
+        'Accept-Language': 'vi-VN,vi;q=0.9,en-GB;q=0.8,en;q=0.7',
+        'Cache-Control': 'no-cache',
         ...headers,
       },
     });
@@ -351,7 +336,6 @@ function markdownBlocks(markdown = '', baseUrl = '') {
     .replace(/^Warning:\s.*$/gmi, '')
     .replace(/^\[Skip to content\].*$/gmi, '')
     .trim();
-
   const blocks = [];
   const lines = body.split('\n');
   let paragraph = [];
@@ -360,7 +344,6 @@ function markdownBlocks(markdown = '', baseUrl = '') {
     paragraph = [];
     if (text) pushTextBlock(blocks, 'paragraph', text.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1').replace(/[*_`]/g, ''));
   };
-
   for (const raw of lines) {
     const line = raw.trim();
     if (!line) { flush(); continue; }
@@ -381,13 +364,13 @@ function markdownBlocks(markdown = '', baseUrl = '') {
     paragraph.push(line);
   }
   flush();
-  return blocks.slice(0, 360);
+  return blocks.slice(0, 420);
 }
 
 async function fetchJinaReader(url) {
   const readerUrl = `https://r.jina.ai/${url}`;
   const result = await fetchText(readerUrl, {
-    timeout: 19000,
+    timeout: 22000,
     headers: {
       Accept: 'text/markdown,text/plain;q=0.9,*/*;q=0.5',
       'X-Return-Format': 'markdown',
@@ -425,59 +408,51 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'GET');
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
   let url;
   try {
     url = allowedUrl(String(req.query?.url || ''));
   } catch (error) {
     return res.status(400).json({ error: error.message || 'Invalid URL' });
   }
-
   const publisher = String(req.query?.source || '').slice(0, 100);
   const attempts = [];
   let best = null;
-
+  const keepBest = (candidate) => {
+    if (!candidate) return;
+    if (wordCount(candidate.text || '') > wordCount(best?.text || '')) best = candidate;
+  };
   try {
     const direct = await fetchText(url.toString());
     const extracted = extractFromHtml(direct.text, direct.finalUrl);
     attempts.push({ method: extracted.method, words: wordCount(extracted.text) });
-    best = extracted;
-
-    if (wordCount(extracted.text) < 180) {
-      const ampUrl = findAmpUrl(direct.text, direct.finalUrl);
-      if (ampUrl) {
-        try {
-          const amp = await fetchText(ampUrl, { timeout: 10000 });
-          const ampArticle = extractFromHtml(amp.text, amp.finalUrl);
-          attempts.push({ method: `${ampArticle.method}-amp`, words: wordCount(ampArticle.text) });
-          if (wordCount(ampArticle.text) > wordCount(best?.text || '')) best = { ...ampArticle, method: `${ampArticle.method}-amp` };
-        } catch (ampError) {
-          attempts.push({ method: 'amp-error', error: ampError?.message || 'AMP fetch failed' });
-        }
+    keepBest(extracted);
+    const ampUrl = findAmpUrl(direct.text, direct.finalUrl);
+    if (ampUrl && wordCount(best?.text || '') < 350) {
+      try {
+        const amp = await fetchText(ampUrl, { timeout: 12000 });
+        const ampArticle = extractFromHtml(amp.text, amp.finalUrl);
+        attempts.push({ method: `${ampArticle.method}-amp`, words: wordCount(ampArticle.text) });
+        keepBest({ ...ampArticle, method: `${ampArticle.method}-amp` });
+      } catch (ampError) {
+        attempts.push({ method: 'amp-error', error: ampError?.name === 'AbortError' ? 'timeout' : ampError?.message || 'AMP fetch failed' });
       }
     }
   } catch (directError) {
     attempts.push({ method: 'publisher-error', error: directError?.name === 'AbortError' ? 'timeout' : directError?.message || 'fetch failed' });
   }
-
-  if (wordCount(best?.text || '') < 180) {
+  if (wordCount(best?.text || '') < 350) {
     try {
       const fallback = await fetchJinaReader(url.toString());
       attempts.push({ method: fallback.method, words: wordCount(fallback.text) });
-      if (wordCount(fallback.text) > wordCount(best?.text || '')) best = { ...(best || {}), ...fallback };
+      keepBest({ ...(best || {}), ...fallback });
     } catch (readerError) {
       attempts.push({ method: 'reader-error', error: readerError?.name === 'AbortError' ? 'timeout' : readerError?.message || 'reader failed' });
     }
   }
-
   if (!best || wordCount(best.text || '') < 35) {
     res.setHeader('Cache-Control', 'no-store');
-    return res.status(502).json({
-      error: 'Full article could not be extracted from this publisher at the moment.',
-      attempts,
-    });
+    return res.status(502).json({ error: 'Full article could not be extracted from this publisher at the moment.', attempts });
   }
-
-  res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=21600');
+  res.setHeader('Cache-Control', 's-maxage=900, stale-while-revalidate=21600');
   return res.status(200).json({ ...responsePayload({ article: best, url: url.toString(), publisher }), attempts });
 }
