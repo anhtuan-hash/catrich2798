@@ -33,6 +33,10 @@ export async function requireUser(req) {
 }
 
 const MANAGER_ROLES = new Set(['admin', 'ttcm', 'leader', 'head', 'manager', 'department_leader', 'to_truong']);
+const MANAGER_CACHE_MS = 5 * 60 * 1000;
+const CONNECTION_CACHE_MS = 5 * 60 * 1000;
+const managerCache = new Map();
+let connectionCache = null;
 
 function profileIsApproved(profile = {}) {
   if (profile.approved === false || profile.is_approved === false) return false;
@@ -46,7 +50,7 @@ export async function getUserProfile(client, user) {
   if (MANAGER_ROLES.has(metadataRole)) return { role: metadataRole, approved: true, source: 'jwt' };
 
   for (const column of ['id', 'user_id', 'profile_id']) {
-    const { data, error } = await client.from('profiles').select('*').eq(column, user.id).limit(1).maybeSingle();
+    const { data, error } = await client.from('profiles').select('role,approved').eq(column, user.id).limit(1).maybeSingle();
     if (!error && data) return { ...data, source: column };
     if (error && !/column .* does not exist|42703/i.test(String(error.message || ''))) break;
   }
@@ -54,9 +58,14 @@ export async function getUserProfile(client, user) {
 }
 
 export async function isManagerUser(client, user) {
+  const cacheKey = String(user?.id || '');
+  const cached = cacheKey ? managerCache.get(cacheKey) : null;
+  if (cached && Date.now() - cached.storedAt < MANAGER_CACHE_MS) return cached.value;
   const profile = await getUserProfile(client, user);
   const role = String(profile?.role || user?.app_metadata?.role || user?.user_metadata?.role || '').toLowerCase();
-  return MANAGER_ROLES.has(role) && profileIsApproved(profile || {});
+  const value = MANAGER_ROLES.has(role) && profileIsApproved(profile || {});
+  if (cacheKey) managerCache.set(cacheKey, { storedAt: Date.now(), value });
+  return value;
 }
 
 export function callbackUrl(req) {
@@ -96,10 +105,16 @@ export async function refreshAccessToken(refreshToken) {
 }
 
 export async function getConnection() {
+  if (connectionCache && Date.now() - connectionCache.storedAt < CONNECTION_CACHE_MS) {
+    return { client: adminClient(), connection: connectionCache.connection, accessToken: connectionCache.accessToken };
+  }
   const client = adminClient();
-  const { data, error } = await client.from('resource_drive_connections').select('*').eq('is_active', true).order('updated_at', { ascending: false }).limit(1).maybeSingle();
+  const columns = 'id,owner_user_id,refresh_token,root_folder_id,folder_map,updated_at';
+  const { data, error } = await client.from('resource_drive_connections').select(columns).eq('is_active', true).order('updated_at', { ascending: false }).limit(1).maybeSingle();
   if (error || !data) throw new Error(error?.message || 'Admin has not connected Google Drive');
-  return { client, connection: data, accessToken: await refreshAccessToken(data.refresh_token) };
+  const accessToken = await refreshAccessToken(data.refresh_token);
+  connectionCache = { storedAt: Date.now(), connection: data, accessToken };
+  return { client, connection: data, accessToken };
 }
 
 export async function driveFetch(url, accessToken, options = {}) {
