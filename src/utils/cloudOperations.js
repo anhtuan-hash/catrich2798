@@ -2,6 +2,12 @@ import { getRuntimeClient, runtimeRpc, subscribeTable } from '../services/runtim
 import { readLocal, scopedLocalKey, uid, writeLocal } from '../pages/v1093/shared.js';
 
 export const CLOUD_OPERATIONS_UPDATED = 'bes-cloud-operations-updated-v1097';
+const JOB_COLUMNS = 'id,rule_id,owner_id,rule_name,trigger_type,status,payload,attempts,max_attempts,run_after,locked_at,approved_at,last_error,created_at,updated_at,finished_at,automation_rules(name)';
+const DELIVERY_COLUMNS = 'id,job_id,owner_id,channel,status,title,body,route,payload,delivered_at,created_at';
+const HEARTBEAT_COLUMNS = 'worker_key,last_seen_at,status,metadata,updated_at';
+const DIGEST_COLUMNS = 'owner_id,enabled,cadence,delivery_time,timezone,include_summary,include_failures,include_pending,next_delivery_at,updated_at';
+const CLOUD_CACHE_MAX_AGE = 10 * 60 * 1000;
+const cloudLoadPromises = new Map();
 
 function nowIso() { return new Date().toISOString(); }
 
@@ -11,6 +17,7 @@ function keys(user) {
     deliveries: scopedLocalKey('bes-cloud-deliveries-v1097', user),
     heartbeat: scopedLocalKey('bes-cloud-heartbeat-v1097', user),
     digest: scopedLocalKey('bes-cloud-digest-v1097', user),
+    sync: scopedLocalKey('bes-cloud-operations-sync-v1097', user),
   };
 }
 
@@ -84,41 +91,53 @@ async function safeQuery(operation, fallback) {
   }
 }
 
-export async function loadCloudOperationsState(user) {
+export async function loadCloudOperationsState(user, { force = false } = {}) {
   const storage = keys(user);
   const local = {
     jobs: readLocal(storage.jobs, []).map((item) => normalizeJob(item, user)),
     deliveries: readLocal(storage.deliveries, []).map((item) => normalizeDelivery(item, user)),
     heartbeat: readLocal(storage.heartbeat, null),
     digest: readLocal(storage.digest, defaultDigest(user)),
-    status: { available: false, scheduler: false, mode: 'local' },
+    status: readLocal(`${storage.sync}:status`, { available: false, scheduler: false, mode: 'local' }),
     mode: 'local',
   };
   const client = getRuntimeClient();
   if (!client || !user?.id) return local;
+  const lastSync = Number(readLocal(storage.sync, 0) || 0);
+  if (!force && lastSync && Date.now() - lastSync < CLOUD_CACHE_MAX_AGE) {
+    return { ...local, mode: 'local-cache' };
+  }
+  const cacheKey = String(user.id);
+  if (cloudLoadPromises.has(cacheKey)) return cloudLoadPromises.get(cacheKey);
+  const task = (async () => {
+    const [jobs, deliveries, heartbeat, digest, statusResult] = await Promise.all([
+      safeQuery(() => client.from('automation_cloud_jobs').select(JOB_COLUMNS).order('created_at', { ascending: false }).limit(120), null),
+      safeQuery(() => client.from('automation_delivery_log').select(DELIVERY_COLUMNS).order('created_at', { ascending: false }).limit(120), null),
+      safeQuery(() => client.from('automation_worker_heartbeats').select(HEARTBEAT_COLUMNS).eq('worker_key', 'primary').maybeSingle(), null),
+      safeQuery(() => client.from('automation_digest_preferences').select(DIGEST_COLUMNS).eq('owner_id', user.id).maybeSingle(), null),
+      safeQuery(() => runtimeRpc('bes_v1097_cloud_status'), null),
+    ]);
 
-  const [jobs, deliveries, heartbeat, digest, statusResult] = await Promise.all([
-    safeQuery(() => client.from('automation_cloud_jobs').select('*, automation_rules(name)').order('created_at', { ascending: false }).limit(300), null),
-    safeQuery(() => client.from('automation_delivery_log').select('*').order('created_at', { ascending: false }).limit(300), null),
-    safeQuery(() => client.from('automation_worker_heartbeats').select('*').eq('worker_key', 'primary').maybeSingle(), null),
-    safeQuery(() => client.from('automation_digest_preferences').select('*').eq('owner_id', user.id).maybeSingle(), null),
-    safeQuery(() => runtimeRpc('bes_v1097_cloud_status'), null),
-  ]);
-
-  if (!jobs || !deliveries) return local;
-  const state = {
-    jobs: jobs.map((item) => normalizeJob({ ...item, rule_name: item.automation_rules?.name || item.rule_name }, user)),
-    deliveries: deliveries.map((item) => normalizeDelivery(item, user)),
-    heartbeat: heartbeat || local.heartbeat,
-    digest: digest || local.digest,
-    status: statusResult || { available: true, scheduler: false, mode: 'cloud' },
-    mode: 'cloud',
-  };
-  writeLocal(storage.jobs, state.jobs);
-  writeLocal(storage.deliveries, state.deliveries);
-  writeLocal(storage.heartbeat, state.heartbeat);
-  writeLocal(storage.digest, state.digest);
-  return state;
+    if (!jobs || !deliveries) return local;
+    const state = {
+      jobs: jobs.map((item) => normalizeJob({ ...item, rule_name: item.automation_rules?.name || item.rule_name }, user)),
+      deliveries: deliveries.map((item) => normalizeDelivery(item, user)),
+      heartbeat: heartbeat || local.heartbeat,
+      digest: digest || local.digest,
+      status: statusResult || { available: true, scheduler: false, mode: 'cloud' },
+      mode: 'cloud',
+    };
+    writeLocal(storage.jobs, state.jobs);
+    writeLocal(storage.deliveries, state.deliveries);
+    writeLocal(storage.heartbeat, state.heartbeat);
+    writeLocal(storage.digest, state.digest);
+    writeLocal(`${storage.sync}:status`, state.status);
+    writeLocal(storage.sync, Date.now());
+    return state;
+  })();
+  cloudLoadPromises.set(cacheKey, task);
+  try { return await task; }
+  finally { cloudLoadPromises.delete(cacheKey); }
 }
 
 export async function runCloudWorker(user, batchSize = 25) {
@@ -156,7 +175,7 @@ export async function saveDigestPreferences(preferences, user) {
   const next = { ...defaultDigest(user), ...preferences, owner_id: user?.id || preferences.owner_id, updated_at: nowIso() };
   const client = getRuntimeClient();
   if (client && user?.id) {
-    const { data, error } = await client.from('automation_digest_preferences').upsert(next).select('*').single();
+    const { data, error } = await client.from('automation_digest_preferences').upsert(next).select(DIGEST_COLUMNS).single();
     if (!error && data) {
       writeLocal(storage.digest, data);
       emit({ type: 'digest-saved', digest: data });
@@ -171,11 +190,11 @@ export async function saveDigestPreferences(preferences, user) {
 
 export function subscribeCloudOperations(user, onChange) {
   const cleanups = [
-    subscribeTable({ key: `v1097-jobs-${user?.id || 'guest'}`, table: 'automation_cloud_jobs', onChange }),
-    subscribeTable({ key: `v1097-delivery-${user?.id || 'guest'}`, table: 'automation_delivery_log', onChange }),
-    subscribeTable({ key: `v1097-heartbeat-${user?.id || 'guest'}`, table: 'automation_worker_heartbeats', onChange }),
+    subscribeTable({ key: `v1097-jobs-${user?.id || 'guest'}`, table: 'automation_cloud_jobs', onChange: (payload) => onChange?.({ table: 'automation_cloud_jobs', payload }) }),
+    subscribeTable({ key: `v1097-delivery-${user?.id || 'guest'}`, table: 'automation_delivery_log', onChange: (payload) => onChange?.({ table: 'automation_delivery_log', payload }) }),
+    subscribeTable({ key: `v1097-heartbeat-${user?.id || 'guest'}`, table: 'automation_worker_heartbeats', filter: 'worker_key=eq.primary', onChange: (payload) => onChange?.({ table: 'automation_worker_heartbeats', payload }) }),
   ];
-  const listener = () => onChange?.();
+  const listener = (event) => onChange?.({ table: 'local', detail: event?.detail });
   if (typeof window !== 'undefined') window.addEventListener(CLOUD_OPERATIONS_UPDATED, listener);
   return () => {
     cleanups.forEach((cleanup) => cleanup?.());

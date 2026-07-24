@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { formatDate, isLeader, readLocal, scopedLocalKey, uid, writeLocal } from './v1093/shared.js';
@@ -28,6 +28,10 @@ const STATUSES = [
 ];
 const STATUS_LABEL = Object.fromEntries(STATUSES);
 const PRIORITY_LABEL = { low: 'Thấp', normal: 'Bình thường', high: 'Cao', urgent: 'Khẩn' };
+const WORK_ITEM_COLUMNS = 'id,title,description,item_type,status,priority,visibility,owner_id,created_by,assignee_ids,watcher_ids,due_at,attachments,metadata,source_module,created_at,updated_at,submitted_at,reviewed_at,completed_at';
+const COMMENT_COLUMNS = 'id,item_id,author_id,body,comment_type,attachments,created_at';
+const WORK_CACHE_MAX_AGE = 10 * 60 * 1000;
+const PEOPLE_CACHE_MAX_AGE = 6 * 60 * 60 * 1000;
 
 function emptyDraft(user) {
   return {
@@ -80,8 +84,14 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
   const runtime = useRuntimeCore();
   const client = getRuntimeClient();
   const leader = isLeader(currentUser);
-  const [items, setItems] = useState([]);
-  const [people, setPeople] = useState([]);
+  const localKey = scopedLocalKey('bes-work-hub-v1093-local', currentUser);
+  const syncKey = scopedLocalKey('bes-work-hub-v1093-sync', currentUser);
+  const peopleKey = scopedLocalKey('bes-work-hub-v1093-people', currentUser);
+  const peopleSyncKey = scopedLocalKey('bes-work-hub-v1093-people-sync', currentUser);
+  const loadPromiseRef = useRef(null);
+  const commentsPromiseRef = useRef(null);
+  const [items, setItems] = useState(() => readLocal(localKey, []));
+  const [people, setPeople] = useState(() => readLocal(peopleKey, []));
   const [comments, setComments] = useState([]);
   const [selectedId, setSelectedId] = useState('');
   const [filter, setFilter] = useState('all');
@@ -98,42 +108,89 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
   const [commentsBusy, setCommentsBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const localKey = scopedLocalKey('bes-work-hub-v1093-local', currentUser);
 
-  const load = useCallback(async () => {
+  const storeItems = useCallback((updater) => {
+    setItems((current) => {
+      const next = typeof updater === 'function' ? updater(current) : updater;
+      writeLocal(localKey, next);
+      writeLocal(syncKey, Date.now());
+      return next;
+    });
+  }, [localKey, syncKey]);
+
+  const load = useCallback(async ({ force = false, silent = false } = {}) => {
     if (!currentUser) return;
-    setError('');
+    const cached = readLocal(localKey, []);
+    const lastSync = Number(readLocal(syncKey, 0) || 0);
     if (!client || !runtime.ready || !runtime.session) {
-      setItems(readLocal(localKey, []));
+      setItems(cached);
       return;
     }
-    const { data, error: loadError } = await client
-      .from('work_hub_items')
-      .select('*')
-      .order('updated_at', { ascending: false })
-      .limit(300);
-    if (loadError) {
-      setError(loadError.message || 'Không thể tải Trung tâm công việc.');
-      setItems(readLocal(localKey, []));
+    if (!force && cached.length && lastSync && Date.now() - lastSync < WORK_CACHE_MAX_AGE) {
+      setItems(cached);
       return;
     }
-    setItems(data || []);
-    writeLocal(localKey, data || []);
+    if (loadPromiseRef.current) return loadPromiseRef.current;
+    if (!silent) setError('');
+    const task = (async () => {
+      const { data, error: loadError } = await client
+        .from('work_hub_items')
+        .select(WORK_ITEM_COLUMNS)
+        .order('updated_at', { ascending: false })
+        .limit(240);
+      if (loadError) {
+        if (!silent) setError(loadError.message || 'Không thể tải Trung tâm công việc.');
+        setItems(cached);
+        return;
+      }
+      const next = data || [];
+      setItems(next);
+      writeLocal(localKey, next);
+      writeLocal(syncKey, Date.now());
+    })();
+    loadPromiseRef.current = task;
+    try { return await task; }
+    finally { loadPromiseRef.current = null; }
+  }, [client, currentUser, localKey, runtime.ready, runtime.session, syncKey]);
 
-    if (leader) {
-      const { data: profiles } = await client.from('profiles').select('*').limit(500);
-      setPeople((profiles || []).map((profile) => ({
-        id: profile.id || profile.user_id || profile.profile_id,
-        name: profile.full_name || profile.name || profile.email || 'Giáo viên',
-        email: profile.email || '',
-        role: profile.role || 'teacher',
-        department_id: profile.department_id || profile.departmentId || '',
-        department: profile.department || profile.department_name || '',
-        subject_group: profile.subject_group || profile.team || profile.group_name || '',
-        subject: profile.subject || '',
-      })).filter((person) => person.id));
+  const loadPeople = useCallback(async ({ force = false } = {}) => {
+    if (!leader || !client || !runtime.ready || !runtime.session) return;
+    const cached = readLocal(peopleKey, []);
+    const lastSync = Number(readLocal(peopleSyncKey, 0) || 0);
+    if (!force && cached.length && lastSync && Date.now() - lastSync < PEOPLE_CACHE_MAX_AGE) {
+      setPeople(cached);
+      return;
     }
-  }, [client, currentUser, leader, localKey, runtime.ready, runtime.session]);
+    const attempts = [
+      'id,full_name,email,role,department_id',
+      'id,full_name,email,role',
+      'id,email,role',
+      'user_id,full_name,email,role,department_id',
+      'user_id,full_name,email,role',
+      'profile_id,full_name,email,role,department_id',
+      'profile_id,full_name,email,role',
+    ];
+    let profiles = null;
+    for (const columns of attempts) {
+      const { data, error } = await client.from('profiles').select(columns).limit(500);
+      if (!error) { profiles = data || []; break; }
+      if (!/column .* does not exist|42703/i.test(error.message || '')) break;
+    }
+    if (!profiles) return;
+    const normalized = profiles.map((profile) => ({
+      id: profile.id || profile.user_id || profile.profile_id,
+      name: profile.full_name || profile.name || profile.email || 'Giáo viên',
+      email: profile.email || '',
+      role: profile.role || 'teacher',
+      department_id: profile.department_id || profile.departmentId || '',
+      department: profile.department || profile.department_name || '',
+      subject_group: profile.subject_group || profile.team || profile.group_name || '',
+      subject: profile.subject || '',
+    })).filter((person) => person.id);
+    setPeople(normalized);
+    writeLocal(peopleKey, normalized);
+    writeLocal(peopleSyncKey, Date.now());
+  }, [client, leader, peopleKey, peopleSyncKey, runtime.ready, runtime.session]);
 
   const eligibleTeachers = useMemo(() => people.filter((person) => {
     if (!person?.id || person.id === currentUser?.id) return false;
@@ -166,28 +223,33 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
 
   const selected = items.find((item) => item.id === selectedId) || null;
 
-  const loadComments = useCallback(async () => {
+  const loadComments = useCallback(async ({ force = false } = {}) => {
     if (!selected || !client || !runtime.session) {
       setComments([]);
       return;
     }
+    if (commentsPromiseRef.current && !force) return commentsPromiseRef.current;
     setCommentsBusy(true);
-    const { data, error: loadError } = await client
-      .from('work_hub_comments')
-      .select('*')
-      .eq('item_id', selected.id)
-      .order('created_at');
-    if (loadError) {
-      setError(loadError.message || 'Không thể tải phản hồi công việc.');
-      setCommentsBusy(false);
-      return;
-    }
-    const resolved = await resolveWorkHubCommentAttachments(data || []);
-    setComments(resolved);
-    setCommentsBusy(false);
+    const task = (async () => {
+      const { data, error: loadError } = await client
+        .from('work_hub_comments')
+        .select(COMMENT_COLUMNS)
+        .eq('item_id', selected.id)
+        .order('created_at');
+      if (loadError) {
+        setError(loadError.message || 'Không thể tải phản hồi công việc.');
+        return;
+      }
+      const resolved = await resolveWorkHubCommentAttachments(data || []);
+      setComments(resolved);
+    })();
+    commentsPromiseRef.current = task;
+    try { return await task; }
+    finally { commentsPromiseRef.current = null; setCommentsBusy(false); }
   }, [client, runtime.session, selected?.id]);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { loadPeople(); }, [loadPeople]);
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem('bes-v1096-automation-work-draft');
@@ -207,8 +269,16 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
   useEffect(() => subscribeTable({
     key: `work-hub-${currentUser?.id || 'guest'}`,
     table: 'work_hub_items',
-    onChange: load,
-  }), [currentUser?.id, load]);
+    onChange: (payload) => {
+      const row = payload?.new && Object.keys(payload.new).length ? payload.new : payload?.old;
+      if (!row?.id) { load({ force: true, silent: true }); return; }
+      storeItems((current) => {
+        if (payload?.eventType === 'DELETE') return current.filter((item) => item.id !== row.id);
+        const existing = current.find((item) => item.id === row.id) || {};
+        return [{ ...existing, ...row }, ...current.filter((item) => item.id !== row.id)];
+      });
+    },
+  }), [currentUser?.id, load, storeItems]);
   useEffect(() => { loadComments(); }, [loadComments]);
   useEffect(() => {
     if (!selected?.id) return () => {};
@@ -216,13 +286,25 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
       key: `work-hub-comments-${selected.id}`,
       table: 'work_hub_comments',
       filter: `item_id=eq.${selected.id}`,
-      onChange: loadComments,
+      onChange: (payload) => {
+        const row = payload?.new && Object.keys(payload.new).length ? payload.new : payload?.old;
+        if (!row?.id) { loadComments({ force: true }); return; }
+        if (payload?.eventType === 'DELETE') {
+          setComments((current) => current.filter((item) => item.id !== row.id));
+          return;
+        }
+        resolveWorkHubCommentAttachments([row]).then(([resolved]) => {
+          if (!resolved) return;
+          setComments((current) => [...current.filter((item) => item.id !== resolved.id), resolved]
+            .sort((left, right) => new Date(left.created_at || 0) - new Date(right.created_at || 0)));
+        }).catch(() => loadComments({ force: true }));
+      },
     });
   }, [selected?.id, loadComments]);
   useEffect(() => {
     const refresh = () => {
-      load();
-      loadComments();
+      load({ force: true, silent: true });
+      loadComments({ force: true });
     };
     window.addEventListener(WORK_HUB_DELIVERY_EVENT, refresh);
     return () => window.removeEventListener(WORK_HUB_DELIVERY_EVENT, refresh);
@@ -303,10 +385,10 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
     try {
       let createdItems = [];
       if (client && runtime.session) {
-        const { data, error: insertError } = await client.from('work_hub_items').insert(payloads).select('*');
+        const { data, error: insertError } = await client.from('work_hub_items').insert(payloads).select(WORK_ITEM_COLUMNS);
         if (insertError) throw insertError;
         createdItems = data || [];
-        setItems((current) => [...createdItems, ...current]);
+        storeItems((current) => [...createdItems, ...current]);
       } else {
         createdItems = payloads.map((payload) => ({
           ...payload,
@@ -374,7 +456,7 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
         const next = items.filter((entry) => !targetIds.includes(entry.id));
         setItems(next); writeLocal(localKey, next);
       }
-      setItems((current) => current.filter((entry) => !targetIds.includes(entry.id)));
+      storeItems((current) => current.filter((entry) => !targetIds.includes(entry.id)));
       setSelectedId('');
       setComments([]);
       await recordAuditEvent({
@@ -400,9 +482,9 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
     if (status === 'completed') patch.completed_at = new Date().toISOString();
     try {
       if (client && runtime.session) {
-        const { data, error: updateError } = await client.from('work_hub_items').update(patch).eq('id', item.id).select('*').single();
+        const { data, error: updateError } = await client.from('work_hub_items').update(patch).eq('id', item.id).select(WORK_ITEM_COLUMNS).single();
         if (updateError) throw updateError;
-        setItems((current) => current.map((entry) => entry.id === item.id ? data : entry));
+        storeItems((current) => current.map((entry) => entry.id === item.id ? data : entry));
       } else {
         const next = items.map((entry) => entry.id === item.id ? { ...entry, ...patch } : entry);
         setItems(next); writeLocal(localKey, next);
@@ -426,7 +508,7 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
     setBusy(true);
     const { data, error: commentError } = await client.from('work_hub_comments')
       .insert({ item_id: selected.id, author_id: currentUser.id, body: comment.trim(), comment_type: 'comment', attachments: [] })
-      .select('*').single();
+      .select(COMMENT_COLUMNS).single();
     if (commentError) {
       setError(commentError.message);
     } else {
@@ -484,7 +566,7 @@ export default function WorkHub({ currentUser, language = 'vi' }) {
       const updatedItem = submissionResult?.item || null;
       const resolved = response ? await resolveWorkHubCommentAttachments([response]) : [];
       if (resolved.length) setComments((current) => [...current, ...resolved]);
-      if (updatedItem) setItems((current) => current.map((entry) => entry.id === selected.id ? updatedItem : entry));
+      if (updatedItem) storeItems((current) => current.map((entry) => entry.id === selected.id ? updatedItem : entry));
       setSubmissionNote('');
       setSubmissionFile(null);
       await recordAuditEvent({

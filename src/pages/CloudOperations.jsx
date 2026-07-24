@@ -46,6 +46,18 @@ const copy = {
 
 const emptyState = { jobs: [], deliveries: [], heartbeat: null, digest: {}, status: {}, mode: 'local' };
 
+function realtimeRow(payload) {
+  return payload?.new && Object.keys(payload.new).length ? payload.new : payload?.old;
+}
+
+function mergeRealtimeList(current, payload) {
+  const row = realtimeRow(payload);
+  if (!row?.id) return current;
+  if (payload?.eventType === 'DELETE') return current.filter((item) => item.id !== row.id);
+  const existing = current.find((item) => item.id === row.id) || {};
+  return [{ ...existing, ...row }, ...current.filter((item) => item.id !== row.id)];
+}
+
 function statusLabel(status, lang) {
   const labels = {
     vi: { queued: 'Đang chờ', claimed: 'Đã nhận', processing: 'Đang chạy', pending_approval: 'Chờ duyệt', success: 'Thành công', failed: 'Thất bại', dead: 'Ngừng thử', cancelled: 'Đã hủy', ready: 'Sẵn sàng', delivered: 'Đã chuyển' },
@@ -66,20 +78,33 @@ export default function CloudOperations({ currentUser, language = 'vi' }) {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const load = useCallback(async () => {
+  const load = useCallback(async ({ force = false, diagnose = false } = {}) => {
     setError('');
     try {
-      const next = await loadCloudOperationsState(currentUser);
+      const next = await loadCloudOperationsState(currentUser, { force });
       setState(next);
-      setRuntimeReport(await diagnoseRuntime());
+      if (diagnose) setRuntimeReport(await diagnoseRuntime());
     } catch (loadError) {
       setError(loadError?.message || String(loadError));
     }
   }, [currentUser?.id]);
 
   useEffect(() => subscribeRuntime(setRuntime), []);
-  useEffect(() => { load(); }, [load]);
-  useEffect(() => subscribeCloudOperations(currentUser, () => load()), [currentUser?.id, load]);
+  useEffect(() => { load({ diagnose: true }); }, [load]);
+  useEffect(() => subscribeCloudOperations(currentUser, ({ table, payload } = {}) => {
+    if (table === 'automation_cloud_jobs') {
+      setState((current) => ({ ...current, jobs: mergeRealtimeList(current.jobs, payload) }));
+      return;
+    }
+    if (table === 'automation_delivery_log') {
+      setState((current) => ({ ...current, deliveries: mergeRealtimeList(current.deliveries, payload) }));
+      return;
+    }
+    if (table === 'automation_worker_heartbeats') {
+      const row = realtimeRow(payload);
+      if (row) setState((current) => ({ ...current, heartbeat: { ...(current.heartbeat || {}), ...row } }));
+    }
+  }), [currentUser?.id]);
 
   const metrics = useMemo(() => {
     const since = Date.now() - 24 * 60 * 60 * 1000;
@@ -93,7 +118,7 @@ export default function CloudOperations({ currentUser, language = 'vi' }) {
 
   const act = async (operation, successMessage = '') => {
     setBusy(true); setError(''); setMessage('');
-    try { await operation(); if (successMessage) setMessage(successMessage); await load(); }
+    try { await operation(); if (successMessage) setMessage(successMessage); await load({ force: true }); }
     catch (actionError) { setError(actionError?.message || String(actionError)); }
     finally { setBusy(false); }
   };
@@ -112,7 +137,7 @@ export default function CloudOperations({ currentUser, language = 'vi' }) {
   return <section className="v1097-page">
     <header className="v1097-hero">
       <div><span>{t.eyebrow}</span><h1>{t.title}</h1><p>{t.intro}</p></div>
-      <div className="v1097-hero-actions">{leader && <button className="primary" disabled={busy || !cloudInstalled} onClick={() => act(() => runCloudWorker(currentUser), t.successMessage)}>{busy ? '…' : t.run}</button>}<button onClick={load}>{t.refresh}</button><button onClick={exportReport}>{t.export}</button></div>
+      <div className="v1097-hero-actions">{leader && <button className="primary" disabled={busy || !cloudInstalled} onClick={() => act(() => runCloudWorker(currentUser), t.successMessage)}>{busy ? '…' : t.run}</button>}<button onClick={() => load({ force: true, diagnose: true })}>{t.refresh}</button><button onClick={exportReport}>{t.export}</button></div>
     </header>
 
     {error && <div className="v1097-alert error"><b>!</b><span>{error}</span><button onClick={() => setError('')}>×</button></div>}
@@ -128,7 +153,7 @@ export default function CloudOperations({ currentUser, language = 'vi' }) {
       <section className="v1097-panel wide"><header><div><span>RECENT QUEUE</span><h2>{t.jobs}</h2></div><button onClick={() => setTab('jobs')}>{t.jobs}</button></header><JobTable jobs={state.jobs.slice(0, 8)} leader={leader} busy={busy} lang={lang} t={t} onApprove={(id) => act(() => approveCloudJob(id), t.successMessage)} onRetry={(id) => act(() => retryCloudJob(id), t.successMessage)} onCancel={(id) => act(() => cancelCloudJob(id))} /></section>
     </div>}
 
-    {tab === 'jobs' && <section className="v1097-panel"><header><div><span>DURABLE QUEUE</span><h2>{state.jobs.length} {t.jobs.toLowerCase()}</h2></div><button onClick={load}>{t.refresh}</button></header><JobTable jobs={state.jobs} leader={leader} busy={busy} lang={lang} t={t} onApprove={(id) => act(() => approveCloudJob(id), t.successMessage)} onRetry={(id) => act(() => retryCloudJob(id), t.successMessage)} onCancel={(id) => act(() => cancelCloudJob(id))} /></section>}
+    {tab === 'jobs' && <section className="v1097-panel"><header><div><span>DURABLE QUEUE</span><h2>{state.jobs.length} {t.jobs.toLowerCase()}</h2></div><button onClick={() => load({ force: true, diagnose: true })}>{t.refresh}</button></header><JobTable jobs={state.jobs} leader={leader} busy={busy} lang={lang} t={t} onApprove={(id) => act(() => approveCloudJob(id), t.successMessage)} onRetry={(id) => act(() => retryCloudJob(id), t.successMessage)} onCancel={(id) => act(() => cancelCloudJob(id))} /></section>}
 
     {tab === 'deliveries' && <section className="v1097-panel"><header><div><span>DELIVERY LOG</span><h2>{state.deliveries.length} {t.deliveries.toLowerCase()}</h2></div></header><div className="v1097-delivery-list">{state.deliveries.map((item) => <article key={item.id}><span className="channel">{item.channel}</span><div><b>{item.title}</b><p>{item.body || '—'}</p><small>{formatDate(item.created_at)}{item.route ? ` · #/${item.route}` : ''}</small></div><em className={item.status}>{statusLabel(item.status, lang)}</em></article>)}</div>{!state.deliveries.length && <div className="v1097-empty">{t.emptyDelivery}</div>}</section>}
 
