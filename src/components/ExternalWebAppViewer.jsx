@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { embedTransformStyle, normalizeEmbedView, safeExternalWebAppUrl } from '../utils/externalWebApps.js';
 import './ExternalWebApps.css';
 import './ExternalWebAppCrop.css';
+import './ExternalWebAppViewerCrop.css';
 
 export default function ExternalWebAppViewer({ app, onClose }) {
   const [key, setKey] = useState(0);
