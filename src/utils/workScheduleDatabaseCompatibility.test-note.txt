@@ -1,0 +1,1 @@
+Work Schedule persistence compatibility is verified by scripts/verify-work-schedule-save-fix.mjs.
