@@ -84,9 +84,7 @@ function scanToasts(root) {
     if (toast.dataset.ehMotionToast === 'true') return;
     toast.dataset.ehMotionToast = 'true';
     runSemanticMotion(toast, 'toast');
-    const text = String(toast.textContent || '').toLowerCase();
-    const success = /đã lưu|thành công|hoàn tất|hoàn thành|saved|success|completed/.test(text);
-    if (success && settings.celebrations !== false && toast.dataset.ehMotionCelebrated !== 'true') {
+    if (toast.dataset.motionCelebrate === 'true' && settings.celebrations !== false && toast.dataset.ehMotionCelebrated !== 'true') {
       toast.dataset.ehMotionCelebrated = 'true';
       createParticleBurst(toast, { count: 14 });
     }
