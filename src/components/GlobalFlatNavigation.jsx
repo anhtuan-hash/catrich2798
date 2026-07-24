@@ -3,6 +3,7 @@ import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
 import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
 import GlobalWorkHubNotificationBridge from './GlobalWorkHubNotificationBridge.jsx';
+import GlobalTeachingMethodsHubBridge from './GlobalTeachingMethodsHubBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalNotificationCenter.css';
@@ -29,6 +30,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalGamesNavigationTab {...props} />
       <GlobalDashboardNavigationTab {...props} />
       <GlobalWorkHubNotificationBridge currentUser={props.currentUser} language={props.language} />
+      <GlobalTeachingMethodsHubBridge route={props.route} language={props.language} />
       <GlobalEnglishHubBrand />
     </>
   );
