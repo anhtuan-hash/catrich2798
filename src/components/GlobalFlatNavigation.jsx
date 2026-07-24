@@ -24,6 +24,7 @@ import './GlobalAppsWorkspaceRedesign.css';
 import './GlobalAppsWorkspaceCompact.css';
 import './GlobalAppsHorizontalLauncher.css';
 import './GlobalAppsPhoneTiles.css';
+import './GlobalAppsAndroidDrawer.css';
 import './GlobalNewsAndroidGoogle.css';
 import './GlobalNewsDrawerScroll.css';
 import './GlobalTextLabGoogleLarge.css';
