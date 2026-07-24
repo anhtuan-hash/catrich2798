@@ -107,7 +107,7 @@ export default function StatusMenuBar({
       slotRef.current = null;
       navRef.current = null;
     };
-  }, [allowed, language]);
+  }, [allowed, language, route]);
 
   useEffect(() => {
     setIndex(0);
