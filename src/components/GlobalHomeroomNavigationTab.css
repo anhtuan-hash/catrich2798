@@ -1,0 +1,19 @@
+/* Stable primary-navigation order after the portal-rendered tabs are mounted. */
+body .brian-nav__primary > button:nth-of-type(1) { order: 1 !important; }
+body .brian-nav__primary > button:nth-of-type(2) { order: 2 !important; }
+body .brian-nav__primary > button.brian-nav__games-tab { order: 3 !important; }
+body .brian-nav__primary > button.brian-nav__dashboard-tab { order: 4 !important; }
+body .brian-nav__primary > button.brian-nav__homeroom-tab { order: 5 !important; }
+body .brian-nav__primary > button:nth-of-type(3):not(.brian-nav__games-tab):not(.brian-nav__dashboard-tab):not(.brian-nav__homeroom-tab) { order: 6 !important; }
+
+body .brian-nav__primary > button.brian-nav__homeroom-tab.is-active {
+  color: #137333 !important;
+  background: #e6f4ea !important;
+  box-shadow: inset 0 0 0 1px rgba(24,128,56,.16) !important;
+}
+
+@media (max-width: 1080px) {
+  body .brian-nav__primary > button.brian-nav__homeroom-tab {
+    padding-inline: 11px !important;
+  }
+}
