@@ -7,7 +7,6 @@ import {
   ECOSYSTEM_ASSET_TYPES,
   ECOSYSTEM_RECIPES,
   ECOSYSTEM_TARGETS,
-  createLessonPackTransfer,
   dispatchRecipe,
   extractKeywords,
   makeCanvasBlocks,
@@ -229,13 +228,6 @@ export default function ContentEcosystem({ currentUser, language = 'vi' }) {
     setKits(next); persistLocal(assets, next); setTab('kits'); setNotice(vi ? 'Đã tạo bộ nội dung.' : 'Content kit created.');
   }
 
-  function sendKitToLessonPack(kit) {
-    const chosen = assets.filter((asset) => (kit.asset_ids || []).includes(asset.id));
-    createLessonPackTransfer(currentUser, chosen, kit.title);
-    setNotice(vi ? 'Đã gửi bộ nội dung sang Lesson Pack.' : 'Content kit sent to Lesson Pack.');
-    window.setTimeout(() => { window.location.hash = '#/lesson-pack'; }, 350);
-  }
-
   function exportKit(kit) {
     const chosen = assets.filter((asset) => (kit.asset_ids || []).includes(asset.id));
     downloadText(`${kit.title.replace(/[^a-z0-9_-]+/gi, '-')}.json`, JSON.stringify({ ...kit, assets: chosen }, null, 2), 'application/json;charset=utf-8');
@@ -326,10 +318,10 @@ export default function ContentEcosystem({ currentUser, language = 'vi' }) {
 
       {tab === 'kits' ? (
         <main className="v1120-kits">
-          <div className="v1120-section-heading"><div><span>CONNECTED CONTENT KITS</span><h2>{vi ? 'Bộ nội dung hoàn chỉnh' : 'Complete content kits'}</h2><p>{vi ? 'Gom nhiều tài sản thành một gói có thể gửi thẳng sang Lesson Pack.' : 'Bundle assets and send the kit directly to Lesson Pack.'}</p></div><button onClick={() => setTab('library')}>{vi ? 'Chọn tài sản' : 'Select assets'}</button></div>
+          <div className="v1120-section-heading"><div><span>CONNECTED CONTENT KITS</span><h2>{vi ? 'Bộ nội dung hoàn chỉnh' : 'Complete content kits'}</h2><p>{vi ? 'Gom nhiều tài sản thành một bộ nội dung có thể lưu trữ, xuất và tái sử dụng.' : 'Bundle assets into a content kit for storage, export and reuse.'}</p></div><button onClick={() => setTab('library')}>{vi ? 'Chọn tài sản' : 'Select assets'}</button></div>
           {kits.length ? <div className="v1120-kit-grid">{kits.map((kit) => {
             const chosen = assets.filter((asset) => (kit.asset_ids || []).includes(asset.id));
-            return <article key={kit.id}><div className="v1120-kit-icon">KIT</div><h3>{kit.title}</h3><p>{chosen.length} {vi ? 'tài sản' : 'assets'} · {chosen.map((asset) => assetTypeLabel(asset.asset_type)).join(' · ')}</p><ul>{chosen.slice(0, 6).map((asset) => <li key={asset.id}>{asset.title}</li>)}</ul><footer><button onClick={() => exportKit(kit)}>JSON</button><button className="primary" onClick={() => sendKitToLessonPack(kit)}>{vi ? 'Gửi Lesson Pack' : 'Send to Lesson Pack'} →</button></footer></article>;
+            return <article key={kit.id}><div className="v1120-kit-icon">KIT</div><h3>{kit.title}</h3><p>{chosen.length} {vi ? 'tài sản' : 'assets'} · {chosen.map((asset) => assetTypeLabel(asset.asset_type)).join(' · ')}</p><ul>{chosen.slice(0, 6).map((asset) => <li key={asset.id}>{asset.title}</li>)}</ul><footer><button className="primary" onClick={() => exportKit(kit)}>{vi ? 'Xuất JSON' : 'Export JSON'}</button></footer></article>;
           })}</div> : <div className="v1120-empty"><b>▣</b><h2>{vi ? 'Chưa có bộ nội dung' : 'No content kits yet'}</h2><p>{vi ? 'Chọn nhiều tài sản trong tab Thư viện rồi bấm “Tạo bộ”.' : 'Select multiple assets in Library, then choose “Create kit”.'}</p></div>}
         </main>
       ) : null}

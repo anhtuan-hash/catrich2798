@@ -35,7 +35,7 @@ const criticalFiles = [
   'src/data/apps.js', 'src/data/designProfiles.js', 'src/pages/ToolPage.jsx', 'src/pages/Home.jsx',
   'src/main.jsx', 'src/components/GlobalFlatNavigation.jsx', 'src/components/GlobalCommandPalette.jsx',
   'src/utils/permissions.js', 'src/components/ContentTransferHub.jsx', 'src/pages/AIGovernanceCenter.jsx',
-  'src/utils/aiGovernance.js', 'src/pages/ContentFactory.jsx', 'src/pages/AutomationCenter.jsx',
+  'src/utils/aiGovernance.js', 'src/pages/AutomationCenter.jsx',
   'src/utils/automationEngine.js', 'src/utils/aiProviderHubRuntime.js', 'index.html', 'src/index.css',
   'public/manifest.webmanifest',
 ];

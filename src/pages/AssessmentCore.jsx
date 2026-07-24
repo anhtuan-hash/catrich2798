@@ -99,7 +99,7 @@ export default function AssessmentCore({ currentUser }) {
   useEffect(() => {
     const transfer = safeJsonParse(sessionStorage.getItem('bes-v1093-content-to-assessment'), null);
     if (transfer?.items?.length) {
-      const imported = transfer.items.map((item) => ({ id: uid('transfer'), question_type: item.options?.length ? 'mcq' : 'short_answer', stem: item.prompt || '', options: normalizeOptions(item.options), correct_answer: item.answer || '', explanation: item.explanation || '', skill: 'Use of English', cefr: transfer.level || 'B2', topic: transfer.title || '', cognitive_level: 'application', difficulty: 3, status: 'approved', source: transfer.source || 'content-factory' }));
+      const imported = transfer.items.map((item) => ({ id: uid('transfer'), question_type: item.options?.length ? 'mcq' : 'short_answer', stem: item.prompt || '', options: normalizeOptions(item.options), correct_answer: item.answer || '', explanation: item.explanation || '', skill: 'Use of English', cefr: transfer.level || 'B2', topic: transfer.title || '', cognitive_level: 'application', difficulty: 3, status: 'approved', source: transfer.source || 'content-transfer' }));
       setPreviewItems(imported); setTab('import'); setNotice(`Đã nhận ${imported.length} câu từ Content Factory.`);
       sessionStorage.removeItem('bes-v1093-content-to-assessment');
     }

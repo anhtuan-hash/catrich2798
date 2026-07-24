@@ -15,9 +15,7 @@ export const ROUTE_PERMISSION_IDS = {
   'knowledge-hub': 'route:knowledge-hub',
   dashboard: 'route:dashboard',
   'work-hub': 'route:work-hub',
-  'content-factory': 'route:content-factory',
   'content-ecosystem': 'route:content-ecosystem',
-  'lesson-pack': 'route:lesson-pack',
   'assessment-core': 'route:assessment-core',
   'platform-readiness': 'route:platform-readiness',
   'automation-center': 'route:automation-center',
@@ -79,14 +77,6 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Trung tâm công việc',
     desc: 'Manage tasks, submissions, feedback and approvals.',
     descVi: 'Quản lí nhiệm vụ, sản phẩm nộp, phản hồi và phê duyệt.',
-  },  {
-    id: ROUTE_PERMISSION_IDS['content-factory'],
-    type: 'content',
-    section: 'content',
-    title: 'Teaching Content Factory',
-    titleVi: 'Xưởng tạo học liệu',
-    desc: 'Generate worksheets, quizzes and interactive activities.',
-    descVi: 'Tạo worksheet, quiz và hoạt động tương tác.',
   },
   {
     id: ROUTE_PERMISSION_IDS['content-ecosystem'],
@@ -98,14 +88,6 @@ export const CORE_PERMISSION_ITEMS = [
     descVi: 'Quản lí tài sản tái sử dụng, canvas theo khối, dây chuyền sản xuất và bộ nội dung liên thông.',
   },
   {
-    id: ROUTE_PERMISSION_IDS['lesson-pack'],
-    type: 'content',
-    section: 'content',
-    title: 'Lesson Pack',
-    titleVi: 'Gói bài dạy liên thông',
-    desc: 'Combine outputs from teaching apps into a live lesson sequence.',
-    descVi: 'Kết hợp sản phẩm từ các ứng dụng thành tiến trình bài dạy trực tiếp.',
-  },  {
     id: ROUTE_PERMISSION_IDS['assessment-core'],
     type: 'content',
     section: 'content',
@@ -320,7 +302,7 @@ export function getRoutePermissionId(route) {
   if (route === 'news') return getToolPermissionId('news-reader');
   if (route === 'practice') return ROUTE_PERMISSION_IDS.practice;
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
-  if (route === 'dashboard' || route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'content-factory' || route === 'lesson-pack' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
+  if (route === 'dashboard' || route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
@@ -338,7 +320,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
   if (route === 'practice') return hasPermissionId(user, ROUTE_PERMISSION_IDS.practice) || hasToolAccess(user, 'student-practice');
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'content-factory' || route === 'lesson-pack' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
+  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
 }
 

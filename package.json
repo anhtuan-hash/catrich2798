@@ -121,7 +121,8 @@
     "audit:dashboard-luxury-cards": "node scripts/audit-dashboard-luxury-cards-v11.6.7.mjs",
     "audit:openrouter-only": "node scripts/audit-openrouter-only-v11.6.7.mjs",
     "audit:no-ai": "node scripts/audit-no-ai.mjs",
-    "verify:no-ai": "npm run build && npm run audit:no-ai"
+    "verify:no-ai": "npm run build && npm run audit:no-ai",
+    "audit:removed-content-apps": "node scripts/audit-content-apps-removed.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
