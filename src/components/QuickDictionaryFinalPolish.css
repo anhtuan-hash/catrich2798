@@ -1,0 +1,180 @@
+/* Final visual lock for the quick dictionary.
+   Loaded after all dictionary styles so global form rules and browser autofill
+   cannot add tinted inner surfaces or resize the floating panel. */
+
+html body #root .bes-dictionary-root .bes-dictionary-panel{
+  width:min(438px,calc(100vw - 28px))!important;
+  height:min(620px,calc(100dvh - 126px))!important;
+  min-height:0!important;
+  max-height:min(620px,calc(100dvh - 126px))!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  contain:layout paint!important;
+}
+
+html body #root .bes-dictionary-root .bes-dictionary-header,
+html body #root .bes-dictionary-root .bes-dictionary-form,
+html body #root .bes-dictionary-root .bes-dictionary-history{
+  flex:0 0 auto!important;
+}
+
+html body #root .bes-dictionary-root .bes-dictionary-body{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+  scrollbar-gutter:stable!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+
+html body #root .bes-dictionary-root .bes-dictionary-result{
+  min-height:min-content!important;
+}
+
+/* Google Material search container: one clean white surface only. */
+html body #root .bes-dictionary-root .bes-dictionary-search-field{
+  color-scheme:light!important;
+  background:#fff!important;
+  background-color:#fff!important;
+  background-image:none!important;
+  border:1px solid #dadce0!important;
+  box-shadow:none!important;
+  -webkit-box-shadow:none!important;
+  filter:none!important;
+  outline:none!important;
+}
+
+html body #root .bes-dictionary-root .bes-dictionary-search-field:hover{
+  background:#fff!important;
+  background-color:#fff!important;
+  border-color:#bdc1c6!important;
+}
+
+html body #root .bes-dictionary-root .bes-dictionary-search-field:focus-within{
+  background:#fff!important;
+  background-color:#fff!important;
+  border-color:#0b57d0!important;
+  box-shadow:0 0 0 2px rgba(11,87,208,.14)!important;
+  -webkit-box-shadow:0 0 0 2px rgba(11,87,208,.14)!important;
+}
+
+html body #root .bes-dictionary-root .bes-dictionary-search-field input,
+html body #root .bes-dictionary-root .bes-dictionary-search-field input:hover,
+html body #root .bes-dictionary-root .bes-dictionary-search-field input:focus,
+html body #root .bes-dictionary-root .bes-dictionary-search-field input:active{
+  color-scheme:light!important;
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  -webkit-box-shadow:none!important;
+  filter:none!important;
+  opacity:1!important;
+  -webkit-appearance:none!important;
+  appearance:none!important;
+  -webkit-text-fill-color:#202124!important;
+  caret-color:#0b57d0!important;
+}
+
+/* Chrome/Safari autofill is the common source of the unwanted yellow layer. */
+html body #root .bes-dictionary-root .bes-dictionary-search-field input:-webkit-autofill,
+html body #root .bes-dictionary-root .bes-dictionary-search-field input:-webkit-autofill:hover,
+html body #root .bes-dictionary-root .bes-dictionary-search-field input:-webkit-autofill:focus,
+html body #root .bes-dictionary-root .bes-dictionary-search-field input:-webkit-autofill:active{
+  background-color:transparent!important;
+  background-image:none!important;
+  -webkit-text-fill-color:#202124!important;
+  -webkit-box-shadow:0 0 0 1000px #fff inset!important;
+  box-shadow:0 0 0 1000px #fff inset!important;
+  caret-color:#0b57d0!important;
+  transition:background-color 9999s ease-out 0s!important;
+}
+
+html body #root .bes-dictionary-root .bes-dictionary-search-field input::selection{
+  background:#d3e3fd!important;
+  color:#041e49!important;
+}
+
+/* Material outlined language field without a second cream/yellow surface. */
+html body #root .bes-dictionary-root .bes-dictionary-form select,
+html body #root .bes-dictionary-root .bes-dictionary-form select:hover,
+html body #root .bes-dictionary-root .bes-dictionary-form select:focus,
+html body #root .bes-dictionary-root .bes-dictionary-form select:active{
+  color-scheme:light!important;
+  background-color:#fff!important;
+  border:1px solid #dadce0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  -webkit-box-shadow:none!important;
+  filter:none!important;
+  color:#202124!important;
+  -webkit-text-fill-color:#202124!important;
+}
+
+html body #root .bes-dictionary-root .bes-dictionary-form select:hover{
+  border-color:#bdc1c6!important;
+}
+
+html body #root .bes-dictionary-root .bes-dictionary-form select:focus{
+  border-color:#0b57d0!important;
+  box-shadow:0 0 0 2px rgba(11,87,208,.14)!important;
+  -webkit-box-shadow:0 0 0 2px rgba(11,87,208,.14)!important;
+}
+
+html body #root .bes-dictionary-root .bes-dictionary-form select option{
+  background:#fff!important;
+  color:#202124!important;
+}
+
+html[data-theme="dark"] body #root .bes-dictionary-root .bes-dictionary-search-field,
+.theme-dark #root .bes-dictionary-root .bes-dictionary-search-field{
+  color-scheme:dark!important;
+  background:#172033!important;
+  background-color:#172033!important;
+  border-color:#526174!important;
+}
+
+html[data-theme="dark"] body #root .bes-dictionary-root .bes-dictionary-search-field input,
+.theme-dark #root .bes-dictionary-root .bes-dictionary-search-field input{
+  color-scheme:dark!important;
+  background:transparent!important;
+  -webkit-text-fill-color:#f1f3f4!important;
+  caret-color:#8ab4f8!important;
+}
+
+html[data-theme="dark"] body #root .bes-dictionary-root .bes-dictionary-search-field input:-webkit-autofill,
+.theme-dark #root .bes-dictionary-root .bes-dictionary-search-field input:-webkit-autofill{
+  -webkit-text-fill-color:#f1f3f4!important;
+  -webkit-box-shadow:0 0 0 1000px #172033 inset!important;
+  box-shadow:0 0 0 1000px #172033 inset!important;
+}
+
+html[data-theme="dark"] body #root .bes-dictionary-root .bes-dictionary-form select,
+.theme-dark #root .bes-dictionary-root .bes-dictionary-form select{
+  color-scheme:dark!important;
+  background-color:#172033!important;
+  border-color:#526174!important;
+  color:#f1f3f4!important;
+  -webkit-text-fill-color:#f1f3f4!important;
+}
+
+@media(max-height:760px) and (min-width:621px){
+  html body #root .bes-dictionary-root .bes-dictionary-panel{
+    height:calc(100dvh - 112px)!important;
+    max-height:calc(100dvh - 112px)!important;
+  }
+}
+
+@media(max-width:620px){
+  html body #root .bes-dictionary-root .bes-dictionary-panel{
+    width:calc(100vw - 16px)!important;
+    height:calc(100dvh - 92px)!important;
+    max-height:calc(100dvh - 92px)!important;
+  }
+}
