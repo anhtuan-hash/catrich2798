@@ -1,0 +1,446 @@
+/* Editable account profile, portalled into Settings > Account & password. */
+:root {
+  --bes-profile-blue: #0b57d0;
+  --bes-profile-blue-soft: #e8f0fe;
+  --bes-profile-green: #137333;
+  --bes-profile-red: #b3261e;
+  --bes-profile-ink: #1f1f1f;
+  --bes-profile-muted: #5f6368;
+  --bes-profile-line: #dadce0;
+  --bes-profile-surface: #ffffff;
+  --bes-profile-soft: #f8fafd;
+}
+
+[data-theme='dark'],
+.theme-dark {
+  --bes-profile-blue: #a8c7fa;
+  --bes-profile-blue-soft: #233a5e;
+  --bes-profile-green: #81c995;
+  --bes-profile-red: #f2b8b5;
+  --bes-profile-ink: #e8eaed;
+  --bes-profile-muted: #bdc1c6;
+  --bes-profile-line: #3c4043;
+  --bes-profile-surface: #202124;
+  --bes-profile-soft: #292a2d;
+}
+
+html body .app-shell .settings-v65-account-card.has-bes-profile-editor > .settings-v65-profile-panel {
+  display: none !important;
+}
+
+html body .app-shell .bes-profile-settings-slot {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 0 18px !important;
+}
+
+html body .app-shell .bes-profile-editor {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 18px !important;
+  padding: 18px !important;
+  border: 1px solid var(--bes-profile-line) !important;
+  border-radius: 24px !important;
+  background: var(--bes-profile-soft) !important;
+  color: var(--bes-profile-ink) !important;
+  box-shadow: none !important;
+  font-family: inherit !important;
+}
+
+html body .app-shell .bes-profile-editor,
+html body .app-shell .bes-profile-editor * {
+  box-sizing: border-box !important;
+}
+
+html body .app-shell .bes-profile-editor__intro {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: 96px minmax(0, 1fr) max-content !important;
+  align-items: center !important;
+  gap: 16px !important;
+  padding: 4px !important;
+}
+
+html body .app-shell .bes-profile-editor__avatar {
+  position: relative !important;
+  width: 96px !important;
+  height: 96px !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 96px !important;
+  overflow: visible !important;
+  border: 4px solid var(--bes-profile-surface) !important;
+  border-radius: 50% !important;
+  background: linear-gradient(145deg, #1a73e8, #7c4dff) center / cover no-repeat !important;
+  color: #fff !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .12), 0 6px 18px rgba(60, 64, 67, .14) !important;
+}
+
+html body .app-shell .bes-profile-editor__avatar.has-image {
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+
+html body .app-shell .bes-profile-editor__avatar > span {
+  color: #fff !important;
+  font-size: 30px !important;
+  line-height: 1 !important;
+  font-weight: 720 !important;
+  letter-spacing: -.04em !important;
+}
+
+html body .app-shell .bes-profile-editor__avatar > button {
+  position: absolute !important;
+  right: -2px !important;
+  bottom: -2px !important;
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 3px solid var(--bes-profile-surface) !important;
+  border-radius: 50% !important;
+  background: var(--bes-profile-blue) !important;
+  color: #fff !important;
+  font-size: 15px !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 7px rgba(60, 64, 67, .22) !important;
+}
+
+html body .app-shell .bes-profile-editor__identity {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 4px !important;
+}
+
+html body .app-shell .bes-profile-editor__identity > span {
+  color: var(--bes-profile-blue) !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  font-weight: 760 !important;
+  letter-spacing: .1em !important;
+}
+
+html body .app-shell .bes-profile-editor__identity h3 {
+  min-width: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  color: var(--bes-profile-ink) !important;
+  font-size: clamp(20px, 2vw, 26px) !important;
+  line-height: 1.12 !important;
+  font-weight: 680 !important;
+  letter-spacing: -.025em !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body .app-shell .bes-profile-editor__identity p {
+  min-width: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  color: var(--bes-profile-muted) !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body .app-shell .bes-profile-editor__chips {
+  min-width: 0 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  margin-top: 5px !important;
+}
+
+html body .app-shell .bes-profile-editor__chips em {
+  max-width: 100% !important;
+  min-height: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 10px !important;
+  overflow: hidden !important;
+  border-radius: 999px !important;
+  background: var(--bes-profile-blue-soft) !important;
+  color: var(--bes-profile-blue) !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
+  font-style: normal !important;
+  font-weight: 650 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body .app-shell .bes-profile-editor__avatar-actions {
+  display: grid !important;
+  justify-items: stretch !important;
+  gap: 7px !important;
+  min-width: 142px !important;
+}
+
+html body .app-shell .bes-profile-editor__avatar-actions > button,
+html body .app-shell .bes-profile-editor__footer button {
+  min-height: 40px !important;
+  margin: 0 !important;
+  padding: 0 14px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--bes-profile-blue-soft) !important;
+  color: var(--bes-profile-blue) !important;
+  font: inherit !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  font-weight: 680 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+}
+
+html body .app-shell .bes-profile-editor__avatar-actions > button:hover,
+html body .app-shell .bes-profile-editor__footer .is-secondary:hover {
+  filter: brightness(.97) !important;
+}
+
+html body .app-shell .bes-profile-editor__avatar-actions > button.is-text {
+  background: transparent !important;
+  color: var(--bes-profile-muted) !important;
+}
+
+html body .app-shell .bes-profile-editor__avatar-actions > small {
+  max-width: 160px !important;
+  color: var(--bes-profile-muted) !important;
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+  text-align: center !important;
+}
+
+html body .app-shell .bes-profile-editor__fields {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 13px !important;
+}
+
+html body .app-shell .bes-profile-field {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 7px !important;
+  margin: 0 !important;
+}
+
+html body .app-shell .bes-profile-field.is-wide {
+  grid-column: 1 / -1 !important;
+}
+
+html body .app-shell .bes-profile-field > span {
+  color: var(--bes-profile-ink) !important;
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  font-weight: 650 !important;
+}
+
+html body .app-shell .bes-profile-field > input,
+html body .app-shell .bes-profile-field > textarea {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 11px 13px !important;
+  border: 1px solid var(--bes-profile-line) !important;
+  border-radius: 14px !important;
+  outline: none !important;
+  background: var(--bes-profile-surface) !important;
+  color: var(--bes-profile-ink) !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+  box-shadow: none !important;
+  transition: border-color 140ms ease, box-shadow 140ms ease !important;
+}
+
+html body .app-shell .bes-profile-field > input {
+  min-height: 46px !important;
+}
+
+html body .app-shell .bes-profile-field > textarea {
+  min-height: 94px !important;
+  resize: vertical !important;
+}
+
+html body .app-shell .bes-profile-field > input:focus,
+html body .app-shell .bes-profile-field > textarea:focus {
+  border-color: var(--bes-profile-blue) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bes-profile-blue) 18%, transparent) !important;
+}
+
+html body .app-shell .bes-profile-field > small {
+  justify-self: end !important;
+  color: var(--bes-profile-muted) !important;
+  font-size: 10px !important;
+  line-height: 1.3 !important;
+}
+
+html body .app-shell .bes-profile-editor__footer {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  padding-top: 2px !important;
+}
+
+html body .app-shell .bes-profile-editor__footer > div:last-child {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex: 0 0 auto !important;
+}
+
+html body .app-shell .bes-profile-editor__footer button.is-primary {
+  min-width: 128px !important;
+  background: var(--bes-profile-blue) !important;
+  color: #fff !important;
+}
+
+html body .app-shell .bes-profile-editor__footer button.is-secondary {
+  background: transparent !important;
+  color: var(--bes-profile-blue) !important;
+}
+
+html body .app-shell .bes-profile-editor__footer button:disabled,
+html body .app-shell .bes-profile-editor__avatar-actions > button:disabled {
+  opacity: .5 !important;
+  cursor: default !important;
+}
+
+html body .app-shell .bes-profile-editor__status {
+  min-width: 0 !important;
+  color: var(--bes-profile-muted) !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+
+html body .app-shell .bes-profile-editor__status.is-ok {
+  color: var(--bes-profile-green) !important;
+}
+
+html body .app-shell .bes-profile-editor__status.is-error {
+  color: var(--bes-profile-red) !important;
+}
+
+/* Reuse the account avatar across navigation and its account menu without
+   changing the existing React markup or its accessible initials. */
+html[data-bes-profile-avatar='true'] body .app-shell .brian-nav__account > span,
+html[data-bes-profile-avatar='true'] body .app-shell .brian-nav__account-menu > header > span {
+  background-color: var(--gm-blue, #1a73e8) !important;
+  background-image: var(--bes-profile-avatar-image) !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  color: transparent !important;
+  text-shadow: none !important;
+}
+
+html body .app-shell .bes-profile-editor :is(button, input, textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--bes-profile-blue) 28%, transparent) !important;
+  outline-offset: 2px !important;
+}
+
+@media (max-width: 860px) {
+  html body .app-shell .bes-profile-editor__intro {
+    grid-template-columns: 82px minmax(0, 1fr) !important;
+  }
+
+  html body .app-shell .bes-profile-editor__avatar {
+    width: 82px !important;
+    height: 82px !important;
+    flex-basis: 82px !important;
+  }
+
+  html body .app-shell .bes-profile-editor__avatar-actions {
+    grid-column: 1 / -1 !important;
+    grid-template-columns: repeat(2, max-content) minmax(0, 1fr) !important;
+    align-items: center !important;
+    min-width: 0 !important;
+  }
+
+  html body .app-shell .bes-profile-editor__avatar-actions > small {
+    justify-self: end !important;
+    max-width: none !important;
+    text-align: right !important;
+  }
+}
+
+@media (max-width: 620px) {
+  html body .app-shell .bes-profile-editor {
+    gap: 15px !important;
+    padding: 14px !important;
+    border-radius: 20px !important;
+  }
+
+  html body .app-shell .bes-profile-editor__fields {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body .app-shell .bes-profile-field.is-wide {
+    grid-column: auto !important;
+  }
+
+  html body .app-shell .bes-profile-editor__footer {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  html body .app-shell .bes-profile-editor__footer > div:last-child {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body .app-shell .bes-profile-editor__footer button {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 460px) {
+  html body .app-shell .bes-profile-editor__intro {
+    grid-template-columns: 70px minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  html body .app-shell .bes-profile-editor__avatar {
+    width: 70px !important;
+    height: 70px !important;
+    flex-basis: 70px !important;
+  }
+
+  html body .app-shell .bes-profile-editor__avatar > span {
+    font-size: 23px !important;
+  }
+
+  html body .app-shell .bes-profile-editor__avatar-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body .app-shell .bes-profile-editor__avatar-actions > small {
+    grid-column: 1 / -1 !important;
+    justify-self: start !important;
+    text-align: left !important;
+  }
+
+  html body .app-shell .bes-profile-editor__identity h3 {
+    font-size: 19px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-shell .bes-profile-editor *,
+  html body .app-shell .bes-profile-editor *::before,
+  html body .app-shell .bes-profile-editor *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

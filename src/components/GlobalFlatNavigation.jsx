@@ -1,5 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
+import GlobalUserProfileSettingsBridge from './GlobalUserProfileSettingsBridge.jsx';
+import GlobalUserProfilePreviewGuard from './GlobalUserProfilePreviewGuard.jsx';
 import GlobalAiWebsiteLauncher from './GlobalAiWebsiteLauncher.jsx';
 import GlobalNewsNavigationTab from './GlobalNewsNavigationTab.jsx';
 import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
@@ -49,6 +51,8 @@ export default function GlobalFlatNavigation(props) {
   return (
     <>
       <Navigation {...props} />
+      <GlobalUserProfileSettingsBridge {...props} />
+      <GlobalUserProfilePreviewGuard route={props.route} />
       <GlobalAiWebsiteLauncher {...props} />
       <GlobalNewsNavigationTab {...props} />
       <GlobalGamesNavigationTab {...props} />
