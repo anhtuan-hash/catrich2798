@@ -1,0 +1,204 @@
+/* Unified top chrome: the briefing row and navigation share one continuous surface. */
+html body .app-shell .bes-top-chrome,
+html body .bes-top-chrome {
+  background: var(--brian-nav-surface, #fff) !important;
+  border-bottom: 1px solid var(--brian-nav-line, rgba(23, 51, 38, .12)) !important;
+  box-shadow: 0 8px 24px rgba(34, 59, 43, .08) !important;
+  backdrop-filter: blur(18px) saturate(1.15) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.15) !important;
+}
+
+html body .app-shell .bes-top-chrome > .brian-nav,
+html body .bes-top-chrome > .brian-nav {
+  border-bottom: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html body .app-shell .bes-top-chrome > .brian-briefing-bar,
+html body .bes-top-chrome > .brian-briefing-bar {
+  height: 40px !important;
+  min-height: 40px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 4px clamp(16px, 2.2vw, 34px) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--brian-nav-line, var(--briefing-line)) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: visible !important;
+}
+
+html body .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__headline {
+  min-width: 0 !important;
+  height: 32px !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .bes-top-chrome > .brian-briefing-bar:hover .brian-briefing-bar__headline,
+html body .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__headline:hover {
+  background: color-mix(in srgb, var(--brian-nav-soft) 72%, transparent) !important;
+}
+
+html body .bes-top-chrome > .brian-briefing-bar.is-news-route .brian-briefing-bar__headline {
+  background: color-mix(in srgb, var(--briefing-blue) 8%, transparent) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--briefing-blue) 22%, transparent) !important;
+}
+
+.brian-briefing-bar__context {
+  min-width: max-content;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 8px;
+  border-left: 1px solid var(--brian-nav-line, var(--briefing-line));
+}
+
+.brian-briefing-bar__clock,
+.brian-briefing-bar__weather {
+  height: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--brian-nav-ink, var(--briefing-ink));
+  font: inherit;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.brian-briefing-bar__clock > span,
+.brian-briefing-bar__weather > span {
+  width: 17px;
+  height: 17px;
+  display: inline-grid;
+  place-items: center;
+  color: var(--brian-nav-accent, var(--briefing-blue));
+  font-size: 15px;
+  line-height: 1;
+}
+
+.brian-briefing-bar__clock strong,
+.brian-briefing-bar__weather strong {
+  color: var(--brian-nav-ink, var(--briefing-ink));
+  font-size: 12px;
+  font-weight: 780;
+  font-variant-numeric: tabular-nums;
+}
+
+.brian-briefing-bar__clock small,
+.brian-briefing-bar__weather small {
+  color: var(--brian-nav-muted, var(--briefing-muted));
+  font-size: 10.5px;
+  font-weight: 650;
+}
+
+.brian-briefing-bar__weather {
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.brian-briefing-bar__weather:hover,
+.brian-briefing-bar__weather:focus-visible {
+  border-color: var(--brian-nav-line, var(--briefing-line));
+  background: var(--brian-nav-soft, var(--briefing-surface));
+  outline: none;
+}
+
+.brian-briefing-bar__weather.is-loading > span,
+.brian-briefing-bar__weather.is-refreshing > span {
+  animation: brian-weather-pulse 1.1s ease-in-out infinite;
+}
+
+.brian-briefing-bar__weather.is-error {
+  color: var(--brian-nav-muted, var(--briefing-muted));
+}
+
+@keyframes brian-weather-pulse {
+  0%, 100% { opacity: .45; transform: scale(.92); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 900px) {
+  html body .app-shell .bes-top-chrome > .brian-briefing-bar,
+  html body .bes-top-chrome > .brian-briefing-bar {
+    padding-inline: 12px !important;
+  }
+
+  .brian-briefing-bar__clock,
+  .brian-briefing-bar__weather {
+    padding-inline: 7px;
+  }
+}
+
+@media (max-width: 680px) {
+  html body .app-shell .bes-top-chrome > .brian-briefing-bar,
+  html body .bes-top-chrome > .brian-briefing-bar {
+    height: 38px !important;
+    min-height: 38px !important;
+    gap: 5px !important;
+    padding: 3px 8px !important;
+  }
+
+  .brian-briefing-bar__context {
+    height: 30px;
+    gap: 2px;
+    padding-left: 5px;
+  }
+
+  .brian-briefing-bar__clock,
+  .brian-briefing-bar__weather {
+    height: 30px;
+    min-height: 30px;
+    gap: 4px;
+    padding-inline: 6px;
+  }
+
+  .brian-briefing-bar__clock small,
+  .brian-briefing-bar__weather small {
+    display: none;
+  }
+}
+
+@media (max-width: 470px) {
+  .brian-briefing-bar__clock > span {
+    display: none;
+  }
+
+  .brian-briefing-bar__clock,
+  .brian-briefing-bar__weather {
+    padding-inline: 5px;
+  }
+
+  .brian-briefing-bar__context {
+    border-left-color: color-mix(in srgb, var(--brian-nav-line) 70%, transparent);
+  }
+
+  .brian-briefing-bar__source {
+    font-size: 10.5px;
+  }
+
+  .brian-briefing-bar__ticker-item strong {
+    font-size: 11.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brian-briefing-bar__weather.is-loading > span,
+  .brian-briefing-bar__weather.is-refreshing > span {
+    animation: none;
+  }
+}
