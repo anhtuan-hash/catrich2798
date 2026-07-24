@@ -2,7 +2,7 @@ import { getRuntimeClient } from '../services/runtime/core.js';
 import {
   getCurrentHomeroomWorkspaceId,
   HOMEROOM_STORE_EVENT,
-  loadHomeroomWorkspace,
+  loadLocalHomeroomWorkspace,
 } from './homeroomStore.js';
 import { APP_USAGE_EVENT, getRecentAppUsage } from './appUsage.js';
 import { AUTOSAVE_EVENT } from './autosave.js';
@@ -20,6 +20,21 @@ const WORK_LOCAL_PREFIX = 'bes-work-hub-v1093-local';
 const DRAFT_PREFIX = 'bes-global-draft-v1084';
 const WORKSPACE_EVENT = 'bes-workspace-updated';
 const AI_CONFIG_SOURCE_MODULE = 'english-hub-ai-websites';
+const WORK_DASHBOARD_COLUMNS = [
+  'id',
+  'title',
+  'description',
+  'status',
+  'priority',
+  'owner_id',
+  'created_by',
+  'assignee_ids',
+  'due_at',
+  'source_module',
+  'metadata',
+  'created_at',
+  'updated_at',
+].join(',');
 
 export const DASHBOARD_REFRESH_EVENT = 'bes-work-dashboard-refresh';
 export const DASHBOARD_SOURCE_EVENTS = [
@@ -113,7 +128,7 @@ function normalizeWork(item, user) {
     title: text(item?.title, 'Công việc chưa đặt tên'),
     description: text(item?.description),
     date: item?.due_at || item?.date || item?.deadline || '',
-    owner: mine ? 'Của tôi' : text(item?.owner_name || item?.created_by_email),
+    owner: mine ? 'Của tôi' : text(item?.owner_name || item?.created_by_email, 'Đồng nghiệp'),
     status,
     priority: text(item?.priority, 'normal'),
     done: DONE.has(status.toLowerCase()),
@@ -204,8 +219,12 @@ async function loadWork(user) {
   const client = getRuntimeClient();
   if (client && user?.id) {
     try {
-      const { data, error } = await client.from('work_hub_items').select('*').order('updated_at', { ascending: false }).limit(300);
-      if (!error) return { items: (data || []).filter((item) => !isHiddenSystemWorkItem(item)), source: 'cloud' };
+      const { data, error } = await client
+        .from('work_hub_items')
+        .select(WORK_DASHBOARD_COLUMNS)
+        .order('updated_at', { ascending: false })
+        .limit(160);
+      if (!error) return { items: (data || []).filter((item) => !isHiddenSystemWorkItem(item)), source: 'cloud-summary' };
     } catch { /* local fallback */ }
   }
   return { items: readLocalWork(user), source: 'local' };
@@ -219,8 +238,8 @@ async function loadResources() {
 async function loadHomeroom(user) {
   try {
     const id = getCurrentHomeroomWorkspaceId(user);
-    const result = await loadHomeroomWorkspace(user, id);
-    return { workspace: result?.workspace || null, source: result?.source || (result?.workspace ? 'cloud-or-local' : 'empty') };
+    const workspace = loadLocalHomeroomWorkspace(user, id);
+    return { workspace, source: workspace ? 'local-summary' : 'empty' };
   } catch {
     return { workspace: null, source: 'empty' };
   }
