@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { canManageAiWebsites } from '../utils/aiWebsiteSettings.js';
 import {
@@ -20,12 +20,68 @@ import './ExternalWebAppCrop.css';
 
 const EMPTY = { name: '', url: '', icon: 'WEB', description: '', groupId: 'create' };
 const DEFAULT_VIEW = normalizeEmbedView();
+const DIALOG_LAYOUT_KEY = 'bes-external-app-dialog-layout-v3';
+const DIALOG_MARGIN = 10;
+const RESIZE_CORNERS = ['nw', 'ne', 'sw', 'se'];
+
 const statusLabel = (status) => ({
   pending: 'Chờ TTCM duyệt',
   approved: 'Đã duyệt',
   rejected: 'Từ chối',
   cancelled: 'Đã hủy',
 }[status] || status);
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function defaultDialogLayout() {
+  if (typeof window === 'undefined') return { x: 20, y: 20, width: 1380, height: 860 };
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const width = Math.min(1680, Math.max(900, viewportWidth - 40));
+  const height = Math.min(1040, Math.max(620, viewportHeight - 32));
+  return {
+    x: Math.max(DIALOG_MARGIN, Math.round((viewportWidth - width) / 2)),
+    y: Math.max(DIALOG_MARGIN, Math.round((viewportHeight - height) / 2)),
+    width: Math.min(width, viewportWidth - DIALOG_MARGIN * 2),
+    height: Math.min(height, viewportHeight - DIALOG_MARGIN * 2),
+  };
+}
+
+function fitDialogLayout(value = defaultDialogLayout()) {
+  if (typeof window === 'undefined') return value;
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const maxWidth = Math.max(320, viewportWidth - DIALOG_MARGIN * 2);
+  const maxHeight = Math.max(420, viewportHeight - DIALOG_MARGIN * 2);
+  const minWidth = Math.min(880, maxWidth);
+  const minHeight = Math.min(580, maxHeight);
+  const width = clamp(Number(value.width) || maxWidth, minWidth, maxWidth);
+  const height = clamp(Number(value.height) || maxHeight, minHeight, maxHeight);
+  return {
+    x: clamp(Number(value.x) || DIALOG_MARGIN, DIALOG_MARGIN, Math.max(DIALOG_MARGIN, viewportWidth - width - DIALOG_MARGIN)),
+    y: clamp(Number(value.y) || DIALOG_MARGIN, DIALOG_MARGIN, Math.max(DIALOG_MARGIN, viewportHeight - height - DIALOG_MARGIN)),
+    width,
+    height,
+  };
+}
+
+function readDialogLayout() {
+  const fallback = defaultDialogLayout();
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(DIALOG_LAYOUT_KEY) || 'null');
+    return fitDialogLayout(stored || fallback);
+  } catch {
+    return fitDialogLayout(fallback);
+  }
+}
+
+function saveDialogLayout(layout) {
+  if (typeof window === 'undefined') return;
+  try { window.localStorage.setItem(DIALOG_LAYOUT_KEY, JSON.stringify(layout)); } catch { /* optional preference */ }
+}
 
 export default function ExternalWebAppManager({ open, onClose, currentUser, language = 'vi', onChanged }) {
   const vi = language !== 'en';
@@ -39,9 +95,14 @@ export default function ExternalWebAppManager({ open, onClose, currentUser, lang
   const [busy, setBusy] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [notice, setNotice] = useState('');
+  const [dialogLayout, setDialogLayout] = useState(readDialogLayout);
+  const [maximized, setMaximized] = useState(false);
+  const restoreLayoutRef = useRef(null);
+  const resizingRef = useRef(null);
 
   const pending = useMemo(() => data.requests.filter((item) => item.status === 'pending'), [data.requests]);
   const clean = normalizeExternalAppDraft(draft);
+  const desktopResizable = manager && typeof window !== 'undefined' && window.innerWidth > 900;
 
   const applyData = (next) => {
     if (!next) return;
@@ -84,11 +145,16 @@ export default function ExternalWebAppManager({ open, onClose, currentUser, lang
   useEffect(() => {
     if (!open) return undefined;
     document.documentElement.classList.add('bes-ext-open');
+    setDialogLayout((current) => fitDialogLayout(current));
     const onKey = (event) => event.key === 'Escape' && onClose?.();
+    const onViewportResize = () => setDialogLayout((current) => fitDialogLayout(current));
     window.addEventListener('keydown', onKey);
+    window.addEventListener('resize', onViewportResize);
     return () => {
       document.documentElement.classList.remove('bes-ext-open');
+      document.body.classList.remove('bes-ext-resizing');
       window.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', onViewportResize);
     };
   }, [open, onClose]);
 
@@ -113,6 +179,93 @@ export default function ExternalWebAppManager({ open, onClose, currentUser, lang
   }, [preview?.id, preview?.request?.id, preview?.approvedApp?.id, preview?.url]);
 
   if (!open || typeof document === 'undefined') return null;
+
+  const beginResize = (corner, event) => {
+    if (!desktopResizable) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    const start = {
+      corner,
+      pointerId: event.pointerId,
+      pointerX: event.clientX,
+      pointerY: event.clientY,
+      layout: { ...dialogLayout },
+    };
+    resizingRef.current = start;
+    setMaximized(false);
+    document.body.classList.add('bes-ext-resizing');
+    document.body.style.cursor = corner === 'nw' || corner === 'se' ? 'nwse-resize' : 'nesw-resize';
+
+    const move = (moveEvent) => {
+      const active = resizingRef.current;
+      if (!active) return;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const minWidth = Math.min(880, viewportWidth - DIALOG_MARGIN * 2);
+      const minHeight = Math.min(580, viewportHeight - DIALOG_MARGIN * 2);
+      const deltaX = moveEvent.clientX - active.pointerX;
+      const deltaY = moveEvent.clientY - active.pointerY;
+      const right = active.layout.x + active.layout.width;
+      const bottom = active.layout.y + active.layout.height;
+      let next = { ...active.layout };
+
+      if (corner.includes('e')) {
+        next.width = clamp(active.layout.width + deltaX, minWidth, viewportWidth - active.layout.x - DIALOG_MARGIN);
+      }
+      if (corner.includes('s')) {
+        next.height = clamp(active.layout.height + deltaY, minHeight, viewportHeight - active.layout.y - DIALOG_MARGIN);
+      }
+      if (corner.includes('w')) {
+        next.width = clamp(active.layout.width - deltaX, minWidth, right - DIALOG_MARGIN);
+        next.x = right - next.width;
+      }
+      if (corner.includes('n')) {
+        next.height = clamp(active.layout.height - deltaY, minHeight, bottom - DIALOG_MARGIN);
+        next.y = bottom - next.height;
+      }
+      setDialogLayout(fitDialogLayout(next));
+    };
+
+    const stop = () => {
+      const finalLayout = fitDialogLayout(resizingRef.current?.latest || dialogLayout);
+      resizingRef.current = null;
+      document.body.classList.remove('bes-ext-resizing');
+      document.body.style.cursor = '';
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', stop);
+      window.removeEventListener('pointercancel', stop);
+      setDialogLayout((current) => {
+        const fitted = fitDialogLayout(current);
+        saveDialogLayout(fitted);
+        return fitted;
+      });
+      saveDialogLayout(finalLayout);
+    };
+
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', stop, { once: true });
+    window.addEventListener('pointercancel', stop, { once: true });
+  };
+
+  const toggleMaximize = () => {
+    if (!desktopResizable) return;
+    if (maximized) {
+      const restored = fitDialogLayout(restoreLayoutRef.current || readDialogLayout());
+      setDialogLayout(restored);
+      saveDialogLayout(restored);
+      setMaximized(false);
+      return;
+    }
+    restoreLayoutRef.current = { ...dialogLayout };
+    setDialogLayout(fitDialogLayout({
+      x: DIALOG_MARGIN,
+      y: DIALOG_MARGIN,
+      width: window.innerWidth - DIALOG_MARGIN * 2,
+      height: window.innerHeight - DIALOG_MARGIN * 2,
+    }));
+    setMaximized(true);
+  };
 
   const submit = async (event) => {
     event.preventDefault();
@@ -226,13 +379,27 @@ export default function ExternalWebAppManager({ open, onClose, currentUser, lang
   ];
   const list = tab === 'mine' ? data.mine : tab === 'pending' ? pending : [];
   const previewStyle = embedTransformStyle(view);
+  const dialogStyle = desktopResizable ? {
+    left: dialogLayout.x,
+    top: dialogLayout.y,
+    width: dialogLayout.width,
+    height: dialogLayout.height,
+  } : undefined;
+  const dialogClass = [
+    'bes-ext-dialog',
+    desktopResizable ? 'bes-ext-resizable' : '',
+    preview?.url && manager ? 'is-reviewing' : '',
+    maximized ? 'is-maximized' : '',
+  ].filter(Boolean).join(' ');
 
   return createPortal(
     <div className="bes-ext-layer" onMouseDown={(event) => event.target === event.currentTarget && onClose?.()}>
-      <section className="bes-ext-dialog" role="dialog" aria-modal="true">
+      <section className={dialogClass} style={dialogStyle} role="dialog" aria-modal="true">
         <header className="bes-ext-head">
           <div><span>＋</span><div><strong>Ứng dụng website</strong><small>Đề xuất, TTCM duyệt và chạy trực tiếp trong Brian</small></div></div>
           <div className="bes-ext-head-actions">
+            {desktopResizable ? <span className="bes-ext-size-note">Kéo 4 góc để đổi kích thước</span> : null}
+            {desktopResizable ? <button type="button" className="bes-ext-expand" onClick={toggleMaximize}>{maximized ? '↙ Thu gọn' : '⛶ Mở rộng'}</button> : null}
             <button type="button" className="bes-ext-refresh" disabled={refreshing} onClick={() => refresh().catch(() => {})}>↻ {refreshing ? 'Đang tải' : 'Làm mới'}</button>
             <button type="button" className="bes-ext-close" onClick={onClose}>×</button>
           </div>
@@ -322,6 +489,15 @@ export default function ExternalWebAppManager({ open, onClose, currentUser, lang
           </aside>
         </div>
         {notice ? <div className="bes-ext-notice">{notice}</div> : null}
+        {desktopResizable ? RESIZE_CORNERS.map((corner) => (
+          <div
+            key={corner}
+            className={`bes-ext-resize-handle is-${corner}`}
+            role="separator"
+            aria-label={`Kéo góc ${corner} để đổi kích thước cửa sổ duyệt`}
+            onPointerDown={(event) => beginResize(corner, event)}
+          />
+        )) : null}
       </section>
     </div>,
     document.body,
