@@ -7,7 +7,7 @@
   "requiresSql": false,
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-24T10:35:19.397Z",
+  "generatedAt": "2026-07-24T11:13:55.786Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -129,5 +129,10 @@
     "Brian AI Workspace",
     "Classroom Delivery",
     "Learning Intelligence"
-  ]
+  ],
+  "sharedBackgroundMusic": true,
+  "sharedBackgroundMusicAdminUpload": true,
+  "sharedBackgroundMusicRealtime": true,
+  "sharedBackgroundMusicTeacherReadOnly": true,
+  "sharedBackgroundMusicSetupFile": "supabase/shared_music.sql"
 }

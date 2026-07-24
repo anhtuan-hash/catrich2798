@@ -11,7 +11,7 @@
   "wordA4Export": true,
   "googleDriveReferenceReader": true,
   "requiresSql": false,
-  "generatedAt": "2026-07-24T10:35:19.397Z",
+  "generatedAt": "2026-07-24T11:13:55.786Z",
   "englishOnlyLessonPlans": true,
   "globalSuccessGrade11": true,
   "moetDigitalCompetence": true,
@@ -135,5 +135,10 @@
     "Brian AI Workspace",
     "Classroom Delivery",
     "Learning Intelligence"
-  ]
+  ],
+  "sharedBackgroundMusic": true,
+  "sharedBackgroundMusicAdminUpload": true,
+  "sharedBackgroundMusicRealtime": true,
+  "sharedBackgroundMusicTeacherReadOnly": true,
+  "sharedBackgroundMusicSetupFile": "supabase/shared_music.sql"
 }

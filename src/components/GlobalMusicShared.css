@@ -1,0 +1,261 @@
+.brian-nav__music-popover.is-shared-music {
+  width: min(470px, calc(100vw - 28px)) !important;
+}
+
+.brian-nav__music-popover.is-shared-music .brian-music-popover__body {
+  gap: 12px;
+}
+
+.brian-music-popover__sync {
+  min-height: 38px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px 7px 10px;
+  border: 1px solid var(--brian-nav-line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--brian-nav-soft) 52%, transparent);
+}
+
+.brian-music-popover__sync > span {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #e6f4ea;
+  color: #137333;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.brian-music-popover__sync.is-error > span {
+  background: #fce8e6;
+  color: #b3261e;
+}
+
+.brian-music-popover__sync > b {
+  overflow: hidden;
+  color: var(--brian-nav-muted);
+  font-size: 11px;
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brian-music-popover__sync > button {
+  min-height: 30px;
+  padding: 0 10px !important;
+  border: 1px solid var(--brian-nav-line) !important;
+  border-radius: 9px !important;
+  background: var(--brian-nav-surface) !important;
+  color: var(--brian-nav-accent) !important;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 780;
+}
+
+.brian-music-popover__sync > button:disabled,
+.brian-music-admin button:disabled,
+.brian-music-popover__status > button:disabled {
+  cursor: wait;
+  opacity: .55;
+}
+
+.brian-nav__music-popover.is-shared-music .brian-music-popover__status {
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+}
+
+.brian-nav__music-popover.is-shared-music .brian-music-popover__status > span {
+  width: 48px;
+  height: 48px;
+}
+
+.brian-nav__music-popover.is-shared-music .brian-music-popover__status > div {
+  gap: 2px;
+}
+
+.brian-nav__music-popover.is-shared-music .brian-music-popover__status strong {
+  font-size: 14px;
+}
+
+.brian-nav__music-popover.is-shared-music .brian-music-popover__status em {
+  overflow: hidden;
+  color: var(--brian-nav-muted);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brian-music-popover__empty {
+  min-height: 88px;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border: 1px dashed color-mix(in srgb, var(--brian-nav-line) 75%, var(--brian-nav-accent));
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--brian-nav-soft) 48%, transparent);
+}
+
+.brian-music-popover__empty > span {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--brian-nav-surface);
+  color: var(--brian-nav-accent);
+  box-shadow: inset 0 0 0 1px var(--brian-nav-line);
+  font-size: 23px;
+}
+
+.brian-music-popover__empty > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.brian-music-popover__empty strong {
+  color: var(--brian-nav-ink);
+  font-size: 13px;
+}
+
+.brian-music-popover__empty small {
+  color: var(--brian-nav-muted);
+  font-size: 11px;
+  font-weight: 620;
+  line-height: 1.4;
+}
+
+.brian-music-popover__controls.is-listener-only {
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 10px 12px;
+  border: 1px solid var(--brian-nav-line);
+  border-radius: 13px;
+  background: var(--brian-nav-surface);
+}
+
+.brian-music-popover__controls.is-listener-only .brian-music-popover__volume {
+  grid-template-columns: auto minmax(120px, 1fr);
+}
+
+.brian-music-admin {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--brian-nav-accent) 30%, var(--brian-nav-line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--brian-nav-accent) 6%, var(--brian-nav-surface));
+}
+
+.brian-music-admin__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brian-music-admin__heading > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.brian-music-admin__heading strong {
+  color: var(--brian-nav-accent);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.brian-music-admin__heading small {
+  overflow: hidden;
+  color: var(--brian-nav-ink);
+  font-size: 12px;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brian-music-admin__heading > span {
+  flex: 0 0 auto;
+  min-height: 25px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+.brian-music-admin__heading > span.is-shared {
+  background: #e6f4ea;
+  color: #137333;
+}
+
+.brian-music-admin__heading > span.is-private {
+  background: #fef7e0;
+  color: #8a4b00;
+}
+
+.brian-music-admin__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.brian-music-admin__actions > button {
+  min-height: 38px;
+  padding: 0 12px !important;
+  border: 1px solid var(--brian-nav-line) !important;
+  border-radius: 11px !important;
+  background: var(--brian-nav-surface) !important;
+  color: var(--brian-nav-ink) !important;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.brian-music-admin__actions > button.is-primary {
+  border-color: var(--brian-nav-accent) !important;
+  background: var(--brian-nav-accent) !important;
+  color: white !important;
+}
+
+.brian-music-admin__actions > button.is-danger {
+  border-color: color-mix(in srgb, #b3261e 30%, var(--brian-nav-line)) !important;
+  color: #b3261e !important;
+}
+
+.brian-nav__music-popover.is-shared-music .brian-music-popover__footer {
+  min-height: 50px;
+}
+
+@media (max-width: 620px) {
+  .brian-music-popover__sync {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+
+  .brian-music-popover__sync > button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .brian-music-popover__controls.is-listener-only {
+    grid-template-columns: 1fr;
+  }
+
+  .brian-music-popover__controls.is-listener-only .brian-music-popover__volume {
+    grid-column: auto;
+  }
+
+  .brian-music-admin__actions > button {
+    flex: 1 1 140px;
+  }
+}
