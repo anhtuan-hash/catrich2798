@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/motion.js';
 import './StatusMenuBar.css';
+import './StatusMenuBarUnified.css';
 
 const MAX_HEADLINES = 8;
 const WEATHER_CACHE_KEY = 'bes-briefing-weather-v1';
@@ -57,15 +58,11 @@ function compactTime(value, language) {
 }
 
 function fallbackCoordinates(language) {
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-  const vietnamTimezone = timezone === 'Asia/Ho_Chi_Minh' || timezone === 'Asia/Saigon';
   return {
     latitude: 10.8231,
     longitude: 106.6297,
     precise: false,
-    locationLabel: language === 'en'
-      ? (vietnamTimezone ? 'Ho Chi Minh City' : 'Ho Chi Minh City')
-      : 'TP.HCM',
+    locationLabel: language === 'en' ? 'Ho Chi Minh City' : 'TP.HCM',
   };
 }
 
@@ -184,9 +181,9 @@ export default function StatusMenuBar({
       saveCachedWeather(next);
       setWeatherStatus('ready');
     } catch {
-      setWeatherStatus(weather ? 'ready' : 'error');
+      setWeatherStatus((current) => (current === 'refreshing' || current === 'ready' ? 'ready' : 'error'));
     }
-  }, [language, weather]);
+  }, [language]);
 
   useEffect(() => {
     loadWeather(false);
