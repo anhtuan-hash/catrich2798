@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import './patch-ai-workspace-session.mjs';
 
 const now = new Date().toISOString();
 const removedApplications = [
