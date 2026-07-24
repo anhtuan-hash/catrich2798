@@ -27,6 +27,7 @@ import './GlobalDashboardVisualFix.css';
 import './GlobalWorkHubGoogleRedesign.css';
 import './GlobalHomeroomGoogleRedesign.css';
 import './GlobalHomeroomGoogleColorPolish.css';
+import './GlobalHomeroomGoogleReadabilityPolish.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
