@@ -14,6 +14,11 @@ import {
   serializeCanvas,
 } from '../utils/contentEcosystem.js';
 
+const ASSET_LIST_COLUMNS = 'id,owner_id,title,asset_type,source_app,metadata,tags,status,created_at,updated_at';
+const ASSET_DETAIL_COLUMNS = 'id,owner_id,title,asset_type,source_app,content_text,content_json,metadata,tags,status,created_at,updated_at';
+const KIT_COLUMNS = 'id,owner_id,title,description,asset_ids,status,created_at,updated_at';
+const ECOSYSTEM_CACHE_MAX_AGE = 6 * 60 * 60 * 1000;
+
 const TABS = [
   ['library', 'Thư viện tài sản', 'Asset library'],
   ['canvas', 'Canvas nội dung', 'Content canvas'],
@@ -22,7 +27,7 @@ const TABS = [
 ];
 
 function blankAsset() {
-  return makeEcosystemAsset({ title: 'Nguồn nội dung mới', asset_type: 'source', content_text: '' });
+  return { ...makeEcosystemAsset({ title: 'Nguồn nội dung mới', asset_type: 'source', content_text: '' }), _contentLoaded: true };
 }
 
 function assetTypeLabel(value) {
@@ -31,6 +36,23 @@ function assetTypeLabel(value) {
 
 function kitId() {
   return `kit-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+
+function syncStampKey(user) {
+  return scopedLocalKey('bes-content-ecosystem-cloud-sync-v1120', user);
+}
+
+function readSyncStamp(user) {
+  try { return Number(localStorage.getItem(syncStampKey(user)) || 0); } catch { return 0; }
+}
+
+function writeSyncStamp(user, value = Date.now()) {
+  try { localStorage.setItem(syncStampKey(user), String(Number(value) || Date.now())); } catch { /* optional */ }
+}
+
+function localAsset(value) {
+  return { ...makeEcosystemAsset(value), _contentLoaded: value?._contentLoaded !== false };
 }
 
 export default function ContentEcosystem({ currentUser, language = 'vi' }) {
@@ -61,30 +83,58 @@ export default function ContentEcosystem({ currentUser, language = 'vi' }) {
     return assets.filter((asset) => `${asset.title} ${asset.asset_type} ${(asset.tags || []).join(' ')} ${asset.content_text}`.toLowerCase().includes(keyword));
   }, [assets, query]);
 
-  const persistLocal = useCallback((nextAssets, nextKits = kits) => {
+  const persistLocal = useCallback((nextAssets, nextKits) => {
     writeLocal(assetKey, nextAssets);
-    writeLocal(kitKey, nextKits);
-  }, [assetKey, kitKey, kits]);
+    if (nextKits !== undefined) writeLocal(kitKey, nextKits);
+  }, [assetKey, kitKey]);
 
-  const loadData = useCallback(async () => {
-    let loadedAssets = readLocal(assetKey, []);
+  const loadData = useCallback(async ({ force = false } = {}) => {
+    let loadedAssets = readLocal(assetKey, []).map(localAsset);
     let loadedKits = readLocal(kitKey, []);
-    if (client && runtime.session) {
+    const lastSync = readSyncStamp(currentUser);
+    const useLocal = !force && lastSync && Date.now() - lastSync < ECOSYSTEM_CACHE_MAX_AGE;
+
+    if (client && runtime.session && !useLocal) {
+      const localById = new Map(loadedAssets.map((asset) => [asset.id, asset]));
       const [{ data: cloudAssets, error: assetError }, { data: cloudKits, error: kitError }] = await Promise.all([
-        client.from('content_ecosystem_assets').select('*').order('updated_at', { ascending: false }).limit(500),
-        client.from('content_ecosystem_kits').select('*').order('updated_at', { ascending: false }).limit(200),
+        client.from('content_ecosystem_assets').select(ASSET_LIST_COLUMNS).order('updated_at', { ascending: false }).limit(300),
+        client.from('content_ecosystem_kits').select(KIT_COLUMNS).order('updated_at', { ascending: false }).limit(120),
       ]);
-      if (!assetError) loadedAssets = (cloudAssets || []).map(makeEcosystemAsset);
+      if (!assetError) {
+        loadedAssets = (cloudAssets || []).map((row) => {
+          const cached = localById.get(row.id);
+          return {
+            ...makeEcosystemAsset({ ...(cached || {}), ...row }),
+            _contentLoaded: Boolean(cached?._contentLoaded),
+          };
+        });
+      }
       if (!kitError) loadedKits = cloudKits || [];
+      if (!assetError && !kitError) writeSyncStamp(currentUser);
     }
+
+    let first = loadedAssets[0] || null;
+    if (first && !first._contentLoaded && client && runtime.session) {
+      const { data: detail, error: detailError } = await client
+        .from('content_ecosystem_assets')
+        .select(ASSET_DETAIL_COLUMNS)
+        .eq('id', first.id)
+        .maybeSingle();
+      if (!detailError && detail) {
+        first = { ...makeEcosystemAsset(detail), _contentLoaded: true };
+        loadedAssets = [first, ...loadedAssets.slice(1)];
+      }
+    }
+
     setAssets(loadedAssets);
     setKits(loadedKits);
-    if (loadedAssets[0]) {
-      setActiveAssetId(loadedAssets[0].id);
-      setDraft(loadedAssets[0]);
-      setBlocks(makeCanvasBlocks(loadedAssets[0].content_text));
+    persistLocal(loadedAssets, loadedKits);
+    if (first) {
+      setActiveAssetId(first.id);
+      setDraft(first);
+      setBlocks(makeCanvasBlocks(first.content_text));
     }
-  }, [assetKey, client, kitKey, runtime.session]);
+  }, [assetKey, client, currentUser, kitKey, persistLocal, runtime.session]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -92,14 +142,14 @@ export default function ContentEcosystem({ currentUser, language = 'vi' }) {
     const applyTransfer = (event) => {
       const item = event?.detail;
       if (!item || item.target !== 'content-ecosystem') return;
-      const asset = makeEcosystemAsset({
+      const asset = { ...makeEcosystemAsset({
         title: item.title,
         asset_type: item.type || 'source',
         source_app: item.sourceApp,
         content_text: item.content,
         metadata: item.metadata,
         tags: extractKeywords(item.content, 10),
-      });
+      }), _contentLoaded: true };
       setAssets((current) => {
         const next = [asset, ...current.filter((entry) => entry.id !== asset.id)];
         persistLocal(next);
@@ -115,10 +165,34 @@ export default function ContentEcosystem({ currentUser, language = 'vi' }) {
     return () => window.removeEventListener(TRANSFER_APPLY_EVENT, applyTransfer);
   }, [persistLocal, vi]);
 
-  function openAsset(asset) {
-    setActiveAssetId(asset.id);
-    setDraft(asset);
-    setBlocks(makeCanvasBlocks(asset.content_text));
+  async function openAsset(asset) {
+    let selected = asset;
+    if (!asset._contentLoaded && client && runtime.session) {
+      setBusy(true); setError('');
+      try {
+        const { data, error: detailError } = await client
+          .from('content_ecosystem_assets')
+          .select(ASSET_DETAIL_COLUMNS)
+          .eq('id', asset.id)
+          .maybeSingle();
+        if (detailError) throw detailError;
+        if (data) {
+          selected = { ...makeEcosystemAsset(data), _contentLoaded: true };
+          setAssets((current) => {
+            const next = current.map((entry) => entry.id === selected.id ? selected : entry);
+            persistLocal(next);
+            return next;
+          });
+        }
+      } catch (detailError) {
+        setError(detailError.message || String(detailError));
+      } finally {
+        setBusy(false);
+      }
+    }
+    setActiveAssetId(selected.id);
+    setDraft(selected);
+    setBlocks(makeCanvasBlocks(selected.content_text));
     setTab('canvas');
   }
 
@@ -132,13 +206,16 @@ export default function ContentEcosystem({ currentUser, language = 'vi' }) {
 
   async function saveAsset() {
     if (!draft.title.trim()) { setError(vi ? 'Hãy đặt tên nội dung.' : 'Please name the content.'); return; }
-    const asset = makeEcosystemAsset({
-      ...draft,
-      id: activeAssetId || draft.id,
-      content_text: serializeCanvas(blocks),
-      tags: draft.tags?.length ? draft.tags : extractKeywords(serializeCanvas(blocks), 12),
-      updated_at: new Date().toISOString(),
-    });
+    const asset = {
+      ...makeEcosystemAsset({
+        ...draft,
+        id: activeAssetId || draft.id,
+        content_text: serializeCanvas(blocks),
+        tags: draft.tags?.length ? draft.tags : extractKeywords(serializeCanvas(blocks), 12),
+        updated_at: new Date().toISOString(),
+      }),
+      _contentLoaded: true,
+    };
     setBusy(true); setError('');
     try {
       let saved = asset;
@@ -156,12 +233,12 @@ export default function ContentEcosystem({ currentUser, language = 'vi' }) {
           status: asset.status,
           updated_at: asset.updated_at,
         };
-        const { data, error: saveError } = await client.from('content_ecosystem_assets').upsert(payload).select('*').single();
+        const { data, error: saveError } = await client.from('content_ecosystem_assets').upsert(payload).select(ASSET_DETAIL_COLUMNS).single();
         if (saveError) throw saveError;
-        saved = makeEcosystemAsset(data);
+        saved = { ...makeEcosystemAsset(data), _contentLoaded: true };
       }
       const next = [saved, ...assets.filter((entry) => entry.id !== saved.id)];
-      setAssets(next); setActiveAssetId(saved.id); setDraft(saved); persistLocal(next);
+      setAssets(next); setActiveAssetId(saved.id); setDraft(saved); persistLocal(next); if (client && runtime.session) writeSyncStamp(currentUser);
       setNotice(vi ? 'Đã lưu tài sản nội dung.' : 'Content asset saved.');
     } catch (saveError) { setError(saveError.message || String(saveError)); }
     finally { setBusy(false); }
@@ -171,7 +248,7 @@ export default function ContentEcosystem({ currentUser, language = 'vi' }) {
     if (!window.confirm(vi ? `Xóa “${asset.title}”?` : `Delete “${asset.title}”?`)) return;
     if (client && runtime.session) await client.from('content_ecosystem_assets').delete().eq('id', asset.id);
     const next = assets.filter((entry) => entry.id !== asset.id);
-    setAssets(next); setSelectedAssets((current) => current.filter((id) => id !== asset.id)); persistLocal(next);
+    setAssets(next); setSelectedAssets((current) => current.filter((id) => id !== asset.id)); persistLocal(next); if (client && runtime.session) writeSyncStamp(currentUser);
     if (activeAssetId === asset.id) newAsset();
   }
 
@@ -220,12 +297,12 @@ export default function ContentEcosystem({ currentUser, language = 'vi' }) {
     const kit = { id: kitId(), owner_id: currentUser.id, title, description: '', asset_ids: chosen.map((asset) => asset.id), status: 'draft', created_at: now, updated_at: now };
     let saved = kit;
     if (client && runtime.session) {
-      const { data, error: saveError } = await client.from('content_ecosystem_kits').insert(kit).select('*').single();
+      const { data, error: saveError } = await client.from('content_ecosystem_kits').insert(kit).select(KIT_COLUMNS).single();
       if (saveError) { setError(saveError.message); return; }
       saved = data;
     }
     const next = [saved, ...kits];
-    setKits(next); persistLocal(assets, next); setTab('kits'); setNotice(vi ? 'Đã tạo bộ nội dung.' : 'Content kit created.');
+    setKits(next); persistLocal(assets, next); if (client && runtime.session) writeSyncStamp(currentUser); setTab('kits'); setNotice(vi ? 'Đã tạo bộ nội dung.' : 'Content kit created.');
   }
 
   function exportKit(kit) {
