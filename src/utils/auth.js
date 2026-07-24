@@ -8,6 +8,19 @@ export const PROFILE_TABLE = 'profiles';
 export const OFFLINE_DEMO_SESSION_KEY = 'bes-offline-demo-user-v943';
 export const AUTH_NOTICE_KEY = 'bes-auth-notice-v1065';
 
+const PROFILE_COLUMNS = 'id,email,full_name,school,role,approved,permissions,created_at,updated_at';
+const PROFILE_CACHE_MAX_AGE = 30 * 60 * 1000;
+const AUTH_SESSION_CACHE_MAX_AGE = 5 * 60 * 1000;
+
+const authListeners = new Set();
+const profileCache = new Map();
+const profilePromises = new Map();
+let authInitPromise = null;
+let sharedAuthSubscription = null;
+let authEventChain = Promise.resolve();
+let cachedAuthUser;
+let cachedAuthUserAt = 0;
+
 export function createOfflineDemoUser(role = 'admin') {
   const isAdmin = role === 'admin';
   return {
@@ -50,7 +63,24 @@ export async function loginOfflineDemo(role = 'admin') {
 }
 
 function dispatchAuth(user = null) {
-  window.dispatchEvent(new CustomEvent(AUTH_EVENT, { detail: { user } }));
+  cachedAuthUser = user || null;
+  cachedAuthUserAt = Date.now();
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(AUTH_EVENT, { detail: { user: cachedAuthUser } }));
+  }
+  authListeners.forEach((listener) => {
+    try { listener(cachedAuthUser); } catch (error) { console.warn('Auth listener failed:', error); }
+  });
+}
+
+function invalidateProfileCache(userId = '') {
+  if (userId) profileCache.delete(String(userId));
+  else profileCache.clear();
+}
+
+function cacheProfile(userId, profile) {
+  if (!userId || !profile) return;
+  profileCache.set(String(userId), { profile, storedAt: Date.now() });
 }
 
 function dispatchUsers() {
@@ -121,7 +151,8 @@ async function promoteConfiguredAdminIfNeeded(user, existingProfile = null) {
   // update/list profiles until the database profile is also role=admin.
   const claim = await claimConfiguredAdminInDatabase();
   if (claim.ok) {
-    const reread = await readProfile(user.id);
+    invalidateProfileCache(user.id);
+    const reread = await readProfile(user.id, { force: true });
     return reread.profile || existingProfile;
   }
 
@@ -130,8 +161,9 @@ async function promoteConfiguredAdminIfNeeded(user, existingProfile = null) {
     .from(PROFILE_TABLE)
     .update({ role: 'admin', approved: true, updated_at: new Date().toISOString() })
     .eq('id', user.id)
-    .select('id,email,full_name,school,role,approved,permissions,created_at,updated_at')
+    .select(PROFILE_COLUMNS)
     .maybeSingle();
+  if (data) cacheProfile(user.id, data);
   return data || existingProfile;
 }
 
@@ -150,7 +182,8 @@ export async function repairCurrentAdminDatabaseRole() {
       message: claim.message || 'Could not promote this account in public.profiles. Run the V5.7 Supabase SQL upgrade first.',
     };
   }
-  dispatchAuth(await ensureProfile(user));
+  invalidateProfileCache(user.id);
+  dispatchAuth(await ensureProfile(user, {}, { force: true }));
   return { ok: true };
 }
 
@@ -192,55 +225,114 @@ function cleanProfilePayload(user, defaults = {}) {
   };
 }
 
-async function readProfile(userId) {
+async function readProfile(userId, { force = false } = {}) {
   if (!isSupabaseConfigured || !userId) return { profile: null, error: null };
-  const { data, error } = await supabase
-    .from(PROFILE_TABLE)
-    .select('id,email,full_name,school,role,approved,permissions,created_at,updated_at')
-    .eq('id', userId)
-    .maybeSingle();
-  return { profile: data || null, error };
+  const key = String(userId);
+  const cached = profileCache.get(key);
+  if (!force && cached && Date.now() - cached.storedAt < PROFILE_CACHE_MAX_AGE) {
+    return { profile: cached.profile, error: null, cached: true };
+  }
+  if (!force && profilePromises.has(key)) return profilePromises.get(key);
+
+  const task = (async () => {
+    const { data, error } = await supabase
+      .from(PROFILE_TABLE)
+      .select(PROFILE_COLUMNS)
+      .eq('id', userId)
+      .maybeSingle();
+    if (!error && data) cacheProfile(key, data);
+    return { profile: data || null, error };
+  })();
+  profilePromises.set(key, task);
+  try { return await task; }
+  finally { profilePromises.delete(key); }
 }
 
-async function ensureProfile(user, defaults = {}) {
+async function ensureProfile(user, defaults = {}, { force = false } = {}) {
   if (!isSupabaseConfigured || !user?.id) return mapProfile(user, null);
-  const existing = await readProfile(user.id);
+  const existing = await readProfile(user.id, { force });
   if (existing.profile) {
     const adminSyncedProfile = await promoteConfiguredAdminIfNeeded(user, existing.profile);
-    return mapProfile(user, adminSyncedProfile || existing.profile);
+    const selected = adminSyncedProfile || existing.profile;
+    cacheProfile(user.id, selected);
+    return mapProfile(user, selected);
   }
 
   const payload = cleanProfilePayload(user, defaults);
   const { data, error } = await supabase
     .from(PROFILE_TABLE)
     .upsert(payload, { onConflict: 'id' })
-    .select('id,email,full_name,school,role,approved,permissions,created_at,updated_at')
+    .select(PROFILE_COLUMNS)
     .maybeSingle();
 
   if (error) {
     console.warn('Profile table is not ready or RLS blocked profile upsert:', error.message);
     const claimed = await promoteConfiguredAdminIfNeeded(user, null);
+    if (claimed) cacheProfile(user.id, claimed);
     return mapProfile(user, claimed);
   }
+  cacheProfile(user.id, data || payload);
   const adminSyncedProfile = await promoteConfiguredAdminIfNeeded(user, data || payload);
-  return mapProfile(user, adminSyncedProfile || data || payload);
+  const selected = adminSyncedProfile || data || payload;
+  cacheProfile(user.id, selected);
+  return mapProfile(user, selected);
+}
+
+async function resolveSessionUser(session, { forceProfile = false } = {}) {
+  const authUser = session?.user;
+  if (!authUser?.id) return null;
+  if (!forceProfile && cachedAuthUser?.id === authUser.id && Date.now() - cachedAuthUserAt < AUTH_SESSION_CACHE_MAX_AGE) {
+    return cachedAuthUser;
+  }
+  const user = await ensureProfile(authUser, {}, { force: forceProfile });
+  if (user?.approved === false) {
+    saveAuthNotice('Tài khoản đã đăng nhập thành công nhưng đang chờ quản trị viên duyệt.', 'warning');
+    window.setTimeout(() => supabase.auth.signOut(), 0);
+    return null;
+  }
+  return user;
+}
+
+function ensureSharedAuthSubscription() {
+  if (!isSupabaseConfigured || sharedAuthSubscription) return;
+  const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    authEventChain = authEventChain.then(async () => {
+      if (!session?.user) {
+        dispatchAuth(null);
+        return;
+      }
+      const forceProfile = event === 'USER_UPDATED' || event === 'PASSWORD_RECOVERY';
+      const user = await resolveSessionUser(session, { forceProfile });
+      dispatchAuth(user);
+    }).catch((error) => console.warn('Shared auth session handler failed:', error));
+  });
+  sharedAuthSubscription = data?.subscription || null;
 }
 
 export function isAuthConfigured() {
   return isSupabaseConfigured;
 }
 
-export async function initializeAuthSession() {
+export async function initializeAuthSession({ force = false } = {}) {
   if (!isSupabaseConfigured) return readOfflineDemoUser();
-  const { data, error } = await supabase.auth.getSession();
-  if (error || !data?.session?.user) return null;
-  const user = await ensureProfile(data.session.user);
-  if (user?.approved === false) {
-    saveAuthNotice('Tài khoản đã đăng nhập thành công nhưng đang chờ quản trị viên duyệt.', 'warning');
-    await supabase.auth.signOut();
-    return null;
+  ensureSharedAuthSubscription();
+  if (!force && cachedAuthUser !== undefined && Date.now() - cachedAuthUserAt < AUTH_SESSION_CACHE_MAX_AGE) {
+    return cachedAuthUser;
   }
-  return user;
+  if (!force && authInitPromise) return authInitPromise;
+
+  authInitPromise = (async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error || !data?.session?.user) {
+      dispatchAuth(null);
+      return null;
+    }
+    const user = await resolveSessionUser(data.session, { forceProfile: force });
+    dispatchAuth(user);
+    return user;
+  })();
+  try { return await authInitPromise; }
+  finally { authInitPromise = null; }
 }
 
 export function subscribeToAuthChanges(callback) {
@@ -249,19 +341,12 @@ export function subscribeToAuthChanges(callback) {
     window.addEventListener(AUTH_EVENT, handler);
     return () => window.removeEventListener(AUTH_EVENT, handler);
   }
-  const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
-    const user = session?.user ? await ensureProfile(session.user) : null;
-    if (user?.approved === false) {
-      saveAuthNotice('Tài khoản đã đăng nhập thành công nhưng đang chờ quản trị viên duyệt.', 'warning');
-      dispatchAuth(null);
-      callback?.(null);
-      window.setTimeout(() => supabase.auth.signOut(), 0);
-      return;
-    }
-    dispatchAuth(user);
-    callback?.(user);
-  });
-  return () => data?.subscription?.unsubscribe?.();
+  if (typeof callback !== 'function') return () => {};
+  authListeners.add(callback);
+  ensureSharedAuthSubscription();
+  if (cachedAuthUser !== undefined) queueMicrotask(() => callback(cachedAuthUser));
+  else initializeAuthSession().catch(() => {});
+  return () => authListeners.delete(callback);
 }
 
 export async function getCurrentUser() {
@@ -373,6 +458,7 @@ export async function loginWithGoogle() {
 export async function logoutUser() {
   if (isSupabaseConfigured) {
     await supabase.auth.signOut();
+    invalidateProfileCache();
   } else {
     localStorage.removeItem(OFFLINE_DEMO_SESSION_KEY);
   }
@@ -494,7 +580,7 @@ export async function getUsers() {
   // Fallback for older databases that have not run the V5.6 SQL yet.
   const { data, error } = await supabase
     .from(PROFILE_TABLE)
-    .select('id,email,full_name,school,role,approved,permissions,created_at,updated_at')
+    .select(PROFILE_COLUMNS)
     .order('created_at', { ascending: false });
   if (error) throw error;
   return (data || []).map(mapDbProfile);
@@ -522,6 +608,7 @@ async function updateProfile(id, updates) {
     patch: cleanUpdates,
   });
   if (!rpc.error) {
+    invalidateProfileCache(id);
     dispatchUsers();
     return { ok: true };
   }
@@ -531,6 +618,7 @@ async function updateProfile(id, updates) {
     .update(cleanUpdates)
     .eq('id', id);
   if (error) return { ok: false, message: error.message };
+  invalidateProfileCache(id);
   dispatchUsers();
   return { ok: true };
 }
@@ -582,11 +670,12 @@ export async function getAccountYouTubeApiKey(user = null) {
   if (!isSupabaseConfigured) return localValue;
 
   try {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data?.user) return localValue;
-    const remoteValue = String(data.user.user_metadata?.[YOUTUBE_API_METADATA_KEY] || '').trim();
+    const { data, error } = await supabase.auth.getSession();
+    const sessionUser = data?.session?.user;
+    if (error || !sessionUser) return localValue;
+    const remoteValue = String(sessionUser.user_metadata?.[YOUTUBE_API_METADATA_KEY] || '').trim();
     if (remoteValue) {
-      localStorage.setItem(youtubeApiLocalKey(user || { id: data.user.id, email: data.user.email }), remoteValue);
+      localStorage.setItem(youtubeApiLocalKey(user || { id: sessionUser.id, email: sessionUser.email }), remoteValue);
       return remoteValue;
     }
   } catch {
@@ -609,11 +698,12 @@ export async function saveAccountYouTubeApiKey(value, user = null) {
   }
 
   try {
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError || !userData?.user) {
-      return { ok: false, message: userError?.message || 'No active Supabase account.' };
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    const sessionUser = sessionData?.session?.user;
+    if (sessionError || !sessionUser) {
+      return { ok: false, message: sessionError?.message || 'No active Supabase account.' };
     }
-    const currentMetadata = userData.user.user_metadata || {};
+    const currentMetadata = sessionUser.user_metadata || {};
     const nextMetadata = {
       ...currentMetadata,
       [YOUTUBE_API_METADATA_KEY]: cleanValue || null,

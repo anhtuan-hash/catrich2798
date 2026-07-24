@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
+import { getRuntimeClient } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import {
   listWorkHubNotifications,
@@ -8,8 +8,11 @@ import {
 } from '../utils/workHubDelivery.js';
 
 const HIDDEN_TASK_STATUSES = new Set(['draft', 'completed', 'approved', 'archived', 'cancelled']);
-const FOCUS_REFRESH_INTERVAL = 30_000;
+const FOCUS_REFRESH_INTERVAL = 10 * 60 * 1000;
+const ASSIGNED_ITEMS_CACHE_MAX_AGE = 10 * 60 * 1000;
 const BOOT_IDLE_TIMEOUT = 1_500;
+const assignedItemsCache = new Map();
+const assignedItemsPromises = new Map();
 
 function notificationStorageKey(currentUser) {
   return `bes-global-notifications:${currentUser?.id || currentUser?.email || 'guest'}`;
@@ -100,35 +103,51 @@ function mapAssignedTask(item, language, readStates) {
   };
 }
 
-async function listAssignedWorkItems(userId) {
+function isVisibleAssignedItem(item, userId) {
+  const assignees = normalizeIds(item?.assignee_ids);
+  if (!assignees.includes(String(userId))) return false;
+  if (String(item?.owner_id || '') === String(userId)) return false;
+  if (HIDDEN_TASK_STATUSES.has(String(item?.status || '').toLowerCase())) return false;
+  if (item?.metadata?.notify_assignee === false) return false;
+  return true;
+}
+
+async function listAssignedWorkItems(userId, { force = false } = {}) {
   const client = getRuntimeClient();
   if (!client || !userId) return [];
+  const key = String(userId);
+  const cached = assignedItemsCache.get(key);
+  if (!force && cached && Date.now() - cached.storedAt < ASSIGNED_ITEMS_CACHE_MAX_AGE) return cached.items;
+  if (!force && assignedItemsPromises.has(key)) return assignedItemsPromises.get(key);
 
-  const columns = 'id,title,description,status,priority,due_at,owner_id,created_by,assignee_ids,metadata,created_at,updated_at';
-  let result = await client
-    .from('work_hub_items')
-    .select(columns)
-    .contains('assignee_ids', [userId])
-    .order('created_at', { ascending: false })
-    .limit(80);
-
-  if (result.error) {
-    result = await client
+  const task = (async () => {
+    const columns = 'id,title,description,status,priority,due_at,owner_id,created_by,assignee_ids,metadata,created_at,updated_at';
+    let result = await client
       .from('work_hub_items')
       .select(columns)
+      .contains('assignee_ids', [userId])
       .order('created_at', { ascending: false })
-      .limit(300);
-  }
+      .limit(80);
 
-  if (result.error) return [];
-  return (result.data || []).filter((item) => {
-    const assignees = normalizeIds(item?.assignee_ids);
-    if (!assignees.includes(String(userId))) return false;
-    if (String(item?.owner_id || '') === String(userId)) return false;
-    if (HIDDEN_TASK_STATUSES.has(String(item?.status || '').toLowerCase())) return false;
-    if (item?.metadata?.notify_assignee === false) return false;
-    return true;
-  });
+    if (result.error) {
+      result = await client
+        .from('work_hub_items')
+        .select(columns)
+        .order('created_at', { ascending: false })
+        .limit(160);
+    }
+
+    const items = result.error ? (cached?.items || []) : (result.data || []).filter((item) => isVisibleAssignedItem(item, userId));
+    assignedItemsCache.set(key, { items, storedAt: Date.now() });
+    return items;
+  })();
+  assignedItemsPromises.set(key, task);
+  try { return await task; }
+  finally { assignedItemsPromises.delete(key); }
+}
+
+function realtimeRow(payload) {
+  return payload?.new && Object.keys(payload.new).length ? payload.new : payload?.old;
 }
 
 function dispatchNotifications(items) {
@@ -148,15 +167,15 @@ export default function GlobalWorkHubNotificationBridge({ currentUser, language 
   const lastRefreshAtRef = useRef(0);
   const refreshTimerRef = useRef(0);
 
-  const refresh = useCallback(() => {
+  const refresh = useCallback(({ force = false } = {}) => {
     if (!userId || !runtime.ready || !runtime.session) return Promise.resolve();
     if (refreshInFlightRef.current) return refreshInFlightRef.current;
 
     const task = (async () => {
       const readStates = storedReadState(currentUser);
       const [databaseRows, assignedItems] = await Promise.all([
-        listWorkHubNotifications(userId, 60),
-        listAssignedWorkItems(userId),
+        listWorkHubNotifications(userId, 60, { force }),
+        listAssignedWorkItems(userId, { force }),
       ]);
 
       const databaseNotifications = (databaseRows || []).map((row) => mapDatabaseNotification(row, language, readStates));
@@ -193,16 +212,20 @@ export default function GlobalWorkHubNotificationBridge({ currentUser, language 
     const refreshSoon = ({ force = false, delay = 120 } = {}) => {
       if (!force && Date.now() - lastRefreshAtRef.current < FOCUS_REFRESH_INTERVAL) return;
       window.clearTimeout(refreshTimerRef.current);
-      refreshTimerRef.current = window.setTimeout(() => refresh(), delay);
+      refreshTimerRef.current = window.setTimeout(() => refresh({ force }), delay);
     };
 
-    const unsubscribeNotifications = subscribeWorkHubNotifications(userId, () => refreshSoon({ force: true, delay: 80 }));
-    const unsubscribeItems = subscribeTable({
-      key: `global-work-hub-items-${userId}`,
-      table: 'work_hub_items',
-      onChange: () => refreshSoon({ force: true, delay: 80 }),
+    const unsubscribeNotifications = subscribeWorkHubNotifications(userId, (payload) => {
+      const row = realtimeRow(payload);
+      if (!row?.id || payload?.eventType === 'DELETE' || row.read_at) return;
+      dispatchNotifications([mapDatabaseNotification(row, language, storedReadState(currentUser))]);
     });
-    const onDeliveryUpdate = () => refreshSoon({ force: true, delay: 80 });
+
+    const onDeliveryUpdate = (event) => {
+      const type = String(event?.detail?.type || '');
+      if (['notification-change', 'notification-read', 'notifications-read-all', 'file-uploaded'].includes(type)) return;
+      refreshSoon();
+    };
     const onFocus = () => refreshSoon();
     const onVisibility = () => {
       if (document.visibilityState === 'visible') refreshSoon();
@@ -214,12 +237,12 @@ export default function GlobalWorkHubNotificationBridge({ currentUser, language 
     return () => {
       window.clearTimeout(refreshTimerRef.current);
       unsubscribeNotifications();
-      unsubscribeItems();
       window.removeEventListener(WORK_HUB_DELIVERY_EVENT, onDeliveryUpdate);
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [refresh, runtime.ready, runtime.session, userId]);
+  }, [currentUser, language, refresh, runtime.ready, runtime.session, userId]);
+
 
   return null;
 }

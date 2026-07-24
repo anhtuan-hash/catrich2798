@@ -7,6 +7,9 @@ const LOCAL_PROFILE_PREFIX = 'bes-user-profile-v1:';
 const OFFLINE_SESSION_KEY = 'bes-offline-demo-user-v943';
 const EXTENDED_PROFILE_COLUMNS = 'full_name,school,job_title,phone,bio,avatar_url,updated_at';
 const LEGACY_PROFILE_COLUMNS = 'full_name,school,updated_at';
+const PROFILE_LOAD_CACHE_MAX_AGE = 30 * 60 * 1000;
+const profileLoadCache = new Map();
+const profileLoadPromises = new Map();
 
 function cleanText(value, maxLength = 240) {
   return String(value || '').trim().slice(0, maxLength);
@@ -106,26 +109,40 @@ async function readOwnDatabaseProfile(userId) {
   return legacy.error ? null : (legacy.data || null);
 }
 
-export async function loadUserProfile(user) {
+export async function loadUserProfile(user, { force = false } = {}) {
   if (!user) return null;
   const local = readLocalUserProfile(user);
   if (!isSupabaseConfigured) return mergeUserProfile(user, local);
 
-  try {
-    const [{ data: authData }, dbProfile] = await Promise.all([
-      supabase.auth.getUser(),
-      readOwnDatabaseProfile(user.id),
-    ]);
-    const remote = profileFromRemote(authData?.user, dbProfile);
-    const remoteTime = Date.parse(remote.updatedAt || '') || 0;
-    const localTime = Date.parse(local?.updatedAt || '') || 0;
-    const preferred = local && (localTime >= remoteTime || String(local.avatarUrl || '').startsWith('data:'))
-      ? { ...remote, ...local }
-      : remote;
-    return mergeUserProfile(user, preferred);
-  } catch {
-    return mergeUserProfile(user, local);
+  const key = profileScope(user);
+  const cached = profileLoadCache.get(key);
+  if (!force && cached && Date.now() - cached.storedAt < PROFILE_LOAD_CACHE_MAX_AGE) {
+    return mergeUserProfile(user, cached.profile);
   }
+  if (!force && profileLoadPromises.has(key)) return profileLoadPromises.get(key);
+
+  const task = (async () => {
+    try {
+      const [{ data: sessionData }, dbProfile] = await Promise.all([
+        supabase.auth.getSession(),
+        readOwnDatabaseProfile(user.id),
+      ]);
+      const authUser = sessionData?.session?.user || user;
+      const remote = profileFromRemote(authUser, dbProfile);
+      const remoteTime = Date.parse(remote.updatedAt || '') || 0;
+      const localTime = Date.parse(local?.updatedAt || '') || 0;
+      const preferred = local && (localTime >= remoteTime || String(local.avatarUrl || '').startsWith('data:'))
+        ? { ...remote, ...local }
+        : remote;
+      profileLoadCache.set(key, { profile: preferred, storedAt: Date.now() });
+      return mergeUserProfile(user, preferred);
+    } catch {
+      return mergeUserProfile(user, local);
+    }
+  })();
+  profileLoadPromises.set(key, task);
+  try { return await task; }
+  finally { profileLoadPromises.delete(key); }
 }
 
 function sanitizeDraft(draft, currentUser) {
@@ -166,9 +183,10 @@ export async function saveCurrentUserProfile(currentUser, draft) {
   let authError = null;
   let profileError = null;
   try {
-    const { data: authData, error } = await supabase.auth.getUser();
-    if (error || !authData?.user) throw error || new Error('No active Supabase account.');
-    const metadata = authData.user.user_metadata || {};
+    const { data: sessionData, error } = await supabase.auth.getSession();
+    const sessionUser = sessionData?.session?.user;
+    if (error || !sessionUser) throw error || new Error('No active Supabase account.');
+    const metadata = sessionUser.user_metadata || {};
     const avatarForCloud = isRemoteAvatar(profile.avatarUrl)
       ? profile.avatarUrl
       : (profile.avatarUrl ? (metadata.avatar_url || '') : null);
@@ -197,7 +215,7 @@ export async function saveCurrentUserProfile(currentUser, draft) {
     const rpc = await supabase.rpc('bes_update_own_profile', { profile_patch: remotePatch });
     profileError = rpc.error || null;
 
-    const remoteUser = authUpdate.data?.user || authData.user;
+    const remoteUser = authUpdate.data?.user || sessionUser;
     nextUser = mergeUserProfile({
       ...currentUser,
       avatarUrl: remoteUser?.user_metadata?.avatar_url || profile.avatarUrl,
@@ -206,6 +224,7 @@ export async function saveCurrentUserProfile(currentUser, draft) {
     authError = error;
   }
 
+  profileLoadCache.set(profileScope(currentUser), { profile, storedAt: Date.now() });
   dispatchProfile(profile, nextUser);
   const cloudSaved = !authError && !profileError;
   return {
