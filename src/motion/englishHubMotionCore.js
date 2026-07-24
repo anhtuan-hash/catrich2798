@@ -8,19 +8,38 @@ import {
 const SETTINGS_KEY = 'bes-motion-core-v1';
 const activeAnimations = new WeakMap();
 const cleanupTimers = new Set();
+let globalListenerCleanup = null;
 
 function safeJson(value, fallback) {
   try { return JSON.parse(value); } catch { return fallback; }
 }
 
+function normalizedSettings(value = {}) {
+  return {
+    ...MOTION_FEATURE_DEFAULTS,
+    ...value,
+    semanticOverrides: value?.semanticOverrides && typeof value.semanticOverrides === 'object'
+      ? { ...value.semanticOverrides }
+      : {},
+  };
+}
+
 export function getMotionCoreSettings() {
-  if (typeof window === 'undefined') return { ...MOTION_FEATURE_DEFAULTS };
+  if (typeof window === 'undefined') return normalizedSettings();
   const stored = safeJson(window.localStorage?.getItem(SETTINGS_KEY) || '{}', {});
-  return { ...MOTION_FEATURE_DEFAULTS, ...stored };
+  return normalizedSettings(stored);
 }
 
 export function setMotionCoreSettings(patch = {}) {
-  const next = { ...getMotionCoreSettings(), ...patch, updatedAt: Date.now() };
+  const current = getMotionCoreSettings();
+  const next = normalizedSettings({
+    ...current,
+    ...patch,
+    semanticOverrides: patch.semanticOverrides === undefined
+      ? current.semanticOverrides
+      : patch.semanticOverrides,
+    updatedAt: Date.now(),
+  });
   try { window.localStorage?.setItem(SETTINGS_KEY, JSON.stringify(next)); } catch { /* optional */ }
   document.documentElement.dataset.motionCore = next.enabled === false ? 'off' : 'on';
   window.dispatchEvent(new CustomEvent('bes-motion-core-settings-changed', { detail: { settings: next } }));
@@ -40,21 +59,21 @@ function appearanceReduceMotion() {
 
 export function getMotionPolicy() {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
-    return { mode: 'off', performance: 'low', enabled: false, durationScale: 0 };
+    return { mode: 'off', performance: 'low', enabled: false, durationScale: 0, settings: normalizedSettings() };
   }
 
   const settings = getMotionCoreSettings();
   const root = document.documentElement;
   const mediaReduce = Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
-  const performance = root.dataset.performance || root.dataset.besPerformance || 'balanced';
+  const performanceMode = root.dataset.performance || root.dataset.besPerformance || 'balanced';
   let mode = root.dataset.motion || window.localStorage?.getItem('bes-motion-mode') || 'lite';
 
   if (settings.enabled === false || mediaReduce || appearanceReduceMotion()) mode = 'off';
-  if (performance === 'low' && mode === 'full') mode = 'lite';
+  if (performanceMode === 'low' && mode === 'full') mode = 'lite';
   if (!['off', 'lite', 'full'].includes(mode)) mode = 'lite';
 
-  const durationScale = mode === 'off' ? 0 : performance === 'high' ? 1 : performance === 'low' ? .72 : .9;
-  return { mode, performance, enabled: mode !== 'off', durationScale, settings };
+  const durationScale = mode === 'off' ? 0 : performanceMode === 'high' ? 1 : performanceMode === 'low' ? .72 : .9;
+  return { mode, performance: performanceMode, enabled: mode !== 'off', durationScale, settings };
 }
 
 function normalizeTargets(target) {
@@ -89,11 +108,7 @@ export function runEffect(target, effectName, overrides = {}) {
   const targets = normalizeTargets(target);
 
   if (!definition || !targets.length || !policy.enabled) {
-    return {
-      animations: [],
-      cancel() {},
-      finished: Promise.resolve([]),
-    };
+    return { animations: [], cancel() {}, finished: Promise.resolve([]) };
   }
 
   const animations = targets.map((element, index) => {
@@ -125,12 +140,40 @@ export function runEffect(target, effectName, overrides = {}) {
   };
 }
 
+function selectedEffectForSemantic(semantic, policy) {
+  const selected = policy.settings?.semanticOverrides?.[semantic];
+  if (selected && PRODUCTION_EFFECTS[selected]) return selected;
+  const choice = SEMANTIC_EFFECTS[semantic];
+  if (!choice) return null;
+  return choice[policy.mode] || choice.lite || null;
+}
+
 export function runSemanticMotion(target, semantic, overrides = {}) {
   const policy = getMotionPolicy();
-  const choice = SEMANTIC_EFFECTS[semantic];
-  if (!choice || policy.mode === 'off') return runEffect(null, '');
-  const effectName = choice[policy.mode] || choice.lite;
-  return runEffect(target, effectName, overrides);
+  if (policy.mode === 'off') return runEffect(null, '');
+  const effectName = selectedEffectForSemantic(semantic, policy);
+  return effectName ? runEffect(target, effectName, overrides) : runEffect(null, '');
+}
+
+export function applySitewideEffect(effectName, semantics = [], metadata = {}) {
+  if (!PRODUCTION_EFFECTS[effectName]) return getMotionCoreSettings();
+  const semanticOverrides = {};
+  [...new Set(semantics)].filter(Boolean).forEach((semantic) => { semanticOverrides[semantic] = effectName; });
+  return setMotionCoreSettings({
+    enabled: true,
+    semanticOverrides,
+    sitewideSelection: {
+      effectName,
+      sourceId: PRODUCTION_EFFECTS[effectName].sourceId,
+      semantics: Object.keys(semanticOverrides),
+      ...metadata,
+      updatedAt: Date.now(),
+    },
+  });
+}
+
+export function resetSitewideEffect() {
+  return setMotionCoreSettings({ semanticOverrides: {}, sitewideSelection: null });
 }
 
 export function stopMotion(target) {
@@ -140,26 +183,23 @@ export function stopMotion(target) {
 export function createRipple(target, clientX, clientY) {
   const policy = getMotionPolicy();
   if (!policy.enabled || policy.settings.buttons === false || !(target instanceof Element)) return null;
-
   const rect = target.getBoundingClientRect();
   if (rect.width < 8 || rect.height < 8) return null;
 
   const layer = document.createElement('span');
   layer.className = 'eh-motion-ripple-layer';
-  layer.style.left = `${rect.left}px`;
-  layer.style.top = `${rect.top}px`;
-  layer.style.width = `${rect.width}px`;
-  layer.style.height = `${rect.height}px`;
-  layer.style.borderRadius = getComputedStyle(target).borderRadius || '12px';
+  Object.assign(layer.style, {
+    left: `${rect.left}px`, top: `${rect.top}px`, width: `${rect.width}px`, height: `${rect.height}px`,
+    borderRadius: getComputedStyle(target).borderRadius || '12px',
+  });
 
   const ripple = document.createElement('i');
   const localX = Number.isFinite(clientX) ? clientX - rect.left : rect.width / 2;
   const localY = Number.isFinite(clientY) ? clientY - rect.top : rect.height / 2;
   const diameter = Math.hypot(Math.max(localX, rect.width - localX), Math.max(localY, rect.height - localY)) * 2;
-  ripple.style.left = `${localX}px`;
-  ripple.style.top = `${localY}px`;
-  ripple.style.width = `${diameter}px`;
-  ripple.style.height = `${diameter}px`;
+  Object.assign(ripple.style, {
+    left: `${localX}px`, top: `${localY}px`, width: `${diameter}px`, height: `${diameter}px`,
+  });
   layer.appendChild(ripple);
   document.body.appendChild(layer);
 
@@ -168,10 +208,8 @@ export function createRipple(target, clientX, clientY) {
     { transform: 'translate(-50%,-50%) scale(1)', opacity: 0 },
   ], {
     duration: Math.round((policy.mode === 'full' ? 560 : 360) * policy.durationScale),
-    easing: 'cubic-bezier(.2,0,0,1)',
-    fill: 'forwards',
+    easing: 'cubic-bezier(.2,0,0,1)', fill: 'forwards',
   });
-
   const remove = () => layer.remove();
   animation.addEventListener('finish', remove, { once: true });
   animation.addEventListener('cancel', remove, { once: true });
@@ -183,9 +221,7 @@ export function createParticleBurst(target, options = {}) {
   if (!policy.enabled || policy.settings.celebrations === false || !(target instanceof Element)) {
     return runSemanticMotion(target, 'success');
   }
-  if (policy.mode !== 'full' || policy.performance === 'low') {
-    return runSemanticMotion(target, 'success');
-  }
+  if (policy.mode !== 'full' || policy.performance === 'low') return runSemanticMotion(target, 'success');
 
   const rect = target.getBoundingClientRect();
   const layer = document.createElement('span');
@@ -197,7 +233,6 @@ export function createParticleBurst(target, options = {}) {
   const colors = options.colors || ['#4285f4', '#ea4335', '#fbbc04', '#34a853'];
   const count = Math.min(36, Math.max(12, Number(options.count || 24)));
   const animations = [];
-
   for (let index = 0; index < count; index += 1) {
     const particle = document.createElement('i');
     const angle = (index / count) * Math.PI * 2 + (Math.random() - .5) * .22;
@@ -205,18 +240,13 @@ export function createParticleBurst(target, options = {}) {
     particle.style.setProperty('--particle-color', colors[index % colors.length]);
     particle.style.setProperty('--particle-rotation', `${Math.round((Math.random() - .5) * 720)}deg`);
     layer.appendChild(particle);
-    const animation = particle.animate([
+    animations.push(particle.animate([
       { transform: 'translate(-50%,-50%) scale(.7) rotate(0)', opacity: 1 },
-      {
-        transform: `translate(calc(-50% + ${Math.cos(angle) * distance}px), calc(-50% + ${Math.sin(angle) * distance}px)) scale(0) rotate(var(--particle-rotation))`,
-        opacity: 0,
-      },
+      { transform: `translate(calc(-50% + ${Math.cos(angle) * distance}px), calc(-50% + ${Math.sin(angle) * distance}px)) scale(0) rotate(var(--particle-rotation))`, opacity: 0 },
     ], {
       duration: Math.round((700 + Math.random() * 420) * policy.durationScale),
-      easing: 'cubic-bezier(.12,.7,.15,1)',
-      fill: 'forwards',
-    });
-    animations.push(animation);
+      easing: 'cubic-bezier(.12,.7,.15,1)', fill: 'forwards',
+    }));
   }
 
   runSemanticMotion(target, 'success');
@@ -225,7 +255,6 @@ export function createParticleBurst(target, options = {}) {
     cleanupTimers.delete(timer);
   }, 1300);
   cleanupTimers.add(timer);
-
   return {
     animations,
     cancel() { animations.forEach((animation) => animation.cancel()); layer.remove(); },
@@ -235,9 +264,7 @@ export function createParticleBurst(target, options = {}) {
 
 export function animateNumber(element, toValue, options = {}) {
   const policy = getMotionPolicy();
-  const settings = policy.settings;
-  if (!(element instanceof Element) || settings.data === false) return null;
-
+  if (!(element instanceof Element) || policy.settings.data === false) return null;
   const parsedCurrent = String(element.textContent || '').replace(/[^\d.-]/g, '');
   const fromValue = Number(options.from ?? (parsedCurrent || 0));
   const targetValue = Number(toValue);
@@ -253,8 +280,7 @@ export function animateNumber(element, toValue, options = {}) {
     const progress = Math.min(1, (now - startedAt) / Math.max(1, duration));
     const eased = 1 - ((1 - progress) ** 4);
     const value = fromValue + (targetValue - fromValue) * eased;
-    const decimals = Number(options.decimals || 0);
-    element.textContent = `${options.prefix || ''}${value.toFixed(decimals)}${options.suffix || ''}`;
+    element.textContent = `${options.prefix || ''}${value.toFixed(Number(options.decimals || 0))}${options.suffix || ''}`;
     if (progress < 1) frame = requestAnimationFrame(tick);
   };
   frame = requestAnimationFrame(tick);
@@ -271,6 +297,41 @@ export function previewMotionCore(kind = 'success', target = null) {
   return runSemanticMotion(fallback, 'enter');
 }
 
+function installGlobalSelectionListeners() {
+  if (globalListenerCleanup || typeof document === 'undefined') return;
+  const cardSelector = '.flat-app-window-card,.dashboard-luxury-card,.settings-m3-card,[data-motion-card="true"]';
+
+  const onPointerDown = (event) => {
+    const interactive = event.target instanceof Element
+      ? event.target.closest('button:not([disabled]),[role="button"]:not([aria-disabled="true"]),a[href]')
+      : null;
+    if (!interactive || interactive.closest('[data-motion-ignore="true"]')) return;
+    if (getMotionCoreSettings().semanticOverrides?.press) runSemanticMotion(interactive, 'press');
+  };
+
+  const onPointerOver = (event) => {
+    const card = event.target instanceof Element ? event.target.closest(cardSelector) : null;
+    if (!card || card.contains(event.relatedTarget) || card.closest('[data-motion-ignore="true"]')) return;
+    if (getMotionCoreSettings().semanticOverrides?.cardHover) runSemanticMotion(card, 'cardHover', { persist: true });
+  };
+
+  const onPointerOut = (event) => {
+    const card = event.target instanceof Element ? event.target.closest(cardSelector) : null;
+    if (!card || card.contains(event.relatedTarget)) return;
+    if (getMotionCoreSettings().semanticOverrides?.cardHover) stopMotion(card);
+  };
+
+  document.addEventListener('pointerdown', onPointerDown, true);
+  document.addEventListener('pointerover', onPointerOver, true);
+  document.addEventListener('pointerout', onPointerOut, true);
+  globalListenerCleanup = () => {
+    document.removeEventListener('pointerdown', onPointerDown, true);
+    document.removeEventListener('pointerover', onPointerOver, true);
+    document.removeEventListener('pointerout', onPointerOut, true);
+    globalListenerCleanup = null;
+  };
+}
+
 export function installMotionCoreApi() {
   if (typeof window === 'undefined') return null;
   const api = {
@@ -279,6 +340,8 @@ export function installMotionCoreApi() {
     getPolicy: getMotionPolicy,
     getSettings: getMotionCoreSettings,
     setSettings: setMotionCoreSettings,
+    applySitewide: applySitewideEffect,
+    resetSitewide: resetSitewideEffect,
     run: runEffect,
     semantic: runSemanticMotion,
     stop: stopMotion,
@@ -288,6 +351,7 @@ export function installMotionCoreApi() {
     preview: previewMotionCore,
   };
   window.EnglishHubMotion = api;
+  installGlobalSelectionListeners();
   const settings = getMotionCoreSettings();
   document.documentElement.dataset.motionCore = settings.enabled === false ? 'off' : 'on';
   window.dispatchEvent(new CustomEvent('bes-motion-core-ready', { detail: { api, settings } }));
@@ -297,5 +361,6 @@ export function installMotionCoreApi() {
 export function disposeMotionCore() {
   cleanupTimers.forEach((timer) => window.clearTimeout(timer));
   cleanupTimers.clear();
+  globalListenerCleanup?.();
   if (window.EnglishHubMotion?.version === MOTION_CORE_VERSION) delete window.EnglishHubMotion;
 }
