@@ -20,6 +20,8 @@ let currentOwner = { id: 'guest', email: '', provider: 'local', name: 'Guest' };
 let suppressCloudWrite = false;
 let syncState = { status: 'local', message: '', lastSyncedAt: '' };
 const syncTimers = new Map();
+const LIBRARY_AUTO_SYNC_MAX_AGE = 6 * 60 * 60 * 1000;
+const LIBRARY_SYNC_STAMP_PREFIX = 'bes-library-cloud-sync-v1';
 
 function safeOwnerToken(value) {
   return String(value || 'guest').replace(/[^a-zA-Z0-9._-]+/g, '-').slice(0, 100) || 'guest';
@@ -27,6 +29,22 @@ function safeOwnerToken(value) {
 
 function scopedStorageKey(key) {
   return `${key}::${safeOwnerToken(currentOwner.id || currentOwner.email || 'guest')}`;
+}
+
+function syncStampKey() {
+  return `${LIBRARY_SYNC_STAMP_PREFIX}:${safeOwnerToken(currentOwner.id || currentOwner.email || 'guest')}`;
+}
+
+function readSyncStamp() {
+  try { return Number(localStorage.getItem(syncStampKey()) || 0); } catch { return 0; }
+}
+
+function writeSyncStamp(value = Date.now()) {
+  try { localStorage.setItem(syncStampKey(), String(Number(value) || Date.now())); } catch { /* optional */ }
+}
+
+function hasLocalLibraryData() {
+  return [HISTORY_KEY, PROMPTS_KEY, BANK_KEY].some((key) => readList(key).length > 0);
 }
 
 function setSyncState(next) {
@@ -112,7 +130,7 @@ export async function setLibraryStorageUser(user) {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(LIBRARY_EVENT, { detail: { owner: currentOwner.id } }));
   }
-  if (isCloudOwner()) return syncLibraryFromCloud();
+  if (isCloudOwner()) return syncLibraryFromCloud({ force: false });
   setSyncState({ status: 'local', message: 'Local library', lastSyncedAt: '' });
   return { ok: true, mode: 'local' };
 }
@@ -176,7 +194,9 @@ function scheduleCloudSync(key) {
     try {
       setSyncState({ status: 'syncing', message: 'Syncing library…' });
       await upsertCloudItems(KEY_TO_TYPE[key], readList(key));
-      setSyncState({ status: 'synced', message: 'Library synced', lastSyncedAt: new Date().toISOString() });
+      const lastSyncedAt = new Date().toISOString();
+      writeSyncStamp();
+      setSyncState({ status: 'synced', message: 'Library synced', lastSyncedAt });
     } catch (error) {
       setSyncState({ status: 'error', message: error?.message || 'Library sync failed' });
     }
@@ -347,8 +367,14 @@ function mergeItems(localItems, cloudItems) {
   return [...map.values()].sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
 }
 
-export async function syncLibraryFromCloud() {
+export async function syncLibraryFromCloud({ force = true } = {}) {
   if (!isCloudOwner()) return { ok: true, mode: 'local' };
+  const lastSynced = readSyncStamp();
+  if (!force && lastSynced && Date.now() - lastSynced < LIBRARY_AUTO_SYNC_MAX_AGE && hasLocalLibraryData()) {
+    const lastSyncedAt = new Date(lastSynced).toISOString();
+    setSyncState({ status: 'synced', message: 'Library loaded from this device', lastSyncedAt });
+    return { ok: true, mode: 'local-cache', cached: true, lastSyncedAt };
+  }
   setSyncState({ status: 'syncing', message: 'Syncing library…' });
   try {
     const { data, error } = await supabase
@@ -375,6 +401,7 @@ export async function syncLibraryFromCloud() {
     }
     suppressCloudWrite = false;
     const lastSyncedAt = new Date().toISOString();
+    writeSyncStamp();
     setSyncState({ status: 'synced', message: 'Library synced', lastSyncedAt });
     return { ok: true, mode: 'cloud', count: rows.length };
   } catch (error) {

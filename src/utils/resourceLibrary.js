@@ -4,6 +4,49 @@ import { RESOURCE_CATEGORY_FALLBACK, normaliseResourceCategory } from '../featur
 const KEY = 'bes-resource-library-v10-81';
 export const RESOURCE_EVENT = 'bes-resource-library-updated';
 
+const RESOURCE_LIST_COLUMNS = [
+  'id',
+  'title',
+  'description',
+  'category',
+  'grade',
+  'school_year',
+  'unit_name',
+  'cefr',
+  'skills',
+  'tags',
+  'source',
+  'copyright_status',
+  'visibility',
+  'allow_download',
+  'status',
+  'is_featured',
+  'uploader_id',
+  'uploader_name',
+  'mime_type',
+  'file_name',
+  'file_size',
+  'drive_file_id',
+  'drive_web_view_link',
+  'drive_download_link',
+  'ai_summary',
+  'ai_uses',
+  'checksum',
+  'version_number',
+  'parent_resource_id',
+  'created_at',
+  'updated_at',
+  'approved_at',
+  'approved_by',
+  'views',
+  'downloads',
+  'deleted_at',
+].join(',');
+
+let resourceSyncPromise = null;
+let lastResourceSyncAt = 0;
+const RESOURCE_SYNC_BURST_WINDOW_MS = 2000;
+
 const seedCategories = RESOURCE_CATEGORY_FALLBACK.map((category) => ({
   id: category.slug,
   slug: category.slug,
@@ -102,24 +145,46 @@ export function resourceId(prefix = 'res') {
 
 export async function syncResourcesFromCloud() {
   if (!isSupabaseConfigured || !supabase) return { ok: false, reason: 'Supabase chưa cấu hình' };
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth?.user) return { ok: false, reason: 'Chưa đăng nhập' };
-  const { data, error } = await supabase.from('resource_items').select('*').order('created_at', { ascending: false });
-  if (error) return { ok: false, reason: error.message };
-  const cloudItems = (data || []).map(fromCloudRow);
-  updateResourceLibrary((store) => {
-    const cloudIds = new Set(cloudItems.map((item) => item.cloudId).filter(Boolean));
-    const driveIds = new Set(cloudItems.map((item) => item.driveFileId).filter(Boolean));
-    const checksums = new Set(cloudItems.map((item) => item.checksum).filter(Boolean));
-    const localOnly = store.items.filter((item) => {
-      if (item.cloudId && cloudIds.has(item.cloudId)) return false;
-      if (item.driveFileId && driveIds.has(item.driveFileId)) return false;
-      if (item.checksum && checksums.has(item.checksum)) return false;
-      return !item.cloudId;
+  if (resourceSyncPromise) return resourceSyncPromise;
+
+  const local = loadResourceLibrary();
+  if (lastResourceSyncAt && Date.now() - lastResourceSyncAt < RESOURCE_SYNC_BURST_WINDOW_MS) {
+    return { ok: true, cached: true, count: local.items.length, rows: local.items };
+  }
+
+  resourceSyncPromise = (async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session?.user) return { ok: false, reason: 'Chưa đăng nhập' };
+
+    const { data, error } = await supabase
+      .from('resource_items')
+      .select(RESOURCE_LIST_COLUMNS)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
+    if (error) return { ok: false, reason: error.message };
+
+    const cloudItems = (data || []).map(fromCloudRow);
+    updateResourceLibrary((store) => {
+      const cloudIds = new Set(cloudItems.map((item) => item.cloudId).filter(Boolean));
+      const driveIds = new Set(cloudItems.map((item) => item.driveFileId).filter(Boolean));
+      const checksums = new Set(cloudItems.map((item) => item.checksum).filter(Boolean));
+      const localOnly = store.items.filter((item) => {
+        if (item.cloudId && cloudIds.has(item.cloudId)) return false;
+        if (item.driveFileId && driveIds.has(item.driveFileId)) return false;
+        if (item.checksum && checksums.has(item.checksum)) return false;
+        return !item.cloudId;
+      });
+      store.items = [...cloudItems, ...localOnly];
     });
-    store.items = [...cloudItems, ...localOnly];
-  });
-  return { ok: true, count: data?.length || 0, rows: cloudItems };
+    lastResourceSyncAt = Date.now();
+    return { ok: true, count: data?.length || 0, rows: cloudItems };
+  })();
+
+  try {
+    return await resourceSyncPromise;
+  } finally {
+    resourceSyncPromise = null;
+  }
 }
 
 export async function fetchResourceCategoryOverview() {
@@ -178,8 +243,9 @@ export function fromCloudRow(row) {
 
 export async function upsertResourceCloud(item) {
   if (!isSupabaseConfigured || !supabase) return { ok: false, reason: 'local' };
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth?.user) return { ok: false, reason: 'auth' };
+  const { data: sessionData } = await supabase.auth.getSession();
+  const authUser = sessionData?.session?.user;
+  if (!authUser) return { ok: false, reason: 'auth' };
   const category = normaliseResourceCategory(item.category);
   const row = {
     id: item.cloudId || undefined,
@@ -198,8 +264,8 @@ export async function upsertResourceCloud(item) {
     allow_download: item.allowDownload !== false,
     status: item.status || 'pending',
     is_featured: Boolean(item.featured),
-    uploader_id: item.uploaderId || auth.user.id,
-    uploader_name: item.uploaderName || auth.user.email || '',
+    uploader_id: item.uploaderId || authUser.id,
+    uploader_name: item.uploaderName || authUser.email || '',
     mime_type: item.mimeType || '',
     file_name: item.fileName || '',
     file_size: item.size || 0,

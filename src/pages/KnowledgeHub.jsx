@@ -1,7 +1,22 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { formatDate, isLeader } from './v1093/shared.js';
+
+const RESOURCE_COLUMNS = 'id,title,description,status,uploader_name,file_size,mime_type,updated_at,created_at';
+const METADATA_COLUMNS = 'resource_id,summary,keywords,skills,cefr_levels,units,lifecycle_status,quality_score,review_due_at,duplicate_group,created_by,updated_by,updated_at';
+const USER_STATE_COLUMNS = 'user_id,resource_id,favorite,last_opened_at,notes,updated_at';
+const COLLECTION_COLUMNS = 'id,owner_id,title,description,scope,color,created_at,updated_at';
+const COLLECTION_ITEM_COLUMNS = 'collection_id,resource_id,added_by,added_at';
+
+function mergeRealtimeArray(current, payload, key, normalize = (value) => value) {
+  const row = payload?.new && Object.keys(payload.new).length ? payload.new : payload?.old;
+  const id = row?.[key];
+  if (!id) return current;
+  if (payload?.eventType === 'DELETE') return current.filter((item) => item?.[key] !== id);
+  const existing = current.find((item) => item?.[key] === id) || {};
+  return [normalize({ ...existing, ...row }), ...current.filter((item) => item?.[key] !== id)];
+}
 
 function normalizeResource(row) {
   const title = row.title || row.name || row.file_name || row.filename || 'Tài liệu chưa đặt tên';
@@ -36,31 +51,80 @@ export default function KnowledgeHub({ currentUser }) {
   const [busy, setBusy] = useState(false);
   const [collectionTitle, setCollectionTitle] = useState('');
   const [metaDraft, setMetaDraft] = useState(null);
+  const loadPromiseRef = useRef(null);
 
   const load = useCallback(async () => {
     if (!client || !runtime.ready || !runtime.session) return;
+    if (loadPromiseRef.current) return loadPromiseRef.current;
     setError('');
-    const [{ data: resourceRows, error: resourceError }, { data: metaRows }, { data: stateRows }, { data: collectionRows }, { data: linkRows }] = await Promise.all([
-      client.from('resource_items').select('*').order('updated_at', { ascending: false }).limit(1000),
-      client.from('resource_smart_metadata').select('*').limit(1000),
-      client.from('resource_user_state').select('*').eq('user_id', currentUser.id).limit(1000),
-      client.from('resource_collections').select('*').order('updated_at', { ascending: false }).limit(300),
-      client.from('resource_collection_items').select('*').limit(3000),
-    ]);
-    if (resourceError) { setError(resourceError.message); return; }
-    setResources((resourceRows || []).map(normalizeResource));
-    setMetadata(Object.fromEntries((metaRows || []).map((row) => [row.resource_id, row])));
-    setUserState(Object.fromEntries((stateRows || []).map((row) => [row.resource_id, row])));
-    setCollections(collectionRows || []);
-    setCollectionItems(linkRows || []);
+    const task = (async () => {
+      const [{ data: resourceRows, error: resourceError }, { data: metaRows }, { data: stateRows }, { data: collectionRows }, { data: linkRows }] = await Promise.all([
+        client.from('resource_items').select(RESOURCE_COLUMNS).is('deleted_at', null).order('updated_at', { ascending: false }).limit(500),
+        client.from('resource_smart_metadata').select(METADATA_COLUMNS).limit(500),
+        client.from('resource_user_state').select(USER_STATE_COLUMNS).eq('user_id', currentUser.id).limit(500),
+        client.from('resource_collections').select(COLLECTION_COLUMNS).order('updated_at', { ascending: false }).limit(100),
+        client.from('resource_collection_items').select(COLLECTION_ITEM_COLUMNS).limit(1500),
+      ]);
+      if (resourceError) { setError(resourceError.message); return; }
+      setResources((resourceRows || []).map(normalizeResource));
+      setMetadata(Object.fromEntries((metaRows || []).map((row) => [row.resource_id, row])));
+      setUserState(Object.fromEntries((stateRows || []).map((row) => [row.resource_id, row])));
+      setCollections(collectionRows || []);
+      setCollectionItems(linkRows || []);
+    })();
+    loadPromiseRef.current = task;
+    try { return await task; }
+    finally { loadPromiseRef.current = null; }
   }, [client, currentUser?.id, runtime.ready, runtime.session]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
+    const fallback = (payload) => {
+      const row = payload?.new && Object.keys(payload.new).length ? payload.new : payload?.old;
+      if (!row) load();
+    };
     const cleanups = [
-      subscribeTable({ key: `knowledge-resources-${currentUser?.id || 'guest'}`, table: 'resource_items', onChange: load }),
-      subscribeTable({ key: `knowledge-metadata-${currentUser?.id || 'guest'}`, table: 'resource_smart_metadata', onChange: load }),
-      subscribeTable({ key: `knowledge-state-${currentUser?.id || 'guest'}`, table: 'resource_user_state', onChange: load }),
+      subscribeTable({
+        key: `knowledge-resources-${currentUser?.id || 'guest'}`,
+        table: 'resource_items',
+        onChange: (payload) => {
+          fallback(payload);
+          setResources((current) => mergeRealtimeArray(current, payload, 'id', normalizeResource));
+        },
+      }),
+      subscribeTable({
+        key: `knowledge-metadata-${currentUser?.id || 'guest'}`,
+        table: 'resource_smart_metadata',
+        onChange: (payload) => {
+          fallback(payload);
+          const row = payload?.new && Object.keys(payload.new).length ? payload.new : payload?.old;
+          const id = row?.resource_id;
+          if (!id) return;
+          setMetadata((current) => {
+            const next = { ...current };
+            if (payload?.eventType === 'DELETE') delete next[id];
+            else next[id] = { ...(next[id] || {}), ...row };
+            return next;
+          });
+        },
+      }),
+      subscribeTable({
+        key: `knowledge-state-${currentUser?.id || 'guest'}`,
+        table: 'resource_user_state',
+        filter: `user_id=eq.${currentUser?.id || ''}`,
+        onChange: (payload) => {
+          fallback(payload);
+          const row = payload?.new && Object.keys(payload.new).length ? payload.new : payload?.old;
+          const id = row?.resource_id;
+          if (!id) return;
+          setUserState((current) => {
+            const next = { ...current };
+            if (payload?.eventType === 'DELETE') delete next[id];
+            else next[id] = { ...(next[id] || {}), ...row };
+            return next;
+          });
+        },
+      }),
     ];
     return () => cleanups.forEach((cleanup) => cleanup());
   }, [currentUser?.id, load]);
