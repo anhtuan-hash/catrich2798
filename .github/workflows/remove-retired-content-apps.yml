@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Apply removal-script hotfix
+      - name: Apply removal-script hotfixes
         shell: bash
         run: |
           python3 <<'PY'
@@ -42,6 +42,7 @@ jobs:
               raise SystemExit('Expected design-profile block not found in removal script')
           path.write_text(text.replace(old, new), encoding='utf-8')
           PY
+          python3 scripts/fix-removal-audit.py
       - name: Remove applications and active references
         run: python3 scripts/remove-retired-content-apps.py
       - name: Upload removal report on failure
@@ -55,11 +56,11 @@ jobs:
         run: npm ci
       - name: Build production bundle
         run: npm run build
-      - name: Run permanent removal audit
+      - name: Run dedicated removal audit
         shell: bash
         run: |
           set -o pipefail
-          npm run audit:removed-apps 2>&1 | tee audit-report.txt
+          npm run audit:removed-content-apps 2>&1 | tee audit-report.txt
       - name: Upload audit report on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -70,7 +71,7 @@ jobs:
       - name: Commit verified removal
         shell: bash
         run: |
-          rm -f audit-report.txt
+          rm -f audit-report.txt scripts/fix-removal-audit.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
