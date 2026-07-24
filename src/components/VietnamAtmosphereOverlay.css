@@ -1,0 +1,133 @@
+.bes-vn-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  contain: layout style paint;
+  isolation: isolate;
+}
+
+.bes-vn-atmosphere__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 8% 14%, rgba(255, 244, 224, 0.11), transparent 27%),
+    radial-gradient(circle at 92% 82%, rgba(231, 250, 240, 0.1), transparent 30%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.025), rgba(248, 247, 242, 0.055));
+  opacity: 0.72;
+}
+
+.bes-vn-motif {
+  position: absolute;
+  left: var(--vn-left);
+  top: var(--vn-top);
+  width: var(--vn-size);
+  height: var(--vn-size);
+  opacity: var(--vn-opacity);
+  filter: blur(var(--vn-blur)) drop-shadow(0 8px 18px rgba(85, 64, 37, 0.12));
+  transform-origin: 50% 50%;
+  will-change: transform;
+  animation: bes-vn-drift var(--vn-duration) cubic-bezier(0.42, 0, 0.58, 1) var(--vn-delay) infinite alternate;
+}
+
+.bes-vn-motif__art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: bes-vn-breathe calc(var(--vn-duration) * 0.62) ease-in-out var(--vn-delay) infinite alternate;
+}
+
+.bes-vn-motif svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.bes-vn-motif--flag,
+.bes-vn-motif--lotus {
+  opacity: min(0.15, calc(var(--vn-opacity) + 0.012));
+}
+
+.bes-vn-motif--drum {
+  mix-blend-mode: multiply;
+}
+
+@keyframes bes-vn-drift {
+  0% {
+    transform: translate3d(-8px, 7px, 0) rotate(calc(var(--vn-rotate) * -0.35)) scale(0.96);
+  }
+  46% {
+    transform: translate3d(calc(var(--vn-drift-x) * 0.42), calc(var(--vn-drift-y) * 0.4), 0) rotate(calc(var(--vn-rotate) * 0.45)) scale(1.015);
+  }
+  100% {
+    transform: translate3d(var(--vn-drift-x), var(--vn-drift-y), 0) rotate(var(--vn-rotate)) scale(1.04);
+  }
+}
+
+@keyframes bes-vn-breathe {
+  from {
+    transform: translateY(-2px);
+  }
+  to {
+    transform: translateY(3px);
+  }
+}
+
+html[data-theme='dark'] .bes-vn-atmosphere__veil,
+body[data-theme='dark'] .bes-vn-atmosphere__veil,
+.theme-dark .bes-vn-atmosphere__veil {
+  background:
+    radial-gradient(circle at 8% 14%, rgba(255, 217, 144, 0.045), transparent 28%),
+    radial-gradient(circle at 92% 82%, rgba(112, 187, 150, 0.05), transparent 30%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.008), rgba(255, 255, 255, 0.02));
+  opacity: 0.55;
+}
+
+html[data-theme='dark'] .bes-vn-motif,
+body[data-theme='dark'] .bes-vn-motif,
+.theme-dark .bes-vn-motif {
+  opacity: calc(var(--vn-opacity) * 0.78);
+  filter: blur(var(--vn-blur)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.16));
+}
+
+@media (max-width: 1099px) {
+  .bes-vn-atmosphere {
+    z-index: 38;
+  }
+
+  .bes-vn-motif {
+    opacity: calc(var(--vn-opacity) * 0.88);
+  }
+}
+
+@media (max-width: 679px) {
+  .bes-vn-atmosphere__veil {
+    opacity: 0.46;
+  }
+
+  .bes-vn-motif {
+    opacity: calc(var(--vn-opacity) * 0.72);
+    filter: blur(var(--vn-blur)) drop-shadow(0 5px 12px rgba(85, 64, 37, 0.08));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bes-vn-motif,
+  .bes-vn-motif__art {
+    animation: none !important;
+  }
+
+  .bes-vn-motif {
+    opacity: calc(var(--vn-opacity) * 0.62);
+    transform: none;
+  }
+}
+
+@media print {
+  .bes-vn-atmosphere {
+    display: none !important;
+  }
+}
