@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useId, useState } from 'react';
+import { APP_VERSION } from '../config/version.js';
+import './FooterCompactDisclosure.css';
 
 const ENGLISH_DETAILS = {
   language: 'EN',
@@ -16,7 +18,9 @@ const ENGLISH_DETAILS = {
     'Master of Arts in Educational Management',
     'Currently pursuing Master of Arts in English Linguistics',
   ],
-  copyright: '© 2026 English Hub. All rights reserved.',
+  copyright: '© 2026 English Hub',
+  detailsLabel: 'Full information',
+  collapseLabel: 'Hide information',
 };
 
 const VIETNAMESE_DETAILS = {
@@ -35,7 +39,9 @@ const VIETNAMESE_DETAILS = {
     'Thạc sĩ Quản lí giáo dục',
     'Đang theo học Thạc sĩ Ngôn ngữ Anh',
   ],
-  copyright: '© 2026 English Hub. Bảo lưu mọi quyền.',
+  copyright: 'Bản quyền © 2026 English Hub',
+  detailsLabel: 'Thông tin đầy đủ',
+  collapseLabel: 'Thu gọn thông tin',
 };
 
 function DetailRow({ type, children }) {
@@ -50,56 +56,79 @@ function DetailRow({ type, children }) {
 export default function Footer({ language }) {
   const isVi = language === 'vi';
   const content = isVi ? VIETNAMESE_DETAILS : ENGLISH_DETAILS;
+  const [expanded, setExpanded] = useState(false);
+  const detailsId = useId();
 
   return (
     <footer
-      className={`footer footer-v10 signature-footer-v75 signature-footer-v50 ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
+      className={`footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
       aria-label={isVi ? 'Thông tin English Hub' : 'English Hub information'}
+      data-expanded={expanded ? 'true' : 'false'}
     >
-      <div className="signature-footer-v50-main">
-        <section className="signature-footer-v50-brand" aria-label="English Hub, Pétrus Ký and Cambridge Assessment English">
-          <img
-            className="signature-footer-v50-brian-logo"
-            src="/brian-english-brand-logo.png"
-            alt="English Hub"
-          />
-          <div className="signature-footer-v50-affiliations">
-            <img src="/footer-pek-logo.png" alt="Pétrus Ký School" />
-            <span className="signature-footer-v50-logo-divider" aria-hidden="true" />
-            <img src="/footer-cambridge-logo.png" alt="Cambridge Assessment English" />
+      <button
+        type="button"
+        className="signature-footer-disclosure"
+        aria-expanded={expanded}
+        aria-controls={detailsId}
+        onClick={() => setExpanded((value) => !value)}
+      >
+        <span className="signature-footer-summary">
+          <strong>English Hub v{APP_VERSION}</strong>
+          <span className="signature-footer-summary-separator" aria-hidden="true">•</span>
+          <span>{content.copyright}</span>
+        </span>
+        <span className="signature-footer-disclosure-action">
+          <span>{expanded ? content.collapseLabel : content.detailsLabel}</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="m7.41 8.59 4.59 4.58 4.59-4.58L18 10l-6 6-6-6 1.41-1.41Z" />
+          </svg>
+        </span>
+      </button>
+
+      {expanded ? (
+        <div id={detailsId} className="signature-footer-expanded-panel">
+          <div className="signature-footer-v50-main">
+            <section className="signature-footer-v50-brand" aria-label="English Hub, Pétrus Ký and Cambridge Assessment English">
+              <img
+                className="signature-footer-v50-brian-logo"
+                src="/brian-english-brand-logo.png"
+                alt="English Hub"
+              />
+              <div className="signature-footer-v50-affiliations">
+                <img src="/footer-pek-logo.png" alt="Pétrus Ký School" />
+                <span className="signature-footer-v50-logo-divider" aria-hidden="true" />
+                <img src="/footer-cambridge-logo.png" alt="Cambridge Assessment English" />
+              </div>
+            </section>
+
+            <section className="signature-footer-v50-profile">
+              <span className="signature-footer-v50-language-badge">{content.language}</span>
+              <h2>{content.name}</h2>
+              <ul className="signature-footer-v50-details">
+                <DetailRow type="school">{content.school}</DetailRow>
+                <DetailRow type="role">{content.role}</DetailRow>
+                <DetailRow type="phone">{content.phone}</DetailRow>
+                <DetailRow type="centre">{content.centre}</DetailRow>
+                <DetailRow type="examiner">{content.examiner}</DetailRow>
+              </ul>
+            </section>
+
+            <section className="signature-footer-v50-credentials">
+              <span className="signature-footer-v50-section-label">{content.credentialsTitle}</span>
+              <ul>
+                {content.credentials.map((item) => (
+                  <li key={item}>
+                    <span className="signature-footer-v50-star" aria-hidden="true">★</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
           </div>
-        </section>
 
-        <section className="signature-footer-v50-profile">
-          <span className="signature-footer-v50-language-badge">{content.language}</span>
-          <h2>{content.name}</h2>
-          <ul className="signature-footer-v50-details">
-            <DetailRow type="school">{content.school}</DetailRow>
-            <DetailRow type="role">{content.role}</DetailRow>
-            <DetailRow type="phone">{content.phone}</DetailRow>
-            <DetailRow type="centre">{content.centre}</DetailRow>
-            <DetailRow type="examiner">{content.examiner}</DetailRow>
-          </ul>
-        </section>
-
-        <section className="signature-footer-v50-credentials">
-          <span className="signature-footer-v50-section-label">{content.credentialsTitle}</span>
-          <ul>
-            {content.credentials.map((item) => (
-              <li key={item}>
-                <span className="signature-footer-v50-star" aria-hidden="true">★</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
-
-      <div className="signature-footer-v50-bottom">
-        <span>{content.copyright}</span>
-        <span className="signature-footer-v50-bottom-separator" aria-hidden="true" />
-        <span>{content.examiner}</span>
-      </div>
+          <div className="signature-footer-expanded-note">{content.examiner}</div>
+        </div>
+      ) : null}
     </footer>
   );
 }
