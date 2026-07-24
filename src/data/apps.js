@@ -14,6 +14,13 @@ export const APPS = [
     status: 'HTML library · TTCM approval', statusVi: 'Kho HTML · TTCM duyệt', api: true, featured: true},
 
   {
+    slug: 'pek-timetable', icon: 'TK', tone: 'blue', group: 'Teacher Utilities', groupVi: 'Tiện ích giáo viên',
+    title: 'PEK Timetable', titleVi: 'Thời khóa biểu PEK',
+    desc: 'View English teachers and class timetables synced from the Pétrus Ký professional portal.',
+    descVi: 'Xem thời khóa biểu giáo viên Tiếng Anh và toàn bộ các lớp, đồng bộ từ hệ thống chuyên môn Pétrus Ký.',
+    status: 'PEK live sync · Teachers · Classes', statusVi: 'Đồng bộ PEK · Giáo viên · Lớp học', api: true, featured: true},
+
+  {
     slug: 'work-hub', route: 'work-hub', icon: 'WH', tone: 'mint', group: 'Connected Workflow', groupVi: 'Công việc liên thông',
     title: 'Unified Work Hub', titleVi: 'Trung tâm công việc',
     desc: 'Manage tasks, submissions, feedback, schedules and approval workflows in one place.',
