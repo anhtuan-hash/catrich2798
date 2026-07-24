@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
+import GlobalAiWebsiteLauncher from './GlobalAiWebsiteLauncher.jsx';
 import GlobalNewsNavigationTab from './GlobalNewsNavigationTab.jsx';
 import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
 import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
@@ -47,6 +48,7 @@ export default function GlobalFlatNavigation(props) {
   return (
     <>
       <Navigation {...props} />
+      <GlobalAiWebsiteLauncher {...props} />
       <GlobalNewsNavigationTab {...props} />
       <GlobalGamesNavigationTab {...props} />
       <GlobalDashboardNavigationTab {...props} />
