@@ -1,6 +1,9 @@
 name: Remove bottom transfer and chatbot controls
 
 on:
+  push:
+    branches:
+      - agent/remove-bottom-transfer-chatbot-20260724
   pull_request:
     branches:
       - main
