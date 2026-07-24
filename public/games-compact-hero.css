@@ -1,113 +1,211 @@
-/* Game Hub: compact Google hero so the platform scroller appears sooner. */
+/* Game Hub: half-width compact hero with one small illustration. */
 .metro-clean-system[data-route="games"] .games-v44-hero {
-  min-height: 300px !important;
-  grid-template-columns: minmax(0, 1.16fr) minmax(320px, .84fr) !important;
-  gap: clamp(20px, 3vw, 38px) !important;
-  padding: clamp(24px, 3vw, 38px) !important;
+  width: min(50%, 760px) !important;
+  max-width: 760px !important;
+  min-width: 0 !important;
+  min-height: 294px !important;
+  justify-self: start !important;
+  grid-template-columns: minmax(0, 1fr) 184px !important;
+  align-items: center !important;
+  gap: 18px !important;
+  margin: 0 0 4px !important;
+  padding: 24px 22px 22px 26px !important;
   border-radius: 28px !important;
 }
 
+.metro-clean-system[data-route="games"] .games-v44-hero-copy {
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
 .metro-clean-system[data-route="games"] .games-v44-kicker {
-  padding: 6px 11px !important;
-  font-size: .76rem !important;
+  padding: 6px 10px !important;
+  font-size: .72rem !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v44-hero h1 {
-  max-width: 680px !important;
-  margin-top: 14px !important;
-  font-size: clamp(2.45rem, 4vw, 4.15rem) !important;
+  max-width: 470px !important;
+  margin-top: 12px !important;
+  font-size: clamp(2.15rem, 2.8vw, 3.25rem) !important;
   line-height: .98 !important;
-  letter-spacing: -.045em !important;
+  letter-spacing: -.043em !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v44-hero-copy > p {
-  max-width: 640px !important;
-  margin-top: 13px !important;
-  font-size: .98rem !important;
-  line-height: 1.5 !important;
+  max-width: 490px !important;
+  margin-top: 11px !important;
+  font-size: .9rem !important;
+  line-height: 1.45 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v44-hero-metrics {
-  max-width: 560px !important;
-  gap: 9px !important;
-  margin-top: 17px !important;
+  max-width: 500px !important;
+  gap: 7px !important;
+  margin-top: 14px !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v44-hero-metrics > span {
-  min-height: 62px !important;
-  padding: 9px 13px !important;
-  border-radius: 16px !important;
+  min-height: 54px !important;
+  padding: 7px 10px !important;
+  border-radius: 15px !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v44-hero-metrics b {
-  font-size: 1.3rem !important;
+  font-size: 1.12rem !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v44-hero-metrics small {
-  font-size: .78rem !important;
+  font-size: .7rem !important;
+  line-height: 1.15 !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v44-hero-actions {
-  gap: 8px !important;
-  margin-top: 17px !important;
+  gap: 7px !important;
+  margin-top: 14px !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v44-hero-actions button {
-  min-height: 42px !important;
-  padding-inline: 18px !important;
-  font-size: .9rem !important;
+  min-height: 39px !important;
+  padding-inline: 15px !important;
+  font-size: .84rem !important;
 }
 
+/* Keep only one small quiz illustration at the right edge. */
 .metro-clean-system[data-route="games"] .games-v44-hero-art {
-  min-height: 232px !important;
-  transform: scale(.78) !important;
+  position: relative !important;
+  width: 184px !important;
+  min-width: 184px !important;
+  min-height: 210px !important;
+  justify-self: end !important;
+  overflow: visible !important;
+  transform: none !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v44-hero-art :is(
+  .spark,
+  .game-window.treasure,
+  .game-window.battle,
+  .game-window.rush,
+  .games-v44-trophy,
+  .games-v44-controller,
+  .games-v44-podium
+) {
+  display: none !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v44-hero-art .game-window.quiz {
+  display: block !important;
+  width: 184px !important;
+  min-width: 184px !important;
+  min-height: 174px !important;
+  inset: 50% 0 auto auto !important;
+  padding-bottom: 10px !important;
+  border-radius: 18px !important;
+  transform: translateY(-50%) rotate(1.5deg) !important;
   transform-origin: center !important;
+  box-shadow: 0 12px 28px rgba(60, 64, 67, .16) !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v44-hero-art .game-window.quiz .window-head {
+  min-height: 32px !important;
+  padding: 6px 9px !important;
+  font-size: .7rem !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v44-hero-art .game-window.quiz > p {
+  margin: 9px 10px 7px !important;
+  font-size: .72rem !important;
+  line-height: 1.3 !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v44-hero-art .game-window.quiz .answer {
+  margin: 4px 10px 0 !important;
+  padding: 5px 7px !important;
+  border-radius: 8px !important;
+  font-size: .65rem !important;
+  line-height: 1.15 !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v44-hero::before {
-  width: 210px !important;
-  height: 210px !important;
-  right: -78px !important;
-  bottom: -112px !important;
+  width: 178px !important;
+  height: 178px !important;
+  right: -72px !important;
+  bottom: -96px !important;
 }
 
-@media (max-width: 1040px) {
+/* The game selector and Live Game stay full width below the compact hero. */
+.metro-clean-system[data-route="games"] .game-hub-shell,
+.metro-clean-system[data-route="games"] .games-v46-board,
+.metro-clean-system[data-route="games"] .games-v46-launch-band,
+.metro-clean-system[data-route="games"] .games-v46-live-card {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+@media (max-width: 1240px) {
   .metro-clean-system[data-route="games"] .games-v44-hero {
-    min-height: 278px !important;
-    grid-template-columns: minmax(0, 1fr) minmax(260px, .72fr) !important;
-    padding: 26px !important;
+    width: min(62%, 760px) !important;
+  }
+}
+
+@media (max-width: 960px) {
+  .metro-clean-system[data-route="games"] .games-v44-hero {
+    width: min(78%, 720px) !important;
+    grid-template-columns: minmax(0, 1fr) 160px !important;
   }
 
   .metro-clean-system[data-route="games"] .games-v44-hero-art {
-    min-height: 210px !important;
-    transform: scale(.68) !important;
+    width: 160px !important;
+    min-width: 160px !important;
+  }
+
+  .metro-clean-system[data-route="games"] .games-v44-hero-art .game-window.quiz {
+    width: 160px !important;
+    min-width: 160px !important;
+    transform: translateY(-50%) rotate(1deg) scale(.92) !important;
   }
 }
 
 @media (max-width: 760px) {
   .metro-clean-system[data-route="games"] .games-v44-hero {
-    min-height: 0 !important;
-    grid-template-columns: 1fr !important;
-    padding: 24px !important;
+    width: 100% !important;
+    max-width: none !important;
+    grid-template-columns: minmax(0, 1fr) 138px !important;
+    gap: 12px !important;
+    padding: 22px 18px 20px 20px !important;
     border-radius: 24px !important;
   }
 
   .metro-clean-system[data-route="games"] .games-v44-hero h1 {
-    font-size: clamp(2.2rem, 10vw, 3.25rem) !important;
+    font-size: clamp(2rem, 8vw, 2.8rem) !important;
   }
 
   .metro-clean-system[data-route="games"] .games-v44-hero-art {
-    display: none !important;
+    width: 138px !important;
+    min-width: 138px !important;
+    min-height: 174px !important;
+  }
+
+  .metro-clean-system[data-route="games"] .games-v44-hero-art .game-window.quiz {
+    width: 150px !important;
+    min-width: 150px !important;
+    right: -8px !important;
+    transform: translateY(-50%) rotate(1deg) scale(.82) !important;
   }
 }
 
 @media (max-width: 520px) {
   .metro-clean-system[data-route="games"] .games-v44-hero {
-    padding: 20px !important;
+    grid-template-columns: minmax(0, 1fr) 106px !important;
+    padding: 19px 14px 18px 18px !important;
   }
 
   .metro-clean-system[data-route="games"] .games-v44-hero-copy > p {
-    font-size: .92rem !important;
+    font-size: .84rem !important;
   }
 
   .metro-clean-system[data-route="games"] .games-v44-hero-metrics {
@@ -115,7 +213,27 @@
   }
 
   .metro-clean-system[data-route="games"] .games-v44-hero-metrics > span {
-    min-height: 58px !important;
-    padding: 8px 9px !important;
+    min-height: 50px !important;
+    padding: 6px 7px !important;
+  }
+
+  .metro-clean-system[data-route="games"] .games-v44-hero-art {
+    width: 106px !important;
+    min-width: 106px !important;
+  }
+
+  .metro-clean-system[data-route="games"] .games-v44-hero-art .game-window.quiz {
+    right: -25px !important;
+    transform: translateY(-50%) rotate(1deg) scale(.68) !important;
+  }
+}
+
+@media (max-width: 410px) {
+  .metro-clean-system[data-route="games"] .games-v44-hero {
+    grid-template-columns: 1fr !important;
+  }
+
+  .metro-clean-system[data-route="games"] .games-v44-hero-art {
+    display: none !important;
   }
 }
