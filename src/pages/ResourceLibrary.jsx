@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ResourceLibraryBase from './ResourceLibraryBase.jsx';
 import { getAccessToken, loadResourceLibrary, RESOURCE_EVENT } from '../utils/resourceLibrary.js';
 import '../features/resource-library/textlabInteractiveResources.css';
+import '../features/resource-library/resourceLibraryGoogleMaterial.css';
 
 function isTextLabInteractiveResource(item) {
   const tags = Array.isArray(item?.tags) ? item.tags.map((tag) => String(tag).toLowerCase()) : [];
