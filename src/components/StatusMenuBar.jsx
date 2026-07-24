@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/motion.js';
 import './StatusMenuBar.css';
 
 const MAX_HEADLINES = 8;
+const WEATHER_CACHE_KEY = 'bes-briefing-weather-v1';
+const WEATHER_REFRESH_MS = 15 * 60 * 1000;
+const WEATHER_CACHE_MAX_AGE = 30 * 60 * 1000;
 
 function feedCategory(language) {
   return language === 'en' ? 'top' : 'all';
@@ -25,6 +28,24 @@ function readCachedHeadlines(language) {
   }
 }
 
+function readCachedWeather() {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(WEATHER_CACHE_KEY) || 'null');
+    if (!parsed?.savedAt || Date.now() - Number(parsed.savedAt) > WEATHER_CACHE_MAX_AGE) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveCachedWeather(value) {
+  try {
+    window.localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify(value));
+  } catch {
+    // Weather remains available for the current session when storage is blocked.
+  }
+}
+
 function compactTime(value, language) {
   if (!value) return '';
   const date = new Date(value);
@@ -33,6 +54,71 @@ function compactTime(value, language) {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
+}
+
+function fallbackCoordinates(language) {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  const vietnamTimezone = timezone === 'Asia/Ho_Chi_Minh' || timezone === 'Asia/Saigon';
+  return {
+    latitude: 10.8231,
+    longitude: 106.6297,
+    precise: false,
+    locationLabel: language === 'en'
+      ? (vietnamTimezone ? 'Ho Chi Minh City' : 'Ho Chi Minh City')
+      : 'TP.HCM',
+  };
+}
+
+function currentDevicePosition(language) {
+  const fallback = fallbackCoordinates(language);
+  return new Promise((resolve) => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      resolve(fallback);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => resolve({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        precise: true,
+        locationLabel: language === 'en' ? 'Current location' : 'Vị trí hiện tại',
+      }),
+      () => resolve(fallback),
+      { enableHighAccuracy: false, timeout: 6000, maximumAge: 10 * 60 * 1000 },
+    );
+  });
+}
+
+async function resolveWeatherCoordinates(language, requestPrecise) {
+  const fallback = fallbackCoordinates(language);
+  if (typeof navigator === 'undefined' || !navigator.geolocation) return fallback;
+  if (requestPrecise) return currentDevicePosition(language);
+
+  try {
+    if (!navigator.permissions?.query) return fallback;
+    const permission = await navigator.permissions.query({ name: 'geolocation' });
+    if (permission.state === 'granted') return currentDevicePosition(language);
+  } catch {
+    // Safari and some browsers do not expose geolocation through Permissions API.
+  }
+
+  return fallback;
+}
+
+function weatherPresentation(code, isDay, language) {
+  const value = Number(code);
+  const vi = language !== 'en';
+
+  if (value === 0) return { icon: isDay ? '☀' : '☾', label: vi ? 'Trời quang' : 'Clear' };
+  if ([1, 2].includes(value)) return { icon: isDay ? '⛅' : '☾', label: vi ? 'Ít mây' : 'Partly cloudy' };
+  if (value === 3) return { icon: '☁', label: vi ? 'Nhiều mây' : 'Cloudy' };
+  if ([45, 48].includes(value)) return { icon: '≋', label: vi ? 'Có sương' : 'Foggy' };
+  if ([51, 53, 55, 56, 57].includes(value)) return { icon: '☂', label: vi ? 'Mưa phùn' : 'Drizzle' };
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(value)) return { icon: '☂', label: vi ? 'Có mưa' : 'Rain' };
+  if ([71, 73, 75, 77, 85, 86].includes(value)) return { icon: '❄', label: vi ? 'Có tuyết' : 'Snow' };
+  if ([95, 96, 99].includes(value)) return { icon: '⚡', label: vi ? 'Có dông' : 'Thunderstorm' };
+  return { icon: '◌', label: vi ? 'Thời tiết' : 'Weather' };
 }
 
 function TickerItem({ sourceLine, headline }) {
@@ -52,6 +138,7 @@ export default function StatusMenuBar({
   route = 'home',
 }) {
   const channel = language === 'en' ? 'en' : 'vi';
+  const locale = language === 'en' ? 'en-GB' : 'vi-VN';
   const allowed = useMemo(
     () => Boolean(currentUser && hasRouteAccess(currentUser, 'news')),
     [currentUser],
@@ -59,6 +146,53 @@ export default function StatusMenuBar({
   const [items, setItems] = useState(() => (typeof window === 'undefined' ? [] : readCachedHeadlines(channel)));
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+  const [weather, setWeather] = useState(() => (typeof window === 'undefined' ? null : readCachedWeather()));
+  const [weatherStatus, setWeatherStatus] = useState(() => (weather ? 'ready' : 'loading'));
+
+  useEffect(() => {
+    const refreshClock = () => setNow(new Date());
+    const timer = window.setInterval(refreshClock, 30 * 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const loadWeather = useCallback(async (requestPrecise = false) => {
+    setWeatherStatus((current) => (current === 'ready' ? 'refreshing' : 'loading'));
+    try {
+      const coordinates = await resolveWeatherCoordinates(language, requestPrecise);
+      const params = new URLSearchParams({
+        latitude: String(coordinates.latitude),
+        longitude: String(coordinates.longitude),
+      });
+      const response = await fetch(`/api/briefing-weather?${params.toString()}`, {
+        headers: { accept: 'application/json' },
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload?.ok || !payload?.current) throw new Error(payload?.error || 'Weather unavailable');
+
+      const next = {
+        savedAt: Date.now(),
+        locationLabel: coordinates.locationLabel,
+        precise: coordinates.precise,
+        timezone: payload.timezone || '',
+        temperature: Number(payload.current.temperature),
+        apparentTemperature: Number(payload.current.apparentTemperature),
+        weatherCode: Number(payload.current.weatherCode),
+        isDay: Boolean(payload.current.isDay),
+      };
+      setWeather(next);
+      saveCachedWeather(next);
+      setWeatherStatus('ready');
+    } catch {
+      setWeatherStatus(weather ? 'ready' : 'error');
+    }
+  }, [language, weather]);
+
+  useEffect(() => {
+    loadWeather(false);
+    const timer = window.setInterval(() => loadWeather(false), WEATHER_REFRESH_MS);
+    return () => window.clearInterval(timer);
+  }, [loadWeather]);
 
   useEffect(() => {
     setIndex(0);
@@ -102,6 +236,29 @@ export default function StatusMenuBar({
   const time = compactTime(item?.publishedAt, language);
   const sourceLine = `${source}${time ? ` · ${time}` : ''}`;
   const tickerSeconds = Math.max(17, Math.min(38, Math.ceil((headline.length + sourceLine.length) / 5.4)));
+  const clockTime = new Intl.DateTimeFormat(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(now);
+  const clockDate = new Intl.DateTimeFormat(locale, {
+    weekday: 'short',
+    day: '2-digit',
+    month: '2-digit',
+  }).format(now);
+  const clockTitle = new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(now);
+  const weatherView = weatherPresentation(weather?.weatherCode, weather?.isDay, language);
+  const weatherTemperature = Number.isFinite(weather?.temperature) ? `${Math.round(weather.temperature)}°` : '--°';
+  const weatherTitle = weather
+    ? `${weather.locationLabel}: ${weatherTemperature}, ${weatherView.label}. ${language === 'en' ? 'Feels like' : 'Cảm giác như'} ${Math.round(weather.apparentTemperature)}°. ${language === 'en' ? 'Select to refresh or use device location.' : 'Nhấn để làm mới hoặc dùng vị trí thiết bị.'}`
+    : (language === 'en' ? 'Weather is loading. Select to use device location.' : 'Đang tải thời tiết. Nhấn để dùng vị trí thiết bị.');
 
   const openNews = (event) => launchRoute({
     target: '#/news',
@@ -118,7 +275,7 @@ export default function StatusMenuBar({
   return (
     <aside
       className={`brian-briefing-bar ${route === 'news' ? 'is-news-route' : ''} ${paused ? 'is-paused' : ''}`}
-      aria-label={language === 'en' ? 'News briefing' : 'Tin vắn'}
+      aria-label={language === 'en' ? 'News briefing, time and weather' : 'Tin vắn, thời gian và thời tiết'}
       style={{ '--briefing-duration': `${tickerSeconds}s` }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -142,6 +299,25 @@ export default function StatusMenuBar({
           </span>
         </span>
       </button>
+
+      <div className="brian-briefing-bar__context" aria-label={language === 'en' ? 'Current time and weather' : 'Thời gian và thời tiết hiện tại'}>
+        <div className="brian-briefing-bar__clock" title={clockTitle} aria-label={clockTitle}>
+          <span aria-hidden="true">◷</span>
+          <strong>{clockTime}</strong>
+          <small>{clockDate}</small>
+        </div>
+        <button
+          type="button"
+          className={`brian-briefing-bar__weather is-${weatherStatus}`}
+          onClick={() => loadWeather(true)}
+          title={weatherTitle}
+          aria-label={weatherTitle}
+        >
+          <span aria-hidden="true">{weatherView.icon}</span>
+          <strong>{weatherTemperature}</strong>
+          <small>{weatherStatus === 'loading' ? (language === 'en' ? 'Loading' : 'Đang tải') : weatherView.label}</small>
+        </button>
+      </div>
     </aside>
   );
 }
