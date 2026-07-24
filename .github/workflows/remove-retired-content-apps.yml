@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - agent/remove-content-factory-lesson-pack-20260724
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -36,13 +39,6 @@ jobs:
           def write(path, text):
               (ROOT / path).write_text(text, encoding='utf-8')
 
-          def replace(path, old, new, expected=True):
-              text = read(path)
-              if expected and old not in text:
-                  raise SystemExit(f'Expected text not found in {path}: {old[:100]!r}')
-              text = text.replace(old, new)
-              write(path, text)
-
           def sub(path, pattern, replacement, count=0, flags=0, expected_min=1):
               text = read(path)
               text, changed = re.subn(pattern, replacement, text, count=count, flags=flags)
@@ -51,11 +47,9 @@ jobs:
               write(path, text)
               return changed
 
-          # Remove launcher cards from the canonical app catalog.
           sub('src/data/apps.js', r"\s*\{\s*slug: 'content-factory'.*?featured: true\},", '', count=1, flags=re.S)
           sub('src/data/apps.js', r"\s*\{\s*slug: 'lesson-pack'.*?featured: true\},", '', count=1, flags=re.S)
 
-          # Remove routes, page modules, styles and route metadata.
           main = read('src/main.jsx')
           for line in [
               "import './styles/v1100.css';\n",
@@ -74,7 +68,6 @@ jobs:
           main = main.replace("'lesson-pack': ['Lesson Pack', 'Gói bài dạy'], ", '')
           write('src/main.jsx', main)
 
-          # Remove permission registrations and access checks.
           permissions = read('src/utils/permissions.js')
           for line in [
               "  'content-factory': 'route:content-factory',\n",
@@ -90,7 +83,6 @@ jobs:
           permissions = permissions.replace(" || route === 'content-factory'", '').replace(" || route === 'lesson-pack'", '')
           write('src/utils/permissions.js', permissions)
 
-          # Remove command-palette shortcuts.
           palette = read('src/components/GlobalCommandPalette.jsx')
           palette, c1 = re.subn(r"\s*\{ route: 'content-factory'[^}]*\},", '', palette, count=1)
           palette, c2 = re.subn(r"\s*\{ route: 'lesson-pack'[^}]*\},", '', palette, count=1)
@@ -98,38 +90,28 @@ jobs:
               raise SystemExit('Could not remove both command-palette route entries')
           write('src/components/GlobalCommandPalette.jsx', palette)
 
-          # Remove the Lesson Pack visual profile.
           sub('src/data/designProfiles.js', r"\s*'lesson-pack': \{.*?\},", '', count=1, flags=re.S)
 
-          # Remove transfer destinations and the quick-add control.
           transfer = read('src/components/ContentTransferHub.jsx')
           transfer = transfer.replace("'assessment-core','content-factory','word2graph'", "'assessment-core','word2graph'")
           transfer, target_removed = re.subn(r"\s*\{ id: 'lesson-pack'[^}]*\},", '', transfer, count=1)
           if target_removed != 1:
               raise SystemExit('Lesson Pack transfer destination not found')
           transfer = transfer.replace("  const [quickNotice, setQuickNotice] = useState('');\n", '')
-          transfer, quick_removed = re.subn(
-              r"\n  const currentAppId = selectedTool\?\.slug \|\| currentRoute;.*?\n  };\n",
-              '\n', transfer, count=1, flags=re.S,
-          )
+          transfer, quick_removed = re.subn(r"\n  const currentAppId = selectedTool\?\.slug \|\| currentRoute;.*?\n  };\n", '\n', transfer, count=1, flags=re.S)
           if quick_removed != 1:
               raise SystemExit('Quick Lesson Pack transfer block not found')
           transfer = re.sub(r"\n\s*\{showQuickLessonPack \?.*?</button> : null\}", '', transfer, count=1)
           transfer = re.sub(r"\n\s*\{quickNotice \?.*?</div> : null\}", '', transfer, count=1)
           write('src/components/ContentTransferHub.jsx', transfer)
 
-          # Keep Content Ecosystem, but remove the two retired destinations and reframe its complete sequence recipe.
           ecosystem = read('src/utils/contentEcosystem.js')
           ecosystem, e1 = re.subn(r"\s*\{ id: 'content-factory'[^}]*\},", '', ecosystem, count=1)
           ecosystem, e2 = re.subn(r"\s*\{ id: 'lesson-pack'[^}]*\},", '', ecosystem, count=1)
           if e1 != 1 or e2 != 1:
               raise SystemExit('Retired ecosystem targets not found')
           ecosystem = ecosystem.replace("['word2graph', 'content-factory', 'textlab-activities', 'assessment-core', 'student-practice']", "['word2graph', 'textlab-activities', 'assessment-core', 'student-practice']")
-          ecosystem, recipe_changed = re.subn(
-              r"\{\s*id: 'complete-lesson-pack',.*?outputs: \['lesson-plan-ai', 'textlab-activities', 'assessment-core', 'lesson-pack'\],\s*\},",
-              "{\n    id: 'complete-teaching-sequence',\n    title: 'Complete teaching sequence',\n    titleVi: 'Tiến trình dạy học hoàn chỉnh',\n    description: 'Lesson plan, interactive activities, assessment and adaptive practice.',\n    descriptionVi: 'Giáo án, hoạt động tương tác, đánh giá và luyện tập thích ứng.',\n    outputs: ['lesson-plan-ai', 'textlab-activities', 'assessment-core', 'student-practice'],\n  },",
-              ecosystem, count=1, flags=re.S,
-          )
+          ecosystem, recipe_changed = re.subn(r"\{\s*id: 'complete-lesson-pack',.*?outputs: \['lesson-plan-ai', 'textlab-activities', 'assessment-core', 'lesson-pack'\],\s*\},", "{\n    id: 'complete-teaching-sequence',\n    title: 'Complete teaching sequence',\n    titleVi: 'Tiến trình dạy học hoàn chỉnh',\n    description: 'Lesson plan, interactive activities, assessment and adaptive practice.',\n    descriptionVi: 'Giáo án, hoạt động tương tác, đánh giá và luyện tập thích ứng.',\n    outputs: ['lesson-plan-ai', 'textlab-activities', 'assessment-core', 'student-practice'],\n  },", ecosystem, count=1, flags=re.S)
           if recipe_changed != 1:
               raise SystemExit('Complete Lesson Pack recipe not found')
           ecosystem = re.sub(r"\n\s*'content-factory': 'Create reusable teaching outputs.*?", '', ecosystem, count=1)
@@ -156,60 +138,28 @@ jobs:
           page = page.replace(old_footer, new_footer)
           write('src/pages/ContentEcosystem.jsx', page)
 
-          # Preserve imported assessment metadata without naming a retired application.
           assessment = read('src/pages/AssessmentCore.jsx')
           assessment = assessment.replace("source: transfer.source || 'content-factory'", "source: transfer.source || 'content-transfer'")
           write('src/pages/AssessmentCore.jsx', assessment)
 
-          # Expand the permanent removal audit and stop treating the deleted page as critical.
           audit_path = 'scripts/audit-removed-apps-v11.6.7.mjs'
           audit = read(audit_path)
-          audit = audit.replace(
-              "  'classroom-delivery', 'classroom-join', 'learning-intelligence',\n",
-              "  'classroom-delivery', 'classroom-join', 'learning-intelligence',\n  'content-factory', 'lesson-pack',\n",
-          )
-          audit = audit.replace(
-              "  'Classroom Delivery', 'Learning Intelligence',\n",
-              "  'Classroom Delivery', 'Learning Intelligence',\n  'Teaching Content Factory', 'Xưởng tạo học liệu', 'Lesson Pack', 'Gói bài dạy liên thông',\n",
-          )
-          audit = audit.replace(
-              "  'src/pages/LearningIntelligence.jsx',\n",
-              "  'src/pages/LearningIntelligence.jsx',\n  'src/pages/ContentFactory.jsx', 'src/pages/LessonPack.jsx', 'src/utils/lessonPack.js', 'src/styles/v1100.css',\n",
-          )
+          audit = audit.replace("  'classroom-delivery', 'classroom-join', 'learning-intelligence',\n", "  'classroom-delivery', 'classroom-join', 'learning-intelligence',\n  'content-factory', 'lesson-pack',\n")
+          audit = audit.replace("  'Classroom Delivery', 'Learning Intelligence',\n", "  'Classroom Delivery', 'Learning Intelligence',\n  'Teaching Content Factory', 'Xưởng tạo học liệu', 'Lesson Pack', 'Gói bài dạy liên thông',\n")
+          audit = audit.replace("  'src/pages/LearningIntelligence.jsx',\n", "  'src/pages/LearningIntelligence.jsx',\n  'src/pages/ContentFactory.jsx', 'src/pages/LessonPack.jsx', 'src/utils/lessonPack.js', 'src/styles/v1100.css',\n")
           audit = audit.replace("'src/pages/ContentFactory.jsx', ", '')
-          audit = audit.replace(
-              "  'public/manifest.webmanifest',\n",
-              "  'public/manifest.webmanifest', 'src/utils/contentEcosystem.js',\n  'src/components/GlobalCommandPalette.jsx', 'src/data/designProfiles.js',\n  'src/pages/ContentEcosystem.jsx', 'src/pages/AssessmentCore.jsx',\n",
-          )
-          audit = audit.replace(
-              "/WorksheetFactory|SmartId|SpeakingStudio|EnglishLesson|GrammarBuilder|WritingStudio|PronunciationCoach|AIWorkspace|ClassroomDelivery|ClassroomJoin|LearningIntelligence/i",
-              "/WorksheetFactory|SmartId|SpeakingStudio|EnglishLesson|GrammarBuilder|WritingStudio|PronunciationCoach|AIWorkspace|ClassroomDelivery|ClassroomJoin|LearningIntelligence|ContentFactory|LessonPack/i",
-          )
+          audit = audit.replace("  'public/manifest.webmanifest',\n", "  'public/manifest.webmanifest', 'src/utils/contentEcosystem.js',\n  'src/components/GlobalCommandPalette.jsx', 'src/data/designProfiles.js',\n  'src/pages/ContentEcosystem.jsx', 'src/pages/AssessmentCore.jsx',\n")
+          audit = audit.replace("/WorksheetFactory|SmartId|SpeakingStudio|EnglishLesson|GrammarBuilder|WritingStudio|PronunciationCoach|AIWorkspace|ClassroomDelivery|ClassroomJoin|LearningIntelligence/i", "/WorksheetFactory|SmartId|SpeakingStudio|EnglishLesson|GrammarBuilder|WritingStudio|PronunciationCoach|AIWorkspace|ClassroomDelivery|ClassroomJoin|LearningIntelligence|ContentFactory|LessonPack/i")
           write(audit_path, audit)
 
-          # Delete the retired source modules and their dedicated stylesheet.
-          for path in [
-              'src/pages/ContentFactory.jsx',
-              'src/pages/LessonPack.jsx',
-              'src/utils/lessonPack.js',
-              'src/styles/v1100.css',
-          ]:
+          for path in ['src/pages/ContentFactory.jsx', 'src/pages/LessonPack.jsx', 'src/utils/lessonPack.js', 'src/styles/v1100.css']:
               target = ROOT / path
               if not target.exists():
                   raise SystemExit(f'Expected retired source missing before deletion: {path}')
               target.unlink()
 
-          # Validate active runtime files before the build.
-          active_files = [
-              'src/data/apps.js', 'src/main.jsx', 'src/utils/permissions.js',
-              'src/components/GlobalCommandPalette.jsx', 'src/data/designProfiles.js',
-              'src/components/ContentTransferHub.jsx', 'src/utils/contentEcosystem.js',
-              'src/pages/ContentEcosystem.jsx', 'src/pages/AssessmentCore.jsx',
-          ]
-          forbidden = [
-              'content-factory', 'lesson-pack', 'ContentFactory', 'LessonPack',
-              'Teaching Content Factory', 'Xưởng tạo học liệu', 'Gói bài dạy liên thông',
-          ]
+          active_files = ['src/data/apps.js', 'src/main.jsx', 'src/utils/permissions.js', 'src/components/GlobalCommandPalette.jsx', 'src/data/designProfiles.js', 'src/components/ContentTransferHub.jsx', 'src/utils/contentEcosystem.js', 'src/pages/ContentEcosystem.jsx', 'src/pages/AssessmentCore.jsx']
+          forbidden = ['content-factory', 'lesson-pack', 'ContentFactory', 'LessonPack', 'Teaching Content Factory', 'Xưởng tạo học liệu', 'Gói bài dạy liên thông']
           failures = []
           for path in active_files:
               text = read(path)
@@ -219,7 +169,6 @@ jobs:
           if failures:
               raise SystemExit('\n'.join(failures))
 
-          # Remove this one-off workflow from the final commit.
           (ROOT / '.github/workflows/remove-retired-content-apps.yml').unlink()
           PY
       - name: Install dependencies
