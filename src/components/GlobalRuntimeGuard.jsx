@@ -3,6 +3,7 @@ import VietnamAtmosphereOverlay from './VietnamAtmosphereOverlay.jsx';
 import VietnamAtmosphereAdminPanel from './VietnamAtmosphereAdminPanel.jsx';
 import UsernameLoginBridge from './UsernameLoginBridge.jsx';
 import BulkTeacherAccountsPanel from './BulkTeacherAccountsPanel.jsx';
+import './BulkTeacherAccountsPanelCompact.css';
 import UsernameAccountCenter from './UsernameAccountCenter.jsx';
 import { recordRuntimeError } from '../utils/runtimeDiagnostics.js';
 
