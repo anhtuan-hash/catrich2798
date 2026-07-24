@@ -1,9 +1,6 @@
 name: Remove retired content apps
 
 on:
-  push:
-    branches:
-      - agent/remove-content-factory-lesson-pack-20260724
   pull_request:
     branches:
       - main
@@ -24,153 +21,15 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Remove applications and references
-        shell: bash
-        run: |
-          python3 <<'PY'
-          from pathlib import Path
-          import re
-
-          ROOT = Path('.')
-
-          def read(path):
-              return (ROOT / path).read_text(encoding='utf-8')
-
-          def write(path, text):
-              (ROOT / path).write_text(text, encoding='utf-8')
-
-          def sub(path, pattern, replacement, count=0, flags=0, expected_min=1):
-              text = read(path)
-              text, changed = re.subn(pattern, replacement, text, count=count, flags=flags)
-              if changed < expected_min:
-                  raise SystemExit(f'Pattern not found in {path}: {pattern}')
-              write(path, text)
-              return changed
-
-          sub('src/data/apps.js', r"\s*\{\s*slug: 'content-factory'.*?featured: true\},", '', count=1, flags=re.S)
-          sub('src/data/apps.js', r"\s*\{\s*slug: 'lesson-pack'.*?featured: true\},", '', count=1, flags=re.S)
-
-          main = read('src/main.jsx')
-          for line in [
-              "import './styles/v1100.css';\n",
-              "const ContentFactory = lazy(() => import('./pages/ContentFactory.jsx'));\n",
-              "const LessonPack = lazy(() => import('./pages/LessonPack.jsx'));\n",
-              "  'content-factory': { accent: '#EF7A42', soft: '#FFF0E8', ink: '#5C2410' },\n",
-              "  'lesson-pack': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },\n",
-              "          {canAccessRoute && currentRoute === 'content-factory' && currentUser && <ContentFactory {...context} />}\n",
-              "          {canAccessRoute && currentRoute === 'lesson-pack' && currentUser && <LessonPack {...context} />}\n",
-          ]:
-              if line not in main:
-                  raise SystemExit(f'Expected main.jsx line missing: {line.strip()}')
-              main = main.replace(line, '')
-          main = main.replace(", 'content-factory'", '').replace(", 'lesson-pack'", '')
-          main = main.replace("      'content-factory': ['Teaching Content Factory', 'Xưởng tạo học liệu'], ", '')
-          main = main.replace("'lesson-pack': ['Lesson Pack', 'Gói bài dạy'], ", '')
-          write('src/main.jsx', main)
-
-          permissions = read('src/utils/permissions.js')
-          for line in [
-              "  'content-factory': 'route:content-factory',\n",
-              "  'lesson-pack': 'route:lesson-pack',\n",
-          ]:
-              if line not in permissions:
-                  raise SystemExit(f'Expected permission route missing: {line.strip()}')
-              permissions = permissions.replace(line, '')
-          permissions, n1 = re.subn(r"\s*\{\s*id: ROUTE_PERMISSION_IDS\['content-factory'\],.*?\},", '', permissions, count=1, flags=re.S)
-          permissions, n2 = re.subn(r"\s*\{\s*id: ROUTE_PERMISSION_IDS\['lesson-pack'\],.*?\},", '', permissions, count=1, flags=re.S)
-          if n1 != 1 or n2 != 1:
-              raise SystemExit('Could not remove both permission item blocks')
-          permissions = permissions.replace(" || route === 'content-factory'", '').replace(" || route === 'lesson-pack'", '')
-          write('src/utils/permissions.js', permissions)
-
-          palette = read('src/components/GlobalCommandPalette.jsx')
-          palette, c1 = re.subn(r"\s*\{ route: 'content-factory'[^}]*\},", '', palette, count=1)
-          palette, c2 = re.subn(r"\s*\{ route: 'lesson-pack'[^}]*\},", '', palette, count=1)
-          if c1 != 1 or c2 != 1:
-              raise SystemExit('Could not remove both command-palette route entries')
-          write('src/components/GlobalCommandPalette.jsx', palette)
-
-          sub('src/data/designProfiles.js', r"\s*'lesson-pack': \{.*?\},", '', count=1, flags=re.S)
-
-          transfer = read('src/components/ContentTransferHub.jsx')
-          transfer = transfer.replace("'assessment-core','content-factory','word2graph'", "'assessment-core','word2graph'")
-          transfer, target_removed = re.subn(r"\s*\{ id: 'lesson-pack'[^}]*\},", '', transfer, count=1)
-          if target_removed != 1:
-              raise SystemExit('Lesson Pack transfer destination not found')
-          transfer = transfer.replace("  const [quickNotice, setQuickNotice] = useState('');\n", '')
-          transfer, quick_removed = re.subn(r"\n  const currentAppId = selectedTool\?\.slug \|\| currentRoute;.*?\n  };\n", '\n', transfer, count=1, flags=re.S)
-          if quick_removed != 1:
-              raise SystemExit('Quick Lesson Pack transfer block not found')
-          transfer = re.sub(r"\n\s*\{showQuickLessonPack \?.*?</button> : null\}", '', transfer, count=1)
-          transfer = re.sub(r"\n\s*\{quickNotice \?.*?</div> : null\}", '', transfer, count=1)
-          write('src/components/ContentTransferHub.jsx', transfer)
-
-          ecosystem = read('src/utils/contentEcosystem.js')
-          ecosystem, e1 = re.subn(r"\s*\{ id: 'content-factory'[^}]*\},", '', ecosystem, count=1)
-          ecosystem, e2 = re.subn(r"\s*\{ id: 'lesson-pack'[^}]*\},", '', ecosystem, count=1)
-          if e1 != 1 or e2 != 1:
-              raise SystemExit('Retired ecosystem targets not found')
-          ecosystem = ecosystem.replace("['word2graph', 'content-factory', 'textlab-activities', 'assessment-core', 'student-practice']", "['word2graph', 'textlab-activities', 'assessment-core', 'student-practice']")
-          ecosystem, recipe_changed = re.subn(r"\{\s*id: 'complete-lesson-pack',.*?outputs: \['lesson-plan-ai', 'textlab-activities', 'assessment-core', 'lesson-pack'\],\s*\},", "{\n    id: 'complete-teaching-sequence',\n    title: 'Complete teaching sequence',\n    titleVi: 'Tiến trình dạy học hoàn chỉnh',\n    description: 'Lesson plan, interactive activities, assessment and adaptive practice.',\n    descriptionVi: 'Giáo án, hoạt động tương tác, đánh giá và luyện tập thích ứng.',\n    outputs: ['lesson-plan-ai', 'textlab-activities', 'assessment-core', 'student-practice'],\n  },", ecosystem, count=1, flags=re.S)
-          if recipe_changed != 1:
-              raise SystemExit('Complete Lesson Pack recipe not found')
-          ecosystem = re.sub(r"\n\s*'content-factory': 'Create reusable teaching outputs.*?", '', ecosystem, count=1)
-          ecosystem = re.sub(r"\n\s*'lesson-pack': 'Add this source.*?", '', ecosystem, count=1)
-          ecosystem, helper_removed = re.subn(r"\nexport function createLessonPackTransfer\(.*?\n\}", '', ecosystem, count=1, flags=re.S)
-          if helper_removed != 1:
-              raise SystemExit('Lesson Pack transfer helper not found')
-          write('src/utils/contentEcosystem.js', ecosystem)
-
-          page = read('src/pages/ContentEcosystem.jsx')
-          page = page.replace("  createLessonPackTransfer,\n", '')
-          page, sender_removed = re.subn(r"\n  function sendKitToLessonPack\(kit\) \{.*?\n  \}\n", '\n', page, count=1, flags=re.S)
-          if sender_removed != 1:
-              raise SystemExit('Content Ecosystem Lesson Pack sender not found')
-          old_heading = "<p>{vi ? 'Gom nhiều tài sản thành một gói có thể gửi thẳng sang Lesson Pack.' : 'Bundle assets and send the kit directly to Lesson Pack.'}</p>"
-          new_heading = "<p>{vi ? 'Gom nhiều tài sản thành một bộ nội dung có thể lưu trữ, xuất và tái sử dụng.' : 'Bundle assets into a content kit for storage, export and reuse.'}</p>"
-          if old_heading not in page:
-              raise SystemExit('Content kit heading not found')
-          page = page.replace(old_heading, new_heading)
-          old_footer = "<footer><button onClick={() => exportKit(kit)}>JSON</button><button className=\"primary\" onClick={() => sendKitToLessonPack(kit)}>{vi ? 'Gửi Lesson Pack' : 'Send to Lesson Pack'} →</button></footer>"
-          new_footer = "<footer><button className=\"primary\" onClick={() => exportKit(kit)}>{vi ? 'Xuất JSON' : 'Export JSON'}</button></footer>"
-          if old_footer not in page:
-              raise SystemExit('Content kit Lesson Pack button not found')
-          page = page.replace(old_footer, new_footer)
-          write('src/pages/ContentEcosystem.jsx', page)
-
-          assessment = read('src/pages/AssessmentCore.jsx')
-          assessment = assessment.replace("source: transfer.source || 'content-factory'", "source: transfer.source || 'content-transfer'")
-          write('src/pages/AssessmentCore.jsx', assessment)
-
-          audit_path = 'scripts/audit-removed-apps-v11.6.7.mjs'
-          audit = read(audit_path)
-          audit = audit.replace("  'classroom-delivery', 'classroom-join', 'learning-intelligence',\n", "  'classroom-delivery', 'classroom-join', 'learning-intelligence',\n  'content-factory', 'lesson-pack',\n")
-          audit = audit.replace("  'Classroom Delivery', 'Learning Intelligence',\n", "  'Classroom Delivery', 'Learning Intelligence',\n  'Teaching Content Factory', 'Xưởng tạo học liệu', 'Lesson Pack', 'Gói bài dạy liên thông',\n")
-          audit = audit.replace("  'src/pages/LearningIntelligence.jsx',\n", "  'src/pages/LearningIntelligence.jsx',\n  'src/pages/ContentFactory.jsx', 'src/pages/LessonPack.jsx', 'src/utils/lessonPack.js', 'src/styles/v1100.css',\n")
-          audit = audit.replace("'src/pages/ContentFactory.jsx', ", '')
-          audit = audit.replace("  'public/manifest.webmanifest',\n", "  'public/manifest.webmanifest', 'src/utils/contentEcosystem.js',\n  'src/components/GlobalCommandPalette.jsx', 'src/data/designProfiles.js',\n  'src/pages/ContentEcosystem.jsx', 'src/pages/AssessmentCore.jsx',\n")
-          audit = audit.replace("/WorksheetFactory|SmartId|SpeakingStudio|EnglishLesson|GrammarBuilder|WritingStudio|PronunciationCoach|AIWorkspace|ClassroomDelivery|ClassroomJoin|LearningIntelligence/i", "/WorksheetFactory|SmartId|SpeakingStudio|EnglishLesson|GrammarBuilder|WritingStudio|PronunciationCoach|AIWorkspace|ClassroomDelivery|ClassroomJoin|LearningIntelligence|ContentFactory|LessonPack/i")
-          write(audit_path, audit)
-
-          for path in ['src/pages/ContentFactory.jsx', 'src/pages/LessonPack.jsx', 'src/utils/lessonPack.js', 'src/styles/v1100.css']:
-              target = ROOT / path
-              if not target.exists():
-                  raise SystemExit(f'Expected retired source missing before deletion: {path}')
-              target.unlink()
-
-          active_files = ['src/data/apps.js', 'src/main.jsx', 'src/utils/permissions.js', 'src/components/GlobalCommandPalette.jsx', 'src/data/designProfiles.js', 'src/components/ContentTransferHub.jsx', 'src/utils/contentEcosystem.js', 'src/pages/ContentEcosystem.jsx', 'src/pages/AssessmentCore.jsx']
-          forbidden = ['content-factory', 'lesson-pack', 'ContentFactory', 'LessonPack', 'Teaching Content Factory', 'Xưởng tạo học liệu', 'Gói bài dạy liên thông']
-          failures = []
-          for path in active_files:
-              text = read(path)
-              for token in forbidden:
-                  if token in text:
-                      failures.append(f'{token!r} remains in {path}')
-          if failures:
-              raise SystemExit('\n'.join(failures))
-
-          (ROOT / '.github/workflows/remove-retired-content-apps.yml').unlink()
-          PY
+      - name: Remove applications and active references
+        run: python3 scripts/remove-retired-content-apps.py
+      - name: Upload removal report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: retired-app-removal-report
+          path: removal-report.txt
+          if-no-files-found: ignore
       - name: Install dependencies
         run: npm ci
       - name: Build production bundle
