@@ -1,1 +1,1 @@
-export { default } from './pek-timetable-v2.js';
+export { default, maxDuration } from './pek-timetable-v3.js';

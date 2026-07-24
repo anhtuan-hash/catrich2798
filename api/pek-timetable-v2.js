@@ -35,7 +35,7 @@ async function parseResource(resource, label = '') {
   }
   const text = resourceText(resource);
   if (type.includes('json') || /^[\s\n]*[\[{]/.test(text)) {
-    try { return { entries: parseJsonPayload(JSON.parse(text), label), tables: [], kind: 'json' }; } catch { /* continue */ }
+    try { return { entries: parseJsonPayload(JSON.parse(text), label), tables: [], kind: 'json' }; } catch {}
   }
   if (type.includes('csv') || /\.csv(?:$|[?#])/.test(filename)) return { entries: parseCsv(text, label), tables: [], kind: 'csv' };
   const html = parseHtmlTables(text, label);
@@ -60,7 +60,7 @@ function labelOf(resource) {
   try { return decodeURIComponent(new URL(resource.url).pathname.split('/').filter(Boolean).at(-1) || resource.url); } catch { return resource.url; }
 }
 
-async function scrapeTimetable() {
+export async function scrapePekTimetable() {
   const primary = await getSource();
   const queue = [{ ...primary, label: 'Trang thời khóa biểu PEK', depth: 0 }];
   const seen = new Set([primary.url, primary.requestedUrl].filter(Boolean));
@@ -94,7 +94,7 @@ async function scrapeTimetable() {
     catch (error) { parsed = { entries: [], tables: [], kind: 'parse-error', error: error.message }; }
     allEntries.push(...parsed.entries);
     diagnostics.push({
-      requestedUrl: document.requestedUrl, url: document.url, status: document.status,
+      source: 'PEK', requestedUrl: document.requestedUrl, url: document.url, status: document.status,
       kind: parsed.kind, contentType: document.contentType, filename: document.filename,
       bytes: document.buffer.length, tables: parsed.tables, parsedEntries: parsed.entries.length, error: parsed.error || '',
     });
@@ -105,7 +105,7 @@ async function scrapeTimetable() {
   const teachers = PRIORITY_TEACHERS.map((name) => ({ name, lessonCount: entries.filter((entry) => normalize(entry.teacherName) === normalize(name)).length }));
   const classes = unique(entries.map((entry) => entry.className)).sort((a, b) => a.localeCompare(b, 'vi', { numeric: true }));
   return {
-    ok: entries.length > 0, sourceUrl: SOURCE_URL, fetchedAt: new Date().toISOString(), parserVersion: 'pek-timetable-v2-xlsx',
+    ok: entries.length > 0, sourceName: 'PEK', sourceUrl: SOURCE_URL, fetchedAt: new Date().toISOString(), parserVersion: 'pek-timetable-v2-xlsx',
     teachers, classes, entries, diagnostics, discoveredUrls,
     warning: entries.length ? '' : 'Đã kết nối PEK nhưng chưa nhận diện được dữ liệu. Bộ đồng bộ đã kiểm tra trang, Excel/PDF, Google Sheets và endpoint liên quan.',
     sourceErrors: primary.errors || [],
@@ -126,16 +126,13 @@ export default async function handler(req, res) {
     return res.status(200).json(payload);
   }
   try {
-    const data = await scrapeTimetable();
+    const data = await scrapePekTimetable();
     globalThis.__pekTimetableCacheV2 = { time: Date.now(), data };
     const payload = { ...data, cached: false };
     if (!debug) { delete payload.diagnostics; delete payload.discoveredUrls; }
     return res.status(data.ok ? 200 : 206).json(payload);
   } catch (error) {
     if (cache?.data) return res.status(200).json({ ...cache.data, cached: true, stale: true, warning: `Không thể làm mới dữ liệu: ${error.message}` });
-    return res.status(502).json({
-      ok: false, sourceUrl: SOURCE_URL, fetchedAt: new Date().toISOString(), parserVersion: 'pek-timetable-v2-xlsx',
-      teachers: PRIORITY_TEACHERS.map((name) => ({ name, lessonCount: 0 })), classes: [], entries: [], message: error.message,
-    });
+    return res.status(502).json({ ok: false, sourceUrl: SOURCE_URL, fetchedAt: new Date().toISOString(), parserVersion: 'pek-timetable-v2-xlsx', teachers: PRIORITY_TEACHERS.map((name) => ({ name, lessonCount: 0 })), classes: [], entries: [], message: error.message });
   }
 }
