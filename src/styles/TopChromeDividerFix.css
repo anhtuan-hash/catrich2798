@@ -1,15 +1,37 @@
-/* Remove the legacy dark divider that can reappear below the shared navigation
-   on a few routes. Keep only the subtle Material outline of the shared chrome. */
+/* Safe chrome cleanup.
+   This file only overrides visual selectors; it never removes DOM nodes or
+   observes mutations, so it cannot interrupt React rendering. */
 
+/* Remove the floating Chatbot / legacy AI launchers without touching the
+   dictionary, music, notifications, profile or theme controls. */
+html body .brian-chatbot-fab,
+html body .brian-nav__ai-wrap,
+html body .brian-nav__ai-button,
+html body .bes-chatbot-fab,
+html body .bes-chatbot-launcher,
+html body .ai-chatbot-fab,
+html body .ai-chatbot-launcher,
+html body [data-chatbot-launcher],
+html body [data-ai-chatbot-launcher] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Remove every visual source of the dark divider below the shared navigation. */
 html body .app-shell > .bes-top-chrome,
 html body .app-shell .bes-top-chrome {
-  border-bottom: 1px solid rgba(60, 64, 67, 0.12) !important;
+  border: 0 !important;
+  border-bottom: 0 !important;
   outline: 0 !important;
+  box-shadow: none !important;
 }
 
 html body .app-shell > .bes-top-chrome > .brian-nav,
 html body .app-shell .bes-top-chrome > .brian-nav,
 html body .app-shell .brian-nav {
+  border: 0 !important;
+  border-top: 0 !important;
   border-bottom: 0 !important;
   outline: 0 !important;
   box-shadow: none !important;
@@ -17,28 +39,36 @@ html body .app-shell .brian-nav {
 
 html body .app-shell > .bes-top-chrome::before,
 html body .app-shell > .bes-top-chrome::after,
+html body .app-shell .bes-top-chrome::before,
+html body .app-shell .bes-top-chrome::after,
 html body .app-shell .bes-top-chrome > .brian-nav::before,
-html body .app-shell .bes-top-chrome > .brian-nav::after {
+html body .app-shell .bes-top-chrome > .brian-nav::after,
+html body .app-shell .brian-nav::before,
+html body .app-shell .brian-nav::after {
   display: none !important;
   content: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
 html body .app-shell > #bes-main-content,
 html body .app-shell > main#bes-main-content,
-html body .app-shell > .wp8-page-stage {
+html body .app-shell > .wp8-page-stage,
+html body .app-shell .bes-top-chrome + #bes-main-content,
+html body .app-shell .bes-top-chrome + main {
+  border: 0 !important;
   border-top: 0 !important;
   outline: 0 !important;
+  box-shadow: none !important;
 }
 
 html body .app-shell > #bes-main-content::before,
 html body .app-shell > main#bes-main-content::before,
 html body .app-shell > #bes-main-content::after,
 html body .app-shell > main#bes-main-content::after {
+  display: none !important;
+  content: none !important;
+  border: 0 !important;
   border-top: 0 !important;
   box-shadow: none !important;
-}
-
-html[data-theme='dark'] body .app-shell > .bes-top-chrome,
-body.theme-dark .app-shell > .bes-top-chrome {
-  border-bottom-color: rgba(232, 234, 237, 0.12) !important;
 }
