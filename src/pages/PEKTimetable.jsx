@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import './PEKTimetable.css';
+import './PEKTimetableDiagnostics.css';
 
 const PRIORITY_TEACHERS = [
   'Nguyễn Anh Tuấn',
@@ -41,7 +42,9 @@ function formatSyncTime(value) {
   if (!value) return 'Chưa đồng bộ';
   try {
     return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value));
-  } catch { return String(value); }
+  } catch {
+    return String(value);
+  }
 }
 
 function Icon({ name }) {
@@ -61,13 +64,74 @@ function SummaryCard({ icon, label, value, tone = 'blue' }) {
   return <article className={`pek-summary-card tone-${tone}`}><span><Icon name={icon}/></span><div><strong>{value}</strong><small>{label}</small></div></article>;
 }
 
-function EmptyState({ warning, onRefresh }) {
+function SourceDiagnostics({ data }) {
+  const [copied, setCopied] = useState(false);
+  const resources = Array.isArray(data?.diagnostics) ? data.diagnostics : [];
+  const discovered = Array.isArray(data?.discoveredUrls) ? data.discoveredUrls : [];
+  if (!resources.length && !discovered.length && !data?.parserVersion) return null;
+
+  const copyDiagnostics = async () => {
+    const payload = {
+      parserVersion: data?.parserVersion,
+      fetchedAt: data?.fetchedAt,
+      warning: data?.warning || data?.message,
+      diagnostics: resources,
+      discoveredUrls: discovered,
+      sourceErrors: data?.sourceErrors,
+    };
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  return (
+    <details className="pek-diagnostics">
+      <summary>
+        <span>Chẩn đoán nguồn dữ liệu</span>
+        <small>{resources.length} tài nguyên · {discovered.length} liên kết được dò</small>
+      </summary>
+      <div className="pek-diagnostics-body">
+        <div className="pek-diagnostics-meta">
+          <span><strong>Parser</strong>{data?.parserVersion || 'Không xác định'}</span>
+          <span><strong>Đồng bộ</strong>{formatSyncTime(data?.fetchedAt)}</span>
+          <button type="button" onClick={copyDiagnostics}>{copied ? 'Đã sao chép' : 'Sao chép chẩn đoán'}</button>
+        </div>
+        {resources.length ? (
+          <div className="pek-diagnostics-list">
+            {resources.slice(0, 14).map((item, index) => (
+              <article key={`${item.url || item.filename || 'resource'}-${index}`}>
+                <div>
+                  <strong>{item.filename || item.kind || `Tài nguyên ${index + 1}`}</strong>
+                  <small>{item.url || item.requestedUrl || 'Không có URL'}</small>
+                </div>
+                <span className={item.parsedEntries ? 'is-success' : item.error ? 'is-error' : ''}>
+                  {item.kind || 'unknown'} · {item.parsedEntries || 0} mục
+                </span>
+                {item.error ? <p>{item.error}</p> : null}
+              </article>
+            ))}
+          </div>
+        ) : null}
+        {discovered.length ? (
+          <p className="pek-discovery-note">Đã phát hiện {discovered.length} liên kết có khả năng chứa thời khóa biểu; parser ưu tiên Excel, Google Sheets, PDF, CSV và endpoint TKB.</p>
+        ) : null}
+      </div>
+    </details>
+  );
+}
+
+function EmptyState({ warning, onRefresh, data }) {
   return (
     <section className="pek-empty-state">
       <span><Icon name="warning"/></span>
       <h3>Chưa đọc được dữ liệu thời khóa biểu</h3>
       <p>{warning || 'Website PEK đã phản hồi nhưng cấu trúc dữ liệu hiện chưa được nhận diện.'}</p>
       <button type="button" className="pek-filled-button" onClick={onRefresh}><Icon name="refresh"/> Thử đồng bộ lại</button>
+      <SourceDiagnostics data={data}/>
     </section>
   );
 }
@@ -141,10 +205,11 @@ export default function PEKTimetable({ language = 'vi' }) {
     refresh ? setRefreshing(true) : setLoading(true);
     setError('');
     try {
-      const response = await fetch(`/api/pek-timetable${refresh ? '?refresh=1&debug=1' : ''}`, { headers: { accept: 'application/json' } });
+      const query = refresh ? '?refresh=1&debug=1' : '?debug=1';
+      const response = await fetch(`/api/pek-timetable${query}`, { headers: { accept: 'application/json' }, cache: refresh ? 'no-store' : 'default' });
       const payload = await response.json();
       setData(payload);
-      if (!response.ok && !payload.entries?.length) setError(payload.message || payload.warning || 'Không thể đồng bộ dữ liệu PEK.');
+      if (!payload.ok && !payload.entries?.length) setError(payload.message || payload.warning || 'Không thể đồng bộ dữ liệu PEK.');
     } catch (loadError) {
       setError(loadError.message || 'Không thể kết nối API thời khóa biểu.');
     } finally {
@@ -225,20 +290,20 @@ export default function PEKTimetable({ language = 'vi' }) {
           </div>
         ) : (
           <div className="pek-class-toolbar">
-            <label><span>Chọn lớp</span><select value={selectedClass} onChange={(event) => setSelectedClass(event.target.value)}><option value="all">Tất cả các lớp</option>{classes.map((className) => <option key={className} value={className}>{className}</option>)}</select></label>
+            <label><span>Chọn lớp</span><select value={selectedClass} onChange={(event) => setSelectedClass(event.target.value)}><option value="all">Tất cả các lớp</option>{classes.map((classItem) => <option key={classItem} value={classItem}>{classItem}</option>)}</select></label>
             <small>{classes.length ? `${classes.length} lớp được lấy tự động từ PEK` : 'Danh sách lớp sẽ xuất hiện sau khi nguồn PEK được nhận diện.'}</small>
           </div>
         )}
 
         {loading ? <div className="pek-loading"><span/><p>Đang kết nối hệ thống chuyên môn PEK…</p></div> : null}
-        {!loading && (error || (!data?.ok && !entries.length)) ? <EmptyState warning={error || data?.warning} onRefresh={() => load(true)}/> : null}
+        {!loading && (error || (!data?.ok && !entries.length)) ? <EmptyState warning={error || data?.warning} onRefresh={() => load(true)} data={data}/> : null}
 
         {!loading && data?.ok && mode === 'class' && selectedClass === 'all' ? (
           <section className="pek-class-directory">
             <header><div><span className="pek-eyebrow">DANH SÁCH TỰ ĐỘNG</span><h2>Toàn bộ các lớp</h2></div><small>{classes.length} lớp</small></header>
-            <div>{classes.map((className) => {
-              const count = entries.filter((entry) => normalize(entry.className) === normalize(className)).length;
-              return <button type="button" key={className} onClick={() => setSelectedClass(className)}><span>{className}</span><small>{count} mục lịch</small><Icon name="chevron"/></button>;
+            <div>{classes.map((classItem) => {
+              const count = entries.filter((entry) => normalize(entry.className) === normalize(classItem)).length;
+              return <button type="button" key={classItem} onClick={() => setSelectedClass(classItem)}><span>{classItem}</span><small>{count} mục lịch</small><Icon name="chevron"/></button>;
             })}</div>
           </section>
         ) : null}
