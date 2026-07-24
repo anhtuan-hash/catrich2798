@@ -1,9 +1,13 @@
 import fs from 'node:fs';
 
 const target = 'src/components/GlobalAiWebsiteLauncher.jsx';
+const styleTarget = 'src/components/GlobalAiWebsiteLauncher.css';
 
 if (!fs.existsSync(target)) {
   throw new Error(`Missing AI workspace source: ${target}`);
+}
+if (!fs.existsSync(styleTarget)) {
+  throw new Error(`Missing AI workspace stylesheet: ${styleTarget}`);
 }
 
 let source = fs.readFileSync(target, 'utf8');
@@ -76,4 +80,19 @@ if (source.includes(legacyHiddenLayer)) {
 }
 
 fs.writeFileSync(target, source);
+
+let styles = fs.readFileSync(styleTarget, 'utf8');
+const closedRule = `
+/* Keep the embedded AI iframe alive while the panel is visually hidden. */
+.brian-ai-workspace-layer.is-closed {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+`;
+if (!styles.includes('.brian-ai-workspace-layer.is-closed')) {
+  styles += closedRule;
+  fs.writeFileSync(styleTarget, styles);
+}
+
 console.log('AI workspace session persistence patch applied.');
