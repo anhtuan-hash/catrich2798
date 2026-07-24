@@ -1,1 +1,351 @@
-/* placeholder */
+/* Compact tuning for the Google Material quick dictionary.
+   Loaded after QuickDictionaryBubble.css so the panel stays useful without
+   covering an excessive portion of the workspace. */
+
+.bes-dictionary-panel{
+  width:min(430px,calc(100vw - 28px))!important;
+  max-height:min(650px,calc(100dvh - 132px))!important;
+  bottom:66px!important;
+  border-radius:24px!important;
+}
+
+.bes-dictionary-header{
+  min-height:70px!important;
+  grid-template-columns:40px minmax(0,1fr) 36px!important;
+  gap:11px!important;
+  padding:12px 13px!important;
+}
+
+.bes-dictionary-header-icon{
+  width:40px!important;
+  height:40px!important;
+}
+
+.bes-dictionary-header-icon svg{
+  width:22px!important;
+  height:22px!important;
+}
+
+.bes-dictionary-header strong{
+  font-size:1rem!important;
+}
+
+.bes-dictionary-header small{
+  font-size:.74rem!important;
+}
+
+.bes-dictionary-close{
+  width:34px!important;
+  height:34px!important;
+  font-size:1.4rem!important;
+}
+
+.bes-dictionary-form{
+  gap:9px!important;
+  padding:11px 13px 12px!important;
+}
+
+.bes-dictionary-search-field{
+  min-height:48px!important;
+  grid-template-columns:20px minmax(0,1fr) 32px!important;
+  gap:9px!important;
+  padding:0 7px 0 13px!important;
+  border-radius:16px!important;
+}
+
+.bes-dictionary-search-field>svg{
+  width:20px!important;
+  height:20px!important;
+}
+
+.bes-dictionary-search-field input{
+  min-height:44px!important;
+  font-size:.9rem!important;
+  font-weight:600!important;
+}
+
+.bes-dictionary-search-field>button{
+  width:30px!important;
+  min-width:30px!important;
+  height:30px!important;
+  min-height:30px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:50%!important;
+  font-size:1.15rem!important;
+  line-height:1!important;
+}
+
+.bes-dictionary-form-actions{
+  grid-template-columns:minmax(0,1fr) 108px!important;
+  gap:9px!important;
+}
+
+.bes-dictionary-form select{
+  min-height:42px!important;
+  padding:0 34px 0 12px!important;
+  border-radius:13px!important;
+  font-size:.8rem!important;
+}
+
+.bes-dictionary-form-actions>button{
+  min-width:0!important;
+  min-height:42px!important;
+  padding:0 13px!important;
+  border-radius:14px!important;
+  font-size:.82rem!important;
+}
+
+.bes-dictionary-body{
+  min-height:170px!important;
+}
+
+.bes-dictionary-welcome,
+.bes-dictionary-loading,
+.bes-dictionary-error{
+  min-height:205px!important;
+  gap:9px!important;
+  padding:24px!important;
+}
+
+.bes-dictionary-welcome>span{
+  width:54px!important;
+  height:54px!important;
+  border-radius:18px!important;
+}
+
+.bes-dictionary-welcome svg{
+  width:27px!important;
+  height:27px!important;
+}
+
+.bes-dictionary-welcome strong{
+  font-size:.96rem!important;
+}
+
+.bes-dictionary-welcome p{
+  max-width:315px!important;
+  font-size:.78rem!important;
+  line-height:1.5!important;
+}
+
+.bes-dictionary-result{
+  gap:10px!important;
+  padding:11px 12px 13px!important;
+}
+
+.bes-dictionary-audio-card{
+  gap:10px!important;
+  padding:12px!important;
+  border-radius:18px!important;
+}
+
+.bes-dictionary-audio-topline{
+  grid-template-columns:46px minmax(0,1fr) auto!important;
+  gap:10px!important;
+}
+
+.bes-dictionary-audio-play{
+  width:46px!important;
+  height:46px!important;
+}
+
+.bes-dictionary-audio-play svg{
+  width:23px!important;
+  height:23px!important;
+}
+
+.bes-dictionary-audio-word>span{
+  padding:3px 7px!important;
+  font-size:.62rem!important;
+}
+
+.bes-dictionary-audio-word strong{
+  font-size:1rem!important;
+}
+
+.bes-dictionary-audio-word small{
+  font-size:.8rem!important;
+}
+
+.bes-dictionary-rate-chip{
+  min-width:62px!important;
+  min-height:34px!important;
+  padding:0 8px!important;
+  font-size:.7rem!important;
+}
+
+.bes-dictionary-rate-chip svg{
+  width:15px!important;
+  height:15px!important;
+}
+
+.bes-dictionary-audio-timeline{
+  grid-template-columns:28px minmax(0,1fr) 28px!important;
+  gap:7px!important;
+}
+
+.bes-dictionary-waveform-wrap,
+.bes-dictionary-waveform-wrap input{
+  height:34px!important;
+}
+
+.bes-dictionary-audio-caption{
+  gap:10px!important;
+  font-size:.68rem!important;
+}
+
+.bes-dictionary-audio-caption b{
+  padding:4px 7px!important;
+  font-size:.6rem!important;
+}
+
+.bes-dictionary-translation{
+  gap:5px!important;
+  padding:11px 12px!important;
+  border-radius:16px!important;
+}
+
+.bes-dictionary-translation small{
+  font-size:.64rem!important;
+}
+
+.bes-dictionary-translation strong{
+  font-size:.96rem!important;
+}
+
+.bes-dictionary-translation p{
+  font-size:.71rem!important;
+}
+
+.bes-dictionary-meanings-card{
+  border-radius:17px!important;
+}
+
+.bes-dictionary-meanings-card>header{
+  min-height:42px!important;
+  padding:0 12px!important;
+}
+
+.bes-dictionary-meanings-card>header span{
+  font-size:.82rem!important;
+}
+
+.bes-dictionary-meaning{
+  gap:7px!important;
+  padding:11px 12px!important;
+}
+
+.bes-dictionary-meaning h4{
+  padding:4px 8px!important;
+  font-size:.66rem!important;
+}
+
+.bes-dictionary-meaning ol{
+  gap:7px!important;
+  padding-left:19px!important;
+}
+
+.bes-dictionary-meaning li{
+  font-size:.76rem!important;
+  line-height:1.43!important;
+}
+
+.bes-dictionary-meaning li em{
+  margin-top:3px!important;
+  font-size:.7rem!important;
+  line-height:1.4!important;
+}
+
+.bes-dictionary-synonyms{
+  padding:8px 9px!important;
+  font-size:.69rem!important;
+}
+
+.bes-dictionary-meanings-card>footer,
+.bes-dictionary-source-only{
+  padding:9px 12px!important;
+  font-size:.63rem!important;
+}
+
+.bes-dictionary-history{
+  gap:8px!important;
+  padding:10px 12px 12px!important;
+}
+
+.bes-dictionary-history strong{
+  font-size:.69rem!important;
+}
+
+.bes-dictionary-history>div button{
+  font-size:.68rem!important;
+}
+
+.bes-dictionary-history nav button{
+  min-height:31px!important;
+  padding:0 10px!important;
+  font-size:.7rem!important;
+}
+
+.bes-dictionary-launcher{
+  width:52px!important;
+  height:52px!important;
+  border-radius:18px!important;
+}
+
+.bes-dictionary-launcher svg{
+  width:24px!important;
+  height:24px!important;
+}
+
+.bes-utility-rail.bes-utility-rail--music-only{
+  grid-template-columns:50px!important;
+}
+
+.bes-utility-rail.bes-utility-rail--music-only .is-music{
+  width:50px!important;
+  height:50px!important;
+  font-size:19px!important;
+}
+
+@media(max-height:760px) and (min-width:621px){
+  .bes-dictionary-panel{
+    max-height:calc(100dvh - 112px)!important;
+    bottom:60px!important;
+  }
+  .bes-dictionary-header{
+    min-height:64px!important;
+    padding:10px 12px!important;
+  }
+  .bes-dictionary-form{
+    padding:9px 12px 10px!important;
+  }
+  .bes-dictionary-result{
+    padding:10px 11px 12px!important;
+  }
+}
+
+@media(max-width:900px){
+  .bes-dictionary-panel{
+    width:min(410px,calc(100vw - 20px))!important;
+  }
+}
+
+@media(max-width:620px){
+  .bes-dictionary-panel{
+    width:calc(100vw - 16px)!important;
+    max-height:calc(100dvh - 92px)!important;
+    bottom:60px!important;
+    border-radius:21px!important;
+  }
+  .bes-dictionary-form-actions{
+    grid-template-columns:minmax(0,1fr) 100px!important;
+  }
+  .bes-dictionary-audio-topline{
+    grid-template-columns:44px minmax(0,1fr) auto!important;
+  }
+  .bes-dictionary-audio-play{
+    width:44px!important;
+    height:44px!important;
+  }
+}
