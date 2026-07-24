@@ -6,27 +6,17 @@
 <meta name="color-scheme" content="light">
 <title>English Hub Motion Lab — 100 hiệu ứng</title>
 <link rel="stylesheet" href="/motion-lab.css">
+<link rel="stylesheet" href="/motion-lab-apply.css">
 </head>
 <body>
-<script>if(new URLSearchParams(location.search).get('embedded')==='1')document.body.classList.add('embedded')</script>
 <div class="shell">
-<header class="hero"><div class="hero-grid"><div><span class="eyebrow">ENGLISH HUB MOTION LAB · 100 EFFECTS</span><h1>100 hiệu ứng<br>cho English Hub</h1><p>Phòng thử nghiệm chuyển động độc lập của English Hub: chữ, 3D, SVG, dữ liệu, UI, nền động, tải trang, vật lý và hiệu ứng hoàn thành. Mỗi thẻ có nút chạy lại và mã mẫu.</p></div><div class="count-box"><strong>100</strong><span>HIỆU ỨNG THỰC TẾ</span><span class="new-note">65 hiệu ứng mới so với V2</span></div></div></header>
-<section class="toolbar"><div class="toolbar-top"><input id="search" class="search" placeholder="Tìm hiệu ứng: chữ, 3D, rung, SVG, loader..."><button id="runAll" class="btn primary">▶ Chạy tất cả đang hiển thị</button><button id="resetAll" class="btn ghost">↺ Đặt lại</button></div><div id="filters" class="filters"></div><div class="result-line"><span id="resultCount">Đang nạp 100 hiệu ứng…</span><span>Web Animations API · hoạt động ngoại tuyến</span></div></section>
+<header class="hero"><div class="hero-grid"><div><span class="eyebrow">ENGLISH HUB MOTION LAB · 100 EFFECTS</span><h1>100 hiệu ứng<br>cho English Hub</h1><p>Phòng thử nghiệm chuyển động độc lập của English Hub: chữ, 3D, SVG, dữ liệu, UI, nền động, tải trang, vật lý và hiệu ứng hoàn thành. Các hiệu ứng production-safe có thể được áp dụng trực tiếp cho toàn website.</p></div><div class="count-box"><strong>100</strong><span>HIỆU ỨNG THỰC TẾ</span><span class="new-note">Chọn và áp dụng cho English Hub</span></div></div></header>
+<section class="toolbar"><div class="toolbar-top"><input id="search" class="search" placeholder="Tìm hiệu ứng: chữ, 3D, rung, SVG, loader..."><button id="runAll" class="btn primary">▶ Chạy tất cả đang hiển thị</button><button id="resetAll" class="btn ghost">↺ Đặt lại bản xem thử</button></div><div id="filters" class="filters"></div><div class="result-line"><span id="resultCount">Đang nạp 100 hiệu ứng…</span><span>Web Animations API · hoạt động ngoại tuyến</span></div></section>
 <main id="grid" class="grid"></main>
 </div>
 <div id="toastGlobal" class="toast-global"></div>
 <div id="testReport" class="test-report"></div>
 <script src="/motion-lab-data.js"></script>
-<script>
-window.MOTION_LAB_EFFECTS_READY.then(()=>{
-  const runtime=document.createElement('script');
-  runtime.src='/motion-lab-runtime.js';
-  runtime.onerror=()=>{document.getElementById('resultCount').textContent='Không thể nạp Motion Lab';};
-  document.body.appendChild(runtime);
-}).catch((error)=>{
-  console.error(error);
-  document.getElementById('resultCount').textContent='Trình duyệt chưa hỗ trợ Motion Lab';
-});
-</script>
+<script src="/motion-lab-boot.js"></script>
 </body>
 </html>
