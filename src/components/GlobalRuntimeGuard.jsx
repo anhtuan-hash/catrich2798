@@ -4,6 +4,7 @@ import VietnamAtmosphereAdminPanel from './VietnamAtmosphereAdminPanel.jsx';
 import UsernameLoginBridge from './UsernameLoginBridge.jsx';
 import BulkTeacherAccountsPanel from './BulkTeacherAccountsPanel.jsx';
 import './BulkTeacherAccountsPanelCompact.css';
+import '../styles/TopChromeDividerFix.css';
 import UsernameAccountCenter from './UsernameAccountCenter.jsx';
 import { recordRuntimeError } from '../utils/runtimeDiagnostics.js';
 
