@@ -29,6 +29,7 @@ import './GlobalDashboardVisualFix.css';
 import './GlobalWorkHubGoogleRedesign.css';
 import './GlobalNotificationCenterGoogleFinal.css';
 import './GlobalNotificationCenterNarrow.css';
+import './GlobalNotificationMenuLayerFix.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
