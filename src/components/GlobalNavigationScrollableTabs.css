@@ -1,6 +1,7 @@
 /* Six primary destinations stay on one row. When the available width is not
    enough, only the tab strip scrolls; the brand and account controls remain
-   fixed in place. */
+   fixed in place. The scrollbar stays visually hidden while trackpad, mouse,
+   keyboard and touch scrolling continue to work. */
 @media (min-width: 821px) {
   html body .app-shell .brian-nav__primary {
     min-width: 0 !important;
@@ -11,14 +12,14 @@
     flex-wrap: nowrap !important;
     align-items: center !important;
     gap: 4px !important;
-    padding: 3px 2px 6px !important;
+    padding: 3px 2px !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
     overscroll-behavior-inline: contain !important;
     scroll-behavior: smooth !important;
     scroll-snap-type: inline proximity !important;
-    scrollbar-width: thin !important;
-    scrollbar-color: rgba(95, 99, 104, .42) transparent !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
     -webkit-overflow-scrolling: touch !important;
     touch-action: pan-x !important;
   }
@@ -31,32 +32,8 @@
   }
 
   html body .app-shell .brian-nav__primary::-webkit-scrollbar {
-    display: block !important;
-    height: 5px !important;
-  }
-
-  html body .app-shell .brian-nav__primary::-webkit-scrollbar-track {
-    border-radius: 999px !important;
-    background: transparent !important;
-  }
-
-  html body .app-shell .brian-nav__primary::-webkit-scrollbar-thumb {
-    min-width: 44px !important;
-    border-radius: 999px !important;
-    background: rgba(95, 99, 104, .38) !important;
-  }
-
-  html body .app-shell .brian-nav__primary::-webkit-scrollbar-thumb:hover {
-    background: rgba(60, 64, 67, .58) !important;
-  }
-
-  [data-theme='dark'] body .app-shell .brian-nav__primary,
-  .theme-dark body .app-shell .brian-nav__primary {
-    scrollbar-color: rgba(232, 234, 237, .44) transparent !important;
-  }
-
-  [data-theme='dark'] body .app-shell .brian-nav__primary::-webkit-scrollbar-thumb,
-  .theme-dark body .app-shell .brian-nav__primary::-webkit-scrollbar-thumb {
-    background: rgba(232, 234, 237, .38) !important;
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
   }
 }
