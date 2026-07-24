@@ -3,9 +3,9 @@ import { useEffect } from 'react';
 /* Legacy Settings styles use important background declarations. React writes the
    selected avatar preview as an inline background image, so promote that one
    inline declaration to important after each relevant DOM update. */
-export default function GlobalUserProfilePreviewGuard() {
+export default function GlobalUserProfilePreviewGuard({ route }) {
   useEffect(() => {
-    if (typeof document === 'undefined') return undefined;
+    if (route !== 'settings' || typeof document === 'undefined') return undefined;
 
     const sync = () => {
       document.querySelectorAll('.bes-profile-editor__avatar.has-image').forEach((node) => {
@@ -25,7 +25,7 @@ export default function GlobalUserProfilePreviewGuard() {
       attributeFilter: ['class', 'style'],
     });
     return () => observer.disconnect();
-  }, []);
+  }, [route]);
 
   return null;
 }
