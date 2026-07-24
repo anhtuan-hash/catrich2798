@@ -1,1 +1,516 @@
-/* WordGraph Studio — Google Material 3 visual system. */
+/* WordGraph Studio — Google Material 3 visual system.
+   Loaded globally but scoped to the WordGraph page. */
+
+body .metro-clean-system[data-route='tool'] .wordgraph-page {
+  --wg-blue: #1a73e8;
+  --wg-blue-strong: #0b57d0;
+  --wg-blue-soft: #e8f0fe;
+  --wg-green: #34a853;
+  --wg-yellow: #fbbc04;
+  --wg-red: #ea4335;
+  --wg-ink: #202124;
+  --wg-body: #3c4043;
+  --wg-muted: #5f6368;
+  --wg-line: #dadce0;
+  --wg-surface: #ffffff;
+  --wg-surface-soft: #f8fafd;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 24px clamp(18px,3vw,44px) 64px !important;
+  color: var(--wg-ink) !important;
+  background:
+    radial-gradient(circle at 4% 2%,rgba(232,240,254,.95),transparent 27%),
+    radial-gradient(circle at 98% 4%,rgba(230,244,234,.76),transparent 24%),
+    linear-gradient(180deg,#f8fbff 0%,#f6f8fc 100%) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-shell {
+  width: min(1540px,100%) !important;
+  margin: 0 auto !important;
+  display: grid !important;
+  gap: 22px !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-topline {
+  min-height: 54px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  padding: 0 4px !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-back,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-top-status {
+  min-height: 42px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-back {
+  padding: 0 16px !important;
+  border: 1px solid var(--wg-line) !important;
+  background: rgba(255,255,255,.94) !important;
+  color: var(--wg-blue-strong) !important;
+  box-shadow: 0 1px 2px rgba(60,64,67,.08) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-back:hover {
+  border-color: #a8c7fa !important;
+  background: var(--wg-blue-soft) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-top-status {
+  padding: 0 15px !important;
+  background: #e6f4ea !important;
+  color: #137333 !important;
+  font-size: .82rem !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero {
+  padding: clamp(22px,3vw,38px) !important;
+  border: 1px solid var(--wg-line) !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(circle at 88% 14%,rgba(168,199,250,.42),transparent 34%),
+    linear-gradient(135deg,#fff 0%,#f8fbff 58%,#eef4ff 100%) !important;
+  box-shadow: 0 1px 2px rgba(60,64,67,.08),0 12px 34px rgba(60,64,67,.10) !important;
+  overflow: hidden !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-main {
+  display: grid !important;
+  grid-template-columns: minmax(380px,.94fr) minmax(360px,1.06fr) !important;
+  gap: clamp(28px,4vw,58px) !important;
+  align-items: center !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-demo {
+  min-height: 310px !important;
+  border: 1px solid #d2e3fc !important;
+  border-radius: 24px !important;
+  background:
+    linear-gradient(rgba(218,220,224,.36) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(218,220,224,.36) 1px,transparent 1px),
+    #fff !important;
+  background-size: 24px 24px !important;
+  box-shadow: inset 0 1px 0 #fff,0 8px 24px rgba(60,64,67,.10) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-demo-toolbar,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-demo-zoom {
+  border: 1px solid var(--wg-line) !important;
+  border-radius: 14px !important;
+  background: rgba(255,255,255,.97) !important;
+  box-shadow: 0 2px 8px rgba(60,64,67,.12) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-demo-toolbar span.active {
+  background: var(--wg-blue-soft) !important;
+  color: var(--wg-blue-strong) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-demo-node {
+  border-width: 1px !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 8px rgba(60,64,67,.13) !important;
+  font-weight: 700 !important;
+}
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-demo-node.center { background: var(--wg-blue) !important; border-color: var(--wg-blue) !important; color:#fff !important; }
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-demo-node.family { background:#e8f0fe !important; border-color:#a8c7fa !important; color:#174ea6 !important; }
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-demo-node.collocation { background:#e6f4ea !important; border-color:#a8dab5 !important; color:#137333 !important; }
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-demo-node.meaning { background:#fef7e0 !important; border-color:#fdd663 !important; color:#b06000 !important; }
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-demo-node.example { background:#fce8e6 !important; border-color:#f6aea9 !important; color:#c5221f !important; }
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-demo-node.pronunciation { background:#f3e8fd !important; border-color:#d7aefb !important; color:#7627bb !important; }
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-tag,
+body .metro-clean-system[data-route='tool'] .wordgraph-step-title .eyebrow,
+body .metro-clean-system[data-route='tool'] .wordgraph-result-head .eyebrow,
+body .metro-clean-system[data-route='tool'] .wordgraph-outline-panel .eyebrow {
+  color: var(--wg-blue-strong) !important;
+  font-weight: 800 !important;
+  letter-spacing: .04em !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-tag {
+  min-height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 11px !important;
+  border-radius: 999px !important;
+  background: var(--wg-blue-soft) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-copy h1 {
+  margin: 15px 0 12px !important;
+  color: var(--wg-ink) !important;
+  font-size: clamp(2.5rem,4vw,4.7rem) !important;
+  line-height: .98 !important;
+  letter-spacing: -.055em !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-copy h1 span {
+  width: 66px !important;
+  height: 66px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  margin-right: 12px !important;
+  border-radius: 20px !important;
+  background: linear-gradient(145deg,#4285f4,#0b57d0) !important;
+  color: #fff !important;
+  font-size: 1.4rem !important;
+  letter-spacing: 0 !important;
+  vertical-align: middle !important;
+  box-shadow: 0 8px 20px rgba(26,115,232,.24) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-copy > p {
+  max-width: 720px !important;
+  color: var(--wg-body) !important;
+  font-size: 1rem !important;
+  line-height: 1.62 !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-actions,
+body .metro-clean-system[data-route='tool'] .wordgraph-ai-actions,
+body .metro-clean-system[data-route='tool'] .preview-actions,
+body .metro-clean-system[data-route='tool'] .wordgraph-toolbar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-actions { margin-top: 22px !important; gap: 10px !important; }
+
+body .metro-clean-system[data-route='tool'] .wordgraph-page button {
+  min-height: 42px !important;
+  border-radius: 999px !important;
+  font-family: inherit !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  transition: background-color .16s ease,box-shadow .16s ease,transform .16s ease !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-actions button,
+body .metro-clean-system[data-route='tool'] .wordgraph-page button.secondary,
+body .metro-clean-system[data-route='tool'] .wordgraph-page button.ghost,
+body .metro-clean-system[data-route='tool'] .preview-actions button,
+body .metro-clean-system[data-route='tool'] .wordgraph-toolbar button {
+  padding-inline: 16px !important;
+  border: 1px solid var(--wg-line) !important;
+  background: #fff !important;
+  color: var(--wg-blue-strong) !important;
+  box-shadow: 0 1px 2px rgba(60,64,67,.08) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-actions button:hover,
+body .metro-clean-system[data-route='tool'] .wordgraph-page button.secondary:hover,
+body .metro-clean-system[data-route='tool'] .wordgraph-page button.ghost:hover,
+body .metro-clean-system[data-route='tool'] .preview-actions button:hover,
+body .metro-clean-system[data-route='tool'] .wordgraph-toolbar button:hover {
+  transform: translateY(-1px) !important;
+  border-color: #a8c7fa !important;
+  background: var(--wg-blue-soft) !important;
+  box-shadow: 0 3px 8px rgba(60,64,67,.14) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-actions button.primary,
+body .metro-clean-system[data-route='tool'] .wordgraph-page button.primary,
+body .metro-clean-system[data-route='tool'] .wordgraph-ai-generate {
+  border-color: var(--wg-blue-strong) !important;
+  background: var(--wg-blue-strong) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 6px rgba(11,87,208,.24) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-actions button.primary:hover,
+body .metro-clean-system[data-route='tool'] .wordgraph-page button.primary:hover,
+body .metro-clean-system[data-route='tool'] .wordgraph-ai-generate:hover {
+  background: #0842a0 !important;
+  box-shadow: 0 4px 10px rgba(11,87,208,.28) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-footer {
+  display: grid !important;
+  grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  gap: 12px !important;
+  margin-top: 26px !important;
+  padding-top: 20px !important;
+  border-top: 1px solid var(--wg-line) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-ai-state,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-quick-tip {
+  min-height: 74px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 13px 15px !important;
+  border: 1px solid var(--wg-line) !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,.84) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-tip-icon,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-card-head > span {
+  width: 42px !important;
+  height: 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 auto !important;
+  border-radius: 14px !important;
+  background: var(--wg-blue-soft) !important;
+  color: var(--wg-blue-strong) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-ai-state strong,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-quick-tip strong,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-card-head strong,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-dashboard-card strong { color: var(--wg-ink) !important; }
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-ai-state small,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-quick-tip small,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-card-head p,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-dashboard-card p,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-dashboard-card small { color: var(--wg-muted) !important; }
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-dashboard-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4,minmax(0,1fr)) !important;
+  gap: 16px !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-dashboard-card,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-ai-panel,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-canvas-panel,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-outline-panel {
+  border: 1px solid var(--wg-line) !important;
+  border-radius: 24px !important;
+  background: var(--wg-surface) !important;
+  box-shadow: 0 1px 2px rgba(60,64,67,.08),0 8px 24px rgba(60,64,67,.08) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-dashboard-card {
+  min-height: 250px !important;
+  padding: 20px !important;
+  transition: border-color .16s ease,box-shadow .16s ease,transform .16s ease !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-dashboard-card:hover {
+  transform: translateY(-3px) !important;
+  border-color: #a8c7fa !important;
+  box-shadow: 0 4px 10px rgba(60,64,67,.12),0 12px 30px rgba(60,64,67,.10) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-template-chips button,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-structure-list button,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-history-list button,
+body .metro-clean-system[data-route='tool'] .wordgraph-prompt-bank button {
+  border: 1px solid var(--wg-line) !important;
+  background: #fff !important;
+  color: var(--wg-body) !important;
+  box-shadow: none !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-template-chips button:hover,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-structure-list button:hover,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-history-list button:hover,
+body .metro-clean-system[data-route='tool'] .wordgraph-prompt-bank button:hover,
+body .metro-clean-system[data-route='tool'] .wordgraph-prompt-bank button.active {
+  border-color: #a8c7fa !important;
+  background: var(--wg-blue-soft) !important;
+  color: var(--wg-blue-strong) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-main-create,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-secondary-create,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-text-link { color: var(--wg-blue-strong) !important; }
+
+body .metro-clean-system[data-route='tool'] .wordgraph-ai-builder {
+  display: grid !important;
+  grid-template-columns: minmax(340px,.78fr) minmax(0,1.42fr) !important;
+  align-items: start !important;
+  gap: 18px !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-ai-panel,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-canvas-panel,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-outline-panel {
+  padding: clamp(20px,2.2vw,30px) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-ai-panel.is-active,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-canvas-panel.is-active,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-outline-panel.is-active {
+  border-color: #a8c7fa !important;
+  box-shadow: 0 0 0 3px rgba(26,115,232,.08),0 10px 28px rgba(60,64,67,.10) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-step-title {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-step-title > span {
+  width: 40px !important;
+  height: 40px !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 auto !important;
+  border-radius: 50% !important;
+  background: var(--wg-blue-strong) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-step-title h2,
+body .metro-clean-system[data-route='tool'] .wordgraph-result-head h2,
+body .metro-clean-system[data-route='tool'] .wordgraph-v821-outline-panel h2 {
+  color: var(--wg-ink) !important;
+  letter-spacing: -.025em !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-step-title p,
+body .metro-clean-system[data-route='tool'] .wordgraph-help {
+  color: var(--wg-muted) !important;
+  line-height: 1.55 !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-page label {
+  color: var(--wg-body) !important;
+  font-weight: 700 !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-page textarea,
+body .metro-clean-system[data-route='tool'] .wordgraph-page input,
+body .metro-clean-system[data-route='tool'] .wordgraph-page select {
+  border: 1px solid var(--wg-line) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  color: var(--wg-ink) !important;
+  box-shadow: none !important;
+  font-family: inherit !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-page textarea:focus,
+body .metro-clean-system[data-route='tool'] .wordgraph-page input:focus,
+body .metro-clean-system[data-route='tool'] .wordgraph-page select:focus {
+  outline: none !important;
+  border-color: var(--wg-blue) !important;
+  box-shadow: 0 0 0 3px rgba(26,115,232,.12) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-page textarea::placeholder,
+body .metro-clean-system[data-route='tool'] .wordgraph-page input::placeholder { color:#80868b !important; opacity:1 !important; }
+
+body .metro-clean-system[data-route='tool'] .wordgraph-result-head {
+  align-items: flex-start !important;
+  gap: 18px !important;
+  padding-bottom: 18px !important;
+  border-bottom: 1px solid var(--wg-line) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-scroll {
+  margin-top: 18px !important;
+  border: 1px solid var(--wg-line) !important;
+  border-radius: 20px !important;
+  background:
+    linear-gradient(rgba(218,220,224,.35) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(218,220,224,.35) 1px,transparent 1px),
+    #f6f9fe !important;
+  background-size: 28px 28px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.88) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .wordgraph-svg {
+  border-radius: 18px !important;
+  background: transparent !important;
+}
+body .metro-clean-system[data-route='tool'] .wordgraph-svg > rect:first-of-type { fill:#f8fbff !important; }
+body .metro-clean-system[data-route='tool'] .wordgraph-svg .word-root-node circle { fill:var(--wg-blue) !important; }
+body .metro-clean-system[data-route='tool'] .wordgraph-svg .word-main-node:nth-of-type(4n+1) circle { fill:#4285f4 !important; }
+body .metro-clean-system[data-route='tool'] .wordgraph-svg .word-main-node:nth-of-type(4n+2) circle { fill:#34a853 !important; }
+body .metro-clean-system[data-route='tool'] .wordgraph-svg .word-main-node:nth-of-type(4n+3) circle { fill:#f9ab00 !important; }
+body .metro-clean-system[data-route='tool'] .wordgraph-svg .word-main-node:nth-of-type(4n) circle { fill:#ea4335 !important; }
+body .metro-clean-system[data-route='tool'] .wordgraph-svg .graph-node rect:first-of-type { fill:#fff !important; stroke-width:1.5px !important; }
+body .metro-clean-system[data-route='tool'] .wordgraph-svg text { font-family:inherit !important; }
+
+body .metro-clean-system[data-route='tool'] .wordgraph-outline-editor {
+  width: 100% !important;
+  min-height: 260px !important;
+  line-height: 1.6 !important;
+  background: var(--wg-surface-soft) !important;
+}
+
+body .metro-clean-system[data-route='tool'] .error-box {
+  border: 1px solid #f6aea9 !important;
+  border-radius: 14px !important;
+  background: #fce8e6 !important;
+  color: #c5221f !important;
+}
+
+@media (max-width:1180px) {
+  body .metro-clean-system[data-route='tool'] .wordgraph-v821-dashboard-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+  body .metro-clean-system[data-route='tool'] .wordgraph-ai-builder { grid-template-columns:1fr !important; }
+}
+
+@media (max-width:900px) {
+  body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-main { grid-template-columns:1fr !important; }
+  body .metro-clean-system[data-route='tool'] .wordgraph-v821-demo { min-height:280px !important; }
+}
+
+@media (max-width:700px) {
+  body .metro-clean-system[data-route='tool'] .wordgraph-page { padding:14px 12px 48px !important; }
+  body .metro-clean-system[data-route='tool'] .wordgraph-v821-topline { display:grid !important; }
+  body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-footer,
+  body .metro-clean-system[data-route='tool'] .wordgraph-v821-dashboard-grid { grid-template-columns:1fr !important; }
+  body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero { padding:20px !important; border-radius:22px !important; }
+  body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-copy h1 { font-size:2.35rem !important; }
+  body .metro-clean-system[data-route='tool'] .wordgraph-v821-dashboard-card,
+  body .metro-clean-system[data-route='tool'] .wordgraph-v821-ai-panel,
+  body .metro-clean-system[data-route='tool'] .wordgraph-v821-canvas-panel,
+  body .metro-clean-system[data-route='tool'] .wordgraph-v821-outline-panel { border-radius:20px !important; }
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='tool'] .wordgraph-page,
+body.theme-dark .metro-clean-system[data-route='tool'] .wordgraph-page {
+  --wg-ink:#f1f3f4;
+  --wg-body:#e8eaed;
+  --wg-muted:#bdc1c6;
+  --wg-line:#4a4f58;
+  --wg-surface:#202124;
+  --wg-surface-soft:#292a2d;
+  background:linear-gradient(180deg,#202124 0%,#18191b 100%) !important;
+}
+
+html[data-theme='dark'] body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero,
+body.theme-dark .metro-clean-system[data-route='tool'] .wordgraph-v821-hero { background:linear-gradient(135deg,#292a2d,#202124) !important; }
+
+html[data-theme='dark'] body .metro-clean-system[data-route='tool'] .wordgraph-v821-demo,
+html[data-theme='dark'] body .metro-clean-system[data-route='tool'] .wordgraph-page textarea,
+html[data-theme='dark'] body .metro-clean-system[data-route='tool'] .wordgraph-page input,
+html[data-theme='dark'] body .metro-clean-system[data-route='tool'] .wordgraph-page select,
+html[data-theme='dark'] body .metro-clean-system[data-route='tool'] .wordgraph-page button.secondary,
+html[data-theme='dark'] body .metro-clean-system[data-route='tool'] .wordgraph-page button.ghost,
+html[data-theme='dark'] body .metro-clean-system[data-route='tool'] .preview-actions button,
+html[data-theme='dark'] body .metro-clean-system[data-route='tool'] .wordgraph-toolbar button,
+body.theme-dark .metro-clean-system[data-route='tool'] .wordgraph-v821-demo,
+body.theme-dark .metro-clean-system[data-route='tool'] .wordgraph-page textarea,
+body.theme-dark .metro-clean-system[data-route='tool'] .wordgraph-page input,
+body.theme-dark .metro-clean-system[data-route='tool'] .wordgraph-page select,
+body.theme-dark .metro-clean-system[data-route='tool'] .wordgraph-page button.secondary,
+body.theme-dark .metro-clean-system[data-route='tool'] .wordgraph-page button.ghost,
+body.theme-dark .metro-clean-system[data-route='tool'] .preview-actions button,
+body.theme-dark .metro-clean-system[data-route='tool'] .wordgraph-toolbar button {
+  background-color:#292a2d !important;
+  color:#e8eaed !important;
+}
+
+@media (prefers-reduced-motion:reduce) {
+  body .metro-clean-system[data-route='tool'] .wordgraph-page *,
+  body .metro-clean-system[data-route='tool'] .wordgraph-page *::before,
+  body .metro-clean-system[data-route='tool'] .wordgraph-page *::after { transition:none !important; }
+}
