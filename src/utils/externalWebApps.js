@@ -20,6 +20,7 @@ export const EXTERNAL_APP_GROUPS = [
 
 const REQUEST_TIMEOUT = 14000;
 const FAST_APPROVAL_CACHE_MS = 4500;
+const EXTERNAL_APPS_READ_CACHE_MS = 60 * 1000;
 let latestExternalAppsState = null;
 let fastApprovalCacheUntil = 0;
 
@@ -203,6 +204,10 @@ export async function loadExternalWebApps(user, { includeRequests = true } = {})
     requests: hydrateRequests(allPayload.requests || []),
     snapshot,
   };
+  // The manager currently polls every eight seconds as a fallback. Keep a short
+  // shared cache so those polls only reach Supabase/API about once per minute.
+  // All local mutations already reset fastApprovalCacheUntil before emitting an update.
+  fastApprovalCacheUntil = Date.now() + EXTERNAL_APPS_READ_CACHE_MS;
   return latestExternalAppsState;
 }
 
