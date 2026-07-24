@@ -1,1 +1,3 @@
-export default function RemovedAiFeature(){ return null; }
+export default function RemovedSharedChatbotDrawer() {
+  return null;
+}
