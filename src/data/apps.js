@@ -127,6 +127,21 @@ export const APPS = [
       featured: true},
 
   {
+      slug: 'pek-timetable',
+      icon: 'TK',
+      tone: 'blue',
+      group: 'Teacher Utilities',
+      groupVi: 'Tiện ích giáo viên',
+      title: 'PEK Timetable',
+      titleVi: 'Thời khóa biểu PEK',
+      desc: 'View English teachers and all class schedules, synchronized from the PEK academic timetable system.',
+      descVi: 'Xem lịch dạy của giáo viên Tiếng Anh và thời khóa biểu toàn bộ lớp, đồng bộ từ hệ thống chuyên môn PEK.',
+      status: 'Live sync · Teachers · Classes',
+      statusVi: 'Đồng bộ trực tiếp · Giáo viên · Lớp học',
+      api: false,
+      featured: true},
+
+  {
       slug: 'textlab-activities',
       icon: 'TL',
       tone: 'blue',
