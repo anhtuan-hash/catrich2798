@@ -1,9 +1,13 @@
 import { isSupabaseConfigured, supabase, getSupabaseStatus } from '../../utils/supabase.js';
 import { resolveSystemRole } from '../../utils/roles.js';
 import { RUNTIME_CORE_VERSION } from '../../config/version.js';
+import { initializeAuthSession, subscribeToAuthChanges } from '../../utils/auth.js';
 
 const listeners = new Set();
 const channels = new Map();
+const assignedRoleCache = new Map();
+const assignedRolePromises = new Map();
+const ASSIGNED_ROLE_CACHE_MAX_AGE = 30 * 60 * 1000;
 
 const state = {
   version: RUNTIME_CORE_VERSION,
@@ -20,7 +24,7 @@ const state = {
 };
 
 let bootPromise = null;
-let authSubscription = null;
+let runtimeAuthUnsubscribe = null;
 
 function snapshot() {
   return {
@@ -48,51 +52,55 @@ function inferRole(user, profile, assignedRole = '') {
   });
 }
 
-async function loadAssignedRole(user) {
+async function loadAssignedRole(user, { force = false } = {}) {
   if (!supabase || !user?.id) return '';
-  try {
-    const { data, error } = await supabase
-      .from('system_roles')
-      .select('role,active,scope')
-      .eq('user_id', user.id)
-      .eq('active', true)
-      .order('assigned_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (!error && data?.role) return data.role;
-  } catch { /* V10.98 database compatibility */ }
-  return '';
-}
+  const key = String(user.id);
+  const cached = assignedRoleCache.get(key);
+  if (!force && cached && Date.now() - cached.storedAt < ASSIGNED_ROLE_CACHE_MAX_AGE) return cached.role;
+  if (!force && assignedRolePromises.has(key)) return assignedRolePromises.get(key);
 
-async function loadProfile(user) {
-  if (!supabase || !user?.id) return null;
-  const attempts = [
-    () => supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
-    () => supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle(),
-    () => supabase.from('profiles').select('*').eq('profile_id', user.id).maybeSingle(),
-  ];
-  for (const attempt of attempts) {
+  const task = (async () => {
     try {
-      const { data, error } = await attempt();
-      if (!error && data) return data;
-      if (error && !/column .* does not exist/i.test(error.message || '')) break;
-    } catch { /* try compatible profile schema */ }
-  }
-  return null;
+      const { data, error } = await supabase
+        .from('system_roles')
+        .select('role,active,scope')
+        .eq('user_id', user.id)
+        .eq('active', true)
+        .order('assigned_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const role = !error && data?.role ? data.role : '';
+      assignedRoleCache.set(key, { role, storedAt: Date.now() });
+      return role;
+    } catch {
+      assignedRoleCache.set(key, { role: '', storedAt: Date.now() });
+      return '';
+    }
+  })();
+  assignedRolePromises.set(key, task);
+  try { return await task; }
+  finally { assignedRolePromises.delete(key); }
 }
 
-async function applySession(session) {
+async function applyAuthState(authUser, session = null) {
   state.session = session || null;
-  state.user = session?.user || null;
-  state.profile = session?.user ? await loadProfile(session.user) : null;
-  state.systemRole = session?.user ? await loadAssignedRole(session.user) : '';
+  state.user = session?.user || (authUser ? { id: authUser.id, email: authUser.email, user_metadata: { role: authUser.role } } : null);
+  state.profile = authUser || null;
+  state.systemRole = authUser ? await loadAssignedRole(authUser) : '';
   state.role = inferRole(state.user, state.profile, state.systemRole);
   state.ready = true;
-  state.phase = session?.user ? 'ready' : 'anonymous';
+  state.phase = authUser ? 'ready' : 'anonymous';
   state.lastError = '';
   state.lastReadyAt = new Date().toISOString();
   emit();
   return snapshot();
+}
+
+async function readLocalSession() {
+  if (!supabase) return null;
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  return data?.session || null;
 }
 
 export async function bootRuntimeCore({ force = false } = {}) {
@@ -114,15 +122,19 @@ export async function bootRuntimeCore({ force = false } = {}) {
     emit();
 
     try {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) throw error;
-      await applySession(data?.session || null);
+      const [session, authUser] = await Promise.all([
+        readLocalSession(),
+        initializeAuthSession(),
+      ]);
+      await applyAuthState(authUser, session);
 
-      if (!authSubscription) {
-        const subscription = supabase.auth.onAuthStateChange((_event, session) => {
-          queueMicrotask(() => applySession(session));
+      if (!runtimeAuthUnsubscribe) {
+        runtimeAuthUnsubscribe = subscribeToAuthChanges((nextUser) => {
+          queueMicrotask(async () => {
+            try { await applyAuthState(nextUser, await readLocalSession()); }
+            catch (error) { console.warn('[RuntimeCore] shared auth update failed', error); }
+          });
         });
-        authSubscription = subscription?.data?.subscription || null;
       }
       return snapshot();
     } catch (error) {
@@ -215,7 +227,7 @@ export async function diagnoseRuntime() {
   };
   if (supabase && state.session) {
     try {
-      const { error } = await supabase.from('profiles').select('*', { head: true, count: 'exact' }).limit(1);
+      const { error } = await supabase.from('profiles').select('id', { head: true, count: 'exact' }).limit(1);
       report.profileProbe = error ? `error: ${error.message}` : 'ok';
     } catch (error) {
       report.profileProbe = `error: ${error?.message || error}`;

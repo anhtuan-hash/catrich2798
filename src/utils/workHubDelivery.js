@@ -4,6 +4,10 @@ export const WORK_HUB_DELIVERY_EVENT = 'bes-work-hub-delivery-updated';
 export const WORK_HUB_BUCKET = 'work-hub-submissions';
 export const WORK_HUB_MAX_FILE_BYTES = 25 * 1024 * 1024;
 
+const NOTIFICATION_CACHE_MAX_AGE = 5 * 60 * 1000;
+const notificationCache = new Map();
+const notificationPromises = new Map();
+
 const ALLOWED_EXTENSIONS = new Set([
   'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf',
   'jpg', 'jpeg', 'png', 'webp', 'zip', 'rar', '7z', 'mp3', 'wav', 'mp4',
@@ -130,18 +134,50 @@ export async function resolveWorkHubCommentAttachments(comments = []) {
   }));
 }
 
-export async function listWorkHubNotifications(userId, limit = 50) {
+export async function listWorkHubNotifications(userId, limit = 50, { force = false } = {}) {
   const client = getRuntimeClient();
   if (!client || !userId) return [];
-  const { data, error } = await client
-    .from('work_hub_notifications')
-    .select('id,user_id,item_id,notification_type,title,body,read_at,created_at')
-    .eq('user_id', userId)
-    .is('read_at', null)
-    .order('created_at', { ascending: false })
-    .limit(limit);
-  if (error) return [];
-  return data || [];
+  const key = String(userId);
+  const safeLimit = Math.max(1, Number(limit) || 50);
+  const cached = notificationCache.get(key);
+  if (!force && cached && cached.limit >= safeLimit && Date.now() - cached.storedAt < NOTIFICATION_CACHE_MAX_AGE) {
+    return cached.items.slice(0, safeLimit);
+  }
+  if (!force && notificationPromises.has(key)) {
+    const items = await notificationPromises.get(key);
+    return items.slice(0, safeLimit);
+  }
+
+  const task = (async () => {
+    const { data, error } = await client
+      .from('work_hub_notifications')
+      .select('id,user_id,item_id,notification_type,title,body,read_at,created_at')
+      .eq('user_id', userId)
+      .is('read_at', null)
+      .order('created_at', { ascending: false })
+      .limit(safeLimit);
+    if (error) return cached?.items || [];
+    const items = data || [];
+    notificationCache.set(key, { items, limit: safeLimit, storedAt: Date.now() });
+    return items;
+  })();
+  notificationPromises.set(key, task);
+  try { return (await task).slice(0, safeLimit); }
+  finally { notificationPromises.delete(key); }
+}
+
+function updateNotificationCache(payload) {
+  const row = payload?.new && Object.keys(payload.new).length ? payload.new : payload?.old;
+  const userId = row?.user_id ? String(row.user_id) : '';
+  if (!userId || !notificationCache.has(userId) || !row?.id) return;
+  const cached = notificationCache.get(userId);
+  const remove = payload?.eventType === 'DELETE' || Boolean(row.read_at);
+  const items = remove
+    ? cached.items.filter((item) => item.id !== row.id)
+    : [row, ...cached.items.filter((item) => item.id !== row.id)]
+      .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+      .slice(0, cached.limit);
+  notificationCache.set(userId, { ...cached, items, storedAt: Date.now() });
 }
 
 export async function markWorkHubNotificationRead(notificationId) {
@@ -152,6 +188,9 @@ export async function markWorkHubNotificationRead(notificationId) {
     .update({ read_at: new Date().toISOString() })
     .eq('id', notificationId);
   if (error) return { ok: false, message: error.message };
+  notificationCache.forEach((cached, userId) => {
+    notificationCache.set(userId, { ...cached, items: cached.items.filter((item) => item.id !== notificationId), storedAt: Date.now() });
+  });
   emitDeliveryUpdate({ type: 'notification-read', notificationId });
   return { ok: true };
 }
@@ -165,6 +204,7 @@ export async function markAllWorkHubNotificationsRead(userId) {
     .eq('user_id', userId)
     .is('read_at', null);
   if (error) return { ok: false, message: error.message };
+  notificationCache.set(String(userId), { items: [], limit: 50, storedAt: Date.now() });
   emitDeliveryUpdate({ type: 'notifications-read-all', userId });
   return { ok: true };
 }
@@ -176,6 +216,7 @@ export function subscribeWorkHubNotifications(userId, onChange) {
     table: 'work_hub_notifications',
     filter: `user_id=eq.${userId}`,
     onChange: (payload) => {
+      updateNotificationCache(payload);
       emitDeliveryUpdate({ type: 'notification-change', payload });
       onChange?.(payload);
     },
