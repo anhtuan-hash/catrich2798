@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import QuickDictionaryBubble from './QuickDictionaryBubble.jsx';
+import './QuickDictionaryNavigationPopover.css';
 
 export default function UnifiedUtilityRail({ currentUser, language = 'vi', currentRoute = 'home' }) {
   const [navigationActions, setNavigationActions] = useState(null);
   const [musicState, setMusicState] = useState({ expanded: false, playing: false });
 
   useEffect(() => {
-    if (!currentUser || currentRoute === 'dashboard' || typeof document === 'undefined') {
+    if (!currentUser || typeof document === 'undefined') {
       setNavigationActions(null);
       return;
     }
@@ -26,31 +28,54 @@ export default function UnifiedUtilityRail({ currentUser, language = 'vi', curre
     return () => window.removeEventListener('bes-global-music-panel-state', syncMusicState);
   }, []);
 
-  if (!currentUser || currentRoute === 'dashboard' || !navigationActions) return null;
+  if (!currentUser || !navigationActions) return null;
 
   const musicLabel = language === 'vi' ? 'Nhạc nền' : 'Background music';
 
-  const toggleMusicPanel = () => {
+  const closeAccountAndNotifications = () => {
     document.querySelector('.brian-nav__bell.is-open')?.click();
     document.querySelector('.brian-nav__account.is-open')?.click();
+  };
+
+  const prepareDictionaryPanel = (event) => {
+    if (!event.target.closest('.bes-dictionary-launcher')) return;
+    closeAccountAndNotifications();
+    window.dispatchEvent(new CustomEvent('bes-global-music-command', { detail: { action: 'collapse' } }));
+  };
+
+  const toggleMusicPanel = () => {
+    closeAccountAndNotifications();
+    document.querySelector('.bes-dictionary-root.is-open .bes-dictionary-launcher')?.click();
     window.dispatchEvent(new CustomEvent('bes-global-music-command', { detail: { action: 'toggle-panel' } }));
   };
 
   return createPortal(
-    <div className="brian-nav__popover-wrap brian-nav__music-wrap" style={{ order: -1 }}>
-      <button
-        type="button"
-        className={`brian-nav__icon brian-nav__music ${musicState.expanded ? 'is-open' : ''} ${musicState.playing ? 'is-playing' : ''}`}
-        onClick={toggleMusicPanel}
-        title={musicLabel}
-        aria-label={musicLabel}
-        aria-expanded={musicState.expanded}
-        aria-controls="brian-nav-music-popover"
+    <>
+      <div
+        className="brian-nav__popover-wrap brian-nav__dictionary-wrap"
+        style={{ order: -2 }}
+        onPointerDownCapture={prepareDictionaryPanel}
       >
-        <span aria-hidden="true">{musicState.playing ? '♪' : '♫'}</span>
-      </button>
-      <div id="brian-nav-music-popover-root" className="brian-nav__music-popover-host" />
-    </div>,
+        <QuickDictionaryBubble key={currentRoute} language={language} />
+      </div>
+
+      {currentRoute !== 'dashboard' ? (
+        <div className="brian-nav__popover-wrap brian-nav__music-wrap" style={{ order: -1 }}>
+          <button
+            type="button"
+            className={`brian-nav__icon brian-nav__music ${musicState.expanded ? 'is-open' : ''} ${musicState.playing ? 'is-playing' : ''}`}
+            onClick={toggleMusicPanel}
+            title={musicLabel}
+            aria-label={musicLabel}
+            aria-expanded={musicState.expanded}
+            aria-controls="brian-nav-music-popover"
+          >
+            <span aria-hidden="true">{musicState.playing ? '♪' : '♫'}</span>
+          </button>
+          <div id="brian-nav-music-popover-root" className="brian-nav__music-popover-host" />
+        </div>
+      ) : null}
+    </>,
     navigationActions,
   );
 }
