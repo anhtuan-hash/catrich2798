@@ -51,6 +51,14 @@
   try {
     localStorage.setItem(STORAGE_KEY, mode);
     localStorage.setItem(LEGACY_KEY, resolved);
+    const appearance = safeJson(localStorage.getItem(APPEARANCE_KEY)) || {};
+    if (normalize(appearance.theme) !== mode) {
+      localStorage.setItem(APPEARANCE_KEY, JSON.stringify({
+        ...appearance,
+        theme: mode,
+        updatedAt: Date.now(),
+      }));
+    }
   } catch { /* optional */ }
 
   const themeColor = document.querySelector('meta[name="theme-color"]');
