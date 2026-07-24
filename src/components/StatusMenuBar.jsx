@@ -55,7 +55,7 @@ export default function StatusMenuBar({
     if (!allowed || typeof window === 'undefined') return undefined;
 
     const cached = readCachedHeadlines(channel);
-    if (cached.length) setItems(cached);
+    setItems(cached);
 
     const controller = new AbortController();
     const category = feedCategory(channel);
@@ -96,7 +96,7 @@ export default function StatusMenuBar({
     ? 'Open News to see the latest education and English-language headlines.'
     : 'Mở Đọc báo để xem các tin giáo dục và tiếng Anh mới nhất.';
   const headline = item?.title || fallback;
-  const source = item?.source || (language === 'en' ? 'English Hub News' : 'English Hub News');
+  const source = item?.source || 'English Hub News';
   const time = compactTime(item?.publishedAt, language);
 
   const openNews = (event) => launchRoute({
