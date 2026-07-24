@@ -130,8 +130,8 @@ function buildSharedRow(user, clean) {
     config_updated_by: updatedBy,
   };
   return {
-    title: 'English Hub system configuration',
-    description: JSON.stringify({ system_config: SYSTEM_CONFIG_KIND, tools: clean.tools, updatedAt: now, updatedBy }),
+    title: '\u200B',
+    description: '',
     item_type: 'task',
     status: 'archived',
     priority: 'normal',
@@ -155,6 +155,7 @@ async function publishSharedCloudSnapshot(user, clean) {
     const { error: updateError } = await supabase
       .from(WORK_TABLE)
       .update({
+        title: row.title,
         description: row.description,
         metadata: row.metadata,
         visibility: 'public',
