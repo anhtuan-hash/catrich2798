@@ -19,7 +19,8 @@ export default async function handler(req, res) {
     if (!resourceId && !fileId) throw new Error('Missing resource identifier');
 
     const { client, connection } = await getConnection();
-    let query = client.from('resource_items').select('*');
+    const columns = 'id,drive_file_id,status,uploader_id,allow_preview';
+    let query = client.from('resource_items').select(columns);
     query = isUuid(resourceId) ? query.eq('id', resourceId) : query.eq('drive_file_id', fileId);
     const { data: resource, error } = await query.maybeSingle();
     if (error || !resource) throw new Error(error?.message || 'Resource not found');
