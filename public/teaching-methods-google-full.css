@@ -1,1 +1,942 @@
-/* English Teaching Methods Hub — Google Material 3 full-hub override. */
+/* English Teaching Methods Hub — Google Material 3 full-hub override.
+   Loaded after the existing hub and inline accordion styles. */
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page {
+  --g-blue: #0b57d0;
+  --g-blue-hover: #0842a0;
+  --g-blue-container: #d3e3fd;
+  --g-blue-soft: #eaf2ff;
+  --g-green: #137333;
+  --g-green-container: #c4eed0;
+  --g-yellow: #8e4e00;
+  --g-yellow-container: #fce8b2;
+  --g-red: #b3261e;
+  --g-red-container: #f9dedc;
+  --g-purple: #7627bb;
+  --g-purple-container: #f3e8fd;
+  --g-cyan: #006780;
+  --g-cyan-container: #c2e7ff;
+  --g-ink: #1f1f1f;
+  --g-muted: #5f6368;
+  --g-line: #dadce0;
+  --g-line-soft: #e8eaed;
+  --g-surface: #ffffff;
+  --g-surface-low: #f8fafd;
+  --g-surface-mid: #f1f3f4;
+  --g-shadow-1: 0 1px 2px rgba(60, 64, 67, .10), 0 1px 3px 1px rgba(60, 64, 67, .06);
+  --g-shadow-2: 0 2px 6px 2px rgba(60, 64, 67, .10);
+
+  width: 100% !important;
+  max-width: none !important;
+  min-height: calc(100dvh - 82px);
+  padding: clamp(18px, 2vw, 32px) clamp(16px, 3vw, 48px) 112px !important;
+  gap: 18px !important;
+  color: var(--g-ink) !important;
+  background:
+    radial-gradient(circle at 7% 1%, rgba(211, 227, 253, .50), transparent 23%),
+    radial-gradient(circle at 95% 5%, rgba(196, 238, 208, .42), transparent 22%),
+    var(--g-surface-low) !important;
+  font-family: BrianGesco, "Google Sans Text", "Google Sans", Roboto, Arial, sans-serif !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page > * {
+  width: min(100%, 1440px) !important;
+  margin-inline: auto !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page h1,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page h2,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page h3,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page h4 {
+  color: var(--g-ink);
+  text-wrap: balance;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page button,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page input {
+  font-family: inherit !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page button {
+  touch-action: manipulation;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page button:focus-visible,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page input:focus-visible,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-section > summary:focus-visible {
+  outline: 3px solid rgba(11, 87, 208, .28) !important;
+  outline-offset: 2px !important;
+}
+
+/* Hero — Google Workspace welcome surface */
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero {
+  min-height: 300px !important;
+  padding: clamp(28px, 3.2vw, 46px) !important;
+  grid-template-columns: minmax(0, 1.12fr) minmax(330px, .88fr) !important;
+  gap: clamp(24px, 4vw, 58px) !important;
+  border: 1px solid var(--g-line-soft) !important;
+  border-radius: 28px !important;
+  background: linear-gradient(135deg, #ffffff 0%, #fbfdff 56%, #edf4ff 100%) !important;
+  box-shadow: var(--g-shadow-1) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero::before {
+  width: 410px !important;
+  height: 410px !important;
+  right: -155px !important;
+  top: -210px !important;
+  background: linear-gradient(145deg, rgba(211, 227, 253, .92), rgba(196, 238, 208, .72)) !important;
+  filter: blur(.2px);
+  opacity: .78 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero::after {
+  width: 240px !important;
+  height: 240px !important;
+  left: 47% !important;
+  bottom: -190px !important;
+  background: var(--g-yellow-container) !important;
+  opacity: .48 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-eyebrow,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-section-kicker {
+  min-height: 28px !important;
+  padding-inline: 11px !important;
+  border-radius: 8px !important;
+  background: var(--g-blue-soft) !important;
+  color: var(--g-blue) !important;
+  font-size: 11px !important;
+  font-weight: 760 !important;
+  letter-spacing: .085em !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero h1 {
+  max-width: 780px !important;
+  margin-top: 15px !important;
+  font-size: clamp(48px, 5vw, 72px) !important;
+  font-weight: 650 !important;
+  line-height: 1 !important;
+  letter-spacing: -.052em !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero p {
+  max-width: 720px !important;
+  margin-top: 17px !important;
+  color: var(--g-muted) !important;
+  font-size: clamp(17px, 1.35vw, 20px) !important;
+  line-height: 1.55 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero-actions {
+  margin-top: 22px !important;
+  gap: 10px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-button,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero-actions button {
+  min-height: 46px !important;
+  padding: 0 20px !important;
+  border: 1px solid var(--g-line) !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  color: var(--g-blue) !important;
+  box-shadow: none !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  transition: background-color .16s ease, box-shadow .16s ease, transform .16s ease !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-button:hover,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero-actions button:hover {
+  background: #f6f9fe !important;
+  box-shadow: var(--g-shadow-1) !important;
+  transform: translateY(-1px);
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-button.primary,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero-actions button:first-child {
+  border-color: var(--g-blue) !important;
+  background: var(--g-blue) !important;
+  color: #fff !important;
+  box-shadow: 0 1px 2px rgba(11, 87, 208, .24), 0 2px 6px rgba(11, 87, 208, .16) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-button.primary:hover,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero-actions button:first-child:hover {
+  background: var(--g-blue-hover) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero-chips {
+  margin-top: 18px !important;
+  gap: 8px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero-chips span {
+  min-height: 32px !important;
+  padding-inline: 12px !important;
+  border: 1px solid var(--g-line-soft) !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, .82) !important;
+  color: #3c4043 !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+
+/* Hero visual */
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero-visual {
+  min-height: 248px !important;
+  border-radius: 24px;
+  background: radial-gradient(circle at 50% 44%, rgba(211, 227, 253, .44), transparent 56%);
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-visual-orbit {
+  width: 226px !important;
+  border: 1px solid rgba(11, 87, 208, .20) !important;
+  background: radial-gradient(circle, #fff 0 27%, #eef4ff 28% 45%, transparent 46%) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-visual-orbit::before {
+  color: var(--g-blue) !important;
+  font-size: 14px !important;
+  letter-spacing: .1em !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-visual-orbit span {
+  width: 52px !important;
+  height: 52px !important;
+  border: 1px solid var(--g-line-soft) !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: var(--g-shadow-1) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-visual-card {
+  border: 1px solid var(--g-line-soft) !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, .96) !important;
+  box-shadow: var(--g-shadow-2) !important;
+  backdrop-filter: none !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-visual-card.main {
+  min-width: 270px !important;
+  padding: 15px 17px !important;
+}
+
+/* Four design principles */
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-principles {
+  gap: 12px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-principles article {
+  min-height: 124px !important;
+  padding: 18px !important;
+  grid-template-columns: 44px minmax(0, 1fr) !important;
+  gap: 13px !important;
+  border: 1px solid var(--g-line-soft) !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  transition: box-shadow .16s ease, transform .16s ease !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-principles article:hover {
+  box-shadow: var(--g-shadow-1) !important;
+  transform: translateY(-1px);
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-principles article > span {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 14px !important;
+  background: var(--g-blue-container) !important;
+  color: var(--g-blue) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-principles article:nth-child(2) > span {
+  background: var(--g-green-container) !important;
+  color: var(--g-green) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-principles article:nth-child(3) > span {
+  background: var(--g-yellow-container) !important;
+  color: var(--g-yellow) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-principles article:nth-child(4) > span {
+  background: var(--g-purple-container) !important;
+  color: var(--g-purple) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-principles h2 {
+  margin: 1px 0 6px !important;
+  font-size: 17px !important;
+  line-height: 1.25 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-principles p {
+  color: var(--g-muted) !important;
+  font-size: 13.5px !important;
+  line-height: 1.48 !important;
+}
+
+/* Main surfaces */
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-selector,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-library,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-implementation {
+  padding: clamp(24px, 2.7vw, 36px) !important;
+  border: 1px solid var(--g-line-soft) !important;
+  border-radius: 28px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-section-heading,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-library-toolbar {
+  align-items: end !important;
+  gap: 20px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-section-heading h2,
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-library-toolbar h2 {
+  margin-top: 9px !important;
+  font-size: clamp(30px, 2.7vw, 42px) !important;
+  font-weight: 650 !important;
+  line-height: 1.05 !important;
+  letter-spacing: -.035em !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-section-heading p {
+  color: var(--g-muted) !important;
+  font-size: 15px !important;
+  line-height: 1.55 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-section-heading > button {
+  min-height: 40px !important;
+  padding-inline: 16px !important;
+  border: 1px solid var(--g-line) !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  color: var(--g-blue) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+/* Goal selector — Material tonal cards */
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-goal-grid {
+  margin-top: 22px !important;
+  gap: 12px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-goal-grid button {
+  min-height: 130px !important;
+  padding: 18px !important;
+  border: 1px solid transparent !important;
+  border-radius: 22px !important;
+  background: var(--g-blue-soft) !important;
+  color: var(--g-ink) !important;
+  box-shadow: none !important;
+  transition: box-shadow .16s ease, transform .16s ease, border-color .16s ease !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-goal-grid button:nth-child(2) {
+  background: #e9f7ee !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-goal-grid button:nth-child(3) {
+  background: #fff5d8 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-goal-grid button:nth-child(4) {
+  background: #f6edff !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-goal-grid button:nth-child(5) {
+  background: #e9f7fb !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-goal-grid button:hover {
+  box-shadow: var(--g-shadow-1) !important;
+  transform: translateY(-2px) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-goal-grid button.is-active {
+  border-color: var(--g-blue) !important;
+  box-shadow: inset 0 0 0 1px var(--g-blue), var(--g-shadow-1) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-goal-grid button > span {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 13px !important;
+  background: rgba(255, 255, 255, .78) !important;
+  color: var(--g-blue) !important;
+  font-size: 12px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-goal-grid strong {
+  font-size: 16px !important;
+  line-height: 1.28 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-goal-grid small {
+  color: var(--g-muted) !important;
+  font-size: 12px !important;
+}
+
+/* Search and category chips */
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-search {
+  min-width: min(440px, 100%) !important;
+  min-height: 52px !important;
+  padding: 0 17px !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  background: #f1f3f4 !important;
+  box-shadow: none !important;
+  transition: background .16s ease, box-shadow .16s ease !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-search:focus-within {
+  background: #fff !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .14), 0 1px 6px rgba(60, 64, 67, .12) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-search > span {
+  color: var(--g-muted) !important;
+  font-size: 22px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-search input {
+  color: var(--g-ink) !important;
+  font-size: 15px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-search input::placeholder {
+  color: #777b80 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-category-row {
+  margin-top: 18px !important;
+  padding-bottom: 3px;
+  gap: 8px !important;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-category-row::-webkit-scrollbar {
+  display: none;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-category-row button {
+  min-height: 38px !important;
+  padding: 0 15px !important;
+  flex: 0 0 auto;
+  border: 1px solid var(--g-line) !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  color: #3c4043 !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-category-row button:hover {
+  background: #f8fafd !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-category-row button.is-active {
+  border-color: var(--g-blue-container) !important;
+  background: var(--g-blue-container) !important;
+  color: #041e49 !important;
+}
+
+/* Method library cards */
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-grid {
+  margin-top: 22px !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  align-items: stretch !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-card {
+  min-width: 0 !important;
+  min-height: 390px !important;
+  padding: 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border: 1px solid var(--g-line-soft) !important;
+  border-radius: 24px !important;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--method-color) 10%, #fff) 0 92px, #fff 92px 100%) !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-card:hover {
+  border-color: color-mix(in srgb, var(--method-color) 34%, var(--g-line)) !important;
+  box-shadow: var(--g-shadow-2) !important;
+  transform: translateY(-2px) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-head {
+  min-height: 54px !important;
+  align-items: center !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-head > span {
+  width: 50px !important;
+  height: 50px !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  background: color-mix(in srgb, var(--method-color) 15%, #fff) !important;
+  color: var(--method-color) !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-head button {
+  width: 40px !important;
+  height: 40px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, .74) !important;
+  color: #5f6368 !important;
+  font-size: 21px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-head button:hover {
+  background: #fff !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-head button.is-favorite {
+  color: #f29900 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-copy {
+  margin-top: 17px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-copy small {
+  display: block !important;
+  color: var(--method-color) !important;
+  font-size: 11px !important;
+  font-weight: 760 !important;
+  letter-spacing: .045em !important;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-copy h3 {
+  margin: 7px 0 9px !important;
+  font-size: clamp(22px, 2vw, 27px) !important;
+  font-weight: 650 !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.035em !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-copy p {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden !important;
+  color: var(--g-muted) !important;
+  font-size: 14px !important;
+  line-height: 1.52 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-tags {
+  margin-top: 15px !important;
+  gap: 7px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-tags span {
+  min-height: 28px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: color-mix(in srgb, var(--method-color) 8%, #f8fafd) !important;
+  color: color-mix(in srgb, var(--method-color) 76%, #202124) !important;
+  font-size: 11.5px !important;
+  font-weight: 650 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-card-depth {
+  margin-top: 11px !important;
+  gap: 6px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-card-depth span {
+  min-height: 27px !important;
+  padding: 0 9px !important;
+  border-radius: 9px !important;
+  background: #f1f3f4 !important;
+  color: #5f6368 !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-card > footer {
+  margin-top: auto !important;
+  padding-top: 18px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 8px !important;
+  border-top: 0 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-card > footer button {
+  min-height: 42px !important;
+  padding: 0 15px !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  background: color-mix(in srgb, var(--method-color) 12%, #fff) !important;
+  color: var(--method-color) !important;
+  font-size: 13px !important;
+  font-weight: 720 !important;
+  white-space: nowrap;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-card > footer button:first-child::after {
+  content: "⌄";
+  margin-left: 7px;
+  font-size: 15px;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-card > footer button:first-child:hover {
+  background: color-mix(in srgb, var(--method-color) 18%, #fff) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-card > footer button.copy {
+  min-width: 42px !important;
+  padding-inline: 13px !important;
+  border-color: var(--g-line) !important;
+  background: #fff !important;
+  color: #3c4043 !important;
+}
+
+/* Inline accordion — part of the card system */
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-expansion {
+  margin: 0 0 8px !important;
+  border: 1px solid color-mix(in srgb, var(--method-color) 28%, var(--g-line)) !important;
+  border-radius: 26px !important;
+  background: #fff !important;
+  box-shadow: var(--g-shadow-1) !important;
+  overflow: hidden !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-head {
+  min-height: 82px !important;
+  padding: 15px 20px !important;
+  border-bottom: 1px solid var(--g-line-soft) !important;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--method-color) 12%, #fff), #fff 58%) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-icon {
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 16px !important;
+  background: color-mix(in srgb, var(--method-color) 16%, #fff) !important;
+  color: var(--method-color) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-title small {
+  color: var(--method-color) !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-title h3 {
+  margin-top: 4px !important;
+  font-size: clamp(23px, 2.5vw, 32px) !important;
+  font-weight: 650 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-close {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, .70) !important;
+  color: #5f6368 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-close:hover {
+  background: #fff !important;
+  color: var(--g-ink) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-body {
+  padding: 12px !important;
+  gap: 9px !important;
+  background: #f8fafd !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-section {
+  border: 1px solid var(--g-line-soft) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-section > summary {
+  min-height: 60px !important;
+  padding: 0 17px !important;
+  color: var(--g-ink) !important;
+  font-size: 15px !important;
+  font-weight: 720 !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-section > summary::before {
+  content: "+" !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background: var(--g-blue-soft) !important;
+  color: var(--g-blue) !important;
+  font-size: 20px !important;
+  font-weight: 500;
+  transform: none !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-section[open] > summary::before {
+  content: "−" !important;
+  background: var(--g-blue-container) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-section > summary:hover {
+  background: #f8fafd !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-panel {
+  padding: 0 16px 17px !important;
+  border-top: 1px solid var(--g-line-soft) !important;
+  background: #fff !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-panel > .tmh-drawer-scroll {
+  padding-top: 15px !important;
+  gap: 13px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-panel .tmh-drawer-scroll > section {
+  border-radius: 18px !important;
+}
+
+/* Implementation process */
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-process {
+  margin-top: 22px !important;
+  gap: 10px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-process article {
+  min-height: 150px !important;
+  padding: 18px !important;
+  border: 1px solid var(--g-line-soft) !important;
+  border-radius: 20px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-process article > span {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 13px !important;
+  background: var(--g-blue-soft) !important;
+  color: var(--g-blue) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-process article:nth-child(2) > span {
+  background: #e9f7ee !important;
+  color: var(--g-green) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-process article:nth-child(3) > span {
+  background: #fff5d8 !important;
+  color: var(--g-yellow) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-process article:nth-child(4) > span {
+  background: #f6edff !important;
+  color: var(--g-purple) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-process article:nth-child(5) > span {
+  background: #e9f7fb !important;
+  color: var(--g-cyan) !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-process h3 {
+  font-size: 17px !important;
+}
+
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-process p {
+  color: var(--g-muted) !important;
+  font-size: 13.5px !important;
+  line-height: 1.5 !important;
+}
+
+/* Empty state */
+.metro-clean-system[data-tool="teaching-methods-hub"] .tmh-empty {
+  margin-top: 22px !important;
+  padding: 46px 24px !important;
+  border: 1px dashed var(--g-line) !important;
+  border-radius: 24px !important;
+  background: #f8fafd !important;
+}
+
+/* Responsive */
+@media (max-width: 1180px) {
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-goal-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-principles {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 920px) {
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page {
+    padding-inline: 16px !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero {
+    grid-template-columns: 1fr !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero-visual {
+    min-height: 230px !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-library-toolbar {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-search {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page {
+    padding: 12px 12px 96px !important;
+    gap: 13px !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero,
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-selector,
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-library,
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-implementation {
+    padding: 20px !important;
+    border-radius: 22px !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero h1 {
+    font-size: clamp(42px, 13vw, 58px) !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero-visual {
+    display: none !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-principles,
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-goal-grid,
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-grid,
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-process {
+    grid-template-columns: 1fr !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-goal-grid button {
+    min-height: 105px !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-card {
+    min-height: auto !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-card > footer {
+    grid-template-columns: 1fr !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-expansion {
+    border-radius: 21px !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-head {
+    padding: 12px 14px !important;
+  }
+
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-body {
+    padding: 8px !important;
+  }
+}
+
+/* Dark theme */
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page {
+  --g-ink: #e8eaed;
+  --g-muted: #bdc1c6;
+  --g-line: #5f6368;
+  --g-line-soft: #3c4043;
+  --g-surface: #202124;
+  --g-surface-low: #17191b;
+  --g-surface-mid: #303134;
+  background:
+    radial-gradient(circle at 7% 1%, rgba(66, 92, 139, .22), transparent 23%),
+    radial-gradient(circle at 95% 5%, rgba(36, 92, 58, .20), transparent 22%),
+    #17191b !important;
+}
+
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-hero,
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-selector,
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-library,
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-implementation,
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-principles article,
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-card,
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-process article,
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-expansion,
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-head,
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-section,
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-panel {
+  background: #202124 !important;
+  border-color: #3c4043 !important;
+}
+
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-card {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--method-color) 20%, #202124) 0 92px, #202124 92px 100%) !important;
+}
+
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-search,
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-card-depth span,
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-category-row button,
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-method-card > footer button.copy {
+  background: #303134 !important;
+  color: #e8eaed !important;
+  border-color: #5f6368 !important;
+}
+
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-inline-body,
+html[data-theme="dark"] .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-empty {
+  background: #17191b !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page *,
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page *::before,
+  .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
