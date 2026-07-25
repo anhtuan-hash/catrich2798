@@ -465,7 +465,6 @@ function App() {
 
   return (
     <>
-      <a className="bes-skip-link" href="#bes-main-content">{language === 'vi' ? 'Bỏ qua đến nội dung chính' : 'Skip to main content'}</a>
       <Suspense fallback={null}><GlobalAccessibilityAnnouncer /></Suspense>
       <div
       className="app-shell metro-shell metro-clean-system"
