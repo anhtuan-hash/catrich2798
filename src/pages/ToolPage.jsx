@@ -17,7 +17,6 @@ const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
 const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
 const TeachingMethodsHub = lazy(() => import('./TeachingMethodsHub.jsx'));
 const PersonnelHub = lazy(() => import('./PersonnelHub.jsx'));
-const RandomStudentPickerPage = lazy(() => import('./RandomStudentPickerPage.jsx'));
 
 const specializedToolSlugs = new Set([
   'exam-studio',
@@ -85,10 +84,6 @@ export default function ToolPage(props) {
 
   if (tool?.slug === 'personnel-hub') {
     return renderLazy(PersonnelHub, props);
-  }
-
-  if (tool?.slug === 'random-student-picker') {
-    return renderLazy(RandomStudentPickerPage, props);
   }
 
   if (tool?.slug === 'word2graph') {
