@@ -312,9 +312,8 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
     done: item?.status === 'completed', route: 'homeroom', entityId: item?.id || '',
   }));
   const timeline = [...relevantWork.filter((item) => !item.done), ...homeroomTimeline]
-    .filter((item) => { const days = dayDistance(item.date, now); return days !== null && days >= 0 && days <= 14; })
-    .sort((a, b) => (parseDate(a.date)?.getTime() || 0) - (parseDate(b.date)?.getTime() || 0))
-    .slice(0, 18);
+    .filter((item) => { const days = dayDistance(item.date, now); return days !== null && days >= 0 && days < 14; })
+    .sort((a, b) => (parseDate(a.date)?.getTime() || 0) - (parseDate(b.date)?.getTime() || 0));
   const attention = [...relevantWork.filter((item) => !item.done), ...(leader ? resources.filter((item) => item.status === 'pending') : [])]
     .sort((a, b) => {
       const rank = { overdue: 0, today: 1, soon: 2, normal: 3 };
