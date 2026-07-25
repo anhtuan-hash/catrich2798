@@ -3,6 +3,13 @@ import { adminClient, isManagerUser, requireUser, send } from './_googleDrive.js
 import { normaliseResourceCategory } from './_resourceCategoryFolders.js';
 
 const VALID_STATUS = new Set(['pending', 'approved', 'revision', 'rejected', 'archived']);
+const RESOURCE_SYNC_COLUMNS = [
+  'id', 'title', 'description', 'category', 'grade', 'school_year', 'unit_name', 'cefr', 'skills', 'tags',
+  'source', 'copyright_status', 'visibility', 'allow_download', 'status', 'is_featured', 'uploader_id',
+  'uploader_name', 'mime_type', 'file_name', 'file_size', 'drive_file_id', 'drive_web_view_link',
+  'drive_download_link', 'ai_summary', 'ai_uses', 'checksum', 'version_number', 'parent_resource_id',
+  'created_at', 'updated_at', 'approved_at', 'approved_by', 'views', 'downloads', 'deleted_at',
+].join(',');
 
 function isUuid(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
@@ -17,11 +24,10 @@ function rowFromItem(item, user, manager, existing = null) {
   const status = manager && VALID_STATUS.has(requestedStatus) ? requestedStatus : 'pending';
   const suppliedUploaderId = isUuid(item.uploaderId) ? item.uploaderId : null;
   const uploaderId = manager && suppliedUploaderId ? suppliedUploaderId : (existing?.uploader_id || user.id);
-
-  return {
+  const row = {
     title: String(item.title || item.fileName || existing?.title || 'Tài liệu').trim(),
     description: String(item.description || existing?.description || ''),
-    category: normaliseResourceCategory(item.category || existing?.category || existing?.category_id),
+    category: normaliseResourceCategory(item.category || existing?.category),
     grade: String(item.grade || existing?.grade || ''),
     school_year: String(item.schoolYear || item.school_year || existing?.school_year || ''),
     unit_name: String(item.unitName || item.unit_name || existing?.unit_name || ''),
@@ -44,7 +50,6 @@ function rowFromItem(item, user, manager, existing = null) {
     drive_download_link: String(item.driveDownloadLink || item.drive_download_link || existing?.drive_download_link || '') || null,
     ai_summary: String(item.aiSummary || item.ai_summary || existing?.ai_summary || ''),
     ai_uses: Array.isArray(item.aiUses || item.ai_uses) ? (item.aiUses || item.ai_uses) : (existing?.ai_uses || []),
-    extracted_text: String(item.extractedText || item.extracted_text || existing?.extracted_text || '').slice(0, 60000),
     checksum: String(item.checksum || existing?.checksum || ''),
     version_number: Number(item.version || item.version_number || existing?.version_number || 1),
     parent_resource_id: isUuid(item.parentResourceId || item.parent_resource_id)
@@ -54,26 +59,33 @@ function rowFromItem(item, user, manager, existing = null) {
     approved_by: status === 'approved' ? String(item.approvedBy || item.approved_by || existing?.approved_by || user.email || '') : null,
     updated_at: new Date().toISOString(),
   };
+
+  // `extracted_text` can be tens of thousands of characters. Preserve the existing
+  // database value by omitting the column unless the caller explicitly sends a new value.
+  if (Object.prototype.hasOwnProperty.call(item, 'extractedText') || Object.prototype.hasOwnProperty.call(item, 'extracted_text')) {
+    row.extracted_text = String(item.extractedText ?? item.extracted_text ?? '').slice(0, 60000);
+  }
+  return row;
 }
 
 async function findExisting(client, item) {
   const candidateId = item.cloudId || item.id;
   if (isUuid(candidateId)) {
-    const { data, error } = await client.from('resource_items').select('*').eq('id', candidateId).maybeSingle();
+    const { data, error } = await client.from('resource_items').select(RESOURCE_SYNC_COLUMNS).eq('id', candidateId).maybeSingle();
     if (error) throw new Error(error.message);
     if (data) return data;
   }
 
   const driveFileId = String(item.driveFileId || item.drive_file_id || '');
   if (driveFileId) {
-    const { data, error } = await client.from('resource_items').select('*').eq('drive_file_id', driveFileId).limit(1).maybeSingle();
+    const { data, error } = await client.from('resource_items').select(RESOURCE_SYNC_COLUMNS).eq('drive_file_id', driveFileId).limit(1).maybeSingle();
     if (error) throw new Error(error.message);
     if (data) return data;
   }
 
   const checksum = String(item.checksum || '');
   if (checksum) {
-    const { data, error } = await client.from('resource_items').select('*').eq('checksum', checksum).limit(1).maybeSingle();
+    const { data, error } = await client.from('resource_items').select(RESOURCE_SYNC_COLUMNS).eq('checksum', checksum).limit(1).maybeSingle();
     if (error) throw new Error(error.message);
     if (data) return data;
   }
@@ -99,7 +111,7 @@ export default async function handler(req, res) {
     let saved;
 
     if (existing?.id) {
-      const { data, error } = await client.from('resource_items').update(row).eq('id', existing.id).select().single();
+      const { data, error } = await client.from('resource_items').update(row).eq('id', existing.id).select(RESOURCE_SYNC_COLUMNS).single();
       if (error) throw new Error(error.message);
       saved = data;
     } else {
@@ -109,7 +121,7 @@ export default async function handler(req, res) {
         ...row,
         created_at: item.createdAt || item.created_at || new Date().toISOString(),
       };
-      const { data, error } = await client.from('resource_items').insert(insertRow).select().single();
+      const { data, error } = await client.from('resource_items').insert(insertRow).select(RESOURCE_SYNC_COLUMNS).single();
       if (error) throw new Error(error.message);
       saved = data;
     }
