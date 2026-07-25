@@ -1,1 +1,1 @@
-export * from './thptPracticeHubDrive.js';
+export * from './thptPracticeHubOptimized.js';
