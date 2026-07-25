@@ -26,7 +26,7 @@
   width: var(--vn-size);
   height: var(--vn-size);
   opacity: var(--vn-opacity);
-  filter: blur(var(--vn-blur)) drop-shadow(0 8px 18px rgba(85, 64, 37, 0.12));
+  filter: none;
   transform-origin: 50% 50%;
   will-change: transform;
   animation: bes-vn-drift var(--vn-duration) cubic-bezier(0.42, 0, 0.58, 1) var(--vn-delay) infinite alternate;
@@ -55,6 +55,35 @@
 
 .bes-vn-motif--drum {
   mix-blend-mode: multiply;
+}
+
+.bes-vn-atmosphere--curated {
+  contain: layout style paint;
+}
+
+.bes-vn-motif--curated {
+  will-change: auto;
+}
+
+html[data-performance='high'] .bes-vn-motif--curated {
+  will-change: transform;
+}
+
+html[data-performance='balanced'] .bes-vn-motif__art,
+html[data-motion='lite'] .bes-vn-motif__art {
+  animation: none;
+}
+
+html[data-performance='low'] .bes-vn-motif,
+html[data-motion='off'] .bes-vn-motif,
+html[data-performance='low'] .bes-vn-motif__art,
+html[data-motion='off'] .bes-vn-motif__art {
+  animation: none !important;
+  will-change: auto;
+}
+
+.bes-vn-motif--custom img {
+  border-radius: 18%;
 }
 
 @keyframes bes-vn-drift {
@@ -91,7 +120,7 @@ body[data-theme='dark'] .bes-vn-atmosphere__veil,
 html[data-theme='dark'] .bes-vn-motif,
 body[data-theme='dark'] .bes-vn-motif,
 .theme-dark .bes-vn-motif {
-  filter: blur(var(--vn-blur)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.16));
+  filter: none;
 }
 
 @media (max-width: 1099px) {
@@ -106,7 +135,7 @@ body[data-theme='dark'] .bes-vn-motif,
   }
 
   .bes-vn-motif {
-    filter: blur(var(--vn-blur)) drop-shadow(0 5px 12px rgba(85, 64, 37, 0.08));
+    filter: none;
   }
 }
 
