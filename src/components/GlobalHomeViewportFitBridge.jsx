@@ -24,6 +24,7 @@ export default function GlobalHomeViewportFitBridge({ route = 'home' }) {
     let resizeObserver = null;
     let mutationObserver = null;
     let observedChrome = null;
+    let lastSignature = '';
 
     const measure = () => {
       if (cancelled) return;
@@ -47,8 +48,12 @@ export default function GlobalHomeViewportFitBridge({ route = 'home' }) {
 
       const viewportHeight = Math.round(window.visualViewport?.height || window.innerHeight || 0);
       const chromeHeight = Math.ceil(chrome.getBoundingClientRect().height);
-      const stageHeight = Math.max(420, viewportHeight - chromeHeight);
+      const stageHeight = Math.max(1, viewportHeight - chromeHeight);
       const density = stageHeight < 560 ? 'tight' : stageHeight < 700 ? 'compact' : 'roomy';
+      const signature = `${viewportHeight}:${chromeHeight}:${stageHeight}:${density}`;
+
+      if (signature === lastSignature && root.dataset.homeViewportFit === 'ready') return;
+      lastSignature = signature;
 
       root.style.setProperty('--bes-home-chrome-height', `${chromeHeight}px`);
       root.style.setProperty('--bes-home-stage-height', `${stageHeight}px`);
@@ -72,7 +77,7 @@ export default function GlobalHomeViewportFitBridge({ route = 'home' }) {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['class', 'style', 'data-route'],
+      attributeFilter: ['class', 'data-route'],
     });
 
     return () => {
