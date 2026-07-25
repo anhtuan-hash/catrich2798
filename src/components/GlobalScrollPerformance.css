@@ -61,27 +61,15 @@ html[data-performance='low'] body .app-shell[data-route] .brian-briefing-chip {
   box-shadow: inset 0 0 0 1px rgba(96, 121, 170, .12) !important;
 }
 
-/* A constantly moving masked ticker and loading pulse remain active while the
-   page scrolls. Show the current headline statically on normal devices. */
-html[data-performance='balanced'] body .brian-briefing-bar__ticker-viewport,
-html[data-performance='low'] body .brian-briefing-bar__ticker-viewport {
-  -webkit-mask-image: none !important;
-  mask-image: none !important;
-}
-
-html[data-performance='balanced'] body .brian-briefing-bar__ticker-track,
-html[data-performance='low'] body .brian-briefing-bar__ticker-track,
+/* Keep the headline ticker moving. Only stop the decorative weather pulse on
+   balanced/low profiles. The former transform:none rule froze the marquee even
+   when its animation declaration was restored later. */
 html[data-performance='balanced'] body .brian-briefing-chip--weather.is-loading .brian-briefing-chip__icon,
 html[data-performance='balanced'] body .brian-briefing-chip--weather.is-refreshing .brian-briefing-chip__icon,
 html[data-performance='low'] body .brian-briefing-chip--weather.is-loading .brian-briefing-chip__icon,
 html[data-performance='low'] body .brian-briefing-chip--weather.is-refreshing .brian-briefing-chip__icon {
   animation: none !important;
   transform: none !important;
-}
-
-html[data-performance='balanced'] body .brian-briefing-bar__ticker-item:not(:first-child),
-html[data-performance='low'] body .brian-briefing-bar__ticker-item:not(:first-child) {
-  display: none !important;
 }
 
 /* Home visual polish without live glass layers. */

@@ -16,16 +16,22 @@ html body .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__ticker-trac
   display: inline-flex !important;
   align-items: center !important;
   padding-left: 100% !important;
-  transform: translate3d(0, 0, 0);
   will-change: transform !important;
-  animation: brian-top-briefing-marquee var(--briefing-duration, 22s) linear infinite !important;
+  animation: bes-restored-news-ticker-rtl var(--briefing-duration, 22s) linear infinite !important;
+  animation-play-state: running !important;
 }
 
+/* Keep the ticker moving even when focus or the pointer remains inside the top bar. */
 html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar.is-paused .brian-briefing-bar__ticker-track,
 html body .bes-top-chrome > .brian-briefing-bar.is-paused .brian-briefing-bar__ticker-track {
-  animation-play-state: paused !important;
+  animation-play-state: running !important;
 }
 
 html body .brian-briefing-bar__ticker-item {
   display: inline-flex !important;
+}
+
+@keyframes bes-restored-news-ticker-rtl {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-100%, 0, 0); }
 }
