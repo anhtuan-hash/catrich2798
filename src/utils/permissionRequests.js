@@ -4,8 +4,54 @@ import { getPermissionItem } from './permissions.js';
 export const PERMISSION_REQUESTS_EVENT = 'bes-permission-requests-updated';
 export const PERMISSION_REQUESTS_TABLE = 'permission_requests';
 
+const REQUEST_CACHE_MAX_AGE = 5 * 60 * 1000;
+const requestCache = new Map();
+const requestPromises = new Map();
+let requestCacheGeneration = 0;
+
+function invalidatePermissionRequestCache() {
+  requestCacheGeneration += 1;
+  requestCache.clear();
+  requestPromises.clear();
+}
+
 function dispatchRequests() {
-  window.dispatchEvent(new CustomEvent(PERMISSION_REQUESTS_EVENT));
+  invalidatePermissionRequestCache();
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(PERMISSION_REQUESTS_EVENT));
+}
+
+function readRequestCache(key) {
+  const cached = requestCache.get(key);
+  if (!cached) return null;
+  if (Date.now() - cached.storedAt >= REQUEST_CACHE_MAX_AGE) {
+    requestCache.delete(key);
+    return null;
+  }
+  return cached.items;
+}
+
+async function loadRequestList(key, queryFactory, { force = false } = {}) {
+  const cached = !force ? readRequestCache(key) : null;
+  if (cached) return cached;
+  if (!force && requestPromises.has(key)) return requestPromises.get(key);
+
+  const generation = requestCacheGeneration;
+  let task;
+  task = Promise.resolve()
+    .then(queryFactory)
+    .then(({ data, error }) => {
+      if (error) throw error;
+      const items = data || [];
+      if (generation === requestCacheGeneration) {
+        requestCache.set(key, { items, storedAt: Date.now() });
+      }
+      return items;
+    })
+    .finally(() => {
+      if (requestPromises.get(key) === task) requestPromises.delete(key);
+    });
+  requestPromises.set(key, task);
+  return task;
 }
 
 function titleForItem(item, language = 'vi') {
@@ -70,25 +116,22 @@ export async function requestPermission({ user, permissionId, item = null, messa
   };
 }
 
-export async function getMyPermissionRequests(userId) {
+export async function getMyPermissionRequests(userId, { force = false } = {}) {
   if (!isSupabaseConfigured || !userId) return [];
-  const { data, error } = await supabase
+  const key = `mine:${String(userId)}`;
+  return loadRequestList(key, () => supabase
     .from(PERMISSION_REQUESTS_TABLE)
     .select('id,permission_id,item_title,item_type,status,message,created_at,updated_at')
     .eq('requester_id', userId)
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return data || [];
+    .order('created_at', { ascending: false }), { force });
 }
 
-export async function getPermissionRequests() {
+export async function getPermissionRequests({ force = false } = {}) {
   if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
+  return loadRequestList('all', () => supabase
     .from(PERMISSION_REQUESTS_TABLE)
     .select('id,requester_id,requester_email,requester_name,permission_id,item_title,item_type,status,message,created_at,updated_at')
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return data || [];
+    .order('created_at', { ascending: false }), { force });
 }
 
 export async function updatePermissionRequestStatus(id, status) {
