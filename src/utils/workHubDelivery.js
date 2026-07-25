@@ -4,9 +4,11 @@ export const WORK_HUB_DELIVERY_EVENT = 'bes-work-hub-delivery-updated';
 export const WORK_HUB_BUCKET = 'work-hub-submissions';
 export const WORK_HUB_MAX_FILE_BYTES = 25 * 1024 * 1024;
 
-const NOTIFICATION_CACHE_MAX_AGE = 5 * 60 * 1000;
+const NOTIFICATION_CACHE_MAX_AGE = 30 * 60 * 1000;
+const SIGNED_URL_CACHE_MAX_AGE = 50 * 60 * 1000;
 const notificationCache = new Map();
 const notificationPromises = new Map();
+const signedUrlCache = new Map();
 
 const ALLOWED_EXTENSIONS = new Set([
   'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf',
@@ -35,9 +37,13 @@ function safeFileName(name) {
   return ext ? `${base}.${ext}` : base;
 }
 
-function emitDeliveryUpdate(detail = {}) {
-  if (typeof window === 'undefined') return;
-  window.dispatchEvent(new CustomEvent(WORK_HUB_DELIVERY_EVENT, { detail }));
+function signedUrlCacheKey(bucket, path) {
+  return `${bucket}:${path}`;
+}
+
+function invalidateSignedUrl(bucket, path) {
+  if (!path) return;
+  signedUrlCache.delete(signedUrlCacheKey(bucket || WORK_HUB_BUCKET, path));
 }
 
 export function validateWorkHubFile(file) {
@@ -63,7 +69,7 @@ export async function uploadWorkHubSubmissionFile({ file, itemId, userId }) {
   const fileName = safeFileName(file.name);
   const path = `${itemId}/${userId}/${Date.now()}-${fileName}`;
   const { error } = await client.storage.from(WORK_HUB_BUCKET).upload(path, file, {
-    cacheControl: '3600',
+    cacheControl: '86400',
     upsert: false,
     contentType: file.type || undefined,
   });
@@ -78,19 +84,17 @@ export async function uploadWorkHubSubmissionFile({ file, itemId, userId }) {
     uploaded_at: new Date().toISOString(),
     uploaded_by: userId,
   };
-  emitDeliveryUpdate({ type: 'file-uploaded', itemId, path });
   return { ok: true, attachment };
 }
-
 
 export async function removeWorkHubSubmissionFile(attachment) {
   const client = getRuntimeClient();
   if (!client || !attachment?.path) return { ok: false };
   const bucket = attachment.bucket || WORK_HUB_BUCKET;
   const { error } = await client.storage.from(bucket).remove([attachment.path]);
+  if (!error) invalidateSignedUrl(bucket, attachment.path);
   return error ? { ok: false, message: error.message } : { ok: true };
 }
-
 
 export async function removeWorkHubSubmissionFiles(attachments = []) {
   const client = getRuntimeClient();
@@ -105,8 +109,10 @@ export async function removeWorkHubSubmissionFiles(attachments = []) {
   }
   for (const [bucket, paths] of grouped.entries()) {
     if (!paths.size) continue;
-    const { error } = await client.storage.from(bucket).remove([...paths]);
+    const pathList = [...paths];
+    const { error } = await client.storage.from(bucket).remove(pathList);
     if (error) return { ok: false, message: error.message || 'Không thể xoá tệp công việc.' };
+    pathList.forEach((path) => invalidateSignedUrl(bucket, path));
   }
   return { ok: true, removed: [...grouped.values()].reduce((sum, paths) => sum + paths.size, 0) };
 }
@@ -118,9 +124,19 @@ export async function createWorkHubAttachmentUrl(attachment, expiresIn = 3600) {
   const client = getRuntimeClient();
   if (!client) return '';
   const bucket = attachment.bucket || WORK_HUB_BUCKET;
+  const key = signedUrlCacheKey(bucket, attachment.path);
+  const cached = signedUrlCache.get(key);
+  if (cached && Date.now() < cached.expiresAt) return cached.url;
+  if (cached) signedUrlCache.delete(key);
+
   const { data, error } = await client.storage.from(bucket).createSignedUrl(attachment.path, expiresIn);
   if (error) return '';
-  return data?.signedUrl || '';
+  const url = data?.signedUrl || '';
+  if (url) {
+    const safeLifetime = Math.min(SIGNED_URL_CACHE_MAX_AGE, Math.max(60_000, Number(expiresIn || 3600) * 800));
+    signedUrlCache.set(key, { url, expiresAt: Date.now() + safeLifetime });
+  }
+  return url;
 }
 
 export async function resolveWorkHubCommentAttachments(comments = []) {
@@ -134,11 +150,11 @@ export async function resolveWorkHubCommentAttachments(comments = []) {
   }));
 }
 
-export async function listWorkHubNotifications(userId, limit = 50, { force = false } = {}) {
+export async function listWorkHubNotifications(userId, limit = 30, { force = false } = {}) {
   const client = getRuntimeClient();
   if (!client || !userId) return [];
   const key = String(userId);
-  const safeLimit = Math.max(1, Number(limit) || 50);
+  const safeLimit = Math.max(1, Math.min(30, Number(limit) || 30));
   const cached = notificationCache.get(key);
   if (!force && cached && cached.limit >= safeLimit && Date.now() - cached.storedAt < NOTIFICATION_CACHE_MAX_AGE) {
     return cached.items.slice(0, safeLimit);
@@ -191,7 +207,6 @@ export async function markWorkHubNotificationRead(notificationId) {
   notificationCache.forEach((cached, userId) => {
     notificationCache.set(userId, { ...cached, items: cached.items.filter((item) => item.id !== notificationId), storedAt: Date.now() });
   });
-  emitDeliveryUpdate({ type: 'notification-read', notificationId });
   return { ok: true };
 }
 
@@ -204,8 +219,7 @@ export async function markAllWorkHubNotificationsRead(userId) {
     .eq('user_id', userId)
     .is('read_at', null);
   if (error) return { ok: false, message: error.message };
-  notificationCache.set(String(userId), { items: [], limit: 50, storedAt: Date.now() });
-  emitDeliveryUpdate({ type: 'notifications-read-all', userId });
+  notificationCache.set(String(userId), { items: [], limit: 30, storedAt: Date.now() });
   return { ok: true };
 }
 
@@ -217,7 +231,6 @@ export function subscribeWorkHubNotifications(userId, onChange) {
     filter: `user_id=eq.${userId}`,
     onChange: (payload) => {
       updateNotificationCache(payload);
-      emitDeliveryUpdate({ type: 'notification-change', payload });
       onChange?.(payload);
     },
   });
