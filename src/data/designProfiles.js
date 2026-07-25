@@ -21,13 +21,6 @@ export const APP_DESIGN_PROFILES = {
     icon: 'activity',
     style: 'Interactive activity lab',
     styleVi: 'Phòng tạo hoạt động tương tác'},
-  'random-student-picker': {
-    accent: '#4285F4',
-    soft: '#E8F0FE',
-    ink: '#174EA6',
-    icon: 'game',
-    style: 'Native classroom randomizer',
-    styleVi: 'Bộ gọi tên lớp học native'},
   'teaching-methods-hub': {
     accent: '#0B57D0',
     soft: '#E8F0FE',
