@@ -1,3 +1,11 @@
+.auth-google-form .auth-google-fields input[autocomplete='username'],
+.auth-google-form .auth-google-fields input[dir='ltr'] {
+  direction: ltr !important;
+  unicode-bidi: isolate !important;
+  writing-mode: horizontal-tb !important;
+  text-align: left !important;
+}
+
 .bes-username-login-hint {
   display: block;
   margin: 7px 2px 0;
