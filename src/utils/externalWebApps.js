@@ -39,6 +39,14 @@ export function safeExternalWebAppUrl(value) {
   }
 }
 
+export function withEmbedModeParam(value) {
+  const safe = safeExternalWebAppUrl(value);
+  if (!safe) return '';
+  const url = new URL(safe);
+  url.searchParams.set('embed', '1');
+  return url.toString();
+}
+
 function cleanText(value, max = 500) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
 }
@@ -89,11 +97,24 @@ export function embedTransformStyle(view = {}) {
   };
 }
 
+export function normalizeExternalAppEmbedConfig(value = {}, sourceUrl = '') {
+  const source = safeExternalWebAppUrl(sourceUrl);
+  const embedUrl = safeExternalWebAppUrl(value?.embedUrl) || source;
+  return {
+    embedUrl,
+    hideBrianHeader: Boolean(value?.hideBrianHeader),
+    hideBrianFooter: Boolean(value?.hideBrianFooter),
+    allowFullscreen: value?.allowFullscreen !== false,
+  };
+}
+
 export function normalizeExternalAppDraft(value = {}) {
   const name = cleanText(value.name, 80);
+  const url = safeExternalWebAppUrl(value.url);
   return {
     name,
-    url: safeExternalWebAppUrl(value.url),
+    url,
+    embedUrl: safeExternalWebAppUrl(value.embedUrl),
     icon: cleanText(value.icon || name.slice(0, 2) || 'WEB', 3).toUpperCase(),
     description: cleanText(value.description, 220),
     groupId: EXTERNAL_APP_GROUPS.some((group) => group.id === value.groupId) ? value.groupId : 'create',
@@ -116,6 +137,7 @@ export function externalAppFromTool(tool = {}) {
   if (tool.kind !== EXTERNAL_APP_KIND) return null;
   const url = safeExternalWebAppUrl(tool.url);
   if (!url || !tool.name) return null;
+  const embedConfig = normalizeExternalAppEmbedConfig(tool.embedConfig, url);
   return {
     id: tool.id,
     slug: `external-${tool.id}`,
@@ -131,10 +153,12 @@ export function externalAppFromTool(tool = {}) {
     groupId: tool.groupId || 'create',
     externalWebApp: true,
     externalUrl: url,
+    embedUrl: embedConfig.embedUrl,
     requestId: tool.requestId || '',
     submittedBy: tool.submittedBy || '',
     approvedAt: tool.approvedAt || '',
     accent: tool.accent || '#1a73e8',
+    embedConfig,
     embedView: normalizeEmbedView(tool.embedView),
   };
 }
@@ -284,7 +308,7 @@ export async function submitExternalWebApp(user, draft, language = 'vi') {
   return result;
 }
 
-export async function approveExternalWebApp(user, request, embedView = {}) {
+export async function approveExternalWebApp(user, request, embedConfig = {}) {
   const app = parseRequestPayload(request);
   if (!app.name || !app.url) throw new Error('Yêu cầu không có tên hoặc URL hợp lệ.');
 
@@ -293,7 +317,7 @@ export async function approveExternalWebApp(user, request, embedView = {}) {
     body: JSON.stringify({
       action: 'approve',
       id: request.id,
-      embedView: normalizeEmbedView(embedView),
+      embedConfig: normalizeExternalAppEmbedConfig(embedConfig, app.url),
     }),
   });
 
@@ -324,6 +348,20 @@ export async function rejectExternalWebApp(requestId) {
   invalidateExternalAppsCache();
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(PERMISSION_REQUESTS_EVENT));
   return result;
+}
+
+export async function updateApprovedExternalWebAppConfig(user, appId, embedConfig = {}) {
+  const snapshot = await loadAiWebsiteSettings(user);
+  const nextTools = (snapshot.tools || []).map((tool) => (
+    tool.kind === EXTERNAL_APP_KIND && tool.id === appId
+      ? normalizeAiWebsiteTool({
+        ...tool,
+        embedConfig: normalizeExternalAppEmbedConfig(embedConfig, tool.url),
+      })
+      : tool
+  ));
+  invalidateExternalAppsCache();
+  return saveAiWebsiteSettings(user, nextTools);
 }
 
 export async function updateApprovedExternalWebAppView(user, appId, embedView = {}) {
