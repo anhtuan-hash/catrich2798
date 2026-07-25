@@ -1,4 +1,9 @@
-import { isSupabaseConfigured, supabase, getSupabaseStatus } from '../../utils/supabase.js';
+import {
+  isSupabaseConfigured,
+  supabase,
+  getSupabaseStatus,
+  invalidateSupabaseReadCacheForTable,
+} from '../../utils/supabase.js';
 import { resolveSystemRole } from '../../utils/roles.js';
 import { RUNTIME_CORE_VERSION } from '../../config/version.js';
 import { initializeAuthSession, subscribeToAuthChanges } from '../../utils/auth.js';
@@ -192,6 +197,7 @@ export function subscribeTable({ key, table, event = '*', schema = 'public', fil
   }
   let channel = supabase.channel(`bes-runtime-${key}`)
     .on('postgres_changes', { event, schema, table, ...(filter ? { filter } : {}) }, (payload) => {
+      invalidateSupabaseReadCacheForTable(table);
       try { onChange?.(payload); } catch (error) { console.warn('[RuntimeCore] realtime callback failed', error); }
     })
     .subscribe();
