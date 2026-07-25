@@ -58,11 +58,9 @@ import './GlobalWorkScheduleModern.css';
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
 const GlobalWorkBulkDeleteManager = lazy(() => import('./GlobalWorkBulkDeleteManager.jsx'));
-const GlobalDashboardModernCalendar = lazy(() => import('./GlobalDashboardModernCalendar.jsx'));
 
 export default function GlobalFlatNavigation(props) {
   const workHubActive = props.route === 'work-hub';
-  const dashboardActive = props.route === 'dashboard';
 
   return (
     <>
@@ -80,11 +78,6 @@ export default function GlobalFlatNavigation(props) {
       <GlobalDashboardFooterBridge route={props.route} language={props.language} />
       <GlobalWorkHubNotificationBridge currentUser={props.currentUser} language={props.language} />
       <GlobalWorkScheduleBridge />
-      {dashboardActive ? (
-        <Suspense fallback={null}>
-          <GlobalDashboardModernCalendar {...props} />
-        </Suspense>
-      ) : null}
       {workHubActive ? (
         <Suspense fallback={null}>
           <GlobalWorkScheduleCompatibleCenter {...props} />
