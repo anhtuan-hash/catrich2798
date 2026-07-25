@@ -107,7 +107,6 @@ export function runConfigurationMigrations() {
   const storage = window.localStorage;
   const results = [];
 
-
   // Retire stale open-app tab state from V10.85/V11 without recreating it.
   const retiredWorkspaceKeys = [];
   for (let i = 0; i < storage.length; i += 1) {
@@ -119,6 +118,17 @@ export function runConfigurationMigrations() {
     writeBackup(storage, key, raw);
     storage.removeItem(key);
     results.push({ id: 'workspace-tabs-retired', key, status: 'removed' });
+  });
+
+  // Random Student Picker was removed from Brian. Purge its class lists, history and preferences.
+  const retiredRandomPickerKeys = [];
+  for (let i = 0; i < storage.length; i += 1) {
+    const key = storage.key(i);
+    if (key?.startsWith('bes-random-picker:')) retiredRandomPickerKeys.push(key);
+  }
+  retiredRandomPickerKeys.forEach((key) => {
+    storage.removeItem(key);
+    results.push({ id: 'random-student-picker-retired', key, status: 'removed' });
   });
 
   STORAGE_SCHEMAS.forEach((schema) => {
