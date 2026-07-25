@@ -9,7 +9,7 @@ html body .app-shell[data-route] {
   --eh-hover-field: rgba(255, 255, 255, .86);
 }
 
-/* Semantic controls always advertise that they are actionable. */
+/* Only semantic or detected controls advertise clickability. Plain text is not touched. */
 html body .app-shell[data-route] :where(
   button:not(:disabled),
   a[href],
@@ -26,7 +26,6 @@ html body .app-shell[data-route] :where(
   [role='switch']:not([aria-disabled='true']),
   [role='checkbox']:not([aria-disabled='true']),
   [role='radio']:not([aria-disabled='true']),
-  [tabindex]:not([tabindex='-1']):not([aria-disabled='true']),
   [data-interactive='true'],
   [data-clickable='true'],
   [data-eh-interactive='true']
@@ -47,7 +46,7 @@ html body .app-shell[data-route] :where(
   cursor: default !important;
 }
 
-/* Buttons, pills, menu items, tabs, icon controls and custom clickable surfaces. */
+/* Buttons, pills, menu items, tabs, icons and custom clickable surfaces. */
 html body .app-shell[data-route] :where(
   button:not(:disabled),
   summary,
@@ -113,7 +112,7 @@ html body .app-shell[data-route] :where(
     filter: brightness(.985) saturate(1.01);
   }
 
-  /* Existing motion cards keep their stronger native lift; only their edge glows. */
+  /* Existing motion cards retain their own lift; this layer only adds clarity. */
   html body .app-shell[data-route] [data-eh-motion-card='true']:not([data-hover-ignore='true']):hover {
     filter:
       brightness(1.025)
@@ -121,7 +120,7 @@ html body .app-shell[data-route] :where(
       drop-shadow(0 10px 16px var(--eh-hover-shadow));
   }
 
-  /* Text links respond without moving the surrounding paragraph. */
+  /* Inline links respond without moving the paragraph around them. */
   html body .app-shell[data-route] a[href]:not([data-hover-ignore='true']):hover {
     color: var(--eh-hover-blue);
     text-decoration-line: underline;
@@ -130,7 +129,7 @@ html body .app-shell[data-route] :where(
     text-decoration-color: color-mix(in srgb, currentColor 62%, transparent);
   }
 
-  /* Card-like links may lift as one surface, while inline links stay still. */
+  /* Links that wrap a card or tile behave as one interactive surface. */
   html body .app-shell[data-route] a[href][data-eh-interactive-kind='control']:not([data-hover-ignore='true']):hover {
     translate: 0 -2px;
     filter:
@@ -154,7 +153,7 @@ html body .app-shell[data-route] :where(
       0 5px 14px rgba(35, 69, 128, .08);
   }
 
-  /* Labels can be clicked, but only their actual control receives the effect. */
+  /* A clickable label highlights its control rather than animating its text. */
   html body .app-shell[data-route] label:has(input:not(:disabled)):hover input,
   html body .app-shell[data-route] label:has(select:not(:disabled)):hover select,
   html body .app-shell[data-route] label:has(textarea:not(:disabled)):hover textarea {
@@ -184,24 +183,6 @@ html body .app-shell[data-route] :where(
 ):not([data-hover-ignore='true']):focus-visible {
   outline: 3px solid var(--eh-hover-ring) !important;
   outline-offset: 3px !important;
-}
-
-/* Reading-only typography is intentionally untouched. */
-html body .app-shell[data-route] :where(
-  p,
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  small,
-  strong,
-  em,
-  blockquote,
-  figcaption
-):not(a):not(button):not([role='button']):not([tabindex]) {
-  cursor: text;
 }
 
 html[data-theme='dark'] body .app-shell[data-route],
