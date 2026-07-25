@@ -26,6 +26,57 @@ const LIGHT_TOKENS = {
   '--g-surface': '#ffffff',
 };
 
+const DARK_TOKENS = {
+  '--bes-page-bg': '#111318',
+  '--bes-theme-page': '#111318',
+  '--bes-theme-page-soft': '#15171c',
+  '--bes-theme-surface': '#1b1d22',
+  '--bes-theme-surface-low': '#15171c',
+  '--bes-theme-surface-mid': '#24262c',
+  '--bes-theme-surface-high': '#303238',
+  '--bes-surface': '#1b1d22',
+  '--bes-surface-elevated': '#24262c',
+  '--page': '#111318',
+  '--bg': '#111318',
+  '--bg-2': '#15171c',
+  '--surface': '#1b1d22',
+  '--surface-2': '#24262c',
+  '--surface-3': '#303238',
+  '--panel': '#1b1d22',
+  '--panel-2': '#24262c',
+  '--card': '#1b1d22',
+  '--card-2': '#24262c',
+  '--burs-surface': '#1b1d22',
+  '--burs-soft': '#24262c',
+  '--g-surface': '#1b1d22',
+};
+
+const OLED_TOKENS = {
+  ...DARK_TOKENS,
+  '--bes-page-bg': '#000000',
+  '--bes-theme-page': '#000000',
+  '--bes-theme-page-soft': '#070707',
+  '--bes-theme-surface': '#0d0d0d',
+  '--bes-theme-surface-low': '#070707',
+  '--bes-theme-surface-mid': '#151515',
+  '--bes-theme-surface-high': '#202020',
+  '--bes-surface': '#0d0d0d',
+  '--bes-surface-elevated': '#151515',
+  '--page': '#000000',
+  '--bg': '#000000',
+  '--bg-2': '#070707',
+  '--surface': '#0d0d0d',
+  '--surface-2': '#151515',
+  '--surface-3': '#202020',
+  '--panel': '#0d0d0d',
+  '--panel-2': '#151515',
+  '--card': '#0d0d0d',
+  '--card-2': '#151515',
+  '--burs-surface': '#0d0d0d',
+  '--burs-soft': '#151515',
+  '--g-surface': '#0d0d0d',
+};
+
 const CANDIDATE_SELECTOR = [
   'body', '#root', 'main', 'section', 'article', 'aside', 'dialog', '[role="dialog"]',
   'label', 'input', 'textarea', 'select',
@@ -120,9 +171,15 @@ let installed = false;
 let applyingAppearance = false;
 let scanFrame = 0;
 
+function getThemeMode() {
+  const values = [ROOT.dataset.besTheme, ROOT.dataset.theme].map((value) => String(value || '').toLowerCase());
+  if (values.includes('oled')) return 'oled';
+  if (values.includes('dark') || ROOT.classList.contains('dark')) return 'dark';
+  return 'light';
+}
+
 function isDarkTheme() {
-  const values = [ROOT.dataset.theme, ROOT.dataset.besTheme].map((value) => String(value || '').toLowerCase());
-  return values.includes('dark') || values.includes('oled') || ROOT.classList.contains('dark');
+  return getThemeMode() !== 'light';
 }
 
 function ensureStyle() {
@@ -167,11 +224,9 @@ function normalizeAppearanceApi() {
 }
 
 function applyNeutralTokens() {
-  if (isDarkTheme()) {
-    Object.keys(LIGHT_TOKENS).forEach((property) => ROOT.style.removeProperty(property));
-    return;
-  }
-  Object.entries(LIGHT_TOKENS).forEach(([property, value]) => {
+  const mode = getThemeMode();
+  const tokens = mode === 'oled' ? OLED_TOKENS : mode === 'dark' ? DARK_TOKENS : LIGHT_TOKENS;
+  Object.entries(tokens).forEach(([property, value]) => {
     if (ROOT.style.getPropertyValue(property).trim() !== value || ROOT.style.getPropertyPriority(property) !== 'important') {
       ROOT.style.setProperty(property, value, 'important');
     }
@@ -243,13 +298,13 @@ export function installNeutralSurfaceGuard() {
   ensureStyle();
   enforceNeutralSystem();
 
-  const observer = new MutationObserver((records) => {
-    const shouldScan = records.some((record) => record.type === 'attributes' || record.addedNodes.length > 0);
-    if (shouldScan) scanWarmSurfaces();
+  const contentObserver = new MutationObserver((records) => {
+    if (records.some((record) => record.addedNodes.length > 0)) scanWarmSurfaces();
   });
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
+  contentObserver.observe(document.documentElement, { childList: true, subtree: true });
+
+  const themeObserver = new MutationObserver(enforceNeutralSystem);
+  themeObserver.observe(ROOT, {
     attributes: true,
     attributeFilter: ['class', 'data-theme', 'data-bes-theme', 'data-bes-background'],
   });
