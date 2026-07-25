@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import ExternalAppsIntegration from './components/ExternalAppsIntegration.jsx';
 import RandomStudentPickerBridge from './components/RandomStudentPickerBridge.jsx';
+import RandomStudentPickerRouteBridge from './components/RandomStudentPickerRouteBridge.jsx';
 import { initializeAuthSession, subscribeToAuthChanges } from './utils/auth.js';
 import { installNeutralSurfaceGuard } from './utils/neutralSurfaceGuard.js';
 
@@ -28,6 +29,7 @@ function Bootstrap() {
     <>
       <ExternalAppsIntegration currentUser={user} language={language} />
       <RandomStudentPickerBridge currentUser={user} />
+      <RandomStudentPickerRouteBridge currentUser={user} />
     </>
   );
 }
