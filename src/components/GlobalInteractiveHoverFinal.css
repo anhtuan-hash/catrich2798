@@ -1,0 +1,187 @@
+/* Final-cascade hover feedback.
+   This file is intentionally imported last so later page styles cannot mute it. */
+
+html body .app-shell[data-route] {
+  --eh-hover-final-ring: rgba(26, 115, 232, .38);
+  --eh-hover-final-shadow: rgba(31, 74, 142, .25);
+  --eh-hover-final-fill: rgba(232, 242, 255, .72);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* Native and custom controls: clearly lift, enlarge and gain a visible halo. */
+  html body .app-shell[data-route] :where(
+    button:not(:disabled),
+    summary,
+    [role='button']:not([aria-disabled='true']),
+    [role='menuitem']:not([aria-disabled='true']),
+    [role='tab']:not([aria-disabled='true']),
+    [role='option']:not([aria-disabled='true']),
+    [role='switch']:not([aria-disabled='true']),
+    [role='checkbox']:not([aria-disabled='true']),
+    [role='radio']:not([aria-disabled='true']),
+    [data-interactive='true'],
+    [data-clickable='true'],
+    [data-eh-interactive='true'][data-eh-interactive-kind='control']
+  ):not([data-hover-ignore='true']):not([data-motion-ignore='true']):not([data-eh-motion-card='true']):hover {
+    translate: 0 -4px !important;
+    scale: 1.035 !important;
+    border-color: rgba(26, 115, 232, .46) !important;
+    outline: 2px solid var(--eh-hover-final-ring) !important;
+    outline-offset: 2px !important;
+    box-shadow:
+      0 15px 30px var(--eh-hover-final-shadow),
+      0 0 0 5px rgba(26, 115, 232, .10) !important;
+    filter: brightness(1.07) saturate(1.08) !important;
+    z-index: 8 !important;
+  }
+
+  html body .app-shell[data-route] :where(
+    button:not(:disabled),
+    summary,
+    [role='button']:not([aria-disabled='true']),
+    [role='menuitem']:not([aria-disabled='true']),
+    [role='tab']:not([aria-disabled='true']),
+    [role='option']:not([aria-disabled='true']),
+    [role='switch']:not([aria-disabled='true']),
+    [role='checkbox']:not([aria-disabled='true']),
+    [role='radio']:not([aria-disabled='true']),
+    [data-interactive='true'],
+    [data-clickable='true'],
+    [data-eh-interactive='true'][data-eh-interactive-kind='control']
+  ):not([data-hover-ignore='true']):not([data-motion-ignore='true']):active {
+    translate: 0 -1px !important;
+    scale: .98 !important;
+    outline-color: rgba(26, 115, 232, .24) !important;
+    box-shadow: 0 7px 16px rgba(31, 74, 142, .18) !important;
+    filter: brightness(.98) !important;
+  }
+
+  /* App cards and other Motion Core cards preserve their existing transform,
+     but gain an unmistakable ring, scale and stronger depth. */
+  html body .app-shell[data-route] [data-eh-motion-card='true']:not([data-hover-ignore='true']):hover {
+    scale: 1.028 !important;
+    outline: 3px solid var(--eh-hover-final-ring) !important;
+    outline-offset: 3px !important;
+    border-color: rgba(26, 115, 232, .42) !important;
+    box-shadow:
+      0 22px 44px rgba(31, 74, 142, .26),
+      0 0 0 6px rgba(26, 115, 232, .10) !important;
+    filter: brightness(1.06) saturate(1.08) !important;
+    z-index: 8 !important;
+  }
+
+  /* Card-like links move as a surface. Inline links remain text-only below. */
+  html body .app-shell[data-route] a[href][data-eh-interactive-kind='control']:not([data-hover-ignore='true']):hover {
+    translate: 0 -4px !important;
+    scale: 1.03 !important;
+    outline: 2px solid var(--eh-hover-final-ring) !important;
+    outline-offset: 2px !important;
+    box-shadow:
+      0 15px 30px var(--eh-hover-final-shadow),
+      0 0 0 5px rgba(26, 115, 232, .10) !important;
+    filter: brightness(1.07) saturate(1.08) !important;
+    text-decoration: none !important;
+  }
+
+  /* Text links are the only text elements that respond, and they never move. */
+  html body .app-shell[data-route] a[href]:not([data-eh-interactive-kind='control']):not([data-hover-ignore='true']):hover,
+  html body .app-shell[data-route] [data-eh-interactive-kind='text-link']:hover {
+    color: #0b57d0 !important;
+    text-decoration: underline 2px currentColor !important;
+    text-underline-offset: 4px !important;
+    background: rgba(26, 115, 232, .08) !important;
+    border-radius: 4px !important;
+  }
+
+  /* Editable fields become visibly active without shifting position. */
+  html body .app-shell[data-route] :where(
+    input:not(:disabled):not([type='hidden']):not([type='button']):not([type='submit']):not([type='reset']):not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+    textarea:not(:disabled),
+    select:not(:disabled),
+    [contenteditable='true']
+  ):not([data-hover-ignore='true']):hover {
+    translate: none !important;
+    scale: 1 !important;
+    border-color: rgba(26, 115, 232, .58) !important;
+    outline: 2px solid rgba(26, 115, 232, .22) !important;
+    outline-offset: 1px !important;
+    background-color: rgba(246, 250, 255, .98) !important;
+    box-shadow:
+      0 0 0 5px rgba(26, 115, 232, .11),
+      0 9px 20px rgba(31, 74, 142, .13) !important;
+    filter: none !important;
+  }
+
+  /* Small choice controls should visibly enlarge rather than lift. */
+  html body .app-shell[data-route] :where(
+    input[type='checkbox']:not(:disabled),
+    input[type='radio']:not(:disabled),
+    input[type='range']:not(:disabled),
+    input[type='color']:not(:disabled)
+  ):hover {
+    translate: none !important;
+    scale: 1.16 !important;
+    outline: 3px solid rgba(26, 115, 232, .24) !important;
+    outline-offset: 3px !important;
+    filter: brightness(1.05) saturate(1.1) !important;
+  }
+}
+
+html[data-theme='dark'] body .app-shell[data-route],
+body.theme-dark .app-shell[data-route] {
+  --eh-hover-final-ring: rgba(168, 199, 250, .46);
+  --eh-hover-final-shadow: rgba(0, 0, 0, .48);
+  --eh-hover-final-fill: rgba(50, 68, 98, .76);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html[data-theme='dark'] body .app-shell[data-route] :where(
+    button:not(:disabled),
+    summary,
+    [role='button']:not([aria-disabled='true']),
+    [role='menuitem']:not([aria-disabled='true']),
+    [role='tab']:not([aria-disabled='true']),
+    [data-interactive='true'],
+    [data-clickable='true'],
+    [data-eh-interactive='true'][data-eh-interactive-kind='control']
+  ):not([data-hover-ignore='true']):hover,
+  body.theme-dark .app-shell[data-route] :where(
+    button:not(:disabled),
+    summary,
+    [role='button']:not([aria-disabled='true']),
+    [role='menuitem']:not([aria-disabled='true']),
+    [role='tab']:not([aria-disabled='true']),
+    [data-interactive='true'],
+    [data-clickable='true'],
+    [data-eh-interactive='true'][data-eh-interactive-kind='control']
+  ):not([data-hover-ignore='true']):hover {
+    border-color: rgba(168, 199, 250, .52) !important;
+    box-shadow:
+      0 16px 32px var(--eh-hover-final-shadow),
+      0 0 0 5px rgba(168, 199, 250, .13) !important;
+    filter: brightness(1.15) saturate(1.08) !important;
+  }
+
+  html[data-theme='dark'] body .app-shell[data-route] :where(input, textarea, select, [contenteditable='true']):not(:disabled):hover,
+  body.theme-dark .app-shell[data-route] :where(input, textarea, select, [contenteditable='true']):not(:disabled):hover {
+    background-color: rgba(35, 46, 69, .98) !important;
+    color: #edf3ff !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-shell[data-route] :where(
+    button,
+    summary,
+    [role='button'],
+    [role='menuitem'],
+    [role='tab'],
+    [data-interactive='true'],
+    [data-clickable='true'],
+    [data-eh-interactive='true'],
+    [data-eh-motion-card='true']
+  ):hover {
+    translate: none !important;
+    scale: 1 !important;
+  }
+}
