@@ -3,11 +3,13 @@ import './BulkTeacherAccountsPanelCompact.css';
 import '../styles/TopChromeDividerFix.css';
 import { recordRuntimeError } from '../utils/runtimeDiagnostics.js';
 
-const VietnamCuratedAtmosphereOverlay = lazy(() => import('./VietnamCuratedAtmosphereOverlay.jsx'));
+const VietnamAtmosphereOverlay = lazy(() => import('./VietnamAtmosphereOverlay.jsx'));
 const VietnamAtmosphereAdminPanel = lazy(() => import('./VietnamAtmosphereAdminPanel.jsx'));
 const UsernameLoginBridge = lazy(() => import('./UsernameLoginBridge.jsx'));
 const BulkTeacherAccountsPanel = lazy(() => import('./BulkTeacherAccountsPanel.jsx'));
 const UsernameAccountCenter = lazy(() => import('./UsernameAccountCenter.jsx'));
+
+const NO_ATMOSPHERE_ROUTES = new Set(['login', 'register', 'setup', 'homeroom-portal']);
 
 function currentRoute() {
   if (typeof window === 'undefined') return 'home';
@@ -59,10 +61,7 @@ export default function GlobalRuntimeGuard({ language = 'vi' }) {
   }, []);
 
   const showRuntimeBanner = !online || Boolean(runtimeMessage);
-  // The full-screen decorative layer is now limited to Home. Keeping a fixed
-  // composited layer alive over every scroll-heavy workspace caused avoidable
-  // repaint/compositor pressure even when its opacity was very low.
-  const showAtmosphere = decorationsReady && route === 'home';
+  const showAtmosphere = decorationsReady && !NO_ATMOSPHERE_ROUTES.has(route);
   const showLoginBridge = route === 'login' || route === 'register';
   const showAdminTools = route === 'admin';
   const showAccountCenter = route === 'settings';
@@ -71,7 +70,7 @@ export default function GlobalRuntimeGuard({ language = 'vi' }) {
     <>
       <Suspense fallback={null}>
         {showLoginBridge ? <UsernameLoginBridge language={language} /> : null}
-        {showAtmosphere ? <VietnamCuratedAtmosphereOverlay /> : null}
+        {showAtmosphere ? <VietnamAtmosphereOverlay /> : null}
         {showAdminTools ? <VietnamAtmosphereAdminPanel language={language} /> : null}
         {showAdminTools ? <BulkTeacherAccountsPanel language={language} /> : null}
         {showAccountCenter ? <UsernameAccountCenter language={language} /> : null}
