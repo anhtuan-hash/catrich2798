@@ -5,6 +5,10 @@ export const CUSTOM_APPS_EVENT = 'bes-custom-app-links-updated';
 export const CUSTOM_APPS_TABLE = 'custom_game_platforms';
 const LOCAL_KEY = 'bes-custom-app-links-v1';
 const APP_COLOR_PREFIX = 'app-link:';
+const CUSTOM_APP_COLUMNS = 'id,label,icon,home,color,embed_mode,status,owner_id,owner_email,owner_name,review_note,reviewed_by,reviewed_at,created_at,updated_at';
+const CUSTOM_APP_CACHE_TTL = 30 * 60 * 1000;
+const customAppCache = new Map();
+const customAppPromises = new Map();
 
 function emitUpdate() {
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(CUSTOM_APPS_EVENT));
@@ -85,6 +89,51 @@ function userIdentity(user) {
   };
 }
 
+function customAppCacheKey(user) {
+  const identity = userIdentity(user);
+  return identity.id || identity.email || 'guest';
+}
+
+function readCustomAppCache(user) {
+  const cached = customAppCache.get(customAppCacheKey(user));
+  if (!cached || Date.now() - cached.storedAt >= CUSTOM_APP_CACHE_TTL) return null;
+  return cached.items;
+}
+
+function writeCustomAppCache(user, items) {
+  const normalized = (items || []).map(normalizeCustomApp).filter((item) => item.name && item.url);
+  customAppCache.set(customAppCacheKey(user), { items: normalized, storedAt: Date.now() });
+  return normalized;
+}
+
+function upsertCustomAppCache(user, row) {
+  if (!row || !isCustomAppRecord(row)) return;
+  const key = customAppCacheKey(user);
+  const cached = customAppCache.get(key);
+  if (!cached) return;
+  const app = normalizeCustomApp(row);
+  const items = [app, ...cached.items.filter((item) => item.id !== app.id)]
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  customAppCache.set(key, { items, storedAt: Date.now() });
+}
+
+function removeCustomAppCache(user, id) {
+  const key = customAppCacheKey(user);
+  const cached = customAppCache.get(key);
+  if (!cached) return;
+  customAppCache.set(key, {
+    items: cached.items.filter((item) => item.id !== String(id)),
+    storedAt: Date.now(),
+  });
+}
+
+function applyCustomAppRealtime(user, payload) {
+  const row = payload?.new && Object.keys(payload.new).length ? payload.new : payload?.old;
+  if (!row?.id) return;
+  if (payload?.eventType === 'DELETE') removeCustomAppCache(user, row.id);
+  else upsertCustomAppCache(user, row);
+}
+
 export function isCustomAppOwner(user, app) {
   if (!app) return false;
   const identity = userIdentity(user);
@@ -122,18 +171,26 @@ function toDbPayload(user, draft, status) {
   };
 }
 
-export async function listCustomApps(user) {
+export async function listCustomApps(user, { force = false } = {}) {
   if (isSupabaseConfigured && supabase && user?.id) {
-    const { data, error } = await supabase
-      .from(CUSTOM_APPS_TABLE)
-      .select('*')
-      .like('color', `${APP_COLOR_PREFIX}%`)
-      .order('created_at', { ascending: false });
+    const key = customAppCacheKey(user);
+    const cached = force ? null : readCustomAppCache(user);
+    if (cached) return cached;
+    if (!force && customAppPromises.has(key)) return customAppPromises.get(key);
 
-    if (!error && Array.isArray(data)) {
-      return data.map(normalizeCustomApp).filter((item) => item.name && item.url);
-    }
-    console.warn('[Custom apps] Cloud read failed; using local fallback:', error?.message || error);
+    const task = supabase
+      .from(CUSTOM_APPS_TABLE)
+      .select(CUSTOM_APP_COLUMNS)
+      .like('color', `${APP_COLOR_PREFIX}%`)
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (!error && Array.isArray(data)) return writeCustomAppCache(user, data);
+        console.warn('[Custom apps] Cloud read failed; using local fallback:', error?.message || error);
+        return readLocalAll().filter((item) => visibleToUser(item, user));
+      })
+      .finally(() => customAppPromises.delete(key));
+    customAppPromises.set(key, task);
+    return task;
   }
   return readLocalAll().filter((item) => visibleToUser(item, user));
 }
@@ -148,10 +205,11 @@ export async function createCustomApp(user, draft) {
     const { data, error } = await supabase
       .from(CUSTOM_APPS_TABLE)
       .insert(payload)
-      .select('*')
+      .select(CUSTOM_APP_COLUMNS)
       .single();
 
     if (!error && data) {
+      upsertCustomAppCache(user, data);
       emitUpdate();
       return { ok: true, app: normalizeCustomApp(data), cloud: true };
     }
@@ -186,8 +244,9 @@ export async function updateCustomApp(user, id, draft) {
   if (isSupabaseConfigured && supabase && user?.id) {
     let query = supabase.from(CUSTOM_APPS_TABLE).update(payload).eq('id', id);
     if (!leader) query = query.eq('owner_id', user.id).neq('status', 'approved');
-    const { data, error } = await query.select('*').single();
+    const { data, error } = await query.select(CUSTOM_APP_COLUMNS).single();
     if (!error && data) {
+      upsertCustomAppCache(user, data);
       emitUpdate();
       return { ok: true, app: normalizeCustomApp(data), cloud: true };
     }
@@ -219,10 +278,11 @@ export async function reviewCustomApp(user, id, status, reviewNote = '') {
       })
       .eq('id', id)
       .like('color', `${APP_COLOR_PREFIX}%`)
-      .select('*')
+      .select(CUSTOM_APP_COLUMNS)
       .single();
 
     if (!error && data) {
+      upsertCustomAppCache(user, data);
       emitUpdate();
       return { ok: true, app: normalizeCustomApp(data), cloud: true };
     }
@@ -258,6 +318,7 @@ export async function deleteCustomApp(user, id) {
     if (!leader) query = query.eq('owner_id', user.id).neq('status', 'approved');
     const { error } = await query;
     if (!error) {
+      removeCustomAppCache(user, id);
       emitUpdate();
       return { ok: true, cloud: true };
     }
@@ -271,8 +332,8 @@ export async function deleteCustomApp(user, id) {
 export function subscribeCustomApps(user, callback) {
   if (typeof window === 'undefined') return () => {};
   let active = true;
-  const refresh = async () => {
-    const items = await listCustomApps(user);
+  const refresh = async ({ force = false } = {}) => {
+    const items = await listCustomApps(user, { force });
     if (active) callback?.(items);
   };
   const localHandler = () => refresh();
@@ -287,7 +348,10 @@ export function subscribeCustomApps(user, callback) {
   if (isSupabaseConfigured && supabase && user?.id) {
     channel = supabase
       .channel(`bes-custom-app-links-${String(user.id).slice(0, 8)}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: CUSTOM_APPS_TABLE }, () => refresh())
+      .on('postgres_changes', { event: '*', schema: 'public', table: CUSTOM_APPS_TABLE }, (payload) => {
+        applyCustomAppRealtime(user, payload);
+        refresh();
+      })
       .subscribe();
   }
 
