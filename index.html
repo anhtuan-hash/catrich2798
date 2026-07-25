@@ -34,6 +34,52 @@
       })();
     </script>
     <style id="brian-personal-font-boot">@font-face{font-family:BrianGesco;src:url('/fonts/personal-font.ttf') format('truetype');font-weight:100 900;font-style:normal;font-display:swap;}html,body,#root{font-family:BrianGesco,Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important;}</style>
+    <style id="bes-personnel-retirement">[data-launcher-item*="personnel-hub"],a[href*="personnel-hub"],[data-route*="personnel-hub"]{display:none!important}</style>
+    <script id="bes-personnel-retirement-guard">
+      (() => {
+        const retiredToken = 'personnel-hub';
+        const retiredHash = /^#\/tool\/personnel-hub(?:[/?]|$)/;
+        const cleanNode = (root = document) => {
+          root.querySelectorAll?.('[data-launcher-item*="personnel-hub"],a[href*="personnel-hub"],[data-route*="personnel-hub"]').forEach((node) => node.remove());
+        };
+        const stripRetiredValue = (value) => {
+          if (typeof value === 'string') return value.includes(retiredToken) ? undefined : value;
+          if (Array.isArray(value)) return value.map(stripRetiredValue).filter((item) => item !== undefined);
+          if (value && typeof value === 'object') {
+            return Object.fromEntries(Object.entries(value)
+              .filter(([key]) => !key.includes(retiredToken))
+              .map(([key, item]) => [key, stripRetiredValue(item)])
+              .filter(([, item]) => item !== undefined));
+          }
+          return value;
+        };
+        const cleanStoredLauncherState = () => {
+          try {
+            Object.keys(localStorage)
+              .filter((key) => /launcher|navigation|app-visibility/i.test(key))
+              .forEach((key) => {
+                const raw = localStorage.getItem(key);
+                if (!raw || !raw.includes(retiredToken)) return;
+                const parsed = JSON.parse(raw);
+                localStorage.setItem(key, JSON.stringify(stripRetiredValue(parsed)));
+              });
+          } catch { /* stale local configuration is non-critical */ }
+        };
+        const enforceRetirement = () => {
+          if (retiredHash.test(window.location.hash)) window.location.hash = '#/apps';
+          cleanStoredLauncherState();
+          cleanNode();
+        };
+        window.addEventListener('hashchange', enforceRetirement);
+        window.addEventListener('DOMContentLoaded', () => {
+          enforceRetirement();
+          new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach((node) => {
+            if (node?.nodeType === 1) cleanNode(node);
+          }))).observe(document.documentElement, { childList: true, subtree: true });
+        }, { once: true });
+        enforceRetirement();
+      })();
+    </script>
     <meta name="bes-app-version" content="11.6.7">
     <!-- BES_APPEARANCE_V1163_START -->
     <link rel="stylesheet" href="/bes-appearance-v1163/appearance-engine.css" />
