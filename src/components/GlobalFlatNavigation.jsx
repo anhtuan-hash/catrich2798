@@ -14,7 +14,6 @@ import GlobalWorkHubNotificationBridge from './GlobalWorkHubNotificationBridge.j
 import GlobalWorkScheduleBridge from './GlobalWorkScheduleBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalHomeBriefingExtras from './GlobalHomeBriefingExtras.jsx';
-import GlobalNavigationProposal4Bridge from './GlobalNavigationProposal4Bridge.jsx';
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalNotificationCenter.css';
 import './GlobalNotificationCenterLayoutFix.css';
@@ -55,7 +54,6 @@ import './GlobalSeparatedPills.css';
 import './GlobalScrollPerformance.css';
 import './GlobalTickerRestore.css';
 import './GlobalWorkScheduleModern.css';
-import './GlobalNavigationProposal4.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
@@ -67,7 +65,6 @@ export default function GlobalFlatNavigation(props) {
   return (
     <>
       <Navigation {...props} />
-      <GlobalNavigationProposal4Bridge language={props.language} setLanguage={props.setLanguage} />
       <GlobalHomeBriefingExtras route={props.route} language={props.language} />
       <GlobalMotionCoreBridge route={props.route} />
       <GlobalUserProfileSettingsBridge {...props} />
