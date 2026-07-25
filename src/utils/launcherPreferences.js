@@ -19,11 +19,11 @@ const DEFAULT_PINNED = [
   'reading-studio',
 ];
 
-const DEFAULT_ASSIGNMENTS = {
-  'random-student-picker': 'create',
-};
+const DEFAULT_ASSIGNMENTS = {};
 
 const RETIRED_LAUNCHER_IDS = new Set([
+  'tool:random-student-picker',
+  'random-student-picker',
   'tool:worksheet-factory',
   'worksheet-factory',
   'tool:smart-id',
