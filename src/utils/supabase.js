@@ -125,9 +125,34 @@ function cacheKeyFor(request) {
   return `${request.url}|${authorization}|${acceptProfile}|${range}`;
 }
 
-function clearReadCache() {
-  readCache.clear();
-  inFlightReads.clear();
+function clearReadCache(matcher = null) {
+  const shouldClear = typeof matcher === 'function' ? matcher : () => true;
+  [...readCache.keys()].forEach((key) => {
+    if (shouldClear(key)) readCache.delete(key);
+  });
+  [...inFlightReads.entries()].forEach(([key, entry]) => {
+    if (!shouldClear(key)) return;
+    if (entry?.token) entry.token.invalidated = true;
+    inFlightReads.delete(key);
+  });
+}
+
+function restTablePath(url) {
+  try {
+    const match = new URL(url).pathname.match(/\/rest\/v1\/([^/]+)/i);
+    return match?.[1] ? `/rest/v1/${match[1]}` : '';
+  } catch {
+    return '';
+  }
+}
+
+function clearReadCacheForMutation(url) {
+  const tablePath = restTablePath(url);
+  if (!tablePath) {
+    clearReadCache();
+    return;
+  }
+  clearReadCache((key) => key.includes(tablePath));
 }
 
 function trimReadCache() {
@@ -171,9 +196,11 @@ async function egressAwareFetch(input, init) {
   const method = String(originalRequest.method || 'GET').toUpperCase();
   const isRestRequest = originalRequest.url.includes('/rest/v1/');
 
-  // Any database mutation may change data already held in the short-lived read cache.
+  // Invalidate only the table changed by the mutation. Clearing every heavy-read
+  // cache after unrelated writes caused Work Hub, Homeroom and Resource Library
+  // to be downloaded again even when their own data had not changed.
   if (isRestRequest && method !== 'GET' && method !== 'HEAD') {
-    clearReadCache();
+    clearReadCacheForMutation(originalRequest.url);
     return nativeFetch(originalRequest);
   }
 
@@ -189,19 +216,23 @@ async function egressAwareFetch(input, init) {
   if (cached) readCache.delete(key);
 
   if (!inFlightReads.has(key)) {
-    const pending = nativeFetch(request)
+    const token = { invalidated: false };
+    let pending;
+    pending = nativeFetch(request)
       .then((response) => {
-        if (response.ok) {
+        if (response.ok && !token.invalidated) {
           readCache.set(key, { storedAt: Date.now(), response: response.clone() });
           trimReadCache();
         }
         return response.clone();
       })
-      .finally(() => inFlightReads.delete(key));
-    inFlightReads.set(key, pending);
+      .finally(() => {
+        if (inFlightReads.get(key)?.promise === pending) inFlightReads.delete(key);
+      });
+    inFlightReads.set(key, { promise: pending, token });
   }
 
-  const response = await inFlightReads.get(key);
+  const response = await inFlightReads.get(key).promise;
   return response.clone();
 }
 
