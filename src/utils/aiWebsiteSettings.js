@@ -43,8 +43,20 @@ function normalizeEmbedView(value = {}) {
   };
 }
 
+function normalizeExternalEmbedConfig(value = {}, sourceUrl = '') {
+  const source = safeAiWebsiteUrl(sourceUrl);
+  const requested = safeAiWebsiteUrl(value?.embedUrl);
+  return {
+    embedUrl: requested || source,
+    hideBrianHeader: Boolean(value?.hideBrianHeader),
+    hideBrianFooter: Boolean(value?.hideBrianFooter),
+    allowFullscreen: value?.allowFullscreen !== false,
+  };
+}
+
 export function normalizeAiWebsiteTool(tool = {}, index = 0) {
   const name = String(tool.name || '').trim();
+  const kind = tool.kind === 'external-app' ? 'external-app' : 'ai';
   return {
     id: String(tool.id || `ai-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`),
     name,
@@ -54,13 +66,16 @@ export function normalizeAiWebsiteTool(tool = {}, index = 0) {
     audience: ['all', 'admin', 'leader', 'teacher'].includes(tool.audience) ? tool.audience : 'all',
     enabled: tool.enabled !== false,
     pinned: Boolean(tool.pinned),
-    kind: tool.kind === 'external-app' ? 'external-app' : 'ai',
+    kind,
     groupId: ['plan', 'create', 'assess', 'manage'].includes(tool.groupId) ? tool.groupId : 'create',
     requestId: String(tool.requestId || ''),
     submittedBy: String(tool.submittedBy || ''),
     approvedAt: String(tool.approvedAt || ''),
     accent: String(tool.accent || ''),
     embedView: normalizeEmbedView(tool.embedView),
+    embedConfig: kind === 'external-app'
+      ? normalizeExternalEmbedConfig(tool.embedConfig, tool.url)
+      : undefined,
   };
 }
 
