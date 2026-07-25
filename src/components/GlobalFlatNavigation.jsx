@@ -58,7 +58,7 @@ import './GlobalWorkScheduleModern.css';
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
 const GlobalWorkBulkDeleteManager = lazy(() => import('./GlobalWorkBulkDeleteManager.jsx'));
-const GlobalDashboardModernCalendar = lazy(() => import('./GlobalDashboardModernCalendar.jsx'));
+const GlobalDashboardGoogleCalendar7Day = lazy(() => import('./GlobalDashboardGoogleCalendar7Day.jsx'));
 
 export default function GlobalFlatNavigation(props) {
   const workHubActive = props.route === 'work-hub';
@@ -82,7 +82,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalWorkScheduleBridge />
       {dashboardActive ? (
         <Suspense fallback={null}>
-          <GlobalDashboardModernCalendar {...props} />
+          <GlobalDashboardGoogleCalendar7Day {...props} />
         </Suspense>
       ) : null}
       {workHubActive ? (
