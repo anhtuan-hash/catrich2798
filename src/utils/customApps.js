@@ -54,6 +54,20 @@ export function normalizeCustomApp(item = {}) {
   };
 }
 
+export function normalizeCustomAppUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const candidate = /^[a-z][a-z0-9+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const parsed = new URL(candidate);
+    if (!['http:', 'https:'].includes(parsed.protocol)) return '';
+    parsed.hash = parsed.hash || '';
+    return parsed.toString();
+  } catch {
+    return '';
+  }
+}
+
 function readLocalAll() {
   if (typeof localStorage === 'undefined') return [];
   const value = safeJson(localStorage.getItem(LOCAL_KEY) || '[]', []);
