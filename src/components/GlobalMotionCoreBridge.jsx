@@ -8,6 +8,7 @@ import {
   runSemanticMotion,
 } from '../motion/englishHubMotionCore.js';
 import '../motion/EnglishHubMotionCore.css';
+import '../motion/EnglishHubInteractiveHover.css';
 
 const CARD_SELECTOR = [
   '.flat-app-window-card',
@@ -39,6 +40,32 @@ const NOTIFICATION_SELECTOR = [
   '[data-notification-count]',
 ].join(',');
 
+const HOVER_INTERACTIVE_SELECTOR = [
+  'button:not([disabled])',
+  'a[href]',
+  'summary',
+  'input:not([disabled]):not([type="hidden"])',
+  'textarea:not([disabled])',
+  'select:not([disabled])',
+  '[contenteditable="true"]',
+  '[role="button"]:not([aria-disabled="true"])',
+  '[role="link"]:not([aria-disabled="true"])',
+  '[role="menuitem"]:not([aria-disabled="true"])',
+  '[role="tab"]:not([aria-disabled="true"])',
+  '[role="option"]:not([aria-disabled="true"])',
+  '[role="switch"]:not([aria-disabled="true"])',
+  '[role="checkbox"]:not([aria-disabled="true"])',
+  '[role="radio"]:not([aria-disabled="true"])',
+  '[data-interactive="true"]',
+  '[data-clickable="true"]',
+].join(',');
+
+const TEXT_LINK_CONTAINER_SELECTOR = 'p, li, blockquote, figcaption, dd, dt, .prose, .markdown, .rich-text';
+const TEXT_FIELD_TYPES = new Set([
+  '', 'text', 'search', 'email', 'password', 'url', 'tel', 'number',
+  'date', 'datetime-local', 'month', 'time', 'week',
+]);
+
 function closestInteractive(target) {
   if (!(target instanceof Element)) return null;
   return target.closest('button:not([disabled]), [role="button"]:not([aria-disabled="true"]), a[href]');
@@ -46,6 +73,62 @@ function closestInteractive(target) {
 
 function isIgnored(element) {
   return Boolean(element?.closest?.('[data-motion-ignore="true"], .motion-lab-panel iframe'));
+}
+
+function isHoverIgnored(element) {
+  return Boolean(element?.closest?.(
+    '[data-hover-ignore="true"], [data-motion-ignore="true"], [aria-disabled="true"], [inert], .is-disabled, .disabled, .motion-lab-panel iframe',
+  ));
+}
+
+function hoverKind(element) {
+  if (element instanceof HTMLAnchorElement) {
+    return element.closest(TEXT_LINK_CONTAINER_SELECTOR) ? 'text-link' : 'control';
+  }
+
+  if (element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement || element.isContentEditable) {
+    return 'field';
+  }
+
+  if (element instanceof HTMLInputElement) {
+    return TEXT_FIELD_TYPES.has(String(element.type || '').toLowerCase()) ? 'field' : 'control';
+  }
+
+  return 'control';
+}
+
+function markHoverInteractive(element) {
+  if (!(element instanceof HTMLElement) || isHoverIgnored(element)) return null;
+  element.dataset.ehInteractive = 'true';
+  element.dataset.ehInteractiveKind = hoverKind(element);
+  return element;
+}
+
+function resolveHoverInteractive(target) {
+  if (!(target instanceof Element)) return null;
+  const shell = target.closest('.app-shell[data-route]');
+  if (!shell) return null;
+
+  const explicit = target.closest(HOVER_INTERACTIVE_SELECTOR);
+  if (explicit && shell.contains(explicit) && !isHoverIgnored(explicit)) return explicit;
+
+  /* React often delegates click handlers, so custom cards may have no onclick
+     attribute. Their cursor is the reliable visual contract. Choose the
+     outermost contiguous pointer surface so text inside a card stays still. */
+  let node = target;
+  let candidate = null;
+  while (node instanceof HTMLElement && shell.contains(node)) {
+    if (isHoverIgnored(node)) return null;
+    const cursor = window.getComputedStyle(node).cursor;
+    if (cursor === 'pointer') {
+      candidate = node;
+    } else if (candidate) {
+      break;
+    }
+    if (node === shell) break;
+    node = node.parentElement;
+  }
+  return candidate;
 }
 
 function scanCards(root) {
@@ -136,6 +219,16 @@ export default function GlobalMotionCoreBridge({ route }) {
       createRipple(interactive, event.clientX, event.clientY);
     };
 
+    const onPointerOver = (event) => {
+      const interactive = resolveHoverInteractive(event.target);
+      if (interactive) markHoverInteractive(interactive);
+    };
+
+    const onFocusIn = (event) => {
+      const interactive = resolveHoverInteractive(event.target);
+      if (interactive) markHoverInteractive(interactive);
+    };
+
     const onClick = (event) => {
       const explicit = event.target instanceof Element
         ? event.target.closest('[data-motion-effect], [data-motion-semantic]')
@@ -188,6 +281,8 @@ export default function GlobalMotionCoreBridge({ route }) {
     });
 
     document.addEventListener('pointerdown', onPointerDown, true);
+    document.addEventListener('pointerover', onPointerOver, true);
+    document.addEventListener('focusin', onFocusIn, true);
     document.addEventListener('click', onClick, true);
     window.addEventListener('bes-motion-success', onSuccess);
     window.addEventListener('bes-motion-error', onError);
@@ -198,6 +293,8 @@ export default function GlobalMotionCoreBridge({ route }) {
     return () => {
       observer.disconnect();
       document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('pointerover', onPointerOver, true);
+      document.removeEventListener('focusin', onFocusIn, true);
       document.removeEventListener('click', onClick, true);
       window.removeEventListener('bes-motion-success', onSuccess);
       window.removeEventListener('bes-motion-error', onError);
