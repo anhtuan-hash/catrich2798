@@ -19,6 +19,10 @@ const DEFAULT_PINNED = [
   'reading-studio',
 ];
 
+const DEFAULT_ASSIGNMENTS = {
+  'random-student-picker': 'create',
+};
+
 const RETIRED_LAUNCHER_IDS = new Set([
   'tool:worksheet-factory',
   'worksheet-factory',
@@ -84,6 +88,9 @@ export function launcherNavId(item) {
 
 export function createDefaultLauncherConfig(itemIds = []) {
   const safeItemIds = Array.isArray(itemIds) ? itemIds : [];
+  const assignments = Object.fromEntries(
+    Object.entries(DEFAULT_ASSIGNMENTS).filter(([itemId]) => safeItemIds.length === 0 || safeItemIds.includes(itemId)),
+  );
   return {
     schemaVersion: 5,
     version: 5,
@@ -92,7 +99,7 @@ export function createDefaultLauncherConfig(itemIds = []) {
     hidden: [],
     nav: [...DEFAULT_NAV],
     groups: DEFAULT_LAUNCHER_GROUPS.map((group) => ({ ...group })),
-    assignments: {},
+    assignments,
     launcherStyle: 'radial',
     updatedAt: Date.now(),
   };
@@ -147,7 +154,7 @@ export function normalizeLauncherConfig(raw, itemIds = []) {
   const order = cleanIdList(source.order, safeItemIds.length ? allowed : null);
   safeItemIds.forEach((id) => { if (!order.includes(id)) order.push(id); });
 
-  const assignments = {};
+  const assignments = { ...defaults.assignments };
   const rawAssignments = source.assignments && typeof source.assignments === 'object' && !Array.isArray(source.assignments)
     ? source.assignments
     : {};
