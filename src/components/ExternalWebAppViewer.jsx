@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { normalizeEmbedView, safeExternalWebAppUrl } from '../utils/externalWebApps.js';
 import './ExternalWebApps.css';
@@ -41,6 +41,11 @@ function outerHeight(element) {
   return Math.max(0, rect.height + numericStyle(style.marginTop) + numericStyle(style.marginBottom));
 }
 
+function fullscreenElement() {
+  if (typeof document === 'undefined') return null;
+  return document.fullscreenElement || document.webkitFullscreenElement || null;
+}
+
 function readBrianLayout(main) {
   if (typeof window === 'undefined') {
     return {
@@ -53,21 +58,26 @@ function readBrianLayout(main) {
 
   const header = document.querySelector('.bes-top-chrome');
   const footer = document.querySelector('footer.signature-footer-collapsible, footer.footer');
-  const headerHeight = outerHeight(header);
-  const footerHeight = outerHeight(footer);
+  const nativeFullscreen = Boolean(fullscreenElement());
+  const headerHeight = nativeFullscreen ? 0 : outerHeight(header);
+  const footerHeight = nativeFullscreen ? 0 : outerHeight(footer);
   const sourceWidth = Math.max(320, window.innerWidth);
   const sourceHeight = Math.max(480, window.innerHeight);
-  const contentWidth = Math.max(320, main?.clientWidth || sourceWidth);
-  const contentHeight = Math.max(280, sourceHeight - headerHeight - footerHeight);
+  const contentWidth = nativeFullscreen
+    ? sourceWidth
+    : Math.max(320, main?.clientWidth || sourceWidth);
+  const contentHeight = nativeFullscreen
+    ? sourceHeight
+    : Math.max(280, sourceHeight - headerHeight - footerHeight);
 
   return { sourceWidth, sourceHeight, contentWidth, contentHeight };
 }
 
 export default function ExternalWebAppViewer({ app, onClose }) {
-  const [key, setKey] = useState(0);
-  const [check, setCheck] = useState(null);
+  const viewerRef = useRef(null);
   const [portalHost, setPortalHost] = useState(null);
   const [layout, setLayout] = useState(() => readBrianLayout(null));
+  const [nativeFullscreen, setNativeFullscreen] = useState(false);
   const url = safeExternalWebAppUrl(app?.externalUrl || app?.url);
   const view = normalizeEmbedView(app?.embedView);
   const fullscreen = isFullscreenView(view);
@@ -97,6 +107,10 @@ export default function ExternalWebAppViewer({ app, onClose }) {
     const header = document.querySelector('.bes-top-chrome');
     const footer = document.querySelector('footer.signature-footer-collapsible, footer.footer');
     const updateLayout = () => setLayout(readBrianLayout(main));
+    const updateFullscreenState = () => {
+      setNativeFullscreen(fullscreenElement() === viewerRef.current);
+      updateLayout();
+    };
 
     setPortalHost(main);
     main.classList.add('bes-ext-viewer-active');
@@ -112,42 +126,53 @@ export default function ExternalWebAppViewer({ app, onClose }) {
     const mutationObserver = new MutationObserver(updateLayout);
     if (footer) mutationObserver.observe(footer, { attributes: true, childList: true, subtree: true });
 
-    const onResize = () => updateLayout();
-    const onKey = (event) => event.key === 'Escape' && onClose?.();
-    window.addEventListener('resize', onResize);
-    window.visualViewport?.addEventListener('resize', onResize);
+    const onKey = (event) => {
+      if (event.key !== 'Escape' || fullscreenElement()) return;
+      onClose?.();
+    };
+
+    window.addEventListener('resize', updateLayout);
+    window.visualViewport?.addEventListener('resize', updateLayout);
     window.addEventListener('keydown', onKey);
+    document.addEventListener('fullscreenchange', updateFullscreenState);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenState);
 
     return () => {
       observer?.disconnect();
       mutationObserver.disconnect();
       main.classList.remove('bes-ext-viewer-active');
       document.documentElement.classList.remove('bes-ext-content-open');
-      window.removeEventListener('resize', onResize);
-      window.visualViewport?.removeEventListener('resize', onResize);
+      window.removeEventListener('resize', updateLayout);
+      window.visualViewport?.removeEventListener('resize', updateLayout);
       window.removeEventListener('keydown', onKey);
+      document.removeEventListener('fullscreenchange', updateFullscreenState);
+      document.removeEventListener('webkitfullscreenchange', updateFullscreenState);
       window.scrollTo({ top: previousScrollY, left: 0, behavior: 'auto' });
     };
   }, [app?.id, url, onClose]);
 
-  useEffect(() => {
-    if (!url) return undefined;
-    const controller = new AbortController();
-    setCheck({ checking: true });
-    fetch(`/api/check-embed?url=${encodeURIComponent(url)}`, { signal: controller.signal })
-      .then((response) => response.json())
-      .then(setCheck)
-      .catch((error) => {
-        if (error?.name !== 'AbortError') setCheck({ embeddable: null, reason: 'Không kiểm tra được chính sách iframe.' });
-      });
-    return () => controller.abort();
-  }, [url, key]);
+  const toggleNativeFullscreen = async () => {
+    const node = viewerRef.current;
+    if (!node) return;
+
+    try {
+      if (fullscreenElement()) {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        return;
+      }
+
+      if (node.requestFullscreen) await node.requestFullscreen();
+      else if (node.webkitRequestFullscreen) node.webkitRequestFullscreen();
+    } catch (error) {
+      console.warn('[External apps] fullscreen unavailable', error);
+    }
+  };
 
   if (!app || !url || typeof document === 'undefined' || !portalHost) return null;
 
   const frame = (
     <iframe
-      key={key}
       className={fullscreen ? 'bes-ext-fullscreen-frame' : 'bes-ext-exact-region-frame'}
       src={url}
       title={app.title || app.name}
@@ -157,21 +182,15 @@ export default function ExternalWebAppViewer({ app, onClose }) {
     />
   );
 
-  const stateText = check?.checking
-    ? 'Đang kiểm tra…'
-    : check?.embeddable === false
-      ? 'Website có thể chặn iframe'
-      : fullscreen
-        ? 'Ứng dụng phủ toàn bộ vùng nội dung; header và footer Brian vẫn hiển thị'
-        : 'Đang hiển thị trọn vẹn phạm vi bốn góc trong vùng nội dung Brian';
-
   return createPortal(
     <div
       className="bes-ext-content-layer"
       style={{ '--bes-ext-content-height': `${layout.contentHeight}px` }}
     >
       <section
+        ref={viewerRef}
         className={`bes-ext-viewer ${fullscreen ? 'is-fullscreen-app' : 'is-exact-region-app'}`}
+        data-native-fullscreen={nativeFullscreen ? 'true' : 'false'}
         aria-label={app.title || app.name}
       >
         {fullscreen ? frame : (
@@ -182,15 +201,23 @@ export default function ExternalWebAppViewer({ app, onClose }) {
           </div>
         )}
 
-        <div className="bes-ext-fullscreen-dock">
-          <span className="bes-ext-fullscreen-icon">{app.icon || 'WEB'}</span>
-          <div className="bes-ext-fullscreen-copy">
-            <strong>{app.title || app.name}</strong>
-            <small>{stateText}</small>
-          </div>
-          <button type="button" aria-label="Tải lại ứng dụng" onClick={() => setKey((value) => value + 1)}>↻</button>
-          <button type="button" className="bes-ext-fullscreen-close" aria-label="Đóng ứng dụng" onClick={onClose}>×</button>
-        </div>
+        <button
+          type="button"
+          className="bes-ext-native-fullscreen-toggle"
+          aria-label={nativeFullscreen ? 'Thoát toàn màn hình' : 'Mở toàn màn hình'}
+          title={nativeFullscreen ? 'Thoát toàn màn hình' : 'Mở toàn màn hình'}
+          onClick={toggleNativeFullscreen}
+        >
+          {nativeFullscreen ? (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9 4v5H4M15 4v5h5M20 15h-5v5M4 15h5v5" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />
+            </svg>
+          )}
+        </button>
       </section>
     </div>,
     portalHost,
