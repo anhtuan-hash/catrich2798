@@ -1,0 +1,197 @@
+/* English Hub · separated Material 3 pills
+   Keeps navigation tabs neutral, highlights only the active destination, and
+   gives each briefing card a restrained functional tint. */
+
+html body .app-shell[data-route] {
+  --bes-pill-surface: rgba(255, 255, 255, .62);
+  --bes-pill-border: rgba(255, 255, 255, .84);
+  --bes-pill-text: #344463;
+  --bes-pill-blue: rgba(221, 235, 255, .92);
+  --bes-pill-blue-border: rgba(98, 146, 226, .30);
+}
+
+/* Each primary destination is its own pill instead of sharing one long capsule. */
+html body .app-shell[data-route] .brian-nav__primary {
+  gap: 8px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > button,
+html body .app-shell[data-route] .brian-nav__primary > [role='button'] {
+  min-height: 50px !important;
+  padding-inline: 18px !important;
+  border: 1px solid var(--bes-pill-border) !important;
+  border-radius: 18px !important;
+  background: var(--bes-pill-surface) !important;
+  color: var(--bes-pill-text) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .94),
+    0 6px 16px rgba(71, 91, 151, .07) !important;
+  backdrop-filter: blur(16px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.08) !important;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > button:hover,
+html body .app-shell[data-route] .brian-nav__primary > [role='button']:hover {
+  border-color: rgba(129, 163, 220, .34) !important;
+  background: rgba(255, 255, 255, .82) !important;
+  color: #0b57d0 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .98),
+    0 9px 20px rgba(71, 91, 151, .11) !important;
+  transform: translateY(-1px) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > button.is-active,
+html body .app-shell[data-route] .brian-nav__primary > [role='button'].is-active {
+  border-color: var(--bes-pill-blue-border) !important;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(255, 255, 255, .96), transparent 46%),
+    var(--bes-pill-blue) !important;
+  color: #0b57d0 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .98),
+    0 9px 22px rgba(45, 105, 196, .14) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > button:focus-visible,
+html body .app-shell[data-route] .brian-nav__primary > [role='button']:focus-visible {
+  outline: 3px solid rgba(26, 115, 232, .22) !important;
+  outline-offset: 2px !important;
+}
+
+/* Functional briefing pills: subtle color families, never a rainbow strip. */
+html body .app-shell[data-route] .brian-briefing-chip--time {
+  border-color: rgba(85, 133, 217, .18) !important;
+  background: linear-gradient(135deg, rgba(238, 246, 255, .92), rgba(226, 238, 255, .78)) !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-chip--weather {
+  border-color: rgba(66, 169, 181, .18) !important;
+  background: linear-gradient(135deg, rgba(237, 252, 252, .92), rgba(220, 246, 248, .78)) !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-chip--week {
+  border-color: rgba(130, 100, 213, .17) !important;
+  background: linear-gradient(135deg, rgba(248, 244, 255, .92), rgba(234, 228, 255, .78)) !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-chip--daypart {
+  border-color: rgba(216, 159, 52, .17) !important;
+  background: linear-gradient(135deg, rgba(255, 250, 235, .94), rgba(255, 238, 198, .78)) !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-chip--daypart.is-afternoon {
+  border-color: rgba(222, 118, 67, .16) !important;
+  background: linear-gradient(135deg, rgba(255, 247, 239, .94), rgba(255, 226, 207, .78)) !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-chip--daypart.is-night {
+  border-color: rgba(111, 94, 193, .18) !important;
+  background: linear-gradient(135deg, rgba(247, 245, 255, .94), rgba(228, 223, 255, .78)) !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-chip {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .96),
+    0 7px 18px rgba(71, 91, 151, .075) !important;
+}
+
+@media (max-width: 1380px) {
+  html body .app-shell[data-route] .brian-nav__primary > button,
+  html body .app-shell[data-route] .brian-nav__primary > [role='button'] {
+    padding-inline: 13px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  html body .app-shell[data-route] .brian-nav__primary {
+    gap: 6px !important;
+    padding-block: 2px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__primary > button,
+  html body .app-shell[data-route] .brian-nav__primary > [role='button'] {
+    min-height: 46px !important;
+    border-radius: 16px !important;
+  }
+}
+
+html[data-theme='dark'] body .app-shell[data-route],
+body.theme-dark .app-shell[data-route] {
+  --bes-pill-surface: rgba(38, 49, 73, .72);
+  --bes-pill-border: rgba(224, 233, 255, .18);
+  --bes-pill-text: #e9efff;
+  --bes-pill-blue: rgba(43, 72, 116, .88);
+  --bes-pill-blue-border: rgba(126, 173, 255, .34);
+}
+
+html[data-theme='dark'] body .app-shell[data-route] .brian-nav__primary,
+body.theme-dark .app-shell[data-route] .brian-nav__primary {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html[data-theme='dark'] body .app-shell[data-route] .brian-nav__primary > button:hover,
+html[data-theme='dark'] body .app-shell[data-route] .brian-nav__primary > [role='button']:hover,
+body.theme-dark .app-shell[data-route] .brian-nav__primary > button:hover,
+body.theme-dark .app-shell[data-route] .brian-nav__primary > [role='button']:hover {
+  border-color: rgba(181, 206, 255, .28) !important;
+  background: rgba(55, 68, 96, .90) !important;
+  color: #c7dcff !important;
+}
+
+html[data-theme='dark'] body .app-shell[data-route] .brian-nav__primary > button.is-active,
+html[data-theme='dark'] body .app-shell[data-route] .brian-nav__primary > [role='button'].is-active,
+body.theme-dark .app-shell[data-route] .brian-nav__primary > button.is-active,
+body.theme-dark .app-shell[data-route] .brian-nav__primary > [role='button'].is-active {
+  background: linear-gradient(135deg, rgba(45, 76, 124, .94), rgba(55, 58, 111, .90)) !important;
+  color: #d7e6ff !important;
+}
+
+html[data-theme='dark'] body .app-shell[data-route] .brian-briefing-chip--time,
+body.theme-dark .app-shell[data-route] .brian-briefing-chip--time {
+  background: rgba(35, 57, 87, .86) !important;
+}
+
+html[data-theme='dark'] body .app-shell[data-route] .brian-briefing-chip--weather,
+body.theme-dark .app-shell[data-route] .brian-briefing-chip--weather {
+  background: rgba(31, 67, 73, .84) !important;
+}
+
+html[data-theme='dark'] body .app-shell[data-route] .brian-briefing-chip--week,
+body.theme-dark .app-shell[data-route] .brian-briefing-chip--week {
+  background: rgba(57, 46, 91, .86) !important;
+}
+
+html[data-theme='dark'] body .app-shell[data-route] .brian-briefing-chip--daypart,
+body.theme-dark .app-shell[data-route] .brian-briefing-chip--daypart {
+  background: rgba(82, 63, 33, .84) !important;
+}
+
+html[data-theme='dark'] body .app-shell[data-route] .brian-briefing-chip--daypart.is-afternoon,
+body.theme-dark .app-shell[data-route] .brian-briefing-chip--daypart.is-afternoon {
+  background: rgba(84, 48, 39, .84) !important;
+}
+
+html[data-theme='dark'] body .app-shell[data-route] .brian-briefing-chip--daypart.is-night,
+body.theme-dark .app-shell[data-route] .brian-briefing-chip--daypart.is-night {
+  background: rgba(54, 48, 88, .86) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-shell[data-route] .brian-nav__primary > button,
+  html body .app-shell[data-route] .brian-nav__primary > [role='button'] {
+    transition: none !important;
+  }
+}
