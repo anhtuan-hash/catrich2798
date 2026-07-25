@@ -1,0 +1,235 @@
+/* English Hub · global interactive hover language
+   Interactive surfaces respond consistently; reading-only text remains still. */
+
+html body .app-shell[data-route] {
+  --eh-hover-blue: #0b57d0;
+  --eh-hover-ring: rgba(26, 115, 232, .24);
+  --eh-hover-soft: rgba(26, 115, 232, .075);
+  --eh-hover-shadow: rgba(35, 69, 128, .18);
+  --eh-hover-field: rgba(255, 255, 255, .86);
+}
+
+/* Semantic controls always advertise that they are actionable. */
+html body .app-shell[data-route] :where(
+  button:not(:disabled),
+  a[href],
+  summary,
+  select:not(:disabled),
+  input:not(:disabled):not([type='hidden']),
+  textarea:not(:disabled),
+  [contenteditable='true'],
+  [role='button']:not([aria-disabled='true']),
+  [role='link']:not([aria-disabled='true']),
+  [role='menuitem']:not([aria-disabled='true']),
+  [role='tab']:not([aria-disabled='true']),
+  [role='option']:not([aria-disabled='true']),
+  [role='switch']:not([aria-disabled='true']),
+  [role='checkbox']:not([aria-disabled='true']),
+  [role='radio']:not([aria-disabled='true']),
+  [tabindex]:not([tabindex='-1']):not([aria-disabled='true']),
+  [data-interactive='true'],
+  [data-clickable='true'],
+  [data-eh-interactive='true']
+) {
+  cursor: pointer;
+}
+
+html body .app-shell[data-route] :where(
+  button:disabled,
+  input:disabled,
+  textarea:disabled,
+  select:disabled,
+  [aria-disabled='true'],
+  [inert],
+  .is-disabled,
+  .disabled
+) {
+  cursor: default !important;
+}
+
+/* Buttons, pills, menu items, tabs, icon controls and custom clickable surfaces. */
+html body .app-shell[data-route] :where(
+  button:not(:disabled),
+  summary,
+  [role='button']:not([aria-disabled='true']),
+  [role='menuitem']:not([aria-disabled='true']),
+  [role='tab']:not([aria-disabled='true']),
+  [role='option']:not([aria-disabled='true']),
+  [role='switch']:not([aria-disabled='true']),
+  [role='checkbox']:not([aria-disabled='true']),
+  [role='radio']:not([aria-disabled='true']),
+  [data-interactive='true'],
+  [data-clickable='true'],
+  [data-eh-interactive='true'][data-eh-interactive-kind='control']
+):not([data-hover-ignore='true']):not([data-motion-ignore='true']):not([data-eh-motion-card='true']) {
+  transition:
+    translate 170ms cubic-bezier(.2, 0, 0, 1),
+    scale 150ms cubic-bezier(.2, 0, 0, 1),
+    filter 170ms cubic-bezier(.2, 0, 0, 1),
+    border-color 170ms cubic-bezier(.2, 0, 0, 1),
+    background-color 170ms cubic-bezier(.2, 0, 0, 1),
+    color 170ms cubic-bezier(.2, 0, 0, 1);
+  transform-origin: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html body .app-shell[data-route] :where(
+    button:not(:disabled),
+    summary,
+    [role='button']:not([aria-disabled='true']),
+    [role='menuitem']:not([aria-disabled='true']),
+    [role='tab']:not([aria-disabled='true']),
+    [role='option']:not([aria-disabled='true']),
+    [role='switch']:not([aria-disabled='true']),
+    [role='checkbox']:not([aria-disabled='true']),
+    [role='radio']:not([aria-disabled='true']),
+    [data-interactive='true'],
+    [data-clickable='true'],
+    [data-eh-interactive='true'][data-eh-interactive-kind='control']
+  ):not([data-hover-ignore='true']):not([data-motion-ignore='true']):not([data-eh-motion-card='true']):hover {
+    translate: 0 -2px;
+    filter:
+      brightness(1.035)
+      saturate(1.045)
+      drop-shadow(0 8px 12px var(--eh-hover-shadow));
+  }
+
+  html body .app-shell[data-route] :where(
+    button:not(:disabled),
+    summary,
+    [role='button']:not([aria-disabled='true']),
+    [role='menuitem']:not([aria-disabled='true']),
+    [role='tab']:not([aria-disabled='true']),
+    [role='option']:not([aria-disabled='true']),
+    [role='switch']:not([aria-disabled='true']),
+    [role='checkbox']:not([aria-disabled='true']),
+    [role='radio']:not([aria-disabled='true']),
+    [data-interactive='true'],
+    [data-clickable='true'],
+    [data-eh-interactive='true'][data-eh-interactive-kind='control']
+  ):not([data-hover-ignore='true']):not([data-motion-ignore='true']):not([data-eh-motion-card='true']):active {
+    translate: 0 0;
+    scale: .985;
+    filter: brightness(.985) saturate(1.01);
+  }
+
+  /* Existing motion cards keep their stronger native lift; only their edge glows. */
+  html body .app-shell[data-route] [data-eh-motion-card='true']:not([data-hover-ignore='true']):hover {
+    filter:
+      brightness(1.025)
+      saturate(1.035)
+      drop-shadow(0 10px 16px var(--eh-hover-shadow));
+  }
+
+  /* Text links respond without moving the surrounding paragraph. */
+  html body .app-shell[data-route] a[href]:not([data-hover-ignore='true']):hover {
+    color: var(--eh-hover-blue);
+    text-decoration-line: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    text-decoration-color: color-mix(in srgb, currentColor 62%, transparent);
+  }
+
+  /* Card-like links may lift as one surface, while inline links stay still. */
+  html body .app-shell[data-route] a[href][data-eh-interactive-kind='control']:not([data-hover-ignore='true']):hover {
+    translate: 0 -2px;
+    filter:
+      brightness(1.035)
+      saturate(1.045)
+      drop-shadow(0 8px 12px var(--eh-hover-shadow));
+    text-decoration: none;
+  }
+
+  /* Editable fields are highlighted, never lifted. */
+  html body .app-shell[data-route] :where(
+    input:not(:disabled):not([type='hidden']):not([type='button']):not([type='submit']):not([type='reset']):not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+    textarea:not(:disabled),
+    select:not(:disabled),
+    [contenteditable='true']
+  ):not([data-hover-ignore='true']):hover {
+    border-color: color-mix(in srgb, var(--eh-hover-blue) 42%, transparent) !important;
+    background-color: var(--eh-hover-field);
+    box-shadow:
+      0 0 0 3px var(--eh-hover-soft),
+      0 5px 14px rgba(35, 69, 128, .08);
+  }
+
+  /* Labels can be clicked, but only their actual control receives the effect. */
+  html body .app-shell[data-route] label:has(input:not(:disabled)):hover input,
+  html body .app-shell[data-route] label:has(select:not(:disabled)):hover select,
+  html body .app-shell[data-route] label:has(textarea:not(:disabled)):hover textarea {
+    filter: brightness(1.035) saturate(1.04);
+  }
+}
+
+/* Keyboard users receive the same clear interaction language. */
+html body .app-shell[data-route] :where(
+  button,
+  a[href],
+  summary,
+  input,
+  textarea,
+  select,
+  [contenteditable='true'],
+  [role='button'],
+  [role='link'],
+  [role='menuitem'],
+  [role='tab'],
+  [role='option'],
+  [role='switch'],
+  [role='checkbox'],
+  [role='radio'],
+  [tabindex]:not([tabindex='-1']),
+  [data-eh-interactive='true']
+):not([data-hover-ignore='true']):focus-visible {
+  outline: 3px solid var(--eh-hover-ring) !important;
+  outline-offset: 3px !important;
+}
+
+/* Reading-only typography is intentionally untouched. */
+html body .app-shell[data-route] :where(
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  small,
+  strong,
+  em,
+  blockquote,
+  figcaption
+):not(a):not(button):not([role='button']):not([tabindex]) {
+  cursor: text;
+}
+
+html[data-theme='dark'] body .app-shell[data-route],
+body.theme-dark .app-shell[data-route] {
+  --eh-hover-blue: #a8c7fa;
+  --eh-hover-ring: rgba(168, 199, 250, .30);
+  --eh-hover-soft: rgba(168, 199, 250, .10);
+  --eh-hover-shadow: rgba(0, 0, 0, .34);
+  --eh-hover-field: rgba(35, 45, 67, .90);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-shell[data-route] :where(
+    button,
+    summary,
+    [role='button'],
+    [role='menuitem'],
+    [role='tab'],
+    [role='option'],
+    [role='switch'],
+    [role='checkbox'],
+    [role='radio'],
+    [data-interactive='true'],
+    [data-clickable='true'],
+    [data-eh-interactive='true']
+  ) {
+    transition: none !important;
+    translate: none !important;
+    scale: none !important;
+  }
+}
