@@ -1,0 +1,411 @@
+/* Modern calendar treatment layered after the legacy Work Schedule stylesheet. */
+.app-shell[data-route="work-hub"] .work-schedule-integration {
+  --wsc-blue: #0b57d0;
+  --wsc-blue-soft: #e8f0fe;
+  --wsc-ink: #1f2328;
+  --wsc-muted: #667085;
+  --wsc-line: #dfe4ec;
+  --wsc-surface: #ffffff;
+  --wsc-soft: #f6f8fb;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-tabs {
+  display: inline-flex;
+  width: auto;
+  max-width: none;
+  padding: 4px;
+  margin-bottom: 18px;
+  border: 1px solid #dfe4ec;
+  border-radius: 999px;
+  background: #f7f9fc;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-tabs > button {
+  display: inline-flex;
+  grid-template: none;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: 999px;
+  text-align: center;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-tabs > button > span {
+  grid-row: auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-tabs small {
+  display: none;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-center {
+  padding: 26px 28px 30px;
+  border: 1px solid #dfe4ec;
+  border-radius: 28px;
+  background: #f8fafc;
+  box-shadow: 0 12px 36px rgba(39, 55, 78, .08);
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-toolbar {
+  align-items: center;
+  padding: 2px 0 20px;
+  border-bottom: 1px solid #e6eaf0;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-toolbar > div:first-child {
+  max-width: 760px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-eyebrow {
+  color: #0b57d0;
+  letter-spacing: .12em;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-toolbar h2 {
+  font-size: clamp(30px, 3vw, 46px);
+  font-weight: 650;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-toolbar p {
+  margin-top: 8px;
+  color: #667085;
+  line-height: 1.55;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-actions button {
+  min-height: 44px;
+  border-color: #d7dce4;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-actions button.primary {
+  border-color: #0b57d0;
+  background: #0b57d0;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-metrics {
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-metrics article {
+  min-height: 78px;
+  padding: 14px 16px;
+  border-color: #e0e5ec;
+  border-radius: 17px;
+  background: #fff;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-metrics article:nth-child(1) {
+  background: #eef4ff;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-metrics article:nth-child(2) {
+  background: #eef9f2;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-metrics article:nth-child(3) {
+  background: #fff8e8;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-metrics article:nth-child(4) {
+  background: #f5f0ff;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-metrics strong {
+  color: #1d2939;
+  font-size: 27px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-controls {
+  align-items: flex-end;
+  margin: 20px 0 14px;
+  padding: 0;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-month-nav {
+  flex-wrap: wrap;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-month-nav strong {
+  min-width: 190px;
+  color: #1f2937;
+  font-size: 18px;
+  text-transform: capitalize;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-month-nav button,
+.app-shell[data-route="work-hub"] .work-schedule-view-toggle button {
+  min-height: 40px;
+  border-color: #d7dce4;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-month-nav button.today {
+  padding-inline: 16px;
+  color: #0b57d0;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-filterbar {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-filterbar input,
+.app-shell[data-route="work-hub"] .work-schedule-filterbar select {
+  min-height: 42px;
+  border-color: #d7dce4;
+  border-radius: 13px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-filterbar input {
+  width: min(360px, 31vw);
+  background: #fff;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-view-toggle {
+  padding: 3px;
+  border-color: #d7dce4;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-view-toggle button.active {
+  background: #e8f0fe;
+  color: #174ea6;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-calendar {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 12px;
+  border: 1px solid #e0e5ec;
+  border-radius: 22px;
+  background: #eef2f7;
+  scrollbar-width: thin;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-weekdays,
+.app-shell[data-route="work-hub"] .work-schedule-grid {
+  min-width: 1120px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-weekdays {
+  gap: 8px;
+  padding: 0 0 8px;
+  border: 0;
+  background: transparent;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-weekdays span {
+  padding: 8px 10px;
+  color: #667085;
+  font-size: 11px;
+  text-align: left;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-weekdays span:nth-child(6),
+.app-shell[data-route="work-hub"] .work-schedule-weekdays span:nth-child(7) {
+  color: #b54708;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid {
+  gap: 8px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid > article {
+  min-height: 158px;
+  padding: 10px;
+  overflow: hidden;
+  border: 1px solid #e0e5ec;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 2px 7px rgba(49, 63, 84, .04);
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid > article:nth-child(7n),
+.app-shell[data-route="work-hub"] .work-schedule-grid > article:nth-last-child(-n+7) {
+  border: 1px solid #e0e5ec;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid > article:nth-child(7n),
+.app-shell[data-route="work-hub"] .work-schedule-grid > article:nth-child(7n - 1) {
+  background: #fffaf2;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid > article.outside {
+  background: #f5f6f8;
+  color: #98a2b3;
+  box-shadow: none;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid > article.today {
+  border-color: #8ab4f8;
+  background: #f2f7ff;
+  box-shadow: inset 0 0 0 1px #8ab4f8, 0 4px 14px rgba(26, 115, 232, .08);
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid > article > header {
+  min-height: 30px;
+  margin-bottom: 7px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid > article > header time {
+  width: 30px;
+  height: 30px;
+  color: #344054;
+  font-size: 13px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid > article > header span {
+  min-width: 25px;
+  padding: 4px 7px;
+  background: #eef2f6;
+  color: #475467;
+  font-size: 10px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid > article > div {
+  gap: 5px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid > article > div > button {
+  min-height: 31px;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 7px;
+  padding: 6px 7px;
+  border-left-width: 4px;
+  border-radius: 9px;
+  background: #eef4ff;
+  color: #244a7a;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid > article > div > button:hover {
+  filter: brightness(.98);
+  box-shadow: 0 3px 9px rgba(46, 65, 92, .08);
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid button time {
+  color: inherit;
+  font-size: 10px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid button span {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-grid button.more {
+  min-height: 28px;
+  margin-top: 6px;
+  border-radius: 9px;
+  background: #e8f0fe;
+  color: #174ea6;
+  font-size: 10px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-agenda {
+  gap: 12px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-agenda > article {
+  grid-template-columns: 68px minmax(0, 1fr) 34px;
+  gap: 16px;
+  padding: 16px 18px;
+  border-color: #e0e5ec;
+  border-radius: 20px;
+  background: #fff;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-agenda > article:hover {
+  transform: translateY(-1px);
+  border-color: #a8c7fa;
+  background: #fbfdff;
+  box-shadow: 0 7px 20px rgba(41, 58, 82, .08);
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-date-tile {
+  min-height: 68px;
+  border-radius: 18px;
+  background: #e8f0fe;
+  color: #174ea6;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-agenda-main h3 {
+  font-size: 18px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-agenda-main p {
+  color: #667085;
+  font-size: 12px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-agenda-main footer {
+  color: #526175;
+  font-size: 10px;
+}
+
+.app-shell[data-route="work-hub"] .work-schedule-empty {
+  min-height: 230px;
+  border-color: #cbd3df;
+  background: #fff;
+}
+
+@media (max-width: 1100px) {
+  .app-shell[data-route="work-hub"] .work-schedule-toolbar,
+  .app-shell[data-route="work-hub"] .work-schedule-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .app-shell[data-route="work-hub"] .work-schedule-actions,
+  .app-shell[data-route="work-hub"] .work-schedule-filterbar {
+    justify-content: flex-start;
+  }
+  .app-shell[data-route="work-hub"] .work-schedule-filterbar input {
+    width: min(520px, 100%);
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell[data-route="work-hub"] .work-schedule-center {
+    padding: 20px 16px 24px;
+    border-radius: 23px;
+  }
+  .app-shell[data-route="work-hub"] .work-schedule-tabs {
+    width: 100%;
+  }
+  .app-shell[data-route="work-hub"] .work-schedule-tabs > button {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+  .app-shell[data-route="work-hub"] .work-schedule-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .app-shell[data-route="work-hub"] .work-schedule-filterbar,
+  .app-shell[data-route="work-hub"] .work-schedule-view-toggle {
+    width: 100%;
+  }
+  .app-shell[data-route="work-hub"] .work-schedule-filterbar input,
+  .app-shell[data-route="work-hub"] .work-schedule-filterbar select {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  .app-shell[data-route="work-hub"] .work-schedule-view-toggle button {
+    flex: 1 1 0;
+  }
+  .app-shell[data-route="work-hub"] .work-schedule-agenda > article {
+    grid-template-columns: 62px minmax(0, 1fr);
+  }
+  .app-shell[data-route="work-hub"] .work-schedule-agenda button.open {
+    display: none;
+  }
+}
