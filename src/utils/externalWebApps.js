@@ -1,3 +1,4 @@
+import { subscribeTable } from '../services/runtime/core.js';
 import {
   canManageAiWebsites,
   loadAiWebsiteSettings,
@@ -19,10 +20,12 @@ export const EXTERNAL_APP_GROUPS = [
 ];
 
 const REQUEST_TIMEOUT = 14000;
-const FAST_APPROVAL_CACHE_MS = 4500;
-const EXTERNAL_APPS_READ_CACHE_MS = 60 * 1000;
-let latestExternalAppsState = null;
-let fastApprovalCacheUntil = 0;
+const APPROVED_ONLY_CACHE_MS = 6 * 60 * 60 * 1000;
+const REQUEST_STATE_CACHE_MS = 30 * 60 * 1000;
+const externalAppsCache = new Map();
+const externalAppsPromises = new Map();
+let externalAppsCacheGeneration = 0;
+let externalAppsSubscriptionSerial = 0;
 
 export function safeExternalWebAppUrl(value) {
   const normalized = safeAiWebsiteUrl(value);
@@ -136,6 +139,51 @@ export function externalAppFromTool(tool = {}) {
   };
 }
 
+function externalAppsScope(user) {
+  return String(user?.id || user?.email || 'guest').trim().toLowerCase() || 'guest';
+}
+
+function externalAppsCacheKey(user, includeRequests) {
+  return `${externalAppsScope(user)}:${includeRequests ? 'requests' : 'approved-only'}`;
+}
+
+function cacheLifetime(includeRequests) {
+  return includeRequests ? REQUEST_STATE_CACHE_MS : APPROVED_ONLY_CACHE_MS;
+}
+
+function readCachedExternalApps(user, includeRequests) {
+  const entry = externalAppsCache.get(externalAppsCacheKey(user, includeRequests));
+  if (!entry) return null;
+  if (Date.now() >= entry.expiresAt) {
+    externalAppsCache.delete(externalAppsCacheKey(user, includeRequests));
+    return null;
+  }
+  return entry.state;
+}
+
+function storeExternalApps(user, includeRequests, state) {
+  externalAppsCache.set(externalAppsCacheKey(user, includeRequests), {
+    state,
+    expiresAt: Date.now() + cacheLifetime(includeRequests),
+  });
+  return state;
+}
+
+function invalidateExternalAppsCache() {
+  externalAppsCacheGeneration += 1;
+  externalAppsCache.clear();
+  externalAppsPromises.clear();
+}
+
+function stateFromSnapshot(snapshot, previous = {}) {
+  return {
+    approved: (snapshot?.tools || []).map(externalAppFromTool).filter(Boolean),
+    mine: Array.isArray(previous.mine) ? previous.mine : [],
+    requests: Array.isArray(previous.requests) ? previous.requests : [],
+    snapshot,
+  };
+}
+
 async function accessToken() {
   if (!supabase) throw new Error('Supabase chưa được cấu hình.');
   const { data, error } = await supabase.auth.getSession();
@@ -174,41 +222,56 @@ function hydrateRequests(requests = []) {
   return requests.filter(isExternalAppRequest).map((request) => ({ ...request, app: parseRequestPayload(request) }));
 }
 
-function updateRequestStatus(items = [], requestId, status) {
-  return items.map((item) => item.id === requestId ? { ...item, status } : item);
-}
+export async function loadExternalWebApps(user, {
+  includeRequests = true,
+  force = false,
+  snapshot: suppliedSnapshot = null,
+} = {}) {
+  const key = externalAppsCacheKey(user, includeRequests);
+  const cached = !force ? readCachedExternalApps(user, includeRequests) : null;
+  if (cached) return cached;
+  if (externalAppsPromises.has(key)) return externalAppsPromises.get(key);
 
-export async function loadExternalWebApps(user, { includeRequests = true } = {}) {
-  if (latestExternalAppsState && Date.now() < fastApprovalCacheUntil) {
-    return latestExternalAppsState;
-  }
+  const generation = externalAppsCacheGeneration;
+  const task = (async () => {
+    const manager = canManageAiWebsites(user);
+    const snapshotPromise = suppliedSnapshot
+      ? Promise.resolve(suppliedSnapshot)
+      : loadAiWebsiteSettings(user);
 
-  const manager = canManageAiWebsites(user);
-  const snapshotPromise = loadAiWebsiteSettings(user);
-  const minePromise = includeRequests && user?.id
-    ? requestApi('?mode=mine')
-    : Promise.resolve({ requests: [] });
-  const allPromise = includeRequests && user?.id && manager
-    ? requestApi('?mode=all')
-    : Promise.resolve({ requests: [] });
+    let requestPromise = Promise.resolve({ mine: [], requests: [] });
+    if (includeRequests && user?.id) {
+      if (manager) {
+        requestPromise = requestApi('?mode=all').then((payload) => {
+          const requests = hydrateRequests(payload.requests || []);
+          return {
+            requests,
+            mine: requests.filter((request) => String(request.requester_id || '') === String(user.id)),
+          };
+        });
+      } else {
+        requestPromise = requestApi('?mode=mine').then((payload) => ({
+          mine: hydrateRequests(payload.requests || []),
+          requests: [],
+        }));
+      }
+    }
 
-  const [snapshot, minePayload, allPayload] = await Promise.all([
-    snapshotPromise,
-    minePromise,
-    allPromise,
-  ]);
+    const [snapshot, requestState] = await Promise.all([snapshotPromise, requestPromise]);
+    const state = {
+      approved: (snapshot.tools || []).map(externalAppFromTool).filter(Boolean),
+      mine: requestState.mine || [],
+      requests: requestState.requests || [],
+      snapshot,
+    };
+    if (generation === externalAppsCacheGeneration) storeExternalApps(user, includeRequests, state);
+    return state;
+  })().finally(() => {
+    if (externalAppsPromises.get(key) === task) externalAppsPromises.delete(key);
+  });
 
-  latestExternalAppsState = {
-    approved: (snapshot.tools || []).map(externalAppFromTool).filter(Boolean),
-    mine: hydrateRequests(minePayload.requests || []),
-    requests: hydrateRequests(allPayload.requests || []),
-    snapshot,
-  };
-  // The manager currently polls every eight seconds as a fallback. Keep a short
-  // shared cache so those polls only reach Supabase/API about once per minute.
-  // All local mutations already reset fastApprovalCacheUntil before emitting an update.
-  fastApprovalCacheUntil = Date.now() + EXTERNAL_APPS_READ_CACHE_MS;
-  return latestExternalAppsState;
+  externalAppsPromises.set(key, task);
+  return task;
 }
 
 export async function submitExternalWebApp(user, draft, language = 'vi') {
@@ -216,7 +279,7 @@ export async function submitExternalWebApp(user, draft, language = 'vi') {
   if (!app.name) throw new Error(language === 'vi' ? 'Vui lòng nhập tên ứng dụng.' : 'Please enter an app name.');
   if (!app.url) throw new Error(language === 'vi' ? 'Chỉ chấp nhận website HTTPS hợp lệ.' : 'Only valid HTTPS websites are accepted.');
   const result = await requestApi('', { method: 'POST', body: JSON.stringify({ app }) });
-  fastApprovalCacheUntil = 0;
+  invalidateExternalAppsCache();
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(PERMISSION_REQUESTS_EVENT));
   return result;
 }
@@ -247,14 +310,7 @@ export async function approveExternalWebApp(user, request, embedView = {}) {
     setupRequired: false,
   };
 
-  latestExternalAppsState = {
-    approved: tools.map(externalAppFromTool).filter(Boolean),
-    mine: updateRequestStatus(latestExternalAppsState?.mine || [], request.id, 'approved'),
-    requests: updateRequestStatus(latestExternalAppsState?.requests || [], request.id, 'approved'),
-    snapshot,
-  };
-  fastApprovalCacheUntil = Date.now() + FAST_APPROVAL_CACHE_MS;
-
+  invalidateExternalAppsCache();
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(PERMISSION_REQUESTS_EVENT));
   return {
     approvedTool,
@@ -265,7 +321,7 @@ export async function approveExternalWebApp(user, request, embedView = {}) {
 
 export async function rejectExternalWebApp(requestId) {
   const result = await requestApi('', { method: 'PATCH', body: JSON.stringify({ id: requestId, status: 'rejected' }) });
-  fastApprovalCacheUntil = 0;
+  invalidateExternalAppsCache();
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(PERMISSION_REQUESTS_EVENT));
   return result;
 }
@@ -277,25 +333,73 @@ export async function updateApprovedExternalWebAppView(user, appId, embedView = 
       ? normalizeAiWebsiteTool({ ...tool, embedView: normalizeEmbedView(embedView) })
       : tool
   ));
-  fastApprovalCacheUntil = 0;
+  invalidateExternalAppsCache();
   return saveAiWebsiteSettings(user, nextTools);
 }
 
 export async function removeApprovedExternalWebApp(user, appId) {
   const snapshot = await loadAiWebsiteSettings(user);
-  fastApprovalCacheUntil = 0;
+  invalidateExternalAppsCache();
   await saveAiWebsiteSettings(user, (snapshot.tools || []).filter(
     (tool) => !(tool.kind === EXTERNAL_APP_KIND && tool.id === appId),
   ));
 }
 
-export function subscribeExternalWebApps(user, listener) {
-  const refresh = () => loadExternalWebApps(user).then(listener).catch((error) => console.warn('[External apps] refresh failed', error));
-  const unsubscribeAi = subscribeAiWebsiteSettings(user, refresh);
-  const requestHandler = () => refresh();
+function realtimeRow(payload) {
+  return payload?.new && Object.keys(payload.new).length ? payload.new : payload?.old;
+}
+
+export function subscribeExternalWebApps(user, listener, { includeRequests = true } = {}) {
+  let active = true;
+  let lastState = readCachedExternalApps(user, includeRequests);
+  let lastSnapshot = lastState?.snapshot || null;
+  const safeListener = typeof listener === 'function' ? listener : () => {};
+  const emit = (state) => {
+    if (!active || !state) return;
+    lastState = state;
+    lastSnapshot = state.snapshot || lastSnapshot;
+    safeListener(state);
+  };
+  const refresh = () => loadExternalWebApps(user, {
+    includeRequests,
+    force: true,
+    snapshot: lastSnapshot,
+  }).then(emit).catch((error) => console.warn('[External apps] refresh failed', error));
+
+  const unsubscribeAi = subscribeAiWebsiteSettings(user, (snapshot) => {
+    lastSnapshot = snapshot;
+    const next = stateFromSnapshot(snapshot, lastState || readCachedExternalApps(user, includeRequests) || {});
+    storeExternalApps(user, includeRequests, next);
+    emit(next);
+  });
+
+  let unsubscribeRequests = () => {};
+  if (includeRequests && user?.id) {
+    externalAppsSubscriptionSerial += 1;
+    const manager = canManageAiWebsites(user);
+    unsubscribeRequests = subscribeTable({
+      key: `external-app-requests-${externalAppsScope(user)}-${externalAppsSubscriptionSerial}`,
+      table: 'permission_requests',
+      filter: manager ? '' : `requester_id=eq.${user.id}`,
+      onChange: (payload) => {
+        const row = realtimeRow(payload);
+        if (!row || !isExternalAppRequest(row)) return;
+        invalidateExternalAppsCache();
+        refresh();
+      },
+    });
+  }
+
+  const requestHandler = () => {
+    invalidateExternalAppsCache();
+    refresh();
+  };
   if (typeof window !== 'undefined') window.addEventListener(PERMISSION_REQUESTS_EVENT, requestHandler);
+
   return () => {
+    active = false;
     unsubscribeAi?.();
+    unsubscribeRequests?.();
     if (typeof window !== 'undefined') window.removeEventListener(PERMISSION_REQUESTS_EVENT, requestHandler);
   };
 }
