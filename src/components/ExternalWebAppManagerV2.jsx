@@ -506,7 +506,7 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
                 <span>Xem trước như tài khoản giáo viên</span>
                 <b>{layoutLabel(config)}</b>
               </div>
-              <div className="bes-ext-review-device">
+              <div className={`bes-ext-review-device${config.hideBrianHeader ? ' no-header' : ''}${config.hideBrianFooter ? ' no-footer' : ''}`}>
                 {!config.hideBrianHeader ? (
                   <div className="bes-ext-review-brian-header">
                     <strong>Brian English Studio</strong>
