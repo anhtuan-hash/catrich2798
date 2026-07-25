@@ -4,6 +4,7 @@ import GlobalUserProfileSettingsBridge from './GlobalUserProfileSettingsBridge.j
 import GlobalUserProfilePreviewGuard from './GlobalUserProfilePreviewGuard.jsx';
 import GlobalSettingsAppearanceBridge from './GlobalSettingsAppearanceBridge.jsx';
 import GlobalMotionCoreBridge from './GlobalMotionCoreBridge.jsx';
+import GlobalAiWebsiteLauncher from './GlobalAiWebsiteLauncher.jsx';
 import GlobalNewsNavigationTab from './GlobalNewsNavigationTab.jsx';
 import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
 import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
@@ -65,6 +66,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalUserProfileSettingsBridge {...props} />
       <GlobalUserProfilePreviewGuard route={props.route} />
       <GlobalSettingsAppearanceBridge {...props} />
+      <GlobalAiWebsiteLauncher {...props} />
       <GlobalNewsNavigationTab {...props} />
       <GlobalGamesNavigationTab {...props} />
       <GlobalDashboardNavigationTab {...props} />

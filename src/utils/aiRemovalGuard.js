@@ -1,18 +1,15 @@
 const AI_REMOVED_ROUTES = new Set(['ai-workspace', 'ai-governance', 'prompt-studio', 'ai-tool']);
-const CHATBOT_STORAGE_PREFIXES = ['bes-ai-hide-active-name-', 'brian-ai-chatbot', 'bes-chatbot'];
+const CHATBOT_STORAGE_PREFIXES = ['brian-ai-chatbot', 'bes-chatbot'];
 const REMOVE_SELECTORS = [
   '.ai-messenger-v10831', '.universal-ai-assist', '.ai-copilot-panel',
   '.shared-chatbot-drawer', '.bes-chatbot-root', '.bes-chatbot-fab',
   '.bes-chatbot-launcher', '.chatbot-root', '.chatbot-fab',
   '.chatbot-launcher', '.floating-chatbot', '.floating-chatbot-button',
   '.ai-chatbot-fab', '.ai-chatbot-launcher',
-  '.brian-ai-workspace', '.brian-ai-workspace-layer',
-  '.brian-nav__ai-wrap', '.brian-nav__ai-button',
   '[data-chatbot-root]', '[data-chatbot-launcher]', '[data-ai-chatbot-launcher]',
 ];
-const ACTION_PATTERNS = [
-  /\bbrian ai\b/i, /\bai copilot\b/i, /\bai assistant\b/i,
-  /trợ lý ai/i, /không gian ai/i, /chat\s*bot/i,
+const CHATBOT_ACTION_PATTERNS = [
+  /chat\s*bot/i,
 ];
 
 function cleanChatbotStorage() {
@@ -34,9 +31,8 @@ function removeLegacyChatbot(root = document) {
     const text = `${node.textContent || ''} ${node.getAttribute('aria-label') || ''} ${node.getAttribute('title') || ''}`
       .replace(/\s+/g, ' ')
       .trim();
-    if (text && ACTION_PATTERNS.some((pattern) => pattern.test(text))) node.remove();
+    if (text && CHATBOT_ACTION_PATTERNS.some((pattern) => pattern.test(text))) node.remove();
   });
-  document.documentElement.classList.remove('bes-ai-workspace-open');
 }
 
 function redirectRemovedRoute() {
@@ -60,6 +56,5 @@ export function installAiRemovalGuard() {
     });
   }));
   observer.observe(document.documentElement, { childList: true, subtree: true });
-  window.addEventListener('bes-ai-open', (event) => event.stopImmediatePropagation(), true);
   window.addEventListener('bes-chatbot-drawer-open', (event) => event.stopImmediatePropagation(), true);
 }
