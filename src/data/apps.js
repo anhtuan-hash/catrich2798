@@ -20,7 +20,6 @@ export const APPS = [
     descVi: 'Tải lên, duyệt, quản lý và chạy trực tiếp các bài luyện thi THPT tương tác dạng HTML.',
     status: 'HTML library · TTCM approval', statusVi: 'Kho HTML · TTCM duyệt', api: true, featured: true},
 
-
   {
     slug: 'work-hub', route: 'work-hub', icon: 'WH', tone: 'mint', group: 'Connected Workflow', groupVi: 'Công việc liên thông',
     title: 'Unified Work Hub', titleVi: 'Trung tâm công việc',
@@ -139,6 +138,20 @@ export const APPS = [
       api: true,
       featured: true},
   {
+      slug: 'random-student-picker',
+      icon: 'RP',
+      tone: 'blue',
+      group: 'Classroom Activities',
+      groupVi: 'Hoạt động lớp học',
+      title: 'Random Student Picker',
+      titleVi: 'Gọi tên học sinh',
+      desc: 'Pick students fairly with 12 classroom modes, absence marking, no-repeat rounds, team splitting and local class lists.',
+      descVi: 'Gọi tên học sinh công bằng với 12 chế độ, đánh dấu vắng, chống lặp, chia đội và lưu nhiều danh sách lớp.',
+      status: '12 modes · Offline · Native',
+      statusVi: '12 chế độ · Offline · Native',
+      api: false,
+      featured: true},
+  {
       slug: 'teaching-methods-hub',
       icon: 'TM',
       tone: 'mint',
@@ -249,7 +262,6 @@ export const GAME_APPS = [
       statusVi: 'Cổng mở nhanh',
       api: true,
       featured: true}];
-
 
 export const SPECIAL_TOOLS = [];
 
