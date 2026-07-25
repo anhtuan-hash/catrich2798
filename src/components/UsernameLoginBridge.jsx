@@ -7,97 +7,93 @@ function currentRoute() {
   return window.location.hash.replace(/^#\/?/, '').split(/[?&]/)[0].trim();
 }
 
-function setInputProperty(input, property, value) {
-  if (input[property] === value) return false;
-  input[property] = value;
-  return true;
-}
-
-function restoreCaret(input, selection) {
-  if (!selection || document.activeElement !== input) return;
-  const length = input.value.length;
-  const start = Math.min(selection.start, length);
-  const end = Math.min(selection.end, length);
-  try {
-    input.setSelectionRange(start, end, selection.direction || 'none');
-    input.scrollLeft = selection.scrollLeft;
-  } catch {
-    // Text inputs support selection ranges, but keep the bridge safe on older browsers.
-  }
-}
-
 function decorateLoginForm(language) {
-  if (currentRoute() !== 'login') return;
+  if (currentRoute() !== 'login') return false;
+
   const form = document.querySelector('.auth-google-form');
-  if (!form) return;
+  if (!form) return false;
+
   const input = form.querySelector(
     '.auth-google-fields input[autocomplete="username"], .auth-google-fields input[autocomplete="email"], .auth-google-fields input[type="email"]',
   );
-  if (!input) return;
-
-  const selection = document.activeElement === input && typeof input.selectionStart === 'number'
-    ? {
-      start: input.selectionStart,
-      end: input.selectionEnd,
-      direction: input.selectionDirection,
-      scrollLeft: input.scrollLeft,
-    }
-    : null;
+  if (!input) return false;
 
   const placeholder = language === 'vi' ? 'Tên đăng nhập hoặc email' : 'Username or email';
-  let changed = false;
-  changed = setInputProperty(input, 'type', 'text') || changed;
-  changed = setInputProperty(input, 'autocomplete', 'username') || changed;
-  changed = setInputProperty(input, 'inputMode', 'text') || changed;
-  changed = setInputProperty(input, 'placeholder', placeholder) || changed;
-  if (input.getAttribute('dir') !== 'ltr') {
-    input.setAttribute('dir', 'ltr');
-    changed = true;
-  }
+
+  // Apply the login metadata before typing starts, then leave the controlled
+  // React input alone. Rewriting input attributes while the user types can
+  // reset the caret to position 0 and make new characters appear in reverse.
+  if (input.type !== 'text') input.type = 'text';
+  if (input.autocomplete !== 'username') input.autocomplete = 'username';
+  if (input.inputMode !== 'text') input.inputMode = 'text';
+  if (input.placeholder !== placeholder) input.placeholder = placeholder;
+  if (input.getAttribute('dir') !== 'ltr') input.setAttribute('dir', 'ltr');
+  if (input.getAttribute('autocapitalize') !== 'none') input.setAttribute('autocapitalize', 'none');
+  if (input.getAttribute('spellcheck') !== 'false') input.setAttribute('spellcheck', 'false');
 
   const label = input.closest('label');
   const title = label?.querySelector(':scope > span');
   if (title && title.textContent !== placeholder) title.textContent = placeholder;
 
-  if (label && !label.querySelector('.bes-username-login-hint')) {
-    const hint = document.createElement('small');
-    hint.className = 'bes-username-login-hint';
+  if (label) {
+    let hint = label.querySelector('.bes-username-login-hint');
+    if (!hint) {
+      hint = document.createElement('small');
+      hint.className = 'bes-username-login-hint';
+      label.appendChild(hint);
+    }
     hint.textContent = language === 'vi'
       ? 'Tài khoản do Admin cấp chỉ cần nhập tên đăng nhập, ví dụ: gv001.'
       : 'For Admin-created accounts, enter only the username, for example: gv001.';
-    label.appendChild(hint);
   }
 
-  // React may briefly restore type="email" after a controlled-input render.
-  // Changing the type back to text can reset the caret to position 0, so retain
-  // the exact selection before and after synchronizing the login metadata.
-  if (changed && selection) {
-    restoreCaret(input, selection);
-    queueMicrotask(() => restoreCaret(input, selection));
-  }
+  return true;
 }
 
 export default function UsernameLoginBridge({ language = 'vi' }) {
   useEffect(() => {
     installUsernameAuthBridge();
-    let frame = 0;
-    const decorate = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => decorateLoginForm(language));
+
+    let retryTimer = 0;
+    let attempts = 0;
+    let disposed = false;
+
+    const stopRetrying = () => {
+      if (retryTimer) window.clearTimeout(retryTimer);
+      retryTimer = 0;
     };
-    decorate();
-    const observer = new MutationObserver(decorate);
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['type', 'placeholder', 'autocomplete', 'inputmode', 'dir'],
-    });
-    window.addEventListener('hashchange', decorate);
+
+    const decorateWhenReady = () => {
+      stopRetrying();
+      attempts = 0;
+
+      const tryDecorate = () => {
+        if (disposed || currentRoute() !== 'login') return;
+        if (decorateLoginForm(language)) return;
+
+        attempts += 1;
+        if (attempts < 200) retryTimer = window.setTimeout(tryDecorate, 50);
+      };
+
+      tryDecorate();
+    };
+
+    const handleFocusIn = (event) => {
+      if (currentRoute() !== 'login') return;
+      if (event.target?.closest?.('.auth-google-form .auth-google-fields')) {
+        decorateLoginForm(language);
+      }
+    };
+
+    decorateWhenReady();
+    window.addEventListener('hashchange', decorateWhenReady);
+    document.addEventListener('focusin', handleFocusIn, true);
+
     return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-      window.removeEventListener('hashchange', decorate);
+      disposed = true;
+      stopRetrying();
+      window.removeEventListener('hashchange', decorateWhenReady);
+      document.removeEventListener('focusin', handleFocusIn, true);
     };
   }, [language]);
 
