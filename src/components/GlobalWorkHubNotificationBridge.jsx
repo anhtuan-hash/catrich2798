@@ -4,13 +4,12 @@ import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import {
   listWorkHubNotifications,
   subscribeWorkHubNotifications,
-  WORK_HUB_DELIVERY_EVENT,
 } from '../utils/workHubDelivery.js';
 
 const HIDDEN_TASK_STATUSES = new Set(['draft', 'completed', 'approved', 'archived', 'cancelled']);
-const FOCUS_REFRESH_INTERVAL = 10 * 60 * 1000;
-const ASSIGNED_ITEMS_CACHE_MAX_AGE = 10 * 60 * 1000;
-const BOOT_IDLE_TIMEOUT = 1_500;
+const FOCUS_REFRESH_INTERVAL = 60 * 60 * 1000;
+const ASSIGNED_ITEMS_CACHE_MAX_AGE = 60 * 60 * 1000;
+const BOOT_IDLE_TIMEOUT = 2_000;
 const assignedItemsCache = new Map();
 const assignedItemsPromises = new Map();
 
@@ -84,8 +83,7 @@ function mapAssignedTask(item, language, readStates) {
   const intro = language === 'vi'
     ? 'Tổ trưởng đã giao cho bạn một công việc'
     : 'A department leader assigned you a task';
-  const details = String(item?.description || '').trim();
-  const message = [intro, due ? `${language === 'vi' ? 'Hạn' : 'Due'}: ${due}` : '', details]
+  const message = [intro, due ? `${language === 'vi' ? 'Hạn' : 'Due'}: ${due}` : '']
     .filter(Boolean)
     .join(' · ');
   return {
@@ -121,23 +119,17 @@ async function listAssignedWorkItems(userId, { force = false } = {}) {
   if (!force && assignedItemsPromises.has(key)) return assignedItemsPromises.get(key);
 
   const task = (async () => {
-    const columns = 'id,title,description,status,priority,due_at,owner_id,created_by,assignee_ids,metadata,created_at,updated_at';
-    let result = await client
+    const columns = 'id,title,status,priority,due_at,owner_id,assignee_ids,metadata,created_at,updated_at';
+    const result = await client
       .from('work_hub_items')
       .select(columns)
       .contains('assignee_ids', [userId])
       .order('created_at', { ascending: false })
-      .limit(80);
+      .limit(40);
 
-    if (result.error) {
-      result = await client
-        .from('work_hub_items')
-        .select(columns)
-        .order('created_at', { ascending: false })
-        .limit(160);
-    }
-
-    const items = result.error ? (cached?.items || []) : (result.data || []).filter((item) => isVisibleAssignedItem(item, userId));
+    const items = result.error
+      ? (cached?.items || [])
+      : (result.data || []).filter((item) => isVisibleAssignedItem(item, userId));
     assignedItemsCache.set(key, { items, storedAt: Date.now() });
     return items;
   })();
@@ -173,10 +165,10 @@ export default function GlobalWorkHubNotificationBridge({ currentUser, language 
 
     const task = (async () => {
       const readStates = storedReadState(currentUser);
-      const [databaseRows, assignedItems] = await Promise.all([
-        listWorkHubNotifications(userId, 60, { force }),
-        listAssignedWorkItems(userId, { force }),
-      ]);
+      const databaseRows = await listWorkHubNotifications(userId, 30, { force });
+      const assignedItems = databaseRows?.length
+        ? []
+        : await listAssignedWorkItems(userId, { force });
 
       const databaseNotifications = (databaseRows || []).map((row) => mapDatabaseNotification(row, language, readStates));
       const databaseItemIds = new Set(databaseNotifications.map((item) => item.itemId).filter(Boolean));
@@ -202,14 +194,14 @@ export default function GlobalWorkHubNotificationBridge({ currentUser, language 
       return () => window.cancelIdleCallback?.(idleId);
     }
 
-    const timerId = window.setTimeout(() => refresh(), 500);
+    const timerId = window.setTimeout(() => refresh(), 750);
     return () => window.clearTimeout(timerId);
   }, [refresh, runtime.ready, runtime.session, userId]);
 
   useEffect(() => {
     if (!userId || !runtime.ready || !runtime.session) return () => {};
 
-    const refreshSoon = ({ force = false, delay = 120 } = {}) => {
+    const refreshSoon = ({ force = false, delay = 150 } = {}) => {
       if (!force && Date.now() - lastRefreshAtRef.current < FOCUS_REFRESH_INTERVAL) return;
       window.clearTimeout(refreshTimerRef.current);
       refreshTimerRef.current = window.setTimeout(() => refresh({ force }), delay);
@@ -221,28 +213,20 @@ export default function GlobalWorkHubNotificationBridge({ currentUser, language 
       dispatchNotifications([mapDatabaseNotification(row, language, storedReadState(currentUser))]);
     });
 
-    const onDeliveryUpdate = (event) => {
-      const type = String(event?.detail?.type || '');
-      if (['notification-change', 'notification-read', 'notifications-read-all', 'file-uploaded'].includes(type)) return;
-      refreshSoon();
-    };
     const onFocus = () => refreshSoon();
     const onVisibility = () => {
       if (document.visibilityState === 'visible') refreshSoon();
     };
 
-    window.addEventListener(WORK_HUB_DELIVERY_EVENT, onDeliveryUpdate);
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
       window.clearTimeout(refreshTimerRef.current);
       unsubscribeNotifications();
-      window.removeEventListener(WORK_HUB_DELIVERY_EVENT, onDeliveryUpdate);
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [currentUser, language, refresh, runtime.ready, runtime.session, userId]);
-
 
   return null;
 }
