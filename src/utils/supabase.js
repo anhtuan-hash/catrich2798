@@ -10,7 +10,7 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 const nativeFetch = typeof globalThis.fetch === 'function' ? globalThis.fetch.bind(globalThis) : null;
 const readCache = new Map();
 const inFlightReads = new Map();
-const MAX_CACHE_ENTRIES = 80;
+const MAX_CACHE_ENTRIES = 160;
 
 const WORK_HUB_ITEM_COLUMNS = [
   'id',
@@ -91,10 +91,17 @@ const SELECT_PROJECTIONS = [
 ];
 
 const HEAVY_READ_TTL = [
-  ['/rest/v1/work_hub_items', 5 * 60 * 1000],
-  ['/rest/v1/bes_homeroom_workspaces', 10 * 60 * 1000],
-  ['/rest/v1/resource_items', 15 * 60 * 1000],
-  ['/rest/v1/library_items', 30 * 60 * 1000],
+  ['/rest/v1/library_items', 6 * 60 * 60 * 1000],
+  ['/rest/v1/resource_items', 60 * 60 * 1000],
+  ['/rest/v1/bes_homeroom_workspaces', 60 * 60 * 1000],
+  ['/rest/v1/assessment_items', 60 * 60 * 1000],
+  ['/rest/v1/content_ecosystem_assets', 60 * 60 * 1000],
+  ['/rest/v1/content_ecosystem_kits', 60 * 60 * 1000],
+  ['/rest/v1/work_hub_items', 30 * 60 * 1000],
+  ['/rest/v1/work_hub_comments', 15 * 60 * 1000],
+  ['/rest/v1/automation_', 30 * 60 * 1000],
+  ['/rest/v1/profiles', 30 * 60 * 1000],
+  ['/rest/v1/system_roles', 30 * 60 * 1000],
 ];
 
 function getHeavyReadTtl(url) {
@@ -137,22 +144,33 @@ function clearReadCache(matcher = null) {
   });
 }
 
+function normalizeTablePath(table) {
+  const clean = String(table || '').trim().replace(/^public\./i, '').replace(/[^a-zA-Z0-9_]/g, '');
+  return clean ? `/rest/v1/${clean}` : '';
+}
+
+export function invalidateSupabaseReadCacheForTable(table) {
+  const tablePath = normalizeTablePath(table);
+  if (!tablePath) return;
+  clearReadCache((key) => key.includes(tablePath));
+}
+
 function restTablePath(url) {
   try {
     const match = new URL(url).pathname.match(/\/rest\/v1\/([^/]+)/i);
-    return match?.[1] ? `/rest/v1/${match[1]}` : '';
+    return match?.[1] || '';
   } catch {
     return '';
   }
 }
 
 function clearReadCacheForMutation(url) {
-  const tablePath = restTablePath(url);
-  if (!tablePath) {
+  const table = restTablePath(url);
+  if (!table) {
     clearReadCache();
     return;
   }
-  clearReadCache((key) => key.includes(tablePath));
+  invalidateSupabaseReadCacheForTable(table);
 }
 
 function trimReadCache() {
