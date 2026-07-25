@@ -4,7 +4,12 @@ const LOCAL_KEY = 'bes-ai-website-launcher-v1';
 const EVENT_NAME = 'bes-ai-websites-updated';
 const SETTINGS_TABLE = 'ai_website_settings';
 const WORKSPACE_KEY = 'english-hub';
+const CLOUD_CACHE_MAX_AGE = 6 * 60 * 60 * 1000;
 let realtimeSubscriptionSerial = 0;
+let cloudSnapshotCache = null;
+let cloudSnapshotCachedAt = 0;
+let cloudSnapshotResolved = false;
+let cloudSnapshotPromise = null;
 
 export function safeAiWebsiteUrl(value) {
   try {
@@ -88,6 +93,20 @@ function writeAiWebsiteSettingsLocal(snapshot) {
   return clean;
 }
 
+function rememberCloudSnapshot(snapshot) {
+  cloudSnapshotCache = snapshot ? normalizeSnapshot(snapshot) : null;
+  cloudSnapshotCachedAt = Date.now();
+  cloudSnapshotResolved = true;
+  return cloudSnapshotCache;
+}
+
+function invalidateCloudSnapshotCache() {
+  cloudSnapshotCache = null;
+  cloudSnapshotCachedAt = 0;
+  cloudSnapshotResolved = false;
+  cloudSnapshotPromise = null;
+}
+
 export function getAiWebsiteAudience(user) {
   const role = `${user?.role || ''} ${user?.position || ''}`.toLowerCase();
   if (role.includes('admin')) return 'admin';
@@ -116,10 +135,27 @@ function cloudSnapshotFromRow(row = {}) {
   return normalizeSnapshot({ tools: Array.isArray(row.tools) ? row.tools : [], updatedAt: row.updated_at || row.created_at, updatedBy: row.updated_by_email || row.updated_by || '', source: 'supabase', error: '', setupRequired: false });
 }
 
-async function readCloudSnapshot() {
-  const { data, error } = await supabase.from(SETTINGS_TABLE).select('workspace_key,tools,updated_by,updated_by_email,created_at,updated_at').eq('workspace_key', WORKSPACE_KEY).maybeSingle();
-  if (error) throw error;
-  return data ? cloudSnapshotFromRow(data) : null;
+async function readCloudSnapshot({ force = false } = {}) {
+  if (!force && cloudSnapshotResolved && Date.now() - cloudSnapshotCachedAt < CLOUD_CACHE_MAX_AGE) {
+    return cloudSnapshotCache;
+  }
+  if (cloudSnapshotPromise) return cloudSnapshotPromise;
+
+  let task;
+  task = supabase
+    .from(SETTINGS_TABLE)
+    .select('workspace_key,tools,updated_by,updated_by_email,created_at,updated_at')
+    .eq('workspace_key', WORKSPACE_KEY)
+    .maybeSingle()
+    .then(({ data, error }) => {
+      if (error) throw error;
+      return rememberCloudSnapshot(data ? cloudSnapshotFromRow(data) : null);
+    })
+    .finally(() => {
+      if (cloudSnapshotPromise === task) cloudSnapshotPromise = null;
+    });
+  cloudSnapshotPromise = task;
+  return task;
 }
 
 async function writeCloudSnapshot(user, snapshot) {
@@ -127,7 +163,7 @@ async function writeCloudSnapshot(user, snapshot) {
   const row = { workspace_key: WORKSPACE_KEY, tools: snapshot.tools, updated_by: user?.id || null, updated_by_email: user?.email || null, updated_at: now };
   const { data, error } = await supabase.from(SETTINGS_TABLE).upsert(row, { onConflict: 'workspace_key' }).select('workspace_key,tools,updated_by,updated_by_email,created_at,updated_at').single();
   if (error) throw error;
-  return cloudSnapshotFromRow(data || row);
+  return rememberCloudSnapshot(cloudSnapshotFromRow(data || row));
 }
 
 async function publishLocalMigration(user, local) {
@@ -137,11 +173,11 @@ async function publishLocalMigration(user, local) {
   return writeAiWebsiteSettingsLocal({ ...saved, source: 'supabase-migrated' });
 }
 
-export async function loadAiWebsiteSettings(user) {
+export async function loadAiWebsiteSettings(user, { force = false } = {}) {
   const local = readAiWebsiteSettingsLocal();
   if (!user || !isSupabaseConfigured || !supabase) return local;
   try {
-    const cloud = await readCloudSnapshot();
+    const cloud = await readCloudSnapshot({ force });
     if (!cloud) {
       const migrated = await publishLocalMigration(user, local);
       return migrated || writeAiWebsiteSettingsLocal({ tools: [], source: 'supabase-empty', updatedAt: new Date().toISOString(), error: '', setupRequired: false });
@@ -186,7 +222,11 @@ export function subscribeAiWebsiteSettings(user, listener) {
   if (typeof window === 'undefined') return () => {};
   const safeListener = typeof listener === 'function' ? listener : () => {};
   const localHandler = (event) => safeListener(normalizeSnapshot(event?.detail || readAiWebsiteSettingsLocal()));
-  const storageHandler = (event) => { if (event.key === LOCAL_KEY) safeListener(readAiWebsiteSettingsLocal()); };
+  const storageHandler = (event) => {
+    if (event.key !== LOCAL_KEY) return;
+    invalidateCloudSnapshotCache();
+    safeListener(readAiWebsiteSettingsLocal());
+  };
   window.addEventListener(EVENT_NAME, localHandler);
   window.addEventListener('storage', storageHandler);
 
@@ -195,8 +235,15 @@ export function subscribeAiWebsiteSettings(user, listener) {
     try {
       channel = supabase
         .channel(realtimeTopicFor(user))
-        .on('postgres_changes', { event: '*', schema: 'public', table: SETTINGS_TABLE, filter: `workspace_key=eq.${WORKSPACE_KEY}` }, () => {
-          loadAiWebsiteSettings(user).then(safeListener).catch((error) => console.warn('[AI websites] realtime refresh failed', error));
+        .on('postgres_changes', { event: '*', schema: 'public', table: SETTINGS_TABLE, filter: `workspace_key=eq.${WORKSPACE_KEY}` }, (payload) => {
+          const row = payload?.new && Object.keys(payload.new).length ? payload.new : null;
+          if (row?.workspace_key === WORKSPACE_KEY) {
+            const snapshot = rememberCloudSnapshot(cloudSnapshotFromRow(row));
+            writeAiWebsiteSettingsLocal(snapshot);
+            return;
+          }
+          invalidateCloudSnapshotCache();
+          loadAiWebsiteSettings(user, { force: true }).catch((error) => console.warn('[AI websites] realtime refresh failed', error));
         });
       channel.subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
