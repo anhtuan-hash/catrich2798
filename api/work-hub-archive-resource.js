@@ -4,6 +4,15 @@ import { normaliseResourceCategory } from './_resourceCategoryFolders.js';
 import { appendApiAudit, createRequestId, enforceRateLimit, requireApprovedUser, sendJson } from './_security.js';
 
 const MAX_ARCHIVE_BYTES = 25 * 1024 * 1024;
+const COMMENT_COLUMNS = 'id,item_id,author_id,body,attachments,created_at,updated_at';
+const WORK_ITEM_COLUMNS = 'id,title';
+const RESOURCE_COLUMNS = [
+  'id', 'title', 'description', 'category', 'grade', 'school_year', 'unit_name', 'cefr', 'skills', 'tags',
+  'source', 'copyright_status', 'visibility', 'allow_download', 'status', 'is_featured', 'uploader_id',
+  'uploader_name', 'mime_type', 'file_name', 'file_size', 'drive_file_id', 'drive_web_view_link',
+  'drive_download_link', 'ai_summary', 'ai_uses', 'checksum', 'version_number', 'parent_resource_id',
+  'created_at', 'updated_at', 'approved_at', 'approved_by', 'views', 'downloads', 'deleted_at',
+].join(',');
 
 function cleanText(value, maxLength = 500) {
   return String(value || '').trim().replace(/[\u0000-\u001f\u007f]/g, ' ').slice(0, maxLength);
@@ -17,9 +26,11 @@ function cleanTags(value) {
 async function findProfile(adminClient, userId) {
   if (!userId) return null;
   for (const column of ['id', 'user_id', 'profile_id']) {
-    const { data, error } = await adminClient.from('profiles').select('*').eq(column, userId).limit(1).maybeSingle();
-    if (!error && data) return data;
-    if (error && !/column .* does not exist|42703/i.test(String(error.message || ''))) break;
+    for (const fields of [`${column},email,full_name,role,approved`, `${column},email,role,approved`]) {
+      const { data, error } = await adminClient.from('profiles').select(fields).eq(column, userId).limit(1).maybeSingle();
+      if (!error && data) return data;
+      if (error && !/column .* does not exist|42703/i.test(String(error.message || ''))) return null;
+    }
   }
   return null;
 }
@@ -51,7 +62,7 @@ export default async function handler(req, res) {
 
     const { data: comment, error: commentError } = await context.adminClient
       .from('work_hub_comments')
-      .select('*')
+      .select(COMMENT_COLUMNS)
       .eq('id', commentId)
       .maybeSingle();
     if (commentError) throw new Error(commentError.message);
@@ -59,7 +70,7 @@ export default async function handler(req, res) {
 
     const { data: item, error: itemError } = await context.adminClient
       .from('work_hub_items')
-      .select('*')
+      .select(WORK_ITEM_COLUMNS)
       .eq('id', comment.item_id)
       .maybeSingle();
     if (itemError) throw new Error(itemError.message);
@@ -72,7 +83,7 @@ export default async function handler(req, res) {
     if (attachment.library_resource_id) {
       const { data: existingResource } = await context.adminClient
         .from('resource_items')
-        .select('*')
+        .select(RESOURCE_COLUMNS)
         .eq('id', attachment.library_resource_id)
         .maybeSingle();
       return sendJson(res, 200, {
@@ -96,7 +107,7 @@ export default async function handler(req, res) {
     const checksum = crypto.createHash('sha256').update(buffer).digest('hex');
     const { data: duplicate } = await context.adminClient
       .from('resource_items')
-      .select('*')
+      .select(RESOURCE_COLUMNS)
       .eq('checksum', checksum)
       .neq('status', 'archived')
       .limit(1)
@@ -107,7 +118,7 @@ export default async function handler(req, res) {
     const now = new Date().toISOString();
     const submitterProfile = await findProfile(context.adminClient, comment.author_id);
     const submitterName = cleanText(
-      submitterProfile?.full_name || submitterProfile?.name || submitterProfile?.email || attachment.uploaded_by || 'Giáo viên',
+      submitterProfile?.full_name || submitterProfile?.email || attachment.uploaded_by || 'Giáo viên',
       180,
     );
 
@@ -177,7 +188,7 @@ export default async function handler(req, res) {
       const { data: inserted, error: insertError } = await context.adminClient
         .from('resource_items')
         .insert(row)
-        .select('*')
+        .select(RESOURCE_COLUMNS)
         .single();
       if (insertError) throw new Error(insertError.message);
       resource = inserted;
@@ -200,7 +211,7 @@ export default async function handler(req, res) {
       ...entry,
       library_resource_id: resource.id,
       library_title: resource.title,
-      library_category: resource.category || resource.category_id || category,
+      library_category: resource.category || category,
       library_drive_file_id: resource.drive_file_id || uploaded?.id || '',
       archived_to_library_at: now,
       archived_by: context.user.id,
@@ -210,7 +221,7 @@ export default async function handler(req, res) {
       .from('work_hub_comments')
       .update({ attachments: nextAttachments, updated_at: now })
       .eq('id', comment.id)
-      .select('*')
+      .select(COMMENT_COLUMNS)
       .single();
     if (updateError) throw new Error(updateError.message);
 
@@ -223,7 +234,7 @@ export default async function handler(req, res) {
         comment_id: comment.id,
         resource_id: resource.id,
         attachment_path: sourcePath,
-        category: resource.category || resource.category_id || category,
+        category: resource.category || category,
         reused: Boolean(duplicate),
       },
     });
