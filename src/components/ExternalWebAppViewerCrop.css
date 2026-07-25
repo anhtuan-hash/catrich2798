@@ -87,88 +87,64 @@
   box-shadow: inset 0 0 0 1px rgba(60, 64, 67, .08);
 }
 
-.bes-ext-fullscreen-dock {
+.bes-ext-native-fullscreen-toggle {
   position: absolute;
   z-index: 30;
-  top: 12px;
-  right: 12px;
-  max-width: min(520px, calc(100% - 24px));
-  min-height: 54px;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 7px 8px 7px 9px;
-  border: 1px solid rgba(218, 220, 224, .9);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, .94);
-  box-shadow: 0 10px 32px rgba(32, 33, 36, .24);
-  backdrop-filter: blur(14px);
-  transition: opacity .18s ease, transform .18s ease;
-}
-
-.bes-ext-fullscreen-icon {
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
+  padding: 0;
+  border: 1px solid rgba(218, 220, 224, .82);
   border-radius: 12px;
-  background: linear-gradient(145deg, #0b57d0, #137333);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.bes-ext-fullscreen-copy {
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.bes-ext-fullscreen-copy strong,
-.bes-ext-fullscreen-copy small {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.bes-ext-fullscreen-copy strong {
-  color: #202124;
-  font-size: 14px;
-}
-
-.bes-ext-fullscreen-copy small {
-  margin-top: 2px;
-  color: #5f6368;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.bes-ext-fullscreen-dock button {
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  background: #f1f3f4;
+  background: rgba(255, 255, 255, .82);
   color: #3c4043;
-  font: inherit;
-  font-size: 20px;
-  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(32, 33, 36, .18);
+  backdrop-filter: blur(10px);
+  opacity: .76;
   cursor: pointer;
+  transition: opacity .16s ease, transform .16s ease, background .16s ease, color .16s ease;
 }
 
-.bes-ext-fullscreen-dock button:hover {
-  background: #e8f0fe;
+.bes-ext-native-fullscreen-toggle:hover,
+.bes-ext-native-fullscreen-toggle:focus-visible {
+  opacity: 1;
+  background: #fff;
   color: #0b57d0;
+  transform: translateY(-1px);
+  outline: none;
 }
 
-.bes-ext-fullscreen-dock .bes-ext-fullscreen-close {
-  background: #fce8e6;
-  color: #b3261e;
-  font-size: 25px;
+.bes-ext-native-fullscreen-toggle:focus-visible {
+  box-shadow: 0 0 0 3px rgba(11, 87, 208, .22), 0 4px 14px rgba(32, 33, 36, .18);
+}
+
+.bes-ext-native-fullscreen-toggle svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bes-ext-viewer:fullscreen,
+.bes-ext-viewer:-webkit-full-screen {
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  max-height: none !important;
+  background: #eef3f8;
+}
+
+.bes-ext-viewer:fullscreen .bes-ext-native-fullscreen-toggle,
+.bes-ext-viewer:-webkit-full-screen .bes-ext-native-fullscreen-toggle {
+  top: max(10px, env(safe-area-inset-top));
+  right: max(10px, env(safe-area-inset-right));
+  opacity: .82;
 }
 
 @media (max-width: 700px) {
@@ -176,28 +152,22 @@
     min-height: 240px;
   }
 
-  .bes-ext-fullscreen-dock {
+  .bes-ext-native-fullscreen-toggle {
     top: 8px;
     right: 8px;
-    max-width: calc(100% - 16px);
-    min-height: 48px;
-    padding: 5px 6px;
-    border-radius: 16px;
-  }
-
-  .bes-ext-fullscreen-icon,
-  .bes-ext-fullscreen-dock button {
     width: 36px;
     height: 36px;
+    border-radius: 11px;
   }
 
-  .bes-ext-fullscreen-copy small {
-    display: none;
+  .bes-ext-native-fullscreen-toggle svg {
+    width: 19px;
+    height: 19px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bes-ext-fullscreen-dock {
+  .bes-ext-native-fullscreen-toggle {
     transition: none;
   }
 }
