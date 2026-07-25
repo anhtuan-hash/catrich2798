@@ -46,6 +46,7 @@ function normalizeApp(value = {}) {
   return {
     name,
     url: safeUrl(value.url),
+    embedUrl: safeUrl(value.embedUrl),
     icon: cleanText(value.icon || name.slice(0, 2) || 'WEB', 3).toUpperCase(),
     description: cleanText(value.description, 220),
     groupId: ['plan', 'create', 'assess', 'manage'].includes(value.groupId) ? value.groupId : 'create',
@@ -53,20 +54,30 @@ function normalizeApp(value = {}) {
 }
 
 function normalizeEmbedView(value = {}) {
-  const cropWidth = clamp(value.cropWidth, 18, 100, 88);
-  const cropHeight = clamp(value.cropHeight, 18, 100, 78);
-  const cropX = clamp(value.cropX, 0, 100 - cropWidth, (100 - cropWidth) / 2);
-  const cropY = clamp(value.cropY, 0, 100 - cropHeight, (100 - cropHeight) / 2);
+  const cropWidth = clamp(value.cropWidth, 18, 100, 100);
+  const cropHeight = clamp(value.cropHeight, 18, 100, 100);
+  const cropX = clamp(value.cropX, 0, 100 - cropWidth, 0);
+  const cropY = clamp(value.cropY, 0, 100 - cropHeight, 0);
   return {
     zoom: clamp(value.zoom, 0.4, 2.4, 1),
     offsetX: clamp(value.offsetX, 0, 70, 0),
     offsetY: clamp(value.offsetY, 0, 85, 0),
-    previewHeight: clamp(value.previewHeight, 420, 900, 620),
-    canvasHeight: clamp(value.canvasHeight, 1000, 2600, 1600),
+    previewHeight: clamp(value.previewHeight, 420, 900, 900),
+    canvasHeight: clamp(value.canvasHeight, 1000, 2600, 1000),
     cropX,
     cropY,
     cropWidth,
     cropHeight,
+  };
+}
+
+function normalizeEmbedConfig(value = {}, app = {}) {
+  const sourceUrl = safeUrl(app.url);
+  return {
+    embedUrl: safeUrl(value?.embedUrl) || safeUrl(app.embedUrl) || sourceUrl,
+    hideBrianHeader: Boolean(value?.hideBrianHeader),
+    hideBrianFooter: Boolean(value?.hideBrianFooter),
+    allowFullscreen: value?.allowFullscreen !== false,
   };
 }
 
@@ -196,7 +207,18 @@ async function approveRequest(session, req, res) {
     requestId: request.id,
     submittedBy: request.requester_email || request.requester_name || '',
     approvedAt: now,
-    embedView: normalizeEmbedView(req.body?.embedView || {}),
+    embedConfig: normalizeEmbedConfig(req.body?.embedConfig || {}, app),
+    embedView: normalizeEmbedView({
+      zoom: 1,
+      offsetX: 0,
+      offsetY: 0,
+      previewHeight: 900,
+      canvasHeight: 1000,
+      cropX: 0,
+      cropY: 0,
+      cropWidth: 100,
+      cropHeight: 100,
+    }),
   };
   const nextTools = [
     ...currentTools.filter((tool) => tool?.id !== duplicate?.id),
@@ -288,7 +310,7 @@ export default async function handler(req, res) {
         permission_id: requestId,
         item_title: app.name,
         item_type: KIND,
-        message: JSON.stringify({ ...app, version: 2 }),
+        message: JSON.stringify({ ...app, version: 3 }),
         status: 'pending',
         updated_at: new Date().toISOString(),
       };
