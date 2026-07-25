@@ -1,0 +1,144 @@
+/* Navigation hover repair
+   Keep motion and light inside each pill. Prevent the global hover system from
+   producing a large clipped blue rectangle across the navigation bar. */
+
+@keyframes eh-nav-contained-sheen {
+  0% {
+    transform: translateX(-115%) skewX(-18deg);
+    opacity: 0;
+  }
+  22% {
+    opacity: .18;
+  }
+  52% {
+    opacity: .52;
+  }
+  78% {
+    opacity: .16;
+  }
+  100% {
+    transform: translateX(115%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']) {
+    position: relative !important;
+    isolation: isolate;
+    overflow: hidden !important;
+    transform: none !important;
+    translate: 0 0 !important;
+    scale: 1 !important;
+    filter: none !important;
+    animation: none !important;
+    outline: none !important;
+    z-index: auto !important;
+    will-change: auto !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button'])::after {
+    content: '';
+    position: absolute;
+    inset: -30% -48%;
+    border-radius: inherit;
+    background: linear-gradient(
+      105deg,
+      transparent 34%,
+      rgba(255, 255, 255, .18) 42%,
+      rgba(255, 255, 255, .88) 49%,
+      rgba(110, 169, 255, .30) 54%,
+      transparent 66%
+    );
+    transform: translateX(-115%) skewX(-18deg);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']):hover {
+    transform: none !important;
+    translate: 0 0 !important;
+    scale: 1 !important;
+    filter: none !important;
+    animation: none !important;
+    outline: none !important;
+    border-color: rgba(85, 135, 218, .38) !important;
+    background: rgba(246, 250, 255, .90) !important;
+    color: #0b57d0 !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, .98),
+      inset 0 0 0 1px rgba(66, 133, 244, .10),
+      inset 0 0 18px rgba(66, 133, 244, .10),
+      0 5px 14px rgba(47, 84, 146, .12) !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']):hover::after {
+    animation: eh-nav-contained-sheen 1.35s cubic-bezier(.4, 0, .2, 1) infinite;
+  }
+
+  html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']).is-active {
+    overflow: hidden !important;
+    outline: none !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, .98),
+      inset 0 0 0 1px rgba(66, 133, 244, .18),
+      0 5px 14px rgba(45, 105, 196, .14) !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']).is-active:hover {
+    border-color: rgba(66, 133, 244, .48) !important;
+    background:
+      radial-gradient(circle at 18% 8%, rgba(255, 255, 255, .96), transparent 46%),
+      rgba(220, 235, 255, .96) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, .98),
+      inset 0 0 0 1px rgba(66, 133, 244, .22),
+      inset 0 0 20px rgba(66, 133, 244, .13),
+      0 6px 16px rgba(45, 105, 196, .16) !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']):active {
+    transform: none !important;
+    translate: 0 0 !important;
+    scale: .98 !important;
+    animation: none !important;
+    filter: brightness(.99) !important;
+    box-shadow:
+      inset 0 2px 5px rgba(35, 69, 128, .13),
+      0 2px 7px rgba(47, 84, 146, .10) !important;
+  }
+}
+
+html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']):focus-visible {
+  outline: 3px solid rgba(26, 115, 232, .24) !important;
+  outline-offset: 2px !important;
+}
+
+html[data-theme='dark'] body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']):hover,
+body.theme-dark .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']):hover {
+  border-color: rgba(168, 199, 250, .38) !important;
+  background: rgba(47, 61, 88, .94) !important;
+  color: #c7dcff !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .10),
+    inset 0 0 0 1px rgba(168, 199, 250, .11),
+    inset 0 0 18px rgba(118, 167, 255, .10),
+    0 5px 14px rgba(0, 0, 0, .24) !important;
+}
+
+html[data-theme='dark'] body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']).is-active:hover,
+body.theme-dark .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']).is-active:hover {
+  background: linear-gradient(135deg, rgba(45, 76, 124, .96), rgba(55, 58, 111, .94)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .12),
+    inset 0 0 0 1px rgba(168, 199, 250, .18),
+    inset 0 0 20px rgba(118, 167, 255, .13),
+    0 6px 16px rgba(0, 0, 0, .28) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button'])::after {
+    display: none !important;
+    animation: none !important;
+  }
+}
