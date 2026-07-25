@@ -46,7 +46,7 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
   const manager = canManageAiWebsites(currentUser);
   const [route, setRoute] = useState(() => location.hash.replace(/^#\//, '').split('?')[0]);
   const [hosts, setHosts] = useState({ hero: null, grid: null });
-  const [data, setData] = useState({ approved: [], requests: [] });
+  const [data, setData] = useState({ approved: [], mine: [], requests: [] });
   const [dialog, setDialog] = useState(false);
   const [active, setActive] = useState(null);
   const pending = useMemo(() => data.requests.filter((request) => request.status === 'pending').length, [data.requests]);
@@ -82,13 +82,17 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
     let activeSubscription = true;
     let unsubscribe = () => {};
     const applyData = (next) => { if (activeSubscription && next) setData(next); };
+    const includeRequests = manager;
 
-    loadExternalWebApps(currentUser)
+    // Teachers only need the approved app list on the Apps page. Their own request
+    // history is loaded lazily after they open the add-app dialog. This removes one
+    // authenticated API call every time a teacher visits the Apps route.
+    loadExternalWebApps(currentUser, { includeRequests })
       .then(applyData)
       .catch((error) => console.warn('[External apps] initial load failed; add-app controls remain available', error));
 
     try {
-      unsubscribe = subscribeExternalWebApps(currentUser, applyData) || (() => {});
+      unsubscribe = subscribeExternalWebApps(currentUser, applyData, { includeRequests }) || (() => {});
     } catch (error) {
       console.warn('[External apps] realtime disabled; add-app controls remain available', error);
     }
@@ -97,7 +101,7 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
       activeSubscription = false;
       try { unsubscribe?.(); } catch (error) { console.warn('[External apps] subscription cleanup failed', error); }
     };
-  }, [currentUser?.id, currentUser?.email, currentUser?.role, route]);
+  }, [currentUser?.id, currentUser?.email, currentUser?.role, manager, route]);
 
   if (!currentUser || route !== 'apps') return null;
 
