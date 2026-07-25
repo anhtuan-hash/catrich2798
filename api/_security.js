@@ -2,6 +2,9 @@ import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
 
 const localWindows = new Map();
+const authorizationCache = new Map();
+const authorizationPromises = new Map();
+const AUTHORIZATION_CACHE_TTL = 5 * 60 * 1000;
 const ROLE_ALIASES = new Map([
   ['admin', 'admin'], ['administrator', 'admin'],
   ['ttcm', 'department_head'], ['leader', 'department_head'], ['head', 'department_head'],
@@ -70,13 +73,51 @@ async function readAssignedRole(client, userId) {
   return '';
 }
 
+function missingColumn(error) {
+  return /column .* does not exist|42703/i.test(String(error?.message || error || ''));
+}
+
 async function readProfile(client, userId) {
   for (const column of ['id', 'user_id', 'profile_id']) {
-    const { data, error } = await client.from('profiles').select('*').eq(column, userId).limit(1).maybeSingle();
-    if (!error && data) return data;
-    if (error && !/column .* does not exist|42703/i.test(String(error.message || ''))) break;
+    const projections = [
+      `${column},email,full_name,role,approved,is_approved,status`,
+      `${column},email,full_name,role,approved,status`,
+      `${column},email,role,approved,status`,
+      `${column},email,role,approved`,
+      `${column},email,role`,
+    ];
+    let identityColumnMissing = false;
+    for (const projection of projections) {
+      const { data, error } = await client.from('profiles').select(projection).eq(column, userId).limit(1).maybeSingle();
+      if (!error && data) return data;
+      if (!error) break;
+      if (!missingColumn(error)) return null;
+      if (String(error.message || '').includes(`profiles.${column}`) || String(error.message || '').includes(`column ${column}`)) {
+        identityColumnMissing = true;
+        break;
+      }
+    }
+    if (!identityColumnMissing) continue;
   }
   return null;
+}
+
+async function readAuthorization(client, userId) {
+  const key = String(userId || '');
+  const cached = authorizationCache.get(key);
+  if (cached && Date.now() - cached.storedAt < AUTHORIZATION_CACHE_TTL) return cached.value;
+  if (authorizationPromises.has(key)) return authorizationPromises.get(key);
+
+  const task = Promise.all([
+    readAssignedRole(client, userId),
+    readProfile(client, userId),
+  ]).then(([assignedRole, profile]) => {
+    const value = { assignedRole, profile };
+    authorizationCache.set(key, { value, storedAt: Date.now() });
+    return value;
+  }).finally(() => authorizationPromises.delete(key));
+  authorizationPromises.set(key, task);
+  return task;
 }
 
 function profileApproved(profile = {}) {
@@ -93,6 +134,8 @@ export async function requireApprovedUser(req, { roles = [] } = {}) {
     throw error;
   }
   const admin = adminClient();
+  // Keep server-side token verification on every request. Only the following
+  // profile/role PostgREST reads are cached for a short warm-function window.
   const { data, error } = await admin.auth.getUser(token);
   if (error || !data?.user) {
     const authError = new Error('Invalid or expired user session.');
@@ -100,10 +143,7 @@ export async function requireApprovedUser(req, { roles = [] } = {}) {
     throw authError;
   }
   const user = data.user;
-  const [assignedRole, profile] = await Promise.all([
-    readAssignedRole(admin, user.id),
-    readProfile(admin, user.id),
-  ]);
+  const { assignedRole, profile } = await readAuthorization(admin, user.id);
   const metadataRole = user.app_metadata?.role || user.user_metadata?.role || '';
   const role = assignedRole || normalizeRole(profile?.role || metadataRole || 'teacher');
   if (!profileApproved(profile || {})) {
