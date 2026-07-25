@@ -9,6 +9,7 @@ import {
 } from '../motion/englishHubMotionCore.js';
 import '../motion/EnglishHubMotionCore.css';
 import '../motion/EnglishHubInteractiveHover.css';
+import './GlobalInteractiveHoverFinal.css';
 
 const CARD_SELECTOR = [
   '.flat-app-window-card',
