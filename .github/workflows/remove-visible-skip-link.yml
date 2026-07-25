@@ -1,0 +1,41 @@
+name: Remove visible skip link
+
+on:
+  push:
+    paths:
+      - .github/workflows/remove-visible-skip-link.yml
+
+permissions:
+  contents: write
+
+jobs:
+  remove-skip-link:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove skip-to-content link from source
+        shell: python
+        run: |
+          from pathlib import Path
+
+          source = Path("src/main.jsx")
+          content = source.read_text(encoding="utf-8")
+          target = "      <a className=\"bes-skip-link\" href=\"#bes-main-content\">{language === 'vi' ? 'Bỏ qua đến nội dung chính' : 'Skip to main content'}</a>\n"
+
+          if target not in content:
+              raise SystemExit("Expected skip-link source was not found; no files were changed.")
+
+          source.write_text(content.replace(target, "", 1), encoding="utf-8")
+          Path(".github/workflows/remove-visible-skip-link.yml").unlink()
+
+      - name: Commit the removal
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Remove skip-to-content layer"
+          git push
