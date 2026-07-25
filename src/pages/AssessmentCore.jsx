@@ -11,25 +11,44 @@ const ASSESSMENT_ITEM_COLUMNS = 'id,owner_id,visibility,status,question_type,ste
 const BLUEPRINT_COLUMNS = 'id,owner_id,visibility,title,total_items,criteria,created_at,updated_at';
 const TEST_COLUMNS = 'id,owner_id,blueprint_id,visibility,title,status,settings,created_at,updated_at';
 const TEST_ITEM_COLUMNS = 'test_id,item_id,position,option_order,points';
-const ASSESSMENT_CACHE_TTL = 10 * 60 * 1000;
-const assessmentCache = new Map();
+const ASSESSMENT_CACHE_TTL = 60 * 60 * 1000;
+const assessmentBankCache = new Map();
+const assessmentTestCache = new Map();
+const assessmentLinkCache = new Map();
+const assessmentLinkPromises = new Map();
 
 function assessmentCacheKey(user) {
   return String(user?.id || user?.email || 'guest');
 }
 
-function readAssessmentCache(user) {
-  const cached = assessmentCache.get(assessmentCacheKey(user));
+function readAssessmentCache(cache, key) {
+  const cached = cache.get(key);
   if (!cached || Date.now() - cached.storedAt > ASSESSMENT_CACHE_TTL) return null;
   return cached.value;
 }
 
-function writeAssessmentCache(user, value) {
-  assessmentCache.set(assessmentCacheKey(user), { storedAt: Date.now(), value });
+function writeAssessmentCache(cache, key, value) {
+  cache.set(key, { storedAt: Date.now(), value });
+}
+
+function assessmentLinkCacheKey(user, testId) {
+  return `${assessmentCacheKey(user)}:${String(testId || '')}`;
+}
+
+function clearAssessmentTestCache(user) {
+  const userKey = assessmentCacheKey(user);
+  assessmentTestCache.delete(userKey);
+  [...assessmentLinkCache.keys()].forEach((key) => {
+    if (key.startsWith(`${userKey}:`)) assessmentLinkCache.delete(key);
+  });
+  [...assessmentLinkPromises.keys()].forEach((key) => {
+    if (key.startsWith(`${userKey}:`)) assessmentLinkPromises.delete(key);
+  });
 }
 
 function clearAssessmentCache(user) {
-  assessmentCache.delete(assessmentCacheKey(user));
+  assessmentBankCache.delete(assessmentCacheKey(user));
+  clearAssessmentTestCache(user);
 }
 
 function normalizeOptions(value) {
@@ -101,33 +120,30 @@ export default function AssessmentCore({ currentUser }) {
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const loadPromiseRef = useRef(null);
+  const testLoadPromiseRef = useRef(null);
 
   const load = useCallback(async ({ force = false } = {}) => {
     if (client && runtime.session) {
-      const cached = force ? null : readAssessmentCache(currentUser);
+      const key = assessmentCacheKey(currentUser);
+      const cached = force ? null : readAssessmentCache(assessmentBankCache, key);
       if (cached) {
-        setItems(cached.items); setBlueprints(cached.blueprints); setTests(cached.tests); setTestLinks(cached.testLinks);
+        setItems(cached.items);
         return;
       }
       if (loadPromiseRef.current) return loadPromiseRef.current;
       const task = (async () => {
-        const results = await Promise.all([
-          client.from('assessment_items').select(ASSESSMENT_ITEM_COLUMNS).order('updated_at', { ascending: false }).limit(3000),
-          client.from('assessment_blueprints').select(BLUEPRINT_COLUMNS).order('updated_at', { ascending: false }).limit(300),
-          client.from('assessment_tests').select(TEST_COLUMNS).order('updated_at', { ascending: false }).limit(300),
-          client.from('assessment_test_items').select(TEST_ITEM_COLUMNS).order('position').limit(10000),
-        ]);
-        const firstError = results.find((result) => result.error)?.error;
-        if (!firstError) {
-          const value = {
-            items: (results[0].data || []).map((item) => ({ ...item, options: normalizeOptions(item.options) })),
-            blueprints: results[1].data || [], tests: results[2].data || [], testLinks: results[3].data || [],
-          };
-          writeAssessmentCache(currentUser, value);
-          setItems(value.items); setBlueprints(value.blueprints); setTests(value.tests); setTestLinks(value.testLinks);
+        const result = await client
+          .from('assessment_items')
+          .select(ASSESSMENT_ITEM_COLUMNS)
+          .order('updated_at', { ascending: false })
+          .limit(3000);
+        if (!result.error) {
+          const value = { items: (result.data || []).map((item) => ({ ...item, options: normalizeOptions(item.options) })) };
+          writeAssessmentCache(assessmentBankCache, key, value);
+          setItems(value.items);
           return true;
         }
-        if (!/does not exist|schema cache/i.test(firstError.message || '')) setError(firstError.message);
+        if (!/does not exist|schema cache/i.test(result.error.message || '')) setError(result.error.message);
         return false;
       })();
       loadPromiseRef.current = task;
@@ -137,6 +153,64 @@ export default function AssessmentCore({ currentUser }) {
     const local = readLocal(localKey, { items: [], blueprints: [], tests: [], testLinks: [] });
     setItems(local.items || []); setBlueprints(local.blueprints || []); setTests(local.tests || []); setTestLinks(local.testLinks || []);
   }, [client, currentUser?.id, currentUser?.email, localKey, runtime.session]);
+
+  const loadTestData = useCallback(async ({ force = false } = {}) => {
+    if (!(client && runtime.session)) return;
+    const key = assessmentCacheKey(currentUser);
+    const cached = force ? null : readAssessmentCache(assessmentTestCache, key);
+    if (cached) {
+      setBlueprints(cached.blueprints);
+      setTests(cached.tests);
+      return cached;
+    }
+    if (testLoadPromiseRef.current) return testLoadPromiseRef.current;
+    const task = (async () => {
+      const results = await Promise.all([
+        client.from('assessment_blueprints').select(BLUEPRINT_COLUMNS).order('updated_at', { ascending: false }).limit(300),
+        client.from('assessment_tests').select(TEST_COLUMNS).order('updated_at', { ascending: false }).limit(300),
+      ]);
+      const firstError = results.find((result) => result.error)?.error;
+      if (firstError) {
+        if (!/does not exist|schema cache/i.test(firstError.message || '')) setError(firstError.message);
+        return null;
+      }
+      const value = { blueprints: results[0].data || [], tests: results[1].data || [] };
+      writeAssessmentCache(assessmentTestCache, key, value);
+      setBlueprints(value.blueprints);
+      setTests(value.tests);
+      return value;
+    })();
+    testLoadPromiseRef.current = task;
+    try { return await task; }
+    finally { testLoadPromiseRef.current = null; }
+  }, [client, currentUser?.id, currentUser?.email, runtime.session]);
+
+  const loadTestLinks = useCallback(async (testId, { force = false } = {}) => {
+    if (!(client && runtime.session) || !testId) return [];
+    const key = assessmentLinkCacheKey(currentUser, testId);
+    const cached = force ? null : readAssessmentCache(assessmentLinkCache, key);
+    if (cached) {
+      setTestLinks((current) => [...current.filter((link) => link.test_id !== testId), ...cached]);
+      return cached;
+    }
+    if (!force && assessmentLinkPromises.has(key)) return assessmentLinkPromises.get(key);
+    const task = client
+      .from('assessment_test_items')
+      .select(TEST_ITEM_COLUMNS)
+      .eq('test_id', testId)
+      .order('position')
+      .limit(200)
+      .then(({ data, error }) => {
+        if (error) throw error;
+        const links = data || [];
+        writeAssessmentCache(assessmentLinkCache, key, links);
+        setTestLinks((current) => [...current.filter((link) => link.test_id !== testId), ...links]);
+        return links;
+      })
+      .finally(() => assessmentLinkPromises.delete(key));
+    assessmentLinkPromises.set(key, task);
+    return task;
+  }, [client, currentUser?.id, currentUser?.email, runtime.session]);
 
   useEffect(() => {
     const transfer = safeJsonParse(sessionStorage.getItem('bes-v1093-content-to-assessment'), null);
@@ -148,6 +222,17 @@ export default function AssessmentCore({ currentUser }) {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (tab === 'tests') loadTestData().catch((loadError) => setError(loadError.message || String(loadError)));
+  }, [tab, loadTestData]);
+
+  const selectedTest = tests.find((test) => test.id === selectedTestId) || tests[0] || null;
+
+  useEffect(() => {
+    if (tab !== 'tests' || !selectedTest?.id) return;
+    loadTestLinks(selectedTest.id).catch((loadError) => setError(loadError.message || String(loadError)));
+  }, [tab, selectedTest?.id, loadTestLinks]);
+
   function persistLocal(next) { writeLocal(localKey, next); }
 
   const filteredItems = useMemo(() => items.filter((item) => {
@@ -156,7 +241,6 @@ export default function AssessmentCore({ currentUser }) {
     return `${item.stem} ${item.topic} ${item.skill}`.toLowerCase().includes(query.trim().toLowerCase());
   }), [items, query, skillFilter, cefrFilter]);
 
-  const selectedTest = tests.find((test) => test.id === selectedTestId) || tests[0] || null;
   const selectedTestItems = useMemo(() => {
     if (!selectedTest) return [];
     return testLinks.filter((link) => link.test_id === selectedTest.id).sort((a,b) => a.position - b.position).map((link) => items.find((item) => item.id === link.item_id)).filter(Boolean);
@@ -170,14 +254,18 @@ export default function AssessmentCore({ currentUser }) {
       let saved;
       if (client && runtime.session) {
         clearAssessmentCache(currentUser);
-        const { data, error: insertError } = await client.from('assessment_items').insert(payload).select('*');
+        const { data, error: insertError } = await client.from('assessment_items').insert(payload).select(ASSESSMENT_ITEM_COLUMNS);
         if (insertError) throw insertError;
         saved = (data || []).map((item) => ({ ...item, options: normalizeOptions(item.options) }));
       } else {
         saved = payload.map((item) => ({ ...item, id: uid('question'), created_at: new Date().toISOString() }));
         persistLocal({ items: [...saved, ...items], blueprints, tests, testLinks });
       }
-      setItems((current) => [...saved, ...current]); setPreviewItems([]); setImportText(''); setTab('bank'); setNotice(`Đã thêm ${saved.length} câu vào ngân hàng.`);
+      setItems((current) => {
+        const next = [...saved, ...current];
+        writeAssessmentCache(assessmentBankCache, assessmentCacheKey(currentUser), { items: next });
+        return next;
+      }); setPreviewItems([]); setImportText(''); setTab('bank'); setNotice(`Đã thêm ${saved.length} câu vào ngân hàng.`);
     } catch (saveError) { setError(saveError.message || String(saveError)); }
     finally { setBusy(false); }
   }
@@ -189,15 +277,18 @@ export default function AssessmentCore({ currentUser }) {
     setBusy(true); setError('');
     try {
       let blueprintRow; let testRow; let links;
+      const loadedTestData = client && runtime.session ? await loadTestData() : null;
+      const baseBlueprints = loadedTestData?.blueprints || blueprints;
+      const baseTests = loadedTestData?.tests || tests;
       if (client && runtime.session) {
-        clearAssessmentCache(currentUser);
-        const { data: savedBlueprint, error: blueprintError } = await client.from('assessment_blueprints').insert({ owner_id: currentUser.id, title: blueprint.title, total_items: Number(blueprint.total_items), criteria: { levels: blueprint.levels, skills: blueprint.skills, avoid_used: blueprint.avoid_used } }).select('*').single();
+        clearAssessmentTestCache(currentUser);
+        const { data: savedBlueprint, error: blueprintError } = await client.from('assessment_blueprints').insert({ owner_id: currentUser.id, title: blueprint.title, total_items: Number(blueprint.total_items), criteria: { levels: blueprint.levels, skills: blueprint.skills, avoid_used: blueprint.avoid_used } }).select(BLUEPRINT_COLUMNS).single();
         if (blueprintError) throw blueprintError;
         blueprintRow = savedBlueprint;
-        const { data: savedTest, error: testError } = await client.from('assessment_tests').insert({ owner_id: currentUser.id, blueprint_id: blueprintRow.id, title: blueprint.title, status: 'draft', settings: { shuffle_questions: true, shuffle_options: true, release_score: 'manual' } }).select('*').single();
+        const { data: savedTest, error: testError } = await client.from('assessment_tests').insert({ owner_id: currentUser.id, blueprint_id: blueprintRow.id, title: blueprint.title, status: 'draft', settings: { shuffle_questions: true, shuffle_options: true, release_score: 'manual' } }).select(TEST_COLUMNS).single();
         if (testError) throw testError;
         testRow = savedTest;
-        const { data: savedLinks, error: linkError } = await client.from('assessment_test_items').insert(selected.map((item,index) => ({ test_id: testRow.id, item_id: item.id, position: index + 1, option_order: [], points: 1 }))).select('*');
+        const { data: savedLinks, error: linkError } = await client.from('assessment_test_items').insert(selected.map((item,index) => ({ test_id: testRow.id, item_id: item.id, position: index + 1, option_order: [], points: 1 }))).select(TEST_ITEM_COLUMNS);
         if (linkError) throw linkError;
         links = savedLinks || [];
       } else {
@@ -206,7 +297,11 @@ export default function AssessmentCore({ currentUser }) {
         links = selected.map((item,index) => ({ test_id: testRow.id, item_id: item.id, position: index + 1, points: 1 }));
         persistLocal({ items, blueprints: [blueprintRow, ...blueprints], tests: [testRow, ...tests], testLinks: [...links, ...testLinks] });
       }
-      setBlueprints((current) => [blueprintRow, ...current]); setTests((current) => [testRow, ...current]); setTestLinks((current) => [...links, ...current]); setSelectedTestId(testRow.id); setTab('tests'); setNotice(`Đã tạo đề gồm ${selected.length} câu.`);
+      const nextBlueprints = [blueprintRow, ...baseBlueprints.filter((entry) => entry.id !== blueprintRow.id)];
+      const nextTests = [testRow, ...baseTests.filter((entry) => entry.id !== testRow.id)];
+      writeAssessmentCache(assessmentTestCache, assessmentCacheKey(currentUser), { blueprints: nextBlueprints, tests: nextTests });
+      writeAssessmentCache(assessmentLinkCache, assessmentLinkCacheKey(currentUser, testRow.id), links);
+      setBlueprints(nextBlueprints); setTests(nextTests); setTestLinks((current) => [...links, ...current.filter((link) => link.test_id !== testRow.id)]); setSelectedTestId(testRow.id); setTab('tests'); setNotice(`Đã tạo đề gồm ${selected.length} câu.`);
     } catch (createError) { setError(createError.message || String(createError)); }
     finally { setBusy(false); }
   }
@@ -233,6 +328,6 @@ export default function AssessmentCore({ currentUser }) {
 
     {tab === 'blueprint' && <section className="v1093-panel v1093-blueprint"><div className="v1093-panel-heading"><div><span>Ma trận đề</span><h2>Tạo đề từ ngân hàng</h2></div><button className="v1093-primary" onClick={createBlueprintAndTest} disabled={busy}>Tạo đề</button></div><label>Tên đề<input value={blueprint.title} onChange={(e) => setBlueprint({ ...blueprint, title: e.target.value })} /></label><label>Số câu<input type="number" min="5" max="200" value={blueprint.total_items} onChange={(e) => setBlueprint({ ...blueprint, total_items: e.target.value })} /></label><div className="v1093-blueprint-groups"><section><h3>CEFR</h3>{CEFR.map((value) => <button key={value} className={blueprint.levels.includes(value) ? 'active' : ''} onClick={() => toggleArray('levels', value)}>{value}</button>)}</section><section><h3>Kỹ năng</h3>{SKILLS.map((value) => <button key={value} className={blueprint.skills.includes(value) ? 'active' : ''} onClick={() => toggleArray('skills', value)}>{value}</button>)}</section></div><p>Hệ thống sẽ chọn ngẫu nhiên tối đa {blueprint.total_items} câu phù hợp từ {items.length} câu hiện có.</p></section>}
 
-    {tab === 'tests' && <section className="v1093-tests-layout"><aside className="v1093-project-sidebar"><div className="v1093-panel-heading"><div><span>Đề đã tạo</span><h2>{tests.length}</h2></div></div><div className="v1093-project-list">{tests.map((test) => <article key={test.id} className={selectedTest?.id === test.id ? 'active' : ''}><button onClick={() => setSelectedTestId(test.id)}><b>{test.title}</b><span>{testLinks.filter((link) => link.test_id === test.id).length} câu · {test.status}</span></button></article>)}</div></aside><main className="v1093-panel"><div className="v1093-panel-heading"><div><span>Đề thi</span><h2>{selectedTest?.title || 'Chưa chọn đề'}</h2></div><div><button disabled={!selectedTest} onClick={() => downloadText(`${selectedTest.title}.json`, JSON.stringify({ test: selectedTest, items: selectedTestItems }, null, 2), 'application/json')}>JSON</button><button disabled={!selectedTest} onClick={() => downloadText(`${selectedTest.title}.html`, renderTestHtml(selectedTest, selectedTestItems), 'text/html;charset=utf-8')}>HTML/PDF</button><button disabled={!selectedTest} onClick={exportCodes}>4 mã đề</button></div></div>{selectedTest ? <div className="v1093-test-preview">{selectedTestItems.map((item,index) => <article key={item.id}><b>{index + 1}. {item.stem}</b>{item.options?.map((option,optionIndex) => <span key={optionIndex}>{String.fromCharCode(65 + optionIndex)}. {option}</span>)}<small>Đáp án: {item.correct_answer}</small></article>)}</div> : <div className="v1093-empty"><strong>Chưa có đề thi</strong><span>Tạo blueprint để sinh đề.</span></div>}</main></section>}
+    {tab === 'tests' && <section className="v1093-tests-layout"><aside className="v1093-project-sidebar"><div className="v1093-panel-heading"><div><span>Đề đã tạo</span><h2>{tests.length}</h2></div></div><div className="v1093-project-list">{tests.map((test) => { const loadedCount = testLinks.filter((link) => link.test_id === test.id).length; return <article key={test.id} className={selectedTest?.id === test.id ? 'active' : ''}><button onClick={() => setSelectedTestId(test.id)}><b>{test.title}</b><span>{loadedCount ? `${loadedCount} câu` : 'Mở để tải câu'} · {test.status}</span></button></article>; })}</div></aside><main className="v1093-panel"><div className="v1093-panel-heading"><div><span>Đề thi</span><h2>{selectedTest?.title || 'Chưa chọn đề'}</h2></div><div><button disabled={!selectedTest} onClick={() => downloadText(`${selectedTest.title}.json`, JSON.stringify({ test: selectedTest, items: selectedTestItems }, null, 2), 'application/json')}>JSON</button><button disabled={!selectedTest} onClick={() => downloadText(`${selectedTest.title}.html`, renderTestHtml(selectedTest, selectedTestItems), 'text/html;charset=utf-8')}>HTML/PDF</button><button disabled={!selectedTest} onClick={exportCodes}>4 mã đề</button></div></div>{selectedTest ? <div className="v1093-test-preview">{selectedTestItems.map((item,index) => <article key={item.id}><b>{index + 1}. {item.stem}</b>{item.options?.map((option,optionIndex) => <span key={optionIndex}>{String.fromCharCode(65 + optionIndex)}. {option}</span>)}<small>Đáp án: {item.correct_answer}</small></article>)}</div> : <div className="v1093-empty"><strong>Chưa có đề thi</strong><span>Tạo blueprint để sinh đề.</span></div>}</main></section>}
   </section>;
 }
