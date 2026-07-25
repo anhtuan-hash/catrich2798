@@ -86,7 +86,7 @@ html body .app-shell[data-route] :where(
     [data-clickable='true'],
     [data-eh-interactive='true'][data-eh-interactive-kind='control']
   ):not([data-hover-ignore='true']):not([data-motion-ignore='true']):not([data-eh-motion-card='true']):hover {
-    translate: 0 -2px;
+    translate: 0 0;
     filter:
       brightness(1.035)
       saturate(1.045)
@@ -131,7 +131,7 @@ html body .app-shell[data-route] :where(
 
   /* Links that wrap a card or tile behave as one interactive surface. */
   html body .app-shell[data-route] a[href][data-eh-interactive-kind='control']:not([data-hover-ignore='true']):hover {
-    translate: 0 -2px;
+    translate: 0 0;
     filter:
       brightness(1.035)
       saturate(1.045)
