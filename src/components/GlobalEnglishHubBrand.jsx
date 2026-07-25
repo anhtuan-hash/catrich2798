@@ -38,21 +38,41 @@ function applyEnglishHubBrand() {
   }
 }
 
+function hasExpectedTargets() {
+  const route = window.location.hash.replace(/^#\/?/, '').split(/[?&]/)[0] || 'home';
+  const hasNavigation = Boolean(document.querySelector('.brian-nav__brand'));
+  const hasHome = route !== 'home' || Boolean(document.querySelector('.brian-overlap-home'));
+  return hasNavigation && hasHome;
+}
+
 export default function GlobalEnglishHubBrand() {
   useEffect(() => {
     let frame = 0;
-    const scheduleApply = () => {
+    let cancelled = false;
+
+    const applyWhenReady = () => {
       window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(applyEnglishHubBrand);
+      let attempts = 0;
+
+      const apply = () => {
+        if (cancelled) return;
+        applyEnglishHubBrand();
+        attempts += 1;
+        if (!hasExpectedTargets() && attempts < 60) frame = window.requestAnimationFrame(apply);
+      };
+
+      apply();
     };
 
-    applyEnglishHubBrand();
-    const observer = new MutationObserver(scheduleApply);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    applyWhenReady();
+    window.addEventListener('hashchange', applyWhenReady);
+    window.addEventListener('brian:navigation-updated', applyWhenReady);
 
     return () => {
+      cancelled = true;
       window.cancelAnimationFrame(frame);
-      observer.disconnect();
+      window.removeEventListener('hashchange', applyWhenReady);
+      window.removeEventListener('brian:navigation-updated', applyWhenReady);
     };
   }, []);
 

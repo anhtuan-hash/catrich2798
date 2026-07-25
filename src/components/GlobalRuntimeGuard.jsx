@@ -9,8 +9,6 @@ const UsernameLoginBridge = lazy(() => import('./UsernameLoginBridge.jsx'));
 const BulkTeacherAccountsPanel = lazy(() => import('./BulkTeacherAccountsPanel.jsx'));
 const UsernameAccountCenter = lazy(() => import('./UsernameAccountCenter.jsx'));
 
-const NO_ATMOSPHERE_ROUTES = new Set(['login', 'register', 'setup', 'homeroom-portal']);
-
 function currentRoute() {
   if (typeof window === 'undefined') return 'home';
   return window.location.hash.replace(/^#\/?/, '').split(/[?&]/)[0].trim() || 'home';
@@ -61,7 +59,10 @@ export default function GlobalRuntimeGuard({ language = 'vi' }) {
   }, []);
 
   const showRuntimeBanner = !online || Boolean(runtimeMessage);
-  const showAtmosphere = decorationsReady && !NO_ATMOSPHERE_ROUTES.has(route);
+  // The full-screen decorative layer is now limited to Home. Keeping a fixed
+  // composited layer alive over every scroll-heavy workspace caused avoidable
+  // repaint/compositor pressure even when its opacity was very low.
+  const showAtmosphere = decorationsReady && route === 'home';
   const showLoginBridge = route === 'login' || route === 'register';
   const showAdminTools = route === 'admin';
   const showAccountCenter = route === 'settings';
