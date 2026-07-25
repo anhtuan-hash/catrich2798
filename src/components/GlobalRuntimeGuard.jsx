@@ -1,17 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import VietnamAtmosphereOverlay from './VietnamAtmosphereOverlay.jsx';
-import VietnamCuratedAtmosphereOverlay from './VietnamCuratedAtmosphereOverlay.jsx';
-import VietnamAtmosphereAdminPanel from './VietnamAtmosphereAdminPanel.jsx';
-import UsernameLoginBridge from './UsernameLoginBridge.jsx';
-import BulkTeacherAccountsPanel from './BulkTeacherAccountsPanel.jsx';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import './BulkTeacherAccountsPanelCompact.css';
 import '../styles/TopChromeDividerFix.css';
-import UsernameAccountCenter from './UsernameAccountCenter.jsx';
 import { recordRuntimeError } from '../utils/runtimeDiagnostics.js';
+
+const VietnamCuratedAtmosphereOverlay = lazy(() => import('./VietnamCuratedAtmosphereOverlay.jsx'));
+const VietnamAtmosphereAdminPanel = lazy(() => import('./VietnamAtmosphereAdminPanel.jsx'));
+const UsernameLoginBridge = lazy(() => import('./UsernameLoginBridge.jsx'));
+const BulkTeacherAccountsPanel = lazy(() => import('./BulkTeacherAccountsPanel.jsx'));
+const UsernameAccountCenter = lazy(() => import('./UsernameAccountCenter.jsx'));
+
+const NO_ATMOSPHERE_ROUTES = new Set(['login', 'register', 'setup', 'homeroom-portal']);
+
+function currentRoute() {
+  if (typeof window === 'undefined') return 'home';
+  return window.location.hash.replace(/^#\/?/, '').split(/[?&]/)[0].trim() || 'home';
+}
 
 export default function GlobalRuntimeGuard({ language = 'vi' }) {
   const [online, setOnline] = useState(() => navigator.onLine);
   const [runtimeMessage, setRuntimeMessage] = useState('');
+  const [route, setRoute] = useState(currentRoute);
+  const [decorationsReady, setDecorationsReady] = useState(false);
 
   useEffect(() => {
     const onOnline = () => setOnline(true);
@@ -25,28 +34,47 @@ export default function GlobalRuntimeGuard({ language = 'vi' }) {
       const record = recordRuntimeError({ scope: 'unhandled-rejection', message: reason?.message || String(reason || 'Unhandled promise rejection'), error: reason });
       setRuntimeMessage(record.message);
     };
+    const onHashChange = () => setRoute(currentRoute());
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
     window.addEventListener('error', onError);
     window.addEventListener('unhandledrejection', onRejection);
+    window.addEventListener('hashchange', onHashChange);
     return () => {
       window.removeEventListener('online', onOnline);
       window.removeEventListener('offline', onOffline);
       window.removeEventListener('error', onError);
       window.removeEventListener('unhandledrejection', onRejection);
+      window.removeEventListener('hashchange', onHashChange);
     };
   }, []);
 
+  useEffect(() => {
+    if (navigator.connection?.saveData) return undefined;
+    const reveal = () => setDecorationsReady(true);
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(reveal, { timeout: 1400 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+    const timer = window.setTimeout(reveal, 700);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   const showRuntimeBanner = !online || Boolean(runtimeMessage);
+  const showAtmosphere = decorationsReady && !NO_ATMOSPHERE_ROUTES.has(route);
+  const showLoginBridge = route === 'login' || route === 'register';
+  const showAdminTools = route === 'admin';
+  const showAccountCenter = route === 'settings';
 
   return (
     <>
-      <UsernameLoginBridge language={language} />
-      <VietnamAtmosphereOverlay />
-      <VietnamCuratedAtmosphereOverlay />
-      <VietnamAtmosphereAdminPanel language={language} />
-      <BulkTeacherAccountsPanel language={language} />
-      <UsernameAccountCenter language={language} />
+      <Suspense fallback={null}>
+        {showLoginBridge ? <UsernameLoginBridge language={language} /> : null}
+        {showAtmosphere ? <VietnamCuratedAtmosphereOverlay /> : null}
+        {showAdminTools ? <VietnamAtmosphereAdminPanel language={language} /> : null}
+        {showAdminTools ? <BulkTeacherAccountsPanel language={language} /> : null}
+        {showAccountCenter ? <UsernameAccountCenter language={language} /> : null}
+      </Suspense>
       {showRuntimeBanner ? (
         <aside className={`bes-runtime-banner ${online ? 'is-error' : 'is-offline'}`} role="status">
           <span aria-hidden="true">{online ? '!' : '⌁'}</span>
