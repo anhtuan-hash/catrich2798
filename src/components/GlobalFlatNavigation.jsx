@@ -12,6 +12,7 @@ import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
 import GlobalWorkHubNotificationBridge from './GlobalWorkHubNotificationBridge.jsx';
 import GlobalWorkScheduleBridge from './GlobalWorkScheduleBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
+import GlobalHomeBriefingExtras from './GlobalHomeBriefingExtras.jsx';
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalNotificationCenter.css';
 import './GlobalNotificationCenterLayoutFix.css';
@@ -56,6 +57,7 @@ export default function GlobalFlatNavigation(props) {
   return (
     <>
       <Navigation {...props} />
+      <GlobalHomeBriefingExtras route={props.route} language={props.language} />
       <GlobalMotionCoreBridge route={props.route} />
       <GlobalUserProfileSettingsBridge {...props} />
       <GlobalUserProfilePreviewGuard route={props.route} />
