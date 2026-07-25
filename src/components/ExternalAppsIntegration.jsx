@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { canManageAiWebsites } from '../utils/aiWebsiteSettings.js';
 import { loadExternalWebApps, subscribeExternalWebApps } from '../utils/externalWebApps.js';
-import ExternalWebAppManager from './ExternalWebAppManager.jsx';
+import ExternalWebAppManager from './ExternalWebAppManagerV2.jsx';
 import ExternalWebAppViewer from './ExternalWebAppViewer.jsx';
 import './ExternalWebApps.css';
 
@@ -84,9 +84,6 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
     const applyData = (next) => { if (activeSubscription && next) setData(next); };
     const includeRequests = manager;
 
-    // Teachers only need the approved app list on the Apps page. Their own request
-    // history is loaded lazily after they open the add-app dialog. This removes one
-    // authenticated API call every time a teacher visits the Apps route.
     loadExternalWebApps(currentUser, { includeRequests })
       .then(applyData)
       .catch((error) => console.warn('[External apps] initial load failed; add-app controls remain available', error));
