@@ -1,11 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../data/apps.js';
 import { getFirstAllowedRoute, hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/motion.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
-import WorkDashboard from './WorkDashboard.jsx';
 import './HomeDashboardEmbed.css';
+
+const WorkDashboard = lazy(() => import('./WorkDashboard.jsx'));
 
 const ALL_APPS = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS];
 
@@ -23,9 +24,6 @@ const copy = {
     today: 'Hôm nay',
     realApps: 'Ứng dụng đang có',
     featured: 'Thẻ nổi bật',
-    
-    
-    
     lastAccess: 'Cập nhật lúc',
     open: 'Mở',
     dashboardTitle: 'Bảng điều hành của bạn',
@@ -46,9 +44,6 @@ const copy = {
     today: 'Today',
     realApps: 'Available apps',
     featured: 'Featured cards',
-    
-    
-    
     lastAccess: 'Updated at',
     open: 'Open',
     dashboardTitle: 'Your work dashboard',
@@ -250,6 +245,37 @@ function OverviewMetric({ icon, value, label, tone }) {
   );
 }
 
+function DeferredWorkDashboard({ currentUser, language }) {
+  const hostRef = useRef(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const node = hostRef.current;
+    if (!node) return undefined;
+    if (typeof IntersectionObserver !== 'function') {
+      const timer = window.setTimeout(() => setReady(true), 600);
+      return () => window.clearTimeout(timer);
+    }
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      setReady(true);
+      observer.disconnect();
+    }, { rootMargin: '120px 0px', threshold: 0.01 });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={hostRef} className="boh-dashboard-deferred" aria-busy={!ready}>
+      {ready ? (
+        <Suspense fallback={<div className="boh-dashboard-placeholder">{language === 'vi' ? 'Đang mở bảng điều hành…' : 'Opening dashboard…'}</div>}>
+          <WorkDashboard currentUser={currentUser} language={language} />
+        </Suspense>
+      ) : <div className="boh-dashboard-placeholder">{language === 'vi' ? 'Bảng điều hành sẽ tải khi bạn cuộn đến khu vực này.' : 'The dashboard will load when you scroll near this section.'}</div>}
+    </div>
+  );
+}
+
 export default function Home({ hasApiKey, currentUser, language = 'vi', appVisibility }) {
   const [now, setNow] = useState(() => new Date());
   const t = copy[language] || copy.vi;
@@ -288,7 +314,6 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', appVisib
         description: 'Bài đọc, câu hỏi và từ vựng thông minh.',
         descriptionEn: 'Smart reading passages, questions and vocabulary.',
       }),
-
       appCard('game-hub', {
         icon: 'game', eyebrow: 'Trò chơi học tập', eyebrowEn: 'Learning games',
         accent: '#7552d6', soft: '#f4efff', rotate: '1deg',
@@ -394,7 +419,7 @@ export default function Home({ hasApiKey, currentUser, language = 'vi', appVisib
 
           {canDashboard ? (
             <div className="boh-dashboard-shell">
-              <WorkDashboard currentUser={currentUser} language={language} />
+              <DeferredWorkDashboard currentUser={currentUser} language={language} />
             </div>
           ) : (
             <div className="boh-dashboard-login">

@@ -9,12 +9,15 @@
   border: 1px solid rgba(97, 117, 89, .17);
   border-radius: 30px;
   background:
-    radial-gradient(circle at 5% 0%, rgba(49, 95, 196, .08), transparent 26%),
-    radial-gradient(circle at 96% 4%, rgba(91, 178, 132, .08), transparent 25%),
-    rgba(250, 252, 248, .9);
+    radial-gradient(circle at 5% 0%, rgba(49, 95, 196, .07), transparent 26%),
+    radial-gradient(circle at 96% 4%, rgba(91, 178, 132, .07), transparent 25%),
+    #fafcf8;
   box-shadow: 0 28px 70px rgba(55, 73, 51, .11);
-  backdrop-filter: blur(18px) saturate(112%);
-  -webkit-backdrop-filter: blur(18px) saturate(112%);
+  content-visibility: auto;
+  contain-intrinsic-size: 980px;
+  contain: layout paint;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .boh-dashboard-heading {
@@ -87,7 +90,8 @@
   overflow: visible;
 }
 
-.boh-dashboard-shell > .wd5-page {
+.boh-dashboard-shell > .wd5-page,
+.boh-dashboard-shell > .gd-page {
   width: 100% !important;
   max-width: none !important;
   margin: 0 !important;
@@ -95,7 +99,8 @@
   background: transparent !important;
 }
 
-.boh-dashboard-shell .wd5-hero {
+.boh-dashboard-shell .wd5-hero,
+.boh-dashboard-shell .gd-hero {
   display: none !important;
 }
 
@@ -183,6 +188,35 @@ html[data-theme="dark"] .boh-dashboard-login small {
 html[data-theme="dark"] .boh-dashboard-heading > button,
 html[data-theme="dark"] .boh-dashboard-login {
   background: rgba(31, 42, 35, .88) !important;
+}
+
+.boh-dashboard-deferred {
+  min-height: 260px;
+}
+
+.boh-dashboard-placeholder {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  border: 1px dashed #c8d4ea;
+  border-radius: 22px;
+  background: #fff;
+  color: #66758b;
+  font-size: .92rem;
+  font-weight: 750;
+  text-align: center;
+}
+
+html[data-theme="dark"] .boh-dashboard-placeholder {
+  border-color: rgba(210, 224, 202, .16);
+  background: #1f2a23;
+  color: #b4c0d2;
+}
+
+html[data-performance="low"] .boh-dashboard-section,
+html[data-performance="balanced"] .boh-dashboard-section {
+  box-shadow: 0 16px 38px rgba(55, 73, 51, .08);
 }
 
 @media (max-width: 1100px) {

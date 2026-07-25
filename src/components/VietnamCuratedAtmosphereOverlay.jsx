@@ -59,6 +59,8 @@ function getViewportTier() {
 
 function getVisibleCount(tier, density) {
   const requested = Math.max(3, Math.min(18, Number(density) || 10));
+  const performance = typeof document === 'undefined' ? 'balanced' : document.documentElement.dataset.performance;
+  if (performance === 'low') return tier === 'desktop' ? 3 : 2;
   if (tier === 'mobile') return Math.max(2, Math.min(3, Math.round(requested * 0.24)));
   if (tier === 'tablet') return Math.max(3, Math.min(5, Math.round(requested * 0.38)));
   return Math.max(4, Math.min(7, Math.round(requested * 0.58)));
@@ -78,12 +80,29 @@ function seededRandom(seed) {
 function buildMotifs(tier, settings, rotation) {
   const count = getVisibleCount(tier, settings.density);
   const random = seededRandom(4073 + rotation * 97 + count * 31 + (tier === 'mobile' ? 13 : tier === 'tablet' ? 29 : 47));
-  const assets = [...CURATED_ASSETS];
+  const curated = settings.showBuiltIns === false ? [] : [...CURATED_ASSETS];
 
-  for (let index = assets.length - 1; index > 0; index -= 1) {
+  for (let index = curated.length - 1; index > 0; index -= 1) {
     const swapIndex = Math.floor(random() * (index + 1));
-    [assets[index], assets[swapIndex]] = [assets[swapIndex], assets[index]];
+    [curated[index], curated[swapIndex]] = [curated[swapIndex], curated[index]];
   }
+
+  const custom = (settings.images || [])
+    .filter((image) => image?.enabled !== false && image?.url)
+    .map((image) => ({
+      id: `custom-${image.id || image.path || image.url}`,
+      title: image.name || 'Vietnam symbol',
+      kind: 'custom',
+      url: image.url,
+    }));
+
+  const assets = [];
+  const length = Math.max(custom.length, curated.length);
+  for (let index = 0; index < length; index += 1) {
+    if (custom[index]) assets.push(custom[index]);
+    if (curated[index]) assets.push({ ...curated[index], kind: 'curated' });
+  }
+  if (!assets.length) return [];
 
   const globalOpacity = Math.max(0.03, Math.min(0.28, Number(settings.opacity) || 0.11));
   const speed = Math.max(0.4, Math.min(2.5, Number(settings.speed) || 1));
@@ -154,7 +173,9 @@ export default function VietnamCuratedAtmosphereOverlay() {
 
   useEffect(() => {
     if (typeof window === 'undefined' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined;
-    const interval = window.setInterval(() => setRotation((value) => value + 1), 28000);
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'visible') setRotation((value) => value + 1);
+    }, 42000);
     return () => window.clearInterval(interval);
   }, []);
 
@@ -163,14 +184,14 @@ export default function VietnamCuratedAtmosphereOverlay() {
     [viewportTier, settings, rotation],
   );
 
-  if (!settings.enabled || settings.showBuiltIns === false) return null;
+  if (!settings.enabled || !motifs.length) return null;
 
   return (
     <div className="bes-vn-atmosphere bes-vn-atmosphere--curated" data-tier={viewportTier} aria-hidden="true">
       {motifs.map((motif) => (
         <span
-          key={`${motif.id}-${rotation}`}
-          className="bes-vn-motif bes-vn-motif--curated"
+          key={motif.id}
+          className={`bes-vn-motif bes-vn-motif--curated ${motif.kind === 'custom' ? 'bes-vn-motif--custom' : ''}`}
           style={{
             '--vn-left': `${motif.left}%`,
             '--vn-top': `${motif.top}%`,
@@ -185,7 +206,9 @@ export default function VietnamCuratedAtmosphereOverlay() {
           }}
         >
           <span className="bes-vn-motif__art">
-            <span style={spriteStyle(motif)} />
+            {motif.kind === 'custom'
+              ? <img src={motif.url} alt="" loading="lazy" decoding="async" draggable="false" />
+              : <span style={spriteStyle(motif)} />}
           </span>
         </span>
       ))}
