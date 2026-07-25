@@ -82,10 +82,8 @@ export default function GlobalHomeBriefingExtras({ route, language = 'vi' }) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    if (route !== 'home' || typeof document === 'undefined') {
-      setTarget(null);
-      return undefined;
-    }
+    setTarget(null);
+    if (!route || typeof document === 'undefined') return undefined;
 
     let frame = 0;
     let cancelled = false;
@@ -93,13 +91,13 @@ export default function GlobalHomeBriefingExtras({ route, language = 'vi' }) {
 
     const findTarget = () => {
       if (cancelled) return;
-      const node = document.querySelector(".app-shell[data-route='home'] .brian-briefing-bar__context");
+      const node = document.querySelector('.app-shell[data-route] .brian-briefing-bar__context');
       if (node) {
         setTarget(node);
         return;
       }
       attempts += 1;
-      if (attempts < 30) frame = window.requestAnimationFrame(findTarget);
+      if (attempts < 60) frame = window.requestAnimationFrame(findTarget);
     };
 
     findTarget();
@@ -117,7 +115,7 @@ export default function GlobalHomeBriefingExtras({ route, language = 'vi' }) {
   const week = useMemo(() => isoWeekNumber(now), [now]);
   const dayPart = useMemo(() => dayPartFor(now, language), [language, now]);
 
-  if (route !== 'home' || !target) return null;
+  if (!route || !target) return null;
 
   const weekPrimary = language === 'en' ? `Week ${week}` : `Tuần ${week}`;
   const weekSecondary = language === 'en'
