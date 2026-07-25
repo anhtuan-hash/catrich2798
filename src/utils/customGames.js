@@ -3,6 +3,7 @@ import { canPublishDepartment } from './permissions.js';
 
 export const CUSTOM_GAMES_EVENT = 'bes-custom-games-updated';
 const CUSTOM_GAMES_TABLE = 'custom_game_platforms';
+const CUSTOM_GAME_COLUMNS = 'id,label,icon,home,color,embed_mode,status,owner_id,owner_email,owner_name,review_note,reviewed_by,reviewed_at,created_at,updated_at';
 const LOCAL_KEY = 'bes-custom-game-platforms-v2';
 
 function emitUpdate() {
@@ -98,8 +99,9 @@ export async function listCustomGames(user) {
   if (isSupabaseConfigured && supabase && user?.id) {
     const { data, error } = await supabase
       .from(CUSTOM_GAMES_TABLE)
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select(CUSTOM_GAME_COLUMNS)
+      .order('created_at', { ascending: false })
+      .limit(200);
     if (!error && Array.isArray(data)) return data.filter((item) => !isLauncherAppRecord(item)).map(normalizeGame).filter((item) => item.label && item.home);
     console.warn('Custom games cloud read failed; using local fallback:', error?.message || error);
   }
@@ -115,7 +117,7 @@ export async function createCustomGame(user, draft, status = 'private') {
     const { data, error } = await supabase
       .from(CUSTOM_GAMES_TABLE)
       .insert(payload)
-      .select('*')
+      .select(CUSTOM_GAME_COLUMNS)
       .single();
     if (!error && data) {
       emitUpdate();
@@ -151,7 +153,7 @@ export async function updateCustomGameStatus(user, id, status, reviewNote = '') 
         updated_at: now,
       })
       .eq('id', id)
-      .select('*')
+      .select(CUSTOM_GAME_COLUMNS)
       .single();
     if (!error && data) {
       emitUpdate();
@@ -183,7 +185,7 @@ export async function requestCustomGameApproval(user, id) {
       .update({ status: 'pending', updated_at: now })
       .eq('id', id)
       .eq('owner_id', user.id)
-      .select('*')
+      .select(CUSTOM_GAME_COLUMNS)
       .single();
     if (!error && data) {
       emitUpdate();
