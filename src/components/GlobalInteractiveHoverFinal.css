@@ -10,13 +10,14 @@ html body .app-shell[data-route] {
   --eh-hover-glow-faint: rgba(66, 133, 244, .16);
 }
 
+/* Start and finish at the original position: no permanent 2px lift. */
 @keyframes eh-control-hover-motion {
   0%, 100% {
-    translate: 0 -2px;
+    translate: 0 0;
     scale: 1.018;
   }
   50% {
-    translate: 0 -7px;
+    translate: 0 -5px;
     scale: 1.045;
   }
 }
@@ -41,11 +42,11 @@ html body .app-shell[data-route] {
 
 @keyframes eh-card-hover-motion {
   0%, 100% {
-    translate: 0 -3px;
+    translate: 0 0;
     scale: 1.018;
   }
   50% {
-    translate: 0 -9px;
+    translate: 0 -7px;
     scale: 1.04;
   }
 }
@@ -156,7 +157,7 @@ html body .app-shell[data-route] {
     filter: brightness(.97) saturate(1.02) !important;
   }
 
-  /* App cards and all Motion Core cards float more slowly with a deeper glow. */
+  /* App cards and all Motion Core cards move from their original position with a deeper glow. */
   html body .app-shell[data-route] [data-eh-motion-card='true']:not([data-hover-ignore='true']):hover {
     z-index: 12 !important;
     border-color: rgba(66, 133, 244, .68) !important;
