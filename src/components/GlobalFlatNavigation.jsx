@@ -47,6 +47,7 @@ import './GlobalNotificationCountVisibilityFix.css';
 import './GlobalAutosaveGoogle.css';
 import './GlobalHomeAuroraV3.css';
 import './GlobalHomeBriefingContextFix.css';
+import './GlobalHomeBriefingUnderLogoFix.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));

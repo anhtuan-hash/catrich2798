@@ -1,0 +1,92 @@
+/* Final homepage briefing alignment.
+   This file is intentionally imported after every Aurora/briefing layer so the
+   headline begins at the left edge below the English Hub logo. */
+
+html body .app-shell[data-route='home'] .brian-nav__search {
+  display: none !important;
+}
+
+html body .app-shell[data-route='home'] .bes-top-chrome > .brian-briefing-bar {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) max-content !important;
+  align-items: center !important;
+  justify-content: stretch !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 5px 14px !important;
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+  overflow: hidden !important;
+}
+
+html body .app-shell[data-route='home'] .bes-top-chrome > .brian-briefing-bar > .brian-briefing-bar__headline {
+  position: relative !important;
+  inset: auto !important;
+  grid-column: 1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  justify-self: stretch !important;
+  align-self: center !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+html body .app-shell[data-route='home'] .bes-top-chrome > .brian-briefing-bar > .brian-briefing-bar__context {
+  position: static !important;
+  inset: auto !important;
+  grid-column: 2 !important;
+  width: max-content !important;
+  min-width: max-content !important;
+  max-width: none !important;
+  justify-self: end !important;
+  align-self: center !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+}
+
+/* Remove any inherited spacer that previously reserved the old search field. */
+html body .app-shell[data-route='home'] .brian-briefing-bar::before,
+html body .app-shell[data-route='home'] .brian-briefing-bar::after {
+  margin-left: 0 !important;
+}
+
+@media (max-width: 1380px) {
+  html body .app-shell[data-route='home'] .bes-top-chrome > .brian-briefing-bar {
+    grid-template-columns: minmax(240px, 1fr) max-content !important;
+    gap: 7px !important;
+    padding-inline: 10px !important;
+  }
+
+  html body .app-shell[data-route='home'] .bes-top-chrome > .brian-briefing-bar > .brian-briefing-bar__context {
+    gap: 6px !important;
+  }
+}
+
+@media (max-width: 1160px) {
+  html body .app-shell[data-route='home'] .bes-top-chrome > .brian-briefing-bar {
+    min-width: 920px !important;
+    grid-template-columns: minmax(300px, 1fr) max-content !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+  }
+
+  html body .app-shell[data-route='home'] .bes-top-chrome > .brian-briefing-bar::-webkit-scrollbar {
+    display: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  html body .app-shell[data-route='home'] .bes-top-chrome > .brian-briefing-bar {
+    min-width: 860px !important;
+    padding-inline: 8px !important;
+  }
+}
