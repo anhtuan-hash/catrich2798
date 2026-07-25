@@ -30,19 +30,31 @@ function isFullscreenView(value = {}) {
     && clean.cropHeight === FULLSCREEN_VIEW.cropHeight;
 }
 
+function currentViewport() {
+  if (typeof window === 'undefined') return { width: 1440, height: 900 };
+  return { width: window.innerWidth, height: window.innerHeight };
+}
+
 export default function ExternalWebAppViewer({ app, onClose }) {
   const [key, setKey] = useState(0);
   const [check, setCheck] = useState(null);
+  const [viewport, setViewport] = useState(currentViewport);
   const url = safeExternalWebAppUrl(app?.externalUrl || app?.url);
   const view = normalizeEmbedView(app?.embedView);
   const fullscreen = isFullscreenView(view);
   const reducedScale = Math.min(view.zoom, 1);
+  const cropRatio = Math.max(0.1, view.cropWidth / view.cropHeight);
+  const viewportRatio = viewport.width / Math.max(1, viewport.height);
+  const coverWidth = viewportRatio >= cropRatio ? viewport.width : viewport.height * cropRatio;
+  const coverHeight = viewportRatio >= cropRatio ? viewport.width / cropRatio : viewport.height;
   const viewerStyle = {
     ...embedTransformStyle(view),
     '--viewer-crop-left': `${-(view.cropX / view.cropWidth) * 100}%`,
     '--viewer-crop-top': `${-(view.cropY / view.cropHeight) * 100}%`,
     '--viewer-crop-scale-x': 100 / view.cropWidth / reducedScale,
     '--viewer-crop-scale-y': 100 / view.cropHeight / reducedScale,
+    '--viewer-cover-width': `${Math.ceil(coverWidth)}px`,
+    '--viewer-cover-height': `${Math.ceil(coverHeight)}px`,
   };
 
   useEffect(() => {
@@ -55,6 +67,16 @@ export default function ExternalWebAppViewer({ app, onClose }) {
       window.removeEventListener('keydown', onKey);
     };
   }, [app?.id, url, onClose]);
+
+  useEffect(() => {
+    const onResize = () => setViewport(currentViewport());
+    window.addEventListener('resize', onResize);
+    window.visualViewport?.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.visualViewport?.removeEventListener('resize', onResize);
+    };
+  }, []);
 
   useEffect(() => {
     if (!url) return undefined;
@@ -74,7 +96,7 @@ export default function ExternalWebAppViewer({ app, onClose }) {
   const frame = (
     <iframe
       key={key}
-      className={fullscreen ? 'bes-ext-fullscreen-frame' : undefined}
+      className={fullscreen ? 'bes-ext-fullscreen-frame' : 'bes-ext-cropped-fullscreen-frame'}
       src={url}
       title={app.title || app.name}
       allow="clipboard-read; clipboard-write; microphone; camera; fullscreen; geolocation"
@@ -83,40 +105,36 @@ export default function ExternalWebAppViewer({ app, onClose }) {
     />
   );
 
-  if (fullscreen) {
-    return createPortal(
-      <div className="bes-ext-layer bes-ext-fullscreen-layer">
-        <section className="bes-ext-viewer is-fullscreen-app" aria-label={app.title || app.name}>
-          {frame}
-          <div className="bes-ext-fullscreen-dock">
-            <span className="bes-ext-fullscreen-icon">{app.icon || 'WEB'}</span>
-            <div className="bes-ext-fullscreen-copy">
-              <strong>{app.title || app.name}</strong>
-              <small>{check?.checking ? 'Đang kiểm tra…' : check?.embeddable === false ? 'Website có thể chặn iframe' : 'Đang chạy toàn màn hình trong Brian'}</small>
-            </div>
-            <button type="button" aria-label="Tải lại ứng dụng" onClick={() => setKey((value) => value + 1)}>↻</button>
-            <button type="button" className="bes-ext-fullscreen-close" aria-label="Đóng ứng dụng" onClick={onClose}>×</button>
-          </div>
-        </section>
-      </div>,
-      document.body,
-    );
-  }
+  const stateText = check?.checking
+    ? 'Đang kiểm tra…'
+    : check?.embeddable === false
+      ? 'Website có thể chặn iframe'
+      : fullscreen
+        ? 'Đang chạy toàn màn hình trong Brian'
+        : 'Đang hiển thị toàn màn hình đúng vùng TTCM đã duyệt';
 
   return createPortal(
-    <div className="bes-ext-layer">
-      <section className="bes-ext-viewer">
-        <header className="bes-ext-head">
-          <div><span>{app.icon || 'WEB'}</span><div><strong>{app.title || app.name}</strong><small>{url}</small></div></div>
-          <div className="bes-ext-actions"><button type="button" onClick={() => setKey((value) => value + 1)}>↻ Tải lại</button><button type="button" className="bes-ext-close" onClick={onClose}>×</button></div>
-        </header>
-        <div className={`bes-ext-viewer-status ${check?.embeddable === false ? 'blocked' : ''}`}>
-          {check?.checking ? 'Đang kiểm tra khả năng chạy nội bộ…' : check?.embeddable === false ? `Website có thể chặn iframe: ${check.reason || 'chính sách bảo mật'}.` : 'Đang hiển thị đúng vùng nội dung TTCM đã cắt và duyệt.'}
-        </div>
-        <div className="bes-ext-viewer-stage" style={viewerStyle}>
-          <div className="bes-ext-viewer-crop">
-            {frame}
+    <div className="bes-ext-layer bes-ext-fullscreen-layer">
+      <section
+        className={`bes-ext-viewer ${fullscreen ? 'is-fullscreen-app' : 'is-cropped-fullscreen-app'}`}
+        aria-label={app.title || app.name}
+      >
+        {fullscreen ? frame : (
+          <div className="bes-ext-cropped-fullscreen-stage" style={viewerStyle}>
+            <div className="bes-ext-cropped-fullscreen-crop">
+              {frame}
+            </div>
           </div>
+        )}
+
+        <div className="bes-ext-fullscreen-dock">
+          <span className="bes-ext-fullscreen-icon">{app.icon || 'WEB'}</span>
+          <div className="bes-ext-fullscreen-copy">
+            <strong>{app.title || app.name}</strong>
+            <small>{stateText}</small>
+          </div>
+          <button type="button" aria-label="Tải lại ứng dụng" onClick={() => setKey((value) => value + 1)}>↻</button>
+          <button type="button" className="bes-ext-fullscreen-close" aria-label="Đóng ứng dụng" onClick={onClose}>×</button>
         </div>
       </section>
     </div>,
