@@ -1,0 +1,42 @@
+/* Admin route performance guard.
+   Keep the Vietnam atmosphere visible, but avoid stacking dozens of GPU filters
+   and continuous animations behind the already dense Admin Center. */
+.metro-clean-system[data-route="admin"] .bes-vn-motif,
+body[data-route="admin"] .bes-vn-motif {
+  filter: none !important;
+  will-change: auto !important;
+  animation-play-state: paused !important;
+}
+
+.metro-clean-system[data-route="admin"] .bes-vn-motif__art,
+body[data-route="admin"] .bes-vn-motif__art {
+  animation-play-state: paused !important;
+}
+
+.metro-clean-system[data-route="admin"] .bes-vn-motif--drum,
+body[data-route="admin"] .bes-vn-motif--drum {
+  mix-blend-mode: normal !important;
+}
+
+/* Fixed translucent launchers are expensive while a long management page scrolls.
+   Solid surfaces preserve the design without forcing full-screen backdrop recomposition. */
+.metro-clean-system[data-route="admin"] :is(
+  .bes-vn-admin__launcher,
+  .bes-vn-admin__panel,
+  .bes-bulk-accounts__launcher,
+  .bes-bulk-accounts__panel
+),
+body[data-route="admin"] :is(
+  .bes-vn-admin__launcher,
+  .bes-vn-admin__panel,
+  .bes-bulk-accounts__launcher,
+  .bes-bulk-accounts__panel
+) {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.metro-clean-system[data-route="admin"] :is(.bes-vn-admin, .bes-bulk-accounts),
+body[data-route="admin"] :is(.bes-vn-admin, .bes-bulk-accounts) {
+  contain: layout style paint;
+}

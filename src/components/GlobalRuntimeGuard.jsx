@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import VietnamAtmosphereOverlay from './VietnamAtmosphereOverlay.jsx';
-import VietnamAtmosphereAdminPanel from './VietnamAtmosphereAdminPanel.jsx';
 import UsernameLoginBridge from './UsernameLoginBridge.jsx';
-import BulkTeacherAccountsPanel from './BulkTeacherAccountsPanel.jsx';
 import './BulkTeacherAccountsPanelCompact.css';
 import '../styles/TopChromeDividerFix.css';
 import UsernameAccountCenter from './UsernameAccountCenter.jsx';
 import { recordRuntimeError } from '../utils/runtimeDiagnostics.js';
+import './AdminRoutePerformance.css';
+
+const VietnamAtmosphereAdminPanel = React.lazy(() => import('./VietnamAtmosphereAdminPanel.jsx'));
+const BulkTeacherAccountsPanel = React.lazy(() => import('./BulkTeacherAccountsPanel.jsx'));
+
+function currentRoute() {
+  if (typeof window === 'undefined') return '';
+  return window.location.hash.replace(/^#\/?/, '').split(/[?&]/)[0].trim();
+}
 
 export default function GlobalRuntimeGuard({ language = 'vi' }) {
   const [online, setOnline] = useState(() => navigator.onLine);
   const [runtimeMessage, setRuntimeMessage] = useState('');
+  const [route, setRoute] = useState(currentRoute);
+  const [adminToolsReady, setAdminToolsReady] = useState(false);
 
   useEffect(() => {
     const onOnline = () => setOnline(true);
@@ -36,14 +45,50 @@ export default function GlobalRuntimeGuard({ language = 'vi' }) {
     };
   }, []);
 
+  useEffect(() => {
+    const onHashChange = () => setRoute(currentRoute());
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  useEffect(() => {
+    if (route !== 'admin') {
+      setAdminToolsReady(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    let timer = 0;
+    let idleHandle = 0;
+    const revealAdminTools = () => {
+      if (!cancelled) setAdminToolsReady(true);
+    };
+
+    if (typeof window.requestIdleCallback === 'function') {
+      idleHandle = window.requestIdleCallback(revealAdminTools, { timeout: 700 });
+    } else {
+      timer = window.setTimeout(revealAdminTools, 180);
+    }
+
+    return () => {
+      cancelled = true;
+      if (idleHandle && typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idleHandle);
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [route]);
+
   const showRuntimeBanner = !online || Boolean(runtimeMessage);
 
   return (
     <>
       <UsernameLoginBridge language={language} />
       <VietnamAtmosphereOverlay />
-      <VietnamAtmosphereAdminPanel language={language} />
-      <BulkTeacherAccountsPanel language={language} />
+      {adminToolsReady ? (
+        <React.Suspense fallback={null}>
+          <VietnamAtmosphereAdminPanel language={language} />
+          <BulkTeacherAccountsPanel language={language} />
+        </React.Suspense>
+      ) : null}
       <UsernameAccountCenter language={language} />
       {showRuntimeBanner ? (
         <aside className={`bes-runtime-banner ${online ? 'is-error' : 'is-offline'}`} role="status">
