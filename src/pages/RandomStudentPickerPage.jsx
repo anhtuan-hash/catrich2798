@@ -2,7 +2,6 @@ import React from 'react';
 import { RandomStudentPicker } from '../components/RandomStudentPickerBridge.jsx';
 import './RandomStudentPickerGoogle.css';
 import './RandomStudentPickerGooglePolish.css';
-import './RandomStudentPickerInputFix.css';
 
 export default function RandomStudentPickerPage({ currentUser }) {
   return (
