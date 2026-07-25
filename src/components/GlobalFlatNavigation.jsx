@@ -52,6 +52,7 @@ import './GlobalHomeBriefingUnderLogoFix.css';
 import './GlobalAuroraChrome.css';
 import './GlobalSeparatedPills.css';
 import './GlobalScrollPerformance.css';
+import './GlobalTickerRestore.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
