@@ -10,7 +10,7 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 const nativeFetch = typeof globalThis.fetch === 'function' ? globalThis.fetch.bind(globalThis) : null;
 const readCache = new Map();
 const inFlightReads = new Map();
-const MAX_CACHE_ENTRIES = 160;
+const MAX_CACHE_ENTRIES = 240;
 
 const WORK_HUB_ITEM_COLUMNS = [
   'id',
@@ -93,13 +93,32 @@ const SELECT_PROJECTIONS = [
 const HEAVY_READ_TTL = [
   ['/rest/v1/library_items', 6 * 60 * 60 * 1000],
   ['/rest/v1/resource_items', 60 * 60 * 1000],
+  ['/rest/v1/resource_smart_metadata', 60 * 60 * 1000],
+  ['/rest/v1/resource_user_state', 30 * 60 * 1000],
+  ['/rest/v1/resource_collections', 60 * 60 * 1000],
+  ['/rest/v1/resource_collection_items', 60 * 60 * 1000],
   ['/rest/v1/bes_homeroom_workspaces', 60 * 60 * 1000],
   ['/rest/v1/assessment_items', 60 * 60 * 1000],
+  ['/rest/v1/assessment_blueprints', 60 * 60 * 1000],
+  ['/rest/v1/assessment_tests', 60 * 60 * 1000],
+  ['/rest/v1/assessment_test_items', 60 * 60 * 1000],
   ['/rest/v1/content_ecosystem_assets', 60 * 60 * 1000],
   ['/rest/v1/content_ecosystem_kits', 60 * 60 * 1000],
   ['/rest/v1/work_hub_items', 30 * 60 * 1000],
   ['/rest/v1/work_hub_comments', 15 * 60 * 1000],
   ['/rest/v1/automation_', 30 * 60 * 1000],
+  ['/rest/v1/collaboration_spaces', 15 * 60 * 1000],
+  ['/rest/v1/collaboration_members', 30 * 60 * 1000],
+  ['/rest/v1/collaboration_threads', 10 * 60 * 1000],
+  ['/rest/v1/collaboration_comments', 5 * 60 * 1000],
+  ['/rest/v1/content_versions', 15 * 60 * 1000],
+  ['/rest/v1/permission_overrides', 30 * 60 * 1000],
+  ['/rest/v1/audit_events', 5 * 60 * 1000],
+  ['/rest/v1/backup_snapshots', 30 * 60 * 1000],
+  ['/rest/v1/backup_items', 30 * 60 * 1000],
+  ['/rest/v1/deleted_items', 10 * 60 * 1000],
+  ['/rest/v1/ai_website_settings', 6 * 60 * 60 * 1000],
+  ['/rest/v1/permission_requests', 30 * 60 * 1000],
   ['/rest/v1/profiles', 30 * 60 * 1000],
   ['/rest/v1/system_roles', 30 * 60 * 1000],
 ];
