@@ -1,0 +1,31 @@
+/* Restore the original right-to-left news ticker after the scroll-performance layer. */
+html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__ticker-viewport,
+html body .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__ticker-viewport {
+  position: relative !important;
+  display: block !important;
+  overflow: hidden !important;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%) !important;
+  mask-image: linear-gradient(to right, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%) !important;
+}
+
+html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__ticker-track,
+html body .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__ticker-track {
+  box-sizing: content-box !important;
+  width: max-content !important;
+  min-width: 100% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding-left: 100% !important;
+  transform: translate3d(0, 0, 0);
+  will-change: transform !important;
+  animation: brian-top-briefing-marquee var(--briefing-duration, 22s) linear infinite !important;
+}
+
+html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar.is-paused .brian-briefing-bar__ticker-track,
+html body .bes-top-chrome > .brian-briefing-bar.is-paused .brian-briefing-bar__ticker-track {
+  animation-play-state: paused !important;
+}
+
+html body .brian-briefing-bar__ticker-item {
+  display: inline-flex !important;
+}
