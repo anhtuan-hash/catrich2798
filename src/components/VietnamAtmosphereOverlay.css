@@ -61,6 +61,17 @@
   contain: layout style paint;
 }
 
+/* On the normal performance profile, keep the Vietnamese identity as a static
+   first-screen decoration instead of a fixed animated layer that remains over
+   the entire document during every scroll frame. */
+html[data-performance='balanced'] .bes-vn-atmosphere,
+html[data-performance='low'] .bes-vn-atmosphere {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 100vh;
+  max-height: 960px;
+}
+
 .bes-vn-motif--curated {
   will-change: auto;
 }
@@ -69,17 +80,23 @@ html[data-performance='high'] .bes-vn-motif--curated {
   will-change: transform;
 }
 
+html[data-performance='balanced'] .bes-vn-motif,
 html[data-performance='balanced'] .bes-vn-motif__art,
-html[data-motion='lite'] .bes-vn-motif__art {
-  animation: none;
-}
-
+html[data-motion='lite'] .bes-vn-motif,
+html[data-motion='lite'] .bes-vn-motif__art,
 html[data-performance='low'] .bes-vn-motif,
 html[data-motion='off'] .bes-vn-motif,
 html[data-performance='low'] .bes-vn-motif__art,
 html[data-motion='off'] .bes-vn-motif__art {
   animation: none !important;
   will-change: auto;
+}
+
+html[data-performance='balanced'] .bes-vn-motif,
+html[data-performance='low'] .bes-vn-motif,
+html[data-motion='lite'] .bes-vn-motif,
+html[data-motion='off'] .bes-vn-motif {
+  transform: none !important;
 }
 
 .bes-vn-motif--custom img {
