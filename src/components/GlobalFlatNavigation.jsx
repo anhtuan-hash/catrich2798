@@ -56,6 +56,7 @@ import './GlobalTickerRestore.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
+const GlobalWorkBulkDeleteManager = lazy(() => import('./GlobalWorkBulkDeleteManager.jsx'));
 
 export default function GlobalFlatNavigation(props) {
   const workHubActive = props.route === 'work-hub';
@@ -80,6 +81,7 @@ export default function GlobalFlatNavigation(props) {
         <Suspense fallback={null}>
           <GlobalWorkScheduleCompatibleCenter {...props} />
           <GlobalWorkScheduleTemplatePanel route={props.route} />
+          <GlobalWorkBulkDeleteManager {...props} />
         </Suspense>
       ) : null}
       <GlobalEnglishHubBrand />
