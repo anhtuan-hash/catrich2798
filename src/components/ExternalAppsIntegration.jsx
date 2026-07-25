@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { canManageAiWebsites } from '../utils/aiWebsiteSettings.js';
 import { loadExternalWebApps, subscribeExternalWebApps } from '../utils/externalWebApps.js';
 import ExternalWebAppManager from './ExternalWebAppManagerV2.jsx';
-import ExternalWebAppPrecisionSelector from './ExternalWebAppPrecisionSelector.jsx';
 import ExternalWebAppViewer from './ExternalWebAppViewer.jsx';
 import './ExternalWebApps.css';
 
@@ -127,7 +126,6 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
         language={language}
         onChanged={setData}
       />
-      <ExternalWebAppPrecisionSelector currentUser={currentUser} open={dialog} />
       <ExternalWebAppViewer app={active} onClose={() => setActive(null)} />
     </>
   );

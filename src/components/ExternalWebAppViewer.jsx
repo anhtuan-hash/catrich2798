@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { embedTransformStyle, normalizeEmbedView, safeExternalWebAppUrl } from '../utils/externalWebApps.js';
+import { normalizeEmbedView, safeExternalWebAppUrl } from '../utils/externalWebApps.js';
 import './ExternalWebApps.css';
-import './ExternalWebAppCrop.css';
 import './ExternalWebAppViewerCrop.css';
 
 const FULLSCREEN_VIEW = normalizeEmbedView({
@@ -32,7 +31,10 @@ function isFullscreenView(value = {}) {
 
 function currentViewport() {
   if (typeof window === 'undefined') return { width: 1440, height: 900 };
-  return { width: window.innerWidth, height: window.innerHeight };
+  return {
+    width: Math.max(320, window.innerWidth),
+    height: Math.max(480, window.innerHeight),
+  };
 }
 
 export default function ExternalWebAppViewer({ app, onClose }) {
@@ -42,19 +44,20 @@ export default function ExternalWebAppViewer({ app, onClose }) {
   const url = safeExternalWebAppUrl(app?.externalUrl || app?.url);
   const view = normalizeEmbedView(app?.embedView);
   const fullscreen = isFullscreenView(view);
-  const reducedScale = Math.min(view.zoom, 1);
-  const cropRatio = Math.max(0.1, view.cropWidth / view.cropHeight);
-  const viewportRatio = viewport.width / Math.max(1, viewport.height);
-  const coverWidth = viewportRatio >= cropRatio ? viewport.width : viewport.height * cropRatio;
-  const coverHeight = viewportRatio >= cropRatio ? viewport.width / cropRatio : viewport.height;
-  const viewerStyle = {
-    ...embedTransformStyle(view),
-    '--viewer-crop-left': `${-(view.cropX / view.cropWidth) * 100}%`,
-    '--viewer-crop-top': `${-(view.cropY / view.cropHeight) * 100}%`,
-    '--viewer-crop-scale-x': 100 / view.cropWidth / reducedScale,
-    '--viewer-crop-scale-y': 100 / view.cropHeight / reducedScale,
-    '--viewer-cover-width': `${Math.ceil(coverWidth)}px`,
-    '--viewer-cover-height': `${Math.ceil(coverHeight)}px`,
+
+  const cropLeft = (view.cropX / 100) * viewport.width;
+  const cropTop = (view.cropY / 100) * viewport.height;
+  const cropWidth = Math.max(1, (view.cropWidth / 100) * viewport.width);
+  const cropHeight = Math.max(1, (view.cropHeight / 100) * viewport.height);
+  const scale = Math.min(viewport.width / cropWidth, viewport.height / cropHeight);
+  const exactStyle = {
+    '--exact-source-width': `${viewport.width}px`,
+    '--exact-source-height': `${viewport.height}px`,
+    '--exact-crop-width': `${cropWidth * scale}px`,
+    '--exact-crop-height': `${cropHeight * scale}px`,
+    '--exact-frame-left': `${-cropLeft * scale}px`,
+    '--exact-frame-top': `${-cropTop * scale}px`,
+    '--exact-frame-scale': scale,
   };
 
   useEffect(() => {
@@ -96,7 +99,7 @@ export default function ExternalWebAppViewer({ app, onClose }) {
   const frame = (
     <iframe
       key={key}
-      className={fullscreen ? 'bes-ext-fullscreen-frame' : 'bes-ext-cropped-fullscreen-frame'}
+      className={fullscreen ? 'bes-ext-fullscreen-frame' : 'bes-ext-exact-region-frame'}
       src={url}
       title={app.title || app.name}
       allow="clipboard-read; clipboard-write; microphone; camera; fullscreen; geolocation"
@@ -111,17 +114,17 @@ export default function ExternalWebAppViewer({ app, onClose }) {
       ? 'Website có thể chặn iframe'
       : fullscreen
         ? 'Đang chạy toàn màn hình trong Brian'
-        : 'Đang hiển thị toàn màn hình đúng vùng TTCM đã duyệt';
+        : 'Đang hiển thị trọn vẹn đúng phạm vi bốn góc đã duyệt';
 
   return createPortal(
     <div className="bes-ext-layer bes-ext-fullscreen-layer">
       <section
-        className={`bes-ext-viewer ${fullscreen ? 'is-fullscreen-app' : 'is-cropped-fullscreen-app'}`}
+        className={`bes-ext-viewer ${fullscreen ? 'is-fullscreen-app' : 'is-exact-region-app'}`}
         aria-label={app.title || app.name}
       >
         {fullscreen ? frame : (
-          <div className="bes-ext-cropped-fullscreen-stage" style={viewerStyle}>
-            <div className="bes-ext-cropped-fullscreen-crop">
+          <div className="bes-ext-exact-region-stage" style={exactStyle}>
+            <div className="bes-ext-exact-region-crop">
               {frame}
             </div>
           </div>

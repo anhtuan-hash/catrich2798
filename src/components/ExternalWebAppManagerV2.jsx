@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { canManageAiWebsites } from '../utils/aiWebsiteSettings.js';
 import {
   approveExternalWebApp,
-  embedTransformStyle,
   EXTERNAL_APP_GROUPS,
   loadExternalWebApps,
   normalizeEmbedView,
@@ -16,10 +15,9 @@ import {
   updateApprovedExternalWebAppView,
 } from '../utils/externalWebApps.js';
 import './ExternalWebApps.css';
-import './ExternalWebAppCrop.css';
+import './ExternalWebAppReviewFullscreen.css';
 
 const EMPTY = { name: '', url: '', icon: 'WEB', description: '', groupId: 'create' };
-const DEFAULT_VIEW = normalizeEmbedView();
 const FULLSCREEN_VIEW = normalizeEmbedView({
   zoom: 1,
   offsetX: 0,
@@ -31,11 +29,19 @@ const FULLSCREEN_VIEW = normalizeEmbedView({
   cropWidth: 100,
   cropHeight: 100,
 });
-const DEFAULT_HEADER_CUT = 10;
-const DEFAULT_FOOTER_CUT = 12;
-const CROP_CORNERS = ['nw', 'ne', 'sw', 'se'];
-const MIN_CROP_WIDTH = 18;
-const MIN_CROP_HEIGHT = 18;
+const DEFAULT_CUSTOM_VIEW = normalizeEmbedView({
+  zoom: 1,
+  offsetX: 0,
+  offsetY: 0,
+  previewHeight: 900,
+  canvasHeight: 1000,
+  cropX: 5,
+  cropY: 7,
+  cropWidth: 90,
+  cropHeight: 86,
+});
+const CORNERS = ['nw', 'ne', 'sw', 'se'];
+const MIN_SIZE = 18;
 
 const statusLabel = (status) => ({
   pending: 'Chờ TTCM duyệt',
@@ -61,38 +67,16 @@ function isFullscreenView(value = {}) {
     && clean.cropHeight === FULLSCREEN_VIEW.cropHeight;
 }
 
-function verticalCuts(value = {}) {
-  const clean = normalizeEmbedView(value);
-  return {
-    top: Math.max(0, clean.cropY),
-    bottom: Math.max(0, 100 - clean.cropY - clean.cropHeight),
-  };
-}
-
-function headerFooterView(value = {}, changes = {}) {
-  const clean = normalizeEmbedView(value);
-  const alreadyVertical = Math.abs(clean.cropX) < 0.1 && Math.abs(clean.cropWidth - 100) < 0.1;
-  const current = verticalCuts(clean);
-  const sourceTop = alreadyVertical ? current.top : DEFAULT_HEADER_CUT;
-  const sourceBottom = alreadyVertical ? current.bottom : DEFAULT_FOOTER_CUT;
-  const top = clamp(Number(changes.top ?? sourceTop), 0, 100 - MIN_CROP_HEIGHT);
-  const bottom = clamp(Number(changes.bottom ?? sourceBottom), 0, 100 - MIN_CROP_HEIGHT - top);
+function initialCustomView(value) {
+  if (!value || isFullscreenView(value)) return DEFAULT_CUSTOM_VIEW;
   return normalizeEmbedView({
-    ...clean,
-    cropX: 0,
-    cropY: top,
-    cropWidth: 100,
-    cropHeight: 100 - top - bottom,
+    ...value,
+    zoom: 1,
+    offsetX: 0,
+    offsetY: 0,
+    previewHeight: 900,
+    canvasHeight: 1000,
   });
-}
-
-function isHeaderFooterView(value = {}) {
-  const clean = normalizeEmbedView(value);
-  if (isFullscreenView(clean)) return false;
-  const cuts = verticalCuts(clean);
-  return Math.abs(clean.cropX) < 0.1
-    && Math.abs(clean.cropWidth - 100) < 0.1
-    && (cuts.top > 0.1 || cuts.bottom > 0.1);
 }
 
 export default function ExternalWebAppManagerV2({ open, onClose, currentUser, language = 'vi', onChanged }) {
@@ -101,15 +85,15 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
   const [data, setData] = useState({ approved: [], mine: [], requests: [] });
   const [tab, setTab] = useState('submit');
   const [draft, setDraft] = useState(EMPTY);
-  const [preview, setPreview] = useState(null);
-  const [view, setView] = useState(DEFAULT_VIEW);
+  const [review, setReview] = useState(null);
+  const [view, setView] = useState(DEFAULT_CUSTOM_VIEW);
   const [check, setCheck] = useState(null);
   const [busy, setBusy] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [notice, setNotice] = useState('');
-  const [controlsOpen, setControlsOpen] = useState(false);
-  const cropStageRef = useRef(null);
-  const cropActionRef = useRef(null);
+  const [frameKey, setFrameKey] = useState(0);
+  const reviewStageRef = useRef(null);
+  const dragRef = useRef(null);
 
   const pending = useMemo(() => data.requests.filter((item) => item.status === 'pending'), [data.requests]);
   const clean = normalizeExternalAppDraft(draft);
@@ -123,7 +107,7 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
   const refresh = async ({ silent = false } = {}) => {
     if (!silent) setRefreshing(true);
     try {
-      const next = await loadExternalWebApps(currentUser);
+      const next = await loadExternalWebApps(currentUser, { force: !silent });
       applyData(next);
       return next;
     } catch (error) {
@@ -155,89 +139,129 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
   useEffect(() => {
     if (!open) return undefined;
     document.documentElement.classList.add('bes-ext-open');
-    const onKey = (event) => event.key === 'Escape' && onClose?.();
+    const onKey = (event) => {
+      if (event.key !== 'Escape') return;
+      if (review) setReview(null);
+      else onClose?.();
+    };
     window.addEventListener('keydown', onKey);
     return () => {
       document.documentElement.classList.remove('bes-ext-open');
-      document.body.classList.remove('bes-ext-cropping');
+      document.body.classList.remove('bes-ext-review-dragging');
       document.body.style.cursor = '';
       window.removeEventListener('keydown', onKey);
     };
-  }, [open, onClose]);
+  }, [open, review?.id, onClose]);
 
   useEffect(() => {
-    if (!preview?.url) {
+    if (!review?.url) {
       setCheck(null);
       return undefined;
     }
     const controller = new AbortController();
     setCheck({ checking: true });
-    fetch(`/api/check-embed?url=${encodeURIComponent(preview.url)}`, { signal: controller.signal })
+    fetch(`/api/check-embed?url=${encodeURIComponent(review.url)}`, { signal: controller.signal })
       .then((response) => response.json())
       .then(setCheck)
       .catch((error) => {
         if (error?.name !== 'AbortError') setCheck({ embeddable: null, reason: 'Không kiểm tra được chính sách iframe.' });
       });
     return () => controller.abort();
-  }, [preview?.url]);
+  }, [review?.url, frameKey]);
 
   useEffect(() => {
-    setView(normalizeEmbedView(preview?.embedView || DEFAULT_VIEW));
-    setControlsOpen(false);
-  }, [preview?.id, preview?.request?.id, preview?.approvedApp?.id, preview?.url]);
+    if (!review) return;
+    setView(initialCustomView(review.embedView));
+    setFrameKey((value) => value + 1);
+  }, [review?.id]);
 
   if (!open || typeof document === 'undefined') return null;
 
-  const beginCropAction = (mode, event) => {
-    if (!manager || !cropStageRef.current) return;
+  const openPendingReview = (request) => {
+    setReview({
+      ...request.app,
+      id: `request-${request.id}`,
+      request,
+      embedView: DEFAULT_CUSTOM_VIEW,
+    });
+  };
+
+  const openApprovedReview = (app) => {
+    setReview({
+      id: `approved-${app.id}`,
+      name: app.title,
+      url: app.externalUrl,
+      icon: app.icon,
+      approvedApp: app,
+      embedView: app.embedView,
+    });
+  };
+
+  const beginCornerDrag = (corner, event) => {
+    if (!reviewStageRef.current || busy) return;
     event.preventDefault();
     event.stopPropagation();
-    const bounds = cropStageRef.current.getBoundingClientRect();
+    const bounds = reviewStageRef.current.getBoundingClientRect();
     if (!bounds.width || !bounds.height) return;
 
-    const startView = normalizeEmbedView(view);
-    cropActionRef.current = { mode, x: event.clientX, y: event.clientY, bounds, view: startView };
-    document.body.classList.add('bes-ext-cropping');
-    document.body.style.cursor = mode === 'move'
-      ? 'move'
-      : mode === 'nw' || mode === 'se' ? 'nwse-resize' : 'nesw-resize';
+    const source = normalizeEmbedView(view);
+    dragRef.current = {
+      corner,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      bounds,
+      source,
+    };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    document.body.classList.add('bes-ext-review-dragging');
+    document.body.style.cursor = corner === 'nw' || corner === 'se' ? 'nwse-resize' : 'nesw-resize';
 
     const move = (moveEvent) => {
-      const active = cropActionRef.current;
+      const active = dragRef.current;
       if (!active) return;
       moveEvent.preventDefault();
-      const deltaX = ((moveEvent.clientX - active.x) / active.bounds.width) * 100;
-      const deltaY = ((moveEvent.clientY - active.y) / active.bounds.height) * 100;
-      const source = active.view;
-      const right = source.cropX + source.cropWidth;
-      const bottom = source.cropY + source.cropHeight;
-      let cropX = source.cropX;
-      let cropY = source.cropY;
-      let cropWidth = source.cropWidth;
-      let cropHeight = source.cropHeight;
+      const dx = ((moveEvent.clientX - active.startX) / active.bounds.width) * 100;
+      const dy = ((moveEvent.clientY - active.startY) / active.bounds.height) * 100;
+      const start = active.source;
+      const right = start.cropX + start.cropWidth;
+      const bottom = start.cropY + start.cropHeight;
+      let cropX = start.cropX;
+      let cropY = start.cropY;
+      let cropWidth = start.cropWidth;
+      let cropHeight = start.cropHeight;
 
-      if (active.mode === 'move') {
-        cropX = clamp(source.cropX + deltaX, 0, 100 - source.cropWidth);
-        cropY = clamp(source.cropY + deltaY, 0, 100 - source.cropHeight);
-      } else {
-        if (active.mode.includes('w')) {
-          cropX = clamp(source.cropX + deltaX, 0, right - MIN_CROP_WIDTH);
-          cropWidth = right - cropX;
-        }
-        if (active.mode.includes('e')) cropWidth = clamp(source.cropWidth + deltaX, MIN_CROP_WIDTH, 100 - source.cropX);
-        if (active.mode.includes('n')) {
-          cropY = clamp(source.cropY + deltaY, 0, bottom - MIN_CROP_HEIGHT);
-          cropHeight = bottom - cropY;
-        }
-        if (active.mode.includes('s')) cropHeight = clamp(source.cropHeight + deltaY, MIN_CROP_HEIGHT, 100 - source.cropY);
+      if (active.corner.includes('w')) {
+        cropX = clamp(start.cropX + dx, 0, right - MIN_SIZE);
+        cropWidth = right - cropX;
+      }
+      if (active.corner.includes('e')) {
+        cropWidth = clamp(start.cropWidth + dx, MIN_SIZE, 100 - start.cropX);
+      }
+      if (active.corner.includes('n')) {
+        cropY = clamp(start.cropY + dy, 0, bottom - MIN_SIZE);
+        cropHeight = bottom - cropY;
+      }
+      if (active.corner.includes('s')) {
+        cropHeight = clamp(start.cropHeight + dy, MIN_SIZE, 100 - start.cropY);
       }
 
-      setView(normalizeEmbedView({ ...source, cropX, cropY, cropWidth, cropHeight }));
+      setView(normalizeEmbedView({
+        zoom: 1,
+        offsetX: 0,
+        offsetY: 0,
+        previewHeight: 900,
+        canvasHeight: 1000,
+        cropX,
+        cropY,
+        cropWidth,
+        cropHeight,
+      }));
     };
 
     const stop = () => {
-      cropActionRef.current = null;
-      document.body.classList.remove('bes-ext-cropping');
+      dragRef.current = null;
+      document.body.classList.remove('bes-ext-review-dragging');
       document.body.style.cursor = '';
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', stop);
@@ -269,38 +293,31 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
     }
   };
 
-  const openPendingPreview = (request) => setPreview({
-    ...request.app,
-    id: `request-${request.id}`,
-    request,
-    embedView: DEFAULT_VIEW,
-  });
-
-  const openApprovedPreview = (app) => setPreview({
-    id: `approved-${app.id}`,
-    name: app.title,
-    url: app.externalUrl,
-    icon: app.icon,
-    approvedApp: app,
-    embedView: app.embedView,
-  });
-
-  const approvePreview = async (mode = 'crop') => {
-    const request = preview?.request;
-    if (!request || busy) return;
-    const approvedView = mode === 'fullscreen' ? FULLSCREEN_VIEW : view;
-    const headerFooter = mode !== 'fullscreen' && isHeaderFooterView(approvedView);
-    setBusy(request.id);
+  const commitReview = async (mode) => {
+    if (!review || busy) return;
+    const approvedView = mode === 'fullscreen' ? FULLSCREEN_VIEW : normalizeEmbedView({
+      ...view,
+      zoom: 1,
+      offsetX: 0,
+      offsetY: 0,
+      previewHeight: 900,
+      canvasHeight: 1000,
+    });
+    const targetId = review.request?.id || review.approvedApp?.id;
+    setBusy(targetId || mode);
     setNotice('');
     try {
-      await approveExternalWebApp(currentUser, request, approvedView);
+      if (review.request) {
+        await approveExternalWebApp(currentUser, review.request, approvedView);
+      } else if (review.approvedApp) {
+        await updateApprovedExternalWebAppView(currentUser, review.approvedApp.id, approvedView);
+      }
       await refresh();
+      const title = review.name || review.request?.app?.name || review.approvedApp?.title || 'Ứng dụng';
       setNotice(mode === 'fullscreen'
-        ? `Đã duyệt “${request.app.name}” chạy toàn màn hình trong Brian, không mở tab mới.`
-        : headerFooter
-          ? `Đã duyệt “${request.app.name}” sau khi cắt header và footer.`
-          : `Đã duyệt “${request.app.name}” với vùng hiển thị đã chọn.`);
-      setPreview(null);
+        ? `Đã duyệt “${title}” ở chế độ toàn màn hình.`
+        : `Đã duyệt “${title}” đúng phạm vi bốn góc đã chọn.`);
+      setReview(null);
     } catch (error) {
       setNotice(error?.message || String(error));
     } finally {
@@ -315,32 +332,8 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
     try {
       await rejectExternalWebApp(request.id);
       await refresh();
-      if (preview?.request?.id === request.id) setPreview(null);
+      if (review?.request?.id === request.id) setReview(null);
       setNotice(`Đã từ chối “${request.app.name}”.`);
-    } catch (error) {
-      setNotice(error?.message || String(error));
-    } finally {
-      setBusy('');
-    }
-  };
-
-  const saveApprovedCrop = async (mode = 'crop') => {
-    const app = preview?.approvedApp;
-    if (!app || busy) return;
-    const approvedView = mode === 'fullscreen' ? FULLSCREEN_VIEW : view;
-    const headerFooter = mode !== 'fullscreen' && isHeaderFooterView(approvedView);
-    setBusy(app.id);
-    setNotice('');
-    try {
-      await updateApprovedExternalWebAppView(currentUser, app.id, approvedView);
-      const next = await refresh();
-      const updated = next.approved.find((item) => item.id === app.id);
-      if (updated) openApprovedPreview(updated);
-      setNotice(mode === 'fullscreen'
-        ? `Đã chuyển “${app.title}” sang chế độ toàn màn hình nội bộ.`
-        : headerFooter
-          ? `Đã lưu chế độ cắt header và footer cho “${app.title}”.`
-          : `Đã lưu vùng hiển thị cho “${app.title}”.`);
     } catch (error) {
       setNotice(error?.message || String(error));
     } finally {
@@ -354,17 +347,12 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
     try {
       await removeApprovedExternalWebApp(currentUser, app.id);
       await refresh();
-      if (preview?.approvedApp?.id === app.id) setPreview(null);
+      if (review?.approvedApp?.id === app.id) setReview(null);
     } catch (error) {
       setNotice(error?.message || String(error));
     } finally {
       setBusy('');
     }
-  };
-
-  const applyHeaderFooterPreset = () => {
-    setView((current) => headerFooterView(current));
-    setControlsOpen(true);
   };
 
   const tabs = [
@@ -373,45 +361,40 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
     ...(manager ? [['pending', 'Chờ duyệt'], ['approved', 'Đã duyệt']] : []),
   ];
   const list = tab === 'mine' ? data.mine : tab === 'pending' ? pending : [];
-  const previewStyle = embedTransformStyle(view);
-  const cropFrameStyle = {
+  const frameStyle = {
     left: `${view.cropX}%`,
     top: `${view.cropY}%`,
     width: `${view.cropWidth}%`,
     height: `${view.cropHeight}%`,
   };
-  const reviewing = Boolean(preview?.url && manager && (preview.request || preview.approvedApp));
-  const fullscreenSelected = isFullscreenView(view);
-  const headerFooterSelected = isHeaderFooterView(view);
-  const cuts = verticalCuts(view);
-  const currentActionLabel = headerFooterSelected ? 'Duyệt bỏ đầu/cuối' : 'Duyệt vùng này';
-  const currentSaveLabel = headerFooterSelected ? 'Lưu bỏ đầu/cuối' : 'Lưu vùng này';
+  const reviewBusy = Boolean(busy && review);
+  const embedBlocked = check?.embeddable === false;
 
   return createPortal(
-    <div className="bes-ext-layer" onMouseDown={(event) => event.target === event.currentTarget && onClose?.()}>
-      <section className={`bes-ext-dialog ${reviewing ? 'is-reviewing' : ''}`} role="dialog" aria-modal="true">
-        <header className="bes-ext-head">
-          <div><span>＋</span><div><strong>Ứng dụng website</strong><small>Đề xuất, TTCM duyệt và chạy trực tiếp trong Brian</small></div></div>
-          <div className="bes-ext-head-actions">
-            <button type="button" className="bes-ext-refresh" disabled={refreshing} onClick={() => refresh().catch(() => {})}>↻ {refreshing ? 'Đang tải' : 'Làm mới'}</button>
-            <button type="button" className="bes-ext-close" onClick={onClose}>×</button>
-          </div>
-        </header>
+    <>
+      <div className="bes-ext-layer" onMouseDown={(event) => event.target === event.currentTarget && onClose?.()}>
+        <section className="bes-ext-dialog bes-ext-manager-simple" role="dialog" aria-modal="true">
+          <header className="bes-ext-head">
+            <div><span>＋</span><div><strong>Ứng dụng website</strong><small>Admin/TTCM duyệt theo hai chế độ: toàn màn hình hoặc tùy chỉnh bốn góc</small></div></div>
+            <div className="bes-ext-head-actions">
+              <button type="button" className="bes-ext-refresh" disabled={refreshing} onClick={() => refresh().catch(() => {})}>↻ {refreshing ? 'Đang tải' : 'Làm mới'}</button>
+              <button type="button" className="bes-ext-close" onClick={onClose}>×</button>
+            </div>
+          </header>
 
-        <nav className="bes-ext-tabs">
-          {tabs.map(([id, text]) => (
-            <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>
-              {text}{id === 'pending' && pending.length ? <b>{pending.length}</b> : null}
-            </button>
-          ))}
-        </nav>
+          <nav className="bes-ext-tabs">
+            {tabs.map(([id, text]) => (
+              <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>
+                {text}{id === 'pending' && pending.length ? <b>{pending.length}</b> : null}
+              </button>
+            ))}
+          </nav>
 
-        <div className="bes-ext-body">
-          <main className="bes-ext-main">
+          <main className="bes-ext-manager-simple-body">
             {tab === 'submit' ? (
               <form className="bes-ext-form" onSubmit={submit}>
                 <h2>Thêm website làm ứng dụng</h2>
-                <p>Chỉ chấp nhận HTTPS. Ứng dụng chỉ xuất hiện sau khi TTCM xem trước, chọn vùng hiển thị và duyệt.</p>
+                <p>Website sẽ được mở toàn màn hình để Admin/TTCM duyệt toàn bộ hoặc kéo bốn góc chọn phạm vi tùy chỉnh.</p>
                 <label><span>Tên ứng dụng</span><input required value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
                 <label><span>Biểu tượng</span><input maxLength="3" value={draft.icon} onChange={(event) => setDraft({ ...draft, icon: event.target.value.toUpperCase().slice(0, 3) })} /></label>
                 <label className="wide"><span>Website URL</span><input required type="url" placeholder="https://…" value={draft.url} onChange={(event) => setDraft({ ...draft, url: event.target.value })} /></label>
@@ -432,12 +415,12 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
                       <p>{request.app.description}</p>
                     </div>
                     <div className="bes-ext-actions">
-                      <button type="button" onClick={() => tab === 'pending' ? openPendingPreview(request) : setPreview({ ...request.app, id: request.id })}>{tab === 'pending' ? 'Xem & duyệt' : 'Xem trước'}</button>
+                      <button type="button" onClick={() => tab === 'pending' ? openPendingReview(request) : setReview({ ...request.app, id: request.id })}>{tab === 'pending' ? 'Mở toàn màn hình để duyệt' : 'Xem trước'}</button>
                       {tab === 'pending' && manager ? <button type="button" className="reject" disabled={busy === request.id} onClick={() => reject(request)}>Từ chối</button> : null}
                     </div>
                   </article>
                 ))}
-                {!list.length ? <div className="bes-ext-empty">{tab === 'pending' ? 'Chưa có yêu cầu chờ duyệt. Danh sách tự làm mới mỗi 8 giây.' : 'Chưa có yêu cầu.'}</div> : null}
+                {!list.length ? <div className="bes-ext-empty">{tab === 'pending' ? 'Chưa có yêu cầu chờ duyệt.' : 'Chưa có yêu cầu.'}</div> : null}
               </div>
             ) : null}
 
@@ -445,73 +428,66 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
               <div className="bes-ext-list">
                 {data.approved.map((app) => (
                   <article className="bes-ext-item" key={app.id}>
-                    <div><span className="bes-ext-chip approved">{isFullscreenView(app.embedView) ? 'Toàn màn hình' : isHeaderFooterView(app.embedView) ? 'Đã cắt đầu/cuối' : 'Đang hiển thị'}</span><strong>{app.title}</strong><small>{app.externalUrl}</small><p>{app.descVi}</p></div>
-                    <div className="bes-ext-actions"><button type="button" onClick={() => openApprovedPreview(app)}>Sửa cách hiển thị</button><button type="button" className="reject" disabled={busy === app.id} onClick={() => remove(app)}>Gỡ</button></div>
+                    <div><span className="bes-ext-chip approved">{isFullscreenView(app.embedView) ? 'Duyệt toàn màn hình' : 'Duyệt tùy chỉnh'}</span><strong>{app.title}</strong><small>{app.externalUrl}</small><p>{app.descVi}</p></div>
+                    <div className="bes-ext-actions"><button type="button" onClick={() => openApprovedReview(app)}>Mở toàn màn hình để sửa</button><button type="button" className="reject" disabled={busy === app.id} onClick={() => remove(app)}>Gỡ</button></div>
                   </article>
                 ))}
                 {!data.approved.length ? <div className="bes-ext-empty">Chưa có ứng dụng website đã duyệt.</div> : null}
               </div>
             ) : null}
           </main>
+          {notice ? <div className="bes-ext-notice">{notice}</div> : null}
+        </section>
+      </div>
 
-          <aside className="bes-ext-preview">
-            <header className="bes-ext-preview-head">
-              <div><strong>{preview?.name || 'Bản xem trước'}</strong><small>{preview?.url || 'Chọn website để kiểm tra'}</small></div>
-              {preview?.url ? <span className={`bes-ext-embed-state ${check?.embeddable === false ? 'blocked' : 'ok'}`}>{check?.checking ? 'Đang kiểm tra…' : check?.embeddable === false ? 'Có thể chặn iframe' : 'Có thể nhúng'}</span> : null}
-            </header>
+      {review?.url ? (
+        <section className="bes-ext-review-screen" aria-label={`Duyệt ${review.name || 'ứng dụng'}`}>
+          <div ref={reviewStageRef} className="bes-ext-review-stage">
+            <iframe
+              key={frameKey}
+              src={safeExternalWebAppUrl(review.url)}
+              title={review.name || 'Ứng dụng đang duyệt'}
+              sandbox="allow-forms allow-modals allow-presentation allow-same-origin allow-scripts allow-downloads"
+              allow="clipboard-read; clipboard-write; microphone; camera; fullscreen"
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
 
-            {preview?.url ? (
-              <>
-                <div className="bes-ext-crop-toolbar">
-                  <div className="bes-ext-crop-toolbar-copy">
-                    <strong>{fullscreenSelected ? 'Chế độ toàn màn hình đang được chọn' : headerFooterSelected ? 'Đang cắt header và footer' : 'Chọn vùng website sẽ hiển thị'}</strong>
-                    <small>{fullscreenSelected ? 'Ứng dụng sẽ phủ toàn bộ cửa sổ Brian và không mở tab mới.' : headerFooterSelected ? `Đã bỏ ${Math.round(cuts.top)}% phía trên và ${Math.round(cuts.bottom)}% phía dưới.` : 'Kéo thanh xanh để di chuyển; kéo bốn góc của khung để cắt.'}</small>
-                  </div>
-                  <div className="bes-ext-crop-toolbar-actions">
-                    <button type="button" aria-label="Thu nhỏ website" onClick={() => setView((current) => normalizeEmbedView({ ...current, zoom: current.zoom - 0.1 }))}>−</button>
-                    <span>{Math.round(view.zoom * 100)}%</span>
-                    <button type="button" aria-label="Phóng to website" onClick={() => setView((current) => normalizeEmbedView({ ...current, zoom: current.zoom + 0.1 }))}>＋</button>
-                    <button type="button" className={controlsOpen ? 'active' : ''} onClick={() => setControlsOpen((value) => !value)}>Điều chỉnh</button>
-                    <button type="button" className={headerFooterSelected ? 'active' : ''} onClick={applyHeaderFooterPreset}>Cắt header/footer</button>
-                    <button type="button" onClick={() => setView(DEFAULT_VIEW)}>Đặt lại vùng</button>
-                    {preview.request ? <button type="button" className="approve" disabled={busy === preview.request.id || check?.embeddable === false} onClick={() => approvePreview('crop')}>{busy === preview.request.id ? 'Đang duyệt…' : currentActionLabel}</button> : null}
-                    {preview.request ? <button type="button" className="approve" disabled={busy === preview.request.id || check?.embeddable === false} onClick={() => approvePreview('fullscreen')}>{busy === preview.request.id ? 'Đang duyệt…' : 'Duyệt toàn màn hình'}</button> : null}
-                    {preview.approvedApp ? <button type="button" className="approve" disabled={busy === preview.approvedApp.id} onClick={() => saveApprovedCrop('crop')}>{busy === preview.approvedApp.id ? 'Đang lưu…' : currentSaveLabel}</button> : null}
-                    {preview.approvedApp ? <button type="button" className="approve" disabled={busy === preview.approvedApp.id} onClick={() => saveApprovedCrop('fullscreen')}>{busy === preview.approvedApp.id ? 'Đang lưu…' : 'Lưu toàn màn hình'}</button> : null}
-                  </div>
-                </div>
+            <div className="bes-ext-review-frame" style={frameStyle}>
+              <span className="bes-ext-review-frame-label">
+                Phạm vi tùy chỉnh · {Math.round(view.cropWidth)}% × {Math.round(view.cropHeight)}%
+              </span>
+              {CORNERS.map((corner) => (
+                <button
+                  type="button"
+                  key={corner}
+                  className={`bes-ext-review-corner is-${corner}`}
+                  aria-label={`Kéo góc ${corner}`}
+                  onPointerDown={(event) => beginCornerDrag(corner, event)}
+                >
+                  <i />
+                </button>
+              ))}
+            </div>
+          </div>
 
-                {controlsOpen ? (
-                  <section className="bes-ext-crop-popover">
-                    <header><div><strong>Điều chỉnh website</strong><small>Có thể cắt riêng phần đầu và cuối trang trước khi duyệt.</small></div><button type="button" onClick={() => setControlsOpen(false)}>×</button></header>
-                    <label><span>Phóng to <b>{Math.round(view.zoom * 100)}%</b></span><input type="range" min="100" max="240" step="5" value={Math.round(view.zoom * 100)} onChange={(event) => setView((current) => normalizeEmbedView({ ...current, zoom: Number(event.target.value) / 100 }))} /></label>
-                    <label><span>Dịch nội dung ngang <b>{Math.round(view.offsetX)}%</b></span><input type="range" min="0" max="70" step="1" value={view.offsetX} onChange={(event) => setView((current) => normalizeEmbedView({ ...current, offsetX: Number(event.target.value) }))} /></label>
-                    <label><span>Dịch nội dung dọc <b>{Math.round(view.offsetY)}%</b></span><input type="range" min="0" max="85" step="1" value={view.offsetY} onChange={(event) => setView((current) => normalizeEmbedView({ ...current, offsetY: Number(event.target.value) }))} /></label>
-                    <label><span>Cắt header <b>{Math.round(cuts.top)}%</b></span><input type="range" min="0" max="45" step="1" value={Math.round(cuts.top)} onChange={(event) => setView((current) => headerFooterView(current, { top: Number(event.target.value) }))} /></label>
-                    <label><span>Cắt footer <b>{Math.round(cuts.bottom)}%</b></span><input type="range" min="0" max="45" step="1" value={Math.round(cuts.bottom)} onChange={(event) => setView((current) => headerFooterView(current, { bottom: Number(event.target.value) }))} /></label>
-                    <label><span>Chiều cao trang nguồn <b>{Math.round(view.canvasHeight)} px</b></span><input type="range" min="1000" max="2600" step="100" value={view.canvasHeight} onChange={(event) => setView((current) => normalizeEmbedView({ ...current, canvasHeight: Number(event.target.value) }))} /></label>
-                  </section>
-                ) : null}
-
-                <div ref={cropStageRef} className="bes-ext-crop-stage" style={previewStyle}>
-                  <iframe src={safeExternalWebAppUrl(preview.url)} title={preview.name || 'Preview'} sandbox="allow-forms allow-modals allow-presentation allow-same-origin allow-scripts allow-downloads" allow="clipboard-read; clipboard-write; microphone; camera; fullscreen" />
-                  {reviewing ? (
-                    <div className="bes-ext-crop-frame" style={cropFrameStyle}>
-                      <button type="button" className="bes-ext-crop-drag" onPointerDown={(event) => beginCropAction('move', event)}>↕ Kéo vùng crop</button>
-                      <span className="bes-ext-crop-dimensions">{Math.round(view.cropWidth)}% × {Math.round(view.cropHeight)}%</span>
-                      {CROP_CORNERS.map((corner) => (
-                        <button type="button" key={corner} className={`bes-ext-crop-handle is-${corner}`} aria-label={`Kéo góc ${corner} của vùng crop`} onPointerDown={(event) => beginCropAction(corner, event)} />
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              </>
-            ) : <div className="bes-ext-empty">TTCM chọn một yêu cầu để xem website, cắt header/footer hoặc kéo vùng crop rồi duyệt.</div>}
-          </aside>
-        </div>
-        {notice ? <div className="bes-ext-notice">{notice}</div> : null}
-      </section>
-    </div>,
+          <div className="bes-ext-review-command">
+            <div className="bes-ext-review-command-copy">
+              <span>{review.icon || 'WEB'}</span>
+              <div>
+                <strong>{review.name}</strong>
+                <small>{check?.checking ? 'Đang kiểm tra website…' : embedBlocked ? 'Website có thể chặn iframe' : 'Kéo trực tiếp bốn góc xanh để chọn đúng phạm vi cần duyệt.'}</small>
+              </div>
+            </div>
+            <div className="bes-ext-review-command-actions">
+              <button type="button" className="secondary" disabled={reviewBusy} onClick={() => setFrameKey((value) => value + 1)}>↻ Tải lại</button>
+              <button type="button" className="approve-full" disabled={reviewBusy || embedBlocked} onClick={() => commitReview('fullscreen')}>{reviewBusy ? 'Đang lưu…' : 'Duyệt toàn màn hình'}</button>
+              <button type="button" className="approve-custom" disabled={reviewBusy || embedBlocked} onClick={() => commitReview('custom')}>{reviewBusy ? 'Đang lưu…' : 'Duyệt tùy chỉnh'}</button>
+              <button type="button" className="close" disabled={reviewBusy} onClick={() => setReview(null)}>×</button>
+            </div>
+          </div>
+        </section>
+      ) : null}
+    </>,
     document.body,
   );
 }
