@@ -1,0 +1,83 @@
+/* Force true Material 3 white fields and neutralize browser autofill tint. */
+.rsp-google-page .rspb-toolbar select,
+.rsp-google-page .rspb-roster input,
+.rsp-google-page .rspb-roster textarea,
+.rsp-google-page .rspb-stage select {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #1f1f1f !important;
+  -webkit-text-fill-color: #1f1f1f !important;
+  caret-color: #0b57d0 !important;
+  color-scheme: light !important;
+  border-color: #c4c7c5 !important;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  background-clip: padding-box !important;
+  filter: none !important;
+}
+
+.rsp-google-page .rspb-roster input,
+.rsp-google-page .rspb-roster textarea {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+.rsp-google-page .rspb-toolbar select:focus,
+.rsp-google-page .rspb-roster input:focus,
+.rsp-google-page .rspb-roster textarea:focus,
+.rsp-google-page .rspb-stage select:focus {
+  background-color: #ffffff !important;
+  border-color: #0b57d0 !important;
+  -webkit-box-shadow: 0 0 0 3px rgba(11, 87, 208, 0.14), 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 3px rgba(11, 87, 208, 0.14), 0 0 0 1000px #ffffff inset !important;
+}
+
+.rsp-google-page .rspb-roster input::placeholder,
+.rsp-google-page .rspb-roster textarea::placeholder {
+  color: #747775 !important;
+  opacity: 1 !important;
+}
+
+.rsp-google-page .rspb-toolbar select:-webkit-autofill,
+.rsp-google-page .rspb-toolbar select:-webkit-autofill:hover,
+.rsp-google-page .rspb-toolbar select:-webkit-autofill:focus,
+.rsp-google-page .rspb-roster input:-webkit-autofill,
+.rsp-google-page .rspb-roster input:-webkit-autofill:hover,
+.rsp-google-page .rspb-roster input:-webkit-autofill:focus,
+.rsp-google-page .rspb-roster textarea:-webkit-autofill,
+.rsp-google-page .rspb-roster textarea:-webkit-autofill:hover,
+.rsp-google-page .rspb-roster textarea:-webkit-autofill:focus,
+.rsp-google-page .rspb-stage select:-webkit-autofill,
+.rsp-google-page .rspb-stage select:-webkit-autofill:hover,
+.rsp-google-page .rspb-stage select:-webkit-autofill:focus {
+  background-color: #ffffff !important;
+  -webkit-text-fill-color: #1f1f1f !important;
+  caret-color: #0b57d0 !important;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  transition: background-color 9999s ease-out 0s !important;
+}
+
+.rsp-google-page .rspb-toolbar select:-moz-autofill,
+.rsp-google-page .rspb-roster input:-moz-autofill,
+.rsp-google-page .rspb-roster textarea:-moz-autofill,
+.rsp-google-page .rspb-stage select:-moz-autofill {
+  background-color: #ffffff !important;
+  color: #1f1f1f !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+}
+
+/* Keep dark mode intentional instead of allowing browser-generated yellow fields. */
+html[data-theme='dark'] .rsp-google-page .rspb-toolbar select,
+html[data-theme='dark'] .rsp-google-page .rspb-roster input,
+html[data-theme='dark'] .rsp-google-page .rspb-roster textarea,
+html[data-theme='dark'] .rsp-google-page .rspb-stage select {
+  background-color: #202124 !important;
+  color: #e8eaed !important;
+  -webkit-text-fill-color: #e8eaed !important;
+  caret-color: #a8c7fa !important;
+  color-scheme: dark !important;
+  border-color: #5f6368 !important;
+  -webkit-box-shadow: 0 0 0 1000px #202124 inset !important;
+  box-shadow: 0 0 0 1000px #202124 inset !important;
+}
