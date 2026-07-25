@@ -1,0 +1,494 @@
+/* Navigation proposal 2 — calm mint workspace, centered floating menu, compact utilities. */
+:root {
+  --p2-nav-accent: #009b72;
+  --p2-nav-accent-dark: #007e5d;
+  --p2-nav-accent-soft: #e5f6ef;
+  --p2-nav-ink: #102a43;
+  --p2-nav-muted: #617285;
+  --p2-nav-line: rgba(16, 42, 67, .10);
+  --p2-nav-surface: rgba(255, 255, 255, .965);
+  --p2-nav-surface-soft: rgba(247, 252, 249, .96);
+  --p2-nav-shadow: 0 1px 2px rgba(16, 42, 67, .07), 0 14px 34px rgba(37, 84, 70, .11);
+  --p2-nav-menu-shadow: 0 2px 5px rgba(16, 42, 67, .07), 0 18px 38px rgba(45, 88, 75, .12);
+}
+
+[data-theme='dark'],
+.theme-dark {
+  --p2-nav-accent: #5bd6ad;
+  --p2-nav-accent-dark: #31b98d;
+  --p2-nav-accent-soft: rgba(30, 121, 92, .26);
+  --p2-nav-ink: #edf8f4;
+  --p2-nav-muted: #aabdb5;
+  --p2-nav-line: rgba(230, 247, 240, .12);
+  --p2-nav-surface: rgba(26, 34, 31, .97);
+  --p2-nav-surface-soft: rgba(35, 45, 41, .96);
+  --p2-nav-shadow: 0 1px 2px rgba(0, 0, 0, .28), 0 16px 38px rgba(0, 0, 0, .28);
+  --p2-nav-menu-shadow: 0 2px 5px rgba(0, 0, 0, .24), 0 18px 42px rgba(0, 0, 0, .32);
+}
+
+body .bes-top-chrome {
+  padding: 14px clamp(14px, 1.7vw, 26px) 10px !important;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(52, 168, 83, .08), transparent 28%),
+    linear-gradient(180deg, rgba(247, 251, 249, .96), rgba(244, 249, 247, .82)) !important;
+  backdrop-filter: blur(18px) saturate(1.12) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.12) !important;
+}
+
+[data-theme='dark'] body .bes-top-chrome,
+.theme-dark body .bes-top-chrome {
+  background: linear-gradient(180deg, rgba(25, 33, 30, .97), rgba(25, 33, 30, .86)) !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] {
+  position: relative !important;
+  isolation: isolate;
+  width: min(100%, 1640px) !important;
+  min-height: 98px !important;
+  margin: 0 auto !important;
+  padding: 12px 18px !important;
+  display: grid !important;
+  grid-template-columns: minmax(220px, auto) minmax(650px, 1fr) auto !important;
+  align-items: center !important;
+  gap: clamp(16px, 2vw, 30px) !important;
+  overflow: visible !important;
+  border: 1px solid var(--p2-nav-line) !important;
+  border-radius: 30px !important;
+  background: var(--p2-nav-surface) !important;
+  color: var(--p2-nav-ink) !important;
+  box-shadow: var(--p2-nav-shadow) !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2']::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: 29px;
+  background: linear-gradient(105deg, rgba(255,255,255,.78), transparent 45%, rgba(226,247,239,.38));
+  pointer-events: none;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Brand */
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__brand {
+  min-width: 220px !important;
+  min-height: 64px !important;
+  display: inline-grid !important;
+  grid-template-columns: 54px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 13px !important;
+  padding: 5px 13px 5px 6px !important;
+  border: 0 !important;
+  border-radius: 22px !important;
+  background: transparent !important;
+  color: var(--p2-nav-ink) !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__brand:hover,
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__brand:focus-visible {
+  background: var(--p2-nav-accent-soft) !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__brand img {
+  width: 54px !important;
+  height: 54px !important;
+  border-radius: 17px !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 5px 10px rgba(13, 76, 94, .13));
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__brand > span {
+  min-width: 0;
+  display: grid !important;
+  gap: 3px;
+  font-size: 0 !important;
+  line-height: 1 !important;
+  text-align: left;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__brand > span::before {
+  content: 'English Hub';
+  color: var(--p2-nav-ink);
+  font-size: 20px;
+  font-weight: 820;
+  letter-spacing: -.035em;
+  white-space: nowrap;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__brand > span::after {
+  content: 'Brian English';
+  color: var(--p2-nav-accent);
+  font-size: 12.5px;
+  font-weight: 760;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+
+/* Search stays available through Command K, but no longer competes with the main menu. */
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__search {
+  display: none !important;
+}
+
+/* Center menu */
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary {
+  justify-self: center !important;
+  width: min(100%, 900px) !important;
+  min-width: 0 !important;
+  min-height: 78px !important;
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(92px, 1fr)) !important;
+  align-items: stretch !important;
+  gap: 4px !important;
+  padding: 8px !important;
+  overflow: visible !important;
+  border: 1px solid rgba(16, 42, 67, .07) !important;
+  border-radius: 28px !important;
+  background: rgba(255, 255, 255, .94) !important;
+  box-shadow: var(--p2-nav-menu-shadow) !important;
+}
+
+[data-theme='dark'] body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary,
+.theme-dark body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary {
+  background: rgba(37, 47, 43, .96) !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button {
+  position: relative !important;
+  order: 10;
+  min-width: 0 !important;
+  min-height: 62px !important;
+  padding: 7px 9px 8px !important;
+  display: grid !important;
+  grid-template-rows: 25px auto !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 4px !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  background: transparent !important;
+  color: #17385f !important;
+  font-size: 13px !important;
+  font-weight: 720 !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
+  box-shadow: none !important;
+  transition: transform .18s cubic-bezier(.2,0,0,1), background-color .18s ease, color .18s ease, box-shadow .18s ease !important;
+}
+
+[data-theme='dark'] body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button,
+.theme-dark body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button {
+  color: var(--p2-nav-muted) !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button::before {
+  content: '' !important;
+  display: block !important;
+  width: 25px !important;
+  height: 25px !important;
+  background: currentColor !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-position: center !important;
+  mask-position: center !important;
+  -webkit-mask-size: 23px 23px !important;
+  mask-size: 23px 23px !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button:hover {
+  transform: translateY(-1px) !important;
+  background: #edf8f3 !important;
+  color: var(--p2-nav-accent-dark) !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button.is-active {
+  transform: translateY(-3px) !important;
+  background: linear-gradient(145deg, #08a77e 0%, #008d69 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 7px 14px rgba(0, 125, 92, .22), 0 18px 32px rgba(0, 125, 92, .18) !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button.is-active::after {
+  content: '' !important;
+  position: absolute !important;
+  left: 50% !important;
+  bottom: -13px !important;
+  display: block !important;
+  width: 9px !important;
+  height: 9px !important;
+  border: 3px solid var(--p2-nav-surface) !important;
+  border-radius: 50% !important;
+  background: var(--p2-nav-accent) !important;
+  box-sizing: content-box !important;
+  transform: translateX(-50%) !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button[data-brian-home-tab-hidden='true'],
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button[data-nav-id='home'] {
+  display: none !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button[data-nav-id='apps'] { order: 1; }
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button[data-nav-id='news'] { order: 2 !important; }
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button[data-nav-id='games'] { order: 3 !important; }
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button[data-nav-id='dashboard'] { order: 4 !important; }
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button[data-nav-id='homeroom'] { order: 5 !important; }
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button[data-nav-id='admin'] { order: 6; }
+
+/* SVG masks for the six primary destinations. */
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button[data-nav-id='apps']::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.8'%3E%3Crect x='3' y='3' width='6' height='6' rx='1.4'/%3E%3Crect x='15' y='3' width='6' height='6' rx='1.4'/%3E%3Crect x='3' y='15' width='6' height='6' rx='1.4'/%3E%3Crect x='15' y='15' width='6' height='6' rx='1.4'/%3E%3C/g%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.8'%3E%3Crect x='3' y='3' width='6' height='6' rx='1.4'/%3E%3Crect x='15' y='3' width='6' height='6' rx='1.4'/%3E%3Crect x='3' y='15' width='6' height='6' rx='1.4'/%3E%3Crect x='15' y='15' width='6' height='6' rx='1.4'/%3E%3C/g%3E%3C/svg%3E");
+}
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button[data-nav-id='news']::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 4h13a2 2 0 0 1 2 2v14H6a2 2 0 0 1-2-2V5'/%3E%3Cpath d='M8 8h8M8 12h8M8 16h5'/%3E%3C/g%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 4h13a2 2 0 0 1 2 2v14H6a2 2 0 0 1-2-2V5'/%3E%3Cpath d='M8 8h8M8 12h8M8 16h5'/%3E%3C/g%3E%3C/svg%3E");
+}
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button[data-nav-id='games']::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8.5 8h7a5.5 5.5 0 0 1 5.2 7.3l-.8 2.4a2.8 2.8 0 0 1-4.6 1.1L13.8 17h-3.6l-1.5 1.8a2.8 2.8 0 0 1-4.6-1.1l-.8-2.4A5.5 5.5 0 0 1 8.5 8Z' fill='none' stroke='%23000' stroke-width='1.8'/%3E%3Cpath d='M7 12v4M5 14h4M16 13h.01M18 15h.01' stroke='%23000' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8.5 8h7a5.5 5.5 0 0 1 5.2 7.3l-.8 2.4a2.8 2.8 0 0 1-4.6 1.1L13.8 17h-3.6l-1.5 1.8a2.8 2.8 0 0 1-4.6-1.1l-.8-2.4A5.5 5.5 0 0 1 8.5 8Z' fill='none' stroke='%23000' stroke-width='1.8'/%3E%3Cpath d='M7 12v4M5 14h4M16 13h.01M18 15h.01' stroke='%23000' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button[data-nav-id='dashboard']::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M5 20V12M10 20V7M15 20V10M20 20V4'/%3E%3C/g%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M5 20V12M10 20V7M15 20V10M20 20V4'/%3E%3C/g%3E%3C/svg%3E");
+}
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button[data-nav-id='homeroom']::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='9' cy='8' r='3'/%3E%3Ccircle cx='17' cy='9' r='2.2'/%3E%3Cpath d='M3.5 20v-1.3A5.7 5.7 0 0 1 9.2 13h.1a5.7 5.7 0 0 1 5.7 5.7V20M15 14.2a4.7 4.7 0 0 1 5.5 4.6V20'/%3E%3C/g%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='9' cy='8' r='3'/%3E%3Ccircle cx='17' cy='9' r='2.2'/%3E%3Cpath d='M3.5 20v-1.3A5.7 5.7 0 0 1 9.2 13h.1a5.7 5.7 0 0 1 5.7 5.7V20M15 14.2a4.7 4.7 0 0 1 5.5 4.6V20'/%3E%3C/g%3E%3C/svg%3E");
+}
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button[data-nav-id='admin']::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3 20 6v5c0 5-3.3 8.4-8 10-4.7-1.6-8-5-8-10V6z' fill='none' stroke='%23000' stroke-width='1.8' stroke-linejoin='round'/%3E%3Cpath d='M9.5 12.2 11 13.7l3.8-4' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3 20 6v5c0 5-3.3 8.4-8 10-4.7-1.6-8-5-8-10V6z' fill='none' stroke='%23000' stroke-width='1.8' stroke-linejoin='round'/%3E%3Cpath d='M9.5 12.2 11 13.7l3.8-4' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+/* Utility cluster */
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__actions {
+  min-width: max-content !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 9px !important;
+  padding-left: 17px !important;
+  border-left: 1px dashed rgba(16, 42, 67, .15) !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__actions > *,
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__actions > .brian-nav__popover-wrap {
+  flex: 0 0 auto;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__icon,
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__login,
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__language-p2 {
+  min-width: 48px !important;
+  width: 48px !important;
+  min-height: 48px !important;
+  height: 48px !important;
+  padding: 0 !important;
+  border: 1px solid rgba(16, 42, 67, .08) !important;
+  border-radius: 17px !important;
+  background: #fff !important;
+  color: #17385f !important;
+  box-shadow: 0 4px 12px rgba(16, 42, 67, .08) !important;
+}
+
+[data-theme='dark'] body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__icon,
+[data-theme='dark'] body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__login,
+[data-theme='dark'] body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__language-p2,
+.theme-dark body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__icon,
+.theme-dark body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__login,
+.theme-dark body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__language-p2 {
+  background: #2b3733 !important;
+  color: var(--p2-nav-ink) !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__icon:hover,
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__icon.is-open,
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__language-p2:hover,
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__language-p2:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(0, 155, 114, .22) !important;
+  background: var(--p2-nav-accent-soft) !important;
+  color: var(--p2-nav-accent-dark) !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__language-p2 {
+  order: 2;
+  width: auto !important;
+  min-width: 72px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  padding: 0 12px !important;
+  cursor: pointer;
+  font: inherit;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__language-p2 span {
+  font-size: 17px;
+  line-height: 1;
+}
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__language-p2 b {
+  font-size: 12px;
+  font-weight: 820;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__actions > .brian-nav__icon:first-child { order: 1; }
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__actions > .brian-nav__popover-wrap { order: 3; }
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__actions > .brian-nav__popover-wrap:last-of-type { order: 4; }
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__account {
+  min-width: 118px !important;
+  max-width: 172px !important;
+  min-height: 52px !important;
+  height: 52px !important;
+  padding: 5px 12px 5px 6px !important;
+  border: 1px solid rgba(16, 42, 67, .08) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  color: var(--p2-nav-ink) !important;
+  box-shadow: 0 4px 12px rgba(16, 42, 67, .08) !important;
+}
+
+[data-theme='dark'] body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__account,
+.theme-dark body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__account {
+  background: #2b3733 !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__account:hover,
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__account.is-open {
+  border-color: rgba(0, 155, 114, .22) !important;
+  background: var(--p2-nav-accent-soft) !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__account > span,
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__account > img {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 14px !important;
+  object-fit: cover !important;
+  background: linear-gradient(145deg, #0c9f78, #08785c) !important;
+  color: #fff !important;
+  box-shadow: 0 3px 9px rgba(0, 126, 93, .20);
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__account strong {
+  color: var(--p2-nav-ink) !important;
+  font-size: 13px !important;
+  font-weight: 760 !important;
+}
+
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__bell em {
+  top: -7px !important;
+  right: -6px !important;
+  min-width: 22px !important;
+  height: 22px !important;
+  border: 3px solid var(--p2-nav-surface) !important;
+  background: #d93025 !important;
+  font-size: 10px !important;
+  box-shadow: 0 3px 9px rgba(217, 48, 37, .24);
+}
+
+/* Keep popovers usable after the visual redesign. */
+body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__popover {
+  top: calc(100% + 14px) !important;
+  border-color: var(--p2-nav-line) !important;
+  border-radius: 24px !important;
+  background: var(--p2-nav-surface) !important;
+  color: var(--p2-nav-ink) !important;
+  box-shadow: 0 18px 48px rgba(16, 42, 67, .18) !important;
+}
+
+/* Responsive behavior: preserve all destinations through a horizontal menu, never hide features. */
+@media (max-width: 1280px) {
+  body .brian-nav[data-navigation-design='proposal-2'] {
+    grid-template-columns: minmax(184px, auto) minmax(520px, 1fr) auto !important;
+    gap: 14px !important;
+    padding-inline: 13px !important;
+  }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__brand {
+    min-width: 184px !important;
+  }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary {
+    grid-template-columns: repeat(6, minmax(78px, 1fr)) !important;
+  }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button {
+    font-size: 11.5px !important;
+  }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__account {
+    min-width: 52px !important;
+    width: 52px !important;
+    padding: 5px !important;
+    grid-template-columns: 40px !important;
+  }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__account strong,
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__account i {
+    display: none !important;
+  }
+}
+
+@media (max-width: 980px) {
+  body .brian-nav[data-navigation-design='proposal-2'] {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas: 'brand actions' 'primary primary' !important;
+    min-height: 0 !important;
+    gap: 10px 14px !important;
+    border-radius: 26px !important;
+  }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__brand { grid-area: brand; }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary {
+    grid-area: primary;
+    justify-self: stretch !important;
+    width: 100% !important;
+    display: flex !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary::-webkit-scrollbar { display: none; }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__primary > button {
+    flex: 0 0 104px !important;
+    scroll-snap-align: center;
+  }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__actions {
+    grid-area: actions;
+    padding-left: 0 !important;
+    border-left: 0 !important;
+  }
+}
+
+@media (max-width: 620px) {
+  body .bes-top-chrome { padding: 8px 7px 7px !important; }
+  body .brian-nav[data-navigation-design='proposal-2'] {
+    padding: 9px !important;
+    border-radius: 22px !important;
+  }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__brand {
+    min-width: 0 !important;
+    grid-template-columns: 44px minmax(0, 1fr) !important;
+    gap: 9px !important;
+  }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__brand img {
+    width: 44px !important;
+    height: 44px !important;
+  }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__brand > span::before { font-size: 16px; }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__brand > span::after { display: none; }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__language-p2 {
+    min-width: 48px !important;
+    width: 48px !important;
+    padding: 0 !important;
+  }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__language-p2 b { display: none; }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__actions {
+    gap: 5px !important;
+  }
+  body .brian-nav[data-navigation-design='proposal-2'] .brian-nav__actions > .brian-nav__icon:first-child {
+    display: none !important;
+  }
+}
