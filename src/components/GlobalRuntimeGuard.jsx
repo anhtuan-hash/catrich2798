@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import VietnamAtmosphereOverlay from './VietnamAtmosphereOverlay.jsx';
+import VietnamCuratedAtmosphereOverlay from './VietnamCuratedAtmosphereOverlay.jsx';
 import VietnamAtmosphereAdminPanel from './VietnamAtmosphereAdminPanel.jsx';
 import UsernameLoginBridge from './UsernameLoginBridge.jsx';
 import BulkTeacherAccountsPanel from './BulkTeacherAccountsPanel.jsx';
@@ -42,6 +43,7 @@ export default function GlobalRuntimeGuard({ language = 'vi' }) {
     <>
       <UsernameLoginBridge language={language} />
       <VietnamAtmosphereOverlay />
+      <VietnamCuratedAtmosphereOverlay />
       <VietnamAtmosphereAdminPanel language={language} />
       <BulkTeacherAccountsPanel language={language} />
       <UsernameAccountCenter language={language} />
