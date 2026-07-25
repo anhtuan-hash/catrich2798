@@ -39,10 +39,12 @@ export function detectDeviceProfile() {
   if (reduceMotion || lowNetwork || (isMobile && (lowMemory || lowCores))) {
     return { tier: 'low', reason: reduceMotion ? 'reduced-motion' : lowNetwork ? 'slow-network' : 'mobile-hardware', isMobile, reduceMotion };
   }
-  if (!isMobile && memory >= 8 && cores >= 6) {
-    return { tier: 'high', reason: 'desktop-hardware', isMobile, reduceMotion };
-  }
-  return { tier: 'balanced', reason: isMobile || coarsePointer ? 'touch-balanced' : 'default', isMobile, reduceMotion };
+
+  // Desktop hardware information is often incomplete or optimistic. Treating
+  // every Mac/PC with several cores as "high" enabled the heaviest animation
+  // profile by default, even when the integrated GPU or browser was struggling.
+  // Auto mode now prefers balanced; users can still select High explicitly.
+  return { tier: 'balanced', reason: isMobile || coarsePointer ? 'touch-balanced' : 'desktop-balanced', isMobile, reduceMotion };
 }
 
 export function resolvePerformanceMode(mode = getStoredPerformanceMode()) {
@@ -53,7 +55,8 @@ export function resolvePerformanceMode(mode = getStoredPerformanceMode()) {
 export function resolveMotionMode(motionMode = getStoredMotionMode(), performanceMode = getStoredPerformanceMode()) {
   const profile = detectDeviceProfile();
   const resolvedPerformance = resolvePerformanceMode(performanceMode);
-  if (profile.reduceMotion || resolvedPerformance === 'low') return motionMode === 'full' ? 'lite' : motionMode;
+  if (profile.reduceMotion || resolvedPerformance === 'low') return motionMode === 'off' ? 'off' : 'lite';
+  if (motionMode === 'full' && resolvedPerformance !== 'high') return 'lite';
   return VALID_MOTION.has(motionMode) ? motionMode : 'lite';
 }
 
