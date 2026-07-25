@@ -20,6 +20,17 @@ import './ExternalWebAppCrop.css';
 
 const EMPTY = { name: '', url: '', icon: 'WEB', description: '', groupId: 'create' };
 const DEFAULT_VIEW = normalizeEmbedView();
+const FULLSCREEN_VIEW = normalizeEmbedView({
+  zoom: 1,
+  offsetX: 0,
+  offsetY: 0,
+  previewHeight: 900,
+  canvasHeight: 1000,
+  cropX: 0,
+  cropY: 0,
+  cropWidth: 100,
+  cropHeight: 100,
+});
 const CROP_CORNERS = ['nw', 'ne', 'sw', 'se'];
 const MIN_CROP_WIDTH = 18;
 const MIN_CROP_HEIGHT = 18;
@@ -33,6 +44,19 @@ const statusLabel = (status) => ({
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function isFullscreenView(value = {}) {
+  const clean = normalizeEmbedView(value);
+  return clean.zoom === FULLSCREEN_VIEW.zoom
+    && clean.offsetX === FULLSCREEN_VIEW.offsetX
+    && clean.offsetY === FULLSCREEN_VIEW.offsetY
+    && clean.previewHeight === FULLSCREEN_VIEW.previewHeight
+    && clean.canvasHeight === FULLSCREEN_VIEW.canvasHeight
+    && clean.cropX === FULLSCREEN_VIEW.cropX
+    && clean.cropY === FULLSCREEN_VIEW.cropY
+    && clean.cropWidth === FULLSCREEN_VIEW.cropWidth
+    && clean.cropHeight === FULLSCREEN_VIEW.cropHeight;
 }
 
 export default function ExternalWebAppManager({ open, onClose, currentUser, language = 'vi', onChanged }) {
@@ -244,15 +268,18 @@ export default function ExternalWebAppManager({ open, onClose, currentUser, lang
     });
   };
 
-  const approvePreview = async () => {
+  const approvePreview = async (mode = 'crop') => {
     const request = preview?.request;
     if (!request || busy) return;
+    const approvedView = mode === 'fullscreen' ? FULLSCREEN_VIEW : view;
     setBusy(request.id);
     setNotice('');
     try {
-      await approveExternalWebApp(currentUser, request, view);
+      await approveExternalWebApp(currentUser, request, approvedView);
       await refresh();
-      setNotice(`Đã duyệt “${request.app.name}” với vùng hiển thị đã chọn.`);
+      setNotice(mode === 'fullscreen'
+        ? `Đã duyệt “${request.app.name}” chạy toàn màn hình trong Brian, không mở tab mới.`
+        : `Đã duyệt “${request.app.name}” với vùng hiển thị đã chọn.`);
       setPreview(null);
     } catch (error) {
       setNotice(error?.message || String(error));
@@ -277,17 +304,20 @@ export default function ExternalWebAppManager({ open, onClose, currentUser, lang
     }
   };
 
-  const saveApprovedCrop = async () => {
+  const saveApprovedCrop = async (mode = 'crop') => {
     const app = preview?.approvedApp;
     if (!app || busy) return;
+    const approvedView = mode === 'fullscreen' ? FULLSCREEN_VIEW : view;
     setBusy(app.id);
     setNotice('');
     try {
-      await updateApprovedExternalWebAppView(currentUser, app.id, view);
+      await updateApprovedExternalWebAppView(currentUser, app.id, approvedView);
       const next = await refresh();
       const updated = next.approved.find((item) => item.id === app.id);
       if (updated) openApprovedPreview(updated);
-      setNotice(`Đã lưu vùng hiển thị cho “${app.title}”.`);
+      setNotice(mode === 'fullscreen'
+        ? `Đã chuyển “${app.title}” sang chế độ toàn màn hình nội bộ.`
+        : `Đã lưu vùng hiển thị cho “${app.title}”.`);
     } catch (error) {
       setNotice(error?.message || String(error));
     } finally {
@@ -323,6 +353,7 @@ export default function ExternalWebAppManager({ open, onClose, currentUser, lang
     height: `${view.cropHeight}%`,
   };
   const reviewing = Boolean(preview?.url && manager && (preview.request || preview.approvedApp));
+  const fullscreenSelected = isFullscreenView(view);
 
   return createPortal(
     <div className="bes-ext-layer" onMouseDown={(event) => event.target === event.currentTarget && onClose?.()}>
@@ -382,8 +413,8 @@ export default function ExternalWebAppManager({ open, onClose, currentUser, lang
               <div className="bes-ext-list">
                 {data.approved.map((app) => (
                   <article className="bes-ext-item" key={app.id}>
-                    <div><span className="bes-ext-chip approved">Đang hiển thị</span><strong>{app.title}</strong><small>{app.externalUrl}</small><p>{app.descVi}</p></div>
-                    <div className="bes-ext-actions"><button type="button" onClick={() => openApprovedPreview(app)}>Sửa vùng hiển thị</button><button type="button" className="reject" disabled={busy === app.id} onClick={() => remove(app)}>Gỡ</button></div>
+                    <div><span className="bes-ext-chip approved">{isFullscreenView(app.embedView) ? 'Toàn màn hình' : 'Đang hiển thị'}</span><strong>{app.title}</strong><small>{app.externalUrl}</small><p>{app.descVi}</p></div>
+                    <div className="bes-ext-actions"><button type="button" onClick={() => openApprovedPreview(app)}>Sửa cách hiển thị</button><button type="button" className="reject" disabled={busy === app.id} onClick={() => remove(app)}>Gỡ</button></div>
                   </article>
                 ))}
                 {!data.approved.length ? <div className="bes-ext-empty">Chưa có ứng dụng website đã duyệt.</div> : null}
@@ -401,17 +432,19 @@ export default function ExternalWebAppManager({ open, onClose, currentUser, lang
               <>
                 <div className="bes-ext-crop-toolbar">
                   <div className="bes-ext-crop-toolbar-copy">
-                    <strong>Chọn vùng website sẽ hiển thị</strong>
-                    <small>Kéo thanh xanh để di chuyển; kéo bốn góc của khung để cắt.</small>
+                    <strong>{fullscreenSelected ? 'Chế độ toàn màn hình đang được chọn' : 'Chọn vùng website sẽ hiển thị'}</strong>
+                    <small>{fullscreenSelected ? 'Ứng dụng sẽ phủ toàn bộ cửa sổ Brian và không mở tab mới.' : 'Kéo thanh xanh để di chuyển; kéo bốn góc của khung để cắt.'}</small>
                   </div>
                   <div className="bes-ext-crop-toolbar-actions">
                     <button type="button" aria-label="Thu nhỏ website" onClick={() => setView((current) => normalizeEmbedView({ ...current, zoom: current.zoom - 0.1 }))}>−</button>
                     <span>{Math.round(view.zoom * 100)}%</span>
                     <button type="button" aria-label="Phóng to website" onClick={() => setView((current) => normalizeEmbedView({ ...current, zoom: current.zoom + 0.1 }))}>＋</button>
                     <button type="button" className={controlsOpen ? 'active' : ''} onClick={() => setControlsOpen((value) => !value)}>Điều chỉnh</button>
-                    <button type="button" onClick={() => setView(DEFAULT_VIEW)}>Đặt lại</button>
-                    {preview.request ? <button type="button" className="approve" disabled={busy === preview.request.id || check?.embeddable === false} onClick={approvePreview}>{busy === preview.request.id ? 'Đang duyệt…' : 'Duyệt vùng này'}</button> : null}
-                    {preview.approvedApp ? <button type="button" className="approve" disabled={busy === preview.approvedApp.id} onClick={saveApprovedCrop}>{busy === preview.approvedApp.id ? 'Đang lưu…' : 'Lưu vùng này'}</button> : null}
+                    <button type="button" onClick={() => setView(DEFAULT_VIEW)}>Đặt lại vùng</button>
+                    {preview.request ? <button type="button" className="approve" disabled={busy === preview.request.id || check?.embeddable === false} onClick={() => approvePreview('crop')}>{busy === preview.request.id ? 'Đang duyệt…' : 'Duyệt vùng này'}</button> : null}
+                    {preview.request ? <button type="button" className="approve" disabled={busy === preview.request.id || check?.embeddable === false} onClick={() => approvePreview('fullscreen')}>{busy === preview.request.id ? 'Đang duyệt…' : 'Duyệt toàn màn hình'}</button> : null}
+                    {preview.approvedApp ? <button type="button" className="approve" disabled={busy === preview.approvedApp.id} onClick={() => saveApprovedCrop('crop')}>{busy === preview.approvedApp.id ? 'Đang lưu…' : 'Lưu vùng này'}</button> : null}
+                    {preview.approvedApp ? <button type="button" className="approve" disabled={busy === preview.approvedApp.id} onClick={() => saveApprovedCrop('fullscreen')}>{busy === preview.approvedApp.id ? 'Đang lưu…' : 'Lưu toàn màn hình'}</button> : null}
                   </div>
                 </div>
 
