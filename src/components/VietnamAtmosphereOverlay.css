@@ -9,18 +9,102 @@
   isolation: isolate;
 }
 
+/* Aura xanh–cyan–tím–mint: dùng radial-gradient thay vì blur để giữ hiệu năng. */
+.bes-vn-atmosphere::before,
+.bes-vn-atmosphere::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bes-vn-atmosphere::before {
+  inset: -20%;
+  background:
+    radial-gradient(circle at 10% 14%, rgba(88, 190, 255, 0.24) 0%, rgba(88, 190, 255, 0.11) 16%, transparent 38%),
+    radial-gradient(circle at 44% 8%, rgba(87, 225, 239, 0.2) 0%, rgba(87, 225, 239, 0.09) 15%, transparent 34%),
+    radial-gradient(circle at 88% 19%, rgba(142, 104, 255, 0.22) 0%, rgba(142, 104, 255, 0.1) 17%, transparent 39%),
+    radial-gradient(circle at 78% 82%, rgba(89, 221, 179, 0.2) 0%, rgba(89, 221, 179, 0.08) 18%, transparent 40%),
+    radial-gradient(circle at 32% 88%, rgba(255, 213, 116, 0.1) 0%, transparent 31%);
+  opacity: 0.82;
+  transform: translate3d(0, 0, 0) scale(1.02);
+  transform-origin: 50% 50%;
+  animation: bes-vn-aura-flow 26s ease-in-out infinite alternate;
+}
+
+.bes-vn-atmosphere::after {
+  left: -9%;
+  top: 8%;
+  width: 118%;
+  height: 30%;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    transparent 3%,
+    rgba(255, 255, 255, 0.04) 19%,
+    rgba(255, 255, 255, 0.27) 44%,
+    rgba(255, 255, 255, 0.08) 67%,
+    transparent 96%
+  );
+  opacity: 0.42;
+  transform: rotate(-7deg) skewX(-15deg);
+  transform-origin: 50% 50%;
+  animation: bes-vn-aura-ribbon 21s ease-in-out infinite alternate;
+}
+
 .bes-vn-atmosphere__veil {
   position: absolute;
   inset: 0;
+  z-index: 1;
   background:
-    radial-gradient(circle at 8% 14%, rgba(255, 244, 224, 0.11), transparent 27%),
-    radial-gradient(circle at 92% 82%, rgba(231, 250, 240, 0.1), transparent 30%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.025), rgba(248, 247, 242, 0.055));
-  opacity: 0.72;
+    radial-gradient(circle at 8% 14%, rgba(224, 244, 255, 0.13), transparent 28%),
+    radial-gradient(circle at 51% 24%, rgba(224, 255, 250, 0.075), transparent 31%),
+    radial-gradient(circle at 92% 82%, rgba(235, 228, 255, 0.1), transparent 30%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.025), rgba(238, 246, 255, 0.052));
+  opacity: 0.78;
+}
+
+/* Điểm sáng nhỏ giống lớp kính phát quang trong ảnh tham chiếu. */
+.bes-vn-atmosphere__veil::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 27% 18%, rgba(255, 255, 255, 0.96) 0 1px, transparent 2.7px),
+    radial-gradient(circle at 81% 12%, rgba(255, 255, 255, 0.92) 0 1px, transparent 3px),
+    radial-gradient(circle at 65% 63%, rgba(255, 255, 255, 0.84) 0 1px, transparent 2.5px),
+    radial-gradient(circle at 13% 73%, rgba(255, 255, 255, 0.82) 0 1px, transparent 2.4px),
+    radial-gradient(circle at 43% 86%, rgba(255, 255, 255, 0.8) 0 1px, transparent 2.4px);
+  opacity: 0.68;
+  animation: bes-vn-aura-sparkle 5.8s ease-in-out infinite;
+}
+
+.bes-vn-atmosphere__veil::after {
+  content: '';
+  position: absolute;
+  left: -17%;
+  bottom: 2%;
+  width: 120%;
+  height: 28%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    transparent 4%,
+    rgba(255, 255, 255, 0.04) 31%,
+    rgba(255, 255, 255, 0.18) 51%,
+    rgba(255, 255, 255, 0.04) 72%,
+    transparent 96%
+  );
+  opacity: 0.34;
+  transform: rotate(8deg) skewX(13deg);
+  animation: bes-vn-aura-ribbon-secondary 27s ease-in-out infinite alternate;
 }
 
 .bes-vn-motif {
   position: absolute;
+  z-index: 2;
   left: var(--vn-left);
   top: var(--vn-top);
   width: var(--vn-size);
@@ -82,8 +166,65 @@ html[data-motion='off'] .bes-vn-motif__art {
   will-change: auto;
 }
 
+html[data-performance='low'] .bes-vn-atmosphere::before,
+html[data-motion='off'] .bes-vn-atmosphere::before,
+html[data-performance='low'] .bes-vn-atmosphere__veil::before,
+html[data-motion='off'] .bes-vn-atmosphere__veil::before {
+  animation: none !important;
+  opacity: 0.34;
+}
+
+html[data-performance='low'] .bes-vn-atmosphere::after,
+html[data-motion='off'] .bes-vn-atmosphere::after,
+html[data-performance='low'] .bes-vn-atmosphere__veil::after,
+html[data-motion='off'] .bes-vn-atmosphere__veil::after {
+  display: none;
+}
+
 .bes-vn-motif--custom img {
   border-radius: 18%;
+}
+
+@keyframes bes-vn-aura-flow {
+  0% {
+    transform: translate3d(-1.5%, 1%, 0) scale(1.01);
+  }
+  52% {
+    transform: translate3d(1.8%, -1.2%, 0) scale(1.055);
+  }
+  100% {
+    transform: translate3d(-0.5%, 1.9%, 0) scale(1.025);
+  }
+}
+
+@keyframes bes-vn-aura-ribbon {
+  from {
+    transform: translate3d(0, 0, 0) rotate(-7deg) skewX(-15deg) scaleY(0.96);
+  }
+  to {
+    transform: translate3d(-2.5%, 2%, 0) rotate(-4deg) skewX(-11deg) scaleY(1.08);
+  }
+}
+
+@keyframes bes-vn-aura-ribbon-secondary {
+  from {
+    transform: translate3d(0, 0, 0) rotate(8deg) skewX(13deg) scaleY(1.03);
+  }
+  to {
+    transform: translate3d(3.5%, -2.5%, 0) rotate(5deg) skewX(9deg) scaleY(0.94);
+  }
+}
+
+@keyframes bes-vn-aura-sparkle {
+  0%, 100% {
+    opacity: 0.28;
+  }
+  48% {
+    opacity: 0.78;
+  }
+  62% {
+    opacity: 0.46;
+  }
 }
 
 @keyframes bes-vn-drift {
@@ -107,14 +248,30 @@ html[data-motion='off'] .bes-vn-motif__art {
   }
 }
 
+html[data-theme='dark'] .bes-vn-atmosphere::before,
+body[data-theme='dark'] .bes-vn-atmosphere::before,
+.theme-dark .bes-vn-atmosphere::before {
+  opacity: 0.46;
+}
+
+html[data-theme='dark'] .bes-vn-atmosphere::after,
+body[data-theme='dark'] .bes-vn-atmosphere::after,
+.theme-dark .bes-vn-atmosphere::after,
+html[data-theme='dark'] .bes-vn-atmosphere__veil::after,
+body[data-theme='dark'] .bes-vn-atmosphere__veil::after,
+.theme-dark .bes-vn-atmosphere__veil::after {
+  opacity: 0.2;
+}
+
 html[data-theme='dark'] .bes-vn-atmosphere__veil,
 body[data-theme='dark'] .bes-vn-atmosphere__veil,
 .theme-dark .bes-vn-atmosphere__veil {
   background:
-    radial-gradient(circle at 8% 14%, rgba(255, 217, 144, 0.045), transparent 28%),
-    radial-gradient(circle at 92% 82%, rgba(112, 187, 150, 0.05), transparent 30%),
+    radial-gradient(circle at 8% 14%, rgba(93, 164, 255, 0.055), transparent 28%),
+    radial-gradient(circle at 51% 24%, rgba(82, 220, 216, 0.04), transparent 31%),
+    radial-gradient(circle at 92% 82%, rgba(151, 105, 255, 0.05), transparent 30%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.008), rgba(255, 255, 255, 0.02));
-  opacity: 0.55;
+  opacity: 0.58;
 }
 
 html[data-theme='dark'] .bes-vn-motif,
@@ -127,11 +284,36 @@ body[data-theme='dark'] .bes-vn-motif,
   .bes-vn-atmosphere {
     z-index: 38;
   }
+
+  .bes-vn-atmosphere::before {
+    opacity: 0.68;
+  }
+
+  .bes-vn-atmosphere::after {
+    top: 11%;
+    height: 25%;
+    opacity: 0.3;
+  }
 }
 
 @media (max-width: 679px) {
+  .bes-vn-atmosphere::before {
+    inset: -12%;
+    opacity: 0.55;
+  }
+
+  .bes-vn-atmosphere::after {
+    left: -22%;
+    width: 140%;
+    opacity: 0.22;
+  }
+
   .bes-vn-atmosphere__veil {
-    opacity: 0.46;
+    opacity: 0.54;
+  }
+
+  .bes-vn-atmosphere__veil::after {
+    display: none;
   }
 
   .bes-vn-motif {
@@ -140,6 +322,10 @@ body[data-theme='dark'] .bes-vn-motif,
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .bes-vn-atmosphere::before,
+  .bes-vn-atmosphere::after,
+  .bes-vn-atmosphere__veil::before,
+  .bes-vn-atmosphere__veil::after,
   .bes-vn-motif,
   .bes-vn-motif__art {
     animation: none !important;
