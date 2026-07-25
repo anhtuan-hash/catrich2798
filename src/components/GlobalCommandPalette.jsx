@@ -21,7 +21,8 @@ const ROUTES = [
   { route: 'resource-library', vi: 'Kho học liệu', en: 'Resource Library', icon: '▥', color: '#2878D0' },
   { route: 'knowledge-hub', vi: 'Kho học liệu thông minh', en: 'Smart Knowledge', icon: 'K', color: '#315FC4' },
   { route: 'work-hub', vi: 'Trung tâm công việc', en: 'Work Hub', icon: 'WH', color: '#14866D' },
-  { route: 'assessment-core', vi: 'Ngân hàng câu hỏi', en: 'Assessment Core', icon: 'AC', color: '#CC7621' },  { route: 'platform-readiness', vi: 'PWA, bảo mật & tiếp cận', en: 'Platform Readiness', icon: 'PR', color: '#0F766E' },
+  { route: 'assessment-core', vi: 'Ngân hàng câu hỏi', en: 'Assessment Core', icon: 'AC', color: '#CC7621' },
+  { route: 'platform-readiness', vi: 'PWA, bảo mật & tiếp cận', en: 'Platform Readiness', icon: 'PR', color: '#0F766E' },
   { route: 'automation-center', vi: 'Trung tâm tự động hóa', en: 'Automation Center', icon: 'AU', color: '#1269B0' },
   { route: 'cloud-operations', vi: 'Vận hành nền 24/7', en: 'Cloud Operations', icon: 'CO', color: '#167B68' },
   { route: 'collaboration-hub', vi: 'Không gian cộng tác', en: 'Collaboration Hub', icon: 'CH', color: '#315FC4' },
@@ -29,7 +30,6 @@ const ROUTES = [
   { route: 'production-hardening', vi: 'Sẵn sàng Production', en: 'Production Hardening', icon: 'PH', color: '#0F766E', leaderOnly: true },
   { route: 'practice', vi: 'Lớp học', en: 'Classroom', icon: '⚡', color: '#00A4EF' },
   { route: 'settings', vi: 'Cài đặt', en: 'Settings', icon: '⚙', color: '#123C69' },
-
   { route: 'app-vault', vi: 'Ứng dụng đã ẩn', en: 'Hidden Apps Vault', icon: 'HV', color: '#684CC6', adminOnly: true },
   { route: 'admin', vi: 'Quản trị', en: 'Admin', icon: '☼', color: '#D13438', adminOnly: true },
 ];
@@ -39,15 +39,41 @@ const text = {
     placeholder: 'Tìm ứng dụng, trang hoặc lệnh…',
     title: 'Tìm nhanh toàn hệ thống',
     hint: 'Nhập để tìm · ↑↓ chọn · Enter mở · Esc đóng',
-    recent: 'Gần đây', pinned: 'Đã ghim', results: 'Kết quả', commands: 'Lệnh nhanh', empty: 'Không tìm thấy kết quả phù hợp.', theme: 'Đổi chế độ sáng/tối', customize: 'Tùy biến Launcher', settings: 'Mở Cài đặt',
-    current: 'Đang mở', frequent: 'Dùng thường xuyên', route: 'Trang', tool: 'Ứng dụng', command: 'Lệnh', keyboard: '⌘ K',
+    recent: 'Gần đây',
+    pinned: 'Đã ghim',
+    results: 'Kết quả',
+    commands: 'Lệnh nhanh',
+    empty: 'Không tìm thấy kết quả phù hợp.',
+    openAi: 'Mở Brian AI',
+    theme: 'Đổi chế độ sáng/tối',
+    customize: 'Tùy biến Launcher',
+    settings: 'Mở Cài đặt',
+    current: 'Đang mở',
+    frequent: 'Dùng thường xuyên',
+    route: 'Trang',
+    tool: 'Ứng dụng',
+    command: 'Lệnh',
+    keyboard: '⌘ K',
   },
   en: {
     placeholder: 'Search apps, pages or commands…',
     title: 'Search the whole system',
     hint: 'Type to search · ↑↓ select · Enter open · Esc close',
-    recent: 'Recent', pinned: 'Pinned', results: 'Results', commands: 'Quick commands', empty: 'No matching results.', theme: 'Toggle light/dark mode', customize: 'Customize Launcher', settings: 'Open Settings',
-    current: 'Current', frequent: 'Frequently used', route: 'Page', tool: 'App', command: 'Command', keyboard: '⌘ K',
+    recent: 'Recent',
+    pinned: 'Pinned',
+    results: 'Results',
+    commands: 'Quick commands',
+    empty: 'No matching results.',
+    openAi: 'Open Brian AI',
+    theme: 'Toggle light/dark mode',
+    customize: 'Customize Launcher',
+    settings: 'Open Settings',
+    current: 'Current',
+    frequent: 'Frequently used',
+    route: 'Page',
+    tool: 'App',
+    command: 'Command',
+    keyboard: '⌘ K',
   },
 };
 
@@ -66,7 +92,7 @@ function canUse(entry, currentUser, visibilitySnapshot) {
   if (isAdminRole(currentUser.role)) return true;
   if (entry.adminOnly) return false;
   const visibilityId = entry.kind === 'tool' ? entry.id : visibilityIdForRoute(entry.route, entry.app);
-  if (isAppHiddenForUser(visibilitySnapshot, currentUser, visibilityId)) return false;
+  if (isAppHiddenForUser(visibilitySnapshot || {}, currentUser, visibilityId)) return false;
   if (entry.leaderOnly && !isDepartmentLeaderRole(currentUser.role)) return false;
   if (entry.kind === 'tool') return entry.route ? hasRouteAccess(currentUser, entry.route, entry.app) : hasToolAccess(currentUser, entry.slug);
   return hasRouteAccess(currentUser, entry.route);
@@ -86,29 +112,36 @@ function buildEntries(language, currentUser, visibilitySnapshot) {
     leaderOnly: item.leaderOnly,
     keywords: `${item.vi} ${item.en} ${item.route}`,
   }));
-  const toolEntries = APPS.map((app) => {
-    const profile = getAppDesignProfile(app.slug);
-    return {
-      id: `tool:${app.slug}`,
-      kind: 'tool',
-      slug: app.slug,
-      target: app.route ? `#/${app.route}` : `#/tool/${app.slug}`,
-      route: app.route || '',
-      app,
-      title: language === 'vi' ? app.titleVi || app.title : app.title,
-      subtitle: language === 'vi' ? app.descVi || app.desc || '' : app.desc || app.descVi || '',
-      icon: String(app.icon || app.title || 'AP').slice(0, 2).toUpperCase(),
-      color: profile.accent,
-      keywords: `${app.slug} ${app.title || ''} ${app.titleVi || ''} ${app.desc || ''} ${app.descVi || ''}`,
-    };
-  });
-  return [...routeEntries, ...toolEntries].filter((entry) => canUse(entry, currentUser, visibilitySnapshot));
+
+  const toolEntries = (Array.isArray(APPS) ? APPS : [])
+    .filter((app) => app && (app.slug || app.route))
+    .map((app) => {
+      const profile = getAppDesignProfile(app.slug);
+      const fallbackTitle = app.titleVi || app.title || app.slug || app.route || 'Ứng dụng';
+      return {
+        id: `tool:${app.slug || app.route}`,
+        kind: 'tool',
+        slug: app.slug || app.route,
+        target: app.route ? `#/${app.route}` : `#/tool/${app.slug}`,
+        route: app.route || '',
+        app,
+        title: language === 'vi' ? app.titleVi || app.title || fallbackTitle : app.title || app.titleVi || fallbackTitle,
+        subtitle: language === 'vi' ? app.descVi || app.desc || '' : app.desc || app.descVi || '',
+        icon: String(app.icon || fallbackTitle || 'AP').slice(0, 2).toUpperCase(),
+        color: profile?.accent || '#191515',
+        keywords: `${app.slug || ''} ${app.route || ''} ${app.title || ''} ${app.titleVi || ''} ${app.desc || ''} ${app.descVi || ''}`,
+      };
+    });
+
+  return [...routeEntries, ...toolEntries]
+    .filter((entry) => entry?.id && entry?.title)
+    .filter((entry) => canUse(entry, currentUser, visibilitySnapshot));
 }
 
 function scoreEntry(entry, query) {
   if (!query) return 1;
-  const title = normalize(entry.title);
-  const keywords = normalize(`${entry.keywords || ''} ${entry.subtitle || ''}`);
+  const title = normalize(entry?.title);
+  const keywords = normalize(`${entry?.keywords || ''} ${entry?.subtitle || ''}`);
   const tokens = query.split(' ').filter(Boolean);
   let score = 0;
   if (title === query) score += 100;
@@ -131,7 +164,9 @@ export default function GlobalCommandPalette({
   language = 'vi', currentUser, theme = 'light', setTheme, currentRoute = 'home', selectedTool = null, appVisibility: externalAppVisibility,
 }) {
   const t = text[language] || text.vi;
-  const appVisibility = externalAppVisibility || { snapshot: {} };
+  const appVisibility = externalAppVisibility && typeof externalAppVisibility === 'object'
+    ? externalAppVisibility
+    : { snapshot: {} };
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
@@ -140,12 +175,15 @@ export default function GlobalCommandPalette({
   const inputRef = useRef(null);
   const listRef = useRef(null);
 
-  const entries = useMemo(() => buildEntries(language, currentUser, appVisibility?.snapshot), [language, currentUser, appVisibility?.snapshot]);
+  const entries = useMemo(
+    () => buildEntries(language, currentUser, appVisibility?.snapshot || {}),
+    [language, currentUser, appVisibility?.snapshot],
+  );
   const byId = useMemo(() => new Map(entries.map((entry) => [entry.id, entry])), [entries]);
 
   useEffect(() => {
     const unsubscribeLauncher = subscribeLauncherConfig((next) => setLauncherConfig(normalizeLauncherConfig(next)));
-    const unsubscribeUsage = subscribeAppUsage(currentUser, setUsage);
+    const unsubscribeUsage = subscribeAppUsage(currentUser, (next) => setUsage(Array.isArray(next) ? next : []));
     return () => { unsubscribeLauncher(); unsubscribeUsage(); };
   }, [currentUser]);
 
@@ -160,8 +198,9 @@ export default function GlobalCommandPalette({
     };
     const keyHandler = (event) => {
       const target = event.target;
-      const typing = target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target?.isContentEditable;
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      const typing = Boolean(target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) || Boolean(target?.isContentEditable);
+      const key = String(event.key || '').toLowerCase();
+      if ((event.metaKey || event.ctrlKey) && key === 'k') {
         event.preventDefault();
         setOpen((value) => !value);
         return;
@@ -181,7 +220,7 @@ export default function GlobalCommandPalette({
   }, [open]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) return undefined;
     setActiveIndex(0);
     const timer = window.setTimeout(() => inputRef.current?.focus(), 30);
     return () => window.clearTimeout(timer);
@@ -189,24 +228,53 @@ export default function GlobalCommandPalette({
 
   useEffect(() => { setActiveIndex(0); }, [query]);
 
-  const pinnedEntries = useMemo(() => (launcherConfig.pinned || []).map((id) => byId.get(`tool:${id}`) || byId.get(id)).filter(Boolean), [launcherConfig.pinned, byId]);
-  const recentEntries = useMemo(() => usage.map((item) => byId.get(item.id)).filter(Boolean).slice(0, 6), [usage, byId]);
-  const frequentEntries = useMemo(() => [...usage].sort((a, b) => b.count - a.count || b.lastUsedAt - a.lastUsedAt).map((item) => byId.get(item.id)).filter(Boolean).slice(0, 6), [usage, byId]);
+  const safeUsage = Array.isArray(usage) ? usage : [];
+  const safePinned = Array.isArray(launcherConfig?.pinned) ? launcherConfig.pinned : [];
+  const pinnedEntries = useMemo(
+    () => safePinned.map((id) => byId.get(`tool:${id}`) || byId.get(id)).filter(Boolean),
+    [safePinned, byId],
+  );
+  const recentEntries = useMemo(
+    () => safeUsage.map((item) => byId.get(item.id)).filter(Boolean).slice(0, 6),
+    [safeUsage, byId],
+  );
+  const frequentEntries = useMemo(
+    () => [...safeUsage]
+      .sort((a, b) => Number(b?.count || 0) - Number(a?.count || 0) || Number(b?.lastUsedAt || 0) - Number(a?.lastUsedAt || 0))
+      .map((item) => byId.get(item.id))
+      .filter(Boolean)
+      .slice(0, 6),
+    [safeUsage, byId],
+  );
 
   const commands = useMemo(() => [
     {
-      id: 'command:ai', kind: 'command', title: t.openAi, subtitle: language === 'vi' ? 'Trò chuyện với trợ lí AI' : 'Chat with the AI assistant', icon: '✦', color: '#2BB7B3',
+      id: 'command:ai',
+      kind: 'command',
+      title: t.openAi || (language === 'vi' ? 'Mở Brian AI' : 'Open Brian AI'),
+      subtitle: language === 'vi' ? 'Trò chuyện với trợ lí AI' : 'Chat with the AI assistant',
+      icon: '✦',
+      color: '#2BB7B3',
       run: () => window.dispatchEvent(new CustomEvent('bes-ai-open')),
       keywords: 'AI Brian chat assistant trợ lí chatbot',
     },
-
     {
-      id: 'command:theme', kind: 'command', title: t.theme, subtitle: theme === 'dark' ? 'Dark → Light' : 'Light → Dark', icon: theme === 'dark' ? '☀' : '☾', color: '#5B2A86',
+      id: 'command:theme',
+      kind: 'command',
+      title: t.theme,
+      subtitle: theme === 'dark' ? 'Dark → Light' : 'Light → Dark',
+      icon: theme === 'dark' ? '☀' : '☾',
+      color: '#5B2A86',
       run: () => setTheme?.(theme === 'dark' ? 'light' : 'dark'),
       keywords: 'theme dark light chế độ tối sáng',
     },
     {
-      id: 'command:launcher', kind: 'command', title: t.customize, subtitle: language === 'vi' ? 'Sắp xếp, ghim, ẩn và tạo nhóm ứng dụng' : 'Sort, pin, hide and group apps', icon: '▦', color: '#F05A7E',
+      id: 'command:launcher',
+      kind: 'command',
+      title: t.customize,
+      subtitle: language === 'vi' ? 'Sắp xếp, ghim, ẩn và tạo nhóm ứng dụng' : 'Sort, pin, hide and group apps',
+      icon: '▦',
+      color: '#F05A7E',
       run: () => {
         window.location.hash = '#/apps';
         window.setTimeout(() => window.dispatchEvent(new CustomEvent('bes-launcher-edit')), 220);
@@ -214,29 +282,37 @@ export default function GlobalCommandPalette({
       keywords: 'launcher customize edit apps group pin hide sắp xếp ghim ẩn nhóm',
     },
     {
-      id: 'command:settings', kind: 'command', title: t.settings, subtitle: language === 'vi' ? 'AI, giao diện, tài khoản và hiệu năng' : 'AI, appearance, account and performance', icon: '⚙', color: '#123C69',
+      id: 'command:settings',
+      kind: 'command',
+      title: t.settings,
+      subtitle: language === 'vi' ? 'AI, giao diện, tài khoản và hiệu năng' : 'AI, appearance, account and performance',
+      icon: '⚙',
+      color: '#123C69',
       run: () => { window.location.hash = '#/settings'; },
       keywords: 'settings configuration cài đặt cấu hình',
     },
-  ], [language, t, theme, setTheme]);
+  ].filter((entry) => entry?.id && entry?.title), [language, t, theme, setTheme]);
 
   const normalizedQuery = normalize(query);
-  const searchPool = useMemo(() => [...entries, ...commands], [entries, commands]);
+  const searchPool = useMemo(
+    () => [...entries, ...commands].filter((entry) => entry?.id && String(entry?.title || '').trim()),
+    [entries, commands],
+  );
   const searchResults = useMemo(() => {
     if (!normalizedQuery) return [];
     return searchPool
       .map((entry) => ({ entry, score: scoreEntry(entry, normalizedQuery) }))
       .filter((item) => item.score > 0)
-      .sort((a, b) => b.score - a.score || a.entry.title.localeCompare(b.entry.title))
+      .sort((a, b) => b.score - a.score || String(a.entry?.title || '').localeCompare(String(b.entry?.title || ''), language === 'vi' ? 'vi' : 'en'))
       .slice(0, 18)
       .map((item) => item.entry);
-  }, [searchPool, normalizedQuery]);
+  }, [searchPool, normalizedQuery, language]);
 
   const defaultResults = useMemo(() => {
     const seen = new Set();
     const output = [];
     const push = (entry, section) => {
-      if (!entry || seen.has(entry.id)) return;
+      if (!entry?.id || !entry?.title || seen.has(entry.id)) return;
       seen.add(entry.id);
       output.push({ ...entry, section });
     };
@@ -249,6 +325,11 @@ export default function GlobalCommandPalette({
 
   const results = normalizedQuery ? searchResults : defaultResults;
 
+  useEffect(() => {
+    if (!results.length && activeIndex !== 0) setActiveIndex(0);
+    else if (results.length && activeIndex > results.length - 1) setActiveIndex(results.length - 1);
+  }, [results.length, activeIndex]);
+
   const runEntry = (entry) => {
     if (!entry) return;
     setOpen(false);
@@ -258,18 +339,28 @@ export default function GlobalCommandPalette({
       return;
     }
     recordAppUsage(currentUser, {
-      id: entry.id, target: entry.target, title: entry.title, titleVi: entry.title, icon: entry.icon, color: entry.color, kind: entry.kind,
+      id: entry.id,
+      target: entry.target,
+      title: entry.title,
+      titleVi: entry.title,
+      icon: entry.icon,
+      color: entry.color,
+      kind: entry.kind,
     });
-    launchRoute({ target: entry.target, label: String(entry.icon || entry.title || 'GO').slice(0, 2), color: entry.color || '#191515' });
+    launchRoute({
+      target: entry.target,
+      label: String(entry.icon || entry.title || 'GO').slice(0, 2),
+      color: entry.color || '#191515',
+    });
   };
 
   const onInputKeyDown = (event) => {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      setActiveIndex((index) => Math.min(results.length - 1, index + 1));
+      if (results.length) setActiveIndex((index) => Math.min(results.length - 1, index + 1));
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      setActiveIndex((index) => Math.max(0, index - 1));
+      if (results.length) setActiveIndex((index) => Math.max(0, index - 1));
     } else if (event.key === 'Enter') {
       event.preventDefault();
       runEntry(results[activeIndex]);
@@ -294,7 +385,16 @@ export default function GlobalCommandPalette({
       <section className="global-command-palette" role="dialog" aria-modal="true" aria-label={t.title}>
         <header className="command-palette-header">
           <span className="command-palette-search-icon" aria-hidden="true">⌕</span>
-          <input ref={inputRef} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={onInputKeyDown} placeholder={t.placeholder} aria-label={t.placeholder} autoComplete="off" />
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={onInputKeyDown}
+            placeholder={t.placeholder}
+            aria-label={t.placeholder}
+            autoComplete="off"
+            data-bes-keep-search="true"
+          />
           <kbd>ESC</kbd>
         </header>
         <div className="command-palette-caption"><strong>{t.title}</strong><span>{t.hint}</span></div>
@@ -312,15 +412,28 @@ export default function GlobalCommandPalette({
               style={{ '--command-accent': entry.color || '#191515' }}
             >
               <CommandIcon>{entry.icon || '•'}</CommandIcon>
-              <span className="command-palette-result-copy"><strong>{entry.title}</strong><small>{entry.subtitle || (entry.kind === 'tool' ? t.tool : entry.kind === 'route' ? t.route : t.command)}</small></span>
+              <span className="command-palette-result-copy">
+                <strong>{String(entry.title || '')}</strong>
+                <small>{entry.subtitle || (entry.kind === 'tool' ? t.tool : entry.kind === 'route' ? t.route : t.command)}</small>
+              </span>
               {entry.section ? <span className="command-palette-section-tag">{entry.section}</span> : null}
               {entry.id === currentId ? <span className="command-palette-current">{t.current}</span> : null}
               <span className="command-palette-enter" aria-hidden="true">↵</span>
             </button>
           ))}
-          {!results.length ? <div className="command-palette-empty"><span>⌕</span><strong>{t.empty}</strong><small>{language === 'vi' ? 'Thử nhập tên ứng dụng hoặc một hành động khác.' : 'Try another app name or action.'}</small></div> : null}
+          {!results.length ? (
+            <div className="command-palette-empty">
+              <span>⌕</span>
+              <strong>{t.empty}</strong>
+              <small>{language === 'vi' ? 'Thử nhập tên ứng dụng hoặc một hành động khác.' : 'Try another app name or action.'}</small>
+            </div>
+          ) : null}
         </div>
-        <footer className="command-palette-footer"><span><kbd>↑</kbd><kbd>↓</kbd> {language === 'vi' ? 'Di chuyển' : 'Move'}</span><span><kbd>↵</kbd> {language === 'vi' ? 'Mở' : 'Open'}</span><span><kbd>⌘K</kbd> {language === 'vi' ? 'Tìm nhanh' : 'Quick search'}</span></footer>
+        <footer className="command-palette-footer">
+          <span><kbd>↑</kbd><kbd>↓</kbd> {language === 'vi' ? 'Di chuyển' : 'Move'}</span>
+          <span><kbd>↵</kbd> {language === 'vi' ? 'Mở' : 'Open'}</span>
+          <span><kbd>⌘K</kbd> {language === 'vi' ? 'Tìm nhanh' : 'Quick search'}</span>
+        </footer>
       </section>
     </div>,
     document.body,
