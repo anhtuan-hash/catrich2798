@@ -2,6 +2,7 @@
   "installCommand": "npm ci --no-audit --no-fund --registry=https://registry.npmjs.org",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "ignoreCommand": "if [ \"$VERCEL_ENV\" = \"preview\" ] && git diff HEAD^ HEAD --quiet -- src public package.json package-lock.json index.html vercel.json; then exit 0; else exit 1; fi",
   "rewrites": [
     {
       "source": "/api/(.*)",
