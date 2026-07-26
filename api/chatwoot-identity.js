@@ -1,9 +1,20 @@
-import crypto from 'node:crypto';
-import { createClient } from '@supabase/supabase-js';
+import { createHmac } from 'node:crypto';
 
 function readBearerToken(request) {
   const header = String(request.headers.authorization || request.headers.Authorization || '');
   return header.toLowerCase().startsWith('bearer ') ? header.slice(7).trim() : '';
+}
+
+async function readSupabaseUser(supabaseUrl, supabaseAnonKey, accessToken) {
+  const response = await fetch(`${supabaseUrl.replace(/\/+$/, '')}/auth/v1/user`, {
+    method: 'GET',
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) return null;
+  return response.json();
 }
 
 export default async function handler(request, response) {
@@ -26,18 +37,15 @@ export default async function handler(request, response) {
   if (!accessToken) return response.status(401).json({ error: 'Missing access token.' });
 
   try {
-    const client = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    });
-    const { data, error } = await client.auth.getUser(accessToken);
-    if (error || !data?.user?.id) return response.status(401).json({ error: 'Invalid access token.' });
+    const authenticatedUser = await readSupabaseUser(supabaseUrl, supabaseAnonKey, accessToken);
+    if (!authenticatedUser?.id) return response.status(401).json({ error: 'Invalid access token.' });
 
     const identifier = String(request.body?.identifier || '').trim();
-    if (!identifier || identifier !== String(data.user.id)) {
+    if (!identifier || identifier !== String(authenticatedUser.id)) {
       return response.status(403).json({ error: 'Identifier does not match the authenticated user.' });
     }
 
-    const identifierHash = crypto.createHmac('sha256', hmacSecret).update(identifier).digest('hex');
+    const identifierHash = createHmac('sha256', hmacSecret).update(identifier).digest('hex');
     return response.status(200).json({ identifier_hash: identifierHash });
   } catch (error) {
     console.error('[ChatwootIdentity] request failed', error);
