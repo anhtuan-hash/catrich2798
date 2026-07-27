@@ -257,7 +257,7 @@ async function approveRequest(session, req, res) {
   });
 }
 
-export default async function handler(req, res) {
+export default async function externalAppRequestsHandler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   try {
     const session = await authenticate(req);

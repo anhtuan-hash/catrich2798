@@ -4,6 +4,22 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/external-app-requests",
+      "destination": "/api/resource-sync?scope=external-app-requests"
+    },
+    {
+      "source": "/api/news-article",
+      "destination": "/api/news-feed?scope=article"
+    },
+    {
+      "source": "/api/google-drive-callback",
+      "destination": "/api/google-drive-connect?scope=callback"
+    },
+    {
+      "source": "/api/google-drive-move",
+      "destination": "/api/google-drive-delete?scope=move"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

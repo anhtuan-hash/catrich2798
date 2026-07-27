@@ -1,3 +1,4 @@
+import newsArticleHandler from '../server/api/news-article.js';
 import crypto from 'node:crypto';
 
 const FEEDS = {
@@ -180,6 +181,7 @@ function dedupeAndSort(items) {
 }
 
 export default async function handler(req, res) {
+  if (String(req.query?.scope || '') === 'article') return newsArticleHandler(req, res);
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
     return res.status(405).json({ error: 'Method not allowed' });

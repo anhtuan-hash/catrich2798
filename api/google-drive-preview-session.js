@@ -1,5 +1,5 @@
-import { getConnection, isManagerUser, requireUser, send } from './_googleDrive.js';
-import { signResourcePreviewToken } from './_resourcePreviewToken.js';
+import { getConnection, isManagerUser, requireUser, send } from '../server/api/_googleDrive.js';
+import { signResourcePreviewToken } from '../server/api/_resourcePreviewToken.js';
 
 const RESOURCE_COLUMNS = 'id,drive_file_id,status,uploader_id';
 const RESOURCE_COLUMNS_WITH_PREVIEW = `${RESOURCE_COLUMNS},allow_preview`;

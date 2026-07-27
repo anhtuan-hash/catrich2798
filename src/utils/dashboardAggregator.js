@@ -17,18 +17,23 @@ import { isAdminRole, isDepartmentLeaderRole } from './roles.js';
 const DAY = 86400000;
 const DONE = new Set(['completed', 'approved', 'archived', 'cancelled']);
 const WORK_LOCAL_PREFIX = 'bes-work-hub-v1093-local';
+const SCHEDULE_CACHE_KEY = 'bes-system-work-schedule-cache-v1';
 const DRAFT_PREFIX = 'bes-global-draft-v1084';
 const WORKSPACE_EVENT = 'bes-workspace-updated';
 const AI_CONFIG_SOURCE_MODULE = 'english-hub-ai-websites';
+const WORK_DASHBOARD_MAX_ITEMS = 500;
 const WORK_DASHBOARD_COLUMNS = [
   'id',
   'title',
   'description',
+  'item_type',
   'status',
   'priority',
+  'visibility',
   'owner_id',
   'created_by',
   'assignee_ids',
+  'watcher_ids',
   'due_at',
   'source_module',
   'metadata',
@@ -54,6 +59,18 @@ function isHiddenSystemWorkItem(item) {
   return item?.source_module === AI_CONFIG_SOURCE_MODULE || item?.metadata?.hidden_from_work_hub === true;
 }
 
+function isScheduleWorkItem(item) {
+  return item?.item_type === 'schedule' || item?.metadata?.schedule_event === true;
+}
+
+function isSharedDepartmentSchedule(item) {
+  if (!isScheduleWorkItem(item)) return false;
+  return item?.visibility === 'department'
+    || item?.metadata?.schedule_notify_all === true
+    || item?.metadata?.assignment_scope === 'department'
+    || item?.metadata?.assignment_scope === 'all_teachers';
+}
+
 function parseDate(value) {
   if (!value) return null;
   const date = new Date(value);
@@ -63,6 +80,12 @@ function parseDate(value) {
 function startOfDay(value = new Date()) {
   const date = parseDate(value) || new Date();
   date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function addDays(value, amount) {
+  const date = startOfDay(value);
+  date.setDate(date.getDate() + amount);
   return date;
 }
 
@@ -116,25 +139,63 @@ function readLocalWork(user) {
     .filter((item) => !isHiddenSystemWorkItem(item));
 }
 
+function readCachedSchedule() {
+  return array(safeLocalJson(SCHEDULE_CACHE_KEY, []))
+    .filter((item) => !isHiddenSystemWorkItem(item) && isScheduleWorkItem(item));
+}
+
+function mergeWorkItems(...sources) {
+  const map = new Map();
+  sources.flatMap(array).forEach((item) => {
+    if (!item || isHiddenSystemWorkItem(item)) return;
+    const key = String(
+      item.id
+      || item.localId
+      || item.metadata?.schedule_fingerprint
+      || `${item.due_at || item.metadata?.schedule_start_at || ''}:${item.title || ''}`,
+    );
+    if (!key || key === ':') return;
+    map.set(key, { ...(map.get(key) || {}), ...item });
+  });
+  return [...map.values()];
+}
+
 function normalizeWork(item, user) {
+  const userId = String(user?.id || '');
   const assignees = array(item?.assignee_ids).map(String);
-  const mine = assignees.includes(String(user?.id || '')) || item?.created_by === user?.id;
+  const watchers = array(item?.watcher_ids).map(String);
+  const directlyRelated = Boolean(userId) && (
+    assignees.includes(userId)
+    || watchers.includes(userId)
+    || String(item?.created_by || '') === userId
+    || String(item?.owner_id || '') === userId
+  );
+  const sharedSchedule = isSharedDepartmentSchedule(item);
+  const mine = directlyRelated || sharedSchedule;
+  const schedule = isScheduleWorkItem(item);
   const status = text(item?.status, 'assigned');
+  const entityId = item?.id || '';
   return {
-    id: `work:${item?.id || item?.localId || Math.random().toString(36).slice(2)}`,
+    id: `work:${entityId || item?.localId || Math.random().toString(36).slice(2)}`,
     source: 'work',
-    sourceLabel: 'Trung tâm công việc',
+    sourceLabel: schedule ? 'Lịch làm việc chung' : 'Trung tâm công việc',
     tone: item?.priority === 'urgent' ? 'danger' : item?.priority === 'high' ? 'warning' : 'work',
-    title: text(item?.title, 'Công việc chưa đặt tên'),
-    description: text(item?.description),
-    date: item?.due_at || item?.date || item?.deadline || '',
-    owner: mine ? 'Của tôi' : text(item?.owner_name || item?.created_by_email, 'Đồng nghiệp'),
+    title: text(item?.title, schedule ? 'Lịch làm việc chưa đặt tên' : 'Công việc chưa đặt tên'),
+    description: text(item?.description || item?.metadata?.schedule_note),
+    date: item?.metadata?.schedule_start_at || item?.due_at || item?.date || item?.deadline || '',
+    owner: sharedSchedule
+      ? text(item?.metadata?.schedule_owner_text, 'Toàn tổ')
+      : mine
+        ? 'Của tôi'
+        : text(item?.owner_name || item?.created_by_email, 'Đồng nghiệp'),
     status,
     priority: text(item?.priority, 'normal'),
     done: DONE.has(status.toLowerCase()),
     route: 'work-hub',
-    entityId: item?.id || '',
+    target: schedule && entityId ? `#/work-hub?view=schedule&event=${encodeURIComponent(entityId)}` : '',
+    entityId,
     mine,
+    sharedSchedule,
     raw: item,
   };
 }
@@ -215,19 +276,37 @@ function buildHomeroom(workspace, now = new Date()) {
   };
 }
 
-async function loadWork(user) {
+async function loadWork(user, now = new Date()) {
+  const localItems = mergeWorkItems(readLocalWork(user), readCachedSchedule());
   const client = getRuntimeClient();
   if (client && user?.id) {
     try {
-      const { data, error } = await client
-        .from('work_hub_items')
-        .select(WORK_DASHBOARD_COLUMNS)
-        .order('updated_at', { ascending: false })
-        .limit(160);
-      if (!error) return { items: (data || []).filter((item) => !isHiddenSystemWorkItem(item)), source: 'cloud-summary' };
+      const rangeStart = startOfDay(now);
+      const rangeEnd = addDays(rangeStart, 14);
+      const [summaryResult, upcomingResult] = await Promise.all([
+        client
+          .from('work_hub_items')
+          .select(WORK_DASHBOARD_COLUMNS)
+          .order('updated_at', { ascending: false })
+          .limit(WORK_DASHBOARD_MAX_ITEMS),
+        client
+          .from('work_hub_items')
+          .select(WORK_DASHBOARD_COLUMNS)
+          .gte('due_at', rangeStart.toISOString())
+          .lt('due_at', rangeEnd.toISOString())
+          .order('due_at', { ascending: true })
+          .limit(WORK_DASHBOARD_MAX_ITEMS),
+      ]);
+      if (!summaryResult.error || !upcomingResult.error) {
+        const cloudItems = mergeWorkItems(summaryResult.data || [], upcomingResult.data || []);
+        return {
+          items: mergeWorkItems(localItems, cloudItems),
+          source: summaryResult.error || upcomingResult.error ? 'cloud-partial' : 'cloud-summary',
+        };
+      }
     } catch { /* local fallback */ }
   }
-  return { items: readLocalWork(user), source: 'local' };
+  return { items: localItems, source: localItems.length ? 'local' : 'empty' };
 }
 
 async function loadResources() {
@@ -259,7 +338,7 @@ function workflowHealth(items, now = new Date()) {
 }
 
 export function createEmptyDashboardSnapshot(currentUser) {
-  const leader = isDepartmentLeaderRole(currentUser?.role);
+  const leader = isAdminRole(currentUser?.role) || isDepartmentLeaderRole(currentUser?.role);
   return {
     generatedAt: '',
     role: leader ? 'leader' : 'teacher',
@@ -281,10 +360,10 @@ export function createEmptyDashboardSnapshot(currentUser) {
 }
 
 export async function loadDashboardSnapshot(currentUser, now = new Date()) {
-  const leader = isDepartmentLeaderRole(currentUser?.role);
+  const leader = isAdminRole(currentUser?.role) || isDepartmentLeaderRole(currentUser?.role);
   const sourceErrors = [];
   const settled = await Promise.allSettled([
-    loadWork(currentUser),
+    loadWork(currentUser, now),
     loadResources(),
     loadHomeroom(currentUser),
     listWorkHubNotifications(currentUser?.id, 30),
@@ -295,7 +374,7 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
     sourceErrors.push({ source, message: result.reason?.message || String(result.reason || source) });
     return fallback;
   };
-  const workResult = value(0, { items: readLocalWork(currentUser), source: 'local' }, 'workHub');
+  const workResult = value(0, { items: mergeWorkItems(readLocalWork(currentUser), readCachedSchedule()), source: 'local' }, 'workHub');
   const resourceResult = value(1, { items: [], source: 'empty' }, 'resources');
   const homeroomResult = value(2, { workspace: null, source: 'empty' }, 'homeroom');
   const notifications = value(3, [], 'notifications');
