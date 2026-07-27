@@ -1,6 +1,6 @@
-import { ensureFolder, getConnection, resourceCategoryFolderName, send, uploadFile } from './_googleDrive.js';
-import { appendApiAudit, createRequestId, enforceRateLimit, requireApprovedUser } from './_security.js';
-import { normaliseResourceCategory } from './_resourceCategoryFolders.js';
+import { ensureFolder, getConnection, resourceCategoryFolderName, send, uploadFile } from '../server/api/_googleDrive.js';
+import { appendApiAudit, createRequestId, enforceRateLimit, requireApprovedUser } from '../server/api/_security.js';
+import { normaliseResourceCategory } from '../server/api/_resourceCategoryFolders.js';
 
 export const config = { api: { bodyParser: false, sizeLimit: '20mb' } };
 

@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
-import { adminClient, isManagerUser, requireUser, send } from './_googleDrive.js';
-import { normaliseResourceCategory } from './_resourceCategoryFolders.js';
+import { adminClient, isManagerUser, requireUser, send } from '../server/api/_googleDrive.js';
+import { normaliseResourceCategory } from '../server/api/_resourceCategoryFolders.js';
 import externalAppRequestsHandler from '../server/externalAppRequestsHandler.js';
 
 const VALID_STATUS = new Set(['pending', 'approved', 'revision', 'rejected', 'archived']);

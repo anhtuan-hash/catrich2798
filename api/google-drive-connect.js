@@ -1,5 +1,7 @@
-import { callbackUrl, env, requireUser, send, signState } from './_googleDrive.js';
+import googleDriveCallbackHandler from '../server/api/google-drive-callback.js';
+import { callbackUrl, env, requireUser, send, signState } from '../server/api/_googleDrive.js';
 export default async function handler(req, res) {
+  if (String(req.query?.scope || '') === 'callback') return googleDriveCallbackHandler(req, res);
   try {
     if (req.method !== 'GET') return send(res, 405, { error: 'Method not allowed' });
     const user = await requireUser(req);

@@ -1,4 +1,5 @@
-import { driveFetch, getConnection, isManagerUser, requireUser, send } from './_googleDrive.js';
+import googleDriveMoveHandler from '../server/api/google-drive-move.js';
+import { driveFetch, getConnection, isManagerUser, requireUser, send } from '../server/api/_googleDrive.js';
 
 function isUuid(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
@@ -24,6 +25,7 @@ async function findResources(client, resourceId, fileId) {
 }
 
 export default async function handler(req, res) {
+  if (String(req.query?.scope || '') === 'move') return googleDriveMoveHandler(req, res);
   try {
     if (!['DELETE', 'POST'].includes(req.method)) return send(res, 405, { error: 'Method not allowed' });
 

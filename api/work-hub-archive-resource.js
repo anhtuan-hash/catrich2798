@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
-import { ensureFolder, getConnection, resourceCategoryFolderName, uploadFile } from './_googleDrive.js';
-import { normaliseResourceCategory } from './_resourceCategoryFolders.js';
-import { appendApiAudit, createRequestId, enforceRateLimit, requireApprovedUser, sendJson } from './_security.js';
+import { ensureFolder, getConnection, resourceCategoryFolderName, uploadFile } from '../server/api/_googleDrive.js';
+import { normaliseResourceCategory } from '../server/api/_resourceCategoryFolders.js';
+import { appendApiAudit, createRequestId, enforceRateLimit, requireApprovedUser, sendJson } from '../server/api/_security.js';
 
 const MAX_ARCHIVE_BYTES = 25 * 1024 * 1024;
 const COMMENT_COLUMNS = 'id,item_id,author_id,body,attachments,created_at,updated_at';
