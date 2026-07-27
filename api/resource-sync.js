@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import { adminClient, isManagerUser, requireUser, send } from './_googleDrive.js';
 import { normaliseResourceCategory } from './_resourceCategoryFolders.js';
+import externalAppRequestsHandler from '../server/externalAppRequestsHandler.js';
 
 const VALID_STATUS = new Set(['pending', 'approved', 'revision', 'rejected', 'archived']);
 const RESOURCE_SYNC_COLUMNS = [
@@ -93,6 +94,10 @@ async function findExisting(client, item) {
 }
 
 export default async function handler(req, res) {
+  if (String(req.query?.scope || '') === 'external-app-requests') {
+    return externalAppRequestsHandler(req, res);
+  }
+
   try {
     if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
     const user = await requireUser(req);
