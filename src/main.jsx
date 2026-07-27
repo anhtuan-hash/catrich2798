@@ -42,6 +42,7 @@ import { isAppHiddenForUser, useAppVisibility } from './utils/appVisibility.js';
 import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
 import { installBursReadability } from './utils/bursReadability.js';
 import { installAiRemovalGuard } from './utils/aiRemovalGuard.js';
+import { applyThemeMode, getStoredThemeMode, installThemeSystem, resolveThemeMode } from './utils/themeSystem.js';
 
 runConfigurationMigrations();
 installBursReadability();
@@ -182,7 +183,8 @@ function normalizeMetroIntensity(value) {
 function App() {
   const [route, setRoute] = useState(getInitialRoute);
   const [language, setLanguage] = useState(() => localStorage.getItem('bet-language') || 'vi');
-  const [theme, setTheme] = useState(() => localStorage.getItem('bet-theme') || 'light');
+  const [themeMode, setThemeMode] = useState(getStoredThemeMode);
+  const [theme, setTheme] = useState(() => resolveThemeMode(getStoredThemeMode()));
   const [apiKey, setApiKey] = useState(() => getActiveAiConfig().apiKey || '');
   const [aiModel, setAiModel] = useState(() => getActiveAiConfig().model || 'Admin quản lý trên máy chủ');
   const [aiProvider, setAiProviderState] = useState(() => getAiProvider());
@@ -324,9 +326,14 @@ function App() {
   }, [language]);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem('bet-theme', theme);
-  }, [theme]);
+    const updateResolvedTheme = ({ mode, resolved }) => {
+      if (mode && mode !== themeMode) setThemeMode(mode);
+      setTheme((current) => current === resolved ? current : resolved);
+    };
+
+    updateResolvedTheme(applyThemeMode(themeMode, { source: 'react' }));
+    return installThemeSystem(updateResolvedTheme);
+  }, [themeMode]);
 
   useEffect(() => {
     document.documentElement.dataset.fontScale = String(fontScale);
@@ -390,7 +397,9 @@ function App() {
     language,
     setLanguage,
     theme,
-    setTheme,
+    themeMode,
+    setTheme: setThemeMode,
+    setThemeMode,
     apiKey,
     setApiKey,
     aiModel,

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "npm run version:sync && vite build",
+    "build": "npm run version:sync && vite build && vite build --config apps/classroom-screen/vite.config.ts",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node scripts/smoke-test.mjs",
     "audit:performance": "node scripts/performance-audit.mjs",
@@ -133,7 +133,12 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "read-excel-file": "^9.3.1",
-    "vite": "^8.1.3"
+    "vite": "^8.1.3",
+    "canvas-confetti": "^1.9.4",
+    "idb": "^8.0.3",
+    "lucide-react": "^0.546.0",
+    "motion": "^12.23.24",
+    "qrcode": "^1.5.4"
   },
   "description": "Brian English Studio — non-AI teaching, management and offline workflow suite.",
   "engines": {
@@ -141,6 +146,9 @@
   },
   "packageManager": "npm@10.8.0",
   "devDependencies": {
-    "@playwright/test": "^1.61.1"
+    "@playwright/test": "^1.61.1",
+    "@tailwindcss/vite": "^4.1.14",
+    "tailwindcss": "^4.1.14",
+    "typescript": "~5.8.2"
   }
 }

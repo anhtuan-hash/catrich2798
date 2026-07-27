@@ -1,0 +1,158 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #f8f9fa;
+    color: #3c4043;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+}
+
+/* Cosmic Theme Global Overrides & Animations */
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+}
+
+@keyframes nebulaGlow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1) rotate(3deg);
+  }
+}
+
+@keyframes floatCosmic {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+@keyframes meteorShoot {
+  0% {
+    transform: translateX(0) translateY(0) scale(1);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(400px) translateY(400px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+.animate-twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+.animate-nebula {
+  animation: nebulaGlow 12s ease-in-out infinite;
+}
+
+.animate-float-cosmic {
+  animation: floatCosmic 6s ease-in-out infinite;
+}
+
+/* Cosmic Theme Styling Rules */
+html.cosmic,
+html.cosmic body {
+  background-color: #060814 !important;
+  color: #e2e8f0 !important;
+  background-image: 
+    radial-gradient(circle at 15% 15%, rgba(139, 92, 246, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(59, 130, 246, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.08) 0%, transparent 60%);
+  background-attachment: fixed;
+}
+
+/* Cosmic Panels & Headers */
+html.cosmic header,
+html.cosmic aside,
+html.cosmic nav,
+html.cosmic .cosmic-panel {
+  background-color: rgba(11, 15, 30, 0.85) !important;
+  border-color: rgba(139, 92, 246, 0.25) !important;
+  backdrop-filter: blur(12px);
+}
+
+html.cosmic .bg-white {
+  background-color: rgba(15, 20, 38, 0.9) !important;
+  color: #f1f5f9 !important;
+  border-color: rgba(139, 92, 246, 0.2) !important;
+}
+
+html.cosmic .bg-\[\#F1F3F4\] {
+  background-color: rgba(25, 32, 58, 0.8) !important;
+  color: #cbd5e1 !important;
+}
+
+html.cosmic .bg-\[\#F8F9FA\] {
+  background-color: #060814 !important;
+}
+
+html.cosmic .text-gray-800,
+html.cosmic .text-gray-700,
+html.cosmic .text-gray-600 {
+  color: #e2e8f0 !important;
+}
+
+html.cosmic .text-gray-500,
+html.cosmic .text-gray-400 {
+  color: #94a3b8 !important;
+}
+
+/* Custom scrollbars for clean UI */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dadce0;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #bdc1c6;
+}
+
+html.cosmic ::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.4);
+}
+
+html.cosmic ::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.7);
+}
+
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+html[data-embedded='true'],
+html[data-embedded='true'] body {
+  overscroll-behavior: none;
+}

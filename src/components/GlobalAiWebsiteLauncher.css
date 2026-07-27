@@ -497,3 +497,10 @@ html.bes-ai-workspace-open body { overflow: hidden !important; }
   .brian-ai-workspace,
   .brian-ai-workspace__loading > span { animation: none !important; }
 }
+
+/* Keep the embedded AI iframe alive while the panel is visually hidden. */
+.brian-ai-workspace-layer.is-closed {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}

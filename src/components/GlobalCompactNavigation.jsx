@@ -211,13 +211,14 @@ function FilterIcon() {
 }
 
 export default function GlobalCompactNavigation({
-  route = 'home', language = 'vi', setLanguage, theme = 'light', setTheme,
+  route = 'home', language = 'vi', setLanguage, theme = 'light', themeMode = 'system', setThemeMode, setTheme,
   currentUser, onLogout, fontScale = 100, setFontScale,
 }) {
   const t = copy[language] || copy.vi;
   const isAdmin = String(currentUser?.role || '').toLowerCase() === 'admin';
   const rootRef = useRef(null);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationTab, setNotificationTab] = useState('all');
   const [notificationQuery, setNotificationQuery] = useState('');
@@ -240,6 +241,7 @@ export default function GlobalCompactNavigation({
       if (!rootRef.current?.contains(event.target)) {
         setAccountOpen(false);
         setNotificationOpen(false);
+        setThemeOpen(false);
         setItemMenuId('');
       }
     };
@@ -250,6 +252,7 @@ export default function GlobalCompactNavigation({
         else {
           setAccountOpen(false);
           setNotificationOpen(false);
+          setThemeOpen(false);
         }
       }
     };
@@ -335,6 +338,7 @@ export default function GlobalCompactNavigation({
   const openRoute = (target, label, event) => {
     setAccountOpen(false);
     setNotificationOpen(false);
+    setThemeOpen(false);
     setItemMenuId('');
     go(target, label, event?.currentTarget);
   };
@@ -399,9 +403,62 @@ export default function GlobalCompactNavigation({
         </button>
 
         <div className="brian-nav__actions">
-          <button type="button" className="brian-nav__icon" onClick={() => setTheme?.(theme === 'dark' ? 'light' : 'dark')} aria-label={t.theme} title={t.theme}>
-            <span aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
-          </button>
+          <div className="brian-nav__theme-wrap">
+            <button
+              type="button"
+              className={`brian-nav__icon brian-nav__theme-button ${themeOpen ? 'is-open' : ''}`}
+              onClick={() => {
+                setThemeOpen((value) => !value);
+                setAccountOpen(false);
+                setNotificationOpen(false);
+                setSettingsOpen(false);
+                setItemMenuId('');
+              }}
+              aria-label={language === 'vi' ? 'Chọn chế độ giao diện' : 'Choose appearance mode'}
+              title={language === 'vi' ? 'Chế độ giao diện' : 'Appearance mode'}
+              aria-expanded={themeOpen}
+              aria-haspopup="menu"
+            >
+              <span aria-hidden="true">{themeMode === 'system' ? '◐' : theme === 'dark' ? '☾' : '☀'}</span>
+            </button>
+
+            {themeOpen ? (
+              <section className="brian-theme-menu" role="menu" aria-label={language === 'vi' ? 'Chế độ giao diện' : 'Appearance mode'}>
+                <header className="brian-theme-menu__header">
+                  <strong>{language === 'vi' ? 'Chế độ giao diện' : 'Appearance mode'}</strong>
+                  <small>{language === 'vi' ? 'Áp dụng đồng bộ cho toàn bộ English Hub.' : 'Apply consistently across English Hub.'}</small>
+                </header>
+                <div className="brian-theme-menu__options">
+                  {[
+                    ['system', '◐', language === 'vi' ? 'Theo hệ thống' : 'System', language === 'vi' ? 'Tự đổi theo thiết bị' : 'Follow your device'],
+                    ['light', '☀', language === 'vi' ? 'Sáng' : 'Light', language === 'vi' ? 'Nền sáng, độ tương phản rõ' : 'Bright surfaces and clear contrast'],
+                    ['dark', '☾', language === 'vi' ? 'Tối' : 'Dark', language === 'vi' ? 'Giảm chói trong môi trường tối' : 'Reduce glare in dark rooms'],
+                  ].map(([mode, icon, label, description]) => (
+                    <button
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={themeMode === mode}
+                      className={`brian-theme-menu__option ${themeMode === mode ? 'is-selected' : ''}`}
+                      key={mode}
+                      onClick={() => {
+                        (setThemeMode || setTheme)?.(mode);
+                        setThemeOpen(false);
+                      }}
+                    >
+                      <i aria-hidden="true">{icon}</i>
+                      <span><b>{label}</b><small>{description}</small></span>
+                      <em aria-hidden="true">✓</em>
+                    </button>
+                  ))}
+                </div>
+                <footer className="brian-theme-menu__footer">
+                  {themeMode === 'system'
+                    ? (language === 'vi' ? `Thiết bị hiện đang dùng chế độ ${theme === 'dark' ? 'tối' : 'sáng'}.` : `Your device is currently using ${theme}.`)
+                    : (language === 'vi' ? 'Lựa chọn được ghi nhớ và đồng bộ giữa các tab.' : 'Your choice is remembered and synced across tabs.')}
+                </footer>
+              </section>
+            ) : null}
+          </div>
 
           {currentUser ? (
             <div className="brian-nav__popover-wrap">
@@ -411,6 +468,7 @@ export default function GlobalCompactNavigation({
                 onClick={() => {
                   setNotificationOpen((value) => !value);
                   setAccountOpen(false);
+                  setThemeOpen(false);
                   setSettingsOpen(false);
                   setItemMenuId('');
                 }}
@@ -540,7 +598,7 @@ export default function GlobalCompactNavigation({
               <button
                 type="button"
                 className={`brian-nav__account ${accountOpen ? 'is-open' : ''}`}
-                onClick={() => { setAccountOpen((value) => !value); setNotificationOpen(false); }}
+                onClick={() => { setAccountOpen((value) => !value); setNotificationOpen(false); setThemeOpen(false); }}
                 aria-expanded={accountOpen}
               >
                 <span>{initial(currentUser?.name || currentUser?.email)}</span>
