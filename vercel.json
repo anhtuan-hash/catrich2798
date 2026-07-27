@@ -4,6 +4,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/external-app-requests",
+      "destination": "/api/resource-sync?scope=external-app-requests"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
