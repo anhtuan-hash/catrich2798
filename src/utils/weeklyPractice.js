@@ -65,6 +65,17 @@ function escapeScriptJson(value) {
   return JSON.stringify(value).replace(/</g, '\\u003c').replace(/-->/g, '--\\u003e');
 }
 
+function safeJsonObject(value, maxChars = 40000) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  try {
+    const json = JSON.stringify(value);
+    if (json.length > maxChars) return { truncated: true };
+    return JSON.parse(json);
+  } catch {
+    return {};
+  }
+}
+
 export function normalizeWeeklyPracticeItem(item) {
   return {
     ...item,
@@ -196,7 +207,7 @@ export async function createWeeklyPractice({ form, file, currentUser }) {
     .single();
 
   if (error) {
-    await client.storage.from(WEEKLY_PRACTICE_BUCKET).remove([path]).catch(() => null);
+    try { await client.storage.from(WEEKLY_PRACTICE_BUCKET).remove([path]); } catch { /* cleanup best effort */ }
     throw error;
   }
   invalidateSupabaseReadCacheForTable(WEEKLY_PRACTICE_TABLE);
@@ -226,7 +237,7 @@ export async function deleteWeeklyPractice(item) {
   const { error } = await client.from(WEEKLY_PRACTICE_TABLE).delete().eq('id', item.id);
   if (error) throw error;
   if (item?.storage_path) {
-    await client.storage.from(item.storage_bucket || WEEKLY_PRACTICE_BUCKET).remove([item.storage_path]).catch(() => null);
+    try { await client.storage.from(item.storage_bucket || WEEKLY_PRACTICE_BUCKET).remove([item.storage_path]); } catch { /* cleanup best effort */ }
   }
   invalidateSupabaseReadCacheForTable(WEEKLY_PRACTICE_TABLE);
 }
@@ -289,12 +300,14 @@ export async function logWeeklyPracticeEvent(practiceId, eventType, metadata = {
     if (sessionStorage.getItem(dedupeKey)) return;
     sessionStorage.setItem(dedupeKey, '1');
   } catch { /* ignore */ }
-  await supabase.from('weekly_practice_events').insert({
-    practice_id: practiceId,
-    event_type: event,
-    device_id: deviceId(),
-    metadata,
-  }).catch(() => null);
+  try {
+    await supabase.from('weekly_practice_events').insert({
+      practice_id: practiceId,
+      event_type: event,
+      device_id: deviceId(),
+      metadata: safeJsonObject(metadata, 4000),
+    });
+  } catch { /* analytics are non-blocking */ }
 }
 
 export async function submitWeeklyPracticeResult(practiceId, identity, result = {}) {
@@ -310,8 +323,8 @@ export async function submitWeeklyPracticeResult(practiceId, identity, result = 
     correct_count: Number.isFinite(Number(result?.correctCount ?? result?.correct_count)) ? toInteger(result.correctCount ?? result.correct_count) : null,
     question_count: Number.isFinite(Number(result?.questionCount ?? result?.question_count)) ? toInteger(result.questionCount ?? result.question_count) : null,
     duration_seconds: Number.isFinite(Number(result?.durationSeconds ?? result?.duration_seconds)) ? toInteger(result.durationSeconds ?? result.duration_seconds) : null,
-    answers: result?.answers && typeof result.answers === 'object' ? result.answers : {},
-    metadata: result?.metadata && typeof result.metadata === 'object' ? result.metadata : {},
+    answers: safeJsonObject(result?.answers, 60000),
+    metadata: safeJsonObject(result?.metadata, 12000),
   };
   const { data, error } = await supabase.from('weekly_practice_results').insert(payload).select('id').single();
   if (error) throw error;
@@ -368,7 +381,7 @@ export async function downloadWeeklyPracticeHtml(item) {
   if (error) throw error;
   const html = await data.text();
   const bridge = runtimeBridgeScript(item.id, readWeeklyPracticeProgress(item.id));
-  const bridgeTag = `<script>${bridge.replace(/<\/script/gi, '<\\/script')}</script>`;
+  const bridgeTag = `<script>${bridge.replace(/<\\/script/gi, '<\\\\/script')}</script>`;
   const hydrated = /<head[^>]*>/i.test(html)
     ? html.replace(/<head([^>]*)>/i, `<head$1>${bridgeTag}`)
     : `${bridgeTag}${html}`;
