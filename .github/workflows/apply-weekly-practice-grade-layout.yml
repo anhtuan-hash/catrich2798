@@ -1,6 +1,7 @@
 name: Apply weekly practice grade layout
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - feature/weekly-practice-grade-columns-20260728
