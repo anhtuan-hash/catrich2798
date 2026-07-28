@@ -102,12 +102,8 @@ function ensureRuntimeStyle() {
 html, body, #root, .app-shell, .metro-shell {
   font-family: var(--font-ui) !important;
 }
-body *:not(svg):not(path):not(.material-icons):not(.material-icons-outlined):not(.material-symbols-rounded):not(.material-symbols-outlined):not([class^='fa']):not([class*=' fa']):not([class^='icon-']):not([class*=' icon-']),
-body *::before,
-body *::after,
-button:not(.material-icons):not(.material-icons-outlined):not(.material-symbols-rounded):not(.material-symbols-outlined),
-input, textarea, select, option, dialog {
-  font-family: var(--font-ui) !important;
+button, input, textarea, select, option, dialog {
+  font-family: inherit !important;
 }
 .material-icons { font-family: 'Material Icons' !important; }
 .material-icons-outlined { font-family: 'Material Icons Outlined' !important; }
@@ -173,7 +169,7 @@ export async function saveSiteFontSetting(user, fontId) {
   const now = new Date().toISOString();
   const payload = {
     app_id: SETTING_APP_ID,
-    app_kind: 'system-setting',
+    app_kind: 'tool',
     slug: option.id,
     route: 'global-font',
     title: option.label,
