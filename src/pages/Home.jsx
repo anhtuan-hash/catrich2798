@@ -21,13 +21,6 @@ const copy = {
     toolsTitle: 'Mở nhanh công cụ bạn cần',
     toolsSub: 'Một hệ thẻ thống nhất, rõ chức năng và luôn sẵn sàng cho công việc hằng ngày.',
     customize: 'Xem tất cả',
-    weeklyKicker: 'WEEKLY ENGLISH PRACTICE',
-    weeklyTitle: 'Bài luyện tập tiếng Anh theo tuần',
-    weeklySub: 'Ba lộ trình Unit 1 dành cho khối 10, 11 và 12, học đều mỗi ngày từ 27/7 đến 1/8.',
-    openLesson: 'Mở bài học',
-    ready: '6/6 bài sẵn sàng',
-    schedule: '27/7–1/8',
-    signIn: 'Đăng nhập để mở',
   },
   en: {
     badge: 'ENGLISH HUB',
@@ -41,13 +34,6 @@ const copy = {
     toolsTitle: 'Open the tool you need',
     toolsSub: 'One consistent card system with clear purposes for everyday teaching work.',
     customize: 'View all',
-    weeklyKicker: 'WEEKLY ENGLISH PRACTICE',
-    weeklyTitle: 'Weekly English practice',
-    weeklySub: 'Three Unit 1 learning paths for Grades 10, 11 and 12, one activity a day from 27 July to 1 August.',
-    openLesson: 'Open lesson',
-    ready: '6/6 lessons ready',
-    schedule: '27 Jul–1 Aug',
-    signIn: 'Sign in to open',
   },
 };
 
@@ -209,42 +195,6 @@ function HeroIllustration() {
   );
 }
 
-function WeeklyArt({ grade }) {
-  const tone = grade === 10 ? '#2f86dc' : grade === 11 ? '#17a596' : '#8a58dd';
-  return (
-    <svg viewBox="0 0 220 120" aria-hidden="true" focusable="false">
-      <circle cx="174" cy="32" r="55" fill={tone} opacity=".12" />
-      <circle cx="35" cy="105" r="42" fill={tone} opacity=".08" />
-      {grade === 10 ? (
-        <>
-          <circle cx="83" cy="48" r="19" fill="#ffd0ad" />
-          <circle cx="47" cy="57" r="15" fill="#f2c39f" />
-          <circle cx="119" cy="59" r="15" fill="#f7c9a6" />
-          <path d="M58 110c3-30 12-44 27-44s24 14 28 44Z" fill={tone} opacity=".9" />
-          <path d="M27 110c2-24 9-36 21-36s19 12 22 36ZM98 110c2-24 9-36 21-36s19 12 22 36Z" fill={tone} opacity=".55" />
-          <path d="M72 46c4-15 18-20 28-9-7-19-33-14-31 8Z" fill="#20384f" />
-        </>
-      ) : null}
-      {grade === 11 ? (
-        <>
-          <path d="M74 92c-23-20-37-35-37-54 0-14 17-24 36-4 19-20 36-10 36 4 0 19-14 34-35 54Z" fill="#ef6e70" />
-          <path d="M41 62h18l8-18 12 36 9-18h27" fill="none" stroke="#fff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M135 101c1-33 14-54 40-64-1 31-15 52-40 64Z" fill={tone} opacity=".9" />
-          <path d="M156 103c2-22 13-38 34-45-2 23-13 38-34 45Z" fill="#70c08d" />
-        </>
-      ) : null}
-      {grade === 12 ? (
-        <>
-          <path d="M33 36c25-10 46-6 62 11v57c-18-12-39-15-62-6Z" fill="#fff" stroke={tone} strokeWidth="4" />
-          <path d="M157 36c-25-10-46-6-62 11v57c18-12 39-15 62-6Z" fill="#f7f2ff" stroke={tone} strokeWidth="4" />
-          <path d="M95 48v56M48 54h31M48 66h25M110 54h31M110 66h25" stroke={tone} strokeWidth="4" strokeLinecap="round" opacity=".55" />
-          <path d="m170 30 6 13 14 2-10 10 2 14-12-7-13 7 3-14-10-10 14-2Z" fill="#f3b638" />
-        </>
-      ) : null}
-    </svg>
-  );
-}
-
 function ToolCard({ item, currentUser, language }) {
   const vi = language === 'vi';
   const label = currentUser || !item.requiresUser ? (vi ? 'Mở ứng dụng' : 'Open app') : (vi ? 'Đăng nhập để mở' : 'Sign in to open');
@@ -262,38 +212,6 @@ function ToolCard({ item, currentUser, language }) {
         <small>{vi ? item.description : item.descriptionEn}</small>
       </span>
       <span className="eh5-tool-arrow"><HubIcon type="arrow" /></span>
-    </button>
-  );
-}
-
-function WeeklyCard({ item, currentUser, language }) {
-  const vi = language === 'vi';
-  const t = copy[language] || copy.vi;
-  const title = vi ? item.title : item.titleEn;
-  return (
-    <button
-      type="button"
-      className="eh5-week-card"
-      style={{ '--week-accent': item.accent, '--week-soft': item.soft }}
-      onClick={(event) => {
-        try {
-          localStorage.setItem('bes-weekly-practice-grade', String(item.grade));
-          localStorage.setItem('bes-weekly-practice-unit', '1');
-        } catch { /* optional preference */ }
-        launch(item.target, `G${item.grade}`, item.accent, currentUser, event.currentTarget);
-      }}
-      aria-label={`${t.openLesson}: ${title}`}
-    >
-      <span className="eh5-week-topline">
-        <b>{vi ? `Tiếng Anh ${item.grade}` : `English ${item.grade}`}</b>
-        <em>{t.schedule}</em>
-      </span>
-      <strong>{title}</strong>
-      <span className="eh5-week-art"><WeeklyArt grade={item.grade} /></span>
-      <span className="eh5-week-footer">
-        <span><small>{t.ready}</small><i><b style={{ width: '100%' }} /></i></span>
-        <em>{t.openLesson} <b>→</b></em>
-      </span>
     </button>
   );
 }
@@ -357,24 +275,6 @@ export default function Home({ currentUser, language = 'vi', appVisibility }) {
     });
   }, [currentUser, visibilitySnapshot]);
 
-  const weeklyCards = useMemo(() => {
-    const target = appTarget('thpt-practice-hub', '#/practice');
-    return [
-      {
-        grade: 10, title: 'Unit 1: Family Life', titleEn: 'Unit 1: Family Life',
-        accent: '#2f86dc', soft: '#eaf5ff', target,
-      },
-      {
-        grade: 11, title: 'Unit 1: A Long and Healthy Life', titleEn: 'Unit 1: A Long and Healthy Life',
-        accent: '#17a596', soft: '#e7f8f4', target,
-      },
-      {
-        grade: 12, title: 'Unit 1: Life Stories We Admire', titleEn: 'Unit 1: Life Stories We Admire',
-        accent: '#8a58dd', soft: '#f3edff', target,
-      },
-    ];
-  }, []);
-
   const dateLabel = new Intl.DateTimeFormat(vi ? 'vi-VN' : 'en-US', {
     weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
   }).format(now);
@@ -421,19 +321,6 @@ export default function Home({ currentUser, language = 'vi', appVisibility }) {
         </header>
         <div className="eh5-tool-grid">
           {toolCards.map((item) => <ToolCard key={item.id} item={item} currentUser={currentUser} language={language} />)}
-        </div>
-      </section>
-
-      <section className="eh5-section eh5-weekly-section" aria-labelledby="eh5-weekly-title">
-        <header className="eh5-section-head eh5-weekly-heading">
-          <div>
-            <span>{t.weeklyKicker}</span>
-            <h2 id="eh5-weekly-title">{t.weeklyTitle}</h2>
-            <p>{t.weeklySub}</p>
-          </div>
-        </header>
-        <div className="eh5-week-grid">
-          {weeklyCards.map((item) => <WeeklyCard key={item.grade} item={item} currentUser={currentUser} language={language} />)}
         </div>
       </section>
     </div>
