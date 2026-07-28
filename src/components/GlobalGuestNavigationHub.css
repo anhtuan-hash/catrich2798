@@ -1,0 +1,90 @@
+/* Keep the complete primary navigation visible on the public homepage. */
+.brian-nav--guest-full .brian-nav__primary {
+  min-width: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.brian-nav--guest-full .brian-nav__primary::-webkit-scrollbar {
+  display: none !important;
+}
+
+.brian-nav--guest-full .brian-nav__primary > button {
+  flex: 0 0 auto !important;
+  min-width: max-content !important;
+  white-space: nowrap !important;
+}
+
+.brian-nav__guest-tab {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+}
+
+.brian-nav__guest-lock {
+  width: 15px;
+  height: 15px;
+  display: inline-grid;
+  place-items: center;
+  color: color-mix(in srgb, var(--brian-nav-muted) 78%, transparent);
+  font-style: normal;
+  opacity: .72;
+}
+
+.brian-nav__guest-lock svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.brian-nav__guest-tab:hover .brian-nav__guest-lock,
+.brian-nav__guest-tab:focus-visible .brian-nav__guest-lock {
+  color: var(--brian-nav-accent);
+  opacity: 1;
+}
+
+@media (min-width: 821px) {
+  .brian-nav--guest-full {
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    gap: clamp(12px, 1.6vw, 24px) !important;
+  }
+
+  .brian-nav--guest-full .brian-nav__search {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1100px) and (min-width: 821px) {
+  .brian-nav--guest-full .brian-nav__primary {
+    justify-content: flex-start !important;
+  }
+
+  .brian-nav--guest-full .brian-nav__primary > button {
+    padding-inline: 11px !important;
+    font-size: .86rem !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .brian-nav--guest-full .brian-nav__primary {
+    justify-content: flex-start !important;
+    padding: 4px 2px !important;
+    scroll-snap-type: inline proximity;
+  }
+
+  .brian-nav--guest-full .brian-nav__primary > button {
+    scroll-snap-align: start;
+  }
+}
