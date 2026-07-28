@@ -1,10 +1,10 @@
 export const APPS = [
   {
     slug: 'classroom-screen', icon: 'CS', tone: 'blue', group: 'Classroom Utilities', groupVi: 'Tiện ích lớp học',
-    title: 'Classroom Screen', titleVi: 'Classroom Screen',
-    desc: 'Build and present classroom dashboards with timers, instructions, student tools, media and interactive widgets.',
-    descVi: 'Thiết kế và trình chiếu màn hình lớp học với đồng hồ, hướng dẫn, công cụ học sinh, media và widget tương tác.',
-    status: 'Built-in · Offline-first · Projector', statusVi: 'Tích hợp sẵn · Offline · Máy chiếu', api: false, featured: true},
+    title: 'Brian Classroom Stage', titleVi: 'Brian Classroom Stage',
+    desc: 'Design bilingual teaching boards with local data import, presentation scenes, drawing tools and graphic classroom widgets.',
+    descVi: 'Thiết kế bảng trình chiếu song ngữ với nhập dữ liệu cục bộ, scene bài dạy, bút vẽ và widget lớp học có đồ hoạ.',
+    status: 'No AI · Local data · Projector', statusVi: 'Không AI · Dữ liệu cục bộ · Máy chiếu', api: false, featured: true},
 
   {
     slug: 'work-dashboard', route: 'dashboard', icon: 'DB', tone: 'blue', group: 'Management', groupVi: 'Quản lý',

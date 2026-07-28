@@ -24,37 +24,37 @@ export default function ClassroomScreenHost({ language = 'vi' }) {
   return (
     <section
       ref={stageRef}
-      aria-label={vi ? 'Classroom Screen' : 'Classroom Screen'}
+      aria-label="Brian Classroom Stage"
       style={{
         position: 'fixed', inset: 0, zIndex: 22000, display: 'flex', flexDirection: 'column',
-        background: '#eef2f7', color: '#172033', fontFamily: 'Inter, system-ui, sans-serif',
+        background: '#eaf4ff', color: '#17324d', fontFamily: 'var(--bes-font-personal), Inter, system-ui, sans-serif',
       }}
     >
       <header style={{
-        height: 54, flex: '0 0 54px', display: 'flex', alignItems: 'center', gap: 12,
-        padding: '0 14px', background: '#ffffff', borderBottom: '1px solid #d9e1ea',
-        boxShadow: '0 2px 10px rgba(15,23,42,.08)',
+        height: 46, flex: '0 0 46px', display: 'flex', alignItems: 'center', gap: 12,
+        padding: '0 12px', background: 'rgba(255,255,255,.92)', borderBottom: '1px solid #c8dced',
+        boxShadow: '0 2px 12px rgba(66,133,244,.12)', backdropFilter: 'blur(14px)',
       }}>
         <button type="button" onClick={() => { window.location.hash = '#/apps'; }} style={buttonStyle}>
           ← {vi ? 'Trở về Brian' : 'Back to Brian'}
         </button>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <strong style={{ display: 'block', fontSize: 16 }}>Classroom Screen</strong>
-          <small style={{ color: '#667085' }}>{vi ? 'Ứng dụng nội bộ của Brian' : 'Built into Brian'}</small>
+          <strong style={{ display: 'block', fontSize: 15 }}>Brian Classroom Stage</strong>
+          <small style={{ color: '#617a92' }}>{vi ? 'Tích hợp nội bộ · Không AI · Dữ liệu trên máy' : 'Built into Brian · No AI · Local data'}</small>
         </div>
         <button type="button" onClick={toggleFullscreen} style={buttonStyle}>
           {fullscreen ? '⤢' : '⛶'} {fullscreen ? (vi ? 'Thoát toàn màn hình' : 'Exit full screen') : (vi ? 'Toàn màn hình' : 'Full screen')}
         </button>
       </header>
-      <div style={{ position: 'relative', flex: 1, minHeight: 0, background: '#f4f7fb' }}>
+      <div style={{ position: 'relative', flex: 1, minHeight: 0, background: '#eaf4ff' }}>
         {loading ? (
-          <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', zIndex: 2, background: '#f4f7fb' }}>
-            <strong>{vi ? 'Đang mở Classroom Screen…' : 'Opening Classroom Screen…'}</strong>
+          <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', zIndex: 2, background: '#eaf4ff' }}>
+            <strong>{vi ? 'Đang mở Brian Classroom Stage…' : 'Opening Brian Classroom Stage…'}</strong>
           </div>
         ) : null}
         <iframe
-          src="/classroom-screen/index.html?embed=1"
-          title="Classroom Screen"
+          src="/classroom-screen/?embed=1"
+          title="Brian Classroom Stage"
           allow="fullscreen; autoplay; camera; microphone; clipboard-read; clipboard-write; display-capture"
           allowFullScreen
           onLoad={() => setLoading(false)}
@@ -66,6 +66,7 @@ export default function ClassroomScreenHost({ language = 'vi' }) {
 }
 
 const buttonStyle = {
-  border: '1px solid #cfd8e3', borderRadius: 10, background: '#fff', color: '#172033',
-  minHeight: 36, padding: '7px 12px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+  border: '1px solid #b8d5ff', borderRadius: 999, background: '#fff', color: '#17324d',
+  minHeight: 34, padding: '6px 12px', fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap',
+  boxShadow: '0 3px 10px rgba(66,133,244,.12)',
 };
