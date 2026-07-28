@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { isAdminRole } from '../utils/roles.js';
 import {
   SITE_FONT_OPTIONS,
+  applySiteFont,
   getSiteFontOption,
   loadSiteFontSetting,
   readSiteFontLocal,
@@ -23,6 +24,7 @@ export default function GlobalFontSettingsBridge({ currentUser, language = 'vi' 
   const [message, setMessage] = useState('');
   const selected = useMemo(() => getSiteFontOption(fontId), [fontId]);
   const vi = language === 'vi';
+  const isAdmin = isAdminRole(currentUser?.role);
 
   useEffect(() => {
     const update = () => setRoute(currentRoute());
@@ -49,20 +51,37 @@ export default function GlobalFontSettingsBridge({ currentUser, language = 'vi' 
   }, [currentUser?.id, currentUser?.email, currentUser?.role]);
 
   useEffect(() => {
-    if (route !== 'admin' || !isAdminRole(currentUser?.role)) {
+    if (route !== 'admin' || !isAdmin) return undefined;
+    applySiteFont(fontId, { persist: false, emit: false });
+    return () => applySiteFont(savedFontId, { persist: false, emit: false });
+  }, [fontId, savedFontId, route, isAdmin]);
+
+  useEffect(() => {
+    if (route !== 'admin' || !isAdmin) {
       setHost(null);
       return undefined;
     }
     const findHost = () => {
       const main = document.querySelector('.metro-clean-system[data-route="admin"] .admin-v41-main')
         || document.querySelector('.admin-page-v41 .admin-v41-main');
-      setHost((current) => current === main ? current : main);
+      if (!main) {
+        setHost(null);
+        return;
+      }
+      let portalHost = main.querySelector(':scope > .admin-global-font-host');
+      if (!portalHost) {
+        portalHost = document.createElement('div');
+        portalHost.className = 'admin-global-font-host';
+        const configPanel = main.querySelector('.admin-sync-panel');
+        main.insertBefore(portalHost, configPanel || null);
+      }
+      setHost((current) => current === portalHost ? current : portalHost);
     };
     findHost();
     const observer = new MutationObserver(findHost);
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [route, currentUser?.role]);
+  }, [route, isAdmin]);
 
   const save = async () => {
     setLoading(true);
@@ -80,7 +99,7 @@ export default function GlobalFontSettingsBridge({ currentUser, language = 'vi' 
     }
   };
 
-  if (!host || route !== 'admin' || !isAdminRole(currentUser?.role)) return null;
+  if (!host || route !== 'admin' || !isAdmin) return null;
 
   return createPortal(
     <section className="admin-global-font-card" id="admin-global-font-settings" aria-labelledby="admin-global-font-title">
@@ -112,7 +131,7 @@ export default function GlobalFontSettingsBridge({ currentUser, language = 'vi' 
         </div>
         {message ? <div className="admin-global-font-message">{message}</div> : null}
       </div>
-      <div className="admin-global-font-preview" style={{ fontFamily: selected.family }}>
+      <div className="admin-global-font-preview">
         <span>{vi ? 'XEM TRƯỚC' : 'PREVIEW'}</span>
         <strong>Brian English Studio</strong>
         <p>Tiếng Việt rõ dấu · English learning made beautifully simple.</p>
