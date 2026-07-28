@@ -173,7 +173,7 @@ export async function saveSiteFontSetting(user, fontId) {
   const now = new Date().toISOString();
   const payload = {
     app_id: SETTING_APP_ID,
-    app_kind: 'system-setting',
+    app_kind: 'tool',
     slug: option.id,
     route: 'global-font',
     title: option.label,
