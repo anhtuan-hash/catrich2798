@@ -381,7 +381,8 @@ export async function downloadWeeklyPracticeHtml(item) {
   if (error) throw error;
   const html = await data.text();
   const bridge = runtimeBridgeScript(item.id, readWeeklyPracticeProgress(item.id));
-  const bridgeTag = `<script>${bridge.replace(/<\\/script/gi, '<\\\\/script')}</script>`;
+  const safeBridge = bridge.split('</script').join('<\\/script');
+  const bridgeTag = `<script>${safeBridge}</script>`;
   const hydrated = /<head[^>]*>/i.test(html)
     ? html.replace(/<head([^>]*)>/i, `<head$1>${bridgeTag}`)
     : `${bridgeTag}${html}`;
