@@ -28,7 +28,10 @@ export default function GlobalWeeklyPracticeStatisticsBridge({ route = 'home', c
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (route !== 'home' || !canManage) { setHost(null); return undefined; }
+    if (route !== 'home' || !canManage) {
+      setHost(null);
+      return undefined;
+    }
     let frame = 0;
     const attach = () => {
       cancelAnimationFrame(frame);
@@ -45,7 +48,8 @@ export default function GlobalWeeklyPracticeStatisticsBridge({ route = 'home', c
   }, [route, canManage]);
 
   const launch = useCallback(async () => {
-    setLoading(true); setError('');
+    setLoading(true);
+    setError('');
     try {
       setItems(await listManagedWeeklyPractices());
       setOpen(true);
@@ -60,7 +64,7 @@ export default function GlobalWeeklyPracticeStatisticsBridge({ route = 'home', c
   if (!host || !canManage) return open ? <WeeklyPracticeStatisticsPanel items={items} onClose={() => setOpen(false)} /> : null;
 
   return <>
-    {createPortal(<><button className="bes-weekly-stat-launch" type="button" onClick={launch} disabled={loading}>{loading ? 'Đang tải…' : 'Thống kê lượt làm'}</button>{error ? <span className="bes-weekly-stat-launch-error" title={error}>!</span> : null}</>, host)}
+    {createPortal(<><button className="bes-weekly-stat-launch" type="button" onClick={launch} disabled={loading}>{loading ? 'Đang tải…' : 'Bài nộp TTCM'}</button>{error ? <span className="bes-weekly-stat-launch-error" title={error}>!</span> : null}</>, host)}
     {open ? <WeeklyPracticeStatisticsPanel items={items} onClose={() => setOpen(false)} /> : null}
   </>;
 }
