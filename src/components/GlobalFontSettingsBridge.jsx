@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { isAdminRole } from '../utils/roles.js';
 import {
   SITE_FONT_OPTIONS,
-  applySiteFont,
   getSiteFontOption,
   loadSiteFontSetting,
   readSiteFontLocal,
@@ -49,12 +48,6 @@ export default function GlobalFontSettingsBridge({ currentUser, language = 'vi' 
       unsubscribe?.();
     };
   }, [currentUser?.id, currentUser?.email, currentUser?.role]);
-
-  useEffect(() => {
-    if (route !== 'admin' || !isAdmin) return undefined;
-    applySiteFont(fontId, { persist: false, emit: false });
-    return () => applySiteFont(savedFontId, { persist: false, emit: false });
-  }, [fontId, savedFontId, route, isAdmin]);
 
   useEffect(() => {
     if (route !== 'admin' || !isAdmin) {
@@ -131,7 +124,7 @@ export default function GlobalFontSettingsBridge({ currentUser, language = 'vi' 
         </div>
         {message ? <div className="admin-global-font-message">{message}</div> : null}
       </div>
-      <div className="admin-global-font-preview">
+      <div className="admin-global-font-preview" style={{ fontFamily: selected.family }}>
         <span>{vi ? 'XEM TRƯỚC' : 'PREVIEW'}</span>
         <strong>Brian English Studio</strong>
         <p>Tiếng Việt rõ dấu · English learning made beautifully simple.</p>
