@@ -16,12 +16,6 @@ function cleanText(value) {
   return String(value ?? '').replace(/\s+/g, ' ').trim();
 }
 
-function formatBytes(value) {
-  const bytes = Number(value || 0);
-  if (!bytes) return '0 MB';
-  return `${(bytes / (1024 * 1024)).toFixed(bytes < 1024 * 1024 ? 2 : 1)} MB`;
-}
-
 function formatDate(value) {
   const date = new Date(value || 0);
   if (Number.isNaN(date.getTime())) return '—';
@@ -73,10 +67,19 @@ function publicationLabel(mode) {
   }[mode] || 'Công bố ngay';
 }
 
+// The current production schema already allows archived but not pending.
+// We use archived internally for the new “Chờ công bố” workflow so no one-time SQL step is required.
+function databaseStatusForMode(mode) {
+  if (mode === 'pending') return 'archived';
+  if (mode === 'scheduled') return 'published';
+  return mode;
+}
+
 function publicationModeForItem(item) {
   const status = cleanText(item?.status || 'draft').toLowerCase();
   const opensAt = new Date(item?.opens_at || 0);
   if (status === 'published' && !Number.isNaN(opensAt.getTime()) && opensAt.getTime() > Date.now()) return 'scheduled';
+  if (status === 'archived') return 'pending';
   if (PUBLICATION_VALUES.includes(status)) return status;
   return status === 'maintenance' ? 'maintenance' : 'draft';
 }
@@ -87,8 +90,7 @@ function ensureManagerFields(form) {
   form.dataset.gradeOverrideReady = '1';
 
   const fileLabel = form.querySelector('.bes-weekly-file');
-  const existingGrade = form.querySelector('#bes-weekly-grade-classification');
-  if (!existingGrade) {
+  if (!form.querySelector('#bes-weekly-grade-classification')) {
     const gradeLabel = document.createElement('label');
     gradeLabel.className = 'bes-weekly-grade-field';
     gradeLabel.innerHTML = '<span>Phân loại</span><select id="bes-weekly-grade-classification" required><option value="10">Tiếng Anh 10</option><option value="11">Tiếng Anh 11</option><option value="12">Tiếng Anh 12</option></select>';
@@ -134,7 +136,11 @@ function ensureManagerFields(form) {
       summary.innerHTML = `<strong>${publicationLabel(mode)}</strong><span>${descriptions[mode]}</span>`;
     }
     if (submitButton && form.dataset.overrideSaving !== '1') {
-      submitButton.textContent = mode === 'published' ? 'Tải lên và công bố' : mode === 'scheduled' ? 'Tải lên và đặt lịch' : 'Tải lên và lưu trạng thái';
+      submitButton.textContent = mode === 'published'
+        ? 'Tải lên và công bố'
+        : mode === 'scheduled'
+          ? 'Tải lên và đặt lịch'
+          : 'Tải lên và lưu trạng thái';
     }
   };
   modeSelect?.addEventListener('change', updateMode);
@@ -165,13 +171,11 @@ async function submitManagedPractice(event) {
   if (file.size > WEEKLY_PRACTICE_MAX_BYTES) return managerMessage(form, 'File HTML vượt quá giới hạn 10 MB.', true);
 
   let opensAt = new Date();
-  let status = mode;
   if (mode === 'scheduled') {
     opensAt = new Date(publishAtValue);
     if (Number.isNaN(opensAt.getTime()) || opensAt.getTime() <= Date.now()) {
       return managerMessage(form, 'Lịch công bố phải là một thời điểm trong tương lai.', true);
     }
-    status = 'published';
   }
 
   const button = form.querySelector('button[type="submit"]');
@@ -199,11 +203,11 @@ async function submitManagedPractice(event) {
         duration_minutes: 45,
         opens_at: opensAt.toISOString(),
         closes_at: '',
-        status,
+        status: databaseStatusForMode(mode),
         allow_retake: true,
         collect_results: true,
         show_answers: true,
-        is_featured: mode !== 'draft',
+        is_featured: mode === 'published' || mode === 'scheduled',
       },
       file,
       currentUser: data?.user || null,
@@ -217,7 +221,11 @@ async function submitManagedPractice(event) {
     form.dataset.overrideSaving = '0';
     if (button) {
       button.disabled = false;
-      button.textContent = mode === 'published' ? 'Tải lên và công bố' : mode === 'scheduled' ? 'Tải lên và đặt lịch' : 'Tải lên và lưu trạng thái';
+      button.textContent = mode === 'published'
+        ? 'Tải lên và công bố'
+        : mode === 'scheduled'
+          ? 'Tải lên và đặt lịch'
+          : 'Tải lên và lưu trạng thái';
     }
   }
 }
@@ -232,13 +240,11 @@ async function loadManagedItems(force = false) {
 }
 
 async function saveExistingPublication(item, mode, localDate, manager) {
-  let status = mode;
   let opensAt = item.opens_at || new Date().toISOString();
   let publishedAt = item.published_at || null;
   const now = new Date();
 
   if (mode === 'published') {
-    status = 'published';
     opensAt = now.toISOString();
     publishedAt = now.toISOString();
   } else if (mode === 'scheduled') {
@@ -246,11 +252,9 @@ async function saveExistingPublication(item, mode, localDate, manager) {
     if (Number.isNaN(chosen.getTime()) || chosen.getTime() <= Date.now()) {
       throw new Error('Lịch công bố phải là một thời điểm trong tương lai.');
     }
-    status = 'published';
     opensAt = chosen.toISOString();
     publishedAt = chosen.toISOString();
   } else if (mode === 'draft' || mode === 'pending') {
-    status = mode;
     publishedAt = null;
   } else {
     throw new Error('Trạng thái đăng bài chưa hợp lệ.');
@@ -259,10 +263,11 @@ async function saveExistingPublication(item, mode, localDate, manager) {
   const { error } = await supabase
     .from('weekly_practice_items')
     .update({
-      status,
+      status: databaseStatusForMode(mode),
       opens_at: opensAt,
       published_at: publishedAt,
       updated_at: now.toISOString(),
+      is_featured: mode === 'published' || mode === 'scheduled',
     })
     .eq('id', item.id);
   if (error) throw error;
@@ -290,7 +295,9 @@ function decorateArticle(article, item, manager) {
         ? 'Đang chờ kiểm tra hoặc duyệt trước khi công bố.'
         : mode === 'draft'
           ? 'Bản nháp chỉ hiển thị trong khu vực quản trị.'
-          : 'Đang hiển thị cho học sinh.';
+          : mode === 'maintenance'
+            ? 'Bài đang tạm đóng để bảo trì.'
+            : 'Đang hiển thị cho học sinh.';
     content.appendChild(detail);
   }
 
