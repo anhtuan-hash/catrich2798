@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import ExternalAppsIntegration from './components/ExternalAppsIntegration.jsx';
 import { initializeAuthSession, subscribeToAuthChanges } from './utils/auth.js';
 import { installNeutralSurfaceGuard } from './utils/neutralSurfaceGuard.js';
+import './weeklyPracticeOverride.js';
 
 installNeutralSurfaceGuard();
 
