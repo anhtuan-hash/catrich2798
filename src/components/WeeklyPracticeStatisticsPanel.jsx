@@ -11,6 +11,8 @@ import {
   summarizeWeeklyPracticeStatistics,
 } from '../utils/weeklyPracticeStatistics.js';
 
+const GRADE_VALUES = ['10', '11', '12'];
+
 function errorText(error) {
   const message = String(error?.message || error || '').trim();
   if (/row-level security|permission denied|policy/i.test(message)) return 'Tài khoản hiện tại không có quyền đọc thống kê bài luyện tập.';
@@ -20,6 +22,12 @@ function errorText(error) {
 
 function text(value) {
   return String(value ?? '').replace(/\s+/g, ' ').trim();
+}
+
+function inferGrade(item) {
+  const explicit = String(item?.grade || '').match(/(?:^|\D)(10|11|12)(?:\D|$)/)?.[1];
+  if (explicit) return explicit;
+  return String(item?.title || '').match(/(?:tiếng\s*anh|english)\s*(10|11|12)/i)?.[1] || '';
 }
 
 function formatPercent(value) {
@@ -69,20 +77,43 @@ function downloadCsv(item, rows) {
 }
 
 export default function WeeklyPracticeStatisticsPanel({ items = [], initialItem = null, onClose }) {
-  const initialId = initialItem?.id || items[0]?.id || '';
+  const initialGrade = inferGrade(initialItem) || inferGrade(items[0]) || '10';
+  const initialGradeItems = items.filter((item) => inferGrade(item) === initialGrade);
+  const initialId = initialItem?.id || initialGradeItems[0]?.id || '';
+  const [grade, setGrade] = useState(initialGrade);
   const [practiceId, setPracticeId] = useState(initialId);
   const [rawData, setRawData] = useState({ events: [], results: [] });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(initialId));
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({ start: '', end: '', classCode: '' });
   const [message, setMessage] = useState('');
   const [openingProofId, setOpeningProofId] = useState(null);
 
-  const selectedItem = useMemo(() => items.find((item) => item.id === practiceId) || items[0] || null, [items, practiceId]);
+  const gradeCounts = useMemo(() => GRADE_VALUES.reduce((accumulator, value) => ({
+    ...accumulator,
+    [value]: items.filter((item) => inferGrade(item) === value).length,
+  }), {}), [items]);
+
+  const practicesForGrade = useMemo(
+    () => items.filter((item) => inferGrade(item) === grade),
+    [items, grade],
+  );
+
+  const selectedItem = useMemo(
+    () => practicesForGrade.find((item) => item.id === practiceId) || null,
+    [practicesForGrade, practiceId],
+  );
+
+  useEffect(() => {
+    if (practicesForGrade.some((item) => item.id === practiceId)) return;
+    setPracticeId(practicesForGrade[0]?.id || '');
+  }, [practicesForGrade, practiceId]);
 
   const refresh = useCallback(async () => {
     if (!practiceId) {
+      setRawData({ events: [], results: [] });
       setLoading(false);
+      setError('');
       return;
     }
     setLoading(true);
@@ -101,6 +132,15 @@ export default function WeeklyPracticeStatisticsPanel({ items = [], initialItem 
   const summary = useMemo(() => summarizeWeeklyPracticeStatistics(filteredData), [filteredData]);
   const dailyRows = useMemo(() => groupWeeklyPracticeEventsByDay(filteredData), [filteredData]);
   const resultRows = useMemo(() => [...filteredData.results].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)), [filteredData.results]);
+
+  const changeGrade = (nextGrade) => {
+    const nextItems = items.filter((item) => inferGrade(item) === nextGrade);
+    setGrade(nextGrade);
+    setPracticeId(nextItems[0]?.id || '');
+    setRawData({ events: [], results: [] });
+    setMessage('');
+    setError('');
+  };
 
   const clearAll = async () => {
     if (!selectedItem) return;
@@ -130,25 +170,26 @@ export default function WeeklyPracticeStatisticsPanel({ items = [], initialItem 
   return createPortal(
     <div className="bes-weekly-stat-backdrop">
       <section className="bes-weekly-stat-panel bes-weekly-stat-panel--simple" role="dialog" aria-modal="true" aria-label="Thống kê bài luyện tập">
-        <header className="bes-weekly-stat-header"><div><span className="bes-weekly-kicker">LEARNING SUBMISSIONS</span><h2>Bài nộp gửi TTCM</h2><p>Xem họ tên, lớp, thời lượng làm bài và ảnh xác nhận hoàn thành của từng học sinh.</p></div><button className="bes-weekly-close" type="button" onClick={onClose}>×</button></header>
+        <header className="bes-weekly-stat-header"><div><span className="bes-weekly-kicker">LEARNING SUBMISSIONS</span><h2>Bài nộp gửi TTCM</h2><p>Chọn khối trước, sau đó chọn bài để xem họ tên, lớp, thời lượng và ảnh xác nhận của học sinh.</p></div><button className="bes-weekly-close" type="button" onClick={onClose}>×</button></header>
         <div className="bes-weekly-stat-toolbar bes-weekly-stat-toolbar--results">
-          <label>Bài luyện tập<select value={practiceId} onChange={(event) => setPracticeId(event.target.value)} disabled={!items.length}>{items.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>
+          <label className="bes-weekly-stat-filter is-grade"><span>Khối</span><select value={grade} onChange={(event) => changeGrade(event.target.value)}>{GRADE_VALUES.map((value) => <option key={value} value={value}>Khối {value} · {gradeCounts[value] || 0} bài</option>)}</select></label>
+          <label className="bes-weekly-stat-filter is-practice"><span>Bài luyện tập</span><select value={practiceId} onChange={(event) => setPracticeId(event.target.value)} disabled={!practicesForGrade.length}>{practicesForGrade.length ? practicesForGrade.map((item) => <option key={item.id} value={item.id}>{item.title}</option>) : <option value="">Chưa có bài cho khối {grade}</option>}</select></label>
           <label>Lớp<select value={filters.classCode} onChange={(event) => setFilters({ ...filters, classCode: event.target.value })}><option value="">Tất cả lớp</option>{WEEKLY_PRACTICE_CLASSES.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
           <label>Từ ngày<input type="date" value={filters.start} onChange={(event) => setFilters({ ...filters, start: event.target.value })} /></label>
           <label>Đến ngày<input type="date" value={filters.end} onChange={(event) => setFilters({ ...filters, end: event.target.value })} /></label>
           <button type="button" onClick={() => setFilters({ start: '', end: '', classCode: '' })}>Xóa lọc</button>
-          <button type="button" onClick={refresh}>Làm mới</button>
+          <button type="button" onClick={refresh} disabled={!practiceId}>Làm mới</button>
         </div>
         {message ? <div className="bes-weekly-stat-message">{message}</div> : null}
         {loading ? <div className="bes-weekly-stat-state"><span className="bes-weekly-spinner" />Đang tổng hợp dữ liệu…</div> : null}
         {!loading && error ? <div className="bes-weekly-stat-state is-error"><strong>Không thể đọc thống kê</strong><p>{error}</p><button type="button" onClick={refresh}>Thử lại</button></div> : null}
-        {!loading && !error && !selectedItem ? <div className="bes-weekly-stat-state"><strong>Chưa có bài luyện tập</strong></div> : null}
+        {!loading && !error && !selectedItem ? <div className="bes-weekly-stat-state"><strong>Khối {grade} chưa có bài luyện tập</strong><p>Hãy chọn khối khác hoặc đăng bài mới cho khối này.</p></div> : null}
         {!loading && !error && selectedItem ? <main className="bes-weekly-stat-content">
           <div className="bes-weekly-stat-metrics bes-weekly-stat-metrics--simple">
             <MetricCard label="Bài đã gửi TTCM" value={summary.submittedCount.toLocaleString('vi-VN')} note={`${summary.classCount} lớp có bài nộp`} tone="success" />
             <MetricCard label="Học sinh đã mở bài" value={summary.openedStudentEstimate.toLocaleString('vi-VN')} note={`${summary.openEventCount.toLocaleString('vi-VN')} lượt mở`} tone="accent" />
             <MetricCard label="Tỷ lệ gửi bài" value={formatPercent(summary.completionRate)} note="Thiết bị gửi bài / thiết bị đã mở" />
-            <MetricCard label="Thời lượng trung bình" value={formatDuration(summary.averageDurationSeconds)} note="Mỗi bài nộp tối thiểu 45 phút" />
+            <MetricCard label="Thời lượng trung bình" value={formatDuration(summary.averageDurationSeconds)} note="Mỗi bài nộp khuyến nghị 45 phút" />
           </div>
 
           <section className="bes-weekly-stat-explain">
@@ -156,7 +197,7 @@ export default function WeeklyPracticeStatisticsPanel({ items = [], initialItem 
             <div className="bes-weekly-stat-actions"><button type="button" onClick={() => downloadCsv(selectedItem, resultRows)} disabled={!resultRows.length}>Xuất CSV</button><button className="bes-weekly-stat-danger" type="button" onClick={clearAll} disabled={!rawData.events.length && !rawData.results.length}>Xóa dữ liệu</button></div>
           </section>
 
-          {resultRows.length ? <section className="bes-weekly-result-section"><div className="bes-weekly-stat-section-head"><div><h3>Danh sách học sinh đã gửi</h3><p>{resultRows.length} bài nộp phù hợp bộ lọc hiện tại.</p></div></div><div className="bes-weekly-result-table"><div className="is-head"><span>Họ và tên</span><span>Lớp</span><span>Thời lượng</span><span>Thời điểm gửi</span><span>Minh chứng</span></div>{resultRows.map((row) => <div key={row.id}><strong>{row.student_name}</strong><span>{row.class_code}</span><span>{formatDuration(row.duration_seconds)}</span><span>{formatDateTime(row.created_at)}</span><button type="button" disabled={!row.proof_path || openingProofId === row.id} onClick={() => openProof(row)}>{openingProofId === row.id ? 'Đang mở…' : row.proof_path ? 'Xem ảnh' : 'Không có ảnh'}</button></div>)}</div></section> : <div className="bes-weekly-stat-empty"><strong>Chưa có bài nộp</strong><p>Học sinh phải đủ 45 phút, tạo ảnh xác nhận và bấm “Gửi cho TTCM” thì mới xuất hiện tại đây.</p></div>}
+          {resultRows.length ? <section className="bes-weekly-result-section"><div className="bes-weekly-stat-section-head"><div><h3>Danh sách học sinh đã gửi</h3><p>{resultRows.length} bài nộp phù hợp bộ lọc hiện tại.</p></div></div><div className="bes-weekly-result-table"><div className="is-head"><span>Họ và tên</span><span>Lớp</span><span>Thời lượng</span><span>Thời điểm gửi</span><span>Minh chứng</span></div>{resultRows.map((row) => <div key={row.id}><strong>{row.student_name}</strong><span>{row.class_code}</span><span>{formatDuration(row.duration_seconds)}</span><span>{formatDateTime(row.created_at)}</span><button type="button" disabled={!row.proof_path || openingProofId === row.id} onClick={() => openProof(row)}>{openingProofId === row.id ? 'Đang mở…' : row.proof_path ? 'Xem ảnh' : 'Không có ảnh'}</button></div>)}</div></section> : <div className="bes-weekly-stat-empty"><strong>Chưa có bài nộp</strong><p>Học sinh cần tạo ảnh xác nhận và bấm “Gửi cho TTCM” thì mới xuất hiện tại đây.</p></div>}
 
           {dailyRows.length ? <section className="bes-weekly-daily-section"><div className="bes-weekly-stat-section-head"><div><h3>Tổng hợp theo ngày</h3><p>So sánh lượt mở và số bài gửi trong từng ngày.</p></div></div><div className="bes-weekly-daily-table bes-weekly-daily-table--results"><div className="is-head"><span>Ngày</span><span>Thiết bị đã mở</span><span>Bài đã gửi</span><span>Số lớp</span><span>Tỷ lệ</span></div>{dailyRows.map((row) => <div key={row.date}><strong>{formatDay(row.date)}</strong><span>{row.openedStudentEstimate}</span><span>{row.submissions}</span><span>{row.classCount}</span><span>{formatPercent(row.completionRate)}</span></div>)}</div></section> : null}
           {summary.errorCount ? <div className="bes-weekly-stat-warning">Có {summary.errorCount} sự kiện lỗi được ghi nhận trong khoảng thời gian này.</div> : null}
