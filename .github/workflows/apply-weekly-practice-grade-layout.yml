@@ -1,0 +1,39 @@
+name: Apply weekly practice grade layout
+
+on:
+  push:
+    branches:
+      - feature/weekly-practice-grade-columns-20260728
+    paths:
+      - scripts/apply-weekly-practice-grade-layout.py
+      - .github/workflows/apply-weekly-practice-grade-layout.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-build-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply product changes
+        run: python3 scripts/apply-weekly-practice-grade-layout.py
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Commit generated changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Allow early submission and group weekly practice by grade"
+          git push origin HEAD:${GITHUB_REF_NAME}
