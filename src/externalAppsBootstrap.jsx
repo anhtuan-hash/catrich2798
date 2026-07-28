@@ -10,6 +10,7 @@ import './weeklyPracticeSubmissionErrorGuard.js';
 import './weeklyPublishingSettings.js';
 import './weeklyPracticeOverride.js';
 import './styles/PublishingAndFontControls.css';
+import './styles/WeeklyPublisherEmergencyFix.css';
 
 installNeutralSurfaceGuard();
 installSiteFontFromCache();
