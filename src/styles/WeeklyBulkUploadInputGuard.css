@@ -1,0 +1,32 @@
+.bes-weekly-manager--simple .bes-weekly-bulk-picker-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e5ec;
+}
+
+.bes-weekly-manager--simple .bes-weekly-bulk-picker-count {
+  color: #174ea6;
+  font-size: .78rem;
+  font-weight: 600;
+}
+
+.bes-weekly-manager--simple .bes-weekly-bulk-picker-clear {
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid #dadce0;
+  border-radius: 999px;
+  background: #fff;
+  color: #b3261e;
+  font-size: .75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bes-weekly-manager--simple .bes-weekly-bulk-picker-clear:hover {
+  border-color: #f4c7c3;
+  background: #fce8e6;
+}
