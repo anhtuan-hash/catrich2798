@@ -1,55 +1,615 @@
-#bes-weekly-practice-root .bes-weekly-section.bes-weekly-override-active > :not(.bes-weekly-heading):not(.bes-weekly-grade-override-root){display:none!important}
-.bes-weekly-grade-override-root{margin-top:22px}
-.bes-weekly-grade-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
-.bes-weekly-grade-column{--grade-accent:#4f72d8;--grade-soft:#edf2ff;overflow:hidden;border:1px solid rgba(54,72,102,.12);border-radius:28px;background:rgba(255,255,255,.92);box-shadow:0 20px 50px rgba(30,43,68,.09);backdrop-filter:blur(18px)}
-.bes-weekly-grade-column.is-grade-11{--grade-accent:#7750d6;--grade-soft:#f1edff}
-.bes-weekly-grade-column.is-grade-12{--grade-accent:#2f8b68;--grade-soft:#e9f7f1}
-.bes-weekly-grade-column>header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:22px 22px 18px;background:linear-gradient(135deg,var(--grade-soft),#fff)}
-.bes-weekly-grade-column>header div{display:grid;gap:4px}
-.bes-weekly-grade-column>header span{color:var(--grade-accent);font-size:.72rem;font-weight:950;letter-spacing:.12em}
-.bes-weekly-grade-column>header h3{margin:0;color:#17233a;font-size:1.55rem;letter-spacing:-.035em}
-.bes-weekly-grade-column>header>strong{display:grid;place-items:center;min-width:58px;height:42px;padding:0 10px;border-radius:14px;background:#fff;color:var(--grade-accent);font-size:.8rem;box-shadow:0 8px 24px rgba(28,43,71,.08)}
-.bes-weekly-grade-column__list{display:grid;gap:13px;padding:15px}
-.bes-weekly-grade-card{display:grid;gap:12px;padding:18px;border:1px solid rgba(46,60,83,.1);border-radius:20px;background:#fff;box-shadow:0 10px 26px rgba(31,45,71,.055);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
-.bes-weekly-grade-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--grade-accent) 30%,transparent);box-shadow:0 16px 34px rgba(31,45,71,.1)}
-.bes-weekly-grade-card.is-latest{border-color:color-mix(in srgb,var(--grade-accent) 34%,transparent);background:linear-gradient(160deg,#fff,var(--grade-soft))}
-.bes-weekly-grade-card__top,.bes-weekly-grade-card__action{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.bes-weekly-grade-card__new{padding:6px 9px;border-radius:999px;background:var(--grade-accent);color:#fff;font-size:.67rem;font-weight:900}
-.bes-weekly-grade-card h4{margin:0;color:#152238;font-size:1.04rem;line-height:1.35}
-.bes-weekly-grade-card__meta{display:flex;flex-wrap:wrap;gap:6px}
-.bes-weekly-grade-card__meta span{padding:6px 8px;border-radius:9px;background:#f4f6f1;color:#586350;font-size:.69rem;font-weight:800}
-.bes-weekly-grade-card__action>span{color:#6a7463;font-size:.76rem;font-weight:800}
-.bes-weekly-grade-card__action>button{min-height:42px;padding:0 16px;border:0;border-radius:13px;background:var(--grade-accent);color:#fff;font:inherit;font-size:.82rem;font-weight:900;cursor:pointer;box-shadow:0 9px 20px color-mix(in srgb,var(--grade-accent) 24%,transparent)}
-.bes-weekly-grade-card__action>button:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
-.bes-weekly-grade-empty{display:grid;place-items:center;min-height:180px;padding:22px;text-align:center;color:#78816f}
-.bes-weekly-grade-empty strong{color:#394634;font-size:1rem}
-.bes-weekly-grade-empty span{max-width:220px;font-size:.78rem;line-height:1.5}
-.bes-weekly-override-error{padding:18px;border-radius:18px;background:#fff0ef;color:#9c342f;font-weight:850}
-.bes-weekly-grade-field select{width:100%;box-sizing:border-box;min-height:50px;padding:11px 13px;border:1px solid #d9dfd1;border-radius:14px;background:#fff;color:#202719;font:inherit;outline:none}
-.bes-weekly-grade-field select:focus{border-color:#9bac42;box-shadow:0 0 0 3px rgba(178,194,72,.2)}
-.bes-weekly-runner--early-submit{grid-template-rows:auto minmax(0,1fr) auto!important}
-.bes-weekly-runner--early-submit>.bes-weekly-completion-bar{display:none!important}
-.bes-weekly-override-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 18px;border-top:1px solid rgba(35,47,25,.12);background:linear-gradient(90deg,#f7f9ee,#edf2cf);box-shadow:0 -5px 20px rgba(27,38,16,.08);z-index:4}
-.bes-weekly-override-footer__copy{display:grid;flex:1;gap:3px;min-width:240px}
-.bes-weekly-override-footer__copy strong{color:#26341b;font-size:1rem}
-.bes-weekly-override-footer__copy span{color:#687360;font-size:.78rem}
-.bes-weekly-override-footer>button,.bes-weekly-override-actions>button{min-height:46px;padding:0 20px;border:0;border-radius:15px;background:#27351a;color:#fff;font:inherit;font-weight:900;cursor:pointer;box-shadow:0 10px 24px rgba(39,53,26,.2)}
-.bes-weekly-override-footer button:disabled{background:#7d8b6d;color:#eef2e9;cursor:not-allowed;box-shadow:none}
-.bes-weekly-override-actions{display:flex;align-items:center;gap:8px}
-.bes-weekly-override-actions .is-secondary{border:1px solid #cbd4bc;background:#fff;color:#40502d;box-shadow:none}
-.bes-weekly-override-proof{display:flex!important;align-items:center;gap:9px!important;max-width:220px;padding:7px 10px!important;border:1px solid #cbd6b6!important;background:#fff!important;color:#3e4d2c!important;box-shadow:none!important}
-.bes-weekly-override-proof img{width:70px;height:42px;border-radius:8px;object-fit:cover;box-shadow:0 3px 10px rgba(42,55,27,.12)}
-.bes-weekly-override-proof span{font-size:.76rem}
-html[data-theme='dark'] .bes-weekly-grade-column{border-color:#3c4738;background:rgba(34,42,31,.94)}
-html[data-theme='dark'] .bes-weekly-grade-column>header{background:linear-gradient(135deg,#303a2d,#252d22)}
-html[data-theme='dark'] .bes-weekly-grade-column>header h3,html[data-theme='dark'] .bes-weekly-grade-card h4{color:#eef4e9}
-html[data-theme='dark'] .bes-weekly-grade-column>header>strong,html[data-theme='dark'] .bes-weekly-grade-card{background:#293226}
-html[data-theme='dark'] .bes-weekly-grade-card.is-latest{background:linear-gradient(160deg,#293226,#313b2d)}
-html[data-theme='dark'] .bes-weekly-grade-card__meta span{background:#35402f;color:#dce5d6}
-html[data-theme='dark'] .bes-weekly-grade-field select{border-color:#485442;background:#30382d;color:#edf3e8}
-html[data-theme='dark'] .bes-weekly-override-footer{border-color:#3b4537;background:linear-gradient(90deg,#252e22,#303a25)}
-html[data-theme='dark'] .bes-weekly-override-footer__copy strong{color:#edf3e8}
-html[data-theme='dark'] .bes-weekly-override-footer__copy span{color:#b5c0ad}
-@media(max-width:1180px){.bes-weekly-grade-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bes-weekly-grade-column.is-grade-12{grid-column:1/-1}}
-@media(max-width:900px){.bes-weekly-override-footer{align-items:stretch;flex-wrap:wrap}.bes-weekly-override-footer__copy{flex-basis:55%}.bes-weekly-override-actions{margin-left:auto}}
-@media(max-width:760px){.bes-weekly-grade-grid{grid-template-columns:1fr}.bes-weekly-grade-column.is-grade-12{grid-column:auto}.bes-weekly-grade-column>header{padding:18px}.bes-weekly-grade-column__list{padding:12px}.bes-weekly-grade-card__action{align-items:stretch;flex-direction:column}.bes-weekly-grade-card__action>button{width:100%}.bes-weekly-override-footer{align-items:stretch;flex-direction:column;padding:10px 12px}.bes-weekly-override-actions{display:grid;grid-template-columns:1fr;margin:0}.bes-weekly-override-actions>button,.bes-weekly-override-footer>button,.bes-weekly-override-proof{width:100%;max-width:none;box-sizing:border-box}}
+/* Weekly Practice · Google Material 3 presentation */
+#bes-weekly-practice-root .bes-weekly-section.bes-weekly-override-active > :not(.bes-weekly-heading):not(.bes-weekly-grade-override-root) {
+  display: none !important;
+}
+
+.metro-clean-system[data-route='home'] #bes-weekly-practice-root {
+  width: 100%;
+  margin: 0 !important;
+  padding: 0 clamp(18px, 2.4vw, 36px) 36px !important;
+  background: transparent !important;
+  color: #172b4d;
+}
+
+.metro-clean-system[data-route='home'] #bes-weekly-practice-root .bes-weekly-section {
+  width: min(1480px, 100%);
+  margin: 0 auto;
+  padding: 20px 22px 22px;
+  border: 1px solid #e1e6ee;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 2px 5px rgba(60, 64, 67, .04), 0 8px 24px rgba(60, 64, 67, .07);
+  font-family: BrianGesco, "Google Sans", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.metro-clean-system[data-route='home'] .bes-weekly-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 0;
+}
+
+.metro-clean-system[data-route='home'] .bes-weekly-heading > div:first-child {
+  min-width: 0;
+}
+
+.metro-clean-system[data-route='home'] .bes-weekly-kicker {
+  color: #0b57d0;
+  font-size: .7rem;
+  font-weight: 950;
+  letter-spacing: .13em;
+}
+
+.metro-clean-system[data-route='home'] .bes-weekly-heading h2 {
+  margin: 5px 0 4px !important;
+  color: #172b4d !important;
+  font-size: clamp(1.55rem, 2.15vw, 2.2rem) !important;
+  line-height: 1.03 !important;
+  letter-spacing: -.04em !important;
+}
+
+.metro-clean-system[data-route='home'] .bes-weekly-heading p {
+  max-width: 830px;
+  margin: 0 !important;
+  color: #6c7a8d !important;
+  font-size: .84rem !important;
+  line-height: 1.45 !important;
+  font-weight: 620;
+}
+
+.metro-clean-system[data-route='home'] .bes-weekly-manage-button,
+.metro-clean-system[data-route='home'] .bes-weekly-stat-launch {
+  min-height: 42px !important;
+  padding: 8px 14px !important;
+  border: 1px solid #a8c7fa !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  color: #0b57d0 !important;
+  box-shadow: none !important;
+  font-size: .8rem !important;
+  font-weight: 900 !important;
+  cursor: pointer;
+  transition: transform .18s ease, background .18s ease, box-shadow .18s ease !important;
+}
+
+.metro-clean-system[data-route='home'] .bes-weekly-stat-launch {
+  border-color: #1a73e8 !important;
+  background: linear-gradient(135deg, #1a73e8, #0b57d0) !important;
+  color: #fff !important;
+  box-shadow: 0 7px 16px rgba(26, 115, 232, .22) !important;
+}
+
+.metro-clean-system[data-route='home'] .bes-weekly-manage-button:hover,
+.metro-clean-system[data-route='home'] .bes-weekly-stat-launch:hover {
+  transform: translateY(-2px);
+}
+
+.metro-clean-system[data-route='home'] .bes-weekly-manage-button:hover {
+  background: #f5f8ff !important;
+  box-shadow: 0 6px 16px rgba(60, 64, 67, .09) !important;
+}
+
+.metro-clean-system[data-route='home'] .bes-weekly-stat-launch-host {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bes-weekly-grade-override-root {
+  margin-top: 16px;
+}
+
+.bes-weekly-grade-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.bes-weekly-grade-column {
+  --grade-accent: #188038;
+  --grade-soft: #edf7ee;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--grade-accent) 21%, #e3e8ee);
+  border-radius: 22px;
+  background: linear-gradient(155deg, #fff 0%, color-mix(in srgb, var(--grade-soft) 72%, #fff) 100%);
+  box-shadow: 0 3px 9px rgba(60, 64, 67, .055);
+}
+
+.bes-weekly-grade-column::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  width: 150px;
+  height: 150px;
+  right: -80px;
+  top: -90px;
+  border-radius: 50%;
+  background: var(--grade-accent);
+  opacity: .055;
+}
+
+.bes-weekly-grade-column.is-grade-11 {
+  --grade-accent: #7e57c2;
+  --grade-soft: #f3efff;
+}
+
+.bes-weekly-grade-column.is-grade-12 {
+  --grade-accent: #1a73e8;
+  --grade-soft: #eef4ff;
+}
+
+.bes-weekly-grade-column > header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 17px 13px;
+  border-bottom: 1px solid color-mix(in srgb, var(--grade-accent) 13%, transparent);
+  background: transparent;
+}
+
+.bes-weekly-grade-column > header div {
+  display: grid;
+  gap: 3px;
+}
+
+.bes-weekly-grade-column > header span {
+  color: var(--grade-accent);
+  font-size: .68rem;
+  font-weight: 950;
+  letter-spacing: .11em;
+}
+
+.bes-weekly-grade-column > header h3 {
+  margin: 0;
+  color: #172b4d;
+  font-size: 1.28rem;
+  line-height: 1.08;
+  letter-spacing: -.035em;
+}
+
+.bes-weekly-grade-column > header > strong {
+  display: grid;
+  place-items: center;
+  min-width: 52px;
+  min-height: 34px;
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, var(--grade-accent) 18%, #e5e9ef);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .92);
+  color: var(--grade-accent);
+  font-size: .72rem;
+  box-shadow: 0 3px 8px rgba(60, 64, 67, .05);
+}
+
+.bes-weekly-grade-column__list {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.bes-weekly-grade-card {
+  display: grid;
+  gap: 10px;
+  min-height: 164px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--grade-accent) 14%, #e6eaf0);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 2px 7px rgba(60, 64, 67, .045);
+  transition: transform .18s cubic-bezier(.2, 0, 0, 1), box-shadow .18s ease, border-color .18s ease;
+}
+
+.bes-weekly-grade-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--grade-accent) 34%, #dfe4eb);
+  box-shadow: 0 9px 20px rgba(60, 64, 67, .11);
+}
+
+.bes-weekly-grade-card.is-latest {
+  border-color: color-mix(in srgb, var(--grade-accent) 30%, #dfe4eb);
+  background: linear-gradient(150deg, #fff 0%, color-mix(in srgb, var(--grade-soft) 66%, #fff) 100%);
+}
+
+.bes-weekly-grade-card__top,
+.bes-weekly-grade-card__action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bes-weekly-status {
+  display: inline-flex;
+  width: max-content;
+  align-items: center;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #e6f4ea;
+  color: #137333;
+  font-size: .68rem;
+  font-weight: 900;
+}
+
+.bes-weekly-status.is-upcoming {
+  background: #e8f0fe;
+  color: #174ea6;
+}
+
+.bes-weekly-status.is-closed {
+  background: #f1f3f4;
+  color: #5f6368;
+}
+
+.bes-weekly-status.is-maintenance {
+  background: #fef7e0;
+  color: #b06000;
+}
+
+.bes-weekly-grade-card__new {
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: var(--grade-accent);
+  color: #fff;
+  font-size: .65rem;
+  font-weight: 900;
+  box-shadow: 0 5px 12px color-mix(in srgb, var(--grade-accent) 22%, transparent);
+}
+
+.bes-weekly-grade-card h4 {
+  margin: 0;
+  color: #172b4d;
+  font-size: .98rem;
+  line-height: 1.35;
+}
+
+.bes-weekly-grade-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bes-weekly-grade-card__meta span {
+  padding: 5px 7px;
+  border-radius: 8px;
+  background: #f1f3f4;
+  color: #5f6368;
+  font-size: .65rem;
+  font-weight: 800;
+}
+
+.bes-weekly-grade-card__action {
+  margin-top: auto;
+}
+
+.bes-weekly-grade-card__action > span {
+  color: #5f6d7e;
+  font-size: .71rem;
+  font-weight: 800;
+}
+
+.bes-weekly-grade-card__action > button {
+  min-height: 39px;
+  padding: 0 14px;
+  border: 1px solid color-mix(in srgb, var(--grade-accent) 32%, #dfe5ec);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--grade-accent);
+  font: inherit;
+  font-size: .76rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(60, 64, 67, .05);
+  transition: transform .16s ease, background .16s ease, color .16s ease;
+}
+
+.bes-weekly-grade-card__action > button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--grade-accent);
+  color: #fff;
+}
+
+.bes-weekly-grade-card__action > button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.bes-weekly-grade-empty {
+  display: grid;
+  place-items: center;
+  min-height: 160px;
+  padding: 22px;
+  text-align: center;
+  color: #7a8594;
+}
+
+.bes-weekly-grade-empty strong {
+  color: #3c4655;
+  font-size: .95rem;
+}
+
+.bes-weekly-grade-empty span {
+  max-width: 220px;
+  font-size: .76rem;
+  line-height: 1.5;
+}
+
+.bes-weekly-override-error {
+  padding: 18px;
+  border-radius: 16px;
+  background: #fce8e6;
+  color: #b3261e;
+  font-weight: 850;
+}
+
+.bes-weekly-grade-field select {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 50px;
+  padding: 11px 13px;
+  border: 1px solid #c7d7f3;
+  border-radius: 14px;
+  background: #fff;
+  color: #202124;
+  font: inherit;
+  outline: none;
+}
+
+.bes-weekly-grade-field select:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, .16);
+}
+
+/* Runner overrides retained */
+.bes-weekly-runner--early-submit {
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+}
+
+.bes-weekly-runner--early-submit > .bes-weekly-completion-bar {
+  display: none !important;
+}
+
+.bes-weekly-override-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 18px;
+  border-top: 1px solid #dfe3eb;
+  background: linear-gradient(90deg, #f8fafd, #eef4ff);
+  box-shadow: 0 -5px 20px rgba(60, 64, 67, .08);
+  z-index: 4;
+}
+
+.bes-weekly-override-footer__copy {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+  min-width: 240px;
+}
+
+.bes-weekly-override-footer__copy strong {
+  color: #172b4d;
+  font-size: 1rem;
+}
+
+.bes-weekly-override-footer__copy span {
+  color: #68768a;
+  font-size: .78rem;
+}
+
+.bes-weekly-override-footer > button,
+.bes-weekly-override-actions > button {
+  min-height: 46px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #1a73e8, #0b57d0);
+  color: #fff;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(26, 115, 232, .22);
+}
+
+.bes-weekly-override-footer button:disabled {
+  background: #9aa0a6;
+  color: #f1f3f4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.bes-weekly-override-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bes-weekly-override-actions .is-secondary {
+  border: 1px solid #a8c7fa;
+  background: #fff;
+  color: #0b57d0;
+  box-shadow: none;
+}
+
+.bes-weekly-override-proof {
+  display: flex !important;
+  align-items: center;
+  gap: 9px !important;
+  max-width: 220px;
+  padding: 7px 10px !important;
+  border: 1px solid #c7d7f3 !important;
+  background: #fff !important;
+  color: #0b57d0 !important;
+  box-shadow: none !important;
+}
+
+.bes-weekly-override-proof img {
+  width: 70px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 3px 10px rgba(60, 64, 67, .12);
+}
+
+.bes-weekly-override-proof span {
+  font-size: .76rem;
+}
+
+html[data-theme='dark'] .metro-clean-system[data-route='home'] #bes-weekly-practice-root .bes-weekly-section {
+  border-color: rgba(220, 229, 240, .12);
+  background: #17232e;
+  color: #eef4ff;
+}
+
+html[data-theme='dark'] .metro-clean-system[data-route='home'] .bes-weekly-heading h2,
+html[data-theme='dark'] .bes-weekly-grade-column > header h3,
+html[data-theme='dark'] .bes-weekly-grade-card h4 {
+  color: #eef4ff !important;
+}
+
+html[data-theme='dark'] .metro-clean-system[data-route='home'] .bes-weekly-heading p,
+html[data-theme='dark'] .bes-weekly-grade-card__action > span {
+  color: #b9c4d2 !important;
+}
+
+html[data-theme='dark'] .bes-weekly-grade-column {
+  border-color: rgba(220, 229, 240, .13);
+  background: linear-gradient(155deg, #1d2b37, #213141);
+}
+
+html[data-theme='dark'] .bes-weekly-grade-column > header {
+  border-bottom-color: rgba(220, 229, 240, .1);
+}
+
+html[data-theme='dark'] .bes-weekly-grade-column > header > strong,
+html[data-theme='dark'] .bes-weekly-grade-card {
+  border-color: rgba(220, 229, 240, .12);
+  background: #22313e;
+}
+
+html[data-theme='dark'] .bes-weekly-grade-card.is-latest {
+  background: linear-gradient(150deg, #22313e, #263847);
+}
+
+html[data-theme='dark'] .bes-weekly-grade-card__meta span {
+  background: #303e4a;
+  color: #d4dde8;
+}
+
+html[data-theme='dark'] .bes-weekly-grade-card__action > button {
+  border-color: #526b86;
+  background: #22313e;
+}
+
+html[data-theme='dark'] .bes-weekly-grade-field select {
+  border-color: #526b86;
+  background: #22313e;
+  color: #eef4ff;
+}
+
+html[data-theme='dark'] .bes-weekly-override-footer {
+  border-color: #3b4a59;
+  background: linear-gradient(90deg, #1c2935, #20344a);
+}
+
+html[data-theme='dark'] .bes-weekly-override-footer__copy strong {
+  color: #edf3fb;
+}
+
+html[data-theme='dark'] .bes-weekly-override-footer__copy span {
+  color: #b5c0cf;
+}
+
+@media (max-width: 1180px) {
+  .bes-weekly-grade-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bes-weekly-grade-column.is-grade-12 {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 900px) {
+  .metro-clean-system[data-route='home'] .bes-weekly-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .bes-weekly-override-footer {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .bes-weekly-override-footer__copy {
+    flex-basis: 55%;
+  }
+
+  .bes-weekly-override-actions {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .metro-clean-system[data-route='home'] #bes-weekly-practice-root {
+    padding: 0 9px 28px !important;
+  }
+
+  .metro-clean-system[data-route='home'] #bes-weekly-practice-root .bes-weekly-section {
+    padding: 18px 13px;
+    border-radius: 22px;
+  }
+
+  .bes-weekly-grade-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bes-weekly-grade-column.is-grade-12 {
+    grid-column: auto;
+  }
+
+  .bes-weekly-grade-column > header {
+    padding: 16px;
+  }
+
+  .bes-weekly-grade-column__list {
+    padding: 10px;
+  }
+
+  .bes-weekly-grade-card__action {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .bes-weekly-grade-card__action > button {
+    width: 100%;
+  }
+
+  .bes-weekly-override-footer {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 10px 12px;
+  }
+
+  .bes-weekly-override-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin: 0;
+  }
+
+  .bes-weekly-override-actions > button,
+  .bes-weekly-override-footer > button,
+  .bes-weekly-override-proof {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+}
