@@ -1,1 +1,104 @@
-/* placeholder */
+/* Global personal-font enforcement.
+   BrianGesco is already registered in styles/legacy/01-foundation.css. */
+:root {
+  --english-hub-personal-font: BrianGesco, "1FTV HF Gesco", "1FTVHFGesco", "1FTV-HF-Gesco", "Segoe UI", Arial, sans-serif;
+}
+
+html,
+body,
+#root,
+html body:not(#bes-disable-personal-font) *:not(.material-icons):not(.material-symbols-rounded):not(.material-symbols-outlined):not([class^="fa"]):not([class*=" fa"]),
+html body #root:is(#root) *:not(.material-icons):not(.material-symbols-rounded):not(.material-symbols-outlined):not([class^="fa"]):not([class*=" fa"]),
+html body .bes-weekly-stat-backdrop:is(.bes-weekly-stat-backdrop) * {
+  font-family: var(--english-hub-personal-font) !important;
+}
+
+/* Native icon-font elements retain their own glyph font. */
+.material-icons,
+.material-symbols-rounded,
+.material-symbols-outlined,
+[class^="fa"],
+[class*=" fa"] {
+  font-family: inherit;
+}
+
+/* Weekly statistics: choose grade first, then choose a practice. */
+.bes-weekly-stat-toolbar.bes-weekly-stat-toolbar--results {
+  grid-template-columns:
+    minmax(135px, .55fr)
+    minmax(300px, 1.45fr)
+    minmax(155px, .72fr)
+    repeat(2, minmax(155px, .72fr))
+    auto
+    auto !important;
+}
+
+.bes-weekly-stat-filter {
+  display: grid !important;
+  gap: 6px !important;
+  min-width: 0;
+  margin: 0 !important;
+}
+
+.bes-weekly-stat-filter > span {
+  color: #53604a;
+  font-size: .78rem;
+  font-weight: 850;
+}
+
+.bes-weekly-stat-filter.is-grade select {
+  border-color: #b9c9ef !important;
+  background: linear-gradient(180deg, #ffffff, #f4f7ff) !important;
+  color: #174ea6 !important;
+  font-weight: 900 !important;
+}
+
+.bes-weekly-stat-filter.is-practice select:disabled {
+  color: #7a8492 !important;
+  background: #f1f3f4 !important;
+}
+
+html[data-theme='dark'] .bes-weekly-stat-filter > span {
+  color: #c2ccbb;
+}
+
+html[data-theme='dark'] .bes-weekly-stat-filter.is-grade select {
+  border-color: #526b91 !important;
+  background: #26364a !important;
+  color: #a8c7fa !important;
+}
+
+@media (max-width: 1180px) {
+  .bes-weekly-stat-toolbar.bes-weekly-stat-toolbar--results {
+    grid-template-columns: minmax(130px, .65fr) minmax(260px, 1.35fr) minmax(145px, .7fr) repeat(2, minmax(145px, .7fr)) !important;
+  }
+
+  .bes-weekly-stat-toolbar.bes-weekly-stat-toolbar--results > button {
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .bes-weekly-stat-toolbar.bes-weekly-stat-toolbar--results {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .bes-weekly-stat-filter.is-grade {
+    grid-column: 1 / 2;
+  }
+
+  .bes-weekly-stat-filter.is-practice {
+    grid-column: 2 / -1;
+  }
+}
+
+@media (max-width: 680px) {
+  .bes-weekly-stat-toolbar.bes-weekly-stat-toolbar--results {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .bes-weekly-stat-filter.is-grade,
+  .bes-weekly-stat-filter.is-practice {
+    grid-column: 1 / -1;
+  }
+}
