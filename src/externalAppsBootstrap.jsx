@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import ExternalAppsIntegration from './components/ExternalAppsIntegration.jsx';
+import GlobalFontSettingsBridge from './components/GlobalFontSettingsBridge.jsx';
 import { initializeAuthSession, subscribeToAuthChanges } from './utils/auth.js';
 import { installNeutralSurfaceGuard } from './utils/neutralSurfaceGuard.js';
+import { installSiteFontFromCache } from './utils/siteFontSettings.js';
 import './homeWeeklyPracticeFlowFix.js';
 import './weeklyPracticeSubmissionErrorGuard.js';
+import './weeklyPublishingSettings.js';
 import './weeklyPracticeOverride.js';
+import './styles/PublishingAndFontControls.css';
 
 installNeutralSurfaceGuard();
+installSiteFontFromCache();
 
 function Bootstrap() {
   const [user, setUser] = useState(null);
@@ -26,7 +31,12 @@ function Bootstrap() {
     };
   }, []);
 
-  return <ExternalAppsIntegration currentUser={user} language={language} />;
+  return (
+    <>
+      <ExternalAppsIntegration currentUser={user} language={language} />
+      <GlobalFontSettingsBridge currentUser={user} language={language} />
+    </>
+  );
 }
 
 const host = document.createElement('div');
