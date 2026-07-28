@@ -60,7 +60,7 @@ export default function GlobalWeeklyPracticeStatisticsBridge({ route = 'home', c
   if (!host || !canManage) return open ? <WeeklyPracticeStatisticsPanel items={items} onClose={() => setOpen(false)} /> : null;
 
   return <>
-    {createPortal(<><button className="bes-weekly-stat-launch" type="button" onClick={launch} disabled={loading}>{loading ? 'Đang tải…' : 'Thống kê bài tuần'}</button>{error ? <span className="bes-weekly-stat-launch-error" title={error}>!</span> : null}</>, host)}
+    {createPortal(<><button className="bes-weekly-stat-launch" type="button" onClick={launch} disabled={loading}>{loading ? 'Đang tải…' : 'Thống kê lượt làm'}</button>{error ? <span className="bes-weekly-stat-launch-error" title={error}>!</span> : null}</>, host)}
     {open ? <WeeklyPracticeStatisticsPanel items={items} onClose={() => setOpen(false)} /> : null}
   </>;
 }
