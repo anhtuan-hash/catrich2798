@@ -1,0 +1,129 @@
+/* Emergency display fix for the weekly-practice publisher.
+   Loaded after PublishingAndFontControls.css so it safely overrides the broken icon ligatures. */
+
+/* Use one shared scroll area. Independent column scroll positions caused the form
+   to reopen halfway down while the list remained at the top. */
+.bes-weekly-manager--simple .bes-weekly-manager__grid {
+  align-items: start !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scroll-behavior: auto !important;
+}
+
+.bes-weekly-manager--simple .bes-weekly-form,
+.bes-weekly-manager--simple .bes-weekly-manage-list {
+  max-height: none !important;
+  overflow: visible !important;
+  scrollbar-gutter: auto !important;
+}
+
+/* Never expose Material Symbols ligature words such as “publish”, “save” or
+   “schedule_send” when the icon webfont is late or unavailable. */
+.bes-weekly-manager--simple .bes-weekly-publication-block .material-symbols-rounded,
+.bes-weekly-manager--simple .bes-weekly-save-publication .material-symbols-rounded {
+  position: relative !important;
+  flex: 0 0 auto !important;
+  overflow: hidden !important;
+  color: transparent !important;
+  font-family: inherit !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  text-indent: -9999px !important;
+  white-space: nowrap !important;
+}
+
+.bes-weekly-manager--simple .bes-weekly-publication-block .material-symbols-rounded::before,
+.bes-weekly-manager--simple .bes-weekly-save-publication .material-symbols-rounded::before {
+  content: '' !important;
+  display: block !important;
+  width: 20px !important;
+  height: 20px !important;
+  margin: auto !important;
+  background: currentColor !important;
+  color: #5f6368 !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-position: center !important;
+  mask-position: center !important;
+  -webkit-mask-size: contain !important;
+  mask-size: contain !important;
+}
+
+/* Upload / publish header icon. */
+.bes-weekly-manager--simple .bes-weekly-publication-head > .material-symbols-rounded::before {
+  color: #1a73e8 !important;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 20h14v-2H5v2zm7-18L6.5 7.5l1.42 1.42L11 5.84V16h2V5.84l3.08 3.08L17.5 7.5 12 2z'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 20h14v-2H5v2zm7-18L6.5 7.5l1.42 1.42L11 5.84V16h2V5.84l3.08 3.08L17.5 7.5 12 2z'/%3E%3C/svg%3E") !important;
+}
+
+/* Mode cards: globe, draft, pending, calendar. */
+.bes-weekly-manager--simple .bes-weekly-mode-grid label:nth-child(1) i::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.92 6h-3.04a15.7 15.7 0 0 0-1.4-3.61A8.04 8.04 0 0 1 18.92 8zM12 4c.83 1.2 1.48 2.53 1.85 4h-3.7A13.8 13.8 0 0 1 12 4zM4.26 14A7.7 7.7 0 0 1 4 12c0-.69.09-1.36.26-2h3.47a16.4 16.4 0 0 0 0 4H4.26zm.82 2h3.04c.31 1.27.78 2.49 1.4 3.61A8.04 8.04 0 0 1 5.08 16zM8.12 8H5.08a8.04 8.04 0 0 1 4.44-3.61A15.7 15.7 0 0 0 8.12 8zM12 20a13.8 13.8 0 0 1-1.85-4h3.7A13.8 13.8 0 0 1 12 20zm2.26-6H9.74a14.4 14.4 0 0 1 0-4h4.52a14.4 14.4 0 0 1 0 4zm.22 5.61A15.7 15.7 0 0 0 15.88 16h3.04a8.04 8.04 0 0 1-4.44 3.61zM16.27 14a16.4 16.4 0 0 0 0-4h3.47c.17.64.26 1.31.26 2s-.09 1.36-.26 2h-3.47z'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.92 6h-3.04a15.7 15.7 0 0 0-1.4-3.61A8.04 8.04 0 0 1 18.92 8zM12 4c.83 1.2 1.48 2.53 1.85 4h-3.7A13.8 13.8 0 0 1 12 4zM4.26 14A7.7 7.7 0 0 1 4 12c0-.69.09-1.36.26-2h3.47a16.4 16.4 0 0 0 0 4H4.26zm.82 2h3.04c.31 1.27.78 2.49 1.4 3.61A8.04 8.04 0 0 1 5.08 16zM8.12 8H5.08a8.04 8.04 0 0 1 4.44-3.61A15.7 15.7 0 0 0 8.12 8zM12 20a13.8 13.8 0 0 1-1.85-4h3.7A13.8 13.8 0 0 1 12 20zm2.26-6H9.74a14.4 14.4 0 0 1 0-4h4.52a14.4 14.4 0 0 1 0 4zm.22 5.61A15.7 15.7 0 0 0 15.88 16h3.04a8.04 8.04 0 0 1-4.44 3.61zM16.27 14a16.4 16.4 0 0 0 0-4h3.47c.17.64.26 1.31.26 2s-.09 1.36-.26 2h-3.47z'/%3E%3C/svg%3E") !important;
+}
+
+.bes-weekly-manager--simple .bes-weekly-mode-grid label:nth-child(2) i::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.04a1 1 0 0 0 0-1.42l-2.5-2.5a1 1 0 0 0-1.42 0l-1.96 1.96 3.75 3.75 2.13-1.79z'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.04a1 1 0 0 0 0-1.42l-2.5-2.5a1 1 0 0 0-1.42 0l-1.96 1.96 3.75 3.75 2.13-1.79z'/%3E%3C/svg%3E") !important;
+}
+
+.bes-weekly-manager--simple .bes-weekly-mode-grid label:nth-child(3) i::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2zm1 11h5v-2h-4V6h-2v7z'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2zm1 11h5v-2h-4V6h-2v7z'/%3E%3C/svg%3E") !important;
+}
+
+.bes-weekly-manager--simple .bes-weekly-mode-grid label:nth-child(4) i::before,
+.bes-weekly-manager--simple .bes-weekly-schedule-heading > .material-symbols-rounded::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 4h-1V2h-2v2H8V2H6v2H5a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3zm1 15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8h16v8zm0-10H4V7a1 1 0 0 1 1-1h1v2h2V6h8v2h2V6h1a1 1 0 0 1 1 1v2z'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 4h-1V2h-2v2H8V2H6v2H5a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3zm1 15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8h16v8zm0-10H4V7a1 1 0 0 1 1-1h1v2h2V6h8v2h2V6h1a1 1 0 0 1 1 1v2z'/%3E%3C/svg%3E") !important;
+}
+
+/* Summary uses a stable check icon so it remains legible in every font mode. */
+.bes-weekly-manager--simple .bes-weekly-publication-summary > .material-symbols-rounded::before {
+  color: #188038 !important;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E") !important;
+}
+
+/* Save button icon. */
+.bes-weekly-manager--simple .bes-weekly-save-publication .material-symbols-rounded {
+  width: 18px !important;
+  height: 18px !important;
+  text-indent: -9999px !important;
+}
+
+.bes-weekly-manager--simple .bes-weekly-save-publication .material-symbols-rounded::before {
+  width: 18px !important;
+  height: 18px !important;
+  color: #fff !important;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z'/%3E%3C/svg%3E") !important;
+}
+
+/* Keep cards and action controls from colliding at common laptop widths. */
+@media (max-width: 1180px) {
+  .bes-weekly-manager--simple .bes-weekly-manager__grid {
+    grid-template-columns: minmax(390px, .9fr) minmax(460px, 1.1fr) !important;
+  }
+
+  .bes-weekly-manager--simple .bes-weekly-manage-list article {
+    grid-template-columns: 1fr !important;
+  }
+
+  .bes-weekly-manager--simple .bes-weekly-manage-list nav,
+  .bes-weekly-item-publication-controls {
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .bes-weekly-manager--simple .bes-weekly-manager__grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .bes-weekly-manager--simple .bes-weekly-form {
+    border-right: 0 !important;
+    border-bottom: 1px solid #e8eaed !important;
+  }
+}
