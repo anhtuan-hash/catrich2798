@@ -1,4 +1,12 @@
 export const APP_DESIGN_PROFILES = {
+  'classroom-screen': {
+    accent: '#4285F4',
+    soft: '#EAF4FF',
+    ink: '#17324D',
+    icon: 'classroom-stage',
+    style: 'Google-style teaching board',
+    styleVi: 'Bảng dạy học phong cách Google'},
+
   'work-dashboard': {
     accent: '#315FC4',
     soft: '#EAF3FF',
