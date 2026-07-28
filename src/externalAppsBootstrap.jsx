@@ -10,6 +10,7 @@ import './weeklyPracticeSubmissionErrorGuard.js';
 import './weeklyPublishingSettings.js';
 import './weeklyPracticeOverride.js';
 import './styles/PublishingAndFontControls.css';
+// Keep the emergency publisher stylesheet last so icon and scroll fixes win the cascade.
 import './styles/WeeklyPublisherEmergencyFix.css';
 
 installNeutralSurfaceGuard();
