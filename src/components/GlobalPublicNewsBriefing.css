@@ -1,0 +1,56 @@
+/* Public fallback for the top News Brief. The authenticated StatusMenuBar keeps
+   its existing richer weather experience; this layer appears only when that
+   component is intentionally hidden by news permissions. */
+html body .bes-top-chrome > .brian-public-briefing {
+  position: relative !important;
+  z-index: 1002 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+html body .bes-top-chrome > .brian-public-briefing .brian-briefing-bar__headline {
+  min-width: 0 !important;
+}
+
+html body .bes-top-chrome > .brian-public-briefing .brian-briefing-bar__source {
+  flex: 0 0 auto !important;
+  letter-spacing: .025em !important;
+}
+
+html body .bes-top-chrome > .brian-public-briefing .brian-public-briefing__clock {
+  font-size: 19px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+}
+
+html body .bes-top-chrome > .brian-public-briefing .brian-briefing-chip--time {
+  min-width: 128px !important;
+}
+
+@media (max-width: 760px) {
+  html body .bes-top-chrome > .brian-public-briefing {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 7px !important;
+    padding-inline: 9px !important;
+  }
+
+  html body .bes-top-chrome > .brian-public-briefing .brian-briefing-chip--time {
+    min-width: 82px !important;
+    padding: 0 8px !important;
+  }
+
+  html body .bes-top-chrome > .brian-public-briefing .brian-public-briefing__clock,
+  html body .bes-top-chrome > .brian-public-briefing .brian-briefing-chip__secondary {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  html body .bes-top-chrome > .brian-public-briefing .brian-briefing-bar__context {
+    display: none !important;
+  }
+
+  html body .bes-top-chrome > .brian-public-briefing {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
