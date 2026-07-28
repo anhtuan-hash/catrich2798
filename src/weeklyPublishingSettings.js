@@ -9,8 +9,10 @@ const FORM_SELECTOR = '.bes-weekly-manager--simple form.bes-weekly-form--simple'
 const LIST_SELECTOR = '.bes-weekly-manager--simple .bes-weekly-manage-list';
 const GRADE_VALUES = ['10', '11', '12'];
 const PUBLICATION_VALUES = ['published', 'draft', 'pending', 'scheduled'];
+const listTasks = new WeakMap();
 let managedItems = [];
 let managedItemsPromise = null;
+let scanFrame = 0;
 
 function cleanText(value) {
   return String(value ?? '').replace(/\s+/g, ' ').trim();
@@ -24,11 +26,18 @@ function formatDate(value) {
   }).format(date);
 }
 
-function toLocalInput(value = new Date(Date.now() + 60 * 60 * 1000)) {
+function localParts(value = new Date(Date.now() + 60 * 60 * 1000)) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
+  if (Number.isNaN(date.getTime())) return { date: '', time: '' };
   date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-  return date.toISOString().slice(0, 16);
+  const iso = date.toISOString();
+  return { date: iso.slice(0, 10), time: iso.slice(11, 16) };
+}
+
+function combineLocalDateTime(dateValue, timeValue) {
+  if (!dateValue || !timeValue) return null;
+  const date = new Date(`${dateValue}T${timeValue}`);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function currentIsoWeek() {
@@ -67,8 +76,6 @@ function publicationLabel(mode) {
   }[mode] || 'Công bố ngay';
 }
 
-// The current production schema already allows archived but not pending.
-// We use archived internally for the new “Chờ công bố” workflow so no one-time SQL step is required.
 function databaseStatusForMode(mode) {
   if (mode === 'pending') return 'archived';
   if (mode === 'scheduled') return 'published';
@@ -84,6 +91,25 @@ function publicationModeForItem(item) {
   return status === 'maintenance' ? 'maintenance' : 'draft';
 }
 
+function modeDescription(mode) {
+  return {
+    published: 'Học sinh nhìn thấy và mở bài ngay sau khi tải lên.',
+    draft: 'Lưu bản nháp; chỉ Admin/TTCM nhìn thấy trong danh sách quản trị.',
+    pending: 'Đánh dấu bài đang chờ kiểm tra hoặc duyệt trước khi công bố.',
+    scheduled: 'Bài hiển thị trạng thái sắp mở và tự mở đúng thời điểm đã chọn.',
+  }[mode] || '';
+}
+
+function modeIcon(mode) {
+  return { published: 'public', draft: 'edit_note', pending: 'schedule_send', scheduled: 'event' }[mode] || 'public';
+}
+
+function submitButtonLabel(mode) {
+  if (mode === 'published') return 'Tải lên và công bố';
+  if (mode === 'scheduled') return 'Tải lên và đặt lịch';
+  return 'Tải lên và lưu trạng thái';
+}
+
 function ensureManagerFields(form) {
   if (!form || form.dataset.publicationControlsReady === '1') return;
   form.dataset.publicationControlsReady = '1';
@@ -97,57 +123,56 @@ function ensureManagerFields(form) {
     fileLabel?.insertAdjacentElement('beforebegin', gradeLabel);
   }
 
-  if (!form.querySelector('#bes-weekly-publication-mode')) {
-    const publicationBlock = document.createElement('div');
+  if (!form.querySelector('.bes-weekly-publication-block')) {
+    const defaults = localParts();
+    const publicationBlock = document.createElement('section');
     publicationBlock.className = 'bes-weekly-publication-block';
+    publicationBlock.setAttribute('aria-label', 'Thiết lập công bố');
     publicationBlock.innerHTML = `
-      <label class="bes-weekly-publication-field">
-        <span>Trạng thái đăng bài</span>
-        <select id="bes-weekly-publication-mode" required>
-          <option value="published">Công bố ngay</option>
-          <option value="draft">Chưa công bố</option>
-          <option value="pending">Chờ công bố</option>
-          <option value="scheduled">Lịch công bố</option>
-        </select>
-      </label>
-      <label class="bes-weekly-schedule-field" hidden>
-        <span>Thời điểm công bố</span>
-        <input id="bes-weekly-publish-at" type="datetime-local" value="${toLocalInput()}" />
-        <small>Bài tự mở khi đến thời điểm này.</small>
-      </label>
-      <div class="bes-weekly-publication-summary"><strong>Công bố ngay</strong><span>Học sinh nhìn thấy và mở bài ngay sau khi tải lên.</span></div>`;
+      <div class="bes-weekly-publication-head">
+        <span class="material-symbols-rounded" aria-hidden="true">publish</span>
+        <div><strong>Thiết lập công bố</strong><small>Chọn cách bài xuất hiện với học sinh.</small></div>
+      </div>
+      <fieldset class="bes-weekly-mode-fieldset">
+        <legend>Trạng thái đăng bài</legend>
+        <div class="bes-weekly-mode-grid">
+          <label><input type="radio" name="bes-weekly-publication-mode" value="published" checked><span><i class="material-symbols-rounded">public</i><b>Công bố ngay</b><small>Hiển thị ngay</small></span></label>
+          <label><input type="radio" name="bes-weekly-publication-mode" value="draft"><span><i class="material-symbols-rounded">edit_note</i><b>Chưa công bố</b><small>Lưu bản nháp</small></span></label>
+          <label><input type="radio" name="bes-weekly-publication-mode" value="pending"><span><i class="material-symbols-rounded">schedule_send</i><b>Chờ công bố</b><small>Chờ kiểm tra</small></span></label>
+          <label><input type="radio" name="bes-weekly-publication-mode" value="scheduled"><span><i class="material-symbols-rounded">event</i><b>Lịch công bố</b><small>Tự mở đúng giờ</small></span></label>
+        </div>
+      </fieldset>
+      <div class="bes-weekly-schedule-panel" hidden>
+        <div class="bes-weekly-schedule-heading"><span class="material-symbols-rounded">calendar_month</span><div><strong>Thời điểm công bố</strong><small>Chọn ngày và giờ theo thiết bị hiện tại.</small></div></div>
+        <div class="bes-weekly-schedule-grid">
+          <label><span>Ngày</span><input id="bes-weekly-publish-date" type="date" value="${defaults.date}" min="${localParts(new Date()).date}"></label>
+          <label><span>Giờ</span><input id="bes-weekly-publish-time" type="time" value="${defaults.time}" step="300"></label>
+        </div>
+      </div>
+      <div class="bes-weekly-publication-summary"><span class="material-symbols-rounded">public</span><div><strong>Công bố ngay</strong><small>${modeDescription('published')}</small></div></div>`;
     fileLabel?.insertAdjacentElement('beforebegin', publicationBlock);
   }
 
-  const modeSelect = form.querySelector('#bes-weekly-publication-mode');
-  const scheduleField = form.querySelector('.bes-weekly-schedule-field');
-  const summary = form.querySelector('.bes-weekly-publication-summary');
+  const block = form.querySelector('.bes-weekly-publication-block');
+  const modeInputs = [...block.querySelectorAll('input[name="bes-weekly-publication-mode"]')];
+  const schedulePanel = block.querySelector('.bes-weekly-schedule-panel');
+  const summary = block.querySelector('.bes-weekly-publication-summary');
   const submitButton = form.querySelector('button[type="submit"]');
   const updateMode = () => {
-    const mode = modeSelect?.value || 'published';
-    if (scheduleField) scheduleField.hidden = mode !== 'scheduled';
-    if (summary) {
-      const descriptions = {
-        published: 'Học sinh nhìn thấy và mở bài ngay sau khi tải lên.',
-        draft: 'Lưu bản nháp; chỉ Admin/TTCM nhìn thấy trong danh sách quản trị.',
-        pending: 'Đánh dấu bài đang chờ kiểm tra hoặc duyệt trước khi công bố.',
-        scheduled: 'Bài hiển thị trạng thái sắp mở và tự mở đúng thời điểm đã chọn.',
-      };
-      summary.innerHTML = `<strong>${publicationLabel(mode)}</strong><span>${descriptions[mode]}</span>`;
-    }
-    if (submitButton && form.dataset.overrideSaving !== '1') {
-      submitButton.textContent = mode === 'published'
-        ? 'Tải lên và công bố'
-        : mode === 'scheduled'
-          ? 'Tải lên và đặt lịch'
-          : 'Tải lên và lưu trạng thái';
-    }
+    const mode = modeInputs.find((input) => input.checked)?.value || 'published';
+    if (schedulePanel) schedulePanel.hidden = mode !== 'scheduled';
+    if (summary) summary.innerHTML = `<span class="material-symbols-rounded">${modeIcon(mode)}</span><div><strong>${publicationLabel(mode)}</strong><small>${modeDescription(mode)}</small></div>`;
+    if (submitButton && form.dataset.overrideSaving !== '1') submitButton.textContent = submitButtonLabel(mode);
   };
-  modeSelect?.addEventListener('change', updateMode);
+  modeInputs.forEach((input) => input.addEventListener('change', updateMode));
   updateMode();
 
   const note = form.querySelector('.bes-weekly-simple-note span');
-  if (note) note.textContent = 'Bắt buộc họ tên · Chọn lớp trong danh sách · Có 4 trạng thái đăng bài · Tạo ảnh xác nhận · Gửi TTCM';
+  if (note) note.textContent = 'Bắt buộc họ tên · Chọn lớp trong danh sách · 4 trạng thái đăng bài · Tạo ảnh xác nhận · Gửi TTCM';
+}
+
+function selectedMode(form) {
+  return form.querySelector('input[name="bes-weekly-publication-mode"]:checked')?.value || 'published';
 }
 
 async function submitManagedPractice(event) {
@@ -158,10 +183,9 @@ async function submitManagedPractice(event) {
   event.stopImmediatePropagation();
   if (form.dataset.overrideSaving === '1') return;
 
-  const title = cleanText(form.querySelector('input:not([type="file"]):not([type="datetime-local"])')?.value);
+  const title = cleanText(form.querySelector('input:not([type="file"]):not([type="date"]):not([type="time"]):not([type="radio"])')?.value);
   const grade = form.querySelector('#bes-weekly-grade-classification')?.value || '10';
-  const mode = form.querySelector('#bes-weekly-publication-mode')?.value || 'published';
-  const publishAtValue = form.querySelector('#bes-weekly-publish-at')?.value || '';
+  const mode = selectedMode(form);
   const file = form.querySelector('input[type="file"]')?.files?.[0] || null;
 
   if (!title) return managerMessage(form, 'Hãy nhập tên bài luyện tập.', true);
@@ -172,10 +196,11 @@ async function submitManagedPractice(event) {
 
   let opensAt = new Date();
   if (mode === 'scheduled') {
-    opensAt = new Date(publishAtValue);
-    if (Number.isNaN(opensAt.getTime()) || opensAt.getTime() <= Date.now()) {
-      return managerMessage(form, 'Lịch công bố phải là một thời điểm trong tương lai.', true);
-    }
+    opensAt = combineLocalDateTime(
+      form.querySelector('#bes-weekly-publish-date')?.value,
+      form.querySelector('#bes-weekly-publish-time')?.value,
+    );
+    if (!opensAt || opensAt.getTime() <= Date.now()) return managerMessage(form, 'Lịch công bố phải là một thời điểm trong tương lai.', true);
   }
 
   const button = form.querySelector('button[type="submit"]');
@@ -212,20 +237,15 @@ async function submitManagedPractice(event) {
       file,
       currentUser: data?.user || null,
     });
-    const suffix = mode === 'scheduled' ? ` lúc ${formatDate(opensAt)}` : '';
-    managerMessage(form, `Đã tải bài lên: ${publicationLabel(mode)}${suffix}. Đang làm mới trang…`);
+    managerMessage(form, `Đã tải bài lên: ${publicationLabel(mode)}${mode === 'scheduled' ? ` lúc ${formatDate(opensAt)}` : ''}. Đang làm mới trang…`);
     managedItems = [];
-    window.setTimeout(() => window.location.reload(), 700);
+    window.setTimeout(() => window.location.reload(), 650);
   } catch (error) {
     managerMessage(form, error?.message || 'Không thể tải bài lên.', true);
     form.dataset.overrideSaving = '0';
     if (button) {
       button.disabled = false;
-      button.textContent = mode === 'published'
-        ? 'Tải lên và công bố'
-        : mode === 'scheduled'
-          ? 'Tải lên và đặt lịch'
-          : 'Tải lên và lưu trạng thái';
+      button.textContent = submitButtonLabel(mode);
     }
   }
 }
@@ -239,19 +259,16 @@ async function loadManagedItems(force = false) {
   return managedItemsPromise;
 }
 
-async function saveExistingPublication(item, mode, localDate, manager) {
+async function saveExistingPublication(item, mode, dateValue, timeValue, manager) {
   let opensAt = item.opens_at || new Date().toISOString();
   let publishedAt = item.published_at || null;
   const now = new Date();
-
   if (mode === 'published') {
     opensAt = now.toISOString();
     publishedAt = now.toISOString();
   } else if (mode === 'scheduled') {
-    const chosen = new Date(localDate);
-    if (Number.isNaN(chosen.getTime()) || chosen.getTime() <= Date.now()) {
-      throw new Error('Lịch công bố phải là một thời điểm trong tương lai.');
-    }
+    const chosen = combineLocalDateTime(dateValue, timeValue);
+    if (!chosen || chosen.getTime() <= Date.now()) throw new Error('Lịch công bố phải là một thời điểm trong tương lai.');
     opensAt = chosen.toISOString();
     publishedAt = chosen.toISOString();
   } else if (mode === 'draft' || mode === 'pending') {
@@ -273,7 +290,7 @@ async function saveExistingPublication(item, mode, localDate, manager) {
   if (error) throw error;
   managerMessage(manager, `Đã cập nhật “${item.title}”: ${publicationLabel(mode)}${mode === 'scheduled' ? ` lúc ${formatDate(opensAt)}` : ''}.`);
   managedItems = [];
-  window.setTimeout(() => window.location.reload(), 600);
+  window.setTimeout(() => window.location.reload(), 550);
 }
 
 function decorateArticle(article, item, manager) {
@@ -314,49 +331,55 @@ function decorateArticle(article, item, manager) {
   select.setAttribute('aria-label', `Trạng thái đăng bài ${item.title}`);
   select.innerHTML = '<option value="published">Công bố ngay</option><option value="draft">Chưa công bố</option><option value="pending">Chờ công bố</option><option value="scheduled">Lịch công bố</option>';
   select.value = PUBLICATION_VALUES.includes(mode) ? mode : 'draft';
-  const dateInput = document.createElement('input');
-  dateInput.type = 'datetime-local';
-  dateInput.value = toLocalInput(mode === 'scheduled' ? item.opens_at : Date.now() + 60 * 60 * 1000);
-  dateInput.setAttribute('aria-label', `Lịch công bố ${item.title}`);
+
+  const parts = localParts(mode === 'scheduled' ? item.opens_at : Date.now() + 60 * 60 * 1000);
+  const schedule = document.createElement('div');
+  schedule.className = 'bes-weekly-item-schedule';
+  schedule.innerHTML = `<input type="date" value="${parts.date}" min="${localParts(new Date()).date}" aria-label="Ngày công bố ${cleanText(item.title)}"><input type="time" value="${parts.time}" step="300" aria-label="Giờ công bố ${cleanText(item.title)}">`;
   const saveButton = document.createElement('button');
   saveButton.type = 'button';
   saveButton.className = 'bes-weekly-save-publication';
-  saveButton.textContent = 'Lưu';
-  const updateVisibility = () => { dateInput.hidden = select.value !== 'scheduled'; };
+  saveButton.innerHTML = '<span class="material-symbols-rounded">save</span><b>Lưu</b>';
+  const updateVisibility = () => { schedule.hidden = select.value !== 'scheduled'; };
   select.addEventListener('change', updateVisibility);
   updateVisibility();
   saveButton.addEventListener('click', async () => {
     if (saveButton.disabled) return;
     saveButton.disabled = true;
-    saveButton.textContent = 'Đang lưu…';
+    saveButton.innerHTML = '<span class="material-symbols-rounded">progress_activity</span><b>Đang lưu</b>';
     try {
-      await saveExistingPublication(item, select.value, dateInput.value, manager);
+      const [dateInput, timeInput] = schedule.querySelectorAll('input');
+      await saveExistingPublication(item, select.value, dateInput?.value, timeInput?.value, manager);
     } catch (error) {
       managerMessage(manager, error?.message || 'Không thể cập nhật trạng thái đăng bài.', true);
       saveButton.disabled = false;
-      saveButton.textContent = 'Lưu';
+      saveButton.innerHTML = '<span class="material-symbols-rounded">save</span><b>Lưu</b>';
     }
   });
-  controls.append(select, dateInput, saveButton);
+  controls.append(select, schedule, saveButton);
   nav.insertAdjacentElement('afterbegin', controls);
 }
 
 async function decorateManagerList(list) {
-  if (!list || list.dataset.publicationListLoading === '1') return;
-  list.dataset.publicationListLoading = '1';
-  const manager = list.closest('.bes-weekly-manager--simple');
-  try {
-    const items = await loadManagedItems();
-    list.querySelectorAll(':scope > article').forEach((article) => {
-      const title = cleanText(article.querySelector('strong')?.textContent);
-      const item = items.find((candidate) => cleanText(candidate.title) === title);
-      if (item) decorateArticle(article, item, manager);
-    });
-  } catch (error) {
-    managerMessage(manager, error?.message || 'Không thể tải trạng thái đăng bài.', true);
-  } finally {
-    list.dataset.publicationListLoading = '0';
-  }
+  if (!list || listTasks.has(list)) return;
+  const pendingArticles = [...list.querySelectorAll(':scope > article')]
+    .filter((article) => article.querySelector(':scope > nav')?.dataset.publicationActionsReady !== '1');
+  if (!pendingArticles.length) return;
+
+  const task = (async () => {
+    const manager = list.closest('.bes-weekly-manager--simple');
+    try {
+      const items = await loadManagedItems();
+      pendingArticles.forEach((article) => {
+        const title = cleanText(article.querySelector('strong')?.textContent);
+        const item = items.find((candidate) => cleanText(candidate.title) === title);
+        if (item) decorateArticle(article, item, manager);
+      });
+    } catch (error) {
+      managerMessage(manager, error?.message || 'Không thể tải trạng thái đăng bài.', true);
+    }
+  })().finally(() => listTasks.delete(list));
+  listTasks.set(list, task);
 }
 
 function scan() {
@@ -364,8 +387,16 @@ function scan() {
   document.querySelectorAll(LIST_SELECTOR).forEach(decorateManagerList);
 }
 
+function queueScan() {
+  if (scanFrame) return;
+  scanFrame = window.requestAnimationFrame(() => {
+    scanFrame = 0;
+    scan();
+  });
+}
+
 document.addEventListener('submit', submitManagedPractice, true);
-const observer = new MutationObserver(scan);
-observer.observe(document.documentElement, { childList: true, subtree: true });
-window.addEventListener('DOMContentLoaded', scan, { once: true });
-scan();
+const observer = new MutationObserver(queueScan);
+observer.observe(document.body, { childList: true, subtree: true });
+window.addEventListener('DOMContentLoaded', queueScan, { once: true });
+queueScan();
