@@ -7,12 +7,15 @@ import { installNeutralSurfaceGuard } from './utils/neutralSurfaceGuard.js';
 import { installSiteFontFromCache } from './utils/siteFontSettings.js';
 import './homeWeeklyPracticeFlowFix.js';
 import './weeklyPracticeSubmissionErrorGuard.js';
+// Keep the live file input multi-selectable even when the manager UI re-renders it.
+import './weeklyBulkUploadInputGuard.js';
 // Register bulk-submit interception before the single-file publishing handler.
 import './weeklyBulkUpload.js';
 import './weeklyPublishingSettings.js';
 import './weeklyPracticeOverride.js';
 import './styles/PublishingAndFontControls.css';
 import './styles/WeeklyBulkUpload.css';
+import './styles/WeeklyBulkUploadInputGuard.css';
 // Keep the emergency publisher stylesheet last so icon and scroll fixes win the cascade.
 import './styles/WeeklyPublisherEmergencyFix.css';
 
