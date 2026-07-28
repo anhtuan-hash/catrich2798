@@ -5,6 +5,7 @@ import { launchRoute } from '../utils/motion.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 import './HomeProposal5.css';
+import './HomeHeroProposal2.css';
 
 const ALL_APPS = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS];
 
@@ -111,90 +112,97 @@ function launch(target, label, color, currentUser, sourceEl) {
   launchRoute({ target: finalTarget, label, color, sourceEl });
 }
 
-function HeroIllustration() {
+function MiniIcon({ type }) {
+  const icons = {
+    game: <><path d="M4 11h16l2 7c.5 2-1.6 3.5-3.2 2.3L16 18h-8l-2.8 2.3C3.6 21.5 1.5 20 2 18l2-7Z"/><path d="M7 13v4M5 15h4M16.5 14.5h.01M19 16.5h.01"/></>,
+    chart: <><path d="M4 20V10M10 20V4M16 20v-7M22 20V7"/></>,
+    users: <><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 21c.8-5 3-8 6-8s5.2 3 6 8M14 21c.5-4 2-6 4.3-6S22 17 22 21"/></>,
+    grid: <><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></>,
+    folder: <><path d="M3 7h7l2 2h9v10H3Z"/></>,
+    task: <><rect x="5" y="3" width="14" height="18" rx="3"/><path d="m8 9 2 2 4-4M8 16h8"/></>,
+    book: <><path d="M3 5h7c2 0 3 1 3 3v13c0-2-1-3-3-3H3ZM21 5h-7v16c0-2 1-3 3-3h4Z"/></>,
+    puzzle: <><path d="M9 3h6v5a3 3 0 1 1 0 6v7H9v-5a3 3 0 1 1 0-6Z"/></>,
+    trophy: <><path d="M8 4h8v5c0 4-2 7-4 7s-4-3-4-7Z"/><path d="M8 7H4c0 4 2 6 5 6M16 7h4c0 4-2 6-5 6M12 16v4M8 21h8"/></>,
+    calendar: <><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 10h18"/></>,
+    notebook: <><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 3v18M11 8h6M11 12h6M11 16h4"/></>,
+    chat: <><path d="M4 5h16v11H9l-5 4Z"/><path d="M8 9h8M8 12h5"/></>,
+    cap: <><path d="m2 9 10-5 10 5-10 5Z"/><path d="M6 12v5c4 3 8 3 12 0v-5M22 9v7"/></>,
+    shield: <><path d="M12 2 20 5v6c0 5-3.2 8.5-8 11-4.8-2.5-8-6-8-11V5Z"/><path d="m8 12 2.5 2.5L16 9"/></>,
+  };
   return (
-    <svg className="eh5-hero-illustration" viewBox="0 0 760 430" role="img" aria-label="English Hub smart learning workspace">
-      <defs>
-        <linearGradient id="gHeroSky" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#eef7ff" />
-          <stop offset=".58" stopColor="#e7f2ff" />
-          <stop offset="1" stopColor="#f7fbff" />
-        </linearGradient>
-        <linearGradient id="gDevice" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#2b4f82" />
-          <stop offset="1" stopColor="#17345d" />
-        </linearGradient>
-        <linearGradient id="gBlueBook" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#4285f4" />
-          <stop offset="1" stopColor="#1a73e8" />
-        </linearGradient>
-        <filter id="gSoftShadow" x="-30%" y="-30%" width="160%" height="180%">
-          <feDropShadow dx="0" dy="14" stdDeviation="12" floodColor="#31557b" floodOpacity=".17" />
-        </filter>
-      </defs>
-
-      <rect x="8" y="8" width="744" height="400" rx="44" fill="url(#gHeroSky)" />
-      <path d="M18 324C130 266 232 278 322 314c101 41 198 23 284-16 55-25 102-28 136-12v102H18Z" fill="#dcefe5" />
-      <path d="M18 350c105-29 193-13 282 14 111 34 226-9 316-27 58-12 98-6 126 10v61H18Z" fill="#cfe8dc" />
-
-      <g opacity=".72" fill="none" stroke="#c0d9ea" strokeWidth="5">
-        <path d="M69 92c22-24 47-24 70 0M503 74c21-21 44-20 64 0M614 112c20-18 41-18 61 0" />
-      </g>
-
-      <g opacity=".7" transform="translate(545 52)">
-        <path d="M0 82 72 10l72 72" fill="#dbeafb" />
-        <path d="M22 82V42h100v40" fill="#d2e7fb" />
-        <path d="M48 42V24h48v18M66 82V55h12v27" fill="none" stroke="#8fbbe9" strokeWidth="6" strokeLinecap="round" />
-      </g>
-
-      <g transform="translate(174 83)" filter="url(#gSoftShadow)">
-        <rect x="0" y="14" width="7" height="150" rx="4" fill="#5a4b39" />
-        <path d="M7 23c39-10 68 0 90 22v77c-27-17-57-22-90-12Z" fill="#ea4335" />
-        <path d="m54 54 7 15 16 2-12 11 3 16-14-8-14 8 3-16-12-11 16-2Z" fill="#fbbc04" />
-        <rect x="-10" y="164" width="28" height="9" rx="5" fill="#6f5840" />
-      </g>
-
-      <g transform="translate(330 148)" filter="url(#gSoftShadow)">
-        <rect x="0" y="0" width="205" height="138" rx="20" fill="url(#gDevice)" />
-        <rect x="13" y="13" width="179" height="106" rx="13" fill="#f8fbff" />
-        <rect x="26" y="27" width="72" height="12" rx="6" fill="#4285f4" opacity=".9" />
-        <rect x="26" y="51" width="46" height="42" rx="10" fill="#e8f0fe" />
-        <path d="M39 79h20M49 62v27" stroke="#1a73e8" strokeWidth="5" strokeLinecap="round" />
-        <rect x="84" y="52" width="86" height="8" rx="4" fill="#d5def2" />
-        <rect x="84" y="69" width="70" height="8" rx="4" fill="#d5def2" />
-        <rect x="84" y="86" width="90" height="8" rx="4" fill="#d5def2" />
-        <circle cx="180" cy="26" r="4" fill="#34a853" />
-        <path d="M68 139h70l18 16H50Z" fill="#263f68" />
-      </g>
-
-      <g transform="translate(476 244)" filter="url(#gSoftShadow)">
-        <rect x="0" y="70" width="184" height="35" rx="11" fill="#ea6f4a" />
-        <rect x="14" y="38" width="165" height="35" rx="11" fill="#34a853" />
-        <rect x="4" y="6" width="183" height="35" rx="11" fill="url(#gBlueBook)" />
-        <path d="M25 23h75M36 55h88M25 87h95" stroke="#fff" strokeOpacity=".45" strokeWidth="5" strokeLinecap="round" />
-        <path d="M102 3h58l20 18h-58Z" fill="#202124" />
-        <path d="M130 21v18" stroke="#f9ab00" strokeWidth="4" strokeLinecap="round" />
-      </g>
-
-      <g transform="translate(284 300)" filter="url(#gSoftShadow)">
-        <path d="M0 21c28-21 59-20 91 0v45H0Z" fill="#fff" />
-        <path d="M91 21c29-21 60-20 91 0v45H91Z" fill="#f5f7fb" />
-        <path d="M91 21v45" stroke="#c9d3e2" strokeWidth="3" />
-        <path d="M18 31h53M18 43h44M110 31h53M110 43h44" stroke="#c2cad7" strokeWidth="3" strokeLinecap="round" />
-      </g>
-
-      <g transform="translate(652 180)" filter="url(#gSoftShadow)">
-        <path d="M4 77h74l-8 82H12Z" fill="#f3b37a" />
-        <path d="M24 78c-10-41 3-68 38-79 5 36-8 63-38 79ZM50 78c5-40 24-61 57-61-4 36-23 57-57 61ZM40 80C22 47 24 18 48 0c21 27 18 54-8 80Z" fill="#62ad72" />
-      </g>
-
-      <g transform="translate(248 252)" filter="url(#gSoftShadow)">
-        <rect x="0" y="34" width="45" height="73" rx="12" fill="#fff" />
-        <path d="M10 47h25" stroke="#d2d9e4" strokeWidth="4" strokeLinecap="round" />
-        <path d="M14 35 18 2M25 35 32 0M34 35 42 7" stroke="#f9ab00" strokeWidth="5" strokeLinecap="round" />
-        <path d="M18 2h0M32 0h0M42 7h0" stroke="#1a73e8" strokeWidth="7" strokeLinecap="round" />
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        {icons[type] || icons.grid}
       </g>
     </svg>
+  );
+}
+
+function LayeredHeroCards({ language = 'vi' }) {
+  const vi = language === 'vi';
+  return (
+    <div className="eh6-cardscape" aria-label={vi ? 'Hệ sinh thái công cụ English Hub' : 'English Hub product ecosystem'}>
+      <div className="eh6-orb eh6-orb-a" />
+      <div className="eh6-orb eh6-orb-b" />
+      <div className="eh6-cultural eh6-pagoda" aria-hidden="true" />
+      <div className="eh6-cultural eh6-conical" aria-hidden="true" />
+
+      <article className="eh6-product-card eh6-game-card">
+        <header><span className="eh6-card-icon"><MiniIcon type="game" /></span><strong>{vi ? 'Trò chơi' : 'Games'}</strong></header>
+        <div className="eh6-game-score">
+          <span className="eh6-trophy"><MiniIcon type="trophy" /></span>
+          <div><small>{vi ? 'Điểm cao' : 'High score'}</small><b>12,450</b></div>
+        </div>
+        <div className="eh6-game-tiles"><span>★</span><span>●</span><span>◆</span></div>
+      </article>
+
+      <article className="eh6-product-card eh6-dashboard-card">
+        <header><span className="eh6-card-icon"><MiniIcon type="chart" /></span><strong>Dashboard</strong><button type="button" aria-label="Mở Dashboard">→</button></header>
+        <h3>{vi ? 'Tổng quan lớp học' : 'Class overview'}</h3>
+        <div className="eh6-stats">
+          <div><MiniIcon type="users" /><b>32</b><small>{vi ? 'Học sinh' : 'Students'}</small></div>
+          <div><MiniIcon type="task" /><b>48</b><small>{vi ? 'Bài tập' : 'Tasks'}</small></div>
+          <div><MiniIcon type="trophy" /><b>8.6</b><small>{vi ? 'Điểm TB' : 'Average'}</small></div>
+        </div>
+        <svg className="eh6-chart" viewBox="0 0 260 72" aria-hidden="true">
+          <path d="M5 60C30 34 48 55 68 40s41-25 60-8 35 18 51 4 35-24 76-25" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <path d="M5 62h250" stroke="currentColor" strokeOpacity=".12" />
+          {[5,68,128,179,255].map((x, index) => <circle key={x} cx={x} cy={[60,40,32,36,11][index]} r="4" fill="white" stroke="currentColor" strokeWidth="2" />)}
+        </svg>
+      </article>
+
+      <article className="eh6-product-card eh6-homeroom-card">
+        <header><span className="eh6-card-icon"><MiniIcon type="users" /></span><strong>{vi ? 'Chủ nhiệm' : 'Homeroom'}</strong></header>
+        <h3>{vi ? 'Thông báo mới' : 'New notices'}</h3>
+        <ul>
+          <li><span>▣</span>{vi ? 'Lịch kiểm tra giữa kì 1' : 'Midterm schedule'}</li>
+          <li><span>♟</span>{vi ? 'Họp phụ huynh tháng 7' : 'Parent meeting'}</li>
+          <li><span>★</span>{vi ? 'Hoạt động ngoại khóa' : 'Extracurricular activity'}</li>
+        </ul>
+      </article>
+
+      <article className="eh6-product-card eh6-apps-card">
+        <header><span className="eh6-card-icon"><MiniIcon type="grid" /></span><strong>{vi ? 'Ứng dụng' : 'Apps'}</strong></header>
+        <div className="eh6-app-grid">
+          <div><MiniIcon type="folder" /><span>{vi ? 'Thư viện' : 'Library'}</span></div>
+          <div><MiniIcon type="task" /><span>{vi ? 'Bài tập' : 'Practice'}</span></div>
+          <div><MiniIcon type="book" /><span>{vi ? 'Tài liệu' : 'Resources'}</span></div>
+          <div><MiniIcon type="puzzle" /><span>{vi ? 'Tiện ích' : 'Utilities'}</span></div>
+        </div>
+      </article>
+
+      <article className="eh6-product-card eh6-weekly-card">
+        <header><span className="eh6-spark">✦</span><strong>Weekly English Practice</strong><a href="#/practice">{vi ? 'Xem tất cả' : 'View all'} →</a></header>
+        <h3>{vi ? 'Bài luyện tập tiếng Anh theo tuần' : 'Weekly English practice'}</h3>
+        <div className="eh6-grade-grid">
+          <div className="eh6-grade eh6-grade-10"><small>{vi ? 'KHỐI 10' : 'GRADE 10'}</small><b>{vi ? 'Tiếng Anh 10' : 'English 10'}</b><span>{vi ? 'Tuần 2 | 27/7 - 01/8' : 'Week 2 | 27/7 - 01/8'}</span><i><MiniIcon type="notebook" /></i></div>
+          <div className="eh6-grade eh6-grade-11"><small>{vi ? 'KHỐI 11' : 'GRADE 11'}</small><b>{vi ? 'Tiếng Anh 11' : 'English 11'}</b><span>{vi ? 'Tuần 2 | 27/7 - 01/8' : 'Week 2 | 27/7 - 01/8'}</span><i><MiniIcon type="chat" /></i></div>
+          <div className="eh6-grade eh6-grade-12"><small>{vi ? 'KHỐI 12' : 'GRADE 12'}</small><b>{vi ? 'Tiếng Anh 12' : 'English 12'}</b><span>{vi ? 'Tuần 2 | 27/7 - 01/8' : 'Week 2 | 27/7 - 01/8'}</span><i><MiniIcon type="cap" /></i></div>
+        </div>
+      </article>
+
+      <div className="eh6-calendar-float" aria-hidden="true"><MiniIcon type="calendar" /><span>28</span></div>
+    </div>
   );
 }
 
@@ -272,25 +280,30 @@ export default function Home({ currentUser, language = 'vi', appVisibility }) {
   }, [currentUser, visibilitySnapshot]);
 
   return (
-    <div className="eh5-home" aria-label="English Hub Google Material homepage">
-      <section className="eh5-hero">
-        <div className="eh5-hero-copy">
+    <div className="eh5-home eh6-home" aria-label="English Hub homepage">
+      <section className="eh5-hero eh6-hero">
+        <div className="eh5-hero-copy eh6-hero-copy">
           <span className="eh5-badge">{t.badge}</span>
           <h1>{t.headline}</h1>
           <h2>{t.highlight}</h2>
           <p>{t.subtitle}</p>
           <div className="eh5-actions">
-            <button type="button" className="eh5-primary" onClick={(event) => launch(currentUser ? `#/${firstRoute}` : '#/login', 'GO', '#1a73e8', currentUser, event.currentTarget)}>
+            <button type="button" className="eh5-primary" onClick={(event) => launch(currentUser ? `#/${firstRoute}` : '#/login', 'GO', '#6d35d8', currentUser, event.currentTarget)}>
               <span>✦</span>{t.start}<b>→</b>
             </button>
             <button type="button" className="eh5-secondary" onClick={(event) => launch('#/apps', 'AP', '#1a73e8', currentUser, event.currentTarget)}>
               <span>▶</span>{t.guide}
             </button>
           </div>
+          <div className="eh6-benefits" aria-label={language === 'vi' ? 'Lợi ích nổi bật' : 'Key benefits'}>
+            <span><i className="eh6-benefit-icon eh6-benefit-purple"><MiniIcon type="users" /></i>{language === 'vi' ? 'Dành cho giáo viên và học sinh' : 'For teachers and students'}</span>
+            <span><i className="eh6-benefit-icon eh6-benefit-green"><MiniIcon type="shield" /></i>{language === 'vi' ? 'An toàn và bảo mật dữ liệu' : 'Safe and secure data'}</span>
+            <span><i className="eh6-benefit-icon eh6-benefit-orange"><MiniIcon type="chart" /></i>{language === 'vi' ? 'Hiệu quả, tiết kiệm thời gian' : 'Efficient and time-saving'}</span>
+          </div>
         </div>
 
-        <div className="eh5-hero-visual">
-          <HeroIllustration />
+        <div className="eh5-hero-visual eh6-hero-visual">
+          <LayeredHeroCards language={language} />
         </div>
       </section>
 
