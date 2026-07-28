@@ -1,7 +1,7 @@
-/* Global personal-font enforcement.
-   BrianGesco is already registered in styles/legacy/01-foundation.css. */
+/* Exact personal font bundled from BrianGesco(3).ttf.
+   Runtime registration is injected by utils/personalFont.js before the app renders. */
 :root {
-  --english-hub-personal-font: BrianGesco, "1FTV HF Gesco", "1FTVHFGesco", "1FTV-HF-Gesco", "Segoe UI", Arial, sans-serif;
+  --english-hub-personal-font: "BrianGescoExact", "BrianGesco", "1FTV HF Gesco", "1FTVHFGesco", sans-serif;
 }
 
 html,
@@ -13,13 +13,22 @@ html body .bes-weekly-stat-backdrop:is(.bes-weekly-stat-backdrop) * {
   font-family: var(--english-hub-personal-font) !important;
 }
 
-/* Native icon-font elements retain their own glyph font. */
-.material-icons,
-.material-symbols-rounded,
-.material-symbols-outlined,
+/* Preserve the glyph fonts used by icon components. */
+.material-icons {
+  font-family: "Material Icons" !important;
+}
+
+.material-symbols-rounded {
+  font-family: "Material Symbols Rounded" !important;
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined" !important;
+}
+
 [class^="fa"],
 [class*=" fa"] {
-  font-family: inherit;
+  font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
 }
 
 /* Weekly statistics: choose grade first, then choose a practice. */
