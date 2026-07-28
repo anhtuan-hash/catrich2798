@@ -1,0 +1,258 @@
+/* Final balance pass for the weekly-practice module.
+   Loaded after WeeklyPracticeCompactSchedule.css so the whole section is smaller,
+   not only the individual lesson cards. */
+
+@media (min-width: 961px) {
+  .metro-clean-system[data-route='home'] #bes-weekly-practice-root {
+    padding-bottom: 24px !important;
+  }
+
+  .metro-clean-system[data-route='home'] #bes-weekly-practice-root .bes-weekly-section {
+    width: min(1160px, 91%) !important;
+    padding: 25px 29px 21px !important;
+    border-radius: 29px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bes-weekly-heading {
+    min-height: 168px !important;
+    margin-bottom: 8px !important;
+    padding: 0 47% 8px 0 !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bes-weekly-heading > div:first-child {
+    min-height: 154px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bes-weekly-heading::after {
+    top: -8px !important;
+    right: 2% !important;
+    width: 43% !important;
+    height: 182px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bes-weekly-kicker {
+    min-height: 29px !important;
+    padding: 6px 12px !important;
+    font-size: .68rem !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bes-weekly-heading h2 {
+    max-width: 560px !important;
+    margin: 13px 0 7px !important;
+    font-size: clamp(2rem, 3.15vw, 3.15rem) !important;
+    line-height: .98 !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bes-weekly-heading p::after {
+    font-size: .84rem !important;
+  }
+
+  .bes-weekly-grade-grid {
+    gap: 13px !important;
+  }
+
+  .bes-weekly-grade-column {
+    height: 492px !important;
+    border-radius: 20px !important;
+  }
+
+  .bes-weekly-grade-column::before {
+    top: 13px !important;
+    right: 8px !important;
+    width: 37% !important;
+    height: 105px !important;
+  }
+
+  .bes-weekly-grade-column::after {
+    width: 145px !important;
+    height: 145px !important;
+    right: -58px !important;
+    top: 38px !important;
+  }
+
+  .bes-weekly-grade-column > header {
+    min-height: 112px !important;
+    padding: 16px 39% 7px 19px !important;
+  }
+
+  .bes-weekly-grade-column > header div {
+    gap: 6px !important;
+  }
+
+  .bes-weekly-grade-column > header span {
+    font-size: .67rem !important;
+  }
+
+  .bes-weekly-grade-column > header h3 {
+    font-size: clamp(1.2rem, 1.45vw, 1.52rem) !important;
+    line-height: 1.03 !important;
+  }
+
+  .bes-weekly-grade-column__list {
+    gap: 7px !important;
+    height: 357px !important;
+    padding: 0 12px 14px 19px !important;
+  }
+
+  .bes-weekly-grade-card.is-latest {
+    gap: 6px !important;
+    min-height: 184px !important;
+    margin-bottom: 31px !important;
+    padding: 29px 12px 12px !important;
+    border-radius: 15px !important;
+  }
+
+  .bes-weekly-grade-card.is-latest::before {
+    top: 10px !important;
+    left: 12px !important;
+    font-size: .57rem !important;
+  }
+
+  .bes-weekly-grade-column__list:has(> .bes-weekly-grade-card:nth-child(2)) > .bes-weekly-grade-card.is-latest::after {
+    bottom: -25px !important;
+    font-size: .57rem !important;
+  }
+
+  .bes-weekly-status {
+    min-height: 26px !important;
+    gap: 6px !important;
+    padding: 5px 9px !important;
+    font-size: .63rem !important;
+  }
+
+  .bes-weekly-status::before {
+    width: 7px !important;
+    height: 7px !important;
+  }
+
+  .bes-weekly-schedule-hint {
+    min-height: 25px !important;
+    padding: 4px 8px !important;
+    font-size: .6rem !important;
+  }
+
+  .bes-weekly-grade-card.is-latest h4 {
+    padding-left: 17px !important;
+    font-size: .79rem !important;
+    line-height: 1.28 !important;
+  }
+
+  .bes-weekly-grade-card.is-latest h4::before {
+    width: 7px !important;
+    height: 7px !important;
+  }
+
+  .bes-weekly-grade-card__meta {
+    gap: 6px !important;
+  }
+
+  .bes-weekly-grade-card__meta span:nth-child(3) {
+    min-height: 27px !important;
+    padding: 5px 8px !important;
+  }
+
+  .bes-weekly-grade-card__meta span:nth-child(3)::before {
+    font-size: .76rem !important;
+  }
+
+  .bes-weekly-grade-card__meta span:nth-child(3)::after {
+    font-size: .63rem !important;
+  }
+
+  .bes-weekly-grade-card.is-latest .bes-weekly-grade-card__action > button {
+    min-height: 41px !important;
+    padding: 0 42px 0 16px !important;
+    border-radius: 11px !important;
+    font-size: .76rem !important;
+    box-shadow: 0 7px 16px color-mix(in srgb, var(--a) 21%, transparent) !important;
+  }
+
+  .bes-weekly-grade-card.is-latest .bes-weekly-grade-card__action > button::after {
+    right: 14px !important;
+    font-size: 1.08rem !important;
+  }
+
+  .bes-weekly-grade-card:not(.is-latest) {
+    grid-template-columns: minmax(0, 1fr) 32px !important;
+    min-height: 49px !important;
+    padding: 6px 6px 6px 10px !important;
+    border-radius: 11px !important;
+  }
+
+  .bes-weekly-grade-card:not(.is-latest) h4 {
+    padding-left: 20px !important;
+    font-size: .66rem !important;
+  }
+
+  .bes-weekly-grade-card:not(.is-latest) h4::before {
+    font-size: .76rem !important;
+  }
+
+  .bes-weekly-grade-card:not(.is-latest) .bes-weekly-grade-card__action > button {
+    width: 29px !important;
+    min-width: 29px !important;
+    height: 29px !important;
+    min-height: 29px !important;
+  }
+
+  .bes-weekly-grade-card:not(.is-latest) .bes-weekly-grade-card__action > button::after {
+    font-size: 1.15rem !important;
+  }
+}
+
+@media (min-width: 961px) and (max-width: 1180px) {
+  .metro-clean-system[data-route='home'] #bes-weekly-practice-root .bes-weekly-section {
+    width: min(1060px, 94%) !important;
+    padding-inline: 23px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bes-weekly-heading h2 {
+    font-size: clamp(1.85rem, 3.2vw, 2.75rem) !important;
+  }
+
+  .bes-weekly-grade-grid {
+    gap: 10px !important;
+  }
+}
+
+@media (max-width: 960px) {
+  .metro-clean-system[data-route='home'] #bes-weekly-practice-root .bes-weekly-section {
+    width: min(720px, 96%) !important;
+  }
+
+  .bes-weekly-grade-column {
+    height: 510px !important;
+  }
+
+  .bes-weekly-grade-column__list {
+    height: 348px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .metro-clean-system[data-route='home'] #bes-weekly-practice-root .bes-weekly-section {
+    width: 100% !important;
+    padding: 19px 11px 16px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bes-weekly-heading {
+    min-height: 330px !important;
+    padding-bottom: 168px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bes-weekly-heading::after {
+    height: 165px !important;
+  }
+
+  .bes-weekly-grade-column {
+    height: 495px !important;
+  }
+
+  .bes-weekly-grade-column > header {
+    min-height: 118px !important;
+  }
+
+  .bes-weekly-grade-column__list {
+    height: 350px !important;
+  }
+}
