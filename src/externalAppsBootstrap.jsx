@@ -20,8 +20,10 @@ import './styles/WeeklyBulkUpload.css';
 import './styles/WeeklyBulkUploadInputGuard.css';
 // Keep the emergency publisher stylesheet last within publisher controls.
 import './styles/WeeklyPublisherEmergencyFix.css';
-// Keep compact weekly-card dimensions and schedule dialog at the end of the cascade.
+// Keep compact weekly-card dimensions and schedule dialog near the end of the cascade.
 import './styles/WeeklyPracticeCompactSchedule.css';
+// Final balance pass: reduce the complete weekly-practice module, hero and cards together.
+import './styles/WeeklyPracticeBalancedScale.css';
 
 installNeutralSurfaceGuard();
 installSiteFontFromCache();
