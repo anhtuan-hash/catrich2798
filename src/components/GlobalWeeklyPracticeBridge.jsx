@@ -11,8 +11,12 @@ import {
   listPublicWeeklyPractices,
   logWeeklyPracticeEvent,
   readWeeklyPracticeProgress,
+  submitWeeklyPracticeResult,
   updateWeeklyPracticeStatus,
+  uploadWeeklyPracticeProof,
+  WEEKLY_PRACTICE_CLASSES,
   WEEKLY_PRACTICE_MAX_BYTES,
+  WEEKLY_PRACTICE_MINIMUM_SECONDS,
   writeWeeklyPracticeProgress,
 } from '../utils/weeklyPractice.js';
 
@@ -21,11 +25,11 @@ const HOST_ID = 'bes-weekly-practice-root';
 
 function errorText(error) {
   const message = String(error?.message || error || '').trim();
-  if (/weekly_practice_items|does not exist|schema cache/i.test(message)) {
-    return 'Cơ sở dữ liệu Bài luyện tập theo tuần chưa được cài đặt. Hãy chạy migration weekly_practice_v1 trong Supabase.';
+  if (/weekly_practice_items|weekly_practice_results|proof_path|weekly-practice-proofs|does not exist|schema cache/i.test(message)) {
+    return 'Cơ sở dữ liệu Bài luyện tập theo tuần chưa được cập nhật. Hãy chạy migration weekly_practice_v1 và weekly_practice_student_proof_v2 trong Supabase.';
   }
   if (/row-level security|permission denied|policy/i.test(message)) {
-    return 'Tài khoản hiện tại không có quyền quản lý bài luyện tập theo tuần.';
+    return 'Tài khoản hiện tại không có quyền thực hiện thao tác này.';
   }
   return message || 'Không thể hoàn thành thao tác.';
 }
@@ -43,6 +47,16 @@ function formatBytes(value) {
   const bytes = Number(value || 0);
   if (!bytes) return '0 MB';
   return `${(bytes / (1024 * 1024)).toFixed(bytes < 1024 * 1024 ? 2 : 1)} MB`;
+}
+
+function formatDuration(totalSeconds) {
+  const seconds = Math.max(0, Number(totalSeconds || 0));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const rest = Math.floor(seconds % 60);
+  return hours > 0
+    ? `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`
+    : `${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
 }
 
 function currentIsoWeek() {
@@ -72,12 +86,12 @@ function defaultForm() {
     category: 'HTML tương tác',
     cefr: '',
     question_count: 0,
-    duration_minutes: 0,
+    duration_minutes: 45,
     opens_at: toLocalInput(),
     closes_at: '',
     status: 'published',
     allow_retake: true,
-    collect_results: false,
+    collect_results: true,
     show_answers: true,
     is_featured: true,
   };
@@ -107,24 +121,178 @@ function PracticeMeta({ item, language = 'vi' }) {
   return <div className="bes-weekly-meta">
     <span>File HTML</span>
     <span>{formatBytes(item.file_size)}</span>
+    <span>Tối thiểu 45 phút</span>
     {item.created_at ? <span>Đăng {formatDate(item.created_at, language)}</span> : null}
   </div>;
 }
 
+function drawRoundedRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + width, y, x + width, y + height, r);
+  ctx.arcTo(x + width, y + height, x, y + height, r);
+  ctx.arcTo(x, y + height, x, y, r);
+  ctx.arcTo(x, y, x + width, y, r);
+  ctx.closePath();
+}
+
+function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 2) {
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = '';
+  words.forEach((word) => {
+    const candidate = line ? `${line} ${word}` : word;
+    if (ctx.measureText(candidate).width <= maxWidth || !line) line = candidate;
+    else {
+      lines.push(line);
+      line = word;
+    }
+  });
+  if (line) lines.push(line);
+  lines.slice(0, maxLines).forEach((value, index) => {
+    const clipped = index === maxLines - 1 && lines.length > maxLines ? `${value.replace(/[.,;:]?$/, '')}…` : value;
+    ctx.fillText(clipped, x, y + (index * lineHeight));
+  });
+}
+
+async function createCompletionProof({ item, identity, durationSeconds, startedAt, confirmedAt, proofCode }) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1200;
+  canvas.height = 675;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Trình duyệt không thể tạo ảnh xác nhận.');
+
+  const gradient = ctx.createLinearGradient(0, 0, 1200, 675);
+  gradient.addColorStop(0, '#f9fbe9');
+  gradient.addColorStop(0.58, '#ffffff');
+  gradient.addColorStop(1, '#e8efbd');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 1200, 675);
+
+  ctx.fillStyle = '#b2c248';
+  ctx.fillRect(0, 0, 34, 675);
+  ctx.fillRect(34, 0, 1166, 18);
+
+  drawRoundedRect(ctx, 74, 58, 1052, 559, 36);
+  ctx.fillStyle = 'rgba(255,255,255,.88)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(67,83,25,.15)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = '#718220';
+  ctx.font = '800 24px system-ui, -apple-system, Segoe UI, sans-serif';
+  ctx.fillText('BRIAN ENGLISH STUDIO', 120, 112);
+
+  ctx.fillStyle = '#203016';
+  ctx.font = '900 50px system-ui, -apple-system, Segoe UI, sans-serif';
+  ctx.fillText('XÁC NHẬN ĐÃ HOÀN THÀNH', 120, 176);
+
+  ctx.font = '700 25px system-ui, -apple-system, Segoe UI, sans-serif';
+  ctx.fillStyle = '#506044';
+  drawWrappedText(ctx, item.title, 120, 225, 910, 34, 2);
+
+  const rows = [
+    ['Học sinh', identity.student_name],
+    ['Lớp', identity.class_code],
+    ['Bắt đầu', formatDate(startedAt)],
+    ['Xác nhận', formatDate(confirmedAt)],
+    ['Thời lượng hoạt động', formatDuration(durationSeconds)],
+    ['Mã minh chứng', proofCode],
+  ];
+  let y = 316;
+  rows.forEach(([label, value], index) => {
+    const column = index % 2;
+    const row = Math.floor(index / 2);
+    const x = column === 0 ? 120 : 625;
+    y = 316 + (row * 90);
+    ctx.fillStyle = '#7a856f';
+    ctx.font = '700 18px system-ui, -apple-system, Segoe UI, sans-serif';
+    ctx.fillText(label.toUpperCase(), x, y);
+    ctx.fillStyle = '#25321e';
+    ctx.font = '800 27px system-ui, -apple-system, Segoe UI, sans-serif';
+    drawWrappedText(ctx, value, x, y + 34, 430, 31, 2);
+  });
+
+  drawRoundedRect(ctx, 120, 570, 960, 3, 2);
+  ctx.fillStyle = '#dfe6be';
+  ctx.fill();
+  ctx.fillStyle = '#68755c';
+  ctx.font = '600 17px system-ui, -apple-system, Segoe UI, sans-serif';
+  ctx.fillText('Ảnh được hệ thống tạo khi học sinh xác nhận sau tối thiểu 45 phút.', 120, 601);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error('Không thể xuất ảnh xác nhận.'));
+    }, 'image/png', 0.95);
+  });
+}
+
+function StudentIdentityGate({ item, initialIdentity, onConfirm, onClose }) {
+  const [studentName, setStudentName] = useState(initialIdentity?.student_name || '');
+  const [classCode, setClassCode] = useState(initialIdentity?.class_code || '');
+  const [message, setMessage] = useState('');
+
+  const submit = (event) => {
+    event.preventDefault();
+    const name = studentName.replace(/\s+/g, ' ').trim();
+    if (name.length < 2) {
+      setMessage('Hãy nhập đầy đủ họ và tên.');
+      return;
+    }
+    if (!WEEKLY_PRACTICE_CLASSES.includes(classCode)) {
+      setMessage('Hãy chọn lớp trong danh sách.');
+      return;
+    }
+    onConfirm({ student_name: name, class_code: classCode });
+  };
+
+  return <div className="bes-weekly-identity-gate">
+    <section className="bes-weekly-identity-card" role="dialog" aria-modal="true" aria-label="Khai báo thông tin học sinh">
+      <span className="bes-weekly-kicker">STUDENT CHECK-IN</span>
+      <h2>Thông tin làm bài</h2>
+      <p>Hệ thống bắt đầu tính 45 phút sau khi em xác nhận thông tin. Em chưa thể gửi bài trước thời gian này.</p>
+      <div className="bes-weekly-identity-practice"><strong>{item.title}</strong><span>Không cần đăng nhập tài khoản</span></div>
+      <form onSubmit={submit}>
+        <label>Họ và tên học sinh<input autoFocus required maxLength={120} value={studentName} onChange={(event) => setStudentName(event.target.value)} placeholder="Nhập đầy đủ họ và tên" /></label>
+        <label>Lớp<select required value={classCode} onChange={(event) => setClassCode(event.target.value)}><option value="">Chọn lớp</option>{WEEKLY_PRACTICE_CLASSES.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
+        {message ? <div className="bes-weekly-identity-error">{message}</div> : null}
+        <div className="bes-weekly-identity-actions"><button type="button" onClick={onClose}>Quay lại</button><button className="bes-weekly-primary" type="submit">Xác nhận và bắt đầu</button></div>
+      </form>
+    </section>
+  </div>;
+}
+
 function PracticeRunner({ item, onClose, onProgressChanged }) {
+  const initialProgress = useMemo(() => readWeeklyPracticeProgress(item.id) || {}, [item.id]);
   const iframeRef = useRef(null);
   const shellRef = useRef(null);
   const blobUrlRef = useRef('');
+  const proofUrlRef = useRef('');
+  const [identity, setIdentity] = useState(initialProgress.identity || null);
   const [url, setUrl] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fontScale, setFontScale] = useState(1);
-  const [completed, setCompleted] = useState(Boolean(readWeeklyPracticeProgress(item.id)?.completed));
-  const [confirming, setConfirming] = useState(false);
-  const [notice, setNotice] = useState('');
+  const [activeSeconds, setActiveSeconds] = useState(Math.max(0, Number(initialProgress.activeSeconds || 0)));
+  const [startedAt, setStartedAt] = useState(initialProgress.startedAt || '');
+  const [submitted, setSubmitted] = useState(Boolean(initialProgress.submitted));
+  const [notice, setNotice] = useState(initialProgress.submitted ? 'Bài đã được gửi cho TTCM.' : '');
+  const [htmlResult, setHtmlResult] = useState(initialProgress.htmlResult || {});
+  const [proofBlob, setProofBlob] = useState(null);
+  const [proofUrl, setProofUrl] = useState('');
+  const [proofCode, setProofCode] = useState(initialProgress.proofCode || '');
+  const [proofGeneratedAt, setProofGeneratedAt] = useState(initialProgress.proofGeneratedAt || '');
+  const [proofPath, setProofPath] = useState(initialProgress.proofPath || '');
+  const [generatingProof, setGeneratingProof] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const load = useCallback(async () => {
-    setLoading(true); setError('');
+    if (!identity) return;
+    setLoading(true);
+    setError('');
     try {
       if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
       const blob = await downloadWeeklyPracticeHtml(item);
@@ -137,40 +305,36 @@ function PracticeRunner({ item, onClose, onProgressChanged }) {
     } finally {
       setLoading(false);
     }
-  }, [item]);
+  }, [identity, item]);
 
   useEffect(() => {
+    if (!identity) return undefined;
     load();
-    logWeeklyPracticeEvent(item.id, 'open', { source: 'runner' });
-    return () => { if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current); };
-  }, [item.id, load]);
+    logWeeklyPracticeEvent(item.id, 'open', { source: 'runner', class_code: identity.class_code });
+    return () => {
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+    };
+  }, [identity, item.id, load]);
 
-  const markComplete = useCallback(async (source = 'manual') => {
-    const current = readWeeklyPracticeProgress(item.id) || {};
-    if (current.completed) {
-      setCompleted(true);
-      setNotice('Bài này đã được xác nhận hoàn thành trên thiết bị này.');
-      return;
-    }
-    setConfirming(true);
-    setNotice('');
-    try {
-      writeWeeklyPracticeProgress(item.id, {
-        completed: true,
-        completedAt: new Date().toISOString(),
-        completionSource: source,
-      });
-      setCompleted(true);
-      onProgressChanged?.();
-      await logWeeklyPracticeEvent(item.id, 'complete', { source });
-      setNotice('Đã ghi nhận hoàn thành. Em có thể đóng bài.');
-    } finally {
-      setConfirming(false);
-    }
-  }, [item.id, onProgressChanged]);
+  useEffect(() => () => {
+    if (proofUrlRef.current) URL.revokeObjectURL(proofUrlRef.current);
+  }, []);
 
   useEffect(() => {
-    const onMessage = async (event) => {
+    if (!identity || submitted) return undefined;
+    const timer = window.setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      setActiveSeconds((value) => {
+        const next = value + 1;
+        if (next % 5 === 0) writeWeeklyPracticeProgress(item.id, { activeSeconds: next });
+        return next;
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [identity, item.id, submitted]);
+
+  useEffect(() => {
+    const onMessage = (event) => {
       if (event.source !== iframeRef.current?.contentWindow) return;
       const message = event.data || {};
       if (message.source !== 'brian-weekly-practice' || message.practiceId !== item.id) return;
@@ -188,35 +352,144 @@ function PracticeRunner({ item, onClose, onProgressChanged }) {
         writeWeeklyPracticeProgress(item.id, { runtime: message.payload || {} });
         onProgressChanged?.();
       }
-      if (message.type === 'complete') await markComplete('html');
+      if (message.type === 'complete') {
+        const payload = message.payload || {};
+        setHtmlResult(payload);
+        writeWeeklyPracticeProgress(item.id, { htmlResult: payload, htmlReportedCompleteAt: new Date().toISOString() });
+        setNotice(activeSeconds >= WEEKLY_PRACTICE_MINIMUM_SECONDS
+          ? 'Nội dung HTML đã báo hoàn thành. Em hãy tạo ảnh xác nhận.'
+          : 'Nội dung HTML đã báo hoàn thành. Hệ thống vẫn khóa gửi bài cho đến đủ 45 phút.');
+      }
       if (message.type === 'reset') {
-        clearWeeklyPracticeProgress(item.id);
-        setCompleted(false);
-        setNotice('');
-        onProgressChanged?.();
+        setHtmlResult({});
+        writeWeeklyPracticeProgress(item.id, { htmlResult: {}, runtime: {} });
+        setNotice('Đã làm mới tiến độ bên trong bài. Đồng hồ 45 phút không bị đặt lại.');
       }
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [item.id, markComplete, onProgressChanged]);
+  }, [activeSeconds, item.id, onProgressChanged]);
 
   useEffect(() => {
     iframeRef.current?.contentWindow?.postMessage({ source: 'brian-weekly-host', practiceId: item.id, type: 'font-scale', value: fontScale }, '*');
   }, [fontScale, item.id, url]);
 
+  const confirmIdentity = (nextIdentity) => {
+    const now = new Date().toISOString();
+    setIdentity(nextIdentity);
+    setStartedAt(now);
+    setActiveSeconds(0);
+    writeWeeklyPracticeProgress(item.id, {
+      identity: nextIdentity,
+      startedAt: now,
+      activeSeconds: 0,
+      completed: false,
+      submitted: false,
+    });
+    onProgressChanged?.();
+  };
+
   const reset = async () => {
-    if (!window.confirm('Xóa tiến độ đã lưu trên thiết bị và làm lại từ đầu?')) return;
+    if (!window.confirm('Xóa toàn bộ tiến độ, thông tin học sinh và bắt đầu lại từ đầu?')) return;
     clearWeeklyPracticeProgress(item.id);
-    setCompleted(false);
+    if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+    if (proofUrlRef.current) URL.revokeObjectURL(proofUrlRef.current);
+    blobUrlRef.current = '';
+    proofUrlRef.current = '';
+    setIdentity(null);
+    setUrl('');
+    setActiveSeconds(0);
+    setStartedAt('');
+    setSubmitted(false);
+    setHtmlResult({});
+    setProofBlob(null);
+    setProofUrl('');
+    setProofCode('');
+    setProofGeneratedAt('');
+    setProofPath('');
     setNotice('');
     onProgressChanged?.();
-    await load();
   };
 
   const confirmCompletion = async () => {
-    if (completed) return;
-    if (!window.confirm('Em xác nhận đã làm xong bài luyện tập này?')) return;
-    await markComplete('manual');
+    if (!identity || submitted || activeSeconds < WEEKLY_PRACTICE_MINIMUM_SECONDS) return;
+    if (!window.confirm('Em xác nhận đã làm xong bài và đồng ý tạo ảnh xác nhận hoàn thành?')) return;
+    setGeneratingProof(true);
+    setError('');
+    try {
+      const confirmedAt = new Date().toISOString();
+      const nextProofCode = `BES-${item.id.slice(0, 8).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
+      const blob = await createCompletionProof({
+        item,
+        identity,
+        durationSeconds: activeSeconds,
+        startedAt,
+        confirmedAt,
+        proofCode: nextProofCode,
+      });
+      if (proofUrlRef.current) URL.revokeObjectURL(proofUrlRef.current);
+      const nextUrl = URL.createObjectURL(blob);
+      proofUrlRef.current = nextUrl;
+      setProofBlob(blob);
+      setProofUrl(nextUrl);
+      setProofCode(nextProofCode);
+      setProofGeneratedAt(confirmedAt);
+      setNotice('Đã tạo ảnh xác nhận. Kiểm tra ảnh rồi bấm “Gửi cho TTCM”.');
+      writeWeeklyPracticeProgress(item.id, {
+        activeSeconds,
+        proofCode: nextProofCode,
+        proofGeneratedAt: confirmedAt,
+      });
+    } catch (proofError) {
+      setError(errorText(proofError));
+    } finally {
+      setGeneratingProof(false);
+    }
+  };
+
+  const sendToTtcm = async () => {
+    if (!identity || !proofBlob || submitted || sending) return;
+    setSending(true);
+    setError('');
+    try {
+      const uploadedPath = proofPath || await uploadWeeklyPracticeProof(item.id, proofBlob);
+      if (!proofPath) setProofPath(uploadedPath);
+      const result = await submitWeeklyPracticeResult(item.id, identity, {
+        ...htmlResult,
+        durationSeconds: activeSeconds,
+        proofPath: uploadedPath,
+        metadata: {
+          ...(htmlResult?.metadata || {}),
+          proofCode,
+          startedAt,
+          proofGeneratedAt,
+          submittedAt: new Date().toISOString(),
+          source: 'weekly-practice-runner',
+        },
+      });
+      const submittedAt = result?.created_at || new Date().toISOString();
+      setSubmitted(true);
+      setNotice('Đã gửi thành công cho TTCM. Em có thể lưu ảnh hoặc đóng bài.');
+      writeWeeklyPracticeProgress(item.id, {
+        activeSeconds,
+        completed: true,
+        submitted: true,
+        submittedAt,
+        resultId: result?.id || null,
+        proofPath: uploadedPath,
+      });
+      onProgressChanged?.();
+      await logWeeklyPracticeEvent(item.id, 'complete', {
+        source: 'student-submission',
+        class_code: identity.class_code,
+        duration_seconds: activeSeconds,
+      });
+    } catch (sendError) {
+      setError(errorText(sendError));
+      setNotice('Chưa gửi được cho TTCM. Ảnh xác nhận vẫn được giữ để thử lại.');
+    } finally {
+      setSending(false);
+    }
   };
 
   const toggleFullscreen = async () => {
@@ -226,11 +499,15 @@ function PracticeRunner({ item, onClose, onProgressChanged }) {
     } catch { /* browser may block fullscreen */ }
   };
 
+  const remainingSeconds = Math.max(0, WEEKLY_PRACTICE_MINIMUM_SECONDS - activeSeconds);
+  const canConfirm = Boolean(identity) && !submitted && remainingSeconds === 0;
+
   return createPortal(
     <div className="bes-weekly-runner" ref={shellRef} role="dialog" aria-modal="true" aria-label={item.title}>
       <header className="bes-weekly-runner__bar">
         <button type="button" onClick={onClose}>← Trang chủ</button>
-        <div><strong>{item.title}</strong><span>{completed ? '✓ Đã xác nhận hoàn thành' : 'Đang làm bài'}</span></div>
+        <div><strong>{item.title}</strong><span>{identity ? `${identity.student_name} · Lớp ${identity.class_code}` : 'Chưa bắt đầu'}</span></div>
+        <div className={`bes-weekly-timer ${remainingSeconds === 0 ? 'is-ready' : ''}`}><small>THỜI GIAN HOẠT ĐỘNG</small><strong>{formatDuration(activeSeconds)}</strong><span>{remainingSeconds ? `Còn ${formatDuration(remainingSeconds)} để được nộp` : 'Đã đủ điều kiện xác nhận'}</span></div>
         <nav aria-label="Điều khiển bài tập">
           <button type="button" onClick={() => setFontScale((value) => Math.max(.8, +(value - .1).toFixed(1)))} aria-label="Giảm cỡ chữ">A−</button>
           <button type="button" onClick={() => setFontScale((value) => Math.min(1.5, +(value + .1).toFixed(1)))} aria-label="Tăng cỡ chữ">A+</button>
@@ -241,13 +518,19 @@ function PracticeRunner({ item, onClose, onProgressChanged }) {
       </header>
       <main className="bes-weekly-runner__stage">
         {loading ? <div className="bes-weekly-runner__state"><span className="bes-weekly-spinner" />Đang tải bài luyện tập…</div> : null}
-        {error ? <div className="bes-weekly-runner__state is-error"><strong>Không thể mở bài</strong><p>{error}</p><button type="button" onClick={load}>Thử lại</button></div> : null}
+        {error ? <div className="bes-weekly-runner__state is-error"><strong>Không thể hoàn thành thao tác</strong><p>{error}</p>{url ? <button type="button" onClick={() => setError('')}>Đóng thông báo</button> : <button type="button" onClick={load}>Thử lại</button>}</div> : null}
         {!loading && !error && url ? <iframe ref={iframeRef} src={url} title={item.title} sandbox="allow-scripts allow-forms allow-downloads" referrerPolicy="no-referrer" /> : null}
       </main>
-      <footer className={`bes-weekly-completion-bar ${completed ? 'is-completed' : ''}`}>
-        <div><strong>{completed ? 'Đã hoàn thành' : 'Em đã làm xong bài?'}</strong><span>{notice || (completed ? 'Hệ thống đã ghi nhận trên thiết bị này.' : 'Bấm xác nhận để giáo viên thống kê lượt hoàn thành.')}</span></div>
-        <button type="button" disabled={completed || confirming} onClick={confirmCompletion}>{completed ? '✓ Đã xác nhận' : confirming ? 'Đang ghi nhận…' : 'Xác nhận đã hoàn thành'}</button>
+      <footer className={`bes-weekly-completion-bar ${submitted ? 'is-completed' : ''} ${proofUrl ? 'has-proof' : ''}`}>
+        <div className="bes-weekly-completion-copy"><strong>{submitted ? '✓ Đã gửi cho TTCM' : proofUrl ? 'Ảnh xác nhận đã sẵn sàng' : remainingSeconds ? 'Chưa thể nộp bài' : 'Đã đủ 45 phút'}</strong><span>{notice || (remainingSeconds ? 'Tiếp tục làm bài. Đồng hồ chỉ tăng khi cửa sổ bài tập đang hiển thị.' : 'Bấm xác nhận để hệ thống tạo ảnh hoàn thành.')}</span></div>
+        {proofUrl ? <button className="bes-weekly-proof-preview" type="button" onClick={() => window.open(proofUrl, '_blank', 'noopener,noreferrer')}><img src={proofUrl} alt="Ảnh xác nhận hoàn thành" /><span>Xem ảnh xác nhận</span></button> : null}
+        <div className="bes-weekly-submit-actions">
+          {!proofUrl && !submitted ? <button type="button" disabled={!canConfirm || generatingProof} onClick={confirmCompletion}>{generatingProof ? 'Đang tạo ảnh…' : remainingSeconds ? `Còn ${formatDuration(remainingSeconds)}` : 'Xác nhận đã hoàn thành'}</button> : null}
+          {proofUrl && !submitted ? <><button className="is-secondary" type="button" disabled={generatingProof || sending} onClick={confirmCompletion}>Tạo lại ảnh</button><button type="button" disabled={sending} onClick={sendToTtcm}>{sending ? 'Đang gửi…' : 'Gửi cho TTCM'}</button></> : null}
+          {submitted ? <button type="button" disabled>✓ Đã gửi thành công</button> : null}
+        </div>
       </footer>
+      {!identity ? <StudentIdentityGate item={item} initialIdentity={initialProgress.identity} onConfirm={confirmIdentity} onClose={onClose} /> : null}
     </div>, document.body,
   );
 }
@@ -261,7 +544,8 @@ function ManagerDialog({ currentUser, onClose, onChanged }) {
   const [message, setMessage] = useState('');
 
   const refresh = useCallback(async () => {
-    setLoading(true); setMessage('');
+    setLoading(true);
+    setMessage('');
     try { setItems(await listManagedWeeklyPractices()); }
     catch (error) { setMessage(errorText(error)); }
     finally { setLoading(false); }
@@ -270,45 +554,55 @@ function ManagerDialog({ currentUser, onClose, onChanged }) {
   useEffect(() => { refresh(); }, [refresh]);
 
   const submit = async (event) => {
-    event.preventDefault(); setSaving(true); setMessage('');
+    event.preventDefault();
+    setSaving(true);
+    setMessage('');
     try {
       await createWeeklyPractice({ form: { ...defaultForm(), title: form.title }, file, currentUser });
-      setForm(defaultForm()); setFile(null);
+      setForm(defaultForm());
+      setFile(null);
       const input = document.getElementById('bes-weekly-html-file');
       if (input) input.value = '';
-      await refresh(); await onChanged?.();
-      setMessage('Đã tải lên và công bố bài luyện tập.');
+      await refresh();
+      await onChanged?.();
+      setMessage('Đã tải lên và công bố bài luyện tập. Học sinh bắt buộc khai báo tên, lớp và làm tối thiểu 45 phút.');
     } catch (error) { setMessage(errorText(error)); }
     finally { setSaving(false); }
   };
 
   const changeStatus = async (item, status) => {
     setMessage('');
-    try { await updateWeeklyPracticeStatus(item, status); await refresh(); await onChanged?.(); }
-    catch (error) { setMessage(errorText(error)); }
+    try {
+      await updateWeeklyPracticeStatus(item, status);
+      await refresh();
+      await onChanged?.();
+    } catch (error) { setMessage(errorText(error)); }
   };
 
   const remove = async (item) => {
     if (!window.confirm(`Xóa vĩnh viễn “${item.title}” và file HTML đi kèm?`)) return;
     setMessage('');
-    try { await deleteWeeklyPractice(item); await refresh(); await onChanged?.(); }
-    catch (error) { setMessage(errorText(error)); }
+    try {
+      await deleteWeeklyPractice(item);
+      await refresh();
+      await onChanged?.();
+    } catch (error) { setMessage(errorText(error)); }
   };
 
   return createPortal(
     <div className="bes-weekly-modal-backdrop">
       <section className="bes-weekly-manager bes-weekly-manager--simple" role="dialog" aria-modal="true" aria-label="Quản lý bài luyện tập theo tuần">
-        <header><div><span className="bes-weekly-kicker">QUẢN TRỊ NỘI DUNG</span><h2>Bài luyện tập theo tuần</h2><p>Chỉ cần đặt tên và tải file HTML. Bài được công bố ngay, học sinh không cần đăng nhập.</p></div><button className="bes-weekly-close" type="button" onClick={onClose}>×</button></header>
+        <header><div><span className="bes-weekly-kicker">QUẢN TRỊ NỘI DUNG</span><h2>Bài luyện tập theo tuần</h2><p>Tải file HTML; hệ thống tự áp dụng khai báo học sinh, đồng hồ 45 phút, ảnh xác nhận và gửi kết quả cho TTCM.</p></div><button className="bes-weekly-close" type="button" onClick={onClose}>×</button></header>
         {message ? <div className="bes-weekly-manager__message">{message}</div> : null}
         <div className="bes-weekly-manager__grid">
           <form onSubmit={submit} className="bes-weekly-form bes-weekly-form--simple">
             <h3>Tải bài HTML mới</h3>
             <label>Tên bài<input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Ví dụ: Tiếng Anh 10 – Unit 1" /></label>
             <label className="bes-weekly-file">File HTML<input id="bes-weekly-html-file" required type="file" accept=".html,.htm,text/html" onChange={(event) => setFile(event.target.files?.[0] || null)} /><span>{file ? `${file.name} · ${formatBytes(file.size)}` : `File tự chứa, tối đa ${formatBytes(WEEKLY_PRACTICE_MAX_BYTES)}`}</span></label>
-            <div className="bes-weekly-simple-note"><strong>Tự động thiết lập</strong><span>Công bố ngay · Không thu tên/lớp · Không thu điểm · Có thống kê lượt mở và hoàn thành</span></div>
+            <div className="bes-weekly-simple-note"><strong>Tự động thiết lập</strong><span>Bắt buộc họ tên · Chọn lớp 10.1–10.12, 11.1–11.6, 12.1–12.9 · Không nộp trước 45 phút · Tạo ảnh xác nhận · Gửi TTCM</span></div>
             <button className="bes-weekly-primary" disabled={saving} type="submit">{saving ? 'Đang tải lên…' : 'Tải lên và công bố'}</button>
           </form>
-          <section className="bes-weekly-manage-list"><h3>Các bài đã tạo</h3>{loading ? <p>Đang tải…</p> : null}{!loading && !items.length ? <p>Chưa có bài nào.</p> : null}{items.map((item) => <article key={item.id}><div><StatusPill item={item} /><strong>{item.title}</strong><span>{formatBytes(item.file_size)} · {formatDate(item.created_at)}</span></div><nav>{item.status !== 'published' ? <button type="button" onClick={() => changeStatus(item, 'published')}>Công bố</button> : <button type="button" onClick={() => changeStatus(item, 'draft')}>Ẩn</button>}<button type="button" onClick={() => changeStatus(item, 'maintenance')}>Bảo trì</button><button className="is-danger" type="button" onClick={() => remove(item)}>Xóa</button></nav></article>)}</section>
+          <section className="bes-weekly-manage-list"><h3>Các bài đã tạo</h3>{loading ? <p>Đang tải…</p> : null}{!loading && !items.length ? <p>Chưa có bài nào.</p> : null}{items.map((practice) => <article key={practice.id}><div><StatusPill item={practice} /><strong>{practice.title}</strong><span>{formatBytes(practice.file_size)} · Tối thiểu 45 phút · {formatDate(practice.created_at)}</span></div><nav>{practice.status !== 'published' ? <button type="button" onClick={() => changeStatus(practice, 'published')}>Công bố</button> : <button type="button" onClick={() => changeStatus(practice, 'draft')}>Ẩn</button>}<button type="button" onClick={() => changeStatus(practice, 'maintenance')}>Bảo trì</button><button className="is-danger" type="button" onClick={() => remove(practice)}>Xóa</button></nav></article>)}</section>
         </div>
       </section>
     </div>, document.body,
@@ -327,46 +621,60 @@ export default function GlobalWeeklyPracticeBridge({ route = 'home', language = 
   const canManage = isDepartmentLeaderRole(currentUser?.role);
 
   useEffect(() => {
-    if (route !== 'home') { setHost(null); return undefined; }
+    if (route !== 'home') {
+      setHost(null);
+      return undefined;
+    }
     let frame = 0;
-    const attach = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => setHost(ensureHost())); };
+    const attach = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => setHost(ensureHost()));
+    };
     attach();
     const observer = new MutationObserver(attach);
     observer.observe(document.body, { childList: true, subtree: true });
     window.addEventListener('resize', attach, { passive: true });
-    return () => { cancelAnimationFrame(frame); observer.disconnect(); window.removeEventListener('resize', attach); document.getElementById(HOST_ID)?.remove(); };
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener('resize', attach);
+      document.getElementById(HOST_ID)?.remove();
+    };
   }, [route]);
 
   const refresh = useCallback(async () => {
     if (route !== 'home') return;
-    setLoading(true); setError('');
+    setLoading(true);
+    setError('');
     try { setItems(await listPublicWeeklyPractices()); }
-    catch (loadError) { setItems([]); setError(errorText(loadError)); }
-    finally { setLoading(false); }
+    catch (loadError) {
+      setItems([]);
+      setError(errorText(loadError));
+    } finally { setLoading(false); }
   }, [route]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
   const ordered = useMemo(() => [...items].sort((a, b) => {
-    const rank = (item) => ({ open: 0, upcoming: 1, closed: 2 }[getWeeklyPracticeAvailability(item).state] ?? 3);
+    const rank = (practice) => ({ open: 0, upcoming: 1, closed: 2 }[getWeeklyPracticeAvailability(practice).state] ?? 3);
     return rank(a) - rank(b) || Number(b.is_featured) - Number(a.is_featured) || new Date(b.opens_at || 0) - new Date(a.opens_at || 0);
   }), [items]);
   const featured = ordered[0] || null;
 
-  const start = (item) => {
-    const availability = getWeeklyPracticeAvailability(item);
+  const start = (practice) => {
+    const availability = getWeeklyPracticeAvailability(practice);
     if (!availability.canOpen) return;
-    setRunner(item);
+    setRunner(practice);
   };
 
   if (route !== 'home' || !host) return null;
   const content = (
     <div className="bes-weekly-section">
-      <div className="bes-weekly-heading"><div><span className="bes-weekly-kicker">WEEKLY ENGLISH PRACTICE</span><h2>Bài luyện tập tiếng Anh theo tuần</h2><p>Mở file HTML, làm trực tiếp và xác nhận khi hoàn thành.</p></div>{canManage ? <button type="button" className="bes-weekly-manage-button" onClick={() => setManagerOpen(true)}>Quản lý bài tuần</button> : null}</div>
+      <div className="bes-weekly-heading"><div><span className="bes-weekly-kicker">WEEKLY ENGLISH PRACTICE</span><h2>Bài luyện tập tiếng Anh theo tuần</h2><p>Khai báo họ tên và lớp, làm bài tối thiểu 45 phút, tạo ảnh xác nhận rồi gửi cho TTCM.</p></div>{canManage ? <button type="button" className="bes-weekly-manage-button" onClick={() => setManagerOpen(true)}>Quản lý bài tuần</button> : null}</div>
       {loading ? <div className="bes-weekly-empty"><span className="bes-weekly-spinner" />Đang tải bài tuần…</div> : null}
-      {!loading && featured ? <article className="bes-weekly-featured"><div className="bes-weekly-featured__week"><span>BÀI MỚI</span><StatusPill item={featured} /></div><div className="bes-weekly-featured__content"><span className="bes-weekly-category">HTML INTERACTIVE</span><h3>{featured.title}</h3><p>Làm bài trực tiếp trong nội dung HTML. Sau khi làm xong, bấm “Xác nhận đã hoàn thành” ở cuối màn hình.</p><PracticeMeta item={featured} language={language} /></div><div className="bes-weekly-featured__action">{readWeeklyPracticeProgress(featured.id)?.completed ? <span className="bes-weekly-complete">✓ Đã xác nhận hoàn thành</span> : null}<button className="bes-weekly-primary" type="button" disabled={!getWeeklyPracticeAvailability(featured).canOpen} onClick={() => start(featured)}>{readWeeklyPracticeProgress(featured.id) ? 'Mở lại bài luyện tập' : 'Bắt đầu luyện tập'}</button><span>Chỉ tải file khi mở bài</span></div></article> : null}
+      {!loading && featured ? <article className="bes-weekly-featured"><div className="bes-weekly-featured__week"><span>BÀI MỚI</span><StatusPill item={featured} /></div><div className="bes-weekly-featured__content"><span className="bes-weekly-category">HTML INTERACTIVE</span><h3>{featured.title}</h3><p>Học sinh chọn lớp trong danh sách, hệ thống tính thời gian hoạt động và chỉ mở nút xác nhận sau đủ 45 phút.</p><PracticeMeta item={featured} language={language} /></div><div className="bes-weekly-featured__action">{readWeeklyPracticeProgress(featured.id)?.submitted ? <span className="bes-weekly-complete">✓ Đã gửi cho TTCM</span> : null}<button className="bes-weekly-primary" type="button" disabled={!getWeeklyPracticeAvailability(featured).canOpen} onClick={() => start(featured)}>{readWeeklyPracticeProgress(featured.id)?.identity ? 'Mở lại bài luyện tập' : 'Bắt đầu luyện tập'}</button><span>Không cần tài khoản học sinh</span></div></article> : null}
       {!loading && !featured ? <div className="bes-weekly-empty"><strong>Bài tuần đang được chuẩn bị</strong><p>{canManage ? error || 'Nhấn “Quản lý bài tuần” để tải file HTML đầu tiên.' : 'Vui lòng quay lại sau để xem bài luyện tập mới.'}</p></div> : null}
-      {ordered.length > 1 ? <><button className="bes-weekly-show-all" type="button" onClick={() => setExpanded((value) => !value)}>{expanded ? 'Thu gọn danh sách' : `Xem tất cả bài luyện tập (${ordered.length})`}</button>{expanded ? <div className="bes-weekly-list">{ordered.map((item) => <article key={item.id}><div><StatusPill item={item} /><strong>{item.title}</strong><PracticeMeta item={item} language={language} /></div><button type="button" disabled={!getWeeklyPracticeAvailability(item).canOpen} onClick={() => start(item)}>{readWeeklyPracticeProgress(item.id)?.completed ? 'Mở lại' : 'Mở bài'}</button></article>)}</div> : null}</> : null}
+      {ordered.length > 1 ? <><button className="bes-weekly-show-all" type="button" onClick={() => setExpanded((value) => !value)}>{expanded ? 'Thu gọn danh sách' : `Xem tất cả bài luyện tập (${ordered.length})`}</button>{expanded ? <div className="bes-weekly-list">{ordered.map((practice) => <article key={practice.id}><div><StatusPill item={practice} /><strong>{practice.title}</strong><PracticeMeta item={practice} language={language} /></div><button type="button" disabled={!getWeeklyPracticeAvailability(practice).canOpen} onClick={() => start(practice)}>{readWeeklyPracticeProgress(practice.id)?.submitted ? 'Xem lại' : readWeeklyPracticeProgress(practice.id)?.identity ? 'Tiếp tục' : 'Mở bài'}</button></article>)}</div> : null}</> : null}
       {error && featured && canManage ? <div className="bes-weekly-inline-error">{error}</div> : null}
     </div>
   );

@@ -1,8 +1,16 @@
 import { invalidateSupabaseReadCacheForTable, isSupabaseConfigured, supabase } from './supabase.js';
 
 export const WEEKLY_PRACTICE_BUCKET = 'weekly-practice';
+export const WEEKLY_PRACTICE_PROOF_BUCKET = 'weekly-practice-proofs';
 export const WEEKLY_PRACTICE_MAX_BYTES = 10 * 1024 * 1024;
+export const WEEKLY_PRACTICE_MINIMUM_SECONDS = 45 * 60;
 export const WEEKLY_PRACTICE_TABLE = 'weekly_practice_items';
+
+export const WEEKLY_PRACTICE_CLASSES = [
+  ...Array.from({ length: 12 }, (_, index) => `10.${index + 1}`),
+  ...Array.from({ length: 6 }, (_, index) => `11.${index + 1}`),
+  ...Array.from({ length: 9 }, (_, index) => `12.${index + 1}`),
+];
 
 const ITEM_COLUMNS = [
   'id',
@@ -87,12 +95,12 @@ export function normalizeWeeklyPracticeItem(item) {
     category: cleanText(item?.category),
     cefr: cleanText(item?.cefr),
     question_count: toInteger(item?.question_count, 0),
-    duration_minutes: toInteger(item?.duration_minutes, 0),
+    duration_minutes: Math.max(45, toInteger(item?.duration_minutes, 45)),
     file_size: Number(item?.file_size || 0),
     storage_bucket: cleanText(item?.storage_bucket, WEEKLY_PRACTICE_BUCKET),
     storage_path: cleanText(item?.storage_path),
     allow_retake: item?.allow_retake !== false,
-    collect_results: item?.collect_results === true,
+    collect_results: item?.collect_results !== false,
     show_answers: item?.show_answers !== false,
     is_featured: item?.is_featured === true,
   };
@@ -183,13 +191,13 @@ export async function createWeeklyPractice({ form, file, currentUser }) {
     category: cleanText(form?.category, 'Tổng hợp'),
     cefr: cleanText(form?.cefr),
     question_count: Math.max(0, toInteger(form?.question_count, 0)),
-    duration_minutes: Math.max(0, toInteger(form?.duration_minutes, 0)),
+    duration_minutes: Math.max(45, toInteger(form?.duration_minutes, 45)),
     opens_at: opensAt,
     closes_at: closesAt,
     status,
     allow_retake: form?.allow_retake !== false,
     max_attempts: form?.max_attempts ? Math.max(1, toInteger(form.max_attempts, 1)) : null,
-    collect_results: form?.collect_results === true,
+    collect_results: true,
     show_answers: form?.show_answers !== false,
     storage_bucket: WEEKLY_PRACTICE_BUCKET,
     storage_path: path,
@@ -219,6 +227,8 @@ export async function updateWeeklyPracticeStatus(item, status) {
   const nextStatus = cleanText(status, 'draft');
   const patch = {
     status: nextStatus,
+    collect_results: true,
+    duration_minutes: Math.max(45, toInteger(item?.duration_minutes, 45)),
     published_at: nextStatus === 'published' ? new Date().toISOString() : item?.published_at || null,
   };
   const { data, error } = await client
@@ -243,7 +253,7 @@ export async function deleteWeeklyPractice(item) {
 }
 
 function progressKey(practiceId) {
-  return `bes-weekly-practice-progress-v1:${practiceId}`;
+  return `bes-weekly-practice-progress-v2:${practiceId}`;
 }
 
 export function readWeeklyPracticeProgress(practiceId) {
@@ -261,8 +271,9 @@ export function writeWeeklyPracticeProgress(practiceId, patch) {
   const current = readWeeklyPracticeProgress(practiceId) || {
     practiceId,
     storage: {},
-    startedAt: new Date().toISOString(),
+    activeSeconds: 0,
     completed: false,
+    submitted: false,
   };
   const next = {
     ...current,
@@ -278,7 +289,7 @@ export function clearWeeklyPracticeProgress(practiceId) {
   if (typeof localStorage !== 'undefined' && practiceId) localStorage.removeItem(progressKey(practiceId));
 }
 
-function deviceId() {
+export function getWeeklyPracticeDeviceId() {
   const key = 'bes-weekly-practice-device-v1';
   try {
     let value = localStorage.getItem(key);
@@ -304,29 +315,59 @@ export async function logWeeklyPracticeEvent(practiceId, eventType, metadata = {
     await supabase.from('weekly_practice_events').insert({
       practice_id: practiceId,
       event_type: event,
-      device_id: deviceId(),
+      device_id: getWeeklyPracticeDeviceId(),
       metadata: safeJsonObject(metadata, 4000),
     });
   } catch { /* analytics are non-blocking */ }
 }
 
+export async function uploadWeeklyPracticeProof(practiceId, proofBlob) {
+  if (!proofBlob || proofBlob.type !== 'image/png') throw new Error('Ảnh xác nhận chưa hợp lệ.');
+  const client = requireClient();
+  const path = `${practiceId}/${getWeeklyPracticeDeviceId()}/${Date.now()}-${randomId()}.png`;
+  const { error } = await client.storage
+    .from(WEEKLY_PRACTICE_PROOF_BUCKET)
+    .upload(path, proofBlob, {
+      cacheControl: '31536000',
+      contentType: 'image/png',
+      upsert: false,
+    });
+  if (error) throw error;
+  return path;
+}
+
 export async function submitWeeklyPracticeResult(practiceId, identity, result = {}) {
   if (!supabase || !practiceId) return null;
+  const studentName = cleanText(identity?.student_name).slice(0, 120);
+  const classCode = cleanText(identity?.class_code).slice(0, 80);
+  const durationSeconds = toInteger(result?.durationSeconds ?? result?.duration_seconds, 0);
+  const proofPath = cleanText(result?.proofPath ?? result?.proof_path).slice(0, 500);
+
+  if (!studentName) throw new Error('Họ và tên học sinh không được để trống.');
+  if (!WEEKLY_PRACTICE_CLASSES.includes(classCode)) throw new Error('Lớp đã chọn không hợp lệ.');
+  if (durationSeconds < WEEKLY_PRACTICE_MINIMUM_SECONDS) throw new Error('Chưa đủ 45 phút để gửi bài.');
+  if (!proofPath) throw new Error('Chưa có ảnh xác nhận hoàn thành.');
+
   const payload = {
     practice_id: practiceId,
-    device_id: deviceId(),
-    student_name: cleanText(identity?.student_name).slice(0, 120),
-    class_code: cleanText(identity?.class_code).slice(0, 80),
+    device_id: getWeeklyPracticeDeviceId(),
+    student_name: studentName,
+    class_code: classCode,
     student_code: cleanText(identity?.student_code).slice(0, 80),
     score: Number.isFinite(Number(result?.score)) ? Number(result.score) : null,
     max_score: Number.isFinite(Number(result?.maxScore ?? result?.max_score)) ? Number(result.maxScore ?? result.max_score) : null,
     correct_count: Number.isFinite(Number(result?.correctCount ?? result?.correct_count)) ? toInteger(result.correctCount ?? result.correct_count) : null,
     question_count: Number.isFinite(Number(result?.questionCount ?? result?.question_count)) ? toInteger(result.questionCount ?? result.question_count) : null,
-    duration_seconds: Number.isFinite(Number(result?.durationSeconds ?? result?.duration_seconds)) ? toInteger(result.durationSeconds ?? result.duration_seconds) : null,
+    duration_seconds: durationSeconds,
+    proof_path: proofPath,
     answers: safeJsonObject(result?.answers, 60000),
     metadata: safeJsonObject(result?.metadata, 12000),
   };
-  const { data, error } = await supabase.from('weekly_practice_results').insert(payload).select('id').single();
+  const { data, error } = await supabase
+    .from('weekly_practice_results')
+    .insert(payload)
+    .select('id,created_at')
+    .single();
   if (error) throw error;
   return data;
 }
