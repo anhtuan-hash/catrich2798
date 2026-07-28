@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
+import GlobalGuestNavigationHub from './GlobalGuestNavigationHub.jsx';
 import GlobalUserProfileSettingsBridge from './GlobalUserProfileSettingsBridge.jsx';
 import GlobalUserProfilePreviewGuard from './GlobalUserProfilePreviewGuard.jsx';
 import GlobalSettingsAppearanceBridge from './GlobalSettingsAppearanceBridge.jsx';
@@ -73,6 +74,7 @@ export default function GlobalFlatNavigation(props) {
   return (
     <>
       <Navigation {...props} />
+      <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHomeBriefingExtras route={props.route} language={props.language} />
       <GlobalHomeViewportFitBridge route={props.route} />
       <GlobalWeeklyPracticeBridge route={props.route} language={props.language} currentUser={props.currentUser} />
