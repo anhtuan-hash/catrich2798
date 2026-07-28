@@ -1,0 +1,54 @@
+name: Apply weekly practice student proof upgrade
+
+on:
+  push:
+    branches:
+      - agent/weekly-practice-student-proof
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-verify:
+    if: ${{ !contains(github.event.head_commit.message, '[weekly-v2-applied]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore upgraded source files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/weekly-v2
+          cat .weekly-v2-payload/payload.part* | tr -d '\n\r' | base64 --decode > /tmp/weekly-v2-payload.tar.gz
+          tar -xzf /tmp/weekly-v2-payload.tar.gz -C /tmp/weekly-v2
+          cp /tmp/weekly-v2/GlobalFlatNavigation.jsx src/components/GlobalFlatNavigation.jsx
+          cp /tmp/weekly-v2/GlobalWeeklyPracticeBridge.jsx src/components/GlobalWeeklyPracticeBridge.jsx
+          cp /tmp/weekly-v2/GlobalWeeklyPracticeSimple.css src/components/GlobalWeeklyPracticeSimple.css
+          cp /tmp/weekly-v2/GlobalWeeklyPracticeStatisticsBridge.jsx src/components/GlobalWeeklyPracticeStatisticsBridge.jsx
+          cp /tmp/weekly-v2/GlobalWeeklyPracticeStudentProof.css src/components/GlobalWeeklyPracticeStudentProof.css
+          cp /tmp/weekly-v2/WeeklyPracticeStatisticsPanel.jsx src/components/WeeklyPracticeStatisticsPanel.jsx
+          cp /tmp/weekly-v2/weeklyPractice.js src/utils/weeklyPractice.js
+          cp /tmp/weekly-v2/weeklyPracticeStatistics.js src/utils/weeklyPracticeStatistics.js
+          cp /tmp/weekly-v2/20260728030000_weekly_practice_student_proof_v2.sql supabase/migrations/20260728030000_weekly_practice_student_proof_v2.sql
+          rm -rf .weekly-v2-payload .weekly-v2-b64
+          rm -f .github/workflows/apply-weekly-practice-v2.yml
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Commit verified source files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Require student proof for weekly practice [weekly-v2-applied]"
+          git push origin HEAD:agent/weekly-practice-student-proof
