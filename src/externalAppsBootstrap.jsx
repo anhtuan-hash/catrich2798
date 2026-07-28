@@ -13,11 +13,15 @@ import './weeklyBulkUploadInputGuard.js';
 import './weeklyBulkUpload.js';
 import './weeklyPublishingSettings.js';
 import './weeklyPracticeOverride.js';
+// Add scheduled-publication information after the grade-card override has rendered.
+import './weeklyPracticeCompactSchedule.js';
 import './styles/PublishingAndFontControls.css';
 import './styles/WeeklyBulkUpload.css';
 import './styles/WeeklyBulkUploadInputGuard.css';
-// Keep the emergency publisher stylesheet last so icon and scroll fixes win the cascade.
+// Keep the emergency publisher stylesheet last within publisher controls.
 import './styles/WeeklyPublisherEmergencyFix.css';
+// Keep compact weekly-card dimensions and schedule dialog at the end of the cascade.
+import './styles/WeeklyPracticeCompactSchedule.css';
 
 installNeutralSurfaceGuard();
 installSiteFontFromCache();
