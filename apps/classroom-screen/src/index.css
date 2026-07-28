@@ -5584,6 +5584,111 @@ kbd {
   font-size: 27px;
 }
 
+/* Scroll-safe panels for the embedded Brian host */
+.inspector {
+  min-height: 0;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.inspector-tabs {
+  flex: 0 0 auto;
+}
+
+.inspector-body {
+  flex: 1 1 auto;
+  height: auto !important;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  padding-bottom: max(96px, env(safe-area-inset-bottom));
+  scrollbar-gutter: stable;
+  scrollbar-width: auto;
+  scrollbar-color: #4285f4 #eaf4ff;
+}
+
+.inspector-body::-webkit-scrollbar,
+.teaching-dock::-webkit-scrollbar,
+.swatch-row::-webkit-scrollbar,
+.accent-picker > div::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.inspector-body::-webkit-scrollbar-track,
+.teaching-dock::-webkit-scrollbar-track,
+.swatch-row::-webkit-scrollbar-track,
+.accent-picker > div::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: #eaf4ff;
+}
+
+.inspector-body::-webkit-scrollbar-thumb,
+.teaching-dock::-webkit-scrollbar-thumb,
+.swatch-row::-webkit-scrollbar-thumb,
+.accent-picker > div::-webkit-scrollbar-thumb {
+  min-height: 36px;
+  border: 3px solid #eaf4ff;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #4285f4, #34a853);
+}
+
+.accent-picker {
+  position: relative;
+  z-index: 2;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.accent-picker > span {
+  flex: 1 0 120px;
+}
+
+.accent-picker > div {
+  max-width: 100%;
+  padding: 6px 5px 9px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
+}
+
+.scene-actions {
+  margin-bottom: 24px;
+}
+
+.teaching-dock {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 14px;
+  scrollbar-gutter: stable;
+  scrollbar-width: auto;
+  scrollbar-color: #4285f4 #eaf4ff;
+}
+
+.dock-group,
+.ink-control-panel,
+.eraser-panel,
+.spotlight-panel,
+.dock-timer,
+.dock-next {
+  flex: 0 0 auto;
+}
+
+.ink-control-panel {
+  min-width: max-content;
+}
+
+.swatch-row {
+  max-width: min(36vw, 260px);
+  padding: 4px 6px 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
+}
+
 .data-modal-header p,
 .detection-result p {
   font-size: 13px;
