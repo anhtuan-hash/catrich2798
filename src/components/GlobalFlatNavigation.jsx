@@ -60,6 +60,7 @@ import './GlobalWorkScheduleModern.css';
 import './GlobalHomeViewportFit.css';
 import './GlobalWeeklyPractice.css';
 import './GlobalWeeklyPracticeStatistics.css';
+import './GlobalWeeklyPracticeSimple.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
