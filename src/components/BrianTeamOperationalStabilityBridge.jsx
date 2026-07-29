@@ -27,36 +27,22 @@ const TEACHER_NOTICE_STATUSES = new Set(['assigned', 'changes_requested', 'appro
 
 function scopeOf(user) {
   return String(user?.id || user?.email || 'department-leader')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9@._-]+/g, '-') || 'department-leader';
+    .trim().toLowerCase().replace(/[^a-z0-9@._-]+/g, '-') || 'department-leader';
 }
 
-function workspaceKey(user) {
-  return `${WORKSPACE_PREFIX}:${scopeOf(user)}`;
-}
-
-function forwardLinkKey(user) {
-  return `${FORWARD_LINK_PREFIX}:${scopeOf(user)}`;
-}
-
-function teacherReadKey(user) {
-  return `${TEACHER_READ_PREFIX}:${scopeOf(user)}`;
-}
+function workspaceKey(user) { return `${WORKSPACE_PREFIX}:${scopeOf(user)}`; }
+function forwardLinkKey(user) { return `${FORWARD_LINK_PREFIX}:${scopeOf(user)}`; }
+function teacherReadKey(user) { return `${TEACHER_READ_PREFIX}:${scopeOf(user)}`; }
 
 function safeRead(key, fallback) {
   try {
     const raw = window.localStorage.getItem(key);
     return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
+  } catch { return fallback; }
 }
 
 function safeWrite(key, value) {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch { /* local cache is optional */ }
+  try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* optional cache */ }
 }
 
 function unique(values = []) {
@@ -66,8 +52,7 @@ function unique(values = []) {
 function normalizeDateOnly(value) {
   if (!value) return '';
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toISOString().slice(0, 10);
+  return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10);
 }
 
 function sameArray(a = [], b = []) {
@@ -91,9 +76,9 @@ function assignmentSignature(entry) {
 function flattenAssignments(workspace) {
   const result = [];
   (workspace?.departments || []).forEach((department) => {
-    const memberAccounts = new Map(
-      (department.members || []).map((member) => [String(member.id), String(member.teacherAccountId || '')]),
-    );
+    const accounts = new Map((department.members || []).map((member) => [
+      String(member.id), String(member.teacherAccountId || ''),
+    ]));
     (department.assignments || []).forEach((assignment) => {
       result.push({
         id: String(assignment.id || ''),
@@ -102,9 +87,8 @@ function flattenAssignments(workspace) {
         dueDate: String(assignment.dueDate || ''),
         priority: ['low', 'normal', 'high', 'urgent'].includes(assignment.priority) ? assignment.priority : 'normal',
         status: assignment.status || 'progress',
-        assigneeAccountIds: unique(
-          (assignment.assigneeIds || []).map((memberId) => memberAccounts.get(String(memberId))).filter(Boolean),
-        ),
+        assigneeAccountIds: unique((assignment.assigneeIds || [])
+          .map((memberId) => accounts.get(String(memberId))).filter(Boolean)),
         departmentId: String(department.id || ''),
       });
     });
@@ -115,9 +99,9 @@ function flattenAssignments(workspace) {
 function contentMatchesRemote(entry, rows) {
   if (!rows.length) return false;
   const first = rows[0];
-  const remoteAssignees = rows
-    .map((row) => row.metadata?.brian_team_assignee_id || row.assignee_ids?.[0])
-    .filter(Boolean);
+  const remoteAssignees = rows.map((row) => (
+    row.metadata?.brian_team_assignee_id || row.assignee_ids?.[0]
+  )).filter(Boolean);
   return String(first.title || '') === entry.title
     && String(first.description || '') === entry.description
     && String(first.priority || 'normal') === entry.priority
@@ -127,15 +111,8 @@ function contentMatchesRemote(entry, rows) {
 
 function summaryOf(rows) {
   const counts = {
-    total: rows.length,
-    assigned: 0,
-    accepted: 0,
-    inProgress: 0,
-    submitted: 0,
-    changesRequested: 0,
-    approved: 0,
-    completed: 0,
-    archived: 0,
+    total: rows.length, assigned: 0, accepted: 0, inProgress: 0, submitted: 0,
+    changesRequested: 0, approved: 0, completed: 0, archived: 0,
   };
   rows.forEach((row) => {
     const status = String(row.status || 'assigned');
@@ -233,8 +210,7 @@ function formatDateTime(value, language = 'vi') {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '—';
   return new Intl.DateTimeFormat(language === 'en' ? 'en-US' : 'vi-VN', {
-    dateStyle: 'short',
-    timeStyle: 'short',
+    dateStyle: 'short', timeStyle: 'short',
   }).format(date);
 }
 
@@ -295,11 +271,7 @@ function openWorkItem(itemId) {
 function buildTimeline(item, comments, people, currentUser, language) {
   const english = language === 'en';
   const events = [];
-  const push = (event) => {
-    if (!event?.at) return;
-    events.push({ ...event, at: String(event.at) });
-  };
-
+  const push = (event) => { if (event?.at) events.push({ ...event, at: String(event.at) }); };
   push({
     id: `created-${item.id}`,
     at: item.created_at || item.metadata?.created_at || item.updated_at,
@@ -308,7 +280,6 @@ function buildTimeline(item, comments, people, currentUser, language) {
     body: item.description || '',
     actor: english ? 'Department leader' : 'TTCM',
   });
-
   (comments || []).forEach((comment) => {
     const submission = comment.comment_type === 'submission'
       || (Array.isArray(comment.attachments) && comment.attachments.length > 0);
@@ -329,7 +300,6 @@ function buildTimeline(item, comments, people, currentUser, language) {
       attachments: comment.attachments || [],
     });
   });
-
   if (item.reviewed_at) {
     push({
       id: `reviewed-${item.id}`,
@@ -341,7 +311,6 @@ function buildTimeline(item, comments, people, currentUser, language) {
       actor: english ? 'Department leader' : 'TTCM',
     });
   }
-
   if (item.completed_at) {
     push({
       id: `completed-${item.id}`,
@@ -351,19 +320,17 @@ function buildTimeline(item, comments, people, currentUser, language) {
       actor: english ? 'Department leader' : 'TTCM',
     });
   }
-
-  const specificTimes = new Set(events.map((event) => event.at));
-  if (item.updated_at && !specificTimes.has(String(item.updated_at))) {
+  const recorded = new Set(events.map((event) => event.at));
+  if (item.updated_at && !recorded.has(String(item.updated_at))) {
     const meta = statusMeta(item.status, language);
     push({
       id: `status-${item.id}`,
       at: item.updated_at,
       tone: meta.tone,
       title: english ? `Current status: ${meta.label}` : `Trạng thái hiện tại: ${meta.label}`,
-      actor: english ? 'Work Hub' : 'Work Hub',
+      actor: 'Work Hub',
     });
   }
-
   return events.sort((left, right) => new Date(left.at) - new Date(right.at));
 }
 
@@ -382,8 +349,8 @@ function TimelineModal({ item, comments, people, currentUser, language, onClose 
             <span><History /> {english ? 'OPERATIONAL TIMELINE' : 'NHẬT KÝ XỬ LÝ NHIỆM VỤ'}</span>
             <h2>{item.title || (english ? 'Assignment timeline' : 'Lịch sử nhiệm vụ')}</h2>
             <p>{english
-              ? 'This timeline is reconstructed from Work Hub timestamps, submissions, review comments, and the current status.'
-              : 'Timeline được tổng hợp từ các mốc Work Hub, bài nộp, phản hồi duyệt và trạng thái hiện tại.'}</p>
+              ? 'Reconstructed from Work Hub timestamps, submissions, review comments, and the current status.'
+              : 'Được tổng hợp từ các mốc Work Hub, bài nộp, phản hồi duyệt và trạng thái hiện tại.'}</p>
           </div>
           <button type="button" onClick={onClose}><X /></button>
         </header>
@@ -465,15 +432,13 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
       updated_by: currentUser.id,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'owner_id' });
-
     const detail = { source: 'work-hub-realtime', workspace, cloudError: error?.message || '', softUpdate: true };
     window.dispatchEvent(new CustomEvent('bes-brian-team-workspace-updated', { detail }));
     window.dispatchEvent(new CustomEvent('bes-brian-team-operational-updated', { detail }));
     window.dispatchEvent(new CustomEvent('bes-brian-team-review-updated', { detail }));
     try {
       window.dispatchEvent(new StorageEvent('storage', { key, oldValue, newValue, storageArea: window.localStorage }));
-    } catch { /* Safari can reject a synthetic StorageEvent storageArea */ }
-    return error?.message || '';
+    } catch { /* Safari may reject synthetic storageArea */ }
   }, [currentUser]);
 
   const syncReverse = useCallback(async () => {
@@ -494,7 +459,6 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
         row.id, row.status, row.updated_at, row.title, row.priority, row.due_at,
       ]));
       if (fingerprint === reverseFingerprint.current) return;
-
       const byAssignment = new Map();
       rows.forEach((row) => {
         const assignmentId = String(row.metadata?.brian_team_assignment_id || '');
@@ -506,7 +470,6 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
       const flat = new Map(flattenAssignments(workspace).map((entry) => [entry.id, entry]));
       const forwardLinks = safeRead(forwardLinkKey(currentUser), { version: 1, assignments: {} });
       let changed = false;
-
       const nextWorkspace = {
         ...workspace,
         departments: workspace.departments.map((department) => ({
@@ -517,10 +480,8 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
             const linkedRows = byAssignment.get(assignmentId) || [];
             if (!entry || !linkedRows.length || !contentMatchesRemote(entry, linkedRows)) return assignment;
             const summary = summaryOf(linkedRows);
-            if (
-              assignment.status === summary.aggregateStatus
-              && summaryKey(assignment.workHubSummary) === summaryKey(summary)
-            ) return assignment;
+            if (assignment.status === summary.aggregateStatus
+              && summaryKey(assignment.workHubSummary) === summaryKey(summary)) return assignment;
             changed = true;
             const linked = forwardLinks.assignments?.[assignmentId];
             if (linked) linked.signature = assignmentSignature({ ...entry, status: summary.aggregateStatus });
@@ -535,7 +496,6 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
         })),
         updatedAt: new Date().toISOString(),
       };
-
       reverseFingerprint.current = fingerprint;
       if (!changed) return;
       safeWrite(forwardLinkKey(currentUser), {
@@ -586,9 +546,7 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
         .contains('assignee_ids', [currentUser.id])
         .limit(400));
       if (result.error && /operator|contains|array|400|PGRST/i.test(result.error.message || '')) {
-        result = await queryWithCreatedAt((builder) => builder
-          .eq('source_module', SOURCE_MODULE)
-          .limit(400));
+        result = await queryWithCreatedAt((builder) => builder.eq('source_module', SOURCE_MODULE).limit(400));
       }
       if (result.error) throw result.error;
       const rows = (result.data || []).filter((item) => belongsToTeacher(item, currentUser.id));
@@ -639,11 +597,9 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
           { ...current.find((item) => item.id === row.id), ...row },
           ...current.filter((item) => item.id !== row.id),
         ]);
-        if (
-          teacherInitialized.current
+        if (teacherInitialized.current
           && TEACHER_NOTICE_STATUSES.has(nextStatus)
-          && (payload?.eventType === 'INSERT' || (previousStatus && previousStatus !== nextStatus))
-        ) {
+          && (payload?.eventType === 'INSERT' || (previousStatus && previousStatus !== nextStatus))) {
           setTeacherToast(row);
           window.clearTimeout(toastTimer.current);
           toastTimer.current = window.setTimeout(() => setTeacherToast(null), 7600);
@@ -683,11 +639,8 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
     }
     setTimelineLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('work_hub_comments')
-        .select(COMMENT_COLUMNS)
-        .in('item_id', itemIds)
-        .order('created_at', { ascending: true });
+      const { data, error } = await supabase.from('work_hub_comments')
+        .select(COMMENT_COLUMNS).in('item_id', itemIds).order('created_at', { ascending: true });
       if (error) throw error;
       const comments = await resolveWorkHubCommentAttachments(data || []);
       setTimelineComments(comments);
@@ -707,9 +660,7 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
   const loadLeaderAssignment = useCallback(async (assignmentId) => {
     if (!enabled || !leader || !assignmentId) return;
     const result = await queryWithCreatedAt((builder) => builder
-      .eq('owner_id', currentUser.id)
-      .eq('source_module', SOURCE_MODULE)
-      .limit(900));
+      .eq('owner_id', currentUser.id).eq('source_module', SOURCE_MODULE).limit(900));
     if (result.error) return;
     const items = (result.data || []).filter((item) => (
       String(item.metadata?.brian_team_assignment_id || '') === String(assignmentId)
@@ -750,13 +701,16 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
     leaderItems.forEach((item) => {
       const teacherId = teacherIdOf(item);
       const person = timelinePeople.get(teacherId);
-      [teacherId, person?.email].filter(Boolean).forEach((value) => identifiers.set(String(value).trim().toLowerCase(), item));
+      [teacherId, person?.email].filter(Boolean).forEach((value) => {
+        identifiers.set(String(value).trim().toLowerCase(), item);
+      });
     });
     cards.forEach((card, index) => {
       const footer = card.querySelector('footer');
       if (!footer) return;
-      const label = String(card.querySelector('.bes-bt-review-person small')?.textContent || '').trim().toLowerCase();
-      const item = identifiers.get(label) || leaderItems[index];
+      const identifier = String(card.querySelector('.bes-bt-review-person small')?.textContent || '')
+        .trim().toLowerCase();
+      const item = identifiers.get(identifier) || leaderItems[index];
       if (!item) return;
       let button = footer.querySelector('.bes-bt-timeline-trigger');
       if (!button) {
@@ -766,7 +720,8 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
         footer.prepend(button);
       }
       button.dataset.itemId = String(item.id);
-      button.innerHTML = `<span aria-hidden="true">◷</span>${english ? 'Timeline' : 'Lịch sử'}`;
+      const nextLabel = english ? '◷ Timeline' : '◷ Lịch sử';
+      if (button.textContent !== nextLabel) button.textContent = nextLabel;
       button.onclick = () => setSelectedTimelineItemId(String(item.id));
     });
   }, [activeAssignmentId, english, leader, leaderItems, timelinePeople]);
@@ -788,16 +743,15 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
   }, [loadTimelineForItems, markItemsRead]);
 
   if (!enabled) return null;
-
-  const selectedComments = timelineComments.filter((comment) => String(comment.item_id) === String(selectedTimelineItemId));
+  const selectedComments = timelineComments.filter((comment) => (
+    String(comment.item_id) === String(selectedTimelineItemId)
+  ));
 
   return (
     <>
       {teacher && (
         <button type="button" className={`bes-bt-teacher-bell ${unreadItems.length ? 'has-unread' : ''}`} onClick={openTeacherInbox} aria-label={english ? 'Brian Team notifications' : 'Thông báo Brian Team'}>
-          <BellRing />
-          <span>{english ? 'Brian Team' : 'Brian Team'}</span>
-          {unreadItems.length > 0 && <b>{unreadItems.length > 99 ? '99+' : unreadItems.length}</b>}
+          <BellRing /><span>Brian Team</span>{unreadItems.length > 0 && <b>{unreadItems.length > 99 ? '99+' : unreadItems.length}</b>}
         </button>
       )}
 
@@ -814,8 +768,7 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
             </div>
             {teacherError && <div className="bes-bt-op-error">{teacherError}</div>}
             <div className="bes-bt-teacher-list">
-              {teacherItems.length ? teacherItems
-                .slice()
+              {teacherItems.length ? teacherItems.slice()
                 .sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0))
                 .map((item) => {
                   const meta = statusMeta(item.status, language);
@@ -847,14 +800,7 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
       )}
 
       {selectedTimelineItem && (
-        <TimelineModal
-          item={selectedTimelineItem}
-          comments={selectedComments}
-          people={timelinePeople}
-          currentUser={currentUser}
-          language={language}
-          onClose={() => setSelectedTimelineItemId('')}
-        />
+        <TimelineModal item={selectedTimelineItem} comments={selectedComments} people={timelinePeople} currentUser={currentUser} language={language} onClose={() => setSelectedTimelineItemId('')} />
       )}
 
       {timelineLoading && selectedTimelineItemId && !selectedTimelineItem && (
@@ -862,7 +808,7 @@ export default function BrianTeamOperationalStabilityBridge({ currentUser, langu
       )}
 
       <style>{`
-        .bes-bt-timeline-trigger{display:flex!important;align-items:center;gap:7px!important;border-color:rgba(83,99,44,.2)!important;background:#f1f5e6!important;color:#43521c!important}.bes-bt-timeline-trigger span{font-size:1.2em;line-height:1}
+        .bes-bt-timeline-trigger{display:flex!important;align-items:center;gap:7px!important;border-color:rgba(83,99,44,.2)!important;background:#f1f5e6!important;color:#43521c!important}
         .bes-bt-teacher-bell{position:fixed;right:22px;bottom:92px;z-index:100010;display:flex;align-items:center;gap:8px;min-height:48px;padding:0 14px;border:1px solid rgba(70,85,40,.17);border-radius:17px;background:#2d381d;color:#fff;box-shadow:0 16px 42px rgba(31,39,23,.25);font-family:var(--bes-personal-font,inherit);font-weight:850}.bes-bt-teacher-bell svg{width:20px;height:20px;color:#c8d95c}.bes-bt-teacher-bell>b{display:grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:#d77b16;color:#fff;font-size:.72em}.bes-bt-teacher-bell.has-unread{animation:besBtBellPulse 2.4s ease-in-out infinite}@keyframes besBtBellPulse{0%,100%{box-shadow:0 16px 42px rgba(31,39,23,.25)}50%{box-shadow:0 16px 42px rgba(31,39,23,.25),0 0 0 8px rgba(194,208,80,.14)}}
         .bes-bt-op-layer{position:fixed;z-index:140000;inset:0;display:grid;place-items:center;padding:22px;background:rgba(17,23,13,.58);backdrop-filter:blur(9px);font-family:var(--bes-personal-font,inherit)}.bes-bt-op-layer.is-drawer{display:flex;justify-content:flex-end;padding:0;background:rgba(18,24,14,.34)}
         .bes-bt-teacher-drawer{display:flex;flex-direction:column;width:min(560px,100vw);height:100%;padding:22px;background:#f7f9f2;color:#28301f;box-shadow:-28px 0 80px rgba(27,35,20,.25)}.bes-bt-teacher-drawer>header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:4px 3px 18px}.bes-bt-teacher-drawer>header>div>span{display:flex;align-items:center;gap:7px;color:#687747;font-size:.7em;font-weight:900;letter-spacing:.13em}.bes-bt-teacher-drawer>header h2{margin:7px 0 4px;font-size:2em;letter-spacing:-.04em}.bes-bt-teacher-drawer>header p{margin:0;color:#71796a;font-size:.82em}.bes-bt-teacher-drawer>header>button{display:grid;place-items:center;width:42px;height:42px;border:0;border-radius:13px;background:#fff;color:#44503a}
