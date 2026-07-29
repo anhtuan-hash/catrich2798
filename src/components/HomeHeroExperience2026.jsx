@@ -22,6 +22,7 @@ import {
   subscribeToPublishedHomeHero,
 } from '../utils/homepageHeroCms.js';
 import HomeHeroCmsEditor from './HomeHeroCmsEditor.jsx';
+import HomeHeroCmsPreviewDock from './HomeHeroCmsPreviewDock.jsx';
 
 const INFO_ICONS = {
   shield: ShieldCheck,
@@ -236,6 +237,8 @@ export default function HomeHeroExperience2026({
     '--hero-left-width': `${activeConfig.overlay.leftProtectionWidth}%`,
   };
 
+  const editorPreviewConfig = previewConfig || settings.draft || settings.published;
+
   return (
     <>
       <section
@@ -306,6 +309,7 @@ export default function HomeHeroExperience2026({
           setPreviewConfig(config);
         }}
       />
+      <HomeHeroCmsPreviewDock open={editorOpen} config={editorPreviewConfig} language={language} device={previewDevice} />
     </>
   );
 }
