@@ -6,6 +6,7 @@ import { initializeAuthSession, subscribeToAuthChanges } from './utils/auth.js';
 import { installNeutralSurfaceGuard } from './utils/neutralSurfaceGuard.js';
 import { installSiteFontFromCache } from './utils/siteFontSettings.js';
 import './homeWeeklyPracticeFlowFix.js';
+import './homePracticeScheduleScroller.js';
 import './weeklyPracticeSubmissionErrorGuard.js';
 // Keep the live file input multi-selectable even when the manager UI re-renders it.
 import './weeklyBulkUploadInputGuard.js';
