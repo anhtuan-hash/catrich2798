@@ -1,6 +1,7 @@
 import { isSupabaseConfigured, supabase } from './supabase.js';
 
 export const HOME_HERO_TABLE = 'homepage_hero_settings';
+export const HOME_HERO_PUBLIC_TABLE = 'homepage_hero_public';
 export const HOME_HERO_STORAGE_BUCKET = 'homepage-hero-media';
 export const HOME_HERO_ROW_ID = 'home';
 export const HOME_HERO_EVENT = 'bes-home-hero-updated';
@@ -293,33 +294,56 @@ function writeLocal(next) {
 function isMissingDatabase(error) {
   const code = String(error?.code || '');
   const message = String(error?.message || '').toLowerCase();
-  return code === '42P01' || code === 'PGRST205' || message.includes('homepage_hero_settings') || message.includes('schema cache');
+  return code === '42P01'
+    || code === 'PGRST205'
+    || message.includes('homepage_hero_settings')
+    || message.includes('homepage_hero_public')
+    || message.includes('schema cache');
 }
 
-export async function loadHomeHeroSettings({ forceLocal = false } = {}) {
+export async function loadHomeHeroSettings({ forceLocal = false, canEdit = false } = {}) {
   const local = readLocal();
   if (forceLocal || !isSupabaseConfigured || !supabase) return { ...local, source: 'local', databaseReady: false };
 
-  const { data, error } = await supabase
-    .from(HOME_HERO_TABLE)
-    .select('id,draft_config,published_config,published_at,updated_at,updated_by')
+  const { data: publicData, error: publicError } = await supabase
+    .from(HOME_HERO_PUBLIC_TABLE)
+    .select('id,published_config,published_at,updated_at,updated_by')
     .eq('id', HOME_HERO_ROW_ID)
     .maybeSingle();
 
-  if (error) {
-    if (isMissingDatabase(error)) return { ...local, source: 'local', databaseReady: false, warning: error.message };
-    throw error;
+  if (publicError) {
+    if (isMissingDatabase(publicError)) return { ...local, source: 'local', databaseReady: false, warning: publicError.message };
+    throw publicError;
   }
 
-  if (!data) return { ...local, source: 'local', databaseReady: true };
+  const published = normalizeHomeHeroConfig(publicData?.published_config || local.published || DEFAULT_HOME_HERO_CONFIG);
+  let draft = published;
+  let editorReady = !canEdit;
+  let editorData = null;
+
+  if (canEdit) {
+    const { data, error } = await supabase
+      .from(HOME_HERO_TABLE)
+      .select('id,draft_config,updated_at,updated_by')
+      .eq('id', HOME_HERO_ROW_ID)
+      .maybeSingle();
+    if (error) {
+      if (isMissingDatabase(error)) return { ...local, published, source: 'local', databaseReady: false, warning: error.message };
+      throw error;
+    }
+    editorData = data;
+    draft = normalizeHomeHeroConfig(data?.draft_config || published);
+    editorReady = true;
+  }
+
   const result = {
-    draft: normalizeHomeHeroConfig(data.draft_config || data.published_config || local.draft),
-    published: normalizeHomeHeroConfig(data.published_config || local.published),
-    updatedAt: data.updated_at || '',
-    publishedAt: data.published_at || '',
-    updatedBy: data.updated_by || '',
+    draft,
+    published,
+    updatedAt: editorData?.updated_at || publicData?.updated_at || '',
+    publishedAt: publicData?.published_at || '',
+    updatedBy: editorData?.updated_by || publicData?.updated_by || '',
     source: 'supabase',
-    databaseReady: true,
+    databaseReady: editorReady,
   };
   writeLocal(result);
   return result;
@@ -357,22 +381,38 @@ export async function publishHomeHero(config, currentUser) {
   }
 
   const now = new Date().toISOString();
-  const payload = {
+  const editorPayload = {
     id: HOME_HERO_ROW_ID,
     draft_config: normalized,
+    updated_at: now,
+    updated_by: currentUser.id,
+  };
+  const publicPayload = {
+    id: HOME_HERO_ROW_ID,
     published_config: normalized,
     published_at: now,
     updated_at: now,
     updated_by: currentUser.id,
   };
-  const { error } = await supabase.from(HOME_HERO_TABLE).upsert(payload, { onConflict: 'id' });
-  if (error) {
-    if (isMissingDatabase(error)) {
+
+  const { error: editorError } = await supabase.from(HOME_HERO_TABLE).upsert(editorPayload, { onConflict: 'id' });
+  if (editorError) {
+    if (isMissingDatabase(editorError)) {
       window.dispatchEvent(new CustomEvent(HOME_HERO_EVENT, { detail: { mode: 'published', config: normalized } }));
-      return { ok: true, source: 'local', databaseReady: false, warning: error.message, config: normalized };
+      return { ok: true, source: 'local', databaseReady: false, warning: editorError.message, config: normalized };
     }
-    throw error;
+    throw editorError;
   }
+
+  const { error: publicError } = await supabase.from(HOME_HERO_PUBLIC_TABLE).upsert(publicPayload, { onConflict: 'id' });
+  if (publicError) {
+    if (isMissingDatabase(publicError)) {
+      window.dispatchEvent(new CustomEvent(HOME_HERO_EVENT, { detail: { mode: 'published', config: normalized } }));
+      return { ok: true, source: 'local', databaseReady: false, warning: publicError.message, config: normalized };
+    }
+    throw publicError;
+  }
+
   window.dispatchEvent(new CustomEvent(HOME_HERO_EVENT, { detail: { mode: 'published', config: normalized } }));
   return { ok: true, source: 'supabase', databaseReady: true, config: normalized };
 }
@@ -430,11 +470,11 @@ export async function uploadHomeHeroMedia(file, currentUser) {
 export function subscribeToPublishedHomeHero(callback) {
   if (!isSupabaseConfigured || !supabase || typeof callback !== 'function') return () => {};
   const channel = supabase
-    .channel('homepage-hero-settings')
+    .channel('homepage-hero-public')
     .on('postgres_changes', {
       event: '*',
       schema: 'public',
-      table: HOME_HERO_TABLE,
+      table: HOME_HERO_PUBLIC_TABLE,
       filter: `id=eq.${HOME_HERO_ROW_ID}`,
     }, (payload) => {
       const config = payload?.new?.published_config;
