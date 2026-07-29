@@ -1,0 +1,21 @@
+.metro-clean-system[data-route="home"] .hero-cms__overlay{
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb,var(--hero-overlay-color,#fff) var(--hero-left-protection,92%),transparent) 0,
+      color-mix(in srgb,var(--hero-overlay-color,#fff) var(--hero-left-protection,92%),transparent) 36%,
+      color-mix(in srgb,var(--hero-overlay-color,#fff) 60%,transparent) var(--hero-left-width,56%),
+      transparent min(92%,calc(var(--hero-left-width,56%) + 28%))),
+    color-mix(in srgb,var(--hero-overlay-color,#fff) var(--hero-overlay-opacity,10%),transparent)!important;
+}
+
+@media(max-width:900px){
+  .metro-clean-system[data-route="home"] .hero-cms__overlay{
+    background:
+      linear-gradient(180deg,
+        color-mix(in srgb,var(--hero-overlay-color,#fff) var(--hero-left-protection,92%),transparent) 0,
+        color-mix(in srgb,var(--hero-overlay-color,#fff) var(--hero-left-protection,92%),transparent) 60%,
+        color-mix(in srgb,var(--hero-overlay-color,#fff) 50%,transparent) 78%,
+        transparent 100%),
+      color-mix(in srgb,var(--hero-overlay-color,#fff) var(--hero-overlay-opacity,10%),transparent)!important;
+  }
+}
