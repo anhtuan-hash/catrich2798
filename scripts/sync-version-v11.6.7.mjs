@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import './patch-ai-workspace-session.mjs';
 import './patch-global-theme-v3.mjs';
-import './patch-home-hard-cutover.mjs';
+import './build-home-hero-asset.mjs';
 
 const now = new Date().toISOString();
 const removedApplications = [
@@ -28,9 +28,9 @@ for (const file of ['public/version.json', 'public/release-manifest.json']) {
   value.requiresSql = false;
   delete value.requiredMigration;
   value.removedApplicationsV1167Cleanup = removedApplications;
-  value.homeBuild = '20260729-r2';
+  value.homeBuild = '20260729-r3';
   value.generatedAt = now;
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n');
 }
 
-console.log('Version registry synchronized: 11.6.7 · home 20260729-r2');
+console.log('Version registry synchronized: 11.6.7 · home 20260729-r3');
