@@ -17,6 +17,8 @@ import './weeklyBulkUpload.js';
 import './weeklyPublishingSettings.js';
 // Save publication changes in place; the manager stays open and preserves its scroll position.
 import './weeklyManagerStayOpen.js';
+// Add selection, A-Z sorting and shared settings for multiple created practices.
+import './weeklyManagerBulkActions.js';
 import './weeklyPracticeOverride.js';
 // Add scheduled-publication information after the grade-card override has rendered.
 import './weeklyPracticeCompactSchedule.js';
