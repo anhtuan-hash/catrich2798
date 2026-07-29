@@ -43,7 +43,7 @@ export function detectDeviceProfile() {
   // Desktop hardware information is often incomplete or optimistic. Treating
   // every Mac/PC with several cores as "high" enabled the heaviest animation
   // profile by default, even when the integrated GPU or browser was struggling.
-  // Auto mode now prefers balanced; users can still select High explicitly.
+  // Auto mode still prefers balanced, while the user's Full choice is respected.
   return { tier: 'balanced', reason: isMobile || coarsePointer ? 'touch-balanced' : 'desktop-balanced', isMobile, reduceMotion };
 }
 
@@ -56,7 +56,6 @@ export function resolveMotionMode(motionMode = getStoredMotionMode(), performanc
   const profile = detectDeviceProfile();
   const resolvedPerformance = resolvePerformanceMode(performanceMode);
   if (profile.reduceMotion || resolvedPerformance === 'low') return motionMode === 'off' ? 'off' : 'lite';
-  if (motionMode === 'full' && resolvedPerformance !== 'high') return 'lite';
   return VALID_MOTION.has(motionMode) ? motionMode : 'lite';
 }
 
