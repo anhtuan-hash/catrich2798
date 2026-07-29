@@ -17,8 +17,6 @@ import './weeklyBulkUpload.js';
 import './weeklyPublishingSettings.js';
 // Save publication changes in place; the manager stays open and preserves its scroll position.
 import './weeklyManagerStayOpen.js';
-// Classify the created-practice list by grade for faster TTCM lookup.
-import './weeklyManagerGradeFilter.js';
 import './weeklyPracticeOverride.js';
 // Add scheduled-publication information after the grade-card override has rendered.
 import './weeklyPracticeCompactSchedule.js';
