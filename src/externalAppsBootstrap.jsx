@@ -8,6 +8,7 @@ import BrianTeamWorkHubSyncBridge from './components/BrianTeamWorkHubSyncBridge.
 import BrianTeamWorkHubReverseSyncBridge from './components/BrianTeamWorkHubReverseSyncBridge.jsx';
 import BrianTeamProgressPanelBridge from './components/BrianTeamProgressPanelBridge.jsx';
 import BrianTeamDirectReviewBridge from './components/BrianTeamDirectReviewBridge.jsx';
+import BrianTeamRealtimeAlertsBridge from './components/BrianTeamRealtimeAlertsBridge.jsx';
 import { initializeAuthSession, subscribeToAuthChanges } from './utils/auth.js';
 import { installNeutralSurfaceGuard } from './utils/neutralSurfaceGuard.js';
 import { installSiteFontFromCache } from './utils/siteFontSettings.js';
@@ -68,6 +69,7 @@ function Bootstrap() {
       <BrianTeamWorkHubReverseSyncBridge currentUser={user} language={language} />
       <BrianTeamProgressPanelBridge currentUser={user} language={language} />
       <BrianTeamDirectReviewBridge currentUser={user} language={language} />
+      <BrianTeamRealtimeAlertsBridge currentUser={user} language={language} />
       <HomeWeeklyPracticeStatisticsController />
     </>
   );
