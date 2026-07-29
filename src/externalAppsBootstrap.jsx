@@ -6,6 +6,7 @@ import HomeWeeklyPracticeStatisticsController from './components/HomeWeeklyPract
 import DepartmentHeadAdminRoleBridge from './components/DepartmentHeadAdminRoleBridge.jsx';
 import BrianTeamWorkHubSyncBridge from './components/BrianTeamWorkHubSyncBridge.jsx';
 import BrianTeamWorkHubReverseSyncBridge from './components/BrianTeamWorkHubReverseSyncBridge.jsx';
+import BrianTeamProgressPanelBridge from './components/BrianTeamProgressPanelBridge.jsx';
 import { initializeAuthSession, subscribeToAuthChanges } from './utils/auth.js';
 import { installNeutralSurfaceGuard } from './utils/neutralSurfaceGuard.js';
 import { installSiteFontFromCache } from './utils/siteFontSettings.js';
@@ -64,6 +65,7 @@ function Bootstrap() {
       <DepartmentHeadAdminRoleBridge currentUser={user} language={language} />
       <BrianTeamWorkHubSyncBridge currentUser={user} language={language} />
       <BrianTeamWorkHubReverseSyncBridge currentUser={user} language={language} />
+      <BrianTeamProgressPanelBridge currentUser={user} language={language} />
       <HomeWeeklyPracticeStatisticsController />
     </>
   );
