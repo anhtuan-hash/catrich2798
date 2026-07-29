@@ -1,0 +1,284 @@
+/* Home weekly-practice integration
+   The legacy bridge remains mounted as the functional engine (runner, identity,
+   progress, submission and manager portals) but its duplicate visual section is hidden. */
+.metro-clean-system[data-route='home'] #bes-weekly-practice-root {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.bha-practice-header-actions {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bha-practice-header-actions > button {
+  min-height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  padding: 7px 12px !important;
+  border: 1px solid #c9d9f4 !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  color: #0b57d0 !important;
+  box-shadow: 0 4px 12px rgba(60, 64, 67, .06) !important;
+  font-size: .76rem !important;
+  font-weight: 900 !important;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease !important;
+}
+
+.bha-practice-header-actions > button:hover {
+  transform: translateY(-2px);
+  background: #f7faff !important;
+  box-shadow: 0 8px 18px rgba(60, 64, 67, .11) !important;
+}
+
+.bha-practice-header-actions > .bha-manage-practice {
+  border-color: #d6c7f0 !important;
+  background: #f8f3ff !important;
+  color: #6b3ab2 !important;
+}
+
+.bha-practice-state {
+  min-height: 178px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  border: 1px dashed #c9d8ec;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #fbfdff, #f4f8ff);
+  color: #5f6f86;
+  font-size: .88rem;
+  font-weight: 800;
+}
+
+.bha-practice-state > span {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #d8e5f7;
+  border-top-color: #1a73e8;
+  border-radius: 50%;
+  animation: bha-practice-spin .8s linear infinite;
+}
+
+.bha-practice-state.is-error {
+  flex-wrap: wrap;
+  border-color: #f0c5c2;
+  background: #fff7f6;
+  color: #a33b36;
+}
+
+.bha-practice-state.is-error button {
+  min-height: 36px !important;
+  padding: 6px 12px !important;
+  border: 1px solid #e5aaa5 !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  color: #a33b36 !important;
+  font-weight: 900 !important;
+  cursor: pointer;
+}
+
+@keyframes bha-practice-spin { to { transform: rotate(360deg); } }
+
+.bha-grade-copy > small {
+  display: -webkit-box !important;
+  min-height: 2.7em;
+  overflow: hidden;
+  line-height: 1.35 !important;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.bha-grade-copy > button:disabled,
+.bha-grade > footer > button:disabled {
+  opacity: .45;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+.bha-grade > footer > span.is-upcoming {
+  background: #e8f0fe !important;
+  color: #315f9f !important;
+}
+
+.bha-grade > footer > span.is-closed,
+.bha-grade > footer > span.is-draft,
+.bha-grade > footer > span.is-empty {
+  background: #f0ece7 !important;
+  color: #6d6258 !important;
+}
+
+.bha-grade > footer > span.is-maintenance {
+  background: #fff0ce !important;
+  color: #8a5a00 !important;
+}
+
+.bha-grade.has-history {
+  min-height: 410px;
+  grid-template-rows: minmax(190px, 1fr) auto auto !important;
+}
+
+.bha-grade-history {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: grid;
+  gap: 7px;
+  max-height: 170px;
+  margin: 0 14px 10px;
+  padding: 8px;
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, #e5eaf1);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, .76);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent) 30%, transparent) transparent;
+}
+
+.bha-grade.has-history > footer {
+  grid-row: 3;
+}
+
+.bha-history-row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 9px 9px 11px;
+  border: 1px solid #e8ecf2;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.bha-history-row > span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.bha-history-row strong {
+  overflow: hidden;
+  color: #253b5b;
+  font-size: .69rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bha-history-row small {
+  overflow: hidden;
+  color: #748297;
+  font-size: .59rem;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bha-history-row button {
+  min-height: 31px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 5px 8px !important;
+  border: 1px solid color-mix(in srgb, var(--history-accent) 20%, #e3e8ef) !important;
+  border-radius: 10px !important;
+  background: color-mix(in srgb, var(--history-accent) 8%, #fff) !important;
+  color: var(--history-accent) !important;
+  box-shadow: none !important;
+  font-size: .62rem !important;
+  font-weight: 900 !important;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+html[data-theme='dark'] .bha-practice-header-actions > button,
+.theme-dark .bha-practice-header-actions > button,
+html[data-theme='dark'] .bha-history-row,
+.theme-dark .bha-history-row {
+  border-color: rgba(220, 229, 240, .14) !important;
+  background: #1c2a37 !important;
+}
+
+html[data-theme='dark'] .bha-history-row strong,
+.theme-dark .bha-history-row strong {
+  color: #eef4ff;
+}
+
+html[data-theme='dark'] .bha-history-row small,
+.theme-dark .bha-history-row small {
+  color: #aebac8;
+}
+
+html[data-theme='dark'] .bha-grade-history,
+.theme-dark .bha-grade-history {
+  background: rgba(20, 31, 42, .78);
+  border-color: rgba(220, 229, 240, .12);
+}
+
+@media (max-width: 960px) {
+  .bha-practice > header {
+    align-items: flex-start !important;
+  }
+
+  .bha-practice-header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .bha-practice-header-actions > button {
+    flex: 1 1 190px;
+  }
+}
+
+@media (max-width: 700px) {
+  .bha-practice-header-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .bha-grade.has-history {
+    min-height: 460px;
+  }
+
+  .bha-grade-history {
+    max-height: 205px;
+    margin-inline: 10px;
+  }
+
+  .bha-history-row {
+    grid-template-columns: minmax(0, 1fr) 34px;
+  }
+
+  .bha-history-row button {
+    width: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    overflow: hidden;
+    color: transparent !important;
+  }
+
+  .bha-history-row button svg {
+    color: var(--history-accent);
+    flex: 0 0 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bha-practice-state > span { animation: none; }
+}
