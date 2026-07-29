@@ -28,6 +28,8 @@ import './weeklyManagerBulkActions.js';
 import './weeklyPracticeOverride.js';
 // Add scheduled-publication information after the grade-card override has rendered.
 import './weeklyPracticeCompactSchedule.js';
+// Guarantee range dragging on Safari and lock the editor work area to neutral surfaces.
+import './homeHeroCmsEditorInteractionFix.js';
 import './styles/PublishingAndFontControls.css';
 import './styles/WeeklyBulkUpload.css';
 import './styles/WeeklyBulkUploadInputGuard.css';
@@ -48,6 +50,8 @@ import './styles/HomeHeroCmsPreviewDock.css';
 import './styles/HomeHeroCmsEditorGoogle.css';
 // Exact approved clean editor layout: no blue work area, larger text and icon-only rail.
 import './styles/HomeHeroCmsEditorApproved.css';
+// Interaction and Safari range reset must remain the final editor stylesheet.
+import './styles/HomeHeroCmsEditorInteractionFix.css';
 
 installNeutralSurfaceGuard();
 installSiteFontFromCache();
