@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import ExternalAppsIntegration from './components/ExternalAppsIntegration.jsx';
 import GlobalFontSettingsBridge from './components/GlobalFontSettingsBridge.jsx';
-import GlobalWeeklyPracticeStatisticsBridge from './components/GlobalWeeklyPracticeStatisticsBridge.jsx';
+import HomeWeeklyPracticeStatisticsController from './components/HomeWeeklyPracticeStatisticsController.jsx';
 import { initializeAuthSession, subscribeToAuthChanges } from './utils/auth.js';
 import { installNeutralSurfaceGuard } from './utils/neutralSurfaceGuard.js';
 import { installSiteFontFromCache } from './utils/siteFontSettings.js';
@@ -29,28 +29,20 @@ import './styles/WeeklyPracticeCompactSchedule.css';
 installNeutralSurfaceGuard();
 installSiteFontFromCache();
 
-function readRoute() {
-  return window.location.hash.replace(/^#\//, '').split('?')[0] || 'home';
-}
-
 function Bootstrap() {
   const [user, setUser] = useState(null);
   const [language, setLanguage] = useState(() => localStorage.getItem('bet-language') || 'vi');
-  const [route, setRoute] = useState(readRoute);
 
   useEffect(() => {
     let active = true;
     initializeAuthSession().then((nextUser) => active && setUser(nextUser)).catch(() => {});
     const unsubscribe = subscribeToAuthChanges((nextUser) => active && setUser(nextUser));
     const observer = new MutationObserver(() => setLanguage(document.documentElement.lang === 'en' ? 'en' : 'vi'));
-    const updateRoute = () => setRoute(readRoute());
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['lang', 'data-language'] });
-    window.addEventListener('hashchange', updateRoute);
     return () => {
       active = false;
       unsubscribe?.();
       observer.disconnect();
-      window.removeEventListener('hashchange', updateRoute);
     };
   }, []);
 
@@ -58,7 +50,7 @@ function Bootstrap() {
     <>
       <ExternalAppsIntegration currentUser={user} language={language} />
       <GlobalFontSettingsBridge currentUser={user} language={language} />
-      <GlobalWeeklyPracticeStatisticsBridge route={route} currentUser={user} />
+      <HomeWeeklyPracticeStatisticsController />
     </>
   );
 }
