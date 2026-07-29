@@ -7,7 +7,16 @@ import WeeklyPracticeStatisticsPanel from './WeeklyPracticeStatisticsPanel.jsx';
 const HOST_ID = 'bes-weekly-statistics-button-host';
 const MODERN_ACTIONS_SELECTOR = '.metro-clean-system[data-route="home"] .bha-practice .bha-practice-header-actions';
 const MODERN_HEADER_SELECTOR = '.metro-clean-system[data-route="home"] .bha-practice > header';
+const MODERN_MANAGER_SELECTOR = '.metro-clean-system[data-route="home"] .bha-practice .bha-manage-practice';
+const LEGACY_MANAGER_SELECTOR = '#bes-weekly-practice-root .bes-weekly-manage-button';
 const LEGACY_HEADING_SELECTOR = '#bes-weekly-practice-root .bes-weekly-heading';
+
+function managerIsVisible() {
+  const button = document.querySelector(`${MODERN_MANAGER_SELECTOR}, ${LEGACY_MANAGER_SELECTOR}`);
+  if (!button) return false;
+  const style = window.getComputedStyle(button);
+  return style.display !== 'none' && style.visibility !== 'hidden' && button.getClientRects().length > 0;
+}
 
 function ensureHost() {
   const modernActions = document.querySelector(MODERN_ACTIONS_SELECTOR);
@@ -29,7 +38,8 @@ function ensureHost() {
 }
 
 export default function GlobalWeeklyPracticeStatisticsBridge({ route = 'home', currentUser }) {
-  const canManage = isDepartmentLeaderRole(currentUser?.role);
+  const roleAllows = isDepartmentLeaderRole(currentUser?.role);
+  const [eligible, setEligible] = useState(roleAllows);
   const [host, setHost] = useState(null);
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(false);
@@ -37,7 +47,8 @@ export default function GlobalWeeklyPracticeStatisticsBridge({ route = 'home', c
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (route !== 'home' || !canManage) {
+    if (route !== 'home') {
+      setEligible(false);
       setHost(null);
       document.getElementById(HOST_ID)?.remove();
       return undefined;
@@ -47,6 +58,13 @@ export default function GlobalWeeklyPracticeStatisticsBridge({ route = 'home', c
     const attach = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
+        const allowed = roleAllows || managerIsVisible();
+        setEligible(allowed);
+        if (!allowed) {
+          setHost(null);
+          document.getElementById(HOST_ID)?.remove();
+          return;
+        }
         const nextHost = ensureHost();
         setHost((current) => (current === nextHost ? current : nextHost));
       });
@@ -54,16 +72,23 @@ export default function GlobalWeeklyPracticeStatisticsBridge({ route = 'home', c
 
     attach();
     const observer = new MutationObserver(attach);
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'style', 'hidden'],
+    });
     window.addEventListener('resize', attach);
+    window.addEventListener('focus', attach);
 
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
       window.removeEventListener('resize', attach);
+      window.removeEventListener('focus', attach);
       document.getElementById(HOST_ID)?.remove();
     };
-  }, [route, canManage]);
+  }, [route, roleAllows]);
 
   const launch = useCallback(async () => {
     setLoading(true);
@@ -79,7 +104,7 @@ export default function GlobalWeeklyPracticeStatisticsBridge({ route = 'home', c
     }
   }, []);
 
-  if (!host || !canManage) {
+  if (!host || !eligible) {
     return open ? <WeeklyPracticeStatisticsPanel items={items} onClose={() => setOpen(false)} /> : null;
   }
 
