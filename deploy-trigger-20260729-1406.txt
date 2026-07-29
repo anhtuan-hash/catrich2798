@@ -1,0 +1,3 @@
+Production deployment trigger for merged homepage footer and weekly-practice scroll changes.
+Source merge commit: 6861cfed0228026eb3038482202a6cc88de573db
+Triggered at: 2026-07-29T14:06:00+07:00
