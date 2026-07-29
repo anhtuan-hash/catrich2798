@@ -53,6 +53,8 @@ import './styles/HomeHeroCmsEditorGoogle.css';
 import './styles/HomeHeroCmsEditorApproved.css';
 // Interaction and Safari range reset must remain the final editor stylesheet.
 import './styles/HomeHeroCmsEditorInteractionFix.css';
+// Keep Featured Tools text comfortably readable after all homepage styles.
+import './styles/HomeFeaturedToolsTypography2026.css';
 // Static fallback for the Brian Team Work Hub progress panel.
 import './styles/BrianTeamProgressNoPurple.css';
 
