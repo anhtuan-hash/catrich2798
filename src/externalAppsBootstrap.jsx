@@ -52,6 +52,9 @@ import './styles/HomeHeroCmsEditorGoogle.css';
 import './styles/HomeHeroCmsEditorApproved.css';
 // Interaction and Safari range reset must remain the final editor stylesheet.
 import './styles/HomeHeroCmsEditorInteractionFix.css';
+// This must remain the final global stylesheet: it removes every legacy purple
+// background from the Brian Team Work Hub progress panel.
+import './styles/BrianTeamProgressNoPurple.css';
 
 installNeutralSurfaceGuard();
 installSiteFontFromCache();
