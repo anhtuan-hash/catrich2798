@@ -31,8 +31,10 @@ import './styles/WeeklyBulkUploadInputGuard.css';
 import './styles/WeeklyPublisherEmergencyFix.css';
 // Keep compact weekly-card dimensions and schedule dialog at the end of the cascade.
 import './styles/WeeklyPracticeCompactSchedule.css';
-// Keep the approved featured-tools redesign last so it wins the homepage cascade.
+// Keep the approved featured-tools redesign late in the homepage cascade.
 import './styles/HomeFeaturedTools2026.css';
+// Keep the approved layered hero last so old homepage rules cannot flatten it.
+import './styles/HomeHeroExperience2026.css';
 
 installNeutralSurfaceGuard();
 installSiteFontFromCache();
