@@ -18,7 +18,6 @@ import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalHomeBriefingExtras from './GlobalHomeBriefingExtras.jsx';
 import GlobalHomeViewportFitBridge from './GlobalHomeViewportFitBridge.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
-import GlobalWeeklyPracticeStatisticsBridge from './GlobalWeeklyPracticeStatisticsBridge.jsx';
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalNotificationCenter.css';
 import './GlobalNotificationCenterLayoutFix.css';
@@ -81,7 +80,6 @@ export default function GlobalFlatNavigation(props) {
       <GlobalHomeBriefingExtras route={props.route} language={props.language} />
       <GlobalHomeViewportFitBridge route={props.route} />
       <GlobalWeeklyPracticeBridge route={props.route} language={props.language} currentUser={props.currentUser} />
-      <GlobalWeeklyPracticeStatisticsBridge route={props.route} currentUser={props.currentUser} />
       <GlobalMotionCoreBridge route={props.route} />
       <GlobalUserProfileSettingsBridge {...props} />
       <GlobalUserProfilePreviewGuard route={props.route} />
