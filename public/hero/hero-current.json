@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "revision": "bootstrap",
+  "publishedAt": null,
+  "publishedBy": "system",
+  "delivery": "vercel-static",
+  "config": {
+    "version": 1,
+    "badge": {
+      "enabled": true,
+      "textVi": "ENGLISH HUB",
+      "textEn": "ENGLISH HUB",
+      "logoUrl": "",
+      "color": "#0b57d0",
+      "background": "rgba(255,255,255,0.86)"
+    },
+    "content": {
+      "headlineVi": "Không gian\ndạy học\nthông minh",
+      "headlineEn": "A smart\nteaching\nworkspace",
+      "highlightVi": "& sáng tạo",
+      "highlightEn": "& creative learning",
+      "descriptionVi": "Tích hợp các công cụ hỗ trợ giảng dạy, học tập và quản lý hiệu quả — tối ưu cho giáo viên và học sinh.",
+      "descriptionEn": "Teaching, learning and management tools in one efficient workspace for teachers and students.",
+      "headlineColor": "#102b55",
+      "highlightColor": "#185ee8",
+      "descriptionColor": "#566b88"
+    },
+    "buttons": [
+      {
+        "id": "primary",
+        "enabled": true,
+        "labelVi": "Bắt đầu ngay",
+        "labelEn": "Get started",
+        "target": "#/apps",
+        "newTab": false,
+        "style": "primary",
+        "color": "#1a73e8",
+        "icon": "rocket"
+      },
+      {
+        "id": "secondary",
+        "enabled": true,
+        "labelVi": "Xem hướng dẫn",
+        "labelEn": "View guide",
+        "target": "#/apps",
+        "newTab": false,
+        "style": "secondary",
+        "color": "#0b57d0",
+        "icon": "play"
+      }
+    ],
+    "infoItems": [
+      {
+        "id": "security",
+        "enabled": true,
+        "icon": "shield",
+        "titleVi": "Phân quyền an toàn",
+        "titleEn": "Secure access",
+        "textVi": "Dữ liệu được bảo vệ",
+        "textEn": "Protected by permissions",
+        "color": "#1a73e8"
+      },
+      {
+        "id": "sync",
+        "enabled": true,
+        "icon": "cloud",
+        "titleVi": "Đồng bộ ổn định",
+        "titleEn": "Stable sync",
+        "textVi": "Cập nhật theo thời gian thực",
+        "textEn": "Updates in real time",
+        "color": "#188038"
+      },
+      {
+        "id": "workspace",
+        "enabled": true,
+        "icon": "users",
+        "titleVi": "Không gian thống nhất",
+        "titleEn": "One workspace",
+        "textVi": "Dạy học và quản lý",
+        "textEn": "Teaching and management",
+        "color": "#7e57c2"
+      }
+    ],
+    "background": {
+      "type": "none",
+      "url": "",
+      "posterUrl": "",
+      "fileName": "",
+      "mimeType": "",
+      "fit": "cover",
+      "positionX": 70,
+      "positionY": 50,
+      "scale": 100,
+      "opacity": 100,
+      "brightness": 100,
+      "blur": 0,
+      "autoplay": true,
+      "loop": true,
+      "muted": true
+    },
+    "overlay": {
+      "enabled": true,
+      "color": "#ffffff",
+      "opacity": 10,
+      "leftProtection": 92,
+      "leftProtectionWidth": 56
+    },
+    "layout": {
+      "minHeight": 590,
+      "contentWidth": 42,
+      "contentAlign": "left",
+      "verticalAlign": "center",
+      "borderRadius": 32
+    },
+    "animation": {
+      "enabled": true,
+      "contentReveal": true,
+      "mediaMotion": false,
+      "buttonPulse": true
+    }
+  }
+}
