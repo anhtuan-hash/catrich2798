@@ -46,6 +46,8 @@ import './styles/HomeHeroCmsOverlayFix.css';
 import './styles/HomeHeroCmsPreviewDock.css';
 // Material 3 visual system must be the final Hero editor layer.
 import './styles/HomeHeroCmsEditorGoogle.css';
+// Exact approved clean editor layout: no blue work area, larger text and icon-only rail.
+import './styles/HomeHeroCmsEditorApproved.css';
 
 installNeutralSurfaceGuard();
 installSiteFontFromCache();
