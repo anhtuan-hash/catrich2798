@@ -1,0 +1,59 @@
+.metro-clean-system[data-route='home'] .bha-practice-header-actions{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:10px!important;
+  flex-wrap:wrap!important;
+}
+.metro-clean-system[data-route='home'] .bha-statistics-practice,
+.metro-clean-system[data-route='home'] .bha-manage-practice{
+  min-height:46px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  padding:0 17px!important;
+  border-radius:15px!important;
+  font-size:.77rem!important;
+  font-weight:950!important;
+  white-space:nowrap!important;
+  cursor:pointer!important;
+  transition:transform .18s ease,box-shadow .18s ease,filter .18s ease!important;
+}
+.metro-clean-system[data-route='home'] .bha-statistics-practice{
+  border:1px solid #0b57d0!important;
+  background:linear-gradient(135deg,#1a73e8,#0b57d0)!important;
+  color:#fff!important;
+  box-shadow:0 8px 20px rgba(26,115,232,.23)!important;
+}
+.metro-clean-system[data-route='home'] .bha-statistics-practice:hover,
+.metro-clean-system[data-route='home'] .bha-manage-practice:hover{
+  transform:translateY(-2px)!important;
+  filter:saturate(1.06)!important;
+}
+.metro-clean-system[data-route='home'] .bha-grade-copy>small{
+  max-width:245px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+.metro-clean-system[data-route='home'] .bha-grade-copy>button:disabled{
+  opacity:.5!important;
+  cursor:not-allowed!important;
+  filter:grayscale(.15)!important;
+}
+@media(max-width:680px){
+  .metro-clean-system[data-route='home'] .bha-practice-header-actions{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+  }
+  .metro-clean-system[data-route='home'] .bha-statistics-practice,
+  .metro-clean-system[data-route='home'] .bha-manage-practice{
+    width:100%!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .metro-clean-system[data-route='home'] .bha-statistics-practice,
+  .metro-clean-system[data-route='home'] .bha-manage-practice{transition:none!important}
+}
