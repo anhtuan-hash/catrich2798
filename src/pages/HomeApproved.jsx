@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight, BarChart3, BookOpen, Check, ClipboardClock, FileCheck2, Files,
   FolderOpen, Gamepad2, GraduationCap, MessageSquareText, NotebookTabs,
-  Play, School, Sparkles, UsersRound,
+  School, UsersRound,
 } from 'lucide-react';
 import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../data/apps.js';
 import { getFirstAllowedRoute, hasRouteAccess } from '../utils/permissions.js';
@@ -11,6 +11,7 @@ import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import { listPublicWeeklyPractices } from '../utils/weeklyPractice.js';
+import HomeHeroExperience2026 from '../components/HomeHeroExperience2026.jsx';
 import './HomeApproved.css';
 import './HomePracticeIntegration.css';
 import './HomePracticeByGrade.css';
@@ -176,26 +177,6 @@ function openLegacyManager(language, attempt = 0) {
   window.alert(language === 'en' ? 'The manager is still syncing.' : 'Trình quản lý đang được đồng bộ.');
 }
 
-function HeroArt() {
-  return (
-    <div className="bha-art" aria-hidden="true">
-      <div className="bha-orb bha-orb-a" /><div className="bha-orb bha-orb-b" />
-      <div className="bha-vn-line" />
-      <div className="bha-flag"><i /><span>★</span></div>
-      <div className="bha-screen">
-        <div className="bha-screen-bar"><i /><i /><i /></div>
-        <div className="bha-screen-title" />
-        <div className="bha-screen-row"><b>+</b><span /></div>
-        <div className="bha-screen-row orange"><b>◆</b><span /></div>
-        <div className="bha-screen-row green"><b>✓</b><span /></div>
-      </div>
-      <div className="bha-books"><i /><i /><i /></div>
-      <div className="bha-pencil-cup"><i /><i /><i /></div>
-      <div className="bha-plant"><i /><i /><i /><b /></div>
-    </div>
-  );
-}
-
 function ToolCard({ item, currentUser, language }) {
   const Icon = item.Icon;
   const vi = language === 'vi';
@@ -283,14 +264,14 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
   return (
     <div className="bha-home" aria-label="English Hub homepage">
       <div className="bha-top">
-        <section className="bha-hero">
-          <div className="bha-copy"><span className="bha-badge">{t.badge}</span><h1>{t.headline}</h1><h2>{t.highlight}</h2><p>{t.subtitle}</p>
-            <div className="bha-actions">
-              <button className="primary" type="button" onClick={(event) => launch(currentUser ? `#/${firstRoute}` : '#/login', 'GO', '#1a73e8', currentUser, event.currentTarget)}><Sparkles size={18} />{t.start}<ArrowRight size={18} /></button>
-              <button type="button" onClick={(event) => launch('#/apps', 'AP', '#1a73e8', currentUser, event.currentTarget)}><Play size={17} fill="currentColor" />{t.guide}</button>
-            </div>
-          </div><HeroArt />
-        </section>
+        <HomeHeroExperience2026
+          currentUser={currentUser}
+          language={language}
+          t={t}
+          practiceCount={practiceItems.length}
+          onStart={(event) => launch(currentUser ? `#/${firstRoute}` : '#/login', 'GO', '#1a73e8', currentUser, event.currentTarget)}
+          onGuide={(event) => launch('#/apps', 'AP', '#1a73e8', currentUser, event.currentTarget)}
+        />
         <section className="bha-tools"><header><h2>{t.tools}</h2><button type="button" onClick={(event) => launch('#/apps', 'AP', '#1a73e8', currentUser, event.currentTarget)}>{t.all}<ArrowRight size={15} /></button></header>
           <div>{tools.map((item) => <ToolCard key={item.id} item={item} currentUser={currentUser} language={language} />)}</div>
         </section>
