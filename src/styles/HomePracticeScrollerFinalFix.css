@@ -1,0 +1,40 @@
+.metro-clean-system[data-route='home'] .bha-schedule-view-button{
+  width:38px!important;
+  min-width:38px!important;
+  height:38px!important;
+  min-height:38px!important;
+  padding:0!important;
+  border-radius:12px!important;
+}
+.metro-clean-system[data-route='home'] .bha-schedule-view-button svg{
+  width:18px!important;
+  height:18px!important;
+  fill:none!important;
+  stroke:currentColor!important;
+  stroke-width:2!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+}
+.metro-clean-system[data-route='home'] .bha-schedule-view-button.is-upcoming{
+  border:1px solid color-mix(in srgb,var(--accent) 28%,#dfe5ed)!important;
+  background:color-mix(in srgb,var(--accent) 9%,#fff)!important;
+  color:var(--accent)!important;
+  box-shadow:none!important;
+}
+.metro-clean-system[data-route='home'] .bha-schedule-view-button.is-open{
+  border:0!important;
+  background:var(--accent)!important;
+  color:#fff!important;
+  box-shadow:0 6px 14px color-mix(in srgb,var(--accent) 25%,transparent)!important;
+}
+.metro-clean-system[data-route='home'] .bha-schedule-row.is-open>strong{
+  color:#18395f!important;
+}
+.metro-clean-system[data-route='home'] .bha-schedule-row.is-upcoming>strong{
+  color:#6f7c8f!important;
+}
+@media(max-width:760px){
+  .metro-clean-system[data-route='home'] .bha-schedule-row{
+    grid-template-columns:minmax(0,1fr) 38px!important;
+  }
+}
