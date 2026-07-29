@@ -42,6 +42,8 @@ import './styles/HomeHeroExperience2026.css';
 import './styles/HomeHeroCmsEditor.css';
 // Keep the percentage overlay correction after the main Hero stylesheet.
 import './styles/HomeHeroCmsOverlayFix.css';
+// Live preview occupies the editor's right-hand pane on large screens.
+import './styles/HomeHeroCmsPreviewDock.css';
 
 installNeutralSurfaceGuard();
 installSiteFontFromCache();
