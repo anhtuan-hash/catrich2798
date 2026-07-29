@@ -8,6 +8,7 @@ import {
   loadDashboardSnapshot,
   openDashboardTarget,
 } from '../utils/dashboardAggregator.js';
+import PersonnelLookup from '../components/PersonnelLookup.jsx';
 import '../styles/teacher-dashboard-google-authentic.css';
 import '../styles/teacher-dashboard-calendar-split.css';
 
@@ -67,22 +68,16 @@ const ICON_PATHS = {
 function Icon({ name, size = 20 }) {
   return <svg className="gd-icon" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={ICON_PATHS[name] || ICON_PATHS.apps} /></svg>;
 }
-
-function initials(value) {
-  return String(value || 'EH').trim().split(/\s+/).slice(-2).map((part) => part[0] || '').join('').toUpperCase() || 'EH';
-}
-
+function initials(value) { return String(value || 'EH').trim().split(/\s+/).slice(-2).map((part) => part[0] || '').join('').toUpperCase() || 'EH'; }
 function dateKey(value) {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
-
 function isTeachingPeriod(item) {
   const haystack = `${item?.title || ''} ${item?.description || ''} ${item?.sourceLabel || ''}`;
   return /tiết\s*dạy|teaching\s*period|lesson\s*period|thời\s*khóa\s*biểu|timetable/i.test(haystack);
 }
-
 function statusLabel(value, language) {
   const status = String(value || '').toLowerCase();
   if (language === 'vi') {
@@ -98,61 +93,25 @@ function statusLabel(value, language) {
   if (status === 'rejected') return 'Rejected';
   return value || 'New';
 }
-
 function eventTimeLabel(value, t, locale) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime()) || (date.getHours() === 0 && date.getMinutes() === 0)) return t.allDay;
   return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(date);
 }
-
-function Empty({ children }) {
-  return <div className="gd-empty"><span><Icon name="calendar" size={24} /></span><p>{children}</p></div>;
-}
-
+function Empty({ children }) { return <div className="gd-empty"><span><Icon name="calendar" size={24} /></span><p>{children}</p></div>; }
 function Surface({ title, subtitle, icon, action, actionLabel, children, id, className = '' }) {
-  return (
-    <article className={`gd-surface ${className}`} id={id}>
-      <header className="gd-surface-header">
-        <div className="gd-surface-heading"><span className="gd-heading-icon"><Icon name={icon} size={20} /></span><div><h2>{title}</h2>{subtitle ? <p>{subtitle}</p> : null}</div></div>
-        {action ? <button type="button" className="gd-text-button" onClick={action}>{actionLabel}<Icon name="arrow" size={18} /></button> : null}
-      </header>
-      <div className="gd-surface-body">{children}</div>
-    </article>
-  );
+  return <article className={`gd-surface ${className}`} id={id}><header className="gd-surface-header"><div className="gd-surface-heading"><span className="gd-heading-icon"><Icon name={icon} size={20} /></span><div><h2>{title}</h2>{subtitle ? <p>{subtitle}</p> : null}</div></div>{action ? <button type="button" className="gd-text-button" onClick={action}>{actionLabel}<Icon name="arrow" size={18} /></button> : null}</header><div className="gd-surface-body">{children}</div></article>;
 }
-
-function Metric({ icon, label, value, detail, tone, onClick }) {
-  return <button type="button" className={`gd-metric is-${tone}`} onClick={onClick}><span className="gd-metric-icon"><Icon name={icon} size={22} /></span><span className="gd-metric-copy"><span>{label}</span><strong>{value}</strong><small>{detail}</small></span></button>;
-}
-
+function Metric({ icon, label, value, detail, tone, onClick }) { return <button type="button" className={`gd-metric is-${tone}`} onClick={onClick}><span className="gd-metric-icon"><Icon name={icon} size={22} /></span><span className="gd-metric-copy"><span>{label}</span><strong>{value}</strong><small>{detail}</small></span></button>; }
 function MiniRow({ item, language }) {
-  return (
-    <button type="button" className="gd-row" onClick={() => openDashboardTarget(item)}>
-      <span className="gd-row-avatar">{initials(item.sourceLabel || item.owner || 'EH')}</span>
-      <span className="gd-row-copy"><strong>{item.title}</strong><small>{item.owner || item.body || item.sourceLabel}{item.date ? ` · ${formatDashboardDate(item.date, language)}` : ''}</small></span>
-      <span className="gd-status-chip">{statusLabel(item.status, language)}</span><Icon name="arrow" size={18} />
-    </button>
-  );
+  return <button type="button" className="gd-row" onClick={() => openDashboardTarget(item)}><span className="gd-row-avatar">{initials(item.sourceLabel || item.owner || 'EH')}</span><span className="gd-row-copy"><strong>{item.title}</strong><small>{item.owner || item.body || item.sourceLabel}{item.date ? ` · ${formatDashboardDate(item.date, language)}` : ''}</small></span><span className="gd-status-chip">{statusLabel(item.status, language)}</span><Icon name="arrow" size={18} /></button>;
 }
-
 function Tile({ item, t }) {
-  return (
-    <button type="button" className="gd-tile" onClick={() => { window.location.hash = item.target || (item.route ? `#/${item.route}` : '#/apps'); }}>
-      <span className="gd-tile-icon" style={item.accent ? { background: `${item.accent}18`, color: item.accent } : undefined}>{item.icon || initials(item.sourceLabel)}</span>
-      <span className="gd-tile-copy"><strong>{item.title}</strong><small>{item.kind === 'draft' ? t.draft : item.owner || item.sourceLabel || t.app}</small></span><Icon name="arrow" size={18} />
-    </button>
-  );
+  return <button type="button" className="gd-tile" onClick={() => { window.location.hash = item.target || (item.route ? `#/${item.route}` : '#/apps'); }}><span className="gd-tile-icon" style={item.accent ? { background: `${item.accent}18`, color: item.accent } : undefined}>{item.icon || initials(item.sourceLabel)}</span><span className="gd-tile-copy"><strong>{item.title}</strong><small>{item.kind === 'draft' ? t.draft : item.owner || item.sourceLabel || t.app}</small></span><Icon name="arrow" size={18} /></button>;
 }
-
 function CalendarEvent({ item, language, locale, t }) {
   const state = getDashboardDueState(item.date, item.done);
-  return (
-    <button type="button" className={`gd-event is-${state}`} onClick={() => openDashboardTarget(item)}>
-      <span className="gd-event-time"><strong>{eventTimeLabel(item.date, t, locale)}</strong><small>{dashboardDueLabel(item.date, item.done, language)}</small></span>
-      <span className="gd-event-color" aria-hidden="true" />
-      <span className="gd-event-copy"><strong>{item.title}</strong>{item.description ? <p>{item.description}</p> : null}<small>{t.source}: {item.owner || item.sourceLabel}</small></span><Icon name="arrow" size={20} />
-    </button>
-  );
+  return <button type="button" className={`gd-event is-${state}`} onClick={() => openDashboardTarget(item)}><span className="gd-event-time"><strong>{eventTimeLabel(item.date, t, locale)}</strong><small>{dashboardDueLabel(item.date, item.done, language)}</small></span><span className="gd-event-color" aria-hidden="true" /><span className="gd-event-copy"><strong>{item.title}</strong>{item.description ? <p>{item.description}</p> : null}<small>{t.source}: {item.owner || item.sourceLabel}</small></span><Icon name="arrow" size={20} /></button>;
 }
 
 export default function WorkDashboard({ currentUser, language = 'vi' }) {
@@ -181,16 +140,12 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   useEffect(() => { refresh(); }, [refresh]);
   useEffect(() => {
     let refreshTimer = 0;
-    const queueUpdate = () => {
-      window.clearTimeout(refreshTimer);
-      refreshTimer = window.setTimeout(() => refresh({ quiet: true }), 450);
-    };
+    const queueUpdate = () => { window.clearTimeout(refreshTimer); refreshTimer = window.setTimeout(() => refresh({ quiet: true }), 450); };
     const refreshIfStale = () => {
       if (document.visibilityState !== 'visible') return;
       if (lastRefreshRef.current && Date.now() - lastRefreshRef.current < 10 * 60 * 1000) return;
       queueUpdate();
     };
-
     DASHBOARD_SOURCE_EVENTS.forEach((eventName) => window.addEventListener(eventName, queueUpdate));
     window.addEventListener('storage', queueUpdate);
     window.addEventListener('focus', refreshIfStale);
@@ -206,102 +161,60 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
 
   const timeline = useMemo(() => (snapshot.timeline || []).filter((item) => !isTeachingPeriod(item)).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()), [snapshot.timeline]);
   const calendarDays = useMemo(() => Array.from({ length: 14 }, (_, index) => {
-    const date = new Date();
-    date.setHours(0, 0, 0, 0);
-    date.setDate(date.getDate() + index);
-    const key = dateKey(date);
-    return { date, key, events: timeline.filter((item) => dateKey(item.date) === key) };
+    const date = new Date(); date.setHours(0, 0, 0, 0); date.setDate(date.getDate() + index);
+    const key = dateKey(date); return { date, key, events: timeline.filter((item) => dateKey(item.date) === key) };
   }), [timeline]);
-
   const selectedCalendarDay = useMemo(() => calendarDays.find((day) => day.key === selectedDay) || calendarDays[0], [calendarDays, selectedDay]);
   const selectedEvents = selectedCalendarDay?.events || [];
   const activeDays = calendarDays.filter((day) => day.events.length > 0).length;
   const feedbackItems = useMemo(() => snapshot.approvals?.length ? snapshot.approvals : (snapshot.professional || []).filter((item) => ['submitted', 'approved', 'changes_requested', 'revision', 'rejected'].includes(String(item.status || '').toLowerCase())).slice(0, 8), [snapshot.approvals, snapshot.professional]);
-
   const name = currentUser?.name || currentUser?.full_name || currentUser?.email?.split('@')[0] || t.teacher;
   const locale = language === 'vi' ? 'vi-VN' : 'en-US';
   const todayKey = dateKey(new Date());
   const selectedWeekday = selectedCalendarDay ? new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(selectedCalendarDay.date) : '';
   const selectedDate = selectedCalendarDay ? new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'long', year: 'numeric' }).format(selectedCalendarDay.date) : '';
   const monthRange = calendarDays.length ? `${new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(calendarDays[0].date)} — ${new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(calendarDays[calendarDays.length - 1].date)}` : '';
-  const reviewCount = snapshot.leader ? (snapshot.stats?.pendingApproval || 0) : feedbackItems.length;
+  const leaderView = snapshot.leader || ['admin', 'department_head'].includes(String(currentUser?.role || '').toLowerCase());
+  const reviewCount = leaderView ? (snapshot.stats?.pendingApproval || 0) : feedbackItems.length;
   const initialLoading = loading && !snapshot.generatedAt;
   const nextEvent = timeline.find((item) => new Date(item.date).getTime() >= Date.now()) || timeline[0] || null;
-
   const quickActions = [
     ['task', t.createWork, '#/work-hub'], ['folder', t.uploadResource, '#/resource-library'], ['magic', t.textLab, '#/tool/textlab-activities'],
-    ['school', t.methodsHub, '#/tool/teaching-methods-hub'], ['game', t.games, '#/games'],
-    ...(snapshot.homeroom ? [['people', t.openHomeroom, '#/homeroom']] : []),
+    ['school', t.methodsHub, '#/tool/teaching-methods-hub'], ['game', t.games, '#/games'], ...(snapshot.homeroom ? [['people', t.openHomeroom, '#/homeroom']] : []),
   ];
 
-  return (
-    <section className={`gd-page${initialLoading ? ' is-loading' : ''}`} aria-label={t.pageTitle} aria-busy={loading}>
-      <div className="gd-shell">
-        <header className="gd-hero">
-          <div className="gd-hero-copy"><span>{t.eyebrow}</span><h1>{t.hello}, {name}</h1><p>{t.lead}</p></div>
-          <div className="gd-hero-actions">
-            <button type="button" className="gd-button filled" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><Icon name="calendar" size={20} />{t.calendar}</button>
-            <button type="button" className="gd-button outlined" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={20} />{loading ? t.refreshing : t.refresh}</button>
-          </div>
-        </header>
-
-        {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
-
-        <section className="gd-metrics" aria-label={t.eyebrow}>
-          <Metric icon="event" label={t.upcomingEvents} value={timeline.length} detail={`${activeDays} ${t.activeDays.toLowerCase()}`} tone="blue" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
-          <Metric icon="calendar" label={t.activeDays} value={activeDays} detail={monthRange} tone="green" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
-          <Metric icon="folder" label={t.resourcesMetric} value={snapshot.recentResources?.length || 0} detail={t.resources} tone="yellow" onClick={() => document.querySelector('#dashboard-resources')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
-          <Metric icon="review" label={t.reviewMetric} value={reviewCount} detail={snapshot.leader ? t.approvalsLeader : t.approvalsTeacher} tone="red" onClick={() => document.querySelector('#dashboard-approvals')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
-        </section>
-
-        <article className="gd-calendar gd-calendar-split" id="dashboard-calendar">
-          <header className="gd-calendar-header">
-            <div className="gd-calendar-title"><span><Icon name="calendar" size={22} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div>
-            <button type="button" className="gd-text-button" onClick={() => { window.location.hash = '#/work-hub'; }}>{t.openCalendar}<Icon name="arrow" size={18} /></button>
-          </header>
-
-          <div className="gd-calendar-layout">
-            <aside className="gd-calendar-sidebar" aria-label={t.chooseDate}>
-              <div className="gd-calendar-side-head">
-                <div><span>{t.chooseDate}</span><strong>{monthRange}</strong></div>
-                <span className="gd-count-chip">{timeline.length} {t.events}</span>
-              </div>
-              <div className="gd-calendar-days-grid">
-                {calendarDays.map((day) => {
-                  const selected = selectedDay === day.key;
-                  const today = todayKey === day.key;
-                  return (
-                    <button type="button" key={day.key} className={`gd-day-card${selected ? ' is-selected' : ''}${today ? ' is-today' : ''}${day.events.length ? ' has-events' : ''}`} onClick={() => setSelectedDay(day.key)} aria-pressed={selected}>
-                      <span className="gd-day-number">{day.date.getDate()}</span>
-                      <span className="gd-day-info"><strong>{new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day.date)}</strong><small>{new Intl.DateTimeFormat(locale, { month: 'short' }).format(day.date)}</small></span>
-                      <span className="gd-day-event-count">{today ? t.today : day.events.length ? day.events.length : '—'}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="gd-calendar-next-event"><span><Icon name="event" size={18} /></span><div><small>{t.nextEvent}</small><strong>{nextEvent?.title || t.noUpcoming}</strong></div></div>
-            </aside>
-
-            <section className="gd-agenda-panel" aria-live="polite">
-              <header className="gd-agenda-panel-header">
-                <div className="gd-agenda-date-badge"><strong>{selectedCalendarDay?.date?.getDate() || '—'}</strong><span>{new Intl.DateTimeFormat(locale, { month: 'short' }).format(selectedCalendarDay?.date || new Date())}</span></div>
-                <div className="gd-agenda-heading"><span>{t.selectedDay}</span><h3>{selectedWeekday}</h3><p>{selectedDate}</p></div>
-                <span className="gd-count-chip">{selectedEvents.length} {t.events}</span>
-              </header>
-              <div className="gd-agenda-list gd-agenda-list-split">{initialLoading ? <Empty>{t.refreshing}</Empty> : selectedEvents.length ? selectedEvents.map((item) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} />) : <Empty>{t.emptyCalendar}</Empty>}</div>
-            </section>
-          </div>
-        </article>
-
-        <section className="gd-content-grid">
-          <Surface id="dashboard-approvals" title={snapshot.leader ? t.approvalsLeader : t.approvalsTeacher} icon="review" action={() => { window.location.hash = snapshot.leader ? '#/resource-library' : '#/work-hub'; }} actionLabel={t.viewAll}><div className="gd-list">{feedbackItems.length ? feedbackItems.map((item) => <MiniRow key={item.id} item={item} language={language} />) : <Empty>{t.emptyApprovals}</Empty>}</div></Surface>
-          <Surface id="dashboard-resources" title={t.resources} icon="folder" action={() => { window.location.hash = '#/resource-library'; }} actionLabel={t.viewAll}><div className="gd-tile-grid">{snapshot.recentResources?.length ? snapshot.recentResources.map((item) => <Tile key={item.id} item={{ ...item, target: '#/resource-library', icon: 'RL' }} t={t} />) : <Empty>{t.emptyResources}</Empty>}</div></Surface>
-          <Surface title={t.continue} icon="apps" action={() => { window.location.hash = '#/apps'; }} actionLabel={t.viewAll}><div className="gd-tile-grid">{snapshot.continueItems?.length ? snapshot.continueItems.map((item) => <Tile key={`${item.id}:${item.target}`} item={item} t={t} />) : <Empty>{t.emptyContinue}</Empty>}</div></Surface>
-          {snapshot.homeroom ? <Surface title={t.homeroom} icon="people" action={() => { window.location.hash = '#/homeroom'; }} actionLabel={t.viewAll}><div className="gd-homeroom">{[[t.students, snapshot.homeroom.studentCount], [t.absent, snapshot.homeroom.absentToday], [t.reminders, snapshot.homeroom.reminders], [t.alerts, snapshot.homeroom.alerts]].map(([label, value]) => <button type="button" key={label} onClick={() => { window.location.hash = '#/homeroom'; }}><strong>{value}</strong><span>{label}</span></button>)}</div></Surface> : null}
-        </section>
-
-        <Surface title={t.quickActions} icon="apps" className="gd-quick-surface"><div className="gd-quick-actions">{quickActions.map(([icon, label, target]) => <button type="button" key={label} className="gd-quick-action" onClick={() => { window.location.hash = target; }}><span><Icon name={icon} size={20} /></span>{label}</button>)}</div></Surface>
-      </div>
-    </section>
-  );
+  return <section className={`gd-page${initialLoading ? ' is-loading' : ''}`} aria-label={t.pageTitle} aria-busy={loading}>
+    <div className="gd-shell">
+      <header className="gd-hero"><div className="gd-hero-copy"><span>{t.eyebrow}</span><h1>{t.hello}, {name}</h1><p>{t.lead}</p></div><div className="gd-hero-actions"><button type="button" className="gd-button filled" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><Icon name="calendar" size={20} />{t.calendar}</button><button type="button" className="gd-button outlined" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={20} />{loading ? t.refreshing : t.refresh}</button></div></header>
+      {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
+      <section className="gd-metrics" aria-label={t.eyebrow}>
+        <Metric icon="event" label={t.upcomingEvents} value={timeline.length} detail={`${activeDays} ${t.activeDays.toLowerCase()}`} tone="blue" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
+        <Metric icon="calendar" label={t.activeDays} value={activeDays} detail={monthRange} tone="green" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
+        <Metric icon="folder" label={t.resourcesMetric} value={snapshot.recentResources?.length || 0} detail={t.resources} tone="yellow" onClick={() => document.querySelector('#dashboard-resources')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
+        <Metric icon="review" label={t.reviewMetric} value={reviewCount} detail={leaderView ? t.approvalsLeader : t.approvalsTeacher} tone="red" onClick={() => document.querySelector('#dashboard-approvals')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
+      </section>
+      {leaderView ? <PersonnelLookup currentUser={currentUser} language={language} /> : null}
+      <article className="gd-calendar gd-calendar-split" id="dashboard-calendar">
+        <header className="gd-calendar-header"><div className="gd-calendar-title"><span><Icon name="calendar" size={22} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div><button type="button" className="gd-text-button" onClick={() => { window.location.hash = '#/work-hub'; }}>{t.openCalendar}<Icon name="arrow" size={18} /></button></header>
+        <div className="gd-calendar-layout">
+          <aside className="gd-calendar-sidebar" aria-label={t.chooseDate}>
+            <div className="gd-calendar-side-head"><div><span>{t.chooseDate}</span><strong>{monthRange}</strong></div><span className="gd-count-chip">{timeline.length} {t.events}</span></div>
+            <div className="gd-calendar-days-grid">{calendarDays.map((day) => {
+              const selected = selectedDay === day.key; const today = todayKey === day.key;
+              return <button type="button" key={day.key} className={`gd-day-card${selected ? ' is-selected' : ''}${today ? ' is-today' : ''}${day.events.length ? ' has-events' : ''}`} onClick={() => setSelectedDay(day.key)} aria-pressed={selected}><span className="gd-day-number">{day.date.getDate()}</span><span className="gd-day-info"><strong>{new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day.date)}</strong><small>{new Intl.DateTimeFormat(locale, { month: 'short' }).format(day.date)}</small></span><span className="gd-day-event-count">{today ? t.today : day.events.length ? day.events.length : '—'}</span></button>;
+            })}</div>
+            <div className="gd-calendar-next-event"><span><Icon name="event" size={18} /></span><div><small>{t.nextEvent}</small><strong>{nextEvent?.title || t.noUpcoming}</strong></div></div>
+          </aside>
+          <section className="gd-agenda-panel" aria-live="polite"><header className="gd-agenda-panel-header"><div className="gd-agenda-date-badge"><strong>{selectedCalendarDay?.date?.getDate() || '—'}</strong><span>{new Intl.DateTimeFormat(locale, { month: 'short' }).format(selectedCalendarDay?.date || new Date())}</span></div><div className="gd-agenda-heading"><span>{t.selectedDay}</span><h3>{selectedWeekday}</h3><p>{selectedDate}</p></div><span className="gd-count-chip">{selectedEvents.length} {t.events}</span></header><div className="gd-agenda-list gd-agenda-list-split">{initialLoading ? <Empty>{t.refreshing}</Empty> : selectedEvents.length ? selectedEvents.map((item) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} />) : <Empty>{t.emptyCalendar}</Empty>}</div></section>
+        </div>
+      </article>
+      <section className="gd-content-grid">
+        <Surface id="dashboard-approvals" title={leaderView ? t.approvalsLeader : t.approvalsTeacher} icon="review" action={() => { window.location.hash = leaderView ? '#/resource-library' : '#/work-hub'; }} actionLabel={t.viewAll}><div className="gd-list">{feedbackItems.length ? feedbackItems.map((item) => <MiniRow key={item.id} item={item} language={language} />) : <Empty>{t.emptyApprovals}</Empty>}</div></Surface>
+        <Surface id="dashboard-resources" title={t.resources} icon="folder" action={() => { window.location.hash = '#/resource-library'; }} actionLabel={t.viewAll}><div className="gd-tile-grid">{snapshot.recentResources?.length ? snapshot.recentResources.map((item) => <Tile key={item.id} item={{ ...item, target: '#/resource-library', icon: 'RL' }} t={t} />) : <Empty>{t.emptyResources}</Empty>}</div></Surface>
+        <Surface title={t.continue} icon="apps" action={() => { window.location.hash = '#/apps'; }} actionLabel={t.viewAll}><div className="gd-tile-grid">{snapshot.continueItems?.length ? snapshot.continueItems.map((item) => <Tile key={`${item.id}:${item.target}`} item={item} t={t} />) : <Empty>{t.emptyContinue}</Empty>}</div></Surface>
+        {snapshot.homeroom ? <Surface title={t.homeroom} icon="people" action={() => { window.location.hash = '#/homeroom'; }} actionLabel={t.viewAll}><div className="gd-homeroom">{[[t.students, snapshot.homeroom.studentCount], [t.absent, snapshot.homeroom.absentToday], [t.reminders, snapshot.homeroom.reminders], [t.alerts, snapshot.homeroom.alerts]].map(([label, value]) => <button type="button" key={label} onClick={() => { window.location.hash = '#/homeroom'; }}><strong>{value}</strong><span>{label}</span></button>)}</div></Surface> : null}
+      </section>
+      <Surface title={t.quickActions} icon="apps" className="gd-quick-surface"><div className="gd-quick-actions">{quickActions.map(([icon, label, target]) => <button type="button" key={label} className="gd-quick-action" onClick={() => { window.location.hash = target; }}><span><Icon name={icon} size={20} /></span>{label}</button>)}</div></Surface>
+    </div>
+  </section>;
 }
