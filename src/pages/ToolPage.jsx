@@ -83,7 +83,7 @@ export default function ToolPage(props) {
     return renderLazy(THPTPracticeHub, props);
   }
 
-  if (tool?.slug === 'personnel-hub') {
+  if (['brian-team', 'personnel-hub'].includes(tool?.slug)) {
     return renderLazy(PersonnelHub, props);
   }
 
