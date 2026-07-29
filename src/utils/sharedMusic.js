@@ -7,7 +7,10 @@ const WORKSPACE_KEY = 'english-hub';
 const EVENT_NAME = 'bes-shared-music-updated';
 const CACHE_PREFIX = 'bes-shared-music-v1';
 const SIGNED_URL_TTL_SECONDS = 60 * 60 * 12;
+const SIGNED_URL_REFRESH_BUFFER_MS = 5 * 60 * 1000;
 const MAX_FILE_SIZE = 40 * 1024 * 1024;
+const signedUrlCache = new Map();
+const signedUrlRequests = new Map();
 let subscriptionSerial = 0;
 
 function userKey(user) {
@@ -131,14 +134,58 @@ function explainCloudError(error, action = 'sync') {
   return cleanText(error?.message || error) || 'Không thể đồng bộ nhạc dùng chung.';
 }
 
-async function createTrackUrl(path) {
-  if (!path) return { signedUrl: '', signedUntil: '' };
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
-  if (error) throw error;
+function isReusableTrackUrl(value, path) {
+  const track = normalizeTrack(value?.track || value);
+  if (!track || track.path !== path || !track.signedUrl) return false;
+  const signedUntil = Date.parse(track.signedUntil || '');
+  return Number.isFinite(signedUntil) && signedUntil - Date.now() > SIGNED_URL_REFRESH_BUFFER_MS;
+}
+
+function reusableTrackUrl(value, path) {
+  if (!isReusableTrackUrl(value, path)) return null;
+  const track = normalizeTrack(value?.track || value);
   return {
-    signedUrl: cleanText(data?.signedUrl),
-    signedUntil: new Date(Date.now() + SIGNED_URL_TTL_SECONDS * 1000).toISOString(),
+    signedUrl: track.signedUrl,
+    signedUntil: track.signedUntil,
   };
+}
+
+function rememberTrackUrl(path, url) {
+  if (path && isReusableTrackUrl({ path, ...url }, path)) signedUrlCache.set(path, url);
+  return url;
+}
+
+function forgetTrackUrl(path) {
+  if (!path) return;
+  signedUrlCache.delete(path);
+  signedUrlRequests.delete(path);
+}
+
+async function createTrackUrl(path, cachedSnapshot = null) {
+  if (!path) return { signedUrl: '', signedUntil: '' };
+
+  const reusable = reusableTrackUrl(cachedSnapshot, path)
+    || reusableTrackUrl(signedUrlCache.get(path), path);
+  if (reusable) return rememberTrackUrl(path, reusable);
+
+  const pending = signedUrlRequests.get(path);
+  if (pending) return pending;
+
+  const request = (async () => {
+    const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
+    if (error) throw error;
+    return rememberTrackUrl(path, {
+      signedUrl: cleanText(data?.signedUrl),
+      signedUntil: new Date(Date.now() + SIGNED_URL_TTL_SECONDS * 1000).toISOString(),
+    });
+  })();
+
+  signedUrlRequests.set(path, request);
+  try {
+    return await request;
+  } finally {
+    if (signedUrlRequests.get(path) === request) signedUrlRequests.delete(path);
+  }
 }
 
 function rowToSnapshot(row, url = {}) {
@@ -188,7 +235,7 @@ export async function loadSharedMusic(user) {
   try {
     const row = await readCloudRow();
     let url = {};
-    if (row?.track_path && (row.shared || canManageSharedMusic(user))) url = await createTrackUrl(row.track_path);
+    if (row?.track_path && (row.shared || canManageSharedMusic(user))) url = await createTrackUrl(row.track_path, local);
     return writeSharedMusicLocal(user, snapshotForUser(user, rowToSnapshot(row, url)));
   } catch (error) {
     console.warn('[Shared music] load failed; using cached settings', error);
@@ -246,10 +293,12 @@ export async function uploadAndShareMusic(user, file, title = '') {
     const url = await createTrackUrl(path);
     const snapshot = writeSharedMusicLocal(user, rowToSnapshot(data || row, url));
     if (previous?.track_path && previous.track_path !== path) {
+      forgetTrackUrl(previous.track_path);
       supabase.storage.from(BUCKET).remove([previous.track_path]).catch((cleanupError) => console.warn('[Shared music] old file cleanup failed', cleanupError));
     }
     return snapshot;
   } catch (error) {
+    forgetTrackUrl(path);
     await supabase.storage.from(BUCKET).remove([path]).catch(() => null);
     throw new Error(explainCloudError(error, 'upload'));
   }
@@ -264,7 +313,7 @@ export async function setSharedMusicVisibility(user, shared) {
     .select('workspace_key,track_path,track_title,track_name,track_mime,track_size,shared,updated_by,updated_by_email,created_at,updated_at')
     .maybeSingle();
   if (error) throw new Error(explainCloudError(error, 'share'));
-  const url = data?.track_path ? await createTrackUrl(data.track_path) : {};
+  const url = data?.track_path ? await createTrackUrl(data.track_path, readSharedMusicLocal(user)) : {};
   return writeSharedMusicLocal(user, rowToSnapshot(data, url));
 }
 
@@ -274,6 +323,7 @@ export async function removeSharedMusic(user) {
   const { error } = await supabase.from(TABLE).delete().eq('workspace_key', WORKSPACE_KEY);
   if (error) throw new Error(explainCloudError(error, 'delete'));
   if (previous?.track_path) {
+    forgetTrackUrl(previous.track_path);
     const { error: storageError } = await supabase.storage.from(BUCKET).remove([previous.track_path]);
     if (storageError) console.warn('[Shared music] file deletion failed after metadata removal', storageError);
   }
