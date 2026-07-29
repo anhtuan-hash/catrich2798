@@ -9,6 +9,7 @@ import BrianTeamProgressPanelBridge from './components/BrianTeamProgressPanelBri
 import BrianTeamDirectReviewBridge from './components/BrianTeamDirectReviewBridge.jsx';
 import BrianTeamRealtimeAlertsBridge from './components/BrianTeamRealtimeAlertsBridge.jsx';
 import BrianTeamOperationalStabilityBridge from './components/BrianTeamOperationalStabilityBridge.jsx';
+import BrianTeamNoPurpleRuntimeBridge from './components/BrianTeamNoPurpleRuntimeBridge.jsx';
 import { initializeAuthSession, subscribeToAuthChanges } from './utils/auth.js';
 import { installNeutralSurfaceGuard } from './utils/neutralSurfaceGuard.js';
 import { installSiteFontFromCache } from './utils/siteFontSettings.js';
@@ -52,8 +53,7 @@ import './styles/HomeHeroCmsEditorGoogle.css';
 import './styles/HomeHeroCmsEditorApproved.css';
 // Interaction and Safari range reset must remain the final editor stylesheet.
 import './styles/HomeHeroCmsEditorInteractionFix.css';
-// This must remain the final global stylesheet: it removes every legacy purple
-// background from the Brian Team Work Hub progress panel.
+// Static fallback for the Brian Team Work Hub progress panel.
 import './styles/BrianTeamProgressNoPurple.css';
 
 installNeutralSurfaceGuard();
@@ -86,6 +86,7 @@ function Bootstrap() {
       <BrianTeamDirectReviewBridge currentUser={user} language={language} />
       <BrianTeamRealtimeAlertsBridge currentUser={user} language={language} />
       <BrianTeamOperationalStabilityBridge currentUser={user} language={language} />
+      <BrianTeamNoPurpleRuntimeBridge />
       <HomeWeeklyPracticeStatisticsController />
     </>
   );
