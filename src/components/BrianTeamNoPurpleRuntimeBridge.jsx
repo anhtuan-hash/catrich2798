@@ -8,6 +8,16 @@ function setImportant(node, property, value) {
   node.style.setProperty(property, value, IMPORTANT);
 }
 
+function clearSurface(node, background = 'transparent') {
+  if (!node?.style) return;
+  setImportant(node, 'background', background);
+  setImportant(node, 'background-color', background);
+  setImportant(node, 'background-image', 'none');
+  setImportant(node, 'box-shadow', 'none');
+  setImportant(node, 'filter', 'none');
+  setImportant(node, 'backdrop-filter', 'none');
+}
+
 function paintPanel(panel) {
   setImportant(panel, 'background', '#ffffff');
   setImportant(panel, 'background-color', '#ffffff');
@@ -19,12 +29,19 @@ function paintPanel(panel) {
 
   const head = panel.querySelector('.bes-bt-progress-head');
   if (head) {
-    setImportant(head, 'background', '#ffffff');
-    setImportant(head, 'background-color', '#ffffff');
-    setImportant(head, 'background-image', 'none');
+    clearSurface(head, '#ffffff');
     setImportant(head, 'border', '0');
-    setImportant(head, 'box-shadow', 'none');
     setImportant(head, 'color', '#102a43');
+
+    // Legacy theme rules were applying a purple background to the text wrapper
+    // and its inline children. Inline !important styles guarantee that the
+    // remaining title label cannot be recoloured after React re-renders.
+    [head, ...head.querySelectorAll('div, span, b, strong, small, em, i')].forEach((node) => {
+      if (node.closest('button')) return;
+      clearSurface(node, 'transparent');
+      setImportant(node, 'border-color', 'transparent');
+      setImportant(node, 'outline', '0');
+    });
   }
 
   const track = panel.querySelector('.bes-bt-progress-track');
@@ -154,6 +171,18 @@ export default function BrianTeamNoPurpleRuntimeBridge() {
         box-shadow:none!important;
       }
       #bes-external-apps-root .bes-bt-progress-panel{border:1px solid #c8d6e1!important;box-shadow:0 8px 24px rgba(16,42,67,.07)!important;color:#102a43!important}
+      #bes-external-apps-root .bes-bt-progress-head>div,
+      #bes-external-apps-root .bes-bt-progress-head>div>span,
+      #bes-external-apps-root .bes-bt-progress-head>div>b,
+      #bes-external-apps-root .bes-bt-progress-head>div>strong,
+      #bes-external-apps-root .bes-bt-progress-head>div>small{
+        background:transparent!important;
+        background-color:transparent!important;
+        background-image:none!important;
+        border-color:transparent!important;
+        box-shadow:none!important;
+        filter:none!important;
+      }
       #bes-external-apps-root .bes-bt-progress-head span{color:#0e6773!important}
       #bes-external-apps-root .bes-bt-progress-head b{color:#102a43!important}
       #bes-external-apps-root .bes-bt-progress-track{background:#dce7ee!important;background-image:none!important}
