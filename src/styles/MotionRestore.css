@@ -1,0 +1,122 @@
+/* Lightweight global route motion restored after the performance-first runtime disabled it. */
+.tile-launch-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 16000;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+}
+
+.tile-launch-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(9, 18, 35, .18) !important;
+  animation: besMotionBackdropIn 300ms ease-out both;
+}
+
+.tile-launch-card {
+  position: absolute;
+  left: var(--tile-launch-x);
+  top: var(--tile-launch-y);
+  width: var(--tile-launch-w);
+  height: var(--tile-launch-h);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--tile-launch-color, #0078d4) !important;
+  color: #fff !important;
+  transform-origin: top left;
+  will-change: transform, opacity, filter;
+  animation: besMotionTileExpand 360ms cubic-bezier(.16, .82, .2, 1) both;
+}
+
+.tile-launch-label {
+  color: #fff !important;
+  font-size: clamp(1.8rem, 5vw, 4.5rem);
+  font-weight: 950;
+  letter-spacing: -.06em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .2);
+  animation: besMotionLabelOut 220ms ease-in both;
+}
+
+.metro-clean-system[data-motion='lite'] .tile-launch-backdrop {
+  animation-duration: 220ms;
+}
+
+.metro-clean-system[data-motion='lite'] .tile-launch-card {
+  animation-duration: 280ms;
+}
+
+.metro-clean-system[data-motion='lite'] .tile-launch-label {
+  animation-duration: 150ms;
+}
+
+.metro-clean-system[data-motion='lite'] .wp8-page-stage {
+  animation: besMotionPageLite 220ms cubic-bezier(.2, .72, .2, 1) both;
+}
+
+.metro-clean-system[data-motion='full'] .wp8-page-stage {
+  animation: besMotionPageFull 360ms cubic-bezier(.16, .82, .2, 1) both;
+}
+
+.metro-clean-system[data-route-transition='book'][data-motion='full'] .wp8-page-stage,
+html[data-route-transition='book'] .metro-clean-system[data-motion='full'] .wp8-page-stage {
+  animation-name: besMotionPageBook;
+}
+
+@keyframes besMotionTileExpand {
+  0% {
+    opacity: .94;
+    filter: saturate(1.08) brightness(1.03);
+    transform: translate3d(0, 0, 0) scale(1, 1);
+  }
+  72% { opacity: 1; }
+  100% {
+    opacity: 1;
+    filter: saturate(1) brightness(1);
+    transform: translate3d(var(--tile-launch-dx), var(--tile-launch-dy), 0)
+      scale(var(--tile-launch-sx), var(--tile-launch-sy));
+  }
+}
+
+@keyframes besMotionBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes besMotionLabelOut {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(.86); }
+}
+
+@keyframes besMotionPageLite {
+  from { opacity: .18; clip-path: inset(0 0 8% 0); }
+  to { opacity: 1; clip-path: inset(0); }
+}
+
+@keyframes besMotionPageFull {
+  from { opacity: .08; clip-path: inset(0 0 16% 0); filter: blur(2px); }
+  60% { filter: blur(0); }
+  to { opacity: 1; clip-path: inset(0); filter: none; }
+}
+
+@keyframes besMotionPageBook {
+  from { opacity: .08; clip-path: inset(0 7% 0 0 round 0 28px 28px 0); }
+  to { opacity: 1; clip-path: inset(0); }
+}
+
+.metro-clean-system[data-motion='off'] .tile-launch-layer,
+.metro-clean-system[data-performance='low'] .tile-launch-layer {
+  display: none !important;
+}
+
+.metro-clean-system[data-motion='off'] .wp8-page-stage,
+.metro-clean-system[data-performance='low'] .wp8-page-stage {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-launch-layer { display: none !important; }
+  .wp8-page-stage { animation: none !important; }
+}

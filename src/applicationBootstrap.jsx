@@ -1,4 +1,5 @@
 import './main.jsx';
+import './styles/MotionRestore.css';
 
 const MAX_WAIT_MS = 20000;
 const STARTED_AT = Date.now();
