@@ -3,6 +3,7 @@ import './patch-ai-workspace-session.mjs';
 import './patch-global-theme-v3.mjs';
 import './patch-weekly-manager-native-grade-filter.mjs';
 import './patch-home-hero-media-optimizer.mjs';
+import './patch-home-hero-static-publisher.mjs';
 
 const now = new Date().toISOString();
 const removedApplications = [
