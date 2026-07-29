@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import './patch-ai-workspace-session.mjs';
 import './patch-global-theme-v3.mjs';
-import './build-home-hero-asset.mjs';
+import './patch-font-catalog.mjs';
 
 const now = new Date().toISOString();
 const removedApplications = [
@@ -28,9 +28,9 @@ for (const file of ['public/version.json', 'public/release-manifest.json']) {
   value.requiresSql = false;
   delete value.requiredMigration;
   value.removedApplicationsV1167Cleanup = removedApplications;
-  value.homeBuild = '20260729-r3';
+  value.systemFontCatalog = ['Brian Gesco', 'Quicksand', 'MJ Bexdroga', '1FTV Nasi', 'VL Monologue'];
   value.generatedAt = now;
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n');
 }
 
-console.log('Version registry synchronized: 11.6.7 · home 20260729-r3');
+console.log('Version registry synchronized: 11.6.7 · system font catalog');

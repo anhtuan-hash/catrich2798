@@ -15,19 +15,13 @@ import './weeklyPublishingSettings.js';
 import './weeklyPracticeOverride.js';
 // Add scheduled-publication information after the grade-card override has rendered.
 import './weeklyPracticeCompactSchedule.js';
-// Approved proposal 5: centered flagship homepage hero.
-import './homeHeroConcept5Flagship.js';
 import './styles/PublishingAndFontControls.css';
 import './styles/WeeklyBulkUpload.css';
 import './styles/WeeklyBulkUploadInputGuard.css';
 // Keep the emergency publisher stylesheet last within publisher controls.
 import './styles/WeeklyPublisherEmergencyFix.css';
-// Keep compact weekly-card dimensions and schedule dialog near the end of the cascade.
+// Keep compact weekly-card dimensions and schedule dialog at the end of the cascade.
 import './styles/WeeklyPracticeCompactSchedule.css';
-// Final balance pass: reduce the complete weekly-practice module, hero and cards together.
-import './styles/WeeklyPracticeBalancedScale.css';
-// Load the approved hero stylesheet last so it wins the homepage hero cascade.
-import './styles/HomeHeroConcept5Flagship.css';
 
 installNeutralSurfaceGuard();
 installSiteFontFromCache();
