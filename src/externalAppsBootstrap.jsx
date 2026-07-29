@@ -15,6 +15,8 @@ import './weeklyBulkUploadInputGuard.js';
 // Register bulk-submit interception before the single-file publishing handler.
 import './weeklyBulkUpload.js';
 import './weeklyPublishingSettings.js';
+// Save publication changes in place; the manager stays open and preserves its scroll position.
+import './weeklyManagerStayOpen.js';
 import './weeklyPracticeOverride.js';
 // Add scheduled-publication information after the grade-card override has rendered.
 import './weeklyPracticeCompactSchedule.js';
