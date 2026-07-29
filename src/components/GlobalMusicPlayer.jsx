@@ -198,7 +198,7 @@ export default function GlobalMusicPlayer({ language = 'vi', currentUser }) {
     stopPlayback();
     refresh({ quiet: true });
     const unsubscribe = subscribeSharedMusic(currentUser, (next) => setSnapshot(next));
-    const timer = window.setInterval(() => refresh({ quiet: true }), 25 * 60 * 1000);
+    const timer = window.setInterval(() => refresh({ quiet: true }), 6 * 60 * 60 * 1000);
     return () => {
       unsubscribe();
       window.clearInterval(timer);
