@@ -1,0 +1,6 @@
+{
+  "deployment": "english-hub-home-hero-production",
+  "sourceCommit": "15ea23cc505fd17a70cd2e54bd1b91ee3e7ddb54",
+  "requestedAt": "2026-07-29T02:15:00Z",
+  "reason": "Trigger Vercel production deployment after successful preview validation"
+}
