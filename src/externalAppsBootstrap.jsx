@@ -44,6 +44,8 @@ import './styles/HomeHeroCmsEditor.css';
 import './styles/HomeHeroCmsOverlayFix.css';
 // Live preview occupies the editor's right-hand pane on large screens.
 import './styles/HomeHeroCmsPreviewDock.css';
+// Material 3 visual system must be the final Hero editor layer.
+import './styles/HomeHeroCmsEditorGoogle.css';
 
 installNeutralSurfaceGuard();
 installSiteFontFromCache();
