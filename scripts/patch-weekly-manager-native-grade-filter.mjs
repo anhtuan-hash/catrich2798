@@ -23,13 +23,21 @@ if (!source.includes('function inferManagerGrade(item)')) {
   source = source.replace(anchor, helper + anchor);
 }
 
-if (!source.includes("const [gradeFilter, setGradeFilter] = useState('all');")) {
-  const anchor = "  const [message, setMessage] = useState('');";
-  if (!source.includes(anchor)) throw new Error('Could not locate ManagerDialog state anchor.');
-  source = source.replace(anchor, `${anchor}\n  const [gradeFilter, setGradeFilter] = useState('all');`);
+const managerStart = source.indexOf('function ManagerDialog(');
+const managerEnd = source.indexOf('\nexport default function GlobalWeeklyPracticeBridge', managerStart);
+if (managerStart < 0 || managerEnd < 0) {
+  throw new Error('Could not isolate ManagerDialog component.');
 }
 
-if (!source.includes('const gradeCounts = useMemo(() =>')) {
+let manager = source.slice(managerStart, managerEnd);
+
+if (!manager.includes("const [gradeFilter, setGradeFilter] = useState('all');")) {
+  const anchor = "  const [message, setMessage] = useState('');";
+  if (!manager.includes(anchor)) throw new Error('Could not locate ManagerDialog state anchor.');
+  manager = manager.replace(anchor, `${anchor}\n  const [gradeFilter, setGradeFilter] = useState('all');`);
+}
+
+if (!manager.includes('const gradeCounts = useMemo(() =>')) {
   const anchor = '  useEffect(() => { refresh(); }, [refresh]);';
   const derivedState = `  useEffect(() => { refresh(); }, [refresh]);
 
@@ -42,27 +50,29 @@ if (!source.includes('const gradeCounts = useMemo(() =>')) {
   const visibleItems = useMemo(() => gradeFilter === 'all'
     ? items
     : items.filter((item) => inferManagerGrade(item) === gradeFilter), [items, gradeFilter]);`;
-  if (!source.includes(anchor)) throw new Error('Could not locate ManagerDialog refresh effect.');
-  source = source.replace(anchor, derivedState);
+  if (!manager.includes(anchor)) throw new Error('Could not locate ManagerDialog refresh effect.');
+  manager = manager.replace(anchor, derivedState);
 }
 
-const headingAnchor = '<section className="bes-weekly-manage-list"><h3>Các bài đã tạo</h3>';
-if (!source.includes('data-native-grade-filter="true"')) {
-  const toolbar = `<section className="bes-weekly-manage-list"><h3>Các bài đã tạo</h3><div className="bes-weekly-grade-filter bes-weekly-grade-filter--native" data-native-grade-filter="true"><div className="bes-weekly-grade-filter__heading"><strong>Phân loại theo khối</strong><small>Chọn khối để tra cứu nhanh các bài đã tạo.</small></div><div className="bes-weekly-grade-filter__buttons">{['all', '10', '11', '12'].map((grade) => <button key={grade} type="button" data-grade-filter={grade} className={gradeFilter === grade ? 'is-active' : ''} aria-pressed={gradeFilter === grade} disabled={grade !== 'all' && gradeCounts[grade] === 0} onClick={() => setGradeFilter(grade)}><span>{grade === 'all' ? 'Tất cả' : \`Khối {grade}\`}</span><b>{gradeCounts[grade]}</b></button>)}</div></div>`;
-  const safeToolbar = toolbar.replace('\u001b{grade}', '${grade}');
-  if (!source.includes(headingAnchor)) throw new Error('Could not locate created-practices heading.');
-  source = source.replace(headingAnchor, safeToolbar);
+if (!manager.includes('data-native-grade-filter="true"')) {
+  const headingAnchor = '<section className="bes-weekly-manage-list"><h3>Các bài đã tạo</h3>';
+  const toolbar = '<section className="bes-weekly-manage-list"><h3>Các bài đã tạo</h3><div className="bes-weekly-grade-filter bes-weekly-grade-filter--native" data-native-grade-filter="true"><div className="bes-weekly-grade-filter__heading"><strong>Phân loại theo khối</strong><small>Chọn khối để tra cứu nhanh các bài đã tạo.</small></div><div className="bes-weekly-grade-filter__buttons">{[\'all\', \'10\', \'11\', \'12\'].map((grade) => <button key={grade} type="button" data-grade-filter={grade} className={gradeFilter === grade ? \'is-active\' : \'\'} aria-pressed={gradeFilter === grade} disabled={grade !== \'all\' && gradeCounts[grade] === 0} onClick={() => setGradeFilter(grade)}><span>{grade === \'all\' ? \'Tất cả\' : \'Khối \' + grade}</span><b>{gradeCounts[grade]}</b></button>)}</div></div>';
+  if (!manager.includes(headingAnchor)) throw new Error('Could not locate created-practices heading.');
+  manager = manager.replace(headingAnchor, toolbar);
 }
 
-source = source.replace(
+manager = manager.replace(
   '{!loading && !items.length ? <p>Chưa có bài nào.</p> : null}',
-  "{!loading && !visibleItems.length ? <p>{gradeFilter === 'all' ? 'Chưa có bài nào.' : `Chưa có bài thuộc Khối ${gradeFilter}.`}</p> : null}",
+  "{!loading && !visibleItems.length ? <p>{gradeFilter === 'all' ? 'Chưa có bài nào.' : 'Chưa có bài thuộc Khối ' + gradeFilter + '.'}</p> : null}",
 );
-source = source.replace('{items.map((practice) =>', '{visibleItems.map((practice) =>');
+manager = manager.replace('{items.map((practice) =>', '{visibleItems.map((practice) =>');
 
-if (!source.includes('data-native-grade-filter="true"') || !source.includes('{visibleItems.map((practice) =>')) {
-  throw new Error('Native grade filter patch did not complete.');
+if (!manager.includes("const [gradeFilter, setGradeFilter] = useState('all');")
+  || !manager.includes('data-native-grade-filter="true"')
+  || !manager.includes('{visibleItems.map((practice) =>')) {
+  throw new Error('Native grade filter patch did not complete inside ManagerDialog.');
 }
 
+source = source.slice(0, managerStart) + manager + source.slice(managerEnd);
 fs.writeFileSync(target, source);
-console.log('Weekly manager native grade filter patched into React component.');
+console.log('Weekly manager native grade filter patched safely inside ManagerDialog.');
