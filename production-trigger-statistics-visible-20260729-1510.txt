@@ -1,0 +1,1 @@
+Deploy the direct visibility fix for the TTCM statistics button when the weekly-practice manager action is present.
