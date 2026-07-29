@@ -62,6 +62,7 @@ import './GlobalWorkScheduleModern.css';
 import './GlobalHomeViewportFit.css';
 import './GlobalWeeklyPractice.css';
 import './GlobalWeeklyPracticeStatistics.css';
+import './GlobalWeeklyPracticeStatisticsLaunchFix.css';
 import './GlobalWeeklyPracticeSimple.css';
 import './GlobalWeeklyPracticeStudentProof.css';
 
