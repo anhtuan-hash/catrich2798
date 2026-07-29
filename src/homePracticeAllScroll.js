@@ -64,6 +64,21 @@ function actionLabel(item) {
   return 'Mở bài';
 }
 
+function browserSignature(items) {
+  return items.map((item) => {
+    const availability = getWeeklyPracticeAvailability(item);
+    const progress = readWeeklyPracticeProgress(item?.id) || {};
+    return [
+      item.id,
+      item.updated_at,
+      availability.state,
+      progress.submitted ? 1 : 0,
+      progress.identity ? 1 : 0,
+      progress.updatedAt || '',
+    ].join(':');
+  }).join('|');
+}
+
 function findLegacyButton(item) {
   const root = document.querySelector(LEGACY_ROOT);
   if (!root || !item) return null;
@@ -168,8 +183,12 @@ function renderBrowser(hub, items) {
   }
 
   browser.querySelector('[data-uploaded-count]').textContent = `${items.length} bài`;
-  const track = browser.querySelector('.bha-uploaded-track');
-  track.replaceChildren(...items.map(createCard));
+  const signature = browserSignature(items);
+  if (browser.dataset.itemsSignature !== signature) {
+    browser.dataset.itemsSignature = signature;
+    const track = browser.querySelector('.bha-uploaded-track');
+    track.replaceChildren(...items.map(createCard));
+  }
   syncBrowserVisibility(hub, browser);
 }
 
