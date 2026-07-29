@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import ExternalAppsIntegration from './components/ExternalAppsIntegration.jsx';
 import GlobalFontSettingsBridge from './components/GlobalFontSettingsBridge.jsx';
 import HomeWeeklyPracticeStatisticsController from './components/HomeWeeklyPracticeStatisticsController.jsx';
+import DepartmentHeadAdminRoleBridge from './components/DepartmentHeadAdminRoleBridge.jsx';
 import { initializeAuthSession, subscribeToAuthChanges } from './utils/auth.js';
 import { installNeutralSurfaceGuard } from './utils/neutralSurfaceGuard.js';
 import { installSiteFontFromCache } from './utils/siteFontSettings.js';
@@ -56,6 +57,7 @@ function Bootstrap() {
     <>
       <ExternalAppsIntegration currentUser={user} language={language} />
       <GlobalFontSettingsBridge currentUser={user} language={language} />
+      <DepartmentHeadAdminRoleBridge currentUser={user} language={language} />
       <HomeWeeklyPracticeStatisticsController />
     </>
   );
