@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight, BookOpen, Check, ClipboardClock, Clock3, FileCheck2, Files,
   FolderOpen, Gamepad2, GraduationCap, MessageSquareText, NotebookTabs,
-  Play, School, Sparkles, UsersRound,
+  Play, School, Sparkles, UsersRound, X,
 } from 'lucide-react';
 import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../data/apps.js';
 import { getFirstAllowedRoute, hasRouteAccess } from '../utils/permissions.js';
@@ -17,6 +17,7 @@ import {
 } from '../utils/weeklyPractice.js';
 import './HomeApproved.css';
 import './HomePracticeIntegration.css';
+import './HomePracticeByGrade.css';
 
 const ALL_APPS = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS];
 const isPublicTarget = (target) => ['#/home', '#/resources', '#/contact', '#/login', '#/register', '#/setup'].includes(target);
@@ -38,22 +39,24 @@ const TEXT = {
     subtitle: 'Tích hợp các công cụ hỗ trợ giảng dạy, học tập và quản lý hiệu quả — tối ưu cho giáo viên và học sinh.',
     start: 'Bắt đầu ngay', guide: 'Xem hướng dẫn', tools: 'CÔNG CỤ NỔI BẬT', all: 'Xem tất cả',
     practice: 'WEEKLY ENGLISH PRACTICE', practiceTitle: 'Hub bài tập theo tuần',
-    practiceSub: 'Luyện tập đều đặn, bám sát chương trình và theo dõi tiến độ theo từng khối.',
-    allPractice: 'Xem tất cả bài tập & đề thi', collapse: 'Thu gọn bài cũ', manage: 'Quản lý bài tuần',
-    weekly: 'Theo tuần', curriculum: 'Bám sát chương trình', enter: 'Vào hub', open: 'Mở bài',
-    continue: 'Tiếp tục', review: 'Xem lại', schedule: 'Xem lịch', active: 'Đang mở', minutes: 'phút',
+    practiceSub: 'Mỗi khối hiển thị tối đa 5 bài gần nhất theo lịch; tên bài được sắp xếp A–Z.',
+    manage: 'Quản lý bài tuần', weekly: 'Theo tuần', curriculum: 'Bám sát chương trình', enter: 'Vào hub',
+    open: 'Mở bài', continue: 'Tiếp tục', review: 'Xem lại', schedule: 'Xem lịch', minutes: 'phút',
     grade: 'KHỐI', english: 'Tiếng Anh', loading: 'Đang đồng bộ bài tập…', empty: 'Bài tập đang được chuẩn bị',
+    recentFive: '5 bài gần nhất · A–Z', viewAllGrade: 'Xem tất cả', allGradeTitle: 'Tất cả bài của khối',
+    allGradeSub: 'Danh sách được sắp xếp theo thứ tự A–Z.', close: 'Đóng', retry: 'Thử lại',
   },
   en: {
     badge: 'ENGLISH HUB', headline: 'A smart teaching workspace', highlight: '& creative learning',
     subtitle: 'Teaching, learning and management tools in one efficient workspace for teachers and students.',
     start: 'Get started', guide: 'View guide', tools: 'FEATURED TOOLS', all: 'View all',
     practice: 'WEEKLY ENGLISH PRACTICE', practiceTitle: 'Weekly practice hub',
-    practiceSub: 'Consistent curriculum-aligned practice organised by grade level.',
-    allPractice: 'View all practice & tests', collapse: 'Hide older lessons', manage: 'Manage weekly lessons',
-    weekly: 'Weekly practice', curriculum: 'Curriculum aligned', enter: 'Open hub', open: 'Open lesson',
-    continue: 'Continue', review: 'Review', schedule: 'View schedule', active: 'Open now', minutes: 'minutes',
+    practiceSub: 'Each grade shows up to five latest scheduled lessons, sorted A–Z.',
+    manage: 'Manage weekly lessons', weekly: 'Weekly practice', curriculum: 'Curriculum aligned', enter: 'Open hub',
+    open: 'Open lesson', continue: 'Continue', review: 'Review', schedule: 'View schedule', minutes: 'minutes',
     grade: 'GRADE', english: 'English', loading: 'Syncing weekly practice…', empty: 'Practice is being prepared',
+    recentFive: '5 latest lessons · A–Z', viewAllGrade: 'View all', allGradeTitle: 'All lessons for grade',
+    allGradeSub: 'The list is sorted alphabetically from A to Z.', close: 'Close', retry: 'Try again',
   },
 };
 
@@ -84,6 +87,39 @@ function safeDate(value) {
   return date && !Number.isNaN(date.getTime()) ? date : null;
 }
 
+function scheduleTimestamp(item) {
+  return safeDate(item?.opens_at)?.getTime()
+    || safeDate(item?.published_at)?.getTime()
+    || safeDate(item?.created_at)?.getTime()
+    || 0;
+}
+
+function compareAlphabetically(a, b, language = 'vi') {
+  return cleanText(a?.title).localeCompare(cleanText(b?.title), language === 'en' ? 'en' : 'vi', {
+    sensitivity: 'base',
+    numeric: true,
+    ignorePunctuation: true,
+  });
+}
+
+function latestScheduled(items) {
+  return [...(items || [])].sort((a, b) => scheduleTimestamp(b) - scheduleTimestamp(a));
+}
+
+function fiveRecentAlphabetical(items, language) {
+  return latestScheduled(items).slice(0, 5).sort((a, b) => compareAlphabetically(a, b, language));
+}
+
+function allAlphabetical(items, language) {
+  return [...(items || [])].sort((a, b) => compareAlphabetically(a, b, language));
+}
+
+function paletteForGrade(grade) {
+  if (grade === 10) return { accent: '#1a73e8', soft: '#eaf3ff' };
+  if (grade === 11) return { accent: '#7e42d3', soft: '#f3edff' };
+  return { accent: '#24963b', soft: '#edf8ef' };
+}
+
 function shortDate(value, language) {
   const date = safeDate(value);
   if (!date) return '';
@@ -95,7 +131,6 @@ function scheduleLabel(item, language) {
   const weekMatch = cleanText(item.week_key).match(/W(?:eek)?[-_ ]?(\d+)/i) || cleanText(item.week_key).match(/(\d+)/);
   const week = weekMatch?.[1] || cleanText(item.week_key);
   const opens = safeDate(item.opens_at);
-  const closes = safeDate(item.closes_at);
   const month = opens ? opens.getMonth() + 1 : 8;
   const semester = month >= 7 ? (language === 'en' ? 'Semester 1' : 'Học kì 1') : month <= 5 ? (language === 'en' ? 'Semester 2' : 'Học kì 2') : (language === 'en' ? 'Summer' : 'Hè');
   const weekText = language === 'en' ? `Week ${week || '—'}` : `Tuần ${week || '—'}`;
@@ -212,44 +247,77 @@ function GradeArt({ grade }) {
   return <div className="bha-grade-art"><Icon /><b>{grade}</b><i /><i /></div>;
 }
 
-function HistoryRow({ item, language, t, accent }) {
+function GradeLessonRow({ item, language, t }) {
   const availability = getWeeklyPracticeAvailability(item);
+  const duration = Math.max(45, Number(item?.duration_minutes || 45));
   return (
-    <article className="bha-history-row">
-      <span><strong>{item.title}</strong><small>{scheduleLabel(item, language)}</small></span>
-      <button type="button" style={{ '--history-accent': accent }} onClick={() => openLegacyPractice(item, language)}>
-        {practiceAction(item, language, t)}<ArrowRight size={14} />
-      </button>
+    <article className="bha-grade-lesson">
+      <div className="bha-grade-lesson__copy">
+        <strong>{item.title}</strong>
+        <small>{scheduleLabel(item, language)}</small>
+        <div className="bha-grade-lesson__meta">
+          <span><Clock3 size={11} />{duration} {t.minutes}</span>
+          <span className={`bha-grade-lesson__status is-${availability.state}`}><i />{availabilityText(availability, language)}</span>
+        </div>
+      </div>
+      <button type="button" onClick={() => openLegacyPractice(item, language)}>{practiceAction(item, language, t)}<ArrowRight size={14} /></button>
     </article>
   );
 }
 
-function GradeCard({ grade, items, t, language, expanded }) {
-  const palette = grade === 10
-    ? { accent: '#1a73e8', soft: '#eaf3ff' }
-    : grade === 11 ? { accent: '#7e42d3', soft: '#f3edff' } : { accent: '#24963b', soft: '#edf8ef' };
-  const item = items[0] || null;
-  const history = items.slice(1);
-  const availability = item ? getWeeklyPracticeAvailability(item) : { state: 'empty', canOpen: false, label: t.empty };
-  const duration = Math.max(45, Number(item?.duration_minutes || 45));
+function GradeCard({ grade, items, t, language, onViewAll }) {
+  const palette = paletteForGrade(grade);
+  const newest = latestScheduled(items)[0] || null;
+  const recent = fiveRecentAlphabetical(items, language);
   return (
-    <article className={`bha-grade${expanded && history.length ? ' has-history' : ''}`} style={{ '--accent': palette.accent, '--soft': palette.soft }}>
+    <article className="bha-grade bha-grade--with-lessons" style={{ '--accent': palette.accent, '--soft': palette.soft }}>
       <div className="bha-grade-copy">
         <span>{t.grade} {grade}</span><h3>{t.english} {grade}</h3>
-        <p><Check size={14} /> <b>{t.weekly}</b></p><small>{item?.title || t.curriculum}</small>
-        <button type="button" disabled={!item} onClick={() => item && openLegacyPractice(item, language)}>
+        <p><Check size={14} /> <b>{t.weekly}</b></p><small>{newest?.title || t.curriculum}</small>
+        <button type="button" disabled={!newest} onClick={() => newest && openLegacyPractice(newest, language)}>
           <ArrowRight size={14} /> {t.enter}
         </button>
       </div>
       <GradeArt grade={grade} />
-      {expanded && history.length ? <div className="bha-grade-history">{history.map((entry) => <HistoryRow key={entry.id} item={entry} language={language} t={t} accent={palette.accent} />)}</div> : null}
-      <footer>
-        <span className={`is-${availability.state}`}><i />{availabilityText(availability, language)}</span>
-        <strong>{item ? scheduleLabel(item, language) : t.empty}</strong>
-        <em><Clock3 size={13} />{duration} {t.minutes}</em>
-        <button type="button" disabled={!item} onClick={() => item && openLegacyPractice(item, language)}>{practiceAction(item, language, t)}<ArrowRight size={16} /></button>
-      </footer>
+      <section className="bha-grade-recent" aria-label={`${t.english} ${grade}`}>
+        <header className="bha-grade-recent__header">
+          <span>{t.recentFive}</span>
+          <button type="button" disabled={!items.length} onClick={() => onViewAll(grade)}>{t.viewAllGrade}<ArrowRight size={13} /></button>
+        </header>
+        {recent.length ? <div className="bha-grade-recent__list">{recent.map((item) => <GradeLessonRow key={item.id} item={item} language={language} t={t} />)}</div>
+          : <div className="bha-grade-empty-list">{t.empty}</div>}
+      </section>
     </article>
+  );
+}
+
+function GradeBrowser({ grade, items, language, t, onClose }) {
+  const palette = paletteForGrade(grade);
+  const ordered = allAlphabetical(items, language);
+  useEffect(() => {
+    const onKeyDown = (event) => { if (event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
+  return (
+    <div className="bha-grade-browser-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <section className="bha-grade-browser" role="dialog" aria-modal="true" aria-label={`${t.allGradeTitle} ${grade}`} style={{ '--accent': palette.accent, '--soft': palette.soft }}>
+        <header>
+          <div><span>{t.grade} {grade}</span><h2>{t.allGradeTitle} {grade}</h2><p>{ordered.length} {language === 'en' ? 'lessons' : 'bài'} · {t.allGradeSub}</p></div>
+          <button className="bha-grade-browser__close" type="button" aria-label={t.close} onClick={onClose}><X size={22} /></button>
+        </header>
+        <div className="bha-grade-browser__body">
+          {ordered.map((item) => {
+            const availability = getWeeklyPracticeAvailability(item);
+            return <article className="bha-grade-browser-row" key={item.id}>
+              <div><strong>{item.title}</strong><small>{scheduleLabel(item, language)} · {Math.max(45, Number(item?.duration_minutes || 45))} {t.minutes}</small></div>
+              <nav><span className={`is-${availability.state}`}><i />{availabilityText(availability, language)}</span><button type="button" onClick={() => openLegacyPractice(item, language)}>{practiceAction(item, language, t)}<ArrowRight size={14} /></button></nav>
+            </article>;
+          })}
+          {!ordered.length ? <div className="bha-grade-empty-list">{t.empty}</div> : null}
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -260,7 +328,7 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
   const [practiceItems, setPracticeItems] = useState([]);
   const [practiceLoading, setPracticeLoading] = useState(true);
   const [practiceError, setPracticeError] = useState('');
-  const [expanded, setExpanded] = useState(false);
+  const [selectedGrade, setSelectedGrade] = useState(null);
   const [, setProgressVersion] = useState(0);
   const canManagePractice = isDepartmentLeaderRole(currentUser?.role);
 
@@ -302,17 +370,11 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
     };
   }, [refreshPractice]);
 
-  const practicesByGrade = useMemo(() => {
-    const rank = (item) => ({ open: 0, upcoming: 1, closed: 2 }[getWeeklyPracticeAvailability(item).state] ?? 3);
-    const sorted = [...practiceItems].sort((a, b) => rank(a) - rank(b)
-      || Number(b.is_featured) - Number(a.is_featured)
-      || new Date(b.opens_at || 0) - new Date(a.opens_at || 0));
-    return {
-      10: sorted.filter((item) => inferGrade(item) === 10),
-      11: sorted.filter((item) => inferGrade(item) === 11),
-      12: sorted.filter((item) => inferGrade(item) === 12),
-    };
-  }, [practiceItems]);
+  const practicesByGrade = useMemo(() => ({
+    10: practiceItems.filter((item) => inferGrade(item) === 10),
+    11: practiceItems.filter((item) => inferGrade(item) === 11),
+    12: practiceItems.filter((item) => inferGrade(item) === 12),
+  }), [practiceItems]);
 
   return (
     <div className="bha-home" aria-label="English Hub homepage">
@@ -330,15 +392,13 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
         </section>
       </div>
       <section className="bha-practice"><header><div><span><ClipboardClock size={17} />{t.practice}</span><h2>{t.practiceTitle}</h2><p>{t.practiceSub}</p></div>
-        <div className="bha-practice-header-actions">
-          {canManagePractice ? <button type="button" className="bha-manage-practice" onClick={() => openLegacyManager(language)}>{t.manage}</button> : null}
-          <button type="button" onClick={() => setExpanded((value) => !value)}>{expanded ? t.collapse : t.allPractice}<ArrowRight size={16} /></button>
-        </div>
+        <div className="bha-practice-header-actions">{canManagePractice ? <button type="button" className="bha-manage-practice" onClick={() => openLegacyManager(language)}>{t.manage}</button> : null}</div>
       </header>
       {practiceLoading ? <div className="bha-practice-state"><span />{t.loading}</div> : null}
-      {!practiceLoading && practiceError ? <div className="bha-practice-state is-error">{practiceError}<button type="button" onClick={refreshPractice}>Thử lại</button></div> : null}
-      {!practiceLoading && !practiceError ? <div className="bha-grades">{[10, 11, 12].map((grade) => <GradeCard key={grade} grade={grade} items={practicesByGrade[grade]} t={t} language={language} expanded={expanded} />)}</div> : null}
+      {!practiceLoading && practiceError ? <div className="bha-practice-state is-error">{practiceError}<button type="button" onClick={refreshPractice}>{t.retry}</button></div> : null}
+      {!practiceLoading && !practiceError ? <div className="bha-grades">{[10, 11, 12].map((grade) => <GradeCard key={grade} grade={grade} items={practicesByGrade[grade]} t={t} language={language} onViewAll={setSelectedGrade} />)}</div> : null}
       </section>
+      {selectedGrade ? <GradeBrowser grade={selectedGrade} items={practicesByGrade[selectedGrade] || []} language={language} t={t} onClose={() => setSelectedGrade(null)} /> : null}
     </div>
   );
 }
