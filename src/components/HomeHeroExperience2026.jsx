@@ -57,6 +57,20 @@ function isExternalTarget(target) {
   return /^https:\/\//i.test(String(target || ''));
 }
 
+function navigateDirectly(target, newTab = false) {
+  const destination = String(target || '#/apps').trim();
+  if (isExternalTarget(destination)) {
+    if (newTab) window.open(destination, '_blank', 'noopener,noreferrer');
+    else window.location.assign(destination);
+    return;
+  }
+  if (/^#\//.test(destination)) {
+    window.location.hash = destination;
+    return;
+  }
+  window.location.hash = '#/apps';
+}
+
 function BackgroundMedia({ background, motionEnabled }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [background.url, background.type]);
@@ -191,16 +205,19 @@ export default function HomeHeroExperience2026({
 
   const handleButton = (button, event) => {
     const target = button.target || '#/apps';
-    if (isExternalTarget(target) && button.newTab) {
-      window.open(target, '_blank', 'noopener,noreferrer');
-      return;
-    }
     if (onLaunch) {
-      onLaunch(target, localized(button, language, 'labelVi', 'labelEn'), button.color, event);
+      onLaunch(target, localized(button, language, 'labelVi', 'labelEn'), button.color, event, button.newTab);
       return;
     }
-    if (button.id === 'primary') onStart?.(event);
-    else onGuide?.(event);
+    if (button.id === 'primary' && target === '#/apps' && onStart) {
+      onStart(event);
+      return;
+    }
+    if (button.id === 'secondary' && target === '#/apps' && onGuide) {
+      onGuide(event);
+      return;
+    }
+    navigateDirectly(target, button.newTab);
   };
 
   const heroStyle = {
@@ -213,8 +230,8 @@ export default function HomeHeroExperience2026({
     '--hero-badge-color': activeConfig.badge.color,
     '--hero-badge-background': activeConfig.badge.background,
     '--hero-overlay-color': activeConfig.overlay.color,
-    '--hero-overlay-opacity': activeConfig.overlay.opacity / 100,
-    '--hero-left-protection': activeConfig.overlay.leftProtection / 100,
+    '--hero-overlay-opacity': `${activeConfig.overlay.opacity}%`,
+    '--hero-left-protection': `${activeConfig.overlay.leftProtection}%`,
     '--hero-left-width': `${activeConfig.overlay.leftProtectionWidth}%`,
   };
 
