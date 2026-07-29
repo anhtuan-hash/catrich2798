@@ -37,8 +37,11 @@ import './styles/WeeklyPublisherEmergencyFix.css';
 import './styles/WeeklyPracticeCompactSchedule.css';
 // Keep the approved featured-tools redesign late in the homepage cascade.
 import './styles/HomeFeaturedTools2026.css';
-// Keep the approved layered hero last so old homepage rules cannot flatten it.
+// Homepage Hero is a two-layer media canvas with editable content.
 import './styles/HomeHeroExperience2026.css';
+import './styles/HomeHeroCmsEditor.css';
+// Keep the percentage overlay correction after the main Hero stylesheet.
+import './styles/HomeHeroCmsOverlayFix.css';
 
 installNeutralSurfaceGuard();
 installSiteFontFromCache();
