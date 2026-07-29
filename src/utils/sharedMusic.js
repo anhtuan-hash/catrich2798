@@ -151,8 +151,12 @@ function reusableTrackUrl(value, path) {
 }
 
 function rememberTrackUrl(path, url) {
-  if (path && isReusableTrackUrl({ path, ...url }, path)) signedUrlCache.set(path, url);
-  return url;
+  const entry = { path, ...url };
+  if (path && isReusableTrackUrl(entry, path)) signedUrlCache.set(path, entry);
+  return {
+    signedUrl: cleanText(entry.signedUrl),
+    signedUntil: cleanText(entry.signedUntil),
+  };
 }
 
 function forgetTrackUrl(path) {
