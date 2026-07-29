@@ -1,95 +1,153 @@
-/* Apps page — Android-style app drawer.
-   Loaded after all previous launcher layers. The launcher is now a compact icon grid,
-   not a collection of content cards. */
+/* English Hub Apps — premium app launcher graphics.
+   Loaded after the previous launcher layers and intentionally owns the final
+   visual system for the Apps route. */
 
 body .metro-clean-system[data-route='apps'] {
-  --android-drawer-ink: #202124;
-  --android-drawer-muted: #5f6368;
-  --android-drawer-line: #dfe3eb;
-  --android-drawer-surface: rgba(255,255,255,.66);
-  --android-drawer-hover: rgba(232,240,254,.72);
+  --apps-ink: #182033;
+  --apps-muted: #5f6878;
+  --apps-line: rgba(96, 112, 136, .18);
+  --apps-panel: rgba(255, 255, 255, .94);
+  --apps-card: rgba(255, 255, 255, .98);
+  --apps-blue: #1a73e8;
+
+  --glyph-grid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='7' height='7' rx='1.5'/%3E%3Crect x='14' y='3' width='7' height='7' rx='1.5'/%3E%3Crect x='3' y='14' width='7' height='7' rx='1.5'/%3E%3Crect x='14' y='14' width='7' height='7' rx='1.5'/%3E%3C/svg%3E");
+  --glyph-document: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2.8h8l4 4V21H6z'/%3E%3Cpath d='M14 2.8V7h4M9 11h6M9 15h6M9 19h4'/%3E%3C/svg%3E");
+  --glyph-exam: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2.8h8l4 4V21H6z'/%3E%3Cpath d='M14 2.8V7h4M9 11h4M9 15h3M15.2 15.8l1.5 1.5 3-3.2'/%3E%3C/svg%3E");
+  --glyph-news: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h13v15H5.5A1.5 1.5 0 0 1 4 18.5z'/%3E%3Cpath d='M17 8h3v10.5A1.5 1.5 0 0 1 18.5 20H17M7 8h7M7 11h7M7 15h3M12 15h2'/%3E%3C/svg%3E");
+  --glyph-nodes: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='5' r='3'/%3E%3Ccircle cx='5' cy='18' r='3'/%3E%3Ccircle cx='19' cy='18' r='3'/%3E%3Cpath d='M10.4 7.6 6.6 15M13.6 7.6l3.8 7.4M8 18h8'/%3E%3C/svg%3E");
+  --glyph-folder: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6.5h7l2 2h9v10.5H3z'/%3E%3Cpath d='M3 10h18M8 14h8M8 17h5'/%3E%3C/svg%3E");
+  --glyph-briefcase: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 6V4h8v2M3 7h18v13H3zM3 11h18M10 11v2h4v-2'/%3E%3C/svg%3E");
+  --glyph-board: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='13' rx='2'/%3E%3Cpath d='M7 20l3-3M17 20l-3-3M7 8h4M7 11h7M16 8h2v4h-2z'/%3E%3C/svg%3E");
+  --glyph-method: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4h16v12H9l-5 4z'/%3E%3Cpath d='M8 8h4M10 6v4M15 7.5c1.5 0 2.5 1 2.5 2.5S16.5 12.5 15 12.5M15 7.5v5'/%3E%3C/svg%3E");
+  --glyph-book: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5.5c3-1.4 6-1.2 9 .8v13c-3-2-6-2.2-9-.8zM21 5.5c-3-1.4-6-1.2-9 .8v13c3-2 6-2.2 9-.8z'/%3E%3Cpath d='M6 9h3M6 12h3M15 9h3M15 12h3'/%3E%3C/svg%3E");
+  --glyph-chatdoc: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4h16v12H9l-5 4z'/%3E%3Cpath d='M8 8h8M8 11h6M16.5 16.5l1.2 1.2 2.3-2.6'/%3E%3C/svg%3E");
+  --glyph-wrenchdoc: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 3h9l4 4v6M14 3v5h5M5 3v18h8'/%3E%3Cpath d='M14.5 14.5a4 4 0 0 0 5 5l-2-2 2-2 2 2a4 4 0 0 0-5-5l-5 5 3 3z'/%3E%3C/svg%3E");
+  --glyph-bolt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 2 5 14h6l-1 8 9-13h-6z'/%3E%3C/svg%3E");
+  --glyph-chart: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20V5M4 20h16'/%3E%3Cpath d='m7 15 4-4 3 2 5-6M16 7h3v3'/%3E%3C/svg%3E");
+  --glyph-binders: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='5' height='16' rx='1'/%3E%3Crect x='10' y='4' width='5' height='16' rx='1'/%3E%3Crect x='17' y='4' width='4' height='16' rx='1'/%3E%3Cpath d='M5 8h1M12 8h1M18.5 8h1M5 16h1M12 16h1M18.5 16h1'/%3E%3C/svg%3E");
+  --glyph-calculator: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='3' width='16' height='18' rx='2'/%3E%3Cpath d='M7 6h10v4H7zM8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01'/%3E%3C/svg%3E");
+  --glyph-rocket: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 4c3-2 5-2 6-2 0 1 0 3-2 6l-6 6-5-5z'/%3E%3Ccircle cx='15.5' cy='6.5' r='1.5'/%3E%3Cpath d='m8 10-4 1-2 3 5 1M13 15l-1 5-3 2-1-5M5 19l-2 2M8 18l-3 3'/%3E%3C/svg%3E");
+  --glyph-people: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='7' r='3'/%3E%3Cpath d='M6.5 20v-2.5A4.5 4.5 0 0 1 11 13h2a4.5 4.5 0 0 1 4.5 4.5V20M5 9a2.5 2.5 0 0 0 0 5M19 9a2.5 2.5 0 0 1 0 5M2.5 20v-2a3 3 0 0 1 3-3M21.5 20v-2a3 3 0 0 0-3-3'/%3E%3C/svg%3E");
+  --glyph-clipboard: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 5H5v16h14V5h-3M9 3h6v4H9z'/%3E%3Cpath d='M8 12h4M8 16h3M14 15l1.5 1.5L19 13'/%3E%3C/svg%3E");
+  --glyph-shield: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2.5 20 6v6c0 5-3.4 8.2-8 9.5C7.4 20.2 4 17 4 12V6z'/%3E%3Cpath d='m8.5 12 2.2 2.2 4.8-5'/%3E%3C/svg%3E");
+  --glyph-gear: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19 13.5v-3l-2-.7-.8-1.8.9-2-2.1-2.1-2 .9-1.8-.8-.7-2h-3l-.7 2-1.8.8-2-.9L.9 6l.9 2L1 9.8l-2 .7v3l2 .7.8 1.8-.9 2L3 20.1l2-.9 1.8.8.7 2h3l.7-2 1.8-.8 2 .9 2.1-2.1-.9-2 .8-1.8z' transform='translate(2)'/%3E%3C/svg%3E");
+  --glyph-cloud: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 18h10a4 4 0 0 0 .5-8A6 6 0 0 0 6 8.5 4.5 4.5 0 0 0 7 18Z'/%3E%3Cpath d='m9 14 2 2 4-4'/%3E%3C/svg%3E");
+  --glyph-web: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9S14.5 18.5 12 21M12 3C9.5 5.5 8.2 8.5 8.2 12S9.5 18.5 12 21'/%3E%3C/svg%3E");
+  --glyph-calendar: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M7 3v4M17 3v4M3 10h18M7 14h2M11 14h2M15 14h2M7 18h2M11 18h2'/%3E%3C/svg%3E");
+  --glyph-wand: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 20 11-11 3 3L7 23zM14 4l1-3 1 3 3 1-3 1-1 3-1-3-3-1zM19 15l.8-2 .8 2 2 .8-2 .8-.8 2-.8-2-2-.8z'/%3E%3C/svg%3E");
+  --glyph-headset: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v6H5a1 1 0 0 1-1-1zM20 14h-3v6h2a1 1 0 0 0 1-1zM17 19c-1 2-3 2-5 2'/%3E%3Cpath d='M9 10.5c1.5-1.3 4.5-1.3 6 0'/%3E%3C/svg%3E");
+  --glyph-person: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='7' r='3.5'/%3E%3Cpath d='M5 21v-2a7 7 0 0 1 14 0v2M17.5 5.5l1-2 1 2 2 .7-2 .8-1 2-1-2-2-.8z'/%3E%3C/svg%3E");
+  --glyph-cap: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m2 9 10-5 10 5-10 5zM6 11.5V17c3 2 9 2 12 0v-5.5M22 9v6'/%3E%3C/svg%3E");
+  --glyph-lightbulb: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18h6M9.5 21h5M8 15c-1.5-1.2-2.5-3-2.5-5a6.5 6.5 0 1 1 13 0c0 2-1 3.8-2.5 5-.8.7-1 1.4-1 3H9c0-1.6-.2-2.3-1-3Z'/%3E%3Cpath d='M12 6v4M10 8h4'/%3E%3C/svg%3E");
 }
 
 body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid,
 body .metro-clean-system[data-route='apps'] .density-compact .flat-apps-collage-grid {
   grid-area: apps !important;
   display: grid !important;
-  grid-template-rows: repeat(3, 132px) !important;
+  grid-template-rows: repeat(3, 154px) !important;
   grid-auto-flow: column !important;
-  grid-auto-columns: 144px !important;
-  align-items: start !important;
+  grid-auto-columns: 156px !important;
+  align-items: stretch !important;
   align-content: start !important;
   justify-content: start !important;
-  gap: 20px 16px !important;
+  gap: 18px !important;
   width: 100% !important;
-  min-height: 448px !important;
+  min-height: 520px !important;
   margin: 0 !important;
-  padding: 24px 22px 30px !important;
+  padding: 28px 28px 34px !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
-  border: 1px solid rgba(60,64,67,.12) !important;
-  border-radius: 30px !important;
+  border: 1px solid rgba(108, 125, 151, .16) !important;
+  border-radius: 34px !important;
   background:
-    radial-gradient(circle at 12% 4%, rgba(255,255,255,.82), transparent 35%),
-    linear-gradient(145deg, rgba(255,255,255,.70), rgba(244,247,252,.58)) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.76), 0 10px 30px rgba(60,64,67,.08) !important;
-  backdrop-filter: blur(18px) saturate(1.04) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(1.04) !important;
+    radial-gradient(circle at 8% 0%, rgba(74, 144, 226, .07), transparent 26%),
+    radial-gradient(circle at 92% 100%, rgba(118, 83, 220, .06), transparent 30%),
+    var(--apps-panel) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .95),
+    0 18px 44px rgba(42, 56, 79, .10) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   scroll-snap-type: x proximity !important;
-  scroll-padding-inline: 22px !important;
+  scroll-padding-inline: 28px !important;
   scrollbar-width: thin !important;
-  scrollbar-color: rgba(95,99,104,.40) transparent !important;
+  scrollbar-color: rgba(86, 102, 128, .36) transparent !important;
   overscroll-behavior-inline: contain !important;
   -webkit-overflow-scrolling: touch !important;
 }
 
-body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid::-webkit-scrollbar {
-  height: 6px !important;
-}
-
-body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid::-webkit-scrollbar-track {
-  background: transparent !important;
-}
-
+body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid::-webkit-scrollbar { height: 7px !important; }
+body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid::-webkit-scrollbar-track { background: transparent !important; }
 body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid::-webkit-scrollbar-thumb {
   border-radius: 999px !important;
-  background: rgba(95,99,104,.34) !important;
+  background: rgba(86, 102, 128, .30) !important;
 }
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-card,
 body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-card {
+  --app-accent: #2f7cf6;
+  --app-accent-2: #1769db;
+  --glyph: var(--glyph-grid);
   position: relative !important;
+  isolation: isolate !important;
   flex: none !important;
-  width: 144px !important;
-  min-width: 144px !important;
-  max-width: 144px !important;
-  height: 132px !important;
-  min-height: 132px !important;
-  max-height: 132px !important;
+  width: 156px !important;
+  min-width: 156px !important;
+  max-width: 156px !important;
+  height: 154px !important;
+  min-height: 154px !important;
+  max-height: 154px !important;
   aspect-ratio: auto !important;
   margin: 0 !important;
   padding: 0 !important;
-  overflow: visible !important;
-  border: 0 !important;
-  border-radius: 26px !important;
-  background: transparent !important;
-  box-shadow: none !important;
+  overflow: hidden !important;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 15%, #dfe5ee) !important;
+  border-radius: 28px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .99), rgba(250, 252, 255, .97)) !important;
+  box-shadow:
+    0 3px 8px rgba(38, 51, 72, .07),
+    0 14px 28px color-mix(in srgb, var(--app-accent) 8%, transparent) !important;
   scroll-snap-align: start !important;
-  transform: none !important;
-  transition: background-color .16s ease, transform .16s ease !important;
+  transform: translateZ(0) !important;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease !important;
 }
 
-body .metro-clean-system[data-route='apps'] .flat-app-window-card::before,
+body .metro-clean-system[data-route='apps'] .flat-app-window-card::before {
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 84% 10%, color-mix(in srgb, var(--app-accent) 12%, transparent), transparent 34%),
+    linear-gradient(135deg, rgba(255,255,255,.82), transparent 48%) !important;
+  opacity: 1 !important;
+}
+
 body .metro-clean-system[data-route='apps'] .flat-app-window-card::after {
-  display: none !important;
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 0 !important;
+  height: 3px !important;
+  border-radius: 999px 999px 0 0 !important;
+  background: linear-gradient(90deg, transparent, var(--app-accent), transparent) !important;
+  opacity: .42 !important;
 }
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover,
 body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within {
-  border: 0 !important;
-  background: var(--android-drawer-hover) !important;
-  box-shadow: none !important;
-  transform: translateY(-3px) !important;
+  border-color: color-mix(in srgb, var(--app-accent) 42%, #cfd8e6) !important;
+  background: #fff !important;
+  box-shadow:
+    0 8px 18px rgba(38, 51, 72, .12),
+    0 22px 40px color-mix(in srgb, var(--app-accent) 16%, transparent) !important;
+  transform: translateY(-6px) scale(1.018) !important;
 }
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-launch,
@@ -105,9 +163,9 @@ body .metro-clean-system[data-route='apps'] .flat-app-window-launch {
   display: block !important;
   padding: 0 !important;
   border: 0 !important;
-  border-radius: 26px !important;
+  border-radius: inherit !important;
   background: transparent !important;
-  color: var(--android-drawer-ink) !important;
+  color: var(--apps-ink) !important;
   box-shadow: none !important;
   text-align: center !important;
 }
@@ -116,63 +174,88 @@ body .metro-clean-system[data-route='apps'] .flat-app-window-body,
 body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body {
   display: grid !important;
   grid-template-columns: 1fr !important;
-  grid-template-rows: 82px minmax(0,1fr) !important;
-  grid-template-areas:
-    'icon'
-    'copy' !important;
+  grid-template-rows: 92px minmax(0, 1fr) !important;
+  grid-template-areas: 'icon' 'copy' !important;
   align-items: start !important;
   justify-items: center !important;
-  gap: 7px !important;
-  padding: 8px 8px 7px !important;
+  gap: 4px !important;
+  padding: 12px 10px 10px !important;
   overflow: visible !important;
   background: transparent !important;
 }
 
+body .metro-clean-system[data-route='apps'] .flat-app-window-chrome,
+body .metro-clean-system[data-route='apps'] .flat-app-window-decoration { display: none !important; }
+
 body .metro-clean-system[data-route='apps'] .flat-app-window-art,
 body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-art {
   grid-area: icon !important;
-  width: 78px !important;
-  height: 78px !important;
-  min-width: 78px !important;
-  min-height: 78px !important;
-  max-width: 78px !important;
-  max-height: 78px !important;
+  position: relative !important;
+  isolation: isolate !important;
+  width: 80px !important;
+  height: 80px !important;
+  min-width: 80px !important;
+  min-height: 80px !important;
+  max-width: 80px !important;
+  max-height: 80px !important;
   place-self: center !important;
   margin: 0 !important;
-  padding: 18px !important;
-  border: 0 !important;
-  border-radius: 24px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, .44) !important;
+  border-radius: 25px !important;
   background:
-    linear-gradient(145deg, color-mix(in srgb,var(--app-accent,#1a73e8) 78%,#fff), var(--app-accent,#1a73e8)) !important;
-  color: #fff !important;
+    linear-gradient(145deg, color-mix(in srgb, var(--app-accent) 74%, #fff), var(--app-accent-2)) !important;
+  color: transparent !important;
+  font-size: 0 !important;
   box-shadow:
-    0 9px 18px color-mix(in srgb,var(--app-accent,#1a73e8) 28%,transparent),
-    inset 0 1px 0 rgba(255,255,255,.38),
+    0 12px 24px color-mix(in srgb, var(--app-accent) 28%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.50),
     inset 0 -1px 0 rgba(0,0,0,.10) !important;
-  transform: none !important;
-  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease !important;
+  transform: translateZ(0) !important;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-art::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 19px !important;
+  z-index: 2 !important;
+  display: block !important;
+  background-image: var(--glyph) !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.12)) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-art::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  display: block !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 26% 16%, rgba(255,255,255,.50), transparent 30%),
+    linear-gradient(180deg, rgba(255,255,255,.12), transparent 55%) !important;
+}
+
+body .metro-clean-system[data-route='apps'] .flat-app-window-art > *,
+body .metro-clean-system[data-route='apps'] .flat-app-window-art svg,
+body .metro-clean-system[data-route='apps'] .flat-app-window-art img {
+  opacity: 0 !important;
+  visibility: hidden !important;
 }
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover .flat-app-window-art,
 body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within .flat-app-window-art {
-  transform: scale(1.065) !important;
-  filter: saturate(1.08) !important;
+  transform: translateY(-2px) scale(1.055) !important;
+  filter: saturate(1.08) contrast(1.02) !important;
   box-shadow:
-    0 12px 24px color-mix(in srgb,var(--app-accent,#1a73e8) 36%,transparent),
-    inset 0 1px 0 rgba(255,255,255,.42),
+    0 15px 29px color-mix(in srgb, var(--app-accent) 36%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.56),
     inset 0 -1px 0 rgba(0,0,0,.10) !important;
-}
-
-body .metro-clean-system[data-route='apps'] .flat-app-window-art svg,
-body .metro-clean-system[data-route='apps'] .flat-app-window-art img,
-body .metro-clean-system[data-route='apps'] .flat-app-window-art > * {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 42px !important;
-  max-height: 42px !important;
-  color: #fff !important;
-  fill: currentColor !important;
-  stroke: currentColor !important;
 }
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-copy {
@@ -181,232 +264,218 @@ body .metro-clean-system[data-route='apps'] .flat-app-window-copy {
   min-width: 0 !important;
   min-height: 0 !important;
   display: flex !important;
-  align-items: center !important;
+  align-items: flex-start !important;
   justify-content: center !important;
   margin: 0 !important;
-  padding: 0 3px !important;
+  padding: 0 4px !important;
   overflow: visible !important;
   text-align: center !important;
 }
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-copy small,
 body .metro-clean-system[data-route='apps'] .flat-app-window-copy em,
-body .metro-clean-system[data-route='apps'] .flat-app-window-cta {
-  display: none !important;
-}
+body .metro-clean-system[data-route='apps'] .flat-app-window-cta { display: none !important; }
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong {
   display: -webkit-box !important;
   width: 100% !important;
   margin: 0 !important;
   overflow: hidden !important;
-  color: var(--android-drawer-ink) !important;
-  font-size: .82rem !important;
-  font-weight: 700 !important;
+  color: var(--apps-ink) !important;
+  font-size: .84rem !important;
+  font-weight: 780 !important;
   line-height: 1.22 !important;
-  letter-spacing: -.01em !important;
+  letter-spacing: -.012em !important;
   text-align: center !important;
   text-overflow: ellipsis !important;
-  text-shadow: 0 1px 0 rgba(255,255,255,.74) !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.84) !important;
   -webkit-box-orient: vertical !important;
   -webkit-line-clamp: 2 !important;
 }
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-launch:focus-visible {
-  outline: 3px solid rgba(11,87,208,.32) !important;
-  outline-offset: 2px !important;
+  outline: 3px solid color-mix(in srgb, var(--app-accent) 34%, transparent) !important;
+  outline-offset: -2px !important;
 }
+
+/* Core app identities */
+body .metro-clean-system[data-route='apps'] [data-launcher-item='exam-studio'] { --app-accent:#4f79f7; --app-accent-2:#2657d9; --glyph:var(--glyph-exam); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='news-reader'] { --app-accent:#2ebd78; --app-accent-2:#15945a; --glyph:var(--glyph-news); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='word2graph'] { --app-accent:#24c3b5; --app-accent-2:#0b978e; --glyph:var(--glyph-nodes); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='knowledge-hub'] { --app-accent:#70c95c; --app-accent-2:#43a53e; --glyph:var(--glyph-folder); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='work-hub'] { --app-accent:#484a50; --app-accent-2:#222327; --glyph:var(--glyph-briefcase); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='classroom-screen'] { --app-accent:#4d8df7; --app-accent-2:#2469d9; --glyph:var(--glyph-board); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='teaching-methods-hub'] { --app-accent:#8a5be8; --app-accent-2:#6136c8; --glyph:var(--glyph-method); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='reading-studio'] { --app-accent:#f2b52d; --app-accent-2:#dc8f08; --glyph:var(--glyph-book); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='textlab-activities'] { --app-accent:#557ff1; --app-accent-2:#2b58d5; --glyph:var(--glyph-chatdoc); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='textcare'] { --app-accent:#ec6258; --app-accent-2:#c83e36; --glyph:var(--glyph-wrenchdoc); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='lesson-plan-ai'] { --app-accent:#22bff1; --app-accent-2:#078ddd; --glyph:var(--glyph-bolt); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='work-dashboard'] { --app-accent:#547de2; --app-accent-2:#3456b7; --glyph:var(--glyph-chart); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='resource-library-hub'] { --app-accent:#9661e9; --app-accent-2:#6636c4; --glyph:var(--glyph-binders); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='vietnam-tax'] { --app-accent:#319bd5; --app-accent-2:#1876b0; --glyph:var(--glyph-calculator); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='student-practice'] { --app-accent:#ff855f; --app-accent-2:#ed5d37; --glyph:var(--glyph-rocket); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='brian-team'] { --app-accent:#7b5ddd; --app-accent-2:#4e34a8; --glyph:var(--glyph-people); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='thpt-practice-hub'] { --app-accent:#f18449; --app-accent-2:#d95d25; --glyph:var(--glyph-clipboard); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='data-governance'] { --app-accent:#e85a62; --app-accent-2:#bd3944; --glyph:var(--glyph-shield); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='assessment-core'] { --app-accent:#f06c59; --app-accent-2:#ce4336; --glyph:var(--glyph-exam); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='platform-readiness'] { --app-accent:#46b979; --app-accent-2:#238f56; --glyph:var(--glyph-shield); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='automation-center'] { --app-accent:#3e8ef3; --app-accent-2:#1d65cf; --glyph:var(--glyph-gear); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='cloud-operations'] { --app-accent:#2db7a3; --app-accent-2:#158777; --glyph:var(--glyph-cloud); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='collaboration-hub'] { --app-accent:#8068e8; --app-accent-2:#5940c4; --glyph:var(--glyph-people); }
+body .metro-clean-system[data-route='apps'] [data-launcher-item='content-ecosystem'] { --app-accent:#5d7ce5; --app-accent-2:#384fb8; --glyph:var(--glyph-nodes); }
+
+/* Approved website apps receive a real icon system instead of a WEB label. */
+body .metro-clean-system[data-route='apps'] .external-website-app-card { --glyph:var(--glyph-web); }
+body .metro-clean-system[data-route='apps'] .external-website-app-card[data-app-title*='Thư viện'] { --app-accent:#67c575; --app-accent-2:#3c9f53; --glyph:var(--glyph-folder); }
+body .metro-clean-system[data-route='apps'] .external-website-app-card[data-app-title*='Lớp học'] { --app-accent:#26bdf0; --app-accent-2:#087fdb; --glyph:var(--glyph-bolt); }
+body .metro-clean-system[data-route='apps'] .external-website-app-card[data-app-title*='Thư mục'] { --app-accent:#484a50; --app-accent-2:#222327; --glyph:var(--glyph-folder); }
+body .metro-clean-system[data-route='apps'] .external-website-app-card[data-app-title*='thời khoá biểu'],
+body .metro-clean-system[data-route='apps'] .external-website-app-card[data-app-title*='thời khóa biểu'] { --app-accent:#438df0; --app-accent-2:#2167ce; --glyph:var(--glyph-calendar); }
+body .metro-clean-system[data-route='apps'] .external-website-app-card[data-app-title*='Worksheet'] { --app-accent:#5488ee; --app-accent-2:#315dc2; --glyph:var(--glyph-wand); }
+body .metro-clean-system[data-route='apps'] .external-website-app-card[data-app-title*='Assistant'] { --app-accent:#3e8fea; --app-accent-2:#2363bd; --glyph:var(--glyph-headset); }
+body .metro-clean-system[data-route='apps'] .external-website-app-card[data-app-title*='Gọi tên'] { --app-accent:#438bf0; --app-accent-2:#1f64c7; --glyph:var(--glyph-person); }
+body .metro-clean-system[data-route='apps'] .external-website-app-card[data-app-title*='Gia sư'] { --app-accent:#3d88e9; --app-accent-2:#245fc1; --glyph:var(--glyph-cap); }
+body .metro-clean-system[data-route='apps'] .external-website-app-card[data-app-title*='NLS'] { --app-accent:#567ef0; --app-accent-2:#354fbd; --glyph:var(--glyph-document); }
+body .metro-clean-system[data-route='apps'] .external-website-app-card[data-app-title*='tạo bài tập'] { --app-accent:#4f84ed; --app-accent-2:#2d5ec6; --glyph:var(--glyph-exam); }
+body .metro-clean-system[data-route='apps'] .external-website-app-card[data-app-title*='đổi mới'] { --app-accent:#4a83e8; --app-accent-2:#2d5fbd; --glyph:var(--glyph-lightbulb); }
 
 body .metro-clean-system[data-route='apps'] .flat-apps-group-rail {
-  padding: 5px 4px 10px !important;
-  gap: 8px !important;
+  padding: 6px 5px 14px !important;
+  gap: 10px !important;
 }
-
 body .metro-clean-system[data-route='apps'] .flat-apps-group-rail::before {
-  color: #202124 !important;
-  font-size: .68rem !important;
+  color: #202a3c !important;
+  font-size: .72rem !important;
   font-weight: 900 !important;
-  line-height: 40px !important;
+  line-height: 44px !important;
+  letter-spacing: .12em !important;
 }
-
 body .metro-clean-system[data-route='apps'] .flat-apps-group-chip {
-  min-height: 40px !important;
-  padding: 0 13px 0 15px !important;
-  border-color: #d5dae2 !important;
-  background: rgba(255,255,255,.88) !important;
-  color: #202124 !important;
-  box-shadow: 0 2px 5px rgba(60,64,67,.07) !important;
+  min-height: 44px !important;
+  padding: 0 14px 0 17px !important;
+  border: 1px solid #d8dfe9 !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.94) !important;
+  color: #263146 !important;
+  box-shadow: 0 3px 9px rgba(48, 62, 84, .08) !important;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease !important;
 }
-
-body .metro-clean-system[data-route='apps'] .flat-apps-group-chip b {
-  color: #202124 !important;
-  font-size: .80rem !important;
-  font-weight: 750 !important;
-}
-
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip:hover { transform: translateY(-2px) !important; box-shadow: 0 7px 16px rgba(48,62,84,.11) !important; }
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip b { color:#263146 !important; font-size:.82rem !important; font-weight:760 !important; }
 body .metro-clean-system[data-route='apps'] .flat-apps-group-chip small {
-  min-width: 24px !important;
-  height: 24px !important;
-  background: #e7eaef !important;
-  color: #3c4043 !important;
-  font-weight: 800 !important;
+  min-width: 25px !important;
+  height: 25px !important;
+  background: #edf1f6 !important;
+  color: #445069 !important;
+  font-weight: 850 !important;
 }
-
 body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active {
-  border-color: #8ab4f8 !important;
-  background: #e8f0fe !important;
+  border-color: #77a9ff !important;
+  background: linear-gradient(180deg,#f4f8ff,#e8f1ff) !important;
   color: #0b57d0 !important;
-  box-shadow: inset 0 0 0 1px #a8c7fa, 0 3px 8px rgba(11,87,208,.10) !important;
+  box-shadow: inset 0 0 0 1px #b9d2ff, 0 7px 16px rgba(11,87,208,.12) !important;
 }
-
 body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active b,
-body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active small {
-  color: #063b91 !important;
-}
-
-body .metro-clean-system[data-route='apps'] .launcher-density-switch {
-  display: none !important;
-}
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active small { color:#08479e !important; }
+body .metro-clean-system[data-route='apps'] .launcher-density-switch { display:none !important; }
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-launcher-editing {
-  width: 184px !important;
-  min-width: 184px !important;
-  max-width: 184px !important;
+  width: 196px !important;
+  min-width: 196px !important;
+  max-width: 196px !important;
   height: auto !important;
   max-height: none !important;
-  min-height: 224px !important;
-  padding-bottom: 10px !important;
+  min-height: 236px !important;
+  padding-bottom: 12px !important;
   overflow: visible !important;
-  border: 1px solid var(--android-drawer-line) !important;
-  background: rgba(255,255,255,.94) !important;
-  box-shadow: 0 8px 22px rgba(60,64,67,.12) !important;
+  border-color: color-mix(in srgb,var(--app-accent) 26%,#d6deea) !important;
+  background: #fff !important;
+  box-shadow: 0 16px 34px rgba(37,50,71,.16) !important;
 }
-
 body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-launcher-editing .flat-app-window-launch,
-body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-launcher-editing .flat-app-window-body {
-  min-height: 142px !important;
-}
-
-body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-launcher-editing .launcher-card-controls {
-  display: flex !important;
-}
+body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-launcher-editing .flat-app-window-body { min-height: 154px !important; }
+body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-launcher-editing .launcher-card-controls { display:flex !important; }
 
 @media (max-width: 980px) {
   body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid,
   body .metro-clean-system[data-route='apps'] .density-compact .flat-apps-collage-grid {
-    grid-template-rows: repeat(3, 126px) !important;
-    grid-auto-columns: 132px !important;
-    min-height: 430px !important;
-    gap: 17px 12px !important;
-    padding: 21px 16px 27px !important;
+    grid-template-rows: repeat(3, 146px) !important;
+    grid-auto-columns: 146px !important;
+    min-height: 494px !important;
+    gap: 15px !important;
+    padding: 24px 20px 30px !important;
   }
-
   body .metro-clean-system[data-route='apps'] .flat-app-window-card,
   body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-card {
-    width: 132px !important;
-    min-width: 132px !important;
-    max-width: 132px !important;
-    height: 126px !important;
-    min-height: 126px !important;
-    max-height: 126px !important;
+    width:146px !important; min-width:146px !important; max-width:146px !important;
+    height:146px !important; min-height:146px !important; max-height:146px !important;
   }
-
+  body .metro-clean-system[data-route='apps'] .flat-app-window-body,
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body { grid-template-rows:86px minmax(0,1fr) !important; padding:10px 8px 9px !important; }
   body .metro-clean-system[data-route='apps'] .flat-app-window-art,
   body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-art {
-    width: 72px !important;
-    height: 72px !important;
-    min-width: 72px !important;
-    min-height: 72px !important;
-    max-width: 72px !important;
-    max-height: 72px !important;
-    padding: 17px !important;
-    border-radius: 22px !important;
+    width:74px !important; height:74px !important; min-width:74px !important; min-height:74px !important; max-width:74px !important; max-height:74px !important; border-radius:23px !important;
   }
 }
 
 @media (max-width: 680px) {
   body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid,
   body .metro-clean-system[data-route='apps'] .density-compact .flat-apps-collage-grid {
-    grid-template-rows: repeat(3, 116px) !important;
-    grid-auto-columns: 108px !important;
-    min-height: 397px !important;
-    gap: 14px 8px !important;
-    padding: 18px 12px 24px !important;
-    border-radius: 24px !important;
+    grid-template-rows: repeat(3, 128px) !important;
+    grid-auto-columns: 122px !important;
+    min-height: 438px !important;
+    gap: 12px 10px !important;
+    padding: 20px 14px 26px !important;
+    border-radius: 26px !important;
   }
-
   body .metro-clean-system[data-route='apps'] .flat-app-window-card,
   body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-card {
-    width: 108px !important;
-    min-width: 108px !important;
-    max-width: 108px !important;
-    height: 116px !important;
-    min-height: 116px !important;
-    max-height: 116px !important;
-    border-radius: 22px !important;
+    width:122px !important; min-width:122px !important; max-width:122px !important;
+    height:128px !important; min-height:128px !important; max-height:128px !important;
+    border-radius:23px !important;
   }
-
   body .metro-clean-system[data-route='apps'] .flat-app-window-body,
-  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body {
-    grid-template-rows: 68px minmax(0,1fr) !important;
-    padding: 6px 4px !important;
-  }
-
+  body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-body { grid-template-rows:72px minmax(0,1fr) !important; padding:8px 5px 7px !important; }
   body .metro-clean-system[data-route='apps'] .flat-app-window-art,
   body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-art {
-    width: 64px !important;
-    height: 64px !important;
-    min-width: 64px !important;
-    min-height: 64px !important;
-    max-width: 64px !important;
-    max-height: 64px !important;
-    padding: 15px !important;
-    border-radius: 20px !important;
+    width:64px !important; height:64px !important; min-width:64px !important; min-height:64px !important; max-width:64px !important; max-height:64px !important; border-radius:20px !important;
   }
-
-  body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong {
-    font-size: .74rem !important;
-  }
+  body .metro-clean-system[data-route='apps'] .flat-app-window-art::before { inset:15px !important; }
+  body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong { font-size:.74rem !important; }
 }
 
 html[data-theme='dark'] body .metro-clean-system[data-route='apps'],
 body.theme-dark .metro-clean-system[data-route='apps'] {
-  --android-drawer-ink: #f1f3f4;
-  --android-drawer-muted: #bdc1c6;
-  --android-drawer-line: #464b54;
-  --android-drawer-surface: rgba(30,32,37,.72);
-  --android-drawer-hover: rgba(60,64,67,.70);
+  --apps-ink:#f5f7fb;
+  --apps-muted:#c2cad7;
+  --apps-line:rgba(255,255,255,.12);
+  --apps-panel:rgba(27,30,37,.95);
+  --apps-card:rgba(38,42,51,.98);
 }
-
 html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-collage-grid,
 body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-collage-grid {
-  border-color: #454a53 !important;
+  border-color:rgba(255,255,255,.10) !important;
   background:
-    radial-gradient(circle at 12% 4%, rgba(55,58,64,.80), transparent 35%),
-    linear-gradient(145deg, rgba(35,37,42,.82), rgba(26,28,33,.72)) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 12px 30px rgba(0,0,0,.18) !important;
+    radial-gradient(circle at 8% 0%, rgba(74,144,226,.10), transparent 26%),
+    radial-gradient(circle at 92% 100%, rgba(118,83,220,.10), transparent 30%),
+    var(--apps-panel) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 18px 44px rgba(0,0,0,.24) !important;
 }
-
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-card,
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-card {
+  border-color:color-mix(in srgb,var(--app-accent) 20%,#4d5563) !important;
+  background:linear-gradient(180deg,rgba(48,52,62,.98),rgba(35,39,47,.98)) !important;
+  box-shadow:0 4px 10px rgba(0,0,0,.18),0 16px 32px color-mix(in srgb,var(--app-accent) 10%,transparent) !important;
+}
 html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-app-window-copy strong,
-body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-copy strong {
-  color: #f1f3f4 !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,.46) !important;
-}
-
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-copy strong { color:#f5f7fb !important; text-shadow:0 1px 2px rgba(0,0,0,.50) !important; }
 html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-chip,
-body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip {
-  border-color: #4d535d !important;
-  background: rgba(42,45,51,.90) !important;
-}
-
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip { border-color:#4b5361 !important; background:rgba(42,46,55,.96) !important; }
 html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-chip b,
-body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip b {
-  color: #f1f3f4 !important;
-}
+body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip b { color:#f2f5fa !important; }
 
 @media (prefers-reduced-motion: reduce) {
   body .metro-clean-system[data-route='apps'] .flat-app-window-card,
-  body .metro-clean-system[data-route='apps'] .flat-app-window-art {
-    transition: none !important;
-  }
+  body .metro-clean-system[data-route='apps'] .flat-app-window-art,
+  body .metro-clean-system[data-route='apps'] .flat-apps-group-chip { transition:none !important; }
 }
