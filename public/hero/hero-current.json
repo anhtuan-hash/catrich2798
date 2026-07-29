@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "revision": "1785348061047-e1072a2a",
-  "publishedAt": "2026-07-29T18:01:01.047Z",
+  "revision": "1785348420000-hero-clarity",
+  "publishedAt": "2026-07-29T18:07:00.000Z",
   "publishedBy": "anhtuan@pek.edu.vn",
   "delivery": "vercel-static",
   "config": {
@@ -92,7 +92,7 @@
       "positionY": 50,
       "scale": 100,
       "opacity": 100,
-      "brightness": 100,
+      "brightness": 103,
       "blur": 0,
       "autoplay": true,
       "loop": true,
@@ -101,9 +101,9 @@
     "overlay": {
       "enabled": true,
       "color": "#ffffff",
-      "opacity": 10,
-      "leftProtection": 92,
-      "leftProtectionWidth": 56
+      "opacity": 3,
+      "leftProtection": 68,
+      "leftProtectionWidth": 42
     },
     "layout": {
       "minHeight": 590,
