@@ -17,12 +17,16 @@ import { isDepartmentLeaderRole } from '../utils/roles.js';
 import {
   DEFAULT_HOME_HERO_CONFIG,
   HOME_HERO_EVENT,
+  HOME_HERO_LOCAL_KEY,
   loadHomeHeroSettings,
   normalizeHomeHeroConfig,
   subscribeToPublishedHomeHero,
 } from '../utils/homepageHeroCms.js';
 import HomeHeroCmsEditor from './HomeHeroCmsEditor.jsx';
 import HomeHeroCmsPreviewDock from './HomeHeroCmsPreviewDock.jsx';
+
+const HERO_REMOTE_CHECK_KEY = 'bes-home-hero-remote-check-v1';
+const HERO_REMOTE_CHECK_TTL = 10 * 60 * 1000;
 
 const INFO_ICONS = {
   shield: ShieldCheck,
@@ -72,6 +76,50 @@ function navigateDirectly(target, newTab = false) {
   window.location.hash = '#/apps';
 }
 
+function readHeroBootstrapCache() {
+  const fallback = normalizeHomeHeroConfig(DEFAULT_HOME_HERO_CONFIG);
+  if (typeof window === 'undefined') {
+    return {
+      cached: false,
+      settings: { draft: fallback, published: fallback, databaseReady: false, source: 'default' },
+    };
+  }
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(HOME_HERO_LOCAL_KEY) || '{}');
+    if (!parsed?.published) throw new Error('No published Hero cache');
+    const published = normalizeHomeHeroConfig(parsed.published);
+    return {
+      cached: true,
+      settings: {
+        draft: published,
+        published,
+        databaseReady: false,
+        source: 'local-cache',
+        updatedAt: parsed.updatedAt || '',
+      },
+    };
+  } catch {
+    return {
+      cached: false,
+      settings: { draft: fallback, published: fallback, databaseReady: false, source: 'default' },
+    };
+  }
+}
+
+function shouldRefreshRemoteHero({ canEdit, cached }) {
+  if (canEdit || !cached || typeof window === 'undefined') return true;
+  const checkedAt = Number(window.localStorage.getItem(HERO_REMOTE_CHECK_KEY) || 0);
+  return !checkedAt || Date.now() - checkedAt >= HERO_REMOTE_CHECK_TTL;
+}
+
+function markRemoteHeroChecked() {
+  try {
+    window.localStorage.setItem(HERO_REMOTE_CHECK_KEY, String(Date.now()));
+  } catch {
+    // Storage may be unavailable in private browsing; the Hero still works.
+  }
+}
+
 function BackgroundMedia({ background, motionEnabled }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [background.url, background.type]);
@@ -112,6 +160,9 @@ function BackgroundMedia({ background, motionEnabled }) {
       src={background.url}
       alt=""
       draggable="false"
+      loading="eager"
+      decoding="async"
+      fetchPriority="high"
       onError={() => setFailed(true)}
     />
   );
@@ -155,15 +206,12 @@ export default function HomeHeroExperience2026({
   onGuide,
   onLaunch,
 }) {
-  const [settings, setSettings] = useState(() => ({
-    draft: normalizeHomeHeroConfig(DEFAULT_HOME_HERO_CONFIG),
-    published: normalizeHomeHeroConfig(DEFAULT_HOME_HERO_CONFIG),
-    databaseReady: false,
-  }));
+  const [bootstrap] = useState(readHeroBootstrapCache);
+  const [settings, setSettings] = useState(bootstrap.settings);
   const [previewConfig, setPreviewConfig] = useState(null);
   const [previewDevice, setPreviewDevice] = useState('desktop');
   const [editorOpen, setEditorOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!bootstrap.cached);
 
   const canEdit = isDepartmentLeaderRole(currentUser?.role);
   const activeConfig = normalizeHomeHeroConfig(previewConfig || settings.published);
@@ -171,22 +219,36 @@ export default function HomeHeroExperience2026({
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
-    loadHomeHeroSettings({ canEdit })
-      .then((result) => {
-        if (!active) return;
-        setSettings(result);
-      })
-      .catch((error) => console.warn('Could not load homepage Hero settings:', error))
-      .finally(() => active && setLoading(false));
+    const refreshRemote = shouldRefreshRemoteHero({ canEdit, cached: bootstrap.cached });
 
-    const unsubscribe = subscribeToPublishedHomeHero((config) => {
-      if (!active) return;
-      setSettings((previous) => ({ ...previous, published: config }));
-    });
+    if (refreshRemote) {
+      if (!bootstrap.cached) setLoading(true);
+      loadHomeHeroSettings({ canEdit })
+        .then((result) => {
+          if (!active) return;
+          setSettings(result);
+          markRemoteHeroChecked();
+        })
+        .catch((error) => console.warn('Could not load homepage Hero settings:', error))
+        .finally(() => active && setLoading(false));
+    } else {
+      setLoading(false);
+    }
+
+    // Realtime is useful for editors. Normal visitors use a short local cache,
+    // avoiding one persistent Realtime connection per homepage visitor.
+    const unsubscribe = canEdit
+      ? subscribeToPublishedHomeHero((config) => {
+          if (!active) return;
+          setSettings((previous) => ({ ...previous, published: config }));
+          markRemoteHeroChecked();
+        })
+      : () => {};
+
     const handleUpdate = (event) => {
       if (event.detail?.mode !== 'published' || !event.detail?.config) return;
       setSettings((previous) => ({ ...previous, published: normalizeHomeHeroConfig(event.detail.config) }));
+      markRemoteHeroChecked();
     };
     window.addEventListener(HOME_HERO_EVENT, handleUpdate);
     return () => {
@@ -194,7 +256,7 @@ export default function HomeHeroExperience2026({
       unsubscribe?.();
       window.removeEventListener(HOME_HERO_EVENT, handleUpdate);
     };
-  }, [canEdit]);
+  }, [bootstrap.cached, canEdit]);
 
   const headline = localized(activeConfig.content, language, 'headlineVi', 'headlineEn', t.headline);
   const highlight = localized(activeConfig.content, language, 'highlightVi', 'highlightEn', t.highlight);
@@ -256,7 +318,7 @@ export default function HomeHeroExperience2026({
         <div className="hero-cms__content">
           {activeConfig.badge.enabled ? (
             <span className="hero-cms__badge">
-              {activeConfig.badge.logoUrl ? <img src={activeConfig.badge.logoUrl} alt="" /> : <i>B</i>}
+              {activeConfig.badge.logoUrl ? <img src={activeConfig.badge.logoUrl} alt="" loading="eager" decoding="async" /> : <i>B</i>}
               <strong>{badgeText}</strong>
             </span>
           ) : null}
@@ -307,6 +369,7 @@ export default function HomeHeroExperience2026({
         onPublished={(config) => {
           setSettings((previous) => ({ ...previous, draft: config, published: config }));
           setPreviewConfig(config);
+          markRemoteHeroChecked();
         }}
       />
       <HomeHeroCmsPreviewDock open={editorOpen} config={editorPreviewConfig} language={language} device={previewDevice} />
