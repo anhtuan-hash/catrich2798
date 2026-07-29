@@ -5,6 +5,7 @@ import GlobalFontSettingsBridge from './components/GlobalFontSettingsBridge.jsx'
 import HomeWeeklyPracticeStatisticsController from './components/HomeWeeklyPracticeStatisticsController.jsx';
 import DepartmentHeadAdminRoleBridge from './components/DepartmentHeadAdminRoleBridge.jsx';
 import BrianTeamWorkHubSyncBridge from './components/BrianTeamWorkHubSyncBridge.jsx';
+import BrianTeamWorkHubReverseSyncBridge from './components/BrianTeamWorkHubReverseSyncBridge.jsx';
 import { initializeAuthSession, subscribeToAuthChanges } from './utils/auth.js';
 import { installNeutralSurfaceGuard } from './utils/neutralSurfaceGuard.js';
 import { installSiteFontFromCache } from './utils/siteFontSettings.js';
@@ -62,6 +63,7 @@ function Bootstrap() {
       <GlobalFontSettingsBridge currentUser={user} language={language} />
       <DepartmentHeadAdminRoleBridge currentUser={user} language={language} />
       <BrianTeamWorkHubSyncBridge currentUser={user} language={language} />
+      <BrianTeamWorkHubReverseSyncBridge currentUser={user} language={language} />
       <HomeWeeklyPracticeStatisticsController />
     </>
   );
