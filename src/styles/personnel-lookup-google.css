@@ -1,0 +1,183 @@
+/* Personnel lookup — Google Workspace / Material 3, scoped to the Dashboard route. */
+.app-shell[data-route="dashboard"] .gpl-directory {
+  overflow: hidden;
+  border: 1px solid var(--gd-border, #dadce0) !important;
+  border-radius: 28px !important;
+  background: #fff !important;
+  color: var(--gd-text, #202124);
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .08) !important;
+}
+.app-shell[data-route="dashboard"] .gpl-directory *,
+.app-shell[data-route="dashboard"] .gpl-directory *::before,
+.app-shell[data-route="dashboard"] .gpl-directory *::after { box-sizing: border-box; }
+.app-shell[data-route="dashboard"] .gpl-icon { display: block; flex: 0 0 auto; fill: currentColor; }
+.app-shell[data-route="dashboard"] .gpl-header {
+  position: relative; min-height: 138px; padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  border-bottom: 1px solid #e6eaf0; background: linear-gradient(120deg, #f8faff 0%, #eef4ff 56%, #f7fbff 100%) !important;
+}
+.app-shell[data-route="dashboard"] .gpl-title-group { min-width: 0; display: flex; align-items: center; gap: 18px; }
+.app-shell[data-route="dashboard"] .gpl-brand-icon {
+  width: 56px; height: 56px; flex: 0 0 56px; display: grid; place-items: center; border-radius: 18px;
+  background: #1a73e8; color: #fff; box-shadow: 0 4px 12px rgba(26, 115, 232, .2);
+}
+.app-shell[data-route="dashboard"] .gpl-eyebrow { display: block; margin-bottom: 5px; color: #1a73e8; font-size: 12px !important; font-weight: 700; letter-spacing: .055em; text-transform: uppercase; }
+.app-shell[data-route="dashboard"] .gpl-title-group h2 { margin: 0; color: #202124; font-size: clamp(24px, 2.1vw, 34px) !important; font-weight: 500; line-height: 1.18; letter-spacing: -.025em; }
+.app-shell[data-route="dashboard"] .gpl-title-group p { max-width: 780px; margin: 8px 0 0; color: #5f6368; font-size: 14px !important; line-height: 1.5; }
+.app-shell[data-route="dashboard"] .gpl-google-mark { align-self: flex-start; display: flex; gap: 5px; padding-top: 2px; }
+.app-shell[data-route="dashboard"] .gpl-google-mark i { width: 9px; height: 9px; border-radius: 999px; }
+.app-shell[data-route="dashboard"] .gpl-google-mark i:nth-child(1) { background: #4285f4; }
+.app-shell[data-route="dashboard"] .gpl-google-mark i:nth-child(2) { background: #ea4335; }
+.app-shell[data-route="dashboard"] .gpl-google-mark i:nth-child(3) { background: #fbbc04; }
+.app-shell[data-route="dashboard"] .gpl-google-mark i:nth-child(4) { background: #34a853; }
+.app-shell[data-route="dashboard"] .gpl-body { padding: 26px 28px 30px; }
+.app-shell[data-route="dashboard"] .gpl-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 22px; }
+.app-shell[data-route="dashboard"] .gpl-metric {
+  min-width: 0; min-height: 78px; padding: 14px 16px; display: flex; align-items: center; gap: 13px;
+  border: 1px solid #e1e5ea !important; border-radius: 20px !important; background: #fff !important; color: #202124 !important;
+  text-align: left; cursor: pointer; box-shadow: none !important; transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.app-shell[data-route="dashboard"] .gpl-metric:hover { transform: translateY(-1px); border-color: #bdc1c6 !important; box-shadow: 0 2px 7px rgba(60, 64, 67, .1) !important; }
+.app-shell[data-route="dashboard"] .gpl-metric > span { width: 42px; height: 42px; display: grid; place-items: center; flex: 0 0 42px; border-radius: 14px; }
+.app-shell[data-route="dashboard"] .gpl-metric div { min-width: 0; display: grid; }
+.app-shell[data-route="dashboard"] .gpl-metric small { overflow: hidden; color: #5f6368; font-size: 12px !important; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.app-shell[data-route="dashboard"] .gpl-metric strong { margin-top: 2px; color: #202124; font-size: 24px !important; font-weight: 500; line-height: 1; }
+.app-shell[data-route="dashboard"] .gpl-metric.is-blue > span { background: #e8f0fe; color: #1967d2; }
+.app-shell[data-route="dashboard"] .gpl-metric.is-green > span { background: #e6f4ea; color: #137333; }
+.app-shell[data-route="dashboard"] .gpl-metric.is-yellow > span { background: #fef7e0; color: #b06000; }
+.app-shell[data-route="dashboard"] .gpl-metric.is-red > span { background: #fce8e6; color: #c5221f; }
+.app-shell[data-route="dashboard"] .gpl-toolbar { display: flex; align-items: center; gap: 14px; }
+.app-shell[data-route="dashboard"] .gpl-search {
+  min-width: 0; min-height: 52px; flex: 1; padding: 0 17px; display: flex; align-items: center; gap: 12px;
+  border: 1px solid transparent; border-radius: 28px; background: #f1f3f4; color: #5f6368;
+  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.app-shell[data-route="dashboard"] .gpl-search:focus-within { border-color: #a8c7fa; background: #fff; box-shadow: 0 1px 3px rgba(60, 64, 67, .18); color: #1a73e8; }
+.app-shell[data-route="dashboard"] .gpl-search input { min-width: 0; height: 48px; flex: 1; border: 0 !important; outline: 0; background: transparent !important; color: #202124; font: inherit; font-size: 14px !important; box-shadow: none !important; }
+.app-shell[data-route="dashboard"] .gpl-search input::placeholder { color: #6f7378; opacity: 1; }
+.app-shell[data-route="dashboard"] .gpl-search button { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #5f6368; cursor: pointer; }
+.app-shell[data-route="dashboard"] .gpl-search button:hover { background: #e3e5e8; }
+.app-shell[data-route="dashboard"] .gpl-result-count { flex: 0 0 auto; color: #5f6368; font-size: 12px !important; font-weight: 600; }
+.app-shell[data-route="dashboard"] .gpl-filter-row { margin: 14px 0 18px; display: flex; flex-wrap: wrap; gap: 8px; }
+.app-shell[data-route="dashboard"] .gpl-filter-chip {
+  min-height: 36px; padding: 0 15px; border: 1px solid #dadce0 !important; border-radius: 18px !important;
+  background: #fff !important; color: #3c4043 !important; font-size: 12px !important; font-weight: 600; cursor: pointer; box-shadow: none !important;
+}
+.app-shell[data-route="dashboard"] .gpl-filter-chip:hover { background: #f8fafd !important; border-color: #b8c9e8 !important; }
+.app-shell[data-route="dashboard"] .gpl-filter-chip.is-active { border-color: #d2e3fc !important; background: #e8f0fe !important; color: #174ea6 !important; }
+.app-shell[data-route="dashboard"] .gpl-inline-alert { min-height: 44px; margin-bottom: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; border-radius: 14px; background: #fce8e6; color: #a50e0e; font-size: 12px !important; }
+.app-shell[data-route="dashboard"] .gpl-missing-banner {
+  width: 100%; min-height: 68px; margin-bottom: 16px; padding: 12px 16px; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto 20px; align-items: center; gap: 12px;
+  border: 1px solid #f7d68a !important; border-radius: 18px !important; background: #fef7e0 !important; color: #5f4300 !important; text-align: left; cursor: pointer; box-shadow: none !important;
+}
+.app-shell[data-route="dashboard"] .gpl-missing-banner > span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 13px; background: #fce8b2; color: #9a5b00; }
+.app-shell[data-route="dashboard"] .gpl-missing-banner div { min-width: 0; }
+.app-shell[data-route="dashboard"] .gpl-missing-banner strong, .app-shell[data-route="dashboard"] .gpl-missing-banner small { display: block; }
+.app-shell[data-route="dashboard"] .gpl-missing-banner strong { font-size: 13px !important; }
+.app-shell[data-route="dashboard"] .gpl-missing-banner small { margin-top: 3px; color: #7b6219; font-size: 11px !important; line-height: 1.35; }
+.app-shell[data-route="dashboard"] .gpl-missing-banner b { color: #1967d2; font-size: 12px !important; white-space: nowrap; }
+.app-shell[data-route="dashboard"] .gpl-table-wrap { overflow: hidden; border: 1px solid #e0e3e7; border-radius: 20px; }
+.app-shell[data-route="dashboard"] .gpl-table-head,
+.app-shell[data-route="dashboard"] .gpl-person-row { display: grid; grid-template-columns: minmax(230px, 1.45fr) minmax(130px, .75fr) minmax(235px, 1.35fr) minmax(190px, 1fr) minmax(120px, .62fr) 24px; align-items: center; gap: 18px; }
+.app-shell[data-route="dashboard"] .gpl-table-head { min-height: 46px; padding: 0 18px; border-bottom: 1px solid #e7e9ec; background: #f8f9fa; color: #5f6368; font-size: 11px !important; font-weight: 700; letter-spacing: .035em; text-transform: uppercase; }
+.app-shell[data-route="dashboard"] .gpl-person-row { width: 100%; min-height: 78px; padding: 10px 18px; border: 0 !important; border-bottom: 1px solid #edf0f2 !important; background: #fff !important; color: #202124 !important; text-align: left; cursor: pointer; box-shadow: none !important; transition: background .16s ease; }
+.app-shell[data-route="dashboard"] .gpl-person-row:last-child { border-bottom: 0 !important; }
+.app-shell[data-route="dashboard"] .gpl-person-row:hover { background: #f8faff !important; }
+.app-shell[data-route="dashboard"] .gpl-person-row > span { min-width: 0; }
+.app-shell[data-route="dashboard"] .gpl-person-cell { display: flex; align-items: center; gap: 12px; }
+.app-shell[data-route="dashboard"] .gpl-avatar, .app-shell[data-route="dashboard"] .gpl-profile-avatar { overflow: hidden; display: grid; place-items: center; border-radius: 50%; background: #d2e3fc; color: #174ea6; font-weight: 700; letter-spacing: .02em; }
+.app-shell[data-route="dashboard"] .gpl-avatar { width: 44px; height: 44px; flex: 0 0 44px; font-size: 13px !important; }
+.app-shell[data-route="dashboard"] .gpl-avatar img, .app-shell[data-route="dashboard"] .gpl-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.app-shell[data-route="dashboard"] .gpl-person-name, .app-shell[data-route="dashboard"] .gpl-position-cell, .app-shell[data-route="dashboard"] .gpl-qualification-cell, .app-shell[data-route="dashboard"] .gpl-assignment-cell { min-width: 0; display: grid; gap: 4px; }
+.app-shell[data-route="dashboard"] .gpl-person-row strong, .app-shell[data-route="dashboard"] .gpl-person-row b { overflow: hidden; font-size: 13px !important; font-style: normal; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.app-shell[data-route="dashboard"] .gpl-person-row small { overflow: hidden; color: #6b7075; font-size: 11px !important; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.app-shell[data-route="dashboard"] .gpl-qualification-cell b { color: #185abc; }
+.app-shell[data-route="dashboard"] .gpl-qualification-cell.is-missing b { color: #b06000; }
+.app-shell[data-route="dashboard"] .gpl-status { display: inline-flex; min-height: 28px; padding: 0 10px; align-items: center; border-radius: 14px; font-size: 10px !important; font-style: normal; font-weight: 700; white-space: nowrap; }
+.app-shell[data-route="dashboard"] .gpl-status.is-active { background: #e6f4ea; color: #137333; }
+.app-shell[data-route="dashboard"] .gpl-status.is-leave { background: #fef7e0; color: #8d5500; }
+.app-shell[data-route="dashboard"] .gpl-status.is-inactive { background: #f1f3f4; color: #5f6368; }
+.app-shell[data-route="dashboard"] .gpl-row-arrow { color: #9aa0a6; }
+.app-shell[data-route="dashboard"] .gpl-empty { min-height: 150px; padding: 28px; display: grid; place-items: center; align-content: center; gap: 10px; color: #80868b; text-align: center; }
+.app-shell[data-route="dashboard"] .gpl-empty p { margin: 0; font-size: 13px !important; }
+.app-shell[data-route="dashboard"] .gpl-loader { width: 30px; height: 30px; border: 3px solid #d2e3fc; border-top-color: #1a73e8; border-radius: 50%; animation: gpl-spin .75s linear infinite; }
+@keyframes gpl-spin { to { transform: rotate(360deg); } }
+.app-shell[data-route="dashboard"] .gpl-drawer-layer { position: fixed; inset: 0; z-index: 2147482500; display: flex; justify-content: flex-end; background: rgba(32, 33, 36, .36); backdrop-filter: blur(2px); animation: gpl-fade .16s ease-out; }
+.app-shell[data-route="dashboard"] .gpl-drawer { width: min(560px, 100%); height: 100%; overflow-y: auto; background: #fff; color: #202124; box-shadow: -8px 0 28px rgba(60, 64, 67, .22); animation: gpl-slide .2s cubic-bezier(.2, 0, 0, 1); }
+@keyframes gpl-fade { from { opacity: 0; } }
+@keyframes gpl-slide { from { transform: translateX(40px); opacity: .72; } }
+.app-shell[data-route="dashboard"] .gpl-drawer-header { position: sticky; top: 0; z-index: 2; min-height: 68px; padding: 0 18px; display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 12px; border-bottom: 1px solid #e7e9ec; background: rgba(255,255,255,.96); backdrop-filter: blur(12px); }
+.app-shell[data-route="dashboard"] .gpl-drawer-header > span { font-size: 14px !important; font-weight: 700; }
+.app-shell[data-route="dashboard"] .gpl-icon-button { width: 40px; height: 40px; padding: 0; display: grid; place-items: center; border: 0 !important; border-radius: 50% !important; background: transparent !important; color: #3c4043; cursor: pointer; box-shadow: none !important; }
+.app-shell[data-route="dashboard"] .gpl-icon-button:hover { background: #f1f3f4 !important; }
+.app-shell[data-route="dashboard"] .gpl-edit-button { min-height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 7px; border: 1px solid #a8c7fa !important; border-radius: 19px !important; background: #fff !important; color: #1967d2 !important; font-size: 11px !important; font-weight: 700; cursor: pointer; box-shadow: none !important; }
+.app-shell[data-route="dashboard"] .gpl-edit-button:hover { background: #f4f8ff !important; }
+.app-shell[data-route="dashboard"] .gpl-profile-hero { min-height: 152px; padding: 28px 28px 24px; display: flex; align-items: center; gap: 18px; background: #f7f9ff; }
+.app-shell[data-route="dashboard"] .gpl-profile-avatar { width: 76px; height: 76px; flex: 0 0 76px; font-size: 21px !important; }
+.app-shell[data-route="dashboard"] .gpl-profile-hero h3 { margin: 0; font-size: 25px !important; font-weight: 500; letter-spacing: -.02em; }
+.app-shell[data-route="dashboard"] .gpl-profile-hero p { margin: 5px 0 10px; color: #5f6368; font-size: 13px !important; }
+.app-shell[data-route="dashboard"] .gpl-save-notice { margin: 16px 24px 0; padding: 10px 12px; display: flex; align-items: center; gap: 9px; border-radius: 14px; background: #e6f4ea; color: #137333; font-size: 12px !important; font-weight: 600; }
+.app-shell[data-route="dashboard"] .gpl-profile-content, .app-shell[data-route="dashboard"] .gpl-form { padding: 20px 24px 34px; display: grid; gap: 16px; }
+.app-shell[data-route="dashboard"] .gpl-profile-content section, .app-shell[data-route="dashboard"] .gpl-form section { padding: 19px 20px; border: 1px solid #e1e5ea; border-radius: 20px; background: #fff; }
+.app-shell[data-route="dashboard"] .gpl-profile-content h4, .app-shell[data-route="dashboard"] .gpl-form h4 { margin: 0 0 16px; display: flex; align-items: center; gap: 9px; color: #3c4043; font-size: 13px !important; font-weight: 700; }
+.app-shell[data-route="dashboard"] .gpl-profile-content h4 .gpl-icon, .app-shell[data-route="dashboard"] .gpl-form h4 .gpl-icon { color: #1a73e8; }
+.app-shell[data-route="dashboard"] .gpl-profile-content dl { margin: 0; display: grid; }
+.app-shell[data-route="dashboard"] .gpl-profile-content dl > div { min-height: 50px; padding: 9px 0; display: grid; grid-template-columns: 155px minmax(0, 1fr); gap: 14px; align-items: start; border-bottom: 1px solid #edf0f2; }
+.app-shell[data-route="dashboard"] .gpl-profile-content dl > div:last-child { border-bottom: 0; }
+.app-shell[data-route="dashboard"] .gpl-profile-content dt { color: #6b7075; font-size: 11px !important; font-weight: 600; }
+.app-shell[data-route="dashboard"] .gpl-profile-content dd { margin: 0; color: #202124; font-size: 12px !important; font-weight: 600; line-height: 1.45; overflow-wrap: anywhere; }
+.app-shell[data-route="dashboard"] .gpl-profile-content dd.is-missing { color: #b06000; }
+.app-shell[data-route="dashboard"] .gpl-account-note { margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; background: #e8f0fe; color: #174ea6; font-size: 10px !important; line-height: 1.45; }
+.app-shell[data-route="dashboard"] .gpl-other-degrees { margin-top: 13px; padding: 12px; border-radius: 14px; background: #f8f9fa; }
+.app-shell[data-route="dashboard"] .gpl-other-degrees > span { display: block; margin-bottom: 7px; color: #5f6368; font-size: 10px !important; font-weight: 700; text-transform: uppercase; }
+.app-shell[data-route="dashboard"] .gpl-other-degrees p { margin: 5px 0; font-size: 11px !important; line-height: 1.45; }
+.app-shell[data-route="dashboard"] .gpl-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.app-shell[data-route="dashboard"] .gpl-form label { min-width: 0; display: grid; gap: 7px; }
+.app-shell[data-route="dashboard"] .gpl-form label.is-wide { grid-column: 1 / -1; }
+.app-shell[data-route="dashboard"] .gpl-form label > span { color: #5f6368; font-size: 10px !important; font-weight: 700; }
+.app-shell[data-route="dashboard"] .gpl-form input, .app-shell[data-route="dashboard"] .gpl-form select, .app-shell[data-route="dashboard"] .gpl-form textarea { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #bdc1c6 !important; border-radius: 12px !important; outline: none; background: #fff !important; color: #202124; font: inherit; font-size: 12px !important; line-height: 1.4; box-shadow: none !important; resize: vertical; }
+.app-shell[data-route="dashboard"] .gpl-form input:focus, .app-shell[data-route="dashboard"] .gpl-form select:focus, .app-shell[data-route="dashboard"] .gpl-form textarea:focus { border: 2px solid #1a73e8 !important; padding: 9px 11px; }
+.app-shell[data-route="dashboard"] .gpl-form-actions { position: sticky; bottom: 0; padding: 14px 0 0; display: flex; justify-content: flex-end; gap: 10px; background: linear-gradient(to top, #fff 70%, rgba(255,255,255,0)); }
+.app-shell[data-route="dashboard"] .gpl-button { min-height: 42px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 21px !important; font-size: 11px !important; font-weight: 700; cursor: pointer; box-shadow: none !important; }
+.app-shell[data-route="dashboard"] .gpl-button.filled { border: 1px solid #1a73e8 !important; background: #1a73e8 !important; color: #fff !important; }
+.app-shell[data-route="dashboard"] .gpl-button.filled:hover { background: #185abc !important; }
+.app-shell[data-route="dashboard"] .gpl-button.outlined { border: 1px solid #dadce0 !important; background: #fff !important; color: #1967d2 !important; }
+@media (max-width: 1180px) {
+  .app-shell[data-route="dashboard"] .gpl-table-head, .app-shell[data-route="dashboard"] .gpl-person-row { grid-template-columns: minmax(220px, 1.35fr) minmax(130px, .72fr) minmax(220px, 1.25fr) minmax(110px, .6fr) 24px; }
+  .app-shell[data-route="dashboard"] .gpl-table-head > span:nth-child(4), .app-shell[data-route="dashboard"] .gpl-person-row > span:nth-child(4) { display: none; }
+}
+@media (max-width: 820px) {
+  .app-shell[data-route="dashboard"] .gpl-header { min-height: auto; padding: 22px; }
+  .app-shell[data-route="dashboard"] .gpl-brand-icon { width: 50px; height: 50px; flex-basis: 50px; }
+  .app-shell[data-route="dashboard"] .gpl-body { padding: 20px; }
+  .app-shell[data-route="dashboard"] .gpl-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .app-shell[data-route="dashboard"] .gpl-table-head { display: none; }
+  .app-shell[data-route="dashboard"] .gpl-table-wrap { border: 0; border-radius: 0; overflow: visible; }
+  .app-shell[data-route="dashboard"] .gpl-table { display: grid; gap: 10px; }
+  .app-shell[data-route="dashboard"] .gpl-person-row { min-height: 0; padding: 15px; grid-template-columns: 1fr auto; gap: 12px; border: 1px solid #e0e3e7 !important; border-radius: 18px !important; }
+  .app-shell[data-route="dashboard"] .gpl-person-row > span:nth-child(2), .app-shell[data-route="dashboard"] .gpl-person-row > span:nth-child(4), .app-shell[data-route="dashboard"] .gpl-person-row > span:nth-child(5) { display: none; }
+  .app-shell[data-route="dashboard"] .gpl-qualification-cell { grid-column: 1 / 2; padding-left: 56px; }
+  .app-shell[data-route="dashboard"] .gpl-row-arrow { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+}
+@media (max-width: 560px) {
+  .app-shell[data-route="dashboard"] .gpl-title-group { align-items: flex-start; }
+  .app-shell[data-route="dashboard"] .gpl-brand-icon { width: 44px; height: 44px; flex-basis: 44px; border-radius: 15px; }
+  .app-shell[data-route="dashboard"] .gpl-title-group h2 { font-size: 22px !important; }
+  .app-shell[data-route="dashboard"] .gpl-google-mark { display: none; }
+  .app-shell[data-route="dashboard"] .gpl-body { padding: 16px; }
+  .app-shell[data-route="dashboard"] .gpl-metric { min-height: 70px; padding: 11px 12px; }
+  .app-shell[data-route="dashboard"] .gpl-metric > span { width: 36px; height: 36px; flex-basis: 36px; }
+  .app-shell[data-route="dashboard"] .gpl-toolbar { align-items: stretch; flex-direction: column; }
+  .app-shell[data-route="dashboard"] .gpl-result-count { padding-left: 6px; }
+  .app-shell[data-route="dashboard"] .gpl-missing-banner { grid-template-columns: 36px minmax(0, 1fr) 18px; }
+  .app-shell[data-route="dashboard"] .gpl-missing-banner b { display: none; }
+  .app-shell[data-route="dashboard"] .gpl-profile-hero { padding: 22px 20px; }
+  .app-shell[data-route="dashboard"] .gpl-profile-avatar { width: 64px; height: 64px; flex-basis: 64px; }
+  .app-shell[data-route="dashboard"] .gpl-profile-content, .app-shell[data-route="dashboard"] .gpl-form { padding: 16px; }
+  .app-shell[data-route="dashboard"] .gpl-profile-content section, .app-shell[data-route="dashboard"] .gpl-form section { padding: 16px; }
+  .app-shell[data-route="dashboard"] .gpl-profile-content dl > div { grid-template-columns: 1fr; gap: 4px; }
+  .app-shell[data-route="dashboard"] .gpl-form-grid { grid-template-columns: 1fr; }
+  .app-shell[data-route="dashboard"] .gpl-form label.is-wide { grid-column: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell[data-route="dashboard"] .gpl-directory *, .app-shell[data-route="dashboard"] .gpl-directory *::before, .app-shell[data-route="dashboard"] .gpl-directory *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
