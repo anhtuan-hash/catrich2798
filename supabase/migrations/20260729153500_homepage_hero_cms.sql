@@ -3,23 +3,41 @@ begin;
 create table if not exists public.homepage_hero_settings (
   id text primary key,
   draft_config jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now(),
+  updated_by uuid references auth.users(id) on delete set null,
+  constraint homepage_hero_settings_singleton check (id = 'home')
+);
+
+create table if not exists public.homepage_hero_public (
+  id text primary key,
   published_config jsonb not null default '{}'::jsonb,
   published_at timestamptz,
   updated_at timestamptz not null default now(),
   updated_by uuid references auth.users(id) on delete set null,
-  constraint homepage_hero_singleton check (id = 'home')
+  constraint homepage_hero_public_singleton check (id = 'home')
 );
 
 alter table public.homepage_hero_settings enable row level security;
+alter table public.homepage_hero_public enable row level security;
 
-drop policy if exists "Public can read published homepage Hero" on public.homepage_hero_settings;
-create policy "Public can read published homepage Hero"
+-- Draft/editor table: only approved TTCM/Admin accounts can read or write.
+drop policy if exists "Department leaders can read homepage Hero drafts" on public.homepage_hero_settings;
+create policy "Department leaders can read homepage Hero drafts"
 on public.homepage_hero_settings
 for select
-using (true);
+to authenticated
+using (
+  exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.approved = true
+      and lower(coalesce(p.role, '')) in ('admin', 'department_head', 'ttcm')
+  )
+);
 
-drop policy if exists "Department leaders can insert homepage Hero" on public.homepage_hero_settings;
-create policy "Department leaders can insert homepage Hero"
+drop policy if exists "Department leaders can insert homepage Hero drafts" on public.homepage_hero_settings;
+create policy "Department leaders can insert homepage Hero drafts"
 on public.homepage_hero_settings
 for insert
 to authenticated
@@ -33,9 +51,55 @@ with check (
   )
 );
 
-drop policy if exists "Department leaders can update homepage Hero" on public.homepage_hero_settings;
-create policy "Department leaders can update homepage Hero"
+drop policy if exists "Department leaders can update homepage Hero drafts" on public.homepage_hero_settings;
+create policy "Department leaders can update homepage Hero drafts"
 on public.homepage_hero_settings
+for update
+to authenticated
+using (
+  exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.approved = true
+      and lower(coalesce(p.role, '')) in ('admin', 'department_head', 'ttcm')
+  )
+)
+with check (
+  exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.approved = true
+      and lower(coalesce(p.role, '')) in ('admin', 'department_head', 'ttcm')
+  )
+);
+
+-- Public table: everyone reads the published version; only TTCM/Admin publish.
+drop policy if exists "Everyone can read published homepage Hero" on public.homepage_hero_public;
+create policy "Everyone can read published homepage Hero"
+on public.homepage_hero_public
+for select
+using (true);
+
+drop policy if exists "Department leaders can publish homepage Hero" on public.homepage_hero_public;
+create policy "Department leaders can publish homepage Hero"
+on public.homepage_hero_public
+for insert
+to authenticated
+with check (
+  exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.approved = true
+      and lower(coalesce(p.role, '')) in ('admin', 'department_head', 'ttcm')
+  )
+);
+
+drop policy if exists "Department leaders can update published homepage Hero" on public.homepage_hero_public;
+create policy "Department leaders can update published homepage Hero"
+on public.homepage_hero_public
 for update
 to authenticated
 using (
@@ -61,8 +125,14 @@ insert into public.homepage_hero_settings (id)
 values ('home')
 on conflict (id) do nothing;
 
-grant select on public.homepage_hero_settings to anon, authenticated;
-grant insert, update on public.homepage_hero_settings to authenticated;
+insert into public.homepage_hero_public (id)
+values ('home')
+on conflict (id) do nothing;
+
+revoke all on public.homepage_hero_settings from anon;
+grant select, insert, update on public.homepage_hero_settings to authenticated;
+grant select on public.homepage_hero_public to anon, authenticated;
+grant insert, update on public.homepage_hero_public to authenticated;
 
 insert into storage.buckets (
   id,
@@ -159,9 +229,9 @@ begin
     from pg_publication_tables
     where pubname = 'supabase_realtime'
       and schemaname = 'public'
-      and tablename = 'homepage_hero_settings'
+      and tablename = 'homepage_hero_public'
   ) then
-    alter publication supabase_realtime add table public.homepage_hero_settings;
+    alter publication supabase_realtime add table public.homepage_hero_public;
   end if;
 exception
   when undefined_object then
