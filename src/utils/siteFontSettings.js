@@ -4,6 +4,7 @@ import { isAdminRole } from './roles.js';
 const STORAGE_KEY = 'bes-global-font-id-v1';
 const EVENT_NAME = 'bes-global-font-changed';
 const STYLE_ID = 'bes-global-font-runtime';
+const QUICKSAND_LINK_ID = 'bes-global-font-quicksand';
 const SETTING_APP_ID = 'system:global-font';
 const DEFAULT_FONT_ID = 'brian-gesco';
 
@@ -15,6 +16,38 @@ export const SITE_FONT_OPTIONS = [
     family: "'BrianGescoExact', 'BrianGesco', 'Brian Personal', '1FTV HF Gesco', sans-serif",
     noteVi: 'Font nhận diện riêng đang được đóng gói trong hệ thống.',
     note: 'The bundled signature font used across Brian English Studio.',
+  },
+  {
+    id: 'quicksand',
+    labelVi: 'Quicksand · 5 độ đậm',
+    label: 'Quicksand · 5 weights',
+    family: "'Quicksand', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    noteVi: 'Gồm Light 300, Regular 400, Medium 500, SemiBold 600 và Bold 700; hỗ trợ đầy đủ tiếng Việt.',
+    note: 'Includes Light 300, Regular 400, Medium 500, SemiBold 600 and Bold 700 with Vietnamese support.',
+  },
+  {
+    id: 'mj-bexdroga',
+    labelVi: 'MJ Bexdroga',
+    label: 'MJ Bexdroga',
+    family: "'MJ Bexdroga BES', 'MJ Bexdroga', sans-serif",
+    noteVi: 'Font trang trí mềm mại, phù hợp tiêu đề và các điểm nhấn trực quan.',
+    note: 'A soft decorative typeface for headings and visual accents.',
+  },
+  {
+    id: '1ftv-nasi',
+    labelVi: '1FTV Nasi',
+    label: '1FTV Nasi',
+    family: "'1FTV Nasi BES', '1FTV Nasi', sans-serif",
+    noteVi: 'Font cá tính với hình dáng chữ nổi bật, đã được đóng gói trực tiếp trong website.',
+    note: 'A distinctive display face bundled directly with the website.',
+  },
+  {
+    id: 'vl-monologue',
+    labelVi: 'VL Monologue',
+    label: 'VL Monologue',
+    family: "'VL Monologue BES', 'VL Monologue', cursive",
+    noteVi: 'Font viết tay giàu biểu cảm, thích hợp cho nội dung sáng tạo.',
+    note: 'An expressive handwritten font for creative content.',
   },
   {
     id: 'system-ui',
@@ -90,8 +123,18 @@ export function readSiteFontLocal() {
   catch { return DEFAULT_FONT_ID; }
 }
 
+function ensureQuicksandStylesheet() {
+  if (typeof document === 'undefined' || document.getElementById(QUICKSAND_LINK_ID)) return;
+  const link = document.createElement('link');
+  link.id = QUICKSAND_LINK_ID;
+  link.rel = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap';
+  document.head.appendChild(link);
+}
+
 function ensureRuntimeStyle() {
   if (typeof document === 'undefined') return;
+  ensureQuicksandStylesheet();
   let style = document.getElementById(STYLE_ID);
   if (!style) {
     style = document.createElement('style');
@@ -99,6 +142,27 @@ function ensureRuntimeStyle() {
     document.head.appendChild(style);
   }
   style.textContent = `
+@font-face {
+  font-family: 'MJ Bexdroga BES';
+  src: url('/fonts/system/mj-bexdroga.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: '1FTV Nasi BES';
+  src: url('/fonts/system/1ftv-nasi.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'VL Monologue BES';
+  src: url('/fonts/system/vl-monologue.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 html, body, #root, .app-shell, .metro-shell {
   font-family: var(--font-ui) !important;
 }
