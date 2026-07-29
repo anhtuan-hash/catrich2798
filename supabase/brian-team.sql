@@ -1,5 +1,5 @@
--- Brian Team 1.0 — personnel workspace for subject-department leaders
--- Run once in Supabase SQL Editor before enabling cloud sync.
+-- Brian Team 2.0 — personnel workspace for subject-department leaders
+-- Re-run safely in Supabase SQL Editor to refresh roles and the account directory RPC.
 
 -- Allow the first-class department_head role while preserving existing aliases in old data.
 do $$
@@ -97,6 +97,7 @@ create policy "Brian Team managers can delete their workspace"
   );
 
 -- TTCM may choose only existing approved accounts. The UI never creates a free-text person record.
+-- Approved Admin accounts are included because an Admin may also teach or lead a department.
 create or replace function public.bes_department_list_teacher_accounts()
 returns table (
   id uuid,
@@ -124,11 +125,13 @@ as $$
   where public.can_manage_brian_team()
     and p.approved = true
     and lower(coalesce(p.role, 'teacher')) in (
-      'teacher', 'department_head', 'department-head',
+      'teacher', 'admin', 'department_head', 'department-head',
       'ttcm', 'to_truong', 'tổ trưởng', 'department_leader',
       'department leader', 'subject_leader', 'subject leader', 'leader'
     )
-  order by lower(coalesce(p.full_name, p.email));
+  order by
+    case when lower(coalesce(p.role, '')) = 'admin' then 0 else 1 end,
+    lower(coalesce(p.full_name, p.email));
 $$;
 
 grant execute on function public.can_manage_brian_team() to authenticated;
@@ -137,4 +140,4 @@ grant execute on function public.bes_department_list_teacher_accounts() to authe
 grant select, insert, update, delete on public.department_team_workspaces to authenticated;
 
 comment on table public.department_team_workspaces is
-  'One Brian Team workspace per TTCM account. Members reference public.profiles IDs only.';
+  'One Brian Team workspace per TTCM account. Members reference public.profiles IDs only; extended teacher profiles are stored in the workspace JSON payload.';
