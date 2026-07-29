@@ -1,0 +1,3 @@
+Brian English Studio production deployment trigger after Vercel project transfer to Pro Trial.
+Timestamp: 2026-07-29T17:53:00+07:00
+Includes latest weekly manager grade filter and stay-open save fixes.
