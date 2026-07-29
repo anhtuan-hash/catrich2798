@@ -1,5 +1,5 @@
 const HOME_SHELL_SELECTOR = ".metro-clean-system[data-route='home']";
-const HOME_CONTENT_SELECTOR = '.eh5-home';
+const HOME_CONTENT_SELECTOR = '.bha-home, .eh5-home';
 const WEEKLY_ROOT_ID = 'bes-weekly-practice-root';
 const GAP_PX = 28;
 
