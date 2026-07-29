@@ -170,7 +170,8 @@ export default function HomeHeroExperience2026({
 
   useEffect(() => {
     let active = true;
-    loadHomeHeroSettings()
+    setLoading(true);
+    loadHomeHeroSettings({ canEdit })
       .then((result) => {
         if (!active) return;
         setSettings(result);
@@ -192,7 +193,7 @@ export default function HomeHeroExperience2026({
       unsubscribe?.();
       window.removeEventListener(HOME_HERO_EVENT, handleUpdate);
     };
-  }, []);
+  }, [canEdit]);
 
   const headline = localized(activeConfig.content, language, 'headlineVi', 'headlineEn', t.headline);
   const highlight = localized(activeConfig.content, language, 'highlightVi', 'highlightEn', t.highlight);
