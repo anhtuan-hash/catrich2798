@@ -5,14 +5,15 @@ import { launchRoute } from '../utils/motion.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 import './HomeProposal5.css';
-import './HomeHeroProposal2.css';
+import './HomeExactScreenshot.css';
 
 const ALL_APPS = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS];
 
 const copy = {
   vi: {
     badge: 'ENGLISH HUB',
-    headline: 'Không gian dạy học thông minh',
+    firstLine: 'Không gian',
+    secondLine: 'dạy học thông minh',
     highlight: '& sáng tạo',
     subtitle: 'Tích hợp các công cụ hỗ trợ giảng dạy, học tập và quản lý hiệu quả — tối ưu cho giáo viên và học sinh.',
     start: 'Bắt đầu ngay',
@@ -24,7 +25,8 @@ const copy = {
   },
   en: {
     badge: 'ENGLISH HUB',
-    headline: 'A smart teaching workspace',
+    firstLine: 'A smart',
+    secondLine: 'teaching workspace',
     highlight: '& creative learning',
     subtitle: 'Teaching, learning and management tools brought together in one efficient workspace for teachers and students.',
     start: 'Get started',
@@ -112,97 +114,142 @@ function launch(target, label, color, currentUser, sourceEl) {
   launchRoute({ target: finalTarget, label, color, sourceEl });
 }
 
-function MiniIcon({ type }) {
-  const icons = {
-    game: <><path d="M4 11h16l2 7c.5 2-1.6 3.5-3.2 2.3L16 18h-8l-2.8 2.3C3.6 21.5 1.5 20 2 18l2-7Z"/><path d="M7 13v4M5 15h4M16.5 14.5h.01M19 16.5h.01"/></>,
-    chart: <><path d="M4 20V10M10 20V4M16 20v-7M22 20V7"/></>,
-    users: <><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 21c.8-5 3-8 6-8s5.2 3 6 8M14 21c.5-4 2-6 4.3-6S22 17 22 21"/></>,
-    grid: <><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></>,
-    folder: <><path d="M3 7h7l2 2h9v10H3Z"/></>,
-    task: <><rect x="5" y="3" width="14" height="18" rx="3"/><path d="m8 9 2 2 4-4M8 16h8"/></>,
-    book: <><path d="M3 5h7c2 0 3 1 3 3v13c0-2-1-3-3-3H3ZM21 5h-7v16c0-2 1-3 3-3h4Z"/></>,
-    puzzle: <><path d="M9 3h6v5a3 3 0 1 1 0 6v7H9v-5a3 3 0 1 1 0-6Z"/></>,
-    trophy: <><path d="M8 4h8v5c0 4-2 7-4 7s-4-3-4-7Z"/><path d="M8 7H4c0 4 2 6 5 6M16 7h4c0 4-2 6-5 6M12 16v4M8 21h8"/></>,
-    calendar: <><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 10h18"/></>,
-    notebook: <><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 3v18M11 8h6M11 12h6M11 16h4"/></>,
-    chat: <><path d="M4 5h16v11H9l-5 4Z"/><path d="M8 9h8M8 12h5"/></>,
-    cap: <><path d="m2 9 10-5 10 5-10 5Z"/><path d="M6 12v5c4 3 8 3 12 0v-5M22 9v7"/></>,
-    shield: <><path d="M12 2 20 5v6c0 5-3.2 8.5-8 11-4.8-2.5-8-6-8-11V5Z"/><path d="m8 12 2.5 2.5L16 9"/></>,
-  };
+function HeroIllustration() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        {icons[type] || icons.grid}
+    <svg className="eh7-hero-illustration" viewBox="0 0 920 620" role="img" aria-label="Không gian dạy học thông minh với biểu tượng Việt Nam">
+      <defs>
+        <linearGradient id="eh7Sky" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#f8fbff" />
+          <stop offset=".56" stopColor="#edf5ff" />
+          <stop offset="1" stopColor="#e8efff" />
+        </linearGradient>
+        <linearGradient id="eh7HillA" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#78bda8" />
+          <stop offset="1" stopColor="#4e957f" />
+        </linearGradient>
+        <linearGradient id="eh7HillB" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#a6d584" />
+          <stop offset="1" stopColor="#63a86f" />
+        </linearGradient>
+        <linearGradient id="eh7BlueBook" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#4386f6" />
+          <stop offset="1" stopColor="#1767d8" />
+        </linearGradient>
+        <linearGradient id="eh7PurpleBook" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#8b5de3" />
+          <stop offset="1" stopColor="#6337c6" />
+        </linearGradient>
+        <linearGradient id="eh7Screen" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#2e67ba" />
+          <stop offset="1" stopColor="#173f79" />
+        </linearGradient>
+        <radialGradient id="eh7Halo" cx="50%" cy="50%" r="50%">
+          <stop offset="0" stopColor="#ffffff" stopOpacity=".92" />
+          <stop offset="1" stopColor="#dce9fb" stopOpacity="0" />
+        </radialGradient>
+        <filter id="eh7Shadow" x="-40%" y="-40%" width="180%" height="200%">
+          <feDropShadow dx="0" dy="16" stdDeviation="13" floodColor="#254b77" floodOpacity=".18" />
+        </filter>
+        <filter id="eh7SmallShadow" x="-40%" y="-40%" width="180%" height="200%">
+          <feDropShadow dx="0" dy="9" stdDeviation="8" floodColor="#254b77" floodOpacity=".16" />
+        </filter>
+      </defs>
+
+      <rect width="920" height="620" fill="url(#eh7Sky)" />
+      <circle cx="446" cy="142" r="238" fill="url(#eh7Halo)" />
+      <circle cx="456" cy="132" r="188" fill="none" stroke="#c9d9ef" strokeWidth="2" opacity=".24" />
+      <circle cx="456" cy="132" r="157" fill="none" stroke="#c9d9ef" strokeWidth="2" opacity=".18" />
+
+      <path d="M0 352C112 258 201 235 303 307c75 53 123 66 211 3 98-70 188-72 406 24V620H0Z" fill="#87b9b0" />
+      <path d="M0 393C105 334 184 318 276 371c86 49 151 34 235-39 101-87 222-67 409 33V620H0Z" fill="url(#eh7HillA)" />
+      <path d="M278 398c132-99 257-81 370 13 82-84 165-103 272-74v283H278Z" fill="url(#eh7HillB)" />
+      <path d="M0 466c116-49 202-33 295 23 96 58 181 43 269 0 113-56 226-40 356 25v106H0Z" fill="#67aa74" />
+      <path d="M96 620c51-103 117-184 222-225 86-34 153-29 240-1-144 70-219 139-279 226Z" fill="#d6e5ad" opacity=".84" />
+      <path d="M119 620c42-92 104-163 207-205 62-25 113-31 181-22-119 75-184 144-225 227Z" fill="#edf3c8" opacity=".9" />
+
+      <g opacity=".5" fill="#6d9fc7">
+        <path d="M78 316h54v100H78z" opacity=".16" />
+        <path d="M105 236 70 300h70Z" />
+        <path d="M105 260 78 309h54Z" />
+        <path d="M105 286 84 326h42Z" />
+        <rect x="99" y="300" width="12" height="104" rx="5" />
+      </g>
+
+      <g transform="translate(730 150)" opacity=".58" fill="#6b9db2">
+        <path d="M0 88h145v82H0z" />
+        <path d="M-15 88 20 57h105l35 31Z" />
+        <path d="M15 54 44 29h56l29 25Z" />
+        <path d="M48 25 72 2l24 23Z" />
+        <rect x="67" y="105" width="18" height="65" rx="6" fill="#e7f1f4" />
+      </g>
+
+      <g transform="translate(116 82)" filter="url(#eh7SmallShadow)">
+        <rect x="0" y="5" width="9" height="260" rx="4.5" fill="#8a5b2f" />
+        <circle cx="4.5" cy="0" r="11" fill="#c17a32" />
+        <path d="M9 30c56-12 105 1 145 35v94c-43-27-93-29-145-10Z" fill="#e73b32" />
+        <path d="m84 66 12 27 29 3-22 19 7 29-26-15-26 15 7-29-22-19 29-3Z" fill="#ffdb3d" />
+        <ellipse cx="4.5" cy="269" rx="23" ry="9" fill="#456b48" />
+      </g>
+
+      <g transform="translate(320 146)" filter="url(#eh7Shadow)">
+        <rect width="355" height="243" rx="30" fill="url(#eh7Screen)" />
+        <rect x="18" y="17" width="319" height="204" rx="20" fill="#f8fbff" />
+        <rect x="18" y="17" width="319" height="34" rx="20" fill="#edf3fb" />
+        <circle cx="308" cy="34" r="5" fill="#34a853" />
+        <circle cx="290" cy="34" r="5" fill="#a9c6ed" />
+        <rect x="34" y="66" width="54" height="137" rx="15" fill="#eef4ff" />
+        <path d="M50 94h22v22H50z" fill="#2d7cf0" opacity=".2" />
+        <path d="m61 91 13 10v15H48v-15Z" fill="#2d7cf0" />
+        <rect x="111" y="72" width="194" height="92" rx="16" fill="#fff" stroke="#dce6f4" />
+        <rect x="127" y="91" width="58" height="58" rx="12" fill="#347ff1" />
+        <path d="M143 120h26M156 107v26" stroke="#fff" strokeWidth="7" strokeLinecap="round" />
+        <rect x="203" y="94" width="78" height="10" rx="5" fill="#d8e1ee" />
+        <rect x="203" y="116" width="66" height="10" rx="5" fill="#d8e1ee" />
+        <circle cx="206" cy="142" r="6" fill="#4a8af0" />
+        <rect x="121" y="176" width="72" height="30" rx="9" fill="#fff" stroke="#dbe5f1" />
+        <rect x="205" y="176" width="72" height="30" rx="9" fill="#fff" stroke="#dbe5f1" />
+        <path d="M151 221h54l19 42H132Z" fill="#24508c" />
+        <path d="M104 263h147l28 18H76Z" fill="#1c4a86" />
+      </g>
+
+      <g transform="translate(495 345)" filter="url(#eh7Shadow)">
+        <rect x="0" y="128" width="282" height="63" rx="19" fill="url(#eh7PurpleBook)" />
+        <rect x="15" y="70" width="269" height="66" rx="19" fill="#3aaa55" />
+        <rect x="0" y="12" width="289" height="68" rx="20" fill="url(#eh7BlueBook)" />
+        <path d="M26 49h156M42 105h152M24 164h164" stroke="#fff" strokeOpacity=".38" strokeWidth="7" strokeLinecap="round" />
+        <path d="M117 6h109l74 42-117 22-93-37Z" fill="#252d3a" />
+        <path d="M223 48c28 12 34 35 28 66" fill="none" stroke="#f6ba28" strokeWidth="6" strokeLinecap="round" />
+        <circle cx="251" cy="115" r="9" fill="#f6ba28" />
+        <path d="M218 23h16l-4 50h-10Z" fill="#f7d239" opacity=".9" />
+      </g>
+
+      <g transform="translate(135 410)" filter="url(#eh7SmallShadow)">
+        <path d="M0 32c75-34 139-29 196 12v116H0Z" fill="#fff" />
+        <path d="M196 44c66-39 131-39 194-3v119H196Z" fill="#f7f8fb" />
+        <path d="M196 44v116" stroke="#c9d5e5" strokeWidth="5" />
+        <path d="M31 61h125M31 81h111M31 101h121M226 61h124M226 81h104M226 101h118" stroke="#d7dee9" strokeWidth="4" strokeLinecap="round" />
+        <path d="m207 46 58 7-18 69-30-20-35 18Z" fill="#3c80ef" opacity=".85" />
+      </g>
+
+      <g transform="translate(72 392)" filter="url(#eh7SmallShadow)">
+        <path d="M0 48h78l-8 118H10Z" fill="#fff" />
+        <ellipse cx="39" cy="48" rx="39" ry="12" fill="#f6f8fb" />
+        <path d="M23 48 28 3M39 48 48 0M54 48 66 9" stroke="#f1a632" strokeWidth="8" strokeLinecap="round" />
+        <path d="M28 3h0M48 0h0M66 9h0" stroke="#2d78eb" strokeWidth="12" strokeLinecap="round" />
+      </g>
+
+      <g transform="translate(804 330)" filter="url(#eh7SmallShadow)">
+        <path d="M0 130h95l-9 116H12Z" fill="#f6f7f5" />
+        <path d="M17 130c-9-79 16-117 62-129 4 61-18 105-62 129ZM52 132c6-70 37-102 91-96-12 55-42 88-91 96ZM40 133C17 75 22 30 59 0c27 44 20 88-19 133Z" fill="#65aa48" />
+      </g>
+
+      <g opacity=".8" fill="#f2d89a">
+        <path d="m746 318 49-42 48 42Z" />
+        <path d="M793 318v82" stroke="#b98e4e" strokeWidth="5" />
+        <path d="m829 270 38-31 37 31Z" />
+        <path d="M866 270v60" stroke="#b98e4e" strokeWidth="4" />
       </g>
     </svg>
-  );
-}
-
-function LayeredHeroCards({ language = 'vi' }) {
-  const vi = language === 'vi';
-  return (
-    <div className="eh6-cardscape" aria-label={vi ? 'Hệ sinh thái công cụ English Hub' : 'English Hub product ecosystem'}>
-      <div className="eh6-orb eh6-orb-a" />
-      <div className="eh6-orb eh6-orb-b" />
-      <div className="eh6-cultural eh6-pagoda" aria-hidden="true" />
-      <div className="eh6-cultural eh6-conical" aria-hidden="true" />
-
-      <article className="eh6-product-card eh6-game-card">
-        <header><span className="eh6-card-icon"><MiniIcon type="game" /></span><strong>{vi ? 'Trò chơi' : 'Games'}</strong></header>
-        <div className="eh6-game-score">
-          <span className="eh6-trophy"><MiniIcon type="trophy" /></span>
-          <div><small>{vi ? 'Điểm cao' : 'High score'}</small><b>12,450</b></div>
-        </div>
-        <div className="eh6-game-tiles"><span>★</span><span>●</span><span>◆</span></div>
-      </article>
-
-      <article className="eh6-product-card eh6-dashboard-card">
-        <header><span className="eh6-card-icon"><MiniIcon type="chart" /></span><strong>Dashboard</strong><button type="button" aria-label="Mở Dashboard">→</button></header>
-        <h3>{vi ? 'Tổng quan lớp học' : 'Class overview'}</h3>
-        <div className="eh6-stats">
-          <div><MiniIcon type="users" /><b>32</b><small>{vi ? 'Học sinh' : 'Students'}</small></div>
-          <div><MiniIcon type="task" /><b>48</b><small>{vi ? 'Bài tập' : 'Tasks'}</small></div>
-          <div><MiniIcon type="trophy" /><b>8.6</b><small>{vi ? 'Điểm TB' : 'Average'}</small></div>
-        </div>
-        <svg className="eh6-chart" viewBox="0 0 260 72" aria-hidden="true">
-          <path d="M5 60C30 34 48 55 68 40s41-25 60-8 35 18 51 4 35-24 76-25" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-          <path d="M5 62h250" stroke="currentColor" strokeOpacity=".12" />
-          {[5,68,128,179,255].map((x, index) => <circle key={x} cx={x} cy={[60,40,32,36,11][index]} r="4" fill="white" stroke="currentColor" strokeWidth="2" />)}
-        </svg>
-      </article>
-
-      <article className="eh6-product-card eh6-homeroom-card">
-        <header><span className="eh6-card-icon"><MiniIcon type="users" /></span><strong>{vi ? 'Chủ nhiệm' : 'Homeroom'}</strong></header>
-        <h3>{vi ? 'Thông báo mới' : 'New notices'}</h3>
-        <ul>
-          <li><span>▣</span>{vi ? 'Lịch kiểm tra giữa kì 1' : 'Midterm schedule'}</li>
-          <li><span>♟</span>{vi ? 'Họp phụ huynh tháng 7' : 'Parent meeting'}</li>
-          <li><span>★</span>{vi ? 'Hoạt động ngoại khóa' : 'Extracurricular activity'}</li>
-        </ul>
-      </article>
-
-      <article className="eh6-product-card eh6-apps-card">
-        <header><span className="eh6-card-icon"><MiniIcon type="grid" /></span><strong>{vi ? 'Ứng dụng' : 'Apps'}</strong></header>
-        <div className="eh6-app-grid">
-          <div><MiniIcon type="folder" /><span>{vi ? 'Thư viện' : 'Library'}</span></div>
-          <div><MiniIcon type="task" /><span>{vi ? 'Bài tập' : 'Practice'}</span></div>
-          <div><MiniIcon type="book" /><span>{vi ? 'Tài liệu' : 'Resources'}</span></div>
-          <div><MiniIcon type="puzzle" /><span>{vi ? 'Tiện ích' : 'Utilities'}</span></div>
-        </div>
-      </article>
-
-      <article className="eh6-product-card eh6-weekly-card">
-        <header><span className="eh6-spark">✦</span><strong>Weekly English Practice</strong><a href="#/practice">{vi ? 'Xem tất cả' : 'View all'} →</a></header>
-        <h3>{vi ? 'Bài luyện tập tiếng Anh theo tuần' : 'Weekly English practice'}</h3>
-        <div className="eh6-grade-grid">
-          <div className="eh6-grade eh6-grade-10"><small>{vi ? 'KHỐI 10' : 'GRADE 10'}</small><b>{vi ? 'Tiếng Anh 10' : 'English 10'}</b><span>{vi ? 'Tuần 2 | 27/7 - 01/8' : 'Week 2 | 27/7 - 01/8'}</span><i><MiniIcon type="notebook" /></i></div>
-          <div className="eh6-grade eh6-grade-11"><small>{vi ? 'KHỐI 11' : 'GRADE 11'}</small><b>{vi ? 'Tiếng Anh 11' : 'English 11'}</b><span>{vi ? 'Tuần 2 | 27/7 - 01/8' : 'Week 2 | 27/7 - 01/8'}</span><i><MiniIcon type="chat" /></i></div>
-          <div className="eh6-grade eh6-grade-12"><small>{vi ? 'KHỐI 12' : 'GRADE 12'}</small><b>{vi ? 'Tiếng Anh 12' : 'English 12'}</b><span>{vi ? 'Tuần 2 | 27/7 - 01/8' : 'Week 2 | 27/7 - 01/8'}</span><i><MiniIcon type="cap" /></i></div>
-        </div>
-      </article>
-
-      <div className="eh6-calendar-float" aria-hidden="true"><MiniIcon type="calendar" /><span>28</span></div>
-    </div>
   );
 }
 
@@ -280,34 +327,32 @@ export default function Home({ currentUser, language = 'vi', appVisibility }) {
   }, [currentUser, visibilitySnapshot]);
 
   return (
-    <div className="eh5-home eh6-home" aria-label="English Hub homepage">
-      <section className="eh5-hero eh6-hero">
-        <div className="eh5-hero-copy eh6-hero-copy">
-          <span className="eh5-badge">{t.badge}</span>
-          <h1>{t.headline}</h1>
-          <h2>{t.highlight}</h2>
+    <div className="eh5-home eh7-home" aria-label="English Hub homepage">
+      <section className="eh5-hero eh7-hero">
+        <div className="eh5-hero-copy eh7-hero-copy">
+          <span className="eh5-badge eh7-badge">{t.badge}</span>
+          <h1 className="eh7-title">
+            <span>{t.firstLine}</span>
+            <span className="eh7-title-blue">{t.secondLine}</span>
+          </h1>
+          <h2 className="eh7-highlight">{t.highlight}</h2>
           <p>{t.subtitle}</p>
-          <div className="eh5-actions">
-            <button type="button" className="eh5-primary" onClick={(event) => launch(currentUser ? `#/${firstRoute}` : '#/login', 'GO', '#6d35d8', currentUser, event.currentTarget)}>
+          <div className="eh5-actions eh7-actions">
+            <button type="button" className="eh5-primary eh7-primary" onClick={(event) => launch(currentUser ? `#/${firstRoute}` : '#/login', 'GO', '#6d35d8', currentUser, event.currentTarget)}>
               <span>✦</span>{t.start}<b>→</b>
             </button>
-            <button type="button" className="eh5-secondary" onClick={(event) => launch('#/apps', 'AP', '#1a73e8', currentUser, event.currentTarget)}>
+            <button type="button" className="eh5-secondary eh7-secondary" onClick={(event) => launch('#/apps', 'AP', '#1a73e8', currentUser, event.currentTarget)}>
               <span>▶</span>{t.guide}
             </button>
           </div>
-          <div className="eh6-benefits" aria-label={language === 'vi' ? 'Lợi ích nổi bật' : 'Key benefits'}>
-            <span><i className="eh6-benefit-icon eh6-benefit-purple"><MiniIcon type="users" /></i>{language === 'vi' ? 'Dành cho giáo viên và học sinh' : 'For teachers and students'}</span>
-            <span><i className="eh6-benefit-icon eh6-benefit-green"><MiniIcon type="shield" /></i>{language === 'vi' ? 'An toàn và bảo mật dữ liệu' : 'Safe and secure data'}</span>
-            <span><i className="eh6-benefit-icon eh6-benefit-orange"><MiniIcon type="chart" /></i>{language === 'vi' ? 'Hiệu quả, tiết kiệm thời gian' : 'Efficient and time-saving'}</span>
-          </div>
         </div>
 
-        <div className="eh5-hero-visual eh6-hero-visual">
-          <LayeredHeroCards language={language} />
+        <div className="eh5-hero-visual eh7-hero-visual">
+          <HeroIllustration />
         </div>
       </section>
 
-      <section className="eh5-section eh5-tools-section" aria-labelledby="eh5-tools-title">
+      <section className="eh5-section eh5-tools-section eh7-tools" aria-labelledby="eh5-tools-title">
         <header className="eh5-section-head">
           <div>
             <span>{t.toolsKicker}</span>
