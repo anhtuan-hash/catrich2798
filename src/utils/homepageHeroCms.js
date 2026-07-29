@@ -6,16 +6,21 @@ export const HOME_HERO_STORAGE_BUCKET = 'homepage-hero-media';
 export const HOME_HERO_ROW_ID = 'home';
 export const HOME_HERO_EVENT = 'bes-home-hero-updated';
 export const HOME_HERO_LOCAL_KEY = 'bes-home-hero-cms-v1';
+export const HOME_HERO_STATIC_PATH = '/hero/hero-current.json';
 
-const MAX_MEDIA_BYTES = 50 * 1024 * 1024;
+const MAX_MEDIA_BYTES = 25 * 1024 * 1024;
+const STATIC_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const ACCEPTED_IMAGE_TYPES = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/webp',
+  ...STATIC_IMAGE_TYPES,
   'image/gif',
   'image/apng',
 ]);
 const ACCEPTED_VIDEO_TYPES = new Set(['video/mp4', 'video/webm']);
+const MAX_IMAGE_WIDTH = 2400;
+const MAX_IMAGE_HEIGHT = 1600;
+const WEBP_QUALITY = 0.84;
+const STATIC_POLL_INTERVAL_MS = 8000;
+const STATIC_POLL_TIMEOUT_MS = 5 * 60 * 1000;
 
 export const DEFAULT_HOME_HERO_CONFIG = Object.freeze({
   version: 1,
@@ -197,9 +202,9 @@ export function normalizeHomeHeroConfig(input) {
   const backgroundType = ['none', 'image', 'gif', 'video'].includes(source.background?.type)
     ? source.background.type
     : defaults.background.type;
-  const buttons = Array.isArray(source.buttons) ? source.buttons.slice(0, 2) : defaults.buttons;
+  const buttons = Array.isArray(source.buttons) ? source.buttons.slice(0, 2) : clone(defaults.buttons);
   while (buttons.length < 2) buttons.push(defaults.buttons[buttons.length]);
-  const infoItems = Array.isArray(source.infoItems) ? source.infoItems.slice(0, 4) : defaults.infoItems;
+  const infoItems = Array.isArray(source.infoItems) ? source.infoItems.slice(0, 4) : clone(defaults.infoItems);
 
   return {
     version: 1,
@@ -270,21 +275,22 @@ function readLocal() {
     return {
       draft: normalizeHomeHeroConfig(parsed.draft || parsed.published || DEFAULT_HOME_HERO_CONFIG),
       published: normalizeHomeHeroConfig(parsed.published || DEFAULT_HOME_HERO_CONFIG),
-      updatedAt: parsed.updatedAt || '',
+      revision: text(parsed.revision, '', 120),
+      publishedAt: text(parsed.publishedAt, '', 120),
+      updatedAt: text(parsed.updatedAt, '', 120),
     };
   } catch {
-    return {
-      draft: normalizeHomeHeroConfig(DEFAULT_HOME_HERO_CONFIG),
-      published: normalizeHomeHeroConfig(DEFAULT_HOME_HERO_CONFIG),
-      updatedAt: '',
-    };
+    const fallback = normalizeHomeHeroConfig(DEFAULT_HOME_HERO_CONFIG);
+    return { draft: fallback, published: fallback, revision: '', publishedAt: '', updatedAt: '' };
   }
 }
 
 function writeLocal(next) {
   const payload = {
-    draft: normalizeHomeHeroConfig(next.draft),
-    published: normalizeHomeHeroConfig(next.published),
+    draft: normalizeHomeHeroConfig(next.draft || next.published || DEFAULT_HOME_HERO_CONFIG),
+    published: normalizeHomeHeroConfig(next.published || DEFAULT_HOME_HERO_CONFIG),
+    revision: text(next.revision, '', 120),
+    publishedAt: text(next.publishedAt, '', 120),
     updatedAt: new Date().toISOString(),
   };
   localStorage.setItem(HOME_HERO_LOCAL_KEY, JSON.stringify(payload));
@@ -297,53 +303,111 @@ function isMissingDatabase(error) {
   return code === '42P01'
     || code === 'PGRST205'
     || message.includes('homepage_hero_settings')
-    || message.includes('homepage_hero_public')
     || message.includes('schema cache');
+}
+
+async function fetchStaticDocument({ noStore = false } = {}) {
+  const separator = HOME_HERO_STATIC_PATH.includes('?') ? '&' : '?';
+  const url = noStore ? `${HOME_HERO_STATIC_PATH}${separator}t=${Date.now()}` : HOME_HERO_STATIC_PATH;
+  const response = await fetch(url, {
+    cache: noStore ? 'no-store' : 'no-cache',
+    headers: { Accept: 'application/json' },
+  });
+  if (!response.ok) throw new Error(`Static Hero is unavailable (${response.status})`);
+  const document = await response.json();
+  const config = normalizeHomeHeroConfig(document?.config || document);
+  return {
+    config,
+    revision: text(document?.revision, '', 120),
+    publishedAt: text(document?.publishedAt, '', 120),
+    delivery: text(document?.delivery, '', 80),
+    bootstrap: document?.revision === 'bootstrap' || !document?.publishedAt,
+  };
+}
+
+async function readLegacyPublishedHero(fallback) {
+  if (!isSupabaseConfigured || !supabase) return null;
+  const { data, error } = await supabase
+    .from(HOME_HERO_PUBLIC_TABLE)
+    .select('published_config,published_at,updated_at')
+    .eq('id', HOME_HERO_ROW_ID)
+    .maybeSingle();
+  if (error) return null;
+  if (!data?.published_config) return null;
+  return {
+    config: normalizeHomeHeroConfig(data.published_config || fallback),
+    revision: 'legacy-supabase',
+    publishedAt: data.published_at || data.updated_at || '',
+  };
 }
 
 export async function loadHomeHeroSettings({ forceLocal = false, canEdit = false } = {}) {
   const local = readLocal();
-  if (forceLocal || !isSupabaseConfigured || !supabase) return { ...local, source: 'local', databaseReady: false };
+  if (forceLocal) return { ...local, source: 'local', databaseReady: false };
 
-  const { data: publicData, error: publicError } = await supabase
-    .from(HOME_HERO_PUBLIC_TABLE)
-    .select('id,published_config,published_at,updated_at,updated_by')
-    .eq('id', HOME_HERO_ROW_ID)
-    .maybeSingle();
-
-  if (publicError) {
-    if (isMissingDatabase(publicError)) return { ...local, source: 'local', databaseReady: false, warning: publicError.message };
-    throw publicError;
+  let staticResult = null;
+  try {
+    staticResult = await fetchStaticDocument();
+  } catch {
+    staticResult = null;
   }
 
-  const published = normalizeHomeHeroConfig(publicData?.published_config || local.published || DEFAULT_HOME_HERO_CONFIG);
-  let draft = published;
-  let editorReady = !canEdit;
-  let editorData = null;
+  let published = staticResult?.config || local.published;
+  let revision = staticResult?.revision || local.revision;
+  let publishedAt = staticResult?.publishedAt || local.publishedAt;
+  let source = staticResult ? 'vercel-static' : 'local-cache';
 
-  if (canEdit) {
+  // One-time migration fallback: until the first static Hero is published, keep
+  // the current Supabase Hero visible. After a real static revision exists,
+  // normal visitors no longer query Supabase for Hero content.
+  const localHasMedia = Boolean(local.published?.background?.url);
+  if (staticResult?.bootstrap) {
+    if (localHasMedia) {
+      published = local.published;
+      revision = local.revision || 'local-migration-cache';
+      publishedAt = local.publishedAt;
+      source = 'local-migration-cache';
+    } else {
+      const legacy = await readLegacyPublishedHero(local.published);
+      if (legacy) {
+        published = legacy.config;
+        revision = legacy.revision;
+        publishedAt = legacy.publishedAt;
+        source = 'supabase-migration-fallback';
+      }
+    }
+  }
+
+  let draft = published;
+  let databaseReady = false;
+  let updatedBy = '';
+  let updatedAt = '';
+
+  if (canEdit && isSupabaseConfigured && supabase) {
     const { data, error } = await supabase
       .from(HOME_HERO_TABLE)
-      .select('id,draft_config,updated_at,updated_by')
+      .select('draft_config,updated_at,updated_by')
       .eq('id', HOME_HERO_ROW_ID)
       .maybeSingle();
-    if (error) {
-      if (isMissingDatabase(error)) return { ...local, published, source: 'local', databaseReady: false, warning: error.message };
+    if (!error) {
+      draft = normalizeHomeHeroConfig(data?.draft_config || published);
+      updatedAt = data?.updated_at || '';
+      updatedBy = data?.updated_by || '';
+      databaseReady = true;
+    } else if (!isMissingDatabase(error)) {
       throw error;
     }
-    editorData = data;
-    draft = normalizeHomeHeroConfig(data?.draft_config || published);
-    editorReady = true;
   }
 
   const result = {
     draft,
     published,
-    updatedAt: editorData?.updated_at || publicData?.updated_at || '',
-    publishedAt: publicData?.published_at || '',
-    updatedBy: editorData?.updated_by || publicData?.updated_by || '',
-    source: 'supabase',
-    databaseReady: editorReady,
+    revision,
+    publishedAt,
+    updatedAt,
+    updatedBy,
+    source,
+    databaseReady,
   };
   writeLocal(result);
   return result;
@@ -352,7 +416,7 @@ export async function loadHomeHeroSettings({ forceLocal = false, canEdit = false
 export async function saveHomeHeroDraft(config, currentUser) {
   const normalized = normalizeHomeHeroConfig(config);
   const local = readLocal();
-  writeLocal({ draft: normalized, published: local.published });
+  writeLocal({ ...local, draft: normalized });
   if (!isSupabaseConfigured || !supabase || !currentUser?.id) {
     return { ok: true, source: 'local', databaseReady: false, config: normalized };
   }
@@ -372,49 +436,79 @@ export async function saveHomeHeroDraft(config, currentUser) {
   return { ok: true, source: 'supabase', databaseReady: true, config: normalized };
 }
 
+async function waitForStaticRevision(revision) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < STATIC_POLL_TIMEOUT_MS) {
+    await new Promise((resolve) => window.setTimeout(resolve, STATIC_POLL_INTERVAL_MS));
+    try {
+      const result = await fetchStaticDocument({ noStore: true });
+      if (result.revision === revision) return result;
+    } catch {
+      // A deployment may still be building. Keep the current Hero visible.
+    }
+  }
+  return null;
+}
+
 export async function publishHomeHero(config, currentUser) {
   const normalized = normalizeHomeHeroConfig(config);
-  writeLocal({ draft: normalized, published: normalized });
-  if (!isSupabaseConfigured || !supabase || !currentUser?.id) {
-    window.dispatchEvent(new CustomEvent(HOME_HERO_EVENT, { detail: { mode: 'published', config: normalized } }));
-    return { ok: true, source: 'local', databaseReady: false, config: normalized };
-  }
+  if (!currentUser?.id) throw new Error('Bạn cần đăng nhập bằng tài khoản TTCM/Admin để công bố Hero.');
+  if (!isSupabaseConfigured || !supabase) throw new Error('Supabase Auth chưa được cấu hình.');
 
-  const now = new Date().toISOString();
-  const editorPayload = {
-    id: HOME_HERO_ROW_ID,
-    draft_config: normalized,
-    updated_at: now,
-    updated_by: currentUser.id,
+  const { data, error: sessionError } = await supabase.auth.getSession();
+  const accessToken = data?.session?.access_token;
+  if (sessionError || !accessToken) throw new Error('Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.');
+
+  const response = await fetch('/api/homepage-hero-publish', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ config: normalized }),
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result?.error || `Không thể công bố Hero (${response.status}).`);
+
+  const staticConfig = normalizeHomeHeroConfig(result.config || normalized);
+  window.dispatchEvent(new CustomEvent(HOME_HERO_EVENT, {
+    detail: {
+      mode: 'deployment-pending',
+      config: normalized,
+      staticConfig,
+      revision: result.revision,
+      commitSha: result.commitSha,
+    },
+  }));
+
+  // Do not replace the current public Hero with an undeployed /hero/media URL.
+  // Poll Vercel in the background and switch only after the matching static
+  // revision is actually available at the production domain.
+  waitForStaticRevision(result.revision).then((published) => {
+    if (!published) return;
+    const local = readLocal();
+    writeLocal({
+      ...local,
+      published: published.config,
+      revision: published.revision,
+      publishedAt: published.publishedAt,
+    });
+    window.dispatchEvent(new CustomEvent(HOME_HERO_EVENT, {
+      detail: {
+        mode: 'published',
+        config: published.config,
+        revision: published.revision,
+      },
+    }));
+  });
+
+  return {
+    ...result,
+    ok: true,
+    source: 'github-vercel-static',
+    databaseReady: true,
+    config: staticConfig,
   };
-  const publicPayload = {
-    id: HOME_HERO_ROW_ID,
-    published_config: normalized,
-    published_at: now,
-    updated_at: now,
-    updated_by: currentUser.id,
-  };
-
-  const { error: editorError } = await supabase.from(HOME_HERO_TABLE).upsert(editorPayload, { onConflict: 'id' });
-  if (editorError) {
-    if (isMissingDatabase(editorError)) {
-      window.dispatchEvent(new CustomEvent(HOME_HERO_EVENT, { detail: { mode: 'published', config: normalized } }));
-      return { ok: true, source: 'local', databaseReady: false, warning: editorError.message, config: normalized };
-    }
-    throw editorError;
-  }
-
-  const { error: publicError } = await supabase.from(HOME_HERO_PUBLIC_TABLE).upsert(publicPayload, { onConflict: 'id' });
-  if (publicError) {
-    if (isMissingDatabase(publicError)) {
-      window.dispatchEvent(new CustomEvent(HOME_HERO_EVENT, { detail: { mode: 'published', config: normalized } }));
-      return { ok: true, source: 'local', databaseReady: false, warning: publicError.message, config: normalized };
-    }
-    throw publicError;
-  }
-
-  window.dispatchEvent(new CustomEvent(HOME_HERO_EVENT, { detail: { mode: 'published', config: normalized } }));
-  return { ok: true, source: 'supabase', databaseReady: true, config: normalized };
 }
 
 function safeFileName(name) {
@@ -426,9 +520,61 @@ function safeFileName(name) {
     .slice(0, 140);
 }
 
+function webpName(name) {
+  const base = safeFileName(name).replace(/\.[^.]+$/, '') || 'hero-media';
+  return `${base}.webp`;
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+async function optimizeStaticImage(file) {
+  if (!STATIC_IMAGE_TYPES.has(file.type)) return { file, optimized: false, originalBytes: file.size, outputBytes: file.size };
+  if (typeof createImageBitmap !== 'function' || typeof document === 'undefined') {
+    return { file, optimized: false, originalBytes: file.size, outputBytes: file.size };
+  }
+
+  let bitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, MAX_IMAGE_WIDTH / bitmap.width, MAX_IMAGE_HEIGHT / bitmap.height);
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d', { alpha: true });
+    if (!context) return { file, optimized: false, originalBytes: file.size, outputBytes: file.size };
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(bitmap, 0, 0, width, height);
+    const blob = await canvasToBlob(canvas, 'image/webp', WEBP_QUALITY);
+    if (!blob || blob.size >= file.size * 0.96) {
+      return { file, optimized: false, originalBytes: file.size, outputBytes: file.size };
+    }
+    const optimizedFile = new File([blob], webpName(file.name), {
+      type: 'image/webp',
+      lastModified: Date.now(),
+    });
+    return {
+      file: optimizedFile,
+      optimized: true,
+      originalBytes: file.size,
+      outputBytes: optimizedFile.size,
+      width,
+      height,
+    };
+  } catch {
+    return { file, optimized: false, originalBytes: file.size, outputBytes: file.size };
+  } finally {
+    bitmap?.close?.();
+  }
+}
+
 export function validateHomeHeroMedia(file) {
   if (!file) return { ok: false, message: 'Chưa chọn tệp.' };
-  if (file.size > MAX_MEDIA_BYTES) return { ok: false, message: 'Tệp nền không được vượt quá 50 MB.' };
+  if (file.size > MAX_MEDIA_BYTES) return { ok: false, message: 'Tệp nền không được vượt quá 25 MB khi công bố qua GitHub/Vercel.' };
   if (!ACCEPTED_IMAGE_TYPES.has(file.type) && !ACCEPTED_VIDEO_TYPES.has(file.type)) {
     return { ok: false, message: 'Chỉ hỗ trợ JPG, PNG, WebP, GIF, APNG, MP4 hoặc WebM.' };
   }
@@ -438,48 +584,59 @@ export function validateHomeHeroMedia(file) {
 export async function uploadHomeHeroMedia(file, currentUser) {
   const validation = validateHomeHeroMedia(file);
   if (!validation.ok) throw new Error(validation.message);
+  const optimized = await optimizeStaticImage(file);
+  const uploadFile = optimized.file;
+  const mediaType = uploadFile.type.startsWith('video/')
+    ? 'video'
+    : (uploadFile.type.includes('gif') || uploadFile.type.includes('apng') ? 'gif' : 'image');
+
   if (!isSupabaseConfigured || !supabase || !currentUser?.id) {
     return {
       source: 'local',
       databaseReady: false,
-      url: URL.createObjectURL(file),
-      type: file.type.startsWith('video/') ? 'video' : (file.type.includes('gif') ? 'gif' : 'image'),
-      mimeType: file.type,
-      fileName: file.name,
+      url: URL.createObjectURL(uploadFile),
+      type: mediaType,
+      mimeType: uploadFile.type,
+      fileName: uploadFile.name,
       temporary: true,
+      optimized: optimized.optimized,
+      originalBytes: optimized.originalBytes,
+      outputBytes: optimized.outputBytes,
     };
   }
 
-  const path = `${currentUser.id}/${Date.now()}-${safeFileName(file.name)}`;
+  // Supabase Storage is used only as a temporary editor/draft source. The
+  // publish API copies this object into public/hero/media, after which normal
+  // visitors receive it exclusively from Vercel CDN.
+  const path = `${currentUser.id}/draft-${Date.now()}-${safeFileName(uploadFile.name)}`;
   const { error } = await supabase.storage
     .from(HOME_HERO_STORAGE_BUCKET)
-    .upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
+    .upload(path, uploadFile, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: uploadFile.type,
+    });
   if (error) throw error;
   const { data } = supabase.storage.from(HOME_HERO_STORAGE_BUCKET).getPublicUrl(path);
   return {
-    source: 'supabase',
+    source: 'supabase-draft',
     databaseReady: true,
     url: data?.publicUrl || '',
     path,
-    type: file.type.startsWith('video/') ? 'video' : (file.type.includes('gif') ? 'gif' : 'image'),
-    mimeType: file.type,
-    fileName: file.name,
+    type: mediaType,
+    mimeType: uploadFile.type,
+    fileName: uploadFile.name,
+    optimized: optimized.optimized,
+    originalBytes: optimized.originalBytes,
+    outputBytes: optimized.outputBytes,
+    width: optimized.width,
+    height: optimized.height,
   };
 }
 
-export function subscribeToPublishedHomeHero(callback) {
-  if (!isSupabaseConfigured || !supabase || typeof callback !== 'function') return () => {};
-  const channel = supabase
-    .channel('homepage-hero-public')
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: HOME_HERO_PUBLIC_TABLE,
-      filter: `id=eq.${HOME_HERO_ROW_ID}`,
-    }, (payload) => {
-      const config = payload?.new?.published_config;
-      if (config) callback(normalizeHomeHeroConfig(config));
-    })
-    .subscribe();
-  return () => { supabase.removeChannel(channel); };
+// Published Hero updates are delivered by a Vercel deployment rather than a
+// Supabase Realtime channel. This compatibility export intentionally does not
+// open a WebSocket connection, keeping public Hero egress at zero on Supabase.
+export function subscribeToPublishedHomeHero() {
+  return () => {};
 }
