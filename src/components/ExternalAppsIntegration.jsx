@@ -21,6 +21,9 @@ function WebsiteAppCard({ app, onOpen }) {
     <article
       className="flat-app-window-card flat-app-window-drawer external-website-app-card"
       style={{ '--app-accent': accent, '--app-soft': '#e8f0fe', '--app-ink': '#202124' }}
+      data-launcher-item={`external-${app.id}`}
+      data-app-title={app.title || ''}
+      data-app-group={app.groupId || ''}
     >
       <button type="button" className="flat-app-window-launch" onClick={() => onOpen(app)}>
         <span className="flat-app-window-chrome">
