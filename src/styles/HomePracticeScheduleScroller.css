@@ -1,0 +1,341 @@
+/* Compact per-grade practice schedule browser. The React list remains as a data fallback but is visually replaced. */
+.metro-clean-system[data-route='home'] .bha-grade--with-lessons{
+  grid-template-rows:minmax(188px,auto) auto!important;
+  min-height:520px!important;
+  overflow:hidden!important;
+}
+.metro-clean-system[data-route='home'] .bha-grade--with-lessons > .bha-grade-recent{
+  display:none!important;
+}
+.bha-grade-schedule-browser{
+  grid-column:1/-1;
+  position:relative;
+  z-index:5;
+  min-width:0;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr);
+  gap:9px;
+  padding:12px 13px 14px;
+  border-top:1px solid color-mix(in srgb,var(--accent) 16%,#e4e9f0);
+  background:rgba(255,255,255,.86);
+  backdrop-filter:blur(14px);
+}
+.bha-grade-schedule-browser>header{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.bha-grade-schedule-browser>header>span{
+  overflow:hidden;
+  color:#66758a;
+  font-size:.64rem;
+  font-weight:950;
+  letter-spacing:.08em;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.bha-grade-sort-button{
+  min-height:32px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  flex:0 0 auto;
+  padding:5px 10px!important;
+  border:1px solid color-mix(in srgb,var(--accent) 24%,#dfe5ed)!important;
+  border-radius:11px!important;
+  background:color-mix(in srgb,var(--accent) 7%,#fff)!important;
+  color:var(--accent)!important;
+  box-shadow:none!important;
+  font-size:.64rem!important;
+  font-weight:950!important;
+  cursor:pointer;
+  transition:transform .16s ease,background .16s ease,border-color .16s ease!important;
+}
+.bha-grade-sort-button:hover{
+  transform:translateY(-1px);
+  border-color:color-mix(in srgb,var(--accent) 42%,#dfe5ed)!important;
+  background:color-mix(in srgb,var(--accent) 12%,#fff)!important;
+}
+.bha-schedule-icon{
+  width:16px;
+  height:16px;
+  display:inline-grid;
+  place-items:center;
+  flex:0 0 auto;
+}
+.bha-schedule-icon svg{
+  width:100%;
+  height:100%;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.bha-grade-schedule-scroll{
+  min-height:0;
+  max-height:292px;
+  display:grid;
+  align-content:start;
+  gap:7px;
+  padding:1px 5px 1px 1px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:color-mix(in srgb,var(--accent) 36%,transparent) transparent;
+}
+.bha-grade-schedule-scroll::-webkit-scrollbar{width:7px}
+.bha-grade-schedule-scroll::-webkit-scrollbar-track{background:transparent}
+.bha-grade-schedule-scroll::-webkit-scrollbar-thumb{
+  border:2px solid transparent;
+  border-radius:999px;
+  background:color-mix(in srgb,var(--accent) 36%,transparent);
+  background-clip:padding-box;
+}
+.bha-schedule-row{
+  min-width:0;
+  min-height:49px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  padding:7px 7px 7px 11px;
+  border:1px solid #e5eaf1;
+  border-radius:13px;
+  background:#fff;
+  box-shadow:0 2px 7px rgba(60,64,67,.04);
+  transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+.bha-schedule-row:hover{
+  transform:translateY(-1px);
+  border-color:color-mix(in srgb,var(--accent) 30%,#dfe5ed);
+  box-shadow:0 6px 14px rgba(60,64,67,.08);
+}
+.bha-schedule-row>strong{
+  min-width:0;
+  overflow:hidden;
+  color:#263b59;
+  font-size:.69rem;
+  line-height:1.3;
+  font-weight:850;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.bha-schedule-view-button{
+  min-width:86px;
+  min-height:34px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  padding:5px 9px!important;
+  border:0!important;
+  border-radius:10px!important;
+  background:var(--accent)!important;
+  color:#fff!important;
+  box-shadow:0 5px 13px color-mix(in srgb,var(--accent) 24%,transparent)!important;
+  font-size:.62rem!important;
+  font-weight:950!important;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:transform .16s ease,filter .16s ease!important;
+}
+.bha-schedule-view-button:hover{transform:translateY(-1px);filter:saturate(1.08)}
+.bha-schedule-view-button svg{
+  width:15px;
+  height:15px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.bha-grade-schedule-empty{
+  padding:18px 13px;
+  border:1px dashed color-mix(in srgb,var(--accent) 24%,#dfe5ed);
+  border-radius:13px;
+  background:color-mix(in srgb,var(--soft) 48%,#fff);
+  color:#6c798c;
+  font-size:.65rem;
+  font-weight:750;
+  text-align:center;
+}
+html.bha-schedule-modal-open,html.bha-schedule-modal-open body{overflow:hidden!important}
+.bha-schedule-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:2147483200;
+  display:grid;
+  place-items:center;
+  padding:22px;
+  background:rgba(27,39,58,.52);
+  backdrop-filter:blur(14px) saturate(.84);
+  animation:bha-schedule-fade .18s ease-out both;
+}
+.bha-schedule-dialog{
+  position:relative;
+  width:min(620px,100%);
+  max-height:calc(100dvh - 44px);
+  display:grid;
+  justify-items:center;
+  overflow:auto;
+  padding:36px 36px 34px;
+  border:1px solid rgba(255,255,255,.72);
+  border-radius:28px;
+  background:linear-gradient(145deg,#fff 0%,#fbfdff 58%,#f2f7ff 100%);
+  color:#172b4d;
+  box-shadow:0 34px 100px rgba(17,35,60,.34);
+  text-align:center;
+  animation:bha-schedule-rise .22s cubic-bezier(.2,.78,.2,1) both;
+}
+.bha-schedule-dialog:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:radial-gradient(circle at 12% 10%,rgba(26,115,232,.09),transparent 30%),radial-gradient(circle at 88% 92%,rgba(52,168,83,.08),transparent 31%);
+}
+.bha-schedule-close{
+  position:absolute;
+  z-index:3;
+  top:14px;
+  right:14px;
+  width:42px;
+  height:42px;
+  display:grid!important;
+  place-items:center!important;
+  padding:0!important;
+  border:1px solid #d4e0f0!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  color:#253b5b!important;
+  box-shadow:0 5px 14px rgba(60,64,67,.08)!important;
+  cursor:pointer;
+}
+.bha-schedule-close:focus-visible{outline:3px solid rgba(26,115,232,.28);outline-offset:2px}
+.bha-schedule-close svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.bha-schedule-dialog>.bha-schedule-icon--clock{
+  position:relative;
+  z-index:2;
+  width:70px;
+  height:70px;
+  margin-bottom:16px;
+  border-radius:20px;
+  background:#eaf2ff;
+  color:#1769d2;
+  box-shadow:inset 0 0 0 1px #d6e5fb;
+}
+.bha-schedule-dialog>.bha-schedule-icon--clock svg{width:30px;height:30px;stroke-width:1.8}
+.bha-schedule-kicker{
+  position:relative;
+  z-index:2;
+  margin:0!important;
+  color:#1857a9!important;
+  font-size:.72rem!important;
+  line-height:1.35!important;
+  font-weight:950!important;
+  letter-spacing:.11em!important;
+}
+.bha-schedule-dialog h2{
+  position:relative;
+  z-index:2;
+  margin:10px 0 0!important;
+  color:#172b4d!important;
+  font-size:clamp(2rem,4.2vw,3rem)!important;
+  line-height:1!important;
+  letter-spacing:-.045em!important;
+}
+.bha-schedule-dialog h3{
+  position:relative;
+  z-index:2;
+  max-width:500px;
+  margin:12px 0 0!important;
+  color:#586a82!important;
+  font-size:clamp(.92rem,1.7vw,1.08rem)!important;
+  line-height:1.45!important;
+  font-weight:800!important;
+}
+.bha-schedule-facts{
+  position:relative;
+  z-index:2;
+  width:100%;
+  display:grid;
+  grid-template-columns:minmax(0,1.45fr) minmax(140px,.75fr);
+  gap:12px;
+  margin-top:24px;
+}
+.bha-schedule-facts article{
+  min-width:0;
+  display:grid;
+  gap:6px;
+  padding:16px 18px;
+  border:1px solid #d5e1f0;
+  border-radius:16px;
+  background:rgba(248,251,255,.94);
+  text-align:left;
+}
+.bha-schedule-facts span{color:#728097;font-size:.68rem;font-weight:800}
+.bha-schedule-facts strong{overflow:hidden;color:#1b3254;font-size:.91rem;line-height:1.32;text-overflow:ellipsis}
+.bha-schedule-note{
+  position:relative;
+  z-index:2;
+  width:100%;
+  margin:14px 0 0!important;
+  padding:14px 18px;
+  border:1px solid #f1dfad;
+  border-radius:15px;
+  background:#fff8df;
+  color:#85610c!important;
+  font-size:.77rem!important;
+  line-height:1.52!important;
+  font-weight:750!important;
+}
+.bha-schedule-acknowledge{
+  position:relative;
+  z-index:2;
+  width:100%;
+  min-height:48px!important;
+  margin-top:14px!important;
+  border:1px solid #ced9e8!important;
+  border-radius:14px!important;
+  background:#f7f9fc!important;
+  color:#1b3150!important;
+  box-shadow:none!important;
+  font-size:.79rem!important;
+  font-weight:950!important;
+  cursor:pointer;
+}
+.bha-schedule-acknowledge:hover{background:#edf3fb!important}
+@keyframes bha-schedule-fade{from{opacity:0}to{opacity:1}}
+@keyframes bha-schedule-rise{from{opacity:0;transform:translateY(14px) scale(.975)}to{opacity:1;transform:translateY(0) scale(1)}}
+html[data-theme='dark'] .bha-grade-schedule-browser,.theme-dark .bha-grade-schedule-browser{background:rgba(20,31,42,.92);border-top-color:rgba(220,229,240,.12)}
+html[data-theme='dark'] .bha-schedule-row,.theme-dark .bha-schedule-row{border-color:rgba(220,229,240,.13);background:#1b2937}
+html[data-theme='dark'] .bha-schedule-row>strong,.theme-dark .bha-schedule-row>strong{color:#eef4ff}
+html[data-theme='dark'] .bha-schedule-dialog,.theme-dark .bha-schedule-dialog{border-color:rgba(255,255,255,.12);background:linear-gradient(145deg,#192638,#111c2b 68%,#172536);color:#eef4ff}
+html[data-theme='dark'] .bha-schedule-dialog h2,.theme-dark .bha-schedule-dialog h2{color:#eef4ff!important}
+html[data-theme='dark'] .bha-schedule-dialog h3,.theme-dark .bha-schedule-dialog h3{color:#b8c6d8!important}
+html[data-theme='dark'] .bha-schedule-facts article,.theme-dark .bha-schedule-facts article{border-color:#34465d;background:#172536}
+html[data-theme='dark'] .bha-schedule-facts strong,.theme-dark .bha-schedule-facts strong{color:#eef4ff}
+html[data-theme='dark'] .bha-schedule-close,.theme-dark .bha-schedule-close{border-color:#40536b!important;background:#1d2c3d!important;color:#eef4ff!important}
+@media(max-width:760px){
+  .metro-clean-system[data-route='home'] .bha-grade--with-lessons{min-height:480px!important}
+  .bha-grade-schedule-browser{padding-inline:10px}
+  .bha-grade-schedule-scroll{max-height:264px}
+  .bha-schedule-row{grid-template-columns:minmax(0,1fr) 38px}
+  .bha-schedule-view-button{width:36px!important;min-width:36px!important;padding:0!important}
+  .bha-schedule-view-button span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+  .bha-schedule-view-button svg{width:17px;height:17px}
+  .bha-schedule-backdrop{padding:8px}
+  .bha-schedule-dialog{max-height:calc(100dvh - 16px);padding:32px 18px 22px;border-radius:21px}
+  .bha-schedule-close{top:10px;right:10px;width:38px;height:38px}
+  .bha-schedule-dialog>.bha-schedule-icon--clock{width:62px;height:62px;border-radius:18px}
+  .bha-schedule-facts{grid-template-columns:1fr;margin-top:18px}
+}
+@media(prefers-reduced-motion:reduce){
+  .bha-schedule-backdrop,.bha-schedule-dialog{animation:none}
+  .bha-schedule-row,.bha-grade-sort-button,.bha-schedule-view-button{transition:none!important}
+}
