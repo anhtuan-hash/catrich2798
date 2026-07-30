@@ -1,0 +1,85 @@
+.bes-weekly-bulk-picker-tools{
+  display:none!important;
+}
+.bes-weekly-power-picker-tools{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:10px;
+  padding:9px 11px;
+  border:1px solid #d7e0ec;
+  border-radius:12px;
+  background:#f7f9fc;
+  color:#43546b;
+  font-size:.68rem;
+  font-weight:800;
+}
+.bes-weekly-power-picker-tools button{
+  min-height:34px;
+  padding:6px 10px;
+  border:1px solid #cbd7e7;
+  border-radius:10px;
+  background:#fff;
+  color:#0b57d0;
+  font:inherit;
+  font-weight:850;
+  cursor:pointer;
+}
+.bes-weekly-power-picker-tools button[hidden]{
+  display:none!important;
+}
+.bes-weekly-power-delete-all{
+  min-height:38px;
+  padding:7px 13px;
+  border:1px solid #efb5af!important;
+  border-radius:11px;
+  background:#fff8f7!important;
+  color:#b3261e!important;
+  font:inherit;
+  font-size:.68rem;
+  font-weight:900;
+  cursor:pointer;
+}
+.bes-weekly-power-delete-all:hover:not(:disabled){
+  border-color:#d93025!important;
+  background:#fce8e6!important;
+}
+.bes-weekly-power-delete-all:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+.bes-weekly-power-delete-wrap{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+@media(max-width:600px){
+  .bes-weekly-power-picker-tools{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .bes-weekly-power-picker-tools button,
+  .bes-weekly-power-delete-wrap,
+  .bes-weekly-power-delete-all{
+    width:100%;
+  }
+}
+html[data-theme='dark'] .bes-weekly-power-picker-tools,
+.theme-dark .bes-weekly-power-picker-tools{
+  border-color:rgba(220,229,240,.14);
+  background:#172433;
+  color:#dbe5f3;
+}
+html[data-theme='dark'] .bes-weekly-power-picker-tools button,
+.theme-dark .bes-weekly-power-picker-tools button{
+  border-color:rgba(220,229,240,.16);
+  background:#1e2d3d;
+  color:#a8c7fa;
+}
+html[data-theme='dark'] .bes-weekly-power-delete-all,
+.theme-dark .bes-weekly-power-delete-all{
+  border-color:rgba(255,180,171,.38)!important;
+  background:rgba(179,38,30,.16)!important;
+  color:#ffb4ab!important;
+}
