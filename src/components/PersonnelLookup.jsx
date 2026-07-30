@@ -162,7 +162,7 @@ function DegreesView({ record, language, t }) {
 
 function DegreeEditor({ draft, setDraft, language, t }) {
   const degrees = degreeList(draft);
-  const setDegrees = (nextDegrees) => setDraft(cleanPersonnelRecord({ ...draft, degrees: nextDegrees }));
+  const setDegrees = (nextDegrees) => setDraft((current) => ({ ...current, degrees: nextDegrees }));
   const updateDegree = (index, patch) => setDegrees(degrees.map((degree, itemIndex) => itemIndex === index ? { ...degree, ...patch } : degree));
   const setHighest = (index) => setDegrees(degrees.map((degree, itemIndex) => ({ ...degree, isHighest: itemIndex === index })));
   const addDegree = () => {
