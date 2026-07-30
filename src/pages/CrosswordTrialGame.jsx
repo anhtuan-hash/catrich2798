@@ -21,8 +21,8 @@ const SAMPLE = {
   duration: 600,
   rows: [
     { clue: 'Một phần trong tên môn học tiếng Anh.', answer: 'TIENG', hint: 'Gồm 5 chữ cái.' },
-    { clue: 'Hoạt động tiếp nhận kiến thức và rèn luyện kĩ năng.', answer: 'HOC', hint: 'Động từ quen thuộc trong lớp học.' },
-    { clue: 'Tập thể học sinh học cùng một chương trình.', answer: 'LOP', hint: 'Nơi giáo viên tổ chức bài học.' },
+    { clue: 'Một đơn vị nội dung học tập trong sách giáo khoa.', answer: 'BAI', hint: 'Thường đi với từ “học”.' },
+    { clue: 'Mặt phẳng trong lớp để giáo viên viết nội dung bài học.', answer: 'BANG', hint: 'Có thể dùng phấn hoặc bút lông.' },
     { clue: 'Tài liệu được dùng để ghi chép nội dung học tập.', answer: 'VO', hint: 'Học sinh thường mang theo mỗi ngày.' },
     { clue: 'Người trực tiếp tổ chức, hướng dẫn hoạt động học tập cho học sinh là ai?', answer: 'GIAOVIEN', hint: 'Liên quan đến nghề nghiệp trong nhà trường.' },
     { clue: 'Hoạt động dùng để kiểm tra, đánh giá năng lực học sinh.', answer: 'THI', hint: 'Đáp án gồm 3 chữ cái.' },
