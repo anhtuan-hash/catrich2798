@@ -1,0 +1,48 @@
+.bes-weekly-academic-week-field{
+  display:grid;
+  gap:7px;
+  margin:13px 0;
+  color:#344054;
+  font-weight:850;
+}
+.bes-weekly-academic-week-field[hidden]{
+  display:none!important;
+}
+.bes-weekly-academic-week-field>span{
+  display:block;
+}
+.bes-weekly-academic-week-field select,
+.bes-weekly-academic-bulk-week{
+  width:100%;
+  min-height:48px;
+  box-sizing:border-box;
+  line-height:1.35;
+}
+.bes-weekly-academic-week-field small{
+  color:#64748b;
+  font-size:.72rem;
+  font-weight:700;
+  line-height:1.45;
+}
+.bes-weekly-academic-bulk-week-field{
+  grid-column:1/-1;
+}
+.bes-weekly-academic-week-field select:focus,
+.bes-weekly-academic-bulk-week:focus{
+  border-color:#1a73e8!important;
+  box-shadow:0 0 0 3px rgba(26,115,232,.14)!important;
+}
+html[data-theme='dark'] .bes-weekly-academic-week-field,
+.theme-dark .bes-weekly-academic-week-field{
+  color:#e6edf7;
+}
+html[data-theme='dark'] .bes-weekly-academic-week-field small,
+.theme-dark .bes-weekly-academic-week-field small{
+  color:#aebdd0;
+}
+@media(max-width:600px){
+  .bes-weekly-academic-week-field select,
+  .bes-weekly-academic-bulk-week{
+    min-height:52px;
+  }
+}
