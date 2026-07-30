@@ -8,7 +8,7 @@ import {
   loadDashboardSnapshot,
   openDashboardTarget,
 } from '../utils/dashboardAggregator.js';
-import PersonnelLookup from '../components/PersonnelLookup.jsx';
+import PersonnelLookup from '../components/PersonnelLookupGoogleV2.jsx';
 import '../styles/teacher-dashboard-google-authentic.css';
 import '../styles/teacher-dashboard-calendar-split.css';
 
