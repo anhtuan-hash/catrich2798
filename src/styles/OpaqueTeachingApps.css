@@ -1,0 +1,143 @@
+/* Brian English Studio · solid route surfaces for selected classroom apps.
+   Removes the shared glass/translucent layer without affecting other tools. */
+
+.app-shell[data-tool="crossword-trial"],
+.app-shell[data-tool="flying-words"] {
+  background: #eef2f7 !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  isolation: isolate !important;
+}
+
+.app-shell[data-tool="crossword-trial"] .bes-top-chrome,
+.app-shell[data-tool="flying-words"] .bes-top-chrome,
+.app-shell[data-tool="crossword-trial"] .wp8-page-stage[data-route="tool"],
+.app-shell[data-tool="flying-words"] .wp8-page-stage[data-route="tool"],
+.app-shell[data-tool="crossword-trial"] #bes-main-content,
+.app-shell[data-tool="flying-words"] #bes-main-content {
+  background: #f4f7fb !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.app-shell[data-tool="crossword-trial"] .wp8-page-stage[data-route="tool"],
+.app-shell[data-tool="flying-words"] .wp8-page-stage[data-route="tool"] {
+  position: relative !important;
+  isolation: isolate !important;
+}
+
+.app-shell[data-tool="crossword-trial"] .wp8-page-stage[data-route="tool"]::before,
+.app-shell[data-tool="crossword-trial"] .wp8-page-stage[data-route="tool"]::after,
+.app-shell[data-tool="flying-words"] .wp8-page-stage[data-route="tool"]::before,
+.app-shell[data-tool="flying-words"] .wp8-page-stage[data-route="tool"]::after {
+  content: none !important;
+  display: none !important;
+  opacity: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* Ô Chữ Bàn Thử: every working surface is fully opaque. */
+.app-shell[data-tool="crossword-trial"] .bcg-app {
+  position: relative !important;
+  z-index: 10 !important;
+  min-height: 100% !important;
+  background: #f4f7fb !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  isolation: isolate !important;
+}
+
+.app-shell[data-tool="crossword-trial"] .bcg-app::before,
+.app-shell[data-tool="crossword-trial"] .bcg-app::after {
+  content: none !important;
+  display: none !important;
+}
+
+.app-shell[data-tool="crossword-trial"] .bcg-topbar,
+.app-shell[data-tool="crossword-trial"] .bcg-keyword-band article,
+.app-shell[data-tool="crossword-trial"] .bcg-board-wrap,
+.app-shell[data-tool="crossword-trial"] .bcg-question-card,
+.app-shell[data-tool="crossword-trial"] .bcg-progress-card,
+.app-shell[data-tool="crossword-trial"] .bcg-statusbar,
+.app-shell[data-tool="crossword-trial"] .bcg-editor-form,
+.app-shell[data-tool="crossword-trial"] .bcg-editor-preview,
+.app-shell[data-tool="crossword-trial"] .bcg-row-list article,
+.app-shell[data-tool="crossword-trial"] .bcg-modal > section,
+.app-shell[data-tool="crossword-trial"] .bcg-setting,
+.app-shell[data-tool="crossword-trial"] .bcg-scores > div {
+  background: #ffffff !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.app-shell[data-tool="crossword-trial"] .bcg-modal {
+  background: #eef2f7 !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Từ Ngữ Biết Bay: reinforce a solid shell and remove transparent overlays. */
+.app-shell[data-tool="flying-words"] .flying-words-app,
+.app-shell[data-tool="flying-words"] .fwg-setup,
+.app-shell[data-tool="flying-words"] .fwg-game,
+.app-shell[data-tool="flying-words"] .fwg-results {
+  position: relative !important;
+  z-index: 10 !important;
+  min-height: 100% !important;
+  background-color: #f4f7fb !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  isolation: isolate !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.app-shell[data-tool="flying-words"] .fwg-app-header,
+.app-shell[data-tool="flying-words"] .fwg-builder-card,
+.app-shell[data-tool="flying-words"] .fwg-preview-card,
+.app-shell[data-tool="flying-words"] .fwg-content-card,
+.app-shell[data-tool="flying-words"] .fwg-control-card,
+.app-shell[data-tool="flying-words"] .fwg-results-card,
+.app-shell[data-tool="flying-words"] .fwg-ready-card,
+.app-shell[data-tool="flying-words"] .fwg-feedback-card,
+.app-shell[data-tool="flying-words"] .fwg-pause-panel,
+.app-shell[data-tool="flying-words"] .fwgqm-dialog {
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.app-shell[data-tool="flying-words"] .fwg-overlay,
+.app-shell[data-tool="flying-words"] .fwgqm-backdrop {
+  background: #eef2f7 !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+@media (max-width: 760px) {
+  .app-shell[data-tool="crossword-trial"] .bcg-app,
+  .app-shell[data-tool="flying-words"] .flying-words-app,
+  .app-shell[data-tool="flying-words"] .fwg-setup {
+    background: #f4f7fb !important;
+  }
+}
