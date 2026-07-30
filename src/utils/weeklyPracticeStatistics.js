@@ -2,8 +2,9 @@ import { invalidateSupabaseReadCacheForTable, isSupabaseConfigured, supabase } f
 import { WEEKLY_PRACTICE_PROOF_BUCKET } from './weeklyPractice.js';
 
 const PAGE_SIZE = 1000;
-const EVENT_COLUMNS = 'id,practice_id,event_type,device_id,metadata,created_at';
-const RESULT_COLUMNS = 'id,practice_id,device_id,student_name,class_code,student_code,score,max_score,correct_count,question_count,duration_seconds,proof_path,metadata,created_at';
+const MAX_COMPACT_ROWS = 5000;
+const EVENT_COLUMNS = 'id,practice_id,event_type,device_id,created_at';
+const RESULT_COLUMNS = 'id,practice_id,device_id,student_name,class_code,student_code,score,max_score,correct_count,question_count,duration_seconds,proof_path,created_at';
 
 function requireClient() {
   if (!isSupabaseConfigured || !supabase) throw new Error('Supabase chưa được cấu hình cho website Brian.');
@@ -29,16 +30,33 @@ function localDateKey(value) {
   return `${map.year}-${map.month}-${map.day}`;
 }
 
-async function readAll(table, columns, practiceId) {
+function missingStatisticsRpc(error) {
+  const code = String(error?.code || '').toUpperCase();
+  const message = String(error?.message || error || '').toLowerCase();
+  return code === 'PGRST202' || code === '42883'
+    || message.includes('bes_weekly_practice_statistics_v2')
+      && (message.includes('not find') || message.includes('does not exist') || message.includes('schema cache'));
+}
+
+function normalizeRpcPayload(value) {
+  const payload = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+  return {
+    events: Array.isArray(payload.events) ? payload.events : [],
+    results: Array.isArray(payload.results) ? payload.results : [],
+    truncated: payload.truncated === true,
+  };
+}
+
+async function readCompactFallback(table, columns, practiceId) {
   const client = requireClient();
   const rows = [];
-  for (let from = 0; ; from += PAGE_SIZE) {
+  for (let from = 0; from < MAX_COMPACT_ROWS; from += PAGE_SIZE) {
     const { data, error } = await client
       .from(table)
       .select(columns)
       .eq('practice_id', practiceId)
-      .order('created_at', { ascending: true })
-      .range(from, from + PAGE_SIZE - 1);
+      .order('created_at', { ascending: false })
+      .range(from, Math.min(MAX_COMPACT_ROWS, from + PAGE_SIZE) - 1);
     if (error) throw error;
     rows.push(...(data || []));
     if (!data || data.length < PAGE_SIZE) break;
@@ -46,13 +64,42 @@ async function readAll(table, columns, practiceId) {
   return rows;
 }
 
+function aggregateFallbackEvents(rows = []) {
+  const groups = new Map();
+  rows.forEach((row) => {
+    const day = localDateKey(row.created_at);
+    const key = `${row.event_type || 'open'}:${row.device_id || ''}:${day}`;
+    const current = groups.get(key) || {
+      event_type: row.event_type || 'open',
+      device_id: row.device_id || '',
+      created_at: day ? `${day}T00:00:00.000Z` : row.created_at,
+      event_count: 0,
+    };
+    current.event_count += 1;
+    groups.set(key, current);
+  });
+  return [...groups.values()];
+}
+
 export async function loadWeeklyPracticeStatistics(practiceId) {
-  if (!practiceId) return { events: [], results: [] };
+  if (!practiceId) return { events: [], results: [], truncated: false };
+  const client = requireClient();
+  const { data, error } = await client.rpc('bes_weekly_practice_statistics_v2', {
+    p_practice_id: practiceId,
+    p_result_limit: MAX_COMPACT_ROWS,
+  });
+  if (!error) return normalizeRpcPayload(data);
+  if (!missingStatisticsRpc(error)) throw error;
+
   const [events, results] = await Promise.all([
-    readAll('weekly_practice_events', EVENT_COLUMNS, practiceId),
-    readAll('weekly_practice_results', RESULT_COLUMNS, practiceId),
+    readCompactFallback('weekly_practice_events', EVENT_COLUMNS, practiceId),
+    readCompactFallback('weekly_practice_results', RESULT_COLUMNS, practiceId),
   ]);
-  return { events, results };
+  return {
+    events: aggregateFallbackEvents(events),
+    results,
+    truncated: events.length >= MAX_COMPACT_ROWS || results.length >= MAX_COMPACT_ROWS,
+  };
 }
 
 export function filterWeeklyPracticeStatistics(data, filters = {}) {
@@ -66,7 +113,13 @@ export function filterWeeklyPracticeStatistics(data, filters = {}) {
   return {
     events: (data?.events || []).filter(insideRange),
     results: (data?.results || []).filter((row) => insideRange(row) && (!classCode || row.class_code === classCode)),
+    truncated: data?.truncated === true,
   };
+}
+
+function eventWeight(event) {
+  const value = Number(event?.event_count || 1);
+  return Number.isFinite(value) && value > 0 ? value : 1;
 }
 
 export function summarizeWeeklyPracticeStatistics(data) {
@@ -83,14 +136,15 @@ export function summarizeWeeklyPracticeStatistics(data) {
   const classCount = new Set(results.map((row) => text(row.class_code)).filter(Boolean)).size;
 
   return {
-    openEventCount: opens.length,
+    openEventCount: opens.reduce((sum, event) => sum + eventWeight(event), 0),
     openedStudentEstimate: openedDevices.size,
     submittedCount: results.length,
     uniqueSubmittedDevices: submittedDevices.size,
     completionRate,
     averageDurationSeconds: results.length ? Math.round(durationTotal / results.length) : 0,
     classCount,
-    errorCount: errors.length,
+    errorCount: errors.reduce((sum, event) => sum + eventWeight(event), 0),
+    truncated: data?.truncated === true,
   };
 }
 
@@ -101,7 +155,7 @@ export function groupWeeklyPracticeEventsByDay(data) {
     const key = localDateKey(event.created_at);
     if (!key) return;
     const group = groups.get(key) || { date: key, openEvents: 0, openedDevices: new Set(), submissions: 0, classes: new Set() };
-    group.openEvents += 1;
+    group.openEvents += eventWeight(event);
     if (event.device_id) group.openedDevices.add(event.device_id);
     groups.set(key, group);
   });

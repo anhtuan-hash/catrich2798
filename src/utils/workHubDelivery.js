@@ -1,8 +1,10 @@
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
+import { getAccessToken } from './resourceLibrary.js';
 
 export const WORK_HUB_DELIVERY_EVENT = 'bes-work-hub-delivery-updated';
 export const WORK_HUB_BUCKET = 'work-hub-submissions';
-export const WORK_HUB_MAX_FILE_BYTES = 25 * 1024 * 1024;
+export const WORK_HUB_DRIVE_PROVIDER = 'google-drive';
+export const WORK_HUB_MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 const NOTIFICATION_CACHE_MAX_AGE = 30 * 60 * 1000;
 const SIGNED_URL_CACHE_MAX_AGE = 50 * 60 * 1000;
@@ -37,8 +39,31 @@ function safeFileName(name) {
   return ext ? `${base}.${ext}` : base;
 }
 
+function isDriveFileId(value) {
+  const raw = cleanText(value);
+  return raw.length >= 10 && !raw.includes('/') && /^[A-Za-z0-9_-]+$/.test(raw);
+}
+
+function driveFileId(attachment = {}) {
+  return cleanText(attachment.drive_file_id || attachment.fileId || (
+    attachment.provider === WORK_HUB_DRIVE_PROVIDER || attachment.bucket === WORK_HUB_DRIVE_PROVIDER
+      ? attachment.path
+      : ''
+  ));
+}
+
+function isDriveAttachment(attachment = {}) {
+  const fileId = driveFileId(attachment);
+  return Boolean(fileId && isDriveFileId(fileId));
+}
+
 function signedUrlCacheKey(bucket, path) {
   return `${bucket}:${path}`;
+}
+
+function attachmentCacheKey(attachment = {}) {
+  if (isDriveAttachment(attachment)) return signedUrlCacheKey(WORK_HUB_DRIVE_PROVIDER, driveFileId(attachment));
+  return signedUrlCacheKey(attachment.bucket || WORK_HUB_BUCKET, attachment.path || '');
 }
 
 function invalidateSignedUrl(bucket, path) {
@@ -46,11 +71,30 @@ function invalidateSignedUrl(bucket, path) {
   signedUrlCache.delete(signedUrlCacheKey(bucket || WORK_HUB_BUCKET, path));
 }
 
+async function authenticatedJson(url, options = {}) {
+  const token = await getAccessToken();
+  if (!token) throw new Error('Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.');
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(options.body && !(options.body instanceof Blob) && !(options.body instanceof File)
+        ? { 'Content-Type': 'application/json' }
+        : {}),
+      ...(options.headers || {}),
+    },
+  });
+  let data = {};
+  try { data = await response.json(); } catch { /* keep fallback */ }
+  if (!response.ok) throw new Error(data.error || 'Không thể kết nối kho tệp Google Drive.');
+  return data;
+}
+
 export function validateWorkHubFile(file) {
   if (!file) return { ok: false, message: 'Vui lòng chọn một tệp để tải lên.' };
   if (Number(file.size || 0) <= 0) return { ok: false, message: 'Tệp đã chọn không có dữ liệu.' };
   if (Number(file.size || 0) > WORK_HUB_MAX_FILE_BYTES) {
-    return { ok: false, message: 'Tệp vượt quá giới hạn 25 MB.' };
+    return { ok: false, message: 'Tệp vượt quá giới hạn 10 MB.' };
   }
   const ext = fileExtension(file.name);
   if (!ext || !ALLOWED_EXTENSIONS.has(ext)) {
@@ -62,34 +106,67 @@ export function validateWorkHubFile(file) {
 export async function uploadWorkHubSubmissionFile({ file, itemId, userId }) {
   const validation = validateWorkHubFile(file);
   if (!validation.ok) return validation;
-  const client = getRuntimeClient();
-  if (!client) return { ok: false, message: 'Supabase chưa được cấu hình.' };
   if (!itemId || !userId) return { ok: false, message: 'Thiếu thông tin công việc hoặc người nộp.' };
 
-  const fileName = safeFileName(file.name);
-  const path = `${itemId}/${userId}/${Date.now()}-${fileName}`;
-  const { error } = await client.storage.from(WORK_HUB_BUCKET).upload(path, file, {
-    cacheControl: '86400',
-    upsert: false,
-    contentType: file.type || undefined,
-  });
-  if (error) return { ok: false, message: error.message || 'Không thể tải tệp lên.' };
+  try {
+    const token = await getAccessToken();
+    if (!token) return { ok: false, message: 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.' };
+    const response = await fetch('/api/work-hub-file-upload', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': file.type || 'application/octet-stream',
+        'X-File-Name': encodeURIComponent(safeFileName(file.name)),
+        'X-Original-File-Name': encodeURIComponent(file.name),
+        'X-Work-Hub-Item-Id': String(itemId),
+      },
+      body: file,
+    });
+    let data = {};
+    try { data = await response.json(); } catch { /* keep fallback */ }
+    if (!response.ok || !data.fileId) {
+      return { ok: false, message: data.error || 'Không thể tải tệp lên Google Drive.' };
+    }
 
-  const attachment = {
-    bucket: WORK_HUB_BUCKET,
-    path,
-    name: file.name,
-    mime: file.type || 'application/octet-stream',
-    size: Number(file.size || 0),
-    uploaded_at: new Date().toISOString(),
-    uploaded_by: userId,
-  };
-  return { ok: true, attachment };
+    const attachment = {
+      provider: WORK_HUB_DRIVE_PROVIDER,
+      bucket: WORK_HUB_DRIVE_PROVIDER,
+      path: data.fileId,
+      drive_file_id: data.fileId,
+      item_id: itemId,
+      name: file.name,
+      mime: file.type || data.mimeType || 'application/octet-stream',
+      size: Number(file.size || data.size || 0),
+      uploaded_at: new Date().toISOString(),
+      uploaded_by: userId,
+    };
+    return { ok: true, attachment };
+  } catch (error) {
+    return { ok: false, message: error?.message || 'Không thể tải tệp lên Google Drive.' };
+  }
 }
 
 export async function removeWorkHubSubmissionFile(attachment) {
+  if (!attachment?.path && !driveFileId(attachment)) return { ok: false };
+  if (isDriveAttachment(attachment)) {
+    try {
+      await authenticatedJson('/api/work-hub-file-action', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'archive',
+          itemId: attachment.item_id || attachment.itemId || '',
+          fileId: driveFileId(attachment),
+        }),
+      });
+      invalidateSignedUrl(WORK_HUB_DRIVE_PROVIDER, driveFileId(attachment));
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, message: error?.message || 'Không thể lưu trữ tệp Google Drive.' };
+    }
+  }
+
   const client = getRuntimeClient();
-  if (!client || !attachment?.path) return { ok: false };
+  if (!client) return { ok: false, message: 'Supabase chưa được cấu hình.' };
   const bucket = attachment.bucket || WORK_HUB_BUCKET;
   const { error } = await client.storage.from(bucket).remove([attachment.path]);
   if (!error) invalidateSignedUrl(bucket, attachment.path);
@@ -97,10 +174,18 @@ export async function removeWorkHubSubmissionFile(attachment) {
 }
 
 export async function removeWorkHubSubmissionFiles(attachments = []) {
+  const driveAttachments = (attachments || []).filter(isDriveAttachment);
+  for (const attachment of driveAttachments) {
+    const result = await removeWorkHubSubmissionFile(attachment);
+    if (!result.ok) return result;
+  }
+
+  const legacyAttachments = (attachments || []).filter((attachment) => !isDriveAttachment(attachment));
+  if (!legacyAttachments.length) return { ok: true, removed: driveAttachments.length };
   const client = getRuntimeClient();
   if (!client) return { ok: false, message: 'Supabase chưa được cấu hình.' };
   const grouped = new Map();
-  for (const attachment of attachments || []) {
+  for (const attachment of legacyAttachments) {
     if (!attachment?.path) continue;
     const bucket = attachment.bucket || WORK_HUB_BUCKET;
     const paths = grouped.get(bucket) || new Set();
@@ -114,21 +199,50 @@ export async function removeWorkHubSubmissionFiles(attachments = []) {
     if (error) return { ok: false, message: error.message || 'Không thể xoá tệp công việc.' };
     pathList.forEach((path) => invalidateSignedUrl(bucket, path));
   }
-  return { ok: true, removed: [...grouped.values()].reduce((sum, paths) => sum + paths.size, 0) };
+  return {
+    ok: true,
+    removed: driveAttachments.length + [...grouped.values()].reduce((sum, paths) => sum + paths.size, 0),
+  };
 }
 
 export async function createWorkHubAttachmentUrl(attachment, expiresIn = 3600) {
   if (!attachment) return '';
   if (attachment.url) return attachment.url;
-  if (!attachment.path) return '';
-  const client = getRuntimeClient();
-  if (!client) return '';
-  const bucket = attachment.bucket || WORK_HUB_BUCKET;
-  const key = signedUrlCacheKey(bucket, attachment.path);
+  if (!attachment.path && !driveFileId(attachment)) return '';
+  const key = attachmentCacheKey(attachment);
   const cached = signedUrlCache.get(key);
   if (cached && Date.now() < cached.expiresAt) return cached.url;
   if (cached) signedUrlCache.delete(key);
 
+  if (isDriveAttachment(attachment)) {
+    try {
+      const data = await authenticatedJson('/api/work-hub-file-access', {
+        method: 'POST',
+        body: JSON.stringify({
+          itemId: attachment.item_id || attachment.itemId || '',
+          fileId: driveFileId(attachment),
+          fileName: attachment.name || '',
+          mimeType: attachment.mime || '',
+          size: Number(attachment.size || 0),
+        }),
+      });
+      const url = data.signedUrl || '';
+      if (url) {
+        const signedUntil = Date.parse(data.signedUntil || '');
+        const expiresAt = Number.isFinite(signedUntil)
+          ? Math.max(Date.now() + 60_000, signedUntil - 60_000)
+          : Date.now() + SIGNED_URL_CACHE_MAX_AGE;
+        signedUrlCache.set(key, { url, expiresAt });
+      }
+      return url;
+    } catch {
+      return '';
+    }
+  }
+
+  const client = getRuntimeClient();
+  if (!client) return '';
+  const bucket = attachment.bucket || WORK_HUB_BUCKET;
   const { data, error } = await client.storage.from(bucket).createSignedUrl(attachment.path, expiresIn);
   if (error) return '';
   const url = data?.signedUrl || '';

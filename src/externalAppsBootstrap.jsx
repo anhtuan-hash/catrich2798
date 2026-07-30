@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import './utils/brianTeamEgressGuard.js';
 import ExternalAppsIntegration from './components/ExternalAppsIntegration.jsx';
 import GlobalFontSettingsBridge from './components/GlobalFontSettingsBridge.jsx';
 import HomeWeeklyPracticeStatisticsController from './components/HomeWeeklyPracticeStatisticsController.jsx';
