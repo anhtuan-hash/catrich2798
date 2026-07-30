@@ -31,6 +31,15 @@ function normalizeCode(value) {
   return safeText(value).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 16);
 }
 
+function missingRpc(error, name) {
+  const code = safeText(error?.code).toUpperCase();
+  const message = safeText(error?.message || error).toLowerCase();
+  return code === 'PGRST202'
+    || code === '42883'
+    || (message.includes(String(name || '').toLowerCase())
+      && (message.includes('does not exist') || message.includes('schema cache') || message.includes('could not find')));
+}
+
 function uid(prefix = 'item') {
   if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -226,12 +235,22 @@ export async function loadSchoolHomeroomStats(user, { force = false } = {}) {
 
   const key = cacheKey('school-stats', user, 'all');
   return cachedRead(key, SCHOOL_STATS_CACHE_TTL, force, async () => {
+    const rpcName = 'bes_homeroom_school_stats_v2';
+    const compact = await supabase.rpc(rpcName);
+    if (!compact.error) {
+      return { ok: true, workspaces: compact.data || [], source: 'compact-rpc' };
+    }
+    if (!missingRpc(compact.error, rpcName)) {
+      return { ok: false, message: compact.error.message, workspaces: [] };
+    }
+
+    // Temporary compatibility path before the compact RPC migration is applied.
     const { data, error } = await supabase
       .from('bes_homeroom_workspaces')
-      .select('owner_id,owner_email,class_name,school_year,payload,updated_at')
+      .select('owner_id,owner_email,workspace_id,class_name,school_year,payload,updated_at')
       .order('class_name')
       .limit(200);
     if (error) return { ok: false, message: error.message, workspaces: [] };
-    return { ok: true, workspaces: data || [] };
+    return { ok: true, workspaces: data || [], source: 'legacy-payload-fallback' };
   });
 }
