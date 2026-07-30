@@ -1,0 +1,4 @@
+/* Keep Admin Center compact by removing the four overview statistic cards. */
+.admin-page-v41 .admin-v41-summary-strip {
+  display: none !important;
+}
