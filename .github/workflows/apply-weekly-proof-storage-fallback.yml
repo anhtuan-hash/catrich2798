@@ -1,0 +1,37 @@
+name: Apply Weekly Proof Storage Fallback
+
+on:
+  push:
+    branches:
+      - fix/weekly-proof-webp-storage-fallback
+    paths:
+      - scripts/apply-weekly-proof-storage-fallback.mjs
+      - .github/workflows/apply-weekly-proof-storage-fallback.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/weekly-proof-webp-storage-fallback
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply safe PNG fallback
+        run: node scripts/apply-weekly-proof-storage-fallback.mjs
+      - name: Validate syntax
+        run: node --check src/utils/weeklyPractice.js
+      - name: Remove one-shot updater
+        run: rm -f scripts/apply-weekly-proof-storage-fallback.mjs .github/workflows/apply-weekly-proof-storage-fallback.yml
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/utils/weeklyPractice.js scripts/apply-weekly-proof-storage-fallback.mjs .github/workflows/apply-weekly-proof-storage-fallback.yml
+          git commit -m "Retry weekly proof upload as PNG during staged migration"
+          git push origin HEAD:fix/weekly-proof-webp-storage-fallback
