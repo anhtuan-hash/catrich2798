@@ -4,7 +4,7 @@ import { launchRoute } from '../utils/motion.js';
 import { ROUTE_APP_SHORTCUTS } from '../data/appVisibilityRegistry.js';
 
 export const APP_ORDER = [
-  'hidden-apps-vault', 'thpt-practice-hub', 'resource-library-hub', 'lesson-plan-ai', 'textlab-activities', 'exam-studio', 'reading-studio',
+  'hidden-apps-vault', 'thpt-practice-hub', 'resource-library-hub', 'lesson-plan-ai', 'textlab-activities', 'flying-words', 'exam-studio', 'reading-studio',
   'news-reader', 'vietnam-tax', 'word2graph', 'textcare', 'student-practice', 'game-hub',
   'homeroom-hub', 'library-hub', 'practice-hub', 'games-hub', 'admin-hub',
 ];
@@ -61,7 +61,7 @@ export function statusOf(item, language) {
 }
 export function shortDesc(item, language) {
   const vi = {
-    'lesson-plan-ai': 'Giáo án, học liệu, năng lực số.', 'textlab-activities': '18 hoạt động tương tác từ văn bản.', textcare: 'Chuẩn hoá văn bản hành chính.',
+    'lesson-plan-ai': 'Giáo án, học liệu, năng lực số.', 'textlab-activities': '18 hoạt động tương tác từ văn bản.', 'flying-words': 'Sắp xếp câu bằng các thẻ từ chuyển động.', textcare: 'Chuẩn hoá văn bản hành chính.',
     'reading-studio': 'Bài đọc, câu hỏi và từ vựng.', 'news-reader': 'Tin giáo dục Việt Nam và báo tiếng Anh.',
     'vietnam-tax': 'Thuế TNCN, bảo hiểm và lương Net 2026.', word2graph: 'Word family và collocation.',
     'exam-studio': 'Đề kiểm tra, cloze, word form.', 'student-practice': 'Bài luyện có chấm điểm.', 'homeroom-hub': 'Học sinh, điểm danh và phụ huynh.',
@@ -69,7 +69,7 @@ export function shortDesc(item, language) {
     'practice-hub': 'Giao bài và theo dõi tiến độ.', 'games-hub': 'Game lớp học và launcher.', 'admin-hub': 'Người dùng, quyền, cấu hình.',
   };
   const en = {
-    'lesson-plan-ai': 'Lessons, materials and competencies.', 'textlab-activities': '18 interactive activities from text.', textcare: 'Clean official documents.',
+    'lesson-plan-ai': 'Lessons, materials and competencies.', 'textlab-activities': '18 interactive activities from text.', 'flying-words': 'Build sentences from moving word cards.', textcare: 'Clean official documents.',
     'reading-studio': 'Readings and vocabulary.', 'news-reader': 'Vietnam education and English news.',
     'vietnam-tax': 'Vietnam PIT, insurance and 2026 net salary.', word2graph: 'Word families and collocations.',
     'exam-studio': 'Tests, cloze and word form.', 'student-practice': 'Scored learner practice.', 'homeroom-hub': 'Students, attendance and parents.',
@@ -84,7 +84,7 @@ export function navLaunch(route, label, color, sourceEl) { launch(route.startsWi
 export function defaultGroupOf(item) {
   if (['lesson-plan-ai', 'textcare', 'library-hub', 'resource-library-hub'].includes(item.slug)) return 'plan';
   if (item.slug === 'homeroom-hub') return 'manage';
-  if (['textlab-activities', 'reading-studio', 'news-reader', 'vietnam-tax', 'word2graph', 'game-hub', 'games-hub'].includes(item.slug)) return 'create';
+  if (['textlab-activities', 'flying-words', 'reading-studio', 'news-reader', 'vietnam-tax', 'word2graph', 'game-hub', 'games-hub'].includes(item.slug)) return 'create';
   if (['thpt-practice-hub', 'exam-studio', 'student-practice', 'practice-hub'].includes(item.slug)) return 'assess';
   return 'manage';
 }
