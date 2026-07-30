@@ -1,0 +1,3 @@
+Weekly manager release trigger
+- Upload up to 30 HTML practices per batch
+- Safe delete-all with double confirmation
