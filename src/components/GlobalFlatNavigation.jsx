@@ -60,6 +60,7 @@ import './GlobalScrollPerformance.css';
 import './GlobalTickerRestore.css';
 import './GlobalNavigationPremiumV2.css';
 import './GlobalNavigationWholeHubAura.css';
+import './GlobalGuestWholeHubAuraFix.css';
 import './GlobalWorkScheduleModern.css';
 import './GlobalHomeViewportFit.css';
 import './GlobalWeeklyPractice.css';
