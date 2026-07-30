@@ -1,9 +1,14 @@
-import './main.jsx';
 import './styles/MotionRestore.css';
+import {
+  installSiteFontFromCache,
+  loadSiteFontSetting,
+  waitForSiteFontReady,
+} from './utils/siteFontSettings.js';
 
 const MAX_WAIT_MS = 20000;
 const STARTED_AT = Date.now();
 let externalAppsLoaded = false;
+let applicationStarted = false;
 
 async function loadExternalAppsAfterMainShell() {
   if (externalAppsLoaded) return;
@@ -28,8 +33,31 @@ async function loadExternalAppsAfterMainShell() {
   }
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadExternalAppsAfterMainShell, { once: true });
-} else {
+async function startApplication() {
+  if (applicationStarted) return;
+  applicationStarted = true;
+  document.documentElement.dataset.siteFontBoot = 'loading';
+
+  let selectedFont = installSiteFontFromCache();
+  try {
+    selectedFont = await loadSiteFontSetting(null);
+    await waitForSiteFontReady(selectedFont);
+  } catch (error) {
+    console.warn('[Global font] Early bootstrap failed; continuing with cached font.', error);
+  } finally {
+    document.documentElement.dataset.siteFontBoot = 'ready';
+  }
+
+  await import('./main.jsx');
   loadExternalAppsAfterMainShell();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => startApplication().catch((error) => {
+    console.error('[ApplicationBootstrap] Main application failed to start.', error);
+  }), { once: true });
+} else {
+  startApplication().catch((error) => {
+    console.error('[ApplicationBootstrap] Main application failed to start.', error);
+  });
 }
