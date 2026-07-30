@@ -6,30 +6,25 @@ export const PERSONNEL_ITEM_TYPE = 'personnel_profile';
 export const LEGACY_PERSONNEL_STORAGE_KEY = 'bes-personnel-directory-v1';
 
 const PERSONNEL_COLUMNS = [
-  'id',
-  'title',
-  'description',
-  'item_type',
-  'status',
-  'priority',
-  'visibility',
-  'owner_id',
-  'created_by',
-  'assignee_ids',
-  'watcher_ids',
-  'metadata',
-  'source_module',
-  'created_at',
-  'updated_at',
-  'submitted_at',
-  'reviewed_at',
+  'id', 'title', 'description', 'item_type', 'status', 'priority', 'visibility',
+  'owner_id', 'created_by', 'assignee_ids', 'watcher_ids', 'metadata',
+  'source_module', 'created_at', 'updated_at', 'submitted_at', 'reviewed_at',
 ].join(',');
 
 const PROFILE_FIELDS = [
-  'position', 'department', 'employmentType', 'employmentStatus', 'degreeLevel',
-  'degreeName', 'major', 'specialization', 'institution', 'graduationYear',
+  'position', 'department', 'employmentType', 'employmentStatus',
   'assignment', 'phone', 'otherDegrees',
 ];
+
+const DEGREE_LEVEL_RANK = {
+  doctorate: 5,
+  doctoral_candidate: 4,
+  master: 3,
+  bachelor: 2,
+  college: 1,
+};
+
+const DEGREE_LEVELS = new Set(Object.keys(DEGREE_LEVEL_RANK));
 
 function text(value) {
   return String(value ?? '').trim();
@@ -39,12 +34,94 @@ function stringArray(value) {
   return [...new Set((Array.isArray(value) ? value : []).map(String).map((item) => item.trim()).filter(Boolean))];
 }
 
+function degreeHasContent(degree = {}) {
+  return Boolean(
+    degree.level || degree.degreeName || degree.major || degree.specialization
+    || degree.institution || degree.graduationYear,
+  );
+}
+
+export function createEmptyPersonnelDegree(index = 0) {
+  return {
+    id: `degree-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
+    level: '',
+    degreeName: '',
+    major: '',
+    specialization: '',
+    institution: '',
+    graduationYear: '',
+    isHighest: false,
+  };
+}
+
+function cleanDegree(input = {}, index = 0) {
+  const level = DEGREE_LEVELS.has(text(input.level || input.degreeLevel))
+    ? text(input.level || input.degreeLevel)
+    : '';
+  return {
+    id: text(input.id) || `degree-${index + 1}`,
+    level,
+    degreeName: text(input.degreeName || input.name),
+    major: text(input.major),
+    specialization: text(input.specialization),
+    institution: text(input.institution),
+    graduationYear: text(input.graduationYear).replace(/[^0-9]/g, '').slice(0, 4),
+    isHighest: input.isHighest === true,
+  };
+}
+
+function legacyDegree(input = {}) {
+  const candidate = cleanDegree({
+    id: 'legacy-degree-1',
+    level: input.degreeLevel,
+    degreeName: input.degreeName,
+    major: input.major,
+    specialization: input.specialization,
+    institution: input.institution,
+    graduationYear: input.graduationYear,
+    isHighest: true,
+  }, 0);
+  return degreeHasContent(candidate) ? candidate : null;
+}
+
+export function cleanPersonnelDegrees(input = {}) {
+  const legacy = legacyDegree(input);
+  const source = Array.isArray(input.degrees) ? input.degrees : (legacy ? [legacy] : []);
+  const degrees = source.map(cleanDegree).filter(degreeHasContent);
+  if (!degrees.length) return [];
+
+  let highestIndex = degrees.findIndex((degree) => degree.isHighest);
+  if (highestIndex < 0) {
+    highestIndex = degrees.reduce((bestIndex, degree, index, list) => {
+      const bestRank = DEGREE_LEVEL_RANK[list[bestIndex]?.level] || 0;
+      const rank = DEGREE_LEVEL_RANK[degree.level] || 0;
+      return rank > bestRank ? index : bestIndex;
+    }, 0);
+  }
+  return degrees.map((degree, index) => ({ ...degree, isHighest: index === highestIndex }));
+}
+
+export function getHighestPersonnelDegree(input = {}) {
+  const degrees = Array.isArray(input) ? cleanPersonnelDegrees({ degrees: input }) : cleanPersonnelDegrees(input);
+  return degrees.find((degree) => degree.isHighest) || degrees[0] || null;
+}
+
 export function cleanPersonnelRecord(input = {}) {
   const next = {};
   PROFILE_FIELDS.forEach((field) => { next[field] = text(input[field]); });
   next.employmentType = ['core', 'visiting'].includes(input.employmentType) ? input.employmentType : 'core';
   next.employmentStatus = ['active', 'leave', 'inactive'].includes(input.employmentStatus) ? input.employmentStatus : 'active';
-  next.graduationYear = text(input.graduationYear).replace(/[^0-9]/g, '').slice(0, 4);
+  next.degrees = cleanPersonnelDegrees(input);
+
+  // Compatibility projection for existing filters, exports and dashboard summaries.
+  // The authoritative source is now the structured degrees array.
+  const highest = getHighestPersonnelDegree(next.degrees);
+  next.degreeLevel = highest?.level || '';
+  next.degreeName = highest?.degreeName || '';
+  next.major = highest?.major || '';
+  next.specialization = highest?.specialization || '';
+  next.institution = highest?.institution || '';
+  next.graduationYear = highest?.graduationYear || '';
   next.updatedAt = text(input.updatedAt) || new Date().toISOString();
   return next;
 }
@@ -55,6 +132,7 @@ export function emptyPersonnelRecord({ position = 'Giáo viên', department = 'T
     department,
     employmentType: 'core',
     employmentStatus: 'active',
+    degrees: [],
   });
 }
 
@@ -103,7 +181,8 @@ function metadataFor({ existing = null, targetUser, approvedProfile, proposedPro
   const metadata = {
     ...previous,
     workflow_type: 'personnel_profile',
-    profile_version: 2,
+    profile_version: 3,
+    supports_multiple_degrees: true,
     profile_user_id: text(targetUser?.id),
     display_name: text(targetUser?.name || targetUser?.full_name || targetUser?.email?.split('@')?.[0] || previous.display_name || 'Giáo viên'),
     email: text(targetUser?.email || previous.email),
