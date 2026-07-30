@@ -36,6 +36,11 @@ as $$
       question_count,
       duration_seconds,
       proof_path,
+      case
+        when coalesce(metadata->>'proofCode', '') <> ''
+          then jsonb_build_object('proofCode', metadata->>'proofCode')
+        else '{}'::jsonb
+      end as metadata,
       created_at
     from public.weekly_practice_results
     where practice_id = p_practice_id
