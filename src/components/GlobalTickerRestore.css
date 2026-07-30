@@ -35,3 +35,310 @@ html body .brian-briefing-bar__ticker-item {
   from { transform: translate3d(0, 0, 0); }
   to { transform: translate3d(-100%, 0, 0); }
 }
+
+/* ============================================================
+   Brian navigation hub · luminous colour system
+   This layer is intentionally loaded after the Aurora chrome so
+   it can enrich the existing design without changing navigation DOM.
+   ============================================================ */
+
+html body .app-shell[data-route] .brian-nav__primary button,
+html body .app-shell[data-route] .brian-nav__primary [role='button'] {
+  --bes-nav-glow: 26, 115, 232;
+  --bes-nav-glow-soft: 112, 190, 255;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  transform: translateZ(0) !important;
+  transition:
+    transform 220ms cubic-bezier(.2,.8,.2,1),
+    color 180ms ease,
+    border-color 180ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease,
+    filter 220ms ease !important;
+  will-change: transform, box-shadow !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > :is(button,[role='button']):nth-child(1) {
+  --bes-nav-glow: 26, 115, 232;
+  --bes-nav-glow-soft: 111, 190, 255;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > :is(button,[role='button']):nth-child(2) {
+  --bes-nav-glow: 0, 153, 204;
+  --bes-nav-glow-soft: 109, 224, 255;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > :is(button,[role='button']):nth-child(3) {
+  --bes-nav-glow: 124, 58, 237;
+  --bes-nav-glow-soft: 199, 168, 255;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > :is(button,[role='button']):nth-child(4) {
+  --bes-nav-glow: 15, 157, 128;
+  --bes-nav-glow-soft: 110, 231, 199;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > :is(button,[role='button']):nth-child(5) {
+  --bes-nav-glow: 217, 119, 6;
+  --bes-nav-glow-soft: 255, 209, 119;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > :is(button,[role='button']):nth-child(6) {
+  --bes-nav-glow: 219, 39, 119;
+  --bes-nav-glow-soft: 255, 162, 205;
+}
+
+html body .app-shell[data-route] .brian-nav__primary button::before,
+html body .app-shell[data-route] .brian-nav__primary [role='button']::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: -2px !important;
+  z-index: -1 !important;
+  border-radius: inherit !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  background:
+    linear-gradient(
+      112deg,
+      transparent 10%,
+      rgba(255,255,255,.90) 38%,
+      rgba(var(--bes-nav-glow-soft),.48) 50%,
+      transparent 72%
+    ) !important;
+  transform: translateX(-120%) skewX(-16deg) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary button:hover,
+html body .app-shell[data-route] .brian-nav__primary [role='button']:hover {
+  border-color: rgba(var(--bes-nav-glow),.34) !important;
+  background:
+    radial-gradient(circle at 22% 0%, rgba(255,255,255,.98), transparent 46%),
+    linear-gradient(135deg, rgba(var(--bes-nav-glow-soft),.28), rgba(255,255,255,.72)) !important;
+  color: rgb(var(--bes-nav-glow)) !important;
+  box-shadow:
+    0 10px 22px rgba(var(--bes-nav-glow),.18),
+    0 0 0 1px rgba(255,255,255,.74) inset,
+    0 0 20px rgba(var(--bes-nav-glow),.14) !important;
+  filter: saturate(1.08) brightness(1.02) !important;
+  transform: translateY(-2px) scale(1.015) translateZ(0) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary button:hover::before,
+html body .app-shell[data-route] .brian-nav__primary [role='button']:hover::before {
+  opacity: .88 !important;
+  animation: bes-nav-light-sweep 780ms cubic-bezier(.22,.72,.2,1) both !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary button:active,
+html body .app-shell[data-route] .brian-nav__primary [role='button']:active {
+  transform: translateY(0) scale(.985) translateZ(0) !important;
+  box-shadow:
+    0 4px 10px rgba(var(--bes-nav-glow),.16),
+    inset 0 2px 6px rgba(var(--bes-nav-glow),.10) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary button.is-active,
+html body .app-shell[data-route] .brian-nav__primary [role='button'].is-active {
+  border-color: rgba(var(--bes-nav-glow),.34) !important;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(255,255,255,.98), transparent 42%),
+    linear-gradient(135deg, rgba(var(--bes-nav-glow-soft),.34), rgba(255,255,255,.76)) !important;
+  color: rgb(var(--bes-nav-glow)) !important;
+  box-shadow:
+    0 9px 22px rgba(var(--bes-nav-glow),.20),
+    0 0 26px rgba(var(--bes-nav-glow),.16),
+    inset 0 1px 0 rgba(255,255,255,.98) !important;
+  animation: bes-nav-active-breathe 3.4s ease-in-out infinite !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary button.is-active::after,
+html body .app-shell[data-route] .brian-nav__primary [role='button'].is-active::after {
+  background: rgb(var(--bes-nav-glow)) !important;
+  box-shadow:
+    0 0 0 4px rgba(var(--bes-nav-glow),.11),
+    0 0 15px rgba(var(--bes-nav-glow),.62) !important;
+  animation: bes-nav-dot-pulse 2.2s ease-in-out infinite !important;
+}
+
+/* Right-side utility buttons receive individual light colours. */
+html body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button']) {
+  --bes-action-glow: 26, 115, 232;
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  transition:
+    transform 220ms cubic-bezier(.2,.8,.2,1),
+    border-color 180ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease,
+    color 180ms ease !important;
+}
+
+html body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button']):nth-child(1) {
+  --bes-action-glow: 234, 151, 18;
+}
+
+html body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button']):nth-child(2) {
+  --bes-action-glow: 139, 92, 246;
+}
+
+html body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button']):nth-child(3) {
+  --bes-action-glow: 14, 165, 233;
+}
+
+html body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button']):nth-child(4) {
+  --bes-action-glow: 16, 185, 129;
+}
+
+html body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button']):nth-child(5) {
+  --bes-action-glow: 99, 102, 241;
+}
+
+html body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button'])::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: -45% !important;
+  z-index: -1 !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  background: radial-gradient(circle, rgba(var(--bes-action-glow),.30), transparent 66%) !important;
+  transform: scale(.45) !important;
+  transition: opacity 220ms ease, transform 260ms cubic-bezier(.2,.8,.2,1) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button']):hover {
+  border-color: rgba(var(--bes-action-glow),.36) !important;
+  background:
+    radial-gradient(circle at 30% 16%, rgba(255,255,255,.96), transparent 52%),
+    linear-gradient(145deg, rgba(var(--bes-action-glow),.17), rgba(255,255,255,.72)) !important;
+  color: rgb(var(--bes-action-glow)) !important;
+  box-shadow:
+    0 9px 20px rgba(var(--bes-action-glow),.18),
+    0 0 18px rgba(var(--bes-action-glow),.13),
+    inset 0 1px 0 rgba(255,255,255,.96) !important;
+  transform: translateY(-2px) scale(1.035) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button']):hover::before {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button']):active {
+  transform: translateY(0) scale(.97) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary :is(button,[role='button']):focus-visible,
+html body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button']):focus-visible {
+  outline: 3px solid rgba(var(--bes-nav-glow, 26,115,232),.28) !important;
+  outline-offset: 3px !important;
+}
+
+/* News ticker typography is enlarged for the wide navigation hub. */
+html body .app-shell[data-route] .brian-briefing-bar__ticker-item,
+html body .bes-top-chrome .brian-briefing-bar__ticker-item {
+  gap: 10px !important;
+  font-size: 1rem !important;
+  line-height: 1.35 !important;
+  letter-spacing: .002em !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar__source,
+html body .bes-top-chrome .brian-briefing-bar__source {
+  font-size: 1rem !important;
+  font-weight: 820 !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar__ticker-item strong,
+html body .bes-top-chrome .brian-briefing-bar__ticker-item strong {
+  font-size: 1.02rem !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar__separator,
+html body .bes-top-chrome .brian-briefing-bar__separator {
+  font-size: .94rem !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar__headline::before {
+  font-size: .78rem !important;
+  letter-spacing: .055em !important;
+}
+
+@keyframes bes-nav-light-sweep {
+  0% {
+    transform: translateX(-120%) skewX(-16deg);
+  }
+  100% {
+    transform: translateX(120%) skewX(-16deg);
+  }
+}
+
+@keyframes bes-nav-active-breathe {
+  0%, 100% {
+    filter: saturate(1) brightness(1);
+  }
+  50% {
+    filter: saturate(1.08) brightness(1.025);
+  }
+}
+
+@keyframes bes-nav-dot-pulse {
+  0%, 100% {
+    transform: translateX(-50%) scale(1) !important;
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.18) !important;
+    opacity: .82;
+  }
+}
+
+@media (max-width: 1160px) {
+  html body .app-shell[data-route] .brian-briefing-bar__ticker-item,
+  html body .app-shell[data-route] .brian-briefing-bar__source,
+  html body .app-shell[data-route] .brian-briefing-bar__ticker-item strong {
+    font-size: .94rem !important;
+  }
+}
+
+html[data-theme='dark'] body .app-shell[data-route] .brian-nav__primary button:hover,
+html[data-theme='dark'] body .app-shell[data-route] .brian-nav__primary [role='button']:hover,
+body.theme-dark .app-shell[data-route] .brian-nav__primary button:hover,
+body.theme-dark .app-shell[data-route] .brian-nav__primary [role='button']:hover,
+html[data-theme='dark'] body .app-shell[data-route] .brian-nav__primary button.is-active,
+html[data-theme='dark'] body .app-shell[data-route] .brian-nav__primary [role='button'].is-active,
+body.theme-dark .app-shell[data-route] .brian-nav__primary button.is-active,
+body.theme-dark .app-shell[data-route] .brian-nav__primary [role='button'].is-active {
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,255,255,.13), transparent 48%),
+    linear-gradient(135deg, rgba(var(--bes-nav-glow),.24), rgba(38,49,73,.78)) !important;
+  color: rgb(var(--bes-nav-glow-soft)) !important;
+}
+
+html[data-theme='dark'] body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button']):hover,
+body.theme-dark .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button']):hover {
+  background:
+    radial-gradient(circle at 28% 12%, rgba(255,255,255,.13), transparent 50%),
+    linear-gradient(145deg, rgba(var(--bes-action-glow),.22), rgba(38,49,73,.80)) !important;
+  color: rgb(var(--bes-action-glow)) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-shell[data-route] .brian-nav__primary button,
+  html body .app-shell[data-route] .brian-nav__primary [role='button'],
+  html body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button']) {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__primary button::before,
+  html body .app-shell[data-route] .brian-nav__primary [role='button']::before,
+  html body .app-shell[data-route] .brian-nav__primary button.is-active::after,
+  html body .app-shell[data-route] .brian-nav__primary [role='button'].is-active::after {
+    animation: none !important;
+  }
+}
