@@ -176,6 +176,14 @@ export const APPS = [
 
 export const GAME_APPS = [
   {
+    slug: 'crossword-trial', icon: 'OC', tone: 'blue', group: 'Interactive Classroom Games', groupVi: 'Trò chơi tương tác',
+    title: 'Crossword Trial', titleVi: 'Ô Chữ Bàn Thử',
+    desc: 'Build and run keyword crosswords with automatic intersections, hints, scoring, teacher controls and offline import/export.',
+    descVi: 'Soạn và tổ chức trò chơi ô chữ từ khóa với tự căn chữ giao, gợi ý, chấm điểm, điều khiển giáo viên và nhập/xuất offline.',
+    status: 'Google-style · Offline · Projector', statusVi: 'Phong cách Google · Offline · Máy chiếu',
+    api: false, featured: true,
+  },
+  {
     slug: 'game-hub', route: 'games', icon: 'GH', tone: 'teal', group: 'Third-party Launchers', groupVi: 'Cổng trò chơi',
     title: 'Game Hub', titleVi: 'Game Hub',
     desc: 'Open trusted third-party classroom game platforms and save useful links for lessons.',
