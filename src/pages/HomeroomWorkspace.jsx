@@ -16,8 +16,8 @@ import {
   ParentsTab,
   PortalsTab,
   RecordsTab,
-  SchoolStatsTab,
 } from '../components/homeroom/HomeroomCommunicationTabs.jsx';
+import SchoolStatsTab from '../components/homeroom/SchoolStatsCompactTab.jsx';
 import {
   ClassLifecycleTab,
   DataSafetyTab,

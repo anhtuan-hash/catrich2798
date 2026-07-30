@@ -421,15 +421,64 @@ export async function logWeeklyPracticeEvent(practiceId, eventType, metadata = {
   } catch { /* analytics are non-blocking */ }
 }
 
+function canvasProofBlob(canvas, type, quality) {
+  return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+async function optimizeWeeklyPracticeProof(proofBlob) {
+  const originalType = cleanText(proofBlob?.type).toLowerCase();
+  if (originalType === 'image/webp') return proofBlob;
+  if (originalType !== 'image/png' || typeof document === 'undefined') return proofBlob;
+
+  let source = null;
+  let objectUrl = '';
+  try {
+    if (typeof createImageBitmap === 'function') {
+      source = await createImageBitmap(proofBlob);
+    } else {
+      objectUrl = URL.createObjectURL(proofBlob);
+      source = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error('Không thể đọc ảnh xác nhận.'));
+        image.src = objectUrl;
+      });
+    }
+
+    const width = Number(source?.width || source?.naturalWidth || 0);
+    const height = Number(source?.height || source?.naturalHeight || 0);
+    if (!width || !height) return proofBlob;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d', { alpha: false });
+    if (!context) return proofBlob;
+    context.drawImage(source, 0, 0, width, height);
+    const webp = await canvasProofBlob(canvas, 'image/webp', 0.86);
+    return webp?.type === 'image/webp' && webp.size > 0 && webp.size < proofBlob.size ? webp : proofBlob;
+  } catch {
+    return proofBlob;
+  } finally {
+    source?.close?.();
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+  }
+}
+
 export async function uploadWeeklyPracticeProof(practiceId, proofBlob) {
-  if (!proofBlob || proofBlob.type !== 'image/png') throw new Error('Ảnh xác nhận chưa hợp lệ.');
+  const inputType = cleanText(proofBlob?.type).toLowerCase();
+  if (!proofBlob || !['image/webp', 'image/png'].includes(inputType)) {
+    throw new Error('Ảnh xác nhận chưa hợp lệ.');
+  }
+  const optimizedBlob = await optimizeWeeklyPracticeProof(proofBlob);
+  const mimeType = cleanText(optimizedBlob?.type, inputType).toLowerCase();
   const client = requireClient();
-  const path = `${practiceId}/${getWeeklyPracticeDeviceId()}/${Date.now()}-${randomId()}.png`;
+  const extension = mimeType === 'image/webp' ? 'webp' : 'png';
+  const path = `${practiceId}/${getWeeklyPracticeDeviceId()}/${Date.now()}-${randomId()}.${extension}`;
   const { error } = await client.storage
     .from(WEEKLY_PRACTICE_PROOF_BUCKET)
-    .upload(path, proofBlob, {
+    .upload(path, optimizedBlob, {
       cacheControl: '31536000',
-      contentType: 'image/png',
+      contentType: mimeType,
       upsert: false,
     });
   if (error) throw error;
