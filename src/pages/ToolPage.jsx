@@ -19,7 +19,7 @@ const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
 const TeachingMethodsHub = lazy(() => import('./TeachingMethodsHub.jsx'));
 const PersonnelHub = lazy(() => import('./PersonnelHub.jsx'));
 const ClassroomScreenHost = lazy(() => import('./ClassroomScreenHost.jsx'));
-const FlyingWordsGame = lazy(() => import('./FlyingWordsGamePlus.jsx'));
+const FlyingWordsGame = lazy(() => import('./FlyingWordsContrast.jsx'));
 const CrosswordTrialGame = lazy(() => import('./CrosswordTrialGame.jsx'));
 
 const specializedToolSlugs = new Set([
@@ -31,9 +31,7 @@ function ToolFallback({ language = 'vi' }) {
     <div className="page narrow">
       <section className="panel empty-state">
         <h1>{language === 'vi' ? 'Đang mở công cụ...' : 'Opening tool...'}</h1>
-        <p>{language === 'vi'
-          ? 'Đang tải đúng mô-đun cần dùng để giao diện nhẹ hơn.'
-          : 'Loading only the module you need for a lighter interface.'}</p>
+        <p>{language === 'vi' ? 'Đang tải đúng mô-đun cần dùng để giao diện nhẹ hơn.' : 'Loading only the module you need for a lighter interface.'}</p>
       </section>
     </div>
   );
@@ -76,36 +74,96 @@ export default function ToolPage(props) {
   const [title, setTitle] = useState('My Activity');
   const preview = useMemo(() => buildPreview(content, selected, language), [content, selected, language]);
 
-  if (tool?.slug === 'textlab-activities') return renderLazy(TextLabActivities, props);
-  if (tool?.slug === 'teaching-methods-hub') return renderLazy(TeachingMethodsHub, props);
-  if (tool?.slug === 'thpt-practice-hub') return renderLazy(THPTPracticeHub, props);
-  if (['brian-team', 'personnel-hub'].includes(tool?.slug)) return renderLazy(PersonnelHub, props);
-  if (tool?.slug === 'classroom-screen') return renderLazy(ClassroomScreenHost, props);
-  if (tool?.slug === 'flying-words') return renderLazy(FlyingWordsGame, props);
-  if (tool?.slug === 'crossword-trial') return renderLazy(CrosswordTrialGame, props);
-  if (tool?.slug === 'word2graph') return renderLazy(WordGraphStudio, props);
-  if (tool?.slug === 'reading-studio') return renderLazy(ReadingStudio, props);
-  if (tool?.slug === 'news-reader') return renderLazy(NewsReader, props);
-  if (tool?.slug === 'vietnam-tax') return renderLazy(VietnamTaxStudio, props);
-  if (tool?.slug === 'textcare') return renderLazy(TextCareStudio, props);
-  if (tool?.slug === 'lesson-plan-ai') return renderLazy(LessonArchitect, props);
-  if (tool?.slug === 'exam-studio') return renderLazy(ExamStudioUploadPage, props);
-  if (specializedToolSlugs.has(tool?.slug)) return renderLazy(SpecializedAppPage, props);
-  if (tool?.slug === 'domino-wordform') return renderLazy(DominoWordForm, props);
-  if (tool?.slug === 'prompt-studio') return renderLazy(PromptStudio, props);
+  if (tool?.slug === 'textlab-activities') {
+    return renderLazy(TextLabActivities, props);
+  }
+
+  if (tool?.slug === 'teaching-methods-hub') {
+    return renderLazy(TeachingMethodsHub, props);
+  }
+
+  if (tool?.slug === 'thpt-practice-hub') {
+    return renderLazy(THPTPracticeHub, props);
+  }
+
+  if (['brian-team', 'personnel-hub'].includes(tool?.slug)) {
+    return renderLazy(PersonnelHub, props);
+  }
+
+  if (tool?.slug === 'classroom-screen') {
+    return renderLazy(ClassroomScreenHost, props);
+  }
+
+  if (tool?.slug === 'flying-words') {
+    return renderLazy(FlyingWordsGame, props);
+  }
+
+  if (tool?.slug === 'crossword-trial') {
+    return renderLazy(CrosswordTrialGame, props);
+  }
+
+  if (tool?.slug === 'word2graph') {
+    return renderLazy(WordGraphStudio, props);
+  }
+
+  if (tool?.slug === 'reading-studio') {
+    return renderLazy(ReadingStudio, props);
+  }
+
+  if (tool?.slug === 'news-reader') {
+    return renderLazy(NewsReader, props);
+  }
+
+  if (tool?.slug === 'vietnam-tax') {
+    return renderLazy(VietnamTaxStudio, props);
+  }
+
+  if (tool?.slug === 'textcare') {
+    return renderLazy(TextCareStudio, props);
+  }
+
+  if (tool?.slug === 'lesson-plan-ai') {
+    return renderLazy(LessonArchitect, props);
+  }
+
+  if (tool?.slug === 'exam-studio') {
+    return renderLazy(ExamStudioUploadPage, props);
+  }
+
+  if (specializedToolSlugs.has(tool?.slug)) {
+    return renderLazy(SpecializedAppPage, props);
+  }
+
+  if (tool?.slug === 'domino-wordform') {
+    return renderLazy(DominoWordForm, props);
+  }
+
+  if (tool?.slug === 'prompt-studio') {
+    return renderLazy(PromptStudio, props);
+  }
+
   if (['jeopardy-builder', 'open-the-box', 'team-race', 'lucky-wheel', 'matching-battle'].includes(tool?.slug)) {
     return renderLazy(ClassroomGame, props);
   }
-  if (tool?.slug === 'test-paper-builder') return renderLazy(TestBuilder, props);
-  if (tool?.slug === 'student-practice') return renderLazy(StudentPractice, props);
-  if (tool?.api) return renderLazy(AITool, props);
+
+  if (tool?.slug === 'test-paper-builder') {
+    return renderLazy(TestBuilder, props);
+  }
+
+  if (tool?.slug === 'student-practice') {
+    return renderLazy(StudentPractice, props);
+  }
+
+  if (tool?.api) {
+    return renderLazy(AITool, props);
+  }
 
   if (!tool) {
     return (
       <div className="page narrow">
         <section className="panel empty-state">
           <h1>Tool not found</h1>
-          <button className="primary" onClick={() => { window.location.hash = '#/apps'; }}>Back to Apps</button>
+          <button className="primary" onClick={() => (window.location.hash = '#/apps')}>Back to Apps</button>
         </section>
       </div>
     );
@@ -135,11 +193,7 @@ export default function ToolPage(props) {
           <h2>1. {language === 'vi' ? 'Chọn template' : 'Choose template'}</h2>
           <div className="template-grid">
             {templates.map((tpl) => (
-              <button
-                key={tpl.id}
-                className={selected === tpl.id ? 'template active' : 'template'}
-                onClick={() => setSelected(tpl.id)}
-              >
+              <button key={tpl.id} className={selected === tpl.id ? 'template active' : 'template'} onClick={() => setSelected(tpl.id)}>
                 <span>{tpl.icon}</span>
                 <strong>{tpl.title}</strong>
                 <small>{language === 'vi' ? tpl.descVi : tpl.desc}</small>
@@ -148,19 +202,17 @@ export default function ToolPage(props) {
           </div>
           <div className="hint-box">
             <strong>{language === 'vi' ? 'Ghi chú:' : 'Note:'}</strong>{' '}
-            {language === 'vi'
-              ? 'Trang demo cơ bản. Các công cụ chính đã có trang hoạt động riêng.'
-              : 'Basic demo page. Main tools have their own working pages.'}
+            {language === 'vi' ? 'Trang demo cơ bản. Các công cụ chính đã có trang hoạt động riêng.' : 'Basic demo page. Main tools have their own working pages.'}
           </div>
         </div>
 
         <div className="panel builder-panel">
           <h2>2. {language === 'vi' ? 'Nội dung của bạn' : 'Your content'}</h2>
           <label>{language === 'vi' ? 'Tiêu đề hoạt động' : 'Activity title'}</label>
-          <input value={title} onChange={(event) => setTitle(event.target.value)} />
+          <input value={title} onChange={(e) => setTitle(e.target.value)} />
           <label>{language === 'vi' ? 'Nhập nội dung, mỗi dòng một ý' : 'Enter content, one item per line'}</label>
-          <textarea value={content} onChange={(event) => setContent(event.target.value)} rows={12} />
-          <button className="primary full" type="button">{language === 'vi' ? 'Tạo preview' : 'Generate preview'}</button>
+          <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={12} />
+          <button className="primary full" onClick={() => {}}>{language === 'vi' ? 'Tạo preview' : 'Generate preview'}</button>
         </div>
       </section>
 
@@ -171,14 +223,12 @@ export default function ToolPage(props) {
             <h2>{title || 'My Activity'}</h2>
           </div>
           <div className="preview-actions">
-            <button type="button">Copy</button>
-            <button type="button">{language === 'vi' ? 'Xuất HTML' : 'Export HTML'}</button>
+            <button>{language === 'vi' ? 'Copy' : 'Copy'}</button>
+            <button>{language === 'vi' ? 'Xuất HTML' : 'Export HTML'}</button>
           </div>
         </div>
         <div className="preview-box">
-          {preview.length
-            ? preview.map((line, index) => <div key={`${line}-${index}`} className="preview-item">{line}</div>)
-            : <p>{language === 'vi' ? 'Nhập nội dung để xem preview.' : 'Enter content to preview.'}</p>}
+          {preview.length ? preview.map((line, i) => <div key={i} className="preview-item">{line}</div>) : <p>{language === 'vi' ? 'Nhập nội dung để xem preview.' : 'Enter content to preview.'}</p>}
         </div>
       </section>
     </div>
