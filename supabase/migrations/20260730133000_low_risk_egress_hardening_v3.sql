@@ -48,17 +48,21 @@ as $$
       ) as student(value)
       where student.value -> 'active' is distinct from 'false'::jsonb
     )::bigint as student_count,
-    coalesce((
-      select sum(
-        case when jsonb_typeof(day_rows.value) = 'object' then jsonb_object_length(day_rows.value) else 0 end
-      )
+    (
+      select count(*)
       from jsonb_each(
         case
           when jsonb_typeof(workspace.payload -> 'attendance') = 'object' then workspace.payload -> 'attendance'
           else '{}'::jsonb
         end
-      ) as day_rows
-    ), 0)::bigint as attendance_count,
+      ) as day_rows(day_key, value)
+      cross join lateral jsonb_object_keys(
+        case
+          when jsonb_typeof(day_rows.value) = 'object' then day_rows.value
+          else '{}'::jsonb
+        end
+      ) as attendance_entry(student_key)
+    )::bigint as attendance_count,
     (case
       when jsonb_typeof(workspace.payload -> 'announcements') = 'array' then jsonb_array_length(workspace.payload -> 'announcements')
       else 0
