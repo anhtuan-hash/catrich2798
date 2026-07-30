@@ -120,3 +120,26 @@
     start();
   }
 })();
+
+/* Dashboard hero assets are loaded here because this global guard is already
+   present on every signed-in route. Both assets remain fully route-scoped. */
+(() => {
+  const cssId = 'bes-dashboard-premium-hero-css';
+  const scriptId = 'bes-dashboard-premium-hero-js';
+
+  if (!document.getElementById(cssId)) {
+    const link = document.createElement('link');
+    link.id = cssId;
+    link.rel = 'stylesheet';
+    link.href = '/dashboard-premium-hero.css?v=1';
+    document.head.appendChild(link);
+  }
+
+  if (!document.getElementById(scriptId)) {
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.src = '/dashboard-premium-hero.js?v=1';
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+})();
