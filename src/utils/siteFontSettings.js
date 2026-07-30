@@ -7,6 +7,8 @@ const STYLE_ID = 'bes-global-font-runtime';
 const QUICKSAND_LINK_ID = 'bes-global-font-quicksand';
 const SETTING_APP_ID = 'system:global-font';
 const DEFAULT_FONT_ID = 'brian-gesco';
+const SHARED_FONT_READ_TIMEOUT_MS = 4500;
+const FONT_READY_TIMEOUT_MS = 3500;
 
 export const SITE_FONT_OPTIONS = [
   {
@@ -124,17 +126,37 @@ export function readSiteFontLocal() {
 }
 
 function ensureQuicksandStylesheet() {
-  if (typeof document === 'undefined' || document.getElementById(QUICKSAND_LINK_ID)) return;
+  if (typeof document === 'undefined') return Promise.resolve();
+  const existing = document.getElementById(QUICKSAND_LINK_ID);
+  if (existing) {
+    if (existing.dataset.loaded === 'true' || existing.sheet) return Promise.resolve();
+    return new Promise((resolve) => {
+      const done = () => resolve();
+      existing.addEventListener('load', done, { once: true });
+      existing.addEventListener('error', done, { once: true });
+      window.setTimeout(done, FONT_READY_TIMEOUT_MS);
+    });
+  }
   const link = document.createElement('link');
   link.id = QUICKSAND_LINK_ID;
   link.rel = 'stylesheet';
   link.href = 'https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap';
+  const ready = new Promise((resolve) => {
+    const done = () => resolve();
+    link.addEventListener('load', () => {
+      link.dataset.loaded = 'true';
+      done();
+    }, { once: true });
+    link.addEventListener('error', done, { once: true });
+    window.setTimeout(done, FONT_READY_TIMEOUT_MS);
+  });
   document.head.appendChild(link);
+  return ready;
 }
 
 function ensureRuntimeStyle() {
   if (typeof document === 'undefined') return;
-  ensureQuicksandStylesheet();
+  void ensureQuicksandStylesheet();
   let style = document.getElementById(STYLE_ID);
   if (!style) {
     style = document.createElement('style');
@@ -203,20 +225,48 @@ export function installSiteFontFromCache() {
   return applySiteFont(readSiteFontLocal(), { persist: false, emit: false });
 }
 
+export async function waitForSiteFontReady(value, { timeoutMs = FONT_READY_TIMEOUT_MS } = {}) {
+  const option = getSiteFontOption(value?.id || value);
+  if (typeof document === 'undefined') return option;
+  ensureRuntimeStyle();
+  if (option.id === 'quicksand') await ensureQuicksandStylesheet();
+  if (!document.fonts?.load) return option;
+  const timeout = new Promise((resolve) => window.setTimeout(resolve, Math.max(0, Number(timeoutMs) || 0)));
+  try {
+    await Promise.race([
+      document.fonts.load(`400 16px ${option.family}`, 'Brian English Studio Tiếng Việt'),
+      timeout,
+    ]);
+  } catch { /* the chosen CSS stack remains active even when font readiness cannot be measured */ }
+  return option;
+}
+
 function fontIdFromRow(row) {
   return normalizeFontId(row?.reason || row?.slug || row?.title_vi || row?.title);
 }
 
-export async function loadSiteFontSetting(user) {
+export async function loadSiteFontSetting(user, { timeoutMs = SHARED_FONT_READ_TIMEOUT_MS } = {}) {
   const localId = readSiteFontLocal();
   applySiteFont(localId, { persist: false, emit: false });
-  if (!user || !isSupabaseConfigured || !supabase) return getSiteFontOption(localId);
+  if (!isSupabaseConfigured || !supabase) return getSiteFontOption(localId);
   try {
-    const { data, error } = await supabase
+    let timedOut = false;
+    const request = supabase
       .from('app_visibility_settings')
       .select('app_id,slug,title,title_vi,reason,updated_at')
       .eq('app_id', SETTING_APP_ID)
-      .maybeSingle();
+      .maybeSingle()
+      .then(({ data, error }) => ({ data, error }))
+      .catch((error) => ({ data: null, error }));
+    const timeout = new Promise((resolve) => window.setTimeout(() => {
+      timedOut = true;
+      resolve({ data: null, error: null });
+    }, Math.max(0, Number(timeoutMs) || 0)));
+    const { data, error } = await Promise.race([request, timeout]);
+    if (timedOut) {
+      console.warn('[Global font] Shared setting read timed out; using local cache.');
+      return getSiteFontOption(localId);
+    }
     if (error) throw error;
     if (!data) return getSiteFontOption(localId);
     return applySiteFont(fontIdFromRow(data));
@@ -264,10 +314,10 @@ export function subscribeSiteFontSetting(user, listener) {
   window.addEventListener('storage', storageHandler);
 
   let channel = null;
-  if (user && isSupabaseConfigured && supabase) {
+  if (isSupabaseConfigured && supabase) {
     try {
       channel = supabase
-        .channel(`bes-global-font-${String(user.id || 'session')}-${Date.now().toString(36)}`)
+        .channel(`bes-global-font-${String(user?.id || 'public')}-${Date.now().toString(36)}`)
         .on('postgres_changes', {
           event: '*', schema: 'public', table: 'app_visibility_settings', filter: `app_id=eq.${SETTING_APP_ID}`,
         }, (payload) => {
