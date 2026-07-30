@@ -32,8 +32,12 @@ export default function GlobalGuestNavigationHub({ currentUser, language = 'vi',
 
     const findHost = () => {
       const nextHost = document.querySelector('.brian-nav__primary');
+      const navigation = nextHost?.closest('.brian-nav');
+      const topChrome = navigation?.closest('.bes-top-chrome');
+
       setHost((current) => (current === nextHost ? current : nextHost));
-      nextHost?.closest('.brian-nav')?.classList.add('brian-nav--guest-full');
+      navigation?.classList.add('brian-nav--guest-full');
+      topChrome?.classList.add('bes-top-chrome--guest-full');
     };
 
     findHost();
@@ -44,7 +48,12 @@ export default function GlobalGuestNavigationHub({ currentUser, language = 'vi',
     return () => {
       window.cancelAnimationFrame(frame);
       observer.disconnect();
-      document.querySelector('.brian-nav--guest-full')?.classList.remove('brian-nav--guest-full');
+      document.querySelectorAll('.brian-nav--guest-full').forEach((element) => {
+        element.classList.remove('brian-nav--guest-full');
+      });
+      document.querySelectorAll('.bes-top-chrome--guest-full').forEach((element) => {
+        element.classList.remove('bes-top-chrome--guest-full');
+      });
     };
   }, [isGuestHome]);
 
