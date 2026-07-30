@@ -120,6 +120,14 @@ export const APPS = [
     status: '18 templates · Offline', statusVi: '18 mẫu · Offline', api: true, featured: true,
   },
   {
+    slug: 'flying-words', icon: 'FW', tone: 'purple', group: 'Teaching Activities', groupVi: 'Hoạt động lớp học',
+    title: 'Flying Words', titleVi: 'Từ Ngữ Biết Bay',
+    desc: 'Turn sentence lists into a projector-ready ordering game with moving word cards, timers, scoring and offline draft import/export.',
+    descVi: 'Biến danh sách câu thành trò chơi sắp xếp từ trên máy chiếu với thẻ bay, đồng hồ, chấm điểm và nhập/xuất bản soạn offline.',
+    status: 'No AI · Local data · Projector', statusVi: 'Không AI · Dữ liệu cục bộ · Máy chiếu',
+    api: false, featured: true,
+  },
+  {
     slug: 'teaching-methods-hub', icon: 'TM', tone: 'mint', group: 'Professional Learning', groupVi: 'Phát triển chuyên môn',
     title: 'English Teaching Methods Hub', titleVi: 'Phương pháp giảng dạy tiếng Anh',
     desc: 'Explore active English teaching methods with theory, classroom procedures, activity ideas, assessment guidance and implementation cautions.',
@@ -167,14 +175,6 @@ export const APPS = [
 ];
 
 export const GAME_APPS = [
-  {
-    slug: 'flying-words', icon: 'FW', tone: 'purple', group: 'Interactive Classroom Games', groupVi: 'Trò chơi tương tác',
-    title: 'Flying Words', titleVi: 'Từ Ngữ Biết Bay',
-    desc: 'Turn sentence lists into a projector-ready ordering game with moving word cards, timers, scoring and offline draft import/export.',
-    descVi: 'Biến danh sách câu thành trò chơi sắp xếp từ trên máy chiếu với thẻ bay, đồng hồ, chấm điểm và nhập/xuất bản soạn offline.',
-    status: 'No AI · Local data · Projector', statusVi: 'Không AI · Dữ liệu cục bộ · Máy chiếu',
-    api: false, featured: true,
-  },
   {
     slug: 'game-hub', route: 'games', icon: 'GH', tone: 'teal', group: 'Third-party Launchers', groupVi: 'Cổng trò chơi',
     title: 'Game Hub', titleVi: 'Game Hub',
