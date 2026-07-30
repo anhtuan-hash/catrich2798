@@ -143,17 +143,3 @@
     document.head.appendChild(script);
   }
 })();
-
-/* Restore whole-page wheel scrolling when the pointer is above ordinary cards,
-   panels and interactive surfaces. Local scrolling remains opt-in for overlays,
-   editors and other intentionally isolated controls. */
-(() => {
-  const scriptId = 'brian-page-scroll-bridge-script';
-  if (document.getElementById(scriptId) || window.__BRIAN_PAGE_SCROLL_BRIDGE__) return;
-
-  const script = document.createElement('script');
-  script.id = scriptId;
-  script.src = '/global-page-scroll-bridge.js?v=1';
-  script.async = false;
-  document.head.appendChild(script);
-})();
