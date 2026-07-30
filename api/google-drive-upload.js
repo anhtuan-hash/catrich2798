@@ -1,5 +1,5 @@
 import { ensureFolder, getConnection, resourceCategoryFolderName, send, uploadFile } from '../server/api/_googleDrive.js';
-import { appendApiAudit, createRequestId, enforceRateLimit, requireApprovedUser } from '../server/api/_security.js';
+import { appendApiAudit, createRequestId, requireApprovedUser } from '../server/api/_security.js';
 import { normaliseResourceCategory } from '../server/api/_resourceCategoryFolders.js';
 
 export const config = { api: { bodyParser: false, sizeLimit: '20mb' } };
@@ -43,7 +43,8 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
     const requestId = createRequestId();
     const context = await requireApprovedUser(req, { roles: ['admin', 'department_head', 'teacher'] });
-    await enforceRateLimit(context, { feature: 'drive_upload', perMinute: 6, perDay: 60 });
+    // File uploads are authenticated storage operations, not AI generations.
+    // Do not consume the shared AI quota or the legacy six-uploads-per-minute window.
     const user = context.user;
     const encoded = String(req.headers['x-resource-metadata'] || '');
     const meta = JSON.parse(Buffer.from(encoded, 'base64').toString('utf8'));
@@ -75,6 +76,8 @@ export default async function handler(req, res) {
     await appendApiAudit(context, { endpoint: '/api/google-drive-upload', action: 'drive_upload', status: 'ok', requestId, details: { fileName, category, size: body.length } });
     return send(res, 200, { fileId: uploaded.id, webViewLink: uploaded.webViewLink, downloadLink: uploaded.webContentLink, requestId });
   } catch (error) {
-    return send(res, 400, { error: error.message });
+    const status = Number(error?.status || 400);
+    if (error?.retryAfter) res.setHeader('Retry-After', String(error.retryAfter));
+    return send(res, status, { error: error?.message || 'Không thể tải file lên Google Drive.' });
   }
 }
