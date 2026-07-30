@@ -22,8 +22,14 @@ function resolveFontDataUrl(dataUrl = '') {
   return dataUrl || EMBEDDED_FONT_DATA_URL;
 }
 
-export function buildPersonalFontCss(dataUrl = '') {
+export function buildPersonalFontCss(dataUrl = '', { activateAsSiteFont = true } = {}) {
   const exactUrl = sanitizeFontUrl(resolveFontDataUrl(dataUrl));
+  const rootVariables = activateAsSiteFont ? `
+:root {
+  --font-ui: 'BrianGescoExact', 'BrianGesco', '1FTV HF Gesco', '1FTVHFGesco', '1FTV-HF-Gesco', sans-serif;
+  --metro-font: var(--font-ui);
+  --english-hub-personal-font: var(--font-ui);
+}` : '';
   return `
 @font-face {
   font-family: 'BrianGescoExact';
@@ -39,11 +45,7 @@ export function buildPersonalFontCss(dataUrl = '') {
   font-style: normal;
   font-display: block;
 }
-:root {
-  --font-ui: 'BrianGescoExact', 'BrianGesco', '1FTV HF Gesco', '1FTVHFGesco', '1FTV-HF-Gesco', sans-serif;
-  --metro-font: var(--font-ui);
-  --english-hub-personal-font: var(--font-ui);
-}
+${rootVariables}
 html, body, #root, .app-shell, .metro-shell { font-family: var(--font-ui) !important; }
 body *:not(svg):not(path):not(.material-icons):not(.material-symbols-rounded):not(.material-symbols-outlined):not([class^='fa']):not([class*=' fa']),
 body *::before,
@@ -69,17 +71,21 @@ samp {
 
 function injectRuntimeCss(dataUrl = '') {
   if (typeof document === 'undefined') return false;
+  const selectedSiteFont = String(document.documentElement.dataset.siteFont || '').trim();
+  const activateAsSiteFont = !selectedSiteFont || selectedSiteFont === 'brian-gesco';
   let style = document.getElementById(STYLE_ID);
   if (!style) {
     style = document.createElement('style');
     style.id = STYLE_ID;
     document.head.appendChild(style);
   }
-  style.textContent = buildPersonalFontCss(dataUrl);
+  style.textContent = buildPersonalFontCss(dataUrl, { activateAsSiteFont });
   document.documentElement.classList.add('brian-personal-font-active');
-  document.documentElement.style.setProperty('--font-ui', `'BrianGescoExact', 'BrianGesco', '1FTV HF Gesco', '1FTVHFGesco', '1FTV-HF-Gesco', sans-serif`);
-  document.documentElement.style.setProperty('--metro-font', 'var(--font-ui)');
-  document.documentElement.style.setProperty('--english-hub-personal-font', 'var(--font-ui)');
+  if (activateAsSiteFont) {
+    document.documentElement.style.setProperty('--font-ui', `'BrianGescoExact', 'BrianGesco', '1FTV HF Gesco', '1FTVHFGesco', '1FTV-HF-Gesco', sans-serif`);
+    document.documentElement.style.setProperty('--metro-font', 'var(--font-ui)');
+    document.documentElement.style.setProperty('--english-hub-personal-font', 'var(--font-ui)');
+  }
   document.documentElement.dataset.personalFont = EMBEDDED_FONT_FILE_NAME;
   document.documentElement.dataset.personalFontHash = EMBEDDED_FONT_SHA256;
   return true;
