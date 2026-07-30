@@ -17,6 +17,8 @@ import './homeWeeklyPracticeFlowFix.js';
 import './homePracticeScheduleScroller.js';
 import './homePracticeHeaderCopyFix.js';
 import './weeklyPracticeSubmissionErrorGuard.js';
+// Register 30-file upload and safe delete-all before legacy weekly-manager handlers.
+import './weeklyManagerPowerTools.js';
 // Keep the live file input multi-selectable even when the manager UI re-renders it.
 import './weeklyBulkUploadInputGuard.js';
 // Register bulk-submit interception before the single-file publishing handler.
