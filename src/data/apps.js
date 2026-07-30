@@ -120,6 +120,14 @@ export const APPS = [
     status: '18 templates · Offline', statusVi: '18 mẫu · Offline', api: true, featured: true,
   },
   {
+    slug: 'crossword-trial', icon: 'OC', tone: 'blue', group: 'Teaching Activities', groupVi: 'Hoạt động lớp học',
+    title: 'Crossword Trial', titleVi: 'Ô Chữ Bàn Thử',
+    desc: 'Build and run keyword crosswords with automatic intersections, hints, scoring, teacher controls and offline import/export.',
+    descVi: 'Soạn và tổ chức trò chơi ô chữ từ khóa với tự căn chữ giao, gợi ý, chấm điểm, điều khiển giáo viên và nhập/xuất offline.',
+    status: 'Google-style · Offline · Projector', statusVi: 'Phong cách Google · Offline · Máy chiếu',
+    api: false, featured: true,
+  },
+  {
     slug: 'flying-words', icon: 'FW', tone: 'purple', group: 'Teaching Activities', groupVi: 'Hoạt động lớp học',
     title: 'Flying Words', titleVi: 'Từ Ngữ Biết Bay',
     desc: 'Turn sentence lists into a projector-ready ordering game with moving word cards, timers, scoring and offline draft import/export.',
@@ -175,14 +183,6 @@ export const APPS = [
 ];
 
 export const GAME_APPS = [
-  {
-    slug: 'crossword-trial', icon: 'OC', tone: 'blue', group: 'Interactive Classroom Games', groupVi: 'Trò chơi tương tác',
-    title: 'Crossword Trial', titleVi: 'Ô Chữ Bàn Thử',
-    desc: 'Build and run keyword crosswords with automatic intersections, hints, scoring, teacher controls and offline import/export.',
-    descVi: 'Soạn và tổ chức trò chơi ô chữ từ khóa với tự căn chữ giao, gợi ý, chấm điểm, điều khiển giáo viên và nhập/xuất offline.',
-    status: 'Google-style · Offline · Projector', statusVi: 'Phong cách Google · Offline · Máy chiếu',
-    api: false, featured: true,
-  },
   {
     slug: 'game-hub', route: 'games', icon: 'GH', tone: 'teal', group: 'Third-party Launchers', groupVi: 'Cổng trò chơi',
     title: 'Game Hub', titleVi: 'Game Hub',
