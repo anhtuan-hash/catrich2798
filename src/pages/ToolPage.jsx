@@ -7,6 +7,7 @@ const VietnamTaxStudio = lazy(() => import('./VietnamTaxStudio.jsx'));
 const TextCareStudio = lazy(() => import('./TextCareStudio.jsx'));
 const LessonArchitect = lazy(() => import('./LessonArchitect.jsx'));
 const SpecializedAppPage = lazy(() => import('./SpecializedAppPage.jsx'));
+const ExamStudioUploadPage = lazy(() => import('./ExamStudioUploadPage.jsx'));
 const DominoWordForm = lazy(() => import('./DominoWordForm.jsx'));
 const PromptStudio = lazy(() => import('./PromptStudio.jsx'));
 const ClassroomGame = lazy(() => import('./ClassroomGame.jsx'));
@@ -113,6 +114,10 @@ export default function ToolPage(props) {
 
   if (tool?.slug === 'lesson-plan-ai') {
     return renderLazy(LessonArchitect, props);
+  }
+
+  if (tool?.slug === 'exam-studio') {
+    return renderLazy(ExamStudioUploadPage, props);
   }
 
   if (specializedToolSlugs.has(tool?.slug)) {
