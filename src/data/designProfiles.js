@@ -57,6 +57,13 @@ export const APP_DESIGN_PROFILES = {
     icon: 'game',
     style: 'Flat arcade panel',
     styleVi: 'Bảng game arcade phẳng'},
+  'flying-words': {
+    accent: '#6944D8',
+    soft: '#EEE9FF',
+    ink: '#2A195C',
+    icon: 'game',
+    style: 'Flying sentence game',
+    styleVi: 'Trò chơi câu chữ chuyển động'},
   word2graph: {
     accent: '#2E9E5D',
     soft: '#DDF6E6',
