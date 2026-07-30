@@ -1,0 +1,44 @@
+name: Patch weekly upload auth session
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-weekly-upload-auth-session.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Replace network user lookup with persisted session
+        shell: python
+        run: |
+          from pathlib import Path
+
+          target = Path('src/weeklyManagerAcademicWeekSelector.js')
+          text = target.read_text(encoding='utf-8')
+          old = """    const { data, error: authError } = await supabase.auth.getUser();
+              if (authError) throw authError;
+              const currentUser = data?.user || null;"""
+          new = """    const { data, error: authError } = await supabase.auth.getSession();
+              if (authError) throw authError;
+              const currentUser = data?.session?.user || null;"""
+
+          if old not in text:
+              raise SystemExit('Expected weekly upload auth block was not found.')
+
+          target.write_text(text.replace(old, new, 1), encoding='utf-8')
+          Path('.github/workflows/patch-weekly-upload-auth-session.yml').unlink()
+
+      - name: Commit repair
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/weeklyManagerAcademicWeekSelector.js .github/workflows/patch-weekly-upload-auth-session.yml
+          git commit -m "Use local session for weekly batch uploads"
+          git push origin HEAD:main
