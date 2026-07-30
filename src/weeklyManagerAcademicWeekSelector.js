@@ -387,9 +387,9 @@ async function handleSubmit(event) {
   const failureMessages = [];
 
   try {
-    const { data, error: authError } = await supabase.auth.getUser();
+    const { data, error: authError } = await supabase.auth.getSession();
     if (authError) throw authError;
-    const currentUser = data?.user || null;
+    const currentUser = data?.session?.user || null;
     if (!currentUser?.id) throw new Error('Phiên đăng nhập Supabase đã hết hạn. Hãy đăng nhập lại trước khi tải bài.');
 
     for (let index = 0; index < entries.length; index += 1) {
