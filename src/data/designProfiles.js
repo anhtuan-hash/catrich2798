@@ -64,6 +64,13 @@ export const APP_DESIGN_PROFILES = {
     icon: 'game',
     style: 'Flying sentence game',
     styleVi: 'Trò chơi câu chữ chuyển động'},
+  'crossword-trial': {
+    accent: '#0B57D0',
+    soft: '#E8F0FE',
+    ink: '#202124',
+    icon: 'game',
+    style: 'Google-style crossword classroom game',
+    styleVi: 'Trò chơi ô chữ lớp học phong cách Google'},
   word2graph: {
     accent: '#2E9E5D',
     soft: '#DDF6E6',
