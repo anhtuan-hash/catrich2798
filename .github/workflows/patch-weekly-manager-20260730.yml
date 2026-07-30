@@ -1,0 +1,287 @@
+name: Patch weekly manager 2026-07-30
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/patch-weekly-manager-20260730.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: patch-weekly-manager-20260730
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply requested changes
+        shell: bash
+        run: |
+          cat > /tmp/patch-weekly-manager.mjs <<'NODE'
+          import fs from 'node:fs';
+
+          function replaceOnce(source, before, after, label) {
+            const occurrences = source.split(before).length - 1;
+            if (occurrences !== 1) {
+              throw new Error(`${label}: expected exactly one match, found ${occurrences}`);
+            }
+            return source.replace(before, after);
+          }
+
+          const uploadPath = 'src/weeklyBulkUpload.js';
+          let upload = fs.readFileSync(uploadPath, 'utf8');
+          upload = replaceOnce(upload, 'const MAX_BATCH_FILES = 10;', 'const MAX_BATCH_FILES = 30;', 'bulk upload limit');
+          upload = replaceOnce(upload, '<span class="bes-weekly-bulk-count">0/10 file</span>', '<span class="bes-weekly-bulk-count">0/30 file</span>', 'bulk initial count');
+          upload = replaceOnce(
+            upload,
+            "if (hint) hint.textContent = 'Chọn 1–10 file HTML. Khi chọn nhiều file, mỗi file có cấu hình riêng.';",
+            "if (hint) hint.textContent = 'Chọn 1–30 file HTML. Khi chọn nhiều file, mỗi file có cấu hình riêng.';",
+            'bulk picker hint',
+          );
+          fs.writeFileSync(uploadPath, upload);
+
+          const managerPath = 'src/weeklyManagerBulkActions.js';
+          let manager = fs.readFileSync(managerPath, 'utf8');
+
+          const deleteHelpers = `async function loadAllItemsForDelete() {
+            const pageSize = 500;
+            const items = [];
+            for (let from = 0; ; from += pageSize) {
+              const { data, error } = await supabase
+                .from(WEEKLY_PRACTICE_TABLE)
+                .select('id,title,storage_bucket,storage_path,created_at')
+                .order('created_at', { ascending: true })
+                .range(from, from + pageSize - 1);
+              if (error) throw error;
+              const page = Array.isArray(data) ? data : [];
+              items.push(...page);
+              if (page.length < pageSize) break;
+            }
+            return items;
+          }
+
+          function chunkValues(values, size = 100) {
+            const chunks = [];
+            for (let index = 0; index < values.length; index += size) chunks.push(values.slice(index, index + size));
+            return chunks;
+          }
+
+          async function deleteAllManagedPractices(state) {
+            if (state.deletingAll) return;
+            let items;
+            try {
+              items = await loadAllItemsForDelete();
+            } catch (error) {
+              managerMessage(state.manager, error?.message || 'Không thể kiểm tra danh sách bài trước khi xóa.', true);
+              return;
+            }
+
+            const total = items.length;
+            if (!total) {
+              managerMessage(state.manager, 'Không có bài nào để xóa.');
+              return;
+            }
+
+            const confirmed = window.confirm(
+              \`Xóa vĩnh viễn toàn bộ \${total} bài luyện tập ở tất cả các khối và mọi trạng thái? Thao tác này không thể hoàn tác.\`,
+            );
+            if (!confirmed) return;
+
+            const phrase = window.prompt('Nhập chính xác “XÓA TẤT CẢ” để xác nhận lần cuối:');
+            if (cleanText(phrase).toLocaleUpperCase('vi-VN') !== 'XÓA TẤT CẢ') {
+              managerMessage(state.manager, 'Đã hủy xóa tất cả vì cụm xác nhận không chính xác.', true);
+              return;
+            }
+
+            state.deletingAll = true;
+            updateSelectionUi(state);
+            if (state.deleteAllButton) state.deleteAllButton.textContent = \`Đang xóa 0/\${total}…\`;
+            managerMessage(state.manager, \`Đang xóa vĩnh viễn \${total} bài và file HTML đi kèm…\`);
+
+            let deleted = 0;
+            let storageWarnings = 0;
+            try {
+              const ids = items.map((item) => item.id).filter(Boolean);
+              for (const idChunk of chunkValues(ids, 100)) {
+                const { error } = await supabase
+                  .from(WEEKLY_PRACTICE_TABLE)
+                  .delete()
+                  .in('id', idChunk);
+                if (error) throw error;
+                deleted += idChunk.length;
+                if (state.deleteAllButton) state.deleteAllButton.textContent = \`Đang xóa \${deleted}/\${total}…\`;
+              }
+
+              const pathsByBucket = new Map();
+              items.forEach((item) => {
+                if (!item?.storage_path) return;
+                const bucket = cleanText(item.storage_bucket) || 'weekly-practice';
+                if (!pathsByBucket.has(bucket)) pathsByBucket.set(bucket, new Set());
+                pathsByBucket.get(bucket).add(item.storage_path);
+              });
+
+              for (const [bucket, pathSet] of pathsByBucket.entries()) {
+                for (const pathChunk of chunkValues([...pathSet], 100)) {
+                  const { error } = await supabase.storage.from(bucket).remove(pathChunk);
+                  if (error) storageWarnings += pathChunk.length;
+                }
+              }
+
+              invalidateSupabaseReadCacheForTable(WEEKLY_PRACTICE_TABLE);
+              cachedItems = null;
+              state.selected.clear();
+              directArticles(state.list).forEach((article) => article.remove());
+              managerMessage(
+                state.manager,
+                \`Đã xóa vĩnh viễn \${deleted} bài.\${storageWarnings ? \` Có \${storageWarnings} file lưu trữ chưa dọn được; dữ liệu bài đã được xóa.\` : ' Toàn bộ file HTML đi kèm cũng đã được dọn.'}\`,
+                storageWarnings > 0,
+              );
+              window.dispatchEvent(new CustomEvent('bes-weekly-manager-refresh', { detail: { deleteAll: true, count: deleted } }));
+              window.dispatchEvent(new CustomEvent('bes-weekly-practice-updated', { detail: { deleteAll: true, count: deleted, source: 'manager-delete-all' } }));
+              window.setTimeout(() => window.location.reload(), 900);
+            } catch (error) {
+              state.deletingAll = false;
+              if (state.deleteAllButton) state.deleteAllButton.textContent = 'Xóa tất cả';
+              managerMessage(state.manager, error?.message || \`Không thể xóa toàn bộ bài. Đã xử lý \${deleted}/\${total} bài.\`, true);
+              updateSelectionUi(state);
+            }
+          }
+
+          `;
+
+          manager = replaceOnce(
+            manager,
+            'function articleTitle(article) {',
+            `${deleteHelpers}function articleTitle(article) {`,
+            'delete-all helpers insertion',
+          );
+
+          manager = replaceOnce(
+            manager,
+            "  if (state.applyButton) state.applyButton.disabled = state.selected.size === 0 || state.applying;",
+            "  if (state.applyButton) state.applyButton.disabled = state.selected.size === 0 || state.applying || state.deletingAll;\n  if (state.deleteAllButton) state.deleteAllButton.disabled = articles.length === 0 || state.applying || state.deletingAll;",
+            'delete-all disabled state',
+          );
+
+          manager = replaceOnce(
+            manager,
+            '      <button class="bes-weekly-bulk-toolbar__sort" type="button" data-action="sort">A → Z</button>',
+            '      <div class="bes-weekly-bulk-toolbar__top-actions"><button class="bes-weekly-bulk-toolbar__sort" type="button" data-action="sort">A → Z</button><button class="bes-weekly-bulk-toolbar__delete-all" type="button" data-action="delete-all">Xóa tất cả</button></div>',
+            'delete-all toolbar button',
+          );
+
+          manager = replaceOnce(
+            manager,
+            "  state.sortButton = toolbar.querySelector('[data-action=\"sort\"]');",
+            "  state.sortButton = toolbar.querySelector('[data-action=\"sort\"]');\n  state.deleteAllButton = toolbar.querySelector('[data-action=\"delete-all\"]');",
+            'delete-all state binding',
+          );
+
+          manager = replaceOnce(
+            manager,
+            "  state.sortButton.addEventListener('click', () => {\n    state.sortDirection = state.sortDirection === 'az' ? 'za' : 'az';\n    applySort(state);\n  });",
+            "  state.sortButton.addEventListener('click', () => {\n    state.sortDirection = state.sortDirection === 'az' ? 'za' : 'az';\n    applySort(state);\n  });\n\n  state.deleteAllButton.addEventListener('click', () => deleteAllManagedPractices(state));",
+            'delete-all click binding',
+          );
+
+          manager = replaceOnce(
+            manager,
+            '  if (state.applying || state.selected.size === 0) return;',
+            '  if (state.applying || state.deletingAll || state.selected.size === 0) return;',
+            'prevent apply while deleting',
+          );
+
+          manager = replaceOnce(
+            manager,
+            '  state.applying = true;\n  state.applyButton.disabled = true;',
+            '  state.applying = true;\n  updateSelectionUi(state);\n  state.applyButton.disabled = true;',
+            'sync toolbar while applying',
+          );
+
+          manager = replaceOnce(
+            manager,
+            '      applying: false,\n      toolbar: null,',
+            '      applying: false,\n      deletingAll: false,\n      toolbar: null,',
+            'delete-all state initialization',
+          );
+
+          fs.writeFileSync(managerPath, manager);
+
+          const cssPath = 'src/styles/WeeklyManagerBulkActions.css';
+          let css = fs.readFileSync(cssPath, 'utf8');
+          const cssPatch = `
+          .bes-weekly-bulk-toolbar__top-actions{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            flex:0 0 auto;
+          }
+          .bes-weekly-bulk-toolbar__delete-all{
+            border-color:#f0b8b3!important;
+            background:#fff8f7!important;
+            color:#b3261e!important;
+          }
+          .bes-weekly-bulk-toolbar__delete-all:hover:not(:disabled){
+            border-color:#d93025!important;
+            background:#fce8e6!important;
+          }
+          @media(max-width:600px){
+            .bes-weekly-bulk-toolbar__top-actions{
+              width:100%;
+              display:grid;
+              grid-template-columns:1fr 1fr;
+            }
+            .bes-weekly-bulk-toolbar__top-actions .bes-weekly-bulk-toolbar__sort,
+            .bes-weekly-bulk-toolbar__top-actions .bes-weekly-bulk-toolbar__delete-all{
+              width:100%;
+            }
+          }
+          html[data-theme='dark'] .bes-weekly-bulk-toolbar__delete-all,
+          .theme-dark .bes-weekly-bulk-toolbar__delete-all{
+            border-color:rgba(255,180,171,.38)!important;
+            background:rgba(179,38,30,.16)!important;
+            color:#ffb4ab!important;
+          }
+          `;
+          if (!css.includes('.bes-weekly-bulk-toolbar__delete-all')) css += cssPatch;
+          fs.writeFileSync(cssPath, css);
+
+          if (!fs.readFileSync(uploadPath, 'utf8').includes('const MAX_BATCH_FILES = 30;')) throw new Error('30-file limit was not applied');
+          if (!fs.readFileSync(managerPath, 'utf8').includes('deleteAllManagedPractices')) throw new Error('Delete-all feature was not applied');
+          NODE
+          node /tmp/patch-weekly-manager.mjs
+
+      - name: Build
+        run: npm run build
+
+      - name: Smoke test
+        run: npm test
+
+      - name: Commit verified changes
+        shell: bash
+        run: |
+          rm -f .github/workflows/patch-weekly-manager-20260730.yml
+          git config user.name "Brian Release Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/weeklyBulkUpload.js src/weeklyManagerBulkActions.js src/styles/WeeklyManagerBulkActions.css .github/workflows/patch-weekly-manager-20260730.yml
+          git commit -m "Add weekly delete-all and 30-file uploads"
+          git push origin HEAD:main
