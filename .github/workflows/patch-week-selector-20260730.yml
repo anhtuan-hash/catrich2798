@@ -1,0 +1,309 @@
+name: Patch weekly academic selector 2026-07-30
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/patch-week-selector-20260730.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: patch-week-selector-20260730
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Add the 2026-2027 academic week selector
+        shell: bash
+        run: |
+          cat > /tmp/patch-week-selector.mjs <<'NODE'
+          import fs from 'node:fs';
+
+          function replaceOnce(source, before, after, label) {
+            const occurrences = source.split(before).length - 1;
+            if (occurrences !== 1) throw new Error(`${label}: expected exactly one match, found ${occurrences}`);
+            return source.replace(before, after);
+          }
+
+          const managerPath = 'src/weeklyManagerPowerTools.js';
+          let manager = fs.readFileSync(managerPath, 'utf8');
+          if (manager.includes('const ACADEMIC_WEEKS =')) throw new Error('Academic week selector is already installed.');
+
+          const rawWeeks = [
+            ['HỌC KÌ I', 1, '2026-07-20', '2026-07-25', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 2, '2026-07-27', '2026-08-01', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 3, '2026-08-03', '2026-08-08', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 4, '2026-08-10', '2026-08-15', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 5, '2026-08-17', '2026-08-22', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 6, '2026-08-24', '2026-08-29', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 7, '2026-08-31', '2026-09-05', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 8, '2026-09-07', '2026-09-12', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 9, '2026-09-14', '2026-09-19', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 10, '2026-09-21', '2026-09-26', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 11, '2026-09-28', '2026-10-03', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 12, '2026-10-05', '2026-10-10', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 13, '2026-10-12', '2026-10-17', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 14, '2026-10-19', '2026-10-24', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 15, '2026-10-26', '2026-10-31', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 16, '2026-11-02', '2026-11-07', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 17, '2026-11-09', '2026-11-14', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 18, '2026-11-16', '2026-11-21', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 19, '2026-11-23', '2026-11-28', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 20, '2026-11-30', '2026-12-05', 'HỌC KÌ I'],
+            ['HỌC KÌ I', 21, '2026-12-07', '2026-12-12', 'HỌC KÌ I'],
+            ['HỌC KÌ II', 1, '2026-12-14', '2026-12-19', 'HỌC KÌ II · GIAI ĐOẠN 1'],
+            ['HỌC KÌ II', 2, '2026-12-21', '2026-12-26', 'HỌC KÌ II · GIAI ĐOẠN 1'],
+            ['HỌC KÌ II', 3, '2026-12-28', '2027-01-02', 'HỌC KÌ II · GIAI ĐOẠN 1'],
+            ['HỌC KÌ II', 4, '2027-01-04', '2027-01-09', 'HỌC KÌ II · GIAI ĐOẠN 1'],
+            ['HỌC KÌ II', 5, '2027-01-11', '2027-01-16', 'HỌC KÌ II · GIAI ĐOẠN 1'],
+            ['HỌC KÌ II', 6, '2027-01-18', '2027-01-23', 'HỌC KÌ II · GIAI ĐOẠN 1'],
+            ['HỌC KÌ II', 7, '2027-01-25', '2027-01-30', 'HỌC KÌ II · GIAI ĐOẠN 1'],
+            ['NGHỈ TẾT NGUYÊN ĐÁN', null, '2027-02-01', '2027-02-13', 'NGHỈ TẾT NGUYÊN ĐÁN'],
+            ['HỌC KÌ II', 8, '2027-02-15', '2027-02-20', 'HỌC KÌ II · GIAI ĐOẠN 2'],
+            ['HỌC KÌ II', 9, '2027-02-22', '2027-02-27', 'HỌC KÌ II · GIAI ĐOẠN 2'],
+            ['HỌC KÌ II', 10, '2027-03-01', '2027-03-06', 'HỌC KÌ II · GIAI ĐOẠN 2'],
+            ['HỌC KÌ II', 11, '2027-03-08', '2027-03-13', 'HỌC KÌ II · GIAI ĐOẠN 2'],
+            ['HỌC KÌ II', 12, '2027-03-15', '2027-03-20', 'HỌC KÌ II · GIAI ĐOẠN 2'],
+            ['HỌC KÌ II', 13, '2027-03-22', '2027-03-27', 'HỌC KÌ II · GIAI ĐOẠN 2'],
+            ['HỌC KÌ II', 14, '2027-03-29', '2027-04-03', 'HỌC KÌ II · GIAI ĐOẠN 2'],
+            ['HỌC KÌ II', 15, '2027-04-05', '2027-04-10', 'HỌC KÌ II · GIAI ĐOẠN 2'],
+            ['HỌC KÌ II', 16, '2027-04-12', '2027-04-17', 'HỌC KÌ II · GIAI ĐOẠN 2'],
+            ['HỌC KÌ II', 17, '2027-04-19', '2027-04-24', 'HỌC KÌ II · GIAI ĐOẠN 2'],
+            ['HỌC KÌ II', 18, '2027-04-26', '2027-05-01', 'HỌC KÌ II · GIAI ĐOẠN 2'],
+            ['HỌC KÌ II', 19, '2027-05-03', '2027-05-08', 'HỌC KÌ II · GIAI ĐOẠN 2'],
+            ['HỌC KÌ II', 20, '2027-05-10', '2027-05-15', 'HỌC KÌ II · GIAI ĐOẠN 2'],
+            ['HỌC KÌ II', 21, '2027-05-17', '2027-05-22', 'HỌC KÌ II · GIAI ĐOẠN 2'],
+          ];
+
+          const displayDate = (iso) => iso.split('-').reverse().join('/');
+          const academicWeeks = rawWeeks.map(([semester, week, start, end, group]) => {
+            const label = week
+              ? `${semester} – TUẦN ${week} – TỪ ${displayDate(start)} ĐẾN ${displayDate(end)}`
+              : `NGHỈ TẾT NGUYÊN ĐÁN – TỪ ${displayDate(start)} ĐẾN ${displayDate(end)}`;
+            return { key: label, label, semester, week, start, end, group, selectable: week !== null };
+          });
+          const academicConstants = `const ACADEMIC_YEAR = '2026-2027';\nconst ACADEMIC_WEEKS = ${JSON.stringify(academicWeeks, null, 2)};\n`;
+
+          manager = replaceOnce(
+            manager,
+            "const PUBLICATION_VALUES = ['published', 'draft', 'pending', 'scheduled'];\n",
+            "const PUBLICATION_VALUES = ['published', 'draft', 'pending', 'scheduled'];\n" + academicConstants,
+            'academic constants',
+          );
+
+          const weekHelpers = `
+          function localDateKey(value = new Date()) {
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return year + '-' + month + '-' + day;
+          }
+
+          function defaultAcademicWeekKey(value = new Date()) {
+            const today = localDateKey(value);
+            const selectable = ACADEMIC_WEEKS.filter((week) => week.selectable !== false);
+            const current = selectable.find((week) => week.start <= today && today <= week.end);
+            const next = selectable.find((week) => week.start > today);
+            return (current || next || selectable[selectable.length - 1] || {}).key || '';
+          }
+
+          function createWeekOptions(selected = defaultAcademicWeekKey()) {
+            const groups = [];
+            const byGroup = new Map();
+            ACADEMIC_WEEKS.forEach((week) => {
+              if (!byGroup.has(week.group)) {
+                byGroup.set(week.group, []);
+                groups.push(week.group);
+              }
+              byGroup.get(week.group).push(week);
+            });
+            return groups.map((group) => {
+              const options = byGroup.get(group).map((week) => {
+                const selectedAttr = week.key === selected ? ' selected' : '';
+                const disabledAttr = week.selectable === false ? ' disabled' : '';
+                return '<option value="' + escapeHtml(week.key) + '"' + selectedAttr + disabledAttr + '>' + escapeHtml(week.label) + '</option>';
+              }).join('');
+              return '<optgroup label="' + escapeHtml(group) + '">' + options + '</optgroup>';
+            }).join('');
+          }
+
+          function ensureSingleWeekField(form) {
+            let field = form.querySelector('.bes-weekly-week-field');
+            if (field) return field;
+            field = document.createElement('label');
+            field.className = 'bes-weekly-week-field';
+            field.innerHTML = '<span>Tuần học</span><select class="bes-weekly-week-select" required aria-label="Chọn tuần học niên khóa 2026-2027">' + createWeekOptions(defaultAcademicWeekKey()) + '</select><small>Niên khóa 2026–2027 · Nghỉ Tết được hiển thị để đối chiếu và không thể chọn.</small>';
+            const gradeField = form.querySelector('.bes-weekly-grade-field');
+            const fileField = form.querySelector('.bes-weekly-file');
+            const anchor = gradeField || fileField;
+            if (anchor) anchor.insertAdjacentElement('beforebegin', field);
+            else form.querySelector('button[type="submit"]')?.insertAdjacentElement('beforebegin', field);
+            return field;
+          }
+
+          `;
+          manager = replaceOnce(manager, 'function publicationLabel(mode) {', weekHelpers + 'function publicationLabel(mode) {', 'week helper functions');
+
+          manager = replaceOnce(
+            manager,
+            "    gradeField: form.querySelector('.bes-weekly-grade-field'),\n    publicationBlock: form.querySelector('.bes-weekly-publication-block'),",
+            "    weekField: form.querySelector('.bes-weekly-week-field'),\n    gradeField: form.querySelector('.bes-weekly-grade-field'),\n    publicationBlock: form.querySelector('.bes-weekly-publication-block'),",
+            'single week field discovery',
+          );
+          manager = replaceOnce(
+            manager,
+            '  const { titleInput, titleLabel, gradeField, publicationBlock } = getSingleControls(form);',
+            '  const { titleInput, titleLabel, weekField, gradeField, publicationBlock } = getSingleControls(form);',
+            'single controls destructuring',
+          );
+          manager = replaceOnce(
+            manager,
+            '  if (titleLabel) titleLabel.hidden = disabled;\n  if (gradeField) gradeField.hidden = disabled;',
+            '  if (titleLabel) titleLabel.hidden = disabled;\n  if (weekField) weekField.hidden = disabled;\n  if (gradeField) gradeField.hidden = disabled;',
+            'hide single week field in bulk mode',
+          );
+          manager = replaceOnce(
+            manager,
+            "  if (titleInput) titleInput.disabled = disabled;\n  gradeField?.querySelectorAll('input, select').forEach((control) => { control.disabled = disabled; });",
+            "  if (titleInput) titleInput.disabled = disabled;\n  weekField?.querySelectorAll('input, select').forEach((control) => { control.disabled = disabled; });\n  gradeField?.querySelectorAll('input, select').forEach((control) => { control.disabled = disabled; });",
+            'disable single week field in bulk mode',
+          );
+
+          manager = replaceOnce(
+            manager,
+            'Mỗi file có tên, phân loại và lịch công bố riêng.',
+            'Mỗi file có tên, tuần học, phân loại và lịch công bố riêng.',
+            'bulk helper copy',
+          );
+          manager = replaceOnce(
+            manager,
+            "  const fallbackGrade = form.querySelector('#bes-weekly-grade-classification')?.value || '10';\n  const fallbackMode = selectedMode(form);",
+            "  const fallbackGrade = form.querySelector('#bes-weekly-grade-classification')?.value || '10';\n  const fallbackWeek = form.querySelector('.bes-weekly-week-select')?.value || defaultAcademicWeekKey();\n  const fallbackMode = selectedMode(form);",
+            'bulk fallback week',
+          );
+          manager = replaceOnce(
+            manager,
+            '        <label class="is-wide"><span>Tên bài</span><input class="bes-weekly-bulk-title" type="text" value="${escapeHtml(title)}" required></label>\n        <label><span>Phân loại</span>',
+            '        <label class="is-wide"><span>Tên bài</span><input class="bes-weekly-bulk-title" type="text" value="${escapeHtml(title)}" required></label>\n        <label class="is-wide"><span>Tuần học</span><select class="bes-weekly-bulk-week" required>${createWeekOptions(fallbackWeek)}</select></label>\n        <label><span>Phân loại</span>',
+            'bulk week select',
+          );
+
+          manager = replaceOnce(
+            manager,
+            "        grade: row.querySelector('.bes-weekly-bulk-grade')?.value || '10',\n        mode,",
+            "        grade: row.querySelector('.bes-weekly-bulk-grade')?.value || '10',\n        weekKey: row.querySelector('.bes-weekly-bulk-week')?.value || defaultAcademicWeekKey(),\n        mode,",
+            'read bulk week',
+          );
+          manager = replaceOnce(
+            manager,
+            "    grade: form.querySelector('#bes-weekly-grade-classification')?.value || '10',\n    mode,",
+            "    grade: form.querySelector('#bes-weekly-grade-classification')?.value || '10',\n    weekKey: form.querySelector('.bes-weekly-week-select')?.value || defaultAcademicWeekKey(),\n    mode,",
+            'read single week',
+          );
+          manager = replaceOnce(
+            manager,
+            "    if (!entry.title) message = 'Hãy nhập tên bài.';\n    else if (!GRADE_VALUES.includes(entry.grade)) message = 'Phân loại chưa hợp lệ.';",
+            "    if (!entry.title) message = 'Hãy nhập tên bài.';\n    else if (!ACADEMIC_WEEKS.some((week) => week.selectable !== false && week.key === entry.weekKey)) message = 'Hãy chọn tuần học trong danh sách niên khóa 2026–2027.';\n    else if (!GRADE_VALUES.includes(entry.grade)) message = 'Phân loại chưa hợp lệ.';",
+            'week validation',
+          );
+          manager = replaceOnce(manager, '    const year = new Date().getFullYear();\n', '', 'remove dynamic school year');
+          manager = replaceOnce(manager, '            week_key: currentIsoWeek(),', '            week_key: entry.weekKey,', 'save selected week');
+          manager = replaceOnce(manager, '            school_year: `${year}-${year + 1}`,', '            school_year: ACADEMIC_YEAR,', 'save academic year');
+          manager = replaceOnce(
+            manager,
+            "  form.dataset.weeklyPowerReady = '1';",
+            "  ensureSingleWeekField(form);\n  form.dataset.weeklyPowerReady = '1';",
+            'mount single week selector',
+          );
+
+          fs.writeFileSync(managerPath, manager);
+
+          const cssPath = 'src/styles/WeeklyManagerPowerTools.css';
+          let css = fs.readFileSync(cssPath, 'utf8');
+          const cssPatch = `
+          .bes-weekly-week-field{
+            display:grid;
+            gap:7px;
+            margin:13px 0;
+            color:#344054;
+            font-weight:850;
+          }
+          .bes-weekly-week-field>span{
+            display:block;
+          }
+          .bes-weekly-week-field select,
+          .bes-weekly-bulk-week{
+            min-height:48px;
+            line-height:1.35;
+          }
+          .bes-weekly-week-field small{
+            color:#64748b;
+            font-size:.72rem;
+            font-weight:700;
+            line-height:1.45;
+          }
+          html[data-theme='dark'] .bes-weekly-week-field,
+          .theme-dark .bes-weekly-week-field{
+            color:#e6edf7;
+          }
+          html[data-theme='dark'] .bes-weekly-week-field small,
+          .theme-dark .bes-weekly-week-field small{
+            color:#aebdd0;
+          }
+          `;
+          if (!css.includes('.bes-weekly-week-field{')) css += cssPatch;
+          fs.writeFileSync(cssPath, css);
+
+          const verified = fs.readFileSync(managerPath, 'utf8');
+          const required = [
+            "const ACADEMIC_YEAR = '2026-2027';",
+            'HỌC KÌ I – TUẦN 1 – TỪ 20/07/2026 ĐẾN 25/07/2026',
+            'HỌC KÌ II – TUẦN 21 – TỪ 17/05/2027 ĐẾN 22/05/2027',
+            'NGHỈ TẾT NGUYÊN ĐÁN – TỪ 01/02/2027 ĐẾN 13/02/2027',
+            'class="bes-weekly-bulk-week"',
+            'week_key: entry.weekKey',
+            'school_year: ACADEMIC_YEAR',
+          ];
+          required.forEach((text) => {
+            if (!verified.includes(text)) throw new Error(`Missing required selector feature: ${text}`);
+          });
+          NODE
+          node /tmp/patch-week-selector.mjs
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: Commit verified changes
+        shell: bash
+        run: |
+          rm -f .github/workflows/patch-week-selector-20260730.yml
+          git config user.name "Brian Release Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/weeklyManagerPowerTools.js src/styles/WeeklyManagerPowerTools.css .github/workflows/patch-week-selector-20260730.yml
+          git commit -m "Add academic week selector to weekly uploads"
+          git push origin HEAD:main
