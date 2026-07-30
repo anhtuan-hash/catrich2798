@@ -30,7 +30,9 @@
 
   function isVietnamese(hero) {
     const eyebrow = hero.querySelector('.gd-hero-copy > span')?.textContent || '';
-    return /tổng quan|hôm nay/i.test(eyebrow) || document.documentElement.lang?.toLowerCase().startsWith('vi');
+    if (/today overview/i.test(eyebrow)) return false;
+    if (/tổng quan|hôm nay/i.test(eyebrow)) return true;
+    return document.documentElement.lang?.toLowerCase().startsWith('vi');
   }
 
   function enhanceHeading(hero) {
@@ -65,34 +67,41 @@
     const lead = Array.from(copy.children).find((node) => node.tagName === 'P' && !node.classList.contains('gd-hero-positive'));
     if (lead) lead.classList.add('gd-hero-lead');
 
-    if (!copy.querySelector('.gd-hero-positive')) {
-      const positive = document.createElement('p');
+    let positive = copy.querySelector('.gd-hero-positive');
+    if (!positive) {
+      positive = document.createElement('p');
       positive.className = 'gd-hero-positive';
-      positive.textContent = isVietnamese(hero)
-        ? 'Hôm nay là một ngày tuyệt vời để tạo nên những giá trị tích cực.'
-        : 'Today is a great day to create something meaningful.';
       const heading = copy.querySelector('h1');
       if (heading) heading.insertAdjacentElement('afterend', positive);
       else copy.prepend(positive);
     }
+    positive.textContent = isVietnamese(hero)
+      ? 'Hôm nay là một ngày tuyệt vời để tạo nên những giá trị tích cực.'
+      : 'Today is a great day to create something meaningful.';
   }
 
   function enhanceActions(hero) {
     const actions = hero.querySelector(':scope > .gd-hero-actions');
-    if (!actions || actions.querySelector('.gd-resource-button')) return;
+    if (!actions) return;
 
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'gd-button gd-resource-button';
-    button.setAttribute('aria-label', isVietnamese(hero) ? 'Xem học liệu' : 'View resources');
-    button.innerHTML = `${ICONS.folder}<span>${isVietnamese(hero) ? 'Xem học liệu' : 'View resources'}</span>`;
-    button.addEventListener('click', () => {
-      window.location.hash = '#/resource-library';
-    });
+    let button = actions.querySelector('.gd-resource-button');
+    if (!button) {
+      button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'gd-button gd-resource-button';
+      button.innerHTML = `${ICONS.folder}<span></span>`;
+      button.addEventListener('click', () => {
+        window.location.hash = '#/resource-library';
+      });
+      const refreshButton = actions.querySelector('.gd-button.outlined');
+      if (refreshButton) actions.insertBefore(button, refreshButton);
+      else actions.append(button);
+    }
 
-    const refreshButton = actions.querySelector('.gd-button.outlined');
-    if (refreshButton) actions.insertBefore(button, refreshButton);
-    else actions.append(button);
+    const label = isVietnamese(hero) ? 'Xem học liệu' : 'View resources';
+    button.setAttribute('aria-label', label);
+    const labelNode = button.querySelector('span');
+    if (labelNode) labelNode.textContent = label;
   }
 
   function enhanceVisual(hero) {
