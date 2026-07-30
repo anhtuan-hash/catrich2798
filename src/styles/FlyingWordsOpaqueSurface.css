@@ -1,0 +1,222 @@
+/* Brian English Studio · Flying Words opaque route surface
+   Removes the shared translucent/glass treatment only while this tool is active. */
+
+.app-shell[data-tool="flying-words"] {
+  background: #eef2f7 !important;
+  background-image: none !important;
+}
+
+.app-shell[data-tool="flying-words"] .bes-top-chrome,
+.app-shell[data-tool="flying-words"] .wp8-page-stage[data-route="tool"] {
+  background: #f4f7fb !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.app-shell[data-tool="flying-words"] .wp8-page-stage[data-route="tool"] {
+  position: relative !important;
+  isolation: isolate !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+/* Prevent the shared route ambience from showing through this app. */
+.app-shell[data-tool="flying-words"] .wp8-page-stage[data-route="tool"]::before,
+.app-shell[data-tool="flying-words"] .wp8-page-stage[data-route="tool"]::after {
+  content: none !important;
+  display: none !important;
+  opacity: 0 !important;
+  background: none !important;
+}
+
+.app-shell[data-tool="flying-words"] .flying-words-app {
+  position: relative !important;
+  z-index: 10 !important;
+  min-height: 100% !important;
+  background: #f4f7fb !important;
+  background-image: none !important;
+  color: #17203a !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  isolation: isolate !important;
+}
+
+.app-shell[data-tool="flying-words"] .flying-words-app::before,
+.app-shell[data-tool="flying-words"] .flying-words-app::after {
+  content: none !important;
+  display: none !important;
+}
+
+.app-shell[data-tool="flying-words"] .fwg-setup {
+  position: relative !important;
+  z-index: 2 !important;
+  background: #f4f7fb !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+/* Opaque app header */
+.app-shell[data-tool="flying-words"] .fwg-app-header {
+  border-color: #d8e0eb !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow:
+    0 12px 28px rgba(42, 55, 86, 0.10),
+    inset 0 1px 0 #ffffff !important;
+}
+
+.app-shell[data-tool="flying-words"] .fwg-icon-button,
+.app-shell[data-tool="flying-words"] .fwg-header-button {
+  background: #ffffff !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Opaque hero while preserving the app's own color identity. */
+.app-shell[data-tool="flying-words"] .fwg-setup-hero {
+  border-color: #ddd9f3 !important;
+  background:
+    radial-gradient(circle at 18% 16%, #fff1bd 0%, #fffaf0 34%, transparent 56%),
+    radial-gradient(circle at 82% 20%, #dcd3ff 0%, #f0edff 40%, transparent 63%),
+    linear-gradient(125deg, #fffdf8 0%, #f8f7ff 48%, #ece8ff 100%) !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  box-shadow:
+    0 24px 58px rgba(54, 58, 102, 0.13),
+    inset 0 1px 0 #ffffff !important;
+}
+
+.app-shell[data-tool="flying-words"] .fwg-setup-hero::after {
+  opacity: 0.46 !important;
+  mix-blend-mode: normal !important;
+}
+
+.app-shell[data-tool="flying-words"] .fwg-eyebrow {
+  border-color: #d9cef8 !important;
+  background: #eee9ff !important;
+  opacity: 1 !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.app-shell[data-tool="flying-words"] .fwg-hero-stats > div {
+  border-color: #dce3ed !important;
+  background: #ffffff !important;
+  opacity: 1 !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: 0 5px 14px rgba(48, 61, 91, 0.06) !important;
+}
+
+.app-shell[data-tool="flying-words"] .fwg-mini-board {
+  border-color: #ffffff !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+/* Opaque authoring and preview surfaces. */
+.app-shell[data-tool="flying-words"] .fwg-builder-card,
+.app-shell[data-tool="flying-words"] .fwg-preview-card {
+  border-color: #dce3ed !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow:
+    0 16px 38px rgba(42, 55, 86, 0.09),
+    inset 0 1px 0 #ffffff !important;
+}
+
+.app-shell[data-tool="flying-words"] .fwg-field input,
+.app-shell[data-tool="flying-words"] .fwg-field textarea {
+  border-color: #cfd8e6 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #17203a !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #17203a !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.app-shell[data-tool="flying-words"] .fwg-authoring-tip {
+  border-color: #d8cff6 !important;
+  background: #f3efff !important;
+  opacity: 1 !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.app-shell[data-tool="flying-words"] .fwg-range-field,
+.app-shell[data-tool="flying-words"] .fwg-toggle-list > label,
+.app-shell[data-tool="flying-words"] .fwg-save-state {
+  border-color: #dce3ed !important;
+  background: #f8fafc !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.app-shell[data-tool="flying-words"] .fwg-question-preview-list article {
+  border-color: #dce3ed !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.app-shell[data-tool="flying-words"] .fwg-preview-tokens span,
+.app-shell[data-tool="flying-words"] .fwg-preview-number {
+  opacity: 1 !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Keep the actual game and result screens completely self-contained too. */
+.app-shell[data-tool="flying-words"] .fwg-game,
+.app-shell[data-tool="flying-words"] .fwg-results {
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+.app-shell[data-tool="flying-words"] .fwg-results-card {
+  border-color: #dce3ed !important;
+  background: #ffffff !important;
+  opacity: 1 !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* The app's own modal overlays remain intentional, but no glass blur is used. */
+.app-shell[data-tool="flying-words"] .fwg-overlay,
+.app-shell[data-tool="flying-words"] .fwg-pause-panel,
+.app-shell[data-tool="flying-words"] .fwgqm-backdrop,
+.app-shell[data-tool="flying-words"] .fwgqm-dialog {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+@media (max-width: 760px) {
+  .app-shell[data-tool="flying-words"] .flying-words-app,
+  .app-shell[data-tool="flying-words"] .fwg-setup {
+    background: #f4f7fb !important;
+  }
+}
