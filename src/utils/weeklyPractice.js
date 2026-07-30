@@ -1,6 +1,8 @@
+import { getAccessToken } from './resourceLibrary.js';
 import { invalidateSupabaseReadCacheForTable, isSupabaseConfigured, supabase } from './supabase.js';
 
 export const WEEKLY_PRACTICE_BUCKET = 'weekly-practice';
+export const WEEKLY_PRACTICE_DRIVE_STORAGE = 'google-drive';
 export const WEEKLY_PRACTICE_PROOF_BUCKET = 'weekly-practice-proofs';
 export const WEEKLY_PRACTICE_MAX_BYTES = 10 * 1024 * 1024;
 export const WEEKLY_PRACTICE_MINIMUM_SECONDS = 45 * 60;
@@ -40,6 +42,10 @@ const ITEM_COLUMNS = [
   'published_at',
   'is_featured',
 ].join(',');
+
+const WEEKLY_HTML_CACHE_NAME = 'bes-weekly-practice-html-v1';
+const DRIVE_ACTION_ENDPOINT = '/api/weekly-practice-drive-action';
+let managedMigrationPromise = null;
 
 function requireClient() {
   if (!isSupabaseConfigured || !supabase) {
@@ -84,7 +90,101 @@ function safeJsonObject(value, maxChars = 40000) {
   }
 }
 
+function isDriveFileId(value) {
+  const raw = cleanText(value);
+  return raw.length >= 10 && !raw.includes('/') && /^[A-Za-z0-9_-]+$/.test(raw);
+}
+
+export function isGoogleDriveWeeklyPractice(item) {
+  return cleanText(item?.storage_bucket).toLowerCase() === WEEKLY_PRACTICE_DRIVE_STORAGE
+    || isDriveFileId(item?.storage_path);
+}
+
+function encodeMetadata(value) {
+  const bytes = new TextEncoder().encode(JSON.stringify(value));
+  let binary = '';
+  bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+  return btoa(binary);
+}
+
+async function uploadWeeklyPracticeDriveFile(file, form = {}) {
+  const token = await getAccessToken();
+  if (!token) throw new Error('Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại để tải file lên Google Drive.');
+  const metadata = {
+    title: cleanText(form.title, file.name),
+    description: cleanText(form.description),
+    category: 'worksheet',
+    grade: cleanText(form.grade, 'Tất cả'),
+    unitName: cleanText(form.week_key),
+    cefr: cleanText(form.cefr),
+    status: cleanText(form.status, 'draft'),
+    visibility: 'department',
+    fileName: file.name,
+    mimeType: 'text/html',
+    size: file.size,
+    source: 'weekly-practice',
+  };
+  const response = await fetch('/api/google-drive-upload', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'text/html',
+      'X-File-Name': encodeURIComponent(file.name),
+      'X-Resource-Metadata': encodeMetadata(metadata),
+    },
+    body: file,
+  });
+  let data = {};
+  try { data = await response.json(); } catch { /* retain fallback message */ }
+  if (!response.ok) throw new Error(data.error || 'Không thể tải bài HTML lên Google Drive.');
+  if (!data.fileId) throw new Error('Google Drive không trả về mã file.');
+  return data;
+}
+
+async function driveAction(action, item, status = item?.status) {
+  if (!item?.id) return null;
+  const token = await getAccessToken();
+  if (!token) return null;
+  const response = await fetch(DRIVE_ACTION_ENDPOINT, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, practiceId: item.id, status }),
+  });
+  let data = {};
+  try { data = await response.json(); } catch { /* retain fallback */ }
+  if (!response.ok) throw new Error(data.error || 'Không thể cập nhật file Google Drive.');
+  return data;
+}
+
+async function migrateLegacyManagedItems(items) {
+  const legacy = (items || []).filter((item) => item?.storage_path && !isGoogleDriveWeeklyPractice(item));
+  if (!legacy.length) return items;
+  if (managedMigrationPromise) return managedMigrationPromise;
+
+  managedMigrationPromise = (async () => {
+    const replacements = new Map();
+    const batch = legacy.slice(0, 24);
+    for (const item of batch) {
+      try {
+        const result = await driveAction('migrate', item, item.status);
+        if (result?.item?.id) replacements.set(result.item.id, normalizeWeeklyPracticeItem(result.item));
+      } catch (error) {
+        console.warn('[Weekly Practice] Legacy Storage migration deferred:', item.id, error);
+      }
+    }
+    return (items || []).map((item) => replacements.get(item.id) || item);
+  })();
+
+  try {
+    return await managedMigrationPromise;
+  } finally {
+    managedMigrationPromise = null;
+  }
+}
+
 export function normalizeWeeklyPracticeItem(item) {
+  const storagePath = cleanText(item?.storage_path);
+  const inferredStorage = isDriveFileId(storagePath) ? WEEKLY_PRACTICE_DRIVE_STORAGE : WEEKLY_PRACTICE_BUCKET;
   return {
     ...item,
     title: cleanText(item?.title, 'Bài luyện tập tiếng Anh'),
@@ -97,8 +197,8 @@ export function normalizeWeeklyPracticeItem(item) {
     question_count: toInteger(item?.question_count, 0),
     duration_minutes: Math.max(45, toInteger(item?.duration_minutes, 45)),
     file_size: Number(item?.file_size || 0),
-    storage_bucket: cleanText(item?.storage_bucket, WEEKLY_PRACTICE_BUCKET),
-    storage_path: cleanText(item?.storage_path),
+    storage_bucket: cleanText(item?.storage_bucket, inferredStorage),
+    storage_path: storagePath,
     allow_retake: item?.allow_retake !== false,
     collect_results: item?.collect_results !== false,
     show_answers: item?.show_answers !== false,
@@ -139,7 +239,8 @@ export async function listManagedWeeklyPractices() {
     .order('opens_at', { ascending: false })
     .limit(120);
   if (error) throw error;
-  return (data || []).map(normalizeWeeklyPracticeItem);
+  const rows = (data || []).map(normalizeWeeklyPracticeItem);
+  return migrateLegacyManagedItems(rows);
 }
 
 export function validateWeeklyPracticeFile(file) {
@@ -167,18 +268,7 @@ export async function createWeeklyPractice({ form, file, currentUser }) {
   if (!title) throw new Error('Tên bài luyện tập không được để trống.');
   if (!weekKey) throw new Error('Tuần học không được để trống.');
 
-  const extension = file.name.toLowerCase().endsWith('.htm') ? 'htm' : 'html';
-  const safeWeek = weekKey.replace(/[^a-zA-Z0-9_-]/g, '-');
-  const path = `${cleanText(form?.school_year, 'unspecified')}/${safeWeek}/${randomId()}.${extension}`;
-  const { error: uploadError } = await client.storage
-    .from(WEEKLY_PRACTICE_BUCKET)
-    .upload(path, file, {
-      cacheControl: '3600',
-      contentType: 'text/html; charset=utf-8',
-      upsert: false,
-    });
-  if (uploadError) throw uploadError;
-
+  const uploaded = await uploadWeeklyPracticeDriveFile(file, form);
   const opensAt = form?.opens_at ? new Date(form.opens_at).toISOString() : new Date().toISOString();
   const closesAt = form?.closes_at ? new Date(form.closes_at).toISOString() : null;
   const status = cleanText(form?.status, 'draft');
@@ -199,8 +289,8 @@ export async function createWeeklyPractice({ form, file, currentUser }) {
     max_attempts: form?.max_attempts ? Math.max(1, toInteger(form.max_attempts, 1)) : null,
     collect_results: true,
     show_answers: form?.show_answers !== false,
-    storage_bucket: WEEKLY_PRACTICE_BUCKET,
-    storage_path: path,
+    storage_bucket: WEEKLY_PRACTICE_DRIVE_STORAGE,
+    storage_path: uploaded.fileId,
     file_name: cleanText(file.name),
     file_size: file.size,
     created_by: currentUser?.id || null,
@@ -214,12 +304,13 @@ export async function createWeeklyPractice({ form, file, currentUser }) {
     .select(ITEM_COLUMNS)
     .single();
 
-  if (error) {
-    try { await client.storage.from(WEEKLY_PRACTICE_BUCKET).remove([path]); } catch { /* cleanup best effort */ }
-    throw error;
-  }
+  if (error) throw error;
   invalidateSupabaseReadCacheForTable(WEEKLY_PRACTICE_TABLE);
-  return normalizeWeeklyPracticeItem(data);
+  const item = normalizeWeeklyPracticeItem(data);
+  driveAction('move', item, status).catch((moveError) => {
+    console.warn('[Weekly Practice] Drive folder move deferred:', moveError);
+  });
+  return item;
 }
 
 export async function updateWeeklyPracticeStatus(item, status) {
@@ -239,14 +330,23 @@ export async function updateWeeklyPracticeStatus(item, status) {
     .single();
   if (error) throw error;
   invalidateSupabaseReadCacheForTable(WEEKLY_PRACTICE_TABLE);
-  return normalizeWeeklyPracticeItem(data);
+  const updated = normalizeWeeklyPracticeItem(data);
+  driveAction('move', updated, nextStatus).catch((moveError) => {
+    console.warn('[Weekly Practice] Drive folder move deferred:', moveError);
+  });
+  return updated;
 }
 
 export async function deleteWeeklyPractice(item) {
   const client = requireClient();
+  if (isGoogleDriveWeeklyPractice(item)) {
+    await driveAction('archive', item, 'archived').catch((archiveError) => {
+      console.warn('[Weekly Practice] Drive archive deferred:', archiveError);
+    });
+  }
   const { error } = await client.from(WEEKLY_PRACTICE_TABLE).delete().eq('id', item.id);
   if (error) throw error;
-  if (item?.storage_path) {
+  if (item?.storage_path && !isGoogleDriveWeeklyPractice(item)) {
     try { await client.storage.from(item.storage_bucket || WEEKLY_PRACTICE_BUCKET).remove([item.storage_path]); } catch { /* cleanup best effort */ }
   }
   invalidateSupabaseReadCacheForTable(WEEKLY_PRACTICE_TABLE);
@@ -413,14 +513,60 @@ function runtimeBridgeScript(practiceId, initialProgress) {
   })();`;
 }
 
+function weeklyPracticeFileUrl(item) {
+  const version = cleanText(item?.updated_at || item?.storage_path || item?.created_at);
+  return `/api/weekly-practice-file?id=${encodeURIComponent(item.id)}&v=${encodeURIComponent(version)}`;
+}
+
+async function pruneOldWeeklyHtml(cache, item, keepUrl) {
+  try {
+    const keep = new URL(keepUrl, window.location.origin).href;
+    const keys = await cache.keys();
+    await Promise.all(keys.map((request) => {
+      const url = new URL(request.url);
+      return url.pathname === '/api/weekly-practice-file'
+        && url.searchParams.get('id') === String(item.id)
+        && request.url !== keep
+        ? cache.delete(request)
+        : null;
+    }));
+  } catch { /* optional cache cleanup */ }
+}
+
+async function loadWeeklyPracticeRawHtml(item) {
+  const url = weeklyPracticeFileUrl(item);
+  const canCache = typeof window !== 'undefined' && 'caches' in window;
+  if (canCache) {
+    try {
+      const cache = await caches.open(WEEKLY_HTML_CACHE_NAME);
+      const cached = await cache.match(url);
+      if (cached) return cached.text();
+      const response = await fetch(url, { credentials: 'omit', headers: { Accept: 'text/html' } });
+      if (!response.ok) {
+        let message = 'Không thể tải file HTML của bài luyện tập.';
+        try { message = (await response.json()).error || message; } catch { /* non-JSON response */ }
+        throw new Error(message);
+      }
+      await cache.put(url, response.clone());
+      await pruneOldWeeklyHtml(cache, item, url);
+      return response.text();
+    } catch (error) {
+      if (!navigator.onLine) throw error;
+    }
+  }
+
+  const response = await fetch(url, { credentials: 'omit', headers: { Accept: 'text/html' } });
+  if (!response.ok) {
+    let message = 'Không thể tải file HTML của bài luyện tập.';
+    try { message = (await response.json()).error || message; } catch { /* non-JSON response */ }
+    throw new Error(message);
+  }
+  return response.text();
+}
+
 export async function downloadWeeklyPracticeHtml(item) {
-  const client = requireClient();
-  if (!item?.storage_path) throw new Error('Bài luyện tập chưa có file HTML.');
-  const { data, error } = await client.storage
-    .from(item.storage_bucket || WEEKLY_PRACTICE_BUCKET)
-    .download(item.storage_path);
-  if (error) throw error;
-  const html = await data.text();
+  if (!item?.id || !item?.storage_path) throw new Error('Bài luyện tập chưa có file HTML.');
+  const html = await loadWeeklyPracticeRawHtml(item);
   const bridge = runtimeBridgeScript(item.id, readWeeklyPracticeProgress(item.id));
   const safeBridge = bridge.split('</script').join('<\\/script');
   const bridgeTag = `<script>${safeBridge}</script>`;
