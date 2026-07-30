@@ -8,7 +8,6 @@ import {
 import {
   appendApiAudit,
   createRequestId,
-  enforceRateLimit,
   requireApprovedUser,
   sendJson,
 } from '../server/api/_security.js';
@@ -116,7 +115,7 @@ export default async function handler(req, res) {
   try {
     if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
     context = await requireApprovedUser(req, { roles: ['admin', 'department_head'] });
-    await enforceRateLimit(context, { feature: 'weekly_practice_drive', perMinute: 40, perDay: 500 });
+    // Moving or archiving Drive files is a storage operation, not an AI request.
 
     const payload = bodyObject(req);
     const action = String(payload.action || 'move').trim().toLowerCase();
