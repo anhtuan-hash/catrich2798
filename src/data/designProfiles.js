@@ -64,6 +64,13 @@ export const APP_DESIGN_PROFILES = {
     icon: 'game',
     style: 'Flying sentence game',
     styleVi: 'Trò chơi câu chữ chuyển động'},
+  'knowledge-train': {
+    accent: '#6D4CC7',
+    soft: '#EEE9FF',
+    ink: '#24154F',
+    icon: 'game',
+    style: 'Linked knowledge train game',
+    styleVi: 'Trò chơi đoàn tàu kiến thức liên hoàn'},
   'crossword-trial': {
     accent: '#0B57D0',
     soft: '#E8F0FE',
