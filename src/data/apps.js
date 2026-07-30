@@ -176,6 +176,14 @@ export const APPS = [
 
 export const GAME_APPS = [
   {
+    slug: 'knowledge-train', icon: 'KT', tone: 'purple', group: 'Interactive Classroom Games', groupVi: 'Trò chơi tương tác',
+    title: 'Knowledge Train', titleVi: 'Đoàn Tàu Tri Thức',
+    desc: 'Compose and run a linked question-answer train with touch drag-and-drop, scoring, hints, visuals and offline import/export.',
+    descVi: 'Soạn và tổ chức đoàn tàu câu hỏi–đáp án liên hoàn với kéo thả cảm ứng, chấm điểm, minh hoạ và nhập/xuất offline.',
+    status: 'Google-style · Touch · Projector', statusVi: 'Phong cách Google · Cảm ứng · Máy chiếu',
+    api: false, featured: true,
+  },
+  {
     slug: 'crossword-trial', icon: 'OC', tone: 'blue', group: 'Interactive Classroom Games', groupVi: 'Trò chơi tương tác',
     title: 'Crossword Trial', titleVi: 'Ô Chữ Bàn Thử',
     desc: 'Build and run keyword crosswords with automatic intersections, hints, scoring, teacher controls and offline import/export.',
