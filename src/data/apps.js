@@ -106,6 +106,14 @@ export const APPS = [
     status: 'Live RSS · Reading mode', statusVi: 'RSS trực tiếp · Chế độ đọc', api: true, featured: true,
   },
   {
+    slug: 'knowledge-train', icon: 'KT', tone: 'purple', group: 'Teaching Activities', groupVi: 'Hoạt động lớp học',
+    title: 'Knowledge Train', titleVi: 'Đoàn Tàu Tri Thức',
+    desc: 'Compose and run a linked question-answer train with touch drag-and-drop, scoring, visuals and offline import/export.',
+    descVi: 'Soạn và tổ chức đoàn tàu câu hỏi–đáp án liên hoàn với kéo thả cảm ứng, chấm điểm, minh hoạ và nhập/xuất offline.',
+    status: 'Google-style · Touch · Projector', statusVi: 'Phong cách Google · Cảm ứng · Máy chiếu',
+    api: false, featured: true,
+  },
+  {
     slug: 'vietnam-tax', icon: 'TX', tone: 'blue', group: 'Teacher Utilities', groupVi: 'Tiện ích giáo viên',
     title: 'Vietnam Tax Studio', titleVi: 'Tính thuế TNCN 2026',
     desc: 'Estimate Vietnam personal income tax, mandatory insurance and net salary, with a clear comparison between the former 7-bracket and current 5-bracket scales.',
@@ -118,22 +126,6 @@ export const APPS = [
     desc: 'Turn text into 18 interactive classroom activities with live preview and offline export.',
     descVi: 'Biến văn bản thành 18 dạng hoạt động tương tác, xem trước trực tiếp và xuất gói dùng offline.',
     status: '18 templates · Offline', statusVi: '18 mẫu · Offline', api: true, featured: true,
-  },
-  {
-    slug: 'knowledge-train', icon: 'KT', tone: 'purple', group: 'Teaching Activities', groupVi: 'Hoạt động lớp học',
-    title: 'Knowledge Train', titleVi: 'Đoàn Tàu Tri Thức',
-    desc: 'Compose and run a linked question-answer train with touch drag-and-drop, scoring, visuals and offline import/export.',
-    descVi: 'Soạn và tổ chức đoàn tàu câu hỏi–đáp án liên hoàn với kéo thả cảm ứng, chấm điểm, minh hoạ và nhập/xuất offline.',
-    status: 'Google-style · Touch · Projector', statusVi: 'Phong cách Google · Cảm ứng · Máy chiếu',
-    api: false, featured: true,
-  },
-  {
-    slug: 'crossword-trial', icon: 'OC', tone: 'blue', group: 'Teaching Activities', groupVi: 'Hoạt động lớp học',
-    title: 'Crossword Trial', titleVi: 'Ô Chữ Bàn Thử',
-    desc: 'Build and run keyword crosswords with automatic intersections, hints, scoring, teacher controls and offline import/export.',
-    descVi: 'Soạn và tổ chức trò chơi ô chữ từ khóa với tự căn chữ giao, gợi ý, chấm điểm, điều khiển giáo viên và nhập/xuất offline.',
-    status: 'Google-style · Offline · Projector', statusVi: 'Phong cách Google · Offline · Máy chiếu',
-    api: false, featured: true,
   },
   {
     slug: 'flying-words', icon: 'FW', tone: 'purple', group: 'Teaching Activities', groupVi: 'Hoạt động lớp học',
@@ -191,6 +183,14 @@ export const APPS = [
 ];
 
 export const GAME_APPS = [
+  {
+    slug: 'crossword-trial', icon: 'OC', tone: 'blue', group: 'Interactive Classroom Games', groupVi: 'Trò chơi tương tác',
+    title: 'Crossword Trial', titleVi: 'Ô Chữ Bàn Thử',
+    desc: 'Build and run keyword crosswords with automatic intersections, hints, scoring, teacher controls and offline import/export.',
+    descVi: 'Soạn và tổ chức trò chơi ô chữ từ khóa với tự căn chữ giao, gợi ý, chấm điểm, điều khiển giáo viên và nhập/xuất offline.',
+    status: 'Google-style · Offline · Projector', statusVi: 'Phong cách Google · Offline · Máy chiếu',
+    api: false, featured: true,
+  },
   {
     slug: 'game-hub', route: 'games', icon: 'GH', tone: 'teal', group: 'Third-party Launchers', groupVi: 'Cổng trò chơi',
     title: 'Game Hub', titleVi: 'Game Hub',
