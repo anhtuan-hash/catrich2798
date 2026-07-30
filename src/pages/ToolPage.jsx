@@ -21,6 +21,7 @@ const PersonnelHub = lazy(() => import('./PersonnelHub.jsx'));
 const ClassroomScreenHost = lazy(() => import('./ClassroomScreenHost.jsx'));
 const FlyingWordsGame = lazy(() => import('./FlyingWordsContrast.jsx'));
 const CrosswordTrialGame = lazy(() => import('./CrosswordTrialGame.jsx'));
+const KnowledgeTrainGame = lazy(() => import('./KnowledgeTrainGame.jsx'));
 
 const specializedToolSlugs = new Set([
   'exam-studio',
@@ -100,6 +101,10 @@ export default function ToolPage(props) {
 
   if (tool?.slug === 'crossword-trial') {
     return renderLazy(CrosswordTrialGame, props);
+  }
+
+  if (tool?.slug === 'knowledge-train') {
+    return renderLazy(KnowledgeTrainGame, props);
   }
 
   if (tool?.slug === 'word2graph') {
