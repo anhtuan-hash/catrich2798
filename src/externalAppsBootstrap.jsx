@@ -17,6 +17,8 @@ import './homeWeeklyPracticeFlowFix.js';
 import './homePracticeScheduleScroller.js';
 import './homePracticeHeaderCopyFix.js';
 import './weeklyPracticeSubmissionErrorGuard.js';
+// Register the 2026-2027 academic week selector before every weekly-upload submit handler.
+import './weeklyManagerAcademicWeekSelector.js';
 // Register 30-file upload and safe delete-all before legacy weekly-manager handlers.
 import './weeklyManagerPowerTools.js';
 // Keep the live file input multi-selectable even when the manager UI re-renders it.
