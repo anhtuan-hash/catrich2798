@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { readDocxTextFromBuffer, readPdfTextFromBuffer } from '../utils/documentParsers.js';
 import { recognizeExamSourceAutomatically } from '../utils/examAutoRecognition.js';
 import {
@@ -13,6 +13,63 @@ import '../styles/ExamAutoRecognition.css';
 const DRAFT_KEY = 'bes-exam-studio-upload-only-draft-v1';
 const VAULT_KEY = 'bes-exam-studio-upload-only-vault-v1';
 
+const SAMPLE_FILES = [
+  {
+    id: 'mcq',
+    icon: 'A',
+    title: 'MCQ + Answer Key',
+    filename: '01-mcq-answer-key.txt',
+    path: '/samples/exam-studio/01-mcq-answer-key.txt',
+    description: 'Câu trắc nghiệm A–D, đáp án rời và phần giải thích.',
+    detects: ['MCQ', 'Answer key', 'Explanation'],
+  },
+  {
+    id: 'reading',
+    icon: 'R',
+    title: 'Reading comprehension',
+    filename: '02-reading-comprehension.txt',
+    path: '/samples/exam-studio/02-reading-comprehension.txt',
+    description: 'Bài đọc, câu hỏi tham chiếu passage, đáp án và giải thích.',
+    detects: ['Passage', 'Reading MCQ', 'Explanation'],
+  },
+  {
+    id: 'cloze',
+    icon: 'C',
+    title: 'Cloze + Word Form',
+    filename: '03-cloze-word-form.txt',
+    path: '/samples/exam-studio/03-cloze-word-form.txt',
+    description: 'Điền khuyết, word formation và đáp án dạng chữ hoặc từ.',
+    detects: ['Cloze', 'Word form', 'Open answer'],
+  },
+  {
+    id: 'true-false',
+    icon: 'T',
+    title: 'True/False + Short Answer',
+    filename: '04-true-false-short-answer.txt',
+    path: '/samples/exam-studio/04-true-false-short-answer.txt',
+    description: 'Đúng/sai, câu trả lời ngắn, sample answer và rubric.',
+    detects: ['True/False', 'Short answer', 'Rubric'],
+  },
+  {
+    id: 'mixed',
+    icon: 'M',
+    title: 'Đề nhiều section',
+    filename: '05-mixed-sections.txt',
+    path: '/samples/exam-studio/05-mixed-sections.txt',
+    description: 'Pronunciation, grammar, error correction và writing trong một file.',
+    detects: ['Sections', 'Mixed formats', 'Open response'],
+  },
+  {
+    id: 'rubric',
+    icon: 'E',
+    title: 'Explanation + Rubric',
+    filename: '06-explanations-rubric.txt',
+    path: '/samples/exam-studio/06-explanations-rubric.txt',
+    description: 'Đáp án, giải thích chi tiết, sample answer và tiêu chí chấm.',
+    detects: ['Explanation', 'Sample answer', 'Rubric'],
+  },
+];
+
 function readJson(key, fallback) {
   try {
     const value = JSON.parse(localStorage.getItem(key) || 'null');
@@ -23,11 +80,21 @@ function readJson(key, fallback) {
 }
 
 function saveJson(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* local save is best effort */ }
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Local persistence is best effort.
+  }
 }
 
 function slugify(value = 'exam-studio') {
-  return String(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 70) || 'exam-studio';
+  return String(value)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+    .slice(0, 70) || 'exam-studio';
 }
 
 function downloadBlob(filename, content, type = 'text/plain;charset=utf-8') {
@@ -43,7 +110,13 @@ function downloadBlob(filename, content, type = 'text/plain;charset=utf-8') {
 }
 
 function escapeHtml(value = '') {
-  return String(value).replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+  return String(value).replace(/[&<>'"]/g, (character) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;',
+  }[character]));
 }
 
 function markdownToHtml(markdown = '') {
@@ -83,13 +156,74 @@ async function copyText(text = '') {
   }
 }
 
+async function readSampleFile(sample) {
+  const response = await fetch(sample.path, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`Không tải được ${sample.filename}`);
+  return response.text();
+}
+
 function loadInitialProject() {
   const saved = readJson(DRAFT_KEY, null);
-  return saved?.project ? { ...createDefaultExamProject(), ...saved.project, sourceMode: 'paste' } : createDefaultExamProject();
+  return saved?.project
+    ? { ...createDefaultExamProject(), ...saved.project, sourceMode: 'paste' }
+    : createDefaultExamProject();
 }
 
 function Field({ label, children }) {
   return <label className="exam-field"><span>{label}</span>{children}</label>;
+}
+
+function SampleFileLibrary({ title, description, onLoad, loadingId = '', compact = false, actionLabel = 'Nạp vào ô' }) {
+  return (
+    <section className={`exam-sample-library ${compact ? 'is-compact' : ''}`}>
+      <div className="exam-sample-library-head">
+        <div>
+          <span className="eyebrow">File mẫu</span>
+          <h4>{title}</h4>
+          {description ? <p>{description}</p> : null}
+        </div>
+        <span className="exam-sample-count">{SAMPLE_FILES.length} mẫu</span>
+      </div>
+      <div className="exam-sample-grid">
+        {SAMPLE_FILES.map((sample) => (
+          <article className="exam-sample-card" key={sample.id}>
+            <div className="exam-sample-card-head">
+              <span className="exam-sample-icon">{sample.icon}</span>
+              <div>
+                <strong>{sample.title}</strong>
+                <small>{sample.filename}</small>
+              </div>
+            </div>
+            {!compact ? <p>{sample.description}</p> : null}
+            <div className="exam-sample-tags">
+              {sample.detects.map((item) => <span key={item}>{item}</span>)}
+            </div>
+            <div className="exam-sample-actions">
+              <a href={sample.path} download={sample.filename}>Tải file mẫu</a>
+              <button type="button" onClick={() => onLoad(sample)} disabled={Boolean(loadingId)}>
+                {loadingId === sample.id ? 'Đang nạp...' : actionLabel}
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SampleQuickBar({ onLoad, loadingId = '' }) {
+  return (
+    <div className="exam-sample-quick-bar">
+      <span>Nạp nhanh file mẫu:</span>
+      <div>
+        {SAMPLE_FILES.map((sample) => (
+          <button type="button" key={sample.id} onClick={() => onLoad(sample)} disabled={Boolean(loadingId)}>
+            <b>{sample.icon}</b>{loadingId === sample.id ? 'Đang nạp' : sample.title}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function Stepper({ step, output, setStep }) {
@@ -103,7 +237,20 @@ function Stepper({ step, output, setStep }) {
     <nav className="exam-stepper exam-stepper-v946 exam-v19-stepper" aria-label="Exam Studio workflow">
       {steps.map(([icon, label, desc], index) => {
         const locked = index >= 2 && !output;
-        return <button key={label} type="button" disabled={locked} className={`${step === index ? 'active' : ''} ${step > index ? 'done' : ''}`} onClick={() => !locked && setStep(index)}><span className="exam-v19-step-icon">{icon}</span><i>{index + 1}</i><b>{label}</b><small>{desc}</small></button>;
+        return (
+          <button
+            key={label}
+            type="button"
+            disabled={locked}
+            className={`${step === index ? 'active' : ''} ${step > index ? 'done' : ''}`}
+            onClick={() => !locked && setStep(index)}
+          >
+            <span className="exam-v19-step-icon">{icon}</span>
+            <i>{index + 1}</i>
+            <b>{label}</b>
+            <small>{desc}</small>
+          </button>
+        );
       })}
     </nav>
   );
@@ -126,7 +273,12 @@ function SummaryCard({ project, output, recognition }) {
 }
 
 function StepType({ project, setProject }) {
-  const toggleFormat = (id) => setProject((previous) => ({ ...previous, selectedFormats: previous.selectedFormats?.includes(id) ? previous.selectedFormats.filter((item) => item !== id) : [...(previous.selectedFormats || []), id] }));
+  const toggleFormat = (id) => setProject((previous) => ({
+    ...previous,
+    selectedFormats: previous.selectedFormats?.includes(id)
+      ? previous.selectedFormats.filter((item) => item !== id)
+      : [...(previous.selectedFormats || []), id],
+  }));
   return (
     <section className="panel exam-work-panel exam-v946-panel">
       <span className="eyebrow">Bước 1</span>
@@ -134,7 +286,13 @@ function StepType({ project, setProject }) {
       <p className="muted-line">Các lựa chọn này dùng để tạo mã đề, ma trận và định dạng đầu ra. Dạng câu thực tế sẽ tiếp tục được suy luận từ file nguồn.</p>
       <div className="exam-v946-block">
         <h3>1. Mục tiêu bài kiểm tra</h3>
-        <div className="exam-type-grid exam-type-grid-v946">{EXAM_TYPE_OPTIONS.map((item) => <button key={item.id} type="button" className={project.examType === item.id ? 'selected' : ''} onClick={() => setProject((previous) => ({ ...previous, examType: item.id, purpose: item.label }))}><span>{item.icon}</span><strong>{item.label}</strong><small>{item.desc}</small></button>)}</div>
+        <div className="exam-type-grid exam-type-grid-v946">
+          {EXAM_TYPE_OPTIONS.map((item) => (
+            <button key={item.id} type="button" className={project.examType === item.id ? 'selected' : ''} onClick={() => setProject((previous) => ({ ...previous, examType: item.id, purpose: item.label }))}>
+              <span>{item.icon}</span><strong>{item.label}</strong><small>{item.desc}</small>
+            </button>
+          ))}
+        </div>
       </div>
       <div className="exam-v946-block">
         <h3>2. Nhóm kỹ năng / nội dung</h3>
@@ -157,11 +315,22 @@ function StepType({ project, setProject }) {
 function RecognitionMetrics({ recognition }) {
   if (!recognition?.stats) return null;
   const { stats } = recognition;
-  return <div className="auto-recognition-metrics"><div className="auto-recognition-metric"><span>Tổng câu</span><strong>{stats.total}</strong></div><div className="auto-recognition-metric"><span>Trắc nghiệm</span><strong>{stats.mcq}</strong></div><div className="auto-recognition-metric"><span>Tự luận / điền</span><strong>{stats.open}</strong></div><div className="auto-recognition-metric"><span>Có đáp án</span><strong>{stats.answered}</strong></div><div className="auto-recognition-metric"><span>Bài đọc</span><strong>{stats.passages}</strong></div><div className="auto-recognition-metric"><span>Tin cậy</span><strong>{recognition.confidence}%</strong></div></div>;
+  return (
+    <div className="auto-recognition-metrics">
+      <div className="auto-recognition-metric"><span>Tổng câu</span><strong>{stats.total}</strong></div>
+      <div className="auto-recognition-metric"><span>Trắc nghiệm</span><strong>{stats.mcq}</strong></div>
+      <div className="auto-recognition-metric"><span>Tự luận / điền</span><strong>{stats.open}</strong></div>
+      <div className="auto-recognition-metric"><span>Có đáp án</span><strong>{stats.answered}</strong></div>
+      <div className="auto-recognition-metric"><span>Bài đọc</span><strong>{stats.passages}</strong></div>
+      <div className="auto-recognition-metric"><span>Tin cậy</span><strong>{recognition.confidence}%</strong></div>
+    </div>
+  );
 }
 
 function StepSource({ project, setProject, recognition, recognizing, onRecognize, onPreview }) {
   const [fileState, setFileState] = useState('');
+  const [sampleLoadingId, setSampleLoadingId] = useState('');
+
   const handleFile = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -178,23 +347,87 @@ function StepSource({ project, setProject, recognition, recognizing, onRecognize
       setFileState(`Không đọc được file: ${error.message || error}`);
     }
   };
+
+  const loadSample = async (sample) => {
+    setSampleLoadingId(sample.id);
+    setFileState(`Đang nạp file mẫu ${sample.filename}...`);
+    try {
+      const sourceText = await readSampleFile(sample);
+      setProject((previous) => ({
+        ...previous,
+        sourceText,
+        sourceFileName: sample.filename,
+        sourceMode: 'paste',
+        sampleSourceId: sample.id,
+      }));
+      setFileState(`Đã nạp file mẫu: ${sample.filename}`);
+    } catch (error) {
+      setFileState(error.message || String(error));
+    } finally {
+      setSampleLoadingId('');
+    }
+  };
+
   return (
     <section className="panel exam-work-panel exam-v946-panel">
       <span className="eyebrow">Bước 2</span>
       <h2>Upload hoặc dán nội dung đề</h2>
       <div className="exam-auto-source-note"><p className="muted-line">Sau khi file được đọc hoặc bạn ngừng nhập khoảng 0,7 giây, hệ thống tự phân tích và dựng Preview.</p><span className="exam-auto-recognition-badge">Cục bộ · Không AI · Không API</span></div>
       <div className="exam-source-grid auto-source-grid">
-        <div>
-          <div className="upload-zone exam-v946-upload"><input type="file" accept=".txt,.md,.pdf,.docx" onChange={handleFile} /><strong>Upload PDF / DOCX / TXT / Markdown</strong><small>{fileState || 'Nhận dạng section, bài đọc, câu hỏi, phương án, đáp án và giải thích.'}</small></div>
-          <Field label="Dán nội dung đề"><textarea rows={18} value={project.sourceText || ''} onChange={(event) => setProject((previous) => ({ ...previous, sourceText: event.target.value, sourceFileName: '', sourceMode: 'paste' }))} placeholder={'PART I. Choose the best answer.\n1. The students _____ the task yesterday.\nA. complete\nB. completed\nC. have completed\nD. completing\nAnswer: B'} /></Field>
+        <div className="exam-input-source-column">
+          <div className="upload-zone exam-v946-upload">
+            <input type="file" accept=".txt,.md,.pdf,.docx" onChange={handleFile} />
+            <strong>Upload PDF / DOCX / TXT / Markdown</strong>
+            <small>{fileState || 'Nhận dạng section, bài đọc, câu hỏi, phương án, đáp án và giải thích.'}</small>
+          </div>
+
+          <SampleFileLibrary
+            title="File mẫu cho khu vực Upload"
+            description="Tải file về máy để thử đúng quy trình upload, hoặc nạp trực tiếp vào ứng dụng."
+            onLoad={loadSample}
+            loadingId={sampleLoadingId}
+            actionLabel="Nạp trực tiếp"
+          />
+
+          <Field label="Dán nội dung đề">
+            <textarea
+              rows={18}
+              value={project.sourceText || ''}
+              onChange={(event) => setProject((previous) => ({ ...previous, sourceText: event.target.value, sourceFileName: '', sourceMode: 'paste', sampleSourceId: '' }))}
+              placeholder={'PART I. Choose the best answer.\n1. The students _____ the task yesterday.\nA. complete\nB. completed\nC. have completed\nD. completing\nAnswer: B'}
+            />
+          </Field>
+
+          <SampleQuickBar onLoad={loadSample} loadingId={sampleLoadingId} />
         </div>
+
         <aside className="panel inner-panel recognition-panel auto-recognition-panel">
-          <span className="eyebrow">Automatic Recognition Engine</span><h3>Kết quả nhận dạng</h3>
-          {!project.sourceText?.trim() ? <div className="auto-recognition-state">Đang chờ file hoặc nội dung.</div> : recognizing ? <div className="auto-recognition-state">Đang phân tích cấu trúc...</div> : recognition?.detectedCount ? <div className="auto-recognition-state is-ready">Đã nhận dạng xong {recognition.detectedCount} câu. Kiểm tra cảnh báo trước khi mở Preview.</div> : <div className="auto-recognition-state">Chưa tìm thấy câu hỏi rõ ràng.</div>}
+          <span className="eyebrow">Automatic Recognition Engine</span>
+          <h3>Kết quả nhận dạng</h3>
+          {!project.sourceText?.trim()
+            ? <div className="auto-recognition-state">Đang chờ file hoặc nội dung.</div>
+            : recognizing
+              ? <div className="auto-recognition-state">Đang phân tích cấu trúc...</div>
+              : recognition?.detectedCount
+                ? <div className="auto-recognition-state is-ready">Đã nhận dạng xong {recognition.detectedCount} câu. Kiểm tra cảnh báo trước khi mở Preview.</div>
+                : <div className="auto-recognition-state">Chưa tìm thấy câu hỏi rõ ràng.</div>}
           <RecognitionMetrics recognition={recognition} />
           {recognition?.diagnostics?.length ? <ul className="recognition-list auto-diagnostics">{recognition.diagnostics.map((item) => <li key={item}>{item}</li>)}</ul> : null}
           {recognition?.warnings?.length ? <ul className="recognition-list auto-warnings">{recognition.warnings.map((item) => <li key={item}>{item}</li>)}</ul> : null}
-          <div className="auto-recognition-actions"><button onClick={onRecognize} disabled={!project.sourceText?.trim() || recognizing}>Nhận dạng lại</button><button className="primary" onClick={onPreview} disabled={!recognition?.detectedCount}>Mở Preview</button></div>
+
+          <SampleFileLibrary
+            compact
+            title="File mẫu cho từng nhóm nhận dạng"
+            description="Chọn một file để chạy thử đúng bộ nhận dạng tương ứng."
+            onLoad={loadSample}
+            loadingId={sampleLoadingId}
+            actionLabel="Chạy thử"
+          />
+
+          <div className="auto-recognition-actions">
+            <button onClick={onRecognize} disabled={!project.sourceText?.trim() || recognizing}>Nhận dạng lại</button>
+            <button className="primary" onClick={onPreview} disabled={!recognition?.detectedCount}>Mở Preview</button>
+          </div>
         </aside>
       </div>
     </section>
@@ -204,14 +437,37 @@ function StepSource({ project, setProject, recognition, recognizing, onRecognize
 function QuestionCard({ question, onChange, onDelete, onDuplicate }) {
   const [editing, setEditing] = useState(false);
   const changeOption = (index, patch) => {
-    const options = question.options.map((option, optionIndex) => ({ ...option, ...(optionIndex === index ? patch : {}), isCorrect: patch.isCorrect && optionIndex === index ? true : patch.isCorrect ? false : option.isCorrect }));
+    const options = question.options.map((option, optionIndex) => ({
+      ...option,
+      ...(optionIndex === index ? patch : {}),
+      isCorrect: patch.isCorrect && optionIndex === index ? true : patch.isCorrect ? false : option.isCorrect,
+    }));
     if (patch.isCorrect) options.forEach((option, optionIndex) => { option.isCorrect = optionIndex === index; });
     onChange({ options, answer: options.find((option) => option.isCorrect)?.key || question.answer });
   };
   return (
     <article className="question-editor-card">
-      <div className="question-editor-head"><div><span className="eyebrow">Câu {question.no} · {question.kind} · {question.band}</span><h3>{question.stem.replace(/^\d+\.\s*/, '')}</h3>{question.passageTitle ? <p className="question-passage-link">Reading passage: {question.passageTitle}</p> : null}</div><div className="preview-actions wrap-actions"><button onClick={() => setEditing((value) => !value)}>{editing ? 'Xong' : 'Sửa'}</button><button onClick={onDuplicate}>Nhân bản</button><button onClick={onDelete}>Xoá</button></div></div>
-      {!editing ? <><div className="clean-options">{question.options?.map((option) => <p key={option.key} className={option.isCorrect ? 'correct' : ''}><b>{option.key}.</b> {option.text}</p>)}</div>{!question.options?.length ? <p className="open-answer-box">Đáp án mẫu: {question.sampleAnswer || question.answer || 'Chưa có'}</p> : null}<p className="explanation-line"><b>Answer:</b> {question.answer || '—'}</p><p className="explanation-line"><b>Explanation:</b> {question.explanation || '—'}</p>{question.recognitionIssues?.length ? <ul className="recognition-list auto-warnings">{question.recognitionIssues.map((issue) => <li key={issue}>{issue}</li>)}</ul> : null}</> : <div className="question-edit-form"><Field label="Stem"><textarea rows={3} value={question.stem} onChange={(event) => onChange({ stem: event.target.value })} /></Field>{question.options?.length ? question.options.map((option, index) => <div className="option-editor-row" key={option.key}><b>{option.key}</b><input value={option.text} onChange={(event) => changeOption(index, { text: event.target.value })} /><label><input type="radio" checked={option.isCorrect} onChange={() => changeOption(index, { isCorrect: true })} /> Correct</label></div>) : <Field label="Sample answer"><textarea rows={3} value={question.sampleAnswer || question.answer || ''} onChange={(event) => onChange({ sampleAnswer: event.target.value, answer: event.target.value })} /></Field>}<Field label="Explanation / rubric"><textarea rows={3} value={question.explanation || ''} onChange={(event) => onChange({ explanation: event.target.value })} /></Field></div>}
+      <div className="question-editor-head">
+        <div><span className="eyebrow">Câu {question.no} · {question.kind} · {question.band}</span><h3>{question.stem.replace(/^\d+\.\s*/, '')}</h3>{question.passageTitle ? <p className="question-passage-link">Reading passage: {question.passageTitle}</p> : null}</div>
+        <div className="preview-actions wrap-actions"><button onClick={() => setEditing((value) => !value)}>{editing ? 'Xong' : 'Sửa'}</button><button onClick={onDuplicate}>Nhân bản</button><button onClick={onDelete}>Xoá</button></div>
+      </div>
+      {!editing ? (
+        <>
+          <div className="clean-options">{question.options?.map((option) => <p key={option.key} className={option.isCorrect ? 'correct' : ''}><b>{option.key}.</b> {option.text}</p>)}</div>
+          {!question.options?.length ? <p className="open-answer-box">Đáp án mẫu: {question.sampleAnswer || question.answer || 'Chưa có'}</p> : null}
+          <p className="explanation-line"><b>Answer:</b> {question.answer || '—'}</p>
+          <p className="explanation-line"><b>Explanation:</b> {question.explanation || '—'}</p>
+          {question.recognitionIssues?.length ? <ul className="recognition-list auto-warnings">{question.recognitionIssues.map((issue) => <li key={issue}>{issue}</li>)}</ul> : null}
+        </>
+      ) : (
+        <div className="question-edit-form">
+          <Field label="Stem"><textarea rows={3} value={question.stem} onChange={(event) => onChange({ stem: event.target.value })} /></Field>
+          {question.options?.length
+            ? question.options.map((option, index) => <div className="option-editor-row" key={option.key}><b>{option.key}</b><input value={option.text} onChange={(event) => changeOption(index, { text: event.target.value })} /><label><input type="radio" checked={option.isCorrect} onChange={() => changeOption(index, { isCorrect: true })} /> Correct</label></div>)
+            : <Field label="Sample answer"><textarea rows={3} value={question.sampleAnswer || question.answer || ''} onChange={(event) => onChange({ sampleAnswer: event.target.value, answer: event.target.value })} /></Field>}
+          <Field label="Explanation / rubric"><textarea rows={3} value={question.explanation || ''} onChange={(event) => onChange({ explanation: event.target.value })} /></Field>
+        </div>
+      )}
     </article>
   );
 }
@@ -270,7 +526,16 @@ export default function ExamStudioUploadPage({ tool, language = 'vi' }) {
     setRecognizing(true);
     try {
       const nextRecognition = recognizeExamSourceAutomatically(source, project);
-      const nextProject = { ...project, sourceText, sourceMode: 'paste', passages: nextRecognition.passages, sections: nextRecognition.sections, recognizedQuestions: nextRecognition.questions, questionCount: nextRecognition.questions.length || project.questionCount, selectedFormats: nextRecognition.inferredFormats.length ? nextRecognition.inferredFormats : project.selectedFormats };
+      const nextProject = {
+        ...project,
+        sourceText,
+        sourceMode: 'paste',
+        passages: nextRecognition.passages,
+        sections: nextRecognition.sections,
+        recognizedQuestions: nextRecognition.questions,
+        questionCount: nextRecognition.questions.length || project.questionCount,
+        selectedFormats: nextRecognition.inferredFormats.length ? nextRecognition.inferredFormats : project.selectedFormats,
+      };
       setRecognition(nextRecognition);
       setProject(nextProject);
       if (nextRecognition.questions.length) {
@@ -325,12 +590,12 @@ export default function ExamStudioUploadPage({ tool, language = 'vi' }) {
     saveJson(VAULT_KEY, next);
   };
 
-  const panels = useMemo(() => [
+  const panels = [
     <StepType key="type" project={project} setProject={setProject} />,
     <StepSource key="source" project={project} setProject={setProject} recognition={recognition} recognizing={recognizing} onRecognize={() => recognize(project.sourceText, false)} onPreview={() => output && setStep(2)} />,
     <StepPreview key="preview" output={output} onQuestionChange={changeQuestion} onDelete={deleteQuestion} onDuplicate={duplicateQuestion} />,
     <StepExport key="export" output={output} onSaveVault={saveVault} vaultCount={vault.length} />,
-  ], [project, recognition, recognizing, output, vault.length]);
+  ];
 
   return (
     <div className="page tool-page exam-studio-page real-exam-workflow exam-v946-page exam-v947-page exam-v949-page exam-v95-page exam-v96-page">
@@ -338,7 +603,7 @@ export default function ExamStudioUploadPage({ tool, language = 'vi' }) {
       <section className="panel exam-v96-hero-shell exam-v35-hero-shell">
         <div className="exam-v96-hero-main exam-v35-hero-main">
           <div className="exam-v96-hero-art exam-v35-hero-art" aria-hidden="true"><div className="exam-v35-grade-sheet"><span>A+</span><i /><i /><i /></div><div className="exam-v35-builder-window"><div className="exam-v35-window-bar"><span /><span /><span /></div><strong>Import → Recognize → Edit</strong><div className="exam-v35-question-row"><i /><b /><em>✓</em></div><div className="exam-v35-question-row"><i /><b /><em>✓</em></div><div className="exam-v35-question-row"><i /><b /><em>✓</em></div><div className="exam-v35-question-row"><i /><b /><em>✓</em></div></div><div className="exam-v35-type-chips"><span data-tone="blue">MCQ</span><span data-tone="amber">Cloze</span><span data-tone="green">Reading</span></div><div className="exam-v35-preview-tile"><span>◉</span><b>Preview</b></div><div className="exam-v35-export-tile"><span>⇧</span><b>Export</b></div><div className="exam-v35-pencil-cup"><i /><i /><i /></div><span className="exam-v35-art-path" /></div>
-          <div className="exam-v96-hero-copy exam-v35-hero-copy"><span className="exam-v96-tag exam-v35-tag">Exam Studio • Automatic source recognition</span><h1>{title}</h1><p>Nhập đề từ PDF, DOCX hoặc văn bản; hệ thống tự nhận dạng, chuẩn hoá, preview, chỉnh sửa và xuất file mà không dùng AI.</p><div className="exam-v35-feature-list"><span><i>✓</i>Upload / Paste</span><span><i>✓</i>Nhận dạng tự động</span><span><i>✓</i>Xuất file linh hoạt</span></div></div>
+          <div className="exam-v96-hero-copy exam-v35-hero-copy"><span className="exam-v96-tag exam-v35-tag">Exam Studio • Automatic source recognition</span><h1>{title}</h1><p>Nhập đề từ PDF, DOCX hoặc văn bản; hệ thống tự nhận dạng, chuẩn hoá, preview, chỉnh sửa và xuất file mà không dùng AI.</p><div className="exam-v35-feature-list"><span><i>✓</i>Upload / Paste</span><span><i>✓</i>Nhận dạng tự động</span><span><i>✓</i>File mẫu đầy đủ</span></div></div>
         </div>
         <div className="exam-v96-stat-grid exam-v35-action-grid"><button type="button" className="exam-v96-stat-card exam-v35-action-card" onClick={() => setStep(1)}><span className="exam-v35-action-icon is-auto">✓</span><span className="exam-v35-action-copy"><strong>Nhận dạng tự động</strong><small>Cục bộ · Không AI · Không API</small></span><em className="exam-v35-ready-pill is-local">Sẵn sàng</em><i className="exam-v35-action-arrow">›</i></button><button type="button" className="exam-v96-stat-card exam-v35-action-card" onClick={() => setStep(1)}><span className="exam-v35-action-icon is-upload">⇧</span><span className="exam-v35-action-copy"><strong>Upload / Paste</strong><small>{project.sourceFileName || 'PDF · DOCX · TXT · MD'}</small></span><i className="exam-v35-action-arrow">›</i></button><button type="button" className="exam-v96-stat-card exam-v35-action-card" onClick={() => output && setStep(2)} aria-disabled={!output}><span className="exam-v35-action-icon is-draft">▤</span><span className="exam-v35-action-copy"><strong>{output ? 'Preview' : 'Draft'}</strong><small>{output ? `${output.questions.length} câu đã sẵn sàng` : 'Chưa có output'}</small></span><i className="exam-v35-action-arrow">›</i></button></div>
       </section>
