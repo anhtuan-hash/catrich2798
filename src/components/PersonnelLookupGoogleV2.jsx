@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import PersonnelLookupGoogleV2Base from './PersonnelLookupGoogleV2Base.jsx';
 import '../styles/personnel-google-material-v3.css';
+import '../styles/personnel-profile-modal.css';
 
 const FILTER_COPY = {
   vi: {
@@ -159,9 +160,112 @@ function PersonnelFilterController({ language = 'vi' }) {
   return null;
 }
 
+function PersonnelProfileModalController() {
+  useEffect(() => {
+    let activeLayer = null;
+    let cleanupDialog = null;
+    let previousFocus = null;
+
+    const unmountDialog = () => {
+      cleanupDialog?.();
+      cleanupDialog = null;
+      activeLayer = null;
+    };
+
+    const mountDialog = (layer) => {
+      if (!layer || layer === activeLayer) return;
+      unmountDialog();
+      activeLayer = layer;
+
+      const dialog = layer.querySelector('.pgt-drawer');
+      const closeButton = layer.querySelector('.pgt-drawer-head > button:first-child');
+      if (!dialog) return;
+
+      previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      document.body.classList.add('pgt-profile-modal-open');
+      dialog.setAttribute('tabindex', '-1');
+
+      const focusableSelector = [
+        'button:not([disabled])',
+        '[href]',
+        'input:not([disabled])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])',
+      ].join(',');
+
+      const focusInitial = () => {
+        const target = closeButton || dialog;
+        try { target.focus({ preventScroll: true }); } catch { target.focus(); }
+      };
+      window.requestAnimationFrame(focusInitial);
+
+      const onKeyDown = (event) => {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          event.stopPropagation();
+          closeButton?.click();
+          return;
+        }
+        if (event.key !== 'Tab') return;
+
+        const focusable = [...dialog.querySelectorAll(focusableSelector)]
+          .filter((element) => element instanceof HTMLElement && element.offsetParent !== null);
+        if (!focusable.length) {
+          event.preventDefault();
+          dialog.focus();
+          return;
+        }
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      };
+
+      document.addEventListener('keydown', onKeyDown, true);
+      cleanupDialog = () => {
+        document.removeEventListener('keydown', onKeyDown, true);
+        document.body.classList.remove('pgt-profile-modal-open');
+        dialog.removeAttribute('tabindex');
+        const restoreTarget = previousFocus;
+        previousFocus = null;
+        if (restoreTarget?.isConnected) {
+          window.requestAnimationFrame(() => {
+            try { restoreTarget.focus({ preventScroll: true }); } catch { restoreTarget.focus(); }
+          });
+        }
+      };
+    };
+
+    const scan = () => {
+      const layer = document.querySelector('#dashboard-personnel-v2 .pgt-drawer-layer');
+      if (layer) mountDialog(layer);
+      else if (activeLayer) unmountDialog();
+    };
+
+    scan();
+    const observer = new MutationObserver(scan);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      unmountDialog();
+    };
+  }, []);
+
+  return null;
+}
+
 export default function PersonnelLookupGoogleV2(props) {
   return <>
     <PersonnelLookupGoogleV2Base {...props} />
     <PersonnelFilterController language={props.language} />
+    <PersonnelProfileModalController />
   </>;
 }
