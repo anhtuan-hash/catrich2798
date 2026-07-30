@@ -11,6 +11,10 @@ const nativeFetch = typeof globalThis.fetch === 'function' ? globalThis.fetch.bi
 const readCache = new Map();
 const inFlightReads = new Map();
 const MAX_CACHE_ENTRIES = 240;
+const SUPABASE_RETRY_DELAYS = [1800, 4200, 8500, 15000];
+const WEEKLY_MUTATION_GAP_MS = 1250;
+let weeklyMutationQueue = Promise.resolve();
+let lastWeeklyMutationAt = 0;
 
 const WORK_HUB_ITEM_COLUMNS = [
   'id',
@@ -227,6 +231,62 @@ function cloneFetchInput(input) {
   }
 }
 
+function wait(milliseconds) {
+  return new Promise((resolve) => window.setTimeout(resolve, Math.max(0, milliseconds)));
+}
+
+function isWeeklyPracticeMutation(request) {
+  const method = String(request.method || 'GET').toUpperCase();
+  if (method === 'GET' || method === 'HEAD') return false;
+  return request.url.includes('/rest/v1/weekly_practice_items')
+    || request.url.includes('/storage/v1/object/weekly-practice/');
+}
+
+async function isUsageLimitResponse(response) {
+  if (response.status === 429) return true;
+  if (response.ok) return false;
+  try {
+    const text = (await response.clone().text()).toLowerCase();
+    return text.includes('usage limit reached')
+      || text.includes('rate limit')
+      || text.includes('too many requests');
+  } catch {
+    return false;
+  }
+}
+
+function retryDelayFor(response, attempt) {
+  const retryAfter = Number.parseFloat(response.headers.get('retry-after') || '');
+  if (Number.isFinite(retryAfter) && retryAfter > 0) return Math.min(retryAfter * 1000, 30000);
+  return SUPABASE_RETRY_DELAYS[Math.min(attempt, SUPABASE_RETRY_DELAYS.length - 1)];
+}
+
+async function fetchWithUsageLimitRetry(request) {
+  for (let attempt = 0; attempt <= SUPABASE_RETRY_DELAYS.length; attempt += 1) {
+    const response = await nativeFetch(request.clone());
+    const limited = await isUsageLimitResponse(response);
+    if (!limited || attempt >= SUPABASE_RETRY_DELAYS.length) return response;
+    await wait(retryDelayFor(response, attempt));
+  }
+  return nativeFetch(request.clone());
+}
+
+async function runWeeklyPracticeMutation(request) {
+  const execute = async () => {
+    const elapsed = Date.now() - lastWeeklyMutationAt;
+    if (elapsed < WEEKLY_MUTATION_GAP_MS) await wait(WEEKLY_MUTATION_GAP_MS - elapsed);
+    try {
+      return await fetchWithUsageLimitRetry(request);
+    } finally {
+      lastWeeklyMutationAt = Date.now();
+    }
+  };
+
+  const pending = weeklyMutationQueue.then(execute, execute);
+  weeklyMutationQueue = pending.then(() => undefined, () => undefined);
+  return pending;
+}
+
 async function egressAwareFetch(input, init) {
   if (!nativeFetch) throw new Error('Fetch API is unavailable.');
   const originalRequest = new Request(cloneFetchInput(input), init);
@@ -238,12 +298,15 @@ async function egressAwareFetch(input, init) {
   // to be downloaded again even when their own data had not changed.
   if (isRestRequest && method !== 'GET' && method !== 'HEAD') {
     clearReadCacheForMutation(originalRequest.url);
-    return nativeFetch(originalRequest);
+    if (isWeeklyPracticeMutation(originalRequest)) return runWeeklyPracticeMutation(originalRequest);
+    return fetchWithUsageLimitRetry(originalRequest);
   }
+
+  if (isWeeklyPracticeMutation(originalRequest)) return runWeeklyPracticeMutation(originalRequest);
 
   const request = isRestRequest ? applySelectProjection(originalRequest) : originalRequest;
   const ttl = method === 'GET' && isRestRequest ? getHeavyReadTtl(request.url) : 0;
-  if (!ttl) return nativeFetch(request);
+  if (!ttl) return fetchWithUsageLimitRetry(request);
 
   const key = cacheKeyFor(request);
   const cached = readCache.get(key);
@@ -255,7 +318,7 @@ async function egressAwareFetch(input, init) {
   if (!inFlightReads.has(key)) {
     const token = { invalidated: false };
     let pending;
-    pending = nativeFetch(request)
+    pending = fetchWithUsageLimitRetry(request)
       .then((response) => {
         if (response.ok && !token.invalidated) {
           readCache.set(key, { storedAt: Date.now(), response: response.clone() });
