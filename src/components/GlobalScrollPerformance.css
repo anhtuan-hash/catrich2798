@@ -1,6 +1,7 @@
 /* Brian English Studio · scroll performance guard
-   Loaded after the visual theme files. Balanced/low profiles trade expensive
-   glass/compositing effects for solid surfaces so scrolling stays responsive. */
+   Loaded last, after every visual theme. Balanced/low profiles trade expensive
+   glass, blur and animated glow layers for static surfaces so scrolling remains
+   responsive. High mode intentionally keeps the full premium treatment. */
 
 html {
   scroll-behavior: auto !important;
@@ -59,6 +60,67 @@ html[data-performance='balanced'] body .app-shell[data-route] .brian-briefing-ch
 html[data-performance='low'] body .app-shell[data-route] .brian-briefing-chip {
   background: #fff !important;
   box-shadow: inset 0 0 0 1px rgba(96, 121, 170, .12) !important;
+}
+
+/* The whole-hub aura is a full-width blurred animated layer. On Auto/Balanced
+   and Low profiles keep a quiet static tint, remove the blur pass, stop the
+   infinite animation and release the permanent compositor allocation. */
+html[data-performance='balanced'] body .app-shell[data-route] .bes-top-chrome::before,
+html[data-performance='low'] body .app-shell[data-route] .bes-top-chrome::before {
+  animation: none !important;
+  filter: none !important;
+  opacity: .18 !important;
+  transform: none !important;
+  will-change: auto !important;
+  box-shadow: none !important;
+  background: linear-gradient(
+    110deg,
+    rgba(var(--bes-hub-aura-cyan, 77, 231, 222), .16),
+    rgba(var(--bes-hub-aura-blue, 45, 173, 255), .18) 38%,
+    rgba(var(--bes-hub-aura-violet, 153, 102, 255), .16) 72%,
+    rgba(var(--bes-hub-aura-pink, 235, 123, 255), .12)
+  ) !important;
+}
+
+html[data-performance='balanced'] body .app-shell[data-route] .bes-top-chrome::after,
+html[data-performance='low'] body .app-shell[data-route] .bes-top-chrome::after {
+  animation: none !important;
+  filter: none !important;
+  opacity: .42 !important;
+  transform: none !important;
+  will-change: auto !important;
+  box-shadow: none !important;
+}
+
+/* Remove the additional blurred bridge under the first navigation row. */
+html[data-performance='balanced'] body .app-shell[data-route] .bes-top-chrome > .brian-nav::after,
+html[data-performance='low'] body .app-shell[data-route] .bes-top-chrome > .brian-nav::after {
+  display: none !important;
+  animation: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+/* Keep the premium identity without per-frame filter work. */
+html[data-performance='balanced'] body .app-shell[data-route] .brian-nav__brand::before,
+html[data-performance='low'] body .app-shell[data-route] .brian-nav__brand::before,
+html[data-performance='balanced'] body .app-shell[data-route] .brian-nav__primary::after,
+html[data-performance='low'] body .app-shell[data-route] .brian-nav__primary::after,
+html[data-performance='balanced'] body .app-shell[data-route] .brian-briefing-chip__icon,
+html[data-performance='low'] body .app-shell[data-route] .brian-briefing-chip__icon {
+  filter: none !important;
+}
+
+html[data-performance='balanced'] body .app-shell[data-route] .brian-nav__brand img,
+html[data-performance='low'] body .app-shell[data-route] .brian-nav__brand img {
+  filter: none !important;
+}
+
+html[data-performance='balanced'] body .app-shell[data-route] .brian-nav__primary > :is(button, [role='button']).is-active::after,
+html[data-performance='low'] body .app-shell[data-route] .brian-nav__primary > :is(button, [role='button']).is-active::after {
+  animation: none !important;
+  filter: none !important;
+  box-shadow: 0 0 8px rgba(var(--bes-nav-glow), .30) !important;
 }
 
 /* Keep the headline ticker moving. Only stop the decorative weather pulse on
@@ -122,5 +184,19 @@ html[data-performance='low'] body :is(
     top: auto !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+  }
+
+  body .app-shell[data-route] .bes-top-chrome::before {
+    animation: none !important;
+    filter: none !important;
+    will-change: auto !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body .app-shell[data-route] .bes-top-chrome::before,
+  body .app-shell[data-route] .brian-nav__primary > :is(button, [role='button']).is-active::after {
+    animation: none !important;
+    will-change: auto !important;
   }
 }

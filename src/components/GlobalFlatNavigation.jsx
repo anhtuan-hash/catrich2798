@@ -56,7 +56,6 @@ import './GlobalHomeBriefingContextFix.css';
 import './GlobalHomeBriefingUnderLogoFix.css';
 import './GlobalAuroraChrome.css';
 import './GlobalSeparatedPills.css';
-import './GlobalScrollPerformance.css';
 import './GlobalTickerRestore.css';
 import './GlobalNavigationPremiumV2.css';
 import './GlobalNavigationWholeHubAura.css';
@@ -68,6 +67,8 @@ import './GlobalWeeklyPracticeStatistics.css';
 import './GlobalWeeklyPracticeStatisticsLaunchFix.css';
 import './GlobalWeeklyPracticeSimple.css';
 import './GlobalWeeklyPracticeStudentProof.css';
+// Must remain last: performance rules intentionally override expensive visual layers.
+import './GlobalScrollPerformance.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
