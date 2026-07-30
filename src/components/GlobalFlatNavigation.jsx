@@ -58,6 +58,7 @@ import './GlobalAuroraChrome.css';
 import './GlobalSeparatedPills.css';
 import './GlobalScrollPerformance.css';
 import './GlobalTickerRestore.css';
+import './GlobalNavigationPremiumV2.css';
 import './GlobalWorkScheduleModern.css';
 import './GlobalHomeViewportFit.css';
 import './GlobalWeeklyPractice.css';
