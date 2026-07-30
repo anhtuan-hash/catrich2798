@@ -4,5 +4,5 @@ export {
   CompetitionTab,
   FeedbackTab as SubjectFeedbackTab,
   PortalsTab,
-  SchoolStatsTab,
 } from './homeroom/HomeroomCommunicationTabs.jsx';
+export { default as SchoolStatsTab } from './homeroom/SchoolStatsCompactTab.jsx';
