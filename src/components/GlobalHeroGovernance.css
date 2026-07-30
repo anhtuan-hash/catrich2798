@@ -10,6 +10,8 @@ html[data-burs="comfortable"][data-brian-hero-governance="v1"] {
   --brian-hero-body: clamp(1rem, 1.05vw, 1.125rem);
   --brian-hero-label: .875rem;
   --brian-hero-action: .9375rem;
+  --brian-hero-standard-height: 320px;
+  --brian-hero-standard-height-tablet: 280px;
 }
 
 html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed,
@@ -22,6 +24,21 @@ html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-
 html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed {
   container-type: inline-size;
   isolation: isolate;
+}
+
+/* One shared frame for every route hero except the homepage CMS hero.
+   Site-specific artwork, color and internal layout remain unchanged. */
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed:not([data-brian-hero-route="home"]) {
+  min-height: var(--brian-hero-standard-height) !important;
+  height: auto !important;
+  max-height: none !important;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1100px) {
+  html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed:not([data-brian-hero-route="home"]) {
+    min-height: var(--brian-hero-standard-height-tablet) !important;
+  }
 }
 
 html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed > h1,
@@ -161,6 +178,10 @@ html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell :where
 @container (max-width: 760px) {
   html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed {
     min-height: 0 !important;
+  }
+
+  html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed:not([data-brian-hero-route="home"]) {
+    min-height: var(--brian-hero-standard-height-tablet) !important;
   }
 
   html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed .burs-hero-copy-governed > h1 {
