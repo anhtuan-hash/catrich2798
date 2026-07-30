@@ -1,0 +1,227 @@
+/* Global Hero Governance
+   Keeps each route's visual identity while enforcing safe type, wrapping and responsive behavior. */
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] {
+  --brian-hero-showcase-title: clamp(3rem, 4.8vw, 4rem);
+  --brian-hero-showcase-secondary: clamp(2.125rem, 3.5vw, 3.25rem);
+  --brian-hero-route-title: clamp(2.5rem, 3.8vw, 3.5rem);
+  --brian-hero-route-secondary: clamp(1.875rem, 3vw, 2.625rem);
+  --brian-hero-compact-title: clamp(2.125rem, 3.1vw, 2.75rem);
+  --brian-hero-compact-secondary: clamp(1.625rem, 2.5vw, 2.25rem);
+  --brian-hero-body: clamp(1rem, 1.05vw, 1.125rem);
+  --brian-hero-label: .875rem;
+  --brian-hero-action: .9375rem;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed,
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed > *,
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed {
+  min-width: 0;
+  max-width: 100%;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed {
+  container-type: inline-size;
+  isolation: isolate;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed > h1,
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed > h2 {
+  max-width: 100%;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed[data-brian-hero-variant="showcase"] .burs-hero-copy-governed > h1 {
+  max-width: 18ch;
+  font-size: var(--brian-hero-showcase-title) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -.045em !important;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed[data-brian-hero-variant="showcase"] .burs-hero-copy-governed > h2 {
+  max-width: 20ch;
+  font-size: var(--brian-hero-showcase-secondary) !important;
+  line-height: 1.04 !important;
+  letter-spacing: -.035em !important;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed[data-brian-hero-variant="route"] .burs-hero-copy-governed > h1 {
+  max-width: 20ch;
+  font-size: var(--brian-hero-route-title) !important;
+  line-height: 1.06 !important;
+  letter-spacing: -.038em !important;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed[data-brian-hero-variant="route"] .burs-hero-copy-governed > h2 {
+  max-width: 22ch;
+  font-size: var(--brian-hero-route-secondary) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.028em !important;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed[data-brian-hero-variant="compact"] .burs-hero-copy-governed > h1 {
+  max-width: 24ch;
+  font-size: var(--brian-hero-compact-title) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.032em !important;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed[data-brian-hero-variant="compact"] .burs-hero-copy-governed > h2 {
+  max-width: 25ch;
+  font-size: var(--brian-hero-compact-secondary) !important;
+  line-height: 1.1 !important;
+  letter-spacing: -.022em !important;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed > p {
+  max-width: 68ch;
+  font-size: var(--brian-hero-body) !important;
+  line-height: 1.58 !important;
+  overflow-wrap: anywhere;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed :where(
+  .eyebrow,
+  .kicker,
+  [class$="-eyebrow"],
+  [class*="-eyebrow "],
+  [class$="-kicker"],
+  [class*="-kicker "],
+  [class$="-badge"],
+  [class*="-badge "]
+) {
+  font-size: var(--brian-hero-label) !important;
+  line-height: 1.35 !important;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed :where(
+  [class*="hero-actions"],
+  .route-hero-actions,
+  [class*="hero-buttons"]
+) {
+  max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed :where(
+  [class*="hero-actions"],
+  .route-hero-actions,
+  [class*="hero-buttons"]
+) :where(button, a, [role="button"]) {
+  min-height: 3rem !important;
+  max-width: 100%;
+  font-size: var(--brian-hero-action) !important;
+  line-height: 1.3 !important;
+  white-space: normal;
+  text-align: center;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed[data-brian-hero-audit~="long-title"] .burs-hero-copy-governed > h1 {
+  font-size: clamp(2.25rem, 3.8vw, 3.375rem) !important;
+  line-height: 1.07 !important;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed[data-brian-hero-audit~="long-secondary"] .burs-hero-copy-governed > h2 {
+  font-size: clamp(1.75rem, 2.8vw, 2.5rem) !important;
+}
+
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed[data-brian-hero-audit~="crowded-actions"] .burs-hero-copy-governed :where(
+  [class*="hero-actions"],
+  .route-hero-actions,
+  [class*="hero-buttons"]
+) :where(button, a, [role="button"]) {
+  flex: 1 1 10rem;
+}
+
+/* The previous global typography layer treated every h2 as a section title.
+   Real hero secondary headings now keep their intended visual hierarchy. */
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed .burs-hero-copy-governed > h2 {
+  text-transform: none;
+}
+
+/* Prevent class names ending in “display” from being mistaken for display text. */
+html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell :where(
+  div,
+  section,
+  article,
+  aside,
+  header,
+  main,
+  nav
+)[class$="-display"]:not(.burs-hero-governed) {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: normal !important;
+}
+
+@container (max-width: 760px) {
+  html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed {
+    min-height: 0 !important;
+  }
+
+  html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed .burs-hero-copy-governed > h1 {
+    max-width: 22ch;
+    font-size: clamp(2.25rem, 8.4vw, 3rem) !important;
+    line-height: 1.06 !important;
+  }
+
+  html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed .burs-hero-copy-governed > h2 {
+    max-width: 24ch;
+    font-size: clamp(1.75rem, 6.6vw, 2.375rem) !important;
+    line-height: 1.08 !important;
+  }
+}
+
+@media (max-width: 699px) {
+  html[data-burs="comfortable"][data-brian-hero-governance="v1"] {
+    --brian-hero-showcase-title: clamp(2.25rem, 10vw, 2.75rem);
+    --brian-hero-showcase-secondary: clamp(1.75rem, 8vw, 2.25rem);
+    --brian-hero-route-title: clamp(2.125rem, 9.2vw, 2.625rem);
+    --brian-hero-route-secondary: clamp(1.625rem, 7.5vw, 2.125rem);
+    --brian-hero-compact-title: clamp(2rem, 8.6vw, 2.375rem);
+    --brian-hero-compact-secondary: clamp(1.5rem, 7vw, 1.875rem);
+    --brian-hero-body: 1rem;
+  }
+
+  html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-governed {
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
+  html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed > h1,
+  html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed > h2,
+  html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed > p {
+    max-width: 100%;
+  }
+
+  html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed :where(
+    [class*="hero-actions"],
+    .route-hero-actions,
+    [class*="hero-buttons"]
+  ) {
+    width: 100%;
+  }
+
+  html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed :where(
+    [class*="hero-actions"],
+    .route-hero-actions,
+    [class*="hero-buttons"]
+  ) :where(button, a, [role="button"]) {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed > h1 {
+    font-size: 2.125rem !important;
+  }
+
+  html[data-burs="comfortable"][data-brian-hero-governance="v1"] .app-shell .burs-hero-copy-governed > h2 {
+    font-size: 1.625rem !important;
+  }
+}
