@@ -170,7 +170,22 @@ export function AppsDirectoryHero({ language, isAdmin, editMode, saving, visible
         <section className="apps-directory-workspace">
           <header className="apps-directory-workspace-bar"><span className="apps-directory-window-dots" aria-hidden="true"><i /><i /><i /></span><span className="apps-directory-workspace-search" aria-hidden="true">⌕ {t.search}</span></header>
           <div className="apps-directory-workspace-content">
-            <div className="apps-directory-workspace-heading"><small>BRIAN APP SPACE</small><strong>{t.previewTitle}</strong><span>{t.previewHint}</span></div>
+            <div className="apps-directory-workspace-heading">
+              <small>BRIAN APP SPACE</small><strong>{t.previewTitle}</strong><span>{t.previewHint}</span>
+              <div className="apps-directory-flat-relief" aria-hidden="true">
+                <div className="apps-flat-relief-books">
+                  <span className="apps-flat-relief-book is-blue"><i /></span>
+                  <span className="apps-flat-relief-book is-mint"><i /></span>
+                  <span className="apps-flat-relief-book is-coral"><i /></span>
+                </div>
+                <div className="apps-flat-relief-calendar">
+                  <span className="apps-flat-relief-rings"><i /><i /></span>
+                  <strong>BE</strong><small>APPS</small>
+                </div>
+                <div className="apps-flat-relief-pencil"><span /><i /></div>
+                <div className="apps-flat-relief-cube"><span /><i /><b /></div>
+              </div>
+            </div>
             <div className="apps-directory-preview-grid">
               {previewItems.map((item) => {
                 const profile = getAppDesignProfile(item.slug);
