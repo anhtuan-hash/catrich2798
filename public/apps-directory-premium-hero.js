@@ -38,27 +38,35 @@
     return /cửa sổ|ứng dụng|sáng tạo/i.test(text) || document.documentElement.lang?.toLowerCase().startsWith('vi');
   }
 
+  function addVisual(hero) {
+    if (hero.querySelector(':scope > .apps-hero-visual')) return;
+    hero.insertAdjacentHTML('beforeend', visualMarkup);
+  }
+
   function addBrowseAction(hero) {
     const copy = hero.querySelector('.flat-apps-hero-copy');
-    if (!copy || copy.querySelector('.apps-premium-actions')) return;
+    if (!copy) return;
 
-    const actions = document.createElement('div');
-    actions.className = 'apps-premium-actions';
+    let actions = copy.querySelector('.apps-premium-actions');
+    if (!actions) {
+      actions = document.createElement('div');
+      actions.className = 'apps-premium-actions';
 
-    const browse = document.createElement('button');
-    browse.type = 'button';
-    browse.className = 'apps-hero-browse-button';
-    browse.innerHTML = `
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z"/></svg>
-      <span>${isVietnamese(hero) ? 'Thêm / duyệt ứng dụng' : 'Add / browse apps'}</span>`;
-    browse.addEventListener('click', () => {
-      document.querySelector(GRID_SELECTOR)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
+      const browse = document.createElement('button');
+      browse.type = 'button';
+      browse.className = 'apps-hero-browse-button';
+      browse.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z"/></svg>
+        <span>${isVietnamese(hero) ? 'Thêm / duyệt ứng dụng' : 'Add / browse apps'}</span>`;
+      browse.addEventListener('click', () => {
+        document.querySelector(GRID_SELECTOR)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      actions.appendChild(browse);
+      copy.appendChild(actions);
+    }
 
-    actions.appendChild(browse);
-    const adminActions = copy.querySelector('.launcher-admin-actions');
-    if (adminActions) copy.insertBefore(actions, adminActions);
-    else copy.appendChild(actions);
+    const adminActions = copy.querySelector(':scope > .launcher-admin-actions');
+    if (adminActions && adminActions.parentElement !== actions) actions.appendChild(adminActions);
   }
 
   function decorateAdminActions(hero) {
@@ -76,9 +84,13 @@
   }
 
   function decorateStats(hero) {
-    const stats = hero.querySelector(':scope > .flat-apps-stats');
-    if (!stats) return;
+    const stats = hero.querySelector('.flat-apps-stats');
+    const visual = hero.querySelector(':scope > .apps-hero-visual');
+    if (!stats || !visual) return;
+
     stats.classList.add('apps-premium-stats');
+    if (stats.parentElement !== visual) visual.appendChild(stats);
+
     const detailsVi = ['Ứng dụng sẵn sàng', 'Đã ghim', 'Vị trí điều hướng'];
     const detailsEn = ['Apps ready', 'Pinned', 'Navigation slots'];
     const details = isVietnamese(hero) ? detailsVi : detailsEn;
@@ -87,11 +99,6 @@
       card.dataset.icon = icons[index];
       card.dataset.detail = details[index];
     });
-  }
-
-  function addVisual(hero) {
-    if (hero.querySelector(':scope > .apps-hero-visual')) return;
-    hero.insertAdjacentHTML('beforeend', visualMarkup);
   }
 
   function hideCategoryRail() {
@@ -110,10 +117,10 @@
     enhancing = true;
     try {
       hero.classList.add('apps-premium-hero');
+      addVisual(hero);
       addBrowseAction(hero);
       decorateAdminActions(hero);
       decorateStats(hero);
-      addVisual(hero);
       hideCategoryRail();
     } finally {
       enhancing = false;
