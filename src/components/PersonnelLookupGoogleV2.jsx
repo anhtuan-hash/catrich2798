@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import PersonnelLookupGoogleV2Base from './PersonnelLookupGoogleV2Base.jsx';
 import '../styles/personnel-google-material-v3.css';
 import '../styles/personnel-profile-modal.css';
+import '../styles/dashboard-gap-modal-center-fix.css';
 
 const FILTER_COPY = {
   vi: {
@@ -185,6 +186,27 @@ function PersonnelProfileModalController() {
       document.body.classList.add('pgt-profile-modal-open');
       dialog.setAttribute('tabindex', '-1');
 
+      const centerInViewport = () => {
+        if (!layer.isConnected) return;
+        layer.style.setProperty('inset', 'auto', 'important');
+        layer.style.setProperty('top', '0', 'important');
+        layer.style.setProperty('left', '0', 'important');
+        layer.style.setProperty('right', 'auto', 'important');
+        layer.style.setProperty('bottom', 'auto', 'important');
+        layer.style.setProperty('width', '100vw', 'important');
+        layer.style.setProperty('height', '100dvh', 'important');
+        layer.style.setProperty('transform', 'none', 'important');
+        const rect = layer.getBoundingClientRect();
+        layer.style.setProperty('transform', `translate3d(${-rect.left}px, ${-rect.top}px, 0)`, 'important');
+      };
+
+      const queueCenter = () => window.requestAnimationFrame(centerInViewport);
+      queueCenter();
+      window.setTimeout(queueCenter, 80);
+      window.addEventListener('resize', queueCenter);
+      window.visualViewport?.addEventListener('resize', queueCenter);
+      window.visualViewport?.addEventListener('scroll', queueCenter);
+
       const focusableSelector = [
         'button:not([disabled])',
         '[href]',
@@ -231,8 +253,12 @@ function PersonnelProfileModalController() {
       document.addEventListener('keydown', onKeyDown, true);
       cleanupDialog = () => {
         document.removeEventListener('keydown', onKeyDown, true);
+        window.removeEventListener('resize', queueCenter);
+        window.visualViewport?.removeEventListener('resize', queueCenter);
+        window.visualViewport?.removeEventListener('scroll', queueCenter);
         document.body.classList.remove('pgt-profile-modal-open');
         dialog.removeAttribute('tabindex');
+        ['inset', 'top', 'left', 'right', 'bottom', 'width', 'height', 'transform'].forEach((property) => layer.style.removeProperty(property));
         const restoreTarget = previousFocus;
         previousFocus = null;
         if (restoreTarget?.isConnected) {
