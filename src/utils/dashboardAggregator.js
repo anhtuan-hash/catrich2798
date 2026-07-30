@@ -22,6 +22,7 @@ const DRAFT_PREFIX = 'bes-global-draft-v1084';
 const WORKSPACE_EVENT = 'bes-workspace-updated';
 const AI_CONFIG_SOURCE_MODULE = 'english-hub-ai-websites';
 const WORK_DASHBOARD_MAX_ITEMS = 500;
+const WORK_DASHBOARD_RPC = 'bes_dashboard_work_hub_v2';
 const WORK_DASHBOARD_COLUMNS = [
   'id',
   'title',
@@ -160,6 +161,12 @@ function mergeWorkItems(...sources) {
   return [...map.values()];
 }
 
+function dashboardRpcRows(data) {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.items)) return data.items;
+  return [];
+}
+
 function normalizeWork(item, user) {
   const userId = String(user?.id || '');
   const assignees = array(item?.assignee_ids).map(String);
@@ -283,6 +290,20 @@ async function loadWork(user, now = new Date()) {
     try {
       const rangeStart = startOfDay(now);
       const rangeEnd = addDays(rangeStart, 14);
+      const compactResult = await client.rpc(WORK_DASHBOARD_RPC, {
+        p_range_start: rangeStart.toISOString(),
+        p_range_end: rangeEnd.toISOString(),
+        p_recent_limit: WORK_DASHBOARD_MAX_ITEMS,
+        p_upcoming_limit: WORK_DASHBOARD_MAX_ITEMS,
+      });
+      if (!compactResult.error) {
+        return {
+          items: mergeWorkItems(localItems, dashboardRpcRows(compactResult.data)),
+          source: 'cloud-compact',
+        };
+      }
+
+      // Preserve the complete Dashboard on older databases or during a staged rollout.
       const [summaryResult, upcomingResult] = await Promise.all([
         client
           .from('work_hub_items')
@@ -301,7 +322,7 @@ async function loadWork(user, now = new Date()) {
         const cloudItems = mergeWorkItems(summaryResult.data || [], upcomingResult.data || []);
         return {
           items: mergeWorkItems(localItems, cloudItems),
-          source: summaryResult.error || upcomingResult.error ? 'cloud-partial' : 'cloud-summary',
+          source: summaryResult.error || upcomingResult.error ? 'cloud-partial-fallback' : 'cloud-fallback',
         };
       }
     } catch { /* local fallback */ }
