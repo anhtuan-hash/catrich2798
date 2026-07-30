@@ -19,7 +19,7 @@ const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
 const TeachingMethodsHub = lazy(() => import('./TeachingMethodsHub.jsx'));
 const PersonnelHub = lazy(() => import('./PersonnelHub.jsx'));
 const ClassroomScreenHost = lazy(() => import('./ClassroomScreenHost.jsx'));
-const FlyingWordsGame = lazy(() => import('./FlyingWordsGame.jsx'));
+const FlyingWordsGame = lazy(() => import('./FlyingWordsGamePlus.jsx'));
 
 const specializedToolSlugs = new Set([
   'exam-studio',
