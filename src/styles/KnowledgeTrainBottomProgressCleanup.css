@@ -1,0 +1,10 @@
+/* Đoàn Tàu Tri Thức · remove the obsolete lower-left progress chip.
+   Progress is already visible in the warehouse header, so the footer only keeps actions. */
+
+.app-shell[data-tool="knowledge-train"] .ktg-progress {
+  display: none !important;
+}
+
+.app-shell[data-tool="knowledge-train"] .ktg-actions {
+  justify-content: flex-end !important;
+}
