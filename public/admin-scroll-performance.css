@@ -1,0 +1,90 @@
+/* Admin Center scroll performance patch.
+   Keeps the layout and all four summary cards, but removes expensive repaint work. */
+
+.metro-clean-system[data-route="admin"] {
+  scroll-behavior: auto !important;
+  background-attachment: scroll !important;
+}
+
+.metro-clean-system[data-route="admin"] .admin-page-v41,
+.metro-clean-system[data-route="admin"] .admin-page-v41 *,
+.metro-clean-system[data-route="admin"] .admin-page-v41 *::before,
+.metro-clean-system[data-route="admin"] .admin-page-v41 *::after {
+  animation: none !important;
+  scroll-behavior: auto !important;
+}
+
+.metro-clean-system[data-route="admin"] .admin-page-v41 :is(
+  button,
+  article,
+  section,
+  aside,
+  .admin-v41-panel,
+  .admin-v41-summary-card,
+  .admin-user-card,
+  .permission-chip,
+  .permission-request-card
+) {
+  transition: none !important;
+}
+
+/* A large sticky rail with rounded corners and shadow was repainted on every frame. */
+@media (min-width: 1021px) {
+  .metro-clean-system[data-route="admin"] .admin-v41-sidebar {
+    position: relative !important;
+    top: auto !important;
+    align-self: start !important;
+    min-height: auto !important;
+  }
+}
+
+/* Isolate each surface so scrolling one area does not invalidate the whole page. */
+.metro-clean-system[data-route="admin"] :is(
+  .admin-v41-hero,
+  .admin-v41-summary-strip,
+  .admin-v41-panel,
+  .admin-sync-panel,
+  .admin-diagnostic-panel,
+  .permission-request-admin-panel,
+  .admin-user-card,
+  .permission-admin-grid
+) {
+  contain: layout paint style;
+}
+
+/* Skip layout and paint work for long off-screen Admin sections in Chromium. */
+.metro-clean-system[data-route="admin"] :is(
+  .admin-v41-panel,
+  .admin-sync-panel,
+  .admin-diagnostic-panel,
+  .permission-request-admin-panel,
+  .admin-user-card
+) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 420px;
+}
+
+/* Cultural ambient assets remain visible, but become static and compositor-safe on Admin. */
+.metro-clean-system[data-route="admin"] :is(
+  [class*="vietnam" i],
+  [class*="atmosphere" i],
+  [class*="ambient" i],
+  [class*="culture" i],
+  [class*="decor" i]
+) {
+  animation: none !important;
+  transition: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  will-change: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .metro-clean-system[data-route="admin"] *,
+  .metro-clean-system[data-route="admin"] *::before,
+  .metro-clean-system[data-route="admin"] *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
