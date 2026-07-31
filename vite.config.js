@@ -5,128 +5,6 @@ import react from '@vitejs/plugin-react';
 const departmentCloudEnabled = process.env.VITE_DEPARTMENT_CLOUD_ENABLED || 'true';
 const departmentId = process.env.VITE_DEPARTMENT_ID || '00000000-0000-0000-0000-000000000001';
 
-function patchRandomGroupGenerator(code) {
-  let next = code;
-
-  if (!next.includes('random-group-generator-material-v2.css')) {
-    next = next.replace(
-      "import '../styles/random-group-generator.css';",
-      "import '../styles/random-group-generator.css';\nimport '../styles/random-group-generator-google-motion.css';\nimport '../styles/random-group-generator-material-v2.css';\nimport '../styles/random-group-generator-material-v2-runtime.css';",
-    );
-  }
-
-  if (!next.includes("const GROUP_COLORS = ['#0b57d0'")) {
-    next = next.replace(
-      "const GROUP_COLORS = ['#2563eb', '#7c3aed', '#db2777', '#ea580c', '#059669', '#0891b2', '#ca8a04', '#475569', '#9333ea', '#16a34a'];",
-      "const GROUP_COLORS = ['#0b57d0', '#9334e6', '#d01884', '#e8710a', '#188038', '#007b83', '#f9ab00', '#5f6368', '#7b1fa2', '#137333'];",
-    );
-  }
-
-  if (!next.includes('const [generationCycle, setGenerationCycle]')) {
-    next = next.replace(
-      '  const [draggedMember, setDraggedMember] = useState(null);',
-      "  const [draggedMember, setDraggedMember] = useState(null);\n  const [generationCycle, setGenerationCycle] = useState(0);\n  const [isShuffling, setIsShuffling] = useState(false);\n  const generationTimerRef = useRef(null);",
-    );
-  }
-
-  if (!next.includes('window.clearTimeout(generationTimerRef.current);\n    };\n  }, []);')) {
-    next = next.replace(
-      "  useEffect(() => {\n    const validIds = new Set(roster.map((student) => student.id));",
-      "  useEffect(() => () => {\n    window.clearTimeout(generationTimerRef.current);\n  }, []);\n\n  useEffect(() => {\n    const validIds = new Set(roster.map((student) => student.id));",
-    );
-  }
-
-  const oldGenerate = `  const generate = () => {
-    if (presentStudents.length < 2) {
-      flash(t.needStudents);
-      return;
-    }
-    const nextGroups = createGroups(presentStudents, {
-      mode,
-      value: groupValue,
-      remainder,
-      assignRoles: assignRoleMode,
-      revealOneByOne,
-    }, language);
-    setGroups(nextGroups);
-    window.setTimeout(() => document.getElementById('brian-group-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-  };`;
-
-  const newGenerate = `  const generate = () => {
-    if (presentStudents.length < 2) {
-      flash(t.needStudents);
-      return;
-    }
-    const nextGroups = createGroups(presentStudents, {
-      mode,
-      value: groupValue,
-      remainder,
-      assignRoles: assignRoleMode,
-      revealOneByOne,
-    }, language);
-    setIsShuffling(true);
-    window.clearTimeout(generationTimerRef.current);
-    generationTimerRef.current = window.setTimeout(() => {
-      setGroups(nextGroups);
-      setGenerationCycle((cycle) => cycle + 1);
-      setIsShuffling(false);
-      window.setTimeout(() => document.getElementById('brian-group-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 90);
-    }, groups.length ? 300 : 130);
-  };`;
-
-  if (!next.includes('setGenerationCycle((cycle) => cycle + 1)')) next = next.replace(oldGenerate, newGenerate);
-
-  if (!next.includes("isShuffling ? 'is-shuffling'")) {
-    next = next.replace(
-      "    <div className={`brian-group-app ${presenting ? 'is-presenting' : ''}`} ref={stageRef}>",
-      "    <div className={`brian-group-app ${presenting ? 'is-presenting' : ''} ${isShuffling ? 'is-shuffling' : ''} ${draggedMember ? 'is-dragging-member' : ''}`} data-generation={generationCycle} ref={stageRef}>",
-    );
-  }
-
-  if (!next.includes("style={{ '--row-index': index }}")) {
-    next = next.replace(
-      "return <button type=\"button\" key={student.id} className={absent ? 'is-absent' : ''} onClick={() => toggleAbsent(student.id)}>",
-      "return <button type=\"button\" key={student.id} className={absent ? 'is-absent' : ''} style={{ '--row-index': index }} onClick={() => toggleAbsent(student.id)}>",
-    );
-  }
-
-  if (!next.includes('className="brian-group-grid" key={generationCycle}')) {
-    next = next.replace('<div className="brian-group-grid">', '<div className="brian-group-grid" key={generationCycle}>');
-  }
-
-  if (!next.includes("'--group-index': groupIndex")) {
-    next = next.replace(
-      "            style={{ '--group-color': group.color }}",
-      "            style={{ '--group-color': group.color, '--group-index': groupIndex }}",
-    );
-  }
-
-  if (!next.includes('group.members.map((member, memberIndex)')) {
-    next = next.replace('group.members.map((member) => <li', 'group.members.map((member, memberIndex) => <li');
-  }
-
-  if (!next.includes("'--member-index': memberIndex")) {
-    next = next.replace(
-      `                key={member.id}
-                draggable`,
-      `                key={member.id}
-                className={draggedMember?.memberId === member.id ? 'is-drag-source' : ''}
-                style={{ '--member-index': memberIndex }}
-                draggable`,
-    );
-  }
-
-  if (!next.includes('group-hidden-avatars')) {
-    next = next.replace(
-      `              <Eye size={28} /><b>{t.show}</b><small>{group.members.length} {t.members}</small>`,
-      `              <div className="group-hidden-avatars" aria-hidden="true">{group.members.slice(0, 5).map((member, avatarIndex) => <span key={member.id} style={{ '--avatar-index': avatarIndex }}>{member.name.split(/\\s+/).slice(-2).map((part) => part[0]).join('').toUpperCase()}</span>)}</div>
-              <Eye size={25} /><b>{t.show}</b><small>{group.members.length} {t.members}</small>`,
-    );
-  }
-
-  return next;
-}
-
 function randomGroupGeneratorPlugin() {
   const appRecord = `
   {
@@ -143,10 +21,18 @@ function randomGroupGeneratorPlugin() {
     enforce: 'pre',
     transform(code, id) {
       const cleanId = String(id || '').split('?')[0].replaceAll('\\', '/');
+
       if (cleanId.endsWith('/src/data/apps.js') && !code.includes("slug: 'random-group-generator'")) {
         return code.replace('export const APPS = [', `export const APPS = [${appRecord}`);
       }
-      if (cleanId.endsWith('/src/pages/RandomGroupGenerator.jsx')) return patchRandomGroupGenerator(code);
+
+      if (cleanId.endsWith('/src/pages/RandomGroupGenerator.jsx') && !code.includes('random-group-generator-clean.css')) {
+        return code.replace(
+          "import '../styles/random-group-generator.css';",
+          "import '../styles/random-group-generator.css';\nimport '../styles/random-group-generator-clean.css';",
+        );
+      }
+
       if (cleanId.endsWith('/src/pages/ToolPage.jsx')) {
         let next = code;
         if (!next.includes("const RandomGroupGenerator = lazy")) {
@@ -163,6 +49,7 @@ function randomGroupGeneratorPlugin() {
         }
         return next;
       }
+
       return null;
     },
   };
@@ -175,14 +62,16 @@ export default defineConfig({
   },
   define: {
     'import.meta.env.VITE_DEPARTMENT_CLOUD_ENABLED': JSON.stringify(departmentCloudEnabled),
-    'import.meta.env.VITE_DEPARTMENT_ID': JSON.stringify(departmentId)},
+    'import.meta.env.VITE_DEPARTMENT_ID': JSON.stringify(departmentId),
+  },
   build: {
     target: 'es2020',
     cssCodeSplit: true,
     sourcemap: false,
     rollupOptions: {
       input: {
-        main: resolve(process.cwd(), 'index.html')},
+        main: resolve(process.cwd(), 'index.html'),
+      },
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
@@ -206,5 +95,9 @@ export default defineConfig({
           if (id.includes('/src/pages/TestBuilder') || id.includes('/src/pages/ClassroomGame') || id.includes('/src/pages/DominoWordForm') || id.includes('/src/pages/RandomGroupGenerator')) return 'tool-games-tests';
           if (id.includes('/src/pages/AdminPage') || id.includes('/src/pages/AuthPage') || id.includes('/src/pages/SupabaseSetup')) return 'auth-admin';
           return undefined;
-        }}},
-    chunkSizeWarningLimit: 650}});
+        },
+      },
+    },
+    chunkSizeWarningLimit: 650,
+  },
+});
