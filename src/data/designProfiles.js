@@ -1,3 +1,25 @@
+import { GAME_APPS } from './apps.js';
+
+const TOP_FIVE_ARENA_APP = {
+  slug: 'top-five-arena',
+  icon: 'T5',
+  tone: 'blue',
+  group: 'Teaching Activities',
+  groupVi: 'Hoạt động lớp học',
+  title: 'Brian Top 5 Arena',
+  titleVi: 'Brian Top 5 Arena',
+  desc: 'Run a polished Top 5 classroom game with ranked answers, teams, strikes, timer, scoring, presentation mode and offline editing.',
+  descVi: 'Tổ chức trò chơi Top 5 với đáp án xếp hạng, đội chơi, lỗi, đồng hồ, chấm điểm, trình chiếu và biên soạn offline.',
+  status: 'macOS style · Offline · Projector',
+  statusVi: 'Phong cách macOS · Offline · Máy chiếu',
+  api: false,
+  featured: true,
+};
+
+if (!GAME_APPS.some((app) => app.slug === TOP_FIVE_ARENA_APP.slug)) {
+  GAME_APPS.unshift(TOP_FIVE_ARENA_APP);
+}
+
 export const APP_DESIGN_PROFILES = {
   'classroom-screen': {
     accent: '#4285F4',
@@ -78,6 +100,13 @@ export const APP_DESIGN_PROFILES = {
     icon: 'game',
     style: 'Google-style crossword classroom game',
     styleVi: 'Trò chơi ô chữ lớp học phong cách Google'},
+  'top-five-arena': {
+    accent: '#2B6FF5',
+    soft: '#EAF2FF',
+    ink: '#0C1C3F',
+    icon: 'game',
+    style: 'macOS-style ranked answer arena',
+    styleVi: 'Đấu trường đáp án xếp hạng phong cách macOS'},
   word2graph: {
     accent: '#2E9E5D',
     soft: '#DDF6E6',
