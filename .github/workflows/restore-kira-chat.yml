@@ -1,0 +1,31 @@
+name: Restore KiraAI chatbot
+
+on:
+  push:
+    branches:
+      - revert/restore-kira-chat-commit-20260731
+
+permissions:
+  contents: write
+
+jobs:
+  revert-openrouter:
+    if: ${{ !contains(github.event.head_commit.message, '[kira-rollback-complete]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout rollback branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: revert/restore-kira-chat-commit-20260731
+
+      - name: Revert OpenRouter Phase 1
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git revert --no-edit da8c6180305177b04f1aaab10e7f30948d615380
+          git revert --no-edit 62cb7eabe31ceebc46206739c8a346e736043a32
+          git commit --allow-empty -m "[kira-rollback-complete] Restore KiraAI chatbot"
+          git push origin HEAD:revert/restore-kira-chat-commit-20260731
