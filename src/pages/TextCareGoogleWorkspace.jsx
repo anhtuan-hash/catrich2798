@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import TextCareDocxFixedStudio from './TextCareDocxFixedStudio.jsx';
-import TextCareAiAssistant from '../components/TextCareAiAssistant.jsx';
 
 function readWorkspaceSnapshot(page) {
   const statusItems = page?.querySelectorAll('.tcg-status-summary span');
@@ -10,15 +9,6 @@ function readWorkspaceSnapshot(page) {
   const type = statusItems?.[1]?.textContent?.trim() || 'KẾ HOẠCH';
   const pages = statusItems?.[2]?.textContent?.trim() || '1 trang A4';
   return { score, type, pages, autosave: autosave || 'Tự lưu đang bật' };
-}
-
-function setReactTextareaValue(node, value) {
-  if (!(node instanceof HTMLTextAreaElement)) return false;
-  const descriptor = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
-  descriptor?.set?.call(node, value);
-  node.dispatchEvent(new Event('input', { bubbles: true }));
-  node.dispatchEvent(new Event('change', { bubbles: true }));
-  return true;
 }
 
 function WorkspaceHero({ language, snapshot, onUpload, onPaste, onSample, onContinue }) {
@@ -73,13 +63,24 @@ function WorkspaceHero({ language, snapshot, onUpload, onPaste, onSample, onCont
           <b>⋮</b>
         </div>
         <div className="tcg-mini-document">
-          <div className="tcg-mini-document-head"><span /><span /></div>
+          <div className="tcg-mini-document-head">
+            <span />
+            <span />
+          </div>
           <strong>{snapshot.type}</strong>
-          <i /><i /><i className="short" />
+          <i />
+          <i />
+          <i className="short" />
           <div className="tcg-mini-signature"><span /><span /></div>
         </div>
-        <div className="tcg-visual-stat stat-completion"><small>{content.completion}</small><strong>{snapshot.score}</strong></div>
-        <div className="tcg-visual-stat stat-page"><small>{content.page}</small><strong>{snapshot.pages}</strong></div>
+        <div className="tcg-visual-stat stat-completion">
+          <small>{content.completion}</small>
+          <strong>{snapshot.score}</strong>
+        </div>
+        <div className="tcg-visual-stat stat-page">
+          <small>{content.page}</small>
+          <strong>{snapshot.pages}</strong>
+        </div>
         <div className="tcg-visual-save">✓ {snapshot.autosave}</div>
       </div>
     </section>
@@ -88,13 +89,11 @@ function WorkspaceHero({ language, snapshot, onUpload, onPaste, onSample, onCont
 
 export default function TextCareGoogleWorkspace(props) {
   const [heroHost, setHeroHost] = useState(null);
-  const [aiHost, setAiHost] = useState(null);
   const [snapshot, setSnapshot] = useState({ score: '100% đầy đủ', type: 'KẾ HOẠCH', pages: '1 trang A4', autosave: 'Tự lưu đang bật' });
 
   useEffect(() => {
     let observer;
     let slot;
-    let aiSlot;
     let frame;
     let page;
 
@@ -112,11 +111,7 @@ export default function TextCareGoogleWorkspace(props) {
       slot = document.createElement('div');
       slot.className = 'tcg-workspace-hero-slot';
       topbar.insertAdjacentElement('afterend', slot);
-      aiSlot = document.createElement('div');
-      aiSlot.className = 'tcg-workspace-ai-slot';
-      slot.insertAdjacentElement('afterend', aiSlot);
       setHeroHost(slot);
-      setAiHost(aiSlot);
       updateSnapshot();
       observer = new MutationObserver(updateSnapshot);
       observer.observe(page, { childList: true, subtree: true, characterData: true });
@@ -130,7 +125,6 @@ export default function TextCareGoogleWorkspace(props) {
       observer?.disconnect();
       page?.removeEventListener('input', updateSnapshot, true);
       page?.removeEventListener('change', updateSnapshot, true);
-      aiSlot?.remove();
       slot?.remove();
     };
   }, []);
@@ -159,34 +153,8 @@ export default function TextCareGoogleWorkspace(props) {
     window.setTimeout(() => getPage()?.querySelector('.tcg-content-panel .tcg-outlined-button')?.click(), 180);
   };
 
-  const openWorkspace = () => getPage()?.querySelector('.tcg-workbench')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-  const getWorkingText = () => {
-    const page = getPage();
-    const content = page?.querySelector('.tcg-content-editor textarea')?.value;
-    const source = page?.querySelector('.tcg-source-editor textarea')?.value;
-    return String(content || source || '').trim();
-  };
-
-  const getAiContext = () => {
-    const status = getPage()?.querySelectorAll('.tcg-status-summary span');
-    return {
-      module: 'TextCare',
-      docType: status?.[1]?.textContent?.trim() || snapshot.type,
-      completion: status?.[0]?.textContent?.trim() || snapshot.score,
-      sourceName: getPage()?.querySelector('.tcg-file-chip span')?.textContent?.trim() || '',
-    };
-  };
-
-  const applyAiText = (value) => {
-    openStep(2, '.tcg-content-editor textarea');
-    window.setTimeout(() => {
-      const textarea = getPage()?.querySelector('.tcg-content-editor textarea');
-      if (setReactTextareaValue(textarea, value)) {
-        textarea.focus();
-        textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 220);
+  const openWorkspace = () => {
+    getPage()?.querySelector('.tcg-workbench')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
@@ -202,15 +170,6 @@ export default function TextCareGoogleWorkspace(props) {
           onContinue={openWorkspace}
         />,
         heroHost,
-      ) : null}
-      {aiHost ? createPortal(
-        <TextCareAiAssistant
-          language={props.language}
-          getText={getWorkingText}
-          getContext={getAiContext}
-          applyText={applyAiText}
-        />,
-        aiHost,
       ) : null}
     </>
   );
