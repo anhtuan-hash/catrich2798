@@ -1,6 +1,5 @@
 import React, { Suspense, lazy, useMemo, useState } from 'react';
 import '../data/registerWordOrbit.js';
-import { applyGeneratedGameContent } from '../utils/gameAiDirectApply.js';
 
 const WordGraphStudio = lazy(() => import('./WordGraphStudio.jsx'));
 const ReadingStudio = lazy(() => import('./ReadingStudio.jsx'));
@@ -32,47 +31,20 @@ const specializedToolSlugs = new Set(['exam-studio']);
 const classroomGameSlugs = new Set(['jeopardy-builder', 'open-the-box', 'team-race', 'lucky-wheel', 'matching-battle']);
 
 function ToolFallback({ language = 'vi' }) {
-  return (
-    <div className="page narrow">
-      <section className="panel empty-state">
-        <h1>{language === 'vi' ? 'Đang mở công cụ...' : 'Opening tool...'}</h1>
-        <p>{language === 'vi' ? 'Đang tải đúng mô-đun cần dùng để giao diện nhẹ hơn.' : 'Loading only the module you need for a lighter interface.'}</p>
-      </section>
-    </div>
-  );
+  return <div className="page narrow"><section className="panel empty-state"><h1>{language === 'vi' ? 'Đang mở công cụ...' : 'Opening tool...'}</h1><p>{language === 'vi' ? 'Đang tải đúng mô-đun cần dùng để giao diện nhẹ hơn.' : 'Loading only the module you need for a lighter interface.'}</p></section></div>;
 }
 
 function renderLazy(Component, props, extraProps = {}) {
-  return (
-    <Suspense fallback={<ToolFallback language={props.language} />}>
-      <Component {...props} {...extraProps} />
-    </Suspense>
-  );
-}
-
-function GameShell({ Component, props, extraProps = {} }) {
-  const [contentVersion, setContentVersion] = useState(0);
-
-  const applyAiContent = (data) => {
-    const result = applyGeneratedGameContent(props.tool?.slug, data);
-    if (result.remount) setContentVersion((value) => value + 1);
-    return result;
-  };
-
-  return (
-    <>
-      <Suspense fallback={<ToolFallback language={props.language} />}>
-        <Component key={`${props.tool?.slug || 'game'}-${contentVersion}`} {...props} {...extraProps} />
-      </Suspense>
-      <Suspense fallback={null}>
-        <GameAiCreator tool={props.tool} language={props.language} onApply={applyAiContent} />
-      </Suspense>
-    </>
-  );
+  return <Suspense fallback={<ToolFallback language={props.language} />}><Component {...props} {...extraProps} /></Suspense>;
 }
 
 function renderGame(Component, props, extraProps = {}) {
-  return <GameShell Component={Component} props={props} extraProps={extraProps} />;
+  return (
+    <>
+      {renderLazy(Component, props, extraProps)}
+      <Suspense fallback={null}><GameAiCreator tool={props.tool} language={props.language} /></Suspense>
+    </>
+  );
 }
 
 const templates = [
@@ -130,14 +102,7 @@ export default function ToolPage(props) {
   if (tool?.api) return renderLazy(AITool, props);
 
   if (!tool) {
-    return (
-      <div className="page narrow">
-        <section className="panel empty-state">
-          <h1>Tool not found</h1>
-          <button className="primary" onClick={() => (window.location.hash = '#/apps')}>Back to Apps</button>
-        </section>
-      </div>
-    );
+    return <div className="page narrow"><section className="panel empty-state"><h1>Tool not found</h1><button className="primary" onClick={() => (window.location.hash = '#/apps')}>Back to Apps</button></section></div>;
   }
 
   const toolTitle = language === 'vi' ? tool.titleVi || tool.title : tool.title;
@@ -146,39 +111,12 @@ export default function ToolPage(props) {
   return (
     <div className="page tool-page">
       <button className="back-btn" onClick={() => window.history.back()}>← {language === 'vi' ? 'Quay lại' : 'Back'}</button>
-      <section className="tool-hero panel">
-        <div>
-          <span className="eyebrow">{tool.group}</span>
-          <h1><span>{tool.icon}</span> {toolTitle}</h1>
-          <p>{toolDesc}</p>
-        </div>
-        <div className="tool-state"><span>{tool.api ? '🔑 AI/API' : '⚡ Offline'}</span><span>{tool.status}</span><span>{hasApiKey ? 'API OK' : 'Server AI'}</span></div>
-      </section>
+      <section className="tool-hero panel"><div><span className="eyebrow">{tool.group}</span><h1><span>{tool.icon}</span> {toolTitle}</h1><p>{toolDesc}</p></div><div className="tool-state"><span>{tool.api ? '🔑 AI/API' : '⚡ Offline'}</span><span>{tool.status}</span><span>{hasApiKey ? 'API OK' : 'Server AI'}</span></div></section>
       <section className="builder-grid">
-        <div className="panel builder-panel">
-          <h2>1. {language === 'vi' ? 'Chọn template' : 'Choose template'}</h2>
-          <div className="template-grid">
-            {templates.map((tpl) => (
-              <button key={tpl.id} className={selected === tpl.id ? 'template active' : 'template'} onClick={() => setSelected(tpl.id)}>
-                <span>{tpl.icon}</span><strong>{tpl.title}</strong><small>{language === 'vi' ? tpl.descVi : tpl.desc}</small>
-              </button>
-            ))}
-          </div>
-          <div className="hint-box"><strong>{language === 'vi' ? 'Ghi chú:' : 'Note:'}</strong>{' '}{language === 'vi' ? 'Trang demo cơ bản. Các công cụ chính đã có trang hoạt động riêng.' : 'Basic demo page. Main tools have their own working pages.'}</div>
-        </div>
-        <div className="panel builder-panel">
-          <h2>2. {language === 'vi' ? 'Nội dung của bạn' : 'Your content'}</h2>
-          <label>{language === 'vi' ? 'Tiêu đề hoạt động' : 'Activity title'}</label>
-          <input value={title} onChange={(event) => setTitle(event.target.value)} />
-          <label>{language === 'vi' ? 'Nhập nội dung, mỗi dòng một ý' : 'Enter content, one item per line'}</label>
-          <textarea value={content} onChange={(event) => setContent(event.target.value)} rows={12} />
-          <button className="primary full" onClick={() => {}}>{language === 'vi' ? 'Tạo preview' : 'Generate preview'}</button>
-        </div>
+        <div className="panel builder-panel"><h2>1. {language === 'vi' ? 'Chọn template' : 'Choose template'}</h2><div className="template-grid">{templates.map((tpl) => <button key={tpl.id} className={selected === tpl.id ? 'template active' : 'template'} onClick={() => setSelected(tpl.id)}><span>{tpl.icon}</span><strong>{tpl.title}</strong><small>{language === 'vi' ? tpl.descVi : tpl.desc}</small></button>)}</div><div className="hint-box"><strong>{language === 'vi' ? 'Ghi chú:' : 'Note:'}</strong>{' '}{language === 'vi' ? 'Trang demo cơ bản. Các công cụ chính đã có trang hoạt động riêng.' : 'Basic demo page. Main tools have their own working pages.'}</div></div>
+        <div className="panel builder-panel"><h2>2. {language === 'vi' ? 'Nội dung của bạn' : 'Your content'}</h2><label>{language === 'vi' ? 'Tiêu đề hoạt động' : 'Activity title'}</label><input value={title} onChange={(e) => setTitle(e.target.value)} /><label>{language === 'vi' ? 'Nhập nội dung, mỗi dòng một ý' : 'Enter content, one item per line'}</label><textarea value={content} onChange={(e) => setContent(e.target.value)} rows={12} /><button className="primary full" onClick={() => {}}>{language === 'vi' ? 'Tạo preview' : 'Generate preview'}</button></div>
       </section>
-      <section className="panel preview-panel">
-        <div className="preview-head"><div><span className="eyebrow">3. Activity Preview</span><h2>{title || 'My Activity'}</h2></div><div className="preview-actions"><button>Copy</button><button>{language === 'vi' ? 'Xuất HTML' : 'Export HTML'}</button></div></div>
-        <div className="preview-box">{preview.length ? preview.map((line, index) => <div key={index} className="preview-item">{line}</div>) : <p>{language === 'vi' ? 'Nhập nội dung để xem preview.' : 'Enter content to preview.'}</p>}</div>
-      </section>
+      <section className="panel preview-panel"><div className="preview-head"><div><span className="eyebrow">3. Activity Preview</span><h2>{title || 'My Activity'}</h2></div><div className="preview-actions"><button>Copy</button><button>{language === 'vi' ? 'Xuất HTML' : 'Export HTML'}</button></div></div><div className="preview-box">{preview.length ? preview.map((line, i) => <div key={i} className="preview-item">{line}</div>) : <p>{language === 'vi' ? 'Nhập nội dung để xem preview.' : 'Enter content to preview.'}</p>}</div></section>
     </div>
   );
 }
