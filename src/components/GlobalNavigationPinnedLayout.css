@@ -1,0 +1,223 @@
+/* Brian English Studio · pinned global navigation geometry
+   Loaded after every route/theme/performance navigation layer.
+   This is the final layout contract: changing pages may change the active tab,
+   but it must never move, resize or reflow the global navigation shell. */
+
+html body .app-shell[data-route] > .bes-top-chrome,
+html body .app-shell[data-route] .bes-top-chrome {
+  position: sticky !important;
+  inset-block-start: 0 !important;
+  top: 0 !important;
+  inset-inline: 0 !important;
+  z-index: 1300 !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+html body .app-shell[data-route] .bes-top-chrome > .brian-nav {
+  position: relative !important;
+  inset: auto !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  transform: none !important;
+  align-self: stretch !important;
+}
+
+@media (min-width: 821px) {
+  html body .app-shell[data-route] .bes-top-chrome > .brian-nav {
+    min-height: 86px !important;
+    display: grid !important;
+    grid-template-columns: max-content minmax(0, 1fr) max-content !important;
+    grid-template-areas: 'brand destinations utilities' !important;
+    grid-auto-flow: row !important;
+    grid-auto-columns: initial !important;
+    align-items: center !important;
+    justify-items: stretch !important;
+    column-gap: clamp(8px, 1vw, 14px) !important;
+    row-gap: 0 !important;
+    padding-inline: clamp(10px, 1.25vw, 18px) !important;
+    overflow: visible !important;
+  }
+
+  html body .app-shell[data-route] .bes-top-chrome > .brian-nav > .brian-nav__brand {
+    grid-area: brand !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    order: 0 !important;
+    align-self: center !important;
+    justify-self: start !important;
+    width: auto !important;
+    min-width: max-content !important;
+    max-width: none !important;
+    margin: 0 !important;
+    transform: none !important;
+    flex: 0 0 auto !important;
+  }
+
+  html body .app-shell[data-route] .bes-top-chrome > .brian-nav > .brian-nav__primary {
+    grid-area: destinations !important;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    order: 0 !important;
+    align-self: center !important;
+    justify-self: stretch !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    transform: none !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    overscroll-behavior-inline: contain !important;
+    scroll-padding-inline: 4px !important;
+  }
+
+  html body .app-shell[data-route] .bes-top-chrome > .brian-nav > .brian-nav__primary::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__primary > [data-brian-home-tab-hidden='true'] {
+    display: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__primary > :is(button, [role='button']) {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    flex: 0 0 auto !important;
+    align-self: center !important;
+    min-width: max-content !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    margin: 0 !important;
+    padding-block: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    transform: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__primary > :is(button, [role='button']):hover,
+  html body .app-shell[data-route] .brian-nav__primary > :is(button, [role='button']).is-active,
+  html body .app-shell[data-route] .brian-nav__primary > :is(button, [role='button']):active {
+    transform: none !important;
+  }
+
+  html body .app-shell[data-route] .bes-top-chrome > .brian-nav > .brian-nav__search {
+    display: none !important;
+    grid-area: unset !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+
+  html body .app-shell[data-route] .bes-top-chrome > .brian-nav > .brian-nav__actions {
+    grid-area: utilities !important;
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    order: 0 !important;
+    align-self: center !important;
+    justify-self: end !important;
+    width: auto !important;
+    min-width: max-content !important;
+    max-width: none !important;
+    margin: 0 !important;
+    transform: none !important;
+    flex: 0 0 auto !important;
+    flex-wrap: nowrap !important;
+    gap: clamp(4px, .45vw, 7px) !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__actions > * {
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    align-self: center !important;
+  }
+}
+
+@media (min-width: 1181px) and (max-width: 1600px) {
+  html body .app-shell[data-route] .brian-nav__primary {
+    gap: 6px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__primary > :is(button, [role='button']) {
+    padding-inline: clamp(10px, .8vw, 13px) !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__account {
+    min-width: 104px !important;
+    max-width: 138px !important;
+  }
+}
+
+@media (min-width: 821px) and (max-width: 1180px) {
+  html body .app-shell[data-route] .bes-top-chrome > .brian-nav {
+    grid-template-columns: max-content minmax(0, 1fr) max-content !important;
+    padding-inline: 10px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav button.brian-nav__brand {
+    min-width: 50px !important;
+    width: 50px !important;
+    max-width: 50px !important;
+    padding: 6px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav button.brian-nav__brand::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__primary {
+    gap: 5px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__primary > :is(button, [role='button']) {
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
+    padding-inline: 11px !important;
+    font-size: 14px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__account {
+    min-width: 46px !important;
+    width: 46px !important;
+    max-width: 46px !important;
+    padding: 5px !important;
+    grid-template-columns: 36px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__account strong,
+  html body .app-shell[data-route] .brian-nav__account i {
+    display: none !important;
+  }
+}
+
+@media (max-width: 820px) {
+  html body .app-shell[data-route] > .bes-top-chrome,
+  html body .app-shell[data-route] .bes-top-chrome {
+    position: sticky !important;
+    top: 0 !important;
+  }
+
+  html body .app-shell[data-route] .bes-top-chrome > .brian-nav {
+    min-height: 64px !important;
+    transform: none !important;
+  }
+}
