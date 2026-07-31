@@ -1,3 +1,5 @@
+import '../data/registerWordOrbit.js';
+
 export const APP_VERSION = '11.6.7';
 export const RELEASE_NAME = 'Streamlined Application Catalog';
 export const RUNTIME_CORE_VERSION = '2.6.7';
