@@ -9,8 +9,8 @@ function createWelcome(language) {
     id: `welcome-${language}`,
     role: 'assistant',
     content: language === 'vi'
-      ? 'Xin chào! Tôi là Brian AI, được vận hành bởi Kira AI. Tôi có thể hỗ trợ soạn bài, thiết kế hoạt động, giải thích ngữ pháp và xử lý công việc chuyên môn.'
-      : 'Hello! I am Brian AI, powered by Kira AI. I can help with lesson planning, classroom activities, grammar explanations, and professional tasks.',
+      ? 'Xin chào! Tôi là **Brian AI**. Tôi có thể hỗ trợ thầy/cô soạn bài, thiết kế hoạt động, giải thích ngữ pháp và xử lý công việc chuyên môn.'
+      : 'Hello! I am **Brian AI**. I can help with lesson planning, classroom activities, grammar explanations, and professional tasks.',
   };
 }
 
@@ -22,24 +22,89 @@ function normalizeStoredMessages(value, language) {
       id: String(item.id || `${item.role}-${index}-${Date.now()}`),
       role: item.role,
       content: item.content.slice(0, 12000),
+      error: item.error === true,
     }))
     .slice(-MAX_HISTORY);
   return messages.length ? messages : [createWelcome(language)];
+}
+
+function SparkIcon({ compact = false }) {
+  return (
+    <svg className={`bes-kira-spark${compact ? ' is-compact' : ''}`} viewBox="0 0 28 28" aria-hidden="true">
+      <path className="spark-blue" d="M13.9 1.8c.8 5.5 3.5 8.2 9 9-5.5.8-8.2 3.5-9 9-.8-5.5-3.5-8.2-9-9 5.5-.8 8.2-3.5 9-9Z" />
+      <path className="spark-red" d="M22.1 17.4c.35 2.35 1.5 3.5 3.85 3.85-2.35.35-3.5 1.5-3.85 3.85-.35-2.35-1.5-3.5-3.85-3.85 2.35-.35 3.5-1.5 3.85-3.85Z" />
+      <circle className="spark-yellow" cx="5.1" cy="21.5" r="2.25" />
+      <circle className="spark-green" cx="23.25" cy="5.15" r="1.75" />
+    </svg>
+  );
 }
 
 function ChatIcon({ close = false }) {
   if (close) {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M6.4 6.4 17.6 17.6M17.6 6.4 6.4 17.6" />
+        <path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5" />
       </svg>
     );
   }
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M5.4 4.5h13.2a2.9 2.9 0 0 1 2.9 2.9v7.1a2.9 2.9 0 0 1-2.9 2.9h-7.2L6 21v-3.6h-.6a2.9 2.9 0 0 1-2.9-2.9V7.4a2.9 2.9 0 0 1 2.9-2.9Z" />
-      <path d="M7 10.9h.01M12 10.9h.01M17 10.9h.01" />
+      <path d="M5.5 4.5h13a3 3 0 0 1 3 3v6.8a3 3 0 0 1-3 3h-7.1L6 20.8v-3.5h-.5a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3Z" />
+      <path d="M7.2 10.9h.01M12 10.9h.01M16.8 10.9h.01" />
     </svg>
+  );
+}
+
+function renderInline(text) {
+  return String(text || '').split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter(Boolean).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={`${part}-${index}`}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={`${part}-${index}`}>{part.slice(1, -1)}</code>;
+    }
+    return <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>;
+  });
+}
+
+function MessageContent({ content }) {
+  const lines = String(content || '').replace(/\r/g, '').split('\n');
+  return (
+    <div className="bes-kira-message-content">
+      {lines.map((line, index) => {
+        const trimmed = line.trim();
+        if (!trimmed) return <span className="bes-kira-message-space" key={`space-${index}`} aria-hidden="true" />;
+        if (/^---+$/.test(trimmed)) return <hr key={`rule-${index}`} />;
+
+        const heading = trimmed.match(/^(#{1,3})\s+(.+)$/);
+        if (heading) {
+          const HeadingTag = heading[1].length === 1 ? 'h3' : heading[1].length === 2 ? 'h4' : 'h5';
+          return <HeadingTag key={`heading-${index}`}>{renderInline(heading[2])}</HeadingTag>;
+        }
+
+        const bullet = trimmed.match(/^[-*•]\s+(.+)$/);
+        if (bullet) {
+          return (
+            <div className="bes-kira-message-list-item" key={`bullet-${index}`}>
+              <span aria-hidden="true" />
+              <p>{renderInline(bullet[1])}</p>
+            </div>
+          );
+        }
+
+        const numbered = trimmed.match(/^(\d+)[.)]\s+(.+)$/);
+        if (numbered) {
+          return (
+            <div className="bes-kira-message-list-item is-numbered" key={`number-${index}`}>
+              <b aria-hidden="true">{numbered[1]}</b>
+              <p>{renderInline(numbered[2])}</p>
+            </div>
+          );
+        }
+
+        return <p key={`paragraph-${index}`}>{renderInline(trimmed)}</p>;
+      })}
+    </div>
   );
 }
 
@@ -60,31 +125,43 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
   const text = language === 'vi'
     ? {
         title: 'Brian AI',
-        powered: 'Kết nối Kira AI',
+        powered: 'Kira AI · Đang hoạt động',
+        eyebrow: 'Trợ lý giảng dạy',
         open: 'Mở Brian AI',
         close: 'Đóng Brian AI',
-        clear: 'Xóa hội thoại',
-        placeholder: 'Nhập câu hỏi hoặc yêu cầu…',
+        clear: 'Bắt đầu cuộc trò chuyện mới',
+        placeholder: 'Hỏi Brian AI…',
         send: 'Gửi',
-        thinking: 'Đang suy nghĩ…',
+        thinking: 'Brian AI đang suy nghĩ',
         error: 'Tôi chưa thể phản hồi lúc này. Vui lòng thử lại sau.',
         setup: 'Chatbot chưa được cấu hình API key Kira AI trên máy chủ.',
         session: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
-        hint: 'Enter để gửi · Shift + Enter xuống dòng',
+        hint: 'Brian AI có thể mắc lỗi. Hãy kiểm tra lại thông tin quan trọng.',
+        suggestions: [
+          'Soạn một hoạt động khởi động 5 phút',
+          'Giải thích một điểm ngữ pháp khó',
+          'Tạo nhanh 10 câu luyện tập',
+        ],
       }
     : {
         title: 'Brian AI',
-        powered: 'Connected to Kira AI',
+        powered: 'Kira AI · Online',
+        eyebrow: 'Teaching assistant',
         open: 'Open Brian AI',
         close: 'Close Brian AI',
-        clear: 'Clear conversation',
-        placeholder: 'Ask a question or enter a request…',
+        clear: 'Start a new conversation',
+        placeholder: 'Ask Brian AI…',
         send: 'Send',
-        thinking: 'Thinking…',
+        thinking: 'Brian AI is thinking',
         error: 'I cannot respond right now. Please try again later.',
         setup: 'The Kira AI API key has not been configured on the server.',
         session: 'Your session has expired. Please sign in again.',
-        hint: 'Enter to send · Shift + Enter for a new line',
+        hint: 'Brian AI may make mistakes. Check important information.',
+        suggestions: [
+          'Plan a five-minute warm-up activity',
+          'Explain a difficult grammar point',
+          'Create ten quick practice questions',
+        ],
       };
 
   useEffect(() => {
@@ -106,7 +183,7 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
 
   useEffect(() => {
     if (!open) return;
-    const timer = window.setTimeout(() => inputRef.current?.focus(), 120);
+    const timer = window.setTimeout(() => inputRef.current?.focus(), 140);
     return () => window.clearTimeout(timer);
   }, [open]);
 
@@ -114,6 +191,13 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
     const node = scrollRef.current;
     if (node) node.scrollTop = node.scrollHeight;
   }, [messages, sending, open]);
+
+  useEffect(() => {
+    const textarea = inputRef.current;
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 132)}px`;
+  }, [input]);
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
@@ -125,8 +209,8 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
     inputRef.current?.focus();
   };
 
-  const sendMessage = async () => {
-    const content = input.trim();
+  const sendMessage = async (overrideContent = '') => {
+    const content = String(overrideContent || input).trim();
     if (!content || sending) return;
 
     const userMessage = {
@@ -201,19 +285,22 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
     }
   };
 
+  const showSuggestions = messages.length === 1 && messages[0]?.id?.startsWith('welcome-') && !sending;
+
   return (
     <div className={`bes-kira-chat-root${open ? ' is-open' : ''}`} data-kira-chat-root>
       {open ? (
         <section className="bes-kira-chat-panel" role="dialog" aria-modal="false" aria-label={text.title}>
           <header className="bes-kira-chat-header">
-            <div className="bes-kira-chat-brand" aria-hidden="true">AI</div>
+            <div className="bes-kira-chat-brand" aria-hidden="true"><SparkIcon /></div>
             <div className="bes-kira-chat-heading">
+              <small>{text.eyebrow}</small>
               <strong>{text.title}</strong>
               <span><i />{text.powered}</span>
             </div>
             <div className="bes-kira-chat-actions">
               <button type="button" onClick={clearConversation} title={text.clear} aria-label={text.clear}>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5M14 11v5" /></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
               </button>
               <button type="button" onClick={() => setOpen(false)} title={text.close} aria-label={text.close}>
                 <ChatIcon close />
@@ -224,13 +311,26 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
           <div ref={scrollRef} className="bes-kira-chat-messages" aria-live="polite">
             {messages.map((message) => (
               <div key={message.id} className={`bes-kira-chat-message is-${message.role}${message.error ? ' is-error' : ''}`}>
-                {message.role === 'assistant' ? <span className="bes-kira-chat-avatar" aria-hidden="true">AI</span> : null}
-                <div className="bes-kira-chat-bubble">{message.content}</div>
+                {message.role === 'assistant' ? <span className="bes-kira-chat-avatar" aria-hidden="true"><SparkIcon compact /></span> : null}
+                <div className="bes-kira-chat-bubble"><MessageContent content={message.content} /></div>
               </div>
             ))}
+
+            {showSuggestions ? (
+              <div className="bes-kira-chat-suggestions" aria-label={language === 'vi' ? 'Gợi ý nhanh' : 'Quick suggestions'}>
+                {text.suggestions.map((suggestion) => (
+                  <button key={suggestion} type="button" onClick={() => sendMessage(suggestion)}>
+                    <SparkIcon compact />
+                    <span>{suggestion}</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
             {sending ? (
               <div className="bes-kira-chat-message is-assistant">
-                <span className="bes-kira-chat-avatar" aria-hidden="true">AI</span>
+                <span className="bes-kira-chat-avatar" aria-hidden="true"><SparkIcon compact /></span>
                 <div className="bes-kira-chat-bubble bes-kira-chat-thinking">
                   <span /><span /><span /><em>{text.thinking}</em>
                 </div>
@@ -251,8 +351,8 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
                 aria-label={text.placeholder}
                 disabled={sending}
               />
-              <button type="button" className="bes-kira-chat-send" onClick={sendMessage} disabled={!input.trim() || sending} aria-label={text.send} title={text.send}>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 4 17 8-17 8 3-8-3-8Zm3 8h14" /></svg>
+              <button type="button" className="bes-kira-chat-send" onClick={() => sendMessage()} disabled={!input.trim() || sending} aria-label={text.send} title={text.send}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m0 0-5.5 5.5M12 5l5.5 5.5" /></svg>
               </button>
             </div>
             <small>{text.hint}</small>
@@ -262,7 +362,7 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
 
       <button type="button" className="bes-kira-chat-launcher" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label={open ? text.close : text.open} title={open ? text.close : text.open}>
         <span className="bes-kira-chat-launcher-glow" aria-hidden="true" />
-        <ChatIcon close={open} />
+        {open ? <ChatIcon close /> : <SparkIcon />}
         <span className="bes-kira-chat-online" aria-hidden="true" />
       </button>
     </div>
