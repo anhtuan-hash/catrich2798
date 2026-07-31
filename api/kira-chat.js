@@ -28,6 +28,45 @@ function checkRateLimit(req) {
   return { allowed: false, retryAfter: Math.max(1, Math.ceil((RATE_LIMIT_WINDOW_MS - (now - current.startedAt)) / 1000)) };
 }
 
+function isSameOriginRequest(req) {
+  const origin = String(req.headers?.origin || '').trim();
+  const host = String(req.headers?.host || '').trim();
+  if (!origin || !host) return true;
+  try { return new URL(origin).host === host; } catch { return false; }
+}
+
+async function verifySignedInUser(req) {
+  if (!isSameOriginRequest(req)) return { ok: false };
+
+  const supabaseUrl = String(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
+  const supabaseAnonKey = String(process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+  if (!supabaseUrl || !supabaseAnonKey) return { ok: true, mode: 'same-origin' };
+
+  const authorization = String(req.headers?.authorization || '').trim();
+  const token = authorization.replace(/^Bearer\s+/i, '').trim();
+  if (!token) return { ok: false };
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+      signal: controller.signal,
+    });
+    if (!response.ok) return { ok: false };
+    const user = await response.json().catch(() => null);
+    return { ok: Boolean(user?.id), userId: user?.id || '' };
+  } catch {
+    return { ok: false };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 function parseBody(req) {
   if (req.body && typeof req.body === 'object') return req.body;
   if (typeof req.body === 'string') {
@@ -88,6 +127,14 @@ export default async function handler(req, res) {
     });
   }
 
+  const auth = await verifySignedInUser(req);
+  if (!auth.ok) {
+    return res.status(401).json({
+      code: 'UNAUTHORIZED',
+      error: 'A valid signed-in session is required.',
+    });
+  }
+
   const apiKey = String(process.env.KIRAAI_API_KEY || '').trim();
   if (!apiKey) {
     return res.status(503).json({
@@ -133,7 +180,11 @@ export default async function handler(req, res) {
       signal: controller.signal,
     });
 
-    const payload = await upstream.json().catch(async () => ({ message: await upstream.text().catch(() => '') }));
+    const raw = await upstream.text();
+    let payload = {};
+    try { payload = raw ? JSON.parse(raw) : {}; }
+    catch { payload = { message: raw }; }
+
     if (!upstream.ok) {
       return res.status(502).json({
         code: 'KIRAAI_UPSTREAM_ERROR',
