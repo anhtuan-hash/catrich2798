@@ -1,0 +1,182 @@
+/* Word Orbit · smooth compositor flight
+   Loaded last. Replaces CSS Motion Path with translate/scale longhands so Chrome can
+   animate the capsule on the compositor without auto-rotation, filter repaints or path jitter. */
+
+.app-shell[data-tool="word-orbit"] .wog-app:not(.wog-editor) .wog-capsule.is-launched,
+body:has(.wog-app:not(.wog-editor)) .wog-capsule.is-launched {
+  z-index: 180 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+  margin: 0 !important;
+  offset-path: none !important;
+  offset-distance: 0 !important;
+  offset-rotate: 0deg !important;
+  transform: translateZ(0) !important;
+  transform-origin: 50% 50% !important;
+  backface-visibility: hidden !important;
+  perspective: 1000px !important;
+  filter: none !important;
+  animation: woSmoothGpuOrbitFlight 1.55s cubic-bezier(.2,.68,.24,1) both !important;
+  will-change: translate, scale, rotate, opacity !important;
+}
+
+.app-shell[data-tool="word-orbit"] .wog-app:not(.wog-editor) .wog-capsule.is-launched > i,
+body:has(.wog-app:not(.wog-editor)) .wog-capsule.is-launched > i {
+  filter: blur(1.4px) !important;
+  opacity: .92 !important;
+  animation: woSmoothEnginePulse .22s ease-in-out infinite alternate !important;
+  will-change: scale, opacity !important;
+}
+
+.app-shell[data-tool="word-orbit"] .wog-app.is-success .wog-target-dock,
+body:has(.wog-app.is-success) .wog-target-dock {
+  filter: none !important;
+  animation: woSmoothDockArrival 1.55s ease-out both !important;
+  will-change: scale, opacity !important;
+}
+
+.app-shell[data-tool="word-orbit"] .wog-app:not(.wog-editor) .wog-capsule.is-rejected,
+body:has(.wog-app:not(.wog-editor)) .wog-capsule.is-rejected {
+  z-index: 180 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin: 0 !important;
+  offset-path: none !important;
+  offset-distance: 0 !important;
+  offset-rotate: 0deg !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  filter: none !important;
+  animation: woSmoothWrongReturn .72s cubic-bezier(.3,.65,.35,1) both !important;
+  will-change: translate, scale, rotate !important;
+}
+
+@keyframes woSmoothGpuOrbitFlight {
+  0% {
+    translate: 0 0;
+    scale: 1;
+    rotate: -1deg;
+    opacity: 1;
+  }
+  12% {
+    translate: clamp(34px, 4.5vw, 72px) -16px;
+    scale: 1.01;
+    rotate: -2deg;
+    opacity: 1;
+  }
+  28% {
+    translate: clamp(96px, 10vw, 155px) -9px;
+    scale: .98;
+    rotate: -1deg;
+    opacity: 1;
+  }
+  45% {
+    translate: clamp(165px, 17vw, 265px) 28px;
+    scale: .91;
+    rotate: 0deg;
+    opacity: 1;
+  }
+  62% {
+    translate: clamp(245px, 23vw, 355px) 92px;
+    scale: .79;
+    rotate: 1deg;
+    opacity: 1;
+  }
+  78% {
+    translate: clamp(320px, 29vw, 445px) 176px;
+    scale: .62;
+    rotate: 2deg;
+    opacity: 1;
+  }
+  91% {
+    translate: clamp(382px, 33vw, 505px) 266px;
+    scale: .43;
+    rotate: 2deg;
+    opacity: 1;
+  }
+  100% {
+    translate: clamp(410px, 35vw, 535px) 326px;
+    scale: .34;
+    rotate: 1deg;
+    opacity: 1;
+  }
+}
+
+@keyframes woSmoothWrongReturn {
+  0%, 100% {
+    translate: 0 0;
+    scale: 1;
+    rotate: -1deg;
+  }
+  34% {
+    translate: clamp(45px, 6vw, 86px) -8px;
+    scale: .97;
+    rotate: -2deg;
+  }
+  56% {
+    translate: clamp(82px, 10vw, 138px) 20px;
+    scale: .91;
+    rotate: 2deg;
+  }
+  72% {
+    translate: clamp(55px, 7vw, 96px) 9px;
+    scale: .95;
+    rotate: -1deg;
+  }
+}
+
+@keyframes woSmoothEnginePulse {
+  from { scale: 1 .84; opacity: .72; }
+  to { scale: 1.34 1.06; opacity: 1; }
+}
+
+@keyframes woSmoothDockArrival {
+  0%, 76% { scale: 1; opacity: 1; }
+  88% { scale: 1.08; opacity: 1; }
+  100% { scale: 1.02; opacity: 1; }
+}
+
+@media (max-width: 1280px) {
+  @keyframes woSmoothGpuOrbitFlight {
+    0% { translate:0 0; scale:1; rotate:-1deg; opacity:1; }
+    14% { translate:42px -12px; scale:1.01; rotate:-2deg; opacity:1; }
+    32% { translate:112px -4px; scale:.97; rotate:-1deg; opacity:1; }
+    52% { translate:205px 52px; scale:.87; rotate:0deg; opacity:1; }
+    72% { translate:302px 145px; scale:.7; rotate:1deg; opacity:1; }
+    88% { translate:388px 238px; scale:.48; rotate:2deg; opacity:1; }
+    100% { translate:438px 292px; scale:.34; rotate:1deg; opacity:1; }
+  }
+}
+
+@media (max-width: 980px) {
+  @keyframes woSmoothGpuOrbitFlight {
+    0% { translate:0 0; scale:1; rotate:-1deg; opacity:1; }
+    16% { translate:38px -8px; scale:1; rotate:-2deg; opacity:1; }
+    38% { translate:112px 18px; scale:.94; rotate:-1deg; opacity:1; }
+    62% { translate:220px 92px; scale:.79; rotate:0deg; opacity:1; }
+    82% { translate:326px 192px; scale:.57; rotate:1deg; opacity:1; }
+    100% { translate:402px 266px; scale:.34; rotate:1deg; opacity:1; }
+  }
+}
+
+@media (max-width: 680px) {
+  .app-shell[data-tool="word-orbit"] .wog-app:not(.wog-editor) .wog-capsule.is-launched,
+  body:has(.wog-app:not(.wog-editor)) .wog-capsule.is-launched {
+    animation-duration: 1.35s !important;
+  }
+  @keyframes woSmoothGpuOrbitFlight {
+    0% { translate:0 0; scale:1; rotate:-1deg; opacity:1; }
+    20% { translate:28px 0; scale:.98; rotate:-1deg; opacity:1; }
+    45% { translate:82px 50px; scale:.88; rotate:0deg; opacity:1; }
+    72% { translate:155px 142px; scale:.65; rotate:1deg; opacity:1; }
+    100% { translate:224px 232px; scale:.33; rotate:1deg; opacity:1; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell[data-tool="word-orbit"] .wog-app:not(.wog-editor) .wog-capsule.is-launched,
+  body:has(.wog-app:not(.wog-editor)) .wog-capsule.is-launched {
+    animation-duration: 1.05s !important;
+  }
+}
