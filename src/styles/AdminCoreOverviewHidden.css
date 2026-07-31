@@ -1,0 +1,6 @@
+/* Hide the four redundant Admin overview cards requested by the administrator.
+   Detailed request, permission, account and security management sections remain available below. */
+
+.metro-clean-system[data-route='admin'] .admin-v41-core-grid {
+  display: none !important;
+}
