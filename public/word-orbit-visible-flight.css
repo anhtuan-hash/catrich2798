@@ -1,0 +1,74 @@
+/* Final visibility/performance layer for the detached Word Orbit flight capsule. */
+.wog-flight-capsule {
+  position: fixed !important;
+  z-index: 2147483640 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+  pointer-events: none !important;
+  contain: none !important;
+  isolation: isolate;
+  translate: 0 0;
+  scale: 1;
+  rotate: 0deg;
+  transform: none !important;
+  transform-origin: 50% 50% !important;
+  will-change: translate, scale, rotate !important;
+  backface-visibility: hidden !important;
+  -webkit-font-smoothing: antialiased;
+  filter: none !important;
+  animation: none !important;
+  transition: none !important;
+  box-shadow:
+    0 12px 30px rgba(1, 18, 48, 0.34),
+    0 0 0 2px rgba(126, 190, 255, 0.72),
+    0 0 30px rgba(76, 155, 255, 0.52) !important;
+}
+
+.wog-flight-capsule::after {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  left: -54px;
+  top: 50%;
+  width: 72px;
+  height: 26px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent 0%, rgba(87, 178, 255, 0.28) 24%, rgba(154, 218, 255, 0.88) 100%);
+  translate: 0 -50%;
+  pointer-events: none;
+}
+
+.wog-flight-capsule::before {
+  content: '';
+  position: absolute;
+  z-index: -3;
+  left: -34px;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(174, 229, 255, 0.82) 0 18%, rgba(64, 154, 255, 0.34) 42%, transparent 72%);
+  translate: 0 -50%;
+  pointer-events: none;
+}
+
+.wog-flight-capsule > i,
+.wog-flight-capsule > i::before,
+.wog-flight-capsule > i::after {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.wog-app.is-flying .wog-target-dock {
+  outline: 3px solid rgba(106, 205, 255, 0.34) !important;
+  outline-offset: 7px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wog-flight-capsule {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
