@@ -24,6 +24,7 @@ const FlyingWordsGame = lazy(() => import('./FlyingWordsContrast.jsx'));
 const CrosswordTrialGame = lazy(() => import('./CrosswordTrialGame.jsx'));
 const KnowledgeTrainGame = lazy(() => import('./KnowledgeTrainGame.jsx'));
 const WordOrbitGame = lazy(() => import('./WordOrbitGame.jsx'));
+const TopFiveArena = lazy(() => import('./TopFiveArena.jsx'));
 
 const specializedToolSlugs = new Set(['exam-studio']);
 
@@ -73,6 +74,7 @@ export default function ToolPage(props) {
   if (tool?.slug === 'crossword-trial') return renderLazy(CrosswordTrialGame, props);
   if (tool?.slug === 'knowledge-train') return renderLazy(KnowledgeTrainGame, props);
   if (tool?.slug === 'word-orbit') return renderLazy(WordOrbitGame, props);
+  if (tool?.slug === 'top-five-arena') return renderLazy(TopFiveArena, props);
   if (tool?.slug === 'word2graph') return renderLazy(WordGraphStudio, props);
   if (tool?.slug === 'reading-studio') return renderLazy(ReadingStudio, props);
   if (tool?.slug === 'news-reader') return renderLazy(NewsReader, props);
