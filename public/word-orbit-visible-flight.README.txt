@@ -1,3 +1,0 @@
-Word Orbit flight visibility patch
-
-This patch converts only the detached .wog-flight-capsule Web Animations keyframes from the transform shorthand to the independent translate, scale and rotate properties. It exists because the route-scoped visual stylesheet intentionally locks transform on the stationary capsule. The patch keeps the flight visible, preserves GPU compositing and does not affect other applications.
