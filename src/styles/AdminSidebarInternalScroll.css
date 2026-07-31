@@ -1,0 +1,99 @@
+/* Admin sidebar viewport contract.
+   The identity and primary navigation stay visible; lower sidebar tools scroll inside the rail. */
+
+@media (min-width: 1021px) {
+  .metro-clean-system[data-route='admin'] .admin-v41-sidebar {
+    position: sticky !important;
+    top: 112px !important;
+    align-self: start !important;
+    height: calc(100dvh - 132px) !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 132px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(95, 99, 104, 0.38) transparent;
+    contain: layout paint style;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-sidebar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-sidebar::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: rgba(95, 99, 104, 0.34);
+    background-clip: padding-box;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(60, 64, 67, 0.5);
+    background-clip: padding-box;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-side-brand {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 6 !important;
+    background: #fff !important;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-side-nav {
+    position: sticky !important;
+    top: 82px !important;
+    z-index: 5 !important;
+    margin-inline: -2px !important;
+    padding: 6px 2px 10px !important;
+    background: linear-gradient(180deg, #fff 0%, #fff 91%, rgba(255, 255, 255, 0.94) 100%) !important;
+    box-shadow: 0 8px 14px -16px rgba(60, 64, 67, 0.9) !important;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-ai-card {
+    margin-top: 12px !important;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-side-user {
+    margin-top: 0 !important;
+    flex: 0 0 auto !important;
+  }
+}
+
+@media (min-width: 1021px) and (max-height: 760px) {
+  .metro-clean-system[data-route='admin'] .admin-v41-sidebar {
+    top: 98px !important;
+    height: calc(100dvh - 112px) !important;
+    max-height: calc(100dvh - 112px) !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-side-brand {
+    min-height: 62px !important;
+    padding-top: 4px !important;
+    padding-bottom: 10px !important;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-side-nav {
+    top: 68px !important;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-side-nav button {
+    min-height: 42px !important;
+  }
+}
+
+html[data-theme='dark'] .metro-clean-system[data-route='admin'] .admin-v41-side-brand,
+body[data-theme='dark'] .metro-clean-system[data-route='admin'] .admin-v41-side-brand,
+.theme-dark .metro-clean-system[data-route='admin'] .admin-v41-side-brand,
+html[data-theme='dark'] .metro-clean-system[data-route='admin'] .admin-v41-side-nav,
+body[data-theme='dark'] .metro-clean-system[data-route='admin'] .admin-v41-side-nav,
+.theme-dark .metro-clean-system[data-route='admin'] .admin-v41-side-nav {
+  background: #202124 !important;
+}
