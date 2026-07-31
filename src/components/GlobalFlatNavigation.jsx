@@ -67,8 +67,10 @@ import './GlobalWeeklyPracticeStatistics.css';
 import './GlobalWeeklyPracticeStatisticsLaunchFix.css';
 import './GlobalWeeklyPracticeSimple.css';
 import './GlobalWeeklyPracticeStudentProof.css';
-// Must remain last: performance rules intentionally override expensive visual layers.
+// Performance rules run before the final geometry contract.
 import './GlobalScrollPerformance.css';
+// Must remain last: every route uses one pinned, non-shifting navigation layout.
+import './GlobalNavigationPinnedLayout.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
