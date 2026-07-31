@@ -1,0 +1,340 @@
+/* Admin teacher permission manager — compact viewport layout v3. */
+
+@media (min-width: 901px) {
+  .metro-clean-system[data-route="admin"] .teacher-permission-manager-toolbar.teacher-picker-toolbar {
+    min-height: 0 !important;
+    padding: 16px 18px !important;
+    grid-template-columns: minmax(250px, .72fr) minmax(430px, 1.28fr) !important;
+    gap: 18px !important;
+    align-items: center !important;
+    border-radius: 20px !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-picker-toolbar .teacher-permission-toolbar-copy {
+    gap: 4px !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-picker-toolbar .teacher-permission-toolbar-copy > span {
+    font-size: 10px !important;
+    letter-spacing: .085em !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-picker-toolbar .teacher-permission-toolbar-copy h2 {
+    font-size: clamp(27px, 2.25vw, 34px) !important;
+    line-height: 1.02 !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-picker-toolbar .teacher-permission-toolbar-copy p {
+    max-width: 520px !important;
+    margin-top: 3px !important;
+    display: -webkit-box !important;
+    overflow: hidden !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    color: #6f757c !important;
+    font-size: 12px !important;
+    line-height: 1.42 !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-picker-action-area {
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 12px !important;
+    align-items: center !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-picker-current {
+    min-height: 62px !important;
+    padding: 9px 11px !important;
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    border-radius: 15px !important;
+    cursor: pointer !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-picker-current:hover {
+    border-color: #a8c7fa !important;
+    background: #f3f7ff !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-picker-current-avatar {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-picker-current-copy {
+    gap: 2px !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-picker-current-copy strong {
+    font-size: 13.5px !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-picker-current-copy span {
+    font-size: 10.5px !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-picker-buttons {
+    flex-wrap: nowrap !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 7px !important;
+  }
+
+  .metro-clean-system[data-route="admin"] :is(.teacher-picker-open, .teacher-picker-clear) {
+    min-height: 40px !important;
+    padding: 0 14px !important;
+    font-size: 11.5px !important;
+    white-space: nowrap !important;
+  }
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.admin-permission-manager.is-single-teacher {
+  width: 100% !important;
+  height: clamp(420px, calc(100dvh - 430px), 650px) !important;
+  min-height: 380px !important;
+  max-height: clamp(420px, calc(100dvh - 430px), 650px) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid #dfe3e7 !important;
+  border-radius: 20px !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, .08) !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.admin-permission-manager.is-single-teacher > .admin-user-card:not([hidden]) {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto auto auto minmax(0, 1fr) !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  box-shadow: none !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .teacher-permission-row-head {
+  position: relative !important;
+  top: auto !important;
+  min-height: 66px !important;
+  padding: 10px 14px !important;
+  grid-template-columns: 40px minmax(160px, 1fr) auto minmax(150px, .62fr) auto !important;
+  gap: 10px !important;
+  border-bottom: 1px solid #e8eaed !important;
+  background: #f8fbff !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .teacher-permission-avatar {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .teacher-permission-row-head h3 {
+  font-size: 14px !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .teacher-permission-row-head p {
+  margin-top: 2px !important;
+  font-size: 10.5px !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .teacher-permission-toggle {
+  min-height: 36px !important;
+  padding: 0 12px !important;
+  border-color: #a8c7fa !important;
+  background: #eaf2ff !important;
+  color: #0b57d0 !important;
+  font-size: 11px !important;
+  box-shadow: none !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .teacher-permission-row.is-permission-open > .admin-user-meta {
+  padding: 9px 14px !important;
+  grid-template-columns: minmax(180px, 1.2fr) repeat(3, minmax(120px, .8fr)) !important;
+  gap: 8px !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .teacher-permission-row.is-permission-open > .admin-user-meta > span {
+  min-height: 36px !important;
+  padding: 7px 9px !important;
+  border-radius: 10px !important;
+  font-size: 10.5px !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .teacher-permission-row.is-permission-open > .admin-user-actions {
+  min-height: 50px !important;
+  margin: 0 !important;
+  padding: 8px 14px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  overflow: visible !important;
+  border-bottom: 1px solid #e8eaed !important;
+  background: #f8fafd !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .admin-user-actions .metro-small-btn {
+  width: auto !important;
+  min-width: 112px !important;
+  min-height: 36px !important;
+  height: 36px !important;
+  margin: 0 !important;
+  padding: 0 13px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid #dadce0 !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  color: #0b57d0 !important;
+  font-size: 10.5px !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+  white-space: nowrap !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .admin-user-actions .metro-small-btn:hover {
+  border-color: #a8c7fa !important;
+  background: #eaf2ff !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .teacher-permission-row.is-permission-open > .permission-box {
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 12px 14px 16px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: stable !important;
+  border: 0 !important;
+  background: #ffffff !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .permission-box::-webkit-scrollbar {
+  width: 9px !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .permission-box::-webkit-scrollbar-thumb {
+  border: 2px solid transparent !important;
+  border-radius: 999px !important;
+  background: #aeb6c1 !important;
+  background-clip: padding-box !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .permission-headline {
+  margin-bottom: 8px !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .permission-mode-row {
+  top: -12px !important;
+  margin-bottom: 9px !important;
+  padding: 8px !important;
+  gap: 6px !important;
+  border-radius: 13px !important;
+  box-shadow: 0 2px 7px rgba(60, 64, 67, .07) !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .permission-groups {
+  max-height: none !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  scrollbar-gutter: auto !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .permission-group {
+  padding: 11px !important;
+  border-radius: 14px !important;
+}
+
+.metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .permission-chip {
+  min-height: 58px !important;
+  padding: 9px !important;
+}
+
+body.teacher-permission-selection-active .bes-vn-admin,
+body.teacher-permission-selection-active .teacher-picker-floating-create-account {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translateY(12px) !important;
+}
+
+@media (max-width: 1180px) {
+  .metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .teacher-permission-row-head {
+    grid-template-columns: 40px minmax(150px, 1fr) auto auto !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .teacher-permission-summary {
+    display: none !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .permission-chip-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .metro-clean-system[data-route="admin"] .teacher-permission-manager-toolbar.teacher-picker-toolbar {
+    min-height: 0 !important;
+    padding: 16px !important;
+    grid-template-columns: 1fr !important;
+    gap: 13px !important;
+    border-radius: 18px !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-picker-action-area {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 9px !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-picker-buttons {
+    justify-content: stretch !important;
+  }
+
+  .metro-clean-system[data-route="admin"] :is(.teacher-picker-open, .teacher-picker-clear) {
+    flex: 1 !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .permission-admin-grid.admin-permission-manager.is-single-teacher {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .permission-admin-grid.admin-permission-manager.is-single-teacher > .admin-user-card:not([hidden]) {
+    height: auto !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .permission-admin-grid.is-single-teacher .teacher-permission-row.is-permission-open > .permission-box {
+    max-height: 62vh !important;
+  }
+}
+
+@media (min-width: 901px) and (max-height: 760px) {
+  .metro-clean-system[data-route="admin"] .permission-admin-grid.admin-permission-manager.is-single-teacher {
+    height: max(340px, calc(100dvh - 365px)) !important;
+    min-height: 340px !important;
+    max-height: max(340px, calc(100dvh - 365px)) !important;
+  }
+
+  .metro-clean-system[data-route="admin"] .teacher-permission-manager-toolbar.teacher-picker-toolbar {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.teacher-permission-selection-active .bes-vn-admin,
+  body.teacher-permission-selection-active .teacher-picker-floating-create-account {
+    transition: none !important;
+  }
+}
