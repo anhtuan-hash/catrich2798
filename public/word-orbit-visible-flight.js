@@ -5,7 +5,7 @@
   const nativeAnimate = Element.prototype.animate;
   if (typeof nativeAnimate !== 'function') return;
 
-  const NUMBER = '(-?\\d+(?:\\.\\d+)?)';
+  const NUMBER = '(-?(?:\\d+(?:\\.\\d+)?|\\.\\d+))';
   const TRANSFORM_PATTERN = new RegExp(
     `translate3d\\(\\s*${NUMBER}(?:px)?\\s*,\\s*${NUMBER}(?:px)?\\s*,\\s*${NUMBER}(?:px)?\\s*\\)\\s*scale\\(\\s*${NUMBER}\\s*\\)\\s*rotate\\(\\s*${NUMBER}deg\\s*\\)`,
     'i',
