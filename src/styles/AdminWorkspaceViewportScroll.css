@@ -1,1 +1,120 @@
-/* placeholder */
+/* Admin workspace viewport layout.
+   Keep the left rail visible and move the long Admin document into one native
+   scrolling content pane. This intentionally replaces full-page Admin scrolling. */
+
+@media (min-width: 1021px) {
+  .metro-clean-system[data-route='admin'] .admin-page-v41 {
+    height: calc(100dvh - 118px) !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 118px) !important;
+    padding-top: 18px !important;
+    padding-bottom: 18px !important;
+    overflow: hidden !important;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-shell {
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    align-items: stretch !important;
+    overflow: hidden !important;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-sidebar {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    align-self: stretch !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-main {
+    position: relative !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain !important;
+    scrollbar-gutter: stable;
+    scroll-padding-top: 16px;
+    padding-right: 8px !important;
+    padding-bottom: 28px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-main::-webkit-scrollbar,
+  .metro-clean-system[data-route='admin'] .admin-v41-sidebar::-webkit-scrollbar {
+    width: 9px;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-main::-webkit-scrollbar-track,
+  .metro-clean-system[data-route='admin'] .admin-v41-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-main::-webkit-scrollbar-thumb,
+  .metro-clean-system[data-route='admin'] .admin-v41-sidebar::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: rgba(95, 99, 104, 0.34);
+    background-clip: padding-box;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-main::-webkit-scrollbar-thumb:hover,
+  .metro-clean-system[data-route='admin'] .admin-v41-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(60, 64, 67, 0.52);
+    background-clip: padding-box;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-main,
+  .metro-clean-system[data-route='admin'] .admin-v41-sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(95, 99, 104, 0.42) transparent;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-main :is(
+    #admin-v41-requests,
+    #admin-v41-permissions,
+    #admin-v41-accounts,
+    #admin-v41-security,
+    .admin-sync-panel,
+    .admin-diagnostic-panel,
+    .permission-request-admin-panel,
+    .permission-admin-grid
+  ) {
+    scroll-margin-top: 16px !important;
+  }
+}
+
+@media (min-width: 1021px) and (max-height: 760px) {
+  .metro-clean-system[data-route='admin'] .admin-page-v41 {
+    height: calc(100dvh - 104px) !important;
+    max-height: calc(100dvh - 104px) !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .metro-clean-system[data-route='admin'] .admin-v41-main {
+    padding-bottom: 20px !important;
+  }
+}
+
+@media (max-width: 1020px) {
+  .metro-clean-system[data-route='admin'] .admin-page-v41,
+  .metro-clean-system[data-route='admin'] .admin-v41-shell,
+  .metro-clean-system[data-route='admin'] .admin-v41-main,
+  .metro-clean-system[data-route='admin'] .admin-v41-sidebar {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
