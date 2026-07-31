@@ -1,0 +1,561 @@
+/* Viewport-safe redesign for the Admin Vietnam atmosphere controls. */
+
+.bes-vn-admin {
+  position: fixed !important;
+  right: max(18px, env(safe-area-inset-right)) !important;
+  bottom: max(18px, env(safe-area-inset-bottom)) !important;
+  z-index: 5200 !important;
+  max-width: calc(100vw - 36px) !important;
+  font-family: inherit !important;
+  pointer-events: none;
+}
+
+.bes-vn-admin > * {
+  pointer-events: auto;
+}
+
+.bes-vn-admin.is-open::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: rgba(15, 23, 42, 0.2);
+  pointer-events: none;
+}
+
+.bes-vn-admin__launcher {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  min-width: 190px !important;
+  min-height: 50px !important;
+  max-width: calc(100vw - 36px) !important;
+  padding: 7px 16px 7px 8px !important;
+  border: 1px solid #d7dce5 !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  color: #202124 !important;
+  box-shadow: 0 3px 9px rgba(60, 64, 67, 0.12), 0 10px 28px rgba(60, 64, 67, 0.12) !important;
+  backdrop-filter: none !important;
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 140ms ease !important;
+}
+
+.bes-vn-admin__launcher:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(60, 64, 67, 0.16), 0 14px 34px rgba(60, 64, 67, 0.14) !important;
+}
+
+.bes-vn-admin__launcher:focus-visible {
+  outline: 3px solid rgba(11, 87, 208, 0.28) !important;
+  outline-offset: 3px !important;
+}
+
+.bes-vn-admin__launcher span {
+  width: 36px !important;
+  height: 36px !important;
+  flex: 0 0 36px !important;
+  border-radius: 12px !important;
+  background: #da251d !important;
+  color: #ffdf3e !important;
+  font-size: 19px !important;
+  box-shadow: none !important;
+}
+
+.bes-vn-admin__launcher b {
+  overflow: hidden;
+  font-size: 14px !important;
+  font-weight: 750 !important;
+  line-height: 1.2 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bes-vn-admin.is-open .bes-vn-admin__launcher {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translateY(8px) scale(0.96) !important;
+}
+
+.bes-vn-admin__panel {
+  position: fixed !important;
+  top: max(16px, env(safe-area-inset-top)) !important;
+  right: max(16px, env(safe-area-inset-right)) !important;
+  bottom: max(16px, env(safe-area-inset-bottom)) !important;
+  left: auto !important;
+  width: min(470px, calc(100vw - 32px)) !important;
+  height: auto !important;
+  max-height: none !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: stable;
+  border: 1px solid #dfe3eb !important;
+  border-radius: 26px !important;
+  background: #ffffff !important;
+  color: #202124 !important;
+  box-shadow: 0 18px 46px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(15, 23, 42, 0.1) !important;
+  backdrop-filter: none !important;
+  animation: bes-vn-panel-viewport-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+@keyframes bes-vn-panel-viewport-in {
+  from { opacity: 0; transform: translateX(16px) scale(0.99); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.bes-vn-admin__panel::-webkit-scrollbar {
+  width: 10px;
+}
+
+.bes-vn-admin__panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bes-vn-admin__panel::-webkit-scrollbar-thumb {
+  border: 3px solid #ffffff;
+  border-radius: 999px;
+  background: #bdc1c6;
+}
+
+.bes-vn-admin__head {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 5 !important;
+  align-items: flex-start !important;
+  gap: 16px !important;
+  padding: 21px 22px 18px !important;
+  border-bottom: 1px solid #e7eaf0 !important;
+  background: linear-gradient(135deg, #eef4ff 0%, #ffffff 62%) !important;
+}
+
+.bes-vn-admin__head .eyebrow {
+  margin-bottom: 7px !important;
+  color: #0b57d0 !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.09em !important;
+}
+
+.bes-vn-admin__head h2 {
+  color: #1f1f1f !important;
+  font-size: 25px !important;
+  font-weight: 760 !important;
+  line-height: 1.12 !important;
+  letter-spacing: -0.025em !important;
+}
+
+.bes-vn-admin__head p {
+  max-width: 340px;
+  margin-top: 7px !important;
+  color: #5f6368 !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+}
+
+.bes-vn-admin__close {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background: #eef2f7 !important;
+  color: #3c4043 !important;
+  font-size: 25px !important;
+  transition: background 140ms ease, transform 140ms ease !important;
+}
+
+.bes-vn-admin__close:hover {
+  background: #dfe7f3 !important;
+  transform: rotate(4deg);
+}
+
+.bes-vn-admin__setup {
+  margin: 16px 18px 0 !important;
+  border: 1px solid #f2c48d !important;
+  border-radius: 18px !important;
+  background: #fff7e8 !important;
+}
+
+.bes-vn-admin__switches,
+.bes-vn-admin__ranges,
+.bes-vn-admin__library {
+  padding-right: 20px !important;
+  padding-left: 20px !important;
+}
+
+.bes-vn-admin__switches {
+  gap: 10px !important;
+  padding-top: 18px !important;
+}
+
+.bes-vn-admin__switch-row {
+  min-height: 74px !important;
+  padding: 14px 15px !important;
+  border: 1px solid #e1e5eb !important;
+  border-radius: 18px !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.05) !important;
+}
+
+.bes-vn-admin__switch-row span {
+  min-width: 0;
+}
+
+.bes-vn-admin__switch-row b,
+.bes-vn-admin__ranges b {
+  color: #202124 !important;
+  font-size: 14px !important;
+  font-weight: 730 !important;
+}
+
+.bes-vn-admin__switch-row small,
+.bes-vn-admin__ranges small {
+  color: #6f7479 !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+.bes-vn-admin__switch-row input[type='checkbox'] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  position: relative !important;
+  width: 48px !important;
+  height: 28px !important;
+  flex: 0 0 48px !important;
+  margin: 0 !important;
+  border: 1px solid #747775 !important;
+  border-radius: 999px !important;
+  background: #e3e7ed !important;
+  cursor: pointer !important;
+  transition: border-color 160ms ease, background 160ms ease !important;
+}
+
+.bes-vn-admin__switch-row input[type='checkbox']::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #5f6368;
+  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), background 160ms ease;
+}
+
+.bes-vn-admin__switch-row input[type='checkbox']:checked {
+  border-color: #0b57d0 !important;
+  background: #0b57d0 !important;
+}
+
+.bes-vn-admin__switch-row input[type='checkbox']:checked::after {
+  background: #ffffff;
+  transform: translateX(20px);
+}
+
+.bes-vn-admin__switch-row input[type='checkbox']:focus-visible {
+  outline: 3px solid rgba(11, 87, 208, 0.24) !important;
+  outline-offset: 2px !important;
+}
+
+.bes-vn-admin__ranges {
+  gap: 12px !important;
+  padding-top: 16px !important;
+}
+
+.bes-vn-admin__ranges label {
+  gap: 10px !important;
+  padding: 14px 15px 13px !important;
+  border: 1px solid #e1e5eb !important;
+  border-radius: 18px !important;
+  background: #f8fafd !important;
+}
+
+.bes-vn-admin__ranges label > span {
+  align-items: center !important;
+}
+
+.bes-vn-admin__ranges output {
+  min-width: 58px !important;
+  padding: 5px 9px !important;
+  border-radius: 999px !important;
+  background: #d3e3fd !important;
+  color: #0842a0 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+}
+
+.bes-vn-admin__ranges input[type='range'] {
+  width: 100% !important;
+  height: 24px !important;
+  accent-color: #0b57d0 !important;
+  cursor: pointer !important;
+}
+
+.bes-vn-admin__actions {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 4 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 10px !important;
+  margin-top: 16px !important;
+  padding: 14px 20px 16px !important;
+  border-top: 1px solid #e7eaf0 !important;
+  border-bottom: 1px solid #eef1f5 !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+}
+
+.bes-vn-admin__actions button {
+  min-height: 44px !important;
+  border-radius: 999px !important;
+  font-size: 13px !important;
+}
+
+.bes-vn-admin__actions .primary {
+  background: #0b57d0 !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 8px rgba(11, 87, 208, 0.24) !important;
+}
+
+.bes-vn-admin__actions .primary:hover {
+  background: #0842a0 !important;
+}
+
+.bes-vn-admin__actions .secondary {
+  border: 1px solid #c8ced8 !important;
+  background: #ffffff !important;
+  color: #0b57d0 !important;
+}
+
+.bes-vn-admin__library {
+  padding-top: 18px !important;
+  padding-bottom: 6px !important;
+}
+
+.bes-vn-admin__section-title {
+  align-items: center !important;
+}
+
+.bes-vn-admin__section-title h3 {
+  color: #202124 !important;
+  font-size: 16px !important;
+}
+
+.bes-vn-admin__section-title p {
+  color: #6f7479 !important;
+  font-size: 12px !important;
+}
+
+.bes-vn-admin__section-title > span {
+  background: #e8f0fe !important;
+  color: #0b57d0 !important;
+}
+
+.bes-vn-admin__upload {
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  min-height: 72px !important;
+  border: 1px dashed #9bb7e5 !important;
+  border-radius: 18px !important;
+  background: #f4f8ff !important;
+  color: #202124 !important;
+}
+
+.bes-vn-admin__upload > span {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 14px !important;
+  background: #d3e3fd !important;
+  color: #0b57d0 !important;
+  box-shadow: none !important;
+}
+
+.bes-vn-admin__upload b {
+  font-size: 14px !important;
+}
+
+.bes-vn-admin__upload small {
+  color: #6f7479 !important;
+  font-size: 11px !important;
+}
+
+.bes-vn-admin__image-grid article {
+  grid-template-columns: 58px minmax(0, 1fr) auto !important;
+  gap: 11px !important;
+  padding: 10px !important;
+  border: 1px solid #e1e5eb !important;
+  border-radius: 16px !important;
+  background: #ffffff !important;
+}
+
+.bes-vn-admin__thumb {
+  width: 58px !important;
+  height: 52px !important;
+}
+
+.bes-vn-admin__image-copy b {
+  color: #202124 !important;
+  font-size: 12px !important;
+}
+
+.bes-vn-admin__image-actions button {
+  min-height: 34px !important;
+  padding: 7px 10px !important;
+  border-radius: 999px !important;
+  background: #eef2f7 !important;
+  color: #3c4043 !important;
+}
+
+.bes-vn-admin__image-actions button.danger {
+  background: #fce8e6 !important;
+  color: #b3261e !important;
+}
+
+.bes-vn-admin__empty {
+  border: 1px solid #e3e7ed !important;
+  background: #f8fafd !important;
+  color: #6f7479 !important;
+  font-size: 12px !important;
+}
+
+.bes-vn-admin__message {
+  margin-right: 20px !important;
+  margin-left: 20px !important;
+  font-size: 12px !important;
+}
+
+.bes-vn-admin__panel footer {
+  padding-bottom: 22px !important;
+  color: #73777c !important;
+  font-size: 11px !important;
+}
+
+html[data-theme='dark'] .bes-vn-admin__panel,
+body[data-theme='dark'] .bes-vn-admin__panel,
+.theme-dark .bes-vn-admin__panel {
+  border-color: #454a50 !important;
+  background: #202124 !important;
+  color: #f1f3f4 !important;
+}
+
+html[data-theme='dark'] .bes-vn-admin__head,
+body[data-theme='dark'] .bes-vn-admin__head,
+.theme-dark .bes-vn-admin__head,
+html[data-theme='dark'] .bes-vn-admin__actions,
+body[data-theme='dark'] .bes-vn-admin__actions,
+.theme-dark .bes-vn-admin__actions {
+  border-color: #3c4043 !important;
+  background: #202124 !important;
+}
+
+html[data-theme='dark'] .bes-vn-admin__switch-row,
+body[data-theme='dark'] .bes-vn-admin__switch-row,
+.theme-dark .bes-vn-admin__switch-row,
+html[data-theme='dark'] .bes-vn-admin__ranges label,
+body[data-theme='dark'] .bes-vn-admin__ranges label,
+.theme-dark .bes-vn-admin__ranges label,
+html[data-theme='dark'] .bes-vn-admin__image-grid article,
+body[data-theme='dark'] .bes-vn-admin__image-grid article,
+.theme-dark .bes-vn-admin__image-grid article {
+  border-color: #454a50 !important;
+  background: #292a2d !important;
+}
+
+html[data-theme='dark'] .bes-vn-admin__switch-row b,
+body[data-theme='dark'] .bes-vn-admin__switch-row b,
+.theme-dark .bes-vn-admin__switch-row b,
+html[data-theme='dark'] .bes-vn-admin__ranges b,
+body[data-theme='dark'] .bes-vn-admin__ranges b,
+.theme-dark .bes-vn-admin__ranges b,
+html[data-theme='dark'] .bes-vn-admin__head h2,
+body[data-theme='dark'] .bes-vn-admin__head h2,
+.theme-dark .bes-vn-admin__head h2,
+html[data-theme='dark'] .bes-vn-admin__section-title h3,
+body[data-theme='dark'] .bes-vn-admin__section-title h3,
+.theme-dark .bes-vn-admin__section-title h3 {
+  color: #f1f3f4 !important;
+}
+
+@media (max-width: 720px) {
+  .bes-vn-admin {
+    right: max(10px, env(safe-area-inset-right)) !important;
+    bottom: max(10px, env(safe-area-inset-bottom)) !important;
+    max-width: calc(100vw - 20px) !important;
+  }
+
+  .bes-vn-admin__launcher {
+    min-width: 50px !important;
+    width: 50px !important;
+    min-height: 50px !important;
+    padding: 7px !important;
+  }
+
+  .bes-vn-admin__launcher b {
+    display: none !important;
+  }
+
+  .bes-vn-admin__panel {
+    top: max(8px, env(safe-area-inset-top)) !important;
+    right: max(8px, env(safe-area-inset-right)) !important;
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    left: max(8px, env(safe-area-inset-left)) !important;
+    width: auto !important;
+    border-radius: 24px !important;
+  }
+
+  .bes-vn-admin__head {
+    padding: 18px 18px 15px !important;
+  }
+
+  .bes-vn-admin__head h2 {
+    font-size: 22px !important;
+  }
+
+  .bes-vn-admin__switches,
+  .bes-vn-admin__ranges,
+  .bes-vn-admin__library {
+    padding-right: 14px !important;
+    padding-left: 14px !important;
+  }
+
+  .bes-vn-admin__actions {
+    grid-template-columns: 1fr !important;
+    padding-right: 14px !important;
+    padding-left: 14px !important;
+  }
+
+  .bes-vn-admin__image-grid article {
+    grid-template-columns: 52px minmax(0, 1fr) !important;
+  }
+
+  .bes-vn-admin__image-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-height: 680px) and (min-width: 721px) {
+  .bes-vn-admin__panel {
+    top: 8px !important;
+    right: 8px !important;
+    bottom: 8px !important;
+  }
+
+  .bes-vn-admin__head {
+    padding-top: 15px !important;
+    padding-bottom: 13px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bes-vn-admin__panel,
+  .bes-vn-admin__launcher,
+  .bes-vn-admin__close,
+  .bes-vn-admin__switch-row input[type='checkbox'],
+  .bes-vn-admin__switch-row input[type='checkbox']::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
