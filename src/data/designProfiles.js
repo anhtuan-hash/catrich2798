@@ -1,4 +1,4 @@
-import { GAME_APPS } from './apps.js';
+import { APPS } from './apps.js';
 
 const TOP_FIVE_ARENA_APP = {
   slug: 'top-five-arena',
@@ -8,16 +8,16 @@ const TOP_FIVE_ARENA_APP = {
   groupVi: 'Hoạt động lớp học',
   title: 'Brian Top 5 Arena',
   titleVi: 'Brian Top 5 Arena',
-  desc: 'Run a polished Top 5 classroom game with ranked answers, teams, strikes, timer, scoring, presentation mode and offline editing.',
-  descVi: 'Tổ chức trò chơi Top 5 với đáp án xếp hạng, đội chơi, lỗi, đồng hồ, chấm điểm, trình chiếu và biên soạn offline.',
-  status: 'macOS style · Offline · Projector',
-  statusVi: 'Phong cách macOS · Offline · Máy chiếu',
+  desc: 'Run a complete Top 5 classroom match with answer entry, smart matching, team turns, scoring, strikes, timers, history and presentation mode.',
+  descVi: 'Tổ chức trận Top 5 hoàn chỉnh với nhập đáp án, dò gần đúng, lượt đội, chấm điểm, lỗi, đồng hồ, lịch sử và chế độ trình chiếu.',
+  status: 'macOS · Smart matching · Projector',
+  statusVi: 'macOS · Dò đáp án · Máy chiếu',
   api: false,
   featured: true,
 };
 
-if (!GAME_APPS.some((app) => app.slug === TOP_FIVE_ARENA_APP.slug)) {
-  GAME_APPS.unshift(TOP_FIVE_ARENA_APP);
+if (!APPS.some((app) => app.slug === TOP_FIVE_ARENA_APP.slug)) {
+  APPS.unshift(TOP_FIVE_ARENA_APP);
 }
 
 export const APP_DESIGN_PROFILES = {
