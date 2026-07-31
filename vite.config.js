@@ -24,6 +24,12 @@ function randomGroupGeneratorPlugin() {
       if (cleanId.endsWith('/src/data/apps.js') && !code.includes("slug: 'random-group-generator'")) {
         return code.replace('export const APPS = [', `export const APPS = [${appRecord}`);
       }
+      if (cleanId.endsWith('/src/pages/RandomGroupGenerator.jsx') && !code.includes('random-group-generator-google-motion.css')) {
+        return code.replace(
+          "import '../styles/random-group-generator.css';",
+          "import '../styles/random-group-generator.css';\nimport '../styles/random-group-generator-google-motion.css';",
+        );
+      }
       if (cleanId.endsWith('/src/pages/ToolPage.jsx')) {
         let next = code;
         if (!next.includes("const RandomGroupGenerator = lazy")) {
