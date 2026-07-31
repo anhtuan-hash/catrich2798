@@ -143,3 +143,26 @@
     document.head.appendChild(script);
   }
 })();
+
+/* Word Orbit flight assets are intentionally loaded before the React tool can
+   be used. They are route-safe and only activate for .wog-flight-capsule. */
+(() => {
+  const cssId = 'bes-word-orbit-visible-flight-css';
+  const scriptId = 'bes-word-orbit-visible-flight-js';
+
+  if (!document.getElementById(cssId)) {
+    const link = document.createElement('link');
+    link.id = cssId;
+    link.rel = 'stylesheet';
+    link.href = '/word-orbit-visible-flight.css?v=1';
+    document.head.appendChild(link);
+  }
+
+  if (!document.getElementById(scriptId)) {
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.src = '/word-orbit-visible-flight.js?v=1';
+    script.async = false;
+    document.head.appendChild(script);
+  }
+})();
