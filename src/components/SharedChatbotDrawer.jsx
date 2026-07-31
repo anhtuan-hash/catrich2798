@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { isSupabaseConfigured, supabase } from '../utils/supabase.js';
 import '../styles/SharedChatbotDrawer.css';
 
 const MAX_HISTORY = 24;
@@ -68,6 +69,7 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
         thinking: 'Đang suy nghĩ…',
         error: 'Tôi chưa thể phản hồi lúc này. Vui lòng thử lại sau.',
         setup: 'Chatbot chưa được cấu hình API key Kira AI trên máy chủ.',
+        session: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
         hint: 'Enter để gửi · Shift + Enter xuống dòng',
       }
     : {
@@ -81,6 +83,7 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
         thinking: 'Thinking…',
         error: 'I cannot respond right now. Please try again later.',
         setup: 'The Kira AI API key has not been configured on the server.',
+        session: 'Your session has expired. Please sign in again.',
         hint: 'Enter to send · Shift + Enter for a new line',
       };
 
@@ -140,9 +143,17 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
     abortRef.current = controller;
 
     try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (isSupabaseConfigured) {
+        const { data } = await supabase.auth.getSession();
+        const token = data?.session?.access_token;
+        if (!token) throw new Error(text.session);
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/kira-chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           language,
           messages: nextMessages.map(({ role, content: messageContent }) => ({ role, content: messageContent })),
@@ -151,7 +162,11 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const message = payload?.code === 'KIRAAI_NOT_CONFIGURED' ? text.setup : (payload?.error || text.error);
+        const message = payload?.code === 'KIRAAI_NOT_CONFIGURED'
+          ? text.setup
+          : payload?.code === 'UNAUTHORIZED'
+            ? text.session
+            : (payload?.error || text.error);
         throw new Error(message);
       }
       const answer = String(payload?.message || '').trim();
