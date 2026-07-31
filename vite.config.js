@@ -47,6 +47,9 @@ function randomGroupGeneratorPlugin() {
 
 export default defineConfig({
   plugins: [randomGroupGeneratorPlugin(), react()],
+  resolve: {
+    alias: [{ find: /^read-excel-file$/, replacement: 'read-excel-file/browser' }],
+  },
   define: {
     'import.meta.env.VITE_DEPARTMENT_CLOUD_ENABLED': JSON.stringify(departmentCloudEnabled),
     'import.meta.env.VITE_DEPARTMENT_ID': JSON.stringify(departmentId)},
