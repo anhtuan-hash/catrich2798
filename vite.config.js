@@ -11,7 +11,14 @@ function patchRandomGroupGenerator(code) {
   if (!next.includes('random-group-generator-material-v2.css')) {
     next = next.replace(
       "import '../styles/random-group-generator.css';",
-      "import '../styles/random-group-generator.css';\nimport '../styles/random-group-generator-google-motion.css';\nimport '../styles/random-group-generator-material-v2.css';",
+      "import '../styles/random-group-generator.css';\nimport '../styles/random-group-generator-google-motion.css';\nimport '../styles/random-group-generator-material-v2.css';\nimport '../styles/random-group-generator-material-v2-runtime.css';",
+    );
+  }
+
+  if (!next.includes("const GROUP_COLORS = ['#0b57d0'")) {
+    next = next.replace(
+      "const GROUP_COLORS = ['#2563eb', '#7c3aed', '#db2777', '#ea580c', '#059669', '#0891b2', '#ca8a04', '#475569', '#9333ea', '#16a34a'];",
+      "const GROUP_COLORS = ['#0b57d0', '#9334e6', '#d01884', '#e8710a', '#188038', '#007b83', '#f9ab00', '#5f6368', '#7b1fa2', '#137333'];",
     );
   }
 
@@ -73,6 +80,13 @@ function patchRandomGroupGenerator(code) {
     next = next.replace(
       "    <div className={`brian-group-app ${presenting ? 'is-presenting' : ''}`} ref={stageRef}>",
       "    <div className={`brian-group-app ${presenting ? 'is-presenting' : ''} ${isShuffling ? 'is-shuffling' : ''} ${draggedMember ? 'is-dragging-member' : ''}`} data-generation={generationCycle} ref={stageRef}>",
+    );
+  }
+
+  if (!next.includes("style={{ '--row-index': index }}")) {
+    next = next.replace(
+      "return <button type=\"button\" key={student.id} className={absent ? 'is-absent' : ''} onClick={() => toggleAbsent(student.id)}>",
+      "return <button type=\"button\" key={student.id} className={absent ? 'is-absent' : ''} style={{ '--row-index': index }} onClick={() => toggleAbsent(student.id)}>",
     );
   }
 
