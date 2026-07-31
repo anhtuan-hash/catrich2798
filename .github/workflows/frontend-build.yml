@@ -6,6 +6,7 @@ on:
       - 'src/**'
       - 'api/**'
       - 'public/**'
+      - 'scripts/audit-grammar-rift.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.*'
@@ -38,3 +39,6 @@ jobs:
 
       - name: Build production bundle
         run: npm run build
+
+      - name: Audit Grammar Rift contract
+        run: node scripts/audit-grammar-rift.mjs

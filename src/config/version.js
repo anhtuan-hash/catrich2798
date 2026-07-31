@@ -1,4 +1,5 @@
 import '../data/registerWordOrbit.js';
+import '../data/registerGrammarRift.js';
 
 export const APP_VERSION = '11.6.7';
 export const RELEASE_NAME = 'Streamlined Application Catalog';
