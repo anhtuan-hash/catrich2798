@@ -1,0 +1,470 @@
+.bes-kira-chat-root {
+  position: fixed;
+  right: max(22px, env(safe-area-inset-right));
+  bottom: max(22px, env(safe-area-inset-bottom));
+  z-index: 1800;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+  pointer-events: none;
+  font-family: inherit;
+}
+
+.bes-kira-chat-root *,
+.bes-kira-chat-root *::before,
+.bes-kira-chat-root *::after {
+  box-sizing: border-box;
+}
+
+.bes-kira-chat-launcher,
+.bes-kira-chat-panel {
+  pointer-events: auto;
+}
+
+.bes-kira-chat-launcher {
+  position: relative;
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: 21px;
+  background:
+    radial-gradient(circle at 28% 18%, rgba(255, 255, 255, .62), transparent 34%),
+    linear-gradient(145deg, #0b57d0 0%, #315fc4 48%, #684cc6 100%);
+  color: #fff;
+  box-shadow: 0 18px 38px rgba(32, 58, 130, .3), 0 4px 12px rgba(32, 58, 130, .2);
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease, border-radius .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bes-kira-chat-launcher:hover {
+  transform: translateY(-3px) scale(1.025);
+  box-shadow: 0 22px 48px rgba(32, 58, 130, .34), 0 6px 14px rgba(32, 58, 130, .22);
+}
+
+.bes-kira-chat-launcher:active {
+  transform: translateY(0) scale(.97);
+}
+
+.bes-kira-chat-launcher:focus-visible,
+.bes-kira-chat-actions button:focus-visible,
+.bes-kira-chat-send:focus-visible,
+.bes-kira-chat-input-wrap textarea:focus-visible {
+  outline: 3px solid rgba(26, 115, 232, .28);
+  outline-offset: 3px;
+}
+
+.bes-kira-chat-launcher svg {
+  width: 29px;
+  height: 29px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bes-kira-chat-launcher-glow {
+  position: absolute;
+  inset: -8px;
+  z-index: -1;
+  border-radius: 27px;
+  background: rgba(49, 95, 196, .22);
+  filter: blur(12px);
+  animation: besKiraPulse 2.8s ease-in-out infinite;
+}
+
+.bes-kira-chat-online {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 15px;
+  height: 15px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #34a853;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, .18);
+}
+
+.bes-kira-chat-panel {
+  width: min(420px, calc(100vw - 28px));
+  height: min(650px, calc(100dvh - 118px));
+  min-height: 440px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: 1px solid rgba(218, 220, 224, .9);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, .98);
+  box-shadow: 0 28px 70px rgba(31, 41, 55, .24), 0 8px 24px rgba(31, 41, 55, .13);
+  transform-origin: bottom right;
+  animation: besKiraPanelIn .22s cubic-bezier(.2, .85, .25, 1);
+  backdrop-filter: blur(18px) saturate(1.08);
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+}
+
+.bes-kira-chat-header {
+  min-height: 76px;
+  padding: 13px 14px 13px 16px;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  border-bottom: 1px solid #e8eaed;
+  background:
+    radial-gradient(circle at 20% -20%, rgba(49, 95, 196, .14), transparent 42%),
+    linear-gradient(180deg, #fff, #fbfcff);
+}
+
+.bes-kira-chat-brand,
+.bes-kira-chat-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: #fff;
+  background: linear-gradient(145deg, #0b57d0, #684cc6);
+  font-weight: 900;
+  letter-spacing: -.04em;
+  box-shadow: 0 6px 15px rgba(49, 95, 196, .22);
+}
+
+.bes-kira-chat-brand {
+  width: 44px;
+  height: 44px;
+  border-radius: 15px;
+  font-size: 14px;
+}
+
+.bes-kira-chat-heading {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.bes-kira-chat-heading strong {
+  color: #202124;
+  font-size: 17px;
+  line-height: 1.1;
+  letter-spacing: -.02em;
+}
+
+.bes-kira-chat-heading span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #687079;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.bes-kira-chat-heading i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34a853;
+  box-shadow: 0 0 0 4px rgba(52, 168, 83, .12);
+}
+
+.bes-kira-chat-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.bes-kira-chat-actions button {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #5f6368;
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease, transform .16s ease;
+}
+
+.bes-kira-chat-actions button:hover {
+  color: #0b57d0;
+  background: #edf3ff;
+  transform: translateY(-1px);
+}
+
+.bes-kira-chat-actions svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bes-kira-chat-messages {
+  min-height: 0;
+  padding: 18px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  background:
+    linear-gradient(rgba(247, 249, 252, .78), rgba(247, 249, 252, .78)),
+    radial-gradient(circle at 85% 8%, rgba(104, 76, 198, .08), transparent 32%);
+}
+
+.bes-kira-chat-messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bes-kira-chat-messages::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: #bcc2ca;
+  background-clip: padding-box;
+}
+
+.bes-kira-chat-message {
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.bes-kira-chat-message.is-user {
+  justify-content: flex-end;
+}
+
+.bes-kira-chat-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  font-size: 9px;
+  box-shadow: none;
+}
+
+.bes-kira-chat-bubble {
+  max-width: min(82%, 320px);
+  padding: 11px 13px;
+  border: 1px solid #e0e4ea;
+  border-radius: 18px 18px 18px 6px;
+  background: #fff;
+  color: #263238;
+  font-size: 13px;
+  font-weight: 560;
+  line-height: 1.58;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  box-shadow: 0 2px 8px rgba(60, 64, 67, .06);
+}
+
+.bes-kira-chat-message.is-user .bes-kira-chat-bubble {
+  border-color: #0b57d0;
+  border-radius: 18px 18px 6px 18px;
+  background: linear-gradient(145deg, #0b57d0, #315fc4);
+  color: #fff;
+  box-shadow: 0 7px 18px rgba(49, 95, 196, .2);
+}
+
+.bes-kira-chat-message.is-error .bes-kira-chat-bubble {
+  border-color: #f1c7c7;
+  background: #fff3f3;
+  color: #9b2c2c;
+}
+
+.bes-kira-chat-thinking {
+  min-width: 152px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.bes-kira-chat-thinking > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5f6368;
+  animation: besKiraDot 1.15s ease-in-out infinite;
+}
+
+.bes-kira-chat-thinking > span:nth-child(2) { animation-delay: .12s; }
+.bes-kira-chat-thinking > span:nth-child(3) { animation-delay: .24s; }
+
+.bes-kira-chat-thinking em {
+  margin-left: 4px;
+  color: #687079;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.bes-kira-chat-composer {
+  padding: 12px 13px 13px;
+  border-top: 1px solid #e8eaed;
+  background: #fff;
+}
+
+.bes-kira-chat-input-wrap {
+  min-height: 50px;
+  padding: 6px 6px 6px 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  align-items: end;
+  gap: 8px;
+  border: 1.5px solid #d8dde5;
+  border-radius: 18px;
+  background: #f8fafd;
+  transition: border-color .16s ease, background .16s ease, box-shadow .16s ease;
+}
+
+.bes-kira-chat-input-wrap:focus-within {
+  border-color: #8ab4f8;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, .08);
+}
+
+.bes-kira-chat-input-wrap textarea {
+  width: 100%;
+  min-height: 36px;
+  max-height: 120px;
+  padding: 8px 0 5px;
+  resize: none;
+  overflow-y: auto;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #202124;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.bes-kira-chat-input-wrap textarea::placeholder {
+  color: #8a9098;
+}
+
+.bes-kira-chat-send {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #0b57d0, #315fc4);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 5px 13px rgba(49, 95, 196, .22);
+  transition: transform .16s ease, opacity .16s ease, box-shadow .16s ease;
+}
+
+.bes-kira-chat-send:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(49, 95, 196, .26);
+}
+
+.bes-kira-chat-send:disabled {
+  opacity: .38;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.bes-kira-chat-send svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bes-kira-chat-composer small {
+  display: block;
+  margin: 7px 4px 0;
+  color: #8a9098;
+  font-size: 9.5px;
+  text-align: center;
+}
+
+@keyframes besKiraPanelIn {
+  from { opacity: 0; transform: translateY(14px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes besKiraPulse {
+  0%, 100% { opacity: .45; transform: scale(.92); }
+  50% { opacity: .85; transform: scale(1.06); }
+}
+
+@keyframes besKiraDot {
+  0%, 70%, 100% { transform: translateY(0); opacity: .45; }
+  35% { transform: translateY(-4px); opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .bes-kira-chat-root {
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .bes-kira-chat-root.is-open {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    align-items: stretch;
+  }
+
+  .bes-kira-chat-root.is-open .bes-kira-chat-launcher {
+    display: none;
+  }
+
+  .bes-kira-chat-panel {
+    width: 100vw;
+    height: min(82dvh, 720px);
+    min-height: 500px;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 26px 26px 0 0;
+    transform-origin: bottom center;
+  }
+
+  .bes-kira-chat-launcher {
+    width: 58px;
+    height: 58px;
+    border-radius: 20px;
+  }
+
+  .bes-kira-chat-messages {
+    padding-right: 13px;
+    padding-left: 13px;
+  }
+
+  .bes-kira-chat-bubble {
+    max-width: 86%;
+  }
+}
+
+@media (max-height: 620px) and (min-width: 641px) {
+  .bes-kira-chat-panel {
+    height: calc(100dvh - 92px);
+    min-height: 380px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bes-kira-chat-panel,
+  .bes-kira-chat-launcher-glow,
+  .bes-kira-chat-thinking > span {
+    animation: none !important;
+  }
+
+  .bes-kira-chat-launcher,
+  .bes-kira-chat-actions button,
+  .bes-kira-chat-send {
+    transition: none !important;
+  }
+}
