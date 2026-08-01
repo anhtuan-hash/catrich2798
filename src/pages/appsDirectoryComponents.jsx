@@ -1,4 +1,5 @@
 import React from 'react';
+import { LockKeyhole } from 'lucide-react';
 import PermissionRequestButton from '../components/PermissionRequestButton.jsx';
 import FlatAppIcon from '../components/FlatAppIcon.jsx';
 import { getAppDesignProfile } from '../data/designProfiles.js';
@@ -49,6 +50,7 @@ export function AppWindowCard({ item, language, currentUser, editMode, config, g
   const pinned = config.pinned.includes(itemId);
   const inNav = config.nav.includes(navId);
   const groupId = config.assignments[itemId] || defaultGroupOf(item);
+  const itemTitle = titleOf(item, language);
   return (
     <article
       className={`flat-app-window-card flat-app-window-drawer ${item.isHiddenFolder ? 'hidden-app-folder-card' : ''} ${locked ? 'is-locked' : ''} ${editMode ? 'is-launcher-editing' : ''} ${hidden ? 'is-launcher-hidden' : ''}`}
@@ -60,11 +62,14 @@ export function AppWindowCard({ item, language, currentUser, editMode, config, g
       data-launcher-item={itemId}
     >
       {editMode && <div className="launcher-drag-handle" title={language === 'vi' ? 'Kéo để sắp xếp' : 'Drag to reorder'}>⋮⋮</div>}
+      {locked ? <span className="flat-app-window-lock-chip" aria-hidden="true"><LockKeyhole />{language === 'vi' ? 'Cần quyền' : 'Access needed'}</span> : null}
       <button
         type="button"
         className="flat-app-window-launch"
         onClick={(event) => { if (!locked && !editMode) launch(targetFor(item), item.icon || titleOf(item, language).slice(0, 2), profile.accent, event.currentTarget); }}
-        aria-label={`${t.open}: ${titleOf(item, language)}`}
+        aria-label={`${locked ? (language === 'vi' ? 'Cần quyền truy cập' : 'Access required') : t.open}: ${itemTitle}`}
+        aria-disabled={locked || editMode ? 'true' : 'false'}
+        tabIndex={locked ? -1 : undefined}
         disabled={editMode}
       >
         <span className="flat-app-window-chrome"><span className="flat-traffic"><i /><i /><i /></span><b>{statusOf(item, language)}</b></span>
@@ -72,7 +77,7 @@ export function AppWindowCard({ item, language, currentUser, editMode, config, g
           <span className="flat-app-window-art" aria-hidden="true"><FlatAppIcon type={profile.icon} slug={item.slug} /></span>
           <span className="flat-app-window-copy">
             <small>{groupOptions.find((group) => group.id === groupId)?.[language === 'vi' ? 'labelVi' : 'label'] || t.group}</small>
-            <strong>{titleOf(item, language)} {item.isHiddenFolder ? <span className="hidden-app-folder-count">{String(item.statusVi || item.status || '').match(/\d+/)?.[0] || '0'}</span> : null}</strong>
+            <strong>{itemTitle} {item.isHiddenFolder ? <span className="hidden-app-folder-count">{String(item.statusVi || item.status || '').match(/\d+/)?.[0] || '0'}</span> : null}</strong>
             <em>{shortDesc(item, language)}</em>
           </span>
           <span className="flat-app-window-cta">{locked ? t.locked : t.open}</span><span className="flat-app-window-decoration" />
@@ -88,7 +93,7 @@ export function AppWindowCard({ item, language, currentUser, editMode, config, g
           </select>
         </div>
       )}
-      {locked && permissionId ? <div className="flat-app-window-request"><PermissionRequestButton currentUser={currentUser} permissionId={permissionId} item={item} language={language} /></div> : null}
+      {locked && permissionId ? <div className="flat-app-window-request"><PermissionRequestButton currentUser={currentUser} permissionId={permissionId} item={item} language={language} compact className="request-access-btn" label={language === 'vi' ? `Yêu cầu quyền cho ${itemTitle}` : `Request access to ${itemTitle}`} /></div> : null}
     </article>
   );
 }
