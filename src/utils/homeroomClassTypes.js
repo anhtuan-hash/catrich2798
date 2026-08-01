@@ -7,6 +7,14 @@ export const HOMEROOM_CLASS_TYPE_OPTIONS = Object.freeze([
 ]);
 
 export const SUBJECT_CLASS_TAB_KEYS = Object.freeze(['classes', 'students', 'learning']);
+export const RETIRED_HOMEROOM_TAB_KEYS = Object.freeze([
+  'support',
+  'schedule',
+  'meetings',
+  'parents',
+  'announcements',
+  'records',
+]);
 
 export function isValidHomeroomClassType(value) {
   return value === HOMEROOM_CLASS_TYPE || value === SUBJECT_CLASS_TYPE;
@@ -31,6 +39,7 @@ export function getClassTypeLabel(value, language = 'vi') {
 }
 
 export function isClassTabAllowed(tabKey, workspace, isAdmin = false) {
+  if (RETIRED_HOMEROOM_TAB_KEYS.includes(tabKey)) return false;
   if (!isSubjectClass(workspace)) return true;
   return SUBJECT_CLASS_TAB_KEYS.includes(tabKey) || (isAdmin && tabKey === 'schoolStats');
 }
