@@ -48,7 +48,16 @@ async function startApplication() {
     document.documentElement.dataset.siteFontBoot = 'ready';
   }
 
+  let assignedSchoolClassModule = null;
+  try {
+    assignedSchoolClassModule = await import('./assignedSchoolClassBootstrap.js');
+    await assignedSchoolClassModule.prepareAssignedSchoolClasses();
+  } catch (error) {
+    console.warn('[AssignedSchoolClasses] Chưa thể đồng bộ lớp được phân công trước khi mở ứng dụng.', error);
+  }
+
   await import('./main.jsx');
+  assignedSchoolClassModule?.installAssignedSchoolClassSync?.();
   import('./schoolClassBootstrap.jsx').catch((error) => {
     console.error('[SchoolClassRegistry] Không thể tải danh mục 27 lớp.', error);
   });
