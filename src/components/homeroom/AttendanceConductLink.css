@@ -1,0 +1,61 @@
+.hr-attendance-conduct-link-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 11px 14px;
+  border: 1px solid #c7dfd2;
+  border-left: 5px solid #137333;
+  border-radius: 12px;
+  background: #f1f8f4;
+  color: #234a36;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.hr-attendance-conduct-link-note::before {
+  content: "↔";
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: #137333;
+  color: #fff;
+  font-weight: 900;
+}
+
+.hr-attendance-conduct-link-note b {
+  color: #0d652d;
+}
+
+.hr-attendance-summary span.absent_one_period {
+  background: #e8f0fe;
+  color: #174ea6;
+}
+
+.hr-attendance-summary span.absent_two_periods {
+  background: #fef7e0;
+  color: #8a4b00;
+}
+
+.hr-attendance-card.is-absent_one_period {
+  border-color: #8ab4f8;
+  background: #f4f7ff;
+}
+
+.hr-attendance-card.is-absent_two_periods {
+  border-color: #f9ab00;
+  background: #fffaf0;
+}
+
+.hr-attendance-card.is-absent_one_period .hr-status-switch button.active {
+  background: #1a73e8;
+  color: #fff;
+}
+
+.hr-attendance-card.is-absent_two_periods .hr-status-switch button.active {
+  background: #e37400;
+  color: #fff;
+}
