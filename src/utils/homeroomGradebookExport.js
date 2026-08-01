@@ -134,9 +134,13 @@ export function buildClassGradebookWorkbook({
   subjectName,
   semesterId,
   semester,
+  selectedColumnIds,
   currentUser,
 }) {
-  const columns = buildGradeExportColumns(semester);
+  const availableColumns = buildGradeExportColumns(semester);
+  const selected = Array.isArray(selectedColumnIds) ? new Set(selectedColumnIds) : null;
+  const columns = selected ? availableColumns.filter((column) => selected.has(column.id)) : availableColumns;
+  if (!columns.length) throw new Error('Hãy chọn ít nhất một cột điểm.');
   const meta = classMetadata(workspace, subjectName, semesterId, currentUser);
   const totalColumns = 3 + columns.length;
   const lastColumn = xlsxColumnName(totalColumns);
@@ -148,7 +152,7 @@ export function buildClassGradebookWorkbook({
     [xlsxCell('Lớp', 'metaLabel'), xlsxCell(meta.className, 'metaValue'), '', xlsxCell('Năm học', 'metaLabel'), xlsxCell(meta.schoolYear, 'metaValue')],
     [xlsxCell('Môn học', 'metaLabel'), xlsxCell(meta.subjectName, 'metaValue'), '', xlsxCell('Học kỳ', 'metaLabel'), xlsxCell(meta.semesterLabel, 'metaValue')],
     [xlsxCell('Giáo viên', 'metaLabel'), xlsxCell(meta.adviserName, 'metaValue'), '', xlsxCell('Ngày xuất', 'metaLabel'), xlsxCell(meta.exportedAt, 'metaValue')],
-    [xlsxCell('Điểm đợt thường xuyên = min(10, trung bình các lần nhập trong đợt + điểm cộng). Ô trống là điểm chưa nhập.', 'note')],
+    [xlsxCell('Sổ điểm chỉ gồm các cột giáo viên đã lựa chọn. Điểm TX từng đợt = min(10, trung bình các lần nhập + điểm cộng). Ô trống là điểm chưa nhập.', 'note')],
     [],
     [
       xlsxCell('STT', 'header'),

@@ -762,6 +762,10 @@
   border-bottom: 1px solid #e2e7ef;
 }
 
+.hr-grade-export-select-head.is-first {
+  margin-top: 0;
+}
+
 .hr-grade-export-select-head > div:first-child {
   display: grid;
   gap: 3px;
