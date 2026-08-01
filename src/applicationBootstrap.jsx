@@ -57,9 +57,10 @@ function loadRouteModules() {
     Promise.all([
       import('./conductExportReports.js'),
       import('./conductCurrentWeekExport.js'),
+      import('./class126ForensicExport.js'),
     ]).catch((error) => {
       homeroomExtrasLoaded = false;
-      console.error('[HomeroomExtras] Không thể tải tiện ích báo cáo rèn luyện.', error);
+      console.error('[HomeroomExtras] Không thể tải tiện ích báo cáo và cứu hộ dữ liệu.', error);
     });
   }
 }
