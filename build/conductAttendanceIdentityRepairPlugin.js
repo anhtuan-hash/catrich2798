@@ -81,6 +81,22 @@ function resolveConductRecordStudentId(current, record = {}) {
 
 `;
 
+function fixClass126CloudCandidateScan(code) {
+  return String(code || '').replace(
+    `    collectWorkspaceAndBackups(
+      workspace,
+      'cloud',
+      \`Cloud · \${safeText(row.workspace_id)}\`,
+    );`,
+    `    collectWorkspaceAndBackups(
+      workspace,
+      'cloud',
+      candidates,
+      \`Cloud · \${safeText(row.workspace_id)}\`,
+    );`,
+  );
+}
+
 export default function conductAttendanceIdentityRepairPlugin() {
   const class126RecoveryPlugin = class126RecoveryIdentityPlugin();
   return {
@@ -88,7 +104,7 @@ export default function conductAttendanceIdentityRepairPlugin() {
     enforce: 'pre',
     transform(code, id) {
       const class126Result = class126RecoveryPlugin.transform(code, id);
-      if (class126Result != null) return class126Result;
+      if (class126Result != null) return fixClass126CloudCandidateScan(class126Result);
 
       const cleanId = String(id || '').split('?')[0].replaceAll('\\', '/');
 
