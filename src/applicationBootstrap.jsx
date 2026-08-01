@@ -49,6 +49,9 @@ async function startApplication() {
   }
 
   await import('./main.jsx');
+  import('./schoolClassBootstrap.jsx').catch((error) => {
+    console.error('[SchoolClassRegistry] Không thể tải danh mục 27 lớp.', error);
+  });
   import('./conductExportReports.js').catch((error) => {
     console.error('[ConductExportReports] Không thể tải tính năng xuất báo cáo rèn luyện.', error);
   });
