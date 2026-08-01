@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import HomeroomConductTab from '../components/HomeroomConductTab.jsx';
 import HomeroomLearningGradebook from '../components/homeroom/HomeroomLearningGradebook.jsx';
 import {
@@ -9,6 +9,7 @@ import {
 } from '../components/homeroom/HomeroomCoreTabs.jsx';
 import HomeroomClassProfileEditor from '../components/homeroom/HomeroomClassProfileEditor.jsx';
 import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
+import HomeroomNavigationPalette from '../components/homeroom/HomeroomNavigationPalette.jsx';
 import {
   AnnouncementsTab,
   CompetitionTab,
@@ -41,7 +42,6 @@ import {
   setHomeroomWorkspaceStatus,
 } from '../utils/homeroomClassWorkspaceStore.js';
 import { makeWorkspaceId, prepareWorkspaceCommit } from '../utils/homeroomPhase3.js';
-import { HOMEROOM_TABS } from '../data/homeroom.js';
 import {
   HOMEROOM_CLASS_TYPE,
   SUBJECT_CLASS_TYPE,
@@ -57,75 +57,7 @@ import '../styles/homeroom-complete.css';
 import '../components/GlobalHomeroomGoogleRedesign.css';
 import '../components/GlobalHomeroomGoogleColorPolish.css';
 import '../components/GlobalHomeroomGoogleReadabilityPolish.css';
-
-function Tabs({ active, setActive, language, currentUser, workspace }) {
-  const subjectMode = isSubjectClass(workspace);
-  const navRef = useRef(null);
-
-  useEffect(() => {
-    const nav = navRef.current;
-    if (!nav || typeof document === 'undefined') return undefined;
-
-    const chrome = document.querySelector('.app-shell[data-route="homeroom"] > .bes-top-chrome');
-    let frame = 0;
-    let previousTop = '';
-
-    const measure = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => {
-        const rect = chrome?.getBoundingClientRect();
-        const chromeIsVisible = Boolean(rect && rect.bottom > 0 && rect.top < window.innerHeight);
-        const nextTop = chromeIsVisible
-          ? `${Math.max(8, Math.round(rect.bottom) + 8)}px`
-          : 'max(8px, env(safe-area-inset-top))';
-        if (nextTop === previousTop) return;
-        previousTop = nextTop;
-        nav.style.setProperty('--hr-tabs-sticky-top', nextTop);
-      });
-    };
-
-    const resizeObserver = typeof ResizeObserver === 'function' && chrome
-      ? new ResizeObserver(measure)
-      : null;
-    resizeObserver?.observe(chrome);
-    window.addEventListener('scroll', measure, { passive: true });
-    window.addEventListener('resize', measure, { passive: true });
-    measure();
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      resizeObserver?.disconnect();
-      window.removeEventListener('scroll', measure);
-      window.removeEventListener('resize', measure);
-    };
-  }, []);
-
-  useEffect(() => {
-    const nav = navRef.current;
-    const activeButton = nav?.querySelector('button.active');
-    if (!nav || !activeButton || nav.scrollWidth <= nav.clientWidth) return;
-
-    const frame = window.requestAnimationFrame(() => {
-      const navRect = nav.getBoundingClientRect();
-      const buttonRect = activeButton.getBoundingClientRect();
-      const leftLimit = navRect.left + 12;
-      const rightLimit = navRect.right - 12;
-      let delta = 0;
-      if (buttonRect.left < leftLimit) delta = buttonRect.left - leftLimit;
-      else if (buttonRect.right > rightLimit) delta = buttonRect.right - rightLimit;
-      if (delta) {
-        const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-        nav.scrollTo({ left: nav.scrollLeft + delta, behavior: reducedMotion ? 'auto' : 'smooth' });
-      }
-    });
-
-    return () => window.cancelAnimationFrame(frame);
-  }, [active, subjectMode]);
-
-  return <nav ref={navRef} className="hr-tabs" aria-label={language === 'vi' ? 'Chức năng quản lý lớp' : 'Class tools'}>
-    {HOMEROOM_TABS.filter((tab) => (!tab.adminOnly || currentUser?.role === 'admin') && isClassTabAllowed(tab.key, workspace, currentUser?.role === 'admin')).map((tab) => <button key={tab.key} type="button" className={active === tab.key ? 'active' : ''} onClick={() => setActive(tab.key)}><span>{tab.icon}</span><b>{subjectMode && tab.key === 'classes' ? 'Quản lý lớp' : (language === 'vi' ? tab.titleVi : tab.title)}</b></button>)}
-  </nav>;
-}
+import '../components/homeroom/HomeroomNavigationPalette.css';
 
 export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   const [workspaceId, setWorkspaceId] = useState(() => getCurrentHomeroomWorkspaceId(currentUser));
@@ -322,7 +254,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       <aside className="hr-hero-meta"><span className={`hr-sync ${syncState}`}><i />{syncState === 'cloud' ? 'Đã đồng bộ Supabase' : 'Đang lưu trên thiết bị'}</span><b>{currentUser?.name || currentUser?.email || 'Giáo viên'}</b><small>{workspace.classProfile?.adviserEmail || currentUser?.email || ''}</small><span className="hrc-offline-badge">{subjectMode ? 'Chế độ bộ môn · Chỉ lớp và điểm' : 'Không gian GVCN đầy đủ'}</span></aside>
     </section>
 
-    <Tabs active={visibleTab} setActive={setActiveTab} language={language} currentUser={currentUser} workspace={workspace} />
+    <HomeroomNavigationPalette key={currentUser?.id || currentUser?.authId || currentUser?.email || 'guest'} active={visibleTab} setActive={setActiveTab} language={language} currentUser={currentUser} workspace={workspace} />
     {message ? <div className="hr-toast"><span>✓</span>{message}</div> : null}
     {saving ? <div className="hr-saving-strip"><i />Đang đồng bộ dữ liệu lớp…</div> : null}
 
