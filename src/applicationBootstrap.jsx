@@ -52,6 +52,9 @@ async function startApplication() {
   import('./conductExportReports.js').catch((error) => {
     console.error('[ConductExportReports] Không thể tải tính năng xuất báo cáo rèn luyện.', error);
   });
+  import('./conductCurrentWeekExport.js').catch((error) => {
+    console.error('[ConductCurrentWeekExport] Không thể tải tính năng xuất đến tuần hiện tại.', error);
+  });
   loadExternalAppsAfterMainShell();
 }
 
