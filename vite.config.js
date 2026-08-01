@@ -143,7 +143,7 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
           );
           next = next.replace(
             "<td>{row.criticalWeeks ? <span className=\"hr-conduct-alert\">{row.criticalWeeks} tuần</span> : '0'}</td>",
-            "<td>{row.prohibitedDowngraded ? <span className=\"hr-conduct-alert\" title={`Xếp loại theo điểm: ${row.baseClassification?.label || '—'}`}>Hạ 1 bậc · {row.prohibitedViolationCount} vi phạm điều cấm</span> : row.criticalWeeks ? <span className=\"hr-conduct-alert\">{row.criticalWeeks} tuần</span> : '0'}</td>",
+            "<td>{row.prohibitedViolationCount ? <span className=\"hr-conduct-alert\" title={`Xếp loại theo điểm: ${row.baseClassification?.label || '—'}`}>{row.prohibitedDowngraded ? 'Hạ 1 bậc' : 'Đã ở mức Chưa đạt'} · {row.prohibitedViolationCount} vi phạm điều cấm</span> : row.criticalWeeks ? <span className=\"hr-conduct-alert\">{row.criticalWeeks} tuần</span> : '0'}</td>",
           );
         }
         return next;
@@ -158,11 +158,11 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
           );
           next = next.replace(
             '<td>${row.criticalWeeks ? `${row.criticalWeeks} tuần` : \'\'}</td>',
-            '<td>${row.prohibitedDowngraded ? `Hạ 1 bậc (${row.prohibitedViolationCount} vi phạm điều cấm)` : row.criticalWeeks ? `${row.criticalWeeks} tuần` : \'\'}</td>',
+            '<td>${row.prohibitedViolationCount ? `${row.prohibitedDowngraded ? \'Hạ 1 bậc\' : \'Đã ở mức Chưa đạt\'} (${row.prohibitedViolationCount} vi phạm điều cấm)` : row.criticalWeeks ? `${row.criticalWeeks} tuần` : \'\'}</td>',
           );
           next = next.replace(
             "<section class=\"result-banner\"><span>Xếp loại giai đoạn</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${row.criticalWeeks ? `${row.criticalWeeks} tuần có cảnh báo cần xem xét.` : 'Không có tuần cảnh báo nghiêm trọng.'}</small></section>",
-            "<section class=\"result-banner\"><span>Xếp loại giai đoạn</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${row.prohibitedDowngraded ? `Đã hạ một bậc từ ${escapeHtml(row.baseClassification?.label || '—')} do có ${row.prohibitedViolationCount} vi phạm đã xác nhận thuộc 10 điều cấm.` : row.criticalWeeks ? `${row.criticalWeeks} tuần có cảnh báo cần xem xét.` : 'Không có tuần cảnh báo nghiêm trọng.'}</small></section>",
+            "<section class=\"result-banner\"><span>Xếp loại giai đoạn</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${row.prohibitedViolationCount ? row.prohibitedDowngraded ? `Đã hạ một bậc từ ${escapeHtml(row.baseClassification?.label || '—')} do có ${row.prohibitedViolationCount} vi phạm đã xác nhận thuộc 10 điều cấm.` : `Có ${row.prohibitedViolationCount} vi phạm đã xác nhận thuộc 10 điều cấm; kết quả theo điểm đã là Chưa đạt nên không thể hạ thấp hơn.` : row.criticalWeeks ? `${row.criticalWeeks} tuần có cảnh báo cần xem xét.` : 'Không có tuần cảnh báo nghiêm trọng.'}</small></section>",
           );
         }
         return next;
