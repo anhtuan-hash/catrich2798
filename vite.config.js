@@ -55,8 +55,22 @@ function randomGroupGeneratorPlugin() {
   };
 }
 
-function conductProhibitedDowngradePlugin() {
+function conductPeriodEvaluationPlugin() {
   const helperSource = `
+export const CONDUCT_WEEKLY_CONVERSION = Object.freeze({ good: 4, fair: 3, pass: 2, fail: 0 });
+
+export function conductWeeklyClassificationPoint(classification = {}) {
+  return CONDUCT_WEEKLY_CONVERSION[classification?.id] ?? 0;
+}
+
+export function classifyConductPeriodAverage(averagePoint) {
+  const value = Number(averagePoint) || 0;
+  if (value >= 3.5) return { id: 'good', label: 'Tốt' };
+  if (value >= 2.5) return { id: 'fair', label: 'Khá' };
+  if (value >= 1.5) return { id: 'pass', label: 'Đạt' };
+  return { id: 'fail', label: 'Chưa đạt' };
+}
+
 export function downgradeConductClassificationOneLevel(classification = {}) {
   const order = ['good', 'fair', 'pass', 'fail'];
   const labels = { good: 'Tốt', fair: 'Khá', pass: 'Đạt', fail: 'Chưa đạt' };
@@ -84,22 +98,28 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
 `;
 
   return {
-    name: 'brian-conduct-prohibited-downgrade',
+    name: 'brian-conduct-period-evaluation',
     enforce: 'pre',
     transform(code, id) {
       const cleanId = String(id || '').split('?')[0].replaceAll('\\', '/');
 
       if (cleanId.endsWith('/src/utils/homeroomConduct.js')) {
         let next = code;
-        if (!next.includes('downgradeConductClassificationOneLevel')) {
+        if (!next.includes('classifyConductPeriodAverage')) {
           next = next.replace(
             'export function calculateConductPeriod(workspace, startDate, endDate) {',
             `${helperSource}\nexport function calculateConductPeriod(workspace, startDate, endDate, options = {}) {`,
           );
           next = next.replace(
+            '    const average = weekly.length ? weekly.reduce((sum, row) => sum + row.score, 0) / weekly.length : 100;',
+            `    const weeklyPoints = weekly.map((row) => conductWeeklyClassificationPoint(row.classification));
+    const averagePoint = weeklyPoints.length ? weeklyPoints.reduce((sum, point) => sum + point, 0) / weeklyPoints.length : 4;
+    const scoreAverage = weekly.length ? weekly.reduce((sum, row) => sum + row.score, 0) / weekly.length : 100;`,
+          );
+          next = next.replace(
             '    const criticalWeeks = weekly.filter((row) => row.critical).length;',
             `    const criticalWeeks = weekly.filter((row) => row.critical).length;
-    const baseClassification = classifyConductScore(average, current.conductSettings?.thresholds);
+    const baseClassification = classifyConductPeriodAverage(averagePoint);
     const prohibitedRecords = options.enforceProhibitedDowngrade === true
       ? prohibitedConductRecordsForPeriod(current, startDate, endDate, student.id)
       : [];
@@ -108,6 +128,13 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
     const classification = prohibitedViolationCount > 0
       ? downgradeConductClassificationOneLevel(baseClassification)
       : baseClassification;`,
+          );
+          next = next.replace(
+            '      average: Math.round(average * 100) / 100,',
+            `      average: Math.round(averagePoint * 100) / 100,
+      scoreAverage: Math.round(scoreAverage * 100) / 100,
+      weeklyPoints,
+      conversionScale: CONDUCT_WEEKLY_CONVERSION,`,
           );
           next = next.replace(
             '      classification: classifyConductScore(average, current.conductSettings?.thresholds),',
@@ -123,7 +150,8 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
 
       if (cleanId.endsWith('/src/components/HomeroomConductTab.jsx')) {
         let next = code;
-        if (!next.includes('enforceProhibitedDowngrade: periodMode')) {
+        if (!next.includes('Tốt = 4 điểm')) {
+          next = next.replace("  const [periodMode, setPeriodMode] = useState('month');", "  const [periodMode, setPeriodMode] = useState('mid1');");
           next = next.replace(
             '    () => calculateConductPeriod({ ...workspace, conductSettings: settingsDraft }, periodRange.start, periodRange.end),',
             `    () => calculateConductPeriod(
@@ -138,12 +166,13 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
             '[workspace, settingsDraft, periodRange.start, periodRange.end, periodMode],',
           );
           next = next.replace(
-            "<p>Kết quả là trung bình điểm của các tuần thuộc giai đoạn. Riêng lớp 12, bốn tuần hè 15/06–11/07/2026 được tính vào Học kỳ I và cả năm.</p>",
-            "<p>Kết quả là trung bình điểm của các tuần thuộc giai đoạn. Khi chốt Học kỳ I hoặc II, học sinh có ít nhất một vi phạm đã xác nhận thuộc 10 điều cấm sẽ tự động bị hạ đúng một bậc rèn luyện. Riêng lớp 12, bốn tuần hè 15/06–11/07/2026 được tính vào Học kỳ I và cả năm.</p>",
+            /<div className="hr-panel-head"><div><small>TỔNG HỢP ĐỊNH KỲ<\/small><h2>Tháng · Giữa kỳ · Cuối kỳ · Cả năm<\/h2><p>[\s\S]*?<\/p><\/div><div className="hr-head-actions"><select value=\{periodMode\} onChange=\{\(event\) => setPeriodMode\(event\.target\.value\)\}>[\s\S]*?<\/select>\{periodMode === 'month' \? <input type="month"[\s\S]*? : null\}<\/div><\/div>/,
+            `<div className="hr-panel-head"><div><small>TỔNG HỢP ĐỊNH KỲ</small><h2>Giữa kỳ · Cuối kỳ</h2><p>Tốt = 4 điểm, Khá = 3 điểm, Đạt = 2 điểm, Chưa đạt = 0 điểm. Giữa kỳ lấy trung bình từ đầu học kỳ đến hết tuần giữa kỳ; cuối kỳ lấy trung bình toàn bộ các tuần của học kỳ. Khi chốt cuối kỳ, có vi phạm đã xác nhận thuộc 10 điều cấm sẽ hạ đúng một bậc.</p></div><div className="hr-head-actions"><select value={periodMode} onChange={(event) => setPeriodMode(event.target.value)}><option value="mid1">Giữa học kỳ I</option><option value="semester1">Cuối học kỳ I</option><option value="mid2">Giữa học kỳ II</option><option value="semester2">Cuối học kỳ II</option></select></div></div>`,
           );
+          next = next.replace('<th>Điểm trung bình</th>', '<th>Điểm TB quy đổi</th>');
           next = next.replace(
             "<td>{row.criticalWeeks ? <span className=\"hr-conduct-alert\">{row.criticalWeeks} tuần</span> : '0'}</td>",
-            "<td>{row.prohibitedViolationCount ? <span className=\"hr-conduct-alert\" title={`Xếp loại theo điểm: ${row.baseClassification?.label || '—'}`}>{row.prohibitedDowngraded ? 'Hạ 1 bậc' : 'Đã ở mức Chưa đạt'} · {row.prohibitedViolationCount} vi phạm điều cấm</span> : row.criticalWeeks ? <span className=\"hr-conduct-alert\">{row.criticalWeeks} tuần</span> : '0'}</td>",
+            "<td>{row.prohibitedViolationCount ? <span className=\"hr-conduct-alert\" title={`Xếp loại trước ràng buộc: ${row.baseClassification?.label || '—'}`}>{row.prohibitedDowngraded ? 'Hạ 1 bậc' : 'Đã ở mức Chưa đạt'} · {row.prohibitedViolationCount} vi phạm điều cấm</span> : row.criticalWeeks ? <span className=\"hr-conduct-alert\">{row.criticalWeeks} tuần</span> : '0'}</td>",
           );
         }
         return next;
@@ -151,19 +180,33 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
 
       if (cleanId.endsWith('/src/conductExportReports.js')) {
         let next = code;
-        if (!next.includes("enforceProhibitedDowngrade: range.type === 'semester1'")) {
-          next = next.replaceAll(
-            'const rows = calculateConductPeriod(workspace, range.start, range.end);',
-            "const rows = calculateConductPeriod(workspace, range.start, range.end, { enforceProhibitedDowngrade: range.type === 'semester1' || range.type === 'semester2' });",
+        if (!next.includes('Giữa học kỳ I</option><option value="semester1"')) {
+          next = next.replace(
+            "  const key = period === 'semester2' ? 'semester2' : 'semester1';\n  const range = ranges[key] || {};\n  return {\n    type: key,\n    label: key === 'semester2' ? 'Học kỳ II' : 'Học kỳ I',",
+            "  const key = ['mid1', 'semester1', 'mid2', 'semester2'].includes(period) ? period : 'mid1';\n  const labels = { mid1: 'Giữa học kỳ I', semester1: 'Cuối học kỳ I', mid2: 'Giữa học kỳ II', semester2: 'Cuối học kỳ II' };\n  const range = ranges[key] || {};\n  return {\n    type: key,\n    label: labels[key],",
           );
+          next = next.replaceAll(
+            'calculateConductPeriod(workspace, range.start, range.end)',
+            "calculateConductPeriod(workspace, range.start, range.end, { enforceProhibitedDowngrade: range.type === 'semester1' || range.type === 'semester2' })",
+          );
+          next = next.replace(' : 100;\n  const counts = classificationCounts(rows);', ' : 4;\n  const counts = classificationCounts(rows);');
+          next = next.replace('<article><small>Điểm trung bình lớp</small>', '<article><small>Điểm TB quy đổi lớp</small>');
+          next = next.replace('<th>Điểm TB</th>', '<th>Điểm TB quy đổi</th>');
           next = next.replace(
             '<td>${row.criticalWeeks ? `${row.criticalWeeks} tuần` : \'\'}</td>',
             '<td>${row.prohibitedViolationCount ? `${row.prohibitedDowngraded ? \'Hạ 1 bậc\' : \'Đã ở mức Chưa đạt\'} (${row.prohibitedViolationCount} vi phạm điều cấm)` : row.criticalWeeks ? `${row.criticalWeeks} tuần` : \'\'}</td>',
           );
           next = next.replace(
             "<section class=\"result-banner\"><span>Xếp loại giai đoạn</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${row.criticalWeeks ? `${row.criticalWeeks} tuần có cảnh báo cần xem xét.` : 'Không có tuần cảnh báo nghiêm trọng.'}</small></section>",
-            "<section class=\"result-banner\"><span>Xếp loại giai đoạn</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${row.prohibitedViolationCount ? row.prohibitedDowngraded ? `Đã hạ một bậc từ ${escapeHtml(row.baseClassification?.label || '—')} do có ${row.prohibitedViolationCount} vi phạm đã xác nhận thuộc 10 điều cấm.` : `Có ${row.prohibitedViolationCount} vi phạm đã xác nhận thuộc 10 điều cấm; kết quả theo điểm đã là Chưa đạt nên không thể hạ thấp hơn.` : row.criticalWeeks ? `${row.criticalWeeks} tuần có cảnh báo cần xem xét.` : 'Không có tuần cảnh báo nghiêm trọng.'}</small></section>",
+            "<section class=\"result-banner\"><span>Xếp loại giai đoạn</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${row.prohibitedViolationCount ? row.prohibitedDowngraded ? `Đã hạ một bậc từ ${escapeHtml(row.baseClassification?.label || '—')} do có ${row.prohibitedViolationCount} vi phạm đã xác nhận thuộc 10 điều cấm.` : `Có ${row.prohibitedViolationCount} vi phạm đã xác nhận thuộc 10 điều cấm; kết quả trước ràng buộc đã là Chưa đạt.` : `Điểm trung bình quy đổi: ${Number(row.average || 0).toFixed(2)} trên thang 4.`}</small></section>",
           );
+          next = next.replace('Lớp và cá nhân theo tuần, tháng, học kỳ', 'Lớp và cá nhân theo tuần, giữa kỳ, cuối kỳ');
+          next = next.replace('Tạo bản A4 có thông tin lớp, bảng điểm, chi tiết ghi nhận và khu vực ký xác nhận.', 'Tạo bản A4 theo thang quy đổi Tốt 4 · Khá 3 · Đạt 2 · Chưa đạt 0, kèm chi tiết ghi nhận và khu vực ký xác nhận.');
+          next = next.replace(
+            /<option value="week"[\s\S]*?<option value="semester2"[^>]*>Học kỳ II<\/option>/,
+            '<option value="week"${prefs.period === \'week\' || !prefs.period ? \' selected\' : \'\'}>Theo tuần</option><option value="mid1"${prefs.period === \'mid1\' ? \' selected\' : \'\'}>Giữa học kỳ I</option><option value="semester1"${prefs.period === \'semester1\' ? \' selected\' : \'\'}>Cuối học kỳ I</option><option value="mid2"${prefs.period === \'mid2\' ? \' selected\' : \'\'}>Giữa học kỳ II</option><option value="semester2"${prefs.period === \'semester2\' ? \' selected\' : \'\'}>Cuối học kỳ II</option>',
+          );
+          next = next.replace("  if (monthField) monthField.hidden = period !== 'month';", '  if (monthField) monthField.hidden = true;');
         }
         return next;
       }
@@ -174,7 +217,7 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
 }
 
 export default defineConfig({
-  plugins: [conductProhibitedDowngradePlugin(), randomGroupGeneratorPlugin(), react()],
+  plugins: [conductPeriodEvaluationPlugin(), randomGroupGeneratorPlugin(), react()],
   resolve: {
     alias: [{ find: /^read-excel-file$/, replacement: 'read-excel-file/browser' }],
   },
