@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import attendanceConductLinkPlugin from './build/attendanceConductLinkPlugin.js';
+import conductAttendanceIdentityRepairPlugin from './build/conductAttendanceIdentityRepairPlugin.js';
 import conductBulkActionsPlugin from './build/conductBulkActionsPlugin.js';
 
 const departmentCloudEnabled = process.env.VITE_DEPARTMENT_CLOUD_ENABLED || 'true';
@@ -266,7 +267,7 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
 }
 
 export default defineConfig({
-  plugins: [attendanceConductLinkPlugin(), conductBulkActionsPlugin(), conductPeriodEvaluationPlugin(), randomGroupGeneratorPlugin(), react()],
+  plugins: [attendanceConductLinkPlugin(), conductAttendanceIdentityRepairPlugin(), conductBulkActionsPlugin(), conductPeriodEvaluationPlugin(), randomGroupGeneratorPlugin(), react()],
   resolve: {
     alias: [{ find: /^read-excel-file$/, replacement: 'read-excel-file/browser' }],
   },
