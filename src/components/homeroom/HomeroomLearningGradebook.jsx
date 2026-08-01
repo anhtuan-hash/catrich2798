@@ -24,13 +24,13 @@ const SEMESTERS = [
 ];
 
 const VIEWS = [
-  { id: 'regular-0', label: 'TX · Đợt 1' },
-  { id: 'regular-1', label: 'TX · Đợt 2' },
-  { id: 'regular-2', label: 'TX · Đợt 3' },
-  { id: 'regular-3', label: 'TX · Đợt 4' },
-  { id: 'midterm', label: 'Giữa kỳ' },
-  { id: 'final', label: 'Cuối kỳ' },
-  { id: 'summary', label: 'Tổng hợp' },
+  { id: 'regular-0', label: 'TX · Đợt 1', tone: 'blue' },
+  { id: 'regular-1', label: 'TX · Đợt 2', tone: 'red' },
+  { id: 'regular-2', label: 'TX · Đợt 3', tone: 'yellow' },
+  { id: 'regular-3', label: 'TX · Đợt 4', tone: 'green' },
+  { id: 'midterm', label: 'Giữa kỳ', tone: 'purple' },
+  { id: 'final', label: 'Cuối kỳ', tone: 'orange' },
+  { id: 'summary', label: 'Tổng hợp', tone: 'cyan' },
 ];
 
 function uid(prefix = 'grade') {
@@ -248,7 +248,8 @@ function GradebookNavigationPalette({
   preferenceRef.current = preference;
 
   const semesterLabel = SEMESTERS.find((item) => item.id === semesterId)?.label || 'Học kỳ';
-  const viewLabel = VIEWS.find((item) => item.id === view)?.label || 'Thành phần điểm';
+  const viewMeta = VIEWS.find((item) => item.id === view) || VIEWS[0];
+  const viewLabel = viewMeta.label;
   const compactSemesterLabel = semesterId === 'semester2' ? 'HK II' : 'HK I';
 
   const clearIdleTimer = useCallback(() => {
@@ -333,7 +334,7 @@ function GradebookNavigationPalette({
     setPreference((current) => ({ ...current, pinned: !current.pinned, collapsed: false }));
   };
 
-  return <div className={`hr-grade-navigation-dock ${preference.collapsed ? 'is-collapsed' : 'is-expanded'} ${preference.pinned ? 'is-pinned' : 'is-auto'}`}>
+  return <div data-grade-tone={viewMeta.tone} className={`hr-grade-navigation-dock ${preference.collapsed ? 'is-collapsed' : 'is-expanded'} ${preference.pinned ? 'is-pinned' : 'is-auto'}`}>
     <section
       ref={navigationRef}
       className="hr-panel hr-grade-navigation"
@@ -346,7 +347,7 @@ function GradebookNavigationPalette({
       onBlurCapture={() => { interactionRef.current = false; armIdleTimer(); }}
     >
       <div className="hr-grade-semesters" role="tablist" aria-label="Chọn học kỳ">{SEMESTERS.map((semester) => <button key={semester.id} type="button" className={semesterId === semester.id ? 'active' : ''} onClick={() => onSemesterChange(semester.id)}>{semester.label}</button>)}</div>
-      <div className="hr-grade-views" role="tablist" aria-label="Chọn thành phần điểm">{VIEWS.map((item) => <button key={item.id} type="button" className={view === item.id ? 'active' : ''} onClick={() => onViewChange(item.id)}>{item.label}</button>)}</div>
+      <div className="hr-grade-views" role="tablist" aria-label="Chọn thành phần điểm">{VIEWS.map((item) => <button key={item.id} type="button" data-grade-tone={item.tone} className={view === item.id ? 'active' : ''} onClick={() => onViewChange(item.id)}>{item.label}</button>)}</div>
       <div className="hr-grade-save-actions">
         <span className={dirty ? 'is-dirty' : 'is-saved'}>{dirty ? 'Có thay đổi chưa lưu' : 'Dữ liệu đã lưu'}</span>
         {dirty ? <button type="button" className="secondary" onClick={onDiscard}>Hoàn tác</button> : null}
@@ -408,6 +409,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   );
   const activeSubject = gradebook.subjects[activeSubjectKey] || subjectEntries[0]?.[1];
   const activeSemester = activeSubject?.semesters?.[semesterId] || makeSemester();
+  const activeView = VIEWS.find((item) => item.id === view) || VIEWS[0];
   const roundIndex = view.startsWith('regular-') ? Number(view.split('-')[1]) : -1;
   const activeRound = roundIndex >= 0 ? activeSemester.regular[roundIndex] : null;
   const semesterLabel = SEMESTERS.find((item) => item.id === semesterId)?.label || semesterId;
@@ -673,7 +675,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     </section>
   );
 
-  return <div className="hr-tab-stack hr-gradebook">
+  return <div className="hr-tab-stack hr-gradebook" data-grade-view={view} data-grade-tone={activeView.tone}>
     <section className="hr-panel hr-grade-toolbar">
       <div className="hr-grade-title">
         <span>GRADEBOOK · 2 SEMESTERS</span>
@@ -688,10 +690,10 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     </section>
 
     <section className="hr-grade-overview">
-      <article><small>Học sinh đang học</small><strong>{students.length}</strong><span>Nhập đồng loạt theo danh sách lớp</span></article>
-      <article><small>Cấu trúc học kỳ</small><strong>4 + 1 + 1</strong><span>4 đợt TX · giữa kỳ · cuối kỳ</span></article>
-      <article><small>Cột TX hiện có</small><strong>{totalRegularColumns}</strong><span>Có thể thêm nhiều lần nhập ở mỗi đợt</span></article>
-      <article><small>Đủ 4 đợt TX</small><strong>{completedFourRounds}/{students.length}</strong><span>{activeRound ? `${activeRoundCoverage} học sinh có điểm ở đợt đang mở` : 'Theo học kỳ đang chọn'}</span></article>
+      <article className="tone-blue"><small>Học sinh đang học</small><strong>{students.length}</strong><span>Nhập đồng loạt theo danh sách lớp</span></article>
+      <article className="tone-purple"><small>Cấu trúc học kỳ</small><strong>4 + 1 + 1</strong><span>4 đợt TX · giữa kỳ · cuối kỳ</span></article>
+      <article className="tone-green"><small>Cột TX hiện có</small><strong>{totalRegularColumns}</strong><span>Có thể thêm nhiều lần nhập ở mỗi đợt</span></article>
+      <article className="tone-yellow"><small>Đủ 4 đợt TX</small><strong>{completedFourRounds}/{students.length}</strong><span>{activeRound ? `${activeRoundCoverage} học sinh có điểm ở đợt đang mở` : 'Theo học kỳ đang chọn'}</span></article>
     </section>
 
     <GradebookNavigationPalette
@@ -716,7 +718,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
         <button type="button" className="secondary hr-grade-export-class" disabled={!students.length || Boolean(exporting)} onClick={openClassGradebook}>
           <span aria-hidden="true">⇩</span>Xuất điểm cả lớp
         </button>
-        <button type="button" className="primary" disabled={!students.length || Boolean(exporting)} onClick={openStudentReport}>
+        <button type="button" className="primary hr-grade-export-pdf" disabled={!students.length || Boolean(exporting)} onClick={openStudentReport}>
           <span aria-hidden="true">▤</span>Xuất phiếu điểm cá nhân (PDF)
         </button>
       </div>

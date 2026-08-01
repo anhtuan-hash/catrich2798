@@ -11,6 +11,7 @@
     "test:homeroom-export": "node scripts/test-homeroom-gradebook-export.mjs",
     "test:homeroom-class-types": "node scripts/test-homeroom-class-types.mjs",
     "test:homeroom-navigation": "node scripts/test-homeroom-navigation-palette.mjs",
+    "test:homeroom-color": "node scripts/test-homeroom-google-color.mjs",
     "audit:performance": "node scripts/performance-audit.mjs",
     "test:e2e:contracts": "node scripts/e2e-contract-test-v10.99.mjs",
     "test:e2e": "playwright test",
