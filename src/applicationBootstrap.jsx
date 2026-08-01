@@ -13,6 +13,8 @@ let applicationStarted = false;
 let schoolRegistryLoaded = false;
 let homeroomExtrasLoaded = false;
 let routeListenerInstalled = false;
+let class126RecoveryListenerInstalled = false;
+let class126RecoveryTimer = 0;
 
 function runWhenIdle(callback, timeout = 1800) {
   if (typeof window.requestIdleCallback === 'function') {
@@ -71,36 +73,61 @@ function installRouteModuleLoader() {
 
 function startAssignedClassSync() {
   const eager = isHomeroomRoute();
-  const loadAndSync = () => {
-    import('./assignedSchoolClassBootstrap.js').then((module) => {
-      module.installAssignedSchoolClassSync?.();
-      module.prepareAssignedSchoolClasses?.().catch((error) => {
+  return new Promise((resolve) => {
+    const loadAndSync = async () => {
+      try {
+        const module = await import('./assignedSchoolClassBootstrap.js');
+        module.installAssignedSchoolClassSync?.();
+        await module.prepareAssignedSchoolClasses?.();
+      } catch (error) {
         console.warn('[AssignedSchoolClasses] Chưa thể đồng bộ lớp được phân công.', error);
-      });
-    }).catch((error) => {
-      console.warn('[AssignedSchoolClasses] Không thể tải bộ đồng bộ lớp được phân công.', error);
-    });
-  };
-  if (eager) window.setTimeout(loadAndSync, 0);
-  else runWhenIdle(loadAndSync, 2400);
+      } finally {
+        resolve();
+      }
+    };
+    if (eager) window.setTimeout(loadAndSync, 0);
+    else runWhenIdle(loadAndSync, 2400);
+  });
 }
 
-function startClass126Recovery() {
+async function runClass126Recovery() {
+  let recoveryModule = null;
+  let recoveryResult = null;
+  try {
+    recoveryModule = await import('./class126DataRecovery.js');
+    recoveryResult = await recoveryModule.recoverClass126Data();
+  } catch (error) {
+    recoveryResult = {
+      status: 'error',
+      changed: false,
+      message: error?.message || String(error),
+    };
+    console.error('[Class126Recovery] Không thể hoàn tất quá trình dò và khôi phục dữ liệu lớp 12.6.', error);
+  }
+  recoveryModule?.announceClass126Recovery?.(recoveryResult);
+  return recoveryResult;
+}
+
+function scheduleClass126Recovery(delay = 350) {
+  window.clearTimeout(class126RecoveryTimer);
+  class126RecoveryTimer = window.setTimeout(() => {
+    runClass126Recovery().catch((error) => {
+      console.error('[Class126Recovery] Không thể chạy lại quá trình khôi phục.', error);
+    });
+  }, delay);
+}
+
+function installClass126RecoveryListener() {
+  if (class126RecoveryListenerInstalled) return;
+  class126RecoveryListenerInstalled = true;
+  window.addEventListener('bes-school-class-assignment-synced', () => scheduleClass126Recovery(500));
+}
+
+function startClass126Recovery(assignedSyncPromise) {
   runWhenIdle(async () => {
-    let recoveryModule = null;
-    let recoveryResult = null;
-    try {
-      recoveryModule = await import('./class126DataRecovery.js');
-      recoveryResult = await recoveryModule.recoverClass126Data();
-    } catch (error) {
-      recoveryResult = {
-        status: 'error',
-        changed: false,
-        message: error?.message || String(error),
-      };
-      console.error('[Class126Recovery] Không thể hoàn tất quá trình dò và khôi phục dữ liệu lớp 12.6.', error);
-    }
-    recoveryModule?.announceClass126Recovery?.(recoveryResult);
+    await assignedSyncPromise.catch(() => {});
+    await runClass126Recovery();
+    installClass126RecoveryListener();
   }, 1200);
 }
 
@@ -147,8 +174,8 @@ async function startApplication() {
 
   await mainModulePromise;
   installRouteModuleLoader();
-  startAssignedClassSync();
-  startClass126Recovery();
+  const assignedSyncPromise = startAssignedClassSync();
+  startClass126Recovery(assignedSyncPromise);
   loadExternalAppsAfterMainShell();
 }
 
