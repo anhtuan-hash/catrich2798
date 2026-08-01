@@ -8,6 +8,7 @@
     "build": "npm run version:sync && vite build && vite build --config apps/classroom-screen/vite.config.ts",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node scripts/smoke-test.mjs",
+    "test:homeroom-export": "node scripts/test-homeroom-gradebook-export.mjs",
     "audit:performance": "node scripts/performance-audit.mjs",
     "test:e2e:contracts": "node scripts/e2e-contract-test-v10.99.mjs",
     "test:e2e": "playwright test",

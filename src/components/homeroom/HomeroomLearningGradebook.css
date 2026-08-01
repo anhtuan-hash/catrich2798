@@ -556,6 +556,362 @@
   font-size: 14px;
 }
 
+.hr-grade-export-bar {
+  min-height: 112px;
+  padding: 18px 20px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-color: #c7d7f5 !important;
+  background: linear-gradient(120deg, #f8fbff 0%, #eef5ff 58%, #f7fbff 100%) !important;
+}
+
+.hr-grade-export-copy > span,
+.hr-grade-export-dialog header span {
+  color: var(--grade-blue);
+  font-size: 10.5px;
+  font-weight: 850;
+  letter-spacing: .1em;
+}
+
+.hr-grade-export-copy h3 {
+  margin: 5px 0 4px;
+  color: var(--grade-ink);
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.hr-grade-export-copy p {
+  margin: 0;
+  color: var(--grade-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.hr-grade-export-copy p b {
+  color: #3c4043;
+}
+
+.hr-grade-export-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.hr-grade-export-actions button {
+  min-height: 44px;
+  padding-inline: 16px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.hr-grade-export-actions button > span {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.hr-grade-export-class {
+  border-color: #9eb9e8 !important;
+  background: #fff !important;
+  color: #174ea6 !important;
+}
+
+.hr-grade-export-message {
+  min-height: 44px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #b7dfc2;
+  border-radius: 14px;
+  background: var(--grade-green-soft);
+  color: var(--grade-green);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hr-grade-export-message > span {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--grade-green);
+  color: #fff;
+}
+
+.hr-grade-export-message.error {
+  border-color: #f2bbb6;
+  background: #fce8e6;
+  color: var(--grade-red);
+}
+
+.hr-grade-export-message.error > span {
+  background: var(--grade-red);
+}
+
+.hr-grade-export-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10020;
+  padding: 28px;
+  display: grid;
+  place-items: center;
+  background: rgba(20, 27, 40, .48);
+  backdrop-filter: blur(5px);
+}
+
+.hr-grade-export-dialog {
+  width: min(920px, 100%);
+  max-height: min(88vh, 900px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: 1px solid #cbd5e6;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 28px 80px rgba(20, 33, 61, .26);
+}
+
+.hr-grade-export-dialog > header {
+  min-height: 112px;
+  padding: 22px 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid #e6eaf1;
+  background: linear-gradient(120deg, #f8fbff, #edf4ff);
+}
+
+.hr-grade-export-dialog header h2 {
+  margin: 5px 0 5px !important;
+  color: #202124 !important;
+  font-size: 25px !important;
+  line-height: 1.2 !important;
+}
+
+.hr-grade-export-dialog header p {
+  margin: 0;
+  color: var(--grade-muted);
+  font-size: 13px;
+}
+
+.hr-grade-export-dialog > header > button {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #e8eef8 !important;
+  color: #3c4043 !important;
+  font-size: 24px !important;
+  cursor: pointer;
+}
+
+.hr-grade-export-dialog-body {
+  padding: 20px 24px 24px;
+  overflow-y: auto;
+}
+
+.hr-grade-export-student {
+  display: grid;
+  gap: 7px;
+}
+
+.hr-grade-export-student > span {
+  color: #3c4043;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.hr-grade-export-student select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #b8c2d2 !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: #202124 !important;
+  font-size: 15px !important;
+  outline: none;
+}
+
+.hr-grade-export-student select:focus {
+  border-color: var(--grade-blue) !important;
+  box-shadow: 0 0 0 3px rgba(11, 87, 208, .13) !important;
+}
+
+.hr-grade-export-select-head {
+  margin-top: 22px;
+  padding-bottom: 10px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid #e2e7ef;
+}
+
+.hr-grade-export-select-head > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.hr-grade-export-select-head b {
+  color: #202124;
+  font-size: 15px;
+}
+
+.hr-grade-export-select-head small {
+  color: var(--grade-muted);
+  font-size: 12px;
+}
+
+.hr-grade-export-select-head > div:last-child {
+  display: flex;
+  gap: 6px;
+}
+
+.hr-grade-export-select-head button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--grade-blue-soft) !important;
+  color: var(--grade-blue) !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  cursor: pointer;
+}
+
+.hr-grade-export-groups {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.hr-grade-export-groups fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 11px;
+  border: 1px solid #dce2eb;
+  border-radius: 16px;
+  background: #fbfcff;
+}
+
+.hr-grade-export-groups legend {
+  padding: 0 7px;
+  color: #174ea6;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.hr-grade-export-groups fieldset > div {
+  display: grid;
+  gap: 7px;
+}
+
+.hr-grade-export-groups label {
+  min-height: 52px;
+  padding: 8px 10px;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.hr-grade-export-groups label.selected {
+  border-color: #a8c4f4;
+  background: var(--grade-blue-soft);
+}
+
+.hr-grade-export-groups input {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: var(--grade-blue);
+}
+
+.hr-grade-export-groups label > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.hr-grade-export-groups label b {
+  overflow: hidden;
+  color: #292a2d;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hr-grade-export-groups label small {
+  overflow: hidden;
+  color: #6c727a;
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hr-grade-export-note {
+  margin: 16px 0 0;
+  padding: 11px 13px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  border-radius: 12px;
+  background: #f3f6fb;
+  color: #59616c;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.hr-grade-export-note > span {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #dbe7fb;
+  color: #174ea6;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.hr-grade-export-dialog > footer {
+  min-height: 72px;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  border-top: 1px solid #e6eaf1;
+  background: #fbfcff;
+}
+
+.hr-grade-export-dialog > footer button {
+  min-height: 42px;
+}
+
 @media (max-width: 1180px) {
   .hr-grade-toolbar {
     grid-template-columns: 1fr 1.35fr;
@@ -572,6 +928,16 @@
   .hr-grade-save-actions {
     grid-column: 1 / -1;
     justify-content: flex-end;
+  }
+
+  .hr-grade-export-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hr-grade-export-actions {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 
@@ -597,6 +963,14 @@
 
   .hr-grade-save-actions {
     flex-wrap: wrap;
+  }
+
+  .hr-grade-export-actions {
+    flex-wrap: wrap;
+  }
+
+  .hr-grade-export-groups {
+    grid-template-columns: 1fr;
   }
 
   .hr-grade-table .hr-grade-student {
@@ -628,6 +1002,58 @@
     width: 100%;
   }
 
+  .hr-grade-export-bar {
+    padding: 16px !important;
+  }
+
+  .hr-grade-export-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .hr-grade-export-actions button {
+    width: 100%;
+  }
+
+  .hr-grade-export-overlay {
+    padding: 0;
+    place-items: end center;
+  }
+
+  .hr-grade-export-dialog {
+    width: 100%;
+    max-height: 94vh;
+    border-radius: 22px 22px 0 0;
+  }
+
+  .hr-grade-export-dialog > header,
+  .hr-grade-export-dialog-body,
+  .hr-grade-export-dialog > footer {
+    padding-inline: 16px;
+  }
+
+  .hr-grade-export-select-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hr-grade-export-select-head > div:last-child {
+    width: 100%;
+  }
+
+  .hr-grade-export-select-head button {
+    flex: 1;
+  }
+
+  .hr-grade-export-dialog > footer {
+    display: grid;
+    grid-template-columns: .7fr 1.3fr;
+  }
+
+  .hr-grade-export-dialog > footer button {
+    min-width: 0;
+  }
+
   .hr-grade-table .hr-grade-index {
     position: static;
   }
@@ -647,6 +1073,7 @@ html[data-theme="dark"] .hr-gradebook {
 
 html[data-theme="dark"] .hr-grade-toolbar,
 html[data-theme="dark"] .hr-grade-navigation,
+html[data-theme="dark"] .hr-grade-export-bar,
 html[data-theme="dark"] .hr-grade-panel,
 html[data-theme="dark"] .hr-grade-overview article,
 html[data-theme="dark"] .hr-grade-table,
@@ -676,7 +1103,43 @@ html[data-theme="dark"] .hr-grade-attempt-head input {
 
 html[data-theme="dark"] .hr-grade-title h2,
 html[data-theme="dark"] .hr-grade-panel-head h2,
+html[data-theme="dark"] .hr-grade-export-copy h3,
 html[data-theme="dark"] .hr-grade-table .hr-grade-student b,
 html[data-theme="dark"] .hr-grade-summary-score {
   color: #f1f3f4 !important;
+}
+
+html[data-theme="dark"] .hr-grade-export-copy p b {
+  color: #e8eaed;
+}
+
+html[data-theme="dark"] .hr-grade-export-dialog {
+  border-color: #4a4d52;
+  background: #202124;
+}
+
+html[data-theme="dark"] .hr-grade-export-dialog > header,
+html[data-theme="dark"] .hr-grade-export-dialog > footer,
+html[data-theme="dark"] .hr-grade-export-groups fieldset,
+html[data-theme="dark"] .hr-grade-export-note {
+  border-color: #3c4043;
+  background: #292a2d;
+}
+
+html[data-theme="dark"] .hr-grade-export-dialog header h2,
+html[data-theme="dark"] .hr-grade-export-select-head b,
+html[data-theme="dark"] .hr-grade-export-groups label b {
+  color: #f1f3f4 !important;
+}
+
+html[data-theme="dark"] .hr-grade-export-student select,
+html[data-theme="dark"] .hr-grade-export-groups label {
+  border-color: #5f6368 !important;
+  background: #202124 !important;
+  color: #f1f3f4 !important;
+}
+
+html[data-theme="dark"] .hr-grade-export-groups label.selected {
+  border-color: #8ab4f8 !important;
+  background: #263b5d !important;
 }
