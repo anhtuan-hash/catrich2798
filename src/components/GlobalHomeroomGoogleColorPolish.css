@@ -102,6 +102,28 @@
   color:#137333!important;
 }
 
+/* Class identity stays obvious without abandoning Google Workspace surfaces. */
+.hr-page.is-subject-class .hr-hero{
+  border-color:#a8c7fa!important;
+  border-top:4px solid var(--hrg-google-blue)!important;
+  background:linear-gradient(118deg,#fff 0 58%,#e8f0fe 58% 100%)!important;
+  box-shadow:0 3px 12px rgba(66,133,244,.14)!important;
+}
+.hr-page.is-subject-class .hr-class-type-badge.hero{
+  border-color:#a8c7fa!important;
+  background:#d3e3fd!important;
+  color:#174ea6!important;
+}
+.hr-page.is-subject-class .hr-hero-art{
+  border-color:#a8c7fa!important;
+  background:linear-gradient(145deg,#d3e3fd,#e8f0fe)!important;
+}
+.hr-page:not(.is-subject-class) .hr-hero{
+  border-top:4px solid var(--hrg-google-green)!important;
+  background:linear-gradient(118deg,#fff 0 58%,#e6f4ea 58% 100%)!important;
+  box-shadow:0 3px 12px rgba(52,168,83,.12)!important;
+}
+
 /* Navigation: selected state is unmistakable, while inactive tabs remain calm. */
 .hr-page .hr-tabs{
   border:1px solid #e1e7f0!important;
@@ -344,6 +366,18 @@ html[data-theme="dark"] .hr-page .hr-hero-copy h1{
 html[data-theme="dark"] .hr-page .hr-hero-meta,
 html[data-theme="dark"] .hr-page .hr-tabs,
 html[data-theme="dark"] .hr-page .hr-share-panel{background:#202124!important;border-color:#3b4046!important}
+html[data-theme="dark"] .hr-page.is-subject-class .hr-hero{
+  border-color:#4f72a7!important;
+  background:linear-gradient(118deg,#1b1d1f 0 58%,#172b4d 58% 100%)!important;
+}
+html[data-theme="dark"] .hr-page.is-subject-class .hr-hero-art{
+  border-color:#4f72a7!important;
+  background:linear-gradient(145deg,#263b5d,#172b4d)!important;
+}
+html[data-theme="dark"] .hr-page:not(.is-subject-class) .hr-hero{
+  border-color:#477b58!important;
+  background:linear-gradient(118deg,#1b1d1f 0 58%,#173523 58% 100%)!important;
+}
 html[data-theme="dark"] .hr-page .hr-tabs button>span{background:#303134!important;color:#bdc1c6!important}
 html[data-theme="dark"] .hr-page .hr-tabs button.active{background:#004a77!important;color:#d3e3fd!important;box-shadow:inset 0 0 0 1px #4f7da5!important}
 html[data-theme="dark"] .hr-page .hr-panel-head{border-color:#303438!important}

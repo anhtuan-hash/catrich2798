@@ -1,6 +1,10 @@
 /* Homeroom Learning Gradebook — scoped Google Material workspace */
 
 .hr-gradebook {
+  --grade-google-blue: #4285f4;
+  --grade-google-red: #ea4335;
+  --grade-google-yellow: #fbbc04;
+  --grade-google-green: #34a853;
   --grade-blue: #0b57d0;
   --grade-blue-soft: #e8f0fe;
   --grade-green: #137333;
@@ -12,8 +16,54 @@
   --grade-surface: #ffffff;
   --grade-ink: #1f1f1f;
   --grade-muted: #5f6368;
+  --grade-active: #4285f4;
+  --grade-active-ink: #174ea6;
+  --grade-active-soft: #e8f0fe;
+  --grade-active-border: #a8c7fa;
   gap: 16px !important;
   font-family: "Google Sans Text", Roboto, Arial, sans-serif !important;
+}
+
+.hr-gradebook[data-grade-tone="red"] {
+  --grade-active: #ea4335;
+  --grade-active-ink: #b3261e;
+  --grade-active-soft: #fce8e6;
+  --grade-active-border: #f28b82;
+}
+
+.hr-gradebook[data-grade-tone="yellow"] {
+  --grade-active: #f9ab00;
+  --grade-active-ink: #7a4f01;
+  --grade-active-soft: #fef7e0;
+  --grade-active-border: #fdd663;
+}
+
+.hr-gradebook[data-grade-tone="green"] {
+  --grade-active: #34a853;
+  --grade-active-ink: #137333;
+  --grade-active-soft: #e6f4ea;
+  --grade-active-border: #81c995;
+}
+
+.hr-gradebook[data-grade-tone="purple"] {
+  --grade-active: #9334e6;
+  --grade-active-ink: #681da8;
+  --grade-active-soft: #f3e8fd;
+  --grade-active-border: #d7aefb;
+}
+
+.hr-gradebook[data-grade-tone="orange"] {
+  --grade-active: #e37400;
+  --grade-active-ink: #8a4f00;
+  --grade-active-soft: #feefe3;
+  --grade-active-border: #f9ab66;
+}
+
+.hr-gradebook[data-grade-tone="cyan"] {
+  --grade-active: #12b5cb;
+  --grade-active-ink: #00677d;
+  --grade-active-soft: #e4f7fb;
+  --grade-active-border: #78d9ec;
 }
 
 .hr-gradebook button,
@@ -1077,6 +1127,278 @@
   min-height: 42px;
 }
 
+/* Stronger Google color coding: color identifies purpose while surfaces stay Material-clean. */
+.hr-page .hr-gradebook .hr-grade-toolbar {
+  position: relative;
+  overflow: hidden;
+  border-color: #a8c7fa !important;
+  background: linear-gradient(135deg, #e8f0fe 0%, #fff 46%, #fef7e0 100%) !important;
+  box-shadow: 0 2px 8px rgba(60, 64, 67, .11) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-toolbar::before,
+.hr-page .hr-gradebook .hr-grade-export-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  height: 4px;
+  background: linear-gradient(90deg, #4285f4 0 25%, #ea4335 25% 50%, #fbbc04 50% 75%, #34a853 75%);
+  pointer-events: none;
+}
+
+.hr-page .hr-gradebook .hr-grade-formula {
+  border: 1px solid #a8c7fa;
+  background: #d3e3fd;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72);
+}
+
+.hr-page .hr-gradebook .hr-grade-overview article {
+  --metric-accent: #4285f4;
+  --metric-ink: #174ea6;
+  --metric-soft: #e8f0fe;
+  --metric-border: #a8c7fa;
+  position: relative;
+  overflow: hidden;
+  border-color: var(--metric-border) !important;
+  border-top: 4px solid var(--metric-accent) !important;
+  background: var(--metric-soft) !important;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, .1);
+}
+
+.hr-page .hr-gradebook .hr-grade-overview article::after {
+  content: "";
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: var(--metric-accent);
+  opacity: .14;
+  transform: rotate(12deg);
+}
+
+.hr-page .hr-gradebook .hr-grade-overview article.tone-purple {
+  --metric-accent: #9334e6;
+  --metric-ink: #681da8;
+  --metric-soft: #f3e8fd;
+  --metric-border: #d7aefb;
+}
+
+.hr-page .hr-gradebook .hr-grade-overview article.tone-green {
+  --metric-accent: #34a853;
+  --metric-ink: #137333;
+  --metric-soft: #e6f4ea;
+  --metric-border: #81c995;
+}
+
+.hr-page .hr-gradebook .hr-grade-overview article.tone-yellow {
+  --metric-accent: #f9ab00;
+  --metric-ink: #7a4f01;
+  --metric-soft: #fef7e0;
+  --metric-border: #fdd663;
+}
+
+.hr-page .hr-gradebook .hr-grade-overview article small,
+.hr-page .hr-gradebook .hr-grade-overview article strong {
+  color: var(--metric-ink) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-navigation {
+  border-color: #c4d2e7 !important;
+  box-shadow: 0 2px 7px rgba(60, 64, 67, .1) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-semesters {
+  border: 1px solid #d5d9e0;
+  background: #e9eef6;
+}
+
+.hr-page .hr-gradebook .hr-grade-semesters button.active {
+  background: #d3e3fd !important;
+  color: #174ea6 !important;
+  box-shadow: inset 0 0 0 1px #a8c7fa !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-views button[data-grade-tone] {
+  --view-accent: #4285f4;
+  --view-ink: #174ea6;
+  --view-soft: #e8f0fe;
+  --view-border: #a8c7fa;
+  position: relative;
+  padding-left: 28px;
+}
+
+.hr-page .hr-gradebook .hr-grade-views button[data-grade-tone]::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--view-accent);
+  box-shadow: 0 0 0 3px var(--view-soft);
+}
+
+.hr-page .hr-gradebook .hr-grade-views button[data-grade-tone="red"] {
+  --view-accent: #ea4335;
+  --view-ink: #b3261e;
+  --view-soft: #fce8e6;
+  --view-border: #f28b82;
+}
+
+.hr-page .hr-gradebook .hr-grade-views button[data-grade-tone="yellow"] {
+  --view-accent: #f9ab00;
+  --view-ink: #7a4f01;
+  --view-soft: #fef7e0;
+  --view-border: #fdd663;
+}
+
+.hr-page .hr-gradebook .hr-grade-views button[data-grade-tone="green"] {
+  --view-accent: #34a853;
+  --view-ink: #137333;
+  --view-soft: #e6f4ea;
+  --view-border: #81c995;
+}
+
+.hr-page .hr-gradebook .hr-grade-views button[data-grade-tone="purple"] {
+  --view-accent: #9334e6;
+  --view-ink: #681da8;
+  --view-soft: #f3e8fd;
+  --view-border: #d7aefb;
+}
+
+.hr-page .hr-gradebook .hr-grade-views button[data-grade-tone="orange"] {
+  --view-accent: #e37400;
+  --view-ink: #8a4f00;
+  --view-soft: #feefe3;
+  --view-border: #f9ab66;
+}
+
+.hr-page .hr-gradebook .hr-grade-views button[data-grade-tone="cyan"] {
+  --view-accent: #12b5cb;
+  --view-ink: #00677d;
+  --view-soft: #e4f7fb;
+  --view-border: #78d9ec;
+}
+
+.hr-page .hr-gradebook .hr-grade-views button[data-grade-tone]:hover {
+  background: var(--view-soft) !important;
+  color: var(--view-ink) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-views button[data-grade-tone].active {
+  background: var(--view-soft) !important;
+  color: var(--view-ink) !important;
+  box-shadow: inset 0 0 0 1px var(--view-border) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-save-actions > span.is-saved {
+  border: 1px solid #81c995;
+  background: #e6f4ea;
+}
+
+.hr-page .hr-gradebook .hr-grade-save-actions > span.is-dirty {
+  border: 1px solid #fdd663;
+  background: #fef7e0;
+}
+
+.hr-page .hr-gradebook .hr-grade-navigation-launcher {
+  border-color: var(--grade-active-border) !important;
+  background: var(--grade-active-soft) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-navigation-launcher-icon {
+  background: var(--grade-active) !important;
+  box-shadow: 0 6px 15px rgba(60, 64, 67, .24);
+}
+
+.hr-page .hr-gradebook .hr-grade-navigation-launcher-arrow,
+.hr-page .hr-gradebook .hr-grade-navigation-launcher-copy b {
+  color: var(--grade-active-ink) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-panel {
+  border-color: var(--grade-active-border) !important;
+  border-top: 4px solid var(--grade-active) !important;
+  box-shadow: 0 2px 8px rgba(60, 64, 67, .1) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-panel-head {
+  border-bottom-color: var(--grade-active-border) !important;
+  background: linear-gradient(90deg, var(--grade-active-soft) 0%, #fff 74%) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-panel-head small {
+  color: var(--grade-active-ink) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-table th,
+.hr-page .hr-gradebook .hr-grade-table thead .hr-grade-index,
+.hr-page .hr-gradebook .hr-grade-table thead .hr-grade-student {
+  border-bottom-color: var(--grade-active-border) !important;
+  background: var(--grade-active-soft) !important;
+  color: var(--grade-active-ink) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-attempt-head input {
+  background: rgba(255, 255, 255, .68) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-table tbody tr:hover td {
+  background: var(--grade-active-soft) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-result-head,
+.hr-page .hr-gradebook .hr-grade-result {
+  border-left: 2px solid var(--grade-active-border) !important;
+  background: var(--grade-active-soft) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-result-head,
+.hr-page .hr-gradebook .hr-grade-result.has-score strong {
+  color: var(--grade-active-ink) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-export-bar {
+  position: relative;
+  overflow: hidden;
+  border-color: #a8dab5 !important;
+  background: linear-gradient(110deg, #e6f4ea 0%, #fff 48%, #fce8e6 100%) !important;
+  box-shadow: 0 2px 8px rgba(60, 64, 67, .1) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-export-bar::before {
+  background: linear-gradient(90deg, #34a853 0 50%, #ea4335 50%);
+}
+
+.hr-page .hr-gradebook .hr-grade-export-copy > span {
+  color: #137333;
+}
+
+.hr-page .hr-gradebook .hr-grade-export-class {
+  border-color: #81c995 !important;
+  background: #e6f4ea !important;
+  color: #137333 !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-export-class:hover {
+  border-color: #34a853 !important;
+  background: #ceead6 !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-export-pdf {
+  background: #c5221f !important;
+  color: #fff !important;
+  box-shadow: 0 1px 2px rgba(197, 34, 31, .24) !important;
+}
+
+.hr-page .hr-gradebook .hr-grade-export-pdf:hover {
+  background: #a50e0e !important;
+  box-shadow: 0 2px 5px rgba(197, 34, 31, .3) !important;
+}
+
 @media (max-width: 1180px) {
   .hr-grade-toolbar {
     grid-template-columns: 1fr 1.35fr;
@@ -1340,4 +1662,179 @@ html[data-theme="dark"] .hr-grade-export-groups label {
 html[data-theme="dark"] .hr-grade-export-groups label.selected {
   border-color: #8ab4f8 !important;
   background: #263b5d !important;
+}
+
+html[data-theme="dark"] .hr-gradebook {
+  --grade-active: #8ab4f8;
+  --grade-active-ink: #aecbfa;
+  --grade-active-soft: #263b5d;
+  --grade-active-border: #669df6;
+}
+
+html[data-theme="dark"] .hr-gradebook[data-grade-tone="red"] {
+  --grade-active: #f28b82;
+  --grade-active-ink: #f6aea8;
+  --grade-active-soft: #442421;
+  --grade-active-border: #e67c73;
+}
+
+html[data-theme="dark"] .hr-gradebook[data-grade-tone="yellow"] {
+  --grade-active: #fdd663;
+  --grade-active-ink: #fde293;
+  --grade-active-soft: #3c3218;
+  --grade-active-border: #f9c74f;
+}
+
+html[data-theme="dark"] .hr-gradebook[data-grade-tone="green"] {
+  --grade-active: #81c995;
+  --grade-active-ink: #a8dab5;
+  --grade-active-soft: #173d28;
+  --grade-active-border: #5bb974;
+}
+
+html[data-theme="dark"] .hr-gradebook[data-grade-tone="purple"] {
+  --grade-active: #d7aefb;
+  --grade-active-ink: #e9c8ff;
+  --grade-active-soft: #352348;
+  --grade-active-border: #c58af9;
+}
+
+html[data-theme="dark"] .hr-gradebook[data-grade-tone="orange"] {
+  --grade-active: #f9ab66;
+  --grade-active-ink: #ffc590;
+  --grade-active-soft: #412b1c;
+  --grade-active-border: #f2994a;
+}
+
+html[data-theme="dark"] .hr-gradebook[data-grade-tone="cyan"] {
+  --grade-active: #78d9ec;
+  --grade-active-ink: #a8e7f1;
+  --grade-active-soft: #15353a;
+  --grade-active-border: #4ec5d8;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-toolbar {
+  border-color: #5f7390 !important;
+  background: linear-gradient(135deg, #1b2a41 0%, #202124 48%, #302b18 100%) !important;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-formula {
+  border-color: #4d6d99;
+  background: #233653;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-overview article.tone-blue {
+  --metric-ink: #aecbfa;
+  --metric-soft: #172b4d;
+  --metric-border: #4f72a7;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-overview article.tone-purple {
+  --metric-ink: #e9c8ff;
+  --metric-soft: #30223f;
+  --metric-border: #765094;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-overview article.tone-green {
+  --metric-ink: #a8dab5;
+  --metric-soft: #173523;
+  --metric-border: #477b58;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-overview article.tone-yellow {
+  --metric-ink: #fde293;
+  --metric-soft: #3a3015;
+  --metric-border: #8b722d;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-navigation {
+  border-color: #4b596d !important;
+  background: rgba(32, 33, 36, .96) !important;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-semesters {
+  border-color: #50545b;
+  background: #303134;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-semesters button.active {
+  background: #263b5d !important;
+  color: #aecbfa !important;
+  box-shadow: inset 0 0 0 1px #669df6 !important;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-views button[data-grade-tone="blue"] {
+  --view-accent: #8ab4f8;
+  --view-ink: #aecbfa;
+  --view-soft: #263b5d;
+  --view-border: #669df6;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-views button[data-grade-tone="red"] {
+  --view-accent: #f28b82;
+  --view-ink: #f6aea8;
+  --view-soft: #442421;
+  --view-border: #e67c73;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-views button[data-grade-tone="yellow"] {
+  --view-accent: #fdd663;
+  --view-ink: #fde293;
+  --view-soft: #3c3218;
+  --view-border: #f9c74f;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-views button[data-grade-tone="green"] {
+  --view-accent: #81c995;
+  --view-ink: #a8dab5;
+  --view-soft: #173d28;
+  --view-border: #5bb974;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-views button[data-grade-tone="purple"] {
+  --view-accent: #d7aefb;
+  --view-ink: #e9c8ff;
+  --view-soft: #352348;
+  --view-border: #c58af9;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-views button[data-grade-tone="orange"] {
+  --view-accent: #f9ab66;
+  --view-ink: #ffc590;
+  --view-soft: #412b1c;
+  --view-border: #f2994a;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-views button[data-grade-tone="cyan"] {
+  --view-accent: #78d9ec;
+  --view-ink: #a8e7f1;
+  --view-soft: #15353a;
+  --view-border: #4ec5d8;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-panel-head,
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-table th,
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-table thead .hr-grade-index,
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-table thead .hr-grade-student,
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-result-head,
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-result {
+  border-color: var(--grade-active-border) !important;
+  background: var(--grade-active-soft) !important;
+  color: var(--grade-active-ink) !important;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-table tbody tr:hover td {
+  background: var(--grade-active-soft) !important;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-export-bar {
+  border-color: #477b58 !important;
+  background: linear-gradient(110deg, #173523 0%, #202124 48%, #442421 100%) !important;
+}
+
+html[data-theme="dark"] .hr-page .hr-gradebook .hr-grade-export-class {
+  border-color: #5bb974 !important;
+  background: #173d28 !important;
+  color: #a8dab5 !important;
 }
