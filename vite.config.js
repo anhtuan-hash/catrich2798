@@ -55,8 +55,126 @@ function randomGroupGeneratorPlugin() {
   };
 }
 
+function conductProhibitedDowngradePlugin() {
+  const helperSource = `
+export function downgradeConductClassificationOneLevel(classification = {}) {
+  const order = ['good', 'fair', 'pass', 'fail'];
+  const labels = { good: 'Tốt', fair: 'Khá', pass: 'Đạt', fail: 'Chưa đạt' };
+  const currentIndex = order.indexOf(classification?.id);
+  const nextId = currentIndex >= 0 ? order[Math.min(currentIndex + 1, order.length - 1)] : 'fail';
+  return { id: nextId, label: labels[nextId] };
+}
+
+export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate, studentId = '') {
+  const current = normalizeHomeroomWorkspace(workspace);
+  const prohibitedKeys = new Set(
+    OFFICIAL_CONDUCT_RULES
+      .filter((rule) => rule.isProhibited)
+      .flatMap((rule) => [rule.id, rule.code])
+      .filter(Boolean),
+  );
+  return (current.conductRecords || []).filter((record) => {
+    if (record.status !== 'confirmed') return false;
+    if (studentId && record.studentId !== studentId) return false;
+    const date = safeText(record.date);
+    if (!date || (startDate && date < startDate) || (endDate && date > endDate)) return false;
+    return prohibitedKeys.has(record.ruleId) || prohibitedKeys.has(record.code);
+  });
+}
+`;
+
+  return {
+    name: 'brian-conduct-prohibited-downgrade',
+    enforce: 'pre',
+    transform(code, id) {
+      const cleanId = String(id || '').split('?')[0].replaceAll('\\', '/');
+
+      if (cleanId.endsWith('/src/utils/homeroomConduct.js')) {
+        let next = code;
+        if (!next.includes('downgradeConductClassificationOneLevel')) {
+          next = next.replace(
+            'export function calculateConductPeriod(workspace, startDate, endDate) {',
+            `${helperSource}\nexport function calculateConductPeriod(workspace, startDate, endDate, options = {}) {`,
+          );
+          next = next.replace(
+            '    const criticalWeeks = weekly.filter((row) => row.critical).length;',
+            `    const criticalWeeks = weekly.filter((row) => row.critical).length;
+    const baseClassification = classifyConductScore(average, current.conductSettings?.thresholds);
+    const prohibitedRecords = options.enforceProhibitedDowngrade === true
+      ? prohibitedConductRecordsForPeriod(current, startDate, endDate, student.id)
+      : [];
+    const prohibitedViolationCount = prohibitedRecords.length;
+    const prohibitedDowngraded = prohibitedViolationCount > 0 && baseClassification.id !== 'fail';
+    const classification = prohibitedViolationCount > 0
+      ? downgradeConductClassificationOneLevel(baseClassification)
+      : baseClassification;`,
+          );
+          next = next.replace(
+            '      classification: classifyConductScore(average, current.conductSettings?.thresholds),',
+            `      classification,
+      baseClassification,
+      prohibitedViolationCount,
+      prohibitedRecords,
+      prohibitedDowngraded,`,
+          );
+        }
+        return next;
+      }
+
+      if (cleanId.endsWith('/src/components/HomeroomConductTab.jsx')) {
+        let next = code;
+        if (!next.includes('enforceProhibitedDowngrade: periodMode')) {
+          next = next.replace(
+            '    () => calculateConductPeriod({ ...workspace, conductSettings: settingsDraft }, periodRange.start, periodRange.end),',
+            `    () => calculateConductPeriod(
+      { ...workspace, conductSettings: settingsDraft },
+      periodRange.start,
+      periodRange.end,
+      { enforceProhibitedDowngrade: periodMode === 'semester1' || periodMode === 'semester2' },
+    ),`,
+          );
+          next = next.replace(
+            '[workspace, settingsDraft, periodRange.start, periodRange.end],',
+            '[workspace, settingsDraft, periodRange.start, periodRange.end, periodMode],',
+          );
+          next = next.replace(
+            "<p>Kết quả là trung bình điểm của các tuần thuộc giai đoạn. Riêng lớp 12, bốn tuần hè 15/06–11/07/2026 được tính vào Học kỳ I và cả năm.</p>",
+            "<p>Kết quả là trung bình điểm của các tuần thuộc giai đoạn. Khi chốt Học kỳ I hoặc II, học sinh có ít nhất một vi phạm đã xác nhận thuộc 10 điều cấm sẽ tự động bị hạ đúng một bậc rèn luyện. Riêng lớp 12, bốn tuần hè 15/06–11/07/2026 được tính vào Học kỳ I và cả năm.</p>",
+          );
+          next = next.replace(
+            "<td>{row.criticalWeeks ? <span className=\"hr-conduct-alert\">{row.criticalWeeks} tuần</span> : '0'}</td>",
+            "<td>{row.prohibitedDowngraded ? <span className=\"hr-conduct-alert\" title={`Xếp loại theo điểm: ${row.baseClassification?.label || '—'}`}>Hạ 1 bậc · {row.prohibitedViolationCount} vi phạm điều cấm</span> : row.criticalWeeks ? <span className=\"hr-conduct-alert\">{row.criticalWeeks} tuần</span> : '0'}</td>",
+          );
+        }
+        return next;
+      }
+
+      if (cleanId.endsWith('/src/conductExportReports.js')) {
+        let next = code;
+        if (!next.includes("enforceProhibitedDowngrade: range.type === 'semester1'")) {
+          next = next.replaceAll(
+            'const rows = calculateConductPeriod(workspace, range.start, range.end);',
+            "const rows = calculateConductPeriod(workspace, range.start, range.end, { enforceProhibitedDowngrade: range.type === 'semester1' || range.type === 'semester2' });",
+          );
+          next = next.replace(
+            '<td>${row.criticalWeeks ? `${row.criticalWeeks} tuần` : \'\'}</td>',
+            '<td>${row.prohibitedDowngraded ? `Hạ 1 bậc (${row.prohibitedViolationCount} vi phạm điều cấm)` : row.criticalWeeks ? `${row.criticalWeeks} tuần` : \'\'}</td>',
+          );
+          next = next.replace(
+            "<section class=\"result-banner\"><span>Xếp loại giai đoạn</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${row.criticalWeeks ? `${row.criticalWeeks} tuần có cảnh báo cần xem xét.` : 'Không có tuần cảnh báo nghiêm trọng.'}</small></section>",
+            "<section class=\"result-banner\"><span>Xếp loại giai đoạn</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${row.prohibitedDowngraded ? `Đã hạ một bậc từ ${escapeHtml(row.baseClassification?.label || '—')} do có ${row.prohibitedViolationCount} vi phạm đã xác nhận thuộc 10 điều cấm.` : row.criticalWeeks ? `${row.criticalWeeks} tuần có cảnh báo cần xem xét.` : 'Không có tuần cảnh báo nghiêm trọng.'}</small></section>",
+          );
+        }
+        return next;
+      }
+
+      return null;
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [randomGroupGeneratorPlugin(), react()],
+  plugins: [conductProhibitedDowngradePlugin(), randomGroupGeneratorPlugin(), react()],
   resolve: {
     alias: [{ find: /^read-excel-file$/, replacement: 'read-excel-file/browser' }],
   },
