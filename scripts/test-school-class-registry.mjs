@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   SCHOOL_CLASS_BLUEPRINTS,
   assignHomeroomTeacher,
@@ -8,6 +9,11 @@ import {
   parseSchoolRosterRows,
   reconcileWorkspaceRoster,
 } from '../src/utils/schoolClassRegistry.js';
+
+const bootstrapSource = readFileSync(new URL('../src/schoolClassBootstrap.jsx', import.meta.url), 'utf8');
+assert.match(bootstrapSource, /import \{ readSheet \} from 'read-excel-file\/browser';/);
+assert.match(bootstrapSource, /const rows = await readSheet\(file\);/);
+assert.doesNotMatch(bootstrapSource, /import readXlsxFile from 'read-excel-file';/);
 
 assert.equal(SCHOOL_CLASS_BLUEPRINTS.length, 27);
 assert.equal(SCHOOL_CLASS_BLUEPRINTS.reduce((sum, item) => sum + item.expectedCount, 0), 718);
