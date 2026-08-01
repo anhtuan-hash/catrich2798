@@ -13,6 +13,7 @@
     "test:homeroom-navigation": "node scripts/test-homeroom-navigation-palette.mjs",
     "test:homeroom-color": "node scripts/test-homeroom-google-color.mjs",
     "test:permission-request": "node scripts/test-permission-request-material.mjs",
+    "test:account-menu": "node scripts/test-global-account-menu.mjs",
     "audit:performance": "node scripts/performance-audit.mjs",
     "test:e2e:contracts": "node scripts/e2e-contract-test-v10.99.mjs",
     "test:e2e": "playwright test",

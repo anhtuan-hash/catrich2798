@@ -43,6 +43,7 @@ import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
 import { installBursReadability } from './utils/bursReadability.js';
 import { installAiRemovalGuard } from './utils/aiRemovalGuard.js';
 import { installRetiredFeatureCleanup } from './utils/retiredFeatureCleanup.js';
+import { normalizeFontScale } from './utils/fontScale.js';
 
 runConfigurationMigrations();
 installRetiredFeatureCleanup();
@@ -196,7 +197,7 @@ function App() {
   const languageRef = useRef(language);
   const [fontScale, setFontScale] = useState(() => {
     const saved = Number(localStorage.getItem('bes-font-scale') || 100);
-    return [100, 110, 120, 130].includes(saved) ? saved : 100;
+    return normalizeFontScale(saved);
   });
   const [tileLaunch, setTileLaunch] = useState(null);
   const [motionMode, setMotionMode] = useState(getStoredMotionMode);

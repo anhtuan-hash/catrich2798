@@ -1,0 +1,42 @@
+/* Final overlay contract for every Brian route.
+   Navigation popovers must always paint above the briefing bar and page content. */
+
+html body .app-shell[data-route] > .bes-top-chrome,
+html body .app-shell[data-route] .bes-top-chrome {
+  overflow: visible !important;
+}
+
+html body .app-shell[data-route] .bes-top-chrome > .brian-nav {
+  z-index: 20 !important;
+  overflow: visible !important;
+  isolation: isolate !important;
+}
+
+html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar {
+  z-index: 10 !important;
+}
+
+html body .app-shell[data-route] .brian-nav__actions,
+html body .app-shell[data-route] .brian-nav__popover-wrap {
+  position: relative !important;
+  z-index: 30 !important;
+  overflow: visible !important;
+}
+
+html body .app-shell[data-route] .brian-nav__popover {
+  z-index: 100 !important;
+  background: #fff !important;
+  opacity: 1 !important;
+  isolation: isolate !important;
+  overscroll-behavior: contain !important;
+}
+
+html body .app-shell[data-route] .brian-nav__font-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+@media (max-width: 820px) {
+  html body .app-shell[data-route] .brian-nav__popover {
+    z-index: 1400 !important;
+  }
+}

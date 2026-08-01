@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { FONT_SCALE_OPTIONS } from '../utils/fontScale.js';
 import { hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/motion.js';
 import {
@@ -39,7 +40,6 @@ const copy = {
   },
 };
 
-const FONT_SIZES = [100, 110, 120, 130];
 const NOTIFICATION_EVENTS = ['bes-global-notification', 'bes:notification'];
 const DEFAULT_NOTIFICATION_PREFERENCES = { sound: true, work: true, system: true };
 
@@ -553,7 +553,7 @@ export default function GlobalCompactNavigation({
                   <div className="brian-nav__menu-section">
                     <small>{t.display}</small>
                     <div className="brian-nav__font-options">
-                      {FONT_SIZES.map((size) => <button type="button" key={size} className={Number(fontScale) === size ? 'is-selected' : ''} onClick={() => setFontScale?.(size)}>{size}%</button>)}
+                      {FONT_SCALE_OPTIONS.map((size) => <button type="button" key={size} className={Number(fontScale) === size ? 'is-selected' : ''} aria-pressed={Number(fontScale) === size} onClick={() => setFontScale?.(size)}>{size}%</button>)}
                     </div>
                   </div>
 

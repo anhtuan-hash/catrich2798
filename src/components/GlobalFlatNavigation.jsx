@@ -69,8 +69,9 @@ import './GlobalWeeklyPracticeSimple.css';
 import './GlobalWeeklyPracticeStudentProof.css';
 // Performance rules run before the final geometry contract.
 import './GlobalScrollPerformance.css';
-// Must remain last: every route uses one pinned, non-shifting navigation layout.
+// Final geometry, followed only by the overlay stacking contract.
 import './GlobalNavigationPinnedLayout.css';
+import './GlobalNavigationOverlayLayer.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));

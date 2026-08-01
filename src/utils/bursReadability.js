@@ -1,8 +1,9 @@
+import { FONT_SCALE_OPTIONS, normalizeFontScale } from './fontScale.js';
+
 const STYLE_ID = 'bes-burs-shadow-style';
 const DOCUMENT_STYLE_ID = 'bes-burs-document-style';
 const MIN_TEXT_PX = 14;
 const MIN_CONTROL_PX = 15;
-const FONT_SCALES = [90, 100, 110, 120, 135];
 const MOBILE_MIN_WIDTH = 700;
 const meaningfulPattern = /[\p{L}\p{N}]/u;
 const controlSelector = 'button,input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),textarea,select,option,[role="button"],[role="tab"],[role="menuitem"],a[href]';
@@ -201,22 +202,16 @@ function isMeaningful(element) {
   return text.length >= 2 && meaningfulPattern.test(text);
 }
 
-function normalizeScale(value, fallback = 100) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return fallback;
-  return FONT_SCALES.reduce((best, scale) => Math.abs(scale - numeric) < Math.abs(best - numeric) ? scale : best, fallback);
-}
-
 function readAppearanceState() {
   try { return JSON.parse(localStorage.getItem('bes-appearance-v2') || '{}') || {}; } catch { return {}; }
 }
 
 function readRequestedScale() {
   const stored = Number(localStorage.getItem('bes-font-scale'));
-  if (FONT_SCALES.includes(stored)) return stored;
+  if (FONT_SCALE_OPTIONS.includes(stored)) return stored;
   const appearance = readAppearanceState();
   if (appearance.projector) return 135;
-  return normalizeScale(appearance.textScale, 100);
+  return normalizeFontScale(appearance.textScale, 100);
 }
 
 function typographyMode(scale) {
@@ -228,7 +223,7 @@ function typographyMode(scale) {
 }
 
 function applyTypographyScale(value, { persist = false } = {}) {
-  const requested = normalizeScale(value, readRequestedScale());
+  const requested = normalizeFontScale(value, readRequestedScale());
   const mobile = window.matchMedia?.(`(max-width:${MOBILE_MIN_WIDTH - 1}px)`)?.matches;
   const effective = mobile && requested < 100 ? 100 : requested;
   const root = document.documentElement;
@@ -256,7 +251,7 @@ function enhanceFontScaleControls() {
   if (!container) return;
   const requested = Number(document.documentElement.dataset.fontScaleRequested || readRequestedScale());
   const labels = new Map(Array.from(container.querySelectorAll('button')).map((button) => [Number.parseInt(button.textContent || '', 10), button]));
-  FONT_SCALES.forEach((scale) => {
+  const orderedButtons = FONT_SCALE_OPTIONS.map((scale) => {
     let button = labels.get(scale);
     if (!button) {
       button = document.createElement('button');
@@ -272,8 +267,13 @@ function enhanceFontScaleControls() {
     }
     button.classList.toggle('is-selected', scale === requested);
     button.setAttribute('aria-pressed', String(scale === requested));
-    container.append(button);
+    return button;
   });
+
+  const currentButtons = Array.from(container.querySelectorAll(':scope > button'));
+  const orderChanged = currentButtons.length !== orderedButtons.length
+    || currentButtons.some((button, index) => button !== orderedButtons[index]);
+  if (orderChanged) container.replaceChildren(...orderedButtons);
 }
 
 function applyElementRules(element) {
@@ -359,14 +359,13 @@ export function installBursReadability() {
 
   const onFontScale = (event) => {
     const stored = readRequestedScale();
-    const eventScale = normalizeScale(event?.detail?.scale, stored);
-    const requested = eventScale === 100 && ![100, 110, 120, 130].includes(stored) ? stored : eventScale;
+    const requested = normalizeFontScale(event?.detail?.scale, stored);
     applyTypographyScale(requested, { persist: true });
     schedule(document);
   };
   const onAppearance = (event) => {
     const state = event?.detail?.state || readAppearanceState();
-    const requested = state.projector ? 135 : normalizeScale(state.textScale, readRequestedScale());
+    const requested = state.projector ? 135 : normalizeFontScale(state.textScale, readRequestedScale());
     applyTypographyScale(requested, { persist: true });
     schedule(document);
   };
@@ -385,7 +384,7 @@ export function installBursReadability() {
     minTextPx: MIN_TEXT_PX,
     minControlPx: MIN_CONTROL_PX,
     cardTypography: true,
-    scales: [...FONT_SCALES],
+    scales: [...FONT_SCALE_OPTIONS],
     applyScale: (scale) => applyTypographyScale(scale, { persist: true }),
     rescan: () => schedule(document),
   });
