@@ -56,7 +56,22 @@ async function startApplication() {
     console.warn('[AssignedSchoolClasses] Chưa thể đồng bộ lớp được phân công trước khi mở ứng dụng.', error);
   }
 
+  let class126RecoveryModule = null;
+  let class126RecoveryResult = null;
+  try {
+    class126RecoveryModule = await import('./class126DataRecovery.js');
+    class126RecoveryResult = await class126RecoveryModule.recoverClass126Data();
+  } catch (error) {
+    class126RecoveryResult = {
+      status: 'error',
+      changed: false,
+      message: error?.message || String(error),
+    };
+    console.error('[Class126Recovery] Không thể hoàn tất quá trình dò và khôi phục dữ liệu lớp 12.6.', error);
+  }
+
   await import('./main.jsx');
+  class126RecoveryModule?.announceClass126Recovery?.(class126RecoveryResult);
   assignedSchoolClassModule?.installAssignedSchoolClassSync?.();
   import('./schoolClassBootstrap.jsx').catch((error) => {
     console.error('[SchoolClassRegistry] Không thể tải danh mục 27 lớp.', error);
