@@ -23,25 +23,25 @@ const BULK_HANDLERS = `  const handleUnlockAllWeeks = async () => {
     const lockedWeeks = availableWeeks.filter((week) => isConductWeekLocked(workspace, week));
     if (!lockedWeeks.length) return window.alert('Tất cả các tuần rèn luyện hiện đã được mở khóa.');
 
-    const password = window.prompt(\`Nhập mật khẩu khóa rèn luyện để mở khóa \\${lockedWeeks.length} tuần:\`, '');
+    const password = window.prompt('Nhập mật khẩu khóa rèn luyện để mở khóa ' + lockedWeeks.length + ' tuần:', '');
     if (password === null) return;
     const verified = await verifyConductLockPassword(workspace, password);
     if (!verified) return window.alert('Mật khẩu khóa rèn luyện không đúng.');
-    if (!window.confirm(\`Mở khóa toàn bộ \\${lockedWeeks.length} tuần đã tổng kết? Các tuần này sẽ giữ nguyên dữ liệu nhưng có thể chỉnh sửa và đồng bộ lại từ điểm danh.\`)) return;
+    if (!window.confirm('Mở khóa toàn bộ ' + lockedWeeks.length + ' tuần đã tổng kết? Các tuần này sẽ giữ nguyên dữ liệu nhưng có thể chỉnh sửa và đồng bộ lại từ điểm danh.')) return;
 
     setBulkWeekAction('unlocking');
-    showRecordSaveFeedback('saving', 'Đang mở khóa tất cả các tuần…', \`Hệ thống đang mở \\${lockedWeeks.length} tuần và giữ nguyên toàn bộ điểm, vi phạm, khen thưởng.\`);
+    showRecordSaveFeedback('saving', 'Đang mở khóa tất cả các tuần…', 'Hệ thống đang mở ' + lockedWeeks.length + ' tuần và giữ nguyên toàn bộ điểm, vi phạm, khen thưởng.');
     try {
       const actor = currentUser?.name || currentUser?.email || 'GVCN';
       let next = workspace;
       lockedWeeks.forEach((week) => {
         next = reopenConductWeek(next, week, actor, 'Mở khóa hàng loạt để rà soát và đồng bộ dữ liệu điểm danh');
       });
-      const saveResult = await onCommit(next, \`Đã mở khóa tất cả \\${lockedWeeks.length} tuần rèn luyện.\`);
+      const saveResult = await onCommit(next, 'Đã mở khóa tất cả ' + lockedWeeks.length + ' tuần rèn luyện.');
       showRecordSaveFeedback(
         saveResult?.ok === false ? 'warning' : 'success',
         saveResult?.ok === false ? 'Đã mở khóa trên thiết bị' : 'Đã mở khóa tất cả các tuần',
-        \`\\${lockedWeeks.length} tuần đã được chuyển sang trạng thái đang mở; dữ liệu cũ vẫn được giữ nguyên.\`,
+        lockedWeeks.length + ' tuần đã được chuyển sang trạng thái đang mở; dữ liệu cũ vẫn được giữ nguyên.',
         3200,
       );
     } catch (error) {
@@ -57,12 +57,12 @@ const BULK_HANDLERS = `  const handleUnlockAllWeeks = async () => {
 
     const lockedAttendanceWeeks = attendanceWeeks.filter((week) => isConductWeekLocked(workspace, week));
     if (lockedAttendanceWeeks.length) {
-      return window.alert(\`Có \\${lockedAttendanceWeeks.length} tuần chứa dữ liệu điểm danh đang bị khóa. Hãy bấm “Mở khóa tất cả các tuần” trước, sau đó đồng bộ lại.\`);
+      return window.alert('Có ' + lockedAttendanceWeeks.length + ' tuần chứa dữ liệu điểm danh đang bị khóa. Hãy bấm “Mở khóa tất cả các tuần” trước, sau đó đồng bộ lại.');
     }
-    if (!window.confirm(\`Đồng bộ dữ liệu điểm danh của \\${attendanceWeeks.length} tuần vào điểm rèn luyện? Bản ghi cũ sẽ được cập nhật hoặc gỡ theo trạng thái điểm danh hiện tại, không tạo bản ghi trùng.\`)) return;
+    if (!window.confirm('Đồng bộ dữ liệu điểm danh của ' + attendanceWeeks.length + ' tuần vào điểm rèn luyện? Bản ghi cũ sẽ được cập nhật hoặc gỡ theo trạng thái điểm danh hiện tại, không tạo bản ghi trùng.')) return;
 
     setBulkWeekAction('syncing');
-    showRecordSaveFeedback('saving', 'Đang đồng bộ tất cả các tuần…', \`Hệ thống đang rà soát \\${attendanceWeeks.length} tuần có dữ liệu điểm danh.\`);
+    showRecordSaveFeedback('saving', 'Đang đồng bộ tất cả các tuần…', 'Hệ thống đang rà soát ' + attendanceWeeks.length + ' tuần có dữ liệu điểm danh.');
     try {
       const actor = currentUser?.name || currentUser?.email || 'GVCN';
       let next = workspace;
@@ -79,16 +79,16 @@ const BULK_HANDLERS = `  const handleUnlockAllWeeks = async () => {
       const changed = added + updated + removed;
       if (!changed) {
         setBulkWeekAction('');
-        return window.alert(\`Đã kiểm tra \\${attendanceWeeks.length} tuần. Dữ liệu điểm danh và điểm rèn luyện đã đồng bộ, không có thay đổi mới.\`);
+        return window.alert('Đã kiểm tra ' + attendanceWeeks.length + ' tuần. Dữ liệu điểm danh và điểm rèn luyện đã đồng bộ, không có thay đổi mới.');
       }
       const saveResult = await onCommit(
         next,
-        \`Đã đồng bộ tất cả tuần: thêm \\${added}, cập nhật \\${updated}, gỡ \\${removed} ghi nhận điểm danh.\`,
+        'Đã đồng bộ tất cả tuần: thêm ' + added + ', cập nhật ' + updated + ', gỡ ' + removed + ' ghi nhận điểm danh.',
       );
       showRecordSaveFeedback(
         saveResult?.ok === false ? 'warning' : 'success',
         saveResult?.ok === false ? 'Đã đồng bộ trên thiết bị' : 'Đã đồng bộ tất cả các tuần',
-        \`Đã rà soát \\${attendanceWeeks.length} tuần: thêm \\${added}, cập nhật \\${updated}, gỡ \\${removed} ghi nhận.\`,
+        'Đã rà soát ' + attendanceWeeks.length + ' tuần: thêm ' + added + ', cập nhật ' + updated + ', gỡ ' + removed + ' ghi nhận.',
         3600,
       );
     } catch (error) {
@@ -124,7 +124,7 @@ export default function conductBulkActionsPlugin() {
     name: 'brian-conduct-bulk-actions',
     enforce: 'pre',
     transform(code, id) {
-      const cleanId = String(id || '').split('?')[0].replaceAll('\\\\', '/');
+      const cleanId = String(id || '').split('?')[0].replaceAll('\\', '/');
       if (!cleanId.endsWith('/src/components/HomeroomConductTab.jsx')) return null;
       if (code.includes('handleSyncAllAttendanceWeeks')) return code;
 
