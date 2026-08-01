@@ -3,6 +3,7 @@ import { HOMEROOM_TABS } from '../../data/homeroom.js';
 import { isClassTabAllowed, isSubjectClass } from '../../utils/homeroomClassTypes.js';
 import {
   HOMEROOM_NAV_PALETTE_IDLE_MS,
+  clampHomeroomNavigationLauncherBottom,
   createHomeroomNavigationScrollTracker,
   readHomeroomNavigationPreference,
   updateHomeroomNavigationScrollTracker,
@@ -10,6 +11,8 @@ import {
 } from '../../utils/homeroomNavigationPalette.js';
 
 const RETRY_COLLAPSE_MS = 1000;
+const LAUNCHER_PEEK_MS = 3600;
+const LAUNCHER_DRAG_START_PX = 5;
 const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable="true"], [role="textbox"]';
 const OPEN_DIALOG_SELECTOR = 'dialog[open], [role="dialog"][aria-modal="true"]:not([aria-hidden="true"])';
 
@@ -47,7 +50,9 @@ export default function HomeroomNavigationPalette({
       unpinTitle: 'Bỏ ghim và tự thu gọn sau 5 giây',
       collapse: 'Thu gọn thanh điều hướng',
       open: `Mở thanh điều hướng, tab hiện tại: ${activeLabel}`,
-      openHint: 'Chạm để mở',
+      preview: `Xem nhanh thanh điều hướng, tab hiện tại: ${activeLabel}`,
+      openHint: 'Chạm lần nữa để mở',
+      dragHint: 'Kéo lên hoặc xuống để đổi vị trí',
     }
     : {
       navigation: 'Class tools',
@@ -58,23 +63,45 @@ export default function HomeroomNavigationPalette({
       unpinTitle: 'Unpin and auto-collapse after 5 seconds',
       collapse: 'Collapse navigation',
       open: `Open navigation, current tab: ${activeLabel}`,
-      openHint: 'Tap to open',
+      preview: `Preview navigation, current tab: ${activeLabel}`,
+      openHint: 'Tap again to open',
+      dragHint: 'Drag up or down to reposition',
     };
 
   const [palette, setPalette] = useState(() => readHomeroomNavigationPreference(currentUser));
+  const [launcherPeeked, setLauncherPeeked] = useState(false);
+  const [launcherDragging, setLauncherDragging] = useState(false);
   const paletteRef = useRef(palette);
   const dockRef = useRef(null);
   const navRef = useRef(null);
   const scrollRef = useRef(null);
   const launcherRef = useRef(null);
   const idleTimerRef = useRef(0);
+  const peekTimerRef = useRef(0);
   const interactionRef = useRef(false);
+  const launcherDragRef = useRef(null);
+  const skipLauncherClickRef = useRef(false);
+  const pointerActivationRef = useRef('');
+  const programmaticLauncherFocusRef = useRef(false);
   paletteRef.current = palette;
 
   const clearIdleTimer = useCallback(() => {
     window.clearTimeout(idleTimerRef.current);
     idleTimerRef.current = 0;
   }, []);
+
+  const clearPeekTimer = useCallback(() => {
+    window.clearTimeout(peekTimerRef.current);
+    peekTimerRef.current = 0;
+  }, []);
+
+  const previewLauncher = useCallback((autoHide = true) => {
+    clearPeekTimer();
+    setLauncherPeeked(true);
+    if (autoHide) {
+      peekTimerRef.current = window.setTimeout(() => setLauncherPeeked(false), LAUNCHER_PEEK_MS);
+    }
+  }, [clearPeekTimer]);
 
   const canAutoCollapse = useCallback(() => {
     if (paletteRef.current.pinned || interactionRef.current) return false;
@@ -104,8 +131,10 @@ export default function HomeroomNavigationPalette({
   }, [canAutoCollapse, clearIdleTimer]);
 
   const reveal = useCallback(() => {
+    clearPeekTimer();
+    setLauncherPeeked(false);
     setPalette((current) => (current.collapsed ? { ...current, collapsed: false } : current));
-  }, []);
+  }, [clearPeekTimer]);
 
   const collapse = useCallback((force = false) => {
     if (paletteRef.current.pinned || (!force && !canAutoCollapse())) {
@@ -113,18 +142,38 @@ export default function HomeroomNavigationPalette({
       return;
     }
     clearIdleTimer();
+    clearPeekTimer();
+    setLauncherPeeked(false);
     setPalette((current) => (current.pinned || current.collapsed ? current : { ...current, collapsed: true }));
-  }, [armIdleTimer, canAutoCollapse, clearIdleTimer]);
+  }, [armIdleTimer, canAutoCollapse, clearIdleTimer, clearPeekTimer]);
 
   useEffect(() => {
     writeHomeroomNavigationPreference(currentUser, palette);
-  }, [currentUser?.id, currentUser?.authId, currentUser?.email, palette.pinned, palette.collapsed]);
+  }, [currentUser?.id, currentUser?.authId, currentUser?.email, palette.pinned, palette.collapsed, palette.launcherBottom]);
 
   useEffect(() => {
     clearIdleTimer();
     if (!palette.pinned && !palette.collapsed) armIdleTimer();
     return clearIdleTimer;
   }, [active, palette.pinned, palette.collapsed, armIdleTimer, clearIdleTimer]);
+
+  useEffect(() => () => clearPeekTimer(), [clearPeekTimer]);
+
+  useEffect(() => {
+    const fitLauncher = () => {
+      const current = paletteRef.current.launcherBottom;
+      if (current == null) return;
+      const next = clampHomeroomNavigationLauncherBottom(
+        current,
+        window.innerHeight,
+        launcherRef.current?.offsetHeight || 56,
+      );
+      if (next !== current) setPalette((preference) => ({ ...preference, launcherBottom: next }));
+    };
+    window.addEventListener('resize', fitLauncher, { passive: true });
+    fitLauncher();
+    return () => window.removeEventListener('resize', fitLauncher);
+  }, []);
 
   useEffect(() => {
     const dock = dockRef.current;
@@ -198,32 +247,104 @@ export default function HomeroomNavigationPalette({
 
   useEffect(() => {
     if (!palette.collapsed || !navRef.current?.contains(document.activeElement)) return undefined;
-    const frame = window.requestAnimationFrame(() => launcherRef.current?.focus({ preventScroll: true }));
+    const frame = window.requestAnimationFrame(() => {
+      programmaticLauncherFocusRef.current = true;
+      launcherRef.current?.focus({ preventScroll: true });
+      window.setTimeout(() => { programmaticLauncherFocusRef.current = false; }, 0);
+    });
     return () => window.cancelAnimationFrame(frame);
   }, [palette.collapsed]);
 
-  const handlePointerEnter = () => {
+  const handleNavigationPointerEnter = () => {
     interactionRef.current = true;
     clearIdleTimer();
     reveal();
   };
-  const handlePointerLeave = () => {
+  const handleNavigationPointerLeave = () => {
     interactionRef.current = false;
     armIdleTimer();
   };
+  const handleLauncherPointerEnter = (event) => {
+    interactionRef.current = true;
+    clearIdleTimer();
+    if (event.pointerType === 'mouse' && paletteRef.current.collapsed) previewLauncher(false);
+  };
+  const handleLauncherPointerLeave = () => {
+    interactionRef.current = false;
+    clearPeekTimer();
+    if (paletteRef.current.collapsed && !launcherDragRef.current) {
+      peekTimerRef.current = window.setTimeout(() => setLauncherPeeked(false), 700);
+    }
+  };
   const togglePinned = () => {
     clearIdleTimer();
+    clearPeekTimer();
+    setLauncherPeeked(false);
     setPalette((current) => ({ ...current, pinned: !current.pinned, collapsed: false }));
+  };
+
+  const handleLauncherPointerDown = (event) => {
+    if (event.button !== 0) return;
+    pointerActivationRef.current = event.pointerType || 'pointer';
+    const launcher = launcherRef.current;
+    const rect = launcher?.getBoundingClientRect();
+    if (!launcher || !rect) return;
+    clearPeekTimer();
+    launcherDragRef.current = {
+      pointerId: event.pointerId,
+      startY: event.clientY,
+      startBottom: window.innerHeight - rect.bottom,
+      dragged: false,
+    };
+    launcher.setPointerCapture?.(event.pointerId);
+  };
+
+  const handleLauncherPointerMove = (event) => {
+    const drag = launcherDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const distance = event.clientY - drag.startY;
+    if (!drag.dragged && Math.abs(distance) < LAUNCHER_DRAG_START_PX) return;
+    event.preventDefault();
+    drag.dragged = true;
+    setLauncherDragging(true);
+    setLauncherPeeked(false);
+    const nextBottom = clampHomeroomNavigationLauncherBottom(
+      drag.startBottom - distance,
+      window.innerHeight,
+      launcherRef.current?.offsetHeight || 56,
+    );
+    setPalette((current) => (
+      current.launcherBottom === nextBottom ? current : { ...current, launcherBottom: nextBottom }
+    ));
+  };
+
+  const finishLauncherDrag = (event) => {
+    const drag = launcherDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    launcherRef.current?.releasePointerCapture?.(event.pointerId);
+    launcherDragRef.current = null;
+    setLauncherDragging(false);
+    if (drag.dragged) {
+      skipLauncherClickRef.current = true;
+      window.setTimeout(() => { skipLauncherClickRef.current = false; }, 0);
+    }
+    window.setTimeout(() => { pointerActivationRef.current = ''; }, 0);
+  };
+
+  const handleLauncherClick = () => {
+    if (skipLauncherClickRef.current) return;
+    if (!launcherPeeked) {
+      previewLauncher(true);
+      return;
+    }
+    reveal();
   };
 
   return <div
     ref={dockRef}
-    className={`hr-tabs-dock ${palette.collapsed ? 'is-collapsed' : 'is-expanded'} ${palette.pinned ? 'is-pinned' : 'is-auto'}`}
+    className={`hr-tabs-dock ${palette.collapsed ? 'is-collapsed' : 'is-expanded'} ${launcherPeeked ? 'is-peeked' : 'is-compact'} ${launcherDragging ? 'is-dragging' : ''} ${palette.pinned ? 'is-pinned' : 'is-auto'}`}
     data-corner={palette.corner}
-    onPointerEnter={handlePointerEnter}
-    onPointerLeave={handlePointerLeave}
-    onFocusCapture={() => { interactionRef.current = true; clearIdleTimer(); reveal(); }}
-    onBlurCapture={() => { interactionRef.current = false; armIdleTimer(); }}
+    style={palette.launcherBottom == null ? undefined : { '--hr-tabs-launcher-bottom': `${palette.launcherBottom}px` }}
   >
     <nav
       ref={navRef}
@@ -231,6 +352,10 @@ export default function HomeroomNavigationPalette({
       aria-label={labels.navigation}
       aria-hidden={palette.collapsed ? 'true' : undefined}
       inert={palette.collapsed ? true : undefined}
+      onPointerEnter={handleNavigationPointerEnter}
+      onPointerLeave={handleNavigationPointerLeave}
+      onFocusCapture={() => { interactionRef.current = true; clearIdleTimer(); reveal(); }}
+      onBlurCapture={() => { interactionRef.current = false; armIdleTimer(); }}
     >
       <div ref={scrollRef} className="hr-tabs-scroll">
         {availableTabs.map((tab) => <button
@@ -264,11 +389,23 @@ export default function HomeroomNavigationPalette({
       ref={launcherRef}
       type="button"
       className="hr-tabs-launcher"
-      aria-label={labels.open}
+      aria-label={launcherPeeked ? labels.open : labels.preview}
+      title={labels.dragHint}
       aria-hidden={palette.collapsed ? undefined : 'true'}
       tabIndex={palette.collapsed ? 0 : -1}
-      onPointerEnter={handlePointerEnter}
-      onClick={reveal}
+      onPointerEnter={handleLauncherPointerEnter}
+      onPointerLeave={handleLauncherPointerLeave}
+      onPointerDown={handleLauncherPointerDown}
+      onPointerMove={handleLauncherPointerMove}
+      onPointerUp={finishLauncherDrag}
+      onPointerCancel={finishLauncherDrag}
+      onFocus={() => {
+        interactionRef.current = true;
+        clearIdleTimer();
+        if (!pointerActivationRef.current && !programmaticLauncherFocusRef.current) previewLauncher(false);
+      }}
+      onBlur={() => { interactionRef.current = false; clearPeekTimer(); setLauncherPeeked(false); }}
+      onClick={handleLauncherClick}
     >
       <span className="hr-tabs-launcher-icon" aria-hidden="true">{activeTab.icon}</span>
       <span className="hr-tabs-launcher-copy"><b>{activeLabel}</b><small>{labels.openHint}</small></span>
