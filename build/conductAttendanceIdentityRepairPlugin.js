@@ -1,7 +1,13 @@
-const STUDENT_RESOLVER_SOURCE = `function normalizeAttendanceStudentCode(value) {
-  const raw = safeText(value).toLowerCase().replace(/[^a-z0-9]/g, '');
-  if (!raw) return '';
-  return /^\\d+$/.test(raw) ? raw.replace(/^0+(?=\\d)/, '') : raw;
+const STUDENT_RESOLVER_SOURCE = `function attendanceStudentCodeCandidates(value) {
+  const raw = safeText(value).toLowerCase();
+  if (!raw) return [];
+  const compact = raw.replace(/[^a-z0-9]/g, '');
+  const digitRuns = raw.match(/\\d{4,}/g) || [];
+  return [...new Set([
+    compact,
+    ...digitRuns,
+    ...digitRuns.map((item) => item.replace(/^0+(?=\\d)/, '')),
+  ].filter(Boolean))];
 }
 
 function normalizeAttendanceStudentName(value) {
@@ -15,21 +21,26 @@ function normalizeAttendanceStudentName(value) {
     .trim();
 }
 
-function resolveAttendanceStudentId(current, attendanceStudentId) {
+function activeStudentByReferences(current, references = [], sourceStudent = null) {
   const students = Array.isArray(current.students) ? current.students : [];
-  const exact = students.find((student) => student.id === attendanceStudentId) || null;
-  if (exact && exact.active !== false) return exact.id;
-
   const activeStudents = students.filter((student) => student.active !== false);
-  const sourceCode = normalizeAttendanceStudentCode(exact?.code || attendanceStudentId);
-  if (sourceCode) {
-    const byCode = activeStudents.find((student) => normalizeAttendanceStudentCode(student.code) === sourceCode);
+
+  for (const reference of references.filter(Boolean)) {
+    const exact = activeStudents.find((student) => student.id === reference);
+    if (exact?.id) return exact.id;
+  }
+
+  const codes = new Set();
+  references.filter(Boolean).forEach((reference) => attendanceStudentCodeCandidates(reference).forEach((code) => codes.add(code)));
+  attendanceStudentCodeCandidates(sourceStudent?.code).forEach((code) => codes.add(code));
+  if (codes.size) {
+    const byCode = activeStudents.find((student) => attendanceStudentCodeCandidates(student.code).some((code) => codes.has(code)));
     if (byCode?.id) return byCode.id;
   }
 
-  if (exact) {
-    const sourceName = normalizeAttendanceStudentName(exact.fullName);
-    const sourceBirthDate = safeText(exact.birthDate);
+  if (sourceStudent) {
+    const sourceName = normalizeAttendanceStudentName(sourceStudent.fullName);
+    const sourceBirthDate = safeText(sourceStudent.birthDate);
     const byIdentity = activeStudents.find((student) => (
       normalizeAttendanceStudentName(student.fullName) === sourceName
       && (!sourceBirthDate || safeText(student.birthDate) === sourceBirthDate)
@@ -37,7 +48,33 @@ function resolveAttendanceStudentId(current, attendanceStudentId) {
     if (byIdentity?.id) return byIdentity.id;
   }
 
-  return attendanceStudentId;
+  return '';
+}
+
+function resolveAttendanceStudentId(current, attendanceStudentId) {
+  const students = Array.isArray(current.students) ? current.students : [];
+  const sourceStudent = students.find((student) => student.id === attendanceStudentId) || null;
+  return activeStudentByReferences(current, [attendanceStudentId], sourceStudent) || attendanceStudentId;
+}
+
+function attendanceStudentIdFromSourceKey(sourceKey) {
+  const raw = safeText(sourceKey);
+  if (!raw.startsWith('attendance:')) return '';
+  const separator = raw.lastIndexOf(':');
+  return separator >= 0 ? raw.slice(separator + 1) : '';
+}
+
+function resolveConductRecordStudentId(current, record = {}) {
+  const students = Array.isArray(current.students) ? current.students : [];
+  const sourceKeyStudentId = attendanceStudentIdFromSourceKey(record.sourceKey);
+  const sourceStudent = students.find((student) => (
+    student.id === record.studentId || student.id === sourceKeyStudentId
+  )) || null;
+  return activeStudentByReferences(
+    current,
+    [record.studentId, sourceKeyStudentId],
+    sourceStudent,
+  ) || safeText(record.studentId);
 }
 
 `;
@@ -51,7 +88,7 @@ export default function conductAttendanceIdentityRepairPlugin() {
 
       if (cleanId.endsWith('/src/utils/homeroomConduct.js')) {
         let next = code;
-        if (!next.includes('resolveAttendanceStudentId')) {
+        if (!next.includes('resolveConductRecordStudentId')) {
           next = next.replace(
             "export function syncAttendanceToConduct(workspace, weekStart, actor = '') {",
             STUDENT_RESOLVER_SOURCE + "export function syncAttendanceToConduct(workspace, weekStart, actor = '') {",
@@ -68,6 +105,10 @@ export default function conductAttendanceIdentityRepairPlugin() {
           next = next.replace(
             "        || existing.status !== 'confirmed'",
             "        || existing.status !== 'confirmed'\n        || existing.studentId !== studentId",
+          );
+          next = next.replace(
+            '    const studentRecords = records.filter((item) => item.studentId === student.id);',
+            '    const studentRecords = records.filter((item) => resolveConductRecordStudentId(current, item) === student.id);',
           );
         }
         return next;
