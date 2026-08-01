@@ -1,30 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import HomeroomConductTab from '../components/HomeroomConductTab.jsx';
 import HomeroomLearningGradebook from '../components/homeroom/HomeroomLearningGradebook.jsx';
+import HomeroomOverviewCompactTab from '../components/homeroom/HomeroomOverviewCompactTab.jsx';
 import {
   AttendanceTab,
-  OverviewTab,
-  ScheduleTab,
   StudentsTab,
 } from '../components/homeroom/HomeroomCoreTabs.jsx';
 import HomeroomClassProfileEditor from '../components/homeroom/HomeroomClassProfileEditor.jsx';
 import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
 import HomeroomNavigationPalette from '../components/homeroom/HomeroomNavigationPalette.jsx';
 import {
-  AnnouncementsTab,
   CompetitionTab,
   FeedbackTab,
-  MeetingsTab,
-  ParentsTab,
   PortalsTab,
-  RecordsTab,
 } from '../components/homeroom/HomeroomCommunicationTabs.jsx';
 import SchoolStatsTab from '../components/homeroom/SchoolStatsCompactTab.jsx';
 import {
   ClassLifecycleTab,
   DataSafetyTab,
   SearchCommandTab,
-  StudentSupportTab,
 } from '../components/HomeroomPhase3Tabs.jsx';
 import {
   createHomeroomWorkspace,
@@ -249,9 +243,9 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
 
   return <div className={`page hr-page ${subjectMode ? 'is-subject-class' : 'is-homeroom-class'}`}>
     <section className="hr-hero">
-      <div className="hr-hero-copy"><p>{subjectMode ? 'SUBJECT TEACHER WORKSPACE · FOCUSED' : 'HOMEROOM TEACHER WORKSPACE · COMPLETE'}</p><div className={`hr-class-type-badge hero ${getWorkspaceClassType(workspace)}`}>{classTypeLabel}</div><h1>{language === 'vi' ? (subjectMode ? 'Giáo viên bộ môn' : 'Giáo viên chủ nhiệm') : (subjectMode ? 'Subject Teacher' : 'Homeroom Teacher')}</h1><span>{className} · {workspace.classProfile?.schoolYear || '—'} · {activeStudents} {language === 'vi' ? 'học sinh' : 'students'}</span></div>
+      <div className="hr-hero-copy"><p>{subjectMode ? 'SUBJECT TEACHER WORKSPACE · FOCUSED' : 'HOMEROOM TEACHER WORKSPACE · FOCUSED'}</p><div className={`hr-class-type-badge hero ${getWorkspaceClassType(workspace)}`}>{classTypeLabel}</div><h1>{language === 'vi' ? (subjectMode ? 'Giáo viên bộ môn' : 'Giáo viên chủ nhiệm') : (subjectMode ? 'Subject Teacher' : 'Homeroom Teacher')}</h1><span>{className} · {workspace.classProfile?.schoolYear || '—'} · {activeStudents} {language === 'vi' ? 'học sinh' : 'students'}</span></div>
       <div className="hr-hero-art" aria-hidden="true"><div className="hr-board"><i /><i /><i /><b>{workspace.classProfile?.className || (subjectMode ? 'GVBM' : 'GVCN')}</b></div><span className="hr-person p1" /><span className="hr-person p2" /><span className="hr-person p3" /></div>
-      <aside className="hr-hero-meta"><span className={`hr-sync ${syncState}`}><i />{syncState === 'cloud' ? 'Đã đồng bộ Supabase' : 'Đang lưu trên thiết bị'}</span><b>{currentUser?.name || currentUser?.email || 'Giáo viên'}</b><small>{workspace.classProfile?.adviserEmail || currentUser?.email || ''}</small><span className="hrc-offline-badge">{subjectMode ? 'Chế độ bộ môn · Chỉ lớp và điểm' : 'Không gian GVCN đầy đủ'}</span></aside>
+      <aside className="hr-hero-meta"><span className={`hr-sync ${syncState}`}><i />{syncState === 'cloud' ? 'Đã đồng bộ Supabase' : 'Đang lưu trên thiết bị'}</span><b>{currentUser?.name || currentUser?.email || 'Giáo viên'}</b><small>{workspace.classProfile?.adviserEmail || currentUser?.email || ''}</small><span className="hrc-offline-badge">{subjectMode ? 'Chế độ bộ môn · Chỉ lớp và điểm' : 'Không gian GVCN tinh gọn'}</span></aside>
     </section>
 
     <HomeroomNavigationPalette key={currentUser?.id || currentUser?.authId || currentUser?.email || 'guest'} active={visibleTab} setActive={setActiveTab} language={language} currentUser={currentUser} workspace={workspace} />
@@ -261,22 +255,16 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     {(!workspace.classProfile?.className || visibleTab === (subjectMode ? 'classes' : 'overview')) ? <HomeroomClassProfileEditor value={classDraft} onChange={setClassDraft} onSave={saveClassProfile} saving={saving} language={language} /> : null}
 
     <main className="hr-workspace-body">
-      {visibleTab === 'overview' ? <OverviewTab workspace={workspace} goTab={setActiveTab} /> : null}
+      {visibleTab === 'overview' ? <HomeroomOverviewCompactTab workspace={workspace} goTab={setActiveTab} /> : null}
       {visibleTab === 'classes' ? <ClassLifecycleTab workspace={workspace} catalog={catalog} currentId={workspaceId} onSwitch={switchWorkspace} onCreate={createWorkspace} onDuplicate={duplicateWorkspace} onStatusChange={changeWorkspaceStatus} currentUser={currentUser} /> : null}
       {visibleTab === 'search' ? <SearchCommandTab workspace={workspace} onCommit={commit} goTab={setActiveTab} /> : null}
       {visibleTab === 'students' ? (subjectMode ? <SubjectStudentsTab workspace={workspace} onCommit={commit} /> : <StudentsTab workspace={workspace} onCommit={commit} />) : null}
-      {visibleTab === 'support' ? <StudentSupportTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
       {visibleTab === 'attendance' ? <AttendanceTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
       {visibleTab === 'learning' ? <HomeroomLearningGradebook workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
       {visibleTab === 'feedback' ? <FeedbackTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
       {visibleTab === 'competition' ? <CompetitionTab workspace={workspace} onCommit={commit} /> : null}
       {visibleTab === 'conduct' ? <HomeroomConductTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
-      {visibleTab === 'schedule' ? <ScheduleTab workspace={workspace} onCommit={commit} /> : null}
-      {visibleTab === 'meetings' ? <MeetingsTab workspace={workspace} onCommit={commit} /> : null}
-      {visibleTab === 'parents' ? <ParentsTab workspace={workspace} onCommit={commit} /> : null}
-      {visibleTab === 'announcements' ? <AnnouncementsTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
       {visibleTab === 'portals' ? <PortalsTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
-      {visibleTab === 'records' ? <RecordsTab workspace={workspace} onCommit={commit} /> : null}
       {visibleTab === 'safety' ? <DataSafetyTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
       {visibleTab === 'schoolStats' ? <SchoolStatsTab currentUser={currentUser} /> : null}
     </main>
