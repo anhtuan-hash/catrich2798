@@ -8,80 +8,147 @@ import {
 const MAX_WAIT_MS = 20000;
 const STARTED_AT = Date.now();
 let externalAppsLoaded = false;
+let externalAppsScheduled = false;
 let applicationStarted = false;
+let schoolRegistryLoaded = false;
+let homeroomExtrasLoaded = false;
+let routeListenerInstalled = false;
 
-async function loadExternalAppsAfterMainShell() {
-  if (externalAppsLoaded) return;
+function runWhenIdle(callback, timeout = 1800) {
+  if (typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(() => callback(), { timeout });
+    return;
+  }
+  window.setTimeout(callback, Math.min(timeout, 650));
+}
+
+function isHomeroomRoute() {
+  return /homeroom|chu-nhiem|gvcn/i.test(window.location.hash || '');
+}
+
+function isBrianTeamRoute() {
+  return /brian-team|personnel-hub/i.test(window.location.hash || '');
+}
+
+function refreshSiteFontInBackground(cachedFont) {
+  runWhenIdle(async () => {
+    try {
+      const selectedFont = await loadSiteFontSetting(null);
+      if (selectedFont && selectedFont !== cachedFont) await waitForSiteFontReady(selectedFont);
+    } catch (error) {
+      console.warn('[Global font] Background refresh failed; cached font remains active.', error);
+    }
+  }, 2200);
+}
+
+function loadRouteModules() {
+  if (isBrianTeamRoute() && !schoolRegistryLoaded) {
+    schoolRegistryLoaded = true;
+    import('./schoolClassBootstrap.jsx').catch((error) => {
+      schoolRegistryLoaded = false;
+      console.error('[SchoolClassRegistry] Không thể tải danh mục 27 lớp.', error);
+    });
+  }
+
+  if (isHomeroomRoute() && !homeroomExtrasLoaded) {
+    homeroomExtrasLoaded = true;
+    Promise.all([
+      import('./conductExportReports.js'),
+      import('./conductCurrentWeekExport.js'),
+    ]).catch((error) => {
+      homeroomExtrasLoaded = false;
+      console.error('[HomeroomExtras] Không thể tải tiện ích báo cáo rèn luyện.', error);
+    });
+  }
+}
+
+function installRouteModuleLoader() {
+  if (routeListenerInstalled) return;
+  routeListenerInstalled = true;
+  window.addEventListener('hashchange', loadRouteModules);
+  loadRouteModules();
+}
+
+function startAssignedClassSync() {
+  const eager = isHomeroomRoute();
+  const loadAndSync = () => {
+    import('./assignedSchoolClassBootstrap.js').then((module) => {
+      module.installAssignedSchoolClassSync?.();
+      module.prepareAssignedSchoolClasses?.().catch((error) => {
+        console.warn('[AssignedSchoolClasses] Chưa thể đồng bộ lớp được phân công.', error);
+      });
+    }).catch((error) => {
+      console.warn('[AssignedSchoolClasses] Không thể tải bộ đồng bộ lớp được phân công.', error);
+    });
+  };
+  if (eager) window.setTimeout(loadAndSync, 0);
+  else runWhenIdle(loadAndSync, 2400);
+}
+
+function startClass126Recovery() {
+  runWhenIdle(async () => {
+    let recoveryModule = null;
+    let recoveryResult = null;
+    try {
+      recoveryModule = await import('./class126DataRecovery.js');
+      recoveryResult = await recoveryModule.recoverClass126Data();
+    } catch (error) {
+      recoveryResult = {
+        status: 'error',
+        changed: false,
+        message: error?.message || String(error),
+      };
+      console.error('[Class126Recovery] Không thể hoàn tất quá trình dò và khôi phục dữ liệu lớp 12.6.', error);
+    }
+    recoveryModule?.announceClass126Recovery?.(recoveryResult);
+  }, 1200);
+}
+
+function loadExternalAppsAfterMainShell() {
+  if (externalAppsLoaded || externalAppsScheduled) return;
 
   const mainShellReady = Boolean(document.querySelector('#root .app-shell'));
   if (!mainShellReady) {
     if (Date.now() - STARTED_AT < MAX_WAIT_MS) {
-      window.setTimeout(loadExternalAppsAfterMainShell, 120);
+      window.setTimeout(loadExternalAppsAfterMainShell, 140);
     }
     return;
   }
 
-  externalAppsLoaded = true;
-  try {
-    await import('./externalAppsBootstrap.jsx');
-  } catch (error) {
-    externalAppsLoaded = false;
-    console.error('[ExternalAppsBootstrap] Module phụ không tải được; giao diện chính vẫn được giữ nguyên.', error);
-    window.dispatchEvent(new CustomEvent('bes-external-bootstrap-error', {
-      detail: { message: String(error?.message || error || 'Unknown external bootstrap error') },
-    }));
-  }
+  externalAppsScheduled = true;
+  runWhenIdle(async () => {
+    externalAppsScheduled = false;
+    if (externalAppsLoaded) return;
+    externalAppsLoaded = true;
+    try {
+      await import('./externalAppsBootstrap.jsx');
+    } catch (error) {
+      externalAppsLoaded = false;
+      console.error('[ExternalAppsBootstrap] Module phụ không tải được; giao diện chính vẫn được giữ nguyên.', error);
+      window.dispatchEvent(new CustomEvent('bes-external-bootstrap-error', {
+        detail: { message: String(error?.message || error || 'Unknown external bootstrap error') },
+      }));
+    }
+  }, 2600);
 }
 
 async function startApplication() {
   if (applicationStarted) return;
   applicationStarted = true;
+
   document.documentElement.dataset.siteFontBoot = 'loading';
+  const cachedFont = installSiteFontFromCache();
+  document.documentElement.dataset.siteFontBoot = 'ready';
 
-  let selectedFont = installSiteFontFromCache();
-  try {
-    selectedFont = await loadSiteFontSetting(null);
-    await waitForSiteFontReady(selectedFont);
-  } catch (error) {
-    console.warn('[Global font] Early bootstrap failed; continuing with cached font.', error);
-  } finally {
-    document.documentElement.dataset.siteFontBoot = 'ready';
-  }
+  // React shell is the only startup-critical module. Network font settings,
+  // Supabase class sync, data recovery and feature bridges run after first paint.
+  const mainModulePromise = import('./main.jsx');
+  refreshSiteFontInBackground(cachedFont);
 
-  let assignedSchoolClassModule = null;
-  try {
-    assignedSchoolClassModule = await import('./assignedSchoolClassBootstrap.js');
-    await assignedSchoolClassModule.prepareAssignedSchoolClasses();
-  } catch (error) {
-    console.warn('[AssignedSchoolClasses] Chưa thể đồng bộ lớp được phân công trước khi mở ứng dụng.', error);
-  }
-
-  let class126RecoveryModule = null;
-  let class126RecoveryResult = null;
-  try {
-    class126RecoveryModule = await import('./class126DataRecovery.js');
-    class126RecoveryResult = await class126RecoveryModule.recoverClass126Data();
-  } catch (error) {
-    class126RecoveryResult = {
-      status: 'error',
-      changed: false,
-      message: error?.message || String(error),
-    };
-    console.error('[Class126Recovery] Không thể hoàn tất quá trình dò và khôi phục dữ liệu lớp 12.6.', error);
-  }
-
-  await import('./main.jsx');
-  class126RecoveryModule?.announceClass126Recovery?.(class126RecoveryResult);
-  assignedSchoolClassModule?.installAssignedSchoolClassSync?.();
-  import('./schoolClassBootstrap.jsx').catch((error) => {
-    console.error('[SchoolClassRegistry] Không thể tải danh mục 27 lớp.', error);
-  });
-  import('./conductExportReports.js').catch((error) => {
-    console.error('[ConductExportReports] Không thể tải tính năng xuất báo cáo rèn luyện.', error);
-  });
-  import('./conductCurrentWeekExport.js').catch((error) => {
-    console.error('[ConductCurrentWeekExport] Không thể tải tính năng xuất đến tuần hiện tại.', error);
-  });
+  await mainModulePromise;
+  installRouteModuleLoader();
+  startAssignedClassSync();
+  startClass126Recovery();
   loadExternalAppsAfterMainShell();
 }
 
