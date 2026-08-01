@@ -61,8 +61,29 @@ const common = {
 const classWorkbook = buildClassGradebookWorkbook(common);
 assert.match(classWorkbook.fileName, /^So-diem-11A4-Tieng-Anh-Hoc-ky-I\.xlsx$/);
 assert.equal(classWorkbook.sheets[0].rows.length, 11, 'class workbook should include two student rows');
+assert.equal(classWorkbook.sheets[0].rows[8].length, 21, 'class export remains backward-compatible when no selection is provided');
 
-const classBlob = await createXlsxBlob(classWorkbook);
+const selectedClassWorkbook = buildClassGradebookWorkbook({
+  ...common,
+  selectedColumnIds: ['final', 'regular.0.result', 'midterm'],
+});
+assert.deepEqual(
+  selectedClassWorkbook.sheets[0].rows[8].map((cell) => cell.value),
+  ['STT', 'Mã học sinh', 'Họ và tên', 'TX1 · Kết quả', 'Giữa kỳ', 'Cuối kỳ'],
+  'class export should contain only selected grade columns in gradebook order',
+);
+assert.deepEqual(
+  selectedClassWorkbook.sheets[0].rows[9].map((cell) => cell.value),
+  [1, '11A4-01', 'Nguyễn Minh Anh', 8.1, 8.25, 9],
+  'selected class columns should retain numeric scores for every student row',
+);
+assert.throws(
+  () => buildClassGradebookWorkbook({ ...common, selectedColumnIds: [] }),
+  /ít nhất một cột điểm/,
+  'class export should reject an empty column selection',
+);
+
+const classBlob = await createXlsxBlob(selectedClassWorkbook);
 assert.ok(classBlob.size > 2500, 'class workbook should contain a non-empty XLSX package');
 const classZip = await JSZip.loadAsync(await classBlob.arrayBuffer());
 for (const path of ['[Content_Types].xml', '_rels/.rels', 'xl/workbook.xml', 'xl/styles.xml', 'xl/worksheets/sheet1.xml']) {
