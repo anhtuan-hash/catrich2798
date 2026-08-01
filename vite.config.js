@@ -57,17 +57,18 @@ function randomGroupGeneratorPlugin() {
 
 function conductPeriodEvaluationPlugin() {
   const helperSource = `
-export const CONDUCT_WEEKLY_CONVERSION = Object.freeze({ good: 4, fair: 3, pass: 2, fail: 0 });
+export const CONDUCT_WEEKLY_SCORE_SCALE = Object.freeze({ divisor: 25, maximum: 4 });
 
-export function conductWeeklyClassificationPoint(classification = {}) {
-  return CONDUCT_WEEKLY_CONVERSION[classification?.id] ?? 0;
+export function conductWeeklyScorePoint(score) {
+  const value = Number(score) || 0;
+  return Math.max(0, Math.min(CONDUCT_WEEKLY_SCORE_SCALE.maximum, value / CONDUCT_WEEKLY_SCORE_SCALE.divisor));
 }
 
 export function classifyConductPeriodAverage(averagePoint) {
   const value = Number(averagePoint) || 0;
-  if (value >= 3.5) return { id: 'good', label: 'Tốt' };
-  if (value >= 2.5) return { id: 'fair', label: 'Khá' };
-  if (value >= 1.5) return { id: 'pass', label: 'Đạt' };
+  if (value >= 3.6) return { id: 'good', label: 'Tốt' };
+  if (value >= 3) return { id: 'fair', label: 'Khá' };
+  if (value >= 2.4) return { id: 'pass', label: 'Đạt' };
   return { id: 'fail', label: 'Chưa đạt' };
 }
 
@@ -112,7 +113,7 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
           );
           next = next.replace(
             '    const average = weekly.length ? weekly.reduce((sum, row) => sum + row.score, 0) / weekly.length : 100;',
-            `    const weeklyPoints = weekly.map((row) => conductWeeklyClassificationPoint(row.classification));
+            `    const weeklyPoints = weekly.map((row) => conductWeeklyScorePoint(row.score));
     const averagePoint = weeklyPoints.length ? weeklyPoints.reduce((sum, point) => sum + point, 0) / weeklyPoints.length : 4;
     const scoreAverage = weekly.length ? weekly.reduce((sum, row) => sum + row.score, 0) / weekly.length : 100;`,
           );
@@ -134,7 +135,7 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
             `      average: Math.round(averagePoint * 100) / 100,
       scoreAverage: Math.round(scoreAverage * 100) / 100,
       weeklyPoints,
-      conversionScale: CONDUCT_WEEKLY_CONVERSION,`,
+      conversionScale: CONDUCT_WEEKLY_SCORE_SCALE,`,
           );
           next = next.replace(
             '      classification: classifyConductScore(average, current.conductSettings?.thresholds),',
@@ -150,7 +151,7 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
 
       if (cleanId.endsWith('/src/components/HomeroomConductTab.jsx')) {
         let next = code;
-        if (!next.includes('Tốt = 4 điểm')) {
+        if (!next.includes('Điểm tuần ÷ 25')) {
           next = next.replace("  const [periodMode, setPeriodMode] = useState('month');", "  const [periodMode, setPeriodMode] = useState('mid1');");
           next = next.replace(
             '    () => calculateConductPeriod({ ...workspace, conductSettings: settingsDraft }, periodRange.start, periodRange.end),',
@@ -167,7 +168,7 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
           );
           next = next.replace(
             /<div className="hr-panel-head"><div><small>TỔNG HỢP ĐỊNH KỲ<\/small><h2>Tháng · Giữa kỳ · Cuối kỳ · Cả năm<\/h2><p>[\s\S]*?<\/p><\/div><div className="hr-head-actions"><select value=\{periodMode\} onChange=\{\(event\) => setPeriodMode\(event\.target\.value\)\}>[\s\S]*?<\/select>\{periodMode === 'month' \? <input type="month"[\s\S]*? : null\}<\/div><\/div>/,
-            `<div className="hr-panel-head"><div><small>TỔNG HỢP ĐỊNH KỲ</small><h2>Giữa kỳ · Cuối kỳ</h2><p>Tốt = 4 điểm, Khá = 3 điểm, Đạt = 2 điểm, Chưa đạt = 0 điểm. Giữa kỳ lấy trung bình từ đầu học kỳ đến hết tuần giữa kỳ; cuối kỳ lấy trung bình toàn bộ các tuần của học kỳ. Khi xét giữa kỳ hoặc cuối kỳ, có vi phạm đã xác nhận thuộc 10 điều cấm trong đúng khoảng thời gian đang xét sẽ hạ đúng một bậc.</p></div><div className="hr-head-actions"><select value={periodMode} onChange={(event) => setPeriodMode(event.target.value)}><option value="mid1">Giữa học kỳ I</option><option value="semester1">Cuối học kỳ I</option><option value="mid2">Giữa học kỳ II</option><option value="semester2">Cuối học kỳ II</option></select></div></div>`,
+            `<div className="hr-panel-head"><div><small>TỔNG HỢP ĐỊNH KỲ</small><h2>Giữa kỳ · Cuối kỳ</h2><p>Điểm tuần ÷ 25 để quy đổi trực tiếp sang thang 4, vì vậy mỗi 5 điểm bị trừ sẽ làm giảm 0,20 điểm quy đổi. Ngưỡng xếp loại: Tốt từ 3,60; Khá từ 3,00; Đạt từ 2,40; dưới 2,40 là Chưa đạt. Giữa kỳ lấy trung bình từ đầu học kỳ đến hết tuần giữa kỳ; cuối kỳ lấy trung bình toàn bộ các tuần của học kỳ. Khi xét giữa kỳ hoặc cuối kỳ, có vi phạm đã xác nhận thuộc 10 điều cấm trong đúng khoảng thời gian đang xét sẽ hạ đúng một bậc.</p></div><div className="hr-head-actions"><select value={periodMode} onChange={(event) => setPeriodMode(event.target.value)}><option value="mid1">Giữa học kỳ I</option><option value="semester1">Cuối học kỳ I</option><option value="mid2">Giữa học kỳ II</option><option value="semester2">Cuối học kỳ II</option></select></div></div>`,
           );
           next = next.replace('<th>Điểm trung bình</th>', '<th>Điểm TB quy đổi</th>');
           next = next.replace(
@@ -198,10 +199,10 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
           );
           next = next.replace(
             "<section class=\"result-banner\"><span>Xếp loại giai đoạn</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${row.criticalWeeks ? `${row.criticalWeeks} tuần có cảnh báo cần xem xét.` : 'Không có tuần cảnh báo nghiêm trọng.'}</small></section>",
-            "<section class=\"result-banner\"><span>Xếp loại giai đoạn</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${row.prohibitedViolationCount ? row.prohibitedDowngraded ? `Đã hạ một bậc từ ${escapeHtml(row.baseClassification?.label || '—')} do có ${row.prohibitedViolationCount} vi phạm đã xác nhận thuộc 10 điều cấm trong giai đoạn đang xét.` : `Có ${row.prohibitedViolationCount} vi phạm đã xác nhận thuộc 10 điều cấm; kết quả trước ràng buộc đã là Chưa đạt.` : `Điểm trung bình quy đổi: ${Number(row.average || 0).toFixed(2)} trên thang 4.`}</small></section>",
+            "<section class=\"result-banner\"><span>Xếp loại giai đoạn</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${row.prohibitedViolationCount ? row.prohibitedDowngraded ? `Đã hạ một bậc từ ${escapeHtml(row.baseClassification?.label || '—')} do có ${row.prohibitedViolationCount} vi phạm đã xác nhận thuộc 10 điều cấm trong giai đoạn đang xét.` : `Có ${row.prohibitedViolationCount} vi phạm đã xác nhận thuộc 10 điều cấm; kết quả trước ràng buộc đã là Chưa đạt.` : `Điểm trung bình quy đổi: ${Number(row.average || 0).toFixed(2)} trên thang 4 (điểm tuần ÷ 25).`}</small></section>",
           );
           next = next.replace('Lớp và cá nhân theo tuần, tháng, học kỳ', 'Lớp và cá nhân theo tuần, giữa kỳ, cuối kỳ');
-          next = next.replace('Tạo bản A4 có thông tin lớp, bảng điểm, chi tiết ghi nhận và khu vực ký xác nhận.', 'Tạo bản A4 theo thang quy đổi Tốt 4 · Khá 3 · Đạt 2 · Chưa đạt 0, kèm chi tiết ghi nhận và khu vực ký xác nhận.');
+          next = next.replace('Tạo bản A4 có thông tin lớp, bảng điểm, chi tiết ghi nhận và khu vực ký xác nhận.', 'Tạo bản A4 với điểm tuần quy đổi trực tiếp theo công thức điểm tuần ÷ 25; mỗi 5 điểm trừ làm giảm 0,20 điểm trên thang 4.');
           next = next.replace(
             /<option value="week"[\s\S]*?<option value="semester2"[^>]*>Học kỳ II<\/option>/,
             '<option value="week"${prefs.period === \'week\' || !prefs.period ? \' selected\' : \'\'}>Theo tuần</option><option value="mid1"${prefs.period === \'mid1\' ? \' selected\' : \'\'}>Giữa học kỳ I</option><option value="semester1"${prefs.period === \'semester1\' ? \' selected\' : \'\'}>Cuối học kỳ I</option><option value="mid2"${prefs.period === \'mid2\' ? \' selected\' : \'\'}>Giữa học kỳ II</option><option value="semester2"${prefs.period === \'semester2\' ? \' selected\' : \'\'}>Cuối học kỳ II</option>',
