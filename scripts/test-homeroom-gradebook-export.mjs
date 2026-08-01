@@ -72,6 +72,12 @@ const classSheetXml = await classZip.file('xl/worksheets/sheet1.xml').async('str
 assert.match(classSheetXml, /SỔ ĐIỂM THEO LỚP/);
 assert.match(classSheetXml, /<pane ySplit="9"/);
 assert.match(classSheetXml, /<v>8\.25<\/v>/, 'scores must be numeric cells, not localized text');
+assert.match(classSheetXml, /<autoFilter/);
+assert.match(classSheetXml, /<mergeCells/);
+assert.ok(
+  classSheetXml.indexOf('<autoFilter') < classSheetXml.indexOf('<mergeCells'),
+  'autoFilter must precede mergeCells for strict Excel-compatible OOXML',
+);
 
 const selectedColumnIds = columns.filter((column) => column.defaultSelected).map((column) => column.id);
 const personalWorkbook = buildStudentGradeReportWorkbook({

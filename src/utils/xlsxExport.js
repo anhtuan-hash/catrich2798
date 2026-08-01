@@ -110,6 +110,7 @@ function sheetXml(sheet) {
   const autoFilter = sheet.autoFilter ? `<autoFilter ref="${xmlEscape(sheet.autoFilter)}"/>` : '';
   const orientation = sheet.landscape === false ? 'portrait' : 'landscape';
 
+  // SpreadsheetML uses a strict child order: autoFilter must come before mergeCells.
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
   <sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>
@@ -118,8 +119,8 @@ function sheetXml(sheet) {
   <sheetFormatPr defaultRowHeight="20"/>
   <cols>${columnWidths}</cols>
   <sheetData>${rowXml}</sheetData>
-  ${mergeXml}
   ${autoFilter}
+  ${mergeXml}
   <printOptions horizontalCentered="1"/>
   <pageMargins left="0.3" right="0.3" top="0.5" bottom="0.5" header="0.2" footer="0.2"/>
   <pageSetup orientation="${orientation}" fitToWidth="1" fitToHeight="0" paperSize="9"/>
