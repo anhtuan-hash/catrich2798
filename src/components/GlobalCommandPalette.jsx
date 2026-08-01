@@ -45,7 +45,6 @@ const text = {
     commands: 'Lệnh nhanh',
     empty: 'Không tìm thấy kết quả phù hợp.',
     openAi: 'Mở Brian AI',
-    theme: 'Đổi chế độ sáng/tối',
     customize: 'Tùy biến Launcher',
     settings: 'Mở Cài đặt',
     current: 'Đang mở',
@@ -65,7 +64,6 @@ const text = {
     commands: 'Quick commands',
     empty: 'No matching results.',
     openAi: 'Open Brian AI',
-    theme: 'Toggle light/dark mode',
     customize: 'Customize Launcher',
     settings: 'Open Settings',
     current: 'Current',
@@ -161,7 +159,7 @@ function CommandIcon({ children }) {
 }
 
 export default function GlobalCommandPalette({
-  language = 'vi', currentUser, theme = 'light', setTheme, currentRoute = 'home', selectedTool = null, appVisibility: externalAppVisibility,
+  language = 'vi', currentUser, currentRoute = 'home', selectedTool = null, appVisibility: externalAppVisibility,
 }) {
   const t = text[language] || text.vi;
   const appVisibility = externalAppVisibility && typeof externalAppVisibility === 'object'
@@ -259,16 +257,6 @@ export default function GlobalCommandPalette({
       keywords: 'AI Brian chat assistant trợ lí chatbot',
     },
     {
-      id: 'command:theme',
-      kind: 'command',
-      title: t.theme,
-      subtitle: theme === 'dark' ? 'Dark → Light' : 'Light → Dark',
-      icon: theme === 'dark' ? '☀' : '☾',
-      color: '#5B2A86',
-      run: () => setTheme?.(theme === 'dark' ? 'light' : 'dark'),
-      keywords: 'theme dark light chế độ tối sáng',
-    },
-    {
       id: 'command:launcher',
       kind: 'command',
       title: t.customize,
@@ -291,7 +279,7 @@ export default function GlobalCommandPalette({
       run: () => { window.location.hash = '#/settings'; },
       keywords: 'settings configuration cài đặt cấu hình',
     },
-  ].filter((entry) => entry?.id && entry?.title), [language, t, theme, setTheme]);
+  ].filter((entry) => entry?.id && entry?.title), [language, t]);
 
   const normalizedQuery = normalize(query);
   const searchPool = useMemo(

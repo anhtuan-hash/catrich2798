@@ -37,11 +37,6 @@ html[data-bes-appearance] {
   font-size: calc(100% * var(--bes-text-scale));
 }
 
-html[data-bes-theme="dark"],
-html[data-bes-theme="oled"] {
-  color-scheme: dark;
-}
-
 html[data-bes-appearance] body {
   background: var(--bes-page-bg) !important;
   color: var(--bes-ink);

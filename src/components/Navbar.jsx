@@ -65,7 +65,7 @@ function getInitial(name) {
   return name.trim().charAt(0).toUpperCase();
 }
 
-export default function Navbar({ route, language, setLanguage, theme, setTheme, hasApiKey, currentUser, onLogout }) {
+export default function Navbar({ route, language, setLanguage, hasApiKey, currentUser, onLogout }) {
   const t = labels[language] || labels.vi;
   const baseItems = [
     ['home', t.home],
@@ -123,9 +123,6 @@ export default function Navbar({ route, language, setLanguage, theme, setTheme, 
           </button>
           <button className="bes-mini-pill" onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')} title={language === 'vi' ? 'Đổi sang tiếng Anh' : 'Switch to Vietnamese'}>
             {language === 'vi' ? 'VI' : 'EN'}
-          </button>
-          <button className="bes-mini-pill" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title={language === 'vi' ? 'Đổi giao diện sáng/tối' : 'Toggle light/dark theme'}>
-            {theme === 'dark' ? '☀' : '☾'}
           </button>
           {currentUser ? <button className="bes-logout-pill" onClick={onLogout}>{t.logout}</button> : null}
         </div>

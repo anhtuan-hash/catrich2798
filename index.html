@@ -13,11 +13,35 @@
     <link rel="apple-touch-icon" href="/pwa/icon-192.png" />
     <link rel="icon" type="image/png" href="/brian-english-brand-mark.png" />
     <title>Brian English · Digital Teaching Studio</title>
+    <script id="brian-light-only-boot">
+      (() => {
+        const root = document.documentElement;
+        const enforce = () => {
+          root.dataset.theme = 'light';
+          root.dataset.besTheme = 'light';
+          delete root.dataset.themeMode;
+          root.classList.remove('dark', 'theme-dark');
+          root.classList.add('theme-light');
+          root.style.colorScheme = 'light';
+        };
+        try {
+          const retiredKeys = new Set(['bet-theme', 'bes-theme-mode', 'bes-theme-mode-v3', 'bes-quick-dictionary-history-v1']);
+          Object.keys(localStorage).forEach((key) => {
+            if (retiredKeys.has(key) || ['bes-global-music-v1:', 'bes-global-music-v2:', 'bes-shared-music-v2:'].some((prefix) => key.startsWith(prefix))) localStorage.removeItem(key);
+          });
+          const appearance = JSON.parse(localStorage.getItem('bes-appearance-v2') || 'null');
+          if (appearance && typeof appearance === 'object' && 'theme' in appearance) {
+            delete appearance.theme;
+            localStorage.setItem('bes-appearance-v2', JSON.stringify(appearance));
+          }
+        } catch { /* optional local cleanup */ }
+        enforce();
+      })();
+    </script>
     <script id="bes-native-fetch-capture">window.__BES_NATIVE_FETCH__=typeof window.fetch==='function'?window.fetch.bind(window):null;</script>
     <script src="/bes-egress-guard.js?v=1"></script>
     <script src="/bes-fetch-router-v2.js?v=2"></script>
     <script src="/bes-resource-egress-guard-v2.js?v=3"></script>
-    <script src="/bes-theme-v4/theme-boot.js?v=4"></script>
     <script id="bes-motion-boot">
       (() => {
         try {
@@ -107,7 +131,6 @@
     <link rel="stylesheet" href="/newsroom-feed-cards-reader-fix.css?v=1182" />
     <link rel="stylesheet" href="/ai-workspace-google.css?v=1" />
     <link rel="stylesheet" href="/thpt-practice-google-material.css?v=1183" />
-    <link rel="stylesheet" href="/bes-theme-v3/theme-system.css?v=3" />
     <link rel="stylesheet" href="/bes-theme-v4/theme-system.css?v=4" />
     <link rel="stylesheet" href="/apps-directory-v2.css?v=2" />
     <link rel="stylesheet" href="/logged-out-brand-enhancement.css?v=1" />
@@ -142,7 +165,6 @@
         else schedule();
       })();
     </script>
-    <script src="/bes-theme-v4/theme-runtime.js?v=4" defer></script>
     <script src="/bes-remove-visible-search-bars.js?v=1170" defer></script>
     <script src="/teaching-methods-inline.js" defer></script>
     <script src="/admin-teacher-permission-manager.js?v=2" defer></script>

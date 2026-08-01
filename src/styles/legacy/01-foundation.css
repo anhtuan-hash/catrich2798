@@ -177,7 +177,7 @@ input:focus,textarea:focus,select:focus,button:focus-visible{outline:3px solid v
 .metro-benefit-card span{font-size:2.2rem;color:var(--blue);font-weight:900}.metro-benefit-card p{font-size:1rem}.metro-teacher-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,.8fr);gap:var(--gap);align-items:center}.metro-teacher-points,.metro-footer-links{display:flex;gap:8px;flex-wrap:wrap}.metro-teacher-points span{background:var(--surface-2);border:1px solid var(--line);padding:9px 11px;font-weight:900;}.metro-home-cta{display:grid;gap:6px;}.metro-home-footer-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;}.metro-home-footer-strip>div:first-child{display:flex;align-items:center;gap:10px}.metro-home-footer-strip img{width:44px;height:44px;object-fit:contain;}
 
 /* Apps Hub: Start Screen */
-.metro-clean-system[data-route="apps"] .bes-top-chrome,.metro-clean-system[data-route="apps"] .footer,.metro-clean-system[data-route="apps"] .universal-ai-fab,.metro-clean-system[data-route="apps"] .global-music-player{display:none!important;}
+.metro-clean-system[data-route="apps"] .bes-top-chrome,.metro-clean-system[data-route="apps"] .footer,.metro-clean-system[data-route="apps"] .universal-ai-fab{display:none!important;}
 .metro-clean-system[data-route="apps"] .page{width:min(1640px,calc(100vw - 32px));max-width:1640px;padding:18px 0 30px;}
 .metro-app-status-row{display:grid;grid-template-columns:minmax(300px,2fr) repeat(4,minmax(116px,.8fr)) minmax(190px,1fr);gap:var(--gap);margin-bottom:var(--gap);}
 .metro-brand-tile,.metro-status-tile,.metro-app-hero-tile,.metro-quick-access-panel,.metro-quick-card,.metro-main-app-tile,.metro-app-footer{border:0!important;color:#fff!important;overflow:hidden;}
@@ -247,8 +247,7 @@ input:focus,textarea:focus,select:focus,button:focus-visible{outline:3px solid v
 .metro-clean-system[data-route="home"] .footer,
 .metro-clean-system[data-route="apps"] .bes-top-chrome,
 .metro-clean-system[data-route="apps"] .footer,
-.metro-clean-system[data-route="apps"] .universal-ai-fab,
-.metro-clean-system[data-route="apps"] .global-music-player{
+.metro-clean-system[data-route="apps"] .universal-ai-fab{
   display:none!important;
 }
 .metro-clean-system[data-route="home"] main,
@@ -512,7 +511,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 }
 .metro-clean-system[data-route="home"] .bes-top-chrome,
 .metro-clean-system[data-route="home"] .footer,
-.metro-clean-system[data-route="home"] .global-music-player,
 .metro-clean-system[data-route="home"] .universal-ai-fab{
   display:none!important;
 }
@@ -2204,11 +2202,6 @@ html[data-theme="dark"] .win81-start-page{--start-bg:#081f3a;}
 .metro-clean-system[data-route="library"] .bes-status-shell,
 .metro-clean-system[data-route="practice"] .bes-status-shell,
 .metro-clean-system[data-route="admin"] .bes-status-shell,
-.metro-clean-system[data-route="tool"] .global-music-player,
-.metro-clean-system[data-route="games"] .global-music-player,
-.metro-clean-system[data-route="library"] .global-music-player,
-.metro-clean-system[data-route="practice"] .global-music-player,
-.metro-clean-system[data-route="admin"] .global-music-player,
 .metro-clean-system[data-route="tool"] .wp8-global-indicator,
 .metro-clean-system[data-route="games"] .wp8-global-indicator,
 .metro-clean-system[data-route="library"] .wp8-global-indicator,

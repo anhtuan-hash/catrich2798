@@ -36,7 +36,6 @@ const APP_ACCENTS = [
 const DEFAULTS = Object.freeze({
   schema: 2,
   version: BES_APPEARANCE_VERSION,
-  theme: 'system',
   accent: 'violet',
   accentCustom: '#7447E8',
   accentMode: 'global',
@@ -86,6 +85,7 @@ function safeJson(value, fallback = null) {
 
 function normalizeState(candidate = {}) {
   const next = { ...DEFAULTS, ...(candidate && typeof candidate === 'object' ? candidate : {}) };
+  delete next.theme;
   if (!PALETTES[next.accent]) next.accent = DEFAULTS.accent;
   if (!/^#[0-9a-f]{6}$/i.test(next.accentCustom || '')) next.accentCustom = DEFAULTS.accentCustom;
   next.accentStrength = clamp(next.accentStrength, 0, 100);
@@ -242,12 +242,7 @@ function bestTextColor(background) {
 
 function resolveTheme() {
   if (state.projector) return 'projector';
-  if (state.theme === 'system') return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  if (state.theme === 'auto-time') {
-    const hour = new Date().getHours();
-    return hour >= 18 || hour < 6 ? 'dark' : 'light';
-  }
-  return state.theme;
+  return 'light';
 }
 
 function routeKey() {
@@ -301,19 +296,17 @@ function applyPalette() {
   const accent = resolveAccentHex();
   const { r, g, b } = hexToRgb(accent);
   const strength = state.accentStrength / 100;
-  const theme = resolveTheme();
-  const isDark = ['dark', 'oled'].includes(theme);
   const scale = {
-    50: mix(accent, isDark ? '#111827' : '#FFFFFF', isDark ? 0.86 : 0.92),
-    100: mix(accent, isDark ? '#111827' : '#FFFFFF', isDark ? 0.75 : 0.82),
-    200: mix(accent, isDark ? '#111827' : '#FFFFFF', isDark ? 0.62 : 0.68),
-    300: mix(accent, isDark ? '#111827' : '#FFFFFF', isDark ? 0.42 : 0.48),
-    400: mix(accent, isDark ? '#FFFFFF' : '#000000', isDark ? 0.12 : 0.03),
+    50: mix(accent, '#FFFFFF', 0.92),
+    100: mix(accent, '#FFFFFF', 0.82),
+    200: mix(accent, '#FFFFFF', 0.68),
+    300: mix(accent, '#FFFFFF', 0.48),
+    400: mix(accent, '#000000', 0.03),
     500: accent,
-    600: mix(accent, '#000000', isDark ? 0.02 : 0.12),
-    700: mix(accent, '#000000', isDark ? 0.08 : 0.24),
-    800: mix(accent, '#000000', isDark ? 0.14 : 0.36),
-    900: mix(accent, '#000000', isDark ? 0.22 : 0.5),
+    600: mix(accent, '#000000', 0.12),
+    700: mix(accent, '#000000', 0.24),
+    800: mix(accent, '#000000', 0.36),
+    900: mix(accent, '#000000', 0.5),
   };
   Object.entries(scale).forEach(([key, value]) => ROOT.style.setProperty(`--bes-accent-${key}`, value));
   ROOT.style.setProperty('--bes-accent-rgb', `${r}, ${g}, ${b}`);
@@ -325,23 +318,14 @@ function applyPalette() {
 }
 
 function applySurfaceTokens() {
-  const theme = resolveTheme();
-  const isDark = ['dark', 'oled'].includes(theme);
   const temperature = state.temperature;
   const baseLight = temperature === 'warm' ? '#FFF9EF' : temperature === 'cool' ? '#F3F8FF' : '#F7F8FC';
-  const paper = '#FFF8E8';
-  const base = theme === 'paper' ? paper : theme === 'oled' ? '#000000' : isDark ? '#10131A' : baseLight;
-  const surface = theme === 'paper' ? '#FFFCF5' : theme === 'oled' ? '#070707' : isDark ? '#171B24' : '#FFFFFF';
-  const elevated = theme === 'paper' ? '#FFFFFF' : theme === 'oled' ? '#0D0D0D' : isDark ? '#202633' : '#FFFFFF';
-  const ink = isDark || theme === 'oled' ? '#F5F7FC' : '#172033';
-  const muted = isDark || theme === 'oled' ? '#A9B2C3' : '#61708A';
-  const border = isDark || theme === 'oled' ? '#343B49' : '#DCE3EE';
-  ROOT.style.setProperty('--bes-page-bg', base);
-  ROOT.style.setProperty('--bes-surface', surface);
-  ROOT.style.setProperty('--bes-surface-elevated', elevated);
-  ROOT.style.setProperty('--bes-ink', ink);
-  ROOT.style.setProperty('--bes-muted', muted);
-  ROOT.style.setProperty('--bes-border', border);
+  ROOT.style.setProperty('--bes-page-bg', baseLight);
+  ROOT.style.setProperty('--bes-surface', '#FFFFFF');
+  ROOT.style.setProperty('--bes-surface-elevated', '#FFFFFF');
+  ROOT.style.setProperty('--bes-ink', '#172033');
+  ROOT.style.setProperty('--bes-muted', '#61708A');
+  ROOT.style.setProperty('--bes-border', '#DCE3EE');
 }
 
 function applyLayoutTokens() {
@@ -385,7 +369,9 @@ function applyAttributes() {
   ROOT.dataset.besPerformance = performanceTier;
   ROOT.dataset.besProjector = state.projector ? 'true' : 'false';
   ROOT.dataset.besBatterySaver = state.batterySaver ? 'true' : 'false';
-  ROOT.classList.toggle('dark', ['dark', 'oled'].includes(resolvedTheme));
+  ROOT.classList.remove('dark', 'theme-dark');
+  ROOT.classList.add('theme-light');
+  ROOT.style.colorScheme = 'light';
 }
 
 function ensureBackgroundLayer() {
@@ -417,7 +403,6 @@ function updateState(patch, { persist = true } = {}) {
 
 function labelForSetting(key, value) {
   const labels = {
-    theme: { light: 'Sáng', dark: 'Tối', system: 'Theo hệ thống', 'auto-time': 'Theo thời gian', paper: 'Giấy kem', oled: 'OLED' },
     density: { spacious: 'Thoáng', comfortable: 'Vừa', compact: 'Gọn', ultra: 'Siêu gọn' },
     motion: { off: 'Tắt', subtle: 'Nhẹ', balanced: 'Cân bằng', lively: 'Sinh động', custom: 'Tùy chỉnh' },
   };
@@ -450,7 +435,7 @@ function previewMarkup() {
     <div class="bes-preview-window">
       <div class="bes-preview-bar"><i></i><i></i><i></i><span>Brian English Studio</span></div>
       <div class="bes-preview-content">
-        <div class="bes-preview-tile"><span>✨</span><strong>Theme Studio</strong><small>Màu nhấn áp dụng toàn hệ thống</small></div>
+        <div class="bes-preview-tile"><span>✨</span><strong>Appearance Studio</strong><small>Màu nhấn áp dụng toàn hệ thống</small></div>
         <div class="bes-preview-card"><div><strong>Thẻ đang chọn</strong><small>Viền, icon, nút và trạng thái dùng chung một accent.</small></div><span class="bes-preview-check">✓</span></div>
         <div class="bes-preview-actions"><button>Nút chính</button><label><input type="checkbox" checked><span></span></label></div>
       </div>
@@ -464,15 +449,7 @@ function studioPanels() {
     <button type="button" class="bes-color-swatch ${resolveAccentName() === key ? 'is-selected' : ''}" data-setting="accent" data-value="${key}" title="${item.label}" aria-label="${item.label}" style="--swatch:${item.value}"><span></span><small>${item.label}</small></button>`).join('');
 
   return {
-    theme: `<section class="bes-panel is-active" data-panel="theme">
-      <div class="bes-section-heading"><div><span>01</span><h3>Chủ đề & bề mặt</h3><p>Chọn nền sáng, tối, OLED hoặc giấy kem; toàn bộ surface và độ tương phản sẽ đổi đồng bộ.</p></div></div>
-      ${createChoiceGroup('theme', [['light','Sáng','☀️'],['dark','Tối','🌙'],['system','Hệ thống','◐'],['auto-time','Theo thời gian','◴'],['paper','Giấy kem','📄'],['oled','OLED','⬛']])}
-      <div class="bes-field-grid">
-        <label class="bes-select-row"><span>Nhiệt độ bề mặt<small>Điều chỉnh sắc lạnh, trung tính hoặc ấm.</small></span><select data-setting="temperature"><option value="cool">Lạnh</option><option value="neutral">Trung tính</option><option value="warm">Ấm</option></select></label>
-        ${createSwitch('rememberPerApp','Ghi nhớ theo ứng dụng','Cho phép từng khu vực dùng accent nhận diện riêng khi chọn chế độ Theo ứng dụng.')}
-      </div>
-    </section>`,
-    color: `<section class="bes-panel" data-panel="color">
+    color: `<section class="bes-panel is-active" data-panel="color">
       <div class="bes-section-heading"><div><span>02</span><h3>Màu nhấn hệ thống</h3><p>Màu được sinh thành thang 50–900 và áp dụng cho nút, toggle, slider, focus, badge, tile và loading.</p></div></div>
       <div class="bes-accent-mode">${createChoiceGroup('accentMode', [['global','Toàn hệ thống','◎'],['app','Theo ứng dụng','▦'],['smart','Thông minh','✦']])}</div>
       <div class="bes-palette-grid">${paletteButtons}
@@ -509,7 +486,7 @@ function studioPanels() {
       </div>
     </section>`,
     access: `<section class="bes-panel" data-panel="access">
-      <div class="bes-section-heading"><div><span>06</span><h3>Trợ năng & thích ứng</h3><p>Các chế độ này có quyền ưu tiên cao hơn theme để bảo đảm dễ đọc, dễ chạm và tiết kiệm tài nguyên.</p></div></div>
+      <div class="bes-section-heading"><div><span>06</span><h3>Trợ năng & thích ứng</h3><p>Các chế độ này có quyền ưu tiên cao để bảo đảm dễ đọc, dễ chạm và tiết kiệm tài nguyên.</p></div></div>
       <div class="bes-access-grid">
         ${createSwitch('highContrast','Tương phản cao','Viền và focus ring rõ hơn; giảm các tint quá nhạt.')}
         ${createSwitch('projector','Chế độ máy chiếu','Tăng chữ, viền và độ tương phản cho lớp học.')}
@@ -524,7 +501,7 @@ function studioPanels() {
   };
 }
 
-function openStudio(initialTab = 'theme') {
+function openStudio(initialTab = 'color') {
   if (!isSettingsRoute()) {
     cleanupAppearanceUiOutsideSettings();
     return false;
@@ -550,15 +527,15 @@ function buildStudio() {
   studio.hidden = true;
   studio.innerHTML = `<div class="bes-studio-backdrop" data-close-studio></div>
     <div class="bes-studio-dialog" role="dialog" aria-modal="true" aria-label="Brian Appearance Engine V2" tabindex="-1">
-      <header class="bes-studio-header"><div><span class="bes-studio-logo">✦</span><div><strong>Brian Appearance Engine V2</strong><small>Accent · Motion · Adaptive Theme System</small></div></div><button type="button" class="bes-studio-close" data-close-studio aria-label="Đóng">×</button></header>
+      <header class="bes-studio-header"><div><span class="bes-studio-logo">✦</span><div><strong>Brian Appearance Engine V2</strong><small>Accent · Motion · Adaptive UI System</small></div></div><button type="button" class="bes-studio-close" data-close-studio aria-label="Đóng">×</button></header>
       <div class="bes-studio-shell">
         <nav class="bes-studio-nav" aria-label="Nhóm thiết lập">
-          ${[['theme','Chủ đề','◐'],['color','Màu sắc','●'],['layout','Bố cục','▦'],['motion','Chuyển động','➜'],['effects','Hiệu ứng','✦'],['access','Trợ năng','♿']].map(([id,label,icon]) => `<button type="button" data-tab="${id}" class="${id === 'theme' ? 'is-active' : ''}"><span>${icon}</span>${label}</button>`).join('')}
+          ${[['color','Màu sắc','●'],['layout','Bố cục','▦'],['motion','Chuyển động','➜'],['effects','Hiệu ứng','✦'],['access','Trợ năng','♿']].map(([id,label,icon]) => `<button type="button" data-tab="${id}" class="${id === 'color' ? 'is-active' : ''}"><span>${icon}</span>${label}</button>`).join('')}
           <div class="bes-studio-nav-status"><i></i><span>Adaptive UI</span><b>${performanceTier.toUpperCase()}</b></div>
         </nav>
         <main class="bes-studio-main"><div class="bes-panel-wrap">${Object.values(studioPanels()).join('')}</div>${previewMarkup()}</main>
       </div>
-      <footer class="bes-studio-footer"><div><button type="button" data-action="import">Nhập theme</button><button type="button" data-action="export">Xuất theme</button><input type="file" accept="application/json" data-import-file hidden></div><div><button type="button" class="bes-danger-soft" data-action="reset">Khôi phục mặc định</button><button type="button" class="bes-primary" data-close-studio>Hoàn tất</button></div></footer>
+      <footer class="bes-studio-footer"><div><button type="button" data-action="import">Nhập cài đặt</button><button type="button" data-action="export">Xuất cài đặt</button><input type="file" accept="application/json" data-import-file hidden></div><div><button type="button" class="bes-danger-soft" data-action="reset">Khôi phục mặc định</button><button type="button" class="bes-primary" data-close-studio>Hoàn tất</button></div></footer>
     </div>`;
   document.body.append(studio);
   studio.addEventListener('click', handleStudioClick);
@@ -643,19 +620,19 @@ function refreshStudio() {
 
 function rebuildStudio() {
   const wasOpen = studio && !studio.hidden;
-  const active = studio?.querySelector('[data-tab].is-active')?.dataset.tab || 'theme';
+  const active = studio?.querySelector('[data-tab].is-active')?.dataset.tab || 'color';
   studio?.remove();
   studio = null;
   if (wasOpen) openStudio(active);
 }
 
 function exportTheme() {
-  const payload = { product: 'Brian English Studio', type: 'appearance-theme', schema: 2, version: BES_APPEARANCE_VERSION, exportedAt: new Date().toISOString(), settings: state };
+  const payload = { product: 'Brian English Studio', type: 'appearance-settings', schema: 2, version: BES_APPEARANCE_VERSION, exportedAt: new Date().toISOString(), settings: state };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = `brian-theme-${new Date().toISOString().slice(0, 10)}.json`;
+  anchor.download = `brian-appearance-${new Date().toISOString().slice(0, 10)}.json`;
   anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 500);
 }
@@ -668,7 +645,7 @@ function importThemeFile(event) {
     const parsed = safeJson(String(reader.result), null);
     const candidate = parsed?.settings || parsed;
     if (!candidate || typeof candidate !== 'object') {
-      alert('Tệp theme không hợp lệ.');
+      alert('Tệp cài đặt giao diện không hợp lệ.');
       return;
     }
     state = normalizeState({ ...candidate, updatedAt: Date.now() });
@@ -720,7 +697,7 @@ function enhanceLegacyAppearanceCard() {
   card.append(panel);
   panel.addEventListener('click', (event) => {
     const open = event.target.closest('[data-bes-open-studio]');
-    if (open) { openStudio('theme'); return; }
+    if (open) { openStudio('color'); return; }
     const tab = event.target.closest('[data-bes-quick-tab]');
     if (tab) { openStudio(tab.dataset.besQuickTab); return; }
     const swatch = event.target.closest('[data-bes-quick-accent]');
@@ -762,14 +739,11 @@ function decorateLegacyControls(scope = document) {
     advanced.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
-      openStudio('theme');
+      openStudio('color');
     });
   }
 
   const mappings = [
-    { labels: ['tối'], patch: { theme: 'dark' } },
-    { labels: ['sáng'], patch: { theme: 'light' } },
-    { labels: ['tự động'], patch: { theme: 'system' } },
     { labels: ['thoáng'], patch: { density: 'spacious' } },
     { labels: ['vừa'], patch: { density: 'comfortable' } },
     { labels: ['gọn'], patch: { density: 'compact' } },
@@ -907,7 +881,6 @@ function setupObservers() {
     else cleanupAppearanceUiOutsideSettings();
   });
   observer.observe(document.documentElement, { childList: true, subtree: true });
-  matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (state.theme === 'system') applyAll(); });
   matchMedia('(prefers-reduced-motion: reduce)').addEventListener?.('change', () => applyAll());
   window.addEventListener('hashchange', () => {
     if (location.hash !== lastRoute) {
@@ -933,7 +906,7 @@ function setupObservers() {
     if (event.key === 'Escape' && studio && !studio.hidden) closeStudio();
     if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === 'a' && isSettingsRoute()) {
       event.preventDefault();
-      openStudio('theme');
+      openStudio('color');
     }
   });
 }
