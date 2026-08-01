@@ -222,6 +222,14 @@ export default function attendanceConductLinkPlugin() {
             ATTENDANCE_SYNC_SOURCE,
           );
         }
+        next = next.replaceAll(
+          '{ includeOrientation: false, includeInAverageOnly: true }',
+          '{ includeOrientation: true, includeInAverageOnly: false }',
+        );
+        next = next.replace(
+          '  const rowsByWeek = weeks.map((weekStart) => calculateWeeklyConduct(current, weekStart));',
+          '  const rowsByWeek = weeks.map((weekStart) => calculateWeeklyConduct(current, weekStart, { live: true }).map((row) => ({ ...row, locked: isConductWeekLocked(current, weekStart) })));',
+        );
         return next;
       }
 
@@ -255,6 +263,27 @@ export default function attendanceConductLinkPlugin() {
             '<div className="hr-attendance-conduct-link-note"><div><b>TỰ ĐỘNG LIÊN KẾT RÈN LUYỆN</b><br />Khi lưu điểm danh: Vắng phép −5 điểm · Vắng 1 tiết −2 điểm · Vắng 2 tiết −3 điểm · Về sớm −1 điểm. Khi sửa lại trạng thái, bản ghi rèn luyện liên quan cũng được cập nhật hoặc gỡ tự động.</div></div><div className="hr-attendance-summary">',
           );
         }
+        return next;
+      }
+
+      if (cleanId.endsWith('/src/conductCurrentWeekExport.js')) {
+        let next = code;
+        next = next.replace(
+          '    includeOrientation: false,\n    includeInAverageOnly: true,',
+          '    includeOrientation: true,\n    includeInAverageOnly: false,',
+        );
+        next = next.replace(
+          '    semesterLabel,\n    label: `Tính đến tuần ${formatDate(currentWeek)} – ${formatDate(weekEnd)}`,',
+          '    semesterLabel,\n    prohibitedStart: semester.start || currentWeek,\n    prohibitedEnd: semester.end || end,\n    label: `Tính đến tuần ${formatDate(currentWeek)} – ${formatDate(weekEnd)}`,',
+        );
+        next = next.replace(
+          '  const rows = calculateConductPeriod(workspace, range.start, range.end);',
+          '  const rows = calculateConductPeriod(workspace, range.start, range.end, { enforceProhibitedDowngrade: true, prohibitedStartDate: range.prohibitedStart, prohibitedEndDate: range.prohibitedEnd });',
+        );
+        next = next.replace(
+          '  const row = calculateConductPeriod(workspace, range.start, range.end)\n    .find((item) => item.student?.id === student.id);',
+          '  const row = calculateConductPeriod(workspace, range.start, range.end, { enforceProhibitedDowngrade: true, prohibitedStartDate: range.prohibitedStart, prohibitedEndDate: range.prohibitedEnd })\n    .find((item) => item.student?.id === student.id);',
+        );
         return next;
       }
 
