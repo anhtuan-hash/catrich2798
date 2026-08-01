@@ -123,6 +123,7 @@
     "audit:thpt-practice-hub": "node scripts/audit-thpt-practice-hub-v11.6.7.mjs",
     "audit:shared-chatbot-drawer": "node scripts/audit-shared-chatbot-drawer-v11.6.7.mjs",
     "audit:work-dashboard": "node scripts/audit-work-dashboard-v11.6.7.mjs",
+    "audit:retired-features": "node scripts/audit-retired-ui-features.mjs",
     "audit:dashboard-luxury-cards": "node scripts/audit-dashboard-luxury-cards-v11.6.7.mjs",
     "audit:openrouter-only": "node scripts/audit-openrouter-only-v11.6.7.mjs",
     "audit:no-ai": "node scripts/audit-no-ai.mjs",

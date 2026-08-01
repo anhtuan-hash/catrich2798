@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import './patch-ai-workspace-session.mjs';
-import './patch-global-theme-v3.mjs';
 import './patch-weekly-manager-native-grade-filter.mjs';
 import './patch-home-hero-media-optimizer.mjs';
 import './patch-home-hero-static-publisher.mjs';
@@ -29,6 +28,11 @@ for (const file of ['public/version.json', 'public/release-manifest.json']) {
   value.runtime = '2.6.7';
   value.requiresSql = false;
   delete value.requiredMigration;
+  delete value.sharedBackgroundMusic;
+  delete value.sharedBackgroundMusicAdminUpload;
+  delete value.sharedBackgroundMusicRealtime;
+  delete value.sharedBackgroundMusicTeacherReadOnly;
+  delete value.sharedBackgroundMusicSetupFile;
   value.removedApplicationsV1167Cleanup = removedApplications;
   value.systemFontCatalog = ['Brian Gesco', 'Quicksand', 'MJ Bexdroga', '1FTV Nasi', 'VL Monologue'];
   value.generatedAt = now;

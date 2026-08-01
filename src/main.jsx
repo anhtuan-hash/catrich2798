@@ -42,9 +42,10 @@ import { isAppHiddenForUser, useAppVisibility } from './utils/appVisibility.js';
 import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
 import { installBursReadability } from './utils/bursReadability.js';
 import { installAiRemovalGuard } from './utils/aiRemovalGuard.js';
-import { applyThemeMode, getStoredThemeMode, installThemeSystem, resolveThemeMode } from './utils/themeSystem.js';
+import { installRetiredFeatureCleanup } from './utils/retiredFeatureCleanup.js';
 
 runConfigurationMigrations();
+installRetiredFeatureCleanup();
 installBursReadability();
 installAiRemovalGuard();
 installAccessibilityBootstrap();
@@ -91,7 +92,6 @@ const SupabaseSetup = lazy(() => import('./pages/SupabaseSetup.jsx'));
 const HomeroomWorkspace = lazy(() => import('./pages/HomeroomWorkspace.jsx'));
 const HomeroomPortal = lazy(() => import('./pages/HomeroomPortal.jsx'));
 const FullMotionEffects = lazy(() => import('./components/FullMotionEffects.jsx')); // clean Metro motion layer
-const GlobalMusicPlayer = lazy(() => import('./components/GlobalMusicPlayer.jsx'));
 const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
 
 
@@ -116,7 +116,6 @@ const CollaborationHub = lazy(() => import('./pages/CollaborationHub.jsx'));
 const DataGovernance = lazy(() => import('./pages/DataGovernance.jsx'));
 const ProductionHardening = lazy(() => import('./pages/ProductionHardening.jsx'));
 const ContentEcosystem = lazy(() => import('./pages/ContentEcosystem.jsx'));
-const UnifiedUtilityRail = lazy(() => import('./components/UnifiedUtilityRail.jsx'));
 const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAccessibilityAnnouncer.jsx'));
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
@@ -183,8 +182,7 @@ function normalizeMetroIntensity(value) {
 function App() {
   const [route, setRoute] = useState(getInitialRoute);
   const [language, setLanguage] = useState(() => localStorage.getItem('bet-language') || 'vi');
-  const [themeMode, setThemeMode] = useState(getStoredThemeMode);
-  const [theme, setTheme] = useState(() => resolveThemeMode(getStoredThemeMode()));
+  const theme = 'light';
   const [apiKey, setApiKey] = useState(() => getActiveAiConfig().apiKey || '');
   const [aiModel, setAiModel] = useState(() => getActiveAiConfig().model || 'Admin quản lý trên máy chủ');
   const [aiProvider, setAiProviderState] = useState(() => getAiProvider());
@@ -326,16 +324,6 @@ function App() {
   }, [language]);
 
   useEffect(() => {
-    const updateResolvedTheme = ({ mode, resolved }) => {
-      if (mode && mode !== themeMode) setThemeMode(mode);
-      setTheme((current) => current === resolved ? current : resolved);
-    };
-
-    updateResolvedTheme(applyThemeMode(themeMode, { source: 'react' }));
-    return installThemeSystem(updateResolvedTheme);
-  }, [themeMode]);
-
-  useEffect(() => {
     document.documentElement.dataset.fontScale = String(fontScale);
     document.documentElement.dataset.burs = 'comfortable';
     document.documentElement.style.fontSize = `${fontScale}%`;
@@ -397,9 +385,6 @@ function App() {
     language,
     setLanguage,
     theme,
-    themeMode,
-    setTheme: setThemeMode,
-    setThemeMode,
     apiKey,
     setApiKey,
     aiModel,
@@ -528,8 +513,6 @@ function App() {
             <GlobalCommandPalette
               language={language}
               currentUser={currentUser}
-              theme={theme}
-              setTheme={setTheme}
               currentRoute={currentRoute}
               selectedTool={selectedTool}
             />
@@ -624,14 +607,8 @@ function App() {
           <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
         </Suspense>
       </> : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><UnifiedUtilityRail currentUser={currentUser} language={language} currentRoute={currentRoute} /></Suspense> : null}
       {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
-      {!['homeroom-portal', 'dashboard'].includes(currentRoute) ? <>
-        <Suspense fallback={null}>
-          <GlobalMusicPlayer language={language} currentUser={currentUser} externalLauncher />
-        </Suspense>
-        <Footer language={language} currentUser={currentUser} />
-      </> : null}
+      {!['homeroom-portal', 'dashboard'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
       </div>
     </>
   );

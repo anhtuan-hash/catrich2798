@@ -135,10 +135,5 @@
     "Brian AI Workspace",
     "Classroom Delivery",
     "Learning Intelligence"
-  ],
-  "sharedBackgroundMusic": true,
-  "sharedBackgroundMusicAdminUpload": true,
-  "sharedBackgroundMusicRealtime": true,
-  "sharedBackgroundMusicTeacherReadOnly": true,
-  "sharedBackgroundMusicSetupFile": "supabase/shared_music.sql"
+  ]
 }

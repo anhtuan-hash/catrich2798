@@ -2,16 +2,6 @@ import React, { useMemo, useRef, useState } from 'react';
 import { changeCurrentPassword } from '../utils/auth.js';
 import '../styles/SettingsGoogleM3.css';
 
-const DEFAULT_MUSIC_SETTINGS = {
-  enabled: false,
-  expanded: false,
-  trackMode: 'default',
-  customUrl: '',
-  uploadName: '',
-  volume: 0.42,
-  loop: true,
-};
-
 const ICON_PATHS = {
   search: 'M9.5 3a6.5 6.5 0 1 0 4.06 11.58L19 20l1-1-5.42-5.44A6.5 6.5 0 0 0 9.5 3Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z',
   person: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z',
@@ -35,31 +25,6 @@ function M3Icon({ name, size = 22 }) {
       <path d={ICON_PATHS[name] || ICON_PATHS.settings} />
     </svg>
   );
-}
-
-function userKey(currentUser) {
-  return currentUser?.id || currentUser?.email || 'guest';
-}
-
-function musicStorageKey(currentUser) {
-  return `bes-global-music-v1:${userKey(currentUser)}`;
-}
-
-function readMusicSettings(currentUser) {
-  try {
-    return { ...DEFAULT_MUSIC_SETTINGS, ...JSON.parse(localStorage.getItem(musicStorageKey(currentUser)) || '{}') };
-  } catch {
-    return { ...DEFAULT_MUSIC_SETTINGS };
-  }
-}
-
-function saveMusicSettings(currentUser, value) {
-  try {
-    localStorage.setItem(musicStorageKey(currentUser), JSON.stringify(value));
-    window.dispatchEvent(new CustomEvent('bes-global-music-settings-updated'));
-  } catch {
-    // Storage is optional.
-  }
 }
 
 function readBoolean(key, fallback = true) {
@@ -127,20 +92,9 @@ function SelectControl({ value, onChange, children, ariaLabel }) {
   return <select className="settings-m3-select" value={value} onChange={onChange} aria-label={ariaLabel}>{children}</select>;
 }
 
-function Segmented({ value, onChange, options, ariaLabel }) {
-  return (
-    <div className="settings-m3-segmented" role="group" aria-label={ariaLabel}>
-      {options.map(([optionValue, label]) => (
-        <button key={optionValue} type="button" className={value === optionValue ? 'is-active' : ''} onClick={() => onChange(optionValue)}>{label}</button>
-      ))}
-    </div>
-  );
-}
-
 export default function Settings({
   currentUser,
   language = 'vi', setLanguage,
-  theme = 'light', setTheme,
   motionMode = 'lite', setMotionMode,
   performanceMode = 'auto', setPerformanceMode,
   resolvedPerformance = 'auto',
@@ -166,7 +120,6 @@ export default function Settings({
   const [emailDiscovery, setEmailDiscovery] = useState(() => readBoolean('bes-email-discovery', false));
   const [summaryFrequency, setSummaryFrequency] = useState(() => readText('bes-summary-frequency', 'daily'));
   const [autoCleanup, setAutoCleanup] = useState(() => readText('bes-auto-cleanup', '30'));
-  const [musicSettings, setMusicSettings] = useState(() => readMusicSettings(currentUser));
   const [message, setMessage] = useState('');
   const [query, setQuery] = useState('');
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
@@ -185,25 +138,15 @@ export default function Settings({
     localStorage.setItem('bes-display-density', value);
     document.documentElement.dataset.density = value;
   };
-  const applyTheme = (value) => {
-    setTheme?.(value);
-    localStorage.setItem('bet-theme', value);
-    localStorage.setItem('bes-theme-mode', value);
-  };
-  const patchMusic = (patch) => {
-    const next = { ...musicSettings, ...patch };
-    setMusicSettings(next);
-    saveMusicSettings(currentUser, next);
-  };
   const toggleBoolean = (setter, key) => (value) => { setter(value); writeBoolean(key, value); };
   const updateTextSetting = (setter, key) => (value) => { setter(value); writeText(key, value); };
 
   const exportSettings = () => downloadJson('brian-english-studio-settings.json', {
     version: 'google-m3', exportedAt: new Date().toISOString(),
-    interface: { language, theme, accentColor, displayDensity, motionMode, performanceMode, themeIntensity, tileBorder, indicatorMode, fontScale },
+    interface: { language, accentColor, displayDensity, motionMode, performanceMode, themeIntensity, tileBorder, indicatorMode, fontScale },
     system: {
       soundEnabled, completionSound, hapticFeedback, pushNotifications, emailNotifications, studyReminders,
-      liveSyncEnabled, dataSyncEnabled, wifiOnly, activeStatus, emailDiscovery, summaryFrequency, autoCleanup, musicSettings,
+      liveSyncEnabled, dataSyncEnabled, wifiOnly, activeStatus, emailDiscovery, summaryFrequency, autoCleanup,
     },
   });
 
@@ -215,7 +158,6 @@ export default function Settings({
       const ui = payload.interface || {};
       const system = payload.system || {};
       if (ui.language) setLanguage?.(ui.language);
-      if (ui.theme) applyTheme(ui.theme);
       if (ui.accentColor) setAccent(ui.accentColor);
       if (ui.displayDensity) setDensity(ui.displayDensity);
       if (ui.motionMode) setMotionMode?.(ui.motionMode);
@@ -242,7 +184,6 @@ export default function Settings({
       });
       if (system.summaryFrequency) updateTextSetting(setSummaryFrequency, 'bes-summary-frequency')(system.summaryFrequency);
       if (system.autoCleanup) updateTextSetting(setAutoCleanup, 'bes-auto-cleanup')(system.autoCleanup);
-      if (system.musicSettings) patchMusic(system.musicSettings);
       setMessage(vi ? 'Đã nhập cài đặt hệ thống.' : 'System settings imported.');
     } catch {
       setMessage(vi ? 'Tệp cài đặt không hợp lệ.' : 'Invalid settings file.');
@@ -262,7 +203,6 @@ export default function Settings({
   };
 
   const resetSettings = () => {
-    applyTheme('light');
     setAccent('blue');
     setDensity('medium');
     setMotionMode?.('lite');
@@ -282,7 +222,6 @@ export default function Settings({
     resetBooleans.forEach(([setter, key, value]) => { setter(value); writeBoolean(key, value); });
     updateTextSetting(setSummaryFrequency, 'bes-summary-frequency')('daily');
     updateTextSetting(setAutoCleanup, 'bes-auto-cleanup')('30');
-    patchMusic(DEFAULT_MUSIC_SETTINGS);
     setMessage(vi ? 'Đã khôi phục cài đặt mặc định.' : 'Default settings restored.');
   };
 
@@ -310,7 +249,7 @@ export default function Settings({
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const navItems = [
     ['settings-account', 'person', vi ? 'Tài khoản' : 'Account', vi ? 'Hồ sơ & bảo mật' : 'Profile & security'],
-    ['settings-appearance', 'palette', vi ? 'Giao diện' : 'Appearance', vi ? 'Chủ đề & bố cục' : 'Theme & layout'],
+    ['settings-appearance', 'palette', vi ? 'Giao diện' : 'Appearance', vi ? 'Màu sắc & bố cục' : 'Color & layout'],
     ['settings-notifications', 'bell', vi ? 'Thông báo' : 'Notifications', vi ? 'Email & ứng dụng' : 'Email & app'],
     ['settings-sync', 'sync', vi ? 'Đồng bộ' : 'Sync', vi ? 'Dữ liệu & thiết bị' : 'Data & devices'],
     ['settings-privacy', 'shield', vi ? 'Bảo mật' : 'Security', vi ? 'Quyền riêng tư' : 'Privacy'],
@@ -353,7 +292,7 @@ export default function Settings({
               <h1>{vi ? 'Cài đặt hệ thống' : 'System settings'}</h1>
               <p>{vi ? 'Tùy chỉnh trải nghiệm English Hub để phù hợp với công việc giảng dạy và cách bạn sử dụng thiết bị.' : 'Customize English Hub for your teaching workflow and the way you use your devices.'}</p>
               <div className="settings-google-quick-chips">
-                <button type="button" onClick={() => scrollTo('settings-appearance')}><M3Icon name="sun" size={18} />{theme === 'dark' ? (vi ? 'Giao diện tối' : 'Dark theme') : (vi ? 'Giao diện sáng' : 'Light theme')}</button>
+                <button type="button" onClick={() => scrollTo('settings-appearance')}><M3Icon name="sun" size={18} />{vi ? 'Màu sắc & bố cục' : 'Color & layout'}</button>
                 <button type="button" onClick={() => scrollTo('settings-system')}><M3Icon name="globe" size={18} />{vi ? 'Ngôn ngữ: Tiếng Việt' : 'Language: English'}</button>
                 <span><M3Icon name="clock" size={18} />GMT+07:00</span>
               </div>
@@ -386,10 +325,9 @@ export default function Settings({
           ) : null}
 
           <section className="settings-google-card-grid">
-            {matches('giao diện', 'appearance', 'chủ đề', 'theme', 'màu', 'font', 'chữ') ? (
+            {matches('giao diện', 'appearance', 'màu', 'color', 'font', 'chữ') ? (
               <article id="settings-appearance" className="settings-google-card tone-violet">
-                <CardHeader icon="palette" tone="violet" title={vi ? 'Giao diện & chủ đề' : 'Appearance & theme'} subtitle={vi ? 'Tùy chỉnh cách English Hub hiển thị.' : 'Customize how English Hub looks.'} />
-                <SettingRow title={vi ? 'Chế độ giao diện' : 'Theme mode'}><Segmented value={theme} onChange={applyTheme} ariaLabel={vi ? 'Chế độ giao diện' : 'Theme mode'} options={[["light",vi?'Sáng':'Light'],["dark",vi?'Tối':'Dark']]} /></SettingRow>
+                <CardHeader icon="palette" tone="violet" title={vi ? 'Giao diện' : 'Appearance'} subtitle={vi ? 'Tùy chỉnh màu sắc, kích thước và bố cục.' : 'Customize color, sizing and layout.'} />
                 <SettingRow title={vi ? 'Màu nhấn' : 'Accent color'}><div className="settings-m3-color-row">{accents.map(([name,color]) => <button type="button" key={name} className={accentColor === name ? 'is-active' : ''} style={{ '--swatch': color }} onClick={() => setAccent(name)} aria-label={name} />)}</div></SettingRow>
                 <div className="settings-m3-two-columns">
                   <label><span>{vi ? 'Mật độ hiển thị' : 'Display density'}</span><SelectControl value={displayDensity} onChange={(event) => setDensity(event.target.value)}><option value="relaxed">{vi?'Thoáng':'Relaxed'}</option><option value="medium">{vi?'Vừa':'Medium'}</option><option value="compact">{vi?'Gọn':'Compact'}</option></SelectControl></label>
@@ -420,14 +358,12 @@ export default function Settings({
               </article>
             ) : null}
 
-            {matches('âm thanh', 'sound', 'nhạc', 'music', 'rung', 'volume') ? (
+            {matches('âm thanh', 'sound', 'rung', 'haptic') ? (
               <article className="settings-google-card tone-mint">
                 <CardHeader icon="volume" tone="mint" title={vi ? 'Âm thanh & phản hồi' : 'Sound & feedback'} subtitle={vi ? 'Tùy chỉnh âm báo và phản hồi.' : 'Adjust sounds and feedback.'} />
                 <SettingRow title={vi ? 'Âm thanh thông báo' : 'Notification sound'}><Toggle checked={soundEnabled} onChange={toggleBoolean(setSoundEnabled, 'bes-global-notice-sound')} label="Notification sound" /></SettingRow>
                 <SettingRow title={vi ? 'Âm thanh khi hoàn thành' : 'Completion sound'}><Toggle checked={completionSound} onChange={toggleBoolean(setCompletionSound, 'bes-completion-sound')} label="Completion sound" /></SettingRow>
                 <SettingRow title={vi ? 'Phản hồi rung' : 'Haptic feedback'}><Toggle checked={hapticFeedback} onChange={toggleBoolean(setHapticFeedback, 'bes-haptic-feedback')} label="Haptic feedback" /></SettingRow>
-                <SettingRow title={vi ? 'Nhạc nền' : 'Background music'}><Toggle checked={musicSettings.enabled} onChange={(value) => patchMusic({ enabled: value, expanded: value })} label="Background music" /></SettingRow>
-                <div className="settings-m3-volume"><M3Icon name="volume" size={19} /><input type="range" min="0" max="1" step="0.01" value={musicSettings.volume} onChange={(event) => patchMusic({ volume: Number(event.target.value) })} /><b>{Math.round(musicSettings.volume * 100)}%</b></div>
               </article>
             ) : null}
 

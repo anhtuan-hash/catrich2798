@@ -19,7 +19,7 @@ import { getHiddenAppIds } from '../utils/appVisibility.js';
 import { APP_ORDER, ROUTE_APPS, copy, defaultGroupOf, descOf, launch, shortDesc, targetFor, titleOf } from './appsDirectoryData.js';
 import { AppWindowCard, AppsDirectoryHero, GroupRail, LauncherStyleSelector, TopMenu } from './appsDirectoryComponents.jsx';
 
-export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, currentUser, setLanguage, theme, setTheme, appVisibility: externalAppVisibility }) {
+export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, currentUser, setLanguage, appVisibility: externalAppVisibility }) {
   const t = copy[language] || copy.vi;
   const isAdmin = currentUser?.role === 'admin';
   const appVisibility = externalAppVisibility || { snapshot: {}, hiddenIds: [] };
@@ -195,7 +195,7 @@ export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, curr
 
   return (
     <div className={`flat-design-home flat-apps-directory apps-directory-native launcher-v10831 launcher-v1136 launcher-command-center launcher-style-${workingConfig.launcherStyle || 'radial'} density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
-      <TopMenu language={language} setLanguage={setLanguage} theme={theme} setTheme={setTheme} hasApiKey={hasApiKey} currentUser={currentUser} />
+      <TopMenu language={language} setLanguage={setLanguage} hasApiKey={hasApiKey} currentUser={currentUser} />
       <AppsDirectoryHero
         language={language} isAdmin={isAdmin} editMode={editMode} saving={saving} visibleItems={visibleItems}
         pinnedCount={workingConfig.pinned.length} navCount={workingConfig.nav.length} previewItems={heroPreviewItems}

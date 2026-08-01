@@ -86,7 +86,6 @@ export default defineConfig({
           if (id.includes('/src/components/FullMotionEffects') || id.includes('/src/components/WP8TileTransition') || id.includes('/src/components/Win8Loader') || id.includes('/src/components/WindowsPhoneIndicator')) {
             return 'motion-full-wp8';
           }
-          if (id.includes('/src/components/GlobalMusicPlayer')) return 'chrome-music';
           if (id.includes('/src/components/StatusMenuBar')) return 'chrome-status';
           if (id.includes('/src/utils/documentParsers') || id.includes('/src/utils/pdfLoader')) return 'document-parsers';
 

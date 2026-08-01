@@ -1115,7 +1115,7 @@ html[data-theme="dark"] .metro-clean-system .global-notice-card-copy p{color:#c8
 }
 
 /* =========================================================
-   V10.43 — Single global navigation + background music
+   V10.43 — Single global navigation
    ========================================================= */
 .metro-clean-system .flat-pinned-menu{display:none!important;}
 
@@ -1242,65 +1242,9 @@ html[data-theme="dark"] .metro-clean-system .global-notice-card-copy p{color:#c8
   height:calc(100vh - 200px)!important;
 }
 
-/* Music toggle gets a little more room inside the notification bar. */
+/* Keep notification utilities usable on narrow screens. */
 .metro-clean-system .global-notice-utilities{flex-wrap:nowrap!important;overflow-x:auto!important;scrollbar-width:none!important;}
 .metro-clean-system .global-notice-utilities::-webkit-scrollbar{display:none!important;}
-
-/* Global background music player remains available on every route. */
-.metro-clean-system .global-music-player,
-.metro-clean-system[data-route="home"] .global-music-player,
-.metro-clean-system[data-route="apps"] .global-music-player,
-.metro-clean-system[data-route="tool"] .global-music-player,
-.metro-clean-system[data-route="games"] .global-music-player,
-.metro-clean-system[data-route="library"] .global-music-player,
-.metro-clean-system[data-route="practice"] .global-music-player,
-.metro-clean-system[data-route="admin"] .global-music-player{
-  display:block!important;
-  position:fixed!important;
-  right:18px!important;
-  bottom:18px!important;
-  z-index:650!important;
-  width:auto!important;
-}
-.metro-clean-system .music-float-btn{
-  width:54px!important;height:54px!important;border-radius:18px!important;
-  border:2px solid #191515!important;background:#fff8ec!important;color:#191515!important;
-  box-shadow:6px 6px 0 rgba(25,21,21,.20)!important;
-  display:grid!important;place-items:center!important;font-size:1.35rem!important;cursor:pointer!important;
-}
-.metro-clean-system .music-float-btn.playing{
-  background:#5b2a86!important;color:#fff!important;animation:musicPulse 1.8s ease-in-out infinite!important;
-}
-.metro-clean-system .music-panel{
-  width:min(430px,calc(100vw - 28px))!important;
-  background:rgba(255,250,240,.98)!important;
-  color:#191515!important;
-  border:2px solid #191515!important;
-  border-radius:24px!important;
-  padding:16px!important;
-  box-shadow:10px 12px 0 rgba(25,21,21,.18)!important;
-  display:grid!important;
-  gap:12px!important;
-}
-.metro-clean-system .music-head,
-.metro-clean-system .music-main-row,
-.metro-clean-system .music-url-row,
-.metro-clean-system .music-control-row{display:flex!important;align-items:center!important;gap:10px!important;flex-wrap:wrap!important;}
-.metro-clean-system .music-head{justify-content:space-between!important;}
-.metro-clean-system .music-head strong{display:block!important;font-size:1.15rem!important;color:#191515!important;}
-.metro-clean-system .music-head small{display:block!important;color:#6e6260!important;}
-.metro-clean-system .music-panel button,
-.metro-clean-system .music-panel select,
-.metro-clean-system .music-panel input[type="text"],
-.metro-clean-system .music-panel input:not([type]){
-  border:1px solid #cfc2bb!important;border-radius:14px!important;background:#fff!important;color:#191515!important;min-height:40px!important;padding:9px 12px!important;font-family:inherit!important;
-}
-.metro-clean-system .music-panel .music-play{background:#191515!important;color:#fff!important;border-color:#191515!important;}
-.metro-clean-system .music-url-row input{flex:1 1 220px!important;}
-.metro-clean-system .music-control-row label{display:flex!important;align-items:center!important;gap:8px!important;margin:0!important;font-weight:800!important;}
-.metro-clean-system .music-control-row input[type="range"]{min-height:auto!important;padding:0!important;}
-.metro-clean-system .music-panel p{margin:0!important;font-size:.9rem!important;color:#6e6260!important;}
-@keyframes musicPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 
 @media(max-width:1180px){
   .metro-clean-system .global-flat-navigation{flex-wrap:wrap;padding:8px 0 10px;}
@@ -1317,7 +1261,6 @@ html[data-theme="dark"] .metro-clean-system .global-notice-card-copy p{color:#c8
   .metro-clean-system .global-flat-account strong{display:none!important;}
   .metro-clean-system .global-flat-brand strong{display:none!important;}
   .metro-clean-system .global-flat-brand{padding:6px 8px!important;}
-  .metro-clean-system .global-music-player{right:10px!important;bottom:10px!important;}
 }
 
 /* =========================================================
@@ -1561,10 +1504,6 @@ html[data-theme="dark"] .metro-clean-system .global-notice-card-copy p{color:#c8
 .metro-clean-system[data-route="games"] .game-hub-v44 .game-embed-shell{border-radius:20px!important;overflow:hidden!important;border:1px solid #ded9ea!important}
 .metro-clean-system[data-route="games"] .game-hub-v44 .saved-game-links{border-radius:20px!important;border:1px solid #e5e1ec!important;background:#fff!important}
 
-html.games-v44-soft-dark .metro-clean-system[data-route="games"]{background:#17151f!important}
-html.games-v44-soft-dark .metro-clean-system[data-route="games"] .games-v44-sidebar,
-html.games-v44-soft-dark .metro-clean-system[data-route="games"] .games-v44-card,
-html.games-v44-soft-dark .metro-clean-system[data-route="games"] .game-hub-shell{filter:brightness(.86) saturate(.92)}
 
 @media (max-width:1280px){
   .metro-clean-system[data-route="games"] .games-v44-shell{grid-template-columns:1fr}

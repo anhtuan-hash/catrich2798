@@ -86,7 +86,6 @@ export default function GlobalSettingsAppearanceBridge(props) {
   return createPortal(
     <SettingsAppearanceEngine
       language={props.language}
-      setTheme={props.setTheme}
       setAccent={(value) => {
         try { localStorage.setItem('bes-accent-color', value); } catch { /* optional */ }
         document.documentElement.dataset.accent = value;

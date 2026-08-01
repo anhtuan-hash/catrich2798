@@ -1011,7 +1011,6 @@ export default function Games({ language, currentUser }) {
       <div className="games-v44-shell games-v58-no-sidebar">
         <main className="games-v44-main games-v58-main">
           <div className="games-v44-top-actions">
-            <button type="button" onClick={() => document.documentElement.classList.toggle('games-v44-soft-dark')}>☼</button>
             <button type="button" onClick={() => scrollGamesSection('games-v44-workspace')}>⚙</button>
             <button type="button" className="quick-create" onClick={() => scrollGamesSection('games-v44-workspace')}>＋ {language === 'vi' ? 'Tạo nhanh' : 'Quick create'}</button>
           </div>

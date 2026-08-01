@@ -6,7 +6,7 @@ import { getAppDesignProfile } from '../data/designProfiles.js';
 import { launcherItemId, launcherNavId } from '../utils/launcherPreferences.js';
 import { copy, defaultGroupOf, launch, lockedFor, navLaunch, permissionFor, shortDesc, statusOf, targetFor, titleOf } from './appsDirectoryData.js';
 
-export function TopMenu({ language, setLanguage, theme, setTheme, hasApiKey, currentUser }) {
+export function TopMenu({ language, setLanguage, hasApiKey, currentUser }) {
   const t = copy[language] || copy.vi;
   const isAdmin = currentUser?.role === 'admin';
   const nav = [
@@ -30,7 +30,6 @@ export function TopMenu({ language, setLanguage, theme, setTheme, hasApiKey, cur
       <div className="flat-menu-actions">
         <button type="button" className="flat-menu-pill" onClick={(event) => navLaunch('settings', 'AI', hasApiKey ? '#2bb7b3' : '#f7d23b', event.currentTarget)}>{hasApiKey ? t.aiOn : t.aiOff}</button>
         <button type="button" className="flat-menu-pill" onClick={() => setLanguage?.(language === 'vi' ? 'en' : 'vi')}>{language === 'vi' ? 'VI' : 'EN'}</button>
-        <button type="button" className="flat-menu-pill" onClick={() => setTheme?.(theme === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? '☀' : '☾'}</button>
         <button type="button" className="flat-account-button" onClick={(event) => navLaunch('settings', 'ME', '#191515', event.currentTarget)}>
           <span>{(currentUser?.name || currentUser?.email || 'U').slice(0, 1).toUpperCase()}</span><strong>{currentUser?.role || 'user'}</strong>
         </button>

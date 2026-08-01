@@ -6,8 +6,6 @@
     '.brian-nav__actions',
     '.brian-ai-workspace',
     '.brian-ai-workspace-layer',
-    '.brian-nav__dictionary-wrap',
-    '.brian-nav__music-wrap',
     '.bes-vn-admin',
     '[role="navigation"]',
   ].join(',');

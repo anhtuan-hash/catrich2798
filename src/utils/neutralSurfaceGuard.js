@@ -26,57 +26,6 @@ const LIGHT_TOKENS = {
   '--g-surface': '#ffffff',
 };
 
-const DARK_TOKENS = {
-  '--bes-page-bg': '#111318',
-  '--bes-theme-page': '#111318',
-  '--bes-theme-page-soft': '#15171c',
-  '--bes-theme-surface': '#1b1d22',
-  '--bes-theme-surface-low': '#15171c',
-  '--bes-theme-surface-mid': '#24262c',
-  '--bes-theme-surface-high': '#303238',
-  '--bes-surface': '#1b1d22',
-  '--bes-surface-elevated': '#24262c',
-  '--page': '#111318',
-  '--bg': '#111318',
-  '--bg-2': '#15171c',
-  '--surface': '#1b1d22',
-  '--surface-2': '#24262c',
-  '--surface-3': '#303238',
-  '--panel': '#1b1d22',
-  '--panel-2': '#24262c',
-  '--card': '#1b1d22',
-  '--card-2': '#24262c',
-  '--burs-surface': '#1b1d22',
-  '--burs-soft': '#24262c',
-  '--g-surface': '#1b1d22',
-};
-
-const OLED_TOKENS = {
-  ...DARK_TOKENS,
-  '--bes-page-bg': '#000000',
-  '--bes-theme-page': '#000000',
-  '--bes-theme-page-soft': '#070707',
-  '--bes-theme-surface': '#0d0d0d',
-  '--bes-theme-surface-low': '#070707',
-  '--bes-theme-surface-mid': '#151515',
-  '--bes-theme-surface-high': '#202020',
-  '--bes-surface': '#0d0d0d',
-  '--bes-surface-elevated': '#151515',
-  '--page': '#000000',
-  '--bg': '#000000',
-  '--bg-2': '#070707',
-  '--surface': '#0d0d0d',
-  '--surface-2': '#151515',
-  '--surface-3': '#202020',
-  '--panel': '#0d0d0d',
-  '--panel-2': '#151515',
-  '--card': '#0d0d0d',
-  '--card-2': '#151515',
-  '--burs-surface': '#0d0d0d',
-  '--burs-soft': '#151515',
-  '--g-surface': '#0d0d0d',
-};
-
 const CANDIDATE_SELECTOR = [
   'body', '#root', 'main', 'section', 'article', 'aside', 'dialog', '[role="dialog"]',
   'label', 'input', 'textarea', 'select',
@@ -100,11 +49,11 @@ const PAGE_SELECTOR = [
 ].join(',');
 
 const CONTRACT_CSS = `
-html:not([data-theme="dark"]):not([data-bes-theme="dark"]):not([data-bes-theme="oled"]) {
+html {
   color-scheme: light !important;
 }
 
-html:not([data-theme="dark"]):not([data-bes-theme="dark"]):not([data-bes-theme="oled"]) :where(
+html :where(
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
   textarea
 ) {
@@ -119,14 +68,14 @@ html:not([data-theme="dark"]):not([data-bes-theme="dark"]):not([data-bes-theme="
   color-scheme: light !important;
 }
 
-html:not([data-theme="dark"]):not([data-bes-theme="dark"]):not([data-bes-theme="oled"]) select {
+html select {
   background-color: #ffffff !important;
   color: #1f1f1f !important;
   -webkit-text-fill-color: #1f1f1f !important;
   color-scheme: light !important;
 }
 
-html:not([data-theme="dark"]):not([data-bes-theme="dark"]):not([data-bes-theme="oled"]) :where(
+html :where(
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
   textarea,
   select
@@ -134,9 +83,9 @@ html:not([data-theme="dark"]):not([data-bes-theme="dark"]):not([data-bes-theme="
   background-color: #ffffff !important;
 }
 
-html:not([data-theme="dark"]):not([data-bes-theme="dark"]):not([data-bes-theme="oled"]) :where(input, textarea):-webkit-autofill,
-html:not([data-theme="dark"]):not([data-bes-theme="dark"]):not([data-bes-theme="oled"]) :where(input, textarea):-webkit-autofill:hover,
-html:not([data-theme="dark"]):not([data-bes-theme="dark"]):not([data-bes-theme="oled"]) :where(input, textarea):-webkit-autofill:focus {
+html :where(input, textarea):-webkit-autofill,
+html :where(input, textarea):-webkit-autofill:hover,
+html :where(input, textarea):-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
   box-shadow: 0 0 0 1000px #ffffff inset !important;
   -webkit-text-fill-color: #1f1f1f !important;
@@ -171,17 +120,6 @@ let installed = false;
 let applyingAppearance = false;
 let scanFrame = 0;
 
-function getThemeMode() {
-  const values = [ROOT.dataset.besTheme, ROOT.dataset.theme].map((value) => String(value || '').toLowerCase());
-  if (values.includes('oled')) return 'oled';
-  if (values.includes('dark') || ROOT.classList.contains('dark')) return 'dark';
-  return 'light';
-}
-
-function isDarkTheme() {
-  return getThemeMode() !== 'light';
-}
-
 function ensureStyle() {
   let style = document.getElementById(STYLE_ID);
   if (!style) {
@@ -199,7 +137,7 @@ function normalizeStoredAppearance() {
     const state = JSON.parse(raw);
     if (!state || typeof state !== 'object') return;
     let changed = false;
-    if (state.theme === 'paper') { state.theme = 'light'; changed = true; }
+    if ('theme' in state) { delete state.theme; changed = true; }
     if (state.temperature === 'warm') { state.temperature = 'neutral'; changed = true; }
     if (state.background === 'paper') { state.background = 'none'; changed = true; }
     if (changed) {
@@ -213,7 +151,7 @@ function normalizeAppearanceApi() {
   if (applyingAppearance || !window.BESAppearance?.getState || !window.BESAppearance?.setState) return;
   const state = window.BESAppearance.getState();
   const patch = {};
-  if (state.theme === 'paper') patch.theme = 'light';
+  if ('theme' in state) patch.theme = null;
   if (state.temperature === 'warm') patch.temperature = 'neutral';
   if (state.background === 'paper') patch.background = 'none';
   if (!Object.keys(patch).length) return;
@@ -224,15 +162,16 @@ function normalizeAppearanceApi() {
 }
 
 function applyNeutralTokens() {
-  const mode = getThemeMode();
-  const tokens = mode === 'oled' ? OLED_TOKENS : mode === 'dark' ? DARK_TOKENS : LIGHT_TOKENS;
-  Object.entries(tokens).forEach(([property, value]) => {
+  Object.entries(LIGHT_TOKENS).forEach(([property, value]) => {
     if (ROOT.style.getPropertyValue(property).trim() !== value || ROOT.style.getPropertyPriority(property) !== 'important') {
       ROOT.style.setProperty(property, value, 'important');
     }
   });
-  if (ROOT.dataset.besTheme === 'paper') ROOT.dataset.besTheme = 'light';
-  if (ROOT.dataset.theme === 'paper') ROOT.dataset.theme = 'light';
+  if (ROOT.dataset.besTheme !== 'light') ROOT.dataset.besTheme = 'light';
+  if (ROOT.dataset.theme !== 'light') ROOT.dataset.theme = 'light';
+  if (ROOT.classList.contains('dark') || ROOT.classList.contains('theme-dark')) ROOT.classList.remove('dark', 'theme-dark');
+  if (!ROOT.classList.contains('theme-light')) ROOT.classList.add('theme-light');
+  if (ROOT.style.colorScheme !== 'light') ROOT.style.colorScheme = 'light';
   if (ROOT.dataset.besBackground === 'paper') ROOT.dataset.besBackground = 'none';
 }
 
@@ -263,7 +202,7 @@ function neutralizeElement(element) {
 }
 
 function removeWarmControls(scope = document) {
-  scope.querySelectorAll?.('[data-setting="theme"][data-value="paper"], [data-setting="background"][data-value="paper"], select[data-setting="temperature"] option[value="warm"]').forEach((element) => element.remove());
+  scope.querySelectorAll?.('[data-setting="background"][data-value="paper"], select[data-setting="temperature"] option[value="warm"]').forEach((element) => element.remove());
   scope.querySelectorAll?.('.bes-section-heading p').forEach((paragraph) => {
     if (/giấy kem/i.test(paragraph.textContent || '')) {
       paragraph.textContent = (paragraph.textContent || '').replace(/,?\s*hoặc giấy kem/gi, '').replace(/giấy kem,?\s*/gi, '');
@@ -277,10 +216,6 @@ function scanWarmSurfaces() {
     scanFrame = 0;
     applyNeutralTokens();
     removeWarmControls();
-    if (isDarkTheme()) {
-      document.querySelectorAll('[data-bes-neutralized-surface]').forEach((element) => delete element.dataset.besNeutralizedSurface);
-      return;
-    }
     document.querySelectorAll(CANDIDATE_SELECTOR).forEach(neutralizeElement);
   });
 }
