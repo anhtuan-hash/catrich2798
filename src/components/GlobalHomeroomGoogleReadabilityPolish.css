@@ -343,3 +343,30 @@ html[data-theme="dark"] .hr-page .hr-progress-panel .hr-progress-row>div{backgro
   .hr-page .hr-progress-panel .hr-progress-row>span b{font-size:15px!important}
   .hr-page .hr-progress-panel .hr-progress-row>span small{font-size:12px!important}
 }
+
+/* Viewport-aware sticky navigation. The previous fixed offsets (96/78/68px)
+   left this bar floating over the middle of the workspace after the shared
+   chrome had scrolled away. HomeroomWorkspace now supplies the visible
+   chrome's real lower edge and falls back to an 8px viewport gutter. */
+.hr-page .hr-tabs{
+  top:var(--hr-tabs-sticky-top,max(8px,env(safe-area-inset-top)))!important;
+  z-index:110!important;
+  margin-bottom:24px!important;
+  scroll-padding-inline:16px!important;
+  isolation:isolate!important;
+  background:#fff!important;
+  box-shadow:0 1px 0 rgba(60,64,67,.12),0 10px 28px rgba(60,64,67,.14)!important;
+}
+
+html[data-theme="dark"] .hr-page .hr-tabs{
+  background:#202124!important;
+  box-shadow:0 1px 0 rgba(232,234,237,.16),0 10px 28px rgba(0,0,0,.3)!important;
+}
+
+@media (max-width:620px){
+  .hr-page .hr-tabs{
+    margin-inline:0!important;
+    margin-bottom:18px!important;
+    scroll-padding-inline:12px!important;
+  }
+}
