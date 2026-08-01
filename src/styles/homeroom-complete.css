@@ -139,3 +139,93 @@
   .hr-table .hr-row-actions { min-width: 160px; }
   .hr-scheduled-list article .hr-row-actions { margin-left: 0; }
 }
+
+.hr-page .hr-class-type-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 24px;
+  padding: 4px 9px;
+  border: 1px solid #b7d3ff;
+  border-radius: 999px;
+  background: #e8f0fe;
+  color: #174ea6;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.hr-page .hr-class-type-badge.homeroom {
+  border-color: #a8dab5;
+  background: #e6f4ea;
+  color: #137333;
+}
+
+.hr-page .hr-class-type-badge.hero {
+  margin: 12px 0 0;
+  font-size: 11px;
+}
+
+.hr-page .hr-class-catalog header > div {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+
+.hr-page .hr-class-catalog > article.is-homeroom {
+  border-color: #a8dab5;
+  background: linear-gradient(145deg, #f4fbf6, #fff);
+}
+
+.hr-page .hr-class-catalog > article.is-subject {
+  border-color: #c7d8f7;
+  background: linear-gradient(145deg, #f5f8fe, #fff);
+}
+
+.hr-page .hr-class-type-note {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #a8dab5;
+  border-radius: 12px;
+  background: #edf8f0;
+  color: #0d652d;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.hr-page .hr-class-type-note.subject {
+  border-color: #b7d3ff;
+  background: #eef4ff;
+  color: #174ea6;
+}
+
+.hr-page .hr-phase3-banner > span small {
+  display: block;
+  margin-top: 5px;
+  color: rgba(255, 255, 255, .78);
+  font-size: 11px;
+}
+
+.hr-page.is-subject-class .hr-hero {
+  background: linear-gradient(125deg, #f7faff 0%, #eef4ff 58%, #fff 100%) !important;
+}
+
+.hr-page.is-subject-class .hr-hero-art {
+  background: #e8f0fe !important;
+}
+
+html[data-theme="dark"] .hr-page .hr-class-type-note.subject,
+html[data-theme="dark"] .hr-page .hr-class-catalog > article.is-subject {
+  border-color: #3c5d86;
+  background: #17283d;
+  color: #aecbfa;
+}
+
+html[data-theme="dark"] .hr-page .hr-class-type-note.homeroom,
+html[data-theme="dark"] .hr-page .hr-class-catalog > article.is-homeroom {
+  border-color: #3d7653;
+  background: #172b20;
+  color: #81c995;
+}
