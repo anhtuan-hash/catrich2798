@@ -1,3 +1,5 @@
+import class126RecoveryIdentityPlugin from './class126RecoveryIdentityPlugin.js';
+
 const STUDENT_RESOLVER_SOURCE = `function attendanceStudentCodeCandidates(value) {
   const raw = safeText(value).toLowerCase();
   if (!raw) return [];
@@ -80,10 +82,14 @@ function resolveConductRecordStudentId(current, record = {}) {
 `;
 
 export default function conductAttendanceIdentityRepairPlugin() {
+  const class126RecoveryPlugin = class126RecoveryIdentityPlugin();
   return {
     name: 'brian-conduct-attendance-identity-repair',
     enforce: 'pre',
     transform(code, id) {
+      const class126Result = class126RecoveryPlugin.transform(code, id);
+      if (class126Result != null) return class126Result;
+
       const cleanId = String(id || '').split('?')[0].replaceAll('\\', '/');
 
       if (cleanId.endsWith('/src/utils/homeroomConduct.js')) {
