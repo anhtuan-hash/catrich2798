@@ -77,6 +77,7 @@ export default defineConfig({
           if (id.includes('node_modules')) {
             if (id.includes('react') || id.includes('react-dom')) return 'vendor-react';
             if (id.includes('@supabase')) return 'vendor-supabase';
+            if (id.includes('pdf-lib') || id.includes('@pdf-lib')) return 'vendor-pdf-export';
             if (id.includes('pdfjs-dist')) return 'vendor-pdf';
             if (id.includes('mammoth')) return 'vendor-docx';
             return 'vendor-misc';
