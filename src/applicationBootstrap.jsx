@@ -58,9 +58,6 @@ async function startApplication() {
   import('./conductCurrentWeekExport.js').catch((error) => {
     console.error('[ConductCurrentWeekExport] Không thể tải tính năng xuất đến tuần hiện tại.', error);
   });
-  import('./attendanceHistoryModal.js').catch((error) => {
-    console.error('[AttendanceHistoryModal] Không thể tải modal lịch sử chuyên cần.', error);
-  });
   loadExternalAppsAfterMainShell();
 }
 
