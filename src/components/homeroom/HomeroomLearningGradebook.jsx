@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   buildGradeExportColumns,
   exportClassGradebookXlsx,
-  exportStudentGradeReportXlsx,
   gradeRoundScore as roundScore,
   gradeScoreNumber as scoreNumber,
 } from '../../utils/homeroomGradebookExport.js';
@@ -408,7 +407,8 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     if (!student || !selectedExportColumns.length) return;
     setExporting('student');
     try {
-      const result = await exportStudentGradeReportXlsx({
+      const { exportStudentGradeReportPdf } = await import('../../utils/homeroomGradeReportPdf.js');
+      const result = await exportStudentGradeReportPdf({
         workspace,
         student,
         subjectName: activeSubject?.name,
@@ -420,7 +420,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       setExportDialogMode('');
       showExportMessage(`Đã xuất phiếu điểm của ${student.fullName || 'học sinh'}: ${result.fileName}.`);
     } catch (error) {
-      showExportMessage(error?.message || 'Không thể xuất phiếu điểm cá nhân.', 'error');
+      showExportMessage(error?.message || 'Không thể xuất phiếu điểm PDF.', 'error');
     } finally {
       setExporting('');
     }
@@ -536,7 +536,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
 
     <section className="hr-panel hr-grade-export-bar" aria-labelledby="hr-grade-export-title">
       <div className="hr-grade-export-copy">
-        <span>EXCEL · REPORTS</span>
+        <span>EXCEL · PDF REPORTS</span>
         <h3 id="hr-grade-export-title">Xuất báo cáo điểm</h3>
         <p>Xuất theo môn <b>{activeSubject?.name || '—'}</b> · <b>{semesterLabel}</b>. File dùng dữ liệu đang hiển thị, kể cả thay đổi chưa lưu.</p>
       </div>
@@ -545,7 +545,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
           <span aria-hidden="true">⇩</span>Xuất điểm cả lớp
         </button>
         <button type="button" className="primary" disabled={!students.length || Boolean(exporting)} onClick={openStudentReport}>
-          <span aria-hidden="true">▤</span>Xuất phiếu điểm cá nhân
+          <span aria-hidden="true">▤</span>Xuất phiếu điểm cá nhân (PDF)
         </button>
       </div>
     </section>
@@ -563,7 +563,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
           <div>
             <span>{exportDialogMode === 'class' ? 'CLASS GRADEBOOK' : 'PERSONAL SCORE REPORT'}</span>
             <h2 id="hr-grade-export-dialog-title">{exportDialogMode === 'class' ? 'Xuất điểm cả lớp' : 'Xuất phiếu điểm cá nhân'}</h2>
-            <p>{exportDialogMode === 'class' ? 'Chọn đúng các cột điểm cần đưa vào sổ điểm của toàn bộ lớp.' : 'Chọn học sinh và đúng các cột điểm cần đưa vào file Excel.'}</p>
+            <p>{exportDialogMode === 'class' ? 'Chọn đúng các cột điểm cần đưa vào sổ điểm của toàn bộ lớp.' : 'Chọn học sinh và các cột điểm cần đưa vào phiếu PDF có xác nhận.'}</p>
           </div>
           <button type="button" aria-label="Đóng cửa sổ xuất điểm" disabled={Boolean(exporting)} onClick={() => setExportDialogMode('')}>×</button>
         </header>
@@ -591,14 +591,14 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
             </fieldset>)}
           </div>
 
-          <p className="hr-grade-export-note"><span aria-hidden="true">i</span>{exportDialogMode === 'class' ? 'Sổ điểm gồm toàn bộ học sinh và chỉ các cột đã chọn; ô trống là điểm chưa nhập.' : 'Phiếu điểm ghi rõ lớp, năm học, môn, học kỳ, giáo viên, thời điểm xuất và trạng thái đã/chưa nhập của từng cột.'}</p>
+          <p className="hr-grade-export-note"><span aria-hidden="true">i</span>{exportDialogMode === 'class' ? 'Sổ điểm gồm toàn bộ học sinh và chỉ các cột đã chọn; ô trống là điểm chưa nhập.' : 'Phiếu PDF có tên Trường Trung - Tiểu học Pétrus Ký, logo trường, thông tin lớp và chữ ký giáo viên chủ nhiệm.'}</p>
         </div>
 
         <footer>
           <button type="button" className="secondary" disabled={Boolean(exporting)} onClick={() => setExportDialogMode('')}>Hủy</button>
           {exportDialogMode === 'class'
             ? <button type="button" className="primary" disabled={!selectedExportColumns.length || Boolean(exporting)} onClick={exportClassGradebook}>{exporting === 'class' ? 'Đang tạo sổ điểm…' : `Xuất ${selectedExportColumns.length} cột cho cả lớp (.xlsx)`}</button>
-            : <button type="button" className="primary" disabled={!selectedStudentId || !selectedExportColumns.length || Boolean(exporting)} onClick={exportStudentReport}>{exporting === 'student' ? 'Đang tạo phiếu…' : `Xuất ${selectedExportColumns.length} cột điểm (.xlsx)`}</button>}
+            : <button type="button" className="primary" disabled={!selectedStudentId || !selectedExportColumns.length || Boolean(exporting)} onClick={exportStudentReport}>{exporting === 'student' ? 'Đang tạo phiếu PDF…' : `Xuất phiếu PDF · ${selectedExportColumns.length} cột`}</button>}
         </footer>
       </section>
     </div> : null}

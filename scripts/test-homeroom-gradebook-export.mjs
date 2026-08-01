@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import JSZip from 'jszip';
+import { PDFDocument } from 'pdf-lib';
 import {
   buildClassGradebookWorkbook,
   buildGradeExportColumns,
@@ -9,6 +10,7 @@ import {
   gradeRoundScore,
 } from '../src/utils/homeroomGradebookExport.js';
 import { createXlsxBlob } from '../src/utils/xlsxExport.js';
+import { buildStudentGradeReportPdf } from '../src/utils/homeroomGradeReportPdf.js';
 
 const students = [
   { id: 'student-1', code: '11A4-01', fullName: 'Nguyễn Minh Anh', active: true },
@@ -116,11 +118,50 @@ assert.match(personalSheetXml, /PHIẾU ĐIỂM CÁ NHÂN/);
 assert.match(personalSheetXml, /Nguyễn Minh Anh/);
 assert.match(personalSheetXml, /Kết quả đợt 1/);
 
+const [fontBytes, logoBytes] = await Promise.all([
+  fs.readFile(new URL('../public/bes-fonts/brian-personal-font.ttf', import.meta.url)),
+  fs.readFile(new URL('../public/footer-pek-logo.png', import.meta.url)),
+]);
+const personalPdf = await buildStudentGradeReportPdf({
+  ...common,
+  student: students[0],
+  selectedColumnIds,
+  fontBytes,
+  logoBytes,
+});
+assert.match(personalPdf.fileName, /^Phieu-diem-Nguyen-Minh-Anh-Tieng-Anh-Hoc-ky-I\.pdf$/);
+assert.ok(personalPdf.bytes.length > 25000, 'personal PDF should contain fonts, school logo, signature, and grade data');
+const parsedPdf = await PDFDocument.load(personalPdf.bytes);
+assert.equal(parsedPdf.getPageCount(), 1, 'default personal report should fit on one A4 page');
+assert.match(parsedPdf.getTitle(), /Nguyễn Minh Anh/);
+assert.equal(parsedPdf.getAuthor(), 'Tuấn Nguyễn Anh');
+
+const paginationSemester = {
+  ...semester,
+  regular: semester.regular.map((round, index) => ({
+    ...round,
+    columns: [...round.columns, { id: `r${index + 1}-c`, label: 'Lần bổ sung' }],
+  })),
+};
+const paginationColumnIds = buildGradeExportColumns(paginationSemester).map((column) => column.id);
+const paginatedPdf = await buildStudentGradeReportPdf({
+  ...common,
+  student: students[0],
+  semester: paginationSemester,
+  selectedColumnIds: paginationColumnIds,
+  fontBytes,
+  logoBytes,
+});
+assert.equal(paginatedPdf.pageCount, 2, 'personal PDF should paginate when more than 18 grade columns are selected');
+assert.equal((await PDFDocument.load(paginatedPdf.bytes)).getPageCount(), 2);
+
 const outputDirectory = process.env.BES_EXPORT_TEST_OUTPUT;
 if (outputDirectory) {
   await fs.mkdir(outputDirectory, { recursive: true });
   await fs.writeFile(`${outputDirectory}/so-diem-lop-mau.xlsx`, new Uint8Array(await classBlob.arrayBuffer()));
   await fs.writeFile(`${outputDirectory}/phieu-diem-ca-nhan-mau.xlsx`, new Uint8Array(await personalBlob.arrayBuffer()));
+  await fs.writeFile(`${outputDirectory}/phieu-diem-ca-nhan-mau.pdf`, personalPdf.bytes);
+  await fs.writeFile(`${outputDirectory}/phieu-diem-ca-nhan-nhieu-cot-mau.pdf`, paginatedPdf.bytes);
 }
 
 console.log('Homeroom gradebook Excel export checks passed.');
