@@ -59,3 +59,8 @@
   background: #e37400;
   color: #fff;
 }
+
+/* Bảng tổng hợp giữa kỳ / cuối kỳ đã được gỡ khỏi giao diện Rèn luyện. */
+.hr-conduct-period {
+  display: none !important;
+}
