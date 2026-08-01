@@ -47,6 +47,8 @@ export const ATTENDANCE_STATUSES = [
   { id: 'present', labelVi: 'Có mặt', label: 'Present', symbol: '✓' },
   { id: 'late', labelVi: 'Đi trễ', label: 'Late', symbol: '◷' },
   { id: 'excused', labelVi: 'Vắng phép', label: 'Excused', symbol: 'P' },
+  { id: 'absent_one_period', labelVi: 'Vắng 1 tiết', label: 'Absent 1 period', symbol: '1' },
+  { id: 'absent_two_periods', labelVi: 'Vắng 2 tiết', label: 'Absent 2 periods', symbol: '2' },
   { id: 'unexcused', labelVi: 'Vắng không phép', label: 'Unexcused', symbol: '!' },
   { id: 'early', labelVi: 'Về sớm', label: 'Left early', symbol: '↗' },
 ];
