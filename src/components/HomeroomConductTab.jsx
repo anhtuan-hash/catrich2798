@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import './HomeroomConductScrollColor.css';
 import {
   CONDUCT_CATEGORIES,
   CONDUCT_DOCUMENT,
@@ -67,6 +68,20 @@ function formatDate(value) {
   const date = new Date(`${value}T00:00:00`);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
+}
+
+function ConductTableGuide() {
+  return (
+    <div className="hr-conduct-table-guide" aria-label="Chú giải màu kết quả rèn luyện">
+      <div>
+        <span className="good">Tốt</span>
+        <span className="fair">Khá</span>
+        <span className="pass">Đạt</span>
+        <span className="fail">Chưa đạt</span>
+      </div>
+      <small>Cuộn dọc để xem toàn bộ học sinh · Cuộn ngang khi màn hình hẹp</small>
+    </div>
+  );
 }
 
 function monthRange(monthValue) {
@@ -1163,7 +1178,10 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
         </div>
 
         {weekReviewMode === 'scores' ? (
-          <div className="hr-table-wrap"><table className="hr-table hr-conduct-score-table"><thead><tr><th>Học sinh</th><th>Điểm đầu</th><th>Điểm trừ</th><th>Điểm cộng</th><th>Điểm cuối</th><th>Kết quả</th><th>Ghi nhận</th><th>Cảnh báo</th></tr></thead><tbody>{weekRows.map((row) => <tr key={row.student.id}><td><button type="button" className="hr-conduct-student-link" onClick={() => setStudentProfileId(row.student.id)}><span>{row.student.fullName.slice(0, 1)}</span><p><b>{row.student.fullName}</b><small>{row.student.code || 'Chưa có mã học sinh'} · Xem hồ sơ</small></p></button></td><td>{row.baseScore}</td><td><b className="hr-conduct-minus">−{row.totalDeduction}</b></td><td><b className="hr-conduct-plus">+{row.totalBonus || 0}</b></td><td><strong className={`hr-conduct-score ${scoreTone(row.classification)}`}>{row.score}</strong></td><td><span className={`hr-conduct-result ${scoreTone(row.classification)}`}>{row.classification.label}</span></td><td><button type="button" className="hr-conduct-record-count" onClick={() => { setRecordFilterStudentId(row.student.id); setRecordFilterStatus('active'); setWeekReviewMode('records'); }}>{row.records.length} lượt</button></td><td>{row.critical ? <span className="hr-conduct-alert">Cần xem xét</span> : <span className="hr-conduct-clear">Bình thường</span>}</td></tr>)}</tbody></table></div>
+          <>
+            <ConductTableGuide />
+            <div className="hr-table-wrap hr-conduct-scroll-region hr-conduct-score-scroll" role="region" aria-label="Bảng điểm rèn luyện theo tuần" tabIndex={0}><table className="hr-table hr-conduct-score-table"><thead><tr><th>Học sinh</th><th>Điểm đầu</th><th>Điểm trừ</th><th>Điểm cộng</th><th>Điểm cuối</th><th>Kết quả</th><th>Ghi nhận</th><th>Cảnh báo</th></tr></thead><tbody>{weekRows.map((row) => <tr key={row.student.id} className={`hr-conduct-data-row ${scoreTone(row.classification)}`}><td><button type="button" className="hr-conduct-student-link" onClick={() => setStudentProfileId(row.student.id)}><span>{row.student.fullName.slice(0, 1)}</span><p><b>{row.student.fullName}</b><small>{row.student.code || 'Chưa có mã học sinh'} · Xem hồ sơ</small></p></button></td><td>{row.baseScore}</td><td><b className="hr-conduct-minus">−{row.totalDeduction}</b></td><td><b className="hr-conduct-plus">+{row.totalBonus || 0}</b></td><td><strong className={`hr-conduct-score ${scoreTone(row.classification)}`}>{row.score}</strong></td><td><span className={`hr-conduct-result ${scoreTone(row.classification)}`}>{row.classification.label}</span></td><td><button type="button" className="hr-conduct-record-count" onClick={() => { setRecordFilterStudentId(row.student.id); setRecordFilterStatus('active'); setWeekReviewMode('records'); }}>{row.records.length} lượt</button></td><td>{row.critical ? <span className="hr-conduct-alert">Cần xem xét</span> : <span className="hr-conduct-clear">Bình thường</span>}</td></tr>)}</tbody></table></div>
+          </>
         ) : weekReviewMode === 'records' ? (
           <div className="hr-conduct-record-review">
             <div className="hr-conduct-record-filters">
@@ -1189,7 +1207,8 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
       <section className="hr-panel hr-conduct-period">
         <div className="hr-panel-head"><div><small>TỔNG HỢP ĐỊNH KỲ</small><h2>Tháng · Giữa kỳ · Cuối kỳ · Cả năm</h2><p>Kết quả là trung bình điểm của các tuần thuộc giai đoạn. Riêng lớp 12, bốn tuần hè 15/06–11/07/2026 được tính vào Học kỳ I và cả năm.</p></div><div className="hr-head-actions"><select value={periodMode} onChange={(event) => setPeriodMode(event.target.value)}><option value="month">Theo tháng</option><option value="mid1">Giữa học kỳ I</option><option value="semester1">Cuối học kỳ I</option><option value="mid2">Giữa học kỳ II</option><option value="semester2">Cuối học kỳ II</option><option value="year">Cả năm</option></select>{periodMode === 'month' ? <input type="month" value={monthValue} onChange={(event) => setMonthValue(event.target.value)} /> : null}</div></div>
         <div className="hr-conduct-period-label"><b>{periodRange.label}</b><span>{formatDate(periodRange.start)} → {formatDate(periodRange.end)}</span></div>
-        <div className="hr-table-wrap"><table className="hr-table"><thead><tr><th>Học sinh</th><th>Số tuần</th><th>Đã khóa</th><th>Điểm trừ</th><th>Điểm cộng</th><th>Điểm trung bình</th><th>Kết quả</th><th>Cảnh báo</th></tr></thead><tbody>{periodRows.map((row) => <tr key={row.student.id}><td><b>{row.student.fullName}</b><small>{row.student.code || '—'}</small></td><td>{row.weekCount}</td><td>{row.lockedWeeks || 0}</td><td>−{row.totalDeduction}</td><td className="hr-conduct-plus">+{row.totalBonus || 0}</td><td><strong className={`hr-conduct-score ${scoreTone(row.classification)}`}>{row.average.toFixed(2)}</strong></td><td><span className={`hr-conduct-result ${scoreTone(row.classification)}`}>{row.classification.label}</span></td><td>{row.criticalWeeks ? <span className="hr-conduct-alert">{row.criticalWeeks} tuần</span> : '0'}</td></tr>)}</tbody></table></div>
+        <ConductTableGuide />
+        <div className="hr-table-wrap hr-conduct-scroll-region hr-conduct-period-scroll" role="region" aria-label="Bảng tổng hợp rèn luyện định kỳ" tabIndex={0}><table className="hr-table"><thead><tr><th>Học sinh</th><th>Số tuần</th><th>Đã khóa</th><th>Điểm trừ</th><th>Điểm cộng</th><th>Điểm trung bình</th><th>Kết quả</th><th>Cảnh báo</th></tr></thead><tbody>{periodRows.map((row) => <tr key={row.student.id} className={`hr-conduct-data-row ${scoreTone(row.classification)}`}><td><b>{row.student.fullName}</b><small>{row.student.code || '—'}</small></td><td>{row.weekCount}</td><td>{row.lockedWeeks || 0}</td><td>−{row.totalDeduction}</td><td className="hr-conduct-plus">+{row.totalBonus || 0}</td><td><strong className={`hr-conduct-score ${scoreTone(row.classification)}`}>{row.average.toFixed(2)}</strong></td><td><span className={`hr-conduct-result ${scoreTone(row.classification)}`}>{row.classification.label}</span></td><td>{row.criticalWeeks ? <span className="hr-conduct-alert">{row.criticalWeeks} tuần</span> : '0'}</td></tr>)}</tbody></table></div>
       </section>
 
       <section className="hr-panel hr-conduct-settings">
