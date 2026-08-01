@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import readXlsxFile from 'read-excel-file';
+import { readSheet } from 'read-excel-file/browser';
 import { CheckCircle2, FileSpreadsheet, RefreshCw, Search, ShieldCheck, Upload, UsersRound } from 'lucide-react';
 import { getCurrentUser } from './utils/auth.js';
 import { isDepartmentLeaderRole } from './utils/roles.js';
@@ -243,7 +243,7 @@ function SchoolClassRegistryPanel() {
     if (!file || !user) return;
     setMessage('Đang đọc danh sách học sinh…');
     try {
-      const rows = await readXlsxFile(file);
+      const rows = await readSheet(file);
       const parsed = parseSchoolRosterRows(rows);
       if (parsed.totalStudents !== 718) {
         throw new Error(`Tệp hiện có ${parsed.totalStudents} học sinh; danh sách chuẩn cần 718 học sinh.`);
