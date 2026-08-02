@@ -4,7 +4,7 @@ import {
   loadHomeroomWorkspace,
   saveHomeroomWorkspace,
 } from './utils/homeroomClassWorkspaceStore.js';
-import { createManualBackup, prepareWorkspaceCommit } from './utils/homeroomPhase3.js';
+import { prepareWorkspaceCommit } from './utils/homeroomPhase3.js';
 import {
   normalizeSchoolClassName,
   normalizeSchoolClassRegistry,
@@ -54,8 +54,7 @@ function rosterPanel() {
 function currentFilter(panel) {
   const activeTab = panel?.querySelector('.bes-roster-filter-tabs button.is-active[data-roster-filter]');
   if (activeTab?.dataset.rosterFilter) return activeTab.dataset.rosterFilter;
-  const selects = [...(panel?.querySelectorAll('.hr-filter-row select') || [])];
-  const filterSelect = selects.find((select) => (
+  const filterSelect = [...(panel?.querySelectorAll('.hr-filter-row select') || [])].find((select) => (
     [...select.options].some((option) => option.value === 'deleted')
   ));
   return filterSelect?.value || 'active';
@@ -112,28 +111,14 @@ function purgeReferences(value, ids) {
 
 function purgeWorkingData(workspace, ids, user) {
   const now = new Date().toISOString();
-  const backedUp = createManualBackup(
-    workspace,
-    user,
-    `Trước khi xóa vĩnh viễn ${ids.size} học sinh`,
-  );
+  const cleaned = purgeReferences(workspace, ids);
   const next = {
-    ...backedUp,
-    students: (backedUp.students || []).filter((student) => !ids.has(student.id)),
-    learningGradebook: purgeReferences(backedUp.learningGradebook || {}, ids),
-    learningRecords: purgeReferences(backedUp.learningRecords || [], ids),
-    conductRecords: purgeReferences(backedUp.conductRecords || [], ids),
-    attendance: purgeReferences(backedUp.attendance || {}, ids),
-    subjectFeedback: purgeReferences(backedUp.subjectFeedback || [], ids),
-    incidents: purgeReferences(backedUp.incidents || [], ids),
-    supportPlans: purgeReferences(backedUp.supportPlans || [], ids),
-    parentContacts: purgeReferences(backedUp.parentContacts || [], ids),
-    alerts: purgeReferences(backedUp.alerts || [], ids),
-    records: purgeReferences(backedUp.records || [], ids),
-    teams: purgeReferences(backedUp.teams || [], ids),
-    studentDeletionAudit: (backedUp.studentDeletionAudit || []).filter((item) => !ids.has(item.studentId)),
+    ...cleaned,
+    students: (workspace.students || []).filter((student) => !ids.has(student.id)),
+    backups: purgeReferences(workspace.backups || [], ids),
+    studentDeletionAudit: (workspace.studentDeletionAudit || []).filter((item) => !ids.has(item.studentId)),
     studentPermanentDeletionAudit: [
-      ...(backedUp.studentPermanentDeletionAudit || []),
+      ...(workspace.studentPermanentDeletionAudit || []),
       {
         id: `student-permanent-delete-${Date.now()}`,
         count: ids.size,
@@ -144,7 +129,7 @@ function purgeWorkingData(workspace, ids, user) {
     updatedAt: now,
   };
   return prepareWorkspaceCommit(
-    backedUp,
+    workspace,
     next,
     user,
     `Xóa vĩnh viễn ${ids.size} học sinh khỏi dữ liệu đang dùng`,
@@ -158,6 +143,26 @@ function sameStudent(left, right) {
   if (leftCode && rightCode && leftCode === rightCode) return true;
   return fold(left.fullName) === fold(right.fullName)
     && (!left.birthDate || !right.birthDate || safeText(left.birthDate) === safeText(right.birthDate));
+}
+
+async function saveRegistryCloud(user, payload, now) {
+  if (!isSupabaseConfigured || !supabase) return { ok: true };
+  const role = safeText(user?.role).toLowerCase();
+  if (!['admin', 'department_head', 'ttcm'].includes(role)) return { ok: true };
+
+  let lastError = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const { error } = await supabase.from('school_class_registries').upsert({
+      owner_id: user.id,
+      owner_email: user.email || '',
+      payload,
+      updated_at: now,
+    }, { onConflict: 'owner_id' });
+    if (!error) return { ok: true };
+    lastError = error;
+    if (attempt === 0) await new Promise((resolve) => window.setTimeout(resolve, 450));
+  }
+  return { ok: false, message: lastError?.message || 'Không thể đồng bộ danh mục lớp lên cloud.' };
 }
 
 async function purgeSchoolRegistry(user, workspace, removedStudents) {
@@ -194,35 +199,25 @@ async function purgeSchoolRegistry(user, workspace, removedStudents) {
   if (!changed) return { changed: false, cloudOk: true };
 
   localStorage.setItem(key, JSON.stringify(next));
+  const cloudResult = await saveRegistryCloud(user, next, now);
   window.dispatchEvent(new CustomEvent('bes-school-class-registry-updated', {
     detail: { source: 'permanent-student-delete', className },
   }));
-
-  const role = safeText(user?.role).toLowerCase();
-  if (!isSupabaseConfigured || !supabase || !['admin', 'department_head', 'ttcm'].includes(role)) {
-    return { changed: true, cloudOk: true };
-  }
-  const { error } = await supabase.from('school_class_registries').upsert({
-    owner_id: user.id,
-    owner_email: user.email || '',
-    payload: next,
-    updated_at: now,
-  }, { onConflict: 'owner_id' });
-  return { changed: true, cloudOk: !error, message: error?.message || '' };
+  return { changed: true, cloudOk: cloudResult.ok, message: cloudResult.message || '' };
 }
 
 function updateToolbar(panel, workspace) {
   const toolbar = panel.querySelector(`.${TOOLBAR_CLASS}`);
   if (!toolbar) return;
-  const ids = visibleDeletedRows(panel)
-    .map((row) => row.dataset.permanentStudentId)
-    .filter(Boolean);
+  const ids = visibleDeletedRows(panel).map((row) => row.dataset.permanentStudentId).filter(Boolean);
   const selectedCount = ids.filter((id) => selectedIds.has(id)).length;
   const allSelected = ids.length > 0 && ids.every((id) => selectedIds.has(id));
   const selectAll = toolbar.querySelector('[data-permanent-select-all]');
   const count = toolbar.querySelector('[data-permanent-count]');
   const remove = toolbar.querySelector('[data-permanent-delete]');
   const clear = toolbar.querySelector('[data-permanent-clear]');
+  const status = toolbar.querySelector('[data-permanent-status]');
+
   if (selectAll) {
     selectAll.checked = allSelected;
     selectAll.indeterminate = selectedCount > 0 && !allSelected;
@@ -231,11 +226,10 @@ function updateToolbar(panel, workspace) {
   if (count) count.textContent = String(selectedCount);
   if (remove) {
     remove.disabled = busy || !selectedCount;
-    remove.textContent = busy
-      ? 'Đang xóa…'
-      : `Xóa vĩnh viễn${selectedCount ? ` (${selectedCount})` : ''}`;
+    remove.textContent = busy ? 'Đang xóa…' : `Xóa vĩnh viễn${selectedCount ? ` (${selectedCount})` : ''}`;
   }
   if (clear) clear.disabled = busy || !selectedCount;
+  if (status) status.textContent = busy ? 'Đang xóa dữ liệu và đồng bộ…' : '';
 
   visibleDeletedRows(panel).forEach((row) => {
     const id = row.dataset.permanentStudentId;
@@ -246,43 +240,73 @@ function updateToolbar(panel, workspace) {
   toolbar.__besWorkspace = workspace;
 }
 
+function confirmPermanentDeletion(students) {
+  const preview = students.slice(0, 6).map((student) => student.fullName).join(', ');
+  const remaining = Math.max(0, students.length - 6);
+  const confirmed = window.confirm(
+    `Xóa vĩnh viễn ${students.length} học sinh?\n\n`
+      + preview + (remaining ? ` và ${remaining} học sinh khác` : '') + '.\n\n'
+      + 'Hồ sơ, điểm, rèn luyện, điểm danh và dữ liệu liên quan sẽ bị loại khỏi hệ thống đang dùng. Thao tác này không thể khôi phục trong app.',
+  );
+  if (!confirmed) return false;
+
+  const expected = `XOA ${students.length}`;
+  const phrase = window.prompt(`Nhập “XÓA ${students.length}” để xác nhận:`, '');
+  if (fold(phrase).toUpperCase() !== expected) {
+    window.alert(`Xác nhận không đúng. Hãy nhập XÓA ${students.length}. Chưa có dữ liệu nào bị xóa.`);
+    return false;
+  }
+  return true;
+}
+
 async function permanentlyDelete(panel, requestedIds = null) {
   if (busy) return;
+
+  // Phải xác nhận trước bất kỳ await nào. Safari có thể chặn confirm/prompt
+  // nếu hộp thoại được gọi sau một tác vụ bất đồng bộ.
+  const toolbar = panel.querySelector(`.${TOOLBAR_CLASS}`);
+  const cachedWorkspace = toolbar?.__besWorkspace;
+  if (!cachedWorkspace) {
+    window.alert('Chưa tải xong dữ liệu lớp. Vui lòng thử lại sau một giây.');
+    return;
+  }
+  const requested = new Set(requestedIds || selectedIds);
+  const cachedStudents = (cachedWorkspace.students || []).filter((student) => (
+    requested.has(student.id) && isDeleted(student)
+  ));
+  if (!cachedStudents.length) {
+    window.alert('Không có học sinh đã xóa nào được chọn.');
+    return;
+  }
+  if (!confirmPermanentDeletion(cachedStudents)) return;
+
   busy = true;
+  updateToolbar(panel, cachedWorkspace);
   try {
     const { user, workspace } = await loadCurrentWorkspace();
-    const ids = new Set(requestedIds || selectedIds);
-    const removedStudents = (workspace.students || []).filter((student) => ids.has(student.id) && isDeleted(student));
-    if (!removedStudents.length) {
-      window.alert('Không có học sinh đã xóa nào được chọn.');
-      return;
-    }
+    const removedStudents = (workspace.students || []).filter((student) => (
+      requested.has(student.id) && isDeleted(student)
+    ));
+    if (!removedStudents.length) throw new Error('Danh sách đã thay đổi. Không còn học sinh phù hợp để xóa.');
 
-    const preview = removedStudents.slice(0, 6).map((student) => student.fullName).join(', ');
-    const remaining = Math.max(0, removedStudents.length - 6);
-    const confirmed = window.confirm(
-      `Xóa vĩnh viễn ${removedStudents.length} học sinh?\n\n`
-      + preview + (remaining ? ` và ${remaining} học sinh khác` : '') + '.\n\n'
-      + 'Hồ sơ sẽ bị loại khỏi danh sách, bảng điểm, rèn luyện, điểm danh và các dữ liệu đang dùng. Hệ thống sẽ tạo một bản sao an toàn trước thao tác.',
+    const committed = purgeWorkingData(
+      workspace,
+      new Set(removedStudents.map((student) => student.id)),
+      user,
     );
-    if (!confirmed) return;
-
-    const phrase = window.prompt('Nhập chính xác “XÓA VĨNH VIỄN” để xác nhận:', '');
-    if (safeText(phrase).toUpperCase() !== 'XÓA VĨNH VIỄN') {
-      window.alert('Cụm từ xác nhận không đúng. Chưa có dữ liệu nào bị xóa.');
-      return;
-    }
-
-    const committed = purgeWorkingData(workspace, new Set(removedStudents.map((student) => student.id)), user);
     const saved = await saveHomeroomWorkspace(committed, user);
     if (saved?.ok === false) throw new Error(saved.message || 'Không thể lưu dữ liệu sau khi xóa.');
 
     const registryResult = await purgeSchoolRegistry(user, workspace, removedStudents);
     selectedIds.clear();
-    const cloudNote = registryResult.cloudOk
-      ? ''
-      : '\n\nLưu ý: dữ liệu lớp đã được xóa trên thiết bị nhưng danh mục cloud chưa đồng bộ. Hãy kiểm tra lại kết nối mạng.';
-    window.alert(`Đã xóa vĩnh viễn ${removedStudents.length} học sinh khỏi dữ liệu đang dùng.${cloudNote}`);
+    if (!registryResult.cloudOk) {
+      window.alert(
+        `Đã xóa ${removedStudents.length} học sinh trên lớp đang mở, nhưng chưa đồng bộ được danh mục cloud.\n\n${registryResult.message || 'Hãy kiểm tra kết nối mạng rồi thử lại.'}`,
+      );
+      return;
+    }
+
+    window.alert(`Đã xóa vĩnh viễn ${removedStudents.length} học sinh.`);
     window.location.reload();
   } catch (error) {
     console.error('[StudentPermanentDelete] Không thể xóa vĩnh viễn học sinh.', error);
@@ -304,6 +328,7 @@ function ensureToolbar(panel, workspace) {
   toolbar.innerHTML = `
     <label><input type="checkbox" data-permanent-select-all><span>Chọn tất cả đã xóa</span></label>
     <span>Đã chọn <b data-permanent-count>0</b> học sinh</span>
+    <small data-permanent-status></small>
     <div><button type="button" class="secondary" data-permanent-clear>Bỏ chọn</button><button type="button" class="danger" data-permanent-delete>Xóa vĩnh viễn</button></div>`;
   const anchor = panel.querySelector('.bes-roster-filter-tabs') || panel.querySelector(':scope > .hr-panel-head');
   anchor?.insertAdjacentElement('afterend', toolbar);
@@ -377,6 +402,7 @@ function injectStyle() {
     .${TOOLBAR_CLASS}{display:flex;align-items:center;gap:16px;margin:0 0 14px;padding:14px;border:1px solid rgba(217,48,37,.22);border-radius:16px;background:linear-gradient(135deg,#fce8e6,#fff)}
     .${TOOLBAR_CLASS}>label{display:flex;align-items:center;gap:9px;font-weight:800;cursor:pointer}
     .${TOOLBAR_CLASS}>span{color:#5f6368}. ${TOOLBAR_CLASS}>span b{color:#b3261e}
+    .${TOOLBAR_CLASS}>small{color:#b3261e;font-weight:700}
     .${TOOLBAR_CLASS}>div{display:flex;gap:8px;margin-left:auto}
     .${TOOLBAR_CLASS} button{min-height:40px;padding:0 16px;border-radius:999px;font-weight:800}
     .${TOOLBAR_CLASS} button.danger,[data-permanent-row-delete]{border:1px solid #d93025!important;background:#fce8e6!important;color:#b3261e!important}
