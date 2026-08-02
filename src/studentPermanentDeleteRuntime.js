@@ -2,9 +2,10 @@ import { getCurrentUser } from './utils/auth.js';
 import {
   getCurrentHomeroomWorkspaceId,
   loadHomeroomWorkspace,
+  loadLocalHomeroomWorkspace,
   saveHomeroomWorkspace,
+  saveLocalHomeroomWorkspace,
 } from './utils/homeroomClassWorkspaceStore.js';
-import { prepareWorkspaceCommit } from './utils/homeroomPhase3.js';
 import {
   normalizeSchoolClassName,
   normalizeSchoolClassRegistry,
@@ -15,6 +16,7 @@ import { isSupabaseConfigured, supabase } from './utils/supabase.js';
 const PANEL_CLASS = 'bes-permanent-delete-mode';
 const TOOLBAR_CLASS = 'bes-permanent-delete-toolbar';
 const CHECKBOX_CLASS = 'bes-permanent-delete-checkbox';
+const TOMBSTONE_PREFIX = 'bes-permanent-student-deletions-v1';
 const selectedIds = new Set();
 let scheduled = false;
 let busy = false;
@@ -38,6 +40,10 @@ function fold(value) {
 
 function normalizeCode(value) {
   return fold(value).replace(/\s+/g, '').replace(/^cp0*(\d+)$/, 'cp$1');
+}
+
+function userKey(user) {
+  return safeText(user?.id || user?.authId || user?.email, 'guest').toLowerCase();
 }
 
 function isDeleted(student) {
@@ -109,10 +115,20 @@ function purgeReferences(value, ids) {
   return output;
 }
 
-function purgeWorkingData(workspace, ids, user) {
+function buildCleanWorkspace(workspace, ids, user) {
   const now = new Date().toISOString();
   const cleaned = purgeReferences(workspace, ids);
-  const next = {
+  const auditEntry = {
+    id: `student-permanent-delete-${Date.now()}`,
+    action: `Xóa vĩnh viễn ${ids.size} học sinh`,
+    summary: `students: ${(workspace.students || []).length} → ${(workspace.students || []).filter((student) => !ids.has(student.id)).length}`,
+    actorId: safeText(user?.id || user?.authId),
+    actorName: safeText(user?.name || user?.email, 'Người dùng'),
+    actorEmail: safeText(user?.email),
+    source: 'web-app',
+    createdAt: now,
+  };
+  return {
     ...cleaned,
     students: (workspace.students || []).filter((student) => !ids.has(student.id)),
     backups: purgeReferences(workspace.backups || [], ids),
@@ -120,20 +136,46 @@ function purgeWorkingData(workspace, ids, user) {
     studentPermanentDeletionAudit: [
       ...(workspace.studentPermanentDeletionAudit || []),
       {
-        id: `student-permanent-delete-${Date.now()}`,
+        id: auditEntry.id,
         count: ids.size,
         deletedAt: now,
         deletedBy: safeText(user?.email || user?.name || user?.id),
       },
     ],
+    auditLogs: [auditEntry, ...(cleaned.auditLogs || [])].slice(0, 300),
     updatedAt: now,
   };
-  return prepareWorkspaceCommit(
-    workspace,
-    next,
-    user,
-    `Xóa vĩnh viễn ${ids.size} học sinh khỏi dữ liệu đang dùng`,
-  );
+}
+
+function studentFingerprint(student) {
+  return {
+    id: safeText(student?.id),
+    code: normalizeCode(student?.code),
+    identity: `${fold(student?.fullName)}|${safeText(student?.birthDate)}`,
+    fullName: safeText(student?.fullName),
+    birthDate: safeText(student?.birthDate),
+  };
+}
+
+function tombstoneKey(user, className) {
+  return `${TOMBSTONE_PREFIX}:${userKey(user)}:${normalizeSchoolClassName(className) || safeText(className).toLowerCase()}`;
+}
+
+function persistTombstones(user, workspace, students) {
+  const key = tombstoneKey(user, workspace.classProfile?.className);
+  let existing = [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) || '[]');
+    existing = Array.isArray(parsed) ? parsed : [];
+  } catch {
+    existing = [];
+  }
+  const byIdentity = new Map();
+  [...existing, ...students.map(studentFingerprint)].forEach((item) => {
+    const identity = safeText(item.id || item.code || item.identity);
+    if (identity) byIdentity.set(identity, item);
+  });
+  localStorage.setItem(key, JSON.stringify([...byIdentity.values()]));
 }
 
 function sameStudent(left, right) {
@@ -145,41 +187,21 @@ function sameStudent(left, right) {
     && (!left.birthDate || !right.birthDate || safeText(left.birthDate) === safeText(right.birthDate));
 }
 
-async function saveRegistryCloud(user, payload, now) {
-  if (!isSupabaseConfigured || !supabase) return { ok: true };
-  const role = safeText(user?.role).toLowerCase();
-  if (!['admin', 'department_head', 'ttcm'].includes(role)) return { ok: true };
-
-  let lastError = null;
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    const { error } = await supabase.from('school_class_registries').upsert({
-      owner_id: user.id,
-      owner_email: user.email || '',
-      payload,
-      updated_at: now,
-    }, { onConflict: 'owner_id' });
-    if (!error) return { ok: true };
-    lastError = error;
-    if (attempt === 0) await new Promise((resolve) => window.setTimeout(resolve, 450));
-  }
-  return { ok: false, message: lastError?.message || 'Không thể đồng bộ danh mục lớp lên cloud.' };
-}
-
-async function purgeSchoolRegistry(user, workspace, removedStudents) {
+function prepareRegistryRemoval(user, workspace, removedStudents) {
   const key = schoolClassRegistryStorageKey(user);
   let registry;
   try {
     const raw = localStorage.getItem(key);
-    if (!raw) return { changed: false, cloudOk: true };
+    if (!raw) return { changed: false, key, payload: null };
     registry = normalizeSchoolClassRegistry(JSON.parse(raw));
   } catch {
-    return { changed: false, cloudOk: true };
+    return { changed: false, key, payload: null };
   }
 
   const className = normalizeSchoolClassName(workspace.classProfile?.className);
   let changed = false;
   const now = new Date().toISOString();
-  const next = {
+  const payload = {
     ...registry,
     updatedAt: now,
     classes: (registry.classes || []).map((item) => {
@@ -196,14 +218,21 @@ async function purgeSchoolRegistry(user, workspace, removedStudents) {
       };
     }),
   };
-  if (!changed) return { changed: false, cloudOk: true };
+  return { changed, key, payload, now, className };
+}
 
-  localStorage.setItem(key, JSON.stringify(next));
-  const cloudResult = await saveRegistryCloud(user, next, now);
-  window.dispatchEvent(new CustomEvent('bes-school-class-registry-updated', {
-    detail: { source: 'permanent-student-delete', className },
-  }));
-  return { changed: true, cloudOk: cloudResult.ok, message: cloudResult.message || '' };
+async function saveRegistryCloud(user, payload, now) {
+  if (!isSupabaseConfigured || !supabase || !payload) return { ok: true };
+  const role = safeText(user?.role).toLowerCase();
+  if (!['admin', 'department_head', 'ttcm'].includes(role)) return { ok: true };
+
+  const { error } = await supabase.from('school_class_registries').upsert({
+    owner_id: user.id,
+    owner_email: user.email || '',
+    payload,
+    updated_at: now,
+  }, { onConflict: 'owner_id' });
+  return error ? { ok: false, message: error.message || 'Không thể đồng bộ danh mục lớp.' } : { ok: true };
 }
 
 function updateToolbar(panel, workspace) {
@@ -229,7 +258,7 @@ function updateToolbar(panel, workspace) {
     remove.textContent = busy ? 'Đang xóa…' : `Xóa vĩnh viễn${selectedCount ? ` (${selectedCount})` : ''}`;
   }
   if (clear) clear.disabled = busy || !selectedCount;
-  if (status) status.textContent = busy ? 'Đang xóa dữ liệu và đồng bộ…' : '';
+  if (status) status.textContent = busy ? 'Đang xóa dữ liệu trên thiết bị…' : '';
 
   visibleDeletedRows(panel).forEach((row) => {
     const id = row.dataset.permanentStudentId;
@@ -240,45 +269,83 @@ function updateToolbar(panel, workspace) {
   toolbar.__besWorkspace = workspace;
 }
 
+function closeModal(modal, result) {
+  modal.__resolve?.(result);
+  modal.remove();
+}
+
 function confirmPermanentDeletion(students) {
+  const existing = document.getElementById('bes-permanent-delete-modal');
+  if (existing) existing.remove();
+  const expected = `XOA ${students.length}`;
+  const modal = document.createElement('div');
+  modal.id = 'bes-permanent-delete-modal';
   const preview = students.slice(0, 6).map((student) => student.fullName).join(', ');
   const remaining = Math.max(0, students.length - 6);
-  const confirmed = window.confirm(
-    `Xóa vĩnh viễn ${students.length} học sinh?\n\n`
-      + preview + (remaining ? ` và ${remaining} học sinh khác` : '') + '.\n\n'
-      + 'Hồ sơ, điểm, rèn luyện, điểm danh và dữ liệu liên quan sẽ bị loại khỏi hệ thống đang dùng. Thao tác này không thể khôi phục trong app.',
-  );
-  if (!confirmed) return false;
+  modal.innerHTML = `
+    <div class="bes-permanent-dialog" role="dialog" aria-modal="true" aria-labelledby="bes-permanent-title">
+      <h3 id="bes-permanent-title">Xóa vĩnh viễn ${students.length} học sinh?</h3>
+      <p>${preview}${remaining ? ` và ${remaining} học sinh khác` : ''}</p>
+      <p class="warning">Hồ sơ, điểm, rèn luyện, điểm danh và dữ liệu liên quan sẽ bị loại khỏi app.</p>
+      <label>Nhập <b>XÓA ${students.length}</b> để xác nhận<input type="text" autocomplete="off" spellcheck="false" data-confirm-input></label>
+      <small data-confirm-hint>Chưa nhập đúng cụm xác nhận.</small>
+      <div><button type="button" class="secondary" data-cancel>Hủy</button><button type="button" class="danger" data-confirm disabled>Xóa vĩnh viễn</button></div>
+    </div>`;
+  document.body.appendChild(modal);
 
-  const expected = `XOA ${students.length}`;
-  const phrase = window.prompt(`Nhập “XÓA ${students.length}” để xác nhận:`, '');
-  if (fold(phrase).toUpperCase() !== expected) {
-    window.alert(`Xác nhận không đúng. Hãy nhập XÓA ${students.length}. Chưa có dữ liệu nào bị xóa.`);
-    return false;
-  }
-  return true;
+  return new Promise((resolve) => {
+    modal.__resolve = resolve;
+    const input = modal.querySelector('[data-confirm-input]');
+    const confirm = modal.querySelector('[data-confirm]');
+    const hint = modal.querySelector('[data-confirm-hint]');
+    const validate = () => {
+      const valid = fold(input.value).toUpperCase() === expected;
+      confirm.disabled = !valid;
+      hint.textContent = valid ? 'Đã xác nhận. Có thể xóa.' : `Nhập đúng: XÓA ${students.length}`;
+      hint.classList.toggle('is-valid', valid);
+    };
+    input.addEventListener('input', validate);
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !confirm.disabled) closeModal(modal, true);
+      if (event.key === 'Escape') closeModal(modal, false);
+    });
+    modal.querySelector('[data-cancel]')?.addEventListener('click', () => closeModal(modal, false));
+    confirm.addEventListener('click', () => closeModal(modal, true));
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) closeModal(modal, false);
+    });
+    window.setTimeout(() => input.focus(), 20);
+  });
+}
+
+function showNotice(message, tone = 'success') {
+  document.getElementById('bes-permanent-delete-notice')?.remove();
+  const notice = document.createElement('div');
+  notice.id = 'bes-permanent-delete-notice';
+  notice.className = tone;
+  notice.textContent = message;
+  document.body.appendChild(notice);
+  window.setTimeout(() => notice.remove(), 6000);
 }
 
 async function permanentlyDelete(panel, requestedIds = null) {
   if (busy) return;
-
-  // Phải xác nhận trước bất kỳ await nào. Safari có thể chặn confirm/prompt
-  // nếu hộp thoại được gọi sau một tác vụ bất đồng bộ.
   const toolbar = panel.querySelector(`.${TOOLBAR_CLASS}`);
   const cachedWorkspace = toolbar?.__besWorkspace;
   if (!cachedWorkspace) {
-    window.alert('Chưa tải xong dữ liệu lớp. Vui lòng thử lại sau một giây.');
+    showNotice('Chưa tải xong dữ liệu lớp. Thử lại sau một giây.', 'error');
     return;
   }
+
   const requested = new Set(requestedIds || selectedIds);
   const cachedStudents = (cachedWorkspace.students || []).filter((student) => (
     requested.has(student.id) && isDeleted(student)
   ));
   if (!cachedStudents.length) {
-    window.alert('Không có học sinh đã xóa nào được chọn.');
+    showNotice('Không có học sinh đã xóa nào được chọn.', 'error');
     return;
   }
-  if (!confirmPermanentDeletion(cachedStudents)) return;
+  if (!(await confirmPermanentDeletion(cachedStudents))) return;
 
   busy = true;
   updateToolbar(panel, cachedWorkspace);
@@ -289,34 +356,54 @@ async function permanentlyDelete(panel, requestedIds = null) {
     ));
     if (!removedStudents.length) throw new Error('Danh sách đã thay đổi. Không còn học sinh phù hợp để xóa.');
 
-    const committed = purgeWorkingData(
-      workspace,
-      new Set(removedStudents.map((student) => student.id)),
-      user,
-    );
-    const saved = await saveHomeroomWorkspace(committed, user);
-    if (saved?.ok === false) throw new Error(saved.message || 'Không thể lưu dữ liệu sau khi xóa.');
+    const ids = new Set(removedStudents.map((student) => student.id));
+    const cleaned = buildCleanWorkspace(workspace, ids, user);
+    const registry = prepareRegistryRemoval(user, workspace, removedStudents);
 
-    const registryResult = await purgeSchoolRegistry(user, workspace, removedStudents);
-    selectedIds.clear();
-    if (!registryResult.cloudOk) {
-      window.alert(
-        `Đã xóa ${removedStudents.length} học sinh trên lớp đang mở, nhưng chưa đồng bộ được danh mục cloud.\n\n${registryResult.message || 'Hãy kiểm tra kết nối mạng rồi thử lại.'}`,
-      );
-      return;
+    persistTombstones(user, workspace, removedStudents);
+    if (registry.changed && registry.payload) {
+      localStorage.setItem(registry.key, JSON.stringify(registry.payload));
     }
 
-    window.alert(`Đã xóa vĩnh viễn ${removedStudents.length} học sinh.`);
-    window.location.reload();
+    saveLocalHomeroomWorkspace(cleaned, user);
+    const verified = loadLocalHomeroomWorkspace(user, cleaned.id);
+    const leftovers = (verified?.students || []).filter((student) => ids.has(student.id));
+    if (leftovers.length) throw new Error(`Không thể ghi dữ liệu mới trên thiết bị. Còn ${leftovers.length} hồ sơ chưa xóa.`);
+
+    visibleDeletedRows(panel).forEach((row) => {
+      if (ids.has(row.dataset.permanentStudentId)) row.remove();
+    });
+    selectedIds.clear();
+    toolbar.__besWorkspace = verified || cleaned;
+    updateToolbar(panel, verified || cleaned);
+    showNotice(`Đã xóa ${removedStudents.length} học sinh trên thiết bị. Đang đồng bộ cloud…`);
+
+    const workspaceCloud = await saveHomeroomWorkspace(verified || cleaned, user);
+    const registryCloud = registry.changed
+      ? await saveRegistryCloud(user, registry.payload, registry.now)
+      : { ok: true };
+
+    if (workspaceCloud?.ok === false || registryCloud.ok === false) {
+      showNotice(
+        `Đã xóa vĩnh viễn ${removedStudents.length} học sinh trên thiết bị. Cloud chưa đồng bộ hoàn tất; dữ liệu sẽ không tự xuất hiện lại trên máy này.`,
+        'warning',
+      );
+    } else {
+      showNotice(`Đã xóa vĩnh viễn ${removedStudents.length} học sinh.`);
+    }
+
+    window.setTimeout(() => window.location.reload(), 700);
   } catch (error) {
     console.error('[StudentPermanentDelete] Không thể xóa vĩnh viễn học sinh.', error);
-    window.alert(error?.message || 'Không thể xóa vĩnh viễn học sinh.');
+    showNotice(error?.message || 'Không thể xóa vĩnh viễn học sinh.', 'error');
   } finally {
     busy = false;
     try {
-      const { workspace } = await loadCurrentWorkspace();
-      updateToolbar(panel, workspace);
-    } catch { /* page may be reloading */ }
+      const user = await getCurrentUser();
+      const workspaceId = getCurrentHomeroomWorkspaceId(user);
+      const workspace = loadLocalHomeroomWorkspace(user, workspaceId);
+      if (workspace) updateToolbar(panel, workspace);
+    } catch { /* ignore */ }
   }
 }
 
@@ -401,12 +488,20 @@ function injectStyle() {
     .${PANEL_CLASS} .bes-student-row-checkbox{display:none!important}
     .${TOOLBAR_CLASS}{display:flex;align-items:center;gap:16px;margin:0 0 14px;padding:14px;border:1px solid rgba(217,48,37,.22);border-radius:16px;background:linear-gradient(135deg,#fce8e6,#fff)}
     .${TOOLBAR_CLASS}>label{display:flex;align-items:center;gap:9px;font-weight:800;cursor:pointer}
-    .${TOOLBAR_CLASS}>span{color:#5f6368}. ${TOOLBAR_CLASS}>span b{color:#b3261e}
+    .${TOOLBAR_CLASS}>span{color:#5f6368}.${TOOLBAR_CLASS}>span b{color:#b3261e}
     .${TOOLBAR_CLASS}>small{color:#b3261e;font-weight:700}
     .${TOOLBAR_CLASS}>div{display:flex;gap:8px;margin-left:auto}
     .${TOOLBAR_CLASS} button{min-height:40px;padding:0 16px;border-radius:999px;font-weight:800}
     .${TOOLBAR_CLASS} button.danger,[data-permanent-row-delete]{border:1px solid #d93025!important;background:#fce8e6!important;color:#b3261e!important}
     .${CHECKBOX_CLASS},.${TOOLBAR_CLASS} input{width:19px!important;height:19px!important;min-width:19px!important;margin:0!important;accent-color:#d93025;cursor:pointer}
+    #bes-permanent-delete-modal{position:fixed;inset:0;z-index:1000000;display:grid;place-items:center;padding:20px;background:rgba(32,33,36,.55);backdrop-filter:blur(4px)}
+    .bes-permanent-dialog{width:min(520px,100%);padding:24px;border-radius:22px;background:#fff;box-shadow:0 24px 80px rgba(0,0,0,.3);color:#202124}
+    .bes-permanent-dialog h3{margin:0 0 12px;font-size:22px}.bes-permanent-dialog p{margin:8px 0;line-height:1.5}.bes-permanent-dialog .warning{color:#b3261e;font-weight:700}
+    .bes-permanent-dialog label{display:grid;gap:8px;margin-top:18px;font-weight:700}.bes-permanent-dialog input{width:100%;min-height:48px;padding:0 14px;border:2px solid #dadce0;border-radius:12px;font-size:18px;text-transform:uppercase}
+    .bes-permanent-dialog input:focus{outline:none;border-color:#d93025;box-shadow:0 0 0 3px rgba(217,48,37,.12)}.bes-permanent-dialog small{display:block;margin-top:7px;color:#b3261e}.bes-permanent-dialog small.is-valid{color:#188038}
+    .bes-permanent-dialog>div{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.bes-permanent-dialog button{min-height:42px;padding:0 18px;border-radius:999px;font-weight:800}.bes-permanent-dialog button.danger{border:1px solid #d93025;background:#d93025;color:#fff}.bes-permanent-dialog button:disabled{opacity:.45;cursor:not-allowed}
+    #bes-permanent-delete-notice{position:fixed;right:22px;bottom:24px;z-index:1000001;max-width:min(520px,calc(100vw - 44px));padding:14px 18px;border-radius:14px;background:#188038;color:#fff;font-weight:800;box-shadow:0 12px 40px rgba(0,0,0,.24)}
+    #bes-permanent-delete-notice.warning{background:#b06000}#bes-permanent-delete-notice.error{background:#b3261e}
     @media(max-width:760px){.${TOOLBAR_CLASS}{align-items:stretch;flex-direction:column}.${TOOLBAR_CLASS}>div{width:100%;margin-left:0}.${TOOLBAR_CLASS}>div button{flex:1}}
   `;
   document.head.appendChild(style);
