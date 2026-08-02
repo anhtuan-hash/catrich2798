@@ -1,0 +1,49 @@
+.bes-student-name-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 4px 6px 4px 12px;
+  border: 1px solid rgba(26, 115, 232, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #3c4043;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.08);
+}
+
+.bes-student-name-sort > span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.bes-student-name-sort select {
+  min-width: 154px;
+  height: 34px;
+  padding: 0 30px 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: #e8f0fe;
+  color: #174ea6;
+  font: 800 13px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  cursor: pointer;
+  outline: none;
+}
+
+.bes-student-name-sort select:focus-visible {
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.22);
+}
+
+@media (max-width: 860px) {
+  .bes-student-name-sort {
+    width: 100%;
+    justify-content: space-between;
+    border-radius: 14px;
+  }
+
+  .bes-student-name-sort select {
+    flex: 1;
+    min-width: 0;
+  }
+}
