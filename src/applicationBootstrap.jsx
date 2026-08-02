@@ -62,6 +62,7 @@ function loadRouteModules() {
       import('./conductCurrentWeekExport.js'),
       import('./studentRosterCountFix.js'),
       import('./studentRosterFilterTabs.js'),
+      import('./studentNameSortRuntime.js'),
       import('./teacherClassFilterRuntime.js'),
     ]).catch((error) => {
       homeroomExtrasLoaded = false;
