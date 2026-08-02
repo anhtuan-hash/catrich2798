@@ -1,13 +1,37 @@
-/* Apple-refined interaction states: no square blue hover/focus frames. */
+/* Command K interaction cleanup: no blue frames, rings, or edge indicators. */
 .command-v21-layer {
   --cmd-hover-neutral: rgba(118, 118, 128, .075);
-  --cmd-active-neutral: rgba(10, 132, 255, .075);
-  --cmd-keyboard-ring: rgba(60, 60, 67, .22);
+  --cmd-active-neutral: rgba(118, 118, 128, .105);
+}
+
+/* Neutralize browser, global-app and component focus decorations. */
+.command-v21,
+.command-v21 * {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.command-v21 :is(input, button, [role="option"], [tabindex]),
+.command-v21 :is(input, button, [role="option"], [tabindex]):hover,
+.command-v21 :is(input, button, [role="option"], [tabindex]):focus,
+.command-v21 :is(input, button, [role="option"], [tabindex]):focus-visible,
+.command-v21 :is(input, button, [role="option"], [tabindex]):active {
+  outline: 0 !important;
+  outline-offset: 0 !important;
+  -webkit-focus-ring-color: transparent !important;
+}
+
+.command-v21 :is(input, button, [role="option"], [tabindex]):focus::before,
+.command-v21 :is(input, button, [role="option"], [tabindex]):focus::after,
+.command-v21 :is(input, button, [role="option"], [tabindex]):focus-visible::before,
+.command-v21 :is(input, button, [role="option"], [tabindex]):focus-visible::after {
+  content: none !important;
+  display: none !important;
 }
 
 .command-v21-header,
 .command-v21-header:hover,
 .command-v21-header:focus,
+.command-v21-header:focus-visible,
 .command-v21-header:focus-within {
   border-color: rgba(60, 60, 67, .13) !important;
   outline: 0 !important;
@@ -16,18 +40,13 @@
     0 1px 2px rgba(0, 0, 0, .03) !important;
 }
 
-.command-v21-header:focus-within {
-  border-color: rgba(60, 60, 67, .17) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .92),
-    0 8px 24px rgba(0, 0, 0, .055) !important;
-}
-
 .command-v21-header input,
 .command-v21-header input:hover,
 .command-v21-header input:focus,
-.command-v21-header input:focus-visible {
+.command-v21-header input:focus-visible,
+.command-v21-header input:active {
   border: 0 !important;
+  border-color: transparent !important;
   outline: 0 !important;
   box-shadow: none !important;
   -webkit-appearance: none;
@@ -37,72 +56,68 @@
 .command-v21-result-shell,
 .command-v21-result-shell:hover,
 .command-v21-result-shell:focus,
-.command-v21-result-shell:focus-within {
+.command-v21-result-shell:focus-visible,
+.command-v21-result-shell:focus-within,
+.command-v21-result-shell:active {
   border-color: transparent !important;
   outline: 0 !important;
+  box-shadow: none !important;
 }
 
 .command-v21-result-shell:hover {
   background: var(--cmd-hover-neutral) !important;
-  box-shadow: none !important;
 }
 
 .command-v21-result-shell.active,
 .command-v21-result-shell.active:hover,
-.command-v21-result-shell.active:focus-within {
+.command-v21-result-shell.active:focus,
+.command-v21-result-shell.active:focus-visible,
+.command-v21-result-shell.active:focus-within,
+.command-v21-result-shell.active:active {
   border-color: transparent !important;
-  background: linear-gradient(90deg, rgba(10, 132, 255, .095), rgba(10, 132, 255, .045)) !important;
-  box-shadow:
-    inset 2px 0 0 rgba(10, 132, 255, .72),
-    inset 0 1px 0 rgba(255, 255, 255, .52) !important;
+  background: var(--cmd-active-neutral) !important;
+  box-shadow: none !important;
 }
 
 .command-v21-result-shell.is-inferred,
 .command-v21-result-shell.is-inferred:hover,
+.command-v21-result-shell.is-inferred:focus,
+.command-v21-result-shell.is-inferred:focus-visible,
 .command-v21-result-shell.is-inferred:focus-within {
   border-color: transparent !important;
-  background: rgba(52, 199, 89, .075) !important;
-  box-shadow: inset 2px 0 0 rgba(52, 199, 89, .72) !important;
+  background: rgba(52, 199, 89, .07) !important;
+  box-shadow: none !important;
 }
 
 .command-v21-result-main,
-.command-v21-modes button,
-.command-v21-inline-actions button,
-.command-v21-back {
-  outline: 0 !important;
-  -webkit-tap-highlight-color: transparent;
-}
-
+.command-v21-result-main:hover,
 .command-v21-result-main:focus,
+.command-v21-result-main:focus-visible,
+.command-v21-result-main:active,
+.command-v21-modes button,
+.command-v21-modes button:hover,
 .command-v21-modes button:focus,
+.command-v21-modes button:focus-visible,
+.command-v21-modes button:active,
+.command-v21-inline-actions button,
+.command-v21-inline-actions button:hover,
 .command-v21-inline-actions button:focus,
+.command-v21-inline-actions button:focus-visible,
+.command-v21-inline-actions button:active,
+.command-v21-back,
+.command-v21-back:hover,
 .command-v21-back:focus,
-.command-v21-result-main:focus:not(:focus-visible),
-.command-v21-modes button:focus:not(:focus-visible),
-.command-v21-inline-actions button:focus:not(:focus-visible),
-.command-v21-back:focus:not(:focus-visible) {
+.command-v21-back:focus-visible,
+.command-v21-back:active {
   outline: 0 !important;
   box-shadow: none !important;
 }
 
-.command-v21-result-main:focus-visible {
-  outline: 0 !important;
-  border-radius: 12px;
-  box-shadow: inset 0 0 0 1px var(--cmd-keyboard-ring) !important;
-}
-
-.command-v21-modes button:focus-visible,
-.command-v21-inline-actions button:focus-visible,
-.command-v21-back:focus-visible {
-  outline: 0 !important;
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, .72),
-    0 0 0 3px var(--cmd-keyboard-ring) !important;
-}
-
 .command-v21-inline-actions button,
 .command-v21-inline-actions button:hover,
-.command-v21-inline-actions button.active {
+.command-v21-inline-actions button.active,
+.command-v21-inline-actions button:focus,
+.command-v21-inline-actions button:focus-visible {
   border-color: rgba(60, 60, 67, .1) !important;
 }
 
@@ -110,41 +125,41 @@
 .command-v21-inline-actions button.active {
   background: rgba(118, 118, 128, .1) !important;
   color: #36383d !important;
-  box-shadow: none !important;
 }
 
-.command-v21-modes button:hover {
+.command-v21-modes button:hover,
+.command-v21-modes button:focus,
+.command-v21-modes button:focus-visible {
   border-color: transparent !important;
+}
+
+.command-v21-modes button.active,
+.command-v21-modes button.active:hover,
+.command-v21-modes button.active:focus,
+.command-v21-modes button.active:focus-visible {
+  border-color: rgba(0, 0, 0, .04) !important;
   box-shadow: none !important;
 }
 
-.command-v21-modes button.active:hover {
-  border-color: rgba(0, 0, 0, .04) !important;
-  box-shadow:
-    0 5px 14px rgba(0, 0, 0, .14),
-    inset 0 1px 0 rgba(255, 255, 255, .16) !important;
+.command-v21-enter,
+.command-v21-result-state .command-v21-enter {
+  color: #6e6e73 !important;
 }
 
 html[data-theme="dark"] .command-v21-layer {
   --cmd-hover-neutral: rgba(255, 255, 255, .055);
-  --cmd-keyboard-ring: rgba(235, 235, 245, .28);
+  --cmd-active-neutral: rgba(255, 255, 255, .09);
 }
 
 html[data-theme="dark"] .command-v21-header,
 html[data-theme="dark"] .command-v21-header:hover,
 html[data-theme="dark"] .command-v21-header:focus,
+html[data-theme="dark"] .command-v21-header:focus-visible,
 html[data-theme="dark"] .command-v21-header:focus-within {
   border-color: rgba(235, 235, 245, .11) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .055),
     0 8px 24px rgba(0, 0, 0, .12) !important;
-}
-
-html[data-theme="dark"] .command-v21-result-shell.active,
-html[data-theme="dark"] .command-v21-result-shell.active:hover,
-html[data-theme="dark"] .command-v21-result-shell.active:focus-within {
-  background: linear-gradient(90deg, rgba(10, 132, 255, .18), rgba(10, 132, 255, .075)) !important;
-  box-shadow: inset 2px 0 0 rgba(100, 181, 255, .82) !important;
 }
 
 html[data-theme="dark"] .command-v21-inline-actions button:hover,
@@ -162,13 +177,16 @@ html[data-theme="dark"] .command-v21-inline-actions button.active {
   }
 }
 
+/* Keep high-contrast mode readable without reintroducing a blue frame. */
 @media (forced-colors: active) {
-  .command-v21-result-main:focus-visible,
-  .command-v21-modes button:focus-visible,
-  .command-v21-inline-actions button:focus-visible,
-  .command-v21-back:focus-visible {
-    outline: 2px solid Highlight !important;
-    outline-offset: 2px !important;
+  .command-v21 :is(input, button, [role="option"], [tabindex]):focus,
+  .command-v21 :is(input, button, [role="option"], [tabindex]):focus-visible {
+    outline: 0 !important;
     box-shadow: none !important;
+  }
+
+  .command-v21-result-shell.active {
+    background: SelectedItem !important;
+    color: SelectedItemText !important;
   }
 }
