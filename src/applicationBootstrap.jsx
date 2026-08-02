@@ -195,8 +195,9 @@ async function startApplication() {
 
   await mainModulePromise;
   installRouteModuleLoader();
-  const assignedSyncPromise = startAssignedClassSync();
-  startClass126Recovery(assignedSyncPromise);
+  startAssignedClassSync();
+  // Không tự động chạy cứu hộ lớp 12.6 sau mỗi lần mở app nữa.
+  // Việc tự khôi phục có thể đưa trở lại hồ sơ mà người dùng vừa xóa vĩnh viễn.
   loadExternalAppsAfterMainShell();
 }
 
