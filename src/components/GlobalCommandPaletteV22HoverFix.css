@@ -1,0 +1,174 @@
+/* Apple-refined interaction states: no square blue hover/focus frames. */
+.command-v21-layer {
+  --cmd-hover-neutral: rgba(118, 118, 128, .075);
+  --cmd-active-neutral: rgba(10, 132, 255, .075);
+  --cmd-keyboard-ring: rgba(60, 60, 67, .22);
+}
+
+.command-v21-header,
+.command-v21-header:hover,
+.command-v21-header:focus,
+.command-v21-header:focus-within {
+  border-color: rgba(60, 60, 67, .13) !important;
+  outline: 0 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .9),
+    0 1px 2px rgba(0, 0, 0, .03) !important;
+}
+
+.command-v21-header:focus-within {
+  border-color: rgba(60, 60, 67, .17) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .92),
+    0 8px 24px rgba(0, 0, 0, .055) !important;
+}
+
+.command-v21-header input,
+.command-v21-header input:hover,
+.command-v21-header input:focus,
+.command-v21-header input:focus-visible {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.command-v21-result-shell,
+.command-v21-result-shell:hover,
+.command-v21-result-shell:focus,
+.command-v21-result-shell:focus-within {
+  border-color: transparent !important;
+  outline: 0 !important;
+}
+
+.command-v21-result-shell:hover {
+  background: var(--cmd-hover-neutral) !important;
+  box-shadow: none !important;
+}
+
+.command-v21-result-shell.active,
+.command-v21-result-shell.active:hover,
+.command-v21-result-shell.active:focus-within {
+  border-color: transparent !important;
+  background: linear-gradient(90deg, rgba(10, 132, 255, .095), rgba(10, 132, 255, .045)) !important;
+  box-shadow:
+    inset 2px 0 0 rgba(10, 132, 255, .72),
+    inset 0 1px 0 rgba(255, 255, 255, .52) !important;
+}
+
+.command-v21-result-shell.is-inferred,
+.command-v21-result-shell.is-inferred:hover,
+.command-v21-result-shell.is-inferred:focus-within {
+  border-color: transparent !important;
+  background: rgba(52, 199, 89, .075) !important;
+  box-shadow: inset 2px 0 0 rgba(52, 199, 89, .72) !important;
+}
+
+.command-v21-result-main,
+.command-v21-modes button,
+.command-v21-inline-actions button,
+.command-v21-back {
+  outline: 0 !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.command-v21-result-main:focus,
+.command-v21-modes button:focus,
+.command-v21-inline-actions button:focus,
+.command-v21-back:focus,
+.command-v21-result-main:focus:not(:focus-visible),
+.command-v21-modes button:focus:not(:focus-visible),
+.command-v21-inline-actions button:focus:not(:focus-visible),
+.command-v21-back:focus:not(:focus-visible) {
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.command-v21-result-main:focus-visible {
+  outline: 0 !important;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--cmd-keyboard-ring) !important;
+}
+
+.command-v21-modes button:focus-visible,
+.command-v21-inline-actions button:focus-visible,
+.command-v21-back:focus-visible {
+  outline: 0 !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, .72),
+    0 0 0 3px var(--cmd-keyboard-ring) !important;
+}
+
+.command-v21-inline-actions button,
+.command-v21-inline-actions button:hover,
+.command-v21-inline-actions button.active {
+  border-color: rgba(60, 60, 67, .1) !important;
+}
+
+.command-v21-inline-actions button:hover,
+.command-v21-inline-actions button.active {
+  background: rgba(118, 118, 128, .1) !important;
+  color: #36383d !important;
+  box-shadow: none !important;
+}
+
+.command-v21-modes button:hover {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.command-v21-modes button.active:hover {
+  border-color: rgba(0, 0, 0, .04) !important;
+  box-shadow:
+    0 5px 14px rgba(0, 0, 0, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .16) !important;
+}
+
+html[data-theme="dark"] .command-v21-layer {
+  --cmd-hover-neutral: rgba(255, 255, 255, .055);
+  --cmd-keyboard-ring: rgba(235, 235, 245, .28);
+}
+
+html[data-theme="dark"] .command-v21-header,
+html[data-theme="dark"] .command-v21-header:hover,
+html[data-theme="dark"] .command-v21-header:focus,
+html[data-theme="dark"] .command-v21-header:focus-within {
+  border-color: rgba(235, 235, 245, .11) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .055),
+    0 8px 24px rgba(0, 0, 0, .12) !important;
+}
+
+html[data-theme="dark"] .command-v21-result-shell.active,
+html[data-theme="dark"] .command-v21-result-shell.active:hover,
+html[data-theme="dark"] .command-v21-result-shell.active:focus-within {
+  background: linear-gradient(90deg, rgba(10, 132, 255, .18), rgba(10, 132, 255, .075)) !important;
+  box-shadow: inset 2px 0 0 rgba(100, 181, 255, .82) !important;
+}
+
+html[data-theme="dark"] .command-v21-inline-actions button:hover,
+html[data-theme="dark"] .command-v21-inline-actions button.active {
+  background: rgba(255, 255, 255, .09) !important;
+  color: #f2f2f7 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .command-v21-result-shell,
+  .command-v21-header,
+  .command-v21-result-main,
+  .command-v21-inline-actions button {
+    transition: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .command-v21-result-main:focus-visible,
+  .command-v21-modes button:focus-visible,
+  .command-v21-inline-actions button:focus-visible,
+  .command-v21-back:focus-visible {
+    outline: 2px solid Highlight !important;
+    outline-offset: 2px !important;
+    box-shadow: none !important;
+  }
+}
