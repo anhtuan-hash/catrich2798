@@ -67,6 +67,7 @@ export default function GlobalWorkHubViewportModalBridge({ route }) {
         activeBackdrop.classList.remove(ANCHORED_CLASS);
         activeBackdrop.style.removeProperty('--work-hub-modal-left');
         activeBackdrop.style.removeProperty('--work-hub-modal-top');
+        activeBackdrop.style.removeProperty('--work-hub-modal-max-height');
       }
       if (activeModal instanceof HTMLElement) activeModal.classList.remove(ANCHORED_CLASS);
     };
@@ -82,7 +83,6 @@ export default function GlobalWorkHubViewportModalBridge({ route }) {
         const margin = viewportWidth <= 680 ? 10 : 16;
         const modalRect = activeModal.getBoundingClientRect();
         const modalWidth = Math.min(modalRect.width || activeModal.offsetWidth || 620, viewportWidth - (margin * 2));
-        const modalHeight = Math.min(modalRect.height || activeModal.offsetHeight || 560, viewportHeight - (margin * 2));
         const anchor = lastAnchorRect || {
           top: viewportHeight / 2,
           right: viewportWidth / 2,
@@ -91,14 +91,17 @@ export default function GlobalWorkHubViewportModalBridge({ route }) {
           width: 0,
           height: 0,
         };
-        const anchorCenterY = anchor.top + (anchor.height / 2);
+
+        const minimumUsefulHeight = Math.min(420, viewportHeight - (margin * 2));
         const preferredLeft = anchor.right - modalWidth;
-        const preferredTop = anchorCenterY - (modalHeight / 2);
+        const preferredTop = anchor.top - 140;
         const left = clamp(preferredLeft, margin, viewportWidth - modalWidth - margin);
-        const top = clamp(preferredTop, margin, viewportHeight - modalHeight - margin);
+        const top = clamp(preferredTop, margin, viewportHeight - minimumUsefulHeight - margin);
+        const maxHeight = Math.min(720, viewportHeight - top - margin);
 
         activeBackdrop.style.setProperty('--work-hub-modal-left', `${Math.round(left)}px`);
         activeBackdrop.style.setProperty('--work-hub-modal-top', `${Math.round(top)}px`);
+        activeBackdrop.style.setProperty('--work-hub-modal-max-height', `${Math.round(maxHeight)}px`);
         activeBackdrop.classList.add(ANCHORED_CLASS);
         activeModal.classList.add(ANCHORED_CLASS);
       });
