@@ -51,6 +51,20 @@ function homeroomCommand(id, title, subtitle, icon, tab, keywords, extra = {}) {
   };
 }
 
+function selectClassCommand(id, title, subtitle, icon, tab, keywords) {
+  return {
+    id,
+    kind: 'command',
+    title,
+    subtitle,
+    icon,
+    color: '#0b57d0',
+    keywords,
+    priority: 32,
+    commandAction: { type: 'select-class', tab },
+  };
+}
+
 registerCommandProvider('system', ({ language = 'vi' }) => {
   const vi = language === 'vi';
   return [
@@ -94,6 +108,32 @@ registerCommandProvider('system', ({ language = 'vi' }) => {
       '#/apps',
       'apps applications ung dung danh muc',
     ),
+    {
+      id: 'command:clear-command-history',
+      kind: 'command',
+      title: vi ? 'Xóa lịch sử Command K' : 'Clear Command K history',
+      subtitle: vi ? 'Chỉ xóa lịch sử cục bộ, không xóa dữ liệu lớp' : 'Clears local history only, never class data',
+      icon: '↺',
+      color: '#a142f4',
+      keywords: 'xoa lich su clear command history reset recent',
+      priority: 12,
+      commandAction: { type: 'local.clear-history' },
+      confirm: {
+        title: vi ? 'Xóa lịch sử Command K?' : 'Clear Command K history?',
+        message: vi ? 'Thao tác chỉ ảnh hưởng lịch sử tìm kiếm trên thiết bị này và có thể hoàn tác ngay.' : 'This only affects local command history and can be undone immediately.',
+        confirmLabel: vi ? 'Xóa lịch sử' : 'Clear history',
+      },
+    },
+  ];
+});
+
+registerCommandProvider('homeroom-global', ({ language = 'vi' }) => {
+  const vi = language === 'vi';
+  return [
+    selectClassCommand('command:select-class-attendance', vi ? 'Điểm danh một lớp…' : 'Take attendance for a class…', vi ? 'Chọn lớp ở bước tiếp theo' : 'Choose a class in the next step', '✓', 'attendance', 'diem danh mot lop attendance class'),
+    selectClassCommand('command:select-class-learning', vi ? 'Mở bảng điểm một lớp…' : 'Open a class gradebook…', vi ? 'Chọn lớp ở bước tiếp theo' : 'Choose a class in the next step', 'Σ', 'learning', 'bang diem mot lop gradebook class'),
+    selectClassCommand('command:select-class-students', vi ? 'Mở danh sách học sinh một lớp…' : 'Open a class roster…', vi ? 'Chọn lớp ở bước tiếp theo' : 'Choose a class in the next step', '♙', 'students', 'hoc sinh danh sach lop roster students'),
+    selectClassCommand('command:select-class-conduct', vi ? 'Mở rèn luyện một lớp…' : 'Open class conduct records…', vi ? 'Chọn lớp ở bước tiếp theo' : 'Choose a class in the next step', '100', 'conduct', 'ren luyen hanh kiem conduct class'),
   ];
 });
 
