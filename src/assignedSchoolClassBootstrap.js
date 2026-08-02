@@ -21,6 +21,8 @@ const RETRY_DELAY_MS = 1600;
 const syncPromises = new Map();
 let installed = false;
 let retryTimer = 0;
+let retryShouldPreferHomeroom = false;
+let previousHomeroomRoute = false;
 
 function text(value, fallback = '') {
   const normalized = String(value ?? '').trim();
@@ -29,6 +31,10 @@ function text(value, fallback = '') {
 
 function userKey(user) {
   return text(user?.id || user?.authId || user?.email, 'guest').toLowerCase();
+}
+
+function isHomeroomRoute() {
+  return /homeroom|chu-nhiem|gvcn/i.test(window.location.hash || '');
 }
 
 function deterministicWorkspaceId(className, schoolYear) {
@@ -149,10 +155,11 @@ async function demoteOtherHomeroomWorkspace(user, catalog, selectedId) {
   }
 }
 
-async function syncAssignedSchoolClassWorkspacesInternal(user) {
+async function syncAssignedSchoolClassWorkspacesInternal(user, options = {}) {
+  const preferHomeroom = options.preferHomeroom === true;
   const assignmentResult = await listAssignedSchoolClasses(user);
   if (!assignmentResult.ok || !assignmentResult.items.length) {
-    return { ...assignmentResult, changed: 0, preferredWorkspaceId: '' };
+    return { ...assignmentResult, changed: 0, preferredWorkspaceId: '', homeroomWorkspaceId: '' };
   }
 
   const catalogResult = await listHomeroomWorkspaces(user);
@@ -164,6 +171,7 @@ async function syncAssignedSchoolClassWorkspacesInternal(user) {
   let changed = 0;
   const synced = [];
   let preferredWorkspaceId = '';
+  let homeroomWorkspaceId = '';
 
   for (const item of sorted) {
     const existing = await loadExistingWorkspace(user, catalog, item.className);
@@ -181,7 +189,10 @@ async function syncAssignedSchoolClassWorkspacesInternal(user) {
       && existing.workspace?.status !== 'archived'
     ) {
       synced.push(workspaceId);
-      if (item.assignmentType === 'homeroom') preferredWorkspaceId = workspaceId;
+      if (item.assignmentType === 'homeroom') {
+        homeroomWorkspaceId = workspaceId;
+        preferredWorkspaceId = workspaceId;
+      }
       continue;
     }
 
@@ -228,6 +239,7 @@ async function syncAssignedSchoolClassWorkspacesInternal(user) {
 
     if (item.assignmentType === 'homeroom') {
       await demoteOtherHomeroomWorkspace(user, catalog, workspaceId);
+      homeroomWorkspaceId = workspaceId;
       preferredWorkspaceId = workspaceId;
     }
     const saved = await saveHomeroomWorkspace(next, user);
@@ -237,50 +249,82 @@ async function syncAssignedSchoolClassWorkspacesInternal(user) {
 
   if (!preferredWorkspaceId) preferredWorkspaceId = synced[0] || '';
   const currentId = getCurrentHomeroomWorkspaceId(user);
-  const currentExists = catalog.some((item) => item.id === currentId && item.status !== 'archived');
-  if ((!currentExists || currentId === 'default') && preferredWorkspaceId) {
-    setCurrentHomeroomWorkspaceId(user, preferredWorkspaceId);
+  const currentExists = catalog.some((item) => item.id === currentId && item.status !== 'archived') || synced.includes(currentId);
+  const shouldOpenHomeroom = Boolean(preferHomeroom && homeroomWorkspaceId && currentId !== homeroomWorkspaceId);
+  let selectedWorkspaceId = currentId;
+
+  if (shouldOpenHomeroom) {
+    selectedWorkspaceId = setCurrentHomeroomWorkspaceId(user, homeroomWorkspaceId);
+  } else if ((!currentExists || currentId === 'default') && preferredWorkspaceId) {
+    selectedWorkspaceId = setCurrentHomeroomWorkspaceId(user, preferredWorkspaceId);
   }
 
-  if (changed && typeof window !== 'undefined') {
+  if ((changed || selectedWorkspaceId !== currentId) && typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('bes-school-class-assignment-synced', {
-      detail: { changed, preferredWorkspaceId, classIds: synced },
+      detail: {
+        changed,
+        preferredWorkspaceId,
+        homeroomWorkspaceId,
+        selectedWorkspaceId,
+        openDefaultHomeroom: shouldOpenHomeroom,
+        classIds: synced,
+      },
     }));
     window.dispatchEvent(new CustomEvent('bes-homeroom-store-updated'));
   }
-  return { ok: true, changed, preferredWorkspaceId, items: assignmentResult.items };
+
+  if (shouldOpenHomeroom && isHomeroomRoute()) {
+    window.setTimeout(() => window.location.reload(), 0);
+  }
+
+  return {
+    ok: true,
+    changed,
+    preferredWorkspaceId,
+    homeroomWorkspaceId,
+    selectedWorkspaceId,
+    items: assignmentResult.items,
+  };
 }
 
-export function syncAssignedSchoolClassWorkspaces(user) {
-  const key = userKey(user);
+export function syncAssignedSchoolClassWorkspaces(user, options = {}) {
+  const key = `${userKey(user)}:${options.preferHomeroom === true ? 'prefer-homeroom' : 'sync-only'}`;
   if (syncPromises.has(key)) return syncPromises.get(key);
-  const task = syncAssignedSchoolClassWorkspacesInternal(user)
+  const task = syncAssignedSchoolClassWorkspacesInternal(user, options)
     .catch((error) => ({ ok: false, changed: 0, items: [], message: error?.message || String(error) }))
     .finally(() => syncPromises.delete(key));
   syncPromises.set(key, task);
   return task;
 }
 
-export async function prepareAssignedSchoolClasses() {
+export async function prepareAssignedSchoolClasses(options = {}) {
   const user = await getCurrentUser();
   if (!user?.id || user.approved === false) return { ok: true, changed: 0, items: [] };
-  return syncAssignedSchoolClassWorkspaces(user);
+  const preferHomeroom = options.preferHomeroom ?? isHomeroomRoute();
+  return syncAssignedSchoolClassWorkspaces(user, { ...options, preferHomeroom });
 }
 
-function scheduleRetry(delay = RETRY_DELAY_MS) {
+function scheduleRetry(delay = RETRY_DELAY_MS, preferHomeroom = false) {
+  retryShouldPreferHomeroom = retryShouldPreferHomeroom || preferHomeroom;
   window.clearTimeout(retryTimer);
   retryTimer = window.setTimeout(() => {
-    prepareAssignedSchoolClasses().catch(() => {});
+    const shouldPrefer = retryShouldPreferHomeroom;
+    retryShouldPreferHomeroom = false;
+    prepareAssignedSchoolClasses({ preferHomeroom: shouldPrefer }).catch(() => {});
   }, delay);
 }
 
 export function installAssignedSchoolClassSync() {
   if (installed || typeof window === 'undefined') return;
   installed = true;
-  window.addEventListener(AUTH_EVENT, () => scheduleRetry(250));
+  previousHomeroomRoute = isHomeroomRoute();
+
+  window.addEventListener(AUTH_EVENT, () => scheduleRetry(250, isHomeroomRoute()));
   window.addEventListener('hashchange', () => {
-    if (/homeroom|chu-nhiem|gvcn/i.test(window.location.hash)) scheduleRetry(120);
+    const currentHomeroomRoute = isHomeroomRoute();
+    const enteringHomeroomApp = currentHomeroomRoute && !previousHomeroomRoute;
+    previousHomeroomRoute = currentHomeroomRoute;
+    if (currentHomeroomRoute) scheduleRetry(120, enteringHomeroomApp);
   });
-  window.addEventListener('bes-school-class-registry-updated', () => scheduleRetry(120));
-  scheduleRetry();
+  window.addEventListener('bes-school-class-registry-updated', () => scheduleRetry(120, false));
 }
