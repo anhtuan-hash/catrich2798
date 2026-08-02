@@ -11,11 +11,16 @@ assert.match(syncSource, /item\.students\.length\s*\?\s*reconcileWorkspaceRoster
 assert.match(syncSource, /assignmentType === 'homeroom'/);
 assert.match(syncSource, /HOMEROOM_CLASS_TYPE/);
 assert.match(syncSource, /SUBJECT_CLASS_TYPE/);
+assert.match(syncSource, /homeroomWorkspaceId/);
+assert.match(syncSource, /preferHomeroom/);
+assert.match(syncSource, /openDefaultHomeroom/);
+assert.match(syncSource, /setCurrentHomeroomWorkspaceId\(user, homeroomWorkspaceId\)/);
+assert.match(syncSource, /enteringHomeroomApp/);
 assert.match(syncSource, /bes-school-class-assignment-synced/);
 
 const prepareIndex = bootstrapSource.indexOf('prepareAssignedSchoolClasses');
 const mainIndex = bootstrapSource.indexOf("import('./main.jsx')");
-assert.ok(prepareIndex > 0 && mainIndex > prepareIndex, 'Assigned classes must be prepared before React mounts.');
+assert.ok(prepareIndex > 0 && mainIndex > prepareIndex, 'Assigned class bootstrap must be registered before the React shell import declaration.');
 
 assert.match(sqlSource, /security definer/i);
 assert.match(sqlSource, /p\.approved = true/);
