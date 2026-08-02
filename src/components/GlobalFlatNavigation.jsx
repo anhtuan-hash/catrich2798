@@ -76,6 +76,8 @@ import './GlobalScrollPerformance.css';
 // Final geometry, followed only by the overlay stacking contract.
 import './GlobalNavigationPinnedLayout.css';
 import './GlobalNavigationOverlayLayer.css';
+// The Work Hub modal visibility contract must win over every global overlay rule.
+import './GlobalWorkHubViewportModalFinal.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));

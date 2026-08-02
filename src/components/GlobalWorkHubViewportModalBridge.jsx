@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 const BACKDROP_SELECTOR = '.v1093-drawer-backdrop';
 const MODAL_SELECTOR = '.work-delivery-drawer';
 const CLOSE_SELECTOR = '.v1093-drawer-close';
+const OPEN_BUTTON_SELECTOR = '.work-task-card-actions button';
+const CARD_SELECTOR = '.v1093-task-card';
 const OPEN_CLASS = 'work-hub-viewport-modal-open';
 
 function focusableElements(modal) {
@@ -21,6 +23,15 @@ function focusableElements(modal) {
   ));
 }
 
+function findWorkHubModal() {
+  const backdrops = [...document.querySelectorAll(BACKDROP_SELECTOR)];
+  for (const backdrop of backdrops) {
+    const modal = backdrop.querySelector(MODAL_SELECTOR);
+    if (modal instanceof HTMLElement) return { backdrop, modal };
+  }
+  return { backdrop: null, modal: null };
+}
+
 export default function GlobalWorkHubViewportModalBridge({ route }) {
   useEffect(() => {
     if (route !== 'work-hub' || typeof document === 'undefined') return undefined;
@@ -32,6 +43,24 @@ export default function GlobalWorkHubViewportModalBridge({ route }) {
     const closeModal = () => {
       const closeButton = activeModal?.querySelector(CLOSE_SELECTOR);
       if (closeButton instanceof HTMLElement) closeButton.click();
+    };
+
+    const handleOpenClick = (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const button = target?.closest(OPEN_BUTTON_SELECTOR);
+      if (!(button instanceof HTMLButtonElement)) return;
+      if (button.classList.contains('delete')) return;
+      if (!button.textContent?.trim().toLowerCase().includes('mở chi tiết')) return;
+      const card = button.closest(CARD_SELECTOR);
+      if (!(card instanceof HTMLElement)) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      card.dispatchEvent(new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      }));
     };
 
     const handleKeyDown = (event) => {
@@ -60,10 +89,9 @@ export default function GlobalWorkHubViewportModalBridge({ route }) {
     };
 
     const syncModal = () => {
-      const backdrop = document.querySelector(BACKDROP_SELECTOR);
-      const modal = backdrop?.querySelector(MODAL_SELECTOR);
+      const { backdrop, modal } = findWorkHubModal();
 
-      if (modal instanceof HTMLElement) {
+      if (modal instanceof HTMLElement && backdrop instanceof HTMLElement) {
         if (activeModal !== modal) {
           previouslyFocused = document.activeElement instanceof HTMLElement
             ? document.activeElement
@@ -98,6 +126,7 @@ export default function GlobalWorkHubViewportModalBridge({ route }) {
       }
     };
 
+    document.addEventListener('click', handleOpenClick, true);
     document.addEventListener('keydown', handleKeyDown, true);
     const observer = new MutationObserver(syncModal);
     observer.observe(document.body, { childList: true, subtree: true });
@@ -105,6 +134,7 @@ export default function GlobalWorkHubViewportModalBridge({ route }) {
 
     return () => {
       observer.disconnect();
+      document.removeEventListener('click', handleOpenClick, true);
       document.removeEventListener('keydown', handleKeyDown, true);
       document.documentElement.classList.remove(OPEN_CLASS);
       document.body.classList.remove(OPEN_CLASS);

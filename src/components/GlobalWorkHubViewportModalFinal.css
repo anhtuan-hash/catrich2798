@@ -1,0 +1,61 @@
+/* Final Work Hub detail-modal contract. This file must load after global overlay CSS. */
+.v1093-work-hub>.v1093-drawer-backdrop,
+.v1093-drawer-backdrop.work-hub-viewport-modal-backdrop{
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483000!important;
+  display:grid!important;
+  place-items:center!important;
+  width:100vw!important;
+  height:100dvh!important;
+  margin:0!important;
+  padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left))!important;
+  overflow:hidden!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  transform:none!important;
+  background:rgba(32,33,36,.58)!important;
+  -webkit-backdrop-filter:blur(5px)!important;
+  backdrop-filter:blur(5px)!important;
+}
+
+.v1093-work-hub>.v1093-drawer-backdrop>.v1093-drawer.work-delivery-drawer,
+.v1093-drawer-backdrop.work-hub-viewport-modal-backdrop>.v1093-drawer.work-delivery-drawer{
+  position:relative!important;
+  inset:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  display:block!important;
+  width:min(780px,calc(100vw - 36px))!important;
+  min-width:0!important;
+  max-width:780px!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:min(86dvh,900px)!important;
+  margin:0!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  transform:none!important;
+  translate:none!important;
+  border-radius:28px!important;
+  background:#fff!important;
+  box-shadow:0 24px 80px rgba(32,33,36,.28),0 4px 18px rgba(32,33,36,.18)!important;
+}
+
+@media (max-width:720px){
+  .v1093-work-hub>.v1093-drawer-backdrop,
+  .v1093-drawer-backdrop.work-hub-viewport-modal-backdrop{
+    padding:10px!important;
+  }
+
+  .v1093-work-hub>.v1093-drawer-backdrop>.v1093-drawer.work-delivery-drawer,
+  .v1093-drawer-backdrop.work-hub-viewport-modal-backdrop>.v1093-drawer.work-delivery-drawer{
+    width:calc(100vw - 20px)!important;
+    max-width:none!important;
+    max-height:calc(100dvh - 20px)!important;
+  }
+}
