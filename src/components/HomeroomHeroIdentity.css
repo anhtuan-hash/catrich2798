@@ -1,0 +1,330 @@
+/* Identity-first hero: class and teacher are the first things users see. */
+.hr-page .hr-hero.bes-identity-hero {
+  min-height: 244px !important;
+  grid-template-columns: minmax(0, 1.25fr) minmax(230px, .56fr) minmax(290px, .66fr) !important;
+  gap: 18px !important;
+  padding: 22px !important;
+  overflow: hidden !important;
+  border: 1px solid #d9e5f7 !important;
+  background:
+    radial-gradient(circle at 55% -28%, rgba(66, 133, 244, .16), transparent 38%),
+    linear-gradient(135deg, #ffffff 0%, #f7faff 55%, #eef6ff 100%) !important;
+}
+
+.hr-page .hr-hero.bes-identity-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto auto -155px -85px;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  background: rgba(52, 168, 83, .055);
+  pointer-events: none;
+}
+
+.hr-page .bes-identity-hero .hr-hero-copy {
+  justify-content: center !important;
+  padding: 12px 18px 12px 22px !important;
+}
+
+.hr-page .bes-identity-hero .hr-hero-copy > p,
+.hr-page .bes-identity-hero .hr-hero-copy > h1,
+.hr-page .bes-identity-hero .hr-hero-copy > span,
+.hr-page .bes-identity-hero .hr-class-type-badge.hero {
+  display: none !important;
+}
+
+.hr-page .bes-hero-class-identity {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.hr-page .bes-hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 28px;
+  margin-bottom: 16px;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: #e8f0fe;
+  color: #174ea6;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .075em;
+}
+
+.hr-page .bes-hero-kicker > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34a853;
+  box-shadow: 14px 0 0 #fbbc04, 28px 0 0 #ea4335;
+  margin-right: 28px;
+}
+
+.hr-page .is-subject-identity .bes-hero-kicker > span {
+  background: #4285f4;
+  box-shadow: 14px 0 0 #a142f4, 28px 0 0 #24c1e0;
+}
+
+.hr-page .bes-hero-class-title {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  min-width: 0;
+  margin-bottom: 10px;
+  color: #1f1f1f;
+}
+
+.hr-page .bes-hero-class-title small {
+  flex: 0 0 auto;
+  color: #5f6368 !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  letter-spacing: .08em;
+}
+
+.hr-page .bes-hero-class-title strong {
+  overflow: hidden;
+  color: #0b57d0;
+  font-size: clamp(58px, 6vw, 92px);
+  font-weight: 500;
+  line-height: .9;
+  letter-spacing: -.055em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hr-page .bes-hero-teacher-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin-bottom: 20px;
+  color: #3c4043;
+}
+
+.hr-page .bes-hero-teacher-line > span {
+  flex: 0 0 auto;
+  min-height: 27px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 8px;
+  background: #e6f4ea;
+  color: #137333;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+.hr-page .is-subject-identity .bes-hero-teacher-line > span {
+  background: #e8f0fe;
+  color: #174ea6;
+}
+
+.hr-page .bes-hero-teacher-line > b {
+  overflow: hidden;
+  color: #202124;
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hr-page .bes-hero-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.hr-page .bes-hero-facts > span {
+  display: grid;
+  gap: 2px;
+  min-width: 150px;
+  padding: 10px 14px;
+  border: 1px solid #d9e5f7;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .82);
+}
+
+.hr-page .bes-hero-facts small {
+  color: #5f6368 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.hr-page .bes-hero-facts b {
+  color: #202124;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.hr-page .bes-identity-hero .hr-hero-art {
+  min-height: 198px !important;
+  padding: 18px !important;
+  border: 1px solid #d8e5f8 !important;
+  border-radius: 24px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .45), transparent),
+    #e8f0fe !important;
+}
+
+.hr-page .bes-identity-hero .hr-board {
+  width: min(100%, 230px) !important;
+  height: 116px !important;
+  border: 8px solid #7a604b !important;
+  border-radius: 8px !important;
+  background: #2f6653 !important;
+}
+
+.hr-page .bes-identity-hero .hr-board b {
+  color: #ffffff !important;
+  font-size: clamp(25px, 2.4vw, 36px) !important;
+  font-weight: 600 !important;
+  letter-spacing: -.03em;
+}
+
+.hr-page .bes-identity-hero .hr-person {
+  bottom: 20px !important;
+  width: 42px !important;
+  height: 64px !important;
+}
+
+.hr-page .bes-identity-hero .hr-person::before {
+  left: 7px !important;
+  top: -19px !important;
+  width: 29px !important;
+  height: 29px !important;
+}
+
+.hr-page .bes-identity-hero .hr-hero-meta {
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  padding: 20px !important;
+  border: 1px solid #dfe3eb !important;
+  border-radius: 24px !important;
+  background: rgba(255, 255, 255, .94) !important;
+  box-shadow: 0 4px 12px rgba(60, 64, 67, .08) !important;
+}
+
+.hr-page .bes-hero-teacher-identity {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 13px;
+  align-items: center;
+  width: 100%;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e8eaed;
+}
+
+.hr-page .bes-hero-avatar {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0b57d0, #4f8df7);
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(11, 87, 208, .2);
+}
+
+.hr-page .bes-hero-teacher-identity > div:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.hr-page .bes-hero-teacher-identity small {
+  color: #137333 !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.hr-page .is-subject-identity .bes-hero-teacher-identity small {
+  color: #174ea6 !important;
+}
+
+.hr-page .bes-hero-teacher-identity strong {
+  overflow: hidden;
+  color: #202124;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hr-page .bes-hero-teacher-identity span {
+  overflow: hidden;
+  color: #5f6368;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hr-page .bes-identity-hero .bes-hero-original-meta {
+  display: none !important;
+}
+
+.hr-page .bes-identity-hero .hr-sync,
+.hr-page .bes-identity-hero .hrc-offline-badge {
+  min-height: 34px !important;
+  width: fit-content !important;
+}
+
+@media (max-width: 1120px) {
+  .hr-page .hr-hero.bes-identity-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, .55fr) !important;
+  }
+
+  .hr-page .bes-identity-hero .hr-hero-art {
+    display: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .hr-page .hr-hero.bes-identity-hero {
+    grid-template-columns: 1fr !important;
+    padding: 16px !important;
+  }
+
+  .hr-page .bes-identity-hero .hr-hero-copy {
+    padding: 12px !important;
+  }
+
+  .hr-page .bes-hero-class-title strong {
+    font-size: clamp(52px, 18vw, 76px);
+  }
+
+  .hr-page .bes-hero-teacher-line {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hr-page .bes-hero-teacher-line > b {
+    white-space: normal;
+  }
+
+  .hr-page .bes-hero-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .hr-page .bes-hero-facts > span {
+    min-width: 0;
+  }
+}
