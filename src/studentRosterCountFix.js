@@ -1,3 +1,5 @@
+import './studentBulkDeleteRuntime.js';
+
 const CURRENT_PREFIX = 'bes-homeroom-current-workspace-v3:';
 const WORKSPACE_PREFIX = 'bes-homeroom-workspace-v1:';
 
