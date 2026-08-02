@@ -15,6 +15,7 @@ import GlobalHomeroomNavigationTab from './GlobalHomeroomNavigationTab.jsx';
 import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
 import GlobalWorkHubNotificationBridge from './GlobalWorkHubNotificationBridge.jsx';
 import GlobalWorkScheduleBridge from './GlobalWorkScheduleBridge.jsx';
+import GlobalWorkHubGoogleHeroV2 from './GlobalWorkHubGoogleHeroV2.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalHomeBriefingExtras from './GlobalHomeBriefingExtras.jsx';
 import GlobalHomeViewportFitBridge from './GlobalHomeViewportFitBridge.jsx';
@@ -43,6 +44,7 @@ import './GlobalTextLabGoogleLarge.css';
 import '../styles/teacher-dashboard-google-v2.css';
 import './GlobalDashboardVisualFix.css';
 import './GlobalWorkHubGoogleRedesign.css';
+import './GlobalWorkHubGoogleHeroV2.css';
 import './GlobalNotificationCenterGoogleFinal.css';
 import './GlobalNotificationCenterNarrow.css';
 import './GlobalNotificationMenuLayerFix.css';
@@ -101,6 +103,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalDashboardFooterBridge route={props.route} language={props.language} />
       <GlobalWorkHubNotificationBridge currentUser={props.currentUser} language={props.language} />
       <GlobalWorkScheduleBridge />
+      <GlobalWorkHubGoogleHeroV2 route={props.route} />
       {workHubActive ? (
         <Suspense fallback={null}>
           <GlobalWorkScheduleCompatibleCenter {...props} />
