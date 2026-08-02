@@ -1,3 +1,5 @@
+import supabaseEgressOptimizationPlugin from './supabaseEgressOptimizationPlugin.js';
+
 const BULK_STATE_MARKER = "  const [bulkWeekAction, setBulkWeekAction] = useState('');";
 
 const BULK_WEEK_MEMOS = `  const attendanceWeeks = useMemo(() => {
@@ -120,10 +122,14 @@ const BULK_PANEL = `
 `;
 
 export default function conductBulkActionsPlugin() {
+  const egressOptimizationPlugin = supabaseEgressOptimizationPlugin();
   return {
     name: 'brian-conduct-bulk-actions',
     enforce: 'pre',
     transform(code, id) {
+      const egressResult = egressOptimizationPlugin.transform(code, id);
+      if (egressResult != null) return egressResult;
+
       const cleanId = String(id || '').split('?')[0].replaceAll('\\', '/');
       if (!cleanId.endsWith('/src/components/HomeroomConductTab.jsx')) return null;
       if (code.includes('handleSyncAllAttendanceWeeks')) return code;
