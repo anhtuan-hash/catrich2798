@@ -73,6 +73,7 @@ function loadRouteModules() {
       import('./conductExportReports.js'),
       import('./conductCurrentWeekExport.js'),
       import('./preferredHomeroomEntry.js'),
+      import('./homeroomHeroIdentityRuntime.js'),
       import('./studentRosterCountFix.js'),
       import('./studentRosterFilterTabs.js'),
       import('./studentNameSortRuntime.js'),
