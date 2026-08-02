@@ -1,0 +1,102 @@
+.hr-student-bulk-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(26, 115, 232, 0.16);
+  border-radius: 15px;
+  background: linear-gradient(135deg, rgba(232, 240, 254, 0.9), rgba(255, 255, 255, 0.94));
+}
+
+.hr-student-select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--text, #202124);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.hr-student-select-all input,
+.hr-student-select-column input {
+  width: 19px;
+  height: 19px;
+  margin: 0;
+  accent-color: #1a73e8;
+  cursor: pointer;
+}
+
+.hr-student-select-all input:disabled,
+.hr-student-select-column input:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.hr-student-selected-count {
+  color: #5f6368;
+  font-size: 13px;
+}
+
+.hr-student-selected-count b {
+  color: #174ea6;
+  font-size: 15px;
+}
+
+.hr-student-bulk-buttons {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.hr-student-bulk-buttons button {
+  min-height: 38px;
+  padding: 0 15px;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.hr-student-bulk-buttons button.danger {
+  border: 1px solid #d93025;
+  background: #fce8e6;
+  color: #b3261e;
+}
+
+.hr-student-bulk-buttons button.danger:hover:not(:disabled) {
+  background: #fad2cf;
+}
+
+.hr-student-bulk-buttons button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.hr-student-select-column {
+  width: 50px;
+  min-width: 50px;
+  text-align: center !important;
+}
+
+.hr-table tr.is-selected-student > td {
+  background: rgba(210, 227, 252, 0.55) !important;
+}
+
+.hr-table tr.is-selected-student > td:first-child {
+  box-shadow: inset 4px 0 0 #1a73e8;
+}
+
+@media (max-width: 760px) {
+  .hr-student-bulk-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hr-student-bulk-buttons {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .hr-student-bulk-buttons button {
+    flex: 1;
+  }
+}
