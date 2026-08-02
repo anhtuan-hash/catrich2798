@@ -1,1 +1,1 @@
-export { default } from './GlobalCommandPaletteV2.jsx';
+export { default } from './GlobalCommandPaletteV21.jsx';
