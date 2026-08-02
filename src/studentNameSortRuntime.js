@@ -121,30 +121,47 @@ function applySort(panel, mode) {
   renumberRows(sorted);
 }
 
+function sortAnchor(panel) {
+  const tabs = panel.querySelector('.bes-roster-filter-tabs');
+  if (tabs) return { type: 'tabs', node: tabs };
+  const head = panel.querySelector(':scope > .hr-panel-head');
+  return head ? { type: 'head', node: head } : null;
+}
+
 function createControl(panel, user) {
   let control = panel.querySelector(`.${CONTROL_CLASS}`);
   if (control) return control;
 
-  const filterRow = panel.querySelector(':scope > .hr-panel-head .hr-filter-row');
-  if (!filterRow) return null;
+  const anchor = sortAnchor(panel);
+  if (!anchor) return null;
 
   control = document.createElement('label');
   control.className = CONTROL_CLASS;
   control.innerHTML = `
-    <span>Sắp xếp</span>
+    <span>Sắp xếp danh sách</span>
     <select aria-label="Sắp xếp danh sách học sinh">
       <option value="given-asc">Tên A → Z</option>
       <option value="given-desc">Tên Z → A</option>
       <option value="fullname-asc">Họ và tên A → Z</option>
       <option value="original">Thứ tự ban đầu</option>
     </select>`;
-  filterRow.appendChild(control);
+
+  if (anchor.type === 'tabs') {
+    const help = anchor.node.querySelector(':scope > small');
+    if (help) help.insertAdjacentElement('beforebegin', control);
+    else anchor.node.appendChild(control);
+  } else {
+    anchor.node.insertAdjacentElement('afterend', control);
+  }
 
   const select = control.querySelector('select');
   select.value = readMode(user);
   select.addEventListener('change', () => {
     writeMode(user, select.value);
     applySort(panel, select.value);
+    window.dispatchEvent(new CustomEvent('bes-student-roster-sorted', {
+      detail: { mode: select.value },
+    }));
   });
   return control;
 }
@@ -157,8 +174,10 @@ async function enhance() {
 
   panels.forEach((panel) => {
     const control = createControl(panel, user);
-    const mode = control?.querySelector('select')?.value || readMode(user);
-    applySort(panel, mode);
+    const select = control?.querySelector('select');
+    const savedMode = readMode(user);
+    if (select && select.value !== savedMode) select.value = savedMode;
+    applySort(panel, select?.value || savedMode);
   });
 }
 
@@ -180,11 +199,14 @@ observer.observe(document.documentElement, { childList: true, subtree: true });
 
 window.addEventListener('hashchange', scheduleEnhance);
 window.addEventListener('bes-homeroom-store-updated', scheduleEnhance);
+window.addEventListener('bes-student-roster-filtered', scheduleEnhance);
 document.addEventListener('input', (event) => {
   if (event.target.closest('.hr-filter-row')) window.setTimeout(scheduleEnhance, 0);
 }, true);
 document.addEventListener('change', (event) => {
-  if (event.target.closest('.hr-filter-row')) window.setTimeout(scheduleEnhance, 0);
+  if (event.target.closest('.hr-filter-row') && !event.target.closest(`.${CONTROL_CLASS}`)) {
+    window.setTimeout(scheduleEnhance, 0);
+  }
 }, true);
 
 if (document.readyState === 'loading') {
