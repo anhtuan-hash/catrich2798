@@ -1,0 +1,34 @@
+name: Command Center Local-First Guard
+
+on:
+  pull_request:
+    paths:
+      - 'src/components/GlobalCommandPalette*.jsx'
+      - 'src/components/GlobalCommandPalette*.css'
+      - 'src/commandCenter/**'
+      - 'src/pages/HomeroomWorkspace.jsx'
+      - 'scripts/test-command-center-local-first.mjs'
+      - '.github/workflows/command-center-local-first.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/components/GlobalCommandPalette*.jsx'
+      - 'src/components/GlobalCommandPalette*.css'
+      - 'src/commandCenter/**'
+      - 'src/pages/HomeroomWorkspace.jsx'
+      - 'scripts/test-command-center-local-first.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  local-first-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Verify zero-network command index
+        run: node scripts/test-command-center-local-first.mjs
