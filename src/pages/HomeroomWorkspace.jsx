@@ -48,6 +48,7 @@ import {
   isSubjectClass,
   normalizeHomeroomClassType,
 } from '../utils/homeroomClassTypes.js';
+import { consumePendingHomeroomAction } from '../commandCenter/commandCenterCore.js';
 import '../styles/homeroom-complete.css';
 import '../components/GlobalHomeroomGoogleRedesign.css';
 import '../components/GlobalHomeroomGoogleColorPolish.css';
@@ -65,6 +66,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [syncState, setSyncState] = useState('local');
+  const [commandTarget, setCommandTarget] = useState(null);
 
   const refreshCatalog = async () => {
     const localItems = listLocalHomeroomWorkspaces(currentUser);
@@ -115,6 +117,42 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
 
     return () => { alive = false; };
   }, [currentUser?.id, currentUser?.email, workspaceId]);
+
+  useEffect(() => {
+    const acceptCommand = (action) => {
+      if (!action || action.type !== 'homeroom.navigate') return;
+      const targetWorkspaceId = String(action.workspaceId || workspaceId || '').trim();
+      setCommandTarget({
+        workspaceId: targetWorkspaceId,
+        tab: String(action.tab || 'overview'),
+        studentQuery: String(action.studentQuery || ''),
+      });
+      if (targetWorkspaceId && targetWorkspaceId !== workspaceId) {
+        setCurrentHomeroomWorkspaceId(currentUser, targetWorkspaceId);
+        setWorkspaceId(targetWorkspaceId);
+      }
+    };
+    const onCommand = (event) => acceptCommand(event?.detail);
+    window.addEventListener('bes-homeroom-command', onCommand);
+    const pending = consumePendingHomeroomAction();
+    if (pending) acceptCommand(pending);
+    return () => window.removeEventListener('bes-homeroom-command', onCommand);
+  }, [currentUser?.id, currentUser?.authId, currentUser?.email, workspaceId]);
+
+  useEffect(() => {
+    if (!commandTarget || loading) return;
+    if (commandTarget.workspaceId && commandTarget.workspaceId !== workspace.id) return;
+    const requestedTab = commandTarget.tab || getDefaultClassTab(workspace);
+    setActiveTab(isClassTabAllowed(requestedTab, workspace, currentUser?.role === 'admin') ? requestedTab : getDefaultClassTab(workspace));
+    if (commandTarget.studentQuery) {
+      window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('bes-homeroom-student-query', {
+          detail: { query: commandTarget.studentQuery, workspaceId: workspace.id },
+        }));
+      }, 120);
+    }
+    setCommandTarget(null);
+  }, [commandTarget, loading, workspace.id, workspace.classProfile?.classType, currentUser?.role]);
 
   useEffect(() => {
     if (!isClassTabAllowed(activeTab, workspace, currentUser?.role === 'admin')) {
