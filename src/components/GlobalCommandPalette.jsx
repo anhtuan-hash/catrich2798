@@ -2,13 +2,21 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { APPS } from '../data/apps.js';
 import { getAppDesignProfile } from '../data/designProfiles.js';
-import { getFirstAllowedRoute, hasRouteAccess, hasToolAccess } from '../utils/permissions.js';
+import { hasRouteAccess, hasToolAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/motion.js';
 import { loadLauncherConfig, normalizeLauncherConfig, subscribeLauncherConfig } from '../utils/launcherPreferences.js';
 import { getAppUsage, recordAppUsage, subscribeAppUsage } from '../utils/appUsage.js';
 import { isAdminRole, isDepartmentLeaderRole } from '../utils/roles.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
+import {
+  normalizeCommandText,
+  parseCommandQuery,
+  queueHomeroomAction,
+  recordCommandRun,
+  requestIdleTask,
+} from '../commandCenter/commandCenterCore.js';
+import { collectRegisteredCommands } from '../commandCenter/commandRegistry.js';
 
 const ROUTES = [
   { route: 'home', vi: 'Trang chủ', en: 'Home', icon: '⌂', color: '#FFC69D' },
@@ -34,56 +42,24 @@ const ROUTES = [
   { route: 'admin', vi: 'Quản trị', en: 'Admin', icon: '☼', color: '#D13438', adminOnly: true },
 ];
 
-const text = {
+const copy = {
   vi: {
-    placeholder: 'Tìm ứng dụng, trang hoặc lệnh…',
-    title: 'Tìm nhanh toàn hệ thống',
-    hint: 'Nhập để tìm · ↑↓ chọn · Enter mở · Esc đóng',
-    recent: 'Gần đây',
-    pinned: 'Đã ghim',
-    results: 'Kết quả',
-    commands: 'Lệnh nhanh',
-    empty: 'Không tìm thấy kết quả phù hợp.',
-    openAi: 'Mở Brian AI',
-    customize: 'Tùy biến Launcher',
-    settings: 'Mở Cài đặt',
-    current: 'Đang mở',
-    frequent: 'Dùng thường xuyên',
-    route: 'Trang',
-    tool: 'Ứng dụng',
-    command: 'Lệnh',
-    keyboard: '⌘ K',
+    placeholder: 'Tìm ứng dụng, lớp, học sinh hoặc lệnh…',
+    title: 'Brian Command Center',
+    hint: '↑↓ chọn · Enter mở · Esc đóng · dùng > @ # / để lọc',
+    recent: 'Gần đây', pinned: 'Đã ghim', frequent: 'Dùng thường xuyên', commands: 'Lệnh theo ngữ cảnh',
+    empty: 'Không tìm thấy kết quả phù hợp.', current: 'Đang mở', route: 'Trang', tool: 'Ứng dụng', command: 'Lệnh',
+    class: 'Lớp', student: 'Học sinh', help: 'Trợ giúp', loading: 'Đang lập chỉ mục dữ liệu cục bộ…', local: 'Chỉ mục cục bộ',
   },
   en: {
-    placeholder: 'Search apps, pages or commands…',
-    title: 'Search the whole system',
-    hint: 'Type to search · ↑↓ select · Enter open · Esc close',
-    recent: 'Recent',
-    pinned: 'Pinned',
-    results: 'Results',
-    commands: 'Quick commands',
-    empty: 'No matching results.',
-    openAi: 'Open Brian AI',
-    customize: 'Customize Launcher',
-    settings: 'Open Settings',
-    current: 'Current',
-    frequent: 'Frequently used',
-    route: 'Page',
-    tool: 'App',
-    command: 'Command',
-    keyboard: '⌘ K',
+    placeholder: 'Search apps, classes, students or commands…',
+    title: 'Brian Command Center',
+    hint: '↑↓ select · Enter open · Esc close · use > @ # / to filter',
+    recent: 'Recent', pinned: 'Pinned', frequent: 'Frequently used', commands: 'Context commands',
+    empty: 'No matching results.', current: 'Current', route: 'Page', tool: 'App', command: 'Command',
+    class: 'Class', student: 'Student', help: 'Help', loading: 'Indexing local data…', local: 'Local index',
   },
 };
-
-function normalize(value) {
-  return String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
 
 function canUse(entry, currentUser, visibilitySnapshot) {
   if (!currentUser) return entry.route === 'home';
@@ -96,8 +72,16 @@ function canUse(entry, currentUser, visibilitySnapshot) {
   return hasRouteAccess(currentUser, entry.route);
 }
 
-function buildEntries(language, currentUser, visibilitySnapshot) {
-  const routeEntries = ROUTES.map((item) => ({
+function decorateEntry(entry) {
+  return {
+    ...entry,
+    normalizedTitle: entry.normalizedTitle || normalizeCommandText(entry.title),
+    normalizedKeywords: entry.normalizedKeywords || normalizeCommandText(`${entry.keywords || ''} ${entry.subtitle || ''}`),
+  };
+}
+
+function buildNavigationEntries(language, currentUser, visibilitySnapshot) {
+  const routeEntries = ROUTES.map((item) => decorateEntry({
     id: `route:${item.route}`,
     kind: 'route',
     route: item.route,
@@ -108,6 +92,7 @@ function buildEntries(language, currentUser, visibilitySnapshot) {
     color: item.color,
     adminOnly: item.adminOnly,
     leaderOnly: item.leaderOnly,
+    priority: 8,
     keywords: `${item.vi} ${item.en} ${item.route}`,
   }));
 
@@ -116,7 +101,7 @@ function buildEntries(language, currentUser, visibilitySnapshot) {
     .map((app) => {
       const profile = getAppDesignProfile(app.slug);
       const fallbackTitle = app.titleVi || app.title || app.slug || app.route || 'Ứng dụng';
-      return {
+      return decorateEntry({
         id: `tool:${app.slug || app.route}`,
         kind: 'tool',
         slug: app.slug || app.route,
@@ -127,8 +112,9 @@ function buildEntries(language, currentUser, visibilitySnapshot) {
         subtitle: language === 'vi' ? app.descVi || app.desc || '' : app.desc || app.descVi || '',
         icon: String(app.icon || fallbackTitle || 'AP').slice(0, 2).toUpperCase(),
         color: profile?.accent || '#191515',
+        priority: 7,
         keywords: `${app.slug || ''} ${app.route || ''} ${app.title || ''} ${app.titleVi || ''} ${app.desc || ''} ${app.descVi || ''}`,
-      };
+      });
     });
 
   return [...routeEntries, ...toolEntries]
@@ -136,20 +122,29 @@ function buildEntries(language, currentUser, visibilitySnapshot) {
     .filter((entry) => canUse(entry, currentUser, visibilitySnapshot));
 }
 
-function scoreEntry(entry, query) {
-  if (!query) return 1;
-  const title = normalize(entry?.title);
-  const keywords = normalize(`${entry?.keywords || ''} ${entry?.subtitle || ''}`);
+function scoreEntry(entry, parsed) {
+  if (!entry) return 0;
+  const modeAllowed = parsed.mode === 'all'
+    || (parsed.mode === 'command' && entry.kind === 'command')
+    || (parsed.mode === 'person' && ['student', 'teacher'].includes(entry.kind))
+    || (parsed.mode === 'class' && entry.kind === 'class')
+    || (parsed.mode === 'app' && ['route', 'tool'].includes(entry.kind))
+    || (parsed.mode === 'help' && entry.kind === 'help');
+  if (!modeAllowed) return 0;
+  const query = parsed.normalized;
+  if (!query) return Number(entry.priority || 1);
+  const title = entry.normalizedTitle || normalizeCommandText(entry.title);
+  const keywords = entry.normalizedKeywords || normalizeCommandText(`${entry.keywords || ''} ${entry.subtitle || ''}`);
   const tokens = query.split(' ').filter(Boolean);
-  let score = 0;
-  if (title === query) score += 100;
-  if (title.startsWith(query)) score += 60;
-  if (title.includes(query)) score += 40;
-  if (keywords.includes(query)) score += 20;
+  let score = Number(entry.priority || 0);
+  if (title === query) score += 160;
+  if (title.startsWith(query)) score += 90;
+  if (title.includes(query)) score += 55;
+  if (keywords.includes(query)) score += 28;
   tokens.forEach((token) => {
-    if (title.startsWith(token)) score += 16;
-    else if (title.includes(token)) score += 10;
-    else if (keywords.includes(token)) score += 4;
+    if (title.startsWith(token)) score += 22;
+    else if (title.includes(token)) score += 14;
+    else if (keywords.includes(token)) score += 6;
   });
   return score;
 }
@@ -158,10 +153,19 @@ function CommandIcon({ children }) {
   return <span className="command-palette-command-icon" aria-hidden="true">{children}</span>;
 }
 
+function kindLabel(entry, t) {
+  if (entry.kind === 'tool') return t.tool;
+  if (entry.kind === 'route') return t.route;
+  if (entry.kind === 'class') return t.class;
+  if (entry.kind === 'student') return t.student;
+  if (entry.kind === 'help') return t.help;
+  return t.command;
+}
+
 export default function GlobalCommandPalette({
   language = 'vi', currentUser, currentRoute = 'home', selectedTool = null, appVisibility: externalAppVisibility,
 }) {
-  const t = text[language] || text.vi;
+  const t = copy[language] || copy.vi;
   const appVisibility = externalAppVisibility && typeof externalAppVisibility === 'object'
     ? externalAppVisibility
     : { snapshot: {} };
@@ -170,12 +174,22 @@ export default function GlobalCommandPalette({
   const [activeIndex, setActiveIndex] = useState(0);
   const [launcherConfig, setLauncherConfig] = useState(() => normalizeLauncherConfig(loadLauncherConfig()));
   const [usage, setUsage] = useState(() => getAppUsage(currentUser));
+  const [localIndex, setLocalIndex] = useState({ entries: [], classes: [], students: [], stats: null });
+  const [indexLoading, setIndexLoading] = useState(false);
   const inputRef = useRef(null);
   const listRef = useRef(null);
 
-  const entries = useMemo(
-    () => buildEntries(language, currentUser, appVisibility?.snapshot || {}),
+  const navigationEntries = useMemo(
+    () => buildNavigationEntries(language, currentUser, appVisibility?.snapshot || {}),
     [language, currentUser, appVisibility?.snapshot],
+  );
+  const registeredCommands = useMemo(
+    () => collectRegisteredCommands({ language, currentRoute, currentUser, selectedTool }).map(decorateEntry),
+    [language, currentRoute, currentUser, selectedTool],
+  );
+  const entries = useMemo(
+    () => [...navigationEntries, ...registeredCommands, ...(localIndex.entries || [])],
+    [navigationEntries, registeredCommands, localIndex.entries],
   );
   const byId = useMemo(() => new Map(entries.map((entry) => [entry.id, entry])), [entries]);
 
@@ -185,9 +199,7 @@ export default function GlobalCommandPalette({
     return () => { unsubscribeLauncher(); unsubscribeUsage(); };
   }, [currentUser]);
 
-  useEffect(() => {
-    setUsage(getAppUsage(currentUser));
-  }, [currentUser]);
+  useEffect(() => { setUsage(getAppUsage(currentUser)); }, [currentUser]);
 
   useEffect(() => {
     const openPalette = (event) => {
@@ -218,6 +230,24 @@ export default function GlobalCommandPalette({
   }, [open]);
 
   useEffect(() => {
+    if (!open || !currentUser) return undefined;
+    let cancelled = false;
+    setIndexLoading(true);
+    const cancelIdle = requestIdleTask(async () => {
+      try {
+        const module = await import('../commandCenter/localCommandData.js');
+        const next = module.loadLocalCommandIndex({ user: currentUser, language });
+        if (!cancelled) setLocalIndex(next);
+      } catch (error) {
+        console.warn('[CommandCenter] local index unavailable', error);
+      } finally {
+        if (!cancelled) setIndexLoading(false);
+      }
+    }, 450);
+    return () => { cancelled = true; cancelIdle?.(); };
+  }, [open, currentUser?.id, currentUser?.authId, currentUser?.email, language]);
+
+  useEffect(() => {
     if (!open) return undefined;
     setActiveIndex(0);
     const timer = window.setTimeout(() => inputRef.current?.focus(), 30);
@@ -245,56 +275,16 @@ export default function GlobalCommandPalette({
     [safeUsage, byId],
   );
 
-  const commands = useMemo(() => [
-    {
-      id: 'command:ai',
-      kind: 'command',
-      title: t.openAi || (language === 'vi' ? 'Mở Brian AI' : 'Open Brian AI'),
-      subtitle: language === 'vi' ? 'Trò chuyện với trợ lí AI' : 'Chat with the AI assistant',
-      icon: '✦',
-      color: '#2BB7B3',
-      run: () => window.dispatchEvent(new CustomEvent('bes-ai-open')),
-      keywords: 'AI Brian chat assistant trợ lí chatbot',
-    },
-    {
-      id: 'command:launcher',
-      kind: 'command',
-      title: t.customize,
-      subtitle: language === 'vi' ? 'Sắp xếp, ghim, ẩn và tạo nhóm ứng dụng' : 'Sort, pin, hide and group apps',
-      icon: '▦',
-      color: '#F05A7E',
-      run: () => {
-        window.location.hash = '#/apps';
-        window.setTimeout(() => window.dispatchEvent(new CustomEvent('bes-launcher-edit')), 220);
-      },
-      keywords: 'launcher customize edit apps group pin hide sắp xếp ghim ẩn nhóm',
-    },
-    {
-      id: 'command:settings',
-      kind: 'command',
-      title: t.settings,
-      subtitle: language === 'vi' ? 'AI, giao diện, tài khoản và hiệu năng' : 'AI, appearance, account and performance',
-      icon: '⚙',
-      color: '#123C69',
-      run: () => { window.location.hash = '#/settings'; },
-      keywords: 'settings configuration cài đặt cấu hình',
-    },
-  ].filter((entry) => entry?.id && entry?.title), [language, t]);
-
-  const normalizedQuery = normalize(query);
-  const searchPool = useMemo(
-    () => [...entries, ...commands].filter((entry) => entry?.id && String(entry?.title || '').trim()),
-    [entries, commands],
-  );
+  const parsedQuery = useMemo(() => parseCommandQuery(query), [query]);
   const searchResults = useMemo(() => {
-    if (!normalizedQuery) return [];
-    return searchPool
-      .map((entry) => ({ entry, score: scoreEntry(entry, normalizedQuery) }))
+    if (!parsedQuery.normalized && parsedQuery.mode === 'all') return [];
+    return entries
+      .map((entry) => ({ entry, score: scoreEntry(entry, parsedQuery) }))
       .filter((item) => item.score > 0)
       .sort((a, b) => b.score - a.score || String(a.entry?.title || '').localeCompare(String(b.entry?.title || ''), language === 'vi' ? 'vi' : 'en'))
-      .slice(0, 18)
+      .slice(0, 22)
       .map((item) => item.entry);
-  }, [searchPool, normalizedQuery, language]);
+  }, [entries, parsedQuery, language]);
 
   const defaultResults = useMemo(() => {
     const seen = new Set();
@@ -307,23 +297,54 @@ export default function GlobalCommandPalette({
     recentEntries.forEach((entry) => push(entry, t.recent));
     pinnedEntries.forEach((entry) => push(entry, t.pinned));
     frequentEntries.forEach((entry) => push(entry, t.frequent));
-    commands.forEach((entry) => push(entry, t.commands));
-    return output.slice(0, 18);
-  }, [recentEntries, pinnedEntries, frequentEntries, commands, t]);
+    registeredCommands.filter((entry) => entry.kind === 'command').forEach((entry) => push(entry, t.commands));
+    return output.slice(0, 20);
+  }, [recentEntries, pinnedEntries, frequentEntries, registeredCommands, t]);
 
-  const results = normalizedQuery ? searchResults : defaultResults;
+  const results = (parsedQuery.normalized || parsedQuery.mode !== 'all') ? searchResults : defaultResults;
 
   useEffect(() => {
     if (!results.length && activeIndex !== 0) setActiveIndex(0);
     else if (results.length && activeIndex > results.length - 1) setActiveIndex(results.length - 1);
   }, [results.length, activeIndex]);
 
+  const executeCommandAction = (action) => {
+    if (!action || typeof window === 'undefined') return;
+    if (action.type === 'homeroom.navigate') {
+      queueHomeroomAction(action);
+      return;
+    }
+    if (action.type === 'route' && action.target) {
+      window.location.hash = action.target;
+      return;
+    }
+    if (action.type === 'event' && action.name) {
+      window.dispatchEvent(new CustomEvent(action.name, { detail: action.detail || {} }));
+      return;
+    }
+    if (action.type === 'launcher.edit') {
+      window.location.hash = '#/apps';
+      window.setTimeout(() => window.dispatchEvent(new CustomEvent('bes-launcher-edit')), 220);
+      return;
+    }
+    if (action.type === 'fill-query') {
+      setOpen(true);
+      setQuery(String(action.value || ''));
+    }
+  };
+
   const runEntry = (entry) => {
     if (!entry) return;
+    if (entry.commandAction?.type === 'fill-query') {
+      executeCommandAction(entry.commandAction);
+      window.setTimeout(() => inputRef.current?.focus(), 0);
+      return;
+    }
     setOpen(false);
     setQuery('');
-    if (entry.kind === 'command') {
-      entry.run?.();
+    recordCommandRun(currentUser, entry);
+    if (entry.commandAction) {
+      executeCommandAction(entry.commandAction);
       return;
     }
     recordAppUsage(currentUser, {
@@ -385,7 +406,10 @@ export default function GlobalCommandPalette({
           />
           <kbd>ESC</kbd>
         </header>
-        <div className="command-palette-caption"><strong>{t.title}</strong><span>{t.hint}</span></div>
+        <div className="command-palette-caption">
+          <span><strong>{t.title}</strong><small>{t.hint}</small></span>
+          {indexLoading ? <em>{t.loading}</em> : localIndex.stats ? <em>{t.local}: {localIndex.stats.classCount} · {localIndex.stats.studentCount}</em> : null}
+        </div>
         <div className="command-palette-results" ref={listRef} role="listbox">
           {results.map((entry, index) => (
             <button
@@ -402,9 +426,10 @@ export default function GlobalCommandPalette({
               <CommandIcon>{entry.icon || '•'}</CommandIcon>
               <span className="command-palette-result-copy">
                 <strong>{String(entry.title || '')}</strong>
-                <small>{entry.subtitle || (entry.kind === 'tool' ? t.tool : entry.kind === 'route' ? t.route : t.command)}</small>
+                <small>{entry.subtitle || kindLabel(entry, t)}</small>
               </span>
               {entry.section ? <span className="command-palette-section-tag">{entry.section}</span> : null}
+              {!entry.section ? <span className="command-palette-section-tag">{kindLabel(entry, t)}</span> : null}
               {entry.id === currentId ? <span className="command-palette-current">{t.current}</span> : null}
               <span className="command-palette-enter" aria-hidden="true">↵</span>
             </button>
@@ -413,7 +438,7 @@ export default function GlobalCommandPalette({
             <div className="command-palette-empty">
               <span>⌕</span>
               <strong>{t.empty}</strong>
-              <small>{language === 'vi' ? 'Thử nhập tên ứng dụng hoặc một hành động khác.' : 'Try another app name or action.'}</small>
+              <small>{language === 'vi' ? 'Thử dùng > lệnh, @ người, # lớp hoặc / ứng dụng.' : 'Try > commands, @ people, # classes or / apps.'}</small>
             </div>
           ) : null}
         </div>
@@ -421,6 +446,7 @@ export default function GlobalCommandPalette({
           <span><kbd>↑</kbd><kbd>↓</kbd> {language === 'vi' ? 'Di chuyển' : 'Move'}</span>
           <span><kbd>↵</kbd> {language === 'vi' ? 'Mở' : 'Open'}</span>
           <span><kbd>⌘K</kbd> {language === 'vi' ? 'Tìm nhanh' : 'Quick search'}</span>
+          <span>{localIndex.stats?.source === 'local-only' ? (language === 'vi' ? '0 truy vấn mạng' : '0 network queries') : ''}</span>
         </footer>
       </section>
     </div>,
