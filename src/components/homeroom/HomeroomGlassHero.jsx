@@ -32,6 +32,33 @@ function PeopleIcon() {
   </svg>;
 }
 
+function RoomIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M5 21V5.8c0-.8.5-1.5 1.3-1.7l9-2.1c1.1-.3 2.2.6 2.2 1.7V21" />
+    <path d="M3 21h18M9 9h3M9 13h3M9 17h3" />
+  </svg>;
+}
+
+function GradeIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="m4 8 8-4 8 4-8 4-8-4Z" />
+    <path d="M7 10.5v5.2c2.1 2.2 7.9 2.2 10 0v-5.2M20 8v6" />
+  </svg>;
+}
+
+function BookIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M4 5.5c3.3-.8 5.8-.2 8 1.7v12c-2.2-1.9-4.7-2.5-8-1.7v-12Z" />
+    <path d="M20 5.5c-3.3-.8-5.8-.2-8 1.7v12c2.2-1.9 4.7-2.5 8-1.7v-12Z" />
+  </svg>;
+}
+
+function ChartIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M5 19V11M12 19V5M19 19v-7" />
+  </svg>;
+}
+
 function CheckIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true">
     <circle cx="12" cy="12" r="9" />
@@ -45,49 +72,91 @@ function SparkleIcon() {
   </svg>;
 }
 
-function GraduationCap({ x = 0, y = 0, scale = 1 }) {
-  return <g transform={`translate(${x} ${y}) scale(${scale})`}>
+function RichMaterialIllustration() {
+  return <svg className="hr-material-hero__illustration" viewBox="0 0 520 380" aria-hidden="true">
     <defs>
-      <linearGradient id="hr-material-cap-top" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#4f8df7" />
-        <stop offset="1" stopColor="#0b57d0" />
-      </linearGradient>
-      <linearGradient id="hr-material-cap-body" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#2f75e8" />
-        <stop offset="1" stopColor="#174ea6" />
-      </linearGradient>
-    </defs>
-    <path fill="url(#hr-material-cap-top)" d="M12 55.5 70 27l58 28.5L70 84 12 55.5Z" />
-    <path fill="url(#hr-material-cap-body)" d="M35 69v27c12.5 13.5 57.5 13.5 70 0V69L70 87 35 69Z" />
-    <path fill="none" stroke="#8ab4f8" strokeLinecap="round" strokeWidth="5" d="M121 61v29" />
-    <circle cx="121" cy="98" r="7" fill="#8ab4f8" />
-  </g>;
-}
-
-function MaterialIllustration() {
-  return <svg className="hr-material-hero__illustration" viewBox="0 0 420 300" aria-hidden="true">
-    <defs>
-      <linearGradient id="hr-material-board" x1="0" y1="0" x2="1" y2="1">
+      <linearGradient id="hr-rich-board" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0" stopColor="#dbeafe" />
         <stop offset="1" stopColor="#c2e7ff" />
       </linearGradient>
+      <linearGradient id="hr-rich-cap" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#4f8df7" />
+        <stop offset="1" stopColor="#0b57d0" />
+      </linearGradient>
+      <linearGradient id="hr-rich-book" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#34a853" />
+        <stop offset="1" stopColor="#188038" />
+      </linearGradient>
+      <filter id="hr-rich-shadow" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="10" stdDeviation="12" floodColor="#3c4043" floodOpacity=".16" />
+      </filter>
     </defs>
-    <circle cx="210" cy="150" r="120" fill="#eef4ff" />
-    <circle cx="210" cy="150" r="88" fill="#e8f0fe" />
-    <rect x="113" y="73" width="194" height="125" rx="24" fill="url(#hr-material-board)" />
-    <rect x="132" y="92" width="76" height="14" rx="7" fill="#fff" />
-    <rect x="132" y="116" width="116" height="10" rx="5" fill="#fff" opacity=".76" />
-    <rect x="132" y="135" width="93" height="10" rx="5" fill="#fff" opacity=".6" />
-    <circle cx="276" cy="111" r="15" fill="#34a853" opacity=".9" />
-    <path d="m269 111 5 5 10-11" fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" />
-    <GraduationCap x={157} y={90} scale={0.75} />
-    <rect x="147" y="220" width="126" height="16" rx="8" fill="#bdc1c6" opacity=".5" />
-    <rect x="174" y="242" width="72" height="9" rx="4.5" fill="#dadce0" />
-    <circle cx="85" cy="92" r="18" fill="#fef7e0" />
-    <circle cx="335" cy="208" r="16" fill="#e6f4ea" />
-    <rect x="66" y="174" width="38" height="38" rx="12" fill="#fff" stroke="#d2e3fc" />
-    <path d="M75 199v-9h7v9M87 199v-15h7v15" fill="none" stroke="#0b57d0" strokeLinecap="round" strokeWidth="3" />
+
+    <path d="M80 86c28-52 88-73 139-47 44-42 117-40 159 7 63-7 112 37 112 96 0 57-44 100-101 102-23 61-88 92-147 71-45 36-113 29-150-16-67-2-107-69-77-128 8-38 31-67 65-85Z" fill="#edf4ff" />
+    <circle cx="94" cy="91" r="28" fill="#fef7e0" />
+    <circle cx="445" cy="278" r="31" fill="#e6f4ea" />
+    <circle cx="421" cy="80" r="18" fill="#fce8e6" />
+    <rect x="104" y="68" width="312" height="222" rx="42" fill="#fff" stroke="#d2e3fc" strokeWidth="2" filter="url(#hr-rich-shadow)" />
+    <rect x="132" y="94" width="256" height="150" rx="28" fill="url(#hr-rich-board)" />
+
+    <rect x="154" y="116" width="94" height="15" rx="7.5" fill="#fff" />
+    <rect x="154" y="143" width="130" height="10" rx="5" fill="#fff" opacity=".82" />
+    <rect x="154" y="163" width="105" height="10" rx="5" fill="#fff" opacity=".65" />
+
+    <g transform="translate(221 121)">
+      <path fill="url(#hr-rich-cap)" d="M0 42 68 9l68 33-68 33L0 42Z" />
+      <path fill="#174ea6" d="M27 58v31c15 16 67 16 82 0V58L68 78 27 58Z" />
+      <path d="M127 49v34" fill="none" stroke="#8ab4f8" strokeLinecap="round" strokeWidth="6" />
+      <circle cx="127" cy="92" r="8" fill="#8ab4f8" />
+    </g>
+
+    <circle cx="357" cy="119" r="19" fill="#34a853" />
+    <path d="m348 119 6 6 12-13" fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="5" />
+
+    <g transform="translate(85 234) rotate(-8)" filter="url(#hr-rich-shadow)">
+      <rect width="90" height="72" rx="18" fill="#fff" stroke="#f9ab00" strokeWidth="2" />
+      <rect x="15" y="14" width="60" height="9" rx="4.5" fill="#f9ab00" opacity=".8" />
+      <rect x="15" y="34" width="27" height="23" rx="7" fill="#fef7e0" />
+      <rect x="48" y="34" width="27" height="23" rx="7" fill="#fef7e0" />
+    </g>
+
+    <g transform="translate(362 228) rotate(7)" filter="url(#hr-rich-shadow)">
+      <rect width="86" height="76" rx="18" fill="#fff" stroke="#34a853" strokeWidth="2" />
+      <path d="M18 55V34M40 55V20M62 55V29" fill="none" stroke="#34a853" strokeLinecap="round" strokeWidth="8" />
+    </g>
+
+    <g transform="translate(198 270)" filter="url(#hr-rich-shadow)">
+      <path d="M0 28c25-11 45-8 62 7v52c-17-15-37-18-62-7V28Z" fill="url(#hr-rich-book)" />
+      <path d="M124 28c-25-11-45-8-62 7v52c17-15 37-18 62-7V28Z" fill="#5bb974" />
+      <path d="M62 35v52" stroke="#d7f3df" strokeWidth="4" />
+    </g>
+
+    <rect x="170" y="310" width="180" height="17" rx="8.5" fill="#bdc1c6" opacity=".5" />
+    <rect x="214" y="338" width="92" height="10" rx="5" fill="#dadce0" />
+
+    <g fill="#4285f4">
+      <circle cx="60" cy="171" r="7" /><circle cx="470" cy="172" r="8" />
+    </g>
+    <g fill="#ea4335">
+      <circle cx="72" cy="133" r="5" /><circle cx="457" cy="125" r="6" />
+    </g>
+    <g fill="#fbbc04">
+      <circle cx="112" cy="334" r="7" /><circle cx="405" cy="336" r="6" />
+    </g>
+    <g fill="#34a853">
+      <circle cx="51" cy="221" r="6" /><circle cx="471" cy="226" r="7" />
+    </g>
   </svg>;
+}
+
+function DetailTile({ tone, icon, label, value }) {
+  return <div className={`hr-material-hero__detail tone-${tone}`} role="listitem">
+    <span className="hr-material-hero__detail-icon">{icon}</span>
+    <span className="hr-material-hero__detail-copy">
+      <small>{label}</small>
+      <strong>{value}</strong>
+    </span>
+  </div>;
 }
 
 export default function HomeroomGlassHero({
@@ -103,6 +172,8 @@ export default function HomeroomGlassHero({
   const profile = workspace?.classProfile || {};
   const className = profile.className || (vi ? 'Chưa thiết lập' : 'Not configured');
   const schoolYear = profile.schoolYear || '—';
+  const room = profile.room || (vi ? 'Chưa cập nhật' : 'Not set');
+  const grade = profile.grade || '—';
   const teacherName = profile.adviserName || currentUser?.name || currentUser?.email || (vi ? 'Giáo viên' : 'Teacher');
   const teacherEmail = profile.adviserEmail || currentUser?.email || '';
   const initials = getInitials(teacherName);
@@ -125,7 +196,14 @@ export default function HomeroomGlassHero({
     aria-labelledby="hr-material-hero-title"
     data-class-type={classTypeLabel}
   >
-    <div className="hr-material-hero__main">
+    <div className="hr-material-hero__accent" aria-hidden="true">
+      <span className="blue" /><span className="red" /><span className="yellow" /><span className="green" />
+    </div>
+    <span className="hr-material-hero__shape shape-one" aria-hidden="true" />
+    <span className="hr-material-hero__shape shape-two" aria-hidden="true" />
+    <span className="hr-material-hero__shape shape-three" aria-hidden="true" />
+
+    <article className="hr-material-hero__class-panel">
       <div className="hr-material-hero__eyebrow">
         <span className="hr-material-hero__eyebrow-icon"><GridIcon /></span>
         <span>{workspaceLabel}</span>
@@ -141,26 +219,25 @@ export default function HomeroomGlassHero({
         <strong>{teacherName}</strong>
       </div>
 
-      <div className="hr-material-hero__metrics" role="list" aria-label={vi ? 'Thông tin lớp' : 'Class information'}>
-        <div className="hr-material-hero__metric" role="listitem">
-          <span className="hr-material-hero__metric-icon"><CalendarIcon /></span>
-          <span><small>{vi ? 'Năm học' : 'School year'}</small><strong>{schoolYear}</strong></span>
-        </div>
-        <div className="hr-material-hero__metric" role="listitem">
-          <span className="hr-material-hero__metric-icon"><PeopleIcon /></span>
-          <span><small>{vi ? 'Sĩ số' : 'Students'}</small><strong>{activeStudents} {vi ? 'học sinh' : 'students'}</strong></span>
-        </div>
+      <div className="hr-material-hero__details" role="list" aria-label={vi ? 'Thông tin lớp' : 'Class information'}>
+        <DetailTile tone="blue" icon={<CalendarIcon />} label={vi ? 'Năm học' : 'School year'} value={schoolYear} />
+        <DetailTile tone="green" icon={<PeopleIcon />} label={vi ? 'Sĩ số' : 'Students'} value={`${activeStudents} ${vi ? 'học sinh' : 'students'}`} />
+        <DetailTile tone="yellow" icon={<RoomIcon />} label={vi ? 'Phòng học' : 'Room'} value={room} />
+        <DetailTile tone="red" icon={<GradeIcon />} label={vi ? 'Khối' : 'Grade'} value={grade} />
       </div>
-    </div>
+    </article>
 
     <div className="hr-material-hero__visual" aria-hidden="true">
-      <MaterialIllustration />
+      <RichMaterialIllustration />
+      <span className="hr-material-hero__visual-chip chip-book"><BookIcon /></span>
+      <span className="hr-material-hero__visual-chip chip-chart"><ChartIcon /></span>
+      <span className="hr-material-hero__visual-chip chip-people"><PeopleIcon /></span>
     </div>
 
     <aside className="hr-material-hero__teacher-card" aria-label={roleLong}>
-      <div className="hr-material-hero__teacher-kicker">
-        <span />
-        {roleLong}
+      <div className="hr-material-hero__teacher-banner">
+        <span className="hr-material-hero__teacher-dot" />
+        <span>{roleLong}</span>
       </div>
 
       <div className="hr-material-hero__profile">
@@ -171,6 +248,11 @@ export default function HomeroomGlassHero({
             ? <a href={`mailto:${teacherEmail}`}>{teacherEmail}</a>
             : <small>{vi ? 'Chưa có email' : 'No email provided'}</small>}
         </span>
+      </div>
+
+      <div className="hr-material-hero__teacher-summary">
+        <span><small>{vi ? 'Lớp phụ trách' : 'Class'}</small><strong>{className}</strong></span>
+        <span><small>{vi ? 'Sĩ số' : 'Students'}</small><strong>{activeStudents}</strong></span>
       </div>
 
       <div className="hr-material-hero__divider" />
