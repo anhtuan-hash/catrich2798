@@ -44,7 +44,6 @@ import './GlobalTextLabGoogleLarge.css';
 import '../styles/teacher-dashboard-google-v2.css';
 import './GlobalDashboardVisualFix.css';
 import './GlobalWorkHubGoogleRedesign.css';
-import './GlobalWorkHubGoogleHeroV2.css';
 import './GlobalNotificationCenterGoogleFinal.css';
 import './GlobalNotificationCenterNarrow.css';
 import './GlobalNotificationMenuLayerFix.css';
@@ -69,6 +68,7 @@ import './GlobalWeeklyPracticeStatistics.css';
 import './GlobalWeeklyPracticeStatisticsLaunchFix.css';
 import './GlobalWeeklyPracticeSimple.css';
 import './GlobalWeeklyPracticeStudentProof.css';
+import './GlobalWorkHubGoogleHeroV2.css';
 // Performance rules run before the final geometry contract.
 import './GlobalScrollPerformance.css';
 // Final geometry, followed only by the overlay stacking contract.
