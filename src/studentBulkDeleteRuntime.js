@@ -46,7 +46,19 @@ function rosterPanel() {
 }
 
 function currentFilter(panel) {
-  return panel?.querySelector('.hr-filter-row select')?.value || 'active';
+  const activeTab = panel?.querySelector('.bes-roster-filter-tabs button.is-active[data-roster-filter]');
+  if (activeTab?.dataset.rosterFilter) return activeTab.dataset.rosterFilter;
+  const selects = [...(panel?.querySelectorAll('.hr-filter-row select') || [])];
+  const filterSelect = selects.find((select) => (
+    [...select.options].some((option) => ['active', 'inactive', 'deleted'].includes(option.value))
+  ));
+  return filterSelect?.value || 'active';
+}
+
+function visibleRows(panel) {
+  return [...panel.querySelectorAll('.hr-table tbody tr')].filter((row) => (
+    !row.hidden && row.getAttribute('aria-hidden') !== 'true'
+  ));
 }
 
 async function loadCurrentWorkspace() {
@@ -102,15 +114,22 @@ function linkedData(workspace, studentId) {
   };
 }
 
-function refreshToolbar(panel, workspace) {
-  const toolbar = panel.querySelector(`.${TOOLBAR_CLASS}`);
-  if (!toolbar) return;
-  const rows = [...panel.querySelectorAll('.hr-table tbody tr')];
-  const visibleIds = rows.map((row) => row.dataset.studentId).filter(Boolean);
-  const selectableIds = visibleIds.filter((id) => {
+function selectableVisibleIds(panel, workspace) {
+  return visibleRows(panel).map((row) => row.dataset.studentId).filter((id) => {
+    if (!id) return false;
     const student = (workspace.students || []).find((item) => item.id === id);
     return student && !isDeleted(student);
   });
+}
+
+function refreshToolbar(panel, workspace) {
+  const toolbar = panel.querySelector(`.${TOOLBAR_CLASS}`);
+  if (!toolbar) return;
+  toolbar.__besWorkspace = workspace;
+  toolbar.dataset.workspaceId = workspace.id || '';
+
+  const rows = visibleRows(panel);
+  const selectableIds = selectableVisibleIds(panel, workspace);
   const allSelected = selectableIds.length > 0 && selectableIds.every((id) => selectedIds.has(id));
   const selectedCount = [...selectedIds].filter((id) => (
     (workspace.students || []).some((student) => student.id === id && !isDeleted(student))
@@ -122,6 +141,7 @@ function refreshToolbar(panel, workspace) {
   const remove = toolbar.querySelector('[data-bulk-delete]');
   if (selectAll) {
     selectAll.checked = allSelected;
+    selectAll.indeterminate = selectedCount > 0 && !allSelected;
     selectAll.disabled = !selectableIds.length || busy;
   }
   if (count) count.textContent = String(selectedCount);
@@ -223,56 +243,68 @@ async function deleteSelected(panel) {
 
 function createToolbar(panel, workspace) {
   let toolbar = panel.querySelector(`.${TOOLBAR_CLASS}`);
-  if (toolbar) return toolbar;
+  if (!toolbar) {
+    toolbar = document.createElement('div');
+    toolbar.className = TOOLBAR_CLASS;
+    toolbar.innerHTML = `
+      <label class="hr-student-select-all"><input type="checkbox" data-select-all><span>Chọn tất cả đang hiển thị</span></label>
+      <span class="hr-student-selected-count">Đã chọn <b data-selected-count>0</b> học sinh</span>
+      <div class="hr-student-bulk-buttons"><button type="button" class="secondary" data-clear-selection>Bỏ chọn</button><button type="button" class="danger" data-bulk-delete>Xóa nhanh</button></div>`;
 
-  toolbar = document.createElement('div');
-  toolbar.className = TOOLBAR_CLASS;
-  toolbar.innerHTML = `
-    <label class="hr-student-select-all"><input type="checkbox" data-select-all><span>Chọn tất cả đang hiển thị</span></label>
-    <span class="hr-student-selected-count">Đã chọn <b data-selected-count>0</b> học sinh</span>
-    <div class="hr-student-bulk-buttons"><button type="button" class="secondary" data-clear-selection>Bỏ chọn</button><button type="button" class="danger" data-bulk-delete>Xóa nhanh</button></div>`;
+    const anchor = panel.querySelector('.bes-roster-filter-tabs') || panel.querySelector(':scope > .hr-panel-head');
+    anchor?.insertAdjacentElement('afterend', toolbar);
 
-  const anchor = panel.querySelector('.bes-roster-filter-tabs') || panel.querySelector(':scope > .hr-panel-head');
-  anchor?.insertAdjacentElement('afterend', toolbar);
-
-  toolbar.querySelector('[data-select-all]')?.addEventListener('change', (event) => {
-    const rows = [...panel.querySelectorAll('.hr-table tbody tr')];
-    rows.forEach((row) => {
-      const id = row.dataset.studentId;
-      const student = (workspace.students || []).find((item) => item.id === id);
-      if (!id || !student || isDeleted(student)) return;
-      if (event.target.checked) selectedIds.add(id);
-      else selectedIds.delete(id);
+    toolbar.querySelector('[data-select-all]')?.addEventListener('change', (event) => {
+      const currentWorkspace = toolbar.__besWorkspace;
+      if (!currentWorkspace) return;
+      const ids = selectableVisibleIds(panel, currentWorkspace);
+      if (event.target.checked) ids.forEach((id) => selectedIds.add(id));
+      else ids.forEach((id) => selectedIds.delete(id));
+      refreshToolbar(panel, currentWorkspace);
     });
-    refreshToolbar(panel, workspace);
-  });
-  toolbar.querySelector('[data-clear-selection]')?.addEventListener('click', () => clearSelection(panel, workspace));
-  toolbar.querySelector('[data-bulk-delete]')?.addEventListener('click', () => deleteSelected(panel));
+    toolbar.querySelector('[data-clear-selection]')?.addEventListener('click', () => {
+      const currentWorkspace = toolbar.__besWorkspace;
+      if (currentWorkspace) clearSelection(panel, currentWorkspace);
+    });
+    toolbar.querySelector('[data-bulk-delete]')?.addEventListener('click', () => deleteSelected(panel));
+  }
+
+  toolbar.__besWorkspace = workspace;
+  toolbar.dataset.workspaceId = workspace.id || '';
   return toolbar;
 }
 
 function attachRowCheckboxes(panel, workspace) {
-  const rows = [...panel.querySelectorAll('.hr-table tbody tr')];
+  const rows = visibleRows(panel);
   rows.forEach((row) => {
     const student = studentForRow(row, workspace);
     if (!student) return;
     row.dataset.studentId = student.id;
     const person = row.querySelector('.hr-person-cell');
-    if (!person || person.querySelector(`.${CHECKBOX_CLASS}`)) return;
+    if (!person) return;
 
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = CHECKBOX_CLASS;
+    let checkbox = person.querySelector(`.${CHECKBOX_CLASS}`);
+    if (!checkbox) {
+      checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = CHECKBOX_CLASS;
+      checkbox.addEventListener('click', (event) => event.stopPropagation());
+      checkbox.addEventListener('change', () => {
+        const id = row.dataset.studentId;
+        if (!id) return;
+        if (checkbox.checked) selectedIds.add(id);
+        else selectedIds.delete(id);
+        const toolbar = panel.querySelector(`.${TOOLBAR_CLASS}`);
+        const currentWorkspace = toolbar?.__besWorkspace || workspace;
+        refreshToolbar(panel, currentWorkspace);
+      });
+      person.prepend(checkbox);
+    }
+
     checkbox.setAttribute('aria-label', `Chọn ${student.fullName}`);
     checkbox.disabled = isDeleted(student);
     checkbox.checked = selectedIds.has(student.id);
-    checkbox.addEventListener('click', (event) => event.stopPropagation());
-    checkbox.addEventListener('change', () => {
-      if (checkbox.checked) selectedIds.add(student.id);
-      else selectedIds.delete(student.id);
-      refreshToolbar(panel, workspace);
-    });
-    person.prepend(checkbox);
+    row.classList.toggle('is-selected-student', selectedIds.has(student.id));
   });
 }
 
@@ -294,8 +326,8 @@ async function enhanceRoster() {
   lastWorkspaceId = workspace.id;
   lastFilter = filter;
 
-  createToolbar(panel, workspace);
   attachRowCheckboxes(panel, workspace);
+  createToolbar(panel, workspace);
   refreshToolbar(panel, workspace);
 }
 
@@ -317,6 +349,7 @@ observer.observe(document.documentElement, { childList: true, subtree: true });
 
 window.addEventListener('hashchange', scheduleEnhance);
 window.addEventListener('bes-homeroom-store-updated', scheduleEnhance);
+window.addEventListener('bes-student-roster-sorted', scheduleEnhance);
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', scheduleEnhance, { once: true });
