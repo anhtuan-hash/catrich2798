@@ -202,16 +202,16 @@ export function inferNaturalHomeroomCommand(query, classes = [], language = 'vi'
 }
 
 export function queueHomeroomAction(action) {
-  const payload = { ...action, type: 'homeroom.navigate', createdAt: Date.now() };
-  const storage = safeStorage('sessionStorage');
-  try { storage?.setItem(PENDING_HOMEROOM_ACTION_KEY, JSON.stringify(payload)); } catch { /* same-tab event remains available */ }
   if (typeof window === 'undefined') return;
+  const payload = { ...action, type: 'homeroom.navigate', createdAt: Date.now() };
   const onHomeroom = /#\/?homeroom(?:[?&/]|$)/i.test(window.location.hash || '');
   if (onHomeroom) {
     window.dispatchEvent(new CustomEvent('bes-homeroom-command', { detail: payload }));
-  } else {
-    window.location.hash = '#/homeroom';
+    return;
   }
+  const storage = safeStorage('sessionStorage');
+  try { storage?.setItem(PENDING_HOMEROOM_ACTION_KEY, JSON.stringify(payload)); } catch { /* navigation still works without storage */ }
+  window.location.hash = '#/homeroom';
 }
 
 export function consumePendingHomeroomAction() {
