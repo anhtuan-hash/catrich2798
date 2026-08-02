@@ -16,19 +16,38 @@
   color: var(--text, #202124);
   font-weight: 800;
   cursor: pointer;
+  user-select: none;
 }
 
 .hr-student-select-all input,
-.hr-student-select-column input {
-  width: 19px;
-  height: 19px;
-  margin: 0;
+.hr-student-select-column input,
+.bes-student-row-checkbox {
+  appearance: auto !important;
+  -webkit-appearance: checkbox !important;
+  inline-size: 20px !important;
+  block-size: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+  flex: 0 0 20px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 4px !important;
   accent-color: #1a73e8;
   cursor: pointer;
+  vertical-align: middle;
+}
+
+.bes-student-row-checkbox {
+  position: relative;
+  z-index: 2;
+  margin-right: 10px !important;
 }
 
 .hr-student-select-all input:disabled,
-.hr-student-select-column input:disabled {
+.hr-student-select-column input:disabled,
+.bes-student-row-checkbox:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
