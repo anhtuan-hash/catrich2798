@@ -15,6 +15,7 @@ import GlobalHomeroomNavigationTab from './GlobalHomeroomNavigationTab.jsx';
 import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
 import GlobalWorkHubNotificationBridge from './GlobalWorkHubNotificationBridge.jsx';
 import GlobalWorkScheduleBridge from './GlobalWorkScheduleBridge.jsx';
+import GlobalWorkHubGoogleHeroV2 from './GlobalWorkHubGoogleHeroV2.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalHomeBriefingExtras from './GlobalHomeBriefingExtras.jsx';
 import GlobalHomeViewportFitBridge from './GlobalHomeViewportFitBridge.jsx';
@@ -67,6 +68,7 @@ import './GlobalWeeklyPracticeStatistics.css';
 import './GlobalWeeklyPracticeStatisticsLaunchFix.css';
 import './GlobalWeeklyPracticeSimple.css';
 import './GlobalWeeklyPracticeStudentProof.css';
+import './GlobalWorkHubGoogleHeroV2.css';
 // Performance rules run before the final geometry contract.
 import './GlobalScrollPerformance.css';
 // Final geometry, followed only by the overlay stacking contract.
@@ -101,6 +103,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalDashboardFooterBridge route={props.route} language={props.language} />
       <GlobalWorkHubNotificationBridge currentUser={props.currentUser} language={props.language} />
       <GlobalWorkScheduleBridge />
+      <GlobalWorkHubGoogleHeroV2 route={props.route} />
       {workHubActive ? (
         <Suspense fallback={null}>
           <GlobalWorkScheduleCompatibleCenter {...props} />
