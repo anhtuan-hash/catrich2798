@@ -9,6 +9,7 @@ import {
 import HomeroomClassProfileEditor from '../components/homeroom/HomeroomClassProfileEditor.jsx';
 import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
 import HomeroomNavigationPalette from '../components/homeroom/HomeroomNavigationPalette.jsx';
+import HomeroomGlassHero from '../components/homeroom/HomeroomGlassHero.jsx';
 import {
   CompetitionTab,
   FeedbackTab,
@@ -52,6 +53,7 @@ import '../components/GlobalHomeroomGoogleRedesign.css';
 import '../components/GlobalHomeroomGoogleColorPolish.css';
 import '../components/GlobalHomeroomGoogleReadabilityPolish.css';
 import '../components/homeroom/HomeroomNavigationPalette.css';
+import '../components/homeroom/HomeroomGlassHero.css';
 
 export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   const [workspaceId, setWorkspaceId] = useState(() => getCurrentHomeroomWorkspaceId(currentUser));
@@ -233,7 +235,6 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     const classType = normalizeHomeroomClassType(classDraft.classType);
     await commit({ ...workspace, classProfile: { ...classDraft, classType } }, `Đã lưu thông tin ${getClassTypeLabel(classType).toLowerCase()}.`);
   };
-  const className = workspace.classProfile?.className || 'Chưa thiết lập lớp';
   const activeStudents = workspace.students.filter((item) => item.active !== false).length;
   const subjectMode = isSubjectClass(workspace);
   const visibleTab = isClassTabAllowed(activeTab, workspace, currentUser?.role === 'admin') ? activeTab : getDefaultClassTab(workspace);
@@ -242,11 +243,15 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   if (loading) return <div className="page hr-page"><section className="hr-panel hr-loading"><span /><h2>Đang mở không gian lớp…</h2></section></div>;
 
   return <div className={`page hr-page ${subjectMode ? 'is-subject-class' : 'is-homeroom-class'}`}>
-    <section className="hr-hero">
-      <div className="hr-hero-copy"><p>{subjectMode ? 'SUBJECT TEACHER WORKSPACE · FOCUSED' : 'HOMEROOM TEACHER WORKSPACE · FOCUSED'}</p><div className={`hr-class-type-badge hero ${getWorkspaceClassType(workspace)}`}>{classTypeLabel}</div><h1>{language === 'vi' ? (subjectMode ? 'Giáo viên bộ môn' : 'Giáo viên chủ nhiệm') : (subjectMode ? 'Subject Teacher' : 'Homeroom Teacher')}</h1><span>{className} · {workspace.classProfile?.schoolYear || '—'} · {activeStudents} {language === 'vi' ? 'học sinh' : 'students'}</span></div>
-      <div className="hr-hero-art" aria-hidden="true"><div className="hr-board"><i /><i /><i /><b>{workspace.classProfile?.className || (subjectMode ? 'GVBM' : 'GVCN')}</b></div><span className="hr-person p1" /><span className="hr-person p2" /><span className="hr-person p3" /></div>
-      <aside className="hr-hero-meta"><span className={`hr-sync ${syncState}`}><i />{syncState === 'cloud' ? 'Đã đồng bộ Supabase' : 'Đang lưu trên thiết bị'}</span><b>{currentUser?.name || currentUser?.email || 'Giáo viên'}</b><small>{workspace.classProfile?.adviserEmail || currentUser?.email || ''}</small><span className="hrc-offline-badge">{subjectMode ? 'Chế độ bộ môn · Chỉ lớp và điểm' : 'Không gian GVCN tinh gọn'}</span></aside>
-    </section>
+    <HomeroomGlassHero
+      workspace={workspace}
+      currentUser={currentUser}
+      syncState={syncState}
+      language={language}
+      subjectMode={subjectMode}
+      classTypeLabel={classTypeLabel}
+      activeStudents={activeStudents}
+    />
 
     <HomeroomNavigationPalette key={currentUser?.id || currentUser?.authId || currentUser?.email || 'guest'} active={visibleTab} setActive={setActiveTab} language={language} currentUser={currentUser} workspace={workspace} />
     {message ? <div className="hr-toast"><span>✓</span>{message}</div> : null}
