@@ -45,8 +45,8 @@ function SparkleIcon() {
   </svg>;
 }
 
-function GraduationCap() {
-  return <svg viewBox="0 0 140 140" aria-hidden="true">
+function GraduationCap({ x = 0, y = 0, scale = 1 }) {
+  return <g transform={`translate(${x} ${y}) scale(${scale})`}>
     <defs>
       <linearGradient id="hr-material-cap-top" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0" stopColor="#4f8df7" />
@@ -61,7 +61,7 @@ function GraduationCap() {
     <path fill="url(#hr-material-cap-body)" d="M35 69v27c12.5 13.5 57.5 13.5 70 0V69L70 87 35 69Z" />
     <path fill="none" stroke="#8ab4f8" strokeLinecap="round" strokeWidth="5" d="M121 61v29" />
     <circle cx="121" cy="98" r="7" fill="#8ab4f8" />
-  </svg>;
+  </g>;
 }
 
 function MaterialIllustration() {
@@ -80,7 +80,7 @@ function MaterialIllustration() {
     <rect x="132" y="135" width="93" height="10" rx="5" fill="#fff" opacity=".6" />
     <circle cx="276" cy="111" r="15" fill="#34a853" opacity=".9" />
     <path d="m269 111 5 5 10-11" fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" />
-    <g transform="translate(157 90) scale(.75)"><GraduationCap /></g>
+    <GraduationCap x={157} y={90} scale={0.75} />
     <rect x="147" y="220" width="126" height="16" rx="8" fill="#bdc1c6" opacity=".5" />
     <rect x="174" y="242" width="72" height="9" rx="4.5" fill="#dadce0" />
     <circle cx="85" cy="92" r="18" fill="#fef7e0" />
