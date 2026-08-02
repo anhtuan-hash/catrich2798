@@ -60,6 +60,7 @@ function loadRouteModules() {
       import('./class126ForensicExport.js'),
       import('./class126RestoreImporter.js'),
       import('./classGradeDeepRecovery.js'),
+      import('./class113DeepStorageForensics.js'),
       import('./studentRosterCountFix.js'),
       import('./studentRosterFilterTabs.js'),
     ]).catch((error) => {
