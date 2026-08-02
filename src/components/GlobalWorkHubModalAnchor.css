@@ -1,0 +1,77 @@
+/* Anchor the Work Hub detail dialog to the task the user just opened.
+   This file is deliberately loaded after the final modal contract. */
+
+html.work-hub-viewport-modal-open body .app-shell[data-route],
+html.work-hub-viewport-modal-open body .metro-clean-system,
+html.work-hub-viewport-modal-open body main.wp8-page-stage,
+html.work-hub-viewport-modal-open body .v1093-page.v1093-work-hub{
+  transform:none!important;
+  translate:none!important;
+  scale:none!important;
+  rotate:none!important;
+  filter:none!important;
+  perspective:none!important;
+  contain:none!important;
+  content-visibility:visible!important;
+  will-change:auto!important;
+}
+
+html.work-hub-viewport-modal-open body main.wp8-page-stage,
+html.work-hub-viewport-modal-open body .v1093-page.v1093-work-hub{
+  overflow:visible!important;
+  clip-path:none!important;
+}
+
+.v1093-work-hub>.v1093-drawer-backdrop.work-hub-modal-is-anchored,
+.v1093-drawer-backdrop.work-hub-viewport-modal-backdrop.work-hub-modal-is-anchored{
+  display:block!important;
+  place-items:initial!important;
+  padding:0!important;
+}
+
+.v1093-work-hub>.v1093-drawer-backdrop.work-hub-modal-is-anchored>.v1093-drawer.work-delivery-drawer.work-hub-modal-is-anchored,
+.v1093-drawer-backdrop.work-hub-viewport-modal-backdrop.work-hub-modal-is-anchored>.v1093-drawer.work-delivery-drawer.work-hub-modal-is-anchored{
+  position:fixed!important;
+  inset:auto!important;
+  top:var(--work-hub-modal-top,16px)!important;
+  left:var(--work-hub-modal-left,16px)!important;
+  right:auto!important;
+  bottom:auto!important;
+  max-height:var(--work-hub-modal-max-height,min(76dvh,720px))!important;
+  margin:0!important;
+  transform:none!important;
+  translate:none!important;
+  animation:work-hub-anchor-enter .16s cubic-bezier(.2,0,0,1) both!important;
+  transform-origin:85% 15%!important;
+}
+
+@keyframes work-hub-anchor-enter{
+  from{opacity:0;transform:translateY(8px) scale(.985)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+@media (max-width:680px){
+  .v1093-work-hub>.v1093-drawer-backdrop.work-hub-modal-is-anchored,
+  .v1093-drawer-backdrop.work-hub-viewport-modal-backdrop.work-hub-modal-is-anchored{
+    display:grid!important;
+    place-items:center!important;
+    padding:10px!important;
+  }
+
+  .v1093-work-hub>.v1093-drawer-backdrop.work-hub-modal-is-anchored>.v1093-drawer.work-delivery-drawer.work-hub-modal-is-anchored,
+  .v1093-drawer-backdrop.work-hub-viewport-modal-backdrop.work-hub-modal-is-anchored>.v1093-drawer.work-delivery-drawer.work-hub-modal-is-anchored{
+    position:relative!important;
+    inset:auto!important;
+    top:auto!important;
+    left:auto!important;
+    width:calc(100vw - 20px)!important;
+    max-height:calc(100dvh - 20px)!important;
+    margin:0!important;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .v1093-drawer-backdrop .work-delivery-drawer.work-hub-modal-is-anchored{
+    animation:none!important;
+  }
+}
