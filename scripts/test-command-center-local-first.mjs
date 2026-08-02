@@ -29,7 +29,11 @@ check(palette.includes('command-v21-group'), 'Group headings are missing from th
 check(palette.includes('command-v21-inline-actions'), 'Quick actions must render inside the active result.');
 check(!palette.includes('command-v2-action-panel'), 'The old fixed action panel must not return.');
 check(palette.includes('expandedActionEntryId'), 'Compact more-actions behavior is missing.');
-check(paletteCss.includes('max-height: min(700px, 76vh)'), 'V2.1 modal height cap is missing or changed.');
+check(paletteCss.includes('max-height: min(760px, 79vh)'), 'Apple-style modal height cap is missing or changed.');
+check(paletteCss.includes('backdrop-filter: blur(34px) saturate(170%)'), 'Apple-style frosted glass surface is missing.');
+check(paletteCss.includes('font-family: -apple-system'), 'Apple system font stack is missing.');
+check(paletteCss.includes('border-radius: 30px'), 'Apple-style modal radius is missing.');
+check(paletteCss.includes('html[data-theme="dark"]'), 'Dark mode support is missing.');
 check(paletteCss.includes('@media (max-width: 520px)'), 'Narrow-screen layout guard is missing.');
 check(paletteCss.includes('prefers-reduced-motion'), 'Reduced-motion support is missing.');
 
@@ -62,8 +66,8 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Command Center V2.1 local-first and layout guard passed.');
+console.log('Command Center Apple-inspired local-first and layout guard passed.');
 console.log('Supabase/API requests introduced by Command Center: 0');
 console.log('Indexed data source: localStorage workspace snapshots only');
 console.log('Hard caps: 120 classes, 1400 active students, 24 visible results');
-console.log('UI: grouped results, inline actions, compact modal, responsive safeguards');
+console.log('UI: frosted glass, Apple system font, grouped results, inline actions, responsive safeguards');
