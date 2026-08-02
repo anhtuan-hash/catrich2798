@@ -18,6 +18,7 @@ import { isSupabaseConfigured, supabase } from './utils/supabase.js';
 const ASSIGNED_CLASSES_RPC = 'get_my_assigned_school_classes';
 const RPC_TIMEOUT_MS = 3500;
 const RETRY_DELAY_MS = 1600;
+const PERMANENT_DELETION_PREFIX = 'bes-permanent-student-deletions-v1';
 const syncPromises = new Map();
 let installed = false;
 let retryTimer = 0;
@@ -29,8 +30,47 @@ function text(value, fallback = '') {
   return normalized || fallback;
 }
 
+function fold(value) {
+  return text(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function normalizeStudentCode(value) {
+  return fold(value).replace(/\s+/g, '').replace(/^cp0*(\d+)$/, 'cp$1');
+}
+
 function userKey(user) {
   return text(user?.id || user?.authId || user?.email, 'guest').toLowerCase();
+}
+
+function permanentDeletionKey(user, className) {
+  return `${PERMANENT_DELETION_PREFIX}:${userKey(user)}:${normalizeSchoolClassName(className) || text(className).toLowerCase()}`;
+}
+
+function permanentDeletionRows(user, className) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(permanentDeletionKey(user, className)) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function studentWasPermanentlyDeleted(student, tombstones) {
+  const id = text(student?.id);
+  const code = normalizeStudentCode(student?.code);
+  const identity = `${fold(student?.fullName)}|${text(student?.birthDate)}`;
+  return tombstones.some((item) => (
+    (id && text(item?.id) === id)
+    || (code && normalizeStudentCode(item?.code) === code)
+    || (identity !== '|' && text(item?.identity) === identity)
+  ));
 }
 
 function isHomeroomRoute() {
@@ -67,14 +107,17 @@ function isDeletedAssignedStudent(student) {
   return student?.lifecycleStatus === 'deleted' || Boolean(student?.deletedAt);
 }
 
-function normalizeAssignedRow(row) {
+function normalizeAssignedRow(row, user) {
   const payload = row?.class_payload && typeof row.class_payload === 'object' ? row.class_payload : {};
   const className = normalizeSchoolClassName(row?.class_name || payload.className);
   if (!className) return null;
   const assignmentType = ['homeroom', 'subject', 'managed'].includes(row?.assignment_type)
     ? row.assignment_type
     : 'subject';
-  const students = Array.isArray(payload.students) ? payload.students : [];
+  const tombstones = permanentDeletionRows(user, className);
+  const students = (Array.isArray(payload.students) ? payload.students : []).filter((student) => (
+    !studentWasPermanentlyDeleted(student, tombstones)
+  ));
   const activeStudentCount = students.filter((student) => (
     student?.active !== false && !isDeletedAssignedStudent(student)
   )).length;
@@ -108,7 +151,7 @@ export async function listAssignedSchoolClasses(user) {
   }
   const byClass = new Map();
   (result?.data || []).forEach((row) => {
-    const item = normalizeAssignedRow(row);
+    const item = normalizeAssignedRow(row, user);
     if (!item) return;
     const current = byClass.get(item.className);
     if (!current || Date.parse(item.registryUpdatedAt || 0) >= Date.parse(current.registryUpdatedAt || 0)) {
