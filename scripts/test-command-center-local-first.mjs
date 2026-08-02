@@ -17,7 +17,7 @@ const failures = [];
 const check = (condition, message) => { if (!condition) failures.push(message); };
 
 check(paletteEntry.includes("GlobalCommandPaletteV21.jsx"), 'Global Command K entry must point to V2.1.');
-check(paletteEntry.includes("GlobalCommandPaletteV22HoverFix.css"), 'Hover/focus refinement must load after the base palette styles.');
+check(paletteEntry.includes("GlobalCommandPaletteV22HoverFix.css"), 'Interaction cleanup must load after the base palette styles.');
 check(palette.includes("import('../commandCenter/localCommandData.js')"), 'Local homeroom index must remain dynamically imported.');
 check(palette.includes('requestIdleTask'), 'Local indexing must be scheduled during idle time.');
 check(palette.includes('useDebouncedValue(query, 70)'), 'Search input must remain debounced.');
@@ -39,14 +39,17 @@ check(paletteCss.includes('html[data-theme="dark"]'), 'Dark mode support is miss
 check(paletteCss.includes('@media (max-width: 520px)'), 'Narrow-screen layout guard is missing.');
 check(paletteCss.includes('prefers-reduced-motion'), 'Reduced-motion support is missing.');
 
-check(hoverCss.includes('.command-v21-header:focus-within'), 'Search focus refinement is missing.');
-check(hoverCss.includes('border-color: transparent !important'), 'Square blue result borders must remain disabled.');
-check(hoverCss.includes('--cmd-keyboard-ring'), 'Subtle keyboard-only focus ring is missing.');
-check(hoverCss.includes(':focus:not(:focus-visible)'), 'Mouse focus must not render a focus frame.');
-check(hoverCss.includes('inset 2px 0 0'), 'Active results must use a slim edge indicator instead of a full frame.');
-check(hoverCss.includes('@media (forced-colors: active)'), 'High-contrast focus fallback is missing.');
-check(!hoverCss.includes('fetch('), 'Hover refinement must remain CSS-only and make no requests.');
-check(!hoverCss.toLowerCase().includes('supabase'), 'Hover refinement must not reference Supabase.');
+check(hoverCss.includes('-webkit-focus-ring-color: transparent !important'), 'Browser focus ring must remain disabled.');
+check(hoverCss.includes('outline: 0 !important'), 'Command palette outlines must remain disabled.');
+check(hoverCss.includes('background: var(--cmd-active-neutral) !important'), 'Selected results must use a neutral background.');
+check(hoverCss.includes(':focus-visible::before'), 'Focus pseudo-elements must remain disabled.');
+check(hoverCss.includes('content: none !important'), 'Global focus decorations must remain suppressed.');
+check(!hoverCss.includes('--cmd-keyboard-ring'), 'No keyboard focus ring token may return.');
+check(!hoverCss.includes('inset 2px 0 0'), 'No blue edge indicator may return.');
+check(!hoverCss.includes('inset 3px 0 0'), 'No thick blue edge indicator may return.');
+check(hoverCss.includes('@media (forced-colors: active)'), 'High-contrast fallback is missing.');
+check(!hoverCss.includes('fetch('), 'Interaction cleanup must remain CSS-only and make no requests.');
+check(!hoverCss.toLowerCase().includes('supabase'), 'Interaction cleanup must not reference Supabase.');
 
 check(localData.includes('listLocalHomeroomWorkspaces'), 'Command index must use the local workspace catalog.');
 check(localData.includes('loadLocalHomeroomWorkspace'), 'Command index must load local workspace snapshots only.');
@@ -77,8 +80,8 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Command Center Apple-inspired local-first and interaction guard passed.');
+console.log('Command Center no-frame local-first guard passed.');
 console.log('Supabase/API requests introduced by Command Center: 0');
 console.log('Indexed data source: localStorage workspace snapshots only');
 console.log('Hard caps: 120 classes, 1400 active students, 24 visible results');
-console.log('UI: no square blue hover frame, keyboard-only subtle focus, responsive safeguards');
+console.log('UI: no blue borders, no focus rings, no edge indicators, neutral selection only');
