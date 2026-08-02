@@ -1,0 +1,619 @@
+/* Final presentation layer for the homeroom workspace.
+   It keeps all existing components and behaviour, but gives the page a
+   calmer Google Workspace / Material 3 visual hierarchy. */
+
+:root {
+  --hrm3-primary: #0b57d0;
+  --hrm3-primary-hover: #0842a0;
+  --hrm3-primary-soft: #d3e3fd;
+  --hrm3-primary-container: #e8f0fe;
+  --hrm3-green: #137333;
+  --hrm3-green-soft: #e6f4ea;
+  --hrm3-red: #b3261e;
+  --hrm3-red-soft: #fce8e6;
+  --hrm3-ink: #1f1f1f;
+  --hrm3-muted: #5f6368;
+  --hrm3-bg: #f6f8fc;
+  --hrm3-surface: #ffffff;
+  --hrm3-surface-alt: #f8fafd;
+  --hrm3-outline: #dfe3eb;
+  --hrm3-outline-strong: #c7cdd8;
+  --hrm3-shadow-1: 0 1px 2px rgba(60, 64, 67, .10), 0 1px 3px 1px rgba(60, 64, 67, .06);
+  --hrm3-shadow-2: 0 4px 10px rgba(60, 64, 67, .10), 0 2px 6px rgba(60, 64, 67, .08);
+  --hrm3-shadow-3: 0 10px 28px rgba(60, 64, 67, .12);
+}
+
+.page.hr-page {
+  width: min(1440px, calc(100vw - 48px)) !important;
+  padding-top: 22px !important;
+  background: transparent !important;
+  isolation: isolate;
+}
+
+.page.hr-page::before,
+.page.hr-page::after {
+  display: none !important;
+}
+
+.hr-page .hr-workspace-body,
+.hr-page .hr-tab-stack {
+  gap: 20px !important;
+}
+
+/* A quieter, more compact hero inspired by Google Workspace home screens. */
+.hr-page .hr-hero {
+  min-height: 236px !important;
+  grid-template-columns: minmax(0, 1.4fr) minmax(220px, .62fr) minmax(230px, .52fr) !important;
+  gap: 16px !important;
+  margin-bottom: 20px !important;
+  padding: 20px !important;
+  border: 1px solid rgba(11, 87, 208, .08) !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(circle at 72% -20%, rgba(11, 87, 208, .12), transparent 34%),
+    linear-gradient(135deg, #ffffff 0%, #f8fbff 55%, #eef5ff 100%) !important;
+  box-shadow: var(--hrm3-shadow-1) !important;
+}
+
+.hr-page .hr-hero::before {
+  width: 270px !important;
+  height: 270px !important;
+  right: 25% !important;
+  top: -180px !important;
+  background: rgba(11, 87, 208, .055) !important;
+}
+
+.hr-page .hr-hero-copy {
+  padding: 14px 18px !important;
+}
+
+.hr-page .hr-hero-copy > p {
+  margin-bottom: 10px !important;
+  font-size: 11px !important;
+  letter-spacing: .085em !important;
+}
+
+.hr-page .hr-class-type-badge.hero {
+  margin-bottom: 10px !important;
+  min-height: 28px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: var(--hrm3-green-soft) !important;
+  color: var(--hrm3-green) !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .05em !important;
+}
+
+.hr-page.is-subject-class .hr-class-type-badge.hero {
+  background: var(--hrm3-primary-container) !important;
+  color: #174ea6 !important;
+}
+
+.hr-page .hr-hero-copy h1 {
+  margin-bottom: 14px !important;
+  font-size: clamp(38px, 4vw, 58px) !important;
+  font-weight: 500 !important;
+  line-height: 1.02 !important;
+  letter-spacing: -.035em !important;
+}
+
+.hr-page .hr-hero-copy > span {
+  min-height: 36px !important;
+  padding: 0 14px !important;
+  border: 1px solid #d6e3f5 !important;
+  background: #f7faff !important;
+}
+
+.hr-page .hr-hero-art {
+  min-height: 196px !important;
+  border: 1px solid #dce7f7 !important;
+  border-radius: 22px !important;
+  background: linear-gradient(180deg, #edf4ff 0%, #e3eeff 100%) !important;
+}
+
+.hr-page .hr-board {
+  width: min(100%, 230px) !important;
+  height: 112px !important;
+  border-width: 8px !important;
+  box-shadow: 0 8px 18px rgba(60, 64, 67, .12) !important;
+}
+
+.hr-page .hr-board b {
+  font-size: 25px !important;
+}
+
+.hr-page .hr-person {
+  bottom: 22px !important;
+  width: 44px !important;
+  height: 66px !important;
+}
+
+.hr-page .hr-person::before {
+  left: 7px !important;
+  top: -20px !important;
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.hr-page .hr-hero-meta {
+  padding: 18px !important;
+  border: 1px solid var(--hrm3-outline) !important;
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, .94) !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .06) !important;
+}
+
+.hr-page .hr-hero-meta > b {
+  font-size: 18px !important;
+}
+
+/* Material navigation: one contained rail, not a floating oversized capsule. */
+.hr-page .hr-tabs {
+  top: 82px !important;
+  gap: 2px !important;
+  margin-bottom: 20px !important;
+  padding: 6px !important;
+  border: 1px solid rgba(218, 220, 224, .88) !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, .96) !important;
+  box-shadow: var(--hrm3-shadow-1) !important;
+}
+
+.hr-page .hr-tabs button {
+  min-height: 42px !important;
+  padding: 0 14px !important;
+  border-radius: 13px !important;
+}
+
+.hr-page .hr-tabs button.active {
+  background: var(--hrm3-primary-soft) !important;
+  color: #041e49 !important;
+}
+
+/* Panels use consistent low elevation and border hierarchy. */
+.hr-page .hr-panel,
+.hr-page .hr-loading {
+  padding: 26px !important;
+  border: 1px solid var(--hrm3-outline) !important;
+  border-radius: 24px !important;
+  background: var(--hrm3-surface) !important;
+  box-shadow: var(--hrm3-shadow-1) !important;
+}
+
+.hr-page .hr-panel-head {
+  align-items: center !important;
+  margin-bottom: 22px !important;
+}
+
+.hr-page .hr-panel-head h2,
+.hr-page .hr-share-panel h2 {
+  font-size: clamp(24px, 2vw, 30px) !important;
+  font-weight: 500 !important;
+}
+
+.hr-page .hr-panel-head small,
+.hr-page .hr-panel > div > small,
+.hr-page .hr-share-panel > div > small {
+  color: var(--hrm3-primary) !important;
+  font-weight: 800 !important;
+}
+
+/* Classification banner becomes a compact Google information card. */
+.hr-page .hr-phase3-banner {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 20px !important;
+  padding: 24px 26px !important;
+  border: 1px solid #d9e5f7 !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f4f8ff 100%) !important;
+}
+
+.hr-page .hr-phase3-banner > div p {
+  max-width: 820px !important;
+  margin: 8px 0 0 !important;
+}
+
+.hr-page .hr-phase3-banner > span {
+  min-width: 220px !important;
+  padding: 16px 18px !important;
+  border-radius: 16px !important;
+  background: #0f3f34 !important;
+  color: #ffffff !important;
+  text-align: left !important;
+  font-weight: 700 !important;
+}
+
+.hr-page .hr-phase3-banner > span small {
+  display: block !important;
+  margin-top: 5px !important;
+  color: #b7e1cd !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+/* Teacher filter: cleaner, lighter and aligned to the card grid. */
+.hr-page .bes-teacher-class-filter {
+  grid-template-columns: minmax(260px, 1fr) minmax(260px, 360px) auto !important;
+  align-items: center !important;
+  gap: 14px !important;
+  margin-bottom: 20px !important;
+  padding: 16px !important;
+  border: 1px solid #d9e5f7 !important;
+  border-radius: 18px !important;
+  background: #f8fbff !important;
+  box-shadow: none !important;
+}
+
+.hr-page .bes-teacher-class-filter-copy small {
+  color: var(--hrm3-primary) !important;
+}
+
+.hr-page .bes-teacher-class-filter-copy strong {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+.hr-page .bes-teacher-class-filter select {
+  min-height: 46px !important;
+  border: 1px solid var(--hrm3-outline-strong) !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.hr-page .bes-teacher-class-filter-result {
+  min-width: 170px !important;
+  min-height: 46px !important;
+  justify-content: center !important;
+  border-radius: 12px !important;
+  background: var(--hrm3-green-soft) !important;
+}
+
+/* Class catalogue: Material cards with clear active state. */
+.hr-page .hr-class-catalog {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+}
+
+.hr-page .hr-class-catalog > article {
+  position: relative !important;
+  min-width: 0 !important;
+  padding: 20px !important;
+  overflow: hidden !important;
+  border: 1px solid var(--hrm3-outline) !important;
+  border-radius: 20px !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease !important;
+}
+
+.hr-page .hr-class-catalog > article:hover {
+  border-color: #a8c7fa !important;
+  box-shadow: var(--hrm3-shadow-2) !important;
+  transform: translateY(-2px) !important;
+}
+
+.hr-page .hr-class-catalog > article.current {
+  border: 2px solid var(--hrm3-primary) !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%) !important;
+  box-shadow: 0 0 0 3px rgba(11, 87, 208, .08) !important;
+}
+
+.hr-page .hr-class-catalog > article.current::after {
+  content: "ĐANG MỞ" !important;
+  position: absolute !important;
+  top: 14px !important;
+  right: 14px !important;
+  padding: 5px 8px !important;
+  border-radius: 999px !important;
+  background: var(--hrm3-primary-container) !important;
+  color: #174ea6 !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: .06em !important;
+}
+
+.hr-page .hr-class-catalog > article header {
+  display: grid !important;
+  grid-template-columns: 52px minmax(0, 1fr) !important;
+  gap: 14px !important;
+  align-items: start !important;
+}
+
+.hr-page .hr-class-catalog > article header > span {
+  width: 52px !important;
+  height: 52px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 16px !important;
+  background: var(--hrm3-green-soft) !important;
+  color: var(--hrm3-green) !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+}
+
+.hr-page .hr-class-catalog > article.is-subject header > span {
+  background: var(--hrm3-primary-container) !important;
+  color: #174ea6 !important;
+}
+
+.hr-page .hr-class-catalog h3 {
+  margin: 7px 0 4px !important;
+  font-size: 21px !important;
+  font-weight: 600 !important;
+  letter-spacing: -.02em !important;
+}
+
+.hr-page .hr-class-catalog header small {
+  color: var(--hrm3-muted) !important;
+  font-size: 12px !important;
+}
+
+.hr-page .hr-class-type-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 26px !important;
+  padding: 0 9px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: var(--hrm3-primary-container) !important;
+  color: #174ea6 !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: .055em !important;
+}
+
+.hr-page .hr-class-type-badge.homeroom {
+  background: var(--hrm3-green-soft) !important;
+  color: var(--hrm3-green) !important;
+}
+
+.hr-page .bes-class-teacher-assignment {
+  margin: 14px 0 0 !important;
+}
+
+.hr-page .bes-class-teacher-assignment span {
+  padding: 6px 9px !important;
+  border-radius: 8px !important;
+  font-size: 10px !important;
+}
+
+.hr-page .hr-class-card-stats {
+  display: grid !important;
+  grid-template-columns: .78fr 1.22fr !important;
+  gap: 10px !important;
+  margin: 16px 0 !important;
+}
+
+.hr-page .hr-class-card-stats > b {
+  min-width: 0 !important;
+  min-height: 68px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  padding: 12px !important;
+  border-radius: 14px !important;
+  background: var(--hrm3-surface-alt) !important;
+  color: var(--hrm3-ink) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.hr-page .hr-class-card-stats > b small {
+  color: var(--hrm3-muted) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+}
+
+.hr-page .hr-class-catalog > article footer {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 42px !important;
+}
+
+.hr-page .hr-class-catalog > article footer strong {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 40px !important;
+  color: var(--hrm3-green) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+.hr-page .hr-class-catalog > article footer button {
+  min-height: 40px !important;
+  padding: 0 14px !important;
+  border: 1px solid var(--hrm3-outline) !important;
+  background: #ffffff !important;
+  color: var(--hrm3-primary) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.hr-page .hr-class-catalog > article footer button:hover {
+  border-color: #a8c7fa !important;
+  background: #f5f9ff !important;
+}
+
+.hr-page .hr-class-catalog > article footer button.danger {
+  margin-left: auto !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  color: var(--hrm3-red) !important;
+}
+
+.hr-page .hr-class-catalog > article footer button.danger:hover {
+  background: var(--hrm3-red-soft) !important;
+}
+
+/* Create/copy cards read as two purposeful setup panels. */
+.hr-page .hr-two-column {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+}
+
+.hr-page .hr-two-column > .hr-panel {
+  align-self: start !important;
+}
+
+.hr-page .hr-two-column > .hr-panel .hr-panel-head {
+  padding-bottom: 16px !important;
+  border-bottom: 1px solid var(--hrm3-outline) !important;
+}
+
+.hr-page .hr-security-note {
+  margin: 18px 0 0 !important;
+  padding: 14px 16px !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: #fef7e0 !important;
+  color: #5f4300 !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+.hr-page .hr-form-grid.two {
+  gap: 15px !important;
+}
+
+.hr-page input,
+.hr-page select,
+.hr-page textarea {
+  border: 1px solid #e0e3e7 !important;
+  background: #f8fafd !important;
+}
+
+.hr-page input:hover,
+.hr-page select:hover,
+.hr-page textarea:hover {
+  border-color: #c4c7c5 !important;
+  background: #ffffff !important;
+}
+
+.hr-page input:focus,
+.hr-page select:focus,
+.hr-page textarea:focus {
+  border-color: var(--hrm3-primary) !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(11, 87, 208, .10) !important;
+}
+
+.hr-page button.primary {
+  background: var(--hrm3-primary) !important;
+}
+
+.hr-page button.primary:hover {
+  background: var(--hrm3-primary-hover) !important;
+  box-shadow: 0 2px 6px rgba(11, 87, 208, .22) !important;
+}
+
+.hr-page button.secondary,
+.hr-page .hr-row-actions button,
+.hr-page .text-btn {
+  border-color: var(--hrm3-outline-strong) !important;
+}
+
+.hr-page .hr-table-wrap,
+.hr-page .hr-preview-table {
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 1180px) {
+  .hr-page .hr-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, .7fr) !important;
+  }
+
+  .hr-page .hr-hero-meta {
+    grid-column: 1 / -1 !important;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    align-items: center !important;
+  }
+
+  .hr-page .hr-class-catalog {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .page.hr-page {
+    width: min(100% - 24px, 1440px) !important;
+  }
+
+  .hr-page .hr-hero {
+    grid-template-columns: 1fr !important;
+  }
+
+  .hr-page .hr-hero-art {
+    min-height: 180px !important;
+  }
+
+  .hr-page .hr-hero-meta {
+    grid-column: auto !important;
+  }
+
+  .hr-page .hr-phase3-banner,
+  .hr-page .hr-two-column {
+    grid-template-columns: 1fr !important;
+  }
+
+  .hr-page .hr-phase3-banner > span {
+    min-width: 0 !important;
+  }
+
+  .hr-page .bes-teacher-class-filter {
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+  }
+
+  .hr-page .bes-teacher-class-filter-result {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .page.hr-page {
+    width: min(100% - 16px, 1440px) !important;
+    padding-top: 12px !important;
+  }
+
+  .hr-page .hr-hero,
+  .hr-page .hr-panel {
+    padding: 18px !important;
+    border-radius: 20px !important;
+  }
+
+  .hr-page .hr-hero-copy {
+    padding: 4px !important;
+  }
+
+  .hr-page .hr-hero-copy h1 {
+    font-size: 36px !important;
+  }
+
+  .hr-page .hr-tabs {
+    top: 70px !important;
+    border-radius: 15px !important;
+  }
+
+  .hr-page .hr-class-catalog {
+    grid-template-columns: 1fr !important;
+  }
+
+  .hr-page .hr-class-catalog > article {
+    padding: 17px !important;
+  }
+
+  .hr-page .hr-panel-head {
+    align-items: flex-start !important;
+  }
+}
