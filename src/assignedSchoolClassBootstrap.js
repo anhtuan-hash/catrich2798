@@ -57,6 +57,10 @@ function withTimeout(promise, timeoutMs = RPC_TIMEOUT_MS) {
   ]);
 }
 
+function isDeletedAssignedStudent(student) {
+  return student?.lifecycleStatus === 'deleted' || Boolean(student?.deletedAt);
+}
+
 function normalizeAssignedRow(row) {
   const payload = row?.class_payload && typeof row.class_payload === 'object' ? row.class_payload : {};
   const className = normalizeSchoolClassName(row?.class_name || payload.className);
@@ -64,6 +68,10 @@ function normalizeAssignedRow(row) {
   const assignmentType = ['homeroom', 'subject', 'managed'].includes(row?.assignment_type)
     ? row.assignment_type
     : 'subject';
+  const students = Array.isArray(payload.students) ? payload.students : [];
+  const activeStudentCount = students.filter((student) => (
+    student?.active !== false && !isDeletedAssignedStudent(student)
+  )).length;
   return {
     registryOwnerId: text(row?.registry_owner_id),
     registryUpdatedAt: text(row?.registry_updated_at || payload.updatedAt),
@@ -73,7 +81,8 @@ function normalizeAssignedRow(row) {
     semester: text(payload.semester, 'Học kỳ I'),
     room: text(payload.room),
     assignmentType,
-    students: Array.isArray(payload.students) ? payload.students : [],
+    students,
+    activeStudentCount,
     expectedCount: Number(payload.expectedCount || 0) || 0,
   };
 }
@@ -110,6 +119,7 @@ function signature(item) {
     item.registryUpdatedAt,
     item.assignmentType,
     item.students.length,
+    item.activeStudentCount,
   ].join('|');
 }
 
@@ -204,7 +214,7 @@ async function syncAssignedSchoolClassWorkspacesInternal(user) {
         room: item.room || reconciled.classProfile?.room || '',
         adviserName: text(user?.name || user?.email),
         adviserEmail: text(user?.email),
-        studentCountTarget: item.students.length || item.expectedCount,
+        studentCountTarget: item.activeStudentCount || item.expectedCount,
       },
       schoolAssignment: {
         source: 'school-class-registry',
