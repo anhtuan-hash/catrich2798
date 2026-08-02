@@ -60,6 +60,7 @@ function loadRouteModules() {
       import('./class126ForensicExport.js'),
       import('./class126RestoreImporter.js'),
       import('./studentRosterCountFix.js'),
+      import('./studentRosterFilterTabs.js'),
     ]).catch((error) => {
       homeroomExtrasLoaded = false;
       console.error('[HomeroomExtras] Không thể tải tiện ích báo cáo và cứu hộ dữ liệu.', error);
