@@ -1,0 +1,482 @@
+:root{
+  --whg-blue:#0b57d0;
+  --whg-blue-hover:#0842a0;
+  --whg-blue-soft:#e8f0fe;
+  --whg-green:#188038;
+  --whg-green-soft:#e6f4ea;
+  --whg-amber:#e37400;
+  --whg-amber-soft:#fef7e0;
+  --whg-red:#d93025;
+  --whg-red-soft:#fce8e6;
+  --whg-ink:#1f1f1f;
+  --whg-muted:#5f6368;
+  --whg-line:#e0e3e7;
+  --whg-surface:#fff;
+  --whg-canvas:#f8fafd;
+}
+
+.v1093-page.v1093-work-hub.work-hub-google-hero-v2-mounted{
+  background:var(--whg-canvas)!important;
+}
+
+.v1093-work-hub.work-hub-google-hero-v2-mounted>.v1093-metrics{
+  display:none!important;
+}
+
+.v1093-work-hub .v1093-hero-work.work-hub-google-hero-v2{
+  position:relative;
+  isolation:isolate;
+  display:grid!important;
+  grid-template-columns:minmax(0,1.03fr) minmax(520px,.97fr);
+  grid-template-areas:
+    "copy summary"
+    "actions summary"
+    "support summary";
+  column-gap:34px;
+  row-gap:18px;
+  min-height:410px!important;
+  margin:0 0 18px!important;
+  padding:40px 42px 34px!important;
+  overflow:hidden;
+  border:1px solid var(--whg-line)!important;
+  border-radius:30px!important;
+  background:
+    radial-gradient(circle at 12% 5%,rgba(11,87,208,.07),transparent 26%),
+    linear-gradient(180deg,#fff 0%,#fbfdff 100%)!important;
+  box-shadow:0 1px 2px rgba(60,64,67,.08),0 8px 28px rgba(60,64,67,.06)!important;
+}
+
+.v1093-work-hub .v1093-hero-work.work-hub-google-hero-v2::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  left:-80px;
+  bottom:-120px;
+  width:430px;
+  height:240px;
+  border-radius:50%;
+  background:linear-gradient(135deg,rgba(11,87,208,.08),rgba(66,133,244,.02));
+  transform:rotate(8deg);
+}
+
+.v1093-work-hub .v1093-hero-work.work-hub-google-hero-v2::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  right:-60px;
+  top:-90px;
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(52,168,83,.08),transparent 68%);
+}
+
+.v1093-work-hub .v1093-hero-work.work-hub-google-hero-v2>div:first-child{
+  grid-area:copy;
+  align-self:end;
+  max-width:650px!important;
+  padding:4px 0 0;
+}
+
+.v1093-work-hub .v1093-hero-work.work-hub-google-hero-v2 .v1093-kicker{
+  display:block;
+  margin:0 0 20px!important;
+  color:var(--whg-blue)!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  letter-spacing:.12em!important;
+  text-transform:uppercase;
+}
+
+.v1093-work-hub .v1093-hero-work.work-hub-google-hero-v2 h1{
+  max-width:620px;
+  margin:0 0 20px!important;
+  color:#202124!important;
+  font-size:clamp(46px,4.4vw,66px)!important;
+  font-weight:500!important;
+  line-height:1.02!important;
+  letter-spacing:-.045em!important;
+}
+
+.v1093-work-hub .v1093-hero-work.work-hub-google-hero-v2 p{
+  max-width:640px!important;
+  margin:0!important;
+  color:var(--whg-muted)!important;
+  font-size:17px!important;
+  line-height:1.65!important;
+}
+
+.v1093-work-hub .v1093-hero-work.work-hub-google-hero-v2>.v1093-runtime-pill{
+  position:absolute!important;
+  top:22px;
+  right:24px;
+  z-index:3;
+  opacity:0;
+  pointer-events:none;
+}
+
+.work-hub-google-hero-actions{
+  grid-area:actions;
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.work-hub-google-hero-actions button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  min-height:48px;
+  padding:0 20px;
+  border:1px solid #c7cacf;
+  border-radius:14px;
+  background:#fff;
+  color:#174ea6;
+  font:600 14px/1 "Google Sans",Roboto,Arial,sans-serif;
+  cursor:pointer;
+  box-shadow:none;
+  transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+
+.work-hub-google-hero-actions button:hover{
+  border-color:#a8c7fa;
+  background:#f8fbff;
+  box-shadow:0 1px 2px rgba(60,64,67,.15);
+  transform:translateY(-1px);
+}
+
+.work-hub-google-hero-actions button.primary{
+  min-width:166px;
+  border-color:var(--whg-blue);
+  background:var(--whg-blue);
+  color:#fff;
+}
+
+.work-hub-google-hero-actions button.primary:hover{
+  border-color:var(--whg-blue-hover);
+  background:var(--whg-blue-hover);
+}
+
+.work-hub-google-hero-actions button span{
+  font-size:20px;
+  font-weight:400;
+  line-height:1;
+}
+
+.work-hub-google-hero-support{
+  grid-area:support;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:0;
+  align-self:start;
+  max-width:660px;
+  min-height:66px;
+  padding:10px 8px;
+  border:1px solid #e4e7eb;
+  border-radius:18px;
+  background:rgba(248,250,253,.9);
+}
+
+.work-hub-google-hero-support span{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+  padding:0 14px;
+  color:#3c4043;
+  font-size:12px;
+  font-weight:500;
+  white-space:nowrap;
+}
+
+.work-hub-google-hero-support span+span{
+  border-left:1px solid #e3e6ea;
+}
+
+.work-hub-google-hero-support i{
+  display:grid;
+  place-items:center;
+  width:28px;
+  height:28px;
+  flex:0 0 auto;
+  border-radius:10px;
+  font-style:normal;
+  font-size:15px;
+  font-weight:700;
+}
+
+.work-hub-google-hero-support i.green{background:#e6f4ea;color:#188038}
+.work-hub-google-hero-support i.blue{background:#e8f0fe;color:#1967d2}
+.work-hub-google-hero-support i.violet{background:#f3e8fd;color:#8430ce}
+
+.work-hub-google-hero-summary{
+  grid-area:summary;
+  align-self:stretch;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  min-width:0;
+  padding:18px;
+  border:1px solid #dfe4ea;
+  border-radius:26px;
+  background:rgba(248,250,253,.92);
+  box-shadow:0 1px 2px rgba(60,64,67,.06);
+}
+
+.work-hub-google-hero-summary .summary-card{
+  position:relative;
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr);
+  align-items:start;
+  gap:12px;
+  min-width:0;
+  min-height:128px;
+  padding:17px;
+  border:1px solid #e1e5ea;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 1px 2px rgba(60,64,67,.05);
+}
+
+.work-hub-google-hero-summary .summary-icon{
+  display:grid;
+  place-items:center;
+  width:48px;
+  height:48px;
+  border-radius:16px;
+  font-size:23px;
+  font-weight:700;
+}
+
+.work-hub-google-hero-summary .summary-card.blue .summary-icon{background:var(--whg-blue-soft);color:#1967d2}
+.work-hub-google-hero-summary .summary-card.green .summary-icon{background:var(--whg-green-soft);color:var(--whg-green)}
+.work-hub-google-hero-summary .summary-card.amber .summary-icon{background:var(--whg-amber-soft);color:var(--whg-amber)}
+
+.work-hub-google-hero-summary .summary-card>div:last-child{
+  min-width:0;
+}
+
+.work-hub-google-hero-summary .summary-card span{
+  display:block;
+  color:#3c4043;
+  font-size:13px;
+  font-weight:600;
+  line-height:1.35;
+}
+
+.work-hub-google-hero-summary .summary-card strong{
+  display:block;
+  margin:7px 0 4px;
+  color:#202124;
+  font-size:31px;
+  font-weight:500;
+  line-height:1;
+}
+
+.work-hub-google-hero-summary .summary-card small{
+  display:block;
+  overflow:hidden;
+  color:#6f7378;
+  font-size:11px;
+  line-height:1.4;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.work-hub-google-hero-summary .status-card{
+  grid-column:2;
+  grid-row:2 / span 2;
+  display:block;
+  min-height:246px;
+}
+
+.work-hub-google-hero-summary .status-card header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:17px;
+}
+
+.work-hub-google-hero-summary .status-card header span{
+  color:#202124;
+  font-size:14px;
+  font-weight:600;
+}
+
+.work-hub-google-hero-summary .status-card header button{
+  padding:6px 8px;
+  border:0;
+  border-radius:999px;
+  background:transparent;
+  color:var(--whg-blue);
+  font:600 11px/1 "Google Sans",Roboto,Arial,sans-serif;
+  cursor:pointer;
+}
+
+.work-hub-google-hero-summary .status-card header button:hover{background:#e8f0fe}
+
+.work-hub-google-hero-summary .status-content{
+  display:grid;
+  grid-template-columns:124px minmax(0,1fr);
+  align-items:center;
+  gap:18px;
+}
+
+.work-hub-google-hero-summary .status-chart{
+  display:grid;
+  place-items:center;
+  width:124px;
+  height:124px;
+  border-radius:50%;
+}
+
+.work-hub-google-hero-summary .status-chart>div{
+  display:grid;
+  place-items:center;
+  width:88px;
+  height:88px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:inset 0 0 0 1px rgba(60,64,67,.04);
+}
+
+.work-hub-google-hero-summary .status-chart strong{
+  margin:0;
+  font-size:29px;
+}
+
+.work-hub-google-hero-summary .status-chart span{
+  color:#777b80;
+  font-size:10px;
+  font-weight:500;
+}
+
+.work-hub-google-hero-summary .status-content dl{
+  display:grid;
+  gap:12px;
+  margin:0;
+}
+
+.work-hub-google-hero-summary .status-content dl>div{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.work-hub-google-hero-summary .status-content dt{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  color:#5f6368;
+  font-size:11px;
+}
+
+.work-hub-google-hero-summary .status-content dd{
+  margin:0;
+  color:#202124;
+  font-size:12px;
+  font-weight:700;
+}
+
+.work-hub-google-hero-summary .dot{
+  width:8px;
+  height:8px;
+  margin-right:7px;
+  border-radius:50%;
+}
+
+.work-hub-google-hero-summary .dot.blue{background:#0b57d0}
+.work-hub-google-hero-summary .dot.amber{background:#f9ab00}
+.work-hub-google-hero-summary .dot.red{background:#d93025}
+
+.work-hub-google-hero-summary>footer{
+  grid-column:1;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:center;
+  gap:3px 10px;
+  min-height:84px;
+  padding:15px 16px;
+  border:1px solid #e1e5ea;
+  border-radius:18px;
+  background:#fff;
+}
+
+.work-hub-google-hero-summary>footer>span{
+  grid-row:1 / span 2;
+  align-self:start;
+  margin-top:4px;
+  color:#9aa0a6;
+  font-size:13px;
+}
+
+.work-hub-google-hero-summary>footer.connected>span{color:#34a853}
+.work-hub-google-hero-summary>footer.connecting>span{color:#f9ab00}
+
+.work-hub-google-hero-summary>footer div{
+  display:flex;
+  align-items:baseline;
+  gap:7px;
+}
+
+.work-hub-google-hero-summary>footer strong{
+  color:#202124;
+  font-size:12px;
+  font-weight:700;
+}
+
+.work-hub-google-hero-summary>footer small{
+  color:#777b80;
+  font-size:10px;
+  text-transform:capitalize;
+}
+
+.work-hub-google-hero-summary>footer p{
+  margin:0!important;
+  color:#6f7378!important;
+  font-size:10px!important;
+  line-height:1.4!important;
+}
+
+@media (max-width:1320px){
+  .v1093-work-hub .v1093-hero-work.work-hub-google-hero-v2{
+    grid-template-columns:minmax(0,.95fr) minmax(460px,1.05fr);
+    column-gap:24px;
+    padding:34px 30px 30px!important;
+  }
+  .v1093-work-hub .v1093-hero-work.work-hub-google-hero-v2 h1{font-size:clamp(42px,4.2vw,58px)!important}
+  .work-hub-google-hero-summary .status-content{grid-template-columns:108px minmax(0,1fr);gap:12px}
+  .work-hub-google-hero-summary .status-chart{width:108px;height:108px}
+  .work-hub-google-hero-summary .status-chart>div{width:76px;height:76px}
+}
+
+@media (max-width:1080px){
+  .v1093-work-hub .v1093-hero-work.work-hub-google-hero-v2{
+    grid-template-columns:1fr;
+    grid-template-areas:"copy" "actions" "summary" "support";
+    min-height:0!important;
+  }
+  .work-hub-google-hero-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .work-hub-google-hero-support{max-width:none}
+}
+
+@media (max-width:720px){
+  .v1093-work-hub .v1093-hero-work.work-hub-google-hero-v2{
+    padding:27px 20px 22px!important;
+    border-radius:24px!important;
+  }
+  .v1093-work-hub .v1093-hero-work.work-hub-google-hero-v2 h1{font-size:40px!important}
+  .v1093-work-hub .v1093-hero-work.work-hub-google-hero-v2 p{font-size:15px!important}
+  .work-hub-google-hero-actions{display:grid;grid-template-columns:1fr}
+  .work-hub-google-hero-actions button{width:100%}
+  .work-hub-google-hero-support{grid-template-columns:1fr;padding:7px}
+  .work-hub-google-hero-support span{min-height:42px}
+  .work-hub-google-hero-support span+span{border-left:0;border-top:1px solid #e3e6ea}
+  .work-hub-google-hero-summary{grid-template-columns:1fr;padding:12px}
+  .work-hub-google-hero-summary .status-card{grid-column:auto;grid-row:auto;min-height:230px}
+  .work-hub-google-hero-summary>footer{grid-column:auto}
+}
