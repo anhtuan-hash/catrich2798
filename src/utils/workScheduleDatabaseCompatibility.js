@@ -6,6 +6,7 @@ const SAFE_WORK_HUB_TYPE = 'task';
 const WORK_HUB_CACHE_PREFIX = 'bes-work-hub-v1093-local:';
 const WORK_HUB_SYNC_PREFIX = 'bes-work-hub-v1093-sync:';
 const WORK_HUB_REFRESH_EVENT = 'bes-work-hub-delivery-updated';
+const WORK_HUB_REALTIME_PREFIX = 'bes-runtime-work-hub-';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function isScheduleRow(row) {
@@ -15,6 +16,10 @@ function isScheduleRow(row) {
     && !Array.isArray(row)
     && (row.item_type === LEGACY_SCHEDULE_TYPE || row.metadata?.schedule_event === true),
   );
+}
+
+function realtimeRow(payload) {
+  return payload?.new && Object.keys(payload.new).length ? payload.new : payload?.old;
 }
 
 function rewriteScheduleRow(row) {
@@ -126,6 +131,27 @@ function wrapAutomationEventBuilder(builder) {
   });
 }
 
+function patchWorkHubRealtime(client) {
+  if (!client || typeof client.channel !== 'function') return;
+  const originalChannel = client.channel.bind(client);
+  client.channel = (name, ...args) => {
+    const channel = originalChannel(name, ...args);
+    if (!String(name || '').startsWith(WORK_HUB_REALTIME_PREFIX) || typeof channel?.on !== 'function') {
+      return channel;
+    }
+    const originalOn = channel.on.bind(channel);
+    channel.on = (type, filter, callback) => {
+      const suppressSchedule = type === 'postgres_changes' && filter?.table === 'work_hub_items';
+      if (!suppressSchedule || typeof callback !== 'function') return originalOn(type, filter, callback);
+      return originalOn(type, filter, (payload) => {
+        if (isScheduleRow(realtimeRow(payload))) return;
+        callback(payload);
+      });
+    };
+    return channel;
+  };
+}
+
 function cleanScheduleRowsFromWorkHubCache() {
   if (typeof window === 'undefined') return false;
   let changed = false;
@@ -171,6 +197,7 @@ export function ensureWorkScheduleDatabaseCompatibility() {
     if (table === 'automation_events') return wrapAutomationEventBuilder(builder);
     return builder;
   };
+  patchWorkHubRealtime(client);
 
   try {
     Object.defineProperty(client, PATCH_MARK, {
