@@ -88,11 +88,6 @@ function teacherLabel(account) {
   return safeText(account?.name || account?.email, 'Giáo viên');
 }
 
-function classNumber(value) {
-  const match = safeText(value).match(/^(\d{1,2})\.(\d{1,2})$/);
-  return match ? Number(match[1]) * 100 + Number(match[2]) : Number.MAX_SAFE_INTEGER;
-}
-
 async function loadData(force = false) {
   if (!force && cache) return cache;
   if (!force && loadPromise) return loadPromise;
@@ -159,7 +154,8 @@ function decorateCard(card, classItem, accounts) {
   if (assignment.homeroom) parts.push(`<span class="is-homeroom"><b>GVCN</b>${assignment.homeroom}</span>`);
   if (assignment.subjects.length) parts.push(`<span class="is-subject"><b>GVBM</b>${assignment.subjects.join(', ')}</span>`);
   if (!parts.length) parts.push('<span class="is-unassigned"><b>Chưa phân công</b></span>');
-  note.innerHTML = parts.join('');
+  const html = parts.join('');
+  if (note.innerHTML !== html) note.innerHTML = html;
 }
 
 function optionData(registry, accounts) {
@@ -176,24 +172,27 @@ function optionData(registry, accounts) {
 
 function createFilter(panel, data) {
   let host = panel.querySelector(`.${FILTER_CLASS}`);
-  if (host) return host;
+  if (!host) {
+    host = document.createElement('div');
+    host.className = FILTER_CLASS;
+    host.innerHTML = `
+      <div class="bes-teacher-class-filter-copy">
+        <small>PHÂN LOẠI THEO GIÁO VIÊN</small>
+        <strong>Chọn giáo viên để chỉ hiện các lớp được phân công</strong>
+      </div>
+      <label><span>Giáo viên</span><select data-teacher-filter></select></label>
+      <div class="bes-teacher-class-filter-result" data-filter-result></div>`;
+    const heading = panel.querySelector('.hr-panel-head');
+    heading?.insertAdjacentElement('afterend', host);
 
-  host = document.createElement('div');
-  host.className = FILTER_CLASS;
-  host.innerHTML = `
-    <div class="bes-teacher-class-filter-copy">
-      <small>PHÂN LOẠI THEO GIÁO VIÊN</small>
-      <strong>Chọn giáo viên để chỉ hiện các lớp được phân công</strong>
-    </div>
-    <label><span>Giáo viên</span><select data-teacher-filter></select></label>
-    <div class="bes-teacher-class-filter-result" data-filter-result></div>`;
-  const heading = panel.querySelector('.hr-panel-head');
-  heading?.insertAdjacentElement('afterend', host);
-
-  host.querySelector('[data-teacher-filter]')?.addEventListener('change', (event) => {
-    writeSelectedTeacher(data.user, event.target.value);
-    applyFilter(panel, data, event.target.value);
-  });
+    host.querySelector('[data-teacher-filter]')?.addEventListener('change', (event) => {
+      const currentData = host.__besTeacherClassFilterData;
+      if (!currentData) return;
+      writeSelectedTeacher(currentData.user, event.target.value);
+      applyFilter(panel, currentData, event.target.value);
+    });
+  }
+  host.__besTeacherClassFilterData = data;
   return host;
 }
 
@@ -203,25 +202,24 @@ function populateSelect(select, data) {
   const values = new Set(['all', ...assigned.map((item) => item.value)]);
   if (unassignedCount) values.add('unassigned');
   const selected = values.has(current) ? current : 'all';
+  const options = [
+    { value: 'all', label: `Tất cả giáo viên (${data.registry?.classes?.length || 0} lớp)` },
+    ...assigned.map((item) => ({ value: item.value, label: `${item.label} · ${item.count} lớp` })),
+    ...(unassignedCount ? [{ value: 'unassigned', label: `Chưa phân công · ${unassignedCount} lớp` }] : []),
+  ];
+  const signature = JSON.stringify(options);
 
-  select.innerHTML = '';
-  const allOption = document.createElement('option');
-  allOption.value = 'all';
-  allOption.textContent = `Tất cả giáo viên (${data.registry?.classes?.length || 0} lớp)`;
-  select.appendChild(allOption);
-  assigned.forEach((item) => {
-    const option = document.createElement('option');
-    option.value = item.value;
-    option.textContent = `${item.label} · ${item.count} lớp`;
-    select.appendChild(option);
-  });
-  if (unassignedCount) {
-    const option = document.createElement('option');
-    option.value = 'unassigned';
-    option.textContent = `Chưa phân công · ${unassignedCount} lớp`;
-    select.appendChild(option);
+  if (select.dataset.optionsSignature !== signature) {
+    select.innerHTML = '';
+    options.forEach((item) => {
+      const option = document.createElement('option');
+      option.value = item.value;
+      option.textContent = item.label;
+      select.appendChild(option);
+    });
+    select.dataset.optionsSignature = signature;
   }
-  select.value = selected;
+  if (select.value !== selected) select.value = selected;
   return selected;
 }
 
@@ -246,13 +244,6 @@ function applyFilter(panel, data, selectedTeacher) {
     if (visible) visibleCount += 1;
   });
 
-  const visibleCards = cards.filter((card) => !card.hidden).sort((left, right) => {
-    const leftClass = normalizeSchoolClassName(left.querySelector('h3')?.textContent);
-    const rightClass = normalizeSchoolClassName(right.querySelector('h3')?.textContent);
-    return classNumber(leftClass) - classNumber(rightClass);
-  });
-  visibleCards.forEach((card) => catalog.appendChild(card));
-
   const result = panel.querySelector('[data-filter-result]');
   if (result) {
     const label = selectedTeacher === 'all'
@@ -260,7 +251,8 @@ function applyFilter(panel, data, selectedTeacher) {
       : selectedTeacher === 'unassigned'
         ? 'Chưa phân công'
         : teacherLabel(selectedAccount);
-    result.innerHTML = `<b>${visibleCount}</b><span>lớp của ${label}</span>`;
+    const html = `<b>${visibleCount}</b><span>lớp của ${label}</span>`;
+    if (result.innerHTML !== html) result.innerHTML = html;
   }
 
   let empty = panel.querySelector(`.${EMPTY_CLASS}`);
