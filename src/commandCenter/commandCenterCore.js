@@ -125,6 +125,82 @@ export function recordCommandRun(user, entry) {
   });
 }
 
+export function toggleCommandPin(user, entryId) {
+  const current = readCommandPreferences(user);
+  const exists = current.pinned.includes(entryId);
+  return writeCommandPreferences(user, {
+    ...current,
+    pinned: exists ? current.pinned.filter((id) => id !== entryId) : [entryId, ...current.pinned],
+  });
+}
+
+export function setCommandShortcut(user, digit, entryId) {
+  const key = String(digit || '').replace(/\D/g, '').slice(0, 1);
+  if (!key || key === '0') return readCommandPreferences(user);
+  const current = readCommandPreferences(user);
+  const shortcuts = { ...current.shortcuts };
+  if (entryId) shortcuts[key] = entryId;
+  else delete shortcuts[key];
+  return writeCommandPreferences(user, { ...current, shortcuts });
+}
+
+export function clearCommandHistory(user) {
+  const before = readCommandPreferences(user);
+  const after = writeCommandPreferences(user, { ...before, history: [] });
+  return { before, after };
+}
+
+export function restoreCommandPreferences(user, snapshot) {
+  return writeCommandPreferences(user, snapshot || defaultPreferences());
+}
+
+export function inferNaturalHomeroomCommand(query, classes = [], language = 'vi') {
+  const normalized = normalizeCommandText(query);
+  if (!normalized) return null;
+  const intents = [
+    { tokens: ['diem danh', 'attendance', 'chuyen can'], tab: 'attendance', vi: 'Điểm danh', en: 'Attendance', icon: '✓' },
+    { tokens: ['bang diem', 'diem so', 'gradebook', 'grades'], tab: 'learning', vi: 'Mở bảng điểm', en: 'Open gradebook', icon: 'Σ' },
+    { tokens: ['hoc sinh', 'danh sach lop', 'student', 'roster'], tab: 'students', vi: 'Mở danh sách học sinh', en: 'Open student roster', icon: '♙' },
+    { tokens: ['ren luyen', 'hanh kiem', 'conduct', 'behaviour'], tab: 'conduct', vi: 'Mở rèn luyện', en: 'Open conduct', icon: '100' },
+    { tokens: ['nhan xet', 'feedback', 'comment'], tab: 'feedback', vi: 'Mở nhận xét', en: 'Open feedback', icon: '✎' },
+  ];
+  const intent = intents.find((item) => item.tokens.some((token) => normalized.includes(token)));
+  if (!intent) return null;
+  const classEntry = classes.find((entry) => {
+    const className = normalizeCommandText(entry?.metadata?.className || entry?.title);
+    return className && normalized.includes(className.replace(/^lop\s+/, ''));
+  });
+  const vi = language === 'vi';
+  if (classEntry) {
+    return {
+      id: `inferred:${intent.tab}:${classEntry.metadata.workspaceId}`,
+      kind: 'command',
+      title: `${vi ? intent.vi : intent.en} ${vi ? 'lớp' : 'class'} ${classEntry.metadata.className}`,
+      subtitle: vi ? 'Lệnh được hiểu trên thiết bị' : 'Understood locally on this device',
+      icon: intent.icon,
+      color: '#0b57d0',
+      priority: 220,
+      commandAction: {
+        type: 'homeroom.navigate',
+        workspaceId: classEntry.metadata.workspaceId,
+        tab: intent.tab,
+      },
+      inferred: true,
+    };
+  }
+  return {
+    id: `inferred:select-class:${intent.tab}`,
+    kind: 'command',
+    title: vi ? `${intent.vi} một lớp` : `${intent.en} for a class`,
+    subtitle: vi ? 'Chọn lớp ở bước tiếp theo' : 'Choose a class in the next step',
+    icon: intent.icon,
+    color: '#0b57d0',
+    priority: 210,
+    commandAction: { type: 'select-class', tab: intent.tab },
+    inferred: true,
+  };
+}
+
 export function queueHomeroomAction(action) {
   const payload = { ...action, type: 'homeroom.navigate', createdAt: Date.now() };
   const storage = safeStorage('sessionStorage');
