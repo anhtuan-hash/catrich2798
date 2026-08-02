@@ -1,27 +1,103 @@
 import { getRuntimeClient } from '../services/runtime/core.js';
 
-const PATCH_MARK = Symbol.for('bes.workScheduleDatabaseCompatibility.v2');
+const PATCH_MARK = Symbol.for('bes.workScheduleDatabaseCompatibility.v3');
 const LEGACY_SCHEDULE_TYPE = 'schedule';
 const SAFE_WORK_HUB_TYPE = 'task';
+const WORK_HUB_CACHE_PREFIX = 'bes-work-hub-v1093-local:';
+const WORK_HUB_SYNC_PREFIX = 'bes-work-hub-v1093-sync:';
+const WORK_HUB_REFRESH_EVENT = 'bes-work-hub-delivery-updated';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+function isScheduleRow(row) {
+  return Boolean(
+    row
+    && typeof row === 'object'
+    && !Array.isArray(row)
+    && (row.item_type === LEGACY_SCHEDULE_TYPE || row.metadata?.schedule_event === true),
+  );
+}
+
 function rewriteScheduleRow(row) {
-  if (!row || typeof row !== 'object' || Array.isArray(row)) return row;
-  if (row.item_type !== LEGACY_SCHEDULE_TYPE) return row;
+  if (!isScheduleRow(row)) return row;
   return {
     ...row,
     item_type: SAFE_WORK_HUB_TYPE,
+    assignee_ids: [],
+    watcher_ids: [],
     metadata: {
       ...(row.metadata && typeof row.metadata === 'object' ? row.metadata : {}),
       schedule_event: true,
+      schedule_only: true,
       schedule_storage_type: SAFE_WORK_HUB_TYPE,
       schedule_requested_type: LEGACY_SCHEDULE_TYPE,
+      schedule_notify_all: false,
+      notify_assignee: false,
+      assignment_scope: null,
+      assignment_batch_id: null,
     },
   };
 }
 
 function rewriteSchedulePayload(value) {
   return Array.isArray(value) ? value.map(rewriteScheduleRow) : rewriteScheduleRow(value);
+}
+
+function payloadContainsSchedule(value) {
+  return Array.isArray(value) ? value.some(isScheduleRow) : isScheduleRow(value);
+}
+
+function filterScheduleRows(response, includeScheduleRows) {
+  if (includeScheduleRows || !Array.isArray(response?.data)) return response;
+  const data = response.data.filter((row) => !isScheduleRow(row));
+  if (data.length === response.data.length) return response;
+  const removed = response.data.length - data.length;
+  return {
+    ...response,
+    data,
+    count: Number.isFinite(response.count) ? Math.max(0, response.count - removed) : response.count,
+  };
+}
+
+function wrapWorkHubBuilder(builder, context = { includeScheduleRows: false }) {
+  if (!builder || typeof builder !== 'object') return builder;
+  return new Proxy(builder, {
+    get(target, property) {
+      if (property === 'then') {
+        return (onFulfilled, onRejected) => target.then(
+          (response) => {
+            const filtered = filterScheduleRows(response, context.includeScheduleRows);
+            return typeof onFulfilled === 'function' ? onFulfilled(filtered) : filtered;
+          },
+          onRejected,
+        );
+      }
+      if (property === 'eq') {
+        return (column, value) => {
+          if (column === 'item_type' && value === LEGACY_SCHEDULE_TYPE && typeof target.contains === 'function') {
+            return wrapWorkHubBuilder(
+              target.contains('metadata', { schedule_event: true }),
+              { includeScheduleRows: true },
+            );
+          }
+          return wrapWorkHubBuilder(target.eq(column, value), context);
+        };
+      }
+      if (property === 'insert' || property === 'update' || property === 'upsert') {
+        return (value, ...args) => wrapWorkHubBuilder(
+          target[property](rewriteSchedulePayload(value), ...args),
+          { includeScheduleRows: context.includeScheduleRows || payloadContainsSchedule(value) },
+        );
+      }
+      const current = Reflect.get(target, property, target);
+      if (typeof current !== 'function') return current;
+      return (...args) => {
+        const next = current.apply(target, args);
+        return next && typeof next === 'object' && !Array.isArray(next)
+          ? wrapWorkHubBuilder(next, context)
+          : next;
+      };
+    },
+  });
 }
 
 function rewriteAutomationEventRow(row) {
@@ -37,51 +113,51 @@ function rewriteAutomationEventPayload(value) {
   return Array.isArray(value) ? value.map(rewriteAutomationEventRow) : rewriteAutomationEventRow(value);
 }
 
-function wrapScheduleFilter(builder) {
-  if (!builder || typeof builder !== 'object') return builder;
-  return new Proxy(builder, {
-    get(target, property, receiver) {
-      if (property === 'eq') {
-        return (column, value) => {
-          if (column === 'item_type' && value === LEGACY_SCHEDULE_TYPE && typeof target.contains === 'function') {
-            return target.contains('metadata', { schedule_event: true });
-          }
-          return target.eq(column, value);
-        };
-      }
-      const current = Reflect.get(target, property, receiver);
-      return typeof current === 'function' ? current.bind(target) : current;
-    },
-  });
-}
-
-function wrapWorkHubBuilder(builder) {
-  if (!builder || typeof builder !== 'object') return builder;
-  return new Proxy(builder, {
-    get(target, property, receiver) {
-      if (property === 'select') {
-        return (...args) => wrapScheduleFilter(target.select(...args));
-      }
-      if (property === 'insert' || property === 'update' || property === 'upsert') {
-        return (value, ...args) => target[property](rewriteSchedulePayload(value), ...args);
-      }
-      const current = Reflect.get(target, property, receiver);
-      return typeof current === 'function' ? current.bind(target) : current;
-    },
-  });
-}
-
 function wrapAutomationEventBuilder(builder) {
   if (!builder || typeof builder !== 'object') return builder;
   return new Proxy(builder, {
-    get(target, property, receiver) {
+    get(target, property) {
       if (property === 'insert' || property === 'upsert') {
         return (value, ...args) => target[property](rewriteAutomationEventPayload(value), ...args);
       }
-      const current = Reflect.get(target, property, receiver);
+      const current = Reflect.get(target, property, target);
       return typeof current === 'function' ? current.bind(target) : current;
     },
   });
+}
+
+function cleanScheduleRowsFromWorkHubCache() {
+  if (typeof window === 'undefined') return false;
+  let changed = false;
+  const keys = [];
+  for (let index = 0; index < window.localStorage.length; index += 1) {
+    const key = window.localStorage.key(index);
+    if (key?.startsWith(WORK_HUB_CACHE_PREFIX)) keys.push(key);
+  }
+  keys.forEach((key) => {
+    try {
+      const value = JSON.parse(window.localStorage.getItem(key) || '[]');
+      if (!Array.isArray(value)) return;
+      const filtered = value.filter((row) => !isScheduleRow(row));
+      if (filtered.length === value.length) return;
+      window.localStorage.setItem(key, JSON.stringify(filtered));
+      const suffix = key.slice(WORK_HUB_CACHE_PREFIX.length);
+      window.localStorage.removeItem(`${WORK_HUB_SYNC_PREFIX}${suffix}`);
+      changed = true;
+    } catch {
+      // Ignore malformed optional cache entries.
+    }
+  });
+  return changed;
+}
+
+function refreshWorkHubAfterSeparation() {
+  if (typeof window === 'undefined') return;
+  window.setTimeout(() => {
+    window.dispatchEvent(new CustomEvent(WORK_HUB_REFRESH_EVENT, {
+      detail: { type: 'schedule-separated', source: 'work-schedule', force: true },
+    }));
+  }, 0);
 }
 
 export function ensureWorkScheduleDatabaseCompatibility() {
@@ -106,6 +182,9 @@ export function ensureWorkScheduleDatabaseCompatibility() {
   } catch {
     client[PATCH_MARK] = true;
   }
+
+  cleanScheduleRowsFromWorkHubCache();
+  refreshWorkHubAfterSeparation();
   return client;
 }
 
