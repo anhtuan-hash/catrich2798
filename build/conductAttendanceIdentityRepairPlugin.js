@@ -1,4 +1,5 @@
 import class126RecoveryIdentityPlugin from './class126RecoveryIdentityPlugin.js';
+import studentBulkDeletePlugin from './studentBulkDeletePlugin.js';
 
 const STUDENT_RESOLVER_SOURCE = `function attendanceStudentCodeCandidates(value) {
   const raw = safeText(value).toLowerCase();
@@ -221,6 +222,7 @@ function addSafeStudentDeleteFeature(code) {
 
 export default function conductAttendanceIdentityRepairPlugin() {
   const class126RecoveryPlugin = class126RecoveryIdentityPlugin();
+  const bulkDeletePlugin = studentBulkDeletePlugin();
   return {
     name: 'brian-conduct-attendance-identity-repair',
     enforce: 'pre',
@@ -259,7 +261,8 @@ export default function conductAttendanceIdentityRepairPlugin() {
       }
 
       if (cleanId.endsWith('/src/components/homeroom/HomeroomCoreTabs.jsx')) {
-        return addSafeStudentDeleteFeature(code);
+        const withSafeDelete = addSafeStudentDeleteFeature(code);
+        return bulkDeletePlugin.transform(withSafeDelete, id);
       }
 
       if (cleanId.endsWith('/src/components/HomeroomConductTab.jsx')) {
