@@ -32,6 +32,17 @@ function isBrianTeamRoute() {
   return /brian-team|personnel-hub/i.test(window.location.hash || '');
 }
 
+async function preparePreferredHomeroomBeforeMain() {
+  if (!isHomeroomRoute()) return;
+  try {
+    const module = await import('./preferredHomeroomEntry.js');
+    module.installPreferredHomeroomEntry?.();
+    await module.preparePreferredHomeroomEntry?.({ reloadOnChange: false });
+  } catch (error) {
+    console.warn('[PreferredHomeroomEntry] Chưa thể chọn lớp chủ nhiệm trước khi mở giao diện.', error);
+  }
+}
+
 function refreshSiteFontInBackground(cachedFont) {
   runWhenIdle(async () => {
     try {
@@ -60,6 +71,7 @@ function loadRouteModules() {
     Promise.all([
       import('./conductExportReports.js'),
       import('./conductCurrentWeekExport.js'),
+      import('./preferredHomeroomEntry.js'),
       import('./studentRosterCountFix.js'),
       import('./studentRosterFilterTabs.js'),
       import('./studentNameSortRuntime.js'),
@@ -174,8 +186,9 @@ async function startApplication() {
   const cachedFont = installSiteFontFromCache();
   document.documentElement.dataset.siteFontBoot = 'ready';
 
-  // React shell is the only startup-critical module. Network font settings,
-  // Supabase class sync, data recovery and feature bridges run after first paint.
+  // Trên app chủ nhiệm, chọn lớp chủ nhiệm từ dữ liệu phân công đã lưu
+  // trước khi React dựng giao diện để không lóe hoặc mở nhầm lớp bộ môn.
+  await preparePreferredHomeroomBeforeMain();
   const mainModulePromise = import('./main.jsx');
   refreshSiteFontInBackground(cachedFont);
 
