@@ -60,16 +60,12 @@ function loadRouteModules() {
     Promise.all([
       import('./conductExportReports.js'),
       import('./conductCurrentWeekExport.js'),
-      import('./class126ForensicExport.js'),
-      import('./class126RestoreImporter.js'),
-      import('./classGradeDeepRecovery.js'),
-      import('./class113DeepStorageForensics.js'),
       import('./studentRosterCountFix.js'),
       import('./studentRosterFilterTabs.js'),
       import('./teacherClassFilterRuntime.js'),
     ]).catch((error) => {
       homeroomExtrasLoaded = false;
-      console.error('[HomeroomExtras] Không thể tải tiện ích báo cáo và cứu hộ dữ liệu.', error);
+      console.error('[HomeroomExtras] Không thể tải tiện ích lớp học.', error);
     });
   }
 }
