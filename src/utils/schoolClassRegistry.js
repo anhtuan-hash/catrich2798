@@ -1,6 +1,6 @@
 const nowIso = () => new Date().toISOString();
 
-export const SCHOOL_CLASS_REGISTRY_VERSION = 1;
+export const SCHOOL_CLASS_REGISTRY_VERSION = 2;
 export const SCHOOL_CLASS_REGISTRY_TABLE = 'school_class_registries';
 export const SCHOOL_CLASS_REGISTRY_STORAGE_PREFIX = 'bes-school-class-registry-v1';
 
@@ -38,6 +38,16 @@ function normalizeStudentCode(value) {
   if (!raw) return '';
   if (/^\d+(?:\.0+)?$/.test(raw)) return raw.replace(/\.0+$/, '');
   return raw;
+}
+
+export function isDeletedSchoolStudent(student) {
+  return student?.lifecycleStatus === 'deleted' || Boolean(student?.deletedAt);
+}
+
+function activeRosterCount(students = []) {
+  return (Array.isArray(students) ? students : []).filter((student) => (
+    student?.active !== false && !isDeletedSchoolStudent(student)
+  )).length;
 }
 
 export function normalizeSchoolClassName(value) {
@@ -139,13 +149,27 @@ function studentIdentity(student) {
   return `${fold(student?.fullName)}|${normalizeBirthDate(student?.birthDate)}`;
 }
 
+function studentCodeKey(student) {
+  return normalizeStudentCode(student?.code).toLowerCase();
+}
+
+function sameStudent(left, right) {
+  if (!left || !right) return false;
+  if (left.id && right.id && left.id === right.id) return true;
+  const leftCode = studentCodeKey(left);
+  const rightCode = studentCodeKey(right);
+  if (leftCode && rightCode && leftCode === rightCode) return true;
+  const leftIdentity = studentIdentity(left);
+  return leftIdentity !== '|' && leftIdentity === studentIdentity(right);
+}
+
 export function mergeRosterStudents(existingStudents = [], importedStudents = [], importedAt = nowIso()) {
   const existing = Array.isArray(existingStudents) ? existingStudents : [];
   const incoming = Array.isArray(importedStudents) ? importedStudents : [];
   const byCode = new Map();
   const byIdentity = new Map();
   existing.forEach((student) => {
-    const code = normalizeStudentCode(student?.code).toLowerCase();
+    const code = studentCodeKey(student);
     if (code && !byCode.has(code)) byCode.set(code, student);
     const identity = studentIdentity(student);
     if (identity !== '|') {
@@ -157,13 +181,14 @@ export function mergeRosterStudents(existingStudents = [], importedStudents = []
 
   const usedIds = new Set();
   const merged = incoming.map((student) => {
-    const code = normalizeStudentCode(student?.code).toLowerCase();
+    const code = studentCodeKey(student);
     let match = code ? byCode.get(code) : null;
     if (!match) {
       const candidates = byIdentity.get(studentIdentity(student)) || [];
       match = candidates.find((item) => !usedIds.has(item.id)) || null;
     }
     if (match?.id) usedIds.add(match.id);
+    const deleted = isDeletedSchoolStudent(student);
     return {
       ...(match || {}),
       ...student,
@@ -171,10 +196,13 @@ export function mergeRosterStudents(existingStudents = [], importedStudents = []
       portalPin: match?.portalPin || student.portalPin,
       pinUpdatedAt: match?.pinUpdatedAt || student.pinUpdatedAt,
       teamId: match?.teamId || student.teamId || '',
-      active: true,
-      lifecycleStatus: 'active',
-      inactiveReason: '',
-      inactiveAt: '',
+      active: deleted ? false : true,
+      lifecycleStatus: deleted ? 'deleted' : 'active',
+      deletedAt: deleted ? (student.deletedAt || importedAt) : '',
+      deletedReason: deleted ? (student.deletedReason || 'TTCM xóa khỏi danh sách lớp') : '',
+      deletedBy: deleted ? (student.deletedBy || '') : '',
+      inactiveReason: deleted ? (student.deletedReason || 'TTCM xóa khỏi danh sách lớp') : '',
+      inactiveAt: deleted ? (student.deletedAt || importedAt) : '',
       transferClass: '',
       updatedAt: importedAt,
       createdAt: match?.createdAt || student.createdAt || importedAt,
@@ -200,13 +228,14 @@ export function reconcileWorkspaceRoster(workspace, className, importedStudents,
   const normalizedClassName = normalizeSchoolClassName(className || workspace.classProfile?.className);
   if (!normalizedClassName) return workspace;
   const students = mergeRosterStudents(workspace.students, importedStudents, importedAt);
+  const activeCount = activeRosterCount(importedStudents);
   return {
     ...workspace,
     classProfile: {
       ...(workspace.classProfile || {}),
       className: normalizedClassName,
       grade: normalizedClassName.split('.')[0],
-      studentCountTarget: importedStudents.length,
+      studentCountTarget: activeCount,
     },
     // Chỉ cập nhật hồ sơ học sinh; learningRecords, conductRecords và các lịch sử khác được giữ nguyên.
     students,
@@ -228,6 +257,7 @@ export function createDefaultSchoolClassRegistry() {
     sourceLabel: 'DanhSachHocSinh_HienTai_DaChuanHoa.xlsx',
     importedAt: '',
     updatedAt: createdAt,
+    deletionAudit: [],
     classes: SCHOOL_CLASS_BLUEPRINTS.map((item) => ({
       ...item,
       students: [],
@@ -243,16 +273,18 @@ export function normalizeSchoolClassRegistry(raw) {
   const byName = new Map((Array.isArray(source.classes) ? source.classes : []).map((item) => [normalizeSchoolClassName(item.className), item]));
   return {
     ...base,
+    version: Math.max(Number(source.version) || 1, SCHOOL_CLASS_REGISTRY_VERSION),
     sourceLabel: text(source.sourceLabel) || base.sourceLabel,
     importedAt: text(source.importedAt),
     updatedAt: text(source.updatedAt) || base.updatedAt,
+    deletionAudit: Array.isArray(source.deletionAudit) ? source.deletionAudit : [],
     classes: SCHOOL_CLASS_BLUEPRINTS.map((blueprint) => {
       const existing = byName.get(blueprint.className) || {};
       const students = Array.isArray(existing.students) ? existing.students : [];
       return {
         ...blueprint,
         students,
-        importedCount: Number(existing.importedCount ?? students.length) || 0,
+        importedCount: activeRosterCount(students),
         assignment: normalizeAssignment(existing.assignment),
       };
     }),
@@ -268,9 +300,109 @@ export function applyRosterImport(registry, parsed, sourceLabel = '') {
     importedAt,
     updatedAt: importedAt,
     classes: current.classes.map((item) => {
-      const students = parsed?.rosters?.[item.className] || [];
-      return { ...item, students, importedCount: students.length };
+      const imported = parsed?.rosters?.[item.className] || [];
+      const deleted = (item.students || []).filter(isDeletedSchoolStudent);
+      const active = imported.filter((student) => !deleted.some((tombstone) => sameStudent(student, tombstone)));
+      const students = [...active, ...deleted];
+      return { ...item, students, importedCount: active.length };
     }),
+  };
+}
+
+export function deleteSchoolClassStudents(registry, className, studentIds = [], actor = null) {
+  const current = normalizeSchoolClassRegistry(registry);
+  const target = normalizeSchoolClassName(className);
+  const ids = new Set((studentIds || []).map(text).filter(Boolean));
+  if (!target || !ids.size) return current;
+  const deletedAt = nowIso();
+  const deletedBy = text(actor?.email || actor?.name || actor?.id);
+  const selected = [];
+  const classes = current.classes.map((item) => {
+    if (item.className !== target) return item;
+    const students = (item.students || []).map((student) => {
+      if (!ids.has(student.id) || isDeletedSchoolStudent(student)) return student;
+      selected.push(student);
+      return {
+        ...student,
+        active: false,
+        lifecycleStatus: 'deleted',
+        deletedAt,
+        deletedBy,
+        deletedReason: 'TTCM xóa khỏi danh sách lớp',
+        inactiveAt: deletedAt,
+        inactiveReason: 'TTCM xóa khỏi danh sách lớp',
+        updatedAt: deletedAt,
+      };
+    });
+    return { ...item, students, importedCount: activeRosterCount(students) };
+  });
+  if (!selected.length) return current;
+  return {
+    ...current,
+    updatedAt: deletedAt,
+    classes,
+    deletionAudit: [
+      ...(current.deletionAudit || []),
+      ...selected.map((student, index) => ({
+        id: `registry-student-delete-${Date.now()}-${index}`,
+        action: 'delete',
+        className: target,
+        studentId: student.id,
+        studentCode: student.code || '',
+        studentName: student.fullName || '',
+        actorId: actor?.id || '',
+        actorEmail: actor?.email || '',
+        createdAt: deletedAt,
+      })),
+    ],
+  };
+}
+
+export function restoreSchoolClassStudents(registry, className, studentIds = [], actor = null) {
+  const current = normalizeSchoolClassRegistry(registry);
+  const target = normalizeSchoolClassName(className);
+  const ids = new Set((studentIds || []).map(text).filter(Boolean));
+  if (!target || !ids.size) return current;
+  const restoredAt = nowIso();
+  const selected = [];
+  const classes = current.classes.map((item) => {
+    if (item.className !== target) return item;
+    const students = (item.students || []).map((student) => {
+      if (!ids.has(student.id) || !isDeletedSchoolStudent(student)) return student;
+      selected.push(student);
+      return {
+        ...student,
+        active: true,
+        lifecycleStatus: 'active',
+        deletedAt: '',
+        deletedBy: '',
+        deletedReason: '',
+        inactiveAt: '',
+        inactiveReason: '',
+        updatedAt: restoredAt,
+      };
+    });
+    return { ...item, students, importedCount: activeRosterCount(students) };
+  });
+  if (!selected.length) return current;
+  return {
+    ...current,
+    updatedAt: restoredAt,
+    classes,
+    deletionAudit: [
+      ...(current.deletionAudit || []),
+      ...selected.map((student, index) => ({
+        id: `registry-student-restore-${Date.now()}-${index}`,
+        action: 'restore',
+        className: target,
+        studentId: student.id,
+        studentCode: student.code || '',
+        studentName: student.fullName || '',
+        actorId: actor?.id || '',
+        actorEmail: actor?.email || '',
+        createdAt: restoredAt,
+      })),
+    ],
   };
 }
 
