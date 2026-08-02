@@ -46,9 +46,12 @@ function refreshSiteFontInBackground(cachedFont) {
 function loadRouteModules() {
   if (isBrianTeamRoute() && !schoolRegistryLoaded) {
     schoolRegistryLoaded = true;
-    import('./schoolClassBootstrap.jsx').catch((error) => {
+    Promise.all([
+      import('./schoolClassBootstrap.jsx'),
+      import('./departmentHeadGlobalStudentManager.jsx'),
+    ]).catch((error) => {
       schoolRegistryLoaded = false;
-      console.error('[SchoolClassRegistry] Không thể tải danh mục 27 lớp.', error);
+      console.error('[SchoolClassRegistry] Không thể tải danh mục và quản lý học sinh toàn trường.', error);
     });
   }
 
