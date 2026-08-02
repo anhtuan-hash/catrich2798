@@ -7,7 +7,12 @@ const WORK_HUB_CACHE_PREFIX = 'bes-work-hub-v1093-local:';
 const WORK_HUB_SYNC_PREFIX = 'bes-work-hub-v1093-sync:';
 const WORK_HUB_REFRESH_EVENT = 'bes-work-hub-delivery-updated';
 const WORK_HUB_REALTIME_PREFIX = 'bes-runtime-work-hub-';
+const WORK_HUB_TASK_LIST_COLUMNS = 'id,title,description,item_type,status,priority,visibility,owner_id,created_by,assignee_ids,watcher_ids,due_at,attachments,metadata,source_module,created_at,updated_at,submitted_at,reviewed_at,completed_at';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function normalizeColumns(value) {
+  return String(value || '').replace(/\s+/g, '');
+}
 
 function isScheduleRow(row) {
   return Boolean(
@@ -24,21 +29,22 @@ function realtimeRow(payload) {
 
 function rewriteScheduleRow(row) {
   if (!isScheduleRow(row)) return row;
+  const viewerIds = Array.isArray(row.assignee_ids) ? row.assignee_ids.filter(Boolean) : [];
   return {
     ...row,
     item_type: SAFE_WORK_HUB_TYPE,
-    assignee_ids: [],
-    watcher_ids: [],
     metadata: {
       ...(row.metadata && typeof row.metadata === 'object' ? row.metadata : {}),
       schedule_event: true,
       schedule_only: true,
       schedule_storage_type: SAFE_WORK_HUB_TYPE,
       schedule_requested_type: LEGACY_SCHEDULE_TYPE,
-      schedule_notify_all: false,
+      schedule_notify_all: true,
       notify_assignee: false,
       assignment_scope: null,
       assignment_batch_id: null,
+      assignment_mode: 'calendar_visibility',
+      schedule_viewer_ids: viewerIds,
     },
   };
 }
@@ -51,8 +57,8 @@ function payloadContainsSchedule(value) {
   return Array.isArray(value) ? value.some(isScheduleRow) : isScheduleRow(value);
 }
 
-function filterScheduleRows(response, includeScheduleRows) {
-  if (includeScheduleRows || !Array.isArray(response?.data)) return response;
+function filterScheduleRows(response, shouldFilter) {
+  if (!shouldFilter || !Array.isArray(response?.data)) return response;
   const data = response.data.filter((row) => !isScheduleRow(row));
   if (data.length === response.data.length) return response;
   const removed = response.data.length - data.length;
@@ -63,25 +69,34 @@ function filterScheduleRows(response, includeScheduleRows) {
   };
 }
 
-function wrapWorkHubBuilder(builder, context = { includeScheduleRows: false }) {
+function wrapWorkHubBuilder(builder, context = { includeScheduleRows: false, taskListQuery: false }) {
   if (!builder || typeof builder !== 'object') return builder;
   return new Proxy(builder, {
     get(target, property) {
       if (property === 'then') {
         return (onFulfilled, onRejected) => target.then(
           (response) => {
-            const filtered = filterScheduleRows(response, context.includeScheduleRows);
+            const filtered = filterScheduleRows(
+              response,
+              context.taskListQuery && !context.includeScheduleRows,
+            );
             return typeof onFulfilled === 'function' ? onFulfilled(filtered) : filtered;
           },
           onRejected,
         );
+      }
+      if (property === 'select') {
+        return (...args) => wrapWorkHubBuilder(target.select(...args), {
+          ...context,
+          taskListQuery: normalizeColumns(args[0]) === normalizeColumns(WORK_HUB_TASK_LIST_COLUMNS),
+        });
       }
       if (property === 'eq') {
         return (column, value) => {
           if (column === 'item_type' && value === LEGACY_SCHEDULE_TYPE && typeof target.contains === 'function') {
             return wrapWorkHubBuilder(
               target.contains('metadata', { schedule_event: true }),
-              { includeScheduleRows: true },
+              { ...context, includeScheduleRows: true },
             );
           }
           return wrapWorkHubBuilder(target.eq(column, value), context);
@@ -90,7 +105,7 @@ function wrapWorkHubBuilder(builder, context = { includeScheduleRows: false }) {
       if (property === 'insert' || property === 'update' || property === 'upsert') {
         return (value, ...args) => wrapWorkHubBuilder(
           target[property](rewriteSchedulePayload(value), ...args),
-          { includeScheduleRows: context.includeScheduleRows || payloadContainsSchedule(value) },
+          { ...context, includeScheduleRows: context.includeScheduleRows || payloadContainsSchedule(value) },
         );
       }
       const current = Reflect.get(target, property, target);
