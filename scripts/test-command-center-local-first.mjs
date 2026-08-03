@@ -17,7 +17,7 @@ const failures = [];
 const check = (condition, message) => { if (!condition) failures.push(message); };
 
 check(paletteEntry.includes("GlobalCommandPaletteV21.jsx"), 'Global Command K entry must point to V2.1.');
-check(paletteEntry.includes("GlobalCommandPaletteV22HoverFix.css"), 'Interaction cleanup must load after the base palette styles.');
+check(paletteEntry.includes("GlobalCommandPaletteV22HoverFix.css"), 'Interaction layer must load after the base palette styles.');
 check(palette.includes("import('../commandCenter/localCommandData.js')"), 'Local homeroom index must remain dynamically imported.');
 check(palette.includes('requestIdleTask'), 'Local indexing must be scheduled during idle time.');
 check(palette.includes('useDebouncedValue(query, 70)'), 'Search input must remain debounced.');
@@ -27,7 +27,7 @@ check(!palette.includes('fetch('), 'Command center UI must not make HTTP request
 check(!palette.toLowerCase().includes('supabase egress +0'), 'Technical egress copy must not be rendered in the user-facing palette.');
 
 check(palette.includes('groupSearchResults'), 'Grouped result rendering is missing.');
-check(palette.includes('command-v21-group'), 'Group headings are missing from the V2.1 palette.');
+check(palette.includes('command-v21-group'), 'Group headings are missing from the palette.');
 check(palette.includes('command-v21-inline-actions'), 'Quick actions must render inside the active result.');
 check(!palette.includes('command-v2-action-panel'), 'The old fixed action panel must not return.');
 check(palette.includes('expandedActionEntryId'), 'Compact more-actions behavior is missing.');
@@ -39,17 +39,23 @@ check(paletteCss.includes('html[data-theme="dark"]'), 'Dark mode support is miss
 check(paletteCss.includes('@media (max-width: 520px)'), 'Narrow-screen layout guard is missing.');
 check(paletteCss.includes('prefers-reduced-motion'), 'Reduced-motion support is missing.');
 
+check(hoverCss.includes('--cmd-blue-tint'), 'Colorful Apple accent tokens are missing.');
+check(hoverCss.includes('--cmd-green-tint'), 'Green category accent is missing.');
+check(hoverCss.includes('--cmd-purple-tint'), 'Purple category accent is missing.');
+check(hoverCss.includes('--cmd-orange-tint'), 'Orange category accent is missing.');
+check(hoverCss.includes('.command-v21-modes button:nth-child(5).active'), 'Color-coded application filter is missing.');
+check(hoverCss.includes('color-mix(in srgb, var(--command-accent)'), 'Result-specific color tinting is missing.');
+check(hoverCss.includes('background: linear-gradient(135deg, rgba(10, 132, 255, .12), rgba(175, 82, 222, .1))'), 'Colorful result count treatment is missing.');
 check(hoverCss.includes('-webkit-focus-ring-color: transparent !important'), 'Browser focus ring must remain disabled.');
 check(hoverCss.includes('outline: 0 !important'), 'Command palette outlines must remain disabled.');
-check(hoverCss.includes('background: var(--cmd-active-neutral) !important'), 'Selected results must use a neutral background.');
 check(hoverCss.includes(':focus-visible::before'), 'Focus pseudo-elements must remain disabled.');
 check(hoverCss.includes('content: none !important'), 'Global focus decorations must remain suppressed.');
 check(!hoverCss.includes('--cmd-keyboard-ring'), 'No keyboard focus ring token may return.');
 check(!hoverCss.includes('inset 2px 0 0'), 'No blue edge indicator may return.');
 check(!hoverCss.includes('inset 3px 0 0'), 'No thick blue edge indicator may return.');
 check(hoverCss.includes('@media (forced-colors: active)'), 'High-contrast fallback is missing.');
-check(!hoverCss.includes('fetch('), 'Interaction cleanup must remain CSS-only and make no requests.');
-check(!hoverCss.toLowerCase().includes('supabase'), 'Interaction cleanup must not reference Supabase.');
+check(!hoverCss.includes('fetch('), 'Color refinement must remain CSS-only and make no requests.');
+check(!hoverCss.toLowerCase().includes('supabase'), 'Color refinement must not reference Supabase.');
 
 check(localData.includes('listLocalHomeroomWorkspaces'), 'Command index must use the local workspace catalog.');
 check(localData.includes('loadLocalHomeroomWorkspace'), 'Command index must load local workspace snapshots only.');
@@ -80,8 +86,8 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Command Center no-frame local-first guard passed.');
+console.log('Command Center colorful Apple local-first guard passed.');
 console.log('Supabase/API requests introduced by Command Center: 0');
 console.log('Indexed data source: localStorage workspace snapshots only');
 console.log('Hard caps: 120 classes, 1400 active students, 24 visible results');
-console.log('UI: no blue borders, no focus rings, no edge indicators, neutral selection only');
+console.log('UI: colorful category accents, per-entry tints, no focus frames or edge indicators');
