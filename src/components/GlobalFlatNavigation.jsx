@@ -86,23 +86,16 @@ import './GlobalWorkHubModalCenter.css';
 import './GlobalNavigationGoogleRefinement.css';
 import './GlobalNavigationSearchV3.css';
 
-const GlobalHomeGoogleHeroOverlay = lazy(() => import('./GlobalHomeGoogleHeroOverlay.jsx'));
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
 const GlobalWorkBulkDeleteManager = lazy(() => import('./GlobalWorkBulkDeleteManager.jsx'));
 
 export default function GlobalFlatNavigation(props) {
   const workHubActive = props.route === 'work-hub';
-  const homeActive = props.route === 'home';
 
   return (
     <>
       <Navigation {...props} />
-      {homeActive ? (
-        <Suspense fallback={null}>
-          <GlobalHomeGoogleHeroOverlay {...props} />
-        </Suspense>
-      ) : null}
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalPublicNewsBriefing route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHomeBriefingExtras route={props.route} language={props.language} />
