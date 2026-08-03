@@ -1,7 +1,113 @@
-/* Command K interaction cleanup: no blue frames, rings, or edge indicators. */
+/* Command K: colorful Apple-inspired interaction layer without blue frames. */
 .command-v21-layer {
-  --cmd-hover-neutral: rgba(118, 118, 128, .075);
-  --cmd-active-neutral: rgba(118, 118, 128, .105);
+  --cmd-hover-neutral: rgba(118, 118, 128, .07);
+  --cmd-active-neutral: rgba(118, 118, 128, .11);
+  --cmd-blue-tint: rgba(10, 132, 255, .11);
+  --cmd-indigo-tint: rgba(88, 86, 214, .11);
+  --cmd-green-tint: rgba(52, 199, 89, .11);
+  --cmd-purple-tint: rgba(175, 82, 222, .11);
+  --cmd-orange-tint: rgba(255, 159, 10, .12);
+}
+
+/* Give the glass surface a little more life without adding visual weight. */
+.command-v21 {
+  background:
+    radial-gradient(circle at 14% 0%, rgba(10, 132, 255, .075), transparent 28%),
+    radial-gradient(circle at 88% 4%, rgba(175, 82, 222, .07), transparent 25%),
+    linear-gradient(180deg, rgba(255, 255, 255, .94), rgba(248, 248, 250, .88)) !important;
+}
+
+.command-v21-header {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .82), rgba(245, 249, 255, .72)) !important;
+}
+
+.command-v21-meta > span {
+  background: linear-gradient(135deg, rgba(10, 132, 255, .12), rgba(175, 82, 222, .1)) !important;
+  color: #315d92 !important;
+}
+
+.command-v21-group {
+  color: #686871 !important;
+}
+
+.command-v21-group span::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0a84ff, #af52de);
+  box-shadow: 0 0 0 4px rgba(10, 132, 255, .055);
+  vertical-align: 1px;
+}
+
+/* Color-coded segmented filters. Order: all, commands, people, classes, apps. */
+.command-v21-modes button {
+  border-color: transparent !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .62) !important;
+}
+
+.command-v21-modes button:nth-child(1) {
+  background: rgba(10, 132, 255, .075) !important;
+  color: #0a67c7 !important;
+}
+
+.command-v21-modes button:nth-child(2) {
+  background: rgba(88, 86, 214, .075) !important;
+  color: #4b49b7 !important;
+}
+
+.command-v21-modes button:nth-child(3) {
+  background: rgba(52, 199, 89, .075) !important;
+  color: #248a3d !important;
+}
+
+.command-v21-modes button:nth-child(4) {
+  background: rgba(175, 82, 222, .075) !important;
+  color: #8840ad !important;
+}
+
+.command-v21-modes button:nth-child(5) {
+  background: rgba(255, 159, 10, .085) !important;
+  color: #b26800 !important;
+}
+
+.command-v21-modes button:nth-child(1):hover { background: rgba(10, 132, 255, .13) !important; }
+.command-v21-modes button:nth-child(2):hover { background: rgba(88, 86, 214, .13) !important; }
+.command-v21-modes button:nth-child(3):hover { background: rgba(52, 199, 89, .13) !important; }
+.command-v21-modes button:nth-child(4):hover { background: rgba(175, 82, 222, .13) !important; }
+.command-v21-modes button:nth-child(5):hover { background: rgba(255, 159, 10, .14) !important; }
+
+.command-v21-modes button:nth-child(1).active {
+  background: #0a84ff !important;
+  color: #fff !important;
+}
+
+.command-v21-modes button:nth-child(2).active {
+  background: #5856d6 !important;
+  color: #fff !important;
+}
+
+.command-v21-modes button:nth-child(3).active {
+  background: #34a853 !important;
+  color: #fff !important;
+}
+
+.command-v21-modes button:nth-child(4).active {
+  background: #af52de !important;
+  color: #fff !important;
+}
+
+.command-v21-modes button:nth-child(5).active {
+  background: #f28b00 !important;
+  color: #fff !important;
+}
+
+.command-v21-modes button.active kbd {
+  background: rgba(255, 255, 255, .18) !important;
+  color: inherit !important;
 }
 
 /* Neutralize browser, global-app and component focus decorations. */
@@ -33,11 +139,11 @@
 .command-v21-header:focus,
 .command-v21-header:focus-visible,
 .command-v21-header:focus-within {
-  border-color: rgba(60, 60, 67, .13) !important;
+  border-color: rgba(60, 60, 67, .12) !important;
   outline: 0 !important;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .9),
-    0 1px 2px rgba(0, 0, 0, .03) !important;
+    inset 0 1px 0 rgba(255, 255, 255, .92),
+    0 10px 28px rgba(45, 72, 115, .07) !important;
 }
 
 .command-v21-header input,
@@ -53,8 +159,8 @@
   appearance: none;
 }
 
+/* Use each entry's existing accent color as a soft wash, never as a frame. */
 .command-v21-result-shell,
-.command-v21-result-shell:hover,
 .command-v21-result-shell:focus,
 .command-v21-result-shell:focus-visible,
 .command-v21-result-shell:focus-within,
@@ -64,8 +170,20 @@
   box-shadow: none !important;
 }
 
+.command-v21-result-shell {
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--command-accent) 3.5%, transparent),
+      transparent 62%) !important;
+}
+
 .command-v21-result-shell:hover {
-  background: var(--cmd-hover-neutral) !important;
+  border-color: transparent !important;
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--command-accent) 10%, white),
+      rgba(255, 255, 255, .32) 75%) !important;
+  box-shadow: none !important;
 }
 
 .command-v21-result-shell.active,
@@ -75,8 +193,13 @@
 .command-v21-result-shell.active:focus-within,
 .command-v21-result-shell.active:active {
   border-color: transparent !important;
-  background: var(--cmd-active-neutral) !important;
-  box-shadow: none !important;
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--command-accent) 15%, white),
+      color-mix(in srgb, var(--command-accent) 5%, white) 72%,
+      rgba(255, 255, 255, .2)) !important;
+  box-shadow:
+    0 8px 24px color-mix(in srgb, var(--command-accent) 8%, transparent) !important;
 }
 
 .command-v21-result-shell.is-inferred,
@@ -85,8 +208,26 @@
 .command-v21-result-shell.is-inferred:focus-visible,
 .command-v21-result-shell.is-inferred:focus-within {
   border-color: transparent !important;
-  background: rgba(52, 199, 89, .07) !important;
+  background: linear-gradient(90deg, rgba(52, 199, 89, .13), rgba(52, 199, 89, .035)) !important;
   box-shadow: none !important;
+}
+
+.command-v21-icon {
+  border-color: rgba(255, 255, 255, .84) !important;
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb, var(--command-accent) 20%, white),
+      color-mix(in srgb, var(--command-accent) 8%, white)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .9),
+    0 5px 14px color-mix(in srgb, var(--command-accent) 13%, transparent) !important;
+}
+
+.command-v21-result-shell.active .command-v21-icon {
+  transform: scale(1.025);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .92),
+    0 8px 18px color-mix(in srgb, var(--command-accent) 18%, transparent) !important;
 }
 
 .command-v21-result-main,
@@ -110,45 +251,68 @@
 .command-v21-back:focus-visible,
 .command-v21-back:active {
   outline: 0 !important;
+}
+
+.command-v21-result-main,
+.command-v21-result-main:hover,
+.command-v21-result-main:focus,
+.command-v21-result-main:focus-visible,
+.command-v21-result-main:active,
+.command-v21-back,
+.command-v21-back:hover,
+.command-v21-back:focus,
+.command-v21-back:focus-visible,
+.command-v21-back:active {
   box-shadow: none !important;
 }
 
-.command-v21-inline-actions button,
+.command-v21-inline-actions button {
+  border-color: transparent !important;
+  background: rgba(255, 255, 255, .66) !important;
+  color: var(--command-accent, #5b6070) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--command-accent, #5b6070) 14%, transparent) !important;
+}
+
 .command-v21-inline-actions button:hover,
 .command-v21-inline-actions button.active,
 .command-v21-inline-actions button:focus,
 .command-v21-inline-actions button:focus-visible {
-  border-color: rgba(60, 60, 67, .1) !important;
-}
-
-.command-v21-inline-actions button:hover,
-.command-v21-inline-actions button.active {
-  background: rgba(118, 118, 128, .1) !important;
-  color: #36383d !important;
-}
-
-.command-v21-modes button:hover,
-.command-v21-modes button:focus,
-.command-v21-modes button:focus-visible {
   border-color: transparent !important;
+  background: color-mix(in srgb, var(--command-accent, #5b6070) 11%, white) !important;
+  color: color-mix(in srgb, var(--command-accent, #5b6070) 80%, #202124) !important;
+  box-shadow: none !important;
 }
 
-.command-v21-modes button.active,
-.command-v21-modes button.active:hover,
-.command-v21-modes button.active:focus,
-.command-v21-modes button.active:focus-visible {
-  border-color: rgba(0, 0, 0, .04) !important;
-  box-shadow: none !important;
+.command-v21-pin-dot {
+  color: #ff9f0a !important;
+  filter: drop-shadow(0 2px 4px rgba(255, 159, 10, .24));
 }
 
 .command-v21-enter,
 .command-v21-result-state .command-v21-enter {
-  color: #6e6e73 !important;
+  color: color-mix(in srgb, var(--command-accent, #6e6e73) 78%, #6e6e73) !important;
 }
+
+.command-v21-local-status {
+  background: rgba(52, 199, 89, .105) !important;
+  border-color: rgba(52, 199, 89, .13) !important;
+}
+
+.command-v21-footer kbd:nth-of-type(1) { color: #0a84ff !important; }
+.command-v21-footer span:nth-child(2) kbd { color: #5856d6 !important; }
+.command-v21-footer span:nth-child(3) kbd { color: #af52de !important; }
+.command-v21-footer span:nth-child(4) kbd { color: #f28b00 !important; }
 
 html[data-theme="dark"] .command-v21-layer {
   --cmd-hover-neutral: rgba(255, 255, 255, .055);
   --cmd-active-neutral: rgba(255, 255, 255, .09);
+}
+
+html[data-theme="dark"] .command-v21 {
+  background:
+    radial-gradient(circle at 14% 0%, rgba(10, 132, 255, .15), transparent 30%),
+    radial-gradient(circle at 88% 4%, rgba(175, 82, 222, .13), transparent 28%),
+    linear-gradient(180deg, rgba(34, 34, 38, .94), rgba(24, 24, 28, .9)) !important;
 }
 
 html[data-theme="dark"] .command-v21-header,
@@ -156,15 +320,42 @@ html[data-theme="dark"] .command-v21-header:hover,
 html[data-theme="dark"] .command-v21-header:focus,
 html[data-theme="dark"] .command-v21-header:focus-visible,
 html[data-theme="dark"] .command-v21-header:focus-within {
-  border-color: rgba(235, 235, 245, .11) !important;
+  border-color: rgba(235, 235, 245, .1) !important;
+  background: linear-gradient(135deg, rgba(58, 58, 64, .75), rgba(36, 43, 57, .68)) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .055),
     0 8px 24px rgba(0, 0, 0, .12) !important;
 }
 
+html[data-theme="dark"] .command-v21-result-shell {
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--command-accent) 7%, transparent),
+      transparent 68%) !important;
+}
+
+html[data-theme="dark"] .command-v21-result-shell:hover {
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--command-accent) 16%, #232329),
+      rgba(255, 255, 255, .025)) !important;
+}
+
+html[data-theme="dark"] .command-v21-result-shell.active,
+html[data-theme="dark"] .command-v21-result-shell.active:hover {
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--command-accent) 23%, #232329),
+      color-mix(in srgb, var(--command-accent) 8%, #232329)) !important;
+}
+
+html[data-theme="dark"] .command-v21-inline-actions button {
+  background: rgba(255, 255, 255, .065) !important;
+}
+
 html[data-theme="dark"] .command-v21-inline-actions button:hover,
 html[data-theme="dark"] .command-v21-inline-actions button.active {
-  background: rgba(255, 255, 255, .09) !important;
+  background: color-mix(in srgb, var(--command-accent, #8e8e93) 20%, #2c2c30) !important;
   color: #f2f2f7 !important;
 }
 
@@ -172,8 +363,10 @@ html[data-theme="dark"] .command-v21-inline-actions button.active {
   .command-v21-result-shell,
   .command-v21-header,
   .command-v21-result-main,
+  .command-v21-icon,
   .command-v21-inline-actions button {
     transition: none !important;
+    transform: none !important;
   }
 }
 
