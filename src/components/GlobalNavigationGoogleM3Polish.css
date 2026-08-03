@@ -1,0 +1,300 @@
+/* Google Material 3 polish for the restored pre-PR #483 navigation and Homepage Hero.
+   Visual-only: no component bridge, network work, polling, observers, or external assets. */
+
+html body .app-shell[data-route] .bes-top-chrome {
+  --gm3-blue: #0b57d0;
+  --gm3-blue-container: #d3e3fd;
+  --gm3-on-blue-container: #041e49;
+  --gm3-surface: #ffffff;
+  --gm3-surface-low: #f8fafd;
+  --gm3-surface-container: #f1f3f4;
+  --gm3-outline: #c7cdd5;
+  --gm3-outline-variant: #dfe3e8;
+  --gm3-ink: #1f1f1f;
+  --gm3-muted: #5f6368;
+  padding: 10px 12px 9px !important;
+  gap: 9px !important;
+  background: #f7f9fc !important;
+  border: 0 !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .08), 0 8px 24px rgba(60, 64, 67, .06) !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 {
+  min-height: 82px !important;
+  padding: 8px 12px !important;
+  gap: clamp(8px, .9vw, 15px) !important;
+  border: 1px solid var(--gm3-outline-variant) !important;
+  border-radius: 28px !important;
+  background: var(--gm3-surface) !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .08), 0 4px 12px rgba(60, 64, 67, .06) !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand {
+  min-width: 176px !important;
+  height: 60px !important;
+  padding: 6px 10px !important;
+  border-radius: 20px !important;
+  background: var(--gm3-surface-low) !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand img {
+  width: 44px !important;
+  height: 44px !important;
+  padding: 5px !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  filter: none !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .12) !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > span {
+  color: var(--gm3-ink) !important;
+  font-size: 18px !important;
+  font-weight: 650 !important;
+  letter-spacing: -.018em !important;
+}
+
+.brian-concept-nav {
+  gap: 4px !important;
+}
+
+.brian-concept-tab {
+  grid-template-rows: 32px 18px !important;
+  min-width: 66px !important;
+  max-width: 94px !important;
+  height: 64px !important;
+  padding: 5px 6px !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  color: #3c4043 !important;
+  transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease !important;
+}
+
+.brian-concept-tab::after {
+  display: none !important;
+}
+
+.brian-concept-tab:hover {
+  background: var(--gm3-surface-container) !important;
+  color: var(--gm3-ink) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.brian-concept-tab.is-active {
+  background: var(--gm3-blue-container) !important;
+  color: var(--gm3-on-blue-container) !important;
+  box-shadow: none !important;
+}
+
+.brian-concept-tab__icon {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 12px !important;
+  color: var(--concept-accent) !important;
+  background: color-mix(in srgb, var(--concept-accent) 10%, white) !important;
+}
+
+.brian-concept-tab.is-active .brian-concept-tab__icon {
+  color: var(--gm3-blue) !important;
+  background: rgba(255, 255, 255, .72) !important;
+}
+
+.brian-concept-tab__label {
+  color: inherit !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search {
+  height: 48px !important;
+  padding: 0 14px !important;
+  border: 1px solid transparent !important;
+  border-radius: 24px !important;
+  background: var(--gm3-surface-container) !important;
+  color: var(--gm3-muted) !important;
+  box-shadow: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search:hover {
+  border-color: var(--gm3-outline-variant) !important;
+  background: #eef2f7 !important;
+  box-shadow: none !important;
+}
+
+.brian-concept-search__icon {
+  color: var(--gm3-blue) !important;
+}
+
+.brian-concept-search__text {
+  color: #4f5459 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.brian-concept-search kbd {
+  border: 1px solid var(--gm3-outline-variant) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: var(--gm3-muted) !important;
+  box-shadow: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__actions {
+  gap: 7px !important;
+  padding: 2px !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-nav__actions > :is(button, a, [role='button']),
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-nav__ai-button {
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  border: 1px solid transparent !important;
+  border-radius: 16px !important;
+  background: var(--gm3-surface-low) !important;
+  color: #3c4043 !important;
+  box-shadow: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-nav__actions > :is(button, a, [role='button']):hover,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-nav__ai-button:hover {
+  background: var(--gm3-surface-container) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-nav__account {
+  width: auto !important;
+  min-width: 112px !important;
+  padding: 4px 10px 4px 5px !important;
+  border: 1px solid var(--gm3-outline-variant) !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-nav__account > span {
+  display: grid !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  flex: 0 0 38px !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-nav__bell > em {
+  top: -5px !important;
+  right: -5px !important;
+  min-width: 20px !important;
+  height: 20px !important;
+  padding: 0 5px !important;
+  border: 2px solid #fff !important;
+  border-radius: 999px !important;
+  background: #d93025 !important;
+  font-size: 10px !important;
+  line-height: 16px !important;
+  box-shadow: none !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar {
+  min-height: 54px !important;
+  height: 54px !important;
+  padding: 5px 9px !important;
+  border: 1px solid var(--gm3-outline-variant) !important;
+  border-radius: 27px !important;
+  background: var(--gm3-surface) !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .06) !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar :is(.brian-briefing-news, .brian-briefing-chip, [class*='briefing-chip']) {
+  border-radius: 20px !important;
+  background: var(--gm3-surface-low) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Homepage CMS Hero: keep the content and image; only apply Material 3 framing. */
+html[data-brian-hero-governance='v1'] body .app-shell[data-route='home'] .burs-hero-governed[data-brian-hero-route='home'] {
+  position: relative !important;
+  overflow: hidden !important;
+  border: 1px solid #dfe3e8 !important;
+  border-radius: 28px !important;
+  background: #f8fafd !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .08), 0 8px 24px rgba(60, 64, 67, .08) !important;
+}
+
+html[data-brian-hero-governance='v1'] body .app-shell[data-route='home'] .burs-hero-copy-governed {
+  padding: clamp(28px, 4vw, 58px) !important;
+}
+
+html[data-brian-hero-governance='v1'] body .app-shell[data-route='home'] .burs-hero-copy-governed > h1 {
+  color: #202124 !important;
+  font-weight: 650 !important;
+  letter-spacing: -.045em !important;
+  text-shadow: none !important;
+}
+
+html[data-brian-hero-governance='v1'] body .app-shell[data-route='home'] .burs-hero-copy-governed > h2 {
+  color: #0b57d0 !important;
+  font-weight: 620 !important;
+  text-shadow: none !important;
+}
+
+html[data-brian-hero-governance='v1'] body .app-shell[data-route='home'] .burs-hero-copy-governed > p {
+  color: #4f5459 !important;
+  font-weight: 450 !important;
+}
+
+html[data-brian-hero-governance='v1'] body .app-shell[data-route='home'] .burs-hero-copy-governed :where(.eyebrow, .kicker, [class*='badge']) {
+  border: 1px solid #dfe3e8 !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.92) !important;
+  color: #0b57d0 !important;
+  box-shadow: none !important;
+}
+
+html[data-brian-hero-governance='v1'] body .app-shell[data-route='home'] .burs-hero-copy-governed :where([class*='hero-actions'], [class*='hero-buttons']) :where(button, a, [role='button']) {
+  min-height: 48px !important;
+  border-radius: 24px !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+}
+
+html[data-brian-hero-governance='v1'] body .app-shell[data-route='home'] .burs-hero-copy-governed :where([class*='hero-actions'], [class*='hero-buttons']) :where(button, a, [role='button']):first-child {
+  border-color: #0b57d0 !important;
+  background: #0b57d0 !important;
+  color: #fff !important;
+}
+
+html[data-brian-hero-governance='v1'] body .app-shell[data-route='home'] .burs-hero-copy-governed :where([class*='hero-actions'], [class*='hero-buttons']) :where(button, a, [role='button']):not(:first-child) {
+  border: 1px solid #c7cdd5 !important;
+  background: rgba(255,255,255,.94) !important;
+  color: #0b57d0 !important;
+}
+
+@media (max-width: 1180px) {
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 {
+    grid-template-columns: max-content minmax(400px, 1fr) clamp(190px, 18vw, 250px) max-content !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-nav__account strong,
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-nav__account small {
+    display: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-nav__account {
+    min-width: 48px !important;
+    width: 48px !important;
+    padding: 4px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brian-concept-tab,
+  .brian-concept-search {
+    transition: none !important;
+  }
+}
