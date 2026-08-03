@@ -7,6 +7,25 @@ const OPEN_BUTTON_SELECTOR = '.work-task-card-actions button';
 const CARD_SELECTOR = '.v1093-task-card';
 const OPEN_CLASS = 'work-hub-viewport-modal-open';
 const ANCHORED_CLASS = 'work-hub-modal-is-anchored';
+const VIEWPORT_LAYER_CLASS = 'work-hub-modal-viewport-layer';
+
+const ANCESTOR_RESET = {
+  transform: 'none',
+  translate: 'none',
+  scale: 'none',
+  rotate: 'none',
+  filter: 'none',
+  'backdrop-filter': 'none',
+  perspective: 'none',
+  contain: 'none',
+  'content-visibility': 'visible',
+  'clip-path': 'none',
+  mask: 'none',
+  'will-change': 'auto',
+  overflow: 'visible',
+  'overflow-x': 'visible',
+  'overflow-y': 'visible',
+};
 
 function focusableElements(modal) {
   if (!modal) return [];
@@ -49,6 +68,31 @@ function rectSnapshot(element) {
   };
 }
 
+function captureInlineStyles(element, properties) {
+  return {
+    element,
+    values: properties.map((property) => ({
+      property,
+      value: element.style.getPropertyValue(property),
+      priority: element.style.getPropertyPriority(property),
+    })),
+  };
+}
+
+function restoreInlineStyles(snapshot) {
+  if (!snapshot?.element?.isConnected) return;
+  snapshot.values.forEach(({ property, value, priority }) => {
+    if (value) snapshot.element.style.setProperty(property, value, priority);
+    else snapshot.element.style.removeProperty(property);
+  });
+}
+
+function numericStyle(element, property) {
+  if (!(element instanceof HTMLElement)) return 0;
+  const value = Number.parseFloat(window.getComputedStyle(element).getPropertyValue(property));
+  return Number.isFinite(value) ? value : 0;
+}
+
 export default function GlobalWorkHubViewportModalBridge({ route }) {
   useEffect(() => {
     if (route !== 'work-hub' || typeof document === 'undefined') return undefined;
@@ -59,17 +103,44 @@ export default function GlobalWorkHubViewportModalBridge({ route }) {
     let focusTimer = 0;
     let positionFrame = 0;
     let lastAnchorRect = null;
+    let ancestorSnapshots = [];
 
-    const clearPosition = () => {
+    const restoreAncestors = () => {
+      ancestorSnapshots.slice().reverse().forEach(restoreInlineStyles);
+      ancestorSnapshots = [];
+    };
+
+    const releaseViewportLayer = () => {
       window.cancelAnimationFrame(positionFrame);
       positionFrame = 0;
       if (activeBackdrop instanceof HTMLElement) {
-        activeBackdrop.classList.remove(ANCHORED_CLASS);
+        activeBackdrop.classList.remove(ANCHORED_CLASS, VIEWPORT_LAYER_CLASS);
+        activeBackdrop.style.removeProperty('--work-hub-backdrop-top');
+        activeBackdrop.style.removeProperty('--work-hub-backdrop-left');
+        activeBackdrop.style.removeProperty('--work-hub-viewport-width');
+        activeBackdrop.style.removeProperty('--work-hub-viewport-height');
         activeBackdrop.style.removeProperty('--work-hub-modal-left');
         activeBackdrop.style.removeProperty('--work-hub-modal-top');
         activeBackdrop.style.removeProperty('--work-hub-modal-max-height');
       }
       if (activeModal instanceof HTMLElement) activeModal.classList.remove(ANCHORED_CLASS);
+      restoreAncestors();
+    };
+
+    const neutralizeAncestorContainingBlocks = () => {
+      restoreAncestors();
+      if (!(activeBackdrop instanceof HTMLElement)) return;
+      const properties = Object.keys(ANCESTOR_RESET);
+      let ancestor = activeBackdrop.parentElement;
+      while (ancestor instanceof HTMLElement
+        && ancestor !== document.body
+        && ancestor !== document.documentElement) {
+        ancestorSnapshots.push(captureInlineStyles(ancestor, properties));
+        Object.entries(ANCESTOR_RESET).forEach(([property, value]) => {
+          ancestor.style.setProperty(property, value, 'important');
+        });
+        ancestor = ancestor.parentElement;
+      }
     };
 
     const positionModalAtAnchor = () => {
@@ -81,23 +152,42 @@ export default function GlobalWorkHubViewportModalBridge({ route }) {
         const viewportWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
         const viewportHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
         const margin = viewportWidth <= 680 ? 10 : 16;
-        const modalRect = activeModal.getBoundingClientRect();
-        const modalWidth = Math.min(modalRect.width || activeModal.offsetWidth || 620, viewportWidth - (margin * 2));
+
+        const offsetParent = activeBackdrop.offsetParent instanceof HTMLElement
+          ? activeBackdrop.offsetParent
+          : activeBackdrop.parentElement;
+        const parentRect = offsetParent instanceof HTMLElement
+          ? offsetParent.getBoundingClientRect()
+          : { top: -window.scrollY, left: -window.scrollX };
+        const parentScrollTop = offsetParent instanceof HTMLElement ? offsetParent.scrollTop : 0;
+        const parentScrollLeft = offsetParent instanceof HTMLElement ? offsetParent.scrollLeft : 0;
+        const backdropTop = parentScrollTop - parentRect.top - numericStyle(offsetParent, 'border-top-width');
+        const backdropLeft = parentScrollLeft - parentRect.left - numericStyle(offsetParent, 'border-left-width');
+
+        activeBackdrop.style.setProperty('--work-hub-backdrop-top', `${Math.round(backdropTop)}px`);
+        activeBackdrop.style.setProperty('--work-hub-backdrop-left', `${Math.round(backdropLeft)}px`);
+        activeBackdrop.style.setProperty('--work-hub-viewport-width', `${Math.round(viewportWidth)}px`);
+        activeBackdrop.style.setProperty('--work-hub-viewport-height', `${Math.round(viewportHeight)}px`);
+        activeBackdrop.classList.add(VIEWPORT_LAYER_CLASS);
+
+        const modalWidth = Math.min(activeModal.offsetWidth || 620, viewportWidth - (margin * 2));
+        const measuredHeight = Math.max(activeModal.offsetHeight || 0, Math.min(activeModal.scrollHeight || 0, 720));
+        const modalHeight = Math.min(measuredHeight || 520, viewportHeight - (margin * 2));
         const anchor = lastAnchorRect || {
-          top: viewportHeight / 2,
-          right: viewportWidth / 2,
-          bottom: viewportHeight / 2,
-          left: viewportWidth / 2,
-          width: 0,
-          height: 0,
+          top: (viewportHeight - modalHeight) / 2,
+          right: (viewportWidth + modalWidth) / 2,
+          bottom: (viewportHeight + modalHeight) / 2,
+          left: (viewportWidth - modalWidth) / 2,
+          width: modalWidth,
+          height: modalHeight,
         };
 
-        const minimumUsefulHeight = Math.min(420, viewportHeight - (margin * 2));
         const preferredLeft = anchor.right - modalWidth;
-        const preferredTop = anchor.top - 140;
+        const preferredTop = anchor.top - Math.min(120, modalHeight * 0.22);
+        const minimumVisibleHeight = Math.min(420, viewportHeight - (margin * 2));
         const left = clamp(preferredLeft, margin, viewportWidth - modalWidth - margin);
-        const top = clamp(preferredTop, margin, viewportHeight - minimumUsefulHeight - margin);
-        const maxHeight = Math.min(720, viewportHeight - top - margin);
+        const top = clamp(preferredTop, margin, viewportHeight - minimumVisibleHeight - margin);
+        const maxHeight = Math.max(260, Math.min(720, viewportHeight - top - margin));
 
         activeBackdrop.style.setProperty('--work-hub-modal-left', `${Math.round(left)}px`);
         activeBackdrop.style.setProperty('--work-hub-modal-top', `${Math.round(top)}px`);
@@ -193,6 +283,7 @@ export default function GlobalWorkHubViewportModalBridge({ route }) {
           if (title) modal.setAttribute('aria-label', title);
           document.documentElement.classList.add(OPEN_CLASS);
           document.body.classList.add(OPEN_CLASS);
+          neutralizeAncestorContainingBlocks();
           positionModalAtAnchor();
           window.clearTimeout(focusTimer);
           focusTimer = window.setTimeout(() => {
@@ -208,7 +299,7 @@ export default function GlobalWorkHubViewportModalBridge({ route }) {
       }
 
       if (activeModal) {
-        clearPosition();
+        releaseViewportLayer();
         activeBackdrop = null;
         activeModal = null;
         lastAnchorRect = null;
@@ -232,7 +323,7 @@ export default function GlobalWorkHubViewportModalBridge({ route }) {
       document.removeEventListener('click', handleOpenClick, true);
       document.removeEventListener('keydown', handleKeyDown, true);
       window.removeEventListener('resize', positionModalAtAnchor);
-      clearPosition();
+      releaseViewportLayer();
       document.documentElement.classList.remove(OPEN_CLASS);
       document.body.classList.remove(OPEN_CLASS);
       window.clearTimeout(focusTimer);
