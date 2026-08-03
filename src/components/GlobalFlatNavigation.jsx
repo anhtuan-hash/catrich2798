@@ -78,8 +78,10 @@ import './GlobalNavigationPinnedLayout.css';
 import './GlobalNavigationOverlayLayer.css';
 // The Work Hub modal visibility contract must win over every global overlay rule.
 import './GlobalWorkHubViewportModalFinal.css';
-// Position the dialog beside the exact task button that opened it.
+// Legacy viewport and compact sizing rules.
 import './GlobalWorkHubModalAnchor.css';
+// The final placement contract: always center the dialog in the current viewport.
+import './GlobalWorkHubModalCenter.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
