@@ -1,0 +1,731 @@
+/* Navigation option 3 — scoped strictly to the top navigation hub.
+   No Hero, page-content, data, or runtime behavior is changed here. */
+
+html body .app-shell[data-route] .bes-top-chrome {
+  --hub3-blue: #1a73e8;
+  --hub3-blue-soft: #e8f0fe;
+  --hub3-ink: #17233d;
+  --hub3-muted: #65728a;
+  --hub3-line: #dce5f2;
+  --hub3-surface: #ffffff;
+  --hub3-shell: #f4f7fc;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+  display: grid !important;
+  gap: 8px !important;
+  padding: 10px 10px 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: linear-gradient(180deg, #f5f8fd 0%, #eef4fb 100%) !important;
+  box-shadow: 0 10px 28px rgba(43, 72, 122, .09) !important;
+  filter: none !important;
+}
+
+html body .app-shell[data-route] .bes-top-chrome::before,
+html body .app-shell[data-route] .bes-top-chrome::after,
+html body .app-shell[data-route] .bes-top-chrome > .brian-nav::before,
+html body .app-shell[data-route] .bes-top-chrome > .brian-nav::after,
+html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar::before,
+html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar::after {
+  content: none !important;
+  display: none !important;
+  animation: none !important;
+  filter: none !important;
+}
+
+html body .app-shell[data-route] .bes-top-chrome > .brian-nav {
+  display: grid !important;
+  grid-template-columns: 190px minmax(520px, 1fr) clamp(250px, 20vw, 330px) max-content !important;
+  grid-template-areas: "brand primary search actions" !important;
+  align-items: stretch !important;
+  gap: 14px !important;
+  min-height: 104px !important;
+  width: 100% !important;
+  padding: 0 18px 0 0 !important;
+  overflow: visible !important;
+  border: 1px solid var(--hub3-line) !important;
+  border-radius: 24px !important;
+  background: rgba(255,255,255,.98) !important;
+  color: var(--hub3-ink) !important;
+  box-shadow:
+    0 10px 24px rgba(45, 75, 125, .08),
+    inset 0 1px 0 rgba(255,255,255,1) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  isolation: isolate !important;
+}
+
+/* Dark brand block from approved option 3. */
+html body .app-shell[data-route] .brian-nav > .brian-nav__brand {
+  grid-area: brand !important;
+  align-self: stretch !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+  width: 190px !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 14px 16px !important;
+  border: 0 !important;
+  border-radius: 23px 0 0 23px !important;
+  background:
+    radial-gradient(circle at 20% 18%, rgba(49,130,246,.34), transparent 38%),
+    linear-gradient(145deg, #0c3a73 0%, #0a2e5d 58%, #08264e 100%) !important;
+  color: white !important;
+  box-shadow: inset -1px 0 0 rgba(255,255,255,.12) !important;
+  transform: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__brand:hover {
+  background:
+    radial-gradient(circle at 20% 18%, rgba(72,147,255,.42), transparent 40%),
+    linear-gradient(145deg, #104783 0%, #0b3569 58%, #092a54 100%) !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__brand img {
+  width: 52px !important;
+  height: 52px !important;
+  flex: 0 0 52px !important;
+  object-fit: contain !important;
+  border-radius: 14px !important;
+  filter: drop-shadow(0 8px 14px rgba(0,0,0,.22)) !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__brand span {
+  display: block !important;
+  max-width: 96px !important;
+  overflow: visible !important;
+  color: white !important;
+  font-size: 17px !important;
+  font-weight: 760 !important;
+  letter-spacing: -.02em !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+  text-align: left !important;
+  text-shadow: none !important;
+}
+
+/* Material destination rail. */
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary {
+  grid-area: primary !important;
+  align-self: stretch !important;
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 8px 0 !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  scrollbar-width: none !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary::-webkit-scrollbar {
+  display: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button {
+  --hub-tab-accent: #1a73e8;
+  --hub-tab-soft: #e8f0fe;
+  --hub-tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%23E8F0FE'/%3E%3Cpath d='M16 7 7 14v11h6v-7h6v7h6V14z' fill='%231A73E8'/%3E%3C/svg%3E");
+  position: relative !important;
+  flex: 1 0 72px !important;
+  display: grid !important;
+  grid-template-rows: 34px 20px !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 5px !important;
+  min-width: 68px !important;
+  max-width: 94px !important;
+  height: 88px !important;
+  min-height: 88px !important;
+  margin: 0 !important;
+  padding: 7px 6px 8px !important;
+  overflow: visible !important;
+  border: 1px solid transparent !important;
+  border-radius: 16px !important;
+  background: transparent !important;
+  color: #34415a !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  font-weight: 680 !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transform: none !important;
+  transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 150ms ease !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button::before {
+  content: "" !important;
+  position: static !important;
+  display: block !important;
+  width: 34px !important;
+  height: 34px !important;
+  border: 0 !important;
+  border-radius: 11px !important;
+  background: var(--hub-tab-icon) center / 34px 34px no-repeat !important;
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--hub-tab-accent) 12%, transparent) !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 24% !important;
+  right: 24% !important;
+  bottom: 1px !important;
+  width: auto !important;
+  height: 3px !important;
+  border-radius: 999px !important;
+  background: var(--hub-tab-accent) !important;
+  opacity: 0 !important;
+  transform: scaleX(.45) !important;
+  transition: opacity 150ms ease, transform 150ms ease !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button:hover {
+  border-color: transparent !important;
+  background: color-mix(in srgb, var(--hub-tab-soft) 72%, white) !important;
+  color: color-mix(in srgb, var(--hub-tab-accent) 78%, #23304a) !important;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--hub-tab-accent) 10%, transparent) !important;
+  transform: translateY(-1px) !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button.is-active {
+  border-color: color-mix(in srgb, var(--hub-tab-accent) 18%, transparent) !important;
+  background: color-mix(in srgb, var(--hub-tab-soft) 88%, white) !important;
+  color: var(--hub-tab-accent) !important;
+  box-shadow:
+    0 9px 20px color-mix(in srgb, var(--hub-tab-accent) 14%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.92) !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button.is-active::after {
+  opacity: 1 !important;
+  transform: scaleX(1) !important;
+}
+
+/* Home */
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button:first-child {
+  --hub-tab-accent: #1a73e8;
+  --hub-tab-soft: #e8f0fe;
+  --hub-tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%23E8F0FE'/%3E%3Cpath d='M16 7 7 14v11h6v-7h6v7h6V14z' fill='%231A73E8'/%3E%3C/svg%3E");
+}
+
+/* Apps — always the second native destination when available. */
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button:nth-child(2) {
+  --hub-tab-accent: #188038;
+  --hub-tab-soft: #e6f4ea;
+  --hub-tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%23E6F4EA'/%3E%3Cpath d='M8 8h6v6H8zm10 0h6v6h-6zM8 18h6v6H8zm10 0h6v6h-6z' fill='%23188038'/%3E%3C/svg%3E");
+}
+
+/* Admin — third native destination for administrator accounts. */
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button:nth-child(3) {
+  --hub-tab-accent: #c5221f;
+  --hub-tab-soft: #fce8e6;
+  --hub-tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%23FCE8E6'/%3E%3Cpath d='M16 6 24 9v6c0 5-3.4 9-8 11-4.6-2-8-6-8-11V9zm0 5-4 2v3c0 2.7 1.7 5 4 6.4 2.3-1.4 4-3.7 4-6.4v-3z' fill='%23C5221F'/%3E%3C/svg%3E");
+}
+
+/* Portal destinations override native positional colors. */
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > .brian-nav__news-tab {
+  --hub-tab-accent: #5f3dc4;
+  --hub-tab-soft: #f1e9ff;
+  --hub-tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%23F1E9FF'/%3E%3Cpath d='M9 7h14v18H9zm3 4h8v2h-8zm0 4h8v2h-8zm0 4h6v2h-6z' fill='%235F3DC4'/%3E%3C/svg%3E") !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > .brian-nav__games-tab {
+  --hub-tab-accent: #7b2cbf;
+  --hub-tab-soft: #f3e8ff;
+  --hub-tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%23F3E8FF'/%3E%3Cpath d='M10 11h12l3 5v6h-5l-2-2h-4l-2 2H7v-6zm1 4v2H9v2h2v2h2v-2h2v-2h-2v-2zm9 1.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm3-2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z' fill='%237B2CBF'/%3E%3C/svg%3E") !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > .brian-nav__dashboard-tab {
+  --hub-tab-accent: #e37400;
+  --hub-tab-soft: #fef7e0;
+  --hub-tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%23FEF7E0'/%3E%3Cpath d='M15 7v10h10A10 10 0 0 0 15 7zm-2 3A9 9 0 1 0 22 19h-9z' fill='%23E37400'/%3E%3C/svg%3E") !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > .brian-nav__homeroom-tab {
+  --hub-tab-accent: #188038;
+  --hub-tab-soft: #e6f4ea;
+  --hub-tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%23E6F4EA'/%3E%3Cpath d='M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm8 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6 24v-2c0-3 2.7-5 6-5s6 2 6 5v2zm12 0v-2c0-1.5-.5-2.8-1.4-3.8 1-.7 2.2-1.2 3.4-1.2 3 0 5 1.8 5 4.5V24z' fill='%23188038'/%3E%3C/svg%3E") !important;
+}
+
+/* Command K surface. */
+html body .app-shell[data-route] .brian-nav > .brian-nav__search {
+  grid-area: search !important;
+  align-self: center !important;
+  justify-self: stretch !important;
+  display: grid !important;
+  grid-template-columns: 24px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 54px !important;
+  padding: 0 14px 0 16px !important;
+  border: 1px solid #cbd8ea !important;
+  border-radius: 18px !important;
+  background: #fbfcff !important;
+  color: #6b778d !important;
+  box-shadow:
+    0 5px 14px rgba(49, 79, 129, .07),
+    inset 0 1px 0 #fff !important;
+  text-align: left !important;
+  transform: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__search:hover {
+  border-color: #9fb9df !important;
+  background: #fff !important;
+  box-shadow: 0 8px 18px rgba(45, 80, 139, .11) !important;
+  transform: translateY(-1px) !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__search:focus,
+html body .app-shell[data-route] .brian-nav > .brian-nav__search:focus-visible {
+  outline: none !important;
+  border-color: #8ab4f8 !important;
+  box-shadow: 0 0 0 3px rgba(26,115,232,.13), 0 8px 18px rgba(45,80,139,.10) !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__search > span {
+  display: block !important;
+  width: 22px !important;
+  height: 22px !important;
+  overflow: hidden !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5' fill='none' stroke='%234A5568' stroke-width='2'/%3E%3Cpath d='m15.5 15.5 5 5' stroke='%234A5568' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / 22px 22px no-repeat !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__search b {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: #718096 !important;
+  font-size: 14px !important;
+  font-weight: 560 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__search kbd {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 42px !important;
+  height: 30px !important;
+  padding: 0 8px !important;
+  border: 1px solid #d9e1ec !important;
+  border-radius: 10px !important;
+  background: #f1f4f8 !important;
+  color: #697386 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+/* Utilities. */
+html body .app-shell[data-route] .brian-nav > .brian-nav__actions {
+  grid-area: actions !important;
+  align-self: stretch !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  min-width: max-content !important;
+  padding: 8px 0 !important;
+}
+
+html body .app-shell[data-route] .brian-nav__ai-wrap,
+html body .app-shell[data-route] .brian-nav__popover-wrap {
+  align-self: stretch !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+html body .app-shell[data-route] .brian-nav__ai-button,
+html body .app-shell[data-route] .brian-nav__bell {
+  position: relative !important;
+  display: grid !important;
+  grid-template-rows: 34px 17px !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 3px !important;
+  width: 58px !important;
+  min-width: 58px !important;
+  height: 72px !important;
+  min-height: 72px !important;
+  padding: 5px !important;
+  border: 1px solid transparent !important;
+  border-radius: 16px !important;
+  background: transparent !important;
+  color: #26364f !important;
+  box-shadow: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav__ai-button:hover,
+html body .app-shell[data-route] .brian-nav__ai-button.is-open,
+html body .app-shell[data-route] .brian-nav__bell:hover,
+html body .app-shell[data-route] .brian-nav__bell.is-open {
+  border-color: #d9e3f1 !important;
+  background: #f5f8fd !important;
+  box-shadow: 0 7px 16px rgba(48,78,127,.08) !important;
+  transform: translateY(-1px) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__ai-button > span {
+  display: grid !important;
+  place-items: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  overflow: hidden !important;
+  border-radius: 11px !important;
+  background:
+    radial-gradient(circle at 34% 33%, #fff 0 5%, transparent 6%),
+    conic-gradient(from 20deg, #7c3aed, #4285f4, #34a853, #fbbc04, #ea4335, #7c3aed) !important;
+  color: white !important;
+  box-shadow: 0 5px 12px rgba(92,65,196,.20) !important;
+  font-size: 11px !important;
+  font-weight: 850 !important;
+  letter-spacing: -.04em !important;
+}
+
+html body .app-shell[data-route] .brian-nav__ai-button::after {
+  content: "AI" !important;
+  position: static !important;
+  display: block !important;
+  color: #56647b !important;
+  font-size: 11px !important;
+  font-weight: 680 !important;
+  line-height: 1 !important;
+}
+
+html body .app-shell[data-route] .brian-nav__bell > span {
+  display: block !important;
+  width: 28px !important;
+  height: 28px !important;
+  overflow: hidden !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 17h12l-1.5-2.5V10a4.5 4.5 0 0 0-9 0v4.5zM10 20h4' fill='none' stroke='%2326364F' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 28px 28px no-repeat !important;
+}
+
+html body .app-shell[data-route] .brian-nav__bell::after {
+  content: "Thông báo" !important;
+  position: static !important;
+  display: block !important;
+  color: #56647b !important;
+  font-size: 10px !important;
+  font-weight: 650 !important;
+  line-height: 1 !important;
+}
+
+html body .app-shell[data-route] .brian-nav__bell em {
+  top: 4px !important;
+  right: 1px !important;
+  min-width: 21px !important;
+  height: 21px !important;
+  padding: 0 4px !important;
+  border: 2px solid #fff !important;
+  border-radius: 999px !important;
+  background: #d93025 !important;
+  color: white !important;
+  box-shadow: 0 3px 8px rgba(217,48,37,.24) !important;
+  font-size: 10px !important;
+}
+
+html body .app-shell[data-route] .brian-nav__account {
+  min-height: 64px !important;
+  display: inline-grid !important;
+  grid-template-columns: 42px minmax(44px, auto) 14px !important;
+  align-items: center !important;
+  gap: 9px !important;
+  padding: 7px 10px 7px 7px !important;
+  border: 1px solid transparent !important;
+  border-radius: 17px !important;
+  background: transparent !important;
+  color: #1f2a3d !important;
+  box-shadow: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav__account:hover,
+html body .app-shell[data-route] .brian-nav__account.is-open {
+  border-color: #d9e3f1 !important;
+  background: #f5f8fd !important;
+  box-shadow: 0 7px 16px rgba(48,78,127,.08) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__account > span {
+  width: 42px !important;
+  height: 42px !important;
+  border: 3px solid #fff !important;
+  border-radius: 50% !important;
+  background: linear-gradient(145deg, #254f8f, #163a70) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(34,70,120,.18) !important;
+  font-size: 14px !important;
+}
+
+html body .app-shell[data-route] .brian-nav__account strong {
+  max-width: 82px !important;
+  color: #1f2937 !important;
+  font-size: 14px !important;
+  font-weight: 720 !important;
+}
+
+html body .app-shell[data-route] .brian-nav__account i {
+  color: #697386 !important;
+  font-size: 13px !important;
+}
+
+/* The secondary briefing strip remains part of the navigation hub. */
+html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) max-content !important;
+  align-items: center !important;
+  gap: 16px !important;
+  min-height: 72px !important;
+  height: 72px !important;
+  margin: 0 !important;
+  padding: 8px 12px 8px 18px !important;
+  overflow: hidden !important;
+  border: 1px solid var(--hub3-line) !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,.98) !important;
+  box-shadow: 0 8px 20px rgba(48,77,123,.07) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar__headline {
+  min-width: 0 !important;
+  height: 54px !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: #f8faff !important;
+  box-shadow: none !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar__headline:hover {
+  background: #f1f5fc !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar__source {
+  color: #1a73e8 !important;
+  font-weight: 760 !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar__google-dots i {
+  box-shadow: none !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar__context {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 54px !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-chip {
+  min-height: 54px !important;
+  padding: 7px 12px !important;
+  border: 1px solid #e1e8f2 !important;
+  border-radius: 14px !important;
+  background: #fbfcff !important;
+  box-shadow: none !important;
+}
+
+/* Keep popovers above the redesigned hub. */
+html body .app-shell[data-route] .brian-nav__popover {
+  z-index: 1100 !important;
+}
+
+/* High contrast and dark surfaces remain usable. */
+[data-theme='dark'] body .app-shell[data-route] .bes-top-chrome,
+.theme-dark body .app-shell[data-route] .bes-top-chrome {
+  --hub3-ink: #eef4ff;
+  --hub3-muted: #aebbd0;
+  --hub3-line: rgba(218,228,245,.16);
+  --hub3-surface: #172133;
+  --hub3-shell: #111a29;
+  background: #0f1724 !important;
+}
+
+[data-theme='dark'] body .app-shell[data-route] .bes-top-chrome > .brian-nav,
+[data-theme='dark'] body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar,
+.theme-dark body .app-shell[data-route] .bes-top-chrome > .brian-nav,
+.theme-dark body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar {
+  background: #172133 !important;
+  color: #eef4ff !important;
+}
+
+@media (max-width: 1320px) {
+  html body .app-shell[data-route] .bes-top-chrome > .brian-nav {
+    grid-template-columns: 160px minmax(450px, 1fr) 250px max-content !important;
+    gap: 9px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav > .brian-nav__brand {
+    width: 160px !important;
+    padding-inline: 10px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav > .brian-nav__brand img {
+    width: 46px !important;
+    height: 46px !important;
+    flex-basis: 46px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button {
+    flex-basis: 66px !important;
+    min-width: 62px !important;
+    max-width: 80px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 1080px) {
+  html body .app-shell[data-route] .bes-top-chrome > .brian-nav {
+    grid-template-columns: 76px minmax(410px, 1fr) 210px max-content !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav > .brian-nav__brand {
+    width: 76px !important;
+    border-radius: 23px 0 0 23px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav > .brian-nav__brand span {
+    display: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__account strong {
+    display: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__account {
+    grid-template-columns: 42px 14px !important;
+  }
+}
+
+@media (max-width: 860px) {
+  html body .app-shell[data-route] .bes-top-chrome {
+    padding-inline: 6px !important;
+  }
+
+  html body .app-shell[data-route] .bes-top-chrome > .brian-nav {
+    grid-template-columns: 68px minmax(0, 1fr) max-content !important;
+    grid-template-areas:
+      "brand search actions"
+      "primary primary primary" !important;
+    gap: 6px 8px !important;
+    min-height: 164px !important;
+    padding: 8px 8px 6px 0 !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav > .brian-nav__brand {
+    width: 68px !important;
+    height: 62px !important;
+    border-radius: 18px 0 0 18px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav > .brian-nav__brand img {
+    width: 42px !important;
+    height: 42px !important;
+    flex-basis: 42px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav > .brian-nav__search {
+    min-height: 48px !important;
+    height: 48px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav > .brian-nav__primary {
+    display: flex !important;
+    height: 84px !important;
+    padding: 2px 4px 0 !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button {
+    flex: 0 0 68px !important;
+    height: 78px !important;
+    min-height: 78px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__ai-button,
+  html body .app-shell[data-route] .brian-nav__bell {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    grid-template-rows: 34px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__ai-button::after,
+  html body .app-shell[data-route] .brian-nav__bell::after {
+    display: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__account {
+    min-height: 52px !important;
+    grid-template-columns: 38px !important;
+    padding: 5px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__account > span {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__account i {
+    display: none !important;
+  }
+
+  html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar {
+    min-height: 62px !important;
+    height: 62px !important;
+    padding: 6px 8px !important;
+  }
+}
+
+@media (max-width: 560px) {
+  html body .app-shell[data-route] .brian-nav > .brian-nav__search b,
+  html body .app-shell[data-route] .brian-nav > .brian-nav__search kbd {
+    display: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav > .brian-nav__search {
+    justify-self: end !important;
+    width: 48px !important;
+    grid-template-columns: 1fr !important;
+    place-items: center !important;
+    padding: 0 !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar__context {
+    display: none !important;
+  }
+
+  html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-shell[data-route] .brian-nav *,
+  html body .app-shell[data-route] .brian-briefing-bar * {
+    transition: none !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
