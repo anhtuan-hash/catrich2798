@@ -2,6 +2,7 @@ import fs from 'node:fs';
 
 const shell = fs.readFileSync('src/components/GlobalFlatNavigation.jsx', 'utf8');
 const css = fs.readFileSync('src/components/GlobalNavigationOption3.css', 'utf8');
+const cssWithoutInlineSvg = css.replace(/url\("data:image\/svg\+xml,[^"]*"\)/gi, '');
 const failures = [];
 const check = (condition, message) => { if (!condition) failures.push(message); };
 
@@ -19,7 +20,7 @@ check(css.includes('data:image/svg+xml'), 'Local Material icon assets are missin
 check(!css.includes('.hero-cms'), 'Option 3 must not target the Homepage Hero.');
 check(!css.includes('.bha-home'), 'Option 3 must not target Homepage content.');
 check(!css.includes('GlobalHome'), 'Option 3 must not reference Homepage components.');
-check(!/https?:\/\//i.test(css), 'Option 3 must not download external CSS assets.');
+check(!/https?:\/\//i.test(cssWithoutInlineSvg), 'Option 3 must not download external CSS assets.');
 check(!/\b(fetch|supabase|rpc|WebSocket|EventSource|setInterval|MutationObserver)\b/i.test(css), 'Option 3 must not add network, realtime, polling, or observer work.');
 check(!/animation\s*:[^;]*infinite/i.test(css), 'Option 3 must not add infinite animations.');
 check(!shell.includes('GlobalHomeGoogleHeroOverlay'), 'Homepage Hero overlay must remain disabled after restoration.');
