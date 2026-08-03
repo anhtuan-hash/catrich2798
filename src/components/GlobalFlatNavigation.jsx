@@ -89,6 +89,8 @@ import './GlobalNavigationSearchV3.css';
 import './GlobalNavigationOption3.css';
 // Final stability pass prevents legacy navigation layers from overlapping option 3.
 import './GlobalNavigationOption3Stability.css';
+// Final utility contract: polished AI, notification, and always-visible avatar.
+import './GlobalNavigationUtilityPolish.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
