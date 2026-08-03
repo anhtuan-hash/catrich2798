@@ -82,14 +82,18 @@ import './GlobalWorkHubViewportModalFinal.css';
 import './GlobalWorkHubModalAnchor.css';
 // The final placement contract: always center the dialog in the current viewport.
 import './GlobalWorkHubModalCenter.css';
+// The approved Google Workspace navigation layer must load after all legacy chrome.
+import './GlobalNavigationGoogleRefinement.css';
 
 const GlobalNavigationConceptV2 = lazy(() => import('./GlobalNavigationConceptV2.jsx'));
+const GlobalHomeGoogleHeroOverlay = lazy(() => import('./GlobalHomeGoogleHeroOverlay.jsx'));
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
 const GlobalWorkBulkDeleteManager = lazy(() => import('./GlobalWorkBulkDeleteManager.jsx'));
 
 export default function GlobalFlatNavigation(props) {
   const workHubActive = props.route === 'work-hub';
+  const homeActive = props.route === 'home';
 
   return (
     <>
@@ -97,6 +101,11 @@ export default function GlobalFlatNavigation(props) {
       {props.currentUser ? (
         <Suspense fallback={null}>
           <GlobalNavigationConceptV2 {...props} />
+        </Suspense>
+      ) : null}
+      {homeActive ? (
+        <Suspense fallback={null}>
+          <GlobalHomeGoogleHeroOverlay {...props} />
         </Suspense>
       ) : null}
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
