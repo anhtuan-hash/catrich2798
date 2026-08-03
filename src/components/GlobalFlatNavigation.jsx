@@ -89,8 +89,6 @@ import './GlobalNavigationSearchV3.css';
 import './GlobalNavigationOption3.css';
 // Final stability pass prevents legacy navigation layers from overlapping option 3.
 import './GlobalNavigationOption3Stability.css';
-// Approved option 1 replaces the long search field with a compact Command K capsule.
-import './GlobalNavigationOption1CompactCommand.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
