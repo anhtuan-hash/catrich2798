@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "revision": "1785348420000-hero-clarity",
-  "publishedAt": "2026-07-29T18:07:00.000Z",
+  "revision": "1785736607785-319fae97",
+  "publishedAt": "2026-08-03T05:56:47.785Z",
   "publishedBy": "anhtuan@pek.edu.vn",
   "delivery": "vercel-static",
   "config": {
@@ -83,16 +83,16 @@
     ],
     "background": {
       "type": "image",
-      "url": "/hero/media/hero-1785348061047-f9984e17dffa.webp",
+      "url": "/hero/media/hero-1785736607785-e21185b42d35.webp",
       "posterUrl": "",
-      "fileName": "hero-1785348061047-f9984e17dffa.webp",
+      "fileName": "hero-1785736607785-e21185b42d35.webp",
       "mimeType": "image/webp",
       "fit": "cover",
       "positionX": 70,
       "positionY": 50,
       "scale": 100,
       "opacity": 100,
-      "brightness": 103,
+      "brightness": 100,
       "blur": 0,
       "autoplay": true,
       "loop": true,
@@ -101,9 +101,9 @@
     "overlay": {
       "enabled": true,
       "color": "#ffffff",
-      "opacity": 3,
-      "leftProtection": 68,
-      "leftProtectionWidth": 42
+      "opacity": 10,
+      "leftProtection": 92,
+      "leftProtectionWidth": 56
     },
     "layout": {
       "minHeight": 590,
