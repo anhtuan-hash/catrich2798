@@ -94,9 +94,11 @@ export default function GlobalFlatNavigation(props) {
   return (
     <>
       <Navigation {...props} />
-      <Suspense fallback={null}>
-        <GlobalNavigationConceptV2 {...props} />
-      </Suspense>
+      {props.currentUser ? (
+        <Suspense fallback={null}>
+          <GlobalNavigationConceptV2 {...props} />
+        </Suspense>
+      ) : null}
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalPublicNewsBriefing route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHomeBriefingExtras route={props.route} language={props.language} />
