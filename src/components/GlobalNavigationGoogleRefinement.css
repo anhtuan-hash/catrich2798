@@ -1,4 +1,4 @@
 /* Navigation intentionally restored to the approved PR #482 concept.
    This file remains imported as a stable no-op so the existing cascade and
    build graph do not change. The homepage Hero refinement stays active.
-   Presentation-only: no network, Supabase, polling or runtime work. */
+   Presentation-only rollback marker. */
