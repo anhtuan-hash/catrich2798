@@ -1,0 +1,205 @@
+/* Approved navigation search, option 3.
+   Pure CSS: no data loading, polling, animation loop or Supabase access. */
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search {
+  position: relative !important;
+  isolation: isolate !important;
+  min-width: clamp(290px, 23vw, 410px) !important;
+  width: clamp(290px, 23vw, 410px) !important;
+  height: 54px !important;
+  display: grid !important;
+  grid-template-columns: 24px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 11px !important;
+  padding: 0 58px 0 18px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(60, 64, 67, .13) !important;
+  border-radius: 999px !important;
+  outline: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(250, 251, 253, .98)) !important;
+  color: #3c4043 !important;
+  box-shadow:
+    0 1px 2px rgba(60, 64, 67, .08),
+    0 8px 24px rgba(60, 64, 67, .10),
+    inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+  transform: none !important;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease !important;
+}
+
+/* Integrated Google-color sparkle, decorative only; the whole pill still opens Command K. */
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search::after {
+  content: '✦' !important;
+  position: absolute !important;
+  z-index: 2 !important;
+  right: 8px !important;
+  top: 50% !important;
+  width: 38px !important;
+  height: 38px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(60, 64, 67, .10) !important;
+  border-radius: 50% !important;
+  background:
+    radial-gradient(circle at center, #fff 0 48%, transparent 50%),
+    conic-gradient(from 18deg, #4285f4 0 25%, #ea4335 25% 50%, #fbbc04 50% 75%, #34a853 75% 100%) !important;
+  color: #7b61ff !important;
+  box-shadow:
+    0 2px 7px rgba(60, 64, 67, .12),
+    inset 0 1px 0 rgba(255, 255, 255, .92) !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search:hover {
+  border-color: rgba(60, 64, 67, .18) !important;
+  background: #fff !important;
+  box-shadow:
+    0 2px 4px rgba(60, 64, 67, .09),
+    0 12px 30px rgba(60, 64, 67, .13),
+    inset 0 1px 0 #fff !important;
+  transform: translateY(-1px) !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search:focus,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search:focus-visible,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search:active {
+  outline: 0 !important;
+  border-color: rgba(60, 64, 67, .22) !important;
+  background: #fff !important;
+  box-shadow:
+    0 1px 3px rgba(60, 64, 67, .10),
+    0 10px 28px rgba(60, 64, 67, .14),
+    inset 0 0 0 1px rgba(255, 255, 255, .82) !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-search__icon {
+  width: 24px !important;
+  height: 24px !important;
+  display: grid !important;
+  place-items: center !important;
+  color: #5f6368 !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-search__icon svg {
+  width: 19px !important;
+  height: 19px !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.75 !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-search__text {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: #6b7077 !important;
+  font-family: "Google Sans", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-size: .86rem !important;
+  font-weight: 520 !important;
+  letter-spacing: -.01em !important;
+  line-height: 1.2 !important;
+  text-align: left !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-search kbd {
+  min-width: 42px !important;
+  height: 30px !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: 0 !important;
+  padding: 0 9px !important;
+  border: 1px solid rgba(60, 64, 67, .08) !important;
+  border-radius: 999px !important;
+  background: #f1f3f4 !important;
+  color: #70757a !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85) !important;
+  font: 650 .68rem/1 "Google Sans", Inter, system-ui, sans-serif !important;
+}
+
+/* Keep the utility cluster calm so the search pill is the intended focal point. */
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__actions {
+  margin-left: 2px !important;
+}
+
+@media (max-width: 1480px) {
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search {
+    min-width: 280px !important;
+    width: min(330px, 22vw) !important;
+  }
+}
+
+@media (max-width: 1240px) {
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search {
+    min-width: 218px !important;
+    width: 218px !important;
+    height: 50px !important;
+    padding-left: 15px !important;
+    padding-right: 52px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-search kbd {
+    display: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search::after {
+    right: 7px !important;
+    width: 35px !important;
+    height: 35px !important;
+  }
+}
+
+@media (max-width: 1020px) {
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search {
+    min-width: 52px !important;
+    width: 52px !important;
+    padding: 0 !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-search__text,
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-search kbd,
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search::after {
+    display: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-search__icon {
+    margin: auto !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search {
+    transition: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search:hover {
+    transform: none !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search {
+    border-color: rgba(255, 255, 255, .12) !important;
+    background: linear-gradient(180deg, #25282d, #1f2227) !important;
+    color: #e8eaed !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .24), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-search__text,
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-search__icon {
+    color: #bdc1c6 !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-search kbd {
+    border-color: rgba(255, 255, 255, .08) !important;
+    background: #30343a !important;
+    color: #bdc1c6 !important;
+  }
+}

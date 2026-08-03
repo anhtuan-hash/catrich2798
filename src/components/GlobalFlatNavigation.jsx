@@ -84,6 +84,8 @@ import './GlobalWorkHubModalAnchor.css';
 import './GlobalWorkHubModalCenter.css';
 // The approved Google Workspace navigation layer must load after all legacy chrome.
 import './GlobalNavigationGoogleRefinement.css';
+// Approved search option 3: the last navigation rule in the cascade.
+import './GlobalNavigationSearchV3.css';
 
 const GlobalNavigationConceptV2 = lazy(() => import('./GlobalNavigationConceptV2.jsx'));
 const GlobalHomeGoogleHeroOverlay = lazy(() => import('./GlobalHomeGoogleHeroOverlay.jsx'));
