@@ -82,6 +82,8 @@ import './GlobalWorkHubViewportModalFinal.css';
 import './GlobalWorkHubModalAnchor.css';
 // The final placement contract: always center the dialog in the current viewport.
 import './GlobalWorkHubModalCenter.css';
+// Visual-only Material 3 polish for the restored navigation and CMS Hero.
+import './GlobalNavigationGoogleM3Polish.css';
 
 // Navigation Concept V2 is the approved state immediately before PR #483.
 const GlobalNavigationConceptV2 = lazy(() => import('./GlobalNavigationConceptV2.jsx'));
