@@ -84,6 +84,8 @@ import './GlobalWorkHubModalAnchor.css';
 import './GlobalWorkHubModalCenter.css';
 // Visual-only Material 3 polish for the restored navigation and CMS Hero.
 import './GlobalNavigationGoogleM3Polish.css';
+// Final Command K capsule refinement; removes the legacy rectangular focus frame.
+import './GlobalNavigationSearchPillRefinement.css';
 
 // Navigation Concept V2 is the approved state immediately before PR #483.
 const GlobalNavigationConceptV2 = lazy(() => import('./GlobalNavigationConceptV2.jsx'));
