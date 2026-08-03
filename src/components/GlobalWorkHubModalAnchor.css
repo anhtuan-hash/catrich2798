@@ -1,5 +1,6 @@
-/* Anchor the Work Hub detail dialog to the task the user just opened.
-   This file is deliberately loaded after the final modal contract. */
+/* Work Hub detail layer aligned to the viewport currently visible to the user.
+   The backdrop remains inside React's tree so all existing handlers continue to work,
+   but its absolute coordinates are calculated against the real viewport. */
 
 html.work-hub-viewport-modal-open body .app-shell[data-route],
 html.work-hub-viewport-modal-open body .metro-clean-system,
@@ -22,16 +23,37 @@ html.work-hub-viewport-modal-open body .v1093-page.v1093-work-hub{
   clip-path:none!important;
 }
 
-.v1093-work-hub>.v1093-drawer-backdrop.work-hub-modal-is-anchored,
-.v1093-drawer-backdrop.work-hub-viewport-modal-backdrop.work-hub-modal-is-anchored{
+.v1093-work-hub>.v1093-drawer-backdrop.work-hub-modal-viewport-layer,
+.v1093-drawer-backdrop.work-hub-viewport-modal-backdrop.work-hub-modal-viewport-layer{
+  position:absolute!important;
+  inset:auto!important;
+  top:var(--work-hub-backdrop-top,0px)!important;
+  left:var(--work-hub-backdrop-left,0px)!important;
+  right:auto!important;
+  bottom:auto!important;
   display:block!important;
   place-items:initial!important;
+  width:var(--work-hub-viewport-width,100vw)!important;
+  min-width:var(--work-hub-viewport-width,100vw)!important;
+  max-width:none!important;
+  height:var(--work-hub-viewport-height,100dvh)!important;
+  min-height:var(--work-hub-viewport-height,100dvh)!important;
+  max-height:none!important;
+  margin:0!important;
   padding:0!important;
+  overflow:hidden!important;
+  clip-path:none!important;
+  transform:none!important;
+  translate:none!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  z-index:2147483000!important;
 }
 
 .v1093-work-hub>.v1093-drawer-backdrop.work-hub-modal-is-anchored>.v1093-drawer.work-delivery-drawer.work-hub-modal-is-anchored,
 .v1093-drawer-backdrop.work-hub-viewport-modal-backdrop.work-hub-modal-is-anchored>.v1093-drawer.work-delivery-drawer.work-hub-modal-is-anchored{
-  position:fixed!important;
+  position:absolute!important;
   inset:auto!important;
   top:var(--work-hub-modal-top,16px)!important;
   left:var(--work-hub-modal-left,16px)!important;
@@ -51,8 +73,8 @@ html.work-hub-viewport-modal-open body .v1093-page.v1093-work-hub{
 }
 
 @media (max-width:680px){
-  .v1093-work-hub>.v1093-drawer-backdrop.work-hub-modal-is-anchored,
-  .v1093-drawer-backdrop.work-hub-viewport-modal-backdrop.work-hub-modal-is-anchored{
+  .v1093-work-hub>.v1093-drawer-backdrop.work-hub-modal-viewport-layer,
+  .v1093-drawer-backdrop.work-hub-viewport-modal-backdrop.work-hub-modal-viewport-layer{
     display:grid!important;
     place-items:center!important;
     padding:10px!important;
