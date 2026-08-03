@@ -5,48 +5,31 @@ import process from 'node:process';
 const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const shell = read('src/components/GlobalFlatNavigation.jsx');
-const bridge = read('src/components/GlobalNavigationConceptV2.jsx');
-const css = read('src/components/GlobalNavigationConceptV2.css');
+const legacyNavigation = read('src/components/GlobalCompactNavigation.jsx');
+const archivedBridge = read('src/components/GlobalNavigationConceptV2.jsx');
+const archivedCss = read('src/components/GlobalNavigationConceptV2.css');
 
 const failures = [];
 const check = (condition, message) => { if (!condition) failures.push(message); };
 
-check(shell.includes("lazy(() => import('./GlobalNavigationConceptV2.jsx'))"), 'Approved navigation must remain lazy-loaded.');
-check(shell.includes('props.currentUser ? ('), 'Guest navigation must remain outside the authenticated concept bridge.');
-check(bridge.includes("window.dispatchEvent(new CustomEvent('bes-command-palette-open'))"), 'Visible Command K launcher is missing.');
-check(bridge.includes("document.getElementById('bes-weekly-practice-root')"), 'Learning navigation must target the existing weekly practice hub.');
-check(bridge.includes("scrollIntoView({ behavior: 'smooth', block: 'start' })"), 'Learning navigation must remain local scroll behavior.');
-check(bridge.includes("hasRouteAccess(currentUser, 'work-hub')"), 'Work Hub permission guard is missing.');
-check(bridge.includes("hasRouteAccess(currentUser, 'homeroom')"), 'Homeroom permission guard is missing.');
-check(bridge.includes("hasRouteAccess(currentUser, 'dashboard')"), 'Dashboard permission guard is missing.');
-check(bridge.includes("hasRouteAccess(currentUser, 'apps')"), 'Apps permission guard is missing.');
-check(bridge.includes('brian-concept-more__menu'), 'Compact More menu is missing.');
+check(shell.includes("import Navigation from './GlobalCompactNavigation.jsx'"), 'Legacy navigation import must remain active.');
+check(shell.includes('<Navigation {...props} />'), 'Legacy navigation must remain mounted.');
+check(!shell.includes("lazy(() => import('./GlobalNavigationConceptV2.jsx'))"), 'PR 482 navigation bridge must remain disabled after rollback.');
+check(!shell.includes('<GlobalNavigationConceptV2'), 'PR 482 navigation component must not be mounted.');
+check(shell.includes("lazy(() => import('./GlobalHomeGoogleHeroOverlay.jsx'))"), 'Homepage Hero overlay must remain available.');
+check(legacyNavigation.length > 1000, 'Legacy navigation source appears incomplete.');
 
-check(!bridge.includes('fetch('), 'Navigation bridge must not make network requests.');
-check(!bridge.toLowerCase().includes('supabase'), 'Navigation bridge must not reference Supabase.');
-check(!bridge.includes('setInterval('), 'Navigation bridge must not poll.');
-check(!bridge.includes('MutationObserver'), 'Navigation bridge must not observe the full document.');
-check(!bridge.includes('WebSocket'), 'Navigation bridge must not open realtime connections.');
-check(!bridge.includes('EventSource'), 'Navigation bridge must not open streaming connections.');
-
-check(css.includes('.brian-nav--concept-v2'), 'Approved navigation CSS scope is missing.');
-check(css.includes('grid-template-areas: \'brand destinations command utilities\''), 'Desktop four-zone layout is missing.');
-check(css.includes('.brian-concept-search'), 'Command launcher styling is missing.');
-check(css.includes('.brian-concept-tab.is-active'), 'Active navigation state is missing.');
-check(css.includes('height: 56px !important'), 'Compact briefing height contract is missing.');
-check(css.includes('animation: none !important'), 'Aura animation shutdown is missing.');
-check(!css.includes('infinite'), 'Approved navigation must not add infinite animations.');
-check(!css.includes('backdrop-filter'), 'Approved navigation must avoid costly full-width backdrop blur.');
-check(!css.toLowerCase().includes('supabase'), 'Navigation CSS must not reference Supabase.');
+const prohibitedRuntime = /\b(fetch|rpc|WebSocket|EventSource|setInterval|MutationObserver)\b/i;
+check(!prohibitedRuntime.test(archivedBridge), 'Archived navigation bridge must remain free of network and background runtime work.');
+check(!/animation\s*:[^;]*infinite/i.test(archivedCss), 'Archived navigation CSS must not add infinite animations.');
 
 if (failures.length) {
-  console.error('\nNavigation Hub concept guard failed:');
+  console.error('\nNavigation rollback guard failed:');
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }
 
-console.log('Navigation Hub approved concept guard passed.');
-console.log('Network/Supabase requests introduced: 0');
-console.log('Background polling/observers introduced: 0');
-console.log('Loading model: authenticated lazy chunk, click-only Command K');
-console.log('Learning action: local scroll to existing weekly practice hub');
+console.log('Navigation rollback guard passed.');
+console.log('Active navigation: GlobalCompactNavigation (version before PR 482).');
+console.log('PR 482 bridge mounted: no.');
+console.log('New network or background work introduced: 0.');
