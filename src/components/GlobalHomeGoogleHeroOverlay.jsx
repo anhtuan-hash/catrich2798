@@ -85,7 +85,7 @@ export default function GlobalHomeGoogleHeroOverlay({ route = 'home', language =
             <i><Glyph name="chart" /></i>
           </aside>
 
-          <main className="google-home-dashboard">
+          <div className="google-home-dashboard">
             <header>
               <div><strong>{vi ? `Xin chào, ${name}!` : `Hello, ${name}!`}</strong><small>{vi ? 'Một ngày tuyệt vời để dạy và học.' : 'A great day to teach and learn.'}</small></div>
               <span className="google-home-status"><i />{vi ? 'Đã đồng bộ' : 'Synced'}</span>
@@ -111,7 +111,7 @@ export default function GlobalHomeGoogleHeroOverlay({ route = 'home', language =
                 <div className="google-home-mini-chart"><i /><i /><i /><i /><i /><i /></div>
               </article>
             </section>
-          </main>
+          </div>
         </div>
       </div>
 
