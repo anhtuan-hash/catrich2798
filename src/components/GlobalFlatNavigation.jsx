@@ -82,16 +82,9 @@ import './GlobalWorkHubViewportModalFinal.css';
 import './GlobalWorkHubModalAnchor.css';
 // The final placement contract: always center the dialog in the current viewport.
 import './GlobalWorkHubModalCenter.css';
-// Retained no-op imports preserve the established bundle order after navigation rollback.
-import './GlobalNavigationGoogleRefinement.css';
-import './GlobalNavigationSearchV3.css';
-// Approved option 3 loads last and is scoped only to the navigation hub.
-import './GlobalNavigationOption3.css';
-// Final stability pass prevents legacy navigation layers from overlapping option 3.
-import './GlobalNavigationOption3Stability.css';
-// Final utility contract: polished AI, notification, and always-visible avatar.
-import './GlobalNavigationUtilityPolish.css';
 
+// Navigation Concept V2 is the approved state immediately before PR #483.
+const GlobalNavigationConceptV2 = lazy(() => import('./GlobalNavigationConceptV2.jsx'));
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
 const GlobalWorkBulkDeleteManager = lazy(() => import('./GlobalWorkBulkDeleteManager.jsx'));
@@ -102,6 +95,11 @@ export default function GlobalFlatNavigation(props) {
   return (
     <>
       <Navigation {...props} />
+      {props.currentUser ? (
+        <Suspense fallback={null}>
+          <GlobalNavigationConceptV2 {...props} />
+        </Suspense>
+      ) : null}
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalPublicNewsBriefing route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHomeBriefingExtras route={props.route} language={props.language} />
