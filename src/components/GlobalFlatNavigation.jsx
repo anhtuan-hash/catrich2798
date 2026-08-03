@@ -87,6 +87,8 @@ import './GlobalNavigationGoogleRefinement.css';
 import './GlobalNavigationSearchV3.css';
 // Approved option 3 loads last and is scoped only to the navigation hub.
 import './GlobalNavigationOption3.css';
+// Final stability pass prevents legacy navigation layers from overlapping option 3.
+import './GlobalNavigationOption3Stability.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
