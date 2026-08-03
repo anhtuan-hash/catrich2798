@@ -1,0 +1,26 @@
+name: Navigation Hub Concept Guard
+
+on:
+  pull_request:
+    paths:
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/components/GlobalNavigationConceptV2.jsx'
+      - 'src/components/GlobalNavigationConceptV2.css'
+      - 'scripts/test-navigation-hub-concept.mjs'
+      - '.github/workflows/navigation-hub-concept.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  navigation-hub-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify approved navigation, performance and egress contracts
+        run: node scripts/test-navigation-hub-concept.mjs
