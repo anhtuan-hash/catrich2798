@@ -85,6 +85,8 @@ import './GlobalWorkHubModalCenter.css';
 // Retained no-op imports preserve the established bundle order after navigation rollback.
 import './GlobalNavigationGoogleRefinement.css';
 import './GlobalNavigationSearchV3.css';
+// Approved option 3 loads last and is scoped only to the navigation hub.
+import './GlobalNavigationOption3.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
