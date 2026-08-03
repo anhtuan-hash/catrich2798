@@ -83,6 +83,7 @@ import './GlobalWorkHubModalAnchor.css';
 // The final placement contract: always center the dialog in the current viewport.
 import './GlobalWorkHubModalCenter.css';
 
+const GlobalNavigationConceptV2 = lazy(() => import('./GlobalNavigationConceptV2.jsx'));
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
 const GlobalWorkBulkDeleteManager = lazy(() => import('./GlobalWorkBulkDeleteManager.jsx'));
@@ -93,6 +94,11 @@ export default function GlobalFlatNavigation(props) {
   return (
     <>
       <Navigation {...props} />
+      {props.currentUser ? (
+        <Suspense fallback={null}>
+          <GlobalNavigationConceptV2 {...props} />
+        </Suspense>
+      ) : null}
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalPublicNewsBriefing route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHomeBriefingExtras route={props.route} language={props.language} />
