@@ -5,35 +5,61 @@ import process from 'node:process';
 const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const shell = read('src/components/GlobalFlatNavigation.jsx');
-const legacyNavigation = read('src/components/GlobalCompactNavigation.jsx');
-const archivedBridge = read('src/components/GlobalNavigationConceptV2.jsx');
-const archivedCss = read('src/components/GlobalNavigationConceptV2.css');
+const bridge = read('src/components/GlobalNavigationConceptV2.jsx');
+const css = read('src/components/GlobalNavigationConceptV2.css');
 
 const failures = [];
 const check = (condition, message) => { if (!condition) failures.push(message); };
 
-check(shell.includes("import Navigation from './GlobalCompactNavigation.jsx'"), 'Legacy navigation import must remain active.');
-check(shell.includes('<Navigation {...props} />'), 'Legacy navigation must remain mounted.');
-check(!shell.includes("lazy(() => import('./GlobalNavigationConceptV2.jsx'))"), 'PR 482 navigation bridge must remain disabled after rollback.');
-check(!shell.includes('<GlobalNavigationConceptV2'), 'PR 482 navigation component must not be mounted.');
-check(shell.includes('<GlobalHeroGovernance route={props.route} />'), 'Original Homepage Hero governance must remain active.');
-check(!shell.includes("lazy(() => import('./GlobalHomeGoogleHeroOverlay.jsx'))"), 'PR 483 Homepage Hero overlay must remain disabled after restoration.');
-check(!shell.includes('<GlobalHomeGoogleHeroOverlay'), 'PR 483 Homepage Hero overlay must not be mounted.');
-check(legacyNavigation.length > 1000, 'Legacy navigation source appears incomplete.');
+check(shell.includes("import Navigation from './GlobalCompactNavigation.jsx'"), 'Base navigation import must remain active.');
+check(shell.includes('<Navigation {...props} />'), 'Base navigation must remain mounted.');
+check(shell.includes("lazy(() => import('./GlobalNavigationConceptV2.jsx'))"), 'PR #482 navigation must remain lazy-loaded.');
+check(shell.includes('<GlobalNavigationConceptV2 {...props} />'), 'PR #482 navigation must remain mounted for authenticated users.');
+check(shell.includes('props.currentUser ? ('), 'Guest navigation must remain outside the authenticated concept bridge.');
 
-const prohibitedRuntime = /\b(fetch|rpc|WebSocket|EventSource|setInterval|MutationObserver)\b/i;
-check(!prohibitedRuntime.test(archivedBridge), 'Archived navigation bridge must remain free of network and background runtime work.');
-check(!/animation\s*:[^;]*infinite/i.test(archivedCss), 'Archived navigation CSS must not add infinite animations.');
+check(bridge.includes("window.dispatchEvent(new CustomEvent('bes-command-palette-open'))"), 'Visible Command K launcher is missing.');
+check(bridge.includes("document.getElementById('bes-weekly-practice-root')"), 'Learning navigation must target the existing weekly practice hub.');
+check(bridge.includes("scrollIntoView({ behavior: 'smooth', block: 'start' })"), 'Learning navigation must remain local scroll behavior.');
+check(bridge.includes("hasRouteAccess(currentUser, 'work-hub')"), 'Work Hub permission guard is missing.');
+check(bridge.includes("hasRouteAccess(currentUser, 'homeroom')"), 'Homeroom permission guard is missing.');
+check(bridge.includes("hasRouteAccess(currentUser, 'dashboard')"), 'Dashboard permission guard is missing.');
+check(bridge.includes("hasRouteAccess(currentUser, 'apps')"), 'Apps permission guard is missing.');
+check(bridge.includes('brian-concept-more__menu'), 'Compact More menu is missing.');
+
+check(!bridge.includes('fetch('), 'Navigation bridge must not make network requests.');
+check(!bridge.toLowerCase().includes('supabase'), 'Navigation bridge must not reference Supabase.');
+check(!bridge.includes('setInterval('), 'Navigation bridge must not poll.');
+check(!bridge.includes('MutationObserver'), 'Navigation bridge must not observe the full document.');
+check(!bridge.includes('WebSocket'), 'Navigation bridge must not open realtime connections.');
+check(!bridge.includes('EventSource'), 'Navigation bridge must not open streaming connections.');
+
+check(css.includes('.brian-nav--concept-v2'), 'Approved navigation CSS scope is missing.');
+check(css.includes("grid-template-areas: 'brand destinations command utilities'"), 'Desktop four-zone layout is missing.');
+check(css.includes('.brian-concept-search'), 'Command launcher styling is missing.');
+check(css.includes('.brian-concept-tab.is-active'), 'Active navigation state is missing.');
+check(css.includes('height: 56px !important'), 'Compact briefing height contract is missing.');
+check(css.includes('animation: none !important'), 'Aura animation shutdown is missing.');
+check(!css.includes('infinite'), 'Approved navigation must not add infinite animations.');
+check(!css.includes('backdrop-filter'), 'Approved navigation must avoid costly full-width backdrop blur.');
+check(!css.toLowerCase().includes('supabase'), 'Navigation CSS must not reference Supabase.');
+
+check(shell.includes('<GlobalHeroGovernance route={props.route} />'), 'Original Homepage Hero governance must remain active.');
+check(!shell.includes("lazy(() => import('./GlobalHomeGoogleHeroOverlay.jsx'))"), 'PR #483 Hero overlay must remain disabled.');
+check(!shell.includes('<GlobalHomeGoogleHeroOverlay'), 'PR #483 Hero overlay must not mount.');
+check(!shell.includes("import './GlobalNavigationGoogleRefinement.css'"), 'PR #483 navigation refinement must remain unloaded.');
+check(!shell.includes("import './GlobalNavigationSearchV3.css'"), 'Post-#483 Search V3 must remain unloaded.');
+check(!shell.includes("import './GlobalNavigationOption3.css'"), 'Post-#483 Option 3 must remain unloaded.');
+check(!shell.includes("import './GlobalNavigationOption3Stability.css'"), 'Post-#483 stability layer must remain unloaded.');
+check(!shell.includes("import './GlobalNavigationUtilityPolish.css'"), 'Post-#483 utility polish must remain unloaded.');
 
 if (failures.length) {
-  console.error('\nNavigation rollback guard failed:');
+  console.error('\nPre-PR #483 navigation and Hero guard failed:');
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }
 
-console.log('Navigation rollback guard passed.');
-console.log('Active navigation: GlobalCompactNavigation (version before PR 482).');
-console.log('Active homepage Hero: original CMS Hero (version before PR 483).');
-console.log('PR 482 navigation bridge mounted: no.');
-console.log('PR 483 Hero overlay mounted: no.');
+console.log('Pre-PR #483 navigation and Hero guard passed.');
+console.log('Active navigation: Navigation Concept V2 from PR #482.');
+console.log('Active Homepage Hero: original CMS Hero.');
+console.log('Post-PR #483 navigation layers loaded: 0.');
 console.log('New network or background work introduced: 0.');
