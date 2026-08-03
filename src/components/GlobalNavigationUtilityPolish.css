@@ -1,0 +1,368 @@
+/* Final utility-cluster polish for the top navigation.
+   Scope: AI launcher, notification button, and account/avatar only. */
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  min-width: max-content !important;
+  overflow: visible !important;
+}
+
+html body .app-shell[data-route] .brian-nav__actions > .brian-nav__ai-wrap,
+html body .app-shell[data-route] .brian-nav__actions > .brian-nav__popover-wrap {
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+}
+
+html body .app-shell[data-route] .brian-nav__ai-button,
+html body .app-shell[data-route] .brian-nav__bell {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 1px solid #d7e1ef !important;
+  border-radius: 14px !important;
+  background: #f7f9fc !important;
+  color: #34445f !important;
+  box-shadow:
+    0 1px 2px rgba(60, 64, 67, .08),
+    0 5px 12px rgba(60, 64, 67, .06) !important;
+  font-size: 0 !important;
+  line-height: 1 !important;
+  text-shadow: none !important;
+  transform: none !important;
+  filter: none !important;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease !important;
+}
+
+html body .app-shell[data-route] .brian-nav__ai-button:hover,
+html body .app-shell[data-route] .brian-nav__bell:hover {
+  border-color: #c4d3e7 !important;
+  background: #eef4fb !important;
+  box-shadow:
+    0 2px 4px rgba(60, 64, 67, .09),
+    0 8px 17px rgba(60, 64, 67, .08) !important;
+  transform: translateY(-1px) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__ai-button:active,
+html body .app-shell[data-route] .brian-nav__bell:active {
+  background: #e8f0fe !important;
+  transform: translateY(0) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__ai-button:focus,
+html body .app-shell[data-route] .brian-nav__ai-button:focus-visible,
+html body .app-shell[data-route] .brian-nav__bell:focus,
+html body .app-shell[data-route] .brian-nav__bell:focus-visible,
+html body .app-shell[data-route] .brian-nav__account:focus,
+html body .app-shell[data-route] .brian-nav__account:focus-visible {
+  outline: none !important;
+  box-shadow:
+    0 0 0 3px rgba(26, 115, 232, .14),
+    0 5px 14px rgba(60, 64, 67, .09) !important;
+}
+
+/* Remove old labels, neon frames, and decorative launcher layers. */
+html body .app-shell[data-route] .brian-nav__ai-button::before,
+html body .app-shell[data-route] .brian-nav__ai-button::after,
+html body .app-shell[data-route] .brian-nav__bell::before,
+html body .app-shell[data-route] .brian-nav__bell::after {
+  content: none !important;
+  display: none !important;
+  animation: none !important;
+}
+
+/* Minimal Google-colored sparkle, drawn locally with CSS. */
+html body .app-shell[data-route] .brian-nav__ai-button > span {
+  position: relative !important;
+  display: block !important;
+  width: 22px !important;
+  min-width: 22px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav__ai-button > span::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 2px !important;
+  display: block !important;
+  background: #1a73e8 !important;
+  clip-path: polygon(50% 0, 61% 37%, 100% 50%, 61% 63%, 50% 100%, 39% 63%, 0 50%, 39% 37%) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav__ai-button > span::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 1px !important;
+  right: 0 !important;
+  display: block !important;
+  width: 4px !important;
+  height: 4px !important;
+  border-radius: 999px !important;
+  background: #ea4335 !important;
+  box-shadow:
+    -16px 4px 0 #34a853,
+    -12px 16px 0 #fbbc04 !important;
+}
+
+/* Crisp outline bell; no text label below it. */
+html body .app-shell[data-route] .brian-nav__bell > span {
+  display: block !important;
+  width: 21px !important;
+  min-width: 21px !important;
+  height: 21px !important;
+  min-height: 21px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background-color: #34445f !important;
+  background-image: none !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2.75a5.25 5.25 0 0 0-5.25 5.25v2.18c0 1.13-.34 2.24-.98 3.18l-1.02 1.5A1.5 1.5 0 0 0 6 17.2h12a1.5 1.5 0 0 0 1.25-2.34l-1.02-1.5a5.69 5.69 0 0 1-.98-3.18V8A5.25 5.25 0 0 0 12 2.75Zm0 18.5a3 3 0 0 0 2.82-2H9.18a3 3 0 0 0 2.82 2Z'/%3E%3C/svg%3E") center / 21px 21px no-repeat !important;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2.75a5.25 5.25 0 0 0-5.25 5.25v2.18c0 1.13-.34 2.24-.98 3.18l-1.02 1.5A1.5 1.5 0 0 0 6 17.2h12a1.5 1.5 0 0 0 1.25-2.34l-1.02-1.5a5.69 5.69 0 0 1-.98-3.18V8A5.25 5.25 0 0 0 12 2.75Zm0 18.5a3 3 0 0 0 2.82-2H9.18a3 3 0 0 0 2.82 2Z'/%3E%3C/svg%3E") center / 21px 21px no-repeat !important;
+}
+
+html body .app-shell[data-route] .brian-nav__bell > span::before,
+html body .app-shell[data-route] .brian-nav__bell > span::after {
+  content: none !important;
+  display: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav__bell > em {
+  position: absolute !important;
+  top: -6px !important;
+  right: -6px !important;
+  z-index: 4 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 20px !important;
+  width: auto !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  padding: 0 5px !important;
+  border: 2px solid #fff !important;
+  border-radius: 999px !important;
+  background: #d93025 !important;
+  color: #fff !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 2px 7px rgba(217, 48, 37, .28) !important;
+  font-size: 10px !important;
+  font-style: normal !important;
+  font-weight: 800 !important;
+  line-height: 16px !important;
+  letter-spacing: 0 !important;
+  transform: none !important;
+}
+
+/* The avatar is the non-negotiable element: it never collapses or hides. */
+html body .app-shell[data-route] .brian-nav__account {
+  display: inline-grid !important;
+  grid-template-columns: 40px minmax(34px, auto) 12px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: auto !important;
+  min-width: 108px !important;
+  max-width: 156px !important;
+  height: 50px !important;
+  min-height: 50px !important;
+  padding: 5px 10px 5px 5px !important;
+  overflow: visible !important;
+  border: 1px solid #d7e1ef !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow:
+    0 1px 2px rgba(60, 64, 67, .08),
+    0 5px 14px rgba(60, 64, 67, .06) !important;
+  flex: 0 0 auto !important;
+}
+
+html body .app-shell[data-route] .brian-nav__account > span {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 2px solid #fff !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, #2e5fb8 0%, #1f4e9d 100%) !important;
+  color: #fff !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 0 0 1px #c9d8eb, 0 3px 9px rgba(31, 78, 157, .18) !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  flex: 0 0 40px !important;
+  transform: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav__account > span img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: inherit !important;
+}
+
+html body .app-shell[data-route] .brian-nav__account strong {
+  display: block !important;
+  min-width: 0 !important;
+  max-width: 72px !important;
+  overflow: hidden !important;
+  color: #22344d !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body .app-shell[data-route] .brian-nav__account i {
+  display: block !important;
+  color: #718198 !important;
+  font-size: 12px !important;
+  font-style: normal !important;
+  line-height: 1 !important;
+}
+
+@media (max-width: 1180px) {
+  html body .app-shell[data-route] .brian-nav__account {
+    grid-template-columns: 40px !important;
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    padding: 5px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__account strong,
+  html body .app-shell[data-route] .brian-nav__account i {
+    display: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__account > span {
+    display: grid !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  html body .app-shell[data-route] .brian-nav > .brian-nav__actions {
+    gap: 5px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__ai-button,
+  html body .app-shell[data-route] .brian-nav__bell {
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    border-radius: 13px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__account {
+    grid-template-columns: 36px !important;
+    width: 46px !important;
+    min-width: 46px !important;
+    max-width: 46px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    padding: 5px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__account > span {
+    display: grid !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    flex-basis: 36px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__bell > em {
+    top: -5px !important;
+    right: -5px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    min-height: 18px !important;
+    padding-inline: 4px !important;
+    font-size: 9px !important;
+  }
+}
+
+[data-theme='dark'] body .app-shell[data-route] .brian-nav__ai-button,
+[data-theme='dark'] body .app-shell[data-route] .brian-nav__bell,
+.theme-dark body .app-shell[data-route] .brian-nav__ai-button,
+.theme-dark body .app-shell[data-route] .brian-nav__bell {
+  border-color: rgba(215, 225, 239, .16) !important;
+  background: #202c40 !important;
+  color: #e9f1ff !important;
+}
+
+[data-theme='dark'] body .app-shell[data-route] .brian-nav__bell > span,
+.theme-dark body .app-shell[data-route] .brian-nav__bell > span {
+  background-color: #e9f1ff !important;
+}
+
+[data-theme='dark'] body .app-shell[data-route] .brian-nav__account,
+.theme-dark body .app-shell[data-route] .brian-nav__account {
+  border-color: rgba(215, 225, 239, .16) !important;
+  background: #202c40 !important;
+}
+
+[data-theme='dark'] body .app-shell[data-route] .brian-nav__account strong,
+.theme-dark body .app-shell[data-route] .brian-nav__account strong {
+  color: #edf3ff !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-shell[data-route] .brian-nav__ai-button,
+  html body .app-shell[data-route] .brian-nav__bell {
+    transition: none !important;
+  }
+}
