@@ -1,6 +1,4 @@
-import { isSupabaseConfigured, supabase } from './supabase.js';
-
-const GUARD_KEY = Symbol.for('bes.brian-team-egress-guard.v3');
+const GUARD_KEY = Symbol.for('bes.brian-team-egress-guard.v4');
 const FALLBACK_INTERVAL = 15 * 60 * 1000;
 const guardedIntervals = new Map();
 const guardedCallbacks = new Set();
@@ -17,7 +15,7 @@ function safelyRun(callback, args = []) {
   } catch { /* the owning bridge keeps its existing error handling */ }
 }
 
-function runRealtimeRefresh() {
+function runGuardedRefresh() {
   guardedCallbacks.forEach((entry) => safelyRun(entry.callback, entry.args));
 }
 
@@ -53,22 +51,14 @@ if (typeof window !== 'undefined' && !window[GUARD_KEY]) {
     return nativeClearInterval(intervalId);
   };
 
-  let realtimeChannel = null;
-  if (isSupabaseConfigured && supabase) {
-    realtimeChannel = supabase
-      .channel('bes-brian-team-egress-guard-v3')
-      .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'work_hub_items',
-      }, runRealtimeRefresh)
-      .subscribe();
-  }
-
-  const onOnline = () => runRealtimeRefresh();
+  // Individual Brian Team bridges already own filtered Realtime subscriptions.
+  // This guard intentionally does not open another unfiltered work_hub_items channel.
+  const onOnline = () => runGuardedRefresh();
   window.addEventListener('online', onOnline);
 
   window[GUARD_KEY] = Object.freeze({
     fallbackInterval: FALLBACK_INTERVAL,
-    mode: realtimeChannel ? 'realtime-with-fallback' : 'fallback-only',
-    refresh: runRealtimeRefresh,
+    mode: 'interval-throttle-only',
+    refresh: runGuardedRefresh,
   });
 }

@@ -2,7 +2,6 @@ import {
   createHomeroomWorkspace as createBaseWorkspace,
   duplicateHomeroomWorkspace as duplicateBaseWorkspace,
   getCurrentHomeroomWorkspaceId,
-  listHomeroomWorkspaces as listBaseWorkspaces,
   listLocalHomeroomWorkspaces as listBaseLocalWorkspaces,
   loadHomeroomWorkspace as loadBaseWorkspace,
   loadLocalHomeroomWorkspace as loadBaseLocalWorkspace,
@@ -13,6 +12,7 @@ import {
   setCurrentHomeroomWorkspaceId,
   setHomeroomWorkspaceStatus as setBaseWorkspaceStatus,
 } from './homeroomStore.js';
+import { isSupabaseConfigured, supabase } from './supabase.js';
 import {
   HOMEROOM_CLASS_TYPE,
   SUBJECT_CLASS_TYPE,
@@ -22,6 +22,7 @@ import {
 } from './homeroomClassTypes.js';
 
 const CLASS_TYPE_STORE_PREFIX = 'bes-homeroom-class-types-v1';
+const WORKSPACE_TABLE = 'bes_homeroom_workspaces';
 
 function text(value, fallback = '') {
   const normalized = String(value ?? '').trim();
@@ -47,6 +48,49 @@ function readClassTypes(user) {
 
 function writeClassTypes(user, classTypes) {
   try { localStorage.setItem(classTypeStoreKey(user), JSON.stringify(classTypes)); } catch { /* local cache is optional */ }
+}
+
+
+function inferGrade(className, fallback = '') {
+  const match = text(className).match(/^(10|11|12)(?:\.|$)/);
+  return match?.[1] || fallback;
+}
+
+async function listWorkspaceMetadata(user) {
+  const localItems = listBaseLocalWorkspaces(user);
+  if (!isSupabaseConfigured || !supabase || !user?.id) {
+    return { ok: true, offline: true, items: localItems };
+  }
+
+  const { data, error } = await supabase
+    .from(WORKSPACE_TABLE)
+    .select('workspace_id,class_name,school_year,status,semester,archived_at,updated_at')
+    .eq('owner_id', user.id)
+    .order('updated_at', { ascending: false });
+
+  if (error) return { ok: false, offline: true, message: error.message, items: localItems };
+  const merged = new Map(localItems.map((item) => [item.id, item]));
+  (data || []).forEach((row) => {
+    const local = merged.get(row.workspace_id) || {};
+    const className = text(row.class_name, local.className || 'Chưa đặt tên');
+    merged.set(row.workspace_id, {
+      ...local,
+      id: row.workspace_id,
+      className,
+      schoolYear: text(row.school_year, local.schoolYear),
+      semester: text(row.semester, local.semester || 'Học kỳ I'),
+      grade: text(local.grade, inferGrade(className)),
+      status: text(row.status, local.status || 'active'),
+      archivedAt: row.archived_at || local.archivedAt || '',
+      updatedAt: row.updated_at || local.updatedAt || '',
+      source: 'cloud-meta',
+    });
+  });
+  const items = [...merged.values()].sort((a, b) => (
+    (a.status === 'archived') - (b.status === 'archived')
+    || String(b.updatedAt).localeCompare(String(a.updatedAt))
+  ));
+  return { ok: true, items, source: 'cloud-meta' };
 }
 
 function fallbackClassType(workspaceId) {
@@ -107,21 +151,26 @@ export function listLocalHomeroomWorkspaces(user) {
 }
 
 export async function listHomeroomWorkspaces(user) {
-  const result = await listBaseWorkspaces(user);
+  const result = await listWorkspaceMetadata(user);
   const items = result.items || [];
   const stored = readClassTypes(user);
   const originalCurrentId = getCurrentHomeroomWorkspaceId(user);
   const workspaces = new Map();
 
-  await Promise.all(items.map(async (item) => {
+  items.forEach((item) => {
     const local = loadBaseLocalWorkspace(user, item.id);
-    if (local && (explicitClassType(local) || isValidHomeroomClassType(stored[item.id]))) {
-      workspaces.set(item.id, local);
-      return;
+    if (local) workspaces.set(item.id, local);
+  });
+
+  // A catalog view must not download every workspace payload. On a fresh device,
+  // load at most the currently selected class so its explicit class type is known.
+  if (!workspaces.has(originalCurrentId) && !isValidHomeroomClassType(stored[originalCurrentId])) {
+    const currentItem = items.find((item) => item.id === originalCurrentId);
+    if (currentItem) {
+      const loaded = await loadBaseWorkspace(user, originalCurrentId);
+      if (loaded.workspace) workspaces.set(originalCurrentId, loaded.workspace);
     }
-    const loaded = await loadBaseWorkspace(user, item.id);
-    if (loaded.workspace) workspaces.set(item.id, loaded.workspace);
-  }));
+  }
   setCurrentHomeroomWorkspaceId(user, originalCurrentId);
 
   return { ...result, items: resolveCatalog(items, user, workspaces) };

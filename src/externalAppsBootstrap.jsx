@@ -66,9 +66,20 @@ import './styles/BrianTeamProgressNoPurple.css';
 installNeutralSurfaceGuard();
 installSiteFontFromCache();
 
+function isBrianTeamDataRoute(hash = '') {
+  return /work-hub|brian-team|personnel-hub/i.test(hash);
+}
+
 function Bootstrap() {
   const [user, setUser] = useState(null);
   const [language, setLanguage] = useState(() => localStorage.getItem('bet-language') || 'vi');
+  const [routeHash, setRouteHash] = useState(() => window.location.hash || '');
+
+  useEffect(() => {
+    const onHashChange = () => setRouteHash(window.location.hash || '');
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -83,17 +94,23 @@ function Bootstrap() {
     };
   }, []);
 
+  const brianTeamDataActive = isBrianTeamDataRoute(routeHash);
+
   return (
     <>
       <ExternalAppsIntegration currentUser={user} language={language} />
       <GlobalFontSettingsBridge currentUser={user} language={language} />
       <DepartmentHeadAdminRoleBridge currentUser={user} language={language} />
-      <BrianTeamWorkHubSyncBridge currentUser={user} language={language} />
-      <BrianTeamProgressPanelBridge currentUser={user} language={language} />
-      <BrianTeamDirectReviewBridge currentUser={user} language={language} />
-      <BrianTeamRealtimeAlertsBridge currentUser={user} language={language} />
-      <BrianTeamOperationalStabilityBridge currentUser={user} language={language} />
-      <BrianTeamNoPurpleRuntimeBridge />
+      {brianTeamDataActive ? (
+        <>
+          <BrianTeamWorkHubSyncBridge currentUser={user} language={language} />
+          <BrianTeamProgressPanelBridge currentUser={user} language={language} />
+          <BrianTeamDirectReviewBridge currentUser={user} language={language} />
+          <BrianTeamRealtimeAlertsBridge currentUser={user} language={language} />
+          <BrianTeamOperationalStabilityBridge currentUser={user} language={language} />
+          <BrianTeamNoPurpleRuntimeBridge />
+        </>
+      ) : null}
       <HomeWeeklyPracticeStatisticsController />
     </>
   );

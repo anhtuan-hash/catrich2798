@@ -16,6 +16,7 @@ let homeroomExtrasLoaded = false;
 let routeListenerInstalled = false;
 let class126RecoveryListenerInstalled = false;
 let class126RecoveryTimer = 0;
+let assignedClassSyncPromise = null;
 
 function runWhenIdle(callback, timeout = 1800) {
   if (typeof window.requestIdleCallback === 'function') {
@@ -30,7 +31,11 @@ function isHomeroomRoute() {
 }
 
 function isBrianTeamRoute() {
-  return /brian-team|personnel-hub/i.test(window.location.hash || '');
+  return /brian-team|personnel-hub|work-hub/i.test(window.location.hash || '');
+}
+
+function isAssignedClassRoute() {
+  return isHomeroomRoute() || isBrianTeamRoute();
 }
 
 async function preparePreferredHomeroomBeforeMain() {
@@ -56,6 +61,7 @@ function refreshSiteFontInBackground(cachedFont) {
 }
 
 function loadRouteModules() {
+  if (isAssignedClassRoute()) startAssignedClassSync().catch(() => {});
   if (isBrianTeamRoute() && !schoolRegistryLoaded) {
     schoolRegistryLoaded = true;
     Promise.all([
@@ -95,22 +101,25 @@ function installRouteModuleLoader() {
 }
 
 function startAssignedClassSync() {
-  const eager = isHomeroomRoute();
-  return new Promise((resolve) => {
+  if (!isAssignedClassRoute()) return Promise.resolve({ skipped: true });
+  if (assignedClassSyncPromise) return assignedClassSyncPromise;
+
+  assignedClassSyncPromise = new Promise((resolve) => {
     const loadAndSync = async () => {
       try {
         const module = await import('./assignedSchoolClassBootstrap.js');
         module.installAssignedSchoolClassSync?.();
         await module.prepareAssignedSchoolClasses?.();
+        resolve({ ok: true });
       } catch (error) {
+        assignedClassSyncPromise = null;
         console.warn('[AssignedSchoolClasses] Chưa thể đồng bộ lớp được phân công.', error);
-      } finally {
-        resolve();
+        resolve({ ok: false, error });
       }
     };
-    if (eager) window.setTimeout(loadAndSync, 0);
-    else runWhenIdle(loadAndSync, 2400);
+    window.setTimeout(loadAndSync, 0);
   });
+  return assignedClassSyncPromise;
 }
 
 async function runClass126Recovery() {
@@ -198,7 +207,6 @@ async function startApplication() {
 
   await mainModulePromise;
   installRouteModuleLoader();
-  startAssignedClassSync();
   // Không tự động chạy cứu hộ lớp 12.6 sau mỗi lần mở app nữa.
   // Việc tự khôi phục có thể đưa trở lại hồ sơ mà người dùng vừa xóa vĩnh viễn.
   loadExternalAppsAfterMainShell();
