@@ -1,0 +1,166 @@
+/* Final production repair for the approved navigation.
+   Loaded after every legacy navigation layer. */
+
+/* Brand: one DOM label, no generated duplicates. */
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand::before,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand::after,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > span::before,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > span::after {
+  content: none !important;
+  display: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > span {
+  display: block !important;
+  overflow: hidden !important;
+  color: #1260c7 !important;
+  font-size: 15px !important;
+  font-weight: 780 !important;
+  line-height: 1.1 !important;
+  letter-spacing: -.01em !important;
+  text-overflow: ellipsis !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+
+/* Labels already come from React; never generate a second copy. */
+html body .app-shell[data-route] .brian-concept-tab__label::before,
+html body .app-shell[data-route] .brian-concept-tab__label::after {
+  content: none !important;
+  display: none !important;
+}
+
+html body .app-shell[data-route] .brian-concept-tab__label {
+  display: block !important;
+  font-size: 12px !important;
+  line-height: 18px !important;
+}
+
+/* Keep the desktop layout balanced after removing duplicate text. */
+@media (min-width: 1381px) {
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 {
+    grid-template-columns: 178px minmax(470px, 1fr) clamp(280px, 22vw, 350px) max-content !important;
+    column-gap: 14px !important;
+    padding-right: 18px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-nav {
+    justify-content: center !important;
+    gap: 6px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-tab {
+    flex: 0 1 88px !important;
+    min-width: 76px !important;
+    max-width: 94px !important;
+  }
+}
+
+/* AI: render one compact pill only. */
+html body .app-shell[data-route] .brian-nav__ai-button {
+  display: grid !important;
+  place-items: center !important;
+  width: 68px !important;
+  min-width: 68px !important;
+  height: 48px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(132, 151, 185, .24) !important;
+  border-radius: 17px !important;
+  background: #fff !important;
+  box-shadow: 0 5px 14px rgba(55, 70, 110, .06) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__ai-button::before {
+  content: '✦  AI' !important;
+  display: block !important;
+  color: #7357e9 !important;
+  font-size: 13px !important;
+  font-weight: 780 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+}
+
+html body .app-shell[data-route] .brian-nav__ai-button::after,
+html body .app-shell[data-route] .brian-nav__ai-button > span,
+html body .app-shell[data-route] .brian-nav__ai-button > span::before,
+html body .app-shell[data-route] .brian-nav__ai-button > span::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Account: show the real avatar without the fallback letter over it. */
+html body .app-shell[data-route] .brian-nav__account {
+  grid-template-columns: 38px minmax(38px, auto) 12px !important;
+  min-width: 116px !important;
+  max-width: 132px !important;
+  padding-right: 10px !important;
+}
+
+html body .app-shell[data-route] .brian-nav__account > span {
+  color: transparent !important;
+  font-size: 0 !important;
+  text-shadow: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav__account > span::before,
+html body .app-shell[data-route] .brian-nav__account > span::after {
+  content: none !important;
+  display: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav__account > strong {
+  max-width: 58px !important;
+}
+
+/* Only time and weather remain in the briefing context. */
+html body .app-shell[data-route] .brian-briefing-bar__context > .brian-briefing-chip:nth-child(n + 3) {
+  display: none !important;
+}
+
+html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar {
+  grid-template-columns: minmax(0, 1fr) max-content !important;
+  min-height: 52px !important;
+  height: 52px !important;
+  padding-block: 4px !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar__context,
+html body .app-shell[data-route] .brian-briefing-bar__headline {
+  min-height: 42px !important;
+  height: 42px !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-chip {
+  min-height: 40px !important;
+  height: 40px !important;
+  padding-inline: 13px !important;
+}
+
+/* Prevent right-edge clipping. */
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__actions {
+  padding-right: 2px !important;
+  gap: 7px !important;
+}
+
+@media (max-width: 1380px) and (min-width: 1121px) {
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > span {
+    display: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__ai-button {
+    width: 48px !important;
+    min-width: 48px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav__ai-button::before {
+    content: '✦' !important;
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 1120px) {
+  html body .app-shell[data-route] .brian-concept-tab__label {
+    font-size: 10.5px !important;
+  }
+}
