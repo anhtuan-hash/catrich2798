@@ -7,7 +7,6 @@ import {
   loadLocalHomeroomWorkspace as loadBaseLocalWorkspace,
   makeDefaultHomeroomWorkspace as makeBaseDefaultWorkspace,
   normalizeHomeroomWorkspace as normalizeBaseWorkspace,
-  saveHomeroomWorkspace as saveBaseWorkspace,
   saveLocalHomeroomWorkspace as saveBaseLocalWorkspace,
   setCurrentHomeroomWorkspaceId,
   setHomeroomWorkspaceStatus as setBaseWorkspaceStatus,
@@ -197,8 +196,27 @@ export async function saveHomeroomWorkspace(workspace, user) {
   const normalized = decorateWorkspace(workspace, user, true);
   const classTypes = readClassTypes(user);
   writeClassTypes(user, { ...classTypes, [normalized.id]: normalized.classProfile.classType });
-  const result = await saveBaseWorkspace(normalized, user);
-  return { ...result, workspace: decorateWorkspace(result.workspace || normalized, user) };
+  const local = decorateWorkspace(saveBaseLocalWorkspace(normalized, user), user);
+  if (!isSupabaseConfigured || !supabase || !user?.id) {
+    return { ok: true, offline: true, workspace: local };
+  }
+
+  const payload = { ...local, updatedAt: new Date().toISOString() };
+  const { error } = await supabase.from(WORKSPACE_TABLE).upsert({
+    owner_id: user.id,
+    owner_email: text(user.email),
+    workspace_id: payload.id,
+    class_name: text(payload.classProfile?.className, 'Lớp chủ nhiệm'),
+    school_year: text(payload.classProfile?.schoolYear),
+    status: text(payload.status, 'active'),
+    semester: text(payload.semester, 'Học kỳ I'),
+    archived_at: payload.archivedAt || null,
+    payload,
+    updated_at: payload.updatedAt,
+  }, { onConflict: 'owner_id,workspace_id' });
+
+  if (error) return { ok: false, offline: true, message: error.message, workspace: local };
+  return { ok: true, workspace: local, source: 'cloud-minimal-return' };
 }
 
 export async function createHomeroomWorkspace(user, input = {}) {

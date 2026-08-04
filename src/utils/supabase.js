@@ -92,6 +92,25 @@ const SELECT_PROJECTIONS = [
   ['/rest/v1/work_hub_items', WORK_HUB_ITEM_COLUMNS],
   ['/rest/v1/work_hub_comments', WORK_HUB_COMMENT_COLUMNS],
   ['/rest/v1/resource_items', RESOURCE_ITEM_COLUMNS],
+  ['/rest/v1/collaboration_spaces', 'id,owner_id,title,description,space_type,visibility,status,metadata,created_at,updated_at'],
+  ['/rest/v1/collaboration_members', 'id,space_id,user_id,member_role,display_name,email,status,invited_by,created_at,updated_at'],
+  ['/rest/v1/collaboration_threads', 'id,space_id,created_by,title,thread_type,status,resolved_at,metadata,created_at,updated_at'],
+  ['/rest/v1/collaboration_comments', 'id,space_id,thread_id,author_id,author_name,body,parent_id,mentions,attachments,resolved,created_at,updated_at'],
+  ['/rest/v1/content_versions', 'id,space_id,entity_type,entity_id,version_no,title,content,created_by,status,restore_of,metadata,created_at'],
+  ['/rest/v1/permission_overrides', 'id,resource_type,resource_id,principal_type,principal_id,permission_level,granted_by,expires_at,metadata,created_at,updated_at'],
+  ['/rest/v1/audit_events', 'id,actor_id,actor_email,actor_role,action,entity_type,entity_id,source_module,metadata,created_at'],
+];
+
+const READ_LIMIT_CAPS = [
+  ['/rest/v1/collaboration_spaces', 150],
+  ['/rest/v1/collaboration_members', 500],
+  ['/rest/v1/collaboration_threads', 400],
+  ['/rest/v1/collaboration_comments', 800],
+  ['/rest/v1/content_versions', 500],
+  ['/rest/v1/permission_overrides', 300],
+  ['/rest/v1/audit_events', 300],
+  ['/rest/v1/backup_snapshots', 10],
+  ['/rest/v1/deleted_items', 100],
 ];
 
 const HEAVY_READ_TTL = [
@@ -140,6 +159,25 @@ function applySelectProjection(request) {
   const url = new URL(request.url);
   if (url.searchParams.get('select') !== '*') return request;
   url.searchParams.set('select', projection[1]);
+  return new Request(url.toString(), {
+    method: request.method,
+    headers: request.headers,
+    credentials: request.credentials,
+    signal: request.signal,
+  });
+}
+
+function applyReadLimitCap(request) {
+  const method = String(request.method || 'GET').toUpperCase();
+  if (method !== 'GET' && method !== 'HEAD') return request;
+  const entry = READ_LIMIT_CAPS.find(([path]) => request.url.includes(path));
+  if (!entry) return request;
+
+  const [, cap] = entry;
+  const url = new URL(request.url);
+  const requested = Number.parseInt(url.searchParams.get('limit') || '', 10);
+  if (!Number.isFinite(requested) || requested <= cap) return request;
+  url.searchParams.set('limit', String(cap));
   return new Request(url.toString(), {
     method: request.method,
     headers: request.headers,
@@ -304,7 +342,7 @@ async function egressAwareFetch(input, init) {
 
   if (isWeeklyPracticeMutation(originalRequest)) return runWeeklyPracticeMutation(originalRequest);
 
-  const request = isRestRequest ? applySelectProjection(originalRequest) : originalRequest;
+  const request = isRestRequest ? applyReadLimitCap(applySelectProjection(originalRequest)) : originalRequest;
   const ttl = method === 'GET' && isRestRequest ? getHeavyReadTtl(request.url) : 0;
   if (!ttl) return fetchWithUsageLimitRetry(request);
 
