@@ -1,0 +1,427 @@
+/* Live briefing chips — Google Material 3
+   Loaded after the final navigation production contract. */
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips {
+  display: grid !important;
+  grid-template-columns: clamp(250px, 23vw, 350px) minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 104px !important;
+  height: 104px !important;
+  padding: 7px 10px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(60, 64, 67, .10) !important;
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, .96) !important;
+  box-shadow: 0 2px 8px rgba(60, 64, 67, .08) !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__headline {
+  display: grid !important;
+  grid-template-columns: 82px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  min-height: 88px !important;
+  height: 88px !important;
+  padding: 7px 10px !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(60, 64, 67, .10) !important;
+  border-radius: 16px 0 0 16px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__headline::before {
+  content: 'TIN MỚI' !important;
+  position: static !important;
+  display: grid !important;
+  place-items: center !important;
+  min-width: 0 !important;
+  width: 76px !important;
+  height: 34px !important;
+  margin: 0 !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #e8f0fe !important;
+  color: #185abc !important;
+  box-shadow: none !important;
+  font-size: 10.5px !important;
+  font-weight: 760 !important;
+  letter-spacing: .03em !important;
+  white-space: nowrap !important;
+}
+
+html[lang='en'] body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__headline::before {
+  content: 'NEWS' !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__ticker-viewport {
+  min-width: 0 !important;
+  width: 100% !important;
+  max-height: 72px !important;
+  overflow: hidden !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__ticker-track,
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__ticker-item {
+  min-width: 0 !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__ticker-item {
+  display: block !important;
+  overflow: hidden !important;
+  color: #5f6368 !important;
+  font-size: 11.5px !important;
+  line-height: 1.45 !important;
+  text-align: left !important;
+  white-space: normal !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__source,
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__separator,
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__ticker-item strong {
+  display: inline !important;
+  color: #3c4043 !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  white-space: normal !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__source {
+  font-weight: 700 !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__separator {
+  margin-inline: 5px !important;
+  color: #9aa0a6 !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__google-dots {
+  margin-left: 5px !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__context {
+  display: block !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  min-height: 90px !important;
+  height: 90px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__context > .brian-briefing-chip {
+  display: none !important;
+}
+
+html body .app-shell[data-route] .brian-live-chip-strip {
+  display: grid !important;
+  grid-template-columns: repeat(8, minmax(116px, 1fr)) !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 90px !important;
+  padding: 3px 2px 5px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  overscroll-behavior-inline: contain !important;
+  scroll-snap-type: x proximity !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(95, 99, 104, .24) transparent !important;
+}
+
+html body .app-shell[data-route] .brian-live-chip-strip::-webkit-scrollbar {
+  height: 5px !important;
+}
+
+html body .app-shell[data-route] .brian-live-chip-strip::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+html body .app-shell[data-route] .brian-live-chip-strip::-webkit-scrollbar-thumb {
+  border-radius: 999px !important;
+  background: rgba(95, 99, 104, .22) !important;
+}
+
+html body .app-shell[data-route] .brian-live-chip {
+  --chip-bg: #f8fafd;
+  --chip-border: #dadce0;
+  --chip-ink: #3c4043;
+  --chip-icon-bg: #eef1f5;
+  --chip-accent: #5f6368;
+  box-sizing: border-box !important;
+  display: grid !important;
+  grid-template-columns: 31px minmax(0, 1fr) !important;
+  align-items: start !important;
+  gap: 7px !important;
+  min-width: 116px !important;
+  height: 82px !important;
+  margin: 0 !important;
+  padding: 8px !important;
+  overflow: hidden !important;
+  border: 1px solid var(--chip-border) !important;
+  border-radius: 16px !important;
+  background: var(--chip-bg) !important;
+  color: var(--chip-ink) !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .06) !important;
+  scroll-snap-align: start !important;
+  text-align: left !important;
+  font: inherit !important;
+  cursor: default !important;
+  transform: none !important;
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease !important;
+}
+
+html body .app-shell[data-route] button.brian-live-chip {
+  cursor: pointer !important;
+}
+
+html body .app-shell[data-route] button.brian-live-chip:hover {
+  border-color: color-mix(in srgb, var(--chip-accent) 32%, transparent) !important;
+  background: color-mix(in srgb, var(--chip-bg) 92%, white) !important;
+  box-shadow: 0 3px 8px rgba(60, 64, 67, .12) !important;
+  transform: translateY(-1px) !important;
+}
+
+html body .app-shell[data-route] button.brian-live-chip:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--chip-accent) 58%, white) !important;
+  outline-offset: 2px !important;
+}
+
+html body .app-shell[data-route] .brian-live-chip__icon {
+  display: grid !important;
+  place-items: center !important;
+  width: 31px !important;
+  height: 31px !important;
+  border-radius: 11px !important;
+  background: var(--chip-icon-bg) !important;
+  color: var(--chip-accent) !important;
+}
+
+html body .app-shell[data-route] .brian-live-chip__icon svg {
+  width: 18px !important;
+  height: 18px !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+html body .app-shell[data-route] .brian-live-chip__copy {
+  display: block !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+html body .app-shell[data-route] .brian-live-chip__copy small,
+html body .app-shell[data-route] .brian-live-chip__copy strong,
+html body .app-shell[data-route] .brian-live-chip__copy em {
+  display: block !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body .app-shell[data-route] .brian-live-chip__copy small {
+  margin-top: 0 !important;
+  color: var(--chip-accent) !important;
+  font-size: 9.5px !important;
+  font-weight: 760 !important;
+  line-height: 1.25 !important;
+}
+
+html body .app-shell[data-route] .brian-live-chip__copy strong {
+  margin-top: 5px !important;
+  color: var(--chip-ink) !important;
+  font-size: 14px !important;
+  font-weight: 760 !important;
+  line-height: 1.15 !important;
+  letter-spacing: -.01em !important;
+}
+
+html body .app-shell[data-route] .brian-live-chip__copy em {
+  margin-top: 5px !important;
+  color: color-mix(in srgb, var(--chip-ink) 72%, transparent) !important;
+  font-size: 9.5px !important;
+  font-style: normal !important;
+  font-weight: 520 !important;
+  line-height: 1.2 !important;
+}
+
+html body .app-shell[data-route] .brian-live-chip.is-blue {
+  --chip-bg: #f2f7ff;
+  --chip-border: #c9dcfa;
+  --chip-ink: #174ea6;
+  --chip-icon-bg: #e8f0fe;
+  --chip-accent: #1a73e8;
+}
+
+html body .app-shell[data-route] .brian-live-chip.is-green {
+  --chip-bg: #f1f8f3;
+  --chip-border: #c8e6cf;
+  --chip-ink: #0d652d;
+  --chip-icon-bg: #e6f4ea;
+  --chip-accent: #188038;
+}
+
+html body .app-shell[data-route] .brian-live-chip.is-amber {
+  --chip-bg: #fff9e8;
+  --chip-border: #f3ddb0;
+  --chip-ink: #8d4f00;
+  --chip-icon-bg: #fef7e0;
+  --chip-accent: #f29900;
+}
+
+html body .app-shell[data-route] .brian-live-chip.is-red {
+  --chip-bg: #fff4f3;
+  --chip-border: #f3cbc8;
+  --chip-ink: #a50e0e;
+  --chip-icon-bg: #fce8e6;
+  --chip-accent: #d93025;
+}
+
+html body .app-shell[data-route] .brian-live-chip.is-purple {
+  --chip-bg: #faf5ff;
+  --chip-border: #dfcff2;
+  --chip-ink: #681da8;
+  --chip-icon-bg: #f3e8fd;
+  --chip-accent: #9334e6;
+}
+
+html body .app-shell[data-route] .brian-live-chip.is-teal {
+  --chip-bg: #effafa;
+  --chip-border: #c3e5e3;
+  --chip-ink: #006b66;
+  --chip-icon-bg: #e0f5f3;
+  --chip-accent: #00897b;
+}
+
+html body .app-shell[data-route] .brian-live-chip.is-indigo {
+  --chip-bg: #f3f5ff;
+  --chip-border: #cdd5fa;
+  --chip-ink: #3949ab;
+  --chip-icon-bg: #e8edff;
+  --chip-accent: #4f64d9;
+}
+
+html body .app-shell[data-route] .brian-live-chip.is-slate {
+  --chip-bg: #f8f9fa;
+  --chip-border: #dadce0;
+  --chip-ink: #3c4043;
+  --chip-icon-bg: #eef0f2;
+  --chip-accent: #5f6368;
+}
+
+@media (max-width: 1380px) and (min-width: 981px) {
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips {
+    grid-template-columns: 245px minmax(0, 1fr) !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__headline {
+    grid-template-columns: 70px minmax(0, 1fr) !important;
+    gap: 7px !important;
+    padding-inline: 7px !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__headline::before {
+    width: 66px !important;
+    padding-inline: 7px !important;
+    font-size: 9.5px !important;
+  }
+
+  html body .app-shell[data-route] .brian-live-chip-strip {
+    grid-template-columns: repeat(8, minmax(112px, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  html body .app-shell[data-route] .brian-live-chip {
+    min-width: 112px !important;
+    padding-inline: 7px !important;
+  }
+}
+
+@media (max-width: 980px) {
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips {
+    grid-template-columns: 210px minmax(0, 1fr) !important;
+    min-height: 102px !important;
+    height: 102px !important;
+    padding-inline: 7px !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__headline {
+    grid-template-columns: 1fr !important;
+    align-content: center !important;
+    gap: 5px !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__headline::before {
+    width: 64px !important;
+    height: 28px !important;
+  }
+
+  html body .app-shell[data-route] .brian-live-chip-strip {
+    grid-template-columns: repeat(8, 116px) !important;
+  }
+}
+
+@media (max-width: 700px) {
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 48px 88px !important;
+    gap: 3px !important;
+    min-height: 146px !important;
+    height: 146px !important;
+    padding: 5px 7px !important;
+    border-radius: 18px !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__headline {
+    grid-template-columns: 68px minmax(0, 1fr) !important;
+    min-height: 46px !important;
+    height: 46px !important;
+    padding: 3px 5px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(60, 64, 67, .10) !important;
+    border-radius: 14px 14px 0 0 !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__headline::before {
+    width: 62px !important;
+    height: 27px !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__ticker-item {
+    font-size: 10.5px !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips .brian-briefing-bar__context,
+  html body .app-shell[data-route] .brian-live-chip-strip {
+    min-height: 86px !important;
+    height: 86px !important;
+  }
+
+  html body .app-shell[data-route] .brian-live-chip-strip {
+    grid-template-columns: repeat(8, 112px) !important;
+    padding-bottom: 2px !important;
+  }
+
+  html body .app-shell[data-route] .brian-live-chip {
+    min-width: 112px !important;
+    height: 80px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-shell[data-route] .brian-live-chip {
+    transition: none !important;
+  }
+}
