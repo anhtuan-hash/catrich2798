@@ -17,9 +17,12 @@ check(shell.includes("lazy(() => import('./GlobalNavigationConceptV2.jsx'))"), '
 check(shell.includes('<GlobalNavigationConceptV2 {...props} />'), 'PR #482 navigation must remain mounted for authenticated users.');
 check(shell.includes('props.currentUser ? ('), 'Guest navigation must remain outside the authenticated concept bridge.');
 
-check(bridge.includes("window.dispatchEvent(new CustomEvent('bes-command-palette-open'))"), 'Visible Command K launcher is missing.');
-check(bridge.includes("document.getElementById('bes-weekly-practice-root')"), 'Learning navigation must target the existing weekly practice hub.');
-check(bridge.includes("scrollIntoView({ behavior: 'smooth', block: 'start' })"), 'Learning navigation must remain local scroll behavior.');
+check(bridge.includes("window.dispatchEvent(new CustomEvent('bes-command-palette-open'))"), 'Command K launcher contract is missing.');
+check(bridge.includes("label: vi ? 'Nhân sự' : 'Personnel'"), 'Personnel navigation label is missing.');
+check(bridge.includes("target: '#/tool/brian-team'"), 'Personnel navigation must open the Brian Team app directly.');
+check(bridge.includes("selectedTool?.slug === 'brian-team'"), 'Personnel navigation active-state contract is missing.');
+check(!bridge.includes('LEARNING_SCROLL_KEY'), 'Retired Learning scroll state must not remain in the navigation bridge.');
+check(!bridge.includes('scrollToLearningHub'), 'Retired Learning local-scroll handler must not remain in the navigation bridge.');
 check(bridge.includes("hasRouteAccess(currentUser, 'work-hub')"), 'Work Hub permission guard is missing.');
 check(bridge.includes("hasRouteAccess(currentUser, 'homeroom')"), 'Homeroom permission guard is missing.');
 check(bridge.includes("hasRouteAccess(currentUser, 'dashboard')"), 'Dashboard permission guard is missing.');
@@ -53,13 +56,13 @@ check(!shell.includes("import './GlobalNavigationOption3Stability.css'"), 'Post-
 check(!shell.includes("import './GlobalNavigationUtilityPolish.css'"), 'Post-#483 utility polish must remain unloaded.');
 
 if (failures.length) {
-  console.error('\nPre-PR #483 navigation and Hero guard failed:');
+  console.error('\nNavigation and Hero guard failed:');
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }
 
-console.log('Pre-PR #483 navigation and Hero guard passed.');
-console.log('Active navigation: Navigation Concept V2 from PR #482.');
+console.log('Navigation and Hero guard passed.');
+console.log('Active navigation: Navigation Concept V2 with Brian Team personnel shortcut.');
 console.log('Active Homepage Hero: original CMS Hero.');
 console.log('Post-PR #483 navigation layers loaded: 0.');
 console.log('New network or background work introduced: 0.');
