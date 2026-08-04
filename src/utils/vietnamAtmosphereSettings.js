@@ -19,6 +19,86 @@ function remember(snapshot) {
   return cachedSnapshot;
 }
 
+const STORAGE_BUCKET = 'vietnam-atmosphere';
+const MAX_SOURCE_IMAGE_SIZE = 3 * 1024 * 1024;
+const MAX_DELIVERED_IMAGE_SIZE = 900 * 1024;
+const MAX_RASTER_DIMENSION = 768;
+const RASTER_WEBP_QUALITY = 0.8;
+
+function cleanText(value) {
+  return String(value || '').trim();
+}
+
+function isSupportedImage(file) {
+  const mime = cleanText(file?.type).toLowerCase();
+  const extension = cleanText(file?.name).toLowerCase().split('.').pop();
+  return ['image/png', 'image/webp', 'image/svg+xml'].includes(mime)
+    || ['png', 'webp', 'svg'].includes(extension);
+}
+
+function safeFileName(value) {
+  const original = cleanText(value) || 'vietnam-symbol';
+  const dot = original.lastIndexOf('.');
+  const extension = dot >= 0 ? original.slice(dot).toLowerCase().replace(/[^a-z0-9.]/g, '') : '';
+  const filename = (dot >= 0 ? original.slice(0, dot) : original)
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9_-]+/gi, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 72) || 'vietnam-symbol';
+  return `${filename}${extension.slice(0, 8)}`;
+}
+
+function optimizedRasterName(name) {
+  return `${safeFileName(name).replace(/\.[^.]+$/, '') || 'vietnam-symbol'}.webp`;
+}
+
+function contentTypeFor(file) {
+  const mime = cleanText(file?.type).toLowerCase();
+  if (['image/png', 'image/webp', 'image/svg+xml'].includes(mime)) return mime;
+  const extension = cleanText(file?.name).toLowerCase().split('.').pop();
+  if (extension === 'svg') return 'image/svg+xml';
+  if (extension === 'webp') return 'image/webp';
+  return 'image/png';
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+async function optimizeAtmosphereUpload(file) {
+  const mime = cleanText(file?.type).toLowerCase();
+  if (!['image/png', 'image/webp'].includes(mime)) return file;
+  if (typeof createImageBitmap !== 'function' || typeof document === 'undefined') return file;
+  let bitmap = null;
+  try {
+    bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, MAX_RASTER_DIMENSION / bitmap.width, MAX_RASTER_DIMENSION / bitmap.height);
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d', { alpha: true });
+    if (!context) return file;
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(bitmap, 0, 0, width, height);
+    const blob = await canvasToBlob(canvas, 'image/webp', RASTER_WEBP_QUALITY);
+    if (!blob || blob.size >= file.size * 0.94) return file;
+    return new File([blob], optimizedRasterName(file.name), { type: 'image/webp', lastModified: Date.now() });
+  } catch {
+    return file;
+  } finally {
+    bitmap?.close?.();
+  }
+}
+
+function atmosphereImageId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `vn-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 function readFreshCache() {
   if (!cachedSnapshot || Date.now() - cachedAt >= CLOUD_CACHE_TTL) return null;
   return cachedSnapshot;
@@ -68,6 +148,50 @@ export async function loadVietnamAtmosphereSettings({ force = false } = {}) {
 function realtimeTopic() {
   subscriptionSerial += 1;
   return `bes-vietnam-atmosphere-optimized-${Date.now().toString(36)}-${subscriptionSerial.toString(36)}`;
+}
+
+export async function uploadVietnamAtmosphereImage(user, file) {
+  if (!base.canManageVietnamAtmosphere(user)) throw new Error('Chỉ Admin được quản lý lớp phủ Việt Nam.');
+  if (!isSupabaseConfigured || !supabase) throw new Error('Supabase chưa được cấu hình nên chưa thể tải ảnh.');
+  if (!isSupportedImage(file)) throw new Error('Chỉ chấp nhận ảnh SVG, PNG hoặc WebP.');
+  if (Number(file.size) > MAX_SOURCE_IMAGE_SIZE) throw new Error('Ảnh nguồn phải nhỏ hơn 3 MB.');
+
+  const uploadFile = await optimizeAtmosphereUpload(file);
+  if (Number(uploadFile.size) > MAX_DELIVERED_IMAGE_SIZE) {
+    throw new Error('Ảnh sau tối ưu vẫn vượt 900 KB. Hãy giảm kích thước hoặc xuất WebP trước khi tải lên.');
+  }
+
+  const current = await loadVietnamAtmosphereSettings({ force: true });
+  const maxImages = Number(base.VIETNAM_ATMOSPHERE_LIMITS?.maxImages) || 12;
+  if ((current.images || []).length >= maxImages) throw new Error(`Chỉ được dùng tối đa ${maxImages} ảnh tùy chỉnh.`);
+
+  const id = atmosphereImageId();
+  const path = `${WORKSPACE_KEY}/${Date.now()}-${safeFileName(uploadFile.name)}`;
+  const mimeType = contentTypeFor(uploadFile);
+  const { error: uploadError } = await supabase.storage.from(STORAGE_BUCKET).upload(path, uploadFile, {
+    cacheControl: '31536000',
+    contentType: mimeType,
+    upsert: false,
+  });
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+  const image = {
+    id,
+    path,
+    name: cleanText(uploadFile.name) || 'Vietnam symbol',
+    mimeType,
+    size: Number(uploadFile.size) || 0,
+    enabled: true,
+    url: cleanText(data?.publicUrl),
+  };
+
+  try {
+    return await base.saveVietnamAtmosphereSettings(user, { images: [...(current.images || []), image] });
+  } catch (error) {
+    await supabase.storage.from(STORAGE_BUCKET).remove([path]).catch(() => null);
+    throw error;
+  }
 }
 
 export function subscribeVietnamAtmosphereSettings(listener) {
