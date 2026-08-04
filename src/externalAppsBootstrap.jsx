@@ -54,7 +54,7 @@ import './styles/HomeHeroCmsOverlayFix.css';
 import './styles/HomeHeroCmsPreviewDock.css';
 // Material 3 visual system must be the final Hero editor layer.
 import './styles/HomeHeroCmsEditorGoogle.css';
-// Exact approved clean editor layout: no blue work are, larger text and icon-only rail.
+// Exact approved clean editor layout: no blue work area, larger text and icon-only rail.
 import './styles/HomeHeroCmsEditorApproved.css';
 // Interaction and Safari range reset must remain the final editor stylesheet.
 import './styles/HomeHeroCmsEditorInteractionFix.css';
@@ -67,7 +67,7 @@ installNeutralSurfaceGuard();
 installSiteFontFromCache();
 
 function isBrianTeamDataRoute(hash = '') {
-  return /work-hubbrian-team|personnel-hub/i.test(hash);
+  return /work-hub|brian-team|personnel-hub/i.test(hash);
 }
 
 function Bootstrap() {
