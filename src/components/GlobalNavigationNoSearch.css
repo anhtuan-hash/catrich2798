@@ -1,0 +1,93 @@
+/* Final navigation layout without a visible search launcher.
+   Command K remains available through the global keyboard shortcut. */
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 {
+  grid-template-columns: max-content minmax(0, 1fr) max-content !important;
+  grid-template-areas: 'brand destinations utilities' !important;
+  column-gap: clamp(14px, 1.4vw, 24px) !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__primary {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-nav {
+  width: 100% !important;
+  justify-content: flex-start !important;
+  gap: clamp(7px, .9vw, 15px) !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-tab {
+  flex: 1 1 94px !important;
+  min-width: 82px !important;
+  max-width: 118px !important;
+  padding-inline: 9px !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-tab__label {
+  overflow: visible !important;
+  font-size: 12.5px !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-more {
+  flex: 1 1 90px !important;
+  min-width: 82px !important;
+  max-width: 110px !important;
+}
+
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__actions {
+  grid-area: utilities !important;
+  flex: 0 0 auto !important;
+}
+
+@media (max-width: 1180px) {
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 {
+    grid-template-columns: max-content minmax(0, 1fr) max-content !important;
+    grid-template-areas: 'brand destinations utilities' !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-nav {
+    gap: 5px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-tab {
+    min-width: 72px !important;
+    max-width: 100px !important;
+    padding-inline: 5px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-concept-tab__label {
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 {
+    grid-template-columns: max-content minmax(0, 1fr) max-content !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > span {
+    display: none !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand {
+    min-width: 52px !important;
+    width: 52px !important;
+    padding-inline: 4px !important;
+  }
+}

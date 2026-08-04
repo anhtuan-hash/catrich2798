@@ -86,6 +86,8 @@ import './GlobalWorkHubModalCenter.css';
 import './GlobalNavigationGoogleM3Polish.css';
 // Final Command K capsule refinement; removes the legacy rectangular focus frame.
 import './GlobalNavigationSearchPillRefinement.css';
+// Final no-search layout: expands navigation destinations while preserving the global ⌘K shortcut.
+import './GlobalNavigationNoSearch.css';
 
 // Navigation Concept V2 is the approved state immediately before PR #483.
 const GlobalNavigationConceptV2 = lazy(() => import('./GlobalNavigationConceptV2.jsx'));
