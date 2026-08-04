@@ -19,6 +19,7 @@ import GlobalWorkHubGoogleHeroV2 from './GlobalWorkHubGoogleHeroV2.jsx';
 import GlobalWorkHubViewportModalBridge from './GlobalWorkHubViewportModalBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalHomeBriefingExtras from './GlobalHomeBriefingExtras.jsx';
+import GlobalLiveBriefingChips from './GlobalLiveBriefingChips.jsx';
 import GlobalHomeViewportFitBridge from './GlobalHomeViewportFitBridge.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
 import './GlobalGoogleMaterialOverride.css';
@@ -92,6 +93,8 @@ import './GlobalNavigationNoSearch.css';
 import './GlobalNavigationApprovedMockup.css';
 // Production repair: removes duplicated labels/components and hides surplus briefing chips.
 import './GlobalNavigationProductionFix.css';
+// Live briefing chips must win over the legacy briefing geometry.
+import './GlobalLiveBriefingChips.css';
 
 // Navigation Concept V2 is the approved state immediately before PR #483.
 const GlobalNavigationConceptV2 = lazy(() => import('./GlobalNavigationConceptV2.jsx'));
@@ -113,6 +116,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalPublicNewsBriefing route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHomeBriefingExtras route={props.route} language={props.language} />
+      <GlobalLiveBriefingChips route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHomeViewportFitBridge route={props.route} />
       <GlobalWeeklyPracticeBridge route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalMotionCoreBridge route={props.route} />
