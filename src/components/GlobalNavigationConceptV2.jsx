@@ -4,14 +4,12 @@ import { hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/motion.js';
 import './GlobalNavigationConceptV2.css';
 
-const LEARNING_SCROLL_KEY = 'bes-navigation-learning-scroll';
-
 function Icon({ name }) {
   const common = { viewBox: '0 0 24 24', 'aria-hidden': true, focusable: false };
   if (name === 'home') return <svg {...common}><path d="M3.5 11.2 12 4l8.5 7.2V21h-6v-6h-5v6h-6z" /></svg>;
   if (name === 'work') return <svg {...common}><rect x="4" y="7" width="16" height="13" rx="3" /><path d="M9 7V4h6v3M4 11h16M10 11v2h4v-2" /></svg>;
   if (name === 'homeroom') return <svg {...common}><circle cx="9" cy="8" r="3" /><circle cx="17" cy="9" r="2.5" /><path d="M3.5 20c.4-4 2.2-6 5.5-6s5.1 2 5.5 6M14.2 14.5c3.8-.5 5.9 1.2 6.3 4.5" /></svg>;
-  if (name === 'learning') return <svg {...common}><path d="M4 5.5C6.4 4.5 9 4.7 12 6v14c-3-1.3-5.6-1.5-8-.5zM20 5.5c-2.4-1-5-.8-8 .5v14c3-1.3 5.6-1.5 8-.5z" /></svg>;
+  if (name === 'personnel') return <svg {...common}><circle cx="8.5" cy="8" r="3" /><circle cx="16.5" cy="9" r="2.5" /><path d="M3.5 20c.4-4 2.2-6 5-6 3.1 0 4.9 2 5.3 6M13.6 14.6c3.8-.5 6 1.2 6.4 4.5" /><path d="M18.5 4.5v3M17 6h3" /></svg>;
   if (name === 'dashboard') return <svg {...common}><path d="M12 3v9h9A9 9 0 1 1 12 3Z" /><path d="M15 3.6A9 9 0 0 1 20.4 9H15z" /></svg>;
   if (name === 'apps') return <svg {...common}><rect x="4" y="4" width="6" height="6" rx="2" /><rect x="14" y="4" width="6" height="6" rx="2" /><rect x="4" y="14" width="6" height="6" rx="2" /><rect x="14" y="14" width="6" height="6" rx="2" /></svg>;
   if (name === 'news') return <svg {...common}><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5" /></svg>;
@@ -37,25 +35,15 @@ function routeButton({ id, label, icon, color, active, onClick }) {
   );
 }
 
-function scrollToLearningHub() {
-  const target = document.getElementById('bes-weekly-practice-root')
-    || document.querySelector('[data-weekly-practice-root]')
-    || document.querySelector('.bes-weekly-practice')
-    || document.querySelector('.bes-weekly-shell');
-  if (!target) return false;
-  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  return true;
-}
-
 export default function GlobalNavigationConceptV2({
   route = 'home',
   language = 'vi',
   currentUser,
+  selectedTool,
 }) {
   const [navHost, setNavHost] = useState(null);
   const [primaryHost, setPrimaryHost] = useState(null);
   const [moreOpen, setMoreOpen] = useState(false);
-  const [learningActive, setLearningActive] = useState(false);
   const moreRef = useRef(null);
   const vi = language !== 'en';
   const isAdmin = String(currentUser?.role || '').toLowerCase() === 'admin';
@@ -97,23 +85,6 @@ export default function GlobalNavigationConceptV2({
     };
   }, [moreOpen]);
 
-  useEffect(() => {
-    if (route !== 'home') {
-      setLearningActive(false);
-      return undefined;
-    }
-    let pending = false;
-    try { pending = window.sessionStorage.getItem(LEARNING_SCROLL_KEY) === '1'; } catch { pending = false; }
-    if (!pending) return undefined;
-    setLearningActive(true);
-    const timers = [70, 220, 520, 900].map((delay) => window.setTimeout(() => {
-      if (scrollToLearningHub()) {
-        try { window.sessionStorage.removeItem(LEARNING_SCROLL_KEY); } catch { /* optional */ }
-      }
-    }, delay));
-    return () => timers.forEach((timer) => window.clearTimeout(timer));
-  }, [route]);
-
   const access = useMemo(() => ({
     work: Boolean(currentUser && hasRouteAccess(currentUser, 'work-hub')),
     homeroom: Boolean(currentUser && hasRouteAccess(currentUser, 'homeroom')),
@@ -125,28 +96,16 @@ export default function GlobalNavigationConceptV2({
 
   const openRoute = (target, label, color, event) => {
     setMoreOpen(false);
-    setLearningActive(false);
     launchRoute({ target, label: String(label).slice(0, 2).toUpperCase(), color, sourceEl: event?.currentTarget });
-  };
-
-  const openLearning = (event) => {
-    setMoreOpen(false);
-    setLearningActive(true);
-    if (route === 'home') {
-      window.requestAnimationFrame(() => scrollToLearningHub());
-      return;
-    }
-    try { window.sessionStorage.setItem(LEARNING_SCROLL_KEY, '1'); } catch { /* optional */ }
-    launchRoute({ target: '#/home', label: vi ? 'HT' : 'LE', color: '#8b5cf6', sourceEl: event.currentTarget });
   };
 
   if (!navHost || !primaryHost) return null;
 
   const tabs = [
-    { id: 'home', label: vi ? 'Trang chủ' : 'Home', icon: 'home', color: '#2563eb', active: route === 'home' && !learningActive, target: '#/home' },
+    { id: 'home', label: vi ? 'Trang chủ' : 'Home', icon: 'home', color: '#2563eb', active: route === 'home', target: '#/home' },
     access.work ? { id: 'work', label: vi ? 'Công việc' : 'Work', icon: 'work', color: '#2563eb', active: route === 'work-hub', target: '#/work-hub' } : null,
     access.homeroom ? { id: 'homeroom', label: vi ? 'Chủ nhiệm' : 'Homeroom', icon: 'homeroom', color: '#16a34a', active: route === 'homeroom', target: '#/homeroom' } : null,
-    { id: 'learning', label: vi ? 'Học tập' : 'Learning', icon: 'learning', color: '#8b5cf6', active: learningActive, learning: true },
+    { id: 'personnel', label: vi ? 'Nhân sự' : 'Personnel', icon: 'personnel', color: '#7c3aed', active: route === 'tool' && selectedTool?.slug === 'brian-team', target: '#/tool/brian-team' },
     access.dashboard ? { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', color: '#f97316', active: route === 'dashboard', target: '#/dashboard' } : null,
     access.apps ? { id: 'apps', label: vi ? 'Ứng dụng' : 'Apps', icon: 'apps', color: '#0f766e', active: route === 'apps', target: '#/apps' } : null,
   ].filter(Boolean);
@@ -161,9 +120,7 @@ export default function GlobalNavigationConceptV2({
     <div className="brian-concept-nav" aria-label={vi ? 'Điều hướng ưu tiên' : 'Priority navigation'}>
       {tabs.map((item) => routeButton({
         ...item,
-        onClick: item.learning
-          ? openLearning
-          : (event) => openRoute(item.target, item.label, item.color, event),
+        onClick: (event) => openRoute(item.target, item.label, item.color, event),
       }))}
       <div className="brian-concept-more" ref={moreRef}>
         <button
