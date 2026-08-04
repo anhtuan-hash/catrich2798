@@ -1,0 +1,263 @@
+/* Final production contract for the eight live briefing chips.
+   This file must load after GlobalLiveBriefingChips.css. */
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips.has-live-briefing-final-fix {
+  display: grid !important;
+  grid-template-columns: clamp(230px, 21vw, 300px) minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 76px !important;
+  height: 76px !important;
+  padding: 5px 8px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(60, 64, 67, .08) !important;
+  border-radius: 20px !important;
+  background: rgba(255, 255, 255, .97) !important;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, .07) !important;
+}
+
+/* Some routes render legacy status nodes directly inside the bar; remove all of them. */
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix > .brian-briefing-chip,
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix > [class*='briefing-chip']:not(.brian-live-chip-strip),
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__context > :not(.brian-live-chip-strip) {
+  display: none !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__headline {
+  display: grid !important;
+  grid-template-columns: 72px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  min-height: 64px !important;
+  height: 64px !important;
+  padding: 5px 8px !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(60, 64, 67, .08) !important;
+  border-radius: 15px 0 0 15px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__headline::before {
+  width: 68px !important;
+  min-width: 68px !important;
+  height: 30px !important;
+  padding: 0 8px !important;
+  border-radius: 999px !important;
+  background: #e8f0fe !important;
+  color: #185abc !important;
+  font-size: 9.5px !important;
+  font-weight: 760 !important;
+  letter-spacing: .035em !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__ticker-viewport,
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__ticker-track,
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__ticker-item {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__ticker-viewport {
+  max-height: 36px !important;
+  overflow: hidden !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__ticker-item {
+  display: block !important;
+  overflow: hidden !important;
+  color: #5f6368 !important;
+  font-size: 10.5px !important;
+  line-height: 1.35 !important;
+  text-align: left !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__source,
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__separator,
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__ticker-item strong {
+  display: inline !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  white-space: nowrap !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__context {
+  grid-column: 2 !important;
+  display: block !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  min-height: 64px !important;
+  height: 64px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* If a route has no news headline, let the live strip use the entire row. */
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix:not(:has(> .brian-briefing-bar__headline)) {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix:not(:has(> .brian-briefing-bar__headline)) .brian-briefing-bar__context {
+  grid-column: 1 !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip-strip {
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  min-height: 64px !important;
+  height: 64px !important;
+  padding: 1px 2px 3px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  overscroll-behavior-inline: contain !important;
+  scroll-snap-type: x proximity !important;
+  scrollbar-width: none !important;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%) !important;
+  mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%) !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip-strip::-webkit-scrollbar {
+  display: none !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip {
+  flex: 0 0 120px !important;
+  display: grid !important;
+  grid-template-columns: 25px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-width: 120px !important;
+  width: 120px !important;
+  height: 58px !important;
+  padding: 6px 7px !important;
+  border-width: 1px !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  scroll-snap-align: start !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix button.brian-live-chip:hover,
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip.is-location-action:hover {
+  box-shadow: 0 2px 5px rgba(60, 64, 67, .10) !important;
+  transform: translateY(-1px) !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip.is-location-action {
+  cursor: pointer !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip__icon {
+  width: 25px !important;
+  height: 25px !important;
+  border-radius: 9px !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip__icon svg {
+  width: 15px !important;
+  height: 15px !important;
+  stroke-width: 1.75 !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip__copy small,
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip__copy strong,
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip__copy em {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip__copy small {
+  margin: 0 !important;
+  font-size: 8.7px !important;
+  font-weight: 730 !important;
+  line-height: 1.15 !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip__copy strong {
+  margin-top: 3px !important;
+  font-size: 12.5px !important;
+  font-weight: 750 !important;
+  line-height: 1.12 !important;
+}
+
+html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip__copy em {
+  margin-top: 3px !important;
+  font-size: 8.5px !important;
+  font-weight: 500 !important;
+  line-height: 1.12 !important;
+}
+
+@media (max-width: 1280px) and (min-width: 701px) {
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix {
+    grid-template-columns: 220px minmax(0, 1fr) !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip {
+    flex-basis: 116px !important;
+    min-width: 116px !important;
+    width: 116px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-chips.has-live-briefing-final-fix {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: 42px 62px !important;
+    gap: 3px !important;
+    min-height: 114px !important;
+    height: 114px !important;
+    padding: 4px 6px !important;
+    border-radius: 17px !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__headline {
+    grid-column: 1 !important;
+    grid-template-columns: 62px minmax(0, 1fr) !important;
+    min-height: 40px !important;
+    height: 40px !important;
+    padding: 2px 4px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(60, 64, 67, .08) !important;
+    border-radius: 13px 13px 0 0 !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__headline::before {
+    width: 58px !important;
+    min-width: 58px !important;
+    height: 25px !important;
+    font-size: 8.5px !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-briefing-bar__context {
+    grid-column: 1 !important;
+    min-height: 60px !important;
+    height: 60px !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip-strip {
+    min-height: 60px !important;
+    height: 60px !important;
+  }
+
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip {
+    flex-basis: 112px !important;
+    min-width: 112px !important;
+    width: 112px !important;
+    height: 54px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-shell[data-route] .brian-briefing-bar.has-live-briefing-final-fix .brian-live-chip {
+    transition: none !important;
+  }
+}
