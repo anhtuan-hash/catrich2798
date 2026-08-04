@@ -4,6 +4,11 @@ function prepareBrandButton(button) {
   button.setAttribute('aria-label', 'English Hub');
   button.setAttribute('title', 'English Hub');
   button.dataset.brianBrandReady = 'true';
+
+  const label = button.querySelector(':scope > span');
+  if (label && label.textContent !== 'English Hub') {
+    label.textContent = 'English Hub';
+  }
 }
 
 function hideRedundantHomeTab() {

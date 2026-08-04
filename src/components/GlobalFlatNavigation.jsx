@@ -90,6 +90,8 @@ import './GlobalNavigationSearchPillRefinement.css';
 import './GlobalNavigationNoSearch.css';
 // Approved August 2026 navigation mockup. This must stay last in the navigation stack.
 import './GlobalNavigationApprovedMockup.css';
+// Production repair: removes duplicated labels/components and hides surplus briefing chips.
+import './GlobalNavigationProductionFix.css';
 
 // Navigation Concept V2 is the approved state immediately before PR #483.
 const GlobalNavigationConceptV2 = lazy(() => import('./GlobalNavigationConceptV2.jsx'));
