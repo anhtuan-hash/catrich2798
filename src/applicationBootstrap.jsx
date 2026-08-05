@@ -1,6 +1,5 @@
 import './fourClassLocalPurge.js';
-import './secureClassImportInputFix.js';
-import './secureClassImportBootstrap.js';
+import './directClassRosterImportBootstrap.js';
 import './styles/MotionRestore.css';
 import './components/GlobalHomeroomMaterial3Refinement.css';
 import {
