@@ -5,6 +5,7 @@ export const SCHOOL_CLASS_REGISTRY_TABLE = 'school_class_registries';
 export const SCHOOL_CLASS_REGISTRY_STORAGE_PREFIX = 'bes-school-class-registry-v1';
 export const ALL_CLASS_PURGE_SCOPE = 'all-classes';
 export const ALL_CLASS_PURGE_VERSION = '2026-08-05-all-v1';
+const LOCAL_ALL_CLASS_PURGE_MARKER = 'bes-all-class-local-purge-20260805-v1';
 
 export const SCHOOL_CLASS_BLUEPRINTS = Object.freeze([
   ['10.1', 28], ['10.2', 27], ['10.3', 25], ['10.4', 27], ['10.5', 29], ['10.6', 28],
@@ -258,8 +259,32 @@ function blueprintClasses() {
   }));
 }
 
+function localAllClassPurgeActive() {
+  try {
+    return typeof window !== 'undefined'
+      && window.localStorage?.getItem(LOCAL_ALL_CLASS_PURGE_MARKER) === 'done';
+  } catch {
+    return false;
+  }
+}
+
 export function createDefaultSchoolClassRegistry() {
   const createdAt = nowIso();
+  if (localAllClassPurgeActive()) {
+    return {
+      version: SCHOOL_CLASS_REGISTRY_VERSION,
+      sourceLabel: '',
+      importedAt: '',
+      updatedAt: createdAt,
+      deletionAudit: [],
+      classes: [],
+      classDataPurge: {
+        scope: ALL_CLASS_PURGE_SCOPE,
+        version: ALL_CLASS_PURGE_VERSION,
+        completedAt: createdAt,
+      },
+    };
+  }
   return {
     version: SCHOOL_CLASS_REGISTRY_VERSION,
     sourceLabel: 'DanhSachHocSinh_HienTai_DaChuanHoa.xlsx',
