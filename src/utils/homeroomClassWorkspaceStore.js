@@ -12,6 +12,7 @@ import {
   setHomeroomWorkspaceStatus as setBaseWorkspaceStatus,
 } from './homeroomStore.js';
 import { isSupabaseConfigured, supabase } from './supabase.js';
+import { scheduleHomeroomDriveBackup } from './homeroomDriveBackup.js';
 import {
   HOMEROOM_CLASS_TYPE,
   SUBJECT_CLASS_TYPE,
@@ -216,6 +217,13 @@ export async function saveHomeroomWorkspace(workspace, user) {
   }, { onConflict: 'owner_id,workspace_id' });
 
   if (error) return { ok: false, offline: true, message: error.message, workspace: local };
+
+  // Supabase remains the primary database. Google Drive receives a delayed,
+  // encrypted recovery copy after bursts of score/conduct edits settle.
+  void scheduleHomeroomDriveBackup(payload, user, {
+    reason: 'automatic-after-supabase-sync',
+  }).catch(() => { /* Drive backup status is tracked separately and must not block saving. */ });
+
   return { ok: true, workspace: local, source: 'cloud-minimal-return' };
 }
 
