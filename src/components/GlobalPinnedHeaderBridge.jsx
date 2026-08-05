@@ -5,7 +5,8 @@ function findNavigationElements() {
   const shell = document.querySelector('.app-shell[data-route]');
   const chrome = shell?.querySelector(':scope > .bes-top-chrome');
   const navigation = chrome?.querySelector(':scope > .brian-nav');
-  return { shell, chrome, navigation };
+  const briefing = chrome?.querySelector(':scope > .brian-briefing-bar');
+  return { shell, chrome, navigation, briefing };
 }
 
 export default function GlobalPinnedHeaderBridge() {
@@ -18,14 +19,20 @@ export default function GlobalPinnedHeaderBridge() {
     let activeShell = null;
 
     const measure = () => {
-      const { shell, navigation } = findNavigationElements();
+      const { shell, chrome, navigation, briefing } = findNavigationElements();
       if (!shell || !navigation) return;
 
       activeShell = shell;
-      const height = Math.max(0, Math.ceil(navigation.getBoundingClientRect().height));
+      const navigationRect = navigation.getBoundingClientRect();
+      const alignmentRect = (briefing || chrome || navigation).getBoundingClientRect();
+      const height = Math.max(0, Math.ceil(navigationRect.height));
+      const left = Math.max(0, Math.round(alignmentRect.left));
+      const width = Math.max(0, Math.round(alignmentRect.width));
 
       shell.dataset.besNavPinned = 'true';
       shell.style.setProperty('--bes-pinned-nav-height', `${height}px`);
+      shell.style.setProperty('--bes-header-row-left', `${left}px`);
+      shell.style.setProperty('--bes-header-row-width', `${width}px`);
       document.documentElement.style.setProperty('--bes-pinned-nav-height', `${height}px`);
     };
 
@@ -38,14 +45,16 @@ export default function GlobalPinnedHeaderBridge() {
     scheduleMeasure();
 
     const initial = findNavigationElements();
-    if (initial.navigation && typeof ResizeObserver !== 'undefined') {
+    if (typeof ResizeObserver !== 'undefined') {
       resizeObserver = new ResizeObserver(scheduleMeasure);
-      resizeObserver.observe(initial.navigation);
+      if (initial.chrome) resizeObserver.observe(initial.chrome);
+      if (initial.navigation) resizeObserver.observe(initial.navigation);
+      if (initial.briefing) resizeObserver.observe(initial.briefing);
     }
 
-    if (initial.navigation && typeof MutationObserver !== 'undefined') {
+    if (initial.chrome && typeof MutationObserver !== 'undefined') {
       mutationObserver = new MutationObserver(scheduleMeasure);
-      mutationObserver.observe(initial.navigation, {
+      mutationObserver.observe(initial.chrome, {
         attributes: true,
         childList: true,
         subtree: true,
@@ -64,6 +73,8 @@ export default function GlobalPinnedHeaderBridge() {
       window.removeEventListener('orientationchange', scheduleMeasure);
       activeShell?.removeAttribute('data-bes-nav-pinned');
       activeShell?.style.removeProperty('--bes-pinned-nav-height');
+      activeShell?.style.removeProperty('--bes-header-row-left');
+      activeShell?.style.removeProperty('--bes-header-row-width');
       document.documentElement.style.removeProperty('--bes-pinned-nav-height');
     };
   }, []);
