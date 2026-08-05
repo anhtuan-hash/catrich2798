@@ -15,8 +15,6 @@ let applicationStarted = false;
 let schoolRegistryLoaded = false;
 let homeroomExtrasLoaded = false;
 let routeListenerInstalled = false;
-let class126RecoveryListenerInstalled = false;
-let class126RecoveryTimer = 0;
 let assignedClassSyncPromise = null;
 
 function runWhenIdle(callback, timeout = 1800) {
@@ -85,7 +83,6 @@ function loadRouteModules() {
       import('./studentRosterFilterTabs.js'),
       import('./studentNameSortRuntime.js'),
       import('./studentPermanentDeleteRuntime.js'),
-      import('./class126TrinhMinhDangDuplicateRepair.js'),
       import('./teacherClassFilterRuntime.js'),
     ]).catch((error) => {
       homeroomExtrasLoaded = false;
@@ -121,47 +118,6 @@ function startAssignedClassSync() {
     window.setTimeout(loadAndSync, 0);
   });
   return assignedClassSyncPromise;
-}
-
-async function runClass126Recovery() {
-  let recoveryModule = null;
-  let recoveryResult = null;
-  try {
-    recoveryModule = await import('./class126DataRecovery.js');
-    recoveryResult = await recoveryModule.recoverClass126Data();
-  } catch (error) {
-    recoveryResult = {
-      status: 'error',
-      changed: false,
-      message: error?.message || String(error),
-    };
-    console.error('[Class126Recovery] Không thể hoàn tất quá trình dò và khôi phục dữ liệu lớp 12.6.', error);
-  }
-  recoveryModule?.announceClass126Recovery?.(recoveryResult);
-  return recoveryResult;
-}
-
-function scheduleClass126Recovery(delay = 350) {
-  window.clearTimeout(class126RecoveryTimer);
-  class126RecoveryTimer = window.setTimeout(() => {
-    runClass126Recovery().catch((error) => {
-      console.error('[Class126Recovery] Không thể chạy lại quá trình khôi phục.', error);
-    });
-  }, delay);
-}
-
-function installClass126RecoveryListener() {
-  if (class126RecoveryListenerInstalled) return;
-  class126RecoveryListenerInstalled = true;
-  window.addEventListener('bes-school-class-assignment-synced', () => scheduleClass126Recovery(500));
-}
-
-function startClass126Recovery(assignedSyncPromise) {
-  runWhenIdle(async () => {
-    await assignedSyncPromise.catch(() => {});
-    await runClass126Recovery();
-    installClass126RecoveryListener();
-  }, 1200);
 }
 
 function loadExternalAppsAfterMainShell() {
@@ -208,8 +164,6 @@ async function startApplication() {
 
   await mainModulePromise;
   installRouteModuleLoader();
-  // Không tự động chạy cứu hộ lớp 12.6 sau mỗi lần mở app nữa.
-  // Việc tự khôi phục có thể đưa trở lại hồ sơ mà người dùng vừa xóa vĩnh viễn.
   loadExternalAppsAfterMainShell();
 }
 
