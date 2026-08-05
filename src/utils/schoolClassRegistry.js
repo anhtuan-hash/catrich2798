@@ -1,8 +1,10 @@
 const nowIso = () => new Date().toISOString();
 
-export const SCHOOL_CLASS_REGISTRY_VERSION = 2;
+export const SCHOOL_CLASS_REGISTRY_VERSION = 3;
 export const SCHOOL_CLASS_REGISTRY_TABLE = 'school_class_registries';
 export const SCHOOL_CLASS_REGISTRY_STORAGE_PREFIX = 'bes-school-class-registry-v1';
+export const ALL_CLASS_PURGE_SCOPE = 'all-classes';
+export const ALL_CLASS_PURGE_VERSION = '2026-08-05-all-v1';
 
 export const SCHOOL_CLASS_BLUEPRINTS = Object.freeze([
   ['10.1', 28], ['10.2', 27], ['10.3', 25], ['10.4', 27], ['10.5', 29], ['10.6', 28],
@@ -56,7 +58,6 @@ export function normalizeSchoolClassName(value) {
     .replace(/^lop\s*/i, '')
     .replace(/[,/_-]+/g, '.')
     .replace(/\s+/g, '');
-  // Hai dòng trong danh sách gốc ghi thiếu số lớp và nằm ngay trước khối 12.1.
   if (raw === '12') return '12.1';
   const match = raw.match(/^(10|11|12)\.(\d{1,2})$/);
   if (!match) return '';
@@ -141,7 +142,6 @@ export function parseSchoolRosterRows(rows = []) {
   const classCounts = Object.fromEntries(Object.entries(rosters).map(([className, students]) => [className, students.length]));
   const missingClasses = SCHOOL_CLASS_BLUEPRINTS.filter((item) => classCounts[item.className] === 0).map((item) => item.className);
   if (missingClasses.length) warnings.push(`Không có học sinh ở lớp: ${missingClasses.join(', ')}.`);
-
   return { rosters, totalStudents, classCounts, warnings };
 }
 
@@ -237,7 +237,6 @@ export function reconcileWorkspaceRoster(workspace, className, importedStudents,
       grade: normalizedClassName.split('.')[0],
       studentCountTarget: activeCount,
     },
-    // Chỉ cập nhật hồ sơ học sinh; learningRecords, conductRecords và các lịch sử khác được giữ nguyên.
     students,
     updatedAt: importedAt,
   };
@@ -250,6 +249,15 @@ function normalizeAssignment(value = {}) {
   };
 }
 
+function blueprintClasses() {
+  return SCHOOL_CLASS_BLUEPRINTS.map((item) => ({
+    ...item,
+    students: [],
+    assignment: normalizeAssignment(),
+    importedCount: 0,
+  }));
+}
+
 export function createDefaultSchoolClassRegistry() {
   const createdAt = nowIso();
   return {
@@ -258,18 +266,37 @@ export function createDefaultSchoolClassRegistry() {
     importedAt: '',
     updatedAt: createdAt,
     deletionAudit: [],
-    classes: SCHOOL_CLASS_BLUEPRINTS.map((item) => ({
-      ...item,
-      students: [],
-      assignment: normalizeAssignment(),
-      importedCount: 0,
-    })),
+    classes: blueprintClasses(),
   };
+}
+
+function isAllClassesPurged(source) {
+  return source?.classDataPurge?.scope === ALL_CLASS_PURGE_SCOPE
+    && Array.isArray(source.classes)
+    && source.classes.length === 0;
 }
 
 export function normalizeSchoolClassRegistry(raw) {
   const base = createDefaultSchoolClassRegistry();
   const source = raw && typeof raw === 'object' ? raw : {};
+  if (isAllClassesPurged(source)) {
+    return {
+      ...base,
+      ...source,
+      version: Math.max(Number(source.version) || 1, SCHOOL_CLASS_REGISTRY_VERSION),
+      sourceLabel: text(source.sourceLabel),
+      importedAt: '',
+      updatedAt: text(source.updatedAt) || base.updatedAt,
+      deletionAudit: [],
+      classes: [],
+      classDataPurge: {
+        ...source.classDataPurge,
+        scope: ALL_CLASS_PURGE_SCOPE,
+        version: text(source.classDataPurge?.version) || ALL_CLASS_PURGE_VERSION,
+      },
+    };
+  }
+
   const byName = new Map((Array.isArray(source.classes) ? source.classes : []).map((item) => [normalizeSchoolClassName(item.className), item]));
   return {
     ...base,
@@ -294,17 +321,26 @@ export function normalizeSchoolClassRegistry(raw) {
 export function applyRosterImport(registry, parsed, sourceLabel = '') {
   const current = normalizeSchoolClassRegistry(registry);
   const importedAt = nowIso();
+  const byName = new Map((current.classes || []).map((item) => [item.className, item]));
+  const { classDataPurge: _purge, ...withoutPurge } = current;
   return {
-    ...current,
+    ...withoutPurge,
     sourceLabel: text(sourceLabel) || current.sourceLabel,
     importedAt,
     updatedAt: importedAt,
-    classes: current.classes.map((item) => {
-      const imported = parsed?.rosters?.[item.className] || [];
-      const deleted = (item.students || []).filter(isDeletedSchoolStudent);
+    deletionAudit: [],
+    classes: SCHOOL_CLASS_BLUEPRINTS.map((blueprint) => {
+      const existing = byName.get(blueprint.className) || {};
+      const imported = parsed?.rosters?.[blueprint.className] || [];
+      const deleted = (existing.students || []).filter(isDeletedSchoolStudent);
       const active = imported.filter((student) => !deleted.some((tombstone) => sameStudent(student, tombstone)));
-      const students = [...active, ...deleted];
-      return { ...item, students, importedCount: active.length };
+      return {
+        ...blueprint,
+        ...existing,
+        students: [...active, ...deleted],
+        importedCount: active.length,
+        assignment: normalizeAssignment(existing.assignment),
+      };
     }),
   };
 }
