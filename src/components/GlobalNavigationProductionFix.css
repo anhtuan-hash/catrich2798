@@ -1,4 +1,11 @@
 /* Restored text-first production navigation.
    No final graphical override is applied here. The active layout now falls
    back to GlobalNavigationNoSearch.css: wide named tabs, no visible search
-   launcher, and the original navigation behavior preserved. */
+   launcher, and the original navigation behavior preserved.
+
+   Republished from the last approved header-hub version on 2026-08-05 so
+   production receives a fresh stylesheet asset instead of an older cache. */
+
+:root {
+  --bes-approved-header-hub-release: "2026-08-05-2256";
+}
