@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalPinnedHeaderBridge from './GlobalPinnedHeaderBridge.jsx';
+import GlobalAdaptiveComfortScale from './GlobalAdaptiveComfortScale.jsx';
 import GlobalGuestNavigationHub from './GlobalGuestNavigationHub.jsx';
 import GlobalPublicNewsBriefing from './GlobalPublicNewsBriefing.jsx';
 import GlobalUserProfileSettingsBridge from './GlobalUserProfileSettingsBridge.jsx';
@@ -89,6 +90,8 @@ import './GlobalNavigationGoogleM3Polish.css';
 import './GlobalNavigationSearchPillRefinement.css';
 // Keep the approved text-first hub layout available across every route.
 import './GlobalNavigationNoSearch.css';
+// Final adaptive typography contract for 13-inch / 1440 × 900 displays.
+import './GlobalAdaptiveComfortScale.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
@@ -99,6 +102,7 @@ export default function GlobalFlatNavigation(props) {
 
   return (
     <>
+      <GlobalAdaptiveComfortScale setFontScale={props.setFontScale} />
       <GlobalPinnedHeaderBridge />
       <Navigation {...props} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
