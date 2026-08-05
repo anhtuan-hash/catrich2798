@@ -25,9 +25,9 @@ function emitStatus(status) {
 
 function saveStatus(user, workspaceId, patch = {}) {
   const status = {
+    ...loadHomeroomDriveBackupStatus(user, workspaceId),
     workspaceId,
     updatedAt: new Date().toISOString(),
-    ...loadHomeroomDriveBackupStatus(user, workspaceId),
     ...patch,
   };
   try { localStorage.setItem(statusKey(user, workspaceId), JSON.stringify(status)); } catch { /* optional cache */ }
@@ -147,7 +147,7 @@ export async function backupHomeroomWorkspaceToDrive(workspace, user, options = 
 
 export function scheduleHomeroomDriveBackup(workspace, user, options = {}) {
   const workspaceId = safeText(workspace?.id);
-  if (!workspaceId || !user?.id || !isSupabaseConfigured || !supabase) {
+  if (typeof window === 'undefined' || !workspaceId || !user?.id || !isSupabaseConfigured || !supabase) {
     return Promise.resolve({ ok: false, skipped: true, reason: 'cloud-unavailable' });
   }
 
