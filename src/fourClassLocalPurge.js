@@ -1,4 +1,4 @@
-const PURGE_MARKER = 'bes-four-class-local-purge-20260805-v1';
+const PURGE_MARKER = 'bes-four-class-local-purge-20260805-v2';
 const TARGET_CLASSES = new Set(['11.3', '11.4', '12.3', '12.6']);
 const WORKSPACE_PREFIX = 'bes-homeroom-workspace-v1:';
 const INDEX_PREFIX = 'bes-homeroom-workspace-index-v3:';
