@@ -91,9 +91,12 @@ async function validatePackage(pkg) {
 }
 
 function importedRegistryReady(payload) {
-  if (payload?.classImportVersion !== IMPORT_VERSION || !Array.isArray(payload.classes)) return false;
+  if (!Array.isArray(payload?.classes)) return false;
+  const classNames = new Set(payload.classes.map((item) => String(item?.className || '').trim()));
   const totalStudents = payload.classes.reduce((sum, item) => sum + (Array.isArray(item?.students) ? item.students.length : 0), 0);
-  return payload.classes.length === EXPECTED_CLASS_COUNT && totalStudents === EXPECTED_STUDENT_COUNT;
+  return classNames.size === EXPECTED_CLASS_COUNT
+    && payload.classes.length === EXPECTED_CLASS_COUNT
+    && totalStudents === EXPECTED_STUDENT_COUNT;
 }
 
 async function loadCloudRegistry(user) {
