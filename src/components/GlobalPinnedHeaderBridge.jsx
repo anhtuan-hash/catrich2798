@@ -1,10 +1,11 @@
 import { useLayoutEffect } from 'react';
 import './GlobalPinnedHeaderBridge.css';
 
-function findShellAndChrome() {
+function findNavigationElements() {
   const shell = document.querySelector('.app-shell[data-route]');
   const chrome = shell?.querySelector(':scope > .bes-top-chrome');
-  return { shell, chrome };
+  const navigation = chrome?.querySelector(':scope > .brian-nav');
+  return { shell, chrome, navigation };
 }
 
 export default function GlobalPinnedHeaderBridge() {
@@ -17,15 +18,15 @@ export default function GlobalPinnedHeaderBridge() {
     let activeShell = null;
 
     const measure = () => {
-      const { shell, chrome } = findShellAndChrome();
-      if (!shell || !chrome) return;
+      const { shell, navigation } = findNavigationElements();
+      if (!shell || !navigation) return;
 
       activeShell = shell;
-      const height = Math.max(0, Math.ceil(chrome.getBoundingClientRect().height));
+      const height = Math.max(0, Math.ceil(navigation.getBoundingClientRect().height));
 
-      shell.dataset.besHeaderPinned = 'true';
-      shell.style.setProperty('--bes-pinned-header-height', `${height}px`);
-      document.documentElement.style.setProperty('--bes-pinned-header-height', `${height}px`);
+      shell.dataset.besNavPinned = 'true';
+      shell.style.setProperty('--bes-pinned-nav-height', `${height}px`);
+      document.documentElement.style.setProperty('--bes-pinned-nav-height', `${height}px`);
     };
 
     const scheduleMeasure = () => {
@@ -36,15 +37,15 @@ export default function GlobalPinnedHeaderBridge() {
     measure();
     scheduleMeasure();
 
-    const initial = findShellAndChrome();
-    if (initial.chrome && typeof ResizeObserver !== 'undefined') {
+    const initial = findNavigationElements();
+    if (initial.navigation && typeof ResizeObserver !== 'undefined') {
       resizeObserver = new ResizeObserver(scheduleMeasure);
-      resizeObserver.observe(initial.chrome);
+      resizeObserver.observe(initial.navigation);
     }
 
-    if (initial.chrome && typeof MutationObserver !== 'undefined') {
+    if (initial.navigation && typeof MutationObserver !== 'undefined') {
       mutationObserver = new MutationObserver(scheduleMeasure);
-      mutationObserver.observe(initial.chrome, {
+      mutationObserver.observe(initial.navigation, {
         attributes: true,
         childList: true,
         subtree: true,
@@ -61,9 +62,9 @@ export default function GlobalPinnedHeaderBridge() {
       mutationObserver?.disconnect();
       window.removeEventListener('resize', scheduleMeasure);
       window.removeEventListener('orientationchange', scheduleMeasure);
-      activeShell?.removeAttribute('data-bes-header-pinned');
-      activeShell?.style.removeProperty('--bes-pinned-header-height');
-      document.documentElement.style.removeProperty('--bes-pinned-header-height');
+      activeShell?.removeAttribute('data-bes-nav-pinned');
+      activeShell?.style.removeProperty('--bes-pinned-nav-height');
+      document.documentElement.style.removeProperty('--bes-pinned-nav-height');
     };
   }, []);
 
