@@ -82,19 +82,13 @@ import './GlobalWorkHubViewportModalFinal.css';
 import './GlobalWorkHubModalAnchor.css';
 // The final placement contract: always center the dialog in the current viewport.
 import './GlobalWorkHubModalCenter.css';
-// Visual-only Material 3 polish for the restored navigation and CMS Hero.
+// Visual-only Material 3 polish for the text-first navigation and CMS Hero.
 import './GlobalNavigationGoogleM3Polish.css';
 // Final Command K capsule refinement; removes the legacy rectangular focus frame.
 import './GlobalNavigationSearchPillRefinement.css';
-// Legacy no-search layout remains loaded for backwards compatibility.
+// Keep the approved text-first hub layout available across every route.
 import './GlobalNavigationNoSearch.css';
-// Approved August 2026 navigation mockup. This must stay last in the navigation stack.
-import './GlobalNavigationApprovedMockup.css';
-// Production repair: removes duplicated labels/components and hides surplus briefing chips.
-import './GlobalNavigationProductionFix.css';
 
-// Navigation Concept V2 is the approved state immediately before PR #483.
-const GlobalNavigationConceptV2 = lazy(() => import('./GlobalNavigationConceptV2.jsx'));
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
 const GlobalWorkBulkDeleteManager = lazy(() => import('./GlobalWorkBulkDeleteManager.jsx'));
@@ -105,11 +99,6 @@ export default function GlobalFlatNavigation(props) {
   return (
     <>
       <Navigation {...props} />
-      {props.currentUser ? (
-        <Suspense fallback={null}>
-          <GlobalNavigationConceptV2 {...props} />
-        </Suspense>
-      ) : null}
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalPublicNewsBriefing route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHomeBriefingExtras route={props.route} language={props.language} />
