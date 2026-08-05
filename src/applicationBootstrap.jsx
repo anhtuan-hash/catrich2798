@@ -1,3 +1,4 @@
+import './fourClassLocalPurge.js';
 import './styles/MotionRestore.css';
 import './components/GlobalHomeroomMaterial3Refinement.css';
 import {
