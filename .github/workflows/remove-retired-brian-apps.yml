@@ -1,14 +1,14 @@
 name: Remove retired Brian apps
 
 on:
-  push:
+  pull_request:
     paths:
-      - .github/workflows/remove-retired-brian-apps.yml
       - scripts/remove-retired-brian-apps.py
   workflow_dispatch:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: remove-retired-brian-apps
@@ -19,9 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
