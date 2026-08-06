@@ -1,7 +1,7 @@
-/* Brian English · safe global pinned-navigation contract.
-   Only the text navigation row is fixed. The placeholder is created inside the
-   active header chrome, never on the whole app shell, so route content cannot be
-   pushed down by an extra navigation height. */
+/* Brian English · sticky text-navigation contract.
+   The complete chrome owns the sticky position so the navigation remains fixed
+   across every route. Once vertical scrolling begins, only the briefing row is
+   removed; the text navigation stays visible at the top of the viewport. */
 
 html {
   scroll-padding-top: var(--bes-pinned-nav-height, 0px);
@@ -11,70 +11,71 @@ html body .app-shell[data-route][data-bes-nav-pinned='true'] {
   --bes-header-row-radius: 28px;
 }
 
-/* Route-level styles may make the complete chrome sticky. Reset only the
-   positioning contract and reserve exactly one navigation-height slot inside
-   the chrome. Existing route width, margins and decorative spacing are kept. */
+/* Restore the proven sticky chrome contract. The previous relative override
+   disabled fixed navigation on several routes. */
 html body .app-shell[data-route][data-bes-nav-pinned='true'] [data-bes-pinned-chrome='true'] {
-  position: relative !important;
-  inset: auto !important;
-  inset-block: auto !important;
-  inset-inline: auto !important;
-  top: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  left: auto !important;
-  padding-block-start: calc(
-    var(--bes-chrome-base-padding-top, 0px)
-    + var(--bes-pinned-nav-height, 0px)
-  ) !important;
+  position: sticky !important;
+  inset-block-start: 0 !important;
+  inset-inline: 0 !important;
+  top: 0 !important;
+  right: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
   overflow: visible !important;
-  z-index: 1200 !important;
+  z-index: 1300 !important;
   transform: none !important;
   translate: none !important;
   will-change: auto !important;
 }
 
-/* This is the only fixed surface. Runtime measurement keeps it aligned with the
-   current route's real header width, including layouts that replace their shell. */
+/* The navigation stays in the sticky chrome instead of becoming a fixed child
+   of a transformed route container. This avoids the regression where it scrolled
+   away together with the page. */
 html body .app-shell[data-route][data-bes-nav-pinned='true'] [data-bes-pinned-navigation='true'] {
-  position: fixed !important;
+  position: relative !important;
   inset: auto !important;
-  inset-block-start: 0 !important;
-  inset-inline-start: var(--bes-header-row-left, 20px) !important;
-  top: 0 !important;
+  top: auto !important;
   right: auto !important;
   bottom: auto !important;
-  left: var(--bes-header-row-left, 20px) !important;
-  width: var(--bes-header-row-width, calc(100% - 40px)) !important;
+  left: auto !important;
+  width: 100% !important;
   min-width: 0 !important;
   max-width: none !important;
   box-sizing: border-box !important;
   margin: 0 !important;
   border-radius: var(--bes-header-row-radius) !important;
   overflow: visible !important;
-  z-index: 1400 !important;
+  z-index: 2 !important;
   transform: none !important;
   translate: none !important;
   will-change: auto !important;
 }
 
-/* NEWS, time, weather and school-week information always remain in document
-   flow and therefore disappear normally when the user scrolls down. */
+/* At the top of the page, the briefing remains visible in normal flow. */
 html body .app-shell[data-route][data-bes-nav-pinned='true'] [data-bes-scrollable-briefing='true'] {
   position: relative !important;
   inset: auto !important;
-  inset-block: auto !important;
-  inset-inline: auto !important;
   top: auto !important;
   right: auto !important;
   bottom: auto !important;
   left: auto !important;
   box-sizing: border-box !important;
   border-radius: var(--bes-header-row-radius) !important;
-  z-index: 3 !important;
+  z-index: 1 !important;
   transform: none !important;
   translate: none !important;
   will-change: auto !important;
+}
+
+/* Once any vertical scroll region moves, hide only NEWS/time/weather/week.
+   display:none prevents an empty strip from remaining below the pinned hub. */
+html body .app-shell[data-route][data-bes-header-scrolled='true'] [data-bes-scrollable-briefing='true'],
+html body .app-shell[data-route] [data-bes-pinned-chrome='true'][data-bes-header-scrolled='true'] [data-bes-scrollable-briefing='true'] {
+  display: none !important;
 }
 
 html body .app-shell[data-route][data-bes-nav-pinned='true'] :is(
@@ -92,13 +93,15 @@ html body .app-shell[data-route][data-bes-nav-pinned='true'] :is(
 }
 
 @media print {
-  html body .app-shell[data-route][data-bes-nav-pinned='true'] [data-bes-pinned-chrome='true'] {
-    padding-block-start: var(--bes-chrome-base-padding-top, 0px) !important;
-  }
-
+  html body .app-shell[data-route][data-bes-nav-pinned='true'] [data-bes-pinned-chrome='true'],
   html body .app-shell[data-route][data-bes-nav-pinned='true'] [data-bes-pinned-navigation='true'] {
     position: static !important;
     inset: auto !important;
     width: 100% !important;
+  }
+
+  html body .app-shell[data-route][data-bes-header-scrolled='true'] [data-bes-scrollable-briefing='true'],
+  html body .app-shell[data-route] [data-bes-pinned-chrome='true'][data-bes-header-scrolled='true'] [data-bes-scrollable-briefing='true'] {
+    display: block !important;
   }
 }
