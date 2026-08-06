@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import './prepare-streamlined-catalog.mjs';
+import './prepare-streamlined-catalog-v2.mjs';
 import './patch-ai-workspace-session.mjs';
 import './patch-weekly-manager-native-grade-filter.mjs';
 import './patch-home-hero-media-optimizer.mjs';
