@@ -19,3 +19,4 @@
 @import './styles/AdminCoreOverviewHidden.css';
 @import './styles/NewsReaderContainerWidthFix.css';
 @import './styles/GlobalViewportReadabilityGuard.css';
+@import './styles/GamesTabletViewportFix.css';
