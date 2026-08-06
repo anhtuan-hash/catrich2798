@@ -1,0 +1,23 @@
+/* News Reader: size the page from its actual content container, not 100vw.
+   This prevents the feed and right sidebar from extending under the viewport edges. */
+
+html body .metro-clean-system[data-route='news'] .newsroom-v823-page {
+  width: 100% !important;
+  max-width: min(1540px, 100%) !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-inline: clamp(10px, 1.2vw, 18px) !important;
+  box-sizing: border-box !important;
+}
+
+html body .metro-clean-system[data-route='news'] .newsroom-v823-page > *,
+html body .metro-clean-system[data-route='news'] .newsroom-v823-layout,
+html body .metro-clean-system[data-route='news'] .newsroom-v823-layout > *,
+html body .metro-clean-system[data-route='news'] .newsroom-v823-command,
+html body .metro-clean-system[data-route='news'] .newsroom-v823-story-open,
+html body .metro-clean-system[data-route='news'] .newsroom-v823-sidebar {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
