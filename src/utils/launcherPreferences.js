@@ -41,6 +41,12 @@ const RETIRED_LAUNCHER_IDS = new Set([
   'route:ai-workspace',
   'route:classroom-delivery',
   'route:learning-intelligence',
+  'tool:teaching-methods-hub',
+  'teaching-methods-hub',
+  'route:library',
+  'library-hub',
+  'route:practice',
+  'practice-hub',
 ]);
 
 const DEFAULT_NAV = [
@@ -49,7 +55,6 @@ const DEFAULT_NAV = [
   'route:news',
   'route:games',
   'route:homeroom',
-  'route:library',
   'route:resource-library',
 ];
 
