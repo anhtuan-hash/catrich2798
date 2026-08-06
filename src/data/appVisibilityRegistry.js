@@ -10,22 +10,6 @@ export const ROUTE_APP_SHORTCUTS = [
     status: 'Phase 2 · Connected', statusVi: 'GVCN · Liên thông',
   },
   {
-    slug: 'library-hub', route: 'library', icon: 'LB', tone: 'green',
-    group: 'Teaching Resources', groupVi: 'Học liệu cá nhân',
-    title: 'Library', titleVi: 'Thư viện',
-    desc: 'Saved teaching resources, prompts, questions, reports and exported lesson materials.',
-    descVi: 'Kho tài liệu, prompt, câu hỏi, báo cáo và học liệu đã lưu.',
-    status: 'Resource shelf', statusVi: 'Kho nội dung đã lưu',
-  },
-  {
-    slug: 'practice-hub', route: 'practice', icon: 'CL', tone: 'blue',
-    group: 'Classroom', groupVi: 'Lớp học',
-    title: 'Classroom', titleVi: 'Lớp học',
-    desc: 'Scored practice sessions with progress tracking for learners.',
-    descVi: 'Giao bài luyện, theo dõi tiến độ và chấm điểm học sinh.',
-    status: 'Practice flow', statusVi: 'Giao bài · Theo dõi',
-  },
-  {
     slug: 'admin-hub', route: 'admin', icon: 'AD', tone: 'red',
     group: 'Administration', groupVi: 'Quản trị',
     title: 'Admin', titleVi: 'Quản trị',
