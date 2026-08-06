@@ -6,7 +6,7 @@ import { ROUTE_APP_SHORTCUTS } from '../data/appVisibilityRegistry.js';
 export const APP_ORDER = [
   'hidden-apps-vault', 'thpt-practice-hub', 'resource-library-hub', 'lesson-plan-ai', 'textlab-activities', 'flying-words', 'exam-studio', 'reading-studio',
   'news-reader', 'vietnam-tax', 'word2graph', 'textcare', 'student-practice', 'game-hub',
-  'homeroom-hub', 'library-hub', 'practice-hub', 'games-hub', 'admin-hub',
+  'homeroom-hub', 'games-hub', 'admin-hub',
 ];
 export const ROUTE_APPS = ROUTE_APP_SHORTCUTS;
 
@@ -65,16 +65,16 @@ export function shortDesc(item, language) {
     'reading-studio': 'Bài đọc, câu hỏi và từ vựng.', 'news-reader': 'Tin giáo dục Việt Nam và báo tiếng Anh.',
     'vietnam-tax': 'Thuế TNCN, bảo hiểm và lương Net 2026.', word2graph: 'Word family và collocation.',
     'exam-studio': 'Đề kiểm tra, cloze, word form.', 'student-practice': 'Bài luyện có chấm điểm.', 'homeroom-hub': 'Học sinh, điểm danh và phụ huynh.',
-    'resource-library-hub': 'Kho học liệu dùng chung trên Drive TTCM.', 'library-hub': 'Kho tài liệu và bài đã lưu.',
-    'practice-hub': 'Giao bài và theo dõi tiến độ.', 'games-hub': 'Game lớp học và launcher.', 'admin-hub': 'Người dùng, quyền, cấu hình.',
+    'resource-library-hub': 'Kho học liệu dùng chung trên Drive TTCM.',
+    'games-hub': 'Game lớp học và launcher.', 'admin-hub': 'Người dùng, quyền, cấu hình.',
   };
   const en = {
     'lesson-plan-ai': 'Lessons, materials and competencies.', 'textlab-activities': '18 interactive activities from text.', 'flying-words': 'Build sentences from moving word cards.', textcare: 'Clean official documents.',
     'reading-studio': 'Readings and vocabulary.', 'news-reader': 'Vietnam education and English news.',
     'vietnam-tax': 'Vietnam PIT, insurance and 2026 net salary.', word2graph: 'Word families and collocations.',
     'exam-studio': 'Tests, cloze and word form.', 'student-practice': 'Scored learner practice.', 'homeroom-hub': 'Students, attendance and parents.',
-    'resource-library-hub': 'Shared department Drive resources.', 'library-hub': 'Saved teaching resources.',
-    'practice-hub': 'Assign and track practice.', 'games-hub': 'Classroom game launchers.', 'admin-hub': 'Users and permissions.',
+    'resource-library-hub': 'Shared department Drive resources.',
+    'games-hub': 'Classroom game launchers.', 'admin-hub': 'Users and permissions.',
   };
   return (language === 'vi' ? vi[item.slug] : en[item.slug]) || descOf(item, language);
 }
@@ -82,10 +82,10 @@ export function targetFor(item) { return item.route ? `#/${item.route}` : `#/too
 export function launch(target, label, color, sourceEl = null) { launchRoute({ target, label, color: color || '#191515', sourceEl }); }
 export function navLaunch(route, label, color, sourceEl) { launch(route.startsWith('#/') ? route : `#/${route}`, label, color, sourceEl); }
 export function defaultGroupOf(item) {
-  if (['lesson-plan-ai', 'textcare', 'library-hub', 'resource-library-hub'].includes(item.slug)) return 'plan';
+  if (['lesson-plan-ai', 'textcare', 'resource-library-hub'].includes(item.slug)) return 'plan';
   if (item.slug === 'homeroom-hub') return 'manage';
   if (['textlab-activities', 'flying-words', 'reading-studio', 'news-reader', 'vietnam-tax', 'word2graph', 'game-hub', 'games-hub'].includes(item.slug)) return 'create';
-  if (['thpt-practice-hub', 'exam-studio', 'student-practice', 'practice-hub'].includes(item.slug)) return 'assess';
+  if (['thpt-practice-hub', 'exam-studio', 'student-practice'].includes(item.slug)) return 'assess';
   return 'manage';
 }
 export function permissionFor(item) {

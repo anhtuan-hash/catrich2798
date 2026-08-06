@@ -19,7 +19,6 @@ const AITool = lazy(() => import('./AITool.jsx'));
 const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
 const ActivityGraphStudio = lazy(() => import('./ActivityGraphStudio.jsx'));
 const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
-const TeachingMethodsHub = lazy(() => import('./TeachingMethodsHub.jsx'));
 const PersonnelHub = lazy(() => import('./PersonnelHub.jsx'));
 const ClassroomScreenHost = lazy(() => import('./ClassroomScreenHost.jsx'));
 const FlyingWordsGame = lazy(() => import('./FlyingWordsContrast.jsx'));
@@ -69,7 +68,6 @@ export default function ToolPage(props) {
 
   if (tool?.slug === 'textlab-activities') return renderLazy(TextLabActivities, props);
   if (tool?.slug === 'activity-graph') return renderLazy(ActivityGraphStudio, props);
-  if (tool?.slug === 'teaching-methods-hub') return renderLazy(TeachingMethodsHub, props);
   if (tool?.slug === 'thpt-practice-hub') return renderLazy(THPTPracticeHub, props);
   if (['brian-team', 'personnel-hub'].includes(tool?.slug)) return renderLazy(PersonnelHub, props);
   if (tool?.slug === 'classroom-screen') return renderLazy(ClassroomScreenHost, props);

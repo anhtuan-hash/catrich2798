@@ -10,7 +10,6 @@ export const ROUTE_PERMISSION_IDS = {
   news: 'tool:news-reader',
   games: 'section:games',
   tools: 'section:tools',
-  library: 'route:library',
   'resource-library': 'route:resource-library',
   'knowledge-hub': 'route:knowledge-hub',
   dashboard: 'route:dashboard',
@@ -24,13 +23,13 @@ export const ROUTE_PERMISSION_IDS = {
   'data-governance': 'route:data-governance',
   'production-hardening': 'route:production-hardening',
   'app-vault': 'route:app-vault',
-  practice: 'route:practice',
   qa: 'route:qa',
   settings: 'route:settings',
   homeroom: HOMEROOM_PERMISSION_ID,
 };
 
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup']);
+const RETIRED_ROUTES = new Set(['library', 'practice']);
 
 const SECTION_BY_SLUG = new Map([
   ...APPS.map((item) => [item.slug, 'apps']),
@@ -139,24 +138,6 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Quản trị dữ liệu & tuân thủ',
     desc: 'Review audit events, permission overrides, backups, restores and deleted items.',
     descVi: 'Kiểm tra audit log, quyền ngoại lệ, sao lưu, khôi phục và dữ liệu đã xóa.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS.library,
-    type: 'content',
-    section: 'content',
-    title: 'Library',
-    titleVi: 'Thư viện nội dung',
-    desc: 'View and manage saved outputs, prompts, activities and local teaching content.',
-    descVi: 'Xem và quản lí output, prompt, hoạt động và nội dung dạy học đã lưu.',
-  },
-  {
-    id: ROUTE_PERMISSION_IDS.practice,
-    type: 'content',
-    section: 'content',
-    title: 'Learner Practice',
-    titleVi: 'Bài luyện tập học sinh',
-    desc: 'Open the scored student practice module.',
-    descVi: 'Mở module bài luyện tập có chấm điểm cho học sinh.',
   },
   {
     id: ROUTE_PERMISSION_IDS.qa,
@@ -299,15 +280,16 @@ export function hasAnyToolInSection(user, section) {
 }
 
 export function getRoutePermissionId(route) {
+  if (RETIRED_ROUTES.has(route)) return '';
   if (route === 'news') return getToolPermissionId('news-reader');
-  if (route === 'practice') return ROUTE_PERMISSION_IDS.practice;
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
-  if (route === 'dashboard' || route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
+  if (route === 'dashboard' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
 
 export function hasRouteAccess(user, route, selectedTool = null) {
+  if (RETIRED_ROUTES.has(route)) return false;
   if (PUBLIC_ROUTES.has(route)) return true;
   if (!user) return false;
   if (isAdminRole(user.role)) return true;
@@ -319,8 +301,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (route === 'dashboard') return Boolean(user);
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
-  if (route === 'practice') return hasPermissionId(user, ROUTE_PERMISSION_IDS.practice) || hasToolAccess(user, 'student-practice');
-  if (route === 'library' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
+  if (route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
 }
 

@@ -11,6 +11,12 @@ const RETIRED_STORAGE_PREFIXES = [
   'bes-shared-music-v2:',
 ];
 
+const RETIRED_APP_ROUTES = new Set([
+  'library',
+  'practice',
+  'tool/teaching-methods-hub',
+]);
+
 const APPEARANCE_KEY = 'bes-appearance-v2';
 let installed = false;
 
@@ -32,6 +38,20 @@ function removeRetiredStorage() {
   } catch {
     // Storage can be unavailable in private browsing or a restricted webview.
   }
+}
+
+function currentHashRoute() {
+  return String(window.location.hash || '')
+    .replace(/^#\/?/, '')
+    .split('?')[0]
+    .split('&')[0]
+    .replace(/^\/+|\/+$/g, '')
+    .toLowerCase();
+}
+
+function redirectRetiredAppRoute() {
+  if (!RETIRED_APP_ROUTES.has(currentHashRoute())) return;
+  window.location.hash = '#/apps';
 }
 
 function enforceLightOnlyDocument() {
@@ -57,6 +77,7 @@ export function installRetiredFeatureCleanup() {
   if (installed || typeof window === 'undefined' || typeof document === 'undefined') return;
   installed = true;
   removeRetiredStorage();
+  redirectRetiredAppRoute();
   enforceLightOnlyDocument();
   clearRetiredMediaCache();
 
@@ -64,6 +85,7 @@ export function installRetiredFeatureCleanup() {
     removeRetiredStorage();
     enforceLightOnlyDocument();
   };
+  window.addEventListener('hashchange', redirectRetiredAppRoute);
   window.addEventListener('storage', enforce);
   window.addEventListener('bes:appearance-ready', enforce);
   window.addEventListener('bes:appearance-changed', enforce);
@@ -73,3 +95,5 @@ export const RETIRED_FEATURE_STORAGE = Object.freeze({
   keys: [...RETIRED_STORAGE_KEYS],
   prefixes: [...RETIRED_STORAGE_PREFIXES],
 });
+
+export const RETIRED_APP_PATHS = Object.freeze([...RETIRED_APP_ROUTES]);

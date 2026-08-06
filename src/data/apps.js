@@ -144,13 +144,6 @@ export const APPS = [
     api: false, featured: true,
   },
   {
-    slug: 'teaching-methods-hub', icon: 'TM', tone: 'mint', group: 'Professional Learning', groupVi: 'Phát triển chuyên môn',
-    title: 'English Teaching Methods Hub', titleVi: 'Phương pháp giảng dạy tiếng Anh',
-    desc: 'Explore active English teaching methods with theory, classroom procedures, activity ideas, assessment guidance and implementation cautions.',
-    descVi: 'Thư viện phương pháp dạy Tiếng Anh tích cực với lý thuyết, quy trình lớp học, hoạt động gợi ý, cách đánh giá và lưu ý triển khai.',
-    status: 'Methods · Theory · Classroom guides', statusVi: 'Phương pháp · Lý thuyết · Hướng dẫn', api: false, featured: true,
-  },
-  {
     slug: 'exam-studio', icon: 'EX', tone: 'purple', group: 'Assessment', groupVi: 'Đánh giá',
     title: 'Exam Studio', titleVi: 'Exam Studio',
     desc: 'Create exams from uploaded or pasted content with clean preview and interactive HTML export.',
