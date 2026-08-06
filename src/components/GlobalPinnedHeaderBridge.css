@@ -1,7 +1,7 @@
-/* Pin only the text-first navigation row.
-   The NEWS/time/weather briefing remains in normal document flow and scrolls
-   away with the page. Both rows share the exact same measured horizontal frame
-   and corner radius so they read as one consistent header system. */
+/* Brian English · safe global pinned-navigation contract.
+   Only the text navigation row is fixed. The placeholder is created inside the
+   active header chrome, never on the whole app shell, so route content cannot be
+   pushed down by an extra navigation height. */
 
 html {
   scroll-padding-top: var(--bes-pinned-nav-height, 0px);
@@ -9,58 +9,79 @@ html {
 
 html body .app-shell[data-route][data-bes-nav-pinned='true'] {
   --bes-header-row-radius: 28px;
-  box-sizing: border-box !important;
-  padding-block-start: var(--bes-pinned-nav-height, 0px) !important;
 }
 
-/* Cancel the old whole-chrome sticky/fixed contract. */
-html body .app-shell[data-route][data-bes-nav-pinned='true'] > .bes-top-chrome {
+/* Route-level styles may make the complete chrome sticky. Reset only the
+   positioning contract and reserve exactly one navigation-height slot inside
+   the chrome. Existing route width, margins and decorative spacing are kept. */
+html body .app-shell[data-route][data-bes-nav-pinned='true'] [data-bes-pinned-chrome='true'] {
   position: relative !important;
   inset: auto !important;
+  inset-block: auto !important;
+  inset-inline: auto !important;
   top: auto !important;
-  left: auto !important;
   right: auto !important;
-  width: 100% !important;
+  bottom: auto !important;
+  left: auto !important;
+  padding-block-start: calc(
+    var(--bes-chrome-base-padding-top, 0px)
+    + var(--bes-pinned-nav-height, 0px)
+  ) !important;
+  overflow: visible !important;
   z-index: 1200 !important;
   transform: none !important;
+  translate: none !important;
+  will-change: auto !important;
 }
 
-/* Keep only the main navigation hub at the top of the viewport. Its left edge
-   and width are measured from the briefing row so both rows align pixel-perfectly. */
-html body .app-shell[data-route][data-bes-nav-pinned='true'] > .bes-top-chrome > .brian-nav {
+/* This is the only fixed surface. Runtime measurement keeps it aligned with the
+   current route's real header width, including layouts that replace their shell. */
+html body .app-shell[data-route][data-bes-nav-pinned='true'] [data-bes-pinned-navigation='true'] {
   position: fixed !important;
+  inset: auto !important;
   inset-block-start: 0 !important;
-  inset-inline: auto !important;
+  inset-inline-start: var(--bes-header-row-left, 20px) !important;
   top: 0 !important;
-  left: var(--bes-header-row-left, 20px) !important;
   right: auto !important;
+  bottom: auto !important;
+  left: var(--bes-header-row-left, 20px) !important;
   width: var(--bes-header-row-width, calc(100% - 40px)) !important;
+  min-width: 0 !important;
   max-width: none !important;
   box-sizing: border-box !important;
   margin: 0 !important;
   border-radius: var(--bes-header-row-radius) !important;
+  overflow: visible !important;
   z-index: 1400 !important;
   transform: none !important;
+  translate: none !important;
   will-change: auto !important;
 }
 
-/* The briefing row is deliberately not pinned, but it shares the same outer
-   geometry as the fixed navigation row. */
-html body .app-shell[data-route][data-bes-nav-pinned='true'] > .bes-top-chrome > .brian-briefing-bar {
+/* NEWS, time, weather and school-week information always remain in document
+   flow and therefore disappear normally when the user scrolls down. */
+html body .app-shell[data-route][data-bes-nav-pinned='true'] [data-bes-scrollable-briefing='true'] {
   position: relative !important;
   inset: auto !important;
+  inset-block: auto !important;
+  inset-inline: auto !important;
   top: auto !important;
-  left: auto !important;
   right: auto !important;
-  width: 100% !important;
-  max-width: none !important;
+  bottom: auto !important;
+  left: auto !important;
   box-sizing: border-box !important;
-  margin-inline: 0 !important;
   border-radius: var(--bes-header-row-radius) !important;
   z-index: 3 !important;
+  transform: none !important;
+  translate: none !important;
+  will-change: auto !important;
 }
 
-html body .app-shell[data-route][data-bes-nav-pinned='true'] > main#bes-main-content {
+html body .app-shell[data-route][data-bes-nav-pinned='true'] :is(
+  main#bes-main-content,
+  main.wp8-page-stage,
+  [role='main']
+) {
   scroll-margin-top: calc(var(--bes-pinned-nav-height, 0px) + 12px);
 }
 
@@ -71,11 +92,11 @@ html body .app-shell[data-route][data-bes-nav-pinned='true'] > main#bes-main-con
 }
 
 @media print {
-  html body .app-shell[data-route][data-bes-nav-pinned='true'] {
-    padding-block-start: 0 !important;
+  html body .app-shell[data-route][data-bes-nav-pinned='true'] [data-bes-pinned-chrome='true'] {
+    padding-block-start: var(--bes-chrome-base-padding-top, 0px) !important;
   }
 
-  html body .app-shell[data-route][data-bes-nav-pinned='true'] > .bes-top-chrome > .brian-nav {
+  html body .app-shell[data-route][data-bes-nav-pinned='true'] [data-bes-pinned-navigation='true'] {
     position: static !important;
     inset: auto !important;
     width: 100% !important;
