@@ -122,7 +122,7 @@ function seedScrolledTargets(shell, trackedTargets) {
 function currentTrackedScrollTop(shell, trackedTargets) {
   let maximum = Math.max(documentScrollTop(), Number(shell?.scrollTop) || 0);
 
-  trackedTargets.forEach((storedTop, target) => {
+  trackedTargets.forEach((_storedTop, target) => {
     if (target instanceof Element && !target.isConnected) {
       trackedTargets.delete(target);
       return;
@@ -133,9 +133,13 @@ function currentTrackedScrollTop(shell, trackedTargets) {
     }
 
     const liveTop = readScrollTop(target);
-    if (liveTop <= 0) trackedTargets.delete(target);
-    else trackedTargets.set(target, liveTop);
-    maximum = Math.max(maximum, liveTop, Number(storedTop) || 0);
+    if (liveTop <= 0) {
+      trackedTargets.delete(target);
+      return;
+    }
+
+    trackedTargets.set(target, liveTop);
+    maximum = Math.max(maximum, liveTop);
   });
 
   return maximum;
