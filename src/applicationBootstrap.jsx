@@ -2,11 +2,15 @@ import './fourClassLocalPurge.js';
 import './directClassRosterImportBootstrap.js';
 import './styles/MotionRestore.css';
 import './components/GlobalHomeroomMaterial3Refinement.css';
+import './components/GlobalPinnedHeaderBridge.css';
+import { installGlobalHubNavigationRuntime } from './globalHubNavigationRuntime.js';
 import {
   installSiteFontFromCache,
   loadSiteFontSetting,
   waitForSiteFontReady,
 } from './utils/siteFontSettings.js';
+
+installGlobalHubNavigationRuntime();
 
 const MAX_WAIT_MS = 20000;
 const STARTED_AT = Date.now();
