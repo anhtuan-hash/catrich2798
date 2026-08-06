@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { canManageAiWebsites } from '../utils/aiWebsiteSettings.js';
-import { loadExternalWebApps, subscribeExternalWebApps } from '../utils/externalWebApps.js';
+import { EXTERNAL_APP_SOURCE_HTML, loadExternalWebApps, subscribeExternalWebApps } from '../utils/externalWebApps.js';
 import ExternalWebAppManager from './ExternalWebAppManagerV2.jsx';
 import ExternalWebAppViewer from './ExternalWebAppViewer.jsx';
 import './ExternalWebApps.css';
+import './ExternalAppApprovalRestore.css';
 
 const GROUPS = { plan: 'Soạn bài', create: 'Tạo học liệu', assess: 'Kiểm tra', manage: 'Quản lý' };
 const TONES = ['#1a73e8', '#188038', '#e37400', '#9334e6', '#12b5cb', '#d93025'];
@@ -16,24 +17,26 @@ function tone(value = '') {
 }
 
 function WebsiteAppCard({ app, onOpen }) {
-  const accent = app.accent || tone(app.externalUrl);
+  const htmlApp = app.sourceType === EXTERNAL_APP_SOURCE_HTML;
+  const accent = app.accent || tone(app.externalUrl || app.fileName || app.title);
   return (
     <article
-      className="flat-app-window-card flat-app-window-drawer external-website-app-card"
-      style={{ '--app-accent': accent, '--app-soft': '#e8f0fe', '--app-ink': '#202124' }}
+      className={`flat-app-window-card flat-app-window-drawer external-website-app-card ${htmlApp ? 'is-html-app' : 'is-url-app'}`}
+      style={{ '--app-accent': accent, '--app-soft': htmlApp ? '#fff4e5' : '#e8f0fe', '--app-ink': '#202124' }}
       data-launcher-item={`external-${app.id}`}
       data-app-title={app.title || ''}
       data-app-group={app.groupId || ''}
+      data-app-source={app.sourceType || 'url'}
     >
       <button type="button" className="flat-app-window-launch" onClick={() => onOpen(app)}>
         <span className="flat-app-window-chrome">
           <span className="flat-traffic"><i /><i /><i /></span>
-          <b>Website nhúng · Đã duyệt</b>
+          <b>{htmlApp ? 'HTML · Đã duyệt' : 'Website nhúng · Đã duyệt'}</b>
         </span>
         <span className="flat-app-window-body">
-          <span className="flat-app-window-art external-app-tile-icon">{app.icon || 'WEB'}</span>
+          <span className="flat-app-window-art external-app-tile-icon">{app.icon || (htmlApp ? 'HTM' : 'WEB')}</span>
           <span className="flat-app-window-copy">
-            <small>{GROUPS[app.groupId] || 'Ứng dụng website'}</small>
+            <small>{GROUPS[app.groupId] || (htmlApp ? 'Ứng dụng HTML' : 'Ứng dụng website')}</small>
             <strong>{app.title}</strong>
             <em>{app.descVi || 'Chạy trực tiếp ngay trong Brian.'}</em>
           </span>
@@ -67,10 +70,15 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
     }
 
     const findHosts = () => {
-      const hero = document.querySelector('.metro-clean-system[data-route="apps"] .flat-apps-hero-copy')
-        || document.querySelector('.flat-apps-hero-copy');
-      const grid = document.querySelector('.metro-clean-system[data-route="apps"] .flat-apps-collage-grid')
-        || document.querySelector('.flat-apps-collage-grid');
+      const scope = document.querySelector('.metro-clean-system[data-route="apps"]') || document;
+      const hero = scope.querySelector('.apps-directory-actions')
+        || scope.querySelector('.apps-directory-hero-copy')
+        || scope.querySelector('.flat-apps-hero-copy')
+        || document.querySelector('.apps-directory-actions, .apps-directory-hero-copy, .flat-apps-hero-copy');
+      const grid = scope.querySelector('#apps-directory-grid')
+        || scope.querySelector('.apps-directory-grid-native')
+        || scope.querySelector('.flat-apps-collage-grid')
+        || document.querySelector('#apps-directory-grid, .apps-directory-grid-native, .flat-apps-collage-grid');
       setHosts((current) => (current.hero === hero && current.grid === grid ? current : { hero, grid }));
     };
 
@@ -110,7 +118,8 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
       {hosts.hero ? createPortal(
         <div className="external-app-integration-actions">
           <button type="button" className="launcher-add-external-app" onClick={() => setDialog(true)}>
-            ＋ {manager ? 'Thêm / duyệt ứng dụng' : 'Thêm ứng dụng'}
+            <span aria-hidden="true">⇧</span>
+            <span>{manager ? 'Gửi / duyệt ứng dụng' : 'Gửi ứng dụng cho TTCM'}</span>
             {manager && pending ? <b>{pending}</b> : null}
           </button>
         </div>,
