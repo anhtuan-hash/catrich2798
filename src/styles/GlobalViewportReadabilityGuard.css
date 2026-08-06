@@ -1,0 +1,208 @@
+/* Brian English — final viewport and readability contract.
+   This file is intentionally loaded after every legacy, versioned and component style layer. */
+
+:root {
+  --brian-safe-gutter: clamp(10px, 1.6vw, 24px);
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-size: 16px;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+}
+
+/* The application shell must always use its real parent width, never a second viewport width. */
+body .metro-clean-system,
+body .app-shell,
+body .metro-clean-system > main.wp8-page-stage,
+body .metro-clean-system > .wp8-page-stage,
+body #bes-main-content {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+body #bes-main-content > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Let grid and flex descendants shrink instead of forcing content beyond either edge. */
+body .metro-clean-system :where(
+  main,
+  section,
+  article,
+  aside,
+  nav,
+  header,
+  footer,
+  form,
+  fieldset,
+  .page,
+  .tool-page,
+  [class$='-page'],
+  [class*='-page '],
+  [class$='-workspace'],
+  [class*='-workspace '],
+  [class$='-layout'],
+  [class*='-layout '],
+  [class$='-content'],
+  [class*='-content '],
+  [class$='-grid'],
+  [class*='-grid '],
+  [class$='-row'],
+  [class*='-row '],
+  [class$='-column'],
+  [class*='-column ']
+) {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+body .metro-clean-system :where(
+  .grid,
+  [class$='-grid'],
+  [class*='-grid '],
+  [class$='-layout'],
+  [class*='-layout '],
+  [class$='-row'],
+  [class*='-row ']
+) > * {
+  min-width: 0;
+}
+
+/* Global navigation follows the content viewport and keeps a safe gutter on every route. */
+body .metro-clean-system .brian-nav {
+  width: calc(100% - (2 * var(--brian-safe-gutter))) !important;
+  max-width: 1600px !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+body .metro-clean-system .brian-nav > * {
+  min-width: 0 !important;
+  max-width: 100%;
+}
+
+/* Media, embeds and controls may scale down but never protrude outside their cards. */
+body .metro-clean-system :where(img, picture, video, canvas, svg, iframe) {
+  max-width: 100%;
+}
+
+body .metro-clean-system :where(img, video, canvas) {
+  height: auto;
+}
+
+body .metro-clean-system :where(button, input, select, textarea) {
+  max-width: 100%;
+  min-width: 0;
+  font: inherit;
+}
+
+/* Long names, URLs and imported data must wrap instead of cutting either side. */
+body .metro-clean-system :where(h1, h2, h3, h4, h5, h6, p, li, dd, dt, th, td, label, a, button) {
+  overflow-wrap: anywhere;
+}
+
+body .metro-clean-system :where(pre, code, kbd, samp) {
+  overflow-wrap: normal;
+}
+
+body .metro-clean-system pre {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Dense data remains complete through local horizontal scrolling, not page-level clipping. */
+body .metro-clean-system :where(
+  .table-responsive,
+  [class*='table-wrap'],
+  [class*='table-scroll'],
+  [class*='data-grid'],
+  [class*='horizontal-scroll']
+) {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+body .metro-clean-system table {
+  max-width: 100%;
+}
+
+/* News Reader had legacy 100vw rules inside an already inset shell. */
+html body .metro-clean-system[data-route='news'] .brian-nav,
+html body .metro-clean-system[data-route='news'] .newsroom-v823-page {
+  width: calc(100% - (2 * var(--brian-safe-gutter))) !important;
+  max-width: 1540px !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+html body .metro-clean-system[data-route='news'] .newsroom-v823-page {
+  padding-inline: clamp(8px, 1vw, 16px) !important;
+}
+
+html body .metro-clean-system[data-route='news'] :where(
+  .newsroom-v823-page > *,
+  .newsroom-v823-layout,
+  .newsroom-v823-layout > *,
+  .newsroom-v823-command,
+  .newsroom-v823-story-open,
+  .newsroom-v823-sidebar
+) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 700px) {
+  :root {
+    --brian-safe-gutter: 8px;
+  }
+
+  body .metro-clean-system :where(input, select, textarea, button) {
+    font-size: 16px;
+  }
+
+  body .metro-clean-system .brian-nav {
+    width: calc(100% - 16px) !important;
+  }
+
+  html body .metro-clean-system[data-route='news'] .newsroom-v823-page {
+    width: calc(100% - 12px) !important;
+    padding-inline: 6px !important;
+  }
+}
