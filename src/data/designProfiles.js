@@ -51,13 +51,6 @@ export const APP_DESIGN_PROFILES = {
     icon: 'activity',
     style: 'Interactive activity lab',
     styleVi: 'Phòng tạo hoạt động tương tác'},
-  'teaching-methods-hub': {
-    accent: '#0B57D0',
-    soft: '#E8F0FE',
-    ink: '#10264A',
-    icon: 'methods',
-    style: 'Professional teaching methods library',
-    styleVi: 'Thư viện phương pháp giảng dạy chuyên môn'},
   'lesson-plan-ai': {
     accent: '#E86D1F',
     soft: '#FFE3CD',
@@ -157,20 +150,6 @@ export const APP_DESIGN_PROFILES = {
     icon: 'practice',
     style: 'Practice sprint card',
     styleVi: 'Thẻ luyện tập tốc độ'},
-  'library-hub': {
-    accent: '#6FBA7B',
-    soft: '#E4F6E6',
-    ink: '#17351D',
-    icon: 'library',
-    style: 'Resource shelf',
-    styleVi: 'Kệ tài nguyên'},
-  'practice-hub': {
-    accent: '#00A4EF',
-    soft: '#DCF4FF',
-    ink: '#063048',
-    icon: 'practice',
-    style: 'Learner tracking',
-    styleVi: 'Theo dõi luyện tập'},
   'games-hub': {
     accent: '#5B2A86',
     soft: '#E9DAFF',
