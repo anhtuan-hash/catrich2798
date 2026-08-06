@@ -1,7 +1,6 @@
 import './fourClassLocalPurge.js';
 import './directClassRosterImportBootstrap.js';
 import './styles/MotionRestore.css';
-import './brianBrandMagneticHover.js';
 import './components/GlobalHomeroomMaterial3Refinement.css';
 import {
   installSiteFontFromCache,
