@@ -2,17 +2,11 @@ import './fourClassLocalPurge.js';
 import './directClassRosterImportBootstrap.js';
 import './styles/MotionRestore.css';
 import './components/GlobalHomeroomMaterial3Refinement.css';
-import { installGlobalNavigationHubClearRuntime } from './globalNavigationHubClearRuntime.js';
 import {
   installSiteFontFromCache,
   loadSiteFontSetting,
   waitForSiteFontReady,
 } from './utils/siteFontSettings.js';
-
-// The current navigation hub is intentionally cleared at the application level.
-// Navigation components and button handlers remain untouched for a future hub,
-// while their present visual shell is removed from every Brian route.
-installGlobalNavigationHubClearRuntime();
 
 const MAX_WAIT_MS = 20000;
 const STARTED_AT = Date.now();
