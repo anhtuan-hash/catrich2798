@@ -1,0 +1,264 @@
+/* Brian English — global viewport and readability contract.
+   High-specificity shell rules keep legacy and route-specific layers inside the real viewport. */
+
+:root {
+  --brian-safe-gutter: clamp(10px, 1.6vw, 24px);
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-size: 16px;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+}
+
+/* The application shell must use its parent width, never a second viewport width. */
+html body .metro-clean-system,
+html body .app-shell,
+html body .metro-clean-system > main.wp8-page-stage,
+html body .metro-clean-system > .wp8-page-stage,
+html body #bes-main-content {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+html body #bes-main-content > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Route-level pages and workspaces may never be wider than their actual parent. */
+html body .metro-clean-system[data-route] :where(
+  .page,
+  .tool-page,
+  [class$='-page'],
+  [class*='-page '],
+  [class$='-workspace'],
+  [class*='-workspace ']
+) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Grid and flex descendants may shrink instead of forcing content beyond either edge. */
+.metro-clean-system :where(
+  main,
+  section,
+  article,
+  aside,
+  nav,
+  header,
+  footer,
+  form,
+  fieldset,
+  .page,
+  .tool-page,
+  [class$='-page'],
+  [class*='-page '],
+  [class$='-workspace'],
+  [class*='-workspace '],
+  [class$='-layout'],
+  [class*='-layout '],
+  [class$='-content'],
+  [class*='-content '],
+  [class$='-grid'],
+  [class*='-grid '],
+  [class$='-row'],
+  [class*='-row '],
+  [class$='-column'],
+  [class*='-column ']
+) {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.metro-clean-system :where(
+  .grid,
+  [class$='-grid'],
+  [class*='-grid '],
+  [class$='-layout'],
+  [class*='-layout '],
+  [class$='-row'],
+  [class*='-row ']
+) > * {
+  min-width: 0;
+}
+
+/* Global navigation follows the content viewport and keeps a safe gutter on every route. */
+html body .metro-clean-system[data-route] .brian-nav {
+  width: calc(100% - (2 * var(--brian-safe-gutter))) !important;
+  max-width: 1600px !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+html body .metro-clean-system[data-route] .brian-nav > * {
+  min-width: 0 !important;
+  max-width: 100%;
+}
+
+/* Media, embeds and controls scale down but never protrude outside their cards. */
+:where(
+  .metro-clean-system img,
+  .metro-clean-system picture,
+  .metro-clean-system video,
+  .metro-clean-system canvas,
+  .metro-clean-system svg,
+  .metro-clean-system iframe
+) {
+  max-width: 100%;
+}
+
+:where(
+  .metro-clean-system img,
+  .metro-clean-system video,
+  .metro-clean-system canvas
+) {
+  height: auto;
+}
+
+:where(
+  .metro-clean-system button,
+  .metro-clean-system input,
+  .metro-clean-system select,
+  .metro-clean-system textarea
+) {
+  max-width: 100%;
+  min-width: 0;
+  font: inherit;
+}
+
+/* Long names, URLs and imported data wrap instead of being cut at either side. */
+:where(
+  .metro-clean-system h1,
+  .metro-clean-system h2,
+  .metro-clean-system h3,
+  .metro-clean-system h4,
+  .metro-clean-system h5,
+  .metro-clean-system h6,
+  .metro-clean-system p,
+  .metro-clean-system li,
+  .metro-clean-system dd,
+  .metro-clean-system dt,
+  .metro-clean-system th,
+  .metro-clean-system td,
+  .metro-clean-system label,
+  .metro-clean-system a,
+  .metro-clean-system button
+) {
+  overflow-wrap: anywhere;
+}
+
+:where(
+  .metro-clean-system pre,
+  .metro-clean-system code,
+  .metro-clean-system kbd,
+  .metro-clean-system samp
+) {
+  overflow-wrap: normal;
+}
+
+.metro-clean-system pre {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Dense data remains complete through local scrolling, not page-level clipping. */
+.metro-clean-system :where(
+  .table-responsive,
+  [class*='table-wrap'],
+  [class*='table-scroll'],
+  [class*='data-grid'],
+  [class*='horizontal-scroll']
+) {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.metro-clean-system table {
+  max-width: 100%;
+}
+
+/* News Reader contained legacy 100vw rules inside an already inset shell. */
+html body .metro-clean-system[data-route='news'] .brian-nav,
+html body .metro-clean-system[data-route='news'] .newsroom-v823-page {
+  width: calc(100% - (2 * var(--brian-safe-gutter))) !important;
+  max-width: 1540px !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+html body .metro-clean-system[data-route='news'] .newsroom-v823-page {
+  padding-inline: clamp(8px, 1vw, 16px) !important;
+}
+
+html body .metro-clean-system[data-route='news'] :where(
+  .newsroom-v823-page > *,
+  .newsroom-v823-layout,
+  .newsroom-v823-layout > *,
+  .newsroom-v823-command,
+  .newsroom-v823-story-open,
+  .newsroom-v823-sidebar
+) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 700px) {
+  :root {
+    --brian-safe-gutter: 8px;
+  }
+
+  :where(
+    .metro-clean-system input,
+    .metro-clean-system select,
+    .metro-clean-system textarea,
+    .metro-clean-system button
+  ) {
+    font-size: 16px;
+  }
+
+  html body .metro-clean-system[data-route] .brian-nav {
+    width: calc(100% - 16px) !important;
+  }
+
+  html body .metro-clean-system[data-route='news'] .newsroom-v823-page {
+    width: calc(100% - 12px) !important;
+    padding-inline: 6px !important;
+  }
+}
