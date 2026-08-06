@@ -1,7 +1,7 @@
 name: Remove retired applications once
 
 on:
-  push:
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -15,6 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
@@ -31,14 +32,6 @@ jobs:
           python3 <<'PY'
           from pathlib import Path
           import json, re, shutil
-
-          slugs = [
-              'classroom-screen', 'content-ecosystem', 'assessment-core',
-              'automation-center', 'collaboration-hub', 'knowledge-train',
-              'crossword-trial', 'flying-words', 'exam-studio', 'word2graph',
-              'reading-studio', 'lesson-plan-ai', 'student-practice',
-              'random-group-generator', 'word-orbit', 'activity-graph',
-          ]
 
           exact_files = [
               'src/pages/ActivityGraphStudio.jsx',
@@ -73,8 +66,7 @@ jobs:
 
           sync = Path('scripts/sync-version-v11.6.7.mjs')
           if sync.exists():
-              text = sync.read_text()
-              text = text.replace("import './prepare-streamlined-catalog-v3.mjs';\n", '')
+              text = sync.read_text().replace("import './prepare-streamlined-catalog-v3.mjs';\n", '')
               sync.write_text(text)
 
           pkg_path = Path('package.json')
@@ -88,8 +80,7 @@ jobs:
 
           main = Path('src/main.jsx')
           if main.exists():
-              text = main.read_text()
-              text = text.replace("import './styles/v1131.css';\n", '')
+              text = main.read_text().replace("import './styles/v1131.css';\n", '')
               for slug in ['content-ecosystem', 'assessment-core', 'automation-center', 'collaboration-hub', 'practice']:
                   text = re.sub(rf"\s*['\"]{re.escape(slug)}['\"]\s*,?", '', text)
               text = text.replace(', ,', ',').replace('[,', '[').replace(',]', ']')
@@ -106,7 +97,8 @@ jobs:
               'knowledgetrain', 'knowledge-train', 'randomgroup', 'random-group-generator',
           ]
           for root in [Path('scripts'), Path('.')]:
-              for path in list(root.glob('*')) if root == Path('.') else list(root.rglob('*')):
+              candidates = list(root.glob('*')) if root == Path('.') else list(root.rglob('*'))
+              for path in candidates:
                   if not path.is_file():
                       continue
                   low = path.as_posix().lower()
@@ -117,6 +109,7 @@ jobs:
                           path.unlink(missing_ok=True)
 
           Path('.github/workflows/remove-retired-apps-once.yml').unlink(missing_ok=True)
+          Path('.cleanup-trigger').unlink(missing_ok=True)
           PY
 
       - name: Report remaining retired references
@@ -135,7 +128,7 @@ jobs:
           npm ci
           npx vite build
 
-      - name: Commit permanent deletion
+      - name: Commit permanent deletion to pull request branch
         shell: bash
         run: |
           set -euo pipefail
@@ -143,4 +136,4 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
           git commit -m 'chore: permanently remove retired applications'
-          git push origin HEAD:main
+          git push origin HEAD:${{ github.head_ref }}
