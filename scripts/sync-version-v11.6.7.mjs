@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import './prepare-streamlined-catalog.mjs';
 import './patch-ai-workspace-session.mjs';
 import './patch-weekly-manager-native-grade-filter.mjs';
 import './patch-home-hero-media-optimizer.mjs';
@@ -16,6 +17,22 @@ const removedApplications = [
   'Brian AI Workspace',
   'Classroom Delivery',
   'Learning Intelligence',
+  'Lesson Architect',
+  'Exam Studio',
+  'WordGraph Studio',
+  'Learner Sprint',
+  'Reading Studio',
+  'Assessment Core',
+  'Flying Words',
+  'Brian Group Maker',
+  'Brian Classroom Stage',
+  'Teaching Content Ecosystem',
+  'Automation Center',
+  'Collaboration Hub',
+  'Knowledge Train',
+  'Vocabulary Orbit',
+  'Brian Activity Graph',
+  'Crossword Trial',
 ];
 
 for (const file of ['public/version.json', 'public/release-manifest.json']) {
@@ -39,4 +56,4 @@ for (const file of ['public/version.json', 'public/release-manifest.json']) {
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n');
 }
 
-console.log('Version registry synchronized: 11.6.7 · global Admin font catalog');
+console.log('Version registry synchronized: 11.6.7 · streamlined application catalog');
