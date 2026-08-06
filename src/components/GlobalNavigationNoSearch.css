@@ -81,13 +81,19 @@ html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__
     grid-template-columns: max-content minmax(0, 1fr) max-content !important;
   }
 
-  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > span {
-    display: none !important;
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > .catrich-wordmark {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: clamp(12px, 1.8vw, 15px) !important;
   }
 
   html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand {
-    min-width: 52px !important;
-    width: 52px !important;
-    padding-inline: 4px !important;
+    display: inline-flex !important;
+    visibility: visible !important;
+    width: auto !important;
+    min-width: max-content !important;
+    max-width: none !important;
+    padding-inline: 8px !important;
   }
 }
