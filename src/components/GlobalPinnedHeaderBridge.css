@@ -9,12 +9,11 @@ html {
 
 html body .app-shell[data-route][data-bes-nav-pinned='true'] {
   --bes-header-row-radius: 28px;
-  box-sizing: border-box !important;
-  padding-block-start: 0 !important;
 }
 
-/* Route-level styles may make the complete chrome sticky. Reset that contract
-   and reserve exactly one navigation-height slot inside the chrome itself. */
+/* Route-level styles may make the complete chrome sticky. Reset only the
+   positioning contract and reserve exactly one navigation-height slot inside
+   the chrome. Existing route width, margins and decorative spacing are kept. */
 html body .app-shell[data-route][data-bes-nav-pinned='true'] [data-bes-pinned-chrome='true'] {
   position: relative !important;
   inset: auto !important;
@@ -24,11 +23,6 @@ html body .app-shell[data-route][data-bes-nav-pinned='true'] [data-bes-pinned-ch
   right: auto !important;
   bottom: auto !important;
   left: auto !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: none !important;
-  box-sizing: border-box !important;
-  margin: 0 !important;
   padding-block-start: calc(
     var(--bes-chrome-base-padding-top, 0px)
     + var(--bes-pinned-nav-height, 0px)
@@ -75,11 +69,7 @@ html body .app-shell[data-route][data-bes-nav-pinned='true'] [data-bes-scrollabl
   right: auto !important;
   bottom: auto !important;
   left: auto !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: none !important;
   box-sizing: border-box !important;
-  margin-inline: 0 !important;
   border-radius: var(--bes-header-row-radius) !important;
   z-index: 3 !important;
   transform: none !important;
