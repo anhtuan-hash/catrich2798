@@ -1,6 +1,5 @@
 import React, { Suspense, lazy } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
-import GlobalBrianHubController from './GlobalBrianHubController.jsx';
 import GlobalAdaptiveComfortScale from './GlobalAdaptiveComfortScale.jsx';
 import GlobalGuestNavigationHub from './GlobalGuestNavigationHub.jsx';
 import GlobalPublicNewsBriefing from './GlobalPublicNewsBriefing.jsx';
@@ -73,29 +72,17 @@ import './GlobalWeeklyPracticeSimple.css';
 import './GlobalWeeklyPracticeStudentProof.css';
 import './GlobalWorkHubGoogleHeroV2.css';
 import './GlobalWorkHubViewportModal.css';
-// Performance rules run before the final geometry contract.
 import './GlobalScrollPerformance.css';
-// Final geometry, followed only by the overlay stacking contract.
-import './GlobalNavigationPinnedLayout.css';
 import './GlobalNavigationOverlayLayer.css';
-// The Work Hub modal visibility contract must win over every global overlay rule.
 import './GlobalWorkHubViewportModalFinal.css';
-// Legacy viewport and compact sizing rules.
 import './GlobalWorkHubModalAnchor.css';
-// The final placement contract: always center the dialog in the current viewport.
 import './GlobalWorkHubModalCenter.css';
-// Visual-only Material 3 polish for the text-first navigation and CMS Hero.
 import './GlobalNavigationGoogleM3Polish.css';
-// Final Command K capsule refinement; removes the legacy rectangular focus frame.
 import './GlobalNavigationSearchPillRefinement.css';
-// Keep the approved text-first hub layout available across every route.
 import './GlobalNavigationNoSearch.css';
-// Final adaptive typography contract for 13-inch / 1440 × 900 displays.
 import './GlobalAdaptiveComfortScale.css';
-// Final home geometry contract: prevent the 1320px comfort wrapper from clipping
-// the approved 100vw Home and its Grade 12 weekly-practice column.
 import './GlobalHomeComfortOverflowFix.css';
-// Absolute final contract for the rebuilt, application-wide Brian hub.
+// Absolute final contract: the hub always stays in normal document flow.
 import './GlobalBrianHub.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
@@ -109,7 +96,6 @@ export default function GlobalFlatNavigation(props) {
     <>
       <GlobalAdaptiveComfortScale setFontScale={props.setFontScale} />
       <Navigation {...props} />
-      <GlobalBrianHubController route={props.route} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalPublicNewsBriefing route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHomeBriefingExtras route={props.route} language={props.language} />
