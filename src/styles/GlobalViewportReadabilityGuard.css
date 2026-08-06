@@ -53,7 +53,7 @@ html body #bes-main-content > * {
 }
 
 /* Grid and flex descendants may shrink instead of forcing content beyond either edge. */
-html body .metro-clean-system :where(
+.metro-clean-system :where(
   main,
   section,
   article,
@@ -84,7 +84,7 @@ html body .metro-clean-system :where(
   box-sizing: border-box;
 }
 
-html body .metro-clean-system :where(
+.metro-clean-system :where(
   .grid,
   [class$='-grid'],
   [class*='-grid '],
@@ -112,37 +112,74 @@ html body .metro-clean-system[data-route] .brian-nav > * {
 }
 
 /* Media, embeds and controls scale down but never protrude outside their cards. */
-html body .metro-clean-system :where(img, picture, video, canvas, svg, iframe) {
+:where(
+  .metro-clean-system img,
+  .metro-clean-system picture,
+  .metro-clean-system video,
+  .metro-clean-system canvas,
+  .metro-clean-system svg,
+  .metro-clean-system iframe
+) {
   max-width: 100%;
 }
 
-html body .metro-clean-system :where(img, video, canvas) {
+:where(
+  .metro-clean-system img,
+  .metro-clean-system video,
+  .metro-clean-system canvas
+) {
   height: auto;
 }
 
-html body .metro-clean-system :where(button, input, select, textarea) {
+:where(
+  .metro-clean-system button,
+  .metro-clean-system input,
+  .metro-clean-system select,
+  .metro-clean-system textarea
+) {
   max-width: 100%;
   min-width: 0;
   font: inherit;
 }
 
 /* Long names, URLs and imported data wrap instead of being cut at either side. */
-html body .metro-clean-system :where(h1, h2, h3, h4, h5, h6, p, li, dd, dt, th, td, label, a, button) {
+:where(
+  .metro-clean-system h1,
+  .metro-clean-system h2,
+  .metro-clean-system h3,
+  .metro-clean-system h4,
+  .metro-clean-system h5,
+  .metro-clean-system h6,
+  .metro-clean-system p,
+  .metro-clean-system li,
+  .metro-clean-system dd,
+  .metro-clean-system dt,
+  .metro-clean-system th,
+  .metro-clean-system td,
+  .metro-clean-system label,
+  .metro-clean-system a,
+  .metro-clean-system button
+) {
   overflow-wrap: anywhere;
 }
 
-html body .metro-clean-system :where(pre, code, kbd, samp) {
+:where(
+  .metro-clean-system pre,
+  .metro-clean-system code,
+  .metro-clean-system kbd,
+  .metro-clean-system samp
+) {
   overflow-wrap: normal;
 }
 
-html body .metro-clean-system pre {
+.metro-clean-system pre {
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 /* Dense data remains complete through local scrolling, not page-level clipping. */
-html body .metro-clean-system :where(
+.metro-clean-system :where(
   .table-responsive,
   [class*='table-wrap'],
   [class*='table-scroll'],
@@ -156,7 +193,7 @@ html body .metro-clean-system :where(
   -webkit-overflow-scrolling: touch;
 }
 
-html body .metro-clean-system table {
+.metro-clean-system table {
   max-width: 100%;
 }
 
@@ -193,7 +230,12 @@ html body .metro-clean-system[data-route='news'] :where(
     --brian-safe-gutter: 8px;
   }
 
-  html body .metro-clean-system :where(input, select, textarea, button) {
+  :where(
+    .metro-clean-system input,
+    .metro-clean-system select,
+    .metro-clean-system textarea,
+    .metro-clean-system button
+  ) {
     font-size: 16px;
   }
 
