@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
+import GlobalBrianHubController from './GlobalBrianHubController.jsx';
 import GlobalAdaptiveComfortScale from './GlobalAdaptiveComfortScale.jsx';
 import GlobalGuestNavigationHub from './GlobalGuestNavigationHub.jsx';
 import GlobalPublicNewsBriefing from './GlobalPublicNewsBriefing.jsx';
@@ -94,6 +95,8 @@ import './GlobalAdaptiveComfortScale.css';
 // Final home geometry contract: prevent the 1320px comfort wrapper from clipping
 // the approved 100vw Home and its Grade 12 weekly-practice column.
 import './GlobalHomeComfortOverflowFix.css';
+// Absolute final contract for the rebuilt, application-wide Brian hub.
+import './GlobalBrianHub.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
@@ -106,6 +109,7 @@ export default function GlobalFlatNavigation(props) {
     <>
       <GlobalAdaptiveComfortScale setFontScale={props.setFontScale} />
       <Navigation {...props} />
+      <GlobalBrianHubController route={props.route} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalPublicNewsBriefing route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHomeBriefingExtras route={props.route} language={props.language} />
