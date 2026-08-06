@@ -1,6 +1,5 @@
 import React, { Suspense, lazy } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
-import GlobalPinnedHeaderBridge from './GlobalPinnedHeaderBridge.jsx';
 import GlobalAdaptiveComfortScale from './GlobalAdaptiveComfortScale.jsx';
 import GlobalGuestNavigationHub from './GlobalGuestNavigationHub.jsx';
 import GlobalPublicNewsBriefing from './GlobalPublicNewsBriefing.jsx';
@@ -95,9 +94,6 @@ import './GlobalAdaptiveComfortScale.css';
 // Final home geometry contract: prevent the 1320px comfort wrapper from clipping
 // the approved 100vw Home and its Grade 12 weekly-practice column.
 import './GlobalHomeComfortOverflowFix.css';
-// Absolute final header contract: only the text hub is fixed. Its placeholder is
-// kept inside each route's chrome, never on the complete app shell.
-import './GlobalPinnedHeaderBridge.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
@@ -109,7 +105,6 @@ export default function GlobalFlatNavigation(props) {
   return (
     <>
       <GlobalAdaptiveComfortScale setFontScale={props.setFontScale} />
-      <GlobalPinnedHeaderBridge route={props.route} />
       <Navigation {...props} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalPublicNewsBriefing route={props.route} language={props.language} currentUser={props.currentUser} />
