@@ -1,6 +1,69 @@
-const RUNTIME_KEY = '__besGlobalHubNavigationRuntimeV1';
+const RUNTIME_KEY = '__besGlobalHubNavigationRuntimeV2';
 const SHELL_SELECTOR = '.app-shell[data-route]';
 const SCROLL_THRESHOLD = 12;
+
+const CHROME_STYLE = {
+  position: 'sticky',
+  'inset-block-start': '0',
+  top: '0',
+  right: '0',
+  left: '0',
+  width: '100%',
+  'min-width': '0',
+  'max-width': 'none',
+  'box-sizing': 'border-box',
+  margin: '0',
+  overflow: 'visible',
+  'z-index': '1300',
+  transform: 'none',
+  translate: 'none',
+  'will-change': 'auto',
+};
+
+const NAVIGATION_STYLE = {
+  position: 'relative',
+  inset: 'auto',
+  top: 'auto',
+  right: 'auto',
+  bottom: 'auto',
+  left: 'auto',
+  width: '100%',
+  'min-width': '0',
+  'max-width': 'none',
+  'box-sizing': 'border-box',
+  margin: '0',
+  overflow: 'visible',
+  'z-index': '2',
+  transform: 'none',
+  translate: 'none',
+  'will-change': 'auto',
+};
+
+const BRIEFING_STYLE = {
+  position: 'relative',
+  inset: 'auto',
+  top: 'auto',
+  right: 'auto',
+  bottom: 'auto',
+  left: 'auto',
+  'box-sizing': 'border-box',
+  'z-index': '1',
+  transform: 'none',
+  translate: 'none',
+  'will-change': 'auto',
+};
+
+function applyImportantStyles(element, styles) {
+  if (!element) return;
+  Object.entries(styles).forEach(([property, value]) => {
+    element.style.setProperty(property, value, 'important');
+  });
+}
+
+function removeStyles(element, styles) {
+  if (!element) return;
+  Object.keys(styles).forEach((property) => element.style.removeProperty(property));
+}
 
 function isVisible(element) {
   if (!element?.isConnected || element.hidden) return false;
@@ -120,6 +183,7 @@ export function installGlobalHubNavigationRuntime() {
 
   const clearHub = () => {
     if (!activeHub) return;
+
     activeHub.shell.removeAttribute('data-bes-nav-pinned');
     activeHub.shell.removeAttribute('data-bes-header-scrolled');
     activeHub.shell.style.removeProperty('--bes-pinned-nav-height');
@@ -127,6 +191,12 @@ export function installGlobalHubNavigationRuntime() {
     activeHub.chrome.removeAttribute('data-bes-header-scrolled');
     activeHub.navigation.removeAttribute('data-bes-pinned-navigation');
     activeHub.briefing?.removeAttribute('data-bes-scrollable-briefing');
+
+    removeStyles(activeHub.chrome, CHROME_STYLE);
+    removeStyles(activeHub.navigation, NAVIGATION_STYLE);
+    removeStyles(activeHub.briefing, BRIEFING_STYLE);
+    activeHub.briefing?.style.removeProperty('display');
+
     activeHub = null;
     trackedTargets.clear();
     resizeObserver?.disconnect();
@@ -157,12 +227,24 @@ export function installGlobalHubNavigationRuntime() {
     return maximum;
   };
 
+  const applyGeometryContract = () => {
+    if (!activeHub) return;
+    applyImportantStyles(activeHub.chrome, CHROME_STYLE);
+    applyImportantStyles(activeHub.navigation, NAVIGATION_STYLE);
+    applyImportantStyles(activeHub.briefing, BRIEFING_STYLE);
+  };
+
   const updateScrollState = () => {
     if (!activeHub) return;
     const scrolled = readMaximumScrollTop() > SCROLL_THRESHOLD;
     const value = scrolled ? 'true' : 'false';
     activeHub.shell.dataset.besHeaderScrolled = value;
     activeHub.chrome.dataset.besHeaderScrolled = value;
+
+    if (activeHub.briefing) {
+      if (scrolled) activeHub.briefing.style.setProperty('display', 'none', 'important');
+      else activeHub.briefing.style.removeProperty('display');
+    }
   };
 
   const bindHub = (nextHub) => {
@@ -178,6 +260,8 @@ export function installGlobalHubNavigationRuntime() {
     activeHub.chrome.dataset.besPinnedChrome = 'true';
     activeHub.navigation.dataset.besPinnedNavigation = 'true';
     if (activeHub.briefing) activeHub.briefing.dataset.besScrollableBriefing = 'true';
+
+    applyGeometryContract();
     collectRestoredScrollPositions(activeHub.shell, trackedTargets);
 
     if (typeof ResizeObserver !== 'undefined') {
@@ -193,6 +277,7 @@ export function installGlobalHubNavigationRuntime() {
     bindHub(nextHub);
     if (!activeHub) return;
 
+    applyGeometryContract();
     const navigationHeight = Math.max(
       0,
       Math.ceil(activeHub.navigation.getBoundingClientRect().height),
