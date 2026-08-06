@@ -95,9 +95,6 @@ import './GlobalAdaptiveComfortScale.css';
 // Final home geometry contract: prevent the 1320px comfort wrapper from clipping
 // the approved 100vw Home and its Grade 12 weekly-practice column.
 import './GlobalHomeComfortOverflowFix.css';
-// Absolute final header contract for every route: only the text navigation stays
-// fixed; NEWS/time/weather/week information always scrolls with page content.
-import './GlobalPinnedHeaderBridge.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
@@ -109,7 +106,7 @@ export default function GlobalFlatNavigation(props) {
   return (
     <>
       <GlobalAdaptiveComfortScale setFontScale={props.setFontScale} />
-      <GlobalPinnedHeaderBridge route={props.route} />
+      <GlobalPinnedHeaderBridge />
       <Navigation {...props} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalPublicNewsBriefing route={props.route} language={props.language} currentUser={props.currentUser} />
