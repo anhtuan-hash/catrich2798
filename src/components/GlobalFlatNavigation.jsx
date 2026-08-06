@@ -86,6 +86,8 @@ import './GlobalHomeComfortOverflowFix.css';
 // Absolute final contract: only the primary navigation row is fixed; the
 // briefing row remains visible in normal document flow.
 import './GlobalBrianHub.css';
+// Keep the catrich.mauxanh wordmark visible after every navigation theme.
+import './GlobalCatRichHeaderVisibilityFix.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));

@@ -1,0 +1,89 @@
+/* Final visibility contract for the catrich.mauxanh header wordmark.
+   This file must load after every navigation theme and responsive override. */
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__brand,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand {
+  grid-area: brand !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  justify-self: start !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: none !important;
+  height: auto !important;
+  overflow: visible !important;
+  padding: 8px 10px !important;
+  pointer-events: auto !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__brand > img,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > img,
+html body .app-shell[data-route] .brian-nav__brand > .catrich-wordmark__legacy-mark {
+  display: none !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__brand > .catrich-wordmark,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > .catrich-wordmark {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: none !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__brand::before,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand::before {
+  left: -12px !important;
+  right: -12px !important;
+  top: -9px !important;
+  bottom: -9px !important;
+  width: auto !important;
+  height: auto !important;
+  border-radius: 20px !important;
+  background:
+    radial-gradient(
+      circle at var(--brian-brand-glow-x) var(--brian-brand-glow-y),
+      rgba(54, 211, 153, .32) 0%,
+      rgba(38, 151, 117, .18) 30%,
+      rgba(48, 126, 216, .10) 48%,
+      transparent 72%
+    ) !important;
+  filter: blur(7px) !important;
+  transform: translateZ(-2px) scale(.86) !important;
+}
+
+html body .app-shell[data-route] .brian-nav > .brian-nav__brand.is-magnetized::before,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand.is-magnetized::before {
+  transform: translateZ(-2px) scale(1) !important;
+}
+
+@media (max-width: 900px) {
+  html body .app-shell[data-route] .brian-nav > .brian-nav__brand,
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand {
+    display: inline-flex !important;
+    width: auto !important;
+    min-width: max-content !important;
+    padding-inline: 7px !important;
+  }
+
+  html body .app-shell[data-route] .brian-nav > .brian-nav__brand > .catrich-wordmark,
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > .catrich-wordmark {
+    display: inline-flex !important;
+    font-size: clamp(12px, 1.8vw, 15px) !important;
+    letter-spacing: -.05em !important;
+  }
+}
+
+@media (max-width: 620px) {
+  html body .app-shell[data-route] .brian-nav > .brian-nav__brand > .catrich-wordmark,
+  html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > .catrich-wordmark {
+    font-size: 11.5px !important;
+  }
+}
