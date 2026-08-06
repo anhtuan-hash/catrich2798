@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
+import GlobalPrimaryNavigationPin from './GlobalPrimaryNavigationPin.jsx';
 import GlobalAdaptiveComfortScale from './GlobalAdaptiveComfortScale.jsx';
 import GlobalGuestNavigationHub from './GlobalGuestNavigationHub.jsx';
 import GlobalPublicNewsBriefing from './GlobalPublicNewsBriefing.jsx';
@@ -82,7 +83,8 @@ import './GlobalNavigationSearchPillRefinement.css';
 import './GlobalNavigationNoSearch.css';
 import './GlobalAdaptiveComfortScale.css';
 import './GlobalHomeComfortOverflowFix.css';
-// Absolute final contract: the hub always stays in normal document flow.
+// Absolute final contract: only the primary navigation row is fixed; the
+// briefing row remains visible in normal document flow.
 import './GlobalBrianHub.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
@@ -96,6 +98,7 @@ export default function GlobalFlatNavigation(props) {
     <>
       <GlobalAdaptiveComfortScale setFontScale={props.setFontScale} />
       <Navigation {...props} />
+      <GlobalPrimaryNavigationPin route={props.route} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalPublicNewsBriefing route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHomeBriefingExtras route={props.route} language={props.language} />
