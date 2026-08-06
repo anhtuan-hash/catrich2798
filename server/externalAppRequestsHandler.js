@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 
 const TABLE = 'permission_requests';
@@ -5,6 +6,9 @@ const SETTINGS_TABLE = 'ai_website_settings';
 const WORKSPACE_KEY = 'english-hub';
 const PREFIX = 'external-web-app:';
 const KIND = 'external-app';
+const SOURCE_URL = 'url';
+const SOURCE_HTML = 'html';
+const MAX_HTML_BYTES = 2_000_000;
 const ALLOWED_STATUS = new Set(['pending', 'approved', 'rejected', 'cancelled']);
 const MANAGER_ROLES = new Set([
   'admin', 'ttcm', 'to_truong', 'tổ trưởng', 'department_leader',
@@ -25,6 +29,13 @@ function cleanText(value, max = 500) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
 }
 
+function cleanFileName(value, fallback = 'application.html') {
+  const source = cleanText(value || fallback, 140)
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
+    .replace(/^\.+/, '');
+  return source || fallback;
+}
+
 function clamp(value, min, max, fallback) {
   const number = Number(value);
   return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : fallback;
@@ -41,16 +52,65 @@ function safeUrl(value) {
   }
 }
 
+function rawHtml(value) {
+  return String(value || '').replace(/^\uFEFF/, '');
+}
+
+function htmlByteLength(value) {
+  return Buffer.byteLength(String(value || ''), 'utf8');
+}
+
+function looksLikeHtml(value) {
+  const html = String(value || '').trim();
+  return Boolean(html && /<!doctype\s+html|<html(?:\s|>)|<head(?:\s|>)|<body(?:\s|>)/i.test(html));
+}
+
+function htmlHash(value) {
+  const html = rawHtml(value);
+  return html ? createHash('sha256').update(html, 'utf8').digest('hex') : '';
+}
+
+function sourceTypeOf(value = {}) {
+  if (value.sourceType === SOURCE_HTML || value.htmlContent) return SOURCE_HTML;
+  return SOURCE_URL;
+}
+
 function normalizeApp(value = {}) {
   const name = cleanText(value.name, 80);
+  const sourceType = sourceTypeOf(value);
+  const htmlContent = sourceType === SOURCE_HTML ? rawHtml(value.htmlContent) : '';
+  const url = sourceType === SOURCE_URL ? safeUrl(value.url) : '';
   return {
     name,
-    url: safeUrl(value.url),
-    embedUrl: safeUrl(value.embedUrl),
-    icon: cleanText(value.icon || name.slice(0, 2) || 'WEB', 3).toUpperCase(),
+    sourceType,
+    url,
+    embedUrl: sourceType === SOURCE_URL ? safeUrl(value.embedUrl) : '',
+    htmlContent,
+    fileName: sourceType === SOURCE_HTML
+      ? cleanFileName(value.fileName, `${name || 'application'}.html`)
+      : '',
+    contentHash: sourceType === SOURCE_HTML ? htmlHash(htmlContent) : '',
+    icon: cleanText(value.icon || (sourceType === SOURCE_HTML ? 'HTM' : name.slice(0, 2) || 'WEB'), 3).toUpperCase(),
     description: cleanText(value.description, 220),
     groupId: ['plan', 'create', 'assess', 'manage'].includes(value.groupId) ? value.groupId : 'create',
   };
+}
+
+function validateApp(app = {}) {
+  if (!app.name) return 'Vui lòng nhập tên ứng dụng.';
+  if (app.sourceType === SOURCE_HTML) {
+    if (!app.htmlContent) return 'Vui lòng chọn file HTML.';
+    if (htmlByteLength(app.htmlContent) > MAX_HTML_BYTES) return 'File HTML vượt quá 2 MB. Hãy giảm dung lượng trước khi gửi.';
+    if (!looksLikeHtml(app.htmlContent)) return 'File đã chọn không có cấu trúc HTML hợp lệ.';
+    return '';
+  }
+  if (!app.url) return 'Chỉ chấp nhận website HTTPS hợp lệ.';
+  return '';
+}
+
+function appIdentity(app = {}) {
+  if (app.sourceType === SOURCE_HTML) return app.contentHash ? `html:${app.contentHash}` : '';
+  return app.url ? `url:${app.url}` : '';
 }
 
 function normalizeEmbedView(value = {}) {
@@ -72,9 +132,11 @@ function normalizeEmbedView(value = {}) {
 }
 
 function normalizeEmbedConfig(value = {}, app = {}) {
-  const sourceUrl = safeUrl(app.url);
+  const sourceUrl = app.sourceType === SOURCE_URL ? safeUrl(app.url) : '';
   return {
-    embedUrl: safeUrl(value?.embedUrl) || safeUrl(app.embedUrl) || sourceUrl,
+    embedUrl: app.sourceType === SOURCE_URL
+      ? (safeUrl(value?.embedUrl) || safeUrl(app.embedUrl) || sourceUrl)
+      : '',
     hideBrianHeader: Boolean(value?.hideBrianHeader),
     hideBrianFooter: Boolean(value?.hideBrianFooter),
     allowFullscreen: value?.allowFullscreen !== false,
@@ -157,12 +219,8 @@ function externalFilter(query) {
   return query.or(`item_type.eq.${KIND},permission_id.like.${PREFIX}%`);
 }
 
-function requestAppUrl(request = {}) {
-  try {
-    return safeUrl(JSON.parse(String(request.message || '{}')).url);
-  } catch {
-    return '';
-  }
+function requestAppIdentity(request = {}) {
+  return appIdentity(parseRequestApp(request));
 }
 
 async function approveRequest(session, req, res) {
@@ -187,16 +245,23 @@ async function approveRequest(session, req, res) {
 
   const request = requestResult.data;
   const app = parseRequestApp(request);
-  if (!app.name || !app.url) return json(res, 400, { ok: false, message: 'Yêu cầu không có tên hoặc URL hợp lệ.' });
+  const validationError = validateApp(app);
+  if (validationError) return json(res, 400, { ok: false, message: validationError });
 
   const currentTools = Array.isArray(settingsResult.data?.tools) ? settingsResult.data.tools : [];
-  const duplicate = currentTools.find((tool) => tool?.kind === KIND && safeUrl(tool?.url) === app.url);
+  const identity = appIdentity(app);
+  const duplicate = currentTools.find((tool) => tool?.kind === KIND && appIdentity(normalizeApp(tool)) === identity);
   const now = new Date().toISOString();
   const approvedTool = {
     ...(duplicate || {}),
-    id: duplicate?.id || `web-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    id: duplicate?.id || `${app.sourceType === SOURCE_HTML ? 'html' : 'web'}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     name: app.name,
+    sourceType: app.sourceType,
     url: app.url,
+    embedUrl: app.embedUrl,
+    htmlContent: app.htmlContent,
+    fileName: app.fileName,
+    contentHash: app.contentHash,
     icon: app.icon,
     description: app.description,
     audience: 'all',
@@ -243,7 +308,7 @@ async function approveRequest(session, req, res) {
       .eq('id', id)
       .select('id,status,updated_at')
       .single(),
-  ]), 10000);
+  ]), 12000);
 
   if (settingsWrite.error) throw Object.assign(new Error(settingsWrite.error.message), { status: 400 });
   if (requestWrite.error) throw Object.assign(new Error(requestWrite.error.message), { status: 400 });
@@ -285,8 +350,8 @@ export default async function externalAppRequestsHandler(req, res) {
 
     if (req.method === 'POST') {
       const app = normalizeApp(req.body?.app || req.body || {});
-      if (!app.name) return json(res, 400, { ok: false, message: 'Vui lòng nhập tên ứng dụng.' });
-      if (!app.url) return json(res, 400, { ok: false, message: 'Chỉ chấp nhận website HTTPS hợp lệ.' });
+      const validationError = validateApp(app);
+      if (validationError) return json(res, 400, { ok: false, message: validationError });
 
       const { data: pendingRows, error: existingError } = await withTimeout(
         externalFilter(session.db.from(TABLE)
@@ -297,9 +362,17 @@ export default async function externalAppRequestsHandler(req, res) {
           .limit(50)),
       );
       if (existingError) throw Object.assign(new Error(existingError.message), { status: 400 });
-      const duplicate = (pendingRows || []).find((request) => requestAppUrl(request) === app.url);
+      const identity = appIdentity(app);
+      const duplicate = (pendingRows || []).find((request) => requestAppIdentity(request) === identity);
       if (duplicate) {
-        return json(res, 200, { ok: true, alreadyPending: true, request: duplicate, message: 'Website này đã có yêu cầu chờ duyệt.' });
+        return json(res, 200, {
+          ok: true,
+          alreadyPending: true,
+          request: duplicate,
+          message: app.sourceType === SOURCE_HTML
+            ? 'File HTML này đã có yêu cầu chờ duyệt.'
+            : 'Website này đã có yêu cầu chờ duyệt.',
+        });
       }
 
       const requestId = `${PREFIX}${session.user.id}:${Date.now()}`;
@@ -310,12 +383,13 @@ export default async function externalAppRequestsHandler(req, res) {
         permission_id: requestId,
         item_title: app.name,
         item_type: KIND,
-        message: JSON.stringify({ ...app, version: 3 }),
+        message: JSON.stringify({ ...app, version: 4 }),
         status: 'pending',
         updated_at: new Date().toISOString(),
       };
       const { data, error } = await withTimeout(
         session.db.from(TABLE).insert(payload).select('id,status,created_at').single(),
+        12000,
       );
       if (error) throw Object.assign(new Error(error.message), { status: 400 });
       return json(res, 201, { ok: true, request: data, message: 'Đã gửi TTCM duyệt.' });
