@@ -16,7 +16,6 @@ html body .metro-clean-system[data-route='games'] :where(
   .games-v44-shell,
   .games-v44-main,
   .games-v44-hero,
-  .games-v46-shell,
   .games-v46-board,
   .games-v46-platform-grid,
   .games-v46-launch-band,
@@ -24,6 +23,13 @@ html body .metro-clean-system[data-route='games'] :where(
 ) {
   width: 100% !important;
   max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+html body .metro-clean-system[data-route='games'] .games-v46-shell {
+  width: 100% !important;
+  max-width: min(1180px, 100%) !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
 }
