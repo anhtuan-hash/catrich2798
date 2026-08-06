@@ -52,6 +52,20 @@ html body #bes-main-content > * {
   box-sizing: border-box !important;
 }
 
+/* Route-level pages and workspaces may never be wider than their actual parent. */
+html body .metro-clean-system[data-route] :where(
+  .page,
+  .tool-page,
+  [class$='-page'],
+  [class*='-page '],
+  [class$='-workspace'],
+  [class*='-workspace ']
+) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
 /* Grid and flex descendants may shrink instead of forcing content beyond either edge. */
 .metro-clean-system :where(
   main,
