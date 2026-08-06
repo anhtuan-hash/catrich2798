@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
+  EXTERNAL_APP_SOURCE_HTML,
+  isValidExternalHtml,
   normalizeExternalAppEmbedConfig,
   safeExternalWebAppUrl,
 } from '../utils/externalWebApps.js';
@@ -38,17 +40,25 @@ function readBrianLayout(main, config) {
   return { contentHeight };
 }
 
+function sourceTypeOf(app = {}) {
+  return app.sourceType === EXTERNAL_APP_SOURCE_HTML || app.htmlContent ? EXTERNAL_APP_SOURCE_HTML : 'url';
+}
+
 export default function ExternalWebAppViewer({ app, onClose }) {
   const viewerRef = useRef(null);
   const [portalHost, setPortalHost] = useState(null);
   const [nativeFullscreen, setNativeFullscreen] = useState(false);
-  const sourceUrl = safeExternalWebAppUrl(app?.externalUrl || app?.url);
+  const sourceType = sourceTypeOf(app || {});
+  const htmlApp = sourceType === EXTERNAL_APP_SOURCE_HTML;
+  const htmlContent = htmlApp ? String(app?.htmlContent || '') : '';
+  const sourceUrl = htmlApp ? '' : safeExternalWebAppUrl(app?.externalUrl || app?.url);
   const config = normalizeExternalAppEmbedConfig(app?.embedConfig, sourceUrl);
-  const url = safeExternalWebAppUrl(config.embedUrl) || sourceUrl;
+  const url = htmlApp ? '' : (safeExternalWebAppUrl(config.embedUrl) || sourceUrl);
+  const ready = htmlApp ? isValidExternalHtml(htmlContent) : Boolean(url);
   const [layout, setLayout] = useState(() => readBrianLayout(null, config));
 
   useEffect(() => {
-    if (!app || !url) return undefined;
+    if (!app || !ready) return undefined;
 
     const main = document.getElementById('bes-main-content');
     if (!main) return undefined;
@@ -102,7 +112,7 @@ export default function ExternalWebAppViewer({ app, onClose }) {
       document.removeEventListener('webkitfullscreenchange', updateFullscreenState);
       window.scrollTo({ top: previousScrollY, left: 0, behavior: 'auto' });
     };
-  }, [app?.id, url, config.hideBrianHeader, config.hideBrianFooter, onClose]);
+  }, [app?.id, ready, htmlApp, url, config.hideBrianHeader, config.hideBrianFooter, onClose]);
 
   const toggleNativeFullscreen = async () => {
     const node = viewerRef.current;
@@ -122,7 +132,7 @@ export default function ExternalWebAppViewer({ app, onClose }) {
     }
   };
 
-  if (!app || !url || typeof document === 'undefined' || !portalHost) return null;
+  if (!app || !ready || typeof document === 'undefined' || !portalHost) return null;
 
   return createPortal(
     <div
@@ -133,16 +143,28 @@ export default function ExternalWebAppViewer({ app, onClose }) {
         ref={viewerRef}
         className="bes-ext-viewer is-embedded-app"
         data-native-fullscreen={nativeFullscreen ? 'true' : 'false'}
+        data-source-type={sourceType}
         aria-label={app.title || app.name}
       >
-        <iframe
-          className="bes-ext-runtime-frame"
-          src={url}
-          title={app.title || app.name}
-          allow="clipboard-read; clipboard-write; microphone; camera; fullscreen; geolocation"
-          sandbox="allow-forms allow-modals allow-presentation allow-same-origin allow-scripts allow-downloads"
-          referrerPolicy="strict-origin-when-cross-origin"
-        />
+        {htmlApp ? (
+          <iframe
+            className="bes-ext-runtime-frame"
+            srcDoc={htmlContent}
+            title={app.title || app.name}
+            allow="clipboard-write; microphone; camera; fullscreen; geolocation"
+            sandbox="allow-forms allow-modals allow-presentation allow-scripts allow-downloads allow-popups"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <iframe
+            className="bes-ext-runtime-frame"
+            src={url}
+            title={app.title || app.name}
+            allow="clipboard-read; clipboard-write; microphone; camera; fullscreen; geolocation"
+            sandbox="allow-forms allow-modals allow-presentation allow-same-origin allow-scripts allow-downloads"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        )}
 
         <div className="bes-ext-runtime-controls">
           {config.allowFullscreen !== false ? (
