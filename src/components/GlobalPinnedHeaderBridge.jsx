@@ -1,11 +1,17 @@
 import { useLayoutEffect } from 'react';
 
 const SHELL_SELECTOR = '.app-shell[data-route]';
+const SCROLL_REGION_SELECTOR = [
+  'main#bes-main-content',
+  'main.wp8-page-stage',
+  '[role="main"]',
+  '.app-shell[data-route]',
+].join(',');
 
 function isUsable(element) {
   if (!element?.isConnected || element.hidden) return false;
   const rect = element.getBoundingClientRect();
-  return rect.width > 0 && rect.height >= 0;
+  return rect.width > 0 && rect.height > 0;
 }
 
 function findInside(shell, selector) {
@@ -44,16 +50,31 @@ function sameElements(left = {}, right = {}) {
     && left.briefing === right.briefing;
 }
 
-function usableRect(element) {
-  if (!isUsable(element)) return null;
-  return element.getBoundingClientRect();
+function getCurrentScrollTop(shell) {
+  const values = [
+    window.scrollY,
+    window.pageYOffset,
+    document.scrollingElement?.scrollTop,
+    document.documentElement?.scrollTop,
+    document.body?.scrollTop,
+    shell?.scrollTop,
+  ];
+
+  if (shell) {
+    shell.querySelectorAll(SCROLL_REGION_SELECTOR).forEach((element) => {
+      values.push(element.scrollTop);
+    });
+  }
+
+  return Math.max(0, ...values.map((value) => Number(value) || 0));
 }
 
 export default function GlobalPinnedHeaderBridge({ route = '' }) {
   useLayoutEffect(() => {
     if (typeof document === 'undefined' || typeof window === 'undefined') return undefined;
 
-    let frame = 0;
+    let measureFrame = 0;
+    let scrollFrame = 0;
     let settleTimer = 0;
     let resizeObserver = null;
     let chromeObserver = null;
@@ -62,10 +83,9 @@ export default function GlobalPinnedHeaderBridge({ route = '' }) {
 
     const root = document.documentElement;
 
-    const clearRootGeometry = () => {
+    const clearGeometry = () => {
       root.style.removeProperty('--bes-pinned-nav-height');
-      root.style.removeProperty('--bes-header-row-left');
-      root.style.removeProperty('--bes-header-row-width');
+      active.shell?.style.removeProperty('--bes-pinned-nav-height');
     };
 
     const clearActiveElements = () => {
@@ -73,22 +93,32 @@ export default function GlobalPinnedHeaderBridge({ route = '' }) {
       chromeObserver?.disconnect();
 
       active.shell?.removeAttribute('data-bes-nav-pinned');
+      active.shell?.removeAttribute('data-bes-header-scrolled');
       active.shell?.style.removeProperty('--bes-pinned-nav-height');
-      active.shell?.style.removeProperty('--bes-header-row-left');
-      active.shell?.style.removeProperty('--bes-header-row-width');
 
       active.chrome?.removeAttribute('data-bes-pinned-chrome');
-      active.chrome?.style.removeProperty('--bes-pinned-nav-height');
-      active.chrome?.style.removeProperty('--bes-chrome-base-padding-top');
-
+      active.chrome?.removeAttribute('data-bes-header-scrolled');
       active.navigation?.removeAttribute('data-bes-pinned-navigation');
       active.briefing?.removeAttribute('data-bes-scrollable-briefing');
       active = {};
     };
 
+    const updateScrollState = () => {
+      if (!active.shell || !active.chrome) return;
+      const scrolled = getCurrentScrollTop(active.shell) > 12;
+      const value = scrolled ? 'true' : 'false';
+      active.shell.dataset.besHeaderScrolled = value;
+      active.chrome.dataset.besHeaderScrolled = value;
+    };
+
+    const scheduleScrollState = () => {
+      window.cancelAnimationFrame(scrollFrame);
+      scrollFrame = window.requestAnimationFrame(updateScrollState);
+    };
+
     const scheduleMeasure = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(measure);
+      window.cancelAnimationFrame(measureFrame);
+      measureFrame = window.requestAnimationFrame(measure);
     };
 
     resizeObserver = typeof ResizeObserver !== 'undefined'
@@ -103,11 +133,8 @@ export default function GlobalPinnedHeaderBridge({ route = '' }) {
       clearActiveElements();
       active = next;
 
-      const basePaddingTop = Number.parseFloat(window.getComputedStyle(active.chrome).paddingTop) || 0;
-
       active.shell.dataset.besNavPinned = 'true';
       active.chrome.dataset.besPinnedChrome = 'true';
-      active.chrome.style.setProperty('--bes-chrome-base-padding-top', `${basePaddingTop}px`);
       active.navigation.dataset.besPinnedNavigation = 'true';
       if (active.briefing) active.briefing.dataset.besScrollableBriefing = 'true';
 
@@ -126,40 +153,24 @@ export default function GlobalPinnedHeaderBridge({ route = '' }) {
           characterData: true,
         });
       }
+
+      updateScrollState();
     };
 
     function measure() {
       const next = findNavigationElements(route);
       if (!next.shell || !next.chrome || !next.navigation) {
         clearActiveElements();
-        clearRootGeometry();
+        clearGeometry();
         return;
       }
 
       bindElements(next);
 
-      const navigationRect = usableRect(next.navigation);
-      const alignmentRect = usableRect(next.briefing)
-        || usableRect(next.chrome)
-        || navigationRect;
-      if (!navigationRect || !alignmentRect) return;
-
-      const height = Math.max(0, Math.ceil(navigationRect.height));
-      const left = Math.max(0, Math.round(alignmentRect.left));
-      const width = Math.max(
-        0,
-        Math.min(Math.round(alignmentRect.width), Math.max(0, window.innerWidth - left)),
-      );
-
-      next.shell.dataset.besNavPinned = 'true';
+      const height = Math.max(0, Math.ceil(next.navigation.getBoundingClientRect().height));
       next.shell.style.setProperty('--bes-pinned-nav-height', `${height}px`);
-      next.shell.style.setProperty('--bes-header-row-left', `${left}px`);
-      next.shell.style.setProperty('--bes-header-row-width', `${width}px`);
-      next.chrome.style.setProperty('--bes-pinned-nav-height', `${height}px`);
-
       root.style.setProperty('--bes-pinned-nav-height', `${height}px`);
-      root.style.setProperty('--bes-header-row-left', `${left}px`);
-      root.style.setProperty('--bes-header-row-width', `${width}px`);
+      updateScrollState();
     }
 
     const scheduleSettledMeasure = () => {
@@ -181,6 +192,8 @@ export default function GlobalPinnedHeaderBridge({ route = '' }) {
       });
     }
 
+    window.addEventListener('scroll', scheduleScrollState, { passive: true });
+    document.addEventListener('scroll', scheduleScrollState, true);
     window.addEventListener('resize', scheduleSettledMeasure, { passive: true });
     window.addEventListener('orientationchange', scheduleSettledMeasure, { passive: true });
     window.addEventListener('hashchange', scheduleSettledMeasure, { passive: true });
@@ -188,16 +201,19 @@ export default function GlobalPinnedHeaderBridge({ route = '' }) {
     window.addEventListener('pageshow', scheduleSettledMeasure, { passive: true });
 
     return () => {
-      window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(measureFrame);
+      window.cancelAnimationFrame(scrollFrame);
       window.clearTimeout(settleTimer);
       documentObserver?.disconnect();
+      window.removeEventListener('scroll', scheduleScrollState);
+      document.removeEventListener('scroll', scheduleScrollState, true);
       window.removeEventListener('resize', scheduleSettledMeasure);
       window.removeEventListener('orientationchange', scheduleSettledMeasure);
       window.removeEventListener('hashchange', scheduleSettledMeasure);
       window.removeEventListener('popstate', scheduleSettledMeasure);
       window.removeEventListener('pageshow', scheduleSettledMeasure);
       clearActiveElements();
-      clearRootGeometry();
+      clearGeometry();
     };
   }, [route]);
 
