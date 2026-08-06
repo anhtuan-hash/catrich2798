@@ -1,0 +1,97 @@
+/* Games Hub — keep the route inside its real content viewport on tablets.
+   The legacy page used 100vw even though it already lived inside an inset shell,
+   which made the entire Games Studio wider than its parent on iPad Safari. */
+
+html body .metro-clean-system[data-route='games'] .page.game-hub-v44 {
+  width: calc(100% - 28px) !important;
+  max-width: 1540px !important;
+  min-width: 0 !important;
+  margin-inline: auto !important;
+  overflow-x: hidden !important;
+  overflow-x: clip !important;
+  box-sizing: border-box !important;
+}
+
+html body .metro-clean-system[data-route='games'] :where(
+  .games-v44-shell,
+  .games-v44-main,
+  .games-v44-hero,
+  .games-v46-shell,
+  .games-v46-board,
+  .games-v46-platform-grid,
+  .games-v46-launch-band,
+  .games-v46-live-card
+) {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+html body .metro-clean-system[data-route='games'] .games-v44-shell,
+html body .metro-clean-system[data-route='games'] .games-v44-main,
+html body .metro-clean-system[data-route='games'] .games-v46-shell,
+html body .metro-clean-system[data-route='games'] .games-v46-board {
+  overflow-x: hidden !important;
+  overflow-x: clip !important;
+}
+
+/* Let cards wrap according to the width actually available instead of preserving
+   a fixed five-column row that can push the page beyond the right edge. */
+html body .metro-clean-system[data-route='games'] .games-v46-platform-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(188px, 100%), 1fr)) !important;
+  gap: 12px !important;
+  padding: 4px !important;
+  overflow: visible !important;
+  overscroll-behavior-inline: contain;
+}
+
+html body .metro-clean-system[data-route='games'] :where(
+  .games-v46-platform-card,
+  .games-v46-platform-main,
+  .games-v46-platform-copy,
+  .games-v46-add-card
+) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+html body .metro-clean-system[data-route='games'] .games-v46-platform-main {
+  grid-template-columns: 46px minmax(0, 1fr) 24px !important;
+}
+
+html body .metro-clean-system[data-route='games'] .games-v46-platform-copy strong {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 1280px) {
+  html body .metro-clean-system[data-route='games'] .games-v44-sidebar,
+  html body .metro-clean-system[data-route='games'] .games-v44-hero,
+  html body .metro-clean-system[data-route='games'] .games-v44-dashboard {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 760px) {
+  html body .metro-clean-system[data-route='games'] .page.game-hub-v44 {
+    width: calc(100% - 16px) !important;
+  }
+
+  html body .metro-clean-system[data-route='games'] .games-v46-platform-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding: 2px !important;
+  }
+}
+
+@media (max-width: 500px) {
+  html body .metro-clean-system[data-route='games'] .games-v46-platform-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
