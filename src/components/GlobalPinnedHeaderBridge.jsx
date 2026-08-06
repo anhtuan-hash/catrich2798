@@ -1,12 +1,7 @@
 import { useLayoutEffect } from 'react';
 
 const SHELL_SELECTOR = '.app-shell[data-route]';
-const SCROLL_REGION_SELECTOR = [
-  'main#bes-main-content',
-  'main.wp8-page-stage',
-  '[role="main"]',
-  '.app-shell[data-route]',
-].join(',');
+const SCROLL_THRESHOLD = 12;
 
 function isUsable(element) {
   if (!element?.isConnected || element.hidden) return false;
@@ -50,23 +45,104 @@ function sameElements(left = {}, right = {}) {
     && left.briefing === right.briefing;
 }
 
-function getCurrentScrollTop(shell) {
-  const values = [
-    window.scrollY,
-    window.pageYOffset,
-    document.scrollingElement?.scrollTop,
-    document.documentElement?.scrollTop,
-    document.body?.scrollTop,
-    shell?.scrollTop,
-  ];
+function documentScrollTop() {
+  return Math.max(
+    Number(window.scrollY) || 0,
+    Number(window.pageYOffset) || 0,
+    Number(document.scrollingElement?.scrollTop) || 0,
+    Number(document.documentElement?.scrollTop) || 0,
+    Number(document.body?.scrollTop) || 0,
+  );
+}
 
-  if (shell) {
-    shell.querySelectorAll(SCROLL_REGION_SELECTOR).forEach((element) => {
-      values.push(element.scrollTop);
-    });
+function normalizeScrollTarget(target) {
+  if (!target || target === window || target === document) {
+    return document.scrollingElement || document.documentElement;
+  }
+  return target;
+}
+
+function readScrollTop(target) {
+  const normalized = normalizeScrollTarget(target);
+  if (
+    normalized === document.scrollingElement
+    || normalized === document.documentElement
+    || normalized === document.body
+  ) {
+    return documentScrollTop();
+  }
+  return Math.max(0, Number(normalized?.scrollTop) || 0);
+}
+
+function isRelevantScrollTarget(target, shell) {
+  const normalized = normalizeScrollTarget(target);
+  if (!shell || !normalized) return false;
+  if (
+    normalized === document.scrollingElement
+    || normalized === document.documentElement
+    || normalized === document.body
+  ) return true;
+  if (!(normalized instanceof Element)) return false;
+  return normalized === shell
+    || shell.contains(normalized)
+    || normalized.contains(shell);
+}
+
+function seedScrolledTargets(shell, trackedTargets) {
+  trackedTargets.clear();
+  if (!shell) return;
+
+  const candidates = new Set([
+    document.scrollingElement,
+    document.documentElement,
+    document.body,
+    shell,
+  ]);
+
+  let ancestor = shell.parentElement;
+  while (ancestor) {
+    candidates.add(ancestor);
+    ancestor = ancestor.parentElement;
   }
 
-  return Math.max(0, ...values.map((value) => Number(value) || 0));
+  // Some Brian routes restore a nested scroller before the global header bridge
+  // finishes binding. Seed only elements that are already vertically displaced;
+  // all later scroll containers are learned from the captured scroll event itself.
+  shell.querySelectorAll('*').forEach((element) => {
+    if ((Number(element.scrollTop) || 0) > 0) candidates.add(element);
+  });
+
+  candidates.forEach((candidate) => {
+    if (!candidate || !isRelevantScrollTarget(candidate, shell)) return;
+    const top = readScrollTop(candidate);
+    if (top > 0) trackedTargets.set(candidate, top);
+  });
+}
+
+function currentTrackedScrollTop(shell, trackedTargets) {
+  let maximum = Math.max(documentScrollTop(), Number(shell?.scrollTop) || 0);
+
+  trackedTargets.forEach((_storedTop, target) => {
+    if (target instanceof Element && !target.isConnected) {
+      trackedTargets.delete(target);
+      return;
+    }
+    if (!isRelevantScrollTarget(target, shell)) {
+      trackedTargets.delete(target);
+      return;
+    }
+
+    const liveTop = readScrollTop(target);
+    if (liveTop <= 0) {
+      trackedTargets.delete(target);
+      return;
+    }
+
+    trackedTargets.set(target, liveTop);
+    maximum = Math.max(maximum, liveTop);
+  });
+
+  return maximum;
 }
 
 export default function GlobalPinnedHeaderBridge({ route = '' }) {
@@ -80,6 +156,7 @@ export default function GlobalPinnedHeaderBridge({ route = '' }) {
     let chromeObserver = null;
     let documentObserver = null;
     let active = {};
+    const trackedScrollTargets = new Map();
 
     const root = document.documentElement;
 
@@ -91,6 +168,7 @@ export default function GlobalPinnedHeaderBridge({ route = '' }) {
     const clearActiveElements = () => {
       resizeObserver?.disconnect();
       chromeObserver?.disconnect();
+      trackedScrollTargets.clear();
 
       active.shell?.removeAttribute('data-bes-nav-pinned');
       active.shell?.removeAttribute('data-bes-header-scrolled');
@@ -105,7 +183,7 @@ export default function GlobalPinnedHeaderBridge({ route = '' }) {
 
     const updateScrollState = () => {
       if (!active.shell || !active.chrome) return;
-      const scrolled = getCurrentScrollTop(active.shell) > 12;
+      const scrolled = currentTrackedScrollTop(active.shell, trackedScrollTargets) > SCROLL_THRESHOLD;
       const value = scrolled ? 'true' : 'false';
       active.shell.dataset.besHeaderScrolled = value;
       active.chrome.dataset.besHeaderScrolled = value;
@@ -114,6 +192,17 @@ export default function GlobalPinnedHeaderBridge({ route = '' }) {
     const scheduleScrollState = () => {
       window.cancelAnimationFrame(scrollFrame);
       scrollFrame = window.requestAnimationFrame(updateScrollState);
+    };
+
+    const handleScroll = (event) => {
+      if (!active.shell) return;
+      const target = normalizeScrollTarget(event?.target);
+      if (!isRelevantScrollTarget(target, active.shell)) return;
+
+      const top = readScrollTop(target);
+      if (top > 0) trackedScrollTargets.set(target, top);
+      else trackedScrollTargets.delete(target);
+      scheduleScrollState();
     };
 
     const scheduleMeasure = () => {
@@ -137,6 +226,7 @@ export default function GlobalPinnedHeaderBridge({ route = '' }) {
       active.chrome.dataset.besPinnedChrome = 'true';
       active.navigation.dataset.besPinnedNavigation = 'true';
       if (active.briefing) active.briefing.dataset.besScrollableBriefing = 'true';
+      seedScrolledTargets(active.shell, trackedScrollTargets);
 
       if (resizeObserver) {
         [active.shell, active.chrome, active.navigation, active.briefing]
@@ -176,7 +266,10 @@ export default function GlobalPinnedHeaderBridge({ route = '' }) {
     const scheduleSettledMeasure = () => {
       scheduleMeasure();
       window.clearTimeout(settleTimer);
-      settleTimer = window.setTimeout(scheduleMeasure, 120);
+      settleTimer = window.setTimeout(() => {
+        scheduleMeasure();
+        scheduleScrollState();
+      }, 120);
     };
 
     measure();
@@ -192,8 +285,10 @@ export default function GlobalPinnedHeaderBridge({ route = '' }) {
       });
     }
 
-    window.addEventListener('scroll', scheduleScrollState, { passive: true });
-    document.addEventListener('scroll', scheduleScrollState, true);
+    // The document capture listener receives scroll events from every nested
+    // route scroller, even though the native scroll event does not bubble.
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    document.addEventListener('scroll', handleScroll, true);
     window.addEventListener('resize', scheduleSettledMeasure, { passive: true });
     window.addEventListener('orientationchange', scheduleSettledMeasure, { passive: true });
     window.addEventListener('hashchange', scheduleSettledMeasure, { passive: true });
@@ -205,8 +300,8 @@ export default function GlobalPinnedHeaderBridge({ route = '' }) {
       window.cancelAnimationFrame(scrollFrame);
       window.clearTimeout(settleTimer);
       documentObserver?.disconnect();
-      window.removeEventListener('scroll', scheduleScrollState);
-      document.removeEventListener('scroll', scheduleScrollState, true);
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('scroll', handleScroll, true);
       window.removeEventListener('resize', scheduleSettledMeasure);
       window.removeEventListener('orientationchange', scheduleSettledMeasure);
       window.removeEventListener('hashchange', scheduleSettledMeasure);
