@@ -12,6 +12,9 @@ import { supabase } from './supabase.js';
 
 export const EXTERNAL_APP_PERMISSION_PREFIX = 'external-web-app:';
 export const EXTERNAL_APP_KIND = 'external-app';
+export const EXTERNAL_APP_SOURCE_URL = 'url';
+export const EXTERNAL_APP_SOURCE_HTML = 'html';
+export const MAX_EXTERNAL_HTML_BYTES = 2_000_000;
 export const EXTERNAL_APP_GROUPS = [
   { id: 'plan', label: 'Soạn bài' },
   { id: 'create', label: 'Tạo học liệu' },
@@ -19,7 +22,7 @@ export const EXTERNAL_APP_GROUPS = [
   { id: 'manage', label: 'Quản lý' },
 ];
 
-const REQUEST_TIMEOUT = 14000;
+const REQUEST_TIMEOUT = 20000;
 const APPROVED_ONLY_CACHE_MS = 6 * 60 * 60 * 1000;
 const REQUEST_STATE_CACHE_MS = 30 * 60 * 1000;
 const externalAppsCache = new Map();
@@ -51,9 +54,31 @@ function cleanText(value, max = 500) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
 }
 
+function cleanFileName(value, fallback = 'application.html') {
+  return cleanText(value || fallback, 140)
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
+    .replace(/^\.+/, '') || fallback;
+}
+
 function clamp(value, min, max, fallback) {
   const number = Number(value);
   return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : fallback;
+}
+
+function sourceTypeOf(value = {}) {
+  if (value.sourceType === EXTERNAL_APP_SOURCE_HTML || value.htmlContent) return EXTERNAL_APP_SOURCE_HTML;
+  return EXTERNAL_APP_SOURCE_URL;
+}
+
+export function externalHtmlByteLength(value) {
+  const html = String(value || '');
+  try { return new TextEncoder().encode(html).byteLength; }
+  catch { return new Blob([html]).size; }
+}
+
+export function isValidExternalHtml(value) {
+  const html = String(value || '').trim();
+  return Boolean(html && /<!doctype\s+html|<html(?:\s|>)|<head(?:\s|>)|<body(?:\s|>)/i.test(html));
 }
 
 export function normalizeEmbedView(value = {}) {
@@ -110,15 +135,39 @@ export function normalizeExternalAppEmbedConfig(value = {}, sourceUrl = '') {
 
 export function normalizeExternalAppDraft(value = {}) {
   const name = cleanText(value.name, 80);
-  const url = safeExternalWebAppUrl(value.url);
+  const sourceType = sourceTypeOf(value);
+  const htmlContent = sourceType === EXTERNAL_APP_SOURCE_HTML
+    ? String(value.htmlContent || '').replace(/^\uFEFF/, '')
+    : '';
+  const url = sourceType === EXTERNAL_APP_SOURCE_URL ? safeExternalWebAppUrl(value.url) : '';
   return {
     name,
+    sourceType,
     url,
-    embedUrl: safeExternalWebAppUrl(value.embedUrl),
-    icon: cleanText(value.icon || name.slice(0, 2) || 'WEB', 3).toUpperCase(),
+    embedUrl: sourceType === EXTERNAL_APP_SOURCE_URL ? safeExternalWebAppUrl(value.embedUrl) : '',
+    htmlContent,
+    fileName: sourceType === EXTERNAL_APP_SOURCE_HTML
+      ? cleanFileName(value.fileName, `${name || 'application'}.html`)
+      : '',
+    contentHash: sourceType === EXTERNAL_APP_SOURCE_HTML ? cleanText(value.contentHash, 128) : '',
+    icon: cleanText(value.icon || (sourceType === EXTERNAL_APP_SOURCE_HTML ? 'HTM' : name.slice(0, 2) || 'WEB'), 3).toUpperCase(),
     description: cleanText(value.description, 220),
     groupId: EXTERNAL_APP_GROUPS.some((group) => group.id === value.groupId) ? value.groupId : 'create',
   };
+}
+
+export function validateExternalAppDraft(value = {}, language = 'vi') {
+  const app = normalizeExternalAppDraft(value);
+  const vi = language !== 'en';
+  if (!app.name) return vi ? 'Vui lòng nhập tên ứng dụng.' : 'Please enter an app name.';
+  if (app.sourceType === EXTERNAL_APP_SOURCE_HTML) {
+    if (!app.htmlContent) return vi ? 'Vui lòng chọn file HTML.' : 'Please select an HTML file.';
+    if (externalHtmlByteLength(app.htmlContent) > MAX_EXTERNAL_HTML_BYTES) return vi ? 'File HTML vượt quá 2 MB.' : 'The HTML file is larger than 2 MB.';
+    if (!isValidExternalHtml(app.htmlContent)) return vi ? 'File đã chọn không có cấu trúc HTML hợp lệ.' : 'The selected file is not valid HTML.';
+    return '';
+  }
+  if (!app.url) return vi ? 'Chỉ chấp nhận website HTTPS hợp lệ.' : 'Only valid HTTPS websites are accepted.';
+  return '';
 }
 
 function parseRequestPayload(request = {}) {
@@ -135,25 +184,32 @@ export function isExternalAppRequest(request = {}) {
 
 export function externalAppFromTool(tool = {}) {
   if (tool.kind !== EXTERNAL_APP_KIND) return null;
-  const url = safeExternalWebAppUrl(tool.url);
-  if (!url || !tool.name) return null;
+  const sourceType = sourceTypeOf(tool);
+  const url = sourceType === EXTERNAL_APP_SOURCE_URL ? safeExternalWebAppUrl(tool.url) : '';
+  const htmlContent = sourceType === EXTERNAL_APP_SOURCE_HTML ? String(tool.htmlContent || '') : '';
+  if (!tool.name || (sourceType === EXTERNAL_APP_SOURCE_URL ? !url : !htmlContent)) return null;
   const embedConfig = normalizeExternalAppEmbedConfig(tool.embedConfig, url);
+  const isHtml = sourceType === EXTERNAL_APP_SOURCE_HTML;
   return {
     id: tool.id,
     slug: `external-${tool.id}`,
     title: tool.name,
     titleVi: tool.name,
-    desc: tool.description || 'Embedded website application.',
-    descVi: tool.description || 'Ứng dụng website chạy trực tiếp trong Brian.',
-    status: 'Embedded website',
-    statusVi: 'Website nhúng · Đã duyệt',
-    icon: tool.icon || 'WEB',
-    group: 'External website',
-    groupVi: 'Ứng dụng website',
+    desc: tool.description || (isHtml ? 'Approved HTML application.' : 'Embedded website application.'),
+    descVi: tool.description || (isHtml ? 'Ứng dụng HTML đã được TTCM duyệt.' : 'Ứng dụng website chạy trực tiếp trong Brian.'),
+    status: isHtml ? 'Approved HTML' : 'Embedded website',
+    statusVi: isHtml ? 'Ứng dụng HTML · Đã duyệt' : 'Website nhúng · Đã duyệt',
+    icon: tool.icon || (isHtml ? 'HTM' : 'WEB'),
+    group: isHtml ? 'HTML application' : 'External website',
+    groupVi: isHtml ? 'Ứng dụng HTML' : 'Ứng dụng website',
     groupId: tool.groupId || 'create',
     externalWebApp: true,
+    sourceType,
     externalUrl: url,
-    embedUrl: embedConfig.embedUrl,
+    htmlContent,
+    fileName: isHtml ? String(tool.fileName || `${tool.name}.html`) : '',
+    contentHash: isHtml ? String(tool.contentHash || '') : '',
+    embedUrl: isHtml ? '' : embedConfig.embedUrl,
     requestId: tool.requestId || '',
     submittedBy: tool.submittedBy || '',
     approvedAt: tool.approvedAt || '',
@@ -261,7 +317,7 @@ export async function loadExternalWebApps(user, {
     const manager = canManageAiWebsites(user);
     const snapshotPromise = suppliedSnapshot
       ? Promise.resolve(suppliedSnapshot)
-      : loadAiWebsiteSettings(user);
+      : loadAiWebsiteSettings(user, { force });
 
     let requestPromise = Promise.resolve({ mine: [], requests: [] });
     if (includeRequests && user?.id) {
@@ -300,8 +356,8 @@ export async function loadExternalWebApps(user, {
 
 export async function submitExternalWebApp(user, draft, language = 'vi') {
   const app = normalizeExternalAppDraft(draft);
-  if (!app.name) throw new Error(language === 'vi' ? 'Vui lòng nhập tên ứng dụng.' : 'Please enter an app name.');
-  if (!app.url) throw new Error(language === 'vi' ? 'Chỉ chấp nhận website HTTPS hợp lệ.' : 'Only valid HTTPS websites are accepted.');
+  const validationError = validateExternalAppDraft(app, language);
+  if (validationError) throw new Error(validationError);
   const result = await requestApi('', { method: 'POST', body: JSON.stringify({ app }) });
   invalidateExternalAppsCache();
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(PERMISSION_REQUESTS_EVENT));
@@ -310,7 +366,8 @@ export async function submitExternalWebApp(user, draft, language = 'vi') {
 
 export async function approveExternalWebApp(user, request, embedConfig = {}) {
   const app = parseRequestPayload(request);
-  if (!app.name || !app.url) throw new Error('Yêu cầu không có tên hoặc URL hợp lệ.');
+  const validationError = validateExternalAppDraft(app, 'vi');
+  if (validationError) throw new Error(validationError);
 
   const payload = await requestApi('', {
     method: 'PATCH',
@@ -351,7 +408,7 @@ export async function rejectExternalWebApp(requestId) {
 }
 
 export async function updateApprovedExternalWebAppConfig(user, appId, embedConfig = {}) {
-  const snapshot = await loadAiWebsiteSettings(user);
+  const snapshot = await loadAiWebsiteSettings(user, { force: true });
   const nextTools = (snapshot.tools || []).map((tool) => (
     tool.kind === EXTERNAL_APP_KIND && tool.id === appId
       ? normalizeAiWebsiteTool({
@@ -365,7 +422,7 @@ export async function updateApprovedExternalWebAppConfig(user, appId, embedConfi
 }
 
 export async function updateApprovedExternalWebAppView(user, appId, embedView = {}) {
-  const snapshot = await loadAiWebsiteSettings(user);
+  const snapshot = await loadAiWebsiteSettings(user, { force: true });
   const nextTools = (snapshot.tools || []).map((tool) => (
     tool.kind === EXTERNAL_APP_KIND && tool.id === appId
       ? normalizeAiWebsiteTool({ ...tool, embedView: normalizeEmbedView(embedView) })
@@ -376,7 +433,7 @@ export async function updateApprovedExternalWebAppView(user, appId, embedView = 
 }
 
 export async function removeApprovedExternalWebApp(user, appId) {
-  const snapshot = await loadAiWebsiteSettings(user);
+  const snapshot = await loadAiWebsiteSettings(user, { force: true });
   invalidateExternalAppsCache();
   await saveAiWebsiteSettings(user, (snapshot.tools || []).filter(
     (tool) => !(tool.kind === EXTERNAL_APP_KIND && tool.id === appId),

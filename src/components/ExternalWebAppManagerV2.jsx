@@ -4,7 +4,12 @@ import { canManageAiWebsites } from '../utils/aiWebsiteSettings.js';
 import {
   approveExternalWebApp,
   EXTERNAL_APP_GROUPS,
+  EXTERNAL_APP_SOURCE_HTML,
+  EXTERNAL_APP_SOURCE_URL,
+  externalHtmlByteLength,
+  isValidExternalHtml,
   loadExternalWebApps,
+  MAX_EXTERNAL_HTML_BYTES,
   normalizeExternalAppDraft,
   normalizeExternalAppEmbedConfig,
   rejectExternalWebApp,
@@ -13,15 +18,20 @@ import {
   submitExternalWebApp,
   subscribeExternalWebApps,
   updateApprovedExternalWebAppConfig,
+  validateExternalAppDraft,
   withEmbedModeParam,
 } from '../utils/externalWebApps.js';
 import './ExternalWebApps.css';
 import './ExternalWebAppReviewFullscreen.css';
+import './ExternalAppApprovalRestore.css';
 
 const EMPTY = {
   name: '',
+  sourceType: EXTERNAL_APP_SOURCE_URL,
   url: '',
   embedUrl: '',
+  htmlContent: '',
+  fileName: '',
   icon: 'WEB',
   description: '',
   groupId: 'create',
@@ -58,6 +68,16 @@ const statusLabel = (status) => ({
   cancelled: 'Đã hủy',
 }[status] || status);
 
+function sourceTypeOf(value = {}) {
+  return value.sourceType === EXTERNAL_APP_SOURCE_HTML || value.htmlContent
+    ? EXTERNAL_APP_SOURCE_HTML
+    : EXTERNAL_APP_SOURCE_URL;
+}
+
+function sourceLabel(value = {}) {
+  return sourceTypeOf(value) === EXTERNAL_APP_SOURCE_HTML ? 'File HTML' : 'Website URL';
+}
+
 function layoutPresetId(config = {}) {
   const match = LAYOUT_PRESETS.find((preset) => (
     preset.hideBrianHeader === Boolean(config.hideBrianHeader)
@@ -92,6 +112,10 @@ function initialReviewConfig(review) {
   }, sourceUrl);
 }
 
+function fileNameWithoutExtension(value = '') {
+  return String(value || '').replace(/\.(html?|xhtml)$/i, '').replace(/[-_]+/g, ' ').trim();
+}
+
 export default function ExternalWebAppManagerV2({ open, onClose, currentUser, language = 'vi', onChanged }) {
   const vi = language !== 'en';
   const manager = canManageAiWebsites(currentUser);
@@ -108,11 +132,16 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
 
   const pending = useMemo(() => data.requests.filter((item) => item.status === 'pending'), [data.requests]);
   const clean = normalizeExternalAppDraft(draft);
-  const sourceUrl = safeExternalWebAppUrl(review?.url || review?.externalUrl);
-  const embedUrl = safeExternalWebAppUrl(config.embedUrl);
+  const draftError = validateExternalAppDraft(clean, language);
+  const reviewSourceType = sourceTypeOf(review || {});
+  const htmlReview = reviewSourceType === EXTERNAL_APP_SOURCE_HTML;
+  const reviewHtml = htmlReview ? String(review?.htmlContent || '') : '';
+  const sourceUrl = htmlReview ? '' : safeExternalWebAppUrl(review?.url || review?.externalUrl);
+  const embedUrl = htmlReview ? '' : safeExternalWebAppUrl(config.embedUrl);
   const reviewBusy = Boolean(busy && review);
-  const embedBlocked = check?.embeddable === false;
+  const embedBlocked = !htmlReview && check?.embeddable === false;
   const canPublishReview = manager && Boolean(review?.request || review?.approvedApp);
+  const canRenderReview = htmlReview ? isValidExternalHtml(reviewHtml) : Boolean(embedUrl);
 
   const applyData = (next) => {
     if (!next) return;
@@ -174,8 +203,8 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
   }, [review?.id]);
 
   useEffect(() => {
-    if (!review || !embedUrl) {
-      setCheck(null);
+    if (!review || htmlReview || !embedUrl) {
+      setCheck(htmlReview ? { embeddable: true, reason: 'File HTML chạy trong vùng cách ly của Brian.' } : null);
       return undefined;
     }
     const controller = new AbortController();
@@ -187,9 +216,56 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
         if (error?.name !== 'AbortError') setCheck({ embeddable: null, reason: 'Không kiểm tra được chính sách iframe.' });
       });
     return () => controller.abort();
-  }, [review?.id, embedUrl, frameKey]);
+  }, [review?.id, htmlReview, embedUrl, frameKey]);
 
   if (!open || typeof document === 'undefined') return null;
+
+  const switchSourceType = (sourceType) => {
+    setNotice('');
+    setDraft((current) => ({
+      ...current,
+      sourceType,
+      url: sourceType === EXTERNAL_APP_SOURCE_URL ? current.url : '',
+      embedUrl: sourceType === EXTERNAL_APP_SOURCE_URL ? current.embedUrl : '',
+      htmlContent: sourceType === EXTERNAL_APP_SOURCE_HTML ? current.htmlContent : '',
+      fileName: sourceType === EXTERNAL_APP_SOURCE_HTML ? current.fileName : '',
+      icon: sourceType === EXTERNAL_APP_SOURCE_HTML
+        ? (current.icon === 'WEB' ? 'HTM' : current.icon)
+        : (current.icon === 'HTM' ? 'WEB' : current.icon),
+    }));
+  };
+
+  const chooseHtmlFile = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setNotice('');
+    if (!/\.html?$/i.test(file.name) && file.type !== 'text/html') {
+      setNotice('Chỉ chấp nhận file .html hoặc .htm.');
+      event.target.value = '';
+      return;
+    }
+    if (file.size > MAX_EXTERNAL_HTML_BYTES) {
+      setNotice('File HTML vượt quá 2 MB. Hãy giảm dung lượng trước khi gửi.');
+      event.target.value = '';
+      return;
+    }
+    try {
+      const htmlContent = await file.text();
+      if (!isValidExternalHtml(htmlContent)) throw new Error('File đã chọn không có cấu trúc HTML hợp lệ.');
+      setDraft((current) => ({
+        ...current,
+        sourceType: EXTERNAL_APP_SOURCE_HTML,
+        htmlContent,
+        fileName: file.name,
+        name: current.name || fileNameWithoutExtension(file.name),
+        icon: current.icon === 'WEB' ? 'HTM' : current.icon,
+      }));
+      setNotice(`Đã đọc ${file.name} · ${(externalHtmlByteLength(htmlContent) / 1024).toFixed(0)} KB.`);
+    } catch (error) {
+      setNotice(error?.message || 'Không thể đọc file HTML.');
+      event.target.value = '';
+    }
+  };
 
   const openPendingReview = (request) => {
     setReview({
@@ -211,8 +287,11 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
     setReview({
       id: `approved-${app.id}`,
       name: app.title,
+      sourceType: app.sourceType,
       url: app.externalUrl,
       embedUrl: app.embedUrl,
+      htmlContent: app.htmlContent,
+      fileName: app.fileName,
       icon: app.icon,
       approvedApp: app,
     });
@@ -220,16 +299,17 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
 
   const submit = async (event) => {
     event.preventDefault();
-    if (busy) return;
+    if (busy || draftError) return;
     setBusy('submit');
     setNotice('');
     try {
       const result = await submitExternalWebApp(currentUser, draft, language);
+      const submittedType = sourceTypeOf(draft);
       setDraft(EMPTY);
       await refresh();
       setTab('mine');
       setNotice(result?.alreadyPending
-        ? (vi ? 'Website này đã có yêu cầu chờ duyệt.' : 'This website is already pending approval.')
+        ? (submittedType === EXTERNAL_APP_SOURCE_HTML ? 'File HTML này đã có yêu cầu chờ duyệt.' : 'Website này đã có yêu cầu chờ duyệt.')
         : (vi ? 'Đã gửi TTCM duyệt.' : 'Submitted for approval.'));
     } catch (error) {
       setNotice(error?.message || String(error));
@@ -247,7 +327,7 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
   };
 
   const commitReview = async () => {
-    if (!review || busy || !embedUrl) return;
+    if (!review || busy || !canRenderReview || embedBlocked) return;
     const approvedConfig = normalizeExternalAppEmbedConfig(config, sourceUrl);
     const targetId = review.request?.id || review.approvedApp?.id;
     setBusy(targetId || 'publish');
@@ -300,7 +380,7 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
   };
 
   const tabs = [
-    ['submit', 'Thêm ứng dụng'],
+    ['submit', 'Gửi ứng dụng'],
     ['mine', 'Yêu cầu của tôi'],
     ...(manager ? [['pending', 'Chờ duyệt'], ['approved', 'Đã duyệt']] : []),
   ];
@@ -314,8 +394,8 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
             <div>
               <span>＋</span>
               <div>
-                <strong>Ứng dụng website</strong>
-                <small>Duyệt bằng URL nhúng riêng và cấu hình khung hiển thị của Brian</small>
+                <strong>Gửi ứng dụng cho TTCM duyệt</strong>
+                <small>Hỗ trợ website HTTPS và ứng dụng HTML một tệp</small>
               </div>
             </div>
             <div className="bes-ext-head-actions">
@@ -335,21 +415,49 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
           <main className="bes-ext-manager-simple-body">
             {tab === 'submit' ? (
               <form className="bes-ext-form" onSubmit={submit}>
-                <h2>Thêm website làm ứng dụng</h2>
-                <p>Nhập URL gốc để nhận diện ứng dụng. URL nhúng là địa chỉ dành riêng cho iframe, thường có thêm <code>?embed=1</code> để website con tự ẩn header hoặc footer.</p>
+                <h2>Chọn cách gửi ứng dụng</h2>
+                <p>TTCM sẽ xem thử nội dung, kiểm tra cách hiển thị rồi mới duyệt để đưa ứng dụng vào English Hub.</p>
+
+                <div className="bes-ext-source-picker wide" role="tablist" aria-label="Nguồn ứng dụng">
+                  <button type="button" className={draft.sourceType === EXTERNAL_APP_SOURCE_URL ? 'active' : ''} onClick={() => switchSourceType(EXTERNAL_APP_SOURCE_URL)}>
+                    <b>🔗 Đường dẫn website</b><small>Vercel, GitHub Pages hoặc website HTTPS</small>
+                  </button>
+                  <button type="button" className={draft.sourceType === EXTERNAL_APP_SOURCE_HTML ? 'active' : ''} onClick={() => switchSourceType(EXTERNAL_APP_SOURCE_HTML)}>
+                    <b>⌁ Tải file HTML</b><small>Ứng dụng .html hoặc .htm chạy trong Brian</small>
+                  </button>
+                </div>
+
                 <label><span>Tên ứng dụng</span><input required value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
                 <label><span>Biểu tượng</span><input maxLength="3" value={draft.icon} onChange={(event) => setDraft({ ...draft, icon: event.target.value.toUpperCase().slice(0, 3) })} /></label>
-                <label className="wide"><span>URL gốc</span><input required type="url" placeholder="https://…" value={draft.url} onChange={(event) => setDraft({ ...draft, url: event.target.value })} /></label>
-                <label className="wide bes-ext-embed-url-field">
-                  <span>URL nhúng <small>Không bắt buộc</small></span>
-                  <div>
-                    <input type="url" placeholder="https://…/?embed=1" value={draft.embedUrl} onChange={(event) => setDraft({ ...draft, embedUrl: event.target.value })} />
-                    <button type="button" onClick={() => setDraft({ ...draft, embedUrl: withEmbedModeParam(draft.url) })} disabled={!safeExternalWebAppUrl(draft.url)}>Tạo ?embed=1</button>
-                  </div>
-                </label>
+
+                {draft.sourceType === EXTERNAL_APP_SOURCE_URL ? (
+                  <>
+                    <label className="wide"><span>URL gốc</span><input required type="url" placeholder="https://…" value={draft.url} onChange={(event) => setDraft({ ...draft, url: event.target.value })} /></label>
+                    <label className="wide bes-ext-embed-url-field">
+                      <span>URL nhúng <small>Không bắt buộc</small></span>
+                      <div>
+                        <input type="url" placeholder="https://…/?embed=1" value={draft.embedUrl} onChange={(event) => setDraft({ ...draft, embedUrl: event.target.value })} />
+                        <button type="button" onClick={() => setDraft({ ...draft, embedUrl: withEmbedModeParam(draft.url) })} disabled={!safeExternalWebAppUrl(draft.url)}>Tạo ?embed=1</button>
+                      </div>
+                    </label>
+                  </>
+                ) : (
+                  <label className="wide bes-ext-html-file-field">
+                    <span>File ứng dụng HTML <small>Tối đa 2 MB</small></span>
+                    <input type="file" accept=".html,.htm,text/html" onChange={chooseHtmlFile} />
+                    <div className={draft.htmlContent ? 'is-ready' : ''}>
+                      <b>{draft.fileName || 'Chưa chọn file'}</b>
+                      <small>{draft.htmlContent ? `${(externalHtmlByteLength(draft.htmlContent) / 1024).toFixed(0)} KB · sẵn sàng gửi duyệt` : 'Chọn file HTML một tệp từ máy tính'}</small>
+                    </div>
+                  </label>
+                )}
+
                 <label><span>Nhóm</span><select value={draft.groupId} onChange={(event) => setDraft({ ...draft, groupId: event.target.value })}>{EXTERNAL_APP_GROUPS.map((group) => <option key={group.id} value={group.id}>{group.label}</option>)}</select></label>
                 <label className="wide"><span>Mô tả</span><textarea rows="3" value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
-                <footer><button className="bes-ext-primary" disabled={!clean.name || !clean.url || busy === 'submit'}>{busy === 'submit' ? 'Đang gửi…' : 'Gửi TTCM duyệt'}</button></footer>
+                <footer>
+                  <small className="bes-ext-submit-hint">{draftError || 'Ứng dụng hợp lệ và sẵn sàng gửi TTCM.'}</small>
+                  <button className="bes-ext-primary" disabled={Boolean(draftError) || busy === 'submit'}>{busy === 'submit' ? 'Đang gửi…' : 'Gửi TTCM duyệt'}</button>
+                </footer>
               </form>
             ) : null}
 
@@ -359,12 +467,13 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
                   <article className="bes-ext-item" key={request.id}>
                     <div>
                       <span className={`bes-ext-chip ${request.status}`}>{statusLabel(request.status)}</span>
+                      <span className={`bes-ext-source-chip ${sourceTypeOf(request.app)}`}>{sourceLabel(request.app)}</span>
                       <strong>{request.app.name || request.item_title}</strong>
-                      <small>{request.requester_name || request.requester_email || ''} {request.app.url}</small>
+                      <small>{request.requester_name || request.requester_email || ''} · {request.app.fileName || request.app.url}</small>
                       <p>{request.app.description}</p>
                     </div>
                     <div className="bes-ext-actions">
-                      <button type="button" onClick={() => tab === 'pending' ? openPendingReview(request) : openMinePreview(request)}>{tab === 'pending' ? 'Cấu hình & duyệt' : 'Xem trước'}</button>
+                      <button type="button" onClick={() => tab === 'pending' ? openPendingReview(request) : openMinePreview(request)}>{tab === 'pending' ? 'Xem thử & duyệt' : 'Xem trước'}</button>
                       {tab === 'pending' && manager ? <button type="button" className="reject" disabled={busy === request.id} onClick={() => reject(request)}>Từ chối</button> : null}
                     </div>
                   </article>
@@ -379,17 +488,18 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
                   <article className="bes-ext-item" key={app.id}>
                     <div>
                       <span className="bes-ext-chip approved">{layoutLabel(app.embedConfig)}</span>
+                      <span className={`bes-ext-source-chip ${app.sourceType}`}>{sourceLabel(app)}</span>
                       <strong>{app.title}</strong>
-                      <small>{app.embedConfig?.embedUrl || app.externalUrl}</small>
+                      <small>{app.fileName || app.embedConfig?.embedUrl || app.externalUrl}</small>
                       <p>{app.descVi}</p>
                     </div>
                     <div className="bes-ext-actions">
-                      <button type="button" onClick={() => openApprovedReview(app)}>Sửa cấu hình</button>
+                      <button type="button" onClick={() => openApprovedReview(app)}>Xem & cấu hình</button>
                       <button type="button" className="reject" disabled={busy === app.id} onClick={() => remove(app)}>Gỡ</button>
                     </div>
                   </article>
                 ))}
-                {!data.approved.length ? <div className="bes-ext-empty">Chưa có ứng dụng website đã duyệt.</div> : null}
+                {!data.approved.length ? <div className="bes-ext-empty">Chưa có ứng dụng đã duyệt.</div> : null}
               </div>
             ) : null}
           </main>
@@ -401,16 +511,16 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
         <section className="bes-ext-review-screen" aria-label={`Duyệt ${review.name || 'ứng dụng'}`}>
           <header className="bes-ext-review-header">
             <div className="bes-ext-review-title">
-              <span>{review.icon || 'WEB'}</span>
+              <span>{review.icon || (htmlReview ? 'HTM' : 'WEB')}</span>
               <div>
-                <strong>{review.name || 'Ứng dụng website'}</strong>
-                <small>{canPublishReview ? 'Cấu hình trải nghiệm giáo viên trước khi xuất bản' : 'Bản xem trước URL nhúng'}</small>
+                <strong>{review.name || 'Ứng dụng'}</strong>
+                <small>{sourceLabel(review)} · {canPublishReview ? 'Xem thử trước khi xuất bản' : 'Bản xem trước của yêu cầu'}</small>
               </div>
             </div>
             <div className="bes-ext-review-header-actions">
               <button type="button" className="secondary" onClick={() => setFrameKey((value) => value + 1)}>↻ Tải lại</button>
               {canPublishReview ? (
-                <button type="button" className="approve" disabled={reviewBusy || !embedUrl || embedBlocked} onClick={commitReview}>
+                <button type="button" className="approve" disabled={reviewBusy || !canRenderReview || embedBlocked} onClick={commitReview}>
                   {reviewBusy ? 'Đang lưu…' : review.approvedApp ? 'Lưu cấu hình' : 'Duyệt & xuất bản'}
                 </button>
               ) : null}
@@ -423,37 +533,45 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
               <section>
                 <span className="bes-ext-review-step">1</span>
                 <div>
-                  <h3>Địa chỉ nhúng</h3>
-                  <p>URL gốc dùng để nhận diện; URL nhúng là địa chỉ giáo viên thực sự mở.</p>
+                  <h3>{htmlReview ? 'Nguồn file HTML' : 'Địa chỉ nhúng'}</h3>
+                  <p>{htmlReview ? 'File được chạy trong iframe cách ly, không được truy cập trực tiếp vào Brian.' : 'URL gốc dùng để nhận diện; URL nhúng là địa chỉ giáo viên thực sự mở.'}</p>
                 </div>
               </section>
 
-              <label>
-                <span>URL gốc</span>
-                <input type="url" value={sourceUrl} readOnly />
-              </label>
-
-              <label>
-                <span>URL nhúng</span>
-                <div className="bes-ext-review-url-row">
-                  <input
-                    type="url"
-                    value={config.embedUrl || ''}
-                    onChange={(event) => setConfig((current) => ({ ...current, embedUrl: event.target.value }))}
-                    placeholder="https://…/?embed=1"
-                    readOnly={!canPublishReview}
-                  />
-                  {canPublishReview ? <button type="button" onClick={() => setConfig((current) => ({ ...current, embedUrl: withEmbedModeParam(sourceUrl) }))}>Tạo</button> : null}
+              {htmlReview ? (
+                <div className="bes-ext-review-html-source">
+                  <span>File đã gửi</span>
+                  <strong>{review.fileName || 'application.html'}</strong>
+                  <small>{reviewHtml ? `${(externalHtmlByteLength(reviewHtml) / 1024).toFixed(0)} KB` : 'Thiếu nội dung HTML'}</small>
                 </div>
-              </label>
-
-              <div className={`bes-ext-embed-status ${check?.checking ? 'checking' : embedBlocked ? 'blocked' : embedUrl ? 'ready' : 'invalid'}`}>
-                <span>{check?.checking ? '…' : embedBlocked ? '!' : embedUrl ? '✓' : '×'}</span>
-                <div>
-                  <strong>{check?.checking ? 'Đang kiểm tra iframe' : embedBlocked ? 'Website đang chặn iframe' : embedUrl ? 'URL nhúng hợp lệ' : 'URL nhúng chưa hợp lệ'}</strong>
-                  <small>{check?.reason || (embedBlocked ? 'Cần sửa chính sách frame-ancestors/X-Frame-Options ở website con.' : 'Brian sẽ dùng đúng URL này khi giáo viên mở ứng dụng.')}</small>
-                </div>
-              </div>
+              ) : (
+                <>
+                  <label>
+                    <span>URL gốc</span>
+                    <input type="url" value={sourceUrl} readOnly />
+                  </label>
+                  <label>
+                    <span>URL nhúng</span>
+                    <div className="bes-ext-review-url-row">
+                      <input
+                        type="url"
+                        value={config.embedUrl || ''}
+                        onChange={(event) => setConfig((current) => ({ ...current, embedUrl: event.target.value }))}
+                        placeholder="https://…/?embed=1"
+                        readOnly={!canPublishReview}
+                      />
+                      {canPublishReview ? <button type="button" onClick={() => setConfig((current) => ({ ...current, embedUrl: withEmbedModeParam(sourceUrl) }))}>Tạo</button> : null}
+                    </div>
+                  </label>
+                  <div className={`bes-ext-embed-status ${check?.checking ? 'checking' : embedBlocked ? 'blocked' : embedUrl ? 'ready' : 'invalid'}`}>
+                    <span>{check?.checking ? '…' : embedBlocked ? '!' : embedUrl ? '✓' : '×'}</span>
+                    <div>
+                      <strong>{check?.checking ? 'Đang kiểm tra iframe' : embedBlocked ? 'Website đang chặn iframe' : embedUrl ? 'URL nhúng hợp lệ' : 'URL nhúng chưa hợp lệ'}</strong>
+                      <small>{check?.reason || (embedBlocked ? 'Cần sửa chính sách frame-ancestors/X-Frame-Options ở website con.' : 'Brian sẽ dùng đúng URL này khi giáo viên mở ứng dụng.')}</small>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <section>
                 <span className="bes-ext-review-step">2</span>
@@ -495,8 +613,8 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
               </label>
 
               <div className="bes-ext-review-note">
-                <strong>Lưu ý về chân trang website con</strong>
-                <p>Brian không thể xóa DOM của website khác tên miền. Website con phải tự nhận <code>embed=1</code> và không render footer trong chế độ nhúng.</p>
+                <strong>{htmlReview ? 'Ứng dụng HTML được cách ly' : 'Lưu ý về website con'}</strong>
+                <p>{htmlReview ? 'Brian không cấp quyền cùng nguồn cho file HTML. Mã trong ứng dụng không thể đọc dữ liệu đăng nhập hoặc DOM của English Hub.' : <>Brian không thể xóa DOM của website khác tên miền. Website con nên nhận <code>embed=1</code> và tự ẩn header/footer trong chế độ nhúng.</>}</p>
               </div>
             </aside>
 
@@ -514,16 +632,27 @@ export default function ExternalWebAppManagerV2({ open, onClose, currentUser, la
                   </div>
                 ) : null}
                 <div className="bes-ext-review-frame-wrap">
-                  {embedUrl ? (
-                    <iframe
-                      key={frameKey}
-                      src={embedUrl}
-                      title={review.name || 'Ứng dụng đang duyệt'}
-                      sandbox="allow-forms allow-modals allow-presentation allow-same-origin allow-scripts allow-downloads"
-                      allow="clipboard-read; clipboard-write; microphone; camera; fullscreen"
-                      referrerPolicy="strict-origin-when-cross-origin"
-                    />
-                  ) : <div className="bes-ext-review-frame-empty">Nhập URL nhúng hợp lệ để xem trước.</div>}
+                  {canRenderReview ? (
+                    htmlReview ? (
+                      <iframe
+                        key={frameKey}
+                        srcDoc={reviewHtml}
+                        title={review.name || 'Ứng dụng HTML đang duyệt'}
+                        sandbox="allow-forms allow-modals allow-presentation allow-scripts allow-downloads allow-popups"
+                        allow="clipboard-write; microphone; camera; fullscreen"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <iframe
+                        key={frameKey}
+                        src={embedUrl}
+                        title={review.name || 'Ứng dụng website đang duyệt'}
+                        sandbox="allow-forms allow-modals allow-presentation allow-same-origin allow-scripts allow-downloads"
+                        allow="clipboard-read; clipboard-write; microphone; camera; fullscreen"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                      />
+                    )
+                  ) : <div className="bes-ext-review-frame-empty">{htmlReview ? 'File HTML không hợp lệ hoặc đã bị thiếu nội dung.' : 'Nhập URL nhúng hợp lệ để xem trước.'}</div>}
                 </div>
                 {!config.hideBrianFooter ? (
                   <div className="bes-ext-review-brian-footer">

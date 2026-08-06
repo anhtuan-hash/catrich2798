@@ -54,14 +54,26 @@ function normalizeExternalEmbedConfig(value = {}, sourceUrl = '') {
   };
 }
 
+function sourceTypeOf(tool = {}, kind = 'ai') {
+  if (kind === 'external-app' && (tool.sourceType === 'html' || tool.htmlContent)) return 'html';
+  return 'url';
+}
+
 export function normalizeAiWebsiteTool(tool = {}, index = 0) {
   const name = String(tool.name || '').trim();
   const kind = tool.kind === 'external-app' ? 'external-app' : 'ai';
+  const sourceType = sourceTypeOf(tool, kind);
+  const htmlContent = sourceType === 'html' ? String(tool.htmlContent || '') : '';
   return {
     id: String(tool.id || `ai-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`),
     name,
-    url: String(tool.url || '').trim(),
-    icon: String(tool.icon || name.slice(0, 2) || 'AI').trim().slice(0, 3).toUpperCase(),
+    url: sourceType === 'url' ? String(tool.url || '').trim() : '',
+    sourceType,
+    htmlContent,
+    htmlContentOmitted: Boolean(tool.htmlContentOmitted && !htmlContent),
+    fileName: sourceType === 'html' ? String(tool.fileName || `${name || 'application'}.html`).trim().slice(0, 140) : '',
+    contentHash: sourceType === 'html' ? String(tool.contentHash || '').trim().slice(0, 128) : '',
+    icon: String(tool.icon || (sourceType === 'html' ? 'HTM' : name.slice(0, 2) || 'AI')).trim().slice(0, 3).toUpperCase(),
     description: String(tool.description || '').trim(),
     audience: ['all', 'admin', 'leader', 'teacher'].includes(tool.audience) ? tool.audience : 'all',
     enabled: tool.enabled !== false,
@@ -79,12 +91,20 @@ export function normalizeAiWebsiteTool(tool = {}, index = 0) {
   };
 }
 
+function validNormalizedTool(tool = {}) {
+  if (!tool.name) return false;
+  if (tool.kind === 'external-app' && tool.sourceType === 'html') {
+    return Boolean(tool.htmlContent || tool.htmlContentOmitted);
+  }
+  return Boolean(safeAiWebsiteUrl(tool.url));
+}
+
 function normalizeSnapshot(value = {}) {
   const sourceTools = Array.isArray(value) ? value : (Array.isArray(value.tools) ? value.tools : []);
   return {
     tools: sourceTools
       .map(normalizeAiWebsiteTool)
-      .filter((tool) => tool.name && safeAiWebsiteUrl(tool.url)),
+      .filter(validNormalizedTool),
     updatedAt: String(value.updatedAt || value.updated_at || new Date().toISOString()),
     updatedBy: String(value.updatedBy || value.updated_by_email || value.updated_by || ''),
     source: String(value.source || 'local'),
@@ -99,10 +119,25 @@ export function readAiWebsiteSettingsLocal() {
   catch { return normalizeSnapshot(); }
 }
 
+function compactLocalSnapshot(snapshot) {
+  return {
+    ...snapshot,
+    tools: (snapshot.tools || []).map((tool) => (
+      tool.kind === 'external-app' && tool.sourceType === 'html' && tool.htmlContent
+        ? { ...tool, htmlContent: '', htmlContentOmitted: true }
+        : tool
+    )),
+  };
+}
+
 function writeAiWebsiteSettingsLocal(snapshot) {
   const clean = normalizeSnapshot(snapshot);
   if (typeof window !== 'undefined') {
-    try { window.localStorage.setItem(LOCAL_KEY, JSON.stringify(clean)); } catch { /* optional cache */ }
+    try {
+      window.localStorage.setItem(LOCAL_KEY, JSON.stringify(clean));
+    } catch {
+      try { window.localStorage.setItem(LOCAL_KEY, JSON.stringify(compactLocalSnapshot(clean))); } catch { /* optional cache */ }
+    }
     window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: clean }));
   }
   return clean;
@@ -210,7 +245,7 @@ export async function saveAiWebsiteSettings(user, tools) {
   if (!isSupabaseConfigured || !supabase) throw new Error('Supabase chưa được cấu hình nên chưa thể lưu website dùng chung.');
   const sourceTools = Array.isArray(tools) ? tools : [];
   const clean = normalizeSnapshot({ tools: sourceTools, updatedAt: new Date().toISOString(), updatedBy: user.id || user.email || '' });
-  if (clean.tools.length !== sourceTools.length) throw new Error('Danh sách có website thiếu tên hoặc URL hợp lệ nên chưa được lưu.');
+  if (clean.tools.length !== sourceTools.length) throw new Error('Danh sách có ứng dụng thiếu tên, URL hoặc nội dung HTML hợp lệ nên chưa được lưu.');
   const previous = readAiWebsiteSettingsLocal();
   writeAiWebsiteSettingsLocal({ ...clean, source: 'pending-supabase', error: '', setupRequired: false });
   try {
