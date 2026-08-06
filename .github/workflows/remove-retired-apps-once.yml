@@ -1,0 +1,150 @@
+name: Remove retired applications once
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply permanent cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/prepare-streamlined-catalog-v3.mjs
+
+          python3 <<'PY'
+          from pathlib import Path
+          import json, re, shutil
+
+          slugs = [
+              'classroom-screen', 'content-ecosystem', 'assessment-core',
+              'automation-center', 'collaboration-hub', 'knowledge-train',
+              'crossword-trial', 'flying-words', 'exam-studio', 'word2graph',
+              'reading-studio', 'lesson-plan-ai', 'student-practice',
+              'random-group-generator', 'word-orbit', 'activity-graph',
+          ]
+
+          exact_files = [
+              'src/pages/ActivityGraphStudio.jsx',
+              'src/pages/AssessmentCore.jsx',
+              'src/pages/AutomationCenter.jsx',
+              'src/pages/ClassroomScreenHost.jsx',
+              'src/pages/CollaborationHub.jsx',
+              'src/pages/ContentEcosystem.jsx',
+              'src/pages/CrosswordTrialGame.jsx',
+              'src/pages/ExamStudio.jsx',
+              'src/pages/ExamStudioUploadPage.jsx',
+              'src/pages/FlyingWordsContrast.jsx',
+              'src/pages/KnowledgeTrainGame.jsx',
+              'src/pages/LessonArchitect.jsx',
+              'src/pages/ReadingStudio.jsx',
+              'src/pages/StudentPractice.jsx',
+              'src/pages/WordGraphStudio.jsx',
+              'src/pages/WordOrbitGame.jsx',
+              'src/components/ActivityGraphRenderer.jsx',
+              'src/data/activityGraphLibrary.js',
+              'src/data/registerActivityGraph.js',
+              'src/data/registerWordOrbit.js',
+              'src/styles/v1131.css',
+              'scripts/prepare-streamlined-catalog-v3.mjs',
+          ]
+          for name in exact_files:
+              path = Path(name)
+              if path.exists():
+                  path.unlink()
+
+          shutil.rmtree('apps/classroom-screen', ignore_errors=True)
+
+          # Remove the retired cleanup hook now that its result is committed.
+          sync = Path('scripts/sync-version-v11.6.7.mjs')
+          if sync.exists():
+              text = sync.read_text()
+              text = text.replace("import './prepare-streamlined-catalog-v3.mjs';\n", '')
+              sync.write_text(text)
+
+          # Remove the retired standalone build and obsolete audit command.
+          pkg_path = Path('package.json')
+          pkg = json.loads(pkg_path.read_text())
+          scripts = pkg.get('scripts', {})
+          scripts['build'] = scripts.get('build', '').replace(' && vite build --config apps/classroom-screen/vite.config.ts', '')
+          scripts.pop('audit:removed-apps', None)
+          if scripts.get('release:guard') == 'npm run audit:removed-apps':
+              scripts.pop('release:guard', None)
+          pkg_path.write_text(json.dumps(pkg, ensure_ascii=False, indent=2) + '\n')
+
+          # Remove stale route ids and the deleted stylesheet import.
+          main = Path('src/main.jsx')
+          if main.exists():
+              text = main.read_text()
+              text = text.replace("import './styles/v1131.css';\n", '')
+              for slug in ['content-ecosystem', 'assessment-core', 'automation-center', 'collaboration-hub', 'practice']:
+                  text = re.sub(rf"\s*['\"]{re.escape(slug)}['\"]\s*,?", '', text)
+              text = text.replace(', ,', ',').replace('[,', '[').replace(',]', ']')
+              main.write_text(text)
+
+          # Remove dedicated historical reports/tests/scripts that only document retired apps.
+          path_markers = [
+              'activitygraph', 'activity-graph', 'wordorbit', 'word-orbit',
+              'wordgraph', 'word2graph', 'readingstudio', 'reading-studio',
+              'lessonarchitect', 'lesson-architect', 'examstudio', 'exam-studio',
+              'studentpractice', 'student-practice', 'assessmentscore', 'assessment-core',
+              'automationcenter', 'automation-center', 'collaborationhub', 'collaboration-hub',
+              'contentecosystem', 'content-ecosystem', 'classroomscreen', 'classroom-screen',
+              'flyingwords', 'flying-words', 'crosswordtrial', 'crossword-trial',
+              'knowledgetrain', 'knowledge-train', 'randomgroup', 'random-group-generator',
+          ]
+          for root in [Path('scripts'), Path('.')]:
+              for path in list(root.glob('*')) if root == Path('.') else list(root.rglob('*')):
+                  if not path.is_file():
+                      continue
+                  low = path.as_posix().lower()
+                  if path.name == 'package-lock.json':
+                      continue
+                  if any(marker in low for marker in path_markers):
+                      if low.startswith('scripts/') or path.suffix.lower() in {'.md', '.txt'}:
+                          path.unlink(missing_ok=True)
+
+          # Remove this one-time workflow from the final tree.
+          Path('.github/workflows/remove-retired-apps-once.yml').unlink(missing_ok=True)
+          PY
+
+      - name: Report remaining retired references
+        shell: bash
+        run: |
+          set -euo pipefail
+          markers='classroom-screen|content-ecosystem|assessment-core|automation-center|collaboration-hub|knowledge-train|crossword-trial|flying-words|exam-studio|word2graph|reading-studio|lesson-plan-ai|student-practice|random-group-generator|word-orbit|activity-graph|ActivityGraphStudio|AssessmentCore|AutomationCenter|ClassroomScreenHost|CollaborationHub|ContentEcosystem|CrosswordTrialGame|ExamStudio|FlyingWords|KnowledgeTrain|LessonArchitect|ReadingStudio|StudentPractice|WordGraphStudio|WordOrbit'
+          if git grep -n -E "$markers" -- ':!package-lock.json' ':!public/version.json' ':!public/release-manifest.json'; then
+            echo 'Retired references remain; cleanup is intentionally stopped before commit.' >&2
+            exit 1
+          fi
+
+      - name: Build cleaned application
+        shell: bash
+        run: |
+          npm ci
+          npx vite build
+
+      - name: Commit permanent deletion
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'chore: permanently remove retired applications'
+          git push origin HEAD:main
