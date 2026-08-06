@@ -92,6 +92,9 @@ import './GlobalNavigationSearchPillRefinement.css';
 import './GlobalNavigationNoSearch.css';
 // Final adaptive typography contract for 13-inch / 1440 × 900 displays.
 import './GlobalAdaptiveComfortScale.css';
+// Final home geometry contract: prevent the 1320px comfort wrapper from clipping
+// the approved 100vw Home and its Grade 12 weekly-practice column.
+import './GlobalHomeComfortOverflowFix.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
