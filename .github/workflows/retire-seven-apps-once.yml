@@ -1,4 +1,4 @@
-name: Retire seven Brian applications once
+name: Remove requested Brian applications once
 
 on:
   issues:
@@ -27,21 +27,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git checkout -B agent/remove-seven-apps-20260807
+          git checkout -B agent/remove-requested-apps-20260807
 
       - name: Apply permanent cleanup
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/retire-seven-apps-once.py
+          python3 scripts/remove-requested-apps-once.py
 
       - name: Verify retired apps are absent
         shell: bash
         run: |
           set -euo pipefail
-          markers='activity-graph|word-orbit|word2graph|exam-studio|lesson-plan-ai|reading-studio|student-practice|ActivityGraphStudio|WordOrbitGame|WordGraphStudio|ExamStudioUploadPage|LessonArchitect|ReadingStudio|StudentPractice'
+          markers='lesson-plan-ai|exam-studio|word2graph|student-practice|reading-studio|assessment-core|flying-words|classroom-screen|content-ecosystem|automation-center|collaboration-hub|knowledge-train|word-orbit|activity-graph|crossword-trial|random-group|group-maker|LessonArchitect|ExamStudioUploadPage|WordGraphStudio|StudentPractice|ReadingStudio|AssessmentCore|FlyingWords|RandomGroup|ClassroomScreen|ContentEcosystem|AutomationCenter|CollaborationHub|KnowledgeTrain|WordOrbit|ActivityGraph|CrosswordTrial'
           if git grep -n -E "$markers" -- src ':!src/utils/retiredFeatureCleanup.js' ':!src/styles/v1131.css' ':!src/styles/v1132.css'; then
-            echo 'Active source references to retired apps remain.' >&2
+            echo 'Active source references to requested retired apps remain.' >&2
             exit 1
           fi
           npm run audit:removed-apps
@@ -60,5 +60,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git commit -m 'chore: permanently remove seven retired applications'
-          git push --force origin HEAD:agent/remove-seven-apps-20260807
+          git commit -m 'chore: permanently remove requested applications'
+          git push --force origin HEAD:agent/remove-requested-apps-20260807
