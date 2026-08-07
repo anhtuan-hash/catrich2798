@@ -1,3 +1,4 @@
+import './tabResumeStability.js';
 import './fourClassLocalPurge.js';
 import './directClassRosterImportBootstrap.js';
 import './styles/MotionRestore.css';
