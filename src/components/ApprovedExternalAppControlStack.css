@@ -1,0 +1,20 @@
+/* Uniform runtime controls for every external app approved by TTCM.
+   Close stays on top; fullscreen stays directly below it. */
+#bes-main-content .bes-ext-runtime-controls{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  gap:7px !important;
+}
+
+#bes-main-content .bes-ext-runtime-close{
+  order:1 !important;
+}
+
+#bes-main-content .bes-ext-native-fullscreen-toggle{
+  order:2 !important;
+}
+
+@media (max-width:700px){
+  #bes-main-content .bes-ext-runtime-controls{gap:6px !important;}
+}
