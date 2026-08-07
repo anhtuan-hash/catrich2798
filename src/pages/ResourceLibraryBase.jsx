@@ -15,8 +15,7 @@ import {
   syncResourcesFromCloud,
   syncResourceViaServer,
   updateResourceLibrary,
-  upsertResourceCloud,
-} from '../utils/resourceLibrary.js';
+  upsertResourceCloud} from '../utils/resourceLibrary.js';
 import { emitAutomationEvent } from '../utils/automationEngine.js';
 import { recordAuditEvent, softDeleteEntity } from '../utils/collaborationGovernance.js';
 import {
@@ -26,8 +25,7 @@ import {
   categoryName,
   decorateCategory,
   findResourceCategory,
-  normaliseResourceCategory,
-} from '../features/resource-library/index.js';
+  normaliseResourceCategory} from '../features/resource-library/index.js';
 import ResourceFileViewer, { supportsResourcePreview } from '../features/resource-library/ResourceFileViewer.jsx';
 import '../features/resource-library/resourceLibraryCategories.css';
 
@@ -36,8 +34,7 @@ const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.md,.html,.zip,.
 const PAGE_SIZES = [24, 48, 96];
 const DEFAULT_FORM = {
   title: '', description: '', category: 'other', grade: '', schoolYear: '', unitName: '', cefr: '',
-  skills: [], tags: '', source: '', copyright: 'internal', visibility: 'department', allowDownload: true,
-};
+  skills: [], tags: '', source: '', copyright: 'internal', visibility: 'department', allowDownload: true};
 
 function formatSize(bytes = 0) {
   if (!bytes) return '0 KB';
@@ -68,7 +65,7 @@ function extensionOf(item) {
 
 function matchesGrade(value, filter) {
   if (filter === 'all') return true;
-  return String(value || '').split(/[,;/\s]+/).filter(Boolean).includes(filter);
+  return String(value || '').split(/[;/\s]+/).filter(Boolean).includes(filter);
 }
 
 async function extractFileText(file) {
@@ -96,8 +93,7 @@ function ResourceCard({
   onDownload,
   onAskDelete,
   onCancelDelete,
-  onConfirmDelete,
-}) {
+  onConfirmDelete}) {
   const mine = item.uploaderId === currentUser?.id || item.uploaderName === currentUser?.email;
   const confirmingDelete = deleteConfirmId === item.id;
   const deleting = deletingId === item.id;
@@ -262,8 +258,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         item_count: localItems.length,
         new_count: newLocal,
         latest_at: latestLocal?.updatedAt || latestLocal?.createdAt || remote.latest_at || null,
-        latest_title: latestLocal?.title || remote.latest_title || '',
-      });
+        latest_title: latestLocal?.title || remote.latest_title || ''});
     }).sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
   }, [overviewRows, store.items]);
 
@@ -311,8 +306,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     total: store.items.filter((item) => item.status === 'approved').length,
     pending: store.items.filter((item) => item.status === 'pending').length,
     contributors: new Set(store.items.map((item) => item.uploaderName).filter(Boolean)).size,
-    size: store.items.reduce((sum, item) => sum + Number(item.size || 0), 0),
-  }), [store.items]);
+    size: store.items.reduce((sum, item) => sum + Number(item.size || 0), 0)}), [store.items]);
 
   const connectDrive = async () => {
     setDriveMessage('Đang tạo liên kết Google Drive…');
@@ -361,8 +355,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
       setProgress(40);
       const raw = await callAI({
         prompt: `Phân loại tài nguyên dạy học tiếng Anh. Trả JSON gồm title, description, category (lesson-plan|presentation|worksheet|assessment|answer-key|thpt-exam|gifted|audio|media|professional-form|reference|other), grade, schoolYear, unitName, cefr, skills[], tags[], source, aiUses[]. Không bịa nguồn.\nTên file: ${files[0].name}\nNội dung:\n${text.slice(0, 18000)}`,
-        responseMimeType: 'application/json', temperature: 0.15, maxOutputTokens: 700, loadingLabel: 'AI đang phân loại học liệu…',
-      });
+        responseMimeType: 'application/json', temperature: 0.15, maxOutputTokens: 700, loadingLabel: 'AI đang phân loại học liệu…'});
       const data = extractJson(raw) || {};
       setForm((old) => ({
         ...old,
@@ -377,8 +370,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         tags: Array.isArray(data.tags) ? data.tags.join(', ') : '',
         source: data.source || '',
         aiUses: data.aiUses || [],
-        extractedText: text,
-      }));
+        extractedText: text}));
       setProgress(100);
     } catch (error) {
       setDriveMessage(`AI chưa phân loại được: ${error.message}`);
@@ -397,10 +389,8 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         Authorization: `Bearer ${token}`,
         'Content-Type': file.type || 'application/octet-stream',
         'X-File-Name': encodeURIComponent(file.name),
-        'X-Resource-Metadata': btoa(unescape(encodeURIComponent(JSON.stringify(metadata)))),
-      },
-      body: file,
-    });
+        'X-Resource-Metadata': btoa(unescape(encodeURIComponent(JSON.stringify(metadata))))},
+      body: file});
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Drive upload failed');
     return data;
@@ -445,8 +435,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
           parentResourceId: duplicate?.id || null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          storageMode: 'local',
-        };
+          storageMode: 'local'};
 
         let uploaded = {};
         try {
@@ -459,8 +448,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         Object.assign(base, {
           driveFileId: uploaded.fileId || '',
           driveWebViewLink: uploaded.webViewLink || '',
-          driveDownloadLink: uploaded.downloadLink || '',
-        });
+          driveDownloadLink: uploaded.downloadLink || ''});
 
         let cloud = await upsertResourceCloud(base);
         if (!cloud.ok) cloud = await syncResourceViaServer(base);
@@ -494,8 +482,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
       status,
       approvedAt: status === 'approved' ? new Date().toISOString() : null,
       approvedBy: currentUser?.email,
-      updatedAt: new Date().toISOString(),
-    };
+      updatedAt: new Date().toISOString()};
 
     try {
       // An approval is only completed after the record exists in Supabase.
@@ -517,8 +504,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         const response = await fetch('/api/google-drive-move', {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fileId: item.driveFileId, category: normaliseResourceCategory(item.category), status }),
-        });
+          body: JSON.stringify({ fileId: item.driveFileId, category: normaliseResourceCategory(item.category), status })});
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Không thể chuyển thư mục Drive');
       }
@@ -531,8 +517,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         await emitAutomationEvent('resource_approved', {
           source: 'resource-library', resource_id: savedItem.cloudId || savedItem.id,
           title: savedItem.title || savedItem.fileName,
-          summary: `Tài liệu “${savedItem.title || savedItem.fileName}” đã được duyệt.`,
-        }, currentUser);
+          summary: `Tài liệu “${savedItem.title || savedItem.fileName}” đã được duyệt.`}, currentUser);
       }
       await refreshLibrary();
     } catch (error) {
@@ -553,8 +538,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
         title: item.title || item.fileName,
         source_module: 'resource-library',
         payload: item,
-        restore_payload: { resource_id: item.cloudId || item.id, previous_status: item.status, drive_file_id: item.driveFileId || '' },
-      }, currentUser);
+        restore_payload: { resource_id: item.cloudId || item.id, previous_status: item.status, drive_file_id: item.driveFileId || '' }}, currentUser);
       if (preview?.id === item.id) closePreview();
       updateResourceLibrary((draft) => {
         draft.items = draft.items.filter((entry) => entry.id !== item.id && (item.cloudId ? entry.cloudId !== item.cloudId : true));
@@ -637,8 +621,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
       const context = visibleItems.slice(0, 25).map((item, index) => `[${index + 1}] ${item.title}\n${item.aiSummary || item.description}\nTags: ${(item.tags || []).join(', ')}\n${String(item.extractedText || '').slice(0, 1200)}`).join('\n\n');
       const answer = await callAI({
         prompt: `Bạn là thủ thư chuyên môn tiếng Anh. Chỉ trả lời dựa trên danh mục dưới đây; nêu rõ tên tài liệu phù hợp. Nếu thiếu dữ liệu thì nói rõ.\nCâu hỏi: ${aiQuery}\n\nKHO:\n${context}`,
-        temperature: 0.2, maxOutputTokens: 700, loadingLabel: 'AI đang tìm kiếm kho học liệu…',
-      });
+        temperature: 0.2, maxOutputTokens: 700, loadingLabel: 'AI đang tìm kiếm kho học liệu…'});
       setAiAnswer(answer);
     } catch (error) {
       setAiAnswer(error.message);
@@ -649,10 +632,9 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
 
   const openWithApp = (item) => {
     const map = {
-      assessment: 'exam-studio', worksheet: 'textlab-activities', reference: 'reading-studio',
-      'lesson-plan': 'lesson-plan-ai', presentation: 'lesson-plan-ai', 'professional-form': 'lesson-plan-ai',
-      audio: 'textlab-activities', media: 'textlab-activities', gifted: 'reading-studio', 'thpt-exam': 'exam-studio',
-    };
+      assessment: 'resource-library-hub', worksheet: 'textlab-activities', reference: 'resource-library-hub',
+      'lesson-plan': 'resource-library-hub', presentation: 'resource-library-hub', 'professional-form': 'resource-library-hub',
+      audio: 'textlab-activities', media: 'textlab-activities', gifted: 'resource-library-hub', 'thpt-exam': 'resource-library-hub'};
     const slug = map[normaliseResourceCategory(item.category)] || 'textlab-activities';
     try { sessionStorage.setItem('bes-resource-open-item', JSON.stringify(item)); } catch { /* ignore */ }
     window.location.hash = `#/tool/${slug}`;

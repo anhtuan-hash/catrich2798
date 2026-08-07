@@ -85,7 +85,6 @@ const Settings = lazy(() => import('./pages/Settings.jsx'));
 const Library = lazy(() => import('./pages/Library.jsx'));
 const ResourceLibrary = lazy(() => import('./pages/ResourceLibrary.jsx'));
 const NewsReader = lazy(() => import('./pages/NewsReader.jsx'));
-const StudentPractice = lazy(() => import('./pages/StudentPractice.jsx'));
 const QAHealthCheck = lazy(() => import('./pages/QAHealthCheck.jsx'));
 const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
@@ -94,7 +93,6 @@ const HomeroomWorkspace = lazy(() => import('./pages/HomeroomWorkspace.jsx'));
 const HomeroomPortal = lazy(() => import('./pages/HomeroomPortal.jsx'));
 const FullMotionEffects = lazy(() => import('./components/FullMotionEffects.jsx')); // clean Metro motion layer
 const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
-
 
 const GlobalCommandPalette = lazy(() => import('./components/GlobalCommandPalette.jsx'));
 const SharedChatbotDrawer = lazy(() => import('./components/SharedChatbotDrawer.jsx'));
@@ -109,19 +107,14 @@ const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.js
 const WorkHub = lazy(() => import('./pages/WorkHub.jsx'));
 const WorkDashboard = lazy(() => import('./pages/WorkDashboard.jsx'));
 const KnowledgeHub = lazy(() => import('./pages/KnowledgeHub.jsx'));
-const AssessmentCore = lazy(() => import('./pages/AssessmentCore.jsx'));
 const PlatformReadiness = lazy(() => import('./pages/PlatformReadiness.jsx'));
-const AutomationCenter = lazy(() => import('./pages/AutomationCenter.jsx'));
 const CloudOperations = lazy(() => import('./pages/CloudOperations.jsx'));
-const CollaborationHub = lazy(() => import('./pages/CollaborationHub.jsx'));
 const DataGovernance = lazy(() => import('./pages/DataGovernance.jsx'));
 const ProductionHardening = lazy(() => import('./pages/ProductionHardening.jsx'));
-const ContentEcosystem = lazy(() => import('./pages/ContentEcosystem.jsx'));
 const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAccessibilityAnnouncer.jsx'));
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'work-hub', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
 
 function getInitialRoute() {
@@ -131,7 +124,6 @@ function getInitialRoute() {
   const routeOnly = cleanHash.split('?')[0].split('&')[0];
   return routeOnly || 'home';
 }
-
 
 const ROUTE_DESIGN_PROFILES = {
   home: { accent: '#FFC69D', soft: '#FFF1E2', ink: '#171312' },
@@ -145,12 +137,8 @@ const ROUTE_DESIGN_PROFILES = {
   'knowledge-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
   dashboard: { accent: '#315FC4', soft: '#EAF3FF', ink: '#10264A' },
   'work-hub': { accent: '#14866D', soft: '#E6F8F2', ink: '#0B3A31' },
-  'content-ecosystem': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
-  'assessment-core': { accent: '#CC7621', soft: '#FFF3DF', ink: '#522A08' },
   'platform-readiness': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
-  'automation-center': { accent: '#1269B0', soft: '#E4F3FF', ink: '#0B3154' },
   'cloud-operations': { accent: '#167B68', soft: '#E4F6EF', ink: '#183F3C' },
-  'collaboration-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
   'data-governance': { accent: '#A24B35', soft: '#FFF0E8', ink: '#4A1E14' },
   'production-hardening': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
   practice: { accent: '#00A4EF', soft: '#DCF4FF', ink: '#063048' },
@@ -165,8 +153,7 @@ const ROUTE_DESIGN_PROFILES = {
   tools: { accent: '#E86D1F', soft: '#FFE3CD', ink: '#211510' },
   login: { accent: '#191515', soft: '#F3DFD8', ink: '#191515' },
   register: { accent: '#00A6A6', soft: '#D8FAFA', ink: '#073434' },
-  setup: { accent: '#2E9E5D', soft: '#DDF6E6', ink: '#0F2D1C' },
-};
+  setup: { accent: '#2E9E5D', soft: '#DDF6E6', ink: '#0F2D1C' }};
 
 function getActiveDesignProfile(currentRoute, selectedTool) {
   if (currentRoute === 'tool' && selectedTool?.slug) return getAppDesignProfile(selectedTool.slug);
@@ -259,7 +246,6 @@ function App() {
     return () => window.removeEventListener('bes-ai-settings-updated', onAiSettings);
   }, []);
 
-
   useEffect(() => {
     const defaultLabel = () => languageRef.current === 'vi' ? 'AI đang xử lý nội dung...' : 'AI is processing your content...';
     const onStart = (event) => {
@@ -270,8 +256,7 @@ function App() {
       setAiOperationState({
         active: true,
         label: detail.label || defaultLabel(),
-        provider: detail.provider || '',
-      });
+        provider: detail.provider || ''});
     };
     const onUpdate = (event) => {
       const detail = event.detail || {};
@@ -280,8 +265,7 @@ function App() {
         ...current,
         active: true,
         label: detail.label || current.label || defaultLabel(),
-        provider: detail.provider || current.provider || '',
-      }));
+        provider: detail.provider || current.provider || ''}));
     };
     const onEnd = (event) => {
       const detail = event.detail || {};
@@ -352,7 +336,6 @@ function App() {
     applyPerformanceAttributes({ motionMode, performanceMode });
   }, [motionMode, performanceMode]);
 
-
   const allTools = useMemo(() => [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS], []);
   const toolSlug = route.startsWith('tool/') ? route.replace('tool/', '') : '';
   const selectedTool = allTools.find((item) => item.slug === toolSlug);
@@ -414,8 +397,7 @@ function App() {
     setIndicatorMode,
     fontScale,
     setFontScale,
-    appVisibility,
-  };
+    appVisibility};
 
   const activeDesignProfile = getActiveDesignProfile(currentRoute, selectedTool);
 
@@ -426,32 +408,29 @@ function App() {
       homeroom: ['Homeroom', 'Giáo viên chủ nhiệm'], library: ['Library', 'Thư viện'],
       'resource-library': ['Resource Library', 'Kho học liệu'], 'knowledge-hub': ['Smart Knowledge Library', 'Kho học liệu thông minh'],
       dashboard: ['Work Dashboard', 'Bảng điều hành'],
-      'work-hub': ['Unified Work Hub', 'Trung tâm công việc'], 'assessment-core': ['Assessment Core', 'Ngân hàng câu hỏi'],
+      'work-hub': ['Unified Work Hub', 'Trung tâm công việc'], 
       'platform-readiness': ['Platform Readiness', 'Sẵn sàng nền tảng'],
-      'automation-center': ['Automation Center', 'Trung tâm tự động hóa'],
+      
       'cloud-operations': ['Cloud Operations', 'Vận hành nền'],
-      'collaboration-hub': ['Collaboration Hub', 'Không gian cộng tác'],
+      
       'data-governance': ['Data Governance', 'Quản trị dữ liệu'],
       'production-hardening': ['Production Hardening', 'Sẵn sàng Production'],
       'app-vault': ['Hidden Apps Vault', 'Thư mục ứng dụng đã ẩn'],
-      practice: ['Classroom', 'Lớp học'], settings: ['Settings', 'Cài đặt'],
-      admin: ['Admin', 'Quản trị'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác'],
-    };
+       settings: ['Settings', 'Cài đặt'],
+      admin: ['Admin', 'Quản trị'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác']};
     if (selectedTool?.slug) {
       const profile = getAppDesignProfile(selectedTool.slug);
       recordAppUsage(currentUser, {
         id: `tool:${selectedTool.slug}`, target: `#/tool/${selectedTool.slug}`,
         title: selectedTool.title || selectedTool.titleVi || selectedTool.slug,
         titleVi: selectedTool.titleVi || selectedTool.title || selectedTool.slug,
-        icon: String(selectedTool.icon || selectedTool.title || 'AP').slice(0, 2).toUpperCase(), color: profile.accent, kind: 'tool',
-      });
+        icon: String(selectedTool.icon || selectedTool.title || 'AP').slice(0, 2).toUpperCase(), color: profile.accent, kind: 'tool'});
       return;
     }
     const pair = routeTitles[currentRoute] || [currentRoute, currentRoute];
     recordAppUsage(currentUser, {
       id: `route:${currentRoute}`, target: `#/${currentRoute}`, title: pair[0], titleVi: pair[1],
-      icon: String(pair[0] || 'GO').slice(0, 2).toUpperCase(), color: activeDesignProfile.accent, kind: 'route',
-    });
+      icon: String(pair[0] || 'GO').slice(0, 2).toUpperCase(), color: activeDesignProfile.accent, kind: 'route'});
   }, [currentRoute, selectedTool?.slug, currentUser?.id, currentUser?.email, canAccessRoute]);
 
   const tileLaunchRect = tileLaunch
@@ -475,8 +454,7 @@ function App() {
       style={{
         '--active-app-accent': activeDesignProfile.accent,
         '--active-app-soft': activeDesignProfile.soft,
-        '--active-app-ink': activeDesignProfile.ink,
-      }}
+        '--active-app-ink': activeDesignProfile.ink}}
     >
       {!['homeroom-portal'].includes(currentRoute) ? <div className="bes-top-chrome">
         <Suspense fallback={null}>
@@ -499,8 +477,7 @@ function App() {
             '--tile-launch-dx': `${-tileLaunchRect.x}px`,
             '--tile-launch-dy': `${-tileLaunchRect.y}px`,
             '--tile-launch-sx': `${window.innerWidth / Math.max(tileLaunchRect.w, 1)}`,
-            '--tile-launch-sy': `${window.innerHeight / Math.max(tileLaunchRect.h, 1)}`,
-          }}
+            '--tile-launch-sy': `${window.innerHeight / Math.max(tileLaunchRect.h, 1)}`}}
           aria-hidden="true"
         >
           <div className="tile-launch-backdrop" />
@@ -568,16 +545,11 @@ function App() {
           {canAccessRoute && currentRoute === 'knowledge-hub' && currentUser && <KnowledgeHub {...context} />}
           {canAccessRoute && currentRoute === 'dashboard' && currentUser && <WorkDashboard {...context} />}
           {canAccessRoute && currentRoute === 'work-hub' && currentUser && <WorkHub {...context} />}
-          {canAccessRoute && currentRoute === 'content-ecosystem' && currentUser && <ContentEcosystem {...context} />}
-          {canAccessRoute && currentRoute === 'assessment-core' && currentUser && <AssessmentCore {...context} />}
           {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <PlatformReadiness {...context} />}
-          {canAccessRoute && currentRoute === 'automation-center' && currentUser && <AutomationCenter {...context} />}
           {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <CloudOperations {...context} />}
-          {canAccessRoute && currentRoute === 'collaboration-hub' && currentUser && <CollaborationHub {...context} />}
           {canAccessRoute && currentRoute === 'data-governance' && currentUser && <DataGovernance {...context} />}
           {canAccessRoute && currentRoute === 'production-hardening' && currentUser && <ProductionHardening {...context} />}
           {canAccessRoute && currentRoute === 'app-vault' && currentUser && <HiddenAppsVault {...context} />}
-          {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
           {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}
 
           {canAccessRoute && currentRoute === 'trash' && currentUser && <TrashCenter {...context} />}

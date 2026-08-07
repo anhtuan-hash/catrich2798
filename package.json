@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "npm run version:sync && vite build && vite build --config apps/classroom-screen/vite.config.ts",
+    "build": "npm run version:sync && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node scripts/smoke-test.mjs",
     "test:homeroom-export": "node scripts/test-homeroom-gradebook-export.mjs",

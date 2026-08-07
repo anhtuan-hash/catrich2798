@@ -11,8 +11,7 @@ import {
   isCustomGameOwner,
   listCustomGames,
   requestCustomGameApproval,
-  updateCustomGameStatus,
-} from '../utils/customGames.js';
+  updateCustomGameStatus} from '../utils/customGames.js';
 
 const SAVED_KEY = 'bes-game-hub-links-v1';
 
@@ -112,10 +111,7 @@ const PLATFORMS = {
       ['Scrambled Sentences', 'Scrambled Sentences', 'https://games4esl.com/teacher-tools/scrambled-sentences/'],
       ['Fill Blank', 'Fill Blank', 'https://games4esl.com/teacher-tools/fill-in-the-blank/'],
       ['Writing Practice', 'Writing Practice', 'https://games4esl.com/teacher-tools/writing-practice-worksheet-generator/'],
-      ['Chia nhóm', 'Random Groups', 'https://games4esl.com/teacher-tools/random-group-generator/'],
-      ['Scoreboard', 'Scoreboard', 'https://games4esl.com/teacher-tools/game-scoreboard/'],
-    ],
-  },
+      ['Scoreboard', 'Scoreboard', 'https://games4esl.com/teacher-tools/game-scoreboard/']]},
   wordwall: {
     label: 'Wordwall',
     icon: '🧱',
@@ -129,9 +125,7 @@ const PLATFORMS = {
       ['Cộng đồng', 'Community', 'https://wordwall.net/community'],
       ['Hoạt động của tôi', 'My activities', 'https://wordwall.net/myactivities'],
       ['Tạo hoạt động', 'Create', 'https://wordwall.net/create/picktemplate'],
-      ['Đăng nhập', 'Sign in', 'https://wordwall.net/account/login'],
-    ],
-  },
+      ['Đăng nhập', 'Sign in', 'https://wordwall.net/account/login']]},
   educaplay: {
     label: 'Educaplay',
     icon: '🐸',
@@ -144,9 +138,7 @@ const PLATFORMS = {
     quickLinks: [
       ['Kho hoạt động', 'Activities', 'https://www.educaplay.com/learning-resources/'],
       ['Tạo hoạt động', 'Create', 'https://www.educaplay.com/editor/'],
-      ['Đăng nhập', 'Sign in', 'https://www.educaplay.com/login/'],
-    ],
-  },
+      ['Đăng nhập', 'Sign in', 'https://www.educaplay.com/login/']]},
   learningapps: {
     label: 'LearningApps',
     icon: '🧩',
@@ -160,9 +152,7 @@ const PLATFORMS = {
       ['Trang chủ', 'Home', 'https://learningapps.org/'],
       ['Duyệt app', 'Browse apps', 'https://learningapps.org/index.php?overview&s=&category=0&tool='],
       ['Tạo app', 'Create app', 'https://learningapps.org/createApp.php'],
-      ['Đăng nhập', 'Sign in', 'https://learningapps.org/login.php'],
-    ],
-  },
+      ['Đăng nhập', 'Sign in', 'https://learningapps.org/login.php']]},
   h5p: {
     label: 'H5P',
     icon: '🎛️',
@@ -175,9 +165,7 @@ const PLATFORMS = {
     quickLinks: [
       ['Content types', 'Content types', 'https://h5p.org/content-types-and-applications'],
       ['H5P.com', 'H5P.com', 'https://h5p.com/'],
-      ['Examples', 'Examples', 'https://h5p.org/content-types-and-applications'],
-    ],
-  },
+      ['Examples', 'Examples', 'https://h5p.org/content-types-and-applications']]},
   genially: {
     label: 'Genially',
     icon: '✨',
@@ -190,9 +178,7 @@ const PLATFORMS = {
     quickLinks: [
       ['Templates', 'Templates', 'https://genially.com/templates/'],
       ['Dashboard', 'Dashboard', 'https://app.genially.com/'],
-      ['Đăng nhập', 'Sign in', 'https://app.genially.com/login'],
-    ],
-  },
+      ['Đăng nhập', 'Sign in', 'https://app.genially.com/login']]},
   bookwidgets: {
     label: 'BookWidgets',
     icon: '📘',
@@ -205,9 +191,7 @@ const PLATFORMS = {
     quickLinks: [
       ['Trang chủ', 'Home', 'https://www.bookwidgets.com/'],
       ['Dashboard', 'Dashboard', 'https://www.bookwidgets.com/dashboard'],
-      ['Đăng nhập', 'Sign in', 'https://www.bookwidgets.com/login'],
-    ],
-  },
+      ['Đăng nhập', 'Sign in', 'https://www.bookwidgets.com/login']]},
   classtools: {
     label: 'ClassTools.net',
     icon: '🧰',
@@ -221,9 +205,7 @@ const PLATFORMS = {
       ['Trang chủ', 'Home', 'https://www.classtools.net/'],
       ['Random picker', 'Random picker', 'https://www.classtools.net/random-name-picker/'],
       ['Countdown', 'Countdown', 'https://www.classtools.net/timer/'],
-      ['Arcade', 'Arcade', 'https://www.classtools.net/arcade/'],
-    ],
-  },
+      ['Arcade', 'Arcade', 'https://www.classtools.net/arcade/']]},
   kahoot: {
     label: 'Kahoot',
     icon: '🟣',
@@ -236,9 +218,7 @@ const PLATFORMS = {
     quickLinks: [
       ['Trang chủ', 'Home', 'https://kahoot.com/'],
       ['Discover', 'Discover', 'https://create.kahoot.it/discover'],
-      ['Đăng nhập', 'Sign in', 'https://create.kahoot.it/auth/login'],
-    ],
-  },
+      ['Đăng nhập', 'Sign in', 'https://create.kahoot.it/auth/login']]},
   scattergories: {
     label: 'Scattergories',
     icon: '🔤',
@@ -249,9 +229,7 @@ const PLATFORMS = {
     descriptionVi: 'Scattergories online để warm-up, từ vựng, brainstorming theo chủ điểm.',
     descriptionEn: 'Online Scattergories for warm-ups, vocabulary review, and topic brainstorming.',
     quickLinks: [
-      ['Scattergories', 'Scattergories', 'https://swellgarfo.com/scattergories/'],
-    ],
-  },
+      ['Scattergories', 'Scattergories', 'https://swellgarfo.com/scattergories/']]},
   baamboozle: {
     label: 'Baamboozle',
     icon: '🅱️',
@@ -265,10 +243,7 @@ const PLATFORMS = {
       ['Kho game', 'Games', 'https://www.baamboozle.com/games'],
       ['Trang chủ', 'Home', 'https://www.baamboozle.com/'],
       ['Class PIN', 'Class PIN', 'https://www.baamboozle.com/join'],
-      ['Đăng nhập', 'Sign in', 'https://www.baamboozle.com/login'],
-    ],
-  },
-};
+      ['Đăng nhập', 'Sign in', 'https://www.baamboozle.com/login']]}};
 
 const DEFAULT_SAVED = Object.fromEntries(Object.keys(PLATFORMS).map((key) => [key, []]));
 
@@ -283,8 +258,7 @@ const GAME_HERO_SPOTLIGHTS = [
     descVi: 'Lưu nhanh platform yêu thích và mở dạy trực tiếp.',
     desc: 'Save favorite platforms and launch them live in class.',
     tone: 'mint',
-    quickUrl: 'https://games4esl.com/teacher-tools/',
-  },
+    quickUrl: 'https://games4esl.com/teacher-tools/'},
   {
     platform: 'wordwall',
     icon: '🔤',
@@ -292,9 +266,7 @@ const GAME_HERO_SPOTLIGHTS = [
     descVi: 'Ôn tập nhanh bằng quiz, timed, memory và nhiều game lớp học.',
     desc: 'Fast review with quiz, timed challenges, memory and class games.',
     tone: 'violet',
-    quickUrl: 'https://wordwall.net/community',
-  },
-];
+    quickUrl: 'https://wordwall.net/community'}];
 
 const GAME_HERO_QUICK_ITEMS = [
   {
@@ -304,8 +276,7 @@ const GAME_HERO_QUICK_ITEMS = [
     descVi: 'Lưu nhanh platform yêu thích và mở dạy trực tiếp.',
     desc: 'Save favorite platforms and launch them live in class.',
     tone: 'mint',
-    quickUrl: 'https://games4esl.com/teacher-tools/',
-  },
+    quickUrl: 'https://games4esl.com/teacher-tools/'},
   {
     platform: 'wordwall',
     icon: '🏆',
@@ -313,8 +284,7 @@ const GAME_HERO_QUICK_ITEMS = [
     descVi: 'Chạy iframe hoặc mở trực tiếp trên website.',
     desc: 'Run inside an iframe or open directly on the website.',
     tone: 'sky',
-    quickUrl: 'https://wordwall.net/community',
-  },
+    quickUrl: 'https://wordwall.net/community'},
   {
     platform: 'classtools',
     icon: '⚡',
@@ -322,9 +292,7 @@ const GAME_HERO_QUICK_ITEMS = [
     descVi: 'Hot seat, random picker, scoreboard và nhiều launcher khác.',
     desc: 'Hot seat, random picker, scoreboards and more launchers.',
     tone: 'peach',
-    quickUrl: 'https://www.classtools.net/',
-  },
-];
+    quickUrl: 'https://www.classtools.net/'}];
 
 function GamesHeroIllustration() {
   return (
@@ -545,9 +513,7 @@ function normalizeUrl(platform, value) {
       wordsearch: 'word-search-generator', 'word search': 'word-search-generator',
       bingo: 'bingo-card-generator', missing: 'missing-letter-worksheet-generator',
       unscramble: 'unscramble-worksheet-generator', scramble: 'scrambled-sentences', sentence: 'scrambled-sentences',
-      blank: 'fill-in-the-blank', cloze: 'fill-in-the-blank', writing: 'writing-practice-worksheet-generator',
-      group: 'random-group-generator', groups: 'random-group-generator', scoreboard: 'game-scoreboard', score: 'game-scoreboard',
-    };
+      blank: 'fill-in-the-blank', cloze: 'fill-in-the-blank', writing: 'writing-practice-worksheet-generator'};
     const hit = Object.entries(toolMap).find(([key]) => lowered.includes(key));
     if (hit) return `https://games4esl.com/teacher-tools/${hit[1]}/`;
     return makeSearchUrl(platform, raw);
@@ -561,19 +527,19 @@ function normalizeUrl(platform, value) {
   if (raw.startsWith('//')) return `https:${raw}`;
 
   if (platform === 'baamboozle') {
-    if (/^\d{3,}$/.test(raw)) return `https://www.baamboozle.com/game/${raw}`;
+    if (/^\d{3}$/.test(raw)) return `https://www.baamboozle.com/game/${raw}`;
     if (raw.startsWith('/')) return `https://www.baamboozle.com${raw}`;
     return makeSearchUrl(platform, raw);
   }
 
   if (platform === 'wordwall') {
-    if (/^\d{3,}$/.test(raw)) return `https://wordwall.net/resource/${raw}`;
+    if (/^\d{3}$/.test(raw)) return `https://wordwall.net/resource/${raw}`;
     if (raw.startsWith('/')) return `https://wordwall.net${raw}`;
     return makeSearchUrl(platform, raw);
   }
 
   if (platform === 'learningapps') {
-    if (/^[a-z0-9]{5,}$/i.test(raw)) return `https://learningapps.org/watch?v=${raw}`;
+    if (/^[a-z0-9]{5}$/i.test(raw)) return `https://learningapps.org/watch?v=${raw}`;
     if (raw.startsWith('/')) return `https://learningapps.org${raw}`;
     return makeSearchUrl(platform, raw);
   }
@@ -624,8 +590,7 @@ const GAMES_V44_LIBRARY = [
   { key: 'wordwall', icon: '◉', titleVi: 'Word Rush', title: 'Word Rush', descVi: 'Trả lời nhanh theo chủ đề và thời gian.', desc: 'Fast topic review against the clock.', tagVi: 'Từ vựng', tag: 'Vocabulary' },
   { key: 'kahoot', icon: '◆', titleVi: 'Quiz Arena', title: 'Quiz Arena', descVi: 'Trắc nghiệm nhanh với câu hỏi thách thức.', desc: 'Live quiz with fast challenge questions.', tagVi: 'Ngữ pháp', tag: 'Grammar' },
   { key: 'baamboozle', icon: '✦', titleVi: 'Team Battle', title: 'Team Battle', descVi: 'Thi đấu giữa các đội trong lớp học.', desc: 'Team-vs-team classroom competition.', tagVi: 'Thi đấu', tag: 'Battle' },
-  { key: 'learningapps', icon: '▦', titleVi: 'Memory Match', title: 'Memory Match', descVi: 'Ghép cặp và rèn trí nhớ từ vựng.', desc: 'Match pairs and strengthen vocabulary recall.', tagVi: 'Từ vựng', tag: 'Vocabulary' },
-];
+  { key: 'learningapps', icon: '▦', titleVi: 'Memory Match', title: 'Memory Match', descVi: 'Ghép cặp và rèn trí nhớ từ vựng.', desc: 'Match pairs and strengthen vocabulary recall.', tagVi: 'Từ vựng', tag: 'Vocabulary' }];
 
 const GAMES_V44_QUICK = [
   { key: 'classtools', icon: '♨', tone: 'green', titleVi: 'Dụng cụ khởi động', title: 'Warm-up tools', descVi: 'Nóng ghế, vòng quay, bảng điểm...', desc: 'Hot seat, spinner, scoreboard...', actionVi: 'Mở ngay', action: 'Open now' },
@@ -633,16 +598,14 @@ const GAMES_V44_QUICK = [
   { key: 'kahoot', icon: '?', tone: 'blue', titleVi: 'Trò chơi trắc nghiệm', title: 'Quiz games', descVi: 'Câu hỏi, quiz và kiểm tra nhanh.', desc: 'Questions, quizzes, and quick checks.', actionVi: 'Tạo quiz', action: 'Create quiz' },
   { key: 'classtools', icon: '⬡', tone: 'violet', titleVi: 'Bộ chọn ngẫu nhiên', title: 'Random picker', descVi: 'Chọn học sinh, nhóm và phần thưởng.', desc: 'Pick students, groups, and rewards.', actionVi: 'Chọn ngay', action: 'Choose now' },
   { key: 'genially', icon: '+', tone: 'sky', titleVi: 'Tạo trò chơi mới', title: 'Create a new game', descVi: 'Thiết kế trò chơi của riêng bạn.', desc: 'Design a game for your own class.', actionVi: '+ Tạo mới', action: '+ Create' },
-  { key: 'wordwall', icon: '♥', tone: 'rose', titleVi: 'Danh sách yêu thích', title: 'Favorites', descVi: 'Trò chơi và công cụ yêu thích.', desc: 'Favorite games and classroom tools.', actionVi: 'Xem ngay', action: 'View now' },
-];
+  { key: 'wordwall', icon: '♥', tone: 'rose', titleVi: 'Danh sách yêu thích', title: 'Favorites', descVi: 'Trò chơi và công cụ yêu thích.', desc: 'Favorite games and classroom tools.', actionVi: 'Xem ngay', action: 'View now' }];
 
 const GAMES_V44_RECENT = [
   { key: 'games4esl', title: 'Treasure Hunt', className: 'Lớp 6A', date: '10/06/2026', students: 24 },
   { key: 'wordwall', title: 'Word Rush', className: 'Lớp 6B', date: '10/06/2026', students: 28 },
   { key: 'kahoot', title: 'Quiz Arena', className: 'Lớp 7A', date: '09/06/2026', students: 26 },
   { key: 'baamboozle', title: 'Team Battle', className: 'Lớp 7B', date: '09/06/2026', students: 30 },
-  { key: 'learningapps', title: 'Memory Match', className: 'Lớp 6A', date: '08/06/2026', students: 23 },
-];
+  { key: 'learningapps', title: 'Memory Match', className: 'Lớp 6A', date: '08/06/2026', students: 23 }];
 
 function scrollGamesSection(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -659,8 +622,7 @@ function GamesV44Sidebar({ language, currentUser, onSelectPlatform, totalSaved }
     ['games-v44-workspace', '◇', 'Bộ chọn ngẫu nhiên', 'Random picker'],
     ['games-v44-recent', '◷', 'Phiên gần đây', 'Recent sessions'],
     ['games-v44-library', '☆', 'Yêu thích', 'Favorites'],
-    ['games-v44-workspace', '▱', 'Lớp học của tôi', 'My classes'],
-  ];
+    ['games-v44-workspace', '▱', 'Lớp học của tôi', 'My classes']];
   return (
     <aside className="games-v44-sidebar">
       <div className="games-v44-side-brand">
@@ -802,8 +764,7 @@ function getCustomGameStatusMeta(status, language) {
     private: { labelVi: 'Của tôi', label: 'Private', tone: 'private' },
     pending: { labelVi: 'Chờ TTCM duyệt', label: 'Pending review', tone: 'pending' },
     approved: { labelVi: 'Dùng chung', label: 'Shared', tone: 'approved' },
-    rejected: { labelVi: 'Chưa được duyệt', label: 'Not approved', tone: 'rejected' },
-  };
+    rejected: { labelVi: 'Chưa được duyệt', label: 'Not approved', tone: 'rejected' }};
   const item = map[status] || map.private;
   return { label: language === 'vi' ? item.labelVi : item.label, tone: item.tone };
 }
@@ -855,8 +816,7 @@ export default function Games({ language, currentUser }) {
       descriptionVi: item.descriptionVi || 'Trò chơi tùy chỉnh do bạn thêm vào bảng chọn.',
       descriptionEn: item.descriptionEn || 'A custom game added to your selection board.',
       quickLinks: [],
-      isCustom: true,
-    }]));
+      isCustom: true}]));
     return { ...PLATFORMS, ...customMap };
   }, [customGames]);
 

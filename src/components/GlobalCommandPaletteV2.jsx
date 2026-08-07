@@ -21,8 +21,7 @@ import {
   restoreCommandPreferences,
   scoreCommandEntry,
   setCommandShortcut,
-  toggleCommandPin,
-} from '../commandCenter/commandCenterCore.js';
+  toggleCommandPin} from '../commandCenter/commandCenterCore.js';
 import { collectRegisteredCommands } from '../commandCenter/commandRegistry.js';
 import './GlobalCommandPaletteV2.css';
 
@@ -37,18 +36,14 @@ const ROUTES = [
   { route: 'resource-library', vi: 'Kho học liệu', en: 'Resource Library', icon: '▥', color: '#2878D0' },
   { route: 'knowledge-hub', vi: 'Kho học liệu thông minh', en: 'Smart Knowledge', icon: 'K', color: '#315FC4' },
   { route: 'work-hub', vi: 'Trung tâm công việc', en: 'Work Hub', icon: 'WH', color: '#14866D' },
-  { route: 'assessment-core', vi: 'Ngân hàng câu hỏi', en: 'Assessment Core', icon: 'AC', color: '#CC7621' },
   { route: 'platform-readiness', vi: 'PWA, bảo mật & tiếp cận', en: 'Platform Readiness', icon: 'PR', color: '#0F766E' },
-  { route: 'automation-center', vi: 'Trung tâm tự động hóa', en: 'Automation Center', icon: 'AU', color: '#1269B0' },
   { route: 'cloud-operations', vi: 'Vận hành nền 24/7', en: 'Cloud Operations', icon: 'CO', color: '#167B68' },
-  { route: 'collaboration-hub', vi: 'Không gian cộng tác', en: 'Collaboration Hub', icon: 'CH', color: '#315FC4' },
   { route: 'data-governance', vi: 'Quản trị dữ liệu', en: 'Data Governance', icon: 'DG', color: '#A24B35' },
   { route: 'production-hardening', vi: 'Sẵn sàng Production', en: 'Production Hardening', icon: 'PH', color: '#0F766E', leaderOnly: true },
   { route: 'practice', vi: 'Lớp học', en: 'Classroom', icon: '⚡', color: '#00A4EF' },
   { route: 'settings', vi: 'Cài đặt', en: 'Settings', icon: '⚙', color: '#123C69' },
   { route: 'app-vault', vi: 'Ứng dụng đã ẩn', en: 'Hidden Apps Vault', icon: 'HV', color: '#684CC6', adminOnly: true },
-  { route: 'admin', vi: 'Quản trị', en: 'Admin', icon: '☼', color: '#D13438', adminOnly: true },
-];
+  { route: 'admin', vi: 'Quản trị', en: 'Admin', icon: '☼', color: '#D13438', adminOnly: true }];
 
 const copy = {
   vi: {
@@ -58,8 +53,7 @@ const copy = {
     empty: 'Không tìm thấy kết quả phù hợp.', current: 'Đang mở', route: 'Trang', tool: 'Ứng dụng', command: 'Lệnh',
     class: 'Lớp', student: 'Học sinh', help: 'Trợ giúp', loading: 'Đang lập chỉ mục dữ liệu cục bộ…', local: 'Chỉ mục cục bộ',
     chooseClass: 'Chọn lớp', back: 'Quay lại', pin: 'Ghim', unpin: 'Bỏ ghim', quickActions: 'Tác vụ nhanh',
-    confirm: 'Xác nhận', cancel: 'Hủy', undo: 'Hoàn tác', historyCleared: 'Đã xóa lịch sử Command K.',
-  },
+    confirm: 'Xác nhận', cancel: 'Hủy', undo: 'Hoàn tác', historyCleared: 'Đã xóa lịch sử Command K.'},
   en: {
     placeholder: 'Search apps, classes, students or commands…', title: 'Brian Command Center',
     hint: '↑↓ select · Enter open · Tab actions · ⌘P pin · > @ # / to filter',
@@ -67,9 +61,7 @@ const copy = {
     empty: 'No matching results.', current: 'Current', route: 'Page', tool: 'App', command: 'Command',
     class: 'Class', student: 'Student', help: 'Help', loading: 'Indexing local data…', local: 'Local index',
     chooseClass: 'Choose a class', back: 'Back', pin: 'Pin', unpin: 'Unpin', quickActions: 'Quick actions',
-    confirm: 'Confirm', cancel: 'Cancel', undo: 'Undo', historyCleared: 'Command K history cleared.',
-  },
-};
+    confirm: 'Confirm', cancel: 'Cancel', undo: 'Undo', historyCleared: 'Command K history cleared.'}};
 
 function canUse(entry, currentUser, visibilitySnapshot) {
   if (!currentUser) return entry.route === 'home';
@@ -86,8 +78,7 @@ function decorateEntry(entry) {
   return {
     ...entry,
     normalizedTitle: entry.normalizedTitle || normalizeCommandText(entry.title),
-    normalizedKeywords: entry.normalizedKeywords || normalizeCommandText(`${entry.keywords || ''} ${entry.subtitle || ''}`),
-  };
+    normalizedKeywords: entry.normalizedKeywords || normalizeCommandText(`${entry.keywords || ''} ${entry.subtitle || ''}`)};
 }
 
 function buildNavigationEntries(language, currentUser, visibilitySnapshot) {
@@ -96,8 +87,7 @@ function buildNavigationEntries(language, currentUser, visibilitySnapshot) {
     title: language === 'vi' ? item.vi : item.en,
     subtitle: language === 'vi' ? 'Trang hệ thống' : 'System page',
     icon: item.icon, color: item.color, adminOnly: item.adminOnly, leaderOnly: item.leaderOnly, priority: 8,
-    keywords: `${item.vi} ${item.en} ${item.route}`,
-  }));
+    keywords: `${item.vi} ${item.en} ${item.route}`}));
   const toolEntries = (Array.isArray(APPS) ? APPS : [])
     .filter((app) => app && (app.slug || app.route))
     .map((app) => {
@@ -109,8 +99,7 @@ function buildNavigationEntries(language, currentUser, visibilitySnapshot) {
         title: language === 'vi' ? app.titleVi || app.title || fallbackTitle : app.title || app.titleVi || fallbackTitle,
         subtitle: language === 'vi' ? app.descVi || app.desc || '' : app.desc || app.descVi || '',
         icon: String(app.icon || fallbackTitle || 'AP').slice(0, 2).toUpperCase(), color: profile?.accent || '#191515', priority: 7,
-        keywords: `${app.slug || ''} ${app.route || ''} ${app.title || ''} ${app.titleVi || ''} ${app.desc || ''} ${app.descVi || ''}`,
-      });
+        keywords: `${app.slug || ''} ${app.route || ''} ${app.title || ''} ${app.titleVi || ''} ${app.desc || ''} ${app.descVi || ''}`});
     });
   return [...routeEntries, ...toolEntries]
     .filter((entry) => entry?.id && entry?.title)
@@ -165,8 +154,7 @@ function installStudentQueryBridge() {
 }
 
 export default function GlobalCommandPaletteV2({
-  language = 'vi', currentUser, currentRoute = 'home', selectedTool = null, appVisibility: externalAppVisibility,
-}) {
+  language = 'vi', currentUser, currentRoute = 'home', selectedTool = null, appVisibility: externalAppVisibility}) {
   const t = copy[language] || copy.vi;
   const appVisibility = externalAppVisibility && typeof externalAppVisibility === 'object' ? externalAppVisibility : { snapshot: {} };
   const [open, setOpen] = useState(false);
@@ -458,8 +446,7 @@ export default function GlobalCommandPaletteV2({
     }
     recordAppUsage(currentUser, {
       id: entry.id, target: entry.target, title: entry.title, titleVi: entry.title,
-      icon: entry.icon, color: entry.color, kind: entry.kind,
-    });
+      icon: entry.icon, color: entry.color, kind: entry.kind});
     launchRoute({ target: entry.target, label: String(entry.icon || entry.title || 'GO').slice(0, 2), color: entry.color || '#191515' });
   };
   runEntryRef.current = runEntry;
@@ -480,7 +467,7 @@ export default function GlobalCommandPaletteV2({
     persistPreferences(next);
   };
 
-  const shortcutFor = (entryId) => Object.entries(preferences.shortcuts || {}).find(([, id]) => id === entryId)?.[0] || '';
+  const shortcutFor = (entryId) => Object.entries(preferences.shortcuts || {}).find(([ id]) => id === entryId)?.[0] || '';
 
   const onInputKeyDown = (event) => {
     if ((event.metaKey || event.ctrlKey) && String(event.key).toLowerCase() === 'p') {

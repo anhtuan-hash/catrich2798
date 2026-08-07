@@ -8,16 +8,11 @@ export const DEFAULT_LAUNCHER_GROUPS = [
   { id: 'plan', label: 'Planning', labelVi: 'Soạn bài', accent: '#E86D1F' },
   { id: 'create', label: 'Creation', labelVi: 'Tạo học liệu', accent: '#F05A7E' },
   { id: 'assess', label: 'Assessment', labelVi: 'Kiểm tra', accent: '#123C69' },
-  { id: 'manage', label: 'Workspace', labelVi: 'Quản lý', accent: '#3B4CCA' },
-];
+  { id: 'manage', label: 'Workspace', labelVi: 'Quản lý', accent: '#3B4CCA' }];
 
 const DEFAULT_PINNED = [
   'resource-library-hub',
-  'lesson-plan-ai',
-  'textlab-activities',
-  'exam-studio',
-  'reading-studio',
-];
+  'textlab-activities'];
 
 const DEFAULT_ASSIGNMENTS = {};
 
@@ -46,8 +41,7 @@ const RETIRED_LAUNCHER_IDS = new Set([
   'route:library',
   'library-hub',
   'route:practice',
-  'practice-hub',
-]);
+  'practice-hub']);
 
 const DEFAULT_NAV = [
   'route:home',
@@ -55,8 +49,7 @@ const DEFAULT_NAV = [
   'route:news',
   'route:games',
   'route:homeroom',
-  'route:resource-library',
-];
+  'route:resource-library'];
 
 function safeStorageGet(key) {
   if (typeof window === 'undefined') return null;
@@ -106,8 +99,7 @@ export function createDefaultLauncherConfig(itemIds = []) {
     groups: DEFAULT_LAUNCHER_GROUPS.map((group) => ({ ...group })),
     assignments,
     launcherStyle: 'radial',
-    updatedAt: Date.now(),
-  };
+    updatedAt: Date.now()};
 }
 
 function cleanIdList(value, allowed = null) {
@@ -144,8 +136,7 @@ function cleanGroups(groups) {
       id,
       label: String(safeGroup.label || safeGroup.labelVi || `Group ${index + 1}`).trim().slice(0, 40),
       labelVi: String(safeGroup.labelVi || safeGroup.label || `Nhóm ${index + 1}`).trim().slice(0, 40),
-      accent: /^#[0-9a-f]{6}$/i.test(String(safeGroup.accent || '')) ? String(safeGroup.accent) : fallback.accent,
-    };
+      accent: /^#[0-9a-f]{6}$/i.test(String(safeGroup.accent || '')) ? String(safeGroup.accent) : fallback.accent};
   });
 }
 
@@ -183,8 +174,7 @@ export function normalizeLauncherConfig(raw, itemIds = []) {
     groups,
     assignments,
     launcherStyle,
-    updatedAt: Number(source.updatedAt) || Date.now(),
-  };
+    updatedAt: Number(source.updatedAt) || Date.now()};
 }
 
 function persistLocal(config) {
@@ -276,8 +266,7 @@ export function subscribeLauncherConfig(callback, itemIds = []) {
       channel = supabase
         .channel('bes-launcher-settings-v1085')
         .on('postgres_changes', {
-          event: '*', schema: 'public', table: 'bes_launcher_settings', filter: `id=eq.${LAUNCHER_CLOUD_ROW_ID}`,
-        }, (payload) => {
+          event: '*', schema: 'public', table: 'bes_launcher_settings', filter: `id=eq.${LAUNCHER_CLOUD_ROW_ID}`}, (payload) => {
           const decoded = decodeConfig(payload?.new?.config);
           if (!decoded) return;
           const normalized = normalizeLauncherConfig(decoded, itemIds);

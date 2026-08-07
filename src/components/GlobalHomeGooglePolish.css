@@ -1,7 +1,7 @@
 /* English Hub · Google Material 3 polish for the existing Home composition.
    The original card layout and launch logic are preserved. */
 
-:root {
+:root{
   --eh-primary: #0b57d0;
   --eh-primary-container: #d3e3fd;
   --eh-on-primary-container: #041e49;
@@ -14,14 +14,14 @@
 }
 
 /* Visible brand rename without changing the app routes or data model. */
-body .brian-nav__brand > span {
+body .brian-nav__brand > span{
   position: relative !important;
   min-width: 96px !important;
   font-size: 0 !important;
   line-height: 1 !important;
 }
 
-body .brian-nav__brand > span::after {
+body .brian-nav__brand > span::after{
   content: 'English Hub';
   display: inline-block;
   color: var(--eh-on-surface);
@@ -31,7 +31,7 @@ body .brian-nav__brand > span::after {
   white-space: nowrap;
 }
 
-body .brian-overlap-home {
+body .brian-overlap-home{
   background:
     radial-gradient(circle at 74% 8%, rgba(211, 227, 253, .58), transparent 25%),
     radial-gradient(circle at 18% 76%, rgba(230, 244, 234, .62), transparent 24%),
@@ -39,18 +39,18 @@ body .brian-overlap-home {
   color: var(--eh-on-surface) !important;
 }
 
-body .brian-overlap-home .boh-hero {
+body .brian-overlap-home .boh-hero{
   background:
     linear-gradient(90deg, rgba(255,255,255,.96) 0 39%, rgba(248,250,253,.86) 58%, rgba(248,250,253,.76) 100%) !important;
   border: 0 !important;
   box-shadow: inset 0 -1px 0 rgba(60, 64, 67, .08) !important;
 }
 
-body .brian-overlap-home .boh-copy-panel {
+body .brian-overlap-home .boh-copy-panel{
   padding-top: clamp(40px, 5.5vw, 76px) !important;
 }
 
-body .brian-overlap-home .boh-welcome {
+body .brian-overlap-home .boh-welcome{
   width: fit-content !important;
   max-width: 100% !important;
   padding: 12px 16px !important;
@@ -60,7 +60,7 @@ body .brian-overlap-home .boh-welcome {
   box-shadow: none !important;
 }
 
-body .brian-overlap-home .boh-welcome > span {
+body .brian-overlap-home .boh-welcome > span{
   width: 32px !important;
   height: 32px !important;
   display: grid !important;
@@ -70,16 +70,16 @@ body .brian-overlap-home .boh-welcome > span {
   color: #137333 !important;
 }
 
-body .brian-overlap-home .boh-welcome strong {
+body .brian-overlap-home .boh-welcome strong{
   color: #174d2c !important;
   font-weight: 700 !important;
 }
 
-body .brian-overlap-home .boh-welcome small {
+body .brian-overlap-home .boh-welcome small{
   color: #4d6857 !important;
 }
 
-body .brian-overlap-home .boh-eyebrow {
+body .brian-overlap-home .boh-eyebrow{
   display: inline-flex !important;
   align-items: center !important;
   min-height: 32px !important;
@@ -92,7 +92,7 @@ body .brian-overlap-home .boh-eyebrow {
   letter-spacing: 0 !important;
 }
 
-body .brian-overlap-home .boh-eyebrow::after {
+body .brian-overlap-home .boh-eyebrow::after{
   content: 'ENGLISH HUB';
   color: var(--eh-on-primary-container);
   font-size: .74rem;
@@ -100,14 +100,14 @@ body .brian-overlap-home .boh-eyebrow::after {
   letter-spacing: .12em;
 }
 
-body .brian-overlap-home .boh-copy-panel > h1 {
+body .brian-overlap-home .boh-copy-panel > h1{
   margin-bottom: 20px !important;
   color: transparent !important;
   font-size: 0 !important;
   line-height: 1 !important;
 }
 
-body .brian-overlap-home .boh-copy-panel > h1::after {
+body .brian-overlap-home .boh-copy-panel > h1::after{
   content: 'English Hub';
   display: block;
   color: var(--eh-on-surface);
@@ -117,25 +117,25 @@ body .brian-overlap-home .boh-copy-panel > h1::after {
   letter-spacing: -.065em;
 }
 
-body .brian-overlap-home .boh-copy-panel > h2 {
+body .brian-overlap-home .boh-copy-panel > h2{
   max-width: 620px !important;
   color: #185abc !important;
   font-weight: 620 !important;
   letter-spacing: -.045em !important;
 }
 
-body .brian-overlap-home .boh-subtitle {
+body .brian-overlap-home .boh-subtitle{
   max-width: 620px !important;
   color: var(--eh-on-surface-variant) !important;
   font-weight: 500 !important;
   line-height: 1.58 !important;
 }
 
-body .brian-overlap-home .boh-actions {
+body .brian-overlap-home .boh-actions{
   gap: 12px !important;
 }
 
-body .brian-overlap-home .boh-actions button {
+body .brian-overlap-home .boh-actions button{
   min-height: 52px !important;
   padding: 0 22px !important;
   border-radius: 999px !important;
@@ -145,34 +145,34 @@ body .brian-overlap-home .boh-actions button {
   transition: background-color .18s ease, box-shadow .18s ease, transform .18s ease !important;
 }
 
-body .brian-overlap-home .boh-actions button.is-primary {
+body .brian-overlap-home .boh-actions button.is-primary{
   border-color: var(--eh-primary) !important;
   background: var(--eh-primary) !important;
   color: #fff !important;
 }
 
-body .brian-overlap-home .boh-actions button.is-primary:hover {
+body .brian-overlap-home .boh-actions button.is-primary:hover{
   background: #0842a0 !important;
   box-shadow: 0 4px 12px rgba(11, 87, 208, .24) !important;
   transform: translateY(-1px) !important;
 }
 
-body .brian-overlap-home .boh-actions button.is-secondary {
+body .brian-overlap-home .boh-actions button.is-secondary{
   border-color: var(--eh-outline) !important;
   background: var(--eh-surface) !important;
   color: #185abc !important;
 }
 
-body .brian-overlap-home .boh-actions button.is-secondary:hover {
+body .brian-overlap-home .boh-actions button.is-secondary:hover{
   background: #f0f4f9 !important;
   border-color: #c6d2e2 !important;
 }
 
-body .brian-overlap-home .boh-trust-row {
+body .brian-overlap-home .boh-trust-row{
   gap: 8px 10px !important;
 }
 
-body .brian-overlap-home .boh-trust-row > span {
+body .brian-overlap-home .boh-trust-row > span{
   min-height: 38px !important;
   padding: 0 12px !important;
   border-radius: 999px !important;
@@ -181,7 +181,7 @@ body .brian-overlap-home .boh-trust-row > span {
   box-shadow: inset 0 0 0 1px rgba(60,64,67,.09) !important;
 }
 
-body .brian-overlap-home .boh-overview {
+body .brian-overlap-home .boh-overview{
   border: 1px solid var(--eh-outline) !important;
   border-radius: 24px !important;
   background: rgba(255,255,255,.94) !important;
@@ -190,34 +190,34 @@ body .brian-overlap-home .boh-overview {
 }
 
 body .brian-overlap-home .boh-overview header,
-body .brian-overlap-home .boh-overview footer {
+body .brian-overlap-home .boh-overview footer{
   border-color: rgba(60,64,67,.09) !important;
 }
 
 body .brian-overlap-home .boh-overview header > span,
-body .brian-overlap-home .boh-overview footer button {
+body .brian-overlap-home .boh-overview footer button{
   border-radius: 999px !important;
   border: 0 !important;
   background: #eef3fd !important;
   color: #185abc !important;
 }
 
-body .brian-overlap-home .boh-overview-metric {
+body .brian-overlap-home .boh-overview-metric{
   border: 0 !important;
   border-radius: 18px !important;
   background: #f8fafd !important;
   box-shadow: inset 0 0 0 1px rgba(60,64,67,.07) !important;
 }
 
-body .brian-overlap-home .boh-stage-orbit {
+body .brian-overlap-home .boh-stage-orbit{
   opacity: .42 !important;
 }
 
-body .brian-overlap-home .boh-stage-dots {
+body .brian-overlap-home .boh-stage-dots{
   opacity: .32 !important;
 }
 
-body .brian-overlap-home .boh-stage .boh-card {
+body .brian-overlap-home .boh-stage .boh-card{
   border: 1px solid rgba(60,64,67,.13) !important;
   border-radius: 26px !important;
   box-shadow:
@@ -228,43 +228,44 @@ body .brian-overlap-home .boh-stage .boh-card {
   transition: transform .2s cubic-bezier(.2,0,0,1), box-shadow .2s ease !important;
 }
 
-body .brian-overlap-home .boh-stage .boh-card:hover {
+body .brian-overlap-home .boh-stage .boh-card:hover{
   transform: translate(var(--eh-shift-x, 0px), calc(var(--eh-shift-y, 0px) - 5px)) rotate(0deg) !important;
   box-shadow:
     0 2px 6px rgba(60,64,67,.14),
     0 18px 40px rgba(60,64,67,.17) !important;
 }
 
-body .brian-overlap-home .boh-card-chrome {
+body .brian-overlap-home .boh-card-chrome{
   min-height: 44px !important;
   border-radius: 25px 25px 0 0 !important;
   box-shadow: none !important;
 }
 
-body .brian-overlap-home .boh-card-body {
+body .brian-overlap-home .boh-card-body{
   background: color-mix(in srgb, var(--card-soft, #fff) 82%, #fff 18%) !important;
 }
 
 body .brian-overlap-home .boh-card-copy strong,
-body .brian-overlap-home .boh-feature-title {
+body .brian-overlap-home .boh-feature-title{
   color: #25311f !important;
   font-weight: 700 !important;
   letter-spacing: -.035em !important;
 }
 
 body .brian-overlap-home .boh-card-copy small,
-body .brian-overlap-home .boh-feature-description {
+body .brian-overlap-home .boh-feature-description{
   color: #536477 !important;
   font-weight: 500 !important;
 }
 
 body .brian-overlap-home .boh-card-copy em,
-body .brian-overlap-home .boh-card-arrow {
+body .brian-overlap-home .boh-card-arrow{
   font-weight: 700 !important;
 }
 
-/* Keep every card in its approved location, but tighten the cluster slightly. */
-@media (min-width: 1000px) {
+/* Keep every card in its approved location,
+but tighten the cluster slightly. */
+@media (min-width: 1000px){
   body .brian-overlap-home .boh-card-textcare { --eh-shift-x: 14px; --eh-shift-y: 18px; }
   body .brian-overlap-home .boh-card-exam-studio { --eh-shift-x: 24px; --eh-shift-y: -4px; }
   body .brian-overlap-home .boh-card-lesson-plan-ai { --eh-shift-x: -24px; --eh-shift-y: 0px; }
@@ -275,17 +276,17 @@ body .brian-overlap-home .boh-card-arrow {
 }
 
 @media (max-width: 999px) and (min-width: 701px) {
-  body .brian-overlap-home .boh-stage .boh-card {
+  body .brian-overlap-home .boh-stage .boh-card{
     --eh-shift-x: 0px;
     --eh-shift-y: -6px;
   }
 }
 
-html[data-theme='dark'] body .brian-nav__brand > span::after {
+html[data-theme='dark'] body .brian-nav__brand > span::after{
   color: #e3e3e3;
 }
 
-html[data-theme='dark'] body .brian-overlap-home {
+html[data-theme='dark'] body .brian-overlap-home{
   --eh-surface: #202124;
   --eh-surface-low: #17191c;
   --eh-surface-mid: #2a2d31;
@@ -295,26 +296,26 @@ html[data-theme='dark'] body .brian-overlap-home {
   background: #17191c !important;
 }
 
-html[data-theme='dark'] body .brian-overlap-home .boh-hero {
+html[data-theme='dark'] body .brian-overlap-home .boh-hero{
   background: linear-gradient(90deg, rgba(32,33,36,.98), rgba(27,29,32,.94)) !important;
 }
 
-html[data-theme='dark'] body .brian-overlap-home .boh-copy-panel > h1::after {
+html[data-theme='dark'] body .brian-overlap-home .boh-copy-panel > h1::after{
   color: #e8eaed;
 }
 
-html[data-theme='dark'] body .brian-overlap-home .boh-copy-panel > h2 {
+html[data-theme='dark'] body .brian-overlap-home .boh-copy-panel > h2{
   color: #a8c7fa !important;
 }
 
 html[data-theme='dark'] body .brian-overlap-home .boh-overview,
-html[data-theme='dark'] body .brian-overlap-home .boh-trust-row > span {
+html[data-theme='dark'] body .brian-overlap-home .boh-trust-row > span{
   background: rgba(32,33,36,.9) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
   body .brian-overlap-home .boh-stage .boh-card,
-  body .brian-overlap-home .boh-actions button {
+body .brian-overlap-home .boh-actions button{
     transition: none !important;
   }
 }

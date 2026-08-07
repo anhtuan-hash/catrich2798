@@ -12,45 +12,13 @@ export const AI_ACTIONS = Object.freeze({
     title: 'Use in current app',
     titleVi: 'Dùng trong ứng dụng hiện tại',
     desc: 'Insert the answer into the active editor or input.',
-    descVi: 'Đưa câu trả lời vào vùng soạn thảo đang mở.',
-  },  'exam-studio': {
-    id: 'exam-studio',
-    target: 'exam-studio',
-    icon: 'EX',
-    title: 'Send to Exam Studio',
-    titleVi: 'Gửi sang Exam Studio',
-    desc: 'Use the answer as a question-set or exam source.',
-    descVi: 'Dùng câu trả lời làm nguồn tạo câu hỏi hoặc đề kiểm tra.',
-    hash: '#/tool/exam-studio',
-  },
-  'word2graph': {
-    id: 'word2graph',
-    target: 'word2graph',
-    icon: 'WG',
-    title: 'Build WordGraph',
-    titleVi: 'Tạo WordGraph',
-    desc: 'Turn vocabulary and relationships into a WordGraph source.',
-    descVi: 'Chuyển từ vựng và quan hệ từ thành nguồn WordGraph.',
-    hash: '#/tool/word2graph',
-  },
-  library: {
-    id: 'library',
-    target: 'library',
-    icon: '▤',
-    title: 'Save to Library',
-    titleVi: 'Lưu vào Thư viện',
-    desc: 'Save the answer as a reusable private library item.',
-    descVi: 'Lưu câu trả lời thành học liệu riêng có thể tái sử dụng.',
-    hash: '#/library',
-  },
-});
+    descVi: 'Đưa câu trả lời vào vùng soạn thảo đang mở.'});
 
 function localized(action, language = 'vi') {
   return {
     ...action,
     label: language === 'vi' ? action.titleVi : action.title,
-    description: language === 'vi' ? action.descVi : action.desc,
-  };
+    description: language === 'vi' ? action.descVi : action.desc};
 }
 
 function hasAny(text, terms) {
@@ -72,8 +40,6 @@ export function buildAiActionSuggestions({ message = '', currentRoute = '', sele
 
   add('current-app', 100);
   add('library', 45);
-  add('exam-studio', hasAny(text, ['answer:', 'đáp án', 'a.', 'b.', 'multiple choice', 'trắc nghiệm', 'test']) ? 90 : 50);
-  add('word2graph', hasAny(text, ['vocabulary', 'word family', 'collocation', 'synonym', 'từ vựng', 'nghĩa', 'phát âm']) ? 88 : 42);
 
   return ranked.sort((a, b) => b.score - a.score).slice(0, 5).map(({ score, ...action }) => action);
 }
@@ -85,8 +51,7 @@ function insertIntoCurrentApp(text, context = {}) {
     toolSlug: context.selectedTool?.slug || '',
     messageId: context.messageId || '',
     handled: false,
-    markHandled() { this.handled = true; },
-  };
+    markHandled() { this.handled = true; }};
   window.dispatchEvent(new CustomEvent('bes-ai-use-result', { detail }));
   if (detail.handled) return { ok: true, mode: 'event' };
 
@@ -127,9 +92,7 @@ export function prepareAiAction(actionId, payload = {}, context = {}) {
       currentRoute: context.currentRoute || '',
       selectedTool: context.selectedTool || null,
       currentUser: context.currentUser || null,
-      language,
-    },
-  };
+      language}};
 }
 
 export async function executeAiAction(plan) {
@@ -153,8 +116,7 @@ export async function executeAiAction(plan) {
         sourceApp: 'brian-ai',
         sourceAppTitle: 'Brian AI',
         tags: ['Brian AI', 'AI Action'],
-        metadata: { route: plan.context.currentRoute, tool: plan.context.selectedTool?.slug || '', messageId: plan.messageId },
-      });
+        metadata: { route: plan.context.currentRoute, tool: plan.context.selectedTool?.slug || '', messageId: plan.messageId }});
       result = { ok: true, itemId: item.id, hash: '#/library' };
     } else {
       const transfer = createTransfer(plan.context.currentUser, {
@@ -169,9 +131,7 @@ export async function executeAiAction(plan) {
           tool: plan.context.selectedTool?.slug || '',
           messageId: plan.messageId,
           actionId: action.id,
-          actionPlanId: plan.id,
-        },
-      });
+          actionPlanId: plan.id}});
       if (!transfer) throw new Error('Could not create the cross-app transfer.');
       result = { ok: true, transferId: transfer.id, hash: action.hash };
     }

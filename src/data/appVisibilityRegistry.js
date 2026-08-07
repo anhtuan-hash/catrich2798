@@ -7,17 +7,14 @@ export const ROUTE_APP_SHORTCUTS = [
     title: 'Homeroom Teacher', titleVi: 'Giáo viên chủ nhiệm',
     desc: 'Learning analytics, subject feedback, team competition, family/student portals and school-wide summaries.',
     descVi: 'Phân tích học tập, nhận xét bộ môn, thi đua, cổng phụ huynh/học sinh và thống kê toàn trường.',
-    status: 'Phase 2 · Connected', statusVi: 'GVCN · Liên thông',
-  },
+    status: 'Phase 2 · Connected', statusVi: 'GVCN · Liên thông'},
   {
     slug: 'admin-hub', route: 'admin', icon: 'AD', tone: 'red',
     group: 'Administration', groupVi: 'Quản trị',
     title: 'Admin', titleVi: 'Quản trị',
     desc: 'Manage users, permissions, system configuration and activity logs.',
     descVi: 'Quản lý người dùng, vai trò, quyền truy cập và cấu hình hệ thống.',
-    status: 'Control room', statusVi: 'Trung tâm điều khiển', adminOnly: true, hideable: false,
-  },
-];
+    status: 'Control room', statusVi: 'Trung tâm điều khiển', adminOnly: true, hideable: false}];
 
 export const HIDDEN_APPS_FOLDER = {
   slug: 'hidden-apps-vault',
@@ -33,8 +30,7 @@ export const HIDDEN_APPS_FOLDER = {
   status: 'Admin only · Visibility control',
   statusVi: 'Chỉ Admin · Kiểm soát hiển thị',
   adminOnly: true,
-  hideable: false,
-};
+  hideable: false};
 
 export function appVisibilityId(item) {
   if (!item) return '';
@@ -51,8 +47,7 @@ function normalizeCatalogItem(item, source) {
     id,
     source,
     target: item.route ? `#/${item.route}` : `#/tool/${item.slug}`,
-    hideable: item.hideable !== false && !item.adminOnly,
-  };
+    hideable: item.hideable !== false && !item.adminOnly};
 }
 
 export function getAppVisibilityCatalog() {
@@ -60,8 +55,7 @@ export function getAppVisibilityCatalog() {
     ...APPS.map((item) => normalizeCatalogItem(item, 'apps')),
     ...GAME_APPS.map((item) => normalizeCatalogItem(item, 'games')),
     ...SPECIAL_TOOLS.map((item) => normalizeCatalogItem(item, 'tools')),
-    ...ROUTE_APP_SHORTCUTS.map((item) => normalizeCatalogItem({ ...item, routeOnly: true }, 'routes')),
-  ];
+    ...ROUTE_APP_SHORTCUTS.map((item) => normalizeCatalogItem({ ...item, routeOnly: true }, 'routes'))];
   const seen = new Set();
   return merged.filter((item) => {
     if (!item.id || seen.has(item.id)) return false;

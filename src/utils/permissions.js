@@ -14,19 +14,14 @@ export const ROUTE_PERMISSION_IDS = {
   'knowledge-hub': 'route:knowledge-hub',
   dashboard: 'route:dashboard',
   'work-hub': 'route:work-hub',
-  'content-ecosystem': 'route:content-ecosystem',
-  'assessment-core': 'route:assessment-core',
   'platform-readiness': 'route:platform-readiness',
-  'automation-center': 'route:automation-center',
   'cloud-operations': 'route:cloud-operations',
-  'collaboration-hub': 'route:collaboration-hub',
   'data-governance': 'route:data-governance',
   'production-hardening': 'route:production-hardening',
   'app-vault': 'route:app-vault',
   qa: 'route:qa',
   settings: 'route:settings',
-  homeroom: HOMEROOM_PERMISSION_ID,
-};
+  homeroom: HOMEROOM_PERMISSION_ID};
 
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup']);
 const RETIRED_ROUTES = new Set(['library', 'practice']);
@@ -34,8 +29,7 @@ const RETIRED_ROUTES = new Set(['library', 'practice']);
 const SECTION_BY_SLUG = new Map([
   ...APPS.map((item) => [item.slug, 'apps']),
   ...GAME_APPS.map((item) => [item.slug, 'games']),
-  ...SPECIAL_TOOLS.map((item) => [item.slug, 'tools']),
-]);
+  ...SPECIAL_TOOLS.map((item) => [item.slug, 'tools'])]);
 
 const TOOL_BY_SLUG = new Map([...APPS, ...GAME_APPS, ...SPECIAL_TOOLS].map((item) => [item.slug, item]));
 
@@ -48,8 +42,7 @@ export const CORE_PERMISSION_ITEMS = [
     title: 'Department Resource Library',
     titleVi: 'Kho học liệu Tổ Tiếng Anh',
     desc: 'Upload, review and search shared English teaching resources stored on the department leader’s Google Drive.',
-    descVi: 'Tải lên, duyệt và tìm kiếm học liệu dùng chung lưu trên Google Drive của TTCM.',
-  },
+    descVi: 'Tải lên, duyệt và tìm kiếm học liệu dùng chung lưu trên Google Drive của TTCM.'},
   {
     id: ROUTE_PERMISSION_IDS['knowledge-hub'],
     type: 'content',
@@ -57,8 +50,7 @@ export const CORE_PERMISSION_ITEMS = [
     title: 'Smart Knowledge Library',
     titleVi: 'Kho học liệu thông minh',
     desc: 'Search, classify, favorite and organize approved resources.',
-    descVi: 'Tìm kiếm, phân loại, yêu thích và tổ chức học liệu đã duyệt.',
-  },
+    descVi: 'Tìm kiếm, phân loại, yêu thích và tổ chức học liệu đã duyệt.'},
   {
     id: ROUTE_PERMISSION_IDS.dashboard,
     type: 'content',
@@ -66,8 +58,7 @@ export const CORE_PERMISSION_ITEMS = [
     title: 'Work Dashboard',
     titleVi: 'Bảng điều hành',
     desc: 'View role-aware schedules, action items, approvals and department summaries.',
-    descVi: 'Xem lịch, việc cần xử lý, phê duyệt và tổng hợp tổ chuyên môn theo vai trò.',
-  },
+    descVi: 'Xem lịch, việc cần xử lý, phê duyệt và tổng hợp tổ chuyên môn theo vai trò.'},
   {
     id: ROUTE_PERMISSION_IDS['work-hub'],
     type: 'content',
@@ -75,43 +66,31 @@ export const CORE_PERMISSION_ITEMS = [
     title: 'Unified Work Hub',
     titleVi: 'Trung tâm công việc',
     desc: 'Manage tasks, submissions, feedback and approvals.',
-    descVi: 'Quản lí nhiệm vụ, sản phẩm nộp, phản hồi và phê duyệt.',
-  },
+    descVi: 'Quản lí nhiệm vụ, sản phẩm nộp, phản hồi và phê duyệt.'},
   {
-    id: ROUTE_PERMISSION_IDS['content-ecosystem'],
     type: 'content',
     section: 'content',
     title: 'Teaching Content Ecosystem',
-    titleVi: 'Hệ sinh thái nội dung dạy học',
     desc: 'Manage reusable assets, structured canvases, production recipes and connected content kits.',
-    descVi: 'Quản lí tài sản tái sử dụng, canvas theo khối, dây chuyền sản xuất và bộ nội dung liên thông.',
-  },
+    descVi: 'Quản lí tài sản tái sử dụng, canvas theo khối, dây chuyền sản xuất và bộ nội dung liên thông.'},
   {
-    id: ROUTE_PERMISSION_IDS['assessment-core'],
     type: 'content',
     section: 'content',
     title: 'Assessment Core',
-    titleVi: 'Ngân hàng câu hỏi và đề thi',
-    desc: 'Manage question banks, blueprints and test versions.',
-    descVi: 'Quản lí ngân hàng câu hỏi, blueprint và mã đề.',
-  },  {
+    desc: 'Manage question banks, blueprints and test versions.'},  {
     id: ROUTE_PERMISSION_IDS['platform-readiness'],
     type: 'system',
     section: 'content',
     title: 'Platform Readiness',
     titleVi: 'PWA, bảo mật và khả năng tiếp cận',
     desc: 'Install the PWA and review security, accessibility and performance readiness.',
-    descVi: 'Cài PWA và kiểm tra trạng thái bảo mật, khả năng tiếp cận và hiệu năng.',
-  },
+    descVi: 'Cài PWA và kiểm tra trạng thái bảo mật, khả năng tiếp cận và hiệu năng.'},
   {
-    id: ROUTE_PERMISSION_IDS['automation-center'],
     type: 'content',
     section: 'operations',
     title: 'Automation Center',
-    titleVi: 'Trung tâm tự động hóa',
     desc: 'Create automation rules, approve actions and review operational audit logs.',
-    descVi: 'Tạo quy tắc tự động hóa, phê duyệt hành động và xem nhật ký vận hành.',
-  },
+    descVi: 'Tạo quy tắc tự động hóa, phê duyệt hành động và xem nhật ký vận hành.'},
   {
     id: ROUTE_PERMISSION_IDS['cloud-operations'],
     type: 'system',
@@ -119,17 +98,13 @@ export const CORE_PERMISSION_ITEMS = [
     title: 'Cloud Operations',
     titleVi: 'Vận hành nền 24/7',
     desc: 'Monitor durable automation queues, server schedules, retries and operations digests.',
-    descVi: 'Theo dõi hàng đợi tự động hóa, lịch máy chủ, retry và bản tin vận hành.',
-  },
+    descVi: 'Theo dõi hàng đợi tự động hóa, lịch máy chủ, retry và bản tin vận hành.'},
   {
-    id: ROUTE_PERMISSION_IDS['collaboration-hub'],
     type: 'content',
     section: 'operations',
     title: 'Collaboration Hub',
-    titleVi: 'Không gian cộng tác',
     desc: 'Coordinate projects, members, discussion threads, presence and content versions.',
-    descVi: 'Điều phối dự án, thành viên, thảo luận, hiện diện và lịch sử phiên bản.',
-  },
+    descVi: 'Điều phối dự án, thành viên, thảo luận, hiện diện và lịch sử phiên bản.'},
   {
     id: ROUTE_PERMISSION_IDS['data-governance'],
     type: 'system',
@@ -137,8 +112,7 @@ export const CORE_PERMISSION_ITEMS = [
     title: 'Data Governance',
     titleVi: 'Quản trị dữ liệu & tuân thủ',
     desc: 'Review audit events, permission overrides, backups, restores and deleted items.',
-    descVi: 'Kiểm tra audit log, quyền ngoại lệ, sao lưu, khôi phục và dữ liệu đã xóa.',
-  },
+    descVi: 'Kiểm tra audit log, quyền ngoại lệ, sao lưu, khôi phục và dữ liệu đã xóa.'},
   {
     id: ROUTE_PERMISSION_IDS.qa,
     type: 'system',
@@ -146,8 +120,7 @@ export const CORE_PERMISSION_ITEMS = [
     title: 'System Health Center',
     titleVi: 'Trung tâm trạng thái hệ thống',
     desc: 'Check connectivity, browser storage, Supabase, Newsroom and recent runtime errors.',
-    descVi: 'Kiểm tra kết nối, bộ nhớ, Supabase, Newsroom và lỗi runtime gần đây.',
-  },
+    descVi: 'Kiểm tra kết nối, bộ nhớ, Supabase, Newsroom và lỗi runtime gần đây.'},
   {
     id: ROUTE_PERMISSION_IDS.settings,
     type: 'system',
@@ -155,9 +128,7 @@ export const CORE_PERMISSION_ITEMS = [
     title: 'System Settings',
     titleVi: 'Cài đặt hệ thống',
     desc: 'Configure account and application preferences.',
-    descVi: 'Cấu hình tài khoản và tuỳ chọn giao diện.',
-  },
-];
+    descVi: 'Cấu hình tài khoản và tuỳ chọn giao diện.'}];
 
 function makeToolPermissionItem(item, section) {
   return {
@@ -170,15 +141,13 @@ function makeToolPermissionItem(item, section) {
     desc: item.desc,
     descVi: item.descVi || item.desc,
     group: item.group,
-    groupVi: item.groupVi || item.group,
-  };
+    groupVi: item.groupVi || item.group};
 }
 
 export const TOOL_PERMISSION_ITEMS = [
   ...APPS.map((item) => makeToolPermissionItem(item, 'apps')),
   ...GAME_APPS.map((item) => makeToolPermissionItem(item, 'games')),
-  ...SPECIAL_TOOLS.map((item) => makeToolPermissionItem(item, 'tools')),
-];
+  ...SPECIAL_TOOLS.map((item) => makeToolPermissionItem(item, 'tools'))];
 
 export const PERMISSION_ITEMS = [...CORE_PERMISSION_ITEMS, ...TOOL_PERMISSION_ITEMS];
 export const ALL_PERMISSION_IDS = PERMISSION_ITEMS.map((item) => item.id);
@@ -188,27 +157,22 @@ export const PERMISSION_GROUPS = [
     key: 'content',
     title: 'Content & system access',
     titleVi: 'Nội dung & hệ thống',
-    ids: CORE_PERMISSION_ITEMS.map((item) => item.id),
-  },
+    ids: CORE_PERMISSION_ITEMS.map((item) => item.id)},
   {
     key: 'apps',
     title: 'App activities',
     titleVi: 'Hoạt động / ứng dụng',
-    ids: TOOL_PERMISSION_ITEMS.filter((item) => item.section === 'apps').map((item) => item.id),
-  },
+    ids: TOOL_PERMISSION_ITEMS.filter((item) => item.section === 'apps').map((item) => item.id)},
   {
     key: 'games',
     title: 'Games & launchers',
     titleVi: 'Trò chơi / launcher',
-    ids: TOOL_PERMISSION_ITEMS.filter((item) => item.section === 'games').map((item) => item.id),
-  },
+    ids: TOOL_PERMISSION_ITEMS.filter((item) => item.section === 'games').map((item) => item.id)},
   {
     key: 'tools',
     title: 'Teaching tools',
     titleVi: 'Công cụ dạy học',
-    ids: TOOL_PERMISSION_ITEMS.filter((item) => item.section === 'tools').map((item) => item.id),
-  },
-];
+    ids: TOOL_PERMISSION_ITEMS.filter((item) => item.section === 'tools').map((item) => item.id)}];
 
 export function createAllAccessPermissions() {
   return { mode: PERMISSION_MODE_ALL, allowed: [] };
@@ -283,7 +247,6 @@ export function getRoutePermissionId(route) {
   if (RETIRED_ROUTES.has(route)) return '';
   if (route === 'news') return getToolPermissionId('news-reader');
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
-  if (route === 'dashboard' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
@@ -301,7 +264,6 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (route === 'dashboard') return Boolean(user);
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
-  if (route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
 }
 
