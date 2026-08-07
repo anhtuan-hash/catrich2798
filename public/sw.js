@@ -1,4 +1,4 @@
-const VERSION = '11.6.9-silent-update1';
+const VERSION = '11.6.10-tab-resume-lock1';
 const SHELL_CACHE = `bes-shell-${VERSION}`;
 const RUNTIME_CACHE = `bes-runtime-${VERSION}`;
 const CORE = [
@@ -7,12 +7,22 @@ const CORE = [
 ];
 
 self.addEventListener('install', (event) => {
-  // New Brian releases take over silently. The page is never forced to reload;
-  // the newly activated worker controls future navigations and asset requests.
-  event.waitUntil(Promise.all([
-    caches.open(SHELL_CACHE).then((cache) => cache.addAll(CORE)),
-    self.skipWaiting(),
-  ]));
+  event.waitUntil((async () => {
+    const cache = await caches.open(SHELL_CACHE);
+    await cache.addAll(CORE);
+
+    // Never replace the controller of an already-open Brian session. Doing so
+    // can mix the old page bundle with assets from a newer deployment when a
+    // background browser tab resumes, which is the root cause of tab-switch
+    // reloads/preload failures. If no Brian window is open, activation may
+    // proceed immediately; otherwise this worker waits until the old clients
+    // are naturally closed/reopened.
+    const openWindows = await self.clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true,
+    });
+    if (openWindows.length === 0) await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {
@@ -62,6 +72,8 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('message', (event) => {
+  // Manual activation remains available for maintenance tools, but normal
+  // browsing never sends this message because the update banner is disabled.
   if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
   if (event.data?.type === 'CLEAR_CACHE') {
     event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key.startsWith('bes-')).map((key) => caches.delete(key)))));
