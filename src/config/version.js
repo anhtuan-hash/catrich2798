@@ -1,5 +1,3 @@
-import '../data/registerWordOrbit.js';
-
 export const APP_VERSION = '11.6.9';
 export const RELEASE_NAME = 'Activity Graph Removal';
 export const RUNTIME_CORE_VERSION = '2.6.7';
