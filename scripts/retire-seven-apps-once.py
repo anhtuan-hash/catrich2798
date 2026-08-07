@@ -1,0 +1,447 @@
+from pathlib import Path
+import re
+import textwrap
+
+TARGET_SLUGS = [
+    'activity-graph',
+    'word-orbit',
+    'word2graph',
+    'exam-studio',
+    'lesson-plan-ai',
+    'reading-studio',
+    'student-practice',
+]
+BASE_APP_SLUGS = [
+    'word2graph',
+    'exam-studio',
+    'lesson-plan-ai',
+    'reading-studio',
+    'student-practice',
+]
+TARGET_COMPONENTS = [
+    'ActivityGraphStudio',
+    'WordOrbitGame',
+    'WordGraphStudio',
+    'ExamStudioUploadPage',
+    'LessonArchitect',
+    'ReadingStudio',
+    'StudentPractice',
+]
+
+
+def read(path):
+    return Path(path).read_text(encoding='utf-8')
+
+
+def write(path, value):
+    Path(path).write_text(value, encoding='utf-8')
+
+
+def matching_brace(text, start):
+    depth = 0
+    quote = None
+    escaped = False
+    line_comment = False
+    block_comment = False
+    index = start
+    while index < len(text):
+        char = text[index]
+        nxt = text[index + 1] if index + 1 < len(text) else ''
+        if line_comment:
+            if char == '\n':
+                line_comment = False
+            index += 1
+            continue
+        if block_comment:
+            if char == '*' and nxt == '/':
+                block_comment = False
+                index += 2
+                continue
+            index += 1
+            continue
+        if quote:
+            if escaped:
+                escaped = False
+            elif char == '\\':
+                escaped = True
+            elif char == quote:
+                quote = None
+            index += 1
+            continue
+        if char == '/' and nxt == '/':
+            line_comment = True
+            index += 2
+            continue
+        if char == '/' and nxt == '*':
+            block_comment = True
+            index += 2
+            continue
+        if char in ("'", '"', '`'):
+            quote = char
+            index += 1
+            continue
+        if char == '{':
+            depth += 1
+        elif char == '}':
+            depth -= 1
+            if depth == 0:
+                return index
+        index += 1
+    return -1
+
+
+def remove_named_profile(text, slug):
+    pattern = re.compile(rf"(?m)^  (?:'{re.escape(slug)}'|{re.escape(slug)}):\s*\{{")
+    match = pattern.search(text)
+    if not match:
+        return text
+    open_brace = text.find('{', match.start())
+    close_brace = matching_brace(text, open_brace)
+    if close_brace < 0:
+        raise RuntimeError(f'Could not match profile braces for {slug}')
+    end = close_brace + 1
+    while end < len(text) and text[end] in ' \t':
+        end += 1
+    if end < len(text) and text[end] == ',':
+        end += 1
+    if end < len(text) and text[end] == '\n':
+        end += 1
+    return text[:match.start()] + text[end:]
+
+
+# Remove base catalog cards.
+apps_path = Path('src/data/apps.js')
+apps = read(apps_path)
+for slug in BASE_APP_SLUGS:
+    pattern = re.compile(
+        rf"\n  \{{\n    slug: '{re.escape(slug)}',[\s\S]*?\n  \}},",
+        re.MULTILINE,
+    )
+    apps, count = pattern.subn('', apps, count=1)
+    if count != 1:
+        raise RuntimeError(f'Expected one catalog entry for {slug}, found {count}')
+write(apps_path, apps.replace('\n\n\n', '\n\n').rstrip() + '\n')
+
+# Remove route registration and lazy imports from ToolPage.
+tool_path = Path('src/pages/ToolPage.jsx')
+tool = read(tool_path)
+tool = tool.replace("import '../data/registerWordOrbit.js';\n", '')
+tool = tool.replace("import '../data/registerActivityGraph.js';\n", '')
+for component in TARGET_COMPONENTS + ['SpecializedAppPage']:
+    tool = re.sub(
+        rf"^const {re.escape(component)} = lazy\(\(\) => import\([^\n]+\)\);\n",
+        '',
+        tool,
+        flags=re.MULTILINE,
+    )
+tool = re.sub(r"^const specializedToolSlugs = new Set\([^\n]+\);\n", '', tool, flags=re.MULTILINE)
+for slug in TARGET_SLUGS:
+    tool = re.sub(
+        rf"^\s*if \(tool\?\.slug === '{re.escape(slug)}'\)[^\n]*\n",
+        '',
+        tool,
+        flags=re.MULTILINE,
+    )
+tool = re.sub(r"^\s*if \(specializedToolSlugs\.has\(tool\?\.slug\)\)[^\n]*\n", '', tool, flags=re.MULTILINE)
+write(tool_path, tool.replace('\n\n\n', '\n\n'))
+
+# Stop boot-time registration of the dynamically registered apps.
+version_path = Path('src/config/version.js')
+version = read(version_path)
+version = version.replace("import '../data/registerWordOrbit.js';\n", '')
+version = version.replace("import '../data/registerActivityGraph.js';\n", '')
+version = version.replace("export const RELEASE_NAME = 'Activity Graph Route Fix';", "export const RELEASE_NAME = 'Seven Application Retirement';")
+write(version_path, version)
+
+# Remove Learner Sprint's standalone #/practice route.
+main_path = Path('src/main.jsx')
+main = read(main_path)
+main = re.sub(r"^const StudentPractice = lazy\(\(\) => import\([^\n]+\)\);\n", '', main, flags=re.MULTILINE)
+main = main.replace(", 'practice'", '')
+main = re.sub(r"^\s*practice:\s*\{[^\n]*\},?\n", '', main, flags=re.MULTILINE)
+main = re.sub(r"^.*currentRoute === 'practice'.*\n", '', main, flags=re.MULTILINE)
+main = re.sub(r"^\s*practice:\s*[^\n]+\n", '', main, flags=re.MULTILINE)
+write(main_path, main.replace('\n\n\n', '\n\n'))
+
+# Remove visual profiles for the catalog-based apps.
+profiles_path = Path('src/data/designProfiles.js')
+profiles = read(profiles_path)
+for slug in BASE_APP_SLUGS:
+    profiles = remove_named_profile(profiles, slug)
+write(profiles_path, profiles.replace('\n\n\n', '\n\n'))
+
+# Remove launcher ordering, descriptions and grouping references.
+directory_path = Path('src/pages/appsDirectoryData.js')
+directory = read(directory_path)
+for slug in BASE_APP_SLUGS:
+    directory = re.sub(rf"\s*'{re.escape(slug)}'\s*:\s*'[^']*',?", '', directory)
+    directory = re.sub(rf"\s*'{re.escape(slug)}'\s*,?", '', directory)
+    directory = re.sub(rf"\s*{re.escape(slug)}\s*:\s*'[^']*',?", '', directory)
+directory = directory.replace('[,', '[').replace(',]', ']').replace(', ,', ', ')
+directory = re.sub(r",\s*,", ',', directory)
+write(directory_path, directory)
+
+# Remove the old broad build-time cleanup hook so unrelated apps are not retired.
+sync_path = Path('scripts/sync-version-v11.6.7.mjs')
+sync = read(sync_path).replace("import './prepare-streamlined-catalog-v3.mjs';\n", '')
+write(sync_path, sync)
+Path('scripts/prepare-streamlined-catalog-v3.mjs').unlink(missing_ok=True)
+
+# Redirect old links and scrub saved launcher/app state.
+cleanup_source = textwrap.dedent(r"""
+    const RETIRED_STORAGE_KEYS = new Set([
+      'bet-theme',
+      'bes-theme-mode',
+      'bes-theme-mode-v3',
+      'bes-quick-dictionary-history-v1',
+    ]);
+
+    const RETIRED_STORAGE_PREFIXES = [
+      'bes-global-music-v1:',
+      'bes-global-music-v2:',
+      'bes-shared-music-v2:',
+    ];
+
+    const RETIRED_APP_IDS = Object.freeze([
+      'activity-graph',
+      'word-orbit',
+      'word2graph',
+      'exam-studio',
+      'lesson-plan-ai',
+      'reading-studio',
+      'student-practice',
+    ]);
+
+    const RETIRED_APP_ALIASES = Object.freeze([
+      ...RETIRED_APP_IDS,
+      'activitygraph',
+      'wordorbit',
+      'wordgraph',
+      'examstudio',
+      'lessonarchitect',
+      'readingstudio',
+      'studentpractice',
+      'learner-sprint',
+    ]);
+
+    const RETIRED_APP_ROUTES = new Set([
+      'library',
+      'practice',
+      'tool/teaching-methods-hub',
+      ...RETIRED_APP_IDS.map((slug) => `tool/${slug}`),
+    ]);
+
+    const APPEARANCE_KEY = 'bes-appearance-v2';
+    let installed = false;
+
+    function normalizedIdentifier(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/^#\/?/, '')
+        .replace(/^tool:/, 'tool/')
+        .replace(/^\/+|\/+$/g, '');
+    }
+
+    function isRetiredIdentifier(value) {
+      const normalized = normalizedIdentifier(value);
+      if (!normalized) return false;
+      if (RETIRED_APP_ROUTES.has(normalized)) return true;
+      const slug = normalized.startsWith('tool/') ? normalized.slice(5) : normalized;
+      return RETIRED_APP_IDS.includes(slug);
+    }
+
+    function sanitizeRetiredValue(value) {
+      if (Array.isArray(value)) {
+        return value
+          .filter((item) => !(typeof item === 'string' && isRetiredIdentifier(item)))
+          .map((item) => sanitizeRetiredValue(item));
+      }
+      if (!value || typeof value !== 'object') return value;
+      return Object.fromEntries(
+        Object.entries(value)
+          .filter(([key, item]) => !isRetiredIdentifier(key) && !(typeof item === 'string' && isRetiredIdentifier(item)))
+          .map(([key, item]) => [key, sanitizeRetiredValue(item)]),
+      );
+    }
+
+    function removeRetiredStorage() {
+      try {
+        const keys = Object.keys(window.localStorage);
+        keys.forEach((key) => {
+          const normalizedKey = key.toLowerCase();
+          if (
+            RETIRED_STORAGE_KEYS.has(key)
+            || RETIRED_STORAGE_PREFIXES.some((prefix) => key.startsWith(prefix))
+            || RETIRED_APP_ALIASES.some((alias) => normalizedKey.includes(alias))
+          ) {
+            window.localStorage.removeItem(key);
+            return;
+          }
+
+          const raw = window.localStorage.getItem(key);
+          if (!raw || (!raw.startsWith('{') && !raw.startsWith('['))) return;
+          try {
+            const parsed = JSON.parse(raw);
+            const sanitized = sanitizeRetiredValue(parsed);
+            const next = JSON.stringify(sanitized);
+            if (next !== raw) window.localStorage.setItem(key, next);
+          } catch {
+            // Ignore unrelated non-JSON values.
+          }
+        });
+
+        const appearance = JSON.parse(window.localStorage.getItem(APPEARANCE_KEY) || 'null');
+        if (appearance && typeof appearance === 'object' && 'theme' in appearance) {
+          delete appearance.theme;
+          appearance.updatedAt = Date.now();
+          window.localStorage.setItem(APPEARANCE_KEY, JSON.stringify(appearance));
+        }
+      } catch {
+        // Storage can be unavailable in private browsing or a restricted webview.
+      }
+    }
+
+    function currentHashRoute() {
+      return String(window.location.hash || '')
+        .replace(/^#\/?/, '')
+        .split('?')[0]
+        .split('&')[0]
+        .replace(/^\/+|\/+$/g, '')
+        .toLowerCase();
+    }
+
+    function redirectRetiredAppRoute() {
+      if (!RETIRED_APP_ROUTES.has(currentHashRoute())) return;
+      window.location.hash = '#/apps';
+    }
+
+    function enforceLightOnlyDocument() {
+      const root = document.documentElement;
+      root.dataset.theme = 'light';
+      root.dataset.besTheme = 'light';
+      delete root.dataset.themeMode;
+      delete root.dataset.themeTransition;
+      root.classList.remove('dark', 'theme-dark');
+      root.classList.add('theme-light');
+      root.style.colorScheme = 'light';
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f7f9fc');
+    }
+
+    function clearRetiredMediaCache() {
+      if (!('caches' in window)) return;
+      window.caches.keys()
+        .then((keys) => Promise.all(keys.filter((key) => key.startsWith('bes-media-')).map((key) => window.caches.delete(key))))
+        .catch(() => {});
+    }
+
+    export function installRetiredFeatureCleanup() {
+      if (installed || typeof window === 'undefined' || typeof document === 'undefined') return;
+      installed = true;
+      removeRetiredStorage();
+      redirectRetiredAppRoute();
+      enforceLightOnlyDocument();
+      clearRetiredMediaCache();
+
+      const enforce = () => {
+        removeRetiredStorage();
+        enforceLightOnlyDocument();
+      };
+      window.addEventListener('hashchange', redirectRetiredAppRoute);
+      window.addEventListener('storage', enforce);
+      window.addEventListener('bes:appearance-ready', enforce);
+      window.addEventListener('bes:appearance-changed', enforce);
+    }
+
+    export const RETIRED_FEATURE_STORAGE = Object.freeze({
+      keys: [...RETIRED_STORAGE_KEYS],
+      prefixes: [...RETIRED_STORAGE_PREFIXES],
+    });
+
+    export const RETIRED_APP_PATHS = Object.freeze([...RETIRED_APP_ROUTES]);
+""").lstrip()
+write('src/utils/retiredFeatureCleanup.js', cleanup_source)
+
+# Add exact regression protection to the existing removal audit.
+audit_path = Path('scripts/audit-removed-apps-v11.6.7.mjs')
+audit = read(audit_path)
+target_slug_lines = "\n  'activity-graph', 'word-orbit', 'word2graph', 'exam-studio',\n  'lesson-plan-ai', 'reading-studio', 'student-practice',"
+audit = audit.replace('const removedSlugs = [', 'const removedSlugs = [' + target_slug_lines, 1)
+target_title_lines = "\n  'Activity Graph', 'Word Orbit', 'WordGraph Studio', 'Exam Studio',\n  'Lesson Architect', 'Reading Studio', 'Learner Sprint',"
+audit = audit.replace('const removedTitles = [', 'const removedTitles = [' + target_title_lines, 1)
+target_paths = textwrap.dedent("""
+  'src/pages/ActivityGraphStudio.jsx', 'src/pages/ActivityGraphStudio.css',
+  'src/data/registerActivityGraph.js', 'src/data/activityGraphLibrary.js', 'src/components/ActivityGraphRenderer.jsx',
+  'src/pages/WordOrbitGame.jsx', 'src/data/registerWordOrbit.js', 'src/styles/WordOrbitGame.css', 'src/styles/WordOrbitFlightEngine.css',
+  'src/pages/WordGraphStudio.jsx',
+  'src/pages/ExamStudioUploadPage.jsx', 'src/styles/ExamAutoRecognition.css', 'src/utils/examAutoRecognition.js',
+  'src/pages/LessonArchitect.jsx', 'src/components/LessonArchitectCurriculumBuilder.jsx',
+  'src/pages/ReadingStudio.jsx', 'src/pages/ReadingStudioAccordionLibrary.jsx', 'src/pages/ReadingStudioSampleLibrary.jsx',
+  'src/pages/StudentPractice.jsx',
+""").strip('\n')
+audit = audit.replace('const removedPaths = [', 'const removedPaths = [\n' + target_paths, 1)
+audit = audit.replace(
+    "const main = fs.readFileSync('src/main.jsx', 'utf8');",
+    "const main = fs.readFileSync('src/main.jsx', 'utf8');\n"
+    "if (main.includes(\"'practice'\") || main.includes('StudentPractice')) fail('Learner Sprint standalone route remains active');\n"
+    "else pass('Learner Sprint standalone route removed');",
+    1,
+)
+audit = audit.replace(
+    'const chunkPattern = /WorksheetFactory|SmartId|SpeakingStudio|EnglishLesson|GrammarBuilder|WritingStudio|PronunciationCoach|AIWorkspace|ClassroomDelivery|ClassroomJoin|LearningIntelligence/i;',
+    'const chunkPattern = /WorksheetFactory|SmartId|SpeakingStudio|EnglishLesson|GrammarBuilder|WritingStudio|PronunciationCoach|AIWorkspace|ClassroomDelivery|ClassroomJoin|LearningIntelligence|ActivityGraph|WordOrbit|WordGraph|ExamStudio|LessonArchitect|ReadingStudio|StudentPractice/i;',
+    1,
+)
+write(audit_path, audit)
+
+# Remove every app-specific source, style, sample and historical app file by path.
+path_markers = [
+    'activitygraph', 'activity-graph',
+    'wordorbit', 'word-orbit',
+    'wordgraph', 'word2graph',
+    'examstudio', 'exam-studio',
+    'lessonarchitect', 'lesson-architect',
+    'readingstudio', 'reading-studio',
+    'studentpractice', 'student-practice', 'learner-sprint',
+]
+excluded = {
+    'src/utils/retiredFeatureCleanup.js',
+    'scripts/audit-removed-apps-v11.6.7.mjs',
+    '.github/workflows/retire-seven-apps-once.yml',
+    'scripts/retire-seven-apps-once.py',
+}
+for path in list(Path('.').rglob('*')):
+    if not path.is_file():
+        continue
+    rel = path.as_posix().lstrip('./')
+    if rel in excluded or rel.startswith('.git/') or rel.startswith('node_modules/'):
+        continue
+    low = rel.lower()
+    if any(marker in low for marker in path_markers):
+        path.unlink(missing_ok=True)
+
+# Remove app-specific helper files whose names do not carry the app title.
+for name in [
+    'src/styles/ExamAutoRecognition.css',
+    'src/utils/examAutoRecognition.js',
+]:
+    Path(name).unlink(missing_ok=True)
+
+# Ensure temporary automation files are not part of the cleanup branch.
+Path('.github/workflows/retire-seven-apps-once.yml').unlink(missing_ok=True)
+Path('scripts/retire-seven-apps-once.py').unlink(missing_ok=True)
+
+# Normalize accidental whitespace after line-based removals.
+for name in [
+    'src/pages/ToolPage.jsx',
+    'src/main.jsx',
+    'src/data/designProfiles.js',
+    'src/pages/appsDirectoryData.js',
+    'src/config/version.js',
+]:
+    path = Path(name)
+    if path.exists():
+        text = path.read_text(encoding='utf-8')
+        path.write_text(re.sub(r'\n{3,}', '\n\n', text).rstrip() + '\n', encoding='utf-8')
+
+print('Seven applications removed from source, catalog, routes and saved launcher state.')
