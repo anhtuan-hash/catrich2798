@@ -1,0 +1,21 @@
+name: Tab Resume Reload Audit
+
+on:
+  push:
+    branches:
+      - agent/tab-resume-root-cause-audit-20260807
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Find reload and tab-resume triggers
+        shell: bash
+        run: |
+          echo '=== HARD RELOAD CALLS ==='
+          grep -RInE --exclude-dir=node_modules --exclude-dir=dist --exclude='*.map' '(window\.)?location\.reload\(|location\.replace\(|document\.location\.reload\(' src public index.html || true
+          echo '=== TAB LIFECYCLE LISTENERS ==='
+          grep -RInE --exclude-dir=node_modules --exclude-dir=dist --exclude='*.map' 'visibilitychange|pageshow|pagehide|addEventListener\([^,]*(focus|blur)|onfocus|wasDiscarded|vite:preloadError' src public index.html || true
+          echo '=== AUTH STATE LISTENERS ==='
+          grep -RInE --exclude-dir=node_modules --exclude-dir=dist --exclude='*.map' 'onAuthStateChange|subscribeToAuthChanges|TOKEN_REFRESHED|SIGNED_IN|INITIAL_SESSION' src public index.html || true
