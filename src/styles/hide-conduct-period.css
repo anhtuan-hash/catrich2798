@@ -1,4 +1,5 @@
-/* Requested UI simplification: hide the periodic conduct summary block. */
-.hr-panel.hr-conduct-period {
+/* Requested UI simplification: hide periodic conduct summary and reference violation scale blocks. */
+.hr-panel.hr-conduct-period,
+.hr-panel.hr-conduct-catalog {
   display: none !important;
 }
