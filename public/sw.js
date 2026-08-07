@@ -1,4 +1,4 @@
-const VERSION = '11.6.8-tab-resume-stability1';
+const VERSION = '11.6.9-silent-update1';
 const SHELL_CACHE = `bes-shell-${VERSION}`;
 const RUNTIME_CACHE = `bes-runtime-${VERSION}`;
 const CORE = [
@@ -7,10 +7,12 @@ const CORE = [
 ];
 
 self.addEventListener('install', (event) => {
-  // Do not call skipWaiting here. A newly deployed worker must not replace the
-  // controller of an already-open Brian tab in the middle of a session. The
-  // update remains waiting until the user explicitly chooses Update.
-  event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.addAll(CORE)));
+  // New Brian releases take over silently. The page is never forced to reload;
+  // the newly activated worker controls future navigations and asset requests.
+  event.waitUntil(Promise.all([
+    caches.open(SHELL_CACHE).then((cache) => cache.addAll(CORE)),
+    self.skipWaiting(),
+  ]));
 });
 
 self.addEventListener('activate', (event) => {
