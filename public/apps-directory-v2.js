@@ -4,6 +4,75 @@
 (() => {
   const SELECTOR = '.metro-clean-system[data-route="games"] .games-v46-platform-grid';
   const boundRows = new WeakSet();
+  const scrollbarState = new WeakMap();
+
+  function ensureVisibleScrollbar(row) {
+    if (!row || scrollbarState.has(row)) return;
+
+    const bar = document.createElement('div');
+    bar.className = 'bes-game-platform-scrollbar';
+    bar.setAttribute('role', 'group');
+    bar.setAttribute('aria-label', 'Thanh cuộn danh sách trò chơi');
+
+    const hint = document.createElement('span');
+    hint.className = 'bes-game-platform-scrollbar__hint';
+    hint.textContent = '↔';
+    hint.setAttribute('aria-hidden', 'true');
+
+    const range = document.createElement('input');
+    range.className = 'bes-game-platform-scrollbar__range';
+    range.type = 'range';
+    range.min = '0';
+    range.max = '0';
+    range.step = '1';
+    range.value = '0';
+    range.setAttribute('aria-label', 'Cuộn ngang để xem toàn bộ trò chơi');
+
+    const end = document.createElement('span');
+    end.className = 'bes-game-platform-scrollbar__end';
+    end.textContent = '↔';
+    end.setAttribute('aria-hidden', 'true');
+
+    bar.append(hint, range, end);
+    row.insertAdjacentElement('afterend', bar);
+
+    let syncingFromRange = false;
+
+    const syncMetrics = () => {
+      if (!row.isConnected || !bar.isConnected) return;
+      const max = Math.max(0, Math.round(row.scrollWidth - row.clientWidth));
+      range.max = String(max);
+      range.value = String(Math.min(max, Math.max(0, Math.round(row.scrollLeft))));
+      bar.classList.toggle('is-disabled', max <= 1);
+      range.disabled = max <= 1;
+    };
+
+    range.addEventListener('input', () => {
+      syncingFromRange = true;
+      row.scrollLeft = Number(range.value) || 0;
+      syncingFromRange = false;
+    });
+
+    row.addEventListener('scroll', () => {
+      if (!syncingFromRange) {
+        range.value = String(Math.max(0, Math.min(Number(range.max) || 0, Math.round(row.scrollLeft))));
+      }
+    }, { passive: true });
+
+    const resizeObserver = typeof ResizeObserver === 'function'
+      ? new ResizeObserver(syncMetrics)
+      : null;
+    resizeObserver?.observe(row);
+
+    // Card lists can change after approval/admin updates without resizing the row itself.
+    const mutationObserver = new MutationObserver(syncMetrics);
+    mutationObserver.observe(row, { childList: true, subtree: false });
+
+    scrollbarState.set(row, { bar, range, syncMetrics, resizeObserver, mutationObserver });
+    window.requestAnimationFrame(syncMetrics);
+    window.setTimeout(syncMetrics, 250);
+    window.setTimeout(syncMetrics, 900);
+  }
 
   function bindDragScroll(row) {
     if (!row || boundRows.has(row)) return;
@@ -95,7 +164,11 @@
   }
 
   function scan() {
-    document.querySelectorAll(SELECTOR).forEach(bindDragScroll);
+    document.querySelectorAll(SELECTOR).forEach((row) => {
+      bindDragScroll(row);
+      ensureVisibleScrollbar(row);
+      scrollbarState.get(row)?.syncMetrics?.();
+    });
   }
 
   let scanQueued = false;
