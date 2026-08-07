@@ -1,0 +1,46 @@
+name: Repair deep cleanup v3
+
+on:
+  push:
+    branches:
+      - agent/remove-requested-apps-deep-20260807
+    paths:
+      - scripts/repair-deep-cleanup-v3.py
+      - .github/workflows/repair-deep-cleanup-v3.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/remove-requested-apps-deep-20260807
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Remove imports whose retired modules were deleted
+        run: python3 scripts/repair-deep-cleanup-v3.py
+
+      - name: Save repaired source for inspection
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Repair imports after complete app deletion'
+          git push origin HEAD:agent/remove-requested-apps-deep-20260807
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production application
+        run: npm run build
