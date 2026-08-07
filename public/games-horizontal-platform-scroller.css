@@ -9,37 +9,39 @@
   grid-auto-columns: minmax(250px, 280px) !important;
   align-items: stretch !important;
   gap: 14px !important;
-  padding: 4px 4px 14px !important;
-  overflow-x: auto !important;
+  padding: 4px 4px 8px !important;
+  overflow-x: scroll !important;
   overflow-y: hidden !important;
   overscroll-behavior-inline: contain !important;
   scroll-behavior: smooth !important;
   scroll-snap-type: inline mandatory !important;
   scroll-padding-inline: 4px !important;
-  scrollbar-width: thin !important;
-  scrollbar-color: #bdc1c6 #f1f3f4 !important;
+  scrollbar-width: auto !important;
+  scrollbar-color: #8e8e93 #e5e7eb !important;
+  scrollbar-gutter: stable !important;
   -webkit-overflow-scrolling: touch !important;
   touch-action: pan-x !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar {
-  height: 10px !important;
+  height: 12px !important;
+  display: block !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-track {
   border-radius: 999px !important;
-  background: #f1f3f4 !important;
+  background: #e5e7eb !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-thumb {
   min-width: 72px !important;
-  border: 2px solid #f1f3f4 !important;
+  border: 2px solid #e5e7eb !important;
   border-radius: 999px !important;
-  background: #bdc1c6 !important;
+  background: #8e8e93 !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-thumb:hover {
-  background: #9aa0a6 !important;
+  background: #6b7280 !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v46-platform-card,
@@ -95,6 +97,86 @@
   padding: 0 14px 14px !important;
 }
 
+/* Persistent, always-visible scrollbar. This is intentionally separate from the OS scrollbar
+   because macOS can auto-hide native scrollbars even when overflow-x: scroll is set. */
+.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 32px !important;
+  display: grid !important;
+  grid-template-columns: 26px minmax(0, 1fr) 26px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 2px 0 0 !important;
+  padding: 2px 4px 0 !important;
+}
+
+.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__hint,
+.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__end {
+  display: grid !important;
+  place-items: center !important;
+  color: #5f6368 !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  user-select: none !important;
+}
+
+.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__range {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 22px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: transparent !important;
+  cursor: ew-resize !important;
+}
+
+.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__range::-webkit-slider-runnable-track {
+  height: 10px !important;
+  border-radius: 999px !important;
+  background: #d9dde5 !important;
+  box-shadow: inset 0 0 0 1px rgba(60,64,67,.08) !important;
+}
+
+.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__range::-webkit-slider-thumb {
+  width: 76px !important;
+  height: 18px !important;
+  margin-top: -4px !important;
+  border: 2px solid #fff !important;
+  border-radius: 999px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: #6d4aff !important;
+  box-shadow: 0 1px 4px rgba(60,64,67,.28) !important;
+}
+
+.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__range::-moz-range-track {
+  height: 10px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #d9dde5 !important;
+}
+
+.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__range::-moz-range-thumb {
+  width: 76px !important;
+  height: 18px !important;
+  border: 2px solid #fff !important;
+  border-radius: 999px !important;
+  background: #6d4aff !important;
+  box-shadow: 0 1px 4px rgba(60,64,67,.28) !important;
+}
+
+.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar.is-disabled {
+  opacity: .35 !important;
+}
+
+.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar.is-disabled .bes-game-platform-scrollbar__range {
+  cursor: default !important;
+}
+
 /* Dark mode scrollbar and track. */
 [data-theme="dark"] .metro-clean-system[data-route="games"] .games-v46-platform-grid,
 .theme-dark .metro-clean-system[data-route="games"] .games-v46-platform-grid {
@@ -128,5 +210,15 @@
   .metro-clean-system[data-route="games"] .games-v46-platform-main {
     grid-template-columns: 48px minmax(0, 1fr) auto !important;
     padding: 16px !important;
+  }
+
+  .metro-clean-system[data-route="games"] .bes-game-platform-scrollbar {
+    grid-template-columns: 20px minmax(0, 1fr) 20px !important;
+    gap: 5px !important;
+  }
+
+  .metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__range::-webkit-slider-thumb,
+  .metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__range::-moz-range-thumb {
+    width: 56px !important;
   }
 }
