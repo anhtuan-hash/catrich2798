@@ -6,11 +6,16 @@ const state = {
   installable: false,
   installed: typeof window !== 'undefined' && (window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true),
   updateReady: false,
+  refreshNeeded: false,
+  refreshReason: '',
   offlineReady: false,
   lastError: '',
   registration: null,
   installPrompt: null,
 };
+
+let activationRequested = false;
+let reloadStarted = false;
 
 function snapshot() {
   return {
@@ -20,6 +25,8 @@ function snapshot() {
     installable: state.installable,
     installed: state.installed,
     updateReady: state.updateReady,
+    refreshNeeded: state.refreshNeeded,
+    refreshReason: state.refreshReason,
     offlineReady: state.offlineReady,
     lastError: state.lastError,
   };
@@ -39,20 +46,34 @@ export async function registerBrianPwa() {
     state.registered = true;
     state.controlled = Boolean(navigator.serviceWorker.controller);
     state.offlineReady = true;
+    state.updateReady = Boolean(registration.waiting && navigator.serviceWorker.controller);
+
     registration.addEventListener('updatefound', () => {
       const worker = registration.installing;
       if (!worker) return;
       worker.addEventListener('statechange', () => {
         if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+          // Keep the new worker waiting. The current page continues using one
+          // coherent asset version until the user explicitly chooses Update.
           state.updateReady = true;
           emit();
         }
       });
     });
+
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       state.controlled = true;
       state.updateReady = false;
+      state.refreshNeeded = false;
+      state.refreshReason = '';
       emit();
+
+      // A controller change must never reload a page merely because a browser
+      // tab resumed. Reload only after the user explicitly requested Update.
+      if (activationRequested && !reloadStarted) {
+        reloadStarted = true;
+        window.location.reload();
+      }
     });
     emit();
   } catch (error) {
@@ -92,10 +113,36 @@ export async function requestPwaInstall() {
   return result || { outcome: 'dismissed' };
 }
 
-export function activatePwaUpdate() {
-  const worker = state.registration?.waiting;
-  if (worker) worker.postMessage({ type: 'SKIP_WAITING' });
-  else window.location.reload();
+export function reportPwaRefreshNeeded(reason = 'asset-version-mismatch') {
+  state.refreshNeeded = true;
+  state.refreshReason = String(reason || 'asset-version-mismatch');
+  emit();
+}
+
+export async function activatePwaUpdate() {
+  activationRequested = true;
+  let worker = state.registration?.waiting || null;
+
+  if (!worker && state.registration) {
+    try {
+      await state.registration.update();
+      worker = state.registration.waiting || null;
+    } catch {
+      // An explicit user refresh remains a safe fallback below.
+    }
+  }
+
+  if (worker) {
+    worker.postMessage({ type: 'SKIP_WAITING' });
+    return;
+  }
+
+  // This path is reachable only after the user presses the update/refresh
+  // button. Never call reload automatically from tab visibility or SW events.
+  if (!reloadStarted) {
+    reloadStarted = true;
+    window.location.reload();
+  }
 }
 
 export async function clearPwaCaches() {
