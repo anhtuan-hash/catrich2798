@@ -85,6 +85,7 @@ function loadRouteModules() {
       import('./studentNameSortRuntime.js'),
       import('./studentPermanentDeleteRuntime.js'),
       import('./teacherClassFilterRuntime.js'),
+      import('./homeroomGradebookImportRuntime.js'),
     ]).catch((error) => {
       homeroomExtrasLoaded = false;
       console.error('[HomeroomExtras] Không thể tải tiện ích lớp học.', error);
