@@ -9,12 +9,14 @@ const RETIRED_STORAGE_PREFIXES = [
   'bes-global-music-v1:',
   'bes-global-music-v2:',
   'bes-shared-music-v2:',
+  'brian-activity-graph:',
 ];
 
 const RETIRED_APP_ROUTES = new Set([
   'library',
   'practice',
   'tool/teaching-methods-hub',
+  'tool/activity-graph',
 ]);
 
 const APPEARANCE_KEY = 'bes-appearance-v2';
