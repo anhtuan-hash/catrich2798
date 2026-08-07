@@ -2,37 +2,41 @@ name: Retire seven Brian applications once
 
 on:
   issues:
-    types:
-      - opened
+    types: [opened]
+  workflow_dispatch:
 
 permissions:
   contents: write
-  issues: write
 
 jobs:
-  retire:
-    if: ${{ github.event.issue.title == '[Brian] Retire seven applications permanently' }}
+  cleanup:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
-      - name: Check out main
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
       - name: Create cleanup branch
-        run: git checkout -B agent/remove-seven-apps-20260807
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout -B agent/remove-seven-apps-20260807
 
       - name: Apply permanent cleanup
-        run: python3 scripts/retire-seven-apps-once.py
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/retire-seven-apps-once.py
 
       - name: Verify retired apps are absent
+        shell: bash
         run: |
           set -euo pipefail
           markers='activity-graph|word-orbit|word2graph|exam-studio|lesson-plan-ai|reading-studio|student-practice|ActivityGraphStudio|WordOrbitGame|WordGraphStudio|ExamStudioUploadPage|LessonArchitect|ReadingStudio|StudentPractice'
@@ -43,19 +47,18 @@ jobs:
           npm run audit:removed-apps
 
       - name: Build cleaned application
+        shell: bash
         run: |
+          set -euo pipefail
           npm ci
           npm run build
 
       - name: Commit cleanup branch
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
           git commit -m 'chore: permanently remove seven retired applications'
           git push --force origin HEAD:agent/remove-seven-apps-20260807
-
-      - name: Close trigger issue
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh issue close "${{ github.event.issue.number }}" --comment "Cleanup branch created and verified: agent/remove-seven-apps-20260807"
