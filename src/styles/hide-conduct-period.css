@@ -1,0 +1,4 @@
+/* Requested UI simplification: hide the periodic conduct summary block. */
+.hr-panel.hr-conduct-period {
+  display: none !important;
+}
