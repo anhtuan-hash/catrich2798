@@ -1,88 +1,119 @@
-/* Game Hub: one-row horizontal platform scroller. */
+/* Games Studio platform chooser — all platforms visible as a responsive grid.
+   Replaces the previous horizontal drag/scroll experience. */
+
+.metro-clean-system[data-route="games"] .games-v46-board {
+  overflow: visible !important;
+}
+
 .metro-clean-system[data-route="games"] .games-v46-platform-grid {
   width: 100% !important;
+  max-width: 100% !important;
   min-width: 0 !important;
   display: grid !important;
-  grid-template-columns: none !important;
-  grid-template-rows: minmax(132px, auto) !important;
-  grid-auto-flow: column !important;
-  grid-auto-columns: minmax(250px, 280px) !important;
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)) !important;
+  grid-auto-flow: row !important;
+  grid-auto-columns: auto !important;
+  grid-template-rows: none !important;
   align-items: stretch !important;
   gap: 14px !important;
-  padding: 4px 4px 8px !important;
-  overflow-x: scroll !important;
-  overflow-y: hidden !important;
-  overscroll-behavior-inline: contain !important;
-  scroll-behavior: smooth !important;
-  scroll-snap-type: inline mandatory !important;
-  scroll-padding-inline: 4px !important;
-  scrollbar-width: auto !important;
-  scrollbar-color: #8e8e93 #e5e7eb !important;
-  scrollbar-gutter: stable !important;
-  -webkit-overflow-scrolling: touch !important;
-  touch-action: pan-x !important;
+  margin: 18px 0 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  scroll-snap-type: none !important;
+  scroll-behavior: auto !important;
+  scrollbar-width: none !important;
+  touch-action: auto !important;
+  cursor: default !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar {
-  height: 12px !important;
-  display: block !important;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
-.metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-track {
-  border-radius: 999px !important;
-  background: #e5e7eb !important;
-}
-
-.metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-thumb {
-  min-width: 72px !important;
-  border: 2px solid #e5e7eb !important;
-  border-radius: 999px !important;
-  background: #8e8e93 !important;
-}
-
-.metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-thumb:hover {
-  background: #6b7280 !important;
+.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar {
+  display: none !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v46-platform-card,
 .metro-clean-system[data-route="games"] .games-v46-add-card {
-  width: auto !important;
+  position: relative !important;
+  width: 100% !important;
   min-width: 0 !important;
+  min-height: 124px !important;
   height: auto !important;
-  min-height: 132px !important;
-  scroll-snap-align: start !important;
-  scroll-snap-stop: normal !important;
-  scroll-margin-inline: 4px !important;
+  overflow: hidden !important;
+  scroll-snap-align: none !important;
+  scroll-margin-inline: 0 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  transform: none !important;
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-platform-card:hover,
+.metro-clean-system[data-route="games"] .games-v46-add-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 18px rgba(60,64,67,.12) !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-platform-card:focus-visible,
+.metro-clean-system[data-route="games"] .games-v46-add-card:focus-visible {
+  outline: 3px solid rgba(26,115,232,.28) !important;
+  outline-offset: 2px !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-platform-card.active {
+  transform: none !important;
+  box-shadow: 0 4px 18px rgba(132,48,206,.18) !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v46-platform-main {
-  min-height: 130px !important;
+  min-height: 124px !important;
+  display: grid !important;
   grid-template-columns: 52px minmax(0, 1fr) auto !important;
-  gap: 14px !important;
-  padding: 18px !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 16px !important;
+  pointer-events: auto !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v46-platform-icon {
   width: 52px !important;
   height: 52px !important;
   border-radius: 17px !important;
+  flex: 0 0 auto !important;
+}
+
+.metro-clean-system[data-route="games"] .games-v46-platform-copy {
+  min-width: 0 !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v46-platform-copy strong {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  color: inherit !important;
   font-size: 1rem !important;
+  line-height: 1.25 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v46-platform-copy small {
+  display: block !important;
+  margin-top: 4px !important;
   font-size: .8rem !important;
-}
-
-.metro-clean-system[data-route="games"] .games-v46-platform-card.active {
-  scroll-snap-align: center !important;
+  line-height: 1.2 !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v46-add-card {
+  display: grid !important;
   grid-template-columns: 48px minmax(0, 1fr) !important;
-  padding: 18px !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 16px !important;
 }
 
 .metro-clean-system[data-route="games"] .games-v46-add-card > span {
@@ -91,134 +122,53 @@
   border-radius: 16px !important;
 }
 
-/* Preserve action buttons for custom cards without increasing the row height excessively. */
 .metro-clean-system[data-route="games"] .games-v58-custom-actions {
   align-content: start !important;
   padding: 0 14px 14px !important;
 }
 
-/* Persistent, always-visible scrollbar. This is intentionally separate from the OS scrollbar
-   because macOS can auto-hide native scrollbars even when overflow-x: scroll is set. */
-.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar {
+html body #root .metro-clean-system[data-route="games"] .games-v46-board .games-v46-platform-grid,
+html body #root .metro-clean-system[data-route="games"] .games-v46-board .bes-game-platform-scrollbar {
   width: 100% !important;
-  min-width: 0 !important;
-  min-height: 32px !important;
-  display: grid !important;
-  grid-template-columns: 26px minmax(0, 1fr) 26px !important;
-  align-items: center !important;
-  gap: 8px !important;
-  margin: 2px 0 0 !important;
-  padding: 2px 4px 0 !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 
-.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__hint,
-.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__end {
-  display: grid !important;
-  place-items: center !important;
-  color: #5f6368 !important;
-  font-size: 16px !important;
-  font-weight: 800 !important;
-  line-height: 1 !important;
-  user-select: none !important;
-}
-
-.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__range {
-  width: 100% !important;
-  min-width: 0 !important;
-  height: 22px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  background: transparent !important;
-  cursor: ew-resize !important;
-}
-
-.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__range::-webkit-slider-runnable-track {
-  height: 10px !important;
-  border-radius: 999px !important;
-  background: #d9dde5 !important;
-  box-shadow: inset 0 0 0 1px rgba(60,64,67,.08) !important;
-}
-
-.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__range::-webkit-slider-thumb {
-  width: 76px !important;
-  height: 18px !important;
-  margin-top: -4px !important;
-  border: 2px solid #fff !important;
-  border-radius: 999px !important;
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  background: #6d4aff !important;
-  box-shadow: 0 1px 4px rgba(60,64,67,.28) !important;
-}
-
-.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__range::-moz-range-track {
-  height: 10px !important;
-  border: 0 !important;
-  border-radius: 999px !important;
-  background: #d9dde5 !important;
-}
-
-.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__range::-moz-range-thumb {
-  width: 76px !important;
-  height: 18px !important;
-  border: 2px solid #fff !important;
-  border-radius: 999px !important;
-  background: #6d4aff !important;
-  box-shadow: 0 1px 4px rgba(60,64,67,.28) !important;
-}
-
-.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar.is-disabled {
-  opacity: .35 !important;
-}
-
-.metro-clean-system[data-route="games"] .bes-game-platform-scrollbar.is-disabled .bes-game-platform-scrollbar__range {
-  cursor: default !important;
-}
-
-/* Dark mode scrollbar and track. */
-[data-theme="dark"] .metro-clean-system[data-route="games"] .games-v46-platform-grid,
-.theme-dark .metro-clean-system[data-route="games"] .games-v46-platform-grid {
-  scrollbar-color: #6f7378 #303134 !important;
-}
-
-[data-theme="dark"] .metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-track,
-.theme-dark .metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-track {
-  background: #303134 !important;
-}
-
-[data-theme="dark"] .metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-thumb,
-.theme-dark .metro-clean-system[data-route="games"] .games-v46-platform-grid::-webkit-scrollbar-thumb {
-  border-color: #303134 !important;
-  background: #6f7378 !important;
-}
-
-@media (max-width: 900px) {
+@media (min-width: 1280px) {
   .metro-clean-system[data-route="games"] .games-v46-platform-grid {
-    grid-auto-columns: minmax(235px, 72vw) !important;
-    gap: 12px !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
   }
 }
 
-@media (max-width: 600px) {
+@media (min-width: 900px) and (max-width: 1279px) {
   .metro-clean-system[data-route="games"] .games-v46-platform-grid {
-    grid-auto-columns: minmax(230px, 84vw) !important;
-    padding-inline: 2px !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 620px) and (max-width: 899px) {
+  .metro-clean-system[data-route="games"] .games-v46-platform-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 619px) {
+  .metro-clean-system[data-route="games"] .games-v46-platform-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
   }
 
   .metro-clean-system[data-route="games"] .games-v46-platform-main {
-    grid-template-columns: 48px minmax(0, 1fr) auto !important;
-    padding: 16px !important;
+    min-height: 112px !important;
+    grid-template-columns: 44px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    padding: 13px !important;
   }
 
-  .metro-clean-system[data-route="games"] .bes-game-platform-scrollbar {
-    grid-template-columns: 20px minmax(0, 1fr) 20px !important;
-    gap: 5px !important;
-  }
-
-  .metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__range::-webkit-slider-thumb,
-  .metro-clean-system[data-route="games"] .bes-game-platform-scrollbar__range::-moz-range-thumb {
-    width: 56px !important;
+  .metro-clean-system[data-route="games"] .games-v46-platform-icon {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 14px !important;
   }
 }
