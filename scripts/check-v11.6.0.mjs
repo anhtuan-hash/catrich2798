@@ -1,5 +1,4 @@
 import fs from 'node:fs';
-import { WORKSHEET_ACTIVITY_TYPES, generateOfflineWorksheet, auditWorksheet } from '../src/utils/worksheetFactory.js';
 const required = [
   ['src/pages/WorksheetFactory.jsx', ['PROJECT_SCHEMA', 'BUILD_MODES', 'SOURCE_FACETS', 'AI_TASKS', 'DESTINATIONS', 'offlineSourceIntelligence', 'generateSections', 'detailedAudit', 'VersionModal', 'A4Preview', 'PublishCard', 'bes-worksheet-pack/2.0', 'batchZip', 'loadItemBankSource']],
   ['src/pages/WorksheetFactory.css', ['.wf2-product-bar', '.wf2-workflow', '.wf2-setup-grid', '.wf2-editor-layout', '.wf2-audit-panel', '.wf2-paper', '.wf2-batch-settings', '@media(max-width:1320px)', '@media(max-width:1060px)', '@media(max-width:760px)', '@media(max-width:560px)']],

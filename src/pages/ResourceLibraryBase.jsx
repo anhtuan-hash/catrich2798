@@ -16,8 +16,6 @@ import {
   syncResourceViaServer,
   updateResourceLibrary,
   upsertResourceCloud} from '../utils/resourceLibrary.js';
-import { emitAutomationEvent } from '../utils/automationEngine.js';
-import { recordAuditEvent, softDeleteEntity } from '../utils/collaborationGovernance.js';
 import {
   RESOURCE_CATEGORY_FALLBACK,
   ResourceCategoryCards,

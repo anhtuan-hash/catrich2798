@@ -1,6 +1,5 @@
 import { ACTIVITY_TEMPLATES, SAMPLE_CONTENT, buildTeacherText, parseActivity } from '../src/utils/activityEngine.js';
 import { parseMcqFromText, bankToText } from '../src/utils/library.js';
-import { SPECIALIZED_TOOL_SLUGS, getSpecializedConfig, generateSpecializedOutput } from '../src/utils/specializedAppEngines.js';
 import { APPS } from '../src/data/apps.js';
 import { OFFICIAL_CONDUCT_RULES, CONDUCT_DOCUMENT } from '../src/data/homeroomConduct.js';
 import { PETRUS_KY_ACADEMIC_PLAN_DOCUMENT, PETRUS_KY_ACADEMIC_PLAN_2026_2027, PETRUS_KY_CONDUCT_WEEKS, PETRUS_KY_AVERAGE_WEEKS, findPetrusKyConductWeek } from '../src/data/homeroomAcademicPlan.js';

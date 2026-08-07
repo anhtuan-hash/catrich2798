@@ -11,7 +11,6 @@ import {
   resolveWorkHubCommentAttachments,
   WORK_HUB_DELIVERY_EVENT,
 } from '../utils/workHubDelivery.js';
-import { recordAuditEvent } from '../utils/collaborationGovernance.js';
 
 const SOURCE_MODULE = 'brian-team';
 const ITEM_COLUMNS = 'id,title,description,status,priority,due_at,assignee_ids,metadata,updated_at,submitted_at,reviewed_at,completed_at';

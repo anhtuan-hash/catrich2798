@@ -1,5 +1,3 @@
-import '../data/registerWordOrbit.js';
-import '../data/registerActivityGraph.js';
 
 export const APP_VERSION = '11.6.8';
 export const RELEASE_NAME = 'Activity Graph Route Fix';

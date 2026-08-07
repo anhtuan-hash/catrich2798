@@ -2,8 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { formatDate, isLeader, readLocal, scopedLocalKey, uid, writeLocal } from './v1093/shared.js';
-import { emitAutomationEvent } from '../utils/automationEngine.js';
-import { recordAuditEvent } from '../utils/collaborationGovernance.js';
 import {
   consumeRememberedWorkHubItem,
   formatWorkHubFileSize,

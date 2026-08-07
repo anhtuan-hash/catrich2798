@@ -3,7 +3,6 @@ import React, { Suspense, lazy, useMemo, useState } from 'react';
 const NewsReader = lazy(() => import('./NewsReader.jsx'));
 const VietnamTaxStudio = lazy(() => import('./VietnamTaxStudio.jsx'));
 const TextCareStudio = lazy(() => import('./TextCareStudio.jsx'));
-const SpecializedAppPage = lazy(() => import('./SpecializedAppPage.jsx'));
 const DominoWordForm = lazy(() => import('./DominoWordForm.jsx'));
 const PromptStudio = lazy(() => import('./PromptStudio.jsx'));
 const ClassroomGame = lazy(() => import('./ClassroomGame.jsx'));

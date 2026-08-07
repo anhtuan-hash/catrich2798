@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { getRuntimeClient } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { isLeader, readLocal, scopedLocalKey, writeLocal } from '../pages/v1093/shared.js';
-import { recordAuditEvent } from '../utils/collaborationGovernance.js';
 import { removeWorkHubSubmissionFiles, WORK_HUB_DELIVERY_EVENT } from '../utils/workHubDelivery.js';
 import './GlobalWorkBulkDeleteManager.css';
 

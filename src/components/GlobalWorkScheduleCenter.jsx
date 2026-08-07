@@ -3,8 +3,6 @@ import { createPortal } from 'react-dom';
 import readXlsxFile from 'read-excel-file/browser';
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
-import { emitAutomationEvent } from '../utils/automationEngine.js';
-import { recordAuditEvent } from '../utils/collaborationGovernance.js';
 import { isLeader, uid } from '../pages/v1093/shared.js';
 import {
   WORK_SCHEDULE_ITEM_TYPE,

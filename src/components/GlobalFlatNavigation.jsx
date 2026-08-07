@@ -52,7 +52,6 @@ import './GlobalNotificationCenterNarrow.css';
 import './GlobalNotificationMenuLayerFix.css';
 import './GlobalNavigationFontScaleGuard.css';
 import './GlobalNavigationScrollableTabs.css';
-import './GlobalWordGraphGoogleM3.css';
 import './GlobalNotificationCountVisibilityFix.css';
 import './GlobalAutosaveGoogle.css';
 import './GlobalHomeAuroraV3.css';

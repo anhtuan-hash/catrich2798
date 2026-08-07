@@ -19,8 +19,7 @@ if (!APPS.some((app) => app.slug === TOP_FIVE_ARENA_APP.slug)) {
   APPS.unshift(TOP_FIVE_ARENA_APP);
 }
 
-export const APP_DESIGN_PROFILES = {
-;
+export const APP_DESIGN_PROFILES = {};
 
 export function getAppDesignProfile(slug) {
   return APP_DESIGN_PROFILES[slug] || {
