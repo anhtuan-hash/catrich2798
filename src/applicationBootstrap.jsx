@@ -78,7 +78,7 @@ function loadRouteModules() {
   if (isHomeroomRoute() && !homeroomExtrasLoaded) {
     homeroomExtrasLoaded = true;
     Promise.all([
-      import('./conductExportReports.js'),
+      import('./conductMidFinalReports.js'),
       import('./conductCurrentWeekExport.js'),
       import('./preferredHomeroomEntry.js'),
       import('./homeroomHeroIdentityRuntime.js'),
