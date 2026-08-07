@@ -42,6 +42,7 @@ html body #root .metro-clean-system[data-route="games"] .games-v44-top-actions {
 }
 
 html body #root .metro-clean-system[data-route="games"] .games-v46-board {
+  --bes-games-board-gutter: clamp(22px, 2.6vw, 38px);
   min-height: 0 !important;
   display: block !important;
   overflow: hidden !important;
@@ -62,11 +63,29 @@ html body #root .metro-clean-system[data-route="games"] .games-v46-board-head p 
   line-height: 1.5 !important;
 }
 
+/* Full-bleed game platform viewport: the cards and scrollbar now use the board's complete
+   visible width instead of stopping at the inner content gutter. The rounded board remains
+   the clipping boundary, so the row feels edge-to-edge without leaking outside the card. */
 html body #root .metro-clean-system[data-route="games"] .games-v46-board .games-v46-platform-grid {
-  width: 100% !important;
-  max-width: 100% !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
   margin-top: 16px !important;
+  margin-left: calc(-1 * var(--bes-games-board-gutter)) !important;
+  margin-right: calc(-1 * var(--bes-games-board-gutter)) !important;
+  padding-left: max(8px, env(safe-area-inset-left)) !important;
+  padding-right: max(8px, env(safe-area-inset-right)) !important;
   align-self: auto !important;
+}
+
+html body #root .metro-clean-system[data-route="games"] .games-v46-board .bes-game-platform-scrollbar {
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-left: calc(-1 * var(--bes-games-board-gutter)) !important;
+  margin-right: calc(-1 * var(--bes-games-board-gutter)) !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
 }
 
 html body #root .metro-clean-system[data-route="games"] .games-v46-launch-band,
@@ -84,5 +103,9 @@ html body #root .metro-clean-system[data-route="games"] .games-v46-live-card {
   html body #root .metro-clean-system[data-route="games"] #bes-main-content
   :is(.games-v44-main, .games-v58-main, .games-v58-no-sidebar) {
     gap: 14px !important;
+  }
+
+  html body #root .metro-clean-system[data-route="games"] .games-v46-board {
+    --bes-games-board-gutter: clamp(16px, 4vw, 24px);
   }
 }
