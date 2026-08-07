@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { canManageAiWebsites } from '../utils/aiWebsiteSettings.js';
 import { EXTERNAL_APP_SOURCE_HTML, loadExternalWebApps, subscribeExternalWebApps } from '../utils/externalWebApps.js';
+import { TESOL_METHOD_HASH } from '../tesolMethodRouteRegistry.js';
 import ExternalWebAppManager from './ExternalWebAppManagerV2.jsx';
 import ExternalWebAppViewer from './ExternalWebAppViewer.jsx';
 import './ExternalWebApps.css';
@@ -9,6 +10,23 @@ import './ExternalAppApprovalRestore.css';
 
 const GROUPS = { plan: 'Soạn bài', create: 'Tạo học liệu', assess: 'Kiểm tra', manage: 'Quản lý' };
 const TONES = ['#1a73e8', '#188038', '#e37400', '#9334e6', '#12b5cb', '#d93025'];
+const TESOL_METHOD_ROUTE = TESOL_METHOD_HASH.replace(/^#\//, '');
+
+function normalizeTitle(value = '') {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function isTesolMethodApp(app = {}) {
+  const normalized = normalizeTitle(app.title || app.name || '');
+  return normalized === 'phuong phap tesol' || (normalized.includes('tesol') && normalized.includes('phuong phap'));
+}
 
 function tone(value = '') {
   let hash = 0;
@@ -55,7 +73,11 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
   const [data, setData] = useState({ approved: [], mine: [], requests: [] });
   const [dialog, setDialog] = useState(false);
   const [active, setActive] = useState(null);
+  const [loaded, setLoaded] = useState(false);
   const pending = useMemo(() => data.requests.filter((request) => request.status === 'pending').length, [data.requests]);
+  const isTesolRoute = route === TESOL_METHOD_ROUTE;
+  const tesolApp = useMemo(() => data.approved.find(isTesolMethodApp) || null, [data.approved]);
+  const approvedLauncherApps = useMemo(() => data.approved.filter((app) => !isTesolMethodApp(app)), [data.approved]);
 
   useEffect(() => {
     const updateRoute = () => setRoute(location.hash.replace(/^#\//, '').split('?')[0]);
@@ -89,15 +111,23 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
   }, [route]);
 
   useEffect(() => {
-    if (!currentUser || route !== 'apps') return undefined;
+    if (!currentUser || (route !== 'apps' && !isTesolRoute)) return undefined;
     let activeSubscription = true;
     let unsubscribe = () => {};
-    const applyData = (next) => { if (activeSubscription && next) setData(next); };
-    const includeRequests = manager;
+    setLoaded(false);
+    const applyData = (next) => {
+      if (!activeSubscription || !next) return;
+      setData(next);
+      setLoaded(true);
+    };
+    const includeRequests = route === 'apps' && manager;
 
     loadExternalWebApps(currentUser, { includeRequests })
       .then(applyData)
-      .catch((error) => console.warn('[External apps] initial load failed; add-app controls remain available', error));
+      .catch((error) => {
+        setLoaded(true);
+        console.warn('[External apps] initial load failed; add-app controls remain available', error);
+      });
 
     try {
       unsubscribe = subscribeExternalWebApps(currentUser, applyData, { includeRequests }) || (() => {});
@@ -109,13 +139,23 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
       activeSubscription = false;
       try { unsubscribe?.(); } catch (error) { console.warn('[External apps] subscription cleanup failed', error); }
     };
-  }, [currentUser?.id, currentUser?.email, currentUser?.role, manager, route]);
+  }, [currentUser?.id, currentUser?.email, currentUser?.role, manager, route, isTesolRoute]);
 
-  if (!currentUser || route !== 'apps') return null;
+  const openApprovedApp = (app) => {
+    if (isTesolMethodApp(app)) {
+      window.location.hash = TESOL_METHOD_HASH;
+      return;
+    }
+    setActive(app);
+  };
+
+  if (!currentUser) return null;
+
+  const routeHost = isTesolRoute && typeof document !== 'undefined' ? document.getElementById('bes-main-content') : null;
 
   return (
     <>
-      {hosts.hero ? createPortal(
+      {route === 'apps' && hosts.hero ? createPortal(
         <div className="external-app-integration-actions">
           <button type="button" className="launcher-add-external-app" onClick={() => setDialog(true)}>
             <span aria-hidden="true">⇧</span>
@@ -126,19 +166,38 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
         hosts.hero,
       ) : null}
 
-      {hosts.grid ? createPortal(
-        data.approved.map((app) => <WebsiteAppCard key={app.id} app={app} onOpen={setActive} />),
+      {route === 'apps' && hosts.grid ? createPortal(
+        approvedLauncherApps.map((app) => <WebsiteAppCard key={app.id} app={app} onOpen={openApprovedApp} />),
         hosts.grid,
       ) : null}
 
-      <ExternalWebAppManager
-        open={dialog}
-        onClose={() => setDialog(false)}
-        currentUser={currentUser}
-        language={language}
-        onChanged={setData}
-      />
-      <ExternalWebAppViewer app={active} onClose={() => setActive(null)} />
+      {route === 'apps' ? (
+        <ExternalWebAppManager
+          open={dialog}
+          onClose={() => setDialog(false)}
+          currentUser={currentUser}
+          language={language}
+          onChanged={setData}
+        />
+      ) : null}
+
+      {route === 'apps' ? <ExternalWebAppViewer app={active} onClose={() => setActive(null)} /> : null}
+
+      {isTesolRoute && tesolApp ? (
+        <ExternalWebAppViewer app={tesolApp} onClose={() => { window.location.hash = '#/apps'; }} />
+      ) : null}
+
+      {isTesolRoute && routeHost && !tesolApp ? createPortal(
+        <div style={{ minHeight: '68vh', display: 'grid', placeItems: 'center', padding: '32px' }}>
+          <section style={{ maxWidth: '720px', width: '100%', padding: '32px', borderRadius: '28px', background: '#fff', border: '1px solid #d9e4f2', boxShadow: '0 18px 50px rgba(34, 65, 110, .12)', textAlign: 'center' }}>
+            <div style={{ fontSize: '48px', marginBottom: '12px' }}>🌐</div>
+            <h1 style={{ margin: '0 0 10px' }}>Phương pháp TESOL</h1>
+            <p style={{ margin: '0 0 20px', color: '#5f6368' }}>{loaded ? 'Không tìm thấy bản ứng dụng TESOL đã duyệt trong kho ứng dụng website.' : 'Đang tải ứng dụng TESOL đã duyệt…'}</p>
+            {loaded ? <button type="button" onClick={() => { window.location.hash = '#/apps'; }} style={{ border: 0, borderRadius: '999px', padding: '12px 22px', background: '#1a73e8', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Quay lại Ứng dụng</button> : null}
+          </section>
+        </div>,
+        routeHost,
+      ) : null}
     </>
   );
 }
