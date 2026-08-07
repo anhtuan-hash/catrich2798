@@ -8,6 +8,7 @@ import {
 } from '../utils/externalWebApps.js';
 import './ExternalWebApps.css';
 import './ExternalWebAppViewerCrop.css';
+import './ExternalWebAppViewerControlStack.css';
 
 function numericStyle(value) {
   const parsed = Number.parseFloat(value || '0');
