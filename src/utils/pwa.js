@@ -14,9 +14,6 @@ const state = {
   installPrompt: null,
 };
 
-let activationRequested = false;
-let reloadStarted = false;
-
 function snapshot() {
   return {
     supported: state.supported,
@@ -38,43 +35,39 @@ function emit() {
   window.dispatchEvent(new CustomEvent(PWA_EVENT, { detail: snapshot() }));
 }
 
+export async function clearPwaCaches() {
+  if (typeof caches === 'undefined') return false;
+  const keys = await caches.keys();
+  await Promise.all(keys.filter((key) => key.startsWith('bes-')).map((key) => caches.delete(key)));
+  return true;
+}
+
 export async function registerBrianPwa() {
   if (typeof window === 'undefined' || !state.supported) return snapshot();
   try {
-    const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-    state.registration = registration;
-    state.registered = true;
+    // Brian now runs as a normal network-first web app. Service-worker updates
+    // were able to alter the active asset/controller state while a browser tab
+    // was suspended and resumed. Retire every Brian registration instead of
+    // letting a background tab participate in PWA lifecycle changes.
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations
+      .filter((registration) => {
+        try { return new URL(registration.scope).origin === window.location.origin; }
+        catch { return true; }
+      })
+      .map(async (registration) => {
+        try { registration.active?.postMessage?.({ type: 'CLEAR_CACHE' }); } catch { /* best effort */ }
+        try { await registration.unregister(); } catch { /* best effort */ }
+      }));
+    await clearPwaCaches();
+
+    state.registration = null;
+    state.registered = false;
     state.controlled = Boolean(navigator.serviceWorker.controller);
-    state.offlineReady = true;
-    state.updateReady = Boolean(registration.waiting && navigator.serviceWorker.controller);
-
-    registration.addEventListener('updatefound', () => {
-      const worker = registration.installing;
-      if (!worker) return;
-      worker.addEventListener('statechange', () => {
-        if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-          // Keep the new worker waiting. The current page continues using one
-          // coherent asset version until the user explicitly chooses Update.
-          state.updateReady = true;
-          emit();
-        }
-      });
-    });
-
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      state.controlled = true;
-      state.updateReady = false;
-      state.refreshNeeded = false;
-      state.refreshReason = '';
-      emit();
-
-      // A controller change must never reload a page merely because a browser
-      // tab resumed. Reload only after the user explicitly requested Update.
-      if (activationRequested && !reloadStarted) {
-        reloadStarted = true;
-        window.location.reload();
-      }
-    });
+    state.offlineReady = false;
+    state.updateReady = false;
+    state.refreshNeeded = false;
+    state.refreshReason = '';
     emit();
   } catch (error) {
     state.lastError = error?.message || String(error);
@@ -114,42 +107,18 @@ export async function requestPwaInstall() {
 }
 
 export function reportPwaRefreshNeeded(reason = 'asset-version-mismatch') {
+  // Keep diagnostics only. Never turn an asset mismatch into an automatic page
+  // reload; the active Brian session must stay mounted until the user chooses a
+  // normal browser refresh/reopen themselves.
   state.refreshNeeded = true;
   state.refreshReason = String(reason || 'asset-version-mismatch');
   emit();
 }
 
 export async function activatePwaUpdate() {
-  activationRequested = true;
-  let worker = state.registration?.waiting || null;
-
-  if (!worker && state.registration) {
-    try {
-      await state.registration.update();
-      worker = state.registration.waiting || null;
-    } catch {
-      // An explicit user refresh remains a safe fallback below.
-    }
-  }
-
-  if (worker) {
-    worker.postMessage({ type: 'SKIP_WAITING' });
-    return;
-  }
-
-  // This path is reachable only after the user presses the update/refresh
-  // button. Never call reload automatically from tab visibility or SW events.
-  if (!reloadStarted) {
-    reloadStarted = true;
-    window.location.reload();
-  }
-}
-
-export async function clearPwaCaches() {
-  if (typeof caches === 'undefined') return false;
-  const keys = await caches.keys();
-  await Promise.all(keys.filter((key) => key.startsWith('bes-')).map((key) => caches.delete(key)));
-  return true;
+  // Legacy API retained for callers, but deliberately never reloads the page.
+  await registerBrianPwa();
+  return snapshot();
 }
 
 export function getPwaState() { return snapshot(); }
