@@ -2,6 +2,7 @@ import './tabResumeStability.js';
 import './tabResumeAuthStability.js';
 import './fourClassLocalPurge.js';
 import './directClassRosterImportBootstrap.js';
+import './removeKnowledgeHubRuntime.js';
 import './styles/MotionRestore.css';
 import './components/GlobalHomeroomMaterial3Refinement.css';
 import {
