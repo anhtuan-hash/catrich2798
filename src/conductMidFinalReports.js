@@ -1,13 +1,15 @@
 import {
   calculateConductPeriod,
+  conductWeekEndForWorkspace,
   inferConductPeriodRanges,
+  resolveConductWeekStart,
 } from './utils/homeroomConduct.js';
 
 const PANEL_ID = 'bes-conduct-mid-final-reports';
 const STYLE_ID = 'bes-conduct-mid-final-reports-style';
 const CURRENT_PREFIX = 'bes-homeroom-current-workspace-v3:';
 const WORKSPACE_PREFIX = 'bes-homeroom-workspace-v1:';
-const PREFS_KEY = 'bes-conduct-mid-final-reports-prefs-v1';
+const PREFS_KEY = 'bes-conduct-mid-final-reports-prefs-v2';
 const DEFAULT_SCHOOL = 'TRƯỜNG TRUNG - TIỂU HỌC PÉTRUS KÝ';
 
 const PERIOD_LABELS = Object.freeze({
@@ -15,13 +17,14 @@ const PERIOD_LABELS = Object.freeze({
   semester1: 'Cuối học kỳ I',
   mid2: 'Giữa học kỳ II',
   semester2: 'Cuối học kỳ II',
+  current: 'Đến tuần hiện tại',
 });
 
-const CONDUCT_SCALE = Object.freeze({
-  good: { label: 'Tốt', min: 3.6 },
-  fair: { label: 'Khá', min: 3.0 },
-  pass: { label: 'Đạt', min: 2.4 },
-  fail: { label: 'Chưa đạt', min: 0 },
+const FIXED_POLICY = Object.freeze({
+  weeklyBase: 100,
+  divisor: 25,
+  maximum: 4,
+  thresholds: Object.freeze({ good: 3.6, fair: 3.0, pass: 2.4 }),
 });
 
 function safeText(value, fallback = '') {
@@ -66,7 +69,7 @@ function savePrefs(panel) {
   try {
     localStorage.setItem(PREFS_KEY, JSON.stringify({
       scope: panel.querySelector('[data-mf-scope]')?.value || 'class',
-      period: panel.querySelector('[data-mf-period]')?.value || 'mid1',
+      period: panel.querySelector('[data-mf-period]')?.value || 'current',
       studentId: panel.querySelector('[data-mf-student]')?.value || '',
     }));
   } catch {
@@ -128,8 +131,38 @@ function activeStudents(workspace) {
     .sort((a, b) => safeText(a.fullName).localeCompare(safeText(b.fullName), 'vi'));
 }
 
+function fixedPolicyWorkspace(workspace) {
+  return {
+    ...workspace,
+    conductSettings: {
+      ...(workspace?.conductSettings || {}),
+      weeklyBaseScore: FIXED_POLICY.weeklyBase,
+      carryBonusCap: FIXED_POLICY.weeklyBase,
+    },
+  };
+}
+
+function currentPeriodRange(workspace, ranges) {
+  const currentDate = today();
+  const semester1 = ranges.semester1 || {};
+  const semester2 = ranges.semester2 || {};
+  const isSemester2 = Boolean(semester2.start && currentDate >= semester2.start);
+  const semester = isSemester2 ? semester2 : semester1;
+  const semesterLabel = isSemester2 ? 'HKII' : 'HKI';
+  const weekStart = resolveConductWeekStart(workspace, currentDate, { nearest: true });
+  const weekEnd = conductWeekEndForWorkspace(workspace, weekStart);
+  const end = semester.end && weekEnd > semester.end ? semester.end : weekEnd;
+  return {
+    type: 'current',
+    label: `Đến tuần hiện tại (${semesterLabel})`,
+    start: semester.start,
+    end,
+  };
+}
+
 function resolveRange(workspace, period) {
   const ranges = inferConductPeriodRanges(workspace);
+  if (period === 'current') return currentPeriodRange(workspace, ranges);
   const key = PERIOD_LABELS[period] ? period : 'mid1';
   const range = ranges[key] || {};
   return {
@@ -141,7 +174,8 @@ function resolveRange(workspace, period) {
 }
 
 function calculateRows(workspace, range) {
-  return calculateConductPeriod(workspace, range.start, range.end, {
+  const policyWorkspace = fixedPolicyWorkspace(workspace);
+  return calculateConductPeriod(policyWorkspace, range.start, range.end, {
     enforceProhibitedDowngrade: true,
     prohibitedStartDate: range.start,
     prohibitedEndDate: range.end,
@@ -156,10 +190,11 @@ function classificationCounts(rows) {
   }, { good: 0, fair: 0, pass: 0, fail: 0 });
 }
 
-function downgradeText(row) {
-  if (!row?.prohibitedViolationCount) return '—';
-  if (!row.prohibitedDowngraded) return `${row.prohibitedViolationCount} vi phạm điều cấm · đã ở mức Chưa đạt`;
-  return `${row.prohibitedViolationCount} vi phạm điều cấm · hạ 1 bậc ${row.baseClassification?.label || '—'} → ${row.classification?.label || '—'}`;
+function prohibitedSummary(row) {
+  const count = Number(row?.prohibitedViolationCount || 0);
+  if (!count) return '0';
+  if (!row.prohibitedDowngraded) return `${count} · Chưa đạt, không thể hạ thêm`;
+  return `${count} · Hạ 1 bậc ${row.baseClassification?.label || '—'} → ${row.classification?.label || '—'}`;
 }
 
 function reportHeader(workspace, title, subtitle, studentName = '') {
@@ -185,11 +220,11 @@ function reportHeader(workspace, title, subtitle, studentName = '') {
 function formulaBlock() {
   return `
     <section class="formula-box">
-      <b>Nguyên tắc tính</b>
-      <span>Điểm mỗi tuần vẫn chấm trên thang 100 và được quy đổi riêng: <strong>điểm tuần ÷ 25</strong> = điểm thang 4.</span>
-      <span>Điểm giai đoạn = <strong>trung bình cộng điểm thang 4 của các tuần</strong> trong khoảng xét.</span>
+      <b>Quy tắc cố định</b>
+      <span>Điểm tuần: <strong>thang 100</strong>. Quy đổi từng tuần: <strong>điểm tuần ÷ 25</strong> → thang 4.</span>
+      <span>Giữa kỳ: trung bình điểm thang 4 từ đầu học kỳ đến mốc giữa kỳ. Cuối kỳ: trung bình điểm thang 4 của toàn học kỳ.</span>
       <span>Tốt ≥ 3,60 · Khá ≥ 3,00 · Đạt ≥ 2,40 · Chưa đạt &lt; 2,40.</span>
-      <span><strong>Vi phạm điều cấm đã xác nhận trong chính khoảng xét sẽ hạ ngay đúng 1 bậc hạnh kiểm.</strong></span>
+      <span><strong>Có ít nhất 1 vi phạm điều cấm đã xác nhận trong chính khoảng xét: hạ đúng 1 bậc; nhiều vi phạm không hạ thêm bậc.</strong></span>
     </section>`;
 }
 
@@ -205,7 +240,8 @@ function classPeriodReport(workspace, range) {
   const rows = calculateRows(workspace, range);
   const counts = classificationCounts(rows);
   const classAverage = rows.length ? rows.reduce((sum, row) => sum + Number(row.average || 0), 0) / rows.length : 4;
-  const prohibitedStudents = rows.filter((row) => row.prohibitedViolationCount > 0).length;
+  const prohibitedStudents = rows.filter((row) => Number(row.prohibitedViolationCount || 0) > 0).length;
+  const prohibitedTotal = rows.reduce((sum, row) => sum + Number(row.prohibitedViolationCount || 0), 0);
   const bodyRows = rows.map((row, index) => `
     <tr>
       <td>${index + 1}</td>
@@ -214,7 +250,7 @@ function classPeriodReport(workspace, range) {
       <td>${row.weekCount}</td>
       <td class="score">${Number(row.average || 0).toFixed(2)}</td>
       <td>${escapeHtml(row.baseClassification?.label || row.classification?.label || '')}</td>
-      <td class="warning">${escapeHtml(downgradeText(row))}</td>
+      <td class="warning">${escapeHtml(prohibitedSummary(row))}</td>
       <td class="result ${row.classification?.id || 'fail'}">${escapeHtml(row.classification?.label || '')}</td>
     </tr>`).join('');
 
@@ -225,9 +261,9 @@ function classPeriodReport(workspace, range) {
       <article><small>Điểm TB thang 4 của lớp</small><b>${classAverage.toFixed(2)}</b></article>
       <article><small>Tốt / Khá</small><b>${counts.good} / ${counts.fair}</b></article>
       <article><small>Đạt / Chưa đạt</small><b>${counts.pass} / ${counts.fail}</b></article>
-      <article><small>HS có vi phạm điều cấm</small><b>${prohibitedStudents}</b></article>
+      <article><small>Vi phạm điều cấm</small><b>${prohibitedTotal} lượt · ${prohibitedStudents} HS</b></article>
     </section>
-    <table><thead><tr><th>STT</th><th>Mã HS</th><th>Họ và tên</th><th>Số tuần</th><th>TB thang 4</th><th>Hạnh kiểm theo điểm</th><th>Điều cấm / hạ bậc</th><th>Hạnh kiểm cuối</th></tr></thead><tbody>${bodyRows}</tbody></table>
+    <table><thead><tr><th>STT</th><th>Mã HS</th><th>Họ và tên</th><th>Số tuần</th><th>TB thang 4</th><th>Hạnh kiểm theo điểm</th><th>Số vi phạm điều cấm / xử lý</th><th>Hạnh kiểm cuối</th></tr></thead><tbody>${bodyRows}</tbody></table>
     ${signatureBlock(workspace)}`;
 }
 
@@ -239,11 +275,10 @@ function personalPeriodReport(workspace, range, student) {
     <tr>
       <td>${index + 1}</td>
       <td>${formatDate(week.weekStart)} – ${formatDate(week.weekEnd)}</td>
-      <td>−${week.totalDeduction}</td>
-      <td>+${week.totalBonus || 0}</td>
       <td class="score">${Number(week.score || 0).toFixed(1)}</td>
       <td class="score">${Math.max(0, Math.min(4, Number(week.score || 0) / 25)).toFixed(2)}</td>
-      <td>${escapeHtml(week.classification?.label || '')}</td>
+      <td>−${week.totalDeduction}</td>
+      <td>+${week.totalBonus || 0}</td>
     </tr>`).join('');
   const records = row.weekly.flatMap((week) => week.records || []).sort((a, b) => String(a.date).localeCompare(String(b.date)));
   const detailRows = records.length ? records.map((record) => `
@@ -255,11 +290,12 @@ function personalPeriodReport(workspace, range, student) {
       <td>${escapeHtml([record.note, record.evidence].filter(Boolean).join(' · '))}</td>
     </tr>`).join('') : '<tr><td colspan="5">Không có ghi nhận trong giai đoạn.</td></tr>';
 
-  const bannerNote = row.prohibitedViolationCount
+  const prohibitedCount = Number(row.prohibitedViolationCount || 0);
+  const bannerNote = prohibitedCount
     ? row.prohibitedDowngraded
-      ? `Hạ 1 bậc từ ${row.baseClassification?.label || '—'} xuống ${row.classification?.label || '—'} do có ${row.prohibitedViolationCount} vi phạm điều cấm đã xác nhận trong giai đoạn.`
-      : `Có ${row.prohibitedViolationCount} vi phạm điều cấm; hạnh kiểm theo điểm đã là Chưa đạt nên không thể hạ thấp hơn.`
-    : `Không có vi phạm điều cấm đã xác nhận trong giai đoạn. Hạnh kiểm được xét trực tiếp từ điểm trung bình thang 4.`;
+      ? `Có ${prohibitedCount} vi phạm điều cấm đã xác nhận trong khoảng xét. Hạnh kiểm bị hạ đúng 1 bậc từ ${row.baseClassification?.label || '—'} xuống ${row.classification?.label || '—'}.`
+      : `Có ${prohibitedCount} vi phạm điều cấm đã xác nhận trong khoảng xét. Hạnh kiểm theo điểm đã là Chưa đạt nên không thể hạ thấp hơn.`
+    : 'Không có vi phạm điều cấm đã xác nhận trong khoảng xét. Hạnh kiểm được xét trực tiếp từ điểm trung bình thang 4.';
 
   return `
     ${reportHeader(workspace, `PHIẾU HẠNH KIỂM ${range.label.toUpperCase()}`, `${formatDate(range.start)} – ${formatDate(range.end)}`, student.fullName)}
@@ -267,12 +303,12 @@ function personalPeriodReport(workspace, range, student) {
     <section class="summary-grid">
       <article><small>Số tuần tính điểm</small><b>${row.weekCount}</b></article>
       <article><small>Điểm TB thang 4</small><b>${Number(row.average || 0).toFixed(2)}</b></article>
-      <article><small>Hạnh kiểm theo điểm</small><b>${escapeHtml(row.baseClassification?.label || row.classification?.label || '')}</b></article>
+      <article><small>Vi phạm điều cấm</small><b>${prohibitedCount}</b></article>
       <article><small>Hạnh kiểm cuối</small><b>${escapeHtml(row.classification?.label || '')}</b></article>
     </section>
-    <section class="result-banner ${row.prohibitedViolationCount ? 'downgraded' : ''}"><span>Kết quả ${escapeHtml(range.label)}</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${escapeHtml(bannerNote)}</small></section>
-    <h2>Diễn biến điểm theo tuần</h2>
-    <table><thead><tr><th>STT</th><th>Tuần</th><th>Trừ</th><th>Cộng</th><th>Điểm tuần /100</th><th>Quy đổi /4</th><th>Xếp loại tuần</th></tr></thead><tbody>${weeklyRows}</tbody></table>
+    <section class="result-banner ${prohibitedCount ? 'downgraded' : ''}"><span>Kết quả ${escapeHtml(range.label)}</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${escapeHtml(bannerNote)}</small></section>
+    <h2>Quy đổi điểm theo tuần</h2>
+    <table><thead><tr><th>STT</th><th>Tuần</th><th>Điểm tuần /100</th><th>Điểm quy đổi /4</th><th>Điểm trừ</th><th>Điểm cộng</th></tr></thead><tbody>${weeklyRows}</tbody></table>
     <h2>Chi tiết ghi nhận</h2>
     <table><thead><tr><th>Ngày</th><th>Loại</th><th>Nội dung</th><th>Điểm</th><th>Ghi chú / minh chứng</th></tr></thead><tbody>${detailRows}</tbody></table>
     ${signatureBlock(workspace)}`;
@@ -293,9 +329,9 @@ function exportReport(panel) {
   const workspace = getCurrentWorkspace();
   if (!workspace) throw new Error('Chưa tìm thấy dữ liệu lớp đang mở trên thiết bị.');
   const scope = panel.querySelector('[data-mf-scope]')?.value || 'class';
-  const period = panel.querySelector('[data-mf-period]')?.value || 'mid1';
+  const period = panel.querySelector('[data-mf-period]')?.value || 'current';
   const range = resolveRange(workspace, period);
-  if (!range.start || !range.end) throw new Error('Mốc thời gian giữa kỳ / cuối kỳ chưa hợp lệ.');
+  if (!range.start || !range.end) throw new Error('Mốc thời gian xét hạnh kiểm chưa hợp lệ.');
   let body;
   let title;
   if (scope === 'personal') {
@@ -317,14 +353,32 @@ function injectStyle() {
   const style = document.createElement('style');
   style.id = STYLE_ID;
   style.textContent = `
-    .bes-mf-panel{margin:0 0 20px;padding:18px;border:1px solid #c9daf5;border-radius:24px;background:linear-gradient(135deg,#edf4ff 0%,#fff 58%,#eef8f1 100%);box-shadow:0 8px 22px rgba(60,64,67,.08);font-family:inherit}.bes-mf-panel *{box-sizing:border-box}.bes-mf-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:14px}.bes-mf-title{display:grid;grid-template-columns:44px 1fr;gap:12px}.bes-mf-icon{width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:#0b57d0;color:#fff;font-weight:900;box-shadow:0 8px 18px rgba(11,87,208,.24)}.bes-mf-title small{display:block;color:#0b57d0;font-size:.66rem;font-weight:900;letter-spacing:.08em}.bes-mf-title h3{margin:3px 0 4px;color:#202124;font-size:1.16rem}.bes-mf-title p{margin:0;color:#5f6368;font-size:.82rem;line-height:1.45}.bes-mf-chip{padding:6px 10px;border-radius:999px;background:#e6f4ea;color:#137333;font-size:.68rem;font-weight:850;white-space:nowrap}.bes-mf-formula{display:flex;flex-wrap:wrap;gap:6px 12px;margin:0 0 14px;padding:10px 12px;border-radius:14px;background:#f7faff;color:#3c4043;font-size:.73rem}.bes-mf-formula b{color:#174ea6}.bes-mf-controls{display:grid;grid-template-columns:1fr 1.3fr 1.4fr auto;align-items:end;gap:10px}.bes-mf-controls label{display:grid;gap:6px;min-width:0;color:#3c4043;font-size:.73rem;font-weight:750}.bes-mf-controls select{width:100%;height:44px;padding:0 12px;border:1px solid #b8c2cc;border-radius:13px;background:#fff;color:#202124;font:inherit;font-size:.82rem;outline:none}.bes-mf-controls select:focus{border-color:#0b57d0;box-shadow:0 0 0 3px rgba(11,87,208,.15)}.bes-mf-controls button{min-height:44px;padding:0 18px;border:0;border-radius:999px;background:#0b57d0;color:#fff;font:inherit;font-size:.82rem;font-weight:850;cursor:pointer;box-shadow:0 5px 13px rgba(11,87,208,.23)}.bes-mf-controls button:disabled{opacity:.6;cursor:wait}.bes-mf-range{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(11,87,208,.14);color:#5f6368;font-size:.76rem}.bes-mf-range b{color:#174ea6}.bes-mf-error{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;background:#fce8e6;color:#b3261e;font-size:.78rem;font-weight:700}.bes-mf-error.show{display:block}@media(max-width:1050px){.bes-mf-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.bes-mf-controls button{grid-column:1/-1}}@media(max-width:620px){.bes-mf-panel{padding:15px;border-radius:20px}.bes-mf-head{display:grid}.bes-mf-chip{justify-self:start}.bes-mf-controls{grid-template-columns:1fr}.bes-mf-controls button{grid-column:auto}}
+    .hr-conduct-settings > .hr-form-grid.four{display:none!important}
+    .bes-mf-panel{margin:0 0 20px;padding:18px;border:1px solid #c9daf5;border-radius:24px;background:linear-gradient(135deg,#edf4ff 0%,#fff 58%,#eef8f1 100%);box-shadow:0 8px 22px rgba(60,64,67,.08);font-family:inherit}.bes-mf-panel *{box-sizing:border-box}.bes-mf-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:14px}.bes-mf-title{display:grid;grid-template-columns:44px 1fr;gap:12px}.bes-mf-icon{width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:#0b57d0;color:#fff;font-weight:900;box-shadow:0 8px 18px rgba(11,87,208,.24)}.bes-mf-title small{display:block;color:#0b57d0;font-size:.66rem;font-weight:900;letter-spacing:.08em}.bes-mf-title h3{margin:3px 0 4px;color:#202124;font-size:1.16rem}.bes-mf-title p{margin:0;color:#5f6368;font-size:.82rem;line-height:1.45}.bes-mf-chip{padding:6px 10px;border-radius:999px;background:#e6f4ea;color:#137333;font-size:.68rem;font-weight:850;white-space:nowrap}.bes-mf-formula{display:flex;flex-wrap:wrap;gap:6px 12px;margin:0 0 14px;padding:10px 12px;border-radius:14px;background:#f7faff;color:#3c4043;font-size:.73rem}.bes-mf-formula b{color:#174ea6}.bes-mf-controls{display:grid;grid-template-columns:1fr 1.3fr 1.55fr auto;align-items:end;gap:10px}.bes-mf-controls label{display:grid;gap:6px;min-width:0;color:#3c4043;font-size:.73rem;font-weight:750}.bes-mf-controls select{width:100%;height:44px;padding:0 12px;border:1px solid #b8c2cc;border-radius:13px;background:#fff;color:#202124;font:inherit;font-size:.82rem;outline:none}.bes-mf-controls select:focus{border-color:#0b57d0;box-shadow:0 0 0 3px rgba(11,87,208,.15)}.bes-mf-controls button{min-height:44px;padding:0 18px;border:0;border-radius:999px;background:#0b57d0;color:#fff;font:inherit;font-size:.82rem;font-weight:850;cursor:pointer;box-shadow:0 5px 13px rgba(11,87,208,.23)}.bes-mf-controls button:disabled{opacity:.6;cursor:wait}.bes-mf-range{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(11,87,208,.14);color:#5f6368;font-size:.76rem}.bes-mf-range b{color:#174ea6}.bes-mf-error{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;background:#fce8e6;color:#b3261e;font-size:.78rem;font-weight:700}.bes-mf-error.show{display:block}@media(max-width:1050px){.bes-mf-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.bes-mf-controls button{grid-column:1/-1}}@media(max-width:620px){.bes-mf-panel{padding:15px;border-radius:20px}.bes-mf-head{display:grid}.bes-mf-chip{justify-self:start}.bes-mf-controls{grid-template-columns:1fr}.bes-mf-controls button{grid-column:auto}}
   `;
   document.head.appendChild(style);
 }
 
+function cleanupLegacyScoringSettings() {
+  const settings = document.querySelector('.hr-conduct-settings');
+  if (!settings) return;
+  const heading = settings.querySelector(':scope > .hr-panel-head > div');
+  const eyebrow = heading?.querySelector('small');
+  const title = heading?.querySelector('h2');
+  const description = heading?.querySelector('p');
+  if (eyebrow) eyebrow.textContent = 'LỊCH NĂM HỌC';
+  if (title) title.textContent = 'Cấu hình mốc thời gian xét hạnh kiểm';
+  if (description) description.textContent = 'Khu vực này chỉ quản lý mốc thời gian của năm học. Quy tắc tính điểm hạnh kiểm đã được cố định và không còn cấu hình thủ công tại đây.';
+
+  const validation = settings.querySelector('.hr-calendar-validation.valid span');
+  if (validation && validation.textContent?.includes('tính giữa kỳ')) {
+    validation.textContent = validation.textContent.replace('tính giữa kỳ, cuối kỳ và cả năm', 'xác định mốc giữa kỳ và cuối kỳ');
+  }
+}
+
 function updatePanel(panel, workspace) {
   const scope = panel.querySelector('[data-mf-scope]')?.value || 'class';
-  const period = panel.querySelector('[data-mf-period]')?.value || 'mid1';
+  const period = panel.querySelector('[data-mf-period]')?.value || 'current';
   const studentField = panel.querySelector('[data-mf-student-field]');
   if (studentField) studentField.hidden = scope !== 'personal';
   const range = resolveRange(workspace, period);
@@ -339,21 +393,21 @@ function buildPanel(workspace) {
   const prefs = readPrefs();
   const students = activeStudents(workspace);
   const selectedStudent = students.some((student) => student.id === prefs.studentId) ? prefs.studentId : students[0]?.id || '';
-  const selectedPeriod = PERIOD_LABELS[prefs.period] ? prefs.period : 'mid1';
+  const selectedPeriod = PERIOD_LABELS[prefs.period] ? prefs.period : 'current';
   const panel = document.createElement('section');
   panel.id = PANEL_ID;
   panel.className = 'bes-mf-panel';
   panel.dataset.workspaceId = safeText(workspace.id, 'default');
   panel.innerHTML = `
     <div class="bes-mf-head">
-      <div class="bes-mf-title"><span class="bes-mf-icon">PDF</span><div><small>XUẤT BÁO CÁO HẠNH KIỂM</small><h3>Giữa kỳ · Cuối kỳ theo thang điểm 4</h3><p>Giữa kỳ lấy trung bình các tuần đến mốc giữa kỳ; cuối kỳ lấy trung bình tất cả các tuần trong học kỳ.</p></div></div>
+      <div class="bes-mf-title"><span class="bes-mf-icon">PDF</span><div><small>XUẤT BÁO CÁO HẠNH KIỂM</small><h3>Giữa kỳ · Cuối kỳ · Đến tuần hiện tại</h3><p>Báo cáo xét hạnh kiểm bằng điểm trung bình thang 4 sau khi quy đổi từng tuần từ thang 100.</p></div></div>
       <span class="bes-mf-chip">Sẵn sàng xuất PDF</span>
     </div>
-    <div class="bes-mf-formula"><b>Quy đổi:</b><span>Điểm tuần ÷ 25 → thang 4</span><span>·</span><span>Tốt ≥ 3,60 · Khá ≥ 3,00 · Đạt ≥ 2,40</span><span>·</span><strong>Điều cấm: hạ ngay 1 bậc</strong></div>
+    <div class="bes-mf-formula"><b>Quy đổi:</b><span>Điểm tuần ÷ 25 → thang 4</span><span>·</span><span>Tốt ≥ 3,60 · Khá ≥ 3,00 · Đạt ≥ 2,40</span><span>·</span><strong>Điều cấm trong khoảng xét: hạ đúng 1 bậc</strong></div>
     <div class="bes-mf-controls">
       <label><span>Đối tượng</span><select data-mf-scope><option value="class"${prefs.scope === 'personal' ? '' : ' selected'}>Cả lớp</option><option value="personal"${prefs.scope === 'personal' ? ' selected' : ''}>Cá nhân</option></select></label>
       <label data-mf-student-field><span>Học sinh</span><select data-mf-student>${students.map((student) => `<option value="${escapeHtml(student.id)}"${student.id === selectedStudent ? ' selected' : ''}>${escapeHtml(student.code ? `${student.code} · ${student.fullName}` : student.fullName)}</option>`).join('')}</select></label>
-      <label><span>Giai đoạn</span><select data-mf-period><option value="mid1"${selectedPeriod === 'mid1' ? ' selected' : ''}>Giữa học kỳ I</option><option value="semester1"${selectedPeriod === 'semester1' ? ' selected' : ''}>Cuối học kỳ I</option><option value="mid2"${selectedPeriod === 'mid2' ? ' selected' : ''}>Giữa học kỳ II</option><option value="semester2"${selectedPeriod === 'semester2' ? ' selected' : ''}>Cuối học kỳ II</option></select></label>
+      <label><span>Giai đoạn</span><select data-mf-period><option value="current"${selectedPeriod === 'current' ? ' selected' : ''}>Đến tuần hiện tại</option><option value="mid1"${selectedPeriod === 'mid1' ? ' selected' : ''}>Giữa học kỳ I</option><option value="semester1"${selectedPeriod === 'semester1' ? ' selected' : ''}>Cuối học kỳ I</option><option value="mid2"${selectedPeriod === 'mid2' ? ' selected' : ''}>Giữa học kỳ II</option><option value="semester2"${selectedPeriod === 'semester2' ? ' selected' : ''}>Cuối học kỳ II</option></select></label>
       <button type="button" data-mf-export>Xuất báo cáo</button>
     </div>
     <div class="bes-mf-range" data-mf-range></div>
@@ -378,9 +432,11 @@ function buildPanel(workspace) {
 }
 
 function ensurePanel() {
+  cleanupLegacyScoringSettings();
+  document.getElementById('bes-conduct-export-reports')?.remove();
+  document.getElementById('bes-conduct-export-current-week')?.remove();
   const periodSection = document.querySelector('.hr-conduct-period');
   if (!periodSection) return;
-  document.getElementById('bes-conduct-export-reports')?.remove();
   const workspace = getCurrentWorkspace();
   if (!workspace) return;
   const existing = document.getElementById(PANEL_ID);
