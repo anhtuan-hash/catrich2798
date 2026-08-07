@@ -1,6 +1,5 @@
 import React, { Suspense, lazy, useMemo, useState } from 'react';
 import '../data/registerWordOrbit.js';
-import '../data/registerActivityGraph.js';
 
 const WordGraphStudio = lazy(() => import('./WordGraphStudio.jsx'));
 const ReadingStudio = lazy(() => import('./ReadingStudio.jsx'));
@@ -17,7 +16,6 @@ const TestBuilder = lazy(() => import('./TestBuilder.jsx'));
 const StudentPractice = lazy(() => import('./StudentPractice.jsx'));
 const AITool = lazy(() => import('./AITool.jsx'));
 const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
-const ActivityGraphStudio = lazy(() => import('./ActivityGraphStudio.jsx'));
 const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
 const PersonnelHub = lazy(() => import('./PersonnelHub.jsx'));
 const ClassroomScreenHost = lazy(() => import('./ClassroomScreenHost.jsx'));
@@ -67,7 +65,6 @@ export default function ToolPage(props) {
   const preview = useMemo(() => buildPreview(content, selected, language), [content, selected, language]);
 
   if (tool?.slug === 'textlab-activities') return renderLazy(TextLabActivities, props);
-  if (tool?.slug === 'activity-graph') return renderLazy(ActivityGraphStudio, props);
   if (tool?.slug === 'thpt-practice-hub') return renderLazy(THPTPracticeHub, props);
   if (['brian-team', 'personnel-hub'].includes(tool?.slug)) return renderLazy(PersonnelHub, props);
   if (tool?.slug === 'classroom-screen') return renderLazy(ClassroomScreenHost, props);
