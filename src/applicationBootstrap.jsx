@@ -1,4 +1,5 @@
 import './tabResumeStability.js';
+import './tabResumeAuthStability.js';
 import './fourClassLocalPurge.js';
 import './directClassRosterImportBootstrap.js';
 import './styles/MotionRestore.css';
