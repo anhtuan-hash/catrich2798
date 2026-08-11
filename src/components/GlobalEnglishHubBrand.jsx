@@ -1,13 +1,23 @@
 import { useEffect } from 'react';
 
+const BRIAN_ENGLISH_MARK = '/brian-english-brand-mark.png';
+
 function prepareBrandButton(button) {
-  button.setAttribute('aria-label', 'English Hub');
-  button.setAttribute('title', 'English Hub');
+  button.setAttribute('aria-label', 'Brian English');
+  button.setAttribute('title', 'Brian English');
   button.dataset.brianBrandReady = 'true';
+  button.classList.add('brian-nav__brand--restored');
+
+  const image = button.querySelector(':scope > img');
+  if (image) {
+    image.src = BRIAN_ENGLISH_MARK;
+    image.alt = 'Brian English logo';
+    image.removeAttribute('aria-hidden');
+  }
 
   const label = button.querySelector(':scope > span');
-  if (label && label.textContent !== 'English Hub') {
-    label.textContent = 'English Hub';
+  if (label && label.textContent !== 'Brian English') {
+    label.textContent = 'Brian English';
   }
 }
 
@@ -22,24 +32,24 @@ function hideRedundantHomeTab() {
   });
 }
 
-function applyEnglishHubBrand() {
+function applyBrianEnglishBrand() {
   document.querySelectorAll('.brian-nav__brand').forEach(prepareBrandButton);
   hideRedundantHomeTab();
 
   document.querySelectorAll('.brian-overlap-home .boh-copy-panel > h1').forEach((node) => {
-    if (node.textContent !== 'English Hub') node.textContent = 'English Hub';
+    if (node.textContent === 'English Hub') node.textContent = 'Brian English';
   });
 
   document.querySelectorAll('.brian-overlap-home .boh-eyebrow').forEach((node) => {
-    if (node.textContent !== 'ENGLISH HUB') node.textContent = 'ENGLISH HUB';
+    if (node.textContent === 'ENGLISH HUB') node.textContent = 'BRIAN ENGLISH';
   });
 
   document.querySelectorAll('.brian-overlap-home').forEach((node) => {
-    node.setAttribute('aria-label', 'English Hub homepage');
+    node.setAttribute('aria-label', 'Brian English homepage');
   });
 
-  if (document.title.includes('Brian English')) {
-    document.title = document.title.replace('Brian English', 'English Hub');
+  if (document.title.includes('English Hub')) {
+    document.title = document.title.replace('English Hub', 'Brian English');
   }
 }
 
@@ -61,7 +71,7 @@ export default function GlobalEnglishHubBrand() {
 
       const apply = () => {
         if (cancelled) return;
-        applyEnglishHubBrand();
+        applyBrianEnglishBrand();
         attempts += 1;
         if (!hasExpectedTargets() && attempts < 60) frame = window.requestAnimationFrame(apply);
       };
