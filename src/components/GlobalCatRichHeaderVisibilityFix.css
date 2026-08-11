@@ -1,6 +1,6 @@
 /* Final Brian English brand visibility contract.
    This file loads after every navigation theme so the official Brian English
-   logo cannot be hidden by older catrich.mauxanh branding overrides. */
+   logo cannot be hidden or duplicated by older branding overrides. */
 
 html body .app-shell[data-route] .brian-nav > .brian-nav__brand,
 html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand {
@@ -62,14 +62,25 @@ html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__
   text-shadow: none !important;
 }
 
-/* Retire the temporary catrich.mauxanh wordmark without touching the real logo. */
-html body .app-shell[data-route] .brian-nav__brand > .catrich-wordmark,
-html body .app-shell[data-route] .brian-nav__brand > .catrich-wordmark__legacy-mark {
+/* Retire every legacy wordmark node without touching the real logo + span. */
+html body .app-shell[data-route] .brian-nav__brand .catrich-wordmark,
+html body .app-shell[data-route] .brian-nav__brand .catrich-wordmark__legacy-mark,
+html body .app-shell[data-route] .brian-nav__brand [class*="legacy-wordmark"],
+html body .app-shell[data-route] .brian-nav__brand [class*="english-hub-wordmark"] {
   display: none !important;
 }
 
+/* Older navigation themes generated "English Hub" through pseudo-elements.
+   Suppress pseudo-content on the brand button and its direct children in the
+   final CSS layer so the only visible live text is the canonical span. */
 html body .app-shell[data-route] .brian-nav > .brian-nav__brand::before,
-html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand::before {
+html body .app-shell[data-route] .brian-nav > .brian-nav__brand::after,
+html body .app-shell[data-route] .brian-nav > .brian-nav__brand > *::before,
+html body .app-shell[data-route] .brian-nav > .brian-nav__brand > *::after,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand::before,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand::after,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > *::before,
+html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > *::after {
   content: none !important;
   display: none !important;
 }
