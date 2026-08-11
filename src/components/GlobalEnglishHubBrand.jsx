@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 
+// Official Brian English brand mark. Keep the visible wordmark as live text so
+// the header stays crisp and readable at every viewport size.
 const BRIAN_ENGLISH_MARK = '/brian-english-brand-mark.png';
 
 function prepareBrandButton(button) {
