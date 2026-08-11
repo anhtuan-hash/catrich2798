@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 
-// Official Brian English brand mark. Keep the visible wordmark as live text so
-// the header stays crisp and readable at every viewport size.
+// Canonical Brian English navigation brand.
 const BRIAN_ENGLISH_MARK = '/brian-english-brand-mark.png';
 const BRIAN_ENGLISH_LABEL = 'Brian English';
 const BRAND_STYLE_ID = 'brian-english-brand-dedup-style';
@@ -13,8 +12,14 @@ function ensureBrandDedupStyle() {
   style.id = BRAND_STYLE_ID;
   style.textContent = `
     .brian-nav__brand--restored::before,
-    .brian-nav__brand--restored::after {
+    .brian-nav__brand--restored::after,
+    .brian-nav__brand--restored *::before,
+    .brian-nav__brand--restored *::after {
       content: none !important;
+      display: none !important;
+    }
+
+    .brian-nav__brand--restored > :not([data-brian-brand-logo="true"]):not([data-brian-brand-label="true"]) {
       display: none !important;
     }
   `;
@@ -27,38 +32,29 @@ function prepareBrandButton(button) {
   button.dataset.brianBrandReady = 'true';
   button.classList.add('brian-nav__brand--restored');
 
-  const image = button.querySelector(':scope > img') || button.querySelector('img');
-  if (image) {
-    image.src = BRIAN_ENGLISH_MARK;
-    image.alt = 'Brian English logo';
-    image.removeAttribute('aria-hidden');
-  }
+  let image = button.querySelector('img[data-brian-brand-logo="true"]') || button.querySelector('img');
+  if (!image) image = document.createElement('img');
+  image.src = BRIAN_ENGLISH_MARK;
+  image.alt = 'Brian English logo';
+  image.removeAttribute('aria-hidden');
+  image.dataset.brianBrandLogo = 'true';
 
-  let label = button.querySelector(':scope > span');
-  if (!label) {
-    label = document.createElement('span');
-    button.appendChild(label);
-  }
+  let label = button.querySelector('[data-brian-brand-label="true"]');
+  if (!label) label = document.createElement('span');
   label.textContent = BRIAN_ENGLISH_LABEL;
   label.dataset.brianBrandLabel = 'true';
 
-  // The legacy navigation can leave an additional "English Hub" text node or
-  // sibling label behind. Remove only redundant branding nodes and keep the
-  // logo/primary label intact so the button cannot render duplicated wording.
-  [...button.childNodes].forEach((node) => {
-    if (node === image || node === label) return;
+  const children = [...button.childNodes];
+  const isCanonical =
+    children.length === 2 &&
+    children[0] === image &&
+    children[1] === label &&
+    String(button.textContent || '').trim() === BRIAN_ENGLISH_LABEL;
 
-    if (node.nodeType === Node.TEXT_NODE) {
-      if (String(node.textContent || '').trim()) node.remove();
-      return;
-    }
-
-    if (node.nodeType !== Node.ELEMENT_NODE) return;
-    const text = String(node.textContent || '').replace(/\s+/g, ' ').trim();
-    if (/^(?:English Hub|Brian English|Brian English Hub)$/i.test(text)) {
-      node.remove();
-    }
-  });
+  // Rebuild the inside of the existing button instead of replacing the button
+  // itself. This preserves its React click handler while permanently removing
+  // all legacy "English Hub" wrappers, text nodes and duplicate labels.
+  if (!isCanonical) button.replaceChildren(image, label);
 }
 
 function hideRedundantHomeTab() {
@@ -90,7 +86,7 @@ function applyBrianEnglishBrand() {
   });
 
   if (document.title.includes('English Hub')) {
-    document.title = document.title.replace('English Hub', BRIAN_ENGLISH_LABEL);
+    document.title = document.title.replaceAll('English Hub', BRIAN_ENGLISH_LABEL);
   }
 }
 
@@ -120,12 +116,22 @@ export default function GlobalEnglishHubBrand() {
       apply();
     };
 
+    // Some legacy navigation effects can re-render their old label after this
+    // component runs. Observe child-list changes so the canonical brand wins
+    // every time without creating any server-side function.
+    const observer = new MutationObserver(() => {
+      if (cancelled || !document.querySelector('.brian-nav__brand')) return;
+      applyBrianEnglishBrand();
+    });
+
     applyWhenReady();
+    observer.observe(document.documentElement, { childList: true, subtree: true });
     window.addEventListener('hashchange', applyWhenReady);
     window.addEventListener('brian:navigation-updated', applyWhenReady);
 
     return () => {
       cancelled = true;
+      observer.disconnect();
       window.cancelAnimationFrame(frame);
       window.removeEventListener('hashchange', applyWhenReady);
       window.removeEventListener('brian:navigation-updated', applyWhenReady);
