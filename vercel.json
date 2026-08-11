@@ -4,6 +4,42 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/briefing-weather",
+      "destination": "/api/gateway?handler=briefing-weather"
+    },
+    {
+      "source": "/api/check-embed",
+      "destination": "/api/gateway?handler=check-embed"
+    },
+    {
+      "source": "/api/google-drive-homeroom-backup",
+      "destination": "/api/gateway?handler=google-drive-homeroom-backup"
+    },
+    {
+      "source": "/api/weekly-practice-drive-action",
+      "destination": "/api/gateway?handler=weekly-practice-drive-action"
+    },
+    {
+      "source": "/api/weekly-practice-file",
+      "destination": "/api/gateway?handler=weekly-practice-file"
+    },
+    {
+      "source": "/api/work-hub-archive-resource",
+      "destination": "/api/gateway?handler=work-hub-archive-resource"
+    },
+    {
+      "source": "/api/work-hub-file-access",
+      "destination": "/api/gateway?handler=work-hub-file-access"
+    },
+    {
+      "source": "/api/work-hub-file-action",
+      "destination": "/api/gateway?handler=work-hub-file-action"
+    },
+    {
+      "source": "/api/work-hub-file",
+      "destination": "/api/gateway?handler=work-hub-file"
+    },
+    {
       "source": "/api/external-app-requests",
       "destination": "/api/resource-sync?scope=external-app-requests"
     },
