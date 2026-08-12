@@ -85,6 +85,83 @@ html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__
   display: none !important;
 }
 
+/* --------------------------------------------------------------------------
+   GLOBAL HEADER SIZE CONTRACT
+   All routes use exactly the same desktop shell dimensions. Route themes may
+   change accent colours only; they must not resize the shared navigation.
+   -------------------------------------------------------------------------- */
+html body .app-shell[data-route] > .bes-top-chrome {
+  gap: 6px !important;
+  padding: 6px clamp(8px, 1.05vw, 16px) 0 !important;
+}
+
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav,
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav.brian-nav--concept-v2 {
+  min-height: 64px !important;
+  height: auto !important;
+  padding: 7px 14px !important;
+  gap: 8px !important;
+  border-radius: 22px !important;
+}
+
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav > .brian-nav__brand,
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav.brian-nav--concept-v2 > .brian-nav__brand {
+  min-height: 48px !important;
+  padding: 4px 10px 4px 4px !important;
+  gap: 8px !important;
+  border-radius: 15px !important;
+}
+
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav > .brian-nav__brand > img,
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > img {
+  width: 38px !important;
+  height: 44px !important;
+  flex: 0 0 38px !important;
+}
+
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav > .brian-nav__brand > span,
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav.brian-nav--concept-v2 > .brian-nav__brand > span {
+  font-size: 15px !important;
+  font-weight: 820 !important;
+}
+
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav__primary {
+  gap: 2px !important;
+  padding: 0 2px !important;
+}
+
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav__primary > button,
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav__guest-tab {
+  min-height: 40px !important;
+  height: 40px !important;
+  padding-inline: 12px !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+}
+
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav__actions {
+  gap: 6px !important;
+}
+
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav__account,
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav__icon,
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav__login {
+  min-height: 40px !important;
+  height: 40px !important;
+}
+
+/* The status/news row also keeps one height across Home, Apps and every route. */
+html body .app-shell[data-route] > .bes-top-chrome .brian-briefing-bar {
+  min-height: 42px !important;
+  height: 42px !important;
+  border-radius: 15px !important;
+}
+
+html body .app-shell[data-route] > .bes-top-chrome .brian-briefing-bar :is(button, .brian-briefing-label) {
+  min-height: 30px !important;
+}
+
 @media (max-width: 900px) {
   html body .app-shell[data-route] .brian-nav > .brian-nav__brand,
   html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__brand {
