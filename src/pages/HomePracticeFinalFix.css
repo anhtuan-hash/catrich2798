@@ -42,6 +42,12 @@
   cursor:not-allowed!important;
   filter:grayscale(.15)!important;
 }
+
+/* Featured tools are redundant with the main navigation and Apps hub. */
+.metro-clean-system[data-route='home'] .bha-tools{
+  display:none!important;
+}
+
 @media(max-width:680px){
   .metro-clean-system[data-route='home'] .bha-practice-header-actions{
     width:100%!important;
