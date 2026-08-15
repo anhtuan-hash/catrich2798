@@ -1,0 +1,180 @@
+/* Seating Chart Studio V10.2 — Chart First
+   Final visual override: prioritize the seating chart, reduce redundant UI.
+   Frontend-only; no API or Vercel Function changes. */
+
+/* Remove the oversized offset that created a large blank band below Brian chrome. */
+.scs-pro{
+  padding:18px clamp(14px,1.7vw,26px) 36px!important;
+  background:
+    radial-gradient(circle at 7% 0%,rgba(70,157,245,.07),transparent 22%),
+    #f6f9fc!important;
+}
+
+/* Slim app toolbar: the global Brian navigation already provides the main chrome. */
+.scs-pro__toolbar{
+  width:min(1680px,100%)!important;
+  min-height:52px!important;
+  margin-bottom:10px!important;
+  padding:6px 8px 6px 10px!important;
+  border-radius:16px!important;
+  box-shadow:0 5px 18px rgba(30,69,108,.045)!important;
+}
+.scs-pro__mark{
+  width:36px!important;
+  height:36px!important;
+  border-radius:11px!important;
+  font-size:.9rem!important;
+  box-shadow:none!important;
+}
+.scs-pro__brand{gap:9px!important}
+.scs-pro__brand strong{font-size:.9rem!important;font-weight:850!important}
+.scs-pro__brand small{display:none!important}
+.scs-pro__actions{gap:5px!important}
+.scs-pro__actions button{
+  min-height:36px!important;
+  padding:0 11px!important;
+  border-radius:10px!important;
+  font-size:.7rem!important;
+}
+
+/* The six status cards duplicated settings and consumed a full row. */
+.scs-pro__summary{display:none!important}
+
+/* Seating area becomes the visual center of the app. */
+.scs-pro__stage{
+  width:min(1680px,100%)!important;
+  min-height:clamp(480px,64vh,720px)!important;
+  margin:0 auto 14px!important;
+  padding:14px!important;
+  border:1px solid rgba(68,139,210,.14)!important;
+  border-radius:26px!important;
+  box-shadow:0 12px 34px rgba(34,72,111,.07)!important;
+  overflow:hidden!important;
+}
+.scs-pro__stagebar{
+  grid-template-columns:minmax(250px,1fr) auto!important;
+  gap:10px!important;
+  margin-bottom:16px!important;
+}
+.scs-pro__board{
+  min-height:50px!important;
+  padding:7px 12px!important;
+  border-radius:14px!important;
+  box-shadow:none!important;
+}
+.scs-pro__board-icon{
+  width:32px!important;
+  height:32px!important;
+  border-radius:9px!important;
+}
+.scs-pro__board b{font-size:.84rem!important;letter-spacing:.1em!important}
+/* Direction is self-explanatory from BẢNG / FRONT; reclaim one text line. */
+.scs-pro__board small{display:none!important}
+.scs-pro__stage-actions{gap:7px!important}
+.scs-pro__font{padding:2px!important;border-radius:11px!important}
+.scs-pro__font button{width:34px!important;height:34px!important}
+.scs-pro__font b{min-width:38px!important;font-size:.68rem!important}
+.scs-pro__shuffle{
+  min-height:40px!important;
+  padding:0 14px!important;
+  border-radius:11px!important;
+  font-size:.75rem!important;
+}
+
+/* Fit all columns on desktop and give every desk more presence. */
+.scs-pro__grid-scroll{
+  width:100%!important;
+  min-height:390px!important;
+  overflow:auto!important;
+  padding:2px 1px 6px!important;
+}
+.scs-pro__grid{
+  width:100%!important;
+  min-width:0!important;
+  gap:clamp(10px,1vw,16px)!important;
+  padding:4px!important;
+}
+.scs-pro__seat{
+  min-width:0!important;
+  min-height:clamp(88px,10vh,118px)!important;
+  padding:16px 10px 14px!important;
+  border-radius:18px!important;
+  box-shadow:0 5px 14px rgba(31,69,107,.055)!important;
+}
+.scs-pro__seat::before{left:12px!important;right:12px!important;height:5px!important}
+.scs-pro__seat strong{
+  font-size:max(var(--student-font-size),14px)!important;
+  line-height:1.25!important;
+  font-weight:850!important;
+}
+.scs-pro__seat:hover{
+  transform:translateY(-3px)!important;
+  box-shadow:0 11px 22px rgba(31,69,107,.10)!important;
+}
+
+/* Empty state is calmer: one instruction, plenty of breathing room. */
+.scs-pro__empty{
+  min-height:410px!important;
+  grid-template-columns:minmax(220px,.55fr) minmax(340px,1.45fr)!important;
+  gap:28px!important;
+  padding:34px!important;
+  border:0!important;
+  background:linear-gradient(135deg,#f8fbff,#fff)!important;
+}
+.scs-pro__empty svg{width:min(100%,280px)!important}
+.scs-pro__empty-copy span{font-size:.66rem!important}
+.scs-pro__empty-copy h2{font-size:clamp(1.8rem,2.4vw,2.7rem)!important;margin:8px 0 0!important}
+.scs-pro__empty-copy p{display:none!important}
+
+/* Settings remain below the chart and visually secondary. */
+.scs-pro__settings{
+  width:min(1680px,100%)!important;
+  border-radius:20px!important;
+  box-shadow:0 7px 24px rgba(35,72,111,.045)!important;
+}
+.scs-pro__tabs{padding:6px!important}
+.scs-pro__tab{min-height:38px!important}
+
+/* Student view: almost the entire viewport is chart. */
+.scs-pro.is-student-view{
+  padding:14px!important;
+  background:#f6f9fc!important;
+}
+.scs-pro.is-student-view .scs-pro__stage{
+  width:100%!important;
+  min-height:calc(100vh - 28px)!important;
+  margin:0!important;
+  border-radius:24px!important;
+}
+.scs-pro.is-student-view .scs-pro__grid-scroll{min-height:calc(100vh - 110px)!important}
+.scs-pro.is-student-view .scs-pro__seat{min-height:clamp(96px,13vh,145px)!important}
+
+@media(max-width:1100px){
+  .scs-pro{padding:14px 10px 28px!important}
+  .scs-pro__stage{min-height:520px!important;padding:11px!important}
+  .scs-pro__grid{gap:9px!important}
+  .scs-pro__seat{min-height:84px!important}
+}
+
+@media(max-width:760px){
+  .scs-pro{padding:10px 7px 24px!important}
+  .scs-pro__toolbar{align-items:flex-start!important;gap:8px!important}
+  .scs-pro__brand strong{font-size:.82rem!important}
+  .scs-pro__actions button{padding:0 9px!important;font-size:.65rem!important}
+  .scs-pro__stage{min-height:500px!important;padding:9px!important;border-radius:20px!important}
+  .scs-pro__stagebar{grid-template-columns:1fr!important;margin-bottom:10px!important}
+  .scs-pro__stage-actions{justify-content:space-between!important}
+  .scs-pro__grid-scroll{min-height:360px!important;overflow-x:auto!important}
+  .scs-pro__grid{min-width:max(720px,calc(var(--scs-cols) * 104px))!important;gap:9px!important}
+  .scs-pro__seat{min-height:82px!important}
+  .scs-pro__empty{min-height:360px!important;grid-template-columns:1fr!important;text-align:center!important;padding:22px!important}
+  .scs-pro__empty svg{width:min(100%,220px)!important}
+}
+
+@media print{
+  .scs-pro{padding:0!important;background:#fff!important}
+  .scs-pro__toolbar,.scs-pro__summary,.scs-pro__settings{display:none!important}
+  .scs-pro__stage{min-height:auto!important;border:0!important;box-shadow:none!important;margin:0!important;padding:0!important}
+  .scs-pro__stage-actions{display:none!important}
+  .scs-pro__seat{min-height:72px!important;box-shadow:none!important}
+}
