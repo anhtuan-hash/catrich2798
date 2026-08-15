@@ -89,6 +89,8 @@ import './GlobalHomeComfortOverflowFix.css';
 import './GlobalBrianHub.css';
 // Keep the catrich.mauxanh wordmark visible after every navigation theme.
 import './GlobalCatRichHeaderVisibilityFix.css';
+// Seating Chart Studio chart-first visual layer. Frontend only.
+import '../pages/SeatingChartStudioFocus.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
