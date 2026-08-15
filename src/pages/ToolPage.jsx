@@ -24,6 +24,7 @@ const CrosswordTrialGame = lazy(() => import('./CrosswordTrialGame.jsx'));
 const KnowledgeTrainGame = lazy(() => import('./KnowledgeTrainGame.jsx'));
 const WordOrbitGame = lazy(() => import('./WordOrbitGame.jsx'));
 const TopFiveArena = lazy(() => import('./TopFiveArena.jsx'));
+const SeatingChartStudio = lazy(() => import('./SeatingChartStudio.jsx'));
 
 const specializedToolSlugs = new Set(['exam-studio']);
 
@@ -64,6 +65,7 @@ export default function ToolPage(props) {
   const [title, setTitle] = useState('My Activity');
   const preview = useMemo(() => buildPreview(content, selected, language), [content, selected, language]);
 
+  if (tool?.slug === 'seating-chart-studio') return renderLazy(SeatingChartStudio, props);
   if (tool?.slug === 'textlab-activities') return renderLazy(TextLabActivities, props);
   if (tool?.slug === 'thpt-practice-hub') return renderLazy(THPTPracticeHub, props);
   if (['brian-team', 'personnel-hub'].includes(tool?.slug)) return renderLazy(PersonnelHub, props);
