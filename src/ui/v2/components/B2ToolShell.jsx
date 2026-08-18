@@ -3,6 +3,7 @@ import { B2Badge, B2Button } from './B2UI.jsx';
 import { getToolBridgeMeta } from '../toolBridgeRegistry.js';
 import { applyToolChromeAdapter, hasLevel2ChromeAdapter } from '../toolChromeAdapters.js';
 import { applyPhase2ToolChromeAdapter, hasPhase2Level2Adapter } from '../toolChromeAdaptersPhase2.js';
+import { runToolBehaviorContract } from '../toolBehaviorContract.js';
 import './B2ToolShell.css';
 
 function injectBridgeCleanup(frame) {
@@ -41,6 +42,7 @@ export default function B2ToolShell({ tool, onBack }) {
   const [state, setState] = useState('loading');
   const [compact, setCompact] = useState(false);
   const [adapterReady, setAdapterReady] = useState(false);
+  const [contract, setContract] = useState(null);
   const meta = useMemo(() => getToolBridgeMeta(tool?.slug), [tool?.slug]);
   const title = tool?.titleVi || tool?.title || meta.label || tool?.slug;
   const description = tool?.descVi || tool?.desc || 'Công cụ Brian đang chạy trong Metro Next Tool Shell.';
@@ -50,6 +52,7 @@ export default function B2ToolShell({ tool, onBack }) {
   const reload = () => {
     setState('loading');
     setAdapterReady(false);
+    setContract(null);
     setFrameKey((value) => value + 1);
   };
 
@@ -65,23 +68,34 @@ export default function B2ToolShell({ tool, onBack }) {
 
   const refreshRuntimeChrome = () => {
     injectBridgeCleanup(frameRef.current);
-    if (!level2) return;
+    if (!level2) return false;
     const phase1Ready = hasLevel2ChromeAdapter(tool?.slug)
       ? applyToolChromeAdapter(frameRef.current, tool?.slug)
       : false;
     const phase2Ready = hasPhase2Level2Adapter(tool?.slug)
       ? applyPhase2ToolChromeAdapter(frameRef.current, tool?.slug)
       : false;
-    setAdapterReady(phase1Ready || phase2Ready);
+    const ready = phase1Ready || phase2Ready;
+    setAdapterReady(ready);
+    return ready;
+  };
+
+  const auditRuntime = () => {
+    const result = runToolBehaviorContract(frameRef.current, tool?.slug, { level2 });
+    setContract(result);
+    return result;
   };
 
   const handleLoad = () => {
     refreshRuntimeChrome();
     window.setTimeout(refreshRuntimeChrome, 180);
-    window.setTimeout(refreshRuntimeChrome, 900);
-    window.setTimeout(refreshRuntimeChrome, 1600);
+    window.setTimeout(() => { refreshRuntimeChrome(); auditRuntime(); }, 520);
+    window.setTimeout(() => { refreshRuntimeChrome(); auditRuntime(); }, 1450);
     setState('ready');
   };
+
+  const contractTone = contract?.status === 'pass' ? 'green' : contract?.status === 'fail' ? 'red' : contract ? 'amber' : 'neutral';
+  const contractLabel = contract ? `Contract ${contract.passCount}/${contract.totalCount}` : 'Contract pending';
 
   return (
     <section className={`b2-tool-shell ${compact ? 'is-compact' : ''}`} ref={surfaceRef} data-tool-slug={tool?.slug || ''} data-bridge-level={meta.level || 1}>
@@ -98,6 +112,7 @@ export default function B2ToolShell({ tool, onBack }) {
         <div className="b2-tool-shell__badges">
           <B2Badge tone={meta.tested ? 'green' : 'amber'}>{meta.tested ? 'Bridge verified' : 'Bridge preview'}</B2Badge>
           {level2 ? <B2Badge tone={adapterReady ? 'violet' : 'amber'}>{adapterReady ? 'Level 2 chrome' : 'Applying Level 2…'}</B2Badge> : <B2Badge>Level 1 runtime</B2Badge>}
+          <B2Badge tone={contractTone}>{contractLabel}</B2Badge>
           <B2Badge tone="blue">V1 logic preserved</B2Badge>
         </div>
       </header>
@@ -106,10 +121,11 @@ export default function B2ToolShell({ tool, onBack }) {
         <div className="b2-tool-shell__status">
           <span className={`b2-tool-shell__dot is-${state}`} />
           <strong>{state === 'ready' ? 'Công cụ sẵn sàng' : 'Đang tải runtime…'}</strong>
-          <small>{meta.family || 'tool'} · same-origin bridge · migration level {meta.level || 1}</small>
+          <small>{meta.family || 'tool'} · same-origin bridge · migration level {meta.level || 1}{contract ? ` · contract ${contract.status}` : ''}</small>
         </div>
         <div className="b2-tool-shell__commands">
           <B2Button variant="ghost" onClick={() => setCompact((value) => !value)}>{compact ? 'Hiện thông tin' : 'Chế độ tập trung'}</B2Button>
+          <B2Button variant="ghost" onClick={auditRuntime} disabled={state !== 'ready'}>✓ Recheck</B2Button>
           <B2Button variant="ghost" onClick={reload}>↻ Tải lại</B2Button>
           <B2Button variant="ghost" onClick={openLegacy}>Mở V1 ↗</B2Button>
           <B2Button variant="primary" onClick={enterFullscreen}>Toàn màn hình</B2Button>

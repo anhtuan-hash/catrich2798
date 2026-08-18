@@ -30,6 +30,7 @@ const B2Settings = lazy(() => import('./pages/B2Settings.jsx'));
 const B2Admin = lazy(() => import('./pages/B2Admin.jsx'));
 const B2Cloud = lazy(() => import('./pages/B2Cloud.jsx'));
 const B2UILab = lazy(() => import('./pages/B2UILab.jsx'));
+const B2ReleaseGate = lazy(() => import('./pages/B2ReleaseGate.jsx'));
 
 const PAGE_COMPONENTS = {
   apps: B2Apps,
@@ -50,12 +51,13 @@ const PAGE_COMPONENTS = {
   admin: B2Admin,
   cloud: B2Cloud,
   'ui-lab': B2UILab,
+  'release-gate': B2ReleaseGate,
 };
 
 const READY_VIEWS = new Set([
   'home', 'apps', 'teaching-tools', 'games', 'resources', 'knowledge-hub', 'news',
   'homeroom', 'classes', 'students', 'dashboard', 'work-hub', 'assessment',
-  'collaboration', 'reports', 'settings', 'admin', 'cloud', 'ui-lab',
+  'collaboration', 'reports', 'settings', 'admin', 'cloud', 'ui-lab', 'release-gate',
 ]);
 const ALL_TOOLS = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS];
 

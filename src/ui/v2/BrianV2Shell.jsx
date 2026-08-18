@@ -42,6 +42,7 @@ const NAV_GROUPS = [
       { icon: '◇', label: 'Quản trị', id: 'admin', ready: true },
       { icon: '☁', label: 'Cloud & Data', id: 'cloud', ready: true },
       { icon: '◈', label: 'UI Lab', id: 'ui-lab', ready: true, private: true },
+      { icon: '✓', label: 'Release Gate', id: 'release-gate', ready: true, private: true },
     ],
   },
 ];

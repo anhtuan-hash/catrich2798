@@ -35,7 +35,7 @@ export function canUseV2Target(user, previewRole, target) {
   const id = String(target || '').replace(/^#?\/?/, '');
   if (!id) return true;
   if (!user?.id) return canPreviewTarget(normalizePreviewRole(previewRole), id);
-  if (id === 'ui-lab') return isAdminRole(user.role);
+  if (id === 'ui-lab' || id === 'release-gate') return isAdminRole(user.role);
   if (id.startsWith('tool/')) return hasToolAccess(user, id.slice(5));
   const v1Route = V2_TO_V1_ROUTE[id];
   if (!v1Route) return false;

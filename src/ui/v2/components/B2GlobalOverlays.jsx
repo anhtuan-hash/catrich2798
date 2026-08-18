@@ -25,6 +25,7 @@ const BASE_COMMANDS = [
   { id: 'admin', label: 'Quản trị', group: 'Hệ thống', icon: '◇' },
   { id: 'cloud', label: 'Cloud & Data', group: 'Hệ thống', icon: '☁' },
   { id: 'ui-lab', label: 'UI Lab', group: 'Hệ thống', icon: '◈' },
+  { id: 'release-gate', label: 'Release Gate', group: 'Hệ thống', icon: '✓' },
 ];
 
 const TOOL_COMMANDS = Object.entries(V2_TOOL_BRIDGE)
@@ -122,6 +123,7 @@ export function B2ProfileMenu({ open, onClose, onNavigate, role = 'teacher', rol
         {canOpen('settings') ? <button type="button" onClick={() => { onNavigate?.('settings'); onClose?.(); }}><span>⚙</span><strong>Cài đặt</strong></button> : null}
         {canOpen('cloud') ? <button type="button" onClick={() => { onNavigate?.('cloud'); onClose?.(); }}><span>☁</span><strong>Cloud & Data</strong><B2Badge tone="blue">ADMIN</B2Badge></button> : null}
         {canOpen('ui-lab') ? <button type="button" onClick={() => { onNavigate?.('ui-lab'); onClose?.(); }}><span>◇</span><strong>UI Lab</strong><B2Badge tone="violet">LAB</B2Badge></button> : null}
+        {canOpen('release-gate') ? <button type="button" onClick={() => { onNavigate?.('release-gate'); onClose?.(); }}><span>✓</span><strong>Release Gate</strong><B2Badge tone="violet">PRIVATE</B2Badge></button> : null}
         {canOpen('admin') ? <button type="button" onClick={() => { onNavigate?.('admin'); onClose?.(); }}><span>◈</span><strong>Quản trị</strong><B2Badge tone="blue">ADMIN</B2Badge></button> : null}
         <button type="button" onClick={() => window.open('/#/', '_blank', 'noopener,noreferrer')}><span>↗</span><strong>Mở Brian V1</strong></button>
       </div>

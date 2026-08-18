@@ -15,7 +15,7 @@ export const V2_PREVIEW_ROLES = {
     id: 'admin',
     label: 'Quản trị viên',
     shortLabel: 'ADMIN',
-    description: 'Toàn bộ vùng preview, bao gồm Quản trị, Cloud Operations và UI Lab.',
+    description: 'Toàn bộ vùng preview, bao gồm Quản trị, Cloud Operations, UI Lab và Release Gate.',
   },
 };
 
@@ -35,7 +35,7 @@ export function canPreviewTarget(roleValue, target) {
   if (!id) return true;
   if (id.startsWith('tool/')) return true;
   if (COMMON_ROUTES.has(id)) return true;
-  if (id === 'admin' || id === 'cloud' || id === 'ui-lab') return role === 'admin';
+  if (id === 'admin' || id === 'cloud' || id === 'ui-lab' || id === 'release-gate') return role === 'admin';
   return false;
 }
 
