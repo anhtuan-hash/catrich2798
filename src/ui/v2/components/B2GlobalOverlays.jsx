@@ -75,9 +75,14 @@ function noticeTitle(item) {
   return item?.title || item?.message || item?.subject || item?.type || 'Thông báo Brian';
 }
 function noticeMeta(item) {
-  const date = item?.created_at || item?.createdAt || item?.updated_at || item?.updatedAt || '';
+  const rawDate = item?.created_at || item?.createdAt || item?.updated_at || item?.updatedAt || '';
   const source = item?.source || item?.sourceLabel || item?.source_module || '';
-  return [source, date ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(date)) : ''].filter(Boolean).join(' · ');
+  let dateLabel = '';
+  if (rawDate) {
+    const date = new Date(rawDate);
+    dateLabel = Number.isNaN(date.getTime()) ? String(rawDate) : new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(date);
+  }
+  return [source, dateLabel].filter(Boolean).join(' · ');
 }
 
 export function B2NotificationCenter({ open, onClose }) {
