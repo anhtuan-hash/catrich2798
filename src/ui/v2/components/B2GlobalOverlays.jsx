@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { B2Badge, B2Button, B2SearchBox } from './B2UI.jsx';
 import { V2_TOOL_BRIDGE } from '../toolBridgeRegistry.js';
+import { V2_PREVIEW_ROLES } from '../previewPermissions.js';
 import './B2GlobalOverlays.css';
 
 const BASE_COMMANDS = [
@@ -16,6 +17,7 @@ const BASE_COMMANDS = [
   { id: 'games', label: 'Trò chơi', group: 'Dạy học', icon: '▶' },
   { id: 'settings', label: 'Cài đặt', group: 'Hệ thống', icon: '⚙' },
   { id: 'admin', label: 'Quản trị', group: 'Hệ thống', icon: '◇' },
+  { id: 'ui-lab', label: 'UI Lab', group: 'Hệ thống', icon: '◈' },
 ];
 
 const TOOL_COMMANDS = Object.entries(V2_TOOL_BRIDGE)
@@ -29,7 +31,7 @@ const TOOL_COMMANDS = Object.entries(V2_TOOL_BRIDGE)
 
 const COMMANDS = [...BASE_COMMANDS, ...TOOL_COMMANDS];
 
-export function B2CommandPalette({ open, onClose, onNavigate }) {
+export function B2CommandPalette({ open, onClose, onNavigate, canOpen = () => true }) {
   const [query, setQuery] = useState('');
   useEffect(() => { if (open) setQuery(''); }, [open]);
   useEffect(() => {
@@ -40,8 +42,9 @@ export function B2CommandPalette({ open, onClose, onNavigate }) {
   }, [open, onClose]);
   const items = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return q ? COMMANDS.filter((item) => `${item.label} ${item.group}`.toLowerCase().includes(q)) : COMMANDS;
-  }, [query]);
+    const allowed = COMMANDS.filter((item) => canOpen(item.id));
+    return q ? allowed.filter((item) => `${item.label} ${item.group}`.toLowerCase().includes(q)) : allowed;
+  }, [query, canOpen]);
   if (!open) return null;
   return (
     <div className="b2-global-scrim" role="presentation" onMouseDown={onClose}>
@@ -55,7 +58,7 @@ export function B2CommandPalette({ open, onClose, onNavigate }) {
               <em>↵</em>
             </button>
           ))}
-          {!items.length ? <div className="b2-command-palette__empty">Không tìm thấy mục phù hợp.</div> : null}
+          {!items.length ? <div className="b2-command-palette__empty">Không tìm thấy mục phù hợp trong quyền preview hiện tại.</div> : null}
         </div>
         <footer><span>Gõ để lọc</span><span>↵ mở</span><span>ESC đóng</span></footer>
       </section>
@@ -87,17 +90,27 @@ export function B2NotificationCenter({ open, onClose }) {
   );
 }
 
-export function B2ProfileMenu({ open, onClose, onNavigate }) {
+export function B2ProfileMenu({ open, onClose, onNavigate, role = 'teacher', roleMeta, onRoleChange, canOpen = () => true }) {
   if (!open) return null;
   return (
     <div className="b2-flyout b2-flyout--profile">
-      <div className="b2-profile-summary"><span>T</span><div><strong>Nguyễn Anh Tuấn</strong><small>Giáo viên · Brian V2 Preview</small></div></div>
+      <div className="b2-profile-summary"><span>T</span><div><strong>Nguyễn Anh Tuấn</strong><small>{roleMeta?.label || 'Giáo viên'} · Brian V2 Preview</small></div></div>
       <div className="b2-profile-menu-list">
         <button type="button" onClick={() => { onNavigate?.('settings'); onClose?.(); }}><span>⚙</span><strong>Cài đặt</strong></button>
-        <button type="button" onClick={() => { onNavigate?.('ui-lab'); onClose?.(); }}><span>◇</span><strong>UI Lab</strong><B2Badge tone="violet">LAB</B2Badge></button>
+        {canOpen('ui-lab') ? <button type="button" onClick={() => { onNavigate?.('ui-lab'); onClose?.(); }}><span>◇</span><strong>UI Lab</strong><B2Badge tone="violet">LAB</B2Badge></button> : null}
+        {canOpen('admin') ? <button type="button" onClick={() => { onNavigate?.('admin'); onClose?.(); }}><span>◈</span><strong>Quản trị</strong><B2Badge tone="blue">ADMIN</B2Badge></button> : null}
         <button type="button" onClick={() => window.open('/#/', '_blank', 'noopener,noreferrer')}><span>↗</span><strong>Mở Brian V1</strong></button>
       </div>
-      <footer><span>Shadow UI</span><B2Badge tone="green">PRIVATE</B2Badge></footer>
+      <div className="b2-profile-role-switch">
+        <span>Role simulator · Shadow only</span>
+        <div className="b2-profile-role-options">
+          {Object.values(V2_PREVIEW_ROLES).map((item) => (
+            <button key={item.id} type="button" className={role === item.id ? 'is-active' : ''} onClick={() => onRoleChange?.(item.id)}>{item.shortLabel}</button>
+          ))}
+        </div>
+        <small className="b2-profile-role-note">Chỉ kiểm thử UI. Quyền V1/backend vẫn là nguồn bảo mật thật.</small>
+      </div>
+      <footer><span>Shadow UI · {roleMeta?.label || role}</span><B2Badge tone="green">PRIVATE</B2Badge></footer>
     </div>
   );
 }
