@@ -1,5 +1,6 @@
 import './tabResumeStability.js';
 import './noCreamSurfaceRuntime.js';
+import './compactDrawerRuntime.js';
 import './tabResumeAuthStability.js';
 import './fourClassLocalPurge.js';
 import './directClassRosterImportBootstrap.js';
