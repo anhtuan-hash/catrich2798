@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { APPS } from '../../../data/apps.js';
 import { B2AppCard, B2Badge, B2Button, B2CommandBar, B2PageHeader, B2SearchBox, B2SectionHeader, B2Tabs } from '../components/B2UI.jsx';
+import { isBridgeTested } from '../toolBridgeRegistry.js';
 import './B2Apps.css';
 
 const FILTERS = [
@@ -40,6 +41,8 @@ export default function B2Apps({ navigate }) {
     return acc;
   }, {}), []);
 
+  const bridgeCount = useMemo(() => APPS.filter((app) => isBridgeTested(app.slug)).length, []);
+
   return (
     <>
       <B2PageHeader
@@ -56,7 +59,7 @@ export default function B2Apps({ navigate }) {
           <div className="b2-apps-summary">
             <strong>{APPS.length}</strong>
             <span>ứng dụng đang hoạt động</span>
-            <B2Badge tone="green">Shadow UI</B2Badge>
+            <B2Badge tone="green">{bridgeCount} đã nối Tool Shell</B2Badge>
           </div>
         )}
       />
@@ -73,9 +76,9 @@ export default function B2Apps({ navigate }) {
       {selected ? (
         <div className="b2-apps-selection" role="status">
           <div>
-            <B2Badge tone="blue">PREVIEW</B2Badge>
+            <B2Badge tone="amber">CHƯA BRIDGE</B2Badge>
             <strong>{selected.titleVi || selected.title}</strong>
-            <span>UI V2 chưa thay thế hành vi production. App thật vẫn chạy bằng UI V1.</span>
+            <span>App này vẫn giữ UI V1 trong private preview cho tới khi adapter được kiểm thử.</span>
           </div>
           <B2Button variant="ghost" onClick={() => setSelected(null)}>Đóng</B2Button>
         </div>
@@ -85,23 +88,26 @@ export default function B2Apps({ navigate }) {
         <B2SectionHeader
           eyebrow={tab === 'all' ? 'DANH MỤC' : FILTERS.find((item) => item.id === tab)?.label}
           title={query ? `Kết quả cho “${query}”` : 'Không gian ứng dụng'}
-          description={`${apps.length} ứng dụng phù hợp với bộ lọc hiện tại`}
+          description={`${apps.length} ứng dụng phù hợp · app có bridge mở trực tiếp trong Tool Shell V2`}
         />
 
         <div className="b2-app-grid">
-          {apps.map((app) => (
-            <B2AppCard
-              key={app.slug}
-              icon={app.icon}
-              title={app.titleVi || app.title}
-              group={app.groupVi || app.group}
-              description={app.descVi || app.desc}
-              status={app.statusVi || app.status}
-              tone={app.tone || 'blue'}
-              featured={Boolean(app.featured)}
-              onOpen={() => setSelected(app)}
-            />
-          ))}
+          {apps.map((app) => {
+            const bridged = isBridgeTested(app.slug);
+            return (
+              <B2AppCard
+                key={app.slug}
+                icon={app.icon}
+                title={app.titleVi || app.title}
+                group={app.groupVi || app.group}
+                description={app.descVi || app.desc}
+                status={`${app.statusVi || app.status}${bridged ? ' · Metro bridge' : ''}`}
+                tone={app.tone || 'blue'}
+                featured={Boolean(app.featured)}
+                onOpen={() => bridged ? navigate?.(`tool/${app.slug}`) : setSelected(app)}
+              />
+            );
+          })}
         </div>
       </section>
     </>
