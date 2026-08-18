@@ -1,25 +1,90 @@
-import React,{useMemo,useState} from 'react';
-import { B2Badge,B2Button,B2PageHeader,B2SearchBox,B2SectionHeader,B2StatCard,B2Surface } from '../components/B2UI.jsx';
-import { B2DataTable,B2DataToolbar,B2FilterChips,B2RowActions,B2Status } from '../components/B2Data.jsx';
+import React from 'react';
+import { B2Badge, B2Button, B2PageHeader, B2SectionHeader, B2StatCard, B2Surface } from '../components/B2UI.jsx';
+import { B2Status } from '../components/B2Data.jsx';
+import { dataSourceLabel, dataSourceTone, useBrianV2Data } from '../data/BrianV2DataContext.jsx';
 import './B2Secondary.css';
 
-const USERS=[
-{id:1,name:'Nguyễn Anh Tuấn',role:'TTCM',email:'tuan@brian.edu.vn',status:'active',scope:'Toàn hệ thống'},
-{id:2,name:'Mỹ Duyên',role:'Giáo viên',email:'myduyen@brian.edu.vn',status:'active',scope:'Giảng dạy'},
-{id:3,name:'Mỹ Diệp',role:'Giáo viên',email:'mydiep@brian.edu.vn',status:'active',scope:'Giảng dạy'},
-{id:4,name:'Minh Hoa',role:'Giáo viên',email:'minhhoa@brian.edu.vn',status:'pending',scope:'Chờ duyệt'},
-];
-export default function B2Admin(){
- const [query,setQuery]=useState(''); const [filter,setFilter]=useState('all');
- const rows=useMemo(()=>USERS.filter(u=>{const q=query.trim().toLowerCase(); if(q&&!`${u.name} ${u.email} ${u.role}`.toLowerCase().includes(q)) return false; if(filter==='active') return u.status==='active'; if(filter==='pending') return u.status==='pending'; return true;}),[query,filter]);
- const columns=[
- {key:'name',label:'Tài khoản',width:'30%',render:r=><div className="b2-admin-user"><strong>{r.name}</strong><small>{r.email}</small></div>},
- {key:'role',label:'Vai trò',width:'17%',render:r=><B2Badge tone={r.role==='TTCM'?'violet':'blue'}>{r.role}</B2Badge>},
- {key:'scope',label:'Phạm vi',width:'24%'},
- {key:'status',label:'Trạng thái',width:'17%',render:r=><B2Status tone={r.status==='active'?'green':'amber'}>{r.status==='active'?'Hoạt động':'Chờ duyệt'}</B2Status>},
- {key:'actions',label:'',width:'12%',align:'right',render:()=> <B2RowActions items={[{label:'Xem quyền',icon:'◎'},{label:'Chỉnh vai trò',icon:'✎'},{label:'Tạm khóa',icon:'×',danger:true}]}/>}];
- return <><B2PageHeader eyebrow="SYSTEM · ADMIN" title="Quản trị" description="Admin V2 ưu tiên quyền, tài khoản và sức khỏe hệ thống; các tác vụ nhạy cảm được tách khỏi giao diện dạy học thông thường." actions={<><B2Button variant="primary">+ Mời giáo viên</B2Button><B2Button>Nhật ký hệ thống</B2Button></>} aside={<B2Badge tone="violet">TTCM ACCESS</B2Badge>} />
- <section className="b2-admin-stats"><B2StatCard label="Tài khoản" value="06" meta="đã duyệt" tone="blue" icon="◎"/><B2StatCard label="Chờ duyệt" value="01" meta="yêu cầu mới" tone="violet" icon="◇"/><B2StatCard label="Ứng dụng" value="24" meta="đang bật" tone="green" icon="▦"/><B2StatCard label="Cảnh báo" value="00" meta="hệ thống ổn định" tone="cyan" icon="✓"/></section>
- <section className="b2-admin-layout"><div><B2SectionHeader eyebrow="ACCESS" title="Tài khoản & quyền"/><B2DataToolbar left={<><B2SearchBox value={query} onChange={setQuery} placeholder="Tìm tài khoản…"/><B2FilterChips value={filter} onChange={setFilter} items={[{id:'all',label:'Tất cả',count:4},{id:'active',label:'Hoạt động',count:3},{id:'pending',label:'Chờ duyệt',count:1}]}/></>} right={<B2Button variant="ghost">Ma trận quyền →</B2Button>}/><B2DataTable columns={columns} rows={rows}/></div>
- <aside><B2Surface><B2SectionHeader eyebrow="SYSTEM" title="Sức khỏe nền tảng"/><div className="b2-admin-health"><div><B2Status tone="green">Supabase</B2Status><small>Ổn định</small></div><div><B2Status tone="green">Vercel</B2Status><small>Production healthy</small></div><div><B2Status tone="green">Storage</B2Status><small>Trong giới hạn</small></div><div><B2Status tone="blue">Audit</B2Status><small>42 sự kiện / 24h</small></div></div></B2Surface><B2Surface><B2SectionHeader eyebrow="GOVERNANCE" title="Quản trị nhanh"/><div className="b2-simple-list"><button><strong>Quản lý ứng dụng</strong><span>24 đang bật</span></button><button><strong>Phân quyền</strong><span>6 tài khoản</span></button><button><strong>Backup & Restore</strong><span>Snapshot gần nhất</span></button><button><strong>Audit log</strong><span>42 sự kiện</span></button></div></B2Surface></aside></section></>;
+const safeArray = (value) => Array.isArray(value) ? value : [];
+const openV1 = (target = 'admin') => window.open(`/#/${target}`, '_blank', 'noopener,noreferrer');
+
+function formatDateTime(value) {
+  if (!value) return 'Chưa có snapshot';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(date);
+}
+
+export default function B2Admin({ navigate, permissionMode = 'preview', roleMeta = null, canOpen = () => false }) {
+  const { user, classes, students, resources, reports, sources, errors, generatedAt, loading, refreshing, refresh } = useBrianV2Data();
+  const resourceItems = safeArray(resources?.items);
+  const errorRows = safeArray(errors);
+  const sourceRows = Object.entries(sources || {});
+
+  return <>
+    <B2PageHeader
+      eyebrow="SYSTEM · ADMIN · READ-FIRST"
+      title="Quản trị"
+      description="Admin V2 không hiển thị tài khoản, session, audit event hay chỉ số sức khỏe giả. Trang này chỉ tổng hợp dữ liệu và quyền mà Brian hiện đang đọc; tác vụ quản trị ghi dữ liệu tiếp tục chạy trong V1."
+      actions={<>
+        <B2Button variant="primary" onClick={() => openV1('admin')}>Mở Admin V1 ↗</B2Button>
+        {canOpen('cloud') ? <B2Button onClick={() => navigate?.('cloud')}>Cloud & Data</B2Button> : null}
+        <B2Button variant="ghost" onClick={() => refresh()} disabled={loading || refreshing}>{loading || refreshing ? 'Đang đồng bộ…' : 'Làm mới snapshot'}</B2Button>
+      </>}
+      aside={<B2Badge tone={permissionMode === 'real' ? 'green' : 'violet'}>{permissionMode === 'real' ? 'LIVE PERMISSIONS' : 'SHADOW SIMULATOR'}</B2Badge>}
+    />
+
+    <section className="b2-admin-stats">
+      <B2StatCard label="Lớp nhìn thấy" value={String(safeArray(classes).length).padStart(2, '0')} meta={dataSourceLabel(sources?.classes)} tone="blue" icon="♙" />
+      <B2StatCard label="Học sinh" value={String(safeArray(students).length).padStart(2, '0')} meta={dataSourceLabel(sources?.students)} tone="violet" icon="◎" />
+      <B2StatCard label="Học liệu" value={String(resourceItems.length).padStart(2, '0')} meta={dataSourceLabel(sources?.resources)} tone="green" icon="▤" />
+      <B2StatCard label="Lỗi nguồn" value={String(errorRows.length).padStart(2, '0')} meta="Data Bridge" tone="cyan" icon="!" />
+    </section>
+
+    <section className="b2-admin-layout">
+      <div className="b2-system-stack">
+        <B2Surface>
+          <B2SectionHeader eyebrow="OPERATOR" title="Phiên quản trị hiện tại" description="Thông tin lấy từ auth/profile đang hoạt động, không phải danh sách user mẫu." />
+          <div className="b2-admin-live-operator">
+            <div className="b2-admin-user"><strong>{user?.name || user?.email || 'Shadow Preview'}</strong><small>{user?.email || 'Chưa có tài khoản thật trong preview'}</small></div>
+            <B2Badge tone={permissionMode === 'real' ? 'green' : 'violet'}>{roleMeta?.label || user?.role || 'Preview role'}</B2Badge>
+            <B2Status tone={dataSourceTone(sources?.auth)}>{dataSourceLabel(sources?.auth)}</B2Status>
+          </div>
+        </B2Surface>
+
+        <B2Surface>
+          <B2SectionHeader eyebrow="DATA BRIDGE" title="Nguồn dữ liệu quản trị đang đọc" description={`Snapshot: ${formatDateTime(generatedAt)}`} />
+          <div className="b2-admin-health">
+            {sourceRows.map(([key, value]) => <div key={key}><B2Status tone={dataSourceTone(value)}>{key}</B2Status><small>{dataSourceLabel(value)}</small></div>)}
+            {!sourceRows.length ? <p className="b2-empty-copy">Chưa có source map trong phiên hiện tại.</p> : null}
+          </div>
+        </B2Surface>
+
+        {errorRows.length ? <B2Surface>
+          <B2SectionHeader eyebrow="ISSUES" title="Lỗi nguồn hiện tại" description="Không chuyển lỗi thật thành trạng thái xanh giả." />
+          <div className="b2-simple-list">{errorRows.map((item, index) => <button type="button" key={`${item?.source || 'bridge'}-${index}`}><strong>{item?.source || 'Data Bridge'}</strong><span>{item?.message || String(item)}</span></button>)}</div>
+        </B2Surface> : null}
+      </div>
+
+      <aside className="b2-system-stack">
+        <B2Surface>
+          <B2SectionHeader eyebrow="ESTATE" title="Dữ liệu hiện hữu" />
+          <div className="b2-system-mini-grid">
+            <div className="b2-system-mini"><span>Lớp</span><strong>{safeArray(classes).length}</strong><small>assigned/workspace</small></div>
+            <div className="b2-system-mini"><span>Học sinh</span><strong>{safeArray(students).length}</strong><small>visible records</small></div>
+            <div className="b2-system-mini"><span>Học liệu</span><strong>{resourceItems.length}</strong><small>resource store</small></div>
+            <div className="b2-system-mini"><span>Báo cáo</span><strong>{safeArray(reports).length}</strong><small>history-derived</small></div>
+          </div>
+        </B2Surface>
+        <B2Surface>
+          <B2SectionHeader eyebrow="GOVERNANCE" title="Quản trị chuyên sâu" description="Mở workflow V1 để tránh tạo write-path song song trước release." />
+          <div className="b2-system-action-list">
+            <button type="button" onClick={() => openV1('admin')}><span>◎</span><strong>Tài khoản & quyền</strong><em>↗</em></button>
+            <button type="button" onClick={() => openV1('cloud-operations')}><span>☁</span><strong>Cloud Operations</strong><em>↗</em></button>
+            <button type="button" onClick={() => openV1('data-governance')}><span>◇</span><strong>Data Governance</strong><em>↗</em></button>
+            <button type="button" onClick={() => openV1('platform-readiness')}><span>✓</span><strong>Platform Readiness</strong><em>↗</em></button>
+          </div>
+        </B2Surface>
+      </aside>
+    </section>
+  </>;
 }
