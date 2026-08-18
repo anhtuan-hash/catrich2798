@@ -3,10 +3,11 @@ import BrianV2Shell from './BrianV2Shell.jsx';
 import B2Home from './pages/B2Home.jsx';
 import B2Apps from './pages/B2Apps.jsx';
 import B2TeachingHub from './pages/B2TeachingHub.jsx';
+import B2UILab from './pages/B2UILab.jsx';
 import { B2Button, B2EmptyState } from './components/B2UI.jsx';
 import './BrianV2Preview.css';
 
-const READY_VIEWS = new Set(['home', 'apps', 'teaching-tools']);
+const READY_VIEWS = new Set(['home', 'apps', 'teaching-tools', 'ui-lab']);
 
 function readPreviewView() {
   if (typeof window === 'undefined') return 'home';
@@ -33,6 +34,7 @@ export default function BrianV2Preview() {
   if (view === 'home') content = <B2Home navigate={navigate} />;
   else if (view === 'apps') content = <B2Apps navigate={navigate} />;
   else if (view === 'teaching-tools') content = <B2TeachingHub />;
+  else if (view === 'ui-lab') content = <B2UILab />;
   else {
     content = (
       <B2EmptyState
