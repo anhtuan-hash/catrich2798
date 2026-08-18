@@ -2,19 +2,24 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { B2Badge, B2Button, B2SearchBox } from './B2UI.jsx';
 import { V2_TOOL_BRIDGE } from '../toolBridgeRegistry.js';
 import { V2_PREVIEW_ROLES } from '../previewPermissions.js';
+import { useBrianV2Data } from '../data/BrianV2DataContext.jsx';
 import './B2GlobalOverlays.css';
 
 const BASE_COMMANDS = [
   { id: 'home', label: 'Trang chủ', group: 'Điều hướng', icon: '⌂' },
   { id: 'apps', label: 'Ứng dụng', group: 'Điều hướng', icon: '▦' },
-  { id: 'teaching-tools', label: 'Teaching tools', group: 'Điều hướng', icon: '◫' },
-  { id: 'homeroom', label: 'Chủ nhiệm 12.6', group: 'Quản lý', icon: '◎' },
+  { id: 'teaching-tools', label: 'Teaching tools', group: 'Dạy học', icon: '◫' },
+  { id: 'resources', label: 'Kho học liệu', group: 'Dạy học', icon: '▤' },
+  { id: 'knowledge-hub', label: 'Knowledge Hub', group: 'Dạy học', icon: '⌕' },
+  { id: 'games', label: 'Trò chơi', group: 'Dạy học', icon: '▶' },
+  { id: 'homeroom', label: 'Chủ nhiệm', group: 'Quản lý', icon: '◎' },
   { id: 'classes', label: 'Lớp học', group: 'Quản lý', icon: '♙' },
   { id: 'students', label: 'Học sinh', group: 'Quản lý', icon: '▥' },
   { id: 'dashboard', label: 'Dashboard', group: 'Công việc', icon: '◧' },
+  { id: 'work-hub', label: 'Work Hub', group: 'Công việc', icon: '◷' },
+  { id: 'assessment', label: 'Assessment', group: 'Công việc', icon: '◇' },
+  { id: 'collaboration', label: 'Cộng tác', group: 'Công việc', icon: '∞' },
   { id: 'reports', label: 'Báo cáo', group: 'Công việc', icon: '▱' },
-  { id: 'resources', label: 'Kho học liệu', group: 'Dạy học', icon: '▤' },
-  { id: 'games', label: 'Trò chơi', group: 'Dạy học', icon: '▶' },
   { id: 'settings', label: 'Cài đặt', group: 'Hệ thống', icon: '⚙' },
   { id: 'admin', label: 'Quản trị', group: 'Hệ thống', icon: '◇' },
   { id: 'ui-lab', label: 'UI Lab', group: 'Hệ thống', icon: '◈' },
@@ -58,7 +63,7 @@ export function B2CommandPalette({ open, onClose, onNavigate, canOpen = () => tr
               <em>↵</em>
             </button>
           ))}
-          {!items.length ? <div className="b2-command-palette__empty">Không tìm thấy mục phù hợp trong quyền preview hiện tại.</div> : null}
+          {!items.length ? <div className="b2-command-palette__empty">Không có mục phù hợp trong quyền hiện tại.</div> : null}
         </div>
         <footer><span>Gõ để lọc</span><span>↵ mở</span><span>ESC đóng</span></footer>
       </section>
@@ -66,51 +71,65 @@ export function B2CommandPalette({ open, onClose, onNavigate, canOpen = () => tr
   );
 }
 
-const NOTICES = [
-  { id: 1, tone: 'blue', title: 'Kế hoạch sinh hoạt tuần 34', meta: 'Hạn hôm nay · 21:00', unread: true },
-  { id: 2, tone: 'violet', title: 'Có 1 mục đang chờ duyệt', meta: 'Teaching Tool Hub · 18 phút trước', unread: true },
-  { id: 3, tone: 'green', title: 'Autosave hoạt động bình thường', meta: 'Đồng bộ lần cuối lúc 21:38', unread: false },
-];
+function noticeTitle(item) {
+  return item?.title || item?.message || item?.subject || item?.type || 'Thông báo Brian';
+}
+function noticeMeta(item) {
+  const date = item?.created_at || item?.createdAt || item?.updated_at || item?.updatedAt || '';
+  const source = item?.source || item?.sourceLabel || item?.source_module || '';
+  return [source, date ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(date)) : ''].filter(Boolean).join(' · ');
+}
 
 export function B2NotificationCenter({ open, onClose }) {
+  const { dashboard } = useBrianV2Data();
+  const notices = Array.isArray(dashboard?.notifications) ? dashboard.notifications : [];
   if (!open) return null;
   return (
     <div className="b2-flyout b2-flyout--notifications">
-      <header><div><span>THÔNG BÁO</span><strong>Hôm nay</strong></div><B2Badge tone="blue">2 mới</B2Badge></header>
+      <header><div><span>THÔNG BÁO</span><strong>Brian</strong></div><B2Badge tone={notices.length ? 'blue' : 'green'}>{notices.length} mục</B2Badge></header>
       <div className="b2-notification-list">
-        {NOTICES.map((notice) => (
-          <button type="button" key={notice.id} className={notice.unread ? 'is-unread' : ''}>
-            <i className={`tone-${notice.tone}`} />
-            <span><strong>{notice.title}</strong><small>{notice.meta}</small></span>
+        {notices.slice(0, 8).map((notice, index) => (
+          <button type="button" key={notice.id || `${noticeTitle(notice)}-${index}`}>
+            <i className="tone-blue" />
+            <span><strong>{noticeTitle(notice)}</strong><small>{noticeMeta(notice) || 'Thông báo từ hệ thống hiện tại'}</small></span>
           </button>
         ))}
+        {!notices.length ? <div className="b2-command-palette__empty">Không có thông báo trong snapshot hiện tại.</div> : null}
       </div>
-      <footer><B2Button variant="ghost" onClick={onClose}>Đóng</B2Button><B2Button variant="ghost">Xem tất cả →</B2Button></footer>
+      <footer><B2Button variant="ghost" onClick={onClose}>Đóng</B2Button><B2Button variant="ghost" onClick={() => window.open('/#/dashboard', '_blank', 'noopener,noreferrer')}>Dashboard V1 →</B2Button></footer>
     </div>
   );
 }
 
-export function B2ProfileMenu({ open, onClose, onNavigate, role = 'teacher', roleMeta, onRoleChange, canOpen = () => true }) {
+function profileInitials(user) {
+  const words = String(user?.name || user?.email || 'T').trim().split(/\s+/).filter(Boolean);
+  return `${words[0]?.[0] || 'T'}${words.length > 1 ? words[words.length - 1]?.[0] || '' : ''}`.toUpperCase();
+}
+
+export function B2ProfileMenu({ open, onClose, onNavigate, role = 'teacher', roleMeta, onRoleChange, canOpen = () => true, currentUser = null, permissionMode = 'preview' }) {
   if (!open) return null;
   return (
     <div className="b2-flyout b2-flyout--profile">
-      <div className="b2-profile-summary"><span>T</span><div><strong>Nguyễn Anh Tuấn</strong><small>{roleMeta?.label || 'Giáo viên'} · Brian V2 Preview</small></div></div>
+      <div className="b2-profile-summary"><span>{profileInitials(currentUser)}</span><div><strong>{currentUser?.name || currentUser?.email || 'Shadow Preview'}</strong><small>{roleMeta?.label || 'Giáo viên'} · Brian V2</small></div></div>
       <div className="b2-profile-menu-list">
-        <button type="button" onClick={() => { onNavigate?.('settings'); onClose?.(); }}><span>⚙</span><strong>Cài đặt</strong></button>
+        {canOpen('settings') ? <button type="button" onClick={() => { onNavigate?.('settings'); onClose?.(); }}><span>⚙</span><strong>Cài đặt</strong></button> : null}
         {canOpen('ui-lab') ? <button type="button" onClick={() => { onNavigate?.('ui-lab'); onClose?.(); }}><span>◇</span><strong>UI Lab</strong><B2Badge tone="violet">LAB</B2Badge></button> : null}
         {canOpen('admin') ? <button type="button" onClick={() => { onNavigate?.('admin'); onClose?.(); }}><span>◈</span><strong>Quản trị</strong><B2Badge tone="blue">ADMIN</B2Badge></button> : null}
         <button type="button" onClick={() => window.open('/#/', '_blank', 'noopener,noreferrer')}><span>↗</span><strong>Mở Brian V1</strong></button>
       </div>
-      <div className="b2-profile-role-switch">
+      {permissionMode === 'preview' ? <div className="b2-profile-role-switch">
         <span>Role simulator · Shadow only</span>
         <div className="b2-profile-role-options">
           {Object.values(V2_PREVIEW_ROLES).map((item) => (
             <button key={item.id} type="button" className={role === item.id ? 'is-active' : ''} onClick={() => onRoleChange?.(item.id)}>{item.shortLabel}</button>
           ))}
         </div>
-        <small className="b2-profile-role-note">Chỉ kiểm thử UI. Quyền V1/backend vẫn là nguồn bảo mật thật.</small>
-      </div>
-      <footer><span>Shadow UI · {roleMeta?.label || role}</span><B2Badge tone="green">PRIVATE</B2Badge></footer>
+        <small className="b2-profile-role-note">Chưa có session thật nên chỉ đang kiểm thử UI.</small>
+      </div> : <div className="b2-profile-role-switch">
+        <span>Permission source · LIVE</span>
+        <small className="b2-profile-role-note">{roleMeta?.summary || 'Quyền đang được đọc từ profile/permission service hiện tại. Shadow UI không tự thay đổi quyền.'}</small>
+      </div>}
+      <footer><span>Shadow UI · {permissionMode === 'real' ? 'LIVE PERMISSIONS' : roleMeta?.label || role}</span><B2Badge tone="green">PRIVATE</B2Badge></footer>
     </div>
   );
 }
