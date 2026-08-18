@@ -1,77 +1,95 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { B2Badge, B2Button, B2PageHeader, B2SectionHeader, B2StatCard, B2Surface } from '../components/B2UI.jsx';
-import { B2DataTable, B2DataToolbar, B2FilterChips, B2ProgressBar, B2Status } from '../components/B2Data.jsx';
+import { B2DataState, B2DataTable, B2DataToolbar, B2FilterChips, B2Status } from '../components/B2Data.jsx';
+import { dashboardDueLabel, getDashboardDueState } from '../../../utils/dashboardAggregator.js';
+import { dataSourceLabel, dataSourceTone, useBrianV2Data } from '../data/BrianV2DataContext.jsx';
 import './B2Dashboard.css';
 
-const TASKS = [
-  { id: 1, task: 'Hoàn tất kế hoạch sinh hoạt tuần 34', area: 'Chủ nhiệm', due: 'Hôm nay · 21:00', owner: 'Bạn', status: 'urgent' },
-  { id: 2, task: 'Duyệt website Teaching Tool Hub', area: 'Tổ chuyên môn', due: 'Ngày mai', owner: 'TTCM', status: 'review' },
-  { id: 3, task: 'Cập nhật học liệu Tiếng Anh 12', area: 'Học liệu', due: '20/08', owner: 'Bạn', status: 'normal' },
-  { id: 4, task: 'Kiểm tra tiến độ bài tập tuần', area: 'Giảng dạy', due: '21/08', owner: 'Bạn', status: 'normal' },
-];
+function timeLabel(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(date);
+}
 
-const TIMELINE = [
-  { time: '07:30', title: 'Tiếng Anh 12.6', meta: 'Phòng 12.6', tone: 'blue' },
-  { time: '09:15', title: 'Tiếng Anh 11.3', meta: 'Phòng 11.3', tone: 'violet' },
-  { time: '13:15', title: 'Sinh hoạt / công việc tổ', meta: 'Phòng họp', tone: 'green' },
-  { time: '15:30', title: 'Rà soát học liệu tuần', meta: 'Brian Resource Library', tone: 'cyan' },
-];
+function dateMeta(value) {
+  if (!value) return 'Chưa đặt thời gian';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' }).format(date);
+}
 
-const TEAM = [
-  { id: 1, item: 'Kế hoạch chuyên môn tháng 8', owner: 'Tổ Tiếng Anh', progress: 92, status: 'Đúng tiến độ' },
-  { id: 2, item: 'Kho học liệu dùng chung', owner: '6 giáo viên', progress: 76, status: 'Đang cập nhật' },
-  { id: 3, item: 'Ngân hàng đề kiểm tra', owner: 'TTCM', progress: 64, status: 'Cần bổ sung' },
-];
+function dueTone(item) {
+  const state = getDashboardDueState(item?.date, item?.done);
+  if (state === 'overdue' || state === 'today') return 'red';
+  if (state === 'soon') return 'amber';
+  if (item?.status === 'submitted' || item?.status === 'pending') return 'violet';
+  return item?.done ? 'green' : 'blue';
+}
 
 export default function B2Dashboard() {
+  const { dashboard, loading, refreshing, sources, errors, refresh } = useBrianV2Data();
   const [taskFilter, setTaskFilter] = useState('all');
-  const visibleTasks = TASKS.filter((task) => taskFilter === 'all' || task.status === taskFilter);
+  const tasks = dashboard?.attention || [];
+  const timeline = dashboard?.timeline || [];
+  const professional = dashboard?.professional || [];
+  const stats = dashboard?.stats || { today: 0, overdue: 0, dueSoon: 0, pendingApproval: 0, upcoming: 0, notifications: 0 };
+
+  const visibleTasks = useMemo(() => tasks.filter((task) => {
+    if (taskFilter === 'all') return true;
+    if (taskFilter === 'urgent') return ['overdue', 'today'].includes(getDashboardDueState(task.date, task.done));
+    if (taskFilter === 'review') return task.status === 'submitted' || task.status === 'pending';
+    return true;
+  }), [tasks, taskFilter]);
+
+  const urgentCount = tasks.filter((task) => ['overdue', 'today'].includes(getDashboardDueState(task.date, task.done))).length;
+  const reviewCount = tasks.filter((task) => task.status === 'submitted' || task.status === 'pending').length;
 
   const columns = [
-    { key: 'task', label: 'Việc cần làm', width: '42%', render: (row) => <div className="b2-dashboard-task"><strong>{row.task}</strong><small>{row.area}</small></div> },
-    { key: 'due', label: 'Hạn', width: '20%', render: (row) => <span className={row.status === 'urgent' ? 'is-urgent' : ''}>{row.due}</span> },
-    { key: 'owner', label: 'Phụ trách', width: '16%' },
-    { key: 'status', label: 'Trạng thái', width: '22%', render: (row) => <B2Status tone={row.status === 'urgent' ? 'red' : row.status === 'review' ? 'violet' : 'blue'}>{row.status === 'urgent' ? 'Ưu tiên' : row.status === 'review' ? 'Chờ duyệt' : 'Đang làm'}</B2Status> },
+    { key: 'task', label: 'Việc cần làm', width: '43%', render: (row) => <div className="b2-dashboard-task"><strong>{row.title}</strong><small>{row.sourceLabel || row.source || 'Brian'}</small></div> },
+    { key: 'due', label: 'Hạn', width: '23%', render: (row) => <span className={['overdue', 'today'].includes(getDashboardDueState(row.date, row.done)) ? 'is-urgent' : ''}>{dashboardDueLabel(row.date, row.done, 'vi')}</span> },
+    { key: 'owner', label: 'Phụ trách', width: '16%', render: (row) => row.owner || '—' },
+    { key: 'status', label: 'Trạng thái', width: '18%', render: (row) => <B2Status tone={dueTone(row)}>{row.done ? 'Hoàn tất' : row.status || getDashboardDueState(row.date, row.done)}</B2Status> },
   ];
 
   return (
     <>
       <B2PageHeader
-        eyebrow="WORK · DASHBOARD"
+        eyebrow="WORK · DASHBOARD · LIVE AGGREGATOR"
         title="Bảng điều hành"
-        description="Một màn hình để biết ngay hôm nay cần làm gì, lịch nào sắp tới và khu vực nào đang cần chú ý."
-        actions={<><B2Button variant="primary">+ Tạo việc</B2Button><B2Button>Tuần này</B2Button></>}
-        aside={<B2Badge tone="green">Đồng bộ bình thường</B2Badge>}
+        description="Dashboard Metro Next dùng trực tiếp Dashboard Aggregator của Brian: Work Hub, lịch, Resource Library và lớp chủ nhiệm được tổng hợp bằng cùng nguồn dữ liệu với V1."
+        actions={<><B2Button variant="ghost" onClick={() => refresh()} disabled={refreshing}>{refreshing ? 'Đang làm mới…' : '↻ Làm mới'}</B2Button><B2Button onClick={() => window.open('/#/dashboard', '_blank', 'noopener,noreferrer')}>Mở Dashboard V1 ↗</B2Button></>}
+        aside={<B2Badge tone={dataSourceTone(sources.dashboard)}>{dataSourceLabel(sources.dashboard)}</B2Badge>}
       />
 
       <section className="b2-dashboard-stats">
-        <B2StatCard label="Cần xử lý" value="08" meta="3 việc hôm nay" tone="blue" icon="▤" />
-        <B2StatCard label="Chờ duyệt" value="03" meta="từ tổ chuyên môn" tone="violet" icon="◇" />
-        <B2StatCard label="Sắp tới" value="04" meta="lịch trong 24 giờ" tone="green" icon="◷" />
-        <B2StatCard label="Hoàn tất" value="17" meta="trong 7 ngày" tone="cyan" icon="✓" />
+        <B2StatCard label="Đến hạn hôm nay" value={String(stats.today)} meta="từ Action Center" tone="blue" icon="▤" />
+        <B2StatCard label="Quá hạn" value={String(stats.overdue)} meta="cần xử lý" tone="violet" icon="!" />
+        <B2StatCard label="Chờ duyệt" value={String(stats.pendingApproval)} meta={dashboard?.leader ? 'quyền leader' : 'theo quyền hiện tại'} tone="green" icon="◇" />
+        <B2StatCard label="Sắp tới" value={String(stats.upcoming)} meta="trong 14 ngày" tone="cyan" icon="◷" />
       </section>
 
       <section className="b2-dashboard-grid">
         <div className="b2-dashboard-main">
-          <B2SectionHeader eyebrow="ACTION CENTER" title="Việc cần làm" description="Tập trung các đầu việc thật sự cần hành động, không biến dashboard thành một bức tường số liệu." />
+          <B2SectionHeader eyebrow="ACTION CENTER" title="Việc cần làm" description="Không tạo task giả: bảng này là `snapshot.attention` của dashboard aggregator hiện tại." />
           <B2DataToolbar
-            left={<B2FilterChips items={[{ id: 'all', label: 'Tất cả', count: TASKS.length }, { id: 'urgent', label: 'Ưu tiên', count: 1 }, { id: 'review', label: 'Chờ duyệt', count: 1 }]} value={taskFilter} onChange={setTaskFilter} />}
-            right={<B2Button variant="ghost">Xem tất cả →</B2Button>}
+            left={<B2FilterChips items={[{ id: 'all', label: 'Tất cả', count: tasks.length }, { id: 'urgent', label: 'Ưu tiên', count: urgentCount }, { id: 'review', label: 'Chờ duyệt', count: reviewCount }]} value={taskFilter} onChange={setTaskFilter} />}
+            right={<B2Button variant="ghost" onClick={() => window.open('/#/work-hub', '_blank', 'noopener,noreferrer')}>Work Hub →</B2Button>}
           />
-          <B2DataTable columns={columns} rows={visibleTasks} />
+          {loading ? <B2DataState type="loading" /> : <B2DataTable columns={columns} rows={visibleTasks} empty={<B2DataState title="Không có việc cần hành động" description="Aggregator hiện không trả về item phù hợp với bộ lọc này." />} />}
         </div>
 
         <aside className="b2-dashboard-side">
           <B2Surface>
-            <B2SectionHeader eyebrow="TODAY" title="Lịch gần nhất" action={<B2Button variant="ghost">Lịch →</B2Button>} />
+            <B2SectionHeader eyebrow="UPCOMING" title="Lịch gần nhất" action={<B2Button variant="ghost" onClick={() => window.open('/#/work-hub', '_blank', 'noopener,noreferrer')}>Lịch →</B2Button>} />
             <div className="b2-dashboard-timeline">
-              {TIMELINE.map((item) => (
-                <div key={`${item.time}-${item.title}`} className={`tone-${item.tone}`}>
-                  <time>{item.time}</time>
+              {timeline.length ? timeline.slice(0, 6).map((item) => (
+                <div key={item.id || `${item.date}-${item.title}`} className={`tone-${item.tone || 'blue'}`}>
+                  <time>{timeLabel(item.date)}</time>
                   <span className="b2-dashboard-timeline__line" />
-                  <span><strong>{item.title}</strong><small>{item.meta}</small></span>
+                  <span><strong>{item.title}</strong><small>{dateMeta(item.date)} · {item.sourceLabel || item.source}</small></span>
                 </div>
-              ))}
+              )) : <p className="b2-empty-copy">Không có lịch sắp tới trong snapshot hiện tại.</p>}
             </div>
           </B2Surface>
         </aside>
@@ -79,25 +97,25 @@ export default function B2Dashboard() {
 
       <section className="b2-dashboard-lower">
         <B2Surface>
-          <B2SectionHeader eyebrow="DEPARTMENT" title="Tiến độ của tổ" description="Chỉ hiển thị những luồng có ý nghĩa quản lý." />
+          <B2SectionHeader eyebrow="WORK STREAM" title="Công việc gần đây" description="Thay cho các progress % mẫu: chỉ hiển thị item thật và trạng thái thật từ Work Hub." />
           <div className="b2-dashboard-team">
-            {TEAM.map((item) => (
+            {professional.length ? professional.slice(0, 6).map((item) => (
               <div key={item.id}>
-                <span><strong>{item.item}</strong><small>{item.owner}</small></span>
-                <B2ProgressBar value={item.progress} label={`${item.progress}%`} tone={item.progress >= 85 ? 'green' : item.progress < 70 ? 'violet' : 'blue'} />
-                <B2Status tone={item.progress >= 85 ? 'green' : item.progress < 70 ? 'amber' : 'blue'}>{item.status}</B2Status>
+                <span><strong>{item.title}</strong><small>{item.owner || item.sourceLabel || 'Brian'}</small></span>
+                <span className="b2-dashboard-work-date">{dashboardDueLabel(item.date, item.done, 'vi')}</span>
+                <B2Status tone={dueTone(item)}>{item.done ? 'Hoàn tất' : item.status || 'Đang mở'}</B2Status>
               </div>
-            ))}
+            )) : <p className="b2-empty-copy">Chưa có Work Hub item trong snapshot.</p>}
           </div>
         </B2Surface>
 
         <B2Surface>
-          <B2SectionHeader eyebrow="SYSTEM" title="Tình trạng Brian" />
+          <B2SectionHeader eyebrow="DATA SOURCES" title="Tình trạng nguồn" />
           <div className="b2-dashboard-health">
-            <div><span className="is-ok"/><strong>Supabase</strong><small>Kết nối ổn định</small></div>
-            <div><span className="is-ok"/><strong>Autosave</strong><small>Đang hoạt động</small></div>
-            <div><span className="is-ok"/><strong>Vercel</strong><small>Production ổn định</small></div>
-            <div><span className="is-ok"/><strong>Shadow UI</strong><small>Không ảnh hưởng V1</small></div>
+            <div><span className={sources.classes === 'empty' ? '' : 'is-ok'} /><strong>Lớp học</strong><small>{dataSourceLabel(sources.classes)}</small></div>
+            <div><span className={sources.resources === 'empty' ? '' : 'is-ok'} /><strong>Kho học liệu</strong><small>{dataSourceLabel(sources.resources)}</small></div>
+            <div><span className={sources.homeroom === 'empty' ? '' : 'is-ok'} /><strong>Chủ nhiệm</strong><small>{dataSourceLabel(sources.homeroom)}</small></div>
+            <div><span className={errors.length ? '' : 'is-ok'} /><strong>Bridge errors</strong><small>{errors.length ? `${errors.length} nguồn cần kiểm tra` : 'Không có lỗi nguồn'}</small></div>
           </div>
         </B2Surface>
       </section>
