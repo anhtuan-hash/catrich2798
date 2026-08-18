@@ -190,7 +190,7 @@
     bottom: 10px;
     z-index: 30;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0,1fr));
+    grid-template-columns: repeat(4, minmax(0,1fr));
     gap: 4px;
     border: 1px solid var(--b2-border);
     border-radius: 14px;
