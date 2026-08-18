@@ -5,10 +5,11 @@ import {
   deleteTeachingToolSite,
   domainFromUrl,
   listTeachingToolSites,
-  teachingToolHubStorageInfo,
+  moveTeachingToolSite,
   updateTeachingToolSite,
 } from '../utils/teachingToolHub.js';
 import './TeachingToolHub.css';
+import './TeachingToolHubLauncher.css';
 
 const EMPTY_FORM = {
   title: '',
@@ -30,29 +31,48 @@ function initialForm(site = null) {
   } : { ...EMPTY_FORM };
 }
 
-function ToolCard({ site, canManage, onOpen, onEdit, onDelete }) {
+function faviconFromUrl(value) {
+  try {
+    const url = new URL(value);
+    return `${url.origin}/favicon.ico`;
+  } catch {
+    return '';
+  }
+}
+
+function ToolCard({ site, canManage, onOpen, onEdit, onDelete, onTogglePin, onDragStart, onDragOver, onDrop }) {
   const domain = domainFromUrl(site.url);
+  const favicon = faviconFromUrl(site.url);
   return (
-    <article className={`tth-card${site.isActive ? '' : ' is-paused'}`}>
-      <button type="button" className="tth-card-main" onClick={() => onOpen(site)} disabled={!site.isActive && !canManage}>
-        <span className="tth-site-icon" aria-hidden="true">{site.icon || '↗'}</span>
-        <span className="tth-card-copy">
-          <small>{site.category || 'Công cụ dạy học'}</small>
-          <strong>{site.title}</strong>
-          <p>{site.description || 'Mở website trực tiếp trong không gian Brian.'}</p>
-          <span className="tth-domain">{domain}</span>
-        </span>
-        <span className="tth-open-mark" aria-hidden="true">→</span>
-      </button>
+    <article
+      className={`tth-card tth-launcher-tile${site.isActive ? '' : ' is-paused'}${site.isPinned ? ' is-pinned' : ''}`}
+      draggable={canManage}
+      onDragStart={(event) => onDragStart?.(event, site)}
+      onDragOver={(event) => onDragOver?.(event, site)}
+      onDrop={(event) => onDrop?.(event, site)}
+    >
+      {site.isPinned ? <span className="tth-pin-badge" title="Đã ghim">★</span> : null}
       {canManage ? (
-        <div className="tth-card-admin">
-          <span className={`tth-status${site.isActive ? ' is-on' : ''}`}>{site.isActive ? 'Đang hiển thị' : 'Đang ẩn'}</span>
-          <div>
-            <button type="button" onClick={() => onEdit(site)}>Sửa</button>
-            <button type="button" className="is-danger" onClick={() => onDelete(site)}>Xóa</button>
-          </div>
+        <div className="tth-tile-admin" onClick={(event) => event.stopPropagation()}>
+          <button type="button" className={site.isPinned ? 'is-active' : ''} onClick={() => onTogglePin(site)} title={site.isPinned ? 'Bỏ ghim' : 'Ghim lên đầu'}>★</button>
+          <button type="button" onClick={() => onEdit(site)} title="Sửa">✎</button>
+          <button type="button" className="is-danger" onClick={() => onDelete(site)} title="Xóa">×</button>
         </div>
       ) : null}
+      <button type="button" className="tth-card-main" onClick={() => onOpen(site)} disabled={!site.isActive && !canManage}>
+        <span className="tth-site-icon" aria-hidden="true">
+          <span className="tth-icon-fallback">{site.icon || '↗'}</span>
+          {favicon ? <img src={favicon} alt="" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : null}
+        </span>
+        <span className="tth-card-copy">
+          <strong>{site.title}</strong>
+          <small>{site.category || 'Công cụ dạy học'}</small>
+          <span className="tth-domain">{domain}</span>
+          <p>{site.description || 'Mở website trực tiếp trong không gian Brian.'}</p>
+        </span>
+        <span className="tth-open-mark" aria-hidden="true">↗</span>
+      </button>
+      {canManage && !site.isActive ? <span className="tth-hidden-badge">Đang ẩn</span> : null}
     </article>
   );
 }
@@ -95,7 +115,7 @@ function SiteModal({ site, onClose, onSave }) {
           <label>Danh mục
             <input value={form.category} onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))} placeholder="Trò chơi / Từ vựng / Trình chiếu..." />
           </label>
-          <label>Biểu tượng
+          <label>Biểu tượng dự phòng
             <input value={form.icon} maxLength={4} onChange={(event) => setForm((current) => ({ ...current, icon: event.target.value }))} placeholder="↗" />
           </label>
           <label className="is-wide">Mô tả ngắn
@@ -168,7 +188,7 @@ export default function TeachingToolHub(props) {
   const [activeSite, setActiveSite] = useState(null);
   const [editingSite, setEditingSite] = useState(undefined);
   const [toast, setToast] = useState('');
-  const storageInfo = teachingToolHubStorageInfo();
+  const [draggedId, setDraggedId] = useState('');
 
   const refresh = () => setSites(listTeachingToolSites({ includeInactive: canManage }));
 
@@ -222,40 +242,85 @@ export default function TeachingToolHub(props) {
     setToast('Đã xóa website.');
   };
 
+  const togglePin = (site) => {
+    if (!canManage) return;
+    updateTeachingToolSite(site.id, { ...site, isPinned: !site.isPinned });
+    refresh();
+    setToast(site.isPinned ? 'Đã bỏ ghim website.' : 'Đã ghim website lên đầu.');
+  };
+
+  const startDrag = (event, site) => {
+    if (!canManage) return;
+    setDraggedId(site.id);
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', site.id);
+  };
+
+  const dragOver = (event) => {
+    if (!canManage) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  };
+
+  const dropOn = (event, targetSite) => {
+    if (!canManage) return;
+    event.preventDefault();
+    const sourceId = draggedId || event.dataTransfer.getData('text/plain');
+    setDraggedId('');
+    if (!sourceId || sourceId === targetSite.id) return;
+    moveTeachingToolSite(sourceId, targetSite.id);
+    refresh();
+    setToast('Đã đổi thứ tự website.');
+  };
+
   if (activeSite) return <div className="tth-page"><Viewer site={activeSite} onBack={() => setActiveSite(null)} />{toast ? <div className="tth-toast">✓ {toast}</div> : null}</div>;
 
   return (
-    <div className="tth-page">
+    <div className="tth-page tth-launcher-page">
       <section className="tth-hero">
         <div className="tth-hero-copy">
           <span className="tth-kicker">BRIAN · TEACHING TOOL HUB</span>
-          <h1>Website dạy học, <em>mở ngay trong Brian.</em></h1>
-          <p>TTCM tuyển chọn các website hữu ích cho tổ chuyên môn. Giáo viên chỉ cần chọn công cụ và sử dụng ngay mà không phải rời khỏi hệ thống.</p>
-          <div className="tth-hero-meta"><span>◉ {sites.filter((site) => site.isActive).length} website đang hiển thị</span><span>⌁ Nhúng trực tiếp bằng iframe</span></div>
+          <h1>Teaching <em>Launcher</em></h1>
+          <p>Kho website dạy học do TTCM tuyển chọn. Chọn một công cụ để mở trực tiếp trong Brian.</p>
+          <div className="tth-hero-meta"><span>◉ {sites.filter((site) => site.isActive).length} website</span><span>⌁ Mở trực tiếp trong Brian</span></div>
         </div>
         <div className="tth-hero-actions">
           {canManage ? <button type="button" className="tth-add" onClick={() => setEditingSite(null)}>＋ Thêm website</button> : null}
-          {canManage ? <small>TTCM · quyền quản lý</small> : <small>Danh mục do TTCM quản lý</small>}
+          <small>{canManage ? 'TTCM · quản lý launcher' : 'Danh mục do TTCM quản lý'}</small>
         </div>
       </section>
 
       <section className="tth-toolbar">
-        <label className="tth-search"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm website, công cụ, danh mục..." /></label>
+        <label className="tth-search"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm công cụ..." /></label>
         <div className="tth-categories">{categories.map((item) => <button type="button" key={item} className={category === item ? 'is-active' : ''} onClick={() => setCategory(item)}>{item}</button>)}</div>
+        {canManage ? <span className="tth-launcher-hint">Kéo thả để sắp xếp · ★ ghim lên đầu</span> : null}
       </section>
 
       {visibleSites.length ? (
-        <section className="tth-grid">{visibleSites.map((site) => <ToolCard key={site.id} site={site} canManage={canManage} onOpen={setActiveSite} onEdit={(item) => setEditingSite(item)} onDelete={removeSite} />)}</section>
+        <section className="tth-grid tth-launcher-grid">
+          {visibleSites.map((site) => (
+            <ToolCard
+              key={site.id}
+              site={site}
+              canManage={canManage}
+              onOpen={setActiveSite}
+              onEdit={(item) => setEditingSite(item)}
+              onDelete={removeSite}
+              onTogglePin={togglePin}
+              onDragStart={startDrag}
+              onDragOver={dragOver}
+              onDrop={dropOn}
+            />
+          ))}
+        </section>
       ) : (
         <section className="tth-empty">
           <div className="tth-empty-art"><span>↗</span><span>□</span><span>✦</span></div>
           <h2>{sites.length ? 'Không tìm thấy website phù hợp' : 'Teaching Tool Hub đang trống'}</h2>
-          <p>{canManage ? 'TTCM có thể thêm website đầu tiên để bắt đầu xây dựng kho công cụ cho tổ chuyên môn.' : 'TTCM chưa thêm website nào vào Hub.'}</p>
+          <p>{canManage ? 'Thêm website đầu tiên để bắt đầu xây dựng launcher cho tổ chuyên môn.' : 'TTCM chưa thêm website nào vào Hub.'}</p>
           {canManage && !sites.length ? <button type="button" className="tth-add" onClick={() => setEditingSite(null)}>＋ Thêm website đầu tiên</button> : null}
         </section>
       )}
-
-      {canManage ? <section className="tth-admin-note"><span>ⓘ</span><div><b>Phiên bản hiện tại lưu danh mục trên trình duyệt của TTCM.</b><p>{storageInfo.label}. Kiến trúc đã tách riêng lớp lưu trữ để có thể chuyển sang Supabase đồng bộ toàn tổ mà không phải thiết kế lại giao diện.</p></div></section> : null}
 
       {editingSite !== undefined ? <SiteModal site={editingSite} onClose={() => setEditingSite(undefined)} onSave={saveSite} /> : null}
       {toast ? <div className="tth-toast">✓ {toast}</div> : null}
