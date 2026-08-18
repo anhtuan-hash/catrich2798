@@ -15,12 +15,12 @@ export const V2_PREVIEW_ROLES = {
     id: 'admin',
     label: 'Quản trị viên',
     shortLabel: 'ADMIN',
-    description: 'Toàn bộ vùng preview, bao gồm Quản trị và UI Lab.',
+    description: 'Toàn bộ vùng preview, bao gồm Quản trị, Cloud Operations và UI Lab.',
   },
 };
 
 const COMMON_ROUTES = new Set([
-  'home', 'apps', 'teaching-tools', 'games', 'resources', 'knowledge-hub',
+  'home', 'apps', 'teaching-tools', 'games', 'resources', 'knowledge-hub', 'news',
   'homeroom', 'classes', 'students', 'dashboard', 'work-hub', 'assessment',
   'collaboration', 'reports', 'settings',
 ]);
@@ -35,7 +35,7 @@ export function canPreviewTarget(roleValue, target) {
   if (!id) return true;
   if (id.startsWith('tool/')) return true;
   if (COMMON_ROUTES.has(id)) return true;
-  if (id === 'admin' || id === 'ui-lab') return role === 'admin';
+  if (id === 'admin' || id === 'cloud' || id === 'ui-lab') return role === 'admin';
   return false;
 }
 
