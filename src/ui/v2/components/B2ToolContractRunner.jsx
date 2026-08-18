@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { B2Button } from './B2UI.jsx';
 import { V2_TOOL_BRIDGE } from '../toolBridgeRegistry.js';
 import { prepareToolRuntimeFrame } from '../toolRuntimeBridge.js';
@@ -22,6 +22,11 @@ export default function B2ToolContractRunner({ onResult, onDone }) {
     timersRef.current.forEach((id) => window.clearTimeout(id));
     timersRef.current = [];
   };
+
+  useEffect(() => () => {
+    timersRef.current.forEach((id) => window.clearTimeout(id));
+    timersRef.current = [];
+  }, []);
 
   const stop = () => {
     clearTimers();
