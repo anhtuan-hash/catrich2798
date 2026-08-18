@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../../data/apps.js';
 import BrianV2Shell from './BrianV2Shell.jsx';
+import B2ToolShell from './components/B2ToolShell.jsx';
 import B2Home from './pages/B2Home.jsx';
 import B2Apps from './pages/B2Apps.jsx';
 import B2TeachingHub from './pages/B2TeachingHub.jsx';
@@ -14,14 +16,23 @@ import B2Settings from './pages/B2Settings.jsx';
 import B2Admin from './pages/B2Admin.jsx';
 import B2UILab from './pages/B2UILab.jsx';
 import { B2Button, B2EmptyState } from './components/B2UI.jsx';
+import { getToolBridgeMeta, isBridgeTested } from './toolBridgeRegistry.js';
 import './BrianV2Preview.css';
 
 const READY_VIEWS = new Set(['home', 'apps', 'teaching-tools', 'games', 'resources', 'homeroom', 'classes', 'students', 'dashboard', 'reports', 'settings', 'admin', 'ui-lab']);
+const ALL_TOOLS = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS];
+
+function isReadyPreviewView(raw) {
+  if (READY_VIEWS.has(raw)) return true;
+  if (!raw.startsWith('tool/')) return false;
+  const slug = raw.slice(5);
+  return Boolean(ALL_TOOLS.some((tool) => tool.slug === slug) && isBridgeTested(slug));
+}
 
 function readPreviewView() {
   if (typeof window === 'undefined') return 'home';
   const raw = window.location.hash.replace(/^#/, '').trim();
-  return READY_VIEWS.has(raw) ? raw : 'home';
+  return isReadyPreviewView(raw) ? raw : 'home';
 }
 
 export default function BrianV2Preview() {
@@ -34,16 +45,26 @@ export default function BrianV2Preview() {
   }, []);
 
   const navigate = (next) => {
-    if (!READY_VIEWS.has(next)) return;
+    if (!isReadyPreviewView(next)) return;
     if (window.location.hash.replace(/^#/, '') !== next) window.location.hash = next;
     setView(next);
   };
 
+  const selectedTool = useMemo(() => {
+    if (!view.startsWith('tool/')) return null;
+    const slug = view.slice(5);
+    return ALL_TOOLS.find((tool) => tool.slug === slug) || null;
+  }, [view]);
+
   let content = null;
-  if (view === 'home') content = <B2Home navigate={navigate} />;
+  if (selectedTool) {
+    const meta = getToolBridgeMeta(selectedTool.slug);
+    const backTarget = meta.family === 'game' ? 'games' : 'apps';
+    content = <B2ToolShell tool={selectedTool} onBack={() => navigate(backTarget)} />;
+  } else if (view === 'home') content = <B2Home navigate={navigate} />;
   else if (view === 'apps') content = <B2Apps navigate={navigate} />;
   else if (view === 'teaching-tools') content = <B2TeachingHub />;
-  else if (view === 'games') content = <B2Games />;
+  else if (view === 'games') content = <B2Games navigate={navigate} />;
   else if (view === 'resources') content = <B2Resources />;
   else if (view === 'homeroom') content = <B2Homeroom />;
   else if (view === 'classes') content = <B2Classes />;
@@ -64,5 +85,6 @@ export default function BrianV2Preview() {
     );
   }
 
-  return <BrianV2Shell active={view} onNavigate={navigate}>{content}</BrianV2Shell>;
+  const active = selectedTool ? (getToolBridgeMeta(selectedTool.slug).family === 'game' ? 'games' : 'apps') : view;
+  return <BrianV2Shell active={active} onNavigate={navigate}>{content}</BrianV2Shell>;
 }
