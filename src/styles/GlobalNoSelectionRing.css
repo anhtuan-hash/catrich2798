@@ -1,7 +1,8 @@
 /* =========================================================
-   Brian English — Global No Selection / Focus Ring
-   Removes the blue ring/halo shown around clicked or selected UI objects.
-   Static component borders and semantic colours remain untouched.
+   Brian English — GLOBAL NO SELECTION / FOCUS RING
+   Applies to the whole document, including React portals and dialogs.
+   Deliberately high specificity prevents lazy feature CSS from restoring
+   blue focus halos after startup.
    ========================================================= */
 
 :root {
@@ -11,44 +12,18 @@
 
 html,
 html body,
-html body .metro-clean-system {
+html body * {
   -webkit-tap-highlight-color: transparent !important;
 }
 
-/* Absolute outline guard. This also defeats legacy rules that add a blue
-   outline to cards/buttons on hover or focus. */
-html body .metro-clean-system *,
-html body .metro-clean-system *::before,
-html body .metro-clean-system *::after {
+/* Native outline suppression everywhere. */
+html:not(#bes-focus-guard-1):not(#bes-focus-guard-2) body *,
+html:not(#bes-focus-guard-1):not(#bes-focus-guard-2) body *::before,
+html:not(#bes-focus-guard-1):not(#bes-focus-guard-2) body *::after {
   outline-color: transparent !important;
 }
 
-html body .metro-clean-system :where(
-  button, .button, .btn, a, [role="button"], [tabindex],
-  .tool-card, .tile-card, .app-card-v3, .android-app-card,
-  .game-card, .resource-card, .library-card, .student-card,
-  .admin-card, .metro-main-app-tile, .metro-quick-tile,
-  .metro-live-tile,
-  [class*="tool-card"], [class*="app-card"], [class*="tile-card"],
-  [class*="website-card"], [class*="launcher-card"]
-):hover {
-  outline: none !important;
-  outline-width: 0 !important;
-  outline-offset: 0 !important;
-}
-
-/* Mouse, touch and keyboard focus must not draw a ring/halo. */
-html body .metro-clean-system *:focus,
-html body .metro-clean-system *:focus-visible,
-html body .metro-clean-system *:active {
-  outline: none !important;
-  outline-width: 0 !important;
-  outline-offset: 0 !important;
-}
-
-/* Clickable objects commonly implement their ring with a box-shadow rather
-   than outline. Remove only the transient state shadow, not the normal card. */
-html body .metro-clean-system :where(
+html:not(#bes-focus-guard-1):not(#bes-focus-guard-2) body :where(
   button, .button, .btn, a, [role="button"], [tabindex],
   input, textarea, select, [contenteditable="true"],
   .tool-card, .tile-card, .app-card-v3, .android-app-card,
@@ -56,7 +31,25 @@ html body .metro-clean-system :where(
   .admin-card, .metro-main-app-tile, .metro-quick-tile,
   .metro-live-tile,
   [class*="tool-card"], [class*="app-card"], [class*="tile-card"],
-  [class*="website-card"], [class*="launcher-card"]
+  [class*="website-card"], [class*="launcher-card"],
+  [class*="launcher-link"]
+):is(:hover, :focus, :focus-visible, :active) {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-offset: 0 !important;
+}
+
+/* Transient focus/active shadows are another common ring implementation. */
+html:not(#bes-focus-guard-1):not(#bes-focus-guard-2) body :where(
+  button, .button, .btn, a, [role="button"], [tabindex],
+  input, textarea, select, [contenteditable="true"],
+  .tool-card, .tile-card, .app-card-v3, .android-app-card,
+  .game-card, .resource-card, .library-card, .student-card,
+  .admin-card, .metro-main-app-tile, .metro-quick-tile,
+  .metro-live-tile,
+  [class*="tool-card"], [class*="app-card"], [class*="tile-card"],
+  [class*="website-card"], [class*="launcher-card"],
+  [class*="launcher-link"]
 ):is(:focus, :focus-visible, :active) {
   outline: none !important;
   outline-width: 0 !important;
@@ -65,8 +58,8 @@ html body .metro-clean-system :where(
   -webkit-box-shadow: none !important;
 }
 
-/* Selected state implemented on the object itself. */
-html body .metro-clean-system :where(
+/* Selection state painted directly on a component. */
+html:not(#bes-focus-guard-1):not(#bes-focus-guard-2) body :where(
   [aria-selected="true"],
   [data-selected="true"],
   [data-active="true"],
@@ -83,27 +76,17 @@ html body .metro-clean-system :where(
   -webkit-box-shadow: none !important;
 }
 
-/* Explicit overlay/ring nodes used by editable cards and launchers. */
-html body .metro-clean-system :where(
-  [class*="focus-ring"],
-  [class*="focusRing"],
-  [class*="selection-ring"],
-  [class*="selectionRing"],
-  [class*="selected-ring"],
-  [class*="selectedRing"],
-  [class*="active-ring"],
-  [class*="activeRing"],
-  [class*="focus-outline"],
-  [class*="focusOutline"],
-  [class*="selection-outline"],
-  [class*="selectionOutline"],
-  [class*="selected-outline"],
-  [class*="selectedOutline"],
-  [class*="selection-halo"],
-  [class*="focus-halo"],
-  [data-focus-ring],
-  [data-selection-ring],
-  [data-selection-outline]
+/* Dedicated ring/halo overlay nodes. */
+html:not(#bes-focus-guard-1):not(#bes-focus-guard-2) body :where(
+  [class*="focus-ring"], [class*="focusRing"],
+  [class*="selection-ring"], [class*="selectionRing"],
+  [class*="selected-ring"], [class*="selectedRing"],
+  [class*="active-ring"], [class*="activeRing"],
+  [class*="focus-outline"], [class*="focusOutline"],
+  [class*="selection-outline"], [class*="selectionOutline"],
+  [class*="selected-outline"], [class*="selectedOutline"],
+  [class*="selection-halo"], [class*="focus-halo"],
+  [data-focus-ring], [data-selection-ring], [data-selection-outline]
 ) {
   display: none !important;
   visibility: hidden !important;
@@ -114,30 +97,23 @@ html body .metro-clean-system :where(
   pointer-events: none !important;
 }
 
-/* Some selection systems paint the ring with a pseudo-element on the card. */
-html body .metro-clean-system :where(
-  button, [role="button"], [tabindex],
+/* Pseudo-element rings on cards/controls. */
+html:not(#bes-focus-guard-1):not(#bes-focus-guard-2) body :where(
+  button, [role="button"], [tabindex], input, textarea, select,
   .tool-card, .tile-card, .app-card-v3, .android-app-card,
   .game-card, .resource-card, .library-card,
   [class*="tool-card"], [class*="app-card"], [class*="tile-card"],
-  [class*="website-card"], [class*="launcher-card"]
+  [class*="website-card"], [class*="launcher-card"], [class*="launcher-link"]
 ):is(:focus, :focus-visible, :active, .selected, .is-selected, .is-focused, .is-active)::before,
-html body .metro-clean-system :where(
-  button, [role="button"], [tabindex],
+html:not(#bes-focus-guard-1):not(#bes-focus-guard-2) body :where(
+  button, [role="button"], [tabindex], input, textarea, select,
   .tool-card, .tile-card, .app-card-v3, .android-app-card,
   .game-card, .resource-card, .library-card,
   [class*="tool-card"], [class*="app-card"], [class*="tile-card"],
-  [class*="website-card"], [class*="launcher-card"]
+  [class*="website-card"], [class*="launcher-card"], [class*="launcher-link"]
 ):is(:focus, :focus-visible, :active, .selected, .is-selected, .is-focused, .is-active)::after {
   outline: none !important;
   outline-width: 0 !important;
   box-shadow: none !important;
   border-color: transparent !important;
-}
-
-/* Native browser focus ring fallback, including controls outside custom cards. */
-html body .metro-clean-system :where(input, textarea, select, button, a):focus,
-html body .metro-clean-system :where(input, textarea, select, button, a):focus-visible {
-  outline: 0 !important;
-  box-shadow: none !important;
 }
