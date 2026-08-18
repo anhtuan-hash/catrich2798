@@ -54,6 +54,10 @@ function personInitials(user) {
   return `${words[0]?.[0] || 'T'}${words.length > 1 ? words[words.length - 1]?.[0] || '' : ''}`.toUpperCase();
 }
 
+function focusMain() {
+  document.getElementById('brian-v2-main')?.focus({ preventScroll: true });
+}
+
 export default function BrianV2Shell({
   children,
   active = 'home',
@@ -90,9 +94,7 @@ export default function BrianV2Shell({
   }, []);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      document.getElementById('brian-v2-main')?.focus({ preventScroll: true });
-    });
+    const frame = window.requestAnimationFrame(focusMain);
     return () => window.cancelAnimationFrame(frame);
   }, [active]);
 
@@ -109,7 +111,7 @@ export default function BrianV2Shell({
 
   return (
     <div className="brian-v2 b2-shell" data-brian-ui="v2" data-permission-mode={permissionMode} data-preview-role={roleMeta.id || role}>
-      <a className="b2-skip-link" href="#brian-v2-main">Bỏ qua điều hướng, đến nội dung chính</a>
+      <a className="b2-skip-link" href="#brian-v2-main" onClick={(event) => { event.preventDefault(); focusMain(); }}>Bỏ qua điều hướng, đến nội dung chính</a>
       <aside className="b2-rail" aria-label="Brian Metro Next navigation">
         <div className="b2-brand">
           <div className="b2-brand-mark">B</div>
