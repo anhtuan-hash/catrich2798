@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { B2Badge, B2Button, B2SearchBox } from './B2UI.jsx';
+import { V2_TOOL_BRIDGE } from '../toolBridgeRegistry.js';
 import './B2GlobalOverlays.css';
 
-const COMMANDS = [
+const BASE_COMMANDS = [
   { id: 'home', label: 'Trang chủ', group: 'Điều hướng', icon: '⌂' },
   { id: 'apps', label: 'Ứng dụng', group: 'Điều hướng', icon: '▦' },
   { id: 'teaching-tools', label: 'Teaching tools', group: 'Điều hướng', icon: '◫' },
@@ -16,6 +17,17 @@ const COMMANDS = [
   { id: 'settings', label: 'Cài đặt', group: 'Hệ thống', icon: '⚙' },
   { id: 'admin', label: 'Quản trị', group: 'Hệ thống', icon: '◇' },
 ];
+
+const TOOL_COMMANDS = Object.entries(V2_TOOL_BRIDGE)
+  .filter(([, meta]) => meta.tested)
+  .map(([slug, meta]) => ({
+    id: `tool/${slug}`,
+    label: meta.label,
+    group: meta.family === 'game' ? 'Trò chơi · Tool Shell' : 'Ứng dụng · Tool Shell',
+    icon: String(meta.label || slug).slice(0, 2).toUpperCase(),
+  }));
+
+const COMMANDS = [...BASE_COMMANDS, ...TOOL_COMMANDS];
 
 export function B2CommandPalette({ open, onClose, onNavigate }) {
   const [query, setQuery] = useState('');
@@ -45,7 +57,7 @@ export function B2CommandPalette({ open, onClose, onNavigate }) {
           ))}
           {!items.length ? <div className="b2-command-palette__empty">Không tìm thấy mục phù hợp.</div> : null}
         </div>
-        <footer><span>↑↓ di chuyển</span><span>↵ mở</span><span>ESC đóng</span></footer>
+        <footer><span>Gõ để lọc</span><span>↵ mở</span><span>ESC đóng</span></footer>
       </section>
     </div>
   );
@@ -83,7 +95,7 @@ export function B2ProfileMenu({ open, onClose, onNavigate }) {
       <div className="b2-profile-menu-list">
         <button type="button" onClick={() => { onNavigate?.('settings'); onClose?.(); }}><span>⚙</span><strong>Cài đặt</strong></button>
         <button type="button" onClick={() => { onNavigate?.('ui-lab'); onClose?.(); }}><span>◇</span><strong>UI Lab</strong><B2Badge tone="violet">LAB</B2Badge></button>
-        <button type="button"><span>↗</span><strong>Mở Brian V1</strong></button>
+        <button type="button" onClick={() => window.open('/#/', '_blank', 'noopener,noreferrer')}><span>↗</span><strong>Mở Brian V1</strong></button>
       </div>
       <footer><span>Shadow UI</span><B2Badge tone="green">PRIVATE</B2Badge></footer>
     </div>
