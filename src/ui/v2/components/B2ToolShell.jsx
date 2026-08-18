@@ -1,39 +1,9 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { B2Badge, B2Button } from './B2UI.jsx';
 import { getToolBridgeMeta } from '../toolBridgeRegistry.js';
-import { applyToolChromeAdapter, hasLevel2ChromeAdapter } from '../toolChromeAdapters.js';
-import { applyPhase2ToolChromeAdapter, hasPhase2Level2Adapter } from '../toolChromeAdaptersPhase2.js';
+import { isLevel2Runtime, prepareToolRuntimeFrame } from '../toolRuntimeBridge.js';
 import { runToolBehaviorContract } from '../toolBehaviorContract.js';
 import './B2ToolShell.css';
-
-function injectBridgeCleanup(frame) {
-  try {
-    const doc = frame?.contentDocument;
-    if (!doc?.head) return;
-    let style = doc.getElementById('b2-v2-bridge-cleanup');
-    if (!style) {
-      style = doc.createElement('style');
-      style.id = 'b2-v2-bridge-cleanup';
-      doc.head.appendChild(style);
-    }
-    style.textContent = `
-      .bes-top-chrome,
-      .global-flat-navigation,
-      .status-menu-bar,
-      .brian-briefing-bar,
-      .transfer-inbox-banner,
-      .site-footer,
-      .global-footer,
-      footer[role="contentinfo"] { display:none !important; }
-      html, body, #root { min-height:100% !important; background:#fff !important; }
-      body { margin:0 !important; }
-      .app-shell { padding-top:0 !important; min-height:100vh !important; }
-      #bes-main-content { margin-top:0 !important; padding-top:0 !important; min-height:100vh !important; }
-    `;
-  } catch {
-    /* Same-origin preview is expected; if auth/navigation changes origin, keep the tool usable without cleanup. */
-  }
-}
 
 export default function B2ToolShell({ tool, onBack }) {
   const frameRef = useRef(null);
@@ -47,7 +17,7 @@ export default function B2ToolShell({ tool, onBack }) {
   const title = tool?.titleVi || tool?.title || meta.label || tool?.slug;
   const description = tool?.descVi || tool?.desc || 'Công cụ Brian đang chạy trong Metro Next Tool Shell.';
   const legacyPath = `/#/tool/${encodeURIComponent(tool?.slug || '')}`;
-  const level2 = hasLevel2ChromeAdapter(tool?.slug) || hasPhase2Level2Adapter(tool?.slug);
+  const level2 = isLevel2Runtime(tool?.slug);
 
   const reload = () => {
     setState('loading');
@@ -67,17 +37,9 @@ export default function B2ToolShell({ tool, onBack }) {
   };
 
   const refreshRuntimeChrome = () => {
-    injectBridgeCleanup(frameRef.current);
-    if (!level2) return false;
-    const phase1Ready = hasLevel2ChromeAdapter(tool?.slug)
-      ? applyToolChromeAdapter(frameRef.current, tool?.slug)
-      : false;
-    const phase2Ready = hasPhase2Level2Adapter(tool?.slug)
-      ? applyPhase2ToolChromeAdapter(frameRef.current, tool?.slug)
-      : false;
-    const ready = phase1Ready || phase2Ready;
-    setAdapterReady(ready);
-    return ready;
+    const prepared = prepareToolRuntimeFrame(frameRef.current, tool?.slug);
+    setAdapterReady(prepared.adapterReady);
+    return prepared.adapterReady;
   };
 
   const auditRuntime = () => {
