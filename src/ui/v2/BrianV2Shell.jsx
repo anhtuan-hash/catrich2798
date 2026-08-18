@@ -17,22 +17,22 @@ const NAV_GROUPS = [
     label: 'MANAGE',
     items: [
       { icon: '◎', label: 'Chủ nhiệm', id: 'homeroom', ready: true },
-      { icon: '♙', label: 'Lớp học', id: 'classes' },
-      { icon: '▥', label: 'Học sinh', id: 'students' },
+      { icon: '♙', label: 'Lớp học', id: 'classes', ready: true },
+      { icon: '▥', label: 'Học sinh', id: 'students', ready: true },
     ],
   },
   {
     label: 'WORK',
     items: [
       { icon: '◧', label: 'Dashboard', id: 'dashboard', ready: true },
-      { icon: '▱', label: 'Báo cáo', id: 'reports' },
+      { icon: '▱', label: 'Báo cáo', id: 'reports', ready: true },
       { icon: '◇', label: 'UI Lab', id: 'ui-lab', ready: true, private: true },
     ],
   },
 ];
 
 const byId = Object.fromEntries(NAV_GROUPS.flatMap((group) => group.items).map((item) => [item.id, item]));
-const MOBILE_ITEMS = ['home', 'apps', 'homeroom', 'dashboard'].map((id) => byId[id]);
+const MOBILE_ITEMS = ['home', 'classes', 'homeroom', 'dashboard'].map((id) => byId[id]);
 
 export default function BrianV2Shell({ children, active = 'home', onNavigate, currentUser = null }) {
   const navigate = (item) => {
