@@ -1,0 +1,19 @@
+.b2-lab-section { margin-top: 24px; }
+.b2-lab-stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+.b2-lab-grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 12px; }
+.b2-lab-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+.b2-lab-form-span { grid-column: 1 / -1; }
+.b2-lab-button-stack { display: grid; gap: 8px; }
+.b2-lab-button-stack .b2-btn { width: 100%; }
+.b2-lab-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--b2-divider); }
+.b2-lab-drawer-form { display: grid; gap: 14px; }
+.b2-lab-drawer-two { display: grid; grid-template-columns: 1fr .75fr; gap: 12px; }
+
+@media (max-width: 1100px) {
+  .b2-lab-stat-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .b2-lab-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .b2-lab-stat-grid, .b2-lab-form-grid, .b2-lab-drawer-two { grid-template-columns: 1fr; }
+  .b2-lab-form-span { grid-column: auto; }
+}
