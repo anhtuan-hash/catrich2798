@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { B2Badge, B2Button, B2CommandBar, B2PageHeader, B2SearchBox, B2SectionHeader, B2StatCard, B2Surface, B2Tabs } from '../components/B2UI.jsx';
 import { B2Select, B2Switch, B2TextField, B2Textarea } from '../components/B2Forms.jsx';
 import { B2Dialog, B2Drawer, B2Toast } from '../components/B2Overlay.jsx';
+import { V2_TOOL_BRIDGE } from '../toolBridgeRegistry.js';
 import './B2UILab.css';
 
 export default function B2UILab() {
@@ -15,6 +16,8 @@ export default function B2UILab() {
   const [enabled, setEnabled] = useState(true);
   const [tab, setTab] = useState('components');
   const [search, setSearch] = useState('');
+  const migrationRows = useMemo(() => Object.entries(V2_TOOL_BRIDGE).map(([slug, meta]) => ({ slug, ...meta })), []);
+  const level2Count = migrationRows.filter((item) => item.level >= 2).length;
 
   return (
     <>
@@ -40,10 +43,10 @@ export default function B2UILab() {
       <section className="b2-lab-section">
         <B2SectionHeader eyebrow="FOUNDATIONS" title="Density & hierarchy" description="Các khối này kiểm tra spacing, màu và typography trên cùng một canvas." />
         <div className="b2-lab-stat-grid">
-          <B2StatCard label="Component" value="18" meta="đã có primitive" tone="blue" icon="▦" />
+          <B2StatCard label="Component" value="22+" meta="primitive dùng chung" tone="blue" icon="▦" />
           <B2StatCard label="Surface" value="0" meta="nền kem" tone="green" icon="✓" />
           <B2StatCard label="Drawer" value="520" meta="px tối đa" tone="violet" icon="▥" />
-          <B2StatCard label="Input" value="42" meta="px chiều cao" tone="cyan" icon="⌨" />
+          <B2StatCard label="Tool Level 2" value={String(level2Count).padStart(2, '0')} meta={`${migrationRows.length} bridge đã đăng ký`} tone="cyan" icon="↗" />
         </div>
       </section>
 
@@ -76,6 +79,20 @@ export default function B2UILab() {
             <B2Badge>Trung tính</B2Badge>
           </div>
         </B2Surface>
+      </section>
+
+      <section className="b2-lab-section">
+        <B2SectionHeader eyebrow="TOOL MIGRATION" title="Adapter diagnostics" description="Theo dõi chính xác tool nào mới chỉ bridge runtime và tool nào đã dùng V2 Chrome Adapter." />
+        <div className="b2-lab-migration-list">
+          {migrationRows.map((item) => (
+            <article key={item.slug}>
+              <span className={`b2-lab-migration-mark tone-${item.tone || 'blue'}`}>{String(item.label || item.slug).slice(0, 2).toUpperCase()}</span>
+              <div><strong>{item.label}</strong><small>{item.slug} · {item.family}</small></div>
+              <B2Badge tone={item.level >= 2 ? 'violet' : 'blue'}>LEVEL {item.level || 1}</B2Badge>
+              <B2Badge tone={item.tested ? 'green' : 'amber'}>{item.tested ? 'VERIFIED' : 'PREVIEW'}</B2Badge>
+            </article>
+          ))}
+        </div>
       </section>
 
       <B2Drawer
