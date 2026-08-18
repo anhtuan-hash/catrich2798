@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { B2Badge, B2Button } from './B2UI.jsx';
 import { getToolBridgeMeta } from '../toolBridgeRegistry.js';
+import { applyToolChromeAdapter, hasLevel2ChromeAdapter } from '../toolChromeAdapters.js';
 import './B2ToolShell.css';
 
 function injectBridgeCleanup(frame) {
@@ -38,13 +39,16 @@ export default function B2ToolShell({ tool, onBack }) {
   const [frameKey, setFrameKey] = useState(0);
   const [state, setState] = useState('loading');
   const [compact, setCompact] = useState(false);
+  const [adapterReady, setAdapterReady] = useState(false);
   const meta = useMemo(() => getToolBridgeMeta(tool?.slug), [tool?.slug]);
   const title = tool?.titleVi || tool?.title || meta.label || tool?.slug;
   const description = tool?.descVi || tool?.desc || 'Công cụ Brian đang chạy trong Metro Next Tool Shell.';
   const legacyPath = `/#/tool/${encodeURIComponent(tool?.slug || '')}`;
+  const level2 = hasLevel2ChromeAdapter(tool?.slug);
 
   const reload = () => {
     setState('loading');
+    setAdapterReady(false);
     setFrameKey((value) => value + 1);
   };
 
@@ -58,15 +62,20 @@ export default function B2ToolShell({ tool, onBack }) {
     }
   };
 
-  const handleLoad = () => {
+  const refreshRuntimeChrome = () => {
     injectBridgeCleanup(frameRef.current);
-    window.setTimeout(() => injectBridgeCleanup(frameRef.current), 180);
-    window.setTimeout(() => injectBridgeCleanup(frameRef.current), 900);
+    if (level2) setAdapterReady(applyToolChromeAdapter(frameRef.current, tool?.slug));
+  };
+
+  const handleLoad = () => {
+    refreshRuntimeChrome();
+    window.setTimeout(refreshRuntimeChrome, 180);
+    window.setTimeout(refreshRuntimeChrome, 900);
     setState('ready');
   };
 
   return (
-    <section className={`b2-tool-shell ${compact ? 'is-compact' : ''}`} ref={surfaceRef} data-tool-slug={tool?.slug || ''}>
+    <section className={`b2-tool-shell ${compact ? 'is-compact' : ''}`} ref={surfaceRef} data-tool-slug={tool?.slug || ''} data-bridge-level={meta.level || 1}>
       <header className="b2-tool-shell__header">
         <div className="b2-tool-shell__identity">
           <button type="button" className="b2-tool-shell__back" onClick={onBack} aria-label="Quay lại">←</button>
@@ -79,6 +88,7 @@ export default function B2ToolShell({ tool, onBack }) {
         </div>
         <div className="b2-tool-shell__badges">
           <B2Badge tone={meta.tested ? 'green' : 'amber'}>{meta.tested ? 'Bridge verified' : 'Bridge preview'}</B2Badge>
+          {level2 ? <B2Badge tone={adapterReady ? 'violet' : 'amber'}>{adapterReady ? 'Level 2 chrome' : 'Applying Level 2…'}</B2Badge> : <B2Badge>Level 1 runtime</B2Badge>}
           <B2Badge tone="blue">V1 logic preserved</B2Badge>
         </div>
       </header>
@@ -87,7 +97,7 @@ export default function B2ToolShell({ tool, onBack }) {
         <div className="b2-tool-shell__status">
           <span className={`b2-tool-shell__dot is-${state}`} />
           <strong>{state === 'ready' ? 'Công cụ sẵn sàng' : 'Đang tải runtime…'}</strong>
-          <small>{meta.family || 'tool'} · same-origin bridge</small>
+          <small>{meta.family || 'tool'} · same-origin bridge · migration level {meta.level || 1}</small>
         </div>
         <div className="b2-tool-shell__commands">
           <B2Button variant="ghost" onClick={() => setCompact((value) => !value)}>{compact ? 'Hiện thông tin' : 'Chế độ tập trung'}</B2Button>
@@ -102,7 +112,7 @@ export default function B2ToolShell({ tool, onBack }) {
           <div className="b2-tool-shell__loading" aria-live="polite">
             <span />
             <strong>Đang nối Metro Next với runtime hiện tại…</strong>
-            <small>Business logic, dữ liệu và export/import vẫn do tool V1 xử lý.</small>
+            <small>{level2 ? 'Đang áp dụng V2 chrome adapter; engine và dữ liệu vẫn giữ nguyên.' : 'Business logic, dữ liệu và export/import vẫn do tool V1 xử lý.'}</small>
           </div>
         ) : null}
         <iframe
