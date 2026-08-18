@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { B2Badge, B2Button } from './B2UI.jsx';
 import { getToolBridgeMeta } from '../toolBridgeRegistry.js';
 import { applyToolChromeAdapter, hasLevel2ChromeAdapter } from '../toolChromeAdapters.js';
+import { applyPhase2ToolChromeAdapter, hasPhase2Level2Adapter } from '../toolChromeAdaptersPhase2.js';
 import './B2ToolShell.css';
 
 function injectBridgeCleanup(frame) {
@@ -44,7 +45,7 @@ export default function B2ToolShell({ tool, onBack }) {
   const title = tool?.titleVi || tool?.title || meta.label || tool?.slug;
   const description = tool?.descVi || tool?.desc || 'Công cụ Brian đang chạy trong Metro Next Tool Shell.';
   const legacyPath = `/#/tool/${encodeURIComponent(tool?.slug || '')}`;
-  const level2 = hasLevel2ChromeAdapter(tool?.slug);
+  const level2 = hasLevel2ChromeAdapter(tool?.slug) || hasPhase2Level2Adapter(tool?.slug);
 
   const reload = () => {
     setState('loading');
@@ -64,13 +65,21 @@ export default function B2ToolShell({ tool, onBack }) {
 
   const refreshRuntimeChrome = () => {
     injectBridgeCleanup(frameRef.current);
-    if (level2) setAdapterReady(applyToolChromeAdapter(frameRef.current, tool?.slug));
+    if (!level2) return;
+    const phase1Ready = hasLevel2ChromeAdapter(tool?.slug)
+      ? applyToolChromeAdapter(frameRef.current, tool?.slug)
+      : false;
+    const phase2Ready = hasPhase2Level2Adapter(tool?.slug)
+      ? applyPhase2ToolChromeAdapter(frameRef.current, tool?.slug)
+      : false;
+    setAdapterReady(phase1Ready || phase2Ready);
   };
 
   const handleLoad = () => {
     refreshRuntimeChrome();
     window.setTimeout(refreshRuntimeChrome, 180);
     window.setTimeout(refreshRuntimeChrome, 900);
+    window.setTimeout(refreshRuntimeChrome, 1600);
     setState('ready');
   };
 
