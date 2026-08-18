@@ -8,17 +8,19 @@ const V2_TO_V1_ROUTE = Object.freeze({
   'teaching-tools': 'tools',
   games: 'games',
   resources: 'resource-library',
+  'knowledge-hub': 'knowledge-hub',
+  news: 'news',
   homeroom: 'homeroom',
   classes: 'homeroom',
   students: 'homeroom',
   dashboard: 'dashboard',
   reports: 'homeroom',
   'work-hub': 'work-hub',
-  'knowledge-hub': 'knowledge-hub',
   assessment: 'assessment-core',
   collaboration: 'collaboration-hub',
   settings: 'settings',
   admin: 'admin',
+  cloud: 'cloud-operations',
 });
 
 export function getRealRoleMeta(user, previewRole = 'teacher') {
