@@ -7,21 +7,31 @@ import B2Apps from './pages/B2Apps.jsx';
 import B2TeachingHub from './pages/B2TeachingHub.jsx';
 import B2Games from './pages/B2Games.jsx';
 import B2Resources from './pages/B2Resources.jsx';
+import B2KnowledgeHub from './pages/B2KnowledgeHub.jsx';
 import B2Homeroom from './pages/B2Homeroom.jsx';
 import B2Classes from './pages/B2Classes.jsx';
 import B2Students from './pages/B2Students.jsx';
 import B2Dashboard from './pages/B2Dashboard.jsx';
+import B2WorkHub from './pages/B2WorkHub.jsx';
+import B2Assessment from './pages/B2Assessment.jsx';
+import B2Collaboration from './pages/B2Collaboration.jsx';
 import B2Reports from './pages/B2Reports.jsx';
 import B2Settings from './pages/B2Settings.jsx';
 import B2Admin from './pages/B2Admin.jsx';
 import B2UILab from './pages/B2UILab.jsx';
 import { B2Button, B2EmptyState } from './components/B2UI.jsx';
 import { getToolBridgeMeta, isBridgeTested } from './toolBridgeRegistry.js';
-import { canPreviewTarget, getPreviewRoleMeta, readStoredPreviewRole, storePreviewRole } from './previewPermissions.js';
+import { readStoredPreviewRole, storePreviewRole } from './previewPermissions.js';
+import { canUseV2Target, getRealRoleMeta, getV2PermissionMode } from './realPermissions.js';
 import { BrianV2DataProvider, useBrianV2Data } from './data/BrianV2DataContext.jsx';
 import './BrianV2Preview.css';
+import './B2ResponsiveQA.css';
 
-const READY_VIEWS = new Set(['home', 'apps', 'teaching-tools', 'games', 'resources', 'homeroom', 'classes', 'students', 'dashboard', 'reports', 'settings', 'admin', 'ui-lab']);
+const READY_VIEWS = new Set([
+  'home', 'apps', 'teaching-tools', 'games', 'resources', 'knowledge-hub',
+  'homeroom', 'classes', 'students', 'dashboard', 'work-hub', 'assessment',
+  'collaboration', 'reports', 'settings', 'admin', 'ui-lab',
+]);
 const ALL_TOOLS = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS];
 
 function isReadyPreviewView(raw) {
@@ -40,6 +50,9 @@ function BrianV2PreviewRouter() {
   const { user } = useBrianV2Data();
   const [previewRole, setPreviewRole] = useState(readStoredPreviewRole);
   const [view, setView] = useState(readPreviewView);
+  const permissionMode = getV2PermissionMode(user);
+  const roleMeta = getRealRoleMeta(user, previewRole);
+  const canOpen = (target) => canUseV2Target(user, previewRole, target);
 
   useEffect(() => {
     const onHash = () => setView(readPreviewView());
@@ -48,12 +61,13 @@ function BrianV2PreviewRouter() {
   }, []);
 
   const navigate = (next) => {
-    if (!isReadyPreviewView(next) || !canPreviewTarget(previewRole, next)) return;
+    if (!isReadyPreviewView(next) || !canOpen(next)) return;
     if (window.location.hash.replace(/^#/, '') !== next) window.location.hash = next;
     setView(next);
   };
 
   const changePreviewRole = (nextRole) => {
+    if (permissionMode === 'real') return;
     const stored = storePreviewRole(nextRole);
     setPreviewRole(stored);
   };
@@ -67,16 +81,15 @@ function BrianV2PreviewRouter() {
     return { slug, title: meta.label, titleVi: meta.label, icon: String(meta.label || slug).slice(0, 2).toUpperCase(), tone: meta.tone, descVi: 'Công cụ hiện hữu đang chạy bên trong Metro Next Tool Shell.', desc: 'Existing tool running inside Metro Next Tool Shell.' };
   }, [view]);
 
-  const allowed = canPreviewTarget(previewRole, view);
-  const roleMeta = getPreviewRoleMeta(previewRole);
+  const allowed = canOpen(view);
   let content = null;
 
   if (!allowed) {
     content = (
       <section className="b2-access-denied" role="status">
         <span aria-hidden="true">◇</span>
-        <h2>Khu vực bị khóa trong role preview này</h2>
-        <p><strong>{roleMeta.label}</strong> không được mở “{view}” trong ma trận UI thử nghiệm. Đây chỉ là guard giao diện của Shadow UI; quyền backend/V1 vẫn không thay đổi.</p>
+        <h2>Khu vực này không nằm trong quyền hiện tại</h2>
+        <p><strong>{roleMeta.label}</strong> không được mở “{view}”. {permissionMode === 'real' ? 'V2 đang đọc trực tiếp permission service của Brian V1; Shadow UI không thể tự nâng quyền.' : 'Preview chưa có phiên đăng nhập nên đang dùng role simulator.'}</p>
         <B2Button variant="primary" onClick={() => navigate('home')}>Về Trang chủ</B2Button>
       </section>
     );
@@ -89,14 +102,18 @@ function BrianV2PreviewRouter() {
   else if (view === 'teaching-tools') content = <B2TeachingHub />;
   else if (view === 'games') content = <B2Games navigate={navigate} />;
   else if (view === 'resources') content = <B2Resources />;
+  else if (view === 'knowledge-hub') content = <B2KnowledgeHub />;
   else if (view === 'homeroom') content = <B2Homeroom />;
   else if (view === 'classes') content = <B2Classes />;
   else if (view === 'students') content = <B2Students />;
   else if (view === 'dashboard') content = <B2Dashboard />;
+  else if (view === 'work-hub') content = <B2WorkHub />;
+  else if (view === 'assessment') content = <B2Assessment />;
+  else if (view === 'collaboration') content = <B2Collaboration />;
   else if (view === 'reports') content = <B2Reports />;
   else if (view === 'settings') content = <B2Settings />;
   else if (view === 'admin') content = <B2Admin />;
-  else if (view === 'ui-lab') content = <B2UILab />;
+  else if (view === 'ui-lab') content = <B2UILab permissionMode={permissionMode} roleMeta={roleMeta} canOpen={canOpen} />;
   else {
     content = (
       <B2EmptyState
@@ -116,6 +133,9 @@ function BrianV2PreviewRouter() {
       currentUser={user}
       previewRole={previewRole}
       onPreviewRoleChange={changePreviewRole}
+      permissionMode={permissionMode}
+      roleMeta={roleMeta}
+      canOpenTarget={canOpen}
     >
       {content}
     </BrianV2Shell>
