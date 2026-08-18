@@ -26,6 +26,7 @@ const NAV_GROUPS = [
     items: [
       { icon: '◧', label: 'Dashboard', id: 'dashboard' },
       { icon: '▱', label: 'Báo cáo', id: 'reports' },
+      { icon: '◇', label: 'UI Lab', id: 'ui-lab', ready: true, private: true },
     ],
   },
 ];
@@ -55,7 +56,7 @@ export default function BrianV2Shell({ children, active = 'home', onNavigate, cu
               <p>{group.label}</p>
               {group.items.map((item) => (
                 <button
-                  className={`b2-nav-item ${active === item.id ? 'is-active' : ''} ${item.ready ? '' : 'is-pending'}`.trim()}
+                  className={`b2-nav-item ${active === item.id ? 'is-active' : ''} ${item.ready ? '' : 'is-pending'} ${item.private ? 'is-private' : ''}`.trim()}
                   key={item.id}
                   type="button"
                   onClick={() => navigate(item)}
@@ -64,7 +65,7 @@ export default function BrianV2Shell({ children, active = 'home', onNavigate, cu
                 >
                   <span aria-hidden="true">{item.icon}</span>
                   <strong>{item.label}</strong>
-                  {!item.ready ? <em>SOON</em> : null}
+                  {item.private ? <em>LAB</em> : !item.ready ? <em>SOON</em> : null}
                 </button>
               ))}
             </section>
