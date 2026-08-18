@@ -16,7 +16,7 @@ const NAV_GROUPS = [
   {
     label: 'MANAGE',
     items: [
-      { icon: '◎', label: 'Chủ nhiệm', id: 'homeroom' },
+      { icon: '◎', label: 'Chủ nhiệm', id: 'homeroom', ready: true },
       { icon: '♙', label: 'Lớp học', id: 'classes' },
       { icon: '▥', label: 'Học sinh', id: 'students' },
     ],
@@ -24,14 +24,15 @@ const NAV_GROUPS = [
   {
     label: 'WORK',
     items: [
-      { icon: '◧', label: 'Dashboard', id: 'dashboard' },
+      { icon: '◧', label: 'Dashboard', id: 'dashboard', ready: true },
       { icon: '▱', label: 'Báo cáo', id: 'reports' },
       { icon: '◇', label: 'UI Lab', id: 'ui-lab', ready: true, private: true },
     ],
   },
 ];
 
-const MOBILE_ITEMS = NAV_GROUPS[0].items.slice(0, 3);
+const byId = Object.fromEntries(NAV_GROUPS.flatMap((group) => group.items).map((item) => [item.id, item]));
+const MOBILE_ITEMS = ['home', 'apps', 'homeroom', 'dashboard'].map((id) => byId[id]);
 
 export default function BrianV2Shell({ children, active = 'home', onNavigate, currentUser = null }) {
   const navigate = (item) => {
@@ -101,7 +102,7 @@ export default function BrianV2Shell({ children, active = 'home', onNavigate, cu
         {MOBILE_ITEMS.map((item) => (
           <button key={item.id} type="button" className={active === item.id ? 'is-active' : ''} onClick={() => navigate(item)}>
             <span aria-hidden="true">{item.icon}</span>
-            <strong>{item.label === 'Teaching tools' ? 'Tools' : item.label}</strong>
+            <strong>{item.label}</strong>
           </button>
         ))}
       </nav>
