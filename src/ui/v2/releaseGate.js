@@ -92,6 +92,7 @@ export function getReleaseGateSnapshot({
   dataErrors = [],
   behaviorSummary = null,
   qualitySummary = null,
+  realEvidenceSummary = null,
 } = {}) {
   const optIn = readPrivateOptIn(user);
   const rollback = readRollbackLatch();
@@ -101,10 +102,12 @@ export function getReleaseGateSnapshot({
   const contractComplete = level2Slugs.length > 0 && passedLevel2 === level2Slugs.length;
   const toolBehaviorComplete = Boolean(behaviorSummary?.complete);
   const qualityReady = Boolean(qualitySummary?.qualityReady);
+  const realEvidenceComplete = Boolean(realEvidenceSummary?.complete);
   const manualComplete = Object.values(checklist).every(Boolean);
   const releaseApproved = contractComplete
     && toolBehaviorComplete
     && qualityReady
+    && realEvidenceComplete
     && manualComplete
     && !rollback.active
     && (dataErrors?.length || 0) === 0;
@@ -122,10 +125,10 @@ export function getReleaseGateSnapshot({
     behaviorPassed: behaviorSummary?.passed || 0,
     behaviorRequired: behaviorSummary?.required || 0,
     qualityReady,
-    routeAuditComplete: Boolean(qualitySummary?.routeAuditComplete),
-    accessibilityReady: Boolean(qualitySummary?.accessibilityReady),
-    performanceReady: Boolean(qualitySummary?.performanceReady),
-    viewportComplete: Boolean(qualitySummary?.viewportComplete),
+    realEvidenceComplete,
+    realEvidencePassed: realEvidenceSummary?.passed || 0,
+    realEvidenceRequired: realEvidenceSummary?.required || 0,
+    realEvidenceFailed: realEvidenceSummary?.failed || 0,
     dataErrorCount: dataErrors?.length || 0,
     manualComplete,
     releaseApproved,
