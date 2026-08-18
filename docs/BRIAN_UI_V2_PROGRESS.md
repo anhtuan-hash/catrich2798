@@ -3,22 +3,22 @@
 > Branch: `ui-v2-shadow`
 > Production policy: V1 on `main` remains untouched until V2 passes release gate.
 
-## Overall engineering progress: 74%
+## Overall engineering progress: 78%
 
-This percentage is weighted by release effort, not by the number of preview screens. Data/service integration, regression QA and release hardening deliberately carry a large share of the remaining work.
+This percentage is weighted by release effort, not by the number of preview screens. The current implementation is roughly 79% by code coverage, but the conservative release estimate remains 78% because the latest Vercel preview is waiting on the account build-rate limit rather than a completed CI build.
 
 | Area | Weight | Current completion | Weighted contribution |
 |---|---:|---:|---:|
 | Design foundations & tokens | 8% | 100% | 8.0% |
 | App shell & navigation | 10% | 98% | 9.8% |
 | Core components & overlays | 10% | 92% | 9.2% |
-| Primary teaching pages | 14% | 88% | 12.3% |
-| Management & data UI | 13% | 90% | 11.7% |
-| Secondary/system pages | 10% | 70% | 7.0% |
+| Primary teaching pages | 14% | 95% | 13.3% |
+| Management & data UI | 13% | 100% | 13.0% |
+| Secondary/system pages | 10% | 76% | 7.6% |
 | Individual tool migration | 20% | 72% | 14.4% |
-| Responsive/accessibility/performance/QA | 10% | 32% | 3.2% |
+| Responsive/accessibility/performance/QA | 10% | 36% | 3.6% |
 | Release integration, feature flag & rollback gate | 5% | 0% | 0.0% |
-| **Total** | **100%** |  | **~75.6% raw / 74% conservative release estimate** |
+| **Total** | **100%** |  | **~78.9% raw / 78% conservative release estimate** |
 
 ## Preview coverage
 
@@ -56,6 +56,23 @@ Ready views:
 - UI Lab migration diagnostics for Level 1/Level 2 coverage
 - Preview-only permission-aware UI states for Teacher/TTCM/Admin
 - Locked navigation, permission-filtered Command Palette and Access Denied route state
+- Read-first production Data/Service Bridge mounted once above the Shadow router
+- Live source diagnostics in UI Lab
+
+## Production data integration
+
+The following V2 views no longer use preview fixture datasets for their primary data:
+
+- Homeroom
+- Classes
+- Students
+- Dashboard
+- Resource Library
+- Reports
+
+`BrianV2DataProvider` reuses Brian's existing auth, assigned-class RPC/workspace metadata, Homeroom Workspace Store, Dashboard Aggregator, Resource Library and owner-scoped History data. Missing production fields are displayed as missing/neutral values instead of invented percentages or statuses.
+
+Current integration is deliberately read-first. Mutating workflows continue to open V1 while V2 is private, which protects production data while visual/data parity is tested. See `docs/BRIAN_UI_V2_DATA_BRIDGE.md`.
 
 ## Tool migration coverage
 
@@ -81,7 +98,7 @@ These tools receive slug-scoped V2 styling inside their bridged runtime for dupl
 - Vietnam Tax Studio
 - TextCare Fixer
 
-See `docs/BRIAN_UI_V2_TOOL_SHELL.md`, `docs/BRIAN_UI_V2_LEVEL2_QA.md` and `docs/BRIAN_UI_V2_PERMISSION_QA.md`.
+See `docs/BRIAN_UI_V2_TOOL_SHELL.md`, `docs/BRIAN_UI_V2_LEVEL2_QA.md`, `docs/BRIAN_UI_V2_PERMISSION_QA.md` and `docs/BRIAN_UI_V2_DATA_BRIDGE.md`.
 
 ## Permission-aware preview status
 
@@ -93,18 +110,22 @@ See `docs/BRIAN_UI_V2_TOOL_SHELL.md`, `docs/BRIAN_UI_V2_LEVEL2_QA.md` and `docs/
 - Tool runtime authorization is still enforced by the existing V1 tool/service layer
 - The simulator is explicitly not a security system and must not ship to ordinary users
 
+## Current CI status
+
+The latest Vercel check returned `failure` with target reason `upgradeToPro=build-rate-limit`. This is an account build quota/rate-limit response, not a compiler error report. The current Data Bridge milestone therefore remains CI-pending until Vercel accepts another preview build.
+
 ## Major work still required
 
-1. Connect V2 pages to production data/services rather than preview fixtures where not yet wired.
+1. Re-run Vercel Preview after the build-rate window allows another build and fix any real compile/runtime issues if reported.
 2. Run the Level 2 behavior contract for all ten adapters and fix only V2 adapter regressions.
-3. Move the remaining registered tools from Level 1 to Level 2 where useful.
+3. Move remaining registered tools from Level 1 to Level 2 where useful.
 4. Complete News/Reading feed, Work Hub, Knowledge Hub, Assessment, Collaboration, Cloud/Admin submodules and remaining system routes.
 5. Replace the permission simulator with a read-only adapter over the existing real permission service.
-6. Run responsive QA across phone, iPad portrait/landscape, laptop, desktop and 65-inch TV.
-7. Accessibility pass: keyboard order, visible focus policy, aria semantics, contrast and reduced motion.
-8. Performance pass: lazy boundaries, CSS/module budget, interaction latency, iframe bridge cost and large-list behavior.
-9. Visual regression and functional regression against V1 behavior, including tool import/export and saved-state parity.
-10. Add private feature flag / account opt-in, rollback gate and final release checklist.
+6. Decide which production mutations receive native V2 commands and which remain delegated to V1 for the first release.
+7. Run responsive QA across phone, iPad portrait/landscape, laptop, desktop and 65-inch TV.
+8. Accessibility pass: keyboard order, visible focus policy, aria semantics, contrast and reduced motion.
+9. Performance pass: lazy boundaries, CSS/module budget, interaction latency, iframe bridge cost and large-list behavior.
+10. Visual and functional regression against V1, then add private feature flag/account opt-in, rollback gate and final release checklist.
 
 ## Release rule
 
