@@ -17,6 +17,7 @@ import B2Admin from './pages/B2Admin.jsx';
 import B2UILab from './pages/B2UILab.jsx';
 import { B2Button, B2EmptyState } from './components/B2UI.jsx';
 import { getToolBridgeMeta, isBridgeTested } from './toolBridgeRegistry.js';
+import { canPreviewTarget, getPreviewRoleMeta, readStoredPreviewRole, storePreviewRole } from './previewPermissions.js';
 import './BrianV2Preview.css';
 
 const READY_VIEWS = new Set(['home', 'apps', 'teaching-tools', 'games', 'resources', 'homeroom', 'classes', 'students', 'dashboard', 'reports', 'settings', 'admin', 'ui-lab']);
@@ -35,6 +36,7 @@ function readPreviewView() {
 }
 
 export default function BrianV2Preview() {
+  const [previewRole, setPreviewRole] = useState(readStoredPreviewRole);
   const [view, setView] = useState(readPreviewView);
 
   useEffect(() => {
@@ -44,9 +46,14 @@ export default function BrianV2Preview() {
   }, []);
 
   const navigate = (next) => {
-    if (!isReadyPreviewView(next)) return;
+    if (!isReadyPreviewView(next) || !canPreviewTarget(previewRole, next)) return;
     if (window.location.hash.replace(/^#/, '') !== next) window.location.hash = next;
     setView(next);
+  };
+
+  const changePreviewRole = (nextRole) => {
+    const stored = storePreviewRole(nextRole);
+    setPreviewRole(stored);
   };
 
   const selectedTool = useMemo(() => {
@@ -58,8 +65,20 @@ export default function BrianV2Preview() {
     return { slug, title: meta.label, titleVi: meta.label, icon: String(meta.label || slug).slice(0, 2).toUpperCase(), tone: meta.tone, descVi: 'Công cụ hiện hữu đang chạy bên trong Metro Next Tool Shell.', desc: 'Existing tool running inside Metro Next Tool Shell.' };
   }, [view]);
 
+  const allowed = canPreviewTarget(previewRole, view);
+  const roleMeta = getPreviewRoleMeta(previewRole);
   let content = null;
-  if (selectedTool) {
+
+  if (!allowed) {
+    content = (
+      <section className="b2-access-denied" role="status">
+        <span aria-hidden="true">◇</span>
+        <h2>Khu vực bị khóa trong role preview này</h2>
+        <p><strong>{roleMeta.label}</strong> không được mở “{view}” trong ma trận UI thử nghiệm. Đây chỉ là guard giao diện của Shadow UI; quyền backend/V1 vẫn không thay đổi.</p>
+        <B2Button variant="primary" onClick={() => navigate('home')}>Về Trang chủ</B2Button>
+      </section>
+    );
+  } else if (selectedTool) {
     const meta = getToolBridgeMeta(selectedTool.slug);
     const backTarget = meta.family === 'game' ? 'games' : 'apps';
     content = <B2ToolShell tool={selectedTool} onBack={() => navigate(backTarget)} />;
@@ -88,5 +107,14 @@ export default function BrianV2Preview() {
   }
 
   const active = selectedTool ? (getToolBridgeMeta(selectedTool.slug).family === 'game' ? 'games' : 'apps') : view;
-  return <BrianV2Shell active={active} onNavigate={navigate}>{content}</BrianV2Shell>;
+  return (
+    <BrianV2Shell
+      active={active}
+      onNavigate={navigate}
+      previewRole={previewRole}
+      onPreviewRoleChange={changePreviewRole}
+    >
+      {content}
+    </BrianV2Shell>
+  );
 }
