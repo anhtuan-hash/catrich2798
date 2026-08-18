@@ -25,8 +25,7 @@ const ALL_TOOLS = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS];
 function isReadyPreviewView(raw) {
   if (READY_VIEWS.has(raw)) return true;
   if (!raw.startsWith('tool/')) return false;
-  const slug = raw.slice(5);
-  return Boolean(ALL_TOOLS.some((tool) => tool.slug === slug) && isBridgeTested(slug));
+  return isBridgeTested(raw.slice(5));
 }
 
 function readPreviewView() {
@@ -53,7 +52,10 @@ export default function BrianV2Preview() {
   const selectedTool = useMemo(() => {
     if (!view.startsWith('tool/')) return null;
     const slug = view.slice(5);
-    return ALL_TOOLS.find((tool) => tool.slug === slug) || null;
+    const registered = ALL_TOOLS.find((tool) => tool.slug === slug);
+    if (registered) return registered;
+    const meta = getToolBridgeMeta(slug);
+    return { slug, title: meta.label, titleVi: meta.label, icon: String(meta.label || slug).slice(0, 2).toUpperCase(), tone: meta.tone, descVi: 'Công cụ hiện hữu đang chạy bên trong Metro Next Tool Shell.', desc: 'Existing tool running inside Metro Next Tool Shell.' };
   }, [view]);
 
   let content = null;
