@@ -1,0 +1,93 @@
+:root[data-brian-ui="v2"], .brian-v2 {
+  /* Brian Metro Next — foundations */
+  --b2-font-sans: "Google Sans", "Be Vietnam Pro", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --b2-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  --b2-ink-950: #0b1930;
+  --b2-ink-900: #102744;
+  --b2-ink-800: #173759;
+  --b2-ink-700: #35516f;
+  --b2-ink-600: #57708a;
+  --b2-ink-500: #758aa0;
+  --b2-ink-300: #c9d5e2;
+  --b2-ink-200: #dbe4ee;
+  --b2-ink-100: #edf2f7;
+  --b2-ink-050: #f7f9fc;
+
+  --b2-white: #ffffff;
+  --b2-canvas: #f4f7fb;
+  --b2-surface: #ffffff;
+  --b2-surface-raised: #ffffff;
+  --b2-surface-subtle: #f8fafc;
+
+  --b2-blue-700: #0c57d9;
+  --b2-blue-600: #1267e8;
+  --b2-blue-500: #2f7ff3;
+  --b2-blue-100: #e9f2ff;
+  --b2-blue-050: #f4f8ff;
+
+  --b2-cyan-600: #0089a8;
+  --b2-cyan-100: #ddf7fc;
+  --b2-green-600: #16815f;
+  --b2-green-100: #e2f6ed;
+  --b2-violet-600: #6c4bd3;
+  --b2-violet-100: #eee9ff;
+  --b2-orange-600: #c66816;
+  --b2-orange-100: #fff0dc;
+  --b2-red-600: #c8414a;
+  --b2-red-100: #ffe8ea;
+
+  --b2-border: #dbe4ee;
+  --b2-border-strong: #c4d2e1;
+  --b2-divider: #e7edf4;
+
+  --b2-shadow-1: 0 1px 2px rgba(15, 35, 64, 0.06), 0 8px 24px rgba(15, 35, 64, 0.04);
+  --b2-shadow-2: 0 12px 34px rgba(15, 35, 64, 0.10);
+
+  --b2-radius-xs: 6px;
+  --b2-radius-sm: 9px;
+  --b2-radius-md: 12px;
+  --b2-radius-lg: 16px;
+  --b2-radius-xl: 22px;
+
+  --b2-space-1: 4px;
+  --b2-space-2: 8px;
+  --b2-space-3: 12px;
+  --b2-space-4: 16px;
+  --b2-space-5: 20px;
+  --b2-space-6: 24px;
+  --b2-space-8: 32px;
+  --b2-space-10: 40px;
+  --b2-space-12: 48px;
+  --b2-space-16: 64px;
+
+  --b2-text-xs: 12px;
+  --b2-text-sm: 14px;
+  --b2-text-md: 16px;
+  --b2-text-lg: 18px;
+  --b2-text-xl: 22px;
+  --b2-text-2xl: 28px;
+  --b2-text-3xl: 36px;
+  --b2-text-display: clamp(42px, 5vw, 68px);
+
+  --b2-leading-tight: 1.08;
+  --b2-leading-title: 1.18;
+  --b2-leading-body: 1.55;
+
+  --b2-shell-max: 1540px;
+  --b2-side-rail: 224px;
+  --b2-topbar: 68px;
+
+  --b2-motion-fast: 100ms;
+  --b2-motion-medium: 180ms;
+  --b2-motion-page: 240ms;
+  --b2-ease: cubic-bezier(.2, .8, .2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-brian-ui="v2"], .brian-v2 {
+    --b2-motion-fast: 0ms;
+    --b2-motion-medium: 0ms;
+    --b2-motion-page: 0ms;
+  }
+}
