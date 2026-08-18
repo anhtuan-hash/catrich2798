@@ -45,10 +45,7 @@
 }
 
 .b2-brand strong,
-.b2-brand span {
-  display: block;
-}
-
+.b2-brand span { display: block; }
 .b2-brand strong { font-size: 15px; letter-spacing: -.02em; }
 .b2-brand span { margin-top: 2px; color: var(--b2-ink-500); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
 
@@ -81,16 +78,18 @@
   cursor: pointer;
   transition: background var(--b2-motion-fast) var(--b2-ease), color var(--b2-motion-fast) var(--b2-ease), transform var(--b2-motion-fast) var(--b2-ease);
 }
-
 .b2-nav-item:hover { background: var(--b2-ink-050); color: var(--b2-ink-950); }
 .b2-nav-item:active { transform: translateY(1px); }
 .b2-nav-item span:first-child { width: 22px; text-align: center; font-size: 17px; }
-.b2-nav-item strong { font-size: 14px; font-weight: 700; }
+.b2-nav-item strong { min-width: 0; font-size: 14px; font-weight: 700; }
+.b2-nav-item em { margin-left: auto; color: var(--b2-ink-500); font-size: 8px; font-style: normal; font-weight: 900; letter-spacing: .07em; }
 .b2-nav-item.is-active { background: var(--b2-blue-100); color: var(--b2-blue-700); }
 .b2-nav-item.is-active strong { font-weight: 800; }
+.b2-nav-item.is-pending { color: #9aaabc; cursor: default; }
+.b2-nav-item.is-pending:hover { background: transparent; color: #9aaabc; }
+.b2-nav-item.is-pending:active { transform: none; }
 
 .b2-rail-footer { border-top: 1px solid var(--b2-divider); padding-top: 12px; }
-
 .b2-main { min-width: 0; }
 
 .b2-topbar {
@@ -119,9 +118,11 @@
   background: var(--b2-surface-subtle);
   color: var(--b2-ink-500);
   padding: 0 11px;
-  font-size: 13px;
+  font: 700 13px var(--b2-font-sans);
+  text-align: left;
+  cursor: pointer;
 }
-
+.b2-command-search:hover { border-color: var(--b2-border-strong); background: white; }
 .b2-command-search span:nth-child(2) { flex: 1; }
 .b2-command-search kbd {
   border: 1px solid var(--b2-border);
@@ -150,10 +151,7 @@
   cursor: pointer;
   padding: 2px 4px 2px 2px;
 }
-
-.b2-avatar {
-  width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: var(--b2-blue-600); color: white; font-weight: 800;
-}
+.b2-avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: var(--b2-blue-600); color: white; font-weight: 800; }
 .b2-profile strong, .b2-profile small { display: block; text-align: left; }
 .b2-profile strong { font-size: 13px; }
 .b2-profile small { margin-top: 1px; color: var(--b2-ink-500); font-size: 11px; }
@@ -164,11 +162,13 @@
   padding: 36px 0 64px;
 }
 
+.b2-mobile-nav { display: none; }
+
 @media (max-width: 1020px) {
   .b2-shell { grid-template-columns: 78px minmax(0, 1fr); }
   .b2-rail { padding-inline: 10px; }
   .b2-brand { justify-content: center; padding-inline: 0; }
-  .b2-brand > div:last-child, .b2-nav-group p, .b2-nav-item strong, .b2-rail-footer strong { display: none; }
+  .b2-brand > div:last-child, .b2-nav-group p, .b2-nav-item strong, .b2-nav-item em, .b2-rail-footer strong { display: none; }
   .b2-nav-item { justify-content: center; padding: 0; }
   .b2-nav-item span:first-child { width: auto; }
   .b2-topbar { padding-inline: 18px; }
@@ -177,10 +177,41 @@
 }
 
 @media (max-width: 720px) {
-  .b2-shell { display: block; }
+  .b2-shell { display: block; padding-bottom: 70px; }
   .b2-rail { display: none; }
   .b2-topbar { height: 60px; padding-inline: 14px; }
   .b2-command-search { width: calc(100% - 52px); }
   .b2-command-search kbd { display: none; }
-  .b2-workspace { width: calc(100% - 24px); padding-top: 22px; }
+  .b2-workspace { width: calc(100% - 24px); padding-top: 22px; padding-bottom: 32px; }
+  .b2-mobile-nav {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    z-index: 30;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 4px;
+    border: 1px solid var(--b2-border);
+    border-radius: 14px;
+    background: rgba(255,255,255,.96);
+    backdrop-filter: blur(18px);
+    padding: 5px;
+    box-shadow: var(--b2-shadow-2);
+  }
+  .b2-mobile-nav button {
+    min-height: 50px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 2px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--b2-ink-600);
+    font-family: var(--b2-font-sans);
+  }
+  .b2-mobile-nav button.is-active { background: var(--b2-blue-100); color: var(--b2-blue-700); }
+  .b2-mobile-nav button span { font-size: 17px; }
+  .b2-mobile-nav button strong { font-size: 10px; }
 }
