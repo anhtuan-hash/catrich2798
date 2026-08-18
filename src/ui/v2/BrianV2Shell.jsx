@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './tokens.css';
 import './BrianV2Shell.css';
+import { B2CommandPalette, B2NotificationCenter, B2ProfileMenu } from './components/B2GlobalOverlays.jsx';
 
 const NAV_GROUPS = [
   {
@@ -9,8 +10,8 @@ const NAV_GROUPS = [
       { icon: '⌂', label: 'Trang chủ', id: 'home', ready: true },
       { icon: '▦', label: 'Ứng dụng', id: 'apps', ready: true },
       { icon: '◫', label: 'Teaching tools', id: 'teaching-tools', ready: true },
-      { icon: '▶', label: 'Trò chơi', id: 'games' },
-      { icon: '▤', label: 'Kho học liệu', id: 'resources' },
+      { icon: '▶', label: 'Trò chơi', id: 'games', ready: true },
+      { icon: '▤', label: 'Kho học liệu', id: 'resources', ready: true },
     ],
   },
   {
@@ -26,29 +27,52 @@ const NAV_GROUPS = [
     items: [
       { icon: '◧', label: 'Dashboard', id: 'dashboard', ready: true },
       { icon: '▱', label: 'Báo cáo', id: 'reports', ready: true },
-      { icon: '◇', label: 'UI Lab', id: 'ui-lab', ready: true, private: true },
+    ],
+  },
+  {
+    label: 'SYSTEM',
+    items: [
+      { icon: '◇', label: 'Quản trị', id: 'admin', ready: true },
+      { icon: '◈', label: 'UI Lab', id: 'ui-lab', ready: true, private: true },
     ],
   },
 ];
 
 const byId = Object.fromEntries(NAV_GROUPS.flatMap((group) => group.items).map((item) => [item.id, item]));
-const MOBILE_ITEMS = ['home', 'classes', 'homeroom', 'dashboard'].map((id) => byId[id]);
+const MOBILE_ITEMS = ['home', 'apps', 'homeroom', 'dashboard'].map((id) => byId[id]);
 
 export default function BrianV2Shell({ children, active = 'home', onNavigate, currentUser = null }) {
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setNotificationsOpen(false);
+        setProfileOpen(false);
+        setCommandOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   const navigate = (item) => {
-    if (!item.ready) return;
+    if (!item?.ready) return;
+    setNotificationsOpen(false);
+    setProfileOpen(false);
     onNavigate?.(item.id);
   };
+  const navigateId = (id) => onNavigate?.(id);
 
   return (
     <div className="brian-v2 b2-shell" data-brian-ui="v2">
       <aside className="b2-rail" aria-label="Brian Metro Next navigation">
         <div className="b2-brand">
           <div className="b2-brand-mark">B</div>
-          <div>
-            <strong>Brian English</strong>
-            <span>Teaching OS</span>
-          </div>
+          <div><strong>Brian English</strong><span>Teaching OS</span></div>
         </div>
 
         <nav className="b2-nav">
@@ -64,8 +88,7 @@ export default function BrianV2Shell({ children, active = 'home', onNavigate, cu
                   aria-disabled={!item.ready}
                   title={item.ready ? item.label : `${item.label} · chưa migrate sang V2`}
                 >
-                  <span aria-hidden="true">{item.icon}</span>
-                  <strong>{item.label}</strong>
+                  <span aria-hidden="true">{item.icon}</span><strong>{item.label}</strong>
                   {item.private ? <em>LAB</em> : !item.ready ? <em>SOON</em> : null}
                 </button>
               ))}
@@ -74,38 +97,39 @@ export default function BrianV2Shell({ children, active = 'home', onNavigate, cu
         </nav>
 
         <div className="b2-rail-footer">
-          <button className="b2-nav-item is-pending" type="button" aria-disabled="true"><span>⚙</span><strong>Cài đặt</strong><em>SOON</em></button>
+          <button className={`b2-nav-item ${active === 'settings' ? 'is-active' : ''}`} type="button" onClick={() => navigateId('settings')}>
+            <span>⚙</span><strong>Cài đặt</strong>
+          </button>
         </div>
       </aside>
 
       <div className="b2-main">
         <header className="b2-topbar">
-          <button className="b2-command-search" type="button" aria-label="Tìm kiếm toàn Brian">
-            <span aria-hidden="true">⌕</span>
-            <span>Tìm lớp học, học sinh, công cụ…</span>
-            <kbd>⌘ K</kbd>
+          <button className="b2-command-search" type="button" aria-label="Tìm kiếm toàn Brian" onClick={() => { setNotificationsOpen(false); setProfileOpen(false); setCommandOpen(true); }}>
+            <span aria-hidden="true">⌕</span><span>Tìm lớp học, học sinh, công cụ…</span><kbd>⌘ K</kbd>
           </button>
           <div className="b2-top-actions">
-            <button className="b2-icon-btn" type="button" aria-label="Thông báo">♢</button>
-            <button className="b2-profile" type="button">
+            <button className={`b2-icon-btn ${notificationsOpen ? 'is-active' : ''}`} type="button" aria-label="Thông báo" onClick={() => { setProfileOpen(false); setNotificationsOpen((value) => !value); }}>♢</button>
+            <button className={`b2-profile ${profileOpen ? 'is-active' : ''}`} type="button" onClick={() => { setNotificationsOpen(false); setProfileOpen((value) => !value); }}>
               <span className="b2-avatar">T</span>
-              <span><strong>{currentUser?.name || 'Tuấn'}</strong><small>Giáo viên</small></span>
-              <span>⌄</span>
+              <span><strong>{currentUser?.name || 'Tuấn'}</strong><small>Giáo viên</small></span><span>⌄</span>
             </button>
           </div>
         </header>
-
         <main className="b2-workspace">{children}</main>
       </div>
 
       <nav className="b2-mobile-nav" aria-label="Điều hướng V2 trên điện thoại">
         {MOBILE_ITEMS.map((item) => (
           <button key={item.id} type="button" className={active === item.id ? 'is-active' : ''} onClick={() => navigate(item)}>
-            <span aria-hidden="true">{item.icon}</span>
-            <strong>{item.label}</strong>
+            <span aria-hidden="true">{item.icon}</span><strong>{item.label}</strong>
           </button>
         ))}
       </nav>
+
+      <B2CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} onNavigate={navigateId} />
+      <B2NotificationCenter open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+      <B2ProfileMenu open={profileOpen} onClose={() => setProfileOpen(false)} onNavigate={navigateId} />
     </div>
   );
 }
