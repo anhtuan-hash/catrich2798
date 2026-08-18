@@ -15,6 +15,7 @@ const NAV_GROUPS = [
       { icon: '▶', label: 'Trò chơi', id: 'games', ready: true },
       { icon: '▤', label: 'Kho học liệu', id: 'resources', ready: true },
       { icon: '⌕', label: 'Knowledge Hub', id: 'knowledge-hub', ready: true },
+      { icon: '▥', label: 'News & Reading', id: 'news', ready: true },
     ],
   },
   {
@@ -39,6 +40,7 @@ const NAV_GROUPS = [
     label: 'SYSTEM',
     items: [
       { icon: '◇', label: 'Quản trị', id: 'admin', ready: true },
+      { icon: '☁', label: 'Cloud & Data', id: 'cloud', ready: true },
       { icon: '◈', label: 'UI Lab', id: 'ui-lab', ready: true, private: true },
     ],
   },
@@ -87,6 +89,13 @@ export default function BrianV2Shell({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById('brian-v2-main')?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [active]);
+
   const navigate = (item) => {
     if (!item?.ready || !canOpen(item.id)) return;
     setNotificationsOpen(false);
@@ -100,6 +109,7 @@ export default function BrianV2Shell({
 
   return (
     <div className="brian-v2 b2-shell" data-brian-ui="v2" data-permission-mode={permissionMode} data-preview-role={roleMeta.id || role}>
+      <a className="b2-skip-link" href="#brian-v2-main">Bỏ qua điều hướng, đến nội dung chính</a>
       <aside className="b2-rail" aria-label="Brian Metro Next navigation">
         <div className="b2-brand">
           <div className="b2-brand-mark">B</div>
@@ -119,6 +129,7 @@ export default function BrianV2Shell({
                     type="button"
                     onClick={() => navigate(item)}
                     aria-disabled={!item.ready || !allowed}
+                    aria-current={active === item.id ? 'page' : undefined}
                     title={!allowed ? `${item.label} · không có quyền trong phiên hiện tại` : item.ready ? item.label : `${item.label} · chưa migrate sang V2`}
                   >
                     <span aria-hidden="true">{item.icon}</span><strong>{item.label}</strong>
@@ -131,8 +142,8 @@ export default function BrianV2Shell({
         </nav>
 
         <div className="b2-rail-footer">
-          <button className={`b2-nav-item ${active === 'settings' ? 'is-active' : ''} ${canOpen('settings') ? '' : 'is-locked'}`} type="button" onClick={() => navigateId('settings')} aria-disabled={!canOpen('settings')}>
-            <span>⚙</span><strong>Cài đặt</strong>{!canOpen('settings') ? <em>LOCK</em> : null}
+          <button className={`b2-nav-item ${active === 'settings' ? 'is-active' : ''} ${canOpen('settings') ? '' : 'is-locked'}`} type="button" onClick={() => navigateId('settings')} aria-disabled={!canOpen('settings')} aria-current={active === 'settings' ? 'page' : undefined}>
+            <span aria-hidden="true">⚙</span><strong>Cài đặt</strong>{!canOpen('settings') ? <em>LOCK</em> : null}
           </button>
         </div>
       </aside>
@@ -144,19 +155,19 @@ export default function BrianV2Shell({
           </button>
           <div className="b2-top-actions">
             <span className={`b2-role-chip ${permissionMode === 'real' ? 'is-real' : ''}`} title={roleMeta.summary || roleMeta.description}>{roleMeta.shortLabel}{permissionMode === 'real' ? ' · LIVE' : ''}</span>
-            <button className={`b2-icon-btn ${notificationsOpen ? 'is-active' : ''}`} type="button" aria-label="Thông báo" onClick={() => { setProfileOpen(false); setNotificationsOpen((value) => !value); }}>♢</button>
-            <button className={`b2-profile ${profileOpen ? 'is-active' : ''}`} type="button" onClick={() => { setNotificationsOpen(false); setProfileOpen((value) => !value); }}>
+            <button className={`b2-icon-btn ${notificationsOpen ? 'is-active' : ''}`} type="button" aria-label="Thông báo" aria-expanded={notificationsOpen} onClick={() => { setProfileOpen(false); setNotificationsOpen((value) => !value); }}>♢</button>
+            <button className={`b2-profile ${profileOpen ? 'is-active' : ''}`} type="button" aria-label="Mở menu tài khoản" aria-expanded={profileOpen} onClick={() => { setNotificationsOpen(false); setProfileOpen((value) => !value); }}>
               <span className="b2-avatar">{personInitials(currentUser)}</span>
-              <span><strong>{currentUser?.name || currentUser?.email || 'Shadow Preview'}</strong><small>{roleMeta.label}</small></span><span>⌄</span>
+              <span><strong>{currentUser?.name || currentUser?.email || 'Shadow Preview'}</strong><small>{roleMeta.label}</small></span><span aria-hidden="true">⌄</span>
             </button>
           </div>
         </header>
-        <main className="b2-workspace">{children}</main>
+        <main id="brian-v2-main" className="b2-workspace" tabIndex={-1}>{children}</main>
       </div>
 
       <nav className="b2-mobile-nav" aria-label="Điều hướng V2 trên điện thoại">
         {MOBILE_ITEMS.map((item) => (
-          <button key={item.id} type="button" className={active === item.id ? 'is-active' : ''} onClick={() => navigate(item)} disabled={!canOpen(item.id)}>
+          <button key={item.id} type="button" className={active === item.id ? 'is-active' : ''} onClick={() => navigate(item)} disabled={!canOpen(item.id)} aria-current={active === item.id ? 'page' : undefined}>
             <span aria-hidden="true">{item.icon}</span><strong>{item.label}</strong>
           </button>
         ))}
