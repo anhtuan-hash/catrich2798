@@ -1,0 +1,142 @@
+/* =========================================================
+   Brian English — Global No-Cream Surface Guard
+   Removes accidental warm/cream tint from shared surfaces and form controls.
+   Semantic yellow remains available for warnings, stars and explicit status UI.
+   ========================================================= */
+
+/* Neutral shared surfaces. BURS used to mix white with the active app's soft
+   accent; warm routes therefore produced an unintended ivory/cream cast. */
+:root,
+html[data-theme="light"],
+html[data-burs="comfortable"] {
+  --page: #f4f8fc !important;
+  --surface: #ffffff !important;
+  --surface-2: #f4f8fc !important;
+  --surface-3: #eaf2f8 !important;
+  --panel: #ffffff !important;
+  --panel-2: #f4f8fc !important;
+  --card: #ffffff !important;
+  --card-2: #f4f8fc !important;
+  --burs-surface: #ffffff !important;
+  --burs-soft: #f5f8fc !important;
+}
+
+/* Standard editable controls must never inherit a warm route surface. */
+html body .metro-clean-system :where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  textarea,
+  select
+) {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #17324d !important;
+}
+
+html body .metro-clean-system :where(option, optgroup) {
+  background: #ffffff !important;
+  color: #17324d !important;
+}
+
+/* Chrome / Edge / Safari autofill can paint a pale yellow/cream layer even
+   when the component itself asks for white. Paint over it explicitly. */
+html body .metro-clean-system input:-webkit-autofill,
+html body .metro-clean-system input:-webkit-autofill:hover,
+html body .metro-clean-system input:-webkit-autofill:focus,
+html body .metro-clean-system textarea:-webkit-autofill,
+html body .metro-clean-system textarea:-webkit-autofill:hover,
+html body .metro-clean-system textarea:-webkit-autofill:focus,
+html body .metro-clean-system select:-webkit-autofill,
+html body .metro-clean-system select:-webkit-autofill:hover,
+html body .metro-clean-system select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #17324d !important;
+  caret-color: #17324d !important;
+  transition: background-color 999999s ease-out 0s !important;
+}
+
+/* Search fields normally use a tinted wrapper. Keep the wrapper cool-neutral
+   and make the real input transparent, preventing the visible inner rectangle. */
+html body .metro-clean-system :where(
+  .tth-search,
+  [class$="-search"],
+  [class*="-search "],
+  [class$="-search-box"],
+  [class*="-search-box "],
+  [class$="-search-field"],
+  [class*="-search-field "]
+) {
+  background-color: #f7f9fc !important;
+  background-image: none !important;
+}
+
+html body .metro-clean-system :where(
+  .tth-search,
+  [class$="-search"],
+  [class*="-search "],
+  [class$="-search-box"],
+  [class*="-search-box "],
+  [class$="-search-field"],
+  [class*="-search-field "]
+) > input:not([type="checkbox"]):not([type="radio"]),
+html body .metro-clean-system .tth-search input {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Autofill inside a search wrapper also has to remain transparent. */
+html body .metro-clean-system :where(
+  .tth-search,
+  [class$="-search"],
+  [class*="-search "],
+  [class$="-search-box"],
+  [class*="-search-box "],
+  [class$="-search-field"],
+  [class*="-search-field "]
+) > input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #f7f9fc inset !important;
+  box-shadow: 0 0 0 1000px #f7f9fc inset !important;
+}
+
+/* Neutral generic field shells. This intentionally excludes semantic notices,
+   warnings, status badges, pinned stars and explicitly coloured app artwork. */
+html body .metro-clean-system :where(
+  .field-shell,
+  .input-shell,
+  .input-wrap,
+  .control-shell,
+  [class$="-field-shell"],
+  [class$="-input-shell"],
+  [class$="-input-wrap"]
+) {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+/* Focus should be Brian blue, never a dark browser outline around the field. */
+html body .metro-clean-system :where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select
+):focus {
+  outline: 3px solid rgba(26, 115, 232, .22) !important;
+  outline-offset: 0 !important;
+}
+
+html body .metro-clean-system .tth-search:focus-within {
+  background: #ffffff !important;
+  border-color: #91b8eb !important;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, .09) !important;
+}
+
+html body .metro-clean-system .tth-search input:focus {
+  outline: 0 !important;
+  box-shadow: none !important;
+}
