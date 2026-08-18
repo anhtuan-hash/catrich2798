@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { B2Badge, B2Button, B2CommandBar, B2PageHeader, B2SearchBox, B2SectionHeader, B2StatCard, B2Surface, B2Tabs } from '../components/B2UI.jsx';
 import { B2Select, B2Switch, B2TextField, B2Textarea } from '../components/B2Forms.jsx';
 import { B2Dialog, B2Drawer, B2Toast } from '../components/B2Overlay.jsx';
@@ -9,14 +9,27 @@ import './B2UILab.css';
 
 const PERMISSION_TARGETS = [
   { id: 'apps', label: 'Apps' },
+  { id: 'knowledge-hub', label: 'Knowledge' },
   { id: 'homeroom', label: 'Chủ nhiệm' },
+  { id: 'work-hub', label: 'Work Hub' },
+  { id: 'assessment', label: 'Assessment' },
+  { id: 'collaboration', label: 'Cộng tác' },
   { id: 'reports', label: 'Báo cáo' },
   { id: 'settings', label: 'Settings' },
   { id: 'admin', label: 'Admin' },
   { id: 'ui-lab', label: 'UI Lab' },
 ];
 
-export default function B2UILab() {
+function viewportTier(width) {
+  if (width <= 520) return 'PHONE';
+  if (width <= 720) return 'TABLET / PHONE';
+  if (width <= 1020) return 'TABLET';
+  if (width < 1600) return 'DESKTOP';
+  if (width < 2100) return 'LARGE DESKTOP';
+  return 'TV / DISPLAY';
+}
+
+export default function B2UILab({ permissionMode = 'preview', roleMeta = null, canOpen = () => true }) {
   const data = useBrianV2Data();
   const [drawer, setDrawer] = useState(false);
   const [dialog, setDialog] = useState(false);
@@ -28,16 +41,23 @@ export default function B2UILab() {
   const [enabled, setEnabled] = useState(true);
   const [tab, setTab] = useState('components');
   const [search, setSearch] = useState('');
+  const [viewport, setViewport] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }));
   const migrationRows = useMemo(() => Object.entries(V2_TOOL_BRIDGE).map(([slug, meta]) => ({ slug, ...meta })), []);
   const level2Count = migrationRows.filter((item) => item.level >= 2).length;
   const sourceRows = Object.entries(data.sources || {}).map(([key, source]) => ({ key, source }));
+
+  useEffect(() => {
+    const onResize = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   return (
     <>
       <B2PageHeader
         eyebrow="PRIVATE · DESIGN QA"
         title="Brian UI Lab"
-        description="Phòng kiểm định component, permission, tool migration và nguồn dữ liệu của Metro Next trước khi bất kỳ phần nào được phát hành."
+        description="Phòng kiểm định component, permission, tool migration, responsive và nguồn dữ liệu của Metro Next trước khi bất kỳ phần nào được phát hành."
         actions={(
           <>
             <B2Button variant="primary" onClick={() => setDrawer(true)}>Mở drawer</B2Button>
@@ -54,12 +74,13 @@ export default function B2UILab() {
       </B2CommandBar>
 
       <section className="b2-lab-section">
-        <B2SectionHeader eyebrow="FOUNDATIONS" title="Density & hierarchy" description="Các khối này kiểm tra spacing, màu và typography trên cùng một canvas." />
+        <B2SectionHeader eyebrow="FOUNDATIONS" title="Density & hierarchy" description="Các khối này kiểm tra spacing, màu, typography và viewport trên cùng một canvas." />
         <div className="b2-lab-stat-grid">
           <B2StatCard label="Component" value="22+" meta="primitive dùng chung" tone="blue" icon="▦" />
           <B2StatCard label="Surface" value="0" meta="nền kem" tone="green" icon="✓" />
           <B2StatCard label="Tool Level 2" value={String(level2Count).padStart(2, '0')} meta={`${migrationRows.length} bridge đã đăng ký`} tone="violet" icon="↗" />
           <B2StatCard label="Live classes" value={String(data.classes?.length || 0)} meta={`${data.students?.length || 0} roster`} tone="cyan" icon="◎" />
+          <B2StatCard label="Viewport" value={`${viewport.width}×${viewport.height}`} meta={viewportTier(viewport.width)} tone="blue" icon="▣" />
         </div>
       </section>
 
@@ -108,6 +129,21 @@ export default function B2UILab() {
       </section>
 
       <section className="b2-lab-section">
+        <B2SectionHeader eyebrow="PERMISSION SOURCE" title="Live permission adapter" description="Khi có session thật, các route và tool trong Shadow UI dùng trực tiếp permission service V1; simulator không thể tự nâng quyền." />
+        <div className="b2-lab-permission-grid b2-lab-permission-grid--live">
+          <article>
+            <header><span>{roleMeta?.shortLabel || 'SIM'}</span><div><strong>{permissionMode === 'real' ? 'LIVE PERMISSIONS' : 'ROLE SIMULATOR'}</strong><small>{roleMeta?.summary || roleMeta?.description || 'Chưa có user thật trong preview.'}</small></div></header>
+            <div className="b2-lab-permission-targets">
+              {PERMISSION_TARGETS.map((target) => {
+                const allowed = canOpen(target.id);
+                return <span key={target.id} className={allowed ? 'is-allowed' : 'is-locked'}>{allowed ? '✓' : '×'} {target.label}</span>;
+              })}
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="b2-lab-section">
         <B2SectionHeader eyebrow="TOOL MIGRATION" title="Adapter diagnostics" description="Theo dõi chính xác tool nào mới chỉ bridge runtime và tool nào đã dùng V2 Chrome Adapter." />
         <div className="b2-lab-migration-list">
           {migrationRows.map((item) => (
@@ -122,7 +158,7 @@ export default function B2UILab() {
       </section>
 
       <section className="b2-lab-section">
-        <B2SectionHeader eyebrow="PERMISSION QA" title="Role matrix" description="Ma trận này chỉ kiểm thử trạng thái UI. Security thật vẫn do permission service hiện tại của Brian quyết định." />
+        <B2SectionHeader eyebrow="SIMULATOR REFERENCE" title="Role matrix fallback" description="Chỉ dùng khi preview chưa có phiên đăng nhập. Không phải security system." />
         <div className="b2-lab-permission-grid">
           {Object.values(V2_PREVIEW_ROLES).map((role) => (
             <article key={role.id}>
@@ -138,20 +174,8 @@ export default function B2UILab() {
         </div>
       </section>
 
-      <B2Drawer
-        open={drawer}
-        onClose={() => setDrawer(false)}
-        eyebrow="TTCM · TEACHING TOOL HUB"
-        title="Chỉnh sửa website"
-        footer={<><B2Button onClick={() => setDrawer(false)}>Hủy</B2Button><B2Button variant="primary" onClick={() => { setDrawer(false); setToast(true); }}>Lưu thay đổi</B2Button></>}
-      >
-        <div className="b2-lab-drawer-form">
-          <B2TextField label="Tên website" value={name} onChange={setName} />
-          <B2TextField label="Địa chỉ website" value={url} onChange={setUrl} />
-          <div className="b2-lab-drawer-two"><B2Select label="Danh mục" value={category} onChange={setCategory} options={['Công cụ dạy học', 'Từ vựng', 'Trò chơi', 'Kiểm tra']} /><B2TextField label="Biểu tượng" value="↗" onChange={() => {}} /></div>
-          <B2Textarea label="Mô tả ngắn" value={description} onChange={setDescription} rows={3} />
-          <B2Switch label="Hiển thị trong Hub" description="Tắt để ẩn khỏi giáo viên nhưng vẫn giữ dữ liệu." checked={enabled} onChange={setEnabled} />
-        </div>
+      <B2Drawer open={drawer} onClose={() => setDrawer(false)} eyebrow="TTCM · TEACHING TOOL HUB" title="Chỉnh sửa website" footer={<><B2Button onClick={() => setDrawer(false)}>Hủy</B2Button><B2Button variant="primary" onClick={() => { setDrawer(false); setToast(true); }}>Lưu thay đổi</B2Button></>}>
+        <div className="b2-lab-drawer-form"><B2TextField label="Tên website" value={name} onChange={setName} /><B2TextField label="Địa chỉ website" value={url} onChange={setUrl} /><div className="b2-lab-drawer-two"><B2Select label="Danh mục" value={category} onChange={setCategory} options={['Công cụ dạy học', 'Từ vựng', 'Trò chơi', 'Kiểm tra']} /><B2TextField label="Biểu tượng" value="↗" onChange={() => {}} /></div><B2Textarea label="Mô tả ngắn" value={description} onChange={setDescription} rows={3} /><B2Switch label="Hiển thị trong Hub" description="Tắt để ẩn khỏi giáo viên nhưng vẫn giữ dữ liệu." checked={enabled} onChange={setEnabled} /></div>
       </B2Drawer>
 
       <B2Dialog open={dialog} onClose={() => setDialog(false)} title="Xác nhận thay đổi" description="Dialog V2 dùng cho các hành động cần xác nhận nhưng không nên chiếm toàn màn hình." confirmLabel="Xác nhận" onConfirm={() => { setDialog(false); setToast(true); }} />
