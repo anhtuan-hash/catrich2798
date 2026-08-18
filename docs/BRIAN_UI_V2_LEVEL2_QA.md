@@ -6,13 +6,23 @@ Branch: `ui-v2-shadow`
 
 Level 2 changes the visible chrome and authoring surfaces around a V1 tool while preserving the existing engine, persistence and file workflows. A tool is not considered Level 2 merely because a stylesheet exists; it must satisfy the behavior contract below.
 
-## Priority Level 2 tools
+## Level 2 tools
+
+### Wave A
 
 - `classroom-screen` — Brian Classroom Stage
 - `knowledge-train` — Knowledge Train
 - `crossword-trial` — Crossword Trial
 - `flying-words` — Flying Words
 - `exam-studio` — Exam Studio
+
+### Wave B
+
+- `textlab-activities` — Brian TextLab Activities
+- `lesson-plan-ai` — Lesson Architect
+- `thpt-practice-hub` — THPT Interactive Practice Hub
+- `seating-chart-studio` — Seating Chart Studio
+- `reading-studio` — Reading Studio
 
 ## Shared visual contract
 
@@ -41,7 +51,7 @@ For every Level 2 tool:
 11. `Mở V1` opens the original route independently.
 12. Browser refresh on the V2 tool route does not mutate the production V1 UI.
 
-## Tool-specific checks
+## Wave A tool-specific checks
 
 ### Brian Classroom Stage
 
@@ -81,6 +91,47 @@ For every Level 2 tool:
 - Question editing, duplicate/delete and output generation remain functional.
 - Existing DOC/PDF/HTML/export actions continue to use the V1 engine.
 - Draft/vault local persistence remains unchanged.
+
+## Wave B tool-specific checks
+
+### Brian TextLab Activities
+
+- Outer V1 marketing hero is removed inside the Tool Shell so the direct workspace begins immediately.
+- Nested TextLab iframe remains same-origin and receives only the inner neutral control adapter.
+- `BTL_RESIZE`, `BTL_SAVE_LIBRARY`, `BTL_PUBLISH_RESOURCE` and `BTL_ADD_BANK` postMessage flows remain unchanged.
+- Publish-to-Resource-Library feedback still reaches the embedded app.
+- Embedded guide modal and HTML/offline export remain usable.
+
+### Lesson Architect
+
+- Workflow selector, material upload/paste and analysis controls remain visible.
+- Existing PDF/DOCX parsing and AI calls remain owned by V1.
+- Generate lesson, generate slides, save to profile, copy and Word/HTML/PPT export remain reachable.
+- Curriculum/full-year builder remains usable.
+- Adapter may simplify the hero and cards but must not hide AI/provider readiness feedback.
+
+### THPT Interactive Practice Hub
+
+- Teacher submission and TTCM review states remain controlled by existing permission utilities.
+- Upload/validation, resource linking, review, delete and HTML player remain unchanged.
+- Player Reload and Fullscreen remain reachable.
+- Resource Library source and direct-hub source remain distinguishable.
+- Adapter must not expose review actions to a role that V1 would reject.
+
+### Seating Chart Studio
+
+- Roster, saved classes, layout and secret front/back conditions remain usable.
+- Generate/shuffle, manual seat swap, Student View and Print remain functional.
+- LocalStorage class persistence remains unchanged.
+- Secret condition picker modal remains operable.
+- Student View must not reveal teacher-only conditions after adapter styling.
+
+### Reading Studio
+
+- Exam profile selection and question-type accordion remain usable.
+- Source passage, question generation/library workflow and export actions remain reachable.
+- Hero art may be removed in Level 2, but profile/workflow controls must remain.
+- Existing question templates and sample library remain owned by V1.
 
 ## Adapter rollback rule
 
