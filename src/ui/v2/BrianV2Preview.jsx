@@ -18,6 +18,7 @@ import B2UILab from './pages/B2UILab.jsx';
 import { B2Button, B2EmptyState } from './components/B2UI.jsx';
 import { getToolBridgeMeta, isBridgeTested } from './toolBridgeRegistry.js';
 import { canPreviewTarget, getPreviewRoleMeta, readStoredPreviewRole, storePreviewRole } from './previewPermissions.js';
+import { BrianV2DataProvider, useBrianV2Data } from './data/BrianV2DataContext.jsx';
 import './BrianV2Preview.css';
 
 const READY_VIEWS = new Set(['home', 'apps', 'teaching-tools', 'games', 'resources', 'homeroom', 'classes', 'students', 'dashboard', 'reports', 'settings', 'admin', 'ui-lab']);
@@ -35,7 +36,8 @@ function readPreviewView() {
   return isReadyPreviewView(raw) ? raw : 'home';
 }
 
-export default function BrianV2Preview() {
+function BrianV2PreviewRouter() {
+  const { user } = useBrianV2Data();
   const [previewRole, setPreviewRole] = useState(readStoredPreviewRole);
   const [view, setView] = useState(readPreviewView);
 
@@ -111,10 +113,19 @@ export default function BrianV2Preview() {
     <BrianV2Shell
       active={active}
       onNavigate={navigate}
+      currentUser={user}
       previewRole={previewRole}
       onPreviewRoleChange={changePreviewRole}
     >
       {content}
     </BrianV2Shell>
+  );
+}
+
+export default function BrianV2Preview() {
+  return (
+    <BrianV2DataProvider>
+      <BrianV2PreviewRouter />
+    </BrianV2DataProvider>
   );
 }
