@@ -7,6 +7,7 @@ import workHubArchiveResource from './_work-hub-archive-resource.js';
 import workHubFileAccess from './_work-hub-file-access.js';
 import workHubFileAction from './_work-hub-file-action.js';
 import workHubFile from './_work-hub-file.js';
+import v2BuildMeta from './_v2-build-meta.js';
 
 const handlers = Object.freeze({
   'briefing-weather': briefingWeather,
@@ -18,6 +19,7 @@ const handlers = Object.freeze({
   'work-hub-file-access': workHubFileAccess,
   'work-hub-file-action': workHubFileAction,
   'work-hub-file': workHubFile,
+  'v2-build-meta': v2BuildMeta,
 });
 
 export default async function gateway(req, res) {

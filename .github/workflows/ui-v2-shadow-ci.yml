@@ -41,7 +41,7 @@ jobs:
           npm run build 2>&1 | tee /tmp/brian-v2-build.log
 
       - id: verify
-        name: Verify Shadow preview entry
+        name: Verify Shadow preview entry and gateway contract
         if: steps.build.outcome == 'success'
         continue-on-error: true
         shell: bash
@@ -49,8 +49,11 @@ jobs:
           test -f preview-ui-v2.html
           test -f src/ui/v2/preview-main.jsx
           test -f src/ui/v2/pages/B2ReleaseGate.jsx
-          test -f api/v2-build-meta.js
-          echo "Shadow UI source contract present"
+          test -f api/_v2-build-meta.js
+          grep -q "v2-build-meta" api/gateway.js
+          grep -q '"source": "/api/v2-build-meta"' vercel.json
+          test ! -f api/v2-build-meta.js
+          echo "Shadow UI source + consolidated gateway contract present"
 
       - name: Publish shadow CI status
         if: always()
@@ -62,14 +65,14 @@ jobs:
         shell: bash
         run: |
           STATE=success
-          DESCRIPTION="Shadow npm build + source contract passed"
+          DESCRIPTION="Shadow npm build + gateway/source contract passed"
           if [ "$BUILD_OUTCOME" != "success" ]; then
             STATE=failure
             ERROR_LINE=$(grep -E "(error|ERROR|failed|Failed|Cannot|Could not|not found|Unexpected|SyntaxError)" /tmp/brian-v2-build.log 2>/dev/null | tail -n 1 | tr '\n' ' ' | cut -c1-110)
             DESCRIPTION="Build failed${ERROR_LINE:+: $ERROR_LINE}"
           elif [ "$VERIFY_OUTCOME" != "success" ]; then
             STATE=failure
-            DESCRIPTION="Build passed; Shadow source-contract verification failed"
+            DESCRIPTION="Build passed; Shadow gateway/source verification failed"
           fi
           export STATE DESCRIPTION
           PAYLOAD=$(python - <<'PY'

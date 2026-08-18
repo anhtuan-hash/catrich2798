@@ -7,7 +7,7 @@ function clean(value, max = 240) {
   return String(value || '').trim().slice(0, max);
 }
 
-export default function handler(_req, res) {
+export default function v2BuildMeta(_req, res) {
   const sha = clean(process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA, 64);
   const ref = clean(process.env.VERCEL_GIT_COMMIT_REF || process.env.GITHUB_REF_NAME, 160);
   const environment = clean(process.env.VERCEL_ENV || (process.env.CI ? 'ci' : 'local'), 32);
