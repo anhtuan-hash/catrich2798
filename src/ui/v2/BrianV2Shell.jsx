@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import './tokens.css';
 import './BrianV2Shell.css';
 import './B2PermissionPreview.css';
@@ -14,6 +14,7 @@ const NAV_GROUPS = [
       { icon: '◫', label: 'Teaching tools', id: 'teaching-tools', ready: true },
       { icon: '▶', label: 'Trò chơi', id: 'games', ready: true },
       { icon: '▤', label: 'Kho học liệu', id: 'resources', ready: true },
+      { icon: '⌕', label: 'Knowledge Hub', id: 'knowledge-hub', ready: true },
     ],
   },
   {
@@ -28,6 +29,9 @@ const NAV_GROUPS = [
     label: 'WORK',
     items: [
       { icon: '◧', label: 'Dashboard', id: 'dashboard', ready: true },
+      { icon: '◷', label: 'Work Hub', id: 'work-hub', ready: true },
+      { icon: '◇', label: 'Assessment', id: 'assessment', ready: true },
+      { icon: '∞', label: 'Cộng tác', id: 'collaboration', ready: true },
       { icon: '▱', label: 'Báo cáo', id: 'reports', ready: true },
     ],
   },
@@ -43,13 +47,32 @@ const NAV_GROUPS = [
 const byId = Object.fromEntries(NAV_GROUPS.flatMap((group) => group.items).map((item) => [item.id, item]));
 const MOBILE_ITEMS = ['home', 'apps', 'homeroom', 'dashboard'].map((id) => byId[id]);
 
-export default function BrianV2Shell({ children, active = 'home', onNavigate, currentUser = null, previewRole = 'teacher', onPreviewRoleChange }) {
+function personInitials(user) {
+  const words = String(user?.name || user?.email || 'T').trim().split(/\s+/).filter(Boolean);
+  return `${words[0]?.[0] || 'T'}${words.length > 1 ? words[words.length - 1]?.[0] || '' : ''}`.toUpperCase();
+}
+
+export default function BrianV2Shell({
+  children,
+  active = 'home',
+  onNavigate,
+  currentUser = null,
+  previewRole = 'teacher',
+  onPreviewRoleChange,
+  permissionMode = 'preview',
+  roleMeta: roleMetaProp = null,
+  canOpenTarget,
+}) {
   const [commandOpen, setCommandOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const role = normalizePreviewRole(previewRole);
-  const roleMeta = getPreviewRoleMeta(role);
-  const canOpen = (target) => canPreviewTarget(role, target);
+  const roleMeta = roleMetaProp || getPreviewRoleMeta(role);
+  const canOpen = useMemo(() => (
+    typeof canOpenTarget === 'function'
+      ? canOpenTarget
+      : (target) => canPreviewTarget(role, target)
+  ), [canOpenTarget, role]);
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -76,7 +99,7 @@ export default function BrianV2Shell({ children, active = 'home', onNavigate, cu
   };
 
   return (
-    <div className="brian-v2 b2-shell" data-brian-ui="v2" data-preview-role={role}>
+    <div className="brian-v2 b2-shell" data-brian-ui="v2" data-permission-mode={permissionMode} data-preview-role={roleMeta.id || role}>
       <aside className="b2-rail" aria-label="Brian Metro Next navigation">
         <div className="b2-brand">
           <div className="b2-brand-mark">B</div>
@@ -96,7 +119,7 @@ export default function BrianV2Shell({ children, active = 'home', onNavigate, cu
                     type="button"
                     onClick={() => navigate(item)}
                     aria-disabled={!item.ready || !allowed}
-                    title={!allowed ? `${item.label} · khóa trong role preview ${roleMeta.label}` : item.ready ? item.label : `${item.label} · chưa migrate sang V2`}
+                    title={!allowed ? `${item.label} · không có quyền trong phiên hiện tại` : item.ready ? item.label : `${item.label} · chưa migrate sang V2`}
                   >
                     <span aria-hidden="true">{item.icon}</span><strong>{item.label}</strong>
                     {!allowed ? <em>LOCK</em> : item.private ? <em>LAB</em> : !item.ready ? <em>SOON</em> : null}
@@ -108,8 +131,8 @@ export default function BrianV2Shell({ children, active = 'home', onNavigate, cu
         </nav>
 
         <div className="b2-rail-footer">
-          <button className={`b2-nav-item ${active === 'settings' ? 'is-active' : ''}`} type="button" onClick={() => navigateId('settings')}>
-            <span>⚙</span><strong>Cài đặt</strong>
+          <button className={`b2-nav-item ${active === 'settings' ? 'is-active' : ''} ${canOpen('settings') ? '' : 'is-locked'}`} type="button" onClick={() => navigateId('settings')} aria-disabled={!canOpen('settings')}>
+            <span>⚙</span><strong>Cài đặt</strong>{!canOpen('settings') ? <em>LOCK</em> : null}
           </button>
         </div>
       </aside>
@@ -120,11 +143,11 @@ export default function BrianV2Shell({ children, active = 'home', onNavigate, cu
             <span aria-hidden="true">⌕</span><span>Tìm lớp học, học sinh, công cụ…</span><kbd>⌘ K</kbd>
           </button>
           <div className="b2-top-actions">
-            <span className="b2-role-chip">{roleMeta.shortLabel}</span>
+            <span className={`b2-role-chip ${permissionMode === 'real' ? 'is-real' : ''}`} title={roleMeta.summary || roleMeta.description}>{roleMeta.shortLabel}{permissionMode === 'real' ? ' · LIVE' : ''}</span>
             <button className={`b2-icon-btn ${notificationsOpen ? 'is-active' : ''}`} type="button" aria-label="Thông báo" onClick={() => { setProfileOpen(false); setNotificationsOpen((value) => !value); }}>♢</button>
             <button className={`b2-profile ${profileOpen ? 'is-active' : ''}`} type="button" onClick={() => { setNotificationsOpen(false); setProfileOpen((value) => !value); }}>
-              <span className="b2-avatar">T</span>
-              <span><strong>{currentUser?.name || 'Tuấn'}</strong><small>{roleMeta.label}</small></span><span>⌄</span>
+              <span className="b2-avatar">{personInitials(currentUser)}</span>
+              <span><strong>{currentUser?.name || currentUser?.email || 'Shadow Preview'}</strong><small>{roleMeta.label}</small></span><span>⌄</span>
             </button>
           </div>
         </header>
@@ -133,7 +156,7 @@ export default function BrianV2Shell({ children, active = 'home', onNavigate, cu
 
       <nav className="b2-mobile-nav" aria-label="Điều hướng V2 trên điện thoại">
         {MOBILE_ITEMS.map((item) => (
-          <button key={item.id} type="button" className={active === item.id ? 'is-active' : ''} onClick={() => navigate(item)}>
+          <button key={item.id} type="button" className={active === item.id ? 'is-active' : ''} onClick={() => navigate(item)} disabled={!canOpen(item.id)}>
             <span aria-hidden="true">{item.icon}</span><strong>{item.label}</strong>
           </button>
         ))}
@@ -145,10 +168,12 @@ export default function BrianV2Shell({ children, active = 'home', onNavigate, cu
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
         onNavigate={navigateId}
-        role={role}
+        role={roleMeta.id || role}
         roleMeta={roleMeta}
         onRoleChange={onPreviewRoleChange}
         canOpen={canOpen}
+        currentUser={currentUser}
+        permissionMode={permissionMode}
       />
     </div>
   );
