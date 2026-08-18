@@ -11,6 +11,7 @@ const BASE_COMMANDS = [
   { id: 'teaching-tools', label: 'Teaching tools', group: 'Dạy học', icon: '◫' },
   { id: 'resources', label: 'Kho học liệu', group: 'Dạy học', icon: '▤' },
   { id: 'knowledge-hub', label: 'Knowledge Hub', group: 'Dạy học', icon: '⌕' },
+  { id: 'news', label: 'News & Reading', group: 'Dạy học', icon: '▥' },
   { id: 'games', label: 'Trò chơi', group: 'Dạy học', icon: '▶' },
   { id: 'homeroom', label: 'Chủ nhiệm', group: 'Quản lý', icon: '◎' },
   { id: 'classes', label: 'Lớp học', group: 'Quản lý', icon: '♙' },
@@ -22,6 +23,7 @@ const BASE_COMMANDS = [
   { id: 'reports', label: 'Báo cáo', group: 'Công việc', icon: '▱' },
   { id: 'settings', label: 'Cài đặt', group: 'Hệ thống', icon: '⚙' },
   { id: 'admin', label: 'Quản trị', group: 'Hệ thống', icon: '◇' },
+  { id: 'cloud', label: 'Cloud & Data', group: 'Hệ thống', icon: '☁' },
   { id: 'ui-lab', label: 'UI Lab', group: 'Hệ thống', icon: '◈' },
 ];
 
@@ -118,6 +120,7 @@ export function B2ProfileMenu({ open, onClose, onNavigate, role = 'teacher', rol
       <div className="b2-profile-summary"><span>{profileInitials(currentUser)}</span><div><strong>{currentUser?.name || currentUser?.email || 'Shadow Preview'}</strong><small>{roleMeta?.label || 'Giáo viên'} · Brian V2</small></div></div>
       <div className="b2-profile-menu-list">
         {canOpen('settings') ? <button type="button" onClick={() => { onNavigate?.('settings'); onClose?.(); }}><span>⚙</span><strong>Cài đặt</strong></button> : null}
+        {canOpen('cloud') ? <button type="button" onClick={() => { onNavigate?.('cloud'); onClose?.(); }}><span>☁</span><strong>Cloud & Data</strong><B2Badge tone="blue">ADMIN</B2Badge></button> : null}
         {canOpen('ui-lab') ? <button type="button" onClick={() => { onNavigate?.('ui-lab'); onClose?.(); }}><span>◇</span><strong>UI Lab</strong><B2Badge tone="violet">LAB</B2Badge></button> : null}
         {canOpen('admin') ? <button type="button" onClick={() => { onNavigate?.('admin'); onClose?.(); }}><span>◈</span><strong>Quản trị</strong><B2Badge tone="blue">ADMIN</B2Badge></button> : null}
         <button type="button" onClick={() => window.open('/#/', '_blank', 'noopener,noreferrer')}><span>↗</span><strong>Mở Brian V1</strong></button>
