@@ -20,8 +20,9 @@ export const V2_PREVIEW_ROLES = {
 };
 
 const COMMON_ROUTES = new Set([
-  'home', 'apps', 'teaching-tools', 'games', 'resources',
-  'homeroom', 'classes', 'students', 'dashboard', 'reports', 'settings',
+  'home', 'apps', 'teaching-tools', 'games', 'resources', 'knowledge-hub',
+  'homeroom', 'classes', 'students', 'dashboard', 'work-hub', 'assessment',
+  'collaboration', 'reports', 'settings',
 ]);
 
 export function normalizePreviewRole(value) {
