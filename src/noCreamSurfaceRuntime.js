@@ -116,7 +116,8 @@ function neutralizeElement(element) {
   if (isFormSurface) {
     const disabled = element.matches(':disabled') || element.matches('input:read-only,textarea:read-only');
     const target = disabled ? '#f7f9fc' : '#ffffff';
-    if (style.backgroundColor !== 'rgb(255, 255, 255)' || disabled) {
+    const expectedRgb = disabled ? 'rgb(247, 249, 252)' : 'rgb(255, 255, 255)';
+    if (style.backgroundColor !== expectedRgb) {
       element.style.setProperty('background-color', target, 'important');
     }
     if (style.backgroundImage !== 'none') {
