@@ -6,6 +6,12 @@ import './B2SystemWorkspaces.css';
 
 const openV1 = (target = 'work-hub') => window.open(`/#/${target}`, '_blank', 'noopener,noreferrer');
 const safeArray = (value) => Array.isArray(value) ? value : [];
+function formatDateTime(value) {
+  if (!value) return 'Chưa đặt thời gian';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(date);
+}
 
 export default function B2WorkHub() {
   const { dashboard, sources, loading, refreshing, refresh } = useBrianV2Data();
@@ -46,7 +52,7 @@ export default function B2WorkHub() {
 
         <div>
           <B2SectionHeader eyebrow="UPCOMING" title="Lịch sắp tới" description={`${timeline.length} mục trong cửa sổ thời gian hiện tại.`} />
-          {timeline.length ? <div className="b2-system-list">{timeline.slice(0, 8).map((item) => <article key={item.id} className="b2-system-row"><div className="b2-system-row__copy"><strong>{item.title}</strong><small>{item.description || item.sourceLabel}</small><em>{item.date ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(item.date)) : 'Chưa đặt thời gian'}</em></div><B2Badge tone="blue">{item.sourceLabel || 'Lịch'}</B2Badge></article>)}</div> : <div className="b2-system-empty"><div><strong>Chưa có lịch sắp tới</strong><p>Không tạo lịch giả trong Shadow UI.</p></div></div>}
+          {timeline.length ? <div className="b2-system-list">{timeline.slice(0, 8).map((item) => <article key={item.id} className="b2-system-row"><div className="b2-system-row__copy"><strong>{item.title}</strong><small>{item.description || item.sourceLabel}</small><em>{formatDateTime(item.date)}</em></div><B2Badge tone="blue">{item.sourceLabel || 'Lịch'}</B2Badge></article>)}</div> : <div className="b2-system-empty"><div><strong>Chưa có lịch sắp tới</strong><p>Không tạo lịch giả trong Shadow UI.</p></div></div>}
         </div>
       </div>
 
