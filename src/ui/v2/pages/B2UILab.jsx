@@ -3,7 +3,17 @@ import { B2Badge, B2Button, B2CommandBar, B2PageHeader, B2SearchBox, B2SectionHe
 import { B2Select, B2Switch, B2TextField, B2Textarea } from '../components/B2Forms.jsx';
 import { B2Dialog, B2Drawer, B2Toast } from '../components/B2Overlay.jsx';
 import { V2_TOOL_BRIDGE } from '../toolBridgeRegistry.js';
+import { V2_PREVIEW_ROLES, canPreviewTarget } from '../previewPermissions.js';
 import './B2UILab.css';
+
+const PERMISSION_TARGETS = [
+  { id: 'apps', label: 'Apps' },
+  { id: 'homeroom', label: 'Chủ nhiệm' },
+  { id: 'reports', label: 'Báo cáo' },
+  { id: 'settings', label: 'Settings' },
+  { id: 'admin', label: 'Admin' },
+  { id: 'ui-lab', label: 'UI Lab' },
+];
 
 export default function B2UILab() {
   const [drawer, setDrawer] = useState(false);
@@ -90,6 +100,23 @@ export default function B2UILab() {
               <div><strong>{item.label}</strong><small>{item.slug} · {item.family}</small></div>
               <B2Badge tone={item.level >= 2 ? 'violet' : 'blue'}>LEVEL {item.level || 1}</B2Badge>
               <B2Badge tone={item.tested ? 'green' : 'amber'}>{item.tested ? 'VERIFIED' : 'PREVIEW'}</B2Badge>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="b2-lab-section">
+        <B2SectionHeader eyebrow="PERMISSION QA" title="Role matrix" description="Ma trận này chỉ kiểm thử trạng thái UI. Security thật vẫn do permission service hiện tại của Brian quyết định." />
+        <div className="b2-lab-permission-grid">
+          {Object.values(V2_PREVIEW_ROLES).map((role) => (
+            <article key={role.id}>
+              <header><span>{role.shortLabel}</span><div><strong>{role.label}</strong><small>{role.description}</small></div></header>
+              <div className="b2-lab-permission-targets">
+                {PERMISSION_TARGETS.map((target) => {
+                  const allowed = canPreviewTarget(role.id, target.id);
+                  return <span key={target.id} className={allowed ? 'is-allowed' : 'is-locked'}>{allowed ? '✓' : '×'} {target.label}</span>;
+                })}
+              </div>
             </article>
           ))}
         </div>
