@@ -1,4 +1,5 @@
 import { APPS } from './apps.js';
+import './registerTeachingToolHub.js';
 
 const seatingChartStudio = {
   slug: 'seating-chart-studio',
