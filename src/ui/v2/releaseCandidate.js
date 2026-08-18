@@ -1,3 +1,5 @@
+import { readCachedBuildIdentity } from './buildIdentity.js';
+
 export const V2_RELEASE_CANDIDATE_ID = 'rc-2026-08-19-01';
 const BINDING_KEY = 'brian-v2-release-candidate-binding-v1';
 
@@ -19,19 +21,44 @@ function readBinding() {
   }
 }
 
-export function ensureReleaseCandidateEvidenceScope() {
-  if (typeof window === 'undefined') return { id: V2_RELEASE_CANDIDATE_ID, reset: false, previousId: '', resetAt: '' };
-  const previous = readBinding();
-  if (previous?.id === V2_RELEASE_CANDIDATE_ID) return { ...previous, reset: false, previousId: previous.previousId || '' };
-
+function clearEvidence() {
+  if (typeof window === 'undefined') return;
   EVIDENCE_KEYS.forEach((key) => {
     try { window.localStorage.removeItem(key); } catch { /* QA evidence reset is best-effort */ }
   });
+}
 
-  const next = {
+function desiredScope(buildIdentity = readCachedBuildIdentity()) {
+  const buildSha = String(buildIdentity?.sha || '').trim();
+  return {
     id: V2_RELEASE_CANDIDATE_ID,
+    buildSha,
+    scopeId: buildSha ? `${V2_RELEASE_CANDIDATE_ID}@${buildSha}` : V2_RELEASE_CANDIDATE_ID,
+  };
+}
+
+export function ensureReleaseCandidateEvidenceScope({ buildIdentity = readCachedBuildIdentity() } = {}) {
+  if (typeof window === 'undefined') return { ...desiredScope(buildIdentity), reset: false, previousId: '', previousBuildSha: '', resetAt: '' };
+
+  const previous = readBinding();
+  const desired = desiredScope(buildIdentity);
+
+  if (desired.buildSha && previous?.scopeId === desired.scopeId) {
+    return { ...previous, reset: false, buildPending: false };
+  }
+
+  if (!desired.buildSha && previous?.id === V2_RELEASE_CANDIDATE_ID) {
+    return { ...previous, reset: false, buildPending: true };
+  }
+
+  clearEvidence();
+  const next = {
+    ...desired,
     previousId: previous?.id || '',
+    previousBuildSha: previous?.buildSha || '',
     reset: true,
+    buildPending: !desired.buildSha,
+    resetReason: previous?.id && previous.id !== desired.id ? 'candidate-changed' : previous?.buildSha && previous.buildSha !== desired.buildSha ? 'build-changed' : 'scope-initialized',
     resetAt: new Date().toISOString(),
   };
   try { window.localStorage.setItem(BINDING_KEY, JSON.stringify(next)); } catch { /* optional local binding */ }
@@ -39,5 +66,5 @@ export function ensureReleaseCandidateEvidenceScope() {
 }
 
 export function getReleaseCandidateBinding() {
-  return readBinding() || { id: V2_RELEASE_CANDIDATE_ID, previousId: '', reset: false, resetAt: '' };
+  return readBinding() || { ...desiredScope(), previousId: '', previousBuildSha: '', reset: false, buildPending: true, resetAt: '' };
 }

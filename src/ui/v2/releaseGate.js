@@ -88,18 +88,20 @@ export function shouldBootV2({ user, releaseApproved = false } = {}) {
 export function getReleaseGateSnapshot({
   user,
   contractLedger = {},
+  structuralSlugs = [],
   level2Slugs = [],
   dataErrors = [],
   behaviorSummary = null,
   qualitySummary = null,
   realEvidenceSummary = null,
 } = {}) {
+  const requiredStructuralSlugs = structuralSlugs.length ? structuralSlugs : level2Slugs;
   const optIn = readPrivateOptIn(user);
   const rollback = readRollbackLatch();
   const checklist = readReleaseChecklist();
-  const level2Results = level2Slugs.map((slug) => contractLedger?.[slug]).filter(Boolean);
-  const passedLevel2 = level2Results.filter((item) => item.status === 'pass').length;
-  const contractComplete = level2Slugs.length > 0 && passedLevel2 === level2Slugs.length;
+  const structuralResults = requiredStructuralSlugs.map((slug) => contractLedger?.[slug]).filter(Boolean);
+  const passedStructural = structuralResults.filter((item) => item.status === 'pass').length;
+  const contractComplete = requiredStructuralSlugs.length > 0 && passedStructural === requiredStructuralSlugs.length;
   const toolBehaviorComplete = Boolean(behaviorSummary?.complete);
   const qualityReady = Boolean(qualitySummary?.qualityReady);
   const realEvidenceComplete = Boolean(realEvidenceSummary?.complete);
@@ -118,8 +120,10 @@ export function getReleaseGateSnapshot({
     optIn,
     rollback,
     checklist,
-    level2Required: level2Slugs.length,
-    level2Passed: passedLevel2,
+    structuralRequired: requiredStructuralSlugs.length,
+    structuralPassed: passedStructural,
+    level2Required: requiredStructuralSlugs.length,
+    level2Passed: passedStructural,
     contractComplete,
     toolBehaviorComplete,
     behaviorPassed: behaviorSummary?.passed || 0,

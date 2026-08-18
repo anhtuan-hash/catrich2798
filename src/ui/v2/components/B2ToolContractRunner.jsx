@@ -4,8 +4,8 @@ import { V2_TOOL_BRIDGE } from '../toolBridgeRegistry.js';
 import { prepareToolRuntimeFrame } from '../toolRuntimeBridge.js';
 import { runToolBehaviorContract } from '../toolBehaviorContract.js';
 
-const LEVEL2 = Object.entries(V2_TOOL_BRIDGE)
-  .filter(([, meta]) => Number(meta.level || 0) >= 2)
+const BRIDGED = Object.entries(V2_TOOL_BRIDGE)
+  .filter(([, meta]) => meta.tested && Number(meta.level || 0) >= 1)
   .map(([slug, meta]) => ({ slug, ...meta }));
 
 export default function B2ToolContractRunner({ onResult, onDone }) {
@@ -15,8 +15,8 @@ export default function B2ToolContractRunner({ onResult, onDone }) {
   const [index, setIndex] = useState(0);
   const [runId, setRunId] = useState(0);
   const [lastStatus, setLastStatus] = useState('idle');
-  const current = LEVEL2[index] || null;
-  const progress = useMemo(() => running ? `${Math.min(index + 1, LEVEL2.length)}/${LEVEL2.length}` : `0/${LEVEL2.length}`, [running, index]);
+  const current = BRIDGED[index] || null;
+  const progress = useMemo(() => running ? `${Math.min(index + 1, BRIDGED.length)}/${BRIDGED.length}` : `0/${BRIDGED.length}`, [running, index]);
 
   const clearTimers = () => {
     timersRef.current.forEach((id) => window.clearTimeout(id));
@@ -47,7 +47,7 @@ export default function B2ToolContractRunner({ onResult, onDone }) {
     const result = runToolBehaviorContract(frameRef.current, slug, { level2: prepared.level2 });
     onResult?.(result);
 
-    if (index >= LEVEL2.length - 1) {
+    if (index >= BRIDGED.length - 1) {
       setRunning(false);
       setLastStatus('done');
       onDone?.();
@@ -68,11 +68,11 @@ export default function B2ToolContractRunner({ onResult, onDone }) {
   return (
     <div className="b2-contract-runner" data-status={lastStatus}>
       <div className="b2-contract-runner__copy">
-        <strong>{running && current ? `Đang quét: ${current.label}` : lastStatus === 'done' ? 'Đã quét xong Level 2' : 'Contract Runner sẵn sàng'}</strong>
-        <small>{running ? `Tool ${progress} · chỉ đọc DOM/runtime, không click hoặc ghi business data.` : 'Runner mở tuần tự 10 runtime trong iframe off-screen và ghi kết quả vào QA ledger.'}</small>
+        <strong>{running && current ? `Đang quét: ${current.label}` : lastStatus === 'done' ? 'Đã quét xong toàn bộ bridge' : 'Contract Runner sẵn sàng'}</strong>
+        <small>{running ? `Tool ${progress} · Level ${current?.level || 1} · chỉ đọc DOM/runtime, không click hoặc ghi business data.` : `Runner mở tuần tự ${BRIDGED.length} runtime bridge trong iframe off-screen; Level 1 không yêu cầu chrome adapter.`}</small>
       </div>
       <div className="b2-contract-runner__actions">
-        {running ? <B2Button variant="danger" onClick={stop}>Dừng</B2Button> : <B2Button variant="primary" onClick={start}>▶ Run all Level 2</B2Button>}
+        {running ? <B2Button variant="danger" onClick={stop}>Dừng</B2Button> : <B2Button variant="primary" onClick={start}>▶ Run all bridges</B2Button>}
       </div>
       {running && current ? (
         <iframe

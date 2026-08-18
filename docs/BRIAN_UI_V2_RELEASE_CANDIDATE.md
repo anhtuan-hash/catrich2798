@@ -2,13 +2,40 @@
 
 > Branch: `ui-v2-shadow`
 > Candidate: `rc-2026-08-19-01`
-> Production policy: V1 remains the only production boot target until the release candidate passes every gate and receives explicit owner approval.
+> Production policy: V1 remains the only production boot target until the exact candidate + deployment SHA passes every gate and receives explicit owner approval.
 
-## Candidate-scoped evidence
+## Candidate + build scoped evidence
 
-Release Gate evidence is now tied to a release-candidate identifier. When the identifier changes, Brian V2 automatically clears browser-local structural-contract results, tool-behavior evidence, route-quality results, viewport reviews, real-device evidence and the release checklist before the new candidate is reviewed.
+Release Gate evidence is bound to both a human-readable candidate ID and the exact deployment SHA resolved from `/api/v2-build-meta`.
 
-Private opt-in preference and the emergency rollback latch are deliberately not cleared by a candidate change. Opt-in still cannot boot V2 while release mode is `shadow`, and the rollback latch always wins over the boot decision.
+When either value changes, Brian V2 clears browser-local structural-contract results, tool-behavior evidence, route-quality results, viewport reviews, real-device evidence and the release checklist before review continues. This closes the stale-PASS gap where a new commit could otherwise inherit QA from an older build that shared the same candidate name.
+
+Private opt-in preference and the emergency rollback latch are deliberately not part of the evidence reset. Opt-in still cannot boot V2 while policy remains fail-closed, and rollback always wins.
+
+## Build identity endpoint
+
+`api/v2-build-meta.js` exposes only non-secret deployment metadata:
+
+- Vercel/Git commit SHA;
+- short SHA;
+- git ref;
+- deployment environment and URL;
+- release mode;
+- boolean release approval;
+- approved candidate ID;
+- approved build SHA.
+
+No token, credential or private environment value is returned.
+
+The Release Gate blocks CI sign-off until a preview/production SHA has been resolved and the local evidence binding matches that exact SHA.
+
+## Structural contracts
+
+The sequential Tool Contract Runner now covers all fourteen tested bridges.
+
+Level 2 tools must prove the V2 chrome adapter is installed. Level 1 tools do not require an adapter, but must still pass route identity, same-origin access, runtime mount, interactive-controls presence, duplicate global chrome cleanup, Metro Next isolation and severe-overflow checks.
+
+This does not replace manual persistence/import/export/workflow validation for the ten Level-2 tools.
 
 ## Real-device evidence matrix
 
@@ -32,28 +59,31 @@ Performance:
 - Tool Shell bridge cost;
 - repeated-route memory/listener behavior.
 
-Each evidence item is `PENDING`, `PASS` or `FAIL`, may include a note, and receives a timestamp. A high-level Responsive, Accessibility or Performance release sign-off remains locked until both its automated/simulated prerequisite and its real evidence group are complete.
+Each evidence item is `PENDING`, `PASS` or `FAIL`, may include a note, and receives a timestamp. High-level Responsive, Accessibility and Performance sign-offs stay locked until both automated/simulated prerequisites and the matching real evidence group are complete.
 
 ## Stale PASS protection
 
-If lower-level evidence becomes incomplete, the related high-level checklist item is invalidated. Owner Approval is also cleared when any required evidence or prerequisite is withdrawn. This prevents a release decision from remaining green after a regression, reset or new candidate.
+If lower-level evidence becomes incomplete, the related high-level checklist item is invalidated. Owner Approval is also cleared whenever required evidence, CI binding or a prerequisite is withdrawn.
+
+A new deployment SHA also invalidates the release checklist, even when `rc-2026-08-19-01` itself has not changed.
 
 ## Evidence Pack
 
-Release Gate can export a JSON evidence pack containing:
-- release candidate ID;
-- current gate snapshot;
-- release checklist;
-- Level-2 structural contract ledger;
-- per-tool behavior matrix;
+Release Gate exports a JSON evidence pack containing:
+- release candidate ID and candidate/build binding;
+- exact build SHA/ref/environment;
+- current gate snapshot and checklist;
+- all bridged-tool structural results;
+- per-tool Level-2 behavior matrix;
 - route accessibility/performance reports;
 - simulated viewport reviews;
 - real-device evidence;
 - current Data Bridge errors;
+- prepared production-bootstrap decision summary;
 - minimal runtime context such as browser user agent and viewport.
 
-The pack is generated locally in the browser and does not write Brian production data.
+The pack is generated locally and does not write Brian production data.
 
 ## Release rule
 
-A release candidate is not production-ready merely because the automated runners pass. Real-device/workflow evidence, successful CI, owner approval and a verified rollback path remain mandatory before production bootstrap integration.
+Automated PASS means only that the runners detected no blocker. Production readiness still requires real-device/workflow evidence, exact-build CI confirmation, owner approval and a verified rollback path before production bootstrap integration.
