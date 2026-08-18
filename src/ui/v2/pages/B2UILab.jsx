@@ -4,6 +4,7 @@ import { B2Select, B2Switch, B2TextField, B2Textarea } from '../components/B2For
 import { B2Dialog, B2Drawer, B2Toast } from '../components/B2Overlay.jsx';
 import { V2_TOOL_BRIDGE } from '../toolBridgeRegistry.js';
 import { V2_PREVIEW_ROLES, canPreviewTarget } from '../previewPermissions.js';
+import { dataSourceLabel, dataSourceTone, useBrianV2Data } from '../data/BrianV2DataContext.jsx';
 import './B2UILab.css';
 
 const PERMISSION_TARGETS = [
@@ -16,6 +17,7 @@ const PERMISSION_TARGETS = [
 ];
 
 export default function B2UILab() {
+  const data = useBrianV2Data();
   const [drawer, setDrawer] = useState(false);
   const [dialog, setDialog] = useState(false);
   const [toast, setToast] = useState(false);
@@ -28,18 +30,19 @@ export default function B2UILab() {
   const [search, setSearch] = useState('');
   const migrationRows = useMemo(() => Object.entries(V2_TOOL_BRIDGE).map(([slug, meta]) => ({ slug, ...meta })), []);
   const level2Count = migrationRows.filter((item) => item.level >= 2).length;
+  const sourceRows = Object.entries(data.sources || {}).map(([key, source]) => ({ key, source }));
 
   return (
     <>
       <B2PageHeader
         eyebrow="PRIVATE · DESIGN QA"
         title="Brian UI Lab"
-        description="Phòng kiểm định component của Metro Next. Component chỉ được dùng rộng rãi sau khi trạng thái, responsive và mật độ hiển thị ổn định tại đây."
+        description="Phòng kiểm định component, permission, tool migration và nguồn dữ liệu của Metro Next trước khi bất kỳ phần nào được phát hành."
         actions={(
           <>
             <B2Button variant="primary" onClick={() => setDrawer(true)}>Mở drawer</B2Button>
             <B2Button onClick={() => setDialog(true)}>Mở dialog</B2Button>
-            <B2Button variant="ghost" onClick={() => setToast(true)}>Test toast</B2Button>
+            <B2Button variant="ghost" onClick={() => data.refresh()} disabled={data.refreshing}>{data.refreshing ? 'Đang đọc nguồn…' : '↻ Data bridge'}</B2Button>
           </>
         )}
         aside={<B2Badge tone="violet">SHADOW ONLY</B2Badge>}
@@ -55,8 +58,8 @@ export default function B2UILab() {
         <div className="b2-lab-stat-grid">
           <B2StatCard label="Component" value="22+" meta="primitive dùng chung" tone="blue" icon="▦" />
           <B2StatCard label="Surface" value="0" meta="nền kem" tone="green" icon="✓" />
-          <B2StatCard label="Drawer" value="520" meta="px tối đa" tone="violet" icon="▥" />
-          <B2StatCard label="Tool Level 2" value={String(level2Count).padStart(2, '0')} meta={`${migrationRows.length} bridge đã đăng ký`} tone="cyan" icon="↗" />
+          <B2StatCard label="Tool Level 2" value={String(level2Count).padStart(2, '0')} meta={`${migrationRows.length} bridge đã đăng ký`} tone="violet" icon="↗" />
+          <B2StatCard label="Live classes" value={String(data.classes?.length || 0)} meta={`${data.students?.length || 0} roster`} tone="cyan" icon="◎" />
         </div>
       </section>
 
@@ -89,6 +92,19 @@ export default function B2UILab() {
             <B2Badge>Trung tính</B2Badge>
           </div>
         </B2Surface>
+      </section>
+
+      <section className="b2-lab-section">
+        <B2SectionHeader eyebrow="DATA BRIDGE" title="Production source diagnostics" description="V2 đọc các services hiện hữu. Badge cho biết nguồn thật đang đến từ cloud, local cache/workspace hay chưa có dữ liệu." />
+        <div className="b2-lab-source-grid">
+          {sourceRows.map((item) => (
+            <article key={item.key}>
+              <div><strong>{item.key}</strong><small>{item.source}</small></div>
+              <B2Badge tone={dataSourceTone(item.source)}>{dataSourceLabel(item.source)}</B2Badge>
+            </article>
+          ))}
+        </div>
+        {data.errors?.length ? <div className="b2-lab-source-errors">{data.errors.map((error, index) => <p key={`${error.source}-${index}`}><strong>{error.source}:</strong> {error.message}</p>)}</div> : <p className="b2-lab-source-ok">✓ Không có lỗi nguồn trong snapshot hiện tại.</p>}
       </section>
 
       <section className="b2-lab-section">
