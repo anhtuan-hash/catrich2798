@@ -84,15 +84,16 @@ export function shouldBootV2({ user, releaseApproved = false } = {}) {
   return false;
 }
 
-export function getReleaseGateSnapshot({ user, contractLedger = {}, level2Slugs = [], dataErrors = [] } = {}) {
+export function getReleaseGateSnapshot({ user, contractLedger = {}, level2Slugs = [], dataErrors = [], behaviorSummary = null } = {}) {
   const optIn = readPrivateOptIn(user);
   const rollback = readRollbackLatch();
   const checklist = readReleaseChecklist();
   const level2Results = level2Slugs.map((slug) => contractLedger?.[slug]).filter(Boolean);
   const passedLevel2 = level2Results.filter((item) => item.status === 'pass').length;
   const contractComplete = level2Slugs.length > 0 && passedLevel2 === level2Slugs.length;
+  const toolBehaviorComplete = Boolean(behaviorSummary?.complete);
   const manualComplete = Object.values(checklist).every(Boolean);
-  const releaseApproved = contractComplete && manualComplete && !rollback.active && (dataErrors?.length || 0) === 0;
+  const releaseApproved = contractComplete && toolBehaviorComplete && manualComplete && !rollback.active && (dataErrors?.length || 0) === 0;
   const bootV2 = shouldBootV2({ user, releaseApproved });
 
   return {
@@ -103,6 +104,9 @@ export function getReleaseGateSnapshot({ user, contractLedger = {}, level2Slugs 
     level2Required: level2Slugs.length,
     level2Passed: passedLevel2,
     contractComplete,
+    toolBehaviorComplete,
+    behaviorPassed: behaviorSummary?.passed || 0,
+    behaviorRequired: behaviorSummary?.required || 0,
     dataErrorCount: dataErrors?.length || 0,
     manualComplete,
     releaseApproved,
