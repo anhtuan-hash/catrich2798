@@ -32,6 +32,11 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      - id: release_engineering
+        name: Execute V2 release engineering contracts
+        continue-on-error: true
+        run: node scripts/verify-v2-release-engineering.mjs
+
       - id: build
         name: Build production bundle
         continue-on-error: true
@@ -42,7 +47,7 @@ jobs:
 
       - id: verify
         name: Verify Shadow preview, rehearsal, Level 2 and gateway contracts
-        if: steps.build.outcome == 'success'
+        if: steps.build.outcome == 'success' && steps.release_engineering.outcome == 'success'
         continue-on-error: true
         shell: bash
         run: |
@@ -55,36 +60,43 @@ jobs:
           test -f src/ui/v2/bootstrapDecision.js
           test -f src/ui/v2/bootstrapRehearsal.js
           test -f src/ui/v2/releaseEvidenceIntegrity.js
+          test -f scripts/verify-v2-release-engineering.mjs
           test -f src/ui/v2/toolChromeAdaptersPhase3.js
           ! grep -q 'level: 1' src/ui/v2/toolBridgeRegistry.js
           grep -q "'top-five-arena'" src/ui/v2/toolBehaviorManifest.js
           grep -q "'word2graph'" src/ui/v2/toolBehaviorManifest.js
           grep -q "'vietnam-tax'" src/ui/v2/toolBehaviorManifest.js
           grep -q "'textcare'" src/ui/v2/toolBehaviorManifest.js
+          grep -q 'b2ToolAdapterPhase3' src/ui/v2/toolBehaviorContract.js
+          grep -q 'b2-v2-tool-chrome-adapter-phase3' src/ui/v2/toolBehaviorContract.js
           test -f api/_v2-build-meta.js
           grep -q "v2-build-meta" api/gateway.js
           grep -q '"source": "/api/v2-build-meta"' vercel.json
           test ! -f api/v2-build-meta.js
-          echo "Shadow UI source + rehearsal + all-Level-2 + consolidated gateway contract present"
+          echo "Shadow UI source + executable release contracts + all-Level-2 + consolidated gateway contract present"
 
       - name: Publish shadow CI status
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_OUTCOME: ${{ steps.release_engineering.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
           VERIFY_OUTCOME: ${{ steps.verify.outcome }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         shell: bash
         run: |
           STATE=success
-          DESCRIPTION="Shadow build + rehearsal + all-Level-2 contract passed"
-          if [ "$BUILD_OUTCOME" != "success" ]; then
+          DESCRIPTION="Shadow build + executable release contracts passed"
+          if [ "$RELEASE_OUTCOME" != "success" ]; then
+            STATE=failure
+            DESCRIPTION="V2 release decision/integrity contract failed"
+          elif [ "$BUILD_OUTCOME" != "success" ]; then
             STATE=failure
             ERROR_LINE=$(grep -E "(error|ERROR|failed|Failed|Cannot|Could not|not found|Unexpected|SyntaxError)" /tmp/brian-v2-build.log 2>/dev/null | tail -n 1 | tr '\n' ' ' | cut -c1-110)
             DESCRIPTION="Build failed${ERROR_LINE:+: $ERROR_LINE}"
           elif [ "$VERIFY_OUTCOME" != "success" ]; then
             STATE=failure
-            DESCRIPTION="Build passed; Shadow rehearsal/Level-2/gateway verification failed"
+            DESCRIPTION="Build passed; Shadow source/gateway verification failed"
           fi
           export STATE DESCRIPTION
           PAYLOAD=$(python - <<'PY'
@@ -106,5 +118,5 @@ jobs:
             -d "$PAYLOAD"
 
       - name: Fail job when verification failed
-        if: steps.build.outcome != 'success' || steps.verify.outcome != 'success'
+        if: steps.release_engineering.outcome != 'success' || steps.build.outcome != 'success' || steps.verify.outcome != 'success'
         run: exit 1
