@@ -84,4 +84,51 @@ for (const [slug, meta] of bridgeEntries) {
 const behaviorTotal = bridgeEntries.reduce((sum, [slug]) => sum + (TOOL_BEHAVIOR_MANIFEST[slug]?.checks?.length || 0), 0);
 assert.equal(behaviorTotal, 42, 'expected 42 total release behavior checks');
 
-console.log(`Brian V2 release engineering contracts PASS: ${decisionCases.length} boot cases · 14 Level-2 tools · ${behaviorTotal} behavior checks · SHA-256 tamper detection`);
+class MemoryStorage {
+  constructor() { this.map = new Map(); }
+  getItem(key) { return this.map.has(key) ? this.map.get(key) : null; }
+  setItem(key, value) { this.map.set(key, String(value)); }
+  removeItem(key) { this.map.delete(key); }
+  clear() { this.map.clear(); }
+}
+
+const storage = new MemoryStorage();
+globalThis.window = { localStorage: storage, dispatchEvent() {} };
+const { V2_RELEASE_CANDIDATE_ID } = await import('../src/ui/v2/releaseCandidate.js');
+const realCandidate = V2_RELEASE_CANDIDATE_ID;
+storage.setItem('brian-v2-release-candidate-binding-v1', JSON.stringify({
+  id: realCandidate,
+  buildSha: sha,
+  scopeId: `${realCandidate}@${sha}`,
+}));
+storage.setItem('brian-ui-v2-release-checklist-v1', JSON.stringify({
+  responsive: true,
+  accessibility: true,
+  performance: true,
+  behavior: true,
+  ci: true,
+  ownerApproval: true,
+}));
+
+const { readReleaseChecklist } = await import('../src/ui/v2/releaseGate.js');
+const staleChecklist = readReleaseChecklist();
+assert.equal(staleChecklist.ownerApproval, false, 'stale rehearsal must invalidate owner approval');
+const persistedAfterInvalidation = JSON.parse(storage.getItem('brian-ui-v2-release-checklist-v1'));
+assert.equal(persistedAfterInvalidation.ownerApproval, false, 'owner approval invalidation must persist to storage');
+
+storage.setItem('brian-v2-bootstrap-rehearsal-v1', JSON.stringify({
+  schema: 'brian-v2-bootstrap-rehearsal/1',
+  candidate: realCandidate,
+  buildSha: sha,
+  status: 'pass',
+  checkedAt: new Date().toISOString(),
+  passed: 9,
+  required: 9,
+  scenarios: [],
+  reason: 'all-bootstrap-scenarios-pass',
+}));
+const afterRehearsalReturns = readReleaseChecklist();
+assert.equal(afterRehearsalReturns.ownerApproval, false, 'old owner approval must not resurrect when rehearsal later passes');
+delete globalThis.window;
+
+console.log(`Brian V2 release engineering contracts PASS: ${decisionCases.length} boot cases · 14 Level-2 tools · ${behaviorTotal} behavior checks · SHA-256 tamper detection · stale owner approval protection`);
