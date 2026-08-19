@@ -55,6 +55,27 @@ function check(id, label, pass, { critical = false, detail = '' } = {}) {
   return { id, label, pass: Boolean(pass), critical, detail };
 }
 
+function resolveAdapterEvidence(doc) {
+  const candidates = [
+    {
+      phase: 1,
+      tag: doc.documentElement.dataset.b2ToolAdapter || '',
+      style: doc.getElementById('b2-v2-tool-chrome-adapter'),
+    },
+    {
+      phase: 2,
+      tag: doc.documentElement.dataset.b2ToolAdapterPhase2 || '',
+      style: doc.getElementById('b2-v2-tool-chrome-adapter-phase2'),
+    },
+    {
+      phase: 3,
+      tag: doc.documentElement.dataset.b2ToolAdapterPhase3 || '',
+      style: doc.getElementById('b2-v2-tool-chrome-adapter-phase3'),
+    },
+  ];
+  return candidates.find((item) => item.tag && item.style) || { phase: 0, tag: '', style: null };
+}
+
 export function runToolBehaviorContract(frame, slug, { level2 = false } = {}) {
   const checkedAt = new Date().toISOString();
   const checks = [];
@@ -75,9 +96,8 @@ export function runToolBehaviorContract(frame, slug, { level2 = false } = {}) {
     const interactiveCount = doc.querySelectorAll('button,a[href],input,textarea,select,[role="button"],[tabindex]:not([tabindex="-1"])').length;
     const duplicateChromeOk = DUPLICATE_CHROME.every((selector) => hiddenOrMissing(doc, selector));
     const nestedV2 = doc.querySelector('.b2-shell,[data-brian-ui="v2"]');
-    const adapterTag = doc.documentElement.dataset.b2ToolAdapter || doc.documentElement.dataset.b2ToolAdapterPhase2 || '';
-    const adapterStyle = doc.getElementById('b2-v2-tool-chrome-adapter') || doc.getElementById('b2-v2-tool-chrome-adapter-phase2');
-    const adapterOk = !level2 || (adapterTag === slug && Boolean(adapterStyle));
+    const adapter = resolveAdapterEvidence(doc);
+    const adapterOk = !level2 || (adapter.tag === slug && Boolean(adapter.style));
     const rootWidth = Math.max(doc.documentElement.scrollWidth || 0, doc.body?.scrollWidth || 0);
     const viewportWidth = frame?.clientWidth || doc.documentElement.clientWidth || 0;
     const overflow = viewportWidth > 0 && rootWidth > viewportWidth + 96;
@@ -86,7 +106,7 @@ export function runToolBehaviorContract(frame, slug, { level2 = false } = {}) {
     checks.push(check('mounted', 'Runtime root mounted', bodyMounted, { critical: true }));
     checks.push(check('interactive', 'Interactive controls present', interactiveCount > 0, { detail: `${interactiveCount} interactive nodes` }));
     checks.push(check('chrome-cleanup', 'Duplicate global chrome removed', duplicateChromeOk, { critical: true }));
-    checks.push(check('adapter', level2 ? 'Level 2 adapter installed' : 'Level 1 bridge does not require adapter', adapterOk, { critical: level2, detail: adapterTag || 'no adapter tag' }));
+    checks.push(check('adapter', level2 ? 'Level 2 adapter installed' : 'Level 1 bridge does not require adapter', adapterOk, { critical: level2, detail: adapter.tag ? `phase ${adapter.phase} · ${adapter.tag}` : 'no adapter tag' }));
     checks.push(check('isolation', 'No nested Metro Next shell', !nestedV2, { critical: true }));
     checks.push(check('horizontal-overflow', 'No severe horizontal overflow', !overflow, { detail: `${rootWidth}px content / ${viewportWidth}px viewport` }));
   }
