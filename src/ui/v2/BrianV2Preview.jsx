@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../../data/apps.js';
 import BrianV2Shell from './BrianV2Shell.jsx';
 import B2ToolShell from './components/B2ToolShell.jsx';
+import B2ReleaseEvidenceStrip from './components/B2ReleaseEvidenceStrip.jsx';
 import B2Home from './pages/B2Home.jsx';
 import { B2Button, B2EmptyState } from './components/B2UI.jsx';
 import { getToolBridgeMeta, isBridgeTested } from './toolBridgeRegistry.js';
@@ -163,6 +164,7 @@ function BrianV2PreviewRouter() {
       roleMeta={roleMeta}
       canOpenTarget={canOpen}
     >
+      {view === 'release-gate' && allowed ? <B2ReleaseEvidenceStrip /> : null}
       {content}
     </BrianV2Shell>
   );
