@@ -1,3 +1,6 @@
+import { V2_RELEASE_CANDIDATE_ID, getReleaseCandidateBinding } from './releaseCandidate.js';
+import { summarizeBootstrapRehearsal } from './bootstrapRehearsal.js';
+
 const OPT_IN_KEY = 'brian-ui-v2-private-opt-in-v1';
 const ROLLBACK_KEY = 'brian-ui-v2-rollback-latch-v1';
 const CHECKLIST_KEY = 'brian-ui-v2-release-checklist-v1';
@@ -99,17 +102,21 @@ export function getReleaseGateSnapshot({
   const optIn = readPrivateOptIn(user);
   const rollback = readRollbackLatch();
   const checklist = readReleaseChecklist();
+  const binding = getReleaseCandidateBinding();
+  const rehearsalSummary = summarizeBootstrapRehearsal(undefined, { candidate: V2_RELEASE_CANDIDATE_ID, buildSha: binding.buildSha || '' });
   const structuralResults = requiredStructuralSlugs.map((slug) => contractLedger?.[slug]).filter(Boolean);
   const passedStructural = structuralResults.filter((item) => item.status === 'pass').length;
   const contractComplete = requiredStructuralSlugs.length > 0 && passedStructural === requiredStructuralSlugs.length;
   const toolBehaviorComplete = Boolean(behaviorSummary?.complete);
   const qualityReady = Boolean(qualitySummary?.qualityReady);
   const realEvidenceComplete = Boolean(realEvidenceSummary?.complete);
+  const bootstrapRehearsalReady = Boolean(rehearsalSummary?.passed);
   const manualComplete = Object.values(checklist).every(Boolean);
   const releaseApproved = contractComplete
     && toolBehaviorComplete
     && qualityReady
     && realEvidenceComplete
+    && bootstrapRehearsalReady
     && manualComplete
     && !rollback.active
     && (dataErrors?.length || 0) === 0;
@@ -133,6 +140,10 @@ export function getReleaseGateSnapshot({
     realEvidencePassed: realEvidenceSummary?.passed || 0,
     realEvidenceRequired: realEvidenceSummary?.required || 0,
     realEvidenceFailed: realEvidenceSummary?.failed || 0,
+    bootstrapRehearsalReady,
+    bootstrapRehearsalStatus: rehearsalSummary?.status || 'stale',
+    bootstrapRehearsalCompleted: rehearsalSummary?.completed || 0,
+    bootstrapRehearsalRequired: rehearsalSummary?.required || 0,
     dataErrorCount: dataErrors?.length || 0,
     manualComplete,
     releaseApproved,
