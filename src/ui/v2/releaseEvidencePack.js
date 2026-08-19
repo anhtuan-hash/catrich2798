@@ -1,5 +1,7 @@
 import { V2_RELEASE_CANDIDATE_ID, getReleaseCandidateBinding } from './releaseCandidate.js';
 import { readCachedBuildIdentity } from './buildIdentity.js';
+import { readBootstrapRehearsalLedger } from './bootstrapRehearsal.js';
+import { attachReleaseEvidenceIntegrity } from './releaseEvidenceIntegrity.js';
 
 function compactUser(user) {
   if (!user) return null;
@@ -31,9 +33,10 @@ export function buildReleaseEvidencePack({
   buildIdentity = readCachedBuildIdentity(),
   candidateBinding = getReleaseCandidateBinding(),
   bootstrapPlan = null,
+  bootstrapRehearsal = readBootstrapRehearsalLedger(),
 } = {}) {
   return {
-    schema: 'brian-v2-release-evidence/2',
+    schema: 'brian-v2-release-evidence/3',
     candidate: V2_RELEASE_CANDIDATE_ID,
     candidateBinding,
     build: compactBuild(buildIdentity),
@@ -54,6 +57,7 @@ export function buildReleaseEvidencePack({
       candidateMatch: Boolean(bootstrapPlan.candidateMatch),
       buildMatch: Boolean(bootstrapPlan.buildMatch),
     } : null,
+    bootstrapRehearsal: bootstrapRehearsal || null,
     releaseGate: snapshot || null,
     checklist: checklist || {},
     structuralContracts: contractLedger || {},
@@ -64,9 +68,9 @@ export function buildReleaseEvidencePack({
   };
 }
 
-export function downloadReleaseEvidencePack(args = {}) {
+export async function downloadReleaseEvidencePack(args = {}) {
   if (typeof window === 'undefined') return false;
-  const pack = buildReleaseEvidencePack(args);
+  const pack = await attachReleaseEvidenceIntegrity(buildReleaseEvidencePack(args));
   const blob = new Blob([JSON.stringify(pack, null, 2)], { type: 'application/json;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
