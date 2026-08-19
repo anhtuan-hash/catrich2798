@@ -77,7 +77,10 @@ export function isCurrentBootstrapRehearsalReady() {
 export function readReleaseChecklist() {
   const current = readJson(CHECKLIST_KEY, {});
   const normalized = { ...DEFAULT_CHECKLIST, ...(current && typeof current === 'object' ? current : {}) };
-  if (normalized.ownerApproval && !isCurrentBootstrapRehearsalReady()) normalized.ownerApproval = false;
+  if (normalized.ownerApproval && !isCurrentBootstrapRehearsalReady()) {
+    normalized.ownerApproval = false;
+    writeJson(CHECKLIST_KEY, normalized);
+  }
   return normalized;
 }
 
