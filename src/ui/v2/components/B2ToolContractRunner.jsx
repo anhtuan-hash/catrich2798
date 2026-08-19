@@ -56,18 +56,6 @@ export default function B2ToolContractRunner({ onResult, onDone }) {
     clearWatchdog();
     const prepared = prepareToolRuntimeFrame(frameRef.current, slug);
     const result = runToolBehaviorContract(frameRef.current, slug, { level2: prepared.level2 });
-    if (timedOut) {
-      result.status = 'fail';
-      result.checks = [...result.checks, {
-        id: 'load-watchdog',
-        label: 'Runtime loaded within watchdog',
-        pass: false,
-        critical: true,
-        detail: `${TOOL_WATCHDOG_MS}ms timeout before a usable load event`,
-      }];
-      result.totalCount = result.checks.length;
-      result.passCount = result.checks.filter((item) => item.pass).length;
-    }
     onResult?.(result);
 
     if (index >= BRIDGED.length - 1) {
@@ -101,7 +89,7 @@ export default function B2ToolContractRunner({ onResult, onDone }) {
     <div className="b2-contract-runner" data-status={lastStatus}>
       <div className="b2-contract-runner__copy">
         <strong>{running && current ? `Đang quét: ${current.label}` : lastStatus.startsWith('done') ? 'Đã quét xong toàn bộ bridge' : 'Contract Runner sẵn sàng'}</strong>
-        <small>{running ? `Tool ${progress} · Level ${current?.level || 2} · watchdog ${TOOL_WATCHDOG_MS / 1000}s · chỉ đọc DOM/runtime.` : `Runner mở tuần tự ${BRIDGED.length} Level-2 runtime trong iframe off-screen; timeout được ghi FAIL thay vì treo runner.`}</small>
+        <small>{running ? `Tool ${progress} · Level ${current?.level || 2} · watchdog ${TOOL_WATCHDOG_MS / 1000}s · chỉ đọc DOM/runtime.` : `Runner mở tuần tự ${BRIDGED.length} Level-2 runtime trong iframe off-screen; timeout được ghi FAIL qua route/mount/adapter contract thay vì treo runner.`}</small>
       </div>
       <div className="b2-contract-runner__actions">
         {running ? <B2Button variant="danger" onClick={stop}>Dừng</B2Button> : <B2Button variant="primary" onClick={start}>▶ Run all bridges</B2Button>}
