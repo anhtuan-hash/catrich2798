@@ -1,6 +1,6 @@
 {
   "installCommand": "npm ci --no-audit --no-fund --registry=https://registry.npmjs.org",
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build && npx vite build --config vite.v2-shadow.config.js",
   "outputDirectory": "dist",
   "rewrites": [
     {

@@ -45,19 +45,32 @@ jobs:
           set -o pipefail
           npm run build 2>&1 | tee /tmp/brian-v2-build.log
 
-      - id: verify
-        name: Verify Shadow preview, rehearsal, behavior QA, Level 2 and gateway contracts
+      - id: shadow_entries
+        name: Build deployable Shadow preview entries
         if: steps.build.outcome == 'success' && steps.release_engineering.outcome == 'success'
         continue-on-error: true
         shell: bash
         run: |
+          set -o pipefail
+          npx vite build --config vite.v2-shadow.config.js 2>&1 | tee /tmp/brian-v2-shadow-build.log
+
+      - id: verify
+        name: Verify deployable preview, rehearsal, behavior QA, Level 2 and gateway contracts
+        if: steps.build.outcome == 'success' && steps.release_engineering.outcome == 'success' && steps.shadow_entries.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
           test -f preview-ui-v2.html
+          test -f preview-ui-v2-rehearsal.html
+          test -f preview-ui-v2-behavior.html
+          test -f vite.v2-shadow.config.js
+          test -f dist/preview-ui-v2.html
+          test -f dist/preview-ui-v2-rehearsal.html
+          test -f dist/preview-ui-v2-behavior.html
           test -f src/ui/v2/preview-main.jsx
           test -f src/ui/v2/pages/B2ReleaseGate.jsx
-          test -f preview-ui-v2-rehearsal.html
           test -f src/ui/v2/rehearsal-main.jsx
           test -f src/ui/v2/pages/B2ReleaseRehearsal.jsx
-          test -f preview-ui-v2-behavior.html
           test -f src/ui/v2/behavior-main.jsx
           test -f src/ui/v2/pages/B2BehaviorQA.jsx
           test -f src/ui/v2/toolBehaviorEvidence.js
@@ -74,11 +87,12 @@ jobs:
           grep -q 'b2ToolAdapterPhase3' src/ui/v2/toolBehaviorContract.js
           grep -q 'b2-v2-tool-chrome-adapter-phase3' src/ui/v2/toolBehaviorContract.js
           grep -q 'toolBehaviorDetail' src/ui/v2/releaseEvidencePack.js
+          grep -q 'vite.v2-shadow.config.js' vercel.json
           test -f api/_v2-build-meta.js
           grep -q "v2-build-meta" api/gateway.js
           grep -q '"source": "/api/v2-build-meta"' vercel.json
           test ! -f api/v2-build-meta.js
-          echo "Shadow UI source + executable release contracts + detailed behavior evidence + all-Level-2 + consolidated gateway contract present"
+          echo "Shadow UI build artifact contains preview + rehearsal + behavior QA entries"
 
       - name: Publish shadow CI status
         if: always()
@@ -86,22 +100,27 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_OUTCOME: ${{ steps.release_engineering.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
+          SHADOW_OUTCOME: ${{ steps.shadow_entries.outcome }}
           VERIFY_OUTCOME: ${{ steps.verify.outcome }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         shell: bash
         run: |
           STATE=success
-          DESCRIPTION="Shadow build + executable release/behavior contracts passed"
+          DESCRIPTION="Production build + deployable Shadow entries + release contracts passed"
           if [ "$RELEASE_OUTCOME" != "success" ]; then
             STATE=failure
             DESCRIPTION="V2 release decision/integrity/behavior contract failed"
           elif [ "$BUILD_OUTCOME" != "success" ]; then
             STATE=failure
             ERROR_LINE=$(grep -E "(error|ERROR|failed|Failed|Cannot|Could not|not found|Unexpected|SyntaxError)" /tmp/brian-v2-build.log 2>/dev/null | tail -n 1 | tr '\n' ' ' | cut -c1-110)
-            DESCRIPTION="Build failed${ERROR_LINE:+: $ERROR_LINE}"
+            DESCRIPTION="Production build failed${ERROR_LINE:+: $ERROR_LINE}"
+          elif [ "$SHADOW_OUTCOME" != "success" ]; then
+            STATE=failure
+            ERROR_LINE=$(grep -E "(error|ERROR|failed|Failed|Cannot|Could not|not found|Unexpected|SyntaxError)" /tmp/brian-v2-shadow-build.log 2>/dev/null | tail -n 1 | tr '\n' ' ' | cut -c1-100)
+            DESCRIPTION="Shadow entry build failed${ERROR_LINE:+: $ERROR_LINE}"
           elif [ "$VERIFY_OUTCOME" != "success" ]; then
             STATE=failure
-            DESCRIPTION="Build passed; Shadow source/gateway verification failed"
+            DESCRIPTION="Builds passed; deployable Shadow artifact/source verification failed"
           fi
           export STATE DESCRIPTION
           PAYLOAD=$(python - <<'PY'
@@ -123,5 +142,5 @@ jobs:
             -d "$PAYLOAD"
 
       - name: Fail job when verification failed
-        if: steps.release_engineering.outcome != 'success' || steps.build.outcome != 'success' || steps.verify.outcome != 'success'
+        if: steps.release_engineering.outcome != 'success' || steps.build.outcome != 'success' || steps.shadow_entries.outcome != 'success' || steps.verify.outcome != 'success'
         run: exit 1
