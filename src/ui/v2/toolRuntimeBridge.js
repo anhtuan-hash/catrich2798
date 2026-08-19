@@ -1,5 +1,6 @@
 import { applyToolChromeAdapter, hasLevel2ChromeAdapter } from './toolChromeAdapters.js';
 import { applyPhase2ToolChromeAdapter, hasPhase2Level2Adapter } from './toolChromeAdaptersPhase2.js';
+import { applyPhase3ToolChromeAdapter, hasPhase3Level2Adapter } from './toolChromeAdaptersPhase3.js';
 
 export function injectToolBridgeCleanup(frame) {
   try {
@@ -32,7 +33,7 @@ export function injectToolBridgeCleanup(frame) {
 }
 
 export function isLevel2Runtime(slug) {
-  return hasLevel2ChromeAdapter(slug) || hasPhase2Level2Adapter(slug);
+  return hasLevel2ChromeAdapter(slug) || hasPhase2Level2Adapter(slug) || hasPhase3Level2Adapter(slug);
 }
 
 export function prepareToolRuntimeFrame(frame, slug) {
@@ -46,10 +47,13 @@ export function prepareToolRuntimeFrame(frame, slug) {
   const phase2Ready = hasPhase2Level2Adapter(slug)
     ? applyPhase2ToolChromeAdapter(frame, slug)
     : false;
+  const phase3Ready = hasPhase3Level2Adapter(slug)
+    ? applyPhase3ToolChromeAdapter(frame, slug)
+    : false;
 
   return {
     cleanupReady,
     level2: true,
-    adapterReady: Boolean(phase1Ready || phase2Ready),
+    adapterReady: Boolean(phase1Ready || phase2Ready || phase3Ready),
   };
 }
