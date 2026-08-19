@@ -62,15 +62,35 @@ const DEFAULT_CHECKLIST = Object.freeze({
   ownerApproval: false,
 });
 
+function currentRehearsalSummary() {
+  const binding = getReleaseCandidateBinding();
+  return summarizeBootstrapRehearsal(undefined, {
+    candidate: V2_RELEASE_CANDIDATE_ID,
+    buildSha: binding.buildSha || '',
+  });
+}
+
+export function isCurrentBootstrapRehearsalReady() {
+  return Boolean(currentRehearsalSummary()?.passed);
+}
+
 export function readReleaseChecklist() {
   const current = readJson(CHECKLIST_KEY, {});
-  return { ...DEFAULT_CHECKLIST, ...(current && typeof current === 'object' ? current : {}) };
+  const normalized = { ...DEFAULT_CHECKLIST, ...(current && typeof current === 'object' ? current : {}) };
+  if (normalized.ownerApproval && !isCurrentBootstrapRehearsalReady()) normalized.ownerApproval = false;
+  return normalized;
 }
 
 export function setReleaseChecklistItem(key, value) {
   if (!Object.hasOwn(DEFAULT_CHECKLIST, key)) return readReleaseChecklist();
   const current = readReleaseChecklist();
+  if (key === 'ownerApproval' && Boolean(value) && !isCurrentBootstrapRehearsalReady()) {
+    current.ownerApproval = false;
+    writeJson(CHECKLIST_KEY, current);
+    return current;
+  }
   current[key] = Boolean(value);
+  if (!current[key] && key !== 'ownerApproval') current.ownerApproval = false;
   writeJson(CHECKLIST_KEY, current);
   return current;
 }
@@ -102,8 +122,7 @@ export function getReleaseGateSnapshot({
   const optIn = readPrivateOptIn(user);
   const rollback = readRollbackLatch();
   const checklist = readReleaseChecklist();
-  const binding = getReleaseCandidateBinding();
-  const rehearsalSummary = summarizeBootstrapRehearsal(undefined, { candidate: V2_RELEASE_CANDIDATE_ID, buildSha: binding.buildSha || '' });
+  const rehearsalSummary = currentRehearsalSummary();
   const structuralResults = requiredStructuralSlugs.map((slug) => contractLedger?.[slug]).filter(Boolean);
   const passedStructural = structuralResults.filter((item) => item.status === 'pass').length;
   const contractComplete = requiredStructuralSlugs.length > 0 && passedStructural === requiredStructuralSlugs.length;
