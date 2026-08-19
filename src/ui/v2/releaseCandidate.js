@@ -8,6 +8,7 @@ const EVIDENCE_KEYS = [
   'brian-v2-tool-behavior-ledger-v1',
   'brian-v2-quality-ledger-v1',
   'brian-v2-real-device-evidence-v1',
+  'brian-v2-bootstrap-rehearsal-v1',
   'brian-ui-v2-release-checklist-v1',
 ];
 
