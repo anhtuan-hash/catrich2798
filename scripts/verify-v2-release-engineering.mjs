@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { evaluateBootstrapDecision } from '../src/ui/v2/bootstrapDecision.js';
 import { attachReleaseEvidenceIntegrity, verifyReleaseEvidencePack } from '../src/ui/v2/releaseEvidenceIntegrity.js';
 import { V2_TOOL_BRIDGE } from '../src/ui/v2/toolBridgeRegistry.js';
-import { TOOL_BEHAVIOR_MANIFEST } from '../src/ui/v2/toolBehaviorManifest.js';
+import { TOOL_BEHAVIOR_MANIFEST, readToolBehaviorLedger } from '../src/ui/v2/toolBehaviorManifest.js';
 
 const candidate = 'rc-ci-test';
 const sha = 'a'.repeat(40);
@@ -94,6 +94,9 @@ class MemoryStorage {
 
 const storage = new MemoryStorage();
 globalThis.window = { localStorage: storage, dispatchEvent() {} };
+globalThis.CustomEvent = class CustomEvent {
+  constructor(type, init = {}) { this.type = type; this.detail = init.detail; }
+};
 const { V2_RELEASE_CANDIDATE_ID } = await import('../src/ui/v2/releaseCandidate.js');
 const realCandidate = V2_RELEASE_CANDIDATE_ID;
 storage.setItem('brian-v2-release-candidate-binding-v1', JSON.stringify({
@@ -129,6 +132,17 @@ storage.setItem('brian-v2-bootstrap-rehearsal-v1', JSON.stringify({
 }));
 const afterRehearsalReturns = readReleaseChecklist();
 assert.equal(afterRehearsalReturns.ownerApproval, false, 'old owner approval must not resurrect when rehearsal later passes');
-delete globalThis.window;
 
-console.log(`Brian V2 release engineering contracts PASS: ${decisionCases.length} boot cases · 14 Level-2 tools · ${behaviorTotal} behavior checks · SHA-256 tamper detection · stale owner approval protection`);
+const { readToolBehaviorDetailLedger, setToolBehaviorEvidence } = await import('../src/ui/v2/toolBehaviorEvidence.js');
+let detailLedger = setToolBehaviorEvidence('knowledge-train', 'edit-play', 'pass', 'CI behavior evidence');
+assert.equal(detailLedger['knowledge-train']['edit-play'].status, 'pass', 'detailed behavior PASS must persist');
+assert.equal(readToolBehaviorLedger()['knowledge-train']['edit-play'], true, 'detailed PASS must set core behavior ledger true');
+detailLedger = setToolBehaviorEvidence('knowledge-train', 'edit-play', 'fail', 'CI forced failure');
+assert.equal(detailLedger['knowledge-train']['edit-play'].status, 'fail', 'detailed behavior FAIL must persist');
+assert.equal(readToolBehaviorLedger()['knowledge-train']['edit-play'], false, 'detailed FAIL must clear core behavior PASS');
+assert.equal(readToolBehaviorDetailLedger()['knowledge-train']['edit-play'].note, 'CI forced failure', 'detailed behavior note must persist');
+
+delete globalThis.window;
+delete globalThis.CustomEvent;
+
+console.log(`Brian V2 release engineering contracts PASS: ${decisionCases.length} boot cases · 14 Level-2 tools · ${behaviorTotal} behavior checks · SHA-256 tamper detection · stale owner approval protection · detailed behavior evidence bridge`);

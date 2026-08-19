@@ -6,6 +6,7 @@ const BINDING_KEY = 'brian-v2-release-candidate-binding-v1';
 const EVIDENCE_KEYS = [
   'brian-v2-tool-contract-ledger-v1',
   'brian-v2-tool-behavior-ledger-v1',
+  'brian-v2-tool-behavior-detail-v1',
   'brian-v2-quality-ledger-v1',
   'brian-v2-real-device-evidence-v1',
   'brian-v2-bootstrap-rehearsal-v1',

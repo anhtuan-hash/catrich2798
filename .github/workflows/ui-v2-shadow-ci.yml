@@ -46,7 +46,7 @@ jobs:
           npm run build 2>&1 | tee /tmp/brian-v2-build.log
 
       - id: verify
-        name: Verify Shadow preview, rehearsal, Level 2 and gateway contracts
+        name: Verify Shadow preview, rehearsal, behavior QA, Level 2 and gateway contracts
         if: steps.build.outcome == 'success' && steps.release_engineering.outcome == 'success'
         continue-on-error: true
         shell: bash
@@ -57,6 +57,10 @@ jobs:
           test -f preview-ui-v2-rehearsal.html
           test -f src/ui/v2/rehearsal-main.jsx
           test -f src/ui/v2/pages/B2ReleaseRehearsal.jsx
+          test -f preview-ui-v2-behavior.html
+          test -f src/ui/v2/behavior-main.jsx
+          test -f src/ui/v2/pages/B2BehaviorQA.jsx
+          test -f src/ui/v2/toolBehaviorEvidence.js
           test -f src/ui/v2/bootstrapDecision.js
           test -f src/ui/v2/bootstrapRehearsal.js
           test -f src/ui/v2/releaseEvidenceIntegrity.js
@@ -69,11 +73,12 @@ jobs:
           grep -q "'textcare'" src/ui/v2/toolBehaviorManifest.js
           grep -q 'b2ToolAdapterPhase3' src/ui/v2/toolBehaviorContract.js
           grep -q 'b2-v2-tool-chrome-adapter-phase3' src/ui/v2/toolBehaviorContract.js
+          grep -q 'toolBehaviorDetail' src/ui/v2/releaseEvidencePack.js
           test -f api/_v2-build-meta.js
           grep -q "v2-build-meta" api/gateway.js
           grep -q '"source": "/api/v2-build-meta"' vercel.json
           test ! -f api/v2-build-meta.js
-          echo "Shadow UI source + executable release contracts + all-Level-2 + consolidated gateway contract present"
+          echo "Shadow UI source + executable release contracts + detailed behavior evidence + all-Level-2 + consolidated gateway contract present"
 
       - name: Publish shadow CI status
         if: always()
@@ -86,10 +91,10 @@ jobs:
         shell: bash
         run: |
           STATE=success
-          DESCRIPTION="Shadow build + executable release contracts passed"
+          DESCRIPTION="Shadow build + executable release/behavior contracts passed"
           if [ "$RELEASE_OUTCOME" != "success" ]; then
             STATE=failure
-            DESCRIPTION="V2 release decision/integrity contract failed"
+            DESCRIPTION="V2 release decision/integrity/behavior contract failed"
           elif [ "$BUILD_OUTCOME" != "success" ]; then
             STATE=failure
             ERROR_LINE=$(grep -E "(error|ERROR|failed|Failed|Cannot|Could not|not found|Unexpected|SyntaxError)" /tmp/brian-v2-build.log 2>/dev/null | tail -n 1 | tr '\n' ' ' | cut -c1-110)

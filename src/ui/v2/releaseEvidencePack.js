@@ -1,6 +1,7 @@
 import { V2_RELEASE_CANDIDATE_ID, getReleaseCandidateBinding } from './releaseCandidate.js';
 import { readCachedBuildIdentity } from './buildIdentity.js';
 import { readBootstrapRehearsalLedger } from './bootstrapRehearsal.js';
+import { readToolBehaviorDetailLedger } from './toolBehaviorEvidence.js';
 import { attachReleaseEvidenceIntegrity, verifyReleaseEvidencePack } from './releaseEvidenceIntegrity.js';
 
 function compactUser(user) {
@@ -27,6 +28,7 @@ export function buildReleaseEvidencePack({
   checklist,
   contractLedger,
   behaviorLedger,
+  behaviorDetailLedger = readToolBehaviorDetailLedger(),
   qualityLedger,
   realDeviceEvidence,
   dataErrors,
@@ -62,6 +64,7 @@ export function buildReleaseEvidencePack({
     checklist: checklist || {},
     structuralContracts: contractLedger || {},
     toolBehavior: behaviorLedger || {},
+    toolBehaviorDetail: behaviorDetailLedger || {},
     routeQuality: qualityLedger || {},
     realDeviceEvidence: realDeviceEvidence || {},
     dataErrors: Array.isArray(dataErrors) ? dataErrors.map((item) => ({ source: item?.source || '', message: item?.message || String(item || '') })) : [],

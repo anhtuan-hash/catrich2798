@@ -45,7 +45,7 @@ export default function B2ReleaseEvidenceStrip() {
         <span aria-hidden="true">{summary.passed ? '✓' : '◇'}</span>
         <div>
           <strong>{summary.passed ? 'Boot rehearsal đã PASS trên build hiện tại' : 'Owner Approval đang bị khóa bởi release evidence'}</strong>
-          <small>{summary.passed ? 'Gate có thể tiếp tục sau khi các evidence còn lại hoàn tất.' : 'Mở Boot Rehearsal và chạy đủ ma trận fail-closed trước khi owner approval có hiệu lực.'}</small>
+          <small>{summary.passed ? 'Gate có thể tiếp tục sau khi các evidence còn lại hoàn tất.' : 'Chạy Boot Rehearsal và behavior QA trên đúng build trước khi owner approval có hiệu lực.'}</small>
         </div>
       </div>
       <div className="b2-release-evidence-strip__facts">
@@ -56,9 +56,12 @@ export default function B2ReleaseEvidenceStrip() {
         <B2Badge tone={buildBound ? 'green' : 'cyan'}>{buildBound ? 'BUILD BOUND' : 'BUILD PENDING'}</B2Badge>
         <B2Badge tone={summary.passed ? 'green' : 'violet'}>{summary.passed ? `${summary.completed}/${summary.required} REHEARSAL PASS` : 'REHEARSAL REQUIRED'}</B2Badge>
       </div>
-      <B2Button variant={summary.passed ? 'ghost' : 'primary'} onClick={() => window.open('/preview-ui-v2-rehearsal.html', '_blank', 'noopener,noreferrer')}>
-        {summary.passed ? 'Xem rehearsal ↗' : 'Mở Boot Rehearsal ↗'}
-      </B2Button>
+      <div className="b2-release-evidence-strip__actions">
+        <B2Button variant="ghost" onClick={() => window.open('/preview-ui-v2-behavior.html', '_blank', 'noopener,noreferrer')}>Behavior QA ↗</B2Button>
+        <B2Button variant={summary.passed ? 'ghost' : 'primary'} onClick={() => window.open('/preview-ui-v2-rehearsal.html', '_blank', 'noopener,noreferrer')}>
+          {summary.passed ? 'Xem rehearsal ↗' : 'Mở Boot Rehearsal ↗'}
+        </B2Button>
+      </div>
     </section>
   );
 }
