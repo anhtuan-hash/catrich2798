@@ -7,10 +7,12 @@ import { runToolBehaviorContract } from '../toolBehaviorContract.js';
 const BRIDGED = Object.entries(V2_TOOL_BRIDGE)
   .filter(([, meta]) => meta.tested && Number(meta.level || 0) >= 1)
   .map(([slug, meta]) => ({ slug, ...meta }));
+const TOOL_WATCHDOG_MS = 12_000;
 
 export default function B2ToolContractRunner({ onResult, onDone }) {
   const frameRef = useRef(null);
   const timersRef = useRef([]);
+  const watchdogRef = useRef(null);
   const [running, setRunning] = useState(false);
   const [index, setIndex] = useState(0);
   const [runId, setRunId] = useState(0);
@@ -23,42 +25,72 @@ export default function B2ToolContractRunner({ onResult, onDone }) {
     timersRef.current = [];
   };
 
+  const clearWatchdog = () => {
+    if (watchdogRef.current) window.clearTimeout(watchdogRef.current);
+    watchdogRef.current = null;
+  };
+
   useEffect(() => () => {
-    timersRef.current.forEach((id) => window.clearTimeout(id));
-    timersRef.current = [];
+    clearTimers();
+    clearWatchdog();
   }, []);
 
   const stop = () => {
     clearTimers();
+    clearWatchdog();
     setRunning(false);
     setLastStatus('stopped');
   };
 
   const start = () => {
     clearTimers();
+    clearWatchdog();
     setIndex(0);
     setRunning(true);
     setLastStatus('running');
     setRunId((value) => value + 1);
   };
 
-  const finishCurrent = (slug) => {
+  const finishCurrent = (slug, { timedOut = false } = {}) => {
+    clearTimers();
+    clearWatchdog();
     const prepared = prepareToolRuntimeFrame(frameRef.current, slug);
     const result = runToolBehaviorContract(frameRef.current, slug, { level2: prepared.level2 });
+    if (timedOut) {
+      result.status = 'fail';
+      result.checks = [...result.checks, {
+        id: 'load-watchdog',
+        label: 'Runtime loaded within watchdog',
+        pass: false,
+        critical: true,
+        detail: `${TOOL_WATCHDOG_MS}ms timeout before a usable load event`,
+      }];
+      result.totalCount = result.checks.length;
+      result.passCount = result.checks.filter((item) => item.pass).length;
+    }
     onResult?.(result);
 
     if (index >= BRIDGED.length - 1) {
       setRunning(false);
-      setLastStatus('done');
+      setLastStatus(timedOut ? 'done-with-failures' : 'done');
       onDone?.();
       return;
     }
     setIndex((value) => value + 1);
+    setLastStatus(timedOut ? 'running-after-timeout' : 'running');
   };
+
+  useEffect(() => {
+    clearWatchdog();
+    if (!running || !current) return undefined;
+    watchdogRef.current = window.setTimeout(() => finishCurrent(current.slug, { timedOut: true }), TOOL_WATCHDOG_MS);
+    return clearWatchdog;
+  }, [running, index, runId]);
 
   const handleLoad = () => {
     if (!running || !current) return;
     clearTimers();
+    clearWatchdog();
     const first = window.setTimeout(() => prepareToolRuntimeFrame(frameRef.current, current.slug), 650);
     const second = window.setTimeout(() => prepareToolRuntimeFrame(frameRef.current, current.slug), 1350);
     const audit = window.setTimeout(() => finishCurrent(current.slug), 2100);
@@ -68,8 +100,8 @@ export default function B2ToolContractRunner({ onResult, onDone }) {
   return (
     <div className="b2-contract-runner" data-status={lastStatus}>
       <div className="b2-contract-runner__copy">
-        <strong>{running && current ? `Đang quét: ${current.label}` : lastStatus === 'done' ? 'Đã quét xong toàn bộ bridge' : 'Contract Runner sẵn sàng'}</strong>
-        <small>{running ? `Tool ${progress} · Level ${current?.level || 1} · chỉ đọc DOM/runtime, không click hoặc ghi business data.` : `Runner mở tuần tự ${BRIDGED.length} runtime bridge trong iframe off-screen; Level 1 không yêu cầu chrome adapter.`}</small>
+        <strong>{running && current ? `Đang quét: ${current.label}` : lastStatus.startsWith('done') ? 'Đã quét xong toàn bộ bridge' : 'Contract Runner sẵn sàng'}</strong>
+        <small>{running ? `Tool ${progress} · Level ${current?.level || 2} · watchdog ${TOOL_WATCHDOG_MS / 1000}s · chỉ đọc DOM/runtime.` : `Runner mở tuần tự ${BRIDGED.length} Level-2 runtime trong iframe off-screen; timeout được ghi FAIL thay vì treo runner.`}</small>
       </div>
       <div className="b2-contract-runner__actions">
         {running ? <B2Button variant="danger" onClick={stop}>Dừng</B2Button> : <B2Button variant="primary" onClick={start}>▶ Run all bridges</B2Button>}
