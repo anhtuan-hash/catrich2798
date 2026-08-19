@@ -1,7 +1,7 @@
 import { V2_RELEASE_CANDIDATE_ID, getReleaseCandidateBinding } from './releaseCandidate.js';
 import { readCachedBuildIdentity } from './buildIdentity.js';
 import { readBootstrapRehearsalLedger } from './bootstrapRehearsal.js';
-import { attachReleaseEvidenceIntegrity } from './releaseEvidenceIntegrity.js';
+import { attachReleaseEvidenceIntegrity, verifyReleaseEvidencePack } from './releaseEvidenceIntegrity.js';
 
 function compactUser(user) {
   if (!user) return null;
@@ -68,9 +68,22 @@ export function buildReleaseEvidencePack({
   };
 }
 
+export async function createVerifiedReleaseEvidencePack(args = {}) {
+  const pack = await attachReleaseEvidenceIntegrity(buildReleaseEvidencePack(args));
+  const verification = await verifyReleaseEvidencePack(pack, {
+    candidate: V2_RELEASE_CANDIDATE_ID,
+    buildSha: pack.build?.sha || '',
+  });
+  return { pack, verification };
+}
+
 export async function downloadReleaseEvidencePack(args = {}) {
   if (typeof window === 'undefined') return false;
-  const pack = await attachReleaseEvidenceIntegrity(buildReleaseEvidencePack(args));
+  const { pack, verification } = await createVerifiedReleaseEvidencePack(args);
+  if (!verification.valid) {
+    console.error('Brian V2 Evidence Pack self-verification failed', verification);
+    return false;
+  }
   const blob = new Blob([JSON.stringify(pack, null, 2)], { type: 'application/json;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
