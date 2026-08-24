@@ -5,17 +5,28 @@ const files = {
   portal: fs.readFileSync(new URL('../src/pages/BrianTeamPortal.jsx', import.meta.url), 'utf8'),
   ui: fs.readFileSync(new URL('../src/pages/MonthlyReportsWorkspace.jsx', import.meta.url), 'utf8'),
   util: fs.readFileSync(new URL('../src/utils/monthlyReports.js', import.meta.url), 'utf8'),
+  templateCss: fs.readFileSync(new URL('../src/pages/MonthlyReportsTemplate.css', import.meta.url), 'utf8'),
   sql: fs.readFileSync(new URL('../supabase/brian-monthly-reports.sql', import.meta.url), 'utf8'),
 };
+
+const requiredStats = [
+  'Dự giờ', 'Thao giảng', 'UDCNTT', 'SH chuyên đề', 'Dự án', 'Làm ĐDDH',
+  'SD ĐDDH', 'SKKN', 'HSSS', 'TNTH', 'SD bảng TTTM', 'Lượt khai thác các kho học liệu số',
+];
 
 const checks = [
   ['Brian Team routes through the report-aware portal', files.tool.includes("renderLazy(BrianTeamPortal, props)")],
   ['Teachers get the monthly report workspace', files.portal.includes('MonthlyReportsWorkspace') && files.portal.includes('if (!isLeader)')],
-  ['Seven report sections are present', ['Giảng dạy & tiến độ','Kiểm tra – đánh giá','Hoạt động chuyên môn','Học liệu – CNTT – thiết bị','Bồi dưỡng chuyên môn','Công việc khác trong tháng','Kế hoạch – khó khăn – kiến nghị'].every((label) => files.ui.includes(label))],
+  ['Template-style report sections are present', ['Công tác tổ chức','Số liệu chuyên môn','Tình hình thực hiện chuyên môn trong tháng','Kế hoạch thực hiện trong thời gian tới','Một số ý kiến, kiến nghị'].every((label) => files.ui.includes(label))],
+  ['Full source numeric table is preserved', requiredStats.every((label) => files.util.includes(label)) && files.ui.includes('ProfessionalStatsTable')],
+  ['Narrative sections use guided textareas', files.ui.includes('PLACEHOLDERS.organization') && files.ui.includes('PLACEHOLDERS.development') && files.ui.includes('PLACEHOLDERS.monthly') && files.ui.includes('PLACEHOLDERS.plan') && files.ui.includes('PLACEHOLDERS.recommendation')],
+  ['No detailed add-activity workflow remains in teacher form', !files.ui.includes('Thêm hoạt động kiểm tra') && !files.ui.includes('Thêm hoạt động chuyên môn') && !files.ui.includes('Thêm học liệu / sản phẩm')],
   ['Teacher submit action exists', files.ui.includes('Gửi TTCM') && files.ui.includes('saveMyMonthlyReport')],
   ['TTCM review workflow exists', files.ui.includes('Yêu cầu chỉnh sửa') && files.ui.includes('Duyệt báo cáo')],
+  ['TTCM sees aggregated full numeric table', files.ui.includes('TỔNG HỢP TỪ GIÁO VIÊN') && files.ui.includes('summary.stats')],
   ['TTCM report export exists', files.ui.includes('Xuất Word') && files.ui.includes('In / PDF')],
-  ['Structured report statuses exist', ['draft','submitted','revision','approved'].every((status) => files.util.includes(status))],
+  ['Schema v2 keeps report status workflow', files.util.includes('schemaVersion: 2') && ['draft','submitted','revision','approved'].every((status) => files.util.includes(status))],
+  ['Template styles are loaded', files.portal.includes("./MonthlyReportsTemplate.css") && files.templateCss.includes('.mr-number-table')],
   ['Supabase monthly report table exists', files.sql.includes('create table if not exists public.department_monthly_reports')],
   ['Membership routing RPC exists', files.sql.includes('bes_monthly_report_context') && files.sql.includes('bes_monthly_report_membership')],
   ['RLS protects report data', files.sql.includes('enable row level security') && files.sql.includes('Teachers and TTCM update monthly reports')],
