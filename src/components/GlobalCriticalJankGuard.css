@@ -7,6 +7,18 @@ html[data-performance='low'] body .app-shell[data-route] {
   background-attachment: scroll !important;
 }
 
+/* Full-screen cultural atmosphere is intentionally an opt-in High-mode effect.
+   It combines fixed positioning, blend modes and infinite motif animations, so
+   keeping it alive in Auto/Balanced causes continuous compositor work. */
+html[data-performance='balanced'] body .bes-vn-atmosphere,
+html[data-performance='low'] body .bes-vn-atmosphere {
+  display: none !important;
+  animation: none !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  will-change: auto !important;
+}
+
 html[data-performance='balanced'] body .app-shell[data-route] :is(
   .bes-top-chrome,
   .brian-nav,
