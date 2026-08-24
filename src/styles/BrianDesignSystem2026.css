@@ -1,0 +1,357 @@
+/* =========================================================
+   BRIAN DESIGN SYSTEM 2026
+   Single typography authority for the application shell.
+   Dashboard is the reference surface.
+   Historical CSS remains for layout/color only.
+   ========================================================= */
+
+:root {
+  --bes-ds-scale: 1;
+  --bes-ds-font: var(--english-hub-personal-font, "Google Sans", "Google Sans Text", Roboto, Arial, sans-serif);
+  --bes-ds-display: calc(56px * var(--bes-ds-scale));
+  --bes-ds-page-title: calc(36px * var(--bes-ds-scale));
+  --bes-ds-section-title: calc(21px * var(--bes-ds-scale));
+  --bes-ds-card-title: calc(17px * var(--bes-ds-scale));
+  --bes-ds-lead: calc(17px * var(--bes-ds-scale));
+  --bes-ds-body: calc(14px * var(--bes-ds-scale));
+  --bes-ds-support: calc(13px * var(--bes-ds-scale));
+  --bes-ds-caption: calc(12px * var(--bes-ds-scale));
+  --bes-ds-control: calc(14px * var(--bes-ds-scale));
+  --bes-ds-kpi: calc(38px * var(--bes-ds-scale));
+  --bes-ds-reader: calc(17px * var(--bes-ds-scale));
+  --bes-ds-content-max: 1520px;
+  --bes-ds-line-display: 1.02;
+  --bes-ds-line-page: 1.08;
+  --bes-ds-line-section: 1.22;
+  --bes-ds-line-card: 1.30;
+  --bes-ds-line-lead: 1.55;
+  --bes-ds-line-body: 1.50;
+  --bes-ds-line-support: 1.42;
+  --bes-ds-line-reader: 1.72;
+}
+
+/* === Global shell ======================================================== */
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] {
+  font-family: var(--bes-ds-font) !important;
+  font-size: var(--bes-ds-body) !important;
+  line-height: var(--bes-ds-line-body) !important;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+}
+
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] :where(button,input,textarea,select,option) {
+  font-family: inherit !important;
+}
+
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content > :where(.page,[class$="-page"],[class$="-app"]) {
+  width: min(100%, var(--bes-ds-content-max));
+  margin-inline: auto;
+}
+
+/* === Semantic reset ====================================================== */
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content :where(h1,h2,h3,h4,h5,h6) {
+  font-family: inherit !important;
+  font-style: normal !important;
+  text-wrap: balance;
+}
+
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content h1 {
+  font-size: var(--bes-ds-page-title) !important;
+  line-height: var(--bes-ds-line-page) !important;
+  letter-spacing: -.035em !important;
+}
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content h2 {
+  font-size: var(--bes-ds-section-title) !important;
+  line-height: var(--bes-ds-line-section) !important;
+  letter-spacing: -.018em !important;
+}
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content h3 {
+  font-size: var(--bes-ds-card-title) !important;
+  line-height: var(--bes-ds-line-card) !important;
+  letter-spacing: -.01em !important;
+}
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content :where(h4,h5,h6) {
+  font-size: var(--bes-ds-body) !important;
+  line-height: 1.35 !important;
+  letter-spacing: normal !important;
+}
+
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content :where(p,li,dd,dt,td) {
+  font-family: inherit !important;
+  font-size: var(--bes-ds-body) !important;
+  line-height: var(--bes-ds-line-body) !important;
+  letter-spacing: normal !important;
+}
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content small {
+  font-family: inherit !important;
+  font-size: var(--bes-ds-support) !important;
+  line-height: var(--bes-ds-line-support) !important;
+  letter-spacing: normal !important;
+}
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content :where(
+  button,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  textarea,select,option,[role="button"],[role="tab"],[role="menuitem"]
+) {
+  font-size: var(--bes-ds-control) !important;
+  line-height: 1.35 !important;
+  letter-spacing: normal !important;
+}
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content label {
+  font-size: var(--bes-ds-support) !important;
+  line-height: var(--bes-ds-line-support) !important;
+}
+
+/* Stable semantic class families used by historical components. */
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content :where(
+  .eyebrow,.kicker,
+  [class$="-eyebrow"],[class*="-eyebrow "],
+  [class$="-kicker"],[class*="-kicker "],
+  [class$="-badge"],[class*="-badge "],
+  [class$="-chip"],[class*="-chip "],
+  [class$="-meta"],[class*="-meta "],
+  [class$="-caption"],[class*="-caption "]
+) {
+  font-size: var(--bes-ds-caption) !important;
+  line-height: 1.35 !important;
+  letter-spacing: .01em !important;
+}
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content :where(
+  [class$="-subtitle"],[class*="-subtitle "],
+  [class$="-description"],[class*="-description "],
+  [class$="-helper"],[class*="-helper "],
+  [class$="-support"],[class*="-support "],
+  .muted-line
+) {
+  font-size: var(--bes-ds-support) !important;
+  line-height: var(--bes-ds-line-support) !important;
+}
+
+/* Tables share one readable scale. */
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content table {
+  font-size: var(--bes-ds-body) !important;
+}
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content th {
+  font-size: var(--bes-ds-support) !important;
+  line-height: 1.4 !important;
+}
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] #bes-main-content td {
+  font-size: var(--bes-ds-body) !important;
+  line-height: var(--bes-ds-line-body) !important;
+}
+
+/* Shared top navigation. */
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] .bes-top-chrome :where(button,a,[role="button"],[role="menuitem"],[role="tab"]) {
+  font-family: var(--bes-ds-font) !important;
+  font-size: var(--bes-ds-control) !important;
+  line-height: 1.3 !important;
+}
+html body .app-shell.metro-clean-system[data-brian-ds="2026"] .bes-top-chrome small {
+  font-size: var(--bes-ds-caption) !important;
+}
+
+/* === Dashboard: canonical reference ===================================== */
+html body .app-shell[data-brian-ds="2026"][data-route="dashboard"] #bes-main-content .gd-hero-copy h1 {
+  font-size: var(--bes-ds-display) !important;
+  line-height: var(--bes-ds-line-display) !important;
+  letter-spacing: -.045em !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="dashboard"] #bes-main-content :where(.gd-hero-copy p,.gpl-title-group p) {
+  font-size: var(--bes-ds-lead) !important;
+  line-height: var(--bes-ds-line-lead) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="dashboard"] #bes-main-content :where(.gd-surface-heading h2,.gpl-title-group h2) {
+  font-size: var(--bes-ds-section-title) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="dashboard"] #bes-main-content :where(.gd-metric-value,.gd-metric strong,[class*="gd-metric"] strong) {
+  font-size: var(--bes-ds-kpi) !important;
+  line-height: 1 !important;
+}
+
+/* === Home ================================================================ */
+html body .app-shell[data-brian-ds="2026"][data-route="home"] #bes-main-content .bha-home .hero-cms__content > h1 {
+  font-size: var(--bes-ds-display) !important;
+  line-height: var(--bes-ds-line-display) !important;
+  letter-spacing: -.045em !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="home"] #bes-main-content .bha-home .hero-cms__content > h2 {
+  font-size: var(--bes-ds-page-title) !important;
+  line-height: var(--bes-ds-line-page) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="home"] #bes-main-content .bha-home .hero-cms__content > p {
+  font-size: var(--bes-ds-lead) !important;
+  line-height: var(--bes-ds-line-lead) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="home"] #bes-main-content :where(.bha-tool strong,.bha-grade h3,.hero-cms__info-item strong) {
+  font-size: var(--bes-ds-card-title) !important;
+  line-height: var(--bes-ds-line-card) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="home"] #bes-main-content :where(.bha-tool small,.bha-grade small,.hero-cms__info-item small) {
+  font-size: var(--bes-ds-support) !important;
+}
+
+/* === Apps ================================================================ */
+html body .app-shell[data-brian-ds="2026"][data-route="apps"] #bes-main-content .apps-directory-native .apps-directory-hero-copy h1 {
+  font-size: var(--bes-ds-display) !important;
+  line-height: var(--bes-ds-line-display) !important;
+  letter-spacing: -.045em !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="apps"] #bes-main-content .apps-directory-native .apps-directory-subtitle {
+  font-size: var(--bes-ds-lead) !important;
+  line-height: var(--bes-ds-line-lead) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="apps"] #bes-main-content .apps-directory-native :where(.apps-directory-actions button strong,.apps-directory-workspace-heading strong) {
+  font-size: var(--bes-ds-card-title) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="apps"] #bes-main-content .apps-directory-native :where(.apps-directory-actions button small,.apps-directory-workspace-heading span,.apps-directory-preview-grid button span,.apps-directory-stat-row small) {
+  font-size: var(--bes-ds-support) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="apps"] #bes-main-content .apps-directory-native .apps-directory-stat-row strong {
+  font-size: var(--bes-ds-kpi) !important;
+  line-height: 1 !important;
+}
+
+/* === News ================================================================ */
+html body .app-shell[data-brian-ds="2026"][data-route="news"] #bes-main-content .newsroom-v823-page .newsroom-v823-hero h1 {
+  font-size: var(--bes-ds-display) !important;
+  line-height: var(--bes-ds-line-display) !important;
+  letter-spacing: -.045em !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="news"] #bes-main-content .newsroom-v823-page .newsroom-v823-hero-copy > p {
+  font-size: var(--bes-ds-lead) !important;
+  line-height: var(--bes-ds-line-lead) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="news"] #bes-main-content .newsroom-v823-page :where(.newsroom-v823-feed-head h2,.news-g4-feed-head h2) {
+  font-size: var(--bes-ds-section-title) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="news"] #bes-main-content .newsroom-v823-page :where(.newsroom-v823-hero-story-copy strong,.newsroom-v823-story-copy strong,.newsroom-v823-sidebar h3,.news-g4-story-copy strong) {
+  font-size: var(--bes-ds-card-title) !important;
+}
+html body .app-shell[data-brian-ds="2026"] :where(.news-g4-reader-overlay,.newsroom-v823-reader-overlay,.reading-content,.document-paper,.report-content) :where(p,li) {
+  font-size: var(--bes-ds-reader) !important;
+  line-height: var(--bes-ds-line-reader) !important;
+}
+
+/* === Games ================================================================ */
+html body .app-shell[data-brian-ds="2026"][data-route="games"] #bes-main-content .game-hub-v44 .games-v44-hero-copy h1 {
+  font-size: var(--bes-ds-display) !important;
+  line-height: var(--bes-ds-line-display) !important;
+  letter-spacing: -.045em !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="games"] #bes-main-content .game-hub-v44 .games-v44-hero-copy > p {
+  font-size: var(--bes-ds-lead) !important;
+  line-height: var(--bes-ds-line-lead) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="games"] #bes-main-content .game-hub-v44 :where(.games-v44-card h2,.games-v46-board-head h2) {
+  font-size: var(--bes-ds-section-title) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="games"] #bes-main-content .game-hub-v44 :where(.games-v44-library-list strong,.games-v44-quick-grid strong,.games-v44-recent-list strong,.games-v46-platform-card strong,.games-v46-tool-card strong) {
+  font-size: var(--bes-ds-card-title) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="games"] #bes-main-content .game-hub-v44 .games-v44-hero-metrics b {
+  font-size: var(--bes-ds-kpi) !important;
+  line-height: 1 !important;
+}
+
+/* === Homeroom: current HomeroomGlassHero DOM ============================= */
+html body .app-shell[data-brian-ds="2026"][data-route="homeroom"] #bes-main-content .hr-page .hr-material-hero__class-row h1 {
+  font-size: var(--bes-ds-display) !important;
+  line-height: var(--bes-ds-line-display) !important;
+  letter-spacing: -.045em !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="homeroom"] #bes-main-content .hr-page :where(.hr-material-hero__eyebrow,.hr-material-hero__class-row > span) {
+  font-size: var(--bes-ds-caption) !important;
+  line-height: 1.35 !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="homeroom"] #bes-main-content .hr-page :where(.hr-material-hero__teacher-line strong,.hr-material-hero__detail-copy strong) {
+  font-size: var(--bes-ds-card-title) !important;
+  line-height: var(--bes-ds-line-card) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="homeroom"] #bes-main-content .hr-page :where(.hr-panel-head h2,.hr-empty h3) {
+  font-size: var(--bes-ds-section-title) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="homeroom"] #bes-main-content .hr-page .hr-stat strong {
+  font-size: var(--bes-ds-kpi) !important;
+  line-height: 1 !important;
+}
+
+/* === Admin: current AdminV41 DOM ========================================== */
+html body .app-shell[data-brian-ds="2026"][data-route="admin"] #bes-main-content .admin-page-v41 .admin-v41-hero-copy h1 {
+  font-size: var(--bes-ds-page-title) !important;
+  line-height: var(--bes-ds-line-page) !important;
+  letter-spacing: -.035em !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="admin"] #bes-main-content .admin-page-v41 .admin-v41-hero-copy > p {
+  font-size: var(--bes-ds-body) !important;
+  line-height: var(--bes-ds-line-body) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="admin"] #bes-main-content .admin-page-v41 :where(.admin-v41-panel h2,.admin-sync-panel h2,.admin-diagnostic-panel h2,.permission-request-admin-panel h2) {
+  font-size: var(--bes-ds-section-title) !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="admin"] #bes-main-content .admin-page-v41 .admin-v41-summary-card h3 {
+  font-size: var(--bes-ds-kpi) !important;
+  line-height: 1 !important;
+}
+html body .app-shell[data-brian-ds="2026"][data-route="admin"] #bes-main-content .admin-page-v41 :where(.admin-v41-side-brand span,.admin-v41-hero-copy .eyebrow-red) {
+  font-size: var(--bes-ds-caption) !important;
+}
+
+/* === Monthly Reports: component can render in more than one route ========= */
+html body .app-shell[data-brian-ds="2026"] #bes-main-content .mr-shell :where(.mr-brand h1,.mr-manager-head h2) {
+  font-size: var(--bes-ds-page-title) !important;
+  line-height: var(--bes-ds-line-page) !important;
+}
+html body .app-shell[data-brian-ds="2026"] #bes-main-content .mr-shell .mr-hero h2 {
+  font-size: var(--bes-ds-display) !important;
+  line-height: var(--bes-ds-line-display) !important;
+  letter-spacing: -.04em !important;
+}
+html body .app-shell[data-brian-ds="2026"] #bes-main-content .mr-shell .mr-hero p {
+  font-size: var(--bes-ds-lead) !important;
+  line-height: var(--bes-ds-line-lead) !important;
+}
+html body .app-shell[data-brian-ds="2026"] #bes-main-content .mr-shell :where(.mr-section > header h2,.mr-modal > header h2) {
+  font-size: var(--bes-ds-section-title) !important;
+}
+html body .app-shell[data-brian-ds="2026"] #bes-main-content .mr-shell :where(.mr-stat strong,.mr-completion strong) {
+  font-size: var(--bes-ds-kpi) !important;
+  line-height: 1 !important;
+}
+
+/* Learning content: instructions may be slightly larger than UI chrome. */
+html body .app-shell[data-brian-ds="2026"] #bes-main-content :where(
+  .lesson,.worksheet,.exercise,.quiz,.practice,
+  [class$="-lesson"],[class*="-lesson "],
+  [class$="-worksheet"],[class*="-worksheet "],
+  [class$="-exercise"],[class*="-exercise "],
+  [class$="-quiz"],[class*="-quiz "],
+  [class$="-practice"],[class*="-practice "]
+) :where([class*="instruction"],[class*="question"],.prompt) {
+  font-size: var(--bes-ds-lead) !important;
+  line-height: 1.55 !important;
+}
+
+/* === Responsive: one hierarchy, smaller tokens =========================== */
+@media (max-width: 900px) {
+  :root {
+    --bes-ds-display: calc(48px * var(--bes-ds-scale));
+    --bes-ds-page-title: calc(32px * var(--bes-ds-scale));
+    --bes-ds-section-title: calc(20px * var(--bes-ds-scale));
+    --bes-ds-kpi: calc(34px * var(--bes-ds-scale));
+  }
+}
+@media (max-width: 600px) {
+  :root {
+    --bes-ds-display: calc(40px * var(--bes-ds-scale));
+    --bes-ds-page-title: calc(28px * var(--bes-ds-scale));
+    --bes-ds-section-title: calc(18px * var(--bes-ds-scale));
+    --bes-ds-card-title: calc(16px * var(--bes-ds-scale));
+    --bes-ds-lead: calc(16px * var(--bes-ds-scale));
+    --bes-ds-body: calc(14px * var(--bes-ds-scale));
+    --bes-ds-support: calc(13px * var(--bes-ds-scale));
+    --bes-ds-caption: calc(12px * var(--bes-ds-scale));
+    --bes-ds-control: calc(14px * var(--bes-ds-scale));
+    --bes-ds-kpi: calc(32px * var(--bes-ds-scale));
+    --bes-ds-reader: calc(16px * var(--bes-ds-scale));
+  }
+}
