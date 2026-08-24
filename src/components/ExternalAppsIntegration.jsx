@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { CheckCircle2, ChevronRight, FileCode2, Globe2 } from 'lucide-react';
 import { canManageAiWebsites } from '../utils/aiWebsiteSettings.js';
 import { EXTERNAL_APP_SOURCE_HTML, loadExternalWebApps, subscribeExternalWebApps } from '../utils/externalWebApps.js';
 import { TESOL_METHOD_HASH } from '../tesolMethodRouteRegistry.js';
@@ -7,8 +8,14 @@ import ExternalWebAppManager from './ExternalWebAppManagerV2.jsx';
 import ExternalWebAppViewer from './ExternalWebAppViewer.jsx';
 import './ExternalWebApps.css';
 import './ExternalAppApprovalRestore.css';
+import './ApprovedExternalAppsList.css';
 
-const GROUPS = { plan: 'Soạn bài', create: 'Tạo học liệu', assess: 'Kiểm tra', manage: 'Quản lý' };
+const GROUPS = {
+  plan: { label: 'Soạn bài', accent: '#1a73e8' },
+  create: { label: 'Tạo học liệu', accent: '#188038' },
+  assess: { label: 'Kiểm tra', accent: '#e37400' },
+  manage: { label: 'Quản lý', accent: '#9334e6' },
+};
 const TONES = ['#1a73e8', '#188038', '#e37400', '#9334e6', '#12b5cb', '#d93025'];
 const TESOL_METHOD_ROUTE = TESOL_METHOD_HASH.replace(/^#\//, '');
 
@@ -34,32 +41,47 @@ function tone(value = '') {
   return TONES[hash % TONES.length];
 }
 
-function WebsiteAppCard({ app, onOpen }) {
+function WebsiteAppCard({ app, onOpen, language = 'vi' }) {
   const htmlApp = app.sourceType === EXTERNAL_APP_SOURCE_HTML;
-  const accent = app.accent || tone(app.externalUrl || app.fileName || app.title);
+  const group = GROUPS[app.groupId] || null;
+  const accent = app.accent || group?.accent || tone(app.externalUrl || app.fileName || app.title);
+  const appTitle = app.title || (language === 'vi' ? 'Ứng dụng đã duyệt' : 'Approved application');
+  const description = app.descVi || app.description || (language === 'vi'
+    ? 'Ứng dụng đã được TTCM duyệt và có thể chạy trực tiếp trong Brian.'
+    : 'Approved by the department head and available directly in Brian.');
+  const sourceLabel = htmlApp ? 'HTML' : 'Website';
+  const groupLabel = group?.label || (htmlApp ? 'Ứng dụng HTML' : 'Ứng dụng website');
+
   return (
     <article
-      className={`flat-app-window-card flat-app-window-drawer external-website-app-card ${htmlApp ? 'is-html-app' : 'is-url-app'}`}
-      style={{ '--app-accent': accent, '--app-soft': htmlApp ? '#fff4e5' : '#e8f0fe', '--app-ink': '#202124' }}
+      className={`apps-list-row external-approved-app ${htmlApp ? 'is-html-app' : 'is-url-app'}`}
+      style={{ '--app-accent': accent, '--app-soft': htmlApp ? '#fef7e0' : '#e8f0fe', '--app-ink': '#202124' }}
       data-launcher-item={`external-${app.id}`}
       data-app-title={app.title || ''}
       data-app-group={app.groupId || ''}
       data-app-source={app.sourceType || 'url'}
     >
-      <button type="button" className="flat-app-window-launch" onClick={() => onOpen(app)}>
-        <span className="flat-app-window-chrome">
-          <span className="flat-traffic"><i /><i /><i /></span>
-          <b>{htmlApp ? 'HTML · Đã duyệt' : 'Website nhúng · Đã duyệt'}</b>
+      <button
+        type="button"
+        className="apps-list-open"
+        onClick={() => onOpen(app)}
+        aria-label={`${language === 'vi' ? 'Mở' : 'Open'}: ${appTitle}`}
+      >
+        <span className="apps-list-icon external-approved-list-icon" aria-hidden="true">
+          {app.icon ? <span className="external-approved-icon-glyph">{app.icon}</span> : (htmlApp ? <FileCode2 /> : <Globe2 />)}
         </span>
-        <span className="flat-app-window-body">
-          <span className="flat-app-window-art external-app-tile-icon">{app.icon || (htmlApp ? 'HTM' : 'WEB')}</span>
-          <span className="flat-app-window-copy">
-            <small>{GROUPS[app.groupId] || (htmlApp ? 'Ứng dụng HTML' : 'Ứng dụng website')}</small>
-            <strong>{app.title}</strong>
-            <em>{app.descVi || 'Chạy trực tiếp ngay trong Brian.'}</em>
+        <span className="apps-list-copy">
+          <span className="apps-list-meta">
+            <b>{groupLabel}</b>
+            <em className="external-approved-badge"><CheckCircle2 /> {language === 'vi' ? 'TTCM đã duyệt' : 'Approved'}</em>
+            <em>{sourceLabel}</em>
           </span>
-          <span className="flat-app-window-cta">Mở ứng dụng</span>
-          <span className="flat-app-window-decoration" />
+          <strong>{appTitle}</strong>
+          <small>{description}</small>
+        </span>
+        <span className="apps-list-primary-action" aria-hidden="true">
+          <b>{language === 'vi' ? 'Mở' : 'Open'}</b>
+          <ChevronRight />
         </span>
       </button>
     </article>
@@ -98,9 +120,10 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
         || scope.querySelector('.flat-apps-hero-copy')
         || document.querySelector('.apps-directory-actions, .apps-directory-hero-copy, .flat-apps-hero-copy');
       const grid = scope.querySelector('#apps-directory-grid')
+        || scope.querySelector('.apps-directory-list-native')
         || scope.querySelector('.apps-directory-grid-native')
         || scope.querySelector('.flat-apps-collage-grid')
-        || document.querySelector('#apps-directory-grid, .apps-directory-grid-native, .flat-apps-collage-grid');
+        || document.querySelector('#apps-directory-grid, .apps-directory-list-native, .apps-directory-grid-native, .flat-apps-collage-grid');
       setHosts((current) => (current.hero === hero && current.grid === grid ? current : { hero, grid }));
     };
 
@@ -167,7 +190,7 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
       ) : null}
 
       {route === 'apps' && hosts.grid ? createPortal(
-        approvedLauncherApps.map((app) => <WebsiteAppCard key={app.id} app={app} onOpen={openApprovedApp} />),
+        approvedLauncherApps.map((app) => <WebsiteAppCard key={app.id} app={app} onOpen={openApprovedApp} language={language} />),
         hosts.grid,
       ) : null}
 
