@@ -5,7 +5,6 @@ import '../styles/SettingsGoogleM3.css';
 const ICON_PATHS = {
   search: 'M9.5 3a6.5 6.5 0 1 0 4.06 11.58L19 20l1-1-5.42-5.44A6.5 6.5 0 0 0 9.5 3Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z',
   person: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z',
-  palette: 'M12 3a9 9 0 0 0 0 18h1.5a2.5 2.5 0 0 0 0-5H12a2 2 0 0 1 0-4h4.3A4.7 4.7 0 0 0 21 7.3C21 4.92 17 3 12 3ZM7 12a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm2-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3 4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z',
   bell: 'M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-5-2-2v-4a5 5 0 0 0-4-4.9V5a1 1 0 1 0-2 0v1.1A5 5 0 0 0 7 11v4l-2 2v1h14v-1Z',
   sync: 'M17.65 6.35A7.95 7.95 0 0 0 5.2 8H2l4 4 4-4H7.22a6 6 0 0 1 9.02-.24L18 6l-.35.35ZM14 12l4 4h-3.22a6 6 0 0 1-9.02.24L4 18l.35-.35A7.95 7.95 0 0 0 18.8 16H22l-4-4-4 4h2.78A6 6 0 0 1 7.76 16.24L6 18l.35-.35A7.95 7.95 0 0 0 18.8 16H22l-4-4-4 4Z',
   shield: 'm12 2 8 3v6c0 5.05-3.41 9.77-8 11-4.59-1.23-8-5.95-8-11V5l8-3Zm0 3.12L6 7.37V11c0 3.87 2.47 7.55 6 8.75 3.53-1.2 6-4.88 6-8.75V7.37l-6-2.25Z',
@@ -13,7 +12,6 @@ const ICON_PATHS = {
   volume: 'M4 9v6h4l5 4V5L8 9H4Zm11.5 3a3.5 3.5 0 0 0-2-3.16v6.32A3.5 3.5 0 0 0 15.5 12Zm-2-8.5v2.06a7 7 0 0 1 0 12.88v2.06a9 9 0 0 0 0-17Z',
   speed: 'M12 4a9 9 0 0 0-9 9c0 2.3.86 4.4 2.27 6h13.46A8.96 8.96 0 0 0 21 13a9 9 0 0 0-9-9Zm0 2a7 7 0 0 1 6.92 8H17a5.05 5.05 0 0 0-.64-1.94l1.36-1.36-1.42-1.42-1.36 1.36A5.05 5.05 0 0 0 13 10V8h-2v2a5 5 0 0 0-4 4H5.08A7 7 0 0 1 12 6Zm-1 7h2v4h-2v-4Z',
   help: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm-.1-5.1h1.9v2h-1.9v-2Zm.1-8.3c2.1 0 3.5 1.18 3.5 3 0 1.45-.78 2.18-1.8 2.84-.88.57-1.2.92-1.2 1.76h-1.8c0-1.4.55-2.05 1.65-2.77.84-.55 1.25-.95 1.25-1.73 0-.85-.65-1.45-1.65-1.45-1.08 0-1.72.58-1.83 1.62H8.25C8.4 7.85 9.85 6.6 12 6.6Z',
-  sun: 'M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0-5h1v3h-2V2h1Zm0 17h1v3h-2v-3h1ZM2 11h3v2H2v-2Zm17 0h3v2h-3v-2ZM4.22 5.64l1.42-1.42 2.12 2.12-1.42 1.42-2.12-2.12Zm12.02 12.02 1.42-1.42 2.12 2.12-1.42 1.42-2.12-2.12ZM18.36 4.22l1.42 1.42-2.12 2.12-1.42-1.42 2.12-2.12ZM6.34 16.24l1.42 1.42-2.12 2.12-1.42-1.42 2.12-2.12Z',
   globe: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.92 9h-3.04a15.7 15.7 0 0 0-1.38-5.05A8.03 8.03 0 0 1 18.92 11ZM12 4c.83 1.2 1.56 3.23 1.83 7h-3.66C10.44 7.23 11.17 5.2 12 4ZM9.5 5.95A15.7 15.7 0 0 0 8.12 11H5.08A8.03 8.03 0 0 1 9.5 5.95ZM5.08 13h3.04c.2 1.94.68 3.7 1.38 5.05A8.03 8.03 0 0 1 5.08 13ZM12 20c-.83-1.2-1.56-3.23-1.83-7h3.66C13.56 16.77 12.83 18.8 12 20Zm2.5-1.95A15.7 15.7 0 0 0 15.88 13h3.04a8.03 8.03 0 0 1-4.42 5.05Z',
   clock: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm1-13h-2v6l5 3 1-1.73-4-2.27V7Z',
   storage: 'M12 3C7.03 3 3 4.34 3 6s4.03 3 9 3 9-1.34 9-3-4.03-3-9-3Zm-9 6v4c0 1.66 4.03 3 9 3s9-1.34 9-3V9c-1.96 1.4-5.55 2-9 2S4.96 10.4 3 9Zm0 7v2c0 1.66 4.03 3 9 3s9-1.34 9-3v-2c-1.96 1.4-5.55 2-9 2s-7.04-.6-9-2Z',
@@ -58,13 +56,7 @@ function downloadJson(name, data) {
 
 function Toggle({ checked, onChange, label }) {
   return (
-    <button
-      type="button"
-      className={`settings-m3-toggle ${checked ? 'is-on' : ''}`}
-      onClick={() => onChange(!checked)}
-      aria-pressed={checked}
-      aria-label={label}
-    >
+    <button type="button" className={`settings-m3-toggle ${checked ? 'is-on' : ''}`} onClick={() => onChange(!checked)} aria-pressed={checked} aria-label={label}>
       <span />
     </button>
   );
@@ -94,19 +86,16 @@ function SelectControl({ value, onChange, children, ariaLabel }) {
 
 export default function Settings({
   currentUser,
-  language = 'vi', setLanguage,
-  motionMode = 'lite', setMotionMode,
-  performanceMode = 'auto', setPerformanceMode,
+  language = 'vi',
+  setLanguage,
+  performanceMode = 'auto',
+  setPerformanceMode,
   resolvedPerformance = 'auto',
-  themeIntensity = 'balanced', setThemeIntensity,
-  tileBorder = 'soft', setTileBorder,
-  indicatorMode = 'on', setIndicatorMode,
-  fontScale = 100, setFontScale,
+  indicatorMode = 'on',
+  setIndicatorMode,
   setGlobalLoading,
 }) {
   const vi = language === 'vi';
-  const [accentColor, setAccentColor] = useState(() => localStorage.getItem('bes-accent-color') || 'blue');
-  const [displayDensity, setDisplayDensity] = useState(() => localStorage.getItem('bes-display-density') || 'medium');
   const [soundEnabled, setSoundEnabled] = useState(() => readBoolean('bes-global-notice-sound', true));
   const [completionSound, setCompletionSound] = useState(() => readBoolean('bes-completion-sound', true));
   const [hapticFeedback, setHapticFeedback] = useState(() => readBoolean('bes-haptic-feedback', false));
@@ -128,25 +117,36 @@ export default function Settings({
   const authProviders = useMemo(() => Array.isArray(currentUser?.authProviders) ? currentUser.authProviders : [], [currentUser?.authProviders]);
   const canChangePassword = currentUser?.provider === 'supabase';
 
-  const setAccent = (value) => {
-    setAccentColor(value);
-    localStorage.setItem('bes-accent-color', value);
-    document.documentElement.dataset.accent = value;
+  const toggleBoolean = (setter, key) => (value) => {
+    setter(value);
+    writeBoolean(key, value);
   };
-  const setDensity = (value) => {
-    setDisplayDensity(value);
-    localStorage.setItem('bes-display-density', value);
-    document.documentElement.dataset.density = value;
+
+  const updateTextSetting = (setter, key) => (value) => {
+    setter(value);
+    writeText(key, value);
   };
-  const toggleBoolean = (setter, key) => (value) => { setter(value); writeBoolean(key, value); };
-  const updateTextSetting = (setter, key) => (value) => { setter(value); writeText(key, value); };
 
   const exportSettings = () => downloadJson('brian-english-studio-settings.json', {
-    version: 'google-m3', exportedAt: new Date().toISOString(),
-    interface: { language, accentColor, displayDensity, motionMode, performanceMode, themeIntensity, tileBorder, indicatorMode, fontScale },
+    version: 'google-m3-no-appearance',
+    exportedAt: new Date().toISOString(),
     system: {
-      soundEnabled, completionSound, hapticFeedback, pushNotifications, emailNotifications, studyReminders,
-      liveSyncEnabled, dataSyncEnabled, wifiOnly, activeStatus, emailDiscovery, summaryFrequency, autoCleanup,
+      language,
+      performanceMode,
+      indicatorMode,
+      soundEnabled,
+      completionSound,
+      hapticFeedback,
+      pushNotifications,
+      emailNotifications,
+      studyReminders,
+      liveSyncEnabled,
+      dataSyncEnabled,
+      wifiOnly,
+      activeStatus,
+      emailDiscovery,
+      summaryFrequency,
+      autoCleanup,
     },
   });
 
@@ -155,17 +155,11 @@ export default function Settings({
     if (!file) return;
     try {
       const payload = JSON.parse(await file.text());
-      const ui = payload.interface || {};
       const system = payload.system || {};
-      if (ui.language) setLanguage?.(ui.language);
-      if (ui.accentColor) setAccent(ui.accentColor);
-      if (ui.displayDensity) setDensity(ui.displayDensity);
-      if (ui.motionMode) setMotionMode?.(ui.motionMode);
-      if (ui.performanceMode) setPerformanceMode?.(ui.performanceMode);
-      if (ui.themeIntensity) setThemeIntensity?.(ui.themeIntensity);
-      if (ui.tileBorder) setTileBorder?.(ui.tileBorder);
-      if (ui.indicatorMode) setIndicatorMode?.(ui.indicatorMode);
-      if (ui.fontScale) setFontScale?.(Number(ui.fontScale));
+      const legacyInterface = payload.interface || {};
+      if (system.language || legacyInterface.language) setLanguage?.(system.language || legacyInterface.language);
+      if (system.performanceMode || legacyInterface.performanceMode) setPerformanceMode?.(system.performanceMode || legacyInterface.performanceMode);
+      if (system.indicatorMode || legacyInterface.indicatorMode) setIndicatorMode?.(system.indicatorMode || legacyInterface.indicatorMode);
       const booleanSettings = [
         ['soundEnabled', setSoundEnabled, 'bes-global-notice-sound'],
         ['completionSound', setCompletionSound, 'bes-completion-sound'],
@@ -180,7 +174,10 @@ export default function Settings({
         ['emailDiscovery', setEmailDiscovery, 'bes-email-discovery'],
       ];
       booleanSettings.forEach(([field, setter, key]) => {
-        if (typeof system[field] === 'boolean') { setter(system[field]); writeBoolean(key, system[field]); }
+        if (typeof system[field] === 'boolean') {
+          setter(system[field]);
+          writeBoolean(key, system[field]);
+        }
       });
       if (system.summaryFrequency) updateTextSetting(setSummaryFrequency, 'bes-summary-frequency')(system.summaryFrequency);
       if (system.autoCleanup) updateTextSetting(setAutoCleanup, 'bes-auto-cleanup')(system.autoCleanup);
@@ -203,23 +200,25 @@ export default function Settings({
   };
 
   const resetSettings = () => {
-    setAccent('blue');
-    setDensity('medium');
-    setMotionMode?.('lite');
     setPerformanceMode?.('auto');
-    setThemeIntensity?.('balanced');
-    setTileBorder?.('soft');
     setIndicatorMode?.('on');
-    setFontScale?.(100);
     const resetBooleans = [
-      [setSoundEnabled, 'bes-global-notice-sound', true], [setCompletionSound, 'bes-completion-sound', true],
-      [setHapticFeedback, 'bes-haptic-feedback', false], [setPushNotifications, 'bes-push-notifications', true],
-      [setEmailNotifications, 'bes-email-notifications', false], [setStudyReminders, 'bes-study-reminders', true],
-      [setLiveSyncEnabled, 'bes-global-notice-live-sync', true], [setDataSyncEnabled, 'bes-global-data-sync', true],
-      [setWifiOnly, 'bes-sync-wifi-only', true], [setActiveStatus, 'bes-active-status', true],
+      [setSoundEnabled, 'bes-global-notice-sound', true],
+      [setCompletionSound, 'bes-completion-sound', true],
+      [setHapticFeedback, 'bes-haptic-feedback', false],
+      [setPushNotifications, 'bes-push-notifications', true],
+      [setEmailNotifications, 'bes-email-notifications', false],
+      [setStudyReminders, 'bes-study-reminders', true],
+      [setLiveSyncEnabled, 'bes-global-notice-live-sync', true],
+      [setDataSyncEnabled, 'bes-global-data-sync', true],
+      [setWifiOnly, 'bes-sync-wifi-only', true],
+      [setActiveStatus, 'bes-active-status', true],
       [setEmailDiscovery, 'bes-email-discovery', false],
     ];
-    resetBooleans.forEach(([setter, key, value]) => { setter(value); writeBoolean(key, value); });
+    resetBooleans.forEach(([setter, key, value]) => {
+      setter(value);
+      writeBoolean(key, value);
+    });
     updateTextSetting(setSummaryFrequency, 'bes-summary-frequency')('daily');
     updateTextSetting(setAutoCleanup, 'bes-auto-cleanup')('30');
     setMessage(vi ? 'Đã khôi phục cài đặt mặc định.' : 'Default settings restored.');
@@ -239,17 +238,19 @@ export default function Settings({
     setGlobalLoading?.(true, vi ? 'Đang cập nhật mật khẩu...' : 'Updating password...');
     const result = await changeCurrentPassword({ currentPassword: passwordForm.current, newPassword: passwordForm.next });
     setGlobalLoading?.(false);
-    setPasswordStatus({ loading: false, ok: Boolean(result.ok), message: result.ok ? (vi ? 'Đã đổi mật khẩu.' : 'Password updated.') : (result.message || (vi ? 'Không thể đổi mật khẩu.' : 'Could not update password.')) });
+    setPasswordStatus({
+      loading: false,
+      ok: Boolean(result.ok),
+      message: result.ok ? (vi ? 'Đã đổi mật khẩu.' : 'Password updated.') : (result.message || (vi ? 'Không thể đổi mật khẩu.' : 'Could not update password.')),
+    });
     if (result.ok) setPasswordForm({ current: '', next: '', confirm: '' });
   };
 
-  const accents = [['blue','#1a73e8'],['indigo','#5f6fff'],['violet','#8e63e9'],['pink','#e85d8e'],['orange','#f2994a'],['green','#34a853']];
   const queryValue = query.trim().toLowerCase();
   const matches = (...terms) => !queryValue || terms.some((term) => String(term || '').toLowerCase().includes(queryValue));
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const navItems = [
     ['settings-account', 'person', vi ? 'Tài khoản' : 'Account', vi ? 'Hồ sơ & bảo mật' : 'Profile & security'],
-    ['settings-appearance', 'palette', vi ? 'Giao diện' : 'Appearance', vi ? 'Màu sắc & bố cục' : 'Color & layout'],
     ['settings-notifications', 'bell', vi ? 'Thông báo' : 'Notifications', vi ? 'Email & ứng dụng' : 'Email & app'],
     ['settings-sync', 'sync', vi ? 'Đồng bộ' : 'Sync', vi ? 'Dữ liệu & thiết bị' : 'Data & devices'],
     ['settings-privacy', 'shield', vi ? 'Bảo mật' : 'Security', vi ? 'Quyền riêng tư' : 'Privacy'],
@@ -290,16 +291,14 @@ export default function Settings({
             <div className="settings-google-hero-copy">
               <span>{vi ? 'TRUNG TÂM CÀI ĐẶT' : 'SETTINGS CENTER'}</span>
               <h1>{vi ? 'Cài đặt hệ thống' : 'System settings'}</h1>
-              <p>{vi ? 'Tùy chỉnh trải nghiệm English Hub để phù hợp với công việc giảng dạy và cách bạn sử dụng thiết bị.' : 'Customize English Hub for your teaching workflow and the way you use your devices.'}</p>
+              <p>{vi ? 'Quản lý tài khoản, thông báo, đồng bộ, bảo mật và hiệu năng hệ thống.' : 'Manage account, notifications, sync, security and system performance.'}</p>
               <div className="settings-google-quick-chips">
-                <button type="button" onClick={() => scrollTo('settings-appearance')}><M3Icon name="sun" size={18} />{vi ? 'Màu sắc & bố cục' : 'Color & layout'}</button>
                 <button type="button" onClick={() => scrollTo('settings-system')}><M3Icon name="globe" size={18} />{vi ? 'Ngôn ngữ: Tiếng Việt' : 'Language: English'}</button>
                 <span><M3Icon name="clock" size={18} />GMT+07:00</span>
               </div>
             </div>
             <div className="settings-google-hero-art" aria-hidden="true">
               <div className="settings-google-art-panel"><i /><i /><i /><b /><b /><b /></div>
-              <div className="settings-google-art-colors">{accents.slice(0,5).map(([name,color]) => <i key={name} style={{ '--art-color': color }} />)}</div>
               <div className="settings-google-art-shield"><M3Icon name="shield" size={32} /></div>
             </div>
           </section>
@@ -310,7 +309,7 @@ export default function Settings({
                 <span><M3Icon name="person" /></span><div><h2>{vi ? 'Tài khoản & hồ sơ' : 'Account & profile'}</h2><p>{vi ? 'Thông tin nhận diện và bảo mật tài khoản hiện tại.' : 'Identity and security for the current account.'}</p></div>
               </div>
               <div className="settings-v65-profile-panel settings-google-profile-fallback">
-                <div className="settings-v65-avatar">{String(currentUser?.name || currentUser?.email || 'B').slice(0,1).toUpperCase()}</div>
+                <div className="settings-v65-avatar">{String(currentUser?.name || currentUser?.email || 'B').slice(0, 1).toUpperCase()}</div>
                 <div className="settings-v65-profile-copy"><strong>{currentUser?.name || currentUser?.email || 'Brian English'}</strong><small>{currentUser?.email || '—'}</small><small>{authProviders.join(' · ') || currentUser?.provider || 'local'}</small></div>
               </div>
               <form className="settings-v65-password-form settings-google-password-form" onSubmit={submitPasswordChange}>
@@ -325,26 +324,13 @@ export default function Settings({
           ) : null}
 
           <section className="settings-google-card-grid">
-            {matches('giao diện', 'appearance', 'màu', 'color', 'font', 'chữ') ? (
-              <article id="settings-appearance" className="settings-google-card tone-violet">
-                <CardHeader icon="palette" tone="violet" title={vi ? 'Giao diện' : 'Appearance'} subtitle={vi ? 'Tùy chỉnh màu sắc, kích thước và bố cục.' : 'Customize color, sizing and layout.'} />
-                <SettingRow title={vi ? 'Màu nhấn' : 'Accent color'}><div className="settings-m3-color-row">{accents.map(([name,color]) => <button type="button" key={name} className={accentColor === name ? 'is-active' : ''} style={{ '--swatch': color }} onClick={() => setAccent(name)} aria-label={name} />)}</div></SettingRow>
-                <div className="settings-m3-two-columns">
-                  <label><span>{vi ? 'Mật độ hiển thị' : 'Display density'}</span><SelectControl value={displayDensity} onChange={(event) => setDensity(event.target.value)}><option value="relaxed">{vi?'Thoáng':'Relaxed'}</option><option value="medium">{vi?'Vừa':'Medium'}</option><option value="compact">{vi?'Gọn':'Compact'}</option></SelectControl></label>
-                  <label><span>{vi ? 'Kích thước chữ' : 'Text size'}</span><SelectControl value={fontScale} onChange={(event) => setFontScale?.(Number(event.target.value))}><option value="100">100%</option><option value="110">110%</option><option value="120">120%</option><option value="130">130%</option></SelectControl></label>
-                  <label><span>{vi ? 'Độ đậm giao diện' : 'Interface strength'}</span><SelectControl value={themeIntensity} onChange={(event) => setThemeIntensity?.(event.target.value)}><option value="soft">Soft</option><option value="balanced">Balanced</option><option value="strong">Strong</option><option value="bold">Bold</option></SelectControl></label>
-                  <label><span>{vi ? 'Viền thẻ' : 'Card border'}</span><SelectControl value={tileBorder} onChange={(event) => setTileBorder?.(event.target.value)}><option value="off">Off</option><option value="soft">Soft</option><option value="strong">Strong</option></SelectControl></label>
-                </div>
-              </article>
-            ) : null}
-
             {matches('thông báo', 'notification', 'email', 'nhắc nhở') ? (
               <article id="settings-notifications" className="settings-google-card tone-blue">
                 <CardHeader icon="bell" tone="blue" title={vi ? 'Thông báo' : 'Notifications'} subtitle={vi ? 'Quản lý thông báo và nhắc nhở.' : 'Manage alerts and reminders.'} />
                 <SettingRow title={vi ? 'Thông báo trên ứng dụng' : 'In-app notifications'}><Toggle checked={pushNotifications} onChange={toggleBoolean(setPushNotifications, 'bes-push-notifications')} label="Push notifications" /></SettingRow>
                 <SettingRow title={vi ? 'Thông báo qua email' : 'Email notifications'}><Toggle checked={emailNotifications} onChange={toggleBoolean(setEmailNotifications, 'bes-email-notifications')} label="Email notifications" /></SettingRow>
                 <SettingRow title={vi ? 'Nhắc nhở học tập' : 'Study reminders'}><Toggle checked={studyReminders} onChange={toggleBoolean(setStudyReminders, 'bes-study-reminders')} label="Study reminders" /></SettingRow>
-                <SettingRow title={vi ? 'Tần suất tổng hợp' : 'Summary frequency'}><SelectControl value={summaryFrequency} onChange={(event) => updateTextSetting(setSummaryFrequency, 'bes-summary-frequency')(event.target.value)}><option value="daily">{vi?'Hàng ngày':'Daily'}</option><option value="weekly">{vi?'Hàng tuần':'Weekly'}</option><option value="never">{vi?'Không gửi':'Never'}</option></SelectControl></SettingRow>
+                <SettingRow title={vi ? 'Tần suất tổng hợp' : 'Summary frequency'}><SelectControl value={summaryFrequency} onChange={(event) => updateTextSetting(setSummaryFrequency, 'bes-summary-frequency')(event.target.value)}><option value="daily">{vi ? 'Hàng ngày' : 'Daily'}</option><option value="weekly">{vi ? 'Hàng tuần' : 'Weekly'}</option><option value="never">{vi ? 'Không gửi' : 'Never'}</option></SelectControl></SettingRow>
               </article>
             ) : null}
 
@@ -377,16 +363,15 @@ export default function Settings({
               </article>
             ) : null}
 
-            {matches('hệ thống', 'system', 'hiệu năng', 'performance', 'cache', 'ngôn ngữ', 'motion') ? (
+            {matches('hệ thống', 'system', 'hiệu năng', 'performance', 'cache', 'ngôn ngữ') ? (
               <article id="settings-system" className="settings-google-card tone-orange">
                 <CardHeader icon="speed" tone="orange" title={vi ? 'Hiệu năng hệ thống' : 'System performance'} subtitle={vi ? 'Tối ưu hiệu năng và lưu trữ.' : 'Optimize performance and storage.'} />
-                <SettingRow title={vi ? 'Chế độ hiệu năng' : 'Performance mode'} description={`${vi?'Đang áp dụng':'Active'}: ${resolvedPerformance}`}><SelectControl value={performanceMode} onChange={(event) => setPerformanceMode?.(event.target.value)}><option value="auto">Auto</option><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></SelectControl></SettingRow>
-                <SettingRow title={vi ? 'Chuyển cảnh' : 'Motion'}><SelectControl value={motionMode} onChange={(event) => setMotionMode?.(event.target.value)}><option value="lite">Lite</option><option value="full">Full</option><option value="off">Off</option></SelectControl></SettingRow>
+                <SettingRow title={vi ? 'Chế độ hiệu năng' : 'Performance mode'} description={`${vi ? 'Đang áp dụng' : 'Active'}: ${resolvedPerformance}`}><SelectControl value={performanceMode} onChange={(event) => setPerformanceMode?.(event.target.value)}><option value="auto">Auto</option><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></SelectControl></SettingRow>
                 <SettingRow title={vi ? 'Ngôn ngữ' : 'Language'}><SelectControl value={language} onChange={(event) => setLanguage?.(event.target.value)}><option value="vi">Tiếng Việt</option><option value="en">English</option></SelectControl></SettingRow>
                 <div className="settings-m3-storage">
                   <div><span><M3Icon name="storage" size={19} />{vi ? 'Dung lượng đã dùng' : 'Storage used'}</span><b>2.4 GB / 10 GB</b></div><progress value="24" max="100" />
                 </div>
-                <SettingRow title={vi ? 'Tự động dọn dẹp' : 'Automatic cleanup'}><SelectControl value={autoCleanup} onChange={(event) => updateTextSetting(setAutoCleanup, 'bes-auto-cleanup')(event.target.value)}><option value="7">7 {vi?'ngày':'days'}</option><option value="30">30 {vi?'ngày':'days'}</option><option value="90">90 {vi?'ngày':'days'}</option><option value="never">{vi?'Không tự động':'Never'}</option></SelectControl></SettingRow>
+                <SettingRow title={vi ? 'Tự động dọn dẹp' : 'Automatic cleanup'}><SelectControl value={autoCleanup} onChange={(event) => updateTextSetting(setAutoCleanup, 'bes-auto-cleanup')(event.target.value)}><option value="7">7 {vi ? 'ngày' : 'days'}</option><option value="30">30 {vi ? 'ngày' : 'days'}</option><option value="90">90 {vi ? 'ngày' : 'days'}</option><option value="never">{vi ? 'Không tự động' : 'Never'}</option></SelectControl></SettingRow>
                 <div className="settings-m3-utility-actions">
                   <button type="button" onClick={clearCache}>{vi ? 'Xóa bộ nhớ đệm' : 'Clear cache'}</button>
                   <button type="button" onClick={exportSettings}>{vi ? 'Xuất cài đặt' : 'Export settings'}</button>
@@ -398,7 +383,6 @@ export default function Settings({
             ) : null}
           </section>
 
-          {queryValue && !document.querySelector ? null : null}
           {message ? <div className="settings-google-snackbar" role="status"><span>✓</span>{message}<button type="button" onClick={() => setMessage('')}>×</button></div> : null}
           <footer className="settings-google-footer">English Hub · Google Material experience · 2026</footer>
         </main>
