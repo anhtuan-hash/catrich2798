@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import WebAppsRedesign from './WebAppsRedesign.jsx';
 import { SHARED_GAME_APPS } from '../data/sharedGameApps.js';
-import { CUSTOM_GAMES_EVENT, listCustomGames } from '../utils/customGames.js';
+import { canPublishDepartment } from '../utils/permissions.js';
+import { CUSTOM_GAMES_EVENT, isCustomGameOwner, listCustomGames } from '../utils/customGames.js';
 import '../styles/apps-hero-clean-v3.css';
 import '../styles/apps-hero-flat-relief-v4.css';
 // Final Material permission layer: locked apps stay legible and open a focused access dialog.
@@ -15,28 +16,81 @@ import '../styles/apps-google-material-list-v2.css';
 // Games now live in Applications, so the old Games tab is no longer shown here.
 import '../styles/games-route-retired.css';
 
-function sharedCustomGame(game) {
+const LEGACY_SAVED_GAMES_KEY = 'bes-game-hub-links-v1';
+
+function customGameAsApp(game) {
+  const status = String(game.status || '').toLowerCase();
+  const statusCopy = {
+    approved: ['Shared', 'Dùng chung'],
+    pending: ['Pending review', 'Chờ duyệt'],
+    private: ['Private', 'Riêng tư'],
+    rejected: ['Rejected', 'Bị từ chối'],
+  }[status] || ['Game app', 'Ứng dụng trò chơi'];
+
   return {
     slug: `shared-game-${game.id}`,
     title: game.label,
     titleVi: game.label,
     icon: game.icon || '🎮',
-    desc: 'Shared classroom game approved for the English department.',
-    descVi: 'Trò chơi lớp học dùng chung đã được TTCM duyệt.',
-    status: 'Shared',
-    statusVi: 'Dùng chung',
-    group: 'Shared classroom apps',
-    groupVi: 'Ứng dụng dùng chung',
+    desc: status === 'approved'
+      ? 'Shared classroom game approved for the English department.'
+      : 'Game link migrated from the former Games workspace.',
+    descVi: status === 'approved'
+      ? 'Trò chơi lớp học dùng chung đã được TTCM duyệt.'
+      : 'Liên kết trò chơi được chuyển từ không gian Trò chơi cũ.',
+    status: statusCopy[0],
+    statusVi: statusCopy[1],
+    group: status === 'approved' ? 'Shared classroom apps' : 'Classroom game apps',
+    groupVi: status === 'approved' ? 'Ứng dụng dùng chung' : 'Ứng dụng trò chơi',
     groupId: 'create',
     externalUrl: game.home,
-    shared: true,
+    shared: status === 'approved',
     sharedGameId: game.id,
+    legacyGameStatus: status,
   };
+}
+
+function stableLegacyId(value = '') {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) hash = ((hash << 5) - hash + value.charCodeAt(index)) | 0;
+  return Math.abs(hash).toString(36);
+}
+
+function readLegacySavedGames() {
+  if (typeof window === 'undefined') return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(LEGACY_SAVED_GAMES_KEY) || '{}');
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return [];
+    return Object.entries(parsed).flatMap(([platformKey, links]) => {
+      if (!Array.isArray(links)) return [];
+      const platform = SHARED_GAME_APPS.find((item) => item.slug === `shared-game-${platformKey}`);
+      return links
+        .filter((link) => link && /^https?:\/\//i.test(String(link.url || '')))
+        .map((link) => ({
+          slug: `saved-game-${platformKey}-${stableLegacyId(String(link.url || ''))}`,
+          title: String(link.title || platform?.title || 'Saved game').trim(),
+          titleVi: String(link.title || platform?.titleVi || platform?.title || 'Trò chơi đã lưu').trim(),
+          icon: platform?.icon || '🎮',
+          desc: `Saved game link from ${platform?.title || platformKey}.`,
+          descVi: `Liên kết trò chơi đã lưu từ ${platform?.titleVi || platform?.title || platformKey}.`,
+          status: 'Saved',
+          statusVi: 'Đã lưu',
+          group: 'Saved game apps',
+          groupVi: 'Ứng dụng trò chơi đã lưu',
+          groupId: 'create',
+          externalUrl: String(link.url),
+          legacySavedGame: true,
+        }));
+    });
+  } catch {
+    return [];
+  }
 }
 
 export default function WebAppsAndroidDrawer(props) {
   const { apps, currentUser } = props;
-  const [approvedCustomGames, setApprovedCustomGames] = useState([]);
+  const [customGameApps, setCustomGameApps] = useState([]);
+  const [legacySavedGames, setLegacySavedGames] = useState(() => readLegacySavedGames());
 
   useEffect(() => {
     let active = true;
@@ -45,14 +99,16 @@ export default function WebAppsAndroidDrawer(props) {
       try {
         const games = await listCustomGames(currentUser);
         if (!active) return;
-        setApprovedCustomGames(
+        const leader = canPublishDepartment(currentUser);
+        setCustomGameApps(
           (Array.isArray(games) ? games : [])
-            .filter((game) => game?.status === 'approved' && game?.label && game?.home)
-            .map(sharedCustomGame),
+            .filter((game) => game?.label && game?.home)
+            .filter((game) => game.status === 'approved' || leader || isCustomGameOwner(currentUser, game))
+            .map(customGameAsApp),
         );
       } catch (error) {
-        console.warn('[Apps] Could not load approved shared games:', error);
-        if (active) setApprovedCustomGames([]);
+        console.warn('[Apps] Could not load migrated game apps:', error);
+        if (active) setCustomGameApps([]);
       }
     };
 
@@ -62,11 +118,19 @@ export default function WebAppsAndroidDrawer(props) {
       active = false;
       window.removeEventListener(CUSTOM_GAMES_EVENT, refresh);
     };
-  }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
+  }, [currentUser?.id, currentUser?.authId, currentUser?.email, currentUser?.role]);
+
+  useEffect(() => {
+    const onStorage = (event) => {
+      if (!event.key || event.key === LEGACY_SAVED_GAMES_KEY) setLegacySavedGames(readLegacySavedGames());
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
   const mergedApps = useMemo(() => {
     const base = Array.isArray(apps) ? apps : [];
-    const merged = [...base, ...SHARED_GAME_APPS, ...approvedCustomGames];
+    const merged = [...base, ...SHARED_GAME_APPS, ...customGameApps, ...legacySavedGames];
     const seen = new Set();
     return merged.filter((item) => {
       const key = String(item?.slug || item?.route || '').trim();
@@ -74,7 +138,7 @@ export default function WebAppsAndroidDrawer(props) {
       seen.add(key);
       return true;
     });
-  }, [apps, approvedCustomGames]);
+  }, [apps, customGameApps, legacySavedGames]);
 
   return <WebAppsRedesign {...props} apps={mergedApps} />;
 }
