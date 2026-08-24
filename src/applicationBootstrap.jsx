@@ -64,6 +64,14 @@ function isGamesRoute() {
   return /#\/games(?:$|[/?#])/i.test(currentHash());
 }
 
+function isDashboardRoute() {
+  return /#\/dashboard(?:$|[/?#])/i.test(currentHash());
+}
+
+function isWorkHubRoute() {
+  return /#\/work-hub(?:$|[/?#])/i.test(currentHash());
+}
+
 function isLightweightPublicRoute() {
   return /#\/(?:home|contact|login|register|setup|resources)(?:$|[/?#])/i.test(currentHash());
 }
@@ -99,15 +107,50 @@ function loadRouteStyles() {
     ]);
   }
 
+  if (isAppsRoute()) {
+    loadStyleGroup('apps-shell', [
+      () => import('./components/GlobalAppsGoogle.css'),
+      () => import('./components/GlobalAppsContrastPolish.css'),
+      () => import('./components/GlobalAppsAndroidLauncher.css'),
+      () => import('./components/GlobalAppsWorkspaceRedesign.css'),
+      () => import('./components/GlobalAppsWorkspaceCompact.css'),
+      () => import('./components/GlobalAppsHorizontalLauncher.css'),
+      () => import('./components/GlobalAppsPhoneTiles.css'),
+      () => import('./components/GlobalAppsAndroidDrawer.css'),
+      () => import('./components/GlobalAppsRemoveQuickSearch.css'),
+    ]);
+  }
+
   if (isNewsRoute()) {
     loadStyleGroup('news', [
       () => import('./styles/NewsReaderContainerWidthFix.css'),
+      () => import('./components/GlobalNewsAndroidGoogle.css'),
+      () => import('./components/GlobalNewsDrawerScroll.css'),
     ]);
   }
 
   if (isGamesRoute()) {
     loadStyleGroup('games', [
       () => import('./styles/GamesTabletViewportFix.css'),
+    ]);
+  }
+
+  if (isDashboardRoute()) {
+    loadStyleGroup('dashboard', [
+      () => import('./styles/teacher-dashboard-google-v2.css'),
+      () => import('./components/GlobalDashboardVisualFix.css'),
+    ]);
+  }
+
+  if (isWorkHubRoute()) {
+    loadStyleGroup('work-hub', [
+      () => import('./components/GlobalWorkHubGoogleRedesign.css'),
+      () => import('./components/GlobalWorkScheduleModern.css'),
+      () => import('./components/GlobalWorkHubGoogleHeroV2.css'),
+      () => import('./components/GlobalWorkHubViewportModal.css'),
+      () => import('./components/GlobalWorkHubViewportModalFinal.css'),
+      () => import('./components/GlobalWorkHubModalAnchor.css'),
+      () => import('./components/GlobalWorkHubModalCenter.css'),
     ]);
   }
 
@@ -122,6 +165,18 @@ function loadRouteStyles() {
     loadStyleGroup('knowledge-train', [
       () => import('./styles/KnowledgeTrainGoogleRedesign.css'),
       () => import('./styles/KnowledgeTrainBottomProgressCleanup.css'),
+    ]);
+  }
+
+  if (hash.includes('textlab-activities')) {
+    loadStyleGroup('textlab', [
+      () => import('./components/GlobalTextLabGoogleLarge.css'),
+    ]);
+  }
+
+  if (hash.includes('word2graph')) {
+    loadStyleGroup('word2graph', [
+      () => import('./components/GlobalWordGraphGoogleM3.css'),
     ]);
   }
 }
