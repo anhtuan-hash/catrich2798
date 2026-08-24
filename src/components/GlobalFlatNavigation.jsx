@@ -4,7 +4,6 @@ import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalPrimaryNavigationPin from './GlobalPrimaryNavigationPin.jsx';
 import GlobalAdaptiveComfortScale from './GlobalAdaptiveComfortScale.jsx';
 import GlobalGuestNavigationHub from './GlobalGuestNavigationHub.jsx';
-import GlobalPublicNewsBriefing from './GlobalPublicNewsBriefing.jsx';
 import GlobalUserProfileSettingsBridge from './GlobalUserProfileSettingsBridge.jsx';
 import GlobalUserProfilePreviewGuard from './GlobalUserProfilePreviewGuard.jsx';
 import GlobalSettingsAppearanceBridge from './GlobalSettingsAppearanceBridge.jsx';
@@ -22,7 +21,6 @@ import GlobalWorkScheduleBridge from './GlobalWorkScheduleBridge.jsx';
 import GlobalWorkHubGoogleHeroV2 from './GlobalWorkHubGoogleHeroV2.jsx';
 import GlobalWorkHubViewportModalBridge from './GlobalWorkHubViewportModalBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
-import GlobalHomeBriefingExtras from './GlobalHomeBriefingExtras.jsx';
 import GlobalHomeViewportFitBridge from './GlobalHomeViewportFitBridge.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
 import './GlobalGoogleMaterialOverride.css';
@@ -42,11 +40,8 @@ import './GlobalNavigationScrollableTabs.css';
 import './GlobalNotificationCountVisibilityFix.css';
 import './GlobalAutosaveGoogle.css';
 import './GlobalHomeAuroraV3.css';
-import './GlobalHomeBriefingContextFix.css';
-import './GlobalHomeBriefingUnderLogoFix.css';
 import './GlobalAuroraChrome.css';
 import './GlobalSeparatedPills.css';
-import './GlobalTickerRestore.css';
 import './GlobalNavigationPremiumV2.css';
 import './GlobalNavigationWholeHubAura.css';
 import './GlobalGuestWholeHubAuraFix.css';
@@ -63,11 +58,10 @@ import './GlobalNavigationSearchPillRefinement.css';
 import './GlobalNavigationNoSearch.css';
 import './GlobalAdaptiveComfortScale.css';
 import './GlobalHomeComfortOverflowFix.css';
-// Absolute final contract: only the primary navigation row is fixed; the
-// briefing row remains visible in normal document flow.
 import './GlobalBrianHub.css';
-// Keep the catrich.mauxanh wordmark visible after every navigation theme.
 import './GlobalCatRichHeaderVisibilityFix.css';
+// Final site-wide contract: the legacy news briefing/ticker is retired everywhere.
+import './GlobalBriefingRemoval.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
@@ -75,7 +69,6 @@ const GlobalWorkBulkDeleteManager = lazy(() => import('./GlobalWorkBulkDeleteMan
 
 export default function GlobalFlatNavigation(props) {
   const workHubActive = props.route === 'work-hub';
-  const showBriefing = props.route !== 'home';
 
   return (
     <>
@@ -83,8 +76,6 @@ export default function GlobalFlatNavigation(props) {
       <Navigation {...props} />
       <GlobalPrimaryNavigationPin route={props.route} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
-      {showBriefing ? <GlobalPublicNewsBriefing route={props.route} language={props.language} currentUser={props.currentUser} /> : null}
-      {showBriefing ? <GlobalHomeBriefingExtras route={props.route} language={props.language} /> : null}
       <GlobalHomeViewportFitBridge route={props.route} />
       <GlobalWeeklyPracticeBridge route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalMotionCoreBridge route={props.route} />
