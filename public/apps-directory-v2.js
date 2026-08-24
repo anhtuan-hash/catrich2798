@@ -1,10 +1,19 @@
-/* Apps directory now renders natively from React.
- * This lightweight runtime keeps shared interaction fixes that must survive React re-renders.
+/* Shared horizontal game-row helpers.
+ * Important: this file is loaded globally, but the expensive DOM observer must
+ * only exist while the Games route is actually mounted. The Applications page
+ * should not pay for repeated document-wide scans on every React mutation.
  */
 (() => {
   const SELECTOR = '.metro-clean-system[data-route="games"] .games-v46-platform-grid';
   const boundRows = new WeakSet();
   const scrollbarState = new WeakMap();
+  let documentObserver = null;
+  let scanQueued = false;
+
+  const isGamesRoute = () => (
+    /(^|#\/)games(?:$|[/?#])/i.test(window.location.hash || '')
+    || Boolean(document.querySelector('.metro-clean-system[data-route="games"]'))
+  );
 
   function ensureVisibleScrollbar(row) {
     if (!row || scrollbarState.has(row)) return;
@@ -64,7 +73,6 @@
       : null;
     resizeObserver?.observe(row);
 
-    // Card lists can change after approval/admin updates without resizing the row itself.
     const mutationObserver = new MutationObserver(syncMetrics);
     mutationObserver.observe(row, { childList: true, subtree: false });
 
@@ -164,6 +172,7 @@
   }
 
   function scan() {
+    if (!isGamesRoute()) return;
     document.querySelectorAll(SELECTOR).forEach((row) => {
       bindDragScroll(row);
       ensureVisibleScrollbar(row);
@@ -171,9 +180,8 @@
     });
   }
 
-  let scanQueued = false;
   const queueScan = () => {
-    if (scanQueued) return;
+    if (!isGamesRoute() || scanQueued) return;
     scanQueued = true;
     window.requestAnimationFrame(() => {
       scanQueued = false;
@@ -181,17 +189,38 @@
     });
   };
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', scan, { once: true });
-  } else {
+  const stopDocumentObserver = () => {
+    documentObserver?.disconnect();
+    documentObserver = null;
+  };
+
+  const activateForCurrentRoute = () => {
+    if (!isGamesRoute()) {
+      stopDocumentObserver();
+      return;
+    }
+
     scan();
+    if (documentObserver) return;
+
+    const root = document.getElementById('root') || document.body;
+    if (!root) return;
+    documentObserver = new MutationObserver(queueScan);
+    documentObserver.observe(root, { childList: true, subtree: true });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', activateForCurrentRoute, { once: true });
+  } else {
+    activateForCurrentRoute();
   }
 
-  window.addEventListener('hashchange', queueScan);
-  window.addEventListener('resize', queueScan, { passive: true });
-
-  new MutationObserver(queueScan).observe(document.documentElement, {
-    childList: true,
-    subtree: true,
+  window.addEventListener('hashchange', () => {
+    stopDocumentObserver();
+    window.requestAnimationFrame(activateForCurrentRoute);
   });
+
+  window.addEventListener('resize', () => {
+    if (isGamesRoute()) queueScan();
+  }, { passive: true });
 })();
