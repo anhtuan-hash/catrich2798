@@ -1,10 +1,10 @@
 /*
- * Brian English — runtime near-white warm-surface neutralizer.
+ * Brian English — lightweight near-white surface neutralizer.
  *
- * CSS handles known form controls. This runtime is the last line of defence for
- * lazy-loaded components, React portals, inline styles and open shadow roots.
- * It only converts very pale warm neutrals (cream/ivory) to white. Saturated
- * semantic yellow/orange surfaces are left alone.
+ * The primary visual contract lives in GlobalNoCreamSurface.css. This runtime
+ * only handles inline styles and late portals that CSS cannot reliably beat.
+ * It deliberately avoids attribute observation and full-document wildcard
+ * scans so it stays off the hot path while React is rendering or scrolling.
  */
 
 const RUNTIME_FLAG = '__BES_NO_CREAM_RUNTIME_V1__';
@@ -108,26 +108,19 @@ function neutralizeElement(element) {
   if (element.hasAttribute('data-bes-allow-cream') || isSemanticSurface(element)) return;
 
   const style = getComputedStyle(element);
-  const background = parseRgb(style.backgroundColor);
   const isFormSurface = element.matches(FORM_SURFACE_SELECTOR);
 
-  /* Form controls are always white unless disabled/read-only; CSS also applies
-     this rule, but runtime setProperty defeats inline !important values. */
   if (isFormSurface) {
     const disabled = element.matches(':disabled') || element.matches('input:read-only,textarea:read-only');
     const target = disabled ? '#f7f9fc' : '#ffffff';
     const expectedRgb = disabled ? 'rgb(247, 249, 252)' : 'rgb(255, 255, 255)';
-    if (style.backgroundColor !== expectedRgb) {
-      element.style.setProperty('background-color', target, 'important');
-    }
-    if (style.backgroundImage !== 'none') {
-      element.style.setProperty('background-image', 'none', 'important');
-    }
+    if (style.backgroundColor !== expectedRgb) element.style.setProperty('background-color', target, 'important');
+    if (style.backgroundImage !== 'none') element.style.setProperty('background-image', 'none', 'important');
     element.dataset.besNoCream = 'form';
     return;
   }
 
-  if (isCreamRgb(background)) {
+  if (isCreamRgb(parseRgb(style.backgroundColor))) {
     element.style.setProperty('background-color', '#ffffff', 'important');
     element.dataset.besNoCream = 'surface';
   }
@@ -141,25 +134,24 @@ function neutralizeElement(element) {
 
 function scanTree(root) {
   if (!root) return;
-  if (root instanceof HTMLElement) neutralizeElement(root);
-
   const queryRoot = root instanceof Document || root instanceof ShadowRoot || root instanceof Element ? root : null;
-  if (!queryRoot?.querySelectorAll) return;
+  if (!queryRoot) return;
+
+  if (root instanceof HTMLElement) neutralizeElement(root);
+  if (!queryRoot.querySelectorAll) return;
 
   queryRoot.querySelectorAll(SURFACE_SELECTOR).forEach((element) => {
     neutralizeElement(element);
     if (element.shadowRoot) {
       observeRoot(element.shadowRoot);
-      scanTree(element.shadowRoot);
+      schedule(element.shadowRoot);
     }
   });
 
-  queryRoot.querySelectorAll('*').forEach((element) => {
-    if (element.shadowRoot) {
-      observeRoot(element.shadowRoot);
-      scanTree(element.shadowRoot);
-    }
-  });
+  if (root instanceof HTMLElement && root.shadowRoot) {
+    observeRoot(root.shadowRoot);
+    schedule(root.shadowRoot);
+  }
 }
 
 function flush() {
@@ -178,25 +170,18 @@ function schedule(root) {
 }
 
 function observeRoot(root) {
-  if (!root || OBSERVED_ROOTS.has(root)) return;
+  if (!root || OBSERVED_ROOTS.has(root) || typeof MutationObserver === 'undefined') return;
   OBSERVED_ROOTS.add(root);
+
   const observer = new MutationObserver((records) => {
     records.forEach((record) => {
-      if (record.type === 'attributes') {
-        schedule(record.target);
-        return;
-      }
       record.addedNodes.forEach((node) => {
         if (node.nodeType === Node.ELEMENT_NODE) schedule(node);
       });
     });
   });
-  observer.observe(root, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['class', 'style', 'open'],
-  });
+
+  observer.observe(root, { childList: true, subtree: true });
 }
 
 export function installNoCreamSurfaceRuntime() {
@@ -204,16 +189,15 @@ export function installNoCreamSurfaceRuntime() {
   window[RUNTIME_FLAG] = true;
 
   const start = () => {
-    observeRoot(document.documentElement);
+    observeRoot(document.body || document.documentElement);
     schedule(document);
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
 
-  window.addEventListener('hashchange', () => schedule(document));
-  window.addEventListener('load', () => schedule(document), { once: true });
   window.addEventListener('bes:appearance-changed', () => schedule(document));
+  window.BESNoCreamSurface = { rescan: () => schedule(document) };
 }
 
 installNoCreamSurfaceRuntime();
