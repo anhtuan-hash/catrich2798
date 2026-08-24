@@ -13,7 +13,7 @@ export default function BrianTeamPortal(props) {
   const isLeader = isDepartmentLeaderRole(currentUser?.role);
   const [view, setView] = useState('reports');
 
-  if (!isLeader) return <MonthlyReportsWorkspace currentUser={currentUser} />;
+  if (!isLeader) return <div className="btp-shell"><MonthlyReportsWorkspace currentUser={currentUser} /></div>;
 
   return (
     <div className="btp-shell">
