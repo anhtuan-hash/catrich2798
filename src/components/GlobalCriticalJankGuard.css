@@ -7,6 +7,21 @@ html[data-performance='low'] body .app-shell[data-route] {
   background-attachment: scroll !important;
 }
 
+/* Balanced is the default Auto result. Prioritize input/scroll responsiveness:
+   remove route-wide motion and transitions, while keeping explicit loading
+   indicators alive so async operations still communicate progress. */
+html[data-performance='balanced'] body .app-shell[data-route] *:not([aria-busy='true']):not([class*='spinner']):not([class*='loading']),
+html[data-performance='balanced'] body .app-shell[data-route] *:not([aria-busy='true']):not([class*='spinner']):not([class*='loading'])::before,
+html[data-performance='balanced'] body .app-shell[data-route] *:not([aria-busy='true']):not([class*='spinner']):not([class*='loading'])::after,
+html[data-performance='low'] body .app-shell[data-route] *:not([aria-busy='true']):not([class*='spinner']):not([class*='loading']),
+html[data-performance='low'] body .app-shell[data-route] *:not([aria-busy='true']):not([class*='spinner']):not([class*='loading'])::before,
+html[data-performance='low'] body .app-shell[data-route] *:not([aria-busy='true']):not([class*='spinner']):not([class*='loading'])::after {
+  animation: none !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+
 /* Full-screen cultural atmosphere is intentionally an opt-in High-mode effect.
    It combines fixed positioning, blend modes and infinite motif animations, so
    keeping it alive in Auto/Balanced causes continuous compositor work. */
