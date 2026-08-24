@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { BarChart3, FileText, UsersRound } from 'lucide-react';
+import { BarChart3, CalendarRange, FileText, UsersRound } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import '../utils/monthlyReportCollapsibleSections.js';
 import MonthlyReportsWorkspace from './MonthlyReportsWorkspace.jsx';
+import MonthlyReportsHistory from './MonthlyReportsHistory.jsx';
 import PersonnelHub from './PersonnelHub.jsx';
 import './BrianTeamPortal.css';
 import './MonthlyReportsManager.css';
@@ -49,6 +50,13 @@ export default function BrianTeamPortal(props) {
         </button>
         <button
           type="button"
+          className={view === 'history' ? 'is-active' : ''}
+          onClick={() => setView('history')}
+        >
+          <CalendarRange /> Thống kê tháng
+        </button>
+        <button
+          type="button"
           className={view === 'team' ? 'is-active' : ''}
           onClick={() => setView('team')}
         >
@@ -58,6 +66,7 @@ export default function BrianTeamPortal(props) {
 
       {view === 'mine' && <MonthlyReportsWorkspace currentUser={teacherViewUser} />}
       {view === 'reports' && <MonthlyReportsWorkspace currentUser={currentUser} />}
+      {view === 'history' && <MonthlyReportsHistory currentUser={currentUser} />}
       {view === 'team' && <PersonnelHub {...props} />}
     </div>
   );
