@@ -30,6 +30,9 @@ function realtimeRow(payload) {
 function rewriteScheduleRow(row) {
   if (!isScheduleRow(row)) return row;
   const viewerIds = Array.isArray(row.assignee_ids) ? row.assignee_ids.filter(Boolean) : [];
+  const connectedModules = Array.isArray(row?.metadata?.connected_modules)
+    ? row.metadata.connected_modules.filter((module) => String(module).toLowerCase() !== 'notifications')
+    : ['work-hub', 'dashboard', 'automation'];
   return {
     ...row,
     item_type: SAFE_WORK_HUB_TYPE,
@@ -39,8 +42,9 @@ function rewriteScheduleRow(row) {
       schedule_only: true,
       schedule_storage_type: SAFE_WORK_HUB_TYPE,
       schedule_requested_type: LEGACY_SCHEDULE_TYPE,
-      schedule_notify_all: true,
+      schedule_notify_all: false,
       notify_assignee: false,
+      connected_modules: connectedModules,
       assignment_scope: null,
       assignment_batch_id: null,
       assignment_mode: 'calendar_visibility',
