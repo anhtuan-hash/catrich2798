@@ -1,22 +1,28 @@
-/* Brian English — widescreen drawer/dialog readability layer.
-   CompactDrawerRuntimeV3 still discovers and classifies legacy overlays; this
-   layer deliberately overrides only their geometry/readability on larger
-   displays so 16:9 classroom screens use horizontal space instead of forcing
-   tall, narrow panels. */
+/* Brian English — full drawer/dialog visibility and 16:9 readability contract.
+   CompactDrawerRuntimeV3 still discovers/classifies legacy overlays. This layer
+   overrides geometry so every discovered drawer stays inside the viewport,
+   uses widescreen space, and never hides controls beyond either edge. */
 
 @media (min-width: 700px) {
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay {
-    --bes-ws-modal-width: 960px;
-    --bes-ws-side-width: 580px;
+    --bes-ws-modal-width: 1040px;
+    --bes-ws-side-width: 640px;
     --bes-ws-pad-x: 24px;
     --bes-ws-control-h: 48px;
-    width: min(var(--bes-ws-modal-width), calc(100vw - 48px)) !important;
-    max-width: min(var(--bes-ws-modal-width), calc(100vw - 48px)) !important;
-    max-height: calc(100dvh - 40px) !important;
+    box-sizing: border-box !important;
+    width: min(var(--bes-ws-modal-width), calc(100vw - 32px)) !important;
+    max-width: min(var(--bes-ws-modal-width), calc(100vw - 32px)) !important;
+    max-height: calc(100dvh - 24px) !important;
+    margin-inline: auto !important;
     border-radius: 24px !important;
     overflow: auto !important;
     overscroll-behavior: contain !important;
     scrollbar-gutter: stable !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay * {
+    box-sizing: border-box !important;
   }
 
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:not(.bes-compact-side-drawer) {
@@ -30,31 +36,38 @@
 
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-side-drawer {
     --bes-ws-modal-width: var(--bes-ws-side-width);
-    width: min(var(--bes-ws-side-width), calc(100vw - 24px)) !important;
-    max-width: min(var(--bes-ws-side-width), calc(100vw - 24px)) !important;
-    height: calc(100dvh - 24px) !important;
-    max-height: calc(100dvh - 24px) !important;
+    width: min(var(--bes-ws-side-width), calc(100vw - 16px)) !important;
+    max-width: min(var(--bes-ws-side-width), calc(100vw - 16px)) !important;
+    height: calc(100dvh - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
     border-radius: 22px !important;
   }
 
-  /* Data-heavy dialogs get the larger 16:9 canvas. */
+  /* Data-heavy drawers use almost the whole 16:9 canvas. */
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has(table),
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="table"]),
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="grid"]),
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="statistics"]),
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="submission"]) {
-    --bes-ws-modal-width: 1180px;
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="submission"]),
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="filter"]) {
+    --bes-ws-modal-width: 1680px;
+    width: min(1680px, calc(100vw - 24px)) !important;
+    max-width: min(1680px, calc(100vw - 24px)) !important;
   }
 
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header {
     flex: 0 0 auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     padding: 20px var(--bes-ws-pad-x) 16px !important;
     gap: 12px !important;
   }
 
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-body {
     flex: 1 1 auto !important;
+    min-width: 0 !important;
     min-height: 0 !important;
+    max-width: 100% !important;
     padding: 18px var(--bes-ws-pad-x) 22px !important;
     gap: 16px !important;
     overflow: auto !important;
@@ -64,6 +77,8 @@
 
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-footer {
     flex: 0 0 auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     padding: 14px var(--bes-ws-pad-x) 18px !important;
     gap: 10px !important;
   }
@@ -73,7 +88,8 @@
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header h3,
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header [class$="-title"],
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header [class*="-title "] {
-    font-size: clamp(1.45rem, 2vw, 1.8rem) !important;
+    margin-block: 0 !important;
+    font-size: clamp(1.45rem, 2vw, 1.85rem) !important;
     line-height: 1.18 !important;
     letter-spacing: -.025em !important;
   }
@@ -97,6 +113,7 @@
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay select {
     width: 100% !important;
     min-width: 0 !important;
+    max-width: 100% !important;
     min-height: var(--bes-ws-control-h) !important;
     height: var(--bes-ws-control-h) !important;
     padding: 10px 13px !important;
@@ -106,6 +123,9 @@
   }
 
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay textarea {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     min-height: 104px !important;
     padding: 12px 14px !important;
     border-radius: 12px !important;
@@ -116,6 +136,7 @@
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay button,
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay [role="button"] {
     min-height: 44px !important;
+    max-width: 100% !important;
     font-size: .95rem !important;
   }
 
@@ -131,22 +152,53 @@
     border-radius: 12px !important;
   }
 
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay :where(form, fieldset, section, article, div) {
-    min-width: 0;
-  }
-
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay :where([class*="grid"], [class*="filters"], [class*="controls"], [class*="toolbar"]) > * {
+  /* Nothing inside a drawer may force the drawer beyond the viewport. */
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay > *,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay :where(
+    form, fieldset, section, article, aside, nav, header, footer, main, div,
+    ul, ol, li, table, thead, tbody, tfoot, tr, td, th
+  ) {
     min-width: 0 !important;
-  }
-
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay :where(table, [class*="table-wrap"], [class*="table-scroll"]) {
     max-width: 100% !important;
   }
 
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay :where([class*="table-wrap"], [class*="table-scroll"]) {
+  /* Filter/form/toolbar rows wrap instead of being cropped at the right edge. */
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay :where(
+    [class*="filters"], [class*="filter-row"], [class*="filterbar"],
+    [class*="controls"], [class*="toolbar"], [class*="actions"],
+    [class*="form-row"], [class*="fields-row"], [class*="selectors"]
+  ) {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex-wrap: wrap !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)) !important;
+    overflow-x: visible !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay :where(
+    [class*="filters"], [class*="filter-row"], [class*="filterbar"],
+    [class*="controls"], [class*="toolbar"], [class*="actions"],
+    [class*="form-row"], [class*="fields-row"], [class*="selectors"]
+  ) > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Tables stay complete through local scrolling if their content is intrinsically wide. */
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay :where(
+    [class*="table-wrap"], [class*="table-scroll"], [class*="data-grid"],
+    [class*="horizontal-scroll"]
+  ) {
+    width: 100% !important;
+    max-width: 100% !important;
     overflow: auto !important;
     overscroll-behavior: contain !important;
     scrollbar-gutter: stable !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay table {
+    max-width: 100% !important;
   }
 
   /* Existing feature-specific compact rules are intentionally superseded. */
@@ -154,45 +206,65 @@
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.tth-share-modal,
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.launcher-link-form,
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.launcher-link-manager {
-    width: min(var(--bes-ws-modal-width), calc(100vw - 48px)) !important;
-    max-width: min(var(--bes-ws-modal-width), calc(100vw - 48px)) !important;
+    width: min(var(--bes-ws-modal-width), calc(100vw - 32px)) !important;
+    max-width: min(var(--bes-ws-modal-width), calc(100vw - 32px)) !important;
     height: auto !important;
-    max-height: calc(100dvh - 40px) !important;
+    max-height: calc(100dvh - 24px) !important;
   }
 
   .shared-chatbot-drawer-v1167.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-side-drawer,
   .android-detail-panel.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-side-drawer {
-    width: min(var(--bes-ws-side-width), calc(100vw - 24px)) !important;
-    max-width: min(var(--bes-ws-side-width), calc(100vw - 24px)) !important;
+    width: min(var(--bes-ws-side-width), calc(100vw - 16px)) !important;
+    max-width: min(var(--bes-ws-side-width), calc(100vw - 16px)) !important;
   }
 }
 
-/* Use additional horizontal room on classroom TVs / 16:9 desktop displays. */
+/* On desktop/TV 16:9, prioritise complete horizontal visibility over empty margins. */
 @media (min-width: 1180px) and (min-aspect-ratio: 4 / 3) {
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay {
-    --bes-ws-modal-width: 1040px;
-    --bes-ws-side-width: 640px;
+    --bes-ws-modal-width: 1160px;
+    --bes-ws-side-width: 700px;
   }
 
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has(table),
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="table"]),
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="grid"]),
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="statistics"]),
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="submission"]) {
-    --bes-ws-modal-width: 1240px;
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="submission"]),
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="filter"]) {
+    --bes-ws-modal-width: 1680px;
+    width: min(1680px, calc(100vw - 24px)) !important;
+    max-width: min(1680px, calc(100vw - 24px)) !important;
   }
 }
 
-/* Mobile remains compact and single-column; only improve legibility. */
+/* Mobile stays single-column and fully inside the visual viewport. */
 @media (max-width: 699px) {
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay {
+    width: calc(100vw - 8px) !important;
+    max-width: calc(100vw - 8px) !important;
+    max-height: calc(100dvh - 8px) !important;
     font-size: 16px !important;
+    overflow: auto !important;
+    scrollbar-gutter: stable !important;
   }
 
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay input,
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay select,
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay textarea,
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay button {
+    max-width: 100% !important;
     font-size: 16px !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay :where(
+    [class*="filters"], [class*="filter-row"], [class*="filterbar"],
+    [class*="controls"], [class*="toolbar"], [class*="actions"],
+    [class*="form-row"], [class*="fields-row"], [class*="selectors"]
+  ) {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex-wrap: wrap !important;
+    grid-template-columns: 1fr !important;
   }
 }
