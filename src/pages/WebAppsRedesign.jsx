@@ -17,7 +17,8 @@ import {
 import { HIDDEN_APPS_FOLDER, appVisibilityId } from '../data/appVisibilityRegistry.js';
 import { getHiddenAppIds } from '../utils/appVisibility.js';
 import { APP_ORDER, ROUTE_APPS, copy, defaultGroupOf, descOf, launch, shortDesc, targetFor, titleOf } from './appsDirectoryData.js';
-import { AppWindowCard, AppsDirectoryHero, GroupRail, LauncherStyleSelector, TopMenu } from './appsDirectoryComponents.jsx';
+import { AppsDirectoryHero, GroupRail, LauncherStyleSelector, TopMenu } from './appsDirectoryComponents.jsx';
+import AppListRow from './appsDirectoryListComponents.jsx';
 
 export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, currentUser, setLanguage, appVisibility: externalAppVisibility }) {
   const t = copy[language] || copy.vi;
@@ -218,13 +219,13 @@ export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, curr
         {notice && <div className="launcher-notice">{notice}</div>}
       </section>}
 
-      {editMode && <section className="flat-apps-group-rail launcher-group-rail" aria-label="Workflow groups">
+      <section className="flat-apps-group-rail launcher-group-rail" aria-label="Workflow groups">
         <GroupRail group={{ id: 'all', label: 'All apps', labelVi: 'Tất cả', accent: '#191515' }} count={visibleItems.length} language={language} active={activeGroup === 'all'} onClick={() => setActiveGroup('all')} />
         {groupOptions.map((group) => <GroupRail key={group.id} group={group} count={groupCounts[group.id] || 0} language={language} active={activeGroup === group.id} onClick={() => setActiveGroup(group.id)} />)}
-      </section>}
+      </section>
 
-      <main id="apps-directory-grid" className="flat-apps-collage-grid launcher-custom-grid apps-directory-grid-native" aria-label="Application windows">
-        {filteredItems.map((item) => <AppWindowCard key={`${item.route || 'tool'}-${item.slug}`} item={item} language={language} currentUser={currentUser} editMode={editMode} config={workingConfig} groupOptions={groupOptions} onTogglePin={togglePin} onToggleHidden={toggleHidden} onToggleNav={toggleNav} onAssignGroup={assignGroup} onDragStart={onDragStart} onDrop={onDrop} />)}
+      <main id="apps-directory-grid" className="apps-directory-list-native" aria-label="Application list">
+        {filteredItems.map((item) => <AppListRow key={`${item.route || 'tool'}-${item.slug}`} item={item} language={language} currentUser={currentUser} editMode={editMode} config={workingConfig} groupOptions={groupOptions} onTogglePin={togglePin} onToggleHidden={toggleHidden} onToggleNav={toggleNav} onAssignGroup={assignGroup} onDragStart={onDragStart} onDrop={onDrop} />)}
         {!filteredItems.length && <div className="launcher-empty-group">{searchQuery ? t.noSearch : t.empty}</div>}
       </main>
 
