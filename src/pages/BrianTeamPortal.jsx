@@ -7,6 +7,7 @@ import './BrianTeamPortal.css';
 import './MonthlyReportsManager.css';
 import './MonthlyReportsTemplate.css';
 import './MonthlyReportsWorkspaceModern.css';
+import './MonthlyReportsWorkspaceModernV2.css';
 
 export default function BrianTeamPortal(props) {
   const { currentUser } = props;

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { hasToolAccess } from '../utils/permissions.js';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import { launchRoute } from '../utils/motion.js';
+import './GlobalReportsNavigationTab.css';
 
 export default function GlobalReportsNavigationTab({
   currentUser,
