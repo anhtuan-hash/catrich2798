@@ -75,7 +75,6 @@ import './GlobalWeeklyPracticeSimple.css';
 import './GlobalWeeklyPracticeStudentProof.css';
 import './GlobalWorkHubGoogleHeroV2.css';
 import './GlobalWorkHubViewportModal.css';
-import './GlobalScrollPerformance.css';
 import './GlobalNavigationOverlayLayer.css';
 import './GlobalWorkHubViewportModalFinal.css';
 import './GlobalWorkHubModalAnchor.css';
@@ -92,6 +91,9 @@ import './GlobalBrianHub.css';
 import './GlobalCatRichHeaderVisibilityFix.css';
 // Seating Chart Studio chart-first visual layer. Frontend only.
 import '../pages/SeatingChartStudioFocus.css';
+// Performance guard MUST be the final visual layer so premium theme files cannot
+// re-enable expensive blur/filter/animation effects on Balanced/Low mode.
+import './GlobalScrollPerformance.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
