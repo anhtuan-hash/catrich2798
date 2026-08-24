@@ -16,6 +16,7 @@ import {
 
 const MAX_WAIT_MS = 20000;
 const STARTED_AT = Date.now();
+const COMPACT_DRAWER_RUNTIME_ENABLED = import.meta.env.VITE_COMPACT_DRAWER_RUNTIME === 'true';
 let externalAppsLoaded = false;
 let externalAppsScheduled = false;
 let compactDrawerRuntimeLoaded = false;
@@ -73,10 +74,10 @@ function refreshSiteFontInBackground(cachedFont) {
 }
 
 function loadRouteModules() {
-  // The Applications route no longer uses legacy compact drawers. Keeping that
-  // runtime off this route avoids installing a document-wide MutationObserver
-  // while the dense app directory is mounting and scrolling.
-  if (!isAppsRoute()) loadCompactDrawerRuntimeAfterMainShell();
+  // The legacy compact-drawer scanner is now opt-in. It installed a
+  // document-wide MutationObserver and repeatedly scanned dense pages.
+  // Individual dialogs keep their native styling when the flag is off.
+  if (COMPACT_DRAWER_RUNTIME_ENABLED && !isAppsRoute()) loadCompactDrawerRuntimeAfterMainShell();
   if (isAppsRoute()) loadExternalAppsAfterMainShell();
 
   if (isAssignedClassRoute()) startAssignedClassSync().catch(() => {});
@@ -140,7 +141,7 @@ function startAssignedClassSync() {
 }
 
 function loadCompactDrawerRuntimeAfterMainShell() {
-  if (compactDrawerRuntimeLoaded || compactDrawerRuntimeScheduled || isAppsRoute()) return;
+  if (!COMPACT_DRAWER_RUNTIME_ENABLED || compactDrawerRuntimeLoaded || compactDrawerRuntimeScheduled || isAppsRoute()) return;
 
   const mainShellReady = Boolean(document.querySelector('#root .app-shell'));
   if (!mainShellReady) {
@@ -165,7 +166,7 @@ function loadCompactDrawerRuntimeAfterMainShell() {
 }
 
 function loadExternalAppsAfterMainShell() {
-  if (externalAppsLoaded || externalAppsScheduled) return;
+  if (!isAppsRoute() || externalAppsLoaded || externalAppsScheduled) return;
 
   const mainShellReady = Boolean(document.querySelector('#root .app-shell'));
   if (!mainShellReady) {
@@ -176,12 +177,9 @@ function loadExternalAppsAfterMainShell() {
   }
 
   externalAppsScheduled = true;
-  // On the Applications page, load approved apps near the first paint instead
-  // of injecting them ~2.6s later. This removes the late layout shift/jank.
-  const idleDelay = isAppsRoute() ? 220 : 2600;
   runWhenIdle(async () => {
     externalAppsScheduled = false;
-    if (externalAppsLoaded) return;
+    if (externalAppsLoaded || !isAppsRoute()) return;
     externalAppsLoaded = true;
     try {
       await import('./externalAppsBootstrap.jsx');
@@ -192,7 +190,7 @@ function loadExternalAppsAfterMainShell() {
         detail: { message: String(error?.message || error || 'Unknown external bootstrap error') },
       }));
     }
-  }, idleDelay);
+  }, 220);
 }
 
 async function startApplication() {
@@ -211,7 +209,7 @@ async function startApplication() {
 
   await mainModulePromise;
   installRouteModuleLoader();
-  loadExternalAppsAfterMainShell();
+  if (isAppsRoute()) loadExternalAppsAfterMainShell();
 }
 
 if (document.readyState === 'loading') {
