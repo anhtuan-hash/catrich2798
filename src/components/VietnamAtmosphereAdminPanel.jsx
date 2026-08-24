@@ -48,21 +48,23 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
   const fileInputRef = useRef(null);
   const messageTimerRef = useRef(null);
 
-  const onAdminRoute = route === 'admin';
-  const canManage = onAdminRoute && canManageVietnamAtmosphere(currentUser);
+  // The standalone Admin route is now a compatibility alias that redirects to
+  // System Settings. Keep this administrator-only tool available in both places.
+  const onManagementRoute = route === 'admin' || route === 'settings';
+  const canManage = onManagementRoute && canManageVietnamAtmosphere(currentUser);
 
   useEffect(() => {
     const onHashChange = () => {
       const nextRoute = currentRoute();
       setRoute(nextRoute);
-      if (nextRoute !== 'admin') setOpen(false);
+      if (nextRoute !== 'admin' && nextRoute !== 'settings') setOpen(false);
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
   useEffect(() => {
-    if (!onAdminRoute) return undefined;
+    if (!onManagementRoute) return undefined;
     let active = true;
     initializeAuthSession().then((user) => {
       if (active) setCurrentUser(user);
@@ -74,7 +76,7 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
       active = false;
       unsubscribe?.();
     };
-  }, [onAdminRoute]);
+  }, [onManagementRoute]);
 
   useEffect(() => {
     let active = true;
