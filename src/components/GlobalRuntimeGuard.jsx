@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useEffect, useState } from 'react';
 import './BulkTeacherAccountsPanelCompact.css';
 import '../styles/TopChromeDividerFix.css';
 import { recordRuntimeError } from '../utils/runtimeDiagnostics.js';
+import { resolvePerformanceMode } from '../utils/performanceProfile.js';
 
 const VietnamAtmosphereOverlay = lazy(() => import('./VietnamAtmosphereOverlay.jsx'));
 const VietnamAtmosphereAdminPanel = lazy(() => import('./VietnamAtmosphereAdminPanel.jsx'));
@@ -50,7 +51,13 @@ export default function GlobalRuntimeGuard({ language = 'vi' }) {
   }, []);
 
   useEffect(() => {
-    if (navigator.connection?.saveData) return undefined;
+    // The cultural atmosphere is a full-viewport animated compositor layer.
+    // Never mount it in Auto/Balanced/Low: users must explicitly choose High.
+    if (navigator.connection?.saveData || resolvePerformanceMode() !== 'high') {
+      setDecorationsReady(false);
+      return undefined;
+    }
+
     const reveal = () => setDecorationsReady(true);
     if (typeof window.requestIdleCallback === 'function') {
       const id = window.requestIdleCallback(reveal, { timeout: 1400 });
