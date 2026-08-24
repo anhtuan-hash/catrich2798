@@ -1,105 +1,180 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import SettingsAppearanceEngine from './SettingsAppearanceEngine.jsx';
 import './GlobalSettingsAppearanceBridge.css';
 
-const SLOT_CLASS = 'settings-engine-portal-slot';
-const HIDDEN_ATTR = 'data-settings-engine-duplicate';
+const AdminPage = lazy(() => import('../pages/AdminPage.jsx'));
 
-function normalizedText(node) {
+const HOST_ID = 'settings-admin-merge-host';
+const NAV_SLOT_ID = 'settings-admin-merge-nav';
+const HIDDEN_NAV_ATTR = 'data-admin-merged-hidden';
+
+function isAdminUser(user) {
+  return String(user?.role || '').trim().toLowerCase() === 'admin';
+}
+
+function normalizeText(node) {
   return String(node?.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
-function hideDuplicateSystemRows() {
-  const systemCard = document.querySelector('#settings-system');
-  if (!systemCard) return [];
+function hideStandaloneAdminNavigation() {
   const hidden = [];
-  systemCard.querySelectorAll('.settings-m3-row').forEach((row) => {
-    const text = normalizedText(row);
-    if (text.includes('chế độ hiệu năng') || text.includes('performance mode') || text.startsWith('chuyển cảnh') || text.startsWith('motion')) {
-      row.setAttribute(HIDDEN_ATTR, 'true');
-      row.hidden = true;
-      hidden.push(row);
+  document.querySelectorAll('.brian-nav__primary button').forEach((button) => {
+    const text = normalizeText(button);
+    if (text === 'quản trị' || text === 'admin') {
+      button.setAttribute(HIDDEN_NAV_ATTR, 'true');
+      button.hidden = true;
+      hidden.push(button);
     }
   });
   return hidden;
 }
 
+function restoreStandaloneAdminNavigation(nodes) {
+  nodes.forEach((button) => {
+    if (!button?.isConnected) return;
+    button.hidden = false;
+    button.removeAttribute(HIDDEN_NAV_ATTR);
+  });
+}
+
+function scrollToSelector(selector) {
+  const target = selector === `#${HOST_ID}`
+    ? document.getElementById(HOST_ID)
+    : document.querySelector(selector);
+  target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 export default function GlobalSettingsAppearanceBridge(props) {
-  const [target, setTarget] = useState(null);
+  const admin = isAdminUser(props.currentUser);
+  const [portalTargets, setPortalTargets] = useState({ host: null, nav: null });
+
+  const adminItems = useMemo(() => [
+    { id: 'overview', label: props.language === 'vi' ? 'Quản trị hệ thống' : 'System administration', target: `#${HOST_ID}` },
+    { id: 'requests', label: props.language === 'vi' ? 'Yêu cầu truy cập' : 'Access requests', target: '#admin-v41-requests' },
+    { id: 'permissions', label: props.language === 'vi' ? 'Phân quyền' : 'Permissions', target: '#admin-v41-permissions' },
+    { id: 'accounts', label: props.language === 'vi' ? 'Tài khoản hệ thống' : 'System accounts', target: '#admin-v41-accounts' },
+    { id: 'security', label: props.language === 'vi' ? 'Nhật ký & bảo mật' : 'Logs & security', target: '#admin-v41-security' },
+  ], [props.language]);
 
   useEffect(() => {
-    if (props.route !== 'settings') {
-      setTarget(null);
-      return undefined;
+    const hiddenButtons = [];
+    let timer = 0;
+    let attempts = 0;
+    let host = null;
+    let navSlot = null;
+    let cancelled = false;
+
+    const hideAdminButton = () => {
+      hideStandaloneAdminNavigation().forEach((button) => {
+        if (!hiddenButtons.includes(button)) hiddenButtons.push(button);
+      });
+    };
+
+    // The standalone Admin route remains a compatibility alias only. Admins are
+    // sent to the unified System Settings center instead of a second console.
+    if (props.route === 'admin' && admin) {
+      hideAdminButton();
+      timer = window.setTimeout(() => {
+        if (!cancelled) window.location.hash = '#/settings?section=admin';
+      }, 0);
+      return () => {
+        cancelled = true;
+        window.clearTimeout(timer);
+        restoreStandaloneAdminNavigation(hiddenButtons);
+      };
     }
 
-    let observer;
-    let card;
-    let slot;
-    let hiddenRows = [];
-
     const mount = () => {
-      card = document.querySelector('#settings-appearance');
-      if (!card) return false;
+      if (cancelled) return true;
+      hideAdminButton();
 
-      slot = card.querySelector(`.${SLOT_CLASS}`);
-      if (!slot) {
-        slot = document.createElement('div');
-        slot.className = SLOT_CLASS;
-        const header = card.querySelector('.settings-m3-card-head');
-        header?.insertAdjacentElement('afterend', slot);
-        if (!slot.isConnected) card.prepend(slot);
+      if (props.route !== 'settings' || !admin) {
+        setPortalTargets({ host: null, nav: null });
+        return true;
       }
 
-      card.classList.add('has-integrated-appearance-engine');
-      card.querySelectorAll(':scope > .bes-quick-appearance').forEach((panel) => panel.setAttribute('aria-hidden', 'true'));
-      hiddenRows = hideDuplicateSystemRows();
-      setTarget(slot);
+      const settingsMain = document.querySelector('.settings-google-main');
+      const settingsNav = document.querySelector('.settings-google-sidebar nav');
+      if (!settingsMain || !settingsNav) return false;
+
+      host = document.getElementById(HOST_ID);
+      if (!host) {
+        host = document.createElement('section');
+        host.id = HOST_ID;
+        host.className = 'settings-admin-merge-host';
+        host.setAttribute('aria-label', props.language === 'vi' ? 'Quản trị hệ thống' : 'System administration');
+        const footer = settingsMain.querySelector('.settings-google-footer');
+        settingsMain.insertBefore(host, footer || null);
+      }
+
+      navSlot = document.getElementById(NAV_SLOT_ID);
+      if (!navSlot) {
+        navSlot = document.createElement('div');
+        navSlot.id = NAV_SLOT_ID;
+        navSlot.className = 'settings-admin-merge-nav';
+        settingsNav.appendChild(navSlot);
+      }
+
+      setPortalTargets({ host, nav: navSlot });
+
+      if (window.location.hash.includes('section=admin')) {
+        window.requestAnimationFrame(() => host?.scrollIntoView({ behavior: 'auto', block: 'start' }));
+      }
       return true;
     };
 
-    if (!mount()) {
-      observer = new MutationObserver(() => {
-        if (mount()) observer?.disconnect();
-      });
-      observer.observe(document.body, { childList: true, subtree: true });
-    }
+    const tryMount = () => {
+      if (mount()) return;
+      attempts += 1;
+      if (attempts < 32) timer = window.setTimeout(tryMount, 75);
+    };
 
-    const cleanupObserver = new MutationObserver(() => {
-      document.querySelectorAll('#settings-appearance > .bes-quick-appearance').forEach((panel) => panel.setAttribute('aria-hidden', 'true'));
-      hideDuplicateSystemRows();
-    });
-    cleanupObserver.observe(document.body, { childList: true, subtree: true });
+    tryMount();
 
     return () => {
-      observer?.disconnect();
-      cleanupObserver.disconnect();
-      card?.classList.remove('has-integrated-appearance-engine');
-      hiddenRows.forEach((row) => { row.hidden = false; row.removeAttribute(HIDDEN_ATTR); });
-      slot?.remove();
-      setTarget(null);
+      cancelled = true;
+      window.clearTimeout(timer);
+      setPortalTargets({ host: null, nav: null });
+      navSlot?.remove();
+      host?.remove();
+      restoreStandaloneAdminNavigation(hiddenButtons);
     };
-  }, [props.route]);
+  }, [props.route, props.language, admin]);
 
-  if (!target) return null;
-  return createPortal(
-    <SettingsAppearanceEngine
-      language={props.language}
-      setAccent={(value) => {
-        try { localStorage.setItem('bes-accent-color', value); } catch { /* optional */ }
-        document.documentElement.dataset.accent = value;
-      }}
-      setDensity={(value) => {
-        try { localStorage.setItem('bes-display-density', value); } catch { /* optional */ }
-        document.documentElement.dataset.density = value;
-      }}
-      setMotionMode={props.setMotionMode}
-      setPerformanceMode={props.setPerformanceMode}
-      setThemeIntensity={props.setThemeIntensity}
-      setTileBorder={props.setTileBorder}
-      setFontScale={props.setFontScale}
-    />,
-    target,
+  if (!admin || props.route !== 'settings' || !portalTargets.host || !portalTargets.nav) return null;
+
+  return (
+    <>
+      {createPortal(
+        <>
+          <div className="settings-admin-merge-label">{props.language === 'vi' ? 'QUẢN TRỊ' : 'ADMIN'}</div>
+          {adminItems.map((item) => (
+            <button key={item.id} type="button" className="settings-admin-merge-nav-button" onClick={() => scrollToSelector(item.target)}>
+              <span aria-hidden="true">{item.id === 'overview' ? '⚙' : item.id === 'requests' ? '◎' : item.id === 'permissions' ? '◈' : item.id === 'accounts' ? '👤' : '◔'}</span>
+              <div><strong>{item.label}</strong></div>
+            </button>
+          ))}
+        </>,
+        portalTargets.nav,
+      )}
+
+      {createPortal(
+        <>
+          <div className="settings-admin-merge-heading">
+            <span>{props.language === 'vi' ? 'ADMIN CENTER' : 'ADMIN CENTER'}</span>
+            <div>
+              <h2>{props.language === 'vi' ? 'Quản trị hệ thống' : 'System administration'}</h2>
+              <p>{props.language === 'vi'
+                ? 'Duyệt yêu cầu, phân quyền và quản lý tài khoản ngay trong Cài đặt hệ thống.'
+                : 'Review requests, manage permissions and maintain system accounts inside System Settings.'}</p>
+            </div>
+          </div>
+          <Suspense fallback={<div className="settings-admin-merge-loading">{props.language === 'vi' ? 'Đang tải công cụ quản trị…' : 'Loading administration tools…'}</div>}>
+            <AdminPage language={props.language} currentUser={props.currentUser} />
+          </Suspense>
+        </>,
+        portalTargets.host,
+      )}
+    </>
   );
 }
