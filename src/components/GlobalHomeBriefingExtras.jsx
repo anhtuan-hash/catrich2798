@@ -85,25 +85,28 @@ export default function GlobalHomeBriefingExtras({ route, language = 'vi' }) {
     setTarget(null);
     if (!route || typeof document === 'undefined') return undefined;
 
-    let frame = 0;
     let cancelled = false;
-    let attempts = 0;
+    const timers = [];
 
     const findTarget = () => {
-      if (cancelled) return;
+      if (cancelled) return true;
       const node = document.querySelector('.app-shell[data-route] .brian-briefing-bar__context');
-      if (node) {
-        setTarget(node);
-        return;
-      }
-      attempts += 1;
-      if (attempts < 60) frame = window.requestAnimationFrame(findTarget);
+      if (!node) return false;
+      setTarget(node);
+      return true;
     };
 
-    findTarget();
+    // One immediate pass plus two delayed passes is enough for lazy briefing
+    // content without burning up to 60 consecutive animation frames.
+    if (!findTarget()) {
+      [120, 500, 1200].forEach((delay) => {
+        timers.push(window.setTimeout(findTarget, delay));
+      });
+    }
+
     return () => {
       cancelled = true;
-      if (frame) window.cancelAnimationFrame(frame);
+      timers.forEach((timer) => window.clearTimeout(timer));
     };
   }, [route]);
 
