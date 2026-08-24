@@ -179,6 +179,12 @@ function loadRouteStyles() {
       () => import('./components/GlobalWordGraphGoogleM3.css'),
     ]);
   }
+
+  if (hash.includes('seating-chart-studio')) {
+    loadStyleGroup('seating-chart-studio', [
+      () => import('./pages/SeatingChartStudioFocus.css'),
+    ]);
+  }
 }
 
 async function preparePreferredHomeroomBeforeMain() {
