@@ -8,6 +8,7 @@ import ExternalWebAppManager from './ExternalWebAppManagerV2.jsx';
 import ExternalWebAppViewer from './ExternalWebAppViewer.jsx';
 import './ExternalWebApps.css';
 import './ExternalAppApprovalRestore.css';
+import './ApprovedExternalAppsList.css';
 
 const GROUPS = {
   plan: { label: 'Soạn bài', accent: '#1a73e8' },
@@ -48,7 +49,7 @@ function WebsiteAppCard({ app, onOpen, language = 'vi' }) {
   const description = app.descVi || app.description || (language === 'vi'
     ? 'Ứng dụng đã được TTCM duyệt và có thể chạy trực tiếp trong Brian.'
     : 'Approved by the department head and available directly in Brian.');
-  const sourceLabel = htmlApp ? 'HTML' : (language === 'vi' ? 'Website' : 'Website');
+  const sourceLabel = htmlApp ? 'HTML' : 'Website';
   const groupLabel = group?.label || (htmlApp ? 'Ứng dụng HTML' : 'Ứng dụng website');
 
   return (
