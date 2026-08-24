@@ -6,6 +6,7 @@ import PersonnelHub from './PersonnelHub.jsx';
 import './BrianTeamPortal.css';
 import './MonthlyReportsManager.css';
 import './MonthlyReportsTemplate.css';
+import './MonthlyReportsWorkspaceModern.css';
 
 export default function BrianTeamPortal(props) {
   const { currentUser } = props;
