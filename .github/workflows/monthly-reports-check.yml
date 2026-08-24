@@ -1,0 +1,29 @@
+name: Monthly reports check
+
+on:
+  pull_request:
+    paths:
+      - 'src/pages/BrianTeamPortal.*'
+      - 'src/pages/MonthlyReportsWorkspace.*'
+      - 'src/pages/ToolPage.jsx'
+      - 'src/utils/monthlyReports.js'
+      - 'supabase/brian-monthly-reports.sql'
+      - 'scripts/test-monthly-reports-contract.mjs'
+      - '.github/workflows/monthly-reports-check.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Monthly report contract
+        run: node scripts/test-monthly-reports-contract.mjs
+      - name: Production build
+        run: npm run build
