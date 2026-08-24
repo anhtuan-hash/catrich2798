@@ -1,0 +1,4 @@
+/* The standalone Games route has been retired. Games now live in Applications. */
+.flat-apps-menu .flat-nav-links > .flat-nav-link:nth-child(3) {
+  display: none !important;
+}
