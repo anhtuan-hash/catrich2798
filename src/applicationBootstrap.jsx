@@ -1,4 +1,5 @@
 import './tabResumeStability.js';
+import './noCreamSurfaceRuntime.js';
 import './styles/WidescreenDrawerReadability.css';
 import './tabResumeAuthStability.js';
 import './fourClassLocalPurge.js';
@@ -6,6 +7,7 @@ import './directClassRosterImportBootstrap.js';
 import './removeKnowledgeHubRuntime.js';
 import './tesolMethodRouteRegistry.js';
 import './styles/MotionRestore.css';
+import './components/GlobalHomeroomMaterial3Refinement.css';
 import {
   installSiteFontFromCache,
   loadSiteFontSetting,
@@ -18,15 +20,11 @@ let externalAppsLoaded = false;
 let externalAppsScheduled = false;
 let compactDrawerRuntimeLoaded = false;
 let compactDrawerRuntimeScheduled = false;
-let compactDrawerInteractionArmed = false;
-let appearanceRuntimeLoaded = false;
-let appearanceRuntimeScheduled = false;
 let applicationStarted = false;
 let schoolRegistryLoaded = false;
 let homeroomExtrasLoaded = false;
 let routeListenerInstalled = false;
 let assignedClassSyncPromise = null;
-const routeStylesLoaded = new Set();
 
 function runWhenIdle(callback, timeout = 1800) {
   if (typeof window.requestIdleCallback === 'function') {
@@ -36,155 +34,20 @@ function runWhenIdle(callback, timeout = 1800) {
   window.setTimeout(callback, Math.min(timeout, 650));
 }
 
-function currentHash() {
-  return String(window.location.hash || '').toLowerCase();
-}
-
 function isHomeroomRoute() {
-  return /homeroom|chu-nhiem|gvcn/i.test(currentHash());
+  return /homeroom|chu-nhiem|gvcn/i.test(window.location.hash || '');
 }
 
 function isBrianTeamRoute() {
-  return /brian-team|personnel-hub|work-hub/i.test(currentHash());
+  return /brian-team|personnel-hub|work-hub/i.test(window.location.hash || '');
 }
 
 function isAppsRoute() {
-  return /(^|\/)apps(?:$|[/?#])|applications/i.test(currentHash());
-}
-
-function isAdminRoute() {
-  return /#\/admin(?:$|[/?#])/i.test(currentHash());
-}
-
-function isNewsRoute() {
-  return /#\/news(?:$|[/?#])/i.test(currentHash());
-}
-
-function isGamesRoute() {
-  return /#\/games(?:$|[/?#])/i.test(currentHash());
-}
-
-function isDashboardRoute() {
-  return /#\/dashboard(?:$|[/?#])/i.test(currentHash());
-}
-
-function isWorkHubRoute() {
-  return /#\/work-hub(?:$|[/?#])/i.test(currentHash());
-}
-
-function isLightweightPublicRoute() {
-  return /#\/(?:home|contact|login|register|setup|resources)(?:$|[/?#])/i.test(currentHash());
+  return /(^|\/)apps(?:$|[/?#])|applications/i.test(window.location.hash || '');
 }
 
 function isAssignedClassRoute() {
   return isHomeroomRoute() || isBrianTeamRoute();
-}
-
-function loadStyleGroup(key, loaders) {
-  if (routeStylesLoaded.has(key)) return;
-  routeStylesLoaded.add(key);
-  Promise.all(loaders.map((loader) => loader())).catch((error) => {
-    routeStylesLoaded.delete(key);
-    console.warn(`[RouteStyles] ${key} styles failed to load.`, error);
-  });
-}
-
-function loadRouteStyles() {
-  const hash = currentHash();
-
-  if (isHomeroomRoute()) {
-    loadStyleGroup('homeroom', [
-      () => import('./components/GlobalHomeroomMaterial3Refinement.css'),
-    ]);
-  }
-
-  if (isAdminRoute()) {
-    loadStyleGroup('admin', [
-      () => import('./styles/AdminSidebarInternalScroll.css'),
-      () => import('./styles/AdminWorkspaceViewportScroll.css'),
-      () => import('./styles/AdminCoreOverviewHidden.css'),
-      () => import('./styles/AdminCompactWorkspace2026.css'),
-    ]);
-  }
-
-  if (isAppsRoute()) {
-    loadStyleGroup('apps-shell', [
-      () => import('./components/GlobalAppsGoogle.css'),
-      () => import('./components/GlobalAppsContrastPolish.css'),
-      () => import('./components/GlobalAppsAndroidLauncher.css'),
-      () => import('./components/GlobalAppsWorkspaceRedesign.css'),
-      () => import('./components/GlobalAppsWorkspaceCompact.css'),
-      () => import('./components/GlobalAppsHorizontalLauncher.css'),
-      () => import('./components/GlobalAppsPhoneTiles.css'),
-      () => import('./components/GlobalAppsAndroidDrawer.css'),
-      () => import('./components/GlobalAppsRemoveQuickSearch.css'),
-    ]);
-  }
-
-  if (isNewsRoute()) {
-    loadStyleGroup('news', [
-      () => import('./styles/NewsReaderContainerWidthFix.css'),
-      () => import('./components/GlobalNewsAndroidGoogle.css'),
-      () => import('./components/GlobalNewsDrawerScroll.css'),
-    ]);
-  }
-
-  if (isGamesRoute()) {
-    loadStyleGroup('games', [
-      () => import('./styles/GamesTabletViewportFix.css'),
-    ]);
-  }
-
-  if (isDashboardRoute()) {
-    loadStyleGroup('dashboard', [
-      () => import('./styles/teacher-dashboard-google-v2.css'),
-      () => import('./components/GlobalDashboardVisualFix.css'),
-    ]);
-  }
-
-  if (isWorkHubRoute()) {
-    loadStyleGroup('work-hub', [
-      () => import('./components/GlobalWorkHubGoogleRedesign.css'),
-      () => import('./components/GlobalWorkScheduleModern.css'),
-      () => import('./components/GlobalWorkHubGoogleHeroV2.css'),
-      () => import('./components/GlobalWorkHubViewportModal.css'),
-      () => import('./components/GlobalWorkHubViewportModalFinal.css'),
-      () => import('./components/GlobalWorkHubModalAnchor.css'),
-      () => import('./components/GlobalWorkHubModalCenter.css'),
-    ]);
-  }
-
-  if (hash.includes('crossword-trial')) {
-    loadStyleGroup('crossword-trial', [
-      () => import('./styles/CrosswordTrialGoogleRedesign.css'),
-      () => import('./styles/CrosswordTrialNoPurpleFix.css'),
-    ]);
-  }
-
-  if (hash.includes('knowledge-train')) {
-    loadStyleGroup('knowledge-train', [
-      () => import('./styles/KnowledgeTrainGoogleRedesign.css'),
-      () => import('./styles/KnowledgeTrainBottomProgressCleanup.css'),
-    ]);
-  }
-
-  if (hash.includes('textlab-activities')) {
-    loadStyleGroup('textlab', [
-      () => import('./components/GlobalTextLabGoogleLarge.css'),
-    ]);
-  }
-
-  if (hash.includes('word2graph')) {
-    loadStyleGroup('word2graph', [
-      () => import('./components/GlobalWordGraphGoogleM3.css'),
-    ]);
-  }
-
-  if (hash.includes('seating-chart-studio')) {
-    loadStyleGroup('seating-chart-studio', [
-      () => import('./pages/SeatingChartStudioFocus.css'),
-    ]);
-  }
 }
 
 async function preparePreferredHomeroomBeforeMain() {
@@ -210,11 +73,10 @@ function refreshSiteFontInBackground(cachedFont) {
 }
 
 function loadRouteModules() {
-  loadRouteStyles();
-
-  // Compact-drawer normalization is no longer part of the initial route boot.
-  // Load it only after the first real interaction on routes that can need it.
-  if (!isAppsRoute() && !isLightweightPublicRoute()) armCompactDrawerRuntime();
+  // The Applications route no longer uses legacy compact drawers. Keeping that
+  // runtime off this route avoids installing a document-wide MutationObserver
+  // while the dense app directory is mounting and scrolling.
+  if (!isAppsRoute()) loadCompactDrawerRuntimeAfterMainShell();
   if (isAppsRoute()) loadExternalAppsAfterMainShell();
 
   if (isAssignedClassRoute()) startAssignedClassSync().catch(() => {});
@@ -277,59 +139,33 @@ function startAssignedClassSync() {
   return assignedClassSyncPromise;
 }
 
-function armCompactDrawerRuntime() {
-  if (
-    compactDrawerRuntimeLoaded
-    || compactDrawerRuntimeScheduled
-    || compactDrawerInteractionArmed
-    || isAppsRoute()
-    || isLightweightPublicRoute()
-  ) return;
-
-  compactDrawerInteractionArmed = true;
-
-  const cleanup = () => {
-    window.removeEventListener('pointerdown', trigger, true);
-    window.removeEventListener('keydown', trigger, true);
-  };
-
-  const trigger = () => {
-    cleanup();
-    compactDrawerInteractionArmed = false;
-    if (isAppsRoute() || isLightweightPublicRoute()) return;
-    loadCompactDrawerRuntimeAfterMainShell();
-  };
-
-  window.addEventListener('pointerdown', trigger, { capture: true, passive: true });
-  window.addEventListener('keydown', trigger, { capture: true });
-}
-
 function loadCompactDrawerRuntimeAfterMainShell() {
   if (compactDrawerRuntimeLoaded || compactDrawerRuntimeScheduled || isAppsRoute()) return;
 
   const mainShellReady = Boolean(document.querySelector('#root .app-shell'));
   if (!mainShellReady) {
     if (Date.now() - STARTED_AT < MAX_WAIT_MS) {
-      window.setTimeout(loadCompactDrawerRuntimeAfterMainShell, 180);
+      window.setTimeout(loadCompactDrawerRuntimeAfterMainShell, 140);
     }
     return;
   }
 
   compactDrawerRuntimeScheduled = true;
-  import('./compactDrawerRuntimeV3.js').then(() => {
-    compactDrawerRuntimeLoaded = true;
+  runWhenIdle(async () => {
     compactDrawerRuntimeScheduled = false;
-    window.BESCompactDrawer?.rescan?.();
-  }).catch((error) => {
-    compactDrawerRuntimeScheduled = false;
-    console.warn('[CompactDrawerV3] Interaction-triggered runtime failed to load.', error);
-  });
+    if (compactDrawerRuntimeLoaded || isAppsRoute()) return;
+    try {
+      await import('./compactDrawerRuntimeV3.js');
+      compactDrawerRuntimeLoaded = true;
+      window.BESCompactDrawer?.rescan?.();
+    } catch (error) {
+      console.warn('[CompactDrawerV3] Deferred runtime failed to load.', error);
+    }
+  }, 650);
 }
 
 function loadExternalAppsAfterMainShell() {
-  // Critical fix: externalAppsBootstrap used to be scheduled on every route from
-  // startApplication(). Keep the whole chunk exclusive to #/apps.
-  if (!isAppsRoute() || externalAppsLoaded || externalAppsScheduled) return;
+  if (externalAppsLoaded || externalAppsScheduled) return;
 
   const mainShellReady = Boolean(document.querySelector('#root .app-shell'));
   if (!mainShellReady) {
@@ -340,9 +176,12 @@ function loadExternalAppsAfterMainShell() {
   }
 
   externalAppsScheduled = true;
+  // On the Applications page, load approved apps near the first paint instead
+  // of injecting them ~2.6s later. This removes the late layout shift/jank.
+  const idleDelay = isAppsRoute() ? 220 : 2600;
   runWhenIdle(async () => {
     externalAppsScheduled = false;
-    if (!isAppsRoute() || externalAppsLoaded) return;
+    if (externalAppsLoaded) return;
     externalAppsLoaded = true;
     try {
       await import('./externalAppsBootstrap.jsx');
@@ -353,22 +192,7 @@ function loadExternalAppsAfterMainShell() {
         detail: { message: String(error?.message || error || 'Unknown external bootstrap error') },
       }));
     }
-  }, 220);
-}
-
-function scheduleAppearanceRuntime() {
-  if (appearanceRuntimeLoaded || appearanceRuntimeScheduled) return;
-  appearanceRuntimeScheduled = true;
-  runWhenIdle(async () => {
-    appearanceRuntimeScheduled = false;
-    if (appearanceRuntimeLoaded) return;
-    try {
-      await import('./noCreamSurfaceRuntime.js');
-      appearanceRuntimeLoaded = true;
-    } catch (error) {
-      console.warn('[NoCream] Deferred appearance runtime failed to load.', error);
-    }
-  }, 3600);
+  }, idleDelay);
 }
 
 async function startApplication() {
@@ -387,7 +211,7 @@ async function startApplication() {
 
   await mainModulePromise;
   installRouteModuleLoader();
-  scheduleAppearanceRuntime();
+  loadExternalAppsAfterMainShell();
 }
 
 if (document.readyState === 'loading') {

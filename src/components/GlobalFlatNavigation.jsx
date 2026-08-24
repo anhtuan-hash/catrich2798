@@ -32,36 +32,64 @@ import './GlobalHomeDashboardRemoval.css';
 import './GlobalHomeGooglePolish.css';
 import './GlobalHome16x9Fit.css';
 import './GlobalHomeOriginalFooter.css';
+import './GlobalAppsGoogle.css';
+import './GlobalAppsContrastPolish.css';
+import './GlobalAppsAndroidLauncher.css';
+import './GlobalAppsWorkspaceRedesign.css';
+import './GlobalAppsWorkspaceCompact.css';
+import './GlobalAppsHorizontalLauncher.css';
+import './GlobalAppsPhoneTiles.css';
+import './GlobalAppsAndroidDrawer.css';
+import './GlobalAppsRemoveQuickSearch.css';
+import './GlobalNewsAndroidGoogle.css';
+import './GlobalNewsDrawerScroll.css';
+import './GlobalTextLabGoogleLarge.css';
+import '../styles/teacher-dashboard-google-v2.css';
+import './GlobalDashboardVisualFix.css';
+import './GlobalWorkHubGoogleRedesign.css';
 import './GlobalNotificationCenterGoogleFinal.css';
 import './GlobalNotificationCenterNarrow.css';
 import './GlobalNotificationMenuLayerFix.css';
 import './GlobalNavigationFontScaleGuard.css';
 import './GlobalNavigationScrollableTabs.css';
+import './GlobalWordGraphGoogleM3.css';
 import './GlobalNotificationCountVisibilityFix.css';
 import './GlobalAutosaveGoogle.css';
 import './GlobalHomeAuroraV3.css';
+import './GlobalHomeBriefingContextFix.css';
+import './GlobalHomeBriefingUnderLogoFix.css';
 import './GlobalAuroraChrome.css';
 import './GlobalSeparatedPills.css';
+import './GlobalTickerRestore.css';
 import './GlobalNavigationPremiumV2.css';
 import './GlobalNavigationWholeHubAura.css';
 import './GlobalGuestWholeHubAuraFix.css';
+import './GlobalWorkScheduleModern.css';
 import './GlobalHomeViewportFit.css';
 import './GlobalWeeklyPractice.css';
 import './GlobalWeeklyPracticeStatistics.css';
 import './GlobalWeeklyPracticeStatisticsLaunchFix.css';
 import './GlobalWeeklyPracticeSimple.css';
 import './GlobalWeeklyPracticeStudentProof.css';
+import './GlobalWorkHubGoogleHeroV2.css';
+import './GlobalWorkHubViewportModal.css';
 import './GlobalScrollPerformance.css';
 import './GlobalNavigationOverlayLayer.css';
+import './GlobalWorkHubViewportModalFinal.css';
+import './GlobalWorkHubModalAnchor.css';
+import './GlobalWorkHubModalCenter.css';
 import './GlobalNavigationGoogleM3Polish.css';
 import './GlobalNavigationSearchPillRefinement.css';
 import './GlobalNavigationNoSearch.css';
 import './GlobalAdaptiveComfortScale.css';
 import './GlobalHomeComfortOverflowFix.css';
+// Absolute final contract: only the primary navigation row is fixed; the
+// briefing row remains visible in normal document flow.
 import './GlobalBrianHub.css';
+// Keep the catrich.mauxanh wordmark visible after every navigation theme.
 import './GlobalCatRichHeaderVisibilityFix.css';
-// Final site-wide contract: the legacy news briefing/ticker is retired everywhere.
-import './GlobalBriefingRemoval.css';
+// Seating Chart Studio chart-first visual layer. Frontend only.
+import '../pages/SeatingChartStudioFocus.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
