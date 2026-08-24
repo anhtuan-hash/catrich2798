@@ -17,7 +17,7 @@ const StudentPractice = lazy(() => import('./StudentPractice.jsx'));
 const AITool = lazy(() => import('./AITool.jsx'));
 const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
 const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
-const PersonnelHub = lazy(() => import('./PersonnelHub.jsx'));
+const BrianTeamPortal = lazy(() => import('./BrianTeamPortal.jsx'));
 const ClassroomScreenHost = lazy(() => import('./ClassroomScreenHost.jsx'));
 const FlyingWordsGame = lazy(() => import('./FlyingWordsContrast.jsx'));
 const CrosswordTrialGame = lazy(() => import('./CrosswordTrialGame.jsx'));
@@ -70,7 +70,7 @@ export default function ToolPage(props) {
   if (tool?.slug === 'seating-chart-studio') return renderLazy(SeatingChartStudio, props);
   if (tool?.slug === 'textlab-activities') return renderLazy(TextLabActivities, props);
   if (tool?.slug === 'thpt-practice-hub') return renderLazy(THPTPracticeHub, props);
-  if (['brian-team', 'personnel-hub'].includes(tool?.slug)) return renderLazy(PersonnelHub, props);
+  if (['brian-team', 'personnel-hub'].includes(tool?.slug)) return renderLazy(BrianTeamPortal, props);
   if (tool?.slug === 'classroom-screen') return renderLazy(ClassroomScreenHost, props);
   if (tool?.slug === 'flying-words') return renderLazy(FlyingWordsGame, props);
   if (tool?.slug === 'crossword-trial') return renderLazy(CrosswordTrialGame, props);
