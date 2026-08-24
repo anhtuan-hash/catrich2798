@@ -118,8 +118,8 @@ function useDeadlineCountdown(deadline) {
 }
 
 function DeadlineCard({ deadline }) {
-  if (!deadline) return null;
   const state = useDeadlineCountdown(deadline);
+  if (!deadline) return null;
   const formatted = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'full', timeStyle: 'short' }).format(new Date(deadline));
   return (
     <section className={`mr-deadline-card ${state.expired ? 'is-expired' : ''}`}>
