@@ -307,8 +307,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
 
 export function getFirstAllowedRoute(user) {
   if (!user) return 'login';
-  if (isAdminRole(user.role)) return 'admin';
-  return 'apps';
+  return 'dashboard';
 }
 
 export function summarizePermissions(user, language = 'vi') {
