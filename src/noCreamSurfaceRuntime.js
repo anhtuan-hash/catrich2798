@@ -1,13 +1,12 @@
 /*
- * Brian English — runtime near-white warm-surface neutralizer.
+ * Brian English — performance-first near-white warm-surface neutralizer.
  *
- * CSS handles known form controls. This runtime is the last line of defence for
- * lazy-loaded components, React portals, inline styles and open shadow roots.
- * It only converts very pale warm neutrals (cream/ivory) to white. Saturated
- * semantic yellow/orange surfaces are left alone.
+ * CSS handles known form controls. Runtime work is limited to the initial DOM
+ * and newly-added subtrees; it never watches class/style mutations or rescans
+ * the whole document on route changes.
  */
 
-const RUNTIME_FLAG = '__BES_NO_CREAM_RUNTIME_V1__';
+const RUNTIME_FLAG = '__BES_NO_CREAM_RUNTIME_V2__';
 const OBSERVED_ROOTS = new WeakSet();
 const pendingRoots = new Set();
 let frame = 0;
@@ -111,18 +110,12 @@ function neutralizeElement(element) {
   const background = parseRgb(style.backgroundColor);
   const isFormSurface = element.matches(FORM_SURFACE_SELECTOR);
 
-  /* Form controls are always white unless disabled/read-only; CSS also applies
-     this rule, but runtime setProperty defeats inline !important values. */
   if (isFormSurface) {
     const disabled = element.matches(':disabled') || element.matches('input:read-only,textarea:read-only');
     const target = disabled ? '#f7f9fc' : '#ffffff';
     const expectedRgb = disabled ? 'rgb(247, 249, 252)' : 'rgb(255, 255, 255)';
-    if (style.backgroundColor !== expectedRgb) {
-      element.style.setProperty('background-color', target, 'important');
-    }
-    if (style.backgroundImage !== 'none') {
-      element.style.setProperty('background-image', 'none', 'important');
-    }
+    if (style.backgroundColor !== expectedRgb) element.style.setProperty('background-color', target, 'important');
+    if (style.backgroundImage !== 'none') element.style.setProperty('background-image', 'none', 'important');
     element.dataset.besNoCream = 'form';
     return;
   }
@@ -153,13 +146,6 @@ function scanTree(root) {
       scanTree(element.shadowRoot);
     }
   });
-
-  queryRoot.querySelectorAll('*').forEach((element) => {
-    if (element.shadowRoot) {
-      observeRoot(element.shadowRoot);
-      scanTree(element.shadowRoot);
-    }
-  });
 }
 
 function flush() {
@@ -180,22 +166,18 @@ function schedule(root) {
 function observeRoot(root) {
   if (!root || OBSERVED_ROOTS.has(root)) return;
   OBSERVED_ROOTS.add(root);
+
   const observer = new MutationObserver((records) => {
     records.forEach((record) => {
-      if (record.type === 'attributes') {
-        schedule(record.target);
-        return;
-      }
       record.addedNodes.forEach((node) => {
         if (node.nodeType === Node.ELEMENT_NODE) schedule(node);
       });
     });
   });
+
   observer.observe(root, {
     childList: true,
     subtree: true,
-    attributes: true,
-    attributeFilter: ['class', 'style', 'open'],
   });
 }
 
@@ -211,8 +193,7 @@ export function installNoCreamSurfaceRuntime() {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
 
-  window.addEventListener('hashchange', () => schedule(document));
-  window.addEventListener('load', () => schedule(document), { once: true });
+  // Theme changes are rare and explicit; a single full pass here is acceptable.
   window.addEventListener('bes:appearance-changed', () => schedule(document));
 }
 
