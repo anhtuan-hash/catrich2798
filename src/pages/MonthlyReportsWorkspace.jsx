@@ -244,7 +244,7 @@ function TeacherMonthlyReports({ currentUser }) {
       </header>
 
       <section className="mr-hero">
-        <div><span><Sparkles /> {teacherName(currentUser)}</span><h2>{reportMonthLabel(month)}</h2><p>{context?.departmentName || 'Chưa xác định tổ chuyên môn'} · Năm học {payload.schoolYear}. Form được giữ theo đúng cấu trúc báo cáo: nhập số trong bảng, các đề mục còn lại chỉ cần viết ngắn gọn theo gợi ý.</p></div>
+        <div><span><Sparkles /> {teacherName(currentUser)}</span><h2>{reportMonthLabel(month)}</h2><p>{context?.departmentName || 'Chưa xác định tổ chuyên môn'} · Năm học {payload.schoolYear}</p></div>
         <ProgressMeter payload={payload} />
       </section>
 
