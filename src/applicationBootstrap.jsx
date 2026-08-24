@@ -73,6 +73,12 @@ function refreshSiteFontInBackground(cachedFont) {
 }
 
 function loadRouteModules() {
+  // The Applications route no longer uses legacy compact drawers. Keeping that
+  // runtime off this route avoids installing a document-wide MutationObserver
+  // while the dense app directory is mounting and scrolling.
+  if (!isAppsRoute()) loadCompactDrawerRuntimeAfterMainShell();
+  if (isAppsRoute()) loadExternalAppsAfterMainShell();
+
   if (isAssignedClassRoute()) startAssignedClassSync().catch(() => {});
   if (isBrianTeamRoute() && !schoolRegistryLoaded) {
     schoolRegistryLoaded = true;
@@ -134,7 +140,7 @@ function startAssignedClassSync() {
 }
 
 function loadCompactDrawerRuntimeAfterMainShell() {
-  if (compactDrawerRuntimeLoaded || compactDrawerRuntimeScheduled) return;
+  if (compactDrawerRuntimeLoaded || compactDrawerRuntimeScheduled || isAppsRoute()) return;
 
   const mainShellReady = Boolean(document.querySelector('#root .app-shell'));
   if (!mainShellReady) {
@@ -145,11 +151,9 @@ function loadCompactDrawerRuntimeAfterMainShell() {
   }
 
   compactDrawerRuntimeScheduled = true;
-  // The Apps directory mounts many cards at once. Let its first paint finish
-  // before installing the global MutationObserver used to discover legacy drawers.
   runWhenIdle(async () => {
     compactDrawerRuntimeScheduled = false;
-    if (compactDrawerRuntimeLoaded) return;
+    if (compactDrawerRuntimeLoaded || isAppsRoute()) return;
     try {
       await import('./compactDrawerRuntimeV3.js');
       compactDrawerRuntimeLoaded = true;
@@ -157,7 +161,7 @@ function loadCompactDrawerRuntimeAfterMainShell() {
     } catch (error) {
       console.warn('[CompactDrawerV3] Deferred runtime failed to load.', error);
     }
-  }, isAppsRoute() ? 1200 : 650);
+  }, 650);
 }
 
 function loadExternalAppsAfterMainShell() {
@@ -172,6 +176,9 @@ function loadExternalAppsAfterMainShell() {
   }
 
   externalAppsScheduled = true;
+  // On the Applications page, load approved apps near the first paint instead
+  // of injecting them ~2.6s later. This removes the late layout shift/jank.
+  const idleDelay = isAppsRoute() ? 220 : 2600;
   runWhenIdle(async () => {
     externalAppsScheduled = false;
     if (externalAppsLoaded) return;
@@ -185,7 +192,7 @@ function loadExternalAppsAfterMainShell() {
         detail: { message: String(error?.message || error || 'Unknown external bootstrap error') },
       }));
     }
-  }, 2600);
+  }, idleDelay);
 }
 
 async function startApplication() {
@@ -204,7 +211,6 @@ async function startApplication() {
 
   await mainModulePromise;
   installRouteModuleLoader();
-  loadCompactDrawerRuntimeAfterMainShell();
   loadExternalAppsAfterMainShell();
 }
 
