@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { launchRoute } from '../utils/motion.js';
+import usePrimaryNavigationHost from './usePrimaryNavigationHost.js';
 import './GlobalGuestNavigationHub.css';
 
 const guestDestinations = [
@@ -21,41 +22,21 @@ function LockIcon() {
 }
 
 export default function GlobalGuestNavigationHub({ currentUser, language = 'vi', route = 'home' }) {
-  const [host, setHost] = useState(null);
+  const host = usePrimaryNavigationHost();
   const isGuestHome = !currentUser && route === 'home';
 
   useEffect(() => {
-    if (!isGuestHome || typeof document === 'undefined') {
-      setHost(null);
-      return undefined;
-    }
-
-    const findHost = () => {
-      const nextHost = document.querySelector('.brian-nav__primary');
-      const navigation = nextHost?.closest('.brian-nav');
-      const topChrome = navigation?.closest('.bes-top-chrome');
-
-      setHost((current) => (current === nextHost ? current : nextHost));
-      navigation?.classList.add('brian-nav--guest-full');
-      topChrome?.classList.add('bes-top-chrome--guest-full');
-    };
-
-    findHost();
-    const frame = window.requestAnimationFrame(findHost);
-    const observer = new MutationObserver(findHost);
-    observer.observe(document.body, { childList: true, subtree: true });
+    if (!isGuestHome || !host) return undefined;
+    const navigation = host.closest('.brian-nav');
+    const topChrome = navigation?.closest('.bes-top-chrome');
+    navigation?.classList.add('brian-nav--guest-full');
+    topChrome?.classList.add('bes-top-chrome--guest-full');
 
     return () => {
-      window.cancelAnimationFrame(frame);
-      observer.disconnect();
-      document.querySelectorAll('.brian-nav--guest-full').forEach((element) => {
-        element.classList.remove('brian-nav--guest-full');
-      });
-      document.querySelectorAll('.bes-top-chrome--guest-full').forEach((element) => {
-        element.classList.remove('bes-top-chrome--guest-full');
-      });
+      navigation?.classList.remove('brian-nav--guest-full');
+      topChrome?.classList.remove('bes-top-chrome--guest-full');
     };
-  }, [isGuestHome]);
+  }, [host, isGuestHome]);
 
   if (!host || !isGuestHome) return null;
 
