@@ -164,3 +164,33 @@
     document.head.appendChild(script);
   }
 })();
+
+/* Terminal typography must be appended only after the React bundle and BURS
+   runtime styles exist. This makes Dashboard the real final visual reference
+   instead of another early stylesheet that later version files can override. */
+(() => {
+  const LINK_ID = 'bes-dashboard-typography-terminal-2026';
+  const install = () => {
+    const current = document.getElementById(LINK_ID);
+    if (current) return;
+    const link = document.createElement('link');
+    link.id = LINK_ID;
+    link.rel = 'stylesheet';
+    link.href = '/dashboard-typography-terminal-2026.css?v=20260824-1806';
+    document.head.appendChild(link);
+  };
+
+  const installAfterRuntime = () => {
+    window.requestAnimationFrame(() => window.requestAnimationFrame(install));
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', installAfterRuntime, { once: true });
+  } else {
+    installAfterRuntime();
+  }
+
+  window.addEventListener('hashchange', () => {
+    if (!document.getElementById(LINK_ID)) installAfterRuntime();
+  });
+})();
