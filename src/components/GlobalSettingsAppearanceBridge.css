@@ -1,21 +1,189 @@
-/* Integrate Appearance Engine V2 into the real Google Material settings card. */
-html body .app-shell #settings-appearance.has-integrated-appearance-engine {
-  grid-column: 1 / -1 !important;
+/* Unified System Settings + Admin Center.
+   This file intentionally replaces the retired Appearance Engine bridge styles. */
+
+html body .app-shell .settings-admin-merge-nav {
+  display: grid;
+  gap: 4px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(15, 23, 42, 0.1);
 }
 
-html body .app-shell #settings-appearance.has-integrated-appearance-engine > .settings-m3-row,
-html body .app-shell #settings-appearance.has-integrated-appearance-engine > .settings-m3-two-columns,
-html:has(#settings-appearance) body .bes-quick-appearance,
-html body .app-shell #settings-appearance .bes-quick-appearance[aria-hidden="true"] {
-  display: none !important;
+html body .app-shell .settings-admin-merge-label {
+  padding: 0 14px 5px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
 }
 
-html body .app-shell .settings-engine-portal-slot {
+html body .app-shell .settings-admin-merge-nav-button {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: #1f2937;
+  text-align: left;
+  cursor: pointer;
+}
+
+html body .app-shell .settings-admin-merge-nav-button:hover,
+html body .app-shell .settings-admin-merge-nav-button:focus-visible {
+  background: #eef4ff;
+  color: #0b57d0;
+  outline: none;
+}
+
+html body .app-shell .settings-admin-merge-nav-button > span {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 28px;
+  border-radius: 9px;
+  background: #eef4ff;
+  font-size: 14px;
+}
+
+html body .app-shell .settings-admin-merge-nav-button strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+html body .app-shell .settings-admin-merge-host {
+  width: 100%;
+  min-width: 0;
+  margin-top: 22px;
+  padding-top: 2px;
+  scroll-margin-top: 118px;
+}
+
+html body .app-shell .settings-admin-merge-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 0 0 14px;
+  padding: 18px 20px;
+  border: 1px solid #dbe5f3;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+html body .app-shell .settings-admin-merge-heading > span {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #e8f0fe;
+  color: #0b57d0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+html body .app-shell .settings-admin-merge-heading h2 {
+  margin: 0;
+  color: #172033;
+  font-size: 21px;
+  line-height: 1.15;
+}
+
+html body .app-shell .settings-admin-merge-heading p {
+  margin: 5px 0 0;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+html body .app-shell .settings-admin-merge-loading {
+  padding: 22px;
+  border-radius: 18px;
+  background: #f8fafc;
+  color: #64748b;
+  text-align: center;
+}
+
+/* Flatten the former standalone Admin application when it is rendered inside Settings. */
+html body .app-shell .settings-admin-merge-host .admin-page,
+html body .app-shell .settings-admin-merge-host .admin-page-v41,
+html body .app-shell .settings-admin-merge-host .admin-page-v62 {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+html body .app-shell .settings-admin-merge-host .admin-v41-shell {
   display: block !important;
   width: 100% !important;
-  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
 }
 
-html body .app-shell [data-settings-engine-duplicate="true"] {
+html body .app-shell .settings-admin-merge-host .admin-v41-sidebar,
+html body .app-shell .settings-admin-merge-host .admin-v41-hero {
   display: none !important;
+}
+
+html body .app-shell .settings-admin-merge-host .admin-v41-main {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html body .app-shell .settings-admin-merge-host .admin-v41-summary-strip,
+html body .app-shell .settings-admin-merge-host .admin-v41-core-grid,
+html body .app-shell .settings-admin-merge-host .admin-sync-panel,
+html body .app-shell .settings-admin-merge-host .admin-diagnostic-panel,
+html body .app-shell .settings-admin-merge-host .permission-request-admin-panel,
+html body .app-shell .settings-admin-merge-host .permission-admin-grid {
+  scroll-margin-top: 118px;
+}
+
+html body .app-shell .settings-admin-merge-host .admin-v41-summary-strip {
+  margin-top: 0 !important;
+}
+
+html body .app-shell .settings-admin-merge-host .admin-v41-core-grid {
+  margin-top: 14px !important;
+}
+
+html body .app-shell .settings-admin-merge-host .admin-sync-panel,
+html body .app-shell .settings-admin-merge-host .admin-diagnostic-panel,
+html body .app-shell .settings-admin-merge-host .permission-request-admin-panel {
+  margin-top: 14px !important;
+}
+
+/* Admin is now a Settings capability, not a standalone top-level destination. */
+html body .app-shell .brian-nav__primary button[data-admin-merged-hidden="true"] {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  html body .app-shell .settings-admin-merge-heading {
+    display: block;
+  }
+
+  html body .app-shell .settings-admin-merge-heading > span {
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+
+  html body .app-shell .settings-admin-merge-host .admin-v41-summary-strip,
+  html body .app-shell .settings-admin-merge-host .admin-v41-core-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
