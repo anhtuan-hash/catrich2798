@@ -14,12 +14,18 @@
     max-width: min(var(--bes-ws-modal-width), calc(100vw - 48px)) !important;
     max-height: calc(100dvh - 40px) !important;
     border-radius: 24px !important;
-    overflow: hidden !important;
+    overflow: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable !important;
   }
 
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:not(.bes-compact-side-drawer) {
     display: flex !important;
     flex-direction: column !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has(.bes-compact-overlay-body) {
+    overflow: hidden !important;
   }
 
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-side-drawer {
