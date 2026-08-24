@@ -53,22 +53,9 @@ begin
   end loop;
 end $$;
 
--- Persist the non-notifying intent on all existing schedule rows without changing
--- their title, dates, assignees, visibility, or any Schedule-tab functionality.
-update public.work_hub_items item
-set metadata = jsonb_set(
-  jsonb_set(coalesce(item.metadata, '{}'::jsonb), '{schedule_notify_all}', 'false'::jsonb, true),
-  '{notify_assignee}',
-  'false'::jsonb,
-  true
-)
-where lower(coalesce(item.item_type, '')) = 'schedule'
-   or lower(coalesce(item.source_module, '')) like 'work-schedule%'
-   or lower(coalesce(item.metadata->>'schedule_event', 'false')) = 'true'
-   or lower(coalesce(item.metadata->>'schedule_only', 'false')) = 'true';
-
 -- Remove only legacy notification records that belong to Work Schedule items.
--- The Work Schedule items themselves remain untouched.
+-- The Work Schedule items themselves remain untouched, so calendar data and the
+-- Schedule tab continue to work exactly as before.
 delete from public.work_hub_notifications notification
 using public.work_hub_items item
 where notification.item_id = item.id
