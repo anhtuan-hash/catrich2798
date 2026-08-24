@@ -1,6 +1,5 @@
 import './tabResumeStability.js';
 import './noCreamSurfaceRuntime.js';
-import './compactDrawerRuntimeV3.js';
 import './styles/WidescreenDrawerReadability.css';
 import './tabResumeAuthStability.js';
 import './fourClassLocalPurge.js';
@@ -19,6 +18,8 @@ const MAX_WAIT_MS = 20000;
 const STARTED_AT = Date.now();
 let externalAppsLoaded = false;
 let externalAppsScheduled = false;
+let compactDrawerRuntimeLoaded = false;
+let compactDrawerRuntimeScheduled = false;
 let applicationStarted = false;
 let schoolRegistryLoaded = false;
 let homeroomExtrasLoaded = false;
@@ -39,6 +40,10 @@ function isHomeroomRoute() {
 
 function isBrianTeamRoute() {
   return /brian-team|personnel-hub|work-hub/i.test(window.location.hash || '');
+}
+
+function isAppsRoute() {
+  return /(^|\/)apps(?:$|[/?#])|applications/i.test(window.location.hash || '');
 }
 
 function isAssignedClassRoute() {
@@ -128,6 +133,33 @@ function startAssignedClassSync() {
   return assignedClassSyncPromise;
 }
 
+function loadCompactDrawerRuntimeAfterMainShell() {
+  if (compactDrawerRuntimeLoaded || compactDrawerRuntimeScheduled) return;
+
+  const mainShellReady = Boolean(document.querySelector('#root .app-shell'));
+  if (!mainShellReady) {
+    if (Date.now() - STARTED_AT < MAX_WAIT_MS) {
+      window.setTimeout(loadCompactDrawerRuntimeAfterMainShell, 140);
+    }
+    return;
+  }
+
+  compactDrawerRuntimeScheduled = true;
+  // The Apps directory mounts many cards at once. Let its first paint finish
+  // before installing the global MutationObserver used to discover legacy drawers.
+  runWhenIdle(async () => {
+    compactDrawerRuntimeScheduled = false;
+    if (compactDrawerRuntimeLoaded) return;
+    try {
+      await import('./compactDrawerRuntimeV3.js');
+      compactDrawerRuntimeLoaded = true;
+      window.BESCompactDrawer?.rescan?.();
+    } catch (error) {
+      console.warn('[CompactDrawerV3] Deferred runtime failed to load.', error);
+    }
+  }, isAppsRoute() ? 1200 : 650);
+}
+
 function loadExternalAppsAfterMainShell() {
   if (externalAppsLoaded || externalAppsScheduled) return;
 
@@ -172,6 +204,7 @@ async function startApplication() {
 
   await mainModulePromise;
   installRouteModuleLoader();
+  loadCompactDrawerRuntimeAfterMainShell();
   loadExternalAppsAfterMainShell();
 }
 
