@@ -42,12 +42,9 @@ export default function GlobalGuestNavigationHub({ currentUser, language = 'vi',
 
     findHost();
     const frame = window.requestAnimationFrame(findHost);
-    const observer = new MutationObserver(findHost);
-    observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
       window.cancelAnimationFrame(frame);
-      observer.disconnect();
       document.querySelectorAll('.brian-nav--guest-full').forEach((element) => {
         element.classList.remove('brian-nav--guest-full');
       });
