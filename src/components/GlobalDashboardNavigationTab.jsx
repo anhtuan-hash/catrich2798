@@ -19,12 +19,7 @@ export default function GlobalDashboardNavigationTab({
     };
     findHost();
     const frame = window.requestAnimationFrame(findHost);
-    const observer = new MutationObserver(findHost);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => {
-      window.cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   const allowed = useMemo(

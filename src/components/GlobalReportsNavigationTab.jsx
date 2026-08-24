@@ -41,21 +41,13 @@ export default function GlobalReportsNavigationTab({
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
-
     const findHost = () => {
       const nextHost = document.querySelector('.brian-nav__primary');
       setHost((current) => (current === nextHost ? current : nextHost));
     };
-
     findHost();
     const frame = window.requestAnimationFrame(findHost);
-    const observer = new MutationObserver(findHost);
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {

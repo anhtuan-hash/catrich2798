@@ -13,21 +13,13 @@ export default function GlobalNewsNavigationTab({
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
-
     const findHost = () => {
       const nextHost = document.querySelector('.brian-nav__primary');
       setHost((current) => (current === nextHost ? current : nextHost));
     };
-
     findHost();
     const frame = window.requestAnimationFrame(findHost);
-    const observer = new MutationObserver(findHost);
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   const allowed = useMemo(
@@ -39,7 +31,7 @@ export default function GlobalNewsNavigationTab({
     if (!host) return undefined;
     const frame = window.requestAnimationFrame(() => {
       const activeTab = host.querySelector('button.is-active');
-      activeTab?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      activeTab?.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' });
     });
     return () => window.cancelAnimationFrame(frame);
   }, [host, route]);

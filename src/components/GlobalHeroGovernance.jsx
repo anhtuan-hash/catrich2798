@@ -107,28 +107,27 @@ function scanHeroes(route = '') {
 
 export default function GlobalHeroGovernance({ route = '' }) {
   useEffect(() => {
-    document.documentElement.dataset.brianHeroGovernance = 'v1';
+    document.documentElement.dataset.brianHeroGovernance = 'v1-performance-safe';
     let report = [];
     let frame = 0;
 
     const schedule = () => {
-      cancelAnimationFrame(frame);
+      if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
         report = scanHeroes(route);
       });
     };
 
-    const observer = new MutationObserver(schedule);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    // Hero structure changes at route/appearance boundaries. Watching every DOM
+    // mutation made every React update trigger a full section/div scan.
     window.addEventListener('resize', schedule, { passive: true });
-    window.addEventListener('hashchange', schedule);
     window.addEventListener('bes:font-scale-changed', schedule);
     window.addEventListener('bes:appearance-changed', schedule);
     schedule();
 
     window.BrianHeroAudit = Object.freeze({
-      version: 'v1',
+      version: 'v1-performance-safe',
       getReport: () => report.map((item) => ({ ...item, warnings: [...item.warnings] })),
       rescan: () => {
         report = scanHeroes(route);
@@ -137,10 +136,8 @@ export default function GlobalHeroGovernance({ route = '' }) {
     });
 
     return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
+      if (frame) cancelAnimationFrame(frame);
       window.removeEventListener('resize', schedule);
-      window.removeEventListener('hashchange', schedule);
       window.removeEventListener('bes:font-scale-changed', schedule);
       window.removeEventListener('bes:appearance-changed', schedule);
     };
