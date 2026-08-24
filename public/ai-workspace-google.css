@@ -39,3 +39,116 @@
     min-height:360px!important
   }
 }
+
+/* 2026-08-24 layout guard: the app list must stay in one left column and
+   the selected app must own the large right-hand viewer. This intentionally
+   overrides older compact-popover rules that could let the grid children
+   auto-flow into stacked rows and collapse the iframe into a thin strip. */
+@media (min-width: 761px) {
+  .brian-ai-workspace-layer .brian-ai-workspace {
+    display: grid !important;
+    grid-template-columns: clamp(210px, 22%, 250px) minmax(0, 1fr) !important;
+    grid-template-rows: 60px minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    overflow: hidden !important;
+  }
+
+  .brian-ai-workspace-layer .brian-ai-workspace > .brian-ai-workspace__header {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .brian-ai-workspace-layer .brian-ai-workspace > .brian-ai-workspace__switcher {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-self: stretch !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .brian-ai-workspace-layer .brian-ai-workspace > .brian-ai-workspace__switcher > button {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 auto !important;
+  }
+
+  .brian-ai-workspace-layer .brian-ai-workspace > .brian-ai-workspace__viewer {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: min(420px, calc(100dvh - 180px)) !important;
+    max-width: none !important;
+    display: grid !important;
+    grid-template-rows: 46px minmax(0, 1fr) !important;
+    align-self: stretch !important;
+    overflow: hidden !important;
+  }
+
+  .brian-ai-workspace-layer .brian-ai-workspace > .brian-ai-workspace__viewer > .brian-ai-workspace__viewer-bar {
+    grid-row: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .brian-ai-workspace-layer .brian-ai-workspace > .brian-ai-workspace__viewer > iframe {
+    grid-row: 2 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    align-self: stretch !important;
+    justify-self: stretch !important;
+    border: 0 !important;
+  }
+
+  .brian-ai-workspace-layer .brian-ai-workspace > .brian-ai-manager {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  .brian-ai-workspace-layer:not(.is-expanded) .brian-ai-workspace {
+    width: min(1180px, calc(100vw - 36px)) !important;
+    height: min(760px, calc(100dvh - 96px)) !important;
+    min-width: min(900px, calc(100vw - 36px)) !important;
+    min-height: min(560px, calc(100dvh - 96px)) !important;
+  }
+
+  .brian-ai-workspace-layer:not(.is-expanded) .brian-ai-workspace.has-single-tool {
+    grid-template-columns: clamp(210px, 22%, 250px) minmax(0, 1fr) !important;
+  }
+
+  .brian-ai-workspace-layer .brian-ai-workspace.has-single-tool .brian-ai-workspace__switcher > button {
+    grid-template-columns: 34px minmax(0, 1fr) auto !important;
+    justify-items: stretch !important;
+  }
+
+  .brian-ai-workspace-layer .brian-ai-workspace.has-single-tool .brian-ai-workspace__switcher button > span:nth-child(2) {
+    display: block !important;
+  }
+
+  .brian-ai-workspace-layer .brian-ai-workspace.has-single-tool .brian-ai-workspace__switcher em {
+    display: inline !important;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 940px) {
+  .brian-ai-workspace-layer .brian-ai-workspace {
+    grid-template-columns: 190px minmax(0, 1fr) !important;
+  }
+  .brian-ai-workspace-layer:not(.is-expanded) .brian-ai-workspace,
+  .brian-ai-workspace-layer:not(.is-expanded) .brian-ai-workspace.has-single-tool {
+    grid-template-columns: 190px minmax(0, 1fr) !important;
+  }
+}
