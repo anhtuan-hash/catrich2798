@@ -50,10 +50,9 @@ export default function GlobalSettingsAppearanceBridge(props) {
 
   const adminItems = useMemo(() => [
     { id: 'overview', label: props.language === 'vi' ? 'Quản trị hệ thống' : 'System administration', target: `#${HOST_ID}` },
-    { id: 'requests', label: props.language === 'vi' ? 'Yêu cầu truy cập' : 'Access requests', target: '#admin-v41-requests' },
-    { id: 'permissions', label: props.language === 'vi' ? 'Phân quyền' : 'Permissions', target: '#admin-v41-permissions' },
-    { id: 'accounts', label: props.language === 'vi' ? 'Tài khoản hệ thống' : 'System accounts', target: '#admin-v41-accounts' },
-    { id: 'security', label: props.language === 'vi' ? 'Nhật ký & bảo mật' : 'Logs & security', target: '#admin-v41-security' },
+    { id: 'requests', label: props.language === 'vi' ? 'Yêu cầu truy cập' : 'Access requests', target: '.permission-request-admin-panel' },
+    { id: 'accounts', label: props.language === 'vi' ? 'Tài khoản & phân quyền' : 'Accounts & permissions', target: '.permission-admin-grid' },
+    { id: 'security', label: props.language === 'vi' ? 'Đồng bộ & bảo mật' : 'Sync & security', target: '.admin-sync-panel' },
   ], [props.language]);
 
   useEffect(() => {
@@ -70,8 +69,6 @@ export default function GlobalSettingsAppearanceBridge(props) {
       });
     };
 
-    // The standalone Admin route remains a compatibility alias only. Admins are
-    // sent to the unified System Settings center instead of a second console.
     if (props.route === 'admin' && admin) {
       hideAdminButton();
       timer = window.setTimeout(() => {
@@ -150,7 +147,7 @@ export default function GlobalSettingsAppearanceBridge(props) {
           <div className="settings-admin-merge-label">{props.language === 'vi' ? 'QUẢN TRỊ' : 'ADMIN'}</div>
           {adminItems.map((item) => (
             <button key={item.id} type="button" className="settings-admin-merge-nav-button" onClick={() => scrollToSelector(item.target)}>
-              <span aria-hidden="true">{item.id === 'overview' ? '⚙' : item.id === 'requests' ? '◎' : item.id === 'permissions' ? '◈' : item.id === 'accounts' ? '👤' : '◔'}</span>
+              <span aria-hidden="true">{item.id === 'overview' ? '⚙' : item.id === 'requests' ? '◎' : item.id === 'accounts' ? '👤' : '◔'}</span>
               <div><strong>{item.label}</strong></div>
             </button>
           ))}
@@ -161,12 +158,12 @@ export default function GlobalSettingsAppearanceBridge(props) {
       {createPortal(
         <>
           <div className="settings-admin-merge-heading">
-            <span>{props.language === 'vi' ? 'ADMIN CENTER' : 'ADMIN CENTER'}</span>
+            <span className="settings-admin-merge-heading-icon" aria-hidden="true">⚙</span>
             <div>
               <h2>{props.language === 'vi' ? 'Quản trị hệ thống' : 'System administration'}</h2>
               <p>{props.language === 'vi'
-                ? 'Duyệt yêu cầu, phân quyền và quản lý tài khoản ngay trong Cài đặt hệ thống.'
-                : 'Review requests, manage permissions and maintain system accounts inside System Settings.'}</p>
+                ? 'Duyệt yêu cầu, quản lý tài khoản, phân quyền và đồng bộ hệ thống trong cùng một trung tâm cài đặt.'
+                : 'Review requests, manage accounts, permissions and system synchronization from one settings center.'}</p>
             </div>
           </div>
           <Suspense fallback={<div className="settings-admin-merge-loading">{props.language === 'vi' ? 'Đang tải công cụ quản trị…' : 'Loading administration tools…'}</div>}>
