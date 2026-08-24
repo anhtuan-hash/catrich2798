@@ -9,6 +9,7 @@ import './MonthlyReportsTemplate.css';
 import './MonthlyReportsWorkspaceModern.css';
 import './MonthlyReportsWorkspaceModernV2.css';
 import './MonthlyReportsWorkspaceFixes.css';
+import './MonthlyReportsGoogleMaterial.css';
 
 export default function BrianTeamPortal(props) {
   const { currentUser } = props;
