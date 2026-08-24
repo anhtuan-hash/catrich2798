@@ -1,4 +1,5 @@
 import { useLayoutEffect } from 'react';
+import '../styles/GlobalDashboardScaleBaseline.css';
 
 const LEGACY_MIGRATION_MARKER = 'bes-adaptive-comfort-1440-v1';
 const DASHBOARD_BASELINE_MARKER = 'bes-dashboard-scale-standard-v1';
