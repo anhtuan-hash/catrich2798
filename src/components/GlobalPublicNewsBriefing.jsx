@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/motion.js';
+import useTopChromeHost from './useTopChromeHost.js';
 import './GlobalPublicNewsBriefing.css';
 
 const MAX_ITEMS = 8;
@@ -51,29 +52,20 @@ function compactTime(value, language) {
 
 export default function GlobalPublicNewsBriefing({ currentUser, language = 'vi', route = 'home' }) {
   const hasPrivateBriefing = Boolean(currentUser && hasRouteAccess(currentUser, 'news'));
-  const [host, setHost] = useState(null);
+  const topChrome = useTopChromeHost();
+  const host = hasPrivateBriefing ? null : topChrome;
   const [items, setItems] = useState(() => (typeof window === 'undefined' ? fallbackItems(language) : (readCache(language).length ? readCache(language) : fallbackItems(language))));
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    if (hasPrivateBriefing || typeof document === 'undefined') return undefined;
-    const findHost = () => setHost(document.querySelector('.bes-top-chrome'));
-    findHost();
-    const observer = new MutationObserver(findHost);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, [hasPrivateBriefing]);
-
-  useEffect(() => {
     if (!host || hasPrivateBriefing) return undefined;
-    const placeBeforeNavigation = () => {
+    const frame = window.requestAnimationFrame(() => {
       const briefing = host.querySelector(':scope > .brian-public-briefing');
       const navigation = host.querySelector(':scope > .brian-nav');
       if (briefing && navigation && briefing.nextElementSibling !== navigation) host.insertBefore(briefing, navigation);
-    };
-    const frame = window.requestAnimationFrame(placeBeforeNavigation);
+    });
     return () => window.cancelAnimationFrame(frame);
   }, [host, hasPrivateBriefing, items.length]);
 
