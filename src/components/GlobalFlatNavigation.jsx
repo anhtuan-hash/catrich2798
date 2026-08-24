@@ -99,6 +99,7 @@ const GlobalWorkBulkDeleteManager = lazy(() => import('./GlobalWorkBulkDeleteMan
 
 export default function GlobalFlatNavigation(props) {
   const workHubActive = props.route === 'work-hub';
+  const showBriefing = props.route !== 'home';
 
   return (
     <>
@@ -106,8 +107,8 @@ export default function GlobalFlatNavigation(props) {
       <Navigation {...props} />
       <GlobalPrimaryNavigationPin route={props.route} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
-      <GlobalPublicNewsBriefing route={props.route} language={props.language} currentUser={props.currentUser} />
-      <GlobalHomeBriefingExtras route={props.route} language={props.language} />
+      {showBriefing ? <GlobalPublicNewsBriefing route={props.route} language={props.language} currentUser={props.currentUser} /> : null}
+      {showBriefing ? <GlobalHomeBriefingExtras route={props.route} language={props.language} /> : null}
       <GlobalHomeViewportFitBridge route={props.route} />
       <GlobalWeeklyPracticeBridge route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalMotionCoreBridge route={props.route} />
