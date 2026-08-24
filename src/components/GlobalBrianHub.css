@@ -1,8 +1,13 @@
 /* Brian English · one shared hub for the complete application.
    Only the primary navigation row is fixed to the viewport. The briefing row
-   always remains visible in normal document flow and scrolls with page content. */
+   always remains visible in normal document flow and scrolls with page content.
+
+   Geometry contract: the primary navigation is always 76px tall. Responsive
+   rules may simplify labels or overflow handling, but they must not change the
+   bar height, control height, radius, or vertical offset. */
 
 html {
+  --bes-primary-nav-height: 76px;
   scroll-padding-top: calc(var(--bes-primary-nav-height, 76px) + 16px) !important;
   --bes-pinned-nav-height: 0px !important;
 }
@@ -41,7 +46,7 @@ html body .app-shell[data-route] > .bes-top-chrome {
   will-change: auto !important;
 }
 
-/* The fixed navigation is removed from document flow. Reserve its exact measured
+/* The fixed navigation is removed from document flow. Reserve its exact fixed
    height inside the chrome so the briefing row and page content never jump. */
 html body .app-shell[data-route] > .bes-top-chrome[data-bes-primary-nav-host='true'] {
   padding-top: calc(var(--bes-primary-nav-height, 76px) + 16px) !important;
@@ -66,8 +71,9 @@ html body .app-shell[data-route] > .bes-top-chrome .brian-nav {
   width: 100% !important;
   min-width: 0 !important;
   max-width: none !important;
-  min-height: 76px !important;
-  height: auto !important;
+  min-height: var(--bes-primary-nav-height, 76px) !important;
+  height: var(--bes-primary-nav-height, 76px) !important;
+  max-height: var(--bes-primary-nav-height, 76px) !important;
   box-sizing: border-box !important;
   margin: 0 !important;
   padding: 10px clamp(16px, 2vw, 30px) !important;
@@ -114,6 +120,14 @@ html body .app-shell[data-route] > .bes-top-chrome .brian-nav__actions {
   min-width: 0 !important;
 }
 
+/* Control geometry stays identical even when global text size or viewport size
+   changes. Labels may be hidden by responsive rules, but controls do not grow. */
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav__brand {
+  min-height: 46px !important;
+  height: 46px !important;
+  max-height: 46px !important;
+}
+
 html body .app-shell[data-route] > .bes-top-chrome .brian-nav__primary {
   overflow-x: auto !important;
   overflow-y: hidden !important;
@@ -128,9 +142,21 @@ html body .app-shell[data-route] > .bes-top-chrome .brian-nav__primary::-webkit-
 html body .app-shell[data-route] > .bes-top-chrome .brian-nav__primary button {
   flex: 0 0 auto !important;
   min-height: 46px !important;
+  height: 46px !important;
+  max-height: 46px !important;
   padding-inline: 15px !important;
   border-radius: 15px !important;
   white-space: nowrap !important;
+}
+
+html body .app-shell[data-route] > .bes-top-chrome :is(
+  .brian-nav__icon,
+  .brian-nav__account,
+  .brian-nav__login
+) {
+  min-height: 46px !important;
+  height: 46px !important;
+  max-height: 46px !important;
 }
 
 html body .app-shell[data-route] > .bes-top-chrome .brian-nav__primary button.is-active {
@@ -226,7 +252,7 @@ html body .app-shell[data-route] > .bes-top-chrome :is(
 
 @media (max-width: 820px) {
   html {
-    scroll-padding-top: calc(var(--bes-primary-nav-height, 68px) + 12px) !important;
+    scroll-padding-top: calc(var(--bes-primary-nav-height, 76px) + 16px) !important;
   }
 
   html body .app-shell[data-route] > .bes-top-chrome {
@@ -235,21 +261,23 @@ html body .app-shell[data-route] > .bes-top-chrome :is(
   }
 
   html body .app-shell[data-route] > .bes-top-chrome[data-bes-primary-nav-host='true'] {
-    padding-top: calc(var(--bes-primary-nav-height, 68px) + 12px) !important;
+    padding-top: calc(var(--bes-primary-nav-height, 76px) + 16px) !important;
   }
 
   html body .app-shell[data-route] > .bes-top-chrome .brian-nav {
-    min-height: 68px !important;
+    min-height: var(--bes-primary-nav-height, 76px) !important;
+    height: var(--bes-primary-nav-height, 76px) !important;
+    max-height: var(--bes-primary-nav-height, 76px) !important;
     grid-template-columns: auto minmax(0, 1fr) auto !important;
-    padding: 8px 10px !important;
-    border-radius: 22px !important;
+    padding: 10px 12px !important;
+    border-radius: 28px !important;
   }
 
   html body .app-shell[data-route] > .bes-top-chrome[data-bes-primary-nav-host='true']
     .brian-nav[data-bes-primary-nav-fixed='true'] {
-    inset-block-start: 6px !important;
+    inset-block-start: 8px !important;
     inset-inline: 6px !important;
-    top: 6px !important;
+    top: 8px !important;
     right: 6px !important;
     left: 6px !important;
   }
