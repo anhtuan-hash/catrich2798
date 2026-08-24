@@ -5,8 +5,10 @@ import { ROUTE_APP_SHORTCUTS } from '../data/appVisibilityRegistry.js';
 
 export const APP_ORDER = [
   'hidden-apps-vault', 'thpt-practice-hub', 'resource-library-hub', 'lesson-plan-ai', 'textlab-activities', 'flying-words', 'exam-studio', 'reading-studio',
-  'news-reader', 'vietnam-tax', 'word2graph', 'textcare', 'student-practice', 'game-hub',
-  'homeroom-hub', 'games-hub', 'admin-hub',
+  'news-reader', 'vietnam-tax', 'word2graph', 'textcare', 'student-practice',
+  'shared-game-games4esl', 'shared-game-wordwall', 'shared-game-educaplay', 'shared-game-learningapps', 'shared-game-h5p', 'shared-game-genially',
+  'shared-game-bookwidgets', 'shared-game-classtools', 'shared-game-kahoot', 'shared-game-scattergories', 'shared-game-baamboozle',
+  'homeroom-hub', 'admin-hub',
 ];
 export const ROUTE_APPS = ROUTE_APP_SHORTCUTS;
 
@@ -56,6 +58,7 @@ export const copy = {
 export function titleOf(item, language) { return language === 'vi' ? item.titleVi || item.title : item.title; }
 export function descOf(item, language) { return language === 'vi' ? item.descVi || item.desc : item.desc; }
 export function statusOf(item, language) {
+  if (item?.shared) return language === 'vi' ? item.statusVi || 'Dùng chung' : item.status || 'Shared';
   const profile = getAppDesignProfile(item.slug);
   return language === 'vi' ? profile.styleVi || item.statusVi || item.status : profile.style || item.status;
 }
@@ -78,10 +81,22 @@ export function shortDesc(item, language) {
   };
   return (language === 'vi' ? vi[item.slug] : en[item.slug]) || descOf(item, language);
 }
-export function targetFor(item) { return item.route ? `#/${item.route}` : `#/tool/${item.slug}`; }
-export function launch(target, label, color, sourceEl = null) { launchRoute({ target, label, color: color || '#191515', sourceEl }); }
+export function targetFor(item) {
+  if (item?.externalUrl) return item.externalUrl;
+  return item.route ? `#/${item.route}` : `#/tool/${item.slug}`;
+}
+export function launch(target, label, color, sourceEl = null) {
+  const href = String(target || '').trim();
+  if (/^https?:\/\//i.test(href)) {
+    if (typeof window !== 'undefined') window.open(href, '_blank', 'noopener,noreferrer');
+    sourceEl?.blur?.();
+    return;
+  }
+  launchRoute({ target: href, label, color: color || '#191515', sourceEl });
+}
 export function navLaunch(route, label, color, sourceEl) { launch(route.startsWith('#/') ? route : `#/${route}`, label, color, sourceEl); }
 export function defaultGroupOf(item) {
+  if (item?.shared) return item.groupId || 'create';
   if (['lesson-plan-ai', 'textcare', 'resource-library-hub'].includes(item.slug)) return 'plan';
   if (item.slug === 'homeroom-hub') return 'manage';
   if (['textlab-activities', 'flying-words', 'reading-studio', 'news-reader', 'vietnam-tax', 'word2graph', 'game-hub', 'games-hub'].includes(item.slug)) return 'create';
@@ -89,11 +104,13 @@ export function defaultGroupOf(item) {
   return 'manage';
 }
 export function permissionFor(item) {
+  if (item?.shared || item?.externalUrl) return '';
   if (!item.route) return getToolPermissionId(item.slug);
   if (item.route === 'department' && item.slug) return getToolPermissionId(item.slug);
   return getRoutePermissionId(item.route) || '';
 }
 export function lockedFor(item, currentUser) {
+  if (item?.shared || item?.externalUrl) return false;
   if (!currentUser || currentUser.role === 'admin') return false;
   if (item.adminOnly) return true;
   if (item.route) return !hasRouteAccess(currentUser, item.route, item);
