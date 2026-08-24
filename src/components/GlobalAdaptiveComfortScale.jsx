@@ -1,6 +1,7 @@
 import { useLayoutEffect } from 'react';
 
-const MIGRATION_MARKER = 'bes-adaptive-comfort-1440-v1';
+const LEGACY_MIGRATION_MARKER = 'bes-adaptive-comfort-1440-v1';
+const DASHBOARD_BASELINE_MARKER = 'bes-dashboard-scale-standard-v1';
 const APPEARANCE_STORAGE_KEY = 'bes-appearance-v2';
 const FONT_STORAGE_KEY = 'bes-font-scale';
 
@@ -24,68 +25,60 @@ function readAppearanceState() {
   }
 }
 
+function restoreLegacyAutoScale(root, setFontScale) {
+  try {
+    if (window.localStorage.getItem(DASHBOARD_BASELINE_MARKER) === 'done') return;
+
+    const appearance = readAppearanceState();
+    const legacyAutoScaleWasApplied = window.localStorage.getItem(LEGACY_MIGRATION_MARKER) === 'done';
+    const storedFontScale = Number(window.localStorage.getItem(FONT_STORAGE_KEY) || appearance.textScale || 100);
+    const appearanceScale = Number(appearance.textScale || storedFontScale || 100);
+    const shouldRestoreDashboardBaseline = legacyAutoScaleWasApplied
+      && storedFontScale === 110
+      && appearanceScale === 110
+      && !appearance.projector;
+
+    if (shouldRestoreDashboardBaseline) {
+      const nextAppearance = {
+        ...appearance,
+        textScale: 100,
+        projector: false,
+        updatedAt: Date.now(),
+      };
+
+      window.localStorage.setItem(FONT_STORAGE_KEY, '100');
+      window.localStorage.setItem(APPEARANCE_STORAGE_KEY, JSON.stringify(nextAppearance));
+      root.dataset.fontScale = '100';
+      root.style.fontSize = '100%';
+      setFontScale?.(100);
+
+      window.dispatchEvent(new CustomEvent('bes:appearance-changed', {
+        detail: { state: nextAppearance, source: 'dashboard-scale-baseline' },
+      }));
+    }
+
+    window.localStorage.setItem(DASHBOARD_BASELINE_MARKER, 'done');
+  } catch {
+    /* Storage is optional. Never change the user's active scale when it cannot
+       be proven that the old adaptive migration caused the 110% value. */
+  }
+}
+
 export default function GlobalAdaptiveComfortScale({ setFontScale }) {
   useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
 
     const root = document.documentElement;
-
     const updateViewportProfile = () => {
       root.dataset.besComfortDisplay = isComfortDisplay() ? 'true' : 'false';
     };
 
     updateViewportProfile();
+    restoreLegacyAutoScale(root, setFontScale);
 
-    if (isComfortDisplay()) {
-      let shouldUpgrade = false;
-      let nextAppearance = null;
-
-      try {
-        const migrationDone = window.localStorage.getItem(MIGRATION_MARKER) === 'done';
-        const storedFontScale = Number(window.localStorage.getItem(FONT_STORAGE_KEY) || 100);
-        const appearance = readAppearanceState();
-        const appearanceScale = Number(appearance.textScale || 100);
-
-        shouldUpgrade = !migrationDone
-          && storedFontScale === 100
-          && appearanceScale === 100
-          && !appearance.projector;
-
-        if (shouldUpgrade) {
-          nextAppearance = {
-            ...appearance,
-            textScale: 110,
-            projector: false,
-            updatedAt: Date.now(),
-          };
-
-          window.localStorage.setItem(FONT_STORAGE_KEY, '110');
-          window.localStorage.setItem(APPEARANCE_STORAGE_KEY, JSON.stringify(nextAppearance));
-        }
-
-        window.localStorage.setItem(MIGRATION_MARKER, 'done');
-      } catch {
-        shouldUpgrade = true;
-      }
-
-      if (shouldUpgrade) {
-        root.dataset.fontScale = '110';
-        root.style.fontSize = '110%';
-        setFontScale?.(110);
-
-        const detailState = nextAppearance || {
-          ...readAppearanceState(),
-          textScale: 110,
-          projector: false,
-          updatedAt: Date.now(),
-        };
-
-        window.dispatchEvent(new CustomEvent('bes:appearance-changed', {
-          detail: { state: detailState, source: 'adaptive-comfort-display' },
-        }));
-      }
-    }
-
+    /* Important: this component no longer changes font size based on viewport.
+       Dashboard is now the single visual scale reference. Users can still
+       change text scale explicitly through Appearance settings. */
     window.addEventListener('resize', updateViewportProfile, { passive: true });
     window.addEventListener('orientationchange', updateViewportProfile, { passive: true });
 
