@@ -1,0 +1,3 @@
+Manual redeploy trigger created on 2026-08-24 16:25 ICT.
+Reason: retry Vercel deployment after build-rate-limit blocked the previous commit.
+No application behavior is changed by this file.
