@@ -47,13 +47,15 @@ const RETIRED_LAUNCHER_IDS = new Set([
   'library-hub',
   'route:practice',
   'practice-hub',
+  'route:games',
+  'games-hub',
+  'game-hub',
 ]);
 
 const DEFAULT_NAV = [
   'route:home',
   'route:apps',
   'route:news',
-  'route:games',
   'route:homeroom',
   'route:resource-library',
 ];
