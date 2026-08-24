@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/motion.js';
+import usePrimaryNavigationHost from './usePrimaryNavigationHost.js';
 import './GlobalHomeroomNavigationTab.css';
 
 export default function GlobalHomeroomNavigationTab({
@@ -9,26 +10,7 @@ export default function GlobalHomeroomNavigationTab({
   language = 'vi',
   route = 'home',
 }) {
-  const [host, setHost] = useState(null);
-
-  useEffect(() => {
-    if (typeof document === 'undefined') return undefined;
-
-    const findHost = () => {
-      const nextHost = document.querySelector('.brian-nav__primary');
-      setHost((current) => (current === nextHost ? current : nextHost));
-    };
-
-    findHost();
-    const frame = window.requestAnimationFrame(findHost);
-    const observer = new MutationObserver(findHost);
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
-  }, []);
+  const host = usePrimaryNavigationHost();
 
   const allowed = useMemo(
     () => Boolean(currentUser && hasRouteAccess(currentUser, 'homeroom')),
