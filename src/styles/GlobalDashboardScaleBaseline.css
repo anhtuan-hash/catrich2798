@@ -1,0 +1,207 @@
+/* Brian English — Dashboard display scale baseline
+   Dashboard is the visual reference for the whole product. This layer only
+   normalises page geometry and top-level typography; it does not flatten each
+   feature's colour, layout or information hierarchy. */
+
+:root {
+  --bes-dashboard-canvas: 1520px;
+  --bes-dashboard-gutter: clamp(32px, 6vw, 96px);
+  --bes-dashboard-display: clamp(42px, 4.4vw, 64px);
+  --bes-dashboard-lead: 17px;
+  --bes-dashboard-body: 14px;
+  --bes-dashboard-control: 48px;
+}
+
+/* Dashboard already defines the target density. Keep its measurements as-is. */
+html body .app-shell.metro-clean-system[data-route='dashboard'] #bes-main-content .gd-page {
+  font-size: 16px;
+}
+
+/* HOME */
+html body .app-shell.metro-clean-system #bes-main-content .bha-home {
+  width: min(var(--bes-dashboard-canvas), calc(100% - var(--bes-dashboard-gutter))) !important;
+  max-width: var(--bes-dashboard-canvas) !important;
+  margin-inline: auto !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .bha-home .bha-copy h1 {
+  font-size: var(--bes-dashboard-display) !important;
+  line-height: 1.04 !important;
+  letter-spacing: -.04em !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .bha-home .bha-copy p {
+  font-size: var(--bes-dashboard-lead) !important;
+  line-height: 1.55 !important;
+}
+
+/* APPLICATIONS */
+html body .app-shell.metro-clean-system #bes-main-content .apps-directory-native .apps-directory-hero-native,
+html body .app-shell.metro-clean-system #bes-main-content .apps-directory-native .apps-directory-toolbar,
+html body .app-shell.metro-clean-system #bes-main-content .apps-directory-native .launcher-group-rail,
+html body .app-shell.metro-clean-system #bes-main-content .apps-directory-native .apps-directory-list-native {
+  width: min(var(--bes-dashboard-canvas), calc(100% - var(--bes-dashboard-gutter))) !important;
+  max-width: var(--bes-dashboard-canvas) !important;
+  margin-inline: auto !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .apps-directory-native .apps-directory-hero-copy h1 {
+  font-size: var(--bes-dashboard-display) !important;
+  line-height: 1.04 !important;
+  letter-spacing: -.04em !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .apps-directory-native .apps-directory-subtitle {
+  font-size: var(--bes-dashboard-lead) !important;
+  line-height: 1.55 !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .apps-directory-native :is(.apps-directory-search-box,.apps-directory-command-button,.apps-directory-density-switch) {
+  min-height: var(--bes-dashboard-control) !important;
+}
+
+/* NEWS */
+html body .app-shell.metro-clean-system #bes-main-content .newsroom-v823-page {
+  --news-v823-wide: var(--bes-dashboard-canvas) !important;
+  width: min(var(--bes-dashboard-canvas), calc(100% - var(--bes-dashboard-gutter))) !important;
+  max-width: var(--bes-dashboard-canvas) !important;
+  margin-inline: auto !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .newsroom-v823-page .newsroom-v823-hero h1 {
+  font-size: var(--bes-dashboard-display) !important;
+  line-height: 1.04 !important;
+  letter-spacing: -.04em !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .newsroom-v823-page .newsroom-v823-hero p {
+  font-size: var(--bes-dashboard-lead) !important;
+  line-height: 1.55 !important;
+}
+
+/* GAMES */
+html body .app-shell.metro-clean-system #bes-main-content .games-v44-main {
+  width: min(var(--bes-dashboard-canvas), calc(100% - var(--bes-dashboard-gutter))) !important;
+  max-width: var(--bes-dashboard-canvas) !important;
+  margin-inline: auto !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .games-v44-hero-copy h1 {
+  font-size: var(--bes-dashboard-display) !important;
+  line-height: 1.04 !important;
+  letter-spacing: -.04em !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .games-v44-hero-copy p {
+  font-size: var(--bes-dashboard-lead) !important;
+  line-height: 1.55 !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .games-v44-hero-actions button {
+  min-height: var(--bes-dashboard-control) !important;
+  font-size: var(--bes-dashboard-body) !important;
+}
+
+/* HOMEROOM */
+html body .app-shell.metro-clean-system #bes-main-content .hr-page {
+  width: min(var(--bes-dashboard-canvas), calc(100% - var(--bes-dashboard-gutter))) !important;
+  max-width: var(--bes-dashboard-canvas) !important;
+  margin-inline: auto !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .hr-page .hr-hero .hr-title {
+  font-size: var(--bes-dashboard-display) !important;
+  line-height: 1.04 !important;
+  letter-spacing: -.04em !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .hr-page :is(.hr-subtitle,.hr-hero p) {
+  font-size: var(--bes-dashboard-lead) !important;
+  line-height: 1.55 !important;
+}
+
+/* ADMIN */
+html body .app-shell.metro-clean-system #bes-main-content .admin-v41-page {
+  width: min(var(--bes-dashboard-canvas), calc(100% - var(--bes-dashboard-gutter))) !important;
+  max-width: var(--bes-dashboard-canvas) !important;
+  margin-inline: auto !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .admin-v41-page .admin-v41-title {
+  font-size: var(--bes-dashboard-display) !important;
+  line-height: 1.04 !important;
+  letter-spacing: -.04em !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .admin-v41-page .admin-v41-subtitle {
+  max-width: 900px !important;
+  font-size: var(--bes-dashboard-lead) !important;
+  line-height: 1.55 !important;
+}
+
+html body .app-shell.metro-clean-system #bes-main-content .admin-v41-page .admin-v41-hero button {
+  min-height: var(--bes-dashboard-control) !important;
+  font-size: var(--bes-dashboard-body) !important;
+}
+
+/* REPORT / BRIAN TEAM. This route hosts the monthly report workspace shown in
+   the global Reports tab, so its page heading uses the same Dashboard scale. */
+html body .app-shell.metro-clean-system[data-route*='brian-team'] #bes-main-content > * {
+  max-width: var(--bes-dashboard-canvas);
+  margin-inline: auto;
+}
+
+html body .app-shell.metro-clean-system[data-route*='brian-team'] #bes-main-content h1 {
+  font-size: var(--bes-dashboard-display) !important;
+  line-height: 1.04 !important;
+  letter-spacing: -.04em !important;
+}
+
+html body .app-shell.metro-clean-system[data-route*='brian-team'] #bes-main-content :is(.page-lead,[class$='-subtitle'],[class*='-subtitle ']) {
+  font-size: var(--bes-dashboard-lead) !important;
+  line-height: 1.55 !important;
+}
+
+/* Keep all major route canvases predictable on the same desktop viewport. */
+@media (min-width: 761px) {
+  html body .app-shell.metro-clean-system #bes-main-content :is(
+    .bha-home,
+    .apps-directory-native,
+    .newsroom-v823-page,
+    .games-v44-main,
+    .hr-page,
+    .admin-v41-page
+  ) {
+    box-sizing: border-box !important;
+  }
+}
+
+@media (max-width: 760px) {
+  :root {
+    --bes-dashboard-gutter: 24px;
+    --bes-dashboard-display: clamp(34px, 10vw, 48px);
+    --bes-dashboard-lead: 16px;
+    --bes-dashboard-control: 44px;
+  }
+
+  html body .app-shell.metro-clean-system #bes-main-content :is(
+    .bha-home,
+    .newsroom-v823-page,
+    .games-v44-main,
+    .hr-page,
+    .admin-v41-page
+  ) {
+    width: calc(100% - var(--bes-dashboard-gutter)) !important;
+    max-width: none !important;
+  }
+
+  html body .app-shell.metro-clean-system #bes-main-content .apps-directory-native :is(
+    .apps-directory-hero-native,
+    .apps-directory-toolbar,
+    .launcher-group-rail,
+    .apps-directory-list-native
+  ) {
+    width: calc(100% - var(--bes-dashboard-gutter)) !important;
+    max-width: none !important;
+  }
+}
