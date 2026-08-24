@@ -53,7 +53,7 @@ export default function AppListRow({
 
   return (
     <article
-      className={`apps-list-row ${locked ? 'is-locked' : ''} ${hidden ? 'is-hidden' : ''} ${editMode ? 'is-editing' : ''}`}
+      className={`apps-list-row ${item.shared ? 'is-shared' : ''} ${locked ? 'is-locked' : ''} ${hidden ? 'is-hidden' : ''} ${editMode ? 'is-editing' : ''}`}
       style={{ '--app-accent': profile.accent, '--app-soft': profile.soft, '--app-ink': profile.ink }}
       draggable={editMode}
       onDragStart={(event) => onDragStart?.(event, itemId)}
@@ -68,11 +68,13 @@ export default function AppListRow({
         aria-label={`${locked ? (language === 'vi' ? 'Cần quyền truy cập' : 'Access required') : t.open}: ${itemTitle}`}
         aria-disabled={locked || editMode ? 'true' : 'false'}
       >
-        <span className="apps-list-icon" aria-hidden="true"><FlatAppIcon type={profile.icon} slug={item.slug} /></span>
+        <span className="apps-list-icon" aria-hidden="true">
+          {item.shared ? <span className="apps-list-shared-icon">{item.icon || '🎮'}</span> : <FlatAppIcon type={profile.icon} slug={item.slug} />}
+        </span>
         <span className="apps-list-copy">
           <span className="apps-list-meta">
             <b>{language === 'vi' ? (group?.labelVi || 'Ứng dụng') : (group?.label || 'Application')}</b>
-            {status ? <em>{status}</em> : null}
+            {status ? <em className={item.shared ? 'is-shared-badge' : ''}>{status}</em> : null}
             {pinned ? <em className="is-pinned">★ {language === 'vi' ? 'Đã ghim' : 'Pinned'}</em> : null}
           </span>
           <strong>{itemTitle}</strong>
