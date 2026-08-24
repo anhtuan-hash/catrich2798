@@ -4,8 +4,14 @@ import { reportMonthDate } from './monthlyReports.js';
 
 const SETTINGS_TABLE = 'department_monthly_report_settings';
 const REPORTS_TABLE = 'department_monthly_reports';
+const DEADLINE_CHANGE_EVENT = 'bes-monthly-report-deadline-change';
 
 const str = (value) => String(value ?? '').trim();
+
+function emitDeadlineChange(detail) {
+  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function' || typeof CustomEvent === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(DEADLINE_CHANGE_EVENT, { detail }));
+}
 
 export async function loadMonthlyReportDeadline({ departmentHeadId, departmentId, month }) {
   if (!isSupabaseConfigured || !departmentHeadId || !departmentId || !month) {
@@ -43,7 +49,9 @@ export async function saveMonthlyReportDeadline(user, departmentId, month, deadl
       .select('deadline_at')
       .single();
     if (error) throw error;
-    return { ok: true, deadline: data?.deadline_at || null, warning: '' };
+    const deadline = data?.deadline_at || null;
+    emitDeadlineChange({ departmentHeadId: user.id, departmentId, month, deadline });
+    return { ok: true, deadline, warning: '' };
   } catch (error) {
     return { ok: false, warning: error?.message || 'Không thể lưu thời hạn báo cáo.' };
   }
@@ -61,6 +69,7 @@ export async function clearMonthlyReportDeadline(user, departmentId, month) {
       .eq('department_id', departmentId)
       .eq('report_month', reportMonthDate(month));
     if (error) throw error;
+    emitDeadlineChange({ departmentHeadId: user.id, departmentId, month, deadline: null });
     return { ok: true, deadline: null, warning: '' };
   } catch (error) {
     return { ok: false, warning: error?.message || 'Không thể xóa thời hạn báo cáo.' };
