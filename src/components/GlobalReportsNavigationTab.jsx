@@ -6,6 +6,7 @@ import { launchRoute } from '../utils/motion.js';
 import { loadTeamWorkspace } from '../utils/personnelHub.js';
 import { currentReportMonth, loadMonthlyReportContexts } from '../utils/monthlyReports.js';
 import { deadlineState, loadMonthlyReportDeadline } from '../utils/monthlyReportAdmin.js';
+import usePrimaryNavigationHost from './usePrimaryNavigationHost.js';
 import './GlobalReportsNavigationTab.css';
 
 function compactCountdown(state, language) {
@@ -28,7 +29,7 @@ export default function GlobalReportsNavigationTab({
   route = 'home',
   selectedTool = null,
 }) {
-  const [host, setHost] = useState(null);
+  const host = usePrimaryNavigationHost();
   const [deadline, setDeadline] = useState(null);
   const [now, setNow] = useState(Date.now());
 
@@ -40,61 +41,56 @@ export default function GlobalReportsNavigationTab({
   ), [currentUser]);
 
   useEffect(() => {
-    if (typeof document === 'undefined') return undefined;
-
-    const findHost = () => {
-      const nextHost = document.querySelector('.brian-nav__primary');
-      setHost((current) => (current === nextHost ? current : nextHost));
-    };
-
-    findHost();
-    const frame = window.requestAnimationFrame(findHost);
-    const observer = new MutationObserver(findHost);
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
-  }, []);
-
-  useEffect(() => {
     if (!allowed || !currentUser?.id) {
       setDeadline(null);
       return undefined;
     }
 
     let alive = true;
+    let scopePromise = null;
+
+    const resolveScope = async () => {
+      if (isDepartmentLeaderRole(currentUser.role)) {
+        const workspaceResult = await loadTeamWorkspace(currentUser);
+        const workspace = workspaceResult?.workspace;
+        const department = workspace?.departments?.find((item) => item.id === workspace.activeDepartmentId)
+          || workspace?.departments?.[0]
+          || null;
+        return {
+          departmentHeadId: currentUser.id,
+          departmentId: department?.id || '',
+        };
+      }
+
+      const contextResult = await loadMonthlyReportContexts(currentUser);
+      const context = contextResult?.contexts?.[0] || null;
+      return {
+        departmentHeadId: context?.departmentHeadId || '',
+        departmentId: context?.departmentId || '',
+      };
+    };
+
+    const getScope = () => {
+      scopePromise ||= resolveScope();
+      return scopePromise;
+    };
 
     const refreshDeadline = async () => {
       try {
-        const month = currentReportMonth();
-        let departmentHeadId = '';
-        let departmentId = '';
-
-        if (isDepartmentLeaderRole(currentUser.role)) {
-          const workspaceResult = await loadTeamWorkspace(currentUser);
-          const workspace = workspaceResult?.workspace;
-          const department = workspace?.departments?.find((item) => item.id === workspace.activeDepartmentId)
-            || workspace?.departments?.[0]
-            || null;
-          departmentHeadId = currentUser.id;
-          departmentId = department?.id || '';
-        } else {
-          const contextResult = await loadMonthlyReportContexts(currentUser);
-          const context = contextResult?.contexts?.[0] || null;
-          departmentHeadId = context?.departmentHeadId || '';
-          departmentId = context?.departmentId || '';
-        }
-
+        const { departmentHeadId, departmentId } = await getScope();
         if (!departmentHeadId || !departmentId) {
           if (alive) setDeadline(null);
           return;
         }
 
-        const result = await loadMonthlyReportDeadline({ departmentHeadId, departmentId, month });
+        const result = await loadMonthlyReportDeadline({
+          departmentHeadId,
+          departmentId,
+          month: currentReportMonth(),
+        });
         if (alive) setDeadline(result?.deadline || null);
       } catch {
+        scopePromise = null;
         if (alive) setDeadline(null);
       }
     };
