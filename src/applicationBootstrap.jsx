@@ -1,6 +1,7 @@
 import './tabResumeStability.js';
 import './noCreamSurfaceRuntime.js';
 import './compactDrawerRuntimeV3.js';
+import './styles/WidescreenDrawerReadability.css';
 import './tabResumeAuthStability.js';
 import './fourClassLocalPurge.js';
 import './directClassRosterImportBootstrap.js';

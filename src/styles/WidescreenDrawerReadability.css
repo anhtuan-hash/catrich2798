@@ -1,0 +1,198 @@
+/* Brian English — widescreen drawer/dialog readability layer.
+   CompactDrawerRuntimeV3 still discovers and classifies legacy overlays; this
+   layer deliberately overrides only their geometry/readability on larger
+   displays so 16:9 classroom screens use horizontal space instead of forcing
+   tall, narrow panels. */
+
+@media (min-width: 700px) {
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay {
+    --bes-ws-modal-width: 960px;
+    --bes-ws-side-width: 580px;
+    --bes-ws-pad-x: 24px;
+    --bes-ws-control-h: 48px;
+    width: min(var(--bes-ws-modal-width), calc(100vw - 48px)) !important;
+    max-width: min(var(--bes-ws-modal-width), calc(100vw - 48px)) !important;
+    max-height: calc(100dvh - 40px) !important;
+    border-radius: 24px !important;
+    overflow: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:not(.bes-compact-side-drawer) {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has(.bes-compact-overlay-body) {
+    overflow: hidden !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-side-drawer {
+    --bes-ws-modal-width: var(--bes-ws-side-width);
+    width: min(var(--bes-ws-side-width), calc(100vw - 24px)) !important;
+    max-width: min(var(--bes-ws-side-width), calc(100vw - 24px)) !important;
+    height: calc(100dvh - 24px) !important;
+    max-height: calc(100dvh - 24px) !important;
+    border-radius: 22px !important;
+  }
+
+  /* Data-heavy dialogs get the larger 16:9 canvas. */
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has(table),
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="table"]),
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="grid"]),
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="statistics"]),
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="submission"]) {
+    --bes-ws-modal-width: 1180px;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header {
+    flex: 0 0 auto !important;
+    padding: 20px var(--bes-ws-pad-x) 16px !important;
+    gap: 12px !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-body {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    padding: 18px var(--bes-ws-pad-x) 22px !important;
+    gap: 16px !important;
+    overflow: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-footer {
+    flex: 0 0 auto !important;
+    padding: 14px var(--bes-ws-pad-x) 18px !important;
+    gap: 10px !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header h1,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header h2,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header h3,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header [class$="-title"],
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header [class*="-title "] {
+    font-size: clamp(1.45rem, 2vw, 1.8rem) !important;
+    line-height: 1.18 !important;
+    letter-spacing: -.025em !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header p,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header small,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header [class$="-subtitle"],
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header [class*="-subtitle "] {
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay label,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay [class$="-label"],
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay [class*="-label "] {
+    font-size: .95rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay select {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: var(--bes-ws-control-h) !important;
+    height: var(--bes-ws-control-h) !important;
+    padding: 10px 13px !important;
+    border-radius: 12px !important;
+    font-size: 1rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay textarea {
+    min-height: 104px !important;
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay button,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay [role="button"] {
+    min-height: 44px !important;
+    font-size: .95rem !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay button[aria-label*="close" i],
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay button[aria-label*="đóng" i],
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay [class$="-close"],
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay [class*="-close "] {
+    width: 42px !important;
+    min-width: 42px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 !important;
+    border-radius: 12px !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay :where(form, fieldset, section, article, div) {
+    min-width: 0;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay :where([class*="grid"], [class*="filters"], [class*="controls"], [class*="toolbar"]) > * {
+    min-width: 0 !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay :where(table, [class*="table-wrap"], [class*="table-scroll"]) {
+    max-width: 100% !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay :where([class*="table-wrap"], [class*="table-scroll"]) {
+    overflow: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable !important;
+  }
+
+  /* Existing feature-specific compact rules are intentionally superseded. */
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.tth-modal,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.tth-share-modal,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.launcher-link-form,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.launcher-link-manager {
+    width: min(var(--bes-ws-modal-width), calc(100vw - 48px)) !important;
+    max-width: min(var(--bes-ws-modal-width), calc(100vw - 48px)) !important;
+    height: auto !important;
+    max-height: calc(100dvh - 40px) !important;
+  }
+
+  .shared-chatbot-drawer-v1167.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-side-drawer,
+  .android-detail-panel.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-side-drawer {
+    width: min(var(--bes-ws-side-width), calc(100vw - 24px)) !important;
+    max-width: min(var(--bes-ws-side-width), calc(100vw - 24px)) !important;
+  }
+}
+
+/* Use additional horizontal room on classroom TVs / 16:9 desktop displays. */
+@media (min-width: 1180px) and (min-aspect-ratio: 4 / 3) {
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay {
+    --bes-ws-modal-width: 1040px;
+    --bes-ws-side-width: 640px;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has(table),
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="table"]),
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="grid"]),
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="statistics"]),
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay:has([class*="submission"]) {
+    --bes-ws-modal-width: 1240px;
+  }
+}
+
+/* Mobile remains compact and single-column; only improve legibility. */
+@media (max-width: 699px) {
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay {
+    font-size: 16px !important;
+  }
+
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay input,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay select,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay textarea,
+  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay button {
+    font-size: 16px !important;
+  }
+}
