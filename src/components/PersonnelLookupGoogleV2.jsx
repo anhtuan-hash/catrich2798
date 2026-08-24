@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import PersonnelLookupGoogleV2Base from './PersonnelLookupGoogleV2Base.jsx';
 import '../styles/personnel-google-material-v3.css';
+import '../styles/personnel-dashboard-compact-2026.css';
 import '../styles/personnel-profile-modal.css';
 import '../styles/dashboard-gap-modal-center-fix.css';
 
