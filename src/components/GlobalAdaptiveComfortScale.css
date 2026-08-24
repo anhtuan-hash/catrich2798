@@ -1,79 +1,9 @@
-/* Adaptive comfort profile for 13-inch / 1440 × 900 displays.
-   The application already scales rem-based typography through html font-size.
-   These rules refine the remaining fixed-pixel controls and reduce overly wide
-   reading lines without using transform/zoom, so the pinned header stays sharp. */
+/* Legacy adaptive-comfort typography has been retired.
+   Dashboard is the single scale reference for all routes. The viewport marker
+   may still be used for geometry-only adjustments, but it must never change
+   font size, control size or reading weight automatically. */
 
-@media (min-width: 1100px) and (max-width: 1440px) and (max-height: 900px) {
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell[data-route] {
-    --bes-comfort-content-max: 1320px;
-    --bes-comfort-body-weight: 500;
-  }
-
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell[data-route] > main#bes-main-content,
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell[data-route] > main.wp8-page-stage,
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell[data-route] main#bes-main-content {
-    width: min(var(--bes-comfort-content-max), calc(100% - 32px)) !important;
-    max-width: var(--bes-comfort-content-max) !important;
-    margin-inline: auto !important;
-  }
-
-  /* News and other full-bleed workspaces previously forced a 1540px canvas. */
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .metro-clean-system[data-route='news'] .newsroom-v823-page {
-    width: min(var(--bes-comfort-content-max), calc(100vw - 40px)) !important;
-    max-width: var(--bes-comfort-content-max) !important;
-  }
-
-  /* Improve reading weight and rhythm without enlarging display headings again. */
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell[data-route] main :is(p, li, td, th, label, input, textarea, select) {
-    font-weight: var(--bes-comfort-body-weight) !important;
-  }
-
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell[data-route] main :is(p, li) {
-    line-height: 1.58 !important;
-  }
-
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell[data-route] main small {
-    font-size: max(.86rem, 14px) !important;
-    line-height: 1.48 !important;
-  }
-
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell[data-route] main :is(button, input, select, textarea) {
-    font-size: max(1rem, 16px) !important;
-  }
-
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell[data-route] main :is(button, input, select) {
-    min-height: 44px;
-  }
-
-  /* The legacy guard used smaller fixed pixel sizes at 110%; restore a truly
-     comfortable navigation size while preserving one-row horizontal scrolling. */
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell .brian-nav {
-    font-size: 16px !important;
-  }
-
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell .brian-nav button.brian-nav__brand::after {
-    font-size: 18px !important;
-    font-weight: 740 !important;
-  }
-
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell .brian-nav__primary > :is(button, [role='button']) {
-    padding-inline: 14px !important;
-    font-size: 16px !important;
-    font-weight: 700 !important;
-  }
-
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell .brian-nav__account {
-    font-size: 15px !important;
-  }
-
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell .brian-briefing-bar__ticker-item,
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .app-shell .brian-briefing-chip {
-    font-size: 15px !important;
-    font-weight: 600 !important;
-  }
-
-  /* Preserve large hero typography: its viewport-based size already reads well. */
-  html[data-bes-comfort-display='true'][data-font-scale='110'] body .metro-clean-system[data-route='news'] .newsroom-v823-hero h1 {
-    font-size: clamp(3rem, 5.6vw, 6.25rem) !important;
-  }
+html[data-bes-comfort-display='true'] #bes-main-content,
+html[data-bes-comfort-display='true'] #bes-main-content > * {
+  min-width: 0;
 }
