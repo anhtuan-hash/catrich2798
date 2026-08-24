@@ -84,7 +84,9 @@ function auditHero(element, route, variant) {
 }
 
 function scanHeroes(route = '') {
-  const root = document.querySelector('.app-shell') || document.body;
+  const root = document.querySelector(`.app-shell[data-route="${String(route || '').replace(/"/g, '')}"]`)
+    || document.querySelector('.app-shell')
+    || document.body;
   if (!root) return [];
 
   cleanPrevious(root);
@@ -107,28 +109,35 @@ function scanHeroes(route = '') {
 
 export default function GlobalHeroGovernance({ route = '' }) {
   useEffect(() => {
-    document.documentElement.dataset.brianHeroGovernance = 'v1';
+    document.documentElement.dataset.brianHeroGovernance = 'v2-lite';
     let report = [];
     let frame = 0;
+    const timers = new Set();
 
-    const schedule = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        report = scanHeroes(route);
-      });
+    const scan = () => {
+      frame = 0;
+      report = scanHeroes(route);
     };
 
-    const observer = new MutationObserver(schedule);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    window.addEventListener('resize', schedule, { passive: true });
-    window.addEventListener('hashchange', schedule);
+    const schedule = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(scan);
+    };
+
+    // Route changes already rerun this effect. A couple of delayed passes catch
+    // lazy/Suspense content without a document-wide MutationObserver.
+    schedule();
+    [160, 700].forEach((delay) => {
+      const timer = window.setTimeout(schedule, delay);
+      timers.add(timer);
+    });
+
     window.addEventListener('bes:font-scale-changed', schedule);
     window.addEventListener('bes:appearance-changed', schedule);
-    schedule();
+    window.addEventListener('bes:hero-audit-request', schedule);
 
     window.BrianHeroAudit = Object.freeze({
-      version: 'v1',
+      version: 'v2-lite',
       getReport: () => report.map((item) => ({ ...item, warnings: [...item.warnings] })),
       rescan: () => {
         report = scanHeroes(route);
@@ -138,11 +147,10 @@ export default function GlobalHeroGovernance({ route = '' }) {
 
     return () => {
       cancelAnimationFrame(frame);
-      observer.disconnect();
-      window.removeEventListener('resize', schedule);
-      window.removeEventListener('hashchange', schedule);
+      timers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener('bes:font-scale-changed', schedule);
       window.removeEventListener('bes:appearance-changed', schedule);
+      window.removeEventListener('bes:hero-audit-request', schedule);
     };
   }, [route]);
 
