@@ -22,15 +22,33 @@ html[data-performance='low'] body .app-shell[data-route] *:not([aria-busy='true'
   scroll-behavior: auto !important;
 }
 
-/* Full-screen cultural atmosphere is intentionally an opt-in High-mode effect.
-   It combines fixed positioning, blend modes and infinite motif animations, so
-   keeping it alive in Auto/Balanced causes continuous compositor work. */
+/* Vietnam atmosphere remains visible when enabled so "Save and apply" works
+   on the default Balanced profile. To protect scrolling performance, Balanced
+   and Low render it as a static paint-only decoration. */
 html[data-performance='balanced'] body .bes-vn-atmosphere,
 html[data-performance='low'] body .bes-vn-atmosphere {
-  display: none !important;
+  display: block !important;
   animation: none !important;
   filter: none !important;
   mix-blend-mode: normal !important;
+  will-change: auto !important;
+}
+
+html[data-performance='balanced'] body .bes-vn-atmosphere {
+  opacity: .92 !important;
+}
+
+html[data-performance='low'] body .bes-vn-atmosphere {
+  opacity: .72 !important;
+}
+
+html[data-performance='balanced'] body .bes-vn-atmosphere .bes-vn-motif,
+html[data-performance='balanced'] body .bes-vn-atmosphere .bes-vn-motif__art,
+html[data-performance='low'] body .bes-vn-atmosphere .bes-vn-motif,
+html[data-performance='low'] body .bes-vn-atmosphere .bes-vn-motif__art {
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
   will-change: auto !important;
 }
 
