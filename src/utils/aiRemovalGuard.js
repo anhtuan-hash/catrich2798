@@ -8,9 +8,8 @@ const REMOVE_SELECTORS = [
   '.ai-chatbot-fab', '.ai-chatbot-launcher',
   '[data-chatbot-root]', '[data-chatbot-launcher]', '[data-ai-chatbot-launcher]',
 ];
-const CHATBOT_ACTION_PATTERNS = [
-  /chat\s*bot/i,
-];
+const REMOVE_SELECTOR = REMOVE_SELECTORS.join(',');
+const CHATBOT_ACTION_PATTERNS = [/chat\s*bot/i];
 
 function cleanChatbotStorage() {
   try {
@@ -25,8 +24,15 @@ function cleanChatbotStorage() {
   }
 }
 
-function removeLegacyChatbot(root = document) {
-  REMOVE_SELECTORS.forEach((selector) => root.querySelectorAll?.(selector).forEach((node) => node.remove()));
+function removeKnownChatbotNodes(root = document) {
+  if (root instanceof Element && root.matches?.(REMOVE_SELECTOR)) {
+    root.remove();
+    return;
+  }
+  root.querySelectorAll?.(REMOVE_SELECTOR).forEach((node) => node.remove());
+}
+
+function removeLegacyChatbotActionsOnce(root = document) {
   root.querySelectorAll?.('button, a, [role="button"]').forEach((node) => {
     const text = `${node.textContent || ''} ${node.getAttribute('aria-label') || ''} ${node.getAttribute('title') || ''}`
       .replace(/\s+/g, ' ')
@@ -46,15 +52,22 @@ export function installAiRemovalGuard() {
   document.documentElement.dataset.aiChatbot = 'removed';
   cleanChatbotStorage();
   redirectRemovedRoute();
-  removeLegacyChatbot();
+
+  // Expensive text matching is only needed once for legacy markup already in
+  // the document. Future mutations are checked against precise selectors only.
+  removeKnownChatbotNodes();
+  removeLegacyChatbotActionsOnce();
+
   window.addEventListener('hashchange', redirectRemovedRoute);
-  const observer = new MutationObserver((mutations) => mutations.forEach((mutation) => {
-    mutation.addedNodes.forEach((node) => {
-      if (node.nodeType !== Node.ELEMENT_NODE) return;
-      if (REMOVE_SELECTORS.some((selector) => node.matches?.(selector))) node.remove();
-      else removeLegacyChatbot(node);
+
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) removeKnownChatbotNodes(node);
+      });
     });
-  }));
+  });
   observer.observe(document.documentElement, { childList: true, subtree: true });
+
   window.addEventListener('bes-chatbot-drawer-open', (event) => event.stopImmediatePropagation(), true);
 }
