@@ -7,8 +7,11 @@ on:
       - 'src/pages/MonthlyReportsWorkspace.*'
       - 'src/pages/ToolPage.jsx'
       - 'src/utils/monthlyReports.js'
+      - 'src/utils/teacherAssignments.js'
       - 'supabase/brian-monthly-reports.sql'
+      - 'supabase/brian-teacher-assignment-sync.sql'
       - 'scripts/test-monthly-reports-contract.mjs'
+      - 'scripts/test-teacher-assignment-sync-contract.mjs'
       - '.github/workflows/monthly-reports-check.yml'
   workflow_dispatch:
 
@@ -25,5 +28,7 @@ jobs:
       - run: npm ci
       - name: Monthly report contract
         run: node scripts/test-monthly-reports-contract.mjs
+      - name: Teacher assignment synchronization contract
+        run: node scripts/test-teacher-assignment-sync-contract.mjs
       - name: Production build
         run: npm run build
