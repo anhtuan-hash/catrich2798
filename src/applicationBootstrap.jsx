@@ -73,10 +73,9 @@ function refreshSiteFontInBackground(cachedFont) {
 }
 
 function loadRouteModules() {
-  // The Applications route no longer uses legacy compact drawers. Keeping that
-  // runtime off this route avoids installing a document-wide MutationObserver
-  // while the dense app directory is mounting and scrolling.
-  if (!isAppsRoute()) loadCompactDrawerRuntimeAfterMainShell();
+  // Performance guard: compactDrawerRuntimeV3 installs a document-wide
+  // MutationObserver. Do not load it globally during route boot. Feature
+  // components may opt in explicitly if they truly need a rescan.
   if (isAppsRoute()) loadExternalAppsAfterMainShell();
 
   if (isAssignedClassRoute()) startAssignedClassSync().catch(() => {});
@@ -139,13 +138,15 @@ function startAssignedClassSync() {
   return assignedClassSyncPromise;
 }
 
+// Kept for explicit opt-in compatibility. It is intentionally not called by
+// global route boot anymore because the runtime observes the whole document.
 function loadCompactDrawerRuntimeAfterMainShell() {
   if (compactDrawerRuntimeLoaded || compactDrawerRuntimeScheduled || isAppsRoute()) return;
 
   const mainShellReady = Boolean(document.querySelector('#root .app-shell'));
   if (!mainShellReady) {
     if (Date.now() - STARTED_AT < MAX_WAIT_MS) {
-      window.setTimeout(loadCompactDrawerRuntimeAfterMainShell, 140);
+      window.setTimeout(loadCompactDrawerRuntimeAfterMainShell, 180);
     }
     return;
   }
@@ -161,27 +162,27 @@ function loadCompactDrawerRuntimeAfterMainShell() {
     } catch (error) {
       console.warn('[CompactDrawerV3] Deferred runtime failed to load.', error);
     }
-  }, 650);
+  }, 1200);
 }
 
 function loadExternalAppsAfterMainShell() {
-  if (externalAppsLoaded || externalAppsScheduled) return;
+  // Critical performance fix: this bootstrap imports many homepage, weekly
+  // practice and Brian Team modules and mounts a second React root. It must be
+  // exclusive to the Applications route.
+  if (!isAppsRoute() || externalAppsLoaded || externalAppsScheduled) return;
 
   const mainShellReady = Boolean(document.querySelector('#root .app-shell'));
   if (!mainShellReady) {
     if (Date.now() - STARTED_AT < MAX_WAIT_MS) {
-      window.setTimeout(loadExternalAppsAfterMainShell, 140);
+      window.setTimeout(loadExternalAppsAfterMainShell, 180);
     }
     return;
   }
 
   externalAppsScheduled = true;
-  // On the Applications page, load approved apps near the first paint instead
-  // of injecting them ~2.6s later. This removes the late layout shift/jank.
-  const idleDelay = isAppsRoute() ? 220 : 2600;
   runWhenIdle(async () => {
     externalAppsScheduled = false;
-    if (externalAppsLoaded) return;
+    if (!isAppsRoute() || externalAppsLoaded) return;
     externalAppsLoaded = true;
     try {
       await import('./externalAppsBootstrap.jsx');
@@ -192,7 +193,7 @@ function loadExternalAppsAfterMainShell() {
         detail: { message: String(error?.message || error || 'Unknown external bootstrap error') },
       }));
     }
-  }, idleDelay);
+  }, 220);
 }
 
 async function startApplication() {
@@ -211,7 +212,8 @@ async function startApplication() {
 
   await mainModulePromise;
   installRouteModuleLoader();
-  loadExternalAppsAfterMainShell();
+  // loadRouteModules() is now the single route-aware loader. Do not schedule
+  // External Apps globally from here.
 }
 
 if (document.readyState === 'loading') {

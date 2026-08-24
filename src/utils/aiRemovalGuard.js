@@ -40,21 +40,21 @@ function redirectRemovedRoute() {
   if (AI_REMOVED_ROUTES.has(route)) location.hash = '#/home';
 }
 
+function cleanupAtRouteBoundary() {
+  redirectRemovedRoute();
+  window.requestAnimationFrame(() => removeLegacyChatbot());
+}
+
 export function installAiRemovalGuard() {
   if (typeof window === 'undefined' || window.__BRIAN_AI_REMOVED__) return;
   window.__BRIAN_AI_REMOVED__ = true;
   document.documentElement.dataset.aiChatbot = 'removed';
   cleanChatbotStorage();
-  redirectRemovedRoute();
-  removeLegacyChatbot();
-  window.addEventListener('hashchange', redirectRemovedRoute);
-  const observer = new MutationObserver((mutations) => mutations.forEach((mutation) => {
-    mutation.addedNodes.forEach((node) => {
-      if (node.nodeType !== Node.ELEMENT_NODE) return;
-      if (REMOVE_SELECTORS.some((selector) => node.matches?.(selector))) node.remove();
-      else removeLegacyChatbot(node);
-    });
-  }));
-  observer.observe(document.documentElement, { childList: true, subtree: true });
+  cleanupAtRouteBoundary();
+
+  // Performance-safe: the old guard watched the entire document and rescanned
+  // every newly-added subtree. Route-boundary cleanup is enough because the AI
+  // routes and launcher are retired from the product.
+  window.addEventListener('hashchange', cleanupAtRouteBoundary);
   window.addEventListener('bes-chatbot-drawer-open', (event) => event.stopImmediatePropagation(), true);
 }

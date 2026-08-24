@@ -1,14 +1,12 @@
 /*
  * Brian English — runtime near-white warm-surface neutralizer.
  *
- * CSS handles known form controls. This runtime is the last line of defence for
- * lazy-loaded components, React portals, inline styles and open shadow roots.
- * It only converts very pale warm neutrals (cream/ivory) to white. Saturated
- * semantic yellow/orange surfaces are left alone.
+ * Performance-safe version: CSS handles known form controls and this runtime
+ * performs bounded scans only at startup, route changes and appearance changes.
+ * It deliberately avoids a document-wide MutationObserver.
  */
 
 const RUNTIME_FLAG = '__BES_NO_CREAM_RUNTIME_V1__';
-const OBSERVED_ROOTS = new WeakSet();
 const pendingRoots = new Set();
 let frame = 0;
 
@@ -111,8 +109,6 @@ function neutralizeElement(element) {
   const background = parseRgb(style.backgroundColor);
   const isFormSurface = element.matches(FORM_SURFACE_SELECTOR);
 
-  /* Form controls are always white unless disabled/read-only; CSS also applies
-     this rule, but runtime setProperty defeats inline !important values. */
   if (isFormSurface) {
     const disabled = element.matches(':disabled') || element.matches('input:read-only,textarea:read-only');
     const target = disabled ? '#f7f9fc' : '#ffffff';
@@ -148,17 +144,11 @@ function scanTree(root) {
 
   queryRoot.querySelectorAll(SURFACE_SELECTOR).forEach((element) => {
     neutralizeElement(element);
-    if (element.shadowRoot) {
-      observeRoot(element.shadowRoot);
-      scanTree(element.shadowRoot);
-    }
+    if (element.shadowRoot) scanTree(element.shadowRoot);
   });
 
   queryRoot.querySelectorAll('*').forEach((element) => {
-    if (element.shadowRoot) {
-      observeRoot(element.shadowRoot);
-      scanTree(element.shadowRoot);
-    }
+    if (element.shadowRoot) scanTree(element.shadowRoot);
   });
 }
 
@@ -177,40 +167,17 @@ function schedule(root) {
   frame = requestAnimationFrame(flush);
 }
 
-function observeRoot(root) {
-  if (!root || OBSERVED_ROOTS.has(root)) return;
-  OBSERVED_ROOTS.add(root);
-  const observer = new MutationObserver((records) => {
-    records.forEach((record) => {
-      if (record.type === 'attributes') {
-        schedule(record.target);
-        return;
-      }
-      record.addedNodes.forEach((node) => {
-        if (node.nodeType === Node.ELEMENT_NODE) schedule(node);
-      });
-    });
-  });
-  observer.observe(root, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['class', 'style', 'open'],
-  });
-}
-
 export function installNoCreamSurfaceRuntime() {
   if (typeof window === 'undefined' || window[RUNTIME_FLAG]) return;
   window[RUNTIME_FLAG] = true;
 
-  const start = () => {
-    observeRoot(document.documentElement);
-    schedule(document);
-  };
+  const start = () => schedule(document);
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
 
+  // These are infrequent lifecycle boundaries, unlike continuous DOM mutation
+  // observation. They preserve the visual cleanup without main-thread churn.
   window.addEventListener('hashchange', () => schedule(document));
   window.addEventListener('load', () => schedule(document), { once: true });
   window.addEventListener('bes:appearance-changed', () => schedule(document));
