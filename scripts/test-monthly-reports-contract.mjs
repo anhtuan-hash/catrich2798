@@ -6,6 +6,9 @@ const files = {
   ui: fs.readFileSync(new URL('../src/pages/MonthlyReportsWorkspace.jsx', import.meta.url), 'utf8'),
   util: fs.readFileSync(new URL('../src/utils/monthlyReports.js', import.meta.url), 'utf8'),
   templateCss: fs.readFileSync(new URL('../src/pages/MonthlyReportsTemplate.css', import.meta.url), 'utf8'),
+  modernCss: fs.readFileSync(new URL('../src/pages/MonthlyReportsWorkspaceModern.css', import.meta.url), 'utf8'),
+  flatNavigation: fs.readFileSync(new URL('../src/components/GlobalFlatNavigation.jsx', import.meta.url), 'utf8'),
+  reportsTab: fs.readFileSync(new URL('../src/components/GlobalReportsNavigationTab.jsx', import.meta.url), 'utf8'),
   sql: fs.readFileSync(new URL('../supabase/brian-monthly-reports.sql', import.meta.url), 'utf8'),
 };
 
@@ -27,6 +30,9 @@ const checks = [
   ['TTCM report export exists', files.ui.includes('Xuất Word') && files.ui.includes('In / PDF')],
   ['Schema v2 keeps report status workflow', files.util.includes('schemaVersion: 2') && ['draft','submitted','revision','approved'].every((status) => files.util.includes(status))],
   ['Template styles are loaded', files.portal.includes("./MonthlyReportsTemplate.css") && files.templateCss.includes('.mr-number-table')],
+  ['Modern report visual layer is loaded last', files.portal.includes("./MonthlyReportsWorkspaceModern.css") && files.modernCss.includes('.mr-shell.mr-teacher-shell') && files.modernCss.includes('.mr-manager')],
+  ['Reports quick-access tab is mounted in primary navigation', files.flatNavigation.includes('GlobalReportsNavigationTab') && files.flatNavigation.includes('<GlobalReportsNavigationTab {...props} />')],
+  ['Reports quick-access tab opens Brian Team reports', files.reportsTab.includes("target: '#/tool/brian-team'") && files.reportsTab.includes("language === 'vi' ? 'Báo cáo' : 'Reports'")],
   ['Supabase monthly report table exists', files.sql.includes('create table if not exists public.department_monthly_reports')],
   ['Membership routing RPC exists', files.sql.includes('bes_monthly_report_context') && files.sql.includes('bes_monthly_report_membership')],
   ['RLS protects report data', files.sql.includes('enable row level security') && files.sql.includes('Teachers and TTCM update monthly reports')],
