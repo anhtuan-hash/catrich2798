@@ -2,3 +2,27 @@
 .flat-apps-menu .flat-nav-links > .flat-nav-link:nth-child(3) {
   display: none !important;
 }
+
+.apps-list-row.is-shared .apps-list-icon {
+  background: #f3f8f4;
+}
+
+.apps-list-shared-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.apps-list-row.is-shared .apps-list-meta .is-shared-badge {
+  color: #137333;
+  background: #e6f4ea;
+  border: 1px solid #b7dfc2;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-style: normal;
+  font-weight: 700;
+}
