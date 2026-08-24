@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckCircle2, ChevronRight, FileCode2, Globe2 } from 'lucide-react';
 import { canManageAiWebsites } from '../utils/aiWebsiteSettings.js';
 import { EXTERNAL_APP_SOURCE_HTML, loadExternalWebApps, subscribeExternalWebApps } from '../utils/externalWebApps.js';
 import { TESOL_METHOD_HASH } from '../tesolMethodRouteRegistry.js';
-import ExternalWebAppManager from './ExternalWebAppManagerV2.jsx';
-import ExternalWebAppViewer from './ExternalWebAppViewer.jsx';
 import './ExternalWebApps.css';
 import './ExternalAppApprovalRestore.css';
 import './ApprovedExternalAppsList.css';
+
+const ExternalWebAppManager = lazy(() => import('./ExternalWebAppManagerV2.jsx'));
+const ExternalWebAppViewer = lazy(() => import('./ExternalWebAppViewer.jsx'));
 
 const GROUPS = {
   plan: { label: 'Soạn bài', accent: '#1a73e8' },
@@ -113,7 +114,13 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
       return undefined;
     }
 
+    let observer = null;
+    let frame = 0;
+    let stopped = false;
+    let attempts = 0;
+
     const findHosts = () => {
+      if (stopped) return true;
       const scope = document.querySelector('.metro-clean-system[data-route="apps"]') || document;
       const hero = scope.querySelector('.apps-directory-actions')
         || scope.querySelector('.apps-directory-hero-copy')
@@ -124,13 +131,35 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
         || scope.querySelector('.apps-directory-grid-native')
         || scope.querySelector('.flat-apps-collage-grid')
         || document.querySelector('#apps-directory-grid, .apps-directory-list-native, .apps-directory-grid-native, .flat-apps-collage-grid');
+
       setHosts((current) => (current.hero === hero && current.grid === grid ? current : { hero, grid }));
+      const complete = Boolean(hero && grid);
+      if (complete) observer?.disconnect();
+      return complete;
     };
 
-    findHosts();
-    const observer = new MutationObserver(findHosts);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    const retry = () => {
+      if (stopped || findHosts()) return;
+      attempts += 1;
+      if (attempts < 24) frame = window.requestAnimationFrame(retry);
+    };
+
+    if (!findHosts()) {
+      const scopeRoot = document.querySelector('.metro-clean-system[data-route="apps"]')
+        || document.getElementById('root')
+        || document.body;
+      observer = new MutationObserver(() => {
+        if (findHosts()) observer?.disconnect();
+      });
+      observer.observe(scopeRoot, { childList: true, subtree: true });
+      frame = window.requestAnimationFrame(retry);
+    }
+
+    return () => {
+      stopped = true;
+      if (frame) window.cancelAnimationFrame(frame);
+      observer?.disconnect();
+    };
   }, [route]);
 
   useEffect(() => {
@@ -194,20 +223,28 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
         hosts.grid,
       ) : null}
 
-      {route === 'apps' ? (
-        <ExternalWebAppManager
-          open={dialog}
-          onClose={() => setDialog(false)}
-          currentUser={currentUser}
-          language={language}
-          onChanged={setData}
-        />
+      {route === 'apps' && dialog ? (
+        <Suspense fallback={null}>
+          <ExternalWebAppManager
+            open
+            onClose={() => setDialog(false)}
+            currentUser={currentUser}
+            language={language}
+            onChanged={setData}
+          />
+        </Suspense>
       ) : null}
 
-      {route === 'apps' ? <ExternalWebAppViewer app={active} onClose={() => setActive(null)} /> : null}
+      {route === 'apps' && active ? (
+        <Suspense fallback={null}>
+          <ExternalWebAppViewer app={active} onClose={() => setActive(null)} />
+        </Suspense>
+      ) : null}
 
       {isTesolRoute && tesolApp ? (
-        <ExternalWebAppViewer app={tesolApp} onClose={() => { window.location.hash = '#/apps'; }} />
+        <Suspense fallback={null}>
+          <ExternalWebAppViewer app={tesolApp} onClose={() => { window.location.hash = '#/apps'; }} />
+        </Suspense>
       ) : null}
 
       {isTesolRoute && routeHost && !tesolApp ? createPortal(
