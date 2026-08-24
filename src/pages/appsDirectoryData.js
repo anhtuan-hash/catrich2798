@@ -58,7 +58,7 @@ export const copy = {
 export function titleOf(item, language) { return language === 'vi' ? item.titleVi || item.title : item.title; }
 export function descOf(item, language) { return language === 'vi' ? item.descVi || item.desc : item.desc; }
 export function statusOf(item, language) {
-  if (item?.shared) return language === 'vi' ? item.statusVi || 'Dùng chung' : item.status || 'Shared';
+  if (item?.shared || item?.externalUrl) return language === 'vi' ? item.statusVi || item.status || 'Ứng dụng' : item.status || item.statusVi || 'Application';
   const profile = getAppDesignProfile(item.slug);
   return language === 'vi' ? profile.styleVi || item.statusVi || item.status : profile.style || item.status;
 }
@@ -96,7 +96,7 @@ export function launch(target, label, color, sourceEl = null) {
 }
 export function navLaunch(route, label, color, sourceEl) { launch(route.startsWith('#/') ? route : `#/${route}`, label, color, sourceEl); }
 export function defaultGroupOf(item) {
-  if (item?.shared) return item.groupId || 'create';
+  if (item?.shared || item?.externalUrl) return item.groupId || 'create';
   if (['lesson-plan-ai', 'textcare', 'resource-library-hub'].includes(item.slug)) return 'plan';
   if (item.slug === 'homeroom-hub') return 'manage';
   if (['textlab-activities', 'flying-words', 'reading-studio', 'news-reader', 'vietnam-tax', 'word2graph', 'game-hub', 'games-hub'].includes(item.slug)) return 'create';
