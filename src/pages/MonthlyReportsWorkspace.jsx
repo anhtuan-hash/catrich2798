@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  AlertTriangle, CheckCircle2, ClipboardList, Download, FileCheck2, FileText,
+  AlertTriangle, CalendarClock, CheckCircle2, ClipboardList, Download, FileCheck2, FileText,
   LoaderCircle, MessageSquareWarning, Printer, RefreshCw, Save, Send,
-  ShieldCheck, Sparkles, UsersRound, X,
+  ShieldCheck, Sparkles, Trash2, UsersRound, X,
 } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import { listTeamTeacherAccounts, loadTeamWorkspace } from '../utils/personnelHub.js';
@@ -13,6 +13,11 @@ import {
   loadMyMonthlyReport, normalizeMonthlyPayload, reportCompletion, reportMonthLabel,
   reviewMonthlyReport, saveMyMonthlyReport,
 } from '../utils/monthlyReports.js';
+import {
+  clearMonthlyReportDeadline, deadlineState, deleteDepartmentMonthlyReport,
+  loadMonthlyReportDeadline, localDateTimeInputToIso, saveMonthlyReportDeadline,
+  toLocalDateTimeInput,
+} from '../utils/monthlyReportAdmin.js';
 import './MonthlyReportsWorkspace.css';
 
 const teacherName = (user) => user?.full_name || user?.name || user?.email || 'Giáo viên';
@@ -102,6 +107,31 @@ function ProfessionalStatsTable({ stats, locked = false, onChange = null, compac
   );
 }
 
+function useDeadlineCountdown(deadline) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!deadline) return undefined;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [deadline]);
+  return deadlineState(deadline, now);
+}
+
+function DeadlineCard({ deadline }) {
+  const state = useDeadlineCountdown(deadline);
+  if (!deadline) return null;
+  const formatted = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'full', timeStyle: 'short' }).format(new Date(deadline));
+  return (
+    <section className={`mr-deadline-card ${state.expired ? 'is-expired' : ''}`}>
+      <div className="mr-deadline-copy">
+        <span className="mr-deadline-icon"><CalendarClock /></span>
+        <div><small>THỜI HẠN BÁO CÁO</small><strong>{formatted}</strong><p>{state.expired ? 'Thời hạn đã kết thúc. Bạn vẫn có thể gửi báo cáo để TTCM tiếp nhận.' : 'TTCM đã đặt thời hạn cho báo cáo tháng này.'}</p></div>
+      </div>
+      <div className="mr-countdown"><small>{state.expired ? 'Trạng thái' : 'Còn lại'}</small><strong>{state.label}</strong></div>
+    </section>
+  );
+}
+
 function PreviewPayload({ payload, context, user, report }) {
   const completion = reportCompletion(payload);
   return (
@@ -126,6 +156,7 @@ function TeacherMonthlyReports({ currentUser }) {
   const [contextIndex, setContextIndex] = useState(0);
   const [payload, setPayload] = useState(null);
   const [report, setReport] = useState(null);
+  const [deadline, setDeadline] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [warning, setWarning] = useState('');
@@ -152,11 +183,15 @@ function TeacherMonthlyReports({ currentUser }) {
     let alive = true;
     if (!context) return undefined;
     setLoading(true);
-    loadMyMonthlyReport(currentUser, context, month).then((result) => {
+    Promise.all([
+      loadMyMonthlyReport(currentUser, context, month),
+      loadMonthlyReportDeadline({ departmentHeadId: context.departmentHeadId, departmentId: context.departmentId, month }),
+    ]).then(([reportResult, deadlineResult]) => {
       if (!alive) return;
-      setReport(result.report || null);
-      setPayload(normalizeMonthlyPayload(result.payload, context, month));
-      setWarning(result.warning || '');
+      setReport(reportResult.report || null);
+      setPayload(normalizeMonthlyPayload(reportResult.payload, context, month));
+      setDeadline(deadlineResult.deadline || null);
+      setWarning(reportResult.warning || deadlineResult.warning || '');
       setLoading(false);
     });
     return () => { alive = false; };
@@ -220,6 +255,7 @@ function TeacherMonthlyReports({ currentUser }) {
         <div><span>Lớp chủ nhiệm</span><strong>{context?.homeroomClass || 'Không'}</strong></div>
       </section>
 
+      <DeadlineCard deadline={deadline} />
       {!contexts.length && <Notice warning={warning || 'Tài khoản chưa được TTCM thêm vào Brian Team. Bản nháp có thể soạn trên thiết bị, nhưng chưa thể gửi.'} />}
       {contexts.length > 0 && <Notice warning={warning} />}
       {report?.status === 'revision' && <div className="mr-revision"><MessageSquareWarning /><div><b>TTCM yêu cầu chỉnh sửa</b><p>{report.reviewerComment || 'Vui lòng rà soát và gửi lại báo cáo.'}</p></div></div>}
@@ -292,17 +328,26 @@ function LeaderMonthlyReports({ currentUser, department, members }) {
   const [selectedId, setSelectedId] = useState('');
   const [reviewComment, setReviewComment] = useState('');
   const [generatedHtml, setGeneratedHtml] = useState('');
+  const [deadline, setDeadline] = useState(null);
+  const [deadlineInput, setDeadlineInput] = useState('');
+  const [deadlineSaving, setDeadlineSaving] = useState(false);
 
   const memberMap = useMemo(() => new Map((members || []).map((item) => [String(item.teacherAccountId || item.account?.id || ''), item])), [members]);
   const reportMap = useMemo(() => new Map(reports.map((item) => [String(item.teacherId), item])), [reports]);
   const summary = useMemo(() => aggregateMonthlyReports(reports), [reports]);
   const selected = reports.find((item) => item.id === selectedId) || null;
+  const deadlineCountdown = useDeadlineCountdown(deadline);
 
   const reload = async () => {
     setLoading(true);
-    const result = await listDepartmentMonthlyReports(currentUser, month, department?.id || '');
-    setReports(result.reports || []);
-    setWarning(result.warning || '');
+    const [reportsResult, deadlineResult] = await Promise.all([
+      listDepartmentMonthlyReports(currentUser, month, department?.id || ''),
+      loadMonthlyReportDeadline({ departmentHeadId: currentUser.id, departmentId: department?.id || '', month }),
+    ]);
+    setReports(reportsResult.reports || []);
+    setDeadline(deadlineResult.deadline || null);
+    setDeadlineInput(toLocalDateTimeInput(deadlineResult.deadline));
+    setWarning(reportsResult.warning || deadlineResult.warning || '');
     setLoading(false);
   };
 
@@ -319,6 +364,41 @@ function LeaderMonthlyReports({ currentUser, department, members }) {
     setSelectedId('');
     setReviewComment('');
     await reload();
+  };
+
+  const doDelete = async (report) => {
+    if (!report) return;
+    const member = memberMap.get(String(report.teacherId));
+    const name = member?.account?.name || 'giáo viên này';
+    if (!window.confirm(`Xóa báo cáo ${reportMonthLabel(month)} của ${name}? Thao tác này xóa bản TTCM đã nhận và giáo viên có thể tạo/gửi lại báo cáo mới.`)) return;
+    const result = await deleteDepartmentMonthlyReport(currentUser, report.id);
+    if (!result.ok) { setWarning(result.warning); return; }
+    if (selectedId === report.id) setSelectedId('');
+    await reload();
+  };
+
+  const saveDeadline = async () => {
+    const iso = localDateTimeInputToIso(deadlineInput);
+    if (!iso) { setWarning('Hãy chọn ngày và giờ hợp lệ cho thời hạn báo cáo.'); return; }
+    setDeadlineSaving(true);
+    const result = await saveMonthlyReportDeadline(currentUser, department?.id || '', month, iso);
+    setDeadlineSaving(false);
+    if (!result.ok) { setWarning(result.warning); return; }
+    setDeadline(result.deadline || iso);
+    setDeadlineInput(toLocalDateTimeInput(result.deadline || iso));
+    setWarning('');
+  };
+
+  const clearDeadline = async () => {
+    if (!deadline) { setDeadlineInput(''); return; }
+    if (!window.confirm(`Xóa thời hạn báo cáo ${reportMonthLabel(month)}?`)) return;
+    setDeadlineSaving(true);
+    const result = await clearMonthlyReportDeadline(currentUser, department?.id || '', month);
+    setDeadlineSaving(false);
+    if (!result.ok) { setWarning(result.warning); return; }
+    setDeadline(null);
+    setDeadlineInput('');
+    setWarning('');
   };
 
   const generate = () => setGeneratedHtml(buildDepartmentMonthlyReportHtml({ department, members, reports, month }));
@@ -351,6 +431,15 @@ function LeaderMonthlyReports({ currentUser, department, members }) {
       <div className="mr-manager-head"><div><small>BÁO CÁO THÁNG</small><h2>Tổng hợp báo cáo giáo viên</h2><p>{department?.name || 'Tổ chuyên môn'} · Số liệu được cộng trực tiếp từ bảng của từng giáo viên; phần chữ được giữ nguyên để TTCM tổng hợp.</p></div><label><span>Tháng báo cáo</span><input type="month" value={month} onChange={(event) => setMonth(event.target.value)} /></label></div>
       <Notice warning={warning} />
 
+      <section className="mr-deadline-admin">
+        <div><small>THỜI GIAN BÁO CÁO</small><h3>Đặt thời hạn cho tổ viên</h3><p>Tổ viên sẽ thấy đồng hồ đếm ngược ngay trên form báo cáo của tháng này.</p>{deadline && <div className="mr-deadline-status">{deadlineCountdown.expired ? 'Đã hết hạn' : `Còn ${deadlineCountdown.label}`}</div>}</div>
+        <div className="mr-deadline-controls">
+          <input type="datetime-local" value={deadlineInput} onChange={(event) => setDeadlineInput(event.target.value)} aria-label="Thời hạn báo cáo" />
+          <button type="button" className="is-primary" disabled={deadlineSaving} onClick={saveDeadline}><CalendarClock /> {deadlineSaving ? 'Đang lưu…' : 'Đặt thời hạn'}</button>
+          <button type="button" disabled={deadlineSaving || (!deadline && !deadlineInput)} onClick={clearDeadline}><X /> Xóa hạn</button>
+        </div>
+      </section>
+
       <div className="mr-stats-grid">
         <StatCard label="Giáo viên" value={total} note={`${missing} chưa gửi`} />
         <StatCard label="Đã gửi" value={summary.submitted} note={`${summary.approved} đã duyệt`} />
@@ -370,14 +459,14 @@ function LeaderMonthlyReports({ currentUser, department, members }) {
       <div className="mr-manager-toolbar"><div><button type="button" onClick={reload}><RefreshCw /> Làm mới</button><button type="button" className="is-primary" onClick={generate}><Sparkles /> Tạo báo cáo tổ</button></div><span>{reports.length}/{total || reports.length} giáo viên đã có báo cáo</span></div>
 
       <div className="mr-report-table-wrap">
-        <table className="mr-report-table"><thead><tr><th>Giáo viên</th><th>Dự giờ</th><th>Thao giảng</th><th>UDCNTT</th><th>Kiến nghị</th><th>Trạng thái</th><th /></tr></thead><tbody>
+        <table className="mr-report-table"><thead><tr><th>Giáo viên</th><th>Dự giờ</th><th>Thao giảng</th><th>UDCNTT</th><th>Kiến nghị</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
           {(members || []).map((member) => {
             const teacherId = String(member.teacherAccountId || member.account?.id || '');
             const report = reportMap.get(teacherId);
             const stats = report?.payload?.professionalStats || {};
-            return <tr key={member.id || teacherId}><td><b>{member.account?.name || 'Giáo viên'}</b><small>{member.account?.email || ''}</small></td><td>{report ? Number(stats.observations || 0) : '—'}</td><td>{report ? Number(stats.demonstrations || 0) : '—'}</td><td>{report ? Number(stats.itApplications || 0) : '—'}</td><td>{report ? (report.payload.recommendationNarrative ? 'Có' : 'Không') : '—'}</td><td>{report ? <span className={statusClass(report.status)}>{REPORT_STATUS[report.status]}</span> : <span className="mr-status is-missing">Chưa gửi</span>}</td><td>{report && <button type="button" className="mr-open" onClick={() => { setSelectedId(report.id); setReviewComment(report.reviewerComment || ''); }}>Xem</button>}</td></tr>;
+            return <tr key={member.id || teacherId}><td><b>{member.account?.name || 'Giáo viên'}</b><small>{member.account?.email || ''}</small></td><td>{report ? Number(stats.observations || 0) : '—'}</td><td>{report ? Number(stats.demonstrations || 0) : '—'}</td><td>{report ? Number(stats.itApplications || 0) : '—'}</td><td>{report ? (report.payload.recommendationNarrative ? 'Có' : 'Không') : '—'}</td><td>{report ? <span className={statusClass(report.status)}>{REPORT_STATUS[report.status]}</span> : <span className="mr-status is-missing">Chưa gửi</span>}</td><td>{report && <div className="mr-row-actions"><button type="button" className="mr-open" onClick={() => { setSelectedId(report.id); setReviewComment(report.reviewerComment || ''); }}>Xem</button><button type="button" className="mr-delete-report" onClick={() => doDelete(report)}><Trash2 /> Xóa</button></div>}</td></tr>;
           })}
-          {!members?.length && reports.map((report) => <tr key={report.id}><td><b>{memberMap.get(report.teacherId)?.account?.name || report.teacherId}</b></td><td>{report.payload?.professionalStats?.observations || 0}</td><td>{report.payload?.professionalStats?.demonstrations || 0}</td><td>{report.payload?.professionalStats?.itApplications || 0}</td><td>{report.payload?.recommendationNarrative ? 'Có' : 'Không'}</td><td><span className={statusClass(report.status)}>{REPORT_STATUS[report.status]}</span></td><td><button type="button" className="mr-open" onClick={() => setSelectedId(report.id)}>Xem</button></td></tr>)}
+          {!members?.length && reports.map((report) => <tr key={report.id}><td><b>{memberMap.get(report.teacherId)?.account?.name || report.teacherId}</b></td><td>{report.payload?.professionalStats?.observations || 0}</td><td>{report.payload?.professionalStats?.demonstrations || 0}</td><td>{report.payload?.professionalStats?.itApplications || 0}</td><td>{report.payload?.recommendationNarrative ? 'Có' : 'Không'}</td><td><span className={statusClass(report.status)}>{REPORT_STATUS[report.status]}</span></td><td><div className="mr-row-actions"><button type="button" className="mr-open" onClick={() => setSelectedId(report.id)}>Xem</button><button type="button" className="mr-delete-report" onClick={() => doDelete(report)}><Trash2 /> Xóa</button></div></td></tr>)}
         </tbody></table>
         {loading && <div className="mr-table-loading"><LoaderCircle className="spin" /> Đang tải dữ liệu…</div>}
       </div>
