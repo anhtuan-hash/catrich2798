@@ -90,6 +90,9 @@ import './GlobalBrianHub.css';
 import './GlobalCatRichHeaderVisibilityFix.css';
 // Seating Chart Studio chart-first visual layer. Frontend only.
 import '../pages/SeatingChartStudioFocus.css';
+// Must remain the final visual import: removes compositor-heavy effects without
+// changing geometry/positioning on balanced and low performance profiles.
+import './GlobalCriticalJankGuard.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));

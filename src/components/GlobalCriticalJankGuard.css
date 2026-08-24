@@ -1,0 +1,107 @@
+/* Emergency performance layer. Loaded last on purpose.
+   Keeps layout/positioning intact while removing expensive live blur/filter
+   and infinite decorative animation on Balanced/Low performance profiles. */
+
+html[data-performance='balanced'] body .app-shell[data-route],
+html[data-performance='low'] body .app-shell[data-route] {
+  background-attachment: scroll !important;
+}
+
+html[data-performance='balanced'] body .app-shell[data-route] :is(
+  .bes-top-chrome,
+  .brian-nav,
+  .brian-nav__search,
+  .brian-notification-center,
+  .global-command-palette,
+  [role='dialog'],
+  dialog,
+  .modal,
+  .drawer,
+  .sheet
+),
+html[data-performance='low'] body .app-shell[data-route] :is(
+  .bes-top-chrome,
+  .brian-nav,
+  .brian-nav__search,
+  .brian-notification-center,
+  .global-command-palette,
+  [role='dialog'],
+  dialog,
+  .modal,
+  .drawer,
+  .sheet
+) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}
+
+html[data-performance='balanced'] body .app-shell[data-route] .bes-top-chrome::before,
+html[data-performance='balanced'] body .app-shell[data-route] .bes-top-chrome::after,
+html[data-performance='balanced'] body .app-shell[data-route] .brian-nav::before,
+html[data-performance='balanced'] body .app-shell[data-route] .brian-nav::after,
+html[data-performance='low'] body .app-shell[data-route] .bes-top-chrome::before,
+html[data-performance='low'] body .app-shell[data-route] .bes-top-chrome::after,
+html[data-performance='low'] body .app-shell[data-route] .brian-nav::before,
+html[data-performance='low'] body .app-shell[data-route] .brian-nav::after {
+  animation: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  will-change: auto !important;
+}
+
+/* Home Aurora uses several large translucent layers. Keep the same geometry,
+   but make them static/compositor-cheap. */
+html[data-performance='balanced'] body .app-shell[data-route='home'] :is(
+  .boh-stage-orbit,
+  .boh-stage-dots,
+  .boh-stage-spark,
+  [class*='aurora'],
+  [class*='glow']
+),
+html[data-performance='low'] body .app-shell[data-route='home'] :is(
+  .boh-stage-orbit,
+  .boh-stage-dots,
+  .boh-stage-spark,
+  [class*='aurora'],
+  [class*='glow']
+) {
+  animation: none !important;
+  filter: none !important;
+  will-change: auto !important;
+}
+
+html[data-performance='balanced'] body .app-shell[data-route='home'] .bes-top-chrome,
+html[data-performance='balanced'] body .app-shell[data-route='home'] .brian-nav,
+html[data-performance='balanced'] body .app-shell[data-route='home'] .brian-nav__search,
+html[data-performance='low'] body .app-shell[data-route='home'] .bes-top-chrome,
+html[data-performance='low'] body .app-shell[data-route='home'] .brian-nav,
+html[data-performance='low'] body .app-shell[data-route='home'] .brian-nav__search {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Avoid forcing permanent compositor layers across large route trees. */
+html[data-performance='balanced'] body .app-shell[data-route] :is(
+  .bes-top-chrome,
+  .brian-nav,
+  main,
+  [role='main']
+),
+html[data-performance='low'] body .app-shell[data-route] :is(
+  .bes-top-chrome,
+  .brian-nav,
+  main,
+  [role='main']
+) {
+  will-change: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body .app-shell[data-route] *,
+  body .app-shell[data-route] *::before,
+  body .app-shell[data-route] *::after {
+    scroll-behavior: auto !important;
+  }
+}
