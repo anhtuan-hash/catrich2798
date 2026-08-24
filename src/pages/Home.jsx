@@ -13,4 +13,9 @@ import '../styles/HomeHeroCmsEditorGoogle.css';
 import '../styles/HomeHeroCmsEditorApproved.css';
 import '../styles/HomeHeroCmsEditorInteractionFix.css';
 
+// The detailed weekly-practice browser is a Home runtime, not an Apps runtime.
+// Load it with the lazy Home chunk so public/anonymous cold visits get the
+// complete Grade 10/11/12 week lists without having to sign in or visit Apps.
+import '../homePracticeScheduleScroller.js';
+
 export { default } from './HomeApproved.jsx';
