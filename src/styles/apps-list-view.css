@@ -1,0 +1,367 @@
+/* Applications list view — intentionally simple, fast and paint-stable.
+   Replaces the old app-drawer card grid with a normal document-flow list. */
+.apps-directory-native .apps-directory-list-native {
+  width: min(1420px, calc(100% - clamp(28px, 5vw, 76px)));
+  margin: 0 auto 32px;
+  padding: 10px;
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(95, 116, 153, .16);
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(43, 59, 91, .07);
+  scroll-margin-top: 116px;
+}
+
+.apps-list-row {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(95, 116, 153, .14);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(43, 59, 91, .045);
+}
+
+.apps-list-row::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--app-accent, #1a73e8);
+  pointer-events: none;
+}
+
+.apps-list-open {
+  width: 100%;
+  min-width: 0;
+  min-height: 92px;
+  padding: 14px 18px 14px 22px;
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  border: 0;
+  background: transparent;
+  color: #202124;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.apps-list-open:hover {
+  background: color-mix(in srgb, var(--app-soft, #eef4ff) 54%, white);
+}
+
+.apps-list-open:focus-visible {
+  outline: 3px solid rgba(26, 115, 232, .24);
+  outline-offset: -3px;
+}
+
+.apps-list-icon {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: var(--app-accent, #1a73e8);
+  color: #fff;
+  box-shadow: 0 5px 12px rgba(43, 59, 91, .12);
+}
+
+.apps-list-icon svg {
+  width: 30px;
+  height: 30px;
+  color: currentColor;
+  fill: currentColor;
+}
+
+.apps-list-copy {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.apps-list-meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.apps-list-meta b,
+.apps-list-meta em {
+  min-height: 24px;
+  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.apps-list-meta b {
+  background: color-mix(in srgb, var(--app-accent, #1a73e8) 11%, white);
+  color: var(--app-accent, #1a73e8);
+}
+
+.apps-list-meta em {
+  background: #f1f3f4;
+  color: #5f6368;
+}
+
+.apps-list-meta em.is-pinned {
+  background: #fef7e0;
+  color: #9a6700;
+}
+
+.apps-list-copy > strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #1f2a44;
+  font-size: 17px;
+  font-weight: 760;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apps-list-copy > small {
+  min-width: 0;
+  overflow: hidden;
+  color: #6f7c91;
+  font-size: 13px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apps-list-primary-action {
+  min-width: 78px;
+  min-height: 38px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid rgba(26, 115, 232, .18);
+  border-radius: 999px;
+  background: #f6f9ff;
+  color: #1a73e8;
+}
+
+.apps-list-primary-action b {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.apps-list-primary-action svg {
+  width: 17px;
+  height: 17px;
+}
+
+.apps-list-row.is-locked .apps-list-open {
+  cursor: default;
+}
+
+.apps-list-row.is-locked .apps-list-icon {
+  background: #8b95a7;
+}
+
+.apps-list-row.is-locked .apps-list-primary-action {
+  border-color: #e1c46a;
+  background: #fff8df;
+  color: #806000;
+}
+
+.apps-list-row.is-hidden {
+  opacity: .62;
+}
+
+.apps-list-permission,
+.apps-list-admin {
+  border-top: 1px solid rgba(95, 116, 153, .12);
+  background: #f8fafc;
+}
+
+.apps-list-permission {
+  padding: 10px 18px 12px 98px;
+}
+
+.apps-list-admin {
+  padding: 10px 16px 12px 98px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.apps-list-admin > button {
+  min-height: 38px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #d3dbe8;
+  border-radius: 10px;
+  background: #fff;
+  color: #42526b;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.apps-list-admin > button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.apps-list-admin > button.active {
+  border-color: #9dbcf2;
+  background: #eaf2ff;
+  color: #1a5fb4;
+}
+
+.apps-list-admin > button.danger {
+  border-color: #efb8b8;
+  background: #fff0f0;
+  color: #b3261e;
+}
+
+.apps-list-admin > label {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #66758b;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.apps-list-admin select {
+  min-height: 38px;
+  padding: 0 34px 0 11px;
+  border: 1px solid #d3dbe8;
+  border-radius: 10px;
+  background: #fff;
+  color: #27364e;
+  font: inherit;
+}
+
+.apps-directory-native .launcher-group-rail {
+  width: min(1420px, calc(100% - clamp(28px, 5vw, 76px))) !important;
+  margin: 0 auto 14px !important;
+  padding: 2px 0 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.apps-directory-native .launcher-group-rail .flat-apps-group-chip {
+  flex: 0 0 auto;
+}
+
+.apps-directory-native.density-compact .apps-list-open {
+  min-height: 76px;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  padding-block: 10px;
+}
+
+.apps-directory-native.density-compact .apps-list-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+}
+
+.apps-directory-native.density-compact .apps-list-icon svg {
+  width: 25px;
+  height: 25px;
+}
+
+.apps-directory-native.density-compact .apps-list-copy > strong {
+  font-size: 15px;
+}
+
+.apps-directory-native.density-compact .apps-list-permission,
+.apps-directory-native.density-compact .apps-list-admin {
+  padding-left: 84px;
+}
+
+.launcher-empty-group {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  color: #7a8698;
+  font-size: 15px;
+}
+
+@media (max-width: 760px) {
+  .apps-directory-native .apps-directory-list-native,
+  .apps-directory-native .launcher-group-rail {
+    width: calc(100% - 20px) !important;
+  }
+
+  .apps-list-open {
+    grid-template-columns: 50px minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px 14px 12px 18px;
+  }
+
+  .apps-list-primary-action {
+    grid-column: 2;
+    justify-self: start;
+    min-width: 0;
+    min-height: 32px;
+  }
+
+  .apps-list-copy > small {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .apps-list-permission,
+  .apps-list-admin,
+  .apps-directory-native.density-compact .apps-list-permission,
+  .apps-directory-native.density-compact .apps-list-admin {
+    padding-left: 18px;
+  }
+
+  .apps-list-admin > label {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+}
+
+[data-theme="dark"] .apps-directory-native .apps-directory-list-native,
+.dark .apps-directory-native .apps-directory-list-native,
+[data-theme="dark"] .apps-list-row,
+.dark .apps-list-row {
+  border-color: rgba(150, 169, 205, .16);
+  background: #172033;
+}
+
+[data-theme="dark"] .apps-list-open,
+.dark .apps-list-open {
+  color: #eef3ff;
+}
+
+[data-theme="dark"] .apps-list-copy > strong,
+.dark .apps-list-copy > strong {
+  color: #f0f4ff;
+}
+
+[data-theme="dark"] .apps-list-copy > small,
+.dark .apps-list-copy > small {
+  color: #aeb9cb;
+}
