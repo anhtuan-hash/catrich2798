@@ -22,7 +22,6 @@ export default function GlobalHomeViewportFitBridge({ route = 'home' }) {
     let frame = 0;
     let retryTimer = 0;
     let resizeObserver = null;
-    let mutationObserver = null;
     let observedChrome = null;
     let lastSignature = '';
 
@@ -35,7 +34,7 @@ export default function GlobalHomeViewportFitBridge({ route = 'home' }) {
 
       if (!root || !chrome) {
         window.clearTimeout(retryTimer);
-        retryTimer = window.setTimeout(scheduleMeasure, 80);
+        retryTimer = window.setTimeout(scheduleMeasure, 120);
         return;
       }
 
@@ -69,26 +68,15 @@ export default function GlobalHomeViewportFitBridge({ route = 'home' }) {
     scheduleMeasure();
     window.addEventListener('resize', scheduleMeasure, { passive: true });
     window.addEventListener('orientationchange', scheduleMeasure, { passive: true });
-    window.addEventListener('hashchange', scheduleMeasure);
     window.visualViewport?.addEventListener('resize', scheduleMeasure, { passive: true });
-
-    mutationObserver = new MutationObserver(scheduleMeasure);
-    mutationObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class', 'data-route'],
-    });
 
     return () => {
       cancelled = true;
       window.cancelAnimationFrame(frame);
       window.clearTimeout(retryTimer);
       resizeObserver?.disconnect();
-      mutationObserver?.disconnect();
       window.removeEventListener('resize', scheduleMeasure);
       window.removeEventListener('orientationchange', scheduleMeasure);
-      window.removeEventListener('hashchange', scheduleMeasure);
       window.visualViewport?.removeEventListener('resize', scheduleMeasure);
       clearHomeFit();
     };
