@@ -152,3 +152,138 @@
     grid-template-columns: 190px minmax(0, 1fr) !important;
   }
 }
+
+/* FINAL HARD LAYOUT — absolute positioning deliberately bypasses all legacy
+   grid/flex auto-flow. Desktop only: sidebar is always left, viewer always
+   occupies the full remaining right side, never a bottom strip. */
+@media (min-width: 761px) {
+  html body .brian-ai-workspace-layer,
+  html body .brian-ai-workspace-layer:not(.is-expanded) {
+    display: grid !important;
+    place-items: center !important;
+    padding: 18px !important;
+  }
+
+  html body .brian-ai-workspace-layer .brian-ai-workspace,
+  html body .brian-ai-workspace-layer:not(.is-expanded) .brian-ai-workspace,
+  html body .brian-ai-workspace-layer .brian-ai-workspace.has-single-tool,
+  html body .brian-ai-workspace-layer:not(.is-expanded) .brian-ai-workspace.has-single-tool {
+    position: relative !important;
+    display: block !important;
+    width: min(1360px, calc(100vw - 36px)) !important;
+    height: min(820px, calc(100dvh - 48px)) !important;
+    min-width: min(980px, calc(100vw - 36px)) !important;
+    min-height: min(620px, calc(100dvh - 48px)) !important;
+    overflow: hidden !important;
+  }
+
+  html body .brian-ai-workspace-layer.is-expanded .brian-ai-workspace,
+  html body .brian-ai-workspace-layer .brian-ai-workspace.is-expanded {
+    width: 100vw !important;
+    height: 100dvh !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  html body .brian-ai-workspace-layer .brian-ai-workspace > .brian-ai-workspace__header {
+    position: absolute !important;
+    z-index: 5 !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+    height: 64px !important;
+    min-height: 64px !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .brian-ai-workspace-layer .brian-ai-workspace > .brian-ai-workspace__switcher {
+    position: absolute !important;
+    z-index: 3 !important;
+    top: 64px !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: auto !important;
+    width: 260px !important;
+    max-width: 260px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .brian-ai-workspace-layer .brian-ai-workspace > .brian-ai-workspace__switcher > button,
+  html body .brian-ai-workspace-layer .brian-ai-workspace.has-single-tool > .brian-ai-workspace__switcher > button {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 auto !important;
+    grid-template-columns: 36px minmax(0, 1fr) auto !important;
+    justify-items: stretch !important;
+  }
+
+  html body .brian-ai-workspace-layer .brian-ai-workspace.has-single-tool .brian-ai-workspace__switcher button > span:nth-child(2) {
+    display: block !important;
+  }
+
+  html body .brian-ai-workspace-layer .brian-ai-workspace.has-single-tool .brian-ai-workspace__switcher em {
+    display: inline !important;
+  }
+
+  html body .brian-ai-workspace-layer .brian-ai-workspace > .brian-ai-workspace__viewer {
+    position: absolute !important;
+    z-index: 2 !important;
+    top: 64px !important;
+    bottom: 0 !important;
+    left: 260px !important;
+    right: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-rows: 48px minmax(0, 1fr) !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    background: #fff !important;
+  }
+
+  html body .brian-ai-workspace-layer .brian-ai-workspace > .brian-ai-workspace__viewer > .brian-ai-workspace__viewer-bar {
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .brian-ai-workspace-layer .brian-ai-workspace > .brian-ai-workspace__viewer > iframe {
+    grid-row: 2 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    border: 0 !important;
+    position: static !important;
+    transform: none !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .brian-ai-workspace-layer .brian-ai-workspace > .brian-ai-manager {
+    position: absolute !important;
+    z-index: 4 !important;
+    top: 64px !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+}
