@@ -3,6 +3,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
+const exists = (file) => fs.existsSync(path.join(root, file));
 const fail = (message) => { throw new Error(`[BrianDesignSystem2026] ${message}`); };
 const expect = (condition, message) => { if (!condition) fail(message); };
 
@@ -10,7 +11,7 @@ const indexCss = read('src/index.css');
 const designSystem = read('src/styles/BrianDesignSystem2026.css');
 const burs = read('src/utils/bursReadability.js');
 const versionTail = read('src/styles/v1159.css');
-const retiredTerminal = read('public/dashboard-typography-terminal-2026.css');
+const retiredLoader = read('public/remove-floating-chatbot-launcher.js');
 
 /* Load order: the Design System must enter through v1159, which is the last
    static version stylesheet imported by main.jsx. */
@@ -39,7 +40,11 @@ expect(burs.includes("shell.setAttribute('data-brian-ds', '2026')"), 'Applicatio
 const versionTailWithoutImport = versionTail.replace(/^\s*@import[^;]+;\s*/u, '');
 const forbiddenLegacyTypography = /\b(font-size|font-family|line-height|letter-spacing)\s*:/i;
 expect(!forbiddenLegacyTypography.test(versionTailWithoutImport), 'v1159.css still defines legacy typography.');
-expect(!forbiddenLegacyTypography.test(retiredTerminal), 'Retired terminal stylesheet still defines typography.');
+
+/* The former runtime terminal layer must be gone, not merely overridden. */
+expect(!exists('public/dashboard-typography-terminal-2026.css'), 'Retired terminal typography stylesheet still exists.');
+expect(!retiredLoader.includes('bes-dashboard-typography-terminal-2026'), 'Retired terminal typography loader still exists.');
+expect(!retiredLoader.includes('dashboard-typography-terminal-2026.css'), 'Runtime still references retired terminal typography.');
 
 const routeContracts = [
   ['dashboard', '.gd-hero-copy'],
