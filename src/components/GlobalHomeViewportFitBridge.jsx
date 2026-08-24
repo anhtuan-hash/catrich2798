@@ -1,14 +1,19 @@
 import { useEffect } from 'react';
 
 const HOME_SELECTOR = ".metro-clean-system[data-route='home']";
+const APPROVED_HOME_SELECTOR = '.bha-home';
+const LEGACY_HOME_SELECTOR = '.brian-overlap-home';
+
+function clearRootFit(root) {
+  if (!root) return;
+  root.removeAttribute('data-home-viewport-fit');
+  root.removeAttribute('data-home-viewport-density');
+  root.style.removeProperty('--bes-home-chrome-height');
+  root.style.removeProperty('--bes-home-stage-height');
+}
 
 function clearHomeFit() {
-  document.querySelectorAll(HOME_SELECTOR).forEach((root) => {
-    root.removeAttribute('data-home-viewport-fit');
-    root.removeAttribute('data-home-viewport-density');
-    root.style.removeProperty('--bes-home-chrome-height');
-    root.style.removeProperty('--bes-home-stage-height');
-  });
+  document.querySelectorAll(HOME_SELECTOR).forEach(clearRootFit);
 }
 
 export default function GlobalHomeViewportFitBridge({ route = 'home' }) {
@@ -29,10 +34,36 @@ export default function GlobalHomeViewportFitBridge({ route = 'home' }) {
       if (cancelled) return;
 
       const root = document.querySelector(HOME_SELECTOR);
-      const chrome = root?.querySelector(':scope > .bes-top-chrome')
-        || root?.querySelector('.bes-top-chrome');
+      if (!root) {
+        window.clearTimeout(retryTimer);
+        retryTimer = window.setTimeout(scheduleMeasure, 100);
+        return;
+      }
 
-      if (!root || !chrome) {
+      const approvedHome = root.querySelector(APPROVED_HOME_SELECTOR);
+      const legacyHome = root.querySelector(LEGACY_HOME_SELECTOR);
+
+      // HomeApproved is a normal scrolling document. The legacy viewport-fit
+      // contract forces <main> to one viewport and clips the Weekly Practice hub.
+      if (approvedHome) {
+        clearRootFit(root);
+        resizeObserver?.disconnect();
+        observedChrome = null;
+        return;
+      }
+
+      // The lazy Home chunk may not be mounted yet. Never guess the homepage
+      // layout: wait until either the approved or legacy root is identifiable.
+      if (!legacyHome) {
+        window.clearTimeout(retryTimer);
+        retryTimer = window.setTimeout(scheduleMeasure, 100);
+        return;
+      }
+
+      const chrome = root.querySelector(':scope > .bes-top-chrome')
+        || root.querySelector('.bes-top-chrome');
+
+      if (!chrome) {
         window.clearTimeout(retryTimer);
         retryTimer = window.setTimeout(scheduleMeasure, 100);
         return;
