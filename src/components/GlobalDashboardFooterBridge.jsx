@@ -13,10 +13,8 @@ export default function GlobalDashboardFooterBridge({ route, language }) {
 
     const resolveHost = () => setHost(document.querySelector('.app-shell'));
     resolveHost();
-
-    const observer = new MutationObserver(resolveHost);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    const frame = window.requestAnimationFrame(resolveHost);
+    return () => window.cancelAnimationFrame(frame);
   }, [route]);
 
   if (route !== 'dashboard' || !host) return null;
