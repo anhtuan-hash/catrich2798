@@ -71,6 +71,7 @@ export default function GlobalRuntimeGuard({ language = 'vi' }) {
   const showAtmosphere = decorationsReady && !NO_ATMOSPHERE_ROUTES.has(route);
   const showLoginBridge = route === 'login' || route === 'register';
   const showAdminTools = route === 'admin';
+  const showAtmosphereManager = route === 'admin' || route === 'settings';
   const showAccountCenter = route === 'settings';
 
   return (
@@ -78,7 +79,7 @@ export default function GlobalRuntimeGuard({ language = 'vi' }) {
       <Suspense fallback={null}>
         {showLoginBridge ? <UsernameLoginBridge language={language} /> : null}
         {showAtmosphere ? <VietnamAtmosphereOverlay /> : null}
-        {showAdminTools ? <VietnamAtmosphereAdminPanel language={language} /> : null}
+        {showAtmosphereManager ? <VietnamAtmosphereAdminPanel language={language} /> : null}
         {showAdminTools ? <BulkTeacherAccountsPanel language={language} /> : null}
         {showAccountCenter ? <UsernameAccountCenter language={language} /> : null}
       </Suspense>
