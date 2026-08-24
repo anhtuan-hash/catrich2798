@@ -54,7 +54,7 @@ as $$
 $$;
 
 -- Return the current teacher's valid reporting destination(s), together with the Brian Team
--- member record. No free-text TTCM or department selection is accepted by the client.
+-- member record. Text comparison avoids unsafe UUID casts in legacy JSON records.
 create or replace function public.bes_monthly_report_context()
 returns table (
   department_head_id uuid,
@@ -74,12 +74,12 @@ as $$
     d ->> 'id' as department_id,
     coalesce(nullif(d ->> 'name', ''), 'Tổ chuyên môn') as department_name,
     coalesce(nullif(d ->> 'shortName', ''), nullif(d ->> 'name', ''), 'Tổ') as department_short_name,
-    nullif(m ->> 'teacherAccountId', '')::uuid as teacher_account_id,
+    auth.uid() as teacher_account_id,
     m as member
   from public.department_team_workspaces w
   cross join lateral jsonb_array_elements(coalesce(w.payload -> 'departments', '[]'::jsonb)) d
   cross join lateral jsonb_array_elements(coalesce(d -> 'members', '[]'::jsonb)) m
-  where nullif(m ->> 'teacherAccountId', '')::uuid = auth.uid()
+  where m ->> 'teacherAccountId' = auth.uid()::text
   order by lower(coalesce(d ->> 'name', ''));
 $$;
 
@@ -91,7 +91,7 @@ create policy "Monthly reports visible to teacher and TTCM"
   for select
   using (
     teacher_id = auth.uid()
-    or department_head_id = auth.uid()
+    or (department_head_id = auth.uid() and status <> 'draft')
     or public.is_admin()
   );
 
