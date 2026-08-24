@@ -1,0 +1,4 @@
+Force production deployment trigger.
+Requested: 2026-08-24 17:45 +07:00
+Target branch: main
+Purpose: redeploy Dashboard-scale normalization changes to production.
