@@ -12,6 +12,8 @@ import '../styles/apps-list-view.css';
 import '../styles/apps-performance-recovery.css';
 // Final Google Material list layer: consistent colours, readable rows and no duplicate pinned drawer.
 import '../styles/apps-google-material-list-v2.css';
+// Games now live in Applications, so the old Games tab is no longer shown here.
+import '../styles/games-route-retired.css';
 
 function sharedCustomGame(game) {
   return {
