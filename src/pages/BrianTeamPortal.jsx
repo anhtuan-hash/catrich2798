@@ -4,6 +4,7 @@ import { isDepartmentLeaderRole } from '../utils/roles.js';
 import MonthlyReportsWorkspace from './MonthlyReportsWorkspace.jsx';
 import PersonnelHub from './PersonnelHub.jsx';
 import './BrianTeamPortal.css';
+import './MonthlyReportsManager.css';
 
 export default function BrianTeamPortal(props) {
   const { currentUser } = props;
