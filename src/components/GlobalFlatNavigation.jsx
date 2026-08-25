@@ -2,7 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import '../data/registerSeatingChartStudio.js';
 import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalPrimaryNavigationPin from './GlobalPrimaryNavigationPin.jsx';
-import GlobalAdaptiveComfortScale from './GlobalAdaptiveComfortScale.jsx';
+import GlobalNativeTextScaleReset from './GlobalNativeTextScaleReset.jsx';
 import GlobalGuestNavigationHub from './GlobalGuestNavigationHub.jsx';
 import GlobalUserProfileSettingsBridge from './GlobalUserProfileSettingsBridge.jsx';
 import GlobalUserProfilePreviewGuard from './GlobalUserProfilePreviewGuard.jsx';
@@ -51,7 +51,6 @@ import './GlobalWorkHubGoogleRedesign.css';
 import './GlobalNotificationCenterGoogleFinal.css';
 import './GlobalNotificationCenterNarrow.css';
 import './GlobalNotificationMenuLayerFix.css';
-import './GlobalNavigationFontScaleGuard.css';
 import './GlobalNavigationScrollableTabs.css';
 import './GlobalWordGraphGoogleM3.css';
 import './GlobalNotificationCountVisibilityFix.css';
@@ -82,8 +81,6 @@ import './GlobalWorkHubModalCenter.css';
 import './GlobalNavigationGoogleM3Polish.css';
 import './GlobalNavigationSearchPillRefinement.css';
 import './GlobalNavigationNoSearch.css';
-import './GlobalAdaptiveComfortScale.css';
-import './GlobalHomeComfortOverflowFix.css';
 // Absolute final contract: only the primary navigation row is fixed; the
 // briefing row remains visible in normal document flow.
 import './GlobalBrianHub.css';
@@ -107,7 +104,7 @@ export default function GlobalFlatNavigation(props) {
 
   return (
     <>
-      <GlobalAdaptiveComfortScale setFontScale={props.setFontScale} />
+      <GlobalNativeTextScaleReset />
       <Navigation {...props} />
       <GlobalPrimaryNavigationPin route={props.route} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
