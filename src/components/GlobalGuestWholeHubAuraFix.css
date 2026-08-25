@@ -1,195 +1,9 @@
-/* Brian English Studio · Guest whole-hub aura fix
-   The public homepage does not always expose app-shell[data-route], so the
-   authenticated-only aura selectors never matched. This explicit class is
-   attached by GlobalGuestNavigationHub and makes the full two-row hub glow. */
-
-html body .bes-top-chrome.bes-top-chrome--guest-full {
-  --bes-guest-aura-cyan: 63, 225, 239;
-  --bes-guest-aura-blue: 56, 151, 255;
-  --bes-guest-aura-violet: 143, 93, 255;
-  --bes-guest-aura-pink: 238, 116, 255;
-  position: relative !important;
-  isolation: isolate !important;
-  overflow: visible !important;
-}
-
-/* Diffused atmospheric field behind both navigation rows. */
-html body .bes-top-chrome.bes-top-chrome--guest-full::before {
-  content: '' !important;
-  position: absolute !important;
-  inset: 7px 13px 3px !important;
-  z-index: 0 !important;
-  border-radius: 42px !important;
-  pointer-events: none !important;
-  background:
-    radial-gradient(ellipse at 5% 18%, rgba(var(--bes-guest-aura-cyan),.48), transparent 31%),
-    radial-gradient(ellipse at 39% -8%, rgba(var(--bes-guest-aura-blue),.42), transparent 39%),
-    radial-gradient(ellipse at 82% 12%, rgba(var(--bes-guest-aura-violet),.44), transparent 35%),
-    radial-gradient(ellipse at 98% 90%, rgba(var(--bes-guest-aura-pink),.36), transparent 28%),
-    linear-gradient(112deg,
-      rgba(var(--bes-guest-aura-cyan),.18),
-      rgba(var(--bes-guest-aura-blue),.20) 38%,
-      rgba(var(--bes-guest-aura-violet),.20) 72%,
-      rgba(var(--bes-guest-aura-pink),.17)) !important;
-  box-shadow:
-    0 0 20px rgba(var(--bes-guest-aura-cyan),.38),
-    0 0 42px rgba(var(--bes-guest-aura-blue),.34),
-    0 0 64px rgba(var(--bes-guest-aura-violet),.28),
-    0 20px 52px rgba(73, 84, 172, .22) !important;
-  filter: blur(12px) saturate(1.28) !important;
-  opacity: .92 !important;
-  transform: translate3d(0, 0, 0) scale(.996) !important;
-  animation: bes-guest-whole-hub-aura-breathe 6.4s ease-in-out infinite !important;
-  will-change: opacity, transform !important;
-}
-
-/* Crisp iridescent rim. The inset box-shadow remains visible in Safari even
-   when mask-composite support differs between browser versions. */
-html body .bes-top-chrome.bes-top-chrome--guest-full::after {
-  content: '' !important;
-  position: absolute !important;
-  inset: 9px 16px 5px !important;
-  z-index: 1 !important;
-  border-radius: 40px !important;
-  padding: 2px !important;
-  pointer-events: none !important;
-  background: linear-gradient(112deg,
-    rgba(255,255,255,.98) 0%,
-    rgba(var(--bes-guest-aura-cyan),.92) 16%,
-    rgba(var(--bes-guest-aura-blue),.76) 43%,
-    rgba(var(--bes-guest-aura-violet),.80) 73%,
-    rgba(var(--bes-guest-aura-pink),.76) 90%,
-    rgba(255,255,255,.96) 100%) !important;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
-  -webkit-mask-composite: xor !important;
-  mask-composite: exclude !important;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.76),
-    0 0 12px rgba(var(--bes-guest-aura-cyan),.48),
-    0 0 26px rgba(var(--bes-guest-aura-blue),.34),
-    0 0 42px rgba(var(--bes-guest-aura-violet),.26) !important;
-  opacity: .96 !important;
-}
-
-html body .bes-top-chrome.bes-top-chrome--guest-full > .brian-nav,
-html body .bes-top-chrome.bes-top-chrome--guest-full > .brian-briefing-bar {
-  position: relative !important;
-  z-index: 3 !important;
-}
-
-html body .bes-top-chrome.bes-top-chrome--guest-full > .brian-nav {
-  border-color: rgba(255,255,255,.94) !important;
-  box-shadow:
-    0 18px 40px rgba(56, 84, 157, .14),
-    0 8px 24px rgba(var(--bes-guest-aura-blue),.13),
-    0 0 20px rgba(var(--bes-guest-aura-cyan),.08),
-    inset 0 1px 0 rgba(255,255,255,1),
-    inset 0 -1px 0 rgba(102,138,211,.12) !important;
-}
-
-html body .bes-top-chrome.bes-top-chrome--guest-full > .brian-briefing-bar {
-  border-color: rgba(255,255,255,.92) !important;
-  box-shadow:
-    0 12px 30px rgba(62, 82, 148, .10),
-    0 7px 22px rgba(var(--bes-guest-aura-violet),.12),
-    0 0 18px rgba(var(--bes-guest-aura-pink),.07),
-    inset 0 1px 0 rgba(255,255,255,1),
-    inset 0 -1px 0 rgba(99,128,190,.09) !important;
-}
-
-/* Soft light bridge visually connects the navigation and news rows. */
-html body .bes-top-chrome.bes-top-chrome--guest-full > .brian-nav::after {
-  content: '' !important;
-  position: absolute !important;
-  left: 5% !important;
-  right: 5% !important;
-  bottom: -22px !important;
-  height: 42px !important;
-  z-index: -1 !important;
-  border-radius: 50% !important;
-  pointer-events: none !important;
-  background: linear-gradient(90deg,
-    transparent,
-    rgba(var(--bes-guest-aura-cyan),.15) 18%,
-    rgba(var(--bes-guest-aura-blue),.21) 48%,
-    rgba(var(--bes-guest-aura-violet),.18) 78%,
-    transparent) !important;
-  filter: blur(14px) !important;
-  opacity: .90 !important;
-}
-
-@keyframes bes-guest-whole-hub-aura-breathe {
-  0%, 100% {
-    opacity: .82;
-    transform: translate3d(0, 0, 0) scale(.992);
-  }
-  50% {
-    opacity: 1;
-    transform: translate3d(0, -1px, 0) scale(1.006);
-  }
-}
-
-@media (max-width: 1160px) {
-  html body .bes-top-chrome.bes-top-chrome--guest-full::before {
-    inset-inline: 6px !important;
-    border-radius: 34px !important;
-  }
-
-  html body .bes-top-chrome.bes-top-chrome--guest-full::after {
-    inset-inline: 9px !important;
-    border-radius: 32px !important;
-  }
-}
-
-@media (max-width: 900px) {
-  html body .bes-top-chrome.bes-top-chrome--guest-full::before {
-    inset: 3px !important;
-    border-radius: 27px !important;
-    filter: blur(10px) saturate(1.20) !important;
-  }
-
-  html body .bes-top-chrome.bes-top-chrome--guest-full::after {
-    inset: 5px !important;
-    border-radius: 25px !important;
-    padding: 1.5px !important;
-  }
-}
-
-html[data-theme='dark'] body .bes-top-chrome.bes-top-chrome--guest-full::before,
-body.theme-dark .bes-top-chrome.bes-top-chrome--guest-full::before {
-  opacity: .78 !important;
-  filter: blur(14px) saturate(1.34) !important;
-  box-shadow:
-    0 0 26px rgba(var(--bes-guest-aura-cyan),.34),
-    0 0 52px rgba(var(--bes-guest-aura-blue),.32),
-    0 0 72px rgba(var(--bes-guest-aura-violet),.30),
-    0 22px 58px rgba(0,0,0,.34) !important;
-}
-
-html[data-theme='dark'] body .bes-top-chrome.bes-top-chrome--guest-full::after,
-body.theme-dark .bes-top-chrome.bes-top-chrome--guest-full::after {
-  opacity: .82 !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html body .bes-top-chrome.bes-top-chrome--guest-full::before {
-    animation: none !important;
-    opacity: .90 !important;
-    transform: none !important;
-  }
-}
-
-/* ============================================================
-   Real-surface aura fallback
-   The previous aura depended on pseudo-elements beneath a large sticky glass
-   surface. In production the later-loaded StatusMenuBar stylesheet repainted
-   that surface and its child shadows, making the aura effectively invisible.
-   This layer styles the actual top-chrome box and its two real rows with a
-   selector that is more specific than the lazy-loaded status styles.
-   ============================================================ */
+/* Brian English Studio · static whole-hub aura surface.
+   Guest and authenticated navigation keep the same geometry and glow without motion. */
 
 html body .app-shell[data-route] > .bes-top-chrome,
-html body .app-shell[data-route] .bes-top-chrome {
+html body .app-shell[data-route] .bes-top-chrome,
+html body .bes-top-chrome.bes-top-chrome--guest-full {
   --bes-real-aura-cyan: 56, 229, 232;
   --bes-real-aura-blue: 48, 153, 255;
   --bes-real-aura-violet: 145, 91, 255;
@@ -211,17 +25,19 @@ html body .app-shell[data-route] .bes-top-chrome {
   overflow: visible !important;
 }
 
-/* Retire the fragile pseudo-element implementation. */
 html body .app-shell[data-route] > .bes-top-chrome::before,
 html body .app-shell[data-route] > .bes-top-chrome::after,
 html body .app-shell[data-route] .bes-top-chrome::before,
-html body .app-shell[data-route] .bes-top-chrome::after {
+html body .app-shell[data-route] .bes-top-chrome::after,
+html body .bes-top-chrome.bes-top-chrome--guest-full::before,
+html body .bes-top-chrome.bes-top-chrome--guest-full::after {
   content: none !important;
   display: none !important;
 }
 
 html body .app-shell[data-route] > .bes-top-chrome > .brian-nav,
-html body .app-shell[data-route] .bes-top-chrome > .brian-nav {
+html body .app-shell[data-route] .bes-top-chrome > .brian-nav,
+html body .bes-top-chrome.bes-top-chrome--guest-full > .brian-nav {
   border-color: rgba(149, 224, 255, .92) !important;
   box-shadow:
     0 0 0 1px rgba(255,255,255,.92),
@@ -233,7 +49,8 @@ html body .app-shell[data-route] .bes-top-chrome > .brian-nav {
 }
 
 html body .app-shell[data-route] > .bes-top-chrome > .brian-briefing-bar,
-html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar {
+html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar,
+html body .bes-top-chrome.bes-top-chrome--guest-full > .brian-briefing-bar {
   border-color: rgba(184, 154, 255, .68) !important;
   box-shadow:
     0 0 0 1px rgba(255,255,255,.88),
@@ -241,29 +58,6 @@ html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar {
     0 0 26px rgba(var(--bes-real-aura-violet), .30),
     0 10px 28px rgba(62, 80, 148, .14),
     inset 0 1px 0 rgba(255,255,255,.98) !important;
-}
-
-/* Public/guest mode uses the same real surface so Safari and Chrome behave alike. */
-html body .bes-top-chrome.bes-top-chrome--guest-full {
-  box-sizing: border-box !important;
-  width: calc(100% - 20px) !important;
-  margin: 10px 10px 0 !important;
-  border: 2px solid rgba(105, 210, 255, .88) !important;
-  border-radius: 44px !important;
-  outline: 1px solid rgba(255,255,255,.94) !important;
-  outline-offset: -4px !important;
-  box-shadow:
-    0 0 10px rgba(63,225,239,.66),
-    0 0 24px rgba(56,151,255,.52),
-    0 0 44px rgba(143,93,255,.40),
-    0 0 68px rgba(238,116,255,.18),
-    0 20px 46px rgba(64,78,160,.24) !important;
-}
-
-html body .bes-top-chrome.bes-top-chrome--guest-full::before,
-html body .bes-top-chrome.bes-top-chrome--guest-full::after {
-  content: none !important;
-  display: none !important;
 }
 
 @media (max-width: 900px) {
@@ -284,13 +78,14 @@ html body .bes-top-chrome.bes-top-chrome--guest-full::after {
 html[data-theme='dark'] body .app-shell[data-route] > .bes-top-chrome,
 html[data-theme='dark'] body .app-shell[data-route] .bes-top-chrome,
 body.theme-dark .app-shell[data-route] > .bes-top-chrome,
-body.theme-dark .app-shell[data-route] .bes-top-chrome {
+body.theme-dark .app-shell[data-route] .bes-top-chrome,
+html[data-theme='dark'] body .bes-top-chrome.bes-top-chrome--guest-full,
+body.theme-dark .bes-top-chrome.bes-top-chrome--guest-full {
   border-color: rgba(99, 205, 255, .82) !important;
   outline-color: rgba(196, 222, 255, .24) !important;
   box-shadow:
     0 0 14px rgba(var(--bes-real-aura-cyan), .52),
-    0 0 32px rgba(var(--bes-real-aura-blue), .48),
-    0 0 56px rgba(var(--bes-real-aura-violet), .42),
-    0 22px 52px rgba(0,0,0,.38),
-    inset 0 0 24px rgba(var(--bes-real-aura-blue), .12) !important;
+    0 0 32px rgba(var(--bes-real-aura-blue), .44),
+    0 0 50px rgba(var(--bes-real-aura-violet), .34),
+    0 20px 48px rgba(0,0,0,.32) !important;
 }
