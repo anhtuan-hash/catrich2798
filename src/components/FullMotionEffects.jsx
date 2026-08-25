@@ -1,5 +1,5 @@
-/* Global full-motion layer retired while the site's motion system is rebuilt.
-   Vietnam Atmosphere motion is implemented separately and intentionally untouched. */
+// Motion effects were permanently removed from Brian.
+// Kept only as a temporary compatibility shell for the legacy lazy import.
 export default function FullMotionEffects() {
   return null;
 }
