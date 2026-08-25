@@ -1,0 +1,179 @@
+/* Command Center 2026 · distinct color roles
+   Final visual layer: clearer category colors without changing behavior. */
+
+.command-v21-layer {
+  --cmd-role-all: #1769e0;
+  --cmd-role-command: #6f52d9;
+  --cmd-role-person: #1f9d61;
+  --cmd-role-class: #b34ac8;
+  --cmd-role-app: #e28715;
+}
+
+/* Segmented filters: one restrained color family per category. */
+.command-v21-layer .command-v21-modes button:nth-child(1) {
+  background: #eef5ff !important;
+  color: #0b57d0 !important;
+}
+.command-v21-layer .command-v21-modes button:nth-child(2) {
+  background: #f3efff !important;
+  color: #6242c7 !important;
+}
+.command-v21-layer .command-v21-modes button:nth-child(3) {
+  background: #edf9f2 !important;
+  color: #167a49 !important;
+}
+.command-v21-layer .command-v21-modes button:nth-child(4) {
+  background: #fbf0ff !important;
+  color: #9f37b7 !important;
+}
+.command-v21-layer .command-v21-modes button:nth-child(5) {
+  background: #fff5e8 !important;
+  color: #b96800 !important;
+}
+
+.command-v21-layer .command-v21-modes button:nth-child(1) kbd { background:#dceaff !important; }
+.command-v21-layer .command-v21-modes button:nth-child(2) kbd { background:#e7defd !important; }
+.command-v21-layer .command-v21-modes button:nth-child(3) kbd { background:#d9f1e3 !important; }
+.command-v21-layer .command-v21-modes button:nth-child(4) kbd { background:#f1dcf7 !important; }
+.command-v21-layer .command-v21-modes button:nth-child(5) kbd { background:#ffe7c7 !important; }
+
+.command-v21-layer .command-v21-modes button:nth-child(1):hover { background:#e4efff !important; border-color:#c8ddff !important; }
+.command-v21-layer .command-v21-modes button:nth-child(2):hover { background:#ece5ff !important; border-color:#d8c9ff !important; }
+.command-v21-layer .command-v21-modes button:nth-child(3):hover { background:#e2f5ea !important; border-color:#bfe7cf !important; }
+.command-v21-layer .command-v21-modes button:nth-child(4):hover { background:#f6e5fb !important; border-color:#e4c3ed !important; }
+.command-v21-layer .command-v21-modes button:nth-child(5):hover { background:#ffedd6 !important; border-color:#f7d2a4 !important; }
+
+.command-v21-layer .command-v21-modes button:nth-child(1).active {
+  background: linear-gradient(135deg,#2d7be8,#0b57d0) !important;
+  border-color:#0b57d0 !important;
+  color:#fff !important;
+  box-shadow:0 7px 16px rgba(11,87,208,.20) !important;
+}
+.command-v21-layer .command-v21-modes button:nth-child(2).active {
+  background: linear-gradient(135deg,#8066e9,#6546ca) !important;
+  border-color:#6546ca !important;
+  color:#fff !important;
+  box-shadow:0 7px 16px rgba(101,70,202,.19) !important;
+}
+.command-v21-layer .command-v21-modes button:nth-child(3).active {
+  background: linear-gradient(135deg,#33aa71,#17814d) !important;
+  border-color:#17814d !important;
+  color:#fff !important;
+  box-shadow:0 7px 16px rgba(23,129,77,.18) !important;
+}
+.command-v21-layer .command-v21-modes button:nth-child(4).active {
+  background: linear-gradient(135deg,#c866d9,#a43db8) !important;
+  border-color:#a43db8 !important;
+  color:#fff !important;
+  box-shadow:0 7px 16px rgba(164,61,184,.18) !important;
+}
+.command-v21-layer .command-v21-modes button:nth-child(5).active {
+  background: linear-gradient(135deg,#f2a13a,#d87908) !important;
+  border-color:#d87908 !important;
+  color:#fff !important;
+  box-shadow:0 7px 16px rgba(216,121,8,.18) !important;
+}
+.command-v21-layer .command-v21-modes button.active kbd {
+  background: rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+
+/* Result cards inherit their real application/person/class accent.
+   This makes rows visually distinguishable without turning the panel into a rainbow. */
+.command-v21-layer .command-v21-result-shell {
+  border-color: color-mix(in srgb, var(--command-accent) 18%, #e6ebf2) !important;
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--command-accent) 7%, #fff) 0%,
+      rgba(255,255,255,.92) 38%,
+      rgba(255,255,255,.88) 100%) !important;
+  box-shadow:
+    inset 3px 0 0 color-mix(in srgb, var(--command-accent) 58%, transparent),
+    0 2px 8px rgba(15,23,42,.025) !important;
+}
+
+.command-v21-layer .command-v21-result-shell:hover {
+  border-color: color-mix(in srgb, var(--command-accent) 34%, #d8e0eb) !important;
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--command-accent) 12%, #fff) 0%,
+      #fff 48%,
+      #fff 100%) !important;
+  box-shadow:
+    inset 4px 0 0 color-mix(in srgb, var(--command-accent) 72%, transparent),
+    0 9px 22px color-mix(in srgb, var(--command-accent) 10%, rgba(15,23,42,.07)) !important;
+}
+
+.command-v21-layer .command-v21-result-shell.active,
+.command-v21-layer .command-v21-result-shell.active:hover {
+  border-color: color-mix(in srgb, var(--command-accent) 46%, #cfd9e8) !important;
+  background:
+    linear-gradient(100deg,
+      color-mix(in srgb, var(--command-accent) 17%, #fff) 0%,
+      color-mix(in srgb, var(--command-accent) 7%, #fff) 62%,
+      #fff 100%) !important;
+  box-shadow:
+    inset 5px 0 0 var(--command-accent),
+    0 10px 26px color-mix(in srgb, var(--command-accent) 15%, transparent) !important;
+}
+
+.command-v21-layer .command-v21-icon {
+  border-color: color-mix(in srgb, var(--command-accent) 30%, #e3e9f1) !important;
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb, var(--command-accent) 22%, #fff),
+      color-mix(in srgb, var(--command-accent) 10%, #fff)) !important;
+  color: color-mix(in srgb, var(--command-accent) 90%, #17233a) !important;
+  box-shadow: 0 5px 13px color-mix(in srgb, var(--command-accent) 12%, transparent) !important;
+}
+
+.command-v21-layer .command-v21-result-shell.active .command-v21-icon {
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb, var(--command-accent) 31%, #fff),
+      color-mix(in srgb, var(--command-accent) 16%, #fff)) !important;
+  box-shadow:0 7px 16px color-mix(in srgb, var(--command-accent) 18%, transparent) !important;
+}
+
+.command-v21-layer .command-v21-enter,
+.command-v21-layer .command-v21-pin-dot {
+  color: var(--command-accent) !important;
+}
+
+/* Section marker and count get a subtle multicolor identity. */
+.command-v21-layer .command-v21-group span::before {
+  background: linear-gradient(135deg,#1769e0 0 25%,#6f52d9 25% 50%,#1f9d61 50% 75%,#e28715 75%) !important;
+  box-shadow:0 0 0 4px rgba(23,105,224,.06) !important;
+}
+.command-v21-layer .command-v21-meta > span {
+  border-color:#d9e4f3 !important;
+  background:linear-gradient(135deg,#eef5ff,#f5efff) !important;
+  color:#536b95 !important;
+}
+
+/* Footer key roles: navigation blue, open green, actions purple, pin orange. */
+.command-v21-layer .command-v21-footer span:nth-child(1) kbd { color:#1769e0 !important; background:#eef5ff !important; border-color:#d7e6ff !important; }
+.command-v21-layer .command-v21-footer span:nth-child(2) kbd { color:#167a49 !important; background:#edf9f2 !important; border-color:#d1efde !important; }
+.command-v21-layer .command-v21-footer span:nth-child(3) kbd { color:#7249ce !important; background:#f3efff !important; border-color:#e2d8fb !important; }
+.command-v21-layer .command-v21-footer span:nth-child(4) kbd { color:#b96800 !important; background:#fff5e8 !important; border-color:#f9dfbc !important; }
+
+html[data-theme='dark'] .command-v21-layer .command-v21-modes button:nth-child(1),
+body.theme-dark .command-v21-layer .command-v21-modes button:nth-child(1) { background:rgba(23,105,224,.17) !important; color:#a8c7fa !important; }
+html[data-theme='dark'] .command-v21-layer .command-v21-modes button:nth-child(2),
+body.theme-dark .command-v21-layer .command-v21-modes button:nth-child(2) { background:rgba(111,82,217,.18) !important; color:#cbbcff !important; }
+html[data-theme='dark'] .command-v21-layer .command-v21-modes button:nth-child(3),
+body.theme-dark .command-v21-layer .command-v21-modes button:nth-child(3) { background:rgba(31,157,97,.18) !important; color:#9de2ba !important; }
+html[data-theme='dark'] .command-v21-layer .command-v21-modes button:nth-child(4),
+body.theme-dark .command-v21-layer .command-v21-modes button:nth-child(4) { background:rgba(179,74,200,.18) !important; color:#e2adee !important; }
+html[data-theme='dark'] .command-v21-layer .command-v21-modes button:nth-child(5),
+body.theme-dark .command-v21-layer .command-v21-modes button:nth-child(5) { background:rgba(226,135,21,.18) !important; color:#ffc67b !important; }
+
+html[data-theme='dark'] .command-v21-layer .command-v21-result-shell,
+body.theme-dark .command-v21-layer .command-v21-result-shell {
+  border-color: color-mix(in srgb,var(--command-accent) 28%,#354158) !important;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--command-accent) 12%,#1f2735),#202938 48%) !important;
+}
+html[data-theme='dark'] .command-v21-layer .command-v21-result-shell.active,
+body.theme-dark .command-v21-layer .command-v21-result-shell.active {
+  background:linear-gradient(90deg,color-mix(in srgb,var(--command-accent) 23%,#202938),color-mix(in srgb,var(--command-accent) 8%,#202938)) !important;
+}
