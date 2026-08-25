@@ -188,6 +188,9 @@ async function startApplication() {
   // trước khi React dựng giao diện để không lóe hoặc mở nhầm lớp bộ môn.
   await preparePreferredHomeroomBeforeMain();
   await import('./main.jsx');
+  import('./homeWeeklyPracticeStatisticsBootstrap.jsx').catch((error) => {
+    console.warn('[WeeklyPracticeStatistics] Không thể khởi tạo bộ điều khiển thống kê TTCM.', error);
+  });
   installRouteModuleLoader();
   // loadRouteModules() is now the single route-aware loader. Do not schedule
   // External Apps globally from here.
