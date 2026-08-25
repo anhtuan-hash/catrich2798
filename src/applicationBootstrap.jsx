@@ -6,7 +6,6 @@ import './fourClassLocalPurge.js';
 import './directClassRosterImportBootstrap.js';
 import './removeKnowledgeHubRuntime.js';
 import './tesolMethodRouteRegistry.js';
-import './styles/MotionRestore.css';
 import './components/GlobalHomeroomMaterial3Refinement.css';
 
 const MAX_WAIT_MS = 20000;
@@ -57,9 +56,6 @@ async function preparePreferredHomeroomBeforeMain() {
 }
 
 function loadRouteModules() {
-  // Performance guard: compactDrawerRuntimeV3 installs a document-wide
-  // MutationObserver. Do not load it globally during route boot. Feature
-  // components may opt in explicitly if they truly need a rescan.
   if (isAppsRoute()) loadExternalAppsAfterMainShell();
 
   if (isAssignedClassRoute()) startAssignedClassSync().catch(() => {});
@@ -122,8 +118,6 @@ function startAssignedClassSync() {
   return assignedClassSyncPromise;
 }
 
-// Kept for explicit opt-in compatibility. It is intentionally not called by
-// global route boot anymore because the runtime observes the whole document.
 function loadCompactDrawerRuntimeAfterMainShell() {
   if (compactDrawerRuntimeLoaded || compactDrawerRuntimeScheduled || isAppsRoute()) return;
 
@@ -150,9 +144,6 @@ function loadCompactDrawerRuntimeAfterMainShell() {
 }
 
 function loadExternalAppsAfterMainShell() {
-  // Critical performance fix: this bootstrap imports many homepage, weekly
-  // practice and Brian Team modules and mounts a second React root. It must be
-  // exclusive to the Applications route.
   if (!isAppsRoute() || externalAppsLoaded || externalAppsScheduled) return;
 
   const mainShellReady = Boolean(document.querySelector('#root .app-shell'));
@@ -184,16 +175,12 @@ async function startApplication() {
   if (applicationStarted) return;
   applicationStarted = true;
 
-  // Trên app chủ nhiệm, chọn lớp chủ nhiệm từ dữ liệu phân công đã lưu
-  // trước khi React dựng giao diện để không lóe hoặc mở nhầm lớp bộ môn.
   await preparePreferredHomeroomBeforeMain();
   await import('./main.jsx');
   import('./homeWeeklyPracticeStatisticsBootstrap.jsx').catch((error) => {
     console.warn('[WeeklyPracticeStatistics] Không thể khởi tạo bộ điều khiển thống kê TTCM.', error);
   });
   installRouteModuleLoader();
-  // loadRouteModules() is now the single route-aware loader. Do not schedule
-  // External Apps globally from here.
 }
 
 if (document.readyState === 'loading') {
