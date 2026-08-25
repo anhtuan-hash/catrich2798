@@ -330,7 +330,7 @@ export default function RandomGroupGenerator({ language = 'vi' }) {
       revealOneByOne,
     }, language);
     setGroups(nextGroups);
-    window.setTimeout(() => document.getElementById('brian-group-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    window.setTimeout(() => document.getElementById('brian-group-results')?.scrollIntoView({ behavior: 'auto', block: 'start' }), 80);
   };
 
   const toggleAbsent = (id) => {
