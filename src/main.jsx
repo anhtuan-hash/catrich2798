@@ -25,7 +25,7 @@ import PermissionRequestButton from './components/PermissionRequestButton.jsx';
 import { initializeAuthSession, logoutUser, subscribeToAuthChanges } from './utils/auth.js';
 import { getActiveAiConfig, getAiConfigs, getAiProvider, getProviderSummary, setAiStorageUser } from './utils/aiProviders.js';
 import { getFirstAllowedRoute, getRoutePermissionId, getPermissionItem, hasRouteAccess } from './utils/permissions.js';
-import { applyPerformanceAttributes, getStoredMotionMode, getStoredPerformanceMode, resolveMotionMode, resolvePerformanceMode } from './utils/performanceProfile.js';
+import { applyPerformanceAttributes, getStoredPerformanceMode, resolvePerformanceMode } from './utils/performanceProfile.js';
 import { setLibraryStorageUser } from './utils/library.js';
 import { recordAppUsage } from './utils/appUsage.js';
 import { setTrashStorageUser } from './utils/trash.js';
@@ -88,10 +88,7 @@ const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
 const SupabaseSetup = lazy(() => import('./pages/SupabaseSetup.jsx'));
 const HomeroomWorkspace = lazy(() => import('./pages/HomeroomWorkspace.jsx'));
 const HomeroomPortal = lazy(() => import('./pages/HomeroomPortal.jsx'));
-const FullMotionEffects = lazy(() => import('./components/FullMotionEffects.jsx')); // clean Metro motion layer
 const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
-
-
 const GlobalCommandPalette = lazy(() => import('./components/GlobalCommandPalette.jsx'));
 const SharedChatbotDrawer = lazy(() => import('./components/SharedChatbotDrawer.jsx'));
 const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
@@ -101,7 +98,6 @@ const SystemHealthCenter = lazy(() => import('./pages/SystemHealthCenter.jsx'));
 const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.jsx'));
 const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.jsx'));
 const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.jsx'));
-
 const WorkHub = lazy(() => import('./pages/WorkHub.jsx'));
 const WorkDashboard = lazy(() => import('./pages/WorkDashboard.jsx'));
 const KnowledgeHub = lazy(() => import('./pages/KnowledgeHub.jsx'));
@@ -127,7 +123,6 @@ function getInitialRoute() {
   const routeOnly = cleanHash.split('?')[0].split('&')[0];
   return routeOnly || 'home';
 }
-
 
 const ROUTE_DESIGN_PROFILES = {
   home: { accent: '#FFC69D', soft: '#FFF1E2', ink: '#171312' },
@@ -156,7 +151,6 @@ const ROUTE_DESIGN_PROFILES = {
   resources: { accent: '#D99A1E', soft: '#FFF0C8', ink: '#392406' },
   contact: { accent: '#00A6A6', soft: '#D8FAFA', ink: '#073434' },
   qa: { accent: '#123C69', soft: '#DCEBFA', ink: '#07192C' },
-
   trash: { accent: '#A43B57', soft: '#FFE5EC', ink: '#3C101D' },
   tools: { accent: '#E86D1F', soft: '#FFE3CD', ink: '#211510' },
   login: { accent: '#191515', soft: '#F3DFD8', ink: '#191515' },
@@ -191,15 +185,12 @@ function App() {
   const aiOperationIdsRef = useRef(new Set());
   const aiIndicatorHideTimerRef = useRef(null);
   const languageRef = useRef(language);
-  const [tileLaunch, setTileLaunch] = useState(null);
-  const [motionMode, setMotionMode] = useState(getStoredMotionMode);
   const [performanceMode, setPerformanceMode] = useState(getStoredPerformanceMode);
   const [themeIntensity, setThemeIntensityState] = useState(() => normalizeMetroIntensity(localStorage.getItem('bes-theme-intensity') || 'balanced'));
   const setThemeIntensity = (value) => setThemeIntensityState(normalizeMetroIntensity(value));
   const [tileBorder, setTileBorder] = useState(() => localStorage.getItem('bes-tile-border') || 'soft');
   const [indicatorMode, setIndicatorMode] = useState(() => localStorage.getItem('bes-windows-indicator') || 'on');
   const resolvedPerformance = resolvePerformanceMode(performanceMode);
-  const effectiveMotionMode = resolveMotionMode(motionMode, performanceMode);
 
   useEffect(() => {
     let alive = true;
@@ -226,20 +217,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const onTileLaunch = (event) => {
-      const detail = event.detail || {};
-      setTileLaunch({ id: window.performance?.now?.() || Date.now(), color: detail.color || 'var(--blue)', label: detail.label || 'BR', rect: detail.rect || null });
-      window.clearTimeout(window.__besTileLaunchTimer);
-      window.__besTileLaunchTimer = window.setTimeout(() => setTileLaunch(null), Number(detail.duration) || 520);
-    };
-    window.addEventListener('bes-tile-launch', onTileLaunch);
-    return () => {
-      window.removeEventListener('bes-tile-launch', onTileLaunch);
-      window.clearTimeout(window.__besTileLaunchTimer);
-    };
-  }, []);
-
-  useEffect(() => {
     const onAiSettings = () => {
       const active = getActiveAiConfig();
       setAiProviderState(getAiProvider());
@@ -250,7 +227,6 @@ function App() {
     window.addEventListener('bes-ai-settings-updated', onAiSettings);
     return () => window.removeEventListener('bes-ai-settings-updated', onAiSettings);
   }, []);
-
 
   useEffect(() => {
     const defaultLabel = () => languageRef.current === 'vi' ? 'AI đang xử lý nội dung...' : 'AI is processing your content...';
@@ -326,16 +302,16 @@ function App() {
       localStorage.setItem('bes-windows-indicator', indicatorMode);
     } catch { /* ignore */ }
   }, [themeIntensity, tileBorder, indicatorMode]);
+
   useEffect(() => { localStorage.setItem('bet-language', language); }, [language]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('bes-motion-mode', motionMode);
       localStorage.setItem('bes-performance-mode', performanceMode);
+      localStorage.removeItem('bes-motion-mode');
     } catch { /* ignore */ }
-    applyPerformanceAttributes({ motionMode, performanceMode });
-  }, [motionMode, performanceMode]);
-
+    applyPerformanceAttributes({ performanceMode });
+  }, [performanceMode]);
 
   const allTools = useMemo(() => [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS], []);
   const toolSlug = route.startsWith('tool/') ? route.replace('tool/', '') : '';
@@ -352,6 +328,7 @@ function App() {
 
   const requiresAuth = currentRoute === 'tool' || !PUBLIC_ROUTES.has(currentRoute);
   const canAccessRoute = visibilityReady && !temporarilyHidden && (!requiresAuth || hasRouteAccess(currentUser, currentRoute, selectedTool));
+
   useEffect(() => {
     if (authReady && requiresAuth && !currentUser) {
       window.location.hash = '#/login';
@@ -384,9 +361,6 @@ function App() {
     authReady,
     setCurrentUser,
     setGlobalLoading,
-    motionMode,
-    setMotionMode,
-    effectiveMotionMode,
     performanceMode,
     setPerformanceMode,
     resolvedPerformance,
@@ -436,162 +410,130 @@ function App() {
     });
   }, [currentRoute, selectedTool?.slug, currentUser?.id, currentUser?.email, canAccessRoute]);
 
-  const tileLaunchRect = tileLaunch
-    ? (tileLaunch.rect || { x: window.innerWidth / 2 - 90, y: window.innerHeight / 2 - 70, w: 180, h: 140 })
-    : null;
-
   return (
     <>
       <Suspense fallback={null}><GlobalAccessibilityAnnouncer /></Suspense>
       <div
-      className="app-shell metro-shell metro-clean-system"
-      data-route={currentRoute}
-      data-tool={selectedTool?.slug || currentRoute}
-      data-performance={resolvedPerformance}
-      data-motion={effectiveMotionMode}
-      data-intensity={themeIntensity}
-      data-tile-border={tileBorder}
-      data-windows-indicator={indicatorMode}
-      data-app-version={APP_VERSION}
-      data-burs="comfortable"
-      style={{
-        '--active-app-accent': activeDesignProfile.accent,
-        '--active-app-soft': activeDesignProfile.soft,
-        '--active-app-ink': activeDesignProfile.ink,
-      }}
-    >
-      {!['homeroom-portal'].includes(currentRoute) ? <div className="bes-top-chrome">
-        <Suspense fallback={null}>
-          <StatusMenuBar route={currentRoute} {...context} />
-        </Suspense>
-        <AppErrorBoundary compact scope="global-navigation" label={language === 'vi' ? 'thanh điều hướng' : 'navigation'}>
-          <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
-        </AppErrorBoundary>
-      </div> : null}
-      {tileLaunch ? (
-        <div
-          key={tileLaunch.id}
-          className="tile-launch-layer"
-          style={{
-            '--tile-launch-color': tileLaunch.color,
-            '--tile-launch-x': `${tileLaunchRect.x}px`,
-            '--tile-launch-y': `${tileLaunchRect.y}px`,
-            '--tile-launch-w': `${tileLaunchRect.w}px`,
-            '--tile-launch-h': `${tileLaunchRect.h}px`,
-            '--tile-launch-dx': `${-tileLaunchRect.x}px`,
-            '--tile-launch-dy': `${-tileLaunchRect.y}px`,
-            '--tile-launch-sx': `${window.innerWidth / Math.max(tileLaunchRect.w, 1)}`,
-            '--tile-launch-sy': `${window.innerHeight / Math.max(tileLaunchRect.h, 1)}`,
-          }}
-          aria-hidden="true"
-        >
-          <div className="tile-launch-backdrop" />
-          <div className="tile-launch-card"><span className="tile-launch-label">{tileLaunch.label}</span></div>
-        </div>
-      ) : null}
-
-      {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
-        <Suspense fallback={null}>
-          <AppErrorBoundary compact scope="command-palette" label={language === 'vi' ? 'tìm kiếm nhanh' : 'command palette'}>
-            <GlobalCommandPalette
-              language={language}
-              currentUser={currentUser}
-              currentRoute={currentRoute}
-              selectedTool={selectedTool}
-            />
+        className="app-shell metro-shell metro-clean-system"
+        data-route={currentRoute}
+        data-tool={selectedTool?.slug || currentRoute}
+        data-performance={resolvedPerformance}
+        data-intensity={themeIntensity}
+        data-tile-border={tileBorder}
+        data-windows-indicator={indicatorMode}
+        data-app-version={APP_VERSION}
+        data-burs="comfortable"
+        style={{
+          '--active-app-accent': activeDesignProfile.accent,
+          '--active-app-soft': activeDesignProfile.soft,
+          '--active-app-ink': activeDesignProfile.ink,
+        }}
+      >
+        {!['homeroom-portal'].includes(currentRoute) ? <div className="bes-top-chrome">
+          <Suspense fallback={null}>
+            <StatusMenuBar route={currentRoute} {...context} />
+          </Suspense>
+          <AppErrorBoundary compact scope="global-navigation" label={language === 'vi' ? 'thanh điều hướng' : 'navigation'}>
+            <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
           </AppErrorBoundary>
-        </Suspense>
-      )}
+        </div> : null}
 
-      <Suspense fallback={null}>
-        <GlobalRuntimeGuard language={language} />
-      </Suspense>
- {effectiveMotionMode === 'full' && (
-        <Suspense fallback={null}>
-          <FullMotionEffects route={currentRoute} language={language} loadingState={loadingState} />
-        </Suspense>
-      )}
-      {currentUser ? (
-        <Suspense fallback={null}>
-        </Suspense>
-      ) : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
-        <Suspense fallback={null}>
-          <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
-        </Suspense>
-      ) : null}
-      {currentUser && !['homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
-        <Suspense fallback={null}>
-          <AppErrorBoundary compact scope="shared-chatbot-drawer" label={language === 'vi' ? 'chatbot dùng chung' : 'shared chatbot'}>
-            <SharedChatbotDrawer currentUser={currentUser} language={language} />
-          </AppErrorBoundary>
-        </Suspense>
-      ) : null}
-
-      <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute}>
-        <Suspense fallback={<RouteFallback language={language} />}>
-          {currentRoute === 'home' && (!currentUser || visibilityReady) && <Home {...context} />}
-          {currentRoute === 'home' && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
-          {requiresAuth && currentUser && !canAccessRoute && visibilityReady && <AccessDenied language={language} currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} temporarilyHidden={temporarilyHidden} />}
-          {requiresAuth && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
-          {canAccessRoute && currentRoute === 'apps' && currentUser && (
-            <AppErrorBoundary scope="apps-launcher" label={language === 'vi' ? 'trang Ứng dụng' : 'Apps page'}>
-              <WebApps apps={accessibleApps} {...context} />
+        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+          <Suspense fallback={null}>
+            <AppErrorBoundary compact scope="command-palette" label={language === 'vi' ? 'tìm kiếm nhanh' : 'command palette'}>
+              <GlobalCommandPalette
+                language={language}
+                currentUser={currentUser}
+                currentRoute={currentRoute}
+                selectedTool={selectedTool}
+              />
             </AppErrorBoundary>
-          )}
-          {canAccessRoute && currentRoute === 'news' && currentUser && <NewsReader {...context} />}
-          {canAccessRoute && currentRoute === 'games' && currentUser && <Games games={accessibleGames} {...context} />}
-          {canAccessRoute && currentRoute === 'tools' && currentUser && <SpecialTools tools={accessibleTools} {...context} />}
-          {canAccessRoute && currentRoute === 'homeroom' && currentUser && <HomeroomWorkspace {...context} />}
-          {currentRoute === 'homeroom-portal' && <HomeroomPortal {...context} />}
-          {currentRoute === 'resources' && <Resources items={RESOURCE_ITEMS} {...context} />}
-          {canAccessRoute && currentRoute === 'library' && currentUser && <Library {...context} />}
-          {canAccessRoute && currentRoute === 'resource-library' && currentUser && <ResourceLibrary {...context} />}
-          {canAccessRoute && currentRoute === 'knowledge-hub' && currentUser && <KnowledgeHub {...context} />}
-          {canAccessRoute && currentRoute === 'dashboard' && currentUser && <WorkDashboard {...context} />}
-          {canAccessRoute && currentRoute === 'work-hub' && currentUser && <WorkHub {...context} />}
-          {canAccessRoute && currentRoute === 'content-ecosystem' && currentUser && <ContentEcosystem {...context} />}
-          {canAccessRoute && currentRoute === 'assessment-core' && currentUser && <AssessmentCore {...context} />}
-          {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <PlatformReadiness {...context} />}
-          {canAccessRoute && currentRoute === 'automation-center' && currentUser && <AutomationCenter {...context} />}
-          {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <CloudOperations {...context} />}
-          {canAccessRoute && currentRoute === 'collaboration-hub' && currentUser && <CollaborationHub {...context} />}
-          {canAccessRoute && currentRoute === 'data-governance' && currentUser && <DataGovernance {...context} />}
-          {canAccessRoute && currentRoute === 'production-hardening' && currentUser && <ProductionHardening {...context} />}
-          {canAccessRoute && currentRoute === 'app-vault' && currentUser && <HiddenAppsVault {...context} />}
-          {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
-          {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}
+          </Suspense>
+        )}
 
-          {canAccessRoute && currentRoute === 'trash' && currentUser && <TrashCenter {...context} />}
-          {currentRoute === 'contact' && <Contact {...context} />}
-          {canAccessRoute && currentRoute === 'settings' && currentUser && <Settings {...context} />}
-          {currentRoute === 'login' && <AuthPage mode="login" onLogin={(u) => { setCurrentUser(u); window.location.hash = `#/${getFirstAllowedRoute(u)}`; }} {...context} />}
-          {currentRoute === 'register' && <AuthPage mode="register" onLogin={(u) => { if (u) { setCurrentUser(u); window.location.hash = `#/${getFirstAllowedRoute(u)}`; } }} {...context} />}
-          {canAccessRoute && currentRoute === 'admin' && currentUser && <AdminPage {...context} />}
-          {currentRoute === 'setup' && <SupabaseSetup {...context} />}
-          {canAccessRoute && currentRoute === 'tool' && currentUser && <ToolPage tool={selectedTool} {...context} />}
+        <Suspense fallback={null}>
+          <GlobalRuntimeGuard language={language} />
         </Suspense>
-      </main>
+        {currentUser ? (
+          <Suspense fallback={null}>
+          </Suspense>
+        ) : null}
+        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
+          <Suspense fallback={null}>
+            <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
+          </Suspense>
+        ) : null}
+        {currentUser && !['homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
+          <Suspense fallback={null}>
+            <AppErrorBoundary compact scope="shared-chatbot-drawer" label={language === 'vi' ? 'chatbot dùng chung' : 'shared chatbot'}>
+              <SharedChatbotDrawer currentUser={currentUser} language={language} />
+            </AppErrorBoundary>
+          </Suspense>
+        ) : null}
 
-      {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
-        <Suspense fallback={null}>
-          <AppErrorBoundary compact scope="global-autosave" label={language === 'vi' ? 'tự lưu' : 'autosave'}>
-            <GlobalAutosave route={currentRoute} selectedTool={selectedTool} currentUser={currentUser} language={language} />
-          </AppErrorBoundary>
-        </Suspense>
-      )}
- {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'dashboard'].includes(currentRoute) ? <>
-        <Suspense fallback={null}>
-          <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
-            <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} appVisibility={appVisibility} />
-          </AppErrorBoundary>
-        </Suspense>
-        <Suspense fallback={null}>
-          <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
-        </Suspense>
-      </> : null}
-      {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
-      {!['homeroom-portal', 'dashboard'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
+        <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute}>
+          <Suspense fallback={<RouteFallback language={language} />}>
+            {currentRoute === 'home' && (!currentUser || visibilityReady) && <Home {...context} />}
+            {currentRoute === 'home' && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
+            {requiresAuth && currentUser && !canAccessRoute && visibilityReady && <AccessDenied language={language} currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} temporarilyHidden={temporarilyHidden} />}
+            {requiresAuth && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
+            {canAccessRoute && currentRoute === 'apps' && currentUser && (
+              <AppErrorBoundary scope="apps-launcher" label={language === 'vi' ? 'trang Ứng dụng' : 'Apps page'}>
+                <WebApps apps={accessibleApps} {...context} />
+              </AppErrorBoundary>
+            )}
+            {canAccessRoute && currentRoute === 'news' && currentUser && <NewsReader {...context} />}
+            {canAccessRoute && currentRoute === 'games' && currentUser && <Games games={accessibleGames} {...context} />}
+            {canAccessRoute && currentRoute === 'tools' && currentUser && <SpecialTools tools={accessibleTools} {...context} />}
+            {canAccessRoute && currentRoute === 'homeroom' && currentUser && <HomeroomWorkspace {...context} />}
+            {currentRoute === 'homeroom-portal' && <HomeroomPortal {...context} />}
+            {currentRoute === 'resources' && <Resources items={RESOURCE_ITEMS} {...context} />}
+            {canAccessRoute && currentRoute === 'library' && currentUser && <Library {...context} />}
+            {canAccessRoute && currentRoute === 'resource-library' && currentUser && <ResourceLibrary {...context} />}
+            {canAccessRoute && currentRoute === 'knowledge-hub' && currentUser && <KnowledgeHub {...context} />}
+            {canAccessRoute && currentRoute === 'dashboard' && currentUser && <WorkDashboard {...context} />}
+            {canAccessRoute && currentRoute === 'work-hub' && currentUser && <WorkHub {...context} />}
+            {canAccessRoute && currentRoute === 'content-ecosystem' && currentUser && <ContentEcosystem {...context} />}
+            {canAccessRoute && currentRoute === 'assessment-core' && currentUser && <AssessmentCore {...context} />}
+            {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <PlatformReadiness {...context} />}
+            {canAccessRoute && currentRoute === 'automation-center' && currentUser && <AutomationCenter {...context} />}
+            {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <CloudOperations {...context} />}
+            {canAccessRoute && currentRoute === 'collaboration-hub' && currentUser && <CollaborationHub {...context} />}
+            {canAccessRoute && currentRoute === 'data-governance' && currentUser && <DataGovernance {...context} />}
+            {canAccessRoute && currentRoute === 'production-hardening' && currentUser && <ProductionHardening {...context} />}
+            {canAccessRoute && currentRoute === 'app-vault' && currentUser && <HiddenAppsVault {...context} />}
+            {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
+            {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}
+            {canAccessRoute && currentRoute === 'trash' && currentUser && <TrashCenter {...context} />}
+            {currentRoute === 'contact' && <Contact {...context} />}
+            {canAccessRoute && currentRoute === 'settings' && currentUser && <Settings {...context} />}
+            {currentRoute === 'login' && <AuthPage mode="login" onLogin={(u) => { setCurrentUser(u); window.location.hash = `#/${getFirstAllowedRoute(u)}`; }} {...context} />}
+            {currentRoute === 'register' && <AuthPage mode="register" onLogin={(u) => { if (u) { setCurrentUser(u); window.location.hash = `#/${getFirstAllowedRoute(u)}`; } }} {...context} />}
+            {canAccessRoute && currentRoute === 'admin' && currentUser && <AdminPage {...context} />}
+            {currentRoute === 'setup' && <SupabaseSetup {...context} />}
+            {canAccessRoute && currentRoute === 'tool' && currentUser && <ToolPage tool={selectedTool} {...context} />}
+          </Suspense>
+        </main>
+
+        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+          <Suspense fallback={null}>
+            <AppErrorBoundary compact scope="global-autosave" label={language === 'vi' ? 'tự lưu' : 'autosave'}>
+              <GlobalAutosave route={currentRoute} selectedTool={selectedTool} currentUser={currentUser} language={language} />
+            </AppErrorBoundary>
+          </Suspense>
+        )}
+        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'dashboard'].includes(currentRoute) ? <>
+          <Suspense fallback={null}>
+            <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
+              <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} appVisibility={appVisibility} />
+            </AppErrorBoundary>
+          </Suspense>
+          <Suspense fallback={null}>
+            <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
+          </Suspense>
+        </> : null}
+        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
+        {!['homeroom-portal', 'dashboard'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
       </div>
     </>
   );
