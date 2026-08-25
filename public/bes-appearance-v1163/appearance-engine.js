@@ -47,7 +47,6 @@ const DEFAULTS = Object.freeze({
   radius: 'rounded',
   border: 'medium',
   depth: 'soft',
-  textScale: 100,
   motion: 'balanced',
   transition: 'metro',
   cardEffect: 'lift',
@@ -86,16 +85,27 @@ function safeJson(value, fallback = null) {
 function normalizeState(candidate = {}) {
   const next = { ...DEFAULTS, ...(candidate && typeof candidate === 'object' ? candidate : {}) };
   delete next.theme;
+  delete next.textScale;
   if (!PALETTES[next.accent]) next.accent = DEFAULTS.accent;
   if (!/^#[0-9a-f]{6}$/i.test(next.accentCustom || '')) next.accentCustom = DEFAULTS.accentCustom;
   next.accentStrength = clamp(next.accentStrength, 0, 100);
   next.saturation = clamp(next.saturation, 35, 140);
   next.effectIntensity = clamp(next.effectIntensity, 0, 100);
-  next.textScale = clamp(next.textScale, 90, 135);
   next.updatedAt = Number(next.updatedAt) || 0;
   next.schema = 2;
   next.version = BES_APPEARANCE_VERSION;
   return next;
+}
+
+function cleanupRetiredTypographyState() {
+  ROOT.style.removeProperty('--bes-text-scale');
+  try {
+    const saved = safeJson(localStorage.getItem(STORAGE_KEY), null);
+    if (saved && typeof saved === 'object' && 'textScale' in saved) {
+      delete saved.textScale;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+    }
+  } catch { /* legacy appearance storage is optional */ }
 }
 
 function loadState() {
@@ -345,7 +355,6 @@ function applyLayoutTokens() {
   ROOT.style.setProperty('--bes-content-max', `${widthMap[state.contentWidth] || widthMap.wide}px`);
   ROOT.style.setProperty('--bes-card-radius', `${radiusMap[state.radius] || radiusMap.rounded}px`);
   ROOT.style.setProperty('--bes-border-width', `${borderMap[state.border] || borderMap.medium}px`);
-  ROOT.style.setProperty('--bes-text-scale', String(state.textScale / 100));
   ROOT.style.setProperty('--bes-effect-intensity', String(state.effectIntensity / 100));
 }
 
@@ -386,6 +395,7 @@ function ensureBackgroundLayer() {
 }
 
 function applyAll({ persist = false } = {}) {
+  cleanupRetiredTypographyState();
   applyAttributes();
   applyPalette();
   applySurfaceTokens();
@@ -459,14 +469,13 @@ function studioPanels() {
       <div class="bes-contrast-check"><span class="bes-contrast-dot"></span><div><strong>Tự kiểm tra độ tương phản</strong><small>Màu chữ trên nút được chọn tự động để duy trì khả năng đọc.</small></div><b>${contrastRatio(resolveAccentHex(), bestTextColor(resolveAccentHex())).toFixed(1)}:1</b></div>
     </section>`,
     layout: `<section class="bes-panel" data-panel="layout">
-      <div class="bes-section-heading"><div><span>03</span><h3>Bố cục & kích thước</h3><p>Điều chỉnh mật độ, độ rộng, bo góc và cỡ chữ bằng token chung để không làm vỡ layout.</p></div></div>
+      <div class="bes-section-heading"><div><span>03</span><h3>Bố cục & kích thước</h3><p>Điều chỉnh mật độ, độ rộng, bo góc và đường viền mà không can thiệp cỡ chữ của từng giao diện.</p></div></div>
       <h4>Mật độ hiển thị</h4>${createChoiceGroup('density', [['spacious','Thoáng','↔'],['comfortable','Vừa','▤'],['compact','Gọn','▦'],['ultra','Siêu gọn','▥']])}
       <h4>Chiều rộng nội dung</h4>${createChoiceGroup('contentWidth', [['focused','Tập trung','▯'],['wide','Rộng','▭'],['fluid','Toàn màn hình','▬']])}
       <div class="bes-field-grid">
         <label class="bes-select-row"><span>Độ bo góc<small>Áp dụng cho card, panel, modal và control.</small></span><select data-setting="radius"><option value="square">Vuông</option><option value="soft">Mềm</option><option value="rounded">Bo tròn</option><option value="pill">Rất tròn</option></select></label>
         <label class="bes-select-row"><span>Độ dày đường viền<small>Tăng viền khi dùng máy chiếu hoặc màn hình kém.</small></span><select data-setting="border"><option value="thin">Mảnh</option><option value="medium">Vừa</option><option value="strong">Đậm</option></select></label>
       </div>
-      ${createRange('textScale','Tỉ lệ chữ và control',90,135,5)}
     </section>`,
     motion: `<section class="bes-panel" data-panel="motion">
       <div class="bes-section-heading"><div><span>04</span><h3>Chuyển động</h3><p>Motion Engine tự giảm hiệu ứng khi thiết bị yếu hoặc hệ điều hành bật Reduce Motion.</p></div></div>
@@ -489,7 +498,7 @@ function studioPanels() {
       <div class="bes-section-heading"><div><span>06</span><h3>Trợ năng & thích ứng</h3><p>Các chế độ này có quyền ưu tiên cao để bảo đảm dễ đọc, dễ chạm và tiết kiệm tài nguyên.</p></div></div>
       <div class="bes-access-grid">
         ${createSwitch('highContrast','Tương phản cao','Viền và focus ring rõ hơn; giảm các tint quá nhạt.')}
-        ${createSwitch('projector','Chế độ máy chiếu','Tăng chữ, viền và độ tương phản cho lớp học.')}
+        ${createSwitch('projector','Chế độ máy chiếu','Tăng viền và độ tương phản cho lớp học; giữ nguyên cỡ chữ của từng giao diện.')}
         ${createSwitch('batterySaver','Tiết kiệm pin','Tắt nền động, blur nặng và route animation.')}
       </div>
       <div class="bes-field-grid">
@@ -925,6 +934,7 @@ function exposeApi() {
 }
 
 function init() {
+  cleanupRetiredTypographyState();
   applyAll({ persist: false });
   setupSync();
   setupObservers();
