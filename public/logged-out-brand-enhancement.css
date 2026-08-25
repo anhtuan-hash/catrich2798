@@ -60,3 +60,21 @@ body .brian-nav:has(.brian-nav__login) .brian-nav__brand img {
 .metro-clean-system[data-tool="exam-studio"] .direct-toolbar-group:has(.direct-font-controls) {
   display: none !important;
 }
+
+/* News Reader display scaling is retired at its existing default size. */
+.news-g4-reader-paper {
+  --news-reader-size: 19px !important;
+}
+
+.news-g4-font-control {
+  display: none !important;
+}
+
+/* Seating Chart display scaling is retired at its existing default size. */
+.scs-pro__grid {
+  --student-font-size: 13px !important;
+}
+
+.scs-pro__font {
+  display: none !important;
+}
