@@ -41,7 +41,7 @@ function restoreStandaloneAdminNavigation(nodes) {
 }
 
 function scrollToSelector(selector) {
-  document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelector(selector)?.scrollIntoView({ block: 'start' });
 }
 
 function removeLegacyQuickAppearancePanels() {
@@ -115,7 +115,7 @@ export default function GlobalSettingsAppearanceBridge(props) {
         appearanceHost = document.createElement('section');
         appearanceHost.id = APPEARANCE_HOST_ID;
         appearanceHost.className = 'settings-admin-merge-host settings-appearance-merge-host';
-        appearanceHost.setAttribute('aria-label', vi ? 'Giao diện và trải nghiệm' : 'Appearance and experience');
+        appearanceHost.setAttribute('aria-label', vi ? 'Giao diện' : 'Appearance');
         settingsMain.insertBefore(appearanceHost, footer || null);
       }
 
@@ -156,9 +156,9 @@ export default function GlobalSettingsAppearanceBridge(props) {
       });
 
       if (window.location.hash.includes('section=appearance')) {
-        window.requestAnimationFrame(() => appearanceHost?.scrollIntoView({ behavior: 'auto', block: 'start' }));
+        appearanceHost?.scrollIntoView({ block: 'start' });
       } else if (admin && window.location.hash.includes('section=admin')) {
-        window.requestAnimationFrame(() => adminHost?.scrollIntoView({ behavior: 'auto', block: 'start' }));
+        adminHost?.scrollIntoView({ block: 'start' });
       }
       return true;
     };
@@ -189,14 +189,14 @@ export default function GlobalSettingsAppearanceBridge(props) {
     <>
       {createPortal(
         <>
-          <div className="settings-admin-merge-label">{vi ? 'TRẢI NGHIỆM' : 'EXPERIENCE'}</div>
+          <div className="settings-admin-merge-label">{vi ? 'GIAO DIỆN' : 'APPEARANCE'}</div>
           <button
             type="button"
             className="settings-admin-merge-nav-button"
             onClick={() => scrollToSelector(`#${APPEARANCE_HOST_ID}`)}
           >
             <span aria-hidden="true">✦</span>
-            <div><strong>{vi ? 'Màu sắc & hiệu ứng' : 'Color & effects'}</strong></div>
+            <div><strong>{vi ? 'Màu sắc & nền' : 'Color & background'}</strong></div>
           </button>
         </>,
         portalTargets.appearanceNav,
@@ -213,20 +213,19 @@ export default function GlobalSettingsAppearanceBridge(props) {
             />
             <span className="settings-admin-merge-heading-icon" aria-hidden="true">✦</span>
             <div>
-              <h2>{vi ? 'Giao diện & trải nghiệm' : 'Appearance & experience'}</h2>
+              <h2>{vi ? 'Giao diện hệ thống' : 'System appearance'}</h2>
               <p>{vi
-                ? 'Điều chỉnh màu nhấn, chuyển động, hiệu ứng nền và Adaptive UI. Kích thước chữ và bố cục giữ nguyên theo thiết kế gốc.'
-                : 'Adjust accent color, motion, background effects and Adaptive UI. Text and layout sizing stay at their native design values.'}</p>
+                ? 'Điều chỉnh màu nhấn, nền, tương phản và hiệu năng. Không còn cài đặt chuyển động.'
+                : 'Adjust accent color, background, contrast and performance. Motion settings have been removed.'}</p>
             </div>
           </div>
-          <Suspense fallback={<div className="settings-admin-merge-loading">{vi ? 'Đang tải Appearance Engine…' : 'Loading Appearance Engine…'}</div>}>
+          <Suspense fallback={<div className="settings-admin-merge-loading">{vi ? 'Đang tải cài đặt giao diện…' : 'Loading appearance settings…'}</div>}>
             <SettingsAppearanceEngine
               language={props.language}
               setAccent={(value) => {
                 try { localStorage.setItem('bes-accent-color', value); } catch { /* optional */ }
                 document.documentElement.dataset.accent = value;
               }}
-              setMotionMode={props.setMotionMode}
               setPerformanceMode={props.setPerformanceMode}
             />
           </Suspense>
