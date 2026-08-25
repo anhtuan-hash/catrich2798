@@ -1,0 +1,144 @@
+/* Minimal native foundation.
+   Historical V10 global typography/geometry rules are intentionally excluded.
+   Each current route/component owns its font family, font size, line height,
+   radius, shadow, control sizing and decorative pseudo-elements. */
+
+:root {
+  color-scheme: light;
+  --page: #f2f7fc;
+  --surface: #ffffff;
+  --surface-2: #e7f1fa;
+  --surface-3: #d6e8f8;
+  --ink: #071d33;
+  --muted: #4e657c;
+  --line: #b8d0e5;
+  --blue: #0078d4;
+  --blue-dark: #004578;
+  --blue-deep: #003b6f;
+  --cyan: #00a4ef;
+  --teal: #008575;
+  --green: #107c10;
+  --purple: #5b3fd6;
+  --pink: #d13478;
+  --orange: #f7630c;
+  --red: #d13438;
+  --yellow: #ffb900;
+  --tile-1: #0078d4;
+  --tile-2: #5b3fd6;
+  --tile-3: #008575;
+  --tile-4: #f7630c;
+  --tile-5: #107c10;
+  --tile-6: #00a4ef;
+  --tile-7: #d13478;
+  --tile-8: #004578;
+  --tile-9: #8764b8;
+  --tile-10: #00188f;
+  --bg: var(--page);
+  --bg-2: var(--surface-2);
+  --panel: var(--surface);
+  --panel-2: var(--surface-2);
+  --card: var(--surface);
+  --card-2: var(--surface-2);
+  --text: var(--ink);
+  --muted-text: var(--muted);
+  --primary: var(--blue);
+  --primary-2: var(--blue-dark);
+  --app-max: 1520px;
+  --gap: 16px;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --page: #061522;
+  --surface: #0d263d;
+  --surface-2: #143854;
+  --surface-3: #1b4770;
+  --ink: #f7fbff;
+  --muted: #b8cee2;
+  --line: #2b577c;
+  --blue: #2899f5;
+  --blue-dark: #0f6eb8;
+  --blue-deep: #084c82;
+}
+
+html[data-theme-intensity='soft'],
+html[data-themeIntensity='soft'] {
+  --blue: #2b83ca;
+  --cyan: #159bd2;
+  --purple: #6b5acb;
+  --pink: #bf4c83;
+  --orange: #de7624;
+  --green: #2f8d37;
+}
+
+html[data-theme-intensity='strong'],
+html[data-themeIntensity='strong'] {
+  --blue: #0078d4;
+  --cyan: #00a4ef;
+  --purple: #5032cc;
+  --pink: #d13478;
+  --orange: #f7630c;
+  --green: #107c10;
+}
+
+html[data-theme-intensity='bold'],
+html[data-themeIntensity='bold'] {
+  --blue: #0067b8;
+  --cyan: #0099d8;
+  --purple: #4b2bbf;
+  --pink: #c2276e;
+  --orange: #e65400;
+  --green: #0b6f0b;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+.app-shell,
+.metro-shell,
+.metro-clean-system {
+  min-height: 100vh;
+}
+
+section,
+article,
+aside,
+header,
+footer,
+nav,
+div {
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
