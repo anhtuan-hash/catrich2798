@@ -215,8 +215,8 @@ export default function GlobalSettingsAppearanceBridge(props) {
             <div>
               <h2>{vi ? 'Giao diện & trải nghiệm' : 'Appearance & experience'}</h2>
               <p>{vi
-                ? 'Điều chỉnh màu nhấn, mật độ, kích thước chữ, chuyển động, hiệu ứng nền và Adaptive UI ngay trong Cài đặt.'
-                : 'Adjust accent color, density, text size, motion, background effects and Adaptive UI directly in Settings.'}</p>
+                ? 'Điều chỉnh màu nhấn, chuyển động, hiệu ứng nền và Adaptive UI. Kích thước chữ và bố cục giữ nguyên theo thiết kế gốc.'
+                : 'Adjust accent color, motion, background effects and Adaptive UI. Text and layout sizing stay at their native design values.'}</p>
             </div>
           </div>
           <Suspense fallback={<div className="settings-admin-merge-loading">{vi ? 'Đang tải Appearance Engine…' : 'Loading Appearance Engine…'}</div>}>
@@ -226,13 +226,8 @@ export default function GlobalSettingsAppearanceBridge(props) {
                 try { localStorage.setItem('bes-accent-color', value); } catch { /* optional */ }
                 document.documentElement.dataset.accent = value;
               }}
-              setDensity={(value) => {
-                try { localStorage.setItem('bes-display-density', value); } catch { /* optional */ }
-                document.documentElement.dataset.density = value;
-              }}
               setMotionMode={props.setMotionMode}
               setPerformanceMode={props.setPerformanceMode}
-              setFontScale={props.setFontScale}
             />
           </Suspense>
         </>,
