@@ -1,12 +1,8 @@
-export const FONT_SCALE_OPTIONS = Object.freeze([90, 100, 110, 120, 130, 135]);
+// Global text-size scaling has been retired.
+// The application now always uses the browser/design-system native 100% text size.
+// Keep this tiny compatibility module because older runtime imports still reference it.
+export const FONT_SCALE_OPTIONS = Object.freeze([100]);
 
-export function normalizeFontScale(value, fallback = 100) {
-  const fallbackValue = Number(fallback);
-  const safeFallback = FONT_SCALE_OPTIONS.includes(fallbackValue) ? fallbackValue : 100;
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return safeFallback;
-
-  return FONT_SCALE_OPTIONS.reduce((closest, option) => (
-    Math.abs(option - numeric) < Math.abs(closest - numeric) ? option : closest
-  ), safeFallback);
+export function normalizeFontScale() {
+  return 100;
 }
