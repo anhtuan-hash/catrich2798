@@ -1,5 +1,4 @@
-/* Word Orbit flight engine rebuilt from zero.
-   The actual path is measured and animated in WordOrbitGame.jsx. */
+/* Word Orbit static layout and viewport contract. */
 
 html:has(.wog-app),
 body:has(.wog-app),
@@ -42,13 +41,6 @@ body:has(.wog-app)::after,
   isolation: isolate !important;
 }
 
-/* No decorative loop may compete with the essential capsule flight. */
-.wog-app *,
-.wog-app *::before,
-.wog-app *::after {
-  animation: none !important;
-}
-
 .app-shell[data-tool="word-orbit"] .wog-stage {
   display: grid !important;
   grid-template-columns: minmax(0, 1.62fr) minmax(390px, .92fr) !important;
@@ -83,7 +75,6 @@ body:has(.wog-app)::after,
 
 .app-shell[data-tool="word-orbit"] .wog-app.is-dragging .wog-capsule-source {
   opacity: .72 !important;
-  transform: scale(.96) !important;
 }
 
 .app-shell[data-tool="word-orbit"] .wog-app.is-flying .wog-capsule-source,
@@ -91,22 +82,16 @@ body:has(.wog-app)::after,
   visibility: hidden !important;
 }
 
-/* Detached clone appended to body. It cannot inherit route transforms or overflow. */
 .wog-flight-capsule {
   position: fixed !important;
   z-index: 2147483000 !important;
   margin: 0 !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
-  animation: none !important;
-  transition: none;
-  offset: none !important;
-  offset-path: none !important;
   pointer-events: none !important;
   cursor: default !important;
   transform-origin: 50% 50% !important;
   backface-visibility: hidden !important;
-  will-change: transform !important;
   contain: layout paint style !important;
   font-family: var(--english-hub-personal-font, "Google Sans", Roboto, Arial, sans-serif) !important;
 }
@@ -114,7 +99,6 @@ body:has(.wog-app)::after,
 .wog-flight-capsule,
 .wog-flight-capsule * {
   box-sizing: border-box !important;
-  animation: none !important;
 }
 
 .app-shell[data-tool="word-orbit"] .wog-target-dock {
@@ -122,15 +106,8 @@ body:has(.wog-app)::after,
   right: 9% !important;
   bottom: 25% !important;
   margin: 0 !important;
-  transition: transform 180ms ease, box-shadow 180ms ease !important;
 }
 
-.app-shell[data-tool="word-orbit"] .wog-target-dock.is-receiving {
-  transform: scale(1.1) !important;
-  box-shadow: 0 0 0 14px rgba(77, 210, 132, .12), 0 0 34px var(--dock-glow) !important;
-}
-
-/* Remove paint-heavy effects from the play surface. */
 .app-shell[data-tool="word-orbit"] .wog-progress-card,
 .app-shell[data-tool="word-orbit"] .wog-timer-card,
 .app-shell[data-tool="word-orbit"] .wog-howto-card,
@@ -173,17 +150,5 @@ body:has(.wog-app)::after,
   .app-shell[data-tool="word-orbit"] .wog-target-dock {
     right: 3% !important;
     bottom: 24% !important;
-    transform: scale(.82) !important;
-  }
-  .app-shell[data-tool="word-orbit"] .wog-target-dock.is-receiving {
-    transform: scale(.94) !important;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wog-app *,
-  .wog-app *::before,
-  .wog-app *::after {
-    transition-duration: .01ms !important;
   }
 }
