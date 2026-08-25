@@ -18,6 +18,16 @@ html[data-bes-projector='true'] {
   display: none !important;
 }
 
+/* Remove the old explanatory copy that advertised global text scaling. */
+.bes-theme-studio .bes-panel[data-panel='layout'] .bes-section-heading p {
+  font-size: 0 !important;
+}
+.bes-theme-studio .bes-panel[data-panel='layout'] .bes-section-heading p::after {
+  content: 'Điều chỉnh mật độ, độ rộng, bo góc và đường viền bằng token chung.';
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+
 /* Any stale projector state must not enlarge text or controls. */
 html[data-bes-projector='true'] {
   --bes-text-scale: 1 !important;
