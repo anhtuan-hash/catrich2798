@@ -31,6 +31,9 @@ const RETIRED_ROOT_VARIABLES = [
   '--bes-content-max',
   '--bes-card-radius',
   '--bes-border-width',
+  '--font-sans',
+  '--font-display',
+  '--font-body',
 ];
 
 const RETIRED_ROOT_ATTRIBUTES = [
@@ -60,6 +63,11 @@ function clearLegacyStorage() {
   }
 }
 
+function removeForcedFontBoot() {
+  if (typeof document === 'undefined') return;
+  document.getElementById('brian-personal-font-boot')?.remove();
+}
+
 function removeRuntimeScaleMarkers() {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
@@ -67,8 +75,12 @@ function removeRuntimeScaleMarkers() {
   /* Restore native/component sizing instead of replacing it with another
      global numeric baseline. */
   root.style.removeProperty('font-size');
+  root.style.removeProperty('font-family');
   RETIRED_ROOT_VARIABLES.forEach((property) => root.style.removeProperty(property));
   RETIRED_ROOT_ATTRIBUTES.forEach((attribute) => root.removeAttribute(attribute));
+
+  document.body?.style.removeProperty('font-family');
+  document.getElementById('root')?.style.removeProperty('font-family');
 
   document.querySelectorAll('.metro-clean-system[data-burs], .app-shell[data-burs]').forEach((node) => {
     node.removeAttribute('data-burs');
@@ -77,11 +89,12 @@ function removeRuntimeScaleMarkers() {
 
 function cleanupLegacyDisplayState() {
   clearLegacyStorage();
+  removeForcedFontBoot();
   removeRuntimeScaleMarkers();
 }
 
 export default function GlobalNativeTextScaleReset() {
-  /* Remove stale inline sizing before the mounted shell is painted. */
+  /* Remove stale inline sizing/font overrides before the mounted shell paints. */
   useLayoutEffect(() => {
     cleanupLegacyDisplayState();
   });
@@ -97,10 +110,9 @@ export default function GlobalNativeTextScaleReset() {
 
     cleanup();
 
-    /* Appearance Engine V2 can still re-apply its historical layout tokens on
+    /* Appearance Engine V2 can still re-apply historical layout tokens on
        route changes, resize/performance changes or cloud sync. Observe only the
-       root element (not the document subtree), so this guard is extremely cheap
-       and cannot recreate the old whole-page MutationObserver performance cost. */
+       root element (not the document subtree), so this remains very cheap. */
     const root = document.documentElement;
     const observer = new MutationObserver(() => cleanup());
     observer.observe(root, {
