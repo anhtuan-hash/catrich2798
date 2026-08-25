@@ -39,7 +39,6 @@ body.work-hub-viewport-modal-open{
   background:#fff!important;
   box-shadow:0 24px 80px rgba(32,33,36,.28),0 4px 18px rgba(32,33,36,.18)!important;
   transform:none!important;
-  animation:work-hub-modal-enter .18s cubic-bezier(.2,0,0,1) both!important;
   scrollbar-gutter:stable;
 }
 
@@ -188,11 +187,6 @@ body.work-hub-viewport-modal-open{
   background-clip:padding-box;
 }
 
-@keyframes work-hub-modal-enter{
-  from{opacity:0;transform:translateY(14px) scale(.985)}
-  to{opacity:1;transform:translateY(0) scale(1)}
-}
-
 @media (max-width:720px){
   .v1093-drawer-backdrop.work-hub-viewport-modal-backdrop{
     padding:10px!important;
@@ -220,12 +214,6 @@ body.work-hub-viewport-modal-open{
 @media (max-height:640px){
   .v1093-drawer-backdrop.work-hub-viewport-modal-backdrop>.v1093-drawer.work-delivery-drawer.work-hub-viewport-modal{
     max-height:calc(100dvh - 20px)!important;
-  }
-}
-
-@media (prefers-reduced-motion:reduce){
-  .v1093-drawer-backdrop.work-hub-viewport-modal-backdrop>.v1093-drawer.work-delivery-drawer.work-hub-viewport-modal{
-    animation:none!important;
   }
 }
 
