@@ -27,7 +27,7 @@ export default function ClassroomScreenHost({ language = 'vi' }) {
       aria-label="Brian Classroom Stage"
       style={{
         position: 'fixed', inset: 0, zIndex: 22000, display: 'flex', flexDirection: 'column',
-        background: '#eaf4ff', color: '#17324d', fontFamily: 'var(--bes-font-personal), Inter, system-ui, sans-serif',
+        background: '#eaf4ff', color: '#17324d',
       }}
     >
       <header style={{
