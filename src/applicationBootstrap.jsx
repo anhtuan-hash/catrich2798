@@ -8,11 +8,6 @@ import './removeKnowledgeHubRuntime.js';
 import './tesolMethodRouteRegistry.js';
 import './styles/MotionRestore.css';
 import './components/GlobalHomeroomMaterial3Refinement.css';
-import {
-  installSiteFontFromCache,
-  loadSiteFontSetting,
-  waitForSiteFontReady,
-} from './utils/siteFontSettings.js';
 
 const MAX_WAIT_MS = 20000;
 const STARTED_AT = Date.now();
@@ -59,17 +54,6 @@ async function preparePreferredHomeroomBeforeMain() {
   } catch (error) {
     console.warn('[PreferredHomeroomEntry] Chưa thể chọn lớp chủ nhiệm trước khi mở giao diện.', error);
   }
-}
-
-function refreshSiteFontInBackground(cachedFont) {
-  runWhenIdle(async () => {
-    try {
-      const selectedFont = await loadSiteFontSetting(null);
-      if (selectedFont && selectedFont !== cachedFont) await waitForSiteFontReady(selectedFont);
-    } catch (error) {
-      console.warn('[Global font] Background refresh failed; cached font remains active.', error);
-    }
-  }, 2200);
 }
 
 function loadRouteModules() {
@@ -200,17 +184,10 @@ async function startApplication() {
   if (applicationStarted) return;
   applicationStarted = true;
 
-  document.documentElement.dataset.siteFontBoot = 'loading';
-  const cachedFont = installSiteFontFromCache();
-  document.documentElement.dataset.siteFontBoot = 'ready';
-
   // Trên app chủ nhiệm, chọn lớp chủ nhiệm từ dữ liệu phân công đã lưu
   // trước khi React dựng giao diện để không lóe hoặc mở nhầm lớp bộ môn.
   await preparePreferredHomeroomBeforeMain();
-  const mainModulePromise = import('./main.jsx');
-  refreshSiteFontInBackground(cachedFont);
-
-  await mainModulePromise;
+  await import('./main.jsx');
   installRouteModuleLoader();
   // loadRouteModules() is now the single route-aware loader. Do not schedule
   // External Apps globally from here.
