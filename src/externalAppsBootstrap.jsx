@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import './utils/brianTeamEgressGuard.js';
 import ExternalAppsIntegration from './components/ExternalAppsIntegration.jsx';
 import './components/ApprovedExternalAppControlStack.css';
-import HomeWeeklyPracticeStatisticsController from './components/HomeWeeklyPracticeStatisticsController.jsx';
 import DepartmentHeadAdminRoleBridge from './components/DepartmentHeadAdminRoleBridge.jsx';
 import BrianTeamWorkHubSyncBridge from './components/BrianTeamWorkHubSyncBridge.jsx';
 import BrianTeamProgressPanelBridge from './components/BrianTeamProgressPanelBridge.jsx';
@@ -108,7 +107,6 @@ function Bootstrap() {
           <BrianTeamNoPurpleRuntimeBridge />
         </>
       ) : null}
-      <HomeWeeklyPracticeStatisticsController />
     </>
   );
 }
