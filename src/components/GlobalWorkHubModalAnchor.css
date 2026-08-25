@@ -80,8 +80,6 @@ html.work-hub-viewport-modal-open body .v1093-page.v1093-work-hub{
   scrollbar-color:#aab2a5 transparent!important;
   transform:none!important;
   translate:none!important;
-  animation:work-hub-anchor-enter .16s cubic-bezier(.2,0,0,1) both!important;
-  transform-origin:85% 15%!important;
   z-index:2147483647!important;
   isolation:isolate!important;
   contain:layout paint!important;
@@ -196,11 +194,6 @@ html.work-hub-viewport-modal-open body .v1093-page.v1093-work-hub>:not(.v1093-dr
   z-index:0!important;
 }
 
-@keyframes work-hub-anchor-enter{
-  from{opacity:0;transform:translateY(8px) scale(.985)}
-  to{opacity:1;transform:translateY(0) scale(1)}
-}
-
 @media (max-width:680px){
   .v1093-work-hub>.v1093-drawer-backdrop.work-hub-modal-viewport-layer,
   .v1093-drawer-backdrop.work-hub-viewport-modal-backdrop.work-hub-modal-viewport-layer{
@@ -232,11 +225,5 @@ html.work-hub-viewport-modal-open body .v1093-page.v1093-work-hub>:not(.v1093-dr
   .v1093-work-hub>.v1093-drawer-backdrop.work-hub-modal-is-anchored>.v1093-drawer.work-delivery-drawer.work-hub-modal-is-anchored,
   .v1093-drawer-backdrop.work-hub-viewport-modal-backdrop.work-hub-modal-is-anchored>.v1093-drawer.work-delivery-drawer.work-hub-modal-is-anchored{
     max-height:calc(100dvh - 88px)!important;
-  }
-}
-
-@media (prefers-reduced-motion:reduce){
-  .v1093-drawer-backdrop .work-delivery-drawer.work-hub-modal-is-anchored{
-    animation:none!important;
   }
 }
