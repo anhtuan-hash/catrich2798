@@ -1,55 +1,10 @@
-/* Emergency performance layer. Loaded last on purpose.
-   Keeps layout/positioning intact while removing expensive live blur/filter
-   and infinite decorative animation on Balanced/Low performance profiles. */
+/* Brian English Studio · critical rendering performance guard.
+   Motion suppression and reduced-motion compatibility selectors are retired.
+   This layer now only removes expensive live blur/filter work on Balanced/Low. */
 
 html[data-performance='balanced'] body .app-shell[data-route],
 html[data-performance='low'] body .app-shell[data-route] {
   background-attachment: scroll !important;
-}
-
-/* Balanced is the default Auto result. Prioritize input/scroll responsiveness:
-   remove route-wide motion and transitions, while keeping explicit loading
-   indicators alive so async operations still communicate progress. */
-html[data-performance='balanced'] body .app-shell[data-route] *:not([aria-busy='true']):not([class*='spinner']):not([class*='loading']),
-html[data-performance='balanced'] body .app-shell[data-route] *:not([aria-busy='true']):not([class*='spinner']):not([class*='loading'])::before,
-html[data-performance='balanced'] body .app-shell[data-route] *:not([aria-busy='true']):not([class*='spinner']):not([class*='loading'])::after,
-html[data-performance='low'] body .app-shell[data-route] *:not([aria-busy='true']):not([class*='spinner']):not([class*='loading']),
-html[data-performance='low'] body .app-shell[data-route] *:not([aria-busy='true']):not([class*='spinner']):not([class*='loading'])::before,
-html[data-performance='low'] body .app-shell[data-route] *:not([aria-busy='true']):not([class*='spinner']):not([class*='loading'])::after {
-  animation: none !important;
-  transition-duration: 0s !important;
-  transition-delay: 0s !important;
-  scroll-behavior: auto !important;
-}
-
-/* Vietnam atmosphere remains visible when enabled so "Save and apply" works
-   on the default Balanced profile. To protect scrolling performance, Balanced
-   and Low render it as a static paint-only decoration. */
-html[data-performance='balanced'] body .bes-vn-atmosphere,
-html[data-performance='low'] body .bes-vn-atmosphere {
-  display: block !important;
-  animation: none !important;
-  filter: none !important;
-  mix-blend-mode: normal !important;
-  will-change: auto !important;
-}
-
-html[data-performance='balanced'] body .bes-vn-atmosphere {
-  opacity: .92 !important;
-}
-
-html[data-performance='low'] body .bes-vn-atmosphere {
-  opacity: .72 !important;
-}
-
-html[data-performance='balanced'] body .bes-vn-atmosphere .bes-vn-motif,
-html[data-performance='balanced'] body .bes-vn-atmosphere .bes-vn-motif__art,
-html[data-performance='low'] body .bes-vn-atmosphere .bes-vn-motif,
-html[data-performance='low'] body .bes-vn-atmosphere .bes-vn-motif__art {
-  animation: none !important;
-  transform: none !important;
-  filter: none !important;
-  will-change: auto !important;
 }
 
 html[data-performance='balanced'] body .app-shell[data-route] :is(
@@ -89,15 +44,11 @@ html[data-performance='low'] body .app-shell[data-route] .bes-top-chrome::before
 html[data-performance='low'] body .app-shell[data-route] .bes-top-chrome::after,
 html[data-performance='low'] body .app-shell[data-route] .brian-nav::before,
 html[data-performance='low'] body .app-shell[data-route] .brian-nav::after {
-  animation: none !important;
   filter: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  will-change: auto !important;
 }
 
-/* Home Aurora uses several large translucent layers. Keep the same geometry,
-   but make them static/compositor-cheap. */
 html[data-performance='balanced'] body .app-shell[data-route='home'] :is(
   .boh-stage-orbit,
   .boh-stage-dots,
@@ -112,9 +63,7 @@ html[data-performance='low'] body .app-shell[data-route='home'] :is(
   [class*='aurora'],
   [class*='glow']
 ) {
-  animation: none !important;
   filter: none !important;
-  will-change: auto !important;
 }
 
 html[data-performance='balanced'] body .app-shell[data-route='home'] .bes-top-chrome,
@@ -125,28 +74,4 @@ html[data-performance='low'] body .app-shell[data-route='home'] .brian-nav,
 html[data-performance='low'] body .app-shell[data-route='home'] .brian-nav__search {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-}
-
-/* Avoid forcing permanent compositor layers across large route trees. */
-html[data-performance='balanced'] body .app-shell[data-route] :is(
-  .bes-top-chrome,
-  .brian-nav,
-  main,
-  [role='main']
-),
-html[data-performance='low'] body .app-shell[data-route] :is(
-  .bes-top-chrome,
-  .brian-nav,
-  main,
-  [role='main']
-) {
-  will-change: auto !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body .app-shell[data-route] *,
-  body .app-shell[data-route] *::before,
-  body .app-shell[data-route] *::after {
-    scroll-behavior: auto !important;
-  }
 }
