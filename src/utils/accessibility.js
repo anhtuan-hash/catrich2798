@@ -5,7 +5,6 @@ export const DEFAULT_ACCESSIBILITY_PREFERENCES = Object.freeze({
   contrast: 'standard',
   motion: 'system',
   targetSize: 'standard',
-  readableFont: false,
   underlineLinks: false,
   focusHighlight: true,
   announcements: true,
@@ -19,7 +18,6 @@ function normalize(input = {}) {
     contrast,
     motion,
     targetSize,
-    readableFont: Boolean(input.readableFont),
     underlineLinks: Boolean(input.underlineLinks),
     focusHighlight: input.focusHighlight !== false,
     announcements: input.announcements !== false,
@@ -43,7 +41,7 @@ export function applyAccessibilityPreferences(preferences = readAccessibilityPre
   root.dataset.a11yContrast = next.contrast;
   root.dataset.a11yMotion = next.motion;
   root.dataset.a11yTargets = next.targetSize;
-  root.dataset.a11yReadableFont = next.readableFont ? 'true' : 'false';
+  delete root.dataset.a11yReadableFont;
   root.dataset.a11yUnderlineLinks = next.underlineLinks ? 'true' : 'false';
   root.dataset.a11yFocus = next.focusHighlight ? 'true' : 'false';
   root.dataset.a11yAnnouncements = next.announcements ? 'true' : 'false';
