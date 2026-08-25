@@ -28,10 +28,10 @@
   font-weight:950!important;
   white-space:nowrap!important;
   cursor:pointer!important;
-  transition:transform .18s ease,box-shadow .18s ease,filter .18s ease!important;
+  transform:none!important;
 }
 .metro-clean-system[data-route='home'] .bha-practice-header-actions .bes-weekly-stat-launch:hover{
-  transform:translateY(-2px)!important;
+  transform:none!important;
   filter:saturate(1.08)!important;
   box-shadow:0 12px 26px rgba(26,115,232,.3)!important;
 }
@@ -63,7 +63,4 @@
   .metro-clean-system[data-route='home'] .bha-practice-header-actions .bes-weekly-stat-launch{
     width:100%!important;
   }
-}
-@media(prefers-reduced-motion:reduce){
-  .metro-clean-system[data-route='home'] .bha-practice-header-actions .bes-weekly-stat-launch{transition:none!important}
 }
