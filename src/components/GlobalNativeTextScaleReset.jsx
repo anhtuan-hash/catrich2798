@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import './GlobalNativeTextScaleReset.css';
 
 const APPEARANCE_KEY = 'bes-appearance-v2';
@@ -35,6 +35,7 @@ function clearLegacyStorage() {
 function removeRuntimeScaleMarkers() {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
+
   root.style.removeProperty('font-size');
   root.style.removeProperty('--bes-text-scale');
   root.style.removeProperty('--bes-ds-scale');
@@ -43,18 +44,35 @@ function removeRuntimeScaleMarkers() {
   root.removeAttribute('data-font-scale-requested');
   root.removeAttribute('data-typography-mode');
   root.removeAttribute('data-burs');
+
+  document.querySelectorAll('.metro-clean-system[data-burs], .app-shell[data-burs]').forEach((node) => {
+    node.removeAttribute('data-burs');
+  });
+}
+
+function cleanupLegacyDisplayState() {
+  clearLegacyStorage();
+  removeRuntimeScaleMarkers();
 }
 
 export default function GlobalNativeTextScaleReset() {
+  /* Remove stale inline sizing before the browser paints the mounted shell. */
+  useLayoutEffect(() => {
+    cleanupLegacyDisplayState();
+  });
+
   useEffect(() => {
-    const cleanup = () => {
-      clearLegacyStorage();
-      removeRuntimeScaleMarkers();
-    };
+    const cleanup = () => cleanupLegacyDisplayState();
 
     cleanup();
     window.addEventListener('bes:font-scale-changed', cleanup);
-    return () => window.removeEventListener('bes:font-scale-changed', cleanup);
+    window.addEventListener('bes:appearance-changed', cleanup);
+    window.addEventListener('bes:appearance-ready', cleanup);
+    return () => {
+      window.removeEventListener('bes:font-scale-changed', cleanup);
+      window.removeEventListener('bes:appearance-changed', cleanup);
+      window.removeEventListener('bes:appearance-ready', cleanup);
+    };
   }, []);
 
   return null;
