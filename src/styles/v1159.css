@@ -7,10 +7,15 @@ body {
   scroll-behavior: auto !important;
 }
 
+/*
+   The impossible double-id selector is intentional: :not(#a#b) matches every
+   descendant while carrying enough specificity to override legacy !important
+   component motion rules without changing layout transforms, opacity or filters.
+*/
 body,
-body *,
-body *::before,
-body *::after {
+html body :not(#brian-motion-retired-a#brian-motion-retired-b),
+html body :not(#brian-motion-retired-a#brian-motion-retired-b)::before,
+html body :not(#brian-motion-retired-a#brian-motion-retired-b)::after {
   animation: none !important;
   animation-name: none !important;
   animation-duration: 0s !important;
