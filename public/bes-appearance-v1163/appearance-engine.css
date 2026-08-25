@@ -24,7 +24,6 @@
   --bes-control-height: 46px;
   --bes-content-max: 1480px;
   --bes-border-width: 1.5px;
-  --bes-text-scale: 1;
   --bes-effect-intensity: .54;
   --bes-accent-strength: .78;
   --bes-accent-tint-opacity: .16;
@@ -34,7 +33,6 @@
 html[data-bes-appearance] {
   color-scheme: light;
   accent-color: var(--bes-accent-600);
-  font-size: calc(100% * var(--bes-text-scale));
 }
 
 html[data-bes-appearance] body {
@@ -209,10 +207,8 @@ html[data-bes-touch-targets="large"] :where(button, [role="button"], input, sele
 html[data-bes-touch-targets="extra"] :where(button, [role="button"], input, select, textarea) { min-height: 56px !important; }
 
 html[data-bes-projector="true"] {
-  --bes-text-scale: 1.16;
   --bes-border-width: 2px;
 }
-html[data-bes-projector="true"] :where(p, small, label, button, input, select, textarea) { letter-spacing: .01em; }
 
 html[data-bes-color-vision="symbols"] :where([aria-selected="true"], [aria-pressed="true"], [data-selected="true"])::after {
   content: " ✓";
