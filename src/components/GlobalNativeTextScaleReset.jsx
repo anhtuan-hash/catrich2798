@@ -8,7 +8,15 @@ const RETIRED_KEYS = [
   'bet-font-scale',
   'bet-text-scale',
   'burs-font-scale',
+  'bes-display-density',
 ];
+
+const NATIVE_APPEARANCE_DEFAULTS = Object.freeze({
+  density: 'comfortable',
+  contentWidth: 'wide',
+  projector: false,
+  touchTargets: 'normal',
+});
 
 function sanitizeStoredAppearance() {
   try {
@@ -16,21 +24,31 @@ function sanitizeStoredAppearance() {
     if (!raw) return;
     const current = JSON.parse(raw);
     if (!current || typeof current !== 'object' || Array.isArray(current)) return;
-    const next = { ...current, textScale: 100, projector: false };
+
+    const next = {
+      ...current,
+      ...NATIVE_APPEARANCE_DEFAULTS,
+      updatedAt: Date.now(),
+    };
+    delete next.textScale;
     window.localStorage.setItem(APPEARANCE_KEY, JSON.stringify(next));
   } catch {
     /* local storage is optional */
   }
 }
 
-function restoreNativeTextSize() {
+function restoreNativeDisplay() {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
-  root.style.fontSize = '100%';
+
+  root.style.removeProperty('font-size');
   root.style.setProperty('--bes-text-scale', '1');
   root.removeAttribute('data-font-scale');
   root.removeAttribute('data-bes-comfort-display');
+  root.removeAttribute('data-density');
   root.dataset.besProjector = 'false';
+  root.dataset.besDensity = 'comfortable';
+  root.dataset.besTouchTargets = 'normal';
 }
 
 function clearRetiredStorage() {
@@ -42,26 +60,48 @@ function clearRetiredStorage() {
   }
 }
 
+function needsNativeReset(state) {
+  if (!state) return false;
+  return Boolean(
+    state.projector
+    || Number(state.textScale || 100) !== 100
+    || (state.density && state.density !== NATIVE_APPEARANCE_DEFAULTS.density)
+    || (state.contentWidth && state.contentWidth !== NATIVE_APPEARANCE_DEFAULTS.contentWidth)
+    || (state.touchTargets && state.touchTargets !== NATIVE_APPEARANCE_DEFAULTS.touchTargets)
+  );
+}
+
 export default function GlobalNativeTextScaleReset() {
   useEffect(() => {
     let syncing = false;
 
     const enforce = () => {
       clearRetiredStorage();
-      restoreNativeTextSize();
+      restoreNativeDisplay();
     };
 
     const onFontScale = () => enforce();
     const onAppearance = (event) => {
       enforce();
       const state = event?.detail?.state;
-      if (syncing || (!state?.projector && Number(state?.textScale || 100) === 100)) return;
+      if (syncing || !needsNativeReset(state)) return;
+
       if (window.BESAppearance?.setState) {
         syncing = true;
-        try { window.BESAppearance.setState({ textScale: 100, projector: false }); }
-        finally { window.setTimeout(() => { syncing = false; }, 0); }
+        try {
+          window.BESAppearance.setState({
+            textScale: 100,
+            projector: false,
+            density: NATIVE_APPEARANCE_DEFAULTS.density,
+            contentWidth: NATIVE_APPEARANCE_DEFAULTS.contentWidth,
+            touchTargets: NATIVE_APPEARANCE_DEFAULTS.touchTargets,
+          });
+        } finally {
+          window.setTimeout(() => { syncing = false; }, 0);
+        }
       }
     };
+
     const onStorage = (event) => {
       if (RETIRED_KEYS.includes(event.key) || event.key === APPEARANCE_KEY) enforce();
     };
