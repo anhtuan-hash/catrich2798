@@ -1,9 +1,0 @@
-/* Legacy adaptive-comfort typography has been retired.
-   Dashboard is the single scale reference for all routes. The viewport marker
-   may still be used for geometry-only adjustments, but it must never change
-   font size, control size or reading weight automatically. */
-
-html[data-bes-comfort-display='true'] #bes-main-content,
-html[data-bes-comfort-display='true'] #bes-main-content > * {
-  min-width: 0;
-}
