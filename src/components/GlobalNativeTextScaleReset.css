@@ -1,6 +1,7 @@
-/* Native text sizing contract.
-   Global text-size scaling, projector enlargement and legacy font-scale controls
-   are retired. Typography now comes only from each component/design system. */
+/* Native display contract.
+   Global text scaling, projector enlargement, density presets and legacy
+   layout-size controls are retired. Each page/component owns its typography
+   and geometry again, at the browser's native 100% root size. */
 
 html,
 html[data-bes-appearance],
@@ -10,7 +11,10 @@ html[data-bes-projector='true'] {
   --bes-text-scale: 1 !important;
 }
 
-/* Retired text-size controls in the legacy/advanced Appearance Studio. */
+/* The advanced Appearance Studio must no longer expose global layout sizing.
+   Color, motion, effects and accessibility remain available. */
+.bes-theme-studio [data-tab='layout'],
+.bes-theme-studio [data-panel='layout'],
 .bes-theme-studio :is(label, .bes-range-row):has([data-setting='textScale']),
 .bes-theme-studio .bes-switch-row:has([data-setting='projector']),
 .settings-engine-integrated :is(label, .settings-engine-field):has([name='textScale']),
@@ -18,17 +22,9 @@ html[data-bes-projector='true'] {
   display: none !important;
 }
 
-/* Remove the old explanatory copy that advertised global text scaling. */
-.bes-theme-studio .bes-panel[data-panel='layout'] .bes-section-heading p {
-  font-size: 0 !important;
-}
-.bes-theme-studio .bes-panel[data-panel='layout'] .bes-section-heading p::after {
-  content: 'Điều chỉnh mật độ, độ rộng, bo góc và đường viền bằng token chung.';
-  font-size: 13px !important;
-  line-height: 1.5 !important;
-}
-
-/* Any stale projector state must not enlarge text or controls. */
+/* Stale projector/density state may still exist in an old cached bundle.
+   Keep it from altering physical text/control sizing while the migration
+   component clears the corresponding storage values. */
 html[data-bes-projector='true'] {
   --bes-text-scale: 1 !important;
 }
