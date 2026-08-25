@@ -1,16 +1,12 @@
-const VALID_MOTION = new Set(['lite', 'full', 'off']);
 const VALID_PERFORMANCE = new Set(['auto', 'low', 'balanced', 'high']);
 
+/*
+ * Global motion is intentionally retired while the site's animation system is
+ * rebuilt. Keep this compatibility API because Settings and older lazy chunks
+ * still import it. Vietnam Atmosphere owns its effects independently.
+ */
 export function getStoredMotionMode() {
-  try {
-    const stored = localStorage.getItem('bes-motion-mode');
-    if (VALID_MOTION.has(stored)) return stored;
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    const mobile = window.matchMedia?.('(max-width: 900px)').matches;
-    return reduce || mobile ? 'lite' : 'lite';
-  } catch {
-    return 'lite';
-  }
+  return 'off';
 }
 
 export function getStoredPerformanceMode() {
@@ -40,10 +36,6 @@ export function detectDeviceProfile() {
     return { tier: 'low', reason: reduceMotion ? 'reduced-motion' : lowNetwork ? 'slow-network' : 'mobile-hardware', isMobile, reduceMotion };
   }
 
-  // Desktop hardware information is often incomplete or optimistic. Treating
-  // every Mac/PC with several cores as "high" enabled the heaviest animation
-  // profile by default, even when the integrated GPU or browser was struggling.
-  // Auto mode still prefers balanced, while the user's Full choice is respected.
   return { tier: 'balanced', reason: isMobile || coarsePointer ? 'touch-balanced' : 'desktop-balanced', isMobile, reduceMotion };
 }
 
@@ -52,18 +44,16 @@ export function resolvePerformanceMode(mode = getStoredPerformanceMode()) {
   return detectDeviceProfile().tier;
 }
 
-export function resolveMotionMode(motionMode = getStoredMotionMode(), performanceMode = getStoredPerformanceMode()) {
-  const profile = detectDeviceProfile();
-  const resolvedPerformance = resolvePerformanceMode(performanceMode);
-  if (profile.reduceMotion || resolvedPerformance === 'low') return motionMode === 'off' ? 'off' : 'lite';
-  return VALID_MOTION.has(motionMode) ? motionMode : 'lite';
+export function resolveMotionMode() {
+  return 'off';
 }
 
-export function applyPerformanceAttributes({ motionMode = getStoredMotionMode(), performanceMode = getStoredPerformanceMode() } = {}) {
-  if (typeof document === 'undefined') return { motion: motionMode, performance: performanceMode };
+export function applyPerformanceAttributes({ performanceMode = getStoredPerformanceMode() } = {}) {
   const performance = resolvePerformanceMode(performanceMode);
-  const motion = resolveMotionMode(motionMode, performanceMode);
-  document.documentElement.dataset.performance = performance;
-  document.documentElement.dataset.motion = motion;
-  return { motion, performance };
+  if (typeof document !== 'undefined') {
+    document.documentElement.dataset.performance = performance;
+    document.documentElement.dataset.motion = 'off';
+    try { localStorage.setItem('bes-motion-mode', 'off'); } catch { /* optional */ }
+  }
+  return { motion: 'off', performance };
 }
