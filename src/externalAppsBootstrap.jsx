@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import './utils/brianTeamEgressGuard.js';
 import ExternalAppsIntegration from './components/ExternalAppsIntegration.jsx';
 import './components/ApprovedExternalAppControlStack.css';
-import GlobalFontSettingsBridge from './components/GlobalFontSettingsBridge.jsx';
 import HomeWeeklyPracticeStatisticsController from './components/HomeWeeklyPracticeStatisticsController.jsx';
 import DepartmentHeadAdminRoleBridge from './components/DepartmentHeadAdminRoleBridge.jsx';
 import BrianTeamWorkHubSyncBridge from './components/BrianTeamWorkHubSyncBridge.jsx';
@@ -14,7 +13,6 @@ import BrianTeamOperationalStabilityBridge from './components/BrianTeamOperation
 import BrianTeamNoPurpleRuntimeBridge from './components/BrianTeamNoPurpleRuntimeBridge.jsx';
 import { initializeAuthSession, subscribeToAuthChanges } from './utils/auth.js';
 import { installNeutralSurfaceGuard } from './utils/neutralSurfaceGuard.js';
-import { installSiteFontFromCache } from './utils/siteFontSettings.js';
 import './homeWeeklyPracticeFlowFix.js';
 import './homePracticeScheduleScroller.js';
 import './homePracticeHeaderCopyFix.js';
@@ -65,7 +63,6 @@ import './styles/HomeFeaturedToolsTypography2026.css';
 import './styles/BrianTeamProgressNoPurple.css';
 
 installNeutralSurfaceGuard();
-installSiteFontFromCache();
 
 function isBrianTeamDataRoute(hash = '') {
   return /work-hub|brian-team|personnel-hub/i.test(hash);
@@ -100,7 +97,6 @@ function Bootstrap() {
   return (
     <>
       <ExternalAppsIntegration currentUser={user} language={language} />
-      <GlobalFontSettingsBridge currentUser={user} language={language} />
       <DepartmentHeadAdminRoleBridge currentUser={user} language={language} />
       {brianTeamDataActive ? (
         <>
