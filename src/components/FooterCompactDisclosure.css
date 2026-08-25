@@ -247,3 +247,48 @@ html[data-theme="dark"] .metro-clean-system .signature-footer-expanded-note,
     transition:none;
   }
 }
+
+/* Document-end footer contract.
+   The footer must participate in normal layout and may never float over route
+   content. On Home this also makes asynchronously loaded weekly-practice cards
+   grow <main> before the footer is laid out. */
+.metro-clean-system[data-route='home']{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  width:100%!important;
+  min-height:100vh!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+
+.metro-clean-system[data-route='home'] > main#bes-main-content{
+  position:relative!important;
+  inset:auto!important;
+  flex:1 0 auto!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+  contain:none!important;
+}
+
+.metro-clean-system > footer.signature-footer-collapsible{
+  position:relative!important;
+  inset:auto!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  float:none!important;
+  clear:both!important;
+  flex:0 0 auto!important;
+  transform:none!important;
+}
+
+.metro-clean-system[data-route='home'] > footer.signature-footer-collapsible{
+  order:2147483647!important;
+  margin-top:auto!important;
+}
