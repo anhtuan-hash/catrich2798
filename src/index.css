@@ -1,5 +1,5 @@
 /* V10.99 CSS entrypoint. Historical design layers are isolated for maintainability. */
-@import './styles/legacy/01-foundation.css';
+@import './styles/legacy/01-foundation-native.css';
 @import './styles/legacy/02-workspaces.css';
 @import './styles/legacy/03-operations.css';
 @import './styles/legacy/04-modern-shell.css';
