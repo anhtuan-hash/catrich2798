@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import confetti from 'canvas-confetti';
 import {
   ArrowLeft, ArrowRight, CheckCircle2, Clock3, Download, Edit3, Expand,
   Flame, Info, Lightbulb, Orbit, Play, Plus, Rocket, RotateCcw, Save, Sparkles,
@@ -34,11 +33,11 @@ const COPY = {
     meaning: 'Nghĩa đúng', distractors: 'Ba phương án nhiễu, mỗi dòng một phương án', example: 'Câu ví dụ', settings: 'Cài đặt',
     time: 'Thời gian mỗi vòng', shuffle: 'Xáo trộn đáp án', sound: 'Âm thanh', loadSample: 'Nạp bài mẫu', saved: 'Đã lưu trên thiết bị.',
     invalid: 'Tệp JSON không hợp lệ.', empty: 'Cần ít nhất hai mục từ hợp lệ.', complete: 'Hoàn thành nhiệm vụ!',
-    fullscreen: 'Toàn màn hình', close: 'Đóng', results: 'Kết quả gần đây', noResults: 'Chưa có kết quả.', remaining: 'Còn lại',
-    seconds: 'giây', mission: 'Đưa viên nang từ vựng vào đúng trạm nghĩa trước khi hết năng lượng.', howTo: 'Cách chơi',
-    howToText: 'Chọn một trạm nghĩa. Viên nang sẽ bay theo quỹ đạo đến cổng tiếp nhận.',
-    tapHear: 'Nhấn để nghe · Chọn trạm', nextOrbit: 'Quỹ đạo tiếp theo', tip: 'Mẹo: Dựa vào ngữ cảnh để chọn nghĩa phù hợp nhất.',
-    streak: 'Chuỗi đúng', correctMeaning: 'Nghĩa đúng', missionProgress: 'Tiến độ nhiệm vụ', flying: 'Đang bay theo quỹ đạo…',
+    fullscreen: 'Toàn màn hình', results: 'Kết quả gần đây', noResults: 'Chưa có kết quả.', remaining: 'Còn lại', seconds: 'giây',
+    mission: 'Chọn đúng trạm nghĩa trước khi hết năng lượng.', howTo: 'Cách chơi',
+    howToText: 'Chọn một trạm nghĩa để gửi đáp án ngay lập tức.', tapHear: 'Nhấn để nghe · Chọn trạm',
+    nextOrbit: 'Quỹ đạo tiếp theo', tip: 'Mẹo: Dựa vào ngữ cảnh để chọn nghĩa phù hợp nhất.', streak: 'Chuỗi đúng',
+    correctMeaning: 'Nghĩa đúng', missionProgress: 'Tiến độ nhiệm vụ',
   },
   en: {
     back: 'Back', edit: 'Edit game', play: 'Play', save: 'Save draft', import: 'Import JSON', export: 'Export JSON',
@@ -47,11 +46,11 @@ const COPY = {
     title: 'Game title', subtitle: 'Instruction', theme: 'Theme', word: 'Word / phrase', meaning: 'Correct meaning',
     distractors: 'Three distractors, one per line', example: 'Example sentence', settings: 'Settings', time: 'Seconds per round',
     shuffle: 'Shuffle answers', sound: 'Sound', loadSample: 'Load sample', saved: 'Saved on this device.', invalid: 'Invalid JSON file.',
-    empty: 'Add at least two valid words.', complete: 'Mission complete!', fullscreen: 'Fullscreen', close: 'Close', results: 'Recent results',
-    noResults: 'No results yet.', remaining: 'Remaining', seconds: 'seconds', mission: 'Guide the vocabulary capsule into the correct meaning station before energy runs out.',
-    howTo: 'How to play', howToText: 'Choose a meaning station. The capsule will follow the orbit to the receiving gate.',
+    empty: 'Add at least two valid words.', complete: 'Mission complete!', fullscreen: 'Fullscreen', results: 'Recent results',
+    noResults: 'No results yet.', remaining: 'Remaining', seconds: 'seconds', mission: 'Choose the correct meaning station before energy runs out.',
+    howTo: 'How to play', howToText: 'Choose a meaning station to submit your answer immediately.',
     tapHear: 'Tap to hear · Choose a station', nextOrbit: 'Next orbit', tip: 'Tip: Use context to choose the best meaning.',
-    streak: 'Correct streak', correctMeaning: 'Correct meaning', missionProgress: 'Mission progress', flying: 'Flying along the orbit…',
+    streak: 'Correct streak', correctMeaning: 'Correct meaning', missionProgress: 'Mission progress',
   },
 };
 
@@ -114,17 +113,9 @@ function HighlightedExample({ text, word }) {
   return <>{source.slice(0, index)}<mark>{source.slice(index, index + target.length)}</mark>{source.slice(index + target.length)}</>;
 }
 
-function wait(milliseconds) {
-  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
-}
-
 export default function WordOrbitGame({ language = 'vi' }) {
   const tx = COPY[language] || COPY.vi;
   const fileRef = useRef(null);
-  const capsuleRef = useRef(null);
-  const targetDockRef = useRef(null);
-  const flightCloneRef = useRef(null);
-  const flightIdRef = useRef(0);
 
   const [draft, setDraft] = useState(() => cleanDraft(load(STORE_KEY, SAMPLE)));
   const [mode, setMode] = useState('play');
@@ -139,7 +130,6 @@ export default function WordOrbitGame({ language = 'vi' }) {
   const [resultsOpen, setResultsOpen] = useState(false);
   const [results, setResults] = useState(() => load(RESULT_KEY, []));
   const [dragging, setDragging] = useState(false);
-  const [isFlying, setIsFlying] = useState(false);
 
   const validWords = useMemo(() => draft.words.filter((item) => item.word.trim() && item.meaning.trim()), [draft.words]);
   const current = validWords[round] || null;
@@ -156,7 +146,7 @@ export default function WordOrbitGame({ language = 'vi' }) {
   const targetTone = STATION_TONES[selectedIndex >= 0 ? selectedIndex : 3];
 
   useEffect(() => {
-    if (mode !== 'play' || finished || feedback || isFlying || !current) return undefined;
+    if (mode !== 'play' || finished || feedback || !current) return undefined;
     const timer = window.setInterval(() => {
       setTimeLeft((value) => {
         if (value <= 1) {
@@ -170,18 +160,9 @@ export default function WordOrbitGame({ language = 'vi' }) {
       });
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [mode, finished, feedback, isFlying, current]);
-
-  useEffect(() => () => {
-    flightIdRef.current += 1;
-    flightCloneRef.current?.remove();
-    flightCloneRef.current = null;
-  }, []);
+  }, [mode, finished, feedback, current]);
 
   const restart = useCallback(() => {
-    flightIdRef.current += 1;
-    flightCloneRef.current?.remove();
-    flightCloneRef.current = null;
     setRound(0);
     setScore(0);
     setEnergy(100);
@@ -190,99 +171,8 @@ export default function WordOrbitGame({ language = 'vi' }) {
     setFeedback(null);
     setFinished(false);
     setDragging(false);
-    setIsFlying(false);
     setTimeLeft(draft.settings.timePerRound);
   }, [draft.settings.timePerRound]);
-
-  const animateCapsule = useCallback(async (ok) => {
-    const source = capsuleRef.current;
-    const target = targetDockRef.current;
-    if (!source || !target) return false;
-
-    const sourceRect = source.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    if (!sourceRect.width || !sourceRect.height || !targetRect.width || !targetRect.height) return false;
-
-    const clone = source.cloneNode(true);
-    clone.className = 'wog-capsule wog-flight-capsule';
-    clone.removeAttribute('draggable');
-    clone.setAttribute('aria-hidden', 'true');
-    Object.assign(clone.style, {
-      left: `${sourceRect.left}px`,
-      top: `${sourceRect.top}px`,
-      width: `${sourceRect.width}px`,
-      height: `${sourceRect.height}px`,
-    });
-    document.body.appendChild(clone);
-    flightCloneRef.current = clone;
-
-    const flightId = flightIdRef.current + 1;
-    flightIdRef.current = flightId;
-    setIsFlying(true);
-
-    const sourceCenterX = sourceRect.left + sourceRect.width / 2;
-    const sourceCenterY = sourceRect.top + sourceRect.height / 2;
-    const targetCenterX = targetRect.left + targetRect.width / 2;
-    const targetCenterY = targetRect.top + targetRect.height / 2;
-    const dx = targetCenterX - sourceCenterX;
-    const dy = targetCenterY - sourceCenterY;
-    const arc = Math.max(78, Math.min(190, Math.abs(dx) * 0.28));
-    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    const duration = reduceMotion ? (ok ? 560 : 480) : (ok ? 940 : 760);
-
-    const correctFrames = [
-      { transform: 'translate3d(0,0,0) scale(1) rotate(0deg)', offset: 0 },
-      { transform: `translate3d(${dx * 0.16}px,${dy * 0.06 - arc * 0.5}px,0) scale(.99) rotate(-2deg)`, offset: 0.18 },
-      { transform: `translate3d(${dx * 0.48}px,${dy * 0.34 - arc}px,0) scale(.84) rotate(-1deg)`, offset: 0.5 },
-      { transform: `translate3d(${dx * 0.8}px,${dy * 0.72 - arc * 0.42}px,0) scale(.58) rotate(1deg)`, offset: 0.8 },
-      { transform: `translate3d(${dx}px,${dy}px,0) scale(.28) rotate(2deg)`, offset: 1 },
-    ];
-
-    const wrongFrames = [
-      { transform: 'translate3d(0,0,0) scale(1) rotate(0deg)', offset: 0 },
-      { transform: `translate3d(${dx * 0.13}px,${dy * 0.04 - arc * 0.38}px,0) scale(.98) rotate(-2deg)`, offset: 0.2 },
-      { transform: `translate3d(${dx * 0.46}px,${dy * 0.3 - arc * 0.75}px,0) scale(.82) rotate(1deg)`, offset: 0.48 },
-      { transform: `translate3d(${dx * 0.62}px,${dy * 0.5 - arc * 0.3}px,0) scale(.7) rotate(3deg)`, offset: 0.62 },
-      { transform: `translate3d(${dx * 0.22}px,${dy * 0.08 - arc * 0.28}px,0) scale(.94) rotate(-2deg)`, offset: 0.82 },
-      { transform: 'translate3d(0,0,0) scale(1) rotate(0deg)', offset: 1 },
-    ];
-
-    let completed = false;
-    try {
-      if (typeof clone.animate === 'function') {
-        const animation = clone.animate(ok ? correctFrames : wrongFrames, {
-          duration,
-          easing: ok ? 'cubic-bezier(.18,.72,.2,1)' : 'cubic-bezier(.32,.62,.28,1)',
-          fill: 'forwards',
-        });
-        await animation.finished;
-      } else if (ok) {
-        clone.style.transition = `transform ${duration}ms cubic-bezier(.18,.72,.2,1)`;
-        await new Promise((resolve) => window.requestAnimationFrame(resolve));
-        clone.style.transform = `translate3d(${dx}px,${dy}px,0) scale(.28) rotate(2deg)`;
-        await wait(duration);
-      } else {
-        const outward = Math.round(duration * 0.58);
-        clone.style.transition = `transform ${outward}ms cubic-bezier(.32,.62,.28,1)`;
-        await new Promise((resolve) => window.requestAnimationFrame(resolve));
-        clone.style.transform = `translate3d(${dx * 0.58}px,${dy * 0.42 - arc * 0.35}px,0) scale(.72) rotate(3deg)`;
-        await wait(outward);
-        clone.style.transition = `transform ${duration - outward}ms ease-out`;
-        clone.style.transform = 'translate3d(0,0,0) scale(1) rotate(0deg)';
-        await wait(duration - outward);
-      }
-      completed = flightIdRef.current === flightId;
-    } catch {
-      // Cancellation is expected when restarting or leaving the route.
-    } finally {
-      if (flightIdRef.current === flightId) {
-        clone.remove();
-        flightCloneRef.current = null;
-        setIsFlying(false);
-      }
-    }
-    return completed;
-  }, []);
 
   const completeChoice = useCallback((station, ok) => {
     if (!current) return;
@@ -293,7 +183,6 @@ export default function WordOrbitGame({ language = 'vi' }) {
       setEnergy((value) => Math.min(100, value + 6));
       setFeedback({ ok: true, text: current.example });
       speak(current.word, draft.settings.sound);
-      window.setTimeout(() => confetti({ particleCount: 52, spread: 58, origin: { x: 0.67, y: 0.54 }, scalar: 0.82 }), 40);
     } else {
       setCombo(0);
       setEnergy((value) => Math.max(0, value - 20));
@@ -301,15 +190,12 @@ export default function WordOrbitGame({ language = 'vi' }) {
     }
   }, [combo, current, draft.settings.sound, timeLeft]);
 
-  const chooseStation = useCallback(async (station) => {
-    if (!station || feedback || isFlying || !current) return;
+  const chooseStation = useCallback((station) => {
+    if (!station || feedback || !current) return;
     setSelectedStation(station);
     setDragging(false);
-    const ok = station === current.meaning;
-    const completed = await animateCapsule(ok);
-    if (!completed) return;
-    completeChoice(station, ok);
-  }, [animateCapsule, completeChoice, current, feedback, isFlying]);
+    completeChoice(station, station === current.meaning);
+  }, [completeChoice, current, feedback]);
 
   const nextRound = () => {
     if (round >= validWords.length - 1 || energy <= 0) {
@@ -318,14 +204,12 @@ export default function WordOrbitGame({ language = 'vi' }) {
       setResults(nextResults);
       localStorage.setItem(RESULT_KEY, JSON.stringify(nextResults));
       setFinished(true);
-      window.setTimeout(() => confetti({ particleCount: 120, spread: 72, origin: { y: 0.68 } }), 60);
       return;
     }
     setRound((value) => value + 1);
     setSelectedStation('');
     setFeedback(null);
     setDragging(false);
-    setIsFlying(false);
     setTimeLeft(draft.settings.timePerRound);
   };
 
@@ -411,7 +295,7 @@ export default function WordOrbitGame({ language = 'vi' }) {
 
   return (
     <div
-      className={`wog-app ${feedback?.ok ? 'is-success' : feedback ? 'is-error' : ''} ${dragging ? 'is-dragging' : ''} ${isFlying ? 'is-flying' : ''} ${feedback ? 'has-feedback' : ''}`}
+      className={`wog-app ${feedback?.ok ? 'is-success' : feedback ? 'is-error' : ''} ${dragging ? 'is-dragging' : ''} ${feedback ? 'has-feedback' : ''}`}
       style={{ '--mission-progress': `${missionProgress}%`, '--timer-progress': `${timerProgress}%` }}
     >
       <header className="wog-topbar">
@@ -438,26 +322,21 @@ export default function WordOrbitGame({ language = 'vi' }) {
           <div className="wog-space-object object-one" aria-hidden="true"/>
           <div className="wog-space-object object-two" aria-hidden="true"/>
           <div className="wog-space-object object-three" aria-hidden="true"/>
-
           <div className="wog-progress-card"><div><strong>{tx.round} {roundNumber}/{Math.max(validWords.length, 1)}</strong><Rocket size={24}/></div><span><i/></span></div>
           <div className="wog-timer-card"><small>{tx.remaining}</small><div className="wog-timer-ring"><Clock3 size={17}/><b>{timeLeft}</b><em>{tx.seconds}</em></div></div>
-
           <div className="wog-orbit-ring ring-one" aria-hidden="true"/>
           <div className="wog-orbit-ring ring-two" aria-hidden="true"/>
           <div className="wog-orbit-ring ring-three" aria-hidden="true"/>
           <div className="wog-orbit-ring ring-four" aria-hidden="true"/>
           <svg className="wog-trajectory" viewBox="0 0 1000 720" preserveAspectRatio="none" aria-hidden="true"><path d="M250 205 C425 120 660 215 808 486"/></svg>
-
           <div className="wog-planet" aria-label={draft.theme}>
             <div className="wog-planet-atmosphere" aria-hidden="true"/>
             <div className="wog-planet-copy"><Orbit size={48}/><strong>{draft.theme}</strong><small>{tx.round} {roundNumber}/{Math.max(validWords.length, 1)}</small></div>
           </div>
-
           {current ? (
             <button
-              ref={capsuleRef}
               className="wog-capsule wog-capsule-source"
-              draggable={!feedback && !isFlying}
+              draggable={!feedback}
               onDragStart={(event) => {
                 event.dataTransfer.effectAllowed = 'move';
                 event.dataTransfer.setData('text/plain', current.word);
@@ -467,12 +346,11 @@ export default function WordOrbitGame({ language = 'vi' }) {
               onClick={() => speak(current.word, draft.settings.sound)}
               aria-label={`${current.word}. ${tx.tapHear}`}
             >
-              <span className="wog-capsule-light"/><strong>{current.word}</strong><small>{isFlying ? tx.flying : tx.tapHear}</small><i aria-hidden="true"/>
+              <span className="wog-capsule-light"/><strong>{current.word}</strong><small>{tx.tapHear}</small><i aria-hidden="true"/>
             </button>
           ) : null}
-
-          <div ref={targetDockRef} className={`wog-target-dock tone-${targetTone} ${isFlying ? 'is-receiving' : ''}`} aria-hidden="true"><i/><i/><span/></div>
-          <aside className="wog-howto-card"><div><Info size={18}/><strong>{tx.howTo}</strong></div><p>{isFlying ? tx.flying : tx.howToText}</p><span className="wog-hand-cue" aria-hidden="true">☝</span></aside>
+          <div className={`wog-target-dock tone-${targetTone}`} aria-hidden="true"><i/><i/><span/></div>
+          <aside className="wog-howto-card"><div><Info size={18}/><strong>{tx.howTo}</strong></div><p>{tx.howToText}</p><span className="wog-hand-cue" aria-hidden="true">☝</span></aside>
         </section>
 
         <aside className="wog-stations">
@@ -486,9 +364,9 @@ export default function WordOrbitGame({ language = 'vi' }) {
                 <button
                   key={`${station}-${index}`}
                   className={stationClass}
-                  disabled={Boolean(feedback) || isFlying}
+                  disabled={Boolean(feedback)}
                   onClick={() => chooseStation(station)}
-                  onDragOver={(event) => { if (!feedback && !isFlying) event.preventDefault(); }}
+                  onDragOver={(event) => { if (!feedback) event.preventDefault(); }}
                   onDrop={(event) => { event.preventDefault(); chooseStation(station); }}
                 >
                   <span className="wog-station-letter">{String.fromCharCode(65 + index)}</span>
@@ -502,12 +380,12 @@ export default function WordOrbitGame({ language = 'vi' }) {
 
           {feedback ? (
             <div className={feedback.ok ? 'wog-feedback is-correct' : 'wog-feedback is-wrong'} aria-live="polite">
-              <div className="wog-feedback-copy"><strong>{feedback.ok ? tx.correct : tx.wrong}{feedback.ok ? ' 🎉' : ''}</strong><p>{feedback.ok ? <HighlightedExample text={feedback.text} word={current?.word}/> : <><b>{tx.correctMeaning}:</b> {feedback.text}</>}</p></div>
+              <div className="wog-feedback-copy"><strong>{feedback.ok ? tx.correct : tx.wrong}{feedback.ok ? ' ✓' : ''}</strong><p>{feedback.ok ? <HighlightedExample text={feedback.text} word={current?.word}/> : <><b>{tx.correctMeaning}:</b> {feedback.text}</>}</p></div>
               <div className="wog-feedback-art" aria-hidden="true"><span/><i/><em/></div>
               <button onClick={nextRound}>{round >= validWords.length - 1 || energy <= 0 ? tx.complete : tx.nextOrbit}<ArrowRight size={20}/></button>
             </div>
           ) : (
-            <div className={`wog-ready-note ${isFlying ? 'is-flying' : ''}`}><Orbit size={18}/><span>{isFlying ? tx.flying : tx.select}</span></div>
+            <div className="wog-ready-note"><Orbit size={18}/><span>{tx.select}</span></div>
           )}
         </aside>
       </main>
