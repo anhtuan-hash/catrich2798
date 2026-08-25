@@ -40,11 +40,13 @@ body .brian-nav:has(.brian-nav__login) .brian-nav__brand img {
   }
 }
 
-/* Retire stale route-wide BrianGesco font ownership from large legacy redesign
-   stylesheets without replacing it with another site font. These roots now
-   inherit typography from their containing application/component. */
+/* Retire stale route-wide font ownership from legacy redesign stylesheets
+   without replacing it with another site font. These roots now inherit
+   typography from their containing application/component. */
 .metro-clean-system[data-route="admin"] .admin-page-v41,
 .metro-clean-system[data-tool="teaching-methods-hub"] .tmh-page,
-.news-g4-reader {
+.news-g4-reader,
+.hrp-page,
+.hrp-shell {
   font-family: inherit !important;
 }
