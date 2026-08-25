@@ -91,6 +91,9 @@ import './GlobalBrianHub.css';
 import './GlobalCatRichHeaderVisibilityFix.css';
 // Seating Chart Studio chart-first visual layer. Frontend only.
 import '../pages/SeatingChartStudioFocus.css';
+// Route themes may load their own lazy CSS. This high-specificity contract keeps
+// the shared header at one physical size on Home, Apps and every other route.
+import './GlobalNavigationFixedSizeContract.css';
 // Must remain the final visual import: removes compositor-heavy effects without
 // changing geometry/positioning on balanced and low performance profiles.
 import './GlobalCriticalJankGuard.css';
