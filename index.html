@@ -20,18 +20,38 @@
           root.dataset.theme = 'light';
           root.dataset.besTheme = 'light';
           delete root.dataset.themeMode;
+          delete root.dataset.motion;
+          delete root.dataset.besMotion;
+          delete root.dataset.besTransition;
+          delete root.dataset.besCardEffect;
+          delete root.dataset.motionRuntime;
+          delete root.dataset.motionRoute;
           root.classList.remove('dark', 'theme-dark');
           root.classList.add('theme-light');
           root.style.colorScheme = 'light';
         };
         try {
-          const retiredKeys = new Set(['bet-theme', 'bes-theme-mode', 'bes-theme-mode-v3', 'bes-quick-dictionary-history-v1']);
+          const retiredKeys = new Set([
+            'bet-theme',
+            'bes-theme-mode',
+            'bes-theme-mode-v3',
+            'bes-quick-dictionary-history-v1',
+            'bes-motion-mode',
+          ]);
           Object.keys(localStorage).forEach((key) => {
             if (retiredKeys.has(key) || ['bes-global-music-v1:', 'bes-global-music-v2:', 'bes-shared-music-v2:'].some((prefix) => key.startsWith(prefix))) localStorage.removeItem(key);
           });
           const appearance = JSON.parse(localStorage.getItem('bes-appearance-v2') || 'null');
-          if (appearance && typeof appearance === 'object' && 'theme' in appearance) {
-            delete appearance.theme;
+          if (appearance && typeof appearance === 'object') {
+            [
+              'theme',
+              'motion',
+              'transition',
+              'cardEffect',
+              'parallax',
+              'reduceMotion',
+              'effectIntensity',
+            ].forEach((field) => delete appearance[field]);
             localStorage.setItem('bes-appearance-v2', JSON.stringify(appearance));
           }
         } catch { /* optional local cleanup */ }
@@ -42,21 +62,6 @@
     <script src="/bes-egress-guard.js?v=1"></script>
     <script src="/bes-fetch-router-v2.js?v=2"></script>
     <script src="/bes-resource-egress-guard-v2.js?v=3"></script>
-    <script id="bes-motion-boot">
-      (() => {
-        try {
-          const validMotion = ['lite', 'full', 'off']; const validPerf = ['auto', 'low', 'balanced', 'high'];
-          const storedMotion = localStorage.getItem('bes-motion-mode'); const storedPerf = localStorage.getItem('bes-performance-mode');
-          const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches; const mobile = window.matchMedia?.('(max-width: 900px)').matches;
-          const memory = Number(navigator.deviceMemory || 0); const cores = Number(navigator.hardwareConcurrency || 0);
-          const autoPerf = reduce || (mobile && ((memory && memory <= 4) || (cores && cores <= 4))) ? 'low' : 'balanced';
-          const perf = validPerf.includes(storedPerf) && storedPerf !== 'auto' ? storedPerf : autoPerf;
-          const chosenMotion = validMotion.includes(storedMotion) ? storedMotion : 'lite';
-          document.documentElement.dataset.motion = reduce || perf === 'low' ? (chosenMotion === 'full' ? 'lite' : chosenMotion) : chosenMotion;
-          document.documentElement.dataset.performance = perf;
-        } catch { document.documentElement.dataset.motion = 'lite'; document.documentElement.dataset.performance = 'balanced'; }
-      })();
-    </script>
     <style id="bes-personnel-retirement">[data-launcher-item*="personnel-hub"],a[href*="personnel-hub"],[data-route*="personnel-hub"]{display:none!important}</style>
     <script id="bes-personnel-retirement-guard">
       (() => {
@@ -104,10 +109,7 @@
       })();
     </script>
     <meta name="bes-app-version" content="11.6.7">
-    <!-- BES_APPEARANCE_V1163_START -->
-    <link rel="stylesheet" href="/bes-appearance-v1163/appearance-engine.css" />
-    <script type="module" src="/bes-appearance-v1163/appearance-engine.js"></script>
-    <!-- BES_APPEARANCE_V1163_END -->
+    <!-- Legacy Appearance Engine V2 removed: motion/transition runtime retired. -->
     <!-- BES_AI_GOVERNANCE_V1165_START --><!-- BES_AI_GOVERNANCE_V1165_END -->
     <!-- BES_AI_DOCK_V2_V1167_START -->
     <!-- Custom document-wide font loading retired; components keep native typography. -->
