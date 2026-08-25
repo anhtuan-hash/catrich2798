@@ -1,7 +1,8 @@
-/* Brian English — full drawer/dialog visibility and 16:9 readability contract.
+/* Brian English — full drawer/dialog visibility and 16:9 viewport contract.
    CompactDrawerRuntimeV3 still discovers/classifies legacy overlays. This layer
-   overrides geometry so every discovered drawer stays inside the viewport,
-   uses widescreen space, and never hides controls beyond either edge. */
+   controls geometry only so every discovered drawer stays inside the viewport,
+   uses widescreen space, and never hides controls beyond either edge.
+   Typography remains owned by each route/component. */
 
 @media (min-width: 700px) {
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay {
@@ -83,32 +84,6 @@
     gap: 10px !important;
   }
 
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header h1,
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header h2,
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header h3,
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header [class$="-title"],
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header [class*="-title "] {
-    margin-block: 0 !important;
-    font-size: clamp(1.45rem, 2vw, 1.85rem) !important;
-    line-height: 1.18 !important;
-    letter-spacing: -.025em !important;
-  }
-
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header p,
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header small,
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header [class$="-subtitle"],
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay .bes-compact-overlay-header [class*="-subtitle "] {
-    font-size: 1rem !important;
-    line-height: 1.5 !important;
-  }
-
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay label,
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay [class$="-label"],
-  .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay [class*="-label "] {
-    font-size: .95rem !important;
-    line-height: 1.35 !important;
-  }
-
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay select {
     width: 100% !important;
@@ -118,8 +93,6 @@
     height: var(--bes-ws-control-h) !important;
     padding: 10px 13px !important;
     border-radius: 12px !important;
-    font-size: 1rem !important;
-    line-height: 1.3 !important;
   }
 
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay textarea {
@@ -129,15 +102,12 @@
     min-height: 104px !important;
     padding: 12px 14px !important;
     border-radius: 12px !important;
-    font-size: 1rem !important;
-    line-height: 1.5 !important;
   }
 
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay button,
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay [role="button"] {
     min-height: 44px !important;
     max-width: 100% !important;
-    font-size: .95rem !important;
   }
 
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay button[aria-label*="close" i],
@@ -244,7 +214,6 @@
     width: calc(100vw - 8px) !important;
     max-width: calc(100vw - 8px) !important;
     max-height: calc(100dvh - 8px) !important;
-    font-size: 16px !important;
     overflow: auto !important;
     scrollbar-gutter: stable !important;
   }
@@ -254,7 +223,6 @@
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay textarea,
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay button {
     max-width: 100% !important;
-    font-size: 16px !important;
   }
 
   .bes-compact-overlay.bes-compact-overlay.bes-compact-overlay.bes-compact-overlay :where(
