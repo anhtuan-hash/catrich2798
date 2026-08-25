@@ -8,7 +8,6 @@ import GlobalUserProfileSettingsBridge from './GlobalUserProfileSettingsBridge.j
 import GlobalUserProfilePreviewGuard from './GlobalUserProfilePreviewGuard.jsx';
 import GlobalSettingsAppearanceBridge from './GlobalSettingsAppearanceBridge.jsx';
 import GlobalFontSettingsBridge from './GlobalFontSettingsBridge.jsx';
-import GlobalMotionCoreBridge from './GlobalMotionCoreBridge.jsx';
 import GlobalHeroGovernance from './GlobalHeroGovernance.jsx';
 import GlobalAiWebsiteLauncher from './GlobalAiWebsiteLauncher.jsx';
 import GlobalNewsNavigationTab from './GlobalNewsNavigationTab.jsx';
@@ -91,8 +90,7 @@ import '../pages/SeatingChartStudioFocus.css';
 // Route themes may load their own lazy CSS. This high-specificity contract keeps
 // the shared header at one physical size on Home, Apps and every other route.
 import './GlobalNavigationFixedSizeContract.css';
-// Must remain the final visual import: removes compositor-heavy effects without
-// changing geometry/positioning on balanced and low performance profiles.
+// Final performance contract; preserves geometry and fixed navigation sizing.
 import './GlobalCriticalJankGuard.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
@@ -110,7 +108,6 @@ export default function GlobalFlatNavigation(props) {
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHomeViewportFitBridge route={props.route} />
       <GlobalWeeklyPracticeBridge route={props.route} language={props.language} currentUser={props.currentUser} />
-      <GlobalMotionCoreBridge route={props.route} />
       <GlobalHeroGovernance route={props.route} />
       <GlobalUserProfileSettingsBridge {...props} />
       <GlobalUserProfilePreviewGuard route={props.route} />
