@@ -1,5 +1,4 @@
-import { useEffect, useLayoutEffect } from 'react';
-import './GlobalNativeTextScaleReset.css';
+import { useLayoutEffect } from 'react';
 
 const APPEARANCE_KEY = 'bes-appearance-v2';
 const RETIRED_KEYS = [
@@ -8,29 +7,21 @@ const RETIRED_KEYS = [
   'bet-font-scale',
   'bet-text-scale',
   'burs-font-scale',
-  'bes-display-density',
-];
-
-const RETIRED_APPEARANCE_FIELDS = [
-  'textScale',
-  'projector',
-  'density',
-  'contentWidth',
-  'touchTargets',
-  'radius',
-  'border',
 ];
 
 const RETIRED_ROOT_VARIABLES = [
   '--bes-text-scale',
   '--bes-ds-scale',
   '--bes-font-scale',
-  '--bes-ui-gap',
-  '--bes-card-padding',
-  '--bes-control-height',
-  '--bes-content-max',
-  '--bes-card-radius',
-  '--bes-border-width',
+  '--brian-font-body',
+  '--brian-font-body-lg',
+  '--brian-font-support',
+  '--brian-font-label',
+  '--brian-font-caption',
+  '--brian-font-control',
+  '--brian-font-card-title',
+  '--brian-font-section-title',
+  '--brian-font-kpi',
   '--font-sans',
   '--font-display',
   '--font-body',
@@ -40,10 +31,6 @@ const RETIRED_ROOT_ATTRIBUTES = [
   'data-font-scale',
   'data-font-scale-requested',
   'data-typography-mode',
-  'data-burs',
-  'data-bes-density',
-  'data-bes-touch-targets',
-  'data-bes-projector',
 ];
 
 function clearLegacyStorage() {
@@ -53,27 +40,22 @@ function clearLegacyStorage() {
     const raw = window.localStorage.getItem(APPEARANCE_KEY);
     if (!raw) return;
     const current = JSON.parse(raw);
-    if (!current || typeof current !== 'object' || Array.isArray(current)) return;
+    if (!current || typeof current !== 'object' || Array.isArray(current) || !('textScale' in current)) return;
 
     const next = { ...current };
-    RETIRED_APPEARANCE_FIELDS.forEach((field) => delete next[field]);
+    delete next.textScale;
     window.localStorage.setItem(APPEARANCE_KEY, JSON.stringify(next));
   } catch {
     /* local storage is optional */
   }
 }
 
-function removeForcedFontBoot() {
+function cleanupLegacyTypographyState() {
   if (typeof document === 'undefined') return;
+  clearLegacyStorage();
   document.getElementById('brian-personal-font-boot')?.remove();
-}
 
-function removeRuntimeScaleMarkers() {
-  if (typeof document === 'undefined') return;
   const root = document.documentElement;
-
-  /* Restore native/component sizing instead of replacing it with another
-     global numeric baseline. */
   root.style.removeProperty('font-size');
   root.style.removeProperty('font-family');
   RETIRED_ROOT_VARIABLES.forEach((property) => root.style.removeProperty(property));
@@ -81,74 +63,15 @@ function removeRuntimeScaleMarkers() {
 
   document.body?.style.removeProperty('font-family');
   document.getElementById('root')?.style.removeProperty('font-family');
-
-  document.querySelectorAll('.metro-clean-system[data-burs], .app-shell[data-burs]').forEach((node) => {
-    node.removeAttribute('data-burs');
-  });
 }
 
-function cleanupLegacyDisplayState() {
-  clearLegacyStorage();
-  removeForcedFontBoot();
-  removeRuntimeScaleMarkers();
-}
-
+/* Compatibility component for older lazy imports.
+   It performs one migration cleanup before paint and then stays inert.
+   No observers, resize/hash/storage listeners, timers or global typography
+   writers are installed. */
 export default function GlobalNativeTextScaleReset() {
-  /* Remove stale inline sizing/font overrides before the mounted shell paints. */
   useLayoutEffect(() => {
-    cleanupLegacyDisplayState();
-  });
-
-  useEffect(() => {
-    let cleaning = false;
-    const cleanup = () => {
-      if (cleaning) return;
-      cleaning = true;
-      cleanupLegacyDisplayState();
-      cleaning = false;
-    };
-
-    cleanup();
-
-    /* Appearance Engine V2 can still re-apply historical layout tokens on
-       route changes, resize/performance changes or cloud sync. Observe only the
-       root element (not the document subtree), so this remains very cheap. */
-    const root = document.documentElement;
-    const observer = new MutationObserver(() => cleanup());
-    observer.observe(root, {
-      attributes: true,
-      attributeFilter: [
-        'style',
-        'data-font-scale',
-        'data-font-scale-requested',
-        'data-typography-mode',
-        'data-burs',
-        'data-bes-density',
-        'data-bes-touch-targets',
-        'data-bes-projector',
-      ],
-    });
-
-    const events = [
-      'bes:font-scale-changed',
-      'bes:appearance-changed',
-      'bes:appearance-ready',
-      'bes:appearance-cloud-load',
-      'hashchange',
-      'popstate',
-      'resize',
-      'storage',
-    ];
-    events.forEach((eventName) => window.addEventListener(eventName, cleanup, { passive: true }));
-
-    /* Catch late initialization without keeping a permanent polling loop. */
-    const timers = [0, 50, 200, 800].map((delay) => window.setTimeout(cleanup, delay));
-
-    return () => {
-      observer.disconnect();
-      events.forEach((eventName) => window.removeEventListener(eventName, cleanup));
-      timers.forEach((timer) => window.clearTimeout(timer));
-    };
+    cleanupLegacyTypographyState();
   }, []);
 
   return null;
