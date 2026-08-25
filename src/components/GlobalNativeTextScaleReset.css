@@ -1,0 +1,24 @@
+/* Native text sizing contract.
+   Global text-size scaling, projector enlargement and legacy font-scale controls
+   are retired. Typography now comes only from each component/design system. */
+
+html,
+html[data-bes-appearance],
+html[data-font-scale],
+html[data-bes-projector='true'] {
+  font-size: 100% !important;
+  --bes-text-scale: 1 !important;
+}
+
+/* Retired text-size controls in the legacy/advanced Appearance Studio. */
+.bes-theme-studio :is(label, .bes-range-row):has([data-setting='textScale']),
+.bes-theme-studio .bes-switch-row:has([data-setting='projector']),
+.settings-engine-integrated :is(label, .settings-engine-field):has([name='textScale']),
+.settings-engine-integrated :is(label, .settings-engine-field):has([data-setting='textScale']) {
+  display: none !important;
+}
+
+/* Any stale projector state must not enlarge text or controls. */
+html[data-bes-projector='true'] {
+  --bes-text-scale: 1 !important;
+}
