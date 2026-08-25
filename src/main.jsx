@@ -25,7 +25,6 @@ import PermissionRequestButton from './components/PermissionRequestButton.jsx';
 import { initializeAuthSession, logoutUser, subscribeToAuthChanges } from './utils/auth.js';
 import { getActiveAiConfig, getAiConfigs, getAiProvider, getProviderSummary, setAiStorageUser } from './utils/aiProviders.js';
 import { getFirstAllowedRoute, getRoutePermissionId, getPermissionItem, hasRouteAccess } from './utils/permissions.js';
-import { installStoredPersonalFont, waitForPersonalFontLoad } from './utils/personalFont.js';
 import { applyPerformanceAttributes, getStoredMotionMode, getStoredPerformanceMode, resolveMotionMode, resolvePerformanceMode } from './utils/performanceProfile.js';
 import { setLibraryStorageUser } from './utils/library.js';
 import { recordAppUsage } from './utils/appUsage.js';
@@ -43,7 +42,6 @@ import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
 import { installBursReadability } from './utils/bursReadability.js';
 import { installAiRemovalGuard } from './utils/aiRemovalGuard.js';
 import { installRetiredFeatureCleanup } from './utils/retiredFeatureCleanup.js';
-import { normalizeFontScale } from './utils/fontScale.js';
 
 runConfigurationMigrations();
 installRetiredFeatureCleanup();
@@ -53,8 +51,6 @@ installAccessibilityBootstrap();
 installPwaEventCapture();
 registerBrianPwa().catch((error) => console.warn('[PWA] registration failed', error));
 collectWebVitals();
-installStoredPersonalFont();
-waitForPersonalFontLoad();
 bootRuntimeCore().catch((error) => console.warn('[RuntimeCore] boot failed', error));
 
 const PRELOAD_RECOVERY_KEY = 'bes-vite-preload-recovery-v1086';
@@ -195,10 +191,6 @@ function App() {
   const aiOperationIdsRef = useRef(new Set());
   const aiIndicatorHideTimerRef = useRef(null);
   const languageRef = useRef(language);
-  const [fontScale, setFontScale] = useState(() => {
-    const saved = Number(localStorage.getItem('bes-font-scale') || 100);
-    return normalizeFontScale(saved);
-  });
   const [tileLaunch, setTileLaunch] = useState(null);
   const [motionMode, setMotionMode] = useState(getStoredMotionMode);
   const [performanceMode, setPerformanceMode] = useState(getStoredPerformanceMode);
@@ -325,14 +317,6 @@ function App() {
   }, [language]);
 
   useEffect(() => {
-    document.documentElement.dataset.fontScale = String(fontScale);
-    document.documentElement.dataset.burs = 'comfortable';
-    document.documentElement.style.fontSize = `${fontScale}%`;
-    window.dispatchEvent(new CustomEvent('bes:font-scale-changed', { detail: { scale: fontScale } }));
-    try { localStorage.setItem('bes-font-scale', String(fontScale)); } catch { /* ignore */ }
-  }, [fontScale]);
-
-  useEffect(() => {
     document.documentElement.dataset.themeIntensity = themeIntensity;
     document.documentElement.dataset.tileBorder = tileBorder;
     document.documentElement.dataset.windowsIndicator = indicatorMode;
@@ -412,8 +396,6 @@ function App() {
     setTileBorder,
     indicatorMode,
     setIndicatorMode,
-    fontScale,
-    setFontScale,
     appVisibility,
   };
 
