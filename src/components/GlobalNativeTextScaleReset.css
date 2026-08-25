@@ -1,18 +1,7 @@
-/* Native display contract.
-   Global text scaling, projector enlargement, density presets and legacy
-   layout-size controls are retired. Each page/component owns its typography
-   and geometry again, at the browser's native 100% root size. */
+/* Global text/layout sizing controls are retired.
+   This file now only hides obsolete controls; it no longer writes any root
+   font-size, text-scale, projector or density styling. */
 
-html,
-html[data-bes-appearance],
-html[data-font-scale],
-html[data-bes-projector='true'] {
-  font-size: 100% !important;
-  --bes-text-scale: 1 !important;
-}
-
-/* The advanced Appearance Studio must no longer expose global layout sizing.
-   Color, motion, effects and accessibility remain available. */
 .bes-theme-studio [data-tab='layout'],
 .bes-theme-studio [data-panel='layout'],
 .bes-theme-studio :is(label, .bes-range-row):has([data-setting='textScale']),
@@ -20,11 +9,4 @@ html[data-bes-projector='true'] {
 .settings-engine-integrated :is(label, .settings-engine-field):has([name='textScale']),
 .settings-engine-integrated :is(label, .settings-engine-field):has([data-setting='textScale']) {
   display: none !important;
-}
-
-/* Stale projector/density state may still exist in an old cached bundle.
-   Keep it from altering physical text/control sizing while the migration
-   component clears the corresponding storage values. */
-html[data-bes-projector='true'] {
-  --bes-text-scale: 1 !important;
 }
