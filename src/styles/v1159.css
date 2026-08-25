@@ -1,21 +1,16 @@
 /* Brian English Studio · Global static UI contract
-   Motion has been retired from the application shell.
-   This final imported stylesheet intentionally disables presentation motion
-   without changing typography, sizing, color, or static transforms used for layout. */
+   Presentation motion is retired application-wide. This file is imported last
+   so component-level animation/transition declarations cannot re-enable it. */
 
-html {
+html,
+body {
   scroll-behavior: auto !important;
 }
 
-html,
 body,
-#root,
-#root *,
-#root *::before,
-#root *::after,
-body > * ,
-body > *::before,
-body > *::after {
+body *,
+body *::before,
+body *::after {
   animation: none !important;
   animation-name: none !important;
   animation-duration: 0s !important;
@@ -36,17 +31,4 @@ body > *::after {
 ::view-transition-image-pair(root) {
   animation: none !important;
   mix-blend-mode: normal !important;
-}
-
-@media (prefers-reduced-motion: no-preference), (prefers-reduced-motion: reduce) {
-  html,
-  body,
-  #root,
-  #root *,
-  #root *::before,
-  #root *::after {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
-  }
 }
