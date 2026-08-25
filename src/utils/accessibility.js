@@ -3,7 +3,6 @@ export const ACCESSIBILITY_EVENT = 'bes-accessibility-updated';
 
 export const DEFAULT_ACCESSIBILITY_PREFERENCES = Object.freeze({
   contrast: 'standard',
-  motion: 'system',
   targetSize: 'standard',
   underlineLinks: false,
   focusHighlight: true,
@@ -12,11 +11,9 @@ export const DEFAULT_ACCESSIBILITY_PREFERENCES = Object.freeze({
 
 function normalize(input = {}) {
   const contrast = ['standard', 'high'].includes(input.contrast) ? input.contrast : 'standard';
-  const motion = ['system', 'reduce'].includes(input.motion) ? input.motion : 'system';
   const targetSize = ['standard', 'large'].includes(input.targetSize) ? input.targetSize : 'standard';
   return {
     contrast,
-    motion,
     targetSize,
     underlineLinks: Boolean(input.underlineLinks),
     focusHighlight: input.focusHighlight !== false,
@@ -39,7 +36,7 @@ export function applyAccessibilityPreferences(preferences = readAccessibilityPre
   const next = normalize(preferences);
   const root = document.documentElement;
   root.dataset.a11yContrast = next.contrast;
-  root.dataset.a11yMotion = next.motion;
+  root.removeAttribute('data-a11y-motion');
   root.dataset.a11yTargets = next.targetSize;
   delete root.dataset.a11yReadableFont;
   root.dataset.a11yUnderlineLinks = next.underlineLinks ? 'true' : 'false';
