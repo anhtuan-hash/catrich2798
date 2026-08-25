@@ -32,9 +32,29 @@ function clearLegacyStorage() {
   }
 }
 
+function removeRuntimeScaleMarkers() {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  root.style.removeProperty('font-size');
+  root.style.removeProperty('--bes-text-scale');
+  root.style.removeProperty('--bes-ds-scale');
+  root.style.removeProperty('--bes-font-scale');
+  root.removeAttribute('data-font-scale');
+  root.removeAttribute('data-font-scale-requested');
+  root.removeAttribute('data-typography-mode');
+  root.removeAttribute('data-burs');
+}
+
 export default function GlobalNativeTextScaleReset() {
   useEffect(() => {
-    clearLegacyStorage();
+    const cleanup = () => {
+      clearLegacyStorage();
+      removeRuntimeScaleMarkers();
+    };
+
+    cleanup();
+    window.addEventListener('bes:font-scale-changed', cleanup);
+    return () => window.removeEventListener('bes:font-scale-changed', cleanup);
   }, []);
 
   return null;
