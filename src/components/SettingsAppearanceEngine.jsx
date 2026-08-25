@@ -1,40 +1,209 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import MotionCoreSettings from './MotionCoreSettings.jsx';
 import './SettingsAppearanceEngine.css';
 
 const STORAGE_KEY = 'bes-appearance-v2';
-const RETIRED_LAYOUT_FIELDS = ['density','contentWidth','textScale','projector','touchTargets','radius','border'];
-const DEFAULTS = { accent:'violet',accentCustom:'#7447E8',accentMode:'global',motion:'balanced',background:'mesh',adaptivePerformance:true,reduceMotion:false,highContrast:false,batterySaver:false };
-const PALETTES = { brian:{label:'Brian Blue',value:'#3478F6'},cyan:{label:'Ocean Cyan',value:'#10A7C8'},mint:{label:'Mint',value:'#18A889'},emerald:{label:'Emerald',value:'#20A55A'},amber:{label:'Amber',value:'#D88B00'},tangerine:{label:'Tangerine',value:'#F06E1A'},coral:{label:'Coral',value:'#EE5B56'},rose:{label:'Rose',value:'#E84B7A'},violet:{label:'Violet',value:'#7447E8'},indigo:{label:'Indigo',value:'#4D55D8'},graphite:{label:'Graphite',value:'#546171'} };
+const RETIRED_FIELDS = [
+  'theme',
+  'density',
+  'contentWidth',
+  'textScale',
+  'projector',
+  'touchTargets',
+  'radius',
+  'border',
+  'depth',
+  'motion',
+  'transition',
+  'cardEffect',
+  'parallax',
+  'reduceMotion',
+  'effectIntensity',
+];
+const DEFAULTS = {
+  accent: 'violet',
+  accentCustom: '#7447E8',
+  accentMode: 'global',
+  background: 'mesh',
+  adaptivePerformance: true,
+  highContrast: false,
+  batterySaver: false,
+};
+const PALETTES = {
+  brian: { label: 'Brian Blue', value: '#3478F6' },
+  cyan: { label: 'Ocean Cyan', value: '#10A7C8' },
+  mint: { label: 'Mint', value: '#18A889' },
+  emerald: { label: 'Emerald', value: '#20A55A' },
+  amber: { label: 'Amber', value: '#D88B00' },
+  tangerine: { label: 'Tangerine', value: '#F06E1A' },
+  coral: { label: 'Coral', value: '#EE5B56' },
+  rose: { label: 'Rose', value: '#E84B7A' },
+  violet: { label: 'Violet', value: '#7447E8' },
+  indigo: { label: 'Indigo', value: '#4D55D8' },
+  graphite: { label: 'Graphite', value: '#546171' },
+};
 
-function withoutRetiredLayout(value={}){
- const next={...value};
- RETIRED_LAYOUT_FIELDS.forEach((field)=>delete next[field]);
- delete next.theme;
- return next;
+function cleanState(value = {}) {
+  const next = { ...value };
+  RETIRED_FIELDS.forEach((field) => delete next[field]);
+  return next;
 }
-function stored(){
- try{return{...DEFAULTS,...withoutRetiredLayout(JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'))}}
- catch{return{...DEFAULTS}}
-}
-function appAccent(value){if(['violet','indigo','lavender','magenta'].includes(value))return'violet';if(['mint','emerald','lime','green'].includes(value))return'green';if(['amber','tangerine','orange'].includes(value))return'orange';if(['coral','rose'].includes(value))return'pink';if(value==='cyan')return'teal';return'blue'}
-function appMotion(value){return value==='off'?'off':(['lively','custom'].includes(value)?'full':'lite')}
-function Toggle({checked,onChange,label}){return <button type="button" className={`settings-engine-toggle ${checked?'is-on':''}`} aria-pressed={checked} aria-label={label} onClick={()=>onChange(!checked)}><span/></button>}
 
-export default function SettingsAppearanceEngine({language='vi',setAccent,setMotionMode,setPerformanceMode}){
- const vi=language==='vi';
- const [state,setState]=useState(stored);
- const [ready,setReady]=useState(()=>Boolean(window.BESAppearance));
- const palettes=useMemo(()=>Object.entries(window.BESAppearance?.palettes||PALETTES).filter(([key])=>!['custom','monochrome'].includes(key)),[ready]);
- const syncApp=(next)=>{setAccent?.(appAccent(next.accent));setMotionMode?.(appMotion(next.motion));setPerformanceMode?.(next.adaptivePerformance?'auto':(next.batterySaver?'low':'high'))};
- useEffect(()=>{const sync=(event)=>{const next={...DEFAULTS,...withoutRetiredLayout(event?.detail?.state||window.BESAppearance?.getState?.()||stored())};setReady(Boolean(window.BESAppearance));setState(next);syncApp(next)};sync();window.addEventListener('bes:appearance-ready',sync);window.addEventListener('bes:appearance-changed',sync);return()=>{window.removeEventListener('bes:appearance-ready',sync);window.removeEventListener('bes:appearance-changed',sync)}},[]);
- const update=(patch)=>{const clean=withoutRetiredLayout(patch);const next={...state,...clean,updatedAt:Date.now()};setState(next);syncApp(next);if(window.BESAppearance?.setState)window.BESAppearance.setState(clean);else{try{localStorage.setItem(STORAGE_KEY,JSON.stringify(next))}catch{}window.dispatchEvent(new CustomEvent('bes:appearance-changed',{detail:{state:next}}))}};
- const tier=window.BESAppearance?.getPerformanceTier?.()||document.documentElement.dataset.besPerformance||'adaptive';
- return <div className="settings-engine-integrated">
-  <div className="settings-engine-banner"><div className="settings-engine-mark" aria-hidden="true"><i/><i/><i/><i/></div><div><strong>Appearance Engine V2</strong><small>{vi?'Màu sắc, chuyển động và Adaptive UI. Kích thước chữ và bố cục hoàn toàn do từng giao diện gốc quyết định.':'Color, motion and Adaptive UI. Text and layout sizing are fully owned by each native interface.'}</small></div><span className={ready?'is-ready':''}><i/>{ready?(vi?'Đang hoạt động':'Active'):(vi?'Đang kết nối':'Connecting')}</span><button type="button" onClick={()=>window.BESAppearance?.open?.('color')}>{vi?'Mở nâng cao':'Advanced'} ↗</button></div>
-  <section><header><div><strong>{vi?'Màu nhấn hệ thống':'System accent'}</strong><small>{vi?'Nút, toggle, focus và badge đổi màu thật.':'Buttons, toggles, focus and badges update live.'}</small></div><div className="settings-engine-modes">{[['global',vi?'Toàn hệ thống':'Global'],['app',vi?'Theo ứng dụng':'Per app'],['smart',vi?'Thông minh':'Smart']].map(([value,label])=><button type="button" key={value} className={state.accentMode===value?'is-selected':''} onClick={()=>update({accentMode:value})}>{label}</button>)}</div></header><div className="settings-engine-palette">{palettes.map(([key,item])=><button type="button" key={key} className={state.accent===key?'is-selected':''} style={{'--swatch':item.value}} title={item.label} aria-label={item.label} onClick={()=>update({accent:key})}><span/></button>)}<label className={state.accent==='custom'?'is-selected':''}><input type="color" value={state.accentCustom} onChange={(e)=>update({accent:'custom',accentCustom:e.target.value,accentMode:'global'})}/><span style={{'--swatch':state.accentCustom}}>+</span></label></div></section>
-  <div className="settings-engine-fields"><label><span>{vi?'Chuyển động':'Motion'}</span><select value={state.motion} onChange={(e)=>update({motion:e.target.value})}><option value="off">{vi?'Tắt':'Off'}</option><option value="subtle">{vi?'Nhẹ':'Subtle'}</option><option value="balanced">{vi?'Cân bằng':'Balanced'}</option><option value="lively">{vi?'Sinh động':'Lively'}</option></select></label><label><span>{vi?'Hiệu ứng nền':'Background'}</span><select value={state.background} onChange={(e)=>update({background:e.target.value})}><option value="none">{vi?'Không':'None'}</option><option value="gradient">Gradient</option><option value="mesh">Mesh</option><option value="paper">Paper</option></select></label></div>
-  <MotionCoreSettings language={language}/>
-  <section className="settings-engine-adaptive"><header><div><strong>Adaptive UI</strong><small>{vi?'Chỉ tối ưu hiệu năng, chuyển động và tương phản; không còn quyền thay đổi cỡ chữ, mật độ, chiều rộng hay control.':'Optimizes performance, motion and contrast only; it no longer controls text size, density, width or control geometry.'}</small></div><b>{String(tier).toUpperCase()}</b></header><div>{[["adaptivePerformance",vi?'Tự tối ưu hiệu suất':'Adaptive performance'],["reduceMotion",vi?'Giảm chuyển động':'Reduce motion'],["highContrast",vi?'Tương phản cao':'High contrast'],["batterySaver",vi?'Tiết kiệm pin':'Battery saver']].map(([key,label])=><label key={key}><span>{label}</span><Toggle checked={Boolean(state[key])} onChange={(value)=>update({[key]:value})} label={label}/></label>)}</div></section>
- </div>
+function stored() {
+  try {
+    return { ...DEFAULTS, ...cleanState(JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')) };
+  } catch {
+    return { ...DEFAULTS };
+  }
+}
+
+function appAccent(value) {
+  if (['violet', 'indigo', 'lavender', 'magenta'].includes(value)) return 'violet';
+  if (['mint', 'emerald', 'lime', 'green'].includes(value)) return 'green';
+  if (['amber', 'tangerine', 'orange'].includes(value)) return 'orange';
+  if (['coral', 'rose'].includes(value)) return 'pink';
+  if (value === 'cyan') return 'teal';
+  return 'blue';
+}
+
+function applyStaticAppearance(next, setAccent, setPerformanceMode) {
+  setAccent?.(appAccent(next.accent));
+  setPerformanceMode?.(next.adaptivePerformance ? 'auto' : (next.batterySaver ? 'low' : 'high'));
+
+  const root = document.documentElement;
+  root.dataset.besBackground = next.batterySaver ? 'none' : next.background;
+  root.dataset.besContrast = next.highContrast ? 'high' : 'normal';
+  root.dataset.besBatterySaver = next.batterySaver ? 'true' : 'false';
+
+  delete root.dataset.motion;
+  delete root.dataset.besMotion;
+  delete root.dataset.besTransition;
+  delete root.dataset.besCardEffect;
+  delete root.dataset.motionRuntime;
+  delete root.dataset.motionRoute;
+
+  try {
+    localStorage.removeItem('bes-motion-mode');
+  } catch { /* optional cleanup */ }
+}
+
+function Toggle({ checked, onChange, label }) {
+  return (
+    <button
+      type="button"
+      className={`settings-engine-toggle ${checked ? 'is-on' : ''}`}
+      aria-pressed={checked}
+      aria-label={label}
+      onClick={() => onChange(!checked)}
+    >
+      <span />
+    </button>
+  );
+}
+
+export default function SettingsAppearanceEngine({ language = 'vi', setAccent, setPerformanceMode }) {
+  const vi = language === 'vi';
+  const [state, setState] = useState(stored);
+  const palettes = useMemo(() => Object.entries(PALETTES), []);
+
+  useEffect(() => {
+    const next = stored();
+    setState(next);
+    applyStaticAppearance(next, setAccent, setPerformanceMode);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch { /* optional storage */ }
+  }, []);
+
+  const update = (patch) => {
+    const next = { ...state, ...cleanState(patch), updatedAt: Date.now() };
+    setState(next);
+    applyStaticAppearance(next, setAccent, setPerformanceMode);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch { /* optional storage */ }
+    window.dispatchEvent(new CustomEvent('bes:appearance-changed', { detail: { state: next } }));
+  };
+
+  return (
+    <div className="settings-engine-integrated">
+      <div className="settings-engine-banner">
+        <div className="settings-engine-mark" aria-hidden="true"><i /><i /><i /><i /></div>
+        <div>
+          <strong>{vi ? 'Giao diện hệ thống' : 'System appearance'}</strong>
+          <small>{vi ? 'Chỉ giữ các thiết lập tĩnh: màu nhấn, nền, tương phản và hiệu năng.' : 'Only static appearance settings remain: accent, background, contrast and performance.'}</small>
+        </div>
+        <span className="is-ready"><i />{vi ? 'Đang hoạt động' : 'Active'}</span>
+      </div>
+
+      <section>
+        <header>
+          <div>
+            <strong>{vi ? 'Màu nhấn hệ thống' : 'System accent'}</strong>
+            <small>{vi ? 'Nút, toggle, focus và badge dùng cùng màu nhấn.' : 'Buttons, toggles, focus and badges share the same accent.'}</small>
+          </div>
+          <div className="settings-engine-modes">
+            {[
+              ['global', vi ? 'Toàn hệ thống' : 'Global'],
+              ['app', vi ? 'Theo ứng dụng' : 'Per app'],
+              ['smart', vi ? 'Thông minh' : 'Smart'],
+            ].map(([value, label]) => (
+              <button type="button" key={value} className={state.accentMode === value ? 'is-selected' : ''} onClick={() => update({ accentMode: value })}>{label}</button>
+            ))}
+          </div>
+        </header>
+        <div className="settings-engine-palette">
+          {palettes.map(([key, item]) => (
+            <button
+              type="button"
+              key={key}
+              className={state.accent === key ? 'is-selected' : ''}
+              style={{ '--swatch': item.value }}
+              title={item.label}
+              aria-label={item.label}
+              onClick={() => update({ accent: key })}
+            >
+              <span />
+            </button>
+          ))}
+          <label className={state.accent === 'custom' ? 'is-selected' : ''}>
+            <input type="color" value={state.accentCustom} onChange={(event) => update({ accent: 'custom', accentCustom: event.target.value, accentMode: 'global' })} />
+            <span style={{ '--swatch': state.accentCustom }}>+</span>
+          </label>
+        </div>
+      </section>
+
+      <div className="settings-engine-fields">
+        <label>
+          <span>{vi ? 'Nền trang' : 'Background'}</span>
+          <select value={state.background} onChange={(event) => update({ background: event.target.value })}>
+            <option value="none">{vi ? 'Không' : 'None'}</option>
+            <option value="gradient">Gradient</option>
+            <option value="mesh">Mesh</option>
+            <option value="paper">Paper</option>
+          </select>
+        </label>
+      </div>
+
+      <section className="settings-engine-adaptive">
+        <header>
+          <div>
+            <strong>Adaptive UI</strong>
+            <small>{vi ? 'Chỉ tối ưu hiệu năng và tương phản; không điều khiển chuyển động, cỡ chữ hoặc bố cục.' : 'Optimizes performance and contrast only; it does not control motion, text size or layout.'}</small>
+          </div>
+        </header>
+        <div>
+          {[
+            ['adaptivePerformance', vi ? 'Tự tối ưu hiệu suất' : 'Adaptive performance'],
+            ['highContrast', vi ? 'Tương phản cao' : 'High contrast'],
+            ['batterySaver', vi ? 'Tiết kiệm pin' : 'Battery saver'],
+          ].map(([key, label]) => (
+            <label key={key}>
+              <span>{label}</span>
+              <Toggle checked={Boolean(state[key])} onChange={(value) => update({ [key]: value })} label={label} />
+            </label>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
 }
