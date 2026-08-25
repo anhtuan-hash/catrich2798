@@ -47,7 +47,6 @@
 .metro-clean-system:is([data-tool="student-practice"],[data-route="practice"]) .practice-player .practice-options button:hover:not(:disabled){
   border-color:#7fa7dc!important;
   background:#f7faff!important;
-  transform:translateY(-1px)!important;
 }
 .metro-clean-system:is([data-tool="student-practice"],[data-route="practice"]) .practice-player .practice-options button.chosen{
   border-color:#315fc4!important;
