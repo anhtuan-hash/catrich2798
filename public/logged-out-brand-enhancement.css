@@ -50,3 +50,13 @@ body .brian-nav:has(.brian-nav__login) .brian-nav__brand img {
 .hrp-shell {
   font-family: inherit !important;
 }
+
+/* Exam Studio display font scaling is retired. Preserve the authored default
+   sizes while removing the A-/A+ presentation control from the live runner. */
+.metro-clean-system[data-tool="exam-studio"] .direct-interactive-runner {
+  --interactive-font-scale: 1 !important;
+}
+
+.metro-clean-system[data-tool="exam-studio"] .direct-toolbar-group:has(.direct-font-controls) {
+  display: none !important;
+}
