@@ -80,7 +80,6 @@ export function runAccessibilityAudit() {
     result('image-alt', 'Image alternative text', missingAlt.length ? 'warn' : 'pass', missingAlt.length ? `${missingAlt.length} images do not declare alt text.` : 'All rendered images declare alt attributes.', 'accessibility'),
     result('duplicate-ids', 'Unique element IDs', duplicateIds.length ? 'warn' : 'pass', duplicateIds.length ? `Duplicate IDs: ${[...new Set(duplicateIds)].slice(0, 8).join(', ')}` : 'No duplicate IDs detected in the current view.', 'accessibility'),
     result('focus-style', 'Keyboard focus highlight', preferences.focusHighlight ? 'pass' : 'info', preferences.focusHighlight ? 'Enhanced focus rings are active.' : 'Enhanced focus rings are disabled.', 'accessibility'),
-    result('motion-pref', 'Reduced motion preference', preferences.motion === 'reduce' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'pass' : 'info', preferences.motion === 'reduce' ? 'Reduced motion is enabled in Brian English.' : 'Motion follows the system preference.', 'accessibility'),
   ];
   return { checkedAt: new Date().toISOString(), preferences, checks };
 }
