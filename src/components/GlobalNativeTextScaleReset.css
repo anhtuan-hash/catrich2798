@@ -1,12 +1,3 @@
-/* Global text/layout sizing controls are retired.
-   This file now only hides obsolete controls; it no longer writes any root
-   font-size, text-scale, projector or density styling. */
-
-.bes-theme-studio [data-tab='layout'],
-.bes-theme-studio [data-panel='layout'],
-.bes-theme-studio :is(label, .bes-range-row):has([data-setting='textScale']),
-.bes-theme-studio .bes-switch-row:has([data-setting='projector']),
-.settings-engine-integrated :is(label, .settings-engine-field):has([name='textScale']),
-.settings-engine-integrated :is(label, .settings-engine-field):has([data-setting='textScale']) {
-  display: none !important;
-}
+/* Global native text-scale reset stylesheet — retired.
+   Kept as a compatibility path for historical imports. It intentionally
+   applies no global typography, layout, projector or settings-visibility rules. */
