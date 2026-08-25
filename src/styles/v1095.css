@@ -27,7 +27,6 @@
   color: #07192c;
   font-weight: 900;
   transform: translateY(-140%);
-  transition: transform .15s ease;
 }
 .bes-skip-link:focus { transform: translateY(0); }
 
@@ -63,15 +62,6 @@ html[data-a11y-contrast="high"] :where(button, .global-flat-link, .global-flat-m
   border-color: #000000 !important;
 }
 html[data-a11y-contrast="high"] :where(p, small, .muted, .subtle) { color: #111111 !important; }
-
-html[data-a11y-motion="reduce"] *,
-html[data-a11y-motion="reduce"] *::before,
-html[data-a11y-motion="reduce"] *::after {
-  scroll-behavior: auto !important;
-  animation-duration: .001ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: .001ms !important;
-}
 
 .bes-pwa-update {
   position: fixed;
