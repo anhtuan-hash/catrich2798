@@ -1,19 +1,6 @@
-/* Exact personal font bundled from BrianGesco(3).ttf.
-   Runtime registration is injected by utils/personalFont.js before the app renders. */
-:root {
-  --english-hub-personal-font: "BrianGescoExact", "BrianGesco", "1FTV HF Gesco", "1FTVHFGesco", sans-serif;
-}
+/* The document-wide personal font override is retired.
+   Keep only icon-font protection and weekly-statistics layout rules. */
 
-html,
-body,
-#root,
-html body:not(#bes-disable-personal-font) *:not(.material-icons):not(.material-symbols-rounded):not(.material-symbols-outlined):not([class^="fa"]):not([class*=" fa"]),
-html body #root:is(#root) *:not(.material-icons):not(.material-symbols-rounded):not(.material-symbols-outlined):not([class^="fa"]):not([class*=" fa"]),
-html body .bes-weekly-stat-backdrop:is(.bes-weekly-stat-backdrop) * {
-  font-family: var(--english-hub-personal-font) !important;
-}
-
-/* Preserve the glyph fonts used by icon components. */
 .material-icons {
   font-family: "Material Icons" !important;
 }
