@@ -1,11 +1,5 @@
 const VALID_PERFORMANCE = new Set(['auto', 'low', 'balanced', 'high']);
 
-// Temporary compatibility helpers for legacy imports. Brian no longer stores,
-// configures, or applies a motion mode.
-export function getStoredMotionMode() {
-  return 'off';
-}
-
 export function getStoredPerformanceMode() {
   try {
     const stored = localStorage.getItem('bes-performance-mode');
@@ -17,7 +11,7 @@ export function getStoredPerformanceMode() {
 
 export function detectDeviceProfile() {
   if (typeof window === 'undefined') {
-    return { tier: 'balanced', reason: 'server', isMobile: false, reduceMotion: false };
+    return { tier: 'balanced', reason: 'server', isMobile: false };
   }
 
   const isMobile = Boolean(window.matchMedia?.('(max-width: 900px)').matches);
@@ -29,10 +23,10 @@ export function detectDeviceProfile() {
   const lowNetwork = ['slow-2g', '2g'].includes(navigator.connection?.effectiveType || '');
 
   if (lowNetwork || (isMobile && (lowMemory || lowCores))) {
-    return { tier: 'low', reason: lowNetwork ? 'slow-network' : 'mobile-hardware', isMobile, reduceMotion: false };
+    return { tier: 'low', reason: lowNetwork ? 'slow-network' : 'mobile-hardware', isMobile };
   }
 
-  return { tier: 'balanced', reason: isMobile || coarsePointer ? 'touch-balanced' : 'desktop-balanced', isMobile, reduceMotion: false };
+  return { tier: 'balanced', reason: isMobile || coarsePointer ? 'touch-balanced' : 'desktop-balanced', isMobile };
 }
 
 export function resolvePerformanceMode(mode = getStoredPerformanceMode()) {
@@ -40,18 +34,10 @@ export function resolvePerformanceMode(mode = getStoredPerformanceMode()) {
   return detectDeviceProfile().tier;
 }
 
-export function resolveMotionMode() {
-  return 'off';
-}
-
 export function applyPerformanceAttributes({ performanceMode = getStoredPerformanceMode() } = {}) {
   const performance = resolvePerformanceMode(performanceMode);
   if (typeof document !== 'undefined') {
     document.documentElement.dataset.performance = performance;
-    delete document.documentElement.dataset.motion;
   }
-  if (typeof window !== 'undefined') {
-    try { window.localStorage?.removeItem('bes-motion-mode'); } catch { /* optional */ }
-  }
-  return { motion: 'off', performance };
+  return { performance };
 }
