@@ -1,10 +1,7 @@
 const VALID_PERFORMANCE = new Set(['auto', 'low', 'balanced', 'high']);
 
-/*
- * Global motion is intentionally retired while the site's animation system is
- * rebuilt. Keep this compatibility API because Settings and older lazy chunks
- * still import it. Vietnam Atmosphere owns its effects independently.
- */
+// Temporary compatibility helpers for legacy imports. Brian no longer stores,
+// configures, or applies a motion mode.
 export function getStoredMotionMode() {
   return 'off';
 }
@@ -23,7 +20,6 @@ export function detectDeviceProfile() {
     return { tier: 'balanced', reason: 'server', isMobile: false, reduceMotion: false };
   }
 
-  const reduceMotion = Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
   const isMobile = Boolean(window.matchMedia?.('(max-width: 900px)').matches);
   const coarsePointer = Boolean(window.matchMedia?.('(pointer: coarse)').matches);
   const memory = Number(navigator.deviceMemory || 0);
@@ -32,11 +28,11 @@ export function detectDeviceProfile() {
   const lowCores = cores > 0 && cores <= 4;
   const lowNetwork = ['slow-2g', '2g'].includes(navigator.connection?.effectiveType || '');
 
-  if (reduceMotion || lowNetwork || (isMobile && (lowMemory || lowCores))) {
-    return { tier: 'low', reason: reduceMotion ? 'reduced-motion' : lowNetwork ? 'slow-network' : 'mobile-hardware', isMobile, reduceMotion };
+  if (lowNetwork || (isMobile && (lowMemory || lowCores))) {
+    return { tier: 'low', reason: lowNetwork ? 'slow-network' : 'mobile-hardware', isMobile, reduceMotion: false };
   }
 
-  return { tier: 'balanced', reason: isMobile || coarsePointer ? 'touch-balanced' : 'desktop-balanced', isMobile, reduceMotion };
+  return { tier: 'balanced', reason: isMobile || coarsePointer ? 'touch-balanced' : 'desktop-balanced', isMobile, reduceMotion: false };
 }
 
 export function resolvePerformanceMode(mode = getStoredPerformanceMode()) {
@@ -52,8 +48,10 @@ export function applyPerformanceAttributes({ performanceMode = getStoredPerforma
   const performance = resolvePerformanceMode(performanceMode);
   if (typeof document !== 'undefined') {
     document.documentElement.dataset.performance = performance;
-    document.documentElement.dataset.motion = 'off';
-    try { localStorage.setItem('bes-motion-mode', 'off'); } catch { /* optional */ }
+    delete document.documentElement.dataset.motion;
+  }
+  if (typeof window !== 'undefined') {
+    try { window.localStorage?.removeItem('bes-motion-mode'); } catch { /* optional */ }
   }
   return { motion: 'off', performance };
 }
