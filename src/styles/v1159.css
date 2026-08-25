@@ -37,3 +37,33 @@ html body :not(#brian-motion-retired-a#brian-motion-retired-b)::after {
   animation: none !important;
   mix-blend-mode: normal !important;
 }
+
+/* Legacy hover/press displacement is retired as well. Static layout transforms
+   remain untouched so deliberately rotated/positioned artwork keeps its design. */
+.v1098-page button:hover:not(:disabled),
+.v1093-task-card:hover,
+.style-trigger:hover,
+.style-trigger:active,
+.launcher-style-option:hover,
+.launcher-live-apps button:hover,
+.boh-actions button:hover,
+.boh-actions .primary:hover,
+.boh-actions .secondary:hover,
+.brian-style-effect-card:hover {
+  transform: none !important;
+}
+
+/* Keep the Home overlap cards at their intended static resting angles. */
+.boh-card:hover,
+.boh-card:focus-visible,
+.boh-card:active {
+  transform: rotate(var(--card-rotate)) !important;
+}
+.boh-card:hover .boh-card-illustration img {
+  transform: none !important;
+}
+
+/* Tooltip may appear/disappear, but it must not slide while doing so. */
+.launcher-style-option:hover::after {
+  transform: translate(-50%, 5px) !important;
+}
