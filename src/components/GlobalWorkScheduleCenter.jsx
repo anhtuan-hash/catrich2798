@@ -147,6 +147,39 @@ function addMonths(value, amount) {
   return new Date(value.getFullYear(), value.getMonth() + amount, 1);
 }
 
+function startOfWeek(value) {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  const mondayIndex = (date.getDay() + 6) % 7;
+  date.setDate(date.getDate() - mondayIndex);
+  return date;
+}
+
+function addWeeks(value, amount) {
+  const date = startOfWeek(value);
+  date.setDate(date.getDate() + amount * 7);
+  return date;
+}
+
+function weekCells(cursor) {
+  const monday = startOfWeek(cursor);
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + index);
+    return date;
+  });
+}
+
+function formatWeekRange(value, language) {
+  const monday = startOfWeek(value);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const locale = language === 'vi' ? 'vi-VN' : 'en-US';
+  const startLabel = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(monday);
+  const endLabel = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(sunday);
+  return language === 'vi' ? 'Tuần ' + startLabel + ' – ' + endLabel : startLabel + ' – ' + endLabel;
+}
+
 function dayKey(value) {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return '';
@@ -295,10 +328,10 @@ export default function GlobalWorkScheduleCenter({
   const [view, setView] = useState(() => embedded ? 'schedule' : hashState.view);
   const [items, setItems] = useState(readCachedSchedule);
   const [profiles, setProfiles] = useState(readCachedProfiles);
-  const [calendarMode, setCalendarMode] = useState('month');
-  const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
+  const [calendarMode, setCalendarMode] = useState(() => embedded ? 'week' : 'month');
+  const [cursor, setCursor] = useState(() => embedded ? startOfWeek(new Date()) : startOfMonth(new Date()));
   const [query, setQuery] = useState('');
-  const [scope, setScope] = useState('upcoming');
+  const [scope, setScope] = useState(() => embedded ? 'all' : 'upcoming');
   const [selectedId, setSelectedId] = useState(hashState.eventId);
   const [importOpen, setImportOpen] = useState(false);
   const [importPreview, setImportPreview] = useState(null);
@@ -495,7 +528,7 @@ export default function GlobalWorkScheduleCenter({
       .sort((a, b) => new Date(a.startAt) - new Date(b.startAt));
   }, [events, query, scope]);
 
-  const cells = useMemo(() => monthCells(cursor), [cursor]);
+  const cells = useMemo(() => calendarMode === 'week' ? weekCells(cursor) : monthCells(cursor), [calendarMode, cursor]);
   const eventsByDay = useMemo(() => {
     const map = new Map();
     filteredEvents.forEach((event) => {
@@ -811,10 +844,10 @@ export default function GlobalWorkScheduleCenter({
 
         <div className="work-schedule-controls">
           <div className="work-schedule-month-nav">
-            <button type="button" onClick={() => setCursor(addMonths(cursor, -1))}>‹</button>
-            <strong>{formatMonth(cursor, language)}</strong>
-            <button type="button" onClick={() => setCursor(addMonths(cursor, 1))}>›</button>
-            <button type="button" className="today" onClick={() => setCursor(startOfMonth(new Date()))}>Hôm nay</button>
+            <button type="button" aria-label={calendarMode === 'week' ? 'Tuần trước' : 'Tháng trước'} onClick={() => setCursor(calendarMode === 'week' ? addWeeks(cursor, -1) : addMonths(cursor, -1))}>‹</button>
+            <strong>{calendarMode === 'week' ? formatWeekRange(cursor, language) : formatMonth(cursor, language)}</strong>
+            <button type="button" aria-label={calendarMode === 'week' ? 'Tuần sau' : 'Tháng sau'} onClick={() => setCursor(calendarMode === 'week' ? addWeeks(cursor, 1) : addMonths(cursor, 1))}>›</button>
+            <button type="button" className="today" onClick={() => setCursor(calendarMode === 'week' ? startOfWeek(new Date()) : startOfMonth(new Date()))}>Hôm nay</button>
           </div>
           <div className="work-schedule-filterbar">
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm nội dung, địa điểm, phụ trách…" />
@@ -824,18 +857,19 @@ export default function GlobalWorkScheduleCenter({
               <option value="past">Đã qua</option>
             </select>
             <div className="work-schedule-view-toggle">
-              <button type="button" className={calendarMode === 'month' ? 'active' : ''} onClick={() => setCalendarMode('month')}>Tháng</button>
+              <button type="button" className={calendarMode === 'week' ? 'active' : ''} onClick={() => { setCalendarMode('week'); setCursor(startOfWeek(cursor)); }}>Tuần</button>
+              <button type="button" className={calendarMode === 'month' ? 'active' : ''} onClick={() => { setCalendarMode('month'); setCursor(startOfMonth(cursor)); }}>Tháng</button>
               <button type="button" className={calendarMode === 'agenda' ? 'active' : ''} onClick={() => setCalendarMode('agenda')}>Danh sách</button>
             </div>
           </div>
         </div>
 
-        {calendarMode === 'month' ? <div className="work-schedule-calendar">
+        {calendarMode !== 'agenda' ? <div className={'work-schedule-calendar ' + (calendarMode === 'week' ? 'is-week' : '')}>
           <div className="work-schedule-weekdays">{['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((day) => <span key={day}>{day}</span>)}</div>
           <div className="work-schedule-grid">{cells.map((date) => {
             const key = dayKey(date);
             const dayEvents = eventsByDay.get(key) || [];
-            const outside = date.getMonth() !== cursor.getMonth();
+            const outside = calendarMode === 'month' && date.getMonth() !== cursor.getMonth();
             const today = key === dayKey(new Date());
             return <article key={key} className={`${outside ? 'outside' : ''} ${today ? 'today' : ''}`}>
               <header><time>{date.getDate()}</time>{dayEvents.length ? <span>{dayEvents.length}</span> : null}</header>
