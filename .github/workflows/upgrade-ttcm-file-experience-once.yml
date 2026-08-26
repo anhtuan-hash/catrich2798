@@ -1,0 +1,42 @@
+name: Upgrade TTCM file experience once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/upgrade-ttcm-file-experience-once.py'
+      - '.github/workflows/upgrade-ttcm-file-experience-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-build-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply TTCM file upgrade
+        run: python scripts/upgrade-ttcm-file-experience-once.py
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build production bundle
+        run: npm run build
+      - name: Commit verified changes
+        run: |
+          git config user.name "anhtuan-hash"
+          git config user.email "anhtuan@pek.edu.vn"
+          git add api/_work-hub-file-access.js src/utils/workHubDelivery.js src/components/GlobalTtcmNavigationTab.jsx src/components/GlobalTtcmNavigationTab.css
+          if git diff --cached --quiet; then
+            echo "No source changes to commit"
+          else
+            git commit -m "feat(ttcm): preview edit and download attachments"
+            git push origin HEAD:main
+          fi
