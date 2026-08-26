@@ -76,11 +76,9 @@
   box-shadow: 0 10px 22px rgba(49, 95, 196, .09) !important;
   font-size: .88rem;
   font-weight: 900;
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease !important;
 }
 
 .boh-dashboard-heading > button:hover {
-  transform: translateY(-2px);
   border-color: #9fb3df !important;
   box-shadow: 0 16px 28px rgba(49, 95, 196, .14) !important;
 }
