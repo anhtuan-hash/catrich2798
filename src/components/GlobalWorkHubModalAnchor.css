@@ -14,7 +14,6 @@ html.work-hub-viewport-modal-open body .v1093-page.v1093-work-hub{
   perspective:none!important;
   contain:none!important;
   content-visibility:visible!important;
-  will-change:auto!important;
 }
 
 html.work-hub-viewport-modal-open body main.wp8-page-stage,

@@ -79,13 +79,11 @@
   position:relative;min-width:0;min-height:76px;display:flex;align-items:center;justify-content:center;
   padding:13px 8px 12px;border:1px solid color-mix(in srgb,var(--seat-accent) 20%,#e2e8ef);border-radius:16px;
   background:linear-gradient(180deg,#fff 0 68%,color-mix(in srgb,var(--seat-soft) 68%,#fff) 100%);
-  color:#183752;text-align:center;box-shadow:0 4px 11px rgba(31,69,107,.055);
-  animation:scs-pro-deal .42s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--deal-delay);
-  transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;
+  color:#183752;text-align:center;box-shadow:0 4px 11px rgba(31,69,107,.055);animation-delay:var(--deal-delay);
 }
 .scs-pro__seat::before{content:"";position:absolute;left:10px;right:10px;top:0;height:4px;border-radius:0 0 6px 6px;background:var(--seat-accent);opacity:.72}
 .scs-pro__seat::after{content:"";position:absolute;left:20%;right:20%;bottom:-4px;height:5px;border-radius:99px;background:color-mix(in srgb,var(--seat-accent) 12%,transparent);filter:blur(1px)}
-.scs-pro__seat:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--seat-accent) 36%,#dce5ee);box-shadow:0 9px 19px rgba(31,69,107,.09)}
+.scs-pro__seat:hover{border-color:color-mix(in srgb,var(--seat-accent) 36%,#dce5ee);box-shadow:0 9px 19px rgba(31,69,107,.09)}
 .scs-pro__seat strong{display:-webkit-box;max-width:100%;overflow:hidden;font-size:var(--student-font-size);line-height:1.2;font-weight:830;overflow-wrap:anywhere;-webkit-box-orient:vertical;-webkit-line-clamp:2}
 .scs-pro__seat.is-empty{border-style:dashed;background:#fbfcfe;color:#a0adba}
 .scs-pro__seat.is-lemon{--seat-accent:#d2a330;--seat-soft:#fff5ce}
@@ -94,7 +92,7 @@
 .scs-pro__seat.is-mint{--seat-accent:#4ca77b;--seat-soft:#e0f5ea}
 .scs-pro__seat.is-rose{--seat-accent:#dd7994;--seat-soft:#ffe6ed}
 .scs-pro__seat.is-cyan{--seat-accent:#3ca9ba;--seat-soft:#e0f6f8}
-@keyframes scs-pro-deal{0%{opacity:0;transform:translateY(12px) scale(.94)}65%{opacity:1;transform:translateY(-2px) scale(1.012)}100%{opacity:1;transform:none}}
+
 
 .scs-pro__empty{min-height:300px;display:grid;grid-template-columns:minmax(260px,.75fr) minmax(320px,1.25fr);align-items:center;gap:20px;padding:24px;border:1px dashed #d8e3ee;border-radius:18px;background:linear-gradient(135deg,#f9fbfe,#fff)}
 .scs-pro__empty svg{width:min(100%,330px);display:block;margin:auto}

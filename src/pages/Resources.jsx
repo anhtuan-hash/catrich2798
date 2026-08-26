@@ -9,7 +9,7 @@ export default function Resources({ items, language }) {
         eyebrow="Resources"
         title={language === 'vi' ? 'Tài nguyên • Hướng dẫn • Lộ trình' : 'Resources • Guides • Roadmap'}
         description={language === 'vi' ? 'Tập hợp học liệu, tài liệu hướng dẫn, checklist triển khai và lộ trình phát triển của Brian English Studio.' : 'A central hub for teaching resources, setup guides, rollout checklists and the Brian English Studio roadmap.'}
-        primary={{ label: language === 'vi' ? 'Xem tài nguyên' : 'View resources', onClick: () => window.scrollTo({ top: 420, behavior: 'smooth' }) }}
+        primary={{ label: language === 'vi' ? 'Xem tài nguyên' : 'View resources', onClick: () => window.scrollTo({ top: 420, behavior: 'auto' }) }}
         secondary={{ label: language === 'vi' ? 'Chạy QA' : 'Run QA', onClick: () => (window.location.hash = '#/qa') }}
         stats={[
           { label: language === 'vi' ? 'mục tài nguyên' : 'resource items', value: items.length, tone: 'teal' },

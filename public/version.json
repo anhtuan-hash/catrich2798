@@ -7,7 +7,7 @@
   "requiresSql": false,
   "legacyDomPatches": false,
   "lessonArchitectAnnualBuilder": true,
-  "generatedAt": "2026-07-28T03:41:53.428Z",
+  "generatedAt": "2026-08-26T03:02:15.252Z",
   "lessonArchitectEnglishOnly": true,
   "globalSuccessPreset": true,
   "digitalCompetenceFramework": "Circular No. 02/2025/TT-BGDĐT",
@@ -118,16 +118,11 @@
   "aiProviderResponsiveLayout": true,
   "aiProviderCohereNativeAdapter": true,
   "aiProviderCloudflareAccountBaseUrl": true,
-  "removedApplicationsV1167Cleanup": [
-    "Worksheet Factory",
-    "SmartID Identity",
-    "Speaking Studio",
-    "AI Lesson Integration Studio",
-    "Grammar Builder",
-    "Writing Studio",
-    "Pronunciation Coach",
-    "Brian AI Workspace",
-    "Classroom Delivery",
-    "Learning Intelligence"
+  "systemFontCatalog": [
+    "Brian Gesco",
+    "Quicksand",
+    "MJ Bexdroga",
+    "1FTV Nasi",
+    "VL Monologue"
   ]
 }

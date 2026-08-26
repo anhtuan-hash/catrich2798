@@ -898,10 +898,10 @@ function InlineInteractiveQuiz({ output, onClose }) {
   const scrollToQuestions = () => {
     if (mode !== 'all') {
       setMode('all');
-      window.setTimeout(() => questionListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+      window.setTimeout(() => questionListRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' }), 80);
       return;
     }
-    questionListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    questionListRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
     contentRef.current?.focus?.();
   };
 

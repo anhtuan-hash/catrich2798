@@ -12,7 +12,6 @@
   overflow: visible !important;
   transform: none !important;
   perspective: none !important;
-  animation: none !important;
 }
 
 .app-shell[data-route="dashboard"] #bes-main-content::before,
@@ -148,7 +147,6 @@
   font-weight: 600;
   letter-spacing: .01em;
   box-shadow: none !important;
-  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
 
 .app-shell[data-route="dashboard"] .gd-button.filled {
@@ -235,14 +233,12 @@
   text-align: left;
   cursor: pointer;
   box-shadow: none !important;
-  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
 }
 
 .app-shell[data-route="dashboard"] .gd-metric:hover {
   border-color: #c4c7c5 !important;
   background: #fcfcfc !important;
   box-shadow: 0 2px 8px rgba(60, 64, 67, .10) !important;
-  transform: translateY(-1px);
 }
 
 .app-shell[data-route="dashboard"] .gd-metric-icon {
@@ -461,7 +457,6 @@
   color: var(--gd-text) !important;
   cursor: pointer;
   box-shadow: none !important;
-  transition: background .18s ease;
 }
 
 .app-shell[data-route="dashboard"] .gd-day:hover {
@@ -844,7 +839,6 @@
   text-align: left;
   cursor: pointer;
   box-shadow: none !important;
-  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
 
 .app-shell[data-route="dashboard"] .gd-tile:hover {
@@ -1122,11 +1116,4 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .app-shell[data-route="dashboard"] .gd-page *,
-  .app-shell[data-route="dashboard"] .gd-page *::before,
-  .app-shell[data-route="dashboard"] .gd-page *::after {
-    scroll-behavior: auto !important;
-    transition: none !important;
-  }
-}
+

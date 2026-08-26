@@ -115,7 +115,6 @@ body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-locked .per
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-locked:has(.permission-request-trigger:hover),
 body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-locked:has(.permission-request-trigger:focus-visible) {
-  transform: translateY(-4px) !important;
   border-color: color-mix(in srgb, var(--app-accent, #1a73e8) 52%, #aeb7c3) !important;
   box-shadow: 0 10px 24px rgba(60,64,67,.14), 0 18px 34px color-mix(in srgb,var(--app-accent,#1a73e8) 12%,transparent) !important;
 }
@@ -150,6 +149,4 @@ body.theme-dark .metro-clean-system[data-route='apps'] .flat-app-window-lock-chi
   body .metro-clean-system[data-route='apps'] .flat-app-window-lock-chip { top: 55px !important; min-height: 23px !important; padding: 3px 7px !important; font-size: .57rem !important; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  body .metro-clean-system[data-route='apps'] .flat-app-window-card.is-locked { transition: none !important; }
-}
+

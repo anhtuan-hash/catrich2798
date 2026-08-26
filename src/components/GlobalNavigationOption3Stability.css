@@ -139,7 +139,6 @@ html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button::afte
   bottom: 1px !important;
   height: 3px !important;
   box-shadow: none !important;
-  animation: none !important;
 }
 
 html body .app-shell[data-route] .brian-nav > .brian-nav__search {
@@ -390,10 +389,4 @@ html body .app-shell[data-route] .brian-briefing-chip {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html body .app-shell[data-route] .brian-nav *,
-  html body .app-shell[data-route] .brian-briefing-bar * {
-    transition: none !important;
-    animation: none !important;
-  }
-}
+

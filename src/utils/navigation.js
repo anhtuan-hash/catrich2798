@@ -1,10 +1,6 @@
 const DEFAULT_COLOR = '#0078d4';
 
-/**
- * Legacy import path retained for compatibility.
- * Route changes are immediate; no transition state, timers, classes or motion
- * preferences are created or consulted here.
- */
+/** Immediate route navigation helper. Presentation motion is intentionally absent. */
 export function launchRoute({ target, navigate } = {}) {
   if (!target || typeof window === 'undefined') return;
 

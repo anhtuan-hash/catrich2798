@@ -110,7 +110,7 @@ export default function AutomationCenter({ currentUser, language = 'vi' }) {
     finally { setBusy(false); }
   };
 
-  const editRule = (rule) => { setDraft(JSON.parse(JSON.stringify(rule))); setTab('rules'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const editRule = (rule) => { setDraft(JSON.parse(JSON.stringify(rule))); setTab('rules'); window.scrollTo({ top: 0, behavior: 'auto' }); };
   const toggleRule = async (rule) => { await saveAutomationRule({ ...rule, enabled: !rule.enabled }, currentUser); await load(); };
   const runRule = async (rule, approved = false) => {
     setBusy(true); setError(''); setNotice('');

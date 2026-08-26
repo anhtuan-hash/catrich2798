@@ -30,7 +30,6 @@ html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar::before,
 html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar::after {
   content: none !important;
   display: none !important;
-  animation: none !important;
   filter: none !important;
 }
 
@@ -161,7 +160,6 @@ html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button {
   white-space: nowrap !important;
   cursor: pointer !important;
   transform: none !important;
-  transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 150ms ease !important;
 }
 
 html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button::before {
@@ -190,7 +188,6 @@ html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button::afte
   background: var(--hub-tab-accent) !important;
   opacity: 0 !important;
   transform: scaleX(.45) !important;
-  transition: opacity 150ms ease, transform 150ms ease !important;
 }
 
 html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button:hover {
@@ -198,7 +195,6 @@ html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button:hover
   background: color-mix(in srgb, var(--hub-tab-soft) 72%, white) !important;
   color: color-mix(in srgb, var(--hub-tab-accent) 78%, #23304a) !important;
   box-shadow: 0 8px 18px color-mix(in srgb, var(--hub-tab-accent) 10%, transparent) !important;
-  transform: translateY(-1px) !important;
 }
 
 html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button.is-active {
@@ -289,7 +285,6 @@ html body .app-shell[data-route] .brian-nav > .brian-nav__search:hover {
   border-color: #9fb9df !important;
   background: #fff !important;
   box-shadow: 0 8px 18px rgba(45, 80, 139, .11) !important;
-  transform: translateY(-1px) !important;
 }
 
 html body .app-shell[data-route] .brian-nav > .brian-nav__search:focus,
@@ -381,7 +376,6 @@ html body .app-shell[data-route] .brian-nav__bell.is-open {
   border-color: #d9e3f1 !important;
   background: #f5f8fd !important;
   box-shadow: 0 7px 16px rgba(48,78,127,.08) !important;
-  transform: translateY(-1px) !important;
 }
 
 html body .app-shell[data-route] .brian-nav__ai-button > span {
@@ -721,11 +715,4 @@ html body .app-shell[data-route] .brian-nav__popover {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html body .app-shell[data-route] .brian-nav *,
-  html body .app-shell[data-route] .brian-briefing-bar * {
-    transition: none !important;
-    animation-duration: .001ms !important;
-    animation-iteration-count: 1 !important;
-  }
-}
+

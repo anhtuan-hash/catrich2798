@@ -226,7 +226,7 @@ export default function BrianTeamRealtimeAlertsBridge({ currentUser, language = 
         .find((node) => String(node.dataset.assignmentId || '') === assignmentId);
       const trigger = article?.querySelector('.bes-bt-review-trigger');
       if (trigger) {
-        article.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        article.scrollIntoView({ behavior: 'auto', block: 'center' });
         window.setTimeout(() => trigger.click(), 220);
         return;
       }

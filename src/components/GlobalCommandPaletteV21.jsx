@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { APPS } from '../data/apps.js';
 import { getAppDesignProfile } from '../data/designProfiles.js';
 import { hasRouteAccess, hasToolAccess } from '../utils/permissions.js';
-import { launchRoute } from '../utils/motion.js';
+import { launchRoute } from '../utils/navigation.js';
 import { loadLauncherConfig, normalizeLauncherConfig, subscribeLauncherConfig } from '../utils/launcherPreferences.js';
 import { getAppUsage, recordAppUsage, subscribeAppUsage } from '../utils/appUsage.js';
 import { isAdminRole, isDepartmentLeaderRole } from '../utils/roles.js';

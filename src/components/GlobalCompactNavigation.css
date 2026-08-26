@@ -161,9 +161,8 @@
   color: var(--brian-nav-ink);
   box-shadow: var(--brian-nav-shadow);
   overflow: hidden;
-  animation: brian-popover-in 140ms ease-out both;
 }
-@keyframes brian-popover-in { from { opacity: 0; transform: translateY(-6px) scale(.985); } to { opacity: 1; transform: none; } }
+
 
 .brian-nav__notifications > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 16px 12px; border-bottom: 1px solid var(--brian-nav-line); }
 .brian-nav__notifications > header strong { font-size: 16px; }
@@ -214,7 +213,7 @@
   cursor: pointer;
   font: inherit;
 }
-.brian-chatbot-fab:hover { transform: translateY(-2px); box-shadow: 0 18px 36px rgba(37, 82, 55, .28); }
+.brian-chatbot-fab:hover { box-shadow: 0 18px 36px rgba(37, 82, 55, .28); }
 .brian-chatbot-fab span { font-size: 18px; }
 .brian-chatbot-fab b { font-size: 13px; }
 
@@ -239,7 +238,4 @@
   .brian-chatbot-fab b { display: none; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .brian-nav__popover { animation: none; }
-  .brian-chatbot-fab { transition: none; }
-}
+

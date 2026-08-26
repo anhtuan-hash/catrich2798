@@ -91,7 +91,7 @@
 .tax-studio-bar-set { display: grid; gap: 10px; }
 .tax-studio-bar-row { display: grid; grid-template-columns: 78px minmax(80px, 1fr) auto; gap: 9px; align-items: center; font-size: 13px; }
 .tax-studio-bar-row > div { height: 12px; background: #eef3f7; overflow: hidden; border-radius: 999px; }
-.tax-studio-bar-row i { display: block; height: 100%; border-radius: inherit; transition: width .35s ease; }
+.tax-studio-bar-row i { display: block; height: 100%; border-radius: inherit; }
 .tax-studio-bar-row i.legacy { background: #8ba0b2; }
 .tax-studio-bar-row i.current { background: var(--tax-green); }
 .tax-studio-bar-row strong { font-size: 13px; color: #29465d; }

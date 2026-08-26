@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { launchRoute } from '../utils/motion.js';
+import { launchRoute } from '../utils/navigation.js';
 import './GlobalGuestNavigationHub.css';
 
 const guestDestinations = [

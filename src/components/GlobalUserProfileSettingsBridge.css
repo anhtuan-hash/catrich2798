@@ -259,7 +259,6 @@ html body .app-shell .bes-profile-field > textarea {
   font-size: 13px !important;
   line-height: 1.45 !important;
   box-shadow: none !important;
-  transition: border-color 140ms ease, box-shadow 140ms ease !important;
 }
 
 html body .app-shell .bes-profile-field > input {
@@ -436,11 +435,4 @@ html body .app-shell .bes-profile-editor :is(button, input, textarea):focus-visi
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html body .app-shell .bes-profile-editor *,
-  html body .app-shell .bes-profile-editor *::before,
-  html body .app-shell .bes-profile-editor *::after {
-    transition: none !important;
-    animation: none !important;
-  }
-}
+

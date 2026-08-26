@@ -35,7 +35,7 @@ function goToAdminSection(id) {
     assistant: '.admin-v41-ai-card',
   };
   const selector = map[id] || id;
-  document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelector(selector)?.scrollIntoView({ behavior: 'auto', block: 'start' });
 }
 
 function AdminV41Sidebar({ language, currentUser }) {
@@ -424,7 +424,7 @@ export default function AdminPage({ language, currentUser }) {
                   <h2>{language === 'vi' ? 'Yêu cầu truy cập' : 'Access requests'}</h2>
                   <p>{language === 'vi' ? 'Duyệt nhanh các yêu cầu giáo viên gửi lên.' : 'Quick review of teacher requests.'}</p>
                 </div>
-                <button type="button" className="text-link" onClick={() => document.querySelector('.permission-request-admin-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button>
+                <button type="button" className="text-link" onClick={() => document.querySelector('.permission-request-admin-panel')?.scrollIntoView({ behavior: 'auto', block: 'start' })}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button>
               </div>
 
               <AdminPreviewTable
@@ -458,7 +458,7 @@ export default function AdminPage({ language, currentUser }) {
                   <h2>{language === 'vi' ? 'Phân quyền chi tiết' : 'Granular permissions'}</h2>
                   <p>{language === 'vi' ? 'Tổng quan vai trò, nhóm quyền và phạm vi truy cập.' : 'Role groups, access scope and permission coverage.'}</p>
                 </div>
-                <button type="button" className="text-link" onClick={() => document.querySelector('.permission-admin-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{language === 'vi' ? 'Xem chi tiết' : 'View detail'}</button>
+                <button type="button" className="text-link" onClick={() => document.querySelector('.permission-admin-grid')?.scrollIntoView({ behavior: 'auto', block: 'start' })}>{language === 'vi' ? 'Xem chi tiết' : 'View detail'}</button>
               </div>
 
               <AdminPreviewTable
@@ -486,7 +486,7 @@ export default function AdminPage({ language, currentUser }) {
                   <h2>{language === 'vi' ? 'Tài khoản hệ thống' : 'System accounts'}</h2>
                   <p>{language === 'vi' ? 'Theo dõi trạng thái tài khoản và người dùng mới.' : 'Monitor account status and newly created users.'}</p>
                 </div>
-                <button type="button" className="text-link" onClick={() => document.querySelector('.permission-admin-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button>
+                <button type="button" className="text-link" onClick={() => document.querySelector('.permission-admin-grid')?.scrollIntoView({ behavior: 'auto', block: 'start' })}>{language === 'vi' ? 'Xem tất cả' : 'View all'}</button>
               </div>
 
               <div className="admin-v41-account-grid">
@@ -510,7 +510,7 @@ export default function AdminPage({ language, currentUser }) {
                   ))}
                 </div>
               </div>
-              <button type="button" className="table-action gold" onClick={() => document.querySelector('.permission-admin-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{language === 'vi' ? 'Quản lý tài khoản' : 'Manage accounts'}</button>
+              <button type="button" className="table-action gold" onClick={() => document.querySelector('.permission-admin-grid')?.scrollIntoView({ behavior: 'auto', block: 'start' })}>{language === 'vi' ? 'Quản lý tài khoản' : 'Manage accounts'}</button>
             </article>
 
             <article className="admin-v41-panel panel-lavender" id="admin-v41-security">

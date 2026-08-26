@@ -135,7 +135,6 @@
 }
 
 .bha-home .hero-cms--google-refined .hero-cms__button:hover {
-  transform: translateY(-2px) !important;
 }
 
 .bha-home .hero-cms--google-refined .hero-cms__info {
@@ -609,7 +608,4 @@
   .google-home-float--schedule,.google-home-float--performance,.google-home-books,.google-home-plant { display:none; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .google-home-visual *,
-  .bha-home .hero-cms--google-refined * { animation:none !important; transition-duration:.01ms !important; }
-}
+

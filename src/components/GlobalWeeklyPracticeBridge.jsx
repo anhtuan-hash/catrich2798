@@ -97,6 +97,24 @@ function defaultForm() {
   };
 }
 
+function inferManagerGrade(item) {
+  const normalize = (value) => String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+  const explicitGrade = (value) => {
+    const text = normalize(value);
+    if (/^(10|11|12)$/.test(text)) return text;
+    return text.match(/(?:tieng anh|english|khoi|grade|lop)\s*(10|11|12)(?:\b|$)/)?.[1] || '';
+  };
+  return explicitGrade(item?.grade)
+    || explicitGrade(item?.category)
+    || explicitGrade(item?.title)
+    || '';
+}
+
 function ensureHost() {
   const root = document.querySelector(HOME_ROOT_SELECTOR);
   if (!root) return null;
@@ -542,6 +560,7 @@ function ManagerDialog({ currentUser, onClose, onChanged }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [gradeFilter, setGradeFilter] = useState('all');
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -552,6 +571,23 @@ function ManagerDialog({ currentUser, onClose, onChanged }) {
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
+
+  useEffect(() => {
+    const handleRefresh = () => refresh();
+    window.addEventListener('bes-weekly-manager-refresh', handleRefresh);
+    return () => window.removeEventListener('bes-weekly-manager-refresh', handleRefresh);
+  }, [refresh]);
+
+  const gradeCounts = useMemo(() => items.reduce((counts, item) => {
+    const grade = inferManagerGrade(item);
+    if (grade && Object.prototype.hasOwnProperty.call(counts, grade)) counts[grade] += 1;
+    else counts.unclassified += 1;
+    return counts;
+  }, { all: items.length, 10: 0, 11: 0, 12: 0, unclassified: 0 }), [items]);
+
+  const visibleItems = useMemo(() => gradeFilter === 'all'
+    ? items
+    : items.filter((item) => inferManagerGrade(item) === gradeFilter), [items, gradeFilter]);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -602,7 +638,7 @@ function ManagerDialog({ currentUser, onClose, onChanged }) {
             <div className="bes-weekly-simple-note"><strong>Tự động thiết lập</strong><span>Bắt buộc họ tên · Chọn lớp 10.1–10.12, 11.1–11.6, 12.1–12.9 · Không nộp trước 45 phút · Tạo ảnh xác nhận · Gửi TTCM</span></div>
             <button className="bes-weekly-primary" disabled={saving} type="submit">{saving ? 'Đang tải lên…' : 'Tải lên và công bố'}</button>
           </form>
-          <section className="bes-weekly-manage-list"><h3>Các bài đã tạo</h3>{loading ? <p>Đang tải…</p> : null}{!loading && !items.length ? <p>Chưa có bài nào.</p> : null}{items.map((practice) => <article key={practice.id}><div><StatusPill item={practice} /><strong>{practice.title}</strong><span>{formatBytes(practice.file_size)} · Tối thiểu 45 phút · {formatDate(practice.created_at)}</span></div><nav>{practice.status !== 'published' ? <button type="button" onClick={() => changeStatus(practice, 'published')}>Công bố</button> : <button type="button" onClick={() => changeStatus(practice, 'draft')}>Ẩn</button>}<button type="button" onClick={() => changeStatus(practice, 'maintenance')}>Bảo trì</button><button className="is-danger" type="button" onClick={() => remove(practice)}>Xóa</button></nav></article>)}</section>
+          <section className="bes-weekly-manage-list"><h3>Các bài đã tạo</h3><div className="bes-weekly-grade-filter bes-weekly-grade-filter--native" data-native-grade-filter="true"><div className="bes-weekly-grade-filter__heading"><strong>Phân loại theo khối</strong><small>Chọn khối để tra cứu nhanh các bài đã tạo.</small></div><div className="bes-weekly-grade-filter__buttons">{['all', '10', '11', '12'].map((grade) => <button key={grade} type="button" data-grade-filter={grade} className={gradeFilter === grade ? 'is-active' : ''} aria-pressed={gradeFilter === grade} disabled={grade !== 'all' && gradeCounts[grade] === 0} onClick={() => setGradeFilter(grade)}><span>{grade === 'all' ? 'Tất cả' : 'Khối ' + grade}</span><b>{gradeCounts[grade]}</b></button>)}</div>{gradeCounts.unclassified > 0 ? <small className="bes-weekly-grade-filter__warning">{gradeCounts.unclassified} bài chưa có phân loại khối rõ ràng. Có thể chọn các bài này và chuyển khối bằng thanh cài đặt nhanh bên dưới.</small> : null}</div>{loading ? <p>Đang tải…</p> : null}{!loading && !visibleItems.length ? <p>{gradeFilter === 'all' ? 'Chưa có bài nào.' : 'Chưa có bài thuộc Khối ' + gradeFilter + '.'}</p> : null}{visibleItems.map((practice) => <article key={practice.id} data-practice-id={practice.id}><div><StatusPill item={practice} /><strong>{practice.title}</strong><span>{formatBytes(practice.file_size)} · Tối thiểu 45 phút · {formatDate(practice.created_at)}</span></div><nav>{practice.status !== 'published' ? <button type="button" onClick={() => changeStatus(practice, 'published')}>Công bố</button> : <button type="button" onClick={() => changeStatus(practice, 'draft')}>Ẩn</button>}<button type="button" onClick={() => changeStatus(practice, 'maintenance')}>Bảo trì</button><button className="is-danger" type="button" onClick={() => remove(practice)}>Xóa</button></nav></article>)}</section>
         </div>
       </section>
     </div>, document.body,

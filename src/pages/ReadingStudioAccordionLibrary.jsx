@@ -422,7 +422,7 @@ export default function ReadingStudioAccordionLibrary({ tool, language = 'vi' })
     setSelectedTypes(profile.defaults);
     setExpandedTypes(new Set());
     setQuery('');
-    window.requestAnimationFrame(() => samplesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    window.requestAnimationFrame(() => samplesRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' }));
   };
 
   const toggleType = (id) => {
@@ -490,10 +490,10 @@ export default function ReadingStudioAccordionLibrary({ tool, language = 'vi' })
             <span><b>⌄</b>{language === 'vi' ? 'mở khi cần' : 'expand on demand'}</span>
           </div>
           <div className="reading-accordion-hero-actions">
-            <button type="button" className="primary" onClick={() => selectorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+            <button type="button" className="primary" onClick={() => selectorRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' })}>
               {language === 'vi' ? 'Chọn mẫu kỳ thi' : 'Choose an exam profile'}
             </button>
-            <button type="button" className="secondary" onClick={() => { setSelectedTypes(QUESTION_TYPES.map((item) => item.id)); setExpandedTypes(new Set()); setQuery(''); window.requestAnimationFrame(() => samplesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }}>
+            <button type="button" className="secondary" onClick={() => { setSelectedTypes(QUESTION_TYPES.map((item) => item.id)); setExpandedTypes(new Set()); setQuery(''); window.requestAnimationFrame(() => samplesRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' })); }}>
               {language === 'vi' ? 'Xem đủ 21 dạng' : 'View all 21 types'}
             </button>
           </div>

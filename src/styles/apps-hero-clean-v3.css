@@ -128,7 +128,6 @@ html body .apps-directory-native .apps-directory-actions button {
 }
 
 html body .apps-directory-native .apps-directory-actions button:hover {
-  transform: translateY(-2px) !important;
   border-color: rgba(47, 117, 235, .34) !important;
   box-shadow: 0 12px 25px rgba(48, 68, 110, .13) !important;
 }
@@ -286,7 +285,6 @@ html body .apps-directory-native .apps-directory-preview-grid button {
 }
 
 html body .apps-directory-native .apps-directory-preview-grid button:hover {
-  transform: translateY(-2px) !important;
   box-shadow: 0 9px 18px color-mix(in srgb, var(--preview-accent, #4b8df7) 13%, transparent) !important;
 }
 
@@ -570,9 +568,4 @@ html body .apps-directory-native .apps-directory-density-switch {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html body .apps-directory-native .apps-directory-actions button,
-  html body .apps-directory-native .apps-directory-preview-grid button {
-    transition: none !important;
-  }
-}
+

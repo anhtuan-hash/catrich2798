@@ -37,7 +37,6 @@ html body .app-shell[data-route="settings"] .settings-admin-merge-nav-button {
   text-align: left !important;
   box-shadow: none !important;
   cursor: pointer !important;
-  transition: background .14s ease, color .14s ease !important;
 }
 
 html body .app-shell[data-route="settings"] .settings-admin-merge-nav-button:hover,

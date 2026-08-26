@@ -66,7 +66,6 @@
   border-radius:50%!important;
   background:transparent!important;
   color:#3c4043!important;
-  transition:background .16s ease,color .16s ease,transform .16s ease!important;
 }
 
 .hero-editor .hero-editor__back:hover,
@@ -77,7 +76,6 @@
 
 .hero-editor .hero-editor__back:active,
 .hero-editor .hero-editor__close:active{
-  transform:scale(.94)!important;
 }
 
 .hero-editor .hero-editor__device-switcher{
@@ -566,11 +564,9 @@
   font-size:.69rem!important;
   font-weight:600!important;
   letter-spacing:.005em!important;
-  transition:background .16s ease,box-shadow .16s ease,transform .16s ease!important;
 }
 
 .hero-editor .hero-editor__footer button:hover:not(:disabled){
-  transform:translateY(-1px)!important;
 }
 
 .hero-editor .hero-editor__footer button:not(.is-primary){

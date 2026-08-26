@@ -56,18 +56,14 @@
   transform-origin: center;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  will-change: transform;
-  transition: transform 150ms cubic-bezier(.2, .8, .2, 1), background-color 150ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 .bes-kira-chat-root .bes-kira-chat-launcher:hover {
-  transform: translate3d(0, -2px, 0);
   background: #f8fbff !important;
 }
 
 .bes-kira-chat-root .bes-kira-chat-launcher:active {
-  transform: translate3d(0, 0, 0) scale(.97);
 }
 
 .bes-kira-chat-root :is(.bes-kira-chat-launcher, .bes-kira-chat-actions button, .bes-kira-chat-send, .bes-kira-chat-suggestions button):focus-visible {
@@ -148,8 +144,6 @@
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  will-change: transform;
-  animation: besKiraPanelIn 180ms cubic-bezier(.22, 1, .36, 1) both;
 }
 
 .bes-kira-chat-root .bes-kira-chat-header {
@@ -251,17 +245,14 @@
   box-shadow: none !important;
   cursor: pointer;
   transform: translate3d(0, 0, 0);
-  transition: transform 130ms ease, background-color 130ms ease, color 130ms ease;
 }
 
 .bes-kira-chat-root .bes-kira-chat-actions button:hover {
   color: var(--kira-blue) !important;
   background: var(--kira-blue-soft-2) !important;
-  transform: translate3d(0, -1px, 0);
 }
 
 .bes-kira-chat-root .bes-kira-chat-actions button:active {
-  transform: translate3d(0, 0, 0) scale(.96);
 }
 
 .bes-kira-chat-actions svg {
@@ -440,13 +431,11 @@
   text-align: left;
   cursor: pointer;
   transform: translate3d(0, 0, 0);
-  transition: transform 130ms ease, background-color 130ms ease, border-color 130ms ease;
 }
 
 .bes-kira-chat-root .bes-kira-chat-suggestions button:hover {
   background: #f6f9fe !important;
   border-color: #a8c7fa !important;
-  transform: translate3d(0, -1px, 0);
 }
 
 .bes-kira-chat-suggestions button > svg:last-child {
@@ -475,11 +464,9 @@
   border-radius: 999px;
   background: #4285f4;
   transform: translate3d(0, 0, 0);
-  will-change: transform;
-  animation: besKiraDot 1.1s ease-in-out infinite;
 }
-.bes-kira-chat-thinking > span:nth-child(2) { background: #ea4335; animation-delay: .12s; }
-.bes-kira-chat-thinking > span:nth-child(3) { background: #fbbc04; animation-delay: .24s; }
+.bes-kira-chat-thinking > span:nth-child(2) { background: #ea4335; }
+.bes-kira-chat-thinking > span:nth-child(3) { background: #fbbc04; }
 .bes-kira-chat-thinking em {
   margin-left: 5px;
   color: var(--kira-muted);
@@ -510,7 +497,6 @@
   border-radius: 999px !important;
   background: #ffffff !important;
   box-shadow: 0 2px 9px rgba(31, 41, 55, .08), inset 0 0 0 1px #dadde3 !important;
-  transition: box-shadow 130ms ease;
 }
 
 .bes-kira-chat-root .bes-kira-chat-input-wrap:focus-within {
@@ -556,14 +542,12 @@
   box-shadow: 0 4px 11px rgba(11, 87, 208, .18) !important;
   cursor: pointer;
   transform: translate3d(0, 0, 0);
-  transition: transform 130ms ease, background-color 130ms ease;
 }
 
 .bes-kira-chat-root .bes-kira-chat-send:hover:not(:disabled) {
   background: var(--kira-blue-hover) !important;
-  transform: translate3d(0, -1px, 0);
 }
-.bes-kira-chat-root .bes-kira-chat-send:active:not(:disabled) { transform: translate3d(0, 0, 0) scale(.96); }
+.bes-kira-chat-root .bes-kira-chat-send:active:not(:disabled) { }
 .bes-kira-chat-root .bes-kira-chat-send:disabled {
   background: #e4e7eb !important;
   color: #91969d !important;
@@ -591,15 +575,6 @@
   text-align: center !important;
 }
 
-@keyframes besKiraPanelIn {
-  from { transform: translate3d(0, 8px, 0); }
-  to { transform: translate3d(0, 0, 0); }
-}
-
-@keyframes besKiraDot {
-  0%, 70%, 100% { transform: translate3d(0, 0, 0); }
-  35% { transform: translate3d(0, -3px, 0); }
-}
 
 @media (max-width: 640px) {
   .bes-kira-chat-root {
@@ -625,7 +600,6 @@
     border-left: 0 !important;
     border-radius: 34px 34px 0 0 !important;
     transform-origin: bottom center;
-    animation-duration: 160ms;
   }
 
   .bes-kira-chat-root .bes-kira-chat-header {
@@ -681,14 +655,4 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .bes-kira-chat-panel,
-  .bes-kira-chat-launcher,
-  .bes-kira-chat-actions button,
-  .bes-kira-chat-send,
-  .bes-kira-chat-suggestions button,
-  .bes-kira-chat-thinking > span {
-    animation: none !important;
-    transition: none !important;
-  }
-}
+

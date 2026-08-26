@@ -240,7 +240,6 @@
   top: 76px;
   z-index: 18;
   min-width: 0;
-  transition: min-height .24s cubic-bezier(.2, 0, 0, 1);
 }
 
 .hr-grade-navigation {
@@ -258,7 +257,6 @@
   visibility: visible;
   transform: translate3d(0, 0, 0) scale(1);
   transform-origin: calc(100% - 28px) 50%;
-  transition: opacity .18s ease, transform .24s cubic-bezier(.2, 0, 0, 1), visibility 0s;
 }
 
 .hr-grade-navigation-dock.is-collapsed {
@@ -272,7 +270,6 @@
   visibility: hidden;
   pointer-events: none;
   transform: translate3d(16px, 8px, 0) scale(.96);
-  transition: opacity .15s ease, transform .2s cubic-bezier(.4, 0, 1, 1), visibility 0s .2s;
 }
 
 .hr-grade-semesters,
@@ -387,7 +384,6 @@
   pointer-events: none;
   transform: translate3d(10px, 8px, 0) scale(.88);
   transform-origin: 100% 0;
-  transition: opacity .17s ease, transform .26s cubic-bezier(.2, 0, 0, 1), visibility 0s .26s;
   cursor: pointer;
 }
 
@@ -399,13 +395,11 @@
   visibility: visible;
   pointer-events: auto;
   transform: translate3d(0, 0, 0) scale(1);
-  transition: opacity .18s .06s ease, transform .28s cubic-bezier(.2, 0, 0, 1), visibility 0s;
 }
 
 .hr-grade-navigation-launcher:hover {
   border-color: var(--grade-blue) !important;
   box-shadow: 0 16px 34px rgba(32, 57, 93, .23), 0 2px 8px rgba(11, 87, 208, .14) !important;
-  transform: translate3d(0, -2px, 0) scale(1) !important;
 }
 
 .hr-grade-navigation-launcher:focus-visible {
@@ -1596,13 +1590,6 @@ html[data-theme="dark"] .hr-grade-navigation-options button.is-pinned {
   color: #a8dab5 !important;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .hr-grade-navigation-dock,
-  .hr-grade-navigation,
-  .hr-grade-navigation-launcher {
-    transition: none !important;
-  }
-}
 
 html[data-theme="dark"] .hr-grade-panel-head,
 html[data-theme="dark"] .hr-grade-table th,

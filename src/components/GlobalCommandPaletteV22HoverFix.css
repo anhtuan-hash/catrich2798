@@ -359,16 +359,6 @@ html[data-theme="dark"] .command-v21-inline-actions button.active {
   color: #f2f2f7 !important;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .command-v21-result-shell,
-  .command-v21-header,
-  .command-v21-result-main,
-  .command-v21-icon,
-  .command-v21-inline-actions button {
-    transition: none !important;
-    transform: none !important;
-  }
-}
 
 /* Keep high-contrast mode readable without reintroducing a blue frame. */
 @media (forced-colors: active) {

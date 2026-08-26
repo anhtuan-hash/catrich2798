@@ -1,6 +1,6 @@
 import { getAppDesignProfile } from '../data/designProfiles.js';
 import { getRoutePermissionId, getToolPermissionId, hasRouteAccess, hasToolAccess } from '../utils/permissions.js';
-import { launchRoute } from '../utils/motion.js';
+import { launchRoute } from '../utils/navigation.js';
 import { ROUTE_APP_SHORTCUTS } from '../data/appVisibilityRegistry.js';
 
 export const APP_ORDER = [

@@ -202,9 +202,8 @@
   font-size: .86rem !important;
   font-weight: 700 !important;
   box-shadow: none !important;
-  transition: transform .18s ease, box-shadow .18s ease, background .18s ease !important;
 }
-.tcg-workspace-actions button:hover { transform: translateY(-1px) !important; }
+.tcg-workspace-actions button:hover { }
 .tcg-hero-primary {
   border: 1px solid var(--tc-m3-blue) !important;
   background: var(--tc-m3-blue) !important;
@@ -679,7 +678,4 @@ html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] .tcg-source-ed
 html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] .tcg-content-editor footer { background: #292a2d !important; }
 html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] .tcg-a4-viewport { background: #15171a !important; }
 
-@media (prefers-reduced-motion: reduce) {
-  .tcg-workspace-actions button,
-  .metro-clean-system[data-tool="textcare"] .tcg-a4-stage { transition: none !important; }
-}
+

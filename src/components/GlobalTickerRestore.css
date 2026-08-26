@@ -1,5 +1,4 @@
-/* Brian navigation hub · static briefing and colour system.
-   Motion runtime, ticker scrolling, light sweeps, pulses and hover movement are retired. */
+
 
 html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__ticker-viewport,
 html body .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__ticker-viewport {
@@ -120,12 +119,10 @@ html body .app-shell[data-route] .brian-nav__primary [role='button'].is-active {
     0 0 0 1px rgba(255,255,255,.74) inset,
     0 0 20px rgba(var(--bes-nav-glow),.14) !important;
   filter: saturate(1.08) brightness(1.02) !important;
-  transform: none !important;
 }
 
 html body .app-shell[data-route] .brian-nav__primary button:active,
 html body .app-shell[data-route] .brian-nav__primary [role='button']:active {
-  transform: none !important;
 }
 
 html body .app-shell[data-route] .brian-nav__primary button.is-active::after,
@@ -166,11 +163,9 @@ html body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='butto
     0 9px 20px rgba(var(--bes-action-glow),.18),
     0 0 18px rgba(var(--bes-action-glow),.13),
     inset 0 1px 0 rgba(255,255,255,.96) !important;
-  transform: none !important;
 }
 
 html body .app-shell[data-route] .brian-nav__actions > :is(button,a,[role='button']):active {
-  transform: none !important;
 }
 
 html body .app-shell[data-route] .brian-nav__primary :is(button,[role='button']):focus-visible,

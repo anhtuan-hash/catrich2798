@@ -99,7 +99,7 @@ export default function TextLabActivities({ language = 'vi', fontScale = 100, cu
   }, [currentUser, language]);
 
   const startCreating = () => {
-    shellRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    shellRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
     window.setTimeout(() => frameRef.current?.focus(), 450);
   };
 

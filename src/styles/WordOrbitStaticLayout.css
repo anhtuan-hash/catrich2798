@@ -70,7 +70,6 @@ body:has(.wog-app)::after,
   transform: none !important;
   opacity: 1 !important;
   visibility: visible !important;
-  will-change: auto !important;
 }
 
 .app-shell[data-tool="word-orbit"] .wog-app.is-dragging .wog-capsule-source {

@@ -120,7 +120,6 @@ body:has(.app-shell[data-tool="crossword-trial"]) {
 .app-shell[data-tool="crossword-trial"] .bcg-back:hover,
 .app-shell[data-tool="crossword-trial"] .bcg-mode:hover,
 .app-shell[data-tool="crossword-trial"] .bcg-btn:hover:not(:disabled) {
-  transform: translateY(-1px) !important;
   border-color: #9db7dc !important;
   background: #f6f9fe !important;
   box-shadow: 0 3px 10px rgba(60, 64, 67, 0.13) !important;

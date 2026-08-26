@@ -1,5 +1,4 @@
-/* Brian English Studio · static whole-hub aura surface.
-   Guest and authenticated navigation keep the same geometry and glow without motion. */
+
 
 html body .app-shell[data-route] > .bes-top-chrome,
 html body .app-shell[data-route] .bes-top-chrome,

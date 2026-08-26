@@ -38,7 +38,6 @@ html body .apps-directory-native .apps-directory-actions button {
 }
 
 html body .apps-directory-native .apps-directory-actions button:hover {
-  transform: translateY(-2px) !important;
   box-shadow: 0 6px 0 rgba(117, 139, 181, .20), 0 14px 24px rgba(48, 68, 110, .11) !important;
 }
 
@@ -302,7 +301,6 @@ html body .apps-directory-native .apps-directory-preview-grid button {
 }
 
 html body .apps-directory-native .apps-directory-preview-grid button:hover {
-  transform: translate(-1px, -2px) !important;
   box-shadow: 5px 7px 0 color-mix(in srgb, var(--preview-accent, #4b8df7) 23%, #dce6f7) !important;
 }
 
@@ -356,9 +354,4 @@ html body .apps-directory-native .apps-directory-stat-row > div:nth-child(3) {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html body .apps-directory-native .apps-directory-actions button,
-  html body .apps-directory-native .apps-directory-preview-grid button {
-    transition: none !important;
-  }
-}
+

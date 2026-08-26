@@ -1,6 +1,4 @@
-/* Brian English Studio · Global static UI contract
-   Presentation motion is retired application-wide. This file is imported last
-   so component-level animation/transition declarations cannot re-enable it. */
+
 
 html,
 body {

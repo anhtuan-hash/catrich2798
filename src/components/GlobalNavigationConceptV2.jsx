@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { hasRouteAccess } from '../utils/permissions.js';
-import { launchRoute } from '../utils/motion.js';
+import { launchRoute } from '../utils/navigation.js';
 import './GlobalNavigationConceptV2.css';
 
 function Icon({ name }) {

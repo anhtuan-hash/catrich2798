@@ -1,26 +1,4 @@
-/* Navigation hover repair
-   Keep motion and light inside each pill. Prevent the global hover system from
-   producing a large clipped blue rectangle across the navigation bar. */
 
-@keyframes eh-nav-contained-sheen {
-  0% {
-    transform: translateX(-115%) skewX(-18deg);
-    opacity: 0;
-  }
-  22% {
-    opacity: .18;
-  }
-  52% {
-    opacity: .52;
-  }
-  78% {
-    opacity: .16;
-  }
-  100% {
-    transform: translateX(115%) skewX(-18deg);
-    opacity: 0;
-  }
-}
 
 @media (hover: hover) and (pointer: fine) {
   html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']) {
@@ -31,10 +9,8 @@
     translate: 0 0 !important;
     scale: 1 !important;
     filter: none !important;
-    animation: none !important;
     outline: none !important;
     z-index: auto !important;
-    will-change: auto !important;
   }
 
   html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button'])::after {
@@ -56,11 +32,7 @@
   }
 
   html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']):hover {
-    transform: none !important;
-    translate: 0 0 !important;
-    scale: 1 !important;
     filter: none !important;
-    animation: none !important;
     outline: none !important;
     border-color: rgba(85, 135, 218, .38) !important;
     background: rgba(246, 250, 255, .90) !important;
@@ -73,7 +45,6 @@
   }
 
   html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']):hover::after {
-    animation: eh-nav-contained-sheen 1.35s cubic-bezier(.4, 0, .2, 1) infinite;
   }
 
   html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']).is-active {
@@ -98,10 +69,6 @@
   }
 
   html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']):active {
-    transform: none !important;
-    translate: 0 0 !important;
-    scale: .98 !important;
-    animation: none !important;
     filter: brightness(.99) !important;
     box-shadow:
       inset 0 2px 5px rgba(35, 69, 128, .13),
@@ -136,9 +103,4 @@ body.theme-dark .app-shell[data-route] .brian-nav__primary > :where(button, [rol
     0 6px 16px rgba(0, 0, 0, .28) !important;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button'])::after {
-    display: none !important;
-    animation: none !important;
-  }
-}
+

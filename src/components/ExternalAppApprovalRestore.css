@@ -24,17 +24,14 @@
   line-height: 1.2;
   cursor: pointer;
   box-shadow: 0 5px 0 rgba(23, 78, 166, 0.14), 0 10px 24px rgba(60, 64, 67, 0.08);
-  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
 .launcher-add-external-app:hover {
   background: #f3f8ff;
-  transform: translateY(-1px);
   box-shadow: 0 6px 0 rgba(23, 78, 166, 0.16), 0 14px 28px rgba(60, 64, 67, 0.1);
 }
 
 .launcher-add-external-app:active {
-  transform: translateY(3px);
   box-shadow: 0 2px 0 rgba(23, 78, 166, 0.16);
 }
 

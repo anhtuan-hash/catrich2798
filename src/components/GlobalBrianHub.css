@@ -43,7 +43,6 @@ html body .app-shell[data-route] > .bes-top-chrome {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   isolation: isolate !important;
-  will-change: auto !important;
 }
 
 /* The fixed navigation is removed from document flow. Reserve its exact fixed
@@ -92,8 +91,6 @@ html body .app-shell[data-route] > .bes-top-chrome .brian-nav {
   pointer-events: auto !important;
   backdrop-filter: blur(18px) saturate(1.12) !important;
   -webkit-backdrop-filter: blur(18px) saturate(1.12) !important;
-  transition: none !important;
-  will-change: auto !important;
 }
 
 /* Hard pin: this is the only fixed hub surface on the entire website. */
@@ -202,8 +199,6 @@ html body .app-shell[data-route][data-bes-header-scrolled] > .bes-top-chrome .br
   pointer-events: auto !important;
   transform: none !important;
   translate: none !important;
-  transition: none !important;
-  will-change: auto !important;
 }
 
 /* Neutralize legacy markers. They cannot pin the complete chrome or hide the

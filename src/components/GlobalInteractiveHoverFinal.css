@@ -11,96 +11,7 @@ html body .app-shell[data-route] {
 }
 
 /* Start and finish at the original position: no permanent 2px lift. */
-@keyframes eh-control-hover-motion {
-  0%, 100% {
-    translate: 0 0;
-    scale: 1.018;
-  }
-  50% {
-    translate: 0 -5px;
-    scale: 1.045;
-  }
-}
 
-@keyframes eh-control-hover-glow {
-  0%, 100% {
-    filter:
-      brightness(1.035)
-      saturate(1.08)
-      drop-shadow(0 0 3px var(--eh-hover-glow-core))
-      drop-shadow(0 8px 10px var(--eh-hover-final-shadow));
-  }
-  50% {
-    filter:
-      brightness(1.14)
-      saturate(1.18)
-      drop-shadow(0 0 12px var(--eh-hover-glow-core))
-      drop-shadow(0 0 25px var(--eh-hover-glow-soft))
-      drop-shadow(0 18px 20px var(--eh-hover-final-shadow));
-  }
-}
-
-@keyframes eh-card-hover-motion {
-  0%, 100% {
-    translate: 0 0;
-    scale: 1.018;
-  }
-  50% {
-    translate: 0 -7px;
-    scale: 1.04;
-  }
-}
-
-@keyframes eh-card-hover-glow {
-  0%, 100% {
-    filter:
-      brightness(1.04)
-      saturate(1.08)
-      drop-shadow(0 0 5px var(--eh-hover-glow-core))
-      drop-shadow(0 14px 17px var(--eh-hover-final-shadow));
-  }
-  50% {
-    filter:
-      brightness(1.15)
-      saturate(1.2)
-      drop-shadow(0 0 16px var(--eh-hover-glow-core))
-      drop-shadow(0 0 34px var(--eh-hover-glow-soft))
-      drop-shadow(0 24px 27px var(--eh-hover-final-shadow));
-  }
-}
-
-@keyframes eh-field-hover-glow {
-  0%, 100% {
-    box-shadow:
-      0 0 0 3px rgba(66, 133, 244, .13),
-      0 0 8px rgba(66, 133, 244, .20),
-      0 7px 15px rgba(31, 74, 142, .10);
-  }
-  50% {
-    box-shadow:
-      0 0 0 5px rgba(66, 133, 244, .20),
-      0 0 20px rgba(66, 133, 244, .42),
-      0 11px 22px rgba(31, 74, 142, .17);
-  }
-}
-
-@keyframes eh-choice-hover-motion-glow {
-  0%, 100% {
-    scale: 1.08;
-    filter:
-      brightness(1.04)
-      saturate(1.08)
-      drop-shadow(0 0 3px var(--eh-hover-glow-core));
-  }
-  50% {
-    scale: 1.22;
-    filter:
-      brightness(1.16)
-      saturate(1.2)
-      drop-shadow(0 0 11px var(--eh-hover-glow-core))
-      drop-shadow(0 0 21px var(--eh-hover-glow-soft));
-  }
-}
 
 @media (hover: hover) and (pointer: fine) {
   /* Buttons, pills, tabs, menus, icons and detected custom controls. */
@@ -127,10 +38,6 @@ html body .app-shell[data-route] {
       0 18px 34px var(--eh-hover-final-shadow),
       0 0 0 5px var(--eh-hover-glow-faint),
       0 0 22px var(--eh-hover-glow-soft) !important;
-    animation:
-      eh-control-hover-motion 1.15s cubic-bezier(.45, 0, .55, 1) infinite,
-      eh-control-hover-glow 1.35s ease-in-out infinite !important;
-    will-change: translate, scale, filter;
   }
 
   html body .app-shell[data-route] :where(
@@ -147,9 +54,6 @@ html body .app-shell[data-route] {
     [data-clickable='true'],
     [data-eh-interactive='true'][data-eh-interactive-kind='control']
   ):not([data-hover-ignore='true']):not([data-motion-ignore='true']):active {
-    animation: none !important;
-    translate: 0 0 !important;
-    scale: .96 !important;
     outline-color: rgba(66, 133, 244, .34) !important;
     box-shadow:
       0 7px 14px rgba(31, 74, 142, .20),
@@ -167,10 +71,6 @@ html body .app-shell[data-route] {
       0 26px 52px rgba(31, 74, 142, .30),
       0 0 0 7px var(--eh-hover-glow-faint),
       0 0 34px var(--eh-hover-glow-soft) !important;
-    animation:
-      eh-card-hover-motion 1.65s cubic-bezier(.45, 0, .55, 1) infinite,
-      eh-card-hover-glow 1.45s ease-in-out infinite !important;
-    will-change: translate, scale, filter;
   }
 
   /* Card-like links behave as one animated surface. */
@@ -184,18 +84,12 @@ html body .app-shell[data-route] {
       0 18px 34px var(--eh-hover-final-shadow),
       0 0 0 5px var(--eh-hover-glow-faint),
       0 0 22px var(--eh-hover-glow-soft) !important;
-    animation:
-      eh-control-hover-motion 1.15s cubic-bezier(.45, 0, .55, 1) infinite,
-      eh-control-hover-glow 1.35s ease-in-out infinite !important;
     text-decoration: none !important;
   }
 
   /* Inline text links remain text-only: no movement and no glow. */
   html body .app-shell[data-route] a[href]:not([data-eh-interactive-kind='control']):not([data-hover-ignore='true']):hover,
   html body .app-shell[data-route] [data-eh-interactive-kind='text-link']:hover {
-    animation: none !important;
-    translate: none !important;
-    scale: 1 !important;
     filter: none !important;
     color: #0b57d0 !important;
     text-decoration: underline 2px currentColor !important;
@@ -211,14 +105,11 @@ html body .app-shell[data-route] {
     select:not(:disabled),
     [contenteditable='true']
   ):not([data-hover-ignore='true']):hover {
-    translate: none !important;
-    scale: 1 !important;
     border-color: rgba(66, 133, 244, .72) !important;
     outline: 2px solid rgba(66, 133, 244, .32) !important;
     outline-offset: 2px !important;
     background-color: rgba(246, 250, 255, .99) !important;
     filter: none !important;
-    animation: eh-field-hover-glow 1.45s ease-in-out infinite !important;
   }
 
   /* Compact choice controls pulse without shifting their layout. */
@@ -228,11 +119,8 @@ html body .app-shell[data-route] {
     input[type='range']:not(:disabled),
     input[type='color']:not(:disabled)
   ):hover {
-    translate: none !important;
     outline: 3px solid rgba(66, 133, 244, .30) !important;
     outline-offset: 3px !important;
-    animation: eh-choice-hover-motion-glow 1.1s ease-in-out infinite !important;
-    will-change: scale, filter;
   }
 }
 
@@ -263,24 +151,4 @@ body.theme-dark .app-shell[data-route] {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html body .app-shell[data-route] :where(
-    button,
-    summary,
-    [role='button'],
-    [role='menuitem'],
-    [role='tab'],
-    [data-interactive='true'],
-    [data-clickable='true'],
-    [data-eh-interactive='true'],
-    [data-eh-motion-card='true'],
-    input,
-    textarea,
-    select,
-    [contenteditable='true']
-  ):hover {
-    animation: none !important;
-    translate: none !important;
-    scale: 1 !important;
-  }
-}
+

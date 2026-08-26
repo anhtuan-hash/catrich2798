@@ -248,7 +248,7 @@ export default function Settings({
 
   const queryValue = query.trim().toLowerCase();
   const matches = (...terms) => !queryValue || terms.some((term) => String(term || '').toLowerCase().includes(queryValue));
-  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'auto', block: 'start' });
   const navItems = [
     ['settings-account', 'person', vi ? 'Tài khoản' : 'Account', vi ? 'Hồ sơ & bảo mật' : 'Profile & security'],
     ['settings-notifications', 'bell', vi ? 'Thông báo' : 'Notifications', vi ? 'Email & ứng dụng' : 'Email & app'],

@@ -243,11 +243,9 @@
   color: #344054;
   text-align: left;
   cursor: pointer;
-  transition: transform 150ms ease, border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
 }
 
 .gdc-day-rail > button:hover {
-  transform: translateY(-1px);
   border-color: #d7e3f5;
   background: #fff;
   box-shadow: 0 4px 14px rgba(46, 62, 86, .07);
@@ -441,7 +439,6 @@
   color: #344054;
   text-align: left;
   cursor: pointer;
-  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
 
 .gdc-event::before {
@@ -458,7 +455,6 @@
 .gdc-event.is-done::before { background: #98a2b3; }
 
 .gdc-event:hover {
-  transform: translateY(-1px);
   border-color: #b7cdf3;
   background: #fbfdff;
   box-shadow: 0 6px 18px rgba(45, 62, 86, .08);
@@ -758,9 +754,4 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .gdc-day-rail > button,
-  .gdc-event {
-    transition: none;
-  }
-}
+

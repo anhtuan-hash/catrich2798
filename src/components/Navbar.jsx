@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { getFirstAllowedRoute, hasRouteAccess } from '../utils/permissions.js';
-import { launchRoute } from '../utils/motion.js';
+import { launchRoute } from '../utils/navigation.js';
 
 const labels = {
   vi: {

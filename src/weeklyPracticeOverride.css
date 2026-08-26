@@ -135,7 +135,6 @@
   box-shadow: 0 4px 13px rgba(60, 64, 67, .08) !important;
   font-size: 0 !important;
   opacity: 0;
-  transition: opacity .18s ease, transform .18s ease !important;
 }
 
 .metro-clean-system[data-route='home'] .bes-weekly-manage-button { right: 62px; }
@@ -168,11 +167,9 @@
   border-radius: 25px !important;
   background: linear-gradient(160deg, #fff, color-mix(in srgb, var(--s) 48%, #fff)) !important;
   box-shadow: 0 3px 9px rgba(60, 64, 67, .055), 0 14px 28px rgba(60, 64, 67, .065) !important;
-  transition: transform .22s ease, box-shadow .22s ease !important;
 }
 
 .bes-weekly-grade-column:hover {
-  transform: translateY(-4px);
   box-shadow: 0 8px 18px rgba(60, 64, 67, .09), 0 22px 44px rgba(60, 64, 67, .12) !important;
 }
 
@@ -425,7 +422,6 @@
   font-weight: 800 !important;
   cursor: pointer;
   box-shadow: 0 9px 20px color-mix(in srgb, var(--a) 25%, transparent) !important;
-  transition: transform .18s ease, box-shadow .18s ease !important;
 }
 .bes-weekly-grade-card.is-latest .bes-weekly-grade-card__action > button::after {
   content: "→";
@@ -436,7 +432,6 @@
   font-size: 1.45rem;
 }
 .bes-weekly-grade-card.is-latest .bes-weekly-grade-card__action > button:hover:not(:disabled) {
-  transform: translateY(-2px) !important;
   box-shadow: 0 13px 26px color-mix(in srgb, var(--a) 31%, transparent) !important;
 }
 
@@ -455,10 +450,8 @@
   background: rgba(255, 255, 255, .94) !important;
   box-shadow: 0 2px 8px rgba(60, 64, 67, .045) !important;
   transform: none !important;
-  transition: border-color .18s ease, background .18s ease, transform .18s ease !important;
 }
 .bes-weekly-grade-card:not(.is-latest):hover {
-  transform: translateY(-1px) !important;
   border-color: color-mix(in srgb, var(--a) 38%, #dce2ea) !important;
   background: color-mix(in srgb, var(--s) 45%, #fff) !important;
 }
@@ -508,7 +501,6 @@
   box-shadow: none !important;
   font-size: 0 !important;
   cursor: pointer;
-  transition: transform .18s ease, background .18s ease !important;
 }
 .bes-weekly-grade-card:not(.is-latest) .bes-weekly-grade-card__action > button::after {
   content: "›";
@@ -520,7 +512,6 @@
   font-weight: 500;
 }
 .bes-weekly-grade-card:not(.is-latest) .bes-weekly-grade-card__action > button:hover:not(:disabled) {
-  transform: translateX(2px) !important;
   background: color-mix(in srgb, var(--a) 16%, #fff) !important;
 }
 
@@ -672,11 +663,4 @@ html[data-theme='dark'] .bes-weekly-grade-card__meta span:nth-child(3) { backgro
   .bes-weekly-override-proof { width: 100%; max-width: none; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  #bes-weekly-practice-root *,
-  #bes-weekly-practice-root *::before,
-  #bes-weekly-practice-root *::after {
-    animation: none !important;
-    transition-duration: .01ms !important;
-  }
-}
+

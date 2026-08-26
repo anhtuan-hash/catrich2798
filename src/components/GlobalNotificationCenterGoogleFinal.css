@@ -77,7 +77,6 @@ html body .app-shell .brian-notification-card.is-unread {
 
 html body .app-shell .brian-notification-card:hover,
 html body .app-shell .brian-notification-card:focus-within {
-  transform: none !important;
   border-color: color-mix(in srgb, var(--notice-accent) 48%, var(--gm-line)) !important;
   background: color-mix(in srgb, var(--gm-surface) 82%, var(--notice-soft)) !important;
   box-shadow: inset 4px 0 0 var(--notice-accent), 0 5px 12px rgba(60,64,67,.12), 0 16px 32px color-mix(in srgb, var(--notice-accent) 14%, transparent) !important;

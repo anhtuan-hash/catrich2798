@@ -8,56 +8,6 @@ import conductBulkActionsPlugin from './build/conductBulkActionsPlugin.js';
 const departmentCloudEnabled = process.env.VITE_DEPARTMENT_CLOUD_ENABLED || 'true';
 const departmentId = process.env.VITE_DEPARTMENT_ID || '00000000-0000-0000-0000-000000000001';
 
-function randomGroupGeneratorPlugin() {
-  const appRecord = `
-  {
-    slug: 'random-group-generator', icon: 'RG', tone: 'blue', group: 'Classroom Utilities', groupVi: 'Tiện ích lớp học',
-    title: 'Brian Group Maker', titleVi: 'Brian Group Maker',
-    desc: 'Create fair random groups, manage attendance, assign roles, adjust teams by drag-and-drop and present results fullscreen.',
-    descVi: 'Tạo nhóm ngẫu nhiên công bằng, đánh dấu vắng, gán vai trò, kéo thả điều chỉnh và trình chiếu toàn màn hình.',
-    status: 'Offline · Projector · Saved classes', statusVi: 'Offline · Máy chiếu · Lưu lớp',
-    api: false, featured: true,
-  },`;
-
-  return {
-    name: 'brian-random-group-generator',
-    enforce: 'pre',
-    transform(code, id) {
-      const cleanId = String(id || '').split('?')[0].replaceAll('\\', '/');
-
-      if (cleanId.endsWith('/src/data/apps.js') && !code.includes("slug: 'random-group-generator'")) {
-        return code.replace('export const APPS = [', `export const APPS = [${appRecord}`);
-      }
-
-      if (cleanId.endsWith('/src/pages/RandomGroupGenerator.jsx') && !code.includes('random-group-generator-clean.css')) {
-        return code.replace(
-          "import '../styles/random-group-generator.css';",
-          "import '../styles/random-group-generator.css';\nimport '../styles/random-group-generator-clean.css';",
-        );
-      }
-
-      if (cleanId.endsWith('/src/pages/ToolPage.jsx')) {
-        let next = code;
-        if (!next.includes("const RandomGroupGenerator = lazy")) {
-          next = next.replace(
-            "const WordOrbitGame = lazy(() => import('./WordOrbitGame.jsx'));",
-            "const WordOrbitGame = lazy(() => import('./WordOrbitGame.jsx'));\nconst RandomGroupGenerator = lazy(() => import('./RandomGroupGenerator.jsx'));",
-          );
-        }
-        if (!next.includes("tool?.slug === 'random-group-generator'")) {
-          next = next.replace(
-            "  if (tool?.slug === 'word-orbit') return renderLazy(WordOrbitGame, props);",
-            "  if (tool?.slug === 'word-orbit') return renderLazy(WordOrbitGame, props);\n  if (tool?.slug === 'random-group-generator') return renderLazy(RandomGroupGenerator, props);",
-          );
-        }
-        return next;
-      }
-
-      return null;
-    },
-  };
-}
-
 function conductPeriodEvaluationPlugin() {
   const helperSource = `
 export const CONDUCT_WEEKLY_SCORE_SCALE = Object.freeze({ divisor: 25, maximum: 4 });
@@ -165,7 +115,6 @@ export function prohibitedConductRecordsForPeriod(workspace, startDate, endDate,
 }
 
 export default defineConfig({
-  plugins: [attendanceConductLinkPlugin(), conductAttendanceIdentityRepairPlugin(), conductBulkActionsPlugin(), conductPeriodEvaluationPlugin(), randomGroupGeneratorPlugin(), react()],
   resolve: {
     alias: [{ find: /^read-excel-file$/, replacement: 'read-excel-file/browser' }],
   },

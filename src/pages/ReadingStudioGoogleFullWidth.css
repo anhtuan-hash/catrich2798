@@ -194,7 +194,6 @@
 }
 
 .reading-accordion-card:hover {
-  transform: translateY(-1px);
   border-color: #a8c7fa !important;
   box-shadow: 0 4px 14px rgba(60,64,67,.09) !important;
 }

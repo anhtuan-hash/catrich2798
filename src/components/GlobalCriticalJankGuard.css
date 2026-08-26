@@ -1,6 +1,4 @@
-/* Brian English Studio · critical rendering performance guard.
-   Motion suppression and reduced-motion compatibility selectors are retired.
-   This layer now only removes expensive live blur/filter work on Balanced/Low. */
+
 
 html[data-performance='balanced'] body .app-shell[data-route],
 html[data-performance='low'] body .app-shell[data-route] {

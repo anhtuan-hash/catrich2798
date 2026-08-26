@@ -45,10 +45,8 @@
   font-size:.7rem;
   font-weight:900;
   cursor:pointer;
-  transition:transform .16s ease,border-color .16s ease,background .16s ease,color .16s ease,box-shadow .16s ease;
 }
 .bes-weekly-grade-filter__buttons button:hover:not(:disabled){
-  transform:translateY(-1px);
   border-color:#9fbce9;
   background:#f6f9ff;
 }
@@ -132,6 +130,4 @@ html[data-theme='dark'] .bes-weekly-grade-filter__buttons button,
   background:#1b2937;
   color:#cbd5e1;
 }
-@media(prefers-reduced-motion:reduce){
-  .bes-weekly-grade-filter__buttons button{transition:none}
-}
+

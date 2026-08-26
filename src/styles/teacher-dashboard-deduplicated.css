@@ -80,11 +80,9 @@
   font-size: 13px;
   font-weight: 850;
   white-space: nowrap;
-  transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
 }
 
 .tdb-modern-calendar-open:hover {
-  transform: translateY(-2px);
   background: #f1f6ff;
   box-shadow: 0 8px 20px rgba(11,87,208,.12);
 }
@@ -167,11 +165,9 @@
   background: rgba(255,255,255,.88);
   color: var(--tdb-ink);
   cursor: pointer;
-  transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
 }
 
 .tdb-calendar-day-card:hover {
-  transform: translateY(-3px);
   border-color: #a8c7fa;
   box-shadow: 0 9px 20px rgba(60,64,67,.09);
 }
@@ -414,11 +410,9 @@
   color: var(--tdb-ink);
   text-align: left;
   cursor: pointer;
-  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
 
 .tdb-modern-event:hover {
-  transform: translateX(3px);
   border-color: #a8c7fa;
   box-shadow: 0 7px 18px rgba(60,64,67,.08);
 }

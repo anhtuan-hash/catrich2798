@@ -72,12 +72,10 @@
   color: #3c4043 !important;
   font-size: 1.55rem !important;
   font-weight: 400 !important;
-  transition: background .16s ease, transform .16s ease;
 }
 
 .bes-weekly-manager--simple .bes-weekly-close:hover {
   background: #e8eaed !important;
-  transform: rotate(3deg);
 }
 
 .bes-weekly-manager--simple .bes-weekly-manager__message {
@@ -166,7 +164,6 @@
   font-size: .94rem !important;
   font-weight: 400 !important;
   outline: none;
-  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
 }
 
 .bes-weekly-manager--simple .bes-weekly-form input:focus,
@@ -308,13 +305,11 @@
   border: 1px solid #dadce0;
   border-radius: 14px;
   background: #fff;
-  transition: border-color .16s ease, background .16s ease, box-shadow .16s ease, transform .16s ease;
 }
 
 .bes-weekly-mode-grid label:hover > span {
   border-color: #a8c7fa;
   background: #f8fafd;
-  transform: translateY(-1px);
 }
 
 .bes-weekly-mode-grid input:checked + span {

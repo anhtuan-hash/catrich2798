@@ -120,12 +120,10 @@ body:has(.app-shell[data-tool="knowledge-train"]) {
   color: #25405f !important;
   font-weight: 800 !important;
   box-shadow: none !important;
-  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, border-color 160ms ease !important;
 }
 
 .app-shell[data-tool="knowledge-train"] .ktg-back:hover,
 .app-shell[data-tool="knowledge-train"] .ktg-btn:hover:not(:disabled) {
-  transform: translateY(-1px) !important;
   border-color: #9db7dc !important;
   background: #f6f9fe !important;
   box-shadow: 0 3px 10px rgba(60, 64, 67, 0.13) !important;
@@ -378,7 +376,6 @@ body:has(.app-shell[data-tool="knowledge-train"]) {
 .app-shell[data-tool="knowledge-train"] .ktg-track-slot:hover {
   border-color: var(--ktg-g-blue) !important;
   background: rgba(232, 240, 254, 0.50) !important;
-  transform: translateY(-2px) !important;
 }
 
 .app-shell[data-tool="knowledge-train"] .ktg-slot-number {
@@ -506,7 +503,6 @@ body:has(.app-shell[data-tool="knowledge-train"]) {
 
 .app-shell[data-tool="knowledge-train"] .ktg-car:hover,
 .app-shell[data-tool="knowledge-train"] .ktg-car:focus-visible {
-  transform: translateY(-3px) !important;
   box-shadow: 0 9px 20px rgba(60, 64, 67, 0.20) !important;
 }
 
@@ -1067,12 +1063,4 @@ body:has(.app-shell[data-tool="knowledge-train"]) {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .app-shell[data-tool="knowledge-train"] .ktg-app *,
-  .app-shell[data-tool="knowledge-train"] .ktg-app *::before,
-  .app-shell[data-tool="knowledge-train"] .ktg-app *::after {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
-  }
-}
+

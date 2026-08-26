@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FONT_SCALE_OPTIONS } from '../utils/fontScale.js';
 import { hasRouteAccess } from '../utils/permissions.js';
-import { launchRoute } from '../utils/motion.js';
+import { launchRoute } from '../utils/navigation.js';
 import {
   markAllWorkHubNotificationsRead,
   markWorkHubNotificationRead,

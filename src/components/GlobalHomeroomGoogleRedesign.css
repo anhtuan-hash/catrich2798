@@ -239,8 +239,8 @@
 }
 .hr-page .hr-toast span{color:#81c995!important}
 .hr-page .hr-saving-strip{bottom:84px!important;background:#174ea6!important}
-.hr-page .hr-saving-strip i{width:14px!important;height:14px!important;border:2px solid rgba(255,255,255,.38)!important;border-top-color:#fff!important;border-radius:50%!important;animation:hrg-spin .8s linear infinite!important}
-@keyframes hrg-spin{to{transform:rotate(360deg)}}
+.hr-page .hr-saving-strip i{width:14px!important;height:14px!important;border:2px solid rgba(255,255,255,.38)!important;border-top-color:#fff!important;border-radius:50%!important;}
+
 
 /* Surfaces and type */
 .hr-page .hr-workspace-body,.hr-page .hr-tab-stack{display:grid!important;gap:16px!important}
@@ -287,9 +287,8 @@
   border:0!important;
   border-radius:999px!important;
   box-shadow:none!important;
-  transition:background-color .16s ease,color .16s ease,box-shadow .16s ease!important;
 }
-.hr-page button:hover{outline:0!important;transform:none!important}
+.hr-page button:hover{outline:0!important;}
 .hr-page button.primary{
   min-height:42px!important;
   padding:0 18px!important;
@@ -514,7 +513,7 @@
 .hr-page .hrc-offline-panel::after{display:none!important}
 .hr-page .hrc-import-preview{padding:14px!important;border:0!important;border-radius:14px!important;background:#f8fafd!important}
 .hr-page .hr-loading{min-height:380px!important;display:grid!important;place-items:center!important;align-content:center!important;gap:14px!important}
-.hr-page .hr-loading>span{width:32px!important;height:32px!important;border:3px solid #d2e3fc!important;border-top-color:var(--hrg-blue)!important;border-radius:50%!important;animation:hrg-spin .8s linear infinite!important}
+.hr-page .hr-loading>span{width:32px!important;height:32px!important;border:3px solid #d2e3fc!important;border-top-color:var(--hrg-blue)!important;border-radius:50%!important;}
 .hr-page .hr-loading h2{font-size:22px!important;font-weight:500!important}
 
 /* Dark mode */

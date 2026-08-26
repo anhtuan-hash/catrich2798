@@ -18,7 +18,6 @@ body.pgt-profile-modal-open {
   background: rgba(32, 33, 36, .54) !important;
   -webkit-backdrop-filter: blur(8px) saturate(.92) !important;
   backdrop-filter: blur(8px) saturate(.92) !important;
-  animation: pgt-profile-backdrop-in 180ms ease-out both !important;
 }
 
 .gd-page #dashboard-personnel-v2 .pgt-drawer {
@@ -37,7 +36,6 @@ body.pgt-profile-modal-open {
     0 24px 72px rgba(32, 33, 36, .30),
     0 8px 24px rgba(32, 33, 36, .18),
     inset 0 1px 0 rgba(255, 255, 255, .98) !important;
-  animation: pgt-profile-dialog-in 220ms cubic-bezier(.2, .8, .2, 1) both !important;
   transform-origin: center center !important;
 }
 
@@ -289,15 +287,6 @@ body.pgt-profile-modal-open {
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 }
 
-@keyframes pgt-profile-backdrop-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes pgt-profile-dialog-in {
-  from { opacity: 0; transform: translateY(14px) scale(.975); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
 
 @media (max-width: 900px) {
   .gd-page #dashboard-personnel-v2 .pgt-drawer-layer {
@@ -404,9 +393,4 @@ body.theme-dark .gd-page #dashboard-personnel-v2 .pgt-form-actions {
   background: rgba(32, 33, 36, .97) !important;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .gd-page #dashboard-personnel-v2 .pgt-drawer-layer,
-  .gd-page #dashboard-personnel-v2 .pgt-drawer {
-    animation: none !important;
-  }
-}
+

@@ -73,11 +73,9 @@
   color: #38445f;
   cursor: pointer;
   box-shadow: 0 6px 16px rgba(63, 75, 107, 0.08);
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
 .fwg-icon-button:hover {
-  transform: translateY(-2px);
   border-color: rgba(105, 68, 216, 0.34);
   box-shadow: 0 10px 22px rgba(63, 75, 107, 0.14);
 }
@@ -158,11 +156,9 @@
   font-weight: 750;
   cursor: pointer;
   box-shadow: 0 5px 14px rgba(54, 66, 98, 0.06);
-  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
 }
 
 .fwg-header-button:hover {
-  transform: translateY(-1px);
   border-color: rgba(105, 68, 216, 0.34);
   background: #fbfaff;
 }
@@ -496,7 +492,6 @@
   outline: none;
   background: #fbfcff;
   color: #20283c;
-  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
 .fwg-field input {
@@ -715,7 +710,6 @@
   flex: 0 0 auto;
   border-radius: 999px;
   background: #d8deea;
-  transition: background 160ms ease;
 }
 
 .fwg-toggle-list i::after {
@@ -728,7 +722,6 @@
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 2px 7px rgba(43, 51, 72, 0.18);
-  transition: transform 160ms ease;
 }
 
 .fwg-toggle-list input:checked + i {
@@ -797,11 +790,9 @@
   box-shadow:
     0 15px 27px rgba(85, 52, 189, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
 }
 
 .fwg-start-button:hover:not(:disabled) {
-  transform: translateY(-2px);
   box-shadow:
     0 19px 34px rgba(85, 52, 189, 0.31),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
@@ -1034,7 +1025,6 @@
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, #6f48d9, #2b93ef);
-  transition: width 280ms ease;
 }
 
 .fwg-arena-wrap {
@@ -1117,11 +1107,6 @@
     -14px 13px 0 color-mix(in srgb, var(--token-primary) 24%, transparent),
     0 13px 18px rgba(50, 44, 46, 0.22),
     inset 0 2px 0 rgba(255, 255, 255, 0.38);
-  transition:
-    filter 120ms ease,
-    scale 120ms ease,
-    box-shadow 120ms ease;
-  will-change: left, top, transform;
 }
 
 .fwg-flying-token::after {
@@ -1140,7 +1125,6 @@
 .fwg-flying-token:hover {
   z-index: 8;
   filter: brightness(1.08) saturate(1.06);
-  scale: 1.08;
   box-shadow:
     -32px 26px 24px color-mix(in srgb, var(--token-secondary) 30%, transparent),
     -14px 13px 0 color-mix(in srgb, var(--token-primary) 26%, transparent),
@@ -1149,7 +1133,6 @@
 }
 
 .fwg-flying-token:active {
-  scale: 0.95;
 }
 
 .fwg-flying-token i {
@@ -1212,13 +1195,8 @@
 
 .fwg-timer.is-urgent {
   color: #d82e49;
-  animation: fwg-timer-pulse 850ms ease-in-out infinite;
 }
 
-@keyframes fwg-timer-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.06); }
-}
 
 .fwg-answer-dock {
   position: relative;
@@ -1321,25 +1299,12 @@
 }
 
 .fwg-answer-slots.is-shaking {
-  animation: fwg-shake 420ms ease-in-out;
 }
 
-@keyframes fwg-shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-12px); }
-  40% { transform: translateX(10px); }
-  60% { transform: translateX(-7px); }
-  80% { transform: translateX(5px); }
-}
 
 .fwg-game.is-wrong .fwg-arena {
-  animation: fwg-wrong-flash 650ms ease;
 }
 
-@keyframes fwg-wrong-flash {
-  0%, 100% { box-shadow: 0 19px 32px rgba(0, 0, 0, 0.34), 0 0 0 1px rgba(255, 221, 33, 0.35); }
-  45% { box-shadow: 0 19px 32px rgba(0, 0, 0, 0.34), 0 0 0 7px rgba(221, 39, 69, 0.65); }
-}
 
 .fwg-pause-panel {
   position: absolute;
@@ -1509,11 +1474,9 @@
   font-size: 17px;
   font-weight: 850;
   cursor: pointer;
-  transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
 }
 
 .fwg-button:hover {
-  transform: translateY(-2px);
   filter: brightness(1.04);
 }
 
@@ -1983,19 +1946,4 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .flying-words-app *,
-  .flying-words-app *::before,
-  .flying-words-app *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.001ms !important;
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-  }
 
-  .fwg-flying-token {
-    box-shadow:
-      0 12px 18px rgba(50, 44, 46, 0.22),
-      inset 0 2px 0 rgba(255, 255, 255, 0.38);
-  }
-}

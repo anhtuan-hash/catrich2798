@@ -282,7 +282,6 @@
 }
 
 .metro-clean-system[data-route='admin'] .admin-v41-hero-actions button:hover {
-  transform: translateY(-1px) !important;
 }
 
 .metro-clean-system[data-route='admin'] .admin-v41-hero-mini-actions {

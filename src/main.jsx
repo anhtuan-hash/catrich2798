@@ -81,7 +81,6 @@ const Settings = lazy(() => import('./pages/Settings.jsx'));
 const Library = lazy(() => import('./pages/Library.jsx'));
 const ResourceLibrary = lazy(() => import('./pages/ResourceLibrary.jsx'));
 const NewsReader = lazy(() => import('./pages/NewsReader.jsx'));
-const StudentPractice = lazy(() => import('./pages/StudentPractice.jsx'));
 const QAHealthCheck = lazy(() => import('./pages/QAHealthCheck.jsx'));
 const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
@@ -101,14 +100,10 @@ const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.js
 const WorkHub = lazy(() => import('./pages/WorkHub.jsx'));
 const WorkDashboard = lazy(() => import('./pages/WorkDashboard.jsx'));
 const KnowledgeHub = lazy(() => import('./pages/KnowledgeHub.jsx'));
-const AssessmentCore = lazy(() => import('./pages/AssessmentCore.jsx'));
 const PlatformReadiness = lazy(() => import('./pages/PlatformReadiness.jsx'));
-const AutomationCenter = lazy(() => import('./pages/AutomationCenter.jsx'));
 const CloudOperations = lazy(() => import('./pages/CloudOperations.jsx'));
-const CollaborationHub = lazy(() => import('./pages/CollaborationHub.jsx'));
 const DataGovernance = lazy(() => import('./pages/DataGovernance.jsx'));
 const ProductionHardening = lazy(() => import('./pages/ProductionHardening.jsx'));
-const ContentEcosystem = lazy(() => import('./pages/ContentEcosystem.jsx'));
 const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAccessibilityAnnouncer.jsx'));
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
@@ -136,12 +131,8 @@ const ROUTE_DESIGN_PROFILES = {
   'knowledge-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
   dashboard: { accent: '#315FC4', soft: '#EAF3FF', ink: '#10264A' },
   'work-hub': { accent: '#14866D', soft: '#E6F8F2', ink: '#0B3A31' },
-  'content-ecosystem': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
-  'assessment-core': { accent: '#CC7621', soft: '#FFF3DF', ink: '#522A08' },
   'platform-readiness': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
-  'automation-center': { accent: '#1269B0', soft: '#E4F3FF', ink: '#0B3154' },
   'cloud-operations': { accent: '#167B68', soft: '#E4F6EF', ink: '#183F3C' },
-  'collaboration-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
   'data-governance': { accent: '#A24B35', soft: '#FFF0E8', ink: '#4A1E14' },
   'production-hardening': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
   practice: { accent: '#00A4EF', soft: '#DCF4FF', ink: '#063048' },
@@ -382,15 +373,15 @@ function App() {
       homeroom: ['Homeroom', 'Giáo viên chủ nhiệm'], library: ['Library', 'Thư viện'],
       'resource-library': ['Resource Library', 'Kho học liệu'], 'knowledge-hub': ['Smart Knowledge Library', 'Kho học liệu thông minh'],
       dashboard: ['Work Dashboard', 'Bảng điều hành'],
-      'work-hub': ['Unified Work Hub', 'Trung tâm công việc'], 'assessment-core': ['Assessment Core', 'Ngân hàng câu hỏi'],
+      'work-hub': ['Unified Work Hub', 'Trung tâm công việc'], 
       'platform-readiness': ['Platform Readiness', 'Sẵn sàng nền tảng'],
-      'automation-center': ['Automation Center', 'Trung tâm tự động hóa'],
+      
       'cloud-operations': ['Cloud Operations', 'Vận hành nền'],
-      'collaboration-hub': ['Collaboration Hub', 'Không gian cộng tác'],
+      
       'data-governance': ['Data Governance', 'Quản trị dữ liệu'],
       'production-hardening': ['Production Hardening', 'Sẵn sàng Production'],
       'app-vault': ['Hidden Apps Vault', 'Thư mục ứng dụng đã ẩn'],
-      practice: ['Classroom', 'Lớp học'], settings: ['Settings', 'Cài đặt'],
+       settings: ['Settings', 'Cài đặt'],
       admin: ['Admin', 'Quản trị'], resources: ['Resources', 'Tài nguyên'], contact: ['Contact', 'Liên hệ'], qa: ['System Health', 'Trạng thái hệ thống'], trash: ['Trash', 'Thùng rác'],
     };
     if (selectedTool?.slug) {
@@ -493,16 +484,11 @@ function App() {
             {canAccessRoute && currentRoute === 'knowledge-hub' && currentUser && <KnowledgeHub {...context} />}
             {canAccessRoute && currentRoute === 'dashboard' && currentUser && <WorkDashboard {...context} />}
             {canAccessRoute && currentRoute === 'work-hub' && currentUser && <WorkHub {...context} />}
-            {canAccessRoute && currentRoute === 'content-ecosystem' && currentUser && <ContentEcosystem {...context} />}
-            {canAccessRoute && currentRoute === 'assessment-core' && currentUser && <AssessmentCore {...context} />}
             {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <PlatformReadiness {...context} />}
-            {canAccessRoute && currentRoute === 'automation-center' && currentUser && <AutomationCenter {...context} />}
             {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <CloudOperations {...context} />}
-            {canAccessRoute && currentRoute === 'collaboration-hub' && currentUser && <CollaborationHub {...context} />}
             {canAccessRoute && currentRoute === 'data-governance' && currentUser && <DataGovernance {...context} />}
             {canAccessRoute && currentRoute === 'production-hardening' && currentUser && <ProductionHardening {...context} />}
             {canAccessRoute && currentRoute === 'app-vault' && currentUser && <HiddenAppsVault {...context} />}
-            {canAccessRoute && currentRoute === 'practice' && currentUser && <StudentPractice {...context} />}
             {canAccessRoute && currentRoute === 'qa' && currentUser && <SystemHealthCenter {...context} />}
             {canAccessRoute && currentRoute === 'trash' && currentUser && <TrashCenter {...context} />}
             {currentRoute === 'contact' && <Contact {...context} />}

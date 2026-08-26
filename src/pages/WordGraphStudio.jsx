@@ -480,7 +480,7 @@ export default function WordGraphStudio({ tool, language, apiKey, aiModel, hasAp
     return () => window.removeEventListener(LIBRARY_EVENT, refreshRecentMaps);
   }, []);
 
-  const scrollToRef = (ref) => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const scrollToRef = (ref) => ref.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
 
   const applyPromptTemplate = (template) => {
     setInstruction(template.prompt);

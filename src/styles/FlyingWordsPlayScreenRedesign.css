@@ -152,7 +152,6 @@
 }
 
 .app-shell[data-tool="flying-words"] .fwg-game-toolbar-actions button:hover {
-  transform: translateY(-2px) !important;
   filter: brightness(1.04) !important;
 }
 
@@ -217,7 +216,6 @@
     0 18px 27px rgba(53, 42, 23, 0.23),
     0 4px 0 color-mix(in srgb, var(--token-secondary) 80%, #000 20%),
     inset 0 2px 0 rgba(255, 255, 255, 0.46) !important;
-  transition: transform 140ms ease, filter 140ms ease, box-shadow 140ms ease !important;
 }
 
 .app-shell[data-tool="flying-words"] .fwg-flying-token::after {
@@ -246,7 +244,6 @@
 .app-shell[data-tool="flying-words"] .fwg-flying-token:hover {
   z-index: 9 !important;
   filter: brightness(1.06) saturate(1.05) !important;
-  scale: 1.07 !important;
   box-shadow:
     0 23px 34px rgba(53, 42, 23, 0.29),
     0 5px 0 color-mix(in srgb, var(--token-secondary) 82%, #000 18%),

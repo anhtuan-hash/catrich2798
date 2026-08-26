@@ -39,7 +39,7 @@ export default function SubjectStudentsTab({ workspace, onCommit }) {
   const edit = (student) => {
     setDraft({ ...EMPTY_STUDENT, code: student.code || '', fullName: student.fullName || '', birthDate: student.birthDate || '', gender: student.gender || '', notes: student.notes || '' });
     setEditingId(student.id);
-    document.querySelector('.hr-subject-student-form')?.scrollIntoView({ behavior: 'smooth' });
+    document.querySelector('.hr-subject-student-form')?.scrollIntoView({ behavior: 'auto' });
   };
 
   const archive = async (student) => {

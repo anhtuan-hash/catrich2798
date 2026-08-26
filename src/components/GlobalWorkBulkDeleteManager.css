@@ -20,11 +20,9 @@
   font-weight: 800;
   cursor: pointer;
   box-shadow: 0 5px 18px rgba(179, 38, 30, 0.08);
-  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
 .work-bulk-delete-launcher:hover {
-  transform: translateY(-1px);
   background: #ffefed;
   box-shadow: 0 8px 24px rgba(179, 38, 30, 0.13);
 }
@@ -271,11 +269,9 @@
   border-radius: 17px;
   background: #fff;
   cursor: pointer;
-  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
 }
 
 .work-bulk-delete-row:hover {
-  transform: translateY(-1px);
   border-color: #b8c5d6;
   background: #fbfcff;
 }
@@ -550,9 +546,4 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .work-bulk-delete-launcher,
-  .work-bulk-delete-row {
-    transition: none;
-  }
-}
+

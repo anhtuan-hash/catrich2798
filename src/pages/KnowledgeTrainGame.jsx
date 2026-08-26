@@ -416,7 +416,7 @@ export default function KnowledgeTrainGame({ language = 'vi' }) {
     event.target.value = '';
   };
 
-  const scroll = (ref, amount) => ref.current?.scrollBy({ left: amount, behavior: 'smooth' });
+  const scroll = (ref, amount) => ref.current?.scrollBy({ left: amount, behavior: 'auto' });
   const formatTime = (seconds) => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 
   if (view === 'edit') {

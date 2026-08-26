@@ -26,8 +26,8 @@ import {
   normalizeHomeHeroConfig,
   publishHomeHero,
   saveHomeHeroDraft,
-  uploadHomeHeroMedia,
 } from '../utils/homepageHeroCms.js';
+import { uploadHomeHeroMedia } from '../utils/homepageHeroMediaOptimizer.js';
 
 const TABS = [
   ['content', Type, 'Nội dung'],
@@ -110,6 +110,8 @@ function sanitizeMessage(error) {
   const message = String(error?.message || error || 'Có lỗi xảy ra.');
   if (/row-level security/i.test(message)) return 'Tài khoản hiện tại chưa được cấp quyền cập nhật Hero trong Supabase.';
   if (/bucket/i.test(message) && /not found/i.test(message)) return 'Chưa có Storage bucket cho Hero. Cần chạy bản nâng cấp Supabase đi kèm.';
+  if (/GITHUB_HERO_TOKEN/i.test(message)) return 'GITHUB_HERO_TOKEN chưa được cấu hình trong Vercel. Chưa thể đưa Hero vào thư mục public/hero.';
+  if (/Hero media host is not allowed/i.test(message)) return 'Nguồn media này chưa được phép sao chép vào GitHub. Hãy tải tệp trực tiếp bằng nút Chọn tệp.';
   return message;
 }
 
@@ -218,9 +220,15 @@ export default function HomeHeroCmsEditor({
           opacity: 100,
         },
       }));
-      setMessage({ tone: result.temporary ? 'warning' : 'success', text: result.temporary
-        ? 'Đã tải để xem trước. Cần nâng cấp Supabase để tệp được chia sẻ cho mọi người.'
-        : 'Đã tải tệp nền lên hệ thống.' });
+      const savedPercent = result.optimized && result.originalBytes
+        ? Math.max(0, Math.round((1 - result.outputBytes / result.originalBytes) * 100))
+        : 0;
+      setMessage({
+        tone: result.temporary ? 'warning' : 'success',
+        text: result.temporary
+          ? 'Đã tải để xem trước trên thiết bị này. Cần Supabase Storage để giữ tệp bản nháp trước khi công bố.'
+          : `Đã lưu tệp vào khu vực bản nháp${savedPercent ? ` và giảm ${savedPercent}% dung lượng` : ''}. Khi công bố, hệ thống sẽ sao chép tệp vào public/hero/media và phân phối bằng Vercel CDN.`,
+      });
     } catch (error) {
       setMessage({ tone: 'error', text: sanitizeMessage(error) });
     } finally {
@@ -249,11 +257,10 @@ export default function HomeHeroCmsEditor({
     setMessage(null);
     try {
       const result = await publishHomeHero(config, currentUser);
-      const normalized = normalizeHomeHeroConfig(config);
-      onPublished?.(normalized);
+      const shortCommit = String(result.commitSha || '').slice(0, 7);
       setMessage({
-        tone: result.databaseReady ? 'success' : 'warning',
-        text: result.databaseReady ? 'Hero mới đã được công bố.' : 'Hero đã được áp dụng trên trình duyệt này. Cần chạy SQL nâng cấp để công bố cho mọi người.',
+        tone: 'success',
+        text: `Đã tạo commit${shortCommit ? ` ${shortCommit}` : ''}. Vercel đang triển khai Hero mới từ public/hero; Hero hiện tại được giữ nguyên cho đến khi deployment sẵn sàng.`,
       });
     } catch (error) {
       setMessage({ tone: 'error', text: sanitizeMessage(error) });
@@ -301,7 +308,7 @@ export default function HomeHeroCmsEditor({
             ))}
             <div className={`hero-editor__database ${databaseReady ? 'is-ready' : 'is-local'}`}>
               <i>{databaseReady ? <Check size={15} /> : <CloudUpload size={15} />}</i>
-              <span><strong>{databaseReady ? 'Supabase sẵn sàng' : 'Chế độ cục bộ'}</strong><small>{databaseReady ? 'Có thể công bố cho toàn hệ thống' : 'Cần chạy SQL nâng cấp đi kèm'}</small></span>
+              <span><strong>{databaseReady ? 'Supabase sẵn sàng' : 'Chế độ cục bộ'}</strong><small>{databaseReady ? 'Bản nháp được đồng bộ; công bố qua GitHub/Vercel' : 'Cần chạy SQL nâng cấp đi kèm'}</small></span>
             </div>
           </aside>
 
@@ -375,7 +382,7 @@ export default function HomeHeroCmsEditor({
                 <div className="hero-editor__upload">
                   <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/apng,video/mp4,video/webm" onChange={handleUpload} hidden />
                   <i>{config.background.type === 'video' ? <Video size={30} /> : <FileImage size={30} />}</i>
-                  <div><strong>{config.background.fileName || 'Tải ảnh, GIF hoặc video làm nền'}</strong><small>JPG, PNG, WebP, GIF, APNG, MP4, WebM · tối đa 50 MB</small></div>
+                  <div><strong>{config.background.fileName || 'Tải ảnh, GIF hoặc video làm nền'}</strong><small>JPG, PNG, WebP, GIF, APNG, MP4, WebM · tối đa 25 MB khi công bố static</small></div>
                   <button type="button" disabled={busy === 'upload'} onClick={() => fileInputRef.current?.click()}><Upload size={16} />{busy === 'upload' ? 'Đang tải…' : 'Chọn tệp'}</button>
                 </div>
                 <Field label="Hoặc dùng URL trực tiếp" wide><input value={config.background.url} onChange={(event) => update('background.url', event.target.value)} placeholder="https://..." /></Field>

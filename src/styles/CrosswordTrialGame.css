@@ -43,9 +43,8 @@
 .bcg-btn {
   min-height: 44px; padding: 0 15px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   border: 1px solid var(--bcg-line); border-radius: 13px; background: #fff; color: #3c4043; font-weight: 700;
-  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
 }
-.bcg-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(60,64,67,.14); }
+.bcg-btn:hover:not(:disabled) { box-shadow: 0 4px 12px rgba(60,64,67,.14); }
 .bcg-btn:disabled { opacity: .5; cursor: not-allowed; }
 .bcg-btn svg { width: 19px; height: 19px; }
 .bcg-btn.is-primary { border-color: var(--bcg-blue-2); color: #fff; background: linear-gradient(135deg, #4285f4, #0b57d0); }
@@ -187,4 +186,4 @@
   .bcg-progress { grid-template-columns: 1fr; } .bcg-progress > div { border-right: 0; border-bottom: 1px solid var(--bcg-line); } .bcg-progress > div:last-child { border-bottom: 0; }
   .bcg-player, .bcg-metric { border-right: 0; padding-right: 4px; } .bcg-answer-actions, .bcg-teacher-actions { grid-template-columns: 1fr; }
 }
-@media (prefers-reduced-motion: reduce) { .bcg-app *, .bcg-app *::before, .bcg-app *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+

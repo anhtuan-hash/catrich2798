@@ -11,7 +11,7 @@ export default function SpecialTools({ tools, language, hasApiKey, currentUser }
         eyebrow="Special Tools"
         title={language === 'vi' ? 'Công cụ hỗ trợ giáo viên' : 'Teacher support tools'}
         description={language === 'vi' ? 'Soạn bài, tạo nội dung, thiết kế giờ dạy và xử lý tác vụ nhanh trong một không gian Metro phẳng, thống nhất.' : 'Plan lessons, generate content and handle fast teaching tasks in one flat, unified Metro workspace.'}
-        primary={{ label: language === 'vi' ? 'Mở công cụ' : 'Open tools', onClick: () => window.scrollTo({ top: 420, behavior: 'smooth' }) }}
+        primary={{ label: language === 'vi' ? 'Mở công cụ' : 'Open tools', onClick: () => window.scrollTo({ top: 420, behavior: 'auto' }) }}
         secondary={{ label: language === 'vi' ? 'Mở ứng dụng' : 'Open apps', onClick: () => (window.location.hash = '#/apps') }}
         stats={[
           { label: language === 'vi' ? 'công cụ hiện có' : 'active tools', value: tools.length, tone: 'orange' },

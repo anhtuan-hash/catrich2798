@@ -116,7 +116,6 @@
   border: 1px solid transparent;
   border-radius: 15px;
   background: transparent;
-  transition: background-color .12s ease, border-color .12s ease, transform .12s ease;
 }
 .command-v2-result:hover,
 .command-v2-result.active {
@@ -327,10 +326,6 @@
   .command-v2-egress { margin-left: 0; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .command-v2-result { transition: none; }
-  .command-v2-result.active { transform: none; }
-}
 
 @media (forced-colors: active) {
   .command-v2,

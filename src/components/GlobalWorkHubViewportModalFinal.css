@@ -444,12 +444,6 @@ body.work-hub-viewport-modal-open{
   }
 }
 
-@media (prefers-reduced-motion:reduce){
-  .v1093-work-hub>.v1093-drawer-backdrop>.v1093-drawer.work-delivery-drawer,
-  .v1093-drawer-backdrop.work-hub-viewport-modal-backdrop>.v1093-drawer.work-delivery-drawer{
-    animation:none!important;
-  }
-}
 
 @media (forced-colors:active){
   .v1093-work-hub>.v1093-drawer-backdrop,

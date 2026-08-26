@@ -553,7 +553,6 @@ html[data-theme="dark"] .metro-clean-system .signature-footer-v50-bottom,
   align-items:center;
   padding:0 12px;
   gap:8px;
-  transition:border-color .18s ease, box-shadow .18s ease;
 }
 .metro-clean-system .auth-page-v51 .auth-v51-input-wrap:focus-within{
   border-color:#80afe8;
@@ -677,79 +676,6 @@ html[data-theme="dark"] .metro-clean-system .signature-footer-v50-bottom,
 /* ===== V10.52 Department submission workspace refinement ===== */
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* V10.55 YouTube search and player inside global notification panel */
 .metro-clean-system .global-notice-panel.youtube-open{width:min(760px,100vw)!important;}
 .metro-clean-system .global-notice-panel-scroll.youtube-mode{padding:16px!important;background:linear-gradient(180deg,#f8fbff,#f4f7fc)!important;}
@@ -777,7 +703,7 @@ html[data-theme="dark"] .metro-clean-system .signature-footer-v50-bottom,
 .metro-clean-system .global-youtube-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
 .metro-clean-system .global-youtube-results>button{display:grid;grid-template-columns:112px minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left;border:1px solid #dfe6f1;border-radius:15px;background:#fff;padding:8px;box-shadow:0 8px 18px rgba(31,54,95,.05);}
 .metro-clean-system .global-youtube-results>button:hover,
-.metro-clean-system .global-youtube-results>button.active{transform:translateY(-1px);border-color:#9baaf2;box-shadow:0 13px 24px rgba(53,71,145,.12);}
+.metro-clean-system .global-youtube-results>button.active{border-color:#9baaf2;box-shadow:0 13px 24px rgba(53,71,145,.12);}
 .metro-clean-system .global-youtube-results img{width:112px;aspect-ratio:16/9;object-fit:cover;border-radius:10px;background:#edf1f7;}
 .metro-clean-system .global-youtube-results span{display:grid;gap:5px;min-width:0;}
 .metro-clean-system .global-youtube-results strong{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#17335d;font-size:.86rem;line-height:1.35;}
@@ -910,7 +836,6 @@ html[data-theme="dark"] .metro-clean-system .global-youtube-player-toolbar stron
   border-radius:20px;
   background:#0d1422;
   box-shadow:0 24px 64px rgba(9,24,51,.32);
-  transition:width .24s ease,right .24s ease,bottom .24s ease,transform .24s ease,border-radius .24s ease;
 }
 .metro-clean-system .global-youtube-persistent-player>header{
   height:46px;
@@ -988,15 +913,11 @@ html[data-theme="dark"] .metro-clean-system .global-youtube-player-toolbar stron
   right:22px;
   bottom:92px;
   width:min(400px,calc(100vw - 32px));
-  animation:youtubeMiniIn .22s ease both;
 }
 .metro-clean-system .global-youtube-persistent-player.is-floating-player.with-notice-panel{
   right:454px;
 }
-@keyframes youtubeMiniIn{
-  from{transform:translateY(16px) scale(.97);opacity:0;}
-  to{transform:translateY(0) scale(1);opacity:1;}
-}
+
 
 html[data-theme="dark"] .metro-clean-system .global-youtube-key-box summary span{
   background:#30291c;
@@ -1637,7 +1558,6 @@ html[data-theme="dark"] .metro-clean-system .global-youtube-audio-status>button{
   border-radius:0;
   background:transparent;
   overflow:hidden;
-  transition:height .22s ease;
 }
 .metro-clean-system[data-tool="textlab-activities"] .textlab-ai-progress{
   position:sticky;
@@ -1665,12 +1585,8 @@ html[data-theme="dark"] .metro-clean-system .global-youtube-audio-status>button{
   border-radius:50%;
   background:#357ee8;
   box-shadow:0 0 0 0 rgba(53,126,232,.35);
-  animation:textlabPulse 1.25s infinite;
 }
-@keyframes textlabPulse{
-  70%{box-shadow:0 0 0 9px rgba(53,126,232,0)}
-  100%{box-shadow:0 0 0 0 rgba(53,126,232,0)}
-}
+
 .metro-clean-system[data-tool="textlab-activities"] .textlab-direct-workspace:fullscreen{
   padding:14px;
   overflow:auto;
@@ -1800,7 +1716,6 @@ html[data-font-scale="130"] .metro-clean-system .global-font-size-btn{
   justify-items:center;
   gap:18px;
   text-align:center;
-  animation:globalAiCardIn .26s cubic-bezier(.2,.82,.25,1) both;
 }
 .global-ai-orbit{
   width:104px;
@@ -1831,7 +1746,6 @@ html[data-font-scale="130"] .metro-clean-system .global-font-size-btn{
   inset:8px;
   border:2px dashed #a9b9ed!important;
   border-radius:50%!important;
-  animation:globalAiOrbit 5s linear infinite;
 }
 .global-ai-orbit .orbit-dot{
   position:absolute;
@@ -1888,7 +1802,6 @@ html[data-font-scale="130"] .metro-clean-system .global-font-size-btn{
   height:100%;
   border-radius:inherit!important;
   background:linear-gradient(90deg,#465ed2,#7588ed,#42b48a)!important;
-  animation:globalAiProgress 1.35s ease-in-out infinite;
 }
 .global-ai-progress-steps{
   width:100%;
@@ -1915,21 +1828,9 @@ html[data-font-scale="130"] .metro-clean-system .global-font-size-btn{
   background:#4e65d4!important;
   border-color:#4e65d4!important;
   color:#fff!important;
-  animation:globalAiStepPulse 1.25s ease-in-out infinite;
 }
 .global-ai-progress-steps b{color:#60718d!important;white-space:nowrap;}
 
-@keyframes globalAiCardIn{
-  from{opacity:0;transform:translateY(14px) scale(.975)}
-  to{opacity:1;transform:translateY(0) scale(1)}
-}
-@keyframes globalAiOrbit{to{transform:rotate(360deg)}}
-@keyframes globalAiProgress{
-  0%{transform:translateX(-115%)}
-  55%{transform:translateX(80%)}
-  100%{transform:translateX(230%)}
-}
-@keyframes globalAiStepPulse{50%{transform:scale(1.08);box-shadow:0 0 0 8px rgba(78,101,212,.10)!important}}
 
 html[data-theme="dark"] .global-ai-indicator-card{
   background:linear-gradient(145deg,rgba(15,31,55,.98),rgba(11,26,47,.98))!important;
@@ -1965,12 +1866,6 @@ html[data-theme="dark"] .global-ai-progress-steps b{color:#c2cee0!important;}
   .global-ai-progress-steps span:nth-of-type(n+2) + b{display:none;}
 }
 
-@media(prefers-reduced-motion:reduce){
-  .global-ai-indicator-card,
-  .global-ai-orbit::before,
-  .global-ai-progress-track span,
-  .global-ai-progress-steps span.active{animation:none!important;}
-}
 
 /* V10.63 reusable saved activities */
 .live-standalone-frame{
@@ -1999,118 +1894,6 @@ html[data-theme="dark"] .global-ai-progress-steps b{color:#c2cee0!important;}
 .library-card .playable-badge{display:inline-flex;margin-left:8px;padding:4px 8px;border-radius:999px;background:#eaf7ef;color:#1c7b4d;font-size:.8125rem;font-weight:850}
 
 /* ===== V10.64 Department AI file-to-weekly-schedule importer ===== */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* =========================================================
@@ -2153,7 +1936,6 @@ html[data-theme="dark"] .global-ai-progress-steps b{color:#c2cee0!important;}
 }
 .metro-clean-system[data-route="login"] .auth-v65-google:hover,
 .metro-clean-system[data-route="register"] .auth-v65-google:hover{
-  transform:translateY(-1px);
   border-color:#bdcce2;
   box-shadow:0 14px 26px rgba(29,50,92,.11);
 }

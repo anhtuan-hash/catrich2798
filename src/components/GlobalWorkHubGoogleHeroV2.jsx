@@ -36,7 +36,7 @@ function openCreateForm() {
   goTo('#/work-hub');
   window.setTimeout(() => {
     document.querySelector('.v1093-work-hub .v1093-create-form')?.scrollIntoView({
-      behavior: 'smooth',
+      behavior: 'auto',
       block: 'start',
     });
   }, 220);

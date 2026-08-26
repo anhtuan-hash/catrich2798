@@ -77,7 +77,6 @@ html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__
   background: var(--gm3-surface-container) !important;
   color: var(--gm3-ink) !important;
   box-shadow: none !important;
-  transform: none !important;
 }
 
 .brian-concept-tab.is-active {
@@ -161,7 +160,6 @@ html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-nav__ac
 html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-nav__ai-button:hover {
   background: var(--gm3-surface-container) !important;
   box-shadow: none !important;
-  transform: none !important;
 }
 
 html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 .brian-nav__account {

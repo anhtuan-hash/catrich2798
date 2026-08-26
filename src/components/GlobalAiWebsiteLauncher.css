@@ -351,10 +351,8 @@ html.bes-ai-workspace-open body {
   border: 3px solid #d3e3fd;
   border-top-color: #0b57d0;
   border-radius: 50%;
-  animation: brianAiSpin .8s linear infinite;
 }
 
-@keyframes brianAiSpin { to { transform: rotate(360deg); } }
 
 .brian-ai-workspace__blank > span {
   width: 68px;
@@ -755,6 +753,4 @@ html.bes-ai-workspace-open body {
   outline-offset: 2px !important;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .brian-ai-workspace__loading > span { animation: none !important; }
-}
+

@@ -99,7 +99,7 @@ function chooseFilter(panel, value) {
   const root = panel.querySelector(`.${ROOT_CLASS}`);
   if (root) updateActiveState(root, value);
   window.setTimeout(() => {
-    panel.querySelector('.hr-table-wrap, .hr-empty-state')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    panel.querySelector('.hr-table-wrap, .hr-empty-state')?.scrollIntoView({ behavior: 'auto', block: 'nearest' });
   }, 40);
 }
 

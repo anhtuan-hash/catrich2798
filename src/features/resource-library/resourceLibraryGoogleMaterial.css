@@ -149,13 +149,11 @@
   font-size: 15px !important;
   font-weight: 800 !important;
   cursor: pointer;
-  transition: transform .18s ease, background .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
 
 .resource-hero-actions button:hover,
 .resource-category-all:hover,
 .resource-folder-view__summary button:hover {
-  transform: translateY(-2px);
   background: var(--rl-blue-soft) !important;
 }
 
@@ -308,7 +306,6 @@
 }
 
 .rl-category-card:hover {
-  transform: translateY(-2px) !important;
   border-color: color-mix(in srgb, var(--tone) 46%, #dfe3e7) !important;
   box-shadow: 0 7px 20px rgba(60,64,67,.10) !important;
 }
@@ -531,11 +528,9 @@
   border-radius: 22px !important;
   background: #fff !important;
   box-shadow: none !important;
-  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
 
 .resource-library-card:hover {
-  transform: translateY(-1px);
   border-color: #a8c7fa !important;
   box-shadow: 0 6px 18px rgba(60,64,67,.09) !important;
 }

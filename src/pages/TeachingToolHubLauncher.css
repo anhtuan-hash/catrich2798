@@ -205,7 +205,7 @@
   background:linear-gradient(90deg,#4285f4,#7baaf7,#a8c7fa);
   opacity:0;
 }
-.tth-launcher-page .tth-launcher-tile:hover{transform:none!important;border-color:#c8d8e8!important;box-shadow:0 17px 34px rgba(38,68,98,.11)!important}
+.tth-launcher-page .tth-launcher-tile:hover{border-color:#c8d8e8!important;box-shadow:0 17px 34px rgba(38,68,98,.11)!important}
 .tth-launcher-page .tth-launcher-tile:hover::after{opacity:1}
 .tth-launcher-page .tth-launcher-tile[draggable=true]{cursor:grab!important}
 .tth-launcher-page .tth-launcher-tile[draggable=true]:active{cursor:grabbing!important}
@@ -252,11 +252,11 @@
 .tth-launcher-page .tth-launcher-tile .tth-domain{order:3!important;margin-top:1px!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#9aa7b4!important;font-size:.61rem!important;font-weight:700!important}
 .tth-launcher-page .tth-launcher-tile .tth-card-copy p{position:static!important;order:4!important;display:-webkit-box!important;min-height:38px!important;margin:10px 0 0!important;padding:0!important;overflow:hidden!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;border:0!important;background:transparent!important;color:#75889a!important;font-size:.68rem!important;line-height:1.45!important;text-align:left!important;box-shadow:none!important;opacity:1!important;transform:none!important;pointer-events:none!important}
 .tth-launcher-page .tth-launcher-tile .tth-open-mark{position:absolute!important;right:15px!important;bottom:13px!important;width:29px!important;height:29px!important;display:grid!important;place-items:center!important;border-radius:9px!important;background:#edf4fd!important;color:#2d72c8!important;font-size:.8rem!important;opacity:0!important;transform:none!important}
-.tth-launcher-page .tth-launcher-tile:hover .tth-open-mark{opacity:1!important;transform:none!important}
+.tth-launcher-page .tth-launcher-tile:hover .tth-open-mark{opacity:1!important;}
 
 /* ===== Admin controls ===== */
 .tth-launcher-page .tth-tile-admin{position:absolute!important;top:11px!important;right:11px!important;z-index:9!important;display:flex!important;gap:3px!important;padding:3px!important;border:1px solid #e0e8f0!important;border-radius:12px!important;background:rgba(255,255,255,.96)!important;box-shadow:0 6px 18px rgba(42,70,100,.08)!important;opacity:0!important;transform:none!important;backdrop-filter:blur(10px)!important}
-.tth-launcher-page .tth-launcher-tile:hover .tth-tile-admin,.tth-launcher-page .tth-launcher-tile:focus-within .tth-tile-admin{opacity:1!important;transform:none!important}
+.tth-launcher-page .tth-launcher-tile:hover .tth-tile-admin,.tth-launcher-page .tth-launcher-tile:focus-within .tth-tile-admin{opacity:1!important;}
 .tth-launcher-page .tth-tile-admin button{width:29px!important;height:29px!important;display:grid!important;place-items:center!important;padding:0!important;border:0!important;border-radius:9px!important;background:transparent!important;color:#60758c!important;font-size:.74rem!important;font-weight:900!important;cursor:pointer!important;box-shadow:none!important}
 .tth-launcher-page .tth-tile-admin button:hover{background:#edf3f9!important;color:#294b6c!important}
 .tth-launcher-page .tth-tile-admin button.is-active{background:#fff3c4!important;color:#9b7100!important}

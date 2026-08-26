@@ -1,5 +1,4 @@
-/* Brian English Studio · static scroll performance guard.
-   Keeps lightweight surfaces for balanced/low profiles without any motion runtime. */
+
 
 html[data-performance='balanced'] body .app-shell[data-route],
 html[data-performance='low'] body .app-shell[data-route] {

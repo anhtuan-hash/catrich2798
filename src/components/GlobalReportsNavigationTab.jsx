@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { hasToolAccess } from '../utils/permissions.js';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
-import { launchRoute } from '../utils/motion.js';
+import { launchRoute } from '../utils/navigation.js';
 import { loadTeamWorkspace } from '../utils/personnelHub.js';
 import { currentReportMonth, loadMonthlyReportContexts } from '../utils/monthlyReports.js';
 import { deadlineState, loadMonthlyReportDeadline } from '../utils/monthlyReportAdmin.js';

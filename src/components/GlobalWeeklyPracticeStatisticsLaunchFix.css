@@ -31,7 +31,6 @@
   transform:none!important;
 }
 .metro-clean-system[data-route='home'] .bha-practice-header-actions .bes-weekly-stat-launch:hover{
-  transform:none!important;
   filter:saturate(1.08)!important;
   box-shadow:0 12px 26px rgba(26,115,232,.3)!important;
 }

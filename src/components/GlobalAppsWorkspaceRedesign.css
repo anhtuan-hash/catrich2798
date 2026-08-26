@@ -369,7 +369,6 @@ body .metro-clean-system[data-route='apps'] .flat-app-window-launch {
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-launch:hover {
   background: transparent !important;
-  transform: none !important;
 }
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-chrome,

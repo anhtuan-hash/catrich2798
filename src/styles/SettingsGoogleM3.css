@@ -130,7 +130,6 @@ html body .app-shell[data-route="settings"] .settings-google-sidebar nav > butto
   color: var(--sg-ink) !important;
   text-align: left !important;
   cursor: pointer !important;
-  transition: background .16s ease, color .16s ease, transform .16s ease !important;
 }
 
 html body .app-shell[data-route="settings"] .settings-google-sidebar nav > button:hover {
@@ -138,7 +137,6 @@ html body .app-shell[data-route="settings"] .settings-google-sidebar nav > butto
 }
 
 html body .app-shell[data-route="settings"] .settings-google-sidebar nav > button:active {
-  transform: scale(.985) !important;
 }
 
 html body .app-shell[data-route="settings"] .settings-google-sidebar nav > button.is-active {
@@ -273,7 +271,6 @@ html body .app-shell[data-route="settings"] .settings-google-search {
   border-radius: 16px !important;
   background: var(--sg-surface-3) !important;
   color: var(--sg-muted) !important;
-  transition: background .16s ease, border-color .16s ease, box-shadow .16s ease !important;
 }
 
 html body .app-shell[data-route="settings"] .settings-google-search:focus-within {
@@ -753,11 +750,9 @@ html body .app-shell[data-route="settings"] .settings-google-card {
   background: var(--sg-surface) !important;
   color: var(--sg-ink) !important;
   box-shadow: var(--sg-shadow-1) !important;
-  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease !important;
 }
 
 html body .app-shell[data-route="settings"] .settings-google-card:hover {
-  transform: translateY(-2px) !important;
   border-color: color-mix(in srgb, var(--card-accent, var(--sg-blue)) 28%, var(--sg-line)) !important;
   box-shadow: var(--sg-shadow-2) !important;
 }
@@ -856,7 +851,6 @@ html body .app-shell[data-route="settings"] .settings-m3-toggle {
   border-radius: 999px !important;
   background: color-mix(in srgb, var(--sg-muted) 8%, var(--sg-surface)) !important;
   cursor: pointer !important;
-  transition: background .16s ease, border-color .16s ease !important;
 }
 
 html body .app-shell[data-route="settings"] .settings-m3-toggle > span {
@@ -868,7 +862,6 @@ html body .app-shell[data-route="settings"] .settings-m3-toggle > span {
   border-radius: 50% !important;
   background: var(--sg-muted) !important;
   transform: translateY(-50%) !important;
-  transition: left .16s ease, width .16s ease, background .16s ease !important;
 }
 
 html body .app-shell[data-route="settings"] .settings-m3-toggle.is-on {
@@ -1346,12 +1339,4 @@ html body .app-shell[data-route="settings"] .settings-m3-icon {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html body .app-shell[data-route="settings"] .settings-google-page *,
-  html body .app-shell[data-route="settings"] .settings-google-page *::before,
-  html body .app-shell[data-route="settings"] .settings-google-page *::after {
-    scroll-behavior: auto !important;
-    transition: none !important;
-    animation: none !important;
-  }
-}
+

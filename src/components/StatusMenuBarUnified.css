@@ -113,7 +113,6 @@ html body .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__headline {
   overflow: hidden !important;
   appearance: none !important;
   -webkit-appearance: none !important;
-  transition: background-color 160ms ease, box-shadow 160ms ease !important;
 }
 
 html body .app-shell .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__headline:hover,
@@ -210,11 +209,6 @@ html body .brian-briefing-chip--time {
 html body button.brian-briefing-chip--weather {
   min-width: 132px !important;
   cursor: pointer !important;
-  transition:
-    background-color 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease !important;
 }
 
 .brian-briefing-chip__icon {
@@ -320,7 +314,6 @@ html body button.brian-briefing-chip--weather:focus-visible {
   border-color: color-mix(in srgb, currentColor 30%, var(--gm-outline)) !important;
   box-shadow: var(--gm-shadow-2) !important;
   outline: none !important;
-  transform: translateY(-1px) !important;
   filter: saturate(1.04) brightness(.995) !important;
 }
 
@@ -331,12 +324,10 @@ html body button.brian-briefing-chip--weather:focus-visible {
 
 html body button.brian-briefing-chip--weather:active {
   box-shadow: var(--gm-shadow-1) !important;
-  transform: translateY(0) !important;
 }
 
 html body .brian-briefing-chip--weather.is-loading .brian-briefing-chip__icon,
 html body .brian-briefing-chip--weather.is-refreshing .brian-briefing-chip__icon {
-  animation: brian-google-weather-pulse 1.15s ease-in-out infinite !important;
 }
 
 html body .brian-briefing-chip--weather.is-error {
@@ -344,10 +335,6 @@ html body .brian-briefing-chip--weather.is-error {
   color: #b3261e !important;
 }
 
-@keyframes brian-google-weather-pulse {
-  0%, 100% { opacity: .5; transform: scale(.94); }
-  50% { opacity: 1; transform: scale(1); }
-}
 
 @media (max-width: 980px) {
   html body .app-shell .bes-top-chrome > .brian-briefing-bar,
@@ -442,11 +429,4 @@ html body .brian-briefing-chip--weather.is-error {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html body button.brian-briefing-chip--weather,
-  html body .brian-briefing-chip--weather.is-loading .brian-briefing-chip__icon,
-  html body .brian-briefing-chip--weather.is-refreshing .brian-briefing-chip__icon {
-    animation: none !important;
-    transition: none !important;
-  }
-}
+

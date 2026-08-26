@@ -234,11 +234,9 @@
   font-size:.66rem!important;
   font-weight:900!important;
   cursor:pointer;
-  transition:transform .18s ease,box-shadow .18s ease!important;
 }
 
 .bha-uploaded-card>button:hover{
-  transform:translateY(-2px);
   box-shadow:0 9px 18px color-mix(in srgb,var(--accent) 25%,transparent)!important;
 }
 
@@ -286,8 +284,4 @@ html[data-theme='dark'] .bha-uploaded-card,
   }
 }
 
-@media(prefers-reduced-motion:reduce){
-  .bha-uploaded-card>button{
-    transition:none!important;
-  }
-}
+

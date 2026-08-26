@@ -280,7 +280,7 @@ async function handleBulkSubmit(event) {
   const errors = validateEntries(entries);
   if (errors.length) {
     managerMessage(form, `Có ${errors.length} file cần kiểm tra lại trước khi tải.`, true);
-    errors[0][0].row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    errors[0][0].row.scrollIntoView({ behavior: 'auto', block: 'center' });
     return;
   }
 

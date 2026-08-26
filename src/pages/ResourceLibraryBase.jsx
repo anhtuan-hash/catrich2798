@@ -347,7 +347,7 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
     setCurrentPage(1);
     setDeleteConfirmId('');
     window.setTimeout(() => {
-      folderViewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      folderViewRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
       folderViewRef.current?.focus({ preventScroll: true });
     }, 80);
   }, []);

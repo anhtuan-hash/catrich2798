@@ -116,12 +116,10 @@
 
 .hr-team-roster label,
 .hr-toggle-grid label {
-  transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
 .hr-team-roster label:hover,
 .hr-toggle-grid label:hover {
-  transform: translateY(-1px);
 }
 
 .hr-pin {

@@ -21,7 +21,6 @@ html body .app-shell[data-route] .bes-top-chrome > .brian-nav::before,
 html body .app-shell[data-route] .bes-top-chrome > .brian-nav::after,
 html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar::before,
 html body .app-shell[data-route] .bes-top-chrome > .brian-briefing-bar::after {
-  animation: none !important;
   filter: none !important;
 }
 
@@ -143,7 +142,6 @@ html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__
   box-shadow: none;
   cursor: pointer;
   font: inherit;
-  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
 }
 
 .brian-concept-tab::after {
@@ -157,7 +155,6 @@ html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__
   background: var(--concept-accent);
   opacity: 0;
   transform: scaleX(.5);
-  transition: opacity 150ms ease, transform 150ms ease;
 }
 
 .brian-concept-tab:hover {
@@ -165,7 +162,6 @@ html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__
   background: color-mix(in srgb, var(--concept-accent) 8%, white);
   color: color-mix(in srgb, var(--concept-accent) 82%, #17233d);
   box-shadow: 0 8px 18px color-mix(in srgb, var(--concept-accent) 11%, transparent);
-  transform: translateY(-1px);
 }
 
 .brian-concept-tab.is-active {
@@ -339,7 +335,6 @@ html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-conce
   color: #6b7890;
   box-shadow: 0 6px 16px rgba(45, 75, 131, .07), inset 0 1px 0 #fff;
   cursor: pointer;
-  transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
 }
 
 html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-concept-search:hover {
@@ -656,18 +651,6 @@ html body .app-shell[data-route] .brian-concept-more__menu {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .brian-concept-tab,
-  .brian-concept-tab::after,
-  .brian-concept-search {
-    transition: none !important;
-  }
-
-  .brian-briefing-bar__ticker-track {
-    animation: none !important;
-    transform: none !important;
-  }
-}
 
 @media (forced-colors: active) {
   .brian-concept-tab,

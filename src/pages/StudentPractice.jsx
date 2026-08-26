@@ -138,7 +138,7 @@ export default function StudentPractice({ language, apiKey, aiModel, hasApiKey }
   const plannedCount = Math.min(Number(count) || 1, filtered.length || Number(count) || 1);
 
   const scrollToRef = (ref) => {
-    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    ref.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
   };
 
   const showToast = (message) => {

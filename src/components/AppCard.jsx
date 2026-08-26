@@ -3,7 +3,7 @@ import PermissionRequestButton from './PermissionRequestButton.jsx';
 import FlatAppIcon from './FlatAppIcon.jsx';
 import { getAppDesignProfile } from '../data/designProfiles.js';
 import { getToolPermissionId, hasToolAccess } from '../utils/permissions.js';
-import { launchRoute } from '../utils/motion.js';
+import { launchRoute } from '../utils/navigation.js';
 
 function launchTarget(target, item, sourceEl = null) {
   const profile = getAppDesignProfile(item?.slug);

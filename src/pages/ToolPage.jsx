@@ -1,33 +1,20 @@
 import React, { Suspense, lazy, useMemo, useState } from 'react';
-import '../data/registerWordOrbit.js';
 
-const WordGraphStudio = lazy(() => import('./WordGraphStudio.jsx'));
-const ReadingStudio = lazy(() => import('./ReadingStudio.jsx'));
 const NewsReader = lazy(() => import('./NewsReader.jsx'));
 const VietnamTaxStudio = lazy(() => import('./VietnamTaxStudio.jsx'));
 const TextCareStudio = lazy(() => import('./TextCareStudio.jsx'));
-const LessonArchitect = lazy(() => import('./LessonArchitect.jsx'));
 const SpecializedAppPage = lazy(() => import('./SpecializedAppPage.jsx'));
-const ExamStudioUploadPage = lazy(() => import('./ExamStudioUploadPage.jsx'));
 const DominoWordForm = lazy(() => import('./DominoWordForm.jsx'));
 const PromptStudio = lazy(() => import('./PromptStudio.jsx'));
 const ClassroomGame = lazy(() => import('./ClassroomGame.jsx'));
 const TestBuilder = lazy(() => import('./TestBuilder.jsx'));
-const StudentPractice = lazy(() => import('./StudentPractice.jsx'));
 const AITool = lazy(() => import('./AITool.jsx'));
 const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
 const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
 const BrianTeamPortal = lazy(() => import('./BrianTeamPortal.jsx'));
-const ClassroomScreenHost = lazy(() => import('./ClassroomScreenHost.jsx'));
-const FlyingWordsGame = lazy(() => import('./FlyingWordsContrast.jsx'));
-const CrosswordTrialGame = lazy(() => import('./CrosswordTrialGame.jsx'));
-const KnowledgeTrainGame = lazy(() => import('./KnowledgeTrainGame.jsx'));
-const WordOrbitGame = lazy(() => import('./WordOrbitGame.jsx'));
 const TopFiveArena = lazy(() => import('./TopFiveArena.jsx'));
 const SeatingChartStudio = lazy(() => import('./SeatingChartStudio.jsx'));
 const TeachingToolHub = lazy(() => import('./TeachingToolHub.jsx'));
-
-const specializedToolSlugs = new Set(['exam-studio']);
 
 function ToolFallback({ language = 'vi' }) {
   return <div className="page narrow"><section className="panel empty-state"><h1>{language === 'vi' ? 'Đang mở công cụ...' : 'Opening tool...'}</h1><p>{language === 'vi' ? 'Đang tải đúng mô-đun cần dùng để giao diện nhẹ hơn.' : 'Loading only the module you need for a lighter interface.'}</p></section></div>;
@@ -71,25 +58,14 @@ export default function ToolPage(props) {
   if (tool?.slug === 'textlab-activities') return renderLazy(TextLabActivities, props);
   if (tool?.slug === 'thpt-practice-hub') return renderLazy(THPTPracticeHub, props);
   if (['brian-team', 'personnel-hub'].includes(tool?.slug)) return renderLazy(BrianTeamPortal, props);
-  if (tool?.slug === 'classroom-screen') return renderLazy(ClassroomScreenHost, props);
-  if (tool?.slug === 'flying-words') return renderLazy(FlyingWordsGame, props);
-  if (tool?.slug === 'crossword-trial') return renderLazy(CrosswordTrialGame, props);
-  if (tool?.slug === 'knowledge-train') return renderLazy(KnowledgeTrainGame, props);
-  if (tool?.slug === 'word-orbit') return renderLazy(WordOrbitGame, props);
   if (tool?.slug === 'top-five-arena') return renderLazy(TopFiveArena, props);
-  if (tool?.slug === 'word2graph') return renderLazy(WordGraphStudio, props);
-  if (tool?.slug === 'reading-studio') return renderLazy(ReadingStudio, props);
   if (tool?.slug === 'news-reader') return renderLazy(NewsReader, props);
   if (tool?.slug === 'vietnam-tax') return renderLazy(VietnamTaxStudio, props);
   if (tool?.slug === 'textcare') return renderLazy(TextCareStudio, props);
-  if (tool?.slug === 'lesson-plan-ai') return renderLazy(LessonArchitect, props);
-  if (tool?.slug === 'exam-studio') return renderLazy(ExamStudioUploadPage, props);
-  if (specializedToolSlugs.has(tool?.slug)) return renderLazy(SpecializedAppPage, props);
   if (tool?.slug === 'domino-wordform') return renderLazy(DominoWordForm, props);
   if (tool?.slug === 'prompt-studio') return renderLazy(PromptStudio, props);
   if (['jeopardy-builder', 'open-the-box', 'team-race', 'lucky-wheel', 'matching-battle'].includes(tool?.slug)) return renderLazy(ClassroomGame, props);
   if (tool?.slug === 'test-paper-builder') return renderLazy(TestBuilder, props);
-  if (tool?.slug === 'student-practice') return renderLazy(StudentPractice, props);
   if (tool?.api) return renderLazy(AITool, props);
 
   if (!tool) {

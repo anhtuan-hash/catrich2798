@@ -155,14 +155,12 @@
   font-size: 15px;
   font-weight: 800;
   cursor: pointer;
-  transition: transform .18s ease, background .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
 
 .reading-library-hero-actions button:hover,
 .reading-library-copy-all:hover,
 .reading-library-footer-bar button:hover,
 .reading-library-sample-card header button:hover {
-  transform: translateY(-2px);
 }
 
 .reading-library-hero-actions .primary,
@@ -373,11 +371,9 @@
   color: var(--rl-ink);
   text-align: left;
   cursor: pointer;
-  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
 }
 
 .reading-library-profile-grid > button:hover {
-  transform: translateY(-3px);
   border-color: #a8c7fa;
   box-shadow: 0 14px 30px rgba(60, 64, 67, .12);
 }
@@ -863,12 +859,4 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .reading-library-page *,
-  .reading-library-page *::before,
-  .reading-library-page *::after {
-    scroll-behavior: auto !important;
-    transition: none !important;
-    animation: none !important;
-  }
-}
+

@@ -136,7 +136,7 @@ export default function TextCareGoogleWorkspace(props) {
     step?.click();
     window.setTimeout(() => {
       const target = page?.querySelector(focusSelector || '.tcg-editor-card');
-      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target?.scrollIntoView({ behavior: 'auto', block: 'start' });
       if (target instanceof HTMLElement && /textarea|input/i.test(target.tagName)) target.focus();
     }, 120);
   };
@@ -154,7 +154,7 @@ export default function TextCareGoogleWorkspace(props) {
   };
 
   const openWorkspace = () => {
-    getPage()?.querySelector('.tcg-workbench')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    getPage()?.querySelector('.tcg-workbench')?.scrollIntoView({ behavior: 'auto', block: 'start' });
   };
 
   return (

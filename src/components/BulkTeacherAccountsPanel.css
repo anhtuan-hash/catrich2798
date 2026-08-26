@@ -38,13 +38,11 @@
   box-shadow: 0 8px 24px rgba(60, 64, 67, 0.18), 0 1px 3px rgba(60, 64, 67, 0.12);
   backdrop-filter: blur(18px) saturate(1.08);
   cursor: pointer;
-  transition: box-shadow 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
 .bes-bulk-accounts__launcher:hover {
   background: #eef3fb;
   box-shadow: 0 12px 30px rgba(60, 64, 67, 0.22), 0 2px 6px rgba(60, 64, 67, 0.14);
-  transform: translateY(-1px);
 }
 
 .bes-bulk-accounts__launcher span {
@@ -83,13 +81,8 @@
   color: var(--bulk-ink);
   box-shadow: 0 24px 72px rgba(32, 33, 36, 0.28), 0 4px 12px rgba(32, 33, 36, 0.14);
   transform: translate(-50%, -50%);
-  animation: bes-bulk-enter 200ms cubic-bezier(.2, 0, 0, 1);
 }
 
-@keyframes bes-bulk-enter {
-  from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)) scale(.985); }
-  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-}
 
 .bes-bulk-accounts__panel > header {
   flex: 0 0 auto;
@@ -143,7 +136,6 @@
   color: var(--bulk-muted);
   font-size: 25px;
   cursor: pointer;
-  transition: background 140ms ease, color 140ms ease;
 }
 
 .bes-bulk-accounts__panel > header > button:hover {
@@ -184,7 +176,6 @@
   color: var(--bulk-ink);
   font: inherit;
   outline: none;
-  transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
 }
 
 .bes-bulk-accounts input {
@@ -228,7 +219,6 @@
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 }
 
 .bes-bulk-accounts__generator > button {
@@ -368,7 +358,6 @@
   border-bottom: 1px solid #edf0f2;
   background: var(--bulk-surface);
   vertical-align: middle;
-  transition: background 120ms ease;
 }
 
 .bes-bulk-accounts tbody tr:hover td {
@@ -747,10 +736,3 @@ body[data-theme='dark'] .bes-bulk-accounts textarea,
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .bes-bulk-accounts__panel,
-  .bes-bulk-accounts__launcher {
-    animation: none;
-    transition: none;
-  }
-}

@@ -109,7 +109,7 @@ export function StudentsTab({ workspace, onCommit }) {
     await onCommit(next, editingId ? 'Đã cập nhật hồ sơ học sinh.' : 'Đã thêm học sinh.');
     setDraft(EMPTY_STUDENT); setEditingId('');
   };
-  const edit = (student) => { setDraft({ ...EMPTY_STUDENT, ...student }); setEditingId(student.id); document.querySelector('.hr-student-form')?.scrollIntoView({ behavior: 'smooth' }); };
+  const edit = (student) => { setDraft({ ...EMPTY_STUDENT, ...student }); setEditingId(student.id); document.querySelector('.hr-student-form')?.scrollIntoView({ behavior: 'auto' }); };
   const archive = async (student) => {
     const reason = window.prompt(`Lý do lưu trữ hồ sơ ${student.fullName}:`, 'Chuyển lớp / thôi học / bảo lưu') || '';
     if (safeText(reason)) await onCommit(archiveStudent(workspace, student.id, reason), 'Đã lưu trữ hồ sơ, không xóa lịch sử.');

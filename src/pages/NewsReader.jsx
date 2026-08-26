@@ -155,7 +155,7 @@ export default function NewsReader({ language = 'vi' }) {
   const readerMinutes = readerData?.readingMinutes || readMinutes(readerData || selected);
   const relatedItems = useMemo(() => (payload.items || []).filter((item) => item.id !== selected?.id && (item.category === selected?.category || item.source === selected?.source)).slice(0, 5), [payload.items, selected]);
 
-  function switchChannel(next) { setChannel(next); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  function switchChannel(next) { setChannel(next); window.scrollTo({ top: 0, behavior: 'auto' }); }
   function openArticle(item) { setSelected(item); setReaderProgress(0); setSpeaking(false); setReaderDark(false); window.speechSynthesis?.cancel(); loadFullArticle(item); requestAnimationFrame(() => readerScrollRef.current?.scrollTo({ top: 0 })); }
   function closeReader() { articleRequestRef.current += 1; setSelected(null); setArticleState({ status: 'idle', data: null, error: '' }); setReaderProgress(0); window.speechSynthesis?.cancel(); setSpeaking(false); }
   function toggleSaved(item) { setSavedItems((current) => { const exists = current.some((entry) => entry.id === item.id); const next = exists ? current.filter((entry) => entry.id !== item.id) : [{ ...item, savedAt: new Date().toISOString() }, ...current].slice(0, 80); try { localStorage.setItem('bes-news-saved-items', JSON.stringify(next)); } catch { /* ignore */ } return next; }); }
@@ -179,7 +179,7 @@ export default function NewsReader({ language = 'vi' }) {
           <aside className="news-g4-reader-rail"><section><span className="eyebrow">{t.readerMode}</span><strong>{articleState.status === 'ready' ? t.fullReady : articleState.status === 'loading' ? t.fullLoading : t.fallbackReady}</strong><div><b>{Math.round(readerProgress)}%</b><i><em style={{ width: `${readerProgress}%` }} /></i></div><small>{readerMinutes} {t.readTime} · {readerData?.wordCount || wordCount(readerData?.text || selected.content || selected.summary || '')} words</small></section><section><header><span>↗</span><strong>{t.related}</strong></header><div className="news-g4-reader-related">{relatedItems.map((item) => <button key={item.id} type="button" onClick={() => openArticle(item)}><ArticleThumb item={item} /><span><b>{item.title}</b><small>{item.source}</small></span></button>)}</div></section></aside>
         </div>
       </div>
-      {readerProgress > 12 ? <button type="button" className="news-g4-reader-top" onClick={() => readerScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}>↑ <span>{t.backToTop}</span></button> : null}
+      {readerProgress > 12 ? <button type="button" className="news-g4-reader-top" onClick={() => readerScrollRef.current?.scrollTo({ top: 0, behavior: 'auto' })}>↑ <span>{t.backToTop}</span></button> : null}
     </div>
   ) : null;
 

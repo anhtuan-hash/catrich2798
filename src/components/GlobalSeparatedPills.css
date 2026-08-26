@@ -43,7 +43,6 @@ html body .app-shell[data-route] .brian-nav__primary > [role='button']:hover {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .98),
     0 9px 20px rgba(71, 91, 151, .11) !important;
-  transform: none !important;
 }
 
 html body .app-shell[data-route] .brian-nav__primary > button.is-active,

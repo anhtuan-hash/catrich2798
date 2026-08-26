@@ -85,7 +85,6 @@
   width:20px;
   height:20px;
   fill:currentColor;
-  transition:transform .18s ease;
 }
 
 .metro-clean-system .signature-footer-collapsible[data-expanded="true"] .signature-footer-disclosure-action svg{
@@ -94,7 +93,6 @@
 
 .metro-clean-system .signature-footer-expanded-panel{
   border-top:1px solid #e2e6e9;
-  animation:signature-footer-open .18s ease-out both;
 }
 
 .metro-clean-system .signature-footer-collapsible .signature-footer-v50-main{
@@ -115,10 +113,6 @@
   text-align:center;
 }
 
-@keyframes signature-footer-open{
-  from{opacity:0;transform:translateY(-5px)}
-  to{opacity:1;transform:translateY(0)}
-}
 
 html[data-theme="dark"] .metro-clean-system .signature-footer-collapsible,
 .theme-dark .metro-clean-system .signature-footer-collapsible{
@@ -238,15 +232,6 @@ html[data-theme="dark"] .metro-clean-system .signature-footer-expanded-note,
   }
 }
 
-@media(prefers-reduced-motion:reduce){
-  .metro-clean-system .signature-footer-expanded-panel{
-    animation:none;
-  }
-
-  .metro-clean-system .signature-footer-disclosure-action svg{
-    transition:none;
-  }
-}
 
 /* Document-end footer contract.
    The footer must participate in normal layout and may never float over route

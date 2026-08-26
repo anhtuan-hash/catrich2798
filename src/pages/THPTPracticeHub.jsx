@@ -145,7 +145,7 @@ export default function THPTPracticeHub({ currentUser, language = 'vi' }) {
     setPlayer(result.lesson || item);
     setPlayerHtml(result.html);
     setPlayerKey((value) => value + 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'auto' });
   }
 
   async function closePlayer() {

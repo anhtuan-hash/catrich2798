@@ -40,7 +40,6 @@ html body .app-shell[data-route]
   outline: 0 !important;
   background: #e9eef6 !important;
   box-shadow: none !important;
-  transform: none !important;
 }
 
 html body .app-shell[data-route]

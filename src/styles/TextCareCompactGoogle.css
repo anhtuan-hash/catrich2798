@@ -333,7 +333,7 @@
 .tcg-toolbar-actions { display: flex !important; align-items: center !important; gap: 1px !important; }
 .tcg-toolbar-actions button { width: 34px !important; height: 34px !important; min-height: 34px !important; }
 .tcg-a4-viewport { min-height: 0 !important; overflow: auto !important; padding: 14px !important; background: var(--tc-preview) !important; overscroll-behavior: contain !important; }
-.tcg-a4-stage { min-width: calc(210mm * .55) !important; position: relative !important; display: flex !important; justify-content: center !important; align-items: flex-start !important; transition: height .15s ease !important; }
+.tcg-a4-stage { min-width: calc(210mm * .55) !important; position: relative !important; display: flex !important; justify-content: center !important; align-items: flex-start !important; }
 .tcg-a4-stage iframe { width: 210mm !important; min-width: 210mm !important; border: 0 !important; background: #fff !important; box-shadow: 0 4px 18px rgba(32,33,36,.22) !important; transform-origin: top center !important; }
 
 .tcg-export-panel { display: grid !important; grid-template-columns: auto minmax(0,1fr) !important; gap: 8px !important; align-items: center !important; padding: 8px !important; border-top: 1px solid var(--tc-border) !important; background: #fff !important; }

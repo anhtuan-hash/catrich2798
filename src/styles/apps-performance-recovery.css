@@ -1,8 +1,4 @@
-/* Brian English — Apps route performance + paint recovery.
-   The Applications page is intentionally kept visually rich, but Safari and
-   classroom Macs can stall when a large translucent grid, dozens of promoted
-   icon layers and route-level clip/filter animations are composited together.
-   This layer removes the expensive pieces while preserving the launcher UI. */
+
 
 /* The app directory must always paint its actual content, even if a previous
    route/motion layer leaves descendants in an intermediate visual state. */
@@ -46,7 +42,6 @@
    jank once the page contained several rows of apps. */
 .apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-art {
   transform: none !important;
-  will-change: auto !important;
   filter: none !important;
   box-shadow:
     0 8px 18px rgba(48, 68, 110, .16),
@@ -57,17 +52,13 @@
 .apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-art,
 .apps-directory-native .apps-directory-preview-grid button,
 .apps-directory-native .apps-directory-actions button {
-  will-change: auto !important;
-  transition-property: background-color, border-color, box-shadow, color, transform !important;
   transition-duration: 120ms !important;
 }
 
 .apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-launch:hover {
-  transform: translateY(-2px) !important;
 }
 
 .apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-launch:hover .flat-app-window-art {
-  transform: scale(1.025) !important;
 }
 
 /* Safari paint recovery: explicitly keep the launcher contents in normal flow
@@ -106,17 +97,10 @@
 .metro-clean-system[data-route='apps'] .wp8-page-stage,
 .metro-clean-system[data-route='applications'] .wp8-page-stage,
 html:has(.apps-directory-native) .metro-clean-system .wp8-page-stage {
-  animation: none !important;
   opacity: 1 !important;
   filter: none !important;
   clip-path: none !important;
   transform: none !important;
-}
-
-.metro-clean-system[data-route='apps'] .tile-launch-layer,
-.metro-clean-system[data-route='applications'] .tile-launch-layer,
-html:has(.apps-directory-native) .tile-launch-layer {
-  display: none !important;
 }
 
 /* The decorative hero stays static on the Applications route. */
@@ -127,8 +111,6 @@ html:has(.apps-directory-native) .tile-launch-layer {
 .apps-directory-native .apps-flat-relief-calendar,
 .apps-directory-native .apps-flat-relief-pencil,
 .apps-directory-native .apps-flat-relief-cube {
-  animation: none !important;
-  will-change: auto !important;
 }
 
 /* Stable desktop geometry: never allow old launcher layers to stretch cards
@@ -146,21 +128,9 @@ html:has(.apps-directory-native) .tile-launch-layer {
   }
 }
 
-/* When the browser advertises reduced motion or the site is in low-performance
-   mode, remove all launcher transitions as well. */
-@media (prefers-reduced-motion: reduce) {
-  .apps-directory-native *,
-  .apps-directory-native *::before,
-  .apps-directory-native *::after {
-    animation: none !important;
-    transition: none !important;
-  }
-}
 
 .metro-clean-system[data-performance='low'] .apps-directory-native *,
 .metro-clean-system[data-performance='low'] .apps-directory-native *::before,
 .metro-clean-system[data-performance='low'] .apps-directory-native *::after {
-  animation: none !important;
-  transition: none !important;
   filter: none !important;
 }

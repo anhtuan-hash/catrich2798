@@ -131,7 +131,6 @@
 
 .hr-conduct-scroll-region .hr-conduct-data-row > td {
   background: var(--conduct-row-surface);
-  transition: background-color .15s ease;
 }
 
 .hr-conduct-scroll-region .hr-conduct-data-row > td:first-child {
@@ -166,6 +165,4 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .hr-conduct-scroll-region .hr-conduct-data-row > td { transition: none; }
-}
+
