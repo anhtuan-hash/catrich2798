@@ -112,6 +112,10 @@ export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, curr
   });
   const pinnedItems = orderedItems.filter((item) => workingConfig.pinned.includes(launcherItemId(item)) && !workingConfig.hidden.includes(launcherItemId(item)));
   const heroPreviewItems = (pinnedItems.length ? pinnedItems : visibleItems).filter((item) => !item.isHiddenFolder).slice(0, 6);
+  const showGroupedDirectory = !editMode && activeGroup === 'all' && !normalizedSearch;
+  const directoryGroups = groupOptions
+    .map((group) => ({ ...group, items: visibleItems.filter((item) => groupForItem(item) === group.id) }))
+    .filter((group) => group.items.length > 0);
 
   const patchDraft = (updater) => setDraftConfig((current) => normalizeLauncherConfig(typeof updater === 'function' ? updater(current) : { ...current, ...updater }, itemIds));
   const togglePin = (id) => patchDraft((current) => ({ ...current, pinned: current.pinned.includes(id) ? current.pinned.filter((value) => value !== id) : [...current.pinned, id].slice(-12) }));
@@ -194,6 +198,24 @@ export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, curr
     return () => window.removeEventListener('bes-launcher-edit', openEditor);
   }, [isAdmin, config, itemIds.join('|')]);
 
+  const renderAppRow = (item, keyPrefix = '') => (
+    <AppListRow
+      key={`${keyPrefix}${item.route || 'tool'}-${item.slug}`}
+      item={item}
+      language={language}
+      currentUser={currentUser}
+      editMode={editMode}
+      config={workingConfig}
+      groupOptions={groupOptions}
+      onTogglePin={togglePin}
+      onToggleHidden={toggleHidden}
+      onToggleNav={toggleNav}
+      onAssignGroup={assignGroup}
+      onDragStart={onDragStart}
+      onDrop={onDrop}
+    />
+  );
+
   return (
     <div className={`flat-design-home flat-apps-directory apps-directory-native launcher-v10831 launcher-v1136 launcher-command-center launcher-style-radial density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
       <TopMenu language={language} setLanguage={setLanguage} hasApiKey={hasApiKey} currentUser={currentUser} />
@@ -222,12 +244,36 @@ export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, curr
         {groupOptions.map((group) => <GroupRail key={group.id} group={group} count={groupCounts[group.id] || 0} language={language} active={activeGroup === group.id} onClick={() => setActiveGroup(group.id)} />)}
       </section>
 
-      <main id="apps-directory-grid" className="apps-directory-list-native" aria-label="Application list">
-        {filteredItems.map((item) => <AppListRow key={`${item.route || 'tool'}-${item.slug}`} item={item} language={language} currentUser={currentUser} editMode={editMode} config={workingConfig} groupOptions={groupOptions} onTogglePin={togglePin} onToggleHidden={toggleHidden} onToggleNav={toggleNav} onAssignGroup={assignGroup} onDragStart={onDragStart} onDrop={onDrop} />)}
-        {!filteredItems.length && <div className="launcher-empty-group">{searchQuery ? t.noSearch : t.empty}</div>}
+      <main id="apps-directory-grid" className={`apps-directory-list-native ${showGroupedDirectory ? 'is-grouped-editorial' : ''}`} aria-label="Application list">
+        {showGroupedDirectory ? (
+          <div className="apps-directory-group-grid">
+            {directoryGroups.map((group) => (
+              <section key={group.id} className="apps-directory-group-panel" style={{ '--group-accent': group.accent }}>
+                <header className="apps-directory-group-heading">
+                  <span className="apps-directory-group-mark" aria-hidden="true">▦</span>
+                  <strong>{language === 'vi' ? group.labelVi : group.label}</strong>
+                  <small>{group.items.length}</small>
+                </header>
+                <div className="apps-directory-group-items">
+                  {group.items.slice(0, 4).map((item) => renderAppRow(item, `${group.id}-`))}
+                </div>
+                {group.items.length > 4 && (
+                  <button type="button" className="apps-directory-group-more" onClick={() => setActiveGroup(group.id)}>
+                    <span>›</span>{language === 'vi' ? `Xem tất cả ${group.items.length} ứng dụng` : `View all ${group.items.length} apps`}
+                  </button>
+                )}
+              </section>
+            ))}
+          </div>
+        ) : (
+          <>
+            {filteredItems.map((item) => renderAppRow(item))}
+            {!filteredItems.length && <div className="launcher-empty-group">{searchQuery ? t.noSearch : t.empty}</div>}
+          </>
+        )}
       </main>
 
-      {pinnedItems.length > 0 && <aside className="flat-pinned-apps flat-apps-pins launcher-pinned-apps apps-directory-pinned-native" aria-label="Pinned apps">
+      {pinnedItems.length > 0 && !showGroupedDirectory && <aside className="flat-pinned-apps flat-apps-pins launcher-pinned-apps apps-directory-pinned-native" aria-label="Pinned apps">
         <div><strong>{t.pinned}</strong><small>{t.flow}</small></div>
         <div className="flat-chip-row">{pinnedItems.map((item) => {
           const profile = getAppDesignProfile(item.slug);
