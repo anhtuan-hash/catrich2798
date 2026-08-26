@@ -1,0 +1,548 @@
+/* TTCM Google Material V7
+   Refines the V6 workspace using a calmer Google Workspace / Material 3 language.
+   Goals: tighter chrome, slimmer navigation rail, larger usable feed, softer surfaces,
+   clearer hierarchy, and a more polished authoring experience. */
+
+:root {
+  --ttcm-gm-primary: #0b57d0;
+  --ttcm-gm-on-primary: #ffffff;
+  --ttcm-gm-primary-container: #d3e3fd;
+  --ttcm-gm-on-primary-container: #041e49;
+  --ttcm-gm-surface: #ffffff;
+  --ttcm-gm-surface-container: #f8fafd;
+  --ttcm-gm-surface-container-low: #f1f4f9;
+  --ttcm-gm-surface-container-high: #e9eef6;
+  --ttcm-gm-outline: #c7cbd1;
+  --ttcm-gm-outline-variant: #e1e5eb;
+  --ttcm-gm-on-surface: #1f1f1f;
+  --ttcm-gm-on-surface-variant: #5f6368;
+}
+
+html body .ttcm-m3-layer {
+  padding: 18px !important;
+  background: rgba(32,33,36,.30) !important;
+  backdrop-filter: blur(10px) saturate(.94) !important;
+}
+
+html body .ttcm-m3-shell {
+  width: min(1480px, calc(100vw - 36px)) !important;
+  height: min(920px, calc(100vh - 36px)) !important;
+  border: 1px solid rgba(218,220,224,.92) !important;
+  border-radius: 24px !important;
+  background: var(--ttcm-gm-surface-container) !important;
+  box-shadow: 0 8px 24px rgba(60,64,67,.18), 0 1px 3px rgba(60,64,67,.12) !important;
+}
+
+/* Compact Google Workspace app bar */
+html body .ttcm-m3-topbar {
+  min-height: 76px !important;
+  padding: 12px 18px 12px 20px !important;
+  border-bottom: 1px solid var(--ttcm-gm-outline-variant) !important;
+  background: rgba(255,255,255,.98) !important;
+}
+
+html body .ttcm-m3-title { gap: 12px !important; }
+
+html body .ttcm-m3-title-icon {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 13px !important;
+  background: #e8f0fe !important;
+  color: var(--ttcm-gm-primary) !important;
+}
+
+html body .ttcm-m3-title > div::before {
+  content: 'KÊNH CHUYÊN MÔN' !important;
+  margin-bottom: 2px !important;
+  color: var(--ttcm-gm-primary) !important;
+  font-size: 8.5px !important;
+  font-weight: 750 !important;
+  letter-spacing: .10em !important;
+}
+
+html body .ttcm-m3-title strong {
+  color: var(--ttcm-gm-on-surface) !important;
+  font-size: 21px !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+  letter-spacing: -.02em !important;
+}
+
+html body .ttcm-m3-title small {
+  margin-top: 3px !important;
+  color: var(--ttcm-gm-on-surface-variant) !important;
+  font-size: 11.5px !important;
+}
+
+html body .ttcm-m3-top-actions { gap: 4px !important; }
+
+html body .ttcm-m3-topbar .ttcm-m3-icon-button {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 20px !important;
+  color: #444746 !important;
+}
+
+html body .ttcm-m3-topbar .ttcm-m3-icon-button:hover {
+  background: #eef2f7 !important;
+}
+
+html body .ttcm-m3-topbar .ttcm-m3-filled-button {
+  min-height: 42px !important;
+  padding: 0 18px !important;
+  border-radius: 21px !important;
+  background: var(--ttcm-gm-primary) !important;
+  color: var(--ttcm-gm-on-primary) !important;
+  box-shadow: 0 1px 2px rgba(60,64,67,.16) !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+}
+
+/* Reduce the oversized segmented-control feeling. */
+html body .ttcm-m3-toolbar {
+  min-height: 56px !important;
+  padding: 8px 16px !important;
+  border-bottom: 1px solid var(--ttcm-gm-outline-variant) !important;
+  background: var(--ttcm-gm-surface) !important;
+}
+
+html body .ttcm-m3-workspace-tabs {
+  gap: 2px !important;
+  padding: 3px !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  background: var(--ttcm-gm-surface-container-low) !important;
+}
+
+html body .ttcm-m3-workspace-tabs button {
+  min-height: 34px !important;
+  padding: 0 14px !important;
+  border-radius: 13px !important;
+  color: #444746 !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+
+html body .ttcm-m3-workspace-tabs button.is-selected {
+  background: var(--ttcm-gm-primary-container) !important;
+  color: var(--ttcm-gm-on-primary-container) !important;
+}
+
+/* Slimmer light navigation rail. */
+html body .ttcm-m3-filters {
+  top: 133px !important;
+  width: 214px !important;
+  gap: 3px !important;
+  padding: 18px 12px 14px !important;
+  border-right: 1px solid var(--ttcm-gm-outline-variant) !important;
+  background: #f6f8fc !important;
+}
+
+html body .ttcm-m3-filters::before {
+  content: 'HỘP THƯ TTCM' !important;
+  padding: 0 12px 9px !important;
+  color: #6b7076 !important;
+  font-size: 9px !important;
+  font-weight: 750 !important;
+  letter-spacing: .09em !important;
+}
+
+html body .ttcm-m3-filters::after {
+  content: 'Brian English' !important;
+  margin: auto 8px 0 !important;
+  padding: 12px 4px 0 !important;
+  border-top: 1px solid #e4e8ef !important;
+  color: #8a9096 !important;
+  font-size: 9.5px !important;
+}
+
+html body .ttcm-m3-filters button {
+  min-height: 40px !important;
+  padding: 0 12px 0 38px !important;
+  border-radius: 20px !important;
+  color: #444746 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+html body .ttcm-m3-filters button::before {
+  left: 16px !important;
+  width: 7px !important;
+  height: 7px !important;
+}
+
+html body .ttcm-m3-filters button.is-selected {
+  background: var(--ttcm-gm-primary-container) !important;
+  color: var(--ttcm-gm-on-primary-container) !important;
+  font-weight: 700 !important;
+}
+
+/* Feed gets more room and clearer information hierarchy. */
+html body .ttcm-m3-feed {
+  padding: 22px 24px 28px 238px !important;
+  gap: 10px !important;
+  background: var(--ttcm-gm-surface-container) !important;
+}
+
+html body .ttcm-m3-feed::before {
+  content: 'Dòng công việc' !important;
+  padding: 0 2px 8px !important;
+  color: #202124 !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+html body .ttcm-m3-card {
+  grid-template-columns: 44px minmax(0,1fr) !important;
+  gap: 13px !important;
+  padding: 15px 16px !important;
+  border: 1px solid #e0e4ea !important;
+  border-radius: 16px !important;
+  background: var(--ttcm-gm-surface) !important;
+  box-shadow: 0 1px 2px rgba(60,64,67,.07) !important;
+}
+
+html body .ttcm-m3-card::before {
+  inset: 14px auto 14px 0 !important;
+  width: 3px !important;
+}
+
+html body .ttcm-m3-card.is-unread {
+  border-color: #a8c7fa !important;
+  background: #fdfefe !important;
+  box-shadow: 0 1px 3px rgba(11,87,208,.10) !important;
+}
+
+html body .ttcm-m3-card-icon {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 12px !important;
+}
+
+html body .ttcm-m3-card h3 {
+  margin: 7px 0 5px !important;
+  color: #202124 !important;
+  font-size: 15.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.38 !important;
+  letter-spacing: -.01em !important;
+}
+
+html body .ttcm-m3-card p {
+  max-width: 900px !important;
+  color: #5f6368 !important;
+  font-size: 12.3px !important;
+  line-height: 1.55 !important;
+}
+
+html body .ttcm-m3-card-meta {
+  gap: 5px 7px !important;
+  color: #80868b !important;
+  font-size: 10.5px !important;
+}
+
+html body .ttcm-m3-type-chip,
+html body .ttcm-m3-edited-chip {
+  min-height: 22px !important;
+  padding: 0 8px !important;
+  border: 1px solid #e0e3e7 !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  font-size: 9.8px !important;
+}
+
+html body .ttcm-m3-due {
+  margin-top: 7px !important;
+  font-size: 11px !important;
+}
+
+html body .ttcm-m3-due > span {
+  padding: 3px 8px !important;
+  border-radius: 12px !important;
+}
+
+/* Attachments should read like Google Drive rows, not another card inside a card. */
+html body .ttcm-m3-file-list {
+  gap: 6px !important;
+  margin-top: 10px !important;
+}
+
+html body .ttcm-m3-file-row {
+  min-height: 54px !important;
+  padding: 6px 8px !important;
+  border: 1px solid #e2e6eb !important;
+  border-radius: 12px !important;
+  background: #f8fafd !important;
+}
+
+html body .ttcm-m3-file-main { gap: 9px !important; }
+
+html body .ttcm-m3-file-icon {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+}
+
+html body .ttcm-m3-file-main b {
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+
+html body .ttcm-m3-file-main small { font-size: 9.8px !important; }
+
+html body .ttcm-m3-file-actions button {
+  min-height: 32px !important;
+  padding: 0 9px !important;
+  border-radius: 16px !important;
+  font-size: 10.8px !important;
+}
+
+/* Actions become quieter; response stays the strongest tonal action. */
+html body .ttcm-m3-manager-actions {
+  gap: 5px !important;
+  margin-top: 10px !important;
+  padding-top: 9px !important;
+  border-top: 1px solid #edf0f3 !important;
+}
+
+html body .ttcm-m3-manager-button {
+  min-height: 32px !important;
+  padding: 0 11px !important;
+  border-radius: 16px !important;
+  font-size: 11px !important;
+}
+
+html body .ttcm-m3-manager-actions .ttcm-m3-manager-button:nth-child(2) {
+  border-color: transparent !important;
+  background: var(--ttcm-gm-primary-container) !important;
+  color: var(--ttcm-gm-on-primary-container) !important;
+}
+
+html body .ttcm-m3-manager-button.is-danger {
+  color: #b3261e !important;
+}
+
+/* Toasts */
+html body .ttcm-m3-banner {
+  top: 144px !important;
+  right: 20px !important;
+  width: min(480px, calc(100% - 270px)) !important;
+  padding: 10px 13px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(60,64,67,.16) !important;
+}
+
+/* Composer: cleaner Google Docs / Drive-like authoring surface. */
+html body .ttcm-m3-compose-layer {
+  padding: 16px !important;
+  background: rgba(32,33,36,.30) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+html body form.ttcm-m3-compose {
+  width: min(1080px, calc(100% - 28px)) !important;
+  max-height: calc(100% - 28px) !important;
+  grid-template-columns: 202px minmax(0,1fr) !important;
+  row-gap: 14px !important;
+  padding: 0 26px 18px 0 !important;
+  border: 1px solid #dfe3e8 !important;
+  border-radius: 24px !important;
+  background: #fff !important;
+  box-shadow: 0 8px 28px rgba(60,64,67,.22) !important;
+}
+
+html body form.ttcm-m3-compose > header {
+  min-height: 72px !important;
+  padding: 16px 20px !important;
+}
+
+html body form.ttcm-m3-compose > header strong {
+  font-size: 18.5px !important;
+  font-weight: 700 !important;
+}
+
+html body form.ttcm-m3-compose > header small {
+  margin-top: 3px !important;
+  font-size: 11px !important;
+}
+
+html body form.ttcm-m3-compose > .ttcm-m3-type-grid {
+  margin-top: -14px !important;
+  margin-bottom: -18px !important;
+  padding: 18px 10px !important;
+  border-right: 1px solid #e1e5eb !important;
+  background: #f6f8fc !important;
+}
+
+html body form.ttcm-m3-compose > .ttcm-m3-type-grid::before {
+  padding: 0 10px 8px !important;
+  font-size: 8.8px !important;
+}
+
+html body form.ttcm-m3-compose > .ttcm-m3-type-grid button {
+  min-height: 56px !important;
+  padding: 7px 9px !important;
+  border-radius: 16px !important;
+}
+
+html body form.ttcm-m3-compose > .ttcm-m3-type-grid button > span {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 10px !important;
+}
+
+html body form.ttcm-m3-compose > .ttcm-m3-type-grid button b {
+  font-size: 11.5px !important;
+}
+
+html body form.ttcm-m3-compose > .ttcm-m3-type-grid button small {
+  font-size: 9px !important;
+}
+
+html body form.ttcm-m3-compose > label.ttcm-m3-field,
+html body form.ttcm-m3-compose > .ttcm-m3-field-row,
+html body form.ttcm-m3-compose > .ttcm-m3-recipients,
+html body form.ttcm-m3-compose > .ttcm-m3-banner {
+  margin-left: 22px !important;
+}
+
+html body form.ttcm-m3-compose .ttcm-m3-field > span {
+  color: #3c4043 !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+}
+
+html body form.ttcm-m3-compose .ttcm-m3-field input,
+html body form.ttcm-m3-compose .ttcm-m3-field textarea,
+html body form.ttcm-m3-compose .ttcm-m3-search {
+  border: 1px solid #c7cbd1 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+}
+
+html body form.ttcm-m3-compose .ttcm-m3-field input,
+html body form.ttcm-m3-compose .ttcm-m3-search {
+  min-height: 44px !important;
+}
+
+html body form.ttcm-m3-compose .ttcm-m3-field textarea {
+  min-height: 116px !important;
+}
+
+html body form.ttcm-m3-compose .ttcm-m3-field input:focus,
+html body form.ttcm-m3-compose .ttcm-m3-field textarea:focus,
+html body form.ttcm-m3-compose .ttcm-m3-search:focus {
+  border: 2px solid var(--ttcm-gm-primary) !important;
+}
+
+html body form.ttcm-m3-compose .ttcm-m3-recipients {
+  padding: 12px !important;
+  border-radius: 16px !important;
+  background: #f8fafd !important;
+}
+
+html body form.ttcm-m3-compose .ttcm-m3-recipient-list {
+  max-height: 190px !important;
+  gap: 6px !important;
+}
+
+html body form.ttcm-m3-compose .ttcm-m3-recipient-list > label {
+  min-height: 44px !important;
+  padding: 6px 8px !important;
+  border-radius: 12px !important;
+}
+
+html body form.ttcm-m3-compose > footer {
+  margin: 0 -26px -18px 0 !important;
+  padding: 12px 20px 14px !important;
+}
+
+html body form.ttcm-m3-compose > footer .ttcm-m3-filled-button {
+  min-height: 40px !important;
+  padding: 0 17px !important;
+  border-radius: 20px !important;
+}
+
+/* Cleaner preview/response surfaces */
+html body .ttcm-m3-response-dialog,
+html body .ttcm-m3-file-viewer {
+  border-radius: 20px !important;
+  box-shadow: 0 8px 24px rgba(60,64,67,.20) !important;
+}
+
+html body .ttcm-m3-file-viewer-body,
+html body .ttcm-m3-schedule-view {
+  background: #f8fafd !important;
+}
+
+/* Scrollbars: subtle Chrome/Google style */
+html body .ttcm-m3-feed,
+html body .ttcm-m3-filters,
+html body form.ttcm-m3-compose,
+html body .ttcm-m3-recipient-list {
+  scrollbar-width: thin !important;
+  scrollbar-color: #c8cdd3 transparent !important;
+}
+
+@media (max-width: 1050px) {
+  html body .ttcm-m3-filters { width: 190px !important; }
+  html body .ttcm-m3-feed { padding-left: 214px !important; }
+  html body form.ttcm-m3-compose { grid-template-columns: 184px minmax(0,1fr) !important; }
+}
+
+@media (max-width: 760px) {
+  html body .ttcm-m3-layer { padding: 0 !important; }
+  html body .ttcm-m3-shell { width: 100vw !important; height: 100dvh !important; border: 0 !important; border-radius: 0 !important; }
+  html body .ttcm-m3-topbar { min-height: 66px !important; padding: 9px 10px !important; }
+  html body .ttcm-m3-title-icon { width: 38px !important; height: 38px !important; border-radius: 11px !important; }
+  html body .ttcm-m3-title > div::before { display: none !important; }
+  html body .ttcm-m3-title strong { font-size: 18px !important; }
+  html body .ttcm-m3-toolbar { padding: 7px 8px !important; }
+  html body .ttcm-m3-filters {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    flex-direction: row !important;
+    gap: 4px !important;
+    padding: 6px 8px !important;
+    overflow-x: auto !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid #e1e5eb !important;
+    background: #f8fafd !important;
+  }
+  html body .ttcm-m3-filters::before,
+  html body .ttcm-m3-filters::after { display: none !important; }
+  html body .ttcm-m3-filters button {
+    flex: 0 0 auto !important;
+    min-height: 34px !important;
+    padding: 0 12px 0 30px !important;
+  }
+  html body .ttcm-m3-filters button::before { left: 12px !important; }
+  html body .ttcm-m3-feed { padding: 12px !important; }
+  html body form.ttcm-m3-compose {
+    width: 100% !important;
+    max-height: 100% !important;
+    min-height: 100% !important;
+    grid-template-columns: 1fr !important;
+    padding: 0 14px 14px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+  html body form.ttcm-m3-compose > .ttcm-m3-type-grid {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    margin: 0 -14px !important;
+    padding: 10px 14px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid #e1e5eb !important;
+  }
+  html body form.ttcm-m3-compose > .ttcm-m3-type-grid::before { display: none !important; }
+  html body form.ttcm-m3-compose > .ttcm-m3-type-grid button { flex: 0 0 160px !important; }
+  html body form.ttcm-m3-compose > label.ttcm-m3-field,
+  html body form.ttcm-m3-compose > .ttcm-m3-field-row,
+  html body form.ttcm-m3-compose > .ttcm-m3-recipients,
+  html body form.ttcm-m3-compose > .ttcm-m3-banner { margin-left: 0 !important; }
+  html body form.ttcm-m3-compose > footer { margin: 0 -14px -14px !important; }
+}
