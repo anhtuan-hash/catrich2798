@@ -396,9 +396,6 @@
   text-transform: uppercase;
 }
 
-.mr-number-table tbody tr {
-}
-
 .mr-number-table tbody tr:nth-child(even) {
   background: #fbfcfd;
 }

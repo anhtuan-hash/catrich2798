@@ -10,7 +10,6 @@ html[data-theme="dark"] .resource-category-section,html[data-theme="dark"] .reso
 /* V10.81.5 — explicit interactive folder browser */
 .rl-category-card{pointer-events:auto;touch-action:manipulation;isolation:isolate}
 .rl-category-card:focus-visible,.resource-category-all:focus-visible{outline:3px solid rgba(40,120,208,.3);outline-offset:3px}
-.rl-category-card:active{}
 .rl-open-folder-hint{margin-top:8px;color:var(--tone);font-size:.8125rem;font-weight:950;white-space:nowrap}
 .resource-folder-open-message{align-items:center;display:flex;flex-wrap:wrap;gap:6px}
 .resource-folder-open-message>span{color:#617e95;font-size:.8125rem;font-weight:850}

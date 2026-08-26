@@ -357,12 +357,6 @@ main[data-route="dashboard"]{
 .wd5-draft-card:hover{box-shadow:0 16px 30px rgba(35,68,112,.1);border-color:#cfdaeb!important}
 .wd5-file-icon{border-radius:13px!important;box-shadow:0 10px 20px color-mix(in srgb,var(--file-accent) 18%,transparent)}
 
-
-.wd5-metrics>.wd5-metric,.wd5-main-grid>.wd5-card,.wd5-triple-grid>.wd5-card,.wd5-carousel-card{}
-.wd5-metrics>.wd5-metric:nth-child(2){}.wd5-metrics>.wd5-metric:nth-child(3){}.wd5-metrics>.wd5-metric:nth-child(4){}.wd5-metrics>.wd5-metric:nth-child(5){}
-.wd5-main-grid>.wd5-card:nth-child(1){}.wd5-main-grid>.wd5-card:nth-child(2){}
-.wd5-triple-grid>.wd5-card:nth-child(1){}.wd5-triple-grid>.wd5-card:nth-child(2){}.wd5-triple-grid>.wd5-card:nth-child(3){}.wd5-carousel-card{}
-
 /* Dark mode */
 html[data-theme="dark"] main[data-route="dashboard"]{background:linear-gradient(180deg,#0b1422,#101b2b)}
 html[data-theme="dark"] .wd5-card,html[data-theme="dark"] .wd5-metric{background:rgba(19,31,49,.94)!important;border-color:rgba(130,153,185,.19)!important;box-shadow:0 18px 40px rgba(0,0,0,.2)!important}

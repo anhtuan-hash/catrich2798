@@ -1,25 +1,24 @@
-BRIAN MOTION SOURCE CLEANUP — ONE-TIME AUDIT
+BRIAN MOTION SOURCE CLEANUP — STRICT FINAL AUDIT
 
 {
-  "css_files_changed": 126,
-  "code_files_changed": 39,
-  "navigation_utility_renamed": 1,
+  "css_files_changed": 46,
+  "code_files_changed": 0,
+  "retired_cleanup_changed": 1,
+  "navigation_utility_renamed": 0,
   "totals": {
-    "keyframes": 111,
-    "reduced_motion_blocks": 83,
-    "transition_props": 255,
-    "animation_props": 202,
-    "will_change_props": 27,
-    "motion_vars": 5,
-    "smooth_scroll": 3,
-    "motion_blocks": 8,
-    "dynamic_geometry": 258,
-    "smooth_behavior": 40,
-    "motion_import": 14
-  }
+    "keyframes": 0,
+    "reduced_motion": 0,
+    "transition": 3,
+    "animation": 5,
+    "will_change": 0,
+    "motion_vars": 3,
+    "smooth_scroll": 0,
+    "motion_rules": 134,
+    "dynamic_geometry": 14,
+    "smooth_behavior": 0
+  },
+  "residual_candidate_count": 91
 }
-
-Residual candidate count: 119
 
 requestAnimationFrame	src/compactDrawerRuntimeV2.js:208	requestAnimationFrame
 requestAnimationFrame	src/weeklyBulkUploadInputGuard.js:94	requestAnimationFrame
@@ -53,12 +52,16 @@ requestAnimationFrame	src/schoolClassBootstrap.jsx:352	requestAnimationFrame
 requestAnimationFrame	src/noCreamSurfaceRuntime.js:167	requestAnimationFrame
 requestAnimationFrame	src/studentRosterCountFix.js:138	requestAnimationFrame
 requestAnimationFrame	src/conductCurrentWeekExport.js:344	requestAnimationFrame
-launch-motion-class	src/styles/v1159.css:83	.is-launching
-launch-motion-class	src/styles/v1159.css:84	.is-launching
-launch-motion-class	src/styles/v1159.css:85	.is-launching
-launch-motion-class	src/styles/v1159.css:86	.is-launching
-launch-motion-class	src/styles/v1159.css:87	.is-launching
-launch-motion-class	src/styles/v1159.css:88	.is-launching
+positive-transition	src/styles/v1159.css:22	transition: none !important
+positive-transition	src/styles/v1159.css:23	transition-property: none !important
+positive-transition	src/styles/v1159.css:24	transition-duration: 0s !important
+positive-transition	src/styles/v1159.css:25	transition-delay: 0s !important
+positive-animation	src/styles/v1159.css:17	animation: none !important
+positive-animation	src/styles/v1159.css:18	animation-name: none !important
+positive-animation	src/styles/v1159.css:19	animation-duration: 0s !important
+positive-animation	src/styles/v1159.css:20	animation-delay: 0s !important
+positive-animation	src/styles/v1159.css:21	animation-iteration-count: 1 !important
+positive-animation	src/styles/v1159.css:35	animation: none !important
 requestAnimationFrame	src/pages/TextCareGoogleWorkspace.jsx:108	requestAnimationFrame
 requestAnimationFrame	src/pages/TextCareGoogleWorkspace.jsx:122	requestAnimationFrame
 requestAnimationFrame	src/pages/ReadingStudioAccordionLibrary.jsx:425	requestAnimationFrame
@@ -73,11 +76,6 @@ requestAnimationFrame	src/pages/FlyingWordsGame.jsx:851	requestAnimationFrame
 requestAnimationFrame	src/pages/FlyingWordsGame.jsx:854	requestAnimationFrame
 requestAnimationFrame	src/utils/aiRemovalGuard.js:45	requestAnimationFrame
 requestAnimationFrame	src/utils/neutralSurfaceGuard.js:215	requestAnimationFrame
-motion-setting	src/utils/retiredFeatureCleanup.js:6	motion-effects
-motion-setting	src/utils/retiredFeatureCleanup.js:7	brian.ui.motion
-motion-setting	src/utils/retiredFeatureCleanup.js:75	data-motion
-motion-setting	src/utils/retiredFeatureCleanup.js:76	data-motion
-motion-setting	src/utils/retiredFeatureCleanup.js:77	a11y-motion
 requestAnimationFrame	src/components/GlobalWeeklyPracticeStatisticsBridge.jsx:60	requestAnimationFrame
 requestAnimationFrame	src/components/GlobalWorkHubGoogleHeroV2.jsx:59	requestAnimationFrame
 requestAnimationFrame	src/components/GlobalWorkHubGoogleHeroV2.jsx:84	requestAnimationFrame
@@ -87,9 +85,6 @@ requestAnimationFrame	src/components/VietnamAtmosphereOverlay.jsx:236	requestAni
 requestAnimationFrame	src/components/GlobalHeroGovernance.jsx:116	requestAnimationFrame
 requestAnimationFrame	src/components/ExternalAppsIntegration.jsx:144	requestAnimationFrame
 requestAnimationFrame	src/components/ExternalAppsIntegration.jsx:155	requestAnimationFrame
-data-motion	src/components/VietnamAtmosphereOverlay.css:68	data-motion
-data-motion	src/components/VietnamAtmosphereOverlay.css:72	data-motion
-data-motion	src/components/VietnamAtmosphereOverlay.css:74	data-motion
 requestAnimationFrame	src/components/GlobalDashboardFooterBridge.jsx:16	requestAnimationFrame
 requestAnimationFrame	src/components/GlobalHomeroomNavigationTab.jsx:21	requestAnimationFrame
 requestAnimationFrame	src/components/PermissionRequestButton.jsx:66	requestAnimationFrame
@@ -107,36 +102,12 @@ requestAnimationFrame	src/components/PersonnelLookupGoogleV2.jsx:204	requestAnim
 requestAnimationFrame	src/components/PersonnelLookupGoogleV2.jsx:224	requestAnimationFrame
 requestAnimationFrame	src/components/PersonnelLookupGoogleV2.jsx:266	requestAnimationFrame
 requestAnimationFrame	src/components/GlobalPublicNewsBriefing.jsx:76	requestAnimationFrame
-data-motion	src/components/GlobalInteractiveHoverFinal.css:31	data-motion
-data-motion	src/components/GlobalInteractiveHoverFinal.css:56	data-motion
 requestAnimationFrame	src/components/GlobalGuestNavigationHub.jsx:44	requestAnimationFrame
-requestAnimationFrame	src/components/GlobalWeeklyPracticeBridge.jsx:631	requestAnimationFrame
+requestAnimationFrame	src/components/GlobalWeeklyPracticeBridge.jsx:667	requestAnimationFrame
 requestAnimationFrame	src/components/ExternalWebAppViewer.jsx:74	requestAnimationFrame
 requestAnimationFrame	src/components/ExternalWebAppViewer.jsx:83	requestAnimationFrame
 requestAnimationFrame	src/components/GlobalAiWebsiteLauncher.jsx:69	requestAnimationFrame
 requestAnimationFrame	src/components/BrianTeamNoPurpleRuntimeBridge.jsx:133	requestAnimationFrame
-data-motion	src/styles/legacy/01-foundation.css:223	data-motion
-data-motion	src/styles/legacy/01-foundation.css:3141	data-motion
-launch-motion-class	src/styles/legacy/01-foundation.css:847	.is-launching
-launch-motion-class	src/styles/legacy/01-foundation.css:1002	.is-launching
-launch-motion-class	src/styles/legacy/01-foundation.css:1003	.is-launching
-launch-motion-class	src/styles/legacy/01-foundation.css:1004	.is-launching
-launch-motion-class	src/styles/legacy/01-foundation.css:1005	.is-launching
-launch-motion-class	src/styles/legacy/01-foundation.css:1006	.is-launching
-launch-motion-class	src/styles/legacy/01-foundation.css:1007	.is-launching
-launch-motion-class	src/styles/legacy/01-foundation.css:1008	.is-launching
-launch-motion-class	src/styles/legacy/01-foundation.css:1489	.is-launching
-launch-motion-class	src/styles/legacy/01-foundation.css:1981	.is-launching
-data-motion	src/styles/legacy/02-workspaces.css:1456	data-motion
-data-motion	src/styles/legacy/02-workspaces.css:1457	data-motion
-data-motion	src/styles/legacy/02-workspaces.css:1458	data-motion
-launch-motion-class	src/styles/legacy/02-workspaces.css:1448	.is-launching
-launch-motion-class	src/styles/legacy/02-workspaces.css:1465	.is-launching
-launch-motion-class	src/styles/legacy/02-workspaces.css:1465	.is-launching
-launch-motion-class	src/styles/legacy/02-workspaces.css:1465	.is-launching
-launch-motion-class	src/styles/legacy/02-workspaces.css:1465	.is-launching
-launch-motion-class	src/styles/legacy/02-workspaces.css:1465	.is-launching
-launch-motion-class	src/styles/legacy/02-workspaces.css:1465	.is-launching
 requestAnimationFrame	src/components/homeroom/HomeroomNavigationPalette.jsx:33	requestAnimationFrame
 requestAnimationFrame	src/components/homeroom/HomeroomNavigationPalette.jsx:66	requestAnimationFrame
 requestAnimationFrame	src/components/homeroom/HomeroomLearningGradebook.jsx:328	requestAnimationFrame

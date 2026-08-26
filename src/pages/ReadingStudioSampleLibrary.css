@@ -157,12 +157,6 @@
   cursor: pointer;
 }
 
-.reading-library-hero-actions button:hover,
-.reading-library-copy-all:hover,
-.reading-library-footer-bar button:hover,
-.reading-library-sample-card header button:hover {
-}
-
 .reading-library-hero-actions .primary,
 .reading-library-copy-all,
 .reading-library-footer-bar button {

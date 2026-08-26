@@ -17,7 +17,6 @@
 .brian-group-back,.brian-group-top-actions button,.brian-group-results-head button,.brian-group-roster-actions button{
   min-height:42px!important;padding:0 16px!important;border:0!important;border-radius:999px!important;background:var(--m3-surface-1)!important;color:#3c4043!important;box-shadow:none!important;}
 .brian-group-topbar button:hover,.brian-group-results-head button:hover,.brian-group-roster-actions button:hover{background:#e3eaf4!important;box-shadow:0 3px 8px rgba(60,64,67,.14)!important}
-.brian-group-topbar button:active,.brian-group-results-head button:active,.brian-group-roster-actions button:active{}
 .brian-group-top-actions .brian-group-present-button,.brian-group-results-head .primary{background:var(--m3-primary)!important;color:#fff!important;box-shadow:0 3px 8px rgba(11,87,208,.24)!important}
 
 /* Compact solid hero */
@@ -52,7 +51,7 @@
 .brian-group-roster-panel textarea{min-height:250px!important;border:1px solid #bdc1c6!important;border-radius:16px!important;background:#fff!important;color:#202124!important;box-shadow:inset 0 1px 2px rgba(60,64,67,.06)!important}
 .brian-group-roster-panel textarea:focus,.brian-group-save-row input:focus{border:2px solid var(--m3-primary)!important;box-shadow:0 0 0 3px rgba(11,87,208,.10)!important}
 .brian-group-attendance-list{max-height:370px!important;border:1px solid #dfe3ea!important;border-radius:18px!important;background:#fff!important}
-.brian-group-attendance-list>button{min-height:58px!important;padding:10px 14px!important;border-bottom:1px solid #edf0f4!important;background:#fff!important;animation-delay:calc(var(--row-index,0)*24ms)!important}
+.brian-group-attendance-list>button{min-height:58px!important;padding:10px 14px!important;border-bottom:1px solid #edf0f4!important;background:#fff!important;}
 .brian-group-attendance-list>button:hover{background:#f5f8fd!important;}
 .brian-group-attendance-list>button.is-absent{background:#f8f9fa!important}
 .attendance-state{min-width:92px!important;border-radius:999px!important;background:var(--m3-green-soft)!important;color:#0f5223!important}.is-absent .attendance-state{background:var(--m3-red-soft)!important;color:#b3261e!important}
@@ -71,7 +70,7 @@
 .brian-group-switches>label{min-height:74px!important;padding:14px!important;border:1px solid #dfe3ea!important;border-radius:18px!important;background:#fff!important}
 .brian-group-switches input{width:52px!important;height:32px!important;background:#747775!important}.brian-group-switches input:after{width:24px!important;height:24px!important;left:4px!important;top:4px!important}.brian-group-switches input:checked{background:var(--m3-primary)!important}.brian-group-switches input:checked:after{left:24px!important}
 .brian-group-generate{min-height:66px!important;border-radius:999px!important;background:var(--m3-primary)!important;box-shadow:0 4px 12px rgba(11,87,208,.24)!important}
-.brian-group-generate:hover{background:#0842a0!important}.brian-group-app.is-shuffling .brian-group-generate svg{}
+.brian-group-generate:hover{background:#0842a0!important}
 
 /* Balanced result grid */
 .brian-group-results{max-width:1600px!important;margin:0 auto!important}
@@ -92,8 +91,7 @@
 .group-hidden-avatars{position:relative;z-index:1;display:flex;justify-content:center;margin-bottom:8px}.group-hidden-avatars span{width:42px;height:42px;margin-left:-8px;border:3px solid #fff;border-radius:50%;display:grid;place-items:center;background:var(--group-color);color:#fff;font-size:12px;font-weight:850;box-shadow:0 4px 10px rgba(60,64,67,.16);}.group-hidden-avatars span:first-child{margin-left:0}
 .brian-group-empty{background:#fff!important;border:2px dashed #c9d3e3!important}
 
-/* Shuffle transition: old groups gather before new distribution */
-.brian-group-app.is-shuffling .brian-group-grid{perspective:900px}.brian-group-app.is-shuffling .brian-group-card{pointer-events:none!important}.brian-group-app.is-shuffling .brian-group-results::after{content:"";position:absolute;inset:0;z-index:8;pointer-events:none;background:radial-gradient(circle at 50% 48%,rgba(11,87,208,.13),transparent 20%);}
+/* Shuffle {perspective:900px}.brian-group-app.is-shuffling .brian-group-card{pointer-events:none!important}.brian-group-app.is-shuffling .brian-group-results::after{content:"";position:absolute;inset:0;z-index:8;pointer-events:none;background:radial-gradient(circle at 50% 48%,rgba(11,87,208,.13),transparent 20%);}
 
 /* Presentation */
 .brian-group-app.is-presenting{padding:18px!important;background:linear-gradient(135deg,#071b3c,#0b57d0 52%,#0842a0)!important;background-size:180% 180%!important;}

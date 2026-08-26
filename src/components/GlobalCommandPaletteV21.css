@@ -142,9 +142,6 @@
   box-shadow: 0 0 0 3px rgba(52, 199, 89, .1);
 }
 
-.command-v21-local-status.is-loading > i {
-}
-
 .command-v21-esc {
   min-width: 43px;
   padding: 6px 9px;
@@ -193,9 +190,6 @@
 
 .command-v21-modes button:hover {
   background: rgba(118, 118, 128, .13);
-}
-
-.command-v21-modes button:active {
 }
 
 .command-v21-modes button.active {
@@ -507,9 +501,6 @@
   border-color: rgba(10, 132, 255, .28);
   background: rgba(10, 132, 255, .1);
   color: #0066cc;
-}
-
-.command-v21-inline-actions button:active {
 }
 
 .command-v21-inline-actions button > span {

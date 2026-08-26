@@ -74,10 +74,6 @@
   color:var(--g-blue)!important;
 }
 
-.hero-editor .hero-editor__back:active,
-.hero-editor .hero-editor__close:active{
-}
-
 .hero-editor .hero-editor__device-switcher{
   gap:4px!important;
   padding:4px!important;
@@ -564,9 +560,6 @@
   font-size:.69rem!important;
   font-weight:600!important;
   letter-spacing:.005em!important;
-}
-
-.hero-editor .hero-editor__footer button:hover:not(:disabled){
 }
 
 .hero-editor .hero-editor__footer button:not(.is-primary){

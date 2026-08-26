@@ -40,7 +40,6 @@
   filter:none!important;
 }
 .brian-group-app .brian-group-card{transform:none!important}
-.brian-group-app .brian-group-card:hover{}
 
 /* Top action bar */
 .brian-group-topbar{
@@ -71,7 +70,6 @@
   background:#e2e8f0!important;
   box-shadow:none!important;
 }
-.brian-group-topbar button:active,.brian-group-results-head button:active,.brian-group-roster-actions button:active{}
 .brian-group-top-actions .brian-group-present-button,.brian-group-results-head .primary{
   color:#fff!important;
   background:var(--gm-primary)!important;
@@ -104,7 +102,6 @@
   box-shadow:none!important;
   letter-spacing:.045em!important;
 }
-.brian-group-eyebrow svg{}
 .brian-group-hero h1{
   margin:14px 0 8px!important;
   color:var(--gm-text)!important;
@@ -202,7 +199,6 @@
 .brian-group-segmented button{min-height:75px!important;padding:9px!important;border:0!important;border-radius:14px!important;color:#5f6368!important;background:transparent!important;box-shadow:none!important;transform:none!important}
 .brian-group-segmented button:hover{background:#e7edf5!important;}
 .brian-group-segmented button.active{color:#0842a0!important;background:var(--gm-primary-soft)!important;box-shadow:none!important}
-.brian-group-segmented button.active svg{}
 .brian-group-number-control{margin-top:18px!important}
 .brian-group-number-control>div{grid-template-columns:44px 58px 44px!important;border:1px solid #bdc1c6!important;border-radius:999px!important;background:#fff!important}
 .brian-group-number-control button{height:44px!important;background:var(--gm-surface-low)!important;color:#0842a0!important}
@@ -219,7 +215,6 @@
 .brian-group-switches input:checked:after{left:23px!important}
 .brian-group-generate{min-height:60px!important;border-radius:999px!important;background:var(--gm-primary)!important;color:#fff!important;box-shadow:0 2px 6px rgba(11,87,208,.22)!important;transform:none!important;}
 .brian-group-generate:hover{background:var(--gm-primary-hover)!important;}
-.brian-group-generate svg{}
 
 /* Results */
 .brian-group-results{max-width:1560px!important;min-height:350px!important;margin:0 auto!important;padding:24px!important}

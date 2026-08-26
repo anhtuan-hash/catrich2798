@@ -14,52 +14,6 @@ html body .app-shell[data-route] {
 
 
 @media (hover: hover) and (pointer: fine) {
-  /* Buttons, pills, tabs, menus, icons and detected custom controls. */
-  html body .app-shell[data-route] :where(
-    button:not(:disabled),
-    summary,
-    [role='button']:not([aria-disabled='true']),
-    [role='menuitem']:not([aria-disabled='true']),
-    [role='tab']:not([aria-disabled='true']),
-    [role='option']:not([aria-disabled='true']),
-    [role='switch']:not([aria-disabled='true']),
-    [role='checkbox']:not([aria-disabled='true']),
-    [role='radio']:not([aria-disabled='true']),
-    [data-interactive='true'],
-    [data-clickable='true'],
-    [data-eh-interactive='true'][data-eh-interactive-kind='control']
-  ):not([data-hover-ignore='true']):not([data-motion-ignore='true']):not([data-eh-motion-card='true']):hover {
-    position: relative;
-    z-index: 12 !important;
-    border-color: rgba(66, 133, 244, .72) !important;
-    outline: 2px solid var(--eh-hover-final-ring) !important;
-    outline-offset: 3px !important;
-    box-shadow:
-      0 18px 34px var(--eh-hover-final-shadow),
-      0 0 0 5px var(--eh-hover-glow-faint),
-      0 0 22px var(--eh-hover-glow-soft) !important;
-  }
-
-  html body .app-shell[data-route] :where(
-    button:not(:disabled),
-    summary,
-    [role='button']:not([aria-disabled='true']),
-    [role='menuitem']:not([aria-disabled='true']),
-    [role='tab']:not([aria-disabled='true']),
-    [role='option']:not([aria-disabled='true']),
-    [role='switch']:not([aria-disabled='true']),
-    [role='checkbox']:not([aria-disabled='true']),
-    [role='radio']:not([aria-disabled='true']),
-    [data-interactive='true'],
-    [data-clickable='true'],
-    [data-eh-interactive='true'][data-eh-interactive-kind='control']
-  ):not([data-hover-ignore='true']):not([data-motion-ignore='true']):active {
-    outline-color: rgba(66, 133, 244, .34) !important;
-    box-shadow:
-      0 7px 14px rgba(31, 74, 142, .20),
-      0 0 11px rgba(66, 133, 244, .38) !important;
-    filter: brightness(.97) saturate(1.02) !important;
-  }
 
   /* App cards and all Motion Core cards move from their original position with a deeper glow. */
   html body .app-shell[data-route] [data-eh-motion-card='true']:not([data-hover-ignore='true']):hover {

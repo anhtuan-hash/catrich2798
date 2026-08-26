@@ -203,7 +203,6 @@
   font-weight: 700 !important;
   box-shadow: none !important;
 }
-.tcg-workspace-actions button:hover { }
 .tcg-hero-primary {
   border: 1px solid var(--tc-m3-blue) !important;
   background: var(--tc-m3-blue) !important;

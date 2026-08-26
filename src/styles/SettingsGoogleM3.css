@@ -136,9 +136,6 @@ html body .app-shell[data-route="settings"] .settings-google-sidebar nav > butto
   background: var(--sg-surface-3) !important;
 }
 
-html body .app-shell[data-route="settings"] .settings-google-sidebar nav > button:active {
-}
-
 html body .app-shell[data-route="settings"] .settings-google-sidebar nav > button.is-active {
   background: var(--sg-blue-container) !important;
   color: var(--sg-blue) !important;

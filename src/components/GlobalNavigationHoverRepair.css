@@ -44,9 +44,6 @@
       0 5px 14px rgba(47, 84, 146, .12) !important;
   }
 
-  html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']):hover::after {
-  }
-
   html body .app-shell[data-route] .brian-nav__primary > :where(button, [role='button']).is-active {
     overflow: hidden !important;
     outline: none !important;

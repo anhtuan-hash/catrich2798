@@ -122,7 +122,6 @@
   border-color: #d2e3fc;
   background: #edf4ff;
 }
-.command-v2-result.active { transform: translateX(2px); }
 .command-v2-result.is-inferred {
   border-color: #c8e6c9;
   background: #f2fbf5;

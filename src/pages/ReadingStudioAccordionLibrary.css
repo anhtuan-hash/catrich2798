@@ -164,12 +164,6 @@
   cursor: pointer;
 }
 
-.reading-accordion-hero-actions button:hover,
-.reading-accordion-toolbar-actions button:hover:not(:disabled),
-.reading-accordion-footer-bar button:hover:not(:disabled),
-.reading-accordion-copy:hover {
-}
-
 .reading-accordion-hero-actions .primary,
 .reading-accordion-toolbar-actions .primary,
 .reading-accordion-footer-bar .primary {

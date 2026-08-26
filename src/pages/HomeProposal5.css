@@ -132,9 +132,6 @@
   cursor: pointer;
 }
 
-.eh5-actions button:hover {
-}
-
 .eh5-actions button > span {
   width: 28px;
   height: 28px;
@@ -319,9 +316,6 @@
 .eh5-tool-card:hover {
   border-color: color-mix(in srgb, var(--tool-accent) 38%, #dfe4ec) !important;
   box-shadow: 0 10px 22px rgba(60, 64, 67, .13) !important;
-}
-
-.eh5-tool-card:hover::before {
 }
 
 .eh5-tool-icon {

@@ -326,10 +326,6 @@ html body button.brian-briefing-chip--weather:active {
   box-shadow: var(--gm-shadow-1) !important;
 }
 
-html body .brian-briefing-chip--weather.is-loading .brian-briefing-chip__icon,
-html body .brian-briefing-chip--weather.is-refreshing .brian-briefing-chip__icon {
-}
-
 html body .brian-briefing-chip--weather.is-error {
   background: #fce8e6 !important;
   color: #b3261e !important;

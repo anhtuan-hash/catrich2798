@@ -342,7 +342,7 @@
 
 .command-v21-layer .command-v21-result-shell.active .command-v21-icon {
   background: color-mix(in srgb, var(--command-accent) 18%, #fff) !important;
-  transform: none !important;
+  
 }
 
 .command-v21-layer .command-v21-result-copy {

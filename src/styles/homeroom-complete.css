@@ -114,14 +114,6 @@
   justify-content: flex-start;
 }
 
-.hr-team-roster label,
-.hr-toggle-grid label {
-}
-
-.hr-team-roster label:hover,
-.hr-toggle-grid label:hover {
-}
-
 .hr-pin {
   display: inline-flex;
   padding: 5px 9px;

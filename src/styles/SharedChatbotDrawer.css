@@ -63,9 +63,6 @@
   background: #f8fbff !important;
 }
 
-.bes-kira-chat-root .bes-kira-chat-launcher:active {
-}
-
 .bes-kira-chat-root :is(.bes-kira-chat-launcher, .bes-kira-chat-actions button, .bes-kira-chat-send, .bes-kira-chat-suggestions button):focus-visible {
   outline: 3px solid rgba(11, 87, 208, .2) !important;
   outline-offset: 3px !important;
@@ -250,9 +247,6 @@
 .bes-kira-chat-root .bes-kira-chat-actions button:hover {
   color: var(--kira-blue) !important;
   background: var(--kira-blue-soft-2) !important;
-}
-
-.bes-kira-chat-root .bes-kira-chat-actions button:active {
 }
 
 .bes-kira-chat-actions svg {
@@ -547,7 +541,6 @@
 .bes-kira-chat-root .bes-kira-chat-send:hover:not(:disabled) {
   background: var(--kira-blue-hover) !important;
 }
-.bes-kira-chat-root .bes-kira-chat-send:active:not(:disabled) { }
 .bes-kira-chat-root .bes-kira-chat-send:disabled {
   background: #e4e7eb !important;
   color: #91969d !important;

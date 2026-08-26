@@ -58,22 +58,6 @@
   contain: layout style paint;
 }
 
-.bes-vn-motif--curated {
-}
-
-html[data-performance='high'] .bes-vn-motif--curated {
-}
-
-html[data-performance='balanced'] .bes-vn-motif__art,
-html[data-motion='lite'] .bes-vn-motif__art {
-}
-
-html[data-performance='low'] .bes-vn-motif,
-html[data-motion='off'] .bes-vn-motif,
-html[data-performance='low'] .bes-vn-motif__art,
-html[data-motion='off'] .bes-vn-motif__art {
-}
-
 .bes-vn-motif--custom img {
   border-radius: 18%;
 }

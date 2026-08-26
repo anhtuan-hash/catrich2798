@@ -100,9 +100,6 @@ html body .bes-top-chrome > .brian-briefing-bar .brian-briefing-bar__headline:fo
   padding-left: 100%;
 }
 
-.brian-briefing-bar.is-paused .brian-briefing-bar__ticker-track {
-}
-
 
 .brian-briefing-bar__ticker-item {
   flex: 0 0 auto;

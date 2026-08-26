@@ -281,9 +281,6 @@
   color: #344054 !important;
 }
 
-.metro-clean-system[data-route='admin'] .admin-v41-hero-actions button:hover {
-}
-
 .metro-clean-system[data-route='admin'] .admin-v41-hero-mini-actions {
   grid-area: mini !important;
   display: flex !important;

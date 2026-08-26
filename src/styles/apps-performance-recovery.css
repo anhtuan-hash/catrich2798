@@ -1,99 +1,6 @@
 
 
-/* The app directory must always paint its actual content, even if a previous
-   route/motion layer leaves descendants in an intermediate visual state. */
-.apps-directory-native,
-.apps-directory-native .apps-directory-hero-native,
-.apps-directory-native .apps-directory-toolbar,
-.apps-directory-native .apps-directory-grid-native,
-.apps-directory-native .flat-app-window-card,
-.apps-directory-native .flat-app-window-launch,
-.apps-directory-native .flat-app-window-body,
-.apps-directory-native .flat-app-window-art,
-.apps-directory-native .flat-app-window-copy,
-.apps-directory-native .flat-app-window-copy > strong {
-  opacity: 1 !important;
-  visibility: visible !important;
-}
 
-.apps-directory-native {
-  contain: layout style;
-}
-
-/* Avoid a full-page glass layer. A giant backdrop-filter forces Safari to
-   continuously re-composite everything behind the launcher while scrolling. */
-.apps-directory-native:not(.is-launcher-edit-mode) .apps-directory-grid-native,
-.apps-directory-native .apps-directory-hero-native,
-.apps-directory-native .apps-directory-toolbar,
-.apps-directory-native .apps-directory-workspace {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-.apps-directory-native:not(.is-launcher-edit-mode) .apps-directory-grid-native {
-  background:
-    radial-gradient(circle at 12% 4%, rgba(234, 242, 255, .58), transparent 30%),
-    radial-gradient(circle at 92% 94%, rgba(232, 247, 239, .54), transparent 32%),
-    rgba(255, 255, 255, .94) !important;
-  box-shadow: 0 12px 32px rgba(56, 73, 107, .07) !important;
-}
-
-/* Do not promote every icon to its own GPU layer. This was a major source of
-   jank once the page contained several rows of apps. */
-.apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-art {
-  transform: none !important;
-  filter: none !important;
-  box-shadow:
-    0 8px 18px rgba(48, 68, 110, .16),
-    inset 0 1px 1px rgba(255, 255, 255, .38) !important;
-}
-
-.apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-launch,
-.apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-art,
-.apps-directory-native .apps-directory-preview-grid button,
-.apps-directory-native .apps-directory-actions button {
-  transition-duration: 120ms !important;
-}
-
-.apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-launch:hover {
-}
-
-.apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-launch:hover .flat-app-window-art {
-}
-
-/* Safari paint recovery: explicitly keep the launcher contents in normal flow
-   and prevent stale transform/filter state from blanking text or icons. */
-.apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-card,
-.apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-launch,
-.apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-body,
-.apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-copy {
-  filter: none !important;
-  clip-path: none !important;
-}
-
-.apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-body {
-  color: #202124 !important;
-}
-
-.apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-copy > strong {
-  color: #24324b !important;
-  -webkit-text-fill-color: #24324b !important;
-}
-
-.apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-art svg,
-.apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-art svg * {
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-/* Keep cards independently paintable without using content-visibility, whose
-   Safari behavior can leave virtualized-looking blank tiles after tab resume. */
-.apps-directory-native:not(.is-launcher-edit-mode) .flat-app-window-card {
-  contain: layout style !important;
-}
-
-/* Route transition effects use clip-path + filter on the whole stage. They are
-   pleasant on lighter pages but unnecessarily expensive for the dense launcher. */
 .metro-clean-system[data-route='apps'] .wp8-page-stage,
 .metro-clean-system[data-route='applications'] .wp8-page-stage,
 html:has(.apps-directory-native) .metro-clean-system .wp8-page-stage {
@@ -101,16 +8,6 @@ html:has(.apps-directory-native) .metro-clean-system .wp8-page-stage {
   filter: none !important;
   clip-path: none !important;
   transform: none !important;
-}
-
-/* The decorative hero stays static on the Applications route. */
-.apps-directory-native .apps-directory-hero-native::before,
-.apps-directory-native .apps-directory-hero-native::after,
-.apps-directory-native .apps-directory-orbit,
-.apps-directory-native .apps-flat-relief-book,
-.apps-directory-native .apps-flat-relief-calendar,
-.apps-directory-native .apps-flat-relief-pencil,
-.apps-directory-native .apps-flat-relief-cube {
 }
 
 /* Stable desktop geometry: never allow old launcher layers to stretch cards

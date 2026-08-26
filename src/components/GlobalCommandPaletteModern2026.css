@@ -293,7 +293,7 @@
 }
 
 .command-v21-layer .command-v21-result-shell.active .command-v21-icon {
-  transform: none !important;
+  
   background: color-mix(in srgb, var(--command-accent) 15%, #fff) !important;
   box-shadow: none !important;
 }

@@ -28,7 +28,6 @@
   font-weight: 900;
   transform: translateY(-140%);
 }
-.bes-skip-link:focus { }
 
 html[data-a11y-focus="true"] :where(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 4px solid #00a6ff !important;
