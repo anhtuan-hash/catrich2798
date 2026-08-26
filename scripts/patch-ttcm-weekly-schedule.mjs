@@ -54,7 +54,7 @@ function formatWeekRange(value, language) {
   const locale = language === 'vi' ? 'vi-VN' : 'en-US';
   const startLabel = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(monday);
   const endLabel = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(sunday);
-  return language === 'vi' ? `Tuần ${startLabel} – ${endLabel}` : `${startLabel} – ${endLabel}`;
+  return language === 'vi' ? 'Tuần ' + startLabel + ' – ' + endLabel : startLabel + ' – ' + endLabel;
 }
 `,
   'week helpers',
@@ -114,7 +114,7 @@ src = replaceOnce(
 src = replaceOnce(
   src,
 `        {calendarMode === 'month' ? <div className="work-schedule-calendar">`,
-`        {calendarMode !== 'agenda' ? <div className={\`work-schedule-calendar ${calendarMode === 'week' ? 'is-week' : ''}\`}>`,
+`        {calendarMode !== 'agenda' ? <div className={'work-schedule-calendar ' + (calendarMode === 'week' ? 'is-week' : '')}>`,
   'week calendar condition',
 );
 
