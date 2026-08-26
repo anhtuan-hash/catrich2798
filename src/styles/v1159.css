@@ -40,30 +40,56 @@ html body :not(#brian-motion-retired-a#brian-motion-retired-b)::after {
 
 /* Legacy hover/press displacement is retired as well. Static layout transforms
    remain untouched so deliberately rotated/positioned artwork keeps its design. */
-.v1098-page button:hover:not(:disabled),
-.v1093-task-card:hover,
-.style-trigger:hover,
-.style-trigger:active,
-.launcher-style-option:hover,
-.launcher-live-apps button:hover,
-.boh-actions button:hover,
-.boh-actions .primary:hover,
-.boh-actions .secondary:hover,
-.brian-style-effect-card:hover {
+html body button:active,
+html body .button:active,
+html body .btn:active,
+html body .bes-nav-pill:active,
+html body .flat-app-chip:active,
+html body .v1098-page button:hover:not(:disabled),
+html body .v1093-task-card:hover,
+html body .style-trigger:hover,
+html body .style-trigger:active,
+html body .launcher-style-option:hover,
+html body .launcher-live-apps button:hover,
+html body .boh-actions button:hover,
+html body .boh-actions .primary:hover,
+html body .boh-actions .secondary:hover,
+html body .brian-style-effect-card:hover,
+html body .reading-v28-flow-card:hover,
+html body .reading-v28-flow-card.active,
+html body .speaking-v29-flow-card:hover,
+html body .wordgraph-v29-flow-card:hover,
+html body .textcare-v29-flow-card:hover,
+html body .speaking-v33-actions button:hover,
+html body .speaking-v33-actions button:active,
+html body .speaking-v33-flow-card:hover,
+html body .metro-clean-system[data-route="admin"] .admin-v41-side-nav button:hover,
+html body .metro-clean-system[data-route="admin"] .admin-v41-side-nav button.active,
+html body .metro-clean-system .global-notice-card:hover,
+html body .metro-clean-system[data-route="games"] .games-v46-platform-card:hover,
+html body .metro-clean-system[data-route="settings"] article.settings-v47-provider-row:hover,
+html body .metro-clean-system[data-route="settings"] .settings-v47-accent-row button.active,
+html body .metro-clean-system:is([data-tool="student-practice"],[data-route="practice"]) .practice-v39-hero-btn:hover,
+html body .flat-window.is-launching,
+html body .win8-tile.is-launching,
+html body .win81-tile.is-launching,
+html body .flat-app-chip.is-launching,
+html body .bes-nav-pill.is-launching,
+html body .bes-brand.is-launching {
   transform: none !important;
 }
 
 /* Keep the Home overlap cards at their intended static resting angles. */
-.boh-card:hover,
-.boh-card:focus-visible,
-.boh-card:active {
+html body .boh-card:hover,
+html body .boh-card:focus-visible,
+html body .boh-card:active {
   transform: rotate(var(--card-rotate)) !important;
 }
-.boh-card:hover .boh-card-illustration img {
+html body .boh-card:hover .boh-card-illustration img {
   transform: none !important;
 }
 
 /* Tooltip may appear/disappear, but it must not slide while doing so. */
-.launcher-style-option:hover::after {
+html body .launcher-style-option:hover::after {
   transform: translate(-50%, 5px) !important;
 }
