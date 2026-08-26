@@ -85,7 +85,7 @@ export default function GlobalFontAdminPanel({ currentUser, language = 'vi' }) {
         ))}
       </div>
 
-      <div className="admin-global-font__preview" style={{ fontFamily: current.family }}>
+      <div className="admin-global-font__preview" style={{ '--font-preview-family': current.family }}>
         <span>{vi ? 'Xem trước' : 'Preview'}</span>
         <strong>Brian English · Giáo viên · Thông báo TTCM</strong>
         <p>ABCDEFGHIJKLMNOPQRSTUVWXYZ · abcdefghijklmnopqrstuvwxyz · 0123456789 · Ă Â Ê Ô Ơ Ư Đ</p>
