@@ -10,8 +10,10 @@ import {
   validateWorkHubFile,
 } from '../utils/workHubDelivery.js';
 import GlobalWorkScheduleCompatibleCenter from './GlobalWorkScheduleCompatibleCenter.jsx';
+import PersonnelLookup from './PersonnelLookupGoogleV2.jsx';
 import './GlobalWorkScheduleModern.css';
 import './GlobalTtcmNavigationTab.css';
+import './GlobalTtcmPersonnel.css';
 
 const WORK_ITEM_COLUMNS = 'id,title,description,item_type,status,priority,visibility,owner_id,created_by,assignee_ids,watcher_ids,due_at,attachments,metadata,source_module,created_at,updated_at,submitted_at,reviewed_at,completed_at';
 const LOCAL_FEED_PREFIX = 'bes-ttcm-feed-v1';
@@ -197,7 +199,8 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
 
   useEffect(() => {
     const openTtcm = (event) => {
-      const nextView = event?.detail?.view === 'schedule' ? 'schedule' : 'feed';
+      const requestedView = event?.detail?.view;
+      const nextView = ['schedule', 'personnel'].includes(requestedView) ? requestedView : 'feed';
       setWorkspaceView(nextView);
       setOpen(true);
       setComposeOpen(false);
@@ -778,6 +781,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
           <div className="ttcm-m3-workspace-tabs" role="tablist" aria-label="Khu vực TTCM">
             <button type="button" className={workspaceView === 'feed' ? 'is-selected' : ''} onClick={() => setWorkspaceView('feed')}><Icon name="campaign" size={18} />Trao đổi</button>
             <button type="button" className={workspaceView === 'schedule' ? 'is-selected' : ''} onClick={() => setWorkspaceView('schedule')}><Icon name="calendar" size={18} />Lịch làm việc</button>
+            <button type="button" className={workspaceView === 'personnel' ? 'is-selected' : ''} onClick={() => setWorkspaceView('personnel')}><Icon name="people" size={18} />Nhân sự</button>
           </div>
           {workspaceView === 'feed' ? <>
             <div className="ttcm-m3-filters" role="tablist" aria-label="Lọc nội dung TTCM">
@@ -791,7 +795,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
               ))}
             </div>
             {!manager && unseenCount > 0 ? <button type="button" className="ttcm-m3-text-button" onClick={markAllRead}>Đánh dấu tất cả đã đọc</button> : null}
-          </> : <span className="ttcm-m3-schedule-caption">Lịch dùng chung của tổ chuyên môn</span>}
+          </> : workspaceView === 'schedule' ? <span className="ttcm-m3-schedule-caption">Lịch dùng chung của tổ chuyên môn</span> : <span className="ttcm-m3-schedule-caption">Hồ sơ, chuyên môn và phân công tổ viên</span>}
         </div>
 
         {notice ? <div className="ttcm-m3-banner is-success">{notice}</div> : null}
@@ -858,9 +862,11 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
               <small>{manager ? 'Tạo thông báo, gửi tài liệu hoặc giao yêu cầu cho tổ viên.' : 'Nội dung mới từ TTCM sẽ xuất hiện tại đây.'}</small>
             </div>
           ) : null}
-        </main> : <main className="ttcm-m3-schedule-view">
+        </main> : workspaceView === 'schedule' ? <main className="ttcm-m3-schedule-view">
           <div className="ttcm-m3-schedule-host v1093-work-hub" data-ttcm-schedule-host="true" />
           <GlobalWorkScheduleCompatibleCenter currentUser={currentUser} language={language} route="ttcm" embedded mountSelector='[data-ttcm-schedule-host="true"]' />
+        </main> : <main className="ttcm-m3-personnel-view" role="tabpanel" aria-label="Nhân sự tổ chuyên môn">
+          <PersonnelLookup currentUser={currentUser} language={language} />
         </main>}
 
         {responseViewerItem && manager ? (

@@ -1,0 +1,21 @@
+.ttcm-m3-personnel-view {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 18px 20px 26px;
+  background: #f8fafd;
+  overscroll-behavior: contain;
+}
+.ttcm-m3-personnel-view #dashboard-personnel-v2 {
+  width: 100%;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-shell,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table-shell {
+  max-width: none !important;
+}
+@media (max-width: 760px) {
+  .ttcm-m3-personnel-view { padding: 10px; }
+}

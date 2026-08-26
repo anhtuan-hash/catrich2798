@@ -1,0 +1,41 @@
+.admin-global-font {
+  margin-top: 24px;
+  padding: 28px;
+  border-radius: 28px;
+  background: #fff;
+  border: 1px solid #e0e3e7;
+}
+.admin-global-font__head { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; margin-bottom:22px; }
+.admin-global-font__head h2 { margin:4px 0 8px; font-size:24px; color:#1f1f1f; }
+.admin-global-font__head p { margin:0; max-width:760px; color:#5f6368; line-height:1.6; }
+.admin-global-font__status { flex:none; padding:8px 12px; border-radius:999px; background:#fef7e0; color:#7a4f01; font-size:12px; font-weight:700; }
+.admin-global-font__status.is-ready { background:#e6f4ea; color:#137333; }
+.admin-global-font__grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.admin-global-font__option { position:relative; min-height:178px; padding:18px; text-align:left; border:1px solid #dadce0; border-radius:20px; background:#fff; color:#202124; cursor:pointer; }
+.admin-global-font__option:hover { background:#f8fafd; border-color:#a8c7fa; }
+.admin-global-font__option.is-selected { background:#edf4ff; border-color:#0b57d0; box-shadow:0 0 0 1px #0b57d0 inset; }
+.admin-global-font__radio { position:absolute; top:16px; right:16px; width:18px; height:18px; border:2px solid #747775; border-radius:50%; }
+.admin-global-font__option.is-selected .admin-global-font__radio { border:5px solid #0b57d0; }
+.admin-global-font__sample { display:block; padding-right:30px; margin-bottom:22px; font-family:var(--font-preview-family)!important; font-size:25px; font-weight:600; letter-spacing:-.02em; }
+.admin-global-font__option strong { display:flex; align-items:center; gap:8px; font-size:15px; }
+.admin-global-font__option strong em { padding:3px 7px; border-radius:999px; background:#d3e3fd; color:#0842a0; font-size:10px; font-style:normal; }
+.admin-global-font__option small { display:block; margin-top:7px; color:#5f6368; line-height:1.45; }
+.admin-global-font__preview { margin-top:16px; padding:18px 20px; border-radius:18px; background:#f8fafd; border:1px solid #e2e6eb; }
+.admin-global-font__preview span { display:block; margin-bottom:7px; color:#5f6368; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
+.admin-global-font__preview strong { display:block; font-family:inherit!important; font-size:20px; }
+.admin-global-font__preview p { margin:7px 0 0; font-family:inherit!important; color:#5f6368; }
+.admin-global-font__message { margin-top:14px; padding:12px 14px; border-radius:14px; background:#fef7e0; color:#7a4f01; font-size:13px; }
+.admin-global-font__message.is-success { background:#e6f4ea; color:#137333; }
+.admin-global-font__actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:18px; }
+.admin-global-font__actions > div { margin-right:auto; display:flex; align-items:center; gap:7px; color:#5f6368; font-size:13px; }
+.admin-global-font__actions > div strong { color:#1f1f1f; }
+.admin-global-font__actions > div small { color:#137333; font-weight:700; }
+@media (max-width:960px) { .admin-global-font__grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:640px) {
+  .admin-global-font { padding:20px; border-radius:22px; }
+  .admin-global-font__head { flex-direction:column; }
+  .admin-global-font__grid { grid-template-columns:1fr; }
+  .admin-global-font__actions { flex-wrap:wrap; justify-content:stretch; }
+  .admin-global-font__actions > div { width:100%; }
+  .admin-global-font__actions button { flex:1; }
+}

@@ -12,6 +12,7 @@ import {
   summarizePermissions,
 } from '../utils/permissions.js';
 import GlobalMotionAdminPanel from '../components/admin/GlobalMotionAdminPanel.jsx';
+import GlobalFontAdminPanel from '../components/admin/GlobalFontAdminPanel.jsx';
 
 const ADMIN_V41_NAV = [
   { id: 'hero', icon: '⌂', labelVi: 'Trang chủ', label: 'Home' },
@@ -549,6 +550,7 @@ export default function AdminPage({ language, currentUser }) {
           </section>
 
           <GlobalMotionAdminPanel currentUser={currentUser} language={language} />
+          <GlobalFontAdminPanel currentUser={currentUser} language={language} />
 
           <section className="metro-admin-header metro-panel admin-sync-panel">
             <div className="admin-note">
