@@ -17,10 +17,11 @@ import '../styles/apps-google-material-list-v2.css';
 import '../styles/games-route-retired.css';
 // Legacy editorial layer kept for safe fallbacks.
 import '../styles/apps-editorial-two-column-v3.css';
-// Previous stabilization layer.
+// Previous stabilization layers.
 import '../styles/apps-editorial-five-column-stable-v6.css';
-// FINAL route authority. Keep this import last.
 import '../styles/apps-editorial-five-column-v7.css';
+// FINAL route authority using new V8 markup. Keep this import last.
+import '../styles/apps-editorial-five-column-v8.css';
 
 const LEGACY_SAVED_GAMES_KEY = 'bes-game-hub-links-v1';
 
