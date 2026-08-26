@@ -67,7 +67,6 @@ html body .app-shell[data-route] .brian-nav.brian-nav--concept-v2 > .brian-nav__
   border: 0 !important;
   border-radius: 18px !important;
   color: #3c4043 !important;
-  transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease !important;
 }
 
 .brian-concept-tab::after {
@@ -289,12 +288,5 @@ html[data-brian-hero-governance='v1'] body .app-shell[data-route='home'] .burs-h
     min-width: 48px !important;
     width: 48px !important;
     padding: 4px !important;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .brian-concept-tab,
-  .brian-concept-search {
-    transition: none !important;
   }
 }
