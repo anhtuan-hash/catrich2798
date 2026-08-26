@@ -133,7 +133,6 @@ body .metro-clean-system[data-route='apps'] .flat-app-window-card::before {
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover,
 body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within {
-  transform: translateY(-2px) !important;
   box-shadow: 0 6px 16px rgba(32,33,36,.11),0 12px 24px color-mix(in srgb,var(--app-accent,#1a73e8) 8%,transparent) !important;
 }
 
