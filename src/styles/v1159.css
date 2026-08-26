@@ -38,6 +38,18 @@ html body :not(#brian-motion-retired-a#brian-motion-retired-b)::after {
   mix-blend-mode: normal !important;
 }
 
+/* Any interactive control must keep its resting geometry across pointer/focus
+   states. The high-specificity sentinel also beats lazy feature CSS using !important. */
+html body :not(#brian-motion-retired-a#brian-motion-retired-b):is(
+  button,
+  a,
+  [role='button'],
+  [role='link'],
+  [tabindex]
+):is(:hover, :active, :focus, :focus-visible) {
+  transform: none !important;
+}
+
 /* Legacy hover/press displacement is retired as well. Static layout transforms
    remain untouched so deliberately rotated/positioned artwork keeps its design. */
 html body button:active,
@@ -105,7 +117,19 @@ html body .app-shell[data-tool="knowledge-train"] .ktg-car:focus-visible,
 html body .bes-vn-admin__launcher:hover,
 html body .bes-vn-admin.is-open .bes-vn-admin__launcher,
 html body .bes-vn-admin__close:hover,
-html body .metro-clean-system[data-route='admin'] .admin-v41-hero-actions button:hover {
+html body .metro-clean-system[data-route='admin'] .admin-v41-hero-actions button:hover,
+html body .metro-clean-system[data-route='apps'] .flat-app-window-launch:hover,
+html body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover,
+html body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within,
+html body .metro-clean-system[data-route='apps'] .flat-apps-group-chip:hover,
+html body .app-shell[data-route] .brian-nav__icon:hover,
+html body .app-shell[data-route] .brian-nav__account:hover,
+html body .app-shell[data-route] .brian-nav__login:hover {
+  transform: none !important;
+}
+
+/* Child art must not zoom when its parent launcher/card is hovered. */
+html body .metro-clean-system[data-route='apps'] .flat-app-window-launch:hover .flat-app-window-art {
   transform: none !important;
 }
 
