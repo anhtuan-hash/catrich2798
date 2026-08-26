@@ -18,4 +18,10 @@ import '../styles/HomeHeroCmsEditorInteractionFix.css';
 // complete Grade 10/11/12 week lists without having to sign in or visit Apps.
 import '../homePracticeScheduleScroller.js';
 
-export { default } from './HomeApproved.jsx';
+// Import HomeApproved before the final Editorial layer. This guarantees that
+// HomeApproved.css + all weekly-practice legacy layers are evaluated first,
+// then the approved Editorial presentation becomes the final Home authority.
+import HomeApproved from './HomeApproved.jsx';
+import '../styles/HomeEditorialWarmV1.css';
+
+export default HomeApproved;
