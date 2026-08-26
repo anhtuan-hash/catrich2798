@@ -112,7 +112,7 @@ export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, curr
   });
   const pinnedItems = orderedItems.filter((item) => workingConfig.pinned.includes(launcherItemId(item)) && !workingConfig.hidden.includes(launcherItemId(item)));
   const heroPreviewItems = (pinnedItems.length ? pinnedItems : visibleItems).filter((item) => !item.isHiddenFolder).slice(0, 6);
-  const showGroupedDirectory = !editMode && activeGroup === 'all' && !normalizedSearch;
+  const showGroupedDirectory = false;
   const directoryGroups = groupOptions
     .map((group) => ({ ...group, items: visibleItems.filter((item) => groupForItem(item) === group.id) }))
     .filter((group) => group.items.length > 0);
