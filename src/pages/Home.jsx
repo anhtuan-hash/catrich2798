@@ -18,12 +18,8 @@ import '../styles/HomeHeroCmsEditorInteractionFix.css';
 // complete Grade 10/11/12 week lists without having to sign in or visit Apps.
 import '../homePracticeScheduleScroller.js';
 
-// Import HomeApproved before the final Editorial layers so all legacy Home
-// styles resolve first. V4 is the final Home presentation authority.
+// HomeApproved owns behaviour and data. V5 is the only Home editorial visual layer.
 import HomeApproved from './HomeApproved.jsx';
-import '../styles/HomeEditorialWarmV1.css';
-import '../styles/HomeEditorialWarmV2.css';
-import '../styles/HomeEditorialWarmV3.css';
-import '../styles/HomeEditorialWarmV4.css';
+import '../styles/HomeEditorialWarmV5.css';
 
 export default HomeApproved;
