@@ -15,6 +15,8 @@ import '../styles/apps-performance-recovery.css';
 import '../styles/apps-google-material-list-v2.css';
 // Games now live in Applications, so the old Games tab is no longer shown here.
 import '../styles/games-route-retired.css';
+// Approved editorial/pastel directory: grouped two-column panels and calm blue canvas.
+import '../styles/apps-editorial-two-column-v3.css';
 
 const LEGACY_SAVED_GAMES_KEY = 'bes-game-hub-links-v1';
 
