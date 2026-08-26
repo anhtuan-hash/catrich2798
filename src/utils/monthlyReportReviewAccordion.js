@@ -15,15 +15,46 @@ function sectionTitle(section) {
 function setExpanded(section, expanded) {
   section.classList.toggle('is-expanded', expanded);
   const button = section.querySelector(':scope > header .mr-section-toggle');
-  if (!button) return;
-  button.setAttribute('aria-expanded', String(expanded));
-  button.setAttribute('aria-label', expanded ? `Thu gọn ${sectionTitle(section)}` : `Mở ${sectionTitle(section)}`);
+  if (button) {
+    button.setAttribute('aria-expanded', String(expanded));
+    button.setAttribute('aria-label', expanded ? `Thu gọn ${sectionTitle(section)}` : `Mở ${sectionTitle(section)}`);
+  }
+  const header = section.querySelector(':scope > header');
+  if (header) header.setAttribute('aria-expanded', String(expanded));
+}
+
+function toggleSection(section) {
+  setExpanded(section, !section.classList.contains('is-expanded'));
+}
+
+function ensureHeaderInteraction(section, header) {
+  if (header.dataset.mrAccordionReady === '1') return;
+  header.dataset.mrAccordionReady = '1';
+  header.setAttribute('role', 'button');
+  header.setAttribute('tabindex', '0');
+  header.setAttribute('aria-expanded', String(section.classList.contains('is-expanded')));
+  header.setAttribute('aria-label', `Mở ${sectionTitle(section)}`);
+
+  header.addEventListener('click', (event) => {
+    if (!isReviewMode(section)) return;
+    if (event.target.closest('button, input, textarea, select, a')) return;
+    toggleSection(section);
+  });
+
+  header.addEventListener('keydown', (event) => {
+    if (!isReviewMode(section)) return;
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    toggleSection(section);
+  });
 }
 
 function ensureToggle(section) {
   if (!isReviewMode(section)) return;
   const header = section.querySelector(':scope > header');
-  if (!header || header.querySelector('.mr-section-toggle')) return;
+  if (!header) return;
+  ensureHeaderInteraction(section, header);
+  if (header.querySelector('.mr-section-toggle')) return;
 
   let controls = header.querySelector('.mr-section-controls');
   if (!controls) {
@@ -43,7 +74,7 @@ function ensureToggle(section) {
   button.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();
-    setExpanded(section, !section.classList.contains('is-expanded'));
+    toggleSection(section);
   });
   controls.appendChild(button);
 }
