@@ -7,7 +7,7 @@ const GRADES = [10, 11, 12];
 const sortModes = new Map(GRADES.map((grade) => [grade, 'alpha']));
 let cachedItems = [];
 let loadPromise = null;
-let scanFrame = 0;
+let scanTimer = 0;
 let modalNode = null;
 let observer = null;
 let managerWasOpen = false;
@@ -343,7 +343,7 @@ async function loadItems(force = false) {
 }
 
 async function scan(force = false) {
-  scanFrame = 0;
+  scanTimer = 0;
   const shell = document.querySelector(HOME_SELECTOR);
   if (!shell) return;
   const items = await loadItems(force);
@@ -355,8 +355,8 @@ async function scan(force = false) {
 }
 
 function queueScan(force = false) {
-  if (scanFrame) cancelAnimationFrame(scanFrame);
-  scanFrame = requestAnimationFrame(() => scan(force));
+  if (scanTimer) window.clearTimeout(scanTimer);
+  scanTimer = window.setTimeout(() => scan(force), 0);
 }
 
 function inspectManagerLifecycle() {
