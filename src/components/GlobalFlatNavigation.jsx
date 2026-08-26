@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
 import '../data/registerSeatingChartStudio.js';
 import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalPrimaryNavigationPin from './GlobalPrimaryNavigationPin.jsx';
@@ -17,9 +17,6 @@ import GlobalHomeroomNavigationTab from './GlobalHomeroomNavigationTab.jsx';
 import GlobalReportsNavigationTab from './GlobalReportsNavigationTab.jsx';
 import GlobalTtcmNavigationTab from './GlobalTtcmNavigationTab.jsx';
 import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
-import GlobalWorkScheduleBridge from './GlobalWorkScheduleBridge.jsx';
-import GlobalWorkHubGoogleHeroV2 from './GlobalWorkHubGoogleHeroV2.jsx';
-import GlobalWorkHubViewportModalBridge from './GlobalWorkHubViewportModalBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalHomeViewportFitBridge from './GlobalHomeViewportFitBridge.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
@@ -44,7 +41,6 @@ import './GlobalNewsDrawerScroll.css';
 import './GlobalTextLabGoogleLarge.css';
 import '../styles/teacher-dashboard-google-v2.css';
 import './GlobalDashboardVisualFix.css';
-import './GlobalWorkHubGoogleRedesign.css';
 import './GlobalNavigationScrollableTabs.css';
 import './GlobalWordGraphGoogleM3.css';
 import './GlobalAutosaveGoogle.css';
@@ -64,13 +60,8 @@ import './GlobalWeeklyPracticeStatistics.css';
 import './GlobalWeeklyPracticeStatisticsLaunchFix.css';
 import './GlobalWeeklyPracticeSimple.css';
 import './GlobalWeeklyPracticeStudentProof.css';
-import './GlobalWorkHubGoogleHeroV2.css';
-import './GlobalWorkHubViewportModal.css';
 import './GlobalScrollPerformance.css';
 import './GlobalNavigationOverlayLayer.css';
-import './GlobalWorkHubViewportModalFinal.css';
-import './GlobalWorkHubModalAnchor.css';
-import './GlobalWorkHubModalCenter.css';
 import './GlobalNavigationGoogleM3Polish.css';
 import './GlobalNavigationSearchPillRefinement.css';
 import './GlobalNavigationNoSearch.css';
@@ -86,16 +77,11 @@ import '../pages/SeatingChartStudioFocus.css';
 import './GlobalNavigationFixedSizeContract.css';
 // Final performance contract; preserves geometry and fixed navigation sizing.
 import './GlobalCriticalJankGuard.css';
-// Notification Center has been retired in favor of TTCM + Work Hub.
+// Notification Center and Work Hub UI are retired; TTCM is the single collaboration surface.
 import './GlobalNotificationCenterRemoval.css';
 
-const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
-const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
-const GlobalWorkBulkDeleteManager = lazy(() => import('./GlobalWorkBulkDeleteManager.jsx'));
 
 export default function GlobalFlatNavigation(props) {
-  const workHubActive = props.route === 'work-hub';
-
   return (
     <>
       <GlobalNativeTextScaleReset />
@@ -117,16 +103,6 @@ export default function GlobalFlatNavigation(props) {
       <GlobalReportsNavigationTab {...props} />
       <GlobalTtcmNavigationTab {...props} />
       <GlobalDashboardFooterBridge route={props.route} language={props.language} />
-      <GlobalWorkScheduleBridge />
-      <GlobalWorkHubGoogleHeroV2 route={props.route} />
-      <GlobalWorkHubViewportModalBridge route={props.route} />
-      {workHubActive ? (
-        <Suspense fallback={null}>
-          <GlobalWorkScheduleCompatibleCenter {...props} />
-          <GlobalWorkScheduleTemplatePanel route={props.route} />
-          <GlobalWorkBulkDeleteManager {...props} />
-        </Suspense>
-      ) : null}
       <GlobalEnglishHubBrand />
     </>
   );

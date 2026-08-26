@@ -241,7 +241,7 @@ function eventPayload(event, currentUser, assigneeIds, existingMetadata = {}) {
       schedule_fingerprint: fingerprint,
       schedule_notify_all: true,
       notify_assignee: false,
-      connected_modules: ['work-hub', 'dashboard', 'notifications', 'automation'],
+      connected_modules: ['ttcm', 'dashboard', 'automation'],
     },
   };
 }
@@ -263,7 +263,7 @@ function dispatchScheduleNotifications(events, language) {
           id: `work-schedule:${event.id}:${dayKey(event.startAt)}`,
           title: event.title,
           message: `${formatScheduleDateTime(event.startAt, language === 'vi' ? 'vi-VN' : 'en-US')}${location}`,
-          target: `#/work-hub?view=schedule&event=${encodeURIComponent(event.id)}`,
+          target: '#/dashboard',
           createdAt: event.updatedAt || event.createdAt || event.startAt,
           read: false,
           category: 'schedule',
@@ -281,6 +281,8 @@ export default function GlobalWorkScheduleCenter({
   currentUser,
   language = 'vi',
   route = '',
+  embedded = false,
+  mountSelector = '',
 }) {
   const runtime = useRuntimeCore();
   const client = getRuntimeClient();
@@ -290,7 +292,7 @@ export default function GlobalWorkScheduleCenter({
   const [hashState, setHashState] = useState(parseHashState);
   const [mountNode, setMountNode] = useState(null);
   const [hubNode, setHubNode] = useState(null);
-  const [view, setView] = useState(hashState.view);
+  const [view, setView] = useState(() => embedded ? 'schedule' : hashState.view);
   const [items, setItems] = useState(readCachedSchedule);
   const [profiles, setProfiles] = useState(readCachedProfiles);
   const [calendarMode, setCalendarMode] = useState('month');
@@ -305,7 +307,7 @@ export default function GlobalWorkScheduleCenter({
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
 
-  const routeActive = route === 'work-hub' || hashState.route === 'work-hub';
+  const routeActive = embedded || route === 'work-hub' || hashState.route === 'work-hub';
 
   useEffect(() => {
     const onHashChange = () => setHashState(parseHashState());
@@ -315,9 +317,13 @@ export default function GlobalWorkScheduleCenter({
 
   useEffect(() => {
     if (!routeActive) return;
+    if (embedded) {
+      setView('schedule');
+      return;
+    }
     setView(hashState.view);
     if (hashState.eventId) setSelectedId(hashState.eventId);
-  }, [hashState.eventId, hashState.view, routeActive]);
+  }, [embedded, hashState.eventId, hashState.view, routeActive]);
 
   useEffect(() => {
     if (!routeActive || typeof document === 'undefined') {
@@ -328,14 +334,16 @@ export default function GlobalWorkScheduleCenter({
 
     let inserted = null;
     const attach = () => {
-      const hub = document.querySelector('.v1093-work-hub');
+      const hub = embedded && mountSelector
+        ? document.querySelector(mountSelector)
+        : document.querySelector('.v1093-work-hub');
       if (!hub) return;
       let node = hub.querySelector(':scope > [data-work-schedule-mount="true"]');
       if (!node) {
         node = document.createElement('div');
         node.dataset.workScheduleMount = 'true';
         node.className = 'work-schedule-mount';
-        const hero = hub.querySelector(':scope > .v1093-hero');
+        const hero = embedded ? null : hub.querySelector(':scope > .v1093-hero');
         if (hero?.nextSibling) hub.insertBefore(node, hero.nextSibling);
         else hub.appendChild(node);
         inserted = node;
@@ -352,7 +360,7 @@ export default function GlobalWorkScheduleCenter({
       hubNode?.classList.remove('work-schedule-view-active');
       if (inserted?.isConnected) inserted.remove();
     };
-  }, [routeActive]);
+  }, [embedded, mountSelector, routeActive]);
 
   useEffect(() => {
     if (!hubNode) return undefined;
@@ -519,6 +527,10 @@ export default function GlobalWorkScheduleCenter({
   }, [cursor, events]);
 
   function switchView(nextView) {
+    if (embedded) {
+      setView('schedule');
+      return;
+    }
     setView(nextView);
     replaceWorkHubHash(nextView);
     if (nextView === 'schedule') setHashState((current) => ({ ...current, route: 'work-hub', view: 'schedule' }));
@@ -634,7 +646,7 @@ export default function GlobalWorkScheduleCenter({
           id: `work-schedule-import:${importId}`,
           title: 'Lịch làm việc đã được cập nhật',
           message: `${created.length} hoạt động mới từ file ${importPreview.fileName}`,
-          target: '#/work-hub?view=schedule',
+          target: '#/dashboard',
           createdAt: new Date().toISOString(),
           read: false,
           category: 'schedule',
@@ -761,21 +773,21 @@ export default function GlobalWorkScheduleCenter({
 
   return createPortal(
     <div className="work-schedule-integration">
-      <nav className="work-schedule-tabs" aria-label="Chế độ Trung tâm công việc">
+      {!embedded ? <nav className="work-schedule-tabs" aria-label="Chế độ Trung tâm công việc">
         <button type="button" className={view === 'tasks' ? 'active' : ''} onClick={() => switchView('tasks')}>
           <span>✓</span><b>Công việc</b><small>Giao việc và nộp tệp</small>
         </button>
         <button type="button" className={view === 'schedule' ? 'active' : ''} onClick={() => switchView('schedule')}>
           <span>▦</span><b>Lịch làm việc</b><small>{events.length} hoạt động đã đồng bộ</small>
         </button>
-      </nav>
+      </nav> : null}
 
       {view === 'schedule' ? <section className="work-schedule-center" aria-label="Lịch làm việc dùng chung">
         <header className="work-schedule-toolbar">
           <div>
             <span className="work-schedule-eyebrow">SYSTEM-WIDE WORK CALENDAR</span>
             <h2>Lịch làm việc dùng chung</h2>
-            <p>Mọi hoạt động được lưu bằng dữ liệu Trung tâm công việc để đồng bộ với Dashboard, thông báo và Automation Center.</p>
+            <p>Lịch chung của tổ được đồng bộ trực tiếp giữa Kênh TTCM, Dashboard và Automation Center.</p>
           </div>
           <div className="work-schedule-actions">
             {leader ? <>

@@ -98,6 +98,7 @@ function eventTimeLabel(value, t, locale) {
   if (Number.isNaN(date.getTime()) || (date.getHours() === 0 && date.getMinutes() === 0)) return t.allDay;
   return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(date);
 }
+function openTtcm(view = 'feed') { window.dispatchEvent(new CustomEvent('bes-ttcm-open', { detail: { view } })); }
 function Empty({ children }) { return <div className="gd-empty"><span><Icon name="calendar" size={24} /></span><p>{children}</p></div>; }
 function Surface({ title, subtitle, icon, action, actionLabel, children, id, className = '' }) {
   return <article className={`gd-surface ${className}`} id={id}><header className="gd-surface-header"><div className="gd-surface-heading"><span className="gd-heading-icon"><Icon name={icon} size={20} /></span><div><h2>{title}</h2>{subtitle ? <p>{subtitle}</p> : null}</div></div>{action ? <button type="button" className="gd-text-button" onClick={action}>{actionLabel}<Icon name="arrow" size={18} /></button> : null}</header><div className="gd-surface-body">{children}</div></article>;
@@ -179,7 +180,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const initialLoading = loading && !snapshot.generatedAt;
   const nextEvent = timeline.find((item) => new Date(item.date).getTime() >= Date.now()) || timeline[0] || null;
   const quickActions = [
-    ['task', t.createWork, '#/work-hub'], ['folder', t.uploadResource, '#/resource-library'], ['magic', t.textLab, '#/tool/textlab-activities'],
+    ['task', t.createWork, 'ttcm:feed'], ['folder', t.uploadResource, '#/resource-library'], ['magic', t.textLab, '#/tool/textlab-activities'],
     ['school', t.methodsHub, '#/tool/teaching-methods-hub'], ['game', t.games, '#/games'], ...(snapshot.homeroom ? [['people', t.openHomeroom, '#/homeroom']] : []),
   ];
 
@@ -195,7 +196,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       </section>
       <PersonnelLookup currentUser={currentUser} language={language} />
       <article className="gd-calendar gd-calendar-split" id="dashboard-calendar">
-        <header className="gd-calendar-header"><div className="gd-calendar-title"><span><Icon name="calendar" size={22} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div><button type="button" className="gd-text-button" onClick={() => { window.location.hash = '#/work-hub'; }}>{t.openCalendar}<Icon name="arrow" size={18} /></button></header>
+        <header className="gd-calendar-header"><div className="gd-calendar-title"><span><Icon name="calendar" size={22} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div><button type="button" className="gd-text-button" onClick={() => openTtcm('schedule')}>{t.openCalendar}<Icon name="arrow" size={18} /></button></header>
         <div className="gd-calendar-layout">
           <aside className="gd-calendar-sidebar" aria-label={t.chooseDate}>
             <div className="gd-calendar-side-head"><div><span>{t.chooseDate}</span><strong>{monthRange}</strong></div><span className="gd-count-chip">{timeline.length} {t.events}</span></div>
@@ -209,12 +210,12 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         </div>
       </article>
       <section className="gd-content-grid">
-        <Surface id="dashboard-approvals" title={leaderView ? t.approvalsLeader : t.approvalsTeacher} icon="review" action={() => { window.location.hash = leaderView ? '#/resource-library' : '#/work-hub'; }} actionLabel={t.viewAll}><div className="gd-list">{feedbackItems.length ? feedbackItems.map((item) => <MiniRow key={item.id} item={item} language={language} />) : <Empty>{t.emptyApprovals}</Empty>}</div></Surface>
+        <Surface id="dashboard-approvals" title={leaderView ? t.approvalsLeader : t.approvalsTeacher} icon="review" action={() => { if (leaderView) window.location.hash = '#/resource-library'; else openTtcm('feed'); }} actionLabel={t.viewAll}><div className="gd-list">{feedbackItems.length ? feedbackItems.map((item) => <MiniRow key={item.id} item={item} language={language} />) : <Empty>{t.emptyApprovals}</Empty>}</div></Surface>
         <Surface id="dashboard-resources" title={t.resources} icon="folder" action={() => { window.location.hash = '#/resource-library'; }} actionLabel={t.viewAll}><div className="gd-tile-grid">{snapshot.recentResources?.length ? snapshot.recentResources.map((item) => <Tile key={item.id} item={{ ...item, target: '#/resource-library', icon: 'RL' }} t={t} />) : <Empty>{t.emptyResources}</Empty>}</div></Surface>
         <Surface title={t.continue} icon="apps" action={() => { window.location.hash = '#/apps'; }} actionLabel={t.viewAll}><div className="gd-tile-grid">{snapshot.continueItems?.length ? snapshot.continueItems.map((item) => <Tile key={`${item.id}:${item.target}`} item={item} t={t} />) : <Empty>{t.emptyContinue}</Empty>}</div></Surface>
         {snapshot.homeroom ? <Surface title={t.homeroom} icon="people" action={() => { window.location.hash = '#/homeroom'; }} actionLabel={t.viewAll}><div className="gd-homeroom">{[[t.students, snapshot.homeroom.studentCount], [t.absent, snapshot.homeroom.absentToday], [t.reminders, snapshot.homeroom.reminders], [t.alerts, snapshot.homeroom.alerts]].map(([label, value]) => <button type="button" key={label} onClick={() => { window.location.hash = '#/homeroom'; }}><strong>{value}</strong><span>{label}</span></button>)}</div></Surface> : null}
       </section>
-      <Surface title={t.quickActions} icon="apps" className="gd-quick-surface"><div className="gd-quick-actions">{quickActions.map(([icon, label, target]) => <button type="button" key={label} className="gd-quick-action" onClick={() => { window.location.hash = target; }}><span><Icon name={icon} size={20} /></span>{label}</button>)}</div></Surface>
+      <Surface title={t.quickActions} icon="apps" className="gd-quick-surface"><div className="gd-quick-actions">{quickActions.map(([icon, label, target]) => <button type="button" key={label} className="gd-quick-action" onClick={() => { if (String(target).startsWith('ttcm:')) openTtcm(String(target).split(':')[1] || 'feed'); else window.location.hash = target; }}><span><Icon name={icon} size={20} /></span>{label}</button>)}</div></Surface>
     </div>
   </section>;
 }

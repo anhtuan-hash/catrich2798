@@ -22,13 +22,6 @@ export const APPS = [
     status: 'HTML library · TTCM approval', statusVi: 'Kho HTML · TTCM duyệt', api: true, featured: true,
   },
   {
-    slug: 'work-hub', route: 'work-hub', icon: 'WH', tone: 'mint', group: 'Connected Workflow', groupVi: 'Công việc liên thông',
-    title: 'Unified Work Hub', titleVi: 'Trung tâm công việc',
-    desc: 'Manage tasks, submissions, feedback, schedules and approval workflows in one place.',
-    descVi: 'Quản lí nhiệm vụ, sản phẩm nộp, phản hồi, lịch và phê duyệt trong một nơi.',
-    status: 'Realtime · Role-aware', statusVi: 'Realtime · Theo vai trò', api: true, featured: true,
-  },
-  {
     slug: 'knowledge-hub', route: 'knowledge-hub', icon: 'KH', tone: 'blue', group: 'Teaching Resources', groupVi: 'Học liệu thông minh',
     title: 'Smart Knowledge Library', titleVi: 'Kho học liệu thông minh',
     desc: 'Search, classify, favorite and organize approved resources with lifecycle metadata.',

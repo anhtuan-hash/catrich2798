@@ -3,14 +3,14 @@ import { createPortal } from 'react-dom';
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { isDepartmentLeaderRole, normalizeSystemRole, SYSTEM_ROLES } from '../utils/roles.js';
-import { launchRoute } from '../utils/navigation.js';
 import {
   createWorkHubAttachmentUrl,
-  rememberWorkHubItem,
   removeWorkHubSubmissionFiles,
   uploadWorkHubSubmissionFile,
   validateWorkHubFile,
 } from '../utils/workHubDelivery.js';
+import GlobalWorkScheduleCompatibleCenter from './GlobalWorkScheduleCompatibleCenter.jsx';
+import './GlobalWorkScheduleModern.css';
 import './GlobalTtcmNavigationTab.css';
 
 const WORK_ITEM_COLUMNS = 'id,title,description,item_type,status,priority,visibility,owner_id,created_by,assignee_ids,watcher_ids,due_at,attachments,metadata,source_module,created_at,updated_at,submitted_at,reviewed_at,completed_at';
@@ -20,9 +20,9 @@ const READ_PREFIX = 'bes-ttcm-read-v1';
 const CONTENT_TYPES = [
   { id: 'announcement', label: 'Thông báo', helper: 'Thông tin chỉ cần đọc', glyph: 'campaign', action: false },
   { id: 'resource', label: 'Gửi tài liệu', helper: 'Tệp dùng chung của tổ', glyph: 'folder', action: false },
-  { id: 'feedback', label: 'Xin góp ý', helper: 'Giáo viên phản hồi trong Công việc', glyph: 'edit', action: true },
+  { id: 'feedback', label: 'Xin góp ý', helper: 'Giáo viên phản hồi ngay tại TTCM', glyph: 'edit', action: true },
   { id: 'acknowledgement', label: 'Yêu cầu xác nhận', helper: 'Cần xác nhận đã nhận', glyph: 'check', action: true },
-  { id: 'task', label: 'Yêu cầu thực hiện', helper: 'Theo dõi trong Trung tâm công việc', glyph: 'task', action: true },
+  { id: 'task', label: 'Yêu cầu thực hiện', helper: 'Theo dõi và phản hồi ngay tại TTCM', glyph: 'task', action: true },
 ];
 
 const GLYPHS = {
@@ -39,6 +39,7 @@ const GLYPHS = {
   arrow: 'm10 6 6 6-6 6-1.4-1.4 4.6-4.6-4.6-4.6L10 6Z',
   download: 'M11 3h2v9l3-3 1.4 1.4L12 15.8l-5.4-5.4L8 9l3 3V3ZM5 18h14v2H5v-2Z',
   delete: 'M7 21a2 2 0 0 1-2-2V7h14v12a2 2 0 0 1-2 2H7Zm1-11v8h2v-8H8Zm6 0v8h2v-8h-2ZM8 4l1-1h6l1 1h4v2H4V4h4Z',
+  calendar: 'M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14h18V6c0-1.1-.9-2-2-2Zm0 16H5V9h14v11Z',
 };
 
 function Icon({ name, size = 20 }) {
@@ -150,6 +151,10 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   const [open, setOpen] = useState(false);
   const [composeOpen, setComposeOpen] = useState(false);
   const [editingId, setEditingId] = useState('');
+  const [workspaceView, setWorkspaceView] = useState('feed');
+  const [responseItem, setResponseItem] = useState(null);
+  const [responseText, setResponseText] = useState('');
+  const [responseFile, setResponseFile] = useState(null);
   const [items, setItems] = useState(() => readLocalItems(currentUser));
   const [people, setPeople] = useState([]);
   const [readIds, setReadIds] = useState(() => readReadIds(currentUser));
@@ -186,6 +191,25 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
       window.cancelAnimationFrame(frame);
       observer.disconnect();
     };
+  }, []);
+
+  useEffect(() => {
+    const openTtcm = (event) => {
+      const nextView = event?.detail?.view === 'schedule' ? 'schedule' : 'feed';
+      setWorkspaceView(nextView);
+      setOpen(true);
+      setComposeOpen(false);
+      setError('');
+    };
+    window.addEventListener('bes-ttcm-open', openTtcm);
+    try {
+      const pending = window.sessionStorage.getItem('bes-ttcm-open-on-load');
+      if (pending) {
+        window.sessionStorage.removeItem('bes-ttcm-open-on-load');
+        window.setTimeout(() => openTtcm({ detail: { view: pending } }), 0);
+      }
+    } catch { /* optional */ }
+    return () => window.removeEventListener('bes-ttcm-open', openTtcm);
   }, []);
 
   useEffect(() => {
@@ -261,7 +285,8 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
     document.documentElement.classList.add('bes-ttcm-hub-open');
     const onKey = (event) => {
       if (event.key !== 'Escape') return;
-      if (composeOpen) setComposeOpen(false);
+      if (responseItem) setResponseItem(null);
+      else if (composeOpen) setComposeOpen(false);
       else setOpen(false);
     };
     window.addEventListener('keydown', onKey);
@@ -269,7 +294,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
       document.documentElement.classList.remove('bes-ttcm-hub-open');
       window.removeEventListener('keydown', onKey);
     };
-  }, [composeOpen, open]);
+  }, [composeOpen, open, responseItem]);
 
   const eligibleTeachers = useMemo(() => people.filter((person) => {
     if (!person?.id || person.id === currentUser?.id) return false;
@@ -428,7 +453,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
       setEditingId('');
       setComposeOpen(false);
       setFile(null);
-      setNotice('Đã cập nhật nội dung đã gửi. Thay đổi được đồng bộ đến tổ viên và Trung tâm công việc.');
+      setNotice('Đã cập nhật nội dung đã gửi. Thay đổi được đồng bộ trực tiếp đến tổ viên trong Kênh TTCM.');
       window.setTimeout(() => setNotice(''), 3600);
     } catch (editError) {
       setError(editError?.message || 'Không thể cập nhật nội dung TTCM.');
@@ -441,7 +466,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
     if (!manager || busy || !item) return;
     const canManage = item.created_by === currentUser?.id || item.owner_id === currentUser?.id;
     if (!canManage) return;
-    const confirmed = window.confirm(`Xóa “${item.title}”?\n\nNội dung sẽ biến mất khỏi Kênh TTCM và mục liên quan trong Trung tâm công việc. Hành động này không thể hoàn tác.`);
+    const confirmed = window.confirm(`Xóa “${item.title}”?\n\nNội dung sẽ biến mất khỏi Kênh TTCM và dữ liệu theo dõi liên quan. Hành động này không thể hoàn tác.`);
     if (!confirmed) return;
 
     setBusy(true); setError(''); setNotice('');
@@ -473,7 +498,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
         setEditingId('');
         setComposeOpen(false);
       }
-      setNotice('Đã xóa nội dung TTCM và dữ liệu công việc liên quan.');
+      setNotice('Đã xóa nội dung TTCM và dữ liệu theo dõi liên quan.');
       window.setTimeout(() => setNotice(''), 3200);
     } catch (deleteError) {
       setError(deleteError?.message || 'Không thể xóa nội dung TTCM.');
@@ -563,7 +588,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
       writeLocalItems(currentUser, next);
       setComposeOpen(false);
       setNotice(type.action
-        ? 'Đã gửi đến tổ viên và tạo mục theo dõi trong Trung tâm công việc.'
+        ? 'Đã gửi đến tổ viên và bật theo dõi phản hồi ngay trong Kênh TTCM.'
         : 'Đã gửi nội dung đến kênh TTCM.');
       window.setTimeout(() => setNotice(''), 3600);
     } catch (saveError) {
@@ -587,11 +612,58 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
     }
   }
 
-  function openWorkItem(item) {
+  function beginResponse(item) {
     markRead(item.id);
-    rememberWorkHubItem(item.id);
-    setOpen(false);
-    launchRoute({ target: '#/work-hub', label: 'CV', color: '#0b57d0' });
+    setResponseItem(item);
+    setResponseText('');
+    setResponseFile(null);
+    setError('');
+  }
+
+  async function submitResponse(event) {
+    event.preventDefault();
+    if (!responseItem || busy) return;
+    if (!responseText.trim() && !responseFile) {
+      setError('Vui lòng nhập phản hồi hoặc đính kèm tệp.');
+      return;
+    }
+    if (responseFile) {
+      const validation = validateWorkHubFile(responseFile);
+      if (!validation.ok) { setError(validation.message); return; }
+    }
+    if (!client || !runtime.ready || !runtime.session) {
+      setNotice('Phản hồi cần kết nối Supabase để gửi đến TTCM.');
+      return;
+    }
+
+    setBusy(true); setError('');
+    try {
+      let attachments = [];
+      if (responseFile) {
+        const upload = await uploadWorkHubSubmissionFile({ file: responseFile, itemId: responseItem.id, userId: currentUser.id });
+        if (!upload.ok) throw new Error(upload.message || 'Không thể tải tệp phản hồi.');
+        attachments = [upload.attachment];
+      }
+      const responseType = typeForItem(responseItem).id === 'feedback' ? 'feedback' : 'submission';
+      const { error: responseError } = await client.from('work_hub_comments').insert({
+        item_id: responseItem.id,
+        author_id: currentUser.id,
+        body: responseText.trim() || 'Đã hoàn thành yêu cầu.',
+        comment_type: `ttcm_${responseType}`,
+        attachments,
+      });
+      if (responseError) throw responseError;
+      markRead(responseItem.id);
+      setResponseItem(null);
+      setResponseText('');
+      setResponseFile(null);
+      setNotice(responseType === 'feedback' ? 'Đã gửi góp ý trực tiếp đến TTCM.' : 'Đã gửi phản hồi/hoàn thành đến TTCM.');
+      window.setTimeout(() => setNotice(''), 3200);
+    } catch (responseError) {
+      setError(responseError?.message || 'Không thể gửi phản hồi đến TTCM.');
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function acknowledge(item) {
@@ -631,7 +703,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
         setOpen((value) => !value);
         setComposeOpen(false);
         setError('');
-        if (!open) loadFeed();
+        if (!open) { setWorkspaceView('feed'); loadFeed(); }
       }}
     >
       <Icon name="campaign" size={18} />
@@ -656,29 +728,35 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
           </div>
           <div className="ttcm-m3-top-actions">
             <button type="button" className="ttcm-m3-icon-button" onClick={() => loadFeed()} title="Làm mới" aria-label="Làm mới"><Icon name="refresh" /></button>
-            {manager ? <button type="button" className="ttcm-m3-filled-button" onClick={beginCompose}><Icon name="add" size={18} />Tạo nội dung</button> : null}
+            {manager && workspaceView === 'feed' ? <button type="button" className="ttcm-m3-filled-button" onClick={beginCompose}><Icon name="add" size={18} />Tạo nội dung</button> : null}
             <button type="button" className="ttcm-m3-icon-button" onClick={() => setOpen(false)} title="Đóng" aria-label="Đóng"><Icon name="close" /></button>
           </div>
         </header>
 
         <div className="ttcm-m3-toolbar">
-          <div className="ttcm-m3-filters" role="tablist" aria-label="Lọc nội dung TTCM">
-            {[
-              ['all', 'Tất cả'],
-              ['announcement', 'Thông báo'],
-              ['resource', 'Tài liệu'],
-              ['action', 'Cần xử lý'],
-            ].map(([id, label]) => (
-              <button key={id} type="button" className={filter === id ? 'is-selected' : ''} onClick={() => setFilter(id)}>{label}</button>
-            ))}
+          <div className="ttcm-m3-workspace-tabs" role="tablist" aria-label="Khu vực TTCM">
+            <button type="button" className={workspaceView === 'feed' ? 'is-selected' : ''} onClick={() => setWorkspaceView('feed')}><Icon name="campaign" size={18} />Trao đổi</button>
+            <button type="button" className={workspaceView === 'schedule' ? 'is-selected' : ''} onClick={() => setWorkspaceView('schedule')}><Icon name="calendar" size={18} />Lịch làm việc</button>
           </div>
-          {!manager && unseenCount > 0 ? <button type="button" className="ttcm-m3-text-button" onClick={markAllRead}>Đánh dấu tất cả đã đọc</button> : null}
+          {workspaceView === 'feed' ? <>
+            <div className="ttcm-m3-filters" role="tablist" aria-label="Lọc nội dung TTCM">
+              {[
+                ['all', 'Tất cả'],
+                ['announcement', 'Thông báo'],
+                ['resource', 'Tài liệu'],
+                ['action', 'Cần xử lý'],
+              ].map(([id, label]) => (
+                <button key={id} type="button" className={filter === id ? 'is-selected' : ''} onClick={() => setFilter(id)}>{label}</button>
+              ))}
+            </div>
+            {!manager && unseenCount > 0 ? <button type="button" className="ttcm-m3-text-button" onClick={markAllRead}>Đánh dấu tất cả đã đọc</button> : null}
+          </> : <span className="ttcm-m3-schedule-caption">Lịch dùng chung của tổ chuyên môn</span>}
         </div>
 
         {notice ? <div className="ttcm-m3-banner is-success">{notice}</div> : null}
         {error ? <div className="ttcm-m3-banner is-error">{error}</div> : null}
 
-        <main className="ttcm-m3-feed">
+        {workspaceView === 'feed' ? <main className="ttcm-m3-feed">
           {loading ? <div className="ttcm-m3-empty">Đang đồng bộ kênh TTCM…</div> : null}
           {!loading && filteredItems.map((item) => {
             const type = typeForItem(item);
@@ -722,7 +800,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
                   {!manager && isActionItem(item) ? (
                     <div className="ttcm-m3-card-actions">
                       {type.id === 'acknowledgement' ? <button type="button" className="ttcm-m3-tonal-button" disabled={busy} onClick={(event) => { event.stopPropagation(); acknowledge(item); }}><Icon name="check" size={18} />Xác nhận đã nhận</button> : null}
-                      <button type="button" className="ttcm-m3-filled-button" onClick={(event) => { event.stopPropagation(); openWorkItem(item); }}>Mở trong Công việc<Icon name="arrow" size={18} /></button>
+                      {type.id !== 'acknowledgement' ? <button type="button" className="ttcm-m3-filled-button" onClick={(event) => { event.stopPropagation(); beginResponse(item); }}>{type.id === 'feedback' ? 'Gửi góp ý' : 'Phản hồi / hoàn thành'}<Icon name="arrow" size={18} /></button> : null}
                     </div>
                   ) : null}
                 </div>
@@ -736,7 +814,22 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
               <small>{manager ? 'Tạo thông báo, gửi tài liệu hoặc giao yêu cầu cho tổ viên.' : 'Nội dung mới từ TTCM sẽ xuất hiện tại đây.'}</small>
             </div>
           ) : null}
-        </main>
+        </main> : <main className="ttcm-m3-schedule-view">
+          <div className="ttcm-m3-schedule-host v1093-work-hub" data-ttcm-schedule-host="true" />
+          <GlobalWorkScheduleCompatibleCenter currentUser={currentUser} language={language} route="ttcm" embedded mountSelector='[data-ttcm-schedule-host="true"]' />
+        </main>}
+
+        {responseItem && !manager ? (
+          <div className="ttcm-m3-compose-layer" role="presentation">
+            <form className="ttcm-m3-response-dialog" onSubmit={submitResponse}>
+              <header><div><strong>{typeForItem(responseItem).id === 'feedback' ? 'Gửi góp ý' : 'Phản hồi yêu cầu'}</strong><small>{responseItem.title}</small></div><button type="button" className="ttcm-m3-icon-button" onClick={() => setResponseItem(null)} aria-label="Đóng"><Icon name="close" /></button></header>
+              <label className="ttcm-m3-field"><span>Nội dung phản hồi</span><textarea value={responseText} onChange={(event) => setResponseText(event.target.value)} rows={5} placeholder="Nhập góp ý, kết quả thực hiện hoặc nội dung cần phản hồi…" /></label>
+              <label className="ttcm-m3-field"><span>Tệp đính kèm <small>(nếu có, tối đa 10 MB)</small></span><input type="file" onChange={(event) => setResponseFile(event.target.files?.[0] || null)} /></label>
+              {error ? <div className="ttcm-m3-banner is-error">{error}</div> : null}
+              <footer><button type="button" className="ttcm-m3-text-button" onClick={() => setResponseItem(null)}>Hủy</button><button type="submit" className="ttcm-m3-filled-button" disabled={busy}>{busy ? 'Đang gửi…' : 'Gửi đến TTCM'}</button></footer>
+            </form>
+          </div>
+        ) : null}
 
         {composeOpen && manager ? (
           <div className="ttcm-m3-compose-layer" role="presentation">
