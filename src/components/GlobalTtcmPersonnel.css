@@ -1,58 +1,73 @@
 /* ========================================================================== 
-   TTCM PREMIUM EXPERIENCE — Google Material 3 + Brian AI visual language
-   This stylesheet is imported AFTER GlobalTtcmNavigationTab.css and the
-   personnel table styles, so it acts as the final TTCM-specific design layer.
+   TTCM — PREMIUM EXECUTIVE WORKSPACE
+   Final TTCM visual layer. Imported after the base TTCM and Personnel styles.
+   Direction: slate / navy / indigo, restrained color, stronger hierarchy,
+   crisp enterprise geometry, depth without a childish pastel feel.
    ========================================================================== */
 
 :root {
-  --ttcm-blue: #0b57d0;
-  --ttcm-blue-2: #2563eb;
+  --ttcm-navy-950: #0a1020;
+  --ttcm-navy-900: #101a33;
+  --ttcm-navy-800: #172442;
+  --ttcm-slate-700: #334155;
+  --ttcm-slate-600: #475569;
+  --ttcm-slate-500: #64748b;
+  --ttcm-slate-300: #cbd5e1;
+  --ttcm-slate-200: #e2e8f0;
+  --ttcm-slate-100: #f1f5f9;
   --ttcm-indigo: #4f46e5;
+  --ttcm-indigo-2: #6366f1;
+  --ttcm-blue: #2563eb;
+  --ttcm-cyan: #0891b2;
+  --ttcm-emerald: #059669;
+  --ttcm-amber: #d97706;
+  --ttcm-rose: #e11d48;
   --ttcm-violet: #7c3aed;
-  --ttcm-purple: #9333ea;
-  --ttcm-pink: #ec4899;
-  --ttcm-cyan: #06b6d4;
-  --ttcm-green: #188038;
-  --ttcm-orange: #e8710a;
-  --ttcm-ink: #172033;
-  --ttcm-muted: #687386;
-  --ttcm-border: rgba(76, 91, 122, .15);
-  --ttcm-shadow: 0 24px 70px rgba(37, 51, 88, .24), 0 6px 20px rgba(37, 51, 88, .12);
+  --ttcm-surface: #ffffff;
+  --ttcm-bg: #eef2f7;
+  --ttcm-border: rgba(71, 85, 105, .18);
+  --ttcm-shadow-lg: 0 32px 90px rgba(15, 23, 42, .30), 0 12px 34px rgba(15, 23, 42, .16);
+  --ttcm-shadow-md: 0 12px 28px rgba(15, 23, 42, .11), 0 3px 8px rgba(15, 23, 42, .06);
+  --ttcm-shadow-sm: 0 5px 14px rgba(15, 23, 42, .07), 0 1px 3px rgba(15, 23, 42, .05);
 }
 
-/* --------------------------------------------------------------------------
-   PREMIUM TTCM BUTTON — intentionally echoes Không gian AI
-   -------------------------------------------------------------------------- */
+html.bes-ttcm-hub-open,
+html.bes-ttcm-hub-open body { overflow: hidden; }
+
+/* ========================================================================== 
+   NAVBAR TTCM BUTTON — premium, AI-adjacent but mature
+   ========================================================================== */
 .brian-nav__primary .brian-nav__ttcm-tab {
   order: 100 !important;
   isolation: isolate;
   position: relative !important;
   min-height: 48px !important;
-  gap: 9px !important;
-  padding: 5px 16px 5px 6px !important;
-  border: 1px solid rgba(113, 91, 255, .28) !important;
-  border-radius: 19px !important;
-  background:
-    linear-gradient(110deg, rgba(255,255,255,.98), rgba(244,247,255,.96) 50%, rgba(244,239,255,.96)) !important;
-  color: #27345e !important;
-  font-weight: 760 !important;
-  letter-spacing: -.01em;
-  box-shadow:
-    0 8px 22px rgba(77, 91, 181, .16),
-    0 2px 6px rgba(49, 46, 129, .08),
-    inset 0 1px 0 rgba(255,255,255,.96) !important;
-  overflow: visible;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  padding: 5px 17px 5px 6px !important;
+  border: 1px solid rgba(79, 70, 229, .26) !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f8faff 45%, #f1f0ff 100%) !important;
+  color: #202a44 !important;
+  font: inherit !important;
+  font-weight: 780 !important;
+  letter-spacing: -.015em !important;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 9px 22px rgba(49, 46, 129, .14), inset 0 1px 0 rgba(255,255,255,.95) !important;
 }
 
-.brian-nav__primary .brian-nav__ttcm-tab::before {
+.brian-nav__primary .brian-nav__ttcm-tab::after {
   content: "";
   position: absolute;
   z-index: -1;
-  inset: 3px -3px;
-  border-radius: 22px;
-  background: linear-gradient(100deg, rgba(37,99,235,.06), rgba(124,58,237,.14), rgba(236,72,153,.07));
-  filter: blur(8px);
-  opacity: .9;
+  inset: 8px 4px -7px 4px;
+  border-radius: 18px;
+  background: linear-gradient(90deg, rgba(37,99,235,.12), rgba(99,102,241,.18), rgba(124,58,237,.12));
+  filter: blur(12px);
+  opacity: .85;
   pointer-events: none;
 }
 
@@ -61,589 +76,780 @@
   width: 20px !important;
   height: 20px !important;
   padding: 8px !important;
-  flex: 0 0 auto;
-  border-radius: 14px;
+  border-radius: 12px !important;
   color: #fff !important;
   fill: #fff !important;
   background:
-    radial-gradient(circle at 29% 25%, rgba(255,255,255,.98) 0 5%, transparent 7%),
-    radial-gradient(circle at 66% 30%, rgba(255,255,255,.78) 0 3%, transparent 5%),
-    linear-gradient(135deg, #35b9ff 0%, #5367f3 36%, #8a4cf4 67%, #ed67ba 100%);
-  box-shadow:
-    0 8px 18px rgba(98, 72, 238, .32),
-    0 0 0 1px rgba(255,255,255,.8) inset,
-    0 0 15px rgba(143, 90, 255, .22);
+    radial-gradient(circle at 28% 24%, rgba(255,255,255,.98) 0 5%, transparent 7%),
+    linear-gradient(145deg, #38bdf8 0%, #2563eb 31%, #4f46e5 61%, #7c3aed 100%) !important;
+  box-shadow: 0 8px 16px rgba(79,70,229,.32), inset 0 0 0 1px rgba(255,255,255,.44) !important;
 }
 
 .brian-nav__primary .brian-nav__ttcm-tab:hover {
-  border-color: rgba(104, 76, 255, .42) !important;
-  background: linear-gradient(110deg, #fff, #f0f5ff 48%, #f5efff) !important;
-  color: #263a83 !important;
-  box-shadow: 0 11px 28px rgba(78, 81, 190, .23), 0 3px 9px rgba(67, 56, 202, .12) !important;
+  border-color: rgba(79, 70, 229, .42) !important;
+  background: linear-gradient(135deg, #fff 0%, #f5f7ff 40%, #ecebff 100%) !important;
+  color: #28336f !important;
+  box-shadow: 0 12px 28px rgba(49,46,129,.19), inset 0 1px 0 #fff !important;
 }
 
 .brian-nav__primary .brian-nav__ttcm-tab.is-active {
-  border-color: rgba(107, 82, 255, .5) !important;
-  background: linear-gradient(110deg, #eef5ff, #f1efff 52%, #fff1fa) !important;
-  color: #332d83 !important;
-  box-shadow: 0 12px 30px rgba(83, 80, 192, .26), inset 0 -2px 0 #6256e8 !important;
-}
-
-.brian-nav__primary .brian-nav__ttcm-tab.is-active > .ttcm-m3-icon {
-  box-shadow:
-    0 9px 22px rgba(98, 72, 238, .42),
-    0 0 0 2px rgba(255,255,255,.86) inset,
-    0 0 22px rgba(154, 91, 255, .36);
+  border-color: rgba(67, 56, 202, .48) !important;
+  color: #1e2a61 !important;
+  background: linear-gradient(135deg, #eef4ff 0%, #efefff 55%, #f6efff 100%) !important;
+  box-shadow: 0 13px 30px rgba(49,46,129,.23), inset 0 -2px 0 #4f46e5 !important;
 }
 
 .brian-nav__ttcm-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  min-width: 20px !important;
-  height: 20px !important;
-  border: 2px solid #fff;
-  background: linear-gradient(135deg, #ef4444, #db2777) !important;
-  box-shadow: 0 4px 10px rgba(190, 24, 93, .24);
+  position: absolute !important;
+  top: -6px !important;
+  right: -7px !important;
+  min-width: 21px !important;
+  height: 21px !important;
+  padding: 0 6px !important;
+  border: 2px solid #fff !important;
+  border-radius: 999px !important;
+  background: #e11d48 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 10px rgba(190,24,93,.25) !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
 }
 
-/* --------------------------------------------------------------------------
-   MODAL / SHELL
-   -------------------------------------------------------------------------- */
+/* ========================================================================== 
+   OVERLAY / SHELL
+   ========================================================================== */
 .ttcm-m3-layer {
-  padding: 20px !important;
-  background: rgba(26, 34, 55, .34) !important;
-  backdrop-filter: blur(7px) saturate(118%) !important;
+  padding: 22px !important;
+  background: rgba(15, 23, 42, .48) !important;
+  backdrop-filter: blur(10px) saturate(112%) !important;
 }
 
 .ttcm-m3-shell {
-  width: min(1320px, calc(100vw - 38px)) !important;
-  height: min(870px, calc(100dvh - 38px)) !important;
-  border: 1px solid rgba(129, 140, 181, .24) !important;
-  border-radius: 30px !important;
-  background:
-    radial-gradient(circle at 88% -10%, rgba(174, 128, 255, .13), transparent 32%),
-    radial-gradient(circle at 8% 5%, rgba(65, 182, 255, .12), transparent 28%),
-    linear-gradient(180deg, #fcfdff 0%, #f7f9fd 52%, #f5f8fc 100%) !important;
-  box-shadow: var(--ttcm-shadow) !important;
+  width: min(1440px, calc(100vw - 44px)) !important;
+  height: min(900px, calc(100dvh - 44px)) !important;
+  display: grid !important;
+  grid-template-rows: auto auto auto minmax(0, 1fr) !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(148, 163, 184, .22) !important;
+  border-radius: 24px !important;
+  background: var(--ttcm-bg) !important;
+  color: #111827 !important;
+  box-shadow: var(--ttcm-shadow-lg) !important;
 }
 
+/* Executive dark header */
 .ttcm-m3-topbar {
-  position: relative;
-  min-height: 88px !important;
-  padding: 16px 21px !important;
-  border-bottom: 1px solid rgba(88, 105, 141, .12) !important;
+  position: relative !important;
+  min-height: 92px !important;
+  padding: 17px 22px !important;
+  border-bottom: 1px solid rgba(255,255,255,.09) !important;
   background:
-    linear-gradient(105deg, rgba(255,255,255,.98) 0%, rgba(242,248,255,.96) 48%, rgba(248,241,255,.96) 100%) !important;
-  overflow: hidden;
+    radial-gradient(circle at 82% -40%, rgba(99,102,241,.48), transparent 35%),
+    radial-gradient(circle at 62% 140%, rgba(14,165,233,.20), transparent 38%),
+    linear-gradient(112deg, #0b1224 0%, #111d39 48%, #1d2055 100%) !important;
+  overflow: hidden !important;
 }
 
-.ttcm-m3-topbar::after {
+.ttcm-m3-topbar::before {
   content: "";
   position: absolute;
-  right: 8%;
-  bottom: -46px;
-  width: 360px;
-  height: 110px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(128, 91, 246, .14), rgba(65, 182, 255, .04) 55%, transparent 72%);
+  inset: 0;
   pointer-events: none;
+  background: linear-gradient(100deg, transparent 0 58%, rgba(255,255,255,.045) 58% 62%, transparent 62% 100%);
 }
 
-.ttcm-m3-title { gap: 15px !important; position: relative; z-index: 1; }
+.ttcm-m3-title { position: relative; z-index: 1; gap: 15px !important; min-width: 0; }
+.ttcm-m3-title > div { min-width: 0; }
 
 .ttcm-m3-title-icon {
-  position: relative;
-  width: 54px !important;
-  height: 54px !important;
-  border-radius: 17px !important;
-  background:
-    radial-gradient(circle at 28% 22%, rgba(255,255,255,.98) 0 5%, transparent 7%),
-    linear-gradient(140deg, #30baf7 0%, #3f67f2 34%, #7954ed 62%, #c85bd2 100%) !important;
+  position: relative !important;
+  width: 56px !important;
+  height: 56px !important;
+  flex: 0 0 auto !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 15px !important;
   color: #fff !important;
-  box-shadow:
-    0 12px 25px rgba(76, 81, 205, .28),
-    0 0 0 1px rgba(255,255,255,.7) inset,
-    0 0 22px rgba(138, 89, 244, .18);
+  background:
+    radial-gradient(circle at 26% 22%, rgba(255,255,255,.98) 0 5%, transparent 7%),
+    linear-gradient(145deg, #38bdf8 0%, #2563eb 28%, #4f46e5 58%, #8b5cf6 100%) !important;
+  box-shadow: 0 13px 28px rgba(37,99,235,.32), inset 0 0 0 1px rgba(255,255,255,.34) !important;
 }
 
 .ttcm-m3-title-icon::after {
   content: "✦";
   position: absolute;
-  right: 5px;
-  top: 3px;
+  top: 4px;
+  right: 6px;
   color: rgba(255,255,255,.96);
   font-size: 10px;
-  text-shadow: 0 0 7px rgba(255,255,255,.9);
+  line-height: 1;
+  text-shadow: 0 0 8px rgba(255,255,255,.9);
 }
 
 .ttcm-m3-title strong {
-  color: #19223a !important;
-  font-size: 22px !important;
-  font-weight: 790 !important;
-  letter-spacing: -.025em !important;
+  display: block !important;
+  color: #f8fafc !important;
+  font-size: 24px !important;
+  line-height: 1.12 !important;
+  font-weight: 810 !important;
+  letter-spacing: -.03em !important;
 }
 
 .ttcm-m3-title small {
-  color: #667187 !important;
+  display: block !important;
+  margin-top: 5px !important;
+  color: #aebbd1 !important;
   font-size: 12.5px !important;
+  line-height: 1.4 !important;
 }
 
-.ttcm-m3-icon-button {
-  border: 1px solid transparent !important;
-  background: rgba(255,255,255,.58) !important;
-  color: #46546f !important;
+.ttcm-m3-top-actions {
+  position: relative;
+  z-index: 1;
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
 }
-.ttcm-m3-icon-button:hover {
-  border-color: rgba(113, 128, 165, .18) !important;
-  background: #fff !important;
-  box-shadow: 0 5px 14px rgba(50, 64, 96, .1);
+
+.ttcm-m3-topbar .ttcm-m3-icon-button {
+  width: 41px !important;
+  height: 41px !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  border-radius: 12px !important;
+  background: rgba(255,255,255,.07) !important;
+  color: #dbe6f5 !important;
 }
+.ttcm-m3-topbar .ttcm-m3-icon-button:hover {
+  border-color: rgba(255,255,255,.20) !important;
+  background: rgba(255,255,255,.13) !important;
+  color: #fff !important;
+}
+
+.ttcm-m3-filled-button,
+.ttcm-m3-tonal-button,
+.ttcm-m3-text-button { font: inherit !important; }
 
 .ttcm-m3-filled-button {
   min-height: 42px !important;
-  background: linear-gradient(135deg, #1769e8, #415be5 52%, #6646df) !important;
-  box-shadow: 0 7px 16px rgba(53, 83, 203, .23) !important;
+  padding: 0 17px !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #2563eb, #4f46e5 58%, #6d4be8) !important;
+  color: #fff !important;
+  font-weight: 760 !important;
+  box-shadow: 0 8px 18px rgba(37,99,235,.25) !important;
 }
-.ttcm-m3-filled-button:hover { background: linear-gradient(135deg, #0b57d0, #3d4ed0 52%, #5934c5) !important; }
-.ttcm-m3-tonal-button { background: #e8eeff !important; color: #304aa5 !important; }
+.ttcm-m3-filled-button:hover { background: linear-gradient(135deg, #1d4ed8, #4338ca 60%, #5b39d5) !important; }
+.ttcm-m3-tonal-button {
+  min-height: 40px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  background: #f8fafc !important;
+  color: #334155 !important;
+  font-weight: 720 !important;
+}
+.ttcm-m3-tonal-button:hover { border-color: #a5b4fc !important; background: #eef2ff !important; color: #3730a3 !important; }
+.ttcm-m3-text-button { border-radius: 9px !important; color: #4f46e5 !important; }
 
-/* --------------------------------------------------------------------------
-   TTCM MAIN TABS + FILTERS
-   -------------------------------------------------------------------------- */
+/* ========================================================================== 
+   WORKSPACE NAVIGATION + FILTERS
+   ========================================================================== */
 .ttcm-m3-toolbar {
   min-height: 70px !important;
   padding: 11px 20px !important;
-  gap: 14px !important;
-  border-bottom: 1px solid rgba(88, 105, 141, .1) !important;
-  background: rgba(255,255,255,.86) !important;
-  backdrop-filter: blur(14px);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  border-bottom: 1px solid var(--ttcm-border) !important;
+  background: rgba(255,255,255,.96) !important;
+  box-shadow: 0 1px 0 rgba(15,23,42,.03) !important;
 }
 
 .ttcm-m3-workspace-tabs {
   display: inline-flex !important;
-  align-items: center;
-  gap: 5px !important;
+  align-items: center !important;
+  gap: 2px !important;
   padding: 4px !important;
-  border: 1px solid rgba(101, 115, 148, .11);
-  border-radius: 18px !important;
-  background: #f1f5fb !important;
-  box-shadow: inset 0 1px 3px rgba(44, 61, 92, .05);
+  border: 1px solid #d9e1eb !important;
+  border-radius: 12px !important;
+  background: #edf2f7 !important;
+  box-shadow: inset 0 1px 2px rgba(15,23,42,.04) !important;
 }
 
 .ttcm-m3-workspace-tabs button {
-  min-height: 40px !important;
-  display: inline-flex;
-  align-items: center;
+  min-height: 39px !important;
+  display: inline-flex !important;
+  align-items: center !important;
   gap: 8px !important;
   padding: 0 15px !important;
   border: 0 !important;
-  border-radius: 14px !important;
+  border-radius: 9px !important;
   background: transparent !important;
-  color: #505d74 !important;
-  font-weight: 690 !important;
-  white-space: nowrap;
+  color: #526174 !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  font-weight: 720 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
 }
-
-.ttcm-m3-workspace-tabs button:hover { background: rgba(255,255,255,.7) !important; color: #254a9f !important; }
+.ttcm-m3-workspace-tabs button:hover { background: rgba(255,255,255,.72) !important; color: #1e3a8a !important; }
 .ttcm-m3-workspace-tabs button.is-selected {
-  background: linear-gradient(180deg, #fff, #f6f8ff) !important;
-  color: #2758d5 !important;
-  box-shadow: 0 5px 14px rgba(51, 74, 139, .14), inset 0 -2px 0 #3b69e8 !important;
+  color: #1e3a8a !important;
+  background: #fff !important;
+  box-shadow: 0 4px 10px rgba(15,23,42,.08), inset 0 -2px 0 #4f46e5 !important;
 }
 
 .ttcm-m3-filters {
-  padding: 3px !important;
-  border-radius: 16px;
-  background: rgba(245,247,251,.72);
+  display: flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+  padding: 4px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 11px !important;
+  background: #f8fafc !important;
 }
 .ttcm-m3-filters button {
-  min-height: 38px !important;
-  border-color: transparent !important;
+  min-height: 36px !important;
+  padding: 0 14px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
   background: transparent !important;
-  color: #59657b !important;
+  color: #64748b !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
 }
-.ttcm-m3-filters button:hover { background: #fff !important; }
+.ttcm-m3-filters button:hover { background: #fff !important; color: #334155 !important; }
 .ttcm-m3-filters button.is-selected {
-  border-color: rgba(82, 111, 223, .16) !important;
-  background: #fff !important;
-  color: #2958c8 !important;
-  box-shadow: 0 4px 11px rgba(52, 72, 126, .1) !important;
+  background: #172442 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 10px rgba(15,23,42,.14) !important;
+}
+
+.ttcm-m3-schedule-caption {
+  color: #64748b !important;
+  font-size: 12.5px !important;
+  font-weight: 650 !important;
 }
 
 .ttcm-m3-banner {
   margin: 12px 20px 0 !important;
-  border: 1px solid transparent;
-  box-shadow: 0 3px 10px rgba(40, 55, 86, .05);
+  padding: 10px 13px !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  box-shadow: var(--ttcm-shadow-sm) !important;
 }
-.ttcm-m3-banner.is-success { border-color: rgba(24,128,56,.15); background: linear-gradient(90deg,#effaf3,#e8f7ef) !important; }
-.ttcm-m3-banner.is-error { border-color: rgba(179,38,30,.13); background: linear-gradient(90deg,#fff3f2,#fce8e6) !important; }
+.ttcm-m3-banner.is-success { border-color: rgba(5,150,105,.18) !important; background: #ecfdf5 !important; color: #047857 !important; }
+.ttcm-m3-banner.is-error { border-color: rgba(225,29,72,.16) !important; background: #fff1f2 !important; color: #be123c !important; }
 
-/* --------------------------------------------------------------------------
-   FEED — more color and elevation without visual noise
-   -------------------------------------------------------------------------- */
+/* ========================================================================== 
+   FEED — editorial cards, restrained color, strong depth
+   ========================================================================== */
 .ttcm-m3-feed {
-  gap: 14px !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  display: grid !important;
+  align-content: start !important;
+  gap: 15px !important;
   padding: 20px !important;
+  background:
+    linear-gradient(rgba(255,255,255,.35), rgba(255,255,255,.35)),
+    radial-gradient(circle at 100% 0%, rgba(99,102,241,.05), transparent 26%),
+    #eef2f7 !important;
 }
 
 .ttcm-m3-card {
-  gap: 15px !important;
-  padding: 17px 18px !important;
-  border: 1px solid rgba(88, 105, 141, .13) !important;
-  border-radius: 20px !important;
-  background: rgba(255,255,255,.94) !important;
-  box-shadow: 0 6px 18px rgba(50, 64, 95, .07), 0 1px 3px rgba(50,64,95,.05) !important;
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 52px minmax(0, 1fr) !important;
+  gap: 16px !important;
+  padding: 18px 19px !important;
+  border: 1px solid rgba(100,116,139,.18) !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: var(--ttcm-shadow-sm) !important;
+  overflow: hidden !important;
 }
-.ttcm-m3-card:hover { box-shadow: 0 11px 27px rgba(50, 64, 95, .11), 0 2px 4px rgba(50,64,95,.05) !important; }
+.ttcm-m3-card::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: #94a3b8;
+}
+.ttcm-m3-card:hover {
+  border-color: rgba(79,70,229,.22) !important;
+  box-shadow: var(--ttcm-shadow-md) !important;
+}
 .ttcm-m3-card.is-unread {
-  border-color: rgba(62, 100, 221, .28) !important;
-  background: linear-gradient(90deg,#f7faff,#fff) !important;
-  box-shadow: inset 4px 0 0 #4a67df, 0 8px 22px rgba(44,76,168,.08) !important;
+  border-color: rgba(79,70,229,.30) !important;
+  background: linear-gradient(90deg, #f8faff 0%, #fff 26%) !important;
+  box-shadow: 0 12px 28px rgba(49,46,129,.10), 0 2px 6px rgba(15,23,42,.05) !important;
 }
+.ttcm-m3-card.is-unread::after { width: 4px; background: #4f46e5; }
+
+.ttcm-m3-card:has(.ttcm-m3-card-icon.is-announcement)::after { background: #2563eb; }
+.ttcm-m3-card:has(.ttcm-m3-card-icon.is-resource)::after { background: #059669; }
+.ttcm-m3-card:has(.ttcm-m3-card-icon.is-feedback)::after { background: #d97706; }
+.ttcm-m3-card:has(.ttcm-m3-card-icon.is-acknowledgement)::after { background: #7c3aed; }
+.ttcm-m3-card:has(.ttcm-m3-card-icon.is-task)::after { background: #e11d48; }
 
 .ttcm-m3-card-icon {
   width: 50px !important;
   height: 50px !important;
-  border-radius: 16px !important;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.58), 0 5px 11px rgba(62,79,118,.08);
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(148,163,184,.16) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 5px 12px rgba(15,23,42,.06) !important;
 }
-.ttcm-m3-card-icon.is-announcement { background: linear-gradient(135deg,#dfeaff,#cfe0ff) !important; color:#1f5ecf !important; }
-.ttcm-m3-card-icon.is-resource { background: linear-gradient(135deg,#e7f8ef,#d7f3e3) !important; color:#168447 !important; }
-.ttcm-m3-card-icon.is-feedback { background: linear-gradient(135deg,#fff5d9,#ffecc2) !important; color:#a76500 !important; }
-.ttcm-m3-card-icon.is-acknowledgement { background: linear-gradient(135deg,#efe8ff,#e3d7ff) !important; color:#7145c6 !important; }
-.ttcm-m3-card-icon.is-task { background: linear-gradient(135deg,#ffe8ec,#ffdbe4) !important; color:#c43c5e !important; }
+.ttcm-m3-card-icon.is-announcement { background: #eff6ff !important; color: #1d4ed8 !important; }
+.ttcm-m3-card-icon.is-resource { background: #ecfdf5 !important; color: #047857 !important; }
+.ttcm-m3-card-icon.is-feedback { background: #fffbeb !important; color: #b45309 !important; }
+.ttcm-m3-card-icon.is-acknowledgement { background: #f5f3ff !important; color: #6d28d9 !important; }
+.ttcm-m3-card-icon.is-task { background: #fff1f2 !important; color: #be123c !important; }
 
-.ttcm-m3-card h3 { color:#20283b !important; font-size:17.5px !important; }
-.ttcm-m3-card p { color:#566277 !important; }
-.ttcm-m3-type-chip { border:1px solid rgba(94,108,141,.1); background:#f4f6fa !important; }
-
-.ttcm-m3-attachments button {
-  min-height: 40px !important;
-  border-color: rgba(67,97,179,.17) !important;
-  border-radius: 13px !important;
-  background: linear-gradient(180deg,#fff,#f8faff) !important;
-  box-shadow: 0 3px 9px rgba(44,72,137,.05);
+.ttcm-m3-card-main { min-width: 0 !important; }
+.ttcm-m3-card-meta {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 6px 10px !important;
+  color: #64748b !important;
+  font-size: 11.5px !important;
 }
-.ttcm-m3-attachments button:hover { border-color:rgba(42,91,206,.28) !important; background:#f2f6ff !important; }
-
-/* --------------------------------------------------------------------------
-   COMPOSE / DIALOGS
-   -------------------------------------------------------------------------- */
-.ttcm-m3-compose-layer { background: rgba(31, 39, 61, .3) !important; backdrop-filter: blur(5px) !important; }
-.ttcm-m3-compose {
-  border-color: rgba(96, 110, 147, .18) !important;
-  border-radius: 26px !important;
-  background: linear-gradient(180deg,#fff,#fbfcff) !important;
-  box-shadow: 0 24px 70px rgba(31, 44, 78, .22), 0 5px 16px rgba(31,44,78,.1) !important;
+.ttcm-m3-card-meta > span { display: inline-flex !important; align-items: center !important; gap: 4px !important; }
+.ttcm-m3-card-meta > i {
+  padding: 3px 7px !important;
+  border-radius: 7px !important;
+  background: #4f46e5 !important;
+  color: #fff !important;
+  font-style: normal !important;
+  font-weight: 800 !important;
+  letter-spacing: .02em !important;
 }
+
+.ttcm-m3-type-chip,
+.ttcm-m3-edited-chip {
+  min-height: 24px !important;
+  padding: 0 8px !important;
+  border-radius: 7px !important;
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  font-weight: 750 !important;
+}
+
+.ttcm-m3-card h3 {
+  margin: 8px 0 6px !important;
+  color: #111827 !important;
+  font-size: clamp(16px, 1.15vw, 19px) !important;
+  line-height: 1.32 !important;
+  font-weight: 790 !important;
+  letter-spacing: -.018em !important;
+}
+.ttcm-m3-card p {
+  margin: 0 !important;
+  color: #475569 !important;
+  font-size: 13.5px !important;
+  line-height: 1.65 !important;
+}
+
+.ttcm-m3-due {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  margin-top: 10px !important;
+  color: #475569 !important;
+  font-size: 12.5px !important;
+}
+.ttcm-m3-due > span {
+  margin-left: 3px !important;
+  padding: 3px 7px !important;
+  border-radius: 7px !important;
+  background: #fff7ed !important;
+  color: #c2410c !important;
+  font-weight: 760 !important;
+}
+
+/* File module */
+.ttcm-m3-file-list { display: grid !important; gap: 9px !important; margin-top: 13px !important; }
+.ttcm-m3-file-row {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 10px 11px !important;
+  border: 1px solid #d9e1ea !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #fafcff, #f7f9fc) !important;
+  box-shadow: inset 0 1px 0 #fff !important;
+}
+.ttcm-m3-file-main {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #1f2937 !important;
+  text-align: left !important;
+}
+.ttcm-m3-file-main > span:last-child { min-width: 0 !important; }
+.ttcm-m3-file-main b { display: block !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; font-size: 12.5px !important; }
+.ttcm-m3-file-main small { display: block !important; margin-top: 2px !important; color: #64748b !important; font-size: 10.5px !important; }
+.ttcm-m3-file-icon {
+  width: 38px !important;
+  height: 38px !important;
+  flex: 0 0 auto !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 9px !important;
+  background: #e8eefc !important;
+  color: #3157c8 !important;
+}
+.ttcm-m3-file-actions { display: flex !important; align-items: center !important; gap: 4px !important; }
+.ttcm-m3-file-actions button {
+  min-height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 0 9px !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #334155 !important;
+  font-size: 11.5px !important;
+  font-weight: 720 !important;
+}
+.ttcm-m3-file-actions button:hover { border-color: #c7d2fe !important; background: #eef2ff !important; color: #3730a3 !important; }
+
+/* Manager actions */
+.ttcm-m3-manager-actions,
+.ttcm-m3-card-actions {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 7px !important;
+  margin-top: 13px !important;
+  padding-top: 12px !important;
+  border-top: 1px solid #eef2f6 !important;
+}
+.ttcm-m3-manager-button {
+  min-height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 0 10px !important;
+  border: 1px solid #d7dee8 !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #334155 !important;
+  font: inherit !important;
+  font-size: 11.5px !important;
+  font-weight: 720 !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,.03) !important;
+}
+.ttcm-m3-manager-button:hover { border-color: #a5b4fc !important; background: #f5f7ff !important; color: #3730a3 !important; }
+.ttcm-m3-manager-button.is-danger { border-color: #fecdd3 !important; color: #be123c !important; background: #fff !important; }
+.ttcm-m3-manager-button.is-danger:hover { background: #fff1f2 !important; border-color: #fda4af !important; }
+
+.ttcm-m3-empty { color: #64748b !important; }
+.ttcm-m3-empty > span { border-radius: 12px !important; background: #e8eefc !important; color: #3f51c6 !important; }
+
+/* ========================================================================== 
+   COMPOSE / RESPONSE / FILE VIEWER — enterprise dialogs
+   ========================================================================== */
+.ttcm-m3-compose-layer { background: rgba(15,23,42,.46) !important; backdrop-filter: blur(8px) !important; }
+.ttcm-m3-compose,
+.ttcm-m3-file-viewer {
+  border: 1px solid rgba(148,163,184,.26) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: 0 28px 70px rgba(15,23,42,.28) !important;
+}
+.ttcm-m3-compose { padding: 21px !important; gap: 17px !important; }
+.ttcm-m3-compose > header strong { color: #111827 !important; font-size: 19px !important; font-weight: 790 !important; }
+.ttcm-m3-compose > header small,
+.ttcm-m3-recipients > header small { color: #64748b !important; }
+.ttcm-m3-type-grid { gap: 8px !important; }
 .ttcm-m3-type-grid button {
-  border-color: rgba(91,105,138,.16) !important;
-  background: linear-gradient(180deg,#fff,#f9fbff) !important;
-  box-shadow: 0 3px 9px rgba(40,58,98,.04);
+  border: 1px solid #dbe2ea !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  color: #334155 !important;
+  box-shadow: 0 2px 6px rgba(15,23,42,.035) !important;
 }
-.ttcm-m3-type-grid button.is-selected {
-  border-color:rgba(70,90,220,.35) !important;
-  background:linear-gradient(145deg,#edf3ff,#f5efff) !important;
-  box-shadow:0 7px 17px rgba(66,71,185,.1) !important;
-}
+.ttcm-m3-type-grid button:hover { border-color: #a5b4fc !important; background: #f8faff !important; }
+.ttcm-m3-type-grid button.is-selected { border-color: #6366f1 !important; background: #eef2ff !important; box-shadow: inset 0 0 0 1px #6366f1 !important; }
+.ttcm-m3-type-grid button > span { border-radius: 9px !important; background: #eef2ff !important; color: #4f46e5 !important; }
 
-/* --------------------------------------------------------------------------
-   PERSONNEL VIEW — premium, contained, zero clipped columns
-   -------------------------------------------------------------------------- */
+.ttcm-m3-file-viewer > header {
+  border-bottom: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+}
+.ttcm-m3-file-viewer-title > span { border-radius: 9px !important; background: #e8eefc !important; color: #3157c8 !important; }
+.ttcm-m3-docx-preview,
+.ttcm-m3-sheet-preview,
+.ttcm-m3-text-preview { box-shadow: 0 8px 24px rgba(15,23,42,.08) !important; }
+
+/* ========================================================================== 
+   PERSONNEL — premium enterprise directory, no clipped columns
+   ========================================================================== */
 .ttcm-m3-personnel-view {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: 17px 19px 24px !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  padding: 18px 20px 24px !important;
   background:
-    radial-gradient(circle at 85% 0%, rgba(141, 105, 244, .055), transparent 27%),
-    linear-gradient(180deg,#f8faff,#f5f8fc) !important;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
+    radial-gradient(circle at 100% 0%, rgba(79,70,229,.055), transparent 28%),
+    #eef2f7 !important;
+  overscroll-behavior: contain !important;
 }
-
 .ttcm-m3-personnel-view #dashboard-personnel-v2 {
-  --pgt-blue: #2864df;
-  --pgt-blue-50: #eaf1ff;
-  --pgt-green: #178346;
-  --pgt-green-50: #e8f7ef;
-  --pgt-amber: #df7a08;
-  --pgt-amber-50: #fff3df;
-  --pgt-purple: #7950c9;
-  --pgt-purple-50: #f0e9ff;
-  --pgt-text: #232b3d;
-  --pgt-muted: #667187;
-  --pgt-border: #dce2ec;
-  width: 100%;
+  width: 100% !important;
   max-width: none !important;
   margin: 0 !important;
   padding: 0 !important;
+  --pgt-blue: #4f46e5;
+  --pgt-blue-50: #eef2ff;
+  --pgt-green: #059669;
+  --pgt-green-50: #ecfdf5;
+  --pgt-amber: #d97706;
+  --pgt-amber-50: #fffbeb;
+  --pgt-purple: #7c3aed;
+  --pgt-purple-50: #f5f3ff;
+  --pgt-red: #e11d48;
+  --pgt-text: #172033;
+  --pgt-muted: #64748b;
+  --pgt-border: #d8e0ea;
 }
-
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-shell,
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table-shell { max-width: none !important; }
 
-/* Stats are deliberately visible in TTCM and become the colorful visual anchor. */
+/* KPI cards */
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metrics {
   display: grid !important;
-  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(6, minmax(0,1fr)) !important;
   gap: 10px !important;
-  margin: 0 0 13px !important;
+  margin: 0 0 14px !important;
 }
-
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric {
-  min-width: 0;
-  min-height: 90px !important;
-  padding: 13px 14px !important;
-  gap: 10px !important;
-  border: 1px solid rgba(91,105,138,.13) !important;
-  border-radius: 18px !important;
+  position: relative !important;
+  min-width: 0 !important;
+  min-height: 104px !important;
+  padding: 15px !important;
+  gap: 11px !important;
+  border: 1px solid #dde5ee !important;
+  border-radius: 14px !important;
   background: #fff !important;
-  box-shadow: 0 6px 17px rgba(46,60,93,.07), inset 0 1px 0 rgba(255,255,255,.9) !important;
+  box-shadow: 0 6px 16px rgba(15,23,42,.055) !important;
+  overflow: hidden !important;
 }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric:hover { box-shadow:0 9px 23px rgba(46,60,93,.11) !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric > span { width:39px !important; height:39px !important; border-radius:13px !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric small { font-size:11px !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric strong { font-size:24px !important; color:#27304a; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric em { font-size:10.5px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: #64748b;
+}
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric.is-blue::before { background:#2563eb; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric.is-green::before { background:#059669; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric.is-amber::before { background:#d97706; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric.is-purple::before { background:#7c3aed; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(15,23,42,.08) !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric > span { width: 40px !important; height: 40px !important; border-radius: 10px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric small { font-size: 11px !important; font-weight: 740 !important; color: #64748b !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric strong { font-size: 25px !important; line-height: 1 !important; color:#172033 !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric em { font-size: 10.5px !important; color:#64748b !important; }
 
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric.is-blue { background:linear-gradient(145deg,#fff,#eef5ff) !important; border-color:#d7e5ff !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric.is-green { background:linear-gradient(145deg,#fff,#edf9f2) !important; border-color:#d9f0e1 !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric.is-amber { background:linear-gradient(145deg,#fff,#fff5e6) !important; border-color:#f9e4c7 !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric.is-purple { background:linear-gradient(145deg,#fff,#f5efff) !important; border-color:#e7dafa !important; }
-
+/* Directory card */
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table-card {
-  width: 100%;
+  width: 100% !important;
   overflow-x: auto !important;
   overflow-y: visible !important;
-  border: 1px solid rgba(91,105,138,.14) !important;
-  border-radius: 20px !important;
-  background: rgba(255,255,255,.97) !important;
-  box-shadow: 0 9px 28px rgba(44,57,89,.08), 0 2px 5px rgba(44,57,89,.04) !important;
-  scrollbar-width: thin;
-  scrollbar-color: #c9d2e3 transparent;
+  border: 1px solid #d8e1eb !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: 0 12px 26px rgba(15,23,42,.075) !important;
 }
-
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-toolbar {
-  position: sticky;
-  left: 0;
-  z-index: 5;
-  min-width: 100%;
-  min-height: 66px !important;
-  padding: 10px 12px !important;
-  grid-template-columns: minmax(235px,1.05fr) minmax(0,2.25fr) auto !important;
-  gap: 9px !important;
-  border-bottom: 1px solid rgba(91,105,138,.1) !important;
-  background: rgba(253,254,255,.94) !important;
-  backdrop-filter: blur(14px);
+  min-width: 1100px !important;
+  min-height: 72px !important;
+  padding: 12px 14px !important;
+  grid-template-columns: minmax(260px,1.15fr) minmax(0,2.3fr) auto !important;
+  gap: 10px !important;
+  border-bottom: 1px solid #e7edf3 !important;
+  background: #fbfcfe !important;
 }
-
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-search {
-  height: 43px !important;
-  padding: 0 13px !important;
-  border-color:#d9e0ea !important;
-  border-radius:14px !important;
-  background:#f9fbfe !important;
+  height: 44px !important;
+  border: 1px solid #d7e0e9 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: inset 0 1px 2px rgba(15,23,42,.025) !important;
 }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-search:focus-within {
-  border-color:#7ca4f7 !important;
-  background:#fff !important;
-  box-shadow:0 0 0 3px rgba(40,100,223,.1) !important;
-}
-
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-filter-chips { gap:6px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-search:focus-within { border-color:#818cf8 !important; box-shadow:0 0 0 3px rgba(99,102,241,.10) !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-filter-chips { gap:5px !important; }
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-filter-chips button {
-  height:34px !important;
-  padding:0 10px !important;
-  border-radius:12px !important;
-  border-color:#e1e6ee !important;
-  background:#f8fafe !important;
-  font-size:11px !important;
+  height: 34px !important;
+  border: 1px solid #e0e6ed !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #526174 !important;
+  font-size: 10.5px !important;
 }
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-filter-chips button.is-active {
-  border-color:#a8c3fa !important;
-  background:#eaf1ff !important;
-  color:#2457c2 !important;
-  box-shadow:inset 0 0 0 1px rgba(73,111,218,.08) !important;
+  border-color: #818cf8 !important;
+  background: #eef2ff !important;
+  color: #3730a3 !important;
+  box-shadow: inset 0 0 0 1px rgba(99,102,241,.18) !important;
 }
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-filter-button {
-  height:40px !important;
-  padding:0 14px !important;
-  border-color:#d9e0ea !important;
-  border-radius:13px !important;
-  color:#315cc2 !important;
-  background:#f8faff !important;
+  height: 42px !important;
+  border: 1px solid #d7e0e9 !important;
+  border-radius: 9px !important;
+  background: #fff !important;
+  color: #334155 !important;
+  font-size: 11.5px !important;
 }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-filter-button:hover { background:#edf3ff !important; }
 
-/* Keep every column available. On narrow screens the table scrolls INSIDE its card,
-   never outside the TTCM modal. */
+/* Table geometry: deliberately scrolls inside its own card on narrow screens. */
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table-head,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row { min-width: 1180px !important; }
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table-head,
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row {
-  width: 100%;
-  min-width: 1080px !important;
-  grid-template-columns:
-    30px
-    minmax(190px,1.5fr)
-    minmax(118px,.82fr)
-    minmax(180px,1.35fr)
-    minmax(160px,1.12fr)
-    minmax(142px,.95fr)
-    minmax(105px,.72fr)
-    38px !important;
+  grid-template-columns: 32px minmax(220px,1.55fr) minmax(135px,.9fr) minmax(210px,1.35fr) minmax(195px,1.18fr) minmax(170px,1fr) minmax(118px,.75fr) 38px !important;
 }
-
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table-head {
   min-height: 42px !important;
-  padding:0 10px !important;
-  background:linear-gradient(180deg,#f8faff,#f4f7fb) !important;
-  border-bottom-color:#e7ebf2 !important;
-  color:#6a7488 !important;
-  font-size:9.5px !important;
-  letter-spacing:.045em !important;
+  padding: 0 12px !important;
+  background: #172442 !important;
+  border-bottom: 0 !important;
+  color: #cbd5e1 !important;
+  font-size: 9.5px !important;
+  font-weight: 800 !important;
+  letter-spacing: .07em !important;
 }
-
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table { padding:7px 8px 8px !important; min-width:1080px; }
-
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table { padding: 0 !important; background:#fff !important; }
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row {
-  min-height: 80px !important;
-  margin: 0 0 5px;
-  padding: 6px 3px !important;
-  border: 1px solid rgba(97,111,143,.095) !important;
-  border-radius: 14px !important;
-  background:#fff !important;
-  box-shadow:0 2px 7px rgba(51,64,94,.035);
+  min-height: 86px !important;
+  padding: 8px 8px !important;
+  border-bottom: 1px solid #edf1f5 !important;
+  background: #fff !important;
 }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row:hover {
-  border-color:rgba(68,105,205,.16) !important;
-  background:linear-gradient(90deg,#fbfdff,#f7faff) !important;
-  box-shadow:0 6px 14px rgba(45,67,123,.075) !important;
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row:nth-child(even) { background: #fbfcfe !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row:hover { background: #f5f7ff !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row.is-selected {
+  margin: 0 !important;
+  border: 0 !important;
+  border-left: 3px solid #4f46e5 !important;
+  border-radius: 0 !important;
+  background: #eef2ff !important;
+  box-shadow: inset 0 0 0 1px rgba(99,102,241,.10) !important;
 }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row.has-pending:not(.is-selected) { background:linear-gradient(90deg,#fff,#fbf7ff) !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row.is-selected { border-color:#86aafb !important; background:linear-gradient(90deg,#f2f7ff,#fff) !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row.has-pending:not(.is-selected) { background: #fdfaff !important; }
 
-.ttcm-m3-personnel-view #dashboard-personnel-v2 :is(.pgt-person-cell,.pgt-role-cell,.pgt-professional-cell,.pgt-assignment-cell,.pgt-profile-cell,.pgt-approval-cell) { padding:0 8px !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-person-cell { gap:9px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-person-cell,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-role-cell,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-professional-cell,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-assignment-cell,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-profile-cell,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-approval-cell { padding: 0 9px !important; }
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-avatar {
-  width:41px !important;
-  height:41px !important;
-  border:2px solid rgba(255,255,255,.96);
-  background:linear-gradient(145deg,#edf4ff,#dfeaff) !important;
-  color:#315ea8 !important;
-  box-shadow:0 3px 9px rgba(54,79,132,.12);
+  width: 42px !important;
+  height: 42px !important;
+  border: 2px solid #fff !important;
+  background: #e8eefc !important;
+  color: #3449a7 !important;
+  box-shadow: 0 0 0 1px #d6deea, 0 4px 9px rgba(15,23,42,.07) !important;
 }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-person-cell strong { font-size:12.5px !important; color:#273047; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-person-cell small { font-size:10.5px !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 :is(.pgt-role-cell,.pgt-professional-cell,.pgt-assignment-cell,.pgt-profile-cell) { gap:3px !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 :is(.pgt-role-cell>strong,.pgt-professional-cell strong,.pgt-assignment-cell strong) { font-size:11.5px !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 :is(.pgt-professional-cell small,.pgt-assignment-cell small,.pgt-profile-cell small) { font-size:10px !important; }
-
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-mini-chip { padding:3px 7px !important; border-radius:8px !important; font-size:9.5px !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-count-chip { min-width:23px !important; height:21px !important; border-radius:8px !important; font-size:9px !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-progress-ring { width:38px !important; height:38px !important; box-shadow:0 2px 8px rgba(58,79,124,.08); }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-progress-ring::after { inset:4px !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-progress-ring b { font-size:8.5px !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-completion-chip { padding:4px 7px !important; border-radius:9px !important; font-size:9.5px !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-approval-chip { padding:5px 8px !important; border-radius:9px !important; font-size:9.5px !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-action-cell {
-  width:31px;
-  height:31px;
-  border-radius:10px;
-  color:#526078;
-}
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-action-cell:hover { background:#eef3fb; color:#2f5bc7; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-person-cell strong { color:#172033 !important; font-size:12.5px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-person-cell small { font-size:10px !important; color:#607087 !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-role-cell > strong,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-professional-cell strong,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-assignment-cell strong { font-size:11.5px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-professional-cell small,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-assignment-cell small,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-profile-cell small { font-size:9.8px !important; color:#607087 !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-mini-chip,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-count-chip,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-completion-chip,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-approval-chip { border-radius: 6px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-progress-ring { width:40px !important; height:40px !important; box-shadow:0 2px 6px rgba(15,23,42,.05); }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-progress-ring:after { inset:5px !important; background:#fff !important; }
 
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-pagination {
-  position:sticky;
-  left:0;
-  min-width:100%;
-  min-height:52px !important;
-  padding:0 13px !important;
-  border-top-color:#e8ecf2 !important;
-  background:#fbfcff !important;
-  color:#697489 !important;
-  font-size:10.5px !important;
+  min-width: 1100px !important;
+  min-height: 52px !important;
+  padding: 0 14px !important;
+  border-top: 1px solid #e7edf3 !important;
+  background: #fbfcfe !important;
+  color:#64748b !important;
 }
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-pagination button,
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-pagination b { border-radius:9px !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-pagination b { border-color:#2864df !important; background:linear-gradient(135deg,#2e6de7,#4d54dd) !important; box-shadow:0 4px 9px rgba(47,83,197,.18); }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-pagination b { border-radius:7px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-pagination b { background:#172442 !important; border-color:#172442 !important; }
 
-/* Advanced filter panel must stay inside TTCM and above rows. */
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-toolbar { position:relative; }
+/* Advanced filter panel */
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-advanced-filter-panel {
-  z-index:30 !important;
-  right:10px !important;
-  width:min(370px,calc(100vw - 70px)) !important;
-  border-color:rgba(91,105,138,.16) !important;
-  border-radius:18px !important;
+  border:1px solid #d8e0ea !important;
+  border-radius:14px !important;
   background:#fff !important;
-  box-shadow:0 18px 40px rgba(35,48,81,.18) !important;
+  box-shadow:0 18px 42px rgba(15,23,42,.16) !important;
 }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-advanced-filter-option { border-radius:8px !important; }
 
-/* Personnel profile is itself elevated and always centered by the existing JS controller. */
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-drawer-layer { background:rgba(26,34,55,.36) !important; backdrop-filter:blur(7px) !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-drawer { border-radius:24px !important; box-shadow:0 28px 80px rgba(29,41,73,.28) !important; }
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-profile-hero { background:linear-gradient(135deg,#f1f6ff,#fff 50%,#f8f0ff) !important; }
+/* Profile drawer/modals retain clear enterprise hierarchy. */
+.pgt-profile-modal-open .pgt-drawer-layer { background:rgba(15,23,42,.50) !important; backdrop-filter:blur(8px) !important; }
+.pgt-profile-modal-open .pgt-drawer { border-radius:18px !important; box-shadow:0 28px 80px rgba(15,23,42,.30) !important; }
+.pgt-profile-modal-open .pgt-drawer-head { background:#172442 !important; border-bottom:0 !important; color:#fff !important; }
+.pgt-profile-modal-open .pgt-drawer-head > button:first-child { color:#e2e8f0 !important; }
+.pgt-profile-modal-open .pgt-edit-button { border-radius:9px !important; background:#eef2ff !important; color:#3730a3 !important; }
 
-/* Schedule lives in the same visual system. */
-.ttcm-m3-schedule-view {
-  min-height:0;
-  overflow:auto;
-  padding:16px 18px 22px !important;
-  background:linear-gradient(180deg,#f8faff,#f5f8fc) !important;
-}
-.ttcm-m3-schedule-host {
-  border-radius:20px;
-  overflow:hidden;
-  box-shadow:0 8px 24px rgba(44,57,89,.07);
-}
-
-/* --------------------------------------------------------------------------
-   RESPONSIVE / DISPLAY SAFETY
-   -------------------------------------------------------------------------- */
-@media (max-width: 1180px) {
-  .ttcm-m3-shell { width:calc(100vw - 24px) !important; height:calc(100dvh - 24px) !important; }
-  .ttcm-m3-layer { padding:12px !important; }
-  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metrics { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
-  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-toolbar { grid-template-columns:minmax(220px,1fr) auto !important; }
-  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-filter-chips { display:none !important; }
+/* ========================================================================== 
+   RESPONSIVE
+   ========================================================================== */
+@media (max-width: 1220px) {
+  .ttcm-m3-shell { width: calc(100vw - 28px) !important; height: calc(100dvh - 28px) !important; }
+  .ttcm-m3-layer { padding: 14px !important; }
+  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metrics { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+  .ttcm-m3-toolbar { align-items:flex-start !important; flex-wrap:wrap !important; }
 }
 
 @media (max-width: 900px) {
-  .ttcm-m3-topbar { min-height:78px !important; }
-  .ttcm-m3-title-icon { width:46px !important; height:46px !important; border-radius:15px !important; }
-  .ttcm-m3-title strong { font-size:19px !important; }
-  .ttcm-m3-toolbar { align-items:flex-start !important; flex-direction:column !important; }
-  .ttcm-m3-workspace-tabs { width:100%; overflow-x:auto; }
-  .ttcm-m3-filters { width:100%; }
-  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metrics { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
-  .ttcm-m3-personnel-view { padding:12px !important; }
-}
-
-@media (max-width: 680px) {
-  .brian-nav__primary .brian-nav__ttcm-tab { min-height:42px !important; padding:4px 10px 4px 4px !important; border-radius:16px !important; }
-  .brian-nav__primary .brian-nav__ttcm-tab > .ttcm-m3-icon { width:18px !important; height:18px !important; padding:7px !important; border-radius:12px; }
+  .ttcm-m3-shell { width:100vw !important; height:100dvh !important; border-radius:0 !important; border:0 !important; }
   .ttcm-m3-layer { padding:0 !important; }
-  .ttcm-m3-shell { width:100vw !important; height:100dvh !important; border:0 !important; border-radius:0 !important; }
-  .ttcm-m3-topbar { padding:12px 14px !important; }
-  .ttcm-m3-title small { max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .ttcm-m3-top-actions { gap:4px !important; }
-  .ttcm-m3-filled-button { padding:0 12px !important; }
-  .ttcm-m3-workspace-tabs button { padding:0 11px !important; }
+  .ttcm-m3-topbar { min-height:78px !important; padding:12px 14px !important; }
+  .ttcm-m3-title-icon { width:46px !important; height:46px !important; border-radius:13px !important; }
+  .ttcm-m3-title strong { font-size:20px !important; }
+  .ttcm-m3-toolbar { padding:9px 12px !important; }
+  .ttcm-m3-workspace-tabs { width:100% !important; overflow-x:auto !important; }
+  .ttcm-m3-workspace-tabs button { flex:1 0 auto !important; }
+  .ttcm-m3-filters { width:100% !important; overflow-x:auto !important; }
   .ttcm-m3-feed { padding:12px !important; }
-  .ttcm-m3-card { grid-template-columns:40px minmax(0,1fr) !important; gap:10px !important; padding:14px !important; }
-  .ttcm-m3-card-icon { width:40px !important; height:40px !important; border-radius:13px !important; }
-  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metrics { grid-template-columns:1fr 1fr !important; gap:8px !important; }
-  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric { min-height:76px !important; padding:10px !important; }
-  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-toolbar { grid-template-columns:1fr auto !important; padding:8px !important; }
-  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-pagination { grid-template-columns:1fr auto !important; }
-  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-pagination > span { display:none; }
+  .ttcm-m3-card { grid-template-columns:44px minmax(0,1fr) !important; gap:11px !important; padding:14px !important; }
+  .ttcm-m3-card-icon { width:42px !important; height:42px !important; }
+  .ttcm-m3-file-row { grid-template-columns:1fr !important; }
+  .ttcm-m3-file-actions { justify-content:flex-start !important; flex-wrap:wrap !important; }
+  .ttcm-m3-personnel-view { padding:12px !important; }
+  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metrics { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
 }
 
-@media (max-width: 430px) {
-  .brian-nav__primary .brian-nav__ttcm-tab span:not(.ttcm-m3-icon) { max-width:52px; overflow:hidden; text-overflow:ellipsis; }
+@media (max-width: 600px) {
+  .brian-nav__primary .brian-nav__ttcm-tab { min-height:42px !important; padding:4px 10px 4px 4px !important; border-radius:13px !important; }
+  .brian-nav__primary .brian-nav__ttcm-tab > .ttcm-m3-icon { width:17px !important; height:17px !important; padding:7px !important; border-radius:10px !important; }
   .ttcm-m3-title small { display:none !important; }
-  .ttcm-m3-filled-button > span { display:none; }
+  .ttcm-m3-top-actions { gap:5px !important; }
+  .ttcm-m3-topbar .ttcm-m3-filled-button { width:42px !important; min-width:42px !important; padding:0 !important; }
+  .ttcm-m3-topbar .ttcm-m3-filled-button { font-size:0 !important; }
+  .ttcm-m3-topbar .ttcm-m3-filled-button .ttcm-m3-icon { width:18px !important; height:18px !important; }
+  .ttcm-m3-card { grid-template-columns:1fr !important; }
+  .ttcm-m3-card-icon { width:38px !important; height:38px !important; }
   .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metrics { grid-template-columns:1fr !important; }
 }
