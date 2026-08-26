@@ -36,11 +36,9 @@
   font-size: .76rem !important;
   font-weight: 900 !important;
   cursor: pointer;
-  transition: transform .18s ease, box-shadow .18s ease, background .18s ease !important;
 }
 
 .bha-practice-header-actions > button:hover {
-  transform: translateY(-2px);
   background: #f7faff !important;
   box-shadow: 0 8px 18px rgba(60, 64, 67, .11) !important;
 }
@@ -72,7 +70,6 @@
   border: 3px solid #d8e5f7;
   border-top-color: #1a73e8;
   border-radius: 50%;
-  animation: bha-practice-spin .8s linear infinite;
 }
 
 .bha-practice-state.is-error {
@@ -93,8 +90,6 @@
   cursor: pointer;
 }
 
-@keyframes bha-practice-spin { to { transform: rotate(360deg); } }
-
 .bha-grade-copy > small {
   display: -webkit-box !important;
   min-height: 2.7em;
@@ -108,7 +103,6 @@
 .bha-grade > footer > button:disabled {
   opacity: .45;
   cursor: not-allowed !important;
-  transform: none !important;
 }
 
 .bha-grade > footer > span.is-upcoming {
@@ -277,8 +271,4 @@ html[data-theme='dark'] .bha-grade-history,
     color: var(--history-accent);
     flex: 0 0 auto;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bha-practice-state > span { animation: none; }
 }
