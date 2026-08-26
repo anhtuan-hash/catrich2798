@@ -523,11 +523,9 @@ body .metro-clean-system[data-route='news'] .newsroom-v823-story {
   overflow: hidden !important;
   background: #fff !important;
   box-shadow: none !important;
-  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease !important;
 }
 
 body .metro-clean-system[data-route='news'] .newsroom-v823-story:hover {
-  transform: translateY(-2px) !important;
   border-color: rgba(26,115,232,.28) !important;
   box-shadow: 0 12px 28px rgba(60,64,67,.11) !important;
 }
