@@ -1,0 +1,11 @@
+/* Notification Center retired: TTCM + Work Hub now own communication/workflows. */
+.brian-nav__bell,
+.brian-nav__notifications,
+.brian-notification-center {
+  display: none !important;
+}
+
+/* Collapse the notification wrapper so it leaves no blank slot in the action row. */
+.brian-nav__actions > .brian-nav__popover-wrap:has(.brian-nav__bell) {
+  display: none !important;
+}
