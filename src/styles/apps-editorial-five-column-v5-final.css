@@ -1,0 +1,70 @@
+/* Final approved editorial details for the five-column Apps directory. */
+
+/* Reword the existing three hero spans without changing application data or language state. */
+html body .apps-directory-native .apps-directory-kicker {
+  font-size:0 !important;
+}
+html body .apps-directory-native .apps-directory-kicker > span { display:none !important; }
+html body .apps-directory-native .apps-directory-kicker::after {
+  content:'APP DIRECTORY' !important;
+  font-size:10px !important;
+  font-weight:800 !important;
+  letter-spacing:.18em !important;
+  color:#a66f52 !important;
+}
+html body .apps-directory-native .apps-directory-hero-copy h1 > span {
+  font-size:0 !important;
+}
+html body .apps-directory-native .apps-directory-hero-copy h1 > span:nth-child(1)::after {
+  content:'Kho ' !important;
+  font-size:clamp(42px,4.3vw,64px) !important;
+  color:#18314f !important;
+  font-style:normal !important;
+}
+html body .apps-directory-native .apps-directory-hero-copy h1 > .apps-directory-title-accent::after {
+  content:'ứng dụng ' !important;
+  font-size:clamp(42px,4.3vw,64px) !important;
+  color:#c96646 !important;
+  font-style:italic !important;
+}
+html body .apps-directory-native .apps-directory-hero-copy h1 > span:nth-child(3)::after {
+  content:'dành cho giáo viên' !important;
+  font-size:clamp(42px,4.3vw,64px) !important;
+  color:#18314f !important;
+}
+html body .apps-directory-native .apps-directory-subtitle {
+  font-size:0 !important;
+}
+html body .apps-directory-native .apps-directory-subtitle::after {
+  content:'Các công cụ và tài nguyên hỗ trợ công việc dạy học, quản lý lớp học và phát triển chuyên môn mỗi ngày.' !important;
+  font-size:13.5px !important;
+  line-height:1.72 !important;
+  color:#666963 !important;
+}
+
+/* The component has three live counters. A calm fourth editorial cell completes the approved 2×2 composition without inventing a count. */
+html body .apps-directory-native .apps-directory-stat-row::after {
+  content:'—\A Cập nhật mới' !important;
+  white-space:pre-line !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+  min-height:100px !important;
+  padding:12px 14px !important;
+  border-top:1px solid #eee4db !important;
+  color:#817a72 !important;
+  font-size:9.5px !important;
+  line-height:1.45 !important;
+}
+html body .apps-directory-native .apps-directory-stat-row::after::first-line {
+  color:#243249 !important;
+  font-size:27px !important;
+}
+
+/* Make the grid visually closer to the approved screenshot at common classroom desktop widths. */
+@media (min-width:1381px) {
+  html body .apps-directory-native .apps-directory-list-native,
+  html body .apps-directory-native .apps-directory-list-native.is-grouped-editorial {
+    grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  }
+}
