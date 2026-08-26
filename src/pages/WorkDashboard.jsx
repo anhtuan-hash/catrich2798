@@ -80,7 +80,6 @@ function Empty({ children }) { return <div className="gd-empty"><span><Icon name
 function Surface({ title, subtitle, icon, action, actionLabel, children, id, className = '' }) {
   return <article className={`gd-surface ${className}`} id={id}><header className="gd-surface-header"><div className="gd-surface-heading"><span className="gd-heading-icon"><Icon name={icon} size={20} /></span><div><h2>{title}</h2>{subtitle ? <p>{subtitle}</p> : null}</div></div>{action ? <button type="button" className="gd-text-button" onClick={action}>{actionLabel}<Icon name="arrow" size={18} /></button> : null}</header><div className="gd-surface-body">{children}</div></article>;
 }
-function Metric({ icon, label, value, detail, tone, onClick }) { return <button type="button" className={`gd-metric is-${tone}`} onClick={onClick}><span className="gd-metric-icon"><Icon name={icon} size={22} /></span><span className="gd-metric-copy"><span>{label}</span><strong>{value}</strong><small>{detail}</small></span></button>; }
 function CalendarEvent({ item, language, locale, t }) {
   const state = getDashboardDueState(item.date, item.done);
   return <button type="button" className={`gd-event is-${state}`} onClick={() => openDashboardTarget(item)}><span className="gd-event-time"><strong>{eventTimeLabel(item.date, t, locale)}</strong><small>{dashboardDueLabel(item.date, item.done, language)}</small></span><span className="gd-event-color" aria-hidden="true" /><span className="gd-event-copy"><strong>{item.title}</strong>{item.description ? <p>{item.description}</p> : null}<small>{t.source}: {item.owner || item.sourceLabel}</small></span><Icon name="arrow" size={20} /></button>;
@@ -138,7 +137,6 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   }), [timeline]);
   const selectedCalendarDay = useMemo(() => calendarDays.find((day) => day.key === selectedDay) || calendarDays[0], [calendarDays, selectedDay]);
   const selectedEvents = selectedCalendarDay?.events || [];
-  const activeDays = calendarDays.filter((day) => day.events.length > 0).length;
   const name = currentUser?.name || currentUser?.full_name || currentUser?.email?.split('@')[0] || t.teacher;
   const locale = language === 'vi' ? 'vi-VN' : 'en-US';
   const todayKey = dateKey(new Date());
@@ -159,10 +157,6 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
           <div className="gd-hero-copy"><span>{t.eyebrow}</span><h1>{t.hello}, {name}</h1><p>{t.lead}</p></div>
           <div className="gd-hero-actions"><button type="button" className="gd-button filled" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' })}><Icon name="calendar" size={20} />{t.calendar}</button><button type="button" className="gd-button outlined" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={20} />{loading ? t.refreshing : t.refresh}</button></div>
         </header>
-        <section className="gd-metrics" aria-label={t.eyebrow}>
-          <Metric icon="event" label={t.upcomingEvents} value={timeline.length} detail={`${activeDays} ${t.activeDays.toLowerCase()}`} tone="blue" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' })} />
-          <Metric icon="calendar" label={t.activeDays} value={activeDays} detail={calendarRange} tone="green" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' })} />
-        </section>
       </section>
       {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
       <article className="gd-calendar gd-calendar-split" id="dashboard-calendar">
