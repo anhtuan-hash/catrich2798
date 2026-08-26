@@ -24,6 +24,7 @@
 @import './styles/GlobalNoSelectionRing.css';
 @import './styles/AdminCompactWorkspace2026.css';
 @import './styles/DashboardHeroPolish2026.css';
+@import './styles/MonthlyReportsMaterial3Redesign.css';
 
 /* Dashboard: retire the obsolete lower-left chart decoration from the premium hero.
    The real calendar / lesson-plan illustration on the right is a separate DOM visual. */
