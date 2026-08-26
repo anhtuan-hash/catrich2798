@@ -203,7 +203,6 @@ html body .app-shell[data-route] .brian-nav__account:hover,
 html body .app-shell[data-route] .brian-nav__login:hover {
   border-color: rgba(255,255,255,.92) !important;
   background: rgba(255,255,255,.72) !important;
-  transform: translateY(-1px) !important;
 }
 
 /* ─────────────────────────────────────────────────────────────
