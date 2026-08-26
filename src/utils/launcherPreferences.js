@@ -38,11 +38,11 @@ const RETIRED_LAUNCHER_IDS = new Set([
   'writing-studio',
   'tool:pronunciation-coach',
   'pronunciation-coach',
+  'tool:teaching-methods-hub',
+  'teaching-methods-hub',
   'route:ai-workspace',
   'route:classroom-delivery',
   'route:learning-intelligence',
-  'tool:teaching-methods-hub',
-  'teaching-methods-hub',
   'route:library',
   'library-hub',
   'route:practice',
@@ -107,7 +107,6 @@ export function createDefaultLauncherConfig(itemIds = []) {
     nav: [...DEFAULT_NAV],
     groups: DEFAULT_LAUNCHER_GROUPS.map((group) => ({ ...group })),
     assignments,
-    launcherStyle: 'radial',
     updatedAt: Date.now(),
   };
 }
@@ -171,10 +170,6 @@ export function normalizeLauncherConfig(raw, itemIds = []) {
     if ((!safeItemIds.length || allowed.has(cleanItemId)) && groupIds.has(cleanGroupId)) assignments[cleanItemId] = cleanGroupId;
   });
 
-  const launcherStyle = ['radial', 'water'].includes(String(source.launcherStyle || '').trim())
-    ? String(source.launcherStyle).trim()
-    : defaults.launcherStyle;
-
   return {
     schemaVersion: 5,
     version: 5,
@@ -184,7 +179,6 @@ export function normalizeLauncherConfig(raw, itemIds = []) {
     nav: cleanIdList(source.nav ?? defaults.nav).slice(0, 12),
     groups,
     assignments,
-    launcherStyle,
     updatedAt: Number(source.updatedAt) || Date.now(),
   };
 }
