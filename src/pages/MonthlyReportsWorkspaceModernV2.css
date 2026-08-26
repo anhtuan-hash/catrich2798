@@ -141,7 +141,6 @@
   box-shadow:0 14px 42px rgba(15,23,42,.065);
 }
 .mr-teacher-shell .mr-section:hover{
-  transform:translateY(-2px);
   border-color:rgba(15,118,110,.28);
   box-shadow:0 22px 58px rgba(15,23,42,.10);
 }
