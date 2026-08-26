@@ -91,7 +91,8 @@ html body .command-palette-result:hover,
 html body .command-palette-result.active,
 html body .bes-transfer-fab:hover,
 html body .bes-transfer-targets > button:hover,
-html body .ai-action-grid > button:hover {
+html body .ai-action-grid > button:hover,
+html body .app-shell[data-route="settings"] .settings-google-card:hover {
   transform: none !important;
 }
 
