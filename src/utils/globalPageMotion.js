@@ -25,11 +25,21 @@ export function replayGlobalPageEntrance() {
       return;
     }
 
+    /* The SPA keeps #bes-main-content mounted between hash routes. Temporarily
+       suppress the CSS animation, force style calculation, then expose the
+       global animation again so every route change gets a fresh page entrance. */
+    host.style.setProperty('animation', 'none', 'important');
     host.removeAttribute('data-global-page-enter');
     void host.offsetWidth;
+
     window.requestAnimationFrame(() => {
-      if (!host.isConnected || !motionAllowed()) return;
+      if (!host.isConnected || !motionAllowed()) {
+        host.style.removeProperty('animation');
+        return;
+      }
       host.dataset.globalPageEnter = 'true';
+      host.style.removeProperty('animation');
+      void host.offsetWidth;
       window.clearTimeout(cleanupTimer);
       cleanupTimer = window.setTimeout(() => {
         if (host?.isConnected) delete host.dataset.globalPageEnter;
