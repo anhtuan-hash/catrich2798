@@ -75,7 +75,29 @@ html body .win8-tile.is-launching,
 html body .win81-tile.is-launching,
 html body .flat-app-chip.is-launching,
 html body .bes-nav-pill.is-launching,
-html body .bes-brand.is-launching {
+html body .bes-brand.is-launching,
+html body .hr-quick-grid button:hover,
+html body .hr-conduct-save-button:not(:disabled):active,
+html body .resource-library-card:hover,
+html body .newsroom-mode-switch > button:hover,
+html body .newsroom-card:hover,
+html body .newsroom-v823-hero-actions button.active,
+html body .newsroom-v823-story:hover .newsroom-v823-story-media > img,
+html body .ai-messenger-bubble:hover,
+html body .ai-messenger-bubble:active,
+html body .launcher-group-rail .flat-apps-group-chip.active,
+html body .flat-app-window-card.is-launcher-editing:active,
+html body .command-palette-result:hover,
+html body .command-palette-result.active,
+html body .bes-transfer-fab:hover,
+html body .bes-transfer-targets > button:hover,
+html body .ai-action-grid > button:hover {
+  transform: none !important;
+}
+
+/* Tooltip visibility may change, but its position stays fixed. */
+html body .ai-messenger-tooltip,
+html body .ai-messenger-collapsed-wrap:hover .ai-messenger-tooltip {
   transform: none !important;
 }
 
