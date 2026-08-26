@@ -245,6 +245,9 @@ export function installGlobalFontSystem() {
   import('./globalCustomFont.js')
     .then(({ installGlobalCustomFontRuntime }) => installGlobalCustomFontRuntime())
     .catch(() => {});
+  import('./globalPageMotion.js')
+    .then(({ installGlobalPageMotion }) => installGlobalPageMotion())
+    .catch(() => {});
 }
 
 export { GLOBAL_EVENT as GLOBAL_FONT_EVENT, SETTINGS_TABLE as GLOBAL_FONT_SETTINGS_TABLE };
