@@ -50,7 +50,6 @@ body .metro-clean-system[data-route='apps'] .flat-app-window-card::before {
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover,
 body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within {
-  transform: translateY(-7px) scale(1.018) !important;
   border-color: color-mix(in srgb,var(--app-accent,#1a73e8) 58%,#9ba5b2) !important;
   box-shadow:
     0 14px 28px rgba(60,64,67,.17),
@@ -307,10 +306,4 @@ body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip,
 html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-chip b,
 body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip b {
   color: #f1f3f4 !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body .metro-clean-system[data-route='apps'] .flat-app-window-card {
-    transition: none !important;
-  }
 }
