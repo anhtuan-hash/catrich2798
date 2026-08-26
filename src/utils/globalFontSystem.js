@@ -4,7 +4,7 @@ const STORAGE_KEY = 'bes-global-font-preset-v1';
 const SETTINGS_TABLE = 'brian_global_font_settings';
 const GLOBAL_EVENT = 'bes-global-font-updated';
 const DEFAULT_PRESET = 'roboto';
-const VALID_PRESETS = new Set(['roboto', 'be-vietnam-pro', 'inter', 'noto-sans', 'arial', 'system']);
+const VALID_PRESETS = new Set(['roboto', 'be-vietnam-pro', 'inter', 'noto-sans', 'arial', 'system', 'custom']);
 
 export const GLOBAL_FONT_PRESETS = Object.freeze([
   {
@@ -55,6 +55,15 @@ export const GLOBAL_FONT_PRESETS = Object.freeze([
     description: 'Use the native interface font supplied by each operating system.',
     family: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     sample: 'Aa  Native UI · 123',
+  },
+  {
+    id: 'custom',
+    label: 'Font tùy chỉnh',
+    descriptionVi: 'Font do Admin tải lên và đồng bộ đến toàn bộ tài khoản Brian.',
+    description: 'A custom font uploaded by Admin and synchronized to all Brian accounts.',
+    family: "'BrianGlobalCustom', Arial, sans-serif",
+    sample: 'Aa  Font riêng · 123',
+    custom: true,
   },
 ]);
 
@@ -233,6 +242,9 @@ export function installGlobalFontSystem() {
   };
   window.addEventListener('storage', onStorage);
   scheduleRuntimeSync();
+  import('./globalCustomFont.js')
+    .then(({ installGlobalCustomFontRuntime }) => installGlobalCustomFontRuntime())
+    .catch(() => {});
 }
 
 export { GLOBAL_EVENT as GLOBAL_FONT_EVENT, SETTINGS_TABLE as GLOBAL_FONT_SETTINGS_TABLE };
