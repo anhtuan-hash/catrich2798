@@ -853,3 +853,69 @@ html.bes-ttcm-hub-open body {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* TTCM sent-item management — Google Material 3 */
+.ttcm-m3-manager-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #eef0f2;
+}
+
+.ttcm-m3-manager-button {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 999px;
+  background: #e8f0fe;
+  color: #0b57d0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ttcm-m3-manager-button:hover {
+  background: #d3e3fd;
+}
+
+.ttcm-m3-manager-button.is-danger {
+  background: #fce8e6;
+  color: #b3261e;
+}
+
+.ttcm-m3-manager-button.is-danger:hover {
+  background: #f9dedc;
+}
+
+.ttcm-m3-manager-button:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.ttcm-m3-edited-chip {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #eef3f8;
+  color: #5f6368;
+  font-weight: 600;
+}
+
+@media (max-width: 540px) {
+  .ttcm-m3-manager-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ttcm-m3-manager-button {
+    width: 100%;
+  }
+}

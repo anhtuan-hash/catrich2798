@@ -7,6 +7,7 @@ import { launchRoute } from '../utils/navigation.js';
 import {
   createWorkHubAttachmentUrl,
   rememberWorkHubItem,
+  removeWorkHubSubmissionFiles,
   uploadWorkHubSubmissionFile,
   validateWorkHubFile,
 } from '../utils/workHubDelivery.js';
@@ -37,6 +38,7 @@ const GLYPHS = {
   people: 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8-1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM8 13c-3.3 0-6 1.7-6 3.8V20h12v-3.2C14 14.7 11.3 13 8 13Zm8 0c-.8 0-1.6.1-2.3.3 1.4 1 2.3 2.2 2.3 3.5V20h6v-2.8c0-2.3-2.7-4.2-6-4.2Z',
   arrow: 'm10 6 6 6-6 6-1.4-1.4 4.6-4.6-4.6-4.6L10 6Z',
   download: 'M11 3h2v9l3-3 1.4 1.4L12 15.8l-5.4-5.4L8 9l3 3V3ZM5 18h14v2H5v-2Z',
+  delete: 'M7 21a2 2 0 0 1-2-2V7h14v12a2 2 0 0 1-2 2H7Zm1-11v8h2v-8H8Zm6 0v8h2v-8h-2ZM8 4l1-1h6l1 1h4v2H4V4h4Z',
 };
 
 function Icon({ name, size = 20 }) {
@@ -111,6 +113,14 @@ function formatDate(value) {
   return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(date);
 }
 
+function dateTimeLocalValue(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
 function dueLabel(value) {
   if (!value) return '';
   const due = new Date(value);
@@ -139,6 +149,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   const [host, setHost] = useState(null);
   const [open, setOpen] = useState(false);
   const [composeOpen, setComposeOpen] = useState(false);
+  const [editingId, setEditingId] = useState('');
   const [items, setItems] = useState(() => readLocalItems(currentUser));
   const [people, setPeople] = useState([]);
   const [readIds, setReadIds] = useState(() => readReadIds(currentUser));
@@ -314,6 +325,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   }
 
   function beginCompose() {
+    setEditingId('');
     setComposeOpen(true);
     setKind('announcement');
     setTitle('');
@@ -324,6 +336,150 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
     setSelectedRecipients(departmentTeachers.map((person) => person.id));
     setError('');
     setNotice('');
+  }
+
+  function beginEdit(item) {
+    if (!manager || !item) return;
+    const canManage = item.created_by === currentUser?.id || item.owner_id === currentUser?.id;
+    if (!canManage) return;
+    setEditingId(String(item.id));
+    setKind(typeForItem(item).id);
+    setTitle(item.title || '');
+    setDescription(item.description || '');
+    setDueAt(dateTimeLocalValue(item.due_at));
+    setFile(null);
+    setRecipientQuery('');
+    setSelectedRecipients(uniqueIds(item.assignee_ids));
+    setError('');
+    setNotice('');
+    setComposeOpen(true);
+  }
+
+  async function saveEditedCommunication(event) {
+    event.preventDefault();
+    if (!manager || busy || !editingId) return;
+    const existing = items.find((item) => String(item.id) === String(editingId));
+    if (!existing) { setError('Không tìm thấy nội dung cần chỉnh sửa.'); return; }
+    const canManage = existing.created_by === currentUser?.id || existing.owner_id === currentUser?.id;
+    if (!canManage) { setError('Bạn không có quyền chỉnh sửa nội dung này.'); return; }
+    if (!title.trim()) { setError('Vui lòng nhập tiêu đề.'); return; }
+    const recipients = uniqueIds(selectedRecipients);
+    if (!recipients.length) { setError('Vui lòng chọn ít nhất một giáo viên nhận nội dung.'); return; }
+    if (file) {
+      const validation = validateWorkHubFile(file);
+      if (!validation.ok) { setError(validation.message); return; }
+    }
+
+    const type = CONTENT_TYPES.find((entry) => entry.id === kind) || CONTENT_TYPES[0];
+    setBusy(true); setError(''); setNotice('');
+    try {
+      const editedAt = new Date().toISOString();
+      const patch = {
+        title: title.trim(),
+        description: description.trim(),
+        item_type: `ttcm_${kind}`,
+        status: type.action
+          ? (['completed', 'approved', 'archived'].includes(String(existing.status || '').toLowerCase()) ? 'assigned' : (existing.status || 'assigned'))
+          : 'completed',
+        priority: kind === 'task' ? 'high' : 'normal',
+        assignee_ids: recipients,
+        due_at: dueAt ? new Date(dueAt).toISOString() : null,
+        metadata: {
+          ...(existing.metadata || {}),
+          ttcm: true,
+          ttcm_kind: kind,
+          ttcm_action_required: type.action,
+          notify_assignee: type.action,
+          recipient_count: recipients.length,
+          ttcm_edited_at: editedAt,
+          ttcm_edited_by: currentUser.id,
+        },
+        updated_at: editedAt,
+      };
+
+      let updated = { ...existing, ...patch };
+      if (client && runtime.ready && runtime.session) {
+        if (file) {
+          const upload = await uploadWorkHubSubmissionFile({ file, itemId: existing.id, userId: currentUser.id });
+          if (!upload.ok) throw new Error(upload.message || 'Không thể tải tệp đính kèm mới.');
+          patch.attachments = [upload.attachment];
+        }
+        const { data, error: updateError } = await client
+          .from('work_hub_items')
+          .update(patch)
+          .eq('id', existing.id)
+          .eq('created_by', currentUser.id)
+          .select(WORK_ITEM_COLUMNS)
+          .single();
+        if (updateError) throw updateError;
+        updated = data;
+
+        if (file) {
+          const previousAttachments = Array.isArray(existing.attachments) ? existing.attachments : [];
+          if (previousAttachments.length) {
+            removeWorkHubSubmissionFiles(previousAttachments).catch(() => {});
+          }
+        }
+      }
+
+      const next = items.map((item) => String(item.id) === String(updated.id) ? updated : item);
+      setItems(next);
+      writeLocalItems(currentUser, next);
+      setEditingId('');
+      setComposeOpen(false);
+      setFile(null);
+      setNotice('Đã cập nhật nội dung đã gửi. Thay đổi được đồng bộ đến tổ viên và Trung tâm công việc.');
+      window.setTimeout(() => setNotice(''), 3600);
+    } catch (editError) {
+      setError(editError?.message || 'Không thể cập nhật nội dung TTCM.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteCommunication(item) {
+    if (!manager || busy || !item) return;
+    const canManage = item.created_by === currentUser?.id || item.owner_id === currentUser?.id;
+    if (!canManage) return;
+    const confirmed = window.confirm(`Xóa “${item.title}”?\n\nNội dung sẽ biến mất khỏi Kênh TTCM và mục liên quan trong Trung tâm công việc. Hành động này không thể hoàn tác.`);
+    if (!confirmed) return;
+
+    setBusy(true); setError(''); setNotice('');
+    try {
+      if (client && runtime.ready && runtime.session) {
+        const attachments = Array.isArray(item.attachments) ? item.attachments : [];
+        if (attachments.length) {
+          const removeResult = await removeWorkHubSubmissionFiles(attachments);
+          if (!removeResult.ok) throw new Error(removeResult.message || 'Không thể xóa tệp đính kèm.');
+        }
+        const { error: deleteError } = await client
+          .from('work_hub_items')
+          .delete()
+          .eq('id', item.id)
+          .eq('created_by', currentUser.id);
+        if (deleteError) throw deleteError;
+      }
+
+      const next = items.filter((entry) => String(entry.id) !== String(item.id));
+      setItems(next);
+      writeLocalItems(currentUser, next);
+      setReadIds((current) => {
+        const updated = new Set(current);
+        updated.delete(String(item.id));
+        writeReadIds(currentUser, updated);
+        return updated;
+      });
+      if (String(editingId) === String(item.id)) {
+        setEditingId('');
+        setComposeOpen(false);
+      }
+      setNotice('Đã xóa nội dung TTCM và dữ liệu công việc liên quan.');
+      window.setTimeout(() => setNotice(''), 3200);
+    } catch (deleteError) {
+      setError(deleteError?.message || 'Không thể xóa nội dung TTCM.');
+    } finally {
+      setBusy(false);
+    }
   }
 
   function toggleRecipient(id) {
@@ -528,6 +684,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
             const type = typeForItem(item);
             const unread = !manager && item.created_by !== currentUser?.id && !readIds.has(String(item.id));
             const attachments = Array.isArray(item.attachments) ? item.attachments : [];
+            const canManageItem = manager && (item.created_by === currentUser?.id || item.owner_id === currentUser?.id);
             return (
               <article key={item.id} className={`ttcm-m3-card ${unread ? 'is-unread' : ''}`} onClick={() => markRead(item.id)}>
                 <div className={`ttcm-m3-card-icon is-${type.id}`}><Icon name={type.glyph} size={22} /></div>
@@ -536,6 +693,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
                     <span className="ttcm-m3-type-chip">{type.label}</span>
                     <span>{formatDate(item.created_at || item.updated_at)}</span>
                     {manager ? <span><Icon name="people" size={15} /> {uniqueIds(item.assignee_ids).length} giáo viên</span> : null}
+                    {item.metadata?.ttcm_edited_at ? <span className="ttcm-m3-edited-chip">Đã chỉnh sửa {formatDate(item.metadata.ttcm_edited_at)}</span> : null}
                     {unread ? <i>Mới</i> : null}
                   </div>
                   <h3>{item.title}</h3>
@@ -549,6 +707,16 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
                           <span>{attachment.name || `Tài liệu ${index + 1}`}</span>
                         </button>
                       ))}
+                    </div>
+                  ) : null}
+                  {canManageItem ? (
+                    <div className="ttcm-m3-manager-actions" aria-label="Quản lý nội dung đã gửi">
+                      <button type="button" className="ttcm-m3-manager-button" disabled={busy} onClick={(event) => { event.stopPropagation(); beginEdit(item); }}>
+                        <Icon name="edit" size={17} />Sửa
+                      </button>
+                      <button type="button" className="ttcm-m3-manager-button is-danger" disabled={busy} onClick={(event) => { event.stopPropagation(); deleteCommunication(item); }}>
+                        <Icon name="delete" size={17} />Xóa
+                      </button>
                     </div>
                   ) : null}
                   {!manager && isActionItem(item) ? (
@@ -572,13 +740,13 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
 
         {composeOpen && manager ? (
           <div className="ttcm-m3-compose-layer" role="presentation">
-            <form className="ttcm-m3-compose" onSubmit={saveCommunication}>
+            <form className="ttcm-m3-compose" onSubmit={editingId ? saveEditedCommunication : saveCommunication}>
               <header>
                 <div>
-                  <strong>Tạo nội dung TTCM</strong>
-                  <small>Chọn đúng loại để hệ thống quyết định có đưa sang Trung tâm công việc hay không.</small>
+                  <strong>{editingId ? 'Chỉnh sửa nội dung TTCM' : 'Tạo nội dung TTCM'}</strong>
+                  <small>{editingId ? 'Thay đổi sẽ cập nhật cùng một nội dung đã gửi và đồng bộ sang Trung tâm công việc.' : 'Chọn đúng loại để hệ thống quyết định có đưa sang Trung tâm công việc hay không.'}</small>
                 </div>
-                <button type="button" className="ttcm-m3-icon-button" onClick={() => setComposeOpen(false)} aria-label="Đóng"><Icon name="close" /></button>
+                <button type="button" className="ttcm-m3-icon-button" onClick={() => { setComposeOpen(false); setEditingId(''); }} aria-label="Đóng"><Icon name="close" /></button>
               </header>
 
               <div className="ttcm-m3-type-grid">
@@ -606,7 +774,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
                   <input type="datetime-local" value={dueAt} onChange={(event) => setDueAt(event.target.value)} />
                 </label>
                 <label className="ttcm-m3-field">
-                  <span>Tệp đính kèm <small>(tối đa 10 MB)</small></span>
+                  <span>Tệp đính kèm <small>{editingId ? '(để trống nếu giữ tệp hiện tại)' : '(tối đa 10 MB)'}</small></span>
                   <input type="file" onChange={(event) => setFile(event.target.files?.[0] || null)} />
                 </label>
               </div>
@@ -637,8 +805,8 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
 
               {error ? <div className="ttcm-m3-banner is-error">{error}</div> : null}
               <footer>
-                <button type="button" className="ttcm-m3-text-button" onClick={() => setComposeOpen(false)}>Hủy</button>
-                <button type="submit" className="ttcm-m3-filled-button" disabled={busy}>{busy ? 'Đang gửi…' : 'Gửi đến tổ viên'}</button>
+                <button type="button" className="ttcm-m3-text-button" onClick={() => { setComposeOpen(false); setEditingId(''); }}>Hủy</button>
+                <button type="submit" className="ttcm-m3-filled-button" disabled={busy}>{busy ? (editingId ? 'Đang lưu…' : 'Đang gửi…') : (editingId ? 'Lưu thay đổi' : 'Gửi đến tổ viên')}</button>
               </footer>
             </form>
           </div>
