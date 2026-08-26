@@ -124,7 +124,13 @@ html body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-wit
 html body .metro-clean-system[data-route='apps'] .flat-apps-group-chip:hover,
 html body .app-shell[data-route] .brian-nav__icon:hover,
 html body .app-shell[data-route] .brian-nav__account:hover,
-html body .app-shell[data-route] .brian-nav__login:hover {
+html body .app-shell[data-route] .brian-nav__login:hover,
+html body .mr-teacher-shell .mr-section:hover,
+html body .mr-report-meta > div:hover,
+html body .mr-manager .mr-stat:hover,
+html body .mrh-month-card:hover,
+html body .tth-card:hover,
+html body .boh-dashboard-heading > button:hover {
   transform: none !important;
 }
 
