@@ -36,7 +36,6 @@ export function applyAccessibilityPreferences(preferences = readAccessibilityPre
   const next = normalize(preferences);
   const root = document.documentElement;
   root.dataset.a11yContrast = next.contrast;
-  root.removeAttribute('data-a11y-motion');
   root.dataset.a11yTargets = next.targetSize;
   delete root.dataset.a11yReadableFont;
   root.dataset.a11yUnderlineLinks = next.underlineLinks ? 'true' : 'false';
