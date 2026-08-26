@@ -3,7 +3,6 @@ import {
   DASHBOARD_SOURCE_EVENTS,
   createEmptyDashboardSnapshot,
   dashboardDueLabel,
-  formatDashboardDate,
   getDashboardDueState,
   loadDashboardSnapshot,
   openDashboardTarget,
@@ -15,37 +14,31 @@ import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
 const COPY = {
   vi: {
     pageTitle: 'Dashboard', hello: 'Xin chào', teacher: 'Giáo viên', leader: 'Tổ trưởng',
-    eyebrow: 'Tổng quan hôm nay', lead: 'Theo dõi lịch làm việc, học liệu, phản hồi và lớp chủ nhiệm tại một nơi.',
+    eyebrow: 'Tổng quan hôm nay', lead: 'Theo dõi lịch làm việc và tin tức quan trọng trong một Dashboard gọn gàng.',
     calendar: 'Lịch làm việc 14 ngày', calendarSummary: 'Công việc và sự kiện sắp tới · Không hiển thị tiết dạy',
     openCalendar: 'Mở lịch đầy đủ', refresh: 'Làm mới', refreshing: 'Đang đồng bộ…',
-    upcomingEvents: 'Sự kiện sắp tới', activeDays: 'Ngày có lịch', resourcesMetric: 'Học liệu gần đây', reviewMetric: 'Cần chú ý',
+    upcomingEvents: 'Sự kiện sắp tới', activeDays: 'Ngày có lịch',
     nextEvent: 'Sự kiện gần nhất', noUpcoming: 'Chưa có sự kiện sắp tới', selectedDay: 'Công việc trong ngày',
     events: 'sự kiện', noEvents: 'Trống lịch', today: 'Hôm nay', allDay: 'Cả ngày', source: 'Nguồn',
-    approvalsLeader: 'Phê duyệt và phản hồi', approvalsTeacher: 'Trạng thái đã gửi', resources: 'Học liệu gần đây',
-    continue: 'Tiếp tục công việc', homeroom: 'Lớp chủ nhiệm', quickActions: 'Thao tác nhanh', viewAll: 'Xem tất cả',
-    emptyCalendar: 'Không có công việc hoặc sự kiện trong ngày này.', emptyApprovals: 'Không có nội dung chờ xử lý.',
-    emptyResources: 'Chưa có học liệu gần đây.', emptyContinue: 'Chưa có bản nháp hoặc ứng dụng gần đây.',
-    students: 'Học sinh', absent: 'Vắng hôm nay', reminders: 'Nhắc việc', alerts: 'Cảnh báo',
+    quickActions: 'Thao tác nhanh',
+    emptyCalendar: 'Không có công việc hoặc sự kiện trong ngày này.',
     partial: 'Một số nguồn dữ liệu chưa phản hồi. Dashboard vẫn hiển thị phần dữ liệu đã tải được.', retry: 'Thử lại',
     createWork: 'Mở công việc', uploadResource: 'Tải học liệu', textLab: 'Tạo hoạt động', methodsHub: 'Phương pháp giảng dạy', games: 'Mở trò chơi',
-    openHomeroom: 'Mở chủ nhiệm', draft: 'Bản nháp', app: 'Ứng dụng', items: 'mục', chooseDate: 'Chọn ngày',
+    openHomeroom: 'Mở chủ nhiệm', chooseDate: 'Chọn ngày',
   },
   en: {
     pageTitle: 'Dashboard', hello: 'Hello', teacher: 'Teacher', leader: 'Team leader',
-    eyebrow: 'Today overview', lead: 'Keep your work calendar, resources, feedback and homeroom information in one place.',
+    eyebrow: 'Today overview', lead: 'Keep your work calendar and important news together in a clean Dashboard.',
     calendar: '14-day work calendar', calendarSummary: 'Upcoming work and events · Teaching periods are hidden',
     openCalendar: 'Open full calendar', refresh: 'Refresh', refreshing: 'Syncing…',
-    upcomingEvents: 'Upcoming events', activeDays: 'Scheduled days', resourcesMetric: 'Recent resources', reviewMetric: 'Needs attention',
+    upcomingEvents: 'Upcoming events', activeDays: 'Scheduled days',
     nextEvent: 'Next event', noUpcoming: 'No upcoming events', selectedDay: 'Work for this day',
     events: 'events', noEvents: 'No schedule', today: 'Today', allDay: 'All day', source: 'Source',
-    approvalsLeader: 'Approvals and feedback', approvalsTeacher: 'Submission status', resources: 'Recent resources',
-    continue: 'Continue working', homeroom: 'Homeroom', quickActions: 'Quick actions', viewAll: 'View all',
-    emptyCalendar: 'No work or events on this day.', emptyApprovals: 'Nothing needs attention.',
-    emptyResources: 'No recent resources.', emptyContinue: 'No recent drafts or apps.',
-    students: 'Students', absent: 'Absent today', reminders: 'Reminders', alerts: 'Alerts',
+    quickActions: 'Quick actions',
+    emptyCalendar: 'No work or events on this day.',
     partial: 'Some data sources did not respond. Available data is still shown.', retry: 'Retry',
     createWork: 'Open work', uploadResource: 'Upload resource', textLab: 'Create activity', methodsHub: 'Teaching methods', games: 'Open games',
-    openHomeroom: 'Open homeroom', draft: 'Draft', app: 'App', items: 'items', chooseDate: 'Choose a date',
+    openHomeroom: 'Open homeroom', chooseDate: 'Choose a date',
   },
 };
 
@@ -54,7 +47,6 @@ const ICON_PATHS = {
   refresh: 'M17.65 6.35A7.95 7.95 0 0 0 12 4c-4.09 0-7.19 3.72-6.39 7.69l-2.08.67C2.35 7.08 6.38 2 12 2c2.76 0 5.26 1.12 7.07 2.93L22 2v8h-8l3.65-3.65ZM6.35 17.65A7.95 7.95 0 0 0 12 20c4.09 0 7.19-3.72 6.39-7.69l2.08-.67C21.65 16.92 17.62 22 12 22a9.95 9.95 0 0 1-7.07-2.93L2 22v-8h8l-3.65 3.65Z',
   event: 'M16 13h-3v3h-2v-3H8v-2h3V8h2v3h3v2ZM19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2Zm0 16H5V9h14v11Z',
   folder: 'M10 4H2c-1.1 0-1.99.9-1.99 2L0 18c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-10l-2-2Z',
-  review: 'M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2Zm-2 12H6v-2h12v2Zm0-3H6V9h12v2Zm0-3H6V6h12v2Z',
   task: 'M22 5.18 10.59 16.6l-4.24-4.24 1.41-1.41 2.83 2.83L20.59 3.77 22 5.18ZM19 19H5V5h9V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-8h-2v8Z',
   school: 'M12 3 1 9l4 2.18v6L12 21l7-3.82v-6L21 10v7h2V9L12 3Zm0 2.18L18.74 9 12 12.82 5.26 9 12 5.18ZM7 12.27l5 2.73 5-2.73v3.73l-5 2.73-5-2.73v-3.73Z',
   apps: 'M4 8h4V4H4v4Zm6 12h4v-4h-4v4Zm-6 0h4v-4H4v4Zm0-6h4v-4H4v4Zm6 0h4v-4h-4v4Zm6-10v4h4V4h-4Zm-6 4h4V4h-4v4Zm6 6h4v-4h-4v4Zm0 6h4v-4h-4v4Z',
@@ -68,7 +60,6 @@ const ICON_PATHS = {
 function Icon({ name, size = 20 }) {
   return <svg className="gd-icon" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={ICON_PATHS[name] || ICON_PATHS.apps} /></svg>;
 }
-function initials(value) { return String(value || 'EH').trim().split(/\s+/).slice(-2).map((part) => part[0] || '').join('').toUpperCase() || 'EH'; }
 function dateKey(value) {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return '';
@@ -77,21 +68,6 @@ function dateKey(value) {
 function isTeachingPeriod(item) {
   const haystack = `${item?.title || ''} ${item?.description || ''} ${item?.sourceLabel || ''}`;
   return /tiết\s*dạy|teaching\s*period|lesson\s*period|thời\s*khóa\s*biểu|timetable/i.test(haystack);
-}
-function statusLabel(value, language) {
-  const status = String(value || '').toLowerCase();
-  if (language === 'vi') {
-    if (status === 'approved' || status === 'completed') return 'Đã duyệt';
-    if (status === 'submitted' || status === 'pending') return 'Đang chờ';
-    if (status === 'changes_requested' || status === 'revision') return 'Cần sửa';
-    if (status === 'rejected') return 'Từ chối';
-    return value || 'Mới';
-  }
-  if (status === 'approved' || status === 'completed') return 'Approved';
-  if (status === 'submitted' || status === 'pending') return 'Waiting';
-  if (status === 'changes_requested' || status === 'revision') return 'Needs changes';
-  if (status === 'rejected') return 'Rejected';
-  return value || 'New';
 }
 function eventTimeLabel(value, t, locale) {
   const date = new Date(value);
@@ -104,12 +80,6 @@ function Surface({ title, subtitle, icon, action, actionLabel, children, id, cla
   return <article className={`gd-surface ${className}`} id={id}><header className="gd-surface-header"><div className="gd-surface-heading"><span className="gd-heading-icon"><Icon name={icon} size={20} /></span><div><h2>{title}</h2>{subtitle ? <p>{subtitle}</p> : null}</div></div>{action ? <button type="button" className="gd-text-button" onClick={action}>{actionLabel}<Icon name="arrow" size={18} /></button> : null}</header><div className="gd-surface-body">{children}</div></article>;
 }
 function Metric({ icon, label, value, detail, tone, onClick }) { return <button type="button" className={`gd-metric is-${tone}`} onClick={onClick}><span className="gd-metric-icon"><Icon name={icon} size={22} /></span><span className="gd-metric-copy"><span>{label}</span><strong>{value}</strong><small>{detail}</small></span></button>; }
-function MiniRow({ item, language }) {
-  return <button type="button" className="gd-row" onClick={() => openDashboardTarget(item)}><span className="gd-row-avatar">{initials(item.sourceLabel || item.owner || 'EH')}</span><span className="gd-row-copy"><strong>{item.title}</strong><small>{item.owner || item.body || item.sourceLabel}{item.date ? ` · ${formatDashboardDate(item.date, language)}` : ''}</small></span><span className="gd-status-chip">{statusLabel(item.status, language)}</span><Icon name="arrow" size={18} /></button>;
-}
-function Tile({ item, t }) {
-  return <button type="button" className="gd-tile" onClick={() => { window.location.hash = item.target || (item.route ? `#/${item.route}` : '#/apps'); }}><span className="gd-tile-icon" style={item.accent ? { background: `${item.accent}18`, color: item.accent } : undefined}>{item.icon || initials(item.sourceLabel)}</span><span className="gd-tile-copy"><strong>{item.title}</strong><small>{item.kind === 'draft' ? t.draft : item.owner || item.sourceLabel || t.app}</small></span><Icon name="arrow" size={18} /></button>;
-}
 function CalendarEvent({ item, language, locale, t }) {
   const state = getDashboardDueState(item.date, item.done);
   return <button type="button" className={`gd-event is-${state}`} onClick={() => openDashboardTarget(item)}><span className="gd-event-time"><strong>{eventTimeLabel(item.date, t, locale)}</strong><small>{dashboardDueLabel(item.date, item.done, language)}</small></span><span className="gd-event-color" aria-hidden="true" /><span className="gd-event-copy"><strong>{item.title}</strong>{item.description ? <p>{item.description}</p> : null}<small>{t.source}: {item.owner || item.sourceLabel}</small></span><Icon name="arrow" size={20} /></button>;
@@ -168,15 +138,12 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const selectedCalendarDay = useMemo(() => calendarDays.find((day) => day.key === selectedDay) || calendarDays[0], [calendarDays, selectedDay]);
   const selectedEvents = selectedCalendarDay?.events || [];
   const activeDays = calendarDays.filter((day) => day.events.length > 0).length;
-  const feedbackItems = useMemo(() => snapshot.approvals?.length ? snapshot.approvals : (snapshot.professional || []).filter((item) => ['submitted', 'approved', 'changes_requested', 'revision', 'rejected'].includes(String(item.status || '').toLowerCase())).slice(0, 8), [snapshot.approvals, snapshot.professional]);
   const name = currentUser?.name || currentUser?.full_name || currentUser?.email?.split('@')[0] || t.teacher;
   const locale = language === 'vi' ? 'vi-VN' : 'en-US';
   const todayKey = dateKey(new Date());
   const selectedWeekday = selectedCalendarDay ? new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(selectedCalendarDay.date) : '';
   const selectedDate = selectedCalendarDay ? new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'long', year: 'numeric' }).format(selectedCalendarDay.date) : '';
   const monthRange = calendarDays.length ? `${new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(calendarDays[0].date)} — ${new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(calendarDays[calendarDays.length - 1].date)}` : '';
-  const leaderView = snapshot.leader || ['admin', 'department_head'].includes(String(currentUser?.role || '').toLowerCase());
-  const reviewCount = leaderView ? (snapshot.stats?.pendingApproval || 0) : feedbackItems.length;
   const initialLoading = loading && !snapshot.generatedAt;
   const nextEvent = timeline.find((item) => new Date(item.date).getTime() >= Date.now()) || timeline[0] || null;
   const quickActions = [
@@ -191,8 +158,6 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       <section className="gd-metrics" aria-label={t.eyebrow}>
         <Metric icon="event" label={t.upcomingEvents} value={timeline.length} detail={`${activeDays} ${t.activeDays.toLowerCase()}`} tone="blue" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' })} />
         <Metric icon="calendar" label={t.activeDays} value={activeDays} detail={monthRange} tone="green" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' })} />
-        <Metric icon="folder" label={t.resourcesMetric} value={snapshot.recentResources?.length || 0} detail={t.resources} tone="yellow" onClick={() => document.querySelector('#dashboard-resources')?.scrollIntoView({ behavior: 'auto', block: 'start' })} />
-        <Metric icon="review" label={t.reviewMetric} value={reviewCount} detail={leaderView ? t.approvalsLeader : t.approvalsTeacher} tone="red" onClick={() => document.querySelector('#dashboard-approvals')?.scrollIntoView({ behavior: 'auto', block: 'start' })} />
       </section>
       <article className="gd-calendar gd-calendar-split" id="dashboard-calendar">
         <header className="gd-calendar-header"><div className="gd-calendar-title"><span><Icon name="calendar" size={22} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div><button type="button" className="gd-text-button" onClick={() => openTtcm('schedule')}>{t.openCalendar}<Icon name="arrow" size={18} /></button></header>
@@ -208,12 +173,6 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
           <section className="gd-agenda-panel" aria-live="polite"><header className="gd-agenda-panel-header"><div className="gd-agenda-date-badge"><strong>{selectedCalendarDay?.date?.getDate() || '—'}</strong><span>{new Intl.DateTimeFormat(locale, { month: 'short' }).format(selectedCalendarDay?.date || new Date())}</span></div><div className="gd-agenda-heading"><span>{t.selectedDay}</span><h3>{selectedWeekday}</h3><p>{selectedDate}</p></div><span className="gd-count-chip">{selectedEvents.length} {t.events}</span></header><div className="gd-agenda-list gd-agenda-list-split">{initialLoading ? <Empty>{t.refreshing}</Empty> : selectedEvents.length ? selectedEvents.map((item) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} />) : <Empty>{t.emptyCalendar}</Empty>}</div></section>
         </div>
       </article>
-      <section className="gd-content-grid">
-        <Surface id="dashboard-approvals" title={leaderView ? t.approvalsLeader : t.approvalsTeacher} icon="review" action={() => { if (leaderView) window.location.hash = '#/resource-library'; else openTtcm('feed'); }} actionLabel={t.viewAll}><div className="gd-list">{feedbackItems.length ? feedbackItems.map((item) => <MiniRow key={item.id} item={item} language={language} />) : <Empty>{t.emptyApprovals}</Empty>}</div></Surface>
-        <Surface id="dashboard-resources" title={t.resources} icon="folder" action={() => { window.location.hash = '#/resource-library'; }} actionLabel={t.viewAll}><div className="gd-tile-grid">{snapshot.recentResources?.length ? snapshot.recentResources.map((item) => <Tile key={item.id} item={{ ...item, target: '#/resource-library', icon: 'RL' }} t={t} />) : <Empty>{t.emptyResources}</Empty>}</div></Surface>
-        <Surface title={t.continue} icon="apps" action={() => { window.location.hash = '#/apps'; }} actionLabel={t.viewAll}><div className="gd-tile-grid">{snapshot.continueItems?.length ? snapshot.continueItems.map((item) => <Tile key={`${item.id}:${item.target}`} item={item} t={t} />) : <Empty>{t.emptyContinue}</Empty>}</div></Surface>
-        {snapshot.homeroom ? <Surface title={t.homeroom} icon="people" action={() => { window.location.hash = '#/homeroom'; }} actionLabel={t.viewAll}><div className="gd-homeroom">{[[t.students, snapshot.homeroom.studentCount], [t.absent, snapshot.homeroom.absentToday], [t.reminders, snapshot.homeroom.reminders], [t.alerts, snapshot.homeroom.alerts]].map(([label, value]) => <button type="button" key={label} onClick={() => { window.location.hash = '#/homeroom'; }}><strong>{value}</strong><span>{label}</span></button>)}</div></Surface> : null}
-      </section>
       <DashboardNewsHub language={language} />
       <Surface title={t.quickActions} icon="apps" className="gd-quick-surface"><div className="gd-quick-actions">{quickActions.map(([icon, label, target]) => <button type="button" key={label} className="gd-quick-action" onClick={() => { if (String(target).startsWith('ttcm:')) openTtcm(String(target).split(':')[1] || 'feed'); else window.location.hash = target; }}><span><Icon name={icon} size={20} /></span>{label}</button>)}</div></Surface>
     </div>
