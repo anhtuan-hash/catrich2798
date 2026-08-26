@@ -3,6 +3,8 @@ const RETIRED_STORAGE_KEYS = new Set([
   'bes-theme-mode',
   'bes-theme-mode-v3',
   'bes-quick-dictionary-history-v1',
+  'motion-effects',
+  'brian.ui.motion',
 ]);
 
 const RETIRED_STORAGE_PREFIXES = [
@@ -32,10 +34,18 @@ function removeRetiredStorage() {
     });
 
     const appearance = JSON.parse(window.localStorage.getItem(APPEARANCE_KEY) || 'null');
-    if (appearance && typeof appearance === 'object' && 'theme' in appearance) {
-      delete appearance.theme;
-      appearance.updatedAt = Date.now();
-      window.localStorage.setItem(APPEARANCE_KEY, JSON.stringify(appearance));
+    if (appearance && typeof appearance === 'object') {
+      let changed = false;
+      ['theme', 'motion', 'motionEffects', 'animation', 'transitions'].forEach((key) => {
+        if (key in appearance) {
+          delete appearance[key];
+          changed = true;
+        }
+      });
+      if (changed) {
+        appearance.updatedAt = Date.now();
+        window.localStorage.setItem(APPEARANCE_KEY, JSON.stringify(appearance));
+      }
     }
   } catch {
     // Storage can be unavailable in private browsing or a restricted webview.
@@ -62,6 +72,9 @@ function enforceLightOnlyDocument() {
   root.dataset.besTheme = 'light';
   delete root.dataset.themeMode;
   delete root.dataset.themeTransition;
+  root.removeAttribute('data-motion-effects');
+  root.removeAttribute('data-motion');
+  root.removeAttribute('data-a11y-motion');
   root.classList.remove('dark', 'theme-dark');
   root.classList.add('theme-light');
   root.style.colorScheme = 'light';
