@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { changeCurrentPassword } from '../utils/auth.js';
+import GlobalMotionAdminPanel from '../components/admin/GlobalMotionAdminPanel.jsx';
 import '../styles/SettingsGoogleM3.css';
 
 const ICON_PATHS = {
@@ -363,6 +364,10 @@ export default function Settings({
               </article>
             ) : null}
 
+            {['admin', 'administrator'].includes(String(currentUser?.role || '').toLowerCase()) && matches('chuyển động', 'motion', 'hiệu ứng', 'indicator', 'điều hướng', 'hệ thống', 'system') ? (
+              <div className="settings-motion-admin-hub"><GlobalMotionAdminPanel currentUser={currentUser} language={language} /></div>
+            ) : null}
+
             {matches('hệ thống', 'system', 'hiệu năng', 'performance', 'cache', 'ngôn ngữ') ? (
               <article id="settings-system" className="settings-google-card tone-orange">
                 <CardHeader icon="speed" tone="orange" title={vi ? 'Hiệu năng hệ thống' : 'System performance'} subtitle={vi ? 'Tối ưu hiệu năng và lưu trữ.' : 'Optimize performance and storage.'} />
@@ -378,7 +383,7 @@ export default function Settings({
                   <button type="button" onClick={() => importInputRef.current?.click()}>{vi ? 'Nhập cài đặt' : 'Import settings'}</button>
                   <input ref={importInputRef} hidden type="file" accept="application/json,.json" onChange={importSettings} />
                 </div>
-                <div className="settings-m3-reset-row"><label><span>Windows indicator</span><SelectControl value={indicatorMode} onChange={(event) => setIndicatorMode?.(event.target.value)}><option value="on">On</option><option value="off">Off</option></SelectControl></label><button type="button" onClick={resetSettings}>{vi ? 'Đặt lại mặc định' : 'Reset defaults'}</button></div>
+                <div className="settings-m3-reset-row"><span>{vi ? 'Chuyển động và indicator được quản lý tại Hub phía trên.' : 'Motion and indicators are managed in the hub above.'}</span><button type="button" onClick={resetSettings}>{vi ? 'Đặt lại mặc định' : 'Reset defaults'}</button></div>
               </article>
             ) : null}
           </section>

@@ -192,7 +192,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   const [items, setItems] = useState(() => readLocalItems(currentUser));
   const [people, setPeople] = useState([]);
   const [readIds, setReadIds] = useState(() => readReadIds(currentUser));
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('action');
   const [kind, setKind] = useState('announcement');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -232,6 +232,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
       const requestedView = event?.detail?.view;
       const nextView = ['schedule', 'personnel'].includes(requestedView) ? requestedView : 'feed';
       setWorkspaceView(nextView);
+      if (nextView === 'feed') setFilter('action');
       setOpen(true);
       setComposeOpen(false);
       setError('');
@@ -959,7 +960,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
         setOpen((value) => !value);
         setComposeOpen(false);
         setError('');
-        if (!open) { setWorkspaceView('feed'); loadFeed(); }
+        if (!open) { setWorkspaceView('feed'); setFilter('action'); loadFeed(); }
       }}
     >
       <Icon name="campaign" size={18} />

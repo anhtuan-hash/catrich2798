@@ -97,11 +97,11 @@ export default function GlobalMotionAdminPanel({ currentUser, language = 'vi' })
         <div className="admin-global-motion-heading">
           <span className="admin-global-motion-icon" aria-hidden="true">◉</span>
           <div>
-            <span className="eyebrow">MOTION SYSTEM</span>
-            <h2 id="admin-global-motion-title">{vi ? 'Hiệu ứng chuyển động toàn site' : 'Site-wide motion effects'}</h2>
+            <span className="eyebrow">MOTION & NAVIGATION HUB</span>
+            <h2 id="admin-global-motion-title">{vi ? 'Chuyển động & điều hướng' : 'Motion & navigation'}</h2>
             <p>{vi
-              ? 'Một cấu hình duy nhất điều khiển chuyển trang, nút, card, tab, menu, modal, drawer, thông báo và các trạng thái tương tác trên toàn Brian.'
-              : 'One setting controls page transitions, buttons, cards, tabs, menus, dialogs, drawers, notifications and interaction states across Brian.'}</p>
+              ? 'Admin chọn một trải nghiệm thống nhất cho hiệu ứng mở trang, tab, modal và indicator điều hướng. Cấu hình được áp dụng cho toàn Brian và đồng bộ tới tài khoản giáo viên.'
+              : 'Choose one unified experience for page entrances, tabs, dialogs and navigation indicators, synchronized across Brian accounts.'}</p>
           </div>
         </div>
         <div className={`admin-global-motion-status is-${status}`}>
@@ -116,7 +116,8 @@ export default function GlobalMotionAdminPanel({ currentUser, language = 'vi' })
         </div>
       </header>
 
-      <div className="admin-global-motion-presets" role="radiogroup" aria-label={vi ? 'Chọn mức chuyển động' : 'Choose motion level'}>
+      <div className="admin-motion-hub-labels"><span>{vi ? 'HIỆU ỨNG MỞ TRANG' : 'PAGE TRANSITION'}</span><span>{vi ? 'INDICATOR ĐIỀU HƯỚNG' : 'NAVIGATION INDICATOR'}</span></div>
+      <div className="admin-global-motion-presets" role="radiogroup" aria-label={vi ? 'Chọn trải nghiệm chuyển động' : 'Choose motion experience'}>
         {GLOBAL_MOTION_PRESETS.map((preset) => {
           const active = selected === preset.id;
           return (
@@ -147,8 +148,8 @@ export default function GlobalMotionAdminPanel({ currentUser, language = 'vi' })
         <div className="admin-global-motion-summary">
           <strong>{vi ? selectedDefinition.labelVi : selectedDefinition.label}</strong>
           <span>{vi
-            ? 'Áp dụng thống nhất bằng CSS variables + data-motion trên thẻ HTML; không cần cấu hình từng ứng dụng.'
-            : 'Applied consistently through CSS variables + data-motion on the HTML root; no per-app configuration needed.'}</span>
+            ? 'Preset này điều khiển đồng thời chuyển trang và indicator, nên toàn hệ thống luôn đồng nhất thay vì mỗi trang một kiểu.'
+            : 'This preset controls page transitions and indicators together so the whole system stays visually consistent.'}</span>
           <small>{vi
             ? 'Thiết bị bật “Reduce Motion” luôn được ưu tiên và tự tắt animation.'
             : 'The device Reduced Motion preference always takes priority and disables animation.'}</small>
