@@ -10,6 +10,7 @@ import {
 } from '../utils/dashboardAggregator.js';
 import '../styles/teacher-dashboard-google-authentic.css';
 import '../styles/teacher-dashboard-calendar-split.css';
+import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
 
 const COPY = {
   vi: {
@@ -213,6 +214,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         <Surface title={t.continue} icon="apps" action={() => { window.location.hash = '#/apps'; }} actionLabel={t.viewAll}><div className="gd-tile-grid">{snapshot.continueItems?.length ? snapshot.continueItems.map((item) => <Tile key={`${item.id}:${item.target}`} item={item} t={t} />) : <Empty>{t.emptyContinue}</Empty>}</div></Surface>
         {snapshot.homeroom ? <Surface title={t.homeroom} icon="people" action={() => { window.location.hash = '#/homeroom'; }} actionLabel={t.viewAll}><div className="gd-homeroom">{[[t.students, snapshot.homeroom.studentCount], [t.absent, snapshot.homeroom.absentToday], [t.reminders, snapshot.homeroom.reminders], [t.alerts, snapshot.homeroom.alerts]].map(([label, value]) => <button type="button" key={label} onClick={() => { window.location.hash = '#/homeroom'; }}><strong>{value}</strong><span>{label}</span></button>)}</div></Surface> : null}
       </section>
+      <DashboardNewsHub language={language} />
       <Surface title={t.quickActions} icon="apps" className="gd-quick-surface"><div className="gd-quick-actions">{quickActions.map(([icon, label, target]) => <button type="button" key={label} className="gd-quick-action" onClick={() => { if (String(target).startsWith('ttcm:')) openTtcm(String(target).split(':')[1] || 'feed'); else window.location.hash = target; }}><span><Icon name={icon} size={20} /></span>{label}</button>)}</div></Surface>
     </div>
   </section>;

@@ -10,7 +10,6 @@ import GlobalSettingsAdminBridge from './GlobalSettingsAdminBridge.jsx';
 import GlobalFontSettingsBridge from './GlobalFontSettingsBridge.jsx';
 import GlobalHeroGovernance from './GlobalHeroGovernance.jsx';
 import GlobalAiWebsiteLauncher from './GlobalAiWebsiteLauncher.jsx';
-import GlobalNewsNavigationTab from './GlobalNewsNavigationTab.jsx';
 import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
 import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
 import GlobalHomeroomNavigationTab from './GlobalHomeroomNavigationTab.jsx';
@@ -96,7 +95,6 @@ export default function GlobalFlatNavigation(props) {
       <GlobalSettingsAdminBridge {...props} />
       <GlobalFontSettingsBridge {...props} />
       <GlobalAiWebsiteLauncher {...props} />
-      <GlobalNewsNavigationTab {...props} />
       <GlobalGamesNavigationTab {...props} />
       <GlobalDashboardNavigationTab {...props} />
       <GlobalHomeroomNavigationTab {...props} />
