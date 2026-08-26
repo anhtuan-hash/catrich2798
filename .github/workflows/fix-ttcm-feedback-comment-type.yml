@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Patch TTCM response payloads
+      - name: Patch TTCM response payloads to match V11.3.3 schema
         shell: bash
         run: |
           python - <<'PY'
@@ -27,20 +27,36 @@ jobs:
           path = Path('src/components/GlobalTtcmNavigationTab.jsx')
           source = path.read_text(encoding='utf-8')
 
-          response_old = """        body: responseText.trim() || 'Đã hoàn thành yêu cầu.',\n        comment_type: `ttcm_${responseType}`,\n        attachments,"""
-          response_new = """        body: responseText.trim() || 'Đã hoàn thành yêu cầu.',\n        type: responseType === 'submission' ? 'submission' : 'comment',\n        comment_type: `ttcm_${responseType}`,\n        attachments,"""
+          response_old = """        body: responseText.trim() || 'Đã hoàn thành yêu cầu.',\n        type: responseType === 'submission' ? 'submission' : 'comment',\n        comment_type: `ttcm_${responseType}`,\n        attachments,"""
+          response_new = """        body: responseText.trim() || 'Đã hoàn thành yêu cầu.',\n        comment_type: responseType === 'feedback' ? 'review' : 'submission',\n        attachments,"""
 
-          ack_old = """        body: 'Đã xác nhận đã nhận thông tin.',\n        comment_type: 'acknowledgement',\n        attachments: [],"""
-          ack_new = """        body: 'Đã xác nhận đã nhận thông tin.',\n        type: 'comment',\n        comment_type: 'acknowledgement',\n        attachments: [],"""
+          ack_old = """        body: 'Đã xác nhận đã nhận thông tin.',\n        type: 'comment',\n        comment_type: 'acknowledgement',\n        attachments: [],"""
+          ack_new = """        body: 'Đã xác nhận đã nhận thông tin.',\n        comment_type: 'comment',\n        attachments: [],"""
 
           if response_old not in source:
-              raise SystemExit('Teacher response insert marker not found; aborting safely.')
+              raise SystemExit('Current teacher response payload marker not found; aborting safely.')
           if ack_old not in source:
-              raise SystemExit('Acknowledgement insert marker not found; aborting safely.')
+              raise SystemExit('Current acknowledgement payload marker not found; aborting safely.')
 
           source = source.replace(response_old, response_new, 1)
           source = source.replace(ack_old, ack_new, 1)
           path.write_text(source, encoding='utf-8')
+          PY
+
+      - name: Verify no invalid TTCM comment types remain in response inserts
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('src/components/GlobalTtcmNavigationTab.jsx').read_text(encoding='utf-8')
+          forbidden = ["type: responseType", "type: 'comment'", "comment_type: `ttcm_${responseType}`", "comment_type: 'acknowledgement'"]
+          found = [value for value in forbidden if value in source]
+          if found:
+              raise SystemExit('Invalid work_hub_comments payload fragments remain: ' + ', '.join(found))
+          required = ["comment_type: responseType === 'feedback' ? 'review' : 'submission'", "comment_type: 'comment'"]
+          missing = [value for value in required if value not in source]
+          if missing:
+              raise SystemExit('Expected corrected payload fragments missing: ' + ', '.join(missing))
           PY
 
       - name: Set up Node 22
@@ -62,5 +78,5 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add src/components/GlobalTtcmNavigationTab.jsx
           git diff --cached --quiet && exit 0
-          git commit -m "Fix TTCM teacher feedback submission type"
+          git commit -m "Fix TTCM feedback against V11.3.3 comment schema"
           git push origin HEAD:main
