@@ -1,21 +1,649 @@
+/* ========================================================================== 
+   TTCM PREMIUM EXPERIENCE — Google Material 3 + Brian AI visual language
+   This stylesheet is imported AFTER GlobalTtcmNavigationTab.css and the
+   personnel table styles, so it acts as the final TTCM-specific design layer.
+   ========================================================================== */
+
+:root {
+  --ttcm-blue: #0b57d0;
+  --ttcm-blue-2: #2563eb;
+  --ttcm-indigo: #4f46e5;
+  --ttcm-violet: #7c3aed;
+  --ttcm-purple: #9333ea;
+  --ttcm-pink: #ec4899;
+  --ttcm-cyan: #06b6d4;
+  --ttcm-green: #188038;
+  --ttcm-orange: #e8710a;
+  --ttcm-ink: #172033;
+  --ttcm-muted: #687386;
+  --ttcm-border: rgba(76, 91, 122, .15);
+  --ttcm-shadow: 0 24px 70px rgba(37, 51, 88, .24), 0 6px 20px rgba(37, 51, 88, .12);
+}
+
+/* --------------------------------------------------------------------------
+   PREMIUM TTCM BUTTON — intentionally echoes Không gian AI
+   -------------------------------------------------------------------------- */
+.brian-nav__primary .brian-nav__ttcm-tab {
+  order: 100 !important;
+  isolation: isolate;
+  position: relative !important;
+  min-height: 48px !important;
+  gap: 9px !important;
+  padding: 5px 16px 5px 6px !important;
+  border: 1px solid rgba(113, 91, 255, .28) !important;
+  border-radius: 19px !important;
+  background:
+    linear-gradient(110deg, rgba(255,255,255,.98), rgba(244,247,255,.96) 50%, rgba(244,239,255,.96)) !important;
+  color: #27345e !important;
+  font-weight: 760 !important;
+  letter-spacing: -.01em;
+  box-shadow:
+    0 8px 22px rgba(77, 91, 181, .16),
+    0 2px 6px rgba(49, 46, 129, .08),
+    inset 0 1px 0 rgba(255,255,255,.96) !important;
+  overflow: visible;
+}
+
+.brian-nav__primary .brian-nav__ttcm-tab::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 3px -3px;
+  border-radius: 22px;
+  background: linear-gradient(100deg, rgba(37,99,235,.06), rgba(124,58,237,.14), rgba(236,72,153,.07));
+  filter: blur(8px);
+  opacity: .9;
+  pointer-events: none;
+}
+
+.brian-nav__primary .brian-nav__ttcm-tab > .ttcm-m3-icon {
+  box-sizing: content-box;
+  width: 20px !important;
+  height: 20px !important;
+  padding: 8px !important;
+  flex: 0 0 auto;
+  border-radius: 14px;
+  color: #fff !important;
+  fill: #fff !important;
+  background:
+    radial-gradient(circle at 29% 25%, rgba(255,255,255,.98) 0 5%, transparent 7%),
+    radial-gradient(circle at 66% 30%, rgba(255,255,255,.78) 0 3%, transparent 5%),
+    linear-gradient(135deg, #35b9ff 0%, #5367f3 36%, #8a4cf4 67%, #ed67ba 100%);
+  box-shadow:
+    0 8px 18px rgba(98, 72, 238, .32),
+    0 0 0 1px rgba(255,255,255,.8) inset,
+    0 0 15px rgba(143, 90, 255, .22);
+}
+
+.brian-nav__primary .brian-nav__ttcm-tab:hover {
+  border-color: rgba(104, 76, 255, .42) !important;
+  background: linear-gradient(110deg, #fff, #f0f5ff 48%, #f5efff) !important;
+  color: #263a83 !important;
+  box-shadow: 0 11px 28px rgba(78, 81, 190, .23), 0 3px 9px rgba(67, 56, 202, .12) !important;
+}
+
+.brian-nav__primary .brian-nav__ttcm-tab.is-active {
+  border-color: rgba(107, 82, 255, .5) !important;
+  background: linear-gradient(110deg, #eef5ff, #f1efff 52%, #fff1fa) !important;
+  color: #332d83 !important;
+  box-shadow: 0 12px 30px rgba(83, 80, 192, .26), inset 0 -2px 0 #6256e8 !important;
+}
+
+.brian-nav__primary .brian-nav__ttcm-tab.is-active > .ttcm-m3-icon {
+  box-shadow:
+    0 9px 22px rgba(98, 72, 238, .42),
+    0 0 0 2px rgba(255,255,255,.86) inset,
+    0 0 22px rgba(154, 91, 255, .36);
+}
+
+.brian-nav__ttcm-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px !important;
+  height: 20px !important;
+  border: 2px solid #fff;
+  background: linear-gradient(135deg, #ef4444, #db2777) !important;
+  box-shadow: 0 4px 10px rgba(190, 24, 93, .24);
+}
+
+/* --------------------------------------------------------------------------
+   MODAL / SHELL
+   -------------------------------------------------------------------------- */
+.ttcm-m3-layer {
+  padding: 20px !important;
+  background: rgba(26, 34, 55, .34) !important;
+  backdrop-filter: blur(7px) saturate(118%) !important;
+}
+
+.ttcm-m3-shell {
+  width: min(1320px, calc(100vw - 38px)) !important;
+  height: min(870px, calc(100dvh - 38px)) !important;
+  border: 1px solid rgba(129, 140, 181, .24) !important;
+  border-radius: 30px !important;
+  background:
+    radial-gradient(circle at 88% -10%, rgba(174, 128, 255, .13), transparent 32%),
+    radial-gradient(circle at 8% 5%, rgba(65, 182, 255, .12), transparent 28%),
+    linear-gradient(180deg, #fcfdff 0%, #f7f9fd 52%, #f5f8fc 100%) !important;
+  box-shadow: var(--ttcm-shadow) !important;
+}
+
+.ttcm-m3-topbar {
+  position: relative;
+  min-height: 88px !important;
+  padding: 16px 21px !important;
+  border-bottom: 1px solid rgba(88, 105, 141, .12) !important;
+  background:
+    linear-gradient(105deg, rgba(255,255,255,.98) 0%, rgba(242,248,255,.96) 48%, rgba(248,241,255,.96) 100%) !important;
+  overflow: hidden;
+}
+
+.ttcm-m3-topbar::after {
+  content: "";
+  position: absolute;
+  right: 8%;
+  bottom: -46px;
+  width: 360px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(128, 91, 246, .14), rgba(65, 182, 255, .04) 55%, transparent 72%);
+  pointer-events: none;
+}
+
+.ttcm-m3-title { gap: 15px !important; position: relative; z-index: 1; }
+
+.ttcm-m3-title-icon {
+  position: relative;
+  width: 54px !important;
+  height: 54px !important;
+  border-radius: 17px !important;
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255,255,255,.98) 0 5%, transparent 7%),
+    linear-gradient(140deg, #30baf7 0%, #3f67f2 34%, #7954ed 62%, #c85bd2 100%) !important;
+  color: #fff !important;
+  box-shadow:
+    0 12px 25px rgba(76, 81, 205, .28),
+    0 0 0 1px rgba(255,255,255,.7) inset,
+    0 0 22px rgba(138, 89, 244, .18);
+}
+
+.ttcm-m3-title-icon::after {
+  content: "✦";
+  position: absolute;
+  right: 5px;
+  top: 3px;
+  color: rgba(255,255,255,.96);
+  font-size: 10px;
+  text-shadow: 0 0 7px rgba(255,255,255,.9);
+}
+
+.ttcm-m3-title strong {
+  color: #19223a !important;
+  font-size: 22px !important;
+  font-weight: 790 !important;
+  letter-spacing: -.025em !important;
+}
+
+.ttcm-m3-title small {
+  color: #667187 !important;
+  font-size: 12.5px !important;
+}
+
+.ttcm-m3-icon-button {
+  border: 1px solid transparent !important;
+  background: rgba(255,255,255,.58) !important;
+  color: #46546f !important;
+}
+.ttcm-m3-icon-button:hover {
+  border-color: rgba(113, 128, 165, .18) !important;
+  background: #fff !important;
+  box-shadow: 0 5px 14px rgba(50, 64, 96, .1);
+}
+
+.ttcm-m3-filled-button {
+  min-height: 42px !important;
+  background: linear-gradient(135deg, #1769e8, #415be5 52%, #6646df) !important;
+  box-shadow: 0 7px 16px rgba(53, 83, 203, .23) !important;
+}
+.ttcm-m3-filled-button:hover { background: linear-gradient(135deg, #0b57d0, #3d4ed0 52%, #5934c5) !important; }
+.ttcm-m3-tonal-button { background: #e8eeff !important; color: #304aa5 !important; }
+
+/* --------------------------------------------------------------------------
+   TTCM MAIN TABS + FILTERS
+   -------------------------------------------------------------------------- */
+.ttcm-m3-toolbar {
+  min-height: 70px !important;
+  padding: 11px 20px !important;
+  gap: 14px !important;
+  border-bottom: 1px solid rgba(88, 105, 141, .1) !important;
+  background: rgba(255,255,255,.86) !important;
+  backdrop-filter: blur(14px);
+}
+
+.ttcm-m3-workspace-tabs {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px !important;
+  padding: 4px !important;
+  border: 1px solid rgba(101, 115, 148, .11);
+  border-radius: 18px !important;
+  background: #f1f5fb !important;
+  box-shadow: inset 0 1px 3px rgba(44, 61, 92, .05);
+}
+
+.ttcm-m3-workspace-tabs button {
+  min-height: 40px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px !important;
+  padding: 0 15px !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: transparent !important;
+  color: #505d74 !important;
+  font-weight: 690 !important;
+  white-space: nowrap;
+}
+
+.ttcm-m3-workspace-tabs button:hover { background: rgba(255,255,255,.7) !important; color: #254a9f !important; }
+.ttcm-m3-workspace-tabs button.is-selected {
+  background: linear-gradient(180deg, #fff, #f6f8ff) !important;
+  color: #2758d5 !important;
+  box-shadow: 0 5px 14px rgba(51, 74, 139, .14), inset 0 -2px 0 #3b69e8 !important;
+}
+
+.ttcm-m3-filters {
+  padding: 3px !important;
+  border-radius: 16px;
+  background: rgba(245,247,251,.72);
+}
+.ttcm-m3-filters button {
+  min-height: 38px !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  color: #59657b !important;
+}
+.ttcm-m3-filters button:hover { background: #fff !important; }
+.ttcm-m3-filters button.is-selected {
+  border-color: rgba(82, 111, 223, .16) !important;
+  background: #fff !important;
+  color: #2958c8 !important;
+  box-shadow: 0 4px 11px rgba(52, 72, 126, .1) !important;
+}
+
+.ttcm-m3-banner {
+  margin: 12px 20px 0 !important;
+  border: 1px solid transparent;
+  box-shadow: 0 3px 10px rgba(40, 55, 86, .05);
+}
+.ttcm-m3-banner.is-success { border-color: rgba(24,128,56,.15); background: linear-gradient(90deg,#effaf3,#e8f7ef) !important; }
+.ttcm-m3-banner.is-error { border-color: rgba(179,38,30,.13); background: linear-gradient(90deg,#fff3f2,#fce8e6) !important; }
+
+/* --------------------------------------------------------------------------
+   FEED — more color and elevation without visual noise
+   -------------------------------------------------------------------------- */
+.ttcm-m3-feed {
+  gap: 14px !important;
+  padding: 20px !important;
+}
+
+.ttcm-m3-card {
+  gap: 15px !important;
+  padding: 17px 18px !important;
+  border: 1px solid rgba(88, 105, 141, .13) !important;
+  border-radius: 20px !important;
+  background: rgba(255,255,255,.94) !important;
+  box-shadow: 0 6px 18px rgba(50, 64, 95, .07), 0 1px 3px rgba(50,64,95,.05) !important;
+}
+.ttcm-m3-card:hover { box-shadow: 0 11px 27px rgba(50, 64, 95, .11), 0 2px 4px rgba(50,64,95,.05) !important; }
+.ttcm-m3-card.is-unread {
+  border-color: rgba(62, 100, 221, .28) !important;
+  background: linear-gradient(90deg,#f7faff,#fff) !important;
+  box-shadow: inset 4px 0 0 #4a67df, 0 8px 22px rgba(44,76,168,.08) !important;
+}
+
+.ttcm-m3-card-icon {
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 16px !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.58), 0 5px 11px rgba(62,79,118,.08);
+}
+.ttcm-m3-card-icon.is-announcement { background: linear-gradient(135deg,#dfeaff,#cfe0ff) !important; color:#1f5ecf !important; }
+.ttcm-m3-card-icon.is-resource { background: linear-gradient(135deg,#e7f8ef,#d7f3e3) !important; color:#168447 !important; }
+.ttcm-m3-card-icon.is-feedback { background: linear-gradient(135deg,#fff5d9,#ffecc2) !important; color:#a76500 !important; }
+.ttcm-m3-card-icon.is-acknowledgement { background: linear-gradient(135deg,#efe8ff,#e3d7ff) !important; color:#7145c6 !important; }
+.ttcm-m3-card-icon.is-task { background: linear-gradient(135deg,#ffe8ec,#ffdbe4) !important; color:#c43c5e !important; }
+
+.ttcm-m3-card h3 { color:#20283b !important; font-size:17.5px !important; }
+.ttcm-m3-card p { color:#566277 !important; }
+.ttcm-m3-type-chip { border:1px solid rgba(94,108,141,.1); background:#f4f6fa !important; }
+
+.ttcm-m3-attachments button {
+  min-height: 40px !important;
+  border-color: rgba(67,97,179,.17) !important;
+  border-radius: 13px !important;
+  background: linear-gradient(180deg,#fff,#f8faff) !important;
+  box-shadow: 0 3px 9px rgba(44,72,137,.05);
+}
+.ttcm-m3-attachments button:hover { border-color:rgba(42,91,206,.28) !important; background:#f2f6ff !important; }
+
+/* --------------------------------------------------------------------------
+   COMPOSE / DIALOGS
+   -------------------------------------------------------------------------- */
+.ttcm-m3-compose-layer { background: rgba(31, 39, 61, .3) !important; backdrop-filter: blur(5px) !important; }
+.ttcm-m3-compose {
+  border-color: rgba(96, 110, 147, .18) !important;
+  border-radius: 26px !important;
+  background: linear-gradient(180deg,#fff,#fbfcff) !important;
+  box-shadow: 0 24px 70px rgba(31, 44, 78, .22), 0 5px 16px rgba(31,44,78,.1) !important;
+}
+.ttcm-m3-type-grid button {
+  border-color: rgba(91,105,138,.16) !important;
+  background: linear-gradient(180deg,#fff,#f9fbff) !important;
+  box-shadow: 0 3px 9px rgba(40,58,98,.04);
+}
+.ttcm-m3-type-grid button.is-selected {
+  border-color:rgba(70,90,220,.35) !important;
+  background:linear-gradient(145deg,#edf3ff,#f5efff) !important;
+  box-shadow:0 7px 17px rgba(66,71,185,.1) !important;
+}
+
+/* --------------------------------------------------------------------------
+   PERSONNEL VIEW — premium, contained, zero clipped columns
+   -------------------------------------------------------------------------- */
 .ttcm-m3-personnel-view {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 18px 20px 26px;
-  background: #f8fafd;
+  padding: 17px 19px 24px !important;
+  background:
+    radial-gradient(circle at 85% 0%, rgba(141, 105, 244, .055), transparent 27%),
+    linear-gradient(180deg,#f8faff,#f5f8fc) !important;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
+
 .ttcm-m3-personnel-view #dashboard-personnel-v2 {
+  --pgt-blue: #2864df;
+  --pgt-blue-50: #eaf1ff;
+  --pgt-green: #178346;
+  --pgt-green-50: #e8f7ef;
+  --pgt-amber: #df7a08;
+  --pgt-amber-50: #fff3df;
+  --pgt-purple: #7950c9;
+  --pgt-purple-50: #f0e9ff;
+  --pgt-text: #232b3d;
+  --pgt-muted: #667187;
+  --pgt-border: #dce2ec;
   width: 100%;
   max-width: none !important;
   margin: 0 !important;
   padding: 0 !important;
 }
+
 .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-shell,
-.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table-shell {
-  max-width: none !important;
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table-shell { max-width: none !important; }
+
+/* Stats are deliberately visible in TTCM and become the colorful visual anchor. */
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metrics {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  margin: 0 0 13px !important;
 }
-@media (max-width: 760px) {
-  .ttcm-m3-personnel-view { padding: 10px; }
+
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric {
+  min-width: 0;
+  min-height: 90px !important;
+  padding: 13px 14px !important;
+  gap: 10px !important;
+  border: 1px solid rgba(91,105,138,.13) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: 0 6px 17px rgba(46,60,93,.07), inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric:hover { box-shadow:0 9px 23px rgba(46,60,93,.11) !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric > span { width:39px !important; height:39px !important; border-radius:13px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric small { font-size:11px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric strong { font-size:24px !important; color:#27304a; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric em { font-size:10.5px !important; }
+
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric.is-blue { background:linear-gradient(145deg,#fff,#eef5ff) !important; border-color:#d7e5ff !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric.is-green { background:linear-gradient(145deg,#fff,#edf9f2) !important; border-color:#d9f0e1 !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric.is-amber { background:linear-gradient(145deg,#fff,#fff5e6) !important; border-color:#f9e4c7 !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric.is-purple { background:linear-gradient(145deg,#fff,#f5efff) !important; border-color:#e7dafa !important; }
+
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table-card {
+  width: 100%;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  border: 1px solid rgba(91,105,138,.14) !important;
+  border-radius: 20px !important;
+  background: rgba(255,255,255,.97) !important;
+  box-shadow: 0 9px 28px rgba(44,57,89,.08), 0 2px 5px rgba(44,57,89,.04) !important;
+  scrollbar-width: thin;
+  scrollbar-color: #c9d2e3 transparent;
+}
+
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-toolbar {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  min-width: 100%;
+  min-height: 66px !important;
+  padding: 10px 12px !important;
+  grid-template-columns: minmax(235px,1.05fr) minmax(0,2.25fr) auto !important;
+  gap: 9px !important;
+  border-bottom: 1px solid rgba(91,105,138,.1) !important;
+  background: rgba(253,254,255,.94) !important;
+  backdrop-filter: blur(14px);
+}
+
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-search {
+  height: 43px !important;
+  padding: 0 13px !important;
+  border-color:#d9e0ea !important;
+  border-radius:14px !important;
+  background:#f9fbfe !important;
+}
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-search:focus-within {
+  border-color:#7ca4f7 !important;
+  background:#fff !important;
+  box-shadow:0 0 0 3px rgba(40,100,223,.1) !important;
+}
+
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-filter-chips { gap:6px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-filter-chips button {
+  height:34px !important;
+  padding:0 10px !important;
+  border-radius:12px !important;
+  border-color:#e1e6ee !important;
+  background:#f8fafe !important;
+  font-size:11px !important;
+}
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-filter-chips button.is-active {
+  border-color:#a8c3fa !important;
+  background:#eaf1ff !important;
+  color:#2457c2 !important;
+  box-shadow:inset 0 0 0 1px rgba(73,111,218,.08) !important;
+}
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-filter-button {
+  height:40px !important;
+  padding:0 14px !important;
+  border-color:#d9e0ea !important;
+  border-radius:13px !important;
+  color:#315cc2 !important;
+  background:#f8faff !important;
+}
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-filter-button:hover { background:#edf3ff !important; }
+
+/* Keep every column available. On narrow screens the table scrolls INSIDE its card,
+   never outside the TTCM modal. */
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table-head,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row {
+  width: 100%;
+  min-width: 1080px !important;
+  grid-template-columns:
+    30px
+    minmax(190px,1.5fr)
+    minmax(118px,.82fr)
+    minmax(180px,1.35fr)
+    minmax(160px,1.12fr)
+    minmax(142px,.95fr)
+    minmax(105px,.72fr)
+    38px !important;
+}
+
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table-head {
+  min-height: 42px !important;
+  padding:0 10px !important;
+  background:linear-gradient(180deg,#f8faff,#f4f7fb) !important;
+  border-bottom-color:#e7ebf2 !important;
+  color:#6a7488 !important;
+  font-size:9.5px !important;
+  letter-spacing:.045em !important;
+}
+
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-table { padding:7px 8px 8px !important; min-width:1080px; }
+
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row {
+  min-height: 80px !important;
+  margin: 0 0 5px;
+  padding: 6px 3px !important;
+  border: 1px solid rgba(97,111,143,.095) !important;
+  border-radius: 14px !important;
+  background:#fff !important;
+  box-shadow:0 2px 7px rgba(51,64,94,.035);
+}
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row:hover {
+  border-color:rgba(68,105,205,.16) !important;
+  background:linear-gradient(90deg,#fbfdff,#f7faff) !important;
+  box-shadow:0 6px 14px rgba(45,67,123,.075) !important;
+}
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row.has-pending:not(.is-selected) { background:linear-gradient(90deg,#fff,#fbf7ff) !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-row.is-selected { border-color:#86aafb !important; background:linear-gradient(90deg,#f2f7ff,#fff) !important; }
+
+.ttcm-m3-personnel-view #dashboard-personnel-v2 :is(.pgt-person-cell,.pgt-role-cell,.pgt-professional-cell,.pgt-assignment-cell,.pgt-profile-cell,.pgt-approval-cell) { padding:0 8px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-person-cell { gap:9px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-avatar {
+  width:41px !important;
+  height:41px !important;
+  border:2px solid rgba(255,255,255,.96);
+  background:linear-gradient(145deg,#edf4ff,#dfeaff) !important;
+  color:#315ea8 !important;
+  box-shadow:0 3px 9px rgba(54,79,132,.12);
+}
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-person-cell strong { font-size:12.5px !important; color:#273047; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-person-cell small { font-size:10.5px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 :is(.pgt-role-cell,.pgt-professional-cell,.pgt-assignment-cell,.pgt-profile-cell) { gap:3px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 :is(.pgt-role-cell>strong,.pgt-professional-cell strong,.pgt-assignment-cell strong) { font-size:11.5px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 :is(.pgt-professional-cell small,.pgt-assignment-cell small,.pgt-profile-cell small) { font-size:10px !important; }
+
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-mini-chip { padding:3px 7px !important; border-radius:8px !important; font-size:9.5px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-count-chip { min-width:23px !important; height:21px !important; border-radius:8px !important; font-size:9px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-progress-ring { width:38px !important; height:38px !important; box-shadow:0 2px 8px rgba(58,79,124,.08); }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-progress-ring::after { inset:4px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-progress-ring b { font-size:8.5px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-completion-chip { padding:4px 7px !important; border-radius:9px !important; font-size:9.5px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-approval-chip { padding:5px 8px !important; border-radius:9px !important; font-size:9.5px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-action-cell {
+  width:31px;
+  height:31px;
+  border-radius:10px;
+  color:#526078;
+}
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-action-cell:hover { background:#eef3fb; color:#2f5bc7; }
+
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-pagination {
+  position:sticky;
+  left:0;
+  min-width:100%;
+  min-height:52px !important;
+  padding:0 13px !important;
+  border-top-color:#e8ecf2 !important;
+  background:#fbfcff !important;
+  color:#697489 !important;
+  font-size:10.5px !important;
+}
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-pagination button,
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-pagination b { border-radius:9px !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-pagination b { border-color:#2864df !important; background:linear-gradient(135deg,#2e6de7,#4d54dd) !important; box-shadow:0 4px 9px rgba(47,83,197,.18); }
+
+/* Advanced filter panel must stay inside TTCM and above rows. */
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-toolbar { position:relative; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-advanced-filter-panel {
+  z-index:30 !important;
+  right:10px !important;
+  width:min(370px,calc(100vw - 70px)) !important;
+  border-color:rgba(91,105,138,.16) !important;
+  border-radius:18px !important;
+  background:#fff !important;
+  box-shadow:0 18px 40px rgba(35,48,81,.18) !important;
+}
+
+/* Personnel profile is itself elevated and always centered by the existing JS controller. */
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-drawer-layer { background:rgba(26,34,55,.36) !important; backdrop-filter:blur(7px) !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-drawer { border-radius:24px !important; box-shadow:0 28px 80px rgba(29,41,73,.28) !important; }
+.ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-profile-hero { background:linear-gradient(135deg,#f1f6ff,#fff 50%,#f8f0ff) !important; }
+
+/* Schedule lives in the same visual system. */
+.ttcm-m3-schedule-view {
+  min-height:0;
+  overflow:auto;
+  padding:16px 18px 22px !important;
+  background:linear-gradient(180deg,#f8faff,#f5f8fc) !important;
+}
+.ttcm-m3-schedule-host {
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 8px 24px rgba(44,57,89,.07);
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE / DISPLAY SAFETY
+   -------------------------------------------------------------------------- */
+@media (max-width: 1180px) {
+  .ttcm-m3-shell { width:calc(100vw - 24px) !important; height:calc(100dvh - 24px) !important; }
+  .ttcm-m3-layer { padding:12px !important; }
+  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metrics { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-toolbar { grid-template-columns:minmax(220px,1fr) auto !important; }
+  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-filter-chips { display:none !important; }
+}
+
+@media (max-width: 900px) {
+  .ttcm-m3-topbar { min-height:78px !important; }
+  .ttcm-m3-title-icon { width:46px !important; height:46px !important; border-radius:15px !important; }
+  .ttcm-m3-title strong { font-size:19px !important; }
+  .ttcm-m3-toolbar { align-items:flex-start !important; flex-direction:column !important; }
+  .ttcm-m3-workspace-tabs { width:100%; overflow-x:auto; }
+  .ttcm-m3-filters { width:100%; }
+  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metrics { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+  .ttcm-m3-personnel-view { padding:12px !important; }
+}
+
+@media (max-width: 680px) {
+  .brian-nav__primary .brian-nav__ttcm-tab { min-height:42px !important; padding:4px 10px 4px 4px !important; border-radius:16px !important; }
+  .brian-nav__primary .brian-nav__ttcm-tab > .ttcm-m3-icon { width:18px !important; height:18px !important; padding:7px !important; border-radius:12px; }
+  .ttcm-m3-layer { padding:0 !important; }
+  .ttcm-m3-shell { width:100vw !important; height:100dvh !important; border:0 !important; border-radius:0 !important; }
+  .ttcm-m3-topbar { padding:12px 14px !important; }
+  .ttcm-m3-title small { max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ttcm-m3-top-actions { gap:4px !important; }
+  .ttcm-m3-filled-button { padding:0 12px !important; }
+  .ttcm-m3-workspace-tabs button { padding:0 11px !important; }
+  .ttcm-m3-feed { padding:12px !important; }
+  .ttcm-m3-card { grid-template-columns:40px minmax(0,1fr) !important; gap:10px !important; padding:14px !important; }
+  .ttcm-m3-card-icon { width:40px !important; height:40px !important; border-radius:13px !important; }
+  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metrics { grid-template-columns:1fr 1fr !important; gap:8px !important; }
+  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metric { min-height:76px !important; padding:10px !important; }
+  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-toolbar { grid-template-columns:1fr auto !important; padding:8px !important; }
+  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-pagination { grid-template-columns:1fr auto !important; }
+  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-pagination > span { display:none; }
+}
+
+@media (max-width: 430px) {
+  .brian-nav__primary .brian-nav__ttcm-tab span:not(.ttcm-m3-icon) { max-width:52px; overflow:hidden; text-overflow:ellipsis; }
+  .ttcm-m3-title small { display:none !important; }
+  .ttcm-m3-filled-button > span { display:none; }
+  .ttcm-m3-personnel-view #dashboard-personnel-v2 .pgt-metrics { grid-template-columns:1fr !important; }
 }
