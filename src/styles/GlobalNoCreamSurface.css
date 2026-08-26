@@ -181,7 +181,6 @@ html:not(#bes-allow-cream-1):not(#bes-allow-cream-2) body select:-webkit-autofil
   caret-color: #17324d !important;
   background-color: #ffffff !important;
   background-image: none !important;
-  transition: background-color 999999s ease-out 0s !important;
 }
 
 /* Autofill inside a dedicated search shell should visually merge with it. */
