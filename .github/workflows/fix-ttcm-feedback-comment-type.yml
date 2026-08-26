@@ -40,23 +40,15 @@ jobs:
 
           source = source.replace(response_old, response_new, 1)
           source = source.replace(ack_old, ack_new, 1)
-          path.write_text(source, encoding='utf-8')
-          PY
 
-      - name: Verify no invalid TTCM comment types remain in response inserts
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          source = Path('src/components/GlobalTtcmNavigationTab.jsx').read_text(encoding='utf-8')
-          forbidden = ["type: responseType", "type: 'comment'", "comment_type: `ttcm_${responseType}`", "comment_type: 'acknowledgement'"]
-          found = [value for value in forbidden if value in source]
-          if found:
-              raise SystemExit('Invalid work_hub_comments payload fragments remain: ' + ', '.join(found))
-          required = ["comment_type: responseType === 'feedback' ? 'review' : 'submission'", "comment_type: 'comment'"]
-          missing = [value for value in required if value not in source]
-          if missing:
-              raise SystemExit('Expected corrected payload fragments missing: ' + ', '.join(missing))
+          if response_new not in source:
+              raise SystemExit('Corrected teacher response payload was not written.')
+          if ack_new not in source:
+              raise SystemExit('Corrected acknowledgement payload was not written.')
+          if response_old in source or ack_old in source:
+              raise SystemExit('Old invalid TTCM response payload still remains.')
+
+          path.write_text(source, encoding='utf-8')
           PY
 
       - name: Set up Node 22
