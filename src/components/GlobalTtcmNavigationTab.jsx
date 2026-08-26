@@ -906,6 +906,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
         item_id: responseItem.id,
         author_id: currentUser.id,
         body: responseText.trim() || 'Đã hoàn thành yêu cầu.',
+        type: responseType === 'submission' ? 'submission' : 'comment',
         comment_type: `ttcm_${responseType}`,
         attachments,
       });
@@ -935,6 +936,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
         item_id: item.id,
         author_id: currentUser.id,
         body: 'Đã xác nhận đã nhận thông tin.',
+        type: 'comment',
         comment_type: 'acknowledgement',
         attachments: [],
       });
