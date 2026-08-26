@@ -28,7 +28,7 @@ body .brian-nav button{min-width:0!important;margin:0!important;font:inherit!imp
 body .brian-nav__brand{
   min-width:max-content!important;min-height:50px!important;padding:6px 12px 6px 7px!important;display:inline-flex!important;
   align-items:center!important;gap:10px!important;border:0!important;border-radius:20px!important;background:transparent!important;
-  color:var(--gm-ink)!important;cursor:pointer!important;transition:background-color .16s ease!important
+  color:var(--gm-ink)!important;cursor:pointer!important
 }
 body .brian-nav__brand:hover,body .brian-nav__brand:focus-visible{background:var(--gm-blue-soft)!important}
 body .brian-nav__brand img{width:38px!important;height:38px!important;flex:0 0 38px!important;object-fit:contain!important;border-radius:13px!important}
@@ -39,8 +39,7 @@ body .brian-nav__primary{
 }
 body .brian-nav__primary button{
   position:relative!important;min-height:42px!important;padding:0 16px!important;border:0!important;border-radius:999px!important;
-  background:transparent!important;color:var(--gm-muted)!important;font-size:14px!important;font-weight:650!important;cursor:pointer!important;
-  transition:background-color .16s ease,color .16s ease!important
+  background:transparent!important;color:var(--gm-muted)!important;font-size:14px!important;font-weight:650!important;cursor:pointer!important
 }
 body .brian-nav__primary button:hover{background:var(--gm-hover)!important;color:var(--gm-ink)!important}
 body .brian-nav__primary button.is-active{
@@ -99,9 +98,8 @@ body .brian-nav__popover{
   position:absolute!important;top:calc(100% + 10px)!important;right:0!important;width:min(360px,calc(100vw - 28px))!important;
   max-height:min(640px,calc(100vh - 110px))!important;padding:10px!important;border:1px solid var(--gm-line)!important;
   border-radius:24px!important;background:var(--gm-surface)!important;color:var(--gm-ink)!important;box-shadow:var(--gm-pop-shadow)!important;
-  overflow:auto!important;animation:gm-pop-in .16s cubic-bezier(.2,0,0,1) both!important
+  overflow:auto!important
 }
-@keyframes gm-pop-in{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
 body .brian-nav__notifications{width:min(380px,calc(100vw - 28px))!important}
 body .brian-nav__notifications>header{
   padding:8px 8px 13px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;border:0!important
@@ -165,9 +163,9 @@ body .brian-chatbot-fab{
   position:fixed!important;right:22px!important;bottom:22px!important;z-index:980!important;min-height:52px!important;padding:0 19px!important;
   display:inline-flex!important;align-items:center!important;gap:9px!important;border:0!important;border-radius:18px!important;
   background:var(--gm-surface)!important;color:var(--gm-ink)!important;box-shadow:var(--gm-shadow)!important;cursor:pointer!important;
-  font:inherit!important;font-size:14px!important;transition:background-color .16s ease,transform .16s ease,box-shadow .16s ease!important
+  font:inherit!important;font-size:14px!important
 }
-body .brian-chatbot-fab:hover{background:var(--gm-blue-soft)!important;color:var(--gm-blue)!important;transform:translateY(-2px)!important;box-shadow:var(--gm-pop-shadow)!important}
+body .brian-chatbot-fab:hover{background:var(--gm-blue-soft)!important;color:var(--gm-blue)!important;box-shadow:var(--gm-pop-shadow)!important}
 body .brian-nav button:focus-visible,body .brian-chatbot-fab:focus-visible{outline:3px solid color-mix(in srgb,var(--gm-blue) 30%,transparent)!important;outline-offset:2px!important}
 @media(max-width:1180px){
   body .brian-nav{grid-template-columns:auto minmax(0,1fr) auto!important;gap:9px!important}
@@ -190,4 +188,3 @@ body .brian-nav button:focus-visible,body .brian-chatbot-fab:focus-visible{outli
   }
   body .brian-chatbot-fab{right:14px!important;bottom:14px!important;min-height:48px!important;padding:0 16px!important}
 }
-@media(prefers-reduced-motion:reduce){body .brian-nav *,body .brian-chatbot-fab{animation:none!important;transition:none!important}}
