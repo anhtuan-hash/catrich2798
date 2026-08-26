@@ -8,7 +8,6 @@ import {
   loadDashboardSnapshot,
   openDashboardTarget,
 } from '../utils/dashboardAggregator.js';
-import PersonnelLookup from '../components/PersonnelLookupGoogleV2.jsx';
 import '../styles/teacher-dashboard-google-authentic.css';
 import '../styles/teacher-dashboard-calendar-split.css';
 
@@ -194,7 +193,6 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         <Metric icon="folder" label={t.resourcesMetric} value={snapshot.recentResources?.length || 0} detail={t.resources} tone="yellow" onClick={() => document.querySelector('#dashboard-resources')?.scrollIntoView({ behavior: 'auto', block: 'start' })} />
         <Metric icon="review" label={t.reviewMetric} value={reviewCount} detail={leaderView ? t.approvalsLeader : t.approvalsTeacher} tone="red" onClick={() => document.querySelector('#dashboard-approvals')?.scrollIntoView({ behavior: 'auto', block: 'start' })} />
       </section>
-      <PersonnelLookup currentUser={currentUser} language={language} />
       <article className="gd-calendar gd-calendar-split" id="dashboard-calendar">
         <header className="gd-calendar-header"><div className="gd-calendar-title"><span><Icon name="calendar" size={22} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div><button type="button" className="gd-text-button" onClick={() => openTtcm('schedule')}>{t.openCalendar}<Icon name="arrow" size={18} /></button></header>
         <div className="gd-calendar-layout">
