@@ -1,17 +1,37 @@
--- Brian English: global font preset shared across all authenticated users.
+-- Brian English: site-wide font settings + Admin-uploaded custom font storage.
 -- Run once in Production Supabase SQL Editor. Safe to run repeatedly.
 
 create table if not exists public.brian_global_font_settings (
   id boolean primary key default true check (id),
-  font_preset text not null default 'roboto'
-    check (font_preset in ('roboto', 'be-vietnam-pro', 'inter', 'noto-sans', 'arial', 'system')),
+  font_preset text not null default 'roboto',
+  custom_font_name text,
+  custom_font_url text,
+  custom_font_path text,
+  custom_font_format text,
+  custom_font_size bigint,
   updated_by text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
+-- Existing installations created before custom fonts need the new metadata columns.
+alter table public.brian_global_font_settings
+  add column if not exists custom_font_name text,
+  add column if not exists custom_font_url text,
+  add column if not exists custom_font_path text,
+  add column if not exists custom_font_format text,
+  add column if not exists custom_font_size bigint;
+
+-- Replace the old six-preset check so the Admin-uploaded font can become active.
+alter table public.brian_global_font_settings
+  drop constraint if exists brian_global_font_settings_font_preset_check;
+
+alter table public.brian_global_font_settings
+  add constraint brian_global_font_settings_font_preset_check
+  check (font_preset in ('roboto', 'be-vietnam-pro', 'inter', 'noto-sans', 'arial', 'system', 'custom'));
+
 comment on table public.brian_global_font_settings is
-  'Singleton configuration for the Brian site-wide font selected by Admin.';
+  'Singleton configuration for the Brian site-wide font selected by Admin, including an optional uploaded custom font.';
 
 alter table public.brian_global_font_settings enable row level security;
 
@@ -63,6 +83,83 @@ grant select, insert, update on public.brian_global_font_settings to authenticat
 insert into public.brian_global_font_settings (id, font_preset, updated_by)
 values (true, 'roboto', 'system-default')
 on conflict (id) do nothing;
+
+-- Public font bucket. Public read is intentional because CSS @font-face must load
+-- for authenticated Brian sessions without signed-URL refresh churn.
+insert into storage.buckets (
+  id,
+  name,
+  public,
+  file_size_limit,
+  allowed_mime_types
+)
+values (
+  'brian-global-fonts',
+  'brian-global-fonts',
+  true,
+  8388608,
+  array['font/woff2','font/woff','font/ttf','font/otf','application/font-woff','application/octet-stream']
+)
+on conflict (id) do update
+set
+  public = true,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+-- Storage write access is Admin-only. The bucket itself is public for font reads.
+drop policy if exists "Admins can upload Brian global fonts" on storage.objects;
+create policy "Admins can upload Brian global fonts"
+  on storage.objects
+  for insert
+  to authenticated
+  with check (
+    bucket_id = 'brian-global-fonts'
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and lower(coalesce(p.role, '')) in ('admin', 'administrator')
+        and coalesce(p.approved, true) = true
+    )
+  );
+
+drop policy if exists "Admins can update Brian global fonts" on storage.objects;
+create policy "Admins can update Brian global fonts"
+  on storage.objects
+  for update
+  to authenticated
+  using (
+    bucket_id = 'brian-global-fonts'
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and lower(coalesce(p.role, '')) in ('admin', 'administrator')
+        and coalesce(p.approved, true) = true
+    )
+  )
+  with check (
+    bucket_id = 'brian-global-fonts'
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and lower(coalesce(p.role, '')) in ('admin', 'administrator')
+        and coalesce(p.approved, true) = true
+    )
+  );
+
+drop policy if exists "Admins can delete Brian global fonts" on storage.objects;
+create policy "Admins can delete Brian global fonts"
+  on storage.objects
+  for delete
+  to authenticated
+  using (
+    bucket_id = 'brian-global-fonts'
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and lower(coalesce(p.role, '')) in ('admin', 'administrator')
+        and coalesce(p.approved, true) = true
+    )
+  );
 
 do $$
 begin
