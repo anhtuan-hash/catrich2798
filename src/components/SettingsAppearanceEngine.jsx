@@ -12,11 +12,7 @@ const RETIRED_FIELDS = [
   'radius',
   'border',
   'depth',
-  'motion',
-  'transition',
   'cardEffect',
-  'parallax',
-  'reduceMotion',
   'effectIntensity',
 ];
 const DEFAULTS = {
@@ -73,17 +69,6 @@ function applyStaticAppearance(next, setAccent, setPerformanceMode) {
   root.dataset.besBackground = next.batterySaver ? 'none' : next.background;
   root.dataset.besContrast = next.highContrast ? 'high' : 'normal';
   root.dataset.besBatterySaver = next.batterySaver ? 'true' : 'false';
-
-  delete root.dataset.motion;
-  delete root.dataset.besMotion;
-  delete root.dataset.besTransition;
-  delete root.dataset.besCardEffect;
-  delete root.dataset.motionRuntime;
-  delete root.dataset.motionRoute;
-
-  try {
-    localStorage.removeItem('bes-motion-mode');
-  } catch { /* optional cleanup */ }
 }
 
 function Toggle({ checked, onChange, label }) {
@@ -188,7 +173,7 @@ export default function SettingsAppearanceEngine({ language = 'vi', setAccent, s
         <header>
           <div>
             <strong>Adaptive UI</strong>
-            <small>{vi ? 'Chỉ tối ưu hiệu năng và tương phản; không điều khiển chuyển động, cỡ chữ hoặc bố cục.' : 'Optimizes performance and contrast only; it does not control motion, text size or layout.'}</small>
+            <small>{vi ? 'Chỉ tối ưu hiệu năng và tương phản.' : 'Optimizes performance and contrast only.'}</small>
           </div>
         </header>
         <div>
