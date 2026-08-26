@@ -16,7 +16,7 @@
     overflow-x: auto !important;
     overflow-y: hidden !important;
     overscroll-behavior-inline: contain !important;
-    scroll-behavior: smooth !important;
+    scroll-behavior: auto !important;
     scroll-snap-type: inline proximity !important;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
