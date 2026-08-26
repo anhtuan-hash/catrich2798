@@ -29,8 +29,6 @@ export default function HomeroomOverviewCompactTab({ workspace, goTab }) {
     { key: 'attendance', icon: '✓', title: 'Điểm danh', note: 'Theo buổi hoặc tiết học' },
     { key: 'learning', icon: '∑', title: 'Học tập', note: 'Nhập và theo dõi kết quả' },
     { key: 'conduct', icon: '100', title: 'Rèn luyện', note: 'Điểm tuần và xét định kỳ' },
-    { key: 'feedback', icon: '↔', title: 'GV bộ môn', note: 'Nhận xét từ giáo viên bộ môn' },
-    { key: 'competition', icon: '◆', title: 'Thi đua', note: 'Theo dõi kết quả thi đua' },
   ];
 
   return <div className="hr-tab-stack">
