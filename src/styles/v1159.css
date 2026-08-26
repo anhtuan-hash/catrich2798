@@ -135,7 +135,9 @@ html body .boh-dashboard-heading > button:hover {
 }
 
 /* Child art must not zoom when its parent launcher/card is hovered. */
-html body .metro-clean-system[data-route='apps'] .flat-app-window-launch:hover .flat-app-window-art {
+html body .metro-clean-system[data-route='apps'] .flat-app-window-launch:hover .flat-app-window-art,
+html body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover .flat-app-window-art,
+html body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within .flat-app-window-art {
   transform: none !important;
 }
 
