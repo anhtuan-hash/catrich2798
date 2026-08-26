@@ -40,3 +40,4 @@ jobs:
             git commit -m "feat(ttcm): preview edit and download attachments"
             git push origin HEAD:main
           fi
+# retrigger after workflow is active on main
