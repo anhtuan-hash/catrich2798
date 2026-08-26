@@ -105,65 +105,47 @@ export function GroupRail({ group, count, language, active, onClick }) {
   );
 }
 
-export function AppsDirectoryHero({ language, isAdmin, editMode, saving, visibleItems, pinnedCount, navCount, previewItems, onBrowse, onEdit, onSave, onReset }) {
+export function AppsDirectoryHero({ language, isAdmin, editMode, saving, visibleItems, pinnedCount, navCount, onBrowse, onEdit, onSave, onReset }) {
   const t = copy[language] || copy.vi;
+  const vi = language === 'vi';
   return (
-    <header className="apps-directory-hero-native">
-      <div className="apps-directory-hero-copy">
-        <p className="apps-directory-kicker"><span aria-hidden="true">✦</span>{t.kicker}</p>
-        <h1><span>{t.titleA}</span><span className="apps-directory-title-accent">{t.titleB}</span><span>{t.titleC}</span></h1>
-        <p className="apps-directory-subtitle">{t.subtitle}</p>
-        <div className="apps-directory-actions">
-          <button type="button" className="apps-directory-primary-action" onClick={onBrowse}>
-            <span className="apps-directory-action-icon" aria-hidden="true">＋</span>
-            <span><strong>{t.browse}</strong><small>{t.browseHint}</small></span>
-          </button>
-          {isAdmin && <>
-            <button type="button" className={`apps-directory-secondary-action ${editMode ? 'is-active' : ''}`} onClick={onEdit}>
-              <span className="apps-directory-action-icon" aria-hidden="true">⚙</span><span><strong>{editMode ? t.finish : t.customize}</strong></span>
-            </button>
-            {editMode && <button type="button" className="apps-directory-save-action" onClick={onSave} disabled={saving}>{saving ? t.saving : t.save}</button>}
-            {editMode && <button type="button" className="apps-directory-reset-action" onClick={onReset} disabled={saving}>{t.reset}</button>}
-          </>}
+    <header className="editorial-apps-hero">
+      <div className="editorial-apps-hero-copy">
+        <p className="editorial-apps-eyebrow">BRIAN ENGLISH · APP DIRECTORY</p>
+        <h1>{vi ? <>Kho <em>ứng dụng</em><br />dành cho giáo viên</> : <>Teacher <em>app</em><br />directory</>}</h1>
+        <p className="editorial-apps-lede">
+          {vi
+            ? 'Khám phá và mở nhanh toàn bộ công cụ dạy học, quản lý lớp và phát triển chuyên môn trong một không gian gọn gàng, dễ đọc và nhất quán.'
+            : 'Discover and launch teaching, classroom-management and professional tools from one calm, consistent workspace.'}
+        </p>
+        <div className="editorial-apps-hero-actions">
+          <button type="button" onClick={onBrowse}>{vi ? 'Xem toàn bộ ứng dụng' : 'Browse all apps'}</button>
+          {isAdmin && <button type="button" onClick={onEdit}>{editMode ? t.finish : t.customize}</button>}
+          {isAdmin && editMode && <button type="button" onClick={onSave} disabled={saving}>{saving ? t.saving : t.save}</button>}
+          {isAdmin && editMode && <button type="button" onClick={onReset} disabled={saving}>{t.reset}</button>}
         </div>
       </div>
-      <div className="apps-directory-hero-visual" aria-label={t.previewTitle}>
-        <span className="apps-directory-orbit apps-directory-orbit-one" aria-hidden="true" /><span className="apps-directory-orbit apps-directory-orbit-two" aria-hidden="true" />
-        <section className="apps-directory-workspace">
-          <header className="apps-directory-workspace-bar"><span className="apps-directory-window-dots" aria-hidden="true"><i /><i /><i /></span><span className="apps-directory-workspace-search" aria-hidden="true">⌕ {t.search}</span></header>
-          <div className="apps-directory-workspace-content">
-            <div className="apps-directory-workspace-heading">
-              <small>BRIAN APP SPACE</small><strong>{t.previewTitle}</strong><span>{t.previewHint}</span>
-              <div className="apps-directory-flat-relief" aria-hidden="true">
-                <div className="apps-flat-relief-books">
-                  <span className="apps-flat-relief-book is-blue"><i /></span>
-                  <span className="apps-flat-relief-book is-mint"><i /></span>
-                  <span className="apps-flat-relief-book is-coral"><i /></span>
-                </div>
-                <div className="apps-flat-relief-calendar">
-                  <span className="apps-flat-relief-rings"><i /><i /></span>
-                  <strong>BE</strong><small>APPS</small>
-                </div>
-                <div className="apps-flat-relief-pencil"><span /><i /></div>
-                <div className="apps-flat-relief-cube"><span /><i /><b /></div>
-              </div>
-            </div>
-            <div className="apps-directory-preview-grid">
-              {previewItems.map((item) => {
-                const profile = getAppDesignProfile(item.slug);
-                return (
-                  <button key={`hero-${item.route || 'tool'}-${item.slug}`} type="button" style={{ '--preview-accent': profile.accent, '--preview-soft': profile.soft }} onClick={(event) => launch(targetFor(item), item.icon || 'AP', profile.accent, event.currentTarget)} title={titleOf(item, language)}>
-                    <FlatAppIcon type={profile.icon} slug={item.slug} /><span>{titleOf(item, language)}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-        <div className="apps-directory-stat-row" aria-label="Apps summary">
-          <div><span aria-hidden="true">▦</span><strong>{visibleItems.length}</strong><small>{t.ready}</small></div>
-          <div><span aria-hidden="true">★</span><strong>{pinnedCount}</strong><small>{t.pinnedLabel}</small></div>
-          <div><span aria-hidden="true">➤</span><strong>{navCount}</strong><small>{t.navLabel}</small></div>
+
+      <div className="editorial-apps-hero-side">
+        <div className="editorial-apps-illustration" aria-hidden="true">
+          <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M109 199C110 163 113 123 117 84C120 57 126 35 136 17" stroke="#617362" strokeWidth="1.8" strokeLinecap="round" />
+            <path d="M117 95C94 80 76 62 63 40M115 119C139 103 158 84 171 59M112 148C89 138 69 124 52 104M111 176C133 164 153 149 171 128" stroke="#617362" strokeWidth="1.6" strokeLinecap="round" />
+            <ellipse cx="69" cy="50" rx="10" ry="23" transform="rotate(-43 69 50)" stroke="#617362" strokeWidth="1.5" />
+            <ellipse cx="87" cy="76" rx="9" ry="21" transform="rotate(-49 87 76)" stroke="#617362" strokeWidth="1.5" />
+            <ellipse cx="161" cy="69" rx="10" ry="23" transform="rotate(43 161 69)" stroke="#617362" strokeWidth="1.5" />
+            <ellipse cx="144" cy="96" rx="9" ry="21" transform="rotate(49 144 96)" stroke="#617362" strokeWidth="1.5" />
+            <ellipse cx="61" cy="116" rx="10" ry="23" transform="rotate(-57 61 116)" stroke="#617362" strokeWidth="1.5" />
+            <ellipse cx="85" cy="141" rx="9" ry="21" transform="rotate(-57 85 141)" stroke="#617362" strokeWidth="1.5" />
+            <ellipse cx="160" cy="142" rx="10" ry="23" transform="rotate(57 160 142)" stroke="#617362" strokeWidth="1.5" />
+            <ellipse cx="140" cy="165" rx="9" ry="21" transform="rotate(57 140 165)" stroke="#617362" strokeWidth="1.5" />
+            <path d="M44 202C82 189 132 189 179 202" stroke="#C5A98F" strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
+        </div>
+        <div className="editorial-apps-stats" aria-label={vi ? 'Tổng quan ứng dụng' : 'Apps summary'}>
+          <div className="editorial-apps-stat"><span aria-hidden="true">▦</span><strong>{visibleItems.length}</strong><small>{vi ? 'Ứng dụng sẵn sàng' : 'Apps ready'}</small></div>
+          <div className="editorial-apps-stat"><span aria-hidden="true">★</span><strong>{pinnedCount}</strong><small>{vi ? 'Đã ghim' : 'Pinned'}</small></div>
+          <div className="editorial-apps-stat"><span aria-hidden="true">➤</span><strong>{navCount}</strong><small>{vi ? 'Trên điều hướng' : 'In navigation'}</small></div>
         </div>
       </div>
     </header>
