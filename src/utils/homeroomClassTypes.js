@@ -14,6 +14,11 @@ export const RETIRED_HOMEROOM_TAB_KEYS = Object.freeze([
   'parents',
   'announcements',
   'records',
+  'search',
+  'feedback',
+  'competition',
+  'portals',
+  'schoolStats',
 ]);
 
 export function isValidHomeroomClassType(value) {
