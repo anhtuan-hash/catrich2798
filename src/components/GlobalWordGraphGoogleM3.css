@@ -191,7 +191,6 @@ body .metro-clean-system[data-route='tool'] .wordgraph-page button {
   font-family: inherit !important;
   font-weight: 700 !important;
   letter-spacing: 0 !important;
-  transition: background-color .16s ease,box-shadow .16s ease,transform .16s ease !important;
 }
 
 body .metro-clean-system[data-route='tool'] .wordgraph-v821-hero-actions button,
@@ -211,7 +210,6 @@ body .metro-clean-system[data-route='tool'] .wordgraph-page button.secondary:hov
 body .metro-clean-system[data-route='tool'] .wordgraph-page button.ghost:hover,
 body .metro-clean-system[data-route='tool'] .preview-actions button:hover,
 body .metro-clean-system[data-route='tool'] .wordgraph-toolbar button:hover {
-  transform: translateY(-1px) !important;
   border-color: #a8c7fa !important;
   background: var(--wg-blue-soft) !important;
   box-shadow: 0 3px 8px rgba(60,64,67,.14) !important;
@@ -295,11 +293,9 @@ body .metro-clean-system[data-route='tool'] .wordgraph-v821-outline-panel {
 body .metro-clean-system[data-route='tool'] .wordgraph-v821-dashboard-card {
   min-height: 250px !important;
   padding: 20px !important;
-  transition: border-color .16s ease,box-shadow .16s ease,transform .16s ease !important;
 }
 
 body .metro-clean-system[data-route='tool'] .wordgraph-v821-dashboard-card:hover {
-  transform: translateY(-3px) !important;
   border-color: #a8c7fa !important;
   box-shadow: 0 4px 10px rgba(60,64,67,.12),0 12px 30px rgba(60,64,67,.10) !important;
 }
@@ -507,10 +503,4 @@ body.theme-dark .metro-clean-system[data-route='tool'] .preview-actions button,
 body.theme-dark .metro-clean-system[data-route='tool'] .wordgraph-toolbar button {
   background-color:#292a2d !important;
   color:#e8eaed !important;
-}
-
-@media (prefers-reduced-motion:reduce) {
-  body .metro-clean-system[data-route='tool'] .wordgraph-page *,
-  body .metro-clean-system[data-route='tool'] .wordgraph-page *::before,
-  body .metro-clean-system[data-route='tool'] .wordgraph-page *::after { transition:none !important; }
 }
