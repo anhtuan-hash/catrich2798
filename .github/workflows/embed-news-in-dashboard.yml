@@ -1,0 +1,215 @@
+name: Embed News in Dashboard
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/embed-news-in-dashboard.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Create compact Dashboard News Hub
+        run: |
+          cat > src/components/DashboardNewsHub.jsx <<'EOF'
+          import React, { useEffect, useMemo, useRef, useState } from 'react';
+          import { createPortal } from 'react-dom';
+          import './DashboardNewsHub.css';
+
+          const COPY = {
+            vi: {
+              eyebrow: 'BRIAN NEWSROOM', title: 'Tin tức & Đọc báo', subtitle: 'Điểm tin giáo dục và English News ngay trong Dashboard.',
+              vi: 'Tin Việt Nam', en: 'English News', latest: 'Tin mới', viewAll: 'Xem tất cả tin', read: 'Đọc toàn văn',
+              loading: 'Đang cập nhật tin mới…', empty: 'Chưa có tin mới.', retry: 'Tải lại', close: 'Đóng',
+              reader: 'Chế độ đọc tập trung', source: 'Nguồn', fullLoading: 'Đang tải toàn văn…', fallback: 'Đang hiển thị nội dung tốt nhất hiện có.',
+              openNewsroom: 'Mở Newsroom đầy đủ', minutes: 'phút đọc', featured: 'Nổi bật', fresh: 'Mới cập nhật',
+            },
+            en: {
+              eyebrow: 'BRIAN NEWSROOM', title: 'News & Reading', subtitle: 'Education headlines and English News inside your Dashboard.',
+              vi: 'Vietnam News', en: 'English News', latest: 'Latest', viewAll: 'View all news', read: 'Read full article',
+              loading: 'Updating headlines…', empty: 'No recent stories.', retry: 'Retry', close: 'Close',
+              reader: 'Focused reader', source: 'Source', fullLoading: 'Loading full article…', fallback: 'Showing the best content currently available.',
+              openNewsroom: 'Open full Newsroom', minutes: 'min read', featured: 'Featured', fresh: 'Recently updated',
+            },
+          };
+
+          const CHANNEL_CATEGORY = { vi: 'all', en: 'top' };
+          const FEED_TTL = 8 * 60 * 1000;
+
+          function cacheKey(channel) { return `bes-dashboard-news:${channel}`; }
+          function readCache(channel) {
+            try {
+              const parsed = JSON.parse(sessionStorage.getItem(cacheKey(channel)) || 'null');
+              return parsed && Date.now() - parsed.savedAt < FEED_TTL ? parsed.data : null;
+            } catch { return null; }
+          }
+          function writeCache(channel, data) {
+            try { sessionStorage.setItem(cacheKey(channel), JSON.stringify({ savedAt: Date.now(), data })); } catch { /* optional */ }
+          }
+          function dateLabel(value, language) {
+            if (!value) return '';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            return new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(date);
+          }
+          function readingMinutes(item) {
+            const words = String(`${item?.content || ''} ${item?.summary || ''}`).trim().split(/\s+/).filter(Boolean).length;
+            return Math.max(1, Math.ceil(words / 190));
+          }
+          function fallbackBlocks(item) {
+            const text = String(item?.content || item?.summary || '').trim();
+            if (!text) return [{ type: 'paragraph', text: item?.summary || item?.title || '' }];
+            const paragraphs = text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+            return (paragraphs.length ? paragraphs : [text]).map((textValue) => ({ type: 'paragraph', text: textValue }));
+          }
+          function NewsImage({ item, featured = false }) {
+            return item?.image
+              ? <img src={item.image} alt="" loading={featured ? 'eager' : 'lazy'} referrerPolicy="no-referrer" />
+              : <span className="dnh-image-fallback" aria-hidden="true"><b>NEWS</b><i /><i /><i /></span>;
+          }
+          function ReaderBlocks({ blocks = [] }) {
+            return blocks.map((block, index) => {
+              const key = `${block.type || 'p'}:${index}:${block.text?.slice(0, 16) || block.src || ''}`;
+              if (block.type === 'image' && block.src) return <figure key={key}><img src={block.src} alt={block.alt || ''} referrerPolicy="no-referrer" />{block.caption ? <figcaption>{block.caption}</figcaption> : null}</figure>;
+              if (!block.text) return null;
+              if (block.type === 'heading') return <h2 key={key}>{block.text}</h2>;
+              if (block.type === 'quote') return <blockquote key={key}>{block.text}</blockquote>;
+              return <p key={key}>{block.text}</p>;
+            });
+          }
+
+          export default function DashboardNewsHub({ language = 'vi' }) {
+            const t = COPY[language] || COPY.vi;
+            const [channel, setChannel] = useState('vi');
+            const [items, setItems] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState('');
+            const [selected, setSelected] = useState(null);
+            const [article, setArticle] = useState({ status: 'idle', data: null, error: '' });
+            const requestRef = useRef(0);
+
+            const visibleItems = useMemo(() => items.slice(0, 5), [items]);
+            const featured = visibleItems[0] || null;
+            const secondary = visibleItems.slice(1);
+
+            async function load({ force = false } = {}) {
+              const id = ++requestRef.current;
+              setError('');
+              if (!force) {
+                const cached = readCache(channel);
+                if (cached?.items?.length) { setItems(cached.items); setLoading(false); return; }
+              }
+              setLoading(true);
+              try {
+                const category = CHANNEL_CATEGORY[channel] || 'all';
+                const response = await fetch(`/api/news-feed?language=${encodeURIComponent(channel)}&category=${encodeURIComponent(category)}${force ? `&t=${Date.now()}` : ''}`);
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(data?.error || `HTTP ${response.status}`);
+                if (id !== requestRef.current) return;
+                const next = Array.isArray(data?.items) ? data.items : [];
+                setItems(next);
+                writeCache(channel, { items: next });
+              } catch (loadError) {
+                if (id !== requestRef.current) return;
+                setItems([]);
+                setError(loadError?.message || 'Unable to load news');
+              } finally {
+                if (id === requestRef.current) setLoading(false);
+              }
+            }
+
+            async function openArticle(item) {
+              setSelected(item);
+              setArticle({ status: 'loading', data: null, error: '' });
+              try {
+                const response = await fetch('/api/news-article', {
+                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ url: item.link, source: item.source, title: item.title, summary: item.summary, content: item.content, image: item.image, author: item.author, publishedAt: item.publishedAt }),
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(data?.error || `HTTP ${response.status}`);
+                setArticle({ status: data?.full ? 'ready' : 'partial', data: { ...data, title: data?.title || item.title, image: data?.image || item.image, author: data?.author || item.author || item.source, publishedAt: data?.publishedAt || item.publishedAt, blocks: Array.isArray(data?.blocks) && data.blocks.length ? data.blocks : fallbackBlocks(item) }, error: data?.full ? '' : t.fallback });
+              } catch (articleError) {
+                setArticle({ status: 'partial', data: { title: item.title, image: item.image, author: item.author || item.source, publishedAt: item.publishedAt, blocks: fallbackBlocks(item) }, error: articleError?.message || t.fallback });
+              }
+            }
+
+            useEffect(() => { load(); return () => { requestRef.current += 1; }; /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [channel]);
+            useEffect(() => {
+              if (!selected) return undefined;
+              const onKey = (event) => { if (event.key === 'Escape') setSelected(null); };
+              window.addEventListener('keydown', onKey);
+              return () => window.removeEventListener('keydown', onKey);
+            }, [selected]);
+
+            return <>
+              <section className="dnh" aria-label={t.title}>
+                <header className="dnh-head">
+                  <div className="dnh-title"><span className="dnh-icon" aria-hidden="true">N</span><div><span>{t.eyebrow}</span><h2>{t.title}</h2><p>{t.subtitle}</p></div></div>
+                  <div className="dnh-actions"><div className="dnh-tabs" role="tablist"><button type="button" className={channel === 'vi' ? 'is-active' : ''} onClick={() => setChannel('vi')}>{t.vi}</button><button type="button" className={channel === 'en' ? 'is-active' : ''} onClick={() => setChannel('en')}>{t.en}</button></div><button type="button" className="dnh-view-all" onClick={() => { window.location.hash = '#/news'; }}>{t.viewAll}<span>→</span></button></div>
+                </header>
+
+                {loading ? <div className="dnh-state"><span className="dnh-loader" />{t.loading}</div> : error ? <div className="dnh-state is-error"><span>{error}</span><button type="button" onClick={() => load({ force: true })}>{t.retry}</button></div> : !featured ? <div className="dnh-state">{t.empty}</div> : <div className="dnh-grid">
+                  <button type="button" className="dnh-featured" onClick={() => openArticle(featured)}>
+                    <span className="dnh-featured-media"><NewsImage item={featured} featured /><em>{t.featured}</em></span>
+                    <span className="dnh-featured-copy"><small>{featured.source || t.fresh}{featured.publishedAt ? ` · ${dateLabel(featured.publishedAt, language)}` : ''}</small><strong>{featured.title}</strong><p>{featured.summary}</p><span>{t.read} <b>→</b></span></span>
+                  </button>
+                  <div className="dnh-list">{secondary.map((item) => <button type="button" className="dnh-story" key={item.id || item.link} onClick={() => openArticle(item)}><span className="dnh-story-media"><NewsImage item={item} /></span><span className="dnh-story-copy"><small>{item.source || t.latest} · {readingMinutes(item)} {t.minutes}</small><strong>{item.title}</strong><span>{dateLabel(item.publishedAt, language)}</span></span></button>)}</div>
+                </div>}
+              </section>
+
+              {selected && typeof document !== 'undefined' ? createPortal(<div className="dnh-reader-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><article className="dnh-reader" role="dialog" aria-modal="true" aria-label={selected.title}><header><div><span>{t.reader}</span><strong>{article.data?.author || selected.source || t.source}</strong></div><button type="button" aria-label={t.close} onClick={() => setSelected(null)}>×</button></header><div className="dnh-reader-scroll">{article.status === 'loading' ? <div className="dnh-reader-loading"><span className="dnh-loader" />{t.fullLoading}</div> : <><div className="dnh-reader-hero">{article.data?.image ? <img src={article.data.image} alt="" referrerPolicy="no-referrer" /> : null}<div><small>{article.data?.author || selected.source}{article.data?.publishedAt ? ` · ${dateLabel(article.data.publishedAt, language)}` : ''}</small><h1>{article.data?.title || selected.title}</h1>{article.error ? <p className="dnh-reader-note">{article.error}</p> : null}</div></div><div className="dnh-reader-content"><ReaderBlocks blocks={article.data?.blocks || fallbackBlocks(selected)} /></div></>}</div><footer><button type="button" className="dnh-reader-secondary" onClick={() => { window.location.hash = '#/news'; setSelected(null); }}>{t.openNewsroom}</button><button type="button" className="dnh-reader-primary" onClick={() => setSelected(null)}>{t.close}</button></footer></article></div>, document.body) : null}
+            </>;
+          }
+          EOF
+
+          cat > src/components/DashboardNewsHub.css <<'EOF'
+          .dnh{margin:20px 0;background:#fff;border:1px solid #e1e5ea;border-radius:24px;box-shadow:0 1px 2px rgba(60,64,67,.08),0 8px 26px rgba(60,64,67,.06);overflow:hidden;color:#1f1f1f}.dnh-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:20px 22px;border-bottom:1px solid #edf0f3}.dnh-title{display:flex;align-items:center;gap:13px;min-width:0}.dnh-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:#e8f0fe;color:#0b57d0;font-size:18px;font-weight:800}.dnh-title>div>span{display:block;color:#0b57d0;font-size:10px;font-weight:800;letter-spacing:.1em}.dnh-title h2{margin:2px 0 3px;font-size:21px;line-height:1.2}.dnh-title p{margin:0;color:#5f6368;font-size:12px}.dnh-actions{display:flex;align-items:center;gap:10px;flex:none}.dnh-tabs{display:flex;padding:3px;border-radius:999px;background:#f1f3f4}.dnh-tabs button,.dnh-view-all{border:0;font:inherit;cursor:pointer}.dnh-tabs button{padding:8px 13px;border-radius:999px;background:transparent;color:#5f6368;font-size:12px;font-weight:700}.dnh-tabs button.is-active{background:#fff;color:#0b57d0;box-shadow:0 1px 4px rgba(60,64,67,.14)}.dnh-view-all{display:inline-flex;align-items:center;gap:7px;padding:9px 12px;background:transparent;color:#0b57d0;font-size:12px;font-weight:700;border-radius:10px}.dnh-view-all:hover{background:#f5f8ff}.dnh-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);gap:0;min-height:340px}.dnh-featured{display:grid;grid-template-columns:minmax(240px,.9fr) minmax(280px,1.1fr);align-items:stretch;padding:0;border:0;border-right:1px solid #edf0f3;background:#fff;text-align:left;cursor:pointer;overflow:hidden}.dnh-featured:hover .dnh-featured-copy strong{color:#0b57d0}.dnh-featured-media{position:relative;min-height:310px;background:#eef3f8;overflow:hidden}.dnh-featured-media img,.dnh-story-media img{width:100%;height:100%;object-fit:cover;display:block}.dnh-featured-media em{position:absolute;left:14px;top:14px;padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.94);color:#0b57d0;font-size:10px;font-style:normal;font-weight:800;box-shadow:0 1px 5px rgba(0,0,0,.1)}.dnh-featured-copy{display:flex;flex-direction:column;justify-content:center;padding:24px}.dnh-featured-copy small,.dnh-story-copy small{color:#5f6368;font-size:11px}.dnh-featured-copy strong{margin-top:8px;font-size:22px;line-height:1.18;letter-spacing:-.015em}.dnh-featured-copy p{margin:10px 0 16px;color:#5f6368;font-size:13px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.dnh-featured-copy>span{color:#0b57d0;font-size:12px;font-weight:800}.dnh-list{display:grid;grid-template-rows:repeat(4,minmax(0,1fr));background:#fff}.dnh-story{display:grid;grid-template-columns:116px 1fr;gap:13px;align-items:center;padding:12px 14px;border:0;border-bottom:1px solid #edf0f3;background:#fff;text-align:left;cursor:pointer;min-width:0}.dnh-story:last-child{border-bottom:0}.dnh-story:hover{background:#f8fafd}.dnh-story-media{height:66px;border-radius:10px;background:#eef3f8;overflow:hidden}.dnh-story-copy{min-width:0}.dnh-story-copy strong{display:-webkit-box;margin:4px 0;font-size:13px;line-height:1.3;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.dnh-story-copy>span{color:#80868b;font-size:10px}.dnh-image-fallback{width:100%;height:100%;display:grid;place-content:center;gap:4px;background:linear-gradient(135deg,#e8f0fe,#f8fafd);color:#0b57d0}.dnh-image-fallback b{font-size:10px;letter-spacing:.14em}.dnh-image-fallback i{display:block;width:42px;height:3px;border-radius:8px;background:#c6dafc}.dnh-state{min-height:230px;display:flex;align-items:center;justify-content:center;gap:10px;color:#5f6368;font-size:13px}.dnh-state.is-error{flex-direction:column}.dnh-state button{border:1px solid #c7ccd1;background:#fff;border-radius:999px;padding:8px 13px;color:#0b57d0;font-weight:700;cursor:pointer}.dnh-loader{width:18px;height:18px;border:2px solid #d2e3fc;border-top-color:#0b57d0;border-radius:50%;animation:dnh-spin .75s linear infinite}@keyframes dnh-spin{to{transform:rotate(360deg)}}
+          .dnh-reader-backdrop{position:fixed;inset:0;z-index:220000;background:rgba(32,33,36,.48);backdrop-filter:blur(5px);display:grid;place-items:center;padding:28px}.dnh-reader{width:min(1040px,94vw);height:min(820px,91vh);display:grid;grid-template-rows:auto 1fr auto;background:#fff;border-radius:26px;box-shadow:0 24px 70px rgba(0,0,0,.24);overflow:hidden}.dnh-reader>header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #e8eaed}.dnh-reader>header div{display:grid;gap:2px}.dnh-reader>header span{color:#0b57d0;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.dnh-reader>header strong{font-size:13px}.dnh-reader>header button{width:38px;height:38px;border:0;border-radius:50%;background:#f1f3f4;color:#3c4043;font-size:25px;cursor:pointer}.dnh-reader-scroll{overflow:auto;background:#f8fafd}.dnh-reader-loading{height:100%;display:flex;align-items:center;justify-content:center;gap:10px;color:#5f6368}.dnh-reader-hero{background:#fff}.dnh-reader-hero>img{width:100%;max-height:360px;object-fit:cover;display:block}.dnh-reader-hero>div{max-width:760px;margin:0 auto;padding:30px 34px 20px}.dnh-reader-hero small{color:#5f6368}.dnh-reader-hero h1{margin:10px 0 0;font-size:34px;line-height:1.14;letter-spacing:-.025em}.dnh-reader-note{padding:10px 12px;border-radius:12px;background:#fef7e0;color:#7a4f01;font-size:12px}.dnh-reader-content{max-width:760px;margin:0 auto;padding:0 34px 50px;font-size:17px;line-height:1.75;color:#303134}.dnh-reader-content h2{margin:32px 0 12px;font-size:24px;color:#202124}.dnh-reader-content blockquote{margin:24px 0;padding:14px 18px;border-left:4px solid #0b57d0;background:#eef4ff}.dnh-reader-content figure{margin:26px 0}.dnh-reader-content figure img{max-width:100%;border-radius:14px}.dnh-reader-content figcaption{margin-top:7px;color:#80868b;font-size:12px}.dnh-reader>footer{display:flex;justify-content:flex-end;gap:9px;padding:14px 18px;border-top:1px solid #e8eaed;background:#fff}.dnh-reader>footer button{min-height:40px;padding:0 16px;border-radius:999px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}.dnh-reader-secondary{border:1px solid #c7ccd1;background:#fff;color:#0b57d0}.dnh-reader-primary{border:0;background:#0b57d0;color:#fff}
+          @media(max-width:1100px){.dnh-grid{grid-template-columns:1fr}.dnh-featured{border-right:0;border-bottom:1px solid #edf0f3}.dnh-list{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto}.dnh-story{border-right:1px solid #edf0f3}.dnh-story:nth-child(3),.dnh-story:nth-child(4){border-bottom:0}}@media(max-width:760px){.dnh-head{align-items:flex-start;flex-direction:column}.dnh-actions{width:100%;justify-content:space-between}.dnh-featured{grid-template-columns:1fr}.dnh-featured-media{min-height:210px}.dnh-list{grid-template-columns:1fr}.dnh-story{border-right:0}.dnh-reader-backdrop{padding:10px}.dnh-reader{width:100%;height:96vh;border-radius:20px}.dnh-reader-hero h1{font-size:27px}.dnh-reader-hero>div,.dnh-reader-content{padding-left:22px;padding-right:22px}}@media(max-width:520px){.dnh-tabs button{padding:7px 9px}.dnh-view-all{font-size:0}.dnh-view-all span{font-size:18px}.dnh-story{grid-template-columns:92px 1fr}.dnh-story-media{height:60px}}
+          EOF
+
+      - name: Patch Dashboard and navigation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          dashboard = Path('src/pages/WorkDashboard.jsx')
+          text = dashboard.read_text()
+          if "DashboardNewsHub" not in text:
+              marker = "import '../styles/teacher-dashboard-calendar-split.css';"
+              if marker not in text:
+                  raise SystemExit('Dashboard CSS import marker not found')
+              text = text.replace(marker, marker + "\nimport DashboardNewsHub from '../components/DashboardNewsHub.jsx';", 1)
+          if '<DashboardNewsHub language={language} />' not in text:
+              marker = '      <Surface title={t.quickActions}'
+              if marker not in text:
+                  raise SystemExit('Quick actions marker not found')
+              text = text.replace(marker, '      <DashboardNewsHub language={language} />\n' + marker, 1)
+          dashboard.write_text(text)
+
+          nav = Path('src/components/GlobalFlatNavigation.jsx')
+          text = nav.read_text()
+          text = text.replace("import GlobalNewsNavigationTab from './GlobalNewsNavigationTab.jsx';\n", '')
+          text = text.replace('      <GlobalNewsNavigationTab {...props} />\n', '')
+          nav.write_text(text)
+          PY
+
+      - name: Install dependencies
+        run: npm ci
+      - name: Production build
+        run: npm run build
+      - name: Commit integration
+        run: |
+          git config user.name "anhtuan-hash"
+          git config user.email "anhtuan@pek.edu.vn"
+          rm -f .github/workflows/embed-news-in-dashboard.yml
+          git add src/components/DashboardNewsHub.jsx src/components/DashboardNewsHub.css src/pages/WorkDashboard.jsx src/components/GlobalFlatNavigation.jsx .github/workflows/embed-news-in-dashboard.yml
+          git commit -m "Embed Newsroom in Dashboard and simplify navigation"
+          git push
