@@ -155,6 +155,8 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   const [responseItem, setResponseItem] = useState(null);
   const [responseText, setResponseText] = useState('');
   const [responseFile, setResponseFile] = useState(null);
+  const [responses, setResponses] = useState([]);
+  const [responseViewerItem, setResponseViewerItem] = useState(null);
   const [items, setItems] = useState(() => readLocalItems(currentUser));
   const [people, setPeople] = useState([]);
   const [readIds, setReadIds] = useState(() => readReadIds(currentUser));
@@ -248,6 +250,25 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
     }
   }, [allowed, client, currentUser, manager, runtime.ready, runtime.session]);
 
+  const loadResponses = useCallback(async () => {
+    if (!manager || !client || !runtime.ready || !runtime.session) {
+      setResponses([]);
+      return;
+    }
+    const actionIds = items.filter(isActionItem).map((item) => item.id).filter(Boolean);
+    if (!actionIds.length) {
+      setResponses([]);
+      return;
+    }
+    const { data, error: responseError } = await client
+      .from('work_hub_comments')
+      .select('id,item_id,author_id,body,comment_type,attachments,created_at')
+      .in('item_id', actionIds)
+      .order('created_at', { ascending: true });
+    if (responseError) return;
+    setResponses(data || []);
+  }, [client, items, manager, runtime.ready, runtime.session]);
+
   const loadPeople = useCallback(async () => {
     if (!manager || !client || !runtime.ready || !runtime.session) return;
     const attempts = [
@@ -281,11 +302,22 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   }, [allowed, currentUser?.id, loadFeed, loadPeople, manager]);
 
   useEffect(() => {
+    if (!open || !manager) return undefined;
+    loadResponses();
+    return subscribeTable({
+      key: `ttcm-responses-${currentUser?.id || 'manager'}`,
+      table: 'work_hub_comments',
+      onChange: () => loadResponses(),
+    });
+  }, [currentUser?.id, loadResponses, manager, open]);
+
+  useEffect(() => {
     if (!open) return undefined;
     document.documentElement.classList.add('bes-ttcm-hub-open');
     const onKey = (event) => {
       if (event.key !== 'Escape') return;
-      if (responseItem) setResponseItem(null);
+      if (responseViewerItem) setResponseViewerItem(null);
+      else if (responseItem) setResponseItem(null);
       else if (composeOpen) setComposeOpen(false);
       else setOpen(false);
     };
@@ -294,7 +326,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
       document.documentElement.classList.remove('bes-ttcm-hub-open');
       window.removeEventListener('keydown', onKey);
     };
-  }, [composeOpen, open, responseItem]);
+  }, [composeOpen, open, responseItem, responseViewerItem]);
 
   const eligibleTeachers = useMemo(() => people.filter((person) => {
     if (!person?.id || person.id === currentUser?.id) return false;
@@ -330,6 +362,15 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
     if (filter === 'action') return isActionItem(item);
     return typeForItem(item).id === filter;
   }), [filter, items]);
+
+  function responsesForItem(itemId) {
+    return responses.filter((entry) => String(entry.item_id) === String(itemId));
+  }
+
+  function responseAuthor(authorId) {
+    const person = people.find((entry) => String(entry.id) === String(authorId));
+    return person?.name || person?.email || 'Giáo viên';
+  }
 
   function markRead(itemId) {
     const id = String(itemId || '');
@@ -792,6 +833,9 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
                       <button type="button" className="ttcm-m3-manager-button" disabled={busy} onClick={(event) => { event.stopPropagation(); beginEdit(item); }}>
                         <Icon name="edit" size={17} />Sửa
                       </button>
+                      {isActionItem(item) ? <button type="button" className="ttcm-m3-manager-button" onClick={(event) => { event.stopPropagation(); setResponseViewerItem(item); loadResponses(); }}>
+                        <Icon name="people" size={17} />Phản hồi ({responsesForItem(item.id).length})
+                      </button> : null}
                       <button type="button" className="ttcm-m3-manager-button is-danger" disabled={busy} onClick={(event) => { event.stopPropagation(); deleteCommunication(item); }}>
                         <Icon name="delete" size={17} />Xóa
                       </button>
@@ -818,6 +862,25 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
           <div className="ttcm-m3-schedule-host v1093-work-hub" data-ttcm-schedule-host="true" />
           <GlobalWorkScheduleCompatibleCenter currentUser={currentUser} language={language} route="ttcm" embedded mountSelector='[data-ttcm-schedule-host="true"]' />
         </main>}
+
+        {responseViewerItem && manager ? (
+          <div className="ttcm-m3-compose-layer" role="presentation">
+            <section className="ttcm-m3-response-dialog ttcm-m3-response-viewer" aria-label="Phản hồi của tổ viên">
+              <header><div><strong>Phản hồi của tổ viên</strong><small>{responseViewerItem.title}</small></div><button type="button" className="ttcm-m3-icon-button" onClick={() => setResponseViewerItem(null)} aria-label="Đóng"><Icon name="close" /></button></header>
+              <div className="ttcm-m3-response-list">
+                {responsesForItem(responseViewerItem.id).map((entry) => (
+                  <article key={entry.id}>
+                    <header><span className="ttcm-m3-avatar">{String(responseAuthor(entry.author_id)).trim().split(/\s+/).slice(-2).map((part) => part[0] || '').join('').toUpperCase()}</span><div><b>{responseAuthor(entry.author_id)}</b><small>{formatDate(entry.created_at)}</small></div></header>
+                    <p>{entry.body || 'Đã xác nhận.'}</p>
+                    {Array.isArray(entry.attachments) && entry.attachments.length ? <div className="ttcm-m3-attachments">{entry.attachments.map((attachment, index) => <button key={`${entry.id}-${index}`} type="button" onClick={() => openAttachment(responseViewerItem, attachment)}><Icon name="download" size={17} /><span>{attachment.name || `Tệp ${index + 1}`}</span></button>)}</div> : null}
+                  </article>
+                ))}
+                {!responsesForItem(responseViewerItem.id).length ? <div className="ttcm-m3-response-empty"><Icon name="people" size={28} /><strong>Chưa có phản hồi</strong><span>Phản hồi, xác nhận và tệp của tổ viên sẽ xuất hiện tại đây theo thời gian thực.</span></div> : null}
+              </div>
+              <footer><button type="button" className="ttcm-m3-filled-button" onClick={() => setResponseViewerItem(null)}>Đóng</button></footer>
+            </section>
+          </div>
+        ) : null}
 
         {responseItem && !manager ? (
           <div className="ttcm-m3-compose-layer" role="presentation">

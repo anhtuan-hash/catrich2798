@@ -1023,3 +1023,44 @@ html.bes-ttcm-hub-open body {
   .ttcm-m3-schedule-view .work-schedule-integration { padding: 10px; }
   .ttcm-m3-response-dialog { width: 100%; max-height: 100%; min-height: 100%; border: 0; border-radius: 0; box-shadow: none; }
 }
+
+
+.ttcm-m3-response-list {
+  max-height: min(520px, 60vh);
+  overflow: auto;
+  display: grid;
+  gap: 10px;
+}
+
+.ttcm-m3-response-list > article {
+  padding: 14px;
+  border: 1px solid #e0e3e7;
+  border-radius: 16px;
+  background: #f8fafd;
+}
+
+.ttcm-m3-response-list > article > header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ttcm-m3-response-list > article > header div { min-width: 0; }
+.ttcm-m3-response-list > article > header b,
+.ttcm-m3-response-list > article > header small { display: block; }
+.ttcm-m3-response-list > article > header b { color: #1f1f1f; font-size: 13px; }
+.ttcm-m3-response-list > article > header small { margin-top: 2px; color: #5f6368; font-size: 11px; }
+.ttcm-m3-response-list > article > p { margin: 10px 0 0; color: #3c4043; line-height: 1.55; white-space: pre-wrap; }
+
+.ttcm-m3-response-empty {
+  min-height: 190px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 7px;
+  color: #5f6368;
+  text-align: center;
+}
+.ttcm-m3-response-empty > .ttcm-m3-icon { color: #0b57d0; }
+.ttcm-m3-response-empty strong { color: #1f1f1f; }
+.ttcm-m3-response-empty span { max-width: 420px; font-size: 13px; line-height: 1.45; }

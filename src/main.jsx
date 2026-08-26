@@ -116,9 +116,10 @@ function getInitialRoute() {
   if (href.includes('type=recovery') || href.includes('recovery=1')) return 'login';
   const routeOnly = cleanHash.split('?')[0].split('&')[0];
   if (routeOnly === 'work-hub') {
-    try { window.sessionStorage.setItem('bes-ttcm-open-on-load', 'schedule'); } catch { /* optional */ }
+    const ttcmView = /(?:^|[?&])view=schedule(?:&|$)/.test(cleanHash) ? 'schedule' : 'feed';
+    try { window.sessionStorage.setItem('bes-ttcm-open-on-load', ttcmView); } catch { /* optional */ }
     window.history.replaceState(null, '', '#/dashboard');
-    window.setTimeout(() => window.dispatchEvent(new CustomEvent('bes-ttcm-open', { detail: { view: 'schedule' } })), 0);
+    window.setTimeout(() => window.dispatchEvent(new CustomEvent('bes-ttcm-open', { detail: { view: ttcmView } })), 0);
     return 'dashboard';
   }
   return routeOnly || 'home';
