@@ -10,6 +10,7 @@ import {
 import '../styles/teacher-dashboard-google-authentic.css';
 import '../styles/teacher-dashboard-calendar-split.css';
 import '../styles/teacher-dashboard-compact-layout.css';
+import '../styles/teacher-dashboard-google-colorful.css';
 import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
 
 const COPY = {
@@ -154,7 +155,11 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     <div className="gd-shell">
       <section className="gd-top-grid">
         <header className="gd-hero">
-          <div className="gd-hero-copy"><span>{t.eyebrow}</span><h1>{t.hello}, {name}</h1><p>{t.lead}</p></div>
+          <div className="gd-hero-copy">
+            <span className="gd-hero-eyebrow">{t.eyebrow}</span>
+            <h1><span className="gd-hero-greeting">{t.hello},</span><strong className="gd-hero-name">{name}</strong><span className="gd-hero-wave" aria-hidden="true">👋</span></h1>
+            <p>{t.lead}</p>
+          </div>
           <div className="gd-hero-actions"><button type="button" className="gd-button filled" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' })}><Icon name="calendar" size={20} />{t.calendar}</button><button type="button" className="gd-button outlined" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={20} />{loading ? t.refreshing : t.refresh}</button></div>
         </header>
       </section>
