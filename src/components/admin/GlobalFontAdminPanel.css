@@ -7,20 +7,54 @@
 }
 .admin-global-font__head { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; margin-bottom:22px; }
 .admin-global-font__head h2 { margin:4px 0 8px; font-size:24px; color:#1f1f1f; }
-.admin-global-font__head p { margin:0; max-width:760px; color:#5f6368; line-height:1.6; }
+.admin-global-font__head p { margin:0; max-width:820px; color:#5f6368; line-height:1.6; }
 .admin-global-font__status { flex:none; padding:8px 12px; border-radius:999px; background:#fef7e0; color:#7a4f01; font-size:12px; font-weight:700; }
 .admin-global-font__status.is-ready { background:#e6f4ea; color:#137333; }
 .admin-global-font__grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
 .admin-global-font__option { position:relative; min-height:178px; padding:18px; text-align:left; border:1px solid #dadce0; border-radius:20px; background:#fff; color:#202124; cursor:pointer; }
 .admin-global-font__option:hover { background:#f8fafd; border-color:#a8c7fa; }
 .admin-global-font__option.is-selected { background:#edf4ff; border-color:#0b57d0; box-shadow:0 0 0 1px #0b57d0 inset; }
+.admin-global-font__option.is-custom { background:linear-gradient(145deg,#fff 0%,#f8fbff 100%); }
+.admin-global-font__option.is-custom.is-selected { background:linear-gradient(145deg,#edf4ff 0%,#f7fbff 100%); }
 .admin-global-font__radio { position:absolute; top:16px; right:16px; width:18px; height:18px; border:2px solid #747775; border-radius:50%; }
 .admin-global-font__option.is-selected .admin-global-font__radio { border:5px solid #0b57d0; }
 .admin-global-font__sample { display:block; padding-right:30px; margin-bottom:22px; font-family:var(--font-preview-family)!important; font-size:25px; font-weight:600; letter-spacing:-.02em; }
 html[data-global-font] body .admin-global-font__sample { font-family:var(--font-preview-family)!important; }
-.admin-global-font__option strong { display:flex; align-items:center; gap:8px; font-size:15px; }
+.admin-global-font__option strong { display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:15px; }
 .admin-global-font__option strong em { padding:3px 7px; border-radius:999px; background:#d3e3fd; color:#0842a0; font-size:10px; font-style:normal; }
+.admin-global-font__option strong em.is-custom-ready { background:#e6f4ea; color:#137333; }
 .admin-global-font__option small { display:block; margin-top:7px; color:#5f6368; line-height:1.45; }
+
+.admin-global-font__upload {
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) minmax(320px,420px);
+  align-items:center;
+  gap:18px;
+  margin-top:16px;
+  padding:18px 20px;
+  border:1px dashed #b9c2cf;
+  border-radius:20px;
+  background:#fbfcff;
+}
+.admin-global-font__upload.is-active { border-style:solid; border-color:#0b57d0; background:#f6f9ff; box-shadow:0 0 0 1px rgba(11,87,208,.08) inset; }
+.admin-global-font__upload-icon { display:grid; place-items:center; width:52px; height:52px; border-radius:16px; background:#d3e3fd; color:#0842a0; font-size:21px; font-weight:800; letter-spacing:-.04em; }
+.admin-global-font__upload-copy strong { display:block; color:#202124; font-size:15px; }
+.admin-global-font__upload-copy p { margin:5px 0 0; color:#5f6368; font-size:12px; line-height:1.5; }
+.admin-global-font__existing { display:block; margin-top:8px; color:#137333; font-size:12px; }
+.admin-global-font__upload-controls { display:grid; grid-template-columns:minmax(140px,1fr) auto; gap:8px; align-items:end; }
+.admin-global-font__name-field { display:grid; gap:5px; }
+.admin-global-font__name-field span { color:#5f6368; font-size:11px; font-weight:700; }
+.admin-global-font__name-field input { width:100%; min-height:38px; box-sizing:border-box; padding:8px 10px; border:1px solid #c8ccd0; border-radius:10px; outline:none; background:#fff; color:#202124; font:inherit; font-size:13px; }
+.admin-global-font__name-field input:focus { border-color:#0b57d0; box-shadow:0 0 0 2px rgba(11,87,208,.12); }
+.admin-global-font__file-button { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:38px; padding:0 13px; border-radius:10px; background:#0b57d0; color:#fff; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.admin-global-font__file-button:hover { background:#0847ad; }
+.admin-global-font__file-button input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+.admin-global-font__file-button > span { font-size:16px; line-height:1; }
+.admin-global-font__file-state { grid-column:1/-1; min-height:30px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:7px 9px; border-radius:10px; background:#f1f3f4; color:#5f6368; font-size:11px; overflow:hidden; }
+.admin-global-font__file-state.has-file { background:#e8f0fe; color:#174ea6; }
+.admin-global-font__file-state strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; }
+.admin-global-font__file-state small { flex:none; color:inherit; }
+
 .admin-global-font__preview { margin-top:16px; padding:18px 20px; border-radius:18px; background:#f8fafd; border:1px solid #e2e6eb; }
 .admin-global-font__preview span { display:block; margin-bottom:7px; color:#5f6368; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
 .admin-global-font__preview strong { display:block; font-size:20px; }
@@ -30,14 +64,23 @@ html[data-global-font] body .admin-global-font__preview :is(span,strong,p) { fon
 .admin-global-font__message { margin-top:14px; padding:12px 14px; border-radius:14px; background:#fef7e0; color:#7a4f01; font-size:13px; }
 .admin-global-font__message.is-success { background:#e6f4ea; color:#137333; }
 .admin-global-font__actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:18px; }
-.admin-global-font__actions > div { margin-right:auto; display:flex; align-items:center; gap:7px; color:#5f6368; font-size:13px; }
+.admin-global-font__actions > div { margin-right:auto; display:flex; flex-wrap:wrap; align-items:center; gap:7px; color:#5f6368; font-size:13px; }
 .admin-global-font__actions > div strong { color:#1f1f1f; }
 .admin-global-font__actions > div small { color:#137333; font-weight:700; }
+
+@media (max-width:1100px) {
+  .admin-global-font__upload { grid-template-columns:auto 1fr; }
+  .admin-global-font__upload-controls { grid-column:1/-1; }
+}
 @media (max-width:960px) { .admin-global-font__grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width:640px) {
   .admin-global-font { padding:20px; border-radius:22px; }
   .admin-global-font__head { flex-direction:column; }
   .admin-global-font__grid { grid-template-columns:1fr; }
+  .admin-global-font__upload { grid-template-columns:1fr; align-items:start; }
+  .admin-global-font__upload-icon { width:46px; height:46px; }
+  .admin-global-font__upload-controls { grid-column:auto; grid-template-columns:1fr; }
+  .admin-global-font__file-state { grid-column:auto; }
   .admin-global-font__actions { flex-wrap:wrap; justify-content:stretch; }
   .admin-global-font__actions > div { width:100%; }
   .admin-global-font__actions button { flex:1; }
