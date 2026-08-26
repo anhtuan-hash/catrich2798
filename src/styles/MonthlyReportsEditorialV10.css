@@ -1,0 +1,603 @@
+/* Brian Reports — Editorial Warm V10
+   Approved visual direction: warm editorial hero, restrained color cards, compact approved accordion.
+   Presentation only; business/data/save/review behavior remains untouched. */
+
+html body .mr-teacher-shell {
+  --br-ink:#1f2328;
+  --br-muted:#6f716f;
+  --br-line:#e9e3dc;
+  --br-paper:#fffdfa;
+  --br-canvas:#fbfaf8;
+  --br-peach:#f7d7c5;
+  --br-peach-strong:#e86d3d;
+  --br-blue:#2f6fe4;
+  --br-green:#3d9a56;
+  --br-purple:#8a57d7;
+  --br-amber:#d88a08;
+  --br-red:#e34a3d;
+  max-width:none !important;
+  padding:28px clamp(18px,3vw,46px) 46px !important;
+  background:
+    radial-gradient(circle at 12% 4%,rgba(244,211,194,.20),transparent 22rem),
+    linear-gradient(180deg,#fffdfb 0%,#fbfaf8 38%,#f8f8f7 100%) !important;
+  color:var(--br-ink) !important;
+}
+
+/* Keep report canvas elegantly constrained. */
+html body .mr-teacher-shell > :is(.mr-topbar,.mr-hero,.mr-report-meta,.mr-deadline-card,.mr-notice,.mr-revision,.mr-lock,.mr-form-stack,.mr-sticky-actions) {
+  width:min(1380px,100%) !important;
+  max-width:1380px !important;
+}
+
+/* Secondary reports nav: editorial tabs rather than SaaS pills. */
+html body .btp-shell > .btp-switcher--leader {
+  width:min(1480px,calc(100% - 30px)) !important;
+  margin:12px auto 0 !important;
+  padding:7px 10px !important;
+  gap:2px !important;
+  border:1px solid #eee8e1 !important;
+  border-radius:15px !important;
+  background:rgba(255,255,255,.94) !important;
+  box-shadow:0 5px 18px rgba(65,53,43,.045) !important;
+}
+html body .btp-shell > .btp-switcher--leader button {
+  min-height:40px !important;
+  padding:0 14px !important;
+  border-radius:10px !important;
+  color:#77746f !important;
+  font-size:12px !important;
+  font-weight:650 !important;
+  background:transparent !important;
+}
+html body .btp-shell > .btp-switcher--leader button.is-active {
+  color:#bd4e2e !important;
+  background:#fff5ef !important;
+  box-shadow:none !important;
+}
+
+/* Page heading. */
+html body .mr-teacher-shell .mr-topbar {
+  min-height:82px !important;
+  margin:0 auto 18px !important;
+  padding:0 4px !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+html body .mr-teacher-shell .mr-brand { gap:14px !important; }
+html body .mr-teacher-shell .mr-brand > span {
+  width:44px !important;
+  height:44px !important;
+  border:1px solid #eee4da !important;
+  border-radius:13px !important;
+  background:#fffaf5 !important;
+  color:#d05b35 !important;
+  box-shadow:0 2px 8px rgba(102,70,48,.04) !important;
+}
+html body .mr-teacher-shell .mr-brand small {
+  color:#8b8279 !important;
+  font-size:10px !important;
+  font-weight:750 !important;
+  letter-spacing:.17em !important;
+}
+html[data-global-font] body .mr-teacher-shell .mr-brand h1 {
+  margin-top:4px !important;
+  color:#26221f !important;
+  font-family:Georgia,'Times New Roman',serif !important;
+  font-size:clamp(32px,3vw,44px) !important;
+  font-weight:500 !important;
+  line-height:1.02 !important;
+  letter-spacing:-.035em !important;
+}
+html body .mr-teacher-shell .mr-top-actions {
+  gap:11px !important;
+  align-items:center !important;
+}
+html body .mr-teacher-shell .mr-top-actions label {
+  min-width:165px !important;
+  padding:10px 13px !important;
+  border:1px solid #e5dfd7 !important;
+  border-radius:12px !important;
+  background:#fff !important;
+  box-shadow:0 3px 12px rgba(45,35,27,.04) !important;
+}
+html body .mr-teacher-shell .mr-top-actions label > span {
+  color:#90867d !important;
+  font-size:9px !important;
+  letter-spacing:.12em !important;
+  text-transform:uppercase !important;
+}
+html body .mr-teacher-shell .mr-top-actions input,
+html body .mr-teacher-shell .mr-top-actions select {
+  min-height:28px !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  color:#403a35 !important;
+  font-weight:700 !important;
+}
+html body .mr-teacher-shell .mr-status {
+  min-height:34px !important;
+  padding:7px 13px !important;
+  border:1px solid transparent !important;
+  border-radius:10px !important;
+  font-size:11px !important;
+  font-weight:750 !important;
+}
+html body .mr-teacher-shell .mr-status.is-approved { background:#eef8ee !important;color:#39834b !important;border-color:#d6ead9 !important; }
+html body .mr-teacher-shell .mr-status.is-submitted { background:#eef4ff !important;color:#3567b8 !important;border-color:#dae5f8 !important; }
+html body .mr-teacher-shell .mr-status.is-revision { background:#fff1ed !important;color:#bd4d32 !important;border-color:#f4d7ce !important; }
+html body .mr-teacher-shell .mr-status.is-draft { background:#f6f3ef !important;color:#6d675f !important;border-color:#ebe4dc !important; }
+
+/* Warm editorial hero. */
+html body .mr-teacher-shell .mr-hero {
+  position:relative !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 210px !important;
+  gap:28px !important;
+  align-items:center !important;
+  min-height:270px !important;
+  margin:0 auto 18px !important;
+  padding:34px 42px !important;
+  overflow:hidden !important;
+  border:1px solid #eadfd6 !important;
+  border-radius:22px !important;
+  background:
+    radial-gradient(ellipse at 12% 105%,rgba(238,175,139,.30) 0 20%,transparent 20.5%),
+    radial-gradient(ellipse at 106% 0%,rgba(247,194,168,.42) 0 29%,transparent 29.5%),
+    radial-gradient(circle at 83% 86%,rgba(214,183,149,.20),transparent 9rem),
+    linear-gradient(112deg,#fffdf9 0%,#fffaf5 56%,#fae0d2 100%) !important;
+  color:#3a2e28 !important;
+  box-shadow:0 12px 34px rgba(81,58,42,.07) !important;
+}
+html body .mr-teacher-shell .mr-hero::before,
+html body .mr-teacher-shell .mr-hero::after {
+  content:'' !important;
+  position:absolute !important;
+  pointer-events:none !important;
+  border:1px solid rgba(255,255,255,.70) !important;
+  border-radius:50% !important;
+}
+html body .mr-teacher-shell .mr-hero::before {
+  width:440px !important;height:220px !important;right:-110px !important;top:-62px !important;transform:rotate(-9deg) !important;
+}
+html body .mr-teacher-shell .mr-hero::after {
+  width:390px !important;height:160px !important;left:-175px !important;bottom:-88px !important;transform:rotate(8deg) !important;
+}
+html body .mr-teacher-shell .mr-hero > div:first-child {
+  position:relative !important;
+  z-index:2 !important;
+  min-width:0 !important;
+}
+html body .mr-teacher-shell .mr-hero > div:first-child > span {
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  min-height:38px !important;
+  padding:0 13px !important;
+  border:1px solid #e9d9cc !important;
+  border-radius:12px !important;
+  background:rgba(255,255,255,.72) !important;
+  color:#51433a !important;
+  box-shadow:0 3px 12px rgba(87,61,43,.04) !important;
+  font-size:12px !important;
+  font-weight:700 !important;
+}
+html body .mr-teacher-shell .mr-hero > div:first-child > span svg { color:#c3633f !important; }
+html[data-global-font] body .mr-teacher-shell .mr-hero h2 {
+  margin:26px 0 10px !important;
+  color:#56352a !important;
+  font-family:Georgia,'Times New Roman',serif !important;
+  font-size:clamp(52px,5.4vw,78px) !important;
+  font-weight:400 !important;
+  line-height:.94 !important;
+  letter-spacing:-.055em !important;
+}
+html body .mr-teacher-shell .mr-hero p {
+  margin:0 !important;
+  color:#796c62 !important;
+  font-size:14px !important;
+  font-weight:500 !important;
+}
+
+/* Circular completion panel generated from the existing 5-step completion values. */
+html body .mr-teacher-shell .mr-hero > .mr-completion {
+  position:relative !important;
+  z-index:2 !important;
+  display:block !important;
+  width:190px !important;
+  height:190px !important;
+  min-width:190px !important;
+  padding:126px 16px 12px !important;
+  border:1px solid rgba(153,112,87,.19) !important;
+  border-radius:20px !important;
+  background:rgba(255,255,255,.73) !important;
+  box-shadow:0 12px 28px rgba(86,61,44,.10) !important;
+  backdrop-filter:blur(10px) !important;
+  text-align:center !important;
+}
+html body .mr-teacher-shell .mr-hero > .mr-completion::before {
+  content:'' !important;
+  position:absolute !important;
+  left:50% !important;top:19px !important;
+  width:92px !important;height:92px !important;
+  transform:translateX(-50%) !important;
+  border-radius:50% !important;
+  background:conic-gradient(#d36d42 0 100%,#eee4dc 0) !important;
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 9px),#000 0) !important;
+  mask:radial-gradient(farthest-side,transparent calc(100% - 9px),#000 0) !important;
+}
+html body .mr-teacher-shell .mr-hero > .mr-completion:has(.mr-meter i[style*="80%"])::before { background:conic-gradient(#d36d42 0 80%,#eee4dc 80% 100%) !important; }
+html body .mr-teacher-shell .mr-hero > .mr-completion:has(.mr-meter i[style*="60%"])::before { background:conic-gradient(#d36d42 0 60%,#eee4dc 60% 100%) !important; }
+html body .mr-teacher-shell .mr-hero > .mr-completion:has(.mr-meter i[style*="40%"])::before { background:conic-gradient(#d36d42 0 40%,#eee4dc 40% 100%) !important; }
+html body .mr-teacher-shell .mr-hero > .mr-completion:has(.mr-meter i[style*="20%"])::before { background:conic-gradient(#d36d42 0 20%,#eee4dc 20% 100%) !important; }
+html body .mr-teacher-shell .mr-hero > .mr-completion:has(.mr-meter i[style*="0%"])::before { background:#eee4dc !important; }
+html body .mr-teacher-shell .mr-hero > .mr-completion > div:first-child {
+  display:block !important;
+  color:#75665b !important;
+  font-size:10px !important;
+  font-weight:700 !important;
+}
+html body .mr-teacher-shell .mr-hero > .mr-completion > div:first-child > span {
+  display:block !important;
+  margin-top:1px !important;
+  letter-spacing:.02em !important;
+}
+html body .mr-teacher-shell .mr-hero > .mr-completion strong {
+  position:absolute !important;
+  z-index:3 !important;
+  left:50% !important;top:53px !important;
+  transform:translate(-50%,-50%) !important;
+  color:#4c352c !important;
+  font-family:Georgia,'Times New Roman',serif !important;
+  font-size:27px !important;
+  font-weight:600 !important;
+}
+html body .mr-teacher-shell .mr-hero > .mr-completion .mr-meter {
+  position:absolute !important;
+  width:1px !important;height:1px !important;
+  overflow:hidden !important;
+  opacity:0 !important;
+}
+html body .mr-teacher-shell .mr-hero > .mr-completion small {
+  display:block !important;
+  margin-top:5px !important;
+  color:#9a8d83 !important;
+  font-size:9px !important;
+}
+
+/* Four context cards. */
+html body .mr-teacher-shell .mr-report-meta {
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:16px !important;
+  margin:0 auto 18px !important;
+  padding:0 !important;
+  overflow:visible !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+html body .mr-teacher-shell .mr-report-meta > div {
+  position:relative !important;
+  min-height:86px !important;
+  padding:19px 18px 16px 58px !important;
+  border:1px solid #e9e4de !important;
+  border-radius:15px !important;
+  background:rgba(255,255,255,.92) !important;
+  box-shadow:0 5px 16px rgba(57,45,36,.035) !important;
+}
+html body .mr-teacher-shell .mr-report-meta > div::before {
+  content:'' !important;
+  position:absolute !important;
+  left:18px !important;top:21px !important;
+  width:28px !important;height:28px !important;
+  border-radius:50% !important;
+  background:#f7e6dc !important;
+  box-shadow:inset 0 0 0 7px #fff8f4 !important;
+}
+html body .mr-teacher-shell .mr-report-meta > div:nth-child(2)::before { background:#d9eddc !important;box-shadow:inset 0 0 0 7px #f5fbf5 !important; }
+html body .mr-teacher-shell .mr-report-meta > div:nth-child(3)::before { background:#dce8f6 !important;box-shadow:inset 0 0 0 7px #f7faff !important; }
+html body .mr-teacher-shell .mr-report-meta > div:nth-child(4)::before { background:#e9dff5 !important;box-shadow:inset 0 0 0 7px #fbf8ff !important; }
+html body .mr-teacher-shell .mr-report-meta > div + div { border-left:1px solid #e9e4de !important; }
+html body .mr-teacher-shell .mr-report-meta span {
+  display:block !important;
+  margin:0 0 6px !important;
+  color:#91877e !important;
+  font-size:9px !important;
+  font-weight:750 !important;
+  letter-spacing:.12em !important;
+  text-transform:uppercase !important;
+}
+html body .mr-teacher-shell .mr-report-meta strong {
+  color:#39332f !important;
+  font-size:13px !important;
+  font-weight:700 !important;
+  line-height:1.35 !important;
+}
+
+/* Deadline / approval are restrained paired surfaces. */
+html body .mr-teacher-shell .mr-deadline-card,
+html body .mr-teacher-shell .mr-lock,
+html body .mr-teacher-shell .mr-revision,
+html body .mr-teacher-shell .mr-notice {
+  min-height:82px !important;
+  margin-bottom:16px !important;
+  padding:14px 17px !important;
+  border-radius:14px !important;
+  box-shadow:none !important;
+}
+html body .mr-teacher-shell .mr-deadline-card {
+  display:inline-flex !important;
+  width:calc(50% - 10px) !important;
+  margin-right:16px !important;
+  vertical-align:top !important;
+  border:1px solid #f0c7bc !important;
+  background:linear-gradient(90deg,#fff8f5,#fffdfb) !important;
+  color:#9e3d2f !important;
+}
+html body .mr-teacher-shell .mr-lock {
+  display:inline-flex !important;
+  width:calc(50% - 10px) !important;
+  vertical-align:top !important;
+  border:1px solid #c6dfc8 !important;
+  background:linear-gradient(90deg,#f5fbf4,#fbfefa) !important;
+  color:#3f7f4a !important;
+}
+html body .mr-teacher-shell .mr-revision { border:1px solid #f0c7bc !important;background:#fff8f5 !important;color:#a44534 !important; }
+html body .mr-teacher-shell .mr-notice { border:1px solid #e6d6b1 !important;background:#fffaf0 !important;color:#7a5c24 !important; }
+html body .mr-teacher-shell .mr-deadline-icon {
+  width:38px !important;height:38px !important;
+  border-radius:11px !important;
+  background:#ffe9e3 !important;
+  color:#ce4f39 !important;
+}
+html body .mr-teacher-shell .mr-deadline-copy { gap:12px !important; }
+html body .mr-teacher-shell .mr-deadline-copy small,
+html body .mr-teacher-shell .mr-lock b {
+  font-size:10px !important;
+  letter-spacing:.08em !important;
+}
+html body .mr-teacher-shell .mr-deadline-copy strong { color:#9f3427 !important;font-size:13px !important; }
+html body .mr-teacher-shell .mr-deadline-copy p,
+html body .mr-teacher-shell .mr-lock p { margin-top:4px !important;color:inherit !important;opacity:.74 !important;font-size:10.5px !important; }
+html body .mr-teacher-shell .mr-countdown {
+  min-width:118px !important;
+  padding:9px 12px !important;
+  border:1px solid #efd6cf !important;
+  border-radius:11px !important;
+  background:rgba(255,255,255,.74) !important;
+  box-shadow:none !important;
+}
+html body .mr-teacher-shell .mr-countdown small { color:#ad6758 !important;font-size:9px !important; }
+html body .mr-teacher-shell .mr-countdown strong { color:#bd3e2e !important;font-size:12px !important; }
+
+/* Section system: white paper, fine color line, editorial title. */
+html body .mr-teacher-shell .mr-form-stack {
+  clear:both !important;
+  gap:12px !important;
+  margin:2px auto 0 !important;
+}
+html body .mr-teacher-shell .mr-section {
+  position:relative !important;
+  overflow:hidden !important;
+  border:1px solid #e7e3de !important;
+  border-left:4px solid var(--br-blue) !important;
+  border-radius:12px !important;
+  background:#fff !important;
+  box-shadow:0 3px 11px rgba(46,38,31,.035) !important;
+}
+html body .mr-teacher-shell .mr-section:nth-child(2) { border-left-color:var(--br-green) !important; }
+html body .mr-teacher-shell .mr-section:nth-child(3) { border-left-color:var(--br-purple) !important; }
+html body .mr-teacher-shell .mr-section:nth-child(4) { border-left-color:var(--br-amber) !important; }
+html body .mr-teacher-shell .mr-section:nth-child(5) { border-left-color:var(--br-red) !important; }
+html body .mr-teacher-shell .mr-section:hover { box-shadow:0 6px 18px rgba(46,38,31,.055) !important; }
+html body .mr-teacher-shell .mr-section > header {
+  grid-template-columns:48px minmax(0,1fr) auto !important;
+  gap:13px !important;
+  min-height:68px !important;
+  padding:11px 16px !important;
+  border-bottom:1px solid #eee9e3 !important;
+  background:linear-gradient(90deg,#fff,#fdfcfb) !important;
+}
+html body .mr-teacher-shell .mr-section:nth-child(1) > header { background:linear-gradient(90deg,#f7faff,#fff 46%) !important; }
+html body .mr-teacher-shell .mr-section:nth-child(2) > header { background:linear-gradient(90deg,#f7fcf7,#fff 46%) !important; }
+html body .mr-teacher-shell .mr-section:nth-child(3) > header { background:linear-gradient(90deg,#fbf8ff,#fff 46%) !important; }
+html body .mr-teacher-shell .mr-section:nth-child(4) > header { background:linear-gradient(90deg,#fffaf2,#fff 46%) !important; }
+html body .mr-teacher-shell .mr-section:nth-child(5) > header { background:linear-gradient(90deg,#fff7f5,#fff 46%) !important; }
+html body .mr-teacher-shell .mr-section-icon {
+  display:grid !important;
+  place-items:center !important;
+  width:40px !important;height:40px !important;
+  border:1px solid #d9e5fb !important;
+  border-radius:11px !important;
+  background:#f4f8ff !important;
+  color:var(--br-blue) !important;
+}
+html body .mr-teacher-shell .mr-section:nth-child(2) .mr-section-icon { border-color:#d9eadc !important;background:#f3faf4 !important;color:var(--br-green) !important; }
+html body .mr-teacher-shell .mr-section:nth-child(3) .mr-section-icon { border-color:#e5d8f6 !important;background:#faf5ff !important;color:var(--br-purple) !important; }
+html body .mr-teacher-shell .mr-section:nth-child(4) .mr-section-icon { border-color:#f4dfb7 !important;background:#fff9ee !important;color:var(--br-amber) !important; }
+html body .mr-teacher-shell .mr-section:nth-child(5) .mr-section-icon { border-color:#f3d5d0 !important;background:#fff6f4 !important;color:var(--br-red) !important; }
+html body .mr-teacher-shell .mr-section > header small {
+  display:inline-block !important;
+  margin:0 9px 0 0 !important;
+  color:#7f7770 !important;
+  font-size:10px !important;
+  font-weight:800 !important;
+  letter-spacing:.08em !important;
+}
+html[data-global-font] body .mr-teacher-shell .mr-section > header h2 {
+  display:inline !important;
+  margin:0 !important;
+  color:#2b2927 !important;
+  font-family:Georgia,'Times New Roman',serif !important;
+  font-size:19px !important;
+  font-weight:600 !important;
+  letter-spacing:-.015em !important;
+}
+html body .mr-teacher-shell .mr-section > header p {
+  margin:4px 0 0 !important;
+  color:#868078 !important;
+  font-size:10.5px !important;
+}
+html body .mr-teacher-shell .mr-section-check { width:18px !important;height:18px !important;color:#459557 !important; }
+html body .mr-teacher-shell .mr-section-body {
+  padding:16px 18px !important;
+  background:#fff !important;
+}
+
+/* Approved/submitted reports behave like the approved mockup: compact locked summary. */
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section-body,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section-body {
+  display:none !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header {
+  min-height:58px !important;
+  border-bottom:0 !important;
+  padding:8px 15px !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header p,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header p {
+  display:none !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section-check,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section-check {
+  width:28px !important;height:28px !important;
+  padding:6px !important;
+  border:1px solid #e1ddd8 !important;
+  border-radius:50% !important;
+  background:#fff !important;
+  color:#77726c !important;
+}
+
+/* Form controls: paper-like, not AI-looking oversized fields. */
+html body .mr-teacher-shell .mr-field { gap:7px !important; }
+html body .mr-teacher-shell .mr-field > span { color:#5d5751 !important;font-size:11px !important;font-weight:700 !important; }
+html body .mr-teacher-shell :is(input,select,textarea) {
+  border:1px solid #ddd8d2 !important;
+  border-radius:9px !important;
+  background:#fff !important;
+  color:#34312e !important;
+  box-shadow:inset 0 1px 1px rgba(55,43,34,.02) !important;
+}
+html body .mr-teacher-shell textarea { padding:12px 13px !important;line-height:1.62 !important; }
+html body .mr-teacher-shell :is(input,select,textarea):focus {
+  border-color:#c7886d !important;
+  box-shadow:0 0 0 3px rgba(199,136,109,.11) !important;
+}
+html body .mr-teacher-shell :is(input,select,textarea):disabled { background:#faf9f7 !important;color:#64605b !important; }
+
+/* Professional statistics becomes a calm paper table. */
+html body .mr-teacher-shell .mr-number-table-wrap {
+  overflow:hidden !important;
+  border:1px solid #e6e1db !important;
+  border-radius:10px !important;
+  background:#fff !important;
+}
+html body .mr-teacher-shell .mr-number-table th {
+  padding:10px 13px !important;
+  background:#faf8f5 !important;
+  color:#827a72 !important;
+  font-size:10px !important;
+  font-weight:800 !important;
+  letter-spacing:.04em !important;
+}
+html body .mr-teacher-shell .mr-number-table td { padding:9px 13px !important;border-color:#eeeae5 !important;color:#4b4641 !important; }
+html body .mr-teacher-shell .mr-number-table input { min-height:31px !important;border-radius:8px !important;background:#fbfaf8 !important; }
+html body .mr-teacher-shell .mr-table-confirm,
+html body .mr-teacher-shell .mr-confirm {
+  margin-top:10px !important;
+  padding:9px 11px !important;
+  border:1px solid #ece7e2 !important;
+  border-radius:9px !important;
+  background:#faf9f7 !important;
+  color:#77716a !important;
+  font-size:10.5px !important;
+}
+
+/* Bottom actions: part of the page, not a floating AI panel. */
+html body .mr-teacher-shell .mr-sticky-actions {
+  position:relative !important;
+  left:auto !important;
+  bottom:auto !important;
+  transform:none !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:16px !important;
+  margin:20px auto 0 !important;
+  padding:15px 18px !important;
+  border:1px solid #e5e0da !important;
+  border-radius:14px !important;
+  background:#fff !important;
+  box-shadow:0 8px 26px rgba(56,44,35,.07) !important;
+  backdrop-filter:none !important;
+}
+html body .mr-teacher-shell .mr-sticky-actions > div:first-child { display:none !important; }
+html body .mr-teacher-shell .mr-action-buttons { gap:10px !important; }
+html body .mr-teacher-shell .mr-action-buttons button {
+  min-width:160px !important;
+  min-height:44px !important;
+  padding:0 18px !important;
+  border:1px solid #ded8d1 !important;
+  border-radius:10px !important;
+  background:#fff !important;
+  color:#4d4945 !important;
+  box-shadow:none !important;
+  font-weight:700 !important;
+}
+html body .mr-teacher-shell .mr-action-buttons .is-primary {
+  min-width:180px !important;
+  border-color:#dd5e37 !important;
+  background:linear-gradient(180deg,#eb7047,#db5833) !important;
+  color:#fff !important;
+}
+html body .mr-teacher-shell .mr-action-buttons button:disabled { opacity:.42 !important; }
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-sticky-actions::after,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-sticky-actions::after {
+  content:'Dữ liệu đã khóa · Báo cáo đã được gửi/duyệt' !important;
+  margin-left:auto !important;
+  color:#817970 !important;
+  font-size:11px !important;
+  font-weight:650 !important;
+}
+
+/* Modals inherit the editorial language. */
+html body .mr-teacher-shell .mr-modal,
+html body .mr-modal {
+  border:1px solid #e7e0d9 !important;
+  border-radius:18px !important;
+  box-shadow:0 34px 80px rgba(52,40,31,.22) !important;
+}
+html body .mr-modal > header { border-bottom:1px solid #eee8e2 !important;background:rgba(255,253,250,.96) !important; }
+html[data-global-font] body .mr-modal > header h2 { font-family:Georgia,'Times New Roman',serif !important;font-weight:600 !important; }
+
+@media (max-width:980px) {
+  html body .mr-teacher-shell .mr-hero { grid-template-columns:1fr 170px !important;padding:28px !important; }
+  html body .mr-teacher-shell .mr-hero > .mr-completion { width:165px !important;min-width:165px !important; }
+  html body .mr-teacher-shell .mr-report-meta { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+  html body .mr-teacher-shell .mr-deadline-card,
+  html body .mr-teacher-shell .mr-lock { display:flex !important;width:100% !important;margin-right:0 !important; }
+}
+
+@media (max-width:680px) {
+  html body .mr-teacher-shell { padding:18px 12px 30px !important; }
+  html body .mr-teacher-shell .mr-topbar { align-items:flex-start !important; }
+  html body .mr-teacher-shell .mr-top-actions { width:100% !important; }
+  html body .mr-teacher-shell .mr-top-actions label { flex:1 1 140px !important; }
+  html body .mr-teacher-shell .mr-hero { grid-template-columns:1fr !important;min-height:0 !important;padding:24px 20px !important; }
+  html body .mr-teacher-shell .mr-hero > .mr-completion { width:100% !important;height:136px !important;min-width:0 !important;padding:92px 12px 8px !important; }
+  html body .mr-teacher-shell .mr-hero > .mr-completion::before { width:66px !important;height:66px !important;top:14px !important; }
+  html body .mr-teacher-shell .mr-hero > .mr-completion strong { top:47px !important;font-size:21px !important; }
+  html[data-global-font] body .mr-teacher-shell .mr-hero h2 { font-size:46px !important; }
+  html body .mr-teacher-shell .mr-report-meta { grid-template-columns:1fr !important;gap:9px !important; }
+  html body .mr-teacher-shell .mr-section > header { grid-template-columns:42px minmax(0,1fr) auto !important;padding:10px 12px !important; }
+  html[data-global-font] body .mr-teacher-shell .mr-section > header h2 { font-size:16px !important; }
+  html body .mr-teacher-shell .mr-sticky-actions { padding:12px !important; }
+  html body .mr-teacher-shell .mr-action-buttons { width:100% !important;display:grid !important;grid-template-columns:1fr !important; }
+  html body .mr-teacher-shell .mr-action-buttons button { width:100% !important;min-width:0 !important; }
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-sticky-actions::after,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-sticky-actions::after { display:none !important; }
+}
