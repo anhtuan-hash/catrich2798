@@ -19,9 +19,10 @@ import '../styles/HomeHeroCmsEditorInteractionFix.css';
 import '../homePracticeScheduleScroller.js';
 
 // Import HomeApproved before the final Editorial layers so all legacy Home
-// styles resolve first. V2 is the final route-level visual authority.
+// styles resolve first. V3 is the final Home presentation authority.
 import HomeApproved from './HomeApproved.jsx';
 import '../styles/HomeEditorialWarmV1.css';
 import '../styles/HomeEditorialWarmV2.css';
+import '../styles/HomeEditorialWarmV3.css';
 
 export default HomeApproved;
