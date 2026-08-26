@@ -38,3 +38,19 @@
   clip-path: none !important;
   opacity: 0 !important;
 }
+
+/* Monthly report: keep the primary actions close to the overview instead of at page end. */
+.mr-teacher-shell {
+  display: flex !important;
+  flex-direction: column !important;
+}
+.mr-teacher-shell > .mr-topbar { order: 1; }
+.mr-teacher-shell > .mr-hero { order: 2; }
+.mr-teacher-shell > .mr-report-meta { order: 3; }
+.mr-teacher-shell > .mr-sticky-actions { order: 4; }
+.mr-teacher-shell > .mr-deadline-card { order: 5; }
+.mr-teacher-shell > .mr-notice,
+.mr-teacher-shell > .mr-revision,
+.mr-teacher-shell > .mr-lock { order: 6; }
+.mr-teacher-shell > .mr-form-stack { order: 7; }
+.mr-teacher-shell > .mr-modal-layer { order: 20; }
