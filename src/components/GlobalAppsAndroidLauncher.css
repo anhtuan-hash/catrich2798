@@ -221,11 +221,9 @@ body .metro-clean-system[data-route='apps'] .flat-app-window-launch {
   color: #202124 !important;
   text-align: center !important;
   box-shadow: none !important;
-  transition: background-color .18s ease, transform .18s ease !important;
 }
 body .metro-clean-system[data-route='apps'] .flat-app-window-launch:hover {
   background: rgba(232,240,254,.72) !important;
-  transform: translateY(-3px) !important;
 }
 body .metro-clean-system[data-route='apps'] .flat-app-window-chrome,
 body .metro-clean-system[data-route='apps'] .flat-app-window-cta,
@@ -260,10 +258,8 @@ body .metro-clean-system[data-route='apps'] .flat-app-window-art {
   background: linear-gradient(145deg, color-mix(in srgb,var(--app-accent,#1a73e8) 88%,#fff), var(--app-accent,#1a73e8)) !important;
   color: #fff !important;
   box-shadow: 0 8px 18px color-mix(in srgb,var(--app-accent,#1a73e8) 28%,transparent), inset 0 1px 0 rgba(255,255,255,.28) !important;
-  transition: transform .18s ease, box-shadow .18s ease !important;
 }
 body .metro-clean-system[data-route='apps'] .flat-app-window-launch:hover .flat-app-window-art {
-  transform: scale(1.06) !important;
   box-shadow: 0 12px 26px color-mix(in srgb,var(--app-accent,#1a73e8) 36%,transparent), inset 0 1px 0 rgba(255,255,255,.32) !important;
 }
 body .metro-clean-system[data-route='apps'] .flat-app-window-art svg,
