@@ -1,7 +1,8 @@
 /* Brian Global Motion System
-   Loaded AFTER v1159's hard motion-off contract.
-   Admin selects one preset through html[data-motion-mode].
-   Only opacity, individual translate/scale and visual transitions are animated to avoid layout jank. */
+   Loaded after v1159.css. The v1159 retirement layer intentionally uses two
+   fake IDs plus !important, so every re-enabled motion selector below carries
+   three fake IDs in :not(...) to win the cascade without re-enabling motion
+   universally. */
 
 html[data-motion-mode] {
   --gm-fast: 0ms;
@@ -15,37 +16,36 @@ html[data-motion-mode] {
 }
 
 html[data-motion-mode="subtle"] {
-  --gm-fast: 90ms;
-  --gm-base: 150ms;
-  --gm-slow: 220ms;
-  --gm-distance: 3px;
+  --gm-fast: 110ms;
+  --gm-base: 170ms;
+  --gm-slow: 240ms;
+  --gm-distance: 6px;
   --gm-scale-press: .992;
-  --gm-scale-enter: .995;
+  --gm-scale-enter: .994;
 }
 
 html[data-motion-mode="balanced"] {
-  --gm-fast: 120ms;
-  --gm-base: 210ms;
-  --gm-slow: 320ms;
-  --gm-distance: 7px;
-  --gm-scale-press: .975;
+  --gm-fast: 130ms;
+  --gm-base: 230ms;
+  --gm-slow: 360ms;
+  --gm-distance: 14px;
+  --gm-scale-press: .978;
   --gm-scale-enter: .985;
 }
 
 html[data-motion-mode="expressive"] {
-  --gm-fast: 150ms;
-  --gm-base: 280ms;
-  --gm-slow: 420ms;
-  --gm-distance: 12px;
-  --gm-scale-press: .955;
-  --gm-scale-enter: .97;
+  --gm-fast: 160ms;
+  --gm-base: 300ms;
+  --gm-slow: 460ms;
+  --gm-distance: 20px;
+  --gm-scale-press: .96;
+  --gm-scale-enter: .972;
   --gm-ease: cubic-bezier(.16, 1, .3, 1);
   --gm-ease-emphasized: cubic-bezier(.16, 1, .3, 1);
 }
 
-/* Re-enable transitions only while a motion preset is active. This selector intentionally
-   outranks the global v1159 html * rule without restoring expensive universal animation. */
-html[data-motion-enabled="true"] :is(
+/* Controls/cards: re-enable only cheap paint/compositor properties. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
   button,
   [role="button"],
   a,
@@ -64,8 +64,7 @@ html[data-motion-enabled="true"] :is(
   [class*="card"],
   [class*="tile"],
   [class*="panel"],
-  [class*="surface"],
-  [class*="row"]
+  [class*="surface"]
 ) {
   transition-property: background-color, color, border-color, box-shadow, opacity, outline-color, scale, translate !important;
   transition-duration: var(--gm-base) !important;
@@ -73,12 +72,11 @@ html[data-motion-enabled="true"] :is(
   transition-delay: 0ms !important;
 }
 
-html[data-motion-enabled="true"] :is(input, textarea, select) {
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(input, textarea, select) {
   transition-duration: var(--gm-fast) !important;
 }
 
-/* Press feedback. Individual scale preserves existing transform-based positioning. */
-html[data-motion-enabled="true"] :is(
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
   button,
   [role="button"],
   a[class],
@@ -88,8 +86,8 @@ html[data-motion-enabled="true"] :is(
   scale: var(--gm-scale-press) !important;
 }
 
-/* Fixed top navigation keeps exact geometry. It only receives color/background transitions. */
-html[data-motion-enabled="true"] :is(
+/* Navigation keeps exact geometry. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
   .brian-nav__primary,
   .brian-nav__inner,
   .brian-nav__brand,
@@ -101,48 +99,25 @@ html[data-motion-enabled="true"] :is(
   translate: none !important;
 }
 
-html[data-motion-enabled="true"] .brian-nav__primary :is(button, a):active {
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c).brian-nav__primary :is(button, a):active {
   scale: 1 !important;
 }
 
-/* Route/page entrance. #bes-main-content is keyed by route in main.jsx, so this replays on navigation. */
-html[data-motion-enabled="true"] #bes-main-content {
-  animation-name: gm-page-enter !important;
-  animation-duration: var(--gm-slow) !important;
-  animation-timing-function: var(--gm-ease-emphasized) !important;
-  animation-delay: 0ms !important;
-  animation-fill-mode: both !important;
+/* Full route entrance.
+   #bes-main-content is keyed by currentRoute:selectedTool in main.jsx, so a new
+   DOM node is mounted on Home / Apps / Homeroom / Dashboard / other route changes.
+   This selector deliberately outranks v1159's motion-off contract. */
+html[data-motion-enabled="true"] body #bes-main-content:not(#gm-override-a#gm-override-b#gm-override-c),
+html[data-motion-enabled="true"] body [data-bes-main-content]:not(#gm-override-a#gm-override-b#gm-override-c)[data-global-page-enter="true"] {
+  animation: gm-page-enter var(--gm-slow) var(--gm-ease-emphasized) both !important;
   animation-iteration-count: 1 !important;
+  will-change: opacity, translate, scale !important;
 }
 
 @keyframes gm-page-enter {
-  from { opacity: .01; translate: 0 var(--gm-distance); }
-  to { opacity: 1; translate: 0 0; }
-}
-
-/* Tab content entrance. The runtime marks only the panel that becomes active.
-   Horizontal movement makes a tab switch feel different from a full page navigation. */
-html[data-motion-enabled="true"] :is(
-  [role="tabpanel"],
-  [data-tab-panel],
-  .tab-panel,
-  .tab-content,
-  [class*="tab-panel"],
-  [class*="tab-content"]
-)[data-global-tab-enter="true"] {
-  animation-name: gm-tab-enter !important;
-  animation-duration: var(--gm-slow) !important;
-  animation-timing-function: var(--gm-ease-emphasized) !important;
-  animation-delay: 0ms !important;
-  animation-fill-mode: both !important;
-  animation-iteration-count: 1 !important;
-  will-change: opacity, translate, scale;
-}
-
-@keyframes gm-tab-enter {
   from {
     opacity: .01;
-    translate: calc(var(--gm-distance) * .85) 0;
+    translate: 0 var(--gm-distance);
     scale: var(--gm-scale-enter);
   }
   to {
@@ -152,8 +127,34 @@ html[data-motion-enabled="true"] :is(
   }
 }
 
-/* Active tab controls also get a short state transition without changing their geometry. */
-html[data-motion-enabled="true"] :is(
+/* Active tab panel entrance. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
+  [role="tabpanel"],
+  [data-tab-panel],
+  .tab-panel,
+  .tab-content,
+  [class*="tab-panel"],
+  [class*="tab-content"]
+)[data-global-tab-enter="true"] {
+  animation: gm-tab-enter var(--gm-slow) var(--gm-ease-emphasized) both !important;
+  animation-iteration-count: 1 !important;
+  will-change: opacity, translate, scale !important;
+}
+
+@keyframes gm-tab-enter {
+  from {
+    opacity: .01;
+    translate: calc(var(--gm-distance) * .75) 0;
+    scale: var(--gm-scale-enter);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
   [role="tab"],
   [data-tab],
   .tab-button,
@@ -166,17 +167,14 @@ html[data-motion-enabled="true"] :is(
   transition-timing-function: var(--gm-ease) !important;
 }
 
-/* Dialogs and modal surfaces. */
-html[data-motion-enabled="true"] :is(
+/* Dialogs/modals. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
   [role="dialog"],
   dialog,
   [class*="modal"],
   [class*="dialog"]
 )[data-global-motion-enter="true"] {
-  animation-name: gm-dialog-enter !important;
-  animation-duration: var(--gm-slow) !important;
-  animation-timing-function: var(--gm-ease-emphasized) !important;
-  animation-fill-mode: both !important;
+  animation: gm-dialog-enter var(--gm-slow) var(--gm-ease-emphasized) both !important;
   animation-iteration-count: 1 !important;
 }
 
@@ -185,15 +183,12 @@ html[data-motion-enabled="true"] :is(
   to { opacity: 1; translate: 0 0; scale: 1; }
 }
 
-/* Drawers/sheets use a short horizontal entrance without overriding transform positioning. */
-html[data-motion-enabled="true"] :is(
+/* Drawers/sheets. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
   [class*="drawer"],
   [class*="sheet"]
 )[data-global-motion-enter="true"] {
-  animation-name: gm-drawer-enter !important;
-  animation-duration: var(--gm-slow) !important;
-  animation-timing-function: var(--gm-ease-emphasized) !important;
-  animation-fill-mode: both !important;
+  animation: gm-drawer-enter var(--gm-slow) var(--gm-ease-emphasized) both !important;
   animation-iteration-count: 1 !important;
 }
 
@@ -202,35 +197,29 @@ html[data-motion-enabled="true"] :is(
   to { opacity: 1; translate: 0 0; }
 }
 
-/* Menus, popovers and listboxes. */
-html[data-motion-enabled="true"] :is(
+/* Menus/popovers/listboxes. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
   [role="menu"],
   [role="listbox"],
   [class*="popover"],
   [class*="dropdown"]
 )[data-global-motion-enter="true"] {
-  animation-name: gm-menu-enter !important;
-  animation-duration: var(--gm-base) !important;
-  animation-timing-function: var(--gm-ease-emphasized) !important;
-  animation-fill-mode: both !important;
+  animation: gm-menu-enter var(--gm-base) var(--gm-ease-emphasized) both !important;
   animation-iteration-count: 1 !important;
 }
 
 @keyframes gm-menu-enter {
-  from { opacity: .01; translate: 0 calc(var(--gm-distance) * -.65); scale: var(--gm-scale-enter); }
+  from { opacity: .01; translate: 0 calc(var(--gm-distance) * -.55); scale: var(--gm-scale-enter); }
   to { opacity: 1; translate: 0 0; scale: 1; }
 }
 
 /* Toasts/snackbars/tooltips. */
-html[data-motion-enabled="true"] :is(
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
   [role="tooltip"],
   [class*="toast"],
   [class*="snackbar"]
 )[data-global-motion-enter="true"] {
-  animation-name: gm-toast-enter !important;
-  animation-duration: var(--gm-base) !important;
-  animation-timing-function: var(--gm-ease-emphasized) !important;
-  animation-fill-mode: both !important;
+  animation: gm-toast-enter var(--gm-base) var(--gm-ease-emphasized) both !important;
   animation-iteration-count: 1 !important;
 }
 
@@ -239,16 +228,13 @@ html[data-motion-enabled="true"] :is(
   to { opacity: 1; translate: 0 0; }
 }
 
-/* Backdrops fade instead of moving. */
-html[data-motion-enabled="true"] :is(
+/* Backdrops fade only. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
   [class*="backdrop"],
   [class*="overlay"],
   [class*="scrim"]
 )[data-global-motion-enter="true"] {
-  animation-name: gm-fade-in !important;
-  animation-duration: var(--gm-base) !important;
-  animation-timing-function: linear !important;
-  animation-fill-mode: both !important;
+  animation: gm-fade-in var(--gm-base) linear both !important;
   animation-iteration-count: 1 !important;
 }
 
@@ -257,36 +243,28 @@ html[data-motion-enabled="true"] :is(
   to { opacity: 1; }
 }
 
-/* Table/list interaction is motion-aware without changing layout. */
-html[data-motion-enabled="true"] :is(tbody tr, [role="row"], [class*="list-item"]) {
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(tbody tr, [role="row"], [class*="list-item"]) {
   transition-property: background-color, color, border-color, box-shadow, opacity !important;
   transition-duration: var(--gm-fast) !important;
   transition-timing-function: var(--gm-ease) !important;
 }
 
-/* Focus feedback remains accessible and never depends on motion alone. */
-html[data-motion-enabled="true"] :is(button, a, input, textarea, select, [tabindex]):focus-visible {
-  transition-duration: var(--gm-fast) !important;
-}
-
-/* Native smooth scrolling is only restored for active presets. */
 html[data-motion-enabled="true"],
 html[data-motion-enabled="true"] body,
-html[data-motion-enabled="true"] :is(.page, main, [class*="scroll"]) {
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(.page, main, [class*="scroll"]) {
   scroll-behavior: smooth !important;
 }
 
-/* Accessibility always wins over the Admin preset. */
+/* Accessibility remains authoritative. */
 @media (prefers-reduced-motion: reduce) {
-  html[data-motion-enabled="true"] *,
-  html[data-motion-enabled="true"] *::before,
-  html[data-motion-enabled="true"] *::after {
+  html[data-motion-enabled="true"] body :not(#gm-reduce-a#gm-reduce-b#gm-reduce-c),
+  html[data-motion-enabled="true"] body :not(#gm-reduce-a#gm-reduce-b#gm-reduce-c)::before,
+  html[data-motion-enabled="true"] body :not(#gm-reduce-a#gm-reduce-b#gm-reduce-c)::after {
     animation: none !important;
-    animation-duration: 0s !important;
     transition: none !important;
-    transition-duration: 0s !important;
     scroll-behavior: auto !important;
     translate: none !important;
     scale: 1 !important;
+    will-change: auto !important;
   }
 }
