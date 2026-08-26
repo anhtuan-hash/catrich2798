@@ -9,13 +9,14 @@ import {
 } from '../utils/dashboardAggregator.js';
 import '../styles/teacher-dashboard-google-authentic.css';
 import '../styles/teacher-dashboard-calendar-split.css';
+import '../styles/teacher-dashboard-compact-layout.css';
 import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
 
 const COPY = {
   vi: {
     pageTitle: 'Dashboard', hello: 'Xin chào', teacher: 'Giáo viên', leader: 'Tổ trưởng',
     eyebrow: 'Tổng quan hôm nay', lead: 'Theo dõi lịch làm việc và tin tức quan trọng trong một Dashboard gọn gàng.',
-    calendar: 'Lịch làm việc 14 ngày', calendarSummary: 'Công việc và sự kiện sắp tới · Không hiển thị tiết dạy',
+    calendar: 'Lịch làm việc tuần này', calendarSummary: '7 ngày gần nhất · Không hiển thị tiết dạy',
     openCalendar: 'Mở lịch đầy đủ', refresh: 'Làm mới', refreshing: 'Đang đồng bộ…',
     upcomingEvents: 'Sự kiện sắp tới', activeDays: 'Ngày có lịch',
     nextEvent: 'Sự kiện gần nhất', noUpcoming: 'Chưa có sự kiện sắp tới', selectedDay: 'Công việc trong ngày',
@@ -29,7 +30,7 @@ const COPY = {
   en: {
     pageTitle: 'Dashboard', hello: 'Hello', teacher: 'Teacher', leader: 'Team leader',
     eyebrow: 'Today overview', lead: 'Keep your work calendar and important news together in a clean Dashboard.',
-    calendar: '14-day work calendar', calendarSummary: 'Upcoming work and events · Teaching periods are hidden',
+    calendar: 'This week', calendarSummary: 'Next 7 days · Teaching periods are hidden',
     openCalendar: 'Open full calendar', refresh: 'Refresh', refreshing: 'Syncing…',
     upcomingEvents: 'Upcoming events', activeDays: 'Scheduled days',
     nextEvent: 'Next event', noUpcoming: 'No upcoming events', selectedDay: 'Work for this day',
@@ -131,7 +132,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   }, [refresh]);
 
   const timeline = useMemo(() => (snapshot.timeline || []).filter((item) => !isTeachingPeriod(item)).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()), [snapshot.timeline]);
-  const calendarDays = useMemo(() => Array.from({ length: 14 }, (_, index) => {
+  const calendarDays = useMemo(() => Array.from({ length: 7 }, (_, index) => {
     const date = new Date(); date.setHours(0, 0, 0, 0); date.setDate(date.getDate() + index);
     const key = dateKey(date); return { date, key, events: timeline.filter((item) => dateKey(item.date) === key) };
   }), [timeline]);
@@ -143,7 +144,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const todayKey = dateKey(new Date());
   const selectedWeekday = selectedCalendarDay ? new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(selectedCalendarDay.date) : '';
   const selectedDate = selectedCalendarDay ? new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'long', year: 'numeric' }).format(selectedCalendarDay.date) : '';
-  const monthRange = calendarDays.length ? `${new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(calendarDays[0].date)} — ${new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(calendarDays[calendarDays.length - 1].date)}` : '';
+  const calendarRange = calendarDays.length ? `${new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short' }).format(calendarDays[0].date)} — ${new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', year: 'numeric' }).format(calendarDays[calendarDays.length - 1].date)}` : '';
   const initialLoading = loading && !snapshot.generatedAt;
   const nextEvent = timeline.find((item) => new Date(item.date).getTime() >= Date.now()) || timeline[0] || null;
   const quickActions = [
@@ -153,20 +154,25 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
 
   return <section className={`gd-page${initialLoading ? ' is-loading' : ''}`} aria-label={t.pageTitle} aria-busy={loading}>
     <div className="gd-shell">
-      <header className="gd-hero"><div className="gd-hero-copy"><span>{t.eyebrow}</span><h1>{t.hello}, {name}</h1><p>{t.lead}</p></div><div className="gd-hero-actions"><button type="button" className="gd-button filled" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' })}><Icon name="calendar" size={20} />{t.calendar}</button><button type="button" className="gd-button outlined" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={20} />{loading ? t.refreshing : t.refresh}</button></div></header>
-      {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
-      <section className="gd-metrics" aria-label={t.eyebrow}>
-        <Metric icon="event" label={t.upcomingEvents} value={timeline.length} detail={`${activeDays} ${t.activeDays.toLowerCase()}`} tone="blue" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' })} />
-        <Metric icon="calendar" label={t.activeDays} value={activeDays} detail={monthRange} tone="green" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' })} />
+      <section className="gd-top-grid">
+        <header className="gd-hero">
+          <div className="gd-hero-copy"><span>{t.eyebrow}</span><h1>{t.hello}, {name}</h1><p>{t.lead}</p></div>
+          <div className="gd-hero-actions"><button type="button" className="gd-button filled" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' })}><Icon name="calendar" size={20} />{t.calendar}</button><button type="button" className="gd-button outlined" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={20} />{loading ? t.refreshing : t.refresh}</button></div>
+        </header>
+        <section className="gd-metrics" aria-label={t.eyebrow}>
+          <Metric icon="event" label={t.upcomingEvents} value={timeline.length} detail={`${activeDays} ${t.activeDays.toLowerCase()}`} tone="blue" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' })} />
+          <Metric icon="calendar" label={t.activeDays} value={activeDays} detail={calendarRange} tone="green" onClick={() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' })} />
+        </section>
       </section>
+      {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
       <article className="gd-calendar gd-calendar-split" id="dashboard-calendar">
         <header className="gd-calendar-header"><div className="gd-calendar-title"><span><Icon name="calendar" size={22} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div><button type="button" className="gd-text-button" onClick={() => openTtcm('schedule')}>{t.openCalendar}<Icon name="arrow" size={18} /></button></header>
         <div className="gd-calendar-layout">
           <aside className="gd-calendar-sidebar" aria-label={t.chooseDate}>
-            <div className="gd-calendar-side-head"><div><span>{t.chooseDate}</span><strong>{monthRange}</strong></div><span className="gd-count-chip">{timeline.length} {t.events}</span></div>
+            <div className="gd-calendar-side-head"><div><span>{t.chooseDate}</span><strong>{calendarRange}</strong></div><span className="gd-count-chip">{timeline.length} {t.events}</span></div>
             <div className="gd-calendar-days-grid">{calendarDays.map((day) => {
               const selected = selectedDay === day.key; const today = todayKey === day.key;
-              return <button type="button" key={day.key} className={`gd-day-card${selected ? ' is-selected' : ''}${today ? ' is-today' : ''}${day.events.length ? ' has-events' : ''}`} onClick={() => setSelectedDay(day.key)} aria-pressed={selected}><span className="gd-day-number">{day.date.getDate()}</span><span className="gd-day-info"><strong>{new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day.date)}</strong><small>{new Intl.DateTimeFormat(locale, { month: 'short' }).format(day.date)}</small></span><span className="gd-day-event-count">{today ? t.today : day.events.length ? day.events.length : '—'}</span></button>;
+              return <button type="button" key={day.key} className={`gd-day-card${selected ? ' is-selected' : ''}${today ? ' is-today' : ''}${day.events.length ? ' has-events' : ''}`} onClick={() => setSelectedDay(day.key)} aria-pressed={selected}><span className="gd-day-info"><strong>{new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day.date)}</strong><small>{new Intl.DateTimeFormat(locale, { month: 'short' }).format(day.date)}</small></span><span className="gd-day-number">{day.date.getDate()}</span><span className="gd-day-event-count">{today ? t.today : day.events.length ? day.events.length : '—'}</span></button>;
             })}</div>
             <div className="gd-calendar-next-event"><span><Icon name="event" size={18} /></span><div><small>{t.nextEvent}</small><strong>{nextEvent?.title || t.noUpcoming}</strong></div></div>
           </aside>
