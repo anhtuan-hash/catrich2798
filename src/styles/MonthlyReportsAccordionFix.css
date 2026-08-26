@@ -1,0 +1,75 @@
+/* Monthly reports: locked reports can be reopened section-by-section for review. */
+html body .mr-teacher-shell .mr-section-controls {
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:8px !important;
+}
+
+html body .mr-teacher-shell .mr-section-toggle {
+  display:grid !important;
+  place-items:center !important;
+  width:30px !important;
+  min-width:30px !important;
+  height:30px !important;
+  min-height:30px !important;
+  padding:0 !important;
+  border:1px solid #ded8d2 !important;
+  border-radius:999px !important;
+  background:#fff !important;
+  color:#6e675f !important;
+  box-shadow:0 1px 3px rgba(58,45,35,.04) !important;
+  cursor:pointer !important;
+}
+
+html body .mr-teacher-shell .mr-section-toggle span {
+  display:block !important;
+  margin-top:-3px !important;
+  font:700 18px/1 Georgia,'Times New Roman',serif !important;
+}
+
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded .mr-section-body,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded .mr-section-body {
+  display:block !important;
+}
+
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded > header,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded > header {
+  min-height:68px !important;
+  padding:11px 16px !important;
+  border-bottom:1px solid #eee9e3 !important;
+}
+
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded > header p,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded > header p {
+  display:block !important;
+}
+
+html body .mr-teacher-shell .mr-section.is-expanded .mr-section-toggle span {
+  transform:rotate(180deg) !important;
+  margin-top:3px !important;
+}
+
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded {
+  box-shadow:0 8px 24px rgba(46,38,31,.065) !important;
+}
+
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded .mr-section-check,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded .mr-section-check {
+  width:22px !important;
+  height:22px !important;
+  padding:3px !important;
+  border-color:#d8e8d9 !important;
+  color:#459557 !important;
+}
+
+@media (max-width:680px) {
+  html body .mr-teacher-shell .mr-section-controls { gap:5px !important; }
+  html body .mr-teacher-shell .mr-section-toggle {
+    width:28px !important;
+    min-width:28px !important;
+    height:28px !important;
+    min-height:28px !important;
+  }
+}
