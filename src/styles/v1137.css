@@ -165,7 +165,6 @@
   border-radius: 17px !important;
   font-size: 1rem;
   font-weight: 900;
-  transition: transform .2s ease, box-shadow .2s ease, background .2s ease !important;
 }
 
 .boh-actions button svg { width: 22px; height: 22px; }
@@ -188,7 +187,6 @@
 }
 
 .boh-actions button:hover {
-  transform: translateY(-3px);
   box-shadow: 0 20px 36px rgba(59, 88, 48, .18) !important;
 }
 
@@ -357,18 +355,13 @@
   box-shadow: 0 22px 44px rgba(55, 69, 48, .15), 0 2px 0 rgba(255, 255, 255, .8) inset !important;
   transform: rotate(var(--card-rotate));
   transform-origin: 50% 50%;
-  transition: transform .24s cubic-bezier(.2, .8, .2, 1), box-shadow .24s ease, filter .24s ease !important;
 }
 
 .boh-card:hover,
 .boh-card:focus-visible {
   z-index: 40 !important;
-  transform: translateY(-8px) rotate(0deg) scale(1.025);
-  filter: saturate(1.04);
   box-shadow: 0 31px 58px rgba(51, 67, 44, .23) !important;
 }
-
-.boh-card:active { transform: translateY(-2px) rotate(0deg) scale(.99); }
 
 .boh-card-chrome {
   display: grid;
@@ -523,9 +516,4 @@ html[data-theme="dark"] .boh-overview-metric { background: rgba(255, 255, 255, .
   .boh-card-body { grid-template-columns: 56px minmax(0, 1fr) 24px; gap: 11px; padding: 15px; }
   .boh-card-icon { width: 54px; height: 54px; border-radius: 15px; }
   .boh-card-icon svg { width: 32px; height: 32px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .boh-card,
-  .boh-actions button { transition-duration: .01ms !important; }
 }
