@@ -1,19 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { BarChart3, CalendarRange, FileText, UsersRound } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
-import '../utils/monthlyReportCollapsibleSections.js';
 import MonthlyReportsWorkspace from './MonthlyReportsWorkspace.jsx';
 import MonthlyReportsHistory from './MonthlyReportsHistory.jsx';
 import PersonnelHub from './PersonnelHub.jsx';
 import './BrianTeamPortal.css';
-import './MonthlyReportsManager.css';
-import './MonthlyReportsTemplate.css';
-import './MonthlyReportsWorkspaceModern.css';
-import './MonthlyReportsWorkspaceModernV2.css';
-import './MonthlyReportsWorkspaceFixes.css';
-import './MonthlyReportsGoogleMaterial.css';
-import './MonthlyReportsCardRefresh.css';
-import './MonthlyReportsCollapsible.css';
 
 export default function BrianTeamPortal(props) {
   const { currentUser } = props;
