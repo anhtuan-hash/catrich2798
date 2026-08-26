@@ -3,6 +3,8 @@ const RETIRED_STORAGE_KEYS = new Set([
   'bes-theme-mode',
   'bes-theme-mode-v3',
   'bes-quick-dictionary-history-v1',
+  'bes-appearance-v2',
+  'bes-accent-color',
 ]);
 
 const RETIRED_STORAGE_PREFIXES = [
@@ -19,7 +21,6 @@ const RETIRED_APP_ROUTES = new Set([
   'tool/activity-graph',
 ]);
 
-const APPEARANCE_KEY = 'bes-appearance-v2';
 let installed = false;
 
 function removeRetiredStorage() {
@@ -30,21 +31,6 @@ function removeRetiredStorage() {
         window.localStorage.removeItem(key);
       }
     });
-
-    const appearance = JSON.parse(window.localStorage.getItem(APPEARANCE_KEY) || 'null');
-    if (appearance && typeof appearance === 'object') {
-      let changed = false;
-      ['theme'].forEach((key) => {
-        if (key in appearance) {
-          delete appearance[key];
-          changed = true;
-        }
-      });
-      if (changed) {
-        appearance.updatedAt = Date.now();
-        window.localStorage.setItem(APPEARANCE_KEY, JSON.stringify(appearance));
-      }
-    }
   } catch {
     // Storage can be unavailable in private browsing or a restricted webview.
   }
@@ -75,6 +61,18 @@ function enforceLightOnlyDocument() {
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f7f9fc');
 }
 
+function clearRetiredAppearanceDocument() {
+  const root = document.documentElement;
+  delete root.dataset.besBackground;
+  delete root.dataset.besContrast;
+  delete root.dataset.besBatterySaver;
+  delete root.dataset.accentMode;
+  delete root.dataset.adaptivePerformance;
+  delete root.dataset.highContrast;
+  delete root.dataset.batterySaver;
+  delete root.dataset.accent;
+}
+
 function clearRetiredMediaCache() {
   if (!('caches' in window)) return;
   window.caches.keys()
@@ -88,11 +86,13 @@ export function installRetiredFeatureCleanup() {
   removeRetiredStorage();
   redirectRetiredAppRoute();
   enforceLightOnlyDocument();
+  clearRetiredAppearanceDocument();
   clearRetiredMediaCache();
 
   const enforce = () => {
     removeRetiredStorage();
     enforceLightOnlyDocument();
+    clearRetiredAppearanceDocument();
   };
   window.addEventListener('hashchange', redirectRetiredAppRoute);
   window.addEventListener('storage', enforce);
