@@ -8,7 +8,10 @@ export function launchRoute({ target, navigate } = {}) {
     ? navigate
     : () => { window.location.hash = target; };
 
-  if (window.location.hash !== target) go();
+  if (window.location.hash !== target) {
+  window.dispatchEvent(new CustomEvent('bes-navigation-start', { detail: { target } }));
+  go();
+}
 }
 
 export { DEFAULT_COLOR };

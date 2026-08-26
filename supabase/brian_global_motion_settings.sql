@@ -4,7 +4,7 @@
 create table if not exists public.brian_global_motion_settings (
   id boolean primary key default true check (id),
   preset text not null default 'balanced'
-    check (preset in ('off', 'subtle', 'balanced', 'expressive')),
+    check (preset in ('off', 'subtle', 'balanced', 'windows8', 'expressive')),
   updated_by text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

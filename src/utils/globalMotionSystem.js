@@ -4,7 +4,7 @@ const STORAGE_KEY = 'bes-global-motion-preset-v1';
 const SETTINGS_TABLE = 'brian_global_motion_settings';
 const GLOBAL_EVENT = 'bes-global-motion-updated';
 const DEFAULT_PRESET = 'balanced';
-const VALID_PRESETS = new Set(['off', 'subtle', 'balanced', 'expressive']);
+const VALID_PRESETS = new Set(['off', 'subtle', 'balanced', 'windows8', 'expressive']);
 
 const TAB_TRIGGER_SELECTOR = [
   '[role="tab"]',
@@ -54,6 +54,15 @@ export const GLOBAL_MOTION_PRESETS = Object.freeze([
     recommended: true,
   },
   {
+  id: 'windows8',
+  labelVi: 'Windows 8',
+  label: 'Windows 8',
+  descriptionVi: 'Metro chuyển ngang rõ nét, loader 5 chấm chạy và indicator phẳng kiểu Windows 8.',
+  description: 'Metro horizontal page motion with five-dot loading progress and a flat Windows 8 indicator.',
+  speedVi: '170–520 ms · Metro dots',
+  tone: 'windows8',
+},
+  {
     id: 'expressive',
     labelVi: 'Fluent Dynamic',
     label: 'Fluent Dynamic',
@@ -68,6 +77,8 @@ let installed = false;
 let realtimeUnsubscribe = null;
 let runtimeRetryTimers = [];
 let mutationFrame = 0;
+let windows8LoaderTimer = 0;
+let windows8HideTimer = 0;
 const tabMotionTimestamps = new WeakMap();
 
 function normalizePreset(value) {
@@ -110,6 +121,7 @@ export function applyGlobalMotionPreset(preset, options = {}) {
     root.dataset.motionEnabled = normalized === 'off' ? 'false' : 'true';
     root.dataset.motionSource = source;
   }
+  if (normalized !== 'windows8') hideWindows8RouteLoader({ immediate: true });
   if (persist) writeStoredPreset(normalized);
 
   if (broadcast && typeof window !== 'undefined') {
@@ -395,6 +407,83 @@ function installMutationMotionObserver() {
   };
 }
 
+function windows8MotionActive() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+  if (document.documentElement?.dataset?.motionMode !== 'windows8') return false;
+  if (document.documentElement?.dataset?.motionEnabled !== 'true') return false;
+  return !window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+}
+
+function ensureWindows8RouteLoader() {
+  if (typeof document === 'undefined' || !document.body) return null;
+  let loader = document.getElementById('bes-windows8-route-loader');
+  if (loader) return loader;
+  loader = document.createElement('div');
+  loader.id = 'bes-windows8-route-loader';
+  loader.className = 'gm-w8-route-loader';
+  loader.setAttribute('role', 'status');
+  loader.setAttribute('aria-live', 'polite');
+  loader.setAttribute('aria-label', 'Đang mở trang');
+  loader.innerHTML = `
+    <div class="gm-w8-loader-inner">
+      <div class="gm-w8-progress" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <strong>BRIAN ENGLISH</strong>
+      <small>Đang mở trang…</small>
+    </div>`;
+  document.body.appendChild(loader);
+  return loader;
+}
+
+function hideWindows8RouteLoader({ immediate = false } = {}) {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  window.clearTimeout(windows8LoaderTimer);
+  window.clearTimeout(windows8HideTimer);
+  const loader = document.getElementById('bes-windows8-route-loader');
+  delete document.documentElement.dataset.windows8Loading;
+  if (!loader) return;
+  if (immediate) {
+    loader.classList.remove('is-visible', 'is-running', 'is-leaving');
+    loader.setAttribute('aria-hidden', 'true');
+    return;
+  }
+  loader.classList.add('is-leaving');
+  loader.classList.remove('is-running');
+  windows8HideTimer = window.setTimeout(() => {
+    loader.classList.remove('is-visible', 'is-leaving');
+    loader.setAttribute('aria-hidden', 'true');
+  }, 150);
+}
+
+function showWindows8RouteLoader() {
+  if (!windows8MotionActive()) return;
+  const loader = ensureWindows8RouteLoader();
+  if (!loader) return;
+  window.clearTimeout(windows8LoaderTimer);
+  window.clearTimeout(windows8HideTimer);
+  loader.classList.remove('is-leaving');
+  loader.classList.add('is-visible');
+  loader.setAttribute('aria-hidden', 'false');
+  document.documentElement.dataset.windows8Loading = 'true';
+  void loader.offsetWidth;
+  loader.classList.add('is-running');
+  windows8LoaderTimer = window.setTimeout(() => hideWindows8RouteLoader(), 620);
+}
+
+function installWindows8RouteExperience() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  const onNavigate = () => showWindows8RouteLoader();
+  window.addEventListener('bes-navigation-start', onNavigate);
+  window.addEventListener('hashchange', onNavigate);
+  window.addEventListener('popstate', onNavigate);
+  const showInitial = () => {
+    if (windows8MotionActive()) window.setTimeout(showWindows8RouteLoader, 30);
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showInitial, { once: true });
+  else showInitial();
+}
+
 function installRealtimeSync() {
   if (realtimeUnsubscribe) return;
   try {
@@ -442,6 +531,7 @@ export function installGlobalMotionSystem() {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startObservers, { once: true });
   else startObservers();
 
+  installWindows8RouteExperience();
   scheduleRuntimeSync();
 }
 

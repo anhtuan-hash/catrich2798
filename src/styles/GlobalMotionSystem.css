@@ -33,6 +33,17 @@ html[data-motion-mode="balanced"] {
   --gm-scale-enter: .985;
 }
 
+html[data-motion-mode="windows8"] {
+  --gm-fast: 120ms;
+  --gm-base: 210ms;
+  --gm-slow: 420ms;
+  --gm-distance: 56px;
+  --gm-scale-press: .985;
+  --gm-scale-enter: 1;
+  --gm-ease: cubic-bezier(.1, .9, .2, 1);
+  --gm-ease-emphasized: cubic-bezier(.1, .9, .2, 1);
+}
+
 html[data-motion-mode="expressive"] {
   --gm-fast: 160ms;
   --gm-base: 300ms;
@@ -299,6 +310,98 @@ html[data-motion-mode="balanced"][data-motion-enabled="true"] body [data-bes-mai
   to { opacity: 1; translate: 0 0; scale: 1; }
 }
 
+
+/* Windows 8 Metro: flat horizontal content transition, no zoom/glow. */
+html[data-motion-mode="windows8"][data-motion-enabled="true"] body #bes-main-content:not(#gm-profile-a#gm-profile-b#gm-profile-c),
+html[data-motion-mode="windows8"][data-motion-enabled="true"] body [data-bes-main-content]:not(#gm-profile-a#gm-profile-b#gm-profile-c)[data-global-page-enter="true"] {
+  animation-name: gm-page-windows8 !important;
+  animation-duration: 420ms !important;
+  animation-timing-function: cubic-bezier(.1,.9,.2,1) !important;
+  transform-origin: center left !important;
+}
+@keyframes gm-page-windows8 {
+  0% { opacity: .01; translate: 72px 0; }
+  38% { opacity: .72; }
+  100% { opacity: 1; translate: 0 0; }
+}
+
+html[data-motion-mode="windows8"][data-motion-enabled="true"] body :not(#gm-profile-a#gm-profile-b#gm-profile-c):is(
+  [role="tabpanel"], [data-tab-panel], .tab-panel, .tab-content,
+  [class*="tab-panel"], [class*="tab-content"]
+)[data-global-tab-enter="true"] {
+  animation-name: gm-tab-windows8 !important;
+  animation-duration: 300ms !important;
+  animation-timing-function: cubic-bezier(.1,.9,.2,1) !important;
+}
+@keyframes gm-tab-windows8 {
+  from { opacity: .01; translate: 44px 0; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+/* Windows 8 page loader: five Metro dots travelling across a flat track. */
+.gm-w8-route-loader {
+  position: fixed;
+  z-index: 2147482400;
+  inset: 72px 0 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  background: rgba(248,250,252,.94);
+}
+.gm-w8-route-loader.is-visible {
+  visibility: visible;
+  opacity: 1;
+}
+.gm-w8-route-loader.is-leaving { opacity: 0; }
+.gm-w8-loader-inner {
+  width: min(360px, calc(100vw - 48px));
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  color: #1f1f1f;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  text-align: center;
+}
+.gm-w8-loader-inner strong {
+  margin-top: 6px;
+  color: #0078d7;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .13em;
+}
+.gm-w8-loader-inner small { color: #5d6166; font-size: 12px; font-weight: 400; }
+.gm-w8-progress {
+  position: relative;
+  width: 238px;
+  height: 28px;
+  overflow: hidden;
+}
+.gm-w8-progress span {
+  position: absolute;
+  top: 10px;
+  left: -18px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0078d7;
+  opacity: 0;
+}
+.gm-w8-route-loader.is-running .gm-w8-progress span { animation: gm-w8-progress-dot 1.18s cubic-bezier(.1,.85,.25,1) infinite; }
+.gm-w8-progress span:nth-child(1) { animation-delay: 0ms !important; }
+.gm-w8-progress span:nth-child(2) { animation-delay: 95ms !important; }
+.gm-w8-progress span:nth-child(3) { animation-delay: 190ms !important; }
+.gm-w8-progress span:nth-child(4) { animation-delay: 285ms !important; }
+.gm-w8-progress span:nth-child(5) { animation-delay: 380ms !important; }
+@keyframes gm-w8-progress-dot {
+  0% { left: -18px; opacity: 0; }
+  10% { opacity: 1; }
+  45% { left: 96px; opacity: 1; }
+  74% { left: 184px; opacity: 1; }
+  100% { left: 252px; opacity: 0; }
+}
+
 /* Fluent Dynamic: slightly stronger depth, still compositor-only. */
 html[data-motion-mode="expressive"][data-motion-enabled="true"] body #bes-main-content:not(#gm-profile-a#gm-profile-b#gm-profile-c),
 html[data-motion-mode="expressive"][data-motion-enabled="true"] body [data-bes-main-content]:not(#gm-profile-a#gm-profile-b#gm-profile-c)[data-global-page-enter="true"] {
@@ -364,6 +467,37 @@ html[data-motion-mode="balanced"][data-motion-enabled="true"] body .brian-nav__p
   animation: gm-indicator-windows 280ms cubic-bezier(.16,1,.3,1) both !important;
 }
 @keyframes gm-indicator-windows { from { opacity: .01; translate: -12px 0; scale: .55 1; } to { opacity: 1; translate: 0 0; scale: 1 1; } }
+
+
+/* Windows 8 active route: flat Metro accent bar, intentionally no pill/glow. */
+html[data-motion-mode="windows8"][data-motion-enabled="true"] body .brian-nav__primary :is(
+  button.active, button.is-active, button[aria-current="page"],
+  a.active, a.is-active, a[aria-current="page"]
+) {
+  box-shadow: none !important;
+}
+html[data-motion-mode="windows8"][data-motion-enabled="true"] body .brian-nav__primary :is(
+  button.active, button.is-active, button[aria-current="page"],
+  a.active, a.is-active, a[aria-current="page"]
+)::after {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 5 !important;
+  left: 8% !important;
+  right: 8% !important;
+  bottom: 0 !important;
+  height: 4px !important;
+  border-radius: 0 !important;
+  background: #0078d7 !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  transform-origin: left center !important;
+  animation: gm-indicator-windows8 240ms cubic-bezier(.1,.9,.2,1) both !important;
+}
+@keyframes gm-indicator-windows8 {
+  from { opacity: .01; scale: .12 1; }
+  to { opacity: 1; scale: 1 1; }
+}
 
 /* Fluent Dynamic glow indicator. */
 html[data-motion-mode="expressive"][data-motion-enabled="true"] body .brian-nav__primary :is(

@@ -86,7 +86,7 @@
 
 .admin-global-motion-presets {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
   margin-top: 24px;
 }
@@ -116,6 +116,20 @@
   overflow: hidden;
   border-radius: 16px;
   background: #eef3f8;
+}
+
+
+.admin-motion-preview.is-windows8 {
+  border-radius: 0;
+  background: #0078d7;
+}
+.admin-motion-preview.is-windows8 .admin-motion-preview-window {
+  border-radius: 0;
+  box-shadow: none;
+}
+.admin-motion-preview.is-windows8 .admin-motion-preview-row > i,
+.admin-motion-preview.is-windows8 .admin-motion-preview-cards span {
+  border-radius: 0;
 }
 
 .admin-motion-preview-window {
@@ -172,7 +186,21 @@
 .admin-motion-preview-cards span:nth-child(2) { background: #e6f4ea; }
 .admin-motion-preview-cards span:nth-child(3) { background: #fef7e0; }
 
-html[data-motion-enabled="true"] .admin-motion-preset.is-selected .admin-motion-preview-window {
+html[data-motion-enabled="true"] .admin-motion-preset.is-selected 
+.admin-motion-preview.is-windows8 {
+  border-radius: 0;
+  background: #0078d7;
+}
+.admin-motion-preview.is-windows8 .admin-motion-preview-window {
+  border-radius: 0;
+  box-shadow: none;
+}
+.admin-motion-preview.is-windows8 .admin-motion-preview-row > i,
+.admin-motion-preview.is-windows8 .admin-motion-preview-cards span {
+  border-radius: 0;
+}
+
+.admin-motion-preview-window {
   animation: admin-motion-demo var(--gm-slow) var(--gm-ease-emphasized) both !important;
 }
 
