@@ -33,8 +33,8 @@
 .mr-deadline-card.is-expired{border-color:rgba(217,48,37,.34)!important;background:linear-gradient(135deg,#fff,var(--br-red-soft))!important}.mr-deadline-card.is-expired .mr-deadline-icon{background:#fce8e6!important;color:var(--br-red)!important}.mr-deadline-card.is-expired .mr-countdown strong{color:var(--br-red)!important}
 
 /* Cards */
-.mr-teacher-shell .mr-section{border:1px solid var(--br-border)!important;border-radius:24px!important;box-shadow:0 1px 2px rgba(60,64,67,.08),0 6px 18px rgba(60,64,67,.06)!important;transition:box-shadow .18s ease,transform .18s ease}
-.mr-teacher-shell .mr-section:hover{transform:translateY(-1px)!important;box-shadow:0 2px 4px rgba(60,64,67,.10),0 12px 30px rgba(60,64,67,.10)!important}
+.mr-teacher-shell .mr-section{border:1px solid var(--br-border)!important;border-radius:24px!important;box-shadow:0 1px 2px rgba(60,64,67,.08),0 6px 18px rgba(60,64,67,.06)!important}
+.mr-teacher-shell .mr-section:hover{box-shadow:0 2px 4px rgba(60,64,67,.10),0 12px 30px rgba(60,64,67,.10)!important}
 .mr-teacher-shell .mr-section>header h2{color:var(--br-text)!important}.mr-teacher-shell .mr-section>header p{color:var(--br-muted)!important}.mr-teacher-shell .mr-section-check{color:var(--br-green)!important}
 /* section 1 blue */
 .mr-teacher-shell .mr-form-stack>.mr-section:nth-child(1){border-top:5px solid var(--br-blue)!important}.mr-teacher-shell .mr-form-stack>.mr-section:nth-child(1)>header{background:linear-gradient(90deg,var(--br-blue-soft),#fff 72%)!important;border-bottom-color:#d2e3fc!important}.mr-teacher-shell .mr-form-stack>.mr-section:nth-child(1) .mr-section-icon{background:#d2e3fc!important;color:var(--br-blue)!important}
