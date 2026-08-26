@@ -69,7 +69,7 @@ export default async function handler(req, res) {
       expiresAt,
     });
     return sendJson(res, 200, {
-      signedUrl: `/api/work-hub-file?token=${encodeURIComponent(token)}`,
+      signedUrl: `/api/work-hub-file-signed?token=${encodeURIComponent(token)}`,
       signedUntil: new Date(expiresAt).toISOString(),
     });
   } catch (error) {

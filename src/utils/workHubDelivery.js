@@ -216,7 +216,7 @@ export async function createWorkHubAttachmentUrl(attachment, expiresIn = 3600) {
 
   if (isDriveAttachment(attachment)) {
     try {
-      const data = await authenticatedJson('/api/work-hub-file-access', {
+      const data = await authenticatedJson('/api/work-hub-file-access-v2', {
         method: 'POST',
         body: JSON.stringify({
           itemId: attachment.item_id || attachment.itemId || '',
@@ -251,6 +251,84 @@ export async function createWorkHubAttachmentUrl(attachment, expiresIn = 3600) {
     signedUrlCache.set(key, { url, expiresAt: Date.now() + safeLifetime });
   }
   return url;
+}
+
+export function getWorkHubAttachmentExtension(attachment = {}) {
+  return fileExtension(attachment.name || attachment.fileName || attachment.path || '');
+}
+
+export async function fetchWorkHubAttachmentBlob(attachment, { itemId = '', disposition = 'inline' } = {}) {
+  if (!attachment) throw new Error('Không tìm thấy thông tin tệp.');
+  const effectiveItemId = String(itemId || attachment.item_id || attachment.itemId || '').trim();
+
+  if (isDriveAttachment(attachment)) {
+    const token = await getAccessToken();
+    if (!token) throw new Error('Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.');
+    if (!effectiveItemId) throw new Error('Thiếu mã nội dung TTCM của tệp.');
+    const params = new URLSearchParams({
+      itemId: effectiveItemId,
+      fileId: driveFileId(attachment),
+      fileName: attachment.name || 'tai-lieu',
+      mimeType: attachment.mime || 'application/octet-stream',
+      disposition: disposition === 'attachment' ? 'attachment' : 'inline',
+    });
+    const response = await fetch(`/api/work-hub-file-stream?${params.toString()}`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      let message = 'Không thể tải tệp từ Google Drive.';
+      try { message = (await response.json())?.error || message; } catch { /* binary/empty response */ }
+      throw new Error(message);
+    }
+    return response.blob();
+  }
+
+  const url = await createWorkHubAttachmentUrl(attachment);
+  if (!url) throw new Error('Không thể tạo đường dẫn truy cập tệp.');
+  const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
+  if (!response.ok) throw new Error('Không thể tải tệp đính kèm.');
+  return response.blob();
+}
+
+export async function downloadWorkHubAttachment(attachment, { itemId = '', fileName = '' } = {}) {
+  try {
+    const blob = await fetchWorkHubAttachmentBlob(attachment, { itemId, disposition: 'attachment' });
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = objectUrl;
+    anchor.download = fileName || attachment?.name || 'tai-lieu';
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, message: error?.message || 'Không thể tải tệp về máy.' };
+  }
+}
+
+export async function createWorkHubAttachmentEditUrl(attachment, { itemId = '' } = {}) {
+  if (!attachment || !isDriveAttachment(attachment)) {
+    return { ok: false, message: 'Chỉnh sửa trực tiếp chỉ hỗ trợ tệp đang lưu trên Google Drive.' };
+  }
+  try {
+    const data = await authenticatedJson('/api/work-hub-file-edit-link', {
+      method: 'POST',
+      body: JSON.stringify({
+        itemId: itemId || attachment.item_id || attachment.itemId || '',
+        fileId: driveFileId(attachment),
+        fileName: attachment.name || '',
+      }),
+    });
+    const url = data.editUrl || data.webViewLink || '';
+    if (!url) throw new Error('Google Drive không trả về đường dẫn chỉnh sửa.');
+    return { ok: true, url, warning: data.warning || '', permissionGranted: Boolean(data.permissionGranted) };
+  } catch (error) {
+    return { ok: false, message: error?.message || 'Không thể mở tệp để chỉnh sửa.' };
+  }
 }
 
 export async function resolveWorkHubCommentAttachments(comments = []) {
