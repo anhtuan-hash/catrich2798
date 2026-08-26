@@ -327,7 +327,6 @@
 }
 
 .app-shell[data-route="work-hub"] .work-schedule-agenda > article:hover {
-  transform: translateY(-1px);
   border-color: #a8c7fa;
   background: #fbfdff;
   box-shadow: 0 7px 20px rgba(41, 58, 82, .08);
