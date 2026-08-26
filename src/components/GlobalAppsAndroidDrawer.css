@@ -110,8 +110,6 @@ body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-ca
     0 3px 8px rgba(38, 51, 72, .07),
     0 14px 28px color-mix(in srgb, var(--app-accent) 8%, transparent) !important;
   scroll-snap-align: start !important;
-  transform: translateZ(0) !important;
-  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease !important;
 }
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-card::before {
@@ -147,7 +145,6 @@ body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within {
   box-shadow:
     0 8px 18px rgba(38, 51, 72, .12),
     0 22px 40px color-mix(in srgb, var(--app-accent) 16%, transparent) !important;
-  transform: translateY(-6px) scale(1.018) !important;
 }
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-launch,
@@ -212,8 +209,6 @@ body .metro-clean-system[data-route='apps'] .density-compact .flat-app-window-ar
     0 12px 24px color-mix(in srgb, var(--app-accent) 28%, transparent),
     inset 0 1px 0 rgba(255,255,255,.50),
     inset 0 -1px 0 rgba(0,0,0,.10) !important;
-  transform: translateZ(0) !important;
-  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease !important;
 }
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-art::before {
@@ -250,7 +245,6 @@ body .metro-clean-system[data-route='apps'] .flat-app-window-art img {
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover .flat-app-window-art,
 body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within .flat-app-window-art {
-  transform: translateY(-2px) scale(1.055) !important;
   filter: saturate(1.08) contrast(1.02) !important;
   box-shadow:
     0 15px 29px color-mix(in srgb, var(--app-accent) 36%, transparent),
@@ -358,9 +352,8 @@ body .metro-clean-system[data-route='apps'] .flat-apps-group-chip {
   background: rgba(255,255,255,.94) !important;
   color: #263146 !important;
   box-shadow: 0 3px 9px rgba(48, 62, 84, .08) !important;
-  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease !important;
 }
-body .metro-clean-system[data-route='apps'] .flat-apps-group-chip:hover { transform: translateY(-2px) !important; box-shadow: 0 7px 16px rgba(48,62,84,.11) !important; }
+body .metro-clean-system[data-route='apps'] .flat-apps-group-chip:hover { box-shadow: 0 7px 16px rgba(48,62,84,.11) !important; }
 body .metro-clean-system[data-route='apps'] .flat-apps-group-chip b { color:#263146 !important; font-size:.82rem !important; font-weight:760 !important; }
 body .metro-clean-system[data-route='apps'] .flat-apps-group-chip small {
   min-width: 25px !important;
@@ -473,9 +466,3 @@ html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-g
 body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip { border-color:#4b5361 !important; background:rgba(42,46,55,.96) !important; }
 html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-chip b,
 body.theme-dark .metro-clean-system[data-route='apps'] .flat-apps-group-chip b { color:#f2f5fa !important; }
-
-@media (prefers-reduced-motion: reduce) {
-  body .metro-clean-system[data-route='apps'] .flat-app-window-card,
-  body .metro-clean-system[data-route='apps'] .flat-app-window-art,
-  body .metro-clean-system[data-route='apps'] .flat-apps-group-chip { transition:none !important; }
-}
