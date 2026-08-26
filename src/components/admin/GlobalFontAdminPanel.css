@@ -23,10 +23,10 @@ html[data-global-font] body .admin-global-font__sample { font-family:var(--font-
 .admin-global-font__option small { display:block; margin-top:7px; color:#5f6368; line-height:1.45; }
 .admin-global-font__preview { margin-top:16px; padding:18px 20px; border-radius:18px; background:#f8fafd; border:1px solid #e2e6eb; }
 .admin-global-font__preview span { display:block; margin-bottom:7px; color:#5f6368; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
-.admin-global-font__preview strong { display:block; font-family:inherit!important; font-size:20px; }
-.admin-global-font__preview p { margin:7px 0 0; font-family:inherit!important; color:#5f6368; }
+.admin-global-font__preview strong { display:block; font-size:20px; }
+.admin-global-font__preview p { margin:7px 0 0; color:#5f6368; }
 html[data-global-font] body .admin-global-font__preview,
-html[data-global-font] body .admin-global-font__preview :is(span,strong,p) { font-family:inherit!important; }
+html[data-global-font] body .admin-global-font__preview :is(span,strong,p) { font-family:var(--font-preview-family)!important; }
 .admin-global-font__message { margin-top:14px; padding:12px 14px; border-radius:14px; background:#fef7e0; color:#7a4f01; font-size:13px; }
 .admin-global-font__message.is-success { background:#e6f4ea; color:#137333; }
 .admin-global-font__actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:18px; }
