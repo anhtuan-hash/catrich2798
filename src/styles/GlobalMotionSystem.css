@@ -1,0 +1,246 @@
+/* Brian Global Motion System
+   Loaded AFTER v1159's hard motion-off contract.
+   Admin selects one preset through html[data-motion-mode].
+   Only opacity, individual translate/scale and visual transitions are animated to avoid layout jank. */
+
+html[data-motion-mode] {
+  --gm-fast: 0ms;
+  --gm-base: 0ms;
+  --gm-slow: 0ms;
+  --gm-distance: 0px;
+  --gm-scale-press: 1;
+  --gm-scale-enter: 1;
+  --gm-ease: cubic-bezier(.2, 0, 0, 1);
+  --gm-ease-emphasized: cubic-bezier(.2, .8, .2, 1);
+}
+
+html[data-motion-mode="subtle"] {
+  --gm-fast: 90ms;
+  --gm-base: 150ms;
+  --gm-slow: 220ms;
+  --gm-distance: 3px;
+  --gm-scale-press: .992;
+  --gm-scale-enter: .995;
+}
+
+html[data-motion-mode="balanced"] {
+  --gm-fast: 120ms;
+  --gm-base: 210ms;
+  --gm-slow: 320ms;
+  --gm-distance: 7px;
+  --gm-scale-press: .975;
+  --gm-scale-enter: .985;
+}
+
+html[data-motion-mode="expressive"] {
+  --gm-fast: 150ms;
+  --gm-base: 280ms;
+  --gm-slow: 420ms;
+  --gm-distance: 12px;
+  --gm-scale-press: .955;
+  --gm-scale-enter: .97;
+  --gm-ease: cubic-bezier(.16, 1, .3, 1);
+  --gm-ease-emphasized: cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Re-enable transitions only while a motion preset is active. This selector intentionally
+   outranks the global v1159 html * rule without restoring expensive universal animation. */
+html[data-motion-enabled="true"] :is(
+  button,
+  [role="button"],
+  a,
+  input,
+  textarea,
+  select,
+  summary,
+  [role="tab"],
+  [role="option"],
+  [role="menuitem"],
+  [class*="button"],
+  [class*="btn"],
+  [class*="chip"],
+  [class*="pill"],
+  [class*="badge"],
+  [class*="card"],
+  [class*="tile"],
+  [class*="panel"],
+  [class*="surface"],
+  [class*="row"]
+) {
+  transition-property: background-color, color, border-color, box-shadow, opacity, outline-color, scale, translate !important;
+  transition-duration: var(--gm-base) !important;
+  transition-timing-function: var(--gm-ease) !important;
+  transition-delay: 0ms !important;
+}
+
+html[data-motion-enabled="true"] :is(input, textarea, select) {
+  transition-duration: var(--gm-fast) !important;
+}
+
+/* Press feedback. Individual scale preserves existing transform-based positioning. */
+html[data-motion-enabled="true"] :is(
+  button,
+  [role="button"],
+  a[class],
+  [role="tab"],
+  [role="menuitem"]
+):not(:disabled):active {
+  scale: var(--gm-scale-press) !important;
+}
+
+/* Fixed top navigation keeps exact geometry. It only receives color/background transitions. */
+html[data-motion-enabled="true"] :is(
+  .brian-nav__primary,
+  .brian-nav__inner,
+  .brian-nav__brand,
+  .brian-nav__primary button,
+  .brian-nav__primary a,
+  [class*="global-nav"],
+  [class*="navigation-fixed"]
+) {
+  translate: none !important;
+}
+
+html[data-motion-enabled="true"] .brian-nav__primary :is(button, a):active {
+  scale: 1 !important;
+}
+
+/* Route/page entrance. #bes-main-content is keyed by route in main.jsx, so this replays on navigation. */
+html[data-motion-enabled="true"] #bes-main-content {
+  animation-name: gm-page-enter !important;
+  animation-duration: var(--gm-slow) !important;
+  animation-timing-function: var(--gm-ease-emphasized) !important;
+  animation-delay: 0ms !important;
+  animation-fill-mode: both !important;
+  animation-iteration-count: 1 !important;
+}
+
+@keyframes gm-page-enter {
+  from { opacity: .01; translate: 0 var(--gm-distance); }
+  to { opacity: 1; translate: 0 0; }
+}
+
+/* Dialogs and modal surfaces. */
+html[data-motion-enabled="true"] :is(
+  [role="dialog"],
+  dialog,
+  [class*="modal"],
+  [class*="dialog"]
+)[data-global-motion-enter="true"] {
+  animation-name: gm-dialog-enter !important;
+  animation-duration: var(--gm-slow) !important;
+  animation-timing-function: var(--gm-ease-emphasized) !important;
+  animation-fill-mode: both !important;
+  animation-iteration-count: 1 !important;
+}
+
+@keyframes gm-dialog-enter {
+  from { opacity: .01; translate: 0 var(--gm-distance); scale: var(--gm-scale-enter); }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+/* Drawers/sheets use a short horizontal entrance without overriding transform positioning. */
+html[data-motion-enabled="true"] :is(
+  [class*="drawer"],
+  [class*="sheet"]
+)[data-global-motion-enter="true"] {
+  animation-name: gm-drawer-enter !important;
+  animation-duration: var(--gm-slow) !important;
+  animation-timing-function: var(--gm-ease-emphasized) !important;
+  animation-fill-mode: both !important;
+  animation-iteration-count: 1 !important;
+}
+
+@keyframes gm-drawer-enter {
+  from { opacity: .01; translate: var(--gm-distance) 0; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+/* Menus, popovers and listboxes. */
+html[data-motion-enabled="true"] :is(
+  [role="menu"],
+  [role="listbox"],
+  [class*="popover"],
+  [class*="dropdown"]
+)[data-global-motion-enter="true"] {
+  animation-name: gm-menu-enter !important;
+  animation-duration: var(--gm-base) !important;
+  animation-timing-function: var(--gm-ease-emphasized) !important;
+  animation-fill-mode: both !important;
+  animation-iteration-count: 1 !important;
+}
+
+@keyframes gm-menu-enter {
+  from { opacity: .01; translate: 0 calc(var(--gm-distance) * -.65); scale: var(--gm-scale-enter); }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+/* Toasts/snackbars/tooltips. */
+html[data-motion-enabled="true"] :is(
+  [role="tooltip"],
+  [class*="toast"],
+  [class*="snackbar"]
+)[data-global-motion-enter="true"] {
+  animation-name: gm-toast-enter !important;
+  animation-duration: var(--gm-base) !important;
+  animation-timing-function: var(--gm-ease-emphasized) !important;
+  animation-fill-mode: both !important;
+  animation-iteration-count: 1 !important;
+}
+
+@keyframes gm-toast-enter {
+  from { opacity: .01; translate: 0 var(--gm-distance); }
+  to { opacity: 1; translate: 0 0; }
+}
+
+/* Backdrops fade instead of moving. */
+html[data-motion-enabled="true"] :is(
+  [class*="backdrop"],
+  [class*="overlay"],
+  [class*="scrim"]
+)[data-global-motion-enter="true"] {
+  animation-name: gm-fade-in !important;
+  animation-duration: var(--gm-base) !important;
+  animation-timing-function: linear !important;
+  animation-fill-mode: both !important;
+  animation-iteration-count: 1 !important;
+}
+
+@keyframes gm-fade-in {
+  from { opacity: .01; }
+  to { opacity: 1; }
+}
+
+/* Table/list interaction is motion-aware without changing layout. */
+html[data-motion-enabled="true"] :is(tbody tr, [role="row"], [class*="list-item"]) {
+  transition-property: background-color, color, border-color, box-shadow, opacity !important;
+  transition-duration: var(--gm-fast) !important;
+  transition-timing-function: var(--gm-ease) !important;
+}
+
+/* Focus feedback remains accessible and never depends on motion alone. */
+html[data-motion-enabled="true"] :is(button, a, input, textarea, select, [tabindex]):focus-visible {
+  transition-duration: var(--gm-fast) !important;
+}
+
+/* Native smooth scrolling is only restored for active presets. */
+html[data-motion-enabled="true"],
+html[data-motion-enabled="true"] body,
+html[data-motion-enabled="true"] :is(.page, main, [class*="scroll"]) {
+  scroll-behavior: smooth !important;
+}
+
+/* Accessibility always wins over the Admin preset. */
+@media (prefers-reduced-motion: reduce) {
+  html[data-motion-enabled="true"] *,
+  html[data-motion-enabled="true"] *::before,
+  html[data-motion-enabled="true"] *::after {
+    animation: none !important;
+    animation-duration: 0s !important;
+    transition: none !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
+    translate: none !important;
+    scale: 1 !important;
+  }
+}
