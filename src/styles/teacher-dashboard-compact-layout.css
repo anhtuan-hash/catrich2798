@@ -1,13 +1,12 @@
-/* Dashboard compact layout — readable edition.
-   Compact means efficient use of space, never tiny typography. */
+/* Dashboard compact layout — Option A.
+   A low horizontal hero, readable weekly calendar, no side summary cards. */
 
-/* ---------- HERO: full width, no side metric cards ---------- */
+/* ---------- HERO: low horizontal banner ---------- */
 .app-shell[data-route="dashboard"] .gd-top-grid {
   display: block !important;
   width: 100% !important;
 }
 
-/* Retire the two summary cards beside the hero from the visible Dashboard. */
 .app-shell[data-route="dashboard"] .gd-top-grid > .gd-metrics {
   display: none !important;
 }
@@ -16,60 +15,73 @@
   position: relative !important;
   width: 100% !important;
   min-width: 0 !important;
-  min-height: 330px !important;
+  min-height: 218px !important;
+  height: 218px !important;
   margin: 0 !important;
-  padding: 38px 44px !important;
+  padding: 24px 30px !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: flex-start !important;
   justify-content: center !important;
-  border-radius: 28px !important;
+  border-radius: 26px !important;
   overflow: hidden !important;
+  background-position: right center !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy {
+  position: relative !important;
+  z-index: 2 !important;
   width: 100% !important;
-  max-width: min(620px, 52%) !important;
+  max-width: min(520px, 48%) !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy > span {
-  min-height: 28px !important;
-  margin-bottom: 12px !important;
-  padding: 0 11px !important;
-  font-size: 12px !important;
+  min-height: 24px !important;
+  margin-bottom: 8px !important;
+  padding: 0 9px !important;
+  font-size: 11px !important;
   line-height: 1 !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy h1 {
-  max-width: 600px !important;
+  max-width: 500px !important;
   margin: 0 !important;
-  font-size: clamp(48px, 5vw, 70px) !important;
+  font-size: clamp(36px, 3.7vw, 50px) !important;
   line-height: .98 !important;
-  letter-spacing: -.045em !important;
+  letter-spacing: -.04em !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy p {
-  max-width: 570px !important;
-  margin: 16px 0 0 !important;
-  font-size: 17px !important;
-  line-height: 1.55 !important;
+  max-width: 500px !important;
+  margin: 9px 0 0 !important;
+  font-size: 14px !important;
+  line-height: 1.45 !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-actions {
-  position: static !important;
+  position: relative !important;
+  z-index: 2 !important;
   width: auto !important;
-  max-width: 620px !important;
-  margin-top: 22px !important;
+  max-width: 540px !important;
+  margin-top: 14px !important;
   display: flex !important;
-  flex-wrap: wrap !important;
+  flex-wrap: nowrap !important;
   justify-content: flex-start !important;
-  gap: 10px !important;
+  gap: 9px !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-top-grid .gd-button {
-  min-height: 44px !important;
-  padding: 0 18px !important;
-  font-size: 14px !important;
+  min-height: 38px !important;
+  padding: 0 15px !important;
+  font-size: 13px !important;
+  border-radius: 999px !important;
+}
+
+/* Keep the illustration visually secondary inside the low banner. */
+.app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero::before,
+.app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero::after {
+  transform: scale(.78) !important;
+  transform-origin: right center !important;
 }
 
 /* ---------- WEEKLY CALENDAR ---------- */
@@ -105,7 +117,6 @@
   font-size: 14px !important;
 }
 
-/* 7-day selector stays horizontal and readable. */
 .app-shell[data-route="dashboard"] .gd-calendar-sidebar {
   width: 100% !important;
   max-width: none !important;
@@ -154,7 +165,7 @@
 
 .app-shell[data-route="dashboard"] .gd-day-card {
   min-width: 0 !important;
-  min-height: 78px !important;
+  min-height: 76px !important;
   padding: 10px 12px !important;
   display: grid !important;
   grid-template-columns: 42px minmax(0, 1fr) auto !important;
@@ -221,7 +232,6 @@
   white-space: nowrap !important;
 }
 
-/* Next event becomes a compact but readable banner. */
 .app-shell[data-route="dashboard"] .gd-calendar-next-event {
   min-height: 46px !important;
   margin-top: 12px !important;
@@ -245,7 +255,6 @@
   font-size: 12px !important;
 }
 
-/* Selected-day agenda. */
 .app-shell[data-route="dashboard"] .gd-agenda-panel {
   min-width: 0 !important;
   padding: 20px 22px 22px !important;
@@ -333,7 +342,6 @@
   line-height: 1.3 !important;
 }
 
-/* The agenda is intentionally concise; full detail opens on click. */
 .app-shell[data-route="dashboard"] .gd-agenda-list-split .gd-event-copy p {
   display: none !important;
 }
@@ -347,6 +355,16 @@
 
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 1180px) {
+  .app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero {
+    min-height: 210px !important;
+    height: 210px !important;
+    padding: 22px 26px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy {
+    max-width: 52% !important;
+  }
+
   .app-shell[data-route="dashboard"] .gd-calendar-days-grid {
     overflow-x: auto !important;
     grid-template-columns: repeat(7, minmax(150px, 1fr)) !important;
@@ -356,23 +374,25 @@
 
 @media (max-width: 860px) {
   .app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero {
-    min-height: 300px !important;
-    padding: 30px 28px !important;
+    min-height: 205px !important;
+    height: auto !important;
+    padding: 22px 24px !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy {
-    max-width: 64% !important;
+    max-width: 62% !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy h1 {
-    font-size: clamp(42px, 7vw, 60px) !important;
+    font-size: clamp(34px, 6vw, 46px) !important;
   }
 }
 
 @media (max-width: 620px) {
   .app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero {
     min-height: 0 !important;
-    padding: 26px 22px !important;
+    height: auto !important;
+    padding: 22px 20px !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy {
@@ -380,11 +400,15 @@
   }
 
   .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy h1 {
-    font-size: clamp(38px, 12vw, 52px) !important;
+    font-size: clamp(34px, 10vw, 44px) !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy p {
-    font-size: 15px !important;
+    font-size: 14px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-actions {
+    flex-wrap: wrap !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-calendar-sidebar,
