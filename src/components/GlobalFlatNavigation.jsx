@@ -17,7 +17,6 @@ import GlobalHomeroomNavigationTab from './GlobalHomeroomNavigationTab.jsx';
 import GlobalReportsNavigationTab from './GlobalReportsNavigationTab.jsx';
 import GlobalTtcmNavigationTab from './GlobalTtcmNavigationTab.jsx';
 import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
-import GlobalWorkHubNotificationBridge from './GlobalWorkHubNotificationBridge.jsx';
 import GlobalWorkScheduleBridge from './GlobalWorkScheduleBridge.jsx';
 import GlobalWorkHubGoogleHeroV2 from './GlobalWorkHubGoogleHeroV2.jsx';
 import GlobalWorkHubViewportModalBridge from './GlobalWorkHubViewportModalBridge.jsx';
@@ -25,8 +24,6 @@ import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalHomeViewportFitBridge from './GlobalHomeViewportFitBridge.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
 import './GlobalGoogleMaterialOverride.css';
-import './GlobalNotificationCenter.css';
-import './GlobalNotificationCenterLayoutFix.css';
 import './GlobalCommandPaletteGoogle.css';
 import './GlobalCommandPaletteFocusFix.css';
 import './GlobalHomeDashboardRemoval.css';
@@ -48,12 +45,8 @@ import './GlobalTextLabGoogleLarge.css';
 import '../styles/teacher-dashboard-google-v2.css';
 import './GlobalDashboardVisualFix.css';
 import './GlobalWorkHubGoogleRedesign.css';
-import './GlobalNotificationCenterGoogleFinal.css';
-import './GlobalNotificationCenterNarrow.css';
-import './GlobalNotificationMenuLayerFix.css';
 import './GlobalNavigationScrollableTabs.css';
 import './GlobalWordGraphGoogleM3.css';
-import './GlobalNotificationCountVisibilityFix.css';
 import './GlobalAutosaveGoogle.css';
 import './GlobalHomeAuroraV3.css';
 import './GlobalHomeBriefingContextFix.css';
@@ -93,6 +86,8 @@ import '../pages/SeatingChartStudioFocus.css';
 import './GlobalNavigationFixedSizeContract.css';
 // Final performance contract; preserves geometry and fixed navigation sizing.
 import './GlobalCriticalJankGuard.css';
+// Notification Center has been retired in favor of TTCM + Work Hub.
+import './GlobalNotificationCenterRemoval.css';
 
 const GlobalWorkScheduleCompatibleCenter = lazy(() => import('./GlobalWorkScheduleCompatibleCenter.jsx'));
 const GlobalWorkScheduleTemplatePanel = lazy(() => import('./GlobalWorkScheduleTemplatePanel.jsx'));
@@ -122,7 +117,6 @@ export default function GlobalFlatNavigation(props) {
       <GlobalReportsNavigationTab {...props} />
       <GlobalTtcmNavigationTab {...props} />
       <GlobalDashboardFooterBridge route={props.route} language={props.language} />
-      <GlobalWorkHubNotificationBridge currentUser={props.currentUser} language={props.language} />
       <GlobalWorkScheduleBridge />
       <GlobalWorkHubGoogleHeroV2 route={props.route} />
       <GlobalWorkHubViewportModalBridge route={props.route} />
