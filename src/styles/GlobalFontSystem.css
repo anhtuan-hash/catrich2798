@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
 @import './TtcmInboxWorkspaceV3.css';
+@import './TtcmInboxWorkspaceV4.css';
 
 /* Brian Global Font System
    Loaded after all legacy styles so the Admin-selected family becomes the single UI font source. */
