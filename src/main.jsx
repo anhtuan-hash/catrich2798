@@ -16,6 +16,7 @@ import './styles/v1137.css';
 import './styles/v1154.css';
 import './styles/v1158.css';
 import './styles/v1159.css';
+import './styles/GlobalMotionSystem.css';
 import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
@@ -42,8 +43,10 @@ import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
 import { installBursReadability } from './utils/bursReadability.js';
 import { installAiRemovalGuard } from './utils/aiRemovalGuard.js';
 import { installRetiredFeatureCleanup } from './utils/retiredFeatureCleanup.js';
+import { installGlobalMotionSystem } from './utils/globalMotionSystem.js';
 
 runConfigurationMigrations();
+installGlobalMotionSystem();
 installRetiredFeatureCleanup();
 installBursReadability();
 installAiRemovalGuard();

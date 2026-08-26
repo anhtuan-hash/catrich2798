@@ -11,6 +11,7 @@ import {
   normalizePermissions,
   summarizePermissions,
 } from '../utils/permissions.js';
+import GlobalMotionAdminPanel from '../components/admin/GlobalMotionAdminPanel.jsx';
 
 const ADMIN_V41_NAV = [
   { id: 'hero', icon: '⌂', labelVi: 'Trang chủ', label: 'Home' },
@@ -30,7 +31,7 @@ function goToAdminSection(id) {
     permissions: '#admin-v41-permissions',
     accounts: '#admin-v41-accounts',
     security: '#admin-v41-security',
-    config: '.admin-sync-panel',
+    config: '#admin-global-motion',
     reports: '#admin-v41-security',
     assistant: '.admin-v41-ai-card',
   };
@@ -546,6 +547,8 @@ export default function AdminPage({ language, currentUser }) {
               <button type="button" className="table-action violet" onClick={() => goToAdminSection('security')}>{language === 'vi' ? 'Xem nhật ký & bảo mật' : 'Open logs & security'}</button>
             </article>
           </section>
+
+          <GlobalMotionAdminPanel currentUser={currentUser} language={language} />
 
           <section className="metro-admin-header metro-panel admin-sync-panel">
             <div className="admin-note">
