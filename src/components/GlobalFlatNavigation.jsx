@@ -6,7 +6,7 @@ import GlobalNativeTextScaleReset from './GlobalNativeTextScaleReset.jsx';
 import GlobalGuestNavigationHub from './GlobalGuestNavigationHub.jsx';
 import GlobalUserProfileSettingsBridge from './GlobalUserProfileSettingsBridge.jsx';
 import GlobalUserProfilePreviewGuard from './GlobalUserProfilePreviewGuard.jsx';
-import GlobalSettingsAppearanceBridge from './GlobalSettingsAppearanceBridge.jsx';
+import GlobalSettingsAdminBridge from './GlobalSettingsAdminBridge.jsx';
 import GlobalFontSettingsBridge from './GlobalFontSettingsBridge.jsx';
 import GlobalHeroGovernance from './GlobalHeroGovernance.jsx';
 import GlobalAiWebsiteLauncher from './GlobalAiWebsiteLauncher.jsx';
@@ -111,7 +111,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalHeroGovernance route={props.route} />
       <GlobalUserProfileSettingsBridge {...props} />
       <GlobalUserProfilePreviewGuard route={props.route} />
-      <GlobalSettingsAppearanceBridge {...props} />
+      <GlobalSettingsAdminBridge {...props} />
       <GlobalFontSettingsBridge {...props} />
       <GlobalAiWebsiteLauncher {...props} />
       <GlobalNewsNavigationTab {...props} />
