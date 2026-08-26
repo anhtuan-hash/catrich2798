@@ -130,7 +130,6 @@ body .metro-clean-system[data-route='apps'] .flat-apps-group-chip:hover {
   border-color: #9aa3af !important;
   background: #f8fafd !important;
   color: #17191d !important;
-  transform: translateY(-1px) !important;
 }
 
 body .metro-clean-system[data-route='apps'] .flat-apps-group-chip.active {
@@ -207,7 +206,6 @@ body .metro-clean-system[data-route='apps'] .flat-app-window-card::before {
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover,
 body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within {
-  transform: translateY(-5px) scale(1.012) !important;
   border-color: color-mix(in srgb, var(--app-accent,#1a73e8) 55%, #aeb7c3) !important;
   box-shadow: 0 12px 26px rgba(60,64,67,.15), 0 24px 46px color-mix(in srgb,var(--app-accent,#1a73e8) 15%,transparent) !important;
 }
@@ -425,11 +423,4 @@ body.theme-dark .metro-clean-system[data-route='apps'] .launcher-search-box inpu
 html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .launcher-search-box input::placeholder,
 body.theme-dark .metro-clean-system[data-route='apps'] .launcher-search-box input::placeholder {
   color: #c6cbd3 !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body .metro-clean-system[data-route='apps'] .flat-app-window-card,
-  body .metro-clean-system[data-route='apps'] .flat-apps-group-chip {
-    transition: none !important;
-  }
 }
