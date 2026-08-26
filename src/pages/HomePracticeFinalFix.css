@@ -181,7 +181,6 @@ html body .app-shell[data-route='home']>.bes-top-chrome .brian-briefing-bar :is(
   border-radius:13px!important;
   font-size:.9rem!important;
   font-weight:780!important;
-  transition:transform .16s ease,box-shadow .16s ease,background .16s ease!important;
 }
 .metro-clean-system[data-route='home'] .hero-cms__button.is-primary{
   border:0!important;
@@ -194,9 +193,6 @@ html body .app-shell[data-route='home']>.bes-top-chrome .brian-briefing-bar :is(
   background:rgba(255,255,255,.60)!important;
   color:#1766ba!important;
   box-shadow:none!important;
-}
-.metro-clean-system[data-route='home'] .hero-cms__button:hover{
-  transform:translateY(-2px)!important;
 }
 /* The former three mini-info cards duplicated dashboard data and cluttered Hero. */
 .metro-clean-system[data-route='home'] .hero-cms__info{
@@ -266,7 +262,6 @@ html body .app-shell[data-route='home']>.bes-top-chrome .brian-briefing-bar :is(
   font-weight:800!important;
   white-space:nowrap!important;
   cursor:pointer!important;
-  transition:transform .16s ease,box-shadow .16s ease,background .16s ease!important;
 }
 .metro-clean-system[data-route='home'] .bha-statistics-practice{
   border:0!important;
@@ -280,10 +275,6 @@ html body .app-shell[data-route='home']>.bes-top-chrome .brian-briefing-bar :is(
   color:#53657b!important;
   box-shadow:none!important;
 }
-.metro-clean-system[data-route='home'] .bha-statistics-practice:hover,
-.metro-clean-system[data-route='home'] .bha-manage-practice:hover{
-  transform:translateY(-1px)!important;
-}
 
 .metro-clean-system[data-route='home'] .bha-grades{
   gap:12px!important;
@@ -294,10 +285,8 @@ html body .app-shell[data-route='home']>.bes-top-chrome .brian-briefing-bar :is(
   border-radius:20px!important;
   background:linear-gradient(180deg,color-mix(in srgb,var(--soft) 40%,#fff),#fff 43%)!important;
   box-shadow:0 4px 16px rgba(29,63,100,.055)!important;
-  transition:transform .17s ease,box-shadow .17s ease,border-color .17s ease!important;
 }
 .metro-clean-system[data-route='home'] .bha-grade:hover{
-  transform:translateY(-2px)!important;
   border-color:color-mix(in srgb,var(--accent) 25%,#e3e8ef)!important;
   box-shadow:0 10px 24px rgba(29,63,100,.09)!important;
 }
@@ -376,7 +365,6 @@ html body .app-shell[data-route='home']>.bes-top-chrome .brian-briefing-bar :is(
   border-radius:0!important;
   background:transparent!important;
   box-shadow:none!important;
-  transition:background .14s ease!important;
 }
 .metro-clean-system[data-route='home'] .bha-grade-lesson:hover{
   background:color-mix(in srgb,var(--accent) 4%,#fff)!important;
@@ -490,11 +478,5 @@ html body .app-shell[data-route='home']>.bes-top-chrome .brian-briefing-bar :is(
   .metro-clean-system[data-route='home'] .bha-statistics-practice,
   .metro-clean-system[data-route='home'] .bha-manage-practice{
     width:100%!important;
-  }
-}
-
-@media(prefers-reduced-motion:reduce){
-  .metro-clean-system[data-route='home'] :is(.hero-cms__button,.bha-grade,.bha-grade-lesson,.bha-statistics-practice,.bha-manage-practice){
-    transition:none!important;
   }
 }
