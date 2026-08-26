@@ -1,0 +1,386 @@
+/* Dashboard compact layout correction.
+   Goal: reduce visual footprint without crushing labels or creating empty space. */
+
+.app-shell[data-route="dashboard"] .gd-top-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.9fr) minmax(250px, .72fr) !important;
+  gap: 16px !important;
+  align-items: stretch !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 286px !important;
+  padding: 30px 32px !important;
+  margin: 0 !important;
+  align-items: flex-end !important;
+  border-radius: 26px !important;
+  overflow: hidden !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy {
+  max-width: min(540px, 62%) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy > span {
+  min-height: 24px !important;
+  margin-bottom: 8px !important;
+  padding: 0 9px !important;
+  font-size: 11px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy h1 {
+  max-width: 520px !important;
+  font-size: clamp(38px, 4.1vw, 58px) !important;
+  line-height: .98 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy p {
+  max-width: 500px !important;
+  margin-top: 10px !important;
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-actions {
+  position: absolute !important;
+  left: 32px !important;
+  bottom: 28px !important;
+  right: auto !important;
+  max-width: 500px !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-top-grid .gd-button {
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  font-size: 12px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-top-grid > .gd-metrics {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-top-grid .gd-metric {
+  min-height: 0 !important;
+  height: 100% !important;
+  padding: 18px 18px !important;
+  grid-template-columns: 44px minmax(0, 1fr) !important;
+  gap: 13px !important;
+  border-radius: 22px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-top-grid .gd-metric-icon {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 14px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-top-grid .gd-metric-copy > span {
+  font-size: 11px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-top-grid .gd-metric-copy strong {
+  font-size: 32px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-top-grid .gd-metric-copy small {
+  font-size: 10px !important;
+}
+
+/* Weekly calendar: date selector becomes a horizontal 7-day strip. */
+.app-shell[data-route="dashboard"] .gd-calendar-split .gd-calendar-layout {
+  display: block !important;
+  min-height: 0 !important;
+  background: #fff !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-sidebar {
+  width: 100% !important;
+  max-width: none !important;
+  padding: 14px 18px 12px !important;
+  border-right: 0 !important;
+  border-bottom: 1px solid #e8eaed !important;
+  background: #f8fafd !important;
+  overflow: visible !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-side-head {
+  min-height: 34px !important;
+  margin-bottom: 10px !important;
+  align-items: center !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-side-head > div {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 10px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-side-head > div > span {
+  font-size: 10px !important;
+  white-space: nowrap !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-side-head > div > strong {
+  font-size: 13px !important;
+  white-space: nowrap !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-side-head > .gd-count-chip {
+  min-height: 26px !important;
+  padding: 0 9px !important;
+  font-size: 10px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-days-grid {
+  display: grid !important;
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-day-card {
+  min-width: 0 !important;
+  min-height: 66px !important;
+  padding: 8px 10px !important;
+  display: grid !important;
+  grid-template-columns: 36px minmax(0, 1fr) auto !important;
+  grid-template-rows: 1fr !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border: 1px solid #e3e7ed !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-day-card:hover {
+  border-color: #aecbfa !important;
+  background: #f8fbff !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-day-card .gd-day-number {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-day-card .gd-day-info {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-day-card .gd-day-info strong,
+.app-shell[data-route="dashboard"] .gd-day-card .gd-day-info small {
+  display: block !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  writing-mode: horizontal-tb !important;
+  word-break: normal !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-day-card .gd-day-info strong {
+  font-size: 11px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-day-card .gd-day-info small {
+  margin-top: 2px !important;
+  font-size: 9px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-day-card .gd-day-event-count {
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+  min-width: 24px !important;
+  height: 24px !important;
+  padding: 0 6px !important;
+  font-size: 9px !important;
+  writing-mode: horizontal-tb !important;
+  white-space: nowrap !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-next-event {
+  min-height: 38px !important;
+  margin-top: 10px !important;
+  padding: 7px 10px !important;
+  grid-template-columns: 30px minmax(0, 1fr) !important;
+  gap: 9px !important;
+  border-radius: 12px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-next-event > span {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 10px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-next-event small {
+  font-size: 8px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-next-event strong {
+  font-size: 10px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-panel {
+  min-width: 0 !important;
+  padding: 16px 18px 18px !important;
+  background: #fff !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-panel-header {
+  min-height: 62px !important;
+  margin-bottom: 10px !important;
+  padding: 0 0 10px !important;
+  grid-template-columns: 48px minmax(0, 1fr) auto !important;
+  gap: 12px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-date-badge {
+  width: 48px !important;
+  height: 50px !important;
+  border-radius: 15px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-date-badge strong {
+  font-size: 21px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-date-badge span {
+  font-size: 8px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-heading {
+  gap: 1px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-heading > span {
+  font-size: 9px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-heading h3 {
+  font-size: 18px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-heading p {
+  font-size: 10px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-panel-header > .gd-count-chip {
+  min-height: 25px !important;
+  padding: 0 8px !important;
+  font-size: 9px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-split {
+  max-height: 330px !important;
+  padding-right: 3px !important;
+  gap: 5px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-split .gd-event {
+  min-height: 62px !important;
+  padding: 8px 10px !important;
+  grid-template-columns: 68px 3px minmax(0, 1fr) 18px !important;
+  gap: 10px !important;
+  border-radius: 13px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-split .gd-event-time {
+  gap: 1px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-split .gd-event-time strong {
+  font-size: 11px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-split .gd-event-time small {
+  font-size: 8px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-split .gd-event-copy {
+  gap: 2px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-split .gd-event-copy strong {
+  font-size: 11px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-split .gd-event-copy p {
+  display: none !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-split .gd-event-copy small {
+  font-size: 8px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Keep the shell balanced instead of leaving a large blank area next to the hero. */
+@media (max-width: 1180px) {
+  .app-shell[data-route="dashboard"] .gd-top-grid {
+    grid-template-columns: minmax(0, 1.55fr) minmax(230px, .7fr) !important;
+  }
+  .app-shell[data-route="dashboard"] .gd-calendar-days-grid {
+    overflow-x: auto !important;
+    grid-template-columns: repeat(7, minmax(132px, 1fr)) !important;
+    padding-bottom: 4px !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .app-shell[data-route="dashboard"] .gd-top-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .app-shell[data-route="dashboard"] .gd-top-grid > .gd-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-rows: auto !important;
+  }
+  .app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero {
+    min-height: 270px !important;
+  }
+  .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy {
+    max-width: 64% !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy {
+    max-width: 100% !important;
+  }
+  .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-actions {
+    position: static !important;
+    margin-top: 16px !important;
+  }
+  .app-shell[data-route="dashboard"] .gd-top-grid > .gd-metrics {
+    grid-template-columns: 1fr !important;
+  }
+  .app-shell[data-route="dashboard"] .gd-calendar-sidebar,
+  .app-shell[data-route="dashboard"] .gd-agenda-panel {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  .app-shell[data-route="dashboard"] .gd-agenda-panel-header {
+    grid-template-columns: 44px minmax(0, 1fr) !important;
+  }
+  .app-shell[data-route="dashboard"] .gd-agenda-panel-header > .gd-count-chip {
+    grid-column: 1 / -1 !important;
+    justify-self: start !important;
+  }
+}
