@@ -397,9 +397,16 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
 
   const filteredItems = useMemo(() => items.filter((item) => {
     if (filter === 'all') return true;
+    if (filter === 'unread') return !manager && item.created_by !== currentUser?.id && !readIds.has(String(item.id));
     if (filter === 'action') return isActionItem(item);
+    if (filter === 'due') {
+      const due = item.due_at ? new Date(item.due_at).getTime() : 0;
+      const done = ['completed', 'approved', 'archived'].includes(String(item.status || '').toLowerCase());
+      return Boolean(due && due >= Date.now() && !done);
+    }
+    if (filter === 'done') return ['completed', 'approved', 'archived'].includes(String(item.status || '').toLowerCase());
     return typeForItem(item).id === filter;
-  }), [filter, items]);
+  }), [currentUser?.id, filter, items, manager, readIds]);
 
   function responsesForItem(itemId) {
     return responses.filter((entry) => String(entry.item_id) === String(itemId));
@@ -1000,9 +1007,10 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
             <div className="ttcm-m3-filters" role="tablist" aria-label="Lọc nội dung TTCM">
               {[
                 ['all', 'Tất cả'],
-                ['announcement', 'Thông báo'],
-                ['resource', 'Tài liệu'],
+                ['unread', 'Chưa đọc'],
                 ['action', 'Cần xử lý'],
+                ['due', 'Sắp đến hạn'],
+                ['done', 'Hoàn tất'],
               ].map(([id, label]) => (
                 <button key={id} type="button" className={filter === id ? 'is-selected' : ''} onClick={() => setFilter(id)}>{label}</button>
               ))}
