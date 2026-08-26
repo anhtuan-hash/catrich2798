@@ -1,20 +1,37 @@
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 
 const STORAGE_KEY = 'bes-global-font-preset-v1';
+const STORAGE_SOURCE_KEY = 'bes-global-font-preset-source-v2';
 const SETTINGS_TABLE = 'brian_global_font_settings';
 const GLOBAL_EVENT = 'bes-global-font-updated';
-const DEFAULT_PRESET = 'roboto';
+const DEFAULT_PRESET = 'system';
+const FONT_LINK_ID = 'bes-global-font-runtime-link';
 const VALID_PRESETS = new Set(['roboto', 'be-vietnam-pro', 'inter', 'noto-sans', 'arial', 'system', 'custom']);
+
+const REMOTE_FONT_STYLESHEETS = Object.freeze({
+  roboto: 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap',
+  'be-vietnam-pro': 'https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap',
+  inter: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+  'noto-sans': 'https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap',
+});
 
 export const GLOBAL_FONT_PRESETS = Object.freeze([
   {
+    id: 'system',
+    label: 'System UI',
+    descriptionVi: 'Mặc định của Brian. Dùng font giao diện gốc của hệ điều hành trên từng thiết bị.',
+    description: 'Brian default. Uses the native interface font supplied by each operating system.',
+    family: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    sample: 'Aa  Native UI · 123',
+    recommended: true,
+  },
+  {
     id: 'roboto',
     label: 'Roboto',
-    descriptionVi: 'Chuẩn Google Material, cân bằng và quen thuộc trên giao diện web.',
-    description: 'Google Material standard: balanced, familiar and highly readable.',
+    descriptionVi: 'Font Google Material; chỉ được tải và áp dụng khi Admin chủ động chọn.',
+    description: 'Google Material typeface; loaded and applied only when selected by Admin.',
     family: "'Roboto', Arial, sans-serif",
     sample: 'Aa  Ă Â Ê Ô Ơ Ư  123',
-    recommended: true,
   },
   {
     id: 'be-vietnam-pro',
@@ -43,18 +60,10 @@ export const GLOBAL_FONT_PRESETS = Object.freeze([
   {
     id: 'arial',
     label: 'Arial',
-    descriptionVi: 'Font hệ thống phổ biến, tải nhanh và tương thích cao.',
-    description: 'Fast, broadly compatible system font.',
+    descriptionVi: 'Font phổ biến, tải nhanh và tương thích cao.',
+    description: 'Fast, broadly compatible font.',
     family: 'Arial, Helvetica, sans-serif',
     sample: 'Aa  English · Tiếng Việt',
-  },
-  {
-    id: 'system',
-    label: 'System UI',
-    descriptionVi: 'Dùng font giao diện mặc định của hệ điều hành trên từng thiết bị.',
-    description: 'Use the native interface font supplied by each operating system.',
-    family: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    sample: 'Aa  Native UI · 123',
   },
   {
     id: 'custom',
@@ -76,16 +85,47 @@ function normalizePreset(value) {
   return VALID_PRESETS.has(preset) ? preset : DEFAULT_PRESET;
 }
 
-function storedPreset() {
-  if (typeof window === 'undefined') return DEFAULT_PRESET;
-  try { return normalizePreset(window.localStorage.getItem(STORAGE_KEY)); }
-  catch { return DEFAULT_PRESET; }
+function readStoredSource() {
+  if (typeof window === 'undefined') return '';
+  try { return String(window.localStorage.getItem(STORAGE_SOURCE_KEY) || ''); }
+  catch { return ''; }
 }
 
-function writeStoredPreset(preset) {
+function storedPreset() {
+  if (typeof window === 'undefined') return DEFAULT_PRESET;
+  try {
+    const preset = window.localStorage.getItem(STORAGE_KEY);
+    const source = readStoredSource();
+    // Legacy builds wrote Roboto to localStorage as a default. Values without an
+    // explicit selection source are therefore ignored and Brian starts in System UI.
+    if (!source) return DEFAULT_PRESET;
+    return normalizePreset(preset);
+  } catch { return DEFAULT_PRESET; }
+}
+
+function writeStoredPreset(preset, source = 'local') {
   if (typeof window === 'undefined') return;
-  try { window.localStorage.setItem(STORAGE_KEY, normalizePreset(preset)); }
-  catch { /* persistence is optional */ }
+  try {
+    window.localStorage.setItem(STORAGE_KEY, normalizePreset(preset));
+    window.localStorage.setItem(STORAGE_SOURCE_KEY, String(source || 'local'));
+  } catch { /* persistence is optional */ }
+}
+
+function syncRemoteFontAsset(preset) {
+  if (typeof document === 'undefined') return;
+  const href = REMOTE_FONT_STYLESHEETS[preset] || '';
+  let link = document.getElementById(FONT_LINK_ID);
+  if (!href) {
+    link?.remove();
+    return;
+  }
+  if (!link) {
+    link = document.createElement('link');
+    link.id = FONT_LINK_ID;
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+  }
+  if (link.getAttribute('href') !== href) link.setAttribute('href', href);
 }
 
 export function getGlobalFontPreset() {
@@ -106,13 +146,14 @@ export function applyGlobalFontPreset(preset, options = {}) {
   const definition = getGlobalFontPresetDefinition(normalized);
   const { persist = true, source = 'local', broadcast = true } = options;
 
+  syncRemoteFontAsset(normalized);
   if (typeof document !== 'undefined') {
     const root = document.documentElement;
     root.dataset.globalFont = normalized;
     root.dataset.globalFontSource = source;
     root.style.setProperty('--bes-global-font-family', definition.family);
   }
-  if (persist) writeStoredPreset(normalized);
+  if (persist) writeStoredPreset(normalized, source);
 
   if (broadcast && typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(GLOBAL_EVENT, {
@@ -233,7 +274,7 @@ function scheduleRuntimeSync() {
 export function installGlobalFontSystem() {
   if (installed || typeof window === 'undefined' || typeof document === 'undefined') return;
   installed = true;
-  applyGlobalFontPreset(storedPreset(), { source: 'bootstrap', broadcast: false });
+  applyGlobalFontPreset(storedPreset(), { source: 'bootstrap', broadcast: false, persist: false });
 
   const onStorage = (event) => {
     if (event.key === STORAGE_KEY && event.newValue) {
