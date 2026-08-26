@@ -18,10 +18,10 @@ import '../styles/HomeHeroCmsEditorInteractionFix.css';
 // complete Grade 10/11/12 week lists without having to sign in or visit Apps.
 import '../homePracticeScheduleScroller.js';
 
-// Import HomeApproved before the final Editorial layer. This guarantees that
-// HomeApproved.css + all weekly-practice legacy layers are evaluated first,
-// then the approved Editorial presentation becomes the final Home authority.
+// Import HomeApproved before the final Editorial layers so all legacy Home
+// styles resolve first. V2 is the final route-level visual authority.
 import HomeApproved from './HomeApproved.jsx';
 import '../styles/HomeEditorialWarmV1.css';
+import '../styles/HomeEditorialWarmV2.css';
 
 export default HomeApproved;
