@@ -1,1 +1,81 @@
-.btp-shell{min-height:100vh;background:#f7faf9}.btp-switcher{position:fixed;z-index:2500;right:18px;bottom:18px;display:flex;gap:6px;padding:6px;border:1px solid rgba(148,163,184,.3);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:0 12px 38px rgba(15,23,42,.18);backdrop-filter:blur(14px)}.btp-switcher button{display:flex;align-items:center;gap:7px;min-height:42px;padding:0 13px;border:0;border-radius:11px;background:transparent;color:#52606d;font:inherit;font-weight:800;cursor:pointer;white-space:nowrap}.btp-switcher button:hover{background:#eef5f5;color:#245f66}.btp-switcher button.is-active{background:#2f6f78;color:#fff}.btp-switcher svg{width:18px;height:18px}.btp-switcher--leader{right:50%;transform:translateX(50%);padding:7px;border-radius:18px;background:rgba(255,255,255,.96);box-shadow:0 16px 46px rgba(15,23,42,.2)}.btp-switcher--leader button{min-height:46px;padding:0 16px;border-radius:13px}.btp-switcher--leader button.is-active{background:linear-gradient(135deg,#0f766e,#315b7c);box-shadow:0 8px 22px rgba(15,118,110,.2)}@media(max-width:1100px){.btp-switcher--leader{right:10px;left:10px;transform:none}.btp-switcher--leader button{flex:1;justify-content:center;padding:0 10px}}@media(max-width:760px){.btp-switcher{right:8px;bottom:8px;left:8px}.btp-switcher button{flex:1;justify-content:center}.btp-switcher--leader button{font-size:.76rem;gap:5px;padding:0 7px}.btp-switcher--leader svg{width:16px;height:16px}}@media(max-width:560px){.btp-switcher--leader button{font-size:0}.btp-switcher--leader button svg{width:20px;height:20px}.btp-switcher--leader button::after{font-size:.7rem}.btp-switcher--leader button:nth-child(1)::after{content:'Của tôi'}.btp-switcher--leader button:nth-child(2)::after{content:'Tổng hợp'}.btp-switcher--leader button:nth-child(3)::after{content:'Thống kê'}.btp-switcher--leader button:nth-child(4)::after{content:'Nhân sự'}}
+.btp-shell {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.btp-switcher {
+  position: relative;
+  z-index: 20;
+  width: min(1240px, calc(100% - 36px));
+  margin: 14px auto 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  overflow-x: auto;
+  border: 1px solid #dfe4ea;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: none;
+  scrollbar-width: none;
+}
+
+.btp-switcher::-webkit-scrollbar {
+  display: none;
+}
+
+.btp-switcher button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #5f6368;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btp-switcher button:hover {
+  background: #f1f4f9;
+  color: #202124;
+}
+
+.btp-switcher button.is-active {
+  background: #e8f0fe;
+  color: #174ea6;
+}
+
+.btp-switcher svg {
+  width: 17px;
+  height: 17px;
+}
+
+.btp-switcher--leader {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  transform: none;
+}
+
+@media (max-width: 760px) {
+  .btp-switcher {
+    width: calc(100% - 20px);
+    margin-top: 10px;
+    justify-content: flex-start;
+  }
+
+  .btp-switcher button {
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+}
