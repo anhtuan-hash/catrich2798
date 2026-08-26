@@ -335,7 +335,6 @@ body .metro-clean-system[data-route='apps'] .flat-app-window-card {
     linear-gradient(145deg,#fff 0%,color-mix(in srgb,var(--app-soft,#e8f0fe) 46%,#fff) 100%) !important;
   box-shadow: 0 4px 14px rgba(60,64,67,.07) !important;
   transform: none !important;
-  transition: transform .18s ease,border-color .18s ease,box-shadow .18s ease !important;
 }
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-card::before {
@@ -351,7 +350,6 @@ body .metro-clean-system[data-route='apps'] .flat-app-window-card::before {
 
 body .metro-clean-system[data-route='apps'] .flat-app-window-card:hover,
 body .metro-clean-system[data-route='apps'] .flat-app-window-card:focus-within {
-  transform: translateY(-4px) !important;
   border-color: color-mix(in srgb,var(--app-accent,#1a73e8) 40%,var(--apps-line)) !important;
   box-shadow: 0 9px 22px rgba(60,64,67,.11),0 18px 34px color-mix(in srgb,var(--app-accent,#1a73e8) 9%,transparent) !important;
 }
@@ -667,11 +665,4 @@ html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-pinned
 body.theme-dark .metro-clean-system[data-route='apps'] .flat-pinned-apps {
   background: rgba(32,34,39,.88) !important;
   border-color: #41464f !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body .metro-clean-system[data-route='apps'] .flat-app-window-card,
-  body .metro-clean-system[data-route='apps'] .flat-app-window-art {
-    transition: none !important;
-  }
 }
