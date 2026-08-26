@@ -52,10 +52,8 @@
   font-size:.64rem!important;
   font-weight:950!important;
   cursor:pointer;
-  transition:transform .16s ease,background .16s ease,border-color .16s ease!important;
 }
 .bha-grade-sort-button:hover{
-  transform:translateY(-1px);
   border-color:color-mix(in srgb,var(--accent) 42%,#dfe5ed)!important;
   background:color-mix(in srgb,var(--accent) 12%,#fff)!important;
 }
@@ -108,10 +106,8 @@
   border-radius:13px;
   background:#fff;
   box-shadow:0 2px 7px rgba(60,64,67,.04);
-  transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;
 }
 .bha-schedule-row:hover{
-  transform:translateY(-1px);
   border-color:color-mix(in srgb,var(--accent) 30%,#dfe5ed);
   box-shadow:0 6px 14px rgba(60,64,67,.08);
 }
@@ -142,9 +138,8 @@
   font-weight:950!important;
   white-space:nowrap;
   cursor:pointer;
-  transition:transform .16s ease,filter .16s ease!important;
 }
-.bha-schedule-view-button:hover{transform:translateY(-1px);filter:saturate(1.08)}
+.bha-schedule-view-button:hover{filter:saturate(1.08)}
 .bha-schedule-view-button svg{
   width:15px;
   height:15px;
@@ -174,7 +169,6 @@ html.bha-schedule-modal-open,html.bha-schedule-modal-open body{overflow:hidden!i
   padding:22px;
   background:rgba(27,39,58,.52);
   backdrop-filter:blur(14px) saturate(.84);
-  animation:bha-schedule-fade .18s ease-out both;
 }
 .bha-schedule-dialog{
   position:relative;
@@ -190,7 +184,6 @@ html.bha-schedule-modal-open,html.bha-schedule-modal-open body{overflow:hidden!i
   color:#172b4d;
   box-shadow:0 34px 100px rgba(17,35,60,.34);
   text-align:center;
-  animation:bha-schedule-rise .22s cubic-bezier(.2,.78,.2,1) both;
 }
 .bha-schedule-dialog:before{
   content:"";
@@ -310,8 +303,6 @@ html.bha-schedule-modal-open,html.bha-schedule-modal-open body{overflow:hidden!i
   cursor:pointer;
 }
 .bha-schedule-acknowledge:hover{background:#edf3fb!important}
-@keyframes bha-schedule-fade{from{opacity:0}to{opacity:1}}
-@keyframes bha-schedule-rise{from{opacity:0;transform:translateY(14px) scale(.975)}to{opacity:1;transform:translateY(0) scale(1)}}
 html[data-theme='dark'] .bha-grade-schedule-browser,.theme-dark .bha-grade-schedule-browser{background:rgba(20,31,42,.92);border-top-color:rgba(220,229,240,.12)}
 html[data-theme='dark'] .bha-schedule-row,.theme-dark .bha-schedule-row{border-color:rgba(220,229,240,.13);background:#1b2937}
 html[data-theme='dark'] .bha-schedule-row>strong,.theme-dark .bha-schedule-row>strong{color:#eef4ff}
@@ -334,8 +325,4 @@ html[data-theme='dark'] .bha-schedule-close,.theme-dark .bha-schedule-close{bord
   .bha-schedule-close{top:10px;right:10px;width:38px;height:38px}
   .bha-schedule-dialog>.bha-schedule-icon--clock{width:62px;height:62px;border-radius:18px}
   .bha-schedule-facts{grid-template-columns:1fr;margin-top:18px}
-}
-@media(prefers-reduced-motion:reduce){
-  .bha-schedule-backdrop,.bha-schedule-dialog{animation:none}
-  .bha-schedule-row,.bha-grade-sort-button,.bha-schedule-view-button{transition:none!important}
 }
