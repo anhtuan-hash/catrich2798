@@ -12,7 +12,6 @@ import {
   lockedFor,
   permissionFor,
   shortDesc,
-  statusOf,
   targetFor,
   titleOf,
 } from './appsDirectoryData.js';
@@ -41,10 +40,8 @@ export default function AppListRow({
   const pinned = config.pinned.includes(itemId);
   const inNav = config.nav.includes(navId);
   const groupId = config.assignments[itemId] || defaultGroupOf(item);
-  const group = groupOptions.find((entry) => entry.id === groupId);
   const itemTitle = titleOf(item, language);
   const description = shortDesc(item, language) || descOf(item, language) || '';
-  const status = statusOf(item, language);
 
   const openItem = (event) => {
     if (locked || editMode) return;
@@ -53,7 +50,7 @@ export default function AppListRow({
 
   return (
     <article
-      className={`apps-list-row ${item.shared ? 'is-shared' : ''} ${locked ? 'is-locked' : ''} ${hidden ? 'is-hidden' : ''} ${editMode ? 'is-editing' : ''}`}
+      className={`editorial-app-card ${item.shared ? 'is-shared' : ''} ${locked ? 'is-locked' : ''} ${hidden ? 'is-hidden' : ''} ${editMode ? 'is-editing' : ''}`}
       style={{ '--app-accent': profile.accent, '--app-soft': profile.soft, '--app-ink': profile.ink }}
       draggable={editMode}
       onDragStart={(event) => onDragStart?.(event, itemId)}
@@ -63,36 +60,33 @@ export default function AppListRow({
     >
       <button
         type="button"
-        className="apps-list-open"
+        className="editorial-app-card-main"
         onClick={openItem}
         aria-label={`${locked ? (language === 'vi' ? 'Cần quyền truy cập' : 'Access required') : t.open}: ${itemTitle}`}
         aria-disabled={locked || editMode ? 'true' : 'false'}
+        disabled={editMode}
       >
-        <span className="apps-list-icon" aria-hidden="true">
-          {item.shared ? <span className="apps-list-shared-icon">{item.icon || '🎮'}</span> : <FlatAppIcon type={profile.icon} slug={item.slug} />}
-        </span>
-        <span className="apps-list-copy">
-          <span className="apps-list-meta">
-            <b>{language === 'vi' ? (group?.labelVi || 'Ứng dụng') : (group?.label || 'Application')}</b>
-            {status ? <em className={item.shared ? 'is-shared-badge' : ''}>{status}</em> : null}
-            {pinned ? <em className="is-pinned">★ {language === 'vi' ? 'Đã ghim' : 'Pinned'}</em> : null}
+        <span className="editorial-app-card-top">
+          <span className="editorial-app-card-icon" aria-hidden="true">
+            {item.shared ? <span>{item.icon || '🎮'}</span> : <FlatAppIcon type={profile.icon} slug={item.slug} />}
           </span>
-          <strong>{itemTitle}</strong>
-          <small>{description}</small>
+          <span className={`editorial-app-card-favorite ${pinned ? 'is-pinned' : ''}`} aria-hidden="true">{pinned ? '★' : '☆'}</span>
         </span>
-        <span className="apps-list-primary-action" aria-hidden="true">
-          {locked ? <><LockKeyhole /><b>{language === 'vi' ? 'Cần quyền' : 'Access'}</b></> : <><b>{language === 'vi' ? 'Mở' : 'Open'}</b><ChevronRight /></>}
+        <strong className="editorial-app-card-title">{itemTitle}</strong>
+        <small className="editorial-app-card-description">{description}</small>
+        <span className="editorial-app-card-cta" aria-hidden="true">
+          {locked ? <><LockKeyhole /><b>{language === 'vi' ? 'Cần quyền' : 'Access'}</b></> : <><b>{language === 'vi' ? 'Mở ứng dụng' : 'Open app'}</b><ChevronRight /></>}
         </span>
       </button>
 
       {locked && permissionId && !editMode ? (
-        <div className="apps-list-permission">
+        <div className="editorial-app-card-permission">
           <PermissionRequestButton currentUser={currentUser} permissionId={permissionId} item={item} language={language} compact className="request-access-btn" label={language === 'vi' ? `Yêu cầu quyền cho ${itemTitle}` : `Request access to ${itemTitle}`} />
         </div>
       ) : null}
 
       {editMode && !item.isHiddenFolder ? (
-        <div className="apps-list-admin" role="group" aria-label={`${t.customize}: ${itemTitle}`}>
+        <div className="editorial-app-card-admin" role="group" aria-label={`${t.customize}: ${itemTitle}`}>
           <button type="button" className={pinned ? 'active' : ''} onClick={() => onTogglePin(itemId)} title={pinned ? t.unpin : t.pin}>{pinned ? <PinOff /> : <Pin />}<span>{pinned ? t.unpin : t.pin}</span></button>
           <button type="button" className={hidden ? 'active danger' : ''} onClick={() => onToggleHidden(itemId, navId)} title={hidden ? t.show : t.hide}><EyeOff /><span>{hidden ? t.show : t.hide}</span></button>
           <button type="button" className={inNav ? 'active' : ''} onClick={() => onToggleNav(navId)} title={inNav ? t.navOff : t.navOn}><Star /><span>{inNav ? t.navOff : t.navOn}</span></button>
