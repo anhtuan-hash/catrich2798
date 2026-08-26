@@ -17,8 +17,10 @@ import '../styles/apps-google-material-list-v2.css';
 import '../styles/games-route-retired.css';
 // Legacy editorial layer kept for safe fallbacks.
 import '../styles/apps-editorial-two-column-v3.css';
-// Route-final authority: must stay LAST so legacy list/grid rules cannot collapse the five-column cards.
+// Previous stabilization layer.
 import '../styles/apps-editorial-five-column-stable-v6.css';
+// FINAL route authority. Keep this import last.
+import '../styles/apps-editorial-five-column-v7.css';
 
 const LEGACY_SAVED_GAMES_KEY = 'bes-game-hub-links-v1';
 
