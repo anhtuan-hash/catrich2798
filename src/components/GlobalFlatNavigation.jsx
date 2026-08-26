@@ -15,6 +15,7 @@ import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
 import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
 import GlobalHomeroomNavigationTab from './GlobalHomeroomNavigationTab.jsx';
 import GlobalReportsNavigationTab from './GlobalReportsNavigationTab.jsx';
+import GlobalTtcmNavigationTab from './GlobalTtcmNavigationTab.jsx';
 import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
 import GlobalWorkHubNotificationBridge from './GlobalWorkHubNotificationBridge.jsx';
 import GlobalWorkScheduleBridge from './GlobalWorkScheduleBridge.jsx';
@@ -119,6 +120,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalDashboardNavigationTab {...props} />
       <GlobalHomeroomNavigationTab {...props} />
       <GlobalReportsNavigationTab {...props} />
+      <GlobalTtcmNavigationTab {...props} />
       <GlobalDashboardFooterBridge route={props.route} language={props.language} />
       <GlobalWorkHubNotificationBridge currentUser={props.currentUser} language={props.language} />
       <GlobalWorkScheduleBridge />
