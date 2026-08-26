@@ -127,7 +127,6 @@
   border-radius: 0;
   background: #fffdf9;
   box-shadow: none;
-  transition: background-color .16s ease, transform .16s ease;
 }
 
 .thpt-practice-page .thpt-lesson-card:last-child {
