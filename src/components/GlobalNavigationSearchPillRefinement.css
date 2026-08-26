@@ -21,9 +21,6 @@ html body .app-shell[data-route]
   color: #444746 !important;
   box-shadow: none !important;
   transform: none !important;
-  transition:
-    background-color 140ms ease,
-    box-shadow 140ms ease !important;
 }
 
 html body .app-shell[data-route]
@@ -111,13 +108,5 @@ html body .app-shell[data-route]
     .brian-nav.brian-nav--concept-v2
     > .brian-concept-search {
     width: min(100%, 220px) !important;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html body .app-shell[data-route]
-    .brian-nav.brian-nav--concept-v2
-    > .brian-concept-search {
-    transition: none !important;
   }
 }
