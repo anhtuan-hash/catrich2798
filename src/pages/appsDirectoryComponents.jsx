@@ -105,48 +105,6 @@ export function GroupRail({ group, count, language, active, onClick }) {
   );
 }
 
-function LauncherPreviewIcons({ items = [], style = 'radial' }) {
-  return (
-    <div className={`launcher-style-mini-preview is-${style}`} aria-hidden="true">
-      {style === 'water' ? <><span className="launcher-water-wave wave-one" /><span className="launcher-water-wave wave-two" /><i className="launcher-water-bubble bubble-one" /><i className="launcher-water-bubble bubble-two" /><i className="launcher-water-bubble bubble-three" /></> : <span className="launcher-radial-guide" />}
-      <span className="launcher-preview-hub">✦</span>
-      {items.slice(0, 6).map((item, index) => {
-        const profile = getAppDesignProfile(item.slug);
-        return <span key={`preview-${style}-${item.slug}`} className="launcher-preview-app" data-index={index} style={{ '--launcher-accent': profile.accent }}><FlatAppIcon type={profile.icon} slug={item.slug} /></span>;
-      })}
-    </div>
-  );
-}
-
-export function LauncherStyleSelector({ language, value = 'radial', items = [], onChange }) {
-  const t = copy[language] || copy.vi;
-  const options = [
-    { id: 'radial', title: t.radialLauncher, desc: t.radialLauncherDesc },
-    { id: 'water', title: t.waterLauncher, desc: t.waterLauncherDesc },
-  ];
-  return (
-    <section className="launcher-style-selector" aria-label={t.launcherStyleTitle}>
-      <header className="launcher-style-selector-head"><div><span aria-hidden="true">⌘</span><strong>{t.launcherStyleTitle}</strong></div><p>{t.launcherStyleHint}</p></header>
-      <div className="launcher-style-options">
-        {options.map((option) => {
-          const active = value === option.id;
-          return (
-            <button type="button" key={option.id} className={`launcher-style-option ${active ? 'active' : ''}`} onClick={() => onChange?.(option.id)} aria-pressed={active}>
-              <span className="launcher-style-option-copy">
-                <span className="launcher-style-option-title"><i aria-hidden="true">{option.id === 'radial' ? '◉' : '◒'}</i><strong>{option.title}</strong></span>
-                <span className="launcher-style-option-desc">{option.desc}</span>
-                <span className="launcher-style-option-action">{active ? `✓ ${t.selectedStyle}` : t.chooseStyle}</span>
-              </span>
-              <LauncherPreviewIcons items={items} style={option.id} />
-              {active ? <span className="launcher-style-check" aria-hidden="true">✓</span> : null}
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
 export function AppsDirectoryHero({ language, isAdmin, editMode, saving, visibleItems, pinnedCount, navCount, previewItems, onBrowse, onEdit, onSave, onReset }) {
   const t = copy[language] || copy.vi;
   return (
