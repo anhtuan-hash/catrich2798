@@ -1,3 +1,5 @@
+import { installMonthlyReportReviewAccordion } from './monthlyReportReviewAccordion.js';
+
 const RETIRED_STORAGE_KEYS = new Set([
   'bet-theme',
   'bes-theme-mode',
@@ -88,6 +90,7 @@ export function installRetiredFeatureCleanup() {
   enforceLightOnlyDocument();
   clearRetiredAppearanceDocument();
   clearRetiredMediaCache();
+  installMonthlyReportReviewAccordion();
 
   const enforce = () => {
     removeRetiredStorage();
