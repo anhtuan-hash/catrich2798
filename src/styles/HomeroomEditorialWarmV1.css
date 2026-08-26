@@ -1,0 +1,613 @@
+/* Brian English — Homeroom Editorial Warm V1
+   Presentation-only layer for the Homeroom workspace.
+   IMPORTANT: typography family remains controlled exclusively by GlobalFontSystem/Admin. */
+
+html[data-global-font] body .page.hr-page {
+  --hre-bg:#f8f5ef;
+  --hre-paper:#fffdf9;
+  --hre-paper-2:#fbf7f1;
+  --hre-ink:#342a24;
+  --hre-body:#665f58;
+  --hre-muted:#8b8178;
+  --hre-line:#e8ddd1;
+  --hre-line-strong:#ddcbbb;
+  --hre-copper:#a76542;
+  --hre-copper-deep:#7a452e;
+  --hre-peach:#f5ddca;
+  --hre-peach-2:#fbeadf;
+  --hre-sand:#f6ecdc;
+  --hre-olive:#73815c;
+  --hre-green:#4e8057;
+  --hre-blue:#5577a2;
+  --hre-purple:#7d6a9d;
+  --hre-amber:#bb8429;
+  --hre-red:#b85d4d;
+  width:min(1480px,calc(100vw - 40px)) !important;
+  max-width:1480px !important;
+  margin:0 auto !important;
+  padding:28px 0 96px !important;
+  background:
+    radial-gradient(circle at 8% 7%,rgba(220,189,153,.13),transparent 25rem),
+    linear-gradient(180deg,#fbf9f5 0%,var(--hre-bg) 100%) !important;
+  color:var(--hre-ink) !important;
+  font-size:15px !important;
+  line-height:1.55 !important;
+}
+html[data-global-font] body .page.hr-page h1,
+html[data-global-font] body .page.hr-page h2,
+html[data-global-font] body .page.hr-page h3,
+html[data-global-font] body .page.hr-page h4,
+html[data-global-font] body .page.hr-page p { color:var(--hre-ink) !important; }
+html[data-global-font] body .page.hr-page small,
+html[data-global-font] body .page.hr-page em,
+html[data-global-font] body .page.hr-page .hr-muted { color:var(--hre-muted) !important; }
+
+/* ---------------- HERO ---------------- */
+html[data-global-font] body .page.hr-page .hr-material-hero {
+  --hrmh-blue:var(--hre-copper) !important;
+  --hrmh-blue-dark:var(--hre-copper-deep) !important;
+  --hrmh-blue-soft:var(--hre-peach) !important;
+  --hrmh-blue-pale:#fff7f1 !important;
+  --hrmh-green:var(--hre-green) !important;
+  --hrmh-green-soft:#edf4e9 !important;
+  --hrmh-yellow:#9c6b2e !important;
+  --hrmh-yellow-soft:#fbf1df !important;
+  --hrmh-red:var(--hre-red) !important;
+  --hrmh-red-soft:#f9e8e4 !important;
+  --hrmh-text:var(--hre-ink) !important;
+  --hrmh-muted:var(--hre-muted) !important;
+  --hrmh-line:var(--hre-line) !important;
+  --hrmh-line-soft:#eee6dc !important;
+  grid-template-columns:minmax(340px,1.02fr) minmax(330px,.95fr) minmax(300px,.78fr) !important;
+  gap:22px !important;
+  min-height:390px !important;
+  margin:0 0 18px !important;
+  padding:26px !important;
+  overflow:hidden !important;
+  border:1px solid var(--hre-line) !important;
+  border-radius:26px !important;
+  background:
+    radial-gradient(circle at 88% 4%,rgba(235,195,160,.22),transparent 22rem),
+    linear-gradient(120deg,#fffdf9 0%,#fffaf4 57%,#f8ebdf 100%) !important;
+  box-shadow:0 10px 34px rgba(80,56,39,.055) !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero::before,
+html[data-global-font] body .page.hr-page .hr-material-hero::after,
+html[data-global-font] body .page.hr-page .hr-material-hero__accent,
+html[data-global-font] body .page.hr-page .hr-material-hero__shape { display:none !important; }
+
+html[data-global-font] body .page.hr-page .hr-material-hero__class-panel {
+  justify-content:center !important;
+  padding:26px 24px !important;
+  border:0 !important;
+  border-radius:20px !important;
+  background:rgba(255,253,249,.72) !important;
+  box-shadow:none !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__class-panel::after { display:none !important; }
+html[data-global-font] body .page.hr-page .hr-material-hero__eyebrow {
+  min-height:32px !important;
+  padding:5px 11px 5px 6px !important;
+  border:1px solid #e7d6c6 !important;
+  border-radius:10px !important;
+  background:#fffdfa !important;
+  color:#93603f !important;
+  box-shadow:none !important;
+  font-size:10px !important;
+  font-weight:760 !important;
+  letter-spacing:.09em !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__eyebrow-icon {
+  width:24px !important;
+  height:24px !important;
+  border-radius:7px !important;
+  background:#a66a45 !important;
+  color:#fff !important;
+  box-shadow:none !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__class-row {
+  gap:12px !important;
+  margin:20px 0 0 !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__class-row > span {
+  color:#8b8076 !important;
+  font-size:11px !important;
+  font-weight:700 !important;
+  letter-spacing:.07em !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__class-row h1 {
+  color:#4a3023 !important;
+  -webkit-text-fill-color:#4a3023 !important;
+  font-size:clamp(62px,5.2vw,86px) !important;
+  font-weight:450 !important;
+  line-height:.9 !important;
+  letter-spacing:-.062em !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__teacher-line { margin-top:17px !important; }
+html[data-global-font] body .page.hr-page .hr-material-hero__teacher-line > span {
+  min-height:25px !important;
+  padding:0 9px !important;
+  border-radius:999px !important;
+  background:#eef1df !important;
+  color:#687444 !important;
+  font-size:9.5px !important;
+  font-weight:800 !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__teacher-line strong {
+  color:#40352e !important;
+  font-size:20px !important;
+  font-weight:620 !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__details {
+  gap:10px !important;
+  margin-top:23px !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__detail {
+  min-height:66px !important;
+  padding:10px 11px !important;
+  border:1px solid #eadfd3 !important;
+  border-radius:13px !important;
+  background:rgba(255,255,253,.84) !important;
+  box-shadow:none !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__detail:hover { box-shadow:0 5px 16px rgba(78,58,42,.06) !important; }
+html[data-global-font] body .page.hr-page .hr-material-hero__detail-icon {
+  width:36px !important;
+  height:36px !important;
+  border-radius:11px !important;
+  background:#fffdfa !important;
+  box-shadow:none !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__detail.tone-blue .hr-material-hero__detail-icon { color:#6d83a5 !important; }
+html[data-global-font] body .page.hr-page .hr-material-hero__detail.tone-green .hr-material-hero__detail-icon { color:#708253 !important; }
+html[data-global-font] body .page.hr-page .hr-material-hero__detail.tone-yellow .hr-material-hero__detail-icon { color:#a66f35 !important; }
+html[data-global-font] body .page.hr-page .hr-material-hero__detail.tone-red .hr-material-hero__detail-icon { color:#b06054 !important; }
+html[data-global-font] body .page.hr-page .hr-material-hero__detail-copy small {
+  color:#95887e !important;
+  font-size:9px !important;
+  font-weight:700 !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__detail-copy strong {
+  color:#443a34 !important;
+  font-size:12.5px !important;
+  font-weight:680 !important;
+}
+
+/* Replace the colourful Google illustration with a quiet editorial classroom line drawing. */
+html[data-global-font] body .page.hr-page .hr-material-hero__visual {
+  min-height:330px !important;
+  border-radius:22px !important;
+  background:radial-gradient(circle at 50% 48%,rgba(225,202,169,.25),transparent 58%) !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__illustration,
+html[data-global-font] body .page.hr-page .hr-material-hero__visual-chip { display:none !important; }
+html[data-global-font] body .page.hr-page .hr-material-hero__visual::before {
+  content:"" !important;
+  display:block !important;
+  width:min(100%,410px) !important;
+  height:315px !important;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 320'%3E%3Cg fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M150 48c0-19 15-34 34-34h54c19 0 34 15 34 34v116H150V48Z' stroke='%23c8a982' stroke-width='2'/%3E%3Cpath d='M211 15v149M151 91h120' stroke='%23dec9ae' stroke-width='1.5'/%3E%3Cpath d='M166 144c18-38 44-57 72-65 12 19 15 40 10 65' stroke='%23a2a979' stroke-width='1.4' opacity='.6'/%3E%3Cpath d='M111 240c21-18 55-28 99-13 44-15 78-5 99 13v39c-29-13-62-14-99 0-37-14-70-13-99 0v-39Z' fill='%23fffaf1' stroke='%23b79069' stroke-width='2'/%3E%3Cpath d='M210 229v49M125 248c27-8 52-7 74 1M295 248c-27-8-52-7-74 1' stroke='%23d4b594' stroke-width='1.3'/%3E%3Cpath d='M67 240h51M302 240h51M69 232h48M304 232h47' stroke='%23897462' stroke-width='4'/%3E%3Cpath d='M80 230c4-38 2-70-8-98M73 171c-23-5-36-18-41-38 22 1 37 10 43 26M77 151c21-11 37-27 45-48-23 0-39 9-48 28M76 199c-20-3-35-13-44-30 21-2 37 4 47 19' stroke='%2379855b' stroke-width='2'/%3E%3Cpath d='M59 240h44l-5-40H64l-5 40Z' fill='%23f4eadb' stroke='%23aa8b68' stroke-width='1.5'/%3E%3Cpath d='M310 222h50l-4 18h-42l-4-18Z' fill='%23f2e6d5' stroke='%23aa8b68' stroke-width='1.4'/%3E%3Cpath d='M321 222v-42M335 222v-52M349 222v-34' stroke='%238c725f' stroke-width='2'/%3E%3Cpath d='M90 289h246' stroke='%23d8c5ad' stroke-width='1.5'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat !important;
+  filter:drop-shadow(0 10px 18px rgba(103,75,49,.08)) !important;
+}
+
+html[data-global-font] body .page.hr-page .hr-material-hero__teacher-card {
+  align-self:center !important;
+  min-height:300px !important;
+  padding:0 22px 21px !important;
+  border:1px solid #e6d8ca !important;
+  border-radius:20px !important;
+  background:rgba(255,253,249,.92) !important;
+  box-shadow:0 7px 24px rgba(79,56,39,.045) !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__teacher-banner {
+  min-height:48px !important;
+  margin:0 -22px 18px !important;
+  padding:0 22px !important;
+  border-bottom:1px solid #e2dcc9 !important;
+  background:linear-gradient(90deg,#f0f2df,#f8f5e8) !important;
+  color:#6e7748 !important;
+  font-size:9.5px !important;
+  font-weight:800 !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__avatar {
+  background:linear-gradient(145deg,#b67d51,#805235) !important;
+  color:#fff !important;
+  box-shadow:0 6px 16px rgba(105,72,46,.16) !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__profile-copy strong {
+  color:#3f342e !important;
+  font-size:18px !important;
+  font-weight:650 !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__profile-copy small { color:#82786f !important; }
+html[data-global-font] body .page.hr-page .hr-material-hero__teacher-summary > div {
+  border:1px solid #e7ddd3 !important;
+  border-radius:12px !important;
+  background:#fffdfa !important;
+  box-shadow:none !important;
+}
+html[data-global-font] body .page.hr-page .hr-material-hero__teacher-summary small { color:#94877d !important; }
+html[data-global-font] body .page.hr-page .hr-material-hero__teacher-summary strong { color:#44382f !important; }
+html[data-global-font] body .page.hr-page .hr-sync,
+html[data-global-font] body .page.hr-page .hrc-offline-badge {
+  border:1px solid #ead8b5 !important;
+  background:#fbf1dc !important;
+  color:#93651d !important;
+  box-shadow:none !important;
+}
+html[data-global-font] body .page.hr-page .hr-sync.cloud { border-color:#d8e2cc !important;background:#eef4e8 !important;color:#527052 !important; }
+
+/* ---------------- NAVIGATION ---------------- */
+html[data-global-font] body .page.hr-page .hr-tabs-dock { margin-bottom:18px !important; }
+html[data-global-font] body .page.hr-page .hr-tabs-dock > .hr-tabs,
+html[data-global-font] body .page.hr-page .hr-tabs {
+  padding:7px !important;
+  gap:5px !important;
+  border:1px solid #e7ddd2 !important;
+  border-radius:18px !important;
+  background:rgba(255,253,249,.97) !important;
+  box-shadow:0 6px 20px rgba(73,53,37,.045) !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+html[data-global-font] body .page.hr-page .hr-tabs button {
+  min-height:44px !important;
+  padding:0 14px !important;
+  border:1px solid transparent !important;
+  border-radius:999px !important;
+  background:transparent !important;
+  color:#665c54 !important;
+  font-size:13px !important;
+  font-weight:620 !important;
+  box-shadow:none !important;
+}
+html[data-global-font] body .page.hr-page .hr-tabs button > span {
+  width:28px !important;
+  height:28px !important;
+  min-width:28px !important;
+  border-radius:9px !important;
+  background:#f5f1eb !important;
+  color:#8a796d !important;
+  font-size:14px !important;
+}
+html[data-global-font] body .page.hr-page .hr-tabs button:hover {
+  border-color:#ead9ca !important;
+  background:#fff7f0 !important;
+  color:#744831 !important;
+}
+html[data-global-font] body .page.hr-page .hr-tabs button.active {
+  border-color:#efcfba !important;
+  background:#f8e3d3 !important;
+  color:#70422c !important;
+  font-weight:700 !important;
+}
+html[data-global-font] body .page.hr-page .hr-tabs button.active > span { background:#fff8f2 !important;color:#a15c39 !important; }
+html[data-global-font] body .page.hr-page .hr-tabs-palette-actions { border-left-color:#eadfd5 !important; }
+html[data-global-font] body .page.hr-page .hr-tabs .hr-tabs-pin,
+html[data-global-font] body .page.hr-page .hr-tabs .hr-tabs-collapse {
+  border-color:#e5ddd5 !important;
+  background:#fbf8f4 !important;
+  color:#776b62 !important;
+}
+
+/* ---------------- PANELS / FORMS ---------------- */
+html[data-global-font] body .page.hr-page .hr-workspace-body,
+html[data-global-font] body .page.hr-page .hr-tab-stack { gap:16px !important; }
+html[data-global-font] body .page.hr-page .hr-panel,
+html[data-global-font] body .page.hr-page .hr-loading {
+  padding:26px !important;
+  border:1px solid var(--hre-line) !important;
+  border-radius:22px !important;
+  background:rgba(255,253,249,.96) !important;
+  color:var(--hre-ink) !important;
+  box-shadow:0 6px 22px rgba(74,54,38,.038) !important;
+}
+html[data-global-font] body .page.hr-page .hr-class-setup { margin-bottom:16px !important; }
+html[data-global-font] body .page.hr-page .hr-panel-head {
+  align-items:center !important;
+  margin-bottom:22px !important;
+  padding-bottom:16px !important;
+  border-bottom:1px solid #eee5dc !important;
+}
+html[data-global-font] body .page.hr-page .hr-panel-head small,
+html[data-global-font] body .page.hr-page .hr-panel > div > small,
+html[data-global-font] body .page.hr-page .hr-share-panel > div > small {
+  margin:0 0 5px !important;
+  color:#a26542 !important;
+  font-size:10px !important;
+  font-weight:760 !important;
+  letter-spacing:.11em !important;
+}
+html[data-global-font] body .page.hr-page .hr-panel-head h2,
+html[data-global-font] body .page.hr-page .hr-share-panel h2 {
+  color:#3d332d !important;
+  -webkit-text-fill-color:#3d332d !important;
+  font-size:24px !important;
+  font-weight:560 !important;
+  line-height:1.18 !important;
+  letter-spacing:-.025em !important;
+}
+html[data-global-font] body .page.hr-page .hr-form-grid.four {
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:15px 16px !important;
+}
+html[data-global-font] body .page.hr-page label { color:#554b44 !important;font-size:12px !important;font-weight:650 !important; }
+html[data-global-font] body .page.hr-page label > span {
+  margin-bottom:7px !important;
+  color:#6c625b !important;
+  font-size:11px !important;
+  font-weight:650 !important;
+}
+html[data-global-font] body .page.hr-page input,
+html[data-global-font] body .page.hr-page textarea,
+html[data-global-font] body .page.hr-page select {
+  min-height:46px !important;
+  padding:0 13px !important;
+  border:1px solid #e5dbd2 !important;
+  border-radius:11px !important;
+  background:#fffdfa !important;
+  color:#453c36 !important;
+  box-shadow:none !important;
+  font-size:13.5px !important;
+  font-weight:500 !important;
+  outline:0 !important;
+}
+html[data-global-font] body .page.hr-page textarea {
+  min-height:112px !important;
+  padding:12px 13px !important;
+}
+html[data-global-font] body .page.hr-page input:hover,
+html[data-global-font] body .page.hr-page textarea:hover,
+html[data-global-font] body .page.hr-page select:hover { border-color:#d8c5b5 !important;background:#fff !important; }
+html[data-global-font] body .page.hr-page input:focus,
+html[data-global-font] body .page.hr-page textarea:focus,
+html[data-global-font] body .page.hr-page select:focus {
+  border-color:#c9906d !important;
+  background:#fff !important;
+  box-shadow:0 0 0 3px rgba(185,125,88,.10) !important;
+}
+html[data-global-font] body .page.hr-page button.primary {
+  min-height:42px !important;
+  padding:0 18px !important;
+  border:1px solid #efcbb5 !important;
+  border-radius:999px !important;
+  background:linear-gradient(180deg,#f8dfce,#f4d0ba) !important;
+  color:#75442e !important;
+  box-shadow:none !important;
+  font-size:12.5px !important;
+  font-weight:720 !important;
+}
+html[data-global-font] body .page.hr-page button.primary:hover { background:#f3c9ae !important;color:#64351f !important; }
+html[data-global-font] body .page.hr-page .hr-class-type-note {
+  min-height:42px !important;
+  margin:15px 0 !important;
+  padding:11px 14px !important;
+  border:1px solid #ead8c2 !important;
+  border-radius:11px !important;
+  background:#fbf3e8 !important;
+  color:#866847 !important;
+  font-size:11.5px !important;
+}
+
+/* ---------------- METRICS ---------------- */
+html[data-global-font] body .page.hr-page .hr-stat-grid {
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:14px !important;
+}
+html[data-global-font] body .page.hr-page .hr-stat {
+  min-height:116px !important;
+  padding:18px !important;
+  display:grid !important;
+  grid-template-columns:48px minmax(0,1fr) !important;
+  gap:13px !important;
+  align-items:center !important;
+  border:1px solid #e7ddd2 !important;
+  border-top:1px solid #e7ddd2 !important;
+  border-radius:18px !important;
+  background:#fffdfa !important;
+  box-shadow:0 4px 16px rgba(70,50,35,.03) !important;
+}
+html[data-global-font] body .page.hr-page .hr-stat > span {
+  width:48px !important;
+  height:48px !important;
+  display:grid !important;
+  place-items:center !important;
+  border-radius:50% !important;
+  background:#eef1f7 !important;
+  color:#667da1 !important;
+  font-size:18px !important;
+}
+html[data-global-font] body .page.hr-page .hr-stat.tone-green > span { background:#eaf2e6 !important;color:#5f7f5a !important; }
+html[data-global-font] body .page.hr-page .hr-stat.tone-orange > span { background:#fbefdc !important;color:#a8792f !important; }
+html[data-global-font] body .page.hr-page .hr-stat.tone-red > span { background:#f8e7e3 !important;color:#b05e50 !important; }
+html[data-global-font] body .page.hr-page .hr-stat small {
+  color:#8e8278 !important;
+  font-size:9.5px !important;
+  font-weight:760 !important;
+  letter-spacing:.07em !important;
+  text-transform:uppercase !important;
+}
+html[data-global-font] body .page.hr-page .hr-stat strong {
+  color:#40362f !important;
+  font-size:32px !important;
+  font-weight:520 !important;
+  line-height:1 !important;
+}
+html[data-global-font] body .page.hr-page .hr-stat em {
+  color:#91867d !important;
+  font-size:10.5px !important;
+  font-style:normal !important;
+  line-height:1.35 !important;
+}
+
+/* ---------------- QUICK TOOLS / PROGRESS ---------------- */
+html[data-global-font] body .page.hr-page .hr-overview-grid {
+  display:grid !important;
+  grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr) !important;
+  gap:16px !important;
+}
+html[data-global-font] body .page.hr-page .hr-quick-grid {
+  display:grid !important;
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  gap:10px !important;
+}
+html[data-global-font] body .page.hr-page .hr-quick-grid button {
+  min-height:130px !important;
+  padding:15px !important;
+  align-items:flex-start !important;
+  justify-content:flex-start !important;
+  border:1px solid #e8ded3 !important;
+  border-radius:14px !important;
+  background:#fffdfa !important;
+  color:#4c413a !important;
+  box-shadow:none !important;
+  text-align:left !important;
+}
+html[data-global-font] body .page.hr-page .hr-quick-grid button:hover {
+  border-color:#d9c7b8 !important;
+  background:#fff9f4 !important;
+  transform:none !important;
+  box-shadow:0 5px 16px rgba(73,53,38,.045) !important;
+}
+html[data-global-font] body .page.hr-page .hr-quick-grid button > span {
+  width:38px !important;
+  height:38px !important;
+  margin-bottom:12px !important;
+  display:grid !important;
+  place-items:center !important;
+  border-radius:11px !important;
+  background:#edf2f8 !important;
+  color:#667fa6 !important;
+  font-size:15px !important;
+}
+html[data-global-font] body .page.hr-page .hr-quick-grid button:nth-child(2) > span { background:#eaf3e8 !important;color:#5f805b !important; }
+html[data-global-font] body .page.hr-page .hr-quick-grid button:nth-child(3) > span { background:#fbefdc !important;color:#a8792f !important; }
+html[data-global-font] body .page.hr-page .hr-quick-grid button:nth-child(4) > span { background:#f9e6e1 !important;color:#b35c50 !important; }
+html[data-global-font] body .page.hr-page .hr-quick-grid button:nth-child(5) > span { background:#eee9f5 !important;color:#78659b !important; }
+html[data-global-font] body .page.hr-page .hr-quick-grid button:nth-child(6) > span { background:#edf1f6 !important;color:#657a94 !important; }
+html[data-global-font] body .page.hr-page .hr-quick-grid button b {
+  color:#473c35 !important;
+  font-size:13px !important;
+  font-weight:690 !important;
+  line-height:1.3 !important;
+}
+html[data-global-font] body .page.hr-page .hr-quick-grid button small {
+  margin-top:5px !important;
+  color:#90847b !important;
+  font-size:10.5px !important;
+  line-height:1.42 !important;
+}
+
+html[data-global-font] body .page.hr-page .hr-progress-panel {
+  position:relative !important;
+  overflow:hidden !important;
+  border:1px solid #e7ddd2 !important;
+  border-top:1px solid #e7ddd2 !important;
+  background:#fffdfa !important;
+}
+html[data-global-font] body .page.hr-page .hr-progress-panel::before,
+html[data-global-font] body .page.hr-page .hr-progress-panel::after { display:none !important; }
+html[data-global-font] body .page.hr-page .hr-progress-panel .hr-panel-head {
+  padding-bottom:16px !important;
+  border-bottom:1px solid #eee5dc !important;
+  background:transparent !important;
+}
+html[data-global-font] body .page.hr-page .hr-progress-panel .hr-panel-head small { color:#a26542 !important; }
+html[data-global-font] body .page.hr-page .hr-progress-panel .hr-panel-head h2 { color:#3d332d !important;-webkit-text-fill-color:#3d332d !important;font-size:24px !important; }
+html[data-global-font] body .page.hr-page .hr-progress-panel .hr-progress-row {
+  padding:13px 0 !important;
+  border-bottom:1px solid #f1ebe5 !important;
+  background:transparent !important;
+}
+html[data-global-font] body .page.hr-page .hr-progress-panel .hr-progress-row:last-child { border-bottom:0 !important; }
+html[data-global-font] body .page.hr-page .hr-progress-panel .hr-progress-row > span b {
+  color:#50463f !important;
+  -webkit-text-fill-color:#50463f !important;
+  font-size:12.5px !important;
+  font-weight:650 !important;
+}
+html[data-global-font] body .page.hr-page .hr-progress-panel .hr-progress-row > span small {
+  min-width:45px !important;
+  min-height:24px !important;
+  padding:0 8px !important;
+  border:1px solid #e4dcd4 !important;
+  border-radius:999px !important;
+  background:#faf7f3 !important;
+  color:#776e67 !important;
+  -webkit-text-fill-color:#776e67 !important;
+  font-size:10px !important;
+}
+html[data-global-font] body .page.hr-page .hr-progress-panel .hr-progress-row > div {
+  height:7px !important;
+  min-height:7px !important;
+  border-radius:999px !important;
+  background:#eeeae5 !important;
+  box-shadow:none !important;
+}
+html[data-global-font] body .page.hr-page .hr-progress-panel .hr-progress-row > div > i {
+  min-height:7px !important;
+  border-radius:999px !important;
+  box-shadow:none !important;
+  background:#78905e !important;
+}
+html[data-global-font] body .page.hr-page .hr-progress-panel .hr-progress-row:nth-of-type(2) > div > i { background:#c48c2d !important; }
+html[data-global-font] body .page.hr-page .hr-progress-panel .hr-progress-row:nth-of-type(3) > div > i { background:#8469a8 !important; }
+html[data-global-font] body .page.hr-page .hr-progress-panel .hr-progress-row:nth-of-type(4) > div > i { background:#a5abb2 !important; }
+html[data-global-font] body .page.hr-page .hr-progress-panel .hr-progress-row:nth-of-type(5) > div > i { background:#6683ad !important; }
+
+/* Secondary tables/cards inherit the same editorial paper language. */
+html[data-global-font] body .page.hr-page :is(.hr-table-wrap,.hr-compact-list,.hr-history-list,.hr-feedback-inbox,.hr-record-grid,.hr-contact-list) {
+  border-color:#e8ded3 !important;
+  background:#fffdfa !important;
+}
+html[data-global-font] body .page.hr-page .hr-table th { background:#f8f3ed !important;color:#74685f !important; }
+html[data-global-font] body .page.hr-page .hr-table td { border-color:#eee7df !important;color:#4e443d !important; }
+
+/* Feedback surfaces */
+html[data-global-font] body .page.hr-page .hr-toast {
+  background:#4c4038 !important;
+  color:#fff !important;
+  box-shadow:0 10px 28px rgba(68,48,34,.18) !important;
+}
+html[data-global-font] body .page.hr-page .hr-saving-strip { background:#8c654c !important;color:#fff !important; }
+
+/* Keep editorial treatment in dark-theme preference instead of reverting to legacy blue. */
+html[data-theme="dark"][data-global-font] body .page.hr-page {
+  --hre-bg:#211d1a;
+  --hre-paper:#29241f;
+  --hre-paper-2:#302a24;
+  --hre-ink:#f1e7dd;
+  --hre-body:#c9bdb3;
+  --hre-muted:#a99d93;
+  --hre-line:#493d34;
+  background:#211d1a !important;
+}
+html[data-theme="dark"][data-global-font] body .page.hr-page :is(.hr-panel,.hr-stat,.hr-quick-grid button,.hr-progress-panel) { background:#29241f !important;border-color:#493d34 !important; }
+html[data-theme="dark"][data-global-font] body .page.hr-page :is(input,textarea,select) { background:#302a24 !important;border-color:#51443a !important;color:#eee3da !important; }
+
+@media (max-width:1180px) {
+  html[data-global-font] body .page.hr-page .hr-material-hero { grid-template-columns:minmax(300px,1fr) minmax(300px,.9fr) !important; }
+  html[data-global-font] body .page.hr-page .hr-material-hero__teacher-card { grid-column:1 / -1 !important;min-height:220px !important; }
+  html[data-global-font] body .page.hr-page .hr-form-grid.four { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+  html[data-global-font] body .page.hr-page .hr-quick-grid { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+}
+@media (max-width:900px) {
+  html[data-global-font] body .page.hr-page { width:calc(100vw - 24px) !important;padding-top:16px !important; }
+  html[data-global-font] body .page.hr-page .hr-material-hero { grid-template-columns:1fr !important;min-height:0 !important;padding:18px !important; }
+  html[data-global-font] body .page.hr-page .hr-material-hero__visual { min-height:260px !important; }
+  html[data-global-font] body .page.hr-page .hr-material-hero__teacher-card { grid-column:auto !important; }
+  html[data-global-font] body .page.hr-page .hr-stat-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+  html[data-global-font] body .page.hr-page .hr-overview-grid { grid-template-columns:1fr !important; }
+}
+@media (max-width:620px) {
+  html[data-global-font] body .page.hr-page .hr-material-hero__class-row h1 { font-size:58px !important; }
+  html[data-global-font] body .page.hr-page .hr-material-hero__visual { display:none !important; }
+  html[data-global-font] body .page.hr-page .hr-form-grid.four { grid-template-columns:1fr !important; }
+  html[data-global-font] body .page.hr-page .hr-stat-grid { grid-template-columns:1fr !important; }
+  html[data-global-font] body .page.hr-page .hr-quick-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+  html[data-global-font] body .page.hr-page .hr-panel { padding:19px !important; }
+  html[data-global-font] body .page.hr-page .hr-panel-head { align-items:flex-start !important;flex-direction:column !important; }
+  html[data-global-font] body .page.hr-page .hr-panel-head h2 { font-size:21px !important; }
+}
