@@ -24,3 +24,16 @@
 @import './styles/GlobalNoSelectionRing.css';
 @import './styles/AdminCompactWorkspace2026.css';
 @import './styles/DashboardHeroPolish2026.css';
+
+/* Dashboard: retire the obsolete lower-left chart decoration from the premium hero.
+   The real calendar / lesson-plan illustration on the right is a separate DOM visual. */
+.app-shell[data-route="dashboard"] .gd-hero.gd-hero-premium::after,
+.app-shell[data-route="dashboard"] .gd-page .gd-shell .gd-top-grid > .gd-hero.gd-hero-premium::after {
+  content: none !important;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: none !important;
+  clip-path: none !important;
+  opacity: 0 !important;
+}
