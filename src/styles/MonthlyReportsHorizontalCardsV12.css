@@ -1,0 +1,480 @@
+/* Brian Reports — Approved Horizontal Cards V12
+   Locked monthly reports use a five-card horizontal overview matching the
+   approved visual direction. Draft/revision editing keeps the detailed form. */
+
+html body .mr-teacher-shell {
+  --v12-ink:#202124;
+  --v12-muted:#6f7783;
+  --v12-line:#e7e2dc;
+  --v12-warm:#fffaf6;
+  --v12-coral:#f26655;
+  --v12-blue:#1769e0;
+  --v12-blue-soft:#eef5ff;
+  --v12-green:#15945d;
+  --v12-green-soft:#edf9f3;
+  --v12-purple:#8152d7;
+  --v12-purple-soft:#f5efff;
+  --v12-amber:#e58a00;
+  --v12-amber-soft:#fff6e8;
+  --v12-red:#e6453a;
+  --v12-red-soft:#fff1ef;
+  background:linear-gradient(180deg,#fffdfa 0%,#fbfaf8 45%,#f7f8fa 100%) !important;
+}
+
+/* Approved/submitted view: the page heading becomes the warm visual anchor;
+   the old oversized summary hero is removed because the approved design uses
+   the five section cards as the primary visual focus. */
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-hero,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-hero {
+  display:none !important;
+}
+
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-topbar,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-topbar {
+  position:relative !important;
+  overflow:hidden !important;
+  min-height:136px !important;
+  margin:0 auto 20px !important;
+  padding:28px 32px !important;
+  border:1px solid #eee3db !important;
+  border-radius:22px !important;
+  background:
+    radial-gradient(ellipse at 92% -10%,rgba(244,170,126,.26) 0 24%,transparent 25%),
+    radial-gradient(ellipse at 84% 125%,rgba(250,212,187,.34) 0 32%,transparent 33%),
+    linear-gradient(110deg,#fffdfa 0%,#fff9f4 65%,#fff2e9 100%) !important;
+  box-shadow:0 8px 28px rgba(76,58,45,.055) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-topbar::after,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-topbar::after {
+  content:'' !important;
+  position:absolute !important;
+  right:38px !important;
+  top:18px !important;
+  width:180px !important;
+  height:95px !important;
+  border:1px solid rgba(191,135,98,.14) !important;
+  border-radius:18px !important;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 14px,rgba(193,143,111,.08) 15px 16px),
+    rgba(255,255,255,.44) !important;
+  transform:rotate(-5deg) !important;
+  pointer-events:none !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-brand,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-brand {
+  position:relative !important;
+  z-index:2 !important;
+  align-items:center !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-brand > span,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-brand > span {
+  width:48px !important;
+  height:48px !important;
+  border:1px solid #f2ddd2 !important;
+  border-radius:15px !important;
+  background:#fff8f4 !important;
+  color:var(--v12-coral) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-brand h1,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-brand h1 {
+  margin-top:5px !important;
+  color:#202124 !important;
+  font-size:clamp(28px,2.5vw,36px) !important;
+  font-weight:720 !important;
+  line-height:1.12 !important;
+  letter-spacing:-.035em !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-brand small,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-brand small {
+  color:#8a817a !important;
+  font-size:10px !important;
+  font-weight:760 !important;
+  letter-spacing:.16em !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-top-actions,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-top-actions {
+  position:relative !important;
+  z-index:2 !important;
+  margin-right:220px !important;
+}
+
+/* Four identity cards: clean, equal, quiet. */
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-report-meta,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-report-meta {
+  gap:16px !important;
+  margin-bottom:18px !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-report-meta > div,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-report-meta > div {
+  min-height:96px !important;
+  padding:22px 20px 18px 64px !important;
+  border:1px solid #e9e4df !important;
+  border-radius:16px !important;
+  background:#fff !important;
+  box-shadow:0 4px 16px rgba(44,39,34,.04) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-report-meta > div::before,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-report-meta > div::before {
+  left:20px !important;
+  top:25px !important;
+  width:30px !important;
+  height:30px !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-report-meta span,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-report-meta span {
+  margin-bottom:7px !important;
+  font-size:9px !important;
+  font-weight:760 !important;
+  letter-spacing:.12em !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-report-meta strong,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-report-meta strong {
+  font-size:13px !important;
+  font-weight:680 !important;
+}
+
+/* Deadline and approved state become a balanced two-card row. */
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-deadline-card,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-deadline-card,
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-lock,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-lock {
+  min-height:102px !important;
+  width:calc(50% - 10px) !important;
+  margin-bottom:20px !important;
+  padding:17px 19px !important;
+  border-radius:16px !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-deadline-card,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-deadline-card {
+  margin-right:16px !important;
+  border-color:#f2b7ae !important;
+  background:linear-gradient(105deg,#fff5f3,#fffafa) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-lock,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-lock {
+  border-color:#b9ddc4 !important;
+  background:linear-gradient(105deg,#f1faf4,#fbfefc) !important;
+}
+
+/* ------------------------------------------------------------------
+   FIVE HORIZONTAL CARDS — locked report overview
+   ------------------------------------------------------------------ */
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-form-stack,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-form-stack {
+  display:grid !important;
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  align-items:stretch !important;
+  gap:14px !important;
+  margin:0 auto !important;
+}
+
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section {
+  --card-accent:var(--v12-blue);
+  --card-soft:var(--v12-blue-soft);
+  min-width:0 !important;
+  min-height:332px !important;
+  overflow:hidden !important;
+  border:1px solid #d9e5f7 !important;
+  border-left:1px solid #d9e5f7 !important;
+  border-radius:18px !important;
+  background:linear-gradient(180deg,var(--card-soft) 0 23%,#fff 23% 100%) !important;
+  box-shadow:0 5px 18px rgba(36,43,54,.045) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section:nth-child(2),
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section:nth-child(2) {
+  --card-accent:var(--v12-green);--card-soft:var(--v12-green-soft);border-color:#d5ebdf !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section:nth-child(3),
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section:nth-child(3) {
+  --card-accent:var(--v12-purple);--card-soft:var(--v12-purple-soft);border-color:#e4d9f4 !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section:nth-child(4),
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section:nth-child(4) {
+  --card-accent:var(--v12-amber);--card-soft:var(--v12-amber-soft);border-color:#f0dfc5 !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section:nth-child(5),
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section:nth-child(5) {
+  --card-accent:var(--v12-red);--card-soft:var(--v12-red-soft);border-color:#f0d8d4 !important;
+}
+
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header {
+  position:relative !important;
+  display:block !important;
+  min-height:330px !important;
+  height:100% !important;
+  padding:28px 24px 24px !important;
+  border:0 !important;
+  background:transparent !important;
+  cursor:pointer !important;
+}
+
+/* soft curved visual separator inspired by the approved mockup */
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header::before,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header::before {
+  content:'' !important;
+  position:absolute !important;
+  left:-12% !important;
+  top:58px !important;
+  width:125% !important;
+  height:48px !important;
+  border-radius:0 0 60% 55% !important;
+  background:rgba(255,255,255,.52) !important;
+  transform:rotate(-4deg) !important;
+  pointer-events:none !important;
+}
+
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section-icon,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section-icon {
+  position:relative !important;
+  z-index:2 !important;
+  display:grid !important;
+  place-items:center !important;
+  width:48px !important;
+  height:48px !important;
+  margin:0 0 24px !important;
+  border:1px solid color-mix(in srgb,var(--card-accent) 15%,transparent) !important;
+  border-radius:14px !important;
+  background:color-mix(in srgb,var(--card-accent) 10%,#fff) !important;
+  color:var(--card-accent) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section-icon svg,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section-icon svg {
+  width:23px !important;
+  height:23px !important;
+}
+
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header > div:not(.mr-section-controls),
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header > div:not(.mr-section-controls) {
+  position:relative !important;
+  z-index:2 !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header small,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header small {
+  display:block !important;
+  margin:0 0 10px !important;
+  color:var(--card-accent) !important;
+  font-size:24px !important;
+  font-weight:700 !important;
+  line-height:1 !important;
+  letter-spacing:-.03em !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header h2,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header h2 {
+  display:block !important;
+  min-height:48px !important;
+  margin:0 !important;
+  color:#202124 !important;
+  font-size:15.5px !important;
+  font-weight:690 !important;
+  line-height:1.4 !important;
+  letter-spacing:-.018em !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header h2::after,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header h2::after {
+  content:'' !important;
+  display:block !important;
+  width:30px !important;
+  height:1px !important;
+  margin:16px 0 14px !important;
+  background:color-mix(in srgb,var(--card-accent) 28%,#ddd) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header p,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header p {
+  display:-webkit-box !important;
+  margin:0 !important;
+  overflow:hidden !important;
+  color:#69717d !important;
+  font-size:11.5px !important;
+  font-weight:450 !important;
+  line-height:1.55 !important;
+  -webkit-line-clamp:4 !important;
+  -webkit-box-orient:vertical !important;
+}
+
+/* Remove the redundant green completion icon in overview cards; the arrow is
+   the only action affordance, matching the approved design. */
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section-check,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section-check {
+  display:none !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section-controls,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section-controls {
+  position:absolute !important;
+  z-index:4 !important;
+  right:20px !important;
+  bottom:20px !important;
+  display:block !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section-toggle,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section-toggle {
+  display:grid !important;
+  place-items:center !important;
+  width:36px !important;
+  min-width:36px !important;
+  height:36px !important;
+  min-height:36px !important;
+  border:0 !important;
+  border-radius:50% !important;
+  background:color-mix(in srgb,var(--card-accent) 10%,#fff) !important;
+  color:var(--card-accent) !important;
+  box-shadow:none !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section-toggle span,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section-toggle span {
+  margin:0 !important;
+  font-size:0 !important;
+  line-height:1 !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section-toggle span::after,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section-toggle span::after {
+  content:'→' !important;
+  font-size:18px !important;
+  font-weight:650 !important;
+}
+
+/* Expanded card becomes a full-width read-only detail surface. */
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded {
+  grid-column:1/-1 !important;
+  min-height:0 !important;
+  border-color:color-mix(in srgb,var(--card-accent) 24%,#ddd) !important;
+  background:#fff !important;
+  box-shadow:0 10px 30px rgba(34,39,48,.075) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded > header,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded > header {
+  display:grid !important;
+  grid-template-columns:48px minmax(0,1fr) auto !important;
+  align-items:center !important;
+  gap:14px !important;
+  min-height:76px !important;
+  height:auto !important;
+  padding:13px 18px !important;
+  border-bottom:1px solid #ece9e5 !important;
+  background:linear-gradient(90deg,var(--card-soft),#fff 46%) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded > header::before,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded > header::before {
+  display:none !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded .mr-section-icon,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded .mr-section-icon {
+  width:42px !important;
+  height:42px !important;
+  margin:0 !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded > header small,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded > header small {
+  display:inline !important;
+  margin:0 8px 0 0 !important;
+  font-size:10px !important;
+  letter-spacing:.08em !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded > header h2,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded > header h2 {
+  display:inline !important;
+  min-height:0 !important;
+  font-size:16px !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded > header h2::after,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded > header h2::after {
+  display:none !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded > header p,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded > header p {
+  display:block !important;
+  margin-top:5px !important;
+  font-size:10.5px !important;
+  -webkit-line-clamp:unset !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded .mr-section-controls,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded .mr-section-controls {
+  position:static !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded .mr-section-toggle,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded .mr-section-toggle {
+  width:32px !important;
+  min-width:32px !important;
+  height:32px !important;
+  min-height:32px !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded .mr-section-toggle span::after,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded .mr-section-toggle span::after {
+  content:'×' !important;
+  font-size:20px !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded .mr-section-body,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded .mr-section-body {
+  display:block !important;
+  padding:20px !important;
+  background:#fff !important;
+}
+
+/* Bottom bar matches the approved compact layout. */
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-sticky-actions,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-sticky-actions {
+  margin-top:22px !important;
+  padding:16px 18px !important;
+  border:1px solid #e7e2dd !important;
+  border-radius:16px !important;
+  background:#fff !important;
+  box-shadow:0 6px 20px rgba(45,40,35,.045) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-action-buttons button,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-action-buttons button {
+  min-width:146px !important;
+  min-height:42px !important;
+  border-radius:10px !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-action-buttons .is-primary,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-action-buttons .is-primary {
+  border-color:#ef6c58 !important;
+  background:linear-gradient(135deg,#f67964,#ef604d) !important;
+}
+
+@media (max-width:1180px) {
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-form-stack,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-form-stack {
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  }
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-top-actions,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-top-actions { margin-right:0 !important; }
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-topbar::after,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-topbar::after { opacity:.35 !important; }
+}
+
+@media (max-width:780px) {
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-topbar,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-topbar {
+    min-height:0 !important;
+    padding:22px !important;
+  }
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-form-stack,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-form-stack {
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section { min-height:290px !important; }
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header { min-height:288px !important;padding:22px 20px !important; }
+}
+
+@media (max-width:520px) {
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-form-stack,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-form-stack {
+    grid-template-columns:1fr !important;
+  }
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section { min-height:240px !important; }
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header { min-height:238px !important; }
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-deadline-card,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-deadline-card,
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-lock,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-lock {
+    width:100% !important;
+    margin-right:0 !important;
+  }
+}
