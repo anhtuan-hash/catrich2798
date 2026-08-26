@@ -120,6 +120,52 @@ html[data-motion-enabled="true"] #bes-main-content {
   to { opacity: 1; translate: 0 0; }
 }
 
+/* Tab content entrance. The runtime marks only the panel that becomes active.
+   Horizontal movement makes a tab switch feel different from a full page navigation. */
+html[data-motion-enabled="true"] :is(
+  [role="tabpanel"],
+  [data-tab-panel],
+  .tab-panel,
+  .tab-content,
+  [class*="tab-panel"],
+  [class*="tab-content"]
+)[data-global-tab-enter="true"] {
+  animation-name: gm-tab-enter !important;
+  animation-duration: var(--gm-slow) !important;
+  animation-timing-function: var(--gm-ease-emphasized) !important;
+  animation-delay: 0ms !important;
+  animation-fill-mode: both !important;
+  animation-iteration-count: 1 !important;
+  will-change: opacity, translate, scale;
+}
+
+@keyframes gm-tab-enter {
+  from {
+    opacity: .01;
+    translate: calc(var(--gm-distance) * .85) 0;
+    scale: var(--gm-scale-enter);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+/* Active tab controls also get a short state transition without changing their geometry. */
+html[data-motion-enabled="true"] :is(
+  [role="tab"],
+  [data-tab],
+  .tab-button,
+  .tab-btn,
+  .nav-tab,
+  .tabs button
+) {
+  transition-property: background-color, color, border-color, box-shadow, opacity, scale !important;
+  transition-duration: var(--gm-fast) !important;
+  transition-timing-function: var(--gm-ease) !important;
+}
+
 /* Dialogs and modal surfaces. */
 html[data-motion-enabled="true"] :is(
   [role="dialog"],
