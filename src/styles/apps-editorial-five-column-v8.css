@@ -1,0 +1,355 @@
+/* Brian English Apps — Editorial V8
+   New route-specific markup. This layer intentionally avoids legacy card classes. */
+
+html body .apps-directory-native {
+  --ed8-bg:#f8f7f3;
+  --ed8-paper:#fffefb;
+  --ed8-ink:#18304c;
+  --ed8-body:#4f5965;
+  --ed8-muted:#85827d;
+  --ed8-line:#e7e1d8;
+  --ed8-warm:#c86849;
+  --ed8-warm-soft:#fbede5;
+  min-height:100vh !important;
+  background:linear-gradient(180deg,#fbfaf7 0%,#f6f5f1 100%) !important;
+  color:var(--ed8-ink) !important;
+}
+
+html body .apps-directory-native > .flat-apps-menu { display:none !important; }
+
+/* HERO */
+html body .apps-directory-native .editorial-apps-hero {
+  width:min(1480px,calc(100% - 48px));
+  margin:28px auto 18px;
+  padding:48px 54px;
+  display:grid;
+  grid-template-columns:minmax(0,1.18fr) minmax(430px,.82fr);
+  gap:54px;
+  align-items:center;
+  border:1px solid #eadfd4;
+  border-radius:26px;
+  background:
+    radial-gradient(circle at 92% 12%,rgba(229,164,126,.17),transparent 25rem),
+    linear-gradient(125deg,#fffdfa 0%,#fffaf5 62%,#f8e7da 100%);
+  box-shadow:0 14px 42px rgba(79,60,41,.055);
+}
+html body .apps-directory-native .editorial-apps-eyebrow {
+  margin:0 0 13px;
+  color:#a56c50;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+html body .apps-directory-native .editorial-apps-hero h1 {
+  max-width:720px;
+  margin:0;
+  color:var(--ed8-ink);
+  font-size:clamp(42px,4.4vw,68px);
+  font-weight:610;
+  line-height:1.01;
+  letter-spacing:-.048em;
+}
+html body .apps-directory-native .editorial-apps-hero h1 em {
+  color:var(--ed8-warm);
+  font-style:normal;
+  font-weight:610;
+}
+html body .apps-directory-native .editorial-apps-lede {
+  max-width:650px;
+  margin:22px 0 0;
+  padding-left:16px;
+  border-left:2px solid #e5ab91;
+  color:#65655f;
+  font-size:14px;
+  line-height:1.72;
+}
+html body .apps-directory-native .editorial-apps-hero-actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:24px;
+}
+html body .apps-directory-native .editorial-apps-hero-actions button {
+  min-height:42px;
+  padding:0 15px;
+  border:1px solid #e0d5ca;
+  border-radius:11px;
+  background:#fffdfa;
+  color:#5e4e44;
+  font-size:12px;
+  font-weight:700;
+  box-shadow:0 3px 10px rgba(72,54,38,.035);
+}
+html body .apps-directory-native .editorial-apps-hero-actions button:first-child {
+  border-color:#d7c8bb;
+  color:#27405e;
+}
+html body .apps-directory-native .editorial-apps-hero-actions button:disabled { opacity:.55; }
+
+html body .apps-directory-native .editorial-apps-hero-side {
+  display:grid;
+  grid-template-columns:minmax(190px,.85fr) minmax(260px,1.15fr);
+  gap:18px;
+  align-items:center;
+}
+html body .apps-directory-native .editorial-apps-illustration {
+  min-height:235px;
+  display:grid;
+  place-items:center;
+  border-radius:110px 34px 92px 40px;
+  background:radial-gradient(circle at 50% 48%,rgba(226,198,169,.33),transparent 55%),rgba(250,244,236,.72);
+}
+html body .apps-directory-native .editorial-apps-illustration svg {
+  width:min(220px,84%);
+  height:auto;
+}
+html body .apps-directory-native .editorial-apps-stats {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-self:center;
+  overflow:hidden;
+  border:1px solid #e8ddd2;
+  border-radius:18px;
+  background:rgba(255,253,249,.94);
+}
+html body .apps-directory-native .editorial-apps-stat {
+  min-height:122px;
+  padding:18px 13px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  text-align:center;
+}
+html body .apps-directory-native .editorial-apps-stat + .editorial-apps-stat { border-left:1px solid #eee5dc; }
+html body .apps-directory-native .editorial-apps-stat span {
+  width:32px;
+  height:32px;
+  margin:0 auto 9px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#edf3fb;
+  color:#4e78af;
+  font-size:14px;
+}
+html body .apps-directory-native .editorial-apps-stat:nth-child(2) span { background:#edf6ee;color:#4f875a; }
+html body .apps-directory-native .editorial-apps-stat:nth-child(3) span { background:#f3edfa;color:#7656ab; }
+html body .apps-directory-native .editorial-apps-stat strong {
+  color:#233852;
+  font-size:27px;
+  font-weight:670;
+  line-height:1;
+}
+html body .apps-directory-native .editorial-apps-stat small {
+  margin-top:7px;
+  color:#888078;
+  font-size:10px;
+  line-height:1.35;
+}
+
+/* SEARCH — single calm command bar */
+html body .apps-directory-native .apps-directory-toolbar {
+  width:min(1480px,calc(100% - 48px)) !important;
+  max-width:1480px !important;
+  margin:0 auto 18px !important;
+  padding:10px !important;
+  display:grid !important;
+  grid-template-columns:minmax(300px,1fr) auto !important;
+  gap:10px !important;
+  border:1px solid var(--ed8-line) !important;
+  border-radius:15px !important;
+  background:rgba(255,254,251,.96) !important;
+  box-shadow:none !important;
+}
+html body .apps-directory-native .apps-directory-search-box {
+  min-height:46px !important;
+  border:1px solid #ebe5de !important;
+  border-radius:11px !important;
+  background:#faf8f5 !important;
+  box-shadow:none !important;
+}
+html body .apps-directory-native .apps-directory-search-box input {
+  color:#283849 !important;
+  font-size:13px !important;
+}
+html body .apps-directory-native .apps-directory-command-button { display:none !important; }
+html body .apps-directory-native .apps-directory-density-switch {
+  min-height:46px !important;
+  border:1px solid #e7e0d8 !important;
+  border-radius:11px !important;
+  background:#fff !important;
+}
+html body .apps-directory-native > .launcher-group-rail,
+html body .apps-directory-native > .flat-apps-group-rail { display:none !important; }
+html body .apps-directory-native .apps-directory-pinned-native,
+html body .apps-directory-native .launcher-pinned-apps { display:none !important; }
+
+/* TRUE FIVE-COLUMN DIRECTORY */
+html body .apps-directory-native .editorial-apps-grid {
+  width:min(1480px,calc(100% - 48px));
+  margin:0 auto 46px;
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:16px;
+  align-items:stretch;
+}
+html body .apps-directory-native .editorial-app-card {
+  position:relative;
+  min-width:0;
+  min-height:244px;
+  border:1px solid #e6dfd6;
+  border-radius:16px;
+  background:rgba(255,255,253,.97);
+  box-shadow:0 4px 14px rgba(66,51,38,.028);
+  overflow:hidden;
+}
+html body .apps-directory-native .editorial-app-card::before {
+  content:'';
+  position:absolute;
+  inset:0 0 auto 0;
+  height:3px;
+  background:color-mix(in srgb,var(--app-accent,#476f9f) 68%,#fff);
+  opacity:.72;
+}
+html body .apps-directory-native .editorial-app-card:hover {
+  border-color:#d9cfc4;
+  box-shadow:0 10px 25px rgba(66,51,38,.065);
+}
+html body .apps-directory-native .editorial-app-card-main {
+  width:100%;
+  min-height:244px;
+  height:100%;
+  padding:19px 18px 16px;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  border:0;
+  background:transparent;
+  color:inherit;
+  text-align:left;
+  cursor:pointer;
+}
+html body .apps-directory-native .editorial-app-card-main:disabled { cursor:default; }
+html body .apps-directory-native .editorial-app-card-top {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:16px;
+}
+html body .apps-directory-native .editorial-app-card-icon {
+  width:49px;
+  height:49px;
+  flex:0 0 49px;
+  display:grid;
+  place-items:center;
+  border-radius:13px;
+  background:color-mix(in srgb,var(--app-accent,#315e91) 88%,#fff);
+  color:#fff;
+  box-shadow:0 5px 13px color-mix(in srgb,var(--app-accent,#315e91) 16%,transparent);
+}
+html body .apps-directory-native .editorial-app-card-icon svg { width:25px;height:25px;color:#fff !important; }
+html body .apps-directory-native .editorial-app-card-favorite {
+  padding-top:1px;
+  color:#a4adb7;
+  font-size:20px;
+  line-height:1;
+}
+html body .apps-directory-native .editorial-app-card-favorite.is-pinned { color:#d3992d; }
+html body .apps-directory-native .editorial-app-card-title {
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow:hidden;
+  min-height:43px;
+  color:#1c2d42;
+  font-size:15.5px;
+  font-weight:720;
+  line-height:1.36;
+  letter-spacing:-.012em;
+}
+html body .apps-directory-native .editorial-app-card-description {
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+  overflow:hidden;
+  min-height:57px;
+  margin:8px 0 0;
+  color:#68717a;
+  font-size:12.2px;
+  line-height:1.56;
+}
+html body .apps-directory-native .editorial-app-card-cta {
+  margin-top:auto;
+  padding-top:16px;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  color:var(--ed8-warm);
+  font-size:12px;
+  font-weight:730;
+}
+html body .apps-directory-native .editorial-app-card-cta svg { width:15px;height:15px; }
+html body .apps-directory-native .editorial-app-card.is-locked { background:#fbfaf8; }
+html body .apps-directory-native .editorial-app-card.is-locked .editorial-app-card-icon { filter:saturate(.3);opacity:.72; }
+html body .apps-directory-native .editorial-app-card.is-hidden { opacity:.62; }
+
+html body .apps-directory-native .editorial-app-card-permission {
+  padding:0 16px 14px;
+}
+html body .apps-directory-native .editorial-app-card-admin {
+  padding:10px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr) minmax(110px,1.3fr);
+  gap:6px;
+  border-top:1px solid #ece5de;
+  background:#fbfaf7;
+}
+html body .apps-directory-native .editorial-app-card-admin button,
+html body .apps-directory-native .editorial-app-card-admin select {
+  min-height:34px;
+  border:1px solid #ddd6cf;
+  border-radius:8px;
+  background:#fff;
+  font-size:10px;
+}
+html body .apps-directory-native .editorial-app-card-admin button span,
+html body .apps-directory-native .editorial-app-card-admin label > span { display:none; }
+html body .apps-directory-native .editorial-app-card-admin svg { width:14px;height:14px; }
+html body .apps-directory-native .launcher-empty-group { grid-column:1/-1; }
+
+/* Prevent legacy typography/layout mutations on new V8 markup. */
+html body .apps-directory-native :is(
+  .editorial-apps-hero,.editorial-apps-hero *,
+  .editorial-app-card,.editorial-app-card *
+) {
+  writing-mode:horizontal-tb !important;
+  text-orientation:mixed !important;
+  word-break:normal !important;
+}
+
+@media (max-width:1320px) {
+  html body .apps-directory-native .editorial-apps-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  html body .apps-directory-native .editorial-apps-hero { grid-template-columns:1fr; }
+  html body .apps-directory-native .editorial-apps-hero-side { max-width:760px; }
+}
+@media (max-width:1040px) {
+  html body .apps-directory-native .editorial-apps-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media (max-width:760px) {
+  html body .apps-directory-native .editorial-apps-hero,
+  html body .apps-directory-native .apps-directory-toolbar,
+  html body .apps-directory-native .editorial-apps-grid { width:calc(100% - 24px) !important; }
+  html body .apps-directory-native .editorial-apps-hero { padding:30px 24px;gap:30px; }
+  html body .apps-directory-native .editorial-apps-hero-side { grid-template-columns:1fr; }
+  html body .apps-directory-native .editorial-apps-illustration { display:none; }
+  html body .apps-directory-native .editorial-apps-grid { grid-template-columns:repeat(2,minmax(0,1fr));gap:12px; }
+  html body .apps-directory-native .apps-directory-toolbar { grid-template-columns:1fr !important; }
+  html body .apps-directory-native .apps-directory-density-switch { display:none !important; }
+}
+@media (max-width:520px) {
+  html body .apps-directory-native .editorial-apps-grid { grid-template-columns:1fr; }
+  html body .apps-directory-native .editorial-app-card,
+  html body .apps-directory-native .editorial-app-card-main { min-height:216px; }
+}
