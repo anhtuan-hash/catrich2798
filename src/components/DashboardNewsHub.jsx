@@ -5,22 +5,25 @@ import './DashboardNewsHub.css';
 const COPY = {
   vi: {
     eyebrow: 'BRIAN NEWSROOM', title: 'Tin tức & Đọc báo', subtitle: 'Điểm tin giáo dục và English News ngay trong Dashboard.',
-    vi: 'Tin Việt Nam', en: 'English News', latest: 'Tin mới', viewAll: 'Xem tất cả tin', read: 'Đọc toàn văn',
+    vi: 'Tin Việt Nam', en: 'English News', latest: 'Tin mới', viewAll: 'Xem tất cả tin', collapse: 'Thu gọn', read: 'Đọc toàn văn',
     loading: 'Đang cập nhật tin mới…', empty: 'Chưa có tin mới.', retry: 'Tải lại', close: 'Đóng',
     reader: 'Chế độ đọc tập trung', source: 'Nguồn', fullLoading: 'Đang tải toàn văn…', fallback: 'Đang hiển thị nội dung tốt nhất hiện có.',
-    openNewsroom: 'Mở Newsroom đầy đủ', minutes: 'phút đọc', featured: 'Nổi bật', fresh: 'Mới cập nhật',
+    minutes: 'phút đọc', featured: 'Nổi bật', fresh: 'Mới cập nhật', fullFeed: 'Tất cả tin trong Dashboard',
+    fullFeedSub: 'Toàn bộ dòng tin được giữ ngay tại Dashboard, không mở ứng dụng khác.', loadMore: 'Tải thêm tin', showing: 'Đang hiển thị', articles: 'tin',
   },
   en: {
     eyebrow: 'BRIAN NEWSROOM', title: 'News & Reading', subtitle: 'Education headlines and English News inside your Dashboard.',
-    vi: 'Vietnam News', en: 'English News', latest: 'Latest', viewAll: 'View all news', read: 'Read full article',
+    vi: 'Vietnam News', en: 'English News', latest: 'Latest', viewAll: 'View all news', collapse: 'Collapse', read: 'Read full article',
     loading: 'Updating headlines…', empty: 'No recent stories.', retry: 'Retry', close: 'Close',
     reader: 'Focused reader', source: 'Source', fullLoading: 'Loading full article…', fallback: 'Showing the best content currently available.',
-    openNewsroom: 'Open full Newsroom', minutes: 'min read', featured: 'Featured', fresh: 'Recently updated',
+    minutes: 'min read', featured: 'Featured', fresh: 'Recently updated', fullFeed: 'All news in Dashboard',
+    fullFeedSub: 'The complete news stream stays inside Dashboard without opening another app.', loadMore: 'Load more', showing: 'Showing', articles: 'stories',
   },
 };
 
 const CHANNEL_CATEGORY = { vi: 'all', en: 'top' };
 const FEED_TTL = 8 * 60 * 1000;
+const FULL_PAGE_SIZE = 12;
 
 function cacheKey(channel) { return `bes-dashboard-news:${channel}`; }
 function readCache(channel) {
@@ -60,6 +63,7 @@ function ReaderBlocks({ blocks = [] }) {
     if (!block.text) return null;
     if (block.type === 'heading') return <h2 key={key}>{block.text}</h2>;
     if (block.type === 'quote') return <blockquote key={key}>{block.text}</blockquote>;
+    if (block.type === 'list') return <p className="dnh-reader-list-line" key={key}><span>•</span>{block.text}</p>;
     return <p key={key}>{block.text}</p>;
   });
 }
@@ -72,11 +76,15 @@ export default function DashboardNewsHub({ language = 'vi' }) {
   const [error, setError] = useState('');
   const [selected, setSelected] = useState(null);
   const [article, setArticle] = useState({ status: 'idle', data: null, error: '' });
+  const [expanded, setExpanded] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(FULL_PAGE_SIZE);
   const requestRef = useRef(0);
+  const hubRef = useRef(null);
 
-  const visibleItems = useMemo(() => items.slice(0, 5), [items]);
-  const featured = visibleItems[0] || null;
-  const secondary = visibleItems.slice(1);
+  const compactItems = useMemo(() => items.slice(0, 5), [items]);
+  const featured = compactItems[0] || null;
+  const secondary = compactItems.slice(1);
+  const fullItems = useMemo(() => items.slice(0, visibleCount), [items, visibleCount]);
 
   async function load({ force = false } = {}) {
     const id = ++requestRef.current;
@@ -120,7 +128,24 @@ export default function DashboardNewsHub({ language = 'vi' }) {
     }
   }
 
-  useEffect(() => { load(); return () => { requestRef.current += 1; }; /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [channel]);
+  function toggleExpanded() {
+    setExpanded((current) => {
+      const next = !current;
+      if (next) {
+        setVisibleCount(FULL_PAGE_SIZE);
+        window.requestAnimationFrame(() => hubRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      }
+      return next;
+    });
+  }
+
+  useEffect(() => {
+    setVisibleCount(FULL_PAGE_SIZE);
+    load();
+    return () => { requestRef.current += 1; };
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [channel]);
+
   useEffect(() => {
     if (!selected) return undefined;
     const onKey = (event) => { if (event.key === 'Escape') setSelected(null); };
@@ -129,21 +154,36 @@ export default function DashboardNewsHub({ language = 'vi' }) {
   }, [selected]);
 
   return <>
-    <section className="dnh" aria-label={t.title}>
+    <section className={`dnh${expanded ? ' is-expanded' : ''}`} aria-label={t.title} ref={hubRef}>
       <header className="dnh-head">
         <div className="dnh-title"><span className="dnh-icon" aria-hidden="true">N</span><div><span>{t.eyebrow}</span><h2>{t.title}</h2><p>{t.subtitle}</p></div></div>
-        <div className="dnh-actions"><div className="dnh-tabs" role="tablist"><button type="button" className={channel === 'vi' ? 'is-active' : ''} onClick={() => setChannel('vi')}>{t.vi}</button><button type="button" className={channel === 'en' ? 'is-active' : ''} onClick={() => setChannel('en')}>{t.en}</button></div><button type="button" className="dnh-view-all" onClick={() => { window.location.hash = '#/news'; }}>{t.viewAll}<span>→</span></button></div>
+        <div className="dnh-actions">
+          <div className="dnh-tabs" role="tablist" aria-label={t.title}>
+            <button type="button" role="tab" aria-selected={channel === 'vi'} className={channel === 'vi' ? 'is-active' : ''} onClick={() => setChannel('vi')}>{t.vi}</button>
+            <button type="button" role="tab" aria-selected={channel === 'en'} className={channel === 'en' ? 'is-active' : ''} onClick={() => setChannel('en')}>{t.en}</button>
+          </div>
+          <button type="button" className="dnh-view-all" aria-expanded={expanded} onClick={toggleExpanded}>{expanded ? t.collapse : t.viewAll}<span>{expanded ? '↑' : '↓'}</span></button>
+        </div>
       </header>
 
-      {loading ? <div className="dnh-state"><span className="dnh-loader" />{t.loading}</div> : error ? <div className="dnh-state is-error"><span>{error}</span><button type="button" onClick={() => load({ force: true })}>{t.retry}</button></div> : !featured ? <div className="dnh-state">{t.empty}</div> : <div className="dnh-grid">
-        <button type="button" className="dnh-featured" onClick={() => openArticle(featured)}>
-          <span className="dnh-featured-media"><NewsImage item={featured} featured /><em>{t.featured}</em></span>
-          <span className="dnh-featured-copy"><small>{featured.source || t.fresh}{featured.publishedAt ? ` · ${dateLabel(featured.publishedAt, language)}` : ''}</small><strong>{featured.title}</strong><p>{featured.summary}</p><span>{t.read} <b>→</b></span></span>
-        </button>
-        <div className="dnh-list">{secondary.map((item) => <button type="button" className="dnh-story" key={item.id || item.link} onClick={() => openArticle(item)}><span className="dnh-story-media"><NewsImage item={item} /></span><span className="dnh-story-copy"><small>{item.source || t.latest} · {readingMinutes(item)} {t.minutes}</small><strong>{item.title}</strong><span>{dateLabel(item.publishedAt, language)}</span></span></button>)}</div>
-      </div>}
+      {loading ? <div className="dnh-state"><span className="dnh-loader" />{t.loading}</div> : error ? <div className="dnh-state is-error"><span>{error}</span><button type="button" onClick={() => load({ force: true })}>{t.retry}</button></div> : !featured ? <div className="dnh-state">{t.empty}</div> : <>
+        {!expanded ? <div className="dnh-grid">
+          <button type="button" className="dnh-featured" onClick={() => openArticle(featured)}>
+            <span className="dnh-featured-media"><NewsImage item={featured} featured /><em>{t.featured}</em></span>
+            <span className="dnh-featured-copy"><small>{featured.source || t.fresh}{featured.publishedAt ? ` · ${dateLabel(featured.publishedAt, language)}` : ''}</small><strong>{featured.title}</strong><p>{featured.summary}</p><span>{t.read} <b>→</b></span></span>
+          </button>
+          <div className="dnh-list">{secondary.map((item) => <button type="button" className="dnh-story" key={item.id || item.link} onClick={() => openArticle(item)}><span className="dnh-story-media"><NewsImage item={item} /></span><span className="dnh-story-copy"><small>{item.source || t.latest} · {readingMinutes(item)} {t.minutes}</small><strong>{item.title}</strong><span>{dateLabel(item.publishedAt, language)}</span></span></button>)}</div>
+        </div> : <div className="dnh-full">
+          <div className="dnh-full-head"><div><span>{t.eyebrow}</span><h3>{t.fullFeed}</h3><p>{t.fullFeedSub}</p></div><small>{t.showing} {fullItems.length}/{items.length} {t.articles}</small></div>
+          <div className="dnh-full-grid">{fullItems.map((item, index) => <button type="button" className={`dnh-full-card${index === 0 ? ' is-lead' : ''}`} key={item.id || item.link || index} onClick={() => openArticle(item)}>
+            <span className="dnh-full-media"><NewsImage item={item} featured={index === 0} />{index === 0 ? <em>{t.featured}</em> : null}</span>
+            <span className="dnh-full-copy"><small>{item.source || t.latest} · {readingMinutes(item)} {t.minutes}</small><strong>{item.title}</strong>{item.summary ? <p>{item.summary}</p> : null}<span>{dateLabel(item.publishedAt, language)}</span></span>
+          </button>)}</div>
+          <div className="dnh-full-footer">{visibleCount < items.length ? <button type="button" className="dnh-load-more" onClick={() => setVisibleCount((count) => Math.min(count + FULL_PAGE_SIZE, items.length))}>{t.loadMore}<span>↓</span></button> : null}<button type="button" className="dnh-collapse-bottom" onClick={toggleExpanded}>{t.collapse}<span>↑</span></button></div>
+        </div>}
+      </>}
     </section>
 
-    {selected && typeof document !== 'undefined' ? createPortal(<div className="dnh-reader-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><article className="dnh-reader" role="dialog" aria-modal="true" aria-label={selected.title}><header><div><span>{t.reader}</span><strong>{article.data?.author || selected.source || t.source}</strong></div><button type="button" aria-label={t.close} onClick={() => setSelected(null)}>×</button></header><div className="dnh-reader-scroll">{article.status === 'loading' ? <div className="dnh-reader-loading"><span className="dnh-loader" />{t.fullLoading}</div> : <><div className="dnh-reader-hero">{article.data?.image ? <img src={article.data.image} alt="" referrerPolicy="no-referrer" /> : null}<div><small>{article.data?.author || selected.source}{article.data?.publishedAt ? ` · ${dateLabel(article.data.publishedAt, language)}` : ''}</small><h1>{article.data?.title || selected.title}</h1>{article.error ? <p className="dnh-reader-note">{article.error}</p> : null}</div></div><div className="dnh-reader-content"><ReaderBlocks blocks={article.data?.blocks || fallbackBlocks(selected)} /></div></>}</div><footer><button type="button" className="dnh-reader-secondary" onClick={() => { window.location.hash = '#/news'; setSelected(null); }}>{t.openNewsroom}</button><button type="button" className="dnh-reader-primary" onClick={() => setSelected(null)}>{t.close}</button></footer></article></div>, document.body) : null}
+    {selected && typeof document !== 'undefined' ? createPortal(<div className="dnh-reader-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><article className="dnh-reader" role="dialog" aria-modal="true" aria-label={selected.title}><header><div><span>{t.reader}</span><strong>{article.data?.author || selected.source || t.source}</strong></div><button type="button" aria-label={t.close} onClick={() => setSelected(null)}>×</button></header><div className="dnh-reader-scroll">{article.status === 'loading' ? <div className="dnh-reader-loading"><span className="dnh-loader" />{t.fullLoading}</div> : <><div className="dnh-reader-hero">{article.data?.image ? <img src={article.data.image} alt="" referrerPolicy="no-referrer" /> : null}<div><small>{article.data?.author || selected.source}{article.data?.publishedAt ? ` · ${dateLabel(article.data.publishedAt, language)}` : ''}</small><h1>{article.data?.title || selected.title}</h1>{article.error ? <p className="dnh-reader-note">{article.error}</p> : null}</div></div><div className="dnh-reader-content"><ReaderBlocks blocks={article.data?.blocks || fallbackBlocks(selected)} /></div></>}</div><footer><button type="button" className="dnh-reader-primary" onClick={() => setSelected(null)}>{t.close}</button></footer></article></div>, document.body) : null}
   </>;
 }
