@@ -1,0 +1,354 @@
+/* Applications — Approved Editorial Five-Column V5
+   Visual layer only. Keeps the existing launcher, permissions, search and admin logic. */
+
+html body .apps-directory-native {
+  --ed5-bg:#fbfaf7;
+  --ed5-paper:#fffefb;
+  --ed5-ink:#16263d;
+  --ed5-muted:#72706c;
+  --ed5-line:#e8e0d7;
+  --ed5-coral:#d76645;
+  --ed5-coral-soft:#f8e4da;
+  --ed5-navy:#18314f;
+  --ed5-shadow:0 8px 26px rgba(71,53,38,.055);
+  background:
+    radial-gradient(circle at 82% 5%,rgba(235,173,129,.12),transparent 25rem),
+    linear-gradient(180deg,#fffdf9 0%,#fbfaf7 48%,#f8f5f0 100%) !important;
+}
+
+/* HERO — three editorial zones: copy / illustration / stats */
+html body .apps-directory-native .apps-directory-hero-native {
+  width:min(1500px,calc(100% - 56px)) !important;
+  max-width:1500px !important;
+  min-height:330px !important;
+  grid-template-columns:minmax(0,1.02fr) minmax(560px,.98fr) !important;
+  gap:40px !important;
+  margin:26px auto 22px !important;
+  padding:42px 46px !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  overflow:visible !important;
+}
+html body .apps-directory-native .apps-directory-hero-native::before,
+html body .apps-directory-native .apps-directory-hero-native::after { display:none !important; }
+html body .apps-directory-native .apps-directory-hero-copy { max-width:610px !important; }
+html body .apps-directory-native .apps-directory-kicker {
+  margin:0 0 17px !important;
+  color:#a66f52 !important;
+  font-size:10px !important;
+  font-weight:800 !important;
+  letter-spacing:.18em !important;
+}
+html body .apps-directory-native .apps-directory-hero-copy h1 {
+  max-width:590px !important;
+  color:var(--ed5-navy) !important;
+  font-size:clamp(42px,4.3vw,64px) !important;
+  font-weight:610 !important;
+  line-height:1.03 !important;
+  letter-spacing:-.05em !important;
+}
+html body .apps-directory-native .apps-directory-title-accent {
+  color:#c96646 !important;
+  font-style:italic !important;
+  font-weight:520 !important;
+}
+html body .apps-directory-native .apps-directory-subtitle {
+  max-width:520px !important;
+  margin-top:20px !important;
+  padding-left:16px !important;
+  border-left:2px solid #e5ad93 !important;
+  color:#666963 !important;
+  font-size:13.5px !important;
+  line-height:1.72 !important;
+}
+html body .apps-directory-native .apps-directory-actions { margin-top:22px !important; }
+html body .apps-directory-native:not(.is-launcher-edit-mode) .apps-directory-actions .apps-directory-primary-action {
+  display:none !important;
+}
+html body .apps-directory-native .apps-directory-secondary-action {
+  border-color:#dfd4ca !important;
+  background:#fffdfa !important;
+  color:#6f594a !important;
+}
+
+html body .apps-directory-native .apps-directory-hero-visual {
+  min-height:250px !important;
+  grid-template-columns:minmax(230px,.82fr) minmax(315px,1.18fr) !important;
+  gap:22px !important;
+}
+html body .apps-directory-native .apps-directory-hero-visual::before {
+  height:245px !important;
+  border-radius:120px 32px 90px 38px !important;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='270' height='235' viewBox='0 0 270 235'%3E%3Cg fill='none' stroke='%235f705f' stroke-width='1.7' stroke-linecap='round'%3E%3Cpath d='M135 216C137 172 140 125 145 76C148 51 156 29 167 12'/%3E%3Cpath d='M145 92C118 76 93 57 78 33'/%3E%3Cpath d='M143 118C170 102 192 80 206 52'/%3E%3Cpath d='M140 148C112 137 88 121 69 98'/%3E%3Cpath d='M138 179C165 168 189 151 211 127'/%3E%3Cellipse cx='87' cy='43' rx='11' ry='25' transform='rotate(-44 87 43)'/%3E%3Cellipse cx='108' cy='69' rx='10' ry='23' transform='rotate(-50 108 69)'/%3E%3Cellipse cx='194' cy='63' rx='11' ry='25' transform='rotate(43 194 63)'/%3E%3Cellipse cx='174' cy='91' rx='10' ry='23' transform='rotate(50 174 91)'/%3E%3Cellipse cx='83' cy='111' rx='11' ry='25' transform='rotate(-58 83 111)'/%3E%3Cellipse cx='108' cy='137' rx='10' ry='23' transform='rotate(-58 108 137)'/%3E%3Cellipse cx='196' cy='140' rx='11' ry='25' transform='rotate(58 196 140)'/%3E%3Cellipse cx='174' cy='166' rx='10' ry='23' transform='rotate(58 174 166)'/%3E%3C/g%3E%3Cpath d='M25 201c52-24 104-24 159 0' fill='none' stroke='%23c7aa8f' stroke-width='1.2'/%3E%3C/svg%3E") center/contain no-repeat,
+    radial-gradient(circle at 58% 45%,rgba(225,192,160,.28),transparent 50%),
+    rgba(250,245,238,.76) !important;
+}
+html body .apps-directory-native .apps-directory-stat-row {
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  grid-template-rows:repeat(2,minmax(0,1fr)) !important;
+  gap:0 !important;
+  min-height:226px !important;
+  padding:8px !important;
+  border:1px solid #eadfd3 !important;
+  border-radius:18px !important;
+  background:rgba(255,253,249,.92) !important;
+  box-shadow:none !important;
+}
+html body .apps-directory-native .apps-directory-stat-row > div {
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+  min-height:100px !important;
+  padding:12px 14px !important;
+  text-align:left !important;
+}
+html body .apps-directory-native .apps-directory-stat-row > div + div { border-left:0 !important; }
+html body .apps-directory-native .apps-directory-stat-row > div:nth-child(odd) { border-right:1px solid #eee4db !important; }
+html body .apps-directory-native .apps-directory-stat-row > div:nth-child(-n+2) { border-bottom:1px solid #eee4db !important; }
+html body .apps-directory-native .apps-directory-stat-row span {
+  width:33px !important;height:33px !important;
+  margin:0 0 9px !important;
+  border-radius:50% !important;
+}
+html body .apps-directory-native .apps-directory-stat-row strong {
+  font-size:27px !important;
+  font-weight:650 !important;
+  color:#243249 !important;
+}
+html body .apps-directory-native .apps-directory-stat-row small {
+  margin-top:5px !important;
+  color:#817a72 !important;
+  font-size:9.5px !important;
+}
+
+/* Toolbar */
+html body .apps-directory-native :is(.apps-directory-toolbar,.launcher-admin-panel,.apps-directory-list-native) {
+  width:min(1500px,calc(100% - 56px)) !important;
+  max-width:1500px !important;
+}
+html body .apps-directory-native .apps-directory-toolbar {
+  grid-template-columns:minmax(330px,1fr) auto !important;
+  min-height:62px !important;
+  margin-top:4px !important;
+  margin-bottom:16px !important;
+  padding:10px 12px !important;
+  border-color:#e9e1d8 !important;
+  border-radius:14px !important;
+  background:rgba(255,254,252,.94) !important;
+  box-shadow:0 4px 15px rgba(61,48,37,.025) !important;
+}
+html body .apps-directory-native .apps-directory-search-box {
+  min-height:42px !important;
+  background:#fff !important;
+  box-shadow:inset 0 0 0 1px #ece5de !important;
+}
+html body .apps-directory-native .apps-directory-density-switch {
+  min-width:170px !important;
+  border-color:#e9e0d8 !important;
+  background:#fffdfa !important;
+}
+html body .apps-directory-native .apps-directory-density-switch > span {
+  color:#716b65 !important;
+  font-size:10px !important;
+  font-weight:650 !important;
+}
+html body .apps-directory-native .launcher-group-rail { display:none !important; }
+
+/* FIVE COLUMN EDITORIAL GRID */
+html body .apps-directory-native .apps-directory-list-native,
+html body .apps-directory-native .apps-directory-list-native.is-grouped-editorial {
+  display:grid !important;
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  align-items:stretch !important;
+  gap:18px !important;
+  padding:0 0 20px !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+html body .apps-directory-native .apps-directory-group-grid,
+html body .apps-directory-native .apps-directory-group-panel,
+html body .apps-directory-native .apps-directory-group-heading,
+html body .apps-directory-native .apps-directory-group-more,
+html body .apps-directory-native .apps-directory-group-items { display:contents !important; }
+
+html body .apps-directory-native .apps-list-row {
+  position:relative !important;
+  min-width:0 !important;
+  min-height:224px !important;
+  margin:0 !important;
+  overflow:hidden !important;
+  border:1px solid #e7e0d8 !important;
+  border-left:1px solid #e7e0d8 !important;
+  border-radius:14px !important;
+  background:rgba(255,255,255,.92) !important;
+  box-shadow:0 5px 16px rgba(66,50,37,.032) !important;
+}
+html body .apps-directory-native .apps-list-row::after {
+  content:'☆' !important;
+  position:absolute !important;
+  top:15px !important;
+  right:15px !important;
+  z-index:3 !important;
+  color:#9ca5af !important;
+  font-size:21px !important;
+  line-height:1 !important;
+  pointer-events:none !important;
+}
+html body .apps-directory-native .apps-list-row:has(.apps-list-meta .is-pinned)::after {
+  content:'★' !important;
+  color:#d4a23b !important;
+}
+html body .apps-directory-native .apps-list-row:hover {
+  border-color:#ddd1c5 !important;
+  box-shadow:var(--ed5-shadow) !important;
+}
+html body .apps-directory-native .apps-list-open {
+  width:100% !important;
+  min-height:224px !important;
+  height:100% !important;
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  grid-template-rows:auto auto 1fr auto !important;
+  align-items:start !important;
+  gap:0 !important;
+  padding:18px 18px 15px !important;
+  border:0 !important;
+  background:transparent !important;
+  text-align:left !important;
+}
+html body .apps-directory-native .apps-list-icon {
+  width:50px !important;
+  height:50px !important;
+  margin:0 0 17px !important;
+  border-radius:12px !important;
+  background:color-mix(in srgb,var(--app-accent) 88%,#fff) !important;
+  color:#fff !important;
+  box-shadow:0 5px 12px color-mix(in srgb,var(--app-accent) 16%,transparent) !important;
+}
+html body .apps-directory-native .apps-list-icon :is(svg,path) { color:inherit !important; }
+html body .apps-directory-native .apps-list-copy {
+  display:grid !important;
+  grid-template-rows:auto auto 1fr !important;
+  align-content:start !important;
+  min-width:0 !important;
+  height:100% !important;
+}
+html body .apps-directory-native .apps-list-meta {
+  min-height:0 !important;
+  margin:0 !important;
+}
+html body .apps-directory-native .apps-list-meta > b,
+html body .apps-directory-native .apps-list-meta em:not(.is-pinned) { display:none !important; }
+html body .apps-directory-native .apps-list-meta .is-pinned {
+  position:absolute !important;
+  top:14px !important;
+  right:13px !important;
+  width:24px !important;
+  height:24px !important;
+  overflow:hidden !important;
+  opacity:0 !important;
+}
+html body .apps-directory-native .apps-list-copy > strong {
+  display:-webkit-box !important;
+  -webkit-box-orient:vertical !important;
+  -webkit-line-clamp:2 !important;
+  overflow:hidden !important;
+  min-height:42px !important;
+  margin:0 !important;
+  padding-right:5px !important;
+  color:#1e2a3c !important;
+  font-size:15px !important;
+  font-weight:690 !important;
+  line-height:1.35 !important;
+  letter-spacing:-.012em !important;
+}
+html body .apps-directory-native .apps-list-copy > small {
+  display:-webkit-box !important;
+  -webkit-box-orient:vertical !important;
+  -webkit-line-clamp:3 !important;
+  overflow:hidden !important;
+  min-height:54px !important;
+  margin:7px 0 0 !important;
+  color:#6e747d !important;
+  font-size:11.5px !important;
+  line-height:1.52 !important;
+}
+html body .apps-directory-native .apps-list-primary-action {
+  width:auto !important;
+  min-height:32px !important;
+  justify-self:start !important;
+  align-self:end !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:5px !important;
+  margin-top:15px !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#c85f3f !important;
+  box-shadow:none !important;
+}
+html body .apps-directory-native .apps-list-primary-action b {
+  font-size:11.5px !important;
+  font-weight:680 !important;
+}
+html body .apps-directory-native .apps-list-primary-action svg {
+  width:14px !important;height:14px !important;
+}
+html body .apps-directory-native .apps-list-permission {
+  position:absolute !important;
+  left:16px !important;
+  right:16px !important;
+  bottom:12px !important;
+  z-index:5 !important;
+}
+html body .apps-directory-native .apps-list-admin {
+  position:absolute !important;
+  inset:auto 8px 8px 8px !important;
+  z-index:6 !important;
+  border-radius:10px !important;
+  background:rgba(255,253,250,.97) !important;
+}
+html body .apps-directory-native .launcher-empty-group { grid-column:1/-1 !important; }
+html body .apps-directory-native .apps-directory-pinned-native { display:none !important; }
+
+/* Density becomes spacing only; both modes keep the approved card proportions. */
+html body .apps-directory-native.density-compact .apps-list-row,
+html body .apps-directory-native.density-compact .apps-list-open { min-height:205px !important; }
+html body .apps-directory-native.density-compact .apps-list-open { padding:16px !important; }
+html body .apps-directory-native.density-compact .apps-list-copy > small { -webkit-line-clamp:2 !important; min-height:36px !important; }
+
+@media (max-width:1380px) {
+  html body .apps-directory-native .apps-directory-list-native,
+  html body .apps-directory-native .apps-directory-list-native.is-grouped-editorial { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
+}
+@media (max-width:1080px) {
+  html body .apps-directory-native .apps-directory-hero-native { grid-template-columns:1fr !important; }
+  html body .apps-directory-native .apps-directory-hero-visual { max-width:760px !important; }
+  html body .apps-directory-native .apps-directory-list-native,
+  html body .apps-directory-native .apps-directory-list-native.is-grouped-editorial { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+}
+@media (max-width:780px) {
+  html body .apps-directory-native .apps-directory-hero-native,
+  html body .apps-directory-native :is(.apps-directory-toolbar,.launcher-admin-panel,.apps-directory-list-native) {
+    width:calc(100% - 28px) !important;
+  }
+  html body .apps-directory-native .apps-directory-hero-native { padding:26px 8px !important; margin-top:12px !important; }
+  html body .apps-directory-native .apps-directory-hero-copy h1 { font-size:42px !important; }
+  html body .apps-directory-native .apps-directory-hero-visual { grid-template-columns:1fr !important; }
+  html body .apps-directory-native .apps-directory-hero-visual::before { display:none !important; }
+  html body .apps-directory-native .apps-directory-toolbar { grid-template-columns:1fr !important; }
+  html body .apps-directory-native .apps-directory-list-native,
+  html body .apps-directory-native .apps-directory-list-native.is-grouped-editorial { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:12px !important; }
+}
+@media (max-width:520px) {
+  html body .apps-directory-native .apps-directory-list-native,
+  html body .apps-directory-native .apps-directory-list-native.is-grouped-editorial { grid-template-columns:1fr !important; }
+  html body .apps-directory-native .apps-list-row,
+  html body .apps-directory-native .apps-list-open { min-height:190px !important; }
+}
