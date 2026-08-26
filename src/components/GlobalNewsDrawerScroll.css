@@ -26,7 +26,7 @@ body .metro-clean-system[data-route='news'] .newsroom-v823-story-list {
   overflow-y: auto !important;
   overscroll-behavior: contain !important;
   scrollbar-gutter: stable !important;
-  scroll-behavior: smooth !important;
+  scroll-behavior: auto !important;
   padding: 0 8px 10px 0 !important;
 }
 
@@ -109,7 +109,6 @@ html.newsroom-reader-open body .newsroom-v824-reader-screen {
   background: rgba(32, 33, 36, .46) !important;
   backdrop-filter: blur(10px) saturate(.9) !important;
   -webkit-backdrop-filter: blur(10px) saturate(.9) !important;
-  animation: english-hub-v824-backdrop-in .2s ease both !important;
 }
 
 html.newsroom-reader-open body .newsroom-v824-reader-progress {
@@ -129,7 +128,6 @@ html.newsroom-reader-open body .newsroom-v824-reader-progress > i {
   height: 100% !important;
   border-radius: inherit !important;
   background: #1a73e8 !important;
-  transition: width .12s linear !important;
 }
 
 html.newsroom-reader-open body .newsroom-v824-reader-toolbar {
@@ -155,7 +153,6 @@ html.newsroom-reader-open body .newsroom-v824-reader-toolbar {
   box-shadow: -18px 8px 52px rgba(32, 33, 36, .24) !important;
   backdrop-filter: blur(18px) !important;
   -webkit-backdrop-filter: blur(18px) !important;
-  animation: english-hub-v824-drawer-in .25s cubic-bezier(.2, 0, 0, 1) both !important;
 }
 
 html.newsroom-reader-open body .newsroom-v824-reader-toolbar-left,
@@ -228,14 +225,13 @@ html.newsroom-reader-open body .newsroom-v824-reader-scroll {
   overflow-y: auto !important;
   overscroll-behavior: contain !important;
   scrollbar-gutter: stable !important;
-  scroll-behavior: smooth !important;
+  scroll-behavior: auto !important;
   border: 1px solid rgba(60, 64, 67, .14) !important;
   border-top: 0 !important;
   border-radius: 0 0 28px 28px !important;
   background: #fff !important;
   color: #202124 !important;
   box-shadow: -18px 26px 52px rgba(32, 33, 36, .24) !important;
-  animation: english-hub-v824-drawer-in .25s cubic-bezier(.2, 0, 0, 1) both !important;
 }
 
 html.newsroom-reader-open body .newsroom-v824-reader-workspace {
@@ -311,16 +307,6 @@ html.newsroom-reader-open body .newsroom-v824-reader-top {
   background: #1a73e8 !important;
   color: #fff !important;
   box-shadow: 0 8px 24px rgba(26, 115, 232, .32) !important;
-}
-
-@keyframes english-hub-v824-drawer-in {
-  from { opacity: .45; transform: translateX(44px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes english-hub-v824-backdrop-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 [data-theme='dark'] html.newsroom-reader-open body .newsroom-v824-reader-toolbar,
@@ -439,13 +425,5 @@ html.newsroom-reader-open body .newsroom-v824-reader-top {
   html.newsroom-reader-open body .newsroom-v824-reader-top {
     right: 16px !important;
     bottom: 16px !important;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html.newsroom-reader-open body .newsroom-v824-reader-screen,
-  html.newsroom-reader-open body .newsroom-v824-reader-toolbar,
-  html.newsroom-reader-open body .newsroom-v824-reader-scroll {
-    animation: none !important;
   }
 }
