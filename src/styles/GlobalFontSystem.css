@@ -13,7 +13,7 @@ html[data-global-font="system"] { --bes-global-font-family: system-ui, -apple-sy
 html[data-global-font] body,
 html[data-global-font] body :is(
   div, section, article, main, aside, header, footer, nav,
-  h1, h2, h3, h4, h5, h6, p, span, strong, b, em, i, small,
+  h1, h2, h3, h4, h5, h6, p, span, strong, b, em, small,
   label, legend, li, dt, dd, blockquote, figcaption,
   table, thead, tbody, tfoot, tr, th, td,
   button, a, input, textarea, select, option, summary
@@ -26,15 +26,11 @@ html[data-global-font] body :is(code, pre, kbd, samp) {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace !important;
 }
 
-html[data-global-font] body :is(
-  .material-symbols-outlined,
-  .material-symbols-rounded,
-  .material-symbols-sharp,
-  .material-icons,
-  .material-icons-outlined,
-  .material-icons-round,
-  .material-icons-sharp,
-  .material-icons-two-tone
-) {
-  font-family: 'Material Symbols Outlined', 'Material Icons' !important;
-}
+html[data-global-font] body .material-symbols-outlined { font-family: 'Material Symbols Outlined' !important; }
+html[data-global-font] body .material-symbols-rounded { font-family: 'Material Symbols Rounded' !important; }
+html[data-global-font] body .material-symbols-sharp { font-family: 'Material Symbols Sharp' !important; }
+html[data-global-font] body .material-icons { font-family: 'Material Icons' !important; }
+html[data-global-font] body .material-icons-outlined { font-family: 'Material Icons Outlined' !important; }
+html[data-global-font] body .material-icons-round { font-family: 'Material Icons Round' !important; }
+html[data-global-font] body .material-icons-sharp { font-family: 'Material Icons Sharp' !important; }
+html[data-global-font] body .material-icons-two-tone { font-family: 'Material Icons Two Tone' !important; }
