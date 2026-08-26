@@ -1,5 +1,6 @@
 name: Patch TTCM weekly schedule
 
+# retry: fixed patch script syntax
 on:
   push:
     paths:
