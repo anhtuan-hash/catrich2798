@@ -92,7 +92,20 @@ html body .command-palette-result.active,
 html body .bes-transfer-fab:hover,
 html body .bes-transfer-targets > button:hover,
 html body .ai-action-grid > button:hover,
-html body .app-shell[data-route="settings"] .settings-google-card:hover {
+html body .app-shell[data-route="settings"] .settings-google-card:hover,
+html body .app-shell[data-tool="crossword-trial"] .bcg-back:hover,
+html body .app-shell[data-tool="crossword-trial"] .bcg-mode:hover,
+html body .app-shell[data-tool="crossword-trial"] .bcg-btn:hover:not(:disabled),
+html body .app-shell[data-tool="knowledge-train"] .ktg-back:hover,
+html body .app-shell[data-tool="knowledge-train"] .ktg-btn:hover:not(:disabled),
+html body .app-shell[data-tool="knowledge-train"] .ktg-track-slot:hover,
+html body .app-shell[data-tool="knowledge-train"] .ktg-track-slot.is-drop,
+html body .app-shell[data-tool="knowledge-train"] .ktg-car:hover,
+html body .app-shell[data-tool="knowledge-train"] .ktg-car:focus-visible,
+html body .bes-vn-admin__launcher:hover,
+html body .bes-vn-admin.is-open .bes-vn-admin__launcher,
+html body .bes-vn-admin__close:hover,
+html body .metro-clean-system[data-route='admin'] .admin-v41-hero-actions button:hover {
   transform: none !important;
 }
 
