@@ -6,6 +6,24 @@ const GLOBAL_EVENT = 'bes-global-motion-updated';
 const DEFAULT_PRESET = 'balanced';
 const VALID_PRESETS = new Set(['off', 'subtle', 'balanced', 'expressive']);
 
+const TAB_TRIGGER_SELECTOR = [
+  '[role="tab"]',
+  '[data-tab]',
+  '.tab-button',
+  '.tab-btn',
+  '.nav-tab',
+  '.tabs button',
+].join(',');
+
+const TAB_PANEL_SELECTOR = [
+  '[role="tabpanel"]',
+  '[data-tab-panel]',
+  '.tab-panel',
+  '.tab-content',
+  '[class*="tab-panel"]',
+  '[class*="tab-content"]',
+].join(',');
+
 export const GLOBAL_MOTION_PRESETS = Object.freeze([
   {
     id: 'off',
@@ -39,8 +57,8 @@ export const GLOBAL_MOTION_PRESETS = Object.freeze([
     id: 'expressive',
     labelVi: 'Sinh động',
     label: 'Expressive',
-    descriptionVi: 'Hiệu ứng rõ hơn cho modal, drawer, menu, nút và chuyển trang; vẫn giới hạn ở transform/opacity an toàn.',
-    description: 'More visible motion for dialogs, drawers, menus, buttons and page changes while staying GPU-friendly.',
+    descriptionVi: 'Hiệu ứng rõ hơn cho modal, drawer, menu, nút, tab và chuyển trang; vẫn giới hạn ở transform/opacity an toàn.',
+    description: 'More visible motion for dialogs, drawers, menus, buttons, tabs and page changes while staying GPU-friendly.',
     speedVi: '150–420 ms',
     tone: 'expressive',
   },
@@ -50,6 +68,7 @@ let installed = false;
 let realtimeUnsubscribe = null;
 let runtimeRetryTimers = [];
 let mutationFrame = 0;
+const tabMotionTimestamps = new WeakMap();
 
 function normalizePreset(value) {
   const preset = String(value || '').trim().toLowerCase();
@@ -182,6 +201,108 @@ export async function saveGlobalMotionPreset(preset, currentUser = null) {
   }
 }
 
+function isVisibleTabPanel(panel) {
+  if (!panel?.isConnected || panel.hidden) return false;
+  if (panel.getAttribute?.('aria-hidden') === 'true') return false;
+  if (typeof window === 'undefined') return true;
+  const style = window.getComputedStyle(panel);
+  return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+}
+
+function markTabPanelEntrance(panel) {
+  if (!panel?.matches?.(TAB_PANEL_SELECTOR)) return;
+  if (document.documentElement?.dataset?.motionEnabled !== 'true') return;
+  if (!isVisibleTabPanel(panel)) return;
+
+  const now = Date.now();
+  const previous = tabMotionTimestamps.get(panel) || 0;
+  if (now - previous < 120) return;
+  tabMotionTimestamps.set(panel, now);
+
+  panel.removeAttribute('data-global-tab-enter');
+  window.requestAnimationFrame(() => {
+    if (!isVisibleTabPanel(panel)) return;
+    panel.dataset.globalTabEnter = 'true';
+    window.setTimeout(() => {
+      if (panel?.isConnected) delete panel.dataset.globalTabEnter;
+    }, 760);
+  });
+}
+
+function panelFromTargetValue(rawValue) {
+  const raw = String(rawValue || '').trim();
+  if (!raw || !raw.startsWith('#')) return null;
+  let id = raw.slice(1);
+  try { id = decodeURIComponent(id); }
+  catch { /* keep original id */ }
+  return id ? document.getElementById(id) : null;
+}
+
+function resolveTabPanel(tab) {
+  if (!tab) return null;
+
+  const controls = tab.getAttribute?.('aria-controls');
+  if (controls) {
+    const controlled = document.getElementById(controls);
+    if (controlled) return controlled;
+  }
+
+  const directTarget = tab.dataset?.tabTarget
+    || tab.dataset?.target
+    || tab.dataset?.bsTarget
+    || tab.getAttribute?.('href');
+  const targeted = panelFromTargetValue(directTarget);
+  if (targeted) return targeted;
+
+  const roots = [
+    tab.closest?.('[data-tabs]'),
+    tab.closest?.('.tabs'),
+    tab.closest?.('[role="tablist"]')?.parentElement,
+    tab.parentElement?.parentElement,
+  ].filter(Boolean);
+
+  for (const root of roots) {
+    const panels = [...(root.querySelectorAll?.(TAB_PANEL_SELECTOR) || [])];
+    const visible = panels.find(isVisibleTabPanel);
+    if (visible) return visible;
+  }
+
+  return null;
+}
+
+function markAddedTabPanels(root) {
+  if (!root || root.nodeType !== 1) return;
+  const panels = root.matches?.(TAB_PANEL_SELECTOR)
+    ? [root]
+    : [...(root.querySelectorAll?.(TAB_PANEL_SELECTOR) || [])];
+  panels.slice(0, 24).forEach((panel) => {
+    if (isVisibleTabPanel(panel)) markTabPanelEntrance(panel);
+  });
+}
+
+function scheduleTabEntranceFromTrigger(tab) {
+  if (!tab) return;
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      const panel = resolveTabPanel(tab);
+      if (panel) markTabPanelEntrance(panel);
+    });
+  });
+}
+
+function installTabActivationListener() {
+  if (typeof document === 'undefined') return () => {};
+
+  const onClick = (event) => {
+    const tab = event.target?.closest?.(TAB_TRIGGER_SELECTOR);
+    if (!tab) return;
+    scheduleTabEntranceFromTrigger(tab);
+  };
+
+  document.addEventListener('click', onClick, true);
+  return () => document.removeEventListener('click', onClick, true);
+}
+
 function markMotionEntrants(root) {
   if (!root || root.nodeType !== 1) return;
   const selector = [
@@ -210,24 +331,67 @@ function markMotionEntrants(root) {
 
 function installMutationMotionObserver() {
   if (typeof document === 'undefined' || !document.body) return () => {};
-  const pending = new Set();
+  const pendingRoots = new Set();
+  const pendingPanels = new Set();
+
   const flush = () => {
     mutationFrame = 0;
-    [...pending].forEach(markMotionEntrants);
-    pending.clear();
+    [...pendingRoots].forEach((root) => {
+      markMotionEntrants(root);
+      markAddedTabPanels(root);
+    });
+    [...pendingPanels].forEach(markTabPanelEntrance);
+    pendingRoots.clear();
+    pendingPanels.clear();
   };
+
+  const queueFlush = () => {
+    if (!mutationFrame && (pendingRoots.size || pendingPanels.size)) {
+      mutationFrame = window.requestAnimationFrame(flush);
+    }
+  };
+
   const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => mutation.addedNodes.forEach((node) => {
-      if (node?.nodeType === 1) pending.add(node);
-    }));
-    if (!mutationFrame && pending.size) mutationFrame = window.requestAnimationFrame(flush);
+    mutations.forEach((mutation) => {
+      if (mutation.type === 'childList') {
+        mutation.addedNodes.forEach((node) => {
+          if (node?.nodeType === 1) pendingRoots.add(node);
+        });
+        return;
+      }
+
+      const target = mutation.target;
+      if (target?.matches?.(TAB_PANEL_SELECTOR) && isVisibleTabPanel(target)) {
+        pendingPanels.add(target);
+      }
+
+      if (target?.matches?.(TAB_TRIGGER_SELECTOR)) {
+        const selected = target.getAttribute?.('aria-selected') === 'true'
+          || target.classList?.contains('active')
+          || target.classList?.contains('selected')
+          || target.classList?.contains('current');
+        if (selected) {
+          const panel = resolveTabPanel(target);
+          if (panel) pendingPanels.add(panel);
+        }
+      }
+    });
+    queueFlush();
   });
-  observer.observe(document.body, { childList: true, subtree: true });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['class', 'hidden', 'aria-hidden', 'aria-selected', 'style'],
+  });
+
   return () => {
     observer.disconnect();
     if (mutationFrame) window.cancelAnimationFrame(mutationFrame);
     mutationFrame = 0;
-    pending.clear();
+    pendingRoots.clear();
+    pendingPanels.clear();
   };
 }
 
@@ -271,9 +435,12 @@ export function installGlobalMotionSystem() {
   };
   window.addEventListener('storage', onStorage);
 
-  const startObserver = () => installMutationMotionObserver();
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startObserver, { once: true });
-  else startObserver();
+  const startObservers = () => {
+    installMutationMotionObserver();
+    installTabActivationListener();
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startObservers, { once: true });
+  else startObservers();
 
   scheduleRuntimeSync();
 }
