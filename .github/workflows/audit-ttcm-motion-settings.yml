@@ -1,0 +1,25 @@
+name: Audit TTCM motion settings
+
+on:
+  push:
+    paths:
+      - '.github/workflows/audit-ttcm-motion-settings.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Locate TTCM source
+        run: |
+          echo '=== TTCM CONTENT ==='
+          grep -R -n -E "Đánh dấu tất cả đã đọc|ttcm-all-filter|ttcm-m3-chip-bar|Cần xử lý|Kênh TTCM" src || true
+          echo '=== TTCM BADGE ==='
+          grep -R -n -E "TTCM|ttcm" src | grep -E "badge|unread|count|nav|notification" | head -250 || true
+          echo '=== MOTION ==='
+          grep -R -n -E "page.?transition|pageMotion|motion|indicator|active.?indicator|route.?transition|view-transition" src | head -350 || true
+          echo '=== GLOBAL FONT SETTINGS ==='
+          grep -R -n -E "Font chữ toàn hệ thống|global.*font|font.*system|custom.?font|Áp dụng toàn hệ thống" src | head -350 || true
