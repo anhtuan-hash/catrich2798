@@ -1,0 +1,520 @@
+/* Applications — Editorial Five-Column V7
+   Clean visual reset for the Apps route. The goal is a calm editorial directory,
+   not a dense dashboard. This stylesheet is intentionally loaded last by
+   WebAppsAndroidDrawer.jsx so legacy launcher styles cannot distort the cards. */
+
+html body .apps-directory-native {
+  --apps-v7-paper:#fffdf9;
+  --apps-v7-surface:#ffffff;
+  --apps-v7-ink:#17253a;
+  --apps-v7-muted:#68707b;
+  --apps-v7-line:#e9e2d9;
+  --apps-v7-coral:#d56343;
+  --apps-v7-navy:#18324f;
+  --apps-v7-soft:#f8f4ee;
+  min-height:100vh !important;
+  padding:0 0 36px !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:
+    radial-gradient(circle at 90% 4%,rgba(222,191,160,.12),transparent 28rem),
+    linear-gradient(180deg,#fffdf9 0%,#fbfaf7 52%,#f8f6f2 100%) !important;
+  box-shadow:none !important;
+  color:var(--apps-v7-ink) !important;
+}
+
+/* The product already has a global horizontal navigation. */
+html body .apps-directory-native > .flat-apps-menu { display:none !important; }
+
+/* ---------------- HERO ---------------- */
+html body .apps-directory-native .apps-directory-hero-native {
+  position:relative !important;
+  width:min(1500px,calc(100% - 56px)) !important;
+  max-width:1500px !important;
+  min-height:300px !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1.04fr) minmax(520px,.96fr) !important;
+  align-items:center !important;
+  gap:42px !important;
+  margin:26px auto 20px !important;
+  padding:40px 44px !important;
+  overflow:hidden !important;
+  border:1px solid #ede4db !important;
+  border-radius:26px !important;
+  background:
+    radial-gradient(ellipse at 78% 12%,rgba(235,194,162,.22),transparent 38%),
+    linear-gradient(120deg,#fffefa 0%,#fffaf4 62%,#f7eadf 100%) !important;
+  box-shadow:0 12px 34px rgba(74,55,38,.055) !important;
+}
+html body .apps-directory-native .apps-directory-hero-native::before,
+html body .apps-directory-native .apps-directory-hero-native::after { display:none !important; }
+
+html body .apps-directory-native .apps-directory-hero-copy {
+  position:relative !important;
+  z-index:2 !important;
+  max-width:650px !important;
+}
+
+/* Replace the legacy three-span headline with one clean editorial headline. */
+html body .apps-directory-native .apps-directory-kicker {
+  display:block !important;
+  margin:0 0 14px !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  font-size:0 !important;
+  line-height:1 !important;
+}
+html body .apps-directory-native .apps-directory-kicker > * { display:none !important; }
+html body .apps-directory-native .apps-directory-kicker::after {
+  content:'KHO ỨNG DỤNG BRIAN ENGLISH' !important;
+  color:#a4684d !important;
+  font-size:10px !important;
+  font-weight:780 !important;
+  letter-spacing:.17em !important;
+  text-transform:uppercase !important;
+}
+html body .apps-directory-native .apps-directory-hero-copy h1 {
+  display:block !important;
+  max-width:620px !important;
+  margin:0 !important;
+  color:var(--apps-v7-navy) !important;
+  font-size:0 !important;
+  font-weight:640 !important;
+  line-height:1 !important;
+  letter-spacing:-.045em !important;
+}
+html body .apps-directory-native .apps-directory-hero-copy h1 > * { display:none !important; }
+html body .apps-directory-native .apps-directory-hero-copy h1::after {
+  content:'Kho ứng dụng\A dành cho giáo viên' !important;
+  white-space:pre-line !important;
+  display:block !important;
+  color:var(--apps-v7-navy) !important;
+  font-size:clamp(42px,4vw,60px) !important;
+  font-weight:640 !important;
+  line-height:1.02 !important;
+  letter-spacing:-.048em !important;
+}
+html body .apps-directory-native .apps-directory-subtitle {
+  max-width:570px !important;
+  margin:18px 0 0 !important;
+  padding:0 0 0 16px !important;
+  border:0 !important;
+  border-left:2px solid #e4ae95 !important;
+  color:#666b71 !important;
+  font-size:14px !important;
+  line-height:1.68 !important;
+}
+html body .apps-directory-native .apps-directory-subtitle::after { content:none !important; }
+html body .apps-directory-native .apps-directory-actions {
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:9px !important;
+  margin-top:22px !important;
+}
+html body .apps-directory-native .apps-directory-actions :is(button,.apps-directory-primary-action,.apps-directory-secondary-action,.apps-directory-save-action,.apps-directory-reset-action) {
+  min-height:40px !important;
+  padding:0 14px !important;
+  border-radius:10px !important;
+  font-size:11.5px !important;
+  font-weight:680 !important;
+  box-shadow:none !important;
+}
+html body .apps-directory-native .apps-directory-actions small { display:none !important; }
+html body .apps-directory-native .apps-directory-primary-action {
+  border:1px solid #203a58 !important;
+  background:#18324f !important;
+  color:#fff !important;
+}
+html body .apps-directory-native .apps-directory-secondary-action {
+  border:1px solid #dfd5cb !important;
+  background:#fffdfa !important;
+  color:#66554a !important;
+}
+
+/* Hero illustration and real three counters only. */
+html body .apps-directory-native .apps-directory-hero-visual {
+  position:relative !important;
+  z-index:2 !important;
+  min-height:220px !important;
+  display:grid !important;
+  grid-template-columns:minmax(220px,.9fr) minmax(300px,1.1fr) !important;
+  align-items:center !important;
+  gap:18px !important;
+}
+html body .apps-directory-native :is(.apps-directory-workspace,.apps-directory-orbit) { display:none !important; }
+html body .apps-directory-native .apps-directory-hero-visual::before {
+  content:'' !important;
+  display:block !important;
+  width:100% !important;
+  height:220px !important;
+  border-radius:110px 34px 88px 36px !important;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='270' height='220' viewBox='0 0 270 220'%3E%3Cg fill='none' stroke='%235f705f' stroke-width='1.55' stroke-linecap='round'%3E%3Cpath d='M136 203c1-46 5-91 10-132 3-25 11-45 22-59'/%3E%3Cpath d='M146 88c-26-15-49-34-65-57'/%3E%3Cpath d='M143 115c28-15 50-37 64-63'/%3E%3Cpath d='M140 145c-28-10-53-26-71-48'/%3E%3Cpath d='M138 177c26-11 50-28 71-51'/%3E%3Cellipse cx='89' cy='43' rx='10' ry='23' transform='rotate(-43 89 43)'/%3E%3Cellipse cx='110' cy='68' rx='9' ry='21' transform='rotate(-50 110 68)'/%3E%3Cellipse cx='194' cy='63' rx='10' ry='23' transform='rotate(43 194 63)'/%3E%3Cellipse cx='174' cy='91' rx='9' ry='21' transform='rotate(50 174 91)'/%3E%3Cellipse cx='83' cy='112' rx='10' ry='23' transform='rotate(-57 83 112)'/%3E%3Cellipse cx='108' cy='138' rx='9' ry='21' transform='rotate(-58 108 138)'/%3E%3Cellipse cx='196' cy='140' rx='10' ry='23' transform='rotate(57 196 140)'/%3E%3Cellipse cx='174' cy='166' rx='9' ry='21' transform='rotate(58 174 166)'/%3E%3C/g%3E%3Cpath d='M46 197c38-18 79-18 122 0' fill='none' stroke='%23bfa58e' stroke-width='1.1'/%3E%3C/svg%3E") center/contain no-repeat,
+    radial-gradient(circle at 56% 48%,rgba(224,196,167,.28),transparent 50%),
+    rgba(251,246,239,.72) !important;
+}
+html body .apps-directory-native .apps-directory-stat-row {
+  position:relative !important;
+  inset:auto !important;
+  width:100% !important;
+  min-height:178px !important;
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  grid-template-rows:1fr !important;
+  gap:0 !important;
+  padding:12px !important;
+  border:1px solid #e9ded3 !important;
+  border-radius:18px !important;
+  background:rgba(255,253,249,.94) !important;
+  box-shadow:0 6px 20px rgba(69,53,40,.04) !important;
+}
+html body .apps-directory-native .apps-directory-stat-row::after { content:none !important; display:none !important; }
+html body .apps-directory-native .apps-directory-stat-row > div {
+  min-width:0 !important;
+  min-height:150px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+  align-items:center !important;
+  padding:12px 10px !important;
+  border:0 !important;
+  background:transparent !important;
+  text-align:center !important;
+}
+html body .apps-directory-native .apps-directory-stat-row > div + div { border-left:1px solid #eee4db !important; }
+html body .apps-directory-native .apps-directory-stat-row > div:nth-child(odd) { border-right:0 !important; }
+html body .apps-directory-native .apps-directory-stat-row > div:nth-child(-n+2) { border-bottom:0 !important; }
+html body .apps-directory-native .apps-directory-stat-row span {
+  width:34px !important;
+  height:34px !important;
+  display:grid !important;
+  place-items:center !important;
+  margin:0 0 10px !important;
+  border-radius:50% !important;
+  background:#eef4fd !important;
+  color:#3b6ea7 !important;
+  font-size:14px !important;
+}
+html body .apps-directory-native .apps-directory-stat-row > div:nth-child(2) span { background:#eef7ef !important;color:#4b8556 !important; }
+html body .apps-directory-native .apps-directory-stat-row > div:nth-child(3) span { background:#f3edfb !important;color:#795fb0 !important; }
+html body .apps-directory-native .apps-directory-stat-row strong {
+  display:block !important;
+  color:#243147 !important;
+  font-size:28px !important;
+  font-weight:650 !important;
+  line-height:1 !important;
+}
+html body .apps-directory-native .apps-directory-stat-row small {
+  display:block !important;
+  margin-top:7px !important;
+  color:#827a72 !important;
+  font-size:10px !important;
+  line-height:1.35 !important;
+}
+
+/* ---------------- TOOLBAR ---------------- */
+html body .apps-directory-native :is(.apps-directory-toolbar,.launcher-admin-panel,.apps-directory-list-native) {
+  width:min(1500px,calc(100% - 56px)) !important;
+  max-width:1500px !important;
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+html body .apps-directory-native .apps-directory-toolbar {
+  min-height:58px !important;
+  display:grid !important;
+  grid-template-columns:minmax(360px,1fr) auto !important;
+  align-items:center !important;
+  gap:12px !important;
+  margin-top:0 !important;
+  margin-bottom:17px !important;
+  padding:8px 10px !important;
+  border:1px solid #e9e1d8 !important;
+  border-radius:14px !important;
+  background:rgba(255,254,252,.92) !important;
+  box-shadow:0 3px 12px rgba(60,48,36,.025) !important;
+}
+html body .apps-directory-native .apps-directory-search-box {
+  min-height:42px !important;
+  border:1px solid #ebe4dc !important;
+  border-radius:10px !important;
+  background:#fff !important;
+  box-shadow:none !important;
+}
+html body .apps-directory-native .apps-directory-search-box input {
+  min-width:0 !important;
+  color:#28364a !important;
+  font-size:12.5px !important;
+}
+html body .apps-directory-native .apps-directory-command-button { display:none !important; }
+html body .apps-directory-native .apps-directory-density-switch {
+  min-height:42px !important;
+  min-width:112px !important;
+  border:1px solid #e8dfd7 !important;
+  border-radius:10px !important;
+  background:#fffdfa !important;
+}
+html body .apps-directory-native .apps-directory-density-switch > span { display:none !important; }
+
+/* Public directory is intentionally ungrouped. The Admin editor still retains
+   group management in its own edit panel. */
+html body .apps-directory-native .launcher-group-rail,
+html body .apps-directory-native .flat-apps-group-rail { display:none !important; }
+
+/* ---------------- FIVE COLUMN DIRECTORY ---------------- */
+html body .apps-directory-native .apps-directory-list-native,
+html body .apps-directory-native .apps-directory-list-native.is-grouped-editorial {
+  width:min(1500px,calc(100% - 56px)) !important;
+  max-width:1500px !important;
+  display:grid !important;
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  align-items:stretch !important;
+  gap:16px !important;
+  margin:0 auto 34px !important;
+  padding:0 !important;
+  overflow:visible !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+html body .apps-directory-native .apps-directory-group-grid,
+html body .apps-directory-native .apps-directory-group-panel,
+html body .apps-directory-native .apps-directory-group-heading,
+html body .apps-directory-native .apps-directory-group-more,
+html body .apps-directory-native .apps-directory-group-items { display:contents !important; }
+
+html body .apps-directory-native .apps-list-row {
+  position:relative !important;
+  min-width:0 !important;
+  min-height:250px !important;
+  height:auto !important;
+  margin:0 !important;
+  overflow:hidden !important;
+  border:1px solid #e5ded6 !important;
+  border-left:1px solid #e5ded6 !important;
+  border-radius:15px !important;
+  background:rgba(255,255,255,.96) !important;
+  box-shadow:0 4px 14px rgba(67,51,38,.032) !important;
+  writing-mode:horizontal-tb !important;
+  text-orientation:mixed !important;
+  transform:none !important;
+}
+html body .apps-directory-native .apps-list-row::before {
+  content:'' !important;
+  position:absolute !important;
+  inset:0 0 auto 0 !important;
+  width:auto !important;
+  height:3px !important;
+  background:color-mix(in srgb,var(--app-accent,#6f7782) 72%,#d8c8bb) !important;
+  pointer-events:none !important;
+}
+html body .apps-directory-native .apps-list-row::after {
+  content:'☆' !important;
+  position:absolute !important;
+  top:16px !important;
+  right:16px !important;
+  z-index:4 !important;
+  color:#a2a8b0 !important;
+  font-size:20px !important;
+  line-height:1 !important;
+  pointer-events:none !important;
+}
+html body .apps-directory-native .apps-list-row:has(.apps-list-meta .is-pinned)::after {
+  content:'★' !important;
+  color:#d7a23b !important;
+}
+html body .apps-directory-native .apps-list-row:hover {
+  border-color:#d9cfc5 !important;
+  transform:translateY(-2px) !important;
+  box-shadow:0 10px 28px rgba(66,50,37,.075) !important;
+}
+
+html body .apps-directory-native .apps-list-open {
+  width:100% !important;
+  min-width:0 !important;
+  min-height:250px !important;
+  height:100% !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  justify-content:flex-start !important;
+  gap:0 !important;
+  padding:20px 19px 17px !important;
+  border:0 !important;
+  background:transparent !important;
+  color:var(--apps-v7-ink) !important;
+  text-align:left !important;
+  writing-mode:horizontal-tb !important;
+  text-orientation:mixed !important;
+  transform:none !important;
+}
+html body .apps-directory-native .apps-list-icon {
+  flex:0 0 auto !important;
+  width:48px !important;
+  height:48px !important;
+  display:grid !important;
+  place-items:center !important;
+  margin:0 0 16px !important;
+  border-radius:12px !important;
+  background:color-mix(in srgb,var(--app-accent,#34495e) 88%,#fff) !important;
+  color:#fff !important;
+  box-shadow:0 5px 12px color-mix(in srgb,var(--app-accent,#34495e) 15%,transparent) !important;
+  writing-mode:horizontal-tb !important;
+  transform:none !important;
+}
+html body .apps-directory-native .apps-list-icon :is(svg,path) {
+  width:24px !important;
+  height:24px !important;
+  color:inherit !important;
+}
+html body .apps-directory-native .apps-list-copy {
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  width:100% !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  gap:0 !important;
+  writing-mode:horizontal-tb !important;
+  text-orientation:mixed !important;
+}
+html body .apps-directory-native .apps-list-meta {
+  display:none !important;
+  width:auto !important;
+  writing-mode:horizontal-tb !important;
+}
+html body .apps-directory-native .apps-list-copy > strong {
+  width:100% !important;
+  min-width:0 !important;
+  min-height:42px !important;
+  display:-webkit-box !important;
+  -webkit-box-orient:vertical !important;
+  -webkit-line-clamp:2 !important;
+  overflow:hidden !important;
+  margin:0 !important;
+  padding:0 20px 0 0 !important;
+  color:#1f2c40 !important;
+  -webkit-text-fill-color:#1f2c40 !important;
+  font-size:14.5px !important;
+  font-weight:690 !important;
+  line-height:1.42 !important;
+  letter-spacing:-.012em !important;
+  white-space:normal !important;
+  overflow-wrap:anywhere !important;
+  word-break:normal !important;
+  writing-mode:horizontal-tb !important;
+  text-orientation:mixed !important;
+  transform:none !important;
+}
+html body .apps-directory-native .apps-list-copy > small {
+  width:100% !important;
+  min-width:0 !important;
+  min-height:58px !important;
+  display:-webkit-box !important;
+  -webkit-box-orient:vertical !important;
+  -webkit-line-clamp:3 !important;
+  overflow:hidden !important;
+  margin:7px 0 0 !important;
+  color:#69717c !important;
+  font-size:12px !important;
+  line-height:1.55 !important;
+  white-space:normal !important;
+  overflow-wrap:anywhere !important;
+  word-break:normal !important;
+  writing-mode:horizontal-tb !important;
+  text-orientation:mixed !important;
+  transform:none !important;
+}
+html body .apps-directory-native .apps-list-primary-action {
+  flex:0 0 auto !important;
+  align-self:flex-start !important;
+  justify-self:auto !important;
+  min-width:86px !important;
+  min-height:34px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:5px !important;
+  margin-top:15px !important;
+  padding:0 12px !important;
+  border:1px solid #e8d8cf !important;
+  border-radius:999px !important;
+  background:#fffaf6 !important;
+  color:#c55f40 !important;
+  box-shadow:none !important;
+  writing-mode:horizontal-tb !important;
+  transform:none !important;
+}
+html body .apps-directory-native .apps-list-row:hover .apps-list-primary-action {
+  border-color:#ddbda9 !important;
+  background:#fff2e9 !important;
+}
+html body .apps-directory-native .apps-list-primary-action b {
+  font-size:11.5px !important;
+  font-weight:700 !important;
+  white-space:nowrap !important;
+  writing-mode:horizontal-tb !important;
+}
+html body .apps-directory-native .apps-list-primary-action svg { width:14px !important;height:14px !important; }
+
+/* Keep permissions/edit controls usable without contaminating the public card. */
+html body .apps-directory-native .apps-list-permission {
+  position:relative !important;
+  inset:auto !important;
+  padding:0 16px 14px !important;
+  border:0 !important;
+  background:transparent !important;
+}
+html body .apps-directory-native .apps-list-admin {
+  position:relative !important;
+  inset:auto !important;
+  padding:10px !important;
+  border-top:1px solid #eee7df !important;
+  background:#fffdfa !important;
+}
+html body .apps-directory-native .apps-list-row.is-locked { background:#fcfbf8 !important; }
+html body .apps-directory-native .apps-list-row.is-hidden { opacity:.62 !important; }
+html body .apps-directory-native :is(.apps-directory-pinned-native,.launcher-pinned-apps,.flat-pinned-apps.flat-apps-pins) { display:none !important; }
+
+/* Compact density never collapses the editorial card into a horizontal list. */
+html body .apps-directory-native.density-compact .apps-list-open {
+  min-height:232px !important;
+  padding:18px 17px 15px !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+html body .apps-directory-native.density-compact .apps-list-row { min-height:232px !important; }
+html body .apps-directory-native.density-compact .apps-list-icon { width:44px !important;height:44px !important;margin-bottom:14px !important; }
+html body .apps-directory-native.density-compact .apps-list-copy > strong { font-size:14px !important; }
+html body .apps-directory-native.density-compact .apps-list-copy > small { font-size:11.5px !important; }
+
+/* Responsive column count while preserving the same editorial card language. */
+@media (max-width:1380px) {
+  html body .apps-directory-native .apps-directory-list-native,
+  html body .apps-directory-native .apps-directory-list-native.is-grouped-editorial { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
+  html body .apps-directory-native .apps-directory-hero-native { grid-template-columns:1fr 1fr !important; }
+}
+@media (max-width:1080px) {
+  html body .apps-directory-native .apps-directory-list-native,
+  html body .apps-directory-native .apps-directory-list-native.is-grouped-editorial { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+  html body .apps-directory-native .apps-directory-hero-native { grid-template-columns:1fr !important; }
+  html body .apps-directory-native .apps-directory-hero-visual { grid-template-columns:220px 1fr !important; }
+}
+@media (max-width:760px) {
+  html body .apps-directory-native .apps-directory-hero-native,
+  html body .apps-directory-native :is(.apps-directory-toolbar,.launcher-admin-panel,.apps-directory-list-native) {
+    width:calc(100% - 24px) !important;
+  }
+  html body .apps-directory-native .apps-directory-hero-native { padding:28px 24px !important; }
+  html body .apps-directory-native .apps-directory-hero-visual { grid-template-columns:1fr !important; }
+  html body .apps-directory-native .apps-directory-hero-visual::before { display:none !important; }
+  html body .apps-directory-native .apps-directory-list-native,
+  html body .apps-directory-native .apps-directory-list-native.is-grouped-editorial { grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:12px !important; }
+  html body .apps-directory-native .apps-directory-toolbar { grid-template-columns:1fr auto !important; }
+}
+@media (max-width:520px) {
+  html body .apps-directory-native .apps-directory-list-native,
+  html body .apps-directory-native .apps-directory-list-native.is-grouped-editorial { grid-template-columns:1fr !important; }
+  html body .apps-directory-native .apps-directory-hero-copy h1::after { font-size:38px !important; }
+}
