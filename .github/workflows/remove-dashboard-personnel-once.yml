@@ -1,0 +1,47 @@
+name: Remove Dashboard personnel once
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/remove-dashboard-personnel-once.py'
+      - '.github/workflows/remove-dashboard-personnel-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-build-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Remove Dashboard personnel card
+        run: python scripts/remove-dashboard-personnel-once.py
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Commit verified Dashboard cleanup
+        run: |
+          git config user.name "anhtuan-hash"
+          git config user.email "anhtuan@pek.edu.vn"
+          git add src/pages/WorkDashboard.jsx
+          git diff --cached --quiet && exit 0
+          git commit -m "feat(ttcm): move personnel directory out of Dashboard"
+          git push origin HEAD:main
