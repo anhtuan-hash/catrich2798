@@ -98,9 +98,9 @@ function latestOpened(items) {
 }
 
 function paletteForGrade(grade) {
-  if (grade === 10) return { accent: '#1a73e8', soft: '#eaf3ff' };
-  if (grade === 11) return { accent: '#7e42d3', soft: '#f3edff' };
-  return { accent: '#24963b', soft: '#edf8ef' };
+  if (grade === 10) return { accent: '#346ea8', soft: '#edf3f8' };
+  if (grade === 11) return { accent: '#76588e', soft: '#f4eff4' };
+  return { accent: '#557a4d', soft: '#eff4ec' };
 }
 
 function findLegacyPracticeButton(item) {
@@ -191,20 +191,33 @@ function ToolCard({ item, currentUser, language }) {
 
 function GradeArt({ grade }) {
   const Icon = grade === 10 ? NotebookTabs : grade === 11 ? MessageSquareText : GraduationCap;
-  return <div className="bha-grade-art"><Icon /><b>{grade}</b><i /><i /></div>;
+  return (
+    <div className="bha-grade-art bha-folio-grade__art" aria-hidden="true">
+      <span className="bha-folio-grade__serial">0{grade - 9}</span>
+      <Icon />
+      <b>{grade}</b>
+      <i /><i />
+    </div>
+  );
 }
 
 function GradeCard({ grade, items, t, language }) {
   const palette = paletteForGrade(grade);
   const newestOpen = latestOpened(items);
+  const lessonCount = items?.length || 0;
   return (
-    <article className="bha-grade bha-grade--with-lessons" style={{ '--accent': palette.accent, '--soft': palette.soft }}>
-      <div className="bha-grade-copy">
-        <span>{t.grade} {grade}</span><h3>{t.english} {grade}</h3>
-        <p><Check size={14} /> <b>{t.weekly}</b></p>
+    <article className={`bha-grade bha-grade--with-lessons bha-folio-grade bha-folio-grade--${grade}`} style={{ '--accent': palette.accent, '--soft': palette.soft }}>
+      <div className="bha-folio-grade__rule" aria-hidden="true" />
+      <header className="bha-folio-grade__masthead">
+        <span>{t.grade} {grade}</span>
+        <small>{String(lessonCount).padStart(2, '0')} {language === 'en' ? 'lessons' : 'bài'}</small>
+      </header>
+      <div className="bha-grade-copy bha-folio-grade__copy">
+        <p className="bha-folio-grade__kicker"><Check size={14} /> <b>{t.weekly}</b></p>
+        <h3>{t.english} {grade}</h3>
         <small title={newestOpen?.title || t.curriculum}>{newestOpen?.title || t.curriculum}</small>
         <button type="button" disabled={!newestOpen} onClick={() => newestOpen && openLegacyPractice(newestOpen, language)}>
-          <ArrowRight size={14} /> {t.enter}
+          {t.enter} <ArrowRight size={14} />
         </button>
       </div>
       <GradeArt grade={grade} />
@@ -262,8 +275,15 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
   }), [practiceItems]);
 
   return (
-    <div className="bha-home" aria-label="English Hub homepage">
-      <div className="bha-top">
+    <div className="bha-home bha-home--editorial-v3" aria-label="English Hub homepage">
+      <div className="bha-editorial-dateline" aria-label={language === 'en' ? 'Brian English teaching studio' : 'Brian English — không gian dạy học'}>
+        <span>BRIAN ENGLISH</span>
+        <i aria-hidden="true" />
+        <span>{language === 'en' ? 'TEACHING STUDIO' : 'KHÔNG GIAN DẠY HỌC'}</span>
+        <strong>2026—2027</strong>
+      </div>
+
+      <div className="bha-top bha-top--editorial-v3">
         <HomeHeroExperience2026
           currentUser={currentUser}
           language={language}
@@ -277,15 +297,29 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
         </section>
       </div>
 
-      <section className="bha-practice"><header><div><span><ClipboardClock size={17} />{t.practice}</span><h2>{t.practiceTitle}</h2><p>{t.practiceSub}</p></div>
-        <div className="bha-practice-header-actions">
-          {canManagePractice ? <button type="button" className="bha-statistics-practice" onClick={() => window.dispatchEvent(new CustomEvent('bes-open-weekly-statistics'))}><BarChart3 size={17} />{t.statistics}</button> : null}
-          {canManagePractice ? <button type="button" className="bha-manage-practice" onClick={() => openLegacyManager(language)}>{t.manage}</button> : null}
-        </div>
-      </header>
-      {practiceLoading ? <div className="bha-practice-state"><span />{t.loading}</div> : null}
-      {!practiceLoading && practiceError ? <div className="bha-practice-state is-error">{practiceError}<button type="button" onClick={() => refreshPractice()}>{t.retry}</button></div> : null}
-      {!practiceLoading && !practiceError ? <div className="bha-grades">{[10, 11, 12].map((grade) => <GradeCard key={grade} grade={grade} items={practicesByGrade[grade]} t={t} language={language} />)}</div> : null}
+      <section className="bha-practice bha-practice--editorial-v3">
+        <header className="bha-practice__editorial-header">
+          <div className="bha-practice__editorial-copy">
+            <span><ClipboardClock size={17} />{t.practice}</span>
+            <h2>{t.practiceTitle}</h2>
+            <p>{t.practiceSub}</p>
+          </div>
+          <div className="bha-practice__editorial-side">
+            <div className="bha-practice__published-count">
+              <span>{language === 'en' ? 'PUBLISHED' : 'ĐÃ XUẤT BẢN'}</span>
+              <strong>{practiceItems.length}</strong>
+              <small>{language === 'en' ? 'weekly lessons' : 'bài luyện tập'}</small>
+            </div>
+            <div className="bha-practice-header-actions">
+              {canManagePractice ? <button type="button" className="bha-statistics-practice" onClick={() => window.dispatchEvent(new CustomEvent('bes-open-weekly-statistics'))}><BarChart3 size={17} />{t.statistics}</button> : null}
+              {canManagePractice ? <button type="button" className="bha-manage-practice" onClick={() => openLegacyManager(language)}>{t.manage}</button> : null}
+            </div>
+          </div>
+        </header>
+        <div className="bha-practice__editorial-rule" aria-hidden="true"><span>10</span><i /><span>11</span><i /><span>12</span></div>
+        {practiceLoading ? <div className="bha-practice-state"><span />{t.loading}</div> : null}
+        {!practiceLoading && practiceError ? <div className="bha-practice-state is-error">{practiceError}<button type="button" onClick={() => refreshPractice()}>{t.retry}</button></div> : null}
+        {!practiceLoading && !practiceError ? <div className="bha-grades bha-grades--folio">{[10, 11, 12].map((grade) => <GradeCard key={grade} grade={grade} items={practicesByGrade[grade]} t={t} language={language} />)}</div> : null}
       </section>
     </div>
   );
