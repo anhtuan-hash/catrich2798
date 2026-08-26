@@ -17,7 +17,7 @@ import {
 import { HIDDEN_APPS_FOLDER, appVisibilityId } from '../data/appVisibilityRegistry.js';
 import { getHiddenAppIds } from '../utils/appVisibility.js';
 import { APP_ORDER, ROUTE_APPS, copy, defaultGroupOf, descOf, launch, shortDesc, targetFor, titleOf } from './appsDirectoryData.js';
-import { AppsDirectoryHero, GroupRail, LauncherStyleSelector, TopMenu } from './appsDirectoryComponents.jsx';
+import { AppsDirectoryHero, GroupRail, TopMenu } from './appsDirectoryComponents.jsx';
 import AppListRow from './appsDirectoryListComponents.jsx';
 
 export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, currentUser, setLanguage, appVisibility: externalAppVisibility }) {
@@ -195,16 +195,14 @@ export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, curr
   }, [isAdmin, config, itemIds.join('|')]);
 
   return (
-    <div className={`flat-design-home flat-apps-directory apps-directory-native launcher-v10831 launcher-v1136 launcher-command-center launcher-style-${workingConfig.launcherStyle || 'radial'} density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
+    <div className={`flat-design-home flat-apps-directory apps-directory-native launcher-v10831 launcher-v1136 launcher-command-center launcher-style-radial density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
       <TopMenu language={language} setLanguage={setLanguage} hasApiKey={hasApiKey} currentUser={currentUser} />
       <AppsDirectoryHero
         language={language} isAdmin={isAdmin} editMode={editMode} saving={saving} visibleItems={visibleItems}
         pinnedCount={workingConfig.pinned.length} navCount={workingConfig.nav.length} previewItems={heroPreviewItems}
-        onBrowse={() => document.getElementById('apps-directory-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        onBrowse={() => document.getElementById('apps-directory-grid')?.scrollIntoView({ behavior: 'auto', block: 'start' })}
         onEdit={editMode ? cancelEdit : beginEdit} onSave={saveChanges} onReset={restoreDefaults}
       />
-
-      {editMode && isAdmin && <LauncherStyleSelector language={language} value={workingConfig.launcherStyle || 'radial'} items={pinnedItems.length ? pinnedItems : orderedItems} onChange={(launcherStyle) => patchDraft((current) => ({ ...current, launcherStyle }))} />}
 
       <section className="apps-directory-toolbar" aria-label={t.search}>
         <label className="apps-directory-search-box"><span aria-hidden="true">⌕</span><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder={t.searchPlaceholder} aria-label={t.search} />{searchQuery ? <button type="button" onClick={() => setSearchQuery('')} aria-label={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}>×</button> : null}</label>
