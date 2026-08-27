@@ -30,28 +30,16 @@ export default function GlobalGuestNavigationHub({ currentUser, language = 'vi',
       return undefined;
     }
 
+    // Guest destinations are inserted into the exact same shared primary rail.
+    // Home no longer receives a guest/home-specific navigation chrome variant.
     const findHost = () => {
-      const nextHost = document.querySelector('.brian-nav__primary');
-      const navigation = nextHost?.closest('.brian-nav');
-      const topChrome = navigation?.closest('.bes-top-chrome');
-
+      const nextHost = document.querySelector('.bes-top-chrome .brian-nav__primary');
       setHost((current) => (current === nextHost ? current : nextHost));
-      navigation?.classList.add('brian-nav--guest-full');
-      topChrome?.classList.add('bes-top-chrome--guest-full');
     };
 
     findHost();
     const frame = window.requestAnimationFrame(findHost);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      document.querySelectorAll('.brian-nav--guest-full').forEach((element) => {
-        element.classList.remove('brian-nav--guest-full');
-      });
-      document.querySelectorAll('.bes-top-chrome--guest-full').forEach((element) => {
-        element.classList.remove('bes-top-chrome--guest-full');
-      });
-    };
+    return () => window.cancelAnimationFrame(frame);
   }, [isGuestHome]);
 
   if (!host || !isGuestHome) return null;
