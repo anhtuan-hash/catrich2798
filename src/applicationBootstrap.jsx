@@ -7,6 +7,7 @@ import './directClassRosterImportBootstrap.js';
 import './removeKnowledgeHubRuntime.js';
 import './tesolMethodRouteRegistry.js';
 import './components/GlobalHomeroomMaterial3Refinement.css';
+import { bootstrapPublicTypographyBeforeApp } from './publicTypographyBootstrap.js';
 
 const MAX_WAIT_MS = 20000;
 const STARTED_AT = Date.now();
@@ -175,6 +176,9 @@ async function startApplication() {
   if (applicationStarted) return;
   applicationStarted = true;
 
+  // Typography is system chrome, not an authenticated preference. Resolve the
+  // Admin-selected public typography before Brian renders its first frame.
+  await bootstrapPublicTypographyBeforeApp();
   await preparePreferredHomeroomBeforeMain();
   await import('./main.jsx');
   import('./homeWeeklyPracticeStatisticsBootstrap.jsx').catch((error) => {
