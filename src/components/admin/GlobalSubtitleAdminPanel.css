@@ -1,0 +1,226 @@
+.global-subtitle-admin {
+  margin-top: 18px;
+  padding: 22px;
+  border: 1px solid #e1e8f0;
+  border-radius: 20px;
+  background: #fff;
+  color: #17324f;
+  box-shadow: 0 8px 24px rgba(28, 55, 88, .06);
+}
+
+.global-subtitle-admin__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.global-subtitle-admin__head > div { min-width: 0; }
+
+.global-subtitle-admin__eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: #1a73e8;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.global-subtitle-admin h3 {
+  margin: 0;
+  color: #17324f;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 780;
+  letter-spacing: -.025em;
+}
+
+.global-subtitle-admin__head p {
+  max-width: 780px;
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.global-subtitle-admin__status {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.global-subtitle-admin__status.is-visible {
+  background: #e8f5ec;
+  color: #1b6e3b;
+}
+
+.global-subtitle-admin__status.is-hidden {
+  background: #eef4ff;
+  color: #2459a8;
+}
+
+.global-subtitle-admin__choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.global-subtitle-admin__choices > button {
+  min-width: 0;
+  min-height: 92px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid #dfe6ee;
+  border-radius: 16px;
+  background: #fbfcfe;
+  color: #1f3853;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.global-subtitle-admin__choices > button:hover {
+  border-color: #c6d7ed;
+  background: #f7faff;
+}
+
+.global-subtitle-admin__choices > button.is-active {
+  border-color: #8eb9f4;
+  background: #f1f6ff;
+  box-shadow: inset 0 0 0 1px rgba(26, 115, 232, .08);
+}
+
+.global-subtitle-admin__choice-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #e8f1ff;
+  color: #155cb9;
+  font-size: 15px;
+  font-weight: 850;
+  letter-spacing: -.04em;
+}
+
+.global-subtitle-admin__choice-icon.is-compact {
+  background: #edf1f6;
+  color: #52657b;
+  font-size: 21px;
+}
+
+.global-subtitle-admin__choices strong,
+.global-subtitle-admin__choices small {
+  display: block;
+}
+
+.global-subtitle-admin__choices strong {
+  color: #1d3854;
+  font-size: 13.5px;
+  font-weight: 780;
+}
+
+.global-subtitle-admin__choices small {
+  margin-top: 4px;
+  color: #718096;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.global-subtitle-admin__protect {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 14px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: #f7f9fc;
+  color: #64748b;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.global-subtitle-admin__protect strong {
+  flex: 0 0 auto;
+  color: #38516b;
+}
+
+.global-subtitle-admin__message {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #9a4d0b;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.global-subtitle-admin__message.is-success {
+  background: #edf8f1;
+  color: #1d6d3e;
+}
+
+.global-subtitle-admin__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #edf1f5;
+}
+
+.global-subtitle-admin__actions strong,
+.global-subtitle-admin__actions small {
+  display: block;
+}
+
+.global-subtitle-admin__actions strong {
+  color: #38516b;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.global-subtitle-admin__actions small {
+  margin-top: 2px;
+  color: #8a98a8;
+  font-size: 10.5px;
+}
+
+.global-subtitle-admin__save {
+  min-height: 38px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 10px;
+  background: #1a73e8;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.global-subtitle-admin__save:disabled {
+  opacity: .45;
+  cursor: default;
+}
+
+@media (max-width: 760px) {
+  .global-subtitle-admin { padding: 17px; }
+  .global-subtitle-admin__head,
+  .global-subtitle-admin__actions { align-items: stretch; flex-direction: column; }
+  .global-subtitle-admin__choices { grid-template-columns: 1fr; }
+  .global-subtitle-admin__status { align-self: flex-start; }
+  .global-subtitle-admin__save { width: 100%; }
+}
