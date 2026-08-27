@@ -3,6 +3,7 @@ import '../data/registerSeatingChartStudio.js';
 import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalMetroNavigationIndicator from './GlobalMetroNavigationIndicator.jsx';
 import GlobalWindows8Experience from './GlobalWindows8Experience.jsx';
+import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalEditorialBriefBar from './GlobalEditorialBriefBar.jsx';
 import GlobalPrimaryNavigationPin from './GlobalPrimaryNavigationPin.jsx';
 import GlobalNavigationHubController from './GlobalNavigationHubController.jsx';
@@ -84,6 +85,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalNativeTextScaleReset />
       <Navigation {...props} />
       <GlobalNavigationHubController />
+      <GlobalWindowsPhone8Loading />
       <GlobalMetroNavigationIndicator route={props.route} />
       <GlobalWindows8Experience route={props.route} />
       <GlobalEditorialBriefBar route={props.route} language={props.language} currentUser={props.currentUser} />
