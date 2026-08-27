@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import HomeroomLearningGradebook from '../components/homeroom/HomeroomLearningGradebook.jsx';
+import GradebookWorkspace from '../components/gradebook/GradebookWorkspace.jsx';
 import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
 import {
   createGradebookClass,
@@ -231,6 +231,6 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     {!loading && !workspace ? <section className="hr-panel gradebook-studio-empty"><h2>{vi ? 'Chưa có lớp để mở sổ điểm' : 'No class yet'}</h2><p>{vi ? 'Tạo một lớp bộ môn ngay tại đây. Giáo viên không cần được phân công GVCN.' : 'Create a subject class here. Homeroom assignment is not required.'}</p><button type="button" className="primary" onClick={() => setCreateOpen(true)}>＋ {vi ? 'Tạo lớp đầu tiên' : 'Create first class'}</button></section> : null}
 
     {workspace && view === 'students' ? <SubjectStudentsTab workspace={workspace} onCommit={commit} /> : null}
-    {workspace && view === 'gradebook' ? <HomeroomLearningGradebook workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
+    {workspace && view === 'gradebook' ? <GradebookWorkspace workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
   </div>;
 }
