@@ -13,49 +13,23 @@
     <link rel="apple-touch-icon" href="/pwa/icon-192.png" />
     <link rel="icon" type="image/png" href="/brian-english-brand-mark.png" />
     <title>Brian English · Digital Teaching Studio</title>
-    <script id="brian-light-only-boot">
+    <script id="brian-theme-boot">
       (() => {
         const root = document.documentElement;
-        const enforce = () => {
-          root.dataset.theme = 'light';
-          root.dataset.besTheme = 'light';
-          delete root.dataset.themeMode;
-          delete root.dataset.motion;
-          delete root.dataset.besMotion;
-          delete root.dataset.besTransition;
-          delete root.dataset.besCardEffect;
-          delete root.dataset.motionRuntime;
-          delete root.dataset.motionRoute;
-          root.classList.remove('dark', 'theme-dark');
-          root.classList.add('theme-light');
-          root.style.colorScheme = 'light';
-        };
+        let mode = 'system';
         try {
-          const retiredKeys = new Set([
-            'bet-theme',
-            'bes-theme-mode',
-            'bes-theme-mode-v3',
-            'bes-quick-dictionary-history-v1',
-            'bes-motion-mode',
-          ]);
-          Object.keys(localStorage).forEach((key) => {
-            if (retiredKeys.has(key) || ['bes-global-music-v1:', 'bes-global-music-v2:', 'bes-shared-music-v2:'].some((prefix) => key.startsWith(prefix))) localStorage.removeItem(key);
-          });
-          const appearance = JSON.parse(localStorage.getItem('bes-appearance-v2') || 'null');
-          if (appearance && typeof appearance === 'object') {
-            [
-              'theme',
-              'motion',
-              'transition',
-              'cardEffect',
-              'parallax',
-              'reduceMotion',
-              'effectIntensity',
-            ].forEach((field) => delete appearance[field]);
-            localStorage.setItem('bes-appearance-v2', JSON.stringify(appearance));
-          }
-        } catch { /* optional local cleanup */ }
-        enforce();
+          const saved = String(localStorage.getItem('bes-theme-mode-v1') || 'system').toLowerCase();
+          mode = ['light', 'dark', 'system'].includes(saved) ? saved : 'system';
+        } catch { /* storage is optional during early boot */ }
+        const dark = mode === 'dark' || (mode === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+        const resolved = dark ? 'dark' : 'light';
+        root.dataset.themeMode = mode;
+        root.dataset.theme = resolved;
+        root.dataset.besTheme = resolved;
+        root.classList.toggle('dark', dark);
+        root.classList.toggle('theme-dark', dark);
+        root.classList.toggle('theme-light', !dark);
+        root.style.colorScheme = resolved;
       })();
     </script>
     <script id="bes-native-fetch-capture">window.__BES_NATIVE_FETCH__=typeof window.fetch==='function'?window.fetch.bind(window):null;</script>
