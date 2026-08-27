@@ -1,0 +1,126 @@
+/* Brian Regional Typography Authority
+   Loaded after the global font authority. Region rules only activate when the
+   corresponding data-font-region-* attribute exists, so "inherit" preserves
+   Brian's current typography without introducing extra overrides. */
+
+html {
+  --bes-font-navigation: var(--bes-global-font-family);
+  --bes-font-newswire: var(--bes-global-font-family);
+  --bes-font-pageTitle: var(--bes-global-font-family);
+  --bes-font-sectionHeading: var(--bes-global-font-family);
+  --bes-font-body: var(--bes-global-font-family);
+  --bes-font-cards: var(--bes-global-font-family);
+  --bes-font-controls: var(--bes-global-font-family);
+  --bes-font-data: var(--bes-global-font-family);
+  --bes-font-dashboard: var(--bes-global-font-family);
+  --bes-font-admin: var(--bes-global-font-family);
+}
+
+/* Route-level defaults. Semantic regions below intentionally have higher
+   source-order priority so Admin can make a page title different from the rest
+   of Dashboard/Admin when desired. */
+html[data-font-region-dashboard] body .app-shell[data-route='dashboard'] :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
+  div, section, article, main, aside, header, footer,
+  h1, h2, h3, h4, h5, h6, p, span, strong, b, em, small,
+  label, legend, li, dt, dd, blockquote, figcaption,
+  table, thead, tbody, tfoot, tr, th, td,
+  button, a, input, textarea, select, option, summary
+) {
+  font-family: var(--bes-font-dashboard) !important;
+}
+
+html[data-font-region-admin] body .app-shell[data-route='settings'] :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
+  div, section, article, main, aside, header, footer,
+  h1, h2, h3, h4, h5, h6, p, span, strong, b, em, small,
+  label, legend, li, dt, dd, blockquote, figcaption,
+  table, thead, tbody, tfoot, tr, th, td,
+  button, a, input, textarea, select, option, summary
+),
+html[data-font-region-admin] body .app-shell[data-route='admin'] :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
+  div, section, article, main, aside, header, footer,
+  h1, h2, h3, h4, h5, h6, p, span, strong, b, em, small,
+  label, legend, li, dt, dd, blockquote, figcaption,
+  table, thead, tbody, tfoot, tr, th, td,
+  button, a, input, textarea, select, option, summary
+) {
+  font-family: var(--bes-font-admin) !important;
+}
+
+/* Card / widget typography. */
+html[data-font-region-cards] body :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
+  [class*='card'], [class*='widget'], [class*='tile'], [class*='panel']
+) :not(#bes-regional-d#bes-regional-e#bes-regional-f):is(
+  h1, h2, h3, h4, h5, h6, p, span, strong, b, em, small, label, li, button, a
+) {
+  font-family: var(--bes-font-cards) !important;
+}
+
+/* Body copy. */
+html[data-font-region-body] body :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
+  p, li, dt, dd, blockquote, figcaption
+) {
+  font-family: var(--bes-font-body) !important;
+}
+
+/* Dense data. */
+html[data-font-region-data] body :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
+  table, thead, tbody, tfoot, tr, th, td,
+  [class*='metric'], [class*='stat'], [class*='metadata'], [class*='data-value'], [class*='data-label']
+),
+html[data-font-region-data] body :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
+  table, [class*='metric'], [class*='stat'], [class*='metadata']
+) :not(#bes-regional-d#bes-regional-e#bes-regional-f):is(span, strong, b, small, p, th, td) {
+  font-family: var(--bes-font-data) !important;
+}
+
+/* Controls / form labels. Navigation and newswire rules below win inside their
+   own surfaces, keeping local identity intact. */
+html[data-font-region-controls] body :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
+  button, [role='button'], [role='tab'], [role='option'], [role='menuitem'],
+  input, textarea, select, option, label, legend, summary
+) {
+  font-family: var(--bes-font-controls) !important;
+}
+
+/* Section headings. */
+html[data-font-region-section-heading] body :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
+  h2, h3, h4, [class*='section-title'], [class*='section-heading'], [class*='card-title']
+) {
+  font-family: var(--bes-font-sectionHeading) !important;
+}
+
+/* Page and hero titles. */
+html[data-font-region-page-title] body :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
+  h1, [class*='page-title'], [class*='hero-title'], [class*='hero-heading']
+) {
+  font-family: var(--bes-font-pageTitle) !important;
+}
+
+html[data-font-region-page-title] body :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
+  [class*='hero']
+) :not(#bes-regional-d#bes-regional-e#bes-regional-f):is(h1, [class*='title']) {
+  font-family: var(--bes-font-pageTitle) !important;
+}
+
+/* Newswire. */
+html[data-font-region-newswire] body .brian-editorial-brief :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
+  div, span, strong, b, em, small, p, button, a
+) {
+  font-family: var(--bes-font-newswire) !important;
+}
+
+/* Primary navigation. */
+html[data-font-region-navigation] body .brian-nav :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
+  div, span, strong, b, em, small, p, button, a, input, select, option
+) {
+  font-family: var(--bes-font-navigation) !important;
+}
+
+/* Never replace icon or code font families. */
+html[data-regional-fonts-enabled='true'] body :not(#bes-regional-icon-a#bes-regional-icon-b#bes-regional-icon-c).material-symbols-outlined { font-family: 'Material Symbols Outlined' !important; }
+html[data-regional-fonts-enabled='true'] body :not(#bes-regional-icon-a#bes-regional-icon-b#bes-regional-icon-c).material-symbols-rounded { font-family: 'Material Symbols Rounded' !important; }
+html[data-regional-fonts-enabled='true'] body :not(#bes-regional-icon-a#bes-regional-icon-b#bes-regional-icon-c).material-symbols-sharp { font-family: 'Material Symbols Sharp' !important; }
+html[data-regional-fonts-enabled='true'] body :not(#bes-regional-icon-a#bes-regional-icon-b#bes-regional-icon-c).material-icons { font-family: 'Material Icons' !important; }
+html[data-regional-fonts-enabled='true'] body :not(#bes-regional-code-a#bes-regional-code-b#bes-regional-code-c):is(code, pre, kbd, samp) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace !important;
+}
