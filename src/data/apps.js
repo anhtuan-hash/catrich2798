@@ -7,6 +7,13 @@ export const APPS = [
     status: 'Realtime · Role-aware · 14-day view', statusVi: 'Realtime · Theo vai trò · 14 ngày', api: true, featured: true,
   },
   {
+    slug: 'gradebook-studio', icon: 'GB', tone: 'blue', group: 'Teaching Management', groupVi: 'Quản lý giảng dạy',
+    title: 'Gradebook Studio', titleVi: 'Sổ điểm',
+    desc: 'Manage class rosters and gradebooks independently of homeroom-teacher duties.',
+    descVi: 'Quản lý danh sách lớp và sổ điểm độc lập, dành cho mọi giáo viên dù có làm chủ nhiệm hay không.',
+    status: '2 semesters · Excel · PDF', statusVi: '2 học kỳ · Excel · PDF', api: false, featured: true, hideable: false,
+  },
+  {
     slug: 'brian-team', icon: 'BT', tone: 'mint', group: 'Management', groupVi: 'Quản lý',
     title: 'Brian Team', titleVi: 'Nhân sự tổ chuyên môn',
     desc: 'Manage department members, assignments, professional records, absences, evaluations and reports through linked approved teacher accounts.',
