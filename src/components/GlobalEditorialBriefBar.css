@@ -1,4 +1,5 @@
 .brian-editorial-brief {
+  order: 2 !important;
   position: relative;
   z-index: 999;
   width: 100%;
