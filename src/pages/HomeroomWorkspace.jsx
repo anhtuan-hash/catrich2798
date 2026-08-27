@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import HomeroomConductTab from '../components/HomeroomConductTab.jsx';
 import HomeroomLearningGradebook from '../components/homeroom/HomeroomLearningGradebook.jsx';
 import HomeroomOverviewCompactTab from '../components/homeroom/HomeroomOverviewCompactTab.jsx';
@@ -56,21 +56,47 @@ import '../components/GlobalHomeroomGoogleReadabilityPolish.css';
 import '../components/homeroom/HomeroomNavigationPalette.css';
 import '../components/homeroom/HomeroomGlassHero.css';
 
+// Homeroom is a data-heavy workspace. Keep the last usable snapshot outside the
+// component so an incidental React remount never sends the page back to a full
+// loading screen. Cloud data is revalidated in the background instead.
+const homeroomSessionCache = new Map();
+
+function userIdentity(user) {
+  return String(user?.id || user?.authId || user?.email || 'guest').trim().toLowerCase();
+}
+
+function snapshotKey(user, workspaceId) {
+  return `${userIdentity(user)}:${String(workspaceId || 'default')}`;
+}
+
+function getInitialWorkspace(user, workspaceId) {
+  const cached = homeroomSessionCache.get(snapshotKey(user, workspaceId));
+  if (cached) return cached;
+  const local = loadLocalHomeroomWorkspace(user, workspaceId);
+  return local ? normalizeHomeroomWorkspace(local, user) : makeDefaultHomeroomWorkspace(user);
+}
+
 export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   const [workspaceId, setWorkspaceId] = useState(() => getCurrentHomeroomWorkspaceId(currentUser));
-  const [workspace, setWorkspace] = useState(() => makeDefaultHomeroomWorkspace(currentUser));
+  const [workspace, setWorkspace] = useState(() => getInitialWorkspace(currentUser, getCurrentHomeroomWorkspaceId(currentUser)));
   const [catalog, setCatalog] = useState(() => listLocalHomeroomWorkspaces(currentUser));
-  const [classDraft, setClassDraft] = useState(() => makeDefaultHomeroomWorkspace(currentUser).classProfile);
+  const [classDraft, setClassDraft] = useState(() => getInitialWorkspace(currentUser, getCurrentHomeroomWorkspaceId(currentUser)).classProfile);
   const [activeTab, setActiveTab] = useState('overview');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [syncState, setSyncState] = useState('local');
   const [commandTarget, setCommandTarget] = useState(null);
+  const hydrationSequenceRef = useRef(0);
+
+  useEffect(() => {
+    if (!workspace?.id) return;
+    homeroomSessionCache.set(snapshotKey(currentUser, workspace.id), workspace);
+  }, [currentUser?.id, currentUser?.authId, currentUser?.email, workspace]);
 
   const refreshCatalog = async () => {
     const localItems = listLocalHomeroomWorkspaces(currentUser);
-    setCatalog(localItems);
+    if (localItems.length) setCatalog(localItems);
     const result = await listHomeroomWorkspaces(currentUser);
     const items = result.items || localItems;
     setCatalog(items);
@@ -79,39 +105,43 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
 
   useEffect(() => {
     let alive = true;
+    const sequence = ++hydrationSequenceRef.current;
     const localItems = listLocalHomeroomWorkspaces(currentUser);
     const localWorkspace = loadLocalHomeroomWorkspace(currentUser, workspaceId);
+    const cachedWorkspace = homeroomSessionCache.get(snapshotKey(currentUser, workspaceId));
+    const immediateWorkspace = cachedWorkspace || localWorkspace;
 
-    if (localWorkspace) {
-      const cached = applyCatalogClassType(normalizeHomeroomWorkspace(localWorkspace, currentUser), localItems);
+    // Stale-while-revalidate: never blank the Homeroom route while cloud data
+    // is loading. This is the key guard against the previous reload loop.
+    if (immediateWorkspace) {
+      const cached = applyCatalogClassType(normalizeHomeroomWorkspace(immediateWorkspace, currentUser), localItems);
       setWorkspace(cached);
       setClassDraft(cached.classProfile);
+      homeroomSessionCache.set(snapshotKey(currentUser, cached.id), cached);
       setSyncState('local');
-      setLoading(false);
-    } else {
-      setLoading(true);
     }
+    setLoading(false);
 
     (async () => {
       try {
         const items = await refreshCatalog();
         const result = await loadHomeroomWorkspace(currentUser, workspaceId);
-        if (!alive) return;
+        if (!alive || sequence !== hydrationSequenceRef.current) return;
         const normalized = normalizeHomeroomWorkspace(result.workspace, currentUser);
         const loaded = applyCatalogClassType(normalized, items);
-        if (getWorkspaceClassType(loaded) !== getWorkspaceClassType(normalized)) {
-          const migration = await saveHomeroomWorkspace(loaded, currentUser);
-          if (!alive) return;
-          setSyncState(migration.offline ? 'local' : 'cloud');
-        } else {
-          setSyncState(result.source === 'cloud' ? 'cloud' : 'local');
-        }
+
+        // IMPORTANT: hydration is read-only. The old implementation wrote a
+        // class-type migration back to Supabase while merely opening the page,
+        // which could feed sync/realtime cycles. Explicit user saves remain the
+        // only path that writes Homeroom data.
+        setSyncState(result.source === 'cloud' ? 'cloud' : 'local');
         setWorkspace(loaded);
         setClassDraft(loaded.classProfile);
+        homeroomSessionCache.set(snapshotKey(currentUser, loaded.id), loaded);
         setCurrentHomeroomWorkspaceId(currentUser, loaded.id);
         setLoading(false);
       } catch {
-        if (alive) setLoading(false);
+        if (alive && sequence === hydrationSequenceRef.current) setLoading(false);
       }
     })();
 
@@ -170,6 +200,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     const normalized = prepareWorkspaceCommit(workspace, next, currentUser, successMessage);
     setWorkspace(normalized);
     setClassDraft(normalized.classProfile);
+    homeroomSessionCache.set(snapshotKey(currentUser, normalized.id), normalized);
     saveLocalHomeroomWorkspace(normalized, currentUser);
     setSaving(true);
     const result = await saveHomeroomWorkspace(normalized, currentUser);
@@ -178,6 +209,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       const saved = result.workspace || normalized;
       setWorkspace(saved);
       setClassDraft(saved.classProfile);
+      homeroomSessionCache.set(snapshotKey(currentUser, saved.id), saved);
       setSyncState(result.offline ? 'local' : 'cloud');
       flash(successMessage);
     } else {
@@ -210,8 +242,10 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       return false;
     }
     if (conflict.id === workspace.id) {
-      setWorkspace(result.workspace || demoted);
-      setClassDraft((result.workspace || demoted).classProfile);
+      const nextWorkspace = result.workspace || demoted;
+      setWorkspace(nextWorkspace);
+      setClassDraft(nextWorkspace.classProfile);
+      homeroomSessionCache.set(snapshotKey(currentUser, nextWorkspace.id), nextWorkspace);
     }
     await refreshCatalog();
     return true;
@@ -220,6 +254,12 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   const switchWorkspace = (id) => {
     if (!id || id === workspaceId) return;
     const target = catalog.find((item) => item.id === id);
+    const localTarget = homeroomSessionCache.get(snapshotKey(currentUser, id)) || loadLocalHomeroomWorkspace(currentUser, id);
+    if (localTarget) {
+      const normalizedTarget = normalizeHomeroomWorkspace(localTarget, currentUser);
+      setWorkspace(normalizedTarget);
+      setClassDraft(normalizedTarget.classProfile);
+    }
     setCurrentHomeroomWorkspaceId(currentUser, id);
     setWorkspaceId(id);
     setActiveTab(target?.classType === SUBJECT_CLASS_TYPE ? 'learning' : 'overview');
@@ -273,14 +313,15 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     const classType = normalizeHomeroomClassType(classDraft.classType);
     await commit({ ...workspace, classProfile: { ...classDraft, classType } }, `Đã lưu thông tin ${getClassTypeLabel(classType).toLowerCase()}.`);
   };
-  const activeStudents = workspace.students.filter((item) => item.active !== false).length;
+
+  const activeStudents = Array.isArray(workspace?.students)
+    ? workspace.students.filter((item) => item.active !== false).length
+    : 0;
   const subjectMode = isSubjectClass(workspace);
   const visibleTab = isClassTabAllowed(activeTab, workspace, currentUser?.role === 'admin') ? activeTab : getDefaultClassTab(workspace);
   const classTypeLabel = getClassTypeLabel(getWorkspaceClassType(workspace), language);
 
-  if (loading) return <div className="page hr-page"><section className="hr-panel hr-loading"><span /><h2>Đang mở không gian lớp…</h2></section></div>;
-
-  return <div className={`page hr-page ${subjectMode ? 'is-subject-class' : 'is-homeroom-class'}`}>
+  return <div className={`page hr-page ${subjectMode ? 'is-subject-class' : 'is-homeroom-class'}`} data-homeroom-hydrated="true">
     <HomeroomGlassHero
       workspace={workspace}
       currentUser={currentUser}
