@@ -6,6 +6,13 @@ const SETTINGS_TABLE = 'brian_global_font_settings';
 const GLOBAL_EVENT = 'bes-global-font-updated';
 const DEFAULT_PRESET = 'system';
 const FONT_LINK_ID = 'bes-global-font-runtime-link';
+const RESTORE_LOCAL_MIGRATION_KEY = 'bes-global-font-restore-migration-v1';
+// During the temporary retired-font shim, Brian effectively ran in System UI
+// even when an older Supabase row still contained another preset. Treat rows
+// written before this recovery point as stale. Any Admin selection saved after
+// this point remains authoritative and works normally.
+const RESTORE_CUTOFF_MS = Date.parse('2026-08-27T16:12:00.000Z');
+
 const VALID_PRESETS = new Set([
   'system',
   'roboto',
@@ -258,6 +265,16 @@ function normalizePreset(value) {
   return VALID_PRESETS.has(preset) ? preset : DEFAULT_PRESET;
 }
 
+function migrateLocalFontStateOnce() {
+  if (typeof window === 'undefined') return;
+  try {
+    if (window.localStorage.getItem(RESTORE_LOCAL_MIGRATION_KEY) === '1') return;
+    window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(STORAGE_SOURCE_KEY);
+    window.localStorage.setItem(RESTORE_LOCAL_MIGRATION_KEY, '1');
+  } catch { /* local persistence is optional */ }
+}
+
 function readStoredSource() {
   if (typeof window === 'undefined') return '';
   try { return String(window.localStorage.getItem(STORAGE_SOURCE_KEY) || ''); }
@@ -282,6 +299,18 @@ function writeStoredPreset(preset, source = 'local') {
     window.localStorage.setItem(STORAGE_KEY, normalizePreset(preset));
     window.localStorage.setItem(STORAGE_SOURCE_KEY, String(source || 'local'));
   } catch { /* persistence is optional */ }
+}
+
+function resolveServerPreset(row = {}) {
+  const requested = normalizePreset(row?.font_preset);
+  const updatedMs = Date.parse(String(row?.updated_at || ''));
+  const stalePreRestore = requested !== 'system'
+    && (!Number.isFinite(updatedMs) || updatedMs <= RESTORE_CUTOFF_MS);
+  return {
+    requested,
+    preset: stalePreRestore ? 'system' : requested,
+    stalePreRestore,
+  };
 }
 
 function syncRemoteFontAsset(preset) {
@@ -358,8 +387,16 @@ export async function loadGlobalFontPresetFromServer({ silent = true } = {}) {
     }
     if (!data?.font_preset) return { ok: true, preset: getGlobalFontPreset(), empty: true };
 
-    const preset = applyGlobalFontPreset(data.font_preset, { source: 'server' });
-    return { ok: true, preset, updatedAt: data.updated_at || null };
+    const resolved = resolveServerPreset(data);
+    const source = resolved.stalePreRestore ? 'restore-migration' : 'server';
+    const preset = applyGlobalFontPreset(resolved.preset, { source });
+    return {
+      ok: true,
+      preset,
+      requestedPreset: resolved.requested,
+      migrated: resolved.stalePreRestore,
+      updatedAt: data.updated_at || null,
+    };
   } catch (error) {
     if (!silent) console.warn('[FontSystem] server load failed', error);
     return { ok: false, error, preset: getGlobalFontPreset() };
@@ -425,8 +462,14 @@ function installRealtimeSync() {
       table: SETTINGS_TABLE,
       onChange: (payload) => {
         const row = payload?.new && Object.keys(payload.new).length ? payload.new : null;
-        if (row?.font_preset) applyGlobalFontPreset(row.font_preset, { source: 'realtime' });
-        else loadGlobalFontPresetFromServer();
+        if (row?.font_preset) {
+          const resolved = resolveServerPreset(row);
+          applyGlobalFontPreset(resolved.preset, {
+            source: resolved.stalePreRestore ? 'restore-migration-realtime' : 'realtime',
+          });
+        } else {
+          loadGlobalFontPresetFromServer();
+        }
       },
     });
   } catch {
@@ -447,6 +490,7 @@ function scheduleRuntimeSync() {
 export function installGlobalFontSystem() {
   if (installed || typeof window === 'undefined' || typeof document === 'undefined') return;
   installed = true;
+  migrateLocalFontStateOnce();
   applyGlobalFontPreset(storedPreset(), { source: 'bootstrap', broadcast: false, persist: false });
 
   const onStorage = (event) => {
