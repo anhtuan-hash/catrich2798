@@ -7,6 +7,7 @@ import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalEditorialBriefBar from './GlobalEditorialBriefBar.jsx';
 import GlobalPrimaryNavigationPin from './GlobalPrimaryNavigationPin.jsx';
 import GlobalNavigationHubController from './GlobalNavigationHubController.jsx';
+import GlobalThemeControl from './GlobalThemeControl.jsx';
 import GlobalPinnedNavigationHub from './GlobalPinnedNavigationHub.jsx';
 import GlobalNativeTextScaleReset from './GlobalNativeTextScaleReset.jsx';
 import GlobalGuestNavigationHub from './GlobalGuestNavigationHub.jsx';
@@ -92,6 +93,10 @@ import './homeroom/HomeroomCompactDensity.css';
 import './GlobalNavigationSemanticOrderFix.css';
 // ABSOLUTE FINAL CHROME AUTHORITY: one identical navigation hub on every Brian route.
 import './GlobalUnifiedNavigationHub.css';
+// Shared appearance selector lives inside the one navigation hub.
+import './GlobalThemeControl.css';
+// ABSOLUTE FINAL COLOR AUTHORITY: dark appearance overrides historical route palettes.
+import './GlobalDarkThemeFinal.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
@@ -99,6 +104,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalNativeTextScaleReset />
       <Navigation {...props} />
       <GlobalNavigationHubController />
+      <GlobalThemeControl language={props.language} />
       <GlobalPinnedNavigationHub route={props.route} />
       <GlobalWindowsPhone8Loading />
       <GlobalMetroNavigationIndicator route={props.route} />
