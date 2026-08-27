@@ -33,59 +33,114 @@ function inferDirection(fromRoute, toRoute) {
   return toIndex > fromIndex ? 'forward' : 'backward';
 }
 
+function getMain() {
+  return document.getElementById('bes-main-content')
+    || document.querySelector('[data-bes-main-content]');
+}
+
 function visibleElement(node) {
   if (!node?.isConnected || node.nodeType !== 1) return false;
   if (node.hidden || node.getAttribute?.('aria-hidden') === 'true') return false;
+  if (node.matches?.('script, style, link, template')) return false;
   const style = window.getComputedStyle(node);
-  return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) !== 0;
+  if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity || 1) === 0) return false;
+  if (style.position === 'fixed') return false;
+  return true;
 }
 
-function clearStagger(main) {
-  main?.querySelectorAll?.('[data-w8-stagger="true"]').forEach((node) => {
-    delete node.dataset.w8Stagger;
-    node.style.removeProperty('--w8-stagger-index');
-  });
-  if (main) delete main.dataset.w8Choreography;
+function meaningfulChildren(container) {
+  if (!container) return [];
+  return [...container.children].filter(visibleElement);
 }
 
+/**
+ * Windows 8 entrance transitions are content-first, not page-first. We prefer
+ * meaningful siblings; when Brian renders a single route wrapper we descend
+ * one level so hero/header/sections can arrive in sequence instead of moving
+ * the whole screen as one giant card.
+ */
 function collectChoreographyItems(main) {
-  const direct = [...(main?.children || [])]
-    .filter((node) => visibleElement(node) && !node.matches('script, style, link'));
+  const direct = meaningfulChildren(main);
+  let candidates = direct;
 
-  const collected = [...direct];
-  if (collected.length < 5) {
-    const nested = main?.querySelectorAll?.([
+  if (direct.length === 1) {
+    const nested = meaningfulChildren(direct[0]);
+    if (nested.length >= 2) candidates = nested;
+  }
+
+  if (candidates.length < 2) {
+    const discovered = [...(main.querySelectorAll?.([
+      ':scope > section',
+      ':scope > article',
       ':scope > div > section',
       ':scope > div > article',
-      ':scope > section > article',
-      ':scope > section > div',
-      '[class*="grid"] > article',
-      '[class*="grid"] > section',
-      '[class*="dashboard"] > section',
-    ].join(',')) || [];
-    [...nested].forEach((node) => {
-      if (visibleElement(node) && !collected.includes(node)) collected.push(node);
-    });
+      ':scope > div > header',
+      ':scope > div > main > section',
+    ].join(',')) || [])].filter(visibleElement);
+    if (discovered.length) candidates = discovered;
   }
-  return collected.slice(0, 12);
+
+  const unique = [];
+  for (const node of candidates) {
+    if (!unique.includes(node)) unique.push(node);
+    if (unique.length >= 9) break;
+  }
+  return unique;
 }
 
-function markPageChoreography() {
-  const main = document.getElementById('bes-main-content') || document.querySelector('[data-bes-main-content]');
+function clearNodeMotion(main) {
   if (!main) return;
-  clearStagger(main);
+  main.querySelectorAll?.('[data-w8-enter], [data-w8-exit]').forEach((node) => {
+    delete node.dataset.w8Enter;
+    delete node.dataset.w8Exit;
+    node.style.removeProperty('--w8-stagger-index');
+  });
+  delete main.dataset.w8Choreography;
+  delete main.dataset.w8Exiting;
+}
+
+function markExit(direction = 'forward') {
+  if (!windows8Active()) return;
+  const main = getMain();
+  if (!main) return;
+
+  main.dataset.w8Exiting = 'true';
+  const items = collectChoreographyItems(main);
+  items.forEach((node) => {
+    delete node.dataset.w8Enter;
+    node.dataset.w8Exit = direction;
+  });
+}
+
+function markEntrance() {
+  const main = getMain();
+  if (!main) return;
+
+  clearNodeMotion(main);
   if (!windows8Active()) return;
 
   main.dataset.w8Choreography = 'true';
-  collectChoreographyItems(main).forEach((node, index) => {
-    node.dataset.w8Stagger = 'true';
+  const items = collectChoreographyItems(main);
+  items.forEach((node, index) => {
     node.style.setProperty('--w8-stagger-index', String(index));
+    node.dataset.w8Enter = 'true';
   });
+
+  window.setTimeout(() => {
+    if (!main?.isConnected) return;
+    items.forEach((node) => {
+      if (node?.isConnected) {
+        delete node.dataset.w8Enter;
+        node.style.removeProperty('--w8-stagger-index');
+      }
+    });
+    delete main.dataset.w8Choreography;
+  }, 900);
 }
 
-function scheduleChoreography() {
+function scheduleEntrance() {
   window.requestAnimationFrame(() => {
-    window.requestAnimationFrame(markPageChoreography);
+    window.requestAnimationFrame(markEntrance);
   });
 }
 
@@ -97,41 +152,44 @@ export default function GlobalWindows8Experience({ route = 'home' }) {
     const root = document.documentElement;
 
     const onNavigationStart = (event) => {
-      const from = routeName(window.location.hash || previousRouteRef.current);
+      const from = routeName(event?.detail?.from || window.location.hash || previousRouteRef.current);
       const to = routeName(event?.detail?.target || route);
-      root.dataset.metroDirection = inferDirection(from, to);
+      const direction = event?.detail?.direction || inferDirection(from, to);
+      root.dataset.metroDirection = direction;
       root.dataset.metroFrom = from;
       root.dataset.metroTo = to;
       root.dataset.metroNavigating = 'true';
+      markExit(direction);
+
       window.clearTimeout(cleanupTimerRef.current);
       cleanupTimerRef.current = window.setTimeout(() => {
-        delete root.dataset.metroNavigating;
-      }, 720);
+        const main = getMain();
+        if (main) delete main.dataset.w8Exiting;
+      }, 180);
     };
 
     const onMotionChange = () => {
-      if (windows8Active()) scheduleChoreography();
-      else {
-        const main = document.getElementById('bes-main-content') || document.querySelector('[data-bes-main-content]');
-        clearStagger(main);
-      }
+      const main = getMain();
+      if (windows8Active()) scheduleEntrance();
+      else clearNodeMotion(main);
     };
 
     const onHashChange = () => {
       previousRouteRef.current = routeName(window.location.hash);
-      scheduleChoreography();
+      scheduleEntrance();
     };
 
     window.addEventListener('bes-navigation-start', onNavigationStart);
     window.addEventListener(GLOBAL_MOTION_EVENT, onMotionChange);
     window.addEventListener('hashchange', onHashChange);
-    scheduleChoreography();
+    scheduleEntrance();
 
     return () => {
       window.clearTimeout(cleanupTimerRef.current);
       window.removeEventListener('bes-navigation-start', onNavigationStart);
       window.removeEventListener(GLOBAL_MOTION_EVENT, onMotionChange);
       window.removeEventListener('hashchange', onHashChange);
+      clearNodeMotion(getMain());
     };
   }, []);
 
@@ -142,7 +200,7 @@ export default function GlobalWindows8Experience({ route = 'home' }) {
       document.documentElement.dataset.metroDirection = inferDirection(previous, next);
       previousRouteRef.current = next;
     }
-    scheduleChoreography();
+    scheduleEntrance();
   }, [route]);
 
   return null;
