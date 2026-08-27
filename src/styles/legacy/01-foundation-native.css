@@ -1,17 +1,16 @@
 /* Minimal native foundation.
-   Historical V10 global typography/geometry rules are intentionally excluded.
-   Each current route/component owns its font family, font size, line height,
-   radius, shadow, control sizing and decorative pseudo-elements. */
+   This file owns the document canvas and the outer Brian shell.
+   Route/components own their internal surfaces, typography and decoration. */
 
 :root {
   color-scheme: light;
-  --page: #f2f7fc;
+  --page: #f8f4ec;
   --surface: #ffffff;
-  --surface-2: #e7f1fa;
-  --surface-3: #d6e8f8;
+  --surface-2: #f8f4ec;
+  --surface-3: #eee6da;
   --ink: #071d33;
   --muted: #4e657c;
-  --line: #b8d0e5;
+  --line: #d8ccbd;
   --blue: #0078d4;
   --blue-dark: #004578;
   --blue-deep: #003b6f;
@@ -102,6 +101,8 @@ body,
 #root {
   min-height: 100%;
   margin: 0;
+  background-color: var(--page) !important;
+  background-image: none !important;
 }
 
 body {
@@ -109,17 +110,37 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* The outer application canvas is deliberately flat. Decorative gradients,
+   auroras and ambient glows must live inside an intentional component, never
+   behind the whole website. */
+.app-shell,
+.metro-shell,
+.metro-clean-system {
+  min-height: 100vh;
+  background-color: var(--page) !important;
+  background-image: none !important;
+}
+
+/* Retire historical full-site ambient pseudo layers. This affects only the
+   outer shell itself; component-level ::before/::after artwork is untouched. */
+.app-shell::before,
+.app-shell::after,
+.metro-shell::before,
+.metro-shell::after,
+.metro-clean-system::before,
+.metro-clean-system::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
 img,
 svg,
 video,
 canvas {
   max-width: 100%;
-}
-
-.app-shell,
-.metro-shell,
-.metro-clean-system {
-  min-height: 100vh;
 }
 
 section,
