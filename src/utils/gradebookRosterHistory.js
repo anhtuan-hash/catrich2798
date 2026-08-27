@@ -35,6 +35,7 @@ function normalizeHistoryRow(row = {}) {
     students,
     studentCount: students.filter((student) => student?.active !== false).length,
     changedBy: text(row.changed_by),
+    changedByLabel: text(row.changed_by_label, text(row.changed_by, 'Không xác định')),
     changedAt: row.changed_at || '',
     sourceUpdatedAt: row.source_updated_at || '',
   };
@@ -49,7 +50,7 @@ export async function listSharedRosterHistory(user, workspace, { limit = 30 } = 
   const identity = makeGradebookRosterIdentity(user, workspace);
   const { data, error } = await supabase
     .from(HISTORY_TABLE)
-    .select('id,roster_key,class_name,school_year,grade,action,students,source_updated_at,changed_by,changed_at')
+    .select('id,roster_key,class_name,school_year,grade,action,students,source_updated_at,changed_by,changed_by_label,changed_at')
     .eq('roster_key', identity.rosterKey)
     .order('changed_at', { ascending: false })
     .order('id', { ascending: false })
