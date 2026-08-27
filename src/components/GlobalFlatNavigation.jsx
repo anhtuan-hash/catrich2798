@@ -20,6 +20,7 @@ import GlobalAiWebsiteLauncher from './GlobalAiWebsiteLauncher.jsx';
 import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
 import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
 import GlobalHomeroomNavigationTab from './GlobalHomeroomNavigationTab.jsx';
+import GlobalGradebookNavigationTab from './GlobalGradebookNavigationTab.jsx';
 import GlobalReportsNavigationTab from './GlobalReportsNavigationTab.jsx';
 import GlobalTtcmNavigationTab from './GlobalTtcmNavigationTab.jsx';
 import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
@@ -99,6 +100,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalGamesNavigationTab {...props} />
       <GlobalDashboardNavigationTab {...props} />
       <GlobalHomeroomNavigationTab {...props} />
+      <GlobalGradebookNavigationTab {...props} />
       <GlobalReportsNavigationTab {...props} />
       <GlobalTtcmNavigationTab {...props} />
       <GlobalDashboardFooterBridge route={props.route} language={props.language} />
