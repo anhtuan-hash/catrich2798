@@ -1,5 +1,524 @@
-/* Retired Brian global motion compatibility layer.
-   Motion is now owned locally by active components/routes.
-   This file intentionally contains no selectors so legacy global animation,
-   transition and loader rules cannot override the current interface.
-   Keep temporarily while legacy imports are removed from entrypoints. */
+/* Brian Global Motion System
+   Loaded after v1159.css. The v1159 retirement layer intentionally uses two
+   fake IDs plus !important, so every re-enabled motion selector below carries
+   three fake IDs in :not(...) to win the cascade without re-enabling motion
+   universally. */
+
+html[data-motion-mode] {
+  --gm-fast: 0ms;
+  --gm-base: 0ms;
+  --gm-slow: 0ms;
+  --gm-distance: 0px;
+  --gm-scale-press: 1;
+  --gm-scale-enter: 1;
+  --gm-ease: cubic-bezier(.2, 0, 0, 1);
+  --gm-ease-emphasized: cubic-bezier(.2, .8, .2, 1);
+}
+
+html[data-motion-mode="subtle"] {
+  --gm-fast: 110ms;
+  --gm-base: 170ms;
+  --gm-slow: 240ms;
+  --gm-distance: 6px;
+  --gm-scale-press: .992;
+  --gm-scale-enter: .994;
+}
+
+html[data-motion-mode="balanced"] {
+  --gm-fast: 130ms;
+  --gm-base: 230ms;
+  --gm-slow: 360ms;
+  --gm-distance: 14px;
+  --gm-scale-press: .978;
+  --gm-scale-enter: .985;
+}
+
+html[data-motion-mode="windows8"] {
+  --gm-fast: 120ms;
+  --gm-base: 210ms;
+  --gm-slow: 420ms;
+  --gm-distance: 56px;
+  --gm-scale-press: .985;
+  --gm-scale-enter: 1;
+  --gm-ease: cubic-bezier(.1, .9, .2, 1);
+  --gm-ease-emphasized: cubic-bezier(.1, .9, .2, 1);
+}
+
+html[data-motion-mode="expressive"] {
+  --gm-fast: 160ms;
+  --gm-base: 300ms;
+  --gm-slow: 460ms;
+  --gm-distance: 20px;
+  --gm-scale-press: .96;
+  --gm-scale-enter: .972;
+  --gm-ease: cubic-bezier(.16, 1, .3, 1);
+  --gm-ease-emphasized: cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Controls/cards: re-enable only cheap paint/compositor properties. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
+  button,
+  [role="button"],
+  a,
+  input,
+  textarea,
+  select,
+  summary,
+  [role="tab"],
+  [role="option"],
+  [role="menuitem"],
+  [class*="button"],
+  [class*="btn"],
+  [class*="chip"],
+  [class*="pill"],
+  [class*="badge"],
+  [class*="card"],
+  [class*="tile"],
+  [class*="panel"],
+  [class*="surface"]
+) {
+  transition-property: background-color, color, border-color, box-shadow, opacity, outline-color, scale, translate !important;
+  transition-duration: var(--gm-base) !important;
+  transition-timing-function: var(--gm-ease) !important;
+  transition-delay: 0ms !important;
+}
+
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(input, textarea, select) {
+  transition-duration: var(--gm-fast) !important;
+}
+
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
+  button,
+  [role="button"],
+  a[class],
+  [role="tab"],
+  [role="menuitem"]
+):not(:disabled):active {
+  scale: var(--gm-scale-press) !important;
+}
+
+/* Navigation keeps exact geometry. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
+  .brian-nav__primary,
+  .brian-nav__inner,
+  .brian-nav__brand,
+  .brian-nav__primary button,
+  .brian-nav__primary a,
+  [class*="global-nav"],
+  [class*="navigation-fixed"]
+) {
+  translate: none !important;
+}
+
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c).brian-nav__primary :is(button, a):active {
+  scale: 1 !important;
+}
+
+/* Full route entrance.
+   #bes-main-content is keyed by currentRoute:selectedTool in main.jsx, so a new
+   DOM node is mounted on Home / Apps / Homeroom / Dashboard / other route changes.
+   This selector deliberately outranks v1159's motion-off contract. */
+html[data-motion-enabled="true"] body #bes-main-content:not(#gm-override-a#gm-override-b#gm-override-c),
+html[data-motion-enabled="true"] body [data-bes-main-content]:not(#gm-override-a#gm-override-b#gm-override-c)[data-global-page-enter="true"] {
+  animation: gm-page-enter var(--gm-slow) var(--gm-ease-emphasized) both !important;
+  animation-iteration-count: 1 !important;
+  will-change: opacity, translate, scale !important;
+}
+
+@keyframes gm-page-enter {
+  from {
+    opacity: .01;
+    translate: 0 var(--gm-distance);
+    scale: var(--gm-scale-enter);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+/* Active tab panel entrance. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
+  [role="tabpanel"],
+  [data-tab-panel],
+  .tab-panel,
+  .tab-content,
+  [class*="tab-panel"],
+  [class*="tab-content"]
+)[data-global-tab-enter="true"] {
+  animation: gm-tab-enter var(--gm-slow) var(--gm-ease-emphasized) both !important;
+  animation-iteration-count: 1 !important;
+  will-change: opacity, translate, scale !important;
+}
+
+@keyframes gm-tab-enter {
+  from {
+    opacity: .01;
+    translate: calc(var(--gm-distance) * .75) 0;
+    scale: var(--gm-scale-enter);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
+  [role="tab"],
+  [data-tab],
+  .tab-button,
+  .tab-btn,
+  .nav-tab,
+  .tabs button
+) {
+  transition-property: background-color, color, border-color, box-shadow, opacity, scale !important;
+  transition-duration: var(--gm-fast) !important;
+  transition-timing-function: var(--gm-ease) !important;
+}
+
+/* Dialogs/modals. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
+  [role="dialog"],
+  dialog,
+  [class*="modal"],
+  [class*="dialog"]
+)[data-global-motion-enter="true"] {
+  animation: gm-dialog-enter var(--gm-slow) var(--gm-ease-emphasized) both !important;
+  animation-iteration-count: 1 !important;
+}
+
+@keyframes gm-dialog-enter {
+  from { opacity: .01; translate: 0 var(--gm-distance); scale: var(--gm-scale-enter); }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+/* Drawers/sheets. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
+  [class*="drawer"],
+  [class*="sheet"]
+)[data-global-motion-enter="true"] {
+  animation: gm-drawer-enter var(--gm-slow) var(--gm-ease-emphasized) both !important;
+  animation-iteration-count: 1 !important;
+}
+
+@keyframes gm-drawer-enter {
+  from { opacity: .01; translate: var(--gm-distance) 0; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+/* Menus/popovers/listboxes. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
+  [role="menu"],
+  [role="listbox"],
+  [class*="popover"],
+  [class*="dropdown"]
+)[data-global-motion-enter="true"] {
+  animation: gm-menu-enter var(--gm-base) var(--gm-ease-emphasized) both !important;
+  animation-iteration-count: 1 !important;
+}
+
+@keyframes gm-menu-enter {
+  from { opacity: .01; translate: 0 calc(var(--gm-distance) * -.55); scale: var(--gm-scale-enter); }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+/* Toasts/snackbars/tooltips. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
+  [role="tooltip"],
+  [class*="toast"],
+  [class*="snackbar"]
+)[data-global-motion-enter="true"] {
+  animation: gm-toast-enter var(--gm-base) var(--gm-ease-emphasized) both !important;
+  animation-iteration-count: 1 !important;
+}
+
+@keyframes gm-toast-enter {
+  from { opacity: .01; translate: 0 var(--gm-distance); }
+  to { opacity: 1; translate: 0 0; }
+}
+
+/* Backdrops fade only. */
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(
+  [class*="backdrop"],
+  [class*="overlay"],
+  [class*="scrim"]
+)[data-global-motion-enter="true"] {
+  animation: gm-fade-in var(--gm-base) linear both !important;
+  animation-iteration-count: 1 !important;
+}
+
+@keyframes gm-fade-in {
+  from { opacity: .01; }
+  to { opacity: 1; }
+}
+
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(tbody tr, [role="row"], [class*="list-item"]) {
+  transition-property: background-color, color, border-color, box-shadow, opacity !important;
+  transition-duration: var(--gm-fast) !important;
+  transition-timing-function: var(--gm-ease) !important;
+}
+
+html[data-motion-enabled="true"],
+html[data-motion-enabled="true"] body,
+html[data-motion-enabled="true"] body :not(#gm-override-a#gm-override-b#gm-override-c):is(.page, main, [class*="scroll"]) {
+  scroll-behavior: smooth !important;
+}
+
+/* Accessibility remains authoritative. */
+@media (prefers-reduced-motion: reduce) {
+  html[data-motion-enabled="true"] body :not(#gm-reduce-a#gm-reduce-b#gm-reduce-c),
+  html[data-motion-enabled="true"] body :not(#gm-reduce-a#gm-reduce-b#gm-reduce-c)::before,
+  html[data-motion-enabled="true"] body :not(#gm-reduce-a#gm-reduce-b#gm-reduce-c)::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+    translate: none !important;
+    scale: 1 !important;
+    will-change: auto !important;
+  }
+}
+
+
+/* ========================================================================== 
+   Motion & Navigation experience profiles
+   The synchronized motion preset now owns BOTH page entrance and active-nav
+   indicator styling, so users never receive mismatched effects.
+   ========================================================================== */
+
+/* Google Material: calm vertical fade + underline indicator. */
+html[data-motion-mode="subtle"][data-motion-enabled="true"] body #bes-main-content:not(#gm-profile-a#gm-profile-b#gm-profile-c),
+html[data-motion-mode="subtle"][data-motion-enabled="true"] body [data-bes-main-content]:not(#gm-profile-a#gm-profile-b#gm-profile-c)[data-global-page-enter="true"] {
+  animation-name: gm-page-material !important;
+}
+@keyframes gm-page-material {
+  from { opacity: .01; translate: 0 7px; scale: .998; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+/* Windows 11: soft scale/lift with a confident ease-out. */
+html[data-motion-mode="balanced"][data-motion-enabled="true"] body #bes-main-content:not(#gm-profile-a#gm-profile-b#gm-profile-c),
+html[data-motion-mode="balanced"][data-motion-enabled="true"] body [data-bes-main-content]:not(#gm-profile-a#gm-profile-b#gm-profile-c)[data-global-page-enter="true"] {
+  animation-name: gm-page-windows11 !important;
+  animation-duration: 300ms !important;
+  animation-timing-function: cubic-bezier(.16, 1, .3, 1) !important;
+}
+@keyframes gm-page-windows11 {
+  from { opacity: .01; translate: 0 11px; scale: .982; }
+  58% { opacity: 1; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+
+/* Windows 8 Metro: flat horizontal content transition, no zoom/glow. */
+html[data-motion-mode="windows8"][data-motion-enabled="true"] body #bes-main-content:not(#gm-profile-a#gm-profile-b#gm-profile-c),
+html[data-motion-mode="windows8"][data-motion-enabled="true"] body [data-bes-main-content]:not(#gm-profile-a#gm-profile-b#gm-profile-c)[data-global-page-enter="true"] {
+  animation-name: gm-page-windows8 !important;
+  animation-duration: 420ms !important;
+  animation-timing-function: cubic-bezier(.1,.9,.2,1) !important;
+  transform-origin: center left !important;
+}
+@keyframes gm-page-windows8 {
+  0% { opacity: .01; translate: 72px 0; }
+  38% { opacity: .72; }
+  100% { opacity: 1; translate: 0 0; }
+}
+
+html[data-motion-mode="windows8"][data-motion-enabled="true"] body :not(#gm-profile-a#gm-profile-b#gm-profile-c):is(
+  [role="tabpanel"], [data-tab-panel], .tab-panel, .tab-content,
+  [class*="tab-panel"], [class*="tab-content"]
+)[data-global-tab-enter="true"] {
+  animation-name: gm-tab-windows8 !important;
+  animation-duration: 300ms !important;
+  animation-timing-function: cubic-bezier(.1,.9,.2,1) !important;
+}
+@keyframes gm-tab-windows8 {
+  from { opacity: .01; translate: 44px 0; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+/* Windows 8 page loader: five Metro dots travelling across a flat track. */
+.gm-w8-route-loader {
+  position: fixed;
+  z-index: 2147482400;
+  inset: 72px 0 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  background: rgba(248,250,252,.94);
+}
+.gm-w8-route-loader.is-visible {
+  visibility: visible;
+  opacity: 1;
+}
+.gm-w8-route-loader.is-leaving { opacity: 0; }
+.gm-w8-loader-inner {
+  width: min(360px, calc(100vw - 48px));
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  color: #1f1f1f;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  text-align: center;
+}
+.gm-w8-loader-inner strong {
+  margin-top: 6px;
+  color: #0078d7;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .13em;
+}
+.gm-w8-loader-inner small { color: #5d6166; font-size: 12px; font-weight: 400; }
+.gm-w8-progress {
+  position: relative;
+  width: 238px;
+  height: 28px;
+  overflow: hidden;
+}
+.gm-w8-progress span {
+  position: absolute;
+  top: 10px;
+  left: -18px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0078d7;
+  opacity: 0;
+}
+.gm-w8-route-loader.is-running .gm-w8-progress span { animation: gm-w8-progress-dot 1.18s cubic-bezier(.1,.85,.25,1) infinite; }
+.gm-w8-progress span:nth-child(1) { animation-delay: 0ms !important; }
+.gm-w8-progress span:nth-child(2) { animation-delay: 95ms !important; }
+.gm-w8-progress span:nth-child(3) { animation-delay: 190ms !important; }
+.gm-w8-progress span:nth-child(4) { animation-delay: 285ms !important; }
+.gm-w8-progress span:nth-child(5) { animation-delay: 380ms !important; }
+@keyframes gm-w8-progress-dot {
+  0% { left: -18px; opacity: 0; }
+  10% { opacity: 1; }
+  45% { left: 96px; opacity: 1; }
+  74% { left: 184px; opacity: 1; }
+  100% { left: 252px; opacity: 0; }
+}
+
+/* Fluent Dynamic: slightly stronger depth, still compositor-only. */
+html[data-motion-mode="expressive"][data-motion-enabled="true"] body #bes-main-content:not(#gm-profile-a#gm-profile-b#gm-profile-c),
+html[data-motion-mode="expressive"][data-motion-enabled="true"] body [data-bes-main-content]:not(#gm-profile-a#gm-profile-b#gm-profile-c)[data-global-page-enter="true"] {
+  animation-name: gm-page-fluent !important;
+}
+@keyframes gm-page-fluent {
+  from { opacity: .01; translate: 12px 10px; scale: .97; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+/* Shared active-route detection covers the current Brian nav implementations. */
+html[data-motion-enabled="true"] body .brian-nav__primary :is(
+  button.active, button.is-active, button[aria-current="page"],
+  a.active, a.is-active, a[aria-current="page"]
+) {
+  position: relative !important;
+  isolation: isolate !important;
+}
+
+/* Material underline. */
+html[data-motion-mode="subtle"][data-motion-enabled="true"] body .brian-nav__primary :is(
+  button.active, button.is-active, button[aria-current="page"],
+  a.active, a.is-active, a[aria-current="page"]
+)::after {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 4 !important;
+  left: 24% !important;
+  right: 24% !important;
+  bottom: 3px !important;
+  height: 3px !important;
+  border-radius: 999px !important;
+  background: #0b57d0 !important;
+  opacity: 1 !important;
+  scale: 1 1 !important;
+  transform-origin: center !important;
+  animation: gm-indicator-material 220ms cubic-bezier(.2,0,0,1) both !important;
+}
+@keyframes gm-indicator-material { from { opacity: .01; scale: .3 1; } to { opacity: 1; scale: 1 1; } }
+
+/* Windows 11 active pill: restrained elevation + an animated inner accent. */
+html[data-motion-mode="balanced"][data-motion-enabled="true"] body .brian-nav__primary :is(
+  button.active, button.is-active, button[aria-current="page"],
+  a.active, a.is-active, a[aria-current="page"]
+) {
+  box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 5px 14px rgba(11,87,208,.10) !important;
+  transition: background-color 240ms cubic-bezier(.16,1,.3,1), color 240ms cubic-bezier(.16,1,.3,1), box-shadow 240ms cubic-bezier(.16,1,.3,1) !important;
+}
+html[data-motion-mode="balanced"][data-motion-enabled="true"] body .brian-nav__primary :is(
+  button.active, button.is-active, button[aria-current="page"],
+  a.active, a.is-active, a[aria-current="page"]
+)::after {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 4 !important;
+  left: 18% !important;
+  right: 18% !important;
+  bottom: 2px !important;
+  height: 3px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(90deg,#0b57d0,#5b73e8) !important;
+  opacity: 1 !important;
+  animation: gm-indicator-windows 280ms cubic-bezier(.16,1,.3,1) both !important;
+}
+@keyframes gm-indicator-windows { from { opacity: .01; translate: -12px 0; scale: .55 1; } to { opacity: 1; translate: 0 0; scale: 1 1; } }
+
+
+/* Windows 8 active route: flat Metro accent bar, intentionally no pill/glow. */
+html[data-motion-mode="windows8"][data-motion-enabled="true"] body .brian-nav__primary :is(
+  button.active, button.is-active, button[aria-current="page"],
+  a.active, a.is-active, a[aria-current="page"]
+) {
+  box-shadow: none !important;
+}
+html[data-motion-mode="windows8"][data-motion-enabled="true"] body .brian-nav__primary :is(
+  button.active, button.is-active, button[aria-current="page"],
+  a.active, a.is-active, a[aria-current="page"]
+)::after {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 5 !important;
+  left: 8% !important;
+  right: 8% !important;
+  bottom: 0 !important;
+  height: 4px !important;
+  border-radius: 0 !important;
+  background: #0078d7 !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  transform-origin: left center !important;
+  animation: gm-indicator-windows8 240ms cubic-bezier(.1,.9,.2,1) both !important;
+}
+@keyframes gm-indicator-windows8 {
+  from { opacity: .01; scale: .12 1; }
+  to { opacity: 1; scale: 1 1; }
+}
+
+/* Fluent Dynamic glow indicator. */
+html[data-motion-mode="expressive"][data-motion-enabled="true"] body .brian-nav__primary :is(
+  button.active, button.is-active, button[aria-current="page"],
+  a.active, a.is-active, a[aria-current="page"]
+)::after {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 4 !important;
+  left: 16% !important;
+  right: 16% !important;
+  bottom: 2px !important;
+  height: 4px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(90deg,#0b57d0,#7c4dff,#0b57d0) !important;
+  box-shadow: 0 0 10px rgba(91,115,232,.38) !important;
+  opacity: 1 !important;
+  animation: gm-indicator-fluent 360ms cubic-bezier(.16,1,.3,1) both !important;
+}
+@keyframes gm-indicator-fluent { from { opacity: .01; scale: .2 1; } to { opacity: 1; scale: 1 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-motion-enabled="true"] body .brian-nav__primary :is(button, a)::after { animation: none !important; }
+}

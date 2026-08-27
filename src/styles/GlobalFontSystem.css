@@ -1,5 +1,45 @@
-/* Retired Brian global font compatibility layer.
-   Typography is now owned by the active interface and route/component styles.
-   This file intentionally contains no selectors so legacy global font-family,
-   font-size and !important rules cannot override the current interface.
-   Keep temporarily while legacy imports are removed from entrypoints. */
+/* Brian Global Font Authority
+   Rule: System UI is the only default. A different family is used only after
+   the global Admin font setting explicitly selects it. Remote font files are
+   loaded on demand by globalFontSystem.js, never preloaded here.
+
+   IMPORTANT: This file owns typography family only. Route visuals and mobile
+   layout/readability rules must live with their route or global layout module. */
+
+html {
+  --bes-global-font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+html[data-global-font="system"] { --bes-global-font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+html[data-global-font="roboto"] { --bes-global-font-family: 'Roboto', Arial, sans-serif; }
+html[data-global-font="be-vietnam-pro"] { --bes-global-font-family: 'Be Vietnam Pro', Arial, sans-serif; }
+html[data-global-font="inter"] { --bes-global-font-family: 'Inter', Arial, sans-serif; }
+html[data-global-font="noto-sans"] { --bes-global-font-family: 'Noto Sans', Arial, sans-serif; }
+html[data-global-font="arial"] { --bes-global-font-family: Arial, Helvetica, sans-serif; }
+html[data-global-font="custom"] { --bes-global-font-family: 'BrianGlobalCustom', Arial, sans-serif; }
+
+html body {
+  font-family: var(--bes-global-font-family) !important;
+}
+
+html[data-global-font] body :not(#bes-font-authority-a#bes-font-authority-b):is(
+  div, section, article, main, aside, header, footer, nav,
+  h1, h2, h3, h4, h5, h6, p, span, strong, b, em, small,
+  label, legend, li, dt, dd, blockquote, figcaption,
+  table, thead, tbody, tfoot, tr, th, td,
+  button, a, input, textarea, select, option, summary
+) {
+  font-family: var(--bes-global-font-family) !important;
+}
+
+html[data-global-font] body :not(#bes-font-code-a#bes-font-code-b):is(code, pre, kbd, samp) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace !important;
+}
+
+html[data-global-font] body :not(#bes-font-icon-a#bes-font-icon-b).material-symbols-outlined { font-family: 'Material Symbols Outlined' !important; }
+html[data-global-font] body :not(#bes-font-icon-a#bes-font-icon-b).material-symbols-rounded { font-family: 'Material Symbols Rounded' !important; }
+html[data-global-font] body :not(#bes-font-icon-a#bes-font-icon-b).material-symbols-sharp { font-family: 'Material Symbols Sharp' !important; }
+html[data-global-font] body :not(#bes-font-icon-a#bes-font-icon-b).material-icons { font-family: 'Material Icons' !important; }
+html[data-global-font] body :not(#bes-font-icon-a#bes-font-icon-b).material-icons-outlined { font-family: 'Material Icons Outlined' !important; }
+html[data-global-font] body :not(#bes-font-icon-a#bes-font-icon-b).material-icons-round { font-family: 'Material Icons Round' !important; }
+html[data-global-font] body :not(#bes-font-icon-a#bes-font-icon-b).material-icons-sharp { font-family: 'Material Icons Sharp' !important; }
+html[data-global-font] body :not(#bes-font-icon-a#bes-font-icon-b).material-icons-two-tone { font-family: 'Material Icons Two Tone' !important; }
