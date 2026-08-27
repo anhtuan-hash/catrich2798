@@ -323,8 +323,13 @@ function renderGrade(card, grade, items) {
 }
 
 function findGradeCard(shell, grade) {
+  const editorialCard = shell.querySelector(`.bha-grades > .bha-folio-grade--${grade}`);
+  if (editorialCard) return editorialCard;
+
   return [...shell.querySelectorAll('.bha-grades > .bha-grade')].find((card) => {
-    const label = cleanText(card.querySelector('.bha-grade-copy > span')?.textContent);
+    const mastheadLabel = cleanText(card.querySelector('.bha-folio-grade__masthead > span')?.textContent);
+    const legacyLabel = cleanText(card.querySelector('.bha-grade-copy > span')?.textContent);
+    const label = mastheadLabel || legacyLabel;
     return new RegExp(`(?:^|\\D)${grade}(?:\\D|$)`).test(label);
   });
 }
