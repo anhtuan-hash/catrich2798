@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import GlobalSubtitleAdminPanel from './admin/GlobalSubtitleAdminPanel.jsx';
-import { installGlobalSubtitleSystem } from '../utils/globalSubtitleSystem.js';
+import {
+  applyGlobalSubtitlesVisible,
+  getGlobalSubtitlesVisible,
+  installGlobalSubtitleSystem,
+} from '../utils/globalSubtitleSystem.js';
 import '../styles/GlobalSubtitleSystem.css';
 
 const HOST_ID = 'admin-global-subtitle-host';
@@ -17,6 +21,17 @@ export default function GlobalSubtitleSettingsBridge(props) {
   useEffect(() => {
     installGlobalSubtitleSystem();
   }, []);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      applyGlobalSubtitlesVisible(getGlobalSubtitlesVisible(), {
+        persist: false,
+        broadcast: false,
+        source: 'route-rescan',
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [props.route, props.selectedTool?.slug]);
 
   useEffect(() => {
     let timer = 0;
