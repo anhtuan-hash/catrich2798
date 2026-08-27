@@ -56,3 +56,145 @@ html[data-global-font] body :not(#bes-font-icon-a#bes-font-icon-b).material-icon
 html[data-global-font] body :not(#bes-font-icon-a#bes-font-icon-b).material-icons-round { font-family: 'Material Icons Round' !important; }
 html[data-global-font] body :not(#bes-font-icon-a#bes-font-icon-b).material-icons-sharp { font-family: 'Material Icons Sharp' !important; }
 html[data-global-font] body :not(#bes-font-icon-a#bes-font-icon-b).material-icons-two-tone { font-family: 'Material Icons Two Tone' !important; }
+
+/* iPhone readability contract.
+   This remains part of the font authority instead of a route patch: family is
+   still Admin-controlled, while tiny desktop metadata receives a larger mobile
+   scale on the shared high-traffic workspaces. */
+@media (max-width: 768px), (max-width: 900px) and (pointer: coarse) {
+  html[data-global-font] body .app-shell[data-route='home'] :is(
+    .bha-editorial-dateline,
+    .hero-cms__badge strong::after,
+    .bha-practice__editorial-copy > span,
+    .bha-practice__published-count > span,
+    .bha-practice__published-count > small,
+    .bha-practice__editorial-rule,
+    .bha-folio-grade__masthead > span,
+    .bha-folio-grade__masthead > small,
+    .bha-folio-grade__kicker
+  ) {
+    font-size: 11.5px !important;
+    line-height: 1.35 !important;
+  }
+
+  html[data-global-font] body .app-shell[data-route='home'] :is(
+    .bha-practice__editorial-copy p,
+    .bha-folio-grade .bha-grade-copy > small,
+    .bha-folio-grade .bha-grade-lesson__copy strong,
+    .signature-footer-disclosure-action
+  ) {
+    font-size: 13.5px !important;
+    line-height: 1.5 !important;
+  }
+
+  html[data-global-font] body .app-shell[data-route='home'] :is(
+    .bha-statistics-practice,
+    .bha-manage-practice,
+    .bha-folio-grade .bha-grade-copy > button
+  ) {
+    min-height: 44px !important;
+    font-size: 13px !important;
+  }
+
+  html[data-global-font] body .page.hr-page {
+    width: calc(100vw - 16px) !important;
+    padding-top: 12px !important;
+    padding-bottom: max(72px, calc(52px + var(--brian-safe-bottom, 0px))) !important;
+    font-size: 16px !important;
+    line-height: 1.55 !important;
+  }
+
+  html[data-global-font] body .page.hr-page :is(
+    .hr-material-hero__eyebrow,
+    .hr-material-hero__class-row > span,
+    .hr-material-hero__teacher-line > span,
+    .hr-material-hero__detail-copy small,
+    .hr-progress-panel .hr-progress-row > span small
+  ) {
+    font-size: 11.5px !important;
+    line-height: 1.35 !important;
+  }
+
+  html[data-global-font] body .page.hr-page :is(
+    .hr-material-hero__detail-copy strong,
+    .hr-progress-panel .hr-progress-row > span b,
+    .hr-table th,
+    .hr-table td
+  ) {
+    font-size: 13.5px !important;
+    line-height: 1.45 !important;
+  }
+
+  html[data-global-font] body .page.hr-page :is(
+    .hr-tabs button,
+    .hr-quick-grid button,
+    input,
+    textarea,
+    select
+  ) {
+    min-height: 44px !important;
+    font-size: 15px !important;
+  }
+
+  html[data-global-font] body .ttcm-m3-shell {
+    font-size: 15px !important;
+  }
+
+  html[data-global-font] body .ttcm-m3-shell :is(
+    .ttcm-m3-title small,
+    .ttcm-m3-card-meta,
+    .ttcm-m3-due,
+    .ttcm-m3-type-chip
+  ) {
+    font-size: 12.5px !important;
+    line-height: 1.4 !important;
+  }
+
+  html[data-global-font] body .ttcm-m3-shell .ttcm-m3-card h3 {
+    font-size: 17px !important;
+    line-height: 1.35 !important;
+  }
+
+  html[data-global-font] body .ttcm-m3-shell .ttcm-m3-card p {
+    font-size: 14.5px !important;
+    line-height: 1.55 !important;
+  }
+
+  html[data-global-font] body .ttcm-m3-shell :is(
+    button,
+    input,
+    textarea,
+    select
+  ) {
+    min-height: 44px !important;
+    font-size: 14px !important;
+  }
+
+  html[data-global-font] body .app-shell[data-route='settings'] :is(
+    .settings-google-sidebar nav strong,
+    .settings-google-section-heading p,
+    .settings-google-profile-fallback small,
+    .settings-google-password-title small,
+    .settings-m3-row small,
+    .settings-m3-two-columns label > span,
+    .settings-m3-reset-row label > span,
+    .settings-m3-volume b,
+    .settings-m3-storage span,
+    .settings-m3-storage b,
+    .settings-google-footer
+  ) {
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+  }
+
+  html[data-global-font] body .app-shell[data-route='settings'] :is(
+    .settings-m3-text-button,
+    .settings-m3-outlined-button,
+    .settings-m3-utility-actions button,
+    .settings-m3-reset-row > button,
+    .settings-google-password-form > button
+  ) {
+    min-height: 44px !important;
+    font-size: 14px !important;
+  }
+}
