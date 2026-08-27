@@ -8,16 +8,6 @@
   --brian-nav-shadow: 0 12px 32px rgba(34, 59, 43, 0.10);
 }
 
-[data-theme='dark'], .theme-dark {
-  --brian-nav-ink: #eef8f0;
-  --brian-nav-muted: #adbbb1;
-  --brian-nav-surface: rgba(25, 32, 27, 0.96);
-  --brian-nav-soft: #2f3b32;
-  --brian-nav-accent: #a9c982;
-  --brian-nav-line: rgba(235, 248, 237, 0.14);
-  --brian-nav-shadow: 0 14px 36px rgba(0, 0, 0, 0.24);
-}
-
 .bes-top-chrome {
   position: sticky !important;
   top: 0;
@@ -163,7 +153,6 @@
   overflow: hidden;
 }
 
-
 .brian-nav__notifications > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 16px 12px; border-bottom: 1px solid var(--brian-nav-line); }
 .brian-nav__notifications > header strong { font-size: 16px; }
 .brian-nav__notifications > header button { border: 0; background: transparent; color: var(--brian-nav-accent); font-size: 12px; font-weight: 760; cursor: pointer; }
@@ -237,5 +226,4 @@
   .brian-chatbot-fab { right: 16px; bottom: 16px; min-width: 50px; padding: 0 15px; }
   .brian-chatbot-fab b { display: none; }
 }
-
 
