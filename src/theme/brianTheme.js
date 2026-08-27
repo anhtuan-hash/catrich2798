@@ -1,84 +1,65 @@
 export const BRIAN_THEME_STORAGE_KEY = 'bes-theme-preference-v1';
-export const BRIAN_THEME_MODES = ['light', 'dark', 'system'];
+export const BRIAN_THEME_MODES = ['light'];
 
-const DARK_MEDIA = '(prefers-color-scheme: dark)';
-let mediaQuery = null;
 let installed = false;
 
-function normalizeMode(value) {
-  const mode = String(value || '').toLowerCase();
-  return BRIAN_THEME_MODES.includes(mode) ? mode : 'light';
-}
-
-export function resolveBrianTheme(mode = getBrianThemePreference()) {
-  const normalized = normalizeMode(mode);
-  if (normalized !== 'system') return normalized;
-  if (typeof window === 'undefined' || !window.matchMedia) return 'light';
-  return window.matchMedia(DARK_MEDIA).matches ? 'dark' : 'light';
-}
-
-export function getBrianThemePreference() {
-  if (typeof window === 'undefined') return 'light';
-  try {
-    return normalizeMode(window.localStorage.getItem(BRIAN_THEME_STORAGE_KEY));
-  } catch {
-    return normalizeMode(document.documentElement?.dataset?.themeMode || 'light');
-  }
-}
-
-function updateThemeMeta(resolved) {
-  if (typeof document === 'undefined') return;
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', resolved === 'dark' ? '#0f141b' : '#f8f4ec');
-}
-
-export function applyBrianTheme(mode, { persist = false, emit = true } = {}) {
+function enforceLight({ persist = true, emit = true } = {}) {
   if (typeof document === 'undefined') return { mode: 'light', resolved: 'light' };
-  const normalized = normalizeMode(mode);
-  const resolved = resolveBrianTheme(normalized);
-  const root = document.documentElement;
 
-  root.dataset.themeMode = normalized;
-  root.dataset.theme = resolved;
-  root.dataset.besTheme = resolved;
-  root.classList.toggle('theme-dark', resolved === 'dark');
-  root.classList.toggle('dark', resolved === 'dark');
-  root.classList.toggle('theme-light', resolved !== 'dark');
-  root.style.colorScheme = resolved;
-  updateThemeMeta(resolved);
+  const root = document.documentElement;
+  root.dataset.themeMode = 'light';
+  root.dataset.theme = 'light';
+  root.dataset.besTheme = 'light';
+  root.classList.remove('theme-dark', 'dark');
+  root.classList.add('theme-light');
+  document.body?.classList.remove('theme-dark', 'dark');
+  document.body?.classList.add('theme-light');
+  root.style.colorScheme = 'light';
+
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', '#f8f4ec');
 
   if (persist && typeof window !== 'undefined') {
-    try { window.localStorage.setItem(BRIAN_THEME_STORAGE_KEY, normalized); } catch { /* optional preference */ }
+    try { window.localStorage.setItem(BRIAN_THEME_STORAGE_KEY, 'light'); } catch { /* optional preference */ }
   }
 
-  const detail = { mode: normalized, resolved };
+  const detail = { mode: 'light', resolved: 'light', lightOnly: true };
   if (emit && typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('bes-theme-change', { detail }));
   }
   return detail;
 }
 
-export function setBrianThemePreference(mode) {
-  return applyBrianTheme(mode, { persist: true, emit: true });
+export function resolveBrianTheme() {
+  return 'light';
 }
 
-function syncSystemTheme() {
-  if (getBrianThemePreference() === 'system') applyBrianTheme('system', { persist: false, emit: true });
+export function getBrianThemePreference() {
+  return 'light';
+}
+
+export function applyBrianTheme(_mode, { persist = false, emit = true } = {}) {
+  return enforceLight({ persist, emit });
+}
+
+export function setBrianThemePreference() {
+  return enforceLight({ persist: true, emit: true });
 }
 
 function syncStorage(event) {
   if (event?.key !== BRIAN_THEME_STORAGE_KEY) return;
-  applyBrianTheme(event.newValue || 'light', { persist: false, emit: true });
+  enforceLight({ persist: true, emit: true });
 }
 
 export function bootstrapBrianThemeRuntime() {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
-  applyBrianTheme(getBrianThemePreference(), { persist: false, emit: false });
+
+  // Migration guard: any device that previously stored dark/system is reset
+  // permanently to Brian's only supported appearance: light.
+  enforceLight({ persist: true, emit: false });
   if (installed) return;
   installed = true;
 
-  mediaQuery = window.matchMedia?.(DARK_MEDIA) || null;
-  mediaQuery?.addEventListener?.('change', syncSystemTheme);
   window.addEventListener('storage', syncStorage);
 
   window.BESTheme = Object.freeze({
