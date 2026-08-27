@@ -66,27 +66,16 @@ import './GlobalNavigationOverlayLayer.css';
 import './GlobalNavigationGoogleM3Polish.css';
 import './GlobalNavigationSearchPillRefinement.css';
 import './GlobalNavigationNoSearch.css';
-// Absolute final contract: only the primary navigation row is fixed; the
-// editorial briefing row remains visible in normal document flow.
 import './GlobalBrianHub.css';
-// Keep the catrich.mauxanh wordmark visible after every navigation theme.
 import './GlobalCatRichHeaderVisibilityFix.css';
-// Seating Chart Studio chart-first visual layer. Frontend only.
 import '../pages/SeatingChartStudioFocus.css';
-// Route themes may load their own lazy CSS. This high-specificity contract keeps
-// the shared header at one physical size on Home, Apps and every other route.
 import './GlobalNavigationFixedSizeContract.css';
-// Final performance contract; preserves geometry and fixed navigation sizing.
 import './GlobalCriticalJankGuard.css';
-// Notification Center and Work Hub UI are retired; TTCM is the single collaboration surface.
 import './GlobalNotificationCenterRemoval.css';
-// Windows 8 motion language stays available as a selectable system preset.
+// Windows 8 remains an optional motion language; it no longer owns header visuals.
 import './GlobalWindows8Experience.css';
-// Absolute final visual contract for the shared two-level navigation hub.
-import './GlobalNavigationHubV2.css';
-// Typography authority must be the last navigation stylesheet because the
-// legacy global font layer intentionally uses high-specificity !important rules.
-import './GlobalNavigationHubFontAuthority.css';
+// Sole final visual + typography contract for the shared navigation hub.
+import './GlobalNavigationHubV3.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
