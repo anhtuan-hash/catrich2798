@@ -1,4 +1,4 @@
-/* English Hub light-only surface contract. */
+/* Brian English · global color system. Light is default; dark is opt-in/system. */
 :root {
   color-scheme: light;
   --bes-theme-page: #f7f9fc;
@@ -34,6 +34,48 @@
   --bes-border: var(--bes-theme-border);
   --brian-nav-surface: var(--bes-theme-surface);
   --brian-nav-soft: var(--bes-theme-surface-mid);
+  --brian-nav-ink: var(--bes-theme-text);
+  --brian-nav-muted: var(--bes-theme-text-muted);
+  --brian-nav-line: var(--bes-theme-border);
+  --brian-nav-accent: var(--bes-theme-primary);
+}
+
+html[data-theme='dark'],
+html.theme-dark {
+  color-scheme: dark;
+  --bes-theme-page: #0f141b;
+  --bes-theme-page-soft: #121923;
+  --bes-theme-surface: #171e28;
+  --bes-theme-surface-low: #131a23;
+  --bes-theme-surface-mid: #202a36;
+  --bes-theme-surface-high: #293646;
+  --bes-theme-text: #eef3f8;
+  --bes-theme-text-soft: #d6e0ea;
+  --bes-theme-text-muted: #9aaabd;
+  --bes-theme-border: #334255;
+  --bes-theme-divider: #293747;
+  --bes-theme-primary: #8ab4f8;
+  --bes-theme-primary-hover: #aecbfa;
+  --bes-theme-on-primary: #072d63;
+  --bes-theme-primary-container: #263f62;
+  --bes-theme-on-primary-container: #d8e7ff;
+  --bes-theme-positive: #81c995;
+  --bes-theme-positive-container: #173925;
+  --bes-theme-warning: #fdd663;
+  --bes-theme-warning-container: #493817;
+  --bes-theme-danger: #f28b82;
+  --bes-theme-danger-container: #4a2325;
+  --bes-theme-scrim: rgba(0, 0, 0, .64);
+  --bes-theme-shadow-1: 0 1px 2px rgba(0, 0, 0, .38);
+  --bes-theme-shadow-2: 0 12px 34px rgba(0, 0, 0, .45), 0 2px 8px rgba(0, 0, 0, .28);
+  --bes-page-bg: var(--bes-theme-page);
+  --bes-surface: var(--bes-theme-surface);
+  --bes-surface-elevated: #1b2430;
+  --bes-ink: var(--bes-theme-text);
+  --bes-muted: var(--bes-theme-text-muted);
+  --bes-border: var(--bes-theme-border);
+  --brian-nav-surface: #151c25;
+  --brian-nav-soft: #202a36;
   --brian-nav-ink: var(--bes-theme-text);
   --brian-nav-muted: var(--bes-theme-text-muted);
   --brian-nav-line: var(--bes-theme-border);
@@ -78,7 +120,8 @@ html {
 }
 
 @media print {
-  :root {
+  :root,
+  html[data-theme='dark'] {
     color-scheme: light !important;
     --bes-theme-page: #fff !important;
     --bes-theme-surface: #fff !important;
