@@ -84,6 +84,9 @@ import './GlobalNotificationCenterRemoval.css';
 import './GlobalWindows8Experience.css';
 // Absolute final visual contract for the shared two-level navigation hub.
 import './GlobalNavigationHubV2.css';
+// Typography authority must be the last navigation stylesheet because the
+// legacy global font layer intentionally uses high-specificity !important rules.
+import './GlobalNavigationHubFontAuthority.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
