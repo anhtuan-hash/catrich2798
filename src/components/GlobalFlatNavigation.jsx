@@ -80,6 +80,8 @@ import './GlobalWindows8Experience.css';
 import './GlobalNavigationHubV4.css';
 // Absolute final loader contract: all page/app loading uses Windows Phone 8 chase dots.
 import './GlobalWindowsPhone8Loading.css';
+// TTCM report countdown must override V4's collapsed status dot when Reports is active.
+import './GlobalReportsCountdownV4.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
