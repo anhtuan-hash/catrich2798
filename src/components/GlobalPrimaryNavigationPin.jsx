@@ -3,13 +3,9 @@ import { useLayoutEffect } from 'react';
 /**
  * Performance-first navigation pin.
  *
- * Navigation positioning is handled by CSS. The previous runtime watched the
- * entire document, measured layout on every scroll frame and rewrote ancestor
- * styles. That work happened on every route and was a major source of jank.
- *
- * The primary navigation now has one geometry contract across every viewport:
- * 76px tall. Responsive rules may hide labels or allow horizontal scrolling,
- * but they must never resize the navigation bar itself.
+ * Navigation positioning is handled by CSS. The runtime only publishes the
+ * route and canonical desktop height; responsive CSS may reduce that height on
+ * compact screens without measuring layout on scroll.
  */
 export default function GlobalPrimaryNavigationPin({ route = '' }) {
   useLayoutEffect(() => {
@@ -18,7 +14,7 @@ export default function GlobalPrimaryNavigationPin({ route = '' }) {
     const root = document.documentElement;
     root.dataset.besPrimaryNavActive = 'true';
     root.dataset.besPrimaryNavRoute = String(route || '');
-    root.style.setProperty('--bes-primary-nav-height', '76px');
+    root.style.setProperty('--bes-primary-nav-height', '72px');
 
     return () => {
       root.removeAttribute('data-bes-primary-nav-active');
