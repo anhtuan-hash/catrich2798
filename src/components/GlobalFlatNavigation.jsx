@@ -13,6 +13,7 @@ import GlobalUserProfileSettingsBridge from './GlobalUserProfileSettingsBridge.j
 import GlobalUserProfilePreviewGuard from './GlobalUserProfilePreviewGuard.jsx';
 import GlobalSettingsAdminBridge from './GlobalSettingsAdminBridge.jsx';
 import GlobalFontSettingsBridge from './GlobalFontSettingsBridge.jsx';
+import GlobalSubtitleSettingsBridge from './GlobalSubtitleSettingsBridge.jsx';
 import GlobalHeroGovernance from './GlobalHeroGovernance.jsx';
 import GlobalAiWebsiteLauncher from './GlobalAiWebsiteLauncher.jsx';
 import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
@@ -102,6 +103,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalUserProfilePreviewGuard route={props.route} />
       <GlobalSettingsAdminBridge {...props} />
       <GlobalFontSettingsBridge {...props} />
+      <GlobalSubtitleSettingsBridge {...props} />
       <GlobalAiWebsiteLauncher {...props} />
       <GlobalGamesNavigationTab {...props} />
       <GlobalDashboardNavigationTab {...props} />
