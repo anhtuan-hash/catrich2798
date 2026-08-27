@@ -2,6 +2,7 @@ import React from 'react';
 import '../data/registerSeatingChartStudio.js';
 import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalMetroNavigationIndicator from './GlobalMetroNavigationIndicator.jsx';
+import GlobalWindows8Experience from './GlobalWindows8Experience.jsx';
 import GlobalEditorialBriefBar from './GlobalEditorialBriefBar.jsx';
 import GlobalPrimaryNavigationPin from './GlobalPrimaryNavigationPin.jsx';
 import GlobalNativeTextScaleReset from './GlobalNativeTextScaleReset.jsx';
@@ -86,6 +87,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalNativeTextScaleReset />
       <Navigation {...props} />
       <GlobalMetroNavigationIndicator route={props.route} />
+      <GlobalWindows8Experience route={props.route} />
       <GlobalEditorialBriefBar route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalPrimaryNavigationPin route={props.route} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
