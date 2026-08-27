@@ -78,6 +78,8 @@ import './GlobalNotificationCenterRemoval.css';
 import './GlobalWindows8Experience.css';
 // Approved final visual + typography contract for the shared navigation hub.
 import './GlobalNavigationHubV4.css';
+// Absolute final loader contract: all page/app loading uses Windows Phone 8 chase dots.
+import './GlobalWindowsPhone8Loading.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
