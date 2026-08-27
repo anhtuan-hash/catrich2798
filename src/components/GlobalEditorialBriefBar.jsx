@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { launchRoute } from '../utils/navigation.js';
 import './GlobalEditorialBriefBar.css';
 
 const NEWS_CACHE_TTL = 10 * 60 * 1000;
 const MAX_HEADLINES = 8;
+const TICKER_SPEED_PX_PER_SECOND = 42;
 
 function newsChannel(language) {
   return language === 'en'
@@ -62,9 +63,9 @@ function SettingsIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm7 4 2-1-1-3-2 .2-1.3-1.5.4-2.1-3-1.2-1.2 1.7h-2L9.7 3.4l-3 1.2.4 2.1L5.8 8.2 3.7 8 3 11l2 1-2 1 .7 3 2.1-.2 1.3 1.5-.4 2.1 3 1.2 1.2-1.7h2l1.2 1.7 3-1.2-.4-2.1 1.3-1.5 2.1.2.7-3-2-1Z" /></svg>;
 }
 
-function TickerGroup({ items, openNews, duplicate = false }) {
+function TickerGroup({ items, openNews, duplicate = false, groupRef = null }) {
   return (
-    <span className="brian-editorial-brief__ticker-group" aria-hidden={duplicate ? 'true' : undefined}>
+    <span ref={groupRef} className="brian-editorial-brief__ticker-group" aria-hidden={duplicate ? 'true' : undefined}>
       {items.map((item, index) => (
         <React.Fragment key={`${duplicate ? 'copy-' : ''}${item.id}`}>
           {index > 0 ? <span className="brian-editorial-brief__dot" aria-hidden="true">◆</span> : null}
@@ -83,6 +84,8 @@ export default function GlobalEditorialBriefBar({ language = 'vi', currentUser }
   const initialCache = readCachedNews(language);
   const [payload, setPayload] = useState(initialCache);
   const [loading, setLoading] = useState(() => !initialCache);
+  const trackRef = useRef(null);
+  const firstGroupRef = useRef(null);
 
   useEffect(() => {
     let alive = true;
@@ -122,6 +125,51 @@ export default function GlobalEditorialBriefBar({ language = 'vi', currentUser }
     source: 'Brian Newsroom',
   }];
 
+  useEffect(() => {
+    const track = trackRef.current;
+    const firstGroup = firstGroupRef.current;
+    if (!track || !firstGroup || headlines.length === 0) return undefined;
+
+    let frame = 0;
+    let lastTime = performance.now();
+    let loopWidth = firstGroup.getBoundingClientRect().width;
+
+    const updateLoopWidth = () => {
+      loopWidth = firstGroup.getBoundingClientRect().width;
+      if (loopWidth > 0 && track.scrollLeft >= loopWidth) {
+        track.scrollLeft %= loopWidth;
+      }
+    };
+
+    const resizeObserver = typeof ResizeObserver === 'function'
+      ? new ResizeObserver(updateLoopWidth)
+      : null;
+    resizeObserver?.observe(firstGroup);
+    window.addEventListener('resize', updateLoopWidth, { passive: true });
+
+    track.scrollLeft = 0;
+
+    const tick = (now) => {
+      const elapsed = Math.min(80, Math.max(0, now - lastTime));
+      lastTime = now;
+
+      if (!document.hidden && loopWidth > 0) {
+        track.scrollLeft += TICKER_SPEED_PX_PER_SECOND * (elapsed / 1000);
+        if (track.scrollLeft >= loopWidth) track.scrollLeft -= loopWidth;
+      }
+
+      frame = window.requestAnimationFrame(tick);
+    };
+
+    frame = window.requestAnimationFrame(tick);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', updateLoopWidth);
+    };
+  }, [headlines]);
+
   const openNews = (event) => openRoute('#/news', vi ? 'Đọc báo' : 'News', event.currentTarget);
   const openSettings = (event) => {
     if (!currentUser) return;
@@ -134,9 +182,9 @@ export default function GlobalEditorialBriefBar({ language = 'vi', currentUser }
         <button type="button" className="brian-editorial-brief__label" onClick={openNews} title={vi ? 'Mở ứng dụng Đọc báo' : 'Open Newsroom'}>
           <i />{vi ? 'TIN VẮN' : 'NEWSWIRE'}
         </button>
-        <div className="brian-editorial-brief__track" aria-live="off">
-          <div className={`brian-editorial-brief__ticker ${headlines.length ? 'is-running' : ''}`}>
-            <TickerGroup items={tickerItems} openNews={openNews} />
+        <div ref={trackRef} className="brian-editorial-brief__track" aria-live="off">
+          <div className="brian-editorial-brief__ticker">
+            <TickerGroup items={tickerItems} openNews={openNews} groupRef={firstGroupRef} />
             {headlines.length ? <TickerGroup items={tickerItems} openNews={openNews} duplicate /> : null}
           </div>
         </div>
