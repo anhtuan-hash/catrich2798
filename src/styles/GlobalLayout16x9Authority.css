@@ -5,8 +5,8 @@
 
    Important: 16:9 is the PAGE FRAME, not a forced aspect ratio for every card.
    Forms, tables, documents and long pages keep their natural content height.
-   This file is imported by main.jsx after route/navigation modules so it can
-   correct historical route-specific widths without redesigning their content.
+   This file is loaded by both the shared navigation shell and the global
+   runtime guard so every route, including public routes, receives one layout.
    -------------------------------------------------------------------------- */
 
 :root {
@@ -20,7 +20,7 @@
   --bes-layout-radius: clamp(18px, 1.45vw, 24px);
   --bes-layout-stage-width: min(
     var(--bes-layout-reference-width),
-    calc(100vw - (var(--bes-layout-gutter) * 2))
+    calc(100vw - var(--bes-layout-gutter) - var(--bes-layout-gutter))
   );
 }
 
@@ -215,7 +215,7 @@ html body .app-shell[data-route] main#bes-main-content :where(img, video, canvas
 
 @media (min-width: 1720px) {
   :root {
-    --bes-layout-gutter: clamp(44px, calc((100vw - 1600px) / 2), 96px);
+    --bes-layout-gutter: clamp(44px, calc(50vw - 800px), 96px);
   }
 }
 
@@ -238,7 +238,7 @@ html body .app-shell[data-route] main#bes-main-content :where(img, video, canvas
     --bes-layout-content-pad: clamp(12px, 3vw, 18px);
     --bes-layout-column-gap: 12px;
     --bes-layout-section-gap: 16px;
-    --bes-layout-stage-width: calc(100vw - (var(--bes-layout-gutter) * 2));
+    --bes-layout-stage-width: calc(100vw - var(--bes-layout-gutter) - var(--bes-layout-gutter));
   }
 
   html body .app-shell[data-route] main#bes-main-content > * {
