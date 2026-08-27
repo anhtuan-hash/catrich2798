@@ -7,6 +7,7 @@ import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalEditorialBriefBar from './GlobalEditorialBriefBar.jsx';
 import GlobalPrimaryNavigationPin from './GlobalPrimaryNavigationPin.jsx';
 import GlobalNavigationHubController from './GlobalNavigationHubController.jsx';
+import GlobalPinnedNavigationHub from './GlobalPinnedNavigationHub.jsx';
 import GlobalNativeTextScaleReset from './GlobalNativeTextScaleReset.jsx';
 import GlobalGuestNavigationHub from './GlobalGuestNavigationHub.jsx';
 import GlobalUserProfileSettingsBridge from './GlobalUserProfileSettingsBridge.jsx';
@@ -83,6 +84,8 @@ import './GlobalNavigationHubV4.css';
 import './GlobalWindowsPhone8Loading.css';
 // TTCM report countdown must override V4's collapsed status dot when Reports is active.
 import './GlobalReportsCountdownV4.css';
+// Final positioning authority: keep the hub pinned and collapse the newswire while scrolling.
+import './GlobalPinnedNavigationHub.css';
 // Final authority: legacy notification center stays retired even if a later hub theme restores it.
 import './GlobalNotificationCenterFinalRemoval.css';
 
@@ -92,6 +95,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalNativeTextScaleReset />
       <Navigation {...props} />
       <GlobalNavigationHubController />
+      <GlobalPinnedNavigationHub route={props.route} />
       <GlobalWindowsPhone8Loading />
       <GlobalMetroNavigationIndicator route={props.route} />
       <GlobalWindows8Experience route={props.route} />
