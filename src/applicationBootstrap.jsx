@@ -21,6 +21,31 @@ let homeroomExtrasLoaded = false;
 let routeListenerInstalled = false;
 let assignedClassSyncPromise = null;
 
+// applicationBootstrap is loaded before main.jsx. Install the preload circuit
+// breaker here so a stale/failed lazy chunk can never enter the legacy
+// `vite:preloadError -> window.location.reload()` loop still present in main.
+// stopImmediatePropagation is intentional: it prevents later listeners from
+// turning a recoverable route-module failure into a full browser reload.
+function installPreloadReloadCircuitBreaker() {
+  if (typeof window === 'undefined' || window.__besPreloadReloadCircuitBreakerInstalled) return;
+  window.__besPreloadReloadCircuitBreakerInstalled = true;
+  window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault?.();
+    event.stopImmediatePropagation?.();
+    const error = event?.payload || event?.detail || event;
+    console.warn('[PreloadCircuitBreaker] Giữ nguyên phiên làm việc; chunk tải lỗi sẽ không reload toàn trang.', error);
+    window.dispatchEvent(new CustomEvent('bes-preload-error-contained', {
+      detail: {
+        route: window.location.hash || '',
+        message: String(error?.message || error || 'Unknown preload error'),
+        at: Date.now(),
+      },
+    }));
+  });
+}
+
+installPreloadReloadCircuitBreaker();
+
 function runWhenIdle(callback, timeout = 1800) {
   if (typeof window.requestIdleCallback === 'function') {
     window.requestIdleCallback(() => callback(), { timeout });
