@@ -90,6 +90,8 @@ import './GlobalPinnedNavigationHub.css';
 import './GlobalNotificationCenterFinalRemoval.css';
 // Absolute final chrome authority: Home may style content, never navigation. One shared hub only.
 import './GlobalSingleNavigationHubAuthority.css';
+// Final Homeroom density authority: compact excessive whitespace without affecting other routes.
+import './homeroom/HomeroomCompactDensity.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
