@@ -27,15 +27,15 @@ export default function HomeroomOverviewCompactTab({ workspace, goTab }) {
   const quickActions = [
     { key: 'students', icon: '♙', title: 'Học sinh', note: 'Danh sách và thông tin lớp' },
     { key: 'attendance', icon: '✓', title: 'Điểm danh', note: 'Theo buổi hoặc tiết học' },
-    { key: 'learning', icon: '∑', title: 'Học tập', note: 'Nhập và theo dõi kết quả' },
     { key: 'conduct', icon: '100', title: 'Rèn luyện', note: 'Điểm tuần và xét định kỳ' },
+    { key: 'safety', icon: '⌾', title: 'An toàn dữ liệu', note: 'Sao lưu và bảo mật lớp' },
   ];
 
   return <div className="hr-tab-stack">
     <section className="hr-stat-grid">
       <StatCard icon="♙" label="Sĩ số hiện tại" value={metrics.students.length} note={`${workspace.classProfile?.grade ? `Khối ${workspace.classProfile.grade}` : '—'} · ${workspace.classProfile?.schoolYear || '—'}`} />
       <StatCard icon="✓" label="Có mặt hôm nay" value={presentToday} note={`${todayKeys.length} phiên đã lưu`} tone="green" />
-      <StatCard icon="∑" label="Kết quả học tập" value={learningCount} note={Number.isFinite(metrics.classAverage) ? `Điểm TB lớp ${metrics.classAverage.toFixed(1)}` : 'Chưa có điểm trung bình'} tone="orange" />
+      <StatCard icon="∑" label="Kết quả học tập" value={learningCount} note={Number.isFinite(metrics.classAverage) ? `Điểm TB lớp ${metrics.classAverage.toFixed(1)}` : 'Xem chi tiết trong app Sổ điểm'} tone="orange" />
       <StatCard icon="100" label="Ghi nhận rèn luyện" value={conductCount} note="Vi phạm và khen thưởng đang tính" tone="red" />
     </section>
 
