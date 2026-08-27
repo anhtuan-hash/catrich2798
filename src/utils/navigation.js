@@ -21,31 +21,26 @@ function metroDirection(fromTarget, toTarget) {
   return toIndex > fromIndex ? 'forward' : 'backward';
 }
 
-function windows8MotionActive() {
-  if (typeof document === 'undefined' || typeof window === 'undefined') return false;
-  const root = document.documentElement;
-  if (root?.dataset?.motionMode !== 'windows8' || root?.dataset?.motionEnabled !== 'true') return false;
-  return !window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-}
-
-function waitForReactPaint() {
-  return new Promise((resolve) => {
-    window.requestAnimationFrame(() => window.requestAnimationFrame(resolve));
-  });
-}
-
 function clearMetroNavigationState(root) {
   window.setTimeout(() => {
     delete root.dataset.metroNavigating;
     delete root.dataset.metroViewTransition;
-  }, 80);
+  }, 420);
 }
 
 /**
  * Shared route launcher.
- * Windows 8 uses the browser View Transitions API when available so only the
- * page stage travels through space; the fixed Brian header remains anchored.
- * Every other preset keeps immediate navigation.
+ *
+ * Windows 8 motion is implemented by Brian's CSS choreography and traveling
+ * indicator. We intentionally do not use document.startViewTransition here.
+ * Heavy routes (notably Homeroom) can take longer than the browser's DOM-update
+ * window and Chrome aborts the native transition with
+ * "Transition was aborted because of timeout in DOM update". That rejection
+ * can surface as a system error even though navigation itself is healthy.
+ *
+ * Keeping navigation synchronous makes route changes deterministic while the
+ * existing metroDirection/metroNavigating data attributes still drive the
+ * Windows 8 entrance/exit motion language.
  */
 export function launchRoute({ target, navigate } = {}) {
   if (!target || typeof window === 'undefined') return;
@@ -59,38 +54,22 @@ export function launchRoute({ target, navigate } = {}) {
   const root = document.documentElement;
   const currentTarget = window.location.hash || '#/home';
   const direction = metroDirection(currentTarget, target);
+
   root.dataset.metroDirection = direction;
   root.dataset.metroFrom = routeName(currentTarget);
   root.dataset.metroTo = routeName(target);
   root.dataset.metroNavigating = 'true';
+  delete root.dataset.metroViewTransition;
 
   window.dispatchEvent(new CustomEvent('bes-navigation-start', {
     detail: { target, from: currentTarget, direction },
   }));
 
-  if (windows8MotionActive() && typeof document.startViewTransition === 'function') {
-    root.dataset.metroViewTransition = 'true';
-    let transition;
-    try {
-      transition = document.startViewTransition(async () => {
-        go();
-        await waitForReactPaint();
-      });
-    } catch {
-      delete root.dataset.metroViewTransition;
-      go();
-      clearMetroNavigationState(root);
-      return;
-    }
-
-    transition.finished
-      .catch(() => {})
-      .finally(() => clearMetroNavigationState(root));
-    return;
+  try {
+    go();
+  } finally {
+    clearMetroNavigationState(root);
   }
-
-  go();
-  clearMetroNavigationState(root);
 }
 
 export { DEFAULT_COLOR };
