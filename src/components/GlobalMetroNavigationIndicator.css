@@ -1,6 +1,6 @@
-/* Windows 8 / Metro traveling navigation indicator.
-   A single physical bar moves between active destinations so the motion reads
-   as navigation through space instead of a new underline fading in each time. */
+/* Windows 8 / Metro active indicator.
+   Short, flat and directional. It travels as one physical accent bar without
+   stretching across multiple destinations. */
 
 .brian-nav__primary {
   position: relative !important;
@@ -12,7 +12,7 @@
   left: 0;
   bottom: 0 !important;
   width: 0;
-  height: 4px !important;
+  height: 3px !important;
   display: block !important;
   pointer-events: none !important;
   opacity: 0 !important;
@@ -21,28 +21,24 @@
   border-radius: 0 !important;
   background: #0078d7 !important;
   box-shadow: none !important;
-  transform: none !important;
-  translate: none !important;
-  scale: 1 !important;
+  transform-origin: center center !important;
   transition: none !important;
   animation: none !important;
   contain: layout paint style;
 }
 
-html[data-motion-mode="windows8"][data-motion-enabled="true"] body .brian-nav__primary > .brian-nav__metro-indicator[data-ready="true"] {
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-nav__primary > .brian-nav__metro-indicator[data-ready='true'] {
   opacity: 1 !important;
   visibility: visible !important;
 }
 
-/* The legacy per-item Metro underline is suppressed only for Windows 8.
-   Material, Windows 11 and Fluent continue using their existing indicators. */
-html[data-motion-mode="windows8"][data-motion-enabled="true"] body .brian-nav__primary :is(
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-nav__primary :is(
   button.active,
   button.is-active,
-  button[aria-current="page"],
+  button[aria-current='page'],
   a.active,
   a.is-active,
-  a[aria-current="page"]
+  a[aria-current='page']
 )::after {
   content: none !important;
   display: none !important;
@@ -50,7 +46,7 @@ html[data-motion-mode="windows8"][data-motion-enabled="true"] body .brian-nav__p
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html[data-motion-mode="windows8"] body .brian-nav__primary > .brian-nav__metro-indicator {
+  html[data-motion-mode='windows8'] body .brian-nav__primary > .brian-nav__metro-indicator {
     transition: none !important;
     animation: none !important;
   }
