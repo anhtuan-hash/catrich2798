@@ -58,29 +58,11 @@ create policy "bes_gradebook_owner_delete"
   to authenticated
   using (auth.uid() = owner_id);
 
+-- Remove any partially-created legacy Admin policy from earlier drafts. Gradebook
+-- V1 intentionally relies only on owner-scoped policies so this migration has no
+-- dependency on the shape of public.profiles. Cross-owner Admin access can be
+-- added later in a dedicated permission migration once the profile contract is fixed.
 drop policy if exists "bes_gradebook_admins_all" on public.bes_gradebook_workspaces;
-create policy "bes_gradebook_admins_all"
-  on public.bes_gradebook_workspaces
-  for all
-  to authenticated
-  using (
-    exists (
-      select 1
-      from public.profiles p
-      where p.id = auth.uid()
-        and p.approved = true
-        and lower(coalesce(p.role, '')) = 'admin'
-    )
-  )
-  with check (
-    exists (
-      select 1
-      from public.profiles p
-      where p.id = auth.uid()
-        and p.approved = true
-        and lower(coalesce(p.role, '')) = 'admin'
-    )
-  );
 
 grant select, insert, update, delete on public.bes_gradebook_workspaces to authenticated;
 
