@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react';
 import './BulkTeacherAccountsPanelCompact.css';
 import '../styles/TopChromeDividerFix.css';
+import '../styles/GlobalLayout16x9Authority.css';
 import { recordRuntimeError } from '../utils/runtimeDiagnostics.js';
 
 const VietnamAtmosphereOverlay = lazy(() => import('./VietnamAtmosphereOverlay.jsx'));
