@@ -11,6 +11,11 @@ import {
   saveLocalGradebookClass,
 } from '../utils/gradebookWorkspaceStore.js';
 import {
+  hydrateGradebookWithSharedRoster,
+  projectSharedRosterStudents,
+  saveSharedGradebookRoster,
+} from '../utils/gradebookRosterStore.js';
+import {
   listMyGradebookTeachingAssignments,
   matchGradebookClassToAssignment,
 } from '../utils/gradebookTeachingAssignments.js';
@@ -56,6 +61,19 @@ function findAssignmentClass(classes, assignment) {
   return classes.find((item) => matchGradebookClassToAssignment(item, assignment)) || null;
 }
 
+function rosterFingerprint(students = []) {
+  return JSON.stringify(projectSharedRosterStudents(students));
+}
+
+function rosterStatusLabel(source, vi = true) {
+  if (source === 'roster-cloud') return vi ? '✓ Danh sách dùng chung' : '✓ Shared roster';
+  if (source === 'roster-cloud-empty') return vi ? 'Danh sách dùng chung sẵn sàng' : 'Shared roster ready';
+  if (source === 'roster-table-pending') return vi ? 'Danh sách cục bộ · chờ kích hoạt cloud' : 'Local roster · cloud pending';
+  if (source === 'roster-cloud-error') return vi ? 'Danh sách cục bộ · lỗi đồng bộ' : 'Local roster · sync issue';
+  if (source === 'roster-local' || source === 'no-cloud') return vi ? 'Danh sách cục bộ' : 'Local roster';
+  return vi ? 'Đang kiểm tra danh sách…' : 'Checking roster…';
+}
+
 export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const initialCatalog = useMemo(
     () => listLocalGradebookClasses(currentUser),
@@ -76,6 +94,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const [classDraft, setClassDraft] = useState(EMPTY_CLASS);
   const [teachingAssignments, setTeachingAssignments] = useState([]);
   const [assignmentSource, setAssignmentSource] = useState('loading');
+  const [rosterSource, setRosterSource] = useState('loading');
 
   const activeClasses = useMemo(() => catalog.filter((item) => item.status !== 'archived'), [catalog]);
   const assignedReadyCount = useMemo(() => teachingAssignments.filter(
@@ -115,6 +134,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   useEffect(() => {
     if (!workspaceId) {
       setWorkspace(null);
+      setRosterSource('loading');
       return undefined;
     }
 
@@ -123,11 +143,17 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     const local = loadLocalGradebookClass(currentUser, workspaceId);
     if (local) setWorkspace(local);
     setLoading(!local);
+    setRosterSource('loading');
 
     (async () => {
       try {
         const result = await loadGradebookClass(currentUser, workspaceId);
-        if (alive && result.workspace) setWorkspace(result.workspace);
+        if (!result.workspace) return;
+        const rosterResult = await hydrateGradebookWithSharedRoster(currentUser, result.workspace);
+        if (!alive) return;
+        const hydrated = rosterResult.workspace || result.workspace;
+        setWorkspace(saveLocalGradebookClass(hydrated, currentUser));
+        setRosterSource(rosterResult.source || 'roster-local');
       } finally {
         if (alive) setLoading(false);
       }
@@ -143,14 +169,26 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   };
 
   const commit = async (next, successMessage = 'Đã lưu dữ liệu sổ điểm.') => {
+    const rosterChanged = rosterFingerprint(next?.students) !== rosterFingerprint(workspace?.students);
     const local = saveLocalGradebookClass(next, currentUser);
     setWorkspace(local);
     setSaving(true);
-    const result = await saveGradebookClass(local, currentUser);
+
+    const [result, rosterResult] = await Promise.all([
+      saveGradebookClass(local, currentUser),
+      rosterChanged ? saveSharedGradebookRoster(currentUser, local) : Promise.resolve(null),
+    ]);
+
     setSaving(false);
+    if (rosterResult) setRosterSource(rosterResult.source || 'roster-local');
+
     if (result.ok) {
       setWorkspace(result.workspace || local);
-      flash(successMessage);
+      if (rosterChanged && rosterResult && !rosterResult.ok && !rosterResult.missingTable) {
+        flash(`${successMessage} Sổ điểm đã lưu; danh sách dùng chung chưa đồng bộ: ${rosterResult.message || 'lỗi chưa xác định'}`);
+      } else {
+        flash(successMessage);
+      }
     } else {
       flash(`${successMessage} Đã lưu trên thiết bị; cloud chưa đồng bộ: ${result.message || 'lỗi chưa xác định'}`);
     }
@@ -193,6 +231,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     setWorkspaceId(result.workspace.id);
     persistSelectedClassId(currentUser, result.workspace.id);
     setCreateOpen(false);
+    setRosterSource('loading');
     return result.workspace;
   };
 
@@ -231,6 +270,8 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const studentCount = (workspace?.students || []).filter((item) => item.active !== false).length;
   const activeSubject = workspace?.classProfile?.teachingSubject || activeMeta?.teachingSubject || '';
   const vi = language === 'vi';
+  const rosterLabel = rosterStatusLabel(rosterSource, vi);
+  const rosterCloudReady = rosterSource === 'roster-cloud' || rosterSource === 'roster-cloud-empty';
 
   return <div className="page hr-page gradebook-studio">
     <section className="gradebook-studio-hero">
@@ -238,8 +279,8 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
         <span className="gradebook-studio-kicker">GRADEBOOK · TEACHER WORKSPACE</span>
         <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
         <p>{vi
-          ? 'Không gian nhập điểm độc lập dành cho mọi giáo viên. Brian có thể nhận lớp trực tiếp từ phân công của TTCM hoặc cho phép giáo viên tự tạo lớp bộ môn.'
-          : 'An independent gradebook for every teacher. Brian can use department teaching assignments or teacher-created subject classes.'}</p>
+          ? 'Không gian nhập điểm độc lập dành cho mọi giáo viên. Brian nhận lớp từ phân công TTCM và dùng một danh sách học sinh chuẩn cho các Sổ điểm cùng lớp.'
+          : 'An independent gradebook for every teacher, with TTCM assignments and a shared canonical class roster.'}</p>
       </div>
       <div className="gradebook-studio-hero-stats">
         <article><strong>{activeClasses.length}</strong><span>{vi ? 'sổ điểm đang dùng' : 'active gradebooks'}</span></article>
@@ -287,6 +328,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
         {activeMeta ? <div className="gradebook-studio-class-meta">
           <b>{activeMeta.className}{activeSubject ? ` · ${activeSubject}` : ''}</b>
           <span>{activeMeta.schoolYear || '—'} · {activeMeta.semester || '—'} · {getClassTypeLabel(activeMeta.classType)}</span>
+          <em className={`gradebook-roster-status ${rosterCloudReady ? 'is-shared' : 'is-local'}`}>{rosterLabel}</em>
         </div> : null}
       </div>
       <div className="gradebook-studio-actions">
@@ -311,7 +353,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     {message ? <div className="gradebook-studio-message" role="status">✓ {message}</div> : null}
     {saving ? <div className="hr-saving-strip"><i />Đang đồng bộ dữ liệu sổ điểm…</div> : null}
 
-    {loading && !workspace ? <section className="hr-panel gradebook-studio-empty"><h2>Đang mở lớp…</h2><p>Brian đang tải dữ liệu lớp và sổ điểm.</p></section> : null}
+    {loading && !workspace ? <section className="hr-panel gradebook-studio-empty"><h2>Đang mở lớp…</h2><p>Brian đang tải dữ liệu lớp, danh sách dùng chung và sổ điểm.</p></section> : null}
     {!loading && !workspace ? <section className="hr-panel gradebook-studio-empty"><h2>{vi ? 'Chưa có lớp để mở sổ điểm' : 'No class yet'}</h2><p>{vi ? 'Chọn một lớp được TTCM phân công ở phía trên hoặc tự tạo lớp bộ môn.' : 'Choose an assigned class above or create a subject class.'}</p><button type="button" className="primary" onClick={() => setCreateOpen(true)}>＋ {vi ? 'Tạo lớp đầu tiên' : 'Create first class'}</button></section> : null}
 
     {workspace && view === 'students' ? <SubjectStudentsTab workspace={workspace} onCommit={commit} /> : null}
