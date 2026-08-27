@@ -11,6 +11,17 @@ const LABEL_KEYS = [
   [/^(quản trị|admin)$/i, 'admin'],
 ];
 
+const NAV_ORDER = {
+  home: 10,
+  apps: 20,
+  dashboard: 30,
+  homeroom: 40,
+  reports: 50,
+  ttcm: 60,
+  games: 70,
+  admin: 80,
+};
+
 function keyForButton(button) {
   if (!button) return '';
   if (button.classList.contains('brian-nav__dashboard-tab')) return 'dashboard';
@@ -31,7 +42,13 @@ function decorate(primary) {
   if (nav.dataset.hubVersion !== '4') nav.dataset.hubVersion = '4';
   primary.querySelectorAll(':scope > button, :scope > a').forEach((button) => {
     const key = keyForButton(button);
-    if (key && button.dataset.navKey !== key) button.dataset.navKey = key;
+    if (!key) return;
+    if (button.dataset.navKey !== key) button.dataset.navKey = key;
+
+    // Runtime authority beats historical route/theme CSS. This guarantees one
+    // semantic order even when lazy-loaded route styles arrive after the hub.
+    const order = NAV_ORDER[key];
+    if (Number.isFinite(order)) button.style.setProperty('order', String(order), 'important');
   });
 }
 
@@ -78,8 +95,8 @@ export default function GlobalNavigationHubController() {
       decorate(primary);
 
       // Portal-injected destinations are direct children of the primary rail.
-      // Observing the entire document made every route render wake this controller
-      // and amplified DOM work during motion transitions.
+      // Re-decorate when any tab is inserted/removed so order never depends on
+      // which React portal mounted first.
       observer = new MutationObserver(scheduleDecorate);
       observer.observe(primary, { childList: true });
     };
