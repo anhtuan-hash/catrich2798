@@ -1,0 +1,195 @@
+.brian-editorial-brief {
+  position: relative;
+  z-index: 999;
+  width: 100%;
+  min-height: 38px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 5px clamp(16px, 2.2vw, 34px) 6px;
+  border-top: 1px solid rgba(143, 106, 76, .10);
+  border-bottom: 1px solid rgba(143, 106, 76, .18);
+  background: rgba(250, 247, 240, .96);
+  color: #293744;
+  font-family: var(--bes-global-font-family, inherit);
+}
+
+.brian-editorial-brief__news {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brian-editorial-brief__label {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #a65f3f;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .16em;
+  white-space: nowrap;
+}
+
+.brian-editorial-brief__label i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #b86d49;
+  box-shadow: 0 0 0 3px rgba(184, 109, 73, .10);
+}
+
+.brian-editorial-brief__track {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  color: #6a6762;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+  mask-image: linear-gradient(90deg, #000 0%, #000 94%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 94%, transparent 100%);
+}
+
+.brian-editorial-brief__track > span:not(.brian-editorial-brief__dot) {
+  flex: 0 0 auto;
+}
+
+.brian-editorial-brief__dot {
+  flex: 0 0 auto;
+  color: #c5b2a1;
+  font-size: 10px;
+}
+
+.brian-editorial-brief__chips {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: max-content;
+}
+
+.brian-editorial-brief__chips button {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid rgba(143, 106, 76, .18);
+  border-radius: 999px;
+  background: #fffdfa;
+  color: #46515a;
+  box-shadow: 0 1px 0 rgba(255,255,255,.9);
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.brian-editorial-brief__chips button:hover,
+.brian-editorial-brief__chips button:focus-visible {
+  border-color: rgba(166, 95, 63, .38);
+  background: #fff7ef;
+  color: #9b583b;
+  outline: none;
+}
+
+.brian-editorial-brief__chips svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: 0 0 auto;
+}
+
+.brian-editorial-brief__chips kbd {
+  padding: 1px 4px;
+  border: 1px solid rgba(143, 106, 76, .16);
+  border-radius: 4px;
+  background: #f8f2e9;
+  color: #81766d;
+  font: inherit;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.brian-editorial-brief__chips em {
+  min-width: 17px;
+  height: 17px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border-radius: 99px;
+  background: #b95449;
+  color: #fff;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.brian-editorial-brief__monogram {
+  width: 16px;
+  height: 16px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 4px;
+  background: #edf3ef;
+  color: #4b6d59;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: -.04em;
+}
+
+@media (max-width: 1180px) {
+  .brian-editorial-brief {
+    gap: 10px;
+  }
+  .brian-editorial-brief__track > span:nth-of-type(n+4) {
+    display: none;
+  }
+  .brian-editorial-brief__chips button span:not(.brian-editorial-brief__monogram) {
+    display: none;
+  }
+  .brian-editorial-brief__chips button {
+    width: 30px;
+    padding: 0;
+  }
+  .brian-editorial-brief__chips kbd {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .brian-editorial-brief {
+    min-height: 34px;
+    grid-template-columns: minmax(0,1fr) auto;
+    padding: 4px 10px 5px;
+  }
+  .brian-editorial-brief__label {
+    font-size: 8px;
+    letter-spacing: .12em;
+  }
+  .brian-editorial-brief__track {
+    font-size: 10px;
+  }
+  .brian-editorial-brief__track > span:not(:first-child) {
+    display: none;
+  }
+  .brian-editorial-brief__dot {
+    display: none;
+  }
+  .brian-editorial-brief__chips {
+    gap: 4px;
+  }
+}
