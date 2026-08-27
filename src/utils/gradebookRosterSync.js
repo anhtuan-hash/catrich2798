@@ -207,12 +207,26 @@ async function fetchRemoteRoster(identity) {
   return { data, error };
 }
 
+function isMissingRosterTable(error) {
+  const code = String(error?.code || '').toUpperCase();
+  const message = String(error?.message || '').toLowerCase();
+  return code === '42P01'
+    || code === 'PGRST205'
+    || (message.includes(ROSTER_TABLE) && (
+      message.includes('does not exist')
+      || message.includes('schema cache')
+      || message.includes('could not find')
+    ));
+}
+
 function cloudError(error, fallback = 'Không thể đồng bộ danh sách lớp dùng chung.') {
+  const missingTable = isMissingRosterTable(error);
   return {
     ok: false,
-    source: 'roster-cloud-error',
+    source: missingTable ? 'roster-table-pending' : 'roster-cloud-error',
     message: error?.message || fallback,
     error,
+    missingTable,
     optional: true,
   };
 }
@@ -226,7 +240,11 @@ export async function saveSharedGradebookRosterSafely(user, workspace) {
   const identity = makeGradebookRosterIdentity(user, workspace);
   const baseSnapshot = readCachedRoster(identity);
   let remoteResult = await fetchRemoteRoster(identity);
-  if (remoteResult.error) return cloudError(remoteResult.error);
+  if (remoteResult.error) {
+    return isMissingRosterTable(remoteResult.error)
+      ? saveSharedGradebookRoster(user, workspace)
+      : cloudError(remoteResult.error);
+  }
   if (!remoteResult.data) return saveSharedGradebookRoster(user, workspace);
 
   let remoteRow = remoteResult.data;
@@ -262,7 +280,11 @@ export async function saveSharedGradebookRosterSafely(user, workspace) {
       .select('roster_key,department_id,class_name,school_year,grade,students,created_by,updated_by,updated_at')
       .maybeSingle();
 
-    if (error) return cloudError(error);
+    if (error) {
+      return isMissingRosterTable(error)
+        ? saveSharedGradebookRoster(user, workspace)
+        : cloudError(error);
+    }
     if (data) {
       writeCachedRoster(identity, data);
       const roster = rowToRoster(identity, data);
@@ -279,7 +301,11 @@ export async function saveSharedGradebookRosterSafely(user, workspace) {
     // CAS miss: cloud changed after our read. Rebase the desired result onto the
     // newly fetched version and try once more instead of overwriting it.
     const latest = await fetchRemoteRoster(identity);
-    if (latest.error) return cloudError(latest.error);
+    if (latest.error) {
+      return isMissingRosterTable(latest.error)
+        ? saveSharedGradebookRoster(user, workspace)
+        : cloudError(latest.error);
+    }
     if (!latest.data) return saveSharedGradebookRoster(user, workspace);
     baseStudents = remoteRow.students || [];
     remoteRow = latest.data;
