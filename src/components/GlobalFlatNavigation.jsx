@@ -83,6 +83,8 @@ import './GlobalNavigationHubV4.css';
 import './GlobalWindowsPhone8Loading.css';
 // TTCM report countdown must override V4's collapsed status dot when Reports is active.
 import './GlobalReportsCountdownV4.css';
+// Final authority: legacy notification center stays retired even if a later hub theme restores it.
+import './GlobalNotificationCenterFinalRemoval.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
