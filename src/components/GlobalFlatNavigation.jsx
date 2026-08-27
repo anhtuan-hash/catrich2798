@@ -25,45 +25,25 @@ import GlobalReportsNavigationTab from './GlobalReportsNavigationTab.jsx';
 import GlobalTtcmNavigationTab from './GlobalTtcmNavigationTab.jsx';
 import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
-import GlobalHomeViewportFitBridge from './GlobalHomeViewportFitBridge.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
+
+// Cross-route utility styles only. Route visual systems must travel with their
+// own lazy route chunks instead of hitchhiking on the shared navigation hub.
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalCommandPaletteGoogle.css';
 import './GlobalCommandPaletteFocusFix.css';
-import './GlobalHomeDashboardRemoval.css';
-import './GlobalHomeGooglePolish.css';
-import './GlobalHome16x9Fit.css';
-import './GlobalHomeOriginalFooter.css';
-import './GlobalAppsGoogle.css';
-import './GlobalAppsContrastPolish.css';
-import './GlobalAppsAndroidLauncher.css';
-import './GlobalAppsWorkspaceRedesign.css';
-import './GlobalAppsWorkspaceCompact.css';
-import './GlobalAppsHorizontalLauncher.css';
-import './GlobalAppsPhoneTiles.css';
-import './GlobalAppsAndroidDrawer.css';
-import './GlobalAppsRemoveQuickSearch.css';
 import './GlobalNewsAndroidGoogle.css';
 import './GlobalNewsDrawerScroll.css';
 import './GlobalTextLabGoogleLarge.css';
-import '../styles/teacher-dashboard-google-v2.css';
-import './GlobalDashboardVisualFix.css';
 import './GlobalNavigationScrollableTabs.css';
 import './GlobalWordGraphGoogleM3.css';
 import './GlobalAutosaveGoogle.css';
-import './GlobalHomeAuroraV3.css';
 import './GlobalAuroraChrome.css';
 import './GlobalSeparatedPills.css';
 import './GlobalNavigationPremiumV2.css';
 import './GlobalNavigationWholeHubAura.css';
 import './GlobalGuestWholeHubAuraFix.css';
 import './GlobalWorkScheduleModern.css';
-import './GlobalHomeViewportFit.css';
-import './GlobalWeeklyPractice.css';
-import './GlobalWeeklyPracticeStatistics.css';
-import './GlobalWeeklyPracticeStatisticsLaunchFix.css';
-import './GlobalWeeklyPracticeSimple.css';
-import './GlobalWeeklyPracticeStudentProof.css';
 import './GlobalScrollPerformance.css';
 import './GlobalNavigationOverlayLayer.css';
 import './GlobalNavigationGoogleM3Polish.css';
@@ -114,7 +94,6 @@ export default function GlobalFlatNavigation(props) {
       <GlobalEditorialBriefBar route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalPrimaryNavigationPin route={props.route} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
-      <GlobalHomeViewportFitBridge route={props.route} />
       <GlobalWeeklyPracticeBridge route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHeroGovernance route={props.route} />
       <GlobalUserProfileSettingsBridge {...props} />
