@@ -1,0 +1,73 @@
+/* Brian English · Reports countdown placement override
+   V4 normally compresses monthly-report status into a 7px dot. When a
+   department leader opens the Reports workspace, expand that same live state
+   into a compact second line directly under the “Báo cáo” label. */
+
+html body .brian-nav__primary > .brian-nav__reports-tab.shows-countdown {
+  min-width: 96px !important;
+  height: 48px !important;
+  max-height: 48px !important;
+  padding: 5px 14px 4px !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px !important;
+}
+
+html body .brian-nav__reports-tab.shows-countdown .brian-nav__reports-label {
+  display: block !important;
+  flex: 0 0 auto !important;
+  font: inherit !important;
+  line-height: 1 !important;
+}
+
+html body .brian-nav__reports-tab.shows-countdown .brian-nav__reports-countdown {
+  width: auto !important;
+  min-width: 0 !important;
+  height: 12px !important;
+  min-height: 12px !important;
+  max-height: 12px !important;
+  display: block !important;
+  flex: 0 0 12px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #5e7085 !important;
+  font-size: 10px !important;
+  font-weight: 760 !important;
+  line-height: 12px !important;
+  letter-spacing: .025em !important;
+  text-indent: 0 !important;
+  white-space: nowrap !important;
+  font-variant-numeric: tabular-nums !important;
+  font-feature-settings: 'tnum' 1 !important;
+}
+
+html body .brian-nav__reports-tab.shows-countdown:is(.is-active, [aria-current='page']) .brian-nav__reports-countdown {
+  color: #245783 !important;
+}
+
+html body .brian-nav__reports-tab.shows-countdown .brian-nav__reports-countdown.is-unset {
+  color: #7b8795 !important;
+  background: transparent !important;
+}
+
+html body .brian-nav__reports-tab.shows-countdown .brian-nav__reports-countdown.is-expired {
+  color: #c62828 !important;
+  background: transparent !important;
+}
+
+@media (max-width: 900px) {
+  html body .brian-nav__primary > .brian-nav__reports-tab.shows-countdown {
+    min-width: 88px !important;
+    padding-inline: 10px !important;
+  }
+
+  html body .brian-nav__reports-tab.shows-countdown .brian-nav__reports-countdown {
+    font-size: 9.5px !important;
+  }
+}
