@@ -84,62 +84,70 @@ create policy "bes_gradebook_admins_all"
 
 grant select, insert, update, delete on public.bes_gradebook_workspaces to authenticated;
 
--- Seed existing gradebooks without copying Homeroom-only data such as attendance,
--- conduct, parent communication, incidents, support plans or backups.
-insert into public.bes_gradebook_workspaces (
-  owner_id,
-  owner_email,
-  workspace_id,
-  class_name,
-  school_year,
-  grade,
-  semester,
-  class_type,
-  status,
-  archived_at,
-  student_count,
-  payload,
-  migrated_from_homeroom,
-  created_at,
-  updated_at
-)
-select
-  h.owner_id,
-  coalesce(h.owner_email, ''),
-  h.workspace_id,
-  coalesce(nullif(h.payload #>> '{classProfile,className}', ''), nullif(h.class_name, ''), 'Lớp bộ môn'),
-  coalesce(nullif(h.payload #>> '{classProfile,schoolYear}', ''), nullif(h.school_year, ''), ''),
-  coalesce(h.payload #>> '{classProfile,grade}', ''),
-  coalesce(nullif(h.payload ->> 'semester', ''), 'Học kỳ I'),
-  coalesce(nullif(h.payload #>> '{classProfile,classType}', ''), 'subject'),
-  coalesce(nullif(h.payload ->> 'status', ''), 'active'),
-  case
-    when nullif(h.payload ->> 'archivedAt', '') is not null
-      then (h.payload ->> 'archivedAt')::timestamptz
-    else null
-  end,
-  case
-    when jsonb_typeof(h.payload -> 'students') = 'array'
-      then jsonb_array_length(h.payload -> 'students')
-    else 0
-  end,
-  jsonb_build_object(
-    'id', h.workspace_id,
-    'status', coalesce(nullif(h.payload ->> 'status', ''), 'active'),
-    'archivedAt', h.payload -> 'archivedAt',
-    'semester', coalesce(nullif(h.payload ->> 'semester', ''), 'Học kỳ I'),
-    'classProfile', coalesce(h.payload -> 'classProfile', '{}'::jsonb),
-    'students', case when jsonb_typeof(h.payload -> 'students') = 'array' then h.payload -> 'students' else '[]'::jsonb end,
-    'learningGradebook', coalesce(h.payload -> 'learningGradebook', '{}'::jsonb),
-    'learningRecords', case when jsonb_typeof(h.payload -> 'learningRecords') = 'array' then h.payload -> 'learningRecords' else '[]'::jsonb end,
-    'gradeSettings', coalesce(h.payload -> 'gradeSettings', '{}'::jsonb),
-    'academicTerms', coalesce(h.payload -> 'academicTerms', '[]'::jsonb),
-    'createdAt', coalesce(h.payload -> 'createdAt', to_jsonb(h.created_at)),
-    'updatedAt', coalesce(h.payload -> 'updatedAt', to_jsonb(h.updated_at)),
-    'gradebookStorageVersion', 1
-  ),
-  true,
-  h.created_at,
-  h.updated_at
-from public.bes_homeroom_workspaces h
-on conflict (owner_id, workspace_id) do nothing;
+-- Seed existing gradebooks only when the legacy Homeroom table is present.
+-- This allows the same migration to work on both an upgraded production DB and
+-- a clean installation that starts directly with the standalone Gradebook.
+do $$
+begin
+  if to_regclass('public.bes_homeroom_workspaces') is not null then
+    insert into public.bes_gradebook_workspaces (
+      owner_id,
+      owner_email,
+      workspace_id,
+      class_name,
+      school_year,
+      grade,
+      semester,
+      class_type,
+      status,
+      archived_at,
+      student_count,
+      payload,
+      migrated_from_homeroom,
+      created_at,
+      updated_at
+    )
+    select
+      h.owner_id,
+      coalesce(h.owner_email, ''),
+      h.workspace_id,
+      coalesce(nullif(h.payload #>> '{classProfile,className}', ''), nullif(h.class_name, ''), 'Lớp bộ môn'),
+      coalesce(nullif(h.payload #>> '{classProfile,schoolYear}', ''), nullif(h.school_year, ''), ''),
+      coalesce(h.payload #>> '{classProfile,grade}', ''),
+      coalesce(nullif(h.payload ->> 'semester', ''), 'Học kỳ I'),
+      coalesce(nullif(h.payload #>> '{classProfile,classType}', ''), 'subject'),
+      coalesce(nullif(h.payload ->> 'status', ''), 'active'),
+      case
+        when nullif(h.payload ->> 'archivedAt', '') is not null
+          and (h.payload ->> 'archivedAt') ~ '^\d{4}-\d{2}-\d{2}'
+          then (h.payload ->> 'archivedAt')::timestamptz
+        else null
+      end,
+      case
+        when jsonb_typeof(h.payload -> 'students') = 'array'
+          then jsonb_array_length(h.payload -> 'students')
+        else 0
+      end,
+      jsonb_build_object(
+        'id', h.workspace_id,
+        'status', coalesce(nullif(h.payload ->> 'status', ''), 'active'),
+        'archivedAt', h.payload -> 'archivedAt',
+        'semester', coalesce(nullif(h.payload ->> 'semester', ''), 'Học kỳ I'),
+        'classProfile', coalesce(h.payload -> 'classProfile', '{}'::jsonb),
+        'students', case when jsonb_typeof(h.payload -> 'students') = 'array' then h.payload -> 'students' else '[]'::jsonb end,
+        'learningGradebook', coalesce(h.payload -> 'learningGradebook', '{}'::jsonb),
+        'learningRecords', case when jsonb_typeof(h.payload -> 'learningRecords') = 'array' then h.payload -> 'learningRecords' else '[]'::jsonb end,
+        'gradeSettings', coalesce(h.payload -> 'gradeSettings', '{}'::jsonb),
+        'academicTerms', coalesce(h.payload -> 'academicTerms', '[]'::jsonb),
+        'createdAt', coalesce(h.payload -> 'createdAt', to_jsonb(h.created_at)),
+        'updatedAt', coalesce(h.payload -> 'updatedAt', to_jsonb(h.updated_at)),
+        'gradebookStorageVersion', 1
+      ),
+      true,
+      h.created_at,
+      h.updated_at
+    from public.bes_homeroom_workspaces h
+    on conflict (owner_id, workspace_id) do nothing;
+  end if;
+end
+$$;
