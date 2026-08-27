@@ -88,6 +88,8 @@ import './GlobalReportsCountdownV4.css';
 import './GlobalPinnedNavigationHub.css';
 // Final authority: legacy notification center stays retired even if a later hub theme restores it.
 import './GlobalNotificationCenterFinalRemoval.css';
+// Absolute final chrome authority: Home may style content, never navigation. One shared hub only.
+import './GlobalSingleNavigationHubAuthority.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
