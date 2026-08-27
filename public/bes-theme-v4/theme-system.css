@@ -1,4 +1,6 @@
-/* Brian English · global color system. Light is default; dark is opt-in/system. */
+/* Brian English · global semantic color system.
+   Light remains the default. Dark uses a warm Midnight Material palette rather
+   than inverting/blackening route artwork. */
 :root {
   color-scheme: light;
   --bes-theme-page: #f7f9fc;
@@ -41,41 +43,48 @@
 }
 
 html[data-theme='dark'],
+html[data-bes-theme='dark'],
 html.theme-dark {
   color-scheme: dark;
-  --bes-theme-page: #0f141b;
-  --bes-theme-page-soft: #121923;
-  --bes-theme-surface: #171e28;
-  --bes-theme-surface-low: #131a23;
-  --bes-theme-surface-mid: #202a36;
-  --bes-theme-surface-high: #293646;
-  --bes-theme-text: #eef3f8;
-  --bes-theme-text-soft: #d6e0ea;
-  --bes-theme-text-muted: #9aaabd;
-  --bes-theme-border: #334255;
-  --bes-theme-divider: #293747;
-  --bes-theme-primary: #8ab4f8;
-  --bes-theme-primary-hover: #aecbfa;
-  --bes-theme-on-primary: #072d63;
-  --bes-theme-primary-container: #263f62;
-  --bes-theme-on-primary-container: #d8e7ff;
-  --bes-theme-positive: #81c995;
-  --bes-theme-positive-container: #173925;
-  --bes-theme-warning: #fdd663;
-  --bes-theme-warning-container: #493817;
-  --bes-theme-danger: #f28b82;
-  --bes-theme-danger-container: #4a2325;
-  --bes-theme-scrim: rgba(0, 0, 0, .64);
-  --bes-theme-shadow-1: 0 1px 2px rgba(0, 0, 0, .38);
-  --bes-theme-shadow-2: 0 12px 34px rgba(0, 0, 0, .45), 0 2px 8px rgba(0, 0, 0, .28);
+
+  /* Midnight Material: warm graphite, not pure black / blue-black. */
+  --bes-theme-page: #151719;
+  --bes-theme-page-soft: #191c1f;
+  --bes-theme-surface: #202428;
+  --bes-theme-surface-low: #1b1f22;
+  --bes-theme-surface-mid: #272c31;
+  --bes-theme-surface-high: #30363c;
+  --bes-theme-text: #f3f0eb;
+  --bes-theme-text-soft: #d8d4ce;
+  --bes-theme-text-muted: #a49f98;
+  --bes-theme-border: #3b4147;
+  --bes-theme-divider: #31363b;
+
+  /* Calm, slightly desaturated accents survive long reading sessions. */
+  --bes-theme-primary: #9ab7e8;
+  --bes-theme-primary-hover: #b8cbed;
+  --bes-theme-on-primary: #17273b;
+  --bes-theme-primary-container: #2b394b;
+  --bes-theme-on-primary-container: #e0e9f7;
+  --bes-theme-positive: #8fc5a0;
+  --bes-theme-positive-container: #263a2d;
+  --bes-theme-warning: #dfb873;
+  --bes-theme-warning-container: #463922;
+  --bes-theme-danger: #e99f99;
+  --bes-theme-danger-container: #472d2d;
+
+  --bes-theme-scrim: rgba(7, 8, 9, .58);
+  --bes-theme-shadow-1: 0 1px 2px rgba(0, 0, 0, .25);
+  --bes-theme-shadow-2: 0 14px 38px rgba(0, 0, 0, .30), 0 2px 8px rgba(0, 0, 0, .18);
+
   --bes-page-bg: var(--bes-theme-page);
   --bes-surface: var(--bes-theme-surface);
-  --bes-surface-elevated: #1b2430;
+  --bes-surface-elevated: #252a2f;
   --bes-ink: var(--bes-theme-text);
   --bes-muted: var(--bes-theme-text-muted);
   --bes-border: var(--bes-theme-border);
-  --brian-nav-surface: #151c25;
-  --brian-nav-soft: #202a36;
+  --brian-nav-surface: #1d2125;
+  --brian-nav-soft: #272c31;
   --brian-nav-ink: var(--bes-theme-text);
   --brian-nav-muted: var(--bes-theme-text-muted);
   --brian-nav-line: var(--bes-theme-border);
@@ -121,7 +130,8 @@ html {
 
 @media print {
   :root,
-  html[data-theme='dark'] {
+  html[data-theme='dark'],
+  html[data-bes-theme='dark'] {
     color-scheme: light !important;
     --bes-theme-page: #fff !important;
     --bes-theme-surface: #fff !important;
