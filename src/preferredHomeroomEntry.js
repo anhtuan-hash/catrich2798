@@ -14,7 +14,6 @@ import {
 let installed = false;
 let previousHomeroomRoute = false;
 let runningPromise = null;
-let reloadTimer = 0;
 
 function text(value) {
   return String(value ?? '').trim();
@@ -79,14 +78,19 @@ function preferredLocalWorkspace(user) {
   return null;
 }
 
-function scheduleReload() {
-  window.clearTimeout(reloadTimer);
-  reloadTimer = window.setTimeout(() => {
-    if (isHomeroomRoute()) window.location.reload();
-  }, 30);
+function switchHomeroomWorkspaceInPlace(preferred) {
+  if (!preferred?.id || typeof window === 'undefined' || !isHomeroomRoute()) return;
+  window.dispatchEvent(new CustomEvent('bes-homeroom-command', {
+    detail: {
+      type: 'homeroom.navigate',
+      workspaceId: preferred.id,
+      tab: 'overview',
+      source: preferred.source || 'preferred-homeroom',
+    },
+  }));
 }
 
-export async function preparePreferredHomeroomEntry(options = {}) {
+export async function preparePreferredHomeroomEntry() {
   if (!isHomeroomRoute()) return { ok: true, changed: false, skipped: 'outside-homeroom' };
   if (runningPromise) return runningPromise;
 
@@ -115,8 +119,8 @@ export async function preparePreferredHomeroomEntry(options = {}) {
       },
     }));
     window.dispatchEvent(new CustomEvent('bes-homeroom-store-updated'));
+    switchHomeroomWorkspaceInPlace(preferred);
 
-    if (options.reloadOnChange === true) scheduleReload();
     return {
       ok: true,
       changed: true,
@@ -131,7 +135,7 @@ export async function preparePreferredHomeroomEntry(options = {}) {
 
 function enforceAfterAssignmentSync() {
   window.setTimeout(() => {
-    preparePreferredHomeroomEntry({ reloadOnChange: true }).catch((error) => {
+    preparePreferredHomeroomEntry().catch((error) => {
       console.warn('[PreferredHomeroomEntry] Không thể mở lớp chủ nhiệm sau đồng bộ.', error);
     });
   }, 80);
