@@ -71,6 +71,8 @@
   position: relative;
   min-width: 0;
   height: 32px;
+  display: flex;
+  align-items: center;
   overflow: hidden;
   white-space: nowrap;
   mask-image: linear-gradient(90deg, transparent 0, #000 2%, #000 98%, transparent 100%);
@@ -78,33 +80,34 @@
 }
 
 .brian-editorial-brief__ticker {
+  flex: 0 0 auto;
   width: max-content;
+  min-width: max-content;
   display: inline-flex;
   align-items: center;
-  gap: 15px;
   color: #40566d;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
   will-change: transform;
 }
 
 .brian-editorial-brief__ticker.is-running {
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  animation: brianNavigationNewswireRTL 52s linear infinite;
-}
-
-.brian-editorial-brief__ticker:not(.is-running) {
-  position: relative;
-  min-height: 32px;
+  animation: brianNavigationNewswireRTL 46s linear infinite;
+  -webkit-animation: brianNavigationNewswireRTL 46s linear infinite;
 }
 
 .brian-editorial-brief__track:hover .brian-editorial-brief__ticker.is-running,
 .brian-editorial-brief__track:focus-within .brian-editorial-brief__ticker.is-running {
   animation-play-state: paused;
+  -webkit-animation-play-state: paused;
 }
 
-.brian-editorial-brief__lead-space {
-  display: none;
+.brian-editorial-brief__ticker-group {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 15px;
+  padding-right: 30px;
 }
 
 .brian-editorial-brief__headline {
@@ -204,18 +207,19 @@
 }
 
 @keyframes brianNavigationNewswireRTL {
-  from { transform: translate3d(0, -50%, 0); }
-  to { transform: translate3d(calc(-100% - 100vw), -50%, 0); }
+  from {
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+    -webkit-transform: translate3d(-50%, 0, 0);
+  }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .brian-editorial-brief__ticker.is-running {
-    position: relative;
-    left: auto;
-    top: auto;
-    animation: none;
-    transform: none;
-  }
+@-webkit-keyframes brianNavigationNewswireRTL {
+  from { -webkit-transform: translate3d(0, 0, 0); }
+  to { -webkit-transform: translate3d(-50%, 0, 0); }
 }
 
 @media (max-width: 980px) {
@@ -265,6 +269,16 @@
     letter-spacing: .1em;
   }
 
+  .brian-editorial-brief__ticker.is-running {
+    animation-duration: 36s;
+    -webkit-animation-duration: 36s;
+  }
+
+  .brian-editorial-brief__ticker-group {
+    gap: 12px;
+    padding-right: 24px;
+  }
+
   .brian-editorial-brief__headline {
     max-width: 320px;
     font-size: 10px;
@@ -276,9 +290,5 @@
 
   .brian-editorial-brief__headline span {
     max-width: 240px;
-  }
-
-  .brian-editorial-brief__ticker.is-running {
-    animation-duration: 44s;
   }
 }
