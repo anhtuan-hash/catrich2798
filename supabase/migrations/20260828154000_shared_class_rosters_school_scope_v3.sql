@@ -2,6 +2,36 @@
 -- A formally assigned class has one canonical roster across the whole school,
 -- independent of subject department. Legacy department-scoped rows are kept as backup.
 
+create or replace function public.bes_current_school_year()
+returns text
+language sql
+stable
+set search_path = public
+as $$
+  with local_clock as (
+    select timezone('Asia/Ho_Chi_Minh', now()) as ts
+  )
+  select case
+    when extract(month from ts) >= 7 then
+      extract(year from ts)::int::text || '-' || (extract(year from ts)::int + 1)::text
+    else
+      (extract(year from ts)::int - 1)::text || '-' || extract(year from ts)::int::text
+  end
+  from local_clock;
+$$;
+
+create or replace function public.bes_is_current_school_year(
+  p_school_year text
+)
+returns boolean
+language sql
+stable
+set search_path = public
+as $$
+  select replace(replace(lower(trim(coalesce(p_school_year, ''))), '–', '-'), '—', '-')
+    = lower(public.bes_current_school_year());
+$$;
+
 create or replace function public.bes_has_any_class_assignment(
   p_class_name text
 )
@@ -46,10 +76,11 @@ begin
 end;
 $$;
 
-create or replace function public.bes_can_access_class_roster_v2(
+create or replace function public.bes_can_access_class_roster_v3(
   p_roster_key text,
   p_created_by uuid,
-  p_class_name text
+  p_class_name text,
+  p_school_year text
 )
 returns boolean
 language sql
@@ -62,13 +93,16 @@ as $$
       p_created_by = auth.uid()
       or (
         coalesce(p_roster_key, '') like 'class:%'
+        and public.bes_is_current_school_year(p_school_year)
         and public.bes_has_any_class_assignment(p_class_name)
       )
     );
 $$;
 
+grant execute on function public.bes_current_school_year() to authenticated;
+grant execute on function public.bes_is_current_school_year(text) to authenticated;
 grant execute on function public.bes_has_any_class_assignment(text) to authenticated;
-grant execute on function public.bes_can_access_class_roster_v2(text, uuid, text) to authenticated;
+grant execute on function public.bes_can_access_class_roster_v3(text, uuid, text, text) to authenticated;
 
 -- Consolidate all department-scoped rosters into one canonical school-wide row.
 -- For the same student appearing in several source rows, the most recently updated
@@ -199,7 +233,7 @@ create policy "bes_class_rosters_select"
   for select
   to authenticated
   using (
-    public.bes_can_access_class_roster_v2(roster_key, created_by, class_name)
+    public.bes_can_access_class_roster_v3(roster_key, created_by, class_name, school_year)
   );
 
 drop policy if exists "bes_class_rosters_insert" on public.bes_class_rosters;
@@ -213,6 +247,7 @@ create policy "bes_class_rosters_insert"
       roster_key like 'owner:%'
       or (
         roster_key like 'class:%'
+        and public.bes_is_current_school_year(school_year)
         and public.bes_has_any_class_assignment(class_name)
       )
     )
@@ -224,14 +259,14 @@ create policy "bes_class_rosters_update"
   for update
   to authenticated
   using (
-    public.bes_can_access_class_roster_v2(roster_key, created_by, class_name)
+    public.bes_can_access_class_roster_v3(roster_key, created_by, class_name, school_year)
   )
   with check (
-    public.bes_can_access_class_roster_v2(roster_key, created_by, class_name)
+    public.bes_can_access_class_roster_v3(roster_key, created_by, class_name, school_year)
   );
 
 grant select, insert, update on public.bes_class_rosters to authenticated;
 revoke delete on public.bes_class_rosters from authenticated;
 
 comment on table public.bes_class_rosters is
-  'Canonical school-wide class roster for assigned classes. Legacy department rows remain as backup; owner-scoped private classes remain isolated.';
+  'Canonical school-wide class roster for current-year assigned classes. Legacy department rows remain as backup; owner-scoped private classes remain isolated.';
