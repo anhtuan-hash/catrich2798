@@ -62,6 +62,22 @@ function SettingsIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm7 4 2-1-1-3-2 .2-1.3-1.5.4-2.1-3-1.2-1.2 1.7h-2L9.7 3.4l-3 1.2.4 2.1L5.8 8.2 3.7 8 3 11l2 1-2 1 .7 3 2.1-.2 1.3 1.5-.4 2.1 3 1.2 1.2-1.7h2l1.2 1.7 3-1.2-.4-2.1 1.3-1.5 2.1.2.7-3-2-1Z" /></svg>;
 }
 
+function TickerGroup({ items, openNews, duplicate = false }) {
+  return (
+    <span className="brian-editorial-brief__ticker-group" aria-hidden={duplicate ? 'true' : undefined}>
+      {items.map((item, index) => (
+        <React.Fragment key={`${duplicate ? 'copy-' : ''}${item.id}`}>
+          {index > 0 ? <span className="brian-editorial-brief__dot" aria-hidden="true">◆</span> : null}
+          <button type="button" className="brian-editorial-brief__headline" onClick={openNews} tabIndex={duplicate ? -1 : undefined}>
+            {item.source ? <small>{item.source}</small> : null}
+            <span>{item.title}</span>
+          </button>
+        </React.Fragment>
+      ))}
+    </span>
+  );
+}
+
 export default function GlobalEditorialBriefBar({ language = 'vi', currentUser }) {
   const vi = language !== 'en';
   const initialCache = readCachedNews(language);
@@ -120,15 +136,8 @@ export default function GlobalEditorialBriefBar({ language = 'vi', currentUser }
         </button>
         <div className="brian-editorial-brief__track" aria-live="off">
           <div className={`brian-editorial-brief__ticker ${headlines.length ? 'is-running' : ''}`}>
-            {tickerItems.map((item, index) => (
-              <React.Fragment key={item.id}>
-                {index > 0 ? <span className="brian-editorial-brief__dot" aria-hidden="true">◆</span> : null}
-                <button type="button" className="brian-editorial-brief__headline" onClick={openNews}>
-                  {item.source ? <small>{item.source}</small> : null}
-                  <span>{item.title}</span>
-                </button>
-              </React.Fragment>
-            ))}
+            <TickerGroup items={tickerItems} openNews={openNews} />
+            {headlines.length ? <TickerGroup items={tickerItems} openNews={openNews} duplicate /> : null}
           </div>
         </div>
       </div>
