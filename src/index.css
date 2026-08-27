@@ -1,10 +1,10 @@
-/* Brian CSS entrypoint. Active foundation is kept outside the retired legacy bundle. */
+/* Brian CSS entrypoint. Active styles live in the current styles directory. */
 @import './styles/Foundation.css';
-@import './styles/legacy/02-workspaces.css';
-@import './styles/legacy/03-operations.css';
-@import './styles/legacy/04-modern-shell.css';
-@import './styles/legacy/05-connected-platform.css';
-@import './styles/legacy/06-current-features.css';
+@import './styles/BrianWorkspaces.css';
+@import './styles/BrianOperations.css';
+@import './styles/BrianShell.css';
+@import './styles/BrianConnectedPlatform.css';
+@import './styles/BrianCurrentFeatures.css';
 @import './styles/PersonalFontSystem.css';
 @import './styles/GlobalNavigationAlignmentFix.css';
 @import './styles/VietnamAtmosphereViewportFix.css';
