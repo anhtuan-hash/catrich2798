@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import './GlobalWindowsPhone8Loading.css';
 
 const MIN_ROUTE_VISIBLE_MS = 460;
 const MAX_ROUTE_VISIBLE_MS = 1800;
@@ -85,8 +84,6 @@ export default function GlobalWindowsPhone8Loading() {
     if (typeof document === 'undefined') return undefined;
     setHost(document.body);
 
-    // The old Windows 8 route loader is retired. Remove any stale instance
-    // left in the DOM after hot reload so only the Phone 8 indicator remains.
     document.getElementById('bes-windows8-route-loader')?.remove();
 
     const clearTimers = () => {
