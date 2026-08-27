@@ -4,6 +4,7 @@
 
 :root {
   color-scheme: light;
+  --brian-document-canvas: #f8f4ec;
   --page: #f8f4ec;
   --surface: #ffffff;
   --surface-2: #f8f4ec;
@@ -48,6 +49,7 @@
 
 html[data-theme='dark'] {
   color-scheme: dark;
+  --brian-document-canvas: #061522;
   --page: #061522;
   --surface: #0d263d;
   --surface-2: #143854;
@@ -101,7 +103,7 @@ body,
 #root {
   min-height: 100%;
   margin: 0;
-  background-color: var(--page) !important;
+  background-color: var(--brian-document-canvas) !important;
   background-image: none !important;
 }
 
@@ -117,8 +119,31 @@ body {
 .metro-shell,
 .metro-clean-system {
   min-height: 100vh;
-  background-color: var(--page) !important;
+  background-color: var(--brian-document-canvas) !important;
   background-image: none !important;
+}
+
+/* Authoritative outer-canvas contract.
+   Route styles are allowed to decorate their own panels, heroes and cards, but
+   may not repaint the site-level shell or page stage with gradients/glows. The
+   specificity sentinels deliberately outrank late route-level !important rules. */
+html body .app-shell:not(#bes-flat-canvas-a#bes-flat-canvas-b),
+html body .metro-shell:not(#bes-flat-canvas-a#bes-flat-canvas-b),
+html body .metro-clean-system:not(#bes-flat-canvas-a#bes-flat-canvas-b) {
+  background-color: var(--brian-document-canvas) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html body .app-shell:not(#bes-flat-stage-a#bes-flat-stage-b) > main.wp8-page-stage,
+html body .metro-shell:not(#bes-flat-stage-a#bes-flat-stage-b) > main.wp8-page-stage,
+html body .metro-clean-system:not(#bes-flat-stage-a#bes-flat-stage-b) > main.wp8-page-stage,
+html body #bes-main-content:not(#bes-flat-stage-a#bes-flat-stage-b) {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
 }
 
 /* Retire historical full-site ambient pseudo layers. This affects only the
