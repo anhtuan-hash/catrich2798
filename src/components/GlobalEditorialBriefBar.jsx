@@ -53,7 +53,7 @@ function openRoute(target, label, sourceEl) {
   launchRoute({
     target: target.startsWith('#/') ? target : `#/${target}`,
     label: String(label || 'GO').slice(0, 2).toUpperCase(),
-    color: '#ad6647',
+    color: '#0b57d0',
     sourceEl,
   });
 }
@@ -64,8 +64,9 @@ function SettingsIcon() {
 
 export default function GlobalEditorialBriefBar({ language = 'vi', currentUser }) {
   const vi = language !== 'en';
-  const [payload, setPayload] = useState(() => readCachedNews(language));
-  const [loading, setLoading] = useState(() => !readCachedNews(language));
+  const initialCache = readCachedNews(language);
+  const [payload, setPayload] = useState(initialCache);
+  const [loading, setLoading] = useState(() => !initialCache);
 
   useEffect(() => {
     let alive = true;
@@ -102,9 +103,8 @@ export default function GlobalEditorialBriefBar({ language = 'vi', currentUser }
     title: loading
       ? (vi ? 'Đang cập nhật dòng tin mới nhất từ Đọc báo…' : 'Updating the latest Newsroom headlines…')
       : (vi ? 'Mở Đọc báo để xem dòng tin giáo dục mới nhất.' : 'Open Newsroom for the latest education headlines.'),
-    source: vi ? 'Brian Newsroom' : 'Brian Newsroom',
+    source: 'Brian Newsroom',
   }];
-  const tickerLoop = headlines.length > 1 ? [...tickerItems, ...tickerItems] : tickerItems;
 
   const openNews = (event) => openRoute('#/news', vi ? 'Đọc báo' : 'News', event.currentTarget);
   const openSettings = (event) => {
@@ -119,10 +119,11 @@ export default function GlobalEditorialBriefBar({ language = 'vi', currentUser }
           <i />{vi ? 'TIN VẮN' : 'NEWSWIRE'}
         </button>
         <div className="brian-editorial-brief__track" aria-live="off">
-          <div className={`brian-editorial-brief__ticker ${headlines.length > 1 ? 'is-running' : ''}`}>
-            {tickerLoop.map((item, index) => (
-              <React.Fragment key={`${item.id}-${index}`}>
-                {index > 0 ? <span className="brian-editorial-brief__dot" aria-hidden="true">•</span> : null}
+          <div className={`brian-editorial-brief__ticker ${headlines.length ? 'is-running' : ''}`}>
+            <span className="brian-editorial-brief__lead-space" aria-hidden="true" />
+            {tickerItems.map((item, index) => (
+              <React.Fragment key={item.id}>
+                {index > 0 ? <span className="brian-editorial-brief__dot" aria-hidden="true">◆</span> : null}
                 <button type="button" className="brian-editorial-brief__headline" onClick={openNews}>
                   {item.source ? <small>{item.source}</small> : null}
                   <span>{item.title}</span>
