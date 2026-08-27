@@ -120,7 +120,6 @@ export default function GlobalEditorialBriefBar({ language = 'vi', currentUser }
         </button>
         <div className="brian-editorial-brief__track" aria-live="off">
           <div className={`brian-editorial-brief__ticker ${headlines.length ? 'is-running' : ''}`}>
-            <span className="brian-editorial-brief__lead-space" aria-hidden="true" />
             {tickerItems.map((item, index) => (
               <React.Fragment key={item.id}>
                 {index > 0 ? <span className="brian-editorial-brief__dot" aria-hidden="true">◆</span> : null}
