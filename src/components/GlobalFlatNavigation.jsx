@@ -5,6 +5,7 @@ import GlobalMetroNavigationIndicator from './GlobalMetroNavigationIndicator.jsx
 import GlobalWindows8Experience from './GlobalWindows8Experience.jsx';
 import GlobalEditorialBriefBar from './GlobalEditorialBriefBar.jsx';
 import GlobalPrimaryNavigationPin from './GlobalPrimaryNavigationPin.jsx';
+import GlobalNavigationHubController from './GlobalNavigationHubController.jsx';
 import GlobalNativeTextScaleReset from './GlobalNativeTextScaleReset.jsx';
 import GlobalGuestNavigationHub from './GlobalGuestNavigationHub.jsx';
 import GlobalUserProfileSettingsBridge from './GlobalUserProfileSettingsBridge.jsx';
@@ -72,16 +73,17 @@ import '../pages/SeatingChartStudioFocus.css';
 import './GlobalNavigationFixedSizeContract.css';
 import './GlobalCriticalJankGuard.css';
 import './GlobalNotificationCenterRemoval.css';
-// Windows 8 remains an optional motion language; it no longer owns header visuals.
+// Windows 8 remains an optional motion language; header visuals are owned by V4.
 import './GlobalWindows8Experience.css';
-// Sole final visual + typography contract for the shared navigation hub.
-import './GlobalNavigationHubV3.css';
+// Approved final visual + typography contract for the shared navigation hub.
+import './GlobalNavigationHubV4.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
     <>
       <GlobalNativeTextScaleReset />
       <Navigation {...props} />
+      <GlobalNavigationHubController />
       <GlobalMetroNavigationIndicator route={props.route} />
       <GlobalWindows8Experience route={props.route} />
       <GlobalEditorialBriefBar route={props.route} language={props.language} currentUser={props.currentUser} />
