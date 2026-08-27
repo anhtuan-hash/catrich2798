@@ -102,6 +102,9 @@ async function fetchPublicTypographyRow() {
 function applyRow(row) {
   const preset = String(row?.font_preset || 'system').trim().toLowerCase();
   if (preset === 'custom' && row?.custom_font_url) {
+    // Persist the preset first so main.jsx cannot fall back to an older cached
+    // built-in font when the regular font runtime installs after this bootstrap.
+    applyGlobalFontPreset('custom', { source: 'public-bootstrap', persist: true, broadcast: false });
     applyGlobalCustomFont(customConfigFromRow(row), { persist: true, source: 'public-bootstrap' });
   } else {
     applyGlobalFontPreset(preset, { source: 'public-bootstrap', persist: true, broadcast: false });
