@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import GradebookWorkspace from '../components/gradebook/GradebookWorkspace.jsx';
+import GradebookRosterHistoryPanel from '../components/gradebook/GradebookRosterHistoryPanel.jsx';
 import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
 import {
   createGradebookClass,
@@ -23,10 +24,12 @@ import {
   listMyGradebookTeachingAssignments,
   matchGradebookClassToAssignment,
 } from '../utils/gradebookTeachingAssignments.js';
+import { evaluateGradebookAssignmentLifecycle } from '../utils/gradebookAssignmentLifecycle.js';
 import { makeWorkspaceId } from '../utils/homeroomPhase3.js';
 import { getClassTypeLabel } from '../utils/homeroomClassTypes.js';
 import '../styles/homeroom-complete.css';
 import '../styles/GradebookStudio.css';
+import '../styles/GradebookLifecycle.css';
 
 const EMPTY_CLASS = {
   className: '',
@@ -71,14 +74,30 @@ function rosterFingerprint(students = []) {
 
 function rosterStatusLabel(source, vi = true) {
   if (source === 'roster-cloud') return vi ? '✓ Danh sách dùng chung' : '✓ Shared roster';
+  if (source === 'roster-cloud-promoted') return vi ? '✓ Danh sách toàn trường · đã hợp nhất' : '✓ School roster · promoted';
   if (source === 'roster-realtime') return vi ? '● Danh sách dùng chung · realtime' : '● Shared roster · realtime';
   if (source === 'roster-conflict-resolved') return vi ? '✓ Danh sách dùng chung · đã hòa giải' : '✓ Shared roster · conflict resolved';
   if (source === 'roster-concurrent-retry') return vi ? 'Danh sách dùng chung · cần kiểm tra lại' : 'Shared roster · review needed';
   if (source === 'roster-cloud-empty') return vi ? 'Danh sách dùng chung sẵn sàng' : 'Shared roster ready';
+  if (source === 'assignment-ended') return vi ? 'Roster chỉ đọc · hết phân công' : 'Read-only roster · assignment ended';
+  if (source === 'historical-roster') return vi ? 'Roster lịch sử · chỉ đọc' : 'Historical roster · read only';
   if (source === 'roster-table-pending') return vi ? 'Danh sách cục bộ · chờ kích hoạt cloud' : 'Local roster · cloud pending';
   if (source === 'roster-cloud-error') return vi ? 'Danh sách cục bộ · lỗi đồng bộ' : 'Local roster · sync issue';
   if (source === 'roster-local' || source === 'no-cloud') return vi ? 'Danh sách cục bộ' : 'Local roster';
   return vi ? 'Đang kiểm tra danh sách…' : 'Checking roster…';
+}
+
+function lifecycleExplanation(lifecycle) {
+  if (lifecycle.status === 'ended') {
+    return 'TTCM không còn phân công bạn dạy lớp này. Sổ điểm cá nhân vẫn được giữ để xem, hoàn thiện hồ sơ và xuất báo cáo; roster dùng chung chuyển sang chỉ đọc.';
+  }
+  if (lifecycle.status === 'historical') {
+    return 'Đây là sổ điểm của năm học cũ. Brian giữ dữ liệu lịch sử nhưng không tiếp tục đồng bộ/chỉnh roster dùng chung của năm hiện hành.';
+  }
+  if (lifecycle.status === 'unverified') {
+    return 'Brian chưa xác minh được phân công từ Brian Team. Chức năng hiện tại vẫn hoạt động và RLS trên Supabase tiếp tục là lớp bảo vệ cuối.';
+  }
+  return '';
 }
 
 export default function GradebookStudio({ currentUser, language = 'vi' }) {
@@ -90,6 +109,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     () => readSelectedClassId(currentUser, initialCatalog),
     [currentUser?.id, currentUser?.authId, currentUser?.email],
   );
+
   const [catalog, setCatalog] = useState(initialCatalog);
   const [workspaceId, setWorkspaceId] = useState(initialId);
   const [workspace, setWorkspace] = useState(() => initialId ? loadLocalGradebookClass(currentUser, initialId) : null);
@@ -109,6 +129,10 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const assignedReadyCount = useMemo(() => teachingAssignments.filter(
     (assignment) => Boolean(findAssignmentClass(activeClasses, assignment)),
   ).length, [teachingAssignments, activeClasses]);
+  const lifecycle = useMemo(
+    () => evaluateGradebookAssignmentLifecycle(workspace, teachingAssignments, assignmentSource),
+    [workspace, teachingAssignments, assignmentSource],
+  );
 
   const refreshCatalog = async () => {
     const local = listLocalGradebookClasses(currentUser);
@@ -158,7 +182,17 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       try {
         const result = await loadGradebookClass(currentUser, workspaceId);
         if (!result.workspace) return;
-        const rosterResult = await hydrateGradebookWithSharedRoster(currentUser, result.workspace);
+        const access = evaluateGradebookAssignmentLifecycle(
+          result.workspace,
+          teachingAssignments,
+          assignmentSource,
+        );
+        const rosterResult = access.sharingAllowed
+          ? await hydrateGradebookWithSharedRoster(currentUser, result.workspace)
+          : {
+            workspace: result.workspace,
+            source: access.status === 'historical' ? 'historical-roster' : 'assignment-ended',
+          };
         if (!alive) return;
         const hydrated = rosterResult.workspace || result.workspace;
         const saved = saveLocalGradebookClass(hydrated, currentUser);
@@ -171,17 +205,29 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     })();
 
     return () => { alive = false; };
-  }, [currentUser?.id, currentUser?.authId, currentUser?.email, workspaceId]);
+  }, [
+    currentUser?.id,
+    currentUser?.authId,
+    currentUser?.email,
+    workspaceId,
+    assignmentSource,
+    teachingAssignments,
+  ]);
 
   const flash = (text) => {
     setMessage(text);
     window.clearTimeout(window.__besGradebookStudioMessage);
-    window.__besGradebookStudioMessage = window.setTimeout(() => setMessage(''), 3600);
+    window.__besGradebookStudioMessage = window.setTimeout(() => setMessage(''), 4200);
   };
 
   useEffect(() => {
+    if (lifecycle.status === 'ended') setRosterSource('assignment-ended');
+    if (lifecycle.status === 'historical') setRosterSource('historical-roster');
+  }, [lifecycle.status]);
+
+  useEffect(() => {
     const current = workspaceRef.current;
-    if (!current || !workspaceId) return undefined;
+    if (!current || !workspaceId || !lifecycle.sharingAllowed) return undefined;
 
     return subscribeSharedGradebookRoster(currentUser, current, ({ roster, updatedBy }) => {
       const latest = workspaceRef.current;
@@ -194,7 +240,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       const selfUpdate = String(updatedBy || '') === String(currentUser?.id || '');
       setRosterSource(selfUpdate ? 'roster-cloud' : 'roster-realtime');
       if (!selfUpdate) {
-        flash('Danh sách học sinh vừa được cập nhật từ Sổ điểm của giáo viên khác. Điểm và ghi chú môn học của bạn vẫn được giữ nguyên.');
+        flash('Danh sách học sinh vừa được cập nhật từ giáo viên khác. Điểm và ghi chú môn học của bạn vẫn được giữ nguyên.');
       }
     });
   }, [
@@ -202,13 +248,20 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     currentUser?.authId,
     currentUser?.email,
     workspaceId,
+    lifecycle.sharingAllowed,
     workspace?.classProfile?.assignmentDepartmentId,
+    workspace?.classProfile?.assignmentSource,
     workspace?.classProfile?.className,
     workspace?.classProfile?.schoolYear,
   ]);
 
   const commit = async (next, successMessage = 'Đã lưu dữ liệu sổ điểm.') => {
     const rosterChanged = rosterFingerprint(next?.students) !== rosterFingerprint(workspaceRef.current?.students);
+    if (rosterChanged && !lifecycle.rosterEditable) {
+      flash('Roster đang ở chế độ chỉ đọc vì phân công không còn hiệu lực hoặc đây là dữ liệu năm học cũ.');
+      return { ok: false, blocked: true, workspace: workspaceRef.current };
+    }
+
     const local = saveLocalGradebookClass(next, currentUser);
     workspaceRef.current = local;
     setWorkspace(local);
@@ -216,7 +269,9 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
 
     const [result, rosterResult] = await Promise.all([
       saveGradebookClass(local, currentUser),
-      rosterChanged ? saveSharedGradebookRosterSafely(currentUser, local) : Promise.resolve(null),
+      rosterChanged && lifecycle.sharingAllowed
+        ? saveSharedGradebookRosterSafely(currentUser, local)
+        : Promise.resolve(null),
     ]);
 
     setSaving(false);
@@ -228,22 +283,36 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       : gradebookWorkspace;
     const savedResolved = saveLocalGradebookClass(resolvedWorkspace, currentUser);
     workspaceRef.current = savedResolved;
+    setWorkspace(savedResolved);
 
     if (result.ok) {
-      setWorkspace(savedResolved);
       if (rosterResult?.conflictResolved) {
-        flash(`${successMessage} Brian đã tự hòa giải ${rosterResult.conflicts?.length || 1} trường dữ liệu bị sửa đồng thời và giữ bản cloud ở đúng trường xung đột.`);
+        flash(`${successMessage} Brian đã tự hòa giải ${rosterResult.conflicts?.length || 1} trường dữ liệu bị sửa đồng thời.`);
       } else if (rosterChanged && rosterResult && !rosterResult.ok && !rosterResult.missingTable) {
         flash(`${successMessage} Sổ điểm đã lưu; ${rosterResult.message || 'danh sách dùng chung chưa đồng bộ.'}`);
       } else {
         flash(successMessage);
       }
     } else {
-      setWorkspace(savedResolved);
       flash(`${successMessage} Đã lưu trên thiết bị; cloud chưa đồng bộ: ${result.message || 'lỗi chưa xác định'}`);
     }
     await refreshCatalog();
     return result;
+  };
+
+  const handleRosterRestored = async (restoredWorkspace) => {
+    if (!restoredWorkspace) return;
+    const local = saveLocalGradebookClass(restoredWorkspace, currentUser);
+    workspaceRef.current = local;
+    setWorkspace(local);
+    setRosterSource('roster-cloud');
+    const result = await saveGradebookClass(local, currentUser);
+    if (result.ok && result.workspace) {
+      const saved = saveLocalGradebookClass(result.workspace, currentUser);
+      workspaceRef.current = saved;
+      setWorkspace(saved);
+    }
+    flash('Đã khôi phục roster. Điểm và ghi chú môn học không bị thay đổi.');
   };
 
   const createClassFromData = async (draft, { fromAssignment = null } = {}) => {
@@ -324,10 +393,12 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const rosterLabel = rosterStatusLabel(rosterSource, vi);
   const rosterCloudReady = [
     'roster-cloud',
+    'roster-cloud-promoted',
     'roster-cloud-empty',
     'roster-realtime',
     'roster-conflict-resolved',
   ].includes(rosterSource);
+  const lifecycleText = lifecycleExplanation(lifecycle);
 
   return <div className="page hr-page gradebook-studio">
     <section className="gradebook-studio-hero">
@@ -335,8 +406,8 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
         <span className="gradebook-studio-kicker">GRADEBOOK · TEACHER WORKSPACE</span>
         <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
         <p>{vi
-          ? 'Không gian nhập điểm độc lập dành cho mọi giáo viên. Brian nhận lớp từ phân công TTCM và dùng một danh sách học sinh chuẩn cho các Sổ điểm cùng lớp.'
-          : 'An independent gradebook for every teacher, with TTCM assignments and a shared canonical class roster.'}</p>
+          ? 'Không gian nhập điểm độc lập dành cho mọi giáo viên. Brian nhận lớp từ phân công TTCM và dùng một roster chuẩn toàn trường cho các Sổ điểm cùng lớp.'
+          : 'An independent gradebook for every teacher, with TTCM assignments and one canonical school-wide class roster.'}</p>
       </div>
       <div className="gradebook-studio-hero-stats">
         <article><strong>{activeClasses.length}</strong><span>{vi ? 'sổ điểm đang dùng' : 'active gradebooks'}</span></article>
@@ -385,6 +456,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
           <b>{activeMeta.className}{activeSubject ? ` · ${activeSubject}` : ''}</b>
           <span>{activeMeta.schoolYear || '—'} · {activeMeta.semester || '—'} · {getClassTypeLabel(activeMeta.classType)}</span>
           <em className={`gradebook-roster-status ${rosterCloudReady ? 'is-shared' : 'is-local'}`}>{rosterLabel}</em>
+          <em className={`gradebook-lifecycle-badge is-${lifecycle.status}`}>{lifecycle.label}</em>
         </div> : null}
       </div>
       <div className="gradebook-studio-actions">
@@ -393,6 +465,10 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
         <button type="button" className="secondary" onClick={() => setCreateOpen((value) => !value)}>＋ {vi ? 'Thêm lớp bộ môn' : 'Add class'}</button>
       </div>
     </section>
+
+    {lifecycleText ? <section className={`gradebook-lifecycle-banner is-${lifecycle.status}`}>
+      <div><b>{lifecycle.label}</b><span>{lifecycleText}</span></div>
+    </section> : null}
 
     {createOpen ? <section className="gradebook-studio-create hr-panel">
       <div className="hr-panel-head"><div><small>{vi ? 'THIẾT LẬP NHANH' : 'QUICK SETUP'}</small><h2>{vi ? 'Tạo lớp bộ môn mới' : 'Create a subject class'}</h2><p>{vi ? 'Dùng khi lớp chưa có trong phân công TTCM hoặc giáo viên cần tạo lớp riêng.' : 'Use this when a class is not yet present in department assignments.'}</p></div><button type="button" className="primary" disabled={saving} onClick={createClass}>{saving ? 'Đang tạo…' : 'Tạo lớp'}</button></div>
@@ -409,10 +485,21 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     {message ? <div className="gradebook-studio-message" role="status">✓ {message}</div> : null}
     {saving ? <div className="hr-saving-strip"><i />Đang đồng bộ dữ liệu sổ điểm…</div> : null}
 
-    {loading && !workspace ? <section className="hr-panel gradebook-studio-empty"><h2>Đang mở lớp…</h2><p>Brian đang tải dữ liệu lớp, danh sách dùng chung và sổ điểm.</p></section> : null}
+    {loading && !workspace ? <section className="hr-panel gradebook-studio-empty"><h2>Đang mở lớp…</h2><p>Brian đang tải dữ liệu lớp, roster dùng chung và sổ điểm.</p></section> : null}
     {!loading && !workspace ? <section className="hr-panel gradebook-studio-empty"><h2>{vi ? 'Chưa có lớp để mở sổ điểm' : 'No class yet'}</h2><p>{vi ? 'Chọn một lớp được TTCM phân công ở phía trên hoặc tự tạo lớp bộ môn.' : 'Choose an assigned class above or create a subject class.'}</p><button type="button" className="primary" onClick={() => setCreateOpen(true)}>＋ {vi ? 'Tạo lớp đầu tiên' : 'Create first class'}</button></section> : null}
 
-    {workspace && view === 'students' ? <SubjectStudentsTab workspace={workspace} onCommit={commit} /> : null}
+    {workspace && view === 'students' ? <>
+      {lifecycle.rosterEditable
+        ? <SubjectStudentsTab workspace={workspace} onCommit={commit} />
+        : <section className="hr-panel gradebook-roster-readonly"><div><h3>Danh sách học sinh đang ở chế độ chỉ đọc</h3><p>{lifecycleExplanation(lifecycle) || 'Bạn không có quyền chỉnh roster dùng chung của lớp này.'}</p></div></section>}
+      <GradebookRosterHistoryPanel
+        currentUser={currentUser}
+        workspace={workspace}
+        canRestore={lifecycle.rosterEditable}
+        onRestored={handleRosterRestored}
+      />
+    </> : null}
+
     {workspace && view === 'gradebook' ? <GradebookWorkspace workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
   </div>;
 }
