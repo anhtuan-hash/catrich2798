@@ -22,6 +22,18 @@ const NAV_ORDER = {
   admin: 80,
 };
 
+const HUB_TYPOGRAPHY = {
+  brand: { fontSize: '19px', lineHeight: '1.1' },
+  navItem: { fontSize: '15px', lineHeight: '1' },
+  account: { fontSize: '15px', lineHeight: '1.2' },
+  aiLabel: { fontSize: '13px', lineHeight: '1' },
+};
+
+function setImportant(element, property, value) {
+  if (!element || !value) return;
+  element.style.setProperty(property, value, 'important');
+}
+
 function keyForButton(button) {
   if (!button) return '';
   if (button.classList.contains('brian-nav__dashboard-tab')) return 'dashboard';
@@ -33,6 +45,37 @@ function keyForButton(button) {
   const text = String(button.textContent || '').replace(/\s+/g, ' ').trim();
   const matched = LABEL_KEYS.find(([pattern]) => pattern.test(text));
   return matched?.[1] || '';
+}
+
+function lockHubTypography(nav, primary) {
+  if (!nav || !primary) return;
+
+  // Keep the shared hub visually identical on every route. Some historical
+  // Home styles load lazily and used to shrink the header typography after the
+  // global CSS had already rendered. Inline !important is the final authority
+  // for size only; font-family remains controlled by the Admin font setting.
+  nav.dataset.hubTypography = 'locked';
+  setImportant(nav, '-webkit-text-size-adjust', '100%');
+  setImportant(nav, 'text-size-adjust', '100%');
+
+  const brandLabel = nav.querySelector('.brian-nav__brand span');
+  setImportant(brandLabel, 'font-size', HUB_TYPOGRAPHY.brand.fontSize);
+  setImportant(brandLabel, 'line-height', HUB_TYPOGRAPHY.brand.lineHeight);
+
+  primary.querySelectorAll(':scope > button, :scope > a').forEach((item) => {
+    setImportant(item, 'font-size', HUB_TYPOGRAPHY.navItem.fontSize);
+    setImportant(item, 'line-height', HUB_TYPOGRAPHY.navItem.lineHeight);
+  });
+
+  nav.querySelectorAll('.brian-nav__account strong').forEach((label) => {
+    setImportant(label, 'font-size', HUB_TYPOGRAPHY.account.fontSize);
+    setImportant(label, 'line-height', HUB_TYPOGRAPHY.account.lineHeight);
+  });
+
+  nav.querySelectorAll('.brian-nav__ai-button > span').forEach((label) => {
+    setImportant(label, 'font-size', HUB_TYPOGRAPHY.aiLabel.fontSize);
+    setImportant(label, 'line-height', HUB_TYPOGRAPHY.aiLabel.lineHeight);
+  });
 }
 
 function decorate(primary) {
@@ -50,6 +93,8 @@ function decorate(primary) {
     const order = NAV_ORDER[key];
     if (Number.isFinite(order)) button.style.setProperty('order', String(order), 'important');
   });
+
+  lockHubTypography(nav, primary);
 }
 
 export default function GlobalNavigationHubController() {
@@ -94,11 +139,12 @@ export default function GlobalNavigationHubController() {
       primary = nextPrimary;
       decorate(primary);
 
-      // Portal-injected destinations are direct children of the primary rail.
-      // Re-decorate when any tab is inserted/removed so order never depends on
-      // which React portal mounted first.
+      // Watch the whole shared nav rather than only the primary rail. Account,
+      // AI and portal-injected tabs can be remounted independently on route
+      // changes, so every fresh node receives the same typography contract.
+      const nav = primary.closest('.brian-nav');
       observer = new MutationObserver(scheduleDecorate);
-      observer.observe(primary, { childList: true });
+      observer.observe(nav || primary, { childList: true, subtree: true });
     };
 
     const onHashChange = () => {
