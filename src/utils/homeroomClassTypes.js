@@ -6,8 +6,9 @@ export const HOMEROOM_CLASS_TYPE_OPTIONS = Object.freeze([
   { value: SUBJECT_CLASS_TYPE, labelVi: 'Lớp bộ môn', label: 'Subject class' },
 ]);
 
-export const SUBJECT_CLASS_TAB_KEYS = Object.freeze(['classes', 'students', 'learning']);
+export const SUBJECT_CLASS_TAB_KEYS = Object.freeze(['classes', 'students']);
 export const RETIRED_HOMEROOM_TAB_KEYS = Object.freeze([
+  'learning',
   'support',
   'schedule',
   'meetings',
@@ -50,7 +51,7 @@ export function isClassTabAllowed(tabKey, workspace, isAdmin = false) {
 }
 
 export function getDefaultClassTab(workspace) {
-  return isSubjectClass(workspace) ? 'learning' : 'overview';
+  return isSubjectClass(workspace) ? 'students' : 'overview';
 }
 
 export function applyCatalogClassType(workspace, catalog = []) {
