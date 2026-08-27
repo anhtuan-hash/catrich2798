@@ -1,0 +1,22 @@
+/* Navigation Hub typography authority.
+   The legacy global font layer intentionally uses fake-ID specificity. This
+   final layer protects navigation/newswire legibility while still honoring the
+   dedicated regional font tokens when Admin selects them. */
+
+html[data-global-font] body .brian-nav :not(#bnh-nav-font-a#bnh-nav-font-b#bnh-nav-font-c):is(
+  button, a, span, strong, b, em, small, i, label, kbd, input
+) {
+  font-family: var(--bes-font-navigation, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif) !important;
+}
+
+html[data-global-font] body .brian-editorial-brief :not(#bnh-news-font-a#bnh-news-font-b#bnh-news-font-c):is(
+  button, a, span, strong, b, em, small, i, label
+) {
+  font-family: var(--bes-font-newswire, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif) !important;
+}
+
+/* Keep icon-font contracts authoritative if icon components are later mounted
+   inside the hub. */
+html[data-global-font] body :not(#bnh-icon-a#bnh-icon-b#bnh-icon-c).material-symbols-outlined { font-family: 'Material Symbols Outlined' !important; }
+html[data-global-font] body :not(#bnh-icon-a#bnh-icon-b#bnh-icon-c).material-symbols-rounded { font-family: 'Material Symbols Rounded' !important; }
+html[data-global-font] body :not(#bnh-icon-a#bnh-icon-b#bnh-icon-c).material-icons { font-family: 'Material Icons' !important; }
