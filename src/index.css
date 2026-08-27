@@ -7,12 +7,7 @@
 @import './styles/legacy/06-current-features.css';
 @import './styles/PersonalFontSystem.css';
 @import './styles/OpaqueTeachingApps.css';
-@import './styles/CrosswordTrialGoogleRedesign.css';
-@import './styles/CrosswordTrialNoPurpleFix.css';
-@import './styles/KnowledgeTrainGoogleRedesign.css';
-@import './styles/KnowledgeTrainBottomProgressCleanup.css';
 @import './styles/GlobalNavigationAlignmentFix.css';
-@import './styles/WordOrbitStaticLayout.css';
 @import './styles/VietnamAtmosphereViewportFix.css';
 @import './styles/AdminSidebarInternalScroll.css';
 @import './styles/AdminWorkspaceViewportScroll.css';
