@@ -1,0 +1,182 @@
+.gradebook-lifecycle-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 14px;
+  padding: 13px 15px;
+  border: 1px solid #d8e2ef;
+  border-radius: 16px;
+  background: #f8fbff;
+  color: #53677d;
+  font-size: .78rem;
+  line-height: 1.5;
+}
+
+.gradebook-lifecycle-banner b {
+  display: block;
+  margin-bottom: 2px;
+  color: #24415f;
+}
+
+.gradebook-lifecycle-banner.is-ended,
+.gradebook-lifecycle-banner.is-historical {
+  border-color: #ead6b5;
+  background: #fffaf0;
+}
+
+.gradebook-lifecycle-badge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #edf3fb;
+  color: #48637e;
+  font-size: .63rem;
+  font-style: normal;
+  font-weight: 750;
+}
+
+.gradebook-lifecycle-badge.is-active,
+.gradebook-lifecycle-badge.is-private {
+  background: #e9f7ee;
+  color: #176b36;
+}
+
+.gradebook-lifecycle-badge.is-ended,
+.gradebook-lifecycle-badge.is-historical {
+  background: #fff0d8;
+  color: #8a5b0a;
+}
+
+.gradebook-roster-readonly {
+  display: grid;
+  gap: 12px;
+  min-height: 220px;
+  place-items: center;
+  padding: 30px;
+  text-align: center;
+}
+
+.gradebook-roster-readonly h3 {
+  margin: 0;
+  color: #29445f;
+}
+
+.gradebook-roster-readonly p {
+  max-width: 620px;
+  margin: 0;
+  color: #65788d;
+  line-height: 1.6;
+}
+
+.gradebook-roster-history {
+  margin-top: 14px;
+}
+
+.gradebook-roster-history-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.gradebook-roster-history-head small {
+  display: block;
+  margin-bottom: 4px;
+  color: #0b57d0;
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.gradebook-roster-history-head h3 {
+  margin: 0;
+  color: #203d58;
+  font-size: 1rem;
+}
+
+.gradebook-roster-history-head p {
+  margin: 5px 0 0;
+  color: #6b7d90;
+  font-size: .72rem;
+  line-height: 1.5;
+}
+
+.gradebook-roster-history-body {
+  margin-top: 13px;
+  padding-top: 13px;
+  border-top: 1px solid #e2e9f2;
+}
+
+.gradebook-roster-history-list {
+  display: grid;
+  gap: 7px;
+}
+
+.gradebook-roster-history-list article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 11px;
+  border: 1px solid #e0e7f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.gradebook-roster-history-list article > div {
+  min-width: 0;
+}
+
+.gradebook-roster-history-list b,
+.gradebook-roster-history-list span {
+  display: block;
+}
+
+.gradebook-roster-history-list b {
+  color: #29445f;
+  font-size: .76rem;
+}
+
+.gradebook-roster-history-list span {
+  margin-top: 2px;
+  color: #75869a;
+  font-size: .67rem;
+}
+
+.gradebook-roster-history-list button {
+  flex: 0 0 auto;
+  min-height: 34px;
+}
+
+.gradebook-roster-history-empty,
+.gradebook-roster-history-message {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f5f8fc;
+  color: #64778c;
+  font-size: .72rem;
+}
+
+.gradebook-roster-history-message {
+  background: #fff8e9;
+  color: #78520a;
+}
+
+@media (max-width: 720px) {
+  .gradebook-lifecycle-banner,
+  .gradebook-roster-history-head,
+  .gradebook-roster-history-list article {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .gradebook-roster-history-list button {
+    width: 100%;
+  }
+}
