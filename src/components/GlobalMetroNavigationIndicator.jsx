@@ -27,10 +27,10 @@ function isWindows8MotionActive() {
 function readTargetGeometry(primary, active) {
   const primaryRect = primary.getBoundingClientRect();
   const activeRect = active.getBoundingClientRect();
-  const inset = Math.min(14, Math.max(6, activeRect.width * 0.10));
+  const width = Math.max(24, Math.min(54, activeRect.width * .52));
   return {
-    left: activeRect.left - primaryRect.left + primary.scrollLeft + inset,
-    width: Math.max(16, activeRect.width - (inset * 2)),
+    left: activeRect.left - primaryRect.left + primary.scrollLeft + ((activeRect.width - width) / 2),
+    width,
   };
 }
 
@@ -39,31 +39,21 @@ function geometryChanged(previous, next) {
   return Math.abs(previous.left - next.left) > 0.5 || Math.abs(previous.width - next.width) > 0.5;
 }
 
-function motionDirection(previous, next) {
-  if (!previous) return document.documentElement?.dataset?.metroDirection || 'forward';
-  return next.left >= previous.left ? 'forward' : 'backward';
-}
-
-function metroKeyframes(previous, next, direction) {
-  const previousRight = previous.left + previous.width;
-  const nextRight = next.left + next.width;
-
-  if (direction === 'backward') {
-    const stretchedWidth = Math.max(4, previousRight - next.left);
-    return [
-      { left: `${previous.left}px`, width: `${previous.width}px`, opacity: 1, offset: 0 },
-      { left: `${next.left}px`, width: `${stretchedWidth}px`, opacity: 1, offset: 0.38 },
-      { left: `${next.left}px`, width: `${next.width + 10}px`, opacity: 1, offset: 0.72 },
-      { left: `${next.left}px`, width: `${next.width}px`, opacity: 1, offset: 1 },
-    ];
-  }
-
-  const stretchedWidth = Math.max(4, nextRight - previous.left);
+function metroKeyframes(previous, next) {
+  const delta = previous.left - next.left;
+  const scale = next.width > 0 ? previous.width / next.width : 1;
   return [
-    { left: `${previous.left}px`, width: `${previous.width}px`, opacity: 1, offset: 0 },
-    { left: `${previous.left}px`, width: `${stretchedWidth}px`, opacity: 1, offset: 0.38 },
-    { left: `${Math.max(previous.left, next.left - 10)}px`, width: `${nextRight - Math.max(previous.left, next.left - 10)}px`, opacity: 1, offset: 0.72 },
-    { left: `${next.left}px`, width: `${next.width}px`, opacity: 1, offset: 1 },
+    {
+      transform: `translate3d(${delta}px,0,0) scaleX(${scale})`,
+      opacity: .82,
+      offset: 0,
+    },
+    {
+      transform: `translate3d(${delta * .22}px,0,0) scaleX(1)`,
+      opacity: 1,
+      offset: .72,
+    },
+    { transform: 'translate3d(0,0,0) scaleX(1)', opacity: 1, offset: 1 },
   ];
 }
 
@@ -106,7 +96,6 @@ export default function GlobalMetroNavigationIndicator({ route }) {
       }
 
       const nextGeometry = readTargetGeometry(primary, active);
-      const direction = motionDirection(previousGeometry, nextGeometry);
       const shouldTravel = animate
         && isWindows8MotionActive()
         && geometryChanged(previousGeometry, nextGeometry)
@@ -116,14 +105,13 @@ export default function GlobalMetroNavigationIndicator({ route }) {
       indicator.style.left = `${nextGeometry.left}px`;
       indicator.style.width = `${nextGeometry.width}px`;
       indicator.dataset.ready = 'true';
-      indicator.dataset.direction = direction;
 
-      if (shouldTravel) {
+      if (shouldTravel && previousGeometry) {
         indicator.dataset.traveling = 'true';
         const animation = indicator.animate(
-          metroKeyframes(previousGeometry, nextGeometry, direction),
+          metroKeyframes(previousGeometry, nextGeometry),
           {
-            duration: 315,
+            duration: 190,
             easing: 'cubic-bezier(.1,.9,.2,1)',
             fill: 'none',
           },
@@ -143,10 +131,8 @@ export default function GlobalMetroNavigationIndicator({ route }) {
     const scheduleUpdate = (options = {}) => {
       cancelFrame();
       frame = window.requestAnimationFrame(() => {
-        frame = window.requestAnimationFrame(() => {
-          frame = 0;
-          updateIndicator(options);
-        });
+        frame = 0;
+        updateIndicator(options);
       });
     };
 
@@ -168,7 +154,7 @@ export default function GlobalMetroNavigationIndicator({ route }) {
       });
       mutationObserver.observe(primary, {
         childList: true,
-        subtree: true,
+        subtree: false,
         attributes: true,
         attributeFilter: ['class', 'aria-current'],
       });
