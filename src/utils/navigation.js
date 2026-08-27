@@ -8,6 +8,8 @@ const ROUTE_ORDER = [
 
 let metroNavigationTimer = 0;
 let metroCleanupTimer = 0;
+let pendingTarget = '';
+let pendingStartedAt = 0;
 
 function routeName(value = '') {
   return String(value || '')
@@ -30,6 +32,13 @@ function windows8MotionActive() {
   return root?.dataset?.motionMode === 'windows8'
     && root?.dataset?.motionEnabled === 'true'
     && !window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+}
+
+function clearPendingTarget(target = '') {
+  if (!target || pendingTarget === target) {
+    pendingTarget = '';
+    pendingStartedAt = 0;
+  }
 }
 
 function clearMetroNavigationState(root, delay = 480) {
@@ -55,33 +64,44 @@ function clearMetroNavigationState(root, delay = 480) {
 export function launchRoute({ target, navigate } = {}) {
   if (!target || typeof window === 'undefined') return;
 
+  const normalizedTarget = String(target);
+  const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+
+  // A portal/tab can receive more than one activation before the delayed WinRT
+  // route commit occurs. Treat those as the same navigation transaction so the
+  // global WP8 loader is not restarted continuously.
+  if (window.location.hash === normalizedTarget) return;
+  if (pendingTarget === normalizedTarget && now - pendingStartedAt < 1600) return;
+
   const go = typeof navigate === 'function'
     ? navigate
-    : () => { window.location.hash = target; };
+    : () => { window.location.hash = normalizedTarget; };
 
-  if (window.location.hash === target) return;
+  pendingTarget = normalizedTarget;
+  pendingStartedAt = now;
 
   const root = document.documentElement;
   const currentTarget = window.location.hash || '#/home';
-  const direction = metroDirection(currentTarget, target);
+  const direction = metroDirection(currentTarget, normalizedTarget);
 
   window.clearTimeout(metroNavigationTimer);
   window.clearTimeout(metroCleanupTimer);
 
   root.dataset.metroDirection = direction;
   root.dataset.metroFrom = routeName(currentTarget);
-  root.dataset.metroTo = routeName(target);
+  root.dataset.metroTo = routeName(normalizedTarget);
   root.dataset.metroNavigating = 'true';
   delete root.dataset.metroViewTransition;
 
   window.dispatchEvent(new CustomEvent('bes-navigation-start', {
-    detail: { target, from: currentTarget, direction },
+    detail: { target: normalizedTarget, from: currentTarget, direction },
   }));
 
   if (!windows8MotionActive()) {
     try {
       go();
     } finally {
+      clearPendingTarget(normalizedTarget);
       clearMetroNavigationState(root, 180);
     }
     return;
@@ -96,6 +116,7 @@ export function launchRoute({ target, navigate } = {}) {
     try {
       go();
     } finally {
+      clearPendingTarget(normalizedTarget);
       clearMetroNavigationState(root, 560);
     }
   }, 92);
