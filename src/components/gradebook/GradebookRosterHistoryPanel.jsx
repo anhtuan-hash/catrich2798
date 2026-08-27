@@ -83,7 +83,7 @@ export default function GradebookRosterHistoryPanel({
       <div>
         <small>AN TOÀN DỮ LIỆU · ROSTER</small>
         <h3>Lịch sử danh sách học sinh</h3>
-        <p>Mỗi lần thay đổi roster cloud được lưu thành snapshot. Điểm số không nằm trong lịch sử này.</p>
+        <p>Mỗi lần thay đổi roster cloud được lưu thành snapshot, kèm người thực hiện. Điểm số không nằm trong lịch sử này.</p>
       </div>
       <button type="button" className="secondary" onClick={() => setOpen((value) => !value)}>
         {open ? 'Ẩn lịch sử' : 'Xem lịch sử'}
@@ -98,7 +98,7 @@ export default function GradebookRosterHistoryPanel({
         {items.map((item) => <article key={item.id}>
           <div>
             <b>{actionLabel(item.action)}</b>
-            <span>{formatTime(item.changedAt)} · {item.studentCount} học sinh</span>
+            <span>{formatTime(item.changedAt)} · {item.studentCount} học sinh · {item.changedByLabel}</span>
           </div>
           <button
             type="button"
