@@ -304,6 +304,32 @@
   text-overflow: ellipsis;
 }
 
+.gradebook-roster-status {
+  width: fit-content;
+  margin-top: 2px;
+  padding: 4px 8px;
+  border: 1px solid #d4deea;
+  border-radius: 999px;
+  background: #f6f8fb;
+  color: #65758a;
+  font-size: .62rem;
+  font-style: normal;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.gradebook-roster-status.is-shared {
+  border-color: #b9dfc6;
+  background: #edf9f1;
+  color: #176b36;
+}
+
+.gradebook-roster-status.is-local {
+  border-color: #e3d7b8;
+  background: #fff9eb;
+  color: #80611a;
+}
+
 .gradebook-studio-actions {
   display: flex;
   align-items: center;
