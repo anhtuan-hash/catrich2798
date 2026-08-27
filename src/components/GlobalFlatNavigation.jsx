@@ -78,7 +78,7 @@ import './GlobalCriticalJankGuard.css';
 import './GlobalNotificationCenterRemoval.css';
 // Windows 8 remains an optional motion language; header visuals are owned by V4.
 import './GlobalWindows8Experience.css';
-// Approved final visual + typography contract for the shared navigation hub.
+// Shared baseline visual contract.
 import './GlobalNavigationHubV4.css';
 // Absolute final loader contract: all page/app loading uses Windows Phone 8 chase dots.
 import './GlobalWindowsPhone8Loading.css';
@@ -88,12 +88,12 @@ import './GlobalReportsCountdownV4.css';
 import './GlobalPinnedNavigationHub.css';
 // Final authority: legacy notification center stays retired even if a later hub theme restores it.
 import './GlobalNotificationCenterFinalRemoval.css';
-// Absolute final chrome authority: Home may style content, never navigation. One shared hub only.
-import './GlobalSingleNavigationHubAuthority.css';
 // Final Homeroom density authority: compact excessive whitespace without affecting other routes.
 import './homeroom/HomeroomCompactDensity.css';
-// Final semantic order authority: Home is always the first destination in the shared rail.
+// Stable semantic ordering for the shared rail.
 import './GlobalNavigationSemanticOrderFix.css';
+// ABSOLUTE FINAL CHROME AUTHORITY: one identical navigation hub on every Brian route.
+import './GlobalUnifiedNavigationHub.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
