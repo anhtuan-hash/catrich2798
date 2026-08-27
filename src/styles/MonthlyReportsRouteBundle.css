@@ -1,0 +1,7 @@
+/* Monthly Reports visual bundle.
+   Loaded only when the Reports/Brian Team route is active. */
+@import './MonthlyReportsMaterialM3.css';
+@import './MonthlyReportsEditorialV10.css';
+@import './MonthlyReportsAccordionFix.css';
+@import './MonthlyReportsTypographyV11.css';
+@import './MonthlyReportsHorizontalCardsV12.css';
