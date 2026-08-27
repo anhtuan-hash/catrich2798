@@ -1,0 +1,268 @@
+/* Brian English · Global 16:9 layout authority
+   --------------------------------------------------------------------------
+   One geometry contract for the whole site.
+   Desktop reference frame: 1600 × 900 (16:9).
+
+   Important: 16:9 is the PAGE FRAME, not a forced aspect ratio for every card.
+   Forms, tables, documents and long pages keep their natural content height.
+   This file is imported by main.jsx after route/navigation modules so it can
+   correct historical route-specific widths without redesigning their content.
+   -------------------------------------------------------------------------- */
+
+:root {
+  --bes-layout-reference-width: 1600px;
+  --bes-layout-reference-height: 900px;
+  --bes-layout-reference-ratio: 16 / 9;
+  --bes-layout-gutter: clamp(16px, 2.6vw, 44px);
+  --bes-layout-content-pad: clamp(16px, 1.55vw, 24px);
+  --bes-layout-column-gap: clamp(14px, 1.2vw, 20px);
+  --bes-layout-section-gap: clamp(18px, 1.55vw, 26px);
+  --bes-layout-radius: clamp(18px, 1.45vw, 24px);
+  --bes-layout-stage-width: min(
+    var(--bes-layout-reference-width),
+    calc(100vw - (var(--bes-layout-gutter) * 2))
+  );
+}
+
+html,
+body,
+#root,
+.app-shell,
+.metro-shell {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+html,
+body,
+#root {
+  overflow-x: clip;
+}
+
+/* --------------------------------------------------------------------------
+   ONE OUTER AXIS
+   Hub, route frame and footer use the exact same desktop width.
+   -------------------------------------------------------------------------- */
+
+html body .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true'] {
+  width: var(--bes-layout-stage-width) !important;
+  max-width: var(--bes-layout-reference-width) !important;
+}
+
+html body .app-shell[data-route] main#bes-main-content,
+html body .app-shell[data-route] main.wp8-page-stage {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+  padding-inline: var(--bes-layout-gutter) !important;
+  overflow-x: clip !important;
+}
+
+/* Every route gets one centered 1600px frame. This also covers routes that do
+   not render the global Hub, including the public homeroom portal. */
+html body .app-shell[data-route] main#bes-main-content > * {
+  box-sizing: border-box !important;
+  inline-size: 100% !important;
+  width: 100% !important;
+  max-inline-size: var(--bes-layout-reference-width) !important;
+  max-width: var(--bes-layout-reference-width) !important;
+  min-inline-size: 0 !important;
+  min-width: 0 !important;
+  margin-inline: auto !important;
+}
+
+/* On desktop the page root uses a 16:9 preferred frame. Content is never
+   clipped: long pages simply grow beyond the preferred ratio. */
+@media (min-width: 1100px) and (min-height: 620px) {
+  html body .app-shell[data-route] main#bes-main-content > * {
+    aspect-ratio: var(--bes-layout-reference-ratio);
+  }
+}
+
+/* Footer follows the same outer axis instead of becoming wider/narrower than
+   the page above it. */
+html body .app-shell[data-route] > footer.footer,
+html body .app-shell[data-route] > .footer {
+  box-sizing: border-box !important;
+  width: var(--bes-layout-stage-width) !important;
+  max-width: var(--bes-layout-reference-width) !important;
+  margin-inline: auto !important;
+}
+
+/* --------------------------------------------------------------------------
+   ROUTE ROOT NORMALIZATION
+   Historical routes used 100vw, 1540px, 1480px, etc. Their root can keep its
+   own visual language, but it may no longer escape the shared frame.
+   -------------------------------------------------------------------------- */
+
+html body .app-shell[data-route] main#bes-main-content > :is(
+  .bha-home,
+  .flat-design-home,
+  .flat-apps-directory,
+  .tdb-page,
+  .hr-page,
+  .page,
+  .settings-page,
+  .admin-page,
+  .library-page,
+  .resource-library-page,
+  .knowledge-hub-page,
+  .work-dashboard,
+  .homeroom-portal,
+  [class*='workspace'],
+  [class*='directory']
+) {
+  max-inline-size: var(--bes-layout-reference-width) !important;
+  max-width: var(--bes-layout-reference-width) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Any first-level route section using viewport width is constrained by its
+   page frame. This prevents the common 100vw + padding horizontal drift. */
+html body .app-shell[data-route] main#bes-main-content > * > :where(
+  header,
+  nav,
+  section,
+  article,
+  aside,
+  form
+) {
+  box-sizing: border-box;
+  max-inline-size: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   GRID / FLEX ALIGNMENT GUARD
+   Do not change route-specific column counts. Only remove intrinsic overflow
+   and make siblings capable of sharing the same geometric row cleanly.
+   -------------------------------------------------------------------------- */
+
+html body .app-shell[data-route] main#bes-main-content :where(
+  [class*='grid'],
+  [class*='cards'],
+  [class*='tiles'],
+  [class*='columns'],
+  [class*='row'],
+  .bha-top,
+  .bha-grades,
+  .bha-tools > div,
+  .apps-directory-toolbar
+) {
+  min-inline-size: 0;
+  min-width: 0;
+  max-inline-size: 100%;
+}
+
+html body .app-shell[data-route] main#bes-main-content :where(
+  [class*='grid'],
+  [class*='cards'],
+  [class*='tiles'],
+  [class*='columns'],
+  .bha-top,
+  .bha-grades,
+  .bha-tools > div
+) > * {
+  box-sizing: border-box;
+  min-inline-size: 0;
+  min-width: 0;
+  max-inline-size: 100%;
+}
+
+/* Standard visual rhythm for the major route-level stacks where gap was not
+   explicitly provided. Existing component gaps still win naturally. */
+html body .app-shell[data-route] main#bes-main-content > * {
+  --bes-page-column-gap: var(--bes-layout-column-gap);
+  --bes-page-section-gap: var(--bes-layout-section-gap);
+  --bes-page-content-pad: var(--bes-layout-content-pad);
+}
+
+/* --------------------------------------------------------------------------
+   MEDIA SAFETY
+   Keep media inside the 16:9 page frame without touching logos, avatars,
+   document canvases or existing app-specific aspect ratios.
+   -------------------------------------------------------------------------- */
+
+html body .app-shell[data-route] main#bes-main-content :where(video, canvas) {
+  max-inline-size: 100%;
+}
+
+html body .app-shell[data-route] main#bes-main-content :where(
+  .video-frame,
+  .media-frame,
+  .preview-frame,
+  .hero-media,
+  [data-layout-ratio='16:9']
+) {
+  aspect-ratio: 16 / 9;
+  max-inline-size: 100%;
+  overflow: hidden;
+}
+
+/* Prevent route-specific translated/wide children from creating a second
+   horizontal page axis. */
+html body .app-shell[data-route] main#bes-main-content :where(img, video, canvas, iframe, table) {
+  max-width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   16:9 DESKTOP REFERENCE
+   On large classroom displays, preserve a measured 1600px content canvas
+   instead of stretching interfaces edge-to-edge. */
+
+@media (min-width: 1720px) {
+  :root {
+    --bes-layout-gutter: clamp(44px, calc((100vw - 1600px) / 2), 96px);
+  }
+}
+
+/* 1366×768 / 1440×810 style classroom displays: use a slightly tighter
+   gutter while retaining the same single axis. */
+@media (min-width: 1024px) and (max-width: 1499px) {
+  :root {
+    --bes-layout-gutter: clamp(18px, 2.35vw, 32px);
+    --bes-layout-content-pad: clamp(14px, 1.45vw, 20px);
+    --bes-layout-column-gap: clamp(12px, 1.15vw, 18px);
+    --bes-layout-section-gap: clamp(16px, 1.45vw, 22px);
+  }
+}
+
+/* Tablet/mobile stay fluid. The common axis remains, but no 16:9 minimum is
+   imposed and the UI is allowed to stack naturally. */
+@media (max-width: 1099px) {
+  :root {
+    --bes-layout-gutter: clamp(10px, 2.4vw, 18px);
+    --bes-layout-content-pad: clamp(12px, 3vw, 18px);
+    --bes-layout-column-gap: 12px;
+    --bes-layout-section-gap: 16px;
+    --bes-layout-stage-width: calc(100vw - (var(--bes-layout-gutter) * 2));
+  }
+
+  html body .app-shell[data-route] main#bes-main-content > * {
+    aspect-ratio: auto !important;
+  }
+
+  html body .app-shell[data-route] > footer.footer,
+  html body .app-shell[data-route] > .footer {
+    width: var(--bes-layout-stage-width) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  :root {
+    --bes-layout-gutter: 8px;
+  }
+
+  html body .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true'] {
+    width: calc(100% - 16px) !important;
+    max-width: none !important;
+  }
+
+  html body .app-shell[data-route] main#bes-main-content,
+  html body .app-shell[data-route] main.wp8-page-stage {
+    padding-inline: 8px !important;
+  }
+}
