@@ -2,6 +2,10 @@
    A single physical bar moves between active destinations so the motion reads
    as navigation through space instead of a new underline fading in each time. */
 
+.brian-nav__primary {
+  position: relative !important;
+}
+
 .brian-nav__primary > .brian-nav__metro-indicator {
   position: absolute !important;
   z-index: 12 !important;
