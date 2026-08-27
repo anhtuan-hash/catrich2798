@@ -24,38 +24,84 @@ function keyForButton(button) {
   return matched?.[1] || '';
 }
 
+function decorate(primary) {
+  const nav = primary?.closest?.('.brian-nav');
+  if (!nav || !primary) return;
+
+  if (nav.dataset.hubVersion !== '4') nav.dataset.hubVersion = '4';
+  primary.querySelectorAll(':scope > button, :scope > a').forEach((button) => {
+    const key = keyForButton(button);
+    if (key && button.dataset.navKey !== key) button.dataset.navKey = key;
+  });
+}
+
 export default function GlobalNavigationHubController() {
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
 
     let frame = 0;
-    const decorate = () => {
-      frame = 0;
-      const nav = document.querySelector('.brian-nav');
-      const primary = nav?.querySelector('.brian-nav__primary');
-      if (!nav || !primary) return;
+    let retryFrame = 0;
+    let observer = null;
+    let primary = null;
+    let destroyed = false;
+    let attempts = 0;
 
-      nav.dataset.hubVersion = '4';
-      primary.querySelectorAll(':scope > button, :scope > a').forEach((button) => {
-        const key = keyForButton(button);
-        if (key) button.dataset.navKey = key;
+    const cancelFrame = () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      frame = 0;
+    };
+
+    const scheduleDecorate = () => {
+      if (frame || destroyed || !primary) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        if (!destroyed && primary?.isConnected) decorate(primary);
       });
     };
 
-    const schedule = () => {
-      if (frame) return;
-      frame = window.requestAnimationFrame(decorate);
+    const attach = () => {
+      if (destroyed) return;
+      const nextPrimary = document.querySelector('.brian-nav__primary');
+      if (!nextPrimary) {
+        attempts += 1;
+        if (attempts < 90) retryFrame = window.requestAnimationFrame(attach);
+        return;
+      }
+
+      if (primary === nextPrimary && observer) {
+        scheduleDecorate();
+        return;
+      }
+
+      observer?.disconnect();
+      primary = nextPrimary;
+      decorate(primary);
+
+      // Portal-injected destinations are direct children of the primary rail.
+      // Observing the entire document made every route render wake this controller
+      // and amplified DOM work during motion transitions.
+      observer = new MutationObserver(scheduleDecorate);
+      observer.observe(primary, { childList: true });
     };
 
-    decorate();
-    const observer = new MutationObserver(schedule);
-    observer.observe(document.body, { childList: true, subtree: true });
-    window.addEventListener('hashchange', schedule);
+    const onHashChange = () => {
+      if (!primary?.isConnected) {
+        attempts = 0;
+        attach();
+      } else {
+        scheduleDecorate();
+      }
+    };
+
+    attach();
+    window.addEventListener('hashchange', onHashChange);
 
     return () => {
-      if (frame) window.cancelAnimationFrame(frame);
-      observer.disconnect();
-      window.removeEventListener('hashchange', schedule);
+      destroyed = true;
+      cancelFrame();
+      if (retryFrame) window.cancelAnimationFrame(retryFrame);
+      observer?.disconnect();
+      window.removeEventListener('hashchange', onHashChange);
     };
   }, []);
 
