@@ -1,0 +1,190 @@
+/* Brian English · Windows Phone 8 progress indicator
+   A single five-dot chase language for route/app opening and blocking loaders.
+   No spinner rings, no white loading veil, no bounce/spring. */
+
+:root {
+  --wp8-loader-accent: var(--active-app-accent, #0078d7);
+  --wp8-loader-top: calc(var(--brian-safe-top, 0px) + var(--bes-navigation-hub-height, 136px) + 3px);
+}
+
+/* Retire the previous Windows 8 route loader even if a stale module mounts it. */
+#bes-windows8-route-loader,
+.gm-w8-route-loader {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.bes-wp8-global-loader {
+  position: fixed;
+  z-index: 2147482500;
+  top: var(--wp8-loader-top);
+  left: 50%;
+  width: 132px;
+  height: 12px;
+  margin-left: -66px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-2px);
+  transition: opacity 80ms linear, transform 120ms ease-out, visibility 0s linear 120ms;
+  contain: layout paint style;
+}
+
+.bes-wp8-global-loader.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: opacity 70ms linear, transform 120ms ease-out, visibility 0s;
+}
+
+.bes-wp8-dots {
+  position: relative;
+  display: block;
+  width: 132px;
+  height: 12px;
+  overflow: hidden;
+}
+
+.bes-wp8-dots > i {
+  --wp8-dot-size: 5px;
+  position: absolute;
+  top: 3px;
+  left: 0;
+  width: var(--wp8-dot-size);
+  height: var(--wp8-dot-size);
+  border: 0;
+  border-radius: 50%;
+  background: var(--wp8-loader-accent);
+  box-shadow: none;
+  opacity: 0;
+  transform: translate3d(-14px, 0, 0);
+  animation: bes-wp8-chase 2.05s linear infinite;
+  will-change: transform, opacity;
+}
+
+.bes-wp8-dots > i:nth-child(1) { animation-delay: 0ms; }
+.bes-wp8-dots > i:nth-child(2) { animation-delay: 115ms; }
+.bes-wp8-dots > i:nth-child(3) { animation-delay: 230ms; }
+.bes-wp8-dots > i:nth-child(4) { animation-delay: 345ms; }
+.bes-wp8-dots > i:nth-child(5) { animation-delay: 460ms; }
+
+/* Windows Phone's progress dots do not travel at constant speed. They rush in,
+   compress around the middle, then accelerate out again. These keyframe
+   positions reproduce that characteristic chase rhythm without a spring. */
+@keyframes bes-wp8-chase {
+  0%   { opacity: 0; transform: translate3d(-14px, 0, 0); }
+  5%   { opacity: 1; transform: translate3d(-8px, 0, 0); }
+  18%  { opacity: 1; transform: translate3d(26px, 0, 0); }
+  32%  { opacity: 1; transform: translate3d(52px, 0, 0); }
+  43%  { opacity: 1; transform: translate3d(60px, 0, 0); }
+  54%  { opacity: 1; transform: translate3d(66px, 0, 0); }
+  66%  { opacity: 1; transform: translate3d(75px, 0, 0); }
+  82%  { opacity: 1; transform: translate3d(106px, 0, 0); }
+  94%  { opacity: 1; transform: translate3d(132px, 0, 0); }
+  100% { opacity: 0; transform: translate3d(146px, 0, 0); }
+}
+
+/* Local loading states discovered at runtime retain their text/layout but use
+   the same Phone 8 dot language instead of rings/spinners. */
+[data-bes-wp8-loading-state='true'] {
+  position: relative !important;
+}
+
+[data-bes-wp8-loading-state='true'] > .bes-wp8-dots--inline {
+  width: 112px;
+  height: 14px;
+  margin: 8px auto 10px;
+}
+
+[data-bes-wp8-loading-state='true'] > .bes-wp8-dots--inline > i {
+  top: 4px;
+}
+
+/* Hide conventional spinner visuals inside a recognized blocking loading state.
+   Text such as “Đang tải…” is preserved for accessibility/context. */
+[data-bes-wp8-loading-state='true'] :is(
+  .spinner,
+  [class$='-spinner'],
+  [class*='-spinner '],
+  [class$='_spinner'],
+  .loader,
+  [class$='-loader'],
+  [class*='-loader '],
+  [class$='_loader']
+):not(.bes-wp8-dots):not(.bes-wp8-dots *) {
+  display: none !important;
+}
+
+/* A standalone spinner/loader is itself converted into a Phone 8 track. */
+[data-bes-wp8-spinner='true'] {
+  position: relative !important;
+  width: 112px !important;
+  min-width: 112px !important;
+  height: 14px !important;
+  min-height: 14px !important;
+  display: block !important;
+  margin-inline: auto !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+[data-bes-wp8-spinner='true'] > :not(.bes-wp8-dots--inline) {
+  display: none !important;
+}
+
+[data-bes-wp8-spinner='true'] > .bes-wp8-dots--inline {
+  position: absolute;
+  inset: 0;
+  width: 112px;
+  height: 14px;
+}
+
+.bes-wp8-sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --wp8-loader-top: calc(var(--brian-safe-top, 0px) + var(--bes-navigation-hub-height, 118px) + 2px);
+  }
+
+  .bes-wp8-global-loader {
+    width: 116px;
+    margin-left: -58px;
+  }
+
+  .bes-wp8-dots { width: 116px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bes-wp8-dots > i {
+    animation: bes-wp8-reduced 1.1s linear infinite;
+    transform: none;
+  }
+  .bes-wp8-dots > i:nth-child(1) { animation-delay: 0ms; }
+  .bes-wp8-dots > i:nth-child(2) { animation-delay: 120ms; }
+  .bes-wp8-dots > i:nth-child(3) { animation-delay: 240ms; }
+  .bes-wp8-dots > i:nth-child(4) { animation-delay: 360ms; }
+  .bes-wp8-dots > i:nth-child(5) { animation-delay: 480ms; }
+}
+
+@keyframes bes-wp8-reduced {
+  0%, 100% { opacity: .25; }
+  45%, 60% { opacity: 1; }
+}
