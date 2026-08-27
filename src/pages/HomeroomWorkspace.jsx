@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import HomeroomConductTab from '../components/HomeroomConductTab.jsx';
-import HomeroomLearningGradebook from '../components/homeroom/HomeroomLearningGradebook.jsx';
 import HomeroomOverviewCompactTab from '../components/homeroom/HomeroomOverviewCompactTab.jsx';
 import {
   AttendanceTab,
@@ -11,15 +10,8 @@ import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
 import HomeroomNavigationPalette from '../components/homeroom/HomeroomNavigationPalette.jsx';
 import HomeroomGlassHero from '../components/homeroom/HomeroomGlassHero.jsx';
 import {
-  CompetitionTab,
-  FeedbackTab,
-  PortalsTab,
-} from '../components/homeroom/HomeroomCommunicationTabs.jsx';
-import SchoolStatsTab from '../components/homeroom/SchoolStatsCompactTab.jsx';
-import {
   ClassLifecycleTab,
   DataSafetyTab,
-  SearchCommandTab,
 } from '../components/HomeroomPhase3Tabs.jsx';
 import {
   createHomeroomWorkspace,
@@ -56,9 +48,8 @@ import '../components/GlobalHomeroomGoogleReadabilityPolish.css';
 import '../components/homeroom/HomeroomNavigationPalette.css';
 import '../components/homeroom/HomeroomGlassHero.css';
 
-// Homeroom is a data-heavy workspace. Keep the last usable snapshot outside the
-// component so an incidental React remount never sends the page back to a full
-// loading screen. Cloud data is revalidated in the background instead.
+// Homeroom owns homeroom duties only. Gradebook is a separate teacher app.
+// Keep the last usable class snapshot so remounts never blank this data-heavy route.
 const homeroomSessionCache = new Map();
 
 function userIdentity(user) {
@@ -77,11 +68,13 @@ function getInitialWorkspace(user, workspaceId) {
 }
 
 export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
-  const [workspaceId, setWorkspaceId] = useState(() => getCurrentHomeroomWorkspaceId(currentUser));
-  const [workspace, setWorkspace] = useState(() => getInitialWorkspace(currentUser, getCurrentHomeroomWorkspaceId(currentUser)));
+  const initialWorkspaceId = getCurrentHomeroomWorkspaceId(currentUser);
+  const initialWorkspace = getInitialWorkspace(currentUser, initialWorkspaceId);
+  const [workspaceId, setWorkspaceId] = useState(initialWorkspaceId);
+  const [workspace, setWorkspace] = useState(initialWorkspace);
   const [catalog, setCatalog] = useState(() => listLocalHomeroomWorkspaces(currentUser));
-  const [classDraft, setClassDraft] = useState(() => getInitialWorkspace(currentUser, getCurrentHomeroomWorkspaceId(currentUser)).classProfile);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [classDraft, setClassDraft] = useState(initialWorkspace.classProfile);
+  const [activeTab, setActiveTab] = useState(() => getDefaultClassTab(initialWorkspace));
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -111,12 +104,11 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     const cachedWorkspace = homeroomSessionCache.get(snapshotKey(currentUser, workspaceId));
     const immediateWorkspace = cachedWorkspace || localWorkspace;
 
-    // Stale-while-revalidate: never blank the Homeroom route while cloud data
-    // is loading. This is the key guard against the previous reload loop.
     if (immediateWorkspace) {
       const cached = applyCatalogClassType(normalizeHomeroomWorkspace(immediateWorkspace, currentUser), localItems);
       setWorkspace(cached);
       setClassDraft(cached.classProfile);
+      setActiveTab((current) => isClassTabAllowed(current, cached, currentUser?.role === 'admin') ? current : getDefaultClassTab(cached));
       homeroomSessionCache.set(snapshotKey(currentUser, cached.id), cached);
       setSyncState('local');
     }
@@ -129,24 +121,19 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
         if (!alive || sequence !== hydrationSequenceRef.current) return;
         const normalized = normalizeHomeroomWorkspace(result.workspace, currentUser);
         const loaded = applyCatalogClassType(normalized, items);
-
-        // IMPORTANT: hydration is read-only. The old implementation wrote a
-        // class-type migration back to Supabase while merely opening the page,
-        // which could feed sync/realtime cycles. Explicit user saves remain the
-        // only path that writes Homeroom data.
         setSyncState(result.source === 'cloud' ? 'cloud' : 'local');
         setWorkspace(loaded);
         setClassDraft(loaded.classProfile);
+        setActiveTab((current) => isClassTabAllowed(current, loaded, currentUser?.role === 'admin') ? current : getDefaultClassTab(loaded));
         homeroomSessionCache.set(snapshotKey(currentUser, loaded.id), loaded);
         setCurrentHomeroomWorkspaceId(currentUser, loaded.id);
-        setLoading(false);
-      } catch {
+      } finally {
         if (alive && sequence === hydrationSequenceRef.current) setLoading(false);
       }
     })();
 
     return () => { alive = false; };
-  }, [currentUser?.id, currentUser?.email, workspaceId]);
+  }, [currentUser?.id, currentUser?.authId, currentUser?.email, workspaceId]);
 
   useEffect(() => {
     const acceptCommand = (action) => {
@@ -262,7 +249,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     }
     setCurrentHomeroomWorkspaceId(currentUser, id);
     setWorkspaceId(id);
-    setActiveTab(target?.classType === SUBJECT_CLASS_TYPE ? 'learning' : 'overview');
+    setActiveTab(target?.classType === SUBJECT_CLASS_TYPE ? 'students' : 'overview');
   };
 
   const createWorkspace = async (input) => {
@@ -341,16 +328,10 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     <main className="hr-workspace-body">
       {visibleTab === 'overview' ? <HomeroomOverviewCompactTab workspace={workspace} goTab={setActiveTab} /> : null}
       {visibleTab === 'classes' ? <ClassLifecycleTab workspace={workspace} catalog={catalog} currentId={workspaceId} onSwitch={switchWorkspace} onCreate={createWorkspace} onDuplicate={duplicateWorkspace} onStatusChange={changeWorkspaceStatus} currentUser={currentUser} /> : null}
-      {visibleTab === 'search' ? <SearchCommandTab workspace={workspace} onCommit={commit} goTab={setActiveTab} /> : null}
       {visibleTab === 'students' ? (subjectMode ? <SubjectStudentsTab workspace={workspace} onCommit={commit} /> : <StudentsTab workspace={workspace} onCommit={commit} />) : null}
       {visibleTab === 'attendance' ? <AttendanceTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
-      {visibleTab === 'learning' ? <HomeroomLearningGradebook workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
-      {visibleTab === 'feedback' ? <FeedbackTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
-      {visibleTab === 'competition' ? <CompetitionTab workspace={workspace} onCommit={commit} /> : null}
       {visibleTab === 'conduct' ? <HomeroomConductTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
-      {visibleTab === 'portals' ? <PortalsTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
       {visibleTab === 'safety' ? <DataSafetyTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
-      {visibleTab === 'schoolStats' ? <SchoolStatsTab currentUser={currentUser} /> : null}
     </main>
   </div>;
 }
