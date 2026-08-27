@@ -1,0 +1,373 @@
+/* Brian English · Whole-site dark compatibility layer
+   Loaded last. Route themes may keep their layout, typography and imagery, but
+   dark appearance owns page/surface/text/border colors across the application. */
+
+html[data-theme='dark'] body,
+html[data-theme='dark'] body #root,
+html[data-theme='dark'] body .app-shell,
+html[data-theme='dark'] body .metro-shell,
+html[data-theme='dark'] body main.wp8-page-stage,
+html[data-theme='dark'] body main#bes-main-content {
+  background-color: var(--bes-theme-page) !important;
+  color: var(--bes-theme-text) !important;
+}
+
+html[data-theme='dark'] body {
+  background: #0f141b !important;
+}
+
+html[data-theme='dark'] body :is(input, textarea, select) {
+  border-color: var(--bes-theme-border) !important;
+  background-color: #151d27 !important;
+  color: var(--bes-theme-text) !important;
+  caret-color: var(--bes-theme-primary) !important;
+}
+
+html[data-theme='dark'] body :is(input, textarea)::placeholder {
+  color: #8190a3 !important;
+  opacity: 1 !important;
+}
+
+html[data-theme='dark'] body :is(input, textarea, select):focus {
+  border-color: #6f9ee8 !important;
+  box-shadow: 0 0 0 3px rgba(138,180,248,.13) !important;
+}
+
+html[data-theme='dark'] body :is(table, thead, tbody, tfoot, tr, th, td) {
+  border-color: var(--bes-theme-border) !important;
+}
+html[data-theme='dark'] body th {
+  background-color: #1c2632 !important;
+  color: #dce6f1 !important;
+}
+html[data-theme='dark'] body td {
+  background-color: #151d27 !important;
+  color: #d6e0ea !important;
+}
+html[data-theme='dark'] body tr:hover td { background-color: #1a2531 !important; }
+
+html[data-theme='dark'] body :is(dialog, .modal, .dialog, .sheet, .drawer, .popover, [role='dialog']) {
+  border-color: var(--bes-theme-border) !important;
+  background-color: #18212c !important;
+  color: var(--bes-theme-text) !important;
+  box-shadow: 0 18px 54px rgba(0,0,0,.48) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Shared navigation hub — one dark visual contract for every route
+   -------------------------------------------------------------------------- */
+html[data-theme='dark'] {
+  --hub4-blue: #8ab4f8;
+  --hub4-blue-soft: #20364f;
+  --hub4-ink: #eef3f8;
+  --hub4-text: #d7e0ea;
+  --hub4-muted: #96a7ba;
+  --hub4-line: #334255;
+  --hub4-line-soft: #283543;
+  --hub4-surface: rgba(21, 28, 37, .985);
+  --hub4-hover: #202b38;
+}
+
+html[data-theme='dark'] body .app-shell[data-route] > .bes-top-chrome,
+html[data-theme='dark'] body .app-shell[data-route] > .bes-top-chrome[data-bes-primary-nav-host='true'],
+html[data-theme='dark'] body .app-shell[data-route] > .bes-top-chrome[data-bes-hub-scrolled='true'],
+html[data-theme='dark'] body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'] {
+  border-color: #303e4e !important;
+  background: rgba(20,27,36,.985) !important;
+  box-shadow: 0 16px 42px rgba(0,0,0,.38), 0 2px 8px rgba(0,0,0,.22) !important;
+}
+
+html[data-theme='dark'] body .app-shell[data-route] > .bes-top-chrome .brian-nav {
+  background: transparent !important;
+  color: #eef3f8 !important;
+}
+
+html[data-theme='dark'] body .brian-nav__brand::after { background: #2a3746 !important; }
+html[data-theme='dark'] body .brian-nav__brand span { color: #eef3f8 !important; }
+html[data-theme='dark'] body .brian-nav__brand img { filter: drop-shadow(0 4px 12px rgba(0,0,0,.28)) !important; }
+
+html[data-theme='dark'] body .brian-nav__primary > :is(button, a) {
+  background: transparent !important;
+  color: #c6d2df !important;
+}
+html[data-theme='dark'] body .brian-nav__primary > :is(button, a):hover,
+html[data-theme='dark'] body .brian-nav__primary > :is(button, a):focus-visible {
+  background: #202b38 !important;
+  color: #f3f7fb !important;
+}
+html[data-theme='dark'] body .brian-nav__primary > :is(button.is-active, button.active, button[aria-current='page'], a.is-active, a.active, a[aria-current='page']) {
+  background: #20364f !important;
+  color: #cfe1ff !important;
+}
+
+html[data-theme='dark'] body .brian-nav__actions :is(.brian-nav__ai-button, .brian-nav__bell, .brian-nav__theme-toggle) {
+  border-color: #354557 !important;
+  background: #19222d !important;
+  color: #dce7f3 !important;
+  box-shadow: none !important;
+}
+html[data-theme='dark'] body .brian-nav__actions :is(.brian-nav__ai-button, .brian-nav__bell, .brian-nav__theme-toggle):hover,
+html[data-theme='dark'] body .brian-nav__actions :is(.brian-nav__ai-button, .brian-nav__bell, .brian-nav__theme-toggle).is-open {
+  border-color: #4b627a !important;
+  background: #222f3d !important;
+}
+html[data-theme='dark'] body .brian-nav__ai-button > span,
+html[data-theme='dark'] body .brian-nav__account strong { color: #e8eef5 !important; }
+html[data-theme='dark'] body .brian-nav__account { color: #e4ebf3 !important; }
+html[data-theme='dark'] body .brian-nav__account:hover,
+html[data-theme='dark'] body .brian-nav__account.is-open { background: #202b38 !important; }
+html[data-theme='dark'] body .brian-nav__account > span {
+  background-color: #2c4055 !important;
+  color: #eaf2fb !important;
+}
+
+html[data-theme='dark'] body .brian-nav__popover {
+  border-color: #344356 !important;
+  background: rgba(24,33,44,.995) !important;
+  color: #e8eef5 !important;
+  box-shadow: 0 22px 58px rgba(0,0,0,.52) !important;
+}
+html[data-theme='dark'] body .brian-nav__account-menu header,
+html[data-theme='dark'] body .brian-nav__menu-section,
+html[data-theme='dark'] body .brian-nav__menu-divider { border-color: #2f3c4c !important; }
+html[data-theme='dark'] body .brian-nav__account-menu button { color: #d8e2ed !important; }
+html[data-theme='dark'] body .brian-nav__account-menu button:hover { background: #22303d !important; }
+
+html[data-theme='dark'] body .app-shell[data-route] > .bes-top-chrome .brian-editorial-brief {
+  border-top-color: #293746 !important;
+  background: rgba(17,24,33,.96) !important;
+  color: #bdc9d6 !important;
+}
+html[data-theme='dark'] body .brian-editorial-brief__label,
+html[data-theme='dark'] body .brian-editorial-brief__chips { border-color: #293746 !important; }
+html[data-theme='dark'] body .brian-editorial-brief__label { color: #d8e1ea !important; }
+html[data-theme='dark'] body .brian-editorial-brief__headline { color: #97a8ba !important; }
+html[data-theme='dark'] body .brian-editorial-brief__headline:hover { color: #e1e9f2 !important; }
+html[data-theme='dark'] body .brian-editorial-brief__chips > button { color: #c5d0dc !important; background: transparent !important; }
+html[data-theme='dark'] body .brian-editorial-brief__chips > button:hover { background: #202b38 !important; }
+
+/* Theme selector itself */
+html[data-theme='dark'] body .brian-theme-menu > header { border-color: #334255 !important; }
+html[data-theme='dark'] body .brian-theme-menu > header strong { color: #eef3f8 !important; }
+html[data-theme='dark'] body .brian-theme-menu > header small,
+html[data-theme='dark'] body .brian-theme-menu__options small { color: #96a7ba !important; }
+html[data-theme='dark'] body .brian-theme-menu__preview { background: #25384d !important; color: #aecbfa !important; }
+html[data-theme='dark'] body .brian-theme-menu__options > button { color: #dce6f1 !important; }
+html[data-theme='dark'] body .brian-theme-menu__options > button:hover { background: #202b38 !important; }
+html[data-theme='dark'] body .brian-theme-menu__options > button.is-selected { border-color: #47698d !important; background: #20364f !important; }
+html[data-theme='dark'] body .brian-theme-menu__options > button > span:first-child { background: #263443 !important; color: #b8c7d8 !important; }
+html[data-theme='dark'] body .brian-theme-menu__options > button.is-selected > span:first-child { background: #294b70 !important; color: #d3e4ff !important; }
+html[data-theme='dark'] body .brian-theme-menu__options i { border-color: #74869a !important; }
+html[data-theme='dark'] body .brian-theme-menu__options > button.is-selected i { border-color: #8ab4f8 !important; background: #17202a !important; }
+
+/* --------------------------------------------------------------------------
+   Home
+   -------------------------------------------------------------------------- */
+html[data-theme='dark'] body .app-shell[data-route='home'] {
+  --v3-deep: #edf4fb;
+  --v3-glass: rgba(23,31,42,.72);
+  --v3-glass-strong: rgba(29,39,52,.92);
+  --v3-line: rgba(96,116,140,.42);
+  background: radial-gradient(circle at 16% 8%, rgba(39,72,104,.34), transparent 30%), radial-gradient(circle at 82% 15%, rgba(83,55,126,.25), transparent 34%), linear-gradient(145deg,#0f151d,#111a24 52%,#151725) !important;
+}
+html[data-theme='dark'] body .app-shell[data-route='home'] .brian-overlap-home {
+  color: #edf4fb !important;
+  background: radial-gradient(circle at 12% 8%, rgba(43,78,111,.32), transparent 30%), radial-gradient(circle at 56% 8%, rgba(32,98,92,.22), transparent 29%), radial-gradient(circle at 88% 18%, rgba(93,66,140,.26), transparent 31%), linear-gradient(135deg,#101821 0%,#10201f 36%,#151b28 67%,#1b1727 100%) !important;
+}
+html[data-theme='dark'] body .app-shell[data-route='home'] .boh-copy-panel > h1::after { color: #f0f5fa !important; text-shadow: 0 8px 30px rgba(0,0,0,.24) !important; }
+html[data-theme='dark'] body .app-shell[data-route='home'] .boh-subtitle { color: #a9b8c8 !important; }
+html[data-theme='dark'] body .app-shell[data-route='home'] .boh-eyebrow { border-color: #465b71 !important; background: linear-gradient(135deg,rgba(37,66,91,.88),rgba(58,42,78,.84)) !important; box-shadow: none !important; }
+html[data-theme='dark'] body .app-shell[data-route='home'] .boh-eyebrow::after { color: #aecbfa !important; }
+html[data-theme='dark'] body .app-shell[data-route='home'] .boh-actions button.is-secondary { border-color: #49647e !important; background: rgba(25,35,47,.76) !important; color: #b8d2ff !important; box-shadow: none !important; }
+
+/* --------------------------------------------------------------------------
+   Apps directory
+   -------------------------------------------------------------------------- */
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] {
+  --apps-canvas: #0f141b;
+  --apps-surface: rgba(23,30,40,.94);
+  --apps-surface-strong: #19222d;
+  --apps-line: #344255;
+  --apps-ink: #eef3f8;
+  --apps-muted: #9baabc;
+  --apps-blue: #8ab4f8;
+  --apps-blue-soft: #213853;
+  background: radial-gradient(circle at 8% 5%,rgba(95,66,43,.22),transparent 29%), radial-gradient(circle at 93% 7%,rgba(50,68,112,.28),transparent 31%), linear-gradient(145deg,#14120f 0%,#15151d 48%,#101923 100%) !important;
+}
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-directory {
+  border-color: #344255 !important;
+  background: linear-gradient(155deg,rgba(26,34,45,.97),rgba(20,27,36,.94)),#171e28 !important;
+  box-shadow: 0 24px 70px rgba(0,0,0,.34) !important;
+}
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-hero {
+  border-color: #35465a !important;
+  background: radial-gradient(circle at 88% 18%,rgba(68,97,139,.26),transparent 32%), linear-gradient(130deg,#19222d 0%,#1d1a18 46%,#172131 100%) !important;
+  box-shadow: 0 7px 24px rgba(0,0,0,.24) !important;
+}
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-kicker { background: #213853 !important; color: #b8d2ff !important; }
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .launcher-admin-actions button,
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-stats,
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .launcher-discovery-bar,
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .launcher-command-button,
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .launcher-density-switch,
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-group-rail {
+  border-color: #344255 !important;
+  background: #19222d !important;
+  color: #e8eef5 !important;
+  box-shadow: none !important;
+}
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .flat-apps-stats div,
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .launcher-search-box {
+  background: #121a23 !important;
+  color: #e7edf4 !important;
+}
+html[data-theme='dark'] body .metro-clean-system[data-route='apps'] .launcher-search-box:focus-within { background: #182331 !important; border-color: #55769d !important; }
+
+/* --------------------------------------------------------------------------
+   Teacher Dashboard
+   -------------------------------------------------------------------------- */
+html[data-theme='dark'] body main[data-route='dashboard'] > .tdb-page {
+  background: radial-gradient(circle at 8% 5%,rgba(41,73,102,.26),transparent 28%), radial-gradient(circle at 94% 10%,rgba(38,79,54,.18),transparent 27%), linear-gradient(180deg,#0f151d,#111821 48%,#0f141b 100%) !important;
+  color: #eaf0f6 !important;
+}
+html[data-theme='dark'] body .tdb-hero {
+  background: linear-gradient(135deg,rgba(26,35,47,.99),rgba(21,31,43,.98)) !important;
+  box-shadow: 0 22px 55px rgba(0,0,0,.34) !important;
+}
+html[data-theme='dark'] body .tdb-profile,
+html[data-theme='dark'] body .tdb-card,
+html[data-theme='dark'] body .tdb-metric {
+  border-color: #344255 !important;
+  background-color: #18212c !important;
+  color: #e8eef5 !important;
+  box-shadow: 0 8px 28px rgba(0,0,0,.24) !important;
+}
+html[data-theme='dark'] body :is(.tdb-row,.tdb-deadline,.tdb-mini-tile,.tdb-day,.tdb-quick-action) {
+  border-color: #2f3f51 !important;
+  background: #121b25 !important;
+  color: #dbe4ee !important;
+  box-shadow: none !important;
+}
+html[data-theme='dark'] body :is(.tdb-row,.tdb-deadline,.tdb-mini-tile,.tdb-quick-action):hover { background: #1c2b3a !important; border-color: #46698e !important; }
+html[data-theme='dark'] body .tdb-day.has-events:not(.is-selected) { background: #20364f !important; color: #cfe1ff !important; }
+html[data-theme='dark'] body .tdb-empty { background: #131d27 !important; color: #9eafc0 !important; }
+
+/* --------------------------------------------------------------------------
+   Homeroom workspace
+   -------------------------------------------------------------------------- */
+html[data-theme='dark'] body .hr-page {
+  --hrm3-primary: #8ab4f8;
+  --hrm3-primary-hover: #aecbfa;
+  --hrm3-primary-soft: #263f62;
+  --hrm3-primary-container: #213853;
+  --hrm3-green: #81c995;
+  --hrm3-green-soft: #173925;
+  --hrm3-red: #f28b82;
+  --hrm3-red-soft: #4a2325;
+  --hrm3-ink: #eef3f8;
+  --hrm3-muted: #9baabb;
+  --hrm3-bg: #0f141b;
+  --hrm3-surface: #171f29;
+  --hrm3-surface-alt: #121a23;
+  --hrm3-outline: #344255;
+  --hrm3-outline-strong: #46586d;
+  color: #e8eef5 !important;
+}
+html[data-theme='dark'] body .hr-page .hr-hero {
+  border-color: #34465b !important;
+  background: radial-gradient(circle at 72% -20%,rgba(67,106,158,.20),transparent 34%), linear-gradient(135deg,#19222d 0%,#17212d 55%,#142238 100%) !important;
+  box-shadow: 0 8px 26px rgba(0,0,0,.24) !important;
+}
+html[data-theme='dark'] body .hr-page .hr-hero-art { border-color: #3b5068 !important; background: linear-gradient(180deg,#1b2a3b,#182536) !important; }
+html[data-theme='dark'] body .hr-page .hr-hero-meta,
+html[data-theme='dark'] body .hr-page .hr-tabs,
+html[data-theme='dark'] body .hr-page .hr-panel,
+html[data-theme='dark'] body .hr-page .hr-loading,
+html[data-theme='dark'] body .hr-page .hr-phase3-banner,
+html[data-theme='dark'] body .hr-page .bes-teacher-class-filter {
+  border-color: #344255 !important;
+  background: #171f29 !important;
+  color: #e8eef5 !important;
+  box-shadow: 0 5px 20px rgba(0,0,0,.20) !important;
+}
+html[data-theme='dark'] body .hr-page .hr-tabs button { color: #bac7d5 !important; }
+html[data-theme='dark'] body .hr-page .hr-tabs button.active { background: #263f62 !important; color: #d8e7ff !important; }
+html[data-theme='dark'] body .hr-page .hr-hero-copy > span,
+html[data-theme='dark'] body .hr-page .bes-teacher-class-filter select { border-color: #3b4d60 !important; background: #121a23 !important; color: #e8eef5 !important; }
+
+/* --------------------------------------------------------------------------
+   Generic route compatibility: Reports, TTCM, Admin, Settings and utilities
+   -------------------------------------------------------------------------- */
+html[data-theme='dark'] body :is(
+  .app-shell[data-route='reports'],
+  .app-shell[data-route='ttcm'],
+  .app-shell[data-route='admin'],
+  .app-shell[data-route='settings'],
+  .app-shell[data-route='work-hub'],
+  .app-shell[data-route='games']
+) {
+  background-color: #0f141b !important;
+  color: #e8eef5 !important;
+}
+
+html[data-theme='dark'] body :is(
+  [data-route='reports'],
+  [data-route='ttcm'],
+  [data-route='admin'],
+  [data-route='settings'],
+  [data-route='work-hub'],
+  [data-route='games']
+) :is(
+  [class*='card'],
+  [class*='panel'],
+  [class*='surface'],
+  [class*='sheet'],
+  [class*='toolbar'],
+  [class*='tabs'],
+  [class*='table-wrap'],
+  [class*='summary']
+) {
+  border-color: #344255 !important;
+  background-color: #171f29 !important;
+  color: #e5edf5 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] body :is(
+  [data-route='reports'],
+  [data-route='ttcm'],
+  [data-route='admin'],
+  [data-route='settings'],
+  [data-route='work-hub'],
+  [data-route='games']
+) :is(h1,h2,h3,h4,strong,b,label) { color: #edf3f9 !important; }
+
+html[data-theme='dark'] body :is(
+  [data-route='reports'],
+  [data-route='ttcm'],
+  [data-route='admin'],
+  [data-route='settings'],
+  [data-route='work-hub'],
+  [data-route='games']
+) :is(p,small,.muted,[class*='subtitle'],[class*='caption']) { color: #9eafc0 !important; }
+
+/* Floating assistant and footer surfaces */
+html[data-theme='dark'] body .brian-chatbot-fab,
+html[data-theme='dark'] body [class*='footer'] {
+  border-color: #344255 !important;
+}
+html[data-theme='dark'] body footer:not(.brian-notification-center__footer) {
+  background-color: #111821 !important;
+  color: #95a6b8 !important;
+}
+
+/* Native browser controls and selection */
+html[data-theme='dark'] body ::selection { background: #315d8f !important; color: #fff !important; }
+html[data-theme='dark'] body hr { border-color: #2f3d4d !important; }
+
+@media print {
+  html[data-theme='dark'] body,
+  html[data-theme='dark'] body * {
+    color-scheme: light !important;
+  }
+}
