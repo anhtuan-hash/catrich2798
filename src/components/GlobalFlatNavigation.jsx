@@ -80,8 +80,10 @@ import './GlobalNavigationFixedSizeContract.css';
 import './GlobalCriticalJankGuard.css';
 // Notification Center and Work Hub UI are retired; TTCM is the single collaboration surface.
 import './GlobalNotificationCenterRemoval.css';
-// Final shell contract for the unified header and Windows 8 motion language.
+// Windows 8 motion language stays available as a selectable system preset.
 import './GlobalWindows8Experience.css';
+// Absolute final visual contract for the shared two-level navigation hub.
+import './GlobalNavigationHubV2.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
