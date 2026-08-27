@@ -1,6 +1,7 @@
-/* Brian English · pinned navigation hub contract
-   Final positioning layer for the shared hub. Navigation stays fixed at the
-   viewport top; the newswire collapses after the user scrolls into content. */
+/* Brian English · global pinned navigation hub contract
+   Final positioning layer for every Brian route/app that renders the shared hub.
+   Navigation stays fixed at the viewport top; the newswire collapses after the
+   user scrolls into content, including pages with their own scroll containers. */
 
 html {
   --bes-pinned-hub-top: max(8px, var(--brian-safe-top, 0px));
@@ -9,7 +10,8 @@ html {
   --bes-pinned-hub-ease: cubic-bezier(.2, 0, 0, 1);
 }
 
-html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'] {
+/* Shell-agnostic authority: any active Brian hub receives identical fixed behavior. */
+html body .bes-top-chrome[data-bes-pinned-hub='true'] {
   position: fixed !important;
   top: var(--bes-pinned-hub-top) !important;
   right: auto !important;
@@ -40,7 +42,7 @@ html body [data-bes-pinned-hub-spacer='true'] {
 }
 
 /* Expanded newswire state. */
-html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'] .brian-editorial-brief {
+html body .bes-top-chrome[data-bes-pinned-hub='true'] .brian-editorial-brief {
   opacity: 1 !important;
   transform: translateY(0) !important;
   transition:
@@ -53,7 +55,7 @@ html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'] .
 }
 
 /* Scrolled state: keep the command row pinned and reclaim the newswire height. */
-html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'][data-bes-newswire-collapsed='true'] .brian-editorial-brief {
+html body .bes-top-chrome[data-bes-pinned-hub='true'][data-bes-newswire-collapsed='true'] .brian-editorial-brief {
   min-height: 0 !important;
   height: 0 !important;
   max-height: 0 !important;
@@ -64,7 +66,7 @@ html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'][d
   pointer-events: none !important;
 }
 
-html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'][data-bes-newswire-collapsed='true'] .brian-editorial-brief :is(
+html body .bes-top-chrome[data-bes-pinned-hub='true'][data-bes-newswire-collapsed='true'] .brian-editorial-brief :is(
   .brian-editorial-brief__news,
   .brian-editorial-brief__label,
   .brian-editorial-brief__track,
@@ -79,13 +81,20 @@ html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'][d
 }
 
 /* When the lower strip is gone, the primary bar owns all four rounded corners. */
-html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'][data-bes-newswire-collapsed='true'] .brian-nav {
+html body .bes-top-chrome[data-bes-pinned-hub='true'][data-bes-newswire-collapsed='true'] .brian-nav {
   border-radius: 24px !important;
 }
 
-html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'][data-bes-newswire-collapsed='true'] {
+html body .bes-top-chrome[data-bes-pinned-hub='true'][data-bes-newswire-collapsed='true'] {
   border-radius: 24px !important;
   box-shadow: 0 12px 30px rgba(33, 61, 98, .12), 0 2px 8px rgba(33, 61, 98, .05) !important;
+}
+
+/* App-level scroll regions must not paint over the fixed global hub. */
+html body .app-shell,
+html body .app-shell main,
+html body #bes-main-content {
+  scroll-margin-top: calc(var(--bes-primary-nav-height, 84px) + var(--bes-pinned-hub-top, 8px) + 22px) !important;
 }
 
 /* Keep anchored navigation usable when navigating to headings. */
@@ -99,14 +108,14 @@ html {
     --bes-pinned-hub-inline: 8px;
   }
 
-  html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'] {
+  html body .bes-top-chrome[data-bes-pinned-hub='true'] {
     width: calc(100% - 16px) !important;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html body [data-bes-pinned-hub-spacer='true'],
-  html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'] .brian-editorial-brief {
+  html body .bes-top-chrome[data-bes-pinned-hub='true'] .brian-editorial-brief {
     transition: none !important;
   }
 }
