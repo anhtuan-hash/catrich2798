@@ -1,0 +1,112 @@
+/* Brian English · pinned navigation hub contract
+   Final positioning layer for the shared hub. Navigation stays fixed at the
+   viewport top; the newswire collapses after the user scrolls into content. */
+
+html {
+  --bes-pinned-hub-top: max(8px, var(--brian-safe-top, 0px));
+  --bes-pinned-hub-inline: clamp(16px, 2.6vw, 44px);
+  --bes-pinned-hub-collapse-duration: 220ms;
+  --bes-pinned-hub-ease: cubic-bezier(.2, 0, 0, 1);
+}
+
+html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'] {
+  position: fixed !important;
+  top: var(--bes-pinned-hub-top) !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 50% !important;
+  z-index: 1900 !important;
+  width: calc(100% - (var(--bes-pinned-hub-inline) * 2)) !important;
+  max-width: none !important;
+  margin: 0 !important;
+  transform: translateX(-50%) !important;
+  translate: none !important;
+  will-change: auto !important;
+  contain: layout paint style !important;
+}
+
+html body [data-bes-pinned-hub-spacer='true'] {
+  width: 100% !important;
+  min-width: 100% !important;
+  height: var(--bes-pinned-hub-reserved-height, 150px);
+  display: block !important;
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  transition: height var(--bes-pinned-hub-collapse-duration) var(--bes-pinned-hub-ease) !important;
+}
+
+/* Expanded newswire state. */
+html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'] .brian-editorial-brief {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  transition:
+    height var(--bes-pinned-hub-collapse-duration) var(--bes-pinned-hub-ease),
+    min-height var(--bes-pinned-hub-collapse-duration) var(--bes-pinned-hub-ease),
+    max-height var(--bes-pinned-hub-collapse-duration) var(--bes-pinned-hub-ease),
+    opacity 150ms ease,
+    transform var(--bes-pinned-hub-collapse-duration) var(--bes-pinned-hub-ease),
+    border-color 140ms ease !important;
+}
+
+/* Scrolled state: keep the command row pinned and reclaim the newswire height. */
+html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'][data-bes-newswire-collapsed='true'] .brian-editorial-brief {
+  min-height: 0 !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  opacity: 0 !important;
+  transform: translateY(-10px) !important;
+  overflow: hidden !important;
+  border-top-color: transparent !important;
+  pointer-events: none !important;
+}
+
+html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'][data-bes-newswire-collapsed='true'] .brian-editorial-brief :is(
+  .brian-editorial-brief__news,
+  .brian-editorial-brief__label,
+  .brian-editorial-brief__track,
+  .brian-editorial-brief__ticker,
+  .brian-editorial-brief__ticker-group,
+  .brian-editorial-brief__headline,
+  .brian-editorial-brief__chips
+) {
+  min-height: 0 !important;
+  height: 0 !important;
+  max-height: 0 !important;
+}
+
+/* When the lower strip is gone, the primary bar owns all four rounded corners. */
+html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'][data-bes-newswire-collapsed='true'] .brian-nav {
+  border-radius: 24px !important;
+}
+
+html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'][data-bes-newswire-collapsed='true'] {
+  border-radius: 24px !important;
+  box-shadow: 0 12px 30px rgba(33, 61, 98, .12), 0 2px 8px rgba(33, 61, 98, .05) !important;
+}
+
+/* Keep anchored navigation usable when navigating to headings. */
+html {
+  scroll-padding-top: calc(var(--bes-primary-nav-height, 84px) + var(--bes-pinned-hub-top, 8px) + 22px) !important;
+}
+
+@media (max-width: 760px) {
+  html {
+    --bes-pinned-hub-top: max(5px, var(--brian-safe-top, 0px));
+    --bes-pinned-hub-inline: 8px;
+  }
+
+  html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'] {
+    width: calc(100% - 16px) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body [data-bes-pinned-hub-spacer='true'],
+  html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub='true'] .brian-editorial-brief {
+    transition: none !important;
+  }
+}
