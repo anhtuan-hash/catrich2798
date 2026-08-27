@@ -1,339 +1,185 @@
-/* Brian English · Windows 8 / Metro experience layer
-   This file is intentionally loaded last through GlobalWindows8Experience.
-   It owns the deep Windows 8 choreography while preserving the existing visual
-   system and all non-Windows-8 motion presets. */
+/* Brian English · Windows 8 / WinRT motion language
+   Motion only. Navigation visuals belong to GlobalNavigationHubV4.css.
+   The goal is authentic content choreography: shell stays still, old content
+   retreats quickly, new groups enter with directional stagger, edge UI slides
+   from its owning edge, and progress uses Metro chase dots. */
 
-/* --------------------------------------------------------------------------
-   Settings de-duplication
-   Settings already renders the canonical motion panel. AdminPage is also
-   embedded inside Settings, so suppress only the embedded duplicate.
-   -------------------------------------------------------------------------- */
+/* Settings already owns the canonical motion panel. */
 #settings-admin-merge-host .admin-global-motion {
   display: none !important;
 }
 
-/* --------------------------------------------------------------------------
-   One-piece header: primary navigation + newswire ticker
-   -------------------------------------------------------------------------- */
-html body .app-shell[data-route] > .bes-top-chrome {
-  gap: 0 !important;
-}
-
-html body .app-shell[data-route] > .bes-top-chrome[data-bes-primary-nav-host='true'] {
-  padding-top: calc(var(--brian-safe-top, 0px) + var(--bes-primary-nav-height, 76px) + 8px) !important;
-}
-
-html body .app-shell[data-route] > .bes-top-chrome[data-bes-primary-nav-host='true']
-  .brian-nav[data-bes-primary-nav-fixed='true'] {
-  border-radius: 28px 28px 0 0 !important;
-  border-bottom-color: rgba(91, 190, 255, .34) !important;
-  box-shadow: none !important;
-}
-
-html body .app-shell[data-route] > .bes-top-chrome .brian-editorial-brief {
-  order: 2 !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  min-height: 46px !important;
-  margin: -1px 0 0 !important;
-  padding: 5px clamp(16px, 2vw, 30px) !important;
-  border: 1px solid rgba(91, 190, 255, .68) !important;
-  border-top-color: rgba(91, 190, 255, .28) !important;
-  border-radius: 0 0 28px 28px !important;
-  background: rgba(255, 255, 255, .94) !important;
-  box-shadow:
-    0 12px 30px rgba(36, 91, 139, .10),
-    inset 0 1px 0 rgba(255, 255, 255, .78) !important;
-  backdrop-filter: blur(18px) saturate(1.12) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(1.12) !important;
-}
-
-html body .app-shell[data-route] > .bes-top-chrome .brian-editorial-brief__label {
-  min-height: 30px !important;
-  border-radius: 10px !important;
-  box-shadow: none !important;
-}
-
-html body .app-shell[data-route] > .bes-top-chrome .brian-editorial-brief__track {
-  height: 32px !important;
-}
-
-html body .app-shell[data-route] > .bes-top-chrome .brian-editorial-brief__ticker {
-  min-height: 32px !important;
-}
-
-/* The ticker is driven by scrollLeft increasing in JS, therefore headlines
-   travel visually from right to left. Keep the edge fades directional and
-   remove smooth-scroll interference. */
-html body .brian-editorial-brief__track {
-  direction: ltr !important;
-  scroll-behavior: auto !important;
-  mask-image: linear-gradient(90deg, transparent 0, #000 3%, #000 96%, transparent 100%) !important;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 3%, #000 96%, transparent 100%) !important;
-}
-
-html body .app-shell[data-route][data-bes-header-scrolled] > .bes-top-chrome
-  .brian-nav[data-bes-primary-nav-fixed='true'],
-html body .app-shell[data-route] > .bes-top-chrome[data-bes-hub-scrolled='true']
-  .brian-nav[data-bes-primary-nav-fixed='true'] {
-  border: 1px solid rgba(91, 190, 255, .68) !important;
-  border-radius: 28px !important;
-  box-shadow:
-    0 12px 30px rgba(36, 91, 139, .10),
-    inset 0 1px 0 rgba(255, 255, 255, .96) !important;
-}
-
-/* --------------------------------------------------------------------------
-   Windows 8 motion tokens
-   -------------------------------------------------------------------------- */
 html[data-motion-mode='windows8'][data-motion-enabled='true'] {
   --w8-blue: #0078d7;
-  --w8-ease: cubic-bezier(.1, .9, .2, 1);
-  --w8-fast: 120ms;
-  --w8-base: 210ms;
-  --w8-emphasis: 330ms;
-  --w8-page: 390ms;
-  --w8-stagger-step: 42ms;
-  --w8-distance-sm: 18px;
-  --w8-distance-md: 40px;
-  --w8-distance-lg: 72px;
-  view-transition-name: none;
+  --w8-ease-out: cubic-bezier(.10, .90, .20, 1);
+  --w8-ease-in: cubic-bezier(.40, 0, 1, 1);
+  --w8-fast: 90ms;
+  --w8-ui: 210ms;
+  --w8-enter: 360ms;
+  --w8-stagger-step: 48ms;
+  --w8-enter-distance: 48px;
+  --w8-back-distance: 36px;
+  --w8-exit-distance: 12px;
+  view-transition-name: none !important;
 }
 
-/* Modern Brian visuals stay intact, but Windows 8 active navigation is flat. */
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-nav__primary :is(button, a) {
-  transition:
-    background-color var(--w8-fast) linear,
-    color var(--w8-fast) linear,
-    border-color var(--w8-fast) linear,
-    opacity var(--w8-fast) linear !important;
-}
-
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-nav__primary :is(
-  button.active, button.is-active, button[aria-current='page'],
-  a.active, a.is-active, a[aria-current='page']
-) {
-  color: var(--active-app-accent, var(--w8-blue)) !important;
-  background: color-mix(in srgb, var(--active-app-accent, var(--w8-blue)) 7%, transparent) !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-}
-
-/* --------------------------------------------------------------------------
-   View Transition route choreography
-   Only #bes-main-content is captured, so the fixed header does not slide.
-   -------------------------------------------------------------------------- */
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body #bes-main-content {
-  view-transition-name: brian-main;
-}
-
-html[data-motion-mode='windows8'][data-motion-enabled='true'][data-metro-view-transition='true'] body #bes-main-content {
+/* Never move the whole page stage. WinRT motion belongs to content groups. */
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body #bes-main-content,
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body [data-bes-main-content] {
   animation: none !important;
+  transform: none;
+  translate: none;
+  scale: 1;
 }
 
-html[data-motion-mode='windows8'][data-motion-enabled='true']::view-transition-group(brian-main),
-html[data-motion-mode='windows8'][data-motion-enabled='true']::view-transition-image-pair(brian-main) {
-  animation-duration: var(--w8-page) !important;
-  animation-timing-function: var(--w8-ease) !important;
+/* Route exit · very short retreat. */
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body [data-w8-exit='forward'] {
+  animation: w8-exit-forward var(--w8-fast) var(--w8-ease-in) both !important;
+  will-change: transform, opacity;
 }
 
-html[data-motion-mode='windows8'][data-motion-enabled='true']::view-transition-old(brian-main),
-html[data-motion-mode='windows8'][data-motion-enabled='true']::view-transition-new(brian-main) {
-  mix-blend-mode: normal !important;
-  transform-origin: center center !important;
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body [data-w8-exit='backward'] {
+  animation: w8-exit-back var(--w8-fast) var(--w8-ease-in) both !important;
+  will-change: transform, opacity;
 }
 
-html[data-motion-mode='windows8'][data-motion-enabled='true'][data-metro-direction='forward']::view-transition-old(brian-main) {
-  animation: w8-vt-old-forward 155ms linear both !important;
-}
-html[data-motion-mode='windows8'][data-motion-enabled='true'][data-metro-direction='forward']::view-transition-new(brian-main) {
-  animation: w8-vt-new-forward var(--w8-page) var(--w8-ease) both !important;
-}
-html[data-motion-mode='windows8'][data-motion-enabled='true'][data-metro-direction='backward']::view-transition-old(brian-main) {
-  animation: w8-vt-old-back 155ms linear both !important;
-}
-html[data-motion-mode='windows8'][data-motion-enabled='true'][data-metro-direction='backward']::view-transition-new(brian-main) {
-  animation: w8-vt-new-back var(--w8-page) var(--w8-ease) both !important;
+@keyframes w8-exit-forward {
+  from { opacity: 1; transform: translate3d(0, 0, 0); }
+  to { opacity: .16; transform: translate3d(calc(-1 * var(--w8-exit-distance)), 0, 0); }
 }
 
-@keyframes w8-vt-old-forward {
-  from { opacity: 1; transform: translateX(0); }
-  to { opacity: .30; transform: translateX(-24px); }
-}
-@keyframes w8-vt-new-forward {
-  0% { opacity: .01; transform: translateX(72px); }
-  34% { opacity: .68; }
-  100% { opacity: 1; transform: translateX(0); }
-}
-@keyframes w8-vt-old-back {
-  from { opacity: 1; transform: translateX(0); }
-  to { opacity: .30; transform: translateX(24px); }
-}
-@keyframes w8-vt-new-back {
-  0% { opacity: .01; transform: translateX(-72px); }
-  34% { opacity: .68; }
-  100% { opacity: 1; transform: translateX(0); }
+@keyframes w8-exit-back {
+  from { opacity: 1; transform: translate3d(0, 0, 0); }
+  to { opacity: .16; transform: translate3d(var(--w8-exit-distance), 0, 0); }
 }
 
-/* Fallback when View Transitions API is unavailable. */
-html[data-motion-mode='windows8'][data-motion-enabled='true']:not([data-metro-view-transition='true']) body #bes-main-content:not(#w8-page-a#w8-page-b#w8-page-c),
-html[data-motion-mode='windows8'][data-motion-enabled='true']:not([data-metro-view-transition='true']) body [data-bes-main-content][data-global-page-enter='true']:not(#w8-page-a#w8-page-b#w8-page-c) {
-  animation: w8-page-fallback var(--w8-page) var(--w8-ease) both !important;
+/* Route enter · WinRT content choreography. */
+html[data-motion-mode='windows8'][data-motion-enabled='true'][data-metro-direction='forward'] body [data-w8-enter='true'] {
+  animation: w8-enter-forward var(--w8-enter) var(--w8-ease-out) both !important;
+  animation-delay: calc(24ms + (var(--w8-stagger-index, 0) * var(--w8-stagger-step))) !important;
+  will-change: transform, opacity;
 }
 
-html[data-motion-mode='windows8'][data-motion-enabled='true'][data-metro-direction='backward']:not([data-metro-view-transition='true']) body #bes-main-content:not(#w8-page-a#w8-page-b#w8-page-c) {
-  animation-name: w8-page-fallback-back !important;
+html[data-motion-mode='windows8'][data-motion-enabled='true'][data-metro-direction='backward'] body [data-w8-enter='true'] {
+  animation: w8-enter-back var(--w8-enter) var(--w8-ease-out) both !important;
+  animation-delay: calc(20ms + (var(--w8-stagger-index, 0) * 42ms)) !important;
+  will-change: transform, opacity;
 }
 
-@keyframes w8-page-fallback {
-  0% { opacity: .01; translate: 64px 0; }
-  36% { opacity: .72; }
-  100% { opacity: 1; translate: 0 0; }
-}
-@keyframes w8-page-fallback-back {
-  0% { opacity: .01; translate: -64px 0; }
-  36% { opacity: .72; }
-  100% { opacity: 1; translate: 0 0; }
+@keyframes w8-enter-forward {
+  0% { opacity: 0; transform: translate3d(var(--w8-enter-distance), 0, 0); }
+  28% { opacity: .72; }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-/* --------------------------------------------------------------------------
-   Windows 8 content choreography / staggered entrance
-   -------------------------------------------------------------------------- */
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body #bes-main-content[data-w8-choreography='true'] [data-w8-stagger='true'] {
-  animation: w8-content-stagger 310ms var(--w8-ease) both !important;
-  animation-delay: calc(72ms + (var(--w8-stagger-index, 0) * var(--w8-stagger-step))) !important;
-  will-change: opacity, translate !important;
+@keyframes w8-enter-back {
+  0% { opacity: 0; transform: translate3d(calc(-1 * var(--w8-back-distance)), 0, 0); }
+  30% { opacity: .74; }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-html[data-motion-mode='windows8'][data-motion-enabled='true'][data-metro-direction='backward'] body #bes-main-content[data-w8-choreography='true'] [data-w8-stagger='true'] {
-  animation-name: w8-content-stagger-back !important;
-}
-
-@keyframes w8-content-stagger {
-  from { opacity: .01; translate: 34px 0; }
-  to { opacity: 1; translate: 0 0; }
-}
-@keyframes w8-content-stagger-back {
-  from { opacity: .01; translate: -34px 0; }
-  to { opacity: 1; translate: 0 0; }
-}
-
-/* Tabs: short directional content motion; no scale or spring. */
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body :not(#w8-tab-a#w8-tab-b#w8-tab-c):is(
+/* Tabs move less than full route content. */
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body :is(
   [role='tabpanel'], [data-tab-panel], .tab-panel, .tab-content,
   [class*='tab-panel'], [class*='tab-content']
 )[data-global-tab-enter='true'] {
-  animation: w8-tab-enter 270ms var(--w8-ease) both !important;
-}
-@keyframes w8-tab-enter {
-  from { opacity: .01; translate: 32px 0; }
-  to { opacity: 1; translate: 0 0; }
+  animation: w8-tab-enter 230ms var(--w8-ease-out) both !important;
 }
 
-/* --------------------------------------------------------------------------
-   Flyouts, dialogs, drawers, notification center, toasts
-   -------------------------------------------------------------------------- */
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body :not(#w8-dialog-a#w8-dialog-b#w8-dialog-c):is(
+@keyframes w8-tab-enter {
+  from { opacity: 0; transform: translate3d(24px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* Edge UI · flat, directional, no scale/spring. */
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body :is(
+  [class*='drawer'], [class*='sheet'], .ttcm-m3-layer,
+  .brian-ai-workspace-layer
+)[data-global-motion-enter='true'] {
+  animation: w8-edge-enter 300ms var(--w8-ease-out) both !important;
+}
+
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body :is(
   [role='dialog'], dialog, [class*='modal'], [class*='dialog']
 )[data-global-motion-enter='true'] {
-  animation: w8-dialog-enter 290ms var(--w8-ease) both !important;
-}
-@keyframes w8-dialog-enter {
-  from { opacity: .01; translate: 42px 0; scale: 1; }
-  to { opacity: 1; translate: 0 0; scale: 1; }
+  animation: w8-dialog-enter 260ms var(--w8-ease-out) both !important;
+  transform-origin: right center !important;
 }
 
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body :not(#w8-drawer-a#w8-drawer-b#w8-drawer-c):is(
-  [class*='drawer'], [class*='sheet']
-)[data-global-motion-enter='true'] {
-  animation: w8-edge-panel-enter 320ms var(--w8-ease) both !important;
-}
-@keyframes w8-edge-panel-enter {
-  from { opacity: .12; translate: 72px 0; }
-  to { opacity: 1; translate: 0 0; }
-}
-
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body :not(#w8-menu-a#w8-menu-b#w8-menu-c):is(
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body :is(
   [role='menu'], [role='listbox'], [class*='popover'], [class*='dropdown']
 )[data-global-motion-enter='true'] {
-  animation: w8-flyout-enter 230ms var(--w8-ease) both !important;
-}
-@keyframes w8-flyout-enter {
-  from { opacity: .01; translate: 26px -4px; scale: 1; }
-  to { opacity: 1; translate: 0 0; scale: 1; }
+  animation: w8-flyout-enter 190ms var(--w8-ease-out) both !important;
 }
 
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-notification-center[data-global-motion-enter='true'],
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-nav__notifications[data-global-motion-enter='true'] {
-  animation: w8-notification-center-enter 310ms var(--w8-ease) both !important;
-  transform-origin: right top !important;
-}
-@keyframes w8-notification-center-enter {
-  from { opacity: .01; translate: 82px 0; }
-  to { opacity: 1; translate: 0 0; }
-}
-
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-notification-center__list > .brian-notification-card {
-  animation: w8-notification-item 250ms var(--w8-ease) both !important;
-}
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-notification-center__list > .brian-notification-card:nth-child(1) { animation-delay: 55ms !important; }
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-notification-center__list > .brian-notification-card:nth-child(2) { animation-delay: 85ms !important; }
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-notification-center__list > .brian-notification-card:nth-child(3) { animation-delay: 115ms !important; }
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-notification-center__list > .brian-notification-card:nth-child(4) { animation-delay: 145ms !important; }
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-notification-center__list > .brian-notification-card:nth-child(5) { animation-delay: 175ms !important; }
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-notification-center__list > .brian-notification-card:nth-child(6) { animation-delay: 205ms !important; }
-@keyframes w8-notification-item {
-  from { opacity: .01; translate: 28px 0; }
-  to { opacity: 1; translate: 0 0; }
-}
-
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body :not(#w8-toast-a#w8-toast-b#w8-toast-c):is(
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body :is(
   [class*='toast'], [class*='snackbar']
 )[data-global-motion-enter='true'] {
-  animation: w8-toast-enter 300ms var(--w8-ease) both !important;
-}
-@keyframes w8-toast-enter {
-  from { opacity: .01; translate: 96px 0; }
-  to { opacity: 1; translate: 0 0; }
+  animation: w8-toast-enter 220ms var(--w8-ease-out) both !important;
 }
 
 html[data-motion-mode='windows8'][data-motion-enabled='true'] body [role='tooltip'][data-global-motion-enter='true'] {
-  animation: w8-tooltip-enter 120ms linear both !important;
+  animation: w8-tooltip-enter 100ms linear both !important;
 }
+
+@keyframes w8-edge-enter {
+  from { opacity: .18; transform: translate3d(56px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes w8-dialog-enter {
+  from { opacity: 0; transform: translate3d(32px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes w8-flyout-enter {
+  from { opacity: 0; transform: translate3d(16px, -2px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes w8-toast-enter {
+  from { opacity: 0; transform: translate3d(48px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
 @keyframes w8-tooltip-enter {
-  from { opacity: .01; }
+  from { opacity: 0; }
   to { opacity: 1; }
 }
 
-/* Press feedback stays flat and quick. No bounce, glow, or elastic overshoot. */
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body :not(.brian-nav__primary) :is(
-  button, [role='button'], a[class]
-):not(:disabled):active {
-  scale: .985 !important;
-  opacity: .88 !important;
-  transition-duration: 70ms !important;
-  transition-timing-function: linear !important;
+/* Navigation · flat state, motion handled by the physical indicator. */
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-nav__primary > :is(button, a) {
+  transition: color 110ms linear, background-color 110ms linear !important;
 }
 
-/* --------------------------------------------------------------------------
-   Metro route progress: five travelling dots beneath the primary navigation.
-   Replaces the previous full-screen white loading veil.
-   -------------------------------------------------------------------------- */
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-nav__primary > :is(
+  button.is-active, button.active, button[aria-current='page'],
+  a.is-active, a.active, a[aria-current='page']
+) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Metro chase-dot route progress · no overlay, no spinner ring. */
 html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-route-loader {
   position: fixed !important;
-  z-index: 2147482400 !important;
-  inset: calc(var(--brian-safe-top, 0px) + var(--bes-primary-nav-height, 76px) + 7px)
-    max(clamp(8px, 1.25vw, 20px), var(--brian-safe-right, 0px)) auto
-    max(clamp(8px, 1.25vw, 20px), var(--brian-safe-left, 0px)) !important;
-  width: auto !important;
+  z-index: 2147483000 !important;
+  top: calc(var(--brian-safe-top, 0px) + var(--bes-navigation-hub-height, 136px) - 4px) !important;
+  right: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
   height: 4px !important;
+  min-height: 4px !important;
   display: block !important;
-  place-items: initial !important;
   overflow: hidden !important;
+  padding: 0 !important;
+  border: 0 !important;
   background: transparent !important;
-  pointer-events: none !important;
+  box-shadow: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
+  pointer-events: none !important;
+  transition: opacity 90ms linear !important;
 }
 
 html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-route-loader.is-visible {
@@ -343,78 +189,69 @@ html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-route-
 
 html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-route-loader.is-leaving {
   opacity: 0 !important;
-  transition: opacity 90ms linear !important;
 }
 
 html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-loader-inner {
-  width: 100% !important;
-  height: 4px !important;
+  position: absolute !important;
+  inset: 0 !important;
   display: block !important;
-  color: transparent !important;
+  padding: 0 !important;
+  background: transparent !important;
 }
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-loader-inner > :not(.gm-w8-progress) {
+
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-loader-inner > :is(strong, small) {
   display: none !important;
 }
+
 html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-progress {
-  position: relative !important;
-  width: 100% !important;
-  height: 4px !important;
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
   overflow: hidden !important;
+  background: transparent !important;
 }
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-progress span {
+
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-progress > span {
   position: absolute !important;
   top: 0 !important;
   left: -12px !important;
-  width: 5px !important;
+  width: 4px !important;
   height: 4px !important;
-  border-radius: 0 !important;
-  background: var(--active-app-accent, var(--w8-blue)) !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: var(--w8-blue) !important;
+  box-shadow: none !important;
   opacity: 0 !important;
+  animation: w8-progress-dot 900ms cubic-bezier(.25, .1, .25, 1) infinite !important;
 }
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-route-loader.is-running .gm-w8-progress span {
-  animation: w8-route-dot 1.02s var(--w8-ease) infinite !important;
-}
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-progress span:nth-child(1) { animation-delay: 0ms !important; }
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-progress span:nth-child(2) { animation-delay: 72ms !important; }
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-progress span:nth-child(3) { animation-delay: 144ms !important; }
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-progress span:nth-child(4) { animation-delay: 216ms !important; }
-html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-progress span:nth-child(5) { animation-delay: 288ms !important; }
-@keyframes w8-route-dot {
+
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-progress > span:nth-child(1) { animation-delay: 0ms !important; }
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-progress > span:nth-child(2) { animation-delay: 85ms !important; }
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-progress > span:nth-child(3) { animation-delay: 170ms !important; }
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-progress > span:nth-child(4) { animation-delay: 255ms !important; }
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body .gm-w8-progress > span:nth-child(5) { animation-delay: 340ms !important; }
+
+@keyframes w8-progress-dot {
   0% { left: -12px; opacity: 0; }
-  8% { opacity: 1; }
-  46% { left: 44%; opacity: 1; }
-  78% { left: 78%; opacity: 1; }
+  6% { opacity: 1; }
+  22% { left: 18%; }
+  48% { left: 48%; }
+  74% { left: 78%; }
+  91% { left: calc(100% + 4px); opacity: 1; }
   100% { left: calc(100% + 12px); opacity: 0; }
 }
 
-/* --------------------------------------------------------------------------
-   Accessibility remains authoritative.
-   -------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-  html[data-motion-mode='windows8'] body #bes-main-content,
-  html[data-motion-mode='windows8'] body #bes-main-content *,
-  html[data-motion-mode='windows8'] body .brian-nav__popover,
-  html[data-motion-mode='windows8'] body .brian-notification-card,
-  html[data-motion-mode='windows8'] body .gm-w8-route-loader,
-  html[data-motion-mode='windows8'] body .gm-w8-route-loader * {
+  html[data-motion-mode='windows8'] body [data-w8-enter='true'],
+  html[data-motion-mode='windows8'] body [data-w8-exit],
+  html[data-motion-mode='windows8'] body [data-global-tab-enter='true'],
+  html[data-motion-mode='windows8'] body [data-global-motion-enter='true'],
+  html[data-motion-mode='windows8'] body .gm-w8-progress > span {
     animation: none !important;
-    transition: none !important;
-    translate: none !important;
-    scale: 1 !important;
-    opacity: 1 !important;
-    will-change: auto !important;
-  }
-}
-
-@media (max-width: 760px) {
-  html body .app-shell[data-route] > .bes-top-chrome .brian-editorial-brief {
-    min-height: 44px !important;
-    padding: 4px 8px !important;
-    border-radius: 0 0 20px 20px !important;
+    transform: none !important;
   }
 
-  html body .app-shell[data-route] > .bes-top-chrome[data-bes-primary-nav-host='true']
-    .brian-nav[data-bes-primary-nav-fixed='true'] {
-    border-radius: 20px 20px 0 0 !important;
+  html[data-motion-mode='windows8'] body .gm-w8-route-loader {
+    display: none !important;
   }
 }
