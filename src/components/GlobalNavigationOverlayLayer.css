@@ -7,8 +7,16 @@ html body #root .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true
   overflow: visible !important;
 }
 
+/* GlobalPinnedNavigationHub uses paint containment for performance. Paint
+   containment clips descendants to the hub box, so temporarily release it
+   whenever an account/notification popover is open. */
 html body #root .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true']:has(.brian-nav__popover) {
   z-index: 12000 !important;
+  contain: none !important;
+  overflow: visible !important;
+  clip-path: none !important;
+  mask: none !important;
+  -webkit-mask: none !important;
 }
 
 html body #root .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true'] > .brian-nav,
@@ -23,6 +31,7 @@ html body #root .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true
   position: relative !important;
   z-index: 12020 !important;
   overflow: visible !important;
+  contain: none !important;
 }
 
 html body #root .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true'] .brian-nav__popover {
@@ -35,6 +44,8 @@ html body #root .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true
   visibility: visible !important;
   pointer-events: auto !important;
   isolation: isolate !important;
+  overflow: visible !important;
+  contain: none !important;
   overscroll-behavior: contain !important;
 }
 
@@ -45,6 +56,7 @@ html body #root .app-shell[data-route] .brian-nav__font-options {
 @media (max-width: 820px) {
   html body #root .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true']:has(.brian-nav__popover) {
     z-index: 16000 !important;
+    contain: none !important;
   }
 
   html body #root .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true'] .brian-nav__popover {
