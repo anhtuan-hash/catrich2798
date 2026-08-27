@@ -57,6 +57,11 @@ function normalizeConfig(row = {}) {
   };
 }
 
+function customAuthorityActive() {
+  return typeof document !== 'undefined'
+    && document.documentElement?.dataset?.globalFont === 'custom';
+}
+
 function readStoredConfig() {
   if (typeof window === 'undefined') return null;
   try {
@@ -146,7 +151,9 @@ export async function loadGlobalCustomFontSettings({ silent = true, apply = true
   const client = getRuntimeClient();
   if (!client) {
     const cached = readStoredConfig();
-    if (cached && apply) applyGlobalCustomFont(cached, { source: 'custom-cache' });
+    if (cached && apply && customAuthorityActive()) {
+      applyGlobalCustomFont(cached, { source: 'custom-cache' });
+    }
     return { ok: false, unavailable: true, config: cached };
   }
 
@@ -161,7 +168,9 @@ export async function loadGlobalCustomFontSettings({ silent = true, apply = true
       return { ok: false, unavailable: isMissingSchema(error), error, config: readStoredConfig() };
     }
     const config = normalizeConfig(data || {});
-    if (data?.font_preset === 'custom' && config.url && apply) applyGlobalCustomFont(config, { source: 'custom-server' });
+    if (data?.font_preset === 'custom' && config.url && apply && customAuthorityActive()) {
+      applyGlobalCustomFont(config, { source: 'custom-server' });
+    }
     return { ok: true, preset: data?.font_preset || '', config: config.url ? config : null };
   } catch (error) {
     if (!silent) console.warn('[CustomFont] load failed', error);
@@ -262,6 +271,20 @@ export async function saveGlobalCustomFont(file, displayName = '', currentUser =
   return result;
 }
 
+function applyRealtimeCustomWhenAuthorized(row) {
+  if (!row?.custom_font_url) return;
+  const applyNow = () => {
+    if (customAuthorityActive()) {
+      applyGlobalCustomFont(normalizeConfig(row), { source: 'custom-realtime' });
+      return true;
+    }
+    return false;
+  };
+  if (applyNow() || typeof window === 'undefined') return;
+  window.setTimeout(applyNow, 0);
+  window.setTimeout(applyNow, 120);
+}
+
 function installRealtime() {
   if (realtimeUnsubscribe) return;
   try {
@@ -271,7 +294,7 @@ function installRealtime() {
       onChange: (payload) => {
         const row = payload?.new && Object.keys(payload.new).length ? payload.new : null;
         if (row?.font_preset === 'custom' && row?.custom_font_url) {
-          applyGlobalCustomFont(normalizeConfig(row), { source: 'custom-realtime' });
+          applyRealtimeCustomWhenAuthorized(row);
         }
       },
     });
@@ -284,7 +307,7 @@ export function installGlobalCustomFontRuntime() {
   if (installed || typeof window === 'undefined' || typeof document === 'undefined') return;
   installed = true;
   const cached = readStoredConfig();
-  if (document.documentElement?.dataset?.globalFont === 'custom' && cached) {
+  if (customAuthorityActive() && cached) {
     applyGlobalCustomFont(cached, { source: 'custom-bootstrap' });
   }
   const run = async () => {
