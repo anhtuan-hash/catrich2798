@@ -1,0 +1,11 @@
+/* Brian English · final semantic navigation order
+   One shared ordering contract for every route using the global navigation hub.
+   Home is the first destination, followed by Apps and the operational areas. */
+
+html body .brian-nav__primary > [data-nav-key='home'] { order: 10 !important; }
+html body .brian-nav__primary > [data-nav-key='apps'] { order: 20 !important; }
+html body .brian-nav__primary > [data-nav-key='dashboard'] { order: 30 !important; }
+html body .brian-nav__primary > [data-nav-key='homeroom'] { order: 40 !important; }
+html body .brian-nav__primary > [data-nav-key='reports'] { order: 50 !important; }
+html body .brian-nav__primary > [data-nav-key='ttcm'] { order: 60 !important; }
+html body .brian-nav__primary > [data-nav-key='games'] { order: 70 !important; }
