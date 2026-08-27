@@ -316,8 +316,21 @@ async function syncAssignedSchoolClassWorkspacesInternal(user, options = {}) {
     window.dispatchEvent(new CustomEvent('bes-homeroom-store-updated'));
   }
 
+  // Never reload the browser to select the assigned homeroom. HomeroomWorkspace
+  // already exposes an in-place navigation command; using it keeps React mounted,
+  // preserves the active session, and prevents sync -> reload -> sync loops.
   if (shouldOpenHomeroom && isHomeroomRoute()) {
-    window.setTimeout(() => window.location.reload(), 0);
+    const targetWorkspaceId = selectedWorkspaceId || homeroomWorkspaceId;
+    window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('bes-homeroom-command', {
+        detail: {
+          type: 'homeroom.navigate',
+          workspaceId: targetWorkspaceId,
+          tab: 'overview',
+          source: 'assigned-school-class-sync',
+        },
+      }));
+    }, 0);
   }
 
   return {
