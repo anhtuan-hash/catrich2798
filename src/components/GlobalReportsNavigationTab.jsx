@@ -18,8 +18,9 @@ function compactCountdown(state, language) {
   const minutes = Math.floor((totalMs % 3600000) / 60000);
   const seconds = Math.floor((totalMs % 60000) / 1000);
   const clock = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  const value = days > 0 ? `${days}n ${clock}` : clock;
 
-  return days > 0 ? `${days}n ${clock}` : clock;
+  return language === 'vi' ? `Còn ${value}` : `${value} left`;
 }
 
 export default function GlobalReportsNavigationTab({
@@ -122,6 +123,8 @@ export default function GlobalReportsNavigationTab({
   if (!host || !allowed) return null;
 
   const active = route === 'tool' && selectedTool?.slug === 'brian-team';
+  const departmentLeader = isDepartmentLeaderRole(currentUser?.role);
+  const showCountdownUnderLabel = active && departmentLeader;
   const label = language === 'vi' ? 'Báo cáo' : 'Reports';
   const countdown = deadlineState(deadline, now);
   const countdownLabel = compactCountdown(countdown, language);
@@ -133,7 +136,7 @@ export default function GlobalReportsNavigationTab({
   return createPortal(
     <button
       type="button"
-      className={`brian-nav__reports-tab ${active ? 'is-active' : ''}`}
+      className={`brian-nav__reports-tab ${active ? 'is-active' : ''} ${showCountdownUnderLabel ? 'shows-countdown' : ''}`.trim()}
       aria-current={active ? 'page' : undefined}
       aria-label={`${label} · ${countdownLabel}`}
       title={deadlineTitle}
