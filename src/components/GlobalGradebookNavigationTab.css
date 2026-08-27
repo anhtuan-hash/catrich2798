@@ -1,0 +1,13 @@
+/* Standalone Gradebook primary-navigation tab. The shared semantic-order sheet
+   owns its position; this file only defines the Gradebook active treatment. */
+body .brian-nav__primary > button.brian-nav__gradebook-tab.is-active {
+  color: #1558b0 !important;
+  background: #e8f0fe !important;
+  box-shadow: inset 0 0 0 1px rgba(26, 115, 232, .18) !important;
+}
+
+@media (max-width: 1080px) {
+  body .brian-nav__primary > button.brian-nav__gradebook-tab {
+    padding-inline: 11px !important;
+  }
+}
