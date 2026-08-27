@@ -49,22 +49,45 @@ function personKey(student = {}) {
   return `person:${name}|${birthDate}|${gender}`;
 }
 
+function assignedClassProfile(profile = {}) {
+  return Boolean(text(profile.assignmentDepartmentId) || text(profile.assignmentSource));
+}
+
 export function makeGradebookRosterIdentity(user, workspace) {
+  const profile = workspace?.classProfile || {};
+  const className = text(profile.className, 'Lớp bộ môn');
+  const schoolYear = text(profile.schoolYear, 'unknown-year');
+  const grade = text(profile.grade);
+  const assigned = assignedClassProfile(profile);
+  const scope = assigned ? 'class' : `owner:${lower(userId(user))}`;
+  return {
+    rosterKey: assigned
+      ? `class:${lower(schoolYear)}||${lower(className)}`
+      : `${scope}||${lower(schoolYear)}||${lower(className)}`,
+    departmentId: '',
+    className,
+    schoolYear,
+    grade,
+    scope: assigned ? 'assigned-class' : 'owner',
+    legacyDepartmentId: text(profile.assignmentDepartmentId),
+  };
+}
+
+export function makeLegacyGradebookRosterIdentity(user, workspace) {
   const profile = workspace?.classProfile || {};
   const departmentId = text(profile.assignmentDepartmentId);
   const className = text(profile.className, 'Lớp bộ môn');
   const schoolYear = text(profile.schoolYear, 'unknown-year');
   const grade = text(profile.grade);
-  const scope = departmentId
-    ? `department:${lower(departmentId)}`
-    : `owner:${lower(userId(user))}`;
+  if (!departmentId) return makeGradebookRosterIdentity(user, workspace);
   return {
-    rosterKey: `${scope}||${lower(schoolYear)}||${lower(className)}`,
+    rosterKey: `department:${lower(departmentId)}||${lower(schoolYear)}||${lower(className)}`,
     departmentId,
     className,
     schoolYear,
     grade,
-    scope: departmentId ? 'department' : 'owner',
+    scope: 'legacy-department',
+    legacyDepartmentId: departmentId,
   };
 }
 
@@ -132,8 +155,7 @@ export function mergeSharedRosterIntoWorkspace(workspace, rosterStudents = []) {
   return { ...workspace, students: merged };
 }
 
-function saveLocalRoster(user, workspace, students, metadata = {}) {
-  const identity = makeGradebookRosterIdentity(user, workspace);
+function saveLocalRosterForIdentity(identity, students, metadata = {}) {
   const row = {
     ...identity,
     students: projectSharedRosterStudents(students),
@@ -144,9 +166,17 @@ function saveLocalRoster(user, workspace, students, metadata = {}) {
   return row;
 }
 
+function saveLocalRoster(user, workspace, students, metadata = {}) {
+  return saveLocalRosterForIdentity(makeGradebookRosterIdentity(user, workspace), students, metadata);
+}
+
 function loadLocalRoster(user, workspace) {
   const identity = makeGradebookRosterIdentity(user, workspace);
-  return readJson(rosterLocalKey(identity.rosterKey), null);
+  const canonical = readJson(rosterLocalKey(identity.rosterKey), null);
+  if (canonical) return canonical;
+  const legacy = makeLegacyGradebookRosterIdentity(user, workspace);
+  if (legacy.rosterKey === identity.rosterKey) return null;
+  return readJson(rosterLocalKey(legacy.rosterKey), null);
 }
 
 function isMissingRosterTable(error) {
@@ -161,6 +191,23 @@ function isMissingRosterTable(error) {
     ));
 }
 
+async function selectCloudRoster(identity) {
+  return supabase
+    .from(ROSTER_TABLE)
+    .select('roster_key,department_id,class_name,school_year,grade,students,created_by,updated_by,updated_at')
+    .eq('roster_key', identity.rosterKey)
+    .maybeSingle();
+}
+
+function cloudRowToLocal(identity, data, source = 'roster-cloud') {
+  return saveLocalRosterForIdentity(identity, data.students || [], {
+    createdBy: data.created_by || '',
+    updatedBy: data.updated_by || '',
+    updatedAt: data.updated_at || new Date().toISOString(),
+    source,
+  });
+}
+
 export async function loadSharedGradebookRoster(user, workspace) {
   if (!workspace) return { ok: true, roster: null, source: 'no-workspace' };
   const identity = makeGradebookRosterIdentity(user, workspace);
@@ -169,12 +216,7 @@ export async function loadSharedGradebookRoster(user, workspace) {
     return { ok: true, offline: true, roster: local, source: local ? 'roster-local' : 'no-cloud' };
   }
 
-  const { data, error } = await supabase
-    .from(ROSTER_TABLE)
-    .select('roster_key,department_id,class_name,school_year,grade,students,created_by,updated_by,updated_at')
-    .eq('roster_key', identity.rosterKey)
-    .maybeSingle();
-
+  let { data, error } = await selectCloudRoster(identity);
   if (error) {
     return {
       ok: false,
@@ -186,13 +228,22 @@ export async function loadSharedGradebookRoster(user, workspace) {
     };
   }
 
+  if (!data && identity.scope === 'assigned-class') {
+    const legacyIdentity = makeLegacyGradebookRosterIdentity(user, workspace);
+    if (legacyIdentity.rosterKey !== identity.rosterKey) {
+      const legacyResult = await selectCloudRoster(legacyIdentity);
+      if (!legacyResult.error && legacyResult.data) {
+        const legacyRoster = cloudRowToLocal(identity, legacyResult.data, 'roster-legacy-cloud');
+        const promotedWorkspace = mergeSharedRosterIntoWorkspace(workspace, legacyRoster.students);
+        const promoted = await saveSharedGradebookRoster(user, promotedWorkspace);
+        if (promoted.ok) return { ...promoted, source: 'roster-cloud-promoted', promotedLegacy: true };
+        return { ok: true, roster: legacyRoster, source: 'roster-legacy-cloud', promotedLegacy: false };
+      }
+    }
+  }
+
   if (!data) return { ok: true, roster: local, source: local ? 'roster-local' : 'roster-cloud-empty' };
-  const roster = saveLocalRoster(user, workspace, data.students || [], {
-    createdBy: data.created_by || '',
-    updatedBy: data.updated_by || '',
-    updatedAt: data.updated_at || new Date().toISOString(),
-    source: 'roster-cloud',
-  });
+  const roster = cloudRowToLocal(identity, data, 'roster-cloud');
   return { ok: true, roster, source: 'roster-cloud' };
 }
 
@@ -272,9 +323,12 @@ export async function hydrateGradebookWithSharedRoster(user, workspace) {
   if (!workspace) return { workspace, source: 'no-workspace', roster: null };
   const result = await loadSharedGradebookRoster(user, workspace);
   if (result.roster?.students?.length) {
+    const hydrated = mergeSharedRosterIntoWorkspace(workspace, result.roster.students);
+    // Assigned-class rosters converge on open: legacy/local students missing from the
+    // canonical roster are promoted through the conflict-safe save path on the next edit.
     return {
       ...result,
-      workspace: mergeSharedRosterIntoWorkspace(workspace, result.roster.students),
+      workspace: hydrated,
     };
   }
 
