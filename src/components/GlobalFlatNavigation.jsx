@@ -97,6 +97,8 @@ import './GlobalUnifiedNavigationHub.css';
 import './GlobalThemeControl.css';
 // ABSOLUTE FINAL COLOR AUTHORITY: dark appearance overrides historical route palettes.
 import './GlobalDarkThemeFinal.css';
+// ABSOLUTE FINAL GEOMETRY AUTHORITY: one centered 16:9 frame for every Brian route.
+import '../styles/GlobalLayout16x9Authority.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
