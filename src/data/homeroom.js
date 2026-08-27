@@ -10,8 +10,8 @@ export const HOMEROOM_APP = {
   groupVi: 'Công tác chủ nhiệm',
   title: 'Homeroom Teacher Workspace',
   titleVi: 'Giáo viên chủ nhiệm',
-  desc: 'Manage class information, students, attendance, learning and conduct.',
-  descVi: 'Quản lý thông tin lớp, học sinh, điểm danh, học tập và rèn luyện.',
+  desc: 'Manage class information, students, attendance and conduct.',
+  descVi: 'Quản lý thông tin lớp, học sinh, điểm danh và rèn luyện.',
   status: 'Focused · Offline-first homeroom workspace',
   statusVi: 'Tinh gọn · Nhận diện ngoại tuyến, không dùng AI',
   api: false,
@@ -24,8 +24,8 @@ export const HOMEROOM_PERMISSION_ITEM = {
   section: 'homeroom',
   title: 'Homeroom Teacher Workspace',
   titleVi: 'Không gian Giáo viên chủ nhiệm',
-  desc: 'Manage the signed-in teacher’s class, students, attendance, learning and conduct.',
-  descVi: 'Quản lý lớp chủ nhiệm, học sinh, điểm danh, học tập và rèn luyện theo tài khoản giáo viên.',
+  desc: 'Manage the signed-in teacher’s homeroom class, students, attendance and conduct.',
+  descVi: 'Quản lý lớp chủ nhiệm, học sinh, điểm danh và rèn luyện theo tài khoản giáo viên.',
 };
 
 export const HOMEROOM_TABS = [
@@ -33,7 +33,6 @@ export const HOMEROOM_TABS = [
   { key: 'classes', icon: '▥', titleVi: 'Lớp & năm học', title: 'Classes & years' },
   { key: 'students', icon: '♙', titleVi: 'Học sinh', title: 'Students' },
   { key: 'attendance', icon: '✓', titleVi: 'Điểm danh', title: 'Attendance' },
-  { key: 'learning', icon: '∑', titleVi: 'Học tập', title: 'Learning analytics' },
   { key: 'conduct', icon: '100', titleVi: 'Rèn luyện', title: 'Conduct' },
   { key: 'safety', icon: '⌾', titleVi: 'An toàn dữ liệu', title: 'Data safety' },
 ];
