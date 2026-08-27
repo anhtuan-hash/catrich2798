@@ -15,6 +15,7 @@ const BrianTeamPortal = lazy(() => import('./BrianTeamPortal.jsx'));
 const TopFiveArena = lazy(() => import('./TopFiveArena.jsx'));
 const SeatingChartStudio = lazy(() => import('./SeatingChartStudio.jsx'));
 const TeachingToolHub = lazy(() => import('./TeachingToolHub.jsx'));
+const GradebookStudio = lazy(() => import('./GradebookStudio.jsx'));
 
 function ToolFallback({ language = 'vi' }) {
   return <div className="page narrow"><section className="panel empty-state"><h1>{language === 'vi' ? 'Đang mở công cụ...' : 'Opening tool...'}</h1><p>{language === 'vi' ? 'Đang tải đúng mô-đun cần dùng để giao diện nhẹ hơn.' : 'Loading only the module you need for a lighter interface.'}</p></section></div>;
@@ -53,6 +54,7 @@ export default function ToolPage(props) {
   const [title, setTitle] = useState('My Activity');
   const preview = useMemo(() => buildPreview(content, selected, language), [content, selected, language]);
 
+  if (tool?.slug === 'gradebook-studio') return renderLazy(GradebookStudio, props);
   if (tool?.slug === 'teaching-tool-hub') return renderLazy(TeachingToolHub, props);
   if (tool?.slug === 'seating-chart-studio') return renderLazy(SeatingChartStudio, props);
   if (tool?.slug === 'textlab-activities') return renderLazy(TextLabActivities, props);
