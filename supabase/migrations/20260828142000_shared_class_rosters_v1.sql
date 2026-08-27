@@ -186,7 +186,10 @@ begin
               'fullName', coalesce(student ->> 'fullName', ''),
               'birthDate', coalesce(student ->> 'birthDate', ''),
               'gender', coalesce(student ->> 'gender', ''),
-              'active', coalesce((student ->> 'active')::boolean, true),
+              'active', case
+                when lower(trim(coalesce(student ->> 'active', 'true'))) in ('false', '0', 'no', 'off') then false
+                else true
+              end,
               'archivedAt', coalesce(student ->> 'archivedAt', ''),
               'archivedReason', coalesce(student ->> 'archivedReason', '')
             )
