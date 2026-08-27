@@ -139,13 +139,24 @@ export default function GlobalMetroNavigationIndicator({ route }) {
       updateIndicator({ animate: false });
     }
 
+    const onPrimaryScroll = () => scheduleUpdate({ animate: false });
+
     if (primary) {
-      mutationObserver = new MutationObserver(() => scheduleUpdate({ animate: true }));
+      mutationObserver = new MutationObserver((mutations) => {
+        const relevant = mutations.some((mutation) => {
+          if (mutation.type === 'childList') {
+            return [...mutation.addedNodes, ...mutation.removedNodes]
+              .some((node) => node !== indicator);
+          }
+          return mutation.target !== indicator;
+        });
+        if (relevant) scheduleUpdate({ animate: true });
+      });
       mutationObserver.observe(primary, {
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['class', 'aria-current', 'style'],
+        attributeFilter: ['class', 'aria-current'],
       });
 
       if (typeof ResizeObserver !== 'undefined') {
@@ -153,7 +164,7 @@ export default function GlobalMetroNavigationIndicator({ route }) {
         resizeObserver.observe(primary);
       }
 
-      primary.addEventListener('scroll', () => scheduleUpdate({ animate: false }), { passive: true });
+      primary.addEventListener('scroll', onPrimaryScroll, { passive: true });
     }
 
     const onViewportChange = () => scheduleUpdate({ animate: false });
@@ -169,6 +180,7 @@ export default function GlobalMetroNavigationIndicator({ route }) {
       cancelFrame();
       mutationObserver?.disconnect();
       resizeObserver?.disconnect();
+      primary?.removeEventListener('scroll', onPrimaryScroll);
       window.removeEventListener('resize', onViewportChange);
       window.removeEventListener(GLOBAL_MOTION_EVENT, onMotionChange);
       window.removeEventListener('bes-metro-indicator-refresh', onRouteRefresh);
