@@ -45,6 +45,33 @@ html body .brian-theme-menu {
   padding: 16px !important;
 }
 
+/* The theme menu must never be clipped by the shared hub/news ticker. The
+   trigger stays inside the hub, while the actual menu is portalled to body. */
+html body .brian-theme-menu.brian-theme-menu--portal {
+  position: fixed !important;
+  top: var(--bes-theme-menu-top, 96px) !important;
+  left: var(--bes-theme-menu-left, 12px) !important;
+  right: auto !important;
+  z-index: 10050 !important;
+  width: min(360px, calc(100vw - 24px)) !important;
+  max-width: calc(100vw - 24px) !important;
+  max-height: min(420px, calc(100vh - var(--bes-theme-menu-top, 96px) - 12px)) !important;
+  margin: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  isolation: isolate !important;
+  border: 1px solid #dfe6ee !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,.995) !important;
+  box-shadow: 0 22px 60px rgba(34,54,80,.24), 0 4px 16px rgba(34,54,80,.10) !important;
+  backdrop-filter: blur(22px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.08) !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
 html body .brian-theme-menu > header {
   display: flex !important;
   align-items: center !important;
@@ -170,6 +197,39 @@ html body .brian-theme-menu__options i {
 html body .brian-theme-menu__options > button.is-selected i {
   border: 5px solid #1a73e8 !important;
   background: #fff !important;
+}
+
+html[data-theme='dark'] body .brian-theme-menu.brian-theme-menu--portal {
+  border-color: #344356 !important;
+  background: rgba(24,33,44,.995) !important;
+  box-shadow: 0 22px 62px rgba(0,0,0,.52) !important;
+}
+html[data-theme='dark'] body .brian-theme-menu > header { border-bottom-color: #334255 !important; }
+html[data-theme='dark'] body .brian-theme-menu > header strong { color: #edf3f8 !important; }
+html[data-theme='dark'] body .brian-theme-menu > header small,
+html[data-theme='dark'] body .brian-theme-menu__options small { color: #95a6b8 !important; }
+html[data-theme='dark'] body .brian-theme-menu__preview {
+  background: #20364f !important;
+  color: #9fc1f6 !important;
+}
+html[data-theme='dark'] body .brian-theme-menu__options > button { color: #dce6f0 !important; }
+html[data-theme='dark'] body .brian-theme-menu__options > button:hover { background: #202b38 !important; }
+html[data-theme='dark'] body .brian-theme-menu__options > button.is-selected {
+  border-color: #46668c !important;
+  background: #20364f !important;
+}
+html[data-theme='dark'] body .brian-theme-menu__options > button > span:first-child {
+  background: #273543 !important;
+  color: #afc5de !important;
+}
+html[data-theme='dark'] body .brian-theme-menu__options > button.is-selected > span:first-child {
+  background: #294568 !important;
+  color: #b8d4ff !important;
+}
+html[data-theme='dark'] body .brian-theme-menu__options i { border-color: #718195 !important; }
+html[data-theme='dark'] body .brian-theme-menu__options > button.is-selected i {
+  border-color: #8ab4f8 !important;
+  background: #18212c !important;
 }
 
 @media (max-width: 900px) {
