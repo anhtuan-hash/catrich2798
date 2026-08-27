@@ -2,16 +2,16 @@ import React, { useEffect, useMemo, useState } from 'react';
 import HomeroomLearningGradebook from '../components/homeroom/HomeroomLearningGradebook.jsx';
 import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
 import {
-  createHomeroomWorkspace,
-  listHomeroomWorkspaces,
-  listLocalHomeroomWorkspaces,
-  loadHomeroomWorkspace,
-  loadLocalHomeroomWorkspace,
-  saveHomeroomWorkspace,
-  saveLocalHomeroomWorkspace,
-} from '../utils/homeroomClassWorkspaceStore.js';
+  createGradebookClass,
+  listGradebookClasses,
+  listLocalGradebookClasses,
+  loadGradebookClass,
+  loadLocalGradebookClass,
+  saveGradebookClass,
+  saveLocalGradebookClass,
+} from '../utils/gradebookWorkspaceStore.js';
 import { makeWorkspaceId } from '../utils/homeroomPhase3.js';
-import { SUBJECT_CLASS_TYPE, getClassTypeLabel } from '../utils/homeroomClassTypes.js';
+import { getClassTypeLabel } from '../utils/homeroomClassTypes.js';
 import '../styles/homeroom-complete.css';
 import '../styles/GradebookStudio.css';
 
@@ -48,11 +48,17 @@ function classLabel(item) {
 }
 
 export default function GradebookStudio({ currentUser, language = 'vi' }) {
-  const initialCatalog = useMemo(() => listLocalHomeroomWorkspaces(currentUser), [currentUser?.id, currentUser?.authId, currentUser?.email]);
-  const initialId = useMemo(() => readSelectedClassId(currentUser, initialCatalog), [currentUser?.id, currentUser?.authId, currentUser?.email]);
+  const initialCatalog = useMemo(
+    () => listLocalGradebookClasses(currentUser),
+    [currentUser?.id, currentUser?.authId, currentUser?.email],
+  );
+  const initialId = useMemo(
+    () => readSelectedClassId(currentUser, initialCatalog),
+    [currentUser?.id, currentUser?.authId, currentUser?.email],
+  );
   const [catalog, setCatalog] = useState(initialCatalog);
   const [workspaceId, setWorkspaceId] = useState(initialId);
-  const [workspace, setWorkspace] = useState(() => initialId ? loadLocalHomeroomWorkspace(currentUser, initialId) : null);
+  const [workspace, setWorkspace] = useState(() => initialId ? loadLocalGradebookClass(currentUser, initialId) : null);
   const [view, setView] = useState('gradebook');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -60,15 +66,12 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const [createOpen, setCreateOpen] = useState(() => !initialId);
   const [classDraft, setClassDraft] = useState(EMPTY_CLASS);
 
-  const activeClasses = useMemo(
-    () => catalog.filter((item) => item.status !== 'archived'),
-    [catalog],
-  );
+  const activeClasses = useMemo(() => catalog.filter((item) => item.status !== 'archived'), [catalog]);
 
   const refreshCatalog = async () => {
-    const local = listLocalHomeroomWorkspaces(currentUser);
+    const local = listLocalGradebookClasses(currentUser);
     if (local.length) setCatalog(local);
-    const result = await listHomeroomWorkspaces(currentUser);
+    const result = await listGradebookClasses(currentUser);
     const items = result.items || local;
     setCatalog(items);
     return items;
@@ -80,8 +83,10 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       const items = await refreshCatalog();
       if (!alive) return;
       const selected = readSelectedClassId(currentUser, items);
-      setWorkspaceId((current) => current && items.some((item) => item.id === current && item.status !== 'archived') ? current : selected);
-      if (!selected && !workspaceId) setCreateOpen(true);
+      setWorkspaceId((current) => (
+        current && items.some((item) => item.id === current && item.status !== 'archived') ? current : selected
+      ));
+      if (!selected) setCreateOpen(true);
     })();
     return () => { alive = false; };
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
@@ -94,15 +99,14 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
 
     let alive = true;
     persistSelectedClassId(currentUser, workspaceId);
-    const local = loadLocalHomeroomWorkspace(currentUser, workspaceId);
+    const local = loadLocalGradebookClass(currentUser, workspaceId);
     if (local) setWorkspace(local);
     setLoading(!local);
 
     (async () => {
       try {
-        const result = await loadHomeroomWorkspace(currentUser, workspaceId);
-        if (!alive) return;
-        if (result.workspace) setWorkspace(result.workspace);
+        const result = await loadGradebookClass(currentUser, workspaceId);
+        if (alive && result.workspace) setWorkspace(result.workspace);
       } finally {
         if (alive) setLoading(false);
       }
@@ -118,10 +122,10 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   };
 
   const commit = async (next, successMessage = 'Đã lưu dữ liệu sổ điểm.') => {
-    const local = saveLocalHomeroomWorkspace(next, currentUser);
+    const local = saveLocalGradebookClass(next, currentUser);
     setWorkspace(local);
     setSaving(true);
-    const result = await saveHomeroomWorkspace(local, currentUser);
+    const result = await saveGradebookClass(local, currentUser);
     setSaving(false);
     if (result.ok) {
       setWorkspace(result.workspace || local);
@@ -141,11 +145,10 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     }
     const id = makeWorkspaceId(className, classDraft.schoolYear);
     setSaving(true);
-    const result = await createHomeroomWorkspace(currentUser, {
+    const result = await createGradebookClass(currentUser, {
       id,
       semester: classDraft.semester,
       classProfile: {
-        classType: SUBJECT_CLASS_TYPE,
         className,
         schoolYear: classDraft.schoolYear,
         grade: classDraft.grade,
