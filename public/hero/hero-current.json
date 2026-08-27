@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "revision": "1787806939545-4de6cd9f",
-  "publishedAt": "2026-08-27T05:02:19.545Z",
+  "revision": "1787807193047-fc266ca8",
+  "publishedAt": "2026-08-27T05:06:33.047Z",
   "publishedBy": "anhtuan@pek.edu.vn",
   "delivery": "vercel-static",
   "config": {
@@ -83,10 +83,10 @@
     ],
     "background": {
       "type": "image",
-      "url": "/hero/media/hero-1787806939541-20a5e8a480a8.jpg",
+      "url": "/hero/media/hero-1787807193047-ce739286e1f9.webp",
       "posterUrl": "",
-      "fileName": "hero-1787806939541-20a5e8a480a8.jpg",
-      "mimeType": "image/jpeg",
+      "fileName": "hero-1787807193047-ce739286e1f9.webp",
+      "mimeType": "image/webp",
       "fit": "cover",
       "positionX": 70,
       "positionY": 50,
