@@ -1,0 +1,572 @@
+/* Brian English · Navigation Hub V3
+   Structural visual reset for the global chrome.
+   One sticky command surface, one horizontal navigation system, one quiet
+   newswire row. This file is loaded last and intentionally supersedes the many
+   legacy navigation themes without changing routing or feature logic. */
+
+html {
+  --bes-primary-nav-height: 64px;
+  --bes-navigation-hub-height: 102px;
+  --hub-bg: rgba(255, 255, 255, .97);
+  --hub-bg-hover: #f5f8fc;
+  --hub-ink: #17263a;
+  --hub-muted: #66768a;
+  --hub-accent: var(--active-app-accent, #1769d2);
+  --hub-line: #e6ebf1;
+  --hub-line-strong: #d7dee8;
+  --hub-danger: #d93025;
+  --hub-nav-font: var(--bes-font-navigation, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+  --hub-news-font: var(--bes-font-newswire, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+  scroll-padding-top: calc(var(--brian-safe-top, 0px) + var(--bes-navigation-hub-height, 102px) + 12px) !important;
+}
+
+/* --------------------------------------------------------------------------
+   One physical header surface
+   -------------------------------------------------------------------------- */
+html body .app-shell[data-route] > .bes-top-chrome,
+html body .app-shell[data-route] > .bes-top-chrome[data-bes-primary-nav-host='true'],
+html body .app-shell[data-route] > .bes-top-chrome[data-bes-hub-scrolled='true'],
+html body .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-chrome] {
+  position: sticky !important;
+  inset: auto !important;
+  top: var(--brian-safe-top, 0px) !important;
+  z-index: 1600 !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--hub-line) !important;
+  border-radius: 0 !important;
+  background: var(--hub-bg) !important;
+  box-shadow: 0 8px 26px rgba(37, 54, 79, .07) !important;
+  backdrop-filter: blur(20px) saturate(1.15) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.15) !important;
+  isolation: isolate !important;
+}
+
+html body .app-shell[data-route][data-bes-nav-pinned],
+html body .app-shell[data-route][data-bes-header-scrolled] {
+  padding-block-start: 0 !important;
+  --bes-pinned-nav-height: 0px !important;
+}
+
+/* --------------------------------------------------------------------------
+   Level 1 · command bar
+   -------------------------------------------------------------------------- */
+html body .app-shell[data-route] > .bes-top-chrome .brian-nav,
+html body .app-shell[data-route] > .bes-top-chrome[data-bes-primary-nav-host='true'] .brian-nav[data-bes-primary-nav-fixed='true'],
+html body .app-shell[data-route][data-bes-header-scrolled] > .bes-top-chrome .brian-nav[data-bes-primary-nav-fixed='true'] {
+  order: 1 !important;
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  z-index: 2 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 64px !important;
+  height: 64px !important;
+  max-height: 64px !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 18px !important;
+  margin: 0 !important;
+  padding: 0 clamp(18px, 2.1vw, 34px) !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--hub-ink) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  translate: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  font-family: var(--hub-nav-font) !important;
+}
+
+html body .brian-nav :is(button, a, span, strong, b, small, em, i, label, input, select) {
+  font-family: var(--hub-nav-font) !important;
+}
+
+/* Brand is identity, not a separate card. */
+html body .brian-nav__brand {
+  position: relative !important;
+  min-width: max-content !important;
+  min-height: 42px !important;
+  height: 42px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 0 18px 0 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #102b4d !important;
+  box-shadow: none !important;
+}
+html body .brian-nav__brand::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 0;
+  bottom: 8px;
+  width: 1px;
+  background: var(--hub-line);
+}
+html body .brian-nav__brand:hover,
+html body .brian-nav__brand:focus-visible { background: transparent !important; }
+html body .brian-nav__brand img {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 9px !important;
+  object-fit: contain !important;
+}
+html body .brian-nav__brand span {
+  font-size: 15.5px !important;
+  font-weight: 760 !important;
+  letter-spacing: -.018em !important;
+  white-space: nowrap !important;
+}
+
+/* Primary navigation is a single flat horizontal rail. */
+html body .brian-nav__primary {
+  position: relative !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: stretch !important;
+  gap: 1px !important;
+  height: 64px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+  overscroll-behavior-inline: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+html body .brian-nav__primary::-webkit-scrollbar { display: none !important; }
+
+html body .brian-nav__primary > button,
+html body .brian-nav__primary > a {
+  position: relative !important;
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+  min-height: 64px !important;
+  height: 64px !important;
+  max-height: 64px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  margin: 0 !important;
+  padding: 0 13px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  color: #4d5d70 !important;
+  box-shadow: none !important;
+  font-size: 14px !important;
+  font-weight: 620 !important;
+  letter-spacing: -.008em !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: color 140ms ease, background-color 140ms ease !important;
+}
+html body .brian-nav__primary > :is(button, a):hover,
+html body .brian-nav__primary > :is(button, a):focus-visible {
+  background: #f5f8fc !important;
+  color: #162d49 !important;
+}
+html body .brian-nav__primary > :is(
+  button.is-active, button.active, button[aria-current='page'],
+  a.is-active, a.active, a[aria-current='page']
+) {
+  color: var(--hub-accent) !important;
+  background: transparent !important;
+  box-shadow: inset 0 -2px 0 var(--hub-accent) !important;
+  font-weight: 720 !important;
+}
+html[data-motion-mode='windows8'][data-motion-enabled='true'] body .brian-nav__primary > :is(
+  button.is-active, button.active, button[aria-current='page'],
+  a.is-active, a.active, a[aria-current='page']
+) {
+  box-shadow: none !important;
+}
+html body .brian-nav__primary > :is(button, a)::before,
+html body .brian-nav__primary > :is(button, a)::after { border-radius: 0 !important; }
+
+/* Stable order for portal-injected destinations. */
+html body .brian-nav__primary > button { order: 10 !important; }
+html body .brian-nav__primary > .brian-nav__dashboard-tab { order: 30 !important; }
+html body .brian-nav__primary > .brian-nav__homeroom-tab { order: 40 !important; }
+html body .brian-nav__primary > .brian-nav__reports-tab { order: 50 !important; }
+html body .brian-nav__primary > .brian-nav__ttcm-tab { order: 60 !important; }
+html body .brian-nav__primary > .brian-nav__games-tab { order: 70 !important; }
+
+/* Reports: deadline stays accessible through title/aria, but does not become a
+   second red navigation button. It is only a status dot. */
+html body .brian-nav__primary .brian-nav__reports-tab {
+  gap: 7px !important;
+}
+html body .brian-nav__reports-label { font: inherit !important; }
+html body .brian-nav__reports-countdown {
+  width: 7px !important;
+  min-width: 7px !important;
+  height: 7px !important;
+  min-height: 7px !important;
+  max-height: 7px !important;
+  display: inline-block !important;
+  flex: 0 0 7px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #e0a11a !important;
+  color: transparent !important;
+  box-shadow: none !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  text-indent: -999px !important;
+}
+html body .brian-nav__reports-countdown.is-expired { background: var(--hub-danger) !important; }
+html body .brian-nav__reports-countdown.is-unset { background: #a8b2bf !important; }
+
+/* TTCM belongs to the same text rail. Remove the decorative megaphone tile. */
+html body .brian-nav__primary .brian-nav__ttcm-tab .ttcm-m3-icon {
+  display: none !important;
+}
+html body .brian-nav__ttcm-badge {
+  min-width: 17px !important;
+  height: 17px !important;
+  padding: 0 4px !important;
+  border-radius: 999px !important;
+  background: #d93025 !important;
+  color: #fff !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+}
+
+/* Search is handled by Command-K and should not occupy prime navigation space. */
+html body .brian-nav__search { display: none !important; }
+
+/* --------------------------------------------------------------------------
+   Right-side utility cluster
+   -------------------------------------------------------------------------- */
+html body .brian-nav__actions {
+  min-width: max-content !important;
+  height: 64px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 4px !important;
+  padding-left: 12px !important;
+  border-left: 1px solid var(--hub-line) !important;
+}
+html body .brian-nav__actions .brian-nav__popover-wrap { position: relative !important; }
+
+html body :is(.brian-nav__icon, .brian-nav__login) {
+  min-width: 38px !important;
+  width: 38px !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  max-height: 38px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  color: #4f6075 !important;
+  box-shadow: none !important;
+}
+html body :is(.brian-nav__icon, .brian-nav__login):hover,
+html body :is(.brian-nav__icon, .brian-nav__login).is-open {
+  background: #f0f4f9 !important;
+  color: #17375d !important;
+}
+html body .brian-nav__ai-button > span {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--hub-accent) !important;
+  font-size: 10px !important;
+  font-weight: 850 !important;
+  letter-spacing: .02em !important;
+}
+html body .brian-nav__bell em {
+  top: 0 !important;
+  right: -2px !important;
+  min-width: 16px !important;
+  height: 16px !important;
+  padding: 0 3px !important;
+  border: 2px solid #fff !important;
+  background: var(--hub-danger) !important;
+  font-size: 9px !important;
+}
+
+html body .brian-nav__account {
+  min-height: 42px !important;
+  height: 42px !important;
+  display: inline-grid !important;
+  grid-template-columns: 32px auto auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 4px 6px 4px 5px !important;
+  border: 0 !important;
+  border-radius: 11px !important;
+  background: transparent !important;
+  color: #1d2c3e !important;
+  box-shadow: none !important;
+}
+html body .brian-nav__account:hover,
+html body .brian-nav__account.is-open { background: #f2f5f9 !important; }
+html body .brian-nav__account > span {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background-color: #dce7f7 !important;
+  color: #17375d !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+html body .brian-nav__account strong {
+  max-width: 96px !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+}
+html body .brian-nav__account i { font-size: 11px !important; color: #7a8797 !important; }
+
+/* Popovers float from the flat bar; their internal feature UI is preserved. */
+html body .brian-nav__popover {
+  top: calc(100% + 8px) !important;
+  border: 1px solid var(--hub-line-strong) !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  color: var(--hub-ink) !important;
+  box-shadow: 0 20px 48px rgba(28, 45, 69, .16) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Level 2 · newswire, visually part of the same surface
+   -------------------------------------------------------------------------- */
+html body .app-shell[data-route] > .bes-top-chrome .brian-editorial-brief,
+html body .app-shell[data-route] > .bes-top-chrome[data-bes-hub-scrolled='true'] .brian-editorial-brief,
+html body .app-shell[data-route][data-bes-header-scrolled] > .bes-top-chrome .brian-editorial-brief {
+  order: 2 !important;
+  position: relative !important;
+  inset: auto !important;
+  z-index: 1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  max-height: 38px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 clamp(18px, 2.1vw, 34px) !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-top: 1px solid var(--hub-line) !important;
+  border-radius: 0 !important;
+  background: #fbfcfe !important;
+  color: #607086 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  font-family: var(--hub-news-font) !important;
+}
+html body .brian-editorial-brief :is(button, span, small, strong, b, i) {
+  font-family: var(--hub-news-font) !important;
+}
+html body .brian-editorial-brief__news {
+  min-width: 0 !important;
+  height: 38px !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 14px !important;
+  overflow: hidden !important;
+}
+html body .brian-editorial-brief__label {
+  min-width: max-content !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #52657a !important;
+  box-shadow: none !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .12em !important;
+}
+html body .brian-editorial-brief__label i {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background: var(--hub-accent) !important;
+  box-shadow: none !important;
+}
+html body .brian-editorial-brief__track {
+  min-width: 0 !important;
+  height: 38px !important;
+  overflow: hidden !important;
+  mask-image: linear-gradient(90deg, transparent 0, #000 2.5%, #000 97%, transparent 100%) !important;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 2.5%, #000 97%, transparent 100%) !important;
+}
+html body .brian-editorial-brief__ticker,
+html body .brian-editorial-brief__ticker-group {
+  min-height: 38px !important;
+  height: 38px !important;
+  align-items: center !important;
+}
+html body .brian-editorial-brief__ticker-group { gap: 22px !important; padding-right: 44px !important; }
+html body .brian-editorial-brief__headline {
+  min-height: 38px !important;
+  height: 38px !important;
+  gap: 7px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #66778b !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+html body .brian-editorial-brief__headline small {
+  color: #2d69b3 !important;
+  font-size: 10px !important;
+  font-weight: 760 !important;
+}
+html body .brian-editorial-brief__headline:hover span { color: #233a55 !important; }
+html body .brian-editorial-brief__dot { color: #aec6e4 !important; font-size: 7px !important; }
+html body .brian-editorial-brief__chips {
+  min-width: max-content !important;
+  height: 38px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding-left: 14px !important;
+  border-left: 1px solid var(--hub-line) !important;
+}
+html body .brian-editorial-brief__chips button {
+  min-width: auto !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 0 7px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #66778b !important;
+  box-shadow: none !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+}
+html body .brian-editorial-brief__chips button:hover {
+  background: #f0f4f9 !important;
+  color: #274b75 !important;
+}
+
+/* --------------------------------------------------------------------------
+   Focus + responsive behavior
+   -------------------------------------------------------------------------- */
+html body .brian-nav button:focus-visible,
+html body .brian-editorial-brief button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--hub-accent) 45%, transparent) !important;
+  outline-offset: 2px !important;
+}
+
+@media (max-width: 1180px) {
+  html body .app-shell[data-route] > .bes-top-chrome .brian-nav {
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    gap: 12px !important;
+    padding-inline: 18px !important;
+  }
+  html body .brian-nav__brand { padding-right: 13px !important; }
+  html body .brian-nav__brand span { display: none !important; }
+  html body .brian-nav__primary > :is(button, a) { padding-inline: 11px !important; font-size: 13.5px !important; }
+  html body .brian-nav__account strong { display: none !important; }
+  html body .brian-nav__account { grid-template-columns: 32px auto !important; }
+}
+
+@media (max-width: 760px) {
+  html {
+    --bes-primary-nav-height: 58px;
+    --bes-navigation-hub-height: 94px;
+  }
+  html body .app-shell[data-route] > .bes-top-chrome .brian-nav,
+  html body .app-shell[data-route] > .bes-top-chrome[data-bes-primary-nav-host='true'] .brian-nav[data-bes-primary-nav-fixed='true'] {
+    min-height: 58px !important;
+    height: 58px !important;
+    max-height: 58px !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    padding-inline: max(10px, var(--brian-safe-left, 0px)) !important;
+  }
+  html body .brian-nav__brand { min-height: 38px !important; height: 38px !important; padding-right: 9px !important; }
+  html body .brian-nav__brand img { width: 30px !important; height: 30px !important; }
+  html body .brian-nav__primary { height: 58px !important; }
+  html body .brian-nav__primary > :is(button, a) {
+    min-height: 58px !important;
+    height: 58px !important;
+    max-height: 58px !important;
+    padding-inline: 10px !important;
+    font-size: 13px !important;
+  }
+  html body .brian-nav__actions { height: 58px !important; padding-left: 6px !important; gap: 2px !important; }
+  html body .brian-nav__account { min-height: 38px !important; height: 38px !important; grid-template-columns: 30px !important; padding: 4px !important; }
+  html body .brian-nav__account > span { width: 30px !important; height: 30px !important; }
+  html body .brian-nav__account i { display: none !important; }
+  html body :is(.brian-nav__icon, .brian-nav__login) { min-width: 36px !important; width: 36px !important; min-height: 36px !important; height: 36px !important; }
+  html body .app-shell[data-route] > .bes-top-chrome .brian-editorial-brief {
+    min-height: 36px !important;
+    height: 36px !important;
+    max-height: 36px !important;
+    padding-inline: 10px !important;
+  }
+  html body .brian-editorial-brief__news { height: 36px !important; gap: 9px !important; }
+  html body .brian-editorial-brief__label { min-height: 36px !important; height: 36px !important; font-size: 9px !important; }
+  html body .brian-editorial-brief__track,
+  html body .brian-editorial-brief__ticker,
+  html body .brian-editorial-brief__ticker-group,
+  html body .brian-editorial-brief__headline { min-height: 36px !important; height: 36px !important; }
+  html body .brian-editorial-brief__headline { font-size: 11.5px !important; }
+  html body .brian-editorial-brief__chips { height: 36px !important; padding-left: 7px !important; }
+  html body .brian-editorial-brief__chips button { min-width: 34px !important; width: 34px !important; height: 32px !important; padding: 0 !important; }
+  html body .brian-editorial-brief__chips button span { display: none !important; }
+}
+
+@media (max-width: 520px) {
+  html body .brian-nav__brand::after { display: none !important; }
+  html body .brian-nav__brand { padding-right: 2px !important; }
+  html body .brian-nav__actions { border-left: 0 !important; }
+  html body .brian-nav__ai-button { display: none !important; }
+  html body .brian-editorial-brief__label { letter-spacing: .08em !important; }
+}
