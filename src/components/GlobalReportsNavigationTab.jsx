@@ -39,6 +39,13 @@ export default function GlobalReportsNavigationTab({
       || hasToolAccess(currentUser, 'brian-team')
     )
   ), [currentUser]);
+  const active = route === 'tool' && selectedTool?.slug === 'brian-team';
+
+  useEffect(() => {
+    if (!active) return;
+    import('../styles/MonthlyReportsRouteBundle.css')
+      .catch((error) => console.warn('[Reports] Could not load route visual bundle:', error));
+  }, [active]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
@@ -122,7 +129,6 @@ export default function GlobalReportsNavigationTab({
 
   if (!host || !allowed) return null;
 
-  const active = route === 'tool' && selectedTool?.slug === 'brian-team';
   const departmentLeader = isDepartmentLeaderRole(currentUser?.role);
   const showCountdownUnderLabel = active && departmentLeader;
   const label = language === 'vi' ? 'Báo cáo' : 'Reports';
