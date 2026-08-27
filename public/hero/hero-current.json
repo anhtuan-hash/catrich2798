@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "revision": "1785858855981-7a4f693d",
-  "publishedAt": "2026-08-04T15:54:15.981Z",
+  "revision": "1787806877044-5ea74963",
+  "publishedAt": "2026-08-27T05:01:17.044Z",
   "publishedBy": "anhtuan@pek.edu.vn",
   "delivery": "vercel-static",
   "config": {
@@ -19,8 +19,8 @@
       "headlineEn": "A smart\nteaching\nworkspace",
       "highlightVi": "& sáng tạo",
       "highlightEn": "& creative learning",
-      "descriptionVi": "Tích hợp các công cụ hỗ trợ giảng dạy, học tập và quản lý hiệu quả — tối ưu cho giáo viên và học sinh.",
-      "descriptionEn": "Teaching, learning and management tools in one efficient workspace for teachers and students.",
+      "descriptionVi": "",
+      "descriptionEn": "",
       "headlineColor": "#102b55",
       "highlightColor": "#185ee8",
       "descriptionColor": "#566b88"
@@ -83,10 +83,10 @@
     ],
     "background": {
       "type": "image",
-      "url": "/hero/media/hero-1785858855981-d63f5713217b.webp",
+      "url": "/hero/media/hero-1787806877044-20a5e8a480a8.jpg",
       "posterUrl": "",
-      "fileName": "hero-1785858855981-d63f5713217b.webp",
-      "mimeType": "image/webp",
+      "fileName": "hero-1787806877044-20a5e8a480a8.jpg",
+      "mimeType": "image/jpeg",
       "fit": "cover",
       "positionX": 70,
       "positionY": 50,
