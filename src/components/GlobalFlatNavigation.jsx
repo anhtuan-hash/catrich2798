@@ -1,6 +1,7 @@
 import React from 'react';
 import '../data/registerSeatingChartStudio.js';
 import Navigation from './GlobalCompactNavigation.jsx';
+import GlobalEditorialBriefBar from './GlobalEditorialBriefBar.jsx';
 import GlobalPrimaryNavigationPin from './GlobalPrimaryNavigationPin.jsx';
 import GlobalNativeTextScaleReset from './GlobalNativeTextScaleReset.jsx';
 import GlobalGuestNavigationHub from './GlobalGuestNavigationHub.jsx';
@@ -48,7 +49,6 @@ import './GlobalHomeBriefingContextFix.css';
 import './GlobalHomeBriefingUnderLogoFix.css';
 import './GlobalAuroraChrome.css';
 import './GlobalSeparatedPills.css';
-import './GlobalTickerRestore.css';
 import './GlobalNavigationPremiumV2.css';
 import './GlobalNavigationWholeHubAura.css';
 import './GlobalGuestWholeHubAuraFix.css';
@@ -65,7 +65,7 @@ import './GlobalNavigationGoogleM3Polish.css';
 import './GlobalNavigationSearchPillRefinement.css';
 import './GlobalNavigationNoSearch.css';
 // Absolute final contract: only the primary navigation row is fixed; the
-// briefing row remains visible in normal document flow.
+// editorial briefing row remains visible in normal document flow.
 import './GlobalBrianHub.css';
 // Keep the catrich.mauxanh wordmark visible after every navigation theme.
 import './GlobalCatRichHeaderVisibilityFix.css';
@@ -79,12 +79,12 @@ import './GlobalCriticalJankGuard.css';
 // Notification Center and Work Hub UI are retired; TTCM is the single collaboration surface.
 import './GlobalNotificationCenterRemoval.css';
 
-
 export default function GlobalFlatNavigation(props) {
   return (
     <>
       <GlobalNativeTextScaleReset />
       <Navigation {...props} />
+      <GlobalEditorialBriefBar route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalPrimaryNavigationPin route={props.route} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHomeViewportFitBridge route={props.route} />
