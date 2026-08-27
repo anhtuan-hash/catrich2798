@@ -215,10 +215,6 @@ create policy "bes_class_rosters_insert"
         roster_key like 'class:%'
         and public.bes_has_any_class_assignment(class_name)
       )
-      or (
-        roster_key like 'department:%'
-        and public.bes_has_class_assignment(department_id, class_name)
-      )
     )
   );
 
