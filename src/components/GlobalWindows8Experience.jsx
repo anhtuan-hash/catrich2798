@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { GLOBAL_MOTION_EVENT } from '../utils/globalMotionSystem.js';
-import './GlobalWindows8Experience.css';
 
 const ROUTE_ORDER = [
   'home', 'apps', 'news', 'games', 'tools', 'homeroom', 'homeroom-portal',
