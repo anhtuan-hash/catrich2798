@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import GradebookWorkspace from '../components/gradebook/GradebookWorkspace.jsx';
 import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
 import {
@@ -12,9 +12,13 @@ import {
 } from '../utils/gradebookWorkspaceStore.js';
 import {
   hydrateGradebookWithSharedRoster,
+  mergeSharedRosterIntoWorkspace,
   projectSharedRosterStudents,
-  saveSharedGradebookRoster,
 } from '../utils/gradebookRosterStore.js';
+import {
+  saveSharedGradebookRosterSafely,
+  subscribeSharedGradebookRoster,
+} from '../utils/gradebookRosterSync.js';
 import {
   listMyGradebookTeachingAssignments,
   matchGradebookClassToAssignment,
@@ -67,6 +71,9 @@ function rosterFingerprint(students = []) {
 
 function rosterStatusLabel(source, vi = true) {
   if (source === 'roster-cloud') return vi ? '✓ Danh sách dùng chung' : '✓ Shared roster';
+  if (source === 'roster-realtime') return vi ? '● Danh sách dùng chung · realtime' : '● Shared roster · realtime';
+  if (source === 'roster-conflict-resolved') return vi ? '✓ Danh sách dùng chung · đã hòa giải' : '✓ Shared roster · conflict resolved';
+  if (source === 'roster-concurrent-retry') return vi ? 'Danh sách dùng chung · cần kiểm tra lại' : 'Shared roster · review needed';
   if (source === 'roster-cloud-empty') return vi ? 'Danh sách dùng chung sẵn sàng' : 'Shared roster ready';
   if (source === 'roster-table-pending') return vi ? 'Danh sách cục bộ · chờ kích hoạt cloud' : 'Local roster · cloud pending';
   if (source === 'roster-cloud-error') return vi ? 'Danh sách cục bộ · lỗi đồng bộ' : 'Local roster · sync issue';
@@ -86,6 +93,8 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const [catalog, setCatalog] = useState(initialCatalog);
   const [workspaceId, setWorkspaceId] = useState(initialId);
   const [workspace, setWorkspace] = useState(() => initialId ? loadLocalGradebookClass(currentUser, initialId) : null);
+  const workspaceRef = useRef(workspace);
+  workspaceRef.current = workspace;
   const [view, setView] = useState('gradebook');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -152,7 +161,9 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
         const rosterResult = await hydrateGradebookWithSharedRoster(currentUser, result.workspace);
         if (!alive) return;
         const hydrated = rosterResult.workspace || result.workspace;
-        setWorkspace(saveLocalGradebookClass(hydrated, currentUser));
+        const saved = saveLocalGradebookClass(hydrated, currentUser);
+        workspaceRef.current = saved;
+        setWorkspace(saved);
         setRosterSource(rosterResult.source || 'roster-local');
       } finally {
         if (alive) setLoading(false);
@@ -168,28 +179,67 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     window.__besGradebookStudioMessage = window.setTimeout(() => setMessage(''), 3600);
   };
 
+  useEffect(() => {
+    const current = workspaceRef.current;
+    if (!current || !workspaceId) return undefined;
+
+    return subscribeSharedGradebookRoster(currentUser, current, ({ roster, updatedBy }) => {
+      const latest = workspaceRef.current;
+      if (!latest || latest.id !== workspaceId || !roster?.students) return;
+      const merged = mergeSharedRosterIntoWorkspace(latest, roster.students);
+      const saved = saveLocalGradebookClass(merged, currentUser);
+      workspaceRef.current = saved;
+      setWorkspace(saved);
+
+      const selfUpdate = String(updatedBy || '') === String(currentUser?.id || '');
+      setRosterSource(selfUpdate ? 'roster-cloud' : 'roster-realtime');
+      if (!selfUpdate) {
+        flash('Danh sách học sinh vừa được cập nhật từ Sổ điểm của giáo viên khác. Điểm và ghi chú môn học của bạn vẫn được giữ nguyên.');
+      }
+    });
+  }, [
+    currentUser?.id,
+    currentUser?.authId,
+    currentUser?.email,
+    workspaceId,
+    workspace?.classProfile?.assignmentDepartmentId,
+    workspace?.classProfile?.className,
+    workspace?.classProfile?.schoolYear,
+  ]);
+
   const commit = async (next, successMessage = 'Đã lưu dữ liệu sổ điểm.') => {
-    const rosterChanged = rosterFingerprint(next?.students) !== rosterFingerprint(workspace?.students);
+    const rosterChanged = rosterFingerprint(next?.students) !== rosterFingerprint(workspaceRef.current?.students);
     const local = saveLocalGradebookClass(next, currentUser);
+    workspaceRef.current = local;
     setWorkspace(local);
     setSaving(true);
 
     const [result, rosterResult] = await Promise.all([
       saveGradebookClass(local, currentUser),
-      rosterChanged ? saveSharedGradebookRoster(currentUser, local) : Promise.resolve(null),
+      rosterChanged ? saveSharedGradebookRosterSafely(currentUser, local) : Promise.resolve(null),
     ]);
 
     setSaving(false);
     if (rosterResult) setRosterSource(rosterResult.source || 'roster-local');
 
+    const gradebookWorkspace = result.workspace || local;
+    const resolvedWorkspace = rosterResult?.workspace
+      ? { ...gradebookWorkspace, students: rosterResult.workspace.students }
+      : gradebookWorkspace;
+    const savedResolved = saveLocalGradebookClass(resolvedWorkspace, currentUser);
+    workspaceRef.current = savedResolved;
+
     if (result.ok) {
-      setWorkspace(result.workspace || local);
-      if (rosterChanged && rosterResult && !rosterResult.ok && !rosterResult.missingTable) {
-        flash(`${successMessage} Sổ điểm đã lưu; danh sách dùng chung chưa đồng bộ: ${rosterResult.message || 'lỗi chưa xác định'}`);
+      setWorkspace(savedResolved);
+      if (rosterResult?.conflictResolved) {
+        flash(`${successMessage} Brian đã tự hòa giải ${rosterResult.conflicts?.length || 1} trường dữ liệu bị sửa đồng thời và giữ bản cloud ở đúng trường xung đột.`);
+      } else if (rosterChanged && rosterResult && !rosterResult.ok && !rosterResult.missingTable) {
+        flash(`${successMessage} Sổ điểm đã lưu; ${rosterResult.message || 'danh sách dùng chung chưa đồng bộ.'}`);
       } else {
         flash(successMessage);
       }
     } else {
+      setWorkspace(savedResolved);
       flash(`${successMessage} Đã lưu trên thiết bị; cloud chưa đồng bộ: ${result.message || 'lỗi chưa xác định'}`);
     }
     await refreshCatalog();
@@ -228,6 +278,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     }
     await refreshCatalog();
     setWorkspace(result.workspace);
+    workspaceRef.current = result.workspace;
     setWorkspaceId(result.workspace.id);
     persistSelectedClassId(currentUser, result.workspace.id);
     setCreateOpen(false);
@@ -271,7 +322,12 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const activeSubject = workspace?.classProfile?.teachingSubject || activeMeta?.teachingSubject || '';
   const vi = language === 'vi';
   const rosterLabel = rosterStatusLabel(rosterSource, vi);
-  const rosterCloudReady = rosterSource === 'roster-cloud' || rosterSource === 'roster-cloud-empty';
+  const rosterCloudReady = [
+    'roster-cloud',
+    'roster-cloud-empty',
+    'roster-realtime',
+    'roster-conflict-resolved',
+  ].includes(rosterSource);
 
   return <div className="page hr-page gradebook-studio">
     <section className="gradebook-studio-hero">
