@@ -51,8 +51,6 @@ import './GlobalNavigationScrollableTabs.css';
 import './GlobalWordGraphGoogleM3.css';
 import './GlobalAutosaveGoogle.css';
 import './GlobalHomeAuroraV3.css';
-import './GlobalHomeBriefingContextFix.css';
-import './GlobalHomeBriefingUnderLogoFix.css';
 import './GlobalAuroraChrome.css';
 import './GlobalSeparatedPills.css';
 import './GlobalNavigationPremiumV2.css';
