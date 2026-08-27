@@ -1,6 +1,5 @@
-import HomeroomLearningGradebook from '../homeroom/HomeroomLearningGradebook.jsx';
+import GradebookEngine from './GradebookEngine.jsx';
 
-// Gradebook now owns its public component boundary. The proven grade-entry
-// engine remains reused internally during the compatibility phase so existing
-// data, Excel export and PDF reports stay byte-for-byte behavior compatible.
-export default HomeroomLearningGradebook;
+// Public Gradebook boundary. The engine now lives in the Gradebook domain;
+// Homeroom no longer owns or imports grade-entry code.
+export default GradebookEngine;
