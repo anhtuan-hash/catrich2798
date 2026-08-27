@@ -92,6 +92,8 @@ import './GlobalNotificationCenterFinalRemoval.css';
 import './GlobalSingleNavigationHubAuthority.css';
 // Final Homeroom density authority: compact excessive whitespace without affecting other routes.
 import './homeroom/HomeroomCompactDensity.css';
+// Final semantic order authority: Home is always the first destination in the shared rail.
+import './GlobalNavigationSemanticOrderFix.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
