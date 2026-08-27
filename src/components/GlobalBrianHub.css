@@ -2,13 +2,13 @@
    Only the primary navigation row is fixed to the viewport. The briefing row
    always remains visible in normal document flow and scrolls with page content.
 
-   Geometry contract: the primary navigation is always 76px tall. Responsive
-   rules may simplify labels or overflow handling, but they must not change the
-   bar height, control height, radius, or vertical offset. */
+   Desktop geometry uses a 76px primary row. Small-screen geometry is defined
+   here as part of the same canonical hub contract so iPhone/PWA layouts do not
+   rely on browser scaling. */
 
 html {
   --bes-primary-nav-height: 76px;
-  scroll-padding-top: calc(var(--bes-primary-nav-height, 76px) + 16px) !important;
+  scroll-padding-top: calc(var(--brian-safe-top, 0px) + var(--bes-primary-nav-height, 76px) + 16px) !important;
   --bes-pinned-nav-height: 0px !important;
 }
 
@@ -31,7 +31,7 @@ html body .app-shell[data-route] > .bes-top-chrome {
   gap: 8px !important;
   box-sizing: border-box !important;
   margin: 0 !important;
-  padding: 8px clamp(8px, 1.25vw, 20px) 0 !important;
+  padding: 8px max(clamp(8px, 1.25vw, 20px), var(--brian-safe-right, 0px)) 0 max(clamp(8px, 1.25vw, 20px), var(--brian-safe-left, 0px)) !important;
   min-height: 0 !important;
   height: auto !important;
   overflow: visible !important;
@@ -48,7 +48,7 @@ html body .app-shell[data-route] > .bes-top-chrome {
 /* The fixed navigation is removed from document flow. Reserve its exact fixed
    height inside the chrome so the briefing row and page content never jump. */
 html body .app-shell[data-route] > .bes-top-chrome[data-bes-primary-nav-host='true'] {
-  padding-top: calc(var(--bes-primary-nav-height, 76px) + 16px) !important;
+  padding-top: calc(var(--brian-safe-top, 0px) + var(--bes-primary-nav-height, 76px) + 16px) !important;
 }
 
 html body .app-shell[data-route] > .bes-top-chrome > * {
@@ -97,13 +97,12 @@ html body .app-shell[data-route] > .bes-top-chrome .brian-nav {
 html body .app-shell[data-route] > .bes-top-chrome[data-bes-primary-nav-host='true']
   .brian-nav[data-bes-primary-nav-fixed='true'] {
   position: fixed !important;
-  inset: auto clamp(8px, 1.25vw, 20px) auto clamp(8px, 1.25vw, 20px) !important;
-  inset-block-start: 8px !important;
-  inset-inline: clamp(8px, 1.25vw, 20px) !important;
-  top: 8px !important;
-  right: clamp(8px, 1.25vw, 20px) !important;
+  inset: auto max(clamp(8px, 1.25vw, 20px), var(--brian-safe-right, 0px)) auto max(clamp(8px, 1.25vw, 20px), var(--brian-safe-left, 0px)) !important;
+  inset-block-start: calc(var(--brian-safe-top, 0px) + 8px) !important;
+  top: calc(var(--brian-safe-top, 0px) + 8px) !important;
+  right: max(clamp(8px, 1.25vw, 20px), var(--brian-safe-right, 0px)) !important;
   bottom: auto !important;
-  left: clamp(8px, 1.25vw, 20px) !important;
+  left: max(clamp(8px, 1.25vw, 20px), var(--brian-safe-left, 0px)) !important;
   width: auto !important;
   min-width: 0 !important;
   max-width: none !important;
@@ -117,8 +116,6 @@ html body .app-shell[data-route] > .bes-top-chrome .brian-nav__actions {
   min-width: 0 !important;
 }
 
-/* Control geometry stays identical even when global text size or viewport size
-   changes. Labels may be hidden by responsive rules, but controls do not grow. */
 html body .app-shell[data-route] > .bes-top-chrome .brian-nav__brand {
   min-height: 46px !important;
   height: 46px !important;
@@ -130,6 +127,7 @@ html body .app-shell[data-route] > .bes-top-chrome .brian-nav__primary {
   overflow-y: hidden !important;
   scrollbar-width: none !important;
   overscroll-behavior-inline: contain !important;
+  -webkit-overflow-scrolling: touch !important;
 }
 
 html body .app-shell[data-route] > .bes-top-chrome .brian-nav__primary::-webkit-scrollbar {
@@ -163,7 +161,6 @@ html body .app-shell[data-route] > .bes-top-chrome .brian-nav__primary button.is
   box-shadow: 0 8px 20px color-mix(in srgb, var(--active-app-accent, #0b57d0) 16%, transparent) !important;
 }
 
-/* Briefing row: always visible, never fixed and never collapsed by scrolling. */
 html body .app-shell[data-route] > .bes-top-chrome .brian-briefing-bar,
 html body .app-shell[data-route] > .bes-top-chrome[data-bes-hub-scrolled] .brian-briefing-bar,
 html body .app-shell[data-route][data-bes-header-scrolled] > .bes-top-chrome .brian-briefing-bar {
@@ -201,8 +198,6 @@ html body .app-shell[data-route][data-bes-header-scrolled] > .bes-top-chrome .br
   translate: none !important;
 }
 
-/* Neutralize legacy markers. They cannot pin the complete chrome or hide the
-   briefing row, even when an old cached page briefly restores those attributes. */
 html body .app-shell[data-route][data-bes-nav-pinned],
 html body .app-shell[data-route][data-bes-header-scrolled] {
   padding-block-start: 0 !important;
@@ -222,10 +217,9 @@ html body .app-shell[data-route] :is(
   main.wp8-page-stage,
   [role='main']
 ) {
-  scroll-margin-top: calc(var(--bes-primary-nav-height, 76px) + 16px);
+  scroll-margin-top: calc(var(--brian-safe-top, 0px) + var(--bes-primary-nav-height, 76px) + 16px);
 }
 
-/* Keep menus and notification panels above the fixed navigation surface. */
 html body .app-shell[data-route] > .bes-top-chrome :is(
   .brian-nav__popover,
   .brian-notification-center,
@@ -247,44 +241,98 @@ html body .app-shell[data-route] > .bes-top-chrome :is(
 
 @media (max-width: 820px) {
   html {
-    scroll-padding-top: calc(var(--bes-primary-nav-height, 76px) + 16px) !important;
+    --bes-primary-nav-height: 68px;
+    scroll-padding-top: calc(var(--brian-safe-top, 0px) + var(--bes-primary-nav-height, 68px) + 12px) !important;
   }
 
   html body .app-shell[data-route] > .bes-top-chrome {
-    padding-inline: 6px !important;
+    padding-left: max(6px, var(--brian-safe-left, 0px)) !important;
+    padding-right: max(6px, var(--brian-safe-right, 0px)) !important;
     gap: 6px !important;
   }
 
   html body .app-shell[data-route] > .bes-top-chrome[data-bes-primary-nav-host='true'] {
-    padding-top: calc(var(--bes-primary-nav-height, 76px) + 16px) !important;
+    padding-top: calc(var(--brian-safe-top, 0px) + var(--bes-primary-nav-height, 68px) + 12px) !important;
   }
 
   html body .app-shell[data-route] > .bes-top-chrome .brian-nav {
-    min-height: var(--bes-primary-nav-height, 76px) !important;
-    height: var(--bes-primary-nav-height, 76px) !important;
-    max-height: var(--bes-primary-nav-height, 76px) !important;
+    min-height: var(--bes-primary-nav-height, 68px) !important;
+    height: var(--bes-primary-nav-height, 68px) !important;
+    max-height: var(--bes-primary-nav-height, 68px) !important;
     grid-template-columns: auto minmax(0, 1fr) auto !important;
-    padding: 10px 12px !important;
-    border-radius: 28px !important;
+    gap: 6px !important;
+    padding: 7px 8px !important;
+    border-radius: 22px !important;
   }
 
   html body .app-shell[data-route] > .bes-top-chrome[data-bes-primary-nav-host='true']
     .brian-nav[data-bes-primary-nav-fixed='true'] {
-    inset-block-start: 8px !important;
-    inset-inline: 6px !important;
-    top: 8px !important;
-    right: 6px !important;
-    left: 6px !important;
+    inset-block-start: calc(var(--brian-safe-top, 0px) + 6px) !important;
+    top: calc(var(--brian-safe-top, 0px) + 6px) !important;
+    right: max(6px, var(--brian-safe-right, 0px)) !important;
+    left: max(6px, var(--brian-safe-left, 0px)) !important;
+  }
+
+  html body .app-shell[data-route] > .bes-top-chrome .brian-nav__brand {
+    min-height: 50px !important;
+    height: 50px !important;
+    max-height: 50px !important;
+    padding-inline: 5px !important;
+  }
+
+  html body .app-shell[data-route] > .bes-top-chrome .brian-nav__brand img {
+    width: 38px !important;
+    height: 38px !important;
   }
 
   html body .app-shell[data-route] > .bes-top-chrome .brian-nav__brand span,
-  html body .app-shell[data-route] > .bes-top-chrome .brian-nav__account strong {
+  html body .app-shell[data-route] > .bes-top-chrome .brian-nav__account strong,
+  html body .app-shell[data-route] > .bes-top-chrome .brian-nav__account i {
     display: none !important;
   }
 
+  html body .app-shell[data-route] > .bes-top-chrome .brian-nav__primary {
+    gap: 2px !important;
+    scroll-snap-type: x proximity;
+  }
+
+  html body .app-shell[data-route] > .bes-top-chrome .brian-nav__primary button {
+    min-height: 48px !important;
+    height: 48px !important;
+    max-height: 48px !important;
+    padding-inline: 13px !important;
+    border-radius: 13px !important;
+    font-size: .92rem !important;
+    scroll-snap-align: start;
+  }
+
+  html body .app-shell[data-route] > .bes-top-chrome :is(.brian-nav__icon,.brian-nav__account,.brian-nav__login) {
+    min-height: 48px !important;
+    height: 48px !important;
+    max-height: 48px !important;
+  }
+
+  html body .app-shell[data-route] > .bes-top-chrome .brian-nav__account {
+    min-width: 48px !important;
+    width: 48px !important;
+    padding: 4px !important;
+    grid-template-columns: 1fr !important;
+  }
+
   html body .app-shell[data-route] > .bes-top-chrome .brian-briefing-bar {
-    min-height: 54px !important;
+    min-height: 50px !important;
+    border-radius: 18px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  html body .app-shell[data-route] > .bes-top-chrome .brian-nav {
     border-radius: 20px !important;
+  }
+
+  html body .app-shell[data-route] > .bes-top-chrome .brian-nav__primary button {
+    padding-inline: 12px !important;
+    font-size: .9rem !important;
   }
 }
 
