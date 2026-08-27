@@ -1,0 +1,19 @@
+/* Brian English · Global subtitle visibility
+   Admin-controlled density layer. Only nodes marked by globalSubtitleSystem are hidden.
+   Critical helper/error/form/alert text is deliberately excluded by the runtime classifier. */
+
+html[data-subtitles-visible='false'] [data-bes-subtitle='true']:not([data-bes-subtitle-keep='true']) {
+  display: none !important;
+}
+
+/* Explicit opt-out for content that must always remain visible even if a legacy
+   class happens to contain “subtitle”. */
+[data-bes-subtitle-keep='true'] {
+  display: revert;
+}
+
+/* Removing a subtitle should also remove common empty spacing that would
+   otherwise make the page look as though content is missing. */
+html[data-subtitles-visible='false'] [data-bes-subtitle='true'] + :is(h1,h2,h3,h4) {
+  margin-block-start: 0 !important;
+}
