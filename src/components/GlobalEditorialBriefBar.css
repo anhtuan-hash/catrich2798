@@ -71,35 +71,26 @@
   position: relative;
   min-width: 0;
   height: 34px;
-  display: flex;
-  align-items: center;
+  display: block;
   overflow: hidden;
   white-space: nowrap;
+  scroll-behavior: auto !important;
+  scrollbar-width: none;
   mask-image: linear-gradient(90deg, transparent 0, #000 2%, #000 98%, transparent 100%);
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 2%, #000 98%, transparent 100%);
 }
 
+.brian-editorial-brief__track::-webkit-scrollbar {
+  display: none;
+}
+
 .brian-editorial-brief__ticker {
-  flex: 0 0 auto;
   width: max-content;
   min-width: max-content;
+  min-height: 34px;
   display: inline-flex;
   align-items: center;
   color: #40566d;
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
-  will-change: transform;
-}
-
-.brian-editorial-brief__ticker.is-running {
-  animation: brianNavigationNewswireRTL 46s linear infinite;
-  -webkit-animation: brianNavigationNewswireRTL 46s linear infinite;
-}
-
-.brian-editorial-brief__track:hover .brian-editorial-brief__ticker.is-running,
-.brian-editorial-brief__track:focus-within .brian-editorial-brief__ticker.is-running {
-  animation-play-state: paused;
-  -webkit-animation-play-state: paused;
 }
 
 .brian-editorial-brief__ticker-group {
@@ -206,22 +197,6 @@
   stroke-linejoin: round;
 }
 
-@keyframes brianNavigationNewswireRTL {
-  from {
-    transform: translate3d(0, 0, 0);
-    -webkit-transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-50%, 0, 0);
-    -webkit-transform: translate3d(-50%, 0, 0);
-  }
-}
-
-@-webkit-keyframes brianNavigationNewswireRTL {
-  from { -webkit-transform: translate3d(0, 0, 0); }
-  to { -webkit-transform: translate3d(-50%, 0, 0); }
-}
-
 @media (max-width: 980px) {
   .brian-editorial-brief {
     gap: 9px;
@@ -268,9 +243,8 @@
     height: 40px;
   }
 
-  .brian-editorial-brief__ticker.is-running {
-    animation-duration: 38s;
-    -webkit-animation-duration: 38s;
+  .brian-editorial-brief__ticker {
+    min-height: 40px;
   }
 
   .brian-editorial-brief__ticker-group {
