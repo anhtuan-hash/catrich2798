@@ -15,6 +15,10 @@ const STATE_SELECTOR = [
   '[class*="page-loading"]',
   '[class*="app-loading"]',
   '[class*="route-loading"]',
+  '[class*="__loading"]',
+  '[class$="-loading"]',
+  '[class*="_loading"]',
+  '[class*="loading-"]',
 ].join(',');
 
 const SPINNER_SELECTOR = [
@@ -22,10 +26,12 @@ const SPINNER_SELECTOR = [
   '[class$="-spinner"]',
   '[class*="-spinner "]',
   '[class$="_spinner"]',
+  '[class*="__spinner"]',
   '.loader',
   '[class$="-loader"]',
   '[class*="-loader "]',
   '[class$="_loader"]',
+  '[class*="__loader"]',
 ].join(',');
 
 function Dots({ className = '' }) {
