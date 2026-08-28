@@ -9,18 +9,46 @@ import { deadlineState, loadMonthlyReportDeadline } from '../utils/monthlyReport
 import './GlobalReportsNavigationTab.css';
 
 function compactCountdown(state, language) {
+  if (!state.active) return '—';
+  if (state.expired) return language === 'vi' ? 'Hết' : 'End';
+
+  const totalMs = Math.max(0, Number(state.totalMs || 0));
+  const days = Math.floor(totalMs / 86400000);
+  const hours = Math.floor(totalMs / 3600000);
+  const minutes = Math.floor(totalMs / 60000);
+  const seconds = Math.floor(totalMs / 1000);
+
+  if (days > 0) return language === 'vi' ? `${days}n` : `${days}d`;
+  if (hours > 0) return language === 'vi' ? `${hours}g` : `${hours}h`;
+  if (minutes > 0) return language === 'vi' ? `${minutes}p` : `${minutes}m`;
+  return `${Math.max(0, seconds)}s`;
+}
+
+function accessibleCountdown(state, language) {
   if (!state.active) return language === 'vi' ? 'Chưa đặt hạn' : 'No deadline';
-  if (state.expired) return language === 'vi' ? 'Hết hạn' : 'Expired';
+  if (state.expired) return language === 'vi' ? 'Đã hết hạn' : 'Expired';
 
   const totalMs = Math.max(0, Number(state.totalMs || 0));
   const days = Math.floor(totalMs / 86400000);
   const hours = Math.floor((totalMs % 86400000) / 3600000);
   const minutes = Math.floor((totalMs % 3600000) / 60000);
   const seconds = Math.floor((totalMs % 60000) / 1000);
-  const clock = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  const value = days > 0 ? `${days}n ${clock}` : clock;
 
-  return language === 'vi' ? `Còn ${value}` : `${value} left`;
+  if (language === 'vi') {
+    const parts = [];
+    if (days) parts.push(`${days} ngày`);
+    if (hours || days) parts.push(`${hours} giờ`);
+    if (minutes || hours || days) parts.push(`${minutes} phút`);
+    parts.push(`${seconds} giây`);
+    return `Còn ${parts.join(' ')}`;
+  }
+
+  const parts = [];
+  if (days) parts.push(`${days} day${days === 1 ? '' : 's'}`);
+  if (hours || days) parts.push(`${hours} hour${hours === 1 ? '' : 's'}`);
+  if (minutes || hours || days) parts.push(`${minutes} minute${minutes === 1 ? '' : 's'}`);
+  parts.push(`${seconds} second${seconds === 1 ? '' : 's'}`);
+  return `${parts.join(' ')} left`;
 }
 
 export default function GlobalReportsNavigationTab({
@@ -134,6 +162,7 @@ export default function GlobalReportsNavigationTab({
   const label = language === 'vi' ? 'Báo cáo' : 'Reports';
   const countdown = deadlineState(deadline, now);
   const countdownLabel = compactCountdown(countdown, language);
+  const countdownAccessibleLabel = accessibleCountdown(countdown, language);
   const countdownClass = countdown.expired ? 'is-expired' : (!countdown.active ? 'is-unset' : '');
   const deadlineTitle = deadline
     ? new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en', { dateStyle: 'short', timeStyle: 'medium' }).format(new Date(deadline))
@@ -144,8 +173,8 @@ export default function GlobalReportsNavigationTab({
       type="button"
       className={`brian-nav__reports-tab ${active ? 'is-active' : ''} ${showCountdownUnderLabel ? 'shows-countdown' : ''}`.trim()}
       aria-current={active ? 'page' : undefined}
-      aria-label={`${label} · ${countdownLabel}`}
-      title={deadlineTitle}
+      aria-label={`${label} · ${countdownAccessibleLabel}`}
+      title={`${deadlineTitle} · ${countdownAccessibleLabel}`}
       onClick={(event) => launchRoute({
         target: '#/tool/brian-team',
         label: language === 'vi' ? 'BC' : 'RP',
@@ -154,7 +183,7 @@ export default function GlobalReportsNavigationTab({
       })}
     >
       <span className="brian-nav__reports-label">{label}</span>
-      <span className={`brian-nav__reports-countdown ${countdownClass}`}>{countdownLabel}</span>
+      <span className={`brian-nav__reports-countdown ${countdownClass}`} aria-hidden="true">{countdownLabel}</span>
     </button>,
     host,
   );
