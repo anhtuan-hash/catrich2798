@@ -1,0 +1,345 @@
+/* Brian English · Raised primary navigation authority
+   Visual-only refinement for the shared top navigation. Route logic, permissions,
+   semantic ordering and portals remain owned by their existing components. */
+
+html body .app-shell[data-route] .brian-nav__primary {
+  gap: 10px !important;
+  padding: 0 2px !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']) {
+  --nav-accent: #1a73e8;
+  --nav-rgb: 26, 115, 232;
+  --nav-active-1: #4b9cff;
+  --nav-active-2: #1967d2;
+  position: relative !important;
+  isolation: isolate !important;
+  min-height: 56px !important;
+  height: 56px !important;
+  max-height: 56px !important;
+  padding: 0 18px 0 44px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(var(--nav-rgb), .19) !important;
+  border-radius: 17px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.995) 0%, rgba(var(--nav-rgb),.045) 100%) !important;
+  background-image: linear-gradient(180deg, rgba(255,255,255,.995) 0%, rgba(var(--nav-rgb),.045) 100%) !important;
+  color: var(--nav-accent) !important;
+  box-shadow:
+    0 10px 22px rgba(31, 46, 68, .095),
+    0 3px 8px rgba(var(--nav-rgb), .075),
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 -1px 0 rgba(var(--nav-rgb),.035) !important;
+  font-size: 14.5px !important;
+  font-weight: 760 !important;
+  letter-spacing: -.012em !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.72) !important;
+  transform: translate3d(0,0,0) !important;
+  transition:
+    transform 180ms cubic-bezier(.2,.8,.2,1),
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease !important;
+  will-change: transform, box-shadow !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Per-destination color identity, matching the approved visual mockup. */
+html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-child {
+  --nav-accent: #1967d2;
+  --nav-rgb: 25, 103, 210;
+  --nav-active-1: #4c9aff;
+  --nav-active-2: #1967d2;
+}
+html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2) {
+  --nav-accent: #7c3aed;
+  --nav-rgb: 124, 58, 237;
+  --nav-active-1: #9c6dff;
+  --nav-active-2: #7042dc;
+}
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__dashboard-tab {
+  --nav-accent: #078ea1;
+  --nav-rgb: 7, 142, 161;
+  --nav-active-1: #31bdcc;
+  --nav-active-2: #078596;
+}
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__homeroom-tab {
+  --nav-accent: #159447;
+  --nav-rgb: 21, 148, 71;
+  --nav-active-1: #48c879;
+  --nav-active-2: #158f4c;
+}
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__gradebook-tab {
+  --nav-accent: #ed8a08;
+  --nav-rgb: 237, 138, 8;
+  --nav-active-1: #ffb54a;
+  --nav-active-2: #eb8508;
+}
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab {
+  --nav-accent: #ef5b3e;
+  --nav-rgb: 239, 91, 62;
+  --nav-active-1: #ff855f;
+  --nav-active-2: #ef4f35;
+}
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab {
+  --nav-accent: #1f66d1;
+  --nav-rgb: 31, 102, 209;
+  --nav-active-1: #4d8fff;
+  --nav-active-2: #225fc9;
+  padding-inline: 17px !important;
+}
+
+/* Hover = physical lift; focus = accessible, polished halo. */
+html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):hover {
+  border-color: rgba(var(--nav-rgb), .30) !important;
+  background: linear-gradient(180deg, #fff 0%, rgba(var(--nav-rgb),.075) 100%) !important;
+  background-image: linear-gradient(180deg, #fff 0%, rgba(var(--nav-rgb),.075) 100%) !important;
+  color: var(--nav-accent) !important;
+  box-shadow:
+    0 15px 29px rgba(31, 46, 68, .14),
+    0 6px 13px rgba(var(--nav-rgb), .13),
+    inset 0 1px 0 #fff !important;
+  transform: translate3d(0,-3px,0) !important;
+}
+html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):focus-visible {
+  outline: none !important;
+  border-color: rgba(var(--nav-rgb), .46) !important;
+  box-shadow:
+    0 0 0 4px rgba(var(--nav-rgb), .13),
+    0 14px 28px rgba(31,46,68,.13),
+    0 5px 12px rgba(var(--nav-rgb),.12) !important;
+  transform: translate3d(0,-2px,0) !important;
+}
+html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):active {
+  box-shadow:
+    0 4px 10px rgba(31,46,68,.10),
+    0 2px 5px rgba(var(--nav-rgb),.10),
+    inset 0 2px 4px rgba(18,35,56,.09) !important;
+  transform: translate3d(0,1px,0) scale(.985) !important;
+  transition-duration: 70ms !important;
+}
+
+/* Active destination becomes the saturated focal button. */
+html body .app-shell[data-route] .brian-nav__primary > :is(
+  button.is-active,
+  button.active,
+  button[aria-current='page'],
+  a.is-active,
+  a.active,
+  a[aria-current='page']
+) {
+  border-color: rgba(var(--nav-rgb), .30) !important;
+  background: linear-gradient(135deg, var(--nav-active-1) 0%, var(--nav-active-2) 100%) !important;
+  background-image: linear-gradient(135deg, var(--nav-active-1) 0%, var(--nav-active-2) 100%) !important;
+  color: #fff !important;
+  box-shadow:
+    0 16px 30px rgba(var(--nav-rgb), .29),
+    0 6px 13px rgba(var(--nav-rgb), .18),
+    inset 0 1px 0 rgba(255,255,255,.35),
+    inset 0 -1px 0 rgba(28,37,48,.10) !important;
+  font-weight: 820 !important;
+  text-shadow: 0 1px 1px rgba(29,42,56,.16) !important;
+  transform: translate3d(0,-1px,0) !important;
+}
+html body .app-shell[data-route] .brian-nav__primary > :is(
+  button.is-active,
+  button.active,
+  button[aria-current='page'],
+  a.is-active,
+  a.active,
+  a[aria-current='page']
+):hover {
+  color: #fff !important;
+  box-shadow:
+    0 19px 36px rgba(var(--nav-rgb), .34),
+    0 8px 16px rgba(var(--nav-rgb), .20),
+    inset 0 1px 0 rgba(255,255,255,.38) !important;
+  transform: translate3d(0,-3px,0) !important;
+}
+
+/* Retire the old flat underline. Use ::after as a specular top highlight instead. */
+html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button'])::after,
+html body .app-shell[data-route] .brian-nav__primary > :is(button.is-active,button.active,button[aria-current='page'],a.is-active,a.active,a[aria-current='page'])::after {
+  content: '' !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  top: 1px !important;
+  right: 12px !important;
+  bottom: auto !important;
+  left: 12px !important;
+  width: auto !important;
+  height: 1px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.94), transparent) !important;
+  box-shadow: none !important;
+  opacity: .78 !important;
+  transform: none !important;
+  pointer-events: none !important;
+}
+
+/* Line icons. Masking makes every glyph automatically follow button color/active white. */
+html body .app-shell[data-route] .brian-nav__primary > :is(
+  button:not([class*='brian-nav__']):first-child,
+  button:not([class*='brian-nav__']):nth-of-type(2),
+  .brian-nav__dashboard-tab,
+  .brian-nav__homeroom-tab,
+  .brian-nav__gradebook-tab,
+  .brian-nav__reports-tab
+)::before {
+  content: '' !important;
+  position: absolute !important;
+  z-index: 1 !important;
+  top: 50% !important;
+  left: 15px !important;
+  width: 19px !important;
+  height: 19px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: currentColor !important;
+  transform: translateY(-50%) !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+  -webkit-mask-position: center !important;
+  -webkit-mask-repeat: no-repeat !important;
+  -webkit-mask-size: contain !important;
+  mask-position: center !important;
+  mask-repeat: no-repeat !important;
+  mask-size: contain !important;
+}
+
+/* Home */
+html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-child::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 11 9-8 9 8'/%3E%3Cpath d='M5 10v10h14V10'/%3E%3Cpath d='M9 20v-6h6v6'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 11 9-8 9 8'/%3E%3Cpath d='M5 10v10h14V10'/%3E%3Cpath d='M9 20v-6h6v6'/%3E%3C/svg%3E") !important;
+}
+/* Apps */
+html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='7' height='7' rx='1'/%3E%3Crect x='14' y='3' width='7' height='7' rx='1'/%3E%3Crect x='3' y='14' width='7' height='7' rx='1'/%3E%3Crect x='14' y='14' width='7' height='7' rx='1'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='7' height='7' rx='1'/%3E%3Crect x='14' y='3' width='7' height='7' rx='1'/%3E%3Crect x='3' y='14' width='7' height='7' rx='1'/%3E%3Crect x='14' y='14' width='7' height='7' rx='1'/%3E%3C/svg%3E") !important;
+}
+/* Dashboard */
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__dashboard-tab::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4 20V10'/%3E%3Cpath d='M10 20V4'/%3E%3Cpath d='M16 20v-7'/%3E%3Cpath d='M22 20V7'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4 20V10'/%3E%3Cpath d='M10 20V4'/%3E%3Cpath d='M16 20v-7'/%3E%3Cpath d='M22 20V7'/%3E%3C/svg%3E") !important;
+}
+/* Homeroom */
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__homeroom-tab::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='8' r='4'/%3E%3Cpath d='M2.5 21v-2a6.5 6.5 0 0 1 13 0v2'/%3E%3Cpath d='M16 5.5a4 4 0 0 1 0 7.5'/%3E%3Cpath d='M18 21v-2a6 6 0 0 0-2.2-4.6'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='8' r='4'/%3E%3Cpath d='M2.5 21v-2a6.5 6.5 0 0 1 13 0v2'/%3E%3Cpath d='M16 5.5a4 4 0 0 1 0 7.5'/%3E%3Cpath d='M18 21v-2a6 6 0 0 0-2.2-4.6'/%3E%3C/svg%3E") !important;
+}
+/* Gradebook */
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__gradebook-tab::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 3h14v18l-7-4-7 4V3Z'/%3E%3Cpath d='M9 8h6'/%3E%3Cpath d='M9 12h4'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 3h14v18l-7-4-7 4V3Z'/%3E%3Cpath d='M9 8h6'/%3E%3Cpath d='M9 12h4'/%3E%3C/svg%3E") !important;
+}
+/* Reports */
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2h9l4 4v16H6V2Z'/%3E%3Cpath d='M14 2v5h5'/%3E%3Cpath d='M9 12h6'/%3E%3Cpath d='M9 16h6'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2h9l4 4v16H6V2Z'/%3E%3Cpath d='M14 2v5h5'/%3E%3Cpath d='M9 12h6'/%3E%3Cpath d='M9 16h6'/%3E%3C/svg%3E") !important;
+}
+
+/* TTCM already owns a real SVG icon; align it with the same tactile system. */
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab .ttcm-m3-icon {
+  width: 19px !important;
+  height: 19px !important;
+  flex: 0 0 19px !important;
+  fill: currentColor !important;
+  color: inherit !important;
+}
+html body .app-shell[data-route] .brian-nav__ttcm-badge {
+  min-width: 18px !important;
+  height: 18px !important;
+  padding: 0 5px !important;
+  border: 1px solid rgba(255,255,255,.72) !important;
+  border-radius: 999px !important;
+  background: #e53935 !important;
+  color: #fff !important;
+  box-shadow: 0 2px 5px rgba(198,40,40,.24) !important;
+  font-size: 10px !important;
+  line-height: 16px !important;
+}
+
+/* Reports keeps its live deadline, but visually belongs to the active pill. */
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown {
+  min-width: 112px !important;
+  min-height: 56px !important;
+  height: 56px !important;
+  max-height: 56px !important;
+  padding: 6px 15px 5px 43px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px !important;
+}
+html body .app-shell[data-route] .brian-nav__reports-tab .brian-nav__reports-countdown,
+html body .app-shell[data-route] .brian-nav__reports-tab .brian-nav__reports-countdown.is-unset,
+html body .app-shell[data-route] .brian-nav__reports-tab .brian-nav__reports-countdown.is-expired {
+  color: currentColor !important;
+  opacity: .76 !important;
+  text-shadow: none !important;
+}
+html body .app-shell[data-route] .brian-nav__reports-tab:is(.is-active,[aria-current='page']) .brian-nav__reports-countdown,
+html body .app-shell[data-route] .brian-nav__reports-tab:is(.is-active,[aria-current='page']) .brian-nav__reports-countdown.is-unset,
+html body .app-shell[data-route] .brian-nav__reports-tab:is(.is-active,[aria-current='page']) .brian-nav__reports-countdown.is-expired {
+  color: rgba(255,255,255,.92) !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 1px rgba(91,35,23,.16) !important;
+}
+
+/* Make the host surface feel like the same premium floating object as the approved mockup. */
+html body .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true'] {
+  border-color: rgba(207,218,232,.88) !important;
+  background: rgba(255,255,255,.99) !important;
+  box-shadow:
+    0 18px 44px rgba(32,54,83,.115),
+    0 4px 12px rgba(32,54,83,.055),
+    inset 0 1px 0 rgba(255,255,255,.98) !important;
+}
+
+/* Keep the rail graceful when the viewport is narrower. */
+@media (max-width: 1180px) {
+  html body .app-shell[data-route] .brian-nav__primary {
+    gap: 7px !important;
+  }
+  html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']) {
+    min-height: 52px !important;
+    height: 52px !important;
+    max-height: 52px !important;
+    padding-right: 14px !important;
+    padding-left: 39px !important;
+    border-radius: 15px !important;
+    font-size: 13.5px !important;
+  }
+  html body .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab {
+    padding-inline: 14px !important;
+  }
+  html body .app-shell[data-route] .brian-nav__primary > :is(
+    button:not([class*='brian-nav__']):first-child,
+    button:not([class*='brian-nav__']):nth-of-type(2),
+    .brian-nav__dashboard-tab,
+    .brian-nav__homeroom-tab,
+    .brian-nav__gradebook-tab,
+    .brian-nav__reports-tab
+  )::before {
+    left: 13px !important;
+    width: 17px !important;
+    height: 17px !important;
+  }
+  html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown {
+    min-width: 104px !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    max-height: 52px !important;
+    padding-left: 38px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']) {
+    transition: none !important;
+  }
+  html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):hover,
+  html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):focus-visible,
+  html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):active {
+    transform: none !important;
+  }
+}
