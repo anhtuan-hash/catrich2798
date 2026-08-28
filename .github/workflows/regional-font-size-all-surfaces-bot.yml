@@ -36,6 +36,19 @@ jobs:
           PY
       - name: Patch regional font sizes
         run: python .github/scripts/patch-regional-font-sizes.py
+      - name: Update navigation-only legacy assertion
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/test-font-upload-live-preview.mjs')
+          text = path.read_text()
+          old = "  ['navigation font size has live range control', panel.includes('regional-font-card__font-size') && panel.includes('type=\"range\"') && panel.includes('setNavigationFontSize')],"
+          new = "  ['every regional font size has a live range control', panel.includes('regional-font-card__font-size') && panel.includes('type=\"range\"') && panel.includes('setRegionFontSize(region.id')],"
+          if old not in text:
+              raise SystemExit('legacy navigation-only range assertion not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
       - name: Install dependencies
         run: npm ci
       - name: Verify font contracts
