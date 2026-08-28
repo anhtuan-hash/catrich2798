@@ -4,6 +4,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/bes-fonts/brian-personal-font.ttf",
+      "destination": "https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf"
+    },
+    {
       "source": "/api/briefing-weather",
       "destination": "/api/gateway?handler=briefing-weather"
     },
@@ -102,6 +106,19 @@
         {
           "key": "Content-Type",
           "value": "application/javascript; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/bes-fonts/brian-personal-font.ttf",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Content-Type",
+          "value": "font/ttf"
         }
       ]
     },
